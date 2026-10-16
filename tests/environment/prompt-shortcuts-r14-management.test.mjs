@@ -76,9 +76,19 @@ async function fixture({deferWrites=false,deferReadback=false,initial=null,initi
     addEventListener(){},
   };
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
+  let siteStored=null,siteVersion='b'.repeat(64),siteWrites=0;
   const states=[],requests=[],pending=[],readbacks=[];
   const request=async(op,payload={})=>{
     requests.push({op,payload});
+    if(op==='prompt.page.context')return {status:'available',origin:'https://example.org',path:'/compose'};
+    if(op==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
+    if(op==='storage.get'&&payload.key==='sites')return {value:structuredClone(siteStored),etag:siteVersion};
+    if(op==='storage.set'&&payload.key==='sites'){
+      assert.equal(payload.ifMatch,siteVersion);
+      siteStored=structuredClone(payload.value);siteWrites++;
+      siteVersion=String(siteWrites).padStart(64,'b');
+      return {saved:true,etag:siteVersion};
+    }
     if(op==='storage.get'){
       assert.equal(payload.key,'library');
       assert.equal(payload.withEtag,true);
@@ -103,7 +113,7 @@ async function fixture({deferWrites=false,deferReadback=false,initial=null,initi
     throw Error('unexpected operation: '+op);
   };
   const sandbox={
-    Intl,TextEncoder,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},
+    Intl,TextEncoder,URL,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},
     OpenDeskTool:{root,request,setState:row=>states.push({...row})},
     OpenDeskSDK:{browser:{contextMenu:{
       getStatus:async()=>({enabled:false,approvedOrigins:[],browserPermission:false}),
@@ -113,7 +123,8 @@ async function fixture({deferWrites=false,deferReadback=false,initial=null,initi
   runInNewContext(modelSource,sandbox,{filename:'trusted/model.js'});
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
-  return {nodes,root,requests,states,pending,readbacks,copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes};
+  return {nodes,root,requests,states,pending,readbacks,copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
+    siteStored:()=>siteStored,siteWrites:()=>siteWrites};
 }
 test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard and quota recovery',async()=>{
   const f=await fixture(),n=f.nodes;
@@ -510,4 +521,29 @@ test('R1.13 empty body focuses the textarea with local validation',async()=>{
   assert.equal(f.writes(),0);
   assert.equal(n['ps-body'].focused,true);
   assert.match(n['ps-body-error'].textContent,/唯一必填/);
+});
+
+
+test('R2 Sandbox website manager saves an independent verified two-selector rule with ETag',async()=>{
+  const f=await fixture(),n=f.nodes;
+  n['ps-sites-open'].click();await settle();
+  assert.equal(n['ps-sites-panel'].hidden,false);
+  n['ps-site-current'].click();await settle();
+  assert.equal(n['ps-site-origin'].textContent,'https://example.org');
+  assert.equal(n['ps-site-form'].hidden,false);
+  n['ps-site-container'].value='main';n['ps-site-container'].emit('input');
+  n['ps-site-editor'].value='textarea';n['ps-site-editor'].emit('input');
+  n['ps-site-test'].click();await settle();
+  assert.match(n['ps-site-verified'].textContent,/验证成功/);
+  n['ps-site-save'].click();await settle();
+  assert.equal(f.siteWrites(),1);
+  assert.equal(f.siteStored().rules[0].origin,'https://example.org');
+  assert.equal(f.siteStored().rules[0].containerSelector,'main');
+  assert.equal(f.siteStored().rules[0].editorSelector,'textarea');
+  assert.equal(f.writes(),0,'website configuration must not rewrite the saved prompt library');
+  const saved=f.siteStored().rules[0];
+  assert.equal(saved.enabled,true);
+  buttonByText(n['ps-sites-list'],'停用').click();await settle();
+  assert.equal(f.siteStored().rules[0].enabled,false,'site toggle persists independently');
+  assert.equal(f.writes(),0);
 });

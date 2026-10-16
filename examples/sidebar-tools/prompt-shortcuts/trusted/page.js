@@ -1,7 +1,7 @@
 import './model.js';
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {PROMPT_ID,PROMPT_DATA_STORE,supportedOrigin,allowedPromptSite} from './policy.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
@@ -30,7 +30,7 @@ button:hover{background:#eef2ff;border-color:#365eda}
 const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
   PROMPT_DATA_STORE];
 export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
-  if(!doc||!win||win.top!==win||!supportedOrigin(win.location.href)||
+  if(!doc||!win||win.top!==win||!/^https?:\/\//i.test(win.location.href)||
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
@@ -38,14 +38,197 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let feedback=null,items=[],observer=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
   let locationTimer=0,folded=false,narrowMode=null,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
+  let activeRule=null,picker=null;
+  const detachPicker=entry=>{
+    if(!entry)return;
+    doc.removeEventListener('pointermove',entry.hover,true);
+    doc.removeEventListener('pointerdown',entry.block,true);
+    doc.removeEventListener('click',entry.choose,true);
+    doc.removeEventListener('keydown',entry.escape,true);
+    entry.outline?.remove();entry.label?.remove();
+    entry.outline=null;entry.label=null;
+  };
+  const closePicker=()=>{
+    if(!picker)return;
+    detachPicker(picker);
+    win.clearTimeout(picker.timer);picker=null;
+  };
   const stop=()=>{
-    visible=false;items=[];observer?.disconnect();observer=null;
+    visible=false;items=[];activeRule=null;closePicker();
+    observer?.disconnect();observer=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
     host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;toggleButton=null;
     feedback=null;narrowMode=null;folded=false;
   };
+
+  // User selectors are inert CSS data. Match exactly one live, visible node.
+  const one=selector=>{
+    if(!MODEL.validSelector(selector)||typeof doc.querySelectorAll!=='function')return null;
+    try{const found=doc.querySelectorAll(selector);return found.length===1?found[0]:null;}
+    catch{return null;}
+  };
+  const available=node=>{
+    if(!node?.isConnected||node.hidden||node.disabled||node.readOnly||
+       node.closest?.('[hidden],[inert],[aria-hidden="true"],[data-opendesk-prompts],[role="dialog"],[aria-modal="true"]'))return false;
+    const css=win.getComputedStyle?.(node);
+    if(css&&(css.display==='none'||['hidden','collapse'].includes(css.visibility)||
+       css.opacity==='0'))return false;
+    const r=node.getBoundingClientRect?.();
+    return Boolean(r&&r.width>0&&r.height>0&&r.left<win.innerWidth&&r.top<win.innerHeight&&
+       r.left+r.width>0&&r.top+r.height>0);
+  };
+  const editorKind=node=>{
+    if(!available(node))return null;
+    const tag=String(node.tagName||'').toLowerCase();
+    if(tag==='textarea')return 'textarea';
+    if(tag==='input'){
+      const type=String(node.type||node.getAttribute?.('type')||'text').toLowerCase();
+      const auto=String(node.getAttribute?.('autocomplete')||'').toLowerCase();
+      const identity=['name','id','aria-label','placeholder'].map(key=>
+        String(node.getAttribute?.(key)||'').toLowerCase()).join(' ');
+      if(type!=='text'||/password|cc-|one-time-code|credit-card|iban|bank|email|username/.test(auto)||
+         /(?:^|[^a-z])(password|login|sign.?in|user.?name|one.?time.?code|credit.?card|payment|search)(?:$|[^a-z])/.test(identity)||
+         node.closest?.('form[autocomplete="on"] input[type="password"]'))
+        return null;
+      return 'input';
+    }
+    if(node.getAttribute?.('contenteditable')==='true'&&node.isContentEditable)return 'richtext';
+    return null;
+  };
+  const checkedEditor=()=>{
+    const node=one(activeRule?.editorSelector);
+    return node&&editorKind(node)?node:null;
+  };
+  const pickerSelector=node=>{
+    if(!node||node===doc.documentElement||node===doc.body)return null;
+    const tag=String(node.tagName||'').toLowerCase();
+    if(!/^[a-z][a-z0-9-]{0,35}$/.test(tag))return null;
+    const unique=sel=>{
+      if(!MODEL.validSelector(sel))return false;
+      try{const found=doc.querySelectorAll(sel);return found.length===1&&found[0]===node;}
+      catch{return false;}
+    };
+    const id=node.getAttribute?.('id');
+    if(typeof id==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(id)&&
+       !/(?:^|[-_])(?:react|headlessui|radix|auto|generated)[-_]?\d/i.test(id)&&
+       unique('#'+id))return '#'+id;
+    for(const key of ['data-testid','data-test','data-cy','aria-label','placeholder','role']){
+      const val=node.getAttribute?.(key);
+      if(typeof val!=='string'||!/^[\p{L}\p{N}_ .-]{1,72}$/u.test(val))continue;
+      const selector='['+key+'="'+val+'"]';
+      if(unique(selector))return selector;
+      if(unique(tag+selector))return tag+selector;
+    }
+    if(unique(tag))return tag;
+    for(let parent=node.parentElement,depth=0;parent&&depth<4;parent=parent.parentElement,depth++){
+      const pid=parent.getAttribute?.('id');
+      if(typeof pid==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(pid)){
+        const scoped='#'+pid+' '+tag;
+        if(unique(scoped))return scoped;
+      }
+      for(const key of ['data-testid','role']){
+        const value=parent.getAttribute?.(key);
+        if(typeof value!=='string'||!/^[\p{L}\p{N}_ .-]{1,72}$/u.test(value))continue;
+        const scoped='['+key+'="'+value+'"] '+tag;
+        if(unique(scoped))return scoped;
+      }
+    }
+    return null;
+  };
+  const pickerCandidate=(target,kind)=>{
+    for(let node=target;node&&node!==doc.documentElement;node=node.parentElement){
+      if(!available(node))continue;
+      if(kind==='editor'){
+        if(!editorKind(node))continue;
+        if(node.getAttribute?.('contenteditable')==='true'||
+           ['input','textarea'].includes(String(node.tagName||'').toLowerCase()))
+          return pickerSelector(node)?node:null;
+      }else{
+        const box=node.getBoundingClientRect?.();
+        if(box?.width>=200&&box?.height>=90&&
+           !['input','textarea','button'].includes(String(node.tagName||'').toLowerCase())&&
+           pickerSelector(node))return node;
+      }
+    }
+    return null;
+  };
+
+
+  const startPicker=(kind,session)=>{
+    closePicker();
+    const outline=doc.createElement('div'),label=doc.createElement('div');
+    Object.assign(outline.style,{pointerEvents:'none',position:'fixed',zIndex:'2147483646',
+      border:'3px solid #365eda',background:'#365eda1a',boxSizing:'border-box',display:'none'});
+    Object.assign(label.style,{pointerEvents:'none',position:'fixed',zIndex:'2147483647',
+      top:'10px',left:'10px',padding:'8px 11px',borderRadius:'8px',background:'#253b74',
+      color:'#fff',font:'13px system-ui,sans-serif'});
+    label.textContent=kind==='editor'?'选择目标文本输入框 · Esc 取消':'选择按钮所依附的大区域 · Esc 取消';
+    label.setAttribute('aria-hidden','true');
+    (doc.documentElement||doc.body).append(outline,label);
+    const entry={kind,session,state:'selecting',selected:null,expiresAt:Date.now()+65000,
+      outline,label,hover:null,block:null,choose:null,escape:null,timer:0,lastHover:0};
+    entry.hover=event=>{
+      if(event.isTrusted===false||picker!==entry||Date.now()-entry.lastHover<45)return;
+      entry.lastHover=Date.now();
+      const node=pickerCandidate(event.target,kind);
+      if(!node){outline.style.display='none';return;}
+      const rect=node.getBoundingClientRect();
+      Object.assign(outline.style,{display:'block',left:Math.round(rect.left)+'px',
+        top:Math.round(rect.top)+'px',width:Math.round(rect.width)+'px',
+        height:Math.round(rect.height)+'px'});
+    };
+    entry.block=event=>{
+      if(picker!==entry||event.isTrusted===false)return;
+      event.preventDefault();event.stopImmediatePropagation?.();
+    };
+    entry.choose=event=>{
+      if(picker!==entry||event.isTrusted===false)return;
+      event.preventDefault();event.stopImmediatePropagation?.();
+      const node=pickerCandidate(event.target,kind),selector=pickerSelector(node);
+      if(!node||!selector){
+        label.textContent='未找到稳定、唯一的元素，请改选区域或手动输入 CSS';
+        return;
+      }
+      entry.selected={selector,editorType:kind==='editor'?editorKind(node):null};
+      entry.state='selected';detachPicker(entry);
+    };
+    entry.escape=event=>{
+      if(picker!==entry||event.key!=='Escape')return;
+      entry.state='cancelled';detachPicker(entry);
+      event.preventDefault();event.stopPropagation();
+    };
+    picker=entry;
+    doc.addEventListener('pointermove',entry.hover,true);
+    doc.addEventListener('pointerdown',entry.block,true);
+    doc.addEventListener('click',entry.choose,true);
+    doc.addEventListener('keydown',entry.escape,true);
+    entry.timer=win.setTimeout(closePicker,66000);
+    return {state:'selecting',session};
+  };
+  const checkRule=input=>{
+    const rule=MODEL.siteRule(input),here=new URL(win.location.href);
+    if(rule.origin!==here.origin||
+       !(rule.pathScope==='/'||here.pathname===rule.pathScope||
+         here.pathname.startsWith(rule.pathScope.endsWith('/')?rule.pathScope:rule.pathScope+'/')))
+      throw Error('当前页面不在该网站规则的路径范围内');
+    const container=one(rule.containerSelector),target=one(rule.editorSelector);
+    const box=container?.getBoundingClientRect?.(),kind=editorKind(target);
+    if(!container||!available(container)||!box||box.width<200||box.height<90)
+      throw Error('容器必须唯一匹配，且尺寸合理、在当前页面可见');
+    if(!target||!kind)
+      throw Error('输入框必须唯一匹配且是安全、可编辑的文本字段');
+    return {valid:true,containerMatches:1,editorMatches:1,editorType:kind,origin:here.origin};
+  };
+
   const mainRegion=()=>{
+    if(activeRule){
+      const node=one(activeRule.containerSelector);
+      if(!available(node))return null;
+      const rect=node.getBoundingClientRect();
+      return rect.width>=200&&rect.height>=90?{left:rect.left,top:rect.top,
+        width:rect.width,height:rect.height}:null;
+    }
     const node=doc.querySelector('main#main')||doc.querySelector('main');
     if(!node||!node.isConnected)return null;
     const rect=node.getBoundingClientRect();
@@ -88,7 +271,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   const layout=()=>{
     layoutTimer=0;if(!host||paused||disposed)return;
     if(href!==win.location.href){href=win.location.href;void refresh();return;}
-    const rect=mainRegion();if(!rect){host.hidden=true;return;}
+    const rect=mainRegion();if(!rect||(activeRule&&!checkedEditor())){host.hidden=true;return;}
     host.hidden=false;
     const left=Math.max(4,Math.min(win.innerWidth-52,Math.round(rect.left+12)));
     const top=Math.max(28,Math.min(win.innerHeight-28,Math.round(rect.top+rect.height/2)));
@@ -162,6 +345,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     }
   };
   const editor=()=>{
+    if(activeRule)return checkedEditor();
     const node=doc.querySelector('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea,main textarea#mobile-composer-prompt');
     if(!node||!node.isConnected||node.disabled||node.readOnly||node.hidden||node.closest('[data-opendesk-prompts]'))return null;
     const style=win.getComputedStyle?.(node);
@@ -195,15 +379,16 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       // Recheck installation, exact origin, grant, enable and data before effect.
       const data=await api.storage.local.get(KEYS);
       if(token!==epoch||location!==win.location.href||!await allowedPromptSite({
-        installed:data[SIDEBAR_TOOL_STORE],
-        enabled:data[SIDEBAR_TOOL_ENABLE_STORE],epochs:data[TOOL_REVOCATION_EPOCHS_STORE],url:location
+        installed:data[SIDEBAR_TOOL_STORE],enabled:data[SIDEBAR_TOOL_ENABLE_STORE],
+        epochs:data[TOOL_REVOCATION_EPOCHS_STORE],url:location,
+        sites:supportedOrigin(location)?null:MODEL.sitesLoad(data[PROMPT_DATA_STORE]?.sites)
       }))throw Error('网站授权或页面身份已变化');
       const library=model.load(data[PROMPT_DATA_STORE]?.library);
       if(library.settings.webButtons!==true||
         !library.items.some(item=>item.id===row.id&&item.body===row.body&&item.enabled))throw Error('提示词已变化或停用');
       if(token!==epoch||location!==win.location.href)throw Error('页面已切换');
       const target=editor();
-      if(!target)throw Error('找不到受支持的 ChatGPT 草稿编辑器');
+      if(!target)throw Error('找不到唯一且受支持的网页草稿编辑器，请重新验证网站选择器');
       // Composition may have started while the async grant read was pending.
       // Return without focusing the editor or a fallback textarea.
       if(composing)return;
@@ -220,6 +405,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       // dispatch synthetic input events, click Send, or replace a selection.
       const insertion=(before.trim()? '\n':'')+row.body;
       if(!doc.execCommand('insertText',false,insertion))throw Error('编辑器未确认插入');
+      // Wait for a framework-controlled editor to commit or reject the DOM
+      // edit before confirming. Never retry an unknown effect automatically.
+      if(activeRule)await new Promise(resolve=>win.setTimeout(resolve,90));
+      if(token!==epoch||location!==win.location.href)throw Error('页面身份在写入期间变化');
       const after=readDraft(target);
       // Check unchanged prefix, complete multiline suffix and ordering.
       // "includes(prompt)" would misreport success if it already existed.
@@ -277,16 +466,20 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   }
   async function refresh(){
     if(disposed||paused)return;
+    closePicker();
     const token=++epoch,url=win.location.href;href=url;
     try{
       const values=await api.storage.local.get(KEYS);
+      const sites=supportedOrigin(url)?null:MODEL.sitesLoad(values[PROMPT_DATA_STORE]?.sites);
       const permitted=await allowedPromptSite({
         installed:values[SIDEBAR_TOOL_STORE],
-        enabled:values[SIDEBAR_TOOL_ENABLE_STORE],epochs:values[TOOL_REVOCATION_EPOCHS_STORE],url
+        enabled:values[SIDEBAR_TOOL_ENABLE_STORE],epochs:values[TOOL_REVOCATION_EPOCHS_STORE],
+        url,sites
       });
       if(disposed||paused||token!==epoch)return;
       if(url!==win.location.href){void refresh();return;}
       if(!permitted){stop();return;}
+      activeRule=supportedOrigin(url)?null:MODEL.siteFor(sites,url);
       const library=model.load(values[PROMPT_DATA_STORE]?.library);
       if(!library.settings.webButtons){stop();return;}
       const rows=library.items.filter(item=>item.enabled);
@@ -316,6 +509,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(disposed)return;disposed=true;epoch++;stop();
     win.clearInterval(locationTimer);
     api.storage.onChanged.removeListener(onStorage);
+    api.runtime?.onMessage?.removeListener(onPickerMessage);
     win.removeEventListener('pageshow',onPageShow);win.removeEventListener('pagehide',onPageHide);
     win.removeEventListener('popstate',onNav);win.removeEventListener('resize',schedule);
     win.removeEventListener('scroll',schedule,true);
@@ -324,6 +518,45 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     doc.removeEventListener('compositionend',onCompositionEnd,true);
     if(win[SLOT]===controller)delete win[SLOT];
   }
+
+  // Existing trusted tab/document messaging, never executable sandbox JS.
+  // Only the extension's Side Panel may request the bounded picker protocol.
+  const onPickerMessage=(message,sender,respond)=>{
+    if(message?.protocol!==PROMPT_PICKER_PROTOCOL)return false;
+    const ownUrl=api.runtime?.getURL?.('');
+    if(!ownUrl||sender?.id!==api.runtime.id||typeof sender.url!=='string'||
+       !sender.url.startsWith(ownUrl)){
+      respond({ok:false,error:'E_SENDER'});return false;
+    }
+    if(message.toolId!==PROMPT_ID||message.expectedUrl!==win.location.href||
+       !['prompt.page.pick.start','prompt.page.pick.status','prompt.page.pick.cancel','prompt.page.check'].includes(message.operation)){
+      respond({ok:false,error:'E_DOCUMENT_CHANGED'});return false;
+    }
+    void (async()=>{
+      if(disposed||paused)throw Error('页面已暂停');
+      const values=await api.storage.local.get(KEYS);
+      if(!installedPromptTool(values[SIDEBAR_TOOL_STORE])||
+         !sidebarToolEnabled(values[SIDEBAR_TOOL_ENABLE_STORE],PROMPT_ID))
+        throw Error('工具已卸载或停用');
+      if(disposed||paused||message.expectedUrl!==win.location.href)
+        throw Error('文档身份已经发生变化');
+      if(message.operation==='prompt.page.check')return checkRule(message.rule);
+      if(message.operation==='prompt.page.pick.start'){
+        if(!['container','editor'].includes(message.kind)||typeof message.session!=='string'||
+           !/^[a-f0-9-]{24,64}$/.test(message.session))throw Error('无效的元素选取请求');
+        return startPicker(message.kind,message.session);
+      }
+      if(!picker||picker.session!==message.session)throw Error('元素选取不再有效');
+      if(message.operation==='prompt.page.pick.cancel'){closePicker();return {state:'cancelled'};}
+      if(Date.now()>picker.expiresAt){closePicker();return {state:'expired'};}
+      return {state:picker.state,session:picker.session,...(picker.selected||{})};
+    })().then(data=>respond({ok:true,data}),error=>respond({
+      ok:false,error:String(error?.message||error).slice(0,200)
+    }));
+    return true;
+  };
+
+  api.runtime?.onMessage?.addListener(onPickerMessage);
   api.storage.onChanged.addListener(onStorage);
   win.addEventListener('pageshow',onPageShow);win.addEventListener('pagehide',onPageHide);
   win.addEventListener('popstate',onNav);win.addEventListener('resize',schedule);

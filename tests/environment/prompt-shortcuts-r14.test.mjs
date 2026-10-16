@@ -118,9 +118,9 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','109107c49eb73609fd68b1292138e8e60588f986'],
-    ['trusted/policy.js','69d18d8a7f98a1f8e77196ba07cdfdb76137f957'],
-    ['trusted/page.js','e0830d54657e37466af33bb08d8ddf31680a0aec']
+    ['trusted/model.js','dcc138aab6cb3a6d47325f259990c9ddcac0fb2a'],
+    ['trusted/policy.js','6544a03db0f11373dccdf67cc9b5ce808920a495'],
+    ['trusted/page.js','dea7c3b8916df58e3b11f29d31fe93ce3a0f4868']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
@@ -173,7 +173,7 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
     readFile(base+'src/main.js','utf8'),readFile(process.env.PROMPT_SHORTCUTS_PACKAGE_PATH||base+'prompt-shortcuts.opendesk-tool.json','utf8')
   ]);
   const pkg=await createSidebarToolPackage(ROOT);
-  assert.equal(pkg.version,'1.0.5');
+  assert.equal(pkg.version,'1.1.0');
   assert.equal(pkg.id,PROMPT_ID);
   // The committed package remains on the previous known-good version until
   // the scoped tests and actual packer pass. CI promotes the same candidate

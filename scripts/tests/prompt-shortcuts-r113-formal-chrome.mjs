@@ -13,19 +13,32 @@ const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r113-formal-chrom
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
 assert.equal(pkg.id,'prompt-shortcuts');
-assert.equal(pkg.version,'1.0.4');
+assert.equal(pkg.version,'1.1.0');
 assert.equal(pkg.scripts?.length,1);
 assert.equal(pkg.scripts[0].name,'trusted/model.js');
 const escaped=source=>source.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
 const bridge=String.raw`
 (()=>{
-  const KEY='opendesk-r113-formal-chromium-fixture';
+  const KEY='opendesk-r113-formal-chromium-fixture',SITES_KEY='opendesk-r20-formal-sites';
   const initial={value:null,etag:'a'.repeat(64),revision:0};
   const read=()=>JSON.parse(localStorage.getItem(KEY)||'null')||initial;
+  const readSites=()=>JSON.parse(localStorage.getItem(SITES_KEY)||'null')||{value:null,etag:'b'.repeat(64),revision:0};
   globalThis.OpenDeskTool={
     root:document.querySelector('main.ps'),
     setState(state){globalThis.__toolState=state;},
     async request(operation,payload){
+      if(operation==='prompt.page.context')return {status:'available',origin:'https://fixture.example',path:'/chat'};
+      if(operation==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
+      if(operation==='storage.get'&&payload?.key==='sites'){
+        const item=readSites();return {value:item.value,etag:item.etag};
+      }
+      if(operation==='storage.set'&&payload?.key==='sites'){
+        const previous=readSites();
+        if(payload?.ifMatch!==previous.etag)throw Error('site revision conflict');
+        const revision=previous.revision+1,etag=String(revision).padStart(64,'b');
+        localStorage.setItem(SITES_KEY,JSON.stringify({value:payload.value,etag,revision}));
+        return {saved:true,etag};
+      }
       if(operation==='storage.get'){
         if(payload?.key!=='library'||payload?.withEtag!==true)throw Error('unexpected read shape');
         const item=read();
@@ -45,6 +58,7 @@ const bridge=String.raw`
   };
   globalThis.OpenDeskSDK={browser:{launch:{consume:async()=>null}}};
   globalThis.__readFormalToolStore=read;
+  globalThis.__readFormalSiteStore=readSites;
 })();
 `;
 const documentHtml='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
@@ -199,6 +213,38 @@ async function run(){
     'persisted after reload');
   x=await view();assert.deepEqual(x.itemBodies,['你好']);
   report.helloSaveAndReload=true;report.uniqueCount=x.visibleCards;
+  // Real Chromium drives the formal website-settings UI against a bounded
+  // deterministic Host mock; this is not a real website or extension install.
+  await click('#ps-sites-open');
+  await poll('!document.querySelector("#ps-sites-panel").hidden','site settings');
+  await click('#ps-site-current');
+  await poll('document.querySelector("#ps-site-origin").textContent==="https://fixture.example"',
+    'site origin');
+  await fill('#ps-site-container','main');
+  await fill('#ps-site-editor','textarea');
+  await click('#ps-site-test');
+  await poll('document.querySelector("#ps-site-verified").textContent.includes("验证成功")',
+    'dual-selector validation');
+  await screenshot('formal-two-selectors-400px');
+  await click('#ps-site-save');
+  await poll('document.querySelectorAll(".ps-site-row").length===1','site persist');
+  assert.equal((await evaluate('globalThis.__readFormalSiteStore().value.rules[0].editorSelector')),
+    'textarea');
+  await rpc('Page.reload',{ignoreCache:true});
+  await poll('document.querySelector("#ps-new")&&!document.querySelector("#ps-new").disabled',
+    'site settings reload');
+  await click('#ps-sites-open');
+  await poll('document.querySelectorAll(".ps-site-row").length===1','site recovery after refresh');
+  for(const n of [320,360,400,440]){
+    await width(n);
+    x=await view();
+    assert.equal(x.horizontalOverflow,false,'site list overflow '+n);
+    await screenshot('formal-sites-'+n+'px');
+    report.scenes.push({width:n,form:'sites',overflow:x.horizontalOverflow,
+      screenshot:'formal-sites-'+n+'px.png'});
+  }
+  report.siteSettingsMockHost={saved:true,recoveredAfterReload:true,installed:false};
+  await click('#ps-sites-open');
   for(const n of [320,360,400,440]){
     await width(n);
     x=await view();assert.equal(x.horizontalOverflow,false,'formal list overflow '+n);

@@ -409,3 +409,17 @@
 - **最新 1.0.4 唯一正式安装包** 43,711 B；SHA-256 `c79bd798ca499cf50942fa2a99e85682f6d50701c88b544b25e0d342007a8af4`；同步后最新 main 官方 `--check-project` 为 `PROJECT_PACKAGE_MATCH`、`installed:false`。
 - 最终正式源码截图：[artifact 12031276252](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989/artifacts/12031276252)。其自动化报告 `kind=FORMAL_PACKAGED_UI_REAL_CHROMIUM_SIMULATED_HOST`, `version=1.0.4`, `helloSaveAndReload=true`, `uniqueCount=1`, 8 组跨宽度列表/百行表单截图、深色模式、`consoleExceptions=[]` 与共享 Quiet Button 透明背景断言均通过。
 - 本项修复完结范围只为源码与真实 Chromium 模拟 Host 级；**已安装 Mac Chrome / 真实 ChatGPT / 中文 IME** 依然 `NOT_TESTED`，未达最终实机 95+ 验收，绝不以视觉截图冒充实机通过。
+
+## R2.0 跨网站双选择器正式实施交接（2026-10-16）
+
+**目标**：保留 ChatGPT 正式快捷按钮、原提示词管理及右键菜单；通过两个面向用户的选择器，使普通网站可自行配置，而不是为每个站点写固定扩展代码。
+
+**源码归属及复用**：`examples/sidebar-tools/prompt-shortcuts/trusted/model.js` 提供 `sites` 规则校验，`trusted/policy.js` 管理 Origin/启用条件，`trusted/page.js` 负责可信元素选择、高亮、定位与安全插入；`src/main.js`/`index.html`/`style.css` 增加管理配置，`src/ui/sidebar-tools.js` 仅复用既有当前活动 Document/Tool Host 消息中转，绝不扩大为通用执行器。固定构建白名单仍通过 `scripts/bundle-provenance.mjs` 绑定对应 Git blob。
+
+**通路**：工具「管理网站 → 配置当前网站」→ 页面选择容器 → 页面选择编辑器 → 页面双目标检查 → `sites` 单独带 ETag 保存 → 页面监听本工具存储 → 刷新/SPA 重新载入规则 → 独立快捷按钮 → 用户单击安全插入；任何不唯一/不可见目标、撤销、跨来源与未知编辑效果均 fail-closed。ChatGPT 默认入口不受其他网站配置损坏影响。
+
+**测试入口**：`tests/environment/prompt-shortcuts-r14*.test.mjs` 增加定向可信页面/独立存储/UI 回归；`tests/environment/prompt-shortcuts-r20.test.mjs` 验证 Origin、路径边界与非可执行选择器。CI 工作流继续使用 `.github/workflows/prompt-shortcuts-r14.yml` 和真实 Chromium 的正式 UI/Mock Host 截图；不把 Mock Chromium 当作安装到真实 Chrome 的证据。
+
+**实机待取得**：Mac 日常 `dist/development` watcher 身份、Chrome 扩展 ID、实际工具包 SHA、Claude/Gemini 登录站点编辑器框架状态/Undo/中文 IME、停用与安装升级验收。缺少原生设备或登录站点时标记 `NOT_TESTED`，不制造 ≥95/100 的测试评分。
+
+**产品验收门槛**：两个选择器明确可见且能自选、没有新权限泛化、用户原草稿不被覆盖、实时网站匹配不会误写、多站规则独立保存、构建官方单包同源校验及 CI 原始链接可核实。只有完整闭环实证才能授予各维 ≥95 分。

@@ -1,11 +1,15 @@
 // Fixed, audited website-scope policy. No sandbox package code is executed here.
 import {validateSidebarToolPackage,sidebarToolStorageKey,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
 import {sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import './model.js';
 export const PROMPT_ID='prompt-shortcuts';
 export const PROMPT_CAPABILITY='page.prompts';
 export const PROMPT_SITE_STORE='opendesk.sidebar-tools.prompt-sites.v1';
 export const PROMPT_DATA_STORE=sidebarToolStorageKey(PROMPT_ID);
 export const CHATGPT_ORIGIN='https://chatgpt.com';
+export const PROMPT_PICKER_PROTOCOL='opendesk.prompt-shortcuts.picker.v1';
+export const PROMPT_PAGE_OPERATIONS=Object.freeze(['prompt.page.context','prompt.page.pick.start',
+  'prompt.page.pick.status','prompt.page.pick.cancel','prompt.page.check']);
 export function supportedOrigin(value){
   try{const url=new URL(value);return !url.username&&!url.password&&url.origin===CHATGPT_ORIGIN?url.origin:null;}
   catch{return null;}
@@ -21,9 +25,10 @@ export function installedPromptTool(rows){
 // Built-in, fixed-source ChatGPT adapter: installing a reviewed tool with
 // page.prompts is the one-time consent. No redundant per-origin prompt grant.
 // Keep the origin and installed/enable checks at every render and click.
-export async function allowedPromptSite({installed,enabled,url}){
-  return Boolean(supportedOrigin(url)&&sidebarToolEnabled(enabled,PROMPT_ID)&&
-    installedPromptTool(installed));
+export async function allowedPromptSite({installed,enabled,url,sites=null}){
+  if(!sidebarToolEnabled(enabled,PROMPT_ID)||!installedPromptTool(installed))return false;
+  if(supportedOrigin(url))return true;
+  return Boolean(globalThis.OpenDeskPromptShortcutsModel?.siteFor(sites,url));
 }
 export async function changePromptSiteGrant(grants,tool,installEpoch,enabled){
   if(tool?.id!==PROMPT_ID||!tool.capabilities?.includes(PROMPT_CAPABILITY)||

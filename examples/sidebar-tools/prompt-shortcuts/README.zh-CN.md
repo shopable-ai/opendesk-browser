@@ -1,6 +1,6 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-> 正式工具 ID：`prompt-shortcuts`，版本 `1.0.2`。当前仅有 ChatGPT 站点适配器。源码在本目录；不是额外的 Chrome Extension。
+> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.0`。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
 
 ## 使用流程
 
@@ -21,7 +21,7 @@
 
 ## 范围、验收与后续
 
-本版本只支持 `https://chatgpt.com`。Claude、Gemini 等是后续独立授权的适配候选，**目前没有实现**；不得扩大通配网站权限或凭 DOM 猜测自动兼容。
+当前仅 `https://chatgpt.com` 有已验证的内置适配器。其他普通 HTTP(S) 网站可由用户按精确 Origin 自行配置，但仍需对实际编辑器单独验收。Claude、Gemini 等尚未完成真实网站验证，**不能宣称为已验证预设**；不得扩大授权或凭 DOM 猜测自动兼容。
 
 运行不修改正式 build 输出的定向测试：
 
@@ -80,3 +80,9 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - `trusted/page.js` / `trusted/policy.js`：安装启用后仅在 `https://chatgpt.com` 原点运行，仍保留安装身份、用户开关、可信点击、IME 与不自动发送的校验；不把旧逐站授权当成额外的阻塞条件。
 - `src/ui/sidebar-tools.js` / `src/ui/tool.html` / `src/ui/tool-shell.css`：对本工具隐藏重复的网站授权按钮与清单；Chrome 原生右键功能在受信任的宿主设置内独立管理，不影响其他工具的权限体系。
 - 正式候选包为同 ID `1.0.2`，更新必须通过正常审核/版本升级。当前版本的 CI、正式 Chrome 安装、真实网页富文本编辑器与 Mac IME 验收应查看最新 GitHub Actions 回执，不能用旧版历史 PASS 代替。
+
+### R2.0 网站适配扩展（1.1.0）
+
+正式工具现支持在「适用网站」中为非 ChatGPT 的 HTTP(S) 网站手动设置两项：**按钮容器**和**目标输入框**。打开网站后选择、测试并保存，网页再次打开或刷新将按精确 Origin 和路径作用域显示快捷按钮。列表、提示词正文和原生右键不受影响。规则保存到本工具独立 `sites` 数据项，支持编辑、启停与删除，错误恢复遵循与提示词库相同的 ETag 并发规则。
+
+安全边界：未配置网站不生效，不会自动发送；登录、密码、支付或含糊的输入框不应被强行填入。复杂富文本编辑器必须通过真实网站验证后才能宣称兼容。Claude、Gemini 等目前仅属待验收目标，不能以模拟页面通过代替真实网站通过。

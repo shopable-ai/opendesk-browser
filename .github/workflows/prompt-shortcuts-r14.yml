@@ -7,6 +7,8 @@ on:
       - '.github/workflows/prompt-shortcuts-r14.yml'
       - 'examples/sidebar-tools/prompt-shortcuts/**'
       - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
+      - 'tests/environment/prompt-shortcuts-r20.test.mjs'
+      - 'scripts/bundle-provenance.mjs'
       - 'scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs'
       - 'scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs'
       - 'src/ui/sidebar-tools/package.js'
@@ -38,7 +40,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, storage and fixed-adapter provenance
         run: |
-          node --test tests/environment/prompt-shortcuts-r14*.test.mjs
+          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs
           node --test tests/environment/sidebar-tools.test.mjs
       - name: Check standalone and trusted JavaScript syntax
         run: |
@@ -46,19 +48,20 @@ jobs:
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/model.js
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js
           node --check examples/sidebar-tools/prompt-shortcuts/trusted/policy.js
+          node --check src/ui/sidebar-tools.js
       - name: Build and validate real portable v2 tool package
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --out artifacts/sidebar-tools/prompt-shortcuts/1.0.5/prompt-shortcuts.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --out artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {createHash} from 'node:crypto';
           import {readFileSync} from 'node:fs';
           import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';
-          const path='artifacts/sidebar-tools/prompt-shortcuts/1.0.5/prompt-shortcuts.opendesk-tool.json';
+          const path='artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json';
           const bytes=readFileSync(path);
           const pkg=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
           assert.equal(pkg.id,'prompt-shortcuts');
-          assert.equal(pkg.version,'1.0.5');
+          assert.equal(pkg.version,'1.1.0');
           assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
           assert(pkg.capabilities.includes('page.prompts'));
           assert(pkg.capabilities.includes('browser.contextMenu'));
@@ -66,6 +69,10 @@ jobs:
           assert.equal(pkg.scripts.length,1);
           console.log('PROMPT_SHORTCUTS_PORTABLE_V2_PACKAGE_PASS',bytes.length,createHash('sha256').update(bytes).digest('hex'));
           NODE
+      - name: Promote only the verified candidate in the CI checkout
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --promote-from artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
       - name: Provide readable CJK fonts for actual HTML screenshots
         run: |
           sudo apt-get update -qq
@@ -97,7 +104,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: prompt-shortcuts-v2-${{ github.sha }}
-          path: artifacts/sidebar-tools/prompt-shortcuts/1.0.5/prompt-shortcuts.opendesk-tool.json
+          path: artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
           if-no-files-found: error
           retention-days: 7
 
@@ -124,9 +131,9 @@ jobs:
           const repo=process.env.GITHUB_REPOSITORY;
           const sourceCommit=process.env.GITHUB_SHA;
           const path='examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json';
-          const content=readFileSync('.verified-prompt-tool/prompt-shortcuts.opendesk-tool.json');
+          const content=readFileSync('.verified-prompt-tool/candidate.opendesk-tool.json');
           const pkg=JSON.parse(content.toString('utf8'));
-          if(pkg.id!=='prompt-shortcuts'||pkg.version!=='1.0.5'||pkg.format!=='opendesk.sidebar-tool.v2')
+          if(pkg.id!=='prompt-shortcuts'||pkg.version!=='1.1.0'||pkg.format!=='opendesk.sidebar-tool.v2')
             throw Error('Refusing to publish a package with mismatched tool identity');
           const expectedBlob=createHash('sha1').update('blob '+content.length+'\0').update(content).digest('hex');
           const endpoint='https://api.github.com/repos/'+repo;

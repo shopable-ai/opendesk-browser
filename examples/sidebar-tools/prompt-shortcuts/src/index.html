@@ -10,7 +10,17 @@
       <p class="ps-hint">原生右键快捷添加为可选功能，需要时可在工具详情的「设置」中启用。</p>
 
     </section>
-    <textarea id="ps-clipboard-buffer" class="ps-clipboard-buffer" readonly tabindex="-1" aria-hidden="true"></textarea>
+    <section class="ps-sites" aria-label="网站适配"><div class="ps-sites-heading"><h3>适用网站</h3><button id="ps-sites-open" class="od-button od-button--secondary" aria-controls="ps-sites-panel" aria-expanded="false" type="button">管理网站</button></div><div id="ps-sites-panel" hidden><p class="ps-hint">ChatGPT 已内置，其他网站分别选择两个目标。</p><div id="ps-sites-list" class="ps-sites-list" aria-live="polite"></div><button id="ps-site-current" class="od-button od-button--secondary" type="button">配置当前网站</button><div id="ps-site-form" class="ps-site-form od-surface" hidden><strong id="ps-site-form-title">网站适配</strong>
+<p id="ps-site-origin" class="ps-site-origin"></p>
+<div class="ps-compact-row"><label for="ps-site-container" class="od-field-label">按钮容器</label><input id="ps-site-container" class="od-field" placeholder="CSS 选择器"></div>
+<button id="ps-pick-container" class="od-button od-button--secondary" type="button">在网页选择容器</button>
+<div class="ps-compact-row"><label for="ps-site-editor" class="od-field-label">目标输入框</label><input id="ps-site-editor" class="od-field" placeholder="CSS 选择器"></div>
+<button id="ps-pick-editor" class="od-button od-button--secondary" type="button">在网页选择输入框</button>
+<details class="ps-site-advanced"><summary>高级 · 页面路径范围</summary><div class="ps-compact-row"><label class="od-field-label" for="ps-site-path">页面路径</label><input id="ps-site-path" class="od-field" value="/"></div></details>
+<label class="ps-enabled">启用此网站的快捷按钮<span class="ps-switch"><input id="ps-site-enabled" type="checkbox" role="switch" checked><span class="ps-switch-track" aria-hidden="true"></span></span></label>
+<p id="ps-site-verified" class="ps-hint" role="status" aria-live="polite">保存前请验证两个目标。</p>
+<div class="ps-actions"><button id="ps-site-cancel" class="od-button od-button--secondary" type="button">取消</button><button id="ps-site-test" class="od-button od-button--secondary" type="button">测试定位</button><button id="ps-site-save" class="od-button od-button--primary" type="button">保存网站</button></div></div><p id="ps-site-status" class="ps-status" role="status" aria-live="polite" hidden></p></div></section>
+<textarea id="ps-clipboard-buffer" class="ps-clipboard-buffer" readonly tabindex="-1" aria-hidden="true"></textarea>
   </section>
   <section id="ps-edit" hidden aria-labelledby="ps-form-title">
     <header class="ps-form-head"><h2 id="ps-form-title" class="od-title">新建提示词</h2></header>

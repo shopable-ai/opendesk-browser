@@ -6,7 +6,11 @@ const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
-function report(){setState({dirty,busy});}
+const SITE_KEY='sites';
+let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDirty=false;
+let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
+let sitePoll=0,siteSession=null,siteEpoch=0,siteDiscardPending=false;
+function report(){setState({dirty:dirty||siteDirty,busy:busy||siteBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-body-error').hidden=!message;}
@@ -78,6 +82,208 @@ function button(parent,text,callback,variant='secondary'){
   const b=dom('button','od-button od-button--'+variant,text);b.type='button';
   b.addEventListener('click',callback);parent.append(b);return b;
 }
+
+function siteMessage(text='',isError=false){
+  const n=el('ps-site-status');n.textContent=text;n.hidden=!text;n.dataset.error=String(isError);
+}
+function siteKey(row){return row.origin+'|'+row.pathScope;}
+function siteDraft(){
+  return {origin:siteOrigin,pathScope:el('ps-site-path').value||'/',
+    containerSelector:el('ps-site-container').value,editorSelector:el('ps-site-editor').value,
+    enabled:el('ps-site-enabled').checked};
+}
+function invalidateSite(){
+  siteVerified=null;el('ps-site-verified').textContent='两个目标发生变化，请重新测试。';
+  siteDirty=Boolean(siteOrigin&&JSON.stringify(siteDraft())!==siteBaseline);
+  siteDiscardPending=false;report();
+}
+async function readSites(){
+  const saved=await request('storage.get',{key:SITE_KEY,withEtag:true});
+  if(!/^[a-f0-9]{64}$/.test(saved?.etag||'')||!Object.hasOwn(saved,'value'))
+    throw Error('没有收到网站规则的可验证存储版本');
+  return {data:model.sitesLoad(saved.value),etag:saved.etag};
+}
+async function loadSites(){
+  const result=await readSites();sites=result.data;sitesEtag=result.etag;sitesReady=true;
+  renderSites();return sites;
+}
+async function commitSites(next){
+  if(!sitesReady||siteBusy||!sitesEtag)throw Error('网站规则尚未就绪');
+  const normalized=model.sitesLoad(next);
+  if(model.bytes(normalized)>8192)throw Error('网站适配规则超出 8 KiB');
+  siteBusy=true;report();
+  try{
+    let reply;
+    try{
+      reply=await request('storage.set',{key:SITE_KEY,value:normalized,ifMatch:sitesEtag});
+      if(reply?.saved!==true||!/^[a-f0-9]{64}$/.test(reply.etag||''))
+        throw Error('保存回执不完整');
+    }catch(error){
+      if(['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(error?.code))throw error;
+      // Unknown outcome: read back the exact canonical rule set before success.
+      const checked=await readSites();
+      if(JSON.stringify(checked.data)!==JSON.stringify(normalized))
+        throw Object.assign(Error('保存结果未知；不要再次覆盖，请重新打开核对'),{code:'E_OUTCOME_UNKNOWN'});
+      reply={etag:checked.etag};
+    }
+    sites=normalized;sitesEtag=reply.etag;renderSites();
+  }finally{siteBusy=false;report();}
+}
+function renderSites(){
+  const host=el('ps-sites-list');host.replaceChildren();
+  if(!sitesReady){host.append(dom('p','ps-hint','网站规则未加载。'));return;}
+  if(!sites.rules.length)host.append(dom('p','ps-hint','目前仅启用内置 ChatGPT。'));
+  for(const rule of sites.rules){
+    const card=dom('article','ps-site-row');
+    const head=dom('div','ps-site-row-heading');
+    head.append(dom('strong','',rule.origin),dom('small','',rule.enabled?'已启用':'已停用'));
+    const path=dom('small','ps-site-origin','路径：'+rule.pathScope);
+    const actions=dom('div','ps-actions');
+    button(actions,'编辑',()=>openSiteForm(rule));
+    button(actions,rule.enabled?'停用':'启用',()=>void (async()=>{
+      try{
+        const next={schema:1,rules:sites.rules.map(entry=>siteKey(entry)===siteKey(rule)?
+          {...entry,enabled:!entry.enabled}:entry)};
+        await commitSites(next);siteMessage('网站启停设置已保存。');
+      }catch(error){siteMessage('启停失败：'+(error.code||error.message),true);}
+    })());
+    if(siteDelete===siteKey(rule)){
+      button(actions,'确认删除',()=>void (async()=>{
+        try{await commitSites({schema:1,rules:sites.rules.filter(entry=>siteKey(entry)!==siteKey(rule))});
+          siteDelete=null;renderSites();siteMessage('网站配置已删除。');
+        }catch(error){siteMessage('删除未确认：'+(error.code||error.message),true);}
+      })(),'danger');
+      button(actions,'取消删除',()=>{siteDelete=null;renderSites();});
+    }else button(actions,'删除',()=>{siteDelete=siteKey(rule);renderSites();},'danger');
+    card.append(head,path,actions);host.append(card);
+  }
+}
+function openSiteForm(rule){
+  if(siteBusy)return;
+  ++siteEpoch;siteSession=null;siteVerified=null;siteDiscardPending=false;
+  siteEditing=rule?siteKey(rule):null;siteOrigin=rule?.origin||null;
+  el('ps-site-form').hidden=false;
+  el('ps-site-container').value=rule?.containerSelector||'';
+  el('ps-site-editor').value=rule?.editorSelector||'';
+  el('ps-site-path').value=rule?.pathScope||'/';
+  el('ps-site-enabled').checked=rule?.enabled!==false;
+  el('ps-site-origin').textContent=siteOrigin||'请选择当前网站';
+  el('ps-site-form-title').textContent=rule?'编辑网站规则':'配置当前网站';
+  el('ps-site-verified').textContent='保存前请在该网站测试定位。';
+  siteBaseline=JSON.stringify(siteDraft());siteDirty=false;report();
+  el('ps-site-container').focus();
+}
+
+
+async function openCurrentSite(){
+  if(!sitesReady||siteBusy)return;
+  if(siteDirty){siteMessage('请先保存或取消当前未保存的网站配置。',true);return;}
+  try{
+    const context=await request('prompt.page.context',{});
+    if(context?.status!=='available'||!context.origin)throw Error('请先打开普通网页');
+    if(context.origin==='https://chatgpt.com')throw Error('ChatGPT 已内置，无需重新配置');
+    const matching=sites.rules.filter(rule=>rule.origin===context.origin&&
+      (rule.pathScope==='/'||context.path===rule.pathScope||
+      context.path.startsWith(rule.pathScope.endsWith('/')?rule.pathScope:rule.pathScope+'/')))
+      .sort((a,b)=>b.pathScope.length-a.pathScope.length)[0];
+    if(matching){openSiteForm(matching);return;}
+    openSiteForm(null);siteOrigin=context.origin;
+    el('ps-site-origin').textContent=context.origin;
+    siteBaseline=JSON.stringify(siteDraft());siteDirty=false;report();
+    siteMessage('请在网页上选择两个目标，然后测试并保存。');
+  }catch(error){siteMessage(error.code||error.message,true);}
+}
+async function stopSitePick(){
+  ++siteEpoch;clearTimeout(sitePoll);sitePoll=0;
+  const session=siteSession;siteSession=null;
+  if(session)try{await request('prompt.page.pick.cancel',{session});}catch{}
+}
+async function pickSite(kind){
+  if(!siteOrigin||siteBusy||siteSession)return;
+  const field=el(kind==='editor'?'ps-site-editor':'ps-site-container');
+  const token=++siteEpoch;
+  try{
+    const current=await request('prompt.page.context',{});
+    if(token!==siteEpoch)return;
+    if(current?.origin!==siteOrigin)throw Error('请切换到 '+siteOrigin+' 的网页');
+    const launched=await request('prompt.page.pick.start',{kind});
+    if(token!==siteEpoch)return;
+    if(launched?.state!=='selecting'||typeof launched.session!=='string')
+      throw Error('网页未确认元素选择模式');
+    siteSession=launched.session;siteMessage('请在网页中点击目标元素；按 Esc 可以取消。');
+    let attempts=0;
+    const poll=async()=>{
+      if(token!==siteEpoch||!siteSession)return;
+      try{
+        const result=await request('prompt.page.pick.status',{session:siteSession});
+        if(token!==siteEpoch)return;
+        if(result?.state==='selected'){
+          if(!model.validSelector(result.selector))throw Error('网页返回的选择器不符合规则');
+          field.value=result.selector;
+          siteSession=null;invalidateSite();
+          siteMessage(kind==='editor'?'目标输入框已选取，请测试定位。':'按钮容器已选取，请继续选取输入框。');
+          return;
+        }
+        if(result?.state!=='selecting'||++attempts>=64){
+          siteSession=null;siteMessage('选取已取消、过期或网页已经切换。',true);return;
+        }
+        sitePoll=setTimeout(()=>void poll(),1000);
+      }catch(error){
+        if(token!==siteEpoch)return;
+        siteSession=null;siteMessage('选取中断：'+(error.code||error.message),true);
+      }
+    };
+    sitePoll=setTimeout(()=>void poll(),1000);
+  }catch(error){if(token===siteEpoch)siteMessage('无法开始选择：'+(error.code||error.message),true);}
+}
+async function testSite(){
+  if(!siteOrigin||siteBusy||siteSession)return;
+  try{
+    const rule=model.siteRule(siteDraft());
+    siteMessage('正在当前网页验证两个目标…');
+    const result=await request('prompt.page.check',{rule});
+    if(result?.valid!==true||result.containerMatches!==1||result.editorMatches!==1||
+       !['textarea','input','richtext'].includes(result.editorType))
+      throw Error('网页未返回唯一、有效的选择器验证结果');
+    siteVerified=JSON.stringify(rule);
+    el('ps-site-verified').textContent='验证成功 · '+result.editorType+' · 容器和输入框均唯一匹配';
+    siteMessage('定位检查通过；仅表示目标可定位，实际富文本插入仍需真实网站验收。');
+  }catch(error){siteVerified=null;siteMessage('测试失败：'+(error.code||error.message),true);}
+}
+async function saveSite(){
+  if(!siteOrigin||siteBusy||siteSession)return;
+  let rule;
+  try{
+    rule=model.siteRule(siteDraft());
+    if(siteVerified!==JSON.stringify(rule))throw Error('请先测试当前填写的两个选择器');
+    if(siteEditing&&!sites.rules.some(row=>siteKey(row)===siteEditing))
+      throw Error('旧网站规则已被修改，请重新读取');
+    const next={schema:1,rules:siteEditing?
+      sites.rules.map(row=>siteKey(row)===siteEditing?rule:row):[...sites.rules,rule]};
+    await commitSites(next);
+    siteEditing=null;siteOrigin=null;siteVerified=null;siteDirty=false;
+    el('ps-site-form').hidden=true;report();siteMessage('网站配置已保存。刷新页面后将自动使用相同规则。');
+  }catch(error){siteMessage('保存失败，配置仍保留在表单中：'+(error.code||error.message),true);}
+}
+async function cancelSiteForm(){
+  if(siteDirty&&!siteDiscardPending){
+    siteDiscardPending=true;
+    siteMessage('存在未保存的网站配置。再次点击「取消」才会放弃；也可以继续编辑。',true);
+    return;
+  }
+  await stopSitePick();siteDirty=false;siteOrigin=null;siteEditing=null;siteVerified=null;
+  siteDiscardPending=false;el('ps-site-form').hidden=true;report();siteMessage('');
+}
+async function toggleSites(){
+  const panel=el('ps-sites-panel'),open=panel.hidden;
+  if(!open&&siteDirty){siteMessage('请先保存或明确取消未保存的网站配置。',true);return;}
+  if(!open)await stopSitePick();
+  panel.hidden=!open;el('ps-sites-open').setAttribute('aria-expanded',String(open));
+  if(!open){sitesReady=false;return;}
+  try{await loadSites();siteMessage('');}
+  catch(error){sitesReady=false;renderSites();siteMessage('网站规则读取失败：'+(error.code||error.message),true);}
+}
+
 function render(){
   const list=el('ps-list');list.replaceChildren();
   const enabled=data.items.filter(item=>item.enabled).length;
@@ -264,6 +470,19 @@ el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLe
 el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
+el('ps-sites-panel').hidden=true;el('ps-site-form').hidden=true;
+el('ps-sites-open').addEventListener('click',()=>void toggleSites());
+el('ps-site-current').addEventListener('click',()=>void openCurrentSite());
+el('ps-site-container').addEventListener('input',invalidateSite);
+el('ps-site-editor').addEventListener('input',invalidateSite);
+el('ps-site-path').addEventListener('input',invalidateSite);
+el('ps-site-enabled').addEventListener('change',invalidateSite);
+el('ps-pick-container').addEventListener('click',()=>void pickSite('container'));
+el('ps-pick-editor').addEventListener('click',()=>void pickSite('editor'));
+el('ps-site-test').addEventListener('click',()=>void testSite());
+el('ps-site-save').addEventListener('click',()=>void saveSite());
+el('ps-site-cancel').addEventListener('click',()=>void cancelSiteForm());
+
 (async()=>{
   lock();
   try{

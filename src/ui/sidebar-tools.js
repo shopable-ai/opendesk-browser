@@ -30,7 +30,7 @@ import {TIME_REVIEW_KEY} from '../time-review/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
-import {PROMPT_ID,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
 
@@ -1386,6 +1386,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
+      PROMPT_PAGE_OPERATIONS.includes(operation)?PROMPT_CAPABILITY:
       TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
       focus?.operations?.includes(operation)?focus.capability:
       adblock?.operations?.includes(operation)?adblock.capability:
@@ -1491,6 +1492,63 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if((generations[tool.id]??null)!==revocationEpoch)
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
+
+      if(PROMPT_PAGE_OPERATIONS.includes(operation)){
+        if(tool.id!==PROMPT_ID||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
+          throw Object.assign(new Error('提示词网站配置需要已安装的正式工具与活动网页'),{code:'E_TOOL_CONTEXT'});
+        const selected=currentPageTarget.capture();
+        let url;
+        try{url=new URL(selected.url);}catch{
+          throw Object.assign(new Error('当前网页地址不可用'),{code:'E_SITE_UNAVAILABLE'});
+        }
+        if(!['https:','http:'].includes(url.protocol)||url.username||url.password||
+           !selected.origin||selected.origin!==url.origin)
+          throw Object.assign(new Error('请选择普通 HTTP(S) 网页'),{code:'E_SITE_UNAVAILABLE'});
+        if(operation==='prompt.page.context'){
+          await currentPageTarget.revalidate(selected);assertSession(source,token);
+          return {status:'available',origin:url.origin,path:url.pathname};
+        }
+        if(!api.tabs?.sendMessage)
+          throw Object.assign(new Error('当前浏览器不支持可信页面通信'),{code:'E_CHROME_UNSUPPORTED'});
+        if(operation==='prompt.page.pick.start'){
+          if(!payload||!['container','editor'].includes(payload.kind)||
+             Object.keys(payload).some(key=>key!=='kind'))
+            throw Object.assign(new Error('请选择要定位的容器或输入框'),{code:'E_SCHEMA'});
+        }else if(['prompt.page.pick.status','prompt.page.pick.cancel'].includes(operation)){
+          if(!payload||typeof payload.session!=='string'||
+             !/^[a-f0-9-]{24,64}$/.test(payload.session)||
+             Object.keys(payload).some(key=>key!=='session'))
+            throw Object.assign(new Error('无效的网页选取会话'),{code:'E_SCHEMA'});
+        }else{
+          if(!payload||Object.keys(payload).some(key=>key!=='rule'))
+            throw Object.assign(new Error('无效的网站测试请求'),{code:'E_SCHEMA'});
+          const normalize=globalThis.OpenDeskPromptShortcutsModel?.siteRule;
+          if(typeof normalize!=='function')throw new Error('网站配置校验模块缺失');
+          const rule=normalize(payload.rule);
+          if(rule.origin!==url.origin)
+            throw Object.assign(new Error('只能测试当前活动网站的规则'),{code:'E_SITE_SCOPE'});
+        }
+        await currentPageTarget.revalidate(selected);assertSession(source,token);
+        // Existing content script is already scoped to the selected Chrome
+        // tab + document. The sandbox never receives tabId or DOM handles.
+        const response=await api.tabs.sendMessage(selected.tabId,{
+          protocol:PROMPT_PICKER_PROTOCOL,toolId:tool.id,operation,expectedUrl:selected.url,
+          ...(operation==='prompt.page.pick.start'?{kind:payload.kind,
+            session:globalThis.crypto.randomUUID()}:{}),
+          ...(['prompt.page.pick.status','prompt.page.pick.cancel'].includes(operation)?
+            {session:payload.session}:{}),
+          ...(operation==='prompt.page.check'?{rule:payload.rule}:{})
+        },{frameId:0,documentId:selected.documentId});
+        assertSession(source,token);
+        await currentPageTarget.revalidate(selected);
+        if(response?.ok!==true||!response.data)
+          throw Object.assign(new Error(String(response?.error||'网页尚未就绪或已经切换').slice(0,180)),
+            {code:'E_PROMPT_PAGE'});
+        if(JSON.stringify(response.data).length>1600)
+          throw Object.assign(new Error('网页检查数据超出受限响应大小'),{code:'E_LIMIT'});
+        return response.data;
+      }
+
       if(operation==='currentPage.info'){
         const target=currentPageTarget?.snapshot;
         return target?.status==='available'

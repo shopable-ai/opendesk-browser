@@ -258,3 +258,21 @@
 - 最新正式可安装版本：`1.0.4`，唯一 `prompt-shortcuts.opendesk-tool.json`，43,711 字节，SHA-256 `c79bd798ca499cf50942fa2a99e85682f6d50701c88b544b25e0d342007a8af4`；官方 `--check-project` 输出 `PROJECT_PACKAGE_MATCH`。
 - 证据：[GitHub Actions Run 38865919989](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989)，含 20/20 工具 Node、6/6 Sidebar 工具 Node、正式打包源码 Chromium 全场景与 320/360/400/440px 视觉截图。[独立正式 UI 截图 Artifact 12031276252](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989/artifacts/12031276252)。
 - 用户 Mac 已安装身份、真实 Chrome Host 数据写入、真实 ChatGPT 页面插入、IME、同 ID 更新现场均继续 `NOT_TESTED`；九维真实产品专家评分继续 `NOT_SCORED`，不能将模拟 Host 或 CSS 截图当作完整 95+。
+
+## 13. R2.0 — 用户配置双选择器与跨网站使用（2026-10-16）
+
+### 用户旅程和兼容边界
+
+安装/启用原有提示词快捷按钮后，ChatGPT 继续使用已经交付的内置适配器；普通 HTTP(S) 网站不自动出现按钮。用户在工具「适用网站」中点击「配置当前网站」，按顺序在网页选择 **按钮容器** 与 **目标输入框**，或直接输入受限 CSS，验证后保存并启用。配置按精确 Origin 和路径前缀匹配，刷新、SPA 切换及下次打开均重新读取。配置可编辑、停用或删除，不会修改原有提示词库；原生右键菜单仅保留 ChatGPT 原有授权，不随网站配置自动扩展。
+
+### 配置数据与可信链
+
+网站规则写入已有工具存储命名空间的独立 `sites` 数据项：`{schema:1,rules:[{origin,pathScope,containerSelector,editorSelector,placement:'left-center',editorType:'auto',enabled}]}`。最多 24 条、单项 8192 UTF-8 字节；使用现有 ETag/ifMatch、同工具锁、未知写入效果读回确认；错误不得破坏 `library`。仅 HTTP(S) 精确来源可配置，路径边界必须可靠；优先语义选择器，拒绝 CSS 伪类、复杂列表及 JS 字符串，且必须唯一匹配真实可见节点。
+
+固定可信 `trusted/page.js` 在顶部 Document 中仅处理经过 Tool Host 校验的受限 `prompt.page.*` 消息，依赖现有 currentPageTarget 的 tab/document 再验证；禁止网页代码执行、页面正文回传和新增特权 Host。用户选择期间目标高亮，单次真实点击后返回 **选择器及类型** 而非字段值；Esc、过期、切换页、启停/卸载时撤销。
+
+### 插入和不可冒充的验收事实
+
+已验证的编辑器类型是 textarea、普通文本 input 与 contenteditable（后者仍须站点实测）；密码、支付、账号、搜索或只读/隐藏目标必须安全拒绝。选取目标不代表可写入。点击后仍再次检查安装、来源、设置和输入框身份，组合输入期不改草稿，全文后置读回，未确认可能影响时不自动重试或发送。已有草稿、Unicode、多行、撤销与真实框架受控状态必须纳入现场验收。
+
+`NODE_PASS`、`CHROMIUM_FIXTURE_PASS`、`INSTALLED_CHROME_PASS`、`REAL_SITE_PASS`、`MAC_IME_PASS` 分层记录；没有真实运行日志的后一类不得打分。Claude/Gemini 等站点仅是后续实际验收候选，**不能因有自定义规则就宣称已内置支持**。

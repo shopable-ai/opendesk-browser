@@ -51,7 +51,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     [SIDEBAR_TOOL_ENABLE_STORE,{}],[TOOL_REVOCATION_EPOCHS_STORE,{[PROMPT_ID]:'first'}],
     [PROMPT_SITE_STORE,grants]
   ]);
-  const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map();
+  const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map(),runtimeMessages=new Set();
   const win={
     location:{href:CHATGPT_ORIGIN+'/c/mock'},innerWidth:1366,innerHeight:768,
     addEventListener(name,fn){events.set(name,fn);},
@@ -83,7 +83,8 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     addEventListener(name,fn){docEvents.set(name,fn);},
     removeEventListener(name){docEvents.delete(name);}
   };
-  const api={storage:{
+  const api={runtime:{id:'test-extension',getURL:()=> 'chrome-extension://test-extension/',
+    onMessage:{addListener:fn=>runtimeMessages.add(fn),removeListener:fn=>runtimeMessages.delete(fn)}},storage:{
     local:{async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys])
       .filter(key=>values.has(key)).map(key=>[key,structuredClone(values.get(key))]));}},
     onChanged:{addListener:fn=>siteEvents.add(fn),removeListener:fn=>siteEvents.delete(fn)}
@@ -95,7 +96,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
-  return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,docEvents};
+  return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,docEvents,runtimeMessages};
 }
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -538,3 +539,67 @@ for(const state of ['hidden','css-hidden','disabled','readonly','disconnected','
     }finally{f.controller.dispose();}
   });
 }
+
+
+test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fail-closed',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'第一段\n\n中文🙂'},null,()=> 'site-prompt-1234');
+  const library={schema:1,items:[row],settings:{webButtons:true}};
+  const f=fixture({pkg,library});
+  const url='https://example.org/compose';
+  f.win.location.href=url;f.editor.tagName='textarea';f.editor.isContentEditable=false;
+  f.editor.value='旧草稿';f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[f.editor]:[];
+  f.doc.execCommand=(command,_show,value)=>{f.calls.push({command,value});f.editor.value+=value;return true;};
+  const rule={origin:'https://example.org',pathScope:'/compose',containerSelector:'main',
+    editorSelector:'textarea',enabled:true};
+  f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[rule]}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();assert.equal(f.buttons().length,1,'enabled exact site renders');
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(f.calls.length,1);assert.equal(f.editor.value,'旧草稿\n第一段\n\n中文🙂');
+    const other=mockElement('textarea');
+    f.doc.querySelectorAll=s=>s==='main'?[f.main]:s==='textarea'?[f.editor,other]:[];
+    f.events.get('resize')?.();await settle();
+    const host=f.root.children.find(x=>Object.hasOwn(x.attributes,'data-opendesk-prompts'));
+    assert.equal(host.hidden,true,'ambiguous editor hides rail before a wrong-field write');
+    f.change(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[{...rule,enabled:false}]}});
+    await settle();assert.equal(f.buttons().length,0,'per-site disable tears down rail');
+    f.win.location.href='https://example.org.other-site.test/compose';
+    f.events.get('popstate')?.();await settle();assert.equal(f.buttons().length,0);
+  }finally{controller.dispose();}
+});
+test('R2 picker uses extension-owned message, exact document, unique semantic selector, Esc',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const library={schema:1,items:[],settings:{webButtons:true}};
+  const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
+  f.editor.tagName='textarea';f.editor.attributes.id='composer';
+  f.doc.querySelectorAll=s=>s==='textarea'||s==='#composer'?[f.editor]:s==='main'?[f.main]:[];
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  const send=(operation,extra={})=>new Promise(resolve=>{
+    const fn=[...f.runtimeMessages][0];assert(fn,'trusted listener must exist');
+    fn({protocol:'opendesk.prompt-shortcuts.picker.v1',toolId:PROMPT_ID,
+      operation,expectedUrl:f.win.location.href,...extra},{
+      id:'test-extension',url:'chrome-extension://test-extension/tool.html'
+    },resolve);
+  });
+  const session='01234567-89ab-cdef-0123-456789abcdef';
+  try{
+    await settle();
+    const begin=await send('prompt.page.pick.start',{kind:'editor',session});
+    assert.equal(begin.ok,true);assert.equal(begin.data.state,'selecting');
+    const evt={isTrusted:true,target:f.editor,preventDefault(){},stopImmediatePropagation(){}};
+    f.docEvents.get('click')?.(evt);
+    const selected=await send('prompt.page.pick.status',{session});
+    assert.equal(selected.ok,true);assert.equal(selected.data.state,'selected');
+    assert.equal(selected.data.selector,'#composer');
+    const checked=await send('prompt.page.check',{rule:{origin:'https://example.org',
+      containerSelector:'main',editorSelector:'#composer',pathScope:'/compose'}});
+    assert.equal(checked.ok,true);assert.equal(checked.data.valid,true);
+    const deny=await new Promise(resolve=>[...f.runtimeMessages][0]({
+      protocol:'opendesk.prompt-shortcuts.picker.v1',toolId:PROMPT_ID,
+      operation:'prompt.page.pick.status',expectedUrl:f.win.location.href,session
+    },{id:'bad',url:'https://evil.invalid/'},resolve));
+    assert.equal(deny.ok,false,'other extensions cannot invoke picker');
+  }finally{controller.dispose();}
+});
