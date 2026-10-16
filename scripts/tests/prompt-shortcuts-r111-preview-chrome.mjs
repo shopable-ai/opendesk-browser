@@ -123,7 +123,7 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#contextSwitch").checked'),true);
   await click('#sitesButton');
   assert.equal(await evalChrome('!document.querySelector("#siteDetails").hidden'),true);
-  assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("当前未内置适配")'),true);
+  assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("其他 AI 网站仍须逐站验证")'),true);
   await click('#hostBack');
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
   report.compactHostSettings=true;
