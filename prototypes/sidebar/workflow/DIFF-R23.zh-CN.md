@@ -98,3 +98,13 @@ docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 记载旧特�
 **六维专家目标**：视觉布局、对话效率、任务理解、权限安全、失败恢复、可访问性维护性，分别 ≥95/100。没有逐项原始截图/测试/人工核对仍全部 NOT_SCORED；不得将来源级 Chromium 的离线模拟成功提升为原生产品通过。
 
 **特别注意**：GitHub Actions 的测试是对真实保存的 HTML，在独立 Linux Chrome 中运行，而非用户 Mac 的 Sidebar。实际系统输入法、Chrome 用户菜单 200% 缩放、Native Provider/RunHost、开发/生产扩展包加载身份仍 NOT_TESTED。用户没有确认 R23.2 之前正式 src/ui 不可迁移。
+
+
+## 八、R23.2 纯 Icon 修复的实际来源级 Chrome 证据（2026-10-16）
+
+- **用户反馈已修复**：三个顶部操作只显示时钟（历史）、对话框加号（新对话）、文件加号（新建工作流）；取消按钮中的可见文本、保持 40×40px，保留独立 `aria-label`/`title`、键盘焦点与浅深主题。只改变预览，不修改正式 Sidebar。
+- **绑定源文件**：`prototypes/sidebar/workflow/index.html` Git Blob `f1795d85959756cfe23cbabbb811c9c5058308cb`，SHA-256 `460cdec5f52d6eb28559ba80306d7184e61482fafd73c13bc7d330f2bedae68b`。该 Blob 与截图压缩包内的唯一 `index.html` 完全一致。
+- **实际验收**：GitHub Actions [run 38875166282](https://github.com/shopable-ai/opendesk-browser/actions/runs/38875166282)，HEAD `9360ee711b9680534a6784616e81b745974e1829`，`exact-saved-html` 与 `native-browser-zoom` 两个 job 均成功。Linux Chrome for Testing 155.0.8059.84：实际浏览器打开源文件并经 UI 运行 22 组检查（含三个 Icon-only 的无障碍命名、最小点击区域、DOM 双轮读回、Stop、授权、草稿及历史）；控制台错误 0。
+- **真实 200% Chrome 页面缩放**：X11 原生 `Ctrl+Plus` 连续放大，`devicePixelRatio: 1→2`、`innerWidth: 1280→640`、`outerWidth: 1280`，分别检查 360/420/520px 的三个 Icon 命中区域、标题溢出、遮挡与浏览器横向溢出均通过。不是 CSS transform 或单独 viewport 模拟。
+- **归档证据**：[源文件＋八张截图＋结果 JSON](https://github.com/shopable-ai/opendesk-browser/actions/runs/38875166282/artifacts/12034804409)；[真实 200% 缩放截图＋数值 JSON](https://github.com/shopable-ai/opendesk-browser/actions/runs/38875166282/artifacts/12035106340)。
+- **结论边界**：`PREVIEW_SOURCE_BOUND_CHROME_PASS`（仅模拟 HTML）。正式 Sidebar、Mac Chrome 用户安装、真实 AI/Native/RunHost 两轮、系统级中文 IME 未测试；六维独立 UX 专家评分仍为 `NOT_SCORED`；用户尚未批准迁移设计。不能把预览证据升级为正式产品 95+ 交付。
