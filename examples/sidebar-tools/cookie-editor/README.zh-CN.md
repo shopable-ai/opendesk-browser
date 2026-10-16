@@ -32,12 +32,19 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check
 
 ## 用户能完成什么
 
-1. 在实际 Chrome 打开要授权的网站 → 已安装工具「设置」→ 按网站分别授权 `browser.cookies.read / values / write / observe / clear`。安装或选择网址不自动授权；第一次授权需该站点处于活动标签页。授权后普通读取可以在其他网站仍活跃时重复使用。
+1. 在实际 Chrome 打开要管理的网站 → 点击「允许管理本站 Cookie」。本站读取、保存、导入复用这次网站授权，可一键撤销；安装或选择网址不自动授权。必要的敏感操作确认仍在可信宿主进行。
 2. `OpenDeskSDK.browser.cookies.getAll({url})` 读取真实 Chrome Cookie 元数据，显示 Cookie 名称、Domain/Path、Secure/HttpOnly/SameSite、Session/Expiration、Store/Partition。真实值默认隐藏；独立 `values` 网站授权后才可按需显示或导出。
 3. `cookies.set/remove` 实际新增、编辑、精确删除；受信 Side Panel 每次要求用户明确确认。原生回读和结果未知不自动重试。Name 可直接修改，并按先新建核验再精确删除旧名称执行（非原子）。未改动的隐藏 Value 仅在获准独立敏感值权限后临时读取保留；也可主动提供新 Value。未授权时绝不静默写空值。
 4. `clearSite` 只清理选定主机的 Host-only Cookie、批准的 Store/Partition、最多 50 条。先生成含 **60 秒、一次性 `previewRef`** 的预览；清理前核对精确 Cookie 身份集合，数量相同而内容改变也拒绝。实际删除仍需可信点击；Worker 重启、撤权会使旧预览不可用。
 5. `observe.start/getStatus/read/stop` 手动启动最长 15 秒的有界脱敏变化观察，携带 cursor/gap。事件不传 Cookie 值。
-6. 「离线工作区」仍支持 JSON、Cookie Header、Netscape 读取/编辑/导出，绝不冒充真实 Chrome；真实导入每批至多 10 条，预览并逐条经 Chrome SDK 与用户确认。真实导出 JSON 默认含值，必须在执行复制或下载时通过独立敏感值授权与本次最终确认；仅导出属性放在「更多选项」。
+6. 文本或文件可自动识别 JSON 数组、带 `cookies` 的对象、单条记录、名称值字典、Cookie Header 和 Netscape。支持 UTF-8 BOM、`Cookie:` 前缀、分号/换行及值中的等号。预览逐条列出新增、覆盖、过期及无效原因，确认时仅写可导入项并明确统计跳过数；错误后保留原文供修改。JSON 导出可直接回导。真实导出 JSON 默认含值，复制或下载仍需已有敏感值授权与本次最终确认；仅导出属性放在「更多选项」。
+
+### 2.0.20 批量导入范围
+
+- 取消真实导入的 10 条整批拒绝限制。最多预览 500 条 / 150,000 UTF-8 字节，以限制敏感输入内存及预览渲染；超限明确提示，粘贴不截断。离线工作区合并后的 200 条限制单独保留。
+- 使用公开 `cookies.setMany`，系统按 SDK 单请求 12,000 字节合同保留余量，自动分为不超过 11,500 字节 / 50 条且同 Store/Partition 的批次，用户无需拆文件；每批一次可信操作确认。需包含该公共接口的新版扩展。
+- 每条复用现有 Cookie Service 的写入与 Chrome 原生精确回读。保留有效记录的值、安全属性、路径、过期时间及分区；缺省 Domain/Path/Store 依当前站点和格式语义补齐。显式外域、其他 Store/Partition、重复身份均显示为无效，不改写身份。已过期记录跳过，不延长过期时间或改成会话 Cookie。
+- 批次遇到失败或未知结果立即停止，显示已确认数量和原始记录序号，保留原文，不自动重试。预览后发生过期则要求重新预览。
 
 ## 唯一架构及授权边界
 

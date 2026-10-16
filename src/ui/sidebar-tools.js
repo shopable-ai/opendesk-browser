@@ -1298,7 +1298,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         envelope.approvalRef=approvalRef;
       }
 
-      if(['browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'].includes(operation)&&
+      if(['browser.cookies.set','browser.cookies.setMany','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'].includes(operation)&&
          !(operation==='browser.cookies.clearSite'&&payload?.preview===true)){
         const origin=new URL(payload.url).origin;
         const requiredCookieGrant=operation==='browser.cookies.clearSite'?'clear':
@@ -1313,7 +1313,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         }
         const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
           operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
-          operation==='browser.cookies.remove'?'删除指定 Cookie':'写入指定 Cookie';
+          operation==='browser.cookies.remove'?'删除指定 Cookie':
+          operation==='browser.cookies.setMany'?'批量写入 '+payload.cookies.length+' 条 Cookie':'写入指定 Cookie';
         const ref=await requestBrowserClick({toolId:tool.id,
           message:'「'+tool.title+'」请求在 '+origin+' '+kind+
             '。将仅使用当前已授权的 Cookie Store/Partition。本次操作不可自动重试。',

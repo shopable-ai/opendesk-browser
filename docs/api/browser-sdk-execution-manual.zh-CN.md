@@ -169,7 +169,7 @@ docs/api/browser-sdk-interface-matrix.json#approvedOperations 是唯一逐接口
 
 正式新增 `browser.downloads.download({url,filename?,saveAs?})`、`getOwned({downloadRef})`、`listOwned({cursor?,limit?})` 和 `cancelOwned({downloadRef})` 四项。调用复用唯一 Registry / Wrapper / Browser Host，Host 拒绝未安装、错误包摘要 / Epoch、未获网站与 Chrome downloads 权限、未消费真实用户点击意图的写入 / 取消。实际 `chrome.downloads.download/search/cancel` 在受限 `src/platform/chrome/browser-downloads.js` Driver 内执行，产生易撤销、不含原生 ID 的 opaque DownloadRef；不会枚举全浏览器下载历史。Driver 不新增授权来源或并列下载数据库，内存 Ref 在 Worker 重启后自然失效；Chrome 效果无法确认时报告 `E_OUTCOME_UNKNOWN`，不得自动重试。本轮记录为 SOURCE_WIRED，Node / Build / Native Chrome 同候选状态仍 NOT_TESTED；原批准合同总数 55 不变，计划剩余 11 项。
 
-## 4. Cookies 11 项正式 SDK 与可信 UI 的共用安全合同
+## 4. Cookies 12 项正式 SDK 与可信 UI 的共用安全合同
 
 唯一受信操作名（按现行 src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS）：
 
@@ -184,6 +184,9 @@ docs/api/browser-sdk-interface-matrix.json#approvedOperations 是唯一逐接口
 9. browser.cookies.observe.getStatus：仅读当前会话状态、缓存数量、丢弃数与 expiresAt；不消费事件。
 10. browser.cookies.observe.read：以 sessionRef / 十进制 cursor / limit≤50 读取脱敏事件，返回 seq、nextCursor、gapCount、droppedCount；**绝不包含 Cookie value**。
 11. browser.cookies.observe.stop：停止并撤销会话；导航、撤权、关 UI、Worker 重启使旧会话失效。
+12. `browser.cookies.setMany({url,cookies})`：仅 installed-tool 路径；`cookies` 为现有单条 `set` 参数去掉 `url` 的数组，1–50 条。整个参数 JSON 的 UTF-8 编码上限仍为 **12,000 bytes**，工具应按字节分批（例如 cookies 数组 ≤8,000 bytes，或整体参数 ≤11,500 bytes 留余量），不能只按条数估算。所有行固定同一个 URL、已授权 Store 和 Partition；允许各行使用不同的 literal `path`，不能使用 row.url 或切换 Store/Partition。继续使用 `browser.cookies.write` 能力与既有网站 write 授权；可信 Side Panel **每批一次**真实点击，绑定完整、有序、精确 payload、安装身份和 grant epoch。先预检全部 schema 与身份，再逐条调用原 `set` 和原生精确回读；首个失败/未知结果停止，不重试，也不执行剩余行。
+
+`setMany` 回执为 `{saved:number,verified:number,results:[{index:number,saved:boolean,verified:boolean,code?:string}],stopped?:true}`。顶层计数只统计已确认成功的行；`index` 是当前批次零起始索引，成功行均为 `saved:true,verified:true`，全部成功时省略 `stopped`。中途失败包括此前成功行和首个失败行（含 `code`），并返回 `stopped:true`；未执行的行不返回。`E_OUTCOME_UNKNOWN` 行的两个 `false` 表示未确认，**不能推断未写入，也不得自动重放**。错误码只返回 Schema 中的固定已知枚举，未识别异常统一映射为 `E_OUTCOME_UNKNOWN`，不透传可能含凭据的 code 或 message。回执不含 Cookie 值或 native 错误正文；schema/scope 的整批预检失败在写入前抛错。本轮 Node 证据见 [批量写工作记录](../framework/workstreams/cookie-import-sdk-batch-20261017.md)；Build/真实 Chrome 仍 NOT_TESTED。
 
 Cookies 的两种**不同身份**复用唯一的 context-menus.js Browser Host 与现有 Cookie Driver：① 安装工具通过 `OpenDeskSDK.browser.cookies.*` → iframe Bridge → Side Panel → `kind:'tool'` → `authorizedCookie` → `browser-cookie-host.js#executeInstalled`，须核查安装 packageHash、Epoch、工具 Capability、真实 Chrome 站点权限、受信 UI 分站点 read/values/write/observe/clear 授权、Origin、非无痕 Store、精确 PartitionKey 和每次写入/删除的一次性用户点击；只在**额外**授予 values 且工具声明 values 时才可向该工具返回 Cookie 明文。② 可信内置 Cookie UI 使用已有 Host-only `browser.cookies.approve` / `browser.cookies.execute` 与强 Document 绑定。内部 approve/execute 不属于公开 SDK，也不是第二 Host；不能以官方工具包来源替代安装工具真实权限。读取回执受长度与敏感值限制，事件永不含值，撤权和副作用未知不自动重试。Controller 旧 getCookies/setCookies/deleteCookiesByUrl 仍复用 cookies.js。当前属于 SOURCE_WIRED，原生 Mac Chrome 仍 NOT_TESTED。
 

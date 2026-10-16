@@ -20,6 +20,14 @@ const resultIds=obj({registered:bool,actionIds:arr(str(40),3)},['registered','ac
 const counter=obj({state:str(40),observedCount:num(),droppedCount:num(),gapCount:num(),expiresAt:num()},
   ['state','observedCount','droppedCount','gapCount','expiresAt']);
 const cookiePartition=obj({topLevelSite:str(256,'^https?://'),hasCrossSiteAncestor:bool},['topLevelSite']);
+const cookieSetFields={name:str(256),value:str(4096),domain:str(256),path:str(512),
+  secure:bool,httpOnly:bool,sameSite:str(32),expirationDate:{type:'number'},
+  storeId:str(128),partitionKey:cookiePartition,ifAbsent:bool};
+export const COOKIE_BATCH_ERROR_CODES=Object.freeze([
+  'E_OUTCOME_UNKNOWN','E_COOKIE_CONFLICT','E_COOKIE_SCOPE','E_COOKIE_STORE','E_COOKIE_PARTITION',
+  'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED','E_GRANT_REVOKED',
+  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_PERMISSION','E_SCHEMA','E_LIMIT'
+]);
 const cookieRecord=obj({name:str(256),domain:str(253),path:str(512),hostOnly:bool,
   secure:bool,httpOnly:bool,sameSite:{enum:['unspecified','lax','strict','no_restriction']},
   session:bool,expirationDate:{type:'number'},storeId:str(128),partitionKey:cookiePartition,
@@ -165,9 +173,11 @@ const ops=Object.freeze({
    obj({cookie:nullableCookie,scope:str(64)},['cookie','scope'])],
  'browser.cookies.getAll':[obj({url:http,name:str(256),storeId:str(128),partitionKey:cookiePartition,includeValues:bool},['url']),
    arr(cookieRecord,50)],
- 'browser.cookies.set':[obj({url:http,name:str(256),value:str(4096),domain:str(256),path:str(512),secure:bool,httpOnly:bool,sameSite:str(32),
-    expirationDate:{type:'number'},storeId:str(128),partitionKey:cookiePartition},['url','name','value']),
+ 'browser.cookies.set':[obj({url:http,...cookieSetFields},['url','name','value']),
    obj({saved:bool,verified:bool,cookie:cookieRecord},['saved','verified'])],
+ 'browser.cookies.setMany':[obj({url:http,cookies:{...arr(obj(cookieSetFields,['name','value']),50),minItems:1}},['url','cookies']),
+   obj({saved:num(0,50),verified:num(0,50),results:arr(obj({index:num(0,49),saved:bool,verified:bool,code:{enum:COOKIE_BATCH_ERROR_CODES}},
+     ['index','saved','verified']),50),stopped:{const:true}},['saved','verified','results'])],
  'browser.cookies.remove':[obj({url:http,name:str(256),domain:str(256),path:str(512),storeId:str(128),partitionKey:cookiePartition},['url','name','domain','path']),
    obj({removed:bool,verified:bool},['removed','verified'])],
  'browser.cookies.clearSite':[obj({url:http,storeId:str(128),partitionKey:cookiePartition,preview:bool,previewRef:str(36),expectedCount:num(0,50),maxCookies:num(1,50)},['url']),

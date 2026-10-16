@@ -113,8 +113,8 @@
 <div class="section-head"><strong id="import-heading">导入离线工作区</strong><button id="import-close" class="icon-button" type="button" title="关闭导入" aria-label="关闭导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>
 <details class="import-advanced"><summary>手动指定格式</summary><div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto" selected>自动识别</option><option value="json">JSON</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div></details>
-<div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" maxlength="150000" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
-<p id="import-help" class="hint">仅操作本地临时工作区，每次最多导入 100 条。会先显示新增/覆盖数量供确认；不会写入真实浏览器。</p>
+<div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
+<p id="import-help" class="hint">先显示新增、覆盖、过期和无效记录。文本或文件最多 150 KB / 500 条；超限会明确提示，输入不会截断。</p>
 <p id="live-import-preview" class="import-preview" role="status" aria-live="polite" hidden></p>
 <div class="form-actions"><button id="import-cancel" class="text-button" type="button">取消</button><button id="import-apply" class="text-button primary" type="button">确认导入</button><button id="live-import-confirm" class="text-button primary" type="button" hidden>确认写入 Chrome</button></div></section>
 <section id="confirm-panel" class="confirmation" role="alertdialog" aria-modal="true" aria-labelledby="confirm-message" hidden>

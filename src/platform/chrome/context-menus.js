@@ -201,7 +201,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
 
   const cookieCapabilities=Object.freeze({
     'browser.cookies.get':'read','browser.cookies.getAll':'read',
-    'browser.cookies.set':'write','browser.cookies.remove':'write',
+    'browser.cookies.set':'write','browser.cookies.setMany':'write','browser.cookies.remove':'write',
     'browser.cookies.clearSite':'clear','browser.cookies.getCurrentStore':'read',
     'browser.cookies.getPartitionKey':'read','browser.cookies.observe.start':'observe',
     'browser.cookies.observe.getStatus':'observe','browser.cookies.observe.read':'observe',

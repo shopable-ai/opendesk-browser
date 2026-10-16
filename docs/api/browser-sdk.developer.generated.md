@@ -245,10 +245,18 @@
 
 ## OpenDeskSDK.browser.cookies.set
 
-- Signature: `(input: { readonly domain?: string; readonly expirationDate?: number; readonly httpOnly?: boolean; readonly name: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly path?: string; readonly sameSite?: string; readonly secure?: boolean; readonly storeId?: string; readonly url: string; readonly value: string; }) => Promise<{ readonly cookie?: { readonly domain: string; readonly expirationDate?: number; readonly hostOnly?: boolean; readonly httpOnly?: boolean; readonly name: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly path: string; readonly sameSite?: "unspecified" | "lax" | "strict" | "no_restriction"; readonly secure?: boolean; readonly session?: boolean; readonly storeId?: string; readonly value?: string; readonly valueRedacted: boolean; }; readonly saved: boolean; readonly verified: boolean; }>`
+- Signature: `(input: { readonly domain?: string; readonly expirationDate?: number; readonly httpOnly?: boolean; readonly ifAbsent?: boolean; readonly name: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly path?: string; readonly sameSite?: string; readonly secure?: boolean; readonly storeId?: string; readonly url: string; readonly value: string; }) => Promise<{ readonly cookie?: { readonly domain: string; readonly expirationDate?: number; readonly hostOnly?: boolean; readonly httpOnly?: boolean; readonly name: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly path: string; readonly sameSite?: "unspecified" | "lax" | "strict" | "no_restriction"; readonly secure?: boolean; readonly session?: boolean; readonly storeId?: string; readonly value?: string; readonly valueRedacted: boolean; }; readonly saved: boolean; readonly verified: boolean; }>`
 - Mode: SCOPED; native: `chrome.cookies.set`
 - Capabilities: `browser.cookies.write`; Chrome permissions: `cookies`
 - Scope: explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads; user gesture: required
+- Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
+
+## OpenDeskSDK.browser.cookies.setMany
+
+- Signature: `(input: { readonly cookies: Array<{ readonly domain?: string; readonly expirationDate?: number; readonly httpOnly?: boolean; readonly ifAbsent?: boolean; readonly name: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly path?: string; readonly sameSite?: string; readonly secure?: boolean; readonly storeId?: string; readonly value: string; }>; readonly url: string; }) => Promise<{ readonly results: Array<{ readonly code?: "E_OUTCOME_UNKNOWN" | "E_COOKIE_CONFLICT" | "E_COOKIE_SCOPE" | "E_COOKIE_STORE" | "E_COOKIE_PARTITION" | "E_CHROME_UNSUPPORTED" | "E_CHROME_PERMISSION_REQUIRED" | "E_SITE_GRANT_REQUIRED" | "E_GRANT_REVOKED" | "E_TOOL_CHANGED" | "E_TOOL_DISABLED" | "E_OWNER" | "E_CONTEXT" | "E_PERMISSION" | "E_SCHEMA" | "E_LIMIT"; readonly index: number; readonly saved: boolean; readonly verified: boolean; }>; readonly saved: number; readonly stopped?: true; readonly verified: number; }>`
+- Mode: COMPOSED; native: `chrome.cookies.set`, `chrome.cookies.getAll`
+- Capabilities: `browser.cookies.write`; Chrome permissions: `cookies`
+- Scope: One approved HTTP(S) URL, one non-incognito Store and one Partition for the complete 1–50 row batch; row.path may differ; user gesture: required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.downloads.cancelOwned

@@ -1918,12 +1918,12 @@
       "TRUSTED_HOST_OR_EXISTING_SERVICE": 315,
       "VERSION_GATED": 1
     },
-    "approvedOperations": 75,
-    "approvedRegistered": 73,
+    "approvedOperations": 76,
+    "approvedRegistered": 74,
     "approvedCookieHostOnly": 0,
     "approvedPlannedNew": 0,
     "nativeMappedApproved": 54,
-    "approvedWithInputAndOutputSchemas": 75,
+    "approvedWithInputAndOutputSchemas": 76,
     "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
@@ -6386,6 +6386,276 @@
         "fullMatrixContractStatus": "NOT_TESTED",
         "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
       }
+    },
+    {
+      "id": "browser.cookies.setMany",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "NEW_PUBLIC_SCOPED_FROM_EXISTING_HOST",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.cookies.setMany({url,cookies})",
+      "returnSignature": "Promise<{saved:number,verified:number,results:Array<{index:number,saved:boolean,verified:boolean,code?:string}>,stopped?:true}>",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "pattern": "^https?://"
+          },
+          "cookies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 4096
+                },
+                "domain": {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                "path": {
+                  "type": "string",
+                  "maxLength": 512
+                },
+                "secure": {
+                  "type": "boolean"
+                },
+                "httpOnly": {
+                  "type": "boolean"
+                },
+                "sameSite": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "expirationDate": {
+                  "type": "number"
+                },
+                "storeId": {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                "partitionKey": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "topLevelSite": {
+                      "type": "string",
+                      "maxLength": 256,
+                      "pattern": "^https?://"
+                    },
+                    "hasCrossSiteAncestor": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "topLevelSite"
+                  ]
+                },
+                "ifAbsent": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
+            },
+            "maxItems": 50,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "url",
+          "cookies"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "saved": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "verified": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 49
+                },
+                "saved": {
+                  "type": "boolean"
+                },
+                "verified": {
+                  "type": "boolean"
+                },
+                "code": {
+                  "enum": [
+                    "E_OUTCOME_UNKNOWN",
+                    "E_COOKIE_CONFLICT",
+                    "E_COOKIE_SCOPE",
+                    "E_COOKIE_STORE",
+                    "E_COOKIE_PARTITION",
+                    "E_CHROME_UNSUPPORTED",
+                    "E_CHROME_PERMISSION_REQUIRED",
+                    "E_SITE_GRANT_REQUIRED",
+                    "E_GRANT_REVOKED",
+                    "E_TOOL_CHANGED",
+                    "E_TOOL_DISABLED",
+                    "E_OWNER",
+                    "E_CONTEXT",
+                    "E_PERMISSION",
+                    "E_SCHEMA",
+                    "E_LIMIT"
+                  ]
+                }
+              },
+              "required": [
+                "index",
+                "saved",
+                "verified"
+              ]
+            },
+            "maxItems": 50
+          },
+          "stopped": {
+            "const": true
+          }
+        },
+        "required": [
+          "saved",
+          "verified",
+          "results"
+        ]
+      },
+      "nativeApis": [
+        "chrome.cookies.set",
+        "chrome.cookies.getAll"
+      ],
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "siteScope": "One approved HTTP(S) URL, one non-incognito Store and one Partition for the complete 1–50 row batch; row.path may differ",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_SITE_STORE_AND_CAPABILITY",
+      "userGesture": true,
+      "errors": [
+        "E_SCHEMA",
+        "E_CONTEXT",
+        "E_SERVICE_UNSUPPORTED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_OWNER",
+        "E_DOCUMENT_CHANGED",
+        "E_OUTCOME_UNKNOWN",
+        "E_LIMIT",
+        "E_COOKIE_AMBIGUOUS",
+        "E_COOKIE_STORE",
+        "E_COOKIE_SCOPE",
+        "E_COOKIE_PARTITION",
+        "E_COOKIE_NOT_FOUND",
+        "E_SESSION_EXPIRED",
+        "E_COOKIE_CONFLICT",
+        "E_CHROME_UNSUPPORTED",
+        "E_SITE_GRANT_REQUIRED",
+        "E_GRANT_REVOKED",
+        "E_TOOL_CHANGED",
+        "E_TOOL_DISABLED",
+        "E_PERMISSION"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "existing Side Panel installed-tool user grant + Chrome Host revalidation",
+      "driverFile": "src/platform/chrome/browser-cookie-host.js -> src/platform/chrome/cookies.js",
+      "lifecycle": "request",
+      "phase": "P2",
+      "status": "SOURCE_WIRED_NATIVE_NOT_TESTED",
+      "verification": {
+        "node": "NODE_PASS",
+        "build": "NOT_TESTED",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+          "tests/environment/browser-sdk-r9-installed-host.test.mjs"
+        ],
+        "positive": "One exact-payload trusted approval; complete schema/scope preflight; existing single-set exact native readback for every row; counts and index-only receipts without values",
+        "negative": "Mixed URL/Store/Partition and invalid later rows fail before effects; first failure/unknown stops remaining rows without retry; stale intent/sender/install/grant rejected",
+        "native": "Same-candidate installed batch import and revoked/unknown path; NOT_TESTED"
+      },
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "COMPOSED",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/framework/sdk/browser.js",
+        "src/ui/sidebar-tools.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/browser-cookie-host.js",
+        "src/platform/chrome/cookies.js"
+      ],
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA",
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.cookies.setMany')"
     },
     {
       "id": "browser.downloads.cancelOwned",
@@ -25758,7 +26028,8 @@
         "browser.cookies.get",
         "browser.cookies.getAll",
         "browser.cookies.remove",
-        "browser.cookies.clearSite"
+        "browser.cookies.clearSite",
+        "browser.cookies.setMany"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
       "disposition": "APPROVED_MAPPED_OPERATION"
@@ -25917,7 +26188,8 @@
       "sdkExposure": "APPROVED_PRIVILEGED_HOST_PATH",
       "runtimeStatus": "NOT_TESTED",
       "approvedOperationIds": [
-        "browser.cookies.set"
+        "browser.cookies.set",
+        "browser.cookies.setMany"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
       "disposition": "APPROVED_MAPPED_OPERATION"
@@ -59290,10 +59562,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 73,
+    "registeredOperations": 74,
     "trustedCookieHostOperations": 0,
     "approvedNewDesignOperations": 0,
-    "approvedTotal": 75,
+    "approvedTotal": 76,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -59310,7 +59582,7 @@
       "extensions/common/api/web_accessible_resources.webidl"
     ],
     "schemaMissingApproved": [],
-    "existingTrustedNativeCookieDriverOperations": 11,
+    "existingTrustedNativeCookieDriverOperations": 12,
     "trustedHostImplementedOperations": 2
   },
   "implementationPhases": [
@@ -59405,8 +59677,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "9e771f4f3a1644f91609bf21acf1b546c0da90e1",
-  "currentSchemaSourceSha": "a746d884b8a961d238955b9f54695c12e0a358e6",
+  "currentRegistrySourceSha": "24b6a03fa69d00c4bbe069f73c9a97b87cd1bca6",
+  "currentSchemaSourceSha": "e7fe7be6ff674be6fce5f6652b38d1454e384b49",
   "contractRevisions": [
     {
       "date": "2026-10-13",

@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 75,
-    "public": 73,
+    "approved": 76,
+    "public": 74,
     "hostOnly": 2
   },
   "bindings": [
@@ -1313,6 +1313,59 @@
         "sidebar-tool"
       ],
       "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": true,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.setMany",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.cookies.set",
+        "chrome.cookies.getAll"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.set",
+          "kind": "METHOD",
+          "signature": "set(details: object): Promise<$ref:Cookie>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<$ref:Cookie>"
+        },
+        {
+          "nativeApi": "chrome.cookies.getAll",
+          "kind": "METHOD",
+          "signature": "getAll(details: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.setMany",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "One approved HTTP(S) URL, one non-incognito Store and one Partition for the complete 1–50 row batch; row.path may differ",
       "userGesture": true,
       "minChrome": 138,
       "maxRequestBytes": 12000,

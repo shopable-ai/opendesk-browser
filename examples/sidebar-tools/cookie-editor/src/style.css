@@ -66,7 +66,7 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
 #editor-panel.cookie-inline{margin-top:var(--space-2);padding:var(--space-3) 0 0;border:0;border-top:1px solid var(--od-line);border-radius:0;background:transparent}
 .inline-operation{min-width:0}.inline-operation p{overflow-wrap:anywhere}
 .sensitive-note{margin:0;font-size:12px;line-height:1.5;color:var(--od-negative);overflow-wrap:anywhere}
-.import-preview{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.import-preview{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere;white-space:pre-line;max-height:320px;overflow-y:auto}
 #browser-import-slot,#offline-import-slot,#offline-editor-slot,#browser-editor-slot{min-width:0}
 #browser-editor-slot{display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-bg)}
 .permission-details{padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-sub);font-size:12px}

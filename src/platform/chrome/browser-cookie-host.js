@@ -4,9 +4,11 @@ import {createCookieService} from './cookies.js';
 import {chromeCall} from './tabs.js';
 import {permissionPattern} from '../../environment.js';
 import {fields,fail,httpUrl} from '../../framework/sdk/registry.js';
+import {normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
+import {COOKIE_BATCH_ERROR_CODES} from '../../framework/sdk/browser-schemas.js';
 
 export const TRUSTED_COOKIE_OPERATIONS=Object.freeze([
-  'browser.cookies.get','browser.cookies.getAll','browser.cookies.set','browser.cookies.remove',
+  'browser.cookies.get','browser.cookies.getAll','browser.cookies.set','browser.cookies.setMany','browser.cookies.remove',
   'browser.cookies.clearSite','browser.cookies.getCurrentStore','browser.cookies.getPartitionKey',
   'browser.cookies.observe.start','browser.cookies.observe.getStatus',
   'browser.cookies.observe.read','browser.cookies.observe.stop'
@@ -33,6 +35,7 @@ function partitionKey(value){
 }
 function normalized(op,input={}){
   if(!TRUSTED_COOKIE_OPERATIONS.includes(op))throw error('E_SERVICE_UNSUPPORTED');
+  if(op==='browser.cookies.setMany')throw error('E_SERVICE_UNSUPPORTED','Batch writes require installed-tool authority');
   switch(op){
     case 'browser.cookies.get':
       fields(input,['name','storeId','partitionKey'],['name']);
@@ -244,12 +247,43 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
   // This is an alternate identity/scope on the SAME native Cookie Service and
   // Chrome event listener. Tool-provided data can never create authority.
   async function executeInstalled(op,args,{origin,storeId,partitionKey=null,ownerKey,authorize}){
+    if(op==='browser.cookies.setMany')args=normalizeBrowserOperation(op,args);
     if(!TRUSTED_COOKIE_OPERATIONS.includes(op)||typeof authorize!=='function'||
        typeof storeId!=='string'||typeof ownerKey!=='string'||new URL(httpUrl(args.url)).origin!==origin)
       throw error('E_COOKIE_SCOPE');
     if(args.storeId!==undefined&&args.storeId!==storeId)throw error('E_COOKIE_STORE');
     const samePartition=(a,b)=>Boolean(a)===Boolean(b)&&(!a||
       a.topLevelSite===b.topLevelSite&&Boolean(a.hasCrossSiteAncestor)===Boolean(b.hasCrossSiteAncestor));
+    if(op==='browser.cookies.setMany'){
+      // Validate EVERY row before the first effect; rows cannot change URL,
+      // Store or Partition. The existing single-set Driver owns exact native
+      // readback, literal Path handling and all unknown-effect fencing.
+      const selectedPartition=args.cookies[0].partitionKey??null;
+      for(const row of args.cookies){
+        if(row.storeId!==undefined&&row.storeId!==storeId)throw error('E_COOKIE_STORE');
+        if(!samePartition(row.partitionKey??null,selectedPartition)||
+           row.partitionKey&&!samePartition(row.partitionKey,partitionKey))throw error('E_COOKIE_PARTITION');
+      }
+      const batch={saved:0,verified:0,results:[]};
+      for(const [index,row] of args.cookies.entries()){
+        try{
+          const receipt=await executeInstalled('browser.cookies.set',{url:args.url,...row},
+            {origin,storeId,partitionKey,ownerKey,authorize});
+          if(receipt.saved!==true||receipt.verified!==true)throw error('E_OUTCOME_UNKNOWN');
+          batch.saved++;batch.verified++;
+          batch.results.push({index,saved:true,verified:true});
+        }catch(cause){
+          // Error metadata may contain credentials too. Only fixed response
+          // codes leave this Host; unknown errors retain conservative semantics.
+          const candidate=cause?.code;
+          const code=COOKIE_BATCH_ERROR_CODES.includes(candidate)?candidate:'E_OUTCOME_UNKNOWN';
+          batch.results.push({index,saved:false,verified:false,code});
+          batch.stopped=true;
+          break;
+        }
+      }
+      return batch;
+    }
     if(args.partitionKey&&!samePartition(args.partitionKey,partitionKey))throw error('E_COOKIE_PARTITION');
     const key={storeId,...(args.partitionKey?{partitionKey:args.partitionKey}:{})};
     const check=(phase,url=args.url)=>authorize({operation:op,phase,url,storeId,

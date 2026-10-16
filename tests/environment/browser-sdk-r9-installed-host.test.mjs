@@ -8,6 +8,7 @@ const origin='https://shop.example.test';
 const url=origin+'/account';
 const partitionKey={topLevelSite:origin,hasCrossSiteAncestor:false};
 const reject=code=>err=>err?.code===code;
+
 const cookiePkg=validateSidebarToolPackage({
   format:'opendesk.sidebar-tool.v2',id:'cookie-editor',version:'2.0.0',
   title:'Cookie Editor',description:'Installed Browser Cookies SDK test fixture',
@@ -205,4 +206,55 @@ test('R9 a later values/write grant cannot silently move an earlier read grant t
   await assert.rejects(f.grant('values'),reject('E_COOKIE_SCOPE'));
   await assert.rejects(f.grant('write'),reject('E_COOKIE_SCOPE'));
   assert.notEqual(f.local.get('opendesk.browser.context-menu-grants.v1')?.[f.identity.toolId]?.cookieSites?.[origin]?.write,true);
+});
+
+test('setMany installed Host binds one approval to the exact complete batch and consumes it once',async()=>{
+  const f=fixture(),operation='browser.cookies.setMany',args={url,cookies:[
+    {name:'batch1',value:'PRIVATE1',path:'/child'}, {name:'batch2',value:'PRIVATE2',path:'/other'}]};
+  await assert.rejects(f.call(operation,args),reject('E_USER_GESTURE_REQUIRED'));
+  await assert.rejects(f.confirm(operation,args),reject('E_SITE_GRANT_REQUIRED'));
+  await f.grant('write');
+  const ref=(await f.confirm(operation,args)).approvalRef;
+  assert.deepEqual(await f.call(operation,args,ref),{saved:2,verified:2,results:[
+    {index:0,saved:true,verified:true},{index:1,saved:true,verified:true}]});
+  assert.equal(f.native.filter(x=>x==='set').length,2);
+  await assert.rejects(f.call(operation,args,ref),reject('E_USER_GESTURE_REQUIRED'));
+  for(const changed of [{...args,cookies:[...args.cookies].reverse()},
+    {...args,cookies:[args.cookies[0],{...args.cookies[1],value:'ALTERED'}]},
+    {...args,cookies:args.cookies.slice(0,1)}]){
+    const pending=(await f.confirm(operation,args)).approvalRef;
+    await assert.rejects(f.call(operation,changed,pending),reject('E_USER_GESTURE_REQUIRED'));
+    await assert.rejects(f.call(operation,args,pending),reject('E_USER_GESTURE_REQUIRED'));
+  }
+  assert.equal(f.native.filter(x=>x==='set').length,2);
+});
+
+test('setMany installed Host rejects revoked grant, foreign sender and changed install identity',async()=>{
+  const f=fixture(),operation='browser.cookies.setMany',args={url,cookies:[{name:'batch',value:'PRIVATE'}]};
+  await f.grant('write');
+  const pending=(await f.confirm(operation,args)).approvalRef;
+  await f.grant('write',false);
+  await assert.rejects(f.call(operation,args,pending));
+  await f.grant('write');
+  const fresh=(await f.confirm(operation,args)).approvalRef;
+  await assert.rejects(f.host.handleTool({...identity,operation,args,approvalRef:fresh},
+    {...sender,id:'foreign-extension'}));
+  await assert.rejects(f.call(operation,args,fresh,{...identity,installEpoch:'changed'}));
+  assert.equal(f.native.filter(x=>x==='set').length,0);
+});
+
+test('setMany installed Host rechecks real website permission between native effects',async()=>{
+  const f=fixture(),operation='browser.cookies.setMany',args={url,cookies:[
+    {name:'first',value:'PRIVATE'}, {name:'unknown',value:'PRIVATE'}, {name:'unattempted',value:'PRIVATE'}]};
+  await f.grant('write');
+  const ref=(await f.confirm(operation,args)).approvalRef,set=f.api.cookies.set;let writes=0;
+  f.api.cookies.set=(details,cb)=>set(details,row=>{
+    if(++writes===2)f.state.hostAllowed=false;
+    cb(row);
+  });
+  const result=await f.call(operation,args,ref);
+  assert.deepEqual(result,{saved:1,verified:1,results:[{index:0,saved:true,verified:true},
+    {index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}],stopped:true});
+  assert.equal(writes,2);
+  assert(!f.state.records.some(row=>row.name==='unattempted'));
 });

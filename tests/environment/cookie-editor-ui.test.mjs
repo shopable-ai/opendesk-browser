@@ -81,7 +81,7 @@ test('Cookie no-overwrite condition is a typed option on the single public set c
 
 test('committed Cookie Editor bundle exactly matches canonical source packaging',async()=>{
   const generated=serializeSidebarToolPackage(await createSidebarToolPackage(project));
-  const ready=await get(project+'/cookie-editor.opendesk-tool.json');
+  const ready=await get(process.env.COOKIE_EDITOR_TEST_PACKAGE||project+'/cookie-editor.opendesk-tool.json');
   assert.equal(ready,generated,'预构建 JSON 与当前配置/HTML/CSS/JS 不一致：请重新打包并提交');
   assert.equal(JSON.parse(ready).id,'cookie-editor');
 });
@@ -218,7 +218,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     'prepareLiveImport=track(prepareLiveImport);revealBrowserValue=track(revealBrowserValue);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
-    'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
+    'globalThis.__cookieTest={normalizeCookie,parseImport,inspectImport,importBatches,exportText,saveToList,mergeImport,'+
     'sortCookies,parseTarget,redactMetadata,readBrowserMetadata,openEditor,saveBrowserCookie,nativeInput,'+
     'setLiveTarget:url=>{liveTarget=parseTarget(url);targetPending=false;liveRows=[];liveState="idle"},'+
     'setTargetPending:value=>{targetPending=value},'+
@@ -229,6 +229,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     'setRows:rows=>{data={...data,cookies:rows}}};void refresh();\n})();');
   const fixtureBrowser=browser?.cookies?.getAll&&!browser.cookies.getPartitionKey?
     {...browser,cookies:{...browser.cookies,
+      getCurrentStore:browser.cookies.getCurrentStore||(async()=>({storeId:'0'})),
       getAll:async options=>{const rows=await browser.cookies.getAll(options);return rows.filter(row=>options.partitionKey?Boolean(row.partitionKey):!row.partitionKey);},
       getPartitionKey:async({url})=>({partitionKey:{topLevelSite:new URL(url).origin,
         hasCrossSiteAncestor:false}})}}:browser;
@@ -445,8 +446,8 @@ test('Reject bad fields, foreign domains, insecure prefixes, expired and oversiz
   expectError(()=>a.parseImport('not a cookie line','header'),/Header/);
   expectError(()=>a.parseImport('sid=x; sid=y','auto'),/重复/);
   expectError(()=>a.parseImport('sid='+('x'.repeat(150001)),'header'),/150 KB/);
-  expectError(()=>a.parseImport('['+Array.from({length:101},(_,i)=>
-    '{"name":"n'+i+'","value":"x"}').join(',')+']','json'),/100/);
+  expectError(()=>a.parseImport('['+Array.from({length:501},(_,i)=>
+    '{"name":"n'+i+'","value":"x"}').join(',')+']','json'),/500/);
 });
 test('Offline rename changes Name without changing scope or overwriting another Cookie',async()=>{
   const a=await harness();a.setSite('example.com');
@@ -1188,7 +1189,7 @@ test('R4.10.1 delete and import preflight mask untrusted SDK/Host exception deta
   assert.match(s.getStatusMessage(),/删除未确认/);
   assert.equal(s.getField('editor-panel').hidden,false,'unconfirmed delete must retain the editor');
   assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
-  s.fire('live-import','click');s.getField('import-text').value='sample=fake';
+  s.fire('live-import','click');s.getField('import-text').value='sample=fake';s.getField('import-format').value='auto';
   s.fire('import-apply','click');await new Promise(resolve=>setImmediate(resolve));
   assert.match(s.getStatusMessage(),/真实导入预检失败/);
   assert.doesNotMatch(s.getStatusMessage(),new RegExp(secret));
@@ -1361,4 +1362,96 @@ test('R4.10.3 a normal file selection still loads after input and change bubble 
     'a normal file selection must not invalidate its own read when its events bubble');
   assert.equal(s.getField('import-panel').hidden,false);
   assert.equal(s.isDirty(),true);
+});
+
+test('Bulk text preview keeps valid rows while explicitly skipping expired and invalid identities',async()=>{
+  const saved=[];let batchCalls=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],
+    setMany:async({url,cookies})=>{
+      batchCalls++;assert.equal(url,'https://example.com/');
+      saved.push(...cookies);
+      return {results:cookies.map((_,index)=>({index,saved:true,verified:true}))};
+    }
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const rows=Array.from({length:30},(_,i)=>({name:'bulk_'+i,value:'fictional='+i,
+    domain:'.example.com',hostOnly:false,path:'/',secure:true,httpOnly:true,sameSite:'lax',
+    session:false,expirationDate:i<3?1:Math.floor(Date.now()/1000)+86437.125,storeId:null}));
+  rows.push({name:'foreign',value:'must-not-appear',domain:'other.example'});
+  rows.push({name:'wrong_store',value:'must-not-appear',storeId:'another'});
+  const source='\uFEFF'+JSON.stringify(rows);
+  s.fire('live-import','click');s.getField('import-text').value=source;s.getField('import-format').value='auto';
+  s.fire('import-apply','click');await s.settle();
+  const preview=s.getField('live-import-preview').textContent;
+  assert.match(preview,/共 32 条 · 可导入 27 · 新增 27 · 覆盖 0 · 已过期 3 · 无效 2/);
+  assert.match(preview,/第 1 条 bulk_0：已过期/);assert.match(preview,/第 31 条.*域名/);
+  assert.match(preview,/第 32 条 wrong_store：无效.*storeId/);
+  assert(!preview.includes('must-not-appear'));assert(!preview.includes('fictional='));
+  assert.equal(s.getField('live-import-confirm').hidden,false);assert.equal(saved.length,0);
+  s.fire('live-import-confirm','click');s.fire('confirm-accept','click');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(saved.length,27);assert(batchCalls<27);
+  assert(saved.every(row=>row.domain==='.example.com'&&row.storeId==='0'&&row.secure&&row.httpOnly&&row.sameSite==='lax'));
+  assert(saved.every(row=>row.expirationDate===rows[3].expirationDate));
+  assert.equal(s.getField('import-text').value,'');assert.match(s.getStatusMessage(),/已确认导入 27 条，跳过 5 条/);
+});
+
+test('BOM, Cookie prefix, newline pairs, equals in values and Netscape empty values round trip',async()=>{
+  const s=await harness();s.setSite('example.com');
+  const header=s.parseImport('\uFEFF  Cookie: a=x=y=z; b=\n\nCookie: c=3\r\nd=4;  ','auto');
+  assert.deepEqual(Array.from(header,row=>[row.name,row.value]),[['a','x=y=z'],['b',''],['c','3'],['d','4']]);
+  const netscape=s.parseImport('\uFEFF# Netscape HTTP Cookie File\n\nexample.com\tFALSE\t/\tFALSE\t0\tempty\t\n','auto');
+  assert.equal(netscape[0].value,'');
+  s.setRows(header);assert.equal(s.parseImport(s.exportText('json'),'auto').length,4);
+  assert.equal(s.parseImport('{"name":"single","value":"x"}','auto')[0].name,'single');
+  assert.equal(s.parseImport('{"cookies":[{"name":"wrapper","value":"x"}]}','auto')[0].name,'wrapper');
+});
+
+test('Invalid import preview explains each field and can be corrected without losing input',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');s.getField('import-text').value='broken';s.getField('import-format').value='auto';
+  s.fire('import-apply','click');await s.settle();
+  assert.equal(s.getField('import-text').value,'broken');assert.match(s.getField('live-import-preview').textContent,/第 1 条：无效.*name=value/);
+  assert.equal(s.getField('live-import-confirm').hidden,true);
+  s.getField('import-text').value='fixed=a=b';s.fire('import-panel','input');
+  assert.equal(s.getField('live-import-preview').hidden,true);
+  s.fire('import-apply','click');await s.settle();assert.equal(s.getField('live-import-confirm').hidden,false);
+  s.getField('import-text').value='[{"name":"x","value":"DO_NOT_ECHO"';s.fire('import-panel','input');
+  s.fire('import-apply','click');await s.settle();
+  assert.match(s.getStatusMessage(),/JSON 语法无效/);assert(!s.getStatusMessage().includes('DO_NOT_ECHO'));
+  assert.equal(s.getField('import-text').value,'[{"name":"x","value":"DO_NOT_ECHO"');
+  assert(!s.html.includes('maxlength="150000"'),'oversized paste must be diagnosed, never silently truncated');
+});
+
+test('Automatic batches respect SDK byte budget and stop on a partial unknown without replay',async()=>{
+  let calls=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[],
+    setMany:async()=>{calls++;return {results:[{index:0,saved:true,verified:true},{index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}]};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const source=JSON.stringify(Array.from({length:12},(_,i)=>({name:'large_'+i,value:'x'.repeat(2500)})));
+  s.fire('live-import','click');s.getField('import-text').value=source;s.getField('import-format').value='auto';
+  s.fire('import-apply','click');await s.settle();
+  const rows=s.parseImport(source,'auto'),batches=s.importBatches(rows);
+  assert(batches.length>1);assert.equal(batches.flat().length,12);
+  assert(batches.every(cookies=>Buffer.byteLength(JSON.stringify({url:'https://example.com/',cookies}))<=11500));
+  s.fire('live-import-confirm','click');s.fire('confirm-accept','click');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(calls,1);assert.equal(s.getField('import-text').value,source);
+  assert.match(s.getStatusMessage(),/已确认 1\/12 条；第 2 条停止.*E_OUTCOME_UNKNOWN/);
+});
+
+test('Automatic batches keep partition identities separate instead of rewriting them',async()=>{
+  const s=await harness();s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  const rows=s.parseImport(JSON.stringify([
+    {name:'plain',value:'x',storeId:'0'},
+    {name:'partitioned',value:'y',storeId:'0',secure:true,partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}},
+    {name:'plain_again',value:'z',storeId:'0'}
+  ]),'auto');
+  const batches=s.importBatches(rows);assert.equal(batches.length,3);
+  assert.equal(batches[0][0].partitionKey,undefined);
+  assert.equal(batches[1][0].partitionKey.topLevelSite,'https://example.com');
+  assert.equal(batches[2][0].partitionKey,undefined);
 });

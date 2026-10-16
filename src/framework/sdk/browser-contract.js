@@ -23,7 +23,7 @@ const USER_GESTURE_OPERATIONS=new Set([
   'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable',
-  'browser.cookies.set','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
+  'browser.cookies.set','browser.cookies.setMany','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'
 ]);
 function entry(operation,capability,contexts,chromePermissions,effect,risk,siteScope='none',state='IMPLEMENTED',lifecycle='request'){
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
@@ -98,6 +98,7 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.cookies.get':entry('browser.cookies.get','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
   'browser.cookies.getAll':entry('browser.cookies.getAll','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
   'browser.cookies.set':entry('browser.cookies.set','browser.cookies.write',tool,['cookies'],'write','high','approved-cookie-site'),
+  'browser.cookies.setMany':entry('browser.cookies.setMany','browser.cookies.write',tool,['cookies'],'write','high','approved-cookie-site'),
   'browser.cookies.remove':entry('browser.cookies.remove','browser.cookies.write',tool,['cookies'],'write','high','approved-cookie-site'),
   'browser.cookies.clearSite':entry('browser.cookies.clearSite','browser.cookies.clear',tool,['cookies'],'write','high','approved-cookie-host-only'),
   'browser.cookies.getCurrentStore':entry('browser.cookies.getCurrentStore','browser.cookies.read',tool,['cookies'],'read','high','approved-cookie-site'),
@@ -422,6 +423,23 @@ export function normalizeBrowserOperation(operation,args={}){
         throw fail('E_SCHEMA','Invalid event session reference');
       break;
 
+    case 'browser.cookies.setMany':{
+      fields(args,['url','cookies'],['url','cookies']);
+      const url=approvedHttpUrl(args.url);
+      if(!Array.isArray(args.cookies)||args.cookies.length<1||args.cookies.length>50)
+        throw fail('E_SCHEMA','Cookie batch requires 1–50 entries');
+      const rowFields=Object.keys(BROWSER_OPERATIONS['browser.cookies.set'].inputSchema.properties)
+        .filter(key=>key!=='url');
+      const cookies=Array.from(args.cookies,row=>{
+        fields(row,rowFields,['name','value']);
+        const {url:_url,...cookie}=normalizeBrowserOperation('browser.cookies.set',{url,...row});
+        return cookie;
+      });
+      const out={url,cookies};
+      if(new TextEncoder().encode(JSON.stringify(out)).byteLength>shared.maxRequestBytes)
+        throw fail('E_LIMIT','Cookie batch exceeds IPC budget');
+      return structuredClone(out);
+    }
     case 'browser.cookies.get':
     case 'browser.cookies.getAll':
     case 'browser.cookies.set':

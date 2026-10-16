@@ -1,6 +1,121 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createTrustedCookieHost} from '../../src/platform/chrome/browser-cookie-host.js';
+import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
+import {BROWSER_OPERATIONS,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
+
+test('setMany public facade uses the existing write capability, gesture and 12000-byte budget',async()=>{
+  const operation='browser.cookies.setMany',calls=[];
+  const sdk=createBrowserSdk({request:async(...args)=>calls.push(args)});
+  const args={url:'https://shop.example.test/account',cookies:[{name:'one',value:'PRIVATE',path:'/child'}]};
+  await sdk.cookies.setMany(args);
+  assert.deepEqual(calls,[[operation,args]]);
+  assert.deepEqual(BROWSER_OPERATIONS[operation].requiredCapabilities,['browser.cookies.write']);
+  assert.equal(BROWSER_OPERATIONS[operation].requiresUserGesture,true);
+  assert.equal(BROWSER_OPERATIONS[operation].maxRequestBytes,12000);
+  for(const cookies of [[],new Array(1),Array.from({length:51},()=>({name:'a',value:'b'})),
+    [{name:'a',value:'b',url:args.url}],[{name:'ok',value:'b'},{name:'bad name',value:'b'}],
+    [{name:'ok',value:'b'},{name:'bad',value:'b',sameSite:'wrong'}],
+    [{name:'ok',value:'b'},{name:'bad',value:'b',domain:'foreign.test'}],
+    [{name:'ok',value:'b'},{name:'__Host-bad',value:'b',path:'/child',secure:true}]]){
+    assert.throws(()=>normalizeBrowserOperation(operation,{...args,cookies}));
+  }
+  const limit=BROWSER_OPERATIONS[operation].maxRequestBytes;
+  const sized={url:args.url,cookies:Array.from({length:3},(_,i)=>({name:'c'+i,value:'x'.repeat(3900)}))};
+  const bytes=row=>new TextEncoder().encode(JSON.stringify(row)).byteLength;
+  sized.cookies[0].value+='x'.repeat(limit-bytes(sized));
+  assert.equal(bytes(sized),limit);
+  assert.equal(bytes(normalizeBrowserOperation(operation,sized)),limit);
+  sized.cookies[0].value+='x';
+  assert.throws(()=>normalizeBrowserOperation(operation,sized),e=>e.code==='E_LIMIT');
+  const utf8={url:args.url,cookies:Array.from({length:3},(_,i)=>({name:'c'+i,value:'汉'.repeat(1320)}))};
+  assert(JSON.stringify(utf8).length<12000);
+  assert.throws(()=>normalizeBrowserOperation(operation,utf8),e=>e.code==='E_LIMIT');
+});
+
+test('setMany preflights every row schema, URL, Store and Partition before any write',async()=>{
+  for(const row of [{name:'bad name',value:'x'}, {name:'x',value:'x',url:'https://foreign.test/'},
+    {name:'x',value:'x',storeId:'1'}, {name:'x',value:'x',partitionKey:{topLevelSite:'https://foreign.test'}},
+    {name:'x',value:'x',partitionKey:{topLevelSite:'https://shop.example.test',hasCrossSiteAncestor:false}}]){
+    const f=fixture();
+    await assert.rejects(f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},row]}));
+    assert.equal(f.state.native.filter(method=>method==='set').length,0);
+  }
+});
+
+test('setMany verifies all rows with the existing native exact readback, including literal child paths',async()=>{
+  const f=fixture(),cookies=Array.from({length:27},(_,i)=>({name:'import'+i,value:'PRIVATE_'+i,
+    path:i===0?'/child/%2F/../literal':'/child/'+i,secure:true,storeId:'0'}));
+  const result=await f.run('setMany',{cookies});
+  assert.deepEqual(result,{saved:27,verified:27,results:cookies.map((_,index)=>({index,saved:true,verified:true}))});
+  assert.equal(f.state.native.filter(method=>method==='set').length,27);
+  assert.equal(f.state.native.filter(method=>method==='getAll').length,27);
+  assert(!JSON.stringify(result).includes('PRIVATE'));
+  assert.equal(f.state.values,false);
+  assert(f.state.records.some(row=>row.path==='/child/%2F/../literal'));
+  const partitioned=await f.run('setMany',{cookies:[{name:'p1',value:'P',partitionKey},
+    {name:'p2',value:'P',partitionKey:{...partitionKey,hasCrossSiteAncestor:undefined}}]});
+  assert.equal(partitioned.verified,2);
+});
+
+test('setMany stops at the first native unknown and preserves only prior confirmed successes',async()=>{
+  const f=fixture(),set=f.api.cookies.set;let writes=0;
+  f.api.cookies.set=(details,cb)=>set(details,row=>cb(++writes===2?null:row));
+  const result=await f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},
+    {name:'unknown',value:'PRIVATE'},{name:'unattempted',value:'PRIVATE'}]});
+  assert.deepEqual(result,{saved:1,verified:1,results:[{index:0,saved:true,verified:true},
+    {index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}],stopped:true});
+  assert.equal(writes,2);
+  assert(f.state.records.some(row=>row.name==='unknown'),'Unknown does not imply no effect');
+  assert(!f.state.records.some(row=>row.name==='unattempted'));
+});
+
+test('setMany stops on ifAbsent conflict without retry or executing subsequent rows',async()=>{
+  const f=fixture(),result=await f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},
+    {name:'sid',value:'PRIVATE',path:'/',ifAbsent:true},{name:'unattempted',value:'PRIVATE'}]});
+  assert.deepEqual(result,{saved:1,verified:1,results:[{index:0,saved:true,verified:true},
+    {index:1,saved:false,verified:false,code:'E_COOKIE_CONFLICT'}],stopped:true});
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+});
+
+test('setMany fences revocation after an effect and preserves prior successes',async()=>{
+  const f=fixture(),set=f.api.cookies.set;let writes=0;
+  f.api.cookies.set=(details,cb)=>{if(++writes===2)f.state.revokeOnSet=true;return set(details,cb);};
+  const result=await f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},
+    {name:'unknown',value:'PRIVATE'},{name:'unattempted',value:'PRIVATE'}]});
+  assert.equal(result.saved,1);assert.equal(result.verified,1);
+  assert.equal(result.results[1].code,'E_OUTCOME_UNKNOWN');
+  assert.equal(result.stopped,true);assert.equal(writes,2);
+});
+
+test('setMany accepts the 50-row bound and stops immediately on an exact readback mismatch',async()=>{
+  const f=fixture(),cookies=Array.from({length:50},(_,i)=>({name:'row'+i,value:'PRIVATE',path:'/child'}));
+  assert.equal((await f.run('setMany',{cookies})).verified,50);
+  const bad=fixture(),getAll=bad.api.cookies.getAll;let reads=0;
+  bad.api.cookies.getAll=(details,cb)=>getAll(details,rows=>cb(++reads===2?[]:rows));
+  const result=await bad.run('setMany',{cookies:cookies.slice(0,3)});
+  assert.deepEqual(result,{saved:1,verified:1,results:[{index:0,saved:true,verified:true},
+    {index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}],stopped:true});
+  assert.equal(bad.state.native.filter(method=>method==='set').length,2);
+});
+
+test('setMany never forwards credential-looking exception codes or native error messages',async()=>{
+  for(const code of ['E_SECRET_TOKEN_0123456789','E_COOKIE_PRIVATE_VALUE',undefined,123]){
+    const f=fixture();
+    const scope=f.grant({authorize:async({phase})=>{
+      if(phase==='pre'&&f.state.native.filter(method=>method==='set').length===1)
+        throw Object.assign(new Error('PRIVATE_CREDENTIAL_MESSAGE'),{code});
+    }});
+    const result=await f.run('setMany',{cookies:[{name:'first',value:'PRIVATE'},
+      {name:'blocked',value:'PRIVATE'},{name:'unattempted',value:'PRIVATE'}]},scope);
+    assert.deepEqual(result,{saved:1,verified:1,results:[{index:0,saved:true,verified:true},
+      {index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}],stopped:true});
+    assert(!JSON.stringify(result).includes('PRIVATE'));
+    assert.equal(f.state.native.filter(method=>method==='set').length,1);
+    assert.equal(BROWSER_OPERATIONS['browser.cookies.setMany'].outputSchema.properties.results.items.properties.code.enum
+      .includes('E_SECRET_TOKEN_0123456789'),false);
+  }
+});
 
 const origin='https://shop.example.test';
 const target=origin+'/account';

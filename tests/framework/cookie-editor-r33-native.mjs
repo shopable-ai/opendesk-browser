@@ -5,24 +5,36 @@
 // No injected controls, storage writes, Cookie writes, grants or synthetic events.
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdir,readFile,writeFile,readdir,realpath} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,writeFile,readdir,realpath,rm} from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {launchChrome} from './k5-sdk-native-launcher.mjs';
 import {connect,evaluate} from './sidebar-native-session.mjs';
-import {packageFingerprint} from '../../scripts/verify-package.mjs';
+import {packageFingerprint,verifySdkResourceManifest} from '../../scripts/verify-package.mjs';
 import {COOKIE_EDITOR_UPGRADE_FROM,verifyCookieEditorUpgradeBaseline} from './cookie-editor-upgrade-contract.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const fixture='http://127.0.0.1:43111/demo-form.html';
+const nativeMode=process.env.COOKIE_NATIVE_MODE||'production';
+assert(['production','development'].includes(nativeMode),'Unknown COOKIE_NATIVE_MODE');
+function assertExtensionMode(directory,repositoryRoot,mode){
+  const resolved=path.resolve(directory),development=path.resolve(repositoryRoot,'dist/development');
+  assert(mode==='development'?resolved===development:!resolved.endsWith('/dist/development'),
+    mode==='development'?'Development mode requires exact repo/dist/development':'Daily development extension is not this immutable candidate');
+}
+const canonicalFixture='http://127.0.0.1:43111/demo-form.html';
+const fixture=process.env.COOKIE_NATIVE_TARGET||canonicalFixture;
+const targetUrl=new URL(fixture),cookieDomain=targetUrl.hostname;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const quote=JSON.stringify;
 const requestedStage=process.env.COOKIE_NATIVE_STAGE;
 const supportedStages=['all','visual','upgrade','partial','negative','path','advanced','lifecycle','import-export','smoke'];
 assert(!requestedStage||supportedStages.includes(requestedStage),'Unknown COOKIE_NATIVE_STAGE');
-const gapCases=['import-json-file','import-json-auto','import-json-manual','import-header-auto',
+const sampleCases=['import-sample-file-preview','import-sample-paste-preview','import-sample-file','import-sample-paste'];
+const gapCases=[...sampleCases,'import-json-bulk','import-json-file','import-overwrite','import-skipped-rows',
+  'import-json-auto','import-json-manual','import-header-auto',
   'import-header-manual','import-netscape-auto','import-netscape-manual','import-overwrite-cancel',
   'import-partial-cancel','import-invalid','import-preview-input-change',
   'export-copy-metadata-json','export-metadata-json','export-sensitive-denied',
@@ -33,8 +45,11 @@ const requestedCases=process.env.COOKIE_NATIVE_CASES?.split(',').map(id=>id.trim
 assert(!requestedCases||gapStage,'COOKIE_NATIVE_CASES requires import-export stage');
 assert(!requestedCases||requestedCases.every(id=>gapCases.includes(id)),'Unknown COOKIE_NATIVE_CASES');
 assert(!requestedCases||new Set(requestedCases).size===requestedCases.length,'Duplicate COOKIE_NATIVE_CASES');
-const selectedGapCases=smokeStage?['import-json-file']:gapStage?gapCases.filter(id=>!requestedCases||requestedCases.includes(id)):[];
-const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||id==='import-overwrite-cancel');
+const selectedGapCases=smokeStage?['import-json-file']:gapStage?gapCases.filter(id=>requestedCases?requestedCases.includes(id):!sampleCases.includes(id)):[];
+const sampleMode=selectedGapCases.some(id=>sampleCases.includes(id));
+assert(!sampleMode||selectedGapCases.every(id=>sampleCases.includes(id)),'Do not mix sensitive sample and fictional fixture cases');
+assert(sampleMode?fixture==='https://chatgpt.com/':fixture===canonicalFixture,'Sample requires https://chatgpt.com/; fictional cases require canonical fixture');
+const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||['import-overwrite','import-overwrite-cancel'].includes(id));
 const needsValues=selectedGapCases.some(id=>['export-copy-sensitive-json','export-json','export-header','export-netscape'].includes(id));
 // An explicit native stage must not silently degrade to the generic CRUD suite.
 const suite=requestedStage?'extended':process.env.COOKIE_NATIVE_SUITE;
@@ -56,22 +71,25 @@ const broadCases=[...stageCases.upgrade,...stageCases.negative,...stageCases.adv
 const selectedNativeCases=requestedStage==='all'
   ?[...coreCases,'revoke-values-before-negative-cases',...broadCases]
   :stageCases[requestedStage]||(suite==='extended'?broadCases:coreCases);
-const gapPlan={stage:requestedStage||'core',suite:suite||'core',siteAuthorization:'all-declared-cookie-capabilities',
+const gapPlan={mode:nativeMode,productionAcceptance:nativeMode==='production',stage:requestedStage||'core',suite:suite||'core',siteAuthorization:'all-declared-cookie-capabilities',
+  ...(gapStage?{siteGrantCount:1,candidateProfile:'one-'+nativeMode+'-one-fresh-profile',
+    sdkBatchPolicy:{maxItems:50,maxPayloadBytes:11500,sameStorePartition:true,approvalCount:'native-confirmation-plan'}}:{}),
   selected:smokeStage?['new-cookie',...selectedGapCases]:gapStage?selectedGapCases:[...new Set(selectedNativeCases)],
   prerequisites:[...commonCases,...(needsSeed?['gap-seed-import']:[])],
   valuesGrant:gapStage?needsValues:selectedNativeCases.includes('values-grant'),
-  cleanup:gapStage?['gap-cleanup']:[],
+  cleanup:gapStage&&!sampleMode?['gap-cleanup']:[],
   excluded:gapStage?['continuous-CRUD','observe','clear','lifecycle','width-zoom-matrix']:[]};
 if(process.argv.includes('--list-cases')){console.log(JSON.stringify(gapPlan));process.exit(0);}
 const required=name=>{assert(process.env[name],name+' is required');return path.resolve(process.env[name]);};
 const extension=required('COOKIE_NATIVE_EXTENSION');
 const binary=required('COOKIE_NATIVE_CHROME_BIN');
 const evidenceBase=required('COOKIE_NATIVE_EVIDENCE');
+const sampleFile=sampleMode?required('COOKIE_NATIVE_SAMPLE_FILE'):null;
 const stage=requestedStage==='all'?undefined:requestedStage;
 const directory=path.join(evidenceBase,'native-core-'+new Date().toISOString().replace(/[:.]/g,'-')+'-'+randomUUID().slice(0,8));
 const driverFile=fileURLToPath(import.meta.url),driverBytes=await readFile(driverFile);
 await mkdir(directory,{recursive:true});
-const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),extension,fixture,
+const report={mode:'headed-owned-macos-CFT-'+nativeMode,productionAcceptance:nativeMode==='production',startedAt:new Date().toISOString(),extension,fixture,
   directory,selection:gapPlan,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel selected cases; all Cookie mutations originate in tool UI; Chrome API reads only',
   cases:Object.fromEntries([...gapPlan.prerequisites,...gapPlan.selected,...gapPlan.cleanup]
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
@@ -80,14 +98,122 @@ let upgradeBaseline=null,upgradeOldFile=null;
 const targetSessions=new Map();
 const trace=[];
 const downloadEvents=[];
-// Native assertions may compare synthetic Cookie values in memory. Persisted
-// reports, failure envelopes, and Input traces must never contain those values.
-const evidenceJson=input=>JSON.stringify(input,(key,value)=>
-  key==='value'&&typeof value==='string'?'[REDACTED_COOKIE_VALUE]':value,2)+'\n';
+const cookieValues=new Set();
+let importFixtureDirectory,sampleText,sampleRows,sampleValidRows,sampleExpiredRows;
+// Persist counts/metadata only. Cookie values are redacted by key; only UI free
+// text needs substring redaction. Never rewrite identity metadata or error locations.
+const evidenceJson=input=>JSON.stringify(input,(key,value)=>{
+  if(key==='value')return '[REDACTED_COOKIE_VALUE]';
+  if(!['status','message','messages'].includes(key))return value;
+  const redactText=text=>{
+    if(typeof text!=='string')return text;
+    for(const secret of [...cookieValues].sort((a,b)=>b.length-a.length))
+      if(secret)text=text.split(secret).join('[REDACTED_COOKIE_VALUE]');
+    return text;
+  };
+  return Array.isArray(value)?value.map(redactText):redactText(value);
+},2)+'\n';
 // Assertion messages can quote compared Cookie values or source literals.
 const evidenceError=error=>[error?.code==='ERR_ASSERTION'?'ERR_ASSERTION':'E_NATIVE_CASE_FAILURE',
   ...String(error?.stack||'').split('\n').filter(line=>/^\s+at /.test(line))].join('\n');
 const persist=()=>writeFile(path.join(directory,'native-report.json'),evidenceJson(report));
+// Observe each pending approval once. A lost acknowledgement must propagate;
+// polling must never repeat an approval or a Cookie mutation after UNKNOWN.
+async function settleImportApprovals({total,expectedApprovals,cancelAfter=null,observe,approve,cancel,
+  pause=()=>sleep(150),now=Date.now,timeoutMs=60000}){
+  const deadline=now()+timeoutMs;let approvals=0,cancelled=false;
+  while(now()<deadline){
+    const state=await observe();
+    if(state.review){
+      assert(!cancelled,'No further import approval after cancellation');
+      if(cancelAfter!==null&&approvals===cancelAfter){await cancel();cancelled=true;}
+      else {assert(approvals<expectedApprovals,'Unexpected extra import approval');await approve();approvals++;}
+    }else if(!state.busy){
+      const complete=state.status.includes('确认导入 '+total+' 条');
+      const partial=cancelled&&state.status.match(/已确认\s+(\d+)\/(\d+)\s*条/);
+      if(complete||partial){
+        assert.equal(approvals,cancelAfter??expectedApprovals,'Exactly one trusted Host approval per SDK batch');
+        const confirmed=complete?total:Number(partial[1]);
+        if(partial){assert.equal(Number(partial[2]),total);assert(confirmed>0&&confirmed<total,'Cancelled batch must leave an unimported remainder');}
+        return {approvals,cancelled,confirmed,status:state.status};
+      }
+      if(state.failed)throw Error('Native import stopped; inspect read-only Cookie state, do not retry');
+    }
+    await pause();
+  }
+  throw Error('Native import completion timed out; do not retry');
+}
+function inspectImportSample(text,now=Date.now()/1000){
+  const parsed=JSON.parse(text),rows=Array.isArray(parsed)?parsed:parsed?.cookies;
+  assert(Array.isArray(rows)&&rows.length===30,'Expected the authorized 30-row sample');
+  assert(rows.every(row=>row&&typeof row.name==='string'&&typeof row.value==='string'),
+    'Sample must contain Cookie records');
+  const expired=rows.filter(row=>row.session!==true&&typeof row.expirationDate==='number'&&row.expirationDate<=now);
+  const valid=rows.filter(row=>!expired.includes(row));
+  return {rows,valid,expired};
+}
+function importCookieIdentity(input,defaultDomain){
+  const domain=(input.domain||defaultDomain).trim().toLowerCase(),host=domain.replace(/^\./,'');
+  const hostOnly=typeof input.hostOnly==='boolean'?input.hostOnly:!domain.startsWith('.');
+  return JSON.stringify([input.name,hostOnly?host:'.'+host,input.path??'/',input.storeId||'0',
+    input.partitionKey?[input.partitionKey.topLevelSite,Boolean(input.partitionKey.hasCrossSiteAncestor)]:null]);
+}
+function createdImportKeyCount(rows,before,after,defaultDomain){
+  const keys=list=>new Set(list.map(row=>importCookieIdentity(row,defaultDomain)));
+  const oldKeys=keys(before),newKeys=keys(after);
+  return [...keys(rows)].filter(key=>!oldKeys.has(key)&&newKeys.has(key)).length;
+}
+function assertImportedCookieAttributes(found,input,defaultDomain,beforeSet,afterSet){
+  const domain=(input.domain||defaultDomain).trim().toLowerCase();
+  assert.equal(found.hostOnly,typeof input.hostOnly==='boolean'?input.hostOnly:!domain.startsWith('.'),'Native Host-only preserved');
+  assert.equal(found.secure,input.secure===true,'Native Secure preserved');
+  assert.equal(found.httpOnly,input.httpOnly===true,'Native HttpOnly preserved');
+  assert.equal(found.sameSite,input.sameSite||'unspecified','Native SameSite preserved');
+  const session=typeof input.session==='boolean'?input.session:!(Number(input.expirationDate)>0);
+  assert.equal(found.session,session,'Native session preserved');
+  if(session)assert.equal(found.expirationDate,undefined,'Session Cookie has no native expiry');
+  else{
+    // Chrome caps new expiry at 400 days; allow sub-millisecond timestamp rounding.
+    // https://developer.chrome.com/blog/cookie-max-age-expires
+    const lifetime=400*86400,expiry=Number(input.expirationDate);
+    assert(Number.isFinite(found.expirationDate)&&
+      found.expirationDate>=Math.min(expiry,beforeSet+lifetime)-0.001&&
+      found.expirationDate<=Math.min(expiry,afterSet+lifetime)+0.001,'Native expiry preserves Chrome semantics');
+  }
+}
+function sampleNativeImportReadback(rows,native,events,defaultDomain,beforeSet,afterSet){
+  let finalMatchingRows=0,subsequentlyChangedRows=0;
+  for(const input of rows){
+    const key=importCookieIdentity(input,defaultDomain);
+    const matches=native.filter(cookie=>importCookieIdentity(cookie,defaultDomain)===key);
+    assert.equal(matches.length,1,'Exactly one final native Cookie at the imported key');
+    const current=matches[0];
+    const observed=current.value===input.value?current:events.find(event=>!event.removed&&
+      event.at>=beforeSet&&event.at<=afterSet&&event.cookie.value===input.value&&
+      importCookieIdentity(event.cookie,defaultDomain)===key)?.cookie;
+    assert(observed,'Expected imported value must be observed natively during the confirmed write');
+    assertImportedCookieAttributes(observed,input,defaultDomain,beforeSet,afterSet);
+    if(current.value===input.value)finalMatchingRows++;else subsequentlyChangedRows++;
+  }
+  return {finalMatchingRows,subsequentlyChangedRows};
+}
+function importPreviewSummary(text){
+  const result={};
+  for(const [key,label] of Object.entries({total:'共',valid:'可导入',created:'新增',overwritten:'覆盖',expired:'已过期',invalid:'无效'})){
+    const match=text.match(new RegExp(label+'\\s+(\\d+)'));
+    assert(match,'Missing native preview count: '+key);result[key]=Number(match[1]);
+  }
+  return result;
+}
+function importBatchApprovalCount(confirmation,total){
+  // The actual tool computes UTF-8 {url,cookies} byte budget, row limit,
+  // and Store/Partition scope. Observe its visible immutable confirmation
+  // plan instead of duplicating normalization or inferring batches by rows.
+  const match=confirmation.match(/系统自动分为\s*(\d+)\s*批/);
+  assert(match,'Native import confirmation must disclose its batch count');
+  const count=Number(match[1]);assert(count>0&&count<=total,'Invalid native import batch count');
+  return count;
+}
 function requireNativeResource(){
   const active=execFileSync('ps',['-axo','pid=,ppid=,comm='],{encoding:'utf8'}).split('\n')
     .map(line=>line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)).filter(Boolean)
@@ -143,7 +269,7 @@ async function click(session,selector){
   const point=await until(async()=>{
     const p=await read(session,`(()=>{const n=document.querySelector(${quote(selector)});
       if(!n||n.disabled||!n.getClientRects().length)return null;
-      const r=n.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
+      const r=n.getBoundingClientRect(),x=r.x+(n.type==='file'?Math.min(24,r.width/2):r.width/2),y=r.y+r.height/2;
       return {x,y,width:innerWidth,height:innerHeight,w:r.width,h:r.height,
         hit:x>0&&x<innerWidth&&y>0&&y<innerHeight&&n.contains(document.elementFromPoint(x,y))};})()`);
     if(!p)return false;
@@ -155,7 +281,8 @@ async function click(session,selector){
         if(frame.hit)return stable({...p,x:p.x+frame.x,y:p.y+frame.y});
         previousPoint=undefined;
         const globalY=p.y+frame.y;
-        await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:Math.max(8,Math.min(frame.width-8,p.x+frame.x)),
+        // The preview and input have their own scroll areas; use the Host gutter.
+        await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:frame.width-12,
           y:Math.max(8,Math.min(frame.height-8,Math.max(frame.y+16,frame.height/2))),deltaX:0,
             deltaY:globalY<=p.h/2+85?-180:180},side);
         await sleep(250);
@@ -178,10 +305,16 @@ async function click(session,selector){
   guard();
   for(const type of ['mousePressed','mouseReleased'])await client.send('Input.dispatchMouseEvent',
     {type,x:point.x,y:point.y,button:'left',clickCount:1},session===toolSession?side:session);
-  report.steps.push({at:new Date().toISOString(),input:'CDP Input',selector,session,x:point.x,y:point.y});
-  if(session===toolSession)report.steps.at(-1).focused=await read(session,'document.activeElement?.id');
+  if(!sampleMode){
+    report.steps.push({at:new Date().toISOString(),input:'CDP Input',selector,session,x:point.x,y:point.y});
+    if(session===toolSession)report.steps.at(-1).focused=await read(session,'document.activeElement?.id');
+  }
 }
 async function type(selector,value){
+  if(selector==='#cookie-value'&&value)cookieValues.add(value);
+  if(selector==='#import-text'){
+    try{for(const row of JSON.parse(value))if(typeof row?.value==='string'&&row.value)cookieValues.add(row.value);}catch{}
+  }
   // ResizeObserver can move the iframe after opening an editor. Confirm real
   // focus before entering text; only refocus, never retry Cookie operations.
   await until(async()=>{
@@ -192,12 +325,13 @@ async function type(selector,value){
   await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4},side);
   await client.send('Input.insertText',{text:value},side);
   assert.equal(await read(toolSession,'document.querySelector('+quote(selector)+').value'),value,'Native input value');
-  report.steps.push({at:new Date().toISOString(),input:'CDP trusted text',selector,length:value.length});
+  if(!sampleMode)report.steps.push({at:new Date().toISOString(),input:'CDP trusted text',selector,length:value.length});
 }
 async function cookies(){
-  const rows=await read(control,'chrome.cookies.getAll({domain:"127.0.0.1"}).then(rows=>rows.map(c=>({...c})))');
+  const rows=await read(control,'chrome.cookies.getAll({domain:'+quote(cookieDomain)+'}).then(rows=>rows.map(c=>({...c})))');
+  for(const row of rows)if(row.value)cookieValues.add(row.value);
   (report.nativeReads??=[]).push({at:new Date().toISOString(),case:currentCase,
-    cookies:rows.map(({value,...metadata})=>({...metadata,valueRedacted:true}))});
+    ...(sampleMode?{count:rows.length,valuesRedacted:true}:{cookies:rows.map(({value,...metadata})=>({...metadata,valueRedacted:true}))})});
   return rows;
 }
 async function createCookie(name,value,path='/'){
@@ -249,7 +383,7 @@ async function closeEditor(){
   await until(()=>read(toolSession,'document.querySelector("#editor-panel").hidden'),'Editor dismissal');
 }
 async function siteGrants(){
-  return read(side,'chrome.storage.local.get("opendesk.browser.context-menu-grants.v1").then(v=>v["opendesk.browser.context-menu-grants.v1"]?.["cookie-editor"]?.cookieSites?.["http://127.0.0.1:43111"]||{})');
+  return read(side,'chrome.storage.local.get("opendesk.browser.context-menu-grants.v1").then(v=>v["opendesk.browser.context-menu-grants.v1"]?.["cookie-editor"]?.cookieSites?.['+quote(targetUrl.origin)+']||{})');
 }
 async function grant(capability){
   if((await siteGrants())[capability]===true)return;
@@ -282,7 +416,7 @@ async function observeCookieFrames(){
       const session=await attach(target);
       const document=await read(session,'({url:location.href,readyState:document.readyState,timeOrigin:performance.timeOrigin,cookieApp:!!document.querySelector(".cookie-app"),status:document.querySelector("#status")?.textContent,scripts:[...document.scripts].map(n=>({src:n.src,type:n.type}))})');
       frames.push({target,session,document});
-    }catch(error){frames.push({target,error:error.message});}
+    }catch(error){frames.push({target,error:evidenceError(error)});}
   }
   const observation={at:new Date().toISOString(),selectedSession:toolSession,host,tree,frames};
   (report.frameObservations??=[]).push(observation);
@@ -303,6 +437,9 @@ async function save(approvals=1){
 // R4.3 editor/delete operations are scoped by exact name and Cookie Path.
 async function screenshot(name){
   if(!side)return;
+  if(gapStage){
+    report.screenshots.push({case:currentCase,skipped:'Import/export evidence is metadata only; Cookie pixels are not captured'});return;
+  }
   if(toolSession&&await read(toolSession,`[...document.querySelectorAll("#cookie-value,#import-text,#live-export-content")]
     .some(n=>Boolean(n.value)&&n.getClientRects().length>0)||
     Boolean(document.querySelector("#editor-revealed-value")?.getClientRects().length&&
@@ -319,17 +456,26 @@ async function step(id,fn){
   try{const observations=await fn();await screenshot(id);report.cases[id]={status:'PASS',observations};}
   catch(error){report.cases[id]={status:'FAIL',error:evidenceError(error)};try{if(side)await observeCookieFrames();await screenshot(id+'-failure');
     if(toolSession)report.cases[id].ui=await read(toolSession,'({active:document.activeElement?.id,scroll:scrollY,height:innerHeight,form:[...document.querySelectorAll("#editor-form input,#editor-form textarea,#editor-form button")].map(n=>({id:n.id,disabled:n.disabled,valid:n.validity?.valid,rect:{x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y}}))})');
-  }catch(e){report.cases[id].screenshotError=e.message;}throw error;}
+  }catch(e){report.cases[id].screenshotError=evidenceError(e);}throw error;}
   finally{report.cases[id].finishedAt=new Date().toISOString();await writeFile(path.join(directory,id+'-receipt.json'),
     evidenceJson({candidate:report.candidate,launch:report.launch,case:report.cases[id]}));await persist();}
   console.log('COOKIE_NATIVE_PASS '+id);
 }
 try{
+  if(sampleMode){
+    sampleText=await readFile(sampleFile,'utf8');
+    const inspected=inspectImportSample(sampleText);
+    sampleRows=inspected.rows;sampleValidRows=inspected.valid;sampleExpiredRows=inspected.expired;
+    for(const row of sampleRows)if(row.value)cookieValues.add(row.value);
+    report.sample={total:sampleRows.length,valid:sampleValidRows.length,expired:sampleExpiredRows.length,
+      classifiedAt:new Date().toISOString(),valuesPersisted:false,trace:false,screenshots:false};
+  }
   assert.equal(process.platform,'darwin','Headed Mac CFT only');
   const pinnedBinary=path.join(root,'tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
   assert.equal(path.basename(await realpath(binary)),'Google Chrome for Testing','Explicit CFT executable required');
   assert.equal(hash(await readFile(binary)),hash(await readFile(pinnedBinary)),'Owned app must retain the pinned CFT executable');
-  assert(!extension.endsWith('/dist/development'),'Daily development extension is not this immutable candidate');
+  assertExtensionMode(extension,root,nativeMode);
+  assertExtensionMode(await realpath(extension),await realpath(root),nativeMode);
   const manifest=JSON.parse(await readFile(path.join(extension,'manifest.json'),'utf8'));
   const catalog=JSON.parse(await readFile(path.join(extension,'official-tools/catalog.json'),'utf8'));
   const release=catalog.apps.find(row=>row.toolId==='cookie-editor');assert(release,'Official Cookie release missing');
@@ -342,7 +488,8 @@ try{
       'E_COOKIE_GAP_CANDIDATE_UNSUPPORTED: candidate lacks import preview / metadata export');
     if(process.env.COOKIE_NATIVE_TOOL_SHA)assert.equal(hash(pkgBytes),process.env.COOKIE_NATIVE_TOOL_SHA);
   }
-  report.candidate={extensionFingerprint:await fingerprint(),toolVersion:pkg.version,toolFileSha256:hash(pkgBytes)};
+  report.candidate={extensionFingerprint:await fingerprint(),toolVersion:pkg.version,toolFileSha256:hash(pkgBytes),
+    sdkResources:await verifySdkResourceManifest(extension)};
   if(stage==='upgrade'){
     // Verify exact historical JSON before launch; the real file picker and
     // installed Side Panel still perform every installation transition.
@@ -367,13 +514,17 @@ try{
     report.candidate.buildReceipt={path:receiptPath,sha256:hash(receiptBytes),bytes:receiptBytes.length};
   }
   requireNativeResource();
-  const fixtureResponse=await fetch(fixture,{signal:AbortSignal.timeout(5000)});assert(fixtureResponse.ok,'Existing canonical fixture unavailable');
+  if(!sampleMode){const fixtureResponse=await fetch(fixture,{signal:AbortSignal.timeout(5000)});assert(fixtureResponse.ok,'Existing canonical fixture unavailable');}
   await step('launch',async()=>{
     launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r33-core'});
     report.launch=launched.metadata;guard();
-    client=await connect(launched.endpoint,{onCommand:entry=>trace.push({at:new Date().toISOString(),...entry}),
+    client=await connect(launched.endpoint,{onCommand:({phase,id,method,sessionId,error})=>{
+      if(!sampleMode)trace.push({at:new Date().toISOString(),phase,id,method,sessionId,failed:Boolean(error)});},
       onEvent:entry=>{
-        if(['Target.targetCreated','Target.targetDestroyed','Runtime.exceptionThrown'].includes(entry.method))trace.push(entry);
+        if(sampleMode)return; // Sensitive sample mode has no command/event trace.
+        if(['Target.targetCreated','Target.targetDestroyed','Runtime.exceptionThrown'].includes(entry.method))
+          trace.push({at:new Date().toISOString(),method:entry.method,sessionId:entry.sessionId,
+            targetId:entry.params?.targetId??entry.params?.targetInfo?.targetId});
         if(['Browser.downloadWillBegin','Browser.downloadProgress'].includes(entry.method)){
           // Download URLs may contain the generated Cookie payload. Keep only
           // identity, completion and byte metadata, never the URL.
@@ -450,16 +601,16 @@ try{
   await step('active-fixture',async()=>{
     const target=await client.send('Target.createTarget',{url:fixture});website=await attach(target);
     await client.send('Target.activateTarget',{targetId:target.targetId});
-    await until(()=>read(website,'location.href==='+quote(fixture)+'&&document.readyState==="complete"'),'Canonical fixture loaded');
+    await until(()=>read(website,(sampleMode?'location.origin==='+quote(targetUrl.origin):'location.href==='+quote(fixture))+'&&document.readyState==="complete"'),'Requested target document');
     if(await read(side,'document.querySelector("#sidebar-tool-settings-view").hidden'))
       await click(side,'#sidebar-tool-settings-open');
     const state=await until(()=>read(side,`(()=>{const p=document.querySelector('.sidebar-tool-cookie-permissions');
-      return p&&!p.hidden&&p.innerText.includes('127.0.0.1')?{text:p.innerText,
+      return p&&!p.hidden&&p.innerText.includes(${quote(cookieDomain)})?{text:p.innerText,
         buttons:[...p.querySelectorAll('[data-cookie-capability]')].map(n=>({capability:n.dataset.cookieCapability,enabled:n.dataset.enabled,disabled:n.disabled}))}:null;})()`),'Cookie settings bound to active canonical fixture');
     return {targetId:target.targetId,url:await read(website,'location.href'),settings:state};
   });
   await step('first-use-combined-grant',async()=>{
-    const permissions=await read(side,'Promise.all([chrome.permissions.contains({permissions:["cookies"]}),chrome.permissions.contains({origins:["http://127.0.0.1/*"]})]).then(([cookies,site])=>({cookies,site}))');
+    const permissions=await read(side,'Promise.all([chrome.permissions.contains({permissions:["cookies"]}),chrome.permissions.contains({origins:['+quote(targetUrl.protocol+'//'+cookieDomain+'/*')+']})]).then(([cookies,site])=>({cookies,site}))');
     report.nativePermissionObservation=permissions;
     // Only the trusted Side Panel can receive this real user's combined grant.
     const firstUse=await read(side,'!document.querySelector(".sidebar-tool-cookie-first-use").hidden');
@@ -476,7 +627,7 @@ try{
     report.sandbox=target;
     await observeCookieFrames();
     const ui=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#browser-state"),create=document.querySelector("#live-new"),filters=document.querySelector("#live-filters");return n?.hidden===true&&create&&!create.disabled&&filters&&!filters.hidden?{statusHidden:n.hidden,newEnabled:!create.disabled,filtersVisible:!filters.hidden,heading:document.querySelector("#browser-state-heading")?.textContent,detail:document.querySelector("#browser-state-detail")?.textContent,count:document.querySelector("#live-count")?.textContent,host:document.querySelector("#site-host")?.textContent}:null;})()'),'Granted Cookie metadata UI ready');
-    assert(ui.host.includes('127.0.0.1'));return {permissions,grant,ui,sandbox:target};
+    assert(ui.host.includes(cookieDomain));return {permissions,grant,ui,sandbox:target};
   });
   await step('write-grant-reuse',async()=>{
     const grant=(await siteGrants()).write;
@@ -606,26 +757,42 @@ try{
         return preview;
       }
       async function confirmImport(rows,{cancelAfter=null}={}){
-        await click(toolSession,'#live-import-confirm');await click(toolSession,'#confirm-accept');
-        const messages=[];
-        for(let index=0;index<rows.length;index++){
-          if(index===cancelAfter){
-            await until(()=>read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),'Pending individual import approval');
-            await click(side,'#sidebar-tool-action-cancel');break;
-          }
-          messages.push(await approveHost());
+        const observationKey=sampleMode?'__cookieImportNative_'+randomUUID().replaceAll('-',''):null;
+        if(observationKey)await read(control,`(()=>{const state={events:[]};
+          state.listener=event=>{if(event.cookie.domain.replace(/^\\./,'')===${quote(cookieDomain)})
+            state.events.push({at:Date.now()/1000,removed:event.removed,cookie:event.cookie});};
+          globalThis[${quote(observationKey)}]=state;chrome.cookies.onChanged.addListener(state.listener);return true;})()`);
+        await click(toolSession,'#live-import-confirm');
+        const confirmation=await until(()=>read(toolSession,'!document.querySelector("#confirm-panel").hidden&&document.querySelector("#confirm-panel").textContent'),
+          'Native tool import confirmation plan');
+        const expectedApprovals=pkg.version==='2.0.19'?rows.length:importBatchApprovalCount(confirmation,rows.length);
+        if(cancelAfter!==null)assert(cancelAfter<expectedApprovals,'Cancellation case must span more than one actual SDK batch');
+        const beforeSet=Date.now()/1000;
+        await click(toolSession,'#confirm-accept');
+        const settlement=await settleImportApprovals({total:rows.length,expectedApprovals,cancelAfter,
+          observe:async()=>({
+            ...await read(toolSession,'({status:document.querySelector("#status").textContent,busy:document.querySelector("#live-new").disabled,failed:document.querySelector("#status").dataset.state==="error"})'),
+            review:await read(side,'!document.querySelector("#sidebar-tool-action-review").hidden'),
+          }),approve:()=>click(side,'#sidebar-tool-action-continue'),cancel:()=>click(side,'#sidebar-tool-action-cancel')});
+        const expected=settlement.confirmed;
+        const native=await cookies(),afterSet=Date.now()/1000;
+        if(observationKey){
+          const events=await read(control,`(()=>{const state=globalThis[${quote(observationKey)}];
+            chrome.cookies.onChanged.removeListener(state.listener);delete globalThis[${quote(observationKey)}];return state.events;})()`);
+          const readback=sampleNativeImportReadback(rows,native,events,cookieDomain,beforeSet,afterSet);
+          return {approvalCount:settlement.approvals,verifiedRows:expected,nativeReadOnly:true,...readback};
         }
-        const expected=cancelAfter??rows.length;
-        const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>
-          text.includes(cancelAfter===null?'确认导入 '+expected+' 条':'已确认 '+expected+'/'+rows.length+' 条')?text:null),'Verified import completion');
-        const native=await cookies();
         for(const [index,input] of rows.entries()){
-          const found=native.find(c=>c.name===input.name&&c.domain==='127.0.0.1'&&c.path==='/'&&c.storeId==='0'&&!c.partitionKey);
-          if(index<expected){assert(found,'Exact imported Cookie identity');assert.equal(found.value,input.value);assert.equal(found.session,true);
+          const matches=native.filter(c=>importCookieIdentity(c,cookieDomain)===importCookieIdentity(input,cookieDomain));
+          const found=matches[0];
+          if(index<expected){assert.equal(matches.length,1,'Exactly one native Cookie at the imported key');
+            assert.equal(found.value,input.value,'Native imported value matches in memory');
+            assertImportedCookieAttributes(found,input,cookieDomain,beforeSet,afterSet);
             const {name,domain,path,storeId,partitionKey}=found;ownedCookies.set(identity(found),{name,domain,path,storeId,partitionKey});}
           else assert(!found,'Cancelled item must remain absent');
         }
-        return {messages,status,cookies:native};
+        return sampleMode?{approvalCount:settlement.approvals,verifiedRows:expected,nativeReadOnly:true}:
+          {approvalCount:settlement.approvals,status:settlement.status,cookies:native};
       }
       if(needsSeed)await step('gap-seed-import',async()=>{
         assert.equal((await cookies()).length,0,'Fresh isolated profile is required');
@@ -635,11 +802,100 @@ try{
       });
       let valuesGranted=false;
       for(const id of selectedGapCases){
-        if(id==='import-json-file')await step(id,async()=>{
+        if(sampleCases.includes(id)){
+          await step(id,async()=>{
+            const currentSample=inspectImportSample(sampleText);
+            sampleValidRows=currentSample.valid;sampleExpiredRows=currentSample.expired;
+            const grantsBefore=await siteGrants();
+            await dismissImport();await click(toolSession,'#live-import');
+            assert.equal(await read(toolSession,'document.querySelector("#import-format").value'),'auto');
+            if(id.includes('-file')){
+              await click(toolSession,'#import-file');
+              report.externalFilePicker={case:id,pid:launched.metadata.pid,path:sampleFile,purpose:'Authorized local sample; actual native chooser only; no payload copy'};
+              await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
+              await until(()=>read(toolSession,'document.querySelector("#import-file").files?.[0]?.name==='+quote(path.basename(sampleFile))),
+                'Actual Mac sample file selection',600000);
+            }else await type('#import-text',sampleText);
+            await until(()=>read(toolSession,'document.querySelector("#import-text").value').then(text=>text===sampleText),
+              'Exact authorized sample in memory');
+            const previewSample=inspectImportSample(sampleText);
+            // File selection can take minutes while the target site manages its
+            // own Cookies. Bind the read-only preview check to the preview itself.
+            const before=await cookies();
+            await click(toolSession,'#import-apply');
+            const outcome=await until(()=>read(toolSession,`(()=>{const n=document.querySelector('#live-import-preview');
+              const status=document.querySelector('#status').textContent,visible=!n.hidden;
+              return visible||status.includes('预检失败')?{visible,text:visible?n.textContent:'',rejected:status.includes('预检失败'),
+                canContinue:!document.querySelector('#live-import-confirm').hidden}:null;})()`),'Sample preview terminal state',60000);
+            assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'),'Preview must not request mutation approval');
+            const previewCookies=await cookies(),previewCreatedSampleKeys=createdImportKeyCount(sampleRows,before,previewCookies,cookieDomain);
+            assert.equal(previewCreatedSampleKeys,0,'Preview must not create previously absent sample keys');
+            assert.deepEqual(await siteGrants(),grantsBefore,'Preview reuses existing site authorization');
+            const previewMetadata={siteCookieCountBefore:before.length,siteCookieCountAfter:previewCookies.length,previewCreatedSampleKeys};
+            if(pkg.version==='2.0.19'){
+              assert(id.endsWith('-preview'),'2.0.19 baseline supports preview reproduction only');
+              assert(outcome.rejected&&!outcome.canContinue,'Reproduce original 2.0.19 whole-import rejection');
+              assert.deepEqual(await siteGrants(),grantsBefore);
+              return {purpose:'BASELINE_REPRODUCTION_ONLY',observed:'PREVIEW_REJECTED',total:sampleRows.length,
+                valid:previewSample.valid.length,expired:previewSample.expired.length,writes:0,...previewMetadata};
+            }
+            assert(outcome.visible&&!outcome.rejected&&outcome.canContinue,'Valid sample rows remain importable');
+            const summary=importPreviewSummary(outcome.text);
+            const afterPreview=inspectImportSample(sampleText);
+            assert.equal(summary.total,sampleRows.length);assert.equal(summary.invalid,0);
+            assert(summary.expired>=previewSample.expired.length&&summary.expired<=afterPreview.expired.length,'Expiry is classified at current preview time');
+            assert.equal(summary.valid,summary.total-summary.expired);
+            assert.equal(summary.created+summary.overwritten,summary.valid);
+            assert.equal(outcome.text.split('\n').filter(line=>/^第\s*\d+\s*条/.test(line)).length,sampleRows.length,'Every input row has a visible status');
+            if(id.endsWith('-preview'))return {purpose:'PREVIEW_ONLY',summary,writes:0,...previewMetadata};
+            // Match the visible plan's current expiry boundary before approval.
+            assert.equal(afterPreview.expired.length,summary.expired,'Expiry changed during preview; re-preview explicitly');
+            sampleValidRows=afterPreview.valid;sampleExpiredRows=afterPreview.expired;
+            const result=await confirmImport(sampleValidRows);
+            const after=await cookies();
+            assert.equal(createdImportKeyCount(sampleExpiredRows,before,after,cookieDomain),0,'Expired import must not create previously absent expired keys');
+            assert.deepEqual(await siteGrants(),grantsBefore,'File and paste reuse the same site authorization');
+            return {summary,...result,expiredSkipped:sampleExpiredRows.length,...previewMetadata};
+          });
+          continue;
+        }
+        if(id==='import-json-bulk')await step(id,async()=>{
+          const rows=Array.from({length:12},(_,index)=>row('od_bulk_'+index,randomUUID()));
+          const before=await cookies(),preview=await previewImport(JSON.stringify(rows));
+          const summary=importPreviewSummary(preview);assert.equal(summary.valid,12);assert.equal(summary.created,12);
+          assert.deepEqual(await cookies(),before,'Bulk preview is read-only');
+          return {summary,...await confirmImport(rows)};
+        });
+        else if(id==='import-overwrite')await step(id,async()=>{
+          const replacement=[row(seed[0].name,randomUUID())],before=await cookies();
+          const preview=await previewImport(JSON.stringify(replacement));
+          const summary=importPreviewSummary(preview);assert.equal(summary.overwritten,1);assert.equal(summary.created,0);
+          assert.deepEqual(await cookies(),before,'Overwrite preview is read-only');
+          const result=await confirmImport(replacement),after=await cookies();
+          assert.equal(after.length,before.length,'Overwrite keeps one native key');
+          assert.deepEqual(after.filter(c=>c.name!==replacement[0].name),before.filter(c=>c.name!==replacement[0].name),'Other exact keys remain unchanged');
+          return {summary,...result};
+        });
+        else if(id==='import-skipped-rows')await step(id,async()=>{
+          const valid=[row('od_valid_a',randomUUID()),row('od_valid_b',randomUUID())];
+          const invalid=row('',randomUUID()),expired={...row('od_expired',randomUUID()),session:false,expirationDate:Math.floor(Date.now()/1000)-3600};
+          const before=await cookies(),preview=await previewImport(JSON.stringify([valid[0],invalid,expired,valid[1]]));
+          const summary=importPreviewSummary(preview);
+          assert.deepEqual(summary,{total:4,valid:2,created:2,overwritten:0,expired:1,invalid:1});
+          assert(/第\s*2\s*条[^\n]*无效/.test(preview));assert(/第\s*3\s*条[^\n]*已过期/.test(preview));
+          assert.deepEqual(await cookies(),before,'Skipped-row preview is read-only');
+          const result=await confirmImport(valid);
+          assert(!(await cookies()).some(c=>c.name===expired.name||c.name===''),'Invalid/expired rows were not written');
+          return {summary,...result};
+        });
+        else if(id==='import-json-file')await step(id,async()=>{
           await dismissImport();await click(toolSession,'#live-import');
           await selectOption('#import-format',['auto','json','header','netscape'],'auto');
-          const rows=[row('od_gap_file','invented-file')],text=JSON.stringify(rows,null,2)+'\n';
-          const file=path.join(directory,'fictional-import.json');await writeFile(file,text);
+          // Native file selection requires a file. It contains only explicit
+          // empty values; nonempty fictional and sensitive values stay in memory.
+          const rows=[row('od_gap_file','')],text=JSON.stringify(rows,null,2)+'\n';
+          importFixtureDirectory=await mkdtemp(path.join(os.tmpdir(),'cookie-native-empty-file-'));
+          const file=path.join(importFixtureDirectory,'fictional-import.json');await writeFile(file,text,{mode:0o600});
           await click(toolSession,'#import-file');
           report.externalFilePicker={case:id,pid:launched.metadata.pid,path:file,sha256:hash(text),purpose:'Cookie JSON import; native chooser only'};
           await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
@@ -662,32 +918,39 @@ try{
         });
         else if(id==='import-overwrite-cancel')await step(id,async()=>{
           const replacement=[row(seed[0].name,'invented-replacement')];
-          const preview=await previewImport(JSON.stringify(replacement),'json');assert(preview.includes('可能覆盖 1'));
+          const preview=await previewImport(JSON.stringify(replacement),'json');assert(preview.includes('覆盖 1'));
           await click(toolSession,'#live-import-confirm');await click(toolSession,'#confirm-cancel');
           assert.equal((await cookies()).find(c=>c.name===seed[0].name).value,seed[0].value,'Tool confirmation cancellation preserves Cookie');
           assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'));
           const completed=await confirmImport(replacement);return {preview,cancelPreserved:true,...completed};
         });
         else if(id==='import-partial-cancel')await step(id,async()=>{
-          const rows=[row('od_gap_partial_a','invented-partial-a'),row('od_gap_partial_b','invented-partial-b')];
+          const rows=Array.from({length:51},(_,index)=>row('od_gap_partial_'+index,randomUUID()));
           const preview=await previewImport(JSON.stringify(rows),'json');
           const result=await confirmImport(rows,{cancelAfter:1});await sleep(350);
-          assert(!(await cookies()).some(c=>c.name===rows[1].name),'No retry after cancelled native approval');return {preview,...result};
+          assert(!(await cookies()).some(c=>c.name===rows.at(-1).name),'No retry after cancelled native approval');return {preview,...result};
         });
         else if(id==='import-invalid')await step(id,async()=>{
-          const examples=[{label:'malformed',text:'{invalid'},
-            {label:'duplicate-identity',text:JSON.stringify([row('od_gap_dup','a'),row('od_gap_dup','b')])},
-            {label:'batch-limit',text:JSON.stringify(Array.from({length:11},(_,i)=>row('od_gap_limit_'+i,'fictional')))}];
-          const before=await cookies(),observations=[];
-          for(const example of examples){
-            await dismissImport();await click(toolSession,'#live-import');
-            await selectOption('#import-format',['auto','json','header','netscape'],'json');await type('#import-text',example.text);
-            await click(toolSession,'#import-apply');
-            const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('预检失败')?text:null),'Rejected '+example.label);
-            assert(await read(toolSession,'document.querySelector("#live-import-confirm").hidden'));
-            assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'));
-            assert.deepEqual(await cookies(),before);observations.push({label:example.label,status});
-          }return {observations,cookies:before};
+          const before=await cookies(),malformed='{invalid';
+          await dismissImport();await click(toolSession,'#live-import');
+          if(!await read(toolSession,'document.querySelector(".import-advanced").open'))await click(toolSession,'.import-advanced > summary');
+          await selectOption('#import-format',['auto','json','header','netscape'],'json');
+          await type('#import-text',malformed);await click(toolSession,'#import-apply');
+          await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#status");return n.dataset.state==="error"&&/JSON|格式/.test(n.textContent);})()'),
+            'Concrete JSON/format error without write confirmation');
+          assert(await read(toolSession,'document.querySelector("#live-import-confirm").hidden'));
+          assert(await read(toolSession,'document.querySelector("#confirm-panel").hidden'));
+          assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'));
+          assert.equal(await read(toolSession,'document.querySelector("#import-text").value'),malformed,'Malformed input retained exactly in memory');
+          assert.deepEqual(await cookies(),before);
+          const corrected=[row('od_gap_corrected','fictional-corrected')],text=JSON.stringify(corrected);
+          await type('#import-text',text);await click(toolSession,'#import-apply');
+          const preview=await until(()=>read(toolSession,'(()=>{const n=document.querySelector("#live-import-preview");return !n.hidden?n.textContent:null;})()'),
+            'Corrected JSON preview in the same textarea');
+          const summary=importPreviewSummary(preview);
+          assert.deepEqual(summary,{total:1,valid:1,created:1,overwritten:0,expired:0,invalid:0});
+          assert.equal(await read(toolSession,'document.querySelector("#import-text").value'),text,'Corrected input retained exactly in memory');
+          return {malformedRejected:true,inputPreserved:true,recoveredInSameTextarea:true,summary,...await confirmImport(corrected)};
         });
         else if(id==='import-preview-input-change')await step(id,async()=>{
           const rows=[row('od_gap_change','invented-before')];await previewImport(JSON.stringify(rows),'json');
@@ -800,7 +1063,7 @@ try{
           });
         }
       }
-      await step('gap-cleanup',async()=>{
+      if(!sampleMode)await step('gap-cleanup',async()=>{
         await dismissImport();
         if(!await read(toolSession,'document.querySelector("#live-export-panel").hidden'))await click(toolSession,'#live-export-close');
         const native=await cookies();assert.equal(native.length,ownedCookies.size,'Unexpected Cookie prevents cleanup');
@@ -1076,10 +1339,12 @@ finally{
   if(!report.driverUnchanged){report.complete=false;process.exitCode=1;}
   if(report.candidate)try{const after=await fingerprint();report.candidateUnchanged=after.sha256===report.candidate.extensionFingerprint.sha256;
     if(!report.candidateUnchanged){report.complete=false;process.exitCode=1;report.candidateDrift={after};}}
-  catch(error){report.candidateCheckError=error.message;report.complete=false;process.exitCode=1;}
-  if(client){try{guard();await client.send('Browser.close');}catch(error){report.closeObservation=error.message;}client.close();}
+  catch(error){report.candidateCheckError=evidenceError(error);report.complete=false;process.exitCode=1;}
+  if(client){try{guard();await client.send('Browser.close');}catch(error){report.closeObservation=evidenceError(error);}client.close();}
   if(launched){report.cleanup=await launched.stop();if(report.cleanup.cleanupStatus!=='PASS'){report.complete=false;process.exitCode=1;}}
-  report.finishedAt=new Date().toISOString();await writeFile(path.join(directory,'cdp-trace.json'),JSON.stringify(trace,(key,value)=>
-    ['text','value','expression'].includes(key)&&typeof value==='string'?'[REDACTED_INPUT]':value,2)+'\n');await persist();
+  if(importFixtureDirectory)await rm(importFixtureDirectory,{recursive:true,force:true});
+  report.finishedAt=new Date().toISOString();
+  if(!sampleMode)await writeFile(path.join(directory,'cdp-trace.json'),evidenceJson(trace));
+  await persist();
   console.log(evidenceJson({directory,complete:report.complete,cases:report.cases,error:report.error||null}));
 }

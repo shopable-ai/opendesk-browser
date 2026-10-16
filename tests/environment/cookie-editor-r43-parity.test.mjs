@@ -36,7 +36,7 @@ test('Preview new form stays clean until edited and becomes clean again on undo'
 test('R4.3 installed HTML presents visible import/export/new actions without entering advanced settings',async()=>{
   const [html,js,css,json]=await Promise.all([
     read('src/index.html'),read('src/main.js'),read('src/style.css'),
-    read('cookie-editor.opendesk-tool.json')]);
+    readFile(process.env.COOKIE_EDITOR_TEST_PACKAGE||root+'/cookie-editor.opendesk-tool.json','utf8')]);
   const pkg=JSON.parse(json);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
   assert.equal(new Set(ids).size,ids.length);
@@ -54,7 +54,7 @@ test('R4.3 installed HTML presents visible import/export/new actions without ent
   assert.match(js,/originalExpiryInput/);
   assert.match(css,/#live-cookie-list \.cookie-row\{/);
   assert.match(html,/<option value="backup" selected>/);
-  assert.equal(pkg.version,'2.0.19');
+  assert.equal(pkg.version,'2.0.20');
   assert.equal(pkg.html,html);
   assert.equal(pkg.js,js);
   assert.equal(pkg.css,css);
