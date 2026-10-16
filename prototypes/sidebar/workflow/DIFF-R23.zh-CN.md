@@ -234,3 +234,15 @@ GitHub Actions 原始证据：
 | 无障碍与可维护性 | 40px 图标入口、焦点与 inert、键盘 Enter/Shift+Enter、合成 IME、三宽与 200% | Mac 原生 IME、VoiceOver、人工键盘走查：`NOT_SCORED` |
 
 **反方结论**：21 类通过证明当前离线原型在指定条件下可用，不能自动成为六名真实独立专家的 95/100 评分；真实 ChatGPT 宿主交互、实际 Provider、Mac 运行环境均尚未验收。R23.3.1 的 95/100 历史自评分不能继承。唯一 HTML 仍处于 `DESIGN_REVIEW_REQUIRED`，用户批准前不修改正式 Workflow Sidebar/SDK/Runtime。
+
+
+## 十一、R23.5：AI 设置减法与紧凑布局（2026-10-16）
+
+- 继续只修改唯一原型 HTML、既有回归及同目录文档；不修改正式 Workflow、Provider、Chrome 权限、RunHost 或 SDK，仍是 `DESIGN_REVIEW_REQUIRED`。
+- 修复 R23.4 由于冗长文案导致的低效信息结构：AI 来源、接口地址、模型 ID、API Key 采用紧凑标签/控件横向排列，三行配置高度约 186px（隔离 Chromium 中的实际 DOM 测量，不是跨平台视觉评分）。
+- 「模型连接参数」标题、重复的 Chat Completions / Bearer 协议条目、大段参数边界提示、固定底栏技术文案均从主设置界面移除；自定义 HTTPS 仅保留一次「兼容 Chat Completions」提示，技术说明留在按需展开的「说明」内。
+- API Key 改成纯眼睛图标（密码输入 + aria-label / aria-pressed），保持 `demo-...` 虚拟示例。格式检查结果与「检查配置」相邻，错误按字段内联显示。未检查与联网未验证不是已连通。
+- 云端数据摘要授权只占一行，Provider/Endpoint/Model/Key 变化仍撤销旧许可。底部保留「完成」固定操作，不叠加模拟提示。
+- 模拟网页测试卡仅展示模拟身份、姓名输入框与读回值，不再展示虚构访问地址、无功能的禁用提交按钮、重复的提交/跳转计数文案；副作用计数仍由回归测试检查为 0。
+- 源绑定 Chromium 新增紧凑行对齐、主界面无重复协议文案、眼睛 icon-only 和三宽字段可见性断言；仍然需要完整原始文件 Chromium、200% 原生缩放与受限 iframe 两轮测试全部通过，才可称原型代码验收通过。
+- 本轮用户仅要求可点击打开的 HTML，不另行提供运行截图。代码及自动化结果不能代替用户亲自判断视觉是否达到 95 分，独立专家人工评分和 ChatGPT 宿主嵌入仍为 `NOT_SCORED / NOT_TESTED`。
