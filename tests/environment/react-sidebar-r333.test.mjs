@@ -43,6 +43,13 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(main,/createPortal\(<ExtensionRows/);
   assert.match(main,/createPortal\(<ExtensionDetail/);
   assert.match(main,/createPortal\(<ExtensionToolbar/);
+  assert.match(main,/createPortal\(<ExtensionRecoveries/);
+  assert.match(main,/createPortal\(<ExtensionEmpty/);
+  assert.match(main,/createPortal\(<ExtensionStatus/);
+  assert.match(main,/renderFeedback\(next\)/);
+  assert.match(center,/extensionList\.renderFeedback\(/);
+  assert.match(center,/extensionList\.renderRecoveries\(/);
+  assert.match(center,/extensionList\.renderStatus\(/);
   assert.doesNotMatch(main,/createRoot\(container\)|createRoot\(detailContainer\)/);
   assert.match(main,/root\.unmount\(\)/);
   assert.match(main,/flushSync/);

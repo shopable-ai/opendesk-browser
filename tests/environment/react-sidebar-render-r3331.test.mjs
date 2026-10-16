@@ -11,7 +11,8 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   const vite=await createServer({configFile:false,root:process.cwd(),
     appType:'custom',server:{middlewareMode:true},logLevel:'error'});
   t.after(()=>vite.close());
-  const {ExtensionToolbar,ExtensionRows,ExtensionDetail}=
+  const {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty,
+    ExtensionRecoveries,ExtensionStatus}=
     await vite.ssrLoadModule('/src/ui/react/tabs/tools.tsx');
   const toolbar=renderToStaticMarkup(React.createElement(ExtensionToolbar,{model:{
     query:'文件 <img src=x onerror=alert(1)>',kind:'page',scope:'available',
@@ -49,4 +50,21 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(detail,/固定包 SHA-256/);
   assert.match(detail,/&lt;script&gt;/);
   assert.doesNotMatch(detail,/<script\b/i);
+
+  const empty=renderToStaticMarkup(React.createElement(ExtensionEmpty,{
+    container:null,model:{showEmpty:true,emptyText:'筛选 <img src=x onerror=evil()>'}
+  }));
+  assert.match(empty,/id="extension-center-empty-text"/);
+  assert.match(empty,/&lt;img src=x onerror=evil\(\)&gt;/);
+  assert.doesNotMatch(empty,/<img\b/i);
+  const cleanups=renderToStaticMarkup(React.createElement(ExtensionRecoveries,{
+    container:null,model:{ids:['tool<script>x</script>'],busy:false,onRetry:()=>{}}
+  }));
+  assert.match(cleanups,/恢复清理/);
+  assert.match(cleanups,/&lt;script&gt;/);
+  assert.doesNotMatch(cleanups,/<script\b/i);
+  const status=renderToStaticMarkup(React.createElement(ExtensionStatus,{
+    container:null,model:{text:'异常 <img onerror=evil()>',state:'error'}
+  }));
+  assert.match(status,/&lt;img onerror=evil\(\)&gt;/);
 });
