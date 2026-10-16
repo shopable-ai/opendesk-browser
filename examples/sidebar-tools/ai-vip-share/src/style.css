@@ -1,7 +1,7 @@
 /* @opendesk-shared-design */
 /* AI VIP Share: R5.7 product structure, built on OpenDesk's shared Sidebar Tool controls. */
 /* The preview studio, demo accounts, fixtures and fake proxy states do not ship here. */
-.ai-vip{--ai-vip-brand:var(--od-brand);--ai-vip-brand-soft:var(--od-muted);width:100%;min-width:0;display:grid;gap:14px;padding:var(--space-2) var(--od-page-gutter) var(--space-3);color:var(--od-ink);overflow-wrap:anywhere}
+.ai-vip{--ai-vip-brand:var(--od-brand);--ai-vip-brand-soft:var(--od-muted);width:100%;min-width:0;display:grid;gap:14px;padding:16px 17px 17px;background:var(--od-paper);color:var(--od-ink);overflow-wrap:anywhere}
 .ai-vip *{box-sizing:border-box;min-width:0}
 .ai-vip [hidden]{display:none!important}
 .ai-vip button{touch-action:manipulation}
@@ -44,7 +44,7 @@
 .ai-vip-list .ai-vip-list-item{display:grid;gap:2px}
 .ai-vip-list-item strong{font-size:11px;color:var(--od-ink);font-weight:650}
 .ai-vip-list-item p{margin:0;font-size:10.5px;line-height:1.55;color:var(--od-sub)}
-.ai-vip-history{border-top:1px solid var(--od-line);background:var(--od-bg)}
+.ai-vip-history{margin:0;border-top:1px solid var(--od-line);background:var(--od-bg)}
 .ai-vip-history summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;cursor:pointer;font-size:11px;line-height:1.4;color:var(--od-sub)}
 .ai-vip-history summary::-webkit-details-marker{display:none}
 .ai-vip-history summary strong{font-weight:650;color:var(--od-accent-ink);white-space:nowrap}
@@ -74,12 +74,13 @@
 .ai-vip-proxy-alert{background:var(--od-warning-bg,var(--od-bg));border:1px solid var(--od-line);border-radius:8px;padding:10px;font-size:11px;line-height:1.6;color:var(--od-warning-ink,var(--od-ink))}
 .ai-vip-proxy-alert p{margin:0}
 .ai-vip-proxy-refresh{justify-self:end}
-.ai-vip-service{border-top:1px solid var(--od-line);padding-top:10px}
+.ai-vip-service{margin:0;border-top:1px solid var(--od-line);padding-top:10px}
 .ai-vip-service summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font-size:11px;color:var(--od-sub);line-height:1.55}
 .ai-vip-service summary::-webkit-details-marker{display:none}
 .ai-vip-service summary span{margin-left:auto}
 .ai-vip-service-content{padding:9px 1px 0;font-size:11px;color:var(--od-sub);line-height:1.65}
 .ai-vip-service-content p{margin:0 0 9px;overflow-wrap:anywhere}
-@media(max-width:360px){.ai-vip{gap:12px}.ai-vip-card-inner{padding:12px}.ai-vip-redeem,.ai-vip-proxy{padding:12px}.ai-vip-expiry{max-width:55%;font-size:10.5px}.ai-vip-account-row{gap:7px}.ai-vip-pill{max-width:62%}}
-@media(max-width:320px){.ai-vip{padding-left:var(--space-2);padding-right:var(--space-2)}.ai-vip-account-copy strong{font-size:12px}.ai-vip-redeem-inputs{grid-template-columns:minmax(0,1fr) 42px 38px;gap:5px}}
+@media(max-width:360px){.ai-vip{gap:14px}.ai-vip-card-inner{padding:12px}.ai-vip-redeem,.ai-vip-proxy{padding:12px}.ai-vip-expiry{max-width:55%;font-size:10.5px}.ai-vip-account-row{gap:7px}.ai-vip-pill{max-width:62%}}
+@media(max-width:345px){.ai-vip{padding:13px 12px 15px}}
+@media(max-width:320px){.ai-vip-account-copy strong{font-size:12px}.ai-vip-redeem-inputs{grid-template-columns:minmax(0,1fr) 42px 38px;gap:5px}}
 @media(prefers-reduced-motion:reduce){.ai-vip-meter span{transition:none}}
