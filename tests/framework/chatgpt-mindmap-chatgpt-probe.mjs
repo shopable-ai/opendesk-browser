@@ -428,6 +428,20 @@ try{
   await capture('chatgpt-mobile-320-panned.png',{fullPage:true});
   report.checks.push('MOBILE_REAL_XMIND_HORIZONTAL_BROWSE');
   await viewer(2).getByRole('button',{name:'适配导图画布'}).click();
+  await page.waitForFunction(()=>{
+    const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
+    const root=host?.shadowRoot?.querySelector('.topic')?.getBoundingClientRect();
+    const canvas=host?.shadowRoot?.querySelector('.odmm-canvas');
+    const frame=canvas?.getBoundingClientRect();
+    if(!root||!frame||canvas.dataset.fitReady!=='true'||
+      canvas.dataset.manualViewport!=='false')return false;
+    const visible=Math.max(0,Math.min(root.right,frame.right)-Math.max(root.left,frame.left));
+    return visible>=Math.max(90,root.width*.85);
+  },null,{timeout:20000});
+  report.mobileFitAfterPan=await getPan();
+  assert.ok(report.mobileFitAfterPan.left<report.mobilePan.after.left-20,
+    'Fit must return toward the root after manually panning right');
+  report.checks.push('MOBILE_FIT_AFTER_MANUAL_PAN_RETURNS_READABLE_ROOT');
   // The fixture controls live inside a <details> which we collapsed before
   // the mobile screenshots. Restore desktop viewport, reopen its controls,
   // then turn off the forced 320px mode before testing natural widths.
