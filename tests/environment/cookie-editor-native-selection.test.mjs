@@ -100,3 +100,15 @@ test('R4.10.2 upgrade verifies historical 2.0.15 bytes, same ID and unchanged ca
   assert.doesNotMatch(source,/old\.version,'2\.0\.3'/);
   assert.match(source,/upgrade-preservation-baseline/);
 });
+
+test('R4.10.2 explicit upgrade and all stages cannot silently run only generic CRUD',()=>{
+  const upgrade=plan(undefined,'upgrade');assert.equal(upgrade.status,0,upgrade.stderr);
+  assert.equal(JSON.parse(upgrade.stdout).suite,'extended');
+  const full=plan(undefined,'all');assert.equal(full.status,0,full.stderr);
+  assert.equal(JSON.parse(full.stdout).suite,'extended');
+  const source=readFile(driver,'utf8');
+  return source.then(text=>{
+    assert.match(text,/upgrade-preservation-baseline','explicit-upgrade','upgraded-tool-save-and-delete'/);
+    assert.match(text,/Real 2\.0\.15 to 2\.0\.16 upgrade steps must all pass/);
+  });
+});
