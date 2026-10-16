@@ -28,3 +28,12 @@
 - 复制采用浏览器页面 `navigator.clipboard.writeText` 演示成功／拒绝／不支持场景；仅在写入 Promise 实际完成后报成功，失败保留导出面板并提示可使用「导出文件」。文件采用原下载机制。**此处只操作虚构数据，不代表 Chrome/Host 已授权或真实复制能力已验收。**
 - 定向回归文件 `tests/environment/cookie-editor-preview-r46.test.mjs` 新增剪贴板模拟测试。后续正式扩展迁移必须使用**现有公开 SDK** `OpenDeskSDK.browser.cookies`、`OpenDeskSDK.browser.clipboard` 和 `OpenDeskSDK.browser.downloads`（以实际 SDK 接口为准），继承真实网站身份、Store/Partition 精确权限、敏感值读授权、Epoch 失效保护，**不得把预览模拟脚本迁入产品**。
 - 正式 `../src/index.html`、`../src/style.css`、`../src/main.js`、`../tool.config.json` 和安装包本轮均未改动；用户在新一轮明确授权后方可迁移正式 UI。
+
+
+## R4.9.2 · 已确认的 UI 基线（2026-10-16）
+
+- **React JSX/CSS 唯一候选：** `react/src/App.jsx`、`react/src/style.css`；用户确认左右布局、默认含值 JSON 备份、复制/下载两按钮及内联敏感确认。
+- **设计冻结快照：** `cookie-editor-r4.9.2-approved.html`，独立可点击的虚构数据预览；此静态快照由本地 React16 兼容测试环境生成，仅作为用户确认的视觉和行为参考，不是 React19 构建、浏览器授权或正式工具。
+- **真实 React19 产物：** `react/index.html` 必须从上述 JSX 通过 `npm run build` 生成，经 Chromium E2E 后由现有 `cookie-editor-r49-react-preview.yml` 晋升。旧产物不可自动视为与 R4.9.2 源码一致。
+- **正式扩展保护：** 当前配置版本 2.0.14 的 `src/`、安装包、SDK/Host、本目录 R4.3 与 R4.6 历史预览本轮不变；正式业务迁移下轮才进行。
+- **本地校正证据：** 8 组 Chromium 回归 PASS，320/384/520px 值显示图标中心偏差 0px；React19 构建、最新 CI、真实 Chrome 安装需分别核验。

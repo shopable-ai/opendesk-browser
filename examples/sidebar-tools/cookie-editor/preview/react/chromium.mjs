@@ -2,7 +2,7 @@
 import {chromium} from 'playwright';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {join,dirname,resolve} from 'node:path';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const here=dirname(fileURLToPath(import.meta.url));
 const url=pathToFileURL(join(here,'index.html')).href;
@@ -31,7 +31,34 @@ try{
   await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByText('sess_demo_only_C18').count(),0);await page.getByRole('button',{name:'取消',exact:true}).click();
  });
  await test('import preview detects conflict and writes after confirm',async()=>{await page.getByRole('button',{name:'导入 Cookie'}).click();await page.locator('textarea').fill('[{"name":"created","value":"new"},{"name":"imported","value":"ok"}]');await page.getByRole('button',{name:'预览影响'}).click();await page.getByText('新增 1 · 覆盖 1 · 错误 0').waitFor();await page.getByRole('button',{name:'确认导入',exact:true}).click();await page.getByRole('button',{name:'确认',exact:true}).click();await page.getByText('已导入 2 条 Cookie').waitFor();});
- await test('metadata-only JSON download',async()=>{await page.getByRole('button',{name:'导出 Cookie'}).click();const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'下载',exact:true}).click()]);assert.match(download.suggestedFilename(),/\.json$/);});
+ await test('R4.9.2 full-value JSON backup, inline confirmation, and optional metadata export',async()=>{
+   await page.getByRole('button',{name:'导出 Cookie'}).click();
+   assert.match(await page.locator('.export-brief').innerText(),/包含 Cookie 值/);
+   await page.getByRole('button',{name:'下载',exact:true}).click();
+   await page.getByRole('button',{name:'确认下载'}).waitFor();
+   const [full]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'确认下载'}).click()]);
+   assert.match(full.suggestedFilename(),/\.json$/);
+   const rows=JSON.parse(await readFile(await full.path(),'utf8'));
+   assert.equal(rows.find(row=>row.name==='session_id').value,'sess_demo_only_C18');
+   await page.getByText('更多选项',{exact:true}).click();
+   await page.getByText('仅导出 Cookie 属性（不含值）').click();
+   assert.match(await page.locator('.export-brief').innerText(),/仅导出属性/);
+   const [meta]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'下载',exact:true}).click()]);
+   assert.ok(!Object.hasOwn(JSON.parse(await readFile(await meta.path(),'utf8'))[0],'value'));
+ });
+ await test('R4.9.2 horizontal value icon alignment',async()=>{
+   await page.getByRole('button',{name:'导出 Cookie'}).click();
+   await page.locator('[data-row="b"]').click();
+   for(const width of [320,384,520]){
+     await page.setViewportSize({width,height:880});
+     const input=await page.locator('.value-input input').boundingBox();
+     const button=await page.getByRole('button',{name:'读取并显示 Cookie 值'}).boundingBox();
+     assert.ok(input&&button,'value input/icon must be visible');
+     const delta=Math.abs((input.y+input.height/2)-(button.y+button.height/2));
+     assert.ok(delta<=1,`Value eye button not vertically centered: ${width}px, delta=${delta}`);
+   }
+   await page.getByRole('button',{name:'取消',exact:true}).click();
+ });
  await test('viewport + zoom + dark',async()=>{
   for(const width of [320,360,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}@${zoom}`);}await page.evaluate('document.body.style.zoom=""');}
   await page.getByRole('button',{name:'深色'}).click();await page.screenshot({path:join(output,'384-dark.png'),fullPage:true});

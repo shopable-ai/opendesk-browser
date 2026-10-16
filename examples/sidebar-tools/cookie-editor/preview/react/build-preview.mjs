@@ -8,7 +8,7 @@ const root=dirname(fileURLToPath(import.meta.url));
 const js=await readFile(join(root,'dist','cookie-react.js'));
 const css=await readFile(join(root,'dist','cookie-react.css'));
 const sha=b=>createHash('sha256').update(b).digest('hex');
-const template=(script,style)=>`<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cookie Editor R4.9 · React 交互候选</title><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src data:; style-src data:; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><link rel="stylesheet" href="data:text/css;base64,${style.toString('base64')}"></head><body><div id="r49-root"></div><script src="data:text/javascript;base64,${script.toString('base64')}"></script></body></html>\n`;
+const template=(script,style)=>`<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cookie Editor R4.9.2 · 已确认 React 交互候选</title><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src data:; style-src data:; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><link rel="stylesheet" href="data:text/css;base64,${style.toString('base64')}"></head><body><div id="r49-root"></div><script src="data:text/javascript;base64,${script.toString('base64')}"></script></body></html>\n`;
 const html=template(js,css);
 const destination=resolve(root,'index.html');
 if(process.argv.includes('--check')){

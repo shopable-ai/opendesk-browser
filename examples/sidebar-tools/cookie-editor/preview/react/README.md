@@ -1,7 +1,35 @@
-# Cookie Editor R4.9 · React 独立交互候选
+# Cookie Editor R4.9.2 · 用户已确认的 React UI 基线
 
-仅预览，**不提供 Chrome Cookie API / OpenDesk SDK /真实授权**。原型数据全部虚构、仅在页面内存中存在。`src/App.jsx` 是唯一 UI 行为源码；`src/style.css` 按 R27 的尺寸和语义 token 映射，未引入共享宿主 CSS。此目录不修改 Cookie Editor 正式 `src/` 或安装包，用户确认后再决定是否迁移。
+**归属：** `examples/sidebar-tools/cookie-editor/preview/react/`。
+**阶段：** UI 已经用户审阅确认；实际 Chrome Cookie 业务迁移 **尚未执行**。
+**保护：** 只在预览目录内修改。正式 `src/{index.html,style.css,main.js}`、`tool.config.json`、安装包、Host/SDK、R4.3 原版及 `preview/index.html` 均不随本候选自动覆盖。
 
-Node ≥22.12：`npm install --ignore-scripts --no-audit --no-fund && npm run build`。输出为同目录 `index.html`，可通过 `file://` 打开；所有 JS 和 CSS 以 data: URI 嵌入，无 CDN / 外网请求。真实 React 19.2.0 + React DOM 由 Vite 7.3.6 编译打包。`npm run check` 比对生成结果字节，避免预览漂移。
+## 已确认的交互合同
 
-⚠ 预览实验台独立于真实工具 UI；其中的模拟授权/失败选项不可迁入正式产品。默认导出 JSON 元数据不含 Value，显式含值会要求额外模拟许可及操作确认；真实产品仍通过既有可信 Host、SDK 与身份合同执行。此演示导出只处理虚构数据。所有修改后必须做 Chromium 浏览器回归，不得将虚构场景的操作结果当作真实 Chrome Cookie 验收。
+- 当前网站 → 连续紧凑 Cookie 列表 → 点击行在原处打开唯一编辑器；列表 Name / Domain / Path 为主要信息，高级属性折叠。
+- Name 与 Value 以及高级字段为**左侧标签 / 右侧控件**，Value 右侧显示/隐藏图标与输入框中心线对齐（Chromium 320/384/520px 中心误差均为 0 CSS px）。
+- 真正修改才标记 dirty，恢复原值变回 clean；无修改立即取消，有修改时行内放弃确认。保存失败保留草稿、切换/搜索不静默丢数据。
+- 工具栏只常显导入、导出、新建。导入选择文件或粘贴 → 自动识别 → 预览新增/覆盖 → 确认。
+- 导出选择 JSON（默认）、Cookie Header 或 Netscape；**JSON 默认包含可读取的 Cookie 值**，用于实际备份。"仅导出属性（不含值）" 属于「更多选项」，不是默认选项。
+- 导出操作区只有 **「复制」「下载」** 两个主要按钮；涉及敏感值的操作要单独的值读取能力与*操作前*就地确认，不能因为默认选中而静默导出。
+- 非 JSON 格式有属性信息损失；不支持 PartitionKey 无损保存的格式必须阻断或让用户明确选择跳过分区数据，绝不静默丢失。
+- 所有 Cookie 与权限场景均是纯内存虚构测试，**不得把演示场景/模拟授权与 mock 行为打进正式工具包**。
+
+## 源码与可独立打开的 HTML
+
+- `src/App.jsx`：唯一交互状态与 UI 事件源码；`src/style.css`：本工具局部样式；`src/main.jsx`：React 根节点。
+- `npm install --ignore-scripts --no-audit --no-fund && npm run build`：通过现有 Vite / React 19 构建 `index.html`，可离线、`file://` 打开，运行时不需要网络或 CDN。
+- `npm run check`：验证 HTML 与本次源码产物完全一致；`npm run test:chromium`：在**真实构建后的 HTML** 上测试原位编辑、dirty、导入、默认含值导出、权限、缩放、显隐按钮中心对齐。
+- `.github/workflows/cookie-editor-r49-react-preview.yml`：源码提交后，由 CI 真正安装、构建、跑 Chromium；**只有 CI 成功才允许晋升生成的 React 19 HTML / 截图**，禁止提交本地 React16 测试兼容构建冒充 React19 产物。
+
+## 发布前业务迁移注意
+
+正式 Cookie Editor 当前仍是 `tool.config.json` 声明的原生 JS Sandbox 工具；是否直接迁 React，要先对照 220,000 JS UTF-16 单元和 320,000 JSON UTF-8 字节上限，以及当前 R33.1 共享 React UI 的真实实现状态。**R33.1 五个可信 Tab 的 React 重构，并不意味着独立 Cookie Tool 自动成为可信 React UI。**
+
+迁移 UI 时必须保留原有 `OpenDeskSDK.browser.cookies.*` / `OpenDeskSDK.browser.clipboard.writeText` / `OpenDeskSDK.browser.downloads.text`、可信 Host 网站/值权限、精确身份、Store/Partition、Name 重命名安全、撤权清理、异步 Epoch、未知结果不自动重试、导入冲突与原位升级合同。请只把真实逻辑接到已经确认的界面；不要复制 preview mock 业务。
+
+## 已验证与待验
+
+- **LOCAL_SCOPED PASS**：本地 Chromium 8 组旧交互回归 + 3 种宽度 Value 图标中心线测量、页面无横向溢出。验证入口为相同 JSX 的 React16 测试兼容层，**不是 React 19 的正式构建或原生安装证据**。
+- **REACT19_BUILD / CI / CHROME_NATIVE：** 需按本次提交实际工作流结果更新记录，未观察到的结论写 `NOT_TESTED`；不得直接借用旧 R4.9 的成功报告。
+- **95+：** 是下一轮各项独立验收目标，并非本轮已取得的统一评分。
