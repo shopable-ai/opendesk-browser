@@ -83,15 +83,30 @@ jobs:
           path: |
             examples/sidebar-tools/bookmark-manager/preview/index.html
             artifacts/preview-chrome-r302/
-      - name: Promote tested HTML to main only if remote main is unchanged
+      - name: Promote exact Chromium-tested HTML with concurrent main protection
         if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main
-          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-            echo "::error::Concurrent main moved. Tested candidate is in workflow artifacts; refusing to overwrite others."
-            exit 1
+          remote_head="$(git rev-parse origin/main)"
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "::error::main rewrote history or diverged; refusing promotion."
+              exit 1
+            fi
+            overlap="$(git diff --name-only "$GITHUB_SHA" "$remote_head" -- \
+              examples/sidebar-tools/bookmark-manager/ \
+              scripts/preview/bookmark-manager-mock.js \
+              src/ui/design-tokens.css \
+              src/ui/design-system.css \
+              .github/workflows/bookmark-manager-r302-react-preview.yml)"
+            if [ -n "$overlap" ]; then
+              echo "::error::Concurrent change overlaps React preview source or input; refusing promotion."
+              printf '%s\n' "$overlap"
+              exit 1
+            fi
+            echo "Concurrent unrelated changes only; preserve them with a local non-force rebase."
           fi
           git add -- examples/sidebar-tools/bookmark-manager/preview/index.html
           if git diff --cached --quiet; then
@@ -100,5 +115,10 @@ jobs:
           fi
           git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -m 'build(bookmark-manager): promote verified R3.0.2 React offline preview'
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            git -c user.name='OpenDesk Preview CI' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              rebase origin/main
+          fi
           git push origin HEAD:main
-          echo "Promoted exact Chromium-tested preview, without force or branch creation."
+          echo "Promoted exact tested HTML onto latest main without force or branch creation."
