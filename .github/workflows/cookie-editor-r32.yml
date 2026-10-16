@@ -99,6 +99,10 @@ jobs:
             console.log('COOKIE_EDITOR_NODE_PACKAGE_PASS',tool.version,
               'sha256='+createHash('sha256').update(bytes).digest('hex'));
           "
+      - name: Verify checked-in Cookie Editor installable package is source-identical
+        run: |
+          node --check tests/framework/cookie-editor-r33-native.mjs
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project
       - name: Source guard and two production/development builds
         run: |
           npm run check
