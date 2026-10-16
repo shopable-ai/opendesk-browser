@@ -35,13 +35,16 @@ function filteredRows(tree,expanded,query){
   for(const child of tree.children.get(id)||[])walk(child,depth+1);
  }
  for(const id of tree.roots)walk(id,0);
+ const siblingRows=new Map();
+ for(const row of rows){const id=row.node.parentId;if(!siblingRows.has(id))siblingRows.set(id,[]);siblingRows.get(id).push(row)}
+ for(const group of siblingRows.values())group.forEach((row,i)=>{row.posinset=i+1;row.setsize=group.length});
  return rows;
 }
 function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.title:'',url=mode==='edit'?(node.url||''):'',folder=mode==='edit'?node.parentId:parentId;return {mode,kind,id:node?.id||null,expected:node?{...node}:null,title,url,parentId:folder,initial:{title,url,parentId:folder}}}
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
 function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请恢复模拟权限后刷新。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
 function descendants(tree,id){return model.descendantSignatures(tree,id).length}
-function Tree({rows,expanded,selectedId,activeId,setActiveId,onSelect,onToggle,onMenu,onScrollClose,scrollRef}){
+function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSelect,onToggle,onMenu,onEdit,onScrollClose,scrollRef}){
  const [top,setTop]=useState(0),[height,setHeight]=useState(510);
  const rowHeight=42,virtual=rows.length>120;
  useLayoutEffect(()=>{const el=scrollRef.current;if(!el)return;const resize=()=>setHeight(el.clientHeight||510);resize();if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(resize);ro.observe(el);return()=>ro.disconnect()}},[scrollRef]);
@@ -58,23 +61,25 @@ function Tree({rows,expanded,selectedId,activeId,setActiveId,onSelect,onToggle,o
    else if(event.key==='ArrowRight'){if(isFolder(row.node)){if(!expanded.has(row.node.id))onToggle(row.node.id);else if(idx+1<rows.length&&rows[idx+1].level>row.level)selectActive(idx+1)}}
    else if(event.key==='ArrowLeft'){if(isFolder(row.node)&&expanded.has(row.node.id))onToggle(row.node.id);else{let parent=row.node.parentId;const parentIndex=rows.findIndex(r=>r.node.id===parent);if(parentIndex>=0)selectActive(parentIndex)}}
    else if(event.key==='Enter'||event.key===' '){onSelect(row.node.id)}
+   else if(event.key==='F2'){onEdit(row.node.id)}
+   else if(event.key==='F10'&&event.shiftKey){const btn=scrollRef.current?.querySelector('[data-node-id="'+row.node.id+'"] .bm-row-more');if(btn)onMenu(row.node.id,btn)}
    else if(event.key==='Escape'){event.currentTarget.blur()}
    else return;event.preventDefault();
  }
- return <div className="bm-tree-scroll" ref={scrollRef} onScroll={e=>{setTop(e.currentTarget.scrollTop);onScrollClose()}} role="tree" aria-label="书签目录与书签" aria-activedescendant={displayed.some(r=>r.node.id===activeId)?'bm-treeitem-'+activeId:undefined} tabIndex={0} onKeyDown={onKey} data-testid="bookmark-tree">
+ return <div className="bm-tree-scroll" ref={scrollRef} onScroll={e=>{const el=e.currentTarget;setTop(el.scrollTop);onScrollClose();if(virtual&&rows.length){const first=Math.max(0,Math.floor(el.scrollTop/rowHeight));const last=Math.min(rows.length-1,Math.floor((el.scrollTop+el.clientHeight-1)/rowHeight));if(activeRow<first||activeRow>last)setActiveId(rows[first]?.node.id||rows[0].node.id)}}} role="tree" aria-label="书签目录与书签" aria-activedescendant={displayed.length?'bm-treeitem-'+(displayed.some(r=>r.node.id===activeId)?activeId:displayed[0].node.id):undefined} tabIndex={0} onKeyDown={onKey} data-testid="bookmark-tree">
   {!rows.length?<div className="bm-empty">没有匹配的书签。试试其他关键词。</div>:
-  <div className="bm-virtual-area" style={{height:virtual?rows.length*rowHeight:undefined}}>
-   {displayed.map((row,i)=>{const node=row.node,folder=isFolder(node),open=expanded.has(node.id);
+  <div className="bm-virtual-area" role="presentation" style={{height:virtual?rows.length*rowHeight:undefined}}>
+   {displayed.map((row,i)=>{const node=row.node,folder=isFolder(node),open=expanded.has(node.id)||searchActive;
     const count=row.children.length;
     return <div key={node.id} id={'bm-treeitem-'+node.id} role="treeitem"
-     aria-level={row.level} aria-selected={selectedId===node.id}
+     aria-level={row.level} aria-posinset={row.posinset} aria-setsize={row.setsize} aria-selected={selectedId===node.id}
      aria-expanded={folder?open:undefined} title={node.title}
      className={'bm-tree-row'+(selectedId===node.id?' is-selected':'')+(activeId===node.id?' is-active':'')}
      style={{paddingInlineStart:Math.min(row.level-1,10)*15+7,...(virtual?{position:'absolute',top:(start+i)*rowHeight,left:0,right:0}:{})}}
      onClick={()=>{setActiveId(node.id);onSelect(node.id);scrollRef.current?.focus()}} data-node-id={node.id}>
      <button className={'bm-disclosure'+(!folder?' is-placeholder':'')} type="button" tabIndex={-1}
-       aria-label={folder?(open?'折叠 '+node.title:'展开 '+node.title):undefined} aria-hidden={!folder}
-       onClick={event=>{event.stopPropagation();if(folder)onToggle(node.id)}}><Icon name="chevron" size={15}/></button>
+       aria-label={folder?(searchActive?'搜索中已展开 '+node.title:open?'折叠 '+node.title:'展开 '+node.title):undefined} aria-expanded={folder?open:undefined} aria-hidden={!folder} disabled={searchActive||!folder}
+       onClick={event=>{event.stopPropagation();if(folder&&!searchActive)onToggle(node.id)}}><Icon name="chevron" size={15}/></button>
      <span className={'bm-node-icon'+(folder?' bm-folder-icon':'')}><Icon name={folder?'folder':'link'} size={17}/></span>
      <span className="bm-node-title">{node.title}</span>
      {folder&&<span className="bm-count" title={count+' 个直接子项'}>{count}</span>}
@@ -135,7 +140,8 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
   const field=region?.querySelector('[autofocus],input,button');
   (field||region)?.focus();
   const key=e=>{
-   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(canCloseRef.current)closeRef.current();return}
+   if(document.querySelector('[data-testid="confirm-dialog"]'))return;
+    if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(canCloseRef.current)closeRef.current();return}
    if(e.key!=='Tab'||!region)return;
    const items=[...region.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href],select:not(:disabled)')].filter(el=>el.getClientRects().length);
    if(!items.length)return;
@@ -158,7 +164,7 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
   </section>
  </div>;
 }
-function Confirm({title,description,confirm,canConfirm=true,onConfirm,onCancel,danger=false}){
+function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true,onConfirm,onCancel,danger=false}){
  const ref=useRef(null),origin=useRef(null);
  useEffect(()=>{
   origin.current=document.activeElement;
@@ -177,17 +183,17 @@ function Confirm({title,description,confirm,canConfirm=true,onConfirm,onCancel,d
   <div ref={ref} className="bm-dialog" role="alertdialog" aria-modal="true" aria-label={title} aria-describedby="bm-dialog-desc" data-testid="confirm-dialog">
    <h2>{title}</h2><p id="bm-dialog-desc">{description}</p>
    <div className="bm-dialog-actions">
-    <button className="bm-button" type="button" onClick={onCancel}>取消</button>
+    <button className="bm-button" type="button" onClick={onCancel}>{cancelLabel}</button>
     <button className={'bm-button '+(danger?'bm-button--danger':'bm-button--primary')} type="button" disabled={!canConfirm} onClick={onConfirm}>{confirm}</button>
    </div>
   </div>
  </div>;
 }
 export default function App(){
- const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[detailOpen,setDetailOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
+ const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[detailOpen,setDetailOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
  const scrollRef=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
- const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex))}return null}},[]);
+ const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setDraft(null);setDetailOpen(false);setMenu(null)}}return null}},[]);
  useEffect(()=>{void load({initial:true})},[load]);
  useEffect(()=>{if(!notice||notice.startsWith('写入结果未知'))return;const timer=setTimeout(()=>setNotice(''),3300);return()=>clearTimeout(timer)},[notice]);
  const rows=useMemo(()=>filteredRows(tree,expanded,query),[tree,expanded,query]);
@@ -196,7 +202,8 @@ export default function App(){
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
  function toggle(id){setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
  function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setDetailOpen(false);setPickerOpen(move);setUncertain(false)}
- function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('');setUncertain(false)}
+ function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('')}
+ function requestCloseSheet(){if(busy)return;if(dirtyDraft(draft)&&!uncertain){setConfirmDiscard(true);return}closeSheet()}
  function perform(action){
   setPickerOpen(false);setMenu(null);
   if(action.type==='select'){setSelectedId(action.id);setDraft(null);setDetailOpen(false)}
@@ -208,7 +215,7 @@ export default function App(){
   else if(action.type==='currentPage')void fillCurrentPage();
  }
  // Explicit cancel means discard. No modal for unsaved drafts.
- function request(action){perform(action)}
+ function request(action){if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
  function select(id){setActiveId(id);if(draft)return;request({type:'select',id})}
  function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
  function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
@@ -218,21 +225,22 @@ export default function App(){
    if(draft.kind==='folder'&&draft.mode==='edit'&&model.isDescendant(tree,draft.parentId,draft.id))throw Error('文件夹不能移动到自身或子目录');
   }catch(ex){setError(humanError(ex));return}
   globalThis.__bmReactSaveStage='validated';setBusy(true);setError('');
-  try{let result,expected=draft.expected;
-   if(draft.mode==='create'){result=draft.kind==='folder'?await service.createFolder({title,parentId:draft.parentId}):await service.createBookmark({title,url,parentId:draft.parentId})}
+  let completedWrite=false;
+   try{let result,expected=draft.expected;
+   if(draft.mode==='create'){result=draft.kind==='folder'?await service.createFolder({title,parentId:draft.parentId}):await service.createBookmark({title,url,parentId:draft.parentId});completedWrite=true}
    else{
     const moved=draft.parentId!==expected.parentId;
-    if(moved){result=await service.move({expected,parentId:draft.parentId});expected=result}
-    if(title!==expected.title||(draft.kind==='bookmark'&&url!==expected.url)){result=await service.update({expected,title,url});expected=result}
+    if(moved){result=await service.move({expected,parentId:draft.parentId});completedWrite=true;expected=result}
+    if(title!==expected.title||(draft.kind==='bookmark'&&url!==expected.url)){result=await service.update({expected,title,url});completedWrite=true;expected=result}
     if(!result)result=expected;
    }
    globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
    globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setDetailOpen(false);setPickerOpen(false);setUncertain(false);setNotice('已保存');
-  }catch(ex){globalThis.__bmReactSaveStage='error:'+(ex?.code||ex?.message||'unknown');if(activeRef.current){setError(humanError(ex));if(ex?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
+  }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
  }
- async function removeConfirmed(){if(!confirmDelete||busy)return;setBusy(true);setError('');try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setDetailOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current)setError(humanError(ex))}finally{if(activeRef.current)setBusy(false)}}
- function bookmarkCurrentPage(){void fillCurrentPage()}
+ async function removeConfirmed(){if(!confirmDelete||busy||uncertain)return;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setDetailOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{if(activeRef.current)setBusy(false)}}
+ function bookmarkCurrentPage(){request({type:'currentPage'})}
  async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.3">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div><div className="bm-top-actions"><button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button><button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button></div></header>
@@ -240,12 +248,13 @@ export default function App(){
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   </div>
-  {tree&&(draft||detailOpen)&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={closeSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
+  {tree&&(draft||detailOpen)&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
   </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
-  {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'「'+confirmDelete.expected.title+'」将被永久删除。'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
+  {confirmDiscard&&<Confirm title="放弃未保存的修改？" description="草稿尚未保存。可以继续编辑或明确放弃。" cancelLabel="继续编辑" confirm="放弃修改" danger onConfirm={()=>{setConfirmDiscard(false);closeSheet()}} onCancel={()=>setConfirmDiscard(false)}/>}
+   {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'「'+confirmDelete.expected.title+'」将被永久删除。'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
  </div>
 }

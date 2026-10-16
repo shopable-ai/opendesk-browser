@@ -147,6 +147,19 @@ try{
   assert.ok(idleMenus.length>0&&idleMenus.every(value=>value<0.1),'idle rows hide action controls until selection, hover or keyboard focus');
 
   await screenshot('bookmark-r303-'+width+'-list.png');
+  // R3.0.3 accessibility regression: real tree key events and virtual offscreen scrolling.
+  await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.focus();t.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}));return true");
+  await until(ctx,"document.querySelector('[role=tree]')?.getAttribute('aria-activedescendant')==='bm-treeitem-2651'",'End reaches last visible row '+width);
+  assert.equal(await invoke(ctx,"return !!document.getElementById(document.querySelector('[role=tree]').getAttribute('aria-activedescendant'))"),true,'End active node mounted');
+  await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));return true");
+  await until(ctx,"document.querySelector('[role=tree]')?.getAttribute('aria-activedescendant')==='bm-treeitem-1'",'Home reaches first row '+width);
+  await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.scrollTop=t.scrollHeight;t.dispatchEvent(new Event('scroll',{bubbles:true}));return true");
+  await until(ctx,"!!document.getElementById(document.querySelector('[role=tree]')?.getAttribute('aria-activedescendant'))",'offscreen scroll retains real active-descendant '+width);
+  assert.ok(await invoke(ctx,"return document.querySelectorAll('.bm-tree-row').length<90"),'virtual DOM bounded at '+width);
+  assert.equal(await invoke(ctx,"const a=document.querySelector('[role=treeitem]');return Boolean(a?.getAttribute('aria-posinset')&&a?.getAttribute('aria-setsize'))"),true,'treeitem positional metadata');
+  await screenshot('bookmark-r303-'+width+'-keyboard.png');
+  await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.scrollTop=0;t.dispatchEvent(new Event('scroll',{bubbles:true}));return true");
+  await until(ctx,"!!document.querySelector('[data-node-id=\"100\"]')",'restore tree position '+width);
   await click(ctx,'[data-node-id="100"]');
   assert.equal(await invoke(ctx,"return !!document.querySelector('.bm-inspector')"),false,'select does not open footer');
   assert.equal(await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)"),originalHeight,'selection does not jump');
