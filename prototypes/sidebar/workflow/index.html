@@ -231,7 +231,7 @@ body[data-theme=dark] .device .title-actions .create-action:hover{background:#31
   window.workflowPreviewState = () => ({stage:data.stage,connected:data.connected,provider:data.provider,
     messages:data.messages.map(m=>({...m})),pending:data.pending&&{...data.pending},value:$('r23-name').value,
     submits:data.simulatedSubmits,navigations:data.simulatedNavigations,dirty:data.dirty,
-    workflowId:data.workflowId,chatId:data.chatId,documentId:data.documentId,versions:data.versions.map(v=>({...v})),documentChecks:data.documentChecks,
+    workflowId:data.workflowId,chatId:data.chatId,documentId:data.documentId,firstCompleted:data.firstCompleted,versions:data.versions.map(v=>({...v})),documentChecks:data.documentChecks,
     historyOpen:data.historyOpen,settingsOpen:data.settingsOpen,dialog:data.dialog,consent:!!data.consent,actionWarning:data.actionWarning});
   const shell = document.querySelector('.device');
   const settings = document.createElement('section');settings.id='r23-settings-panel';settings.className='r23-settings';settings.hidden=true;
@@ -313,7 +313,7 @@ body[data-theme=dark] .device .title-actions .create-action:hover{background:#31
   function switchBlocked(){if(!busy()&&data.stage!=='approval')return false;
     data.actionWarning=busy()?'当前任务仍在处理，请先点击底部停止，再切换。':'请先允许或拒绝当前摘要授权，再切换。';
     announce(data.actionWarning);render();(busy()?send:document.querySelector('[data-action="deny"]'))?.focus();return true;}
-  function newChat(){if(switchBlocked())return;cancelTimer();data.pending=null;data.messages=[];data.chatId=data.nextChatId++;data.historyOpen=false;data.settingsOpen=false;data.dialog=null;data.scenarioOnly=false;data.actionWarning='';data.stage=data.connected?'connected':'disconnected';
+  function newChat(){if(switchBlocked())return;cancelTimer();data.pending=null;data.messages=[];data.firstCompleted=false;data.chatId=data.nextChatId++;data.historyOpen=false;data.settingsOpen=false;data.dialog=null;data.scenarioOnly=false;data.actionWarning='';data.stage=data.connected?'connected':'disconnected';
     render();prompt.focus();announce('新对话已建立，工作流、版本、模拟 DOM 和未发送文字保留');}
   function newWorkflow(){cancelTimer();data.pending=null;data.workflowId=data.nextWorkflowId++;data.chatId=data.nextChatId++;data.title='新工作流';data.dirty=false;data.selectedRevision=null;
     data.firstCompleted=false;data.messages=[];data.lastResult=null;data.consent=null;data.historyOpen=false;data.settingsOpen=false;data.dialog=null;data.scenarioOnly=false;data.actionWarning='';
