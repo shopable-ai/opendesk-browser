@@ -220,13 +220,13 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
   const stopIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
   const data = {stage:'empty',connected:true,provider:'native',messages:[],pending:null,timer:null,requestSeq:0,
     value:'旧的预填内容',lastResult:null,firstCompleted:false,consent:null,documentChecks:0,
-    workflowId:1,nextWorkflowId:2,title:'新工作流',dirty:false,versions:[],revision:0,selectedRevision:null,
-    historyOpen:false,settingsOpen:false,newMenuOpen:false,dialog:null,scenarioOnly:false,composerText:'',simulatedSubmits:0,simulatedNavigations:0};
+    workflowId:1,nextWorkflowId:2,chatId:1,nextChatId:2,title:'新工作流',dirty:false,versions:[],revision:0,selectedRevision:null,
+    historyOpen:false,settingsOpen:false,dialog:null,scenarioOnly:false,documentId:'demo-form:1',actionWarning:'',simulatedSubmits:0,simulatedNavigations:0};
   window.workflowPreviewState = () => ({stage:data.stage,connected:data.connected,provider:data.provider,
     messages:data.messages.map(m=>({...m})),pending:data.pending&&{...data.pending},value:$('r23-name').value,
     submits:data.simulatedSubmits,navigations:data.simulatedNavigations,dirty:data.dirty,
-    workflowId:data.workflowId,versions:data.versions.map(v=>({...v})),documentChecks:data.documentChecks,
-    historyOpen:data.historyOpen,settingsOpen:data.settingsOpen,dialog:data.dialog,consent:!!data.consent});
+    workflowId:data.workflowId,chatId:data.chatId,documentId:data.documentId,versions:data.versions.map(v=>({...v})),documentChecks:data.documentChecks,
+    historyOpen:data.historyOpen,settingsOpen:data.settingsOpen,dialog:data.dialog,consent:!!data.consent,actionWarning:data.actionWarning});
   const shell = document.querySelector('.device');
   const settings = document.createElement('section');settings.id='r23-settings-panel';settings.className='r23-settings';settings.hidden=true;
   settings.setAttribute('aria-label','AI 配置模拟');
@@ -252,7 +252,7 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
   function timed(ms,cb){const seq=data.requestSeq;data.timer=setTimeout(()=>{data.timer=null;if(seq===data.requestSeq)cb();},ms);}
   function busy(){return data.stage==='planning'||data.stage==='running';}
   function isNative(){return data.provider==='native';}
-  function scopeCanReuse(){return !!data.consent && isNative() && data.consent.provider==='native' && data.consent.session==='preview-codex-session' && data.consent.origin==='http://127.0.0.1:43111' && data.consent.scope==='semantic24' && Date.now()<data.consent.expires;}
+  function scopeCanReuse(){return !!data.consent && isNative() && data.consent.provider==='native' && data.consent.session==='preview-codex-session' && data.consent.origin==='http://127.0.0.1:43111' && data.consent.scope==='semantic24' && data.consent.documentId===data.documentId && Date.now()<data.consent.expires;}
   function parseCommand(s){
     if(s.includes('姓名输入框')&&s.includes('给我一个亿的项目')&&s.includes('读取')&&s.includes('不要点击提交')&&s.includes('不要跳转'))return {type:'fill',value:'给我一个亿的项目',round:1};
     if(s.includes('刚才')&&s.includes('项目已启动')&&s.includes('重新读取')&&s.includes('不要提交')&&s.includes('不要跳转')&&data.firstCompleted)return {type:'fill',value:'项目已启动',round:2};
@@ -263,14 +263,14 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
   function stop(){if(!busy()){return;}const old=data.stage;cancelTimer();data.pending=null;data.stage='stopped';data.scenarioOnly=false;
     assistant(old==='planning'?'已停止模拟规划。没有操作模拟目标网页。':'已停止模拟执行。未继续填写或提交；如结果无法确认，正式产品应先核对网页而非自动重试。','warning');
     announce('已停止'+(old==='planning'?'规划':'执行'));render();prompt.focus();}
-  function reset(){cancelTimer();data.stage='empty';data.connected=true;data.provider='native';data.messages=[];data.pending=null;data.value='旧的预填内容';data.lastResult=null;data.firstCompleted=false;data.consent=null;data.documentChecks=0;
-    data.workflowId=1;data.nextWorkflowId=2;data.title='新工作流';data.dirty=false;data.versions=[];data.revision=0;data.selectedRevision=null;
+  function reset(){cancelTimer();data.stage='empty';data.connected=true;data.provider='native';data.messages=[];data.pending=null;data.value='旧的预填内容';data.lastResult=null;data.firstCompleted=false;data.consent=null;data.documentChecks=0;data.documentId='demo-form:1';data.actionWarning='';
+    data.workflowId=1;data.nextWorkflowId=2;data.chatId=1;data.nextChatId=2;data.title='新工作流';data.dirty=false;data.versions=[];data.revision=0;data.selectedRevision=null;
     data.historyOpen=false;data.settingsOpen=false;data.newMenuOpen=false;data.dialog=null;data.scenarioOnly=false;data.composerText='';data.simulatedSubmits=0;data.simulatedNavigations=0;
     $('r23-name').value=data.value;prompt.value='';syncReadback();render();}
   function syncReadback(){const val=$('r23-name').value;$('r23-readback').textContent=`模拟 DOM 读回：${val}；提交 ${data.simulatedSubmits} 次，跳转 ${data.simulatedNavigations} 次。`;}
-  function onSend(){const text=prompt.value.trim();if(!text){prompt.focus();return;}if(busy()||data.stage==='approval')return;
+  function onSend(){const text=prompt.value.trim();if(!text){prompt.focus();return;}if(busy()||data.stage==='approval'||data.dialog)return;
     cancelTimer();data.settingsOpen=false;data.newMenuOpen=false;data.historyOpen=false;data.scenarioOnly=false;data.dialog=null;
-    user(text);prompt.value='';data.composerText='';
+    user(text);prompt.value='';
     if(!data.connected){data.stage='disconnected';assistant('模拟 AI 未连接，任务没有执行。请先恢复连接后重新发送。','error');render();prompt.focus();return;}
     const parsed=parseCommand(text);
     if(!parsed){data.stage='unsupported';assistant('这条指令不属于本页支持的两轮模拟任务，因此没有执行、没有修改模拟网页。请使用指定的姓名输入框测试指令。','error');render();prompt.focus();return;}
@@ -279,15 +279,16 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
   }
   function grant(){if(data.stage!=='approval')return;
     if(!data.pending){data.stage='empty';assistant('场景演示未关联实际任务，未进行网页填写。');render();return;}
-    if(isNative())data.consent={provider:'native',session:'preview-codex-session',origin:'http://127.0.0.1:43111',scope:'semantic24',expires:Date.now()+30*60*1000};
+    if(isNative())data.consent={provider:'native',session:'preview-codex-session',origin:'http://127.0.0.1:43111',documentId:data.documentId,scope:'semantic24',expires:Date.now()+30*60*1000};
     startRunning('已批准本轮模拟摘要披露；执行写入另受用户指令与实际文档约束。');}
   function deny(){if(data.stage!=='approval')return;data.pending=null;data.stage='failed';assistant('已拒绝模拟网页摘要披露。没有填写输入框，也没有提交或跳转。','warning');announce('已拒绝授权');render();prompt.focus();}
   function startRunning(note){if(!data.pending){data.stage='unsupported';assistant('没有可执行的模拟指令，因此未执行。','error');render();return;}
-    data.scenarioOnly=false;data.documentChecks++;data.pending.authorityNote=note;data.stage='running';announce('正在模拟网页填写和读回');render();timed(1300,finish);}
+    data.scenarioOnly=false;data.documentChecks++;data.pending.documentId=data.documentId;data.pending.authorityNote=note;data.dirty=true;data.title='填写姓名并读回';data.stage='running';announce('正在模拟网页填写和读回');render();timed(1300,finish);}
   function finish(){if(data.stage!=='running'||!data.pending)return;const pending=data.pending;data.pending=null;
+    if(pending.documentId!==data.documentId){data.stage='failed';assistant('模拟文档身份变化，此轮写入已阻止；请重新检查页面。','error');render();return;}
     const input=$('r23-name');input.value=pending.value;data.value=input.value;syncReadback();
     if(data.value!==pending.value){data.stage='failed';assistant('模拟读回与预期不一致，未判定成功。','error');}
-    else{data.stage='result';data.dirty=true;data.title='填写姓名并读回';if(pending.round===1)data.firstCompleted=true;
+    else{data.stage='result';if(pending.round===1)data.firstCompleted=true;
       data.lastResult={value:data.value,round:pending.round,checks:data.documentChecks};
       assistant(`仅模拟：已将姓名输入框改为「${data.value}」，读取该模拟 DOM 的值再次核对一致。未点击提交，也未跳转网页。`,'success',data.value,{check:data.documentChecks,note:pending.authorityNote});
     }
@@ -297,23 +298,31 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
     data.revision++;const version={id:data.revision,workflowId:data.workflowId,title:data.title,value:data.lastResult?.value??null,created:'本次预览',status:'模拟草稿'};
     data.versions.unshift(version);data.dirty=false;data.selectedRevision=version.id;data.stage='saved';
     assistant(`模拟草稿 r${version.id} 已保存到本页内存。保存不等于验证、安装或真实浏览器执行。`,'saved');announce('已模拟保存工作流草稿');render();}
-  function newChat(){cancelTimer();data.pending=null;data.messages=[];data.historyOpen=false;data.settingsOpen=false;data.newMenuOpen=false;data.dialog=null;data.scenarioOnly=false;data.stage=data.connected?'connected':'disconnected';
-    prompt.value='';render();prompt.focus();announce('已开始新对话，保留工作流与版本');}
-  function newWorkflow(){cancelTimer();data.pending=null;data.workflowId=data.nextWorkflowId++;data.title='新工作流';data.dirty=false;data.selectedRevision=null;
-    data.firstCompleted=false;data.messages=[];data.lastResult=null;data.consent=null;data.historyOpen=false;data.settingsOpen=false;data.newMenuOpen=false;data.dialog=null;data.scenarioOnly=false;
-    data.stage=data.connected?'empty':'disconnected';prompt.value='';render();prompt.focus();announce('已创建新工作流草稿');}
-  function attemptNewWorkflow(){data.newMenuOpen=false;if(data.dirty){data.dialog={type:'new-workflow'};render();setTimeout(()=>modal.querySelector('button')?.focus(),0);}else newWorkflow();}
-  function attemptRestore(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;if(data.dirty){data.dialog={type:'restore',id};render();setTimeout(()=>modal.querySelector('button')?.focus(),0);}else restoreVersion(id);}
-  function restoreVersion(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;data.workflowId=rev.workflowId;data.selectedRevision=id;data.title=rev.title;data.dirty=false;data.historyOpen=false;data.stage='saved';data.dialog=null;data.scenarioOnly=false;
-    assistant(`已在预览中载入草稿 r${id} 的设计信息。未自动运行，也没有修改目标网页。`,'saved');render();}
-  function closeDialog(){data.dialog=null;render();$('new-workflow').focus();}
-  function renderDialog(){modal.hidden=!data.dialog;if(!data.dialog){modal.innerHTML='';return;}
-    const target=data.dialog.type==='new-workflow'?'创建新工作流':'恢复旧版本';
-    modal.innerHTML=`<section class="r23-modal" role="dialog" aria-modal="true" aria-labelledby="r23-dialog-title"><h3 id="r23-dialog-title">未保存的工作流修改</h3><p>继续「${target}」会放弃当前未保存的模拟草稿修改。已保存的版本不会被覆盖。</p><div class="inline-actions"><button type="button" data-action="cancel-dialog">取消</button><button type="button" data-action="save-then-proceed">保存后继续</button><button type="button" class="primary" data-action="discard-proceed">放弃修改并继续</button></div></section>`;
+  function switchBlocked(){if(!busy()&&data.stage!=='approval')return false;
+    data.actionWarning=busy()?'当前任务仍在处理，请先点击底部停止，再切换。':'请先允许或拒绝当前摘要授权，再切换。';
+    announce(data.actionWarning);render();(busy()?send:document.querySelector('[data-action="deny"]'))?.focus();return true;}
+  function newChat(){if(switchBlocked())return;cancelTimer();data.pending=null;data.messages=[];data.chatId=data.nextChatId++;data.historyOpen=false;data.settingsOpen=false;data.dialog=null;data.scenarioOnly=false;data.actionWarning='';data.stage=data.connected?'connected':'disconnected';
+    render();prompt.focus();announce('新对话已建立，工作流、版本、模拟 DOM 和未发送文字保留');}
+  function newWorkflow(){cancelTimer();data.pending=null;data.workflowId=data.nextWorkflowId++;data.chatId=data.nextChatId++;data.title='新工作流';data.dirty=false;data.selectedRevision=null;
+    data.firstCompleted=false;data.messages=[];data.lastResult=null;data.consent=null;data.historyOpen=false;data.settingsOpen=false;data.dialog=null;data.scenarioOnly=false;data.actionWarning='';
+    data.stage=data.connected?'empty':'disconnected';prompt.value='';render();prompt.focus();announce('已创建独立工作流与新对话；旧版本仍保留');}
+  function showUnsavedDialog(type,id){data.dialog={type,id,hasPrompt:!!prompt.value.trim()};data.actionWarning='';render();modal.querySelector('button')?.focus();}
+  function attemptNewWorkflow(){if(switchBlocked())return;if(data.dirty||prompt.value.trim())showUnsavedDialog('new-workflow');else newWorkflow();}
+  function attemptRestore(id){if(switchBlocked())return;const rev=data.versions.find(v=>v.id===id);if(!rev)return;if(data.dirty||prompt.value.trim())showUnsavedDialog('restore',id);else restoreVersion(id);}
+  function restoreVersion(id){const rev=data.versions.find(v=>v.id===id);if(!rev)return;cancelTimer();data.workflowId=rev.workflowId;data.chatId=data.nextChatId++;data.selectedRevision=id;data.title=rev.title;data.dirty=false;data.historyOpen=false;data.stage='saved';data.dialog=null;data.scenarioOnly=false;data.actionWarning='';
+    data.pending=null;data.messages=[];data.lastResult=null;data.firstCompleted=false;data.consent=null;prompt.value='';
+    assistant(`已载入工作流 #${rev.workflowId} 的内存草稿 r${id} 并开启新对话；未自动执行、未修改目标网页。`,'saved');render();prompt.focus();}
+  function closeDialog(){const d=data.dialog;data.dialog=null;render();const sel=d?.type==='restore'?`[data-action="restore"][data-id="${d.id}"]`:null;
+    const target=(sel?document.querySelector(sel):null)||$(d?.type==='restore'?'history':'new-workflow');target?.focus();}
+    function renderDialog(){modal.hidden=!data.dialog;if(!data.dialog){modal.innerHTML='';return;}
+    const target=data.dialog.type==='new-workflow'?'创建新工作流':'恢复历史版本',saved=data.dirty;
+    const desc=saved?'当前工作流有未保存的设计修改。':'当前工作流没有未保存的设计修改。';
+    const input=data.dialog.hasPrompt?'未发送的输入文字也会丢失；取消可完整保留。':'';
+    modal.innerHTML=`<section class="r23-modal" role="dialog" aria-modal="true" aria-labelledby="r23-dialog-title" aria-describedby="r23-dialog-desc"><h3 id="r23-dialog-title">确认${target}</h3><p id="r23-dialog-desc">${desc}${input}已保存的版本不会被删除。</p><div class="inline-actions"><button type="button" data-action="cancel-dialog">取消</button>${saved?'<button type="button" data-action="save-then-proceed">保存后继续</button>':''}<button type="button" class="primary" data-action="discard-proceed">放弃并继续</button></div></section>`;
   }
-  function proceedDialog(save){const d=data.dialog;if(!d)return;if(save)saveDraftForDialog();data.dialog=null;if(d.type==='new-workflow')newWorkflow();else restoreVersion(d.id);}
+    function proceedDialog(save){const d=data.dialog;if(!d)return;if(save)saveDraftForDialog();data.dialog=null;if(d.type==='new-workflow')newWorkflow();else restoreVersion(d.id);}
   function saveDraftForDialog(){if(!data.dirty)return;data.revision++;data.versions.unshift({id:data.revision,workflowId:data.workflowId,title:data.title,value:data.lastResult?.value??null,created:'本次预览',status:'模拟草稿'});data.dirty=false;}
-  function simulateScene(stage){cancelTimer();data.settingsOpen=false;data.newMenuOpen=false;data.historyOpen=false;data.dialog=null;data.scenarioOnly=true;data.pending=null;
+  function simulateScene(stage){if(switchBlocked())return;cancelTimer();data.settingsOpen=false;data.historyOpen=false;data.dialog=null;data.scenarioOnly=true;data.pending=null;
     if(stage==='empty') {data.stage='empty';data.connected=true;}
     else if(stage==='connected'){data.stage='connected';data.connected=true;}
     else if(stage==='disconnected'){data.stage='disconnected';data.connected=false;}
@@ -346,6 +355,7 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
     if(data.historyOpen)c.innerHTML=historyHtml();
     else if(!displayedMessages.length&&!['planning','approval','running','disconnected','result','failed','unknown','saved'].includes(data.stage))c.innerHTML=`<section class="message intro"><div class="hello-mark">✦</div><div class="hello-title">想让浏览器帮你做什么？</div><p class="muted">用一句话描述任务，按需授权，完成后核对结果。<br>本页仅模拟两轮姓名输入框任务。</p><p class="hint">${data.connected?'● AI 已就绪（仅模拟）':'○ AI 未连接'}</p>${data.dirty?'<div class="inline-actions" style="justify-content:center"><button type="button" data-action="save">保存未保存的工作流草稿</button></div>':''}</section>`;
     else c.innerHTML=displayedMessages.map(messageHtml).join('')+stageHtml();
+    if(data.actionWarning&&!data.historyOpen)c.insertAdjacentHTML('beforeend',`<div class="r23-warning" role="alert">${safe(data.actionWarning)}</div>`);
     if(data.historyOpen||nearBottom)c.scrollTop=c.scrollHeight;else c.scrollTop=oldScroll;
     $('title').textContent=data.title;
     const tag=$('tag'),hasSavedVersion=data.versions.some(v=>v.workflowId===data.workflowId);tag.hidden=!(data.dirty||hasSavedVersion);tag.textContent=data.dirty?'未保存':'已保存';
@@ -366,12 +376,16 @@ body[data-theme=dark] .device .title-actions .create-action{background:var(--sur
     const target=ev.target.closest('button');if(!target)return;
     if(target.dataset.scenario){simulateScene(target.dataset.scenario);return;}
     const action=target.dataset.action;
-    if(target.id==='history'){data.historyOpen=true;data.newMenuOpen=false;data.settingsOpen=false;render();return;}
+    if(target.id==='history'){if(switchBlocked())return;data.historyOpen=true;data.settingsOpen=false;data.actionWarning='';render();return;}
     if(target.id==='settings'){data.settingsOpen=!data.settingsOpen;data.newMenuOpen=false;render();if(data.settingsOpen)$('r23-provider').focus();else prompt.focus();return;}
     if(target===send&&busy()){stop();return;}
     if(!action)return;
     switch(action){
       case 'reset':reset();break;
+      case 'example-first':prompt.value=firstTask;prompt.focus();announce('第一轮指令已填入，按发送开始');break;
+      case 'example-second':prompt.value=secondTask;prompt.focus();announce('第二轮指令已填入，按发送开始');break;
+      case 'revoke-consent':data.consent=null;announce('已撤销模拟摘要授权，下轮需重新审批');break;
+      case 'change-document':if(switchBlocked())break;data.documentId='demo-form:'+String(Number(data.documentId.split(':')[1]||1)+1);data.consent=null;announce('已切换模拟文档，旧授权不再适用');render();break;
       case 'new-chat':newChat();break;
       case 'new-workflow':attemptNewWorkflow();break;
       case 'cancel-dialog':closeDialog();break;
