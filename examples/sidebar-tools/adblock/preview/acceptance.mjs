@@ -64,6 +64,7 @@ async function until(fn, label, ms=9000) {
 }
 const profile = mkdtempSync(join(tmpdir(), 'adblock-r2-chrome-'));
 let browser, socket;
+let browserLog='';
 const exceptions = [];
 const requests = [];
 let counter = 1;
@@ -74,18 +75,21 @@ try {
     '--headless=new','--disable-gpu','--disable-extensions','--no-first-run',
     '--no-default-browser-check','--remote-debugging-port='+port,
     '--user-data-dir='+join(profile,'profile'),
-    '--window-size=1000,950',
+    '--window-size=1000,950','--disable-dev-shm-usage',
     '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost'
   ];
-  if (platform() === 'linux' && process.getuid?.() === 0) flags.push('--no-sandbox');
+  if (platform() === 'linux') flags.push('--no-sandbox'); // GitHub's shared runners may restrict user namespaces.
   flags.push(pathToFileURL(join(preview,'index.html')).href);
-  browser = spawn(chromeExecutable(),flags,{stdio:'ignore'});
-  const target = await until(async () => {
+  browser = spawn(chromeExecutable(),flags,{stdio:['ignore','ignore','pipe']});
+  browser.stderr.on('data',part=>{browserLog=(browserLog+String(part)).slice(-6000);});
+  let target;
+  try { target = await until(async () => {
     if (browser.exitCode != null) throw Error('Chromium exited '+browser.exitCode);
     const res=await fetch('http://127.0.0.1:'+port+'/json/list');
     const tabs=await res.json();
     return tabs.find(t=>t.type==='page' && t.url.startsWith('file:'));
-  },'CDP real file:// page');
+  },'CDP real file:// page'); }
+  catch(e) {throw Error(e.message + '\nCHROME_DIAGNOSTICS: ' + browserLog);}
   socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((ok,bad)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',bad,{once:true});});
   socket.addEventListener('message',event=>{
