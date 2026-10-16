@@ -45,7 +45,7 @@ function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.ti
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
 function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请恢复模拟权限后刷新。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
 function descendants(tree,id){return model.descendantSignatures(tree,id).length}
-function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSelect,onToggle,onMenu,onEdit,onScrollClose,scrollRef,previewOpen}){
+function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSelect,onToggle,onMenu,onEdit,onScrollClose,scrollRef}){
  const [top,setTop]=useState(0),[height,setHeight]=useState(510);
  const rowHeight=42,virtual=rows.length>120;
  useLayoutEffect(()=>{const el=scrollRef.current;if(!el)return;const resize=()=>setHeight(el.clientHeight||510);resize();if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(resize);ro.observe(el);return()=>ro.disconnect()}},[scrollRef]);
@@ -88,7 +88,7 @@ function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSele
        onClick={event=>{event.stopPropagation();onMenu(node.id,event.currentTarget)}}><Icon name="more" size={17}/></button>
     </div>})}
   </div>}
-  {previewOpen&&<div className="bm-tree-preview-tail" aria-hidden="true"/>}
+  <div className="bm-tree-preview-tail" aria-hidden="true"/>
  </div>
 }
 function FolderPicker({tree,value,onChange,onClose,currentId}){
@@ -294,7 +294,7 @@ export default function App(){
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef} previewOpen={Boolean(previewNode)}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
   </div>
   {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
