@@ -68,3 +68,16 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   }));
   assert.match(status,/&lt;img onerror=evil\(\)&gt;/);
 });
+
+test('R33.3.2 developer target React indicator escapes site-supplied page titles',async t=>{
+  const vite=await createServer({configFile:false,root:process.cwd(),
+    appType:'custom',server:{middlewareMode:true},logLevel:'error',
+    optimizeDeps:{noDiscovery:true,entries:[]}});
+  t.after(()=>vite.close());
+  const {DeveloperTargetText}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const value=renderToStaticMarkup(React.createElement(DeveloperTargetText,{
+    value:'网页标题 <svg onload=alert(1)>',node:null,title:'bad',state:'available'
+  }));
+  assert.match(value,/&lt;svg onload=alert\(1\)&gt;/);
+  assert.doesNotMatch(value,/<svg\b/i);
+});

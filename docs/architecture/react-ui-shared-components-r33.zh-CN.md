@@ -110,3 +110,11 @@
 - `AGENTS.md` 和 `docs/api/page-ui-frameworks.zh-CN.md` 不重复贴整份方案，保留权限/编译/开发合同与真实能力边界。
 
 **任务优先级：可信 Side Panel 五 Tab 产品体验与组件化 > 原有自定义 UI 零退化 > 代码复用/安全/构建预算 > 用户 React 工具可选共享组件 > 独立完整页面专项优化。**
+
+
+## R33.3.2 实际迁移边界（2026-10-16）
+
+- 同一 `src/ui/react/main.tsx` root 已新增扩展空状态、计数、状态和卸载清理恢复 Portal。正式安装/启停/卸载/授权/Host 继续唯一由 `src/ui/extension-center.js` 及原服务执行；没有新的 React 安装服务。
+- 「开发」Tab **开始迁移**：`src/ui/react/tabs/develop.tsx` 只显示当前活动网页身份与可执行状态的可信指示器，由 `src/ui/script-editor.js` 提供快照模型；原 DOM 无 React 时保留完整行为。仍复用相同 React Root，不新建包或第二 Root。
+- 草稿/编译器/JS、JSX、Vue/Run/Stop/本地项目/权限与存储的所有权**未迁移**，不得称 Developer Tab 已全部 React 化。禁止 React 修改原编辑器的 input、textarea 或自动启动脚本。
+- 成功的源码模拟 Chromium CI 与 `dist` 包 CI 只能证明相应提交的部分门槛，不能代替已安装 Mac Chrome 的用户级功能验收。最新变动仍以 CI 实际状态为准。
