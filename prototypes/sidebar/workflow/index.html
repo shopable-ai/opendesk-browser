@@ -387,7 +387,9 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
   function configEdited(){
     $('r234-field-error')?.remove();for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-describedby');
     captureConfig();data.sourceReady[data.provider]=false;data.connected=false;
-    mockFeedback[data.provider]={kind:'idle',text:'配置已修改，等待离线格式检查；实际连接未知。'};
+    // Config revision changes the disclosure recipient/scope: never inherit the old consent.
+    data.shareApproved[data.provider]=false;data.consent=null;$('r23-share').checked=false;
+    mockFeedback[data.provider]={kind:'idle',text:'配置已修改，需重新检查字段并确认本来源数据范围；实际连接未知。'};
     $('r234-feedback').textContent=mockFeedback[data.provider].text;$('r234-feedback').dataset.kind='idle';$('r234-status').textContent='待检查';
     for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).removeAttribute('aria-invalid');
   }
@@ -635,7 +637,7 @@ body[data-theme=dark] .r234-feedback[data-kind=checked],body[data-theme=dark] .r
   $('r23-provider').addEventListener('change',ev=>{if(busy()||data.stage==='approval'){ev.target.value=data.provider;return;}
     captureConfig();data.provider=ev.target.value;data.connected=!!data.sourceReady[data.provider];data.consent=null;
     data.shareApproved={cloud_responses:false,custom_https:false};data.stage=data.connected?'connected':'disconnected';
-    render();$('r23-provider').focus();announce('已切换 AI 接收方；网页摘要许可不能继承');});
+    render();$('r234-body').scrollTop=0;$('r23-provider').focus();announce('已切换 AI 接收方；网页摘要许可不能继承');});
   $('r23-share').addEventListener('change',ev=>{if(!isNative())data.shareApproved[data.provider]=ev.target.checked;render();announce('已更新当前 AI 来源的数据使用模拟范围');});
   for(const id of ['r23-endpoint','r23-model','r23-api-key'])$(id).addEventListener('input',configEdited);
   $('r23-width').addEventListener('change',ev=>shell.style.setProperty('--r23-width',ev.target.value+'px'));
