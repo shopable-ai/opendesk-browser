@@ -38,7 +38,7 @@ node --test tests/integration/npm-project-closure.test.mjs
 
 ## 构建产物和证据
 
-复用 `scripts/build-program-project.mjs` 的 Webpack，不能加载用户自定义 Webpack 配置或增加另一构建器。产物包含 program.js、artifact.json、program.opendesk-draft.json；Controller 另有 program.opendesk-task.json。状态仍为 **BUILT_UNVERIFIED、installable:false**。
+复用 `scripts/build-program-project.mjs` 的 Webpack，不能加载用户自定义 Webpack 配置或增加另一构建器。产物包含 program.js、artifact.json、program.opendesk-draft.json；Controller 配置一个精确 HTTP(S) origin 时另有 `program.opendesk-task.json`（Task v1 Candidate）；全站本地开发声明 `siteOrigins: ["<all_urls>"]` 仅输出固定源码与草稿，安装时仍需审核具体网站。状态仍为 **BUILT_UNVERIFIED、installable:false**。
 
 artifact.json 的 npmPackages 表示导入声明，npmDependencies 表示锁定来源/版本，npmBundledModules 和 authoring.webpackModules 表示 Webpack 模块记录；npmLockSha256 与 sourceHash 分别绑定锁文件和最终执行字节。记录不等于全部 API 在树摇后仍存在，必须测试真实调用结果。源码快照不包含 node_modules，也不是浏览器将重新编译的源码。
 

@@ -10,7 +10,7 @@
     "runtimeKind": "controller",
     "sourceFormat": "esm",
     "entry": "src/main.js",
-    "siteOrigins": ["http://127.0.0.1:43111"],
+    "siteOrigins": ["<all_urls>"],
     "permissions": ["page.automation"],
     "paramsSchema": {
       "type": "object", "properties": {}, "required": [], "additionalProperties": false

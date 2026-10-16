@@ -36,8 +36,9 @@ const makeSource=async(kind='controller')=>{
     inputHash:'c'.repeat(64),sourceBytes:new TextEncoder().encode(sourceUtf8).length,
     siteOrigins:['https://sample.example']};
 };
-test('Controller packages retain confirmed bytes and reuse Task v1 verification/installation',async()=>{
+for(const siteScope of ['exact','all-sites'])test(`Controller packages retain confirmed bytes and reuse Task v1 verification/installation (${siteScope})`,async()=>{
   const source=await makeSource();const calls=[],catalog={catalog:[],installed:[]};
+  if(siteScope==='all-sites')source.siteOrigins=['<all_urls>'];
   let manifest;
   const client={request:async(method,payload)=>{
     calls.push(method);
@@ -74,6 +75,7 @@ test('Controller packages retain confirmed bytes and reuse Task v1 verification/
   assert.equal(result.version,'1.0.0');
   assert.equal(manifest.program.sourceHash,source.sourceHash);
   assert.equal(manifest.source,'local-project');
+  assert.deepEqual(manifest.siteOrigins,['https://sample.example'],'local all-sites scope never expands the installed Task');
   assert.ok(calls.indexOf('verifyTaskCandidate')<calls.indexOf('installTask'));
   assert.equal(calls.includes('run.start'),false,'installation never dispatches another Controller run');
 });

@@ -444,7 +444,7 @@ test('preparation-only same-epoch updates preserve pending resolve; catalog chan
     else{assert.equal(f.starts.length,0,changed+' must not dispatch stale resolve');assert.match(f.find('script-status').textContent,/E_DEV_CONFLICT/);}
   }
 });
-test('local project mode preserves manual draft and params while running fresh bytes through the same Host',async t=>{
+for(const siteScope of ['exact','all-sites'])test(`local project mode preserves manual draft and params while running fresh bytes through the same Host (${siteScope})`,async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const manual=f.find('script-source').value;f.find('script-params').value='invalid manual parameter JSON';f.find('local-project-params').value='{}';
   const sourceUtf8='async function main(){return {local:3};}',sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
@@ -452,16 +452,19 @@ test('local project mode preserves manual draft and params while running fresh b
   f.client.subscribeNativeAgent=()=>()=>{};f.client.replyNativeAgent=()=>{};
   f.client.requestLocalProject=async(method,params)=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
     method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId:'local-a'}]}:
-    {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'controller',siteOrigins:['https://a.example'],paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}};
+    {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'controller',siteOrigins:[siteScope==='all-sites'?'<all_urls>':'https://a.example'],paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}};
   const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
   f.editor.connectLocalProjects(adapter);await tick();
   f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
   f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');
   assert.equal(f.find('script-save').disabled,true);assert.equal(f.find('manual-source-editor').hidden,true);
   assert.throws(()=>f.editor.importDraft('return 99;'),{code:'E_DEV_MODE'});
+  assert.equal(f.starts.length,0,'project selection and preparation never execute source');
   for(let repeat=0;repeat<20;repeat++){
+    if(siteScope==='all-sites'&&repeat===1){f.switchTab();await tick();}
     await f.click('script-run');for(let n=0;n<100&&f.executions.length<=repeat&&f.find('script-status').dataset.state!=='error';n++)await new Promise(resolve=>setTimeout(resolve,5));
     assert.equal(f.starts.length,repeat+1,f.find('script-status').textContent);assert.equal(f.executions[repeat].source,sourceUtf8);
+    if(siteScope==='all-sites'&&repeat>=1)assert.equal(f.starts[repeat].target.expectedUrl,'https://b.example/');
     await f.finish({local:3});
   }
   assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);assert.ok(f.permissionChecks.length>=20);

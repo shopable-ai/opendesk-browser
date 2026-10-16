@@ -109,6 +109,8 @@ export async function readSummary(page) {
 
 Controller siteOrigins 恰好一个，permissions 为 `["page.automation"]`；paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，在零参数 `main()` 中直接读取 `params.value`。Sidebar 本地参数与手工草稿参数分开保存。
 
+本地 Controller 可显式声明 `siteOrigins: ["<all_urls>"]`，在所有可运行的 HTTP/HTTPS 网页开发运行，仍须 Chrome 网站许可。正式安装 Task 只绑定审核时的具体网站；全站离线构建仅输出固定源码与草稿，不生成通配 Task 安装包。
+
 Page 使用 pageRules 替代 Controller 网站/参数字段。下列是 [local-page-ui/package.json](../../examples/programs/local-page-ui/package.json) 的 opendesk 部分，外层 name/version/private/type/description 仍必需：
 
 ```json

@@ -9,6 +9,7 @@ import {transformSync} from 'esbuild';
 import {validatePageProgramRules} from '../src/scripting/user-scripts/page-program-contract.js';
 import {parseUserScriptDependencies} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
+import {validControllerProjectOrigins} from '../src/platform/local-project-site-scope.js';
 import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
 import {remoteURL} from './remote-esm-modules.mjs';
 import {validateRemoteImports} from '../src/scripting/user-scripts/remote-esm-contract.js';
@@ -137,14 +138,8 @@ function metadata(pkg,projectLabel){
       Array.isArray(p.permissions)&&p.permissions.length===1&&p.permissions[0]==='page.automation',
       'E_PROJECT_PERMISSION','Controller projects require exactly page.automation permission',
       {...details,location:'package.json#opendesk.permissions'});
-    const origin=p.siteOrigins[0];
-    let parsed;
-    try{parsed=new URL(origin);}
-    catch{fail('E_PROJECT_PERMISSION','Controller site origin must be a URL',
-      {...details,location:'package.json#opendesk.siteOrigins[0]'});}
-    ensure(['http:','https:'].includes(parsed.protocol)&&parsed.origin===origin&&
-      parsed.href===origin+'/'&&!parsed.username&&!parsed.password,
-      'E_PROJECT_PERMISSION','Controller site origin must be an exact HTTP(S) origin',
+    ensure(validControllerProjectOrigins(p.siteOrigins),
+      'E_PROJECT_PERMISSION','Controller site origin must be one exact HTTP(S) origin or <all_urls> for local development',
       {...details,location:'package.json#opendesk.siteOrigins[0]'});
     checkParamsSchema(p.paramsSchema);
   }

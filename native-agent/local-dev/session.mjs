@@ -3,6 +3,7 @@ import {requestAgent} from '../cli.mjs';
 import {MAX_BYTES,requestShape} from '../wire.mjs';
 import {localSourceIdentity} from '../local-project-source-contract.mjs';
 import {validateTaskParams} from '../../src/platform/tasks/contract.js';
+import {localProjectAllowsOrigin} from '../../src/platform/local-project-site-scope.js';
 import {decodeValue,encodeValue,VALUE_PROTOCOL} from '../../src/platform/page-port/codec.js';
 import {canonical} from '../../src/platform/protocol.js';
 import {LocalDevResolver} from './resolver.mjs';
@@ -69,7 +70,7 @@ export class LocalDevSession{
       const resolved=await this.resolve(bindingId);
       this.assertOpen();
       const page=resolved.runtimeKind==='page-userscript';
-      if((!page||resolved.siteOrigins.length)&&!resolved.siteOrigins.includes(selected.target.origin))throw devError('E_DEV_ORIGIN','Current target does not match the project siteOrigins');
+      if(!localProjectAllowsOrigin(resolved,selected.target.origin))throw devError('E_DEV_ORIGIN','Current target does not match the project siteOrigins; use ["<all_urls>"] for local development on all HTTP(S) sites');
       if(page&&(Object.keys(params).length||deadlineMs!==30000))throw devError('E_SCHEMA','Page preview has no Controller params or cancellation deadline');
       if(resolved.paramsSchema)validateTaskParams(resolved.paramsSchema,params);
       const method=page?'page.preview':'run.start',common={registrationId:selected.registrationId,sourceHash:resolved.sourceHash,sourceBytes:resolved.sourceBytes,target:selected.target};

@@ -10,7 +10,9 @@
 opendesk browser dev "$PWD/examples/programs/local-controller"
 ```
 
-网页授权范围：`http://127.0.0.1:43111`。本地测试页统一用 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，打开 `http://127.0.0.1:43111/demo-form.html`；若端口已被其他任务占用，先核对服务，不关闭对方进程。HTTPS-only 项目日常打开其原授权网站，本轮 localhost 验收只改测试副本，原规则保持不变。
+本地运行范围：`siteOrigins: ["<all_urls>"]`，支持所有可运行的 HTTP/HTTPS 网页，仍须通过当前网站的 Chrome 权限检查；不包含浏览器内部页、扩展页及其他受限页面。需要限制到单一网站时，可改为精确 origin，例如 `["https://example.com"]`。本地测试页统一用 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，打开 `http://127.0.0.1:43111/demo-form.html`；若端口已被其他任务占用，先核对服务，不关闭对方进程。
+
+本地项目与直接编辑使用同一运行流程：先准备所选入口及多文件依赖，再明确点击「运行本地项目」。打开文件仅用于编辑，保存和准备不执行网页操作。正式安装任务仍审阅并绑定本次验证的具体网站，不自动获得所有网站权限。全站配置的 `build:program` 只输出固定源码和草稿；需要离线 Task 安装包时，先将项目范围收敛为精确 origin。
 
 在同窗口 Sidebar 选择已连接目录并明确运行；Page 还需 Chrome「允许用户脚本」。高级 [MCP 路径](../../../docs/api/mcp-local-development.zh-CN.md) 使用 `status/attach` 返回的真实 `bindingId`，`run` 使用新的有意执行 `requestId`，以实际返回的 `previewId` 或 `runId` 查询 `result`。Page 不传 Controller params/deadline；Controller 搜索示例参数为 `{"keyword":"OpenDesk"}`。
 
@@ -31,7 +33,7 @@ node --test tests/environment/sidebar-project-demo.test.mjs tests/environment/pr
 ## 原有使用方式与冻结交付
 > R10.1 当前中文使用入口：[快速入门](../../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。 单文件例子 [title.js](../single-file/title.js) 的 exact-path 授权、参数及再次运行见[项目格式](../../../docs/api/local-projects.zh-CN.md#单文件)。
 
-入口 `src/main.js`，网页提取逻辑在 `src/extract.js`。项目沿用 `opendesk.project.v1`，只读取标准测试页，不点击或提交表单。
+入口 `src/main.js`，网页提取逻辑在 `src/extract.js`。项目沿用 `opendesk.project.v1`，读取当前获准网页的标题和首个 h1，不点击或提交表单。
 
 一次性连接方法见 [本地开发 MCP 指南](../../../docs/framework/local-development-r22.zh-CN.md)。在仓库根目录启动标准测试页：
 
@@ -57,6 +59,6 @@ export async function readSummary(page) {
 
 `requestId` 不是自动重试键。若入场 ACK 丢失，在同一个 MCP 会话调用 `opendesk.dev.result({admissionRequestId:原requestId})` 只读恢复原身份；它不重新解析当前源码。`NOT_FOUND` 或 `OUTCOME_UNKNOWN` 时先核对原运行与网页状态，不能换一个 ID 盲目重复可能有副作用的程序。MCP 重启后目录可重新绑定，旧运行归属不自动恢复。
 
-正式发布时才使用 `npm run build:program -- examples/programs/local-controller`；得到的 Task v1 包仍须经过 Candidate、验证、Available 和显式安装。源码目录的修改不会改变已经安装的任务。
+正式冻结时使用 `npm run build:program -- examples/programs/local-controller`。当前全站配置只得到固定源码和草稿；改为一个精确 HTTP(S) origin 后才生成 Task v1 包，仍须经过 Candidate、验证、Available 和显式安装。源码目录的修改不会改变已经安装的任务。
 
 真实 Chrome 回执与未验证边界见 [本轮工作记录](../../../docs/framework/workstreams/local-dev-r22-c036.json)。

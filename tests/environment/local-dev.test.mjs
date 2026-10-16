@@ -231,6 +231,41 @@ function sessionFixture(p,{unknown=false,hashMismatch=false}={}){
  };
  return {calls,session:new LocalDevSession({resolver:p.resolver,request})};
 }
+
+test('all-sites local Controller prepares multi-file source and runs on different HTTP(S) targets',async t=>{
+  const p=project(t);t.after(()=>p.resolver.close());
+  p.pkg.version='1.0.0-dev.1';
+  p.pkg.opendesk.siteOrigins=['<all_urls>'];p.put('package.json',JSON.stringify(p.pkg));
+  const source=await p.resolver.resolve(p.binding.bindingId);
+  assert.equal(await value(source.sourceUtf8).then(v=>v.value),1);
+  for(const origin of ['https://other.example','http://another.example:8080']){
+    const f=sessionFixture(p),request=f.session.request;
+    f.session.request=async(method,params,requestId)=>{
+      const reply=await request(method,params,requestId);
+      if(method==='target.current')Object.assign(reply.result.target,{origin,url:origin+'/form'});
+      return reply;
+    };
+    await f.session.run({bindingId:p.binding.bindingId,requestId:'all-sites-run'});
+    assert.equal(f.calls.filter(c=>c.method==='run.start').length,1);
+    assert.equal(f.calls.find(c=>c.method==='run.start').params.target.origin,origin);
+  }
+  const out=path.join(p.root,'output');
+  const built=await buildProgramProject(p.root,{outputDirectory:out});
+  assert.equal(built.candidateFile,undefined,'all-sites source requires a site-specific installation review');
+  assert.equal(fs.existsSync(path.join(out,'program.opendesk-task.json')),false);
+  assert.equal(fs.existsSync(path.join(out,'program.opendesk-draft.json')),true);
+});
+
+test('exact local Controller rejects another origin without dispatch',async t=>{
+  const p=project(t);t.after(()=>p.resolver.close());const f=sessionFixture(p),request=f.session.request;
+  f.session.request=async(method,params,requestId)=>{
+    const reply=await request(method,params,requestId);
+    if(method==='target.current')Object.assign(reply.result.target,{origin:'https://other.example',url:'https://other.example/'});
+    return reply;
+  };
+  await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'exact-other'}),{code:'E_DEV_ORIGIN'});
+  assert.equal(f.calls.some(c=>c.method==='run.start'),false);
+});
 test('lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying',async t=>{
  const p=project(t),f=sessionFixture(p),original=f.session.request;let admission;const recovery=[];
  f.session.request=async(method,params,requestId)=>{

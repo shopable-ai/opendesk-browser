@@ -347,7 +347,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
   ensure(project.runtimeKind==='page-userscript'||before.assets.length===0,
     'E_PROJECT_ASSET_ENV','R1 bundled assets are supported only in Page USER_SCRIPT projects',
     {project:projectLabel,phase:'build',location:'package.json#opendesk.assets'});
-  if(project.runtimeKind==='controller'){
+  if(project.runtimeKind==='controller'&&project.siteOrigins[0]!=='<all_urls>'){
     ensure(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(pkg.version),
       'E_PROJECT_VERSION','Controller Task v1 Candidate requires a stable SemVer version',
       {project:projectLabel,phase:'build',location:'package.json#version'});
@@ -471,11 +471,12 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       authoring:publicAuthoring(before,compiled.modules,mode,hash),
       ...(sourceMapFile?{sourceMapFile}:{}),
       ...(project.runtimeKind==='page-userscript'?{pageRules:project.pageRules}:
-        {siteOrigins:project.siteOrigins,permissions:project.permissions,candidateFile:'program.opendesk-task.json'}),
+        {siteOrigins:project.siteOrigins,permissions:project.permissions,
+          ...(project.siteOrigins[0]==='<all_urls>'?{}:{candidateFile:'program.opendesk-task.json'})}),
       note:'Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.'
     };
     let taskPackage=null;
-    if(project.runtimeKind==='controller'){
+    if(project.runtimeKind==='controller'&&project.siteOrigins[0]!=='<all_urls>'){
       const manifest={
         format:'opendesk.task.v1',
         taskId:project.id,

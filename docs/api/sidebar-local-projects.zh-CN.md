@@ -39,13 +39,54 @@ Controller 的「停止」走原 RunHost；确认终态及 `retirementState:"rel
 
 | 状态 | 操作与预期 |
 | --- | --- |
-| 未连接本地开发服务 | 先点击「连接本机 OpenDesk」，完成 Native 授权；再检查原 MCP Provider 与当前 Host，恢复后点「刷新」；不要启动第二个 provider |
+| 未连接本地开发服务 | 先检查 Native 配对，再核对实际使用的目录 CLI 或 MCP Provider 与当前 Host；区分首次授权和已授权连接丢失，恢复后点「刷新」，不要重复启动同目录 Provider |
 | 项目不可用 | 检查 exact path/attach/package，重新选择实际项目 |
 | 参数无效 | 输入符合 paramsSchema 的 JSON 对象，local-controller 用 `{}` |
 | 网站/文档已变 | 核对新网页范围和授权，只读查原执行，再决定新的有意运行 |
 | 清理失败/未知 | 保留 previewId 只读查状态；未知清理栅栏需关闭原标签页，在新文档重新开始 |
 
 重开 Sidebar、反复 Run/Stop 或换项目不能消除未知效果。[完整恢复规则](dependencies-and-errors.zh-CN.md#断连和未知结果)。真实控件：[tool.html](../../src/ui/tool.html)、[本地视图](../../src/ui/local-project.js)。
+
+## 故障复盘与防回归（2026-10-16）
+
+### 已证实的原因与证据边界
+
+这次排查经历了实现回归与现场连接问题，不能合并成一个“Provider 卡死”的结论：
+
+- **此前的实现回归**：把目录发现后的主操作改成「打开文件工作区」，`start()` 的目录分支绕开了 `startLocal()`；目录先出现、可运行程序稍后注册时，也缺少同来源的选择关联。纠正后恢复既有运行链，补上唯一同来源关联，以及异步准备结束后的槽位和 Host 复核。文件工作区仍只是编辑入口，不能替代项目运行。
+- **原 local-controller 的现场阻塞**：初始当前标签页是 `chrome-extension://…/native-agent/workspace.html`，不能作为 HTTP(S) 运行目标；当时原项目 Provider 已注册。切到标准 `demo-form.html` 后，「运行本地项目」可见可点，并真实执行了原项目。
+- **验证途中另一次连接丢失**：原 CLI 和 Native 进程退出后，Provider 离线；Native doctor 显示连接正常也不能证明项目 Provider 在线。核对配对和实际 attach 成功后，用原已安装 CLI 重新接入恢复。原终端后续 stdout/stderr 未取得，**进程退出原因仍未知**，没有证据归因为 CLI 版本不匹配或项目入口损坏。
+
+原项目已取得 v1、模块 v2、语法错误拒绝、Stop 和资源释放的局部真实 Chrome 证据；先前临时项目和 Node 测试只证明各自范围，不能代替原项目。完整同候选 Native、production、F3、ZIP 仍未验收。具体身份、失败日志和结果见[唯一工作记录](../framework/workstreams/developer-project-catalog-stability-20261016.md#原-local-controller-续修2026-10-16--01a143ac)。
+
+### 下次按同一项目逐段核对
+
+| 阶段 | 必须核对的事实 | 对应处理 |
+| --- | --- | --- |
+| 实际 CLI 与进程 | 可执行路径、版本、进程是否存活、完整后续 stdout/stderr | 不从两行接入输出推断挂死或注册成功；先保存日志，再核对安装实现与仓库相关文件，不默认重装 |
+| Native、目录与 Provider | Native 配对；目录 lease、`sourceId/workspaceId`；Provider 注册回执与 `providerEpoch` | 「Host 已确认目录身份」不等于「可运行源码 Provider 已注册」；只缺 Provider 时排查该连接，不重建权限系统 |
+| 发现与选择关联 | `projects.list` 的当前 `bindingId`、来源身份、UI 实际所选对象 | 同名目录不等于同来源；目录先到时，只能关联唯一且身份一致的当前程序，多入口或冲突不能猜选 |
+| 入口与源码准备 | 原 `package.json` 的明确入口、依赖、准备状态、`inputHash/sourceHash` 和具体错误 | 保留原项目运行方式；最新源码失败就显示原因，不能执行任意 JS、手工草稿、其他项目或上次成功缓存 |
+| 目标与运行条件 | 当前 HTTP(S) 网页及精确文档、网站权限、Host、运行槽位、停止/未知效果栅栏 | CLI 可能打开文件工作区，运行前回到目标网页；按实际原因处理权限或占用，不仅删除按钮的 `disabled` |
+| 实际派发与结果 | 主动点击后使用所选源码；Controller 的 `runId/resultId`、结果自身 `revision.sourceHash`、终态与 `retirementState`；Page 的预览与资源身份 | Controller 和 Page 分别走既有 `run.start` / `page.preview`；不以打开文件页、按钮可点或旧结果代替运行成功 |
+
+CLI 身份与连接的只读核对命令：
+
+```sh
+command -v opendesk-dev
+opendesk-dev --version
+opendesk-dev --doctor --json
+opendesk browser doctor
+```
+
+同时核对真实 Chrome 加载路径、扩展 ID、doctor 的 `local.extensionId`、Native `allowed_origins` 和开发服务连接。磁盘有新产物不代表当前 UI 或后台已加载该版本；分别记录已加载指纹。日常复用已有 `npm run dev` 和 `dist/development`，不另起构建覆盖 watcher，也不绕过安全更新栅栏。
+
+### 修改与验收时保留的约束
+
+- 底部保留「运行本地项目」及 `start → startLocal → resolve/assertReady/assertCaptured → run.start/page.preview`。文件打开只作辅助；准备完成后仍复核来源、版本、目标、权限和槽位。
+- 保存、选择与轮询只更新准备状态，不自动执行；相同轮询不重建选项或按钮，保留项目选择与手工草稿。断连重接后重新核对来源和 Provider 身份，不接管旧运行。
+- 必须用用户原项目在标准测试网页真实点击验证；修改同一模块后，下一次主动运行应对应新源码哈希，错误版本不得回退执行；再核对 Stop、释放及草稿/选择保留。
+- 先按[测试复用规则](../framework/testing-guide.md#什么时候重测)检查输入是否改变，再补受影响验证。保留失败和未知原因；组件、临时项目、原项目局部实测与完整候选验收分别记录。
 
 ## R23 自动准备
 

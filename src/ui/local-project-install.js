@@ -4,6 +4,7 @@ import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {preparePageCandidateDraft} from './page-candidate-source.js';
 import {createTaskPackage} from '../platform/tasks/contract.js';
+import {localProjectAllowsOrigin} from '../platform/local-project-site-scope.js';
 
 const SHA=/^[a-f0-9]{64}$/;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -39,7 +40,7 @@ function assertSource(source,binding,target){
     typeof source.sourceUtf8!=='string'||!source.sourceUtf8.trim()||
     !target||!['http:','https:'].includes(new URL(target.url).protocol))
     throw fail('E_DEV_IDENTITY','缺少确定的本地项目版本、绑定或允许的网站');
-  if(source.siteOrigins?.length&&!source.siteOrigins.includes(new URL(target.url).origin))
+  if(!localProjectAllowsOrigin(source,new URL(target.url).origin))
     throw fail('E_DEV_ORIGIN','此本地版本不允许在当前网页运行');
 }
 const taskRows=result=>({catalog:result?.catalog||[],installed:result?.installed||[]});

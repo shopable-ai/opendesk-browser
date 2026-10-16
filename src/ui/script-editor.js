@@ -20,6 +20,7 @@ import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../scripting/user-scripts/execution-s
 import {createBrowserPageComponentPreparer} from './page-component-preparer.js';
 import {createStaticESMPreparer} from './static-esm-preparer.js';
 import {createLocalProjectView} from './local-project.js';
+import {localProjectAllowsOrigin} from '../platform/local-project-site-scope.js';
 import {createLocalInstallUI} from './local-project-install-ui.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {formatControllerRunResult, runValueKind} from './run-result-presentation.js';
@@ -854,7 +855,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
-      if((!page||source.siteOrigins?.length)&&!source.siteOrigins?.includes(captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内'};
+      if(!localProjectAllowsOrigin(source,captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内；请检查项目 siteOrigins（所有网页使用 ["<all_urls>"]）'};
       if(!page&&source.paramsSchema)validateTaskParams(source.paramsSchema,params);
       const {status:ignored,...target}=captured;
       const claim=await localAdapter.handle({method:page?'page.preview':'run.start',requestId:crypto.randomUUID(),params:{
