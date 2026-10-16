@@ -178,3 +178,37 @@ docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 记载旧特�
 - **评分原则**：六维（视觉、AI 设置完整性、HTTPS 合理性、交互、安全、可访问性）均从本轮新证据独立判定；截图及 CI 证明行为正确，但无独立人类 UX/VoiceOver/ChatGPT 宿主验证时，不能宣称已经六项 ≥95。证据不足维度保留 \`NOT_SCORED\`。
 - **反方重点**：配置“模拟通过”是否误导成联网；是否仍有裁切/二次滚动；是否通过 \`reconnect\` 绕过配置；相同业务逻辑在 \`allow-scripts\` 无 \`allow-forms\` 的真实发送；Provider 切换是否继承摘要许可；是否有多余的权限文案。以上以行为测试和截图为准。
 
+## 十一、R23.4 最终来源级回归记录与六维质量门禁（2026-10-16）
+
+### 11.1 唯一来源和可复核 CI
+
+- 最终 UI Git Blob：`5274afa1f12ebff2347ad74e397adc4437c02704`；HTML SHA-256：`74a97b3d0ea2cdabd88324de498a2961c0f368121ed470d1c5cd0e198503e53f`。
+- 最终测试提交：[e0b08bfe3fa64655b291233456817fb811a278f1](https://github.com/shopable-ai/opendesk-browser/commit/e0b08bfe3fa64655b291233456817fb811a278f1)；其中 HTML 的最后修改提交为 `6834a8418dd82e9eeee81f8487caabcb0c98d06a`。仓库 HEAD 可能因其他 Agent 后续提交而继续变化；对来源使用 HTML Blob，不把任意后续 HEAD 当作新设计验收。
+- [GitHub Actions #38899034961](https://github.com/shopable-ai/opendesk-browser/actions/runs/38899034961) ：`exact-saved-html = success`、`native-browser-zoom = success`。Chrome for Testing 155.0.8059.84，从真实仓库 checkout 的 `file://` HTML 运行，20 组回归全部完成，控制台与 pageerror 均为 0，输出 19 张来源绑定截图。
+- 原生 UI 缩放使用 X11/Chrome 实际 Ctrl+Plus：devicePixelRatio 1→2、缩放倍率 2；360/420/520px 的设置项几何、键盘可触达以及截断检查通过；非 CSS transform/viewport 模拟。
+- `srcdoc`+`iframe sandbox="allow-scripts"`（不加 allow-forms）按真实按钮点击执行首轮/第二轮，DOM 值最终为「项目已启动」。平台 ChatGPT 本身仍标记 `CHATGPT_HOST_NOT_TESTED`（对话内单源完整 HTML 暂无法验证）；不以普通 Chromium PASS 冒充。
+- 修复源级 UX 路径：HTML 按钮 `click` 不依赖 native form submit；远端配置输入校验反馈确保滚动到可见区，错误字段就近显示说明；完整设置视图开启时，底层对话层 inert，避免键盘/辅助技术误入背后控件。
+
+GitHub Actions 原始证据：
+- [20 组 Chromium 与 19 张截图](https://github.com/shopable-ai/opendesk-browser/actions/runs/38899034961/artifacts/12045695884)
+- [Chrome 原生 200% 缩放记录与截图](https://github.com/shopable-ai/opendesk-browser/actions/runs/38899034961/artifacts/12045630936)
+
+### 11.2 六维逐项独立门禁（不冒充外部专家评分）
+
+| 维度 | 实证通过的范围 | 仍欠缺的证据 / 结论 |
+| --- | --- | --- |
+| 视觉布局与一致性 | 三宽、浅/深色会话、完整设置路由与截图、原生缩放 | 真实用户视觉评价、设置深色正式 CI 快照、不同字体视觉人工核查仍未独立评审；`NOT_SCORED` |
+| AI 设置完整性和易用性 | Native/Responses/custom 三来源直接可选，返回保留草稿、连接态明确区分模拟 | 真 Native 和真实 HTTPS 连接未涉及本轮；独立产品使用测试缺失；`NOT_SCORED` |
+| 自定义 HTTPS 配置 | Endpoint、Model、password API Key、Bearer/Chat Completions 边界、HTTPS 校验、错误相邻提示和结果可见 | 未做真实外部服务网络测试（原型严禁真实请求）；`NOT_SCORED` |
+| 自然语言对话与操作效率 | 首轮澄清一键填写、第二轮上下文和 DOM 读回；Stop/Enter/IME 合成，sandbox 无 allow-forms 的按钮链路 | ChatGPT 真宿主 UI 点击和真实 AI 自然语言能力没有通过；`NOT_SCORED` |
+| 安全边界与状态 | 只读、逐次确认、高风险仍拒绝、模拟站点撤销、来源切换撤销数据许可、结果未知只读查验 | 真实 Chrome permission、RunHost Authority 未变更/未验收；`NOT_SCORED` |
+| 可访问性与可维护性 | aria、密码按钮、输入焦点、底层 inert、三宽及 200% 缩放、单一 HTML | Mac 原生 VoiceOver/真实系统 IME、辅助技术全键盘独立复核缺失；`NOT_SCORED` |
+
+**质量声明**：上述是有实际自动化证据的`R23.4_SOURCE_BOUND_PREVIEW_PASS`，**不是**「六名独立专家均 ≥95 分」也不是用户已验收正式功能。六维证据缺口未闭合前整体 `95_PLUS_NOT_CERTIFIED`。原 R23.3.1 自报 95/100 的 AI 设置评分不得沿用。
+
+### 11.3 反方审计与剩余阻塞
+
+1. 对话内“可交互 HTML”需要 ChatGPT 宿主自身可证伪的真实点击；仅确认 Chromium `allow-scripts` 沙箱单源行为已通过，宿主继续 `NOT_TESTED`。
+2. “模拟配置通过”不得被误写成在线、真实模型可用或持有用户密钥；本预览只接受 `demo-...` 作为虚拟输入，真实 Provider 是独立产线，不在本轮范围。
+3. 原型视觉保留 10–12px 的辅助文字；即使没有技术溢出，也不能仅凭 CI 断言真实用户觉得排版达到 95 分，需要独立视觉评审/用户复核。
+4. 完整 HTML 只准作为设计候选；未经用户确认，禁止迁移正式 Side Panel，更不能调整正式权限、工作流 Runtime 或 SDK。
