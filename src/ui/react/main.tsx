@@ -25,6 +25,7 @@ export function mountExtensionList(doc){
     url:doc.getElementById('script-current-page-url')
   };
   const developerRunStatus=doc.getElementById('script-status');
+  const developerRunStatusInitialText=developerRunStatus?.textContent||'';
   const developerStatusMounted=Boolean(developerRunStatus);
   if(developerRunStatus?.dataset.opendeskReactOwner)
     throw new Error('E_REACT_DEVELOPER_STATUS_MOUNT');
@@ -72,9 +73,17 @@ export function mountExtensionList(doc){
   for(const [node,name] of [[cleanups,'extension-cleanups'],[empty,'extension-empty'],
     [count,'extension-count'],[status,'extension-status']])
     node.dataset.opendeskReactOwner=name;
-  if(developerStatusMounted)developerRunStatus.dataset.opendeskReactOwner='developer-run-status';
-  if(developerTargetMounted)for(const [name,node] of Object.entries(developer))
+  if(developerStatusMounted){
+    // React portals do not automatically clear pre-existing static text.
+    // Capture the original accessible loading message, then hand off the
+    // entire text child to React before the first synchronous root render.
+    developerRunStatus.replaceChildren();
+    developerRunStatus.dataset.opendeskReactOwner='developer-run-status';
+  }
+  if(developerTargetMounted)for(const [name,node] of Object.entries(developer)){
+    node.replaceChildren();
     node.dataset.opendeskReactOwner='developer-target-'+name;
+  }
   const root=createRoot(host);
   let disposed=false,menuKey=null,detailModel=null;
   let rowMenuHost=null,rowMenuItems=[];
@@ -84,7 +93,7 @@ export function mountExtensionList(doc){
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'};
   let developerRunStatusModel={state:developerRunStatus?.dataset.state||'loading',
-    text:developerRunStatus?.textContent||''};
+    text:developerRunStatusInitialText};
   let developerActionsActive=false,developerActionsModel=null;
   let developerFrameworkActive=false,developerFrameworkModel=null;
   let developerTargetModel={host:'正在识别…',hostTitle:'',status:'检查中',

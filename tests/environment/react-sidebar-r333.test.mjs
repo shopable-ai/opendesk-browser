@@ -58,6 +58,8 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(main,/renderDeveloperFramework\(next\)/);
   assert.match(main,/createPortal\(\s*<DeveloperRunStatus/);
   assert.match(main,/renderDeveloperStatus\(next\)/);
+  assert.match(main,/developerRunStatus\.replaceChildren\(\)/);
+  assert.match(main,/node\.replaceChildren\(\)/);
   assert.match(main,/renderFeedback\(next\)/);
   assert.match(center,/extensionList\.renderFeedback\(/);
   assert.match(center,/extensionList\.renderRecoveries\(/);
