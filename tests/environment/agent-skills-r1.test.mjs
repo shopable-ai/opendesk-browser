@@ -271,7 +271,7 @@ test('R1 independent authors have public contract paths and platform change exce
   assert.match(app,/普通第三方最短流程/);assert.match(api,/公开能力分级/);
   assert.match(page,/第三方独立 Page Program/);assert.match(page,/Installed/);
   assert.match(page,/E_XMIND_RUNTIME_UNAVAILABLE/);
-  for(const doc of [app,api,page,author,publisher])assert.match(doc,/无须|不需要|免读|不是第三方开发的前置依赖|只有平台任务/);
+  for(const doc of [app,api,page,author,publisher])assert.match(doc,/无须|不需要|免读|不是第三方开发的前置依赖|只有平台任务|不依赖|不能要求/);
   assert.match(runtime,/允许按职责修改/);assert.match(trusted,/第三方与第一方的边界/);
   assert.match(packer,/不改平台/);
   for(const path of ['AGENTS.md','docs/api/README.md','docs/api/page-userscript.zh-CN.md',
