@@ -283,6 +283,46 @@ try{
     topics:topicsA+topicsB,buttons:3});
   assert.equal(await page.evaluate(()=>typeof window.JSZip),'undefined');
   record('XMind_GLOBALS_ISOLATED_FROM_PAGE_MAIN','PASS');
+
+  // Packaging alternative to an oversized inline Program source: Chrome can
+  // register real, fixed files directly from the SAME extension package.
+  // These audited-but-unlicensed vendor files exist ONLY in this disposable
+  // test copy. This is not a production resource approval or broker install.
+  const fileBackedId='opendesk-r39-temporary-file-backed-xmind';
+  const autoSource=source+'\\n;main().catch(error => {document.documentElement.dataset.odmmAutoError=String(error?.code||error?.message||error);});';
+  await native(async({fileBackedId,worldId,js,autoSource})=>{
+    await chrome.userScripts.register([{
+      id:fileBackedId,matches:['https://chatgpt.com/*'],excludeMatches:[],
+      runAt:'document_idle',allFrames:false,world:'USER_SCRIPT',worldId,
+      js:[...js,{code:autoSource}]
+    }]);
+    const rows=await chrome.userScripts.getScripts({ids:[fileBackedId]});
+    if(rows.length!==1||rows[0].world!=='USER_SCRIPT'||rows[0].worldId!==worldId||
+      rows[0].js?.length!==js.length+1)
+      throw Error('E_FILE_BACKED_USER_SCRIPT_NOT_REGISTERED');
+  },{fileBackedId,worldId,js,autoSource});
+  record('FOUR_FIXED_VENDOR_FILES_REGISTERED_WITH_COMPILED_PROGRAM','PASS',{
+    files:js.map(row=>row.file),temporaryExtension:true});
+  const autoPage=await context.newPage();
+  await autoPage.goto(fixtureURL,{waitUntil:'domcontentloaded'});
+  await autoPage.locator('[data-opendesk-chatgpt-mindmap="button"] button').first().waitFor({timeout:25000});
+  assert.equal(await autoPage.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
+  assert.equal(await autoPage.locator('html[data-odmm-auto-error]').count(),0);
+  await autoPage.locator('[data-opendesk-chatgpt-mindmap="button"] button').first().click();
+  await autoPage.locator('.topic').first().waitFor({timeout:30000});
+  assert((await autoPage.locator('.topic').count())>=3);
+  assert.equal(await autoPage.evaluate(()=>typeof window.JSZip),'undefined');
+  report.fileBackedAutostart='PASS_TEMPORARY_REGISTER_FILE_AUTO_XMIND';
+  record('FILE_BACKED_XMIND_AUTO_RUNS_ON_NEW_CHROME_DOCUMENT','PASS',{
+    temporaryExtension:true,brokerInstalled:false});
+  await native(fileBackedId=>chrome.userScripts.unregister({ids:[fileBackedId]}),fileBackedId);
+  assert.equal((await native(fileBackedId=>chrome.userScripts.getScripts({ids:[fileBackedId]}),fileBackedId)).length,0);
+  await autoPage.reload({waitUntil:'domcontentloaded'});
+  await autoPage.waitForTimeout(850);
+  assert.equal(await autoPage.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),0);
+  record('FILE_BACKED_NATIVE_UNREGISTER_BLOCKS_NEXT_DOCUMENT','PASS');
+  await autoPage.close();
+
   await native(markerId=>chrome.userScripts.unregister({ids:[markerId]}),markerId);
   assert.equal((await native(markerId=>chrome.userScripts.getScripts({ids:[markerId]}),markerId)).length,0);
   await page.reload({waitUntil:'domcontentloaded'});
