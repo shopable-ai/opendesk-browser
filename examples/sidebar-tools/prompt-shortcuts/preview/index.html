@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R1.16</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R2.4</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -309,6 +309,32 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .primary-content textarea.od-field{margin:0}
 .primary-content .meter[hidden],.primary-content .quota-help[hidden]{display:none!important}
 .host-settings{align-content:start}
+/* R2.4 offline website laboratory, preserving the R1.16 prompt-list visual system. */
+.demo-mode select{max-width:170px}
+.site-current{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:9px 10px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-bg)}
+.site-current-copy{display:grid;gap:2px;min-width:0}.site-current-copy strong{font-size:12px}.site-current-copy small{color:var(--od-sub);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
+.site-current button{flex:none}
+.site-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:47px;padding:6px 0;border-bottom:1px solid var(--od-line)}
+.site-entry:last-child{border-bottom:0}.site-entry-copy{min-width:0;display:grid;gap:1px}.site-entry-copy strong{font-size:12px}.site-entry-copy small,.site-entry-status{font-size:10px;color:var(--od-sub)}
+.site-entry .switch{min-width:40px}
+.site-form{display:grid;gap:12px;align-content:start}.site-form h3{font-size:13px;margin:0}.site-form .hint{margin:0;color:var(--od-sub);font-size:11px;line-height:1.6}
+.site-form label.field-label{display:grid;gap:5px;font-size:11px;font-weight:650}.site-form label.field-label .od-field{font-size:12px;font-weight:400}
+.site-form .selector-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:end}.site-form .selector-row button{min-width:54px}
+.site-form .site-actions{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap}.site-form .site-actions #siteCancel{margin-right:auto}
+.site-form-status{font-size:11px;line-height:1.5;border-radius:9px;padding:9px 10px;background:var(--od-negative-bg);color:var(--od-negative);overflow-wrap:anywhere}
+.site-form-status[data-kind="success"]{background:var(--od-bg);color:var(--od-positive)}
+.site-override-row{display:flex;align-items:center;gap:8px;font-size:11px}.site-override-row input{accent-color:var(--od-brand)}
+.site-pick-hint{border:1px solid var(--od-brand);color:var(--od-accent-ink);background:var(--od-bg);border-radius:9px;padding:10px;font-size:11px}
+.fixture-pick-hover{outline:3px solid var(--od-brand)!important;outline-offset:-3px;cursor:crosshair!important}
+.demo-editor-shell,rich-textarea{display:block;width:100%;min-height:70px}
+.demo-rich-editor{display:block;width:100%;min-height:68px;max-height:190px;overflow:auto;resize:vertical;padding:4px 1px;border:0;background:transparent;color:var(--stage-ink);font-size:13px;line-height:1.6;white-space:pre-wrap;outline:0}
+.demo-rich-editor:empty:before{content:attr(data-placeholder);color:var(--stage-sub);pointer-events:none}
+.web-match-status{display:block;font-size:10px;color:var(--od-positive);line-height:1.35;margin-top:2px;max-width:320px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.web-match-status[data-kind="warning"]{color:var(--od-negative)}
+@media(max-width:960px){.demo-controls{justify-content:flex-start}.web-match-status{max-width:180px}}
+
+.fixture-wrong-region{position:absolute;top:70px;right:12px;max-width:170px;padding:4px;background:var(--stage-bubble);z-index:5}
+
 </style>
 </head>
 <body>
@@ -332,7 +358,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>管理界面交互预览 R1.16 · 纯图标操作 · 极简创建 · 键盘与触控兼容</p></div></div>
+  <p>交互预览 R2.4 · 内置网站自动适配 · 自定义网站选取</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -341,9 +367,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   <button id="size440" class="od-button od-button--small" type="button">440px</button>
   <button id="themeButton" class="od-icon-button" type="button" aria-label="切换深色模式" title="切换深色模式" aria-pressed="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-moon"/></svg></button>
   <button id="resetButton" class="od-icon-button" type="button" aria-label="重置模拟数据" title="重置模拟数据"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-rotate-ccw"/></svg></button>
+<label class="demo-mode">模拟网站 <select id="sitePreviewSelect" aria-label="切换模拟网站"><option value="chatgpt">ChatGPT</option><option value="claude">Claude</option><option value="gemini">Gemini</option><option value="custom">自定义网站</option><option value="deepseek">DeepSeek · 规划</option><option value="perplexity">Perplexity · 规划</option><option value="grok">Grok · 规划</option><option value="cursor">Cursor Web · 规划</option></select></label>
+<label class="demo-mode">语言 <select id="languagePreview" aria-label="切换模拟界面语言"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option></select></label>
+<label class="demo-mode">路径 <select id="sitePreviewPath" aria-label="切换模拟网站路径"><option value="/work">/work</option><option value="/work/notes">/work/notes</option><option value="/other">/other</option></select></label>
+<button class="od-button od-button--small" id="spaRemount" type="button">模拟 SPA 重绘</button>
+
 <label class="demo-mode">使用场景 <select id="actionScenario" aria-label="快捷使用测试场景">
 <option value="normal">输入框可用</option><option value="no-editor">输入框不可用</option>
-<option value="unsupported">非 ChatGPT 网页</option><option value="clipboard-failure">插入和复制均失败</option>
+<option value="duplicate-editor">重复输入框</option><option value="wrong-region">跨区域输入框</option><option value="password">密码输入框</option><option value="readback-fail">插入读回失败</option><option value="unsupported">未知 Origin</option><option value="clipboard-failure">编辑器及复制不可用</option>
 </select></label>
   <details class="demo-scenarios" id="scenarioTools"><summary>保存异常测试 ▾</summary><div class="scenario-body"><p>仅预览实验台：选择下一次保存结果，不会请求真实存储。</p><div class="row">
    <button id="simulateWriteFail" type="button" class="od-button od-button--small">写入失败</button>
@@ -353,12 +384,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  </div>
 </header>
 <main class="canvas">
- <section class="web-mock" aria-label="ChatGPT 网页模拟视图">
+ <section class="web-mock" aria-label="多网站网页模拟视图">
   <div class="browser-chrome"><span class="window-dots" aria-hidden="true"><span></span><span></span><span></span></span><span class="browser-address">chatgpt.com · 模拟网页</span><span>ChatGPT 模拟</span></div>
   <div class="web-main">
-   <div class="web-top"><div><strong>ChatGPT</strong> <span class="web-sub">内容区域左侧按钮</span></div><button class="web-button" type="button" id="mockSelection">演示：选中文字 → 右键添加</button></div>
+   <div class="web-top"><div><strong>ChatGPT</strong> <span class="web-sub">内容区域左侧按钮</span><span id="webMatchStatus" class="web-match-status" role="status" aria-live="polite"></span></div><button class="web-button" type="button" id="mockSelection">演示：选中文字 → 右键添加</button></div>
    <div class="message-area" id="messageArea">
-    <nav class="page-rail" id="pageRail" aria-label="模拟 ChatGPT 左侧提示词快捷按钮"></nav>
+    <nav class="page-rail" id="pageRail" aria-label="模拟网页左侧提示词快捷按钮"></nav>
     <div id="webTooltip" class="web-tip" hidden><strong id="tipTitle"></strong><small>完整提示词 · 仅模拟</small><pre id="tipBody"></pre></div>
     <div class="mock-menu" id="mockContextMenu" hidden><p>Chrome 原生右键菜单 · 模拟</p><button id="mockMenuAdd" type="button">＋ 添加为提示词快捷按钮</button></div>
     <div class="message-inner"><h2>把常用提示词放在伸手可及的位置</h2>
@@ -368,7 +399,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
      <p>选中文字后，通过右键菜单快速添加为新快捷按钮。新建流程仍需要人工确认保存。</p>
     </div>
    </div>
-   <div class="web-compose"><textarea id="mockDraft" aria-label="模拟 ChatGPT 草稿输入框" placeholder="点击左侧按钮，将完整提示词插入此模拟草稿……"></textarea><div class="web-compose-foot"><span>仅插入文本，不自动发送</span><span>⌘ / Ctrl + Enter 不执行发送</span></div></div>
+   <div class="web-compose"><div id="mockComposer" data-composer-zone="true"><textarea id="mockDraft" aria-label="模拟 ChatGPT 草稿输入框" placeholder="点击左侧按钮，将完整提示词插入此模拟草稿……"></textarea></div><div class="web-compose-foot"><span>仅插入文本，不自动发送</span><span>⌘ / Ctrl + Enter 不执行发送</span></div></div>
   </div>
  </section>
  <aside class="sidepanel" id="sidepanel" aria-label="OpenDesk Browser 侧边栏模拟界面">
@@ -422,11 +453,23 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
     <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示悬浮按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
     <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>可选 · Chrome 原生右键菜单</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
     <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 内置 · 自定义网站可配置</small></span><button id="sitesButton" class="od-icon-button od-icon-button--quiet" type="button" title="展开适用网站" aria-label="展开适用网站" aria-expanded="false" aria-controls="siteDetails"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-chevron-right"/></svg></button></div>
-    <div id="siteDetails" class="host-site-details" hidden>
-      <div class="host-site-entry"><strong>ChatGPT · chatgpt.com</strong><span>现有内置适配</span></div>
-      <div class="host-site-entry"><strong>自定义网站</strong><span>正式工具已提供「配置当前网站」入口，按网站选择按钮容器和目标输入框。此预览不执行真实选取；其他 AI 网站仍须逐站验证。</span></div>
-    </div>
+    <div class="site-current"><div class="site-current-copy"><strong id="currentSiteStatus">ChatGPT · 模拟就绪</strong><small id="currentSiteOrigin">https://chatgpt.com/c/demo</small></div><button id="configureCurrentSite" class="od-button od-button--small" type="button">配置当前网站</button></div>
+<div id="siteDetails" class="host-site-details" hidden></div>
     <p class="host-setting-note">点击快捷按钮仅填写当前草稿，不会自动发送。右键菜单属于 Chrome 可选权限。</p>
+   </section>
+   <section id="siteView" class="site-form" hidden aria-label="配置当前网站">
+     <p class="hint">此处仅操作模拟网页 DOM。内置网站正常使用无需配置选择器；高级覆盖必须明确启用。</p>
+     <label class="field-label">当前 Origin<input id="siteOrigin" class="od-field" readonly></label>
+     <label class="field-label">适用路径前缀<input id="sitePath" class="od-field" autocomplete="off" spellcheck="false" value="/work"></label>
+     <div class="selector-row"><label class="field-label">按钮容器 CSS 选择器<input id="siteMount" class="od-field" autocomplete="off" spellcheck="false" placeholder="点击右侧选取"></label><button id="sitePickMount" class="od-button od-button--small" type="button">选取</button></div>
+     <div class="selector-row"><label class="field-label">目标编辑器 CSS 选择器<input id="siteEditor" class="od-field" autocomplete="off" spellcheck="false" placeholder="点击右侧选取"></label><button id="sitePickEditor" class="od-button od-button--small" type="button">选取</button></div>
+     <p class="site-pick-hint" id="sitePickHint" role="status" hidden></p>
+     <label class="site-override-row" id="siteOverrideRow"><input type="checkbox" id="siteOverride">覆盖此内置网站的默认适配</label>
+     <p id="siteOverrideHint" class="hint">覆盖仅限此 Origin 与路径；规则失效时安全停用，不回退到未知输入框。</p>
+     <label class="site-override-row"><input type="checkbox" id="siteRuleEnabled" checked>启用当前规则</label>
+     <button id="siteCheck" class="od-button" type="button">测试定位</button>
+     <p id="siteFormStatus" class="site-form-status" role="status" aria-live="polite" hidden></p>
+     <div class="site-actions"><button id="siteCancel" class="od-button" type="button">返回</button><button id="siteDelete" class="od-button od-button--danger" type="button" hidden>删除规则</button><button id="siteSave" class="od-button od-button--primary" type="button" disabled>保存规则</button></div>
    </section>
   </div>
   <footer class="panel-footer"><span>模拟管理视图</span><span id="revisionIndicator">Mock r1</span></footer>
@@ -790,6 +833,237 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   }
  });
  window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving)){event.preventDefault();event.returnValue='';}});
+/* R2.4: Offline site-adapter laboratory. This is intentionally not production site code. */
+ const SITE_DEMOS=Object.freeze({
+  chatgpt:{name:'ChatGPT',origin:'https://chatgpt.com',path:'/c/demo',builtIn:true,mount:['[data-demo-container="chatgpt"]'],editor:['[data-demo-editor="chatgpt"]']},
+  claude:{name:'Claude',origin:'https://claude.ai',path:'/new',builtIn:true,mount:['[data-demo-container="claude"]'],editor:['[data-demo-editor="claude"][contenteditable="true"]']},
+  gemini:{name:'Gemini',origin:'https://gemini.google.com',path:'/app',builtIn:true,mount:['[data-demo-container="gemini"]'],editor:['rich-textarea [data-demo-editor="gemini"][contenteditable="true"]']},
+  custom:{name:'自定义网站',origin:'https://example.com',path:'/work',builtIn:false},
+  deepseek:{name:'DeepSeek',origin:'https://chat.deepseek.com',path:'/',planned:true},
+  perplexity:{name:'Perplexity',origin:'https://www.perplexity.ai',path:'/',planned:true},
+  grok:{name:'Grok',origin:'https://grok.com',path:'/',planned:true},
+  cursor:{name:'Cursor Web',origin:'https://cursor.com',path:'/',planned:true}
+ });
+ const SITE_TEXT={zh:['把常用提示词放在伸手可及的位置','输入消息…','内容区域左侧按钮'],en:['Keep your prompts within reach','Type a message…','Shortcuts on the left'],ja:['よく使うプロンプトをすぐ使える場所に','メッセージを入力…','左側のショートカット']};
+ const SITE_STORAGE='opendesk.prompt-shortcuts.preview.sites.r24';
+ const SITE_ROOT=()=>document.querySelector('.web-main');
+ let currentSite='chatgpt',sitePath=SITE_DEMOS.chatgpt.path,previewRules=[],siteEnabled={},storageCorrupt=false;
+ let verifiedRule='',pickTarget='',hoverPick=null,composing=false,siteBusy=false,lastSiteClick=0,siteDrafts={};
+ function readSiteStorage(){try{const raw=localStorage.getItem(SITE_STORAGE);if(!raw)return;const parsed=JSON.parse(raw);
+   if(parsed?.schema!==1||!Array.isArray(parsed.rules)||parsed.rules.length>30||!parsed.enabled||typeof parsed.enabled!=='object')throw Error('schema');
+   if(!parsed.rules.every(r=>r&&typeof r.origin==='string'&&typeof r.path==='string'&&typeof r.mount==='string'&&typeof r.editor==='string'&&typeof r.enabled==='boolean'&&typeof r.override==='boolean'))throw Error('rule');
+   previewRules=parsed.rules;siteEnabled=parsed.enabled;
+  }catch{storageCorrupt=true;}}
+ function writeSiteStorage(){if(storageCorrupt)return false;try{localStorage.setItem(SITE_STORAGE,JSON.stringify({schema:1,rules:previewRules,enabled:siteEnabled}));return true;}catch{return false;}}
+ function siteInfo(){return SITE_DEMOS[currentSite];}
+ function effectiveOrigin(){return el('actionScenario').value==='unsupported'?'https://unknown.example':siteInfo().origin;}
+ function underPath(path,prefix){return prefix==='/'||path===prefix||path.startsWith(prefix.replace(/\/$/,'')+'/');}
+ function activeRule(){const origin=effectiveOrigin();return previewRules.filter(r=>r.origin===origin&&underPath(sitePath,r.path)).sort((a,b)=>b.path.length-a.path.length)[0]||null;}
+ function readEditor(e){return e instanceof HTMLTextAreaElement||e instanceof HTMLInputElement?e.value:e.innerText.replace(/\r\n/g,'\n');}
+ function visibleNode(e){return Boolean(e&&e.isConnected&&e.getClientRects().length&&!e.closest('[hidden]')&&getComputedStyle(e).visibility!=='hidden');}
+ function isEditor(e){return visibleNode(e)&&!e.disabled&&!e.readOnly&&e.closest('#mockComposer')&&(
+   e instanceof HTMLTextAreaElement||(e instanceof HTMLInputElement&&['text','search'].includes(e.type))||
+   (e.isContentEditable&&e.getAttribute('contenteditable')==='true'));}
+ function findUnique(selectors,what){const root=SITE_ROOT();let ambiguous=false;
+   for(const selector of selectors){try{const hits=[...root.querySelectorAll(selector)].filter(visibleNode);
+     if(hits.length>1){ambiguous=true;break;}if(hits.length===1)return {node:hits[0],selector};
+    }catch{return {error:what+'选择器无效'};}}
+   return {error:ambiguous?what+'匹配多个元素':what+'未找到唯一目标'};
+ }
+ function resolveSite(){
+  const site=siteInfo();if(el('actionScenario').value==='unsupported')return {error:'当前 Origin 不受支持'};
+  if(storageCorrupt)return {error:'保存的网站配置异常，已停止网页操作以保护原始数据'};
+  if(!state.toolEnabled||!state.settings.showBar)return {error:'网页按钮已停用'};
+  if(site.planned)return {error:'规划中 · 未提供经过验证的适配器'};
+  if(siteEnabled[currentSite]===false)return {error:'当前网站已关闭'};
+  const rule=activeRule();let selectors;
+  if(rule&&(rule.override||!site.builtIn)){
+   if(!rule.enabled)return {error:'当前网站规则已停用'};
+   selectors={mount:[rule.mount],editor:[rule.editor]};
+  }else if(site.builtIn)selectors=site;
+  else return {error:'尚未配置当前网站'};
+  const mount=findUnique(selectors.mount,'按钮容器');if(mount.error)return {error:mount.error};
+  const editor=findUnique(selectors.editor,'目标输入框');if(editor.error)return {error:editor.error};
+  if(!isEditor(editor.node))return {error:'目标不是可见、可编辑的安全输入框'};
+  if(!mount.node.closest('#messageArea')||mount.node.closest('.web-main')!==editor.node.closest('.web-main'))return {error:'容器与输入框不属于同一主内容区域'};
+  return {mount:mount.node,editor:editor.node,rule:rule&&selectors.mount[0]===rule.mount?'自定义覆盖':'内置模拟',selector:editor.selector};
+ }
+ function showSiteStatus(result){const status=el('webMatchStatus');if(!status)return;
+   const site=siteInfo(),ok=Boolean(result.editor);status.textContent=site.planned?'规划中 · 未验证':ok?'模拟 DOM 匹配成功 · '+result.rule:result.error;
+   status.dataset.kind=ok?'success':'warning';
+   el('currentSiteStatus').textContent=site.name+' · '+(ok?'模拟就绪':result.error);
+   el('currentSiteOrigin').textContent=effectiveOrigin()+sitePath;
+ }
+ const renderRailOriginal=renderRail;
+ renderRail=function(){const result=resolveSite();renderRailOriginal();const rail=el('pageRail');rail.hidden=rail.hidden||!result.editor;if(rail.hidden)rail.replaceChildren();showSiteStatus(result);};
+ function saveCurrentDraft(){const field=SITE_ROOT()?.querySelector('[data-demo-editor="'+currentSite+'"]')||el('mockDraft');
+   if(field&&visibleNode(field))siteDrafts[currentSite]=readEditor(field);}
+ function renderSiteFixture({preserve=true}={}){
+   if(preserve)saveCurrentDraft();const site=siteInfo(),mode=el('actionScenario').value,lang=el('languagePreview').value;
+   const t=SITE_TEXT[lang],composer=el('mockComposer'),textarea=el('mockDraft');
+   composer.querySelectorAll('[data-created-fixture]').forEach(e=>e.remove());
+   document.querySelectorAll('.web-top [data-created-fixture]').forEach(e=>e.remove());
+   textarea.hidden=currentSite!=='chatgpt';textarea.disabled=mode==='no-editor'||mode==='clipboard-failure'||mode==='unsupported';
+   el('messageArea').dataset.demoContainer=currentSite;
+   el('sitePreviewPath').disabled=currentSite!=='custom';if(currentSite==='custom')el('sitePreviewPath').value=sitePath;
+   document.querySelector('.web-top strong').textContent=site.name;
+   document.querySelector('.web-sub').textContent=t[2];
+   document.querySelector('.browser-address').textContent=new URL(effectiveOrigin()).host+sitePath+' · 模拟网页';
+   document.querySelector('.message-inner h2').textContent=t[0];
+   textarea.placeholder=t[1];textarea.setAttribute('aria-label',t[1]);
+   let editor=textarea;
+   if(currentSite!=='chatgpt'){
+     const shell=document.createElement(currentSite==='gemini'?'rich-textarea':'div');shell.dataset.createdFixture='';shell.className='demo-editor-shell';
+     if(currentSite==='custom'){
+       editor=document.createElement('textarea');editor.className='demo-rich-editor';
+     }else{
+       editor=document.createElement('div');editor.className='demo-rich-editor';editor.contentEditable='true';editor.setAttribute('role','textbox');
+     }
+     editor.dataset.demoEditor=currentSite;editor.setAttribute('aria-label',t[1]);editor.setAttribute('data-placeholder',t[1]);
+     shell.append(editor);composer.append(shell);
+   }
+   if(currentSite==='chatgpt')textarea.dataset.demoEditor='chatgpt';
+   if(currentSite==='gemini'){
+     // Fixture only. A real <chat-window> tag is still an unverified Gemini candidate.
+     el('messageArea').dataset.geminiCandidate='chat-window';
+   }else delete el('messageArea').dataset.geminiCandidate;
+   const draft=siteDrafts[currentSite]||'';
+   if(editor instanceof HTMLTextAreaElement)editor.value=draft;else editor.textContent=draft;
+   if(mode==='duplicate-editor'){ 
+     const dup=editor.cloneNode(true);dup.dataset.createdFixture='';dup.id='';dup.removeAttribute('hidden');dup.classList.add('fixture-duplicate');
+     if(editor instanceof HTMLTextAreaElement)dup.value=draft;composer.append(dup);
+   }
+   if(mode==='wrong-region'){
+     const zone=document.createElement('div');zone.dataset.createdFixture='';zone.className='fixture-wrong-region';
+     if(editor===textarea){textarea.hidden=true;const wrong=editor.cloneNode(true);wrong.id='';wrong.hidden=false;zone.append(wrong);}
+     else zone.append(editor);
+     document.querySelector('.web-top').append(zone);
+   }
+   if(mode==='password'){
+     if(editor!==textarea)editor.hidden=true;else textarea.hidden=true;
+     const pw=document.createElement('input');pw.type='password';pw.dataset.demoEditor=currentSite;pw.dataset.createdFixture='';pw.className='od-field';composer.append(pw);
+   }
+   if(mode==='no-editor')editor.hidden=true;
+   el('mockContextMenu').hidden=true;renderRail();renderSiteDetails();
+ }
+ function previewStatus(msg,ok=false){const n=el('siteFormStatus');n.textContent=msg;n.dataset.kind=ok?'success':'error';n.hidden=!msg;}
+ function setConfigValues(rule){el('siteOrigin').value=effectiveOrigin();el('sitePath').value=rule?.path||sitePath;
+   el('siteMount').value=rule?.mount||'';el('siteEditor').value=rule?.editor||'';
+   el('siteRuleEnabled').checked=rule?.enabled!==false;el('siteOverride').checked=Boolean(rule?.override);
+   el('siteOverrideRow').hidden=!siteInfo().builtIn;el('siteOverrideHint').hidden=!siteInfo().builtIn;
+   el('siteDelete').hidden=!rule;verifiedRule='';el('siteSave').disabled=true;previewStatus('');}
+ function configSnapshot(){return JSON.stringify([effectiveOrigin(),el('sitePath').value.trim(),el('siteMount').value.trim(),el('siteEditor').value.trim(),el('siteRuleEnabled').checked,el('siteOverride').checked]);}
+ function normalizeRule(){const path=el('sitePath').value.trim(),mount=el('siteMount').value.trim(),editor=el('siteEditor').value.trim();
+   if(!path.startsWith('/')||path.length>120||/[?#]/.test(path)||!underPath(sitePath,path))throw Error('路径必须覆盖当前模拟页面，且只能是无参数的绝对路径');
+   if(!mount||!editor||mount.length>240||editor.length>240)throw Error('请选择按钮容器和输入框（每项最长 240 字符）');
+   if(siteInfo().builtIn&&!el('siteOverride').checked)throw Error('内置网站需明确勾选覆盖，普通使用不需要配置选择器');
+   return {origin:effectiveOrigin(),path,mount,editor,enabled:el('siteRuleEnabled').checked,override:siteInfo().builtIn};
+ }
+ function validateRule(){try{if(storageCorrupt)throw Error('历史配置异常，原始数据已保护，不能覆盖写入');
+   const r=normalizeRule();let m=findUnique([r.mount],'按钮容器'),e=findUnique([r.editor],'目标输入框');
+   if(m.error||e.error)throw Error(m.error||e.error);
+   if(!isEditor(e.node)||!m.node.closest('#messageArea')||m.node.closest('.web-main')!==e.node.closest('.web-main'))throw Error('容器和可编辑框不属于同一安全主区域');
+   verifiedRule=configSnapshot();el('siteSave').disabled=false;previewStatus('唯一匹配 · 区域检查通过 · 可保存（仅模拟 DOM）',true);
+  }catch(err){verifiedRule='';el('siteSave').disabled=true;previewStatus(err.message);}}
+ function renderSiteDetails(){
+   const parent=el('siteDetails');parent.replaceChildren();
+   for(const [id,site] of Object.entries(SITE_DEMOS)){
+     const row=create('div','site-entry');const body=create('div','site-entry-copy');body.append(create('strong','',site.name));
+     body.append(create('small','',site.planned?'规划中 · 未验证':site.builtIn?'内置适配 · 真实 DOM 待验':'用户规则'));
+     row.append(body);
+     if(site.builtIn){const label=create('label','switch');label.title=site.name+' 网页快捷按钮';const input=document.createElement('input');
+       input.type='checkbox';input.setAttribute('role','switch');input.setAttribute('aria-label',site.name+' 网页快捷按钮');input.checked=siteEnabled[id]!==false;
+       input.disabled=!state.toolEnabled||storageCorrupt;input.addEventListener('change',()=>{const old=siteEnabled[id];siteEnabled[id]=input.checked;
+         if(!writeSiteStorage()){siteEnabled[id]=old;input.checked=!input.checked;notice('无法保存网站开关；已保留原设置','error');return;}
+         renderRail();notice(site.name+(input.checked?' 已开启':' 已停用')+'（预览）');});label.append(input,create('span','switch-track'));row.append(label);
+     }else row.append(create('span','site-entry-status',site.planned?'待验证':previewRules.some(r=>r.origin===site.origin)?'已保存规则':'未配置'));
+     parent.append(row);
+   }
+ }
+ function openSiteView(){if(currentView==='form'&&dirty){showFormError('请先处理未保存的提示词草稿');return;}
+   if(siteInfo().planned){notice('该网站仍在规划中，不能以假选择器宣布支持','error');return;}
+   const old=activeRule();setConfigValues(old);setView('site');el('siteMount').focus({preventScroll:true});}
+ const previousSetView=setView;
+ setView=function(next){if(next==='site'){
+    previousSetView('settings');el('settingsView').hidden=true;el('siteView').hidden=false;currentView='site';
+    el('hostToolTitle').textContent='配置当前网站';el('hostSettings').hidden=true;el('addButton').hidden=true;el('hostBack').title='返回网站设置';
+   }else{el('siteView').hidden=true;previousSetView(next);}};
+ function beginPick(target){if(currentView!=='site')return;pickTarget=target;el('sitePickHint').hidden=false;
+   el('sitePickHint').textContent=target==='mount'?'请点击左侧模拟网页的主要内容区域':'请点击左侧模拟网页的真实编辑器';previewStatus('');}
+ function clearPick(){pickTarget='';el('sitePickHint').hidden=true;if(hoverPick)hoverPick.classList.remove('fixture-pick-hover');hoverPick=null;}
+ const web=SITE_ROOT();
+ web.addEventListener('pointerover',e=>{if(!pickTarget)return;const target=e.target instanceof Element?e.target:null;
+   const match=pickTarget==='mount'?target?.closest('[data-demo-container]'):target?.closest('[data-demo-editor]');
+   if(hoverPick&&hoverPick!==match)hoverPick.classList.remove('fixture-pick-hover');hoverPick=match;
+   if(match)match.classList.add('fixture-pick-hover');});
+ web.addEventListener('click',e=>{if(!pickTarget)return;const target=e.target instanceof Element?e.target:null;
+   const match=pickTarget==='mount'?target?.closest('[data-demo-container]'):target?.closest('[data-demo-editor]');
+   if(!match){previewStatus('请点击高亮区域，而不是其他控件');e.preventDefault();e.stopPropagation();return;}
+   const selector=pickTarget==='mount'?'[data-demo-container="'+currentSite+'"]':match.id==="mockDraft"?'#mockDraft':'[data-demo-editor="'+currentSite+'"]';
+   el(pickTarget==='mount'?'siteMount':'siteEditor').value=selector;
+   clearPick();verifiedRule='';el('siteSave').disabled=true;previewStatus('已选择目标，请点击「测试定位」');e.preventDefault();e.stopPropagation();
+ },true);
+ el('configureCurrentSite').addEventListener('click',openSiteView);
+ el('siteCancel').addEventListener('click',()=>{clearPick();setView('settings');renderSiteDetails();});
+ el('hostBack').addEventListener('click',e=>{if(currentView==='site'){e.stopImmediatePropagation();clearPick();setView('settings');renderSiteDetails();}},true);
+ el('sitePickMount').addEventListener('click',()=>beginPick('mount'));
+ el('sitePickEditor').addEventListener('click',()=>beginPick('editor'));
+ el('siteCheck').addEventListener('click',validateRule);
+ for(const id of ['sitePath','siteMount','siteEditor','siteRuleEnabled','siteOverride'])for(const evt of ['input','change'])el(id).addEventListener(evt,()=>{
+   verifiedRule='';el('siteSave').disabled=true;previewStatus('选择器或作用范围已变更，请重新测试定位');});
+ document.addEventListener('keydown',e=>{if(pickTarget&&e.key==='Escape'){clearPick();previewStatus('已取消选择');e.preventDefault();e.stopImmediatePropagation();}},true);
+ el('siteSave').addEventListener('click',()=>{if(verifiedRule!==configSnapshot())return previewStatus('配置已改变，请重新测试定位');
+   try{const rule=normalizeRule(),existing=previewRules.findIndex(r=>r.origin===rule.origin&&r.path===rule.path);
+     const old=previewRules;previewRules=previewRules.slice();if(existing>=0)previewRules[existing]=rule;else previewRules.push(rule);
+     if(!writeSiteStorage()){previewRules=old;throw Error('浏览器本地存储不可写，旧规则保持不变');}
+     setView('settings');renderRail();renderSiteDetails();notice('规则已保存：'+rule.origin+rule.path+'（刷新后仍可恢复；仅 HTML 模拟）','success');
+   }catch(err){previewStatus(err.message);}});
+ el('siteDelete').addEventListener('click',()=>{const rule=activeRule();if(!rule)return;
+   const old=previewRules;previewRules=previewRules.filter(r=>r!==rule);
+   if(!writeSiteStorage()){previewRules=old;previewStatus('删除未保存成功，已恢复旧规则');return;}
+   setView('settings');renderRail();renderSiteDetails();notice('当前网站规则已删除（模拟）');});
+ el('sitePreviewSelect').addEventListener('change',e=>{saveCurrentDraft();currentSite=e.target.value;sitePath=siteInfo().path;
+   el('actionScenario').value='normal';clearPick();lastSiteClick=0;renderSiteFixture({preserve:false});notice('已切换到 '+siteInfo().name+' 模拟网站');});
+ el('languagePreview').addEventListener('change',()=>renderSiteFixture());
+ el('sitePreviewPath').addEventListener('change',e=>{saveCurrentDraft();sitePath=e.target.value;renderSiteFixture({preserve:false});});
+ el('spaRemount').addEventListener('click',()=>{renderSiteFixture();notice('模拟 SPA 已重新构造编辑器并重新定位，未重复挂载');});
+ el('actionScenario').addEventListener('change',()=>renderSiteFixture());
+ el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty)return;
+   previewRules=[];siteEnabled={};storageCorrupt=false;siteDrafts={};try{localStorage.removeItem(SITE_STORAGE);}catch{}
+   currentSite='chatgpt';sitePath=SITE_DEMOS.chatgpt.path;el('sitePreviewSelect').value='chatgpt';el('languagePreview').value='zh';
+   renderSiteFixture({preserve:false});});
+ document.addEventListener('compositionstart',e=>{if(e.target?.matches?.('[data-demo-editor],#mockDraft'))composing=true;},true);
+ document.addEventListener('compositionend',()=>{composing=false;},true);
+ usePrompt=async function(item){if(!item.enabled||!state.toolEnabled||!state.settings.showBar||siteBusy)return;
+   const found=resolveSite();if(!found.editor){notice('安全停止：'+found.error,'error');return;}
+   if(composing){notice('正在使用输入法组合文字，已暂停插入','error');return;}
+   if(Date.now()-lastSiteClick<450)return;lastSiteClick=Date.now();siteBusy=true;
+   const field=found.editor,before=readEditor(field);let expected=before;
+   try{if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement){
+      const start=Number.isInteger(field.selectionStart)?field.selectionStart:before.length;
+      const at=Math.min(Math.max(start,0),before.length);
+      const text=(at>0&&!before.slice(0,at).endsWith('\n')?'\n':'')+item.body+(before.slice(at)&&!before.slice(at).startsWith('\n')?'\n':'');
+      field.setRangeText(text,at,at,'end');expected=before.slice(0,at)+text+before.slice(at);
+     }else{
+      const text=(before&&!before.endsWith('\n')?'\n':'')+item.body;expected=before+text;
+      field.focus();const range=document.createRange();range.selectNodeContents(field);range.collapse(false);
+      const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
+      if(!document.execCommand('insertText',false,text))throw Error('富文本编辑器拒绝了插入操作');
+     }
+     field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:item.body}));
+     if(el('actionScenario').value==='readback-fail'){
+       if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement)field.value=before;else field.textContent=before;
+     }
+     if(readEditor(field)!==expected)throw Error('插入后的完整草稿无法读回确认');
+     siteDrafts[currentSite]=expected;field.focus();notice('已插入 '+siteInfo().name+' 模拟编辑器 · 原草稿保留 · 未发送','success');
+   }catch(err){try{if(readEditor(field)!==before){if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement)field.value=before;
+          else if(!document.execCommand('undo')||readEditor(field)!==before)field.textContent=before;}}catch{}
+     siteDrafts[currentSite]=before;notice('安全停止，已尽力恢复原草稿：'+err.message,'error');
+   }finally{siteBusy=false;}
+ };
+ readSiteStorage();
+ renderSiteFixture({preserve:false});
+
  setView('index');renderIndex();renderRail();
 })();
 </script>
