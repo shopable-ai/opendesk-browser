@@ -4,7 +4,7 @@ const {root,request,setState}=globalThis.OpenDeskTool;
 const E=id=>root.querySelector('#'+id),editor=E('editor-panel'),importer=E('import-panel'),confirm=E('confirm-panel');
 // The browser panel and local workspace intentionally have separate data owners.
 // Never substitute local cookies for Chrome reads or let a sandbox request grant access.
-let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null;
+let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null,importFileSequence=0;
 let mode='browser',targetOverride='',targetPending=false,liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
 let expandedCookieKey=null,importPreview=null;
 const liveSecrets=new Map();let observing=null,observeCursor='0',liveValueEdited=false,originalExpiryInput='';
@@ -147,6 +147,7 @@ function ask(message,label,callback){
   confirm.hidden=false;E('confirm-cancel').focus();
 }
 function clearImportPreview(){
+  importFileSequence++;
   importPreview=null;E('live-import-preview').hidden=true;
   E('live-import-preview').textContent='';E('live-import-confirm').hidden=true;
 }
@@ -478,7 +479,7 @@ function saveToList(list,row,previous=null){
   if(out.length>MAX_COOKIES)throw new Error('单一工作区最多 200 条 Cookie');
   return sortCookies(out);
 }
-async function refresh(){
+async function refresh({preserveStatus=false}={}){
   const id=++epoch,prior=data;
   shown.clear();liveSecrets.clear();observing=null;liveRows=[];liveState='idle';liveMessage='';setBusy(true);
   try{
@@ -502,7 +503,7 @@ async function refresh(){
       '本地数据以 '+host+' 为校验范围，不读取或修改 Chrome Cookie。':
       '请返回浏览器模式，先选择 HTTP(S) 网站地址，再进入离线文件工具。')+
       ' 关闭工具后临时数据不保留。';
-    status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
+    if(!preserveStatus)status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
   finally{if(id===epoch){
     setBusy(false);render();
@@ -873,13 +874,16 @@ async function prepareLiveImport(){
     if(!stillCurrent(id,target))return;
     if(typeof scope?.storeId!=='string'||!partition?.partitionKey?.topLevelSite)
       throw new Error('Store/Partition 无法确定');
+    const identities=new Set();
     rows=rows.map(row=>{
       if(row.storeId!==undefined&&row.storeId!==scope.storeId)throw new Error('Store 与授权不一致');
       if(row.partitionKey&&(row.partitionKey.topLevelSite!==partition.partitionKey.topLevelSite||
         Boolean(row.partitionKey.hasCrossSiteAncestor)!==
         Boolean(partition.partitionKey.hasCrossSiteAncestor)))
         throw new Error('Partition 与授权不一致');
-      const selected={...row,storeId:scope.storeId};nativeInput(selected);return selected;
+      const selected={...row,storeId:scope.storeId},identity=key(selected);
+      if(identities.has(identity))throw new Error('重复 Cookie 身份');
+      identities.add(identity);nativeInput(selected);return selected;
     });
     for(const row of rows){
       if(!stillCurrent(id,target))return;
@@ -915,14 +919,16 @@ function confirmLiveImport(){
     '、可能覆盖 '+plan.replaced+'。逐条真实确认，不自动重试 UNKNOWN。继续？',
     '确认导入真实浏览器',async()=>{
     if(!stillCurrent(plan.epoch,target)||importPreview!==plan)return;
-    let rows;
+    let rows;const identities=new Set();
     try{
       rows=parseImport(E('import-text').value,E('import-format').value).map(row=>{
         if(row.storeId!==undefined&&row.storeId!==plan.storeId)throw new Error('Store 变化');
         if(row.partitionKey&&(row.partitionKey.topLevelSite!==plan.partitionKey.topLevelSite||
           Boolean(row.partitionKey.hasCrossSiteAncestor)!==
           Boolean(plan.partitionKey.hasCrossSiteAncestor)))throw new Error('Partition 变化');
-        return {...row,storeId:plan.storeId};
+        const selected={...row,storeId:plan.storeId},identity=key(selected);
+        if(identities.has(identity))throw new Error('重复 Cookie 身份');
+        identities.add(identity);return selected;
       });
       if(rows.length!==plan.count)throw new Error('数量发生变化');
     }catch(error){clearImportPreview();status('导入计划已失效：请重新预览并检查 Cookie 格式。','error');return;}
@@ -1137,6 +1143,8 @@ E('live-new').addEventListener('click',()=>guardedInline(()=>openEditor()));
 E('editor-reveal-value').addEventListener('click',()=>{
   if(busy||pending||mode!=='browser'||editor.hidden)return;
   if(editing===null||liveValueEdited){
+    liveSecrets.delete(expandedCookieKey);
+    E('editor-revealed-value').textContent='';E('editor-revealed-value').hidden=true;
     typedValueRevealed=!typedValueRevealed;
     E('cookie-value').type=typedValueRevealed?'text':'password';
     E('editor-reveal-value').dataset.revealed=String(typedValueRevealed);
@@ -1286,16 +1294,18 @@ E('download').addEventListener('click',async()=>{
   finally{if(actionEpoch===epoch)setBusy(false);}
 });
 E('import-file').addEventListener('change',async()=>{
+  const sequence=++importFileSequence,bound=epoch;
   const file=E('import-file').files?.[0];if(!file)return;
   if(file.size>150000){status('文件超过 150 KB。','error');return;}
   try{
-    const bound=epoch,text=await file.text();
-    if(bound!==epoch)return;
+    const text=await file.text();
+    if(bound!==epoch||sequence!==importFileSequence||importer.hidden||E('import-file').files?.[0]!==file)return;
     E('import-text').value=text;
     // A chosen import format takes precedence; auto mode sniffs the contents.
     clearImportPreview();mark();status('已载入本地文件，尚未合并数据。');
   }
-  catch(error){status('读取文件失败：请检查文件权限和编码。','error');}
+  catch(error){if(bound===epoch&&sequence===importFileSequence&&!importer.hidden)
+    status('读取文件失败：请检查文件权限和编码。','error');}
 });
 E('import-apply').addEventListener('click',prepareImport);
 root.addEventListener('keydown',event=>{
@@ -1337,17 +1347,17 @@ root.addEventListener('opendesk-cookie-grants-changed',()=>{
   if(liveTarget&&!targetPending)void readBrowserMetadata();
 });
 root.addEventListener('opendesk-page-changed',()=>{
-  const switchSite=()=>{
+  const switchSite=(preserveStatus=false)=>{
     // Invalidate every in-flight native receipt before any new target is read.
     epoch++;data=null;liveRows=[];busy=false;dirty=false;liveState='idle';
     shown.clear();liveSecrets.clear();observing=null;
-    scrubEditors();cancelConfirmation();setBusy(false);render();void refresh();
+    scrubEditors();cancelConfirmation();setBusy(false);render();void refresh({preserveStatus});
   };
   if(busy){
     // A tab change during an outstanding Host mutation is NOT an ordinary
     // editable draft transition: the old write might already have committed.
     // Drop stale identity and secrets now; never replay the pending mutation.
-    switchSite();
+    switchSite(true);
     status('网站已切换，上一项 Chrome 操作结果可能未知。请检查实际 Cookie，勿自动重试。','error');
     return;
   }

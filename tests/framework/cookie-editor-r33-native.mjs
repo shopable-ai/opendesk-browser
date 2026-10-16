@@ -74,7 +74,7 @@ const report={mode:'headed-owned-macos-CFT',startedAt:new Date().toISOString(),e
   directory,selection:gapPlan,driver:{path:path.relative(root,driverFile),sha256:hash(driverBytes),bytes:driverBytes.length},scope:'Installed Side Panel selected cases; all Cookie mutations originate in tool UI; Chrome API reads only',
   cases:Object.fromEntries([...gapPlan.prerequisites,...gapPlan.selected,...gapPlan.cleanup]
     .map(id=>[id,{status:'NOT_TESTED'}])),screenshots:[],steps:[],complete:false};
-let launched,client,control,side,sideTargetId,website,currentCase,toolSession;
+let launched,client,control,side,sideTargetId,website,currentCase,toolSession,unifiedCenter=false;
 let upgradeBaseline=null,upgradeOldFile=null;
 const targetSessions=new Map();
 const trace=[];
@@ -201,7 +201,11 @@ async function cookies(){
 }
 async function createCookie(name,value,path='/'){
   await click(toolSession,'#live-new');await type('#cookie-name',name);await type('#cookie-value',value);
-  if(path!=='/')await type('#cookie-path',path);
+  if(path!=='/'){
+    if(!await read(toolSession,'document.querySelector("#cookie-advanced").open'))
+      await click(toolSession,'#cookie-advanced > summary');
+    await type('#cookie-path',path);
+  }
   return save();
 }
 async function scopedAction(name,path,action){
@@ -244,7 +248,9 @@ async function closeEditor(){
   await until(()=>read(toolSession,'document.querySelector("#editor-panel").hidden'),'Editor dismissal');
 }
 async function grant(capability){
-  await click(side,'#sidebar-tool-settings-open');
+  if(await read(side,'document.querySelector("#sidebar-tool-settings-view").hidden'))
+    await click(side,'#sidebar-tool-settings-open');
+  await until(()=>read(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'),'Trusted settings visible');
   await click(side,'[data-cookie-capability="'+capability+'"]');
   await until(()=>read(side,'document.querySelector('+quote('[data-cookie-capability="'+capability+'"]')+').dataset.enabled==="true"'),'Trusted '+capability+' grant');
   await click(side,'#sidebar-tool-settings-open');
@@ -381,7 +387,10 @@ try{
   await step('product-side-panel',async()=>{
     const target=await client.send('Target.createTarget',{url:'chrome-extension://'+report.extensionId+'/ui/tool.html?hostInstanceId='+randomUUID()});
     control=await attach(target);
+    await until(()=>read(control,'document.documentElement.dataset.opendeskSurface==="catalog"'),
+      'Catalog controller initialized before trusted open',20000);
     await click(control,'#catalog-open-dev-sidebar');
+    report.catalogOpenStatus=await read(control,'document.querySelector("#catalog-dev-sidebar-status")?.textContent');
     const context=await until(async()=> (await read(control,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})"))
       .find(c=>c.documentId&&c.documentUrl.startsWith('chrome-extension://'+report.extensionId+'/ui/tool.html')),'Actual SIDE_PANEL context');
     const targetInfo=await until(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>t.url===context.documentUrl),'Actual Side Panel CDP target');
@@ -391,7 +400,7 @@ try{
   });
   await step('official-install',async()=>{
     const imported=stage==='upgrade';
-    const unifiedCenter=await read(side,'Boolean(document.querySelector("#extension-center-more")?.getClientRects().length)');
+    unifiedCenter=await read(side,'Boolean(document.querySelector("#extension-center-more")?.getClientRects().length)');
     if(release.installationPolicy==='preinstalled')
       await until(()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="cookie-editor"&&t.version==='+quote(pkg.version)+'))'),
         'Trusted fresh-profile Cookie preinstall');
@@ -399,7 +408,9 @@ try{
       const file=upgradeOldFile;
       assert.equal(hash(await readFile(file)),upgradeBaseline.sha256,
         'Historical Cookie package changed after native preflight');
-      await click(side,'#sidebar-tool-import-trigger');await click(side,'#sidebar-tool-file');
+      if(unifiedCenter){await click(side,'#extension-center-more');await click(side,'#extension-center-import');}
+      else await click(side,'#sidebar-tool-import-trigger');
+      await click(side,'#sidebar-tool-file');
       report.externalFilePicker={pid:launched.metadata.pid,path:file,sha256:hash(await readFile(file)),version:upgradeBaseline.version};
       await persist();console.log('COOKIE_NATIVE_FILE_PICKER '+JSON.stringify(report.externalFilePicker));
       await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'Actual Mac file chooser upload',600000);
@@ -548,7 +559,11 @@ try{
       }
       async function chooseExportMetadata(metadata){
         const current=await read(toolSession,'document.querySelector("#live-export-metadata").checked');
-        if(current!==metadata)await click(toolSession,'#live-export-metadata');
+        if(current!==metadata){
+          if(!await read(toolSession,'document.querySelector(".export-advanced").open'))
+            await click(toolSession,'.export-advanced > summary');
+          await click(toolSession,'#live-export-metadata');
+        }
         assert.equal(await read(toolSession,'document.querySelector("#live-export-content").value'),
           metadata?'metadata':'backup','Approved export mode');
       }
@@ -687,7 +702,11 @@ try{
             if(!metadata)await click(toolSession,'#confirm-accept');
             if(denied){
               assert(!valuesGranted,'Sensitive rejection must precede grant');
-              const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>text.includes('Host 未确认全部 Cookie 敏感值权限')?text:null),'Missing sensitive grant rejected');
+              const status=await until(()=>read(toolSession,'document.querySelector("#status").textContent').then(text=>
+                /E_COOKIE_EXPORT|Host 未确认全部 Cookie 敏感值权限/.test(text)?text:null),'Missing sensitive grant rejected');
+              assert.equal(await read(side,'document.querySelector("[data-cookie-capability=values]").dataset.enabled'),'false');
+              assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'),'Missing grant must not reach export approval');
+              assert.deepEqual(await cookies(),native,'Denied export must not mutate Cookies');
               assert.equal((await readdir(downloads)).length,0);assert.equal(downloadEvents.length,firstEvent);
               await click(toolSession,'#live-export-close');
               return {warning,status,downloaded:false};
@@ -770,7 +789,7 @@ try{
           await deleteCookie(cookie.name,cookie.path);
         }
         assert.equal((await cookies()).length,0);await click(side,'#sidebar-tool-settings-open');
-        const granted=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].filter(n=>n.dataset.enabled==="true").map(n=>n.dataset.cookieCapability)');
+        const granted=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].filter(n=>n.dataset.enabled==="true").map(n=>n.dataset.cookieCapability).sort((a,b)=>Number(a==="read")-Number(b==="read"))');
         for(const capability of granted){await click(side,'[data-cookie-capability='+quote(capability)+']');
           await until(()=>read(side,'document.querySelector('+quote('[data-cookie-capability='+quote(capability)+']')+').dataset.enabled==="false"'),'Revoke temporary '+capability);}
         return {cookies:await cookies(),revoked:granted};
@@ -821,19 +840,25 @@ try{
       });
       await step('explicit-upgrade',async()=>{
         await click(side,'#sidebar-tool-back');
-        if(await read(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
-        await click(side,'#sidebar-tool-filter-all');
-        await click(side,'#sidebar-tool-official-cookie-editor-install');
+        if(unifiedCenter){
+          await click(side,'[data-extension-key="app:cookie-editor"][data-extension-action="more"]');
+          await click(side,'[data-ec-context-action="update"]');
+        }else{
+          if(await read(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
+          await click(side,'#sidebar-tool-filter-all');
+          await click(side,'#sidebar-tool-official-cookie-editor-install');
+        }
         await until(()=>read(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'New official package review');
         const review=await read(side,'({versions:document.querySelector("#sidebar-tool-update-versions").textContent,warning:document.querySelector("#sidebar-tool-update-warning").textContent})');
         assert(review.versions.includes(upgradeBaseline.version)&&review.versions.includes(pkg.version));
         await click(side,'#sidebar-tool-install');
         await until(()=>read(side,`chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="cookie-editor")?.version===${quote(pkg.version)})`),'Explicit upgraded package persisted');
-        await click(side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');await bindCookieFrame();
+        await click(side,unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
+          '[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');await bindCookieFrame();
         await click(side,'#sidebar-tool-settings-open');
         const grants=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].map(n=>({cap:n.dataset.cookieCapability,enabled:n.dataset.enabled}))');
         assert(grants.every(row=>row.enabled==='false'),'Old package grants cannot authorize the new revision');
-        await click(side,'#sidebar-tool-settings-open');await grant('read');await grant('write');
+        await grant('read');await grant('write');
         const retained=(await cookies()).find(c=>c.name==='od_upgrade_retained');
         assert(retained&&retained.value==='invented-before-upgrade',
           'Same-ID upgrade must preserve the real existing Chrome Cookie');
@@ -939,7 +964,8 @@ try{
     await step('close-and-reopen',async()=>{
       await createCookie('od_reopen','invented-reopen');await click(side,'#sidebar-tool-back');
       await until(()=>read(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length===0'),'Old tool instance closed');
-      await click(side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');
+      await click(side,unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
+        '[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');
       const frame=await bindCookieFrame();
       await until(()=>read(toolSession,'document.querySelector("#live-cookie-list").textContent.includes("od_reopen")'),'Existing grant automatic reread');
       assert(!await read(toolSession,'document.querySelector("#live-cookie-list").textContent.includes("invented-reopen")'));
@@ -988,13 +1014,24 @@ try{
       await until(()=>read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>!v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="cookie-editor"))'),'Installed package removed');
       assert.equal(await read(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
       assert(await read(side,'document.querySelector("#sidebar-tool-action-review").hidden'));
+      toolSession=null;
       return {cookies:await cookies(),notice:await read(side,'document.body.innerText')};
     });
     await step('reinstall-requires-fresh-grants',async()=>{
-      if(await read(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
-      await click(side,'#sidebar-tool-official-cookie-editor-install');await click(side,'#sidebar-tool-install');
-      await until(()=>read(side,'Boolean(document.querySelector("[data-sidebar-tool-action=open][data-sidebar-tool-id=cookie-editor]"))'),'Explicit reinstall');
-      await click(side,'[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]');await bindCookieFrame();
+      if(unifiedCenter){
+        await click(side,'#extension-center-more');
+        await click(side,'[data-ec-scope="available"]');
+        await click(side,'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]');
+      }else{
+        if(await read(side,'document.querySelector("#sidebar-tool-discover-panel").hidden'))await click(side,'#sidebar-tool-discover-toggle');
+        await click(side,'#sidebar-tool-official-cookie-editor-install');
+      }
+      await click(side,'#sidebar-tool-install');
+      if(unifiedCenter){await click(side,'#extension-center-more');await click(side,'[data-ec-scope="smart"]');}
+      const open=unifiedCenter?'[data-extension-key="app:cookie-editor"][data-extension-action="primary"]':
+        '[data-sidebar-tool-action="open"][data-sidebar-tool-id="cookie-editor"]';
+      await until(()=>read(side,'Boolean(document.querySelector('+quote(open)+'))'),'Explicit reinstall');
+      await click(side,open);await bindCookieFrame();
       await click(side,'#sidebar-tool-settings-open');
       const grants=await read(side,'[...document.querySelectorAll("[data-cookie-capability]")].map(n=>({cap:n.dataset.cookieCapability,enabled:n.dataset.enabled}))');
       assert(grants.every(row=>row.enabled==='false'),'Uninstall removed old Cookie site grants');

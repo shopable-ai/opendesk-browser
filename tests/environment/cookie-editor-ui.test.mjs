@@ -201,6 +201,12 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     if(!/^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/i.test(tag[1])&&
       !tag[0].endsWith('/>'))parents.push(element);
   }
+  // Clearing a real file input also clears its selected FileList.
+  const fileInput=elements.get('import-file');let fileValue='';
+  fileInput.files=[];
+  Object.defineProperty(fileInput,'value',{get:()=>fileValue,set:value=>{
+    fileValue=value;if(value==='')fileInput.files=[];
+  }});
   const marker='void refresh();\n})();';
   assert.equal(source.split(marker).length,2,'test injection bound to one stable entrypoint');
   // Test-only instrumentation: production bytes never publish internal helpers.
@@ -209,6 +215,7 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     'pendingWork.add(work);Promise.resolve(work).then(()=>pendingWork.delete(work),()=>pendingWork.delete(work));return work;};'+
     'refresh=track(refresh);readBrowserMetadata=track(readBrowserMetadata);exportBrowserCookies=track(exportBrowserCookies);'+
     'deleteBrowserCookie=track(deleteBrowserCookie);'+
+    'prepareLiveImport=track(prepareLiveImport);revealBrowserValue=track(revealBrowserValue);'+
     (trackSaves?'saveBrowserCookie=track(saveBrowserCookie);':'')+
     'const settle=async()=>{while(pendingWork.size)await Promise.all([...pendingWork]);};'+
     'globalThis.__cookieTest={normalizeCookie,parseImport,exportText,saveToList,mergeImport,'+
@@ -226,8 +233,11 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
       getPartitionKey:async({url})=>({partitionKey:{topLevelSite:new URL(url).origin,
         hasCrossSiteAncestor:false}})}}:browser;
   const context={
-    OpenDeskTool:{root,request:async operation=>operation==='currentPage.info'&&currentPage?
-      {status:'available',url:currentPage}:{status:'unavailable'},setState(){}},
+    OpenDeskTool:{root,request:async operation=>{
+      const url=operation==='currentPage.info'?
+        (typeof currentPage==='function'?await currentPage():currentPage):null;
+      return url?{status:'available',url}:{status:'unavailable'};
+    },setState(){}},
     OpenDeskSDK:fixtureBrowser?{browser:fixtureBrowser}:undefined,
     Blob,Date,URL,TextEncoder,structuredClone,console
   };
@@ -1210,4 +1220,122 @@ test('R4.10.1 a forged permission reason must not reveal any credential-like tex
   assert.equal(state,'blocked');
   assert.match(message,/E_PERMISSION_REQUIRED/);
   assert.doesNotMatch(message,new RegExp(secret));
+});
+
+test('R4.10.3 import rejects duplicate identities after binding the current Store before any write',async()=>{
+  const prior={name:'duplicate',value:'original',domain:'example.com',path:'/',
+    hostOnly:true,session:true,storeId:'0'};
+  const rows=[{...prior}],writes=[];
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>rows,
+    getCurrentStore:async()=>({storeId:'0'}),
+    set:async options=>{
+      writes.push(structuredClone(options));
+      const index=rows.findIndex(row=>row.name===options.name&&row.path===options.path&&
+        row.storeId===options.storeId);
+      const saved={...prior,value:options.value};
+      if(index<0)rows.push(saved);else rows[index]=saved;
+      return {saved:true,verified:true};
+    }
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');s.getField('import-format').value='json';
+  const {storeId,...implicitStore}=prior;
+  s.getField('import-text').value=JSON.stringify([
+    {...implicitStore,value:'first-import-value'},
+    {...prior,value:'second-import-value'}
+  ]);
+  s.fire('import-panel','input');s.fire('import-apply','click');await s.settle();
+  const offeredPreview=!s.getField('live-import-confirm').hidden;
+  // Follow any offered confirmation so a regression proves actual writes,
+  // rather than merely checking an error string or the preview markup.
+  if(offeredPreview){
+    s.fire('live-import-confirm','click');
+    if(!s.getField('confirm-panel').hidden)s.fire('confirm-accept','click');
+    await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  }
+  assert.equal(writes.length,0,'Store-normalized duplicates must be rejected before either Cookie write');
+  assert.equal(offeredPreview,false,'a duplicate final identity must not offer an import plan');
+  assert.deepEqual(rows,[prior],'rejecting duplicate imports must preserve the existing Cookie');
+});
+
+test('R4.10.3 hiding an edited value also hides the previously revealed native Cookie value',async()=>{
+  const {s,calls}=await liveCookieFixture();
+  s.fire('editor-reveal-value','click');await s.settle();
+  assert.equal(s.getField('editor-revealed-value').hidden,false);
+  assert.equal(s.getField('editor-revealed-value').textContent,'HIDDEN_NATIVE_SECRET');
+  supplyCookieValue(s,'new-draft-value');s.fire('editor-form','input');
+  s.fire('editor-reveal-value','click');
+  assert.equal(s.getField('cookie-value').type,'text');
+  s.fire('editor-reveal-value','click');
+  assert.equal(s.getField('cookie-value').type,'password');
+  assert.equal(s.getField('editor-revealed-value').hidden,true,
+    'hiding the edited input must also hide the previously disclosed native value');
+  assert.equal(s.getField('editor-revealed-value').textContent,'');
+  assertSecretAbsent(s,'HIDDEN_NATIVE_SECRET');
+  assert.deepEqual(calls.map(([operation])=>operation),['get'],
+    'value visibility changes must not write or reread the Cookie');
+});
+
+test('R4.10.3 busy site-switch UNKNOWN warning survives target refresh and the late write receipt',async()=>{
+  const started=deferred(),receipt=deferred(),prior=originalCookie();
+  let currentPage='https://example.com/account',writes=0,removals=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async({url})=>new URL(url).hostname==='example.com'?[prior]:[],
+    set:async()=>{writes++;started.resolve();return receipt.promise;},
+    remove:async()=>{removals++;return {removed:true,verified:true};}
+  }},{currentPage:()=>currentPage});
+  s.openEditor(s.liveSnapshot().rows[0]);supplyCookieValue(s,'pending-new-value');
+  const saving=s.saveBrowserCookie();await started.promise;
+  currentPage='https://other.example/';s.fireRoot('opendesk-page-changed');
+  const warning=s.getStatusMessage();
+  await s.settle();
+  const afterRefresh=s.getStatusMessage(),warningHidden=s.getField('status').hidden;
+  receipt.resolve({saved:true,verified:true});await saving;await s.settle();
+  assert.equal(s.getSiteHeading(),'other.example','the follow-current-page refresh must have completed');
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(s.getField('editor-panel').hidden,true);
+  assert.equal(s.getField('cookie-value').value,'');
+  assert.equal(writes,1);assert.equal(removals,0,'a late receipt cannot continue or replay the old operation');
+  assert.match(warning,/结果可能未知/);
+  assert.equal(afterRefresh,warning,'automatic target refresh must retain the unresolved-operation warning');
+  assert.equal(warningHidden,false);
+  assert.equal(s.getStatusMessage(),warning,'a late native receipt must not clear the UNKNOWN warning');
+});
+
+test('R4.10.3 closing import during a file read prevents late sensitive text from reappearing',async()=>{
+  const reading=deferred();
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');
+  s.getField('import-file').files=[{size:64,text:()=>reading.promise}];
+  s.fire('import-file','change');s.fire('import-close','click');
+  assert.equal(s.getField('import-panel').hidden,true);
+  assert.equal(s.getField('import-text').value,'');
+  assert.equal(s.getField('import-file').files.length,0);
+  reading.resolve('sid=LATE_DISCARDED_FILE_SECRET');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(s.getField('import-text').value,'','a closed import must not regain discarded file contents');
+  assert.equal(s.getField('import-panel').hidden,true);
+  assert.equal(s.isDirty(),false);
+  assertSecretAbsent(s,'LATE_DISCARDED_FILE_SECRET');
+});
+
+test('R4.10.3 a late old file read cannot replace the newer import selection',async()=>{
+  const older=deferred(),newer=deferred();
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');
+  s.getField('import-file').files=[{size:64,text:()=>older.promise}];s.fire('import-file','change');
+  s.getField('import-file').files=[{size:64,text:()=>newer.promise}];s.fire('import-file','change');
+  newer.resolve('sid=NEWEST_SELECTED_FILE');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(s.getField('import-text').value,'sid=NEWEST_SELECTED_FILE');
+  older.resolve('sid=OBSOLETE_OLDER_FILE');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(s.getField('import-text').value,'sid=NEWEST_SELECTED_FILE',
+    'the most recent file selection must win even when the previous read finishes later');
+  assert.equal(s.getField('import-panel').hidden,false);
+  assert.equal(s.isDirty(),true);
+  assertSecretAbsent(s,'OBSOLETE_OLDER_FILE');
 });
