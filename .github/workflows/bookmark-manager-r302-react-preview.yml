@@ -1,4 +1,4 @@
-name: Bookmark Manager R3.0.4 React Preview · List-First UX Chromium
+name: Bookmark Manager R3.0.4.1 React Preview · Real Chrome Zoom and UX Closure
 on:
   push:
     branches: [main]
@@ -6,6 +6,8 @@ on:
       - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
       - 'examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs'
       - 'examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs'
+      - 'examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs'
+      - 'examples/sidebar-tools/bookmark-manager/preview/chrome-zoom-x11.py'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
       - 'scripts/preview/bookmark-manager-mock.js'
       - 'examples/sidebar-tools/bookmark-manager/src/model.js'
@@ -41,6 +43,7 @@ jobs:
           node --check examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs
           node --check examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs
           node --check examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs
+          node --check examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {readFile} from 'node:fs/promises';
@@ -68,13 +71,17 @@ jobs:
       - name: Install CJK screenshot fonts
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq fonts-noto-cjk
+          sudo apt-get install -y -qq fonts-noto-cjk xvfb xclip libxtst6
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Real Chromium R3.0.4 no-footer, cancel, details, edit, menu, delete and focus acceptance
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs examples/sidebar-tools/bookmark-manager/preview/evidence/r304
+      - name: R3.0.4.1 real headed Chrome 100 125 150 percent Zoom keyboard and OS clipboard
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: xvfb-run -a -s '-screen 0 1440x1200x24' node examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs examples/sidebar-tools/bookmark-manager/preview/evidence/r3041
       - name: Preserve exact candidate and browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,6 +92,7 @@ jobs:
           path: |
             examples/sidebar-tools/bookmark-manager/preview/index.html
             examples/sidebar-tools/bookmark-manager/preview/evidence/r304/
+            examples/sidebar-tools/bookmark-manager/preview/evidence/r3041/
       - name: Promote exact Chromium-tested HTML with concurrent main protection
         if: github.event_name == 'push'
         shell: bash
@@ -110,13 +118,13 @@ jobs:
             fi
             echo "Concurrent unrelated changes only; preserve them with a local non-force rebase."
           fi
-          git add -- examples/sidebar-tools/bookmark-manager/preview/index.html examples/sidebar-tools/bookmark-manager/preview/evidence/r304/
+          git add -- examples/sidebar-tools/bookmark-manager/preview/index.html examples/sidebar-tools/bookmark-manager/preview/evidence/r304/ examples/sidebar-tools/bookmark-manager/preview/evidence/r3041/
           if git diff --cached --quiet; then
             echo "Exact React preview already committed."
             exit 0
           fi
           git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'build(bookmark-manager): promote verified R3.0.4 list-first React preview'
+            commit -m 'build(bookmark-manager): promote verified R3.0.4.1 real-Zoom React preview'
           if [ "$remote_head" != "$GITHUB_SHA" ]; then
             git -c user.name='OpenDesk Preview CI' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \

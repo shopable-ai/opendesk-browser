@@ -113,7 +113,7 @@ button:focus-visible,input:focus-visible,.bm-tree-scroll:focus-visible,a:focus-v
 
 /* R3.0.4 — non-modal details, with Tree remaining the only scroll owner. */
 .bm-workspace{position:relative}
-.bm-preview-pane{position:absolute;z-index:12;left:10px;right:10px;bottom:10px;max-height:168px;overflow:hidden;min-width:0;display:flex;flex-direction:column;background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px;box-shadow:0 12px 36px #1b2c4930,0 2px 8px #1b2c4912}
+.bm-preview-pane{position:absolute;z-index:12;left:10px;right:10px;bottom:10px;max-height:min(168px,56vh);overflow-x:hidden;overflow-y:auto;min-width:0;display:flex;flex-direction:column;background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px;box-shadow:0 12px 36px #1b2c4930,0 2px 8px #1b2c4912}
 .bm-preview-head{min-height:31px;display:flex;align-items:center;justify-content:space-between;padding:3px 7px 0 11px;color:var(--od-sub);font-size:11px}
 .bm-preview-head strong{font-size:11px;font-weight:660}
 .bm-preview-close,.bm-preview-action{height:28px;width:28px;display:grid;place-items:center;border:0;border-radius:7px;background:transparent;color:var(--od-sub);text-decoration:none}
@@ -138,3 +138,8 @@ button:focus-visible,input:focus-visible,.bm-tree-scroll:focus-visible,a:focus-v
  .bm-preview-count{padding:0 14px 12px}
  .bm-preview-actions{justify-content:flex-start;padding:9px 12px;border-top:1px solid var(--od-line);margin-top:5px}
 }
+
+/* R3.0.4.1: allow the last virtual Tree rows to scroll above the floating detail.
+   This is empty scroll space, not a persistent bottom Inspector or second scroller. */
+.bm-tree-preview-tail{height:182px;min-height:182px;flex:none;pointer-events:none}
+@media(min-width:740px){.bm-tree-preview-tail{display:none}}
