@@ -456,3 +456,11 @@
 - 正式包真实 Chromium / **受控 Mock Host**：320/360/400/440px 六操作 SVG-only/无横向溢出、40px hit target、ARIA、Esc 关闭恢复焦点、连续保存并继续、重开读回等 PASS，`consoleExceptions=[]`。预览 Chromium 与 R2.1 网页 DOM 双选择器 Chromium Fixture 均 PASS；这些不是已安装的原生扩展测试。
 - 唯一正式可安装 JSON：`prompt-shortcuts.opendesk-tool.json`，版本 **1.1.1**，**71,146 UTF-8 bytes**，SHA-256 **`d8194d106eaa4c171203c5ad3f131bbdb4b65864e8036d5cb7460abff4a4ffc5`**；自动同步提交 [2f4ddbc](https://github.com/shopable-ai/opendesk-browser/commit/2f4ddbc749badfcddc0412442dfdf1e15c5b0b36)；`--check-project` = **PROJECT_PACKAGE_MATCH**。
 - 尚未取得 Mac 本地 `dist/development` 同 ID 安装升级、真实 Host 存储事务、已登录 chatgpt.com/第三方网站实际编辑器插入、撤权、中文 IME/Undo 的原生证据：分别为 **NOT_TESTED**。九维专家 95+ 是后续正式产品验收门槛，不得把模拟 CI 当成已满足。
+
+## R2.2 跨网站匿名富文本编辑器适配补强（2026-10-16）
+
+- **范围**：在已经可用的“由用户在当前网站选择容器 + 选择输入框”的通用框架内，增强无 ID / 无 aria-label / 无 data-testid 的匿名 `contenteditable` 编辑器选取。允许受限的 `[contenteditable="true"]` 与 `[contenteditable="plaintext-only"]`，在全页非唯一时生成父容器稳定 ID / testid / role + 标签与编辑语义属性组成的唯一选择器。不导入或硬编码未经已登录页面实测的 Claude/Gemini CSS，也不新增默认授权。
+- **富文本受控状态**：已存在的原生 `execCommand('insertText')`、仅在末尾追加、原草稿完整读回、未确认复制回退及不自动发送保留。非 ChatGPT 的 contenteditable 增加二次读取窗口（现有首次 90ms + 230ms），可检测通常的页面受控编辑器重渲染回滚；仍不宣称可以识别所有框架内部状态。
+- **测试**：扩充既有 `prompt-shortcuts-r14-page.test.mjs`，分别在 `contenteditable=true` 与 `plaintext-only`、多编辑器重名的情况下验证自动生成稳定的 scoped selector；扩充唯一现有 Chromium DOM fixture，真实点击匿名富文本、执行原生多行插入、检查受控编辑器回滚时不得误报成功及完整复制退路。现有文本框/textarea/ChatGPT 权限和页面适配不应回退。
+- **发布边界**：固定可信网页源码更改须同步当前两处 Git blob 精确白名单并运行 `scripts/bundle-provenance.mjs` 正式构建门禁。Sidebar Tool `1.1.1` 自身独立包源码与数据结构未变，避免不必要的版本号提升；Chrome 扩展内的预编译可信适配器必须重载/升级才能真正生效。
+- **尚未验收**：真实 Claude / Gemini 登录站点的 DOM、框架 State/Undo、Mac IME、Chrome 网站访问权限与正式扩展原位安装，全部继续 `NOT_TESTED`。任何本地/CI 的 mock-host 回归不等于真实网站 PASS，也不能虚报 ≥95/100。

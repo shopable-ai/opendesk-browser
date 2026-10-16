@@ -99,7 +99,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         return null;
       return 'input';
     }
-    if(node.getAttribute?.('contenteditable')==='true'&&node.isContentEditable)return 'richtext';
+    if(node.isContentEditable&&['true','plaintext-only'].includes(
+      node.getAttribute?.('contenteditable')))return 'richtext';
     return null;
   };
   const checkedEditor=()=>{
@@ -119,25 +120,36 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(typeof id==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(id)&&
        !/(?:^|[-_])(?:react|headlessui|radix|auto|generated)[-_]?\d/i.test(id)&&
        unique('#'+id))return '#'+id;
-    for(const key of ['data-testid','data-test','data-cy','aria-label','placeholder','role']){
+    for(const key of ['data-testid','data-test','data-cy','aria-label','placeholder','name','role']){
       const val=node.getAttribute?.(key);
       if(typeof val!=='string'||!/^[\p{L}\p{N}_ .-]{1,72}$/u.test(val))continue;
       const selector='['+key+'="'+val+'"]';
       if(unique(selector))return selector;
       if(unique(tag+selector))return tag+selector;
     }
+    const editableValue=node.getAttribute?.('contenteditable');
+    const editableAttr=['true','plaintext-only'].includes(editableValue)?
+      '[contenteditable="'+editableValue+'"]':null;
+    // Claude/Gemini-like composers can be anonymous contenteditable nodes.
+    // Prefer a unique semantic attribute before bare div or an unstable path.
+    if(editableAttr&&(unique(editableAttr)||unique(tag+editableAttr)))
+      return unique(editableAttr)?editableAttr:tag+editableAttr;
     if(unique(tag))return tag;
     for(let parent=node.parentElement,depth=0;parent&&depth<4;parent=parent.parentElement,depth++){
       const pid=parent.getAttribute?.('id');
       if(typeof pid==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(pid)){
         const scoped='#'+pid+' '+tag;
         if(unique(scoped))return scoped;
+        if(editableAttr&&unique('#'+pid+' '+tag+editableAttr))
+          return '#'+pid+' '+tag+editableAttr;
       }
       for(const key of ['data-testid','role']){
         const value=parent.getAttribute?.(key);
         if(typeof value!=='string'||!/^[\p{L}\p{N}_ .-]{1,72}$/u.test(value))continue;
         const scoped='['+key+'="'+value+'"] '+tag;
         if(unique(scoped))return scoped;
+        if(editableAttr&&unique('['+key+'="'+value+'"] '+tag+editableAttr))
+          return '['+key+'="'+value+'"] '+tag+editableAttr;
       }
     }
     return null;
@@ -147,7 +159,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!available(node))continue;
       if(kind==='editor'){
         if(!editorKind(node))continue;
-        if(node.getAttribute?.('contenteditable')==='true'||
+        // Explicit contenteditable=true/plaintext-only as well as native fields.
+        // Never select nested non-editable wrapper text as the editor itself.
+        if(['true','plaintext-only'].includes(node.getAttribute?.('contenteditable'))||
            ['input','textarea'].includes(String(node.tagName||'').toLowerCase()))
           return pickerSelector(node)?node:null;
       }else{
@@ -451,7 +465,14 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!doc.execCommand('insertText',false,insertion))throw Error('编辑器未确认插入');
       // Wait for a framework-controlled editor to commit or reject the DOM
       // edit before confirming. Never retry an unknown effect automatically.
-      if(activeRule)await new Promise(resolve=>win.setTimeout(resolve,90));
+      if(activeRule){
+        await new Promise(resolve=>win.setTimeout(resolve,90));
+        // A controlled rich-text editor can discard an accepted DOM edit on its
+        // next reconciliation. Confirm again after the usual rerender window.
+        // No unknown-effect retries and no synthetic input event dispatch.
+        if(target.isContentEditable)
+          await new Promise(resolve=>win.setTimeout(resolve,230));
+      }
       if(token!==epoch||location!==win.location.href)throw Error('页面身份在写入期间变化');
       const after=readDraft(target);
       // Check unchanged prefix, complete multiline suffix and ordering.

@@ -694,3 +694,50 @@ for(const scenario of [
     }finally{controller.dispose();}
   });
 }
+
+
+for(const value of ['true','plaintext-only']){
+  test('R2.2 cross-site anonymous contenteditable='+value+' uses scoped semantic selector',async()=>{
+    const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+    const f=fixture({pkg,library:{schema:1,items:[],settings:{webButtons:true}}});
+    f.win.location.href='https://example.org/chat';
+    f.editor.tagName='div';f.editor.isContentEditable=true;
+    f.editor.attributes.contenteditable=value;
+    const wrapper=mockElement('section'),label=mockElement('div');
+    wrapper.attributes.id='rich-container';wrapper.append(label,f.editor);
+    f.editor.parentElement=wrapper;
+    const other=mockElement('div');other.isContentEditable=true;
+    other.attributes.contenteditable=value;
+    const semantic='[contenteditable="'+value+'"]',scoped='#rich-container div'+semantic;
+    f.doc.querySelectorAll=selector=>{
+      if([semantic,'div'+semantic,'div'].includes(selector))return [f.editor,other,label];
+      if(selector===scoped)return [f.editor];
+      if(selector==='main')return [f.main];
+      return [];
+    };
+    const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+    const send=(operation,extra={})=>new Promise(resolve=>{
+      [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',
+        toolId:PROMPT_ID,operation,expectedUrl:f.win.location.href,...extra},
+      {id:'test-extension',url:'chrome-extension://test-extension/tool.html'},resolve);
+    });
+    const session='31234567-89ab-cdef-0123-456789abcdef';
+    try{
+      await settle();
+      assert.equal((await send('prompt.page.pick.start',{session,kind:'editor'})).data.state,'selecting');
+      f.docEvents.get('click')({isTrusted:true,target:f.editor,
+        preventDefault(){},stopImmediatePropagation(){}});
+      const selection=await send('prompt.page.pick.status',{session});
+      assert.equal(selection.ok,true);
+      assert.equal(selection.data.selector,scoped,'scoped editable selector is unique');
+      assert.equal(selection.data.editorType,'richtext');
+      const checked=await send('prompt.page.check',{rule:{
+        origin:'https://example.org',pathScope:'/chat',
+        containerSelector:'main',editorSelector:scoped,enabled:true
+      }});
+      assert.equal(checked.ok,true);
+      assert.equal(checked.data.valid,true);
+      assert.equal(checked.data.editorType,'richtext');
+    }finally{controller.dispose();}
+  });
+}

@@ -22,11 +22,16 @@ const html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
   'width:min(78vw,840px);height:640px;padding:20px;background:#f5f6f9}'+
   'textarea{display:block;width:85%;height:110px;margin-top:100px}'+
   'input{display:block;width:75%;height:40px;margin-top:12px}'+
+  '#rich-container{margin-top:18px}#rich-container [contenteditable]{'+
+  'width:82%;min-height:72px;padding:8px;background:white;border:1px solid #9aa}'+
   '#danger{margin-top:20px;padding:18px}</style></head><body>'+
   '<main id="workspace"><h1>编辑区</h1>'+
   '<button id="danger" type="button">危险操作占位</button>'+
   '<textarea id="draft">旧草稿</textarea>'+
-  '<input id="single" type="text" value="旧单行"></main>'+
+  '<input id="single" type="text" value="旧单行">'+
+  '<section id="rich-container"><div>编辑器名称</div>'+
+  '<div contenteditable="true"><p>旧富文本</p></div></section></main>'+
+  '<section id="other"><div contenteditable="true">其他富文本</div></section>'+
   '<script>window.__loadErrors=[];addEventListener("error",e=>'+
   'window.__loadErrors.push(e.message||e.target?.src||"module error"),true)</script>'+
   '<script type="module" src="/fixture-boot.js"></script></body></html>';
@@ -68,6 +73,10 @@ boot=[
   'const changes=new Set(),messages=new Set();',
   'const DATA="opendesk.sidebar-tools.data.v1:prompt-shortcuts";',
   'window.__ready=false;window.__effects=0;window.__edits=[];window.__copied=[];window.__inputs=0;',
+  'window.__richInputs=0;window.__richRollback=false;window.__richRollbacks=0;',
+  'const rich=document.querySelector("#rich-container [contenteditable]");',
+  'rich.addEventListener("input",()=>{window.__richInputs++;if(window.__richRollback)',
+  '  setTimeout(()=>{rich.innerHTML="<p>旧富文本</p>";window.__richRollbacks++;},160);});',
   'const danger=document.querySelector("#danger");',
   'for(const type of ["pointerup","mouseup","click","dblclick"])danger.addEventListener(type,()=>window.__effects++);',
   'document.querySelector("#draft").addEventListener("input",()=>window.__inputs++);',
@@ -210,6 +219,38 @@ try{
   assert.equal(await evaluate('window.__edits.length'),0,'preflight did not touch single-line input');
   assert.equal(await evaluate('window.__copied[0]'),body);
   scenes.push({step:'single-line multiline rejection',draftUnchanged:true,copiedFullPrompt:true});
+  // Anonymous contenteditable: two editors exist, so the picker must generate
+  // a semantic selector anchored inside the explicitly chosen composer region.
+  const richSession='21234567-89ab-cdef-0123-456789abcdef';
+  assert.equal((await evaluate('window.__send("prompt.page.pick.start",{kind:"editor",session:'+JSON.stringify(richSession)+'})')).data.state,'selecting');
+  await clickJS('document.querySelector("#rich-container [contenteditable]")');
+  const richPick=await evaluate('window.__send("prompt.page.pick.status",{session:'+JSON.stringify(richSession)+'})');
+  assert.equal(richPick.data.state,'selected','rich editor selected via real click');
+  assert.equal(richPick.data.editorType,'richtext');
+  assert.equal(richPick.data.selector,'#rich-container div[contenteditable="true"]');
+  await evaluate('window.__setRule({...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'})');
+  await poll('window.__railRoot?.querySelector(".item")?.isConnected','richtext rule mounted');
+  const richChecked=await evaluate('window.__send("prompt.page.check",{rule:{...window.__rule,editorSelector:'+JSON.stringify(richPick.data.selector)+'}})');
+  assert.equal(richChecked.data.editorType,'richtext');
+  await clickJS('window.__railRoot.querySelector(".item")');
+  await poll('window.__richInputs>0','native contenteditable input event');
+  await sleep(420);
+  const richOutcome=await evaluate('({html:document.querySelector("#rich-container [contenteditable]").innerHTML,text:document.querySelector("#rich-container [contenteditable]").innerText,feedback:window.__railRoot.querySelector(".feedback").textContent,copied:window.__copied,edits:window.__edits})');
+  assert.match(richOutcome.feedback,/已插入输入框/,JSON.stringify(richOutcome));
+  assert.deepEqual(richOutcome.copied,[body],'verified contenteditable avoids duplicate clipboard fallback');
+  scenes.push({step:'anonymous contenteditable scoped selector and native multiline commit',
+    editorSelector:richPick.data.selector,statePersisted:true});
+  // A mock controlled editor discards DOM-only changes after 160 ms. The trusted
+  // adapter must report uncertain insertion rather than a false success.
+  await sleep(800);
+  await evaluate('window.__richRollback=true;window.__copied=[]');
+  await clickJS('window.__railRoot.querySelector(".item")');
+  await poll('window.__richRollbacks>0','controlled editor rolled back uncommitted DOM edit');
+  await poll('window.__copied.length===1','unknown rich editor effect copied for explicit review');
+  assert.equal(await evaluate('document.querySelector("#rich-container [contenteditable]").innerText'),'旧富文本');
+  assert.equal(await evaluate('window.__copied[0]'),body);
+  scenes.push({step:'controlled editor reconciliation rollback',noFalseSuccess:true,
+    noAutomaticRetry:true,fullCopyFallback:true});
   await evaluate('window.__setRule(window.__rule)');
   await poll('window.__railRoot?.querySelector(".item")?.isConnected','return to textarea rule');
   await rpc('Emulation.setDeviceMetricsOverride',{width:360,height:780,deviceScaleFactor:1,mobile:false});
