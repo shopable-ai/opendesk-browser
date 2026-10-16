@@ -152,8 +152,9 @@ export function createAdblockPermissionControls({
     statusLine.className='adblock-native-status'+(on?'':!state?' is-unknown':' is-off');
     statusText.textContent=!enabled?'工具已停用，请在工具管理中启用':
       !state?'Chrome 状态未确认':
+      state.restartRequired?(permission?'请完整重启 Chrome，再手动开启过滤':
+        '权限已撤销，请完整重启 Chrome'):
       !permission?'需要批准 Chrome DNR 权限':
-      state.restartRequired?'请完整重启 Chrome，再手动开启过滤':
       !state.rules?.verified?'Chrome 规则尚未通过读回验证':
       on?'已开启保护':'保护已关闭';
     siteHost.textContent=host||'当前页面不可用';
@@ -209,7 +210,9 @@ export function createAdblockPermissionControls({
       const data=await runOperation('adblock.status',{},null);
       if(visible&&captured===sequence){
         state=data;
-        report(data.restartRequired?'Chrome 权限已批准，过滤尚未开启，请完整重启后手动开启。':'');
+        report(data.restartRequired?(data.permissions?.dnr===true?
+          'Chrome 权限已批准，过滤尚未开启，请完整重启后手动开启。':
+          'Chrome 广告过滤权限已撤销，停止过滤尚未确认，请完整退出并重启 Chrome。'):'');
         paint();
       }
     }catch(e){

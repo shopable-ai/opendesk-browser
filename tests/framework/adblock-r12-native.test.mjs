@@ -12,6 +12,7 @@ import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {packageFingerprint} from '../../scripts/verify-package.mjs';
 
 const BIN=process.env.CHROME_BIN,ROOT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_ROOT||'dist/production');
 const OUT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_EVIDENCE||'artifacts/adblock-r12-native');
@@ -128,23 +129,77 @@ async function getOwned(c,session){
     'owned:all.filter(x=>x.id>='+F+'&&x.id<='+L+'),'+
     'focus:all.filter(x=>x.id>=730000&&x.id<=730199)};})()');
 }
+async function sandboxDiagnostic(c,side,frame,selector,last,error){
+  const name='sandbox-input-'+Date.now()+'-'+randomUUID();
+  const shots=await Promise.all(['outer','inner'].map(async(label,index)=>{
+    try{return {label,...await screenshot(c,index===0?side:frame,name+'-'+label)};}
+    catch(error){return {label,error:String(error)};}
+  }));
+  const review=await evaluate(c,side,'(()=>{const x=document.querySelector("#sidebar-tool-action-review");'+
+    'return {hidden:x?.hidden,text:x?.textContent,summary:document.querySelector("#sidebar-tool-action-summary")?.textContent};})()')
+    .catch(error=>({error:String(error)}));
+  await writeFile(path.join(OUT,name+'.json'),JSON.stringify({selector,last,review,screenshots:shots,
+    error:String(error.message||error),evidenceType:'read-only-inner-and-outer-DOM-with-CDP-Input'},null,2)+'\n');
+}
 async function clickSandbox(c,side,frame,selector){
-  const point=await until(async()=>{
-    const p=await evaluate(c,frame,'(()=>{const x=(globalThis.OpenDeskTool?.root||document).querySelector('+JSON.stringify(selector)+');'+
-      'if(!x||x.disabled)return null;const r=x.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
-    if(!p)return null;
-    const f=await evaluate(c,side,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();'+
-      'return {x:r.left,y:r.top,w:innerWidth,h:innerHeight};})()');
-    const x=f.x+p.x,y=f.y+p.y;
-    if(x<0||x>=f.w||y<90||y>=f.h-10){
-      await c.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:Math.min(f.w-8,Math.max(8,x)),
-        y:Math.min(f.h-8,Math.max(100,f.y+40)),deltaX:0,deltaY:y<90?-230:230},side);return null;
-    }
-    const hit=await evaluate(c,side,'document.elementFromPoint('+x+','+y+')===document.querySelector("#sidebar-tool-frame iframe")');
-    return hit?{x,y}:null;
-  },'visible sandbox control '+selector);
-  for(const type of ['mousePressed','mouseReleased'])
-    await c.send('Input.dispatchMouseEvent',{type,...point,button:'left',clickCount:1},side);
+  let last=null;
+  try{
+    const point=await until(async()=>{
+      const p=await evaluate(c,frame,`(()=>{
+        const x=(globalThis.OpenDeskTool?.root||document).querySelector(${JSON.stringify(selector)});
+        if(!x)return {missing:true};
+        const r=x.getBoundingClientRect(),mx=r.left+r.width/2,my=r.top+r.height/2;
+        let visible=r.width>0&&r.height>0;
+        for(let node=x;node;node=node.parentElement||node.getRootNode().host){
+          const style=getComputedStyle(node);
+          if(node.hidden||style.display==='none'||style.visibility!=='visible'||Number(style.opacity)===0)visible=false;
+        }
+        const inViewport=mx>=0&&my>=0&&mx<innerWidth&&my<innerHeight;
+        let hitNode=inViewport?document.elementFromPoint(mx,my):null;
+        while(hitNode?.shadowRoot){
+          const next=hitNode.shadowRoot.elementFromPoint(mx,my);
+          if(!next||next===hitNode)break;hitNode=next;
+        }
+        return {x:mx,y:my,rect:r.toJSON(),viewport:{width:innerWidth,height:innerHeight},
+          visible,disabled:!!x.disabled,inViewport,hit:visible&&!x.disabled&&inViewport&&x.contains(hitNode),
+          hitNode:hitNode?{tag:hitNode.tagName,id:hitNode.id,role:hitNode.getAttribute('role')}:null};
+      })()`);
+      last={inner:p};
+      if(p.missing)return false;
+      const f=await evaluate(c,side,`(()=>{
+        const frame=document.querySelector('#sidebar-tool-frame iframe');if(!frame)return {missing:true};
+        const r=frame.getBoundingClientRect();let visible=r.width>0&&r.height>0;
+        for(let node=frame;node;node=node.parentElement){
+          const style=getComputedStyle(node);
+          if(node.hidden||style.display==='none'||style.visibility!=='visible'||Number(style.opacity)===0)visible=false;
+        }
+        const scaleX=r.width/frame.offsetWidth,scaleY=r.height/frame.offsetHeight;
+        const x=r.left+(frame.clientLeft+${p.x})*scaleX,y=r.top+(frame.clientTop+${p.y})*scaleY;
+        const hitNode=document.elementFromPoint(x,y);
+        return {x,y,rect:r.toJSON(),viewport:{width:innerWidth,height:innerHeight},visible,
+          hit:visible&&x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&hitNode===frame,
+          hitNode:hitNode?{tag:hitNode.tagName,id:hitNode.id,role:hitNode.getAttribute('role')}:null};
+      })()`);
+      last={inner:p,outer:f};
+      if(p.hit&&f.hit)return {x:f.x,y:f.y};
+      if(!p.visible||p.disabled||!f.visible)return false;
+      const direction=p.y<0||f.y<0?-1:p.y>=p.viewport.height||f.y>=f.viewport.height?1:0;
+      const left=Math.max(0,f.rect.left),right=Math.min(f.viewport.width,f.rect.right);
+      const top=Math.max(0,f.rect.top),bottom=Math.min(f.viewport.height,f.rect.bottom);
+      if(direction&&right>left&&bottom>top){
+        await c.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:(left+right)/2,
+          y:(top+bottom)/2,deltaX:0,deltaY:direction*230},side);
+      }
+      return false;
+    },'visible sandbox control '+selector);
+    await c.send('Input.dispatchMouseEvent',{type:'mouseMoved',...point},side);
+    for(const type of ['mousePressed','mouseReleased'])
+      await c.send('Input.dispatchMouseEvent',{type,...point,button:'left',clickCount:1},side);
+    return last;
+  }catch(error){
+    await sandboxDiagnostic(c,side,frame,selector,last,error).catch(()=>{});
+    throw error;
+  }
 }
 test('macOS Chrome actual AdBlock DNR and network lifecycle',
   {skip:!ENABLED,timeout:680000},async t=>{
@@ -159,14 +214,33 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal(pkg.id,sourceConfig.id,'installed tool identity must match canonical source');
   assert.equal(pkg.version,sourceConfig.version,
     'official package must have the current reviewed tool version');
+  const [runtimeBytes,manifestBytes]=await Promise.all([
+    readFile(path.join(ROOT,'sw.js')),readFile(path.join(ROOT,'manifest.json'))]);
+  const manifest=JSON.parse(manifestBytes);
+  assert.equal(manifest.manifest_version,3,'candidate must be an MV3 extension');
+  assert.equal(manifest.background?.service_worker,'sw.js','candidate must use the reviewed worker entry');
+  assert.ok(runtimeBytes.length>0,'candidate worker must not be empty');
   const report={candidate:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     root:ROOT,driverSHA256:createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),
+    artifactPackageHash:(await packageFingerprint(ROOT)).packageHash,
+    swSHA256:createHash('sha256').update(runtimeBytes).digest('hex'),
+    manifestSHA256:createHash('sha256').update(manifestBytes).digest('hex'),
     chromeBin:BIN,packageSHA256:createHash('sha256').update(bytes).digest('hex'),
     env:'real-macos-chrome',status:'NOT_TESTED',nativePermission:'NOT_TESTED',
     network:'NOT_TESTED',globalToggle:'NOT_TESTED',siteException:'NOT_TESTED',
     otherSite:'NOT_TESTED',iframe:'NOT_TESTED',closedPanel:'NOT_TESTED',
-    workerRestart:'NOT_TESTED',browserRestart:'NOT_TESTED',
-    revocation:'NOT_TESTED',uninstall:'NOT_TESTED',checks:[],screenshots:[]};
+    restoreCancellation:'NOT_TESTED',workerStoppedDnr:'NOT_TESTED',
+    workerRestart:'NOT_TESTED',browserRestart:'NOT_TESTED',upgrade:'NOT_TESTED',coexistence:'NOT_TESTED',
+    physicalWidths:{status:'NOT_TESTED',requested:[320,360,400,480],
+      reason:'This driver has no native Side Panel splitter adapter; viewport emulation does not prove physical width.'},
+    revocation:'NOT_TESTED',uninstall:'NOT_TESTED',checks:[],screenshots:[],evidenceErrors:[]};
+  const preserve=async(file,data)=>{
+    try{await writeFile(path.join(OUT,file),data);}
+    catch(error){
+      const message=file+': '+String(error.message||error);
+      report.evidenceErrors.push(message);console.error('ADBLOCK_EVIDENCE_FAILURE '+message);
+    }
+  };
   const note=(name,record)=>{report.checks.push({name,...record});console.log('ADBLOCK_NATIVE '+name+' '+JSON.stringify(record));};
   const counts={ad:0,normal:0,frameAd:0,framePage:0},serverRequests=[];
   let port;
@@ -226,7 +300,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
               const diagnostic=await evaluate(client,session,'(async()=>({url:location.href,text:document.body.innerText,'+
                 'elements:[...document.querySelectorAll("#extension-center-list button,#sidebar-tool-preview,#sidebar-tool-install,#sidebar-tool-file-error,#notice")].map(x=>({id:x.id,text:x.textContent,hidden:x.hidden,disabled:x.disabled,rect:x.getBoundingClientRect().toJSON()})),'+
                 'storage:await chrome.storage.local.get(null),permissions:await chrome.permissions.getAll(),'+
-                'dynamic:await chrome.declarativeNetRequest?.getDynamicRules?.().catch(e=>({error:String(e)}))}))()');
+                'dynamic:await (async()=>{try{return await chrome.declarativeNetRequest?.getDynamicRules?.();}'+
+                'catch(e){return {error:String(e)};}})()}))()');
               await writeFile(path.join(OUT,'failure-'+target.targetId+'.json'),JSON.stringify(diagnostic,null,2)+'\n');
             }catch(error){report.diagnosticError=String(error);}
           }
@@ -237,7 +312,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
           }
         }catch{}
       }
-      if(client)await writeFile(path.join(OUT,'cdp-events.json'),JSON.stringify(client.events,null,2)+'\n');
+      if(client)await preserve('cdp-events.json',JSON.stringify(client.events,null,2)+'\n');
       if(client)try{await client.send('Browser.close');}catch{}
       client?.close();
       if(chrome.exitCode===null&&chrome.signalCode===null){
@@ -248,12 +323,14 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       if(path.basename(profile).startsWith('opendesk-adblock-r12-')&&path.dirname(profile)===tmpdir())
         await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:200});
     }finally{
-      report.success=passed;report.status=passed?'PASS':'FAIL_OR_BLOCKED_NATIVE';
       report.serverCounts=counts;
-      await writeFile(path.join(OUT,'server-requests.json'),JSON.stringify(serverRequests,null,2)+'\n');
+      await preserve('server-requests.json',JSON.stringify(serverRequests,null,2)+'\n');
       report.chromeErrorTail=errors.slice(-1000);
-      await writeFile(path.join(OUT,'chrome-stderr.log'),errors);
+      await preserve('chrome-stderr.log',errors);
+      report.success=passed&&report.evidenceErrors.length===0;
+      report.status=report.success?'PASS':'FAIL_OR_BLOCKED_NATIVE';
       await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
+      assert.equal(report.evidenceErrors.length,0,'raw evidence writes must succeed');
     }
   });
   async function connected(){
@@ -289,6 +366,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   let uid=await attach(client,ui.targetId);
   await until(()=>evaluate(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")'),
     'extension native launcher');
+  assert.deepEqual(await evaluate(client,uid,'chrome.runtime.getManifest()'),manifest,
+    'actually loaded extension manifest must match ROOT/manifest.json');
   await click(client,uid,'#catalog-open-dev-sidebar');
   const context=await until(async()=>{
     const entries=await evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
@@ -328,15 +407,27 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   // and would make a synthesized element.click() wrongly appear successful.
   await click(client,sid,'#extension-center-more');
   const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
+  const openInstalled=async session=>{
+    await until(()=>evaluate(client,session,'(()=>{const list=document.querySelector("#extension-center-list");'+
+      'const b=document.querySelector('+JSON.stringify(installed)+'),row=b?.closest("li");'+
+      'return list?.getAttribute("aria-busy")==="false"&&!!row&&'+
+      'row.getAttribute("aria-busy")!=="true"&&!!b&&!b.disabled&&b.textContent.trim()==="打开";})()'),
+      'installed AdBlock list and row finish refreshing before a single real Open click');
+    await click(client,session,installed);
+  };
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
     JSON.stringify(installed)+');return !!b&&!b.disabled&&b.textContent.trim()==="打开"})()'),
     'reviewed official AdBlock installed and directly runnable in the unified list');
-  await click(client,sid,installed);
+  await openInstalled(sid);
   const installedIdentity=await evaluate(client,uid,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1",'+
     '"opendesk.sidebar-tools.revocation-epochs.v1"]).then(x=>({tool:x["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==="adblock"),'+
     'epoch:x["opendesk.sidebar-tools.revocation-epochs.v1"]?.adblock??null}))');
   assert.equal(await sidebarToolPackageHash(installedIdentity.tool),await sidebarToolPackageHash(pkg));
   report.installedIdentity={packageHash:await sidebarToolPackageHash(installedIdentity.tool),epoch:installedIdentity.epoch,version:installedIdentity.tool.version};
+  report.packageIdentity={root:ROOT,artifactPackageHash:report.artifactPackageHash,swSHA256:report.swSHA256,manifestSHA256:report.manifestSHA256,
+    packageSHA256:report.packageSHA256,manifestVersion:manifest.version,manifestName:manifest.name,
+    loadedManifestMatched:true,installedPackageHash:report.installedIdentity.packageHash};
+  note('loaded-candidate-identity',report.packageIdentity);
   await until(()=>evaluate(client,sid,'(()=>{const x=document.querySelector("#sidebar-tool-adblock-native");return !!x&&!x.hidden&&!!x.querySelector("[role=switch]")})()'),
     'trusted AdBlock switches visible');
   // R1.9.5 approved toolbar must match the ACTUALLY INSTALLED Side Panel,
@@ -372,6 +463,16 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal(toolbar.iframeHidden,true,'exceptions iframe must be hidden on Overview');
   report.installedUiParity='PASS';note('r195-installed-toolbar-parity',toolbar);
   report.screenshots.push(await screenshot(client,sid,'adblock-installed-before-native-grant'));
+  // Optional local inspection keeps the actual Chrome Side Panel available for
+  // native splitter input. It never turns a manual result into CI acceptance.
+  if(process.env.OPENDESK_ADBLOCK_NATIVE_MANUAL_LAYOUT==='1'){
+    await writeFile(path.join(OUT,'manual-layout-ready.json'),JSON.stringify({profile,
+      extensionId:id,panelTargetId:panel.targetId,root:ROOT},null,2)+'\n');
+    await until(async()=>{
+      try{return (await readFile(path.join(OUT,'manual-layout-continue'),'utf8')).trim()==='continue';}
+      catch{return false;}
+    },'explicit completion of native physical Side Panel inspection',180000);
+  }
   // Product settings belong to the same trusted toolbar and must return.
   await click(client,sid,'#sidebar-tool-settings-open');
   await until(()=>evaluate(client,sid,
@@ -430,7 +531,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   const reopenedContext=await until(()=>evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/ui/tool.html")))'),'Side Panel after initial restart');
   panel=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===reopenedContext.documentUrl),'native Side Panel target after initial restart');
   sid=await attach(client,panel.targetId);
-  await click(client,sid,'#tab-tools');await click(client,sid,installed);
+  await click(client,sid,'#tab-tools');await openInstalled(sid);
   await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+JSON.stringify(global)+');return b&&!b.disabled&&b.getAttribute("aria-checked")==="false"})()'),'manual filtering remains available after restart');
   await click(client,sid,global);
   const enabled=await until(async()=>{
@@ -552,9 +653,43 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     '(globalThis.OpenDeskTool?.root||document).querySelector('+JSON.stringify(restoreSelector)+')?.disabled===false'),
     'real disabled-sites list offers restore');
   report.screenshots.push(await screenshot(client,sid,'real-site-exception-list'));
-  await clickSandbox(client,sid,sandbox,restoreSelector);
-  await until(()=>evaluate(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'sandbox restore requires trusted host review');
+  const beforeRestore=await getOwned(client,uid);
+  const beforeRestoreRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
+  const sortedRules=rules=>[...rules].sort((a,b)=>a.id-b.id);
+  const requestRestoreReview=async()=>{
+    const geometry=await clickSandbox(client,sid,sandbox,restoreSelector);
+    try{
+      await until(()=>evaluate(client,sid,'(()=>{const review=document.querySelector("#sidebar-tool-action-review");'+
+        'return !!review&&!review.hidden&&document.querySelector("#sidebar-tool-action-summary")?.textContent.includes("恢复 127.0.0.1 的广告过滤")&&'+
+        'document.querySelector("#sidebar-tool-action-continue")?.textContent.trim()==="确认恢复";})()'),
+        'sandbox restore requires trusted host review');
+    }catch(error){
+      await sandboxDiagnostic(client,sid,sandbox,restoreSelector,
+        {phase:'trusted-host-review',geometry},error).catch(()=>{});
+      throw error;
+    }
+  };
+  await requestRestoreReview();
+  assert.deepEqual(await getOwned(client,uid),beforeRestore,'review alone must not restore site filtering');
+  await click(client,sid,'#sidebar-tool-action-cancel');
+  await until(()=>evaluate(client,sid,'document.querySelector("#sidebar-tool-action-review")?.hidden===true'),
+    'trusted host review closes after real Cancel');
+  await until(()=>evaluate(client,sandbox,'(()=>{const root=globalThis.OpenDeskTool?.root||document;'+
+    'return root.textContent.includes("已取消恢复，网站过滤设置未改变")&&'+
+    'root.querySelector('+JSON.stringify(restoreSelector)+')?.disabled===false;})()'),
+    'sandbox acknowledges cancelled restore and offers the same action again');
+  const cancelledRestore=await getOwned(client,uid);
+  assert.deepEqual(cancelledRestore.state,beforeRestore.state,'Cancel must preserve stored exceptions and approval');
+  assert.deepEqual(sortedRules(await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()')),
+    sortedRules(beforeRestoreRules),'Cancel must leave every Chrome dynamic rule unchanged');
+  await client.send('Page.reload',{ignoreCache:true},site);
+  await until(()=>evaluate(client,site,'document.readyState==="complete"'),'page reload after cancelled restore');
+  const cancelledRequest=await probe(client,site,adUrl());
+  assert.equal(cancelledRequest.success,true,'Cancel must keep the site exception effective on actual network');
+  report.restoreCancellation='PASS';
+  note('site-restore-cancelled',{exceptions:cancelledRestore.state.exceptions,
+    dynamicRuleIds:beforeRestoreRules.map(x=>x.id),request:cancelledRequest});
+  await requestRestoreReview();
   await click(client,sid,'#sidebar-tool-action-continue');
   await until(async()=>{const r=await getOwned(client,uid);
     return r.state?.exceptions?.length===0&&r.owned.length===1?r:null;},'site filter restored');
@@ -571,10 +706,54 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal((await probe(client,site,adUrl())).success,false);
   report.closedPanel='PASS';
   await client.send('ServiceWorker.enable',{},uid);
+  const workerUrl='chrome-extension://'+id+'/sw.js';
+  const beforeWorker=await getOwned(client,uid);
+  const runningWorker=(await client.send('Target.getTargets')).targetInfos
+    .find(x=>x.type==='service_worker'&&x.url===workerUrl);
+  assert.ok(runningWorker,'a live extension worker must exist before the stop test');
+  const stoppedEventStart=client.events.length;
   await client.send('ServiceWorker.stopAllWorkers',{},uid);
-  assert.equal((await probe(client,site,adUrl())).success,false,
+  await until(async()=>!(await client.send('Target.getTargets')).targetInfos
+    .some(x=>x.type==='service_worker'&&x.url===workerUrl),'actual extension worker target disappears after stop');
+  const stoppedRequest=await probe(client,site,adUrl());
+  assert.equal(stoppedRequest.success,false,
     'Chrome DNR survives its service worker being stopped');
+  assert.equal(stoppedRequest.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+  report.workerStoppedDnr='PASS';
+  assert.equal((await client.send('Target.getTargets')).targetInfos
+    .some(x=>x.type==='service_worker'&&x.url===workerUrl),false,
+    'worker must remain stopped until the authenticated status message wakes it');
+  const stoppedVersions=client.events.slice(stoppedEventStart)
+    .filter(x=>x.sessionId===uid&&x.method==='ServiceWorker.workerVersionUpdated')
+    .flatMap(x=>x.params.versions).filter(x=>x.scriptURL===workerUrl&&x.runningStatus==='stopped');
+  // Use the shipped, authenticated read-only status protocol from the real
+  // extension host. A DNR-only network probe cannot prove worker recovery.
+  const statusMessage={protocol:'opendesk.adblock.v1',toolId:'adblock',operation:'adblock.status',
+    payload:{},packageHash:report.installedIdentity.packageHash,installEpoch:report.installedIdentity.epoch};
+  const recoveredStatus=await evaluate(client,uid,
+    'chrome.runtime.sendMessage('+JSON.stringify(statusMessage)+')');
+  assert.equal(recoveredStatus?.ok,true,'new worker must answer the authenticated AdBlock status request');
+  assert.equal(recoveredStatus.data.installed,true);
+  assert.equal(recoveredStatus.data.toolEnabled,true);
+  assert.equal(recoveredStatus.data.enabled,true);
+  assert.equal(recoveredStatus.data.permissions?.dnr,true);
+  assert.equal(recoveredStatus.data.rules?.verified,true);
+  assert.deepEqual(recoveredStatus.data.rules.ruleIds,[F]);
+  assert.deepEqual(recoveredStatus.data.exceptions,[]);
+  const recoveredWorker=await until(async()=>(await client.send('Target.getTargets')).targetInfos
+    .find(x=>x.type==='service_worker'&&x.url===workerUrl),'new worker target after status wake request');
+  assert.notEqual(recoveredWorker.targetId,runningWorker.targetId,'wake must create a new worker target');
+  const afterWorker=await getOwned(client,uid);
+  assert.deepEqual(afterWorker.state,beforeWorker.state,'worker recovery must preserve durable filtering intent');
+  assert.deepEqual(sortedRules(afterWorker.owned),sortedRules(beforeWorker.owned));
+  assert.deepEqual(sortedRules(afterWorker.focus),sortedRules(beforeWorker.focus));
+  const recoveredRequest=await probe(client,site,adUrl());
+  assert.equal(recoveredRequest.success,false,'actual filtering must still work after worker service recovery');
+  assert.equal(recoveredRequest.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+  report.workerRecovery={beforeTargetId:runningWorker.targetId,afterTargetId:recoveredWorker.targetId,
+    stoppedVersions,request:statusMessage,response:recoveredStatus,stoppedRequest,recoveredRequest};
   report.workerRestart='PASS';
+  note('actual-worker-stop-wake-and-service-recovery',report.workerRecovery);
 
   const prior=chrome;
   await client.send('Browser.close').catch(()=>{});
@@ -610,8 +789,37 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   },'worker handles native permission removal');
   report.revocation='PASS_STATE_AND_NATIVE_PERMISSION';
   note('native-permission-revoked',{adblockIntent:false});
-  const revokedRequest=await probe(client,pageAgain,adUrl());
+  const revokedStatus=await evaluate(client,again,
+    'chrome.runtime.sendMessage('+JSON.stringify(statusMessage)+')');
+  assert.equal(revokedStatus?.ok,true);
+  assert.equal(revokedStatus.data.permissions.dnr,false);
+  assert.equal(revokedStatus.data.rules.verified,false);
+  assert.equal(revokedStatus.data.restartRequired,true,
+    'lost DNR access must expose unconfirmed matcher cleanup until browser restart');
+  report.revocationStatus=revokedStatus;
+  await click(client,again,'#catalog-open-dev-sidebar');
+  const revokedContext=await until(()=>evaluate(client,again,
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/ui/tool.html")))'),
+    'Side Panel after native revocation');
+  const revokedPanel=await until(async()=>(await client.send('Target.getTargets')).targetInfos
+    .find(x=>x.url===revokedContext.documentUrl),'revoked Side Panel target');
+  sid=await attach(client,revokedPanel.targetId);
+  await click(client,sid,'#tab-tools');await openInstalled(sid);
+  const warning=await until(()=>evaluate(client,sid,
+    '(()=>{const n=document.querySelector("#sidebar-tool-adblock-native");'+
+    'return n?.textContent.includes("权限已撤销")&&n.textContent.includes("停止过滤尚未确认")?n.textContent:null;})()'),
+    'actual trusted UI warns that revocation has not confirmed network cleanup');
+  report.revocationWarning=warning;
+  report.screenshots.push(await screenshot(client,sid,'native-permission-revoked-restart-warning'));
+  const revocationSamples=[];
+  const revokedRequest=await until(async()=>{
+    const request=await probe(client,pageAgain,adUrl());
+    revocationSamples.push({at:new Date().toISOString(),...request});
+    report.revocationSamples=revocationSamples;
+    return request.success?request:null;
+  },'native permission removal propagates to actual network requests',12000);
   assert.equal(revokedRequest.success,true,'native permission revocation must actually restore network');
+  report.revocation='PASS';
   note('revoked-network-restored',{request:revokedRequest,adServerHits:counts.ad});
   // Native revocation may make DNR API inaccessible; do not infer removal
   // of persisted rule bytes without native network and re-grant evidence.
@@ -627,7 +835,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return all.find(x=>x.url===ctx.documentUrl)||null;},'reopened Side Panel target');
   sid=await attach(client,target.targetId);
   await click(client,sid,'#tab-tools');
-  await click(client,sid,installed);
+  await openInstalled(sid);
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(()=>evaluate(client,again,
@@ -636,7 +844,10 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     '!Object.hasOwn(all,'+JSON.stringify(STORE)+');})()'), 'actual uninstall and data cleared');
   assert.equal((await probe(client,pageAgain,adUrl())).success,true,
     'after native permission removal and uninstall real requests must load');
-  report.uninstall='PASS';passed=true;
+  report.uninstall='PASS';
+  assert.equal((await packageFingerprint(ROOT)).packageHash,report.artifactPackageHash,
+    'loaded artifact bytes must remain stable through Native acceptance');
+  passed=true;
   note('uninstall-clears-product-data',{stillInstalled:false,realNetworkRestored:true});
   report.screenshots.push(await screenshot(client,sid,'adblock-final-uninstalled'));
 });

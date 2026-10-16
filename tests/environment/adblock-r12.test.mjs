@@ -478,6 +478,25 @@ test('permission revocation disables durable intent, re-grant alone never resume
   assert.equal((await f.service.tick()).enabled,false);
   assert.equal((await f.service.dispatch(await f.message('adblock.enable'),sender)).enabled,true);
 });
+test('revocation exposes unconfirmed matcher cleanup until a new browser session',async()=>{
+  const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+  const writes=f.actions.length;
+  f.setPermission(false);
+  const revoked=await f.service.tick();
+  assert.equal(revoked.restartRequired,true);
+  assert.equal(revoked.permissions.dnr,false);assert.equal(revoked.rules.verified,false);
+  assert.equal(revoked.enabled,false);
+  assert.equal(f.stored.get(ADBLOCK_STORE).approvedHash,null);
+  assert.equal(f.stored.get(ADBLOCK_STORE).approvedEpoch,null);
+  assert.equal((await f.restartService().tick()).restartRequired,true,
+    'stopping the worker cannot confirm matcher removal');
+  assert.equal(f.actions.length,writes,'revoked DNR API must never be invoked');
+  for(const key of f.sessionChanges)f.sessionStored.delete(key);
+  const restarted=await f.restartService().tick();
+  assert.equal(restarted.restartRequired,false);
+  assert.equal(restarted.permissions.dnr,false);assert.equal(restarted.enabled,false);
+  assert.equal(restarted.rules.verified,false,'no permission means no native rule readback');
+});
 test('rapid concurrent toggles serialize through existing tool Web Lock',async()=>{
   const f=await fixture();f.setDelay(10);
   const first=f.service.dispatch(await f.message('adblock.enable'),sender);

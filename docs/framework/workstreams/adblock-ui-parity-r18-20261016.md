@@ -93,3 +93,61 @@
 - **并行 React 工程修复**：最新 main 已出现针对 ReactDOM 19.2.0 原版模块的限定转换，把输入描述符的 `node.constructor.prototype` 变为 `Object.getPrototypeOf(node)`，同时将连续事件重放转成明确的 `PointerEvent/DragEvent/FocusEvent/MouseEvent/Event` 构造分支，新增专用正反测试。具体能否通过生产、开发和原生 Chrome，只认该变更对应的 CI 原始日志，不能仅据代码变更视作 PASS。[后续 AdBlock CI 38918489568](https://github.com/shopable-ai/opendesk-browser/actions/runs/38918489568) 启动时仍为 PENDING。
 - **正式发行界限**：已确认获批准 HTML Git Blob 仍应为 `4712eafda061d13ea54893d2f59dedfc4c311006`，配置为 `adblock@1.1.1`。此阶段检查 `examples/sidebar-tools/adblock/adblock.opendesk-tool.json` 仍不存在；不能提前写入未通过 Native 的包。任何 Native 失败保留截图、CDP、DNR、HTTP 和失败控件可见性证据。只有 BUILD PASS → Native macOS Chrome PASS → 候选/生产包源字节一致 → 官方 `--promote-from` → `--check-project` → 最新 main 非强制提交成功后，才可标记 PRODUCT ACCEPTED。
 - **独立质量审查状态**：UI 还原、操作效率、状态准确性、网站例外、权限安全、真实拦截、无障碍、生命周期、响应式、可维护性，在最新正式安装流程上尚无齐备的可核验证据；本轮十项全部 `NOT_SCORED`，不虚报 95+。
+# R1.9.8 · Local Mac build / native closure（2026-10-17）
+
+- Owner: Codex chat `01a145cd-08ba-7f63-b689-3bc104c2e324`; status: `BUILD_PASS / NATIVE_BLOCKED / NOT_RELEASED / NOT_ACCEPTED`.
+- Initial local/remote main: `4c28a087dc2c4e3175ed7e8785dd5cb524e1323a`; unrelated Prompt Shortcuts / Mindmap edits preserved. No OpenDesk dev/build/native writer was running at initial process inspection.
+- Write scope: this workstream; evidence under `artifacts/adblock-r198-local/`; if reproduced, narrowly scoped ReactDOM build transform/tests or `tests/framework/adblock-r12-native.test.mjs` fixes. Approved UI and tool version remain unchanged. Official JSON promotion is conditional on complete build + real Native PASS and source identity checks.
+- Resources: npm exact dependency install, guarded `dist/production` and `dist/development` builds, own temporary CFT profile and ephemeral HTTP/CDP ports. Mode initially static production/development validation; no serve client connected. CFT: local Playwright cache Chromium 1248 executable (version to be recorded before launch).
+- Reuse decision: historical Linux preview/old Chrome receipts remain historical only; latest React build inputs and same-candidate Mac evidence require validation. CI `38941304173` queued at inspection. No old Native or 95+ acceptance claimed.
+- Additional write ownership: leader owns `.github/workflows/adblock-r12.yml`, `scripts/verify-adblock-native-release.mjs`, its targeted environment test, and any reproduced sandbox fix in `examples/sidebar-tools/adblock/src/main.js`; native driver owned by native subagent (inherited model). Shared default output guard was occupied by another real build; isolated source snapshot uses guard 43220 with its own exact npm install, `.wxt`, `dist`, and receipts. The rejected external-node_modules symlink build is retained as failure evidence; no provenance check was relaxed.
+- Snapshot build closure: 101/101 original targeted Node tests, source check, Production `cda7406555187d7372603bca91890de1e481dae71cc389ce23b444177db29e9f`, Development `c63c32dc7508f904f501e0aabaedba9227622e01aca5f09bb933c2a5f15cef19`, and both verify commands PASS. Inputs are recorded under `artifacts/adblock-r198-local/source-snapshot.json`; this is not Native approval.
+- Development mode switch: after the other build released guard 43120, this chat started the normal repository `npm run dev` writing `/Users/shopme/Documents/workspace/opendesk-browser/dist/development` on port 43119; CFT connection remains to be verified. Other sessions must not overwrite this output. Isolated production Native baseline on Chrome 156.0.8078.4 failed before permission at `trusted AdBlock switches visible`; preserved under `native-baseline/`, not promoted.
+- Reproduced trusted-feature gap: external native permission revocation leaves HTTP blocked on CFT 156.0.8078.4 while API access is gone; complete browser restart restores HTTP 200. Leader additionally owns `trusted/service.js`, `trusted/host-controls.js`, their two environment tests and exact source pins in `scripts/bundle-provenance.mjs`, solely to expose the existing session fence as an unconfirmed-cleanup restart warning. No DNR engine, permissions, installation or UI layout change. Passing condition: revocation warning persists across Worker recreation, disappears on a fresh browser session without permission, and never claims verified rule cleanup. Native failure assertion remains mandatory.
+
+### 实际源码修复与构建闭环
+
+- 沙箱窗口 focus 先于按钮 focus/click 到达时，旧实现清空状态并替换恢复按钮，导致点击丢失。相同权威状态现在保留 DOM；恢复 generation 拒绝旧 status 成功/失败覆盖确认中及完成后的结果；随后仍读取最新权威状态，失败继续移除旧操作控件。7 项沙箱回归覆盖成功、失败和异步交错，未绕开可信确认。
+- 原生测试等待扩展中心列表与行完成刷新后再单次点击“打开”；iframe 点击记录内外层矩形、遮挡、可见性及截图；增加恢复取消、真实 Worker stop→新 target→受信任服务回包、整包 SHA 和失败证据写入诊断。保留网络、授权与清理断言。
+- 撤权后复用已有 session ready fence 返回 `restartRequired=true / rules.verified=false`，提示“停止过滤尚未确认，请完整退出并重启 Chrome”。不重新授权、不自动启用、不假报 DNR 清理。Worker 重建保留 fence；浏览器/扩展 session 重建后重新判断，不能把扩展重载当作完整重启的证明。精确可信来源 pin 更新为 service `c8cf789e3c73411e6588f03c1f558de39779de27`、host-controls `37c92abdcde09fe4e628de5adfd1bb3094359ee8`。
+- ReactDOM 19.2.0 的生产/开发输入追踪、事件重放 literal 构造器及开发 bind 别名已有最新 main 的审计转换；本轮没有再造转换或放宽 AST/CSP。可信 UI 在 development 也使用生产 React 编译路径。反向测试与完整构建验证继续拒绝未审计动态执行。
+- `npm ci --ignore-scripts --no-audit --no-fund` PASS；最终 8 个定向 Node 文件 **113/113 PASS**，`npm run check` **794 文件 PASS**。日志：[Node](../../../artifacts/adblock-r198-local/node-closure.log)、[源码检查](../../../artifacts/adblock-r198-local/check-closure.log)。
+- 独立源码快照、精确 lockfile 安装、guard 43220：`npm run build`、`npm run build:dev`、`npm run verify` 全 PASS。Production 整包 `fcbd4b4953f10482fd10c2cd372f4697c355fbbe7cbce6143f1740c88066a0da`；Development 整包 `cd3daf9fe1596ac5f60a97e860af8586b30c62cd817f703557d29a3dfa7a2c0b`。记录：[构建 receipt](../../../artifacts/adblock-r198-local/closure-builds/)、[输入身份](../../../artifacts/adblock-r198-local/source-final-snapshot.json)。最终核对 1954 个快照输入与当前工作区无漂移，未用旧候选冒充新包。
+- 保留中间失败：默认 guard 被其他构建占用、跨仓库 node_modules symlink 被 provenance 拒绝、精简快照初缺 Native contract 文件均未绕过门禁。磁盘不足曾导致一次中间 Native 证据写入失败，已保留日志并仅清理本轮可再生快照副本；最终 Native 原始证据写入完整，`evidenceErrors=[]`。
+
+### 真实 Mac Chrome 结果与阻塞
+
+- 用户最终指定开发模式调试；最终使用隔离 CFT/Profile 的**静态开发包** `artifacts/adblock-r198-local/source-final/dist/development`，不是 production 原生验收。CFT 可执行文件：`/Users/shopme/Library/Caches/ms-playwright/chromium-1248/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`；实际 `Chrome/156.0.8078.4`，extension ID `mlogdfcgcpccoapkljkgjhkkmdddhlbe`，loaded manifest 与 ROOT 完全相等。
+- 最终 [native-report.json](../../../artifacts/adblock-r198-local/native-closure-development/native-report.json)：`FAIL_OR_BLOCKED_NATIVE / success=false`，44.6 秒；首次授权→完整重启→手动开启、DNR 原生读回、HTTP 真拦截、正常资源、全局启停、Tab/Space、精确网站例外、其他网站继续阻断、跨 Origin iframe、恢复取消/确认、关闭面板、Worker 停止/唤醒与完整浏览器重启均取得该开发候选证据。恢复按钮真实可见并通过实际输入；取消保留规则 `741000/741001` 与 HTTP 200，确认后例外数 0 且实际广告重新阻断。
+- 最终撤权：真实 `chrome.permissions.remove` 成功，持久 enabled=false、批准身份清空、DNR API 不可用；权威 status 和真实 UI 均报告 restartRequired、未确认停止。随后 **12 秒、70 次新 nonce 请求全部 `net::ERR_BLOCKED_BY_CLIENT`**。没有删除失败断言、强制重新授权、伪造存储或将重启恢复改成即时撤权 PASS。
+- 原始 [CDP 事件](../../../artifacts/adblock-r198-local/native-closure-development/cdp-events.json)、[HTTP 服务端请求](../../../artifacts/adblock-r198-local/native-closure-development/server-requests.json)、[Chrome stderr](../../../artifacts/adblock-r198-local/native-closure-development/chrome-stderr.log)、失败 targets 的 JSON/PNG 与 [撤权截图](../../../artifacts/adblock-r198-local/native-closure-development/native-permission-revoked-restart-warning.png) 均保留。同一旧隔离 Profile 完整退出并重启后，独立 [恢复诊断](../../../artifacts/adblock-r198-local/revocation-restart-diagnostic.json) 得到 HTTP 200 和服务端命中；该诊断不是当前候选完整验收。
+- 上游依据：[Chromium issue 551296620](https://issues.chromium.org/issues/551296620) 讨论 DNR 权限增减时 matcher 处理；[156 分支 RulesMonitorService](https://github.com/chromium/chromium/blob/634b046faf2137b83af71c87baf362b533af9104/extensions/browser/api/declarative_net_request/rules_monitor_service.cc#L595-L631) 在权限已不存在时跳过卸载分支。与本机现象相符属于有源码支持的归因，不能声称已在 OpenDesk 修复 Chromium。
+- [正式安装 UI / 恢复按钮截图](../../../artifacts/adblock-r198-local/native-closure-development/real-site-exception-list.png)；单行工具栏、标题 14px、返回间距 8px、设置/卸载同一行、设置往返均有真实读回。另一次手动观察保留 [真实 360px 截图](../../../artifacts/adblock-r198-local/native-final-development/physical-layout/360.png)（DPR 2，非设备仿真）；该手动观察运行在 clean-profile 原生授权断言失败，不能晋升完整 Native PASS。分隔线原生拖动/AX 操作未改变读回宽度，320/400/480px 仍 NOT_TESTED；四档完整验收 NOT_TESTED。
+- 工具停用/卸载与清理、已安装旧版升级、Stay Focus 同时实际安装的规则隔离仍 NOT_TESTED（Node 隔离测试不能提升为 Native）。原生测试在撤权网络断言失败后未到达卸载；不假报这些后续流程。
+
+### 正式发行与 Git
+
+- 新增发行 receipt 校验器，拒绝 skipped/缺字段/旧 commit/driver/SW/manifest/完整 artifact/正式包/安装身份漂移；真实失败报告已触发 `native report must pass` 拒绝。CI native 和 publish 均安装依赖后验证；source 漂移检查覆盖完整构建源码与传递依赖，仍经现有 needs、打包器、`--promote-from`、`--check-project` 与普通 push。
+- 临时候选由唯一打包器生成，**1.1.1 / 19115 bytes / SHA-256 `b1df0a2b8d17d0582b174c9875e96e79153c429fbc1f24f3b54b505365c75a20`**，与本轮 Production、Development 内置 JSON 逐字节相同：[candidate](../../../artifacts/adblock-r198-local/candidate.opendesk-tool.json)。因 Native 未通过，未执行正式 `--promote-from`、未宣称正式 `--check-project`，目标 `examples/sidebar-tools/adblock/adblock.opendesk-tool.json` 仍未发行。
+- 最新已完成上游 [CI 38941304173](https://github.com/shopable-ai/opendesk-browser/actions/runs/38941304173) 对应 `4c28a087...` 为 failure；不能充当本次未推送修改的 CI。新的官方 Native/晋升任务尚未通过。
+- Git 提交前 local main `504a13313ad8634a1f5d0562e3259575490479d9` 与 fetched origin/main `82f9e8ae08c9d8e6ff1291a8feddef561ecbb878` 分叉，各含一笔其他任务的独有提交（XMind 与 Prompt Shortcuts）。不存在安全 fast-forward 同步路径；保留双方历史，禁止 reset/rebase/merge 绕过用户限定。本记录与本任务源码只提交到本地 main，推送因分叉阻塞；提交号及实际普通 push 输出见交付报告与本轮本地证据。
+- Git writer：本轮仅对列出的 AdBlock、可信来源 pin、定向测试和工作流执行一次串行暂存/提交事务；不暂存其他任务文件。原始批准设计 `preview/adblock-r1-interactive-preview.html` 未改；根目录来源绑定预览仅同步实际 JS，未重设计。
+
+### 十维独立验收
+
+独立 reviewer（与实现者分离）读取源码、反向测试及原始 Native 报告；没有足够证据给任何一维人为赋 95 分。
+
+| 维度 | 当前证据及未闭合项 | 独立评分 |
+| --- | --- | --- |
+| UI 还原 | 实装工具栏与三页证据；缺四档完整视觉对照 | NOT_SCORED |
+| 操作效率 | 设置往返、开关、恢复取消/确认已测；无完整效率评估 | NOT_SCORED |
+| 状态准确性 | DNR/网络读回与撤权警告已测；撤权网络仍被拦截 | NOT_SCORED |
+| 网站例外 | 精确主机、其他主机、iframe、取消、恢复已测；多例外/升级未齐 | NOT_SCORED |
+| 权限安全 | 授权/重启围栏/撤权状态已测；即时撤权效果失败 | NOT_SCORED |
+| 真实拦截 | 真实广告阻断、正常资源、HTTP 计数；覆盖率/误伤未评估 | NOT_SCORED |
+| 无障碍 | Tab/Space、焦点及异步回归；辅助技术/全流程键盘未齐 | NOT_SCORED |
+| 生命周期 | Worker/浏览器重启已测；撤权失败、卸载/升级未测 | NOT_SCORED |
+| 响应式 | 360px 组件截图；四档验收未完成 | NOT_SCORED |
+| 可维护性 | 小范围修复、精确来源/整包门禁、113 项测试；官方闭环未完成 | NOT_SCORED |
+
+资源交接：隔离 Native Chrome/Profile/HTTP 服务已关闭；独立构建已结束。正常 `npm run dev` 仍由本聊天启动的 PID 23773 持续运行，写入固定 `dist/development`，端口 43119；未操作日常 Chrome Profile。该 watcher 的 serve 状态与静态候选测试分开记录，不将“服务正在监听”当作日常 Chrome 客户端已连接。不得由其他 build 覆盖它的输出。

@@ -90,6 +90,18 @@ test('only AdBlock local storage and permission changes invalidate visible contr
   current=status();f.added.emit({permissions:[ADBLOCK_PERMISSION]});unknown(panel);
   await tick();switches(panel,true);assert.equal(reads,3);
 });
+test('revocation restart warning never claims permission approval or completed cleanup',async()=>{
+  const f=fixture();
+  const panel=f.mount(async()=>({...status(false),permissions:{dnr:false},
+    rules:{verified:false},restartRequired:true}));
+  panel.controls.render(tool,false,true);await tick();
+  assert.equal(panel.global.disabled,true);
+  assert.equal(panel.global.textContent,'需重启 Chrome');
+  const texts=panel.find(node=>node.className==='adblock-native-status is-off');
+  assert.match(panel.info.textContent,/权限已撤销.*停止过滤尚未确认.*完整.*重启/);
+  assert.ok(texts.children.some(node=>/权限已撤销.*重启/.test(node.textContent)));
+  assert.doesNotMatch(panel.info.textContent,/权限已批准|已停止过滤/);
+});
 
 test('in-flight reads coalesce invalidations and never paint an older response',async()=>{
   const f=fixture(),first=deferred(),latest=deferred();let reads=0;

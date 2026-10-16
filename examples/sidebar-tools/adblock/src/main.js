@@ -4,7 +4,7 @@
   // It never owns product navigation, Chrome permissions or DNR switches.
   const {root,request}=globalThis.OpenDeskTool;
   const $=id=>root.querySelector('#'+id);
-  let state=null,busy=false,reading=false,refreshPending=false;
+  let state=null,busy=false,reading=false,refreshPending=false,restoreGeneration=0;
   const message=(text,error=false)=>{
     $('adblock-message').textContent=text;
     $('adblock-message').dataset.error=String(error);
@@ -49,12 +49,19 @@
   async function refresh(){
     if(busy||reading){refreshPending=true;return;}
     reading=true;
+    const generation=restoreGeneration;
     try{
-      state=null;render();
       const next=await request('adblock.status',{});
+      // A read begun before restore cannot describe its pending or final state.
+      if(busy||generation!==restoreGeneration){refreshPending=true;return;}
       if(!Array.isArray(next?.exceptions))throw Error('网站例外数据不可核实');
-      state=next;render();message('');
+      // Window focus can precede the restore button's focus and click. An
+      // unchanged authority read must retain that DOM target and keyboard focus.
+      const unchanged=state&&state.toolEnabled===next.toolEnabled&&
+        JSON.stringify(state.exceptions)===JSON.stringify(next.exceptions);
+      state=next;if(!unchanged)render();message('');
     }catch(e){
+      if(busy||generation!==restoreGeneration){refreshPending=true;return;}
       state=null;render();message('无法核对 Chrome DNR：'+String(e.message||e),true);
     }finally{
       reading=false;
@@ -63,6 +70,7 @@
   }
   async function restore(host){
     if(busy||!state?.exceptions?.includes(host)||state.toolEnabled===false)return;
+    restoreGeneration++;
     busy=true;render();message('请在外层可信宿主确认恢复该网站…');
     try{
       const next=await request('adblock.site.restore',{host});

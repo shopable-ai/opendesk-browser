@@ -177,7 +177,7 @@ export function createAdblockService({
       return {installed:validPackage,toolEnabled:validPackage&&auth.enabled,
         enabled:false,permissions:{dnr:hasPermission},exceptions:[],
         currentHost:await activeSite(),rules:{verified:hasPermission&&dnrReady,ruleIds:[]},
-        restartRequired:hasPermission&&!dnrReady,
+        restartRequired:hasPermission!==dnrReady,
         version:ADBLOCK_RULE_VERSION,domainCount:ADBLOCK_REQUEST_DOMAINS.length};
     }
     let state;
@@ -253,8 +253,9 @@ export function createAdblockService({
     // reconciliation completes cleanup; it never resurrects a disabled rule.
     if(!sameStorageValue(state,auth.raw))
       await persist(state,auth.raw,'广告过滤策略');
-    // For native permission removal Chrome owns removal; never pretend a
-    // successful readback when DNR is inaccessible.
+    // A lost native permission makes DNR inaccessible, but Chromium may retain
+    // its already-loaded matcher. Worker restarts retain the session fence;
+    // a recreated browser/extension session rechecks permission from scratch.
     const rules=fresh?await reconcileAdblockRules(api,state.enabled?wantedAdblockRules(state):[],{
       beforeWrite,onPriorityConflict:async()=>{
         const next={...state,enabled:false,approvedHash:null,approvedEpoch:null};
@@ -266,7 +267,7 @@ export function createAdblockService({
     if(generation===epoch)revoked=false;
     return {installed:true,toolEnabled:true,enabled:state.enabled&&fresh&&rules.verified,
       permissions:{dnr:fresh},exceptions:state.exceptions,
-      currentHost:await activeSite(),rules,restartRequired:false,version:ADBLOCK_RULE_VERSION,
+      currentHost:await activeSite(),rules,restartRequired:!fresh&&dnrReady,version:ADBLOCK_RULE_VERSION,
       domainCount:ADBLOCK_REQUEST_DOMAINS.length,refreshRequired:operation==='adblock.site.set'||
       operation==='adblock.site.restore'};
   }
