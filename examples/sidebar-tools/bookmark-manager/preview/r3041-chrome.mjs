@@ -110,14 +110,21 @@ async function screenshot(name,clip){
 // desktop preview taller than the physical screenshot viewport.
 async function screenshotFull(name){
  const layout=await cdp('Page.getLayoutMetrics');
- const area=layout.cssContentSize;
+ const area=layout.cssContentSize,view=layout.cssVisualViewport;
  assert.ok(area.width>0&&area.height>0,'Chrome full-page capture dimensions');
+ // CDP screenshot clip dimensions are surface pixels when Chrome's real UI
+ // zoom is active. A raw CSS clip at 150% cuts off two thirds of the app.
+ const actualDpr=await evaluate('devicePixelRatio',await outerContext());
+ const physicalWidth=Math.ceil(Math.max(area.width,view?.clientWidth||0)*actualDpr);
+ const physicalHeight=Math.ceil(Math.max(area.height,view?.clientHeight||0)*actualDpr);
+ assert.ok(physicalWidth>300&&physicalWidth<6000&&physicalHeight>300&&physicalHeight<9000,
+  'safe physical full-page capture dimensions');
  const reply=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
-  clip:{x:0,y:0,width:Math.ceil(area.width),height:Math.ceil(area.height),scale:1}});
+  clip:{x:0,y:0,width:physicalWidth,height:physicalHeight,scale:1}});
  const bytes=Buffer.from(reply.data,'base64');
  await writeFile(join(out,name),bytes);
  return {sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,
-  cssSize:{width:area.width,height:area.height}};
+  cssSize:{width:area.width,height:area.height},physicalSize:{width:physicalWidth,height:physicalHeight}};
 }
 // Page.navigate resolves before the new document and nested React iframe mount.
 // Never reuse a preceding width/zoom context as screenshot evidence.
