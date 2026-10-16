@@ -59,3 +59,11 @@
 - [1af23f08](https://github.com/shopable-ai/opendesk-browser/commit/1af23f08fc1803b69bcc2c20446afee804d20c33) 通过唯一 `scripts/preview/build-preview.mjs` 重新生成并安全提交正式 `examples/sidebar-tools/adblock/adblock-r1-interactive-preview.html`；未改变不可变 R1 原始设计 `preview/adblock-r1-interactive-preview.html`。一次性来源同步工作流自清理，无第二套持久生成器。
 - R1.9.3 之前最近一份完整 macOS Chrome 实测 [38895876061](https://github.com/shopable-ai/opendesk-browser/actions/runs/38895876061) 已证实原生 Tab/Space 关闭再开启、真实 DNR 阻断、精确网站例外、其他网站继续拦截、跨域 iframe 请求；但因 `visible sandbox control ... 恢复 127.0.0.1 ... timed out` **仍为 Native FAIL**。复核当前产品“例外列表仅在 exceptions 页面显示”与原生脚本测试隐含“列表常驻”是否不一致，再做真实可见 UI 驱动、焦点、用户手势和恢复读回测试。不能以历史 macOS 部分成功宣布新 UI 的 native PASS。
 - 待续完成：`adblock.opendesk-tool.json` 最新可信候选的版本/同字节来源晋升、原生恢复链和卸载/撤权/重启完整验收。该 UI 预览通过不等于正式包、macOS DNR 或 95+ 产品验收，缺少的独立证据保持 NOT_TESTED / NOT_SCORED。
+
+## R1.9.5 · 同排设置工具栏（2026-10-16）
+
+- 用户最终确认：AdBlock 设置齿轮和卸载按钮必须属于同一行可信工具栏，返回按钮与「广告拦截」标题之间 8px，标题 14px。内容区域不得额外出现独立设置按钮行、Logo、名称或描述。覆盖之前 R1.9.4 内容区右上角的方案。
+- 提交 [7843f90c](https://github.com/shopable-ai/opendesk-browser/commit/7843f90c4c0a3fdaefa33bcefc9bbec1920ae0f3) 已修改固定 UI 工厂、正式 Side Panel 接线、CSS、HTML 外壳模板、模拟导航、组件与 Chromium 断言，同时同步可信 Blob 校验和 Quick Notes 来源锁，以及 AdBlock 需求/公共开发文档。
+- 提交 [b79db51f](https://github.com/shopable-ai/opendesk-browser/commit/b79db51fb80cb507cf06f6bcb5dc0030d4b9eebb) 修复源快照生成器依赖被移除的内容区按钮；设置视图改用正式控制器的 toggleProductSettings()。提交 [8fa009f1](https://github.com/shopable-ai/opendesk-browser/commit/8fa009f15bbab7135f4cef55c2e6b0589d8546e8) 修复测试中 header 与 heading 前缀误匹配；不是删除 UI 安全检查。
+- 官方 [R1.9.5 来源回归 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38909663739) 负责真实 HTML 生成、定向 Node、四档 Chromium 与 GitHub 正式文件同步。只有其同源验证及晋升真实成功才算 SOURCE_PREVIEW_PASS；测试失败或排队时不宣称 HTML 已提交。本地交互预览不是正式安装证据。
+- 下一优先级为 macOS Chrome 完整网站例外恢复、DNR 权威读回和唯一正式安装包；历史 [38895876061](https://github.com/shopable-ai/opendesk-browser/actions/runs/38895876061) 已验证部分真实网络阻断但仍在网站恢复按钮可见性失败；新候选 NATIVE_CHROME_PASS=NOT_TESTED，不得评满 95。
