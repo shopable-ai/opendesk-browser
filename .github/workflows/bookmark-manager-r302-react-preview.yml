@@ -70,8 +70,10 @@ jobs:
           NODE
       - name: Install CJK screenshot fonts
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq fonts-noto-cjk xvfb xclip libxtst6
+          sudo apt-get install -y -qq fonts-noto-cjk xvfb xclip libxtst6 || {
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq fonts-noto-cjk xvfb xclip libxtst6
+          }
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Real Chromium R3.0.4 no-footer, cancel, details, edit, menu, delete and focus acceptance
