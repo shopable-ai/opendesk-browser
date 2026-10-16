@@ -200,7 +200,7 @@ export default function App(){
  const current=tree?.byId.get(selectedId)||null;
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
- function toggle(id){setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
+ function toggle(id){if(expanded.has(id)&&tree){let node=tree.byId.get(activeId),limit=0;while(node&&limit++<100){if(node.parentId===id){setActiveId(id);break}node=tree.byId.get(node.parentId)}}setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
  function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setDetailOpen(false);setPickerOpen(move);setUncertain(false)}
  function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('')}
  function requestCloseSheet(){if(busy)return;if(dirtyDraft(draft)&&!uncertain){setConfirmDiscard(true);return}closeSheet()}
@@ -243,8 +243,14 @@ export default function App(){
  function bookmarkCurrentPage(){request({type:'currentPage'})}
  async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.3">
-  <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div><div className="bm-top-actions"><button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button><button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button></div></header>
-  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>setQuery(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>setQuery('')}><Icon name="x" size={14}/></button>}</div><div className="bm-create-actions"><Button icon="plus" kind="primary" onClick={()=>request({type:'create',kind:'bookmark'})}>新建书签</Button><Button icon="folder" onClick={()=>request({type:'create',kind:'folder'})}>新建文件夹</Button></div></div>
+  <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div>
+   <div className="bm-top-actions"><div className="bm-create-actions" aria-label="新建书签或文件夹">
+    <button title="新建书签" aria-label="新建书签" className="bm-icon-btn bm-icon-btn--primary" type="button" onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></button>
+    <button title="新建文件夹" aria-label="新建文件夹" className="bm-icon-btn" type="button" onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></button></div>
+    <button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
+    <button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button>
+   </div></header>
+  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>setQuery(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>setQuery('')}><Icon name="x" size={14}/></button>}</div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}

@@ -146,6 +146,8 @@ try{
   const idleMenus=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row:not(.is-selected) .bm-row-more')].slice(3,9).map(el=>Number(getComputedStyle(el).opacity))");
   assert.ok(idleMenus.length>0&&idleMenus.every(value=>value<0.1),'idle rows hide action controls until selection, hover or keyboard focus');
 
+  assert.equal(await invoke(ctx,"return document.querySelectorAll('.bm-topbar .bm-create-actions .bm-icon-btn[aria-label]').length"),2,'accessible icon-only create controls '+width);
+  assert.equal(await invoke(ctx,"return !document.querySelector('.bm-tools .bm-create-actions')"),true,'search-only toolbar '+width);
   await screenshot('bookmark-r303-'+width+'-list.png');
   // R3.0.3 accessibility regression: real tree key events and virtual offscreen scrolling.
   await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.focus();t.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}));return true");
@@ -179,6 +181,20 @@ try{
   await click(ctx,'.bm-editor-actions button:last-child');
   await gone(ctx,'[data-testid="bookmark-sheet"]','cancel directly');
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"confirm-dialog\"]')"),false,'no unsaved prompt');
+  // Dirty draft: explicit Cancel is immediate, X requires keep/discard confirmation.
+  await openMenu(ctx,'100');
+  await choose(ctx,1);
+  await until(ctx,"!!document.getElementById('bm-edit-name')",'dirty X editing '+width);
+  await setInput(ctx,'bm-edit-name','离开需要确认');
+  await click(ctx,'.bm-sheet-close');
+  await until(ctx,"!!document.querySelector('[data-testid=\\\"confirm-dialog\\\"]')",'dirty X confirmation '+width);
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\\\"confirm-dialog\\\"] button')?.textContent"),'继续编辑');
+  await click(ctx,'[data-testid="confirm-dialog"] button:first-child');
+  await gone(ctx,'[data-testid="confirm-dialog"]','continue editing');
+  assert.equal(await invoke(ctx,"return document.getElementById('bm-edit-name')?.value"),'离开需要确认');
+  await click(ctx,'.bm-sheet-close');
+  await click(ctx,'[data-testid="confirm-dialog"] button:last-child');
+  await gone(ctx,'[data-testid="bookmark-sheet"]','explicitly discard');
   await setInput(ctx,'bm-search','模拟书签 2152');
   await until(ctx,"!!document.querySelector('[data-node-id=\"2651\"]')",'last tree node search');
   await openMenu(ctx,'2651');
