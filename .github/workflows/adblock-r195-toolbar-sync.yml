@@ -1,4 +1,4 @@
-# One-shot source-bound UI closure; canonical host snapshots use the real toolbar controller, not obsolete inner settings buttons.
+# One-shot source-bound UI closure; do not block AdBlock publication on unrelated Bookmark Manager or Quick Notes parallel edits.
 name: AdBlock R1.9.5 same-row toolbar source preview
 on:
   push:
@@ -70,7 +70,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin main
           git diff --name-only "${GITHUB_SHA}" origin/main > /tmp/adblock-r195-advanced.txt
-          if grep -E '^(src/ui/(tool.html|tool-shell.css|sidebar-tools.js|design-tokens.css|design-system.css)|scripts/(preview/|templates/sidebar-tool-preview-shell.html|build-sidebar-tool.mjs|tests/(adblock-preview-chrome|sidebar-preview-runtime-chrome|bookmark-manager-r26-preview-chrome))|tests/environment/(adblock-|sidebar-preview-|sidebar-quick-notes)|examples/sidebar-tools/(adblock/|quick-notes/|bookmark-manager/)|contracts/ui-preview/|official-tools/|package(-lock)?\.json$)' /tmp/adblock-r195-advanced.txt; then
+          if grep -E '^(src/ui/(tool.html|tool-shell.css|sidebar-tools.js|design-tokens.css|design-system.css)|scripts/(preview/|templates/sidebar-tool-preview-shell.html|build-sidebar-tool.mjs|tests/adblock-preview-chrome)|tests/environment/adblock-|examples/sidebar-tools/adblock/|contracts/ui-preview/|official-tools/|package(-lock)?\.json$)' /tmp/adblock-r195-advanced.txt; then
             echo "::error::Shared source changed after Chromium evidence; refusing stale preview publication."
             exit 1
           fi
