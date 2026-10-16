@@ -170,7 +170,7 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
     readFile(base+'src/main.js','utf8'),readFile(base+'prompt-shortcuts.opendesk-tool.json','utf8')
   ]);
   const pkg=await createSidebarToolPackage(ROOT);
-  assert.equal(pkg.version,'1.0.3');
+  assert.equal(pkg.version,'1.0.4');
   assert.equal(pkg.id,PROMPT_ID);
   // The committed package remains on the previous known-good version until
   // the scoped tests and actual packer pass. CI promotes the same candidate
@@ -189,6 +189,8 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
   assert.match(css,/\.ps-card-main/);
   assert.match(js,/root\.querySelector\('\.ps-delete-cancel'\)/);
   assert.match(js,/model\.bytes\(estimate\)/);
+  assert.match(js,/use\.className='ps-card-use od-button od-button--quiet'/,
+    'formal list CTA must preserve canonical quiet-button token instead of blue primary button');
   assert.doesNotMatch(js,/request\('clipboard\.writeText'/);
   assert.doesNotMatch(html,/模拟数据|模拟撤销|mockContextMenu|SIMULATED PREVIEW/);
 });

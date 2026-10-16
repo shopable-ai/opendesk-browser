@@ -13,7 +13,7 @@ const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r113-formal-chrom
 await mkdir(out,{recursive:true});
 const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
 assert.equal(pkg.id,'prompt-shortcuts');
-assert.equal(pkg.version,'1.0.3');
+assert.equal(pkg.version,'1.0.4');
 assert.equal(pkg.scripts?.length,1);
 assert.equal(pkg.scripts[0].name,'trusted/model.js');
 const escaped=source=>source.replace(/<\/script/gi,'<\\/script').replace(/<\/style/gi,'<\\/style');
@@ -183,6 +183,16 @@ async function run(){
   x=await view();
   assert.deepEqual(x.itemBodies,['你好']);
   assert.equal(x.countText,'1 个 · 1 个启用');
+  const buttonStyle=await evaluate('('+function(){
+    const use=getComputedStyle(document.querySelector('.ps-card-use'));
+    const primary=getComputedStyle(document.querySelector('#ps-new'));
+    return {useBackground:use.backgroundColor,useColor:use.color,
+      primaryBackground:primary.backgroundColor};
+  }.toString()+')()');
+  assert.notEqual(buttonStyle.useBackground,buttonStyle.primaryBackground,
+    'a full-body shortcut must not inherit visually dominant blue primary fill');
+  assert.notEqual(buttonStyle.useColor,buttonStyle.useBackground,'prompt text must be legible');
+  report.contentFirstControlStyle=buttonStyle;
   await screenshot('formal-saved-400px');
   await rpc('Page.reload',{ignoreCache:true});
   await poll('document.querySelector("#ps-new")&&!document.querySelector("#ps-new").disabled&&document.querySelectorAll(".ps-card").length===1',
