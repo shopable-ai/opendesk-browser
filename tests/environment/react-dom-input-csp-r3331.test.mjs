@@ -103,7 +103,7 @@ test('pinned development ReactDOM static native bind alias keeps semantics witho
     {target,reactDomVersion:'19.2.0'}),null);
   assert.equal(transformPinnedReactDomDevBind(fixture,development,
     {target:'sw.js',reactDomVersion:'19.2.0'}),null);
-  assert.equal(transformPinnedReactDomDevBind(fixture,'\\0'+development,
+  assert.equal(transformPinnedReactDomDevBind(fixture,'\0'+development,
     {target,reactDomVersion:'19.2.0'}),null);
   assert.throws(()=>transformPinnedReactDomDevBind(fixture,development,
     {target,reactDomVersion:'19.2.1'}),/changed version/);
