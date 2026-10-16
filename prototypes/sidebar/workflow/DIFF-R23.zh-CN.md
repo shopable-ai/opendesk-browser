@@ -108,3 +108,45 @@ docs/framework/workstreams/workflow-local-e2e-01a13fcb-20261015.md 记载旧特�
 - **真实 200% Chrome 页面缩放**：X11 原生 `Ctrl+Plus` 连续放大，`devicePixelRatio: 1→2`、`innerWidth: 1280→640`、`outerWidth: 1280`，分别检查 360/420/520px 的三个 Icon 命中区域、标题溢出、遮挡与浏览器横向溢出均通过。不是 CSS transform 或单独 viewport 模拟。
 - **归档证据**：[源文件＋八张截图＋结果 JSON](https://github.com/shopable-ai/opendesk-browser/actions/runs/38875166282/artifacts/12034804409)；[真实 200% 缩放截图＋数值 JSON](https://github.com/shopable-ai/opendesk-browser/actions/runs/38875166282/artifacts/12035106340)。
 - **结论边界**：`PREVIEW_SOURCE_BOUND_CHROME_PASS`（仅模拟 HTML）。正式 Sidebar、Mac Chrome 用户安装、真实 AI/Native/RunHost 两轮、系统级中文 IME 未测试；六维独立 UX 专家评分仍为 `NOT_SCORED`；用户尚未批准迁移设计。不能把预览证据升级为正式产品 95+ 交付。
+
+
+## 九、R23.3 / R23.3.1：AI 设置、低摩擦模式及自然语言模拟闭环（2026-10-16）
+
+### 9.1 产品规则与正式源码的边界
+
+- 唯一已修改的 UI 是 \`prototypes/sidebar/workflow/index.html\`。正式 \`src/ui/workflow/*\`、\`src/ui/tool.html\`、RunHost、Authority、Chrome permissions、Compiler、SDK 未修改；用户确认前不迁移到真实 Side Panel。
+- 正式 \`provider.js\` 已有 \`local_codex\`（Native App Server）、\`cloud_responses\`（OpenAI Responses）和 \`custom_https\`（旧版 Chat Completions）。\`opendesk_cloud\` 尚未开放。本原型不冒充连接模型；本机来源不伪造模型列表，云端独立输入模型 ID，旧版自定义 HTTPS 放在高级项，不保存 API Key。
+- 操作模式「标准」「只读」「每次确认」目前只存在于**离线 HTML 模拟**，不是已落地的正式 RunHost Authority 模式或跨来源授权。标准模式仅默认允许已模拟授权站点内、由当前指令明确指定的非敏感填写和读回；只读不写入；每次确认在填写前审核；风险请求即使确认也不执行本原型不支持的提交、支付或删除。
+- 正式 \`workflow-view.js\` 当前仍在 HTTPS 路径逐轮审批网页观察，\`local-codex.js\` 有自身的会话/模型内容 consent，Chrome permission / target document revalidate / RunHost admission 独立存在。因此 **HTML 中默认不弹摘要框 ≠ 正式产品已移除此授权要求**；需经后续明确审批与安全设计映射后才能变更正式实现。
+- 不同 AI 来源之间无网页披露授权继承；模拟切来源、文档切换、站点撤权会失效对应许可。不得借当前页任务文本授权对外发送敏感字段、Cookie、令牌或凭据。
+- 用户送出「给我一个亿的项目」先获目标澄清，点「填写到姓名输入框并读回」后写入模拟 DOM；第二轮「把刚才的内容改成：项目已启动」保留历史并读回。精确旧格式仍可运行；其他任意非空输入有能力边界回复。不调用大模型、不会发真实 HTTP/Native 或自造可信回执。
+- Stop 在规划/执行状态取消仍待触发的模拟定时器，结果未知只读检查，不自动重放任何副作用。保存/恢复限**当前 HTML 页面内存**，刷新丢失。
+
+### 9.2 来源绑定与实际 Chromium 证据
+
+- 最后一次直接在 \`main\` 提交的 UI/测试变更：[\`1da09acc497c462d700ef89a3a7071e0dbcc89f4\`](https://github.com/shopable-ai/opendesk-browser/commit/1da09acc497c462d700ef89a3a7071e0dbcc89f4)（其他 Agent 可能继续推进 HEAD）。
+- 唯一 HTML Git Blob：\`a3c5385ffbe4500575991aa86a8cc5dd2de60aba\`；SHA-256：\`e3c742a43d218c9a28ab5b054a9c101d9169f0be5f3eac28317dc38a4090aed0\`。
+- [GitHub Actions 真实复验 #38890379147](https://github.com/shopable-ai/opendesk-browser/actions/runs/38890379147)：Chrome 155.0.8059.84，\`R233_SOURCE_BOUND_CHROMIUM_PASS 16\`，无 JS Console/Page Errors；\`R232_REAL_CHROME_UI_200_ZOOM_PASS\`，X11 原生 Ctrl+Plus，DPR 1→2、内部视口宽 1280→640；360／420／520px 标题、三图标与横向溢出断言通过。
+- CI 原始截图/JSON：[\`exact-saved-html\` artifact #12041207964](https://github.com/shopable-ai/opendesk-browser/actions/runs/38890379147/artifacts/12041207964)；[原生 200% 缩放 artifact #12041173215](https://github.com/shopable-ai/opendesk-browser/actions/runs/38890379147/artifacts/12041173215)。两份 artifact 均内含相同唯一 \`index.html\`。没有使用旧截图充作新版本通过证明。
+- 16 个回归类别包含：首屏纯 Icon 三入口、低摩擦自然语言澄清、DOM 双轮读回、旧完整模板、任意指令反馈、模拟 IME 事件、只读、逐次确认、高风险拒绝、Stop 两阶段、断线恢复、Cloud 接收方隔离、站点撤权/文档切换、内存版本管理、未知结果核验、响应式/深浅场景。
+
+### 9.3 六维独立指标与反方 UX 审计
+
+评分是**仅对可执行 HTML 原型的证据自评，不是六名独立外部人类专家、正式扩展验收或模型能力评分**。缺少人工辅助技术证据的维度保持 NOT_SCORED：
+
+| 独立维度 | 原型自评 | 实际证据 / 尚存缺口 |
+| --- | ---: | --- |
+| 视觉布局与设计一致性 | 95/100 | 最终 Chromium 首屏/过程截图、顶栏 3 个纯 Icon 40px、AI 来源不再被旧 icon 36px 裁切、研发工具默认折叠、三宽及原生 200% PASS；真实用户高对比偏好和 Mac 字体仍待核对。 |
+| 自然语言对话与操作效率 | 95/100 | 16 项中短命令→一键澄清→填入、完整旧模板直达及上下文第二轮通过；只限有限规则模拟，任意真实网页任务未实现。 |
+| AI 设置与模型配置合理性 | 95/100（原型结构） | 真实 Provider 来源分类、Native 状态、Cloud 模型 ID、旧 HTTPS 高级折叠与未开放项禁用；未连接实际模型/Key/Endpoint，真实能力 NOT_TESTED。 |
+| 权限摩擦与安全边界 | 95/100（原型行为） | 标准无例行弹窗、只读不写、逐次确认和危险动作安全阻止、来源隔离与模拟撤权；正式权限策略未变更，正式安全审核 NOT_TESTED。 |
+| 状态反馈与错误恢复 | 96/100 | 用户消息、规划进度、DOM 读回、Stop、断线、历史、新对话、未知只查不重放均有 Chromium 检查；真实网络竞争、宿主中断 NOT_TESTED。 |
+| 可访问性与技术可维护性 | NOT_SCORED | 原生 200% 缩放、基础 \`aria-label\`、40px 可点区与合成 composition 测试通过；Mac 系统级中文输入法、VoiceOver、完整键盘辅助技术验收缺失，不能伪造 95 分。 |
+
+**反方意见**：任何摘要自动发送设计都不能继承无关模型授权；Cloud 演示的“模拟完成配置”并不代表 API Key 已核验；前端 95 分不代表真实 AI 任务执行 95 分；对任意指令的回复并不等于理解任何任务；高风险动作也不能因为原型确认按钮而获得真实执行权限。若用户认为首屏上的模拟网页/研发工具影响产品感受，应以本页可折叠 QA 工具、明确的模拟身份与真实目标网页区分，不得通过假运行回执隐藏差异。
+
+### 9.4 明确 NOT_TESTED
+
+- 用户 Mac 已安装 OpenDesk 扩展、真正 Codex 登录模型、真实 OpenAI API、Chrome 权限审批、RunHost Durables / Browser SDK / 多站点执行均 NOT_TESTED。
+- Mac 原生中文 IME、VoiceOver、系统级焦点操作均 NOT_TESTED。Chromium 的 JS 合成 composition 只能验证事件级逻辑。
+- 本轮不修改正式 Sidebar。唯一下一步是用户实际体验并批准 HTML 之后，再另立生产实现与真机测试范围。
