@@ -169,3 +169,13 @@ npm run check
 专项 CI 生成两个独立的短期 Artifact：`r35-program-build-candidate`（三文件与来源审计）及 `r35-chatgpt-icon-toolbar-proof`（真实 Chromium PNG、`chatgpt-result.json`、`screenshot-evidence.json`）。两者都不是本机已安装证明。截图证据由真实页面生成；没有逐张打开审阅前必须标为 `SCREENSHOT_NOT_VERIFIED`，不评 95+。
 
 本轮 GitHub 操作无法读取用户 Mac `/Users/shopme/...` 下的构建目录、已安装 Chrome profile 或并行 Agent 的未提交工作树；这些项目目前 `NOT_TESTED`。正式资源准入、许可、Snowbrush 全局 CSS 隔离、用户脚本生命周期及原生授权/撤权仍未通过。预览设计仍 `PENDING_USER_CONFIRMATION`。
+
+## R3.6 · 完成的源码修复、真实 CI 与仍未关闭的生产约束（2026-10-16）
+
+独立 Program 唯一业务根目录：`examples/programs/chatgpt-mindmap/`；它内部的 `src/` 不是浏览器宿主的 `opendesk-browser/src/`。本轮从未修改宿主业务代码。完整源码调用链、打包模块清单与 SDK 边界见 [R3.6 架构审计](../../../docs/framework/workstreams/chatgpt-mindmap-r36-architecture-audit.md)。
+
+已用真实 CI 修复 `reflow` 的 optional chaining 合法断言、容器查询祖先、More 菜单点击宽度/方向键焦点、动态 XMind topic 布局尚未稳定时过早标记 Fit 完成等问题。320px 时保留可读根节点，提供「左右拖动查看分支」提示；**不会**把所有子分支挤到 320px 一屏，因此要以实际横向滚动和真实主题可见范围判断 UX。
+
+已通过的专项 CI 示例：[`#38865072908`](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865072908)，离线源码/构建 Job 与真实 Linux Chromium 原始 XMind/ChatGPT 模拟页面 Job 均为 SUCCESS。该运行 A/B/C 真实主题 10/6/10、20 次开关、桌面及 320/375/390/768/1440 响应、横向浏览与菜单交互、截图 PNG SHA-256 校验通过。图片证据由独立 `r36-chatgpt-icon-toolbar-proof` Artifact 提供；构建候选由独立 `r36-program-build-candidate` Artifact 提供；旧 CI 的 `r35-*` 仅代表旧版运行。
+
+**四个不同状态严禁混淆**：独立源码已验证；Program 构建候选已审计但 `BUILT_UNVERIFIED/installable:false`；Browser MV3 `dist/development` / `dist/production` 包含状态 **NOT_TESTED**；本机 Mac Chrome 真实 `userScripts` 注册/授权/卸载 **NOT_TESTED**。生产必需的固定原始 XMind JS 分发许可、可信 USER_SCRIPT 准入、`E_XMIND_RUNTIME_UNAVAILABLE` 与 Snowbrush `snowbrush_style` 全局残留是 **BLOCKED**。别在宿主 `src/` 添加思维导图特例，也不得把 `installable` 改为 `true` 冒充安装通过。设计仍 `PENDING_USER_CONFIRMATION`。

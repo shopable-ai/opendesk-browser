@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {selectReadingTocOverview,TOC_OVERVIEW_TARGET,TOC_OVERVIEW_LIMIT}
   from '../../src/reading-toc/overview.js';
 import {createReadingTocIndex} from '../../src/reading-toc/model.js';
+import {readingTocDisplayMode} from '../../src/reading-toc/view.js';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
 import {compileToolLocaleCatalog} from '../../src/ui/app-localization.js';
 
@@ -153,4 +154,17 @@ test('R4.4 deeply nested late headings keep their parent chain while capped',()=
   const selected=new Set(result.ids);
   for(const row of headings.filter(item=>selected.has(item.id)&&item.parentId))
     assert(selected.has(row.parentId),'all visible deep chapters have a visible parent');
+});
+
+test('R1.5 compact overlay never overwrites an explicitly chosen reading mode',()=>{
+  for(const mode of ['top','focus','full']){
+    assert.equal(readingTocDisplayMode(mode,false,false),mode);
+    assert.equal(readingTocDisplayMode(mode,false,true),mode);
+    assert.equal(readingTocDisplayMode(mode,true,true),mode,
+      'short outline must retain the user-selected mode across snapshot updates');
+  }
+  assert.equal(readingTocDisplayMode('focus',true,false),'top',
+    'automatic short-outline overview remains the initial product behavior');
+  assert.equal(readingTocDisplayMode('focus',false,false),'focus',
+    'longer outlines return to focus without losing the preference');
 });

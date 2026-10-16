@@ -192,6 +192,8 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
   assert.match(css,/\.ps-card-main/);
   assert.match(js,/root\.querySelector\('\.ps-delete-cancel'\)/);
   assert.match(js,/model\.bytes\(estimate\)/);
+  assert.match(js,/use\.className='ps-card-use od-button od-button--quiet'/,
+    'formal list CTA must preserve canonical quiet-button token instead of blue primary button');
   assert.doesNotMatch(js,/request\('clipboard\.writeText'/);
   assert.doesNotMatch(html,/模拟数据|模拟撤销|mockContextMenu|SIMULATED PREVIEW/);
 });

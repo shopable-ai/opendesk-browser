@@ -323,6 +323,19 @@ try{
   await more.focus();await page.keyboard.press('ArrowDown');
   assert.equal(await more.getAttribute('aria-expanded'),'true');
   assert.equal(await viewer(2).locator('.odmm-menu button:focus').count(),1);
+  report.narrowMenuMetrics=await viewer(2).evaluate(host=>{
+    const panel=host.shadowRoot.querySelector('.odmm-menu');
+    return {width:panel.getBoundingClientRect().width,
+      buttons:[...panel.querySelectorAll('button:not([hidden])')].map(el=>({
+        label:el.getAttribute('aria-label'),width:el.getBoundingClientRect().width,
+        height:el.getBoundingClientRect().height}))};
+  });
+  assert.ok(report.narrowMenuMetrics.buttons.every(item=>
+    item.width>=report.narrowMenuMetrics.width-14&&item.height>=44),
+  'Menu item text and focus must be inside an entire clickable row');
+  const panHint=await viewer(2).evaluate(host=>getComputedStyle(
+    host.shadowRoot.querySelector('.odmm-canvas'),'::after').content);
+  assert.match(panHint,/左右拖动查看分支/);
   await page.keyboard.press('ArrowDown');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('Home');
@@ -354,18 +367,80 @@ try{
     '320px screen must never gain page-level horizontal scrolling');
   report.mobile=mobile;
   await capture('chatgpt-mobile-320.png',{fullPage:true});
-  for(const width of [375,390,768,1440]){
+  const getPan=()=>viewer(2).evaluate(host=>{
+    const scroller=host.shadowRoot.querySelector('.workbook-item');
+    return {left:scroller?.scrollLeft??null,extent:scroller?.scrollWidth??null,
+      client:scroller?.clientWidth??null};
+  });
+  const beforePan=await getPan();
+  await viewer(2).locator('.odmm-canvas').hover();
+  await page.mouse.wheel(235,0);
+  await page.waitForFunction(previous=>{
+    const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
+    const scroller=host?.shadowRoot?.querySelector('.workbook-item');
+    return scroller&&Math.abs(scroller.scrollLeft-previous)>10;
+  },beforePan.left,{timeout:12000});
+  report.mobilePan={before:beforePan,after:await getPan()};
+  assert.ok(report.mobilePan.after.left>report.mobilePan.before.left+10,
+    'Actual XMind scroller must reveal off-screen branches via horizontal wheel');
+  await capture('chatgpt-mobile-320-panned.png',{fullPage:true});
+  report.checks.push('MOBILE_REAL_XMIND_HORIZONTAL_BROWSE');
+  await viewer(2).getByRole('button',{name:'适配导图画布'}).click();
+  // The fixture controls live inside a <details> which we collapsed before
+  // the mobile screenshots. Restore desktop viewport, reopen its controls,
+  // then turn off the forced 320px mode before testing natural widths.
+  await page.setViewportSize({width:1220,height:860});
+  await page.locator('#developer-lab summary').click();
+  await page.getByRole('button',{name:'切换 320px 容器'}).click();
+  await page.locator('#developer-lab summary').click();
+  await page.waitForFunction(()=>!document.getElementById('preview-conversation')
+    ?.classList.contains('is-narrow'),null,{timeout:10000});
+  report.responsive=[];
+  for(const width of [375,390,400,440,768,1220,1440]){
     await page.setViewportSize({width,height:860});
     await page.waitForFunction(expected=>document.documentElement.clientWidth===expected,
       width,{timeout:10000});
+    await page.waitForFunction(()=>{
+      const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
+      const canvas=host?.shadowRoot?.querySelector('.odmm-canvas');
+      return !!canvas&&canvas.dataset.fitReady==='true'&&
+        Number(canvas.dataset.fitWidth)===canvas.clientWidth;
+    },null,{timeout:25000});
+    const metrics=await viewer(2).evaluate(host=>{
+      const root=host.shadowRoot;
+      const canvas=root.querySelector('.odmm-canvas');
+      const panel=document.getElementById('preview-conversation');
+      const topic=root.querySelector('.topic')?.getBoundingClientRect();
+      const rect=canvas.getBoundingClientRect();
+      return {contentWidth:Math.round(panel.getBoundingClientRect().width),
+        shellWidth:root.querySelector('.odmm-shell').getBoundingClientRect().width,
+        canvasWidth:canvas.clientWidth,fitWidth:Number(canvas.dataset.fitWidth),
+        desktop:getComputedStyle(root.querySelector('.odmm-desktop-only')).display,
+        mobile:getComputedStyle(root.querySelector('.odmm-mobile-only')).display,
+        visibleRootPx:topic?Math.max(0,Math.min(rect.right,topic.right)-
+          Math.max(rect.left,topic.left)):0};
+    });
+    // @container follows actual shell width, not a browser-window breakpoint:
+    // 400px still fits compact mode while 440px may use desktop controls.
+    if(width>=768)assert.ok(metrics.contentWidth>390&&metrics.canvasWidth>390,
+      'Wide viewport must contain a genuinely wide XMind canvas, not 320px');
+    if(metrics.shellWidth>390){
+      assert.notEqual(metrics.desktop,'none');
+      assert.equal(metrics.mobile,'none');
+    }else{
+      assert.equal(metrics.desktop,'none');
+      assert.equal(metrics.mobile,'flex');
+    }
+    assert.ok(metrics.visibleRootPx>48,'Responsive root must remain visible: '+width);
     const overflow=await page.evaluate(()=>({
       documentWidth:document.documentElement.scrollWidth,
       viewport:document.documentElement.clientWidth
     }));
     assert.ok(overflow.documentWidth<=overflow.viewport+1,
       'Viewport '+width+' must not overflow horizontally');
+    report.responsive.push({viewport:width,...metrics,...overflow});
     await capture('chatgpt-responsive-'+width+'.png',{fullPage:true,answer:'B'});
-    report.checks.push('RESPONSIVE_'+width+'_SCREEN_NO_PAGE_OVERFLOW');
+    report.checks.push('RESPONSIVE_'+width+'_SCREEN_AND_CONTENT_LAYOUT');
   }
   report.checks.push('TRUE_320PX_CONTENT_CONTAINER','NARROW_TOOLBAR_WRAP',
     'NARROW_READABLE_XMIND_ZOOM','MOBILE_320_NO_OVERFLOW');

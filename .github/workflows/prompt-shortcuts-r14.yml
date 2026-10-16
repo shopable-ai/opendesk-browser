@@ -8,6 +8,7 @@ on:
       - 'examples/sidebar-tools/prompt-shortcuts/**'
       - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
       - 'scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs'
+      - 'scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs'
       - 'src/ui/sidebar-tools/package.js'
       - 'src/ui/sidebar-tools/installation.js'
       - 'src/ui/sidebar-tools.js'
@@ -75,6 +76,17 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
         run: node scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs artifacts/prompt-shortcuts-r111-preview
+      - name: Real Chromium formal bundled UI with controlled fake Host (not installed)
+        env:
+          CHROME_BIN: ${{ steps.preview-chrome.outputs.chrome-path }}
+        run: node scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs artifacts/prompt-shortcuts-r113-formal-chrome
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prompt-shortcuts-r113-formal-chrome-${{ github.sha }}
+          path: artifacts/prompt-shortcuts-r113-formal-chrome/
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -165,3 +177,12 @@ jobs:
           console.log('PROMPT_PROJECT_PACKAGE_COMMITTED',published.data.commit.sha,
             content.length,createHash('sha256').update(content).digest('hex'));
           NODE
+
+      - name: Verify published source and canonical official project package
+        run: |
+          # A fresh checkout is required because the earlier job only downloaded
+          # an artifact, then used Contents API to publish to main.
+          git clone --quiet --depth 1 --branch main "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" .verify-main
+          cd .verify-main
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project

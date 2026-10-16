@@ -54,6 +54,10 @@ const ICONS=[
 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2"/></svg>',
 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg>'
 ];
+// A short outline defaults to overview without mutating the user's selected mode.
+export function readingTocDisplayMode(mode,compact,userSelected=false){
+  return compact&&!userSelected?'top':mode;
+}
 export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialLocale='zh-CN',onPlacementChange=()=>{},onNavigate}) {
   let locale=resolveUiLocale(initialLocale,Object.keys(readingTocCatalog.messages),'zh-CN');
   const t=(key,params)=>uiMessage(readingTocCatalog,locale,key,params);
@@ -69,12 +73,12 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   caption.textContent='CONTENTS';
   const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
   const types=['top','focus','full'],buttons=[];
-  let mode='focus',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='',moreRemaining=0;
+  let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='',moreRemaining=0;
   types.forEach((name,index)=>{
     const button=make('button','mode');button.type='button';button.title=t(['topLabel','focusLabel','fullLabel'][index]);
     button.setAttribute('aria-label',button.title);button.dataset.mode=name;
     button.setAttribute('aria-pressed',String(index===0));button.innerHTML=ICONS[index];
-    button.addEventListener('click',()=>{mode=name;render();});buttons.push(button);modes.append(button);
+    button.addEventListener('click',()=>{mode=name;modeExplicit=true;render();});buttons.push(button);modes.append(button);
   });
   const grab=make('button','grab');grab.type='button';
   grab.title=t('dragTitle');
@@ -89,7 +93,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   head.append(grab,modes,reset);
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
   const more=make('button','more');more.type='button';more.hidden=true;
-  more.addEventListener('click',()=>{mode='full';render();});
+  more.addEventListener('click',()=>{mode='full';modeExplicit=true;render();});
   empty.textContent=t('pageEmpty');scroll.append(list,more,empty);panel.append(head,scroll);root.append(panel);
   function updateMore(){
     more.textContent=t('moreWithCount',{count:moreRemaining});
@@ -223,14 +227,14 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     const active=scoped.find(item=>item.id===activeId)||scoped[0];
     const overview=snapshot.overview?.[selected];
     const compact=scoped.length<=5&&(scoped.length===0||overview?.ids?.length===scoped.length);
-    if(compact&&scoped.length)mode='top';
-    modes.hidden=compact;
+    const displayMode=readingTocDisplayMode(mode,compact,modeExplicit);
+    modes.hidden=compact&&!modeExplicit;
     const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
-    const represented=mode==='top'
+    const represented=displayMode==='top'
       ?scoped.find(item=>item.id===(overview?.representedId||active?.topId)):active;
-    const show=mode==='full'?scoped:mode==='top'?scoped.filter(item=>overviewIds.has(item.id)):
+    const show=displayMode==='full'?scoped:displayMode==='top'?scoped.filter(item=>overviewIds.has(item.id)):
       scoped.filter(item=>item.depth===0||item.topId===active?.topId);
-    const key=mode+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth).join('|');
+    const key=displayMode+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth).join('|');
     if(key!==lastKey){
       const fragment=doc.createDocumentFragment();
       for(const item of show){
@@ -243,13 +247,13 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       }
       list.replaceChildren(fragment);lastKey=key;
     }
-    for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode===mode));
+    for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode===displayMode));
     for(const button of list.querySelectorAll('button')){
       if(button.dataset.id===represented?.id)button.setAttribute('aria-current','location');
       else button.removeAttribute('aria-current');
     }
     empty.hidden=show.length>0;
-    const remaining=mode==='top'?Math.max(0,overview?.hiddenCount||0):0;
+    const remaining=displayMode==='top'?Math.max(0,overview?.hiddenCount||0):0;
     more.hidden=remaining===0;
     moreRemaining=remaining;updateMore();
     reposition();place();

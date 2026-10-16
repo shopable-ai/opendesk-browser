@@ -373,3 +373,39 @@
 - 列表使用真实浏览器用户点击触发工具文档直接复制（先 `execCommand('copy')`，再尝试 Clipboard API），不再向 Host 发送不存在的 `clipboard.writeText` operation，也不弹手动复制面板。两种剪贴板方式都失败必须明确提示。
 - 新增 Node 测试覆盖 `你好` 的写入、重新挂载读回、防重复、缺少 randomUUID、旧形状、失败、未知结果与空正文；R1.13 修改只属于独立工具及来源测试。
 - 当前记录是源码修改说明：Node / CI / PACKAGE / 已安装 Mac Chrome / ChatGPT / IME 实际结果必须以运行日志单独补证，未取得之前为 `NOT_TESTED`。不得把用户既有保存失败误诊为某一单一根因。
+
+
+## R1.13 正式工具交付与产品验收证据（2026-10-16）
+
+### 已实施并由原始 CI 复核
+
+- 入口 `examples/sidebar-tools/prompt-shortcuts/`，保持独立 Sidebar Tool；未改动 `trusted/page.js` 与 `trusted/policy.js`，未新建 Host/SDK/网页注入入口。正式工具版本自最新 main 的 1.0.2 升为 **1.0.3**。
+- 修复 `trusted/model.js` 的 `crypto.randomUUID` 环境风险：采用 `getRandomValues` 安全回退，随机源不可用时拒绝而非生成可预测 ID；`name=""` 与名称缺失可只读规范化；编辑旧 round 形状不覆写。该安全模型新 blob `109107c49eb73609fd68b1292138e8e60588f986`，更新精确来源审计与测试。
+- `src/main.js`、`src/index.html` 与 `src/style.css`：紧凑正文优先列表、手动标题次级、固定三行正文滚动、前置实时预览、按钮设置默认展开与可手动折叠、空正文就近报错。移除不存在的 Host `clipboard.writeText` 调用，改为真实点击下直接复制尝试并明确失败反馈；不引入额外复制弹窗。
+- Node `node --test tests/environment/prompt-shortcuts-r14*.test.mjs`：**20/20 PASS**；`sidebar-tools.test.mjs`：**6/6 PASS**；可信 JS 语法与候选包验证 PASS（GitHub Actions Run [38865261384](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865261384)）。
+- 原始包：`examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json`，**1.0.3 / 43,684 B**；SHA-256 `416b658d39669b9d775b836636aa49f35d3a88165fa9a268a3a15ed20632d71d`。CI Test 先通过再发布固定包（此前已由 [fac526ca](https://github.com/shopable-ai/opendesk-browser/commit/fac526ca3ef9b735eda88c298294e0ce37b6932c) 发布）；Run 38865261384 在最新 main 上重新运行官方 `--check-project`，明确返回 `PROJECT_PACKAGE_MATCH`、相同 SHA 和 `installed:false`。
+- **正式代码真实 Chromium（模拟 Host）**：Run 38865261384 执行 `scripts/tests/prompt-shortcuts-r113-formal-chrome.mjs`，加载构建器输出正式 HTML/CSS/JS/可信 model，模拟 Host ETag/localStorage；`你好` 新建与浏览器 reload 后仅一项 PASS，320/360/400/440px 无横向溢出、正文两行截断、100 行内部滚动、默认展开/手动折叠、草稿保护、深色截图和 JS Console 无异常 PASS。其模拟身份明确是 `FORMAL_PACKAGED_UI_REAL_CHROMIUM_SIMULATED_HOST`，不是已安装 Browser。原始截图和 JSON：[GitHub Actions artifact 12030876980](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865261384/artifacts/12030876980)。
+- **旧预览**：同一 Run 的独立 Chromium R1.11/R1.12 模拟测试 PASS，图片与 JSON：[artifact 12030797378](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865261384/artifacts/12030797378)。不与正式打包源码测试混合。
+- **真实根因状态**：存在源码可定位的旧形状覆盖、缺少 UUID 回退、旧数据拒绝、非法 clipboard Host 操作，现已修复并回归；但用户 Mac 上「只输入你好后保存失败」未获取原始 Host Console / installed package / storage 失败日志，因此不宣称已证明唯一真实根因。
+
+### 尚待真实 Mac 和专家逐维评分
+
+| 验收层 | 状态 | 不得推断 |
+| --- | --- | --- |
+| Node + 可信来源测试、正式包构建 | PASS | 不意味着安装 |
+| 正式 HTML/CSS/JS 在 Chromium 模拟 Host | PASS | 不是真实 Chrome Host 存储 |
+| 同 ID 已安装正式工具升级与数据保留 | NOT_TESTED | 尚未获取 Mac 安装身份和加载包哈希 |
+| 真实 `chatgpt.com` 编辑器插入与回退 | NOT_TESTED | 模拟网页不等于真实输入框 |
+| Mac 中文输入法、撤销、SPA/撤权与真实生命周期 | NOT_TESTED | 无原生交互证据 |
+| 九维 95+ 独立评估 | NOT_SCORED | 只能设目标，不能以平均值或模拟分充数 |
+
+后续实机最短路径：在用户 Mac 核对最新 main、实际安装版本/SHA、既有 `npm run dev` watcher，不覆盖其他 Agent 的环境；通过正式可信安装链同 ID 安全升级到 1.0.3；在真实 Host 只输入「你好」保存、关闭重开验证唯一一条、失败时记录来源与 ETag/Console；再在真实 ChatGPT 验证按钮插入而不发送、无法插入时剪贴板回退、选区右键、停用/撤权/SPA 与 IME，并上传产品截图。未进行这些步骤不标 Native PASS。
+
+
+### R1.13 1.0.4 最终视觉审计增量（2026-10-16）
+
+- 真实 Chromium 正式源码截图发现 P1 视觉回归：`src/main.js` 在设置 `use.className='ps-card-use'` 时丢弃共享组件 `od-button--quiet`，正文主点击区意外继承全局蓝色主按钮背景；**基于真实证据修复** `use.className='ps-card-use od-button od-button--quiet'`。新增真实 Chromium 计算样式断言，确保正文区域背景透明 `rgba(0, 0, 0, 0)`、文本 `rgb(27, 44, 73)`，与主按钮 `rgb(54, 94, 218)` 明显区分；保持共享 Token，不复制蓝色样式到工具代码。
+- 正式版本安全递增为 **1.0.4**，经官方 CI 流水线 [38865919989](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989) 最终取得两项 Job PASS（工具专项 20/20、共享 Sidebar 6/6、语法、候选生成、旧预览 Chromium、正式打包源码 Chromium）；官方唯一包同步提交 [10cba371](https://github.com/shopable-ai/opendesk-browser/commit/10cba371dffca3d4a88065a0add15973df06fa6a)。
+- **最新 1.0.4 唯一正式安装包** 43,711 B；SHA-256 `c79bd798ca499cf50942fa2a99e85682f6d50701c88b544b25e0d342007a8af4`；同步后最新 main 官方 `--check-project` 为 `PROJECT_PACKAGE_MATCH`、`installed:false`。
+- 最终正式源码截图：[artifact 12031276252](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989/artifacts/12031276252)。其自动化报告 `kind=FORMAL_PACKAGED_UI_REAL_CHROMIUM_SIMULATED_HOST`, `version=1.0.4`, `helloSaveAndReload=true`, `uniqueCount=1`, 8 组跨宽度列表/百行表单截图、深色模式、`consoleExceptions=[]` 与共享 Quiet Button 透明背景断言均通过。
+- 本项修复完结范围只为源码与真实 Chromium 模拟 Host 级；**已安装 Mac Chrome / 真实 ChatGPT / 中文 IME** 依然 `NOT_TESTED`，未达最终实机 95+ 验收，绝不以视觉截图冒充实机通过。

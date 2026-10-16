@@ -233,3 +233,28 @@
 - **允许没有手动标题**：当 `name` 为空、缺失，或 `nameAuto=true` 时，列表不渲染空白/「未命名」/重复的自动标题占位；有手动标题时仅在正文下方以次级元数据展示。工具内部保留自动名称的兼容数据及 `nameAuto` 来源标记，不因隐藏名称删除或重写已保存值。
 - **可操作性与可访问性**：无标题条目的插入、编辑、更多、启停、删除确认、状态通知与网页快捷按钮应以非空正文片段作为可识别的文字语义，不能出现空 `aria-label` 或“编辑：”空提示。停用状态必须独立可见，启用状态不必额外增加占位行。列表默认预览包含一条真正空 `name` 的历史数据样例，此外测试新建只填正文的 `nameAuto` 场景。
 - **安全边界和验收**：直接使用只填入模拟输入框，无法填入时按现有 R1.11 回退复制语义；不弹出额外复制对话框、不自动发送。需用真实 Chromium 检查 320/360/400/440px、深色、输入焦点、键盘折叠、字素、异常恢复；独立 HTML 预览 PASS 不等于 Mac Chrome 已安装的正式实现 PASS，也不足以凭空宣称逐维专家 95+。
+
+
+## 11. R1.13 正式产品实施合同（2026-10-16，用户明确授权）
+
+> 此节优先于 R1.9/R1.10/R1.12 中“仅预览”“正式迁移须等待批准”的旧限制：用户已明确批准立即将 R1.12 设计同步到正式独立工具，不新增第二份预览及安装身份。仍须分别验证源码、真实 Chromium、安装包及 Mac Chrome，未实测不得声称验收完成。
+
+1. **P0 创建**：只填「你好」可以创建；正文唯一必填，自动短标签和自动名称无需人工输入。必须经 Host ETag 条件写入、确认回执、重新读取，未知结果禁止无条件重试。编辑保存期间再次输入不得被丢弃或误称已保存。空值与 8192 B（整项 JSON UTF-8）超限就近告警并保留草稿。
+2. **正式信息层级**：左侧短标签、中间最多两行正文、右侧独立编辑与更多操作。仅真实手动名称可在正文下显示次级信息；历史空名称或缺失名称在内存规范化，不制造「未命名」占位、不放宽其他 schema；不在加载时静默写回。
+3. **表单**：正文固定三行可滚动，实时预览前置；按钮设置新建/编辑**默认展开**，左 Label 右 Input，短标签、名称、网页显示三项，用户收起后正文输入不重新展开。新建默认圆角方形，编辑旧圆形值不得改写外形。
+4. **一键使用**：ChatGPT 网页可信适配器优先在真实用户操作后安全插入、不发送；管理列表在没有受审计的跨网页插入能力时直接复制整段正文，成功须有真实回执，失败明确提示；不弹手动复制中间面板、不新增绕过权限的 Host/DOM 桥。
+5. **架构与发布**：唯一来源为 `examples/sidebar-tools/prompt-shortcuts/`、公共 OpenDeskTool/Browser SDK 与既有 Host。正式包仅 `prompt-shortcuts.opendesk-tool.json`，版本变更递增、测试后晋升、`--check-project` 同源。可信网页适配器仍只限 `https://chatgpt.com`，不静默扩大跨平台授权。右键添加沿用单次选区票据，不自动提交聊天或上传历史。
+6. **证据分层**：模型/模拟 Host Node PASS、打包源码真实 Chromium+模拟 Host PASS、独立安装后 Chrome PASS、真实 ChatGPT PASS、Mac IME PASS 为独立状态。不能将模拟通关等同于真实安装；专家九维须有原始截图、日志和操作证据，不足时为 `NOT_SCORED`。
+
+**R1.13 当前实现核对点**：正式工具版本 `1.0.3`，Node Scoped 20/20 + Sidebar Tool 6/6 PASS；真实 Chromium 加载正式打包源码并用模拟 Host 验证「你好」保存/刷新唯一读回、320/360/400/440px、100 行滚动、深色及 JS Console 均 PASS。GitHub Actions Run [38865261384](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865261384) 对应候选原始包 43,684 B、SHA-256 `416b658d39669b9d775b836636aa49f35d3a88165fa9a268a3a15ed20632d71d`，已使用官方 `--check-project` 获得 `PROJECT_PACKAGE_MATCH`。已安装用户 Mac Chrome、真实 ChatGPT 编辑器、Mac 中文 IME `NOT_TESTED`；不能仅据源码将用户报告的真实保存失败宣布完全关闭。
+
+
+## 12. R1.13 最终视觉回归及 1.0.4 发行修订（2026-10-16）
+
+> 本节替代上一节的 **1.0.3 当前版本**表述；1.0.3 是历史已通过候选，不再是最新发行包。
+
+- 正式列表实际 Chromium 截图揭示原 `ps-card-use` 覆盖了 `od-button od-button--quiet` class，导致共享 Design System 的全局 `button` 蓝色主按钮背景污染正文阅读层级。已恢复共享 Quiet Button 类，不复制第二套按钮配色，也不修改浏览器宿主 `src/`。
+- 为正式打包源码浏览器测试新增计算样式断言：快捷正文按钮 `background-color: rgba(0, 0, 0, 0)`，与蓝色新建主按钮不同；恢复正文文本对比度，编辑/更多操作保持独立。
+- 最新正式可安装版本：`1.0.4`，唯一 `prompt-shortcuts.opendesk-tool.json`，43,711 字节，SHA-256 `c79bd798ca499cf50942fa2a99e85682f6d50701c88b544b25e0d342007a8af4`；官方 `--check-project` 输出 `PROJECT_PACKAGE_MATCH`。
+- 证据：[GitHub Actions Run 38865919989](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989)，含 20/20 工具 Node、6/6 Sidebar 工具 Node、正式打包源码 Chromium 全场景与 320/360/400/440px 视觉截图。[独立正式 UI 截图 Artifact 12031276252](https://github.com/shopable-ai/opendesk-browser/actions/runs/38865919989/artifacts/12031276252)。
+- 用户 Mac 已安装身份、真实 Chrome Host 数据写入、真实 ChatGPT 页面插入、IME、同 ID 更新现场均继续 `NOT_TESTED`；九维真实产品专家评分继续 `NOT_SCORED`，不能将模拟 Host 或 CSS 截图当作完整 95+。

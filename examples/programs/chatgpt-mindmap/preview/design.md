@@ -178,3 +178,31 @@
 - Program 类型为 `page-userscript`。其构建候选应由 `npm run build:program -- examples/programs/chatgpt-mindmap` 生成，`artifacts/programs/opendesk.chatgpt-mindmap/` 中的 `program.js`、`program.opendesk-draft.json` 和 `artifact.json` 才是构建证据。Builder 声明 `BUILT_UNVERIFIED / installable:false`，只有核验当前产物才能填写实际 Hash；它不是宿主 `dist/development` 或 Chrome Installed。
 - 当前仍有 `E_XMIND_RUNTIME_UNAVAILABLE`、固定 4,042,573 B 原始资源的分发许可证/可信准入、Snowbrush 全局 style 残留、USER_SCRIPT 安全隔离及真实 Native 撤权生命周期待完成。**严禁假装 installed**。
 - 项目代码通过 GitHub Connector 更新；本轮运行环境无法访问 `/Users/shopme/...` Mac 工作树或本机 Chrome，因此本地构建与本机已安装状态需标 `NOT_TESTED`，不是“未安装”的断言。截图未经逐张图像审阅前必须标 `SCREENSHOT_NOT_VERIFIED`，视觉评分 `NOT_TESTED`。
+
+## R3.6 · 实测闭环（2026-10-16）
+
+**设计状态：PENDING_USER_CONFIRMATION。** 并未获得用户对截图的最终批准；原生安装、真实登录 ChatGPT 与生产 Snowbrush 隔离依旧是 BLOCKED/NOT_TESTED。不能将通过 CI 等同于正式可安装或视觉 95+。
+
+1. **真实代码唯一来源**：`examples/programs/chatgpt-mindmap/src/{view.js,answer-registry.js,xmind-adapter.js,xmind-convert.js}` 和 `examples/programs/chatgpt-mindmap/assets/ui.css`。根目录 `src/` 是浏览器宿主，仅承载通用运行时，本轮未修改。已新增架构审计：`docs/framework/workstreams/chatgpt-mindmap-r36-architecture-audit.md`。
+2. **已修复实际源码/UI**：修复旧测试误要求 `renderer.reflow()` 而源码合法地使用 `renderer?.reflow()`；把容器查询锚点从 `.odmm-toolbar` 移到其外层 `.odmm-shell`；新增 More 菜单键盘 ArrowUp/Down、Home、End、Escape、Enter、焦点恢复，并确保 320px 下菜单项为 158×44px 可点击整行。
+3. **XMind 不替换**：四份 Git-tracked JS 原字节、SDK Workbook 均不更换；修正 `.topic` 稳定几何轮询与滚动容器定位，防止尚有异步布局或多次 ResizeObserver 时过早标记 Fit 完成。320px 不把全图压缩成不可读文字，显示根节点并提供「左右拖动查看分支」轻提示，横向滚动可继续访问其余分支。
+4. **真实 Chromium 实测**：`https://github.com/shopable-ai/opendesk-browser/actions/runs/38865072908` 的两 Job SUCCESS；真实 320px 画布 318px、根节点宽 180px / 可见 180px；菜单宽 170px、每项 158×44px；测试通过横向滚动值 176→411；A/B/C 真正主题数量 10/6/10，20 次开关、全屏 Escape、暗色、状态去重、Stop、375/390/768/1440 响应式均获自动化验证。Chrome 标识、逐图路径、SHA-256 见 Actions 图片 Artifact 内 `screenshot-evidence.json`。
+5. **已人工打开的部分 CI PNG 观察**：桌面 A 浅色、B 深色、C 结构化、全屏、320px 整窗、320px 菜单、水平滑动后截图。A/B/C 内容可读、原始 XMind 节点真实；320px 只能一次展示根节点及部分分支，需要用户左右拖动。更宽内容仍不能在一屏完整阅读。不能因此给视觉/移动端无条件 95 分；未完整验收的截图继续 `SCREENSHOT_NOT_VERIFIED`，不宣称全视觉通过。
+6. **可核验构建但不可安装**：本轮 CI 真实生成 `program.js`、`program.opendesk-draft.json`、`artifact.json`，精确结果参照对应 CI 的 `r35-program-build-audit.json`（Artifact 命名迁移至 R3.6 后使用 `r36-program-build-audit.json`）。`status:BUILT_UNVERIFIED`、`installable:false`、`E_XMIND_RUNTIME_UNAVAILABLE` 均保留。
+
+### R3.6 专家逐维实测分数（仅预览范围）
+
+| 项目 | 分数/状态 | 依据与余项 |
+| --- | --- | --- |
+| 视觉一致性 | 91/100 | 已打开 A/B/C/全屏/窄屏样本；截图未获用户正式批准，非 VISUAL_PASS |
+| 预览功能完整性 | 96/100 | 真实 Chromium 的 27 项产品检查 + 原始 XMind 引擎探针；不包含原生生产运行 |
+| 桌面 XMind 可读性 | 93/100 | 桌面 10 / 6 / 10 主题、实际 `.topic` 范围与全屏位置测量 |
+| 移动端体验 | 88/100 | 320px 根节点完整可见、44px 控件、真实横向滚动；完整分支需左右探索 |
+| 键盘/无障碍 | 93/100 | 方向键、Enter、Escape、焦点归还、全行点击区域；真实读屏器 NOT_TESTED |
+| 稳定性 | 96/100 | 20 次开关、Stop 后独立 UI 归零、无 JS 异常；生产 BFCache NOT_TESTED |
+| 性能 | NOT_TESTED | 缺少 FPS、95p 延迟与内存测量；不得主观评分 |
+| Program 架构隔离 | 96/100 | 七个独立业务模块，宿主根 src 未修改；全局样式安全闭环仍 BLOCKED |
+| 构建可信性 | 98/100 | 审计器对三份文件 SHA、源码新鲜度与产物签名逐项一致 |
+| 生产 Runtime、许可、安全生命周期 | BLOCKED | 缺乏合规 JS 准入、style 隔离、原生授权与已安装运行证明 |
+
+**综合目标未达到逐维 ≥95，仍有明确阻塞；不做伪造放行。** 后续应优先修复全局 style 隔离与可信 XMind 资源准入，在 Mac 原生运行后另行评定安全和性能。
