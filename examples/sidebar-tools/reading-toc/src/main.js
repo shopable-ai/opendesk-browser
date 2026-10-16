@@ -20,6 +20,47 @@ const source=root.querySelector('#toc-source'),list=root.querySelector('#toc-lis
 const empty=root.querySelector('#toc-empty'),error=root.querySelector('#toc-error');
 const more=root.querySelector('#toc-overview-more'),reload=root.querySelector('#toc-refresh');
 const controls=[...root.querySelectorAll('button[data-toc-mode]')];
+// The AI surface is intentionally non-operational until a reviewed identity + provider contract exists.
+// Never infer membership from TOC access, and never synthesize model output or a checkout destination.
+const aiView=root.querySelector('#toc-ai-view'),freeView=root.querySelector('#toc-free-view');
+const aiNodes=aiView?Object.fromEntries([
+ 'toc-member-card','toc-member-title','toc-member-tag','toc-member-description',
+ 'toc-member-meta','toc-member-entry','toc-member-disclaimer','toc-promo',
+ 'toc-promo-brand','toc-promo-kind','toc-promo-title','toc-promo-description',
+ 'toc-promo-action','toc-ai-navigation','toc-ai-list','toc-ai-status'
+].map(id=>[id,root.querySelector('#'+id)])):null;
+const promotion='recruit'; // reviewed static default; no remote scripts, ad iframe or tracker.
+function paintAi(){
+ if(!aiView||!aiNodes)return;
+ const ai=mode==='ai';
+ aiView.hidden=!ai;
+ if(freeView)freeView.hidden=ai;
+ if(!ai)return;
+ const n=id=>aiNodes[id];
+ // Service is not published. Unverified identities are never treated as active members.
+ n('toc-member-card').hidden=false;
+ n('toc-member-title').textContent=t('memberTitle');
+ n('toc-member-tag').textContent=t('memberTag');
+ n('toc-member-description').textContent=t('memberDescription');
+ n('toc-member-meta').textContent=t('memberUnavailableMeta');
+ n('toc-member-disclaimer').textContent=t('memberUnavailableDisclaimer');
+ n('toc-member-entry').hidden=true;
+ n('toc-member-entry').disabled=true;
+ n('toc-ai-list').replaceChildren(); // No real AI output or stale navigation can enter the DOM.
+ n('toc-ai-navigation').hidden=true;
+ n('toc-ai-status').textContent=t('aiUnavailableFooter');
+ n('toc-ai-navigation').setAttribute('aria-label',t('aiNavigationLabel'));
+ const key=promotion==='official'?'official':promotion==='recruit'?'recruit':
+   promotion==='external'?'external':null;
+ n('toc-promo').hidden=!key;
+ if(key){
+  n('toc-promo').setAttribute('aria-label',t(key==='recruit'?'promoRecruit':key==='official'?'promoOfficial':'promoExternal'));
+  for(const part of ['brand','kind','title','description'])
+   n('toc-promo-'+part).textContent=t(key+part[0].toUpperCase()+part.slice(1));
+  n('toc-promo-action').hidden=key!=='official';
+  n('toc-promo-action').textContent=key==='official'?t('officialAction'):'';
+ }
+}
 let mode='focus',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='';
 let reading=false,closed=false,hasSnapshot=false,stale=false,failures=0,missing=0,timer=0,wantForce=false;
 let statusKey='',statusValues={},statusState='',moreCount=0;
@@ -29,12 +70,12 @@ function paintStatus(){
 }
 function paintLanguage(){
  root.querySelector('.toc-panel').setAttribute('aria-label',t('panelLabel'));
- root.querySelector('.toc-title').textContent=t('contents');
+ root.querySelector('.toc-title').textContent='CONTENTS';
  root.querySelector('.toc-modes').setAttribute('aria-label',t('modesLabel'));
  root.querySelector('.toc-scroll').setAttribute('aria-label',t('navigationLabel'));
  source.setAttribute('aria-label',t('sourceLabel'));
  controls.forEach(button=>{
-  const key={top:'topLabel',focus:'focusLabel',full:'fullLabel'}[button.dataset.tocMode];
+  const key={top:'topLabel',focus:'focusLabel',full:'fullLabel',ai:'aiLabel'}[button.dataset.tocMode];
   button.title=t(button.dataset.tocMode==='top'?'topTitle':key);
   button.setAttribute('aria-label',t(key));
  });
@@ -42,16 +83,18 @@ function paintLanguage(){
  empty.textContent=t('emptyLabel');paintStatus();
  more.textContent=t('moreWithCount',{count:moreCount});
  more.setAttribute('aria-label',t('moreAria',{count:moreCount}));
+ paintAi();
 }
 function showStatus(key='',values={},state=''){
  statusKey=key;statusValues=values;statusState=state;paintStatus();
 }
 function render(){
+ paintAi();
  const {items,sources,activeId}=data;
  if(sourceChoice&&!sources.some(item=>item.id===sourceChoice))sourceChoice='';
  const activeSource=items.find(item=>item.id===activeId)?.sourceId;
  selected=sourceChoice||sources.find(item=>item.id===activeSource)?.id||sources[0]?.id||'';
- source.hidden=sources.length<2;
+ source.hidden=mode==='ai'||sources.length<2;
  const followed=sources.find(item=>item.id===selected)?.label||t('sourceCurrent');
  const options=[{id:'',label:t('following',{source:followed})},...sources];
  if(source.options.length!==options.length||[...source.options].some((node,i)=>
@@ -150,6 +193,18 @@ globalThis.OpenDeskTool.onLocaleChange?.(next=>{
 });
 paintLanguage();
 controls.forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.tocMode;render();}));
+const modeGroup=root.querySelector('.toc-modes');
+modeGroup.addEventListener('keydown',event=>{
+ if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+ const index=controls.indexOf(document.activeElement);
+ if(index<0)return;
+ const next=event.key==='Home'?0:event.key==='End'?controls.length-1:
+  (index+(event.key==='ArrowRight'?1:-1)+controls.length)%controls.length;
+ event.preventDefault();controls[next].focus();mode=controls[next].dataset.tocMode;render();
+});
+if(aiNodes)aiNodes['toc-promo-action'].addEventListener('click',()=>{
+ if(promotion==='official'){mode='full';render();}
+});
 more.addEventListener('click',()=>{mode='full';render();});
 source.addEventListener('change',()=>{sourceChoice=source.value;render();});
 reload.addEventListener('click',()=>requestRefresh(true));

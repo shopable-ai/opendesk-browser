@@ -12,7 +12,7 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
     appType:'custom',server:{middlewareMode:true},logLevel:'error'});
   t.after(()=>vite.close());
   const {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty,
-    ExtensionRecoveries,ExtensionStatus}=
+    ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu}=
     await vite.ssrLoadModule('/src/ui/react/tabs/tools.tsx');
   const toolbar=renderToStaticMarkup(React.createElement(ExtensionToolbar,{model:{
     query:'文件 <img src=x onerror=alert(1)>',kind:'page',scope:'available',
@@ -67,7 +67,14 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
     container:null,model:{text:'异常 <img onerror=evil()>',state:'error'}
   }));
   assert.match(status,/&lt;img onerror=evil\(\)&gt;/);
-  const {DeveloperTargetText,DeveloperActions,DeveloperFramework}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const rowMenu=renderToStaticMarkup(React.createElement(ExtensionRowMenu,{items:[
+    {id:'toggle',label:'停用 <script>evil()</script>',onClick:()=>{}}
+  ]}));
+  assert.match(rowMenu,/data-ec-context-action="toggle"/);
+  assert.match(rowMenu,/role="menuitem"/);
+  assert.match(rowMenu,/&lt;script&gt;/);
+  assert.doesNotMatch(rowMenu,/<script\b/i);
+  const {DeveloperTargetText,DeveloperActions,DeveloperFramework,DeveloperRunStatus}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
   const devIndicator=renderToStaticMarkup(React.createElement(DeveloperTargetText,{
     value:'网页标题 <svg onload=alert(1)>',node:null,title:'bad',state:'available'
   }));
@@ -90,4 +97,9 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(framework,/id="page-component-react"[^>]*checked=""/);
   assert.match(framework,/id="page-component-vue"/);
   assert.match(framework,/aria-label="React JSX"/);
+  const runStatus=renderToStaticMarkup(React.createElement(DeveloperRunStatus,{
+    node:null,model:{state:'error',text:'运行错误 <script>evil()</script>'}
+  }));
+  assert.match(runStatus,/&lt;script&gt;/);
+  assert.doesNotMatch(runStatus,/<script\b/i);
 });

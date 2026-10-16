@@ -94,10 +94,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const rowMenu=node('div','ec-context-menu');
   rowMenu.id='extension-center-row-menu';rowMenu.setAttribute('role','menu');rowMenu.hidden=true;
   doc.body.append(rowMenu);
+  if(extensionList)extensionList.attachRowMenu(rowMenu);
   let rowMenuKey=null,rowMenuTrigger=null;
   function closeRowMenu(returnFocus=false){
     const key=rowMenuKey,trigger=rowMenuTrigger;
-    rowMenu.hidden=true;rowMenu.replaceChildren();rowMenuKey=null;rowMenuTrigger=null;
+    rowMenu.hidden=true;
+    if(extensionList)extensionList.renderRowMenu([]);
+    else rowMenu.replaceChildren();
+    rowMenuKey=null;rowMenuTrigger=null;
     if(extensionList)extensionList.setMenuKey(null);
     else trigger?.setAttribute('aria-expanded','false');
     if(returnFocus){
@@ -114,11 +118,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(extensionList)extensionList.setMenuKey(key);
     else trigger.setAttribute('aria-expanded','true');
     rowMenu.setAttribute('aria-label','管理「'+titleOf(row)+'」');
+    const menuItems=[];
     const add=(label,fn,actionId)=>{
-      const b=button(label,event=>{
+      const activate=event=>{
         if(!event.isTrusted||busy)return;
         closeRowMenu(true);fn(event);
-      },'ec-context-action');
+      };
+      if(extensionList){menuItems.push({id:actionId,label,onClick:activate});return;}
+      const b=button(label,activate,'ec-context-action');
       b.dataset.ecContextAction=actionId;b.setAttribute('role','menuitem');
       rowMenu.append(b);
     };
@@ -166,6 +173,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add('查看详情',()=>openDetail(key,'more'),'detail');
+    if(extensionList)extensionList.renderRowMenu(menuItems);
     rowMenu.hidden=false;
     // Fixed positioning escapes the clipped list and fits inside the Side Panel.
     const rect=trigger.getBoundingClientRect();

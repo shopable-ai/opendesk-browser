@@ -1,0 +1,42 @@
+name: AdBlock React R2 · Offline file preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/adblock/preview/**'
+      - 'src/libs/page-frameworks/react-19.2.0.js'
+      - '.github/workflows/adblock-r20-react-zero-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: adblock-r20-react-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-file-chrome:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and pinned HTM reproducibility without npm
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check examples/sidebar-tools/adblock/preview/app.js
+          node --check examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
+          node --check examples/sidebar-tools/adblock/preview/acceptance.mjs
+          node examples/sidebar-tools/adblock/preview/vendor/rebuild-htm.mjs
+          git diff --exit-code -- examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Actual React 19.2.0 Chrome file protocol E2E without build or web server
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node examples/sidebar-tools/adblock/preview/acceptance.mjs

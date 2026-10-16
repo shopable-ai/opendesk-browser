@@ -2,10 +2,12 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · Workflow R23.9 AI 设置 Bottom Sheet（离线模拟）</title>
+<title>OpenDesk Browser · Workflow R23.9.1 AI 设置 Bottom Sheet（离线模拟）</title>
 <!-- UI_SIMULATION: eleven display scenarios; not an AI provider, extension permission,
      actual RunHost, native receipt, persistent save, or multi-origin workflow. -->
 <style>
+/* R23.9.1: author display rules must NEVER override HTML's hidden attribute. */
+[hidden]{display:none!important}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;font-size:13px;color:#243450;background:#edf2f9;--blue:#365eda;--border:#dce5ef;--muted:#7a8ba1}
 *{box-sizing:border-box}
@@ -372,8 +374,8 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
 .device .r239-sheet .r236-option span{min-height:36px;font-size:12px}
 .device .r239-sheet .r234-local-row{
   display:flex;align-items:center;gap:12px;
-  margin:14px 0 0;padding:12px 13px;
-  border-radius:11px;min-height:65px;
+  margin:13px 0 0;padding:11px 12px;
+  border-radius:11px;min-height:60px;
 }
 .device .r239-sheet .r238-native-state{gap:4px}
 .device .r239-sheet .r238-native-title{font-size:11.5px}
@@ -409,7 +411,7 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
 </head>
 <body>
 <div class="scenario-bar">
-<h1>R23.9 · 工作流 Bottom Sheet（待用户确认）</h1>
+<h1>R23.9.1 · 工作流 Bottom Sheet（待用户确认）</h1>
 <p>可体验两轮填写与读回。AI 配置仅供离线演示，不连接真实服务。</p>
 <details id="r233-qa"><summary>研发验收工具 · 场景与视口</summary><div id="scenarios" class="scenarios" role="group" aria-label="选择工作流产品状态"></div><div class="r23-examples" role="group" aria-label="模拟指令和异常条件"><button type="button" data-action="example-first">填入第一轮指令</button><button type="button" data-action="example-second">填入第二轮指令</button><button type="button" data-action="revoke-site">撤销模拟网站权限</button><button type="button" data-action="change-document">模拟切换文档</button></div><div class="r23-toolbar"><label>宽度 <select id="r23-width"><option>360</option><option selected>420</option><option>520</option></select> px</label><button type="button" id="r23-theme" aria-pressed="false">深色模式</button><span>浏览器验收以本轮真实测试为准。</span></div></details>
 </div>

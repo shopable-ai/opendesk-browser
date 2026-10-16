@@ -32,7 +32,31 @@
       "dragTitle": "拖动目录；方向键调整位置，Shift 加速，Home 归位",
       "dragAria": "拖动阅读目录；方向键移动，Home 归位",
       "resetTitle": "归位：恢复网页目录默认位置",
-      "resetAria": "将阅读目录归位"
+      "resetAria": "将阅读目录归位",
+      "aiLabel": "AI 整理",
+      "aiNavigationLabel": "AI 整理目录",
+      "aiUnavailableFooter": "AI 整理 · 暂未开放",
+      "memberTitle": "AI 整理",
+      "memberTag": "会员专属",
+      "memberDescription": "为长文章生成可跳转的智能目录",
+      "memberUnavailableMeta": "服务暂未开放",
+      "memberUnavailableDisclaimer": "会员与支付服务尚未接入",
+      "promoRecruit": "合作招募",
+      "promoOfficial": "官方推荐",
+      "promoExternal": "第三方广告",
+      "recruitBrand": "OpenDesk · 合作计划",
+      "recruitKind": "合作招募",
+      "recruitTitle": "广告位开放合作",
+      "recruitDescription": "欢迎阅读、效率和开发工具相关品牌合作",
+      "officialBrand": "OpenDesk · 阅读工具",
+      "officialKind": "官方推荐",
+      "officialTitle": "先体验完整目录",
+      "officialDescription": "免费查看当前网页的全部章节。",
+      "officialAction": "打开完整目录",
+      "externalBrand": "第三方展示区域",
+      "externalKind": "广告 · 待审核",
+      "externalTitle": "广告展示位",
+      "externalDescription": "尚无经过审核的广告素材；当前不加载外部广告。"
     },
     "en": {
       "title": {
@@ -158,6 +182,102 @@
       "resetAria": {
         "source": "将阅读目录归位",
         "text": "Reset the table of contents position"
+      },
+      "aiLabel": {
+        "source": "AI 整理",
+        "text": "AI outline"
+      },
+      "aiNavigationLabel": {
+        "source": "AI 整理目录",
+        "text": "AI organized outline"
+      },
+      "aiUnavailableFooter": {
+        "source": "AI 整理 · 暂未开放",
+        "text": "AI outline · Coming soon"
+      },
+      "memberTitle": {
+        "source": "AI 整理",
+        "text": "AI outline"
+      },
+      "memberTag": {
+        "source": "会员专属",
+        "text": "Member feature"
+      },
+      "memberDescription": {
+        "source": "为长文章生成可跳转的智能目录",
+        "text": "Turn long articles into a navigable AI outline"
+      },
+      "memberUnavailableMeta": {
+        "source": "服务暂未开放",
+        "text": "Not yet available"
+      },
+      "memberUnavailableDisclaimer": {
+        "source": "会员与支付服务尚未接入",
+        "text": "Membership and checkout are not connected"
+      },
+      "promoRecruit": {
+        "source": "合作招募",
+        "text": "Partner call"
+      },
+      "promoOfficial": {
+        "source": "官方推荐",
+        "text": "Official pick"
+      },
+      "promoExternal": {
+        "source": "第三方广告",
+        "text": "Sponsored placement"
+      },
+      "recruitBrand": {
+        "source": "OpenDesk · 合作计划",
+        "text": "OpenDesk · Partnership"
+      },
+      "recruitKind": {
+        "source": "合作招募",
+        "text": "Partner call"
+      },
+      "recruitTitle": {
+        "source": "广告位开放合作",
+        "text": "Sponsorship space available"
+      },
+      "recruitDescription": {
+        "source": "欢迎阅读、效率和开发工具相关品牌合作",
+        "text": "Reading, productivity and developer brands are welcome"
+      },
+      "officialBrand": {
+        "source": "OpenDesk · 阅读工具",
+        "text": "OpenDesk · Reading tools"
+      },
+      "officialKind": {
+        "source": "官方推荐",
+        "text": "Official pick"
+      },
+      "officialTitle": {
+        "source": "先体验完整目录",
+        "text": "Try the full outline now"
+      },
+      "officialDescription": {
+        "source": "免费查看当前网页的全部章节。",
+        "text": "View every section of this page for free."
+      },
+      "officialAction": {
+        "source": "打开完整目录",
+        "text": "Open full outline"
+      },
+      "externalBrand": {
+        "source": "第三方展示区域",
+        "text": "Third-party placement"
+      },
+      "externalKind": {
+        "source": "广告 · 待审核",
+        "text": "Ad · Pending review"
+      },
+      "externalTitle": {
+        "source": "广告展示位",
+        "text": "Sponsored placement"
+      },
+      "externalDescription": {
+        "source": "尚无经过审核的广告素材；当前不加载外部广告。",
+        "text": "No approved materials are available. No external ads are loaded."
       }
     }
   }

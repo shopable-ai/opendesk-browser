@@ -22,3 +22,9 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 - 这是**纯 UI 审核文件**，不是从正式工具包生成的“同源预览”，也不能宣称正式工具新增第四模式或会员 / AI Provider 已接通。所有会员、正文、AI 结果及跳转目标均为明确标识的演示数据；不调用任何网络 API。
 - Chromium 144 离线自动化覆盖 320/360/420/520px、两种语言、三种代表性状态、100%/125%/150%/200% CSS zoom，共 96 组布局；检查顶部单行、横向溢出和基本交互。**CSS zoom 不代表真实 Chrome 菜单缩放测试通过**，正式安装、真实网站与独立 UX 审核仍待完成。
 - 只有用户确认这份候选后，才将设计迁移到 `../src/` 和 `../locales.json`，再构建审核正式工具包；严禁直接把离线 Mock 迁入生产业务逻辑。
+
+## R1.8 · 正式源码的同源预览边界（2026-10-17）
+
+- R1.7.4 桌面 AI HTML 继续保留为**已批准视觉基准**，其状态控制、模拟生成和演示文章不是正式业务。
+- R1.8 修改 `../src/index.html` / `style.css` / `main.js`，正式源码含第四个 AI 模式、不可交易的权益卡与默认合作招募，仍使用已授权的 `toc.snapshot`/`toc.navigate` 免费能力。
+- 请按本文件前述 `scripts/preview/build-preview.mjs` 命令从 **v1.0.8 源码构建出的候选包**生成预览（不要把旧 Mock 文件充当同源验收）；此步骤及原生 Mac/Chrome 测试未完成前，不得写 `PREVIEW_PASS` 或 `NATIVE_PASS`。

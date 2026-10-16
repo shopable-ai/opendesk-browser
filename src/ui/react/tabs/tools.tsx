@@ -177,3 +177,14 @@ export function ExtensionStatus({model,container}){
     [container,model?.state]);
   return model?.text||'';
 }
+
+ 
+// React owns each inline menu item, while the original Extension Center owns
+// positioning, keyboard focus, package identity and privileged Host actions.
+// Native click is forwarded synchronously so isTrusted remains meaningful.
+export function ExtensionRowMenu({items=[]}){
+  return items.map(item=><button type="button" key={item.id}
+    className="ec-context-action" role="menuitem"
+    data-ec-context-action={item.id}
+    onClick={event=>item.onClick?.(event.nativeEvent)}>{item.label}</button>);
+}

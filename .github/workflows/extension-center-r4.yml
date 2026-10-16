@@ -77,3 +77,5 @@ jobs:
           npm run build:dev
           npm run verify
           test -s dist/development/ui/extension-center.css
+      - name: Audit fixed entry sizes for identical production and development candidate
+        run: npm run build:size
