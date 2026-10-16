@@ -110,4 +110,4 @@ button:focus-visible,input:focus-visible,.bm-tree-scroll:focus-visible,a:focus-v
  .bm-sheet-backdrop{justify-content:flex-end;align-items:stretch}
  .bm-sheet{height:100%;max-height:100%;width:min(410px,47vw);border-radius:14px 0 0 14px;box-shadow:-13px 0 40px rgba(26,48,80,.15)}
 }
-@media(hover:none),(pointer:coarse){.bm-row-more{opacity:1}}
+@media(hover:none),(pointer:coarse){.bm-tree-row.is-selected .bm-row-more,.bm-tree-row:focus-within .bm-row-more{opacity:1}}

@@ -84,7 +84,7 @@ async function waitFor(fn,label,limit=120){
 async function findReactFrame(){
  return waitFor(async()=>{
   for(const ctx of [...contexts.values()]){
-   try{if(await evaluate("Boolean(globalThis.__BookmarkReactPreview?.version==='R3.0.2' && document.querySelector('.bm-tree-row'))",ctx))return ctx}catch{}
+   try{if(await evaluate("Boolean(globalThis.__BookmarkReactPreview?.version==='R3.0.3' && document.querySelector('.bm-tree-row'))",ctx))return ctx}catch{}
   }
   return null;
  },'React iframe mounted',150);

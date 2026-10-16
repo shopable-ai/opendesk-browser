@@ -106,7 +106,7 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
    {draft.kind==='bookmark'&&<div className="bm-field"><label htmlFor="bm-edit-url">网址</label><input id="bm-edit-url" type="url" required maxLength={2048} value={draft.url} placeholder="https://example.com" onChange={e=>setDraft({...draft,url:e.target.value})}/></div>}
    <div className="bm-parent-line"><span className="bm-note">所在文件夹：</span><span className="bm-parent-path" title={folderLabel(tree,draft.parentId)}>{folderLabel(tree,draft.parentId)}</span><button type="button" className="bm-text-button" aria-expanded={pickerOpen} onClick={()=>onOpenPicker(!pickerOpen)}>更改</button></div>
    {pickerOpen&&<FolderPicker tree={tree} value={draft.parentId} currentId={draft.mode==='edit'&&draft.kind==='folder'?draft.id:null} onChange={id=>setDraft({...draft,parentId:id})} onClose={()=>setPickerOpen(false)}/>}
-   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存</Button><button type="button" className="bm-button" onClick={onCancel}>取消</button></div>
+   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存</Button><button type="button" className="bm-button" onClick={onCancel} disabled={busy}>取消</button></div>
    {error&&<p className="bm-sheet-error" role="alert">{error}</p>}
    {uncertain&&<p className="bm-warning">写入结果未知，已禁止重复保存。请先核对书签状态。</p>}
   </form>:
@@ -126,16 +126,16 @@ function ActionMenu({state,onAction,onClose}){const menuRef=useRef(null);useEffe
    {!state.locked&&<button role="menuitem" className="bm-destructive" onClick={()=>onAction('delete',state.id)}><Icon name="trash" size={16}/>删除</button>}
   </div>
 }
-function Sheet({title,onClose,children}){
- const ref=useRef(null),closeRef=useRef(onClose),origin=useRef(null);
- closeRef.current=onClose;
+function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
+ const ref=useRef(null),closeRef=useRef(onClose),origin=useRef(null),canCloseRef=useRef(canClose);
+ closeRef.current=onClose;canCloseRef.current=canClose;
  useEffect(()=>{
   origin.current=document.activeElement;
   const region=ref.current;
   const field=region?.querySelector('[autofocus],input,button');
   (field||region)?.focus();
   const key=e=>{
-   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeRef.current();return}
+   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(canCloseRef.current)closeRef.current();return}
    if(e.key!=='Tab'||!region)return;
    const items=[...region.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href],select:not(:disabled)')].filter(el=>el.getClientRects().length);
    if(!items.length)return;
@@ -151,9 +151,9 @@ function Sheet({title,onClose,children}){
    else document.querySelector('.bm-tree-scroll')?.focus();
   };
  },[]);
- return <div className="bm-sheet-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)closeRef.current()}}>
+ return <div className="bm-sheet-backdrop" role="presentation" onMouseDown={e=>{if(dismissOnBackdrop&&canClose&&e.target===e.currentTarget)closeRef.current()}}>
   <section ref={ref} className="bm-sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
-   <header className="bm-sheet-header"><strong>{title}</strong><button className="bm-sheet-close" type="button" aria-label="关闭" onClick={onClose}><Icon name="x" size={17}/></button></header>
+   <header className="bm-sheet-header"><strong>{title}</strong><button className="bm-sheet-close" type="button" aria-label="关闭" disabled={!canClose} onClick={onClose}><Icon name="x" size={17}/></button></header>
    {children}
   </section>
  </div>;
@@ -189,13 +189,14 @@ export default function App(){
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
  const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex))}return null}},[]);
  useEffect(()=>{void load({initial:true})},[load]);
+ useEffect(()=>{if(!notice||notice.startsWith('写入结果未知'))return;const timer=setTimeout(()=>setNotice(''),3300);return()=>clearTimeout(timer)},[notice]);
  const rows=useMemo(()=>filteredRows(tree,expanded,query),[tree,expanded,query]);
  const current=tree?.byId.get(selectedId)||null;
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
  const closeMenu=useCallback(()=>{setMenu(null);menuButtonRef.current?.focus()},[]);
  function toggle(id){setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
  function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setDetailOpen(false);setPickerOpen(move);setUncertain(false)}
- function closeSheet(){setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('');setUncertain(false)}
+ function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setDetailOpen(false);setPickerOpen(false);setError('');setUncertain(false)}
  function perform(action){
   setPickerOpen(false);setMenu(null);
   if(action.type==='select'){setSelectedId(action.id);setDraft(null);setDetailOpen(false)}
@@ -233,7 +234,7 @@ export default function App(){
  async function removeConfirmed(){if(!confirmDelete||busy)return;setBusy(true);setError('');try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setDetailOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current)setError(humanError(ex))}finally{if(activeRef.current)setBusy(false)}}
  function bookmarkCurrentPage(){void fillCurrentPage()}
  async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
- return <div className="bm-app" data-react-bookmark="r3.0.2">
+ return <div className="bm-app" data-react-bookmark="r3.0.3">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div><div className="bm-top-actions"><button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button><button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button></div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>setQuery(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>setQuery('')}><Icon name="x" size={14}/></button>}</div><div className="bm-create-actions"><Button icon="plus" kind="primary" onClick={()=>request({type:'create',kind:'bookmark'})}>新建书签</Button><Button icon="folder" onClick={()=>request({type:'create',kind:'folder'})}>新建文件夹</Button></div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
@@ -241,10 +242,10 @@ export default function App(){
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
   {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   </div>
-  {tree&&(draft||detailOpen)&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={closeSheet}>
+  {tree&&(draft||detailOpen)&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={closeSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
   </Sheet>}
   {menu&&<ActionMenu state={menu} onAction={actionMenu} onClose={closeMenu}/>}
-  {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'确认删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'确定删除「'+confirmDelete.expected.title+'」？'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
+  {confirmDelete&&<Confirm title={confirmDelete.count?'删除文件夹及子项？':'删除书签？'} description={confirmDelete.count?'「'+confirmDelete.expected.title+'」及其 '+confirmDelete.count+' 个子项将被永久删除。':'「'+confirmDelete.expected.title+'」将被永久删除。'} confirm={busy?'正在删除…':confirmDelete.count?'删除文件夹':'删除书签'} danger canConfirm={!busy} onConfirm={()=>void removeConfirmed()} onCancel={()=>setConfirmDelete(null)}/>}
  </div>
 }
