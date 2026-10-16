@@ -7,7 +7,7 @@ const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
 const SITE_KEY='sites';
-let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDirty=false;
+let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteEpoch=0,siteDiscardPending=false;
 function report(){setState({dirty:dirty||siteDirty,busy:busy||siteBusy});}
@@ -128,6 +128,16 @@ function focusListAction(id,action){
 function siteMessage(text='',isError=false){
   const n=el('ps-site-status');n.textContent=text;n.hidden=!text;n.dataset.error=String(isError);
 }
+function siteLock(){
+  const locked=siteBusy||siteUnconfirmedWrite;
+  for(const id of ['ps-site-current','ps-site-save','ps-site-test','ps-pick-container','ps-pick-editor'])
+    el(id).disabled=locked;
+  for(const button of el('ps-sites-list').querySelectorAll('button'))button.disabled=locked;
+  el('ps-site-cancel').disabled=locked;
+  el('ps-sites-open').disabled=locked;
+  el('ps-site-form').setAttribute('aria-busy',String(siteBusy));
+  report();
+}
 function siteKey(row){return row.origin+'|'+row.pathScope;}
 function siteDraft(){
   return {origin:siteOrigin,pathScope:el('ps-site-path').value||'/',
@@ -150,10 +160,12 @@ async function loadSites(){
   renderSites();return sites;
 }
 async function commitSites(next){
+  if(siteUnconfirmedWrite)throw Object.assign(
+    Error('上次网站规则写入结果未知，请保留草稿并重新打开核对'),{code:'E_OUTCOME_UNKNOWN'});
   if(!sitesReady||siteBusy||!sitesEtag)throw Error('网站规则尚未就绪');
   const normalized=model.sitesLoad(next);
   if(model.bytes(normalized)>8192)throw Error('网站适配规则超出 8 KiB');
-  siteBusy=true;report();
+  siteBusy=true;siteLock();
   try{
     let reply;
     try{
@@ -162,14 +174,22 @@ async function commitSites(next){
         throw Error('保存回执不完整');
     }catch(error){
       if(['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(error?.code))throw error;
-      // Unknown outcome: read back the exact canonical rule set before success.
-      const checked=await readSites();
-      if(JSON.stringify(checked.data)!==JSON.stringify(normalized))
-        throw Object.assign(Error('保存结果未知；不要再次覆盖，请重新打开核对'),{code:'E_OUTCOME_UNKNOWN'});
-      reply={etag:checked.etag};
+      // An invalid acknowledgement does not prove a write failed.
+      // Block further writes until the exact intended state is read back.
+      siteUnconfirmedWrite=true;
+      try{
+        const checked=await readSites();
+        if(JSON.stringify(checked.data)!==JSON.stringify(normalized))
+          throw Error('网站规则读回与本次写入不同');
+        reply={etag:checked.etag};
+        siteUnconfirmedWrite=false;
+      }catch{
+        throw Object.assign(Error('保存结果未知；草稿仍保留，请重新打开工具核对，禁止盲目重试'),{
+          code:'E_OUTCOME_UNKNOWN'});
+      }
     }
     sites=normalized;sitesEtag=reply.etag;renderSites();
-  }finally{siteBusy=false;report();}
+  }finally{siteBusy=false;siteLock();}
 }
 function renderSites(){
   const host=el('ps-sites-list');host.replaceChildren();
@@ -199,9 +219,10 @@ function renderSites(){
     }else button(actions,'删除',()=>{siteDelete=siteKey(rule);renderSites();},'danger');
     card.append(head,path,actions);host.append(card);
   }
+  siteLock();
 }
 function openSiteForm(rule){
-  if(siteBusy)return;
+  if(siteBusy||siteUnconfirmedWrite)return;
   ++siteEpoch;siteSession=null;siteVerified=null;siteDiscardPending=false;
   siteEditing=rule?siteKey(rule):null;siteOrigin=rule?.origin||null;
   el('ps-site-form').hidden=false;
@@ -218,10 +239,12 @@ function openSiteForm(rule){
 
 
 async function openCurrentSite(){
-  if(!sitesReady||siteBusy)return;
+  if(!sitesReady||siteBusy||siteUnconfirmedWrite)return;
   if(siteDirty){siteMessage('请先保存或取消当前未保存的网站配置。',true);return;}
   try{
+    const epoch=siteEpoch;
     const context=await request('prompt.page.context',{});
+    if(siteBusy||siteUnconfirmedWrite||siteDirty||siteEpoch!==epoch)return;
     if(context?.status!=='available'||!context.origin)throw Error('请先打开普通网页');
     if(context.origin==='https://chatgpt.com')throw Error('ChatGPT 已内置，无需重新配置');
     const matching=sites.rules.filter(rule=>rule.origin===context.origin&&
@@ -279,11 +302,13 @@ async function pickSite(kind){
   }catch(error){if(token===siteEpoch)siteMessage('无法开始选择：'+(error.code||error.message),true);}
 }
 async function testSite(){
-  if(!siteOrigin||siteBusy||siteSession)return;
+  if(!siteOrigin||siteBusy||siteUnconfirmedWrite||siteSession)return;
   try{
+    const epoch=siteEpoch,draftSnapshot=JSON.stringify(siteDraft());
     const rule=model.siteRule(siteDraft());
     siteMessage('正在当前网页验证两个目标…');
     const result=await request('prompt.page.check',{rule});
+    if(epoch!==siteEpoch||el('ps-site-form').hidden||JSON.stringify(siteDraft())!==draftSnapshot)return;
     if(result?.valid!==true||result.containerMatches!==1||result.editorMatches!==1||
        !['textarea','input','richtext'].includes(result.editorType))
       throw Error('网页未返回唯一、有效的选择器验证结果');
@@ -293,7 +318,7 @@ async function testSite(){
   }catch(error){siteVerified=null;siteMessage('测试失败：'+(error.code||error.message),true);}
 }
 async function saveSite(){
-  if(!siteOrigin||siteBusy||siteSession)return;
+  if(!siteOrigin||siteBusy||siteUnconfirmedWrite||siteSession)return;
   let rule;
   try{
     rule=model.siteRule(siteDraft());
@@ -302,12 +327,23 @@ async function saveSite(){
       throw Error('旧网站规则已被修改，请重新读取');
     const next={schema:1,rules:siteEditing?
       sites.rules.map(row=>siteKey(row)===siteEditing?rule:row):[...sites.rules,rule]};
+    const snapshot=JSON.stringify(siteDraft());
     await commitSites(next);
+    // Preserve newer input, and bind it to the acknowledged rule instead of
+    // inserting a second rule with the same origin and path.
+    if(JSON.stringify(siteDraft())!==snapshot){
+      siteEditing=siteKey(rule);siteBaseline=snapshot;siteVerified=null;
+      siteDirty=true;siteDiscardPending=false;
+      el('ps-site-verified').textContent='保存期间有新的修改，请重新测试后再保存。';
+      report();siteMessage('先前版本已保存；新输入仍在表单中，尚未保存。');
+      return;
+    }
     siteEditing=null;siteOrigin=null;siteVerified=null;siteDirty=false;
     el('ps-site-form').hidden=true;report();siteMessage('网站配置已保存。刷新页面后将自动使用相同规则。');
   }catch(error){siteMessage('保存失败，配置仍保留在表单中：'+(error.code||error.message),true);}
 }
 async function cancelSiteForm(){
+  if(siteBusy||siteUnconfirmedWrite)return;
   if(siteDirty&&!siteDiscardPending){
     siteDiscardPending=true;
     siteMessage('存在未保存的网站配置。再次点击「取消」才会放弃；也可以继续编辑。',true);
@@ -317,6 +353,7 @@ async function cancelSiteForm(){
   siteDiscardPending=false;el('ps-site-form').hidden=true;report();siteMessage('');
 }
 async function toggleSites(){
+  if(siteBusy||siteUnconfirmedWrite)return;
   const panel=el('ps-sites-panel'),open=panel.hidden;
   if(!open&&siteDirty){siteMessage('请先保存或明确取消未保存的网站配置。',true);return;}
   if(!open)await stopSitePick();
@@ -510,7 +547,8 @@ async function changeWeb(){
 async function launch(){
   try{
     const value=await OpenDeskSDK.browser.launch.consume();
-    if(value?.toolId==='prompt-shortcuts'&&value.actionId===MENU_ACTION&&
+    if(mode==='index'&&!dirty&&!busy&&!unconfirmedWrite&&
+      value?.toolId==='prompt-shortcuts'&&value.actionId===MENU_ACTION&&
       typeof value.selection==='string'&&value.selection.trim())start(null,value.selection);
   }catch{/* An ordinary opening does not carry a one-use native menu ticket. */}
 }

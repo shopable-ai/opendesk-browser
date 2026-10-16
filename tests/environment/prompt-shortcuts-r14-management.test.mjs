@@ -54,7 +54,7 @@ function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
   assert(button,'missing clickable '+text);return button;
 }
-async function fixture({deferWrites=false,deferReadback=false,initial=null,initialStored=initial,menuSelection=null,storageFault=null}={}){
+async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,initial=null,initialStored=initial,menuSelection=null,storageFault=null}={}){
   const [html,main,modelSource]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),readFile(tool+'/src/main.js','utf8'),
     readFile(tool+'/trusted/model.js','utf8')
@@ -81,17 +81,23 @@ async function fixture({deferWrites=false,deferReadback=false,initial=null,initi
   };
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
   let siteStored=null,siteVersion='b'.repeat(64),siteWrites=0;
-  const states=[],requests=[],pending=[],readbacks=[];
+  const states=[],requests=[],pending=[],readbacks=[],sitePending=[],launches=[];
   const request=async(op,payload={})=>{
     requests.push({op,payload});
     if(op==='prompt.page.context')return {status:'available',origin:'https://example.org',path:'/compose'};
     if(op==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
-    if(op==='storage.get'&&payload.key==='sites')return {value:structuredClone(siteStored),etag:siteVersion};
+    if(op==='storage.get'&&payload.key==='sites'){
+      if(siteReadbackFault&&siteWrites>0)throw Error('Website rules readback unavailable');
+      return {value:structuredClone(siteStored),etag:siteVersion};
+    }
     if(op==='storage.set'&&payload.key==='sites'){
       assert.equal(payload.ifMatch,siteVersion);
+      const outcome=deferSiteWrites?await new Promise(resolve=>sitePending.push(resolve)):null;
+      if(outcome?.failure?.code==='E_STORAGE_CONFLICT')throw outcome.failure;
       siteStored=structuredClone(payload.value);siteWrites++;
       siteVersion=String(siteWrites).padStart(64,'b');
-      return {saved:true,etag:siteVersion};
+      if(outcome?.failure)throw outcome.failure;
+      return outcome?.ack??{saved:true,etag:siteVersion};
     }
     if(op==='storage.get'){
       assert.equal(payload.key,'library');
@@ -122,12 +128,12 @@ async function fixture({deferWrites=false,deferReadback=false,initial=null,initi
     OpenDeskSDK:{browser:{contextMenu:{
       getStatus:async()=>({enabled:false,approvedOrigins:[],browserPermission:false}),
       register:async()=>({registered:true}),unregister:async()=>({registered:false})
-    },launch:{consume:async()=>{if(menuSelection!==null)return {toolId:'prompt-shortcuts',actionId:'add-selection',selection:menuSelection};throw Error('ordinary opening without menu ticket')}}}}
+    },launch:{consume:async()=>{if(deferLaunch)return new Promise(resolve=>launches.push(resolve));if(menuSelection!==null)return {toolId:'prompt-shortcuts',actionId:'add-selection',selection:menuSelection};throw Error('ordinary opening without menu ticket')}}}}
   };
   runInNewContext(modelSource,sandbox,{filename:'trusted/model.js'});
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
-  return {nodes,root,requests,states,pending,readbacks,copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
+  return {nodes,root,requests,states,pending,readbacks,sitePending,launches,copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
     siteStored:()=>siteStored,siteWrites:()=>siteWrites};
 }
 test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard and quota recovery',async()=>{
@@ -590,4 +596,73 @@ test('R1.17 Save and Continue must acknowledge each Host write before resetting 
   x['ps-save-next'].click();await settle();
   assert.equal(x['ps-body'].value,'不可丢失的草稿');
   assert.equal(x['ps-edit'].hidden,false);assert.equal(fail.writes(),0);
+});
+
+async function startVerifiedSite(f){
+  const n=f.nodes;
+  n['ps-sites-open'].click();await settle();
+  n['ps-site-current'].click();await settle();
+  n['ps-site-container'].value='main';n['ps-site-container'].emit('input');
+  n['ps-site-editor'].value='textarea';n['ps-site-editor'].emit('input');
+  n['ps-site-test'].click();await settle();
+  assert.match(n['ps-site-verified'].textContent,/验证成功/);
+}
+test('R1.18 site save retains edits typed during pending acknowledgement and updates the same rule',async()=>{
+  const f=await fixture({deferSiteWrites:true}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-site-save'].click();await settle();
+  assert.equal(f.sitePending.length,1);
+  assert.equal(n['ps-site-cancel'].disabled,true);
+  assert.equal(n['ps-site-form'].attributes['aria-busy'],'true');
+  n['ps-site-editor'].value='[role="textbox"]';n['ps-site-editor'].emit('input');
+  n['ps-site-cancel'].emit('click');n['ps-sites-open'].emit('click');
+  assert.equal(n['ps-site-form'].hidden,false,'pending write must not discard form');
+  f.sitePending.shift()({});await settle();
+  assert.equal(f.siteStored().rules[0].editorSelector,'textarea');
+  assert.equal(n['ps-site-editor'].value,'[role="textbox"]');
+  assert.equal(n['ps-site-form'].hidden,false);
+  assert.equal(f.states.at(-1).dirty,true);
+  assert.match(n['ps-site-status'].textContent,/尚未保存/);
+  n['ps-site-test'].click();await settle();
+  n['ps-site-save'].click();await settle();
+  assert.equal(f.sitePending.length,1);
+  const write=f.requests.filter(x=>x.op==='storage.set'&&x.payload.key==='sites').at(-1);
+  assert.equal(write.payload.value.rules.length,1,'follow-up must edit same rule');
+  f.sitePending.shift()({});await settle();
+  assert.equal(f.siteStored().rules[0].editorSelector,'[role="textbox"]');
+  assert.equal(n['ps-site-form'].hidden,true);
+});
+test('R1.18 unreadable site readback after lost ack forbids replay',async()=>{
+  const f=await fixture({deferSiteWrites:true,siteReadbackFault:true}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-site-save'].click();await settle();
+  f.sitePending.shift()({failure:Error('Host transport timeout')});await settle();
+  assert.equal(f.siteWrites(),1);
+  assert.equal(n['ps-site-form'].hidden,false);
+  assert.equal(n['ps-site-save'].disabled,true);
+  assert.equal(n['ps-site-cancel'].disabled,true);
+  assert.match(n['ps-site-status'].textContent,/E_OUTCOME_UNKNOWN/);
+  n['ps-site-save'].emit('click');n['ps-site-cancel'].emit('click');await settle();
+  assert.equal(f.siteWrites(),1);
+  assert.equal(n['ps-site-form'].hidden,false);
+});
+test('R1.18 recognized site ETag conflict retains draft without claiming success',async()=>{
+  const f=await fixture({deferSiteWrites:true}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-site-save'].click();await settle();
+  f.sitePending.shift()({failure:Object.assign(Error('ETag changed'),{code:'E_STORAGE_CONFLICT'})});
+  await settle();
+  assert.equal(f.siteWrites(),0);
+  assert.equal(n['ps-site-form'].hidden,false);
+  assert.equal(n['ps-site-save'].disabled,false);
+  assert.match(n['ps-site-status'].textContent,/E_STORAGE_CONFLICT/);
+});
+test('R1.18 delayed native selection cannot overwrite an active user draft',async()=>{
+  const f=await fixture({deferLaunch:true}),n=f.nodes;
+  assert.equal(f.launches.length,1);
+  n['ps-new'].click();n['ps-body'].value='刚刚输入的本地草稿';n['ps-form'].emit('input');
+  f.launches.shift()({toolId:'prompt-shortcuts',actionId:'add-selection',selection:'旧菜单选区'});
+  await settle();
+  assert.equal(n['ps-body'].value,'刚刚输入的本地草稿');
+  assert.equal(n['ps-edit'].hidden,false);assert.equal(f.writes(),0);
 });

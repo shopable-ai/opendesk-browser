@@ -101,3 +101,10 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - 正式包真实 Chromium / **受控 Mock Host**：320/360/400/440px 六操作 SVG-only/无横向溢出、40px hit target、ARIA、Esc 关闭恢复焦点、连续保存并继续、重开读回等 PASS，`consoleExceptions=[]`。预览 Chromium 与 R2.1 网页 DOM 双选择器 Chromium Fixture 均 PASS；这些不是已安装的原生扩展测试。
 - 唯一正式可安装 JSON：`prompt-shortcuts.opendesk-tool.json`，版本 **1.1.1**，**71,146 UTF-8 bytes**，SHA-256 **`d8194d106eaa4c171203c5ad3f131bbdb4b65864e8036d5cb7460abff4a4ffc5`**；自动同步提交 [2f4ddbc](https://github.com/shopable-ai/opendesk-browser/commit/2f4ddbc749badfcddc0412442dfdf1e15c5b0b36)；`--check-project` = **PROJECT_PACKAGE_MATCH**。
 - 尚未取得 Mac 本地 `dist/development` 同 ID 安装升级、真实 Host 存储事务、已登录 chatgpt.com/第三方网站实际编辑器插入、撤权、中文 IME/Undo 的原生证据：分别为 **NOT_TESTED**。九维专家 95+ 是后续正式产品验收门槛，不得把模拟 CI 当成已满足。
+
+### R1.18 网站规则保存与选区竞态修复（候选 1.1.2）
+
+- 网站规则保存期间禁止取消、切换与二次提交；期间新输入留在当前表单，已保存版本收到 Host 有效回执后绑定原规则，要求重新测试选择器，避免重复创建。
+- 规则写入回执丢失或不完整时，只有完整预期规则 + 有效 ETag 的读回才算成功；读回未知时锁住网站规则写入，保留草稿并要求重开核对。
+- 延迟到达的右键选区不会覆盖已开始编辑的用户草稿。新增 Node deferred Host 回归测试，保持共享 SDK/Host、权限和可信页面适配器不变。
+- 正式包 1.1.2 需要专项 CI 验证并同步唯一 JSON。实际 Mac Chrome 安装升级、已登录 ChatGPT / 其他网站、IME/Undo/撤权在取得真实证据前仍为 NOT_TESTED。

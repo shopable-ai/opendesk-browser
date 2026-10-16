@@ -472,3 +472,10 @@
 - 新增 Chromium DOM Fixture（真实 CDP 鼠标与正式可信页面模块、模拟扩展 Host）：匿名富文本选取自动得到 `#rich-container div[contenteditable="true"]`；原生多行追加、中文及 Emoji、空行和未发送状态得到稳定回读；模拟受控编辑器在 160ms 后回滚 DOM 时，不误报已插入、不自动重试、完整提示词复制回退，`consoleErrors=[]`，**CHROMIUM_FIXTURE_PASS**。同时保留 R2.1 的 textarea/input/双选择器/站点启停刷新覆盖。
 - 正式工具包依旧是独立 **`1.1.1`**，71,146 UTF-8 bytes，SHA-256 **`d8194d106eaa4c171203c5ad3f131bbdb4b65864e8036d5cb7460abff4a4ffc5`**；此次仅修改 Chrome Extension 固定可信模块及测试，正式 Sandbox 工具包不需要改版。**工具包更新不等同于浏览器内的固定可信代码更新**。
 - 边界：测试的 `plaintext-only` 编辑器为 Node 语义回归，尚未在真实网站验证；Claude/Gemini/ChatGPT 真实账号的输入、Undo、IME、React/ProseMirror/Lexical 内部状态持久性、Mac 已安装扩展升级及撤权仍 **NOT_TESTED**。不将模拟 Host 的真实 Chromium 成功记作 `INSTALLED_CHROME_PASS` 或 `REAL_SITE_PASS`，专家维度缺少原生证据则 **NOT_SCORED**。
+
+## R1.18 独立工具异步持久化审计（2026-10-16）
+
+- 起始远端 main：`7843f90c4c0a`；基线安装包 1.1.1。R1.17 的 CI 只验证正式源码与模拟 Host，未验证 Mac 实际安装。
+- 审计证实网站规则在 Host 保存期间仍可继续编辑，旧代码在旧版本回执后立即关闭表单；未知写入结果也没有和提示词库一致的锁定机制。
+- 候选 1.1.2 修复 `src/main.js` 并扩展 `prompt-shortcuts-r14-management.test.mjs` 的 pending write、ETag conflict、unknown readback、延迟原生右键选区用例。CI 改为从同一 commit 的配置读包版本；不修改可信 Model/Page/Policy 及通用 SDK/Host。
+- 此段记录时 CI、正式包同步、真实安装及跨站、中文 IME、Undo 均尚无本轮证据，分别标记 NOT_TESTED；不得以 Mock 通过声称产品达到九维 95+。

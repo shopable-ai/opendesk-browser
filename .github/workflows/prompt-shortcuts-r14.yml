@@ -62,7 +62,8 @@ jobs:
           const bytes=readFileSync(path);
           const pkg=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
           assert.equal(pkg.id,'prompt-shortcuts');
-          assert.equal(pkg.version,'1.1.1');
+          const config=JSON.parse(readFileSync('examples/sidebar-tools/prompt-shortcuts/tool.config.json','utf8'));
+          assert.equal(pkg.version,config.version,'candidate must match source version');
           assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
           assert(pkg.capabilities.includes('page.prompts'));
           assert(pkg.capabilities.includes('browser.contextMenu'));
@@ -145,7 +146,7 @@ jobs:
           const path='examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json';
           const content=readFileSync('.verified-prompt-tool/candidate.opendesk-tool.json');
           const pkg=JSON.parse(content.toString('utf8'));
-          if(pkg.id!=='prompt-shortcuts'||pkg.version!=='1.1.1'||pkg.format!=='opendesk.sidebar-tool.v2')
+          if(pkg.id!=='prompt-shortcuts'||pkg.format!=='opendesk.sidebar-tool.v2')
             throw Error('Refusing to publish a package with mismatched tool identity');
           const expectedBlob=createHash('sha1').update('blob '+content.length+'\0').update(content).digest('hex');
           const endpoint='https://api.github.com/repos/'+repo;
@@ -158,6 +159,11 @@ jobs:
               throw Error('GitHub API '+response.status+': '+String(data.message||'unknown error'));
             return {status:response.status,data};
           }
+          const configReply=await request('/contents/examples/sidebar-tools/prompt-shortcuts/tool.config.json?ref='+sourceCommit);
+          if(configReply.status!==200||!configReply.data?.content)
+            throw Error('Cannot verify version of the source commit');
+          const sourceVersion=JSON.parse(Buffer.from(configReply.data.content,'base64').toString('utf8')).version;
+          if(pkg.version!==sourceVersion)throw Error('Package version differs from source commit');
           // The publishing job might be delayed by other agents writing main.
           // A package from an old source candidate must never overwrite newer
           // Prompt Shortcuts or any input to the official v2 package builder.
