@@ -1045,14 +1045,15 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
       const start=Number.isInteger(field.selectionStart)?field.selectionStart:before.length;
       const at=Math.min(Math.max(start,0),before.length);
       const text=(at>0&&!before.slice(0,at).endsWith('\n')?'\n':'')+item.body+(before.slice(at)&&!before.slice(at).startsWith('\n')?'\n':'');
-      field.setRangeText(text,at,at,'end');expected=before.slice(0,at)+text+before.slice(at);
+      field.focus();field.setSelectionRange(at,at);
+      if(!document.execCommand('insertText',false,text))throw Error('浏览器无法保证原生撤销安全，已停止插入');
+      expected=before.slice(0,at)+text+before.slice(at);
      }else{
       const text=(before&&!before.endsWith('\n')?'\n':'')+item.body;expected=before+text;
       field.focus();const range=document.createRange();range.selectNodeContents(field);range.collapse(false);
       const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
       if(!document.execCommand('insertText',false,text))throw Error('富文本编辑器拒绝了插入操作');
      }
-     field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:item.body}));
      if(el('actionScenario').value==='readback-fail'){
        if(field instanceof HTMLTextAreaElement||field instanceof HTMLInputElement)field.value=before;else field.textContent=before;
      }
