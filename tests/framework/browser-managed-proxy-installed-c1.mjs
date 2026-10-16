@@ -170,9 +170,34 @@ async function main(){
   if(after.settings)assert.notEqual(after.settings.value?.mode,'pac_script');
   step('NO_UNAPPROVED_NATIVE_SET',{status:'PASS',permission:after.permission,
     mode:after.settings?.value?.mode??null,journal:after.journal});
-  receipt.sidePanelObserved=after.panels.some(x=>x.type==='SIDE_PANEL');
-  receipt.sidePanelContexts=after.panels;
-  receipt.result=receipt.sidePanelObserved?'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_UNVERIFIED':
+  // A tool tab is not the native Chrome Side Panel. Explicitly attempt to
+  // OPEN the real Side Panel through a Chrome-originated pointer event.
+  // Never invoke chrome.sidePanel.open from Runtime.evaluate.
+  let panel=after.panels.find(x=>x.type==='SIDE_PANEL')||null;
+  if(!panel){
+    const catalog='chrome-extension://'+extensionId+'/ui/tool.html';
+    await client.send('Page.navigate',{url:catalog},page);
+    try{
+      await until(async()=>{const el=await element('#catalog-open-dev-sidebar');return el?.visible&&el;},
+        'trusted Side Panel opener in catalog tab');
+      await click('#catalog-open-dev-sidebar');
+      const observed=await until(async()=>{
+        const state=await readNative(worker);
+        return state.panels.find(x=>x.type==='SIDE_PANEL')||null;
+      },'real Chrome Side Panel context');
+      panel=observed;
+      step('CHROME_SIDE_PANEL_OPEN',{status:'OBSERVED_NOT_INTERACTION_VERIFIED',context:observed});
+    }catch(error){
+      receipt.sidePanelBlocker=String(error?.message||error);
+      receipt.sidePanelCatalogStatus=await evalAt(page,
+        'document.getElementById("catalog-dev-sidebar-status")?.textContent??null').catch(()=>null);
+      step('CHROME_SIDE_PANEL_OPEN',{status:'NATIVE_UI_BLOCKED',
+        error:receipt.sidePanelBlocker,visibleStatus:receipt.sidePanelCatalogStatus});
+    }
+  }
+  receipt.sidePanelObserved=Boolean(panel);
+  receipt.sidePanelContexts=panel?[panel]:after.panels;
+  receipt.result=panel?'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_OBSERVED_NOT_INTERACTED':
     'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_BLOCKED';
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
