@@ -1,0 +1,92 @@
+name: Cookie Editor R4.9 React 19 · Chromium
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/cookie-editor/preview/react/**'
+      - '.github/workflows/cookie-editor-r49-react-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: cookie-r49-react-preview
+  cancel-in-progress: false
+jobs:
+  react-preview-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned React 19, Vite and Playwright
+        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build and verify exact offline React HTML
+        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        run: |
+          npm run build
+          npm run check
+          node --input-type=module <<'NODE'
+          import {readFile,stat} from 'node:fs/promises';
+          import assert from 'node:assert/strict';
+          const js=await readFile('dist/cookie-react.js','utf8');
+          const html=await readFile('index.html','utf8');
+          assert.ok(js.length>40000,'actual React renderer required');
+          assert.match(js,/createRoot/,'real react-dom/client required');
+          assert.ok(html.includes('data:text/javascript;base64,'));
+          assert.ok(html.includes("connect-src 'none'"));
+          assert.doesNotMatch(html,/https?:\/\/(?:cdn|unpkg|jsdelivr)\./);
+          console.log(JSON.stringify({result:'BUILT_REACT_19',jsCodeUnits:js.length,
+            jsBudget:220000,jsFitsProductionTool:js.length<=220000,
+            htmlBytes:(await stat('index.html')).size}));
+          NODE
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real built React 19 Chromium UI E2E
+        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run test:chromium
+      - name: Preserve exact HTML and screenshot evidence even if failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cookie-r49-react-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            examples/sidebar-tools/cookie-editor/preview/react/index.html
+            examples/sidebar-tools/cookie-editor/preview/react/screenshots/
+      - name: Promote only exact Chromium-tested HTML, lockfile and screenshots
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          remote_head="$(git rev-parse origin/main)"
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "::error::main history diverged"; exit 1
+            fi
+            overlap="$(git diff --name-only "$GITHUB_SHA" "$remote_head" -- examples/sidebar-tools/cookie-editor/preview/react .github/workflows/cookie-editor-r49-react-preview.yml)"
+            if [ -n "$overlap" ]; then
+              echo "::error::Concurrent R4.9 changes; refuse overwriting"
+              printf '%s\n' "$overlap"; exit 1
+            fi
+          fi
+          git add -- examples/sidebar-tools/cookie-editor/preview/react/index.html \
+            examples/sidebar-tools/cookie-editor/preview/react/package-lock.json \
+            examples/sidebar-tools/cookie-editor/preview/react/screenshots/
+          if git diff --cached --quiet; then
+            echo "Already contains exact React preview"; exit 0
+          fi
+          git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'build(cookie-editor): promote Chromium-tested R4.9 React preview'
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' rebase origin/main
+          fi
+          git push origin HEAD:main
