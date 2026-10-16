@@ -31,12 +31,12 @@ button:focus-visible,input:focus-visible,.bm-tree-scroll:focus-visible,a:focus-v
 .bm-tree-head span{font-weight:620;color:var(--od-ink)}.bm-tree-head small{font-size:11px;font-variant-numeric:tabular-nums}
 .bm-tree-scroll{min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c7d1e1 transparent;position:relative}
 .bm-virtual-area{min-width:0;position:relative;padding:0}
-.bm-tree-row{height:42px;display:flex;align-items:center;gap:5px;position:relative;min-width:0;cursor:default;border-bottom:1px solid transparent;padding-right:6px;user-select:none}
+.bm-tree-row{height:42px;display:flex;align-items:center;gap:5px;position:relative;min-width:0;cursor:pointer;border-bottom:1px solid transparent;padding-right:6px;user-select:none}
 .bm-tree-row:hover{background:#f5f8fd}.bm-tree-row.is-active{box-shadow:inset 2px 0 var(--od-brand)}.bm-tree-row.is-selected{background:#eaf0ff;color:#1c438f}.bm-tree-row.is-selected:hover{background:#e1eaff}
 .bm-disclosure{background:none;border:0;color:var(--od-sub);padding:0;width:21px;height:28px;flex:0 0 21px;display:grid;place-items:center;border-radius:5px}
 .bm-disclosure[aria-expanded="true"] svg{transform:rotate(90deg)}.bm-disclosure.is-placeholder{visibility:hidden;pointer-events:none}
 .bm-node-icon{color:#7c8ea8;flex:0 0 18px;height:20px;display:grid;place-items:center}
-.bm-folder-icon{color:#d19937}.bm-node-title{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
+.bm-search-highlight{background:color-mix(in srgb,var(--od-brand) 12%,var(--od-paper));color:var(--od-ink);border-radius:3px;padding:0 1px}.bm-folder-icon{color:#d19937}.bm-node-title{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
 .bm-count{color:var(--od-sub);font-size:10.5px;min-width:15px;text-align:right;font-variant-numeric:tabular-nums}
 .bm-row-more{width:28px;min-width:28px;height:30px;display:grid;place-items:center;border:none;background:transparent;border-radius:7px;color:var(--od-sub);opacity:0}
 .bm-tree-row:hover .bm-row-more,.bm-tree-row.is-selected .bm-row-more,.bm-tree-row:focus-within .bm-row-more,.bm-row-more:focus-visible{opacity:1}

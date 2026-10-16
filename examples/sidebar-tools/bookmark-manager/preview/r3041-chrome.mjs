@@ -189,9 +189,15 @@ async function keyboardCase(ctx,outer){
  await invoke(ctx,'const t=document.querySelector(".bm-tree-scroll");t.scrollTop=0;t.dispatchEvent(new Event("scroll",{bubbles:true}));t.focus();return true');
  await until(ctx,'!!document.querySelector("#bm-treeitem-100")','first row');
  await realKey('Home','Home',36);
+ await realKey('Enter','Enter',13);
+ await until(ctx,'document.querySelector("#bm-treeitem-1")?.getAttribute("aria-expanded")==="false"','folder Enter collapses');
+ assert.equal(await invoke(ctx,'return !!document.querySelector("[data-testid=bookmark-preview]")'),false,'folder Enter does not open readonly');
+ await realKey(' ','Space',32);
+ await until(ctx,'document.querySelector("#bm-treeitem-1")?.getAttribute("aria-expanded")==="true"','folder Space expands');
+ await realKey('ArrowDown','ArrowDown',40);
  await realKey('ArrowDown','ArrowDown',40);
  await realKey('Enter','Enter',13);
- await until(ctx,'!!document.querySelector("[data-testid=bookmark-preview]")','Enter shows readonly');
+ await until(ctx,'!!document.querySelector("[data-testid=bookmark-preview]")','bookmark Enter shows readonly');
  await realKey('Escape','Escape',27);
  await until(ctx,'!document.querySelector("[data-testid=bookmark-preview]")','Escape closes readonly from Tree');
  assert.equal(await invoke(ctx,'return document.activeElement?.classList.contains("bm-tree-scroll")'),true,'Tree still focused');

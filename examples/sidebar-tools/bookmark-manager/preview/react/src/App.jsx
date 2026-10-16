@@ -45,7 +45,13 @@ function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.ti
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
 function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请恢复模拟权限后刷新。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
 function descendants(tree,id){return model.descendantSignatures(tree,id).length}
-function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSelect,onToggle,onMenu,onEdit,onScrollClose,scrollRef}){
+function highlightSearchTitle(title,term){
+ const q=term.trim();if(!q)return title;
+ const at=title.toLocaleLowerCase().indexOf(q.toLocaleLowerCase());
+ if(at<0)return title;
+ return <>{title.slice(0,at)}<mark className="bm-search-highlight">{title.slice(at,at+q.length)}</mark>{title.slice(at+q.length)}</>;
+}
+function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActiveId,onSelect,onFolder,onToggle,onMenu,onEdit,onScrollClose,scrollRef}){
  const [top,setTop]=useState(0),[height,setHeight]=useState(510);
  const rowHeight=42,virtual=rows.length>120;
  useLayoutEffect(()=>{const el=scrollRef.current;if(!el)return;const resize=()=>setHeight(el.clientHeight||510);resize();if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(resize);ro.observe(el);return()=>ro.disconnect()}},[scrollRef]);
@@ -61,7 +67,7 @@ function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSele
    else if(event.key==='End')selectActive(rows.length-1);
    else if(event.key==='ArrowRight'){if(isFolder(row.node)){if(!expanded.has(row.node.id))onToggle(row.node.id);else if(idx+1<rows.length&&rows[idx+1].level>row.level)selectActive(idx+1)}}
    else if(event.key==='ArrowLeft'){if(isFolder(row.node)&&expanded.has(row.node.id))onToggle(row.node.id);else{let parent=row.node.parentId;const parentIndex=rows.findIndex(r=>r.node.id===parent);if(parentIndex>=0)selectActive(parentIndex)}}
-   else if(event.key==='Enter'||event.key===' '){onSelect(row.node.id)}
+   else if(event.key==='Enter'||event.key===' '){if(isFolder(row.node))onFolder(row.node.id);else onSelect(row.node.id)}
    else if(event.key==='F2'){onEdit(row.node.id)}
    else if(event.key==='F10'&&event.shiftKey){const btn=scrollRef.current?.querySelector('[data-node-id="'+row.node.id+'"] .bm-row-more');if(btn)onMenu(row.node.id,btn)}
    else if(event.key==='Escape'){return} // document handles Escape for readonly preview or row menu
@@ -77,12 +83,12 @@ function Tree({rows,expanded,searchActive,selectedId,activeId,setActiveId,onSele
      aria-expanded={folder?open:undefined} title={node.title}
      className={'bm-tree-row'+(selectedId===node.id?' is-selected':'')+(activeId===node.id?' is-active':'')}
      style={{paddingInlineStart:Math.min(row.level-1,10)*15+7,...(virtual?{position:'absolute',top:(start+i)*rowHeight,left:0,right:0}:{})}}
-     onClick={()=>{setActiveId(node.id);onSelect(node.id);scrollRef.current?.focus()}} data-node-id={node.id}>
+     onClick={()=>{setActiveId(node.id);if(folder)onFolder(node.id);else onSelect(node.id);scrollRef.current?.focus()}} data-node-id={node.id}>
      <button className={'bm-disclosure'+(!folder?' is-placeholder':'')} type="button" tabIndex={-1}
        aria-label={folder?(searchActive?'搜索中已展开 '+node.title:open?'折叠 '+node.title:'展开 '+node.title):undefined} aria-expanded={folder?open:undefined} aria-hidden={!folder} disabled={searchActive||!folder}
        onClick={event=>{event.stopPropagation();if(folder&&!searchActive)onToggle(node.id)}}><Icon name="chevron" size={15}/></button>
      <span className={'bm-node-icon'+(folder?' bm-folder-icon':'')}><Icon name={folder?'folder':'link'} size={17}/></span>
-     <span className="bm-node-title">{node.title}</span>
+     <span className="bm-node-title">{highlightSearchTitle(node.title,searchTerm)}</span>
      {folder&&<span className="bm-count" title={count+' 个直接子项'}>{count}</span>}
      <button className="bm-row-more" type="button" aria-label={'操作 '+node.title}
        onClick={event=>{event.stopPropagation();onMenu(node.id,event.currentTarget)}}><Icon name="more" size={17}/></button>
@@ -207,12 +213,20 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
 }
 export default function App(){
  const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
- const scrollRef=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
+ const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
  const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[]);
  useEffect(()=>{void load({initial:true})},[load]);
  useEffect(()=>{if(!notice||notice.startsWith('写入结果未知'))return;const timer=setTimeout(()=>setNotice(''),3300);return()=>clearTimeout(timer)},[notice]);
  const rows=useMemo(()=>filteredRows(tree,expanded,query),[tree,expanded,query]);
+ useLayoutEffect(()=>{
+  const id=pendingFolderReveal.current,scroller=scrollRef.current;
+  if(!id||!scroller)return;
+  const index=rows.findIndex(row=>row.node.id===id);
+  if(index<0)return;
+  pendingFolderReveal.current=null;
+  scroller.scrollTop=Math.max(0,index*42-Math.min(150,Math.round(scroller.clientHeight/3)));
+ },[rows]);
  const current=tree?.byId.get(selectedId)||null;
  const previewNode=previewOpen&&!draft?current:null;
  const folders=useMemo(()=>tree?[...tree.byId.values()].filter(n=>isFolder(n)&&!n.locked&&!tree.roots.has(n.id)):[],[tree]);
@@ -257,6 +271,26 @@ export default function App(){
  // Explicit cancel means discard. No modal for unsaved drafts.
  function request(action){if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
  function select(id){setActiveId(id);if(draft)return;request({type:'select',id})}
+ function changeSearch(value){
+  setQuery(value);setPreviewOpen(false);setMenu(null);
+  if(scrollRef.current)scrollRef.current.scrollTop=0;
+ }
+ function navigateFolder(id){
+  const folder=tree?.byId.get(id);
+  if(!folder||!isFolder(folder)||draft)return;
+  setActiveId(id);setSelectedId(id);setPreviewOpen(false);setMenu(null);
+  if(query.trim()){
+   // Search shows matching descendants plus context ancestors. Entering a
+   // folder leaves the search results and reveals the real folder in the tree.
+   const next=new Set(expanded);let node=folder,depth=0;
+   while(node&&depth++<110){
+    if(isFolder(node))next.add(node.id);
+    node=tree.byId.get(node.parentId);
+   }
+   pendingFolderReveal.current=id;
+   setExpanded(next);setQuery('');
+  }else toggle(id);
+ }
  function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
  function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
@@ -290,11 +324,11 @@ export default function App(){
     <button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
     <button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button>
    </div></header>
-  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>setQuery(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>setQuery('')}><Icon name="x" size={14}/></button>}</div></div>
+  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></button>}</div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
   </div>
   {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>

@@ -169,21 +169,30 @@ try{
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-detail-title')?.textContent.includes('OpenDesk 产品资料')"),true,'one click shows correct bookmark');
   assert.equal(await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)"),originalHeight,'preview does not reflow list');
   await screenshot('bookmark-r304-'+width+'-preview.png');
-  const five=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row')].slice(0,5).map(x=>x.dataset.nodeId)");
+  const five=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row')].filter(row=>!row.hasAttribute('aria-expanded')).slice(0,5).map(x=>x.dataset.nodeId)");
   assert.equal(five.length,5);
   for(const id of five){
    await click(ctx,'[data-node-id="'+id+'"] .bm-node-title');
-    assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector("+JSON.stringify('[data-node-id="'+id+'"] .bm-node-title')+")?.textContent"),'five clicks switch five previews '+id);
+   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=bookmark-preview] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector("+JSON.stringify('[data-node-id="'+id+'"] .bm-node-title')+")?.textContent"),'five bookmark clicks switch readonly previews '+id);
   }
   if(width===400)await screenshot('bookmark-r304-400-switch.png');
+  const expandedBefore=await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"]')?.getAttribute('aria-expanded')");
   await click(ctx,'[data-node-id="10"] .bm-node-title');
-  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"] .bm-node-title')?.textContent"),'folder body preview');
-  const expandedBefore=await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"] .bm-disclosure')?.getAttribute('aria-expanded')");
+  await until(ctx,"document.querySelector('[data-node-id=\"10\"]')?.getAttribute('aria-expanded')!=="+JSON.stringify(expandedBefore),'folder row toggles '+width);
+  assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=bookmark-preview]')"),false,'folder row navigates without readonly overlay');
+  await click(ctx,'[data-node-id="10"] .bm-node-title');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"]')?.getAttribute('aria-expanded')"),expandedBefore,'folder row reopens');
   await click(ctx,'[data-node-id="10"] .bm-disclosure');
-  assert.notEqual(await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"] .bm-disclosure')?.getAttribute('aria-expanded')"),expandedBefore,'disclosure solely toggles');
-  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"] .bm-node-title')?.textContent"),'disclosure did not select another row');
+  assert.notEqual(await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"]')?.getAttribute('aria-expanded')"),expandedBefore,'chevron independently toggles');
+  assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=bookmark-preview]')"),false,'chevron never opens preview');
   await click(ctx,'[data-node-id="10"] .bm-disclosure');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-node-id=\"10\"]')?.getAttribute('aria-expanded')"),expandedBefore,'chevron restores expansion');
   if(width===400)await screenshot('bookmark-r304-400-folder.png');
+  await openMenu(ctx,'10');
+  await choose(ctx,0);
+  await until(ctx,"!!document.querySelector('[data-testid=bookmark-preview]')",'folder detail remains in explicit menu');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=bookmark-preview] .bm-detail-title span')?.textContent"),'设计资料','folder menu readonly details');
+  await click(ctx,'.bm-preview-close');
   await click(ctx,'[data-node-id="100"] .bm-node-title');
   if(width===960){
    assert.equal(await invoke(ctx,"const a=document.querySelector('.bm-explorer').getBoundingClientRect(),b=document.querySelector('.bm-preview-pane').getBoundingClientRect();return b.left>=a.right-1"),true,'wide right-hand details');
@@ -317,7 +326,17 @@ try{
    await click(ctx,'[data-testid="confirm-dialog"] button:last-child');
    await gone(ctx,'[data-testid="bookmark-sheet"]','explicitly discard unknown draft');
   }
-  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-disclosure','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','delete-confirm-copy-and-target','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety']:[])]});
+  if(width===400){
+   await setInput(ctx,'bm-search','产品研究');
+   await until(ctx,"!!document.querySelector('[data-node-id=\"11\"] .bm-search-highlight')",'search folder highlight');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-node-id=\"2\"]')"),true,'search reveals matching ancestor path');
+   await click(ctx,'[data-node-id="11"] .bm-node-title');
+   await until(ctx,"document.getElementById('bm-search').value===''",'folder search result returns to tree');
+   await until(ctx,"document.querySelector('[data-node-id=\"11\"]')?.getAttribute('aria-expanded')==='true'",'folder result expands and scrolls into view');
+   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=bookmark-preview]')"),false,'search folder navigation stays list-first');
+   await screenshot('bookmark-r304-400-search-folder-drilldown.png');
+  }
+  report.push({width,treeHeight:originalHeight,noPersistentInspector:true,passed:['one-click-preview','five-click-five-previews','folder-row-toggle','folder-disclosure','folder-menu-details','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','delete-confirm-copy-and-target','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety','search-folder-drilldown']:[])]});
  }
  assert.deepEqual(network,[],'no network requests');
  assert.deepEqual(exceptions,[],'no browser JS exceptions');
