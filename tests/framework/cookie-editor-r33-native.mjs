@@ -35,8 +35,9 @@ assert(!requestedCases||new Set(requestedCases).size===requestedCases.length,'Du
 const selectedGapCases=gapStage?gapCases.filter(id=>!requestedCases||requestedCases.includes(id)):[];
 const needsSeed=selectedGapCases.some(id=>id.startsWith('export-')||id==='import-overwrite-cancel');
 const needsValues=selectedGapCases.some(id=>['export-copy-sensitive-json','export-json','export-header','export-netscape'].includes(id));
-const suite=gapStage?'extended':process.env.COOKIE_NATIVE_SUITE;
-const gapPlan={stage:requestedStage,selected:selectedGapCases,
+// An explicit native stage must not silently degrade to the generic CRUD suite.
+const suite=requestedStage?'extended':process.env.COOKIE_NATIVE_SUITE;
+const gapPlan={stage:requestedStage,suite,selected:selectedGapCases,
   prerequisites:gapStage?['launch','product-side-panel','official-install','active-fixture',
     'first-use-combined-grant','write-grant-reuse',...(needsSeed?['gap-seed-import']:[])]:[],
   valuesGrant:needsValues,cleanup:gapStage?['gap-cleanup']:[],
@@ -960,6 +961,10 @@ try{
   }
   if(gapStage)assert([...gapPlan.prerequisites,...selectedGapCases,...gapPlan.cleanup]
     .every(id=>report.cases[id]?.status==='PASS'),'Every selected native case and cleanup must pass');
+  if(stage==='upgrade')assert([
+    'official-install','upgrade-preservation-baseline','explicit-upgrade','upgraded-tool-save-and-delete',
+  ].every(id=>report.cases[id]?.status==='PASS'),
+    'Real 2.0.15 to 2.0.16 upgrade steps must all pass before acceptance');
   report.complete=true;
 }catch(error){report.error=error.stack;process.exitCode=1;console.error('COOKIE_NATIVE_FAIL '+error.message);}
 finally{
