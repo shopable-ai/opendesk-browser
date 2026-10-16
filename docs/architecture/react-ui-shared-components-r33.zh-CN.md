@@ -23,6 +23,25 @@
 - **CSS 边界：** `src/ui/design-tokens.css` 是唯一 Tokens 来源。Tailwind v4 可作为**离线构建工具**，其 Preflight / 全局 reset 不得意外覆盖原 Side Panel 或工具 iframe；优先 CSS 作用域、显式映射，而不是复制第二套视觉变量。
 - **组件归属：** 真实可信 Tab 已是确定消费者；待实测后决定共享源码位置（例如 `packages/opendesk-ui-react/`），不得以目录创建作为交付。用户工具可选择从同一源码预编译导入，但不借用宿主权限、DOM 或运行时全局。
 
+### R33.2：React UI 源码目录所有权及旧文件保留规则（2026-10-16）
+
+**避免 AI 执行漂移：** 本节约束下一轮的目标路径，但**不表示这些新文件现在已经创建或获得测试通过**。在 GitHub `main` 的本次核查中，`packages/` 只有 `opendesk-dev/`，`packages/opendesk-ui-react/` 不存在；该路径查询不到已合入 `main` 的历史提交。若 Mac 本地/其他只读历史中有同名目录，先查 Git status、文件内容、引用和来源，**禁止直接 `rm -rf`、`git clean` 或删除未知 Agent 文件**。
+
+| 代码职责 | 约定路径 | 写入/保留要求 |
+| --- | --- | --- |
+| **跨消费者的纯 React UI 组件源码** | `packages/opendesk-ui-react/` | **唯一优先位置**；首次确有正式可信 UI 消费者时才创建，包含必要 `src/index.ts`、`src/components/*.tsx`、组件局部样式和清晰依赖合同；不得放浏览器业务、SDK、Host、权限、第二套 Tokens；不为空包/完整 UI Kit 建无用文件 |
+| **可信 Side Panel React App** | `src/ui/react/` | 组件挂载、应用导航、视图/Tab、业务适配；建议逐个创建 `app.tsx`、`main.tsx`、`tabs/{develop,extensions,workflow,tasks,cloud}/`；只建实际已接入模块，不创建空文件或第二套长期 DOM owner |
+| **既有浏览器 HTML / 启动入口** | `src/ui/tool.html`、`src/ui/tool-shell.js`、`src/entrypoints/tool-shell.js` | 在原文件上做受控最小接入；保留**同一个** WXT 固定产物 `ui/tool-shell.js`，默认**禁止**另建 React WXT entry、另一份 sidebar.html 或第二路由入口 |
+| **现有业务服务和旧视图** | `src/ui/script-editor.js`、`src/ui/sidebar-tools.js`、`src/ui/workflow/` 等 | 已迁移的视图用薄适配器复用原业务逻辑；旧视图完成真实回归前保留，不直接整文件覆盖；明确 React DOM 所有权，避免双事件写入 |
+| **视觉标准** | `src/ui/design-tokens.css`、`src/ui/design-system.css` | 单一权威；共享 UI 组件从现有 CSS variables/构建时映射获取视觉值；不用新色板，Tailwind Preflight 不全局注入用户工具 |
+| **原有用户自定义工具/Starter** | `examples/sidebar-tools/*` | **默认只读**，HTML/JS、Vue、React 保持原样作为示例；新组件只是新 React 工具可选项，除实际回归缺陷外不改正式源码、工具 ID、版本或安装包 |
+| **回归测试** | `tests/environment/`、已有 `tests/framework/` 或现有测试入口 | 对真正变更的组件、可信 Tab 和旧自定义工具兼容分别验证，使用必要的定向测试，无第二套测试框架 |
+| **技术决策与交付证据** | 本文件 + `docs/framework/workstreams/` | 本文件固定目标和路径；每轮实际提交文件清单、原始 CI/Chrome、独立评分与未完成项记工作记录 |
+
+**关键构建注意：** 现有 `src/entrypoints/tool-shell.js` -> `src/ui/tool-shell.js` 由 WXT 固定入口处理，禁止为了 React UI 迁移随意增加/改名固定入口。`scripts/build.mjs` 当前来源输入检测主要收集 `src/`、`scripts/`、根 manifest/package/lock 及工具资源，**不会自动覆盖新建的 `packages/opendesk-ui-react/` 源码**。一旦该公共目录被正式消费，必须以定向、经过测试的方式把其文件加入 build provenance/source-drift 校验，保证变更/构建/回执确切对应；不要因此重做完整构建系统。根 `package.json`、`package-lock.json` 只允许因真实 React/组件依赖而定向修改并锁版本；避免重复安装多份 React。独立工具仍按自身 Vite+原打包器构建，不能引用宿主内存中的特权 React Runtime。
+
+**旧目录处理规则：** 存在旧文件不等于做错。按`路径->功能->实际引用->可替代性->受影响测试`判断：可复用则增量保留；同职责重复实现则先迁移真实消费者/测试再删除确实失效的文件；无引用的试验代码仅在核查它不属于其他 Agent、没有独立成果或用户数据后才定向清理。没有证据时不删除、不重命名、不批量格式化。
+
 ## 三、可信 Side Panel React 迁移：最终统一、分模块落地
 
 原可信 Side Panel 核心入口包括 `src/ui/tool.html`、`tool-shell.js`、`script-editor.js`、`sidebar-tools.js`、`workflow/workflow-view.js` 等，存在不少 DOM 事件与业务行为交织。**工作重点是 UI 与业务状态/服务解耦，而不是机械将 95KB HTML 全改成 JSX。**
