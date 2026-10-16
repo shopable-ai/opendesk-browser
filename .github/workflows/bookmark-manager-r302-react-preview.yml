@@ -1,0 +1,104 @@
+name: Bookmark Manager R3.0.2 React Preview · Real Chromium
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
+      - 'examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs'
+      - '.github/workflows/bookmark-manager-r302-react-preview.yml'
+      - 'scripts/preview/bookmark-manager-mock.js'
+      - 'examples/sidebar-tools/bookmark-manager/src/model.js'
+      - 'examples/sidebar-tools/bookmark-manager/src/service.js'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: bookmark-r302-react-preview
+  cancel-in-progress: false
+jobs:
+  react-preview-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned preview-local React 19 + Vite
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        run: npm ci --no-audit --no-fund
+      - name: Bundle React and regenerate the one offline preview
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        run: |
+          npm run build
+          npm run preview:build
+          npm run preview:check
+      - name: Static security and actual React runtime contract
+        run: |
+          node --check examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs
+          node --check examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const index=await readFile('examples/sidebar-tools/bookmark-manager/preview/index.html','utf8');
+          assert.match(index,/sandbox="allow-scripts"/);
+          assert.doesNotMatch(index,/sandbox="[^"]*allow-same-origin/);
+          const manifest=JSON.parse(index.match(/id="opendesk-preview-manifest">([^<]+)<\/script>/)[1]);
+          assert.equal(manifest.reactRuntime,true);
+          assert.equal(manifest.sourceBound,false);
+          assert.equal(manifest.nativeVerified,false);
+          const frame=Buffer.from(index.match(/atob\('([A-Za-z0-9+/=]+)'\)/)[1],'base64').toString('utf8');
+          assert.match(frame,/data-react-root="bookmark-r302"/);
+          assert.match(frame,/connect-src &#39;none&#39;/);
+          assert.doesNotMatch(frame,/https?:\/\/(?:cdn|unpkg|jsdelivr)\./);
+          assert.doesNotMatch(frame,/allow-same-origin/);
+          const scripts=[...frame.matchAll(/src="data:text\/javascript;base64,([A-Za-z0-9+/=]+)"/g)];
+          assert.equal(scripts.length,4,'Mock + real model + real service + Vite React IIFE');
+          const react=Buffer.from(scripts[3][1],'base64').toString('utf8');
+          assert.match(react,/__BookmarkReactPreview/);
+          assert.ok(react.length>40000,'No fake React placeholder');
+          assert.equal((index.match(/id="od-preview-bookmark-lab"/g)||[]).length,1);
+          assert.doesNotMatch(frame,/od-preview-bookmark-lab/);
+          console.log('R302_OFFLINE_REACT_SOURCE_AND_SANDBOX_PASS');
+          NODE
+      - name: Install CJK screenshot fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real Chromium click, save, search, menu, folder picker and failure regression
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs artifacts/preview-chrome-r302
+      - name: Preserve exact candidate and browser evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-r302-react-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            examples/sidebar-tools/bookmark-manager/preview/index.html
+            artifacts/preview-chrome-r302/
+      - name: Promote tested HTML to main only if remote main is unchanged
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            echo "::error::Concurrent main moved. Tested candidate is in workflow artifacts; refusing to overwrite others."
+            exit 1
+          fi
+          git add -- examples/sidebar-tools/bookmark-manager/preview/index.html
+          if git diff --cached --quiet; then
+            echo "Exact React preview already committed."
+            exit 0
+          fi
+          git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'build(bookmark-manager): promote verified R3.0.2 React offline preview'
+          git push origin HEAD:main
+          echo "Promoted exact Chromium-tested preview, without force or branch creation."

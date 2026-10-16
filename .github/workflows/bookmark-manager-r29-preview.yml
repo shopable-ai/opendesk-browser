@@ -14,10 +14,21 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Detect whether the saved preview is still the R2.9 legacy format
+        id: legacy
+        shell: bash
+        run: |
+          if grep -q '"previewBuild":"R2.9 DESIGN PROTOTYPE"' examples/sidebar-tools/bookmark-manager/preview/index.html; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "R2.9 runner is retained for historical regression only; React R3.0.2 has its own Chromium contract."
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Check saved iframe JS and preview security contract
+        if: steps.legacy.outputs.active == 'true'
         run: |
           node --check examples/sidebar-tools/bookmark-manager/preview/r29-chrome.mjs
           node --input-type=module <<'NODE'
@@ -48,17 +59,20 @@ jobs:
           console.log('R29_PREVIEW_JS_AND_SANDBOX_STATIC_PASS');
           NODE
       - name: Install CJK fonts for screenshots
+        if: steps.legacy.outputs.active == 'true'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
       - uses: browser-actions/setup-chrome@v2
+        if: steps.legacy.outputs.active == 'true'
         id: chrome
       - name: Open exact R2.9 preview in real Headless Chrome (MOCK, not Native)
+        if: steps.legacy.outputs.active == 'true'
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node examples/sidebar-tools/bookmark-manager/preview/r29-chrome.mjs artifacts/preview-chrome-r29
       - name: Upload exact prototype and actual Chrome screenshots
-        if: always()
+        if: always() && steps.legacy.outputs.active == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: bookmark-manager-r29-chromium-${{ github.sha }}

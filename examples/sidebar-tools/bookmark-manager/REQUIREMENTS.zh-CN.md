@@ -175,3 +175,26 @@
 只读核对最新 `main` 与并行修改 → 基于仓库已保存预览进行候选比较 → 修改真正运行于 sandbox iframe 内的预览 → Chromium 截图/交互复验 → 更新测试/专属 CI/本文件及需要的工作台账 → 不破坏并行修改地提交并正常推送 `main` → 检查远端 SHA、CI 与截图绑定同一候选。
 
 预览继续使用 `sandbox="allow-scripts"`，实验台在 `.preview-device` 外且默认折叠；不增加 `allow-same-origin`、网络依赖或正式安装权限。直到用户明确确认设计，保持 `DESIGN_PROTOTYPE_NOT_SOURCE_BOUND / DESIGN_NOT_APPROVED / NATIVE_NOT_TESTED`。得到用户确认后才进入正式 UI 迁移阶段。
+
+## 10. R3.0.2 React 预览候选（2026-10-16）
+
+此阶段仅开发书签管理 React 设计预览；正式 src/main.js、工具安装包、Chrome SDK/Host、权限与发布路径不动。预览不得被称为已迁移正式扩展。
+
+### 10.1 真实现状与组件选型
+
+- 截至起始主分支，React Starter 是 React 19.2.0 + Vite 7.3.6；R32.3 平台 React Aria / Radix / Tree 仍是候选，不能宣称公共组件已实施完成。
+- 本轮先在 bookmark-manager/preview/react/ 范围创建 React UI 候选：同一 Tree 状态支持 360/400/960px，完整内存树上搜索、按可视窗口渲染；命中项不受虚拟行遗漏影响。随后继续与平台成熟 Tree / Menu 方案独立评估，不能把当前项目级控件冒充已封版 UI Kit。
+- 正式 model.js / service.js 与现有 scripts/preview/bookmark-manager-mock.js 被嵌入同一个 sandbox iframe；写操作继续经过 BookmarkR2Service 和真实模型校验，并读回确认，不复制 Host 授权或递归删除。
+- build-preview.mjs 使用本地固定 Vite 输出替换唯一 preview/index.html 中的内层运行内容，保留现有外部 Shell、manifest 与 iframe 外默认折叠诊断。无 CDN、无 allow-same-origin、无外部网络，sourceBound=false、nativeVerified=false。
+- R2.9 Chromium 测试及断言保留为旧格式回归；React 使用 preview/r302-chrome.mjs 和专属 GitHub Actions。旧测试不得错误通过或错误判定新格式。
+- 基线行为包括只读选择、显式编辑、创建类型隔离、草稿变更保护、全树搜索、目录过滤、菜单 Escape、真实 Mock 读回与失败保留；保留第 9.3 节规定的所有安全缺陷回归。
+
+### 10.2 验证和晋升
+
+流水线只有在固定依赖构建、静态沙箱合同、真实 Chromium 操作和截图成功后，且 main 的 head 未被并行 Agent 更新时，才允许将同一份生成的 HTML 普通提交到 main。并行 head 漂移时停止晋升，不强推。每次提交后回读最终 blob / SHA / CI 结果。
+
+Node 构建、离线 Chromium、用户 Mac 已安装扩展必须独立标记。十项 UX 评分要求提供截图及测试，尚未覆盖的维度标记 NOT_SCORED，不得机械填 95+。真实 Chrome 默认成功 Mock 状态截图不得由权限撤销终态替代；浏览器 Zoom 未真实测试不得由 DPR / PageScale 冒充。
+
+### 10.3 正式迁移门槛
+
+只有经用户审核确认本 React 页面，才可进入 R3.1 正式 Sidebar UI 迁移。预览与生产 UI 仍是两个实现时期，不得永久保留两套并行维护的 React 业务 UI。
