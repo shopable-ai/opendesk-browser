@@ -6,6 +6,8 @@ on:
       - 'src/ui/extension-center.js'
       - 'src/ui/react/**'
       - 'tests/environment/react-sidebar-r333.test.mjs'
+      - 'tests/environment/react-sidebar-render-r3331.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/react-dom-input-csp-r3331.test.mjs'
       - 'scripts/react-dom-input-csp.mjs'
       - 'wxt.config.mjs'
@@ -54,7 +56,7 @@ jobs:
       - name: Install pinned toolchain
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R33.3 React TSX, DOM ownership and inherited Host guardrails
-        run: node --test tests/environment/react-sidebar-r333.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs tests/environment/verify-package-react-constructor.test.mjs
+        run: node --test tests/environment/react-sidebar-r333.test.mjs tests/environment/react-sidebar-render-r3331.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs tests/environment/verify-package-react-constructor.test.mjs
       - name: Validate extension projection and existing authority contracts
         run: |
           node --test tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r42-row-action.test.mjs tests/environment/extension-center-r47-menu.test.mjs tests/environment/extension-center-r47-interaction.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-tab-memory.test.mjs tests/environment/installed-page-tools-r251.test.mjs

@@ -249,7 +249,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     const file={size:JSON.stringify(sample).length,text:async()=>JSON.stringify(sample)};
     elements['sidebar-tool-file'].files=[file];
     elements['sidebar-tool-file'].emit('change');
-    await pause();await pause();
+    await settle(()=>!elements['sidebar-tool-preview'].hidden);
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'choosing JSON alone cannot install');
     assert.equal(elements['sidebar-tool-preview'].hidden,false,'review is shown after validation');
     assert.equal(elements['sidebar-tool-preview-title'].textContent,sample.title);
@@ -551,7 +551,7 @@ test('R14 import refuses oversized packages, ignores stale asynchronous reads an
   input.files=[{name:'first.json',size:10,text:()=>gate.promise}];
   input.emit('change');
   input.files=[{name:'second.json',size:JSON.stringify(sample).length,text:async()=>JSON.stringify(sample)}];
-  input.emit('change');await pause();await pause();
+  input.emit('change');await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   gate.resolve('{invalid');await pause();await pause();
   assert.equal(f.elements['sidebar-tool-preview'].hidden,false,'old invalid parse cannot replace new approval');
   assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);

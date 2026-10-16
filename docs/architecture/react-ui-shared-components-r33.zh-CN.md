@@ -1,5 +1,12 @@
 # OpenDesk Browser · 统一 React Side Panel 与自定义工具兼容合同（R33.1）
 
+## R33.3.1 实施记录（2026-10-16，实测状态优先）
+
+- React 正式扩展视图已在 `src/ui/react/main.tsx` 收敛为一处 `createRoot`，列表/详情/搜索筛选工具栏使用 React Portals 保留现有容器与 ID；扩展动作仍由 `src/ui/extension-center.js` 路由至原 Host/权限服务。工具栏原生静态节点仍用于不带 React 注入的遗留 DOM 测试；正式 React 路径不再重复绑定菜单/筛选事件。列表、详情、工具栏完成后，扩展空态、清理回执、返回等区域暂仍旧 DOM 管理，扩展 Tab 只可记 PARTIAL。
+- 构建安全 P0：旧版 CI 中 React 19 静态原型恢复和 ReactDOM 值追踪引起两类 `.constructor` 触发；前者由并行维护者在 `scripts/verify-package.mjs` 限定 AST 形态，后者在唯一可信固定产物上由 `scripts/react-dom-input-csp.mjs` 对 ReactDOM 19.2.0 实施可审计、失败关闭的源码转换。原 CSP、拒绝动态执行的 AST 扫描及包预算不放宽；必须以同 SHA 的 production/dev CI 结果宣布 PASS。
+- 本次新增 React 19 SSR 真实 JSX 输出、HTML 转义、筛选状态和菜单 ARIA 渲染测试（非 Chrome 用户输入模拟）；原侧边栏工具 Host 异步审阅测试替换固定次数轮询为等待可观察状态，保留所有安全断言。原有非 React 工具源码/版本/安装包完全不动。
+- **未完成**：五 Tab 全部 React 化、React Aria/shadcn 成熟浮层选型实测、扩展 Tab 完整生命周期的真实 Chrome 验收、Mac 安装后的原生证据、自定义 HTML/Vue/React 三类工具的同候选完整回归。每项仍为 NOT_TESTED 或 PARTIAL，禁止用旧 CI/历史截图冒充新 PASS。
+
 ## R33.3 最新生效决定：单一可信 React UI 根（2026-10-16）
 
 **这是本文件当前唯一生效的 React 源码路径决定**：所有当前可信 Side Panel React 页面和纯 UI 组件均归属 `src/ui/react/`，其中 `components/ui/` 是现阶段唯一共享组件根。**本轮不创建** `packages/opendesk-ui-react/`。仅在真实出现独立构建的第二 React 消费者、完成复用/依赖/预算实证后，才另行评估提取；必须迁移原消费者并移除重复源码，禁止复制长期并存。
