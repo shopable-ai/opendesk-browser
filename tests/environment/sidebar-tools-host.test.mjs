@@ -175,7 +175,19 @@ test('Final R2 request throttling returns an error and recovers after its time w
 
 class Node {
   constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;
-    this.dataset={};this.attributes=new Map();this.contentWindow=tag==='iframe'?{sent:[],postMessage(message){this.sent.push(message);}}:undefined;}
+    this.dataset={};this.attributes=new Map();this.className='';
+    // Mirror native classList.toggle for trusted host settings in this DOM double.
+    this.classList={
+      contains:name=>this.className.split(/\s+/).includes(name),
+      add:(...names)=>{this.className=[...new Set([...this.className.split(/\s+/).filter(Boolean),...names])].join(' ');},
+      remove:(...names)=>{this.className=this.className.split(/\s+/).filter(x=>x&&!names.includes(x)).join(' ');},
+      toggle:(name,force)=>{
+        const has=this.classList.contains(name),add=force===undefined?!has:Boolean(force);
+        if(add)this.classList.add(name);else this.classList.remove(name);
+        return add;
+      }
+    };
+    this.contentWindow=tag==='iframe'?{sent:[],postMessage(message){this.sent.push(message);}}:undefined;}
   addEventListener(type,fn){const items=this.listeners.get(type)||[];items.push(fn);this.listeners.set(type,items);}
   removeEventListener(type,fn){this.listeners.set(type,(this.listeners.get(type)||[]).filter(item=>item!==fn));}
   emit(type,event={}){for(const fn of this.listeners.get(type)||[])fn(event);}
@@ -183,6 +195,7 @@ class Node {
   append(...items){for(const item of items){item.parent=this;this.children.push(item);}}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);this.parent=null;}
   setAttribute(name,value){this.attributes.set(name,value);}
+  removeAttribute(name){this.attributes.delete(name);}
   focus(){this.focused=true;if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const pause=()=>new Promise(resolve=>setImmediate(resolve));

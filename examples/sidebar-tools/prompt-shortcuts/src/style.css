@@ -127,3 +127,14 @@
 .ps-primary .ps-inline-error[hidden]{display:none}
 @media(max-width:340px){.ps-card-main{grid-template-columns:30px minmax(0,1fr) 40px;gap:var(--space-1)}.ps-card{padding:7px}}
 @media(prefers-reduced-motion:reduce){.ps-toggle-caret svg{transition:none}}
+
+/* R2.5: R2.4.2 approved fixed-square More actions, without stretching. */
+.ps-more{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;min-width:0}
+.ps-more>.od-icon-button{box-sizing:border-box;flex:0 0 40px;width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px;aspect-ratio:1}
+.ps-settings[hidden]{display:none!important}
+.ps-sites{margin-top:var(--space-2);padding-top:var(--space-2)}
+.ps-sites-heading .od-button{flex:none}
+.ps-site-builtin{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.ps-site-builtin strong{font-size:var(--od-note-size)}
+.ps-site-builtin small{display:block;color:var(--od-sub);font-size:var(--od-meta-size)}
+.ps-site-builtin>span{flex:none;color:var(--od-sub);font-size:var(--od-meta-size)}

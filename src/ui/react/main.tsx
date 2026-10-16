@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
 import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
-import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus} from './tabs/develop.tsx';
+import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -24,6 +24,12 @@ export function mountExtensionList(doc){
     title:doc.getElementById('script-current-page-title'),
     url:doc.getElementById('script-current-page-url')
   };
+  const developerResultOutput=doc.getElementById('script-result');
+  const developerResultKind=doc.getElementById('script-result-kind');
+  const developerResultMounted=Boolean(developerResultOutput&&developerResultKind);
+  if(Boolean(developerResultOutput)!==Boolean(developerResultKind)||
+    [developerResultOutput,developerResultKind].some(node=>node?.dataset.opendeskReactOwner))
+    throw new Error('E_REACT_DEVELOPER_RESULT_MOUNT');
   const developerRunStatus=doc.getElementById('script-status');
   const developerRunStatusInitialText=developerRunStatus?.textContent||'';
   const developerStatusMounted=Boolean(developerRunStatus);
@@ -96,6 +102,9 @@ export function mountExtensionList(doc){
     text:developerRunStatusInitialText};
   let developerActionsActive=false,developerActionsModel=null;
   let developerFrameworkActive=false,developerFrameworkModel=null;
+  let developerResultActive=false,developerResultModel={
+    text:developerResultOutput?.textContent||'',kind:developerResultKind?.textContent||''
+  };
   let developerTargetModel={host:'正在识别…',hostTitle:'',status:'检查中',
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
   function paint(){
@@ -111,6 +120,10 @@ export function mountExtensionList(doc){
       {createPortal(feedbackModel.countText,count)}
       {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
+      {developerResultActive&&createPortal(
+        <DeveloperResultText value={developerResultModel.text}/>,developerResultOutput)}
+      {developerResultActive&&createPortal(
+        <DeveloperResultText value={developerResultModel.kind}/>,developerResultKind)}
       {developerStatusMounted&&createPortal(
         <DeveloperRunStatus model={developerRunStatusModel} node={developerRunStatus}/>,
         developerRunStatus)}
@@ -140,6 +153,19 @@ export function mountExtensionList(doc){
     developerActionsMounted,
     developerFrameworkMounted,
     developerStatusMounted,
+    developerResultMounted,
+    renderDeveloperResult(next){
+      if(disposed||!developerResultMounted)throw new Error('E_REACT_DEVELOPER_RESULT_OWNER');
+      if(!developerResultActive){
+        // Script Editor switches its writer before this single DOM handoff.
+        developerResultOutput.replaceChildren();
+        developerResultKind.replaceChildren();
+        developerResultOutput.dataset.opendeskReactOwner='developer-result';
+        developerResultKind.dataset.opendeskReactOwner='developer-result-kind';
+        developerResultActive=true;
+      }
+      developerResultModel=next;paint();
+    },
     renderDeveloperStatus(next){
       if(disposed||!developerStatusMounted)return;
       developerRunStatusModel=next;paint();
@@ -189,6 +215,10 @@ export function mountExtensionList(doc){
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      if(developerResultActive){
+        delete developerResultOutput.dataset.opendeskReactOwner;
+        delete developerResultKind.dataset.opendeskReactOwner;
+      }
       if(developerStatusMounted)delete developerRunStatus.dataset.opendeskReactOwner;
       if(rowMenuHost)delete rowMenuHost.dataset.opendeskReactOwner;
       if(developerActionsActive)delete developerDock.dataset.opendeskReactOwner;

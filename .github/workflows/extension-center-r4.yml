@@ -4,6 +4,15 @@ on:
     branches: [main]
     paths:
       - 'src/ui/extension-center.js'
+      - 'src/ui/script-editor.js'
+      - 'tests/environment/extension-center-r47-interaction.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
+      - 'tests/environment/script-editor-ui.test.mjs'
+      - 'tests/environment/program-draft-roundtrip.test.mjs'
+      - 'tests/environment/program-source.test.mjs'
+      - 'tests/environment/local-project-status-ui.test.mjs'
+      - 'tests/environment/local-project-connection.test.mjs'
+      - 'tests/environment/sidebar-draft-runhost.test.mjs'
       - 'src/ui/react/**'
       - 'tests/environment/react-sidebar-r333.test.mjs'
       - 'tests/environment/react-sidebar-render-r3331.test.mjs'
@@ -60,6 +69,9 @@ jobs:
         run: node --test tests/environment/react-sidebar-r333.test.mjs tests/environment/react-sidebar-render-r3331.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs tests/environment/verify-package-react-constructor.test.mjs
       - name: Real Chromium React toolbar, rows, portal and event smoke (source UI simulation)
         run: node scripts/tests/react-sidebar-r3331-browser.mjs
+      - name: Validate Developer Script Editor, drafts, local-project and RunHost contracts
+        run: |
+          node --test tests/environment/script-editor.test.mjs tests/environment/script-editor-ui.test.mjs tests/environment/program-draft-roundtrip.test.mjs tests/environment/program-source.test.mjs tests/environment/local-project-status-ui.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/sidebar-draft-runhost.test.mjs
       - name: Validate extension projection and existing authority contracts
         run: |
           node --test tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r42-row-action.test.mjs tests/environment/extension-center-r47-menu.test.mjs tests/environment/extension-center-r47-interaction.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-tab-memory.test.mjs tests/environment/installed-page-tools-r251.test.mjs

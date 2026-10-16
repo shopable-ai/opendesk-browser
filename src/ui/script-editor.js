@@ -131,7 +131,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null;
+  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null,reactDeveloperResult=null;
+  // The original Script Editor exclusively owns authorized result values.
+  // Its legacy DOM writer survives only until the React portal handoff.
+  const resultProjection={text:output.textContent||'',kind:resultKind.textContent||''};
+  function writeResultField(key,value){
+    resultProjection[key]=value??'';
+    if(reactDeveloperResult)reactDeveloperResult({...resultProjection});
+    else (key==='text'?output:resultKind).textContent=resultProjection[key];
+  }
+  const setResultText=value=>writeResultField('text',value);
+  const setResultKind=value=>writeResultField('kind',value);
   let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -206,8 +216,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
   }
   function beginResult() {
-    output.textContent = '正在运行…';
-    resultKind.textContent = '等待返回值';
+    setResultText('正在运行…');
+    setResultKind('等待返回值');
     copyResult.disabled = true;
     displayCopyResult('复制结果');
   }
@@ -228,13 +238,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('error', help);
     if (running) {
       // Failed admission/preview is not a still-running script return value.
-      output.textContent='本次执行失败，未产生可显示的返回值';
-      resultKind.textContent='执行失败';
+      setResultText('本次执行失败，未产生可显示的返回值');
+      setResultKind('执行失败');
       copyResult.disabled=true;
     }
     if (error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') showUserScriptsRecovery();
     if (error?.code === 'E_PAGE_CONTENT_TOO_LARGE' ||
-        error?.code === 'E_VALUE_SERIALIZATION') output.textContent = help;
+        error?.code === 'E_VALUE_SERIALIZATION') setResultText(help);
   };
   const scriptId = () => find('script-id').value.trim();
   function renderRevisionState() {
@@ -306,8 +316,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Keep the original result, but do not expose it as current until resolved.
     if(localPageResult&&!localPageResultIsCurrent({allowResolving:true})){
       localPageResult=null;
-      output.textContent='上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。';
-      resultKind.textContent='上次结果已失效';copyResult.disabled=true;
+      setResultText('上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。');
+      setResultKind('上次结果已失效');copyResult.disabled=true;
       display('unknown','上次本地 Page 结果已失效，不能用于验证或安装当前源码');
     }
     if(localPageResult)copyResult.disabled=!localPageResultIsCurrent();
@@ -670,12 +680,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('results', focused ? '任务状态：' : '已读取持久结果');
     // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
     // Authorized technical history stays available in the existing collapsed panel.
-    output.textContent = formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied);
+    setResultText(formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied));
     const currentValues = values.filter(row => row.runId === focused?.runId);
     const visibleResult = currentValues[0];
-    resultKind.textContent = !visibleResult ? '暂无返回值' : currentValues.length > 1
+    setResultKind(!visibleResult ? '暂无返回值' : currentValues.length > 1
       ? `共 ${currentValues.length} 项结果` : Object.hasOwn(visibleResult,'value')
-        ? runValueKind(visibleResult.value) : '执行错误';
+        ? runValueKind(visibleResult.value) : '执行错误');
     copyResult.disabled = !visibleResult || deniedRuns.has(focused?.runId);
     displayCopyResult('复制结果');
     if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
@@ -906,7 +916,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
         const valueText=result.result?.resultText ?? 'undefined';
         find('page-preview-result').textContent=valueText;
-        output.textContent=valueText;resultKind.textContent='本地 Page · 本次结果';
+        setResultText(valueText);setResultKind('本地 Page · 本次结果');
         copyResult.disabled=false;find('developer-results-panel').open=true;
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent='源码 SHA-256：'+source.sourceHash;
@@ -931,8 +941,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     })().catch(error=>{
       startError=error;admittedRunId||=error.runId;localPageResult=null;localInstaller.reset();fail(error);
       if(page||!admittedRunId){
-        output.textContent=formatTaskError(error);
-        resultKind.textContent=page?'本地 Page · 执行失败':'本地项目 · 未启动';
+        setResultText(formatTaskError(error));
+        setResultKind(page?'本地 Page · 执行失败':'本地项目 · 未启动');
         copyResult.disabled=true;find('developer-results-panel').open=true;
       }
     }).finally(async()=>{
@@ -970,8 +980,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
       if(result!==undefined)find('page-preview-result').textContent=result;
       display(state,message);
-      output.textContent=state==='running'?'正在运行…':state==='error'?'本次网页试运行失败，未产生可显示的返回值':result??'undefined';
-      resultKind.textContent=state==='completed'?'网页试运行结果':state==='error'?'网页试运行失败':'等待网页返回值';
+      setResultText(state==='running'?'正在运行…':state==='error'?'本次网页试运行失败，未产生可显示的返回值':result??'undefined');
+      setResultKind(state==='completed'?'网页试运行结果':state==='error'?'网页试运行失败':'等待网页返回值');
       copyResult.disabled=state!=='completed';
       find('developer-results-panel').open=true;
     };
@@ -1385,7 +1395,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         localPageResult={kind:'stop',bindingId:owned.bindingId,previewId:owned.previewId,
           sourceHash:owned.sourceHash,tabId:owned.target.tabId,
           documentId:owned.target.documentId,url:owned.target.url};
-        output.textContent=JSON.stringify(result,null,2);resultKind.textContent='本地 Page · 停止回执';
+        setResultText(JSON.stringify(result,null,2));setResultKind('本地 Page · 停止回执');
         copyResult.disabled=false;find('developer-results-panel').open=true;
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent=JSON.stringify({stop:result},null,2);
@@ -1460,7 +1470,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
   scheduleControllerClassicWarm();
-  return {host,connectReactDeveloperStatus(render){
+  return {host,connectReactDeveloperResult(render){
+    if(disposed||reactDeveloperResult||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_RESULT_OWNERSHIP');
+    reactDeveloperResult=render;render({...resultProjection});
+  },connectReactDeveloperStatus(render){
     if(disposed||reactDeveloperStatus||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_STATUS_OWNERSHIP');
     reactDeveloperStatus=render;
@@ -1541,7 +1555,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

@@ -175,7 +175,8 @@ async function run(){
   assert.equal(await evalChrome('!document.querySelector("#siteDetails").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#sitesButton").getAttribute("aria-expanded")'),"true");
   assert.equal(await evalChrome('document.querySelector("#sitesButton").getAttribute("aria-label")'),"收起适用网站");
-  assert.equal(await evalChrome('document.querySelector("#siteDetails").textContent.includes("其他 AI 网站仍须逐站验证")'),true);
+  // Approved R2.4.2 lists each site's verified-vs-planned state, not a generic warning.
+  assert.equal(await evalChrome('(()=>{const text=document.querySelector("#siteDetails").textContent;return ["ChatGPT","Claude","Gemini","真实 DOM 待验","规划中 · 未验证"].every(value=>text.includes(value));})()'),true);
   await click('#hostBack');
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"提示词快捷按钮");
@@ -285,7 +286,7 @@ async function run(){
   await sleep(700);
   await click('.prompt-use');
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
-  x=await state();assert.match(x.notice,/复制失败/);assert.equal(x.copyDialog,false);
+  x=await state();assert.match(x.notice,/安全停止：模拟编辑器与剪贴板均不可用/);assert.equal(x.copyDialog,false);
   report.simulatedFailure=true;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
 }

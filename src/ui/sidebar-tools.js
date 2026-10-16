@@ -106,6 +106,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const settingsScopeButton=get('sidebar-tool-settings-scope');
   const enableButton=get('sidebar-tool-enable'),enableHint=get('sidebar-tool-enable-hint');
   const promptNativeRow=get('sidebar-tool-prompt-native-row'),promptNativeAction=get('sidebar-tool-prompt-native-action');
+  const promptWebRow=get('sidebar-tool-prompt-web-row'),promptWebAction=get('sidebar-tool-prompt-web-action');
+  const promptEnableLabel=get('sidebar-tool-prompt-enable-label'),promptEnableDescription=get('sidebar-tool-prompt-enable-description');
   const launchButton=get('sidebar-tool-launch'),eyeButton=get('sidebar-tool-visibility');
   const visibilitySection=get('sidebar-tool-visibility-settings');
   const pageExceptionSection=get('sidebar-tool-page-exceptions');
@@ -130,6 +132,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
+  let promptWebButtons=null,promptWebPending=false,promptWebChanged=false;
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
@@ -700,6 +703,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
       element.textContent=tocText(element.getAttribute('data-toc-host-text'));
+    if(promptEnableLabel)promptEnableLabel.textContent=promptSettings?'启用工具':tocText('toggleHeading');
+    if(promptEnableDescription)promptEnableDescription.hidden=!promptSettings;
     settingsView.setAttribute('aria-label',id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
     const adblockManagement=managed&&id===ADBLOCK_ID&&tocSettingsOpen;
     settingsButton.title=id===ADBLOCK_ID?
@@ -733,12 +738,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     display.setAttribute('data-trusted-tool-inline',String(trustedInline));
     settingsView.hidden=!show;
     if(promptNativeRow)promptNativeRow.hidden=!(show&&promptSettings);
+    if(promptWebRow)promptWebRow.hidden=!(show&&promptSettings);
+    if(promptWebAction){promptWebAction.setAttribute('aria-checked',String(promptWebButtons===true));
+      promptWebAction.disabled=!promptSettings||busy||sitePending||!enabled||promptWebPending||promptWebButtons===null;
+      promptWebAction.title=promptWebButtons===null?'读取网页按钮设置中':'在已支持的网站显示快捷按钮';}
     if(promptSettings&&promptNativeAction){
       const targetOrigin=supportedOrigin(currentPageTarget?.snapshot?.url);
       const record=menuGrants?.[PROMPT_ID],contextActive=Boolean(record?.version===active.version&&
         record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
       promptNativeAction.textContent=contextActive?'关闭右键快捷添加':'启用右键快捷添加';
       promptNativeAction.setAttribute('aria-pressed',String(contextActive));
+      promptNativeAction.setAttribute('role','switch');
+      promptNativeAction.setAttribute('aria-label','选中文字快速添加');
+      promptNativeAction.setAttribute('aria-checked',String(contextActive));
       promptNativeAction.disabled=busy||sitePending||!enabled||!targetOrigin;
       promptNativeAction.title=!targetOrigin?'请先打开 chatgpt.com 网页':'仅影响 Chrome 原生右键快捷添加';
     }
@@ -754,8 +766,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     fullBookmarkButton.disabled=busy||!enabled||!isFullBookmarkTool(active);
     fullBookmarkButton.setAttribute('aria-pressed',String(hasFullBookmarkConsent));
     removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
-    if(enableButton){enableButton.textContent=isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
+    if(enableButton){enableButton.textContent=promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
+      enableButton.setAttribute('role',promptSettings?'switch':'button');
+      enableButton.setAttribute('aria-label',promptSettings?'启用工具':enableButton.textContent);
+      if(promptSettings)enableButton.setAttribute('aria-checked',String(enabled));else enableButton.removeAttribute('aria-checked');
       enableButton.setAttribute('aria-pressed',String(enabled));}
+    if(enableHint)enableHint.hidden=promptSettings&&!enableReadError;
     if(enableHint)enableHint.textContent=promptSettings?
       (enableReadError?'工具状态读取异常，已保护性停止运行。':enabled?'已启用 · 基础快捷按钮可直接使用':'已停用 · 已保存提示词保留'):
       isToc?tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
@@ -785,7 +801,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       'sidebar-tool-generic-site-advanced']){
       const node=get(id);if(node)node.hidden=!capabilityOnly;
     }
-    settingsHint.hidden=!(capabilityOnly||promptSettings);
+    settingsHint.hidden=!capabilityOnly;
     settingsScopeLabel.textContent=isToc?tocText('siteAvailability'):'当前网站授权';
     settingsTarget.textContent=capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权';
     settingsScopeButton.hidden=true;
@@ -2304,7 +2320,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(installButton,'click',action(install));
   listen(backButton,'click',()=>{
     if(busy)return;
-    if(tocSettingsOpen){tocSettingsOpen=false;render();settingsButton.focus?.({preventScroll:true});return;}
+    if(tocSettingsOpen){closePromptSettings();settingsButton.focus?.({preventScroll:true});return;}
     const id=active?.id;
     if(closeTool())focusToolInList(id);
   });
@@ -2375,6 +2391,68 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     })().catch(error=>notice((error?.code||'E_PERMISSION')+'：'+String(error?.message||error),true))
       .finally(()=>{render();});
   });
+  async function readPromptWebButtons(){
+    const namespace=sidebarToolStorageKey(PROMPT_ID);
+    const current=(await api.storage.local.get(namespace))[namespace];
+    if(current!==undefined&&(!current||typeof current!=='object'||Array.isArray(current)))
+      throw new Error('提示词存储异常，不允许修改设置');
+    const model=globalThis.OpenDeskPromptShortcutsModel;
+    if(typeof model?.load!=='function')throw new Error('可信提示词数据模型不可用');
+    return model.load(current?.library).settings.webButtons;
+  }
+  async function changePromptWebButtons(event){
+    if(event?.isTrusted!==true||promptWebPending||promptWebButtons===null||busy||readOnlyPreview||
+       active?.id!==PROMPT_ID||enableReadError||!sidebarToolEnabled(enableRecords,PROMPT_ID))return;
+    const tool=active,expected=promptWebButtons;
+    promptWebPending=true;render();
+    try{
+      const nextValue=await locked('tool:'+PROMPT_ID,async()=>{
+        const registry=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+        if(disposed||!active||!samePackage(active,tool)||!requireCompleteInstalledSidebarTools(registry)
+          .some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
+        const namespace=sidebarToolStorageKey(PROMPT_ID);
+        const raw=(await api.storage.local.get(namespace))[namespace]??{};
+        if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('工具存储损坏，拒绝覆盖');
+        const model=globalThis.OpenDeskPromptShortcutsModel;
+        const previous=model.load(raw.library);
+        if(previous.settings.webButtons!==expected)
+          throw Object.assign(new Error('设置已在其他窗口修改，请重新核对'),{code:'E_STORAGE_CONFLICT'});
+        const nextLibrary=model.load({...previous,settings:{webButtons:!expected}});
+        if(model.bytes(nextLibrary)>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)
+          throw Object.assign(new Error('工具数据已达上限'),{code:'E_TOOL_DATA_LIMIT'});
+        const next={...raw,library:nextLibrary};
+        if(new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
+          throw Object.assign(new Error('工具数据超过上限'),{code:'E_TOOL_DATA_LIMIT'});
+        await writeVerifiedLocalValue(api,namespace,next,raw,'提示词网页按钮设置');
+        return nextLibrary.settings.webButtons;
+      });
+      if(disposed||!active||!samePackage(active,tool))return;
+      promptWebButtons=nextValue;promptWebChanged=true;notice(nextValue?'网页快捷按钮已开启':'网页快捷按钮已关闭，提示词仍保留');
+    }catch(error){
+      notice((error?.code||'E_STORAGE')+'：'+(error?.message||error),true);
+      try{if(!disposed&&active&&samePackage(active,tool)){
+        const observed=await readPromptWebButtons();
+        if(observed!==expected)promptWebChanged=true;
+        promptWebButtons=observed;
+      }}
+      catch{promptWebButtons=null;promptWebChanged=true;}
+    }finally{promptWebPending=false;render();}
+  }
+  if(promptWebAction)listen(promptWebAction,'click',event=>void changePromptWebButtons(event));
+  function refreshPromptSettings(tool){
+    promptWebButtons=null;promptWebChanged=false;promptWebPending=true;render();
+    void readPromptWebButtons().then(value=>{
+      if(disposed||!active||!samePackage(active,tool)||!tocSettingsOpen)return;
+      promptWebButtons=value;
+    },error=>notice('网页按钮设置读取失败：'+(error?.message||error),true))
+      .finally(()=>{if(!disposed&&active&&samePackage(active,tool)){promptWebPending=false;render();}});
+  }
+  function closePromptSettings(){
+    const tool=active,remount=tool?.id===PROMPT_ID&&promptWebChanged;
+    tocSettingsOpen=false;promptWebChanged=false;
+    if(remount&&!toolDirty&&!toolSaving)mountTool(tool);
+    else render();
+  }
   listen(settingsButton,'click',()=>{
     if(!active||readOnlyPreview||busy)return;
     if(active.id===ADBLOCK_ID&&!tocSettingsOpen){
@@ -2382,6 +2460,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // Product settings cannot trigger a native permission request.
       adblockControls?.toggleProductSettings?.();
       return;
+    }
+    if(active.id===PROMPT_ID){
+      if(tocSettingsOpen){closePromptSettings();settingsButton.focus?.({preventScroll:true});return;}
+      if(toolDirty||toolSaving){notice('请先保存或取消未保存的提示词草稿，再打开工具设置。',true);return;}
+      tocSettingsOpen=true;tocScope='site';refreshPromptSettings(active);backButton.focus?.({preventScroll:true});return;
     }
     tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();backButton.focus?.({preventScroll:true});
   });

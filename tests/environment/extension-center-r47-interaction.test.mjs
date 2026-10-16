@@ -246,6 +246,22 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   assert.equal(f.programs[0].installed.enabled,false);
 });
 
+// DOM-double regression only; the Chromium fixture separately proves trusted clicks.
+test('R33.3.4 extension menu arrows stay scoped and Tab restores focus',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  const more=f.button('page:reader','more');more.dispatch('click');
+  const search=f.nodes['extension-center-search'];search.focus();
+  const unrelated=f.doc.dispatch('keydown',{key:'ArrowDown'});
+  assert.equal(unrelated.prevented,undefined,'Open menu must not hijack search keyboard input');
+  assert.equal(f.doc.activeElement,search);
+  assert.equal(f.rowMenu().hidden,false);
+  f.menuItem('查看详情').focus();
+  const tab=f.doc.dispatch('keydown',{key:'Tab'});
+  assert.equal(tab.prevented,undefined,'Native Tab traversal must remain available');
+  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.doc.activeElement,more,'Focus returns to live trigger before native Tab');
+});
+
 test('R4.7 missing Page grant forbids enable; unreadable app status never fabricates primary or toggle',async t=>{
   const f=fixture(t);await f.ui.refresh();
   // First turn Page off through its installed authority.

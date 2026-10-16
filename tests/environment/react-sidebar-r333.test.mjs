@@ -58,6 +58,8 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(main,/renderDeveloperFramework\(next\)/);
   assert.match(main,/createPortal\(\s*<DeveloperRunStatus/);
   assert.match(main,/renderDeveloperStatus\(next\)/);
+  assert.match(main,/renderDeveloperResult\(next\)/);
+  assert.match(main,/createPortal\(\s*<DeveloperResultText/);
   assert.match(main,/developerRunStatus\.replaceChildren\(\)/);
   assert.match(main,/node\.replaceChildren\(\)/);
   assert.match(main,/renderFeedback\(next\)/);
@@ -70,6 +72,10 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   const [shell,scriptEditor]=await Promise.all([
     read('src/ui/tool-shell.js'),read('src/ui/script-editor.js')
   ]);
+  assert.match(shell,/scriptEditor\.connectReactDeveloperResult\(/);
+  assert.match(scriptEditor,/connectReactDeveloperResult\(render\)/);
+  assert.match(scriptEditor,/if\(reactDeveloperResult\)reactDeveloperResult\(/);
+  assert.doesNotMatch(scriptEditor,/\b(?:output|resultKind)\.textContent\s*=(?!=)/);
   assert.match(shell,/scriptEditor\.connectReactDeveloperTarget\(/);
   assert.match(scriptEditor,/connectReactDeveloperTarget\(render\)/);
   assert.match(shell,/scriptEditor\.connectReactDeveloperActions\(/);
@@ -99,6 +105,8 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(center,/setInstalledPageProgramEnabled\(/);
   assert.match(center,/if\(!row\|\|row\.installed!==selectedInstalled\|\|identityChanged\)/);
   assert.match(center,/retryCleanup\(row,event\)/);
+  assert.match(center,/rowMenu\.contains\(doc\.activeElement\).*ArrowDown/);
+  assert.match(center,/event\.key==='Tab'&&rowMenu\.contains\(doc\.activeElement\)/);
   assert.match(center,/togglePage\(row,event\)/);
   assert.match(docs,/当前唯一生效的 React 源码路径决定/);
 });

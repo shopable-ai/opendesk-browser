@@ -236,7 +236,7 @@ async function run(){
     'site settings reload');
   await click('#ps-sites-open');
   await poll('document.querySelectorAll(".ps-site-row").length===1','site recovery after refresh');
-  for(const n of [320,360,400,440]){
+  for(const n of [320,360,380,400,440]){
     await width(n);
     x=await view();
     assert.equal(x.horizontalOverflow,false,'site list overflow '+n);
@@ -246,7 +246,7 @@ async function run(){
   }
   report.siteSettingsMockHost={saved:true,recoveredAfterReload:true,installed:false};
   await click('#ps-sites-open');
-  for(const n of [320,360,400,440]){
+  for(const n of [320,360,380,400,440]){
     await width(n);
     x=await view();assert.equal(x.horizontalOverflow,false,'formal list overflow '+n);
     assert.equal(x.clamp,'2');
@@ -255,7 +255,7 @@ async function run(){
   }
   // R1.17 acceptance: exercise THE FORMAL BUNDLED UI in real Chromium,
   // not just the independent preview, across the complete Side Panel width range.
-  for(const n of [320,360,400,440]){
+  for(const n of [320,360,380,400,440]){
     await width(n);
     const initial=await evaluate('('+function(){
       const buttons=[...document.querySelectorAll('.ps-card-actions button')];
@@ -271,12 +271,19 @@ async function run(){
       return {actions:buttons.map(b=>b.dataset.action),
         iconOnly:buttons.every(b=>b.textContent.trim()===''&&!!b.querySelector('svg')&&!!b.title&&!!b.getAttribute('aria-label')),
         minWidth:Math.min(...buttons.map(b=>b.getBoundingClientRect().width)),
+        geometry:(()=>{const bar=document.querySelector('.ps-more');const controls=[...bar.querySelectorAll('button')];
+          const rects=controls.map(button=>button.getBoundingClientRect());const css=getComputedStyle(bar);
+          return {six:rects.length===6,exactSquares:rects.every(rect=>Math.abs(rect.width-40)<=1&&Math.abs(rect.height-40)<=1),
+            oneLine:rects.every(rect=>Math.abs(rect.top-rects[0].top)<=1),
+            rightAligned:css.justifyContent==='flex-end',gap:css.gap};})(),
         hasHorizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,
         expanded:document.querySelector('.ps-card-actions button')?.getAttribute('aria-expanded')};
     }.toString()+')()');
     assert.deepEqual(menu.actions,['more','edit','toggle','up','down','copy','delete']);
     assert.equal(menu.iconOnly,true,'all management buttons must be SVG-only');
     assert(menu.minWidth>=39,'every management icon should have an approximately 40px hit target');
+    assert.deepEqual(menu.geometry,{six:true,exactSquares:true,oneLine:true,rightAligned:true,gap:'6px'},
+      'R2.4.2 approved six 40x40 square controls must stay on one right-aligned row at '+n+'px');
     assert.equal(menu.hasHorizontalOverflow,false,'management menu overflow '+n);
     assert.equal(menu.expanded,'true');
     await screenshot('formal-icon-actions-'+n+'px');
@@ -312,7 +319,7 @@ async function run(){
   assert.equal(x.settingsHidden,true,'typing must not reopen collapsed optional fields');
   assert.equal(x.bodyRows,3);
   assert(x.bodyScrollHeight>x.bodyClientHeight,'hundred-line body must scroll internally');
-  for(const n of [320,360,400,440]){
+  for(const n of [320,360,380,400,440]){
     await width(n);x=await view();
     assert.equal(x.horizontalOverflow,false,'formal form overflow '+n);
     await screenshot('formal-long-body-'+n+'px');

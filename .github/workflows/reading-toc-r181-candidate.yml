@@ -1,0 +1,59 @@
+name: Reading TOC R1.8.1 - source-derived release candidate evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/reading-toc-r181-candidate.yml'
+      - 'examples/sidebar-tools/reading-toc/src/style.css'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate v1.0.8 candidate and the two exact official source previews
+        run: |
+          node scripts/generate-reading-toc-locales.mjs --write
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc
+          node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --height 760 --out artifacts/reading-toc-r181/reading-toc-r12-interactive-preview.html
+          node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out artifacts/reading-toc-r181/reading-toc-r12-overlay-preview.html
+          sha256sum artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json artifacts/reading-toc-r181/*.html
+          wc -c artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json artifacts/reading-toc-r181/*.html
+      - name: Export public generated preview bytes for exact repository synchronization
+        run: |
+          python3 - <<'PY'
+          import base64,hashlib,pathlib
+          for name in ['reading-toc-r12-interactive-preview.html','reading-toc-r12-overlay-preview.html']:
+              blob=(pathlib.Path('artifacts/reading-toc-r181')/name).read_bytes()
+              b64=base64.b64encode(blob).decode('ascii')
+              print('R181_BEGIN '+name+' '+str(len(blob))+' '+hashlib.sha256(blob).hexdigest())
+              for offset in range(0,len(b64),4096):
+                  print('R181_DATA '+b64[offset:offset+4096])
+              print('R181_END '+name)
+          PY
+      - name: Candidate focused sources, strict check and production builds
+        run: |
+          node --test tests/environment/reading-toc-ai-r18.test.mjs tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Keep true candidate and previews even if unrelated build fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reading-toc-r181-exact-source-candidate
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json
+            artifacts/reading-toc-r181/
+            docs/framework/evidence/wxt/builds/build-production.json

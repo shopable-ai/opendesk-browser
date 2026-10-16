@@ -49,3 +49,22 @@ test('R2 built-in ChatGPT stays authorized; custom sites need enabled explicit r
   assert.equal(await allowedPromptSite({...base,installed:[]}),false);
   assert.equal(await allowedPromptSite({...base,url:'https://chatgpt.com/c/abc',sites:null}),true);
 });
+
+test('R2.5 formal UI keeps six square icons and delegated Host switch ownership',async()=>{
+  const [html,css,hostHtml,hostCss,hostSource]=await Promise.all([
+    readFile(root+'/src/index.html','utf8'),
+    readFile(root+'/src/style.css','utf8'),
+    readFile('src/ui/tool.html','utf8'),
+    readFile('src/ui/tool-shell.css','utf8'),
+    readFile('src/ui/sidebar-tools.js','utf8')
+  ]);
+  assert.match(html,/class="ps-settings"[^>]+hidden/,'legacy Web toggle must not duplicate Host settings');
+  assert.match(css,/\.ps-more>\.od-icon-button\{[^}]*flex:0 0 40px;[^}]*width:40px;[^}]*height:40px;[^}]*aspect-ratio:1/);
+  for(const id of ['sidebar-tool-enable','sidebar-tool-prompt-web-action','sidebar-tool-prompt-native-action'])
+    assert.match(hostHtml,new RegExp('id="'+id+'"'));
+  assert.match(hostCss,/\.ps-host-switch\[aria-checked="true"\]/);
+  assert.doesNotMatch(hostSource,/classList\.(?:add|toggle)\('ps-host-switch'/,'Host switches use fixed trusted markup; no dynamic class required');
+  assert.match(hostSource,/locked\('tool:'\+PROMPT_ID,async\(\)=>/);
+  assert.match(hostSource,/writeVerifiedLocalValue\(api,namespace,next,raw/);
+  assert.match(hostSource,/promptWebChanged=true/);
+});

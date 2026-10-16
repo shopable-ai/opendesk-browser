@@ -6,10 +6,10 @@ import {spawn} from 'node:child_process';
 import {existsSync, mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir, platform} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {createServer} from 'node:net';
 
-const preview = dirname(new URL(import.meta.url).pathname);
+const preview = dirname(fileURLToPath(import.meta.url));
 const root = resolve(preview, '../../../..');
 const reactFile = join(root, 'src/libs/page-frameworks/react-19.2.0.js');
 const reactHash = 'd1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758';
@@ -25,6 +25,16 @@ assert.doesNotMatch(app, /document\.createElement|innerHTML|replaceChildren|chro
 assert.match(app, /React\.createRoot/);
 assert.match(app, /React\.useState/);
 assert.match(htm, /OpenDeskPreviewHTM/);
+assert.ok(src.includes('src/ui/design-tokens.css'));
+assert.match(src,/name="od-preview-kind" content="DESIGN_REACT_MOCK_NOT_INSTALLED"/);
+const tokens=readFileSync(join(root,'src/ui/design-tokens.css'),'utf8');
+for (const variable of ['--od-icon-size:34px','--radius-control:8px','--radius-surface:12px','--od-page-gutter:11px'])
+  assert.ok(tokens.includes(variable),'canonical source token '+variable);
+assert.ok(src.includes('src/ui/design-system.css'));
+assert.ok(app.includes('od-surface') && app.includes('od-icon-button'));
+assert.ok(app.includes('React.useRef'));
+assert.ok(existsSync(join(root,'src/ui/design-tokens.css')));
+assert.ok(existsSync(join(root,'src/ui/design-system.css')));
 assert.ok(existsSync(join(preview, 'vendor/LICENSE-htm.txt')));
 assert.ok(existsSync(join(root, 'src/libs/page-frameworks/react-LICENSE.txt')));
 assert.equal(createHash('sha256').update(readFileSync(reactFile)).digest('hex'), reactHash);
@@ -65,6 +75,8 @@ async function until(fn, label, ms=9000) {
 const profile = mkdtempSync(join(tmpdir(), 'adblock-r2-chrome-'));
 let browser, socket;
 let browserLog='';
+// Prevent a stuck macOS Chrome/CDP process from holding CI indefinitely.
+const watchdog=setTimeout(()=>{console.error('E_CHROME_WATCHDOG · last stderr: '+browserLog);process.exit(124);},75000);
 const exceptions = [];
 const requests = [];
 let counter = 1;
@@ -80,15 +92,18 @@ try {
   ];
   if (platform() === 'linux') flags.push('--no-sandbox'); // GitHub's shared runners may restrict user namespaces.
   flags.push(pathToFileURL(join(preview,'index.html')).href);
-  browser = spawn(chromeExecutable(),flags,{stdio:['ignore','ignore','pipe']});
+  const executable=chromeExecutable();
+  console.log('CHROME_LAUNCH '+JSON.stringify({platform:platform(),executable,protocol:'file://'}));
+  browser = spawn(executable,flags,{stdio:['ignore','ignore','pipe']});
   browser.stderr.on('data',part=>{browserLog=(browserLog+String(part)).slice(-6000);});
   let target;
   try { target = await until(async () => {
     if (browser.exitCode != null) throw Error('Chromium exited '+browser.exitCode);
-    const res=await fetch('http://127.0.0.1:'+port+'/json/list');
+    // Bound the probe: a macOS Mach-service failure can leave the CDP HTTP endpoint hanging.
+    const res=await fetch('http://127.0.0.1:'+port+'/json/list',{signal:AbortSignal.timeout(1100)});
     const tabs=await res.json();
     return tabs.find(t=>t.type==='page' && t.url.startsWith('file:'));
-  },'CDP real file:// page'); }
+  },'CDP real file:// page',16000); }
   catch(e) {throw Error(e.message + '\nCHROME_DIAGNOSTICS: ' + browserLog);}
   socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((ok,bad)=>{socket.addEventListener('open',ok,{once:true});socket.addEventListener('error',bad,{once:true});});
@@ -106,10 +121,25 @@ try {
   });
   function send(method, params={}) {
     return new Promise((ok,bad)=>{
-      const id=counter++; waiting.set(id,{ok,bad});
-      socket.send(JSON.stringify({id,method,params}));
+      const id=counter++;
+      const timer=setTimeout(()=>{
+        waiting.delete(id);
+        bad(Error('CDP_COMMAND_TIMEOUT '+method+' · '+browserLog.slice(-1400)));
+      },6000);
+      waiting.set(id,{
+        ok:value=>{clearTimeout(timer);ok(value);},
+        bad:error=>{clearTimeout(timer);bad(error);}
+      });
+      try {socket.send(JSON.stringify({id,method,params}));}
+      catch(error){waiting.delete(id);clearTimeout(timer);bad(error);}
     });
   }
+  socket.addEventListener('close',()=>{
+    for (const [id,pending] of waiting) {
+      waiting.delete(id);
+      pending.bad(Error('CDP_SOCKET_CLOSED before response'));
+    }
+  });
   async function evaluate(expression) {
     const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
     if(result.exceptionDetails) throw Error('PAGE_EVAL: '+result.exceptionDetails.text);
@@ -117,6 +147,12 @@ try {
   }
   async function query(expression, expected) {
     return until(async()=> (await evaluate(expression)) === expected,'expected '+expression+' = '+JSON.stringify(expected));
+  }
+  // A mounted-looking old document is not evidence that Chrome actually reloaded.
+  async function reloadMounted(label) {
+    await evaluate('globalThis.__adblockPreviewReloadMarker = true');
+    await send('Page.reload',{ignoreCache:true});
+    await until(async()=>await evaluate('globalThis.__adblockPreviewReloadMarker===undefined && !!document.getElementById("global-switch")'),label);
   }
   async function click(id) {
     assert.equal(await evaluate('!!document.getElementById('+JSON.stringify(id)+')'),true,'element exists '+id);
@@ -145,6 +181,20 @@ try {
   await click('global-switch');
   await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
   console.log('02 GLOBAL_SYNC_PASS');
+  // CDP keyboard, not DOM .click(): Space activation and Shift+Tab focus order.
+  await evaluate('document.getElementById("global-switch").focus()');
+  const key=async(type,key,code,virtual,modifiers=0)=>send('Input.dispatchKeyEvent',
+    {type,key,code,windowsVirtualKeyCode:virtual,modifiers});
+  await key('rawKeyDown',' ','Space',32);
+  await key('keyUp',' ','Space',32);
+  await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','false');
+  await key('rawKeyDown',' ','Space',32);
+  await key('keyUp',' ','Space',32);
+  await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
+  await key('rawKeyDown','Tab','Tab',9,8);
+  await key('keyUp','Tab','Tab',9,8);
+  assert.equal(await evaluate('document.activeElement?.id'),'open-settings','Shift+Tab from global switch');
+  console.log('02B REAL_KEYBOARD_SPACE_SHIFT_TAB_PASS');
   await click('site-switch');
   await query('document.getElementById("allow-count")?.textContent','1');
   await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','false');
@@ -177,10 +227,57 @@ try {
   await click('settings-allowlist');
   assert.equal(await evaluate('document.querySelector("#allow-rows strong")?.textContent'),'video.example.com');
   await evaluate('document.querySelector("#allowlist .back").click()');
+  assert.equal(await evaluate('!!document.querySelector("#settings .page-heading")'),true,
+    'Back must restore the Settings origin');
+  assert.equal(await evaluate('document.activeElement?.id'),'settings-allowlist',
+    'Back must restore focus to origin action');
+  await evaluate('document.querySelector("#settings .back").click()');
   await query('document.getElementById("site-host")?.textContent','chrome://settings');
+  assert.equal(await evaluate('document.activeElement?.id'),'open-settings');
   console.log('04 NAVIGATION_RESTRICTED_PASS');
+  async function selectScenario(value) {
+    await evaluate('(()=>{const e=document.getElementById("scenario-select");e.value='+JSON.stringify(value)+';e.dispatchEvent(new Event("change",{bubbles:true}));return true})()');
+  }
+  await selectScenario('error');
+  await query('document.getElementById("scenario-notice")?.getAttribute("role")','alert');
+  assert.equal(await evaluate('document.getElementById("global-switch").disabled'),true);
+  assert.equal(await evaluate('document.getElementById("blocked-count").textContent'),'—');
+  await click('scenario-retry');
+  await query('document.getElementById("scenario-notice")===null',true);
+  await selectScenario('permission-denied');
+  assert.equal(await evaluate('document.getElementById("site-switch").disabled'),true);
+  await selectScenario('untrusted');
+  assert.equal(await evaluate('document.querySelector("#scenario-notice img")===null'),true);
+  assert.equal(await evaluate('document.querySelector("#scenario-notice")?.textContent.includes("<img src=x")'),true);
+  await selectScenario('loading');
+  assert.equal(await evaluate('document.getElementById("scenario-retry")===null'),true);
+  await selectScenario('ready');
+  await query('document.getElementById("global-switch").disabled',false);
+  console.log('04B ERROR_PERMISSION_UNTRUSTED_LOADING_PASS');
   await click('theme-button');
   assert.equal(await evaluate('document.querySelector(".stage").classList.contains("night")'),true);
+  // Inspect true browser computed colors, not declared CSS token strings.
+  const darkContrast = await evaluate([
+    '(() => {',
+    '  const lum = rgb => {',
+    '    const v = rgb.match(/[0-9]+/g).slice(0,3).map(Number).map(n => n/255)',
+    '      .map(n => n <= .04045 ? n/12.92 : Math.pow((n+.055)/1.055,2.4));',
+    '    return v[0]*.2126+v[1]*.7152+v[2]*.0722;',
+    '  };',
+    '  const ratio = (a,b) => {',
+    '    const x=lum(a),y=lum(b);',
+    '    return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);',
+    '  };',
+    '  const status=document.getElementById("global-status");',
+    '  return {',
+    '    status:ratio(getComputedStyle(status).color,getComputedStyle(status.closest(".global-card")).backgroundColor),',
+    '    kicker:ratio(getComputedStyle(document.querySelector(".notes .kicker")).color,"rgb(21,34,54)")',
+    '  };',
+    '})()'
+  ].join('\n'));
+  assert.ok(darkContrast.status >= 4.5,'dark enabled status text contrast '+JSON.stringify(darkContrast));
+  assert.ok(darkContrast.kicker >= 4.5,'dark preview heading contrast '+JSON.stringify(darkContrast));
+  console.log('04C DARK_TEXT_CONTRAST_PASS · '+JSON.stringify(darkContrast));
   await selectDomain('video.example.com');
   const storageWorks=await evaluate('(()=>{try{return !!localStorage.getItem("opendesk.adblock.preview.r2")}catch{return false}})()');
   await send('Page.reload',{ignoreCache:true});
@@ -196,6 +293,40 @@ try {
   await query('document.getElementById("site-host")?.textContent','news.example.com');
   await query('document.querySelector(".stage").classList.contains("night")',false);
   console.log('05 STORAGE_RESET_PASS · '+(storageWorks?'persisted':'file-storage graceful fallback'));
+  // A reset must survive refresh when storage is available, and remain the default otherwise.
+  await reloadMounted('reset really reloaded');
+  await query('document.getElementById("site-host")?.textContent','news.example.com');
+  await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+  await query('document.querySelector(".stage")?.classList.contains("night")',false);
+  console.log('05B RESET_REFRESH_PASS');
+
+  // Simulate file:// storage denial before React starts: edits must still work in memory.
+  const deniedStorage = await send('Page.addScriptToEvaluateOnNewDocument',{source:[
+    '(() => {',
+    '  const deny = () => { throw new Error("PREVIEW_TEST_STORAGE_DENIED"); };',
+    '  try { Object.defineProperty(window, "localStorage", {configurable:true,get:deny}); }',
+    '  catch { try { Storage.prototype.getItem = deny; Storage.prototype.setItem = deny; } catch {} }',
+    '})();'
+  ].join('\n')});
+  assert.ok(deniedStorage.identifier,'Chrome must confirm test-only pre-document injection');
+  try {
+    await reloadMounted('storage denial injected into reloaded page');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+    assert.equal(await evaluate('(()=>{try{localStorage.getItem("opendesk.adblock.preview.r2");return false}catch{return true}})()'),true,
+      'storage must actually be inaccessible during this test');
+    await click('site-switch');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','false');
+    await click('global-switch');
+    await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','false');
+    await reloadMounted('memory-only state cleared after real reload');
+    await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+    console.log('05C STORAGE_DENIED_MEMORY_FALLBACK_PASS');
+  } finally {
+    await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:deniedStorage.identifier});
+    await reloadMounted('storage access restored after injection removal');
+    await query('document.getElementById("site-switch")?.getAttribute("aria-checked")','true');
+  }
   for (const width of [320,360]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:850,deviceScaleFactor:1,mobile:false});
     await sleep(200);
@@ -205,6 +336,36 @@ try {
   }
   await send('Emulation.clearDeviceMetricsOverride');
   console.log('06 WIDTH_320_360_PASS');
+  await send('Emulation.setDeviceMetricsOverride',{width:1024,height:850,deviceScaleFactor:1,mobile:false});
+  const placement=await evaluate('({frame:document.querySelector(".frame").getBoundingClientRect().toJSON(),notes:document.querySelector(".notes").getBoundingClientRect().toJSON(),nested:!!document.querySelector(".frame .notes")})');
+  assert.equal(Math.round(placement.frame.width),360,'tool canvas should be 360px on desktop');
+  assert.ok(placement.notes.left>placement.frame.right && !placement.nested,
+    'preview controls must sit outside the 360px tool canvas');
+  await send('Emulation.clearDeviceMetricsOverride');
+  console.log('06B ISOLATED_360PX_CANVAS_PASS');
+  const dimensions=await evaluate('(()=>{const b=document.getElementById("open-settings");const c=document.querySelector(".global-card");const p=document.querySelector(".panel");return {icon:getComputedStyle(b).width,card:getComputedStyle(c).borderTopLeftRadius,gutter:getComputedStyle(p).paddingLeft}})()');
+  assert.deepEqual(dimensions,{icon:'34px',card:'12px',gutter:'11px'});
+  console.log('06D OFFICIAL_TOKEN_COMPUTED_STYLE_PASS');
+
+  // Optional CI screenshots are real Chromium pixels, never mock/statically generated.
+  const evidenceDir=process.env.ADBLOCK_PREVIEW_EVIDENCE_DIR;
+  if (evidenceDir) {
+    mkdirSync(evidenceDir,{recursive:true});
+    async function capture(width,theme) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+      await sleep(150);
+      const shot=await send('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false});
+      assert.ok(shot.data?.length>100,'Chrome did not return PNG screenshot');
+      writeFileSync(join(evidenceDir,'adblock-file-'+width+'-'+theme+'.png'),Buffer.from(shot.data,'base64'));
+    }
+    for (const width of [320,360,1024]) await capture(width,'light');
+    await click('theme-button');
+    await query('document.querySelector(".stage")?.classList.contains("night")',true);
+    await capture(360,'dark');
+    await click('theme-button');
+    await send('Emulation.clearDeviceMetricsOverride');
+    console.log('06C CHROME_SCREENSHOT_EVIDENCE_PASS · 320/360/1024 light + 360 dark');
+  }
 
   // Copy only the minimum repository tree. Editing this copy proves save-refresh is build-free.
   const sandbox=join(profile,'isolated-repo');
@@ -216,6 +377,11 @@ try {
   const replicaRuntime=join(sandbox,'src/libs/page-frameworks/react-19.2.0.js');
   mkdirSync(dirname(replicaRuntime),{recursive:true});
   copyFileSync(reactFile,replicaRuntime);
+  for (const relative of ['src/ui/design-tokens.css','src/ui/design-system.css']) {
+    const destination=join(sandbox,relative);
+    mkdirSync(dirname(destination),{recursive:true});
+    copyFileSync(join(root,relative),destination);
+  }
   const isolated=pathToFileURL(join(replica,'index.html')).href;
   await send('Page.navigate',{url:isolated});
   await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
@@ -233,7 +399,12 @@ try {
   console.log('08 OFFLINE_NO_CONSOLE_ERRORS_PASS');
   console.log('BROWSER_RESULT PASS · genuine Chromium file:// interactions · no build/no server');
 } finally {
-  socket?.close();
-  browser?.kill('SIGTERM');
+  try {socket?.close();}catch{}
+  if (browser) {
+    try {browser.kill('SIGKILL');}catch{}
+    browser.stderr?.destroy();
+    browser.unref();
+  }
   rmSync(profile,{recursive:true,force:true,maxRetries:4,retryDelay:100});
+  clearTimeout(watchdog);
 }
