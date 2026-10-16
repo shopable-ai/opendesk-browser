@@ -38,6 +38,9 @@ test('native host snapshots render original trusted control factory, not HTML re
     assert.equal((html.match(/role="switch"/g)||[]).length,2,name);
     assert.match(html,/aria-label="全局广告拦截"/,name);
     assert.match(html,/adblock-native-card/,name);
+    assert.match(html,/<header class="adblock-native-head"><button aria-label="打开 AdBlock 产品设置"/,name);
+    assert.doesNotMatch(html,/adblock-native-logo|adblock-native-identity|adblock-native-title|adblock-native-subtitle|广告拦截 · 安静浏览/,name);
+    assert.equal((html.match(/aria-label="打开 AdBlock 产品设置"/g)||[]).length,1,name);
   }
   assert.match(host.snapshots['on-site-on'],/aria-checked="true"/);
   assert.match(host.snapshots['on-site-off'],/aria-checked="false"/);
@@ -57,6 +60,8 @@ test('native host snapshots render original trusted control factory, not HTML re
   assert.doesNotMatch(host.snapshots['on-site-on'],/>18<|>42<|>26</);
 
   assert.match(host.css,/.sidebar-tool-adblock-native \.adblock-native-toggle/);
+  assert.match(host.css,/\.sidebar-tool-adblock-native \.adblock-native-head\{[^}]*justify-content:flex-end/);
+  assert.doesNotMatch(host.css,/\.adblock-native-(logo|identity|title|subtitle)\b/);
   const native=await source('examples/sidebar-tools/adblock/trusted/host-controls.js');
   assert.match(native,/createAdblockPermissionControls/);
   assert.doesNotMatch(host.css,/chrome\.permissions|declarativeNetRequest/);

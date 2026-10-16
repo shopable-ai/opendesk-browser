@@ -1210,12 +1210,7 @@
 #sidebar-tool-adblock-native[hidden],.sidebar-tool-adblock-native[hidden],.sidebar-tool-adblock-native [hidden]{display:none!important}
 .sidebar-tool-adblock-native{max-width:560px;min-width:0;margin:var(--space-2) auto;padding:var(--space-2) 0 var(--space-3);color:var(--od-ink);overflow-wrap:anywhere}
 .sidebar-tool-adblock-native *{box-sizing:border-box}
-.sidebar-tool-adblock-native .adblock-native-head{display:flex;align-items:center;gap:12px;margin:0 0 22px;min-width:0}
-.sidebar-tool-adblock-native .adblock-native-logo{display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:14px;background:linear-gradient(145deg,#527be5,#3155bc);color:white;box-shadow:0 5px 15px #3155bc27}
-.sidebar-tool-adblock-native .adblock-native-logo-shield{display:grid;place-items:center;width:25px;height:28px;clip-path:polygon(50% 0,92% 16%,88% 60%,71% 86%,50% 100%,29% 86%,12% 60%,8% 16%);background:white;color:#3155bc;font-size:18px;font-weight:850;line-height:1}
-.sidebar-tool-adblock-native .adblock-native-identity{flex:1;min-width:0}
-.sidebar-tool-adblock-native .adblock-native-title{margin:0 0 5px;font-size:19px;line-height:1.23;letter-spacing:-.6px;font-weight:760}
-.sidebar-tool-adblock-native .adblock-native-subtitle{margin:0;font-size:11px;color:var(--od-sub);line-height:1.5}
+.sidebar-tool-adblock-native .adblock-native-head{display:flex;align-items:center;justify-content:flex-end;min-height:35px;min-width:0;margin:0 0 10px}
 .sidebar-tool-adblock-native .adblock-native-icon{display:grid;place-items:center;flex:none;width:35px;height:35px;min-height:35px;padding:0;border:1px solid var(--od-line);border-radius:10px;background:var(--od-paper);color:var(--od-sub);font-size:19px;line-height:1}
 .sidebar-tool-adblock-native .adblock-native-card{margin:0 0 14px;padding:16px 15px;border:1px solid var(--od-line);border-radius:14px;background:var(--od-paper)}
 .sidebar-tool-adblock-native .adblock-native-card-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0}

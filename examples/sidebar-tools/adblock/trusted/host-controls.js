@@ -15,16 +15,12 @@ export function createAdblockPermissionControls({
   section.setAttribute('aria-label','AdBlock 产品控制');section.hidden=true;
   const overview=make('section','adblock-native-overview');
   overview.setAttribute('aria-label','AdBlock 概览');
+  // The tool shell already shows AdBlock identity; keep this content area
+  // focused on controls and place the only settings trigger at top-right.
   const head=make('header','adblock-native-head');
-  const logo=make('span','adblock-native-logo');
-  logo.setAttribute('aria-hidden','true');
-  logo.append(make('span','adblock-native-logo-shield','✓'));
-  const identity=make('div','adblock-native-identity');
-  identity.append(make('h2','adblock-native-title','AdBlock'),
-    make('p','adblock-native-subtitle','广告拦截 · 安静浏览'));
   const settingsTrigger=button('adblock-native-icon','打开 AdBlock 产品设置','⚙');
   settingsTrigger.title='AdBlock 产品设置';settingsTrigger.setAttribute('data-adblock-nav','settings');
-  head.append(logo,identity,settingsTrigger);overview.append(head);
+  head.append(settingsTrigger);overview.append(head);
 
   const globalCard=make('section','adblock-native-card adblock-native-global');
   globalCard.setAttribute('aria-label','全局保护');

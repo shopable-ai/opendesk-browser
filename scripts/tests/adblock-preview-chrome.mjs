@@ -114,7 +114,16 @@ async function parent(){
     const host=document.getElementById('od-preview-adblock-host');
     const frame=document.getElementById('opendesk-preview-frame');
     const switches=[...host.querySelectorAll('button[role=switch]')];
-    return {switches:switches.map(s=>({checked:s.getAttribute('aria-checked')==='true',
+    const header=host.querySelector('.adblock-native-head');
+    const settings=header?.querySelector('button[data-adblock-nav="settings"]');
+    const headerBounds=header?.getBoundingClientRect();
+    const settingsBounds=settings?.getBoundingClientRect();
+    return {duplicateBrand:!!host.querySelector('.adblock-native-logo,.adblock-native-identity,.adblock-native-title,.adblock-native-subtitle')||
+        host.textContent.includes('广告拦截 · 安静浏览'),
+      settingsRightAligned:!!(headerBounds&&settingsBounds&&
+        Math.abs(headerBounds.right-settingsBounds.right)<2&&
+        settingsBounds.top>=headerBounds.top-2&&settingsBounds.bottom<=headerBounds.bottom+2),
+      switches:switches.map(s=>({checked:s.getAttribute('aria-checked')==='true',
       disabled:s.disabled,text:s.textContent,width:s.getBoundingClientRect().width})),
       hostText:host.textContent,
       dialog:document.getElementById('od-preview-adblock-restore-dialog').open,
@@ -184,6 +193,8 @@ try{
     const {built,ctx}=await open('success');
     await poll(async()=>(await child(ctx)).count==='1 个例外网站','initial exception');
     const host=await parent(),list=await child(ctx);
+    assert.equal(host.duplicateBrand,false,'content area must not repeat the tool identity');
+    assert.equal(host.settingsRightAligned,true,'settings icon belongs at content top-right');
     assert.deepEqual(host.switches.map(x=>x.checked),[true,false]);
     assert.deepEqual(host.switches.map(x=>Math.round(x.width)),[46,46]);
     assert.equal(host.sandbox,'allow-scripts');
@@ -240,6 +251,8 @@ try{
     await poll(async()=>(await child(ctx)).count==='1 个例外网站',
       'responsive sandbox '+width);
     const host=await parent(),list=await child(ctx);
+    assert.equal(host.duplicateBrand,false,'no duplicate product header at '+width);
+    assert.equal(host.settingsRightAligned,true,'settings icon remains top-right at '+width);
     assert.equal(host.overflow,false,'host horizontal overflow at '+width);
     assert.equal(list.overflow,false,'opaque sandbox horizontal overflow at '+width);
     assert.equal(host.frameHeight,0,'overview may not show exceptions iframe at '+width);
