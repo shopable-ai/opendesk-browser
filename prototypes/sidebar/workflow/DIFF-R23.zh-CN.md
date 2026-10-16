@@ -255,3 +255,17 @@ GitHub Actions 原始证据：
 - Chrome 原生 200%：同一提交的独立 CI `R234_REAL_CHROME_UI_200_ZOOM_PASS`。两个 Job 均 `success`。
 - 本地无截图 `set_content` 辅助操作复验：三行远端配置块测量 186px，Endpoint/Model/API Key 对齐；虚拟 HTTPS 配置通过，修改配置撤销摘要许可；两轮 DOM 读回最终 `项目已启动`，提交 0、跳转 0。该辅助验证单独标识，不代替 GitHub 源级 CI。
 - 按本轮目标不向用户提供截图；交付同字节单文件 HTML 供 Chrome 直接预览。六维所谓「独立专家 95+」没有独立真人参与，不应虚报为已完成；用户仍有最终设计确认权，`DESIGN_REVIEW_REQUIRED`。
+
+
+## 十二、R23.6：双段 AI 来源与统一 HTTPS 配置（2026-10-16）
+
+### 12.1 根因和解决
+
+R23.5 的「AI 来源」下拉沿用了三种 Provider 并使用与其它表单相同的固定宽标签列，视觉上割裂，实际间距过大；OpenAI Responses 和自定义 HTTPS 虽使用不同协议，但配置字段完全相同。此次不再堆叠调整 CSS，而是一次性复用同一个 HTTPS 配置视图。
+
+- **来源控件**：原生 Radio 形式的双段切换「本机 Codex / HTTPS 模型」，不再显示单独的 OpenAI 与自定义 HTTPS 入口。AI 来源文字与切换器采用约 9px 直接间距，选中块有轻微浮起背景，并保留箭头键／Tab 焦点语义。
+- **HTTPS 输入**：默认 `https://api.openai.com/v1/responses` 作为**字段实际值**，不是占位文本；旁边「清空接口地址」图标一键删除后焦点仍停在字段，填入其它 HTTPS 端点即可。
+- **自动协议选择**：依据 URL pathname 为 `/v1/responses` 才沿用现有 `cloud_responses`；否则沿用 `custom_https`（旧 Chat Completions）。选择依据是接口路径，不是是否属于 OpenAI 官方域名；非 OpenAI 主机的 Responses 也不能宣称为官方服务。
+- **最小安全保护**：Endpoint 一有变动即清空此前输入的演示密钥、全部 HTTPS 模拟配置状态和接收方摘要许可；切换本机/HTTPS 也不能继承许可；仅支持 HTTPS 和 `demo-...` 虚拟密钥。任何已填字段都不意味着已联网。
+- **未动范围**：正式 `src/ui/workflow`、SDK、RunHost、Chrome 权限未改；顶部历史／新对话／新工作流、两轮模拟、只读与每次确认、高风险防护继续保留。
+- **独立证据门槛**：Chromium 真实来源 Radio 点击/键盘、清空按钮、自动路由、Endpoint 改变密钥清除、授权撤销、三宽间距、200% 原生缩放与无表单沙箱双轮读回。用户没有要求截图，本轮不以截图充当交互证明。六维独立专家 ≥95 仍需真实证据与外部 UX 审核，不能自行宣布。
