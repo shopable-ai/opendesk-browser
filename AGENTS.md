@@ -12,6 +12,12 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 已有非 `main` 分支允许只读核查。仅在用户明确要求合并/清理时，将应保留的变更安全合入 `main`，确认不丢失独有提交后再删除多余分支。绝不为“只保留主分支”而直接删除未合并工作；禁止强推、破坏性 reset/clean、覆盖并行工作。提交与推送仍遵守当前任务的授权边界。
 
+## React UI 共享组件与自定义 UI 零退化（2026-10-16）
+
+**仅适用于浏览器/Side Panel React UI 组件化、React Sidebar Tool 接入或相关框架修改。** 最新产品目标是让正式可信扩展 UI 和用户自定义 React 工具按需复用成熟、可访问、统一视觉的 React 组件；不是仅证明 React 能编译，也不是强制所有页面/工具迁移 React。**同等最高优先级 P0：零退化保护** HTML/CSS/JS、React JSX、Vue SFC、Side Panel「开发」的编辑/编译/预览/运行/保存/Stop、本地项目、旧 Sidebar Tool 的构建/导入/安装/更新/SDK/已安装数据；新增 React 只能作为可选依赖。任何旧功能 FAIL 都阻断本轮完成，不得以新 React 构建 PASS 抵消。
+
+共享的是 UI **源码/视觉合同**，不是权限与运行世界。沿用现有 Design Tokens、WXT/Vite、Standard/Developer 双版编译边界和唯一 Sandbox/Host/SDK/打包器；禁止第二套基础设施、运行时 CDN、宿主 CSS/特权泄漏及为 UI 库盲目放宽包预算。R32.8「不建公共组件包」仅是旧阶段审计结论，**不得再把它当成对两个实际消费者共享 React UI 的否决**；具体路径和成熟控件方案依真实消费者及验证选择。独立质量评分目标每项 ≥95，未获同候选 Chromium 证据标记 NOT_TESTED。**唯一 R33 产品/架构决策与门禁入口**：[React UI 共享组件与零退化合同](docs/architecture/react-ui-shared-components-r33.zh-CN.md)。
+
 ## Sidebar Tool 单一正式安装包与测试后晋升（2026-10-15）
 
 **凡在 `examples/sidebar-tools/<id>/` 开发、测试并准备交付可导入的 Sidebar Tool，工具目录最终只保留一个 `<id>.opendesk-tool.json` 正式可安装包。** 用户期望安装/手动验收时不能只给 CI ZIP、忽略的 `artifacts/` 或仓库外附件；测试通过后必须把安装包与源码一起安全提交到 `main`。不对未触及的所有示例批量补包，不制造带 R/日期/版本后缀的重复正式 JSON；历史保留在 Git 提交和既有发行账本。此规则不适用于 Page USER_SCRIPT/Controller Task、Chrome CRX 或 `manifest.json`。
