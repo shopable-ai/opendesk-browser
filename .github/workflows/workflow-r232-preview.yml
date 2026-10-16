@@ -1,0 +1,66 @@
+name: Workflow R23.2 exact HTML Chromium preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prototypes/sidebar/workflow/index.html'
+      - 'prototypes/sidebar/workflow/r232-chrome.mjs'
+      - '.github/workflows/workflow-r232-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-saved-html:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify the exact tracked HTML and JS syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch prototypes/sidebar/workflow/index.html
+          git ls-files --error-unmatch prototypes/sidebar/workflow/r232-chrome.mjs
+          node --check prototypes/sidebar/workflow/r232-chrome.mjs
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {Script} from 'node:vm';
+          const html=readFileSync('prototypes/sidebar/workflow/index.html','utf8');
+          const js=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+          if(!js)throw Error('E_PREVIEW_SCRIPT_MISSING');
+          new Script(js,{filename:'workflow-r232-inplace.js'});
+          if(!html.includes('id="new-chat"')||!html.includes('id="new-workflow"'))throw Error('E_DUAL_CREATE_MISSING');
+          if(html.includes('id="new"'))throw Error('E_LEGACY_DROPDOWN');
+          console.log('R232_GIT_TRACKED_HTML_STATIC_PASS');
+          NODE
+      - name: Install CJK font for actual screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends fonts-noto-cjk
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Install isolated Playwright driver (no product dependency change)
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+      - name: Test actual file with Chrome (offline preview, not installed product)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          set -euo pipefail
+          "$CHROME_BIN" --version
+          node prototypes/sidebar/workflow/r232-chrome.mjs artifacts/workflow-r232-preview
+      - name: Upload source-bound screenshots and evidence (even on fail)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-r232-exact-chromium-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            prototypes/sidebar/workflow/index.html
+            artifacts/workflow-r232-preview/*.png
+            artifacts/workflow-r232-preview/*.json
