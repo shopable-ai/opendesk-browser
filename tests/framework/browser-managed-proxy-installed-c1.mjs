@@ -60,21 +60,23 @@ async function evalAt(session,expression,contextId=null){
   if(reply.exceptionDetails)throw Error(reply.exceptionDetails.exception?.description||reply.exceptionDetails.text);
   return reply.result?.value;
 }
-async function element(selector){
+async function elementIn(session,selector){
   const script='(()=>{const e=document.querySelector('+JSON.stringify(selector)+');'+
     'if(!e)return null;const r=e.getBoundingClientRect(),s=getComputedStyle(e);'+
     'return {visible:r.width>0&&r.height>0&&s.display!=="none"&&s.visibility!=="hidden"'+
     '&&!e.disabled&&!e.closest("[hidden]"),x:r.x+r.width/2,y:r.y+r.height/2,'+
     'text:e.textContent?.slice(0,100),disabled:!!e.disabled};})()';
-  return evalAt(page,script);
+  return evalAt(session,script);
 }
-async function click(selector){
-  const a=await element(selector);
+const element=selector=>elementIn(page,selector);
+async function clickIn(session,selector,surface='tool-tab'){
+  const a=await elementIn(session,selector);
   assert(a?.visible,'Chrome input cannot reach '+selector+': '+JSON.stringify(a));
   for(const type of ['mouseMoved','mousePressed','mouseReleased'])
-    await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x:a.x,y:a.y},page);
-  step('CHROME_MOUSE_INPUT',{selector,api:'Input.dispatchMouseEvent'});
+    await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x:a.x,y:a.y},session);
+  step('CHROME_MOUSE_INPUT',{selector,surface,api:'Input.dispatchMouseEvent'});
 }
+const click=selector=>clickIn(page,selector);
 
 function frameFromTree(tree,urlPart){
   if(tree?.frame?.url?.includes(urlPart))return tree.frame;
@@ -87,19 +89,19 @@ async function sandboxTargets(){
   const {targetInfos=[]}=await client.send('Target.getTargets');
   return targetInfos.filter(x=>x.url?.includes('/sidebar-tools/sandbox.html'));
 }
-async function toolFrame(){
-  // An opaque-origin sandbox can be an OOPIF with its own CDP target. Chrome's
-  // parent Page.getFrameTree alone is not authoritative for that child.
-  const tree=(await client.send('Page.getFrameTree',{},page)).frameTree;
+async function toolFrame(hostSession=page,requiredSelector='#tool-root'){
+  // Sandbox may be a separate OOPIF target; match the exact installed tool DOM.
+  const presence='document.querySelector('+JSON.stringify(requiredSelector)+')!==null';
+  const tree=(await client.send('Page.getFrameTree',{},hostSession)).frameTree;
   const frame=frameFromTree(tree,'/sidebar-tools/sandbox.html');
   let parentWorldError=null;
   if(frame){
     try{
       const world=await client.send('Page.createIsolatedWorld',{
         frameId:frame.id,worldName:'opendesk-proxy-c1-readonly'
-      },page);
-      const candidate={session:page,contextId:world.executionContextId,via:'parent-frame'};
-      if(await evalAt(candidate.session,'document.getElementById("tool-root")!==null',candidate.contextId))
+      },hostSession);
+      const candidate={session:hostSession,contextId:world.executionContextId,via:'parent-frame'};
+      if(await evalAt(candidate.session,presence,candidate.contextId))
         return candidate;
       parentWorldError='Parent isolated world did not resolve the installed sandbox DOM';
     }catch(error){parentWorldError=String(error?.message||error);}
@@ -109,7 +111,7 @@ async function toolFrame(){
     try{
       const session=await attach(target.targetId);
       const candidate={session,contextId:null,via:'oopif-target',targetId:target.targetId};
-      if(await evalAt(session,'document.getElementById("tool-root")!==null'))
+      if(await evalAt(session,presence))
         return candidate;
     }catch(error){parentWorldError=String(error?.message||error);}
   }
@@ -127,18 +129,19 @@ async function toolResult(frame){
   if(!text)return null;
   try{return JSON.parse(text);}catch{return null;}
 }
-async function clickSandbox(frame,selector){
+async function clickSandbox(frame,selector,hostSession=page){
   const local=await evalAt(frame.session,'(()=>{const e=document.querySelector('+
     JSON.stringify(selector)+');if(!e)return null;const r=e.getBoundingClientRect();'+
     'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};})()',frame.contextId);
   assert(local?.width>0&&local?.height>0,'Sandbox test UI target unavailable: '+selector);
-  const parent=await evalAt(page,'(()=>{const e=document.querySelector("#sidebar-tool-frame iframe");'+
+  const parent=await evalAt(hostSession,'(()=>{const e=document.querySelector("#sidebar-tool-frame iframe");'+
     'if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left,y:r.top};})()');
   assert(parent,'Trusted parent sandbox iframe unavailable');
   const x=parent.x+local.x,y=parent.y+local.y;
   for(const type of ['mouseMoved','mousePressed','mouseReleased'])
-    await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x,y},page);
-  step('CHROME_SANDBOX_MOUSE_INPUT',{selector,api:'Input.dispatchMouseEvent'});
+    await client.send('Input.dispatchMouseEvent',{type,button:'left',clickCount:1,x,y},hostSession);
+  step('CHROME_SANDBOX_MOUSE_INPUT',{selector,surface:hostSession===page?'tool-tab':'native-side-panel',
+    api:'Input.dispatchMouseEvent'});
 }
 async function installerDiagnostics(){
   return evalAt(page,'(()=>{const ids=["extension-center-more","extension-center-menu",'+
@@ -248,8 +251,8 @@ async function exerciseProductionDeniedSdk(extensionId){
   await screenshot('sdk-deny-and-stop');
 }
 
-async function screenshot(name){
-  const frame=await client.send('Page.captureScreenshot',{format:'png'},page);
+async function screenshot(name,session=page){
+  const frame=await client.send('Page.captureScreenshot',{format:'png'},session);
   const bytes=Buffer.from(frame.data,'base64'),file=resolve('artifacts/managed-proxy-c1-'+name+'.png');
   await mkdir(dirname(file),{recursive:true});
   await writeFile(file,bytes);
@@ -264,6 +267,95 @@ async function readNative(worker){
     'return {permission,settings,journal:state['+JSON.stringify(MANAGED_PROXY_STORE)+']??null,'+
     'panels:panels.map(x=>({type:x.contextType,url:x.documentUrl,id:x.documentId}))};})()';
   return evalAt(worker,expression);
+}
+async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
+  const base='chrome-extension://'+extensionId+'/ui/tool.html';
+  const candidate=await until(async()=>{
+    const {targetInfos=[]}=await client.send('Target.getTargets');
+    const other=targetInfos.filter(x=>x.targetId!==tabTargetId&&x.url?.startsWith(base));
+    return other.length===1?other[0]:null;
+  },'CDP Target belonging only to Chrome native SIDE_PANEL');
+  const panelSession=await attach(candidate.targetId,true);
+  const panelTab=await until(async()=>{
+    const e=await elementIn(panelSession,'#tab-tools');
+    return e?.visible&&e;
+  },'real Side Panel Tools navigation control');
+  assert(panelTab.visible);
+  const live=await readNative(worker);
+  const current=live.panels.find(x=>x.type==='SIDE_PANEL');
+  assert(current?.id,'Chrome lost the native SIDE_PANEL context');
+  const hostUrl=await evalAt(panelSession,'location.href');
+  assert(hostUrl.startsWith(base),'CDP target is not the real installed Side Panel host');
+  await clickIn(panelSession,'#tab-tools','native-side-panel');
+  const officialSelector='#extension-center-list button[data-extension-key="app:ai-vip-share"][data-extension-action="main"]';
+  await until(async()=>{const e=await elementIn(panelSession,officialSelector);return e?.visible&&e;},
+    'installed official AI VIP Share visible in native Side Panel');
+  await clickIn(panelSession,officialSelector,'native-side-panel');
+  const officialFrame=await until(async()=>{
+    try{return await toolFrame(panelSession,'#ai-vip-member-state');}catch{return null;}
+  },'official AI VIP Share sandbox inside native Side Panel');
+  const officialState=await until(async()=>{
+    const result=await evalAt(officialFrame.session,'(()=>({member:document.querySelector("#ai-vip-member-state")?.textContent,'+
+      'detail:document.querySelector("#ai-vip-proxy-detail")?.textContent,'+
+      'enableHidden:document.querySelector("#ai-vip-proxy-toggle")?.hidden,'+
+      'refreshHidden:document.querySelector("#ai-vip-proxy-refresh")?.hidden}))()',officialFrame.contextId);
+    return result?.member==='服务未配置'&&result.detail?.includes('代理服务尚未接入')?result:null;
+  },'formal AI VIP production unconfigured presentation');
+  assert.equal(officialState.enableHidden,true,'Unreviewed production ENABLE must be hidden');
+  assert.equal(officialState.refreshHidden,false,'Public SDK STATUS refresh must be visible');
+  await clickSandbox(officialFrame,'#ai-vip-proxy-refresh',panelSession);
+  await until(async()=>{
+    const detail=await evalAt(officialFrame.session,
+      'document.querySelector("#ai-vip-proxy-detail")?.textContent??null',officialFrame.contextId);
+    return detail?.includes('代理服务尚未接入')?detail:null;
+  },'public SDK STATUS refresh from trusted native Side Panel');
+  await screenshot('native-side-panel-ai-vip',panelSession);
+  step('C1_SIDE_PANEL_OFFICIAL_UI',{status:'PASS',documentId:current.id,
+    chromeTargetType:candidate.type,hostUrl,via:officialFrame.via,officialState});
+
+  // A separately installed fixture proves ENABLE rejection and STOP through
+  // the *same* actual SIDE_PANEL, never by direct privileged Driver calls.
+  await clickIn(panelSession,'#sidebar-tool-back','native-side-panel');
+  const fixtureSelector='#extension-center-list button[data-extension-key="app:managed-proxy-c2-fixture"][data-extension-action="main"]';
+  await until(async()=>{const e=await elementIn(panelSession,fixtureSelector);return e?.visible&&e;},
+    'installed independent fixture in native Side Panel Extension Center');
+  await clickIn(panelSession,fixtureSelector,'native-side-panel');
+  const frame=await until(async()=>{
+    try{return await toolFrame(panelSession,'#proxy-c2-result');}catch{return null;}
+  },'independent test tool sandbox inside native Side Panel');
+  const status=await until(async()=>{
+    const result=await toolResult(frame);return result?.method==='getStatus'&&result.state!=='pending'?result:null;
+  },'native Side Panel installed public SDK status');
+  assert.equal(status.ok,true,'Native Side Panel STATUS failed '+JSON.stringify(status));
+  assert.equal(status.data?.canStop,false);
+  await clickSandbox(frame,'#proxy-c2-enable',panelSession);
+  await until(async()=>{const e=await elementIn(panelSession,'#sidebar-tool-action-continue');return e?.visible&&e;},
+    'native Side Panel ENABLE trusted approval');
+  await clickIn(panelSession,'#sidebar-tool-action-continue','native-side-panel');
+  const rejected=await until(async()=>{
+    const row=await toolResult(frame);return row?.method==='requestEnable'&&row.state!=='pending'?row:null;
+  },'native Side Panel Host rejection of unreviewed production ENABLE');
+  assert.equal(rejected.ok,false);
+  assert.equal(rejected.code,'E_PROXY_PROFILE_NOT_APPROVED');
+  await clickSandbox(frame,'#proxy-c2-disable',panelSession);
+  await until(async()=>{const e=await elementIn(panelSession,'#sidebar-tool-action-continue');return e?.visible&&e;},
+    'native Side Panel STOP trusted approval');
+  await clickIn(panelSession,'#sidebar-tool-action-continue','native-side-panel');
+  const stopped=await until(async()=>{
+    const row=await toolResult(frame);return row?.method==='requestDisable'&&row.state!=='pending'?row:null;
+  },'native Side Panel STOP confirmation');
+  assert.equal(stopped.ok,true);
+  assert.equal(stopped.data?.canStop,false);
+  const final=await readNative(worker);
+  assert.equal(final.journal,null,'Native Side Panel changed managed proxy journal despite production denial');
+  if(final.settings)assert.notEqual(final.settings.value?.mode,'pac_script');
+  const fresh=final.panels.find(x=>x.type==='SIDE_PANEL');
+  assert.equal(fresh?.id,current.id,'Native SIDE_PANEL document changed during trusted operations');
+  await screenshot('native-side-panel-sdk-denied-stop',panelSession);
+  receipt.sidePanelDocumentId=current.id;receipt.sidePanelInteracted=true;
+  step('C1_SIDE_PANEL_SDK_HOST_NATIVE',{status:'PASS',documentId:current.id,
+    statusOutput:status,enableDenied:rejected,stopOutput:stopped,readback:final.settings,
+    journal:final.journal,frameMode:frame.via,chromeTargetType:candidate.type});
 }
 async function main(){
   assert(process.env.CHROME_FOR_TESTING_BIN,'Pinned Chrome for Testing required');
@@ -414,7 +506,19 @@ async function main(){
   }
   receipt.sidePanelObserved=Boolean(panel);
   receipt.sidePanelContexts=panel?[panel]:after.panels;
-  receipt.result=panel?'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_OBSERVED_NOT_INTERACTED':
+  if(panel){
+    try{
+      await exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId:tab.targetId});
+    }catch(error){
+      receipt.sidePanelBlocker=String(error?.stack||error);
+      receipt.sidePanelTargets=(await client.send('Target.getTargets').catch(()=>({targetInfos:[]}))).targetInfos
+        .filter(t=>!['service_worker','browser'].includes(t.type))
+        .map(t=>({type:t.type,url:t.url,id:t.targetId}));
+      step('C1_SIDE_PANEL_INTERACTION',{status:'NATIVE_UI_BLOCKED',error:receipt.sidePanelBlocker});
+    }
+  }
+  receipt.result=receipt.sidePanelInteracted?'FORMAL_C1_NATIVE_PASS':
+    panel?'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_OBSERVED_NOT_INTERACTED':
     'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_BLOCKED';
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
