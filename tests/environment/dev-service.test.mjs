@@ -63,7 +63,8 @@ test('R4.5 dev coalesces official edits without losing them to README or starter
 test('R4.5 failed official edits block unrelated publication and recover after source restoration',async t=>{
   const f=await officialDevelopmentFixture(t),before=await f.marker();
   const path='examples/sidebar-tools/reading-toc/src/main.js',source=await readFile(join(f.root,path),'utf8');
-  await f.write(path,'const = broken;');f.change(path);await f.flush();
+  // Preserve the locale marker so this fails at syntax validation rather than preprocessing.
+  await f.write(path,source+'\nconst = broken;');f.change(path);await f.flush();
   assert.equal(await f.marker(),before);assert(f.errors.some(x=>x.includes('syntax error')));
   await f.write('src/ui/tool.html','<main>unrelated static edit</main>');f.change('src/ui/tool.html');await f.flush();
   assert.equal(await f.marker(),before,'unrelated success cannot clear the failed official source');
