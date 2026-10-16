@@ -32,7 +32,7 @@
     <div class="field"><label for="live-export-content">导出内容</label><select id="live-export-content" aria-label="选择含敏感值的备份或不含值的元数据清单"><option value="metadata" selected>元数据清单 · 不含 Value（仅 JSON）</option><option value="backup">当前范围备份 · 包含 Cookie Value（敏感）</option></select></div>
     <p id="live-export-warning" class="hint" role="note">JSON 仅保存当前授权范围的必要属性，不代表浏览器完整备份。</p>
     <p id="live-export-sensitive" class="sensitive-note">包含 Cookie 值时需单独授权。复制可能暴露到剪贴板；下载的文件可能包含登录凭据。</p>
-    <div class="form-actions live-export-actions"><button id="live-export-copy" class="text-button" type="button">复制</button><button id="live-export-confirm" class="text-button primary" type="button">下载</button></div>
+    <div class="form-actions live-export-actions" role="group" aria-label="导出操作"><button id="live-export-copy" class="text-button" type="button">复制</button><button id="live-export-confirm" class="text-button primary" type="button">下载</button></div>
   </section>
   <div id="browser-import-slot" hidden></div>
   <div id="browser-editor-slot" class="editor-recovery" hidden><p class="hint" role="status">网站授权或列表已变化，编辑草稿仍保留。重新读取并核对原 Cookie 后再保存。</p></div>

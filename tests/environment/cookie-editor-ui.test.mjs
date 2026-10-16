@@ -259,7 +259,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
   assert(s.html.includes('id="live-search"')&&s.html.includes('id="live-filter"')&&
     s.html.includes('id="live-sort"'));
   assert(s.source.includes("E('live-filters').hidden=!hasRead"));
-  assert.equal(s.config.version,'2.0.12');
+  assert.equal(s.config.version,'2.0.13');
   assert(s.html.includes('id="offline-tools"')&&s.html.includes('id="browser-panel"'),
     'Live Chrome management is the default; offline tools are secondary');
   assert(!/\b(?:window|globalThis|chrome)\.cookies\./.test(s.source));
@@ -929,6 +929,10 @@ test('R4.8 live copy and download use identical redacted metadata',async()=>{
   s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
   assert.match(s.html,/id="live-export-copy"[^>]*>复制<\/button>/);
   assert.match(s.html,/id="live-export-confirm"[^>]*>下载<\/button>/);
+  const actionRow=s.html.match(/<div class="form-actions live-export-actions" role="group" aria-label="导出操作">([\s\S]*?)<\/div>/)?.[1];
+  assert.ok(actionRow,'真实导出面板应包含且仅包含两个操作按钮');
+  assert.deepEqual([...actionRow.matchAll(/<button\b[^>]*>([^<]+)<\/button>/g)].map(m=>m[1]),['复制','下载']);
+  assert.equal(actionRow.replace(/<button\b[^>]*>[^<]*<\/button>/g,'').trim(),'','按钮下方不得附加逐项说明文字');
   assert.match(s.css,/\.live-export-actions\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   s.getField('live-export-content').value='metadata';
   s.getField('live-export-format').value='json';

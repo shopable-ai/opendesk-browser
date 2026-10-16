@@ -138,6 +138,11 @@ test('R4.7 export actions use production labels and share identical redacted JSO
   const h=await harness();
   assert.match(h.html,/data-action="copyExport"[^>]*>复制<\/button>/);
   assert.match(h.html,/data-action="runExport"[^>]*>下载<\/button>/);
+  const actionRow=h.html.match(/<div class="foot export-primary-actions" role="group" aria-label="导出操作">([\s\S]*?)<\/div>/)?.[1];
+  assert.ok(actionRow,'交互预览应仅显示两个导出按钮');
+  assert.deepEqual([...actionRow.matchAll(/<button\b[^>]*>([^<]+)<\/button>/g)].map(m=>m[1]),['复制','下载']);
+  assert.equal(actionRow.replace(/<button\b[^>]*>[^<]*<\/button>/g,'').trim(),'','预览不得为复制或下载增加说明行');
+  assert.match(h.html,/\.foot\.export-primary-actions\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.doesNotMatch(h.html,/导出模拟文件/);
   h.action('export');h.action('copyExport');await h.flushClipboard();
   assert.equal(h.copiedTexts.length,1);assert.equal(h.downloads.length,0);
