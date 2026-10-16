@@ -26,6 +26,8 @@ const html='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
   '<button id="danger" type="button">危险操作占位</button>'+
   '<textarea id="draft">旧草稿</textarea>'+
   '<input id="single" type="text" value="旧单行"></main>'+
+  '<script>window.__loadErrors=[];addEventListener("error",e=>'+
+  'window.__loadErrors.push(e.message||e.target?.src||"module error"),true)</script>'+
   '<script type="module" src="/fixture-boot.js"></script></body></html>';
 const server=createServer(async(req,res)=>{
   const pathname=new URL(req.url,'http://127.0.0.1').pathname;
@@ -122,11 +124,13 @@ async function connect(){
     if(response.method==='Runtime.exceptionThrown'){
       jsErrors.push(response.params.exceptionDetails.exception?.description||response.params.exceptionDetails.text);
     }
+    if(response.method==='Log.entryAdded'&&response.params?.entry?.level==='error')
+      jsErrors.push(response.params.entry.text);
     const item=pending.get(response.id);if(!item)return;
     pending.delete(response.id);
     if(response.error)item.fail(Error(response.error.message));else item.ok(response.result);
   });
-  await rpc('Page.enable');await rpc('Runtime.enable');
+  await rpc('Page.enable');await rpc('Runtime.enable');await rpc('Log.enable');
   await rpc('Emulation.setDeviceMetricsOverride',{width:1150,height:800,deviceScaleFactor:1,mobile:false});
 }
 async function evaluate(expression){
@@ -210,7 +214,19 @@ try{
     realThirdPartySite:false,realMacIme:false,version:pkg.version,scenes,consoleErrors:jsErrors};
   await writeFile(join(out,'report.json'),JSON.stringify(report,null,2)+'\n');
   console.log('PROMPT_SHORTCUTS_R21_PAGE_CHROMIUM_FIXTURE_PASS',JSON.stringify(report));
+}catch(error){
+  let snapshot;
+  try{snapshot=await evaluate('({ready:window.__ready,errors:window.__loadErrors||[],promptRail:!!document.querySelector("[data-opendesk-prompts]"),path:location.pathname})');}
+  catch(snapshotError){snapshot={diagnosticError:String(snapshotError)};}
+  console.error('PROMPT_SHORTCUTS_R21_PAGE_CHROMIUM_FIXTURE_FAIL',
+    JSON.stringify({message:String(error?.stack||error),snapshot,jsErrors}));
+  throw error;
 }finally{
-  socket?.close();chrome.kill('SIGTERM');server.close();
-  await rm(profile,{recursive:true,force:true});
+  socket?.close();
+  chrome.kill('SIGTERM');
+  if(chrome.exitCode===null)
+    await Promise.race([new Promise(resolve=>chrome.once('exit',resolve)),sleep(1600)]);
+  await new Promise(resolve=>server.close(resolve));
+  try{await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:120});}
+  catch(cleanupError){console.warn('R21_CHROME_PROFILE_CLEANUP_ONLY',cleanupError.message);}
 }
