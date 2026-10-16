@@ -20,7 +20,7 @@
 .side-panel{width:var(--panel-width,360px);max-width:none;min-width:0;background:#fff;border:1px solid #dfe6f0;border-radius:14px;padding:12px;box-shadow:0 14px 32px #2435540b;zoom:var(--preview-zoom,1)}
 /* Matches the tool's officially shipped single-row compact header geometry. */
 .toc-panel{min-width:0}
-.toc-head{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;white-space:nowrap;padding-bottom:11px;border-bottom:1px solid var(--od-line)}
+.toc-head{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;white-space:nowrap;margin-bottom:9px}
 .toc-title{flex:0 1 auto;min-width:0;font-size:11px;color:#63738d;font-weight:720;letter-spacing:.07em;overflow:hidden;text-overflow:ellipsis}
 .toc-actions{display:flex;align-items:center;gap:6px;min-width:0;flex:none}
 .toc-modes{display:flex;align-items:center;gap:1px;padding:2px;border:1px solid #e7eaf0;border-radius:8px;background:#f7f9fc;flex:none}
@@ -31,48 +31,28 @@
 .toc-refresh{display:grid;place-items:center;flex:none;width:29px;height:29px;padding:0;border:1px solid #e7eaf0;border-radius:8px;background:#fff;color:#64748b}
 .toc-refresh:hover{background:#f2f6ff;color:#365eda}
 .toc-refresh svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
-.toc-view{min-width:0;min-height:205px}
-/* Compact AI body: value, structured outline, one status/action region. */
-.ai-head{padding:16px 2px 14px}
-.ai-head h2{font-size:15px;line-height:1.52;letter-spacing:-.018em;font-weight:700;color:var(--od-ink);overflow-wrap:anywhere}
-.ai-head p{margin-top:5px;color:var(--od-sub);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
-.outline-heading{display:flex;align-items:center;justify-content:space-between;min-width:0;gap:8px;margin:0 2px 9px}
-.outline-heading h3{font-size:12px;font-weight:670;color:var(--od-ink)}
-.outline-annotation{white-space:nowrap;font-size:11px;color:#62718b}
-.outline{list-style:none;margin:0;padding:6px 4px 6px 0;border-radius:9px;background:#f7f9fc;min-width:0}
+.toc-view{min-width:0}
+/* Use the same compact, text-only TOC rows in all four views. */
+.outline{list-style:none;display:grid;gap:1px;margin:0;padding:0;min-width:0}
 .outline li{min-width:0}
-.outline li.group-break{margin-top:5px;padding-top:5px;border-top:1px solid #edf0f6}
-.outline button{width:100%;min-width:0;min-height:34px;text-align:left;display:flex;align-items:flex-start;gap:8px;border:0;border-left:2px solid transparent;border-radius:0 5px 5px 0;background:transparent;color:var(--od-ink);padding:7px 7px 6px 11px;line-height:1.5}
-.outline button:hover:not(:disabled){background:#eaf0fb;color:#254cae}
-.outline button[aria-current="location"]{border-left-color:var(--od-brand);background:#eaf0fb;color:#254cae}
-.outline .level-2 button{padding-left:27px;color:#607089;font-size:12px}
-.outline .level-1 button{font-size:13px;font-weight:630}
-.outline .level-2 button[aria-current="location"]{color:#254cae}
-.outline button:disabled{opacity:.55}
-.outline button svg{width:12px;height:12px;flex:none;margin-top:3px;stroke:#7d8aa1;stroke-width:1.6;fill:none}
-.outline button .outline-text{min-width:0;flex:1;overflow-wrap:anywhere}
-.outline button:focus-visible{outline-offset:-2px}
-.ai-status{margin:14px 1px 1px;padding:12px 1px 0;border-top:1px solid var(--od-line);min-width:0}
-.status-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:660;line-height:1.5;color:var(--od-ink)}
-.status-dot{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:#a3afc0}
-.ai-status[data-tone="positive"] .status-dot{background:var(--od-positive)}
-.ai-status[data-tone="negative"] .status-dot{background:var(--od-negative)}
-.ai-status[data-tone="info"] .status-dot{background:#6686e9}
-.status-desc{color:var(--od-sub);font-size:12px;line-height:1.6;margin:4px 0 0 14px;overflow-wrap:anywhere}
-.ai-action{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0 0;width:100%;min-height:36px;padding:8px 12px;border-radius:8px;border:1px solid var(--od-brand);background:var(--od-brand);color:#fff;font-weight:650;font-size:12px}
+.outline-row{display:block;width:100%;min-width:0;border:0;border-left:2px solid transparent;border-radius:0 3px 3px 0;background:transparent;padding:2px 0 2px 10px;text-align:left;color:#6b7280;font-size:13px;font-weight:400;line-height:1.45;overflow-wrap:anywhere}
+.outline .level-2 .outline-row{padding-left:22px;font-size:12px}
+.outline button.outline-row:hover:not(:disabled){color:#20222b;background:#f5f7fc}
+.outline button.outline-row[aria-current="location"]{border-left-color:var(--od-brand);color:#20222b}
+.outline button.outline-row:disabled{opacity:1;cursor:default}
+.outline button.outline-row:focus-visible{outline-offset:-2px}
+.outline-text{display:block;min-width:0}
+/* The only permanent AI copy lives in a quiet footer; no lines, badges or extra cards. */
+.ai-status{display:flex;align-items:center;justify-content:space-between;gap:7px 10px;flex-wrap:wrap;min-width:0;margin:12px 1px 1px;padding:0;border:0}
+.status-title{flex:1 1 auto;min-width:0;font-size:11px;font-weight:400;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
+.ai-action{display:inline-flex;align-items:center;justify-content:center;flex:none;gap:5px;width:auto;min-height:30px;margin:0;padding:5px 10px;border-radius:7px;border:1px solid var(--od-brand);background:var(--od-brand);color:#fff;font-weight:650;font-size:12px;line-height:1.4}
 .ai-action:hover:not(:disabled){background:#2b50c4}
 .ai-action:disabled{opacity:.66}
-.ai-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
 .ai-action.secondary{background:#fff;color:#3559bd;border-color:#d5deec}
 .ai-action.secondary:hover:not(:disabled){background:#f4f7ff}
-.progress-spinner{animation:spin .85s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.ai-footnote{font-size:11px;color:#62718b;margin:10px 2px 1px;line-height:1.55}
-.toc-free{padding-top:10px}
+.toc-free{padding-top:0}
 .free-label{color:var(--od-sub);font-size:11px;line-height:1.5;margin:0 0 8px 3px}
 .free-outline{background:transparent;padding:0}
-.free-outline li.group-break{border-top:0;margin-top:4px}
-.free-outline button{min-height:31px;padding-top:5px;padding-bottom:5px}
 .free-empty{font-size:12px;color:var(--od-sub);padding:8px}
 .sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* All test controls and mocked article live in separate review panel. */
@@ -123,20 +103,13 @@
             </div>
           </header>
           <div id="ai-view" class="toc-view" aria-label="AI 整理目录">
-            <section class="ai-head" aria-labelledby="ai-title">
-              <h2 id="ai-title" data-i18n="valueTitle">把长文章整理成清晰目录</h2>
-              <p data-i18n="valueDesc">AI 梳理正文中的章节关系，让重要内容更容易找到。</p>
-            </section>
-            <section aria-labelledby="outline-title">
-              <div class="outline-heading"><h3 id="outline-title" data-i18n="outlineTitle">整理后的章节</h3><span class="outline-annotation" id="outline-annotation">演示 · 非当前网页</span></div>
-              <nav aria-label="AI 目录演示导航"><ul class="outline" id="ai-outline"></ul></nav>
-            </section>
-            <section class="ai-status" id="ai-status" data-tone="neutral" aria-label="会员与服务状态">
-              <p class="status-title"><span class="status-dot" aria-hidden="true"></span><span id="status-title">暂未开放</span></p>
-              <p class="status-desc" id="status-desc">当前仍可使用三个免费的目录视图。</p>
+            <nav aria-label="AI 整理的演示目录">
+              <ul class="outline" id="ai-outline"></ul>
+            </nav>
+            <footer class="ai-status" id="ai-status" aria-label="会员与整理状态">
+              <span class="status-title" id="status-title">示例目录 · 会员专属 · 暂未开放</span>
               <button type="button" class="ai-action" id="ai-action" hidden></button>
-            </section>
-            <p class="ai-footnote" id="ai-footnote">离线演示，无真实会员、AI 请求或正文传输。</p>
+            </footer>
           </div>
           <div id="free-view" class="toc-view toc-free" hidden>
             <p id="free-label" class="free-label">当前网页 · 离线示例</p>
@@ -193,6 +166,7 @@ const lex={
     quotaTitle:'当前无法继续整理',quotaDesc:'额度不足或会员已到期；已有免费目录不受影响。',
     errorTitle:'本次整理未成功',errorDesc:'可以重试，三个免费目录视图仍然可用。',
     staleTitle:'网页内容已变化',staleDesc:'旧目录已暂停跳转；请重新整理当前内容。',
+    guestFooter:'示例目录 · 会员专属 · 暂未开放',unavailableFooter:'示例目录 · 会员专属 · 暂未开放',readyFooter:'目录示例',loadingFooter:'正在整理当前网页…',successFooter:'离线模拟结果',quotaFooter:'暂时无法生成 · 额度不足或会员到期',errorFooter:'整理失败',staleFooter:'网页已变化 · 目录已失效',
     generate:'生成 AI 目录',generating:'正在整理…',regenerate:'重新整理',retry:'重试生成',
     footnote:'离线演示，无真实会员、AI 请求或正文传输。',freeHint:'当前网页 · 离线示例',jumped:'已定位演示文章：',locked:'目录已失效，不能跳转',refreshNotice:'已模拟重新读取网页章节',staleNotice:'内容已变化，请重新整理',
   },
@@ -213,6 +187,7 @@ const lex={
     quotaTitle:'Cannot generate right now',quotaDesc:'Your quota may be exhausted or access has expired. Free views still work.',
     errorTitle:'Generation did not complete',errorDesc:'Retry if you wish. Existing free outlines are unaffected.',
     staleTitle:'Page content has changed',staleDesc:'Old links are paused. Reorganize the current content to continue.',
+    guestFooter:'Sample outline · Members only · Coming soon',unavailableFooter:'Sample outline · Members only · Coming soon',readyFooter:'Sample outline',loadingFooter:'Organizing this page…',successFooter:'Offline simulated result',quotaFooter:'Unavailable · Limit reached or membership expired',errorFooter:'Generation failed',staleFooter:'Page changed · Outline outdated',
     generate:'Generate AI outline',generating:'Organizing…',regenerate:'Generate again',retry:'Retry generation',
     footnote:'Offline demo only. No real memberships, AI requests, or page uploads.',freeHint:'Current page · Offline demo',jumped:'Jumped to sample article: ',locked:'Outline is stale and cannot navigate',refreshNotice:'Simulated a webpage outline refresh',staleNotice:'Page changed. Reorganize the outline',
   }
@@ -233,12 +208,21 @@ function navigateTo(id,fromAI){if(fromAI&&state==='stale'){live(t('locked'));ret
  el.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});el.focus({preventScroll:true});
  $('#article-feedback').textContent=t('jumped')+t(records.find(r=>r[0]===id)[2]);renderOutline();renderFree();
 }
-function makeRow([id,depth,key],fromAI){const li=document.createElement('li');li.className='level-'+depth+(id==='install'?' group-break':'');
- const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',t(key));b.title=t(key);if(id===activeId)b.setAttribute('aria-current','location');
- if(fromAI&&state==='stale')b.disabled=true;
- const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 16 16');icon.setAttribute('aria-hidden','true');
- const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',depth===1?'M4 4h8M4 8h8M4 12h8':'M6 5h6M6 9h6');icon.append(path);
- const span=document.createElement('span');span.className='outline-text';span.textContent=t(key);b.append(icon,span);b.addEventListener('click',()=>navigateTo(id,fromAI));li.append(b);return li;
+function makeRow([id,depth,key],fromAI){
+ const li=document.createElement('li');li.className='level-'+depth;
+ const isResult=fromAI&&state==='success';
+ const isStale=fromAI&&state==='stale';
+ const isExample=fromAI&&!isResult&&!isStale;
+ const row=document.createElement(isExample?'span':'button');
+ row.className='outline-row';
+ if(!isExample){
+  row.type='button';row.setAttribute('aria-label',t(key));row.title=t(key);
+  if(isStale)row.disabled=true;
+  if(id===activeId&&(!fromAI||isResult))row.setAttribute('aria-current','location');
+  row.addEventListener('click',()=>navigateTo(id,fromAI));
+ }
+ const label=document.createElement('span');label.className='outline-text';label.textContent=t(key);
+ row.append(label);li.append(row);return li;
 }
 function renderOutline(){const list=$('#ai-outline');list.replaceChildren(...records.map(r=>makeRow(r,true)));}
 function freeRows(){if(mode==='top')return records.filter(r=>r[1]===1);if(mode==='focus')return records.filter(r=>r[0]==='overview'||r[0]==='features'||r[0]==='scenes');return records;}
@@ -255,18 +239,16 @@ function renderControls(){for(const [name,target,values,current,formatter] of [
   });return b;}));
  }
 }
-function renderStatus(){const [key,description,tone]=statusFields[state];const el=$('#ai-status');el.dataset.tone=tone;el.setAttribute('aria-label',t('stateLabel')+': '+t(labels[state]));
- $('#status-title').textContent=t(key);$('#status-desc').textContent=t(description);
- const action=$('#ai-action');action.hidden=!['ready','loading','success','error','stale'].includes(state);action.disabled=state==='loading';
+function renderStatus(){
+ const el=$('#ai-status');
+ el.setAttribute('aria-label',t('stateLabel')+': '+t(labels[state]));
+ $('#status-title').textContent=t(state+'Footer');
+ const action=$('#ai-action');
+ action.hidden=!['ready','success','error','stale'].includes(state);
+ action.disabled=state==='loading';
  action.classList.toggle('secondary',state==='success');
- const akey=state==='ready'?'generate':state==='loading'?'generating':state==='error'?'retry':'regenerate';
- action.replaceChildren();
- if(state==='loading'){
-   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('progress-spinner');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-   const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M12 3a9 9 0 1 1-9 9');svg.append(path);action.append(svg);
- }
- action.append(document.createTextNode(t(akey)));$('#ai-footnote').textContent=t('footnote');
- $('#outline-annotation').textContent=state==='success'?t('resultMark'):state==='stale'?t('oldMark'):t('demoMark');
+ const akey=state==='ready'?'generate':state==='error'?'retry':'regenerate';
+ action.textContent=t(akey);
 }
 function renderLanguage(){for(const el of document.querySelectorAll('[data-i18n]')){
   if(el.id===''){}const value=t(el.dataset.i18n);if(el.dataset.i18n==='labTitle'){el.firstChild.textContent=value;continue;}el.textContent=value;
