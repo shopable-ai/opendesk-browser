@@ -2,7 +2,7 @@ import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
 import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {transformPinnedAxiosBrowserSource} from './scripts/axios-browser-csp.mjs';
-import {transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone} from './scripts/react-dom-input-csp.mjs';
+import {transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone,transformPinnedReactDomDevBind} from './scripts/react-dom-input-csp.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -133,8 +133,9 @@ export default defineConfig({
           transform(code,id){
             const input=transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion});
             if(input===null)return;
-            const output=transformPinnedReactDomReplayClone(input,id,{target,reactDomVersion});
-            return {code:output,map:null};
+            const replay=transformPinnedReactDomReplayClone(input,id,{target,reactDomVersion});
+            const bind=transformPinnedReactDomDevBind(replay,id,{target,reactDomVersion});
+            return {code:bind===null?replay:bind,map:null};
           }
         });
       }

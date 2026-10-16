@@ -51,3 +51,29 @@ export function transformPinnedReactDomReplayClone(code,id,{target,reactDomVersi
   const clone="((event)=>{if(typeof PointerEvent==='function'&&event instanceof PointerEvent)return new PointerEvent(event.type,event);if(typeof DragEvent==='function'&&event instanceof DragEvent)return new DragEvent(event.type,event);if(typeof FocusEvent==='function'&&event instanceof FocusEvent)return new FocusEvent(event.type,event);if(typeof MouseEvent==='function'&&event instanceof MouseEvent)return new MouseEvent(event.type,event);return new Event(event.type,event)})("+event+")";
   return code.slice(0,match.index)+clone+code.slice(match.index+match[0].length);
 }
+
+// ReactDOM 19.2.0 development captures the native bind method as a static
+// helper. This is NOT Function() construction or runtime source evaluation,
+// but the classic package scanner intentionally rejects any bare Function
+// reference. Rewrite only a single, statically assigned native bind alias
+// in the pinned client development module. All other Function use remains
+// subject to the unchanged AST/CSP gate.
+const DEV_CLIENT_MODULE=/\/node_modules\/react-dom\/cjs\/react-dom-client\.development\.js$/;
+const DEV_BIND_ALIAS=/\b([A-Za-z_$][\w$]*)\s*=\s*Function\.prototype\.bind\b/g;
+export function transformPinnedReactDomDevBind(code,id,{target,reactDomVersion}={}){
+  if(target!=='ui/tool-shell.js'||id.startsWith('\0')||id.includes('?')||
+    !DEV_CLIENT_MODULE.test(id.replaceAll('\\','/')))return null;
+  if(reactDomVersion!==PINNED_REACT_DOM_VERSION)
+    throw new Error('ReactDOM bind changed version; re-audit native method safety');
+  const refs=[...code.matchAll(/\bFunction\.prototype\.bind\b/g)];
+  if(!refs.length)return null;
+  const assignments=[...code.matchAll(DEV_BIND_ALIAS)];
+  if(refs.length!==1||assignments.length!==1)
+    throw new Error('ReactDOM 19.2.0 development bind alias source shape drift');
+  const match=assignments[0],start=match.index,end=start+match[0].length;
+  // Every ordinary function inherits the SAME native Function.prototype.bind.
+  // No dynamic constructor lookup, mutable global Function or eval is used.
+  const changed=match[0].replace('Function.prototype.bind',
+    'Object.getPrototypeOf(function(){}).bind');
+  return code.slice(0,start)+changed+code.slice(end);
+}

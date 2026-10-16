@@ -4,6 +4,7 @@
 // JS isTrusted flags. No extension host / permissions / Sandbox is simulated.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
+import {createServer as createHttpServer} from 'node:http';
 import {existsSync} from 'node:fs';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -18,11 +19,22 @@ const browser=process.env.CHROME_BIN||
   ['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser']
     .find(path=>existsSync(path));
 assert.ok(browser,'Real Chromium/Chrome required (CHROME_BIN or installed binary)');
+// Serve fixture endpoints BEFORE Vite's transform/fallback middleware.
+ // This avoids a custom route appended after Vite's terminal 404 handler.
 const vite=await createServer({root:process.cwd(),configFile:false,appType:'custom',
-  logLevel:'error',optimizeDeps:{noDiscovery:true,include:[]},
-  server:{host:'127.0.0.1',port:0}});
+  logLevel:'error',optimizeDeps:{noDiscovery:true,include:[],entries:[]},
+  server:{middlewareMode:true}});
+const http=createHttpServer((req,res)=>{
+  const path=new URL(req.url||'/','http://localhost').pathname;
+  if(path==='/'||path==='/__react_fixture.js'){
+    res.writeHead(200,{'Content-Type':path==='/'?'text/html; charset=utf-8':'text/javascript'});
+    res.end(path==='/'?fixtureHtml:fixtureJS);
+    return;
+  }
+  vite.middlewares(req,res);
+});
 const profile=await mkdtemp(join(tmpdir(),'opendesk-react-r3331-'));
-let chrome,socket;
+let chrome,socket,chromeStartError;
 const pending=new Map(),exceptions=[];
 let sequence=0,port=0;
 function cdp(method,params={}){
@@ -55,28 +67,34 @@ async function click(selector){
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,button:'left',clickCount:1});
 }
 try{
-  vite.middlewares.use((req,res,next)=>{
-    const path=new URL(req.url||'/','http://localhost').pathname;
-    if(path!=='/'&&path!=='/__react_fixture.js')return next();
-    res.writeHead(200,{'Content-Type':path==='/'?'text/html; charset=utf-8':'text/javascript'});
-    res.end(path==='/'?fixtureHtml:fixtureJS);
+  await new Promise((resolve,reject)=>{
+    http.once('error',reject);
+    http.listen(0,'127.0.0.1',resolve);
   });
-  await vite.listen();
-  const httpPort=vite.httpServer.address().port;
+  const httpPort=http.address().port;
+  const fixture=await fetch('http://127.0.0.1:'+httpPort+'/__react_fixture.js');
+  assert.equal(fixture.status,200,'React fixture route must return HTTP 200');
+  assert.match(await fixture.text(),/mountExtensionList/);
   chrome=spawn(browser,[
     '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
     '--no-first-run','--no-default-browser-check',
     '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
   ],{stdio:['ignore','ignore','pipe']});
   let stderr='';
+  chrome.once('error',error=>{chromeStartError=error;});
   chrome.stderr.on('data',data=>{stderr=(stderr+data.toString()).slice(-10000);});
-  for(let i=0;i<100;i++){
-    if(chrome.exitCode!==null)throw Error('Chrome quit early: '+stderr);
+  // CI hosts can spend more than ten seconds initializing a fresh Chrome
+  // profile under load. Wait for the actual CDP port, not an arbitrary sleep.
+  for(let i=0;i<300;i++){
+    if(chromeStartError)throw Error('Chrome startup failed: '+chromeStartError.message);
+    if(chrome.exitCode!==null||chrome.signalCode)
+      throw Error('Chrome quit early ('+chrome.exitCode+'/'+chrome.signalCode+'): '+stderr);
     try{port=Number((await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0]);if(port)break;}
     catch{}
     await delay(100);
   }
-  assert(port,'Chrome CDP port unavailable: '+stderr);
+  assert(port,'Chrome CDP port unavailable: binary='+browser+' pid='+chrome.pid+
+    ' exit='+chrome.exitCode+' signal='+chrome.signalCode+' stderr='+stderr);
   const targets=await (await fetch('http://127.0.0.1:'+port+'/json/list')).json();
   const page=targets.find(t=>t.type==='page');
   assert(page?.webSocketDebuggerUrl,'Chrome page target unavailable');
@@ -124,6 +142,7 @@ try{
 }finally{
   try{socket?.close()}catch{}
   try{chrome?.kill('SIGTERM')}catch{}
+  if(http.listening)await new Promise(resolve=>http.close(resolve));
   await vite.close();
   await delay(150);
   await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});
