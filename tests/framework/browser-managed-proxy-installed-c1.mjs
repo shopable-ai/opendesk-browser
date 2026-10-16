@@ -18,7 +18,7 @@ const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 const receipt={schema:'opendesk.managed-proxy.c1.v1',sha:process.env.GITHUB_SHA||null,
   build:'PRODUCTION',mockSdk:false,installed:false,sidePanelObserved:false,
   result:'NOT_TESTED',steps:[],screenshots:[],errors:[]};
-let child,profile,client,page;
+let child,profile,client,page,sidePanelSession;
 function step(name,data){receipt.steps.push({name,...data});}
 async function until(fn,label){
   let last='';
@@ -268,6 +268,37 @@ async function readNative(worker){
     'panels:panels.map(x=>({type:x.contextType,url:x.documentUrl,id:x.documentId}))};})()';
   return evalAt(worker,expression);
 }
+// Read-only failure evidence from the exact attached native Side Panel document.
+// Do not reveal hidden UI, alter saved installation state, or synthesize events.
+async function nativeSidePanelDiagnostics(session,worker){
+  const dom=session?await evalAt(session,`(()=>{
+    const selectors=['#tab-tools','#workbench-tools','#sidebar-tool-list-view',
+      '#extension-center-list-view','#extension-center-list','#extension-center-status',
+      '#extension-center-empty','#sidebar-tool-display','#sidebar-tool-frame'];
+    const elements=Object.fromEntries(selectors.map(selector=>{
+      const el=document.querySelector(selector);
+      if(!el)return [selector,null];
+      const rect=el.getBoundingClientRect(),style=getComputedStyle(el);
+      return [selector,{hidden:el.hidden,ancestorHidden:el.closest('[hidden]')?.id||null,
+        display:style.display,visibility:style.visibility,width:rect.width,height:rect.height,
+        ariaSelected:el.getAttribute('aria-selected'),text:el.textContent?.trim().slice(0,220)}];
+    }));
+    return {url:location.href,readyState:document.readyState,
+      surface:document.documentElement.dataset.opendeskSurface,
+      tab:document.documentElement.dataset.opendeskTab,
+      reactOwner:document.querySelector('#extension-center-list')?.dataset.opendeskReactOwner,
+      entries:[...document.querySelectorAll('#extension-center-list [data-extension-key]')]
+        .slice(0,30).map(el=>({key:el.dataset.extensionKey,action:el.dataset.extensionAction,
+          disabled:el.disabled,text:el.textContent?.trim().slice(0,80)})),
+      elements};
+  })()`).catch(error=>({error:String(error)})):null;
+  const installed=session?await evalAt(session,`(async()=>{
+    const value=await chrome.storage.local.get('opendesk.sidebar-tools.installed.v1');
+    return (value['opendesk.sidebar-tools.installed.v1']||[])
+      .map(row=>({id:row.id,version:row.version}));
+  })()`).catch(error=>({error:String(error)})):null;
+  return {dom,installed,native:await readNative(worker).catch(error=>({error:String(error)}))};
+}
 async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   const base='chrome-extension://'+extensionId+'/ui/tool.html';
   const candidate=await until(async()=>{
@@ -276,6 +307,8 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
     return other.length===1?other[0]:null;
   },'CDP Target belonging only to Chrome native SIDE_PANEL');
   const panelSession=await attach(candidate.targetId,true);
+  sidePanelSession=panelSession;
+  receipt.sidePanelTarget={id:candidate.targetId,type:candidate.type,url:candidate.url};
   const panelTab=await until(async()=>{
     const e=await elementIn(panelSession,'#tab-tools');
     return e?.visible&&e;
@@ -287,6 +320,18 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   const hostUrl=await evalAt(panelSession,'location.href');
   assert(hostUrl.startsWith(base),'CDP target is not the real installed Side Panel host');
   await clickIn(panelSession,'#tab-tools','native-side-panel');
+  await until(async()=>{
+    const state=await evalAt(panelSession,`(()=>{
+      const tab=document.getElementById('tab-tools');
+      const pane=document.getElementById('workbench-tools');
+      const list=document.getElementById('sidebar-tool-list-view');
+      return {selected:tab?.getAttribute('aria-selected'),
+        paneVisible:!!pane&&!pane.hidden&&!pane.closest('[hidden]'),
+        listVisible:!!list&&!list.hidden&&!list.closest('[hidden]')};
+    })()`);
+    return state?.selected==='true'&&state.paneVisible&&state.listVisible?state:null;
+  },'trusted native Side Panel Tools navigation and visible list');
+  step('C1_SIDE_PANEL_TOOLS_VISIBLE',{status:'PASS',documentId:current.id});
   const officialSelector='#extension-center-list button[data-extension-key="app:ai-vip-share"][data-extension-action="main"]';
   await until(async()=>{const e=await elementIn(panelSession,officialSelector);return e?.visible&&e;},
     'installed official AI VIP Share visible in native Side Panel');
@@ -514,12 +559,32 @@ async function main(){
       receipt.sidePanelTargets=(await client.send('Target.getTargets').catch(()=>({targetInfos:[]}))).targetInfos
         .filter(t=>!['service_worker','browser'].includes(t.type))
         .map(t=>({type:t.type,url:t.url,id:t.targetId}));
+      receipt.sidePanelDiagnostics=await nativeSidePanelDiagnostics(sidePanelSession,worker)
+        .catch(diagnosticError=>({error:String(diagnosticError)}));
+      await screenshot('native-side-panel-blocked',sidePanelSession).catch(()=>{});
       step('C1_SIDE_PANEL_INTERACTION',{status:'NATIVE_UI_BLOCKED',error:receipt.sidePanelBlocker});
+      console.error('MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS='+
+        JSON.stringify(receipt.sidePanelDiagnostics));
     }
   }
-  receipt.result=receipt.sidePanelInteracted?'FORMAL_C1_NATIVE_PASS':
-    panel?'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_OBSERVED_NOT_INTERACTED':
-    'NATIVE_TAB_INSTALL_PASS_SIDE_PANEL_BLOCKED';
+  const required=['FORMAL_INSTALL_IDENTITY','C1_SDK_STATUS',
+    'C1_PRODUCTION_ENABLE_DENIED','C1_SDK_STOP','NO_UNAPPROVED_NATIVE_SET',
+    'C1_SIDE_PANEL_TOOLS_VISIBLE','C1_SIDE_PANEL_OFFICIAL_UI',
+    'C1_SIDE_PANEL_SDK_HOST_NATIVE'];
+  const missing=required.filter(name=>!receipt.steps.some(row=>row.name===name&&row.status==='PASS'));
+  if(!panel||!receipt.installed||!receipt.sidePanelObserved||
+    !receipt.sidePanelInteracted||!receipt.sidePanelDocumentId||missing.length){
+    receipt.result='NATIVE_UI_BLOCKED';
+    receipt.errors.push('FORMAL_C1_NATIVE_PASS blocked: '+
+      JSON.stringify({observed:receipt.sidePanelObserved,
+        interacted:!!receipt.sidePanelInteracted,documentId:receipt.sidePanelDocumentId||null,
+        missing,reason:receipt.sidePanelBlocker||null}));
+    // A genuine installed tab and observed context are never a successful C1.
+    process.exitCode=1;
+    console.error('MANAGED_PROXY_C1=NATIVE_UI_BLOCKED');
+    return;
+  }
+  receipt.result='FORMAL_C1_NATIVE_PASS';
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
 try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.stack||e));
