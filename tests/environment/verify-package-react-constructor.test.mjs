@@ -31,3 +31,44 @@ test('React shell still forbids constructor reads, mismatched writes and dynamic
       /Unapproved dynamic constructor reference|Dynamic execution/);
   }
 });
+
+test('npm-locked ReactDOM input value tracker only reads a native descriptor',()=>{
+  const source='var shell=(function(){return function track(e,t,n){'+
+    'var r=Object.getOwnPropertyDescriptor(e.constructor.prototype,t);'+
+    'if(!e.hasOwnProperty(t)&&void 0!==r)return r;return null}})()';
+  assert.deepEqual(inspectScript(source,'ui/tool-shell.js'),
+    {approvedAsyncBodyConstructors:0});
+  assert.throws(()=>inspectScript(source,'ui/cloud-console.js'),
+    /Unapproved dynamic constructor reference/);
+});
+
+test('ReactDOM descriptor allowance is limited to genuine built-in, parameter-scoped reads',()=>{
+  const head='var shell=(function(){return function track(e,t,n){';
+  const tail='return null}})()';
+  for(const expr of [
+    'Object.getOwnPropertyDescriptor(e.constructor.prototype,"value")',
+    'Object.getOwnPropertyDescriptor(e["constructor"].prototype,t)',
+    'Object.getOwnPropertyDescriptor(e.constructor["prototype"],t)',
+    'Object.getOwnPropertyDescriptor(other.constructor.prototype,t)',
+    'Reflect.getOwnPropertyDescriptor(e.constructor.prototype,t)',
+    'Object.getOwnPropertyDescriptor(e.constructor.prototype,t).constructor',
+    'Reflect.construct(e.constructor,[])',
+    'new e.constructor()',
+    'e.constructor.prototype',
+    'eval("1")'
+  ]){
+    const source=head+'var r='+expr+';'+tail;
+    assert.throws(()=>inspectScript(source,'ui/tool-shell.js'),
+      /Unapproved dynamic constructor reference|Dynamic execution/,'unsafe '+expr);
+  }
+  assert.throws(()=>inspectScript('var shell=(function(){return function track(Object,e,t){'+
+    'return Object.getOwnPropertyDescriptor(e.constructor.prototype,t)}})()','ui/tool-shell.js'),
+    /Unapproved dynamic constructor reference/);
+});
+
+test('complete React constructor scan reports all new unapproved references',()=>{
+  const source='var shell=(function(){function P(){}return function(e,t){'+
+    'var x=e.constructor,y=t.constructor;return x||y}})()';
+  assert.throws(()=>inspectScript(source,'ui/tool-shell.js'),
+    /Unapproved dynamic constructor reference in ui\/tool-shell.js: count=2/);
+});

@@ -15,6 +15,18 @@ import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/of
 import {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
+// Only React/ReactDOM 19.2.0's npm-locked implementation can inherit the
+// checked-in ui/tool-shell.js DOM input tracker descriptor-read exception.
+// Dependency upgrades require a new, independent security review.
+const reviewedReact19Lock = (() => {
+  const pkg=require('../package.json'), lock=require('../package-lock.json').packages;
+  return pkg.dependencies?.react==='19.2.0' &&
+    pkg.dependencies?.['react-dom']==='19.2.0' &&
+    lock?.['node_modules/react']?.version==='19.2.0' &&
+    lock['node_modules/react'].integrity==='sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==' &&
+    lock?.['node_modules/react-dom']?.version==='19.2.0' &&
+    lock['node_modules/react-dom'].integrity==='sha512-UlbRu4cAiGaIewkPyiRGJk0imDN2T3JjieT6spoL2UeSf5od4n5LB/mQ4ejmxhCFT1tYe8IvaFulzynWovsEFQ==';
+})();
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
 export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';
 export const BUILTIN_RESOURCE_MANIFEST=BUILTIN_CATALOG.resourceManifest;
@@ -350,6 +362,7 @@ export function inspectScript(text, file, options = {}) {
   const pinnedPapaParse=file===papaRow.output&&papaRow.version==='5.7.0'&&
     digest(Buffer.from(text,'utf8'))===papaRow.sha256;
   let uses = 0;
+  const rejectedConstructors=[];
   function resolveBinding(node) { for (let s = scopes.get(node); s; s = s.parent) if (s.names.has(node.name)) return s.names.get(node.name); }
   walk(ast, (node, ancestors) => {
     const parent = ancestors.at(-1);
@@ -417,12 +430,44 @@ export function inspectScript(text, file, options = {}) {
         localPrototype.right?.type==='NewExpression'&&
         localPrototype.right.callee?.type==='Identifier'&&
         localPrototype.right.arguments.length===0;
+      // ReactDOM 19.2.0 tracks the value/checked field of DOM inputs by
+      // inspecting a native prototype descriptor. This is read-only
+      // introspection, NOT calling/retrieving a dynamic constructor. Require:
+      // exact npm lock identity + fixed shell output + noncomputed AST chain
+      // + direct built-in Object.getOwnPropertyDescriptor(first, field) call.
+      // Both object and field must be lexical parameters of this function;
+      // a shadowed Object, computed property, returned constructor, call,
+      // or another output does not qualify.
+      const descriptorCall=ancestors.at(-2);
+      const trackerFn=[...ancestors].reverse().find(x=>
+        ['FunctionExpression','FunctionDeclaration','ArrowFunctionExpression'].includes(x.type));
+      const trackedField=descriptorCall?.arguments?.[1];
+      const reviewedReactInputTracker=reviewedReact19Lock&&file==='ui/tool-shell.js'&&
+        node.computed===false&&node.object?.type==='Identifier'&&
+        parent?.type==='MemberExpression'&&parent.object===node&&
+        parent.computed===false&&property(parent)==='prototype'&&
+        descriptorCall?.type==='CallExpression'&&
+        descriptorCall.optional!==true&&
+        isMember(descriptorCall.callee,'Object','getOwnPropertyDescriptor')&&
+        !resolveBinding(descriptorCall.callee.object)&&
+        descriptorCall.arguments.length===2&&descriptorCall.arguments[0]===parent&&
+        trackedField?.type==='Identifier'&&
+        trackerFn?.params?.[0]?.type==='Identifier'&&
+        trackerFn.params[0].name===node.object.name&&
+        trackerFn.params[1]?.type==='Identifier'&&
+        trackerFn.params[1].name===trackedField.name&&
+        node.object.name!==trackedField.name;
       if(!reviewedCryptoJsNewTarget&&!reviewedPapaDateType&&!reviewedPapaPrototype&&
-         !reviewedReactPrototype)
-        throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
+         !reviewedReactPrototype&&!reviewedReactInputTracker)
+        rejectedConstructors.push({offset:node.start,nearby:text.slice(Math.max(0,node.start-80),node.end+90)});
+
     }
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
+  // Audit the entire output before failing so a new React bundle exposes
+  // ALL unreviewed constructor shapes in one CI run, not one whitelist at a time.
+  if(rejectedConstructors.length)
+    throw new Error(`Unapproved dynamic constructor reference in ${file}: count=${rejectedConstructors.length} examples=${JSON.stringify(rejectedConstructors.slice(0,20))}`);
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
   if (/__webpack_require__\.e\s*\(|https?:\/\/[^\s'"]+\.js(?:[?#][^\s'"]*)?(?=['"\s]|$)|\brequire\(['"](?:node:|fs|net|http)/.test(text)) throw new Error(`Remote/lazy/runtime-host execution in ${file}`);
   return {approvedAsyncBodyConstructors: uses};
