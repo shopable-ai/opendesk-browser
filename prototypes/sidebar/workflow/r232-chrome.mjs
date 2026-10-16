@@ -153,6 +153,11 @@ try{
   await page.locator('#prompt').fill('尚未发送的设置前草稿');
   await page.locator('#settings').click();
   assert.equal(await page.locator('#r234-back').isVisible(),true);
+  assert.equal(await page.locator('[data-action="close-settings"]').count(),1,
+    'one clear return action; no misleading duplicate completion button');
+  assert.equal(await page.locator('.r234-footer').count(),0);
+  assert.equal(await page.locator('#r23-advanced').count(),0,
+    'remove redundant technical explanation rather than hiding nested notes');
   assert.equal(await page.locator('#form').evaluate(el=>el.inert),true);
   assert.equal(await page.locator('#history').evaluate(el=>el.closest('.title-bar').inert),true);
   assert.ok(Math.abs((await page.locator('.r23-settings').evaluate(el=>el.getBoundingClientRect().height))
@@ -166,11 +171,17 @@ try{
     const switchBox=document.querySelector('.r236-switch').getBoundingClientRect();
     const device=document.querySelector('.device').getBoundingClientRect();
     return {gap:switchBox.left-label.right,right:switchBox.right,deviceRight:device.right,
-      choices:document.querySelectorAll('.r236-switch input[type=radio]').length};
+      choices:document.querySelectorAll('.r236-switch input[type=radio]').length,
+      switchWidth:switchBox.width,deviceRightInset:device.right-switchBox.right,
+      rowRightInset:document.querySelector('.r236-source-row').getBoundingClientRect().right-switchBox.right};
   });
   assert.ok(sourceGap.gap>=4&&sourceGap.gap<=16,'excess blank space between source label and selector');
   assert.ok(sourceGap.right<=sourceGap.deviceRight,'source selector overflows sidebar');
   assert.equal(sourceGap.choices,2,'only Native and HTTPS mode choices');
+  assert.ok(sourceGap.switchWidth>=170&&sourceGap.switchWidth<=202,'switch must occupy a small area');
+  assert.ok(sourceGap.rowRightInset>=-1&&sourceGap.rowRightInset<=1,
+    'source control must align to right edge of settings content');
+  assert.ok(sourceGap.deviceRightInset>=8&&sourceGap.deviceRightInset<=25);
   await page.locator('#r236-native').focus();
   await page.locator('#r236-native').press('ArrowRight');
   assert.equal(await page.locator('#r236-https').isChecked(),true,'native segmented radio keyboard ArrowRight');
@@ -362,6 +373,8 @@ try{
       const slider=document.querySelector('.r236-switch').getBoundingClientRect();
       const endpointRow=document.querySelector('#r23-endpoint').closest('.r236-input-action').getBoundingClientRect();
       const protocolNote=document.querySelector('#r236-protocol-note').getBoundingClientRect();
+      const rightAlignedLabels=[...document.querySelectorAll('#r23-remote-config .r234-field label')].every(label=>
+        getComputedStyle(label).textAlign==='right');
       const rows=[...document.querySelectorAll('#r23-remote-config .r234-field')].map(row=>{
         const a=row.querySelector('label').getBoundingClientRect(),
           b=(row.querySelector('.r234-secret')||row.querySelector('.r236-input-action')||row.querySelector('input')).getBoundingClientRect();
@@ -371,12 +384,17 @@ try{
       return{panelWidth:p.width,deviceWidth:d.width,panelHeight:p.height,deviceHeight:d.height,
         fieldInside:field.left>=p.left-1&&field.right<=p.right+1,sourceGap:slider.left-source.right,
         protocolAligned:Math.abs(protocolNote.left-endpointRow.left)<=2,
+        rightAlignedLabels,sliderWidth:slider.width,
+        rightInset:document.querySelector('.r236-source-row').getBoundingClientRect().right-slider.right,
         switchInside:slider.right<=p.right+1,rows,noDocOverflow:document.documentElement.scrollWidth<=innerWidth+1};
     });
     assert.ok(Math.abs(g.panelWidth-g.deviceWidth)<=2&&Math.abs(g.panelHeight-g.deviceHeight)<=2);
     assert.ok(g.fieldInside&&g.switchInside&&g.noDocOverflow);
     assert.equal(g.protocolAligned,true,'protocol hint must line up with endpoint value');
     assert.ok(g.sourceGap>=4&&g.sourceGap<=16,'wide gap between source and selector at '+width);
+    assert.ok(g.sliderWidth>=170&&g.sliderWidth<=202&&Math.abs(g.rightInset)<=1,
+      'source toggle must be compact and right aligned at '+width);
+    assert.equal(g.rightAlignedLabels,true,'fields need consistently right-aligned labels at '+width);
     assert.ok(g.rows.every(x=>x.aligned&&x.within),'compact field alignment at '+width);
     await shot('r236-settings-'+width);
     await page.locator('#r234-back').click();
