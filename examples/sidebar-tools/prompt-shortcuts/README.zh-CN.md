@@ -1,6 +1,6 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.4`。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
+> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.5`（R2.7 源码候选；正式包以 CI 核验和发布为准）。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
 
 ## 使用流程
 
@@ -116,3 +116,12 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - [Prompt Shortcuts R2.3 CI Run 38910587019](https://github.com/shopable-ai/opendesk-browser/actions/runs/38910587019) 整体 SUCCESS，**Node 84/84、共享工具 6/6、语法、来源门禁、候选打包、正式 UI 模拟 Host Chromium、网页真实 DOM Fixture Chromium 均通过**；CI Fixture 仍不是安装到用户 Chrome 的真实网站实测。
 - 官方单一 JSON 版本 **1.1.2**，GitHub 同源发行 [4bdbbd3](https://github.com/shopable-ai/opendesk-browser/commit/4bdbbd332c237be3cbc77ad5de6028a2378b0bc8)；**73,205 字节**，SHA-256 `36277a82becc4a200b5ac5ccfb5875e11054bcf6d6d2ac378be30c08bda9b02f`，`--check-project=PROJECT_PACKAGE_MATCH`。Chrome 固定可信适配器升级仍需浏览器加载新版构建，不能只导入 JSON 来更新。
 - Claude / Gemini / ChatGPT 已登录真实编辑器、Mac Chrome 实装身份、中文 IME、Cmd+Z、SPA/撤权仍为 **NOT_TESTED**；不得因为模拟回归通过就给出 95+ 实机产品评分。详见唯一 [交接文档](../../../docs/framework/workstreams/prompt-shortcuts-r12-ui-handoff.zh-CN.md)。
+
+### R2.7 JSON 导入导出、网页提示生命周期与即时同步（源码候选 1.1.5）
+
+- **正式 Sandbox 导出**：在新建按钮右侧选择「导出 JSON」，使用已批准的 `user.export` 和 `browser.downloads.text`。受信任 Host 需真实确认一次下载；收到 `started:true` 只代表 Chrome 接受，不代表文件已经落盘。导出只读取已保存的 `library`，不包含 `sites`、网站选择器或授权。
+- **备份契约**：`format: "opendesk.prompt-shortcuts"`、`version: 1`、`exportedAt`（ISO 8601）、`items`。保留正文、短标签、名称、自动标记、形状、启停和排序；备份 ID 在导入时全部重新生成，防止冲突。文件上限 256 KiB、最多 80 条；**真正的持久化约束是整个 library 数据项序列化后不超过 8192 UTF-8 bytes**，不能误认为每条正文各 8 KiB。
+- **导入预览**：用户选取文件→检查 JSON/字段/版本/字素/总容量→默认追加并按 Unicode NFC、换行标准化及去首尾空白去重→显示可追加与跳过数量→按 ETag 重新读取并提交。替换须二次点击确认；整个库一次 `storage.set({key:'library',ifMatch:etag})` 提交、再次 `storage.get(...withEtag:true)` 回读比较。无论追加还是替换均保留 `settings` 和单独存储的 `sites`。无效文件、选择取消、预览取消不写入；冲突重新预览；未知提交结果不自动重复写入。
+- **网页反馈**：确认插入成功时不显示视觉 Toast，只通过屏幕阅读器实时区域提示「已插入草稿，未发送」；插入失败但剪贴板复制成功显示「已复制，请粘贴」约 3 秒；都失败时显示可用 Esc 清除的错误提示约 5 秒。连续操作定时器防串扰，SPA、停用、卸载与销毁清理反馈和临时 DOM。原草稿、IME、Undo、真实 DOM 读回和不自动发送逻辑保持不变。
+- **即时同步**：新增/编辑/排序/删除/导入/单条或全局启停均经 Host 存储提交后触发现有 `chrome.storage.onChanged`；可信网页适配器停止并刷新，不需页面刷新，不追加展开收起按钮。
+- **验收等级**：新增了真实经典脚本的 Node 模拟 Host 回归测试和可信页面提示生命周期测试，但只有实际 CI 结果才能称为 Node/Chromium PASS。版本 1.1.5 正式 JSON 应由仓库 `prompt-shortcuts-r14.yml` 的验证候选自动同步；同步前原始 1.1.4 包不等于新源码。真实 Mac Chrome 安装升级/已登录 ChatGPT 中文 IME/Undo 若没有对应本版证据须标记 NOT_TESTED。禁止将过往版本的证据继承为 1.1.5 PASS。
