@@ -1693,6 +1693,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(tool.id===READING_TOC_TOOL_ID){
           const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE]);
           const verified=await verifyOfficialReadingToc(saved[SIDEBAR_TOOL_STORE],saved[MARKET_PROVENANCE_STORE]);
+          // Only a verified official installation may reveal the user's
+          // intentional site stop. Never grant page access on this path.
+          if(verified&&!tocSiteAllowed(sites,tool.id,target.url))
+            throw new Error('当前网站已停用，请在工具设置中恢复');
           if(!tocGrantAllowed(saved[SIDEBAR_TOOL_STORE],sites,tool.id,target.url,
             saved[SIDEBAR_TOOL_ENABLE_STORE],verified))
             throw new Error('官方阅读目录的安装身份或访问范围未通过校验，请通过官方目录重新安装');
