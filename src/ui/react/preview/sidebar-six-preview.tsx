@@ -269,7 +269,7 @@ function Preview(){
       return ()=>node.removeEventListener('click',fn);
     };
     const closed=bind('sidebar-tool-import-close',()=>setImportOpen(false));
-    const open=bind('sidebar-tool-import-trigger',()=>{setImportOpen(true);setSelected(null);});
+    const open=bind('sidebar-tool-import-trigger',()=>{setImportOpen(true);setSelected(null);setMenuOpen(false);});
     const closeReview=bind('sidebar-tool-action-cancel',()=>setExtensionReview(null));
     const confirm=bind('sidebar-tool-action-continue',()=>{
       if(!extensionReview)return;
@@ -359,7 +359,7 @@ function Preview(){
       onSearch:setSearch,onKind:setKind,onScope:setScope,onToggleMenu:()=>setMenuOpen(v=>!v),
       onReset:()=>{setSearch('');setKind('all');setScope('smart');},
       onMarket:()=>setNotice('市场仅为 UI 预览，不打开网络页面'),
-      onImport:()=>{setSelected(null);setImportOpen(true);
+      onImport:()=>{setSelected(null);setImportOpen(true);setMenuOpen(false);
         setNotice('UI_PREVIEW_ONLY · 可审阅本地 JSON；不会触发真实安装');},
       onReload:()=>setNotice('UI_PREVIEW_ONLY · 已展示当前内存状态；没有真实安装回读')
     }}/>,toolbar)}

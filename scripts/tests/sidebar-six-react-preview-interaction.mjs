@@ -45,8 +45,10 @@ async function click(selector){
   const rect=await evaluate('(()=>{const n=document.querySelector('+s+
     ');if(!n)throw Error("missing element");n.scrollIntoView({block:"center",inline:"nearest"});'+
     'const b=n.getBoundingClientRect();return {x:Math.round(b.left+b.width/2),'+
-    'y:Math.round(b.top+b.height/2),w:b.width,h:b.height,hidden:!!n.closest("[hidden]")}})()');
-  assert(rect.w>0&&rect.h>0&&!rect.hidden,selector+' must be visible '+JSON.stringify(rect));
+    'y:Math.round(b.top+b.height/2),w:b.width,h:b.height,hidden:!!n.closest("[hidden]"),'+
+    'hit:(()=>{const h=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return h===n||n.contains(h);})()}})()');
+  assert(rect.w>0&&rect.h>0&&!rect.hidden&&rect.hit,
+    selector+' must be visible and receive native pointer input '+JSON.stringify(rect));
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',clickCount:1});
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,button:'left',clickCount:1});
   await sleep(95);
@@ -116,6 +118,8 @@ try{
   await until('!document.getElementById("extension-center-menu").hidden');
   await click('#extension-center-import');
   await until('!document.getElementById("sidebar-tool-import").hidden');
+  assert.equal(await evaluate('document.getElementById("extension-center-menu").hidden'),true,
+    'Import action must close the menu, never obscure review or confirm controls');
   const fixture=join(profile,'demo.opendesk-tool.json');
   await writeFile(fixture,JSON.stringify({format:'opendesk.sidebar-tool.v2',
     id:'preview-import',title:'演示导入工具',version:'1.2.0',
