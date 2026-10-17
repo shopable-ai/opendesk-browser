@@ -179,6 +179,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-panel-title').textContent=view==='form'?(editingId?'编辑定时计划':'创建定时计划'):
       view==='detail'?'计划详情':view==='manager'?'任务管理':'定时计划';
     get('schedule-create').hidden=view!=='list';
+    get('schedule-manager-create').hidden=view!=='manager';
     get('schedule-open-runner').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
     get('schedule-manager-back').hidden=true; // One authoritative back button in Header.
