@@ -1313,7 +1313,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
     closeHistory();
     observationApproval=null;persistObservationApproval();
-    clearChat();
+    clearChat();entryMode='new-chat';updatePresentation();
     verifiedTurnHistory=[];lastProviderTurn=null;
     get('workflow-ai-request').focus?.({preventScroll:true});
     const stopped=stopPlanning({close:true,remember:true}),epoch=planningGeneration;
