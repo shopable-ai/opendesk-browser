@@ -109,6 +109,12 @@ function Preview(){
   const [importCandidate,setImportCandidate]=React.useState(null);
   const [importError,setImportError]=React.useState('');
   const [extensionReview,setExtensionReview]=React.useState(null);
+  const beginImport=()=>{
+    // Re-selecting the same file must re-trigger native file change/read.
+    get('sidebar-tool-file').value='';
+    setImportCandidate(null);setImportError('');
+    setSelected(null);setImportOpen(true);setMenuOpen(false);
+  };
   const rows=React.useMemo(()=>scene==='empty'||scene==='loading'?[]:
     extensionRecords.filter(row=>(kind==='all'||row.kind===kind)&&
       (scope!=='smart'||row.installed)&&
@@ -269,7 +275,7 @@ function Preview(){
       return ()=>node.removeEventListener('click',fn);
     };
     const closed=bind('sidebar-tool-import-close',()=>setImportOpen(false));
-    const open=bind('sidebar-tool-import-trigger',()=>{setImportOpen(true);setSelected(null);setMenuOpen(false);});
+    const open=bind('sidebar-tool-import-trigger',beginImport);
     const closeReview=bind('sidebar-tool-action-cancel',()=>setExtensionReview(null));
     const confirm=bind('sidebar-tool-action-continue',()=>{
       if(!extensionReview)return;
@@ -277,14 +283,18 @@ function Preview(){
       if(type==='develop'){setTab('develop');setExtensionReview(null);return;}
       setExtensionRecords(previous=>previous.map(row=>{
         if(row.key!==key)return row;
-        if(type==='install')return {...row,installed:true,enabled:true};
-        if(type==='uninstall')return {...row,installed:false,enabled:false};
+        if(type==='install')return {...row,installed:true,enabled:true,primaryAction:'打开'};
+        if(type==='uninstall')return {...row,installed:false,enabled:false,primaryAction:'查看详情'};
         if(type==='update')return {...row,version:extensionReview.proposedVersion,update:false};
         if(type==='toggle')return {...row,enabled:!row.enabled};
         if(type==='revoke')return {...row,suspended:true,enabled:false};
         return row;
       }));
-      if(type==='uninstall'){setSelected(null);setScope('available');}
+      if(type==='uninstall'){
+        setSelected(null);setScope('available');
+        // Restore focus to a visible control when the detail and review close.
+        requestAnimationFrame(()=>get('extension-center-search').focus({preventScroll:true}));
+      }
       setNotice('UI_PREVIEW_ONLY · 仅修改内存扩展列表，无任何真实 Host 回执');
       setExtensionReview(null);
     });
@@ -359,7 +369,7 @@ function Preview(){
       onSearch:setSearch,onKind:setKind,onScope:setScope,onToggleMenu:()=>setMenuOpen(v=>!v),
       onReset:()=>{setSearch('');setKind('all');setScope('smart');},
       onMarket:()=>setNotice('市场仅为 UI 预览，不打开网络页面'),
-      onImport:()=>{setSelected(null);setImportOpen(true);setMenuOpen(false);
+      onImport:()=>{beginImport();
         setNotice('UI_PREVIEW_ONLY · 可审阅本地 JSON；不会触发真实安装');},
       onReload:()=>setNotice('UI_PREVIEW_ONLY · 已展示当前内存状态；没有真实安装回读')
     }}/>,toolbar)}
