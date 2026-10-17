@@ -92,8 +92,10 @@ test('Developer static controls all use shared roles; important IDs and ARIA lin
 });
 
 test('Shared components own normal visual appearance; business CSS retains only layout', () => {
-  assert.match(html,/<div class="cloud-panel-heading"><strong class="od-page-title">云控<\/strong>/);
-  assert.doesNotMatch(shell,/\.cloud-panel-heading strong\{font-size:/);
+  assert.match(html,/<header class="cloud-panel-head od-toolbar">\s*<strong class="od-page-title">云控<\/strong>/,
+    'official cloud header uses the approved compact toolbar instead of a retired heading');
+  assert.doesNotMatch(shell,/\.cloud-panel-head \.od-page-title\{font-size:/,
+    'business CSS must leave the shared typography token intact');
   assert.match(shell,/\.workbench-nav button:focus-visible\{outline-offset:-3px\}/);
   for (const role of ['od-button', 'od-button--secondary', 'od-button--danger',
     'od-icon-button', 'od-icon-button--primary', 'od-field-label',
