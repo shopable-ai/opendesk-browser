@@ -583,7 +583,8 @@ try{
     // 400px still fits compact mode while 440px may use desktop controls.
     if(width>=768)assert.ok(metrics.contentWidth>390&&metrics.canvasWidth>390,
       'Wide viewport must contain a genuinely wide XMind canvas, not 320px');
-    if(metrics.shellWidth>390){
+    // Match the shipped @container(max-width:420px), not a stale 390px probe.
+    if(metrics.shellWidth>420){
       assert.notEqual(metrics.desktop,'none');
       assert.equal(metrics.mobile,'none');
     }else{
