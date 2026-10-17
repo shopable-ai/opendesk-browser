@@ -153,9 +153,16 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         if(file.size>1024*1024){setAddStatus('UI_PREVIEW_ONLY · 文件超过预览大小限制');return;}
         if(/\.json$/i.test(file.name)){
           const value=JSON.parse(await file.text());
-          setAddStatus('UI_PREVIEW_ONLY · '+file.name+' · '+String(value?.taskId||value?.id||'未识别身份')+
-            ' · 仅解析，不导入、不授权');
-        }else setAddStatus('UI_PREVIEW_ONLY · JavaScript 草稿已选择；未运行');
+          if(/\.opendesk-tool\.json$/i.test(file.name)||/^opendesk\.sidebar-tool\./.test(value?.format||''))
+            setAddStatus('UI_PREVIEW_ONLY · 这是扩展工具包，请到「扩展」导入；未安装。');
+          else if(value?.format==='opendesk.task-package.v1')
+            setAddStatus('UI_PREVIEW_ONLY · 任务包已选择；须在正式目录核验固定源码及网站权限。');
+          else if(['opendesk.program-draft.v1','opendesk.program-draft.v2'].includes(value?.format))
+            setAddStatus('UI_PREVIEW_ONLY · 程序草稿已选择；正式导入后进入开发编辑器，不会运行。');
+          else setAddStatus('UI_PREVIEW_ONLY · 不是受支持的任务包或程序草稿 JSON；未导入。');
+        }else if(/\.js$/i.test(file.name))
+          setAddStatus('UI_PREVIEW_ONLY · JavaScript 草稿已选择；未运行');
+        else setAddStatus('UI_PREVIEW_ONLY · 仅支持 .json 或 .js；未导入。');
       }catch{setAddStatus('UI_PREVIEW_ONLY · 文件解析失败，未导入');}
       finally{input.value='';}
     });
@@ -169,8 +176,11 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       try{
         if(/\.json$/i.test(file.name)){
           const obj=JSON.parse(await file.text());
-          setImportReview('UI_PREVIEW_ONLY · '+file.name+' · '+String(obj?.taskId||obj?.id||'无身份')+
-            ' · 仅解析文件，不验证/安装');
+          setImportReview('UI_PREVIEW_ONLY · '+file.name+
+            (obj?.format==='opendesk.task-package.v1'?' · 待验证任务包':
+              ['opendesk.program-draft.v1','opendesk.program-draft.v2'].includes(obj?.format)?' · 程序草稿':
+                /^opendesk\.sidebar-tool\./.test(obj?.format||'')?' · 应由扩展中心导入':
+                  ' · 格式不受支持')+'；没有 Host 安装。');
         }else setImportReview('UI_PREVIEW_ONLY · 源码草稿已选择，未运行');
       }catch{setImportReview('UI_PREVIEW_ONLY · JSON 无法解析；未安装');}
     });
