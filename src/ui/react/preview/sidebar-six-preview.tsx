@@ -569,7 +569,7 @@ function Preview(){
       filter={taskFilter} onFilter={setTaskFilter} density={planDensity}/>
     {createPortal(<div className="od-sidebar-preview-toolbar">
       <div className="od-sidebar-preview-heading"><strong>OpenDesk · 六 Tab 正式源码预览</strong>
-        <span>UI 交互预览 · 未连接真实调度、Host 或网站权限</span></div>
+        <span>UI 交互预览 · 未连接真实调度，操作不会更改真实任务</span></div>
       {tab==='cloud'?<label>云控场景 <select data-preview-cloud-scenario value={cloudScenario}
         onChange={event=>{setCloudScenario(event.target.value);setCloudDetailOpen(false);setCloudFeedback('');}}>
         <option value="unpaired">未配对</option><option value="ready">已连接（演示）</option>
@@ -593,12 +593,12 @@ function Preview(){
         <option value={320}>320px</option><option value={360}>360px</option><option value={420}>420px</option>
         <option value={520}>520px</option>
       </select></label>
-      <span className="od-sidebar-preview-label" role="status">
+      {!(tab==='tasks'&&taskMode==='schedule')&&<span className="od-sidebar-preview-label" role="status">
         {tab==='cloud'?cloudPreview.brief+' · 仅预览':labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
           'React 任务列表/详情 + 原生执行与定时计划':tab==='cloud'?
           'React 只读概览 + 原生授权与请求队列':tab==='tools'?
           'React 列表/详情 + 原生其余业务':tab==='develop'?
-          'React 局部控件 + 原生编辑器':'React 标题/对话/设置 + 原生执行'}</span>
+          'React 局部控件 + 原生编辑器':'React 标题/对话/设置 + 原生执行'}</span>}
       {notice&&<span className="od-sidebar-preview-label" role="status">{notice}</span>}
       {tab==='cloud'&&cloudFeedback&&<span className="od-sidebar-preview-label" role="status">{cloudFeedback}</span>}
     </div>,controls)}
