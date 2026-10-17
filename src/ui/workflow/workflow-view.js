@@ -812,8 +812,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       endpoint.value='https://api.openai.com/v1/responses';
     if(custom&&endpoint.value==='https://api.openai.com/v1/responses')
       endpoint.value='https://api.openai.com/v1/chat/completions';
-    get('workflow-ai-endpoint-label').textContent=cloud
-      ?'官方 HTTPS Responses API（/v1/responses）':'旧版 HTTPS Chat Completions 接口';
+    get('workflow-ai-endpoint-label').textContent='接口地址';
+    get('workflow-ai-endpoint').title=cloud?'Responses API 的 HTTPS 地址':'Chat Completions API 的 HTTPS 地址';
     get('workflow-provider-scope').textContent=local
       ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要按当前对话、网站与摘要范围授权，任务逐次绑定文档。'
       :cloud?'网页数据仅在每轮明确批准后发送至配置的 Responses HTTPS 接口；store:false，不使用 previous_response_id。后续上下文仅携带本窗口的已验证任务概要。API Key 不保存。'
@@ -824,13 +824,29 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function updateLocalStatus() {
     if(disposed)return;
     const state=describeLocalCodex(localCapability),element=get('workflow-local-status');
-    element.textContent=localChecking?'正在检查连接…':
-      localCapability.connecting?'正在连接 OpenDesk…':
-        state.ready?'Codex 已就绪':state.message;
+    const detail=localChecking?'正在检查本机连接…':
+      localCapability.connecting?'正在连接 OpenDesk…':state.message;
+    const compact={
+      UNKNOWN:'待检查',NATIVE_PERMISSION_REQUIRED:'未连接',HOST_NOT_PAIRED:'未连接',
+      NATIVE_CONNECTED:'正在检查 Codex',CODEX_MISSING:'未安装 Codex',
+      CODEX_LOGIN_REQUIRED:'需登录 Codex',CODEX_UNSUPPORTED:'Codex 不兼容',
+      CODEX_INITIALIZING:'正在初始化',READY_FOR_TURN:'Codex 已就绪',
+      RATE_LIMITED:'额度受限',MODEL_UNAVAILABLE:'模型不可用',
+      NETWORK_ERROR:'网络不可用',PROVIDER_ERROR:'请求失败',
+      APPROVAL_REQUIRED:'等待授权',DISCONNECTED:'连接已断开',
+      OUTCOME_UNKNOWN:'结果未知'
+    };
+    element.textContent=localChecking?'检查中…':
+      localCapability.connecting?'连接中…':
+        state.ready?'Codex 已就绪':compact[state.state]||'不可用';
     element.dataset.state=state.state;
+    element.title=detail;
+    get('workflow-local-status-detail').textContent=detail;
     get('workflow-local-refresh').disabled=localChecking;
+    const connected=localCapability.nativeConnected===true;
+    get('workflow-local-connected').hidden=!connected;
     const connect=get('workflow-local-connect');
-    connect.hidden=localChecking||localCapability.nativeConnected===true||state.ready;
+    connect.hidden=localChecking||connected||state.ready;
     connect.disabled=localChecking;
   }
   async function refreshLocal() {

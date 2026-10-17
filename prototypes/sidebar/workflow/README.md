@@ -10,3 +10,10 @@
 - `workflow/index.html` 保留原 R23.9.2 的历史测试基线；原有 `r232-chrome.mjs` 不受本轮影响。下一轮迁移正式 React 时以当前 `workflow.html` 的交互设计为视觉基准，并保留单一 React DOM Owner。
 - `workflow.html` 的正常、历史、两个创建入口、AI 来源切换、Escape、拒绝与草稿保护均为纯内存 Preview Adapter；不连接 Native/Codex/Provider/真实网站，不得宣称真实运行成功。
 - 不在输入框常驻列出权限/授权说明，也不承诺绕过真实权限。变更时仅替换当前主版文件及对应定向合同，历史版与旧 CI 继续保留。 
+
+## R23.14 工作流单页与六 Tab 总预览
+
+- `prototypes/sidebar/workflow/react-preview/index.html` 由 `scripts/preview/build-workflow-react-preview.mjs` 生成，专门覆盖工作流状态。
+- `prototypes/sidebar/react-preview/index.html` 由 `scripts/preview/build-sidebar-six-react-preview.mjs` 生成，覆盖侧边栏多 Tab 集成；生成脚本存在不代表产物已提交到 main。
+- 二者共用正式 `tool.html`、`tool-shell.css`、`workflow.tsx`。不允许维护两套独立的 Workflow JSX。
+- Native 当前只提供发起连接动作，无对称安全断开能力。设置采用左侧状态 + 右侧「连接」按钮，错误全文位于「连接诊断」；离线预览的连接按钮保持禁用，不伪造授权或就绪。

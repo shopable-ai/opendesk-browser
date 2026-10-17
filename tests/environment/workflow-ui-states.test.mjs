@@ -252,3 +252,21 @@ test('R23.11 installed Workflow preserves real host while React owns concise his
   assert.match(css,/\.workflow-source-name\{/);
   assert.doesNotMatch(components,/(?:createRoot\(|fetch\(|createWorkflowProviderFacade\()/);
 });
+
+test('R23.14 Codex connection is one-row action with full diagnostics, not a fake switch',async()=>{
+  const [html,css,view]=await Promise.all([
+    file('src/ui/tool.html'),file('src/ui/tool-shell.css'),file('src/ui/workflow/workflow-view.js')
+  ]);
+  const settings=html.slice(html.indexOf('id="workflow-provider-settings"'),html.indexOf('id="workflow-status"'));
+  const line=settings.match(/<div class="workflow-connection-line"[\s\S]*?id="workflow-local-connect"[^>]*>连接<\/button>/)?.[0];
+  assert.ok(line,'connection line and native connection button share one group');
+  assert.match(line,/id="workflow-local-status"/);
+  assert.doesNotMatch(line,/role="switch"|aria-checked/);
+  assert.match(settings,/id="workflow-local-status-detail"/);
+  assert.match(settings,/id="workflow-local-connected"/);
+  assert.ok(settings.indexOf('id="workflow-provider-privacy"')>settings.indexOf('id="workflow-custom-settings"'));
+  assert.match(css,/grid-template-columns:minmax\(0,1fr\) auto/);
+  assert.match(view,/get\('workflow-local-status-detail'\)\.textContent=detail/);
+  assert.match(view,/get\('workflow-local-connected'\)\.hidden=!connected/);
+  assert.match(view,/connect\.hidden=localChecking\|\|connected\|\|state\.ready/);
+});

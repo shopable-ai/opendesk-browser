@@ -70,3 +70,17 @@ test('R23.11 preview never forges saved history, native status or a provider tok
   assert.match(builder,/src\/ui\/workflow\/workflow-view\.js/);
   assert.match(view,/get\('workflow-ai-model'\)\.value\.trim\(\)/);
 });
+
+test('R23.14 source-bound preview keeps honest disconnected state with production copy',async()=>{
+  const [entry,html,view]=await Promise.all([
+    read('src/ui/react/preview/workflow-preview.tsx'),
+    read('src/ui/tool.html'),
+    read('src/ui/workflow/workflow-view.js')
+  ]);
+  assert.match(entry,/get\('workflow-local-status'\)\.textContent='未连接'/);
+  assert.match(entry,/get\('workflow-local-connect'\)\.disabled=true/);
+  assert.match(entry,/native:false,provider:false/);
+  assert.doesNotMatch(entry,/尚未连接 OpenDesk（离线预览，不探测）|示例规划中|本轮批准交互示例|UNKNOWN（模拟 UI 状态）/);
+  assert.match(html,/id="workflow-local-status-detail"/);
+  assert.match(view,/get\('workflow-local-status-detail'\)\.textContent=detail/);
+});

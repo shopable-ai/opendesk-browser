@@ -733,28 +733,32 @@
               <option value="cloud_responses">Responses</option>
             </select>
           </div>
+          <div id="workflow-local-settings">
+            <div class="workflow-connection-line" role="group" aria-label="OpenDesk 本机连接">
+              <div class="workflow-connection-copy">
+                <span class="workflow-connection-title">OpenDesk</span>
+                <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">待检查</p>
+              </div>
+              <button type="button" id="workflow-local-connect" class="od-button od-button--secondary workflow-connect-action" aria-label="连接本机 OpenDesk">连接</button>
+              <span id="workflow-local-connected" class="workflow-connection-connected" hidden>已连接</span>
+            </div>
+            <details id="workflow-local-diagnostics" class="workflow-provider-diagnostics od-disclosure od-disclosure--flat">
+              <summary>连接诊断</summary>
+              <p id="workflow-local-status-detail" class="workflow-minor-note">打开设置后检查本机连接。</p>
+              <div class="workflow-actions"><button type="button" id="workflow-local-refresh" class="od-button od-button--secondary">重新检查</button><button type="button" id="workflow-local-help" class="od-button od-button--secondary">连接设置 ↗</button></div>
+            </details>
+          </div>
+          <div id="workflow-custom-settings" hidden>
+            <label for="workflow-ai-endpoint" id="workflow-ai-endpoint-label" class="od-field-label">接口地址</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions" class="od-field">
+            <label for="workflow-ai-model" class="od-field-label">模型 ID</label><input id="workflow-ai-model" spellcheck="false" placeholder="输入模型 ID" class="od-field">
+            <label for="workflow-ai-key" class="od-field-label">API Key（本次使用，不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="输入 API Key" class="od-field">
+          </div>
           <details id="workflow-provider-privacy" class="workflow-provider-info od-disclosure od-disclosure--flat">
             <summary>数据与隐私</summary>
             <p id="workflow-provider-scope" class="workflow-minor-note">模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
             <p id="workflow-observation-scope" class="workflow-minor-note" role="status"></p>
             <button type="button" id="workflow-observation-revoke" class="od-button od-button--secondary" disabled>撤销网页摘要授权</button>
           </details>
-          <div id="workflow-local-settings">
-            <div class="workflow-connection-line">
-              <p id="workflow-local-status" class="workflow-local-status" role="status" aria-live="polite">打开设置后检查本机状态。</p>
-              <button type="button" id="workflow-local-connect" class="od-button od-button--secondary">连接 OpenDesk</button>
-            </div>
-            <details id="workflow-local-diagnostics" class="workflow-provider-diagnostics od-disclosure od-disclosure--flat">
-              <summary>连接诊断</summary>
-              <div class="workflow-actions"><button type="button" id="workflow-local-refresh" class="od-button od-button--secondary">重新检查</button><button type="button" id="workflow-local-help" class="od-button od-button--secondary">连接设置 ↗</button></div>
-            </details>
-          </div>
-          <div id="workflow-custom-settings" hidden>
-            <label for="workflow-ai-endpoint" id="workflow-ai-endpoint-label" class="od-field-label">模型 HTTPS 接口</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions" class="od-field">
-            <label for="workflow-ai-model" class="od-field-label">模型</label><input id="workflow-ai-model" spellcheck="false" placeholder="输入模型 ID" class="od-field">
-            <label for="workflow-ai-key" class="od-field-label">API Key（不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用" class="od-field">
-            <p class="workflow-minor-note">此来源生成一次步骤提议，不使用本机工具；密钥只在本窗口内使用。</p>
-          </div>
         </details>
       </div>
       <p id="workflow-status" class="workflow-status" role="status" aria-live="polite" hidden></p>

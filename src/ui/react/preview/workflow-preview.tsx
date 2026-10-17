@@ -23,12 +23,12 @@ get('workflow-output').replaceChildren();
 const samples=Object.freeze({
   empty:[],
   conversation:[
-    {id:'c1',speaker:'你',message:'将姓名改为“给我一个亿的项目”，读回输入框，不提交。'},
-    {id:'c2',speaker:'AI',message:'展示真实 React 对话组件；离线预览不读取网页、不执行任务。'}],
-  planning:[{id:'p1',speaker:'AI',message:'整理语义步骤中（仅为界面状态演示）。'}],
-  approval:[{id:'a1',speaker:'AI',message:'网页摘要需对本轮、指定接收方单独批准。'}],
-  unknown:[{id:'u1',speaker:'AI',message:'结果状态未知；不得自动重试网页写入。'}],
-  disconnected:[{id:'d1',speaker:'AI',message:'Native/Codex 未连接，正式扩展需真实探测。'}]
+    {id:'c1',speaker:'你',message:'将项目名称填写为“给我一个亿的项目”，读回输入框，不提交。'},
+    {id:'c2',speaker:'AI',message:'请确认目标输入框和操作范围，确认后再执行。'}],
+  planning:[{id:'p1',speaker:'AI',message:'正在整理网页操作步骤…'}],
+  approval:[{id:'a1',speaker:'AI',message:'本轮网页摘要需要你确认接收方和范围。'}],
+  unknown:[{id:'u1',speaker:'AI',message:'结果无法确认。请先检查目标网页，避免重复操作。'}],
+  disconnected:[{id:'d1',speaker:'AI',message:'OpenDesk 连接已断开，请检查本机连接。'}]
 });
 
 function Preview(){
@@ -58,26 +58,26 @@ function Preview(){
     get('workflow-editor').dataset.viewState=rows.length?'conversation':'empty';
     const busy=scene==='planning';
     get('workflow-planning-indicator').hidden=!busy;
-    if(busy)get('workflow-planning-indicator').textContent='✦ 示例规划中 · 未连接 Provider';
+    if(busy)get('workflow-planning-indicator').textContent='✦ 正在规划步骤…';
     get('workflow-ai-plan').hidden=busy;
     get('workflow-ai-cancel').hidden=!busy;
     const progress=get('workflow-ai-progress');
     progress.hidden=!busy;progress.replaceChildren();
-    if(busy){const li=doc.createElement('li');li.textContent='示例：等待确认网页范围';progress.append(li);}
+    if(busy){const li=doc.createElement('li');li.textContent='等待确认网页范围';progress.append(li);}
     const approval=get('workflow-ai-approval');
     approval.hidden=scene!=='approval';
     get('workflow-ai-approval-scope').textContent=scene==='approval'
-      ?'本轮最多 24 项语义节点，仅发送给所选模型（离线示例；实际未发送）':'';
+      ?'本轮最多发送 24 项语义节点，发送前需要明确授权。':'';
     get('workflow-new-review').hidden=!review;
     get('workflow-editor').dataset.historyOpen=String(history);
     get('workflow-manage-panel').hidden=!manageOpen;
     get('workflow-result-panel').hidden=scene!=='unknown';
     if(scene==='unknown'){
-      get('workflow-technical').textContent='无真实 RunId、ResultId 或 sourceHash。';
+      get('workflow-technical').textContent='结果尚未确认；请检查执行记录。';
     }
     get('workflow-status').hidden=scene!=='disconnected';
     if(scene==='disconnected')get('workflow-status').textContent=
-      '离线预览未连接 OpenDesk Native，不能确认 Codex 已就绪。';
+      '本机连接已断开，请重新检查。';
   },[scene,rows,history,review,manageOpen]);
   React.useLayoutEffect(()=>{
     // Match WorkflowView: a newly opened unsaved-change review receives focus.
@@ -96,14 +96,19 @@ function Preview(){
       }
       get('workflow-local-settings').hidden=!local;
       get('workflow-custom-settings').hidden=local;
-      get('workflow-local-status').textContent='尚未连接 OpenDesk（离线预览，不探测）';
+      get('workflow-local-status').textContent='未连接';
+      get('workflow-local-status').dataset.state='DISCONNECTED';
+      get('workflow-local-status').title='本机连接未建立';
+      get('workflow-local-status-detail').textContent='请在已安装的 OpenDesk 扩展中连接本机应用。';
+      get('workflow-local-connected').hidden=true;
       setSourceName(local?'Codex':get('workflow-ai-model').value.trim());
       get('workflow-observation-scope').textContent=
-        '仅演示页面结构；网页摘要授权不持久化、不自动批准。';
+        '网页摘要仅在当前任务经明确授权后发送。';
     };
     provider.addEventListener('change',sync);
     get('workflow-ai-model').addEventListener('input',sync);sync();
     get('workflow-local-connect').disabled=true;
+    get('workflow-local-connect').title='请在已安装的 OpenDesk 扩展中连接';
     get('workflow-observation-revoke').disabled=true;
     const unsub=[];
     const on=(id,type,fn)=>{
@@ -131,19 +136,19 @@ function Preview(){
       setScene('conversation');
       setRows(current=>[...current,{id:'q'+Date.now(),speaker:'你',message},
         {id:'r'+Date.now(),speaker:'AI',
-          message:'这是离线 UI 展示，没有真实连接、权限授权或浏览器运行。'}]);
+          message:'OpenDesk 尚未连接。请在 AI 设置中完成连接后重试。'}]);
       field.value='';field.focus({preventScroll:true});
     });
     on('workflow-ai-cancel','click',()=>choose('conversation'));
     on('workflow-ai-deny','click',()=>{
       setScene('conversation');
       setRows(current=>[...current,{id:'deny'+Date.now(),speaker:'AI',
-        message:'已拒绝；未发送网页摘要（预览）。'}]);
+        message:'已取消本轮网页摘要授权。'}]);
     });
     on('workflow-ai-approve','click',()=>{
       setScene('conversation');
       setRows(current=>[...current,{id:'grant'+Date.now(),speaker:'AI',
-        message:'本轮批准交互示例，实际未发送数据或改变权限。'}]);
+        message:'已确认本轮授权范围。'}]);
     });
     on('workflow-new-cancel','click',()=>{
       const wasInside=get('workflow-new-review').contains(doc.activeElement);
@@ -220,7 +225,7 @@ function Preview(){
     {createPortal(<WorkflowSourceName value={sourceName}/>,sourceHost)}
     {createPortal(<WorkflowTranscript rows={rows}/>,transcript)}
     {createPortal(<WorkflowResultText value={scene==='unknown'
-      ?'UNKNOWN（模拟 UI 状态）— 未获得持久结果，不能重放。':'尚未运行'}/>,get('workflow-output'))}
+      ?'结果未知：请检查目标网页，勿自动重试。':'尚未运行'}/>,get('workflow-output'))}
     {createPortal(<WorkflowSettingsSheet open={sheetOpen} onClose={close}
       settings={settings} doc={doc}/>,sheetHost)}
   </>;
