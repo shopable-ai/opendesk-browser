@@ -139,6 +139,9 @@ try{
   assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-plan-phase")?.textContent.includes("已安排")'),true,
     'running Fire must remain separate from scheduled-plan lifecycle');
   assert.equal(await evaluate('document.getElementById("schedule-list-summary").textContent.includes("运行中")'),true);
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-state").dataset.tone'),'positive');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-recent-result").dataset.tone'),'positive');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-2] .schedule-state").dataset.tone'),'muted');
   await screenshot('my-schedule-multi-360');
   await click('[data-schedule-id="preview-3"] [data-schedule-action="stop"]');
   await until('document.querySelector("[data-schedule-id=preview-3] .schedule-recent-result")?.textContent.includes("已停止")');
@@ -158,11 +161,42 @@ try{
   assert((await evaluate('[...document.getElementById("schedule-timezone").options].map(x=>x.value)'))
     .includes('Asia/Tokyo'),'Preview timezone picker offers Tokyo');
   await click('#schedule-title');await cdp('Input.insertText',{text:'回归演示计划'});
+  await click('#schedule-manage-tasks');
+  await until('!document.getElementById("schedule-task-manager").hidden');
+  assert.equal(await evaluate('document.querySelectorAll("#schedule-manager-list .schedule-manager-card").length'),2);
+  const managerGeometry=await evaluate('(()=>{const card=document.querySelector("#schedule-manager-list .schedule-manager-card");const host=document.getElementById("schedule-manager-list");return {card:card.getBoundingClientRect().width,host:host.getBoundingClientRect().width}})()');
+  assert(managerGeometry.card>=managerGeometry.host-2,'manager card must fill content width');
+  await click('#schedule-manager-list .schedule-manager-toggle');
+  await until('document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-state").textContent==="已停用"');
+  await click('[data-manager-uninstall="preview-off"]');
+  await until('!document.getElementById("schedule-uninstall-confirm").hidden');
+  assert.equal(await evaluate('document.querySelectorAll("#schedule-manager-list .schedule-manager-card").length'),2,
+    'opening uninstall review cannot remove a task');
+  await click('#schedule-uninstall-no');
+  await until('document.getElementById("schedule-uninstall-confirm").hidden');
+  await screenshot('task-manager-420');
+  await click('#schedule-back');
+  await until('!document.getElementById("schedule-form").hidden');
+  assert.equal(await evaluate('document.getElementById("schedule-title").value'),'回归演示计划',
+    'manager detour must preserve unsaved plan title');
   await click('#schedule-save');
   await until('!document.getElementById("schedule-save-confirm").hidden');
   await click('#schedule-confirm-yes');
   await until('document.getElementById("schedule-plan-list").textContent.includes("回归演示计划")');
   await screenshot('my-plan-confirmed-360');
+  await click('#schedule-create');
+  await until('!document.getElementById("schedule-form").hidden');
+  await click('#schedule-manage-tasks');
+  await until('!document.getElementById("schedule-task-manager").hidden');
+  await click('[data-manager-uninstall="preview-off"]');
+  await until('!document.getElementById("schedule-uninstall-confirm").hidden');
+  await click('#schedule-uninstall-yes');
+  await until('document.querySelectorAll("#schedule-manager-list .schedule-manager-card").length===1');
+  assert.equal(await evaluate('document.querySelector("#schedule-manager-count").textContent.includes("1 / 1")'),true);
+  await click('#schedule-back');
+  await until('!document.getElementById("schedule-form").hidden');
+  await click('#schedule-back');
+  await until('!document.getElementById("schedule-list-view").hidden');
   // Real Chromium clicks against the same WorkflowHeader / History / SourceName
   // portals as production. There is no Planner, revision storage or RunHost here.
   await click('#tab-workflow');
@@ -191,6 +225,25 @@ try{
   await click('#workflow-new-discard');
   await until('document.getElementById("workflow-new-review").hidden');
   assert.equal(await evaluate('document.getElementById("workflow-ai-request").value'),'');
+  await until('document.querySelectorAll("#workflow-intro-suggestions button:not([hidden])").length===2');
+  const examplesWidth=await evaluate('(()=>{const host=document.getElementById("workflow-intro-suggestions");const buttons=[...host.querySelectorAll("button:not([hidden])")];return {container:host.getBoundingClientRect().width,buttons:buttons.map(b=>b.getBoundingClientRect().width),labels:buttons.map(b=>b.textContent)}})()');
+  assert(examplesWidth.buttons.every(w=>Math.abs(w-examplesWidth.container)<2),
+    'two suggestions must fill the formal workflow content column '+JSON.stringify(examplesWidth));
+  assert.deepEqual(examplesWidth.labels,['填写表单并读回','只读提取网页信息']);
+  await click('[data-workflow-example="fill"]');
+  await until('document.getElementById("workflow-ai-request").value.includes("填入")');
+  await click('#workflow-new');
+  await until('!document.getElementById("workflow-new-review").hidden');
+  await click('#workflow-new-discard');
+  await until('document.getElementById("workflow-new-review").hidden');
+  await click('#workflow-ai-new-session');
+  await until('document.getElementById("workflow-ai-title").textContent==="开始新对话"');
+  assert.deepEqual(await evaluate('[...document.querySelectorAll("#workflow-intro-suggestions button:not([hidden])")].map(b=>b.textContent)'),
+    ['继续修改填写内容','检查当前网页']);
+  await click('[data-workflow-example="check"]');
+  await until('document.getElementById("workflow-ai-request").value.includes("检查当前网页")');
+  assert.equal(await evaluate('window.__sidebarPreviewInfo.realHost'),false);
+  await screenshot('workflow-suggestions-full-width-420');
   await click('#workflow-history-toggle');
   await until('!document.getElementById("workflow-history-panel").hidden');
   await click('#workflow-history-panel .workflow-history-row');
