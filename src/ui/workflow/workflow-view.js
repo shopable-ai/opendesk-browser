@@ -134,6 +134,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
   const provider=()=>get('workflow-ai-provider').value;
+  let lastHttpsProvider='custom_https';
   const chatRows=[];
   let chatSequence=0;
   function clearChat() {
@@ -775,7 +776,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(opened));
     workflowReact?.renderWorkflowSettings({open:opened,onClose:closeWorkflowSheet});
   }
-  function openAISettings(focus='workflow-ai-provider') {
+  function openAISettings(focus='workflow-source-local') {
     get('workflow-provider-settings').open=true;
     syncAISettings();
     get(focus).focus?.({preventScroll:true});
@@ -788,6 +789,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function renderProvider() {
     const selected=provider(),local=selected==='local_codex',cloud=selected==='cloud_responses';
     const custom=selected==='custom_https',external=cloud||custom;
+    if(external)lastHttpsProvider=selected;
+    get('workflow-source-local').setAttribute('aria-pressed',String(local));
+    get('workflow-source-https').setAttribute('aria-pressed',String(external));
+    get('workflow-https-mode').hidden=!external;
+    get('workflow-https-protocol').value=lastHttpsProvider;
     get('workflow-local-settings').hidden=!local;
     get('workflow-custom-settings').hidden=!external;
     const endpoint=get('workflow-ai-endpoint');
@@ -1172,15 +1178,26 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const settings=get('workflow-provider-settings');
     settings.open=!settings.open;
     syncAISettings();
-    if(settings.open)get('workflow-ai-provider').focus?.({preventScroll:true});
+    if(settings.open)get(provider()==='local_codex'?'workflow-source-local':'workflow-source-https')
+      .focus?.({preventScroll:true});
   });
   listen(get('workflow-provider-settings'),'toggle',()=>{
     syncAISettings();
     if(get('workflow-provider-settings').open)void refreshLocal();
   });
+  const chooseSource=(next,event)=>{
+    if(!event.isTrusted)return;
+    const control=get('workflow-ai-provider');
+    if(control.value===next)return;
+    control.value=next;
+    control.dispatchEvent(new Event('change',{bubbles:true}));
+  };
+  listen(get('workflow-source-local'),'click',event=>chooseSource('local_codex',event));
+  listen(get('workflow-source-https'),'click',event=>chooseSource(lastHttpsProvider,event));
+  listen(get('workflow-https-protocol'),'change',event=>chooseSource(event.target.value,event));
   listen(get('workflow-ai-provider'),'change',()=>{
-    
     void stopPlanning({close:true}).catch(()=>{});
+    observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
     renderProvider();if(get('workflow-provider-settings').open)void refreshLocal();
   });
