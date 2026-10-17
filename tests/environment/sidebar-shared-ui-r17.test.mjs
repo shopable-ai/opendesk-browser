@@ -28,7 +28,7 @@ test('upstream React Aria primitive and canonical design tokens own Switch behav
   assert.match(style,/data-focus-visible/);
   assert.match(style,/data-disabled/);
   assert.match(entry,/ui\/react\/components\/ui\/switch\.tsx/);
-  assert.match(vite,/sharedUI\?\['react','react-dom','react\/jsx-runtime'\]/);
+  assert.match(vite,/sharedUI\?\['react','react-dom','react-dom\/client','react\/jsx-runtime'\]/);
   assert.equal(lock.packages['node_modules/react-aria-components'].version,'1.22.1');
   assert.equal(lock.packages[''].dependencies['react-aria-components'],'1.22.1');
 });
@@ -45,6 +45,8 @@ test('actual WXT sandbox assets and JSX tool are present, linked and small',asyn
   assert.equal(binaries[1].byteLength,PAGE_FRAMEWORK_RUNTIMES.react.bytes);
   const shared=binaries[0].toString('utf8'),js=binaries[2].toString('utf8');
   assert.match(shared,/OpenDeskSidebarUI/);
+  assert.doesNotMatch(shared,/ReactDOMRoot|ReactCurrentDispatcher|react\\.production\\.js/,
+    'Bundled browser shared UI must not duplicate the separately published React runtime');
   assert.match(js,/OpenDeskSidebarUI/);
   assert.ok(binaries[0].byteLength<512*1024,'Shared UI resource exceeds fixed WXT budget');
   assert.ok(binaries[2].byteLength<50000,'Demo JS includes unexpected bundled dependencies');
@@ -67,4 +69,8 @@ test('HTML preview references the same built files, never an alternate mocked to
   assert.match(preview,/dist\/tool\.js/);
   assert.doesNotMatch(preview,/<input[^>]+type=["']checkbox|role=["']switch/);
   await stat(new URL('../../'+demo+'preview/index.html',import.meta.url));
+  const license=await read('docs/contracts/licenses/shared-ui-third-party-notices.txt');
+  assert.match(license,/shadcn\\/ui MIT License/);
+  assert.match(license,/Apache License/);
+  await stat(new URL('../../dist/development/licenses/shared-ui-third-party-notices.txt',import.meta.url));
 });
