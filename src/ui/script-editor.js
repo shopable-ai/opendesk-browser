@@ -564,11 +564,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(!browserCompilerEnabled)
       throw {code:'E_ESM_BUILD_REQUIRED',message:'Standard Edition 不包含浏览器编译器；请使用本地 ESM 项目构建，或安装 Developer Edition。'};
     const input=controllerESMInput(source,id);
-    const remoteSnapshot=await componentRemote.autoLoadForRun(input,check);check();
-    const built=await browserPreparer.prepare({...input,projectId:'browser-controller',remoteSnapshot});check();
-    if(built.authoringSourceHash!==await digestUtf8(source)||built.framework!=='controller')
-      throw {code:'E_CONTROLLER_ESM_HASH',message:'编译产物未绑定当前 Controller 源码'};
-    return {built,lockId:remoteSnapshot?.lockId??null};
+    try{
+      const remoteSnapshot=await componentRemote.autoLoadForRun(input,check);check();
+      const built=await browserPreparer.prepare({...input,projectId:'browser-controller',remoteSnapshot});check();
+      if(built.authoringSourceHash!==await digestUtf8(source)||built.framework!=='controller')
+        throw {code:'E_CONTROLLER_ESM_HASH',message:'编译产物未绑定当前 Controller 源码'};
+      return {built,lockId:remoteSnapshot?.lockId??null};
+    }finally{componentRemote.resumeRunPermissionWarm();}
+
   }
   async function save() {
     const id=scriptId(),source=programSource.source(),esm=hasUnbuiltESM(source),
@@ -1166,10 +1169,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
         projectId:input.projectId,compilerVersion:'frozen-json',cacheHit:true,prepareMs:0};
     }
     const compilerInput={componentSource:input.source,framework:input.framework};
-    const remoteSnapshot=await componentRemote.autoLoadForRun(compilerInput,check);check();
-    const url=new URL(captured.url),projectId='browser-'+input.framework;
-    const pageRules={matches:[url.origin+url.pathname+'*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
-    const built=await browserPreparer.prepare({...compilerInput,projectId,pageRules,remoteSnapshot});check();return built;
+    try{
+      const remoteSnapshot=await componentRemote.autoLoadForRun(compilerInput,check);check();
+      const url=new URL(captured.url),projectId='browser-'+input.framework;
+      const pageRules={matches:[url.origin+url.pathname+'*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
+      const built=await browserPreparer.prepare({...compilerInput,projectId,pageRules,remoteSnapshot});check();
+      return built;
+    }finally{componentRemote.resumeRunPermissionWarm();}
+
   }
   async function savePreparedComponent(){
     if(!canPrepareComponentCandidate()||disposed)return;

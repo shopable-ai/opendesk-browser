@@ -279,15 +279,15 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       }
       if(!disposed&&ticket===generation)state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};
       throw cause;
-    }finally{if(!disposed&&ticket===generation){
-      busy=false;render();
-      // Auto-preparation (including Controller Save) may have superseded a
-      // background permission observer. Resume read-only priming AFTER the
-      // Worker is free; Run will still require a new trusted user gesture.
-      if(needsSourceConsent(input)&&
-        warmed?.key!==inputKey(input)&&warmError?.key!==inputKey(input))
-        scheduleRunPermissionWarm();
-    }}
+    }finally{if(!disposed&&ticket===generation){busy=false;render();}}
+  }
+  function resumeRunPermissionWarm(){
+    if(disposed||busy)return;
+    // This is called only AFTER the outer caller has finished its actual
+    // compiler prepare job; otherwise a new observer would cancel that job.
+    const input=getInput(),key=inputKey(input);
+    if(needsSourceConsent(input)&&warmed?.key!==key&&warmError?.key!==key)
+      scheduleRunPermissionWarm();
   }
   async function loadForRun(input){
     if(busy)throw error('E_REMOTE_PENDING','请先完成或取消当前依赖准备');
@@ -307,7 +307,8 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   const onCancel=event=>{if(event?.isTrusted)cancel();},onSelection=()=>render();
   button?.addEventListener('click',click);cancelButton?.addEventListener('click',onCancel);selector?.addEventListener('change',onSelection);
   scheduleRunPermissionWarm();
-  return Object.freeze({loadForRun,autoLoadForRun,confirmRun,refresh,cancel,update:()=>render(false),
+  return Object.freeze({loadForRun,autoLoadForRun,confirmRun,resumeRunPermissionWarm,
+    refresh,cancel,update:()=>render(false),
     get readyForRun(){return readyForRun();},get busy(){return busy;},
     dispose(){if(disposed)return;disposed=true;generation++;warmEpoch++;if(warmTimer)clearTimeout(warmTimer);permissions.dispose();
       button?.removeEventListener('click',click);cancelButton?.removeEventListener('click',onCancel);selector?.removeEventListener('change',onSelection);}});

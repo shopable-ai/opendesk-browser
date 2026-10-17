@@ -246,3 +246,21 @@ test('R33.3.8 explicit dependency review supersedes an already running backgroun
   assert.equal(serial,2);
   assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0);
 });
+
+test('R33.3.8 explicit ESM auto-load leases the compiler until outer prepare completes',async t=>{
+  const f=fixture();t.after(()=>f.controller.dispose());
+  const original=f.preparer.inspect.bind(f.preparer);let inspections=0;
+  f.preparer.inspect=async input=>{inspections++;return original(input);};
+  const loaded=await f.controller.autoLoadForRun(f.source);
+  assert.equal(loaded.modules.length,2);
+  const before=inspections;
+  // A simulated slow outer compile must never be cancelled by a background
+  // re-prime started at the auto-loader boundary.
+  await new Promise(resolve=>setTimeout(resolve,240));
+  assert.equal(inspections,before,'worker lease is held across outer compilation');
+  f.controller.resumeRunPermissionWarm();
+  for(let n=0;n<20&&!f.controller.readyForRun;n++)
+    await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(f.controller.readyForRun,true,'safe read-only warm resumes after compilation');
+  assert.equal(f.permissions.length,0,'no implicit Chrome permission requests');
+});
