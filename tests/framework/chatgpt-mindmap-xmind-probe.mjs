@@ -64,6 +64,40 @@ try{
  assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),6);passed('Six answers each have one button');
  await trigger(1).click();await ready(1);await trigger(2).click();await ready(2);
  assert.ok(await viewer(1).locator('.topic').count()>1);assert.ok(await viewer(2).locator('.topic').count()>1);passed('A/B both render actual XMind topics');
+ // The original SDK must produce these bytes, not a second renderer or a fake Blob.
+
+ await control(1,'导出导图').click();
+ const xmindEvent=page.waitForEvent('download',{timeout:30000});
+ await viewer(1).locator('[data-export="xmind"]').click();
+ const xmindDownload=await xmindEvent;
+ assert.match(xmindDownload.suggestedFilename(),/\.xmind$/);
+ const xmindBytes=await readFile(await xmindDownload.path());
+ assert.ok(xmindBytes.length>8);
+ assert.deepEqual([...xmindBytes.subarray(0,4)],[80,75,3,4]);
+ const parsed=await page.evaluate(async raw=>{
+   const zip=await window.JSZip.loadAsync(new Uint8Array(raw));
+   const contentFile=zip.file('content.json');
+   if(!contentFile)throw new Error('E_XMIND_EXPORT_NO_CONTENT_JSON');
+   return {names:Object.keys(zip.files),content:JSON.parse(await contentFile.async('string'))};
+ },[...xmindBytes]);
+ const xmindContent=JSON.stringify(parsed.content);
+ assert.ok(parsed.names.includes('content.json'));
+ assert.match(xmindContent,/确定结构|识别标题/);
+ assert.doesNotMatch(xmindContent,/这里是第二条回复/);
+ report.exportProof={xmindBytes:xmindBytes.length,xmindEntries:parsed.names.length,
+   hasContentJson:true,scope:'A_ONLY_REAL_SDK_LOCAL_FIXTURE'};
+ passed('Real XMind ZIP contains current-answer nodes without neighboring reply');
+ await control(1,'导出导图').click();
+ const outlineEvent=page.waitForEvent('download',{timeout:10000});
+ await viewer(1).locator('[data-export="outline"]').click();
+ const outlineDownload=await outlineEvent;
+ assert.match(outlineDownload.suggestedFilename(),/-大纲\.md$/);
+ const outline=await readFile(await outlineDownload.path(),'utf8');
+ assert.match(outline,/实施方案/);
+ assert.match(outline,/确定结构|识别标题/);
+ assert.doesNotMatch(outline,/这里是第二条回复/);
+ passed('Markdown outline download preserves current-answer hierarchy');
+
  const zoomBefore=await page.evaluate(()=>window.fixture.calls.controllers[0].getZoomPencentage());
  await control(1,'放大导图').click();await page.waitForTimeout(180);
  const zoomAfter=await page.evaluate(()=>window.fixture.calls.controllers[0].getZoomPencentage());assert.ok(zoomAfter>zoomBefore);passed('Toolbar calls real SDK zoom');
