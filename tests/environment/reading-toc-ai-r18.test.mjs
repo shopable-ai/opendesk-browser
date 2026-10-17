@@ -68,7 +68,7 @@ test('R1.8 source package keeps stable v1 ID, permissions and four trusted tab b
  const pkg=await createSidebarToolPackage(project);
  assert.equal(pkg.format,'opendesk.sidebar-tool.v1');
  assert.equal(pkg.id,'reading-toc');
- assert.equal(pkg.version,'1.0.8');
+ assert.equal(pkg.version,'1.0.9');
  assert.deepEqual(pkg.capabilities,['page.toc']);
  assert.match(pkg.css,/\.toc-panel\{margin-inline:8px;/,
   'the CONTENTS card must retain symmetric outer side gutters');

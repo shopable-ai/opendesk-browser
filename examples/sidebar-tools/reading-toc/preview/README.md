@@ -57,3 +57,7 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel -
 - 主预览名称固定为 `index.html`；它由仓库唯一官方 `scripts/preview/build-preview.mjs` 的 `page-overlay` 输出，不是扩展安装包，也没有真实的授权、网站导航或 AI 服务。已验证的 Side Panel 与其他来源 HTML 暂保留供 CI 溯源。
 - 正式源码修改后必须重新生成主 HTML，并由 `tests/environment/reading-toc-localization-preview-r12.test.mjs` 对官方生成结果、正式工具 JS/CSS 摘要及可信网页源哈希做一致性验证。
 - Chromium 预览截图由 `tests/framework/reading-toc-preview-r14-native.test.mjs` 生成 `artifacts/reading-toc-r41/toc-index-360.png` 和 `toc-index-1280.png`。正式扩展截图 `toc-r186-default-{360,420,1280}.png` 须由原生 Chrome 测试实测生成，不能以离线 HTML 代替。
+
+## R1.9 · 新文案的同源预览
+
+- `index.html`、`reading-toc-r12-overlay-preview.html` 和 `reading-toc-r12-interactive-preview.html` 均跟随正式 1.0.9 工具包、可信浮层和双语文案；网页悬浮第一个图标的 tooltip 为“主要章节”/“Main sections”。历史 R1.8 预览资料保留作证据，不代表最新正式版本。

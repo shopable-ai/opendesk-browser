@@ -112,7 +112,7 @@ test('R4.3 installed tool has the same adaptive UI source and a discoverable pat
   assert.equal(config.version,release.version);
   assert.equal(bundled.version,release.version);
   assert.match(host,/officialToolStatus/);
-  assert.match(html,/章节概览/);
+  assert.match(html,/data-toc-mode="top"[^>]*aria-label="主要章节（内容较少时自动补充子章节）" title="主要章节"/);
   assert.match(html,/data-toc-mode="focus"[^>]*aria-pressed="true"/);
   assert.match(html,/data-toc-mode="top"[^>]*aria-pressed="false"/);
   assert.match(js,/let mode='focus'/);

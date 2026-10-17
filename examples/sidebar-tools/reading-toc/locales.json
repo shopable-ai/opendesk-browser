@@ -8,8 +8,8 @@
       "panelLabel": "阅读目录",
       "pageLabel": "网页目录",
       "modesLabel": "目录视图",
-      "topLabel": "章节概览（自动补充子章节）",
-      "topTitle": "章节概览",
+      "topLabel": "主要章节（内容较少时自动补充子章节）",
+      "topTitle": "主要章节",
       "focusLabel": "当前章节",
       "fullLabel": "完整目录",
       "refreshLabel": "刷新阅读目录",
@@ -84,12 +84,12 @@
         "text": "Contents view"
       },
       "topLabel": {
-        "source": "章节概览（自动补充子章节）",
-        "text": "Chapter overview (automatically includes subheadings)"
+        "source": "主要章节（内容较少时自动补充子章节）",
+        "text": "Main sections (automatically includes subsections when needed)"
       },
       "topTitle": {
-        "source": "章节概览",
-        "text": "Overview"
+        "source": "主要章节",
+        "text": "Main sections"
       },
       "focusLabel": {
         "source": "当前章节",

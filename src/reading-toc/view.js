@@ -86,8 +86,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const types=['top','focus','full','ai'],buttons=[];
   let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
   types.forEach((name,index)=>{
-    const button=make('button','mode');button.type='button';button.title=t(['topLabel','focusLabel','fullLabel','aiLabel'][index]);
-    button.setAttribute('aria-label',button.title);button.dataset.mode=name;
+    const button=make('button','mode');button.type='button';const key=['topLabel','focusLabel','fullLabel','aiLabel'][index];
+    button.title=t(name==='top'?'topTitle':key);
+    button.setAttribute('aria-label',t(key));button.dataset.mode=name;
     button.setAttribute('aria-pressed',String(index===0));button.innerHTML=ICONS[index];
     button.addEventListener('click',()=>{mode=name;modeExplicit=true;render();});buttons.push(button);modes.append(button);
   });
@@ -137,8 +138,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     caption.textContent='CONTENTS';
     modes.setAttribute('aria-label',t('modesLabel'));
     buttons.forEach((button,index)=>{
-      button.title=t(['topLabel','focusLabel','fullLabel','aiLabel'][index]);
-      button.setAttribute('aria-label',button.title);
+      const key=['topLabel','focusLabel','fullLabel','aiLabel'][index];
+      button.title=t(button.dataset.mode==='top'?'topTitle':key);
+      button.setAttribute('aria-label',t(key));
     });
     grab.title=t('dragTitle');grab.setAttribute('aria-label',t('dragAria'));
     empty.textContent=t('pageEmpty');updateAiCopy();

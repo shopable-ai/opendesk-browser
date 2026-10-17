@@ -10,9 +10,9 @@
 2. 打开 Chrome Side Panel →「工具」→ 官方推荐「阅读目录」→「安装」。
 3. 查看名称、版本、`page.toc` 能力和来源，再明确「确认安装」。首次安装时的启用状态遵守宿主设置；内置工具安装并启用后默认读取普通网页的章节。
 4. 阅读目录默认可用于所有 HTTP(S) 网页，无需逐网站授权。可在详情齿轮设置中“停用当前网站”；浏览器受限页面或 Chrome 不允许扩展访问的网站仍不可读。
-5. 网页右侧显示紧凑 `CONTENTS`。现有**智能概览 / 当前章节 / 完整目录 / AI** 四个图标保持同一行；AI 暂时只显示未开放的会员与合作信息。网页浮动目录与侧栏目录均默认选中**当前章节**，普通文章展开当前章节，ChatGPT 等 AI 对话沿用来源自动跟随。切换视图不滚正文，点击章节才跳转。
-   - 智能概览：仅有 1–4 个顶层标题时，逐层补充子标题，争取展示至少 5 条；最多自动深入至第 4 个逻辑层级。5 个及以上顶层标题则保持顶层概览。
-   - 12 条以内直接显示当前来源的所有真实标题；更长目录保留智能概览并照顾当前位置。需要全部标题时点击顶部已有的「完整目录」图标，不增加「还有 N 个章节」按钮。
+5. 网页右侧显示紧凑 `CONTENTS`。现有**主要章节 / 当前章节 / 完整目录 / AI** 四个图标保持同一行；AI 暂时只显示未开放的会员与合作信息。网页浮动目录与侧栏目录均默认选中**当前章节**，普通文章展开当前章节，ChatGPT 等 AI 对话沿用来源自动跟随。切换视图不滚正文，点击章节才跳转。
+   - 主要章节（自适应概览）：仅有 1–4 个顶层标题时，逐层补充子标题，争取展示至少 5 条；最多自动深入至第 4 个逻辑层级。5 个及以上顶层标题则保持顶层概览。
+   - 12 条以内直接显示当前来源的所有真实标题；更长目录保留主要章节概览并照顾当前位置。需要全部标题时点击顶部已有的「完整目录」图标，不增加「还有 N 个章节」按钮。
    - 滚动高亮指向当前可见章节；当目标被概览折叠时，指向最近的可见父级，而非永远高亮唯一 H1。文章、无 H1 的 H2 文档和每个 AI 回答都按独立标题树处理。
    - 按住标题栏的六点手柄拖动目录，支持鼠标、触摸和笔；拖动目录项不会移动卡片。
    - 放到距左右边缘约 32 CSS px 以内，会吸附到距边缘 8 CSS px 的安全位置；放到中间则自由停留，不强制磁吸。
@@ -30,7 +30,7 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 ```
 
-可导入的已审阅正式包为 `examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.8）。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
+可导入的已审阅正式包为 `examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.9）。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.9/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
 ## 当前证据与边界
 
@@ -142,3 +142,8 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 ## R1.8.6 · 主预览与正式版隔离
 
 默认预览入口为 `preview/index.html`，显示模拟文章和可信网页悬浮目录，仍保留 Side Panel 历史同源验证页。正式工具的手柄支持双击与 Home 归位；本轮原生测试采用真实 Home 键检查存储清除，不能在 CI 完成前声称测试通过，且不恢复网页独立归位图标。正式 `reading-toc.opendesk-tool.json` 为唯一可安装包（`1.0.8`）；离线 HTML、Linux Chromium 与 hosted macOS 均不能冒充用户本机 Mac 的 1.0.7→1.0.8 主动升级结果。
+
+## R1.9 · 主要章节短 tooltip（2026-10-18）
+
+- 四种视图保持原顺序；第一个模式在网页悬浮目录与 Side Panel 显示“主要章节”/“Main sections”，无障碍名称保留按需要补充子章节的说明。
+- 正式工具包版本 1.0.9；默认当前章节、章节识别、跳转、授权和 AI 未开放状态保持不变。源码、包和离线 HTML 需同候选重新测试；没有真实 Mac Chrome 证据时不得称验收通过。
