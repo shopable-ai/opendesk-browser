@@ -25,7 +25,7 @@ class Element{
  ]);}
  focus(){Element.active=this;}
 }
-function boot(js){
+function boot(js,snapshotOverride=null){
  const ids=['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh',
   'toc-ai-view','toc-free-view','toc-member-card','toc-member-title','toc-member-tag',
   'toc-member-description','toc-member-meta','toc-member-entry','toc-member-disclaimer',
@@ -47,7 +47,7 @@ function boot(js){
   createDocumentFragment:()=>new Element('fragment'),
   addEventListener:(event,fn)=>events.set(event,fn)};
  const window={addEventListener:(event,fn)=>winEvents.set(event,fn)};
- const snapshot={url:'https://example.com/article',
+ const snapshot=snapshotOverride||{url:'https://example.com/article',
   sources:[{id:'s-1',label:'Article'},{id:'s-2',label:'Other'}],
   activeId:'h1',items:[{id:'h1',label:'Heading 1',sourceId:'s-1',depth:0,topId:'h1'},
    {id:'h2',label:'Heading 2',sourceId:'s-1',depth:1,topId:'h1'}],
@@ -98,7 +98,7 @@ test('R1.8 unavailable is fail-closed; partner default, no fictitious AI heading
  assert.deepEqual(calls.map(call=>call.operation),['toc.snapshot'],'no silent AI/checkout request');
  modes[2].fire('click');
  assert.equal(nodes['toc-free-view'].hidden,false);
- assert.equal(nodes['toc-source'].hidden,false,'multiple sources still selectable');
+ assert.equal(nodes['toc-source'].hidden,true,'multiple answers follow the active source without a dropdown');
  assert.equal(nodes['toc-list'].children.length,2,'free headings restored without rescan');
 });
 
@@ -115,4 +115,58 @@ test('R1.8 same locale resource updates AI copy; arrow-key selection returns to 
  assert.equal(prevented,true);
  assert.equal(ui.nodes['toc-ai-view'].hidden,true);
  assert.equal(ui.modes[2].attrs.get('aria-pressed'),'true');
+});
+
+test('R1.8.2 simple sidebar keeps the approved right-aligned toolbar and reveals all nine real headings',async()=>{
+ const pkg=await createSidebarToolPackage(project);
+ assert.match(pkg.css,/\.toc-actions\{flex:0 1 auto;margin-left:auto;/);
+ const roots=['h1','h4','h7'];
+ const items=Array.from({length:9},(_,index)=>{
+  const start=Math.floor(index/3)*3+1;
+  return {id:'h'+(index+1),sourceId:'s-1',label:'Heading '+(index+1),
+   depth:index%3===0?0:1,topId:'h'+start};
+ });
+ const snapshot={url:'https://example.com/article',sources:[
+  {id:'s-1',label:'Article'},{id:'s-2',label:'Another answer'}
+ ],activeId:'h2',items,
+ overview:{'s-1':{ids:roots,hiddenCount:6,representedId:'h1'}}};
+ const ui=boot(pkg.js,snapshot);
+ await tick();await tick();
+ assert.equal(ui.nodes['toc-source'].hidden,true,'never show the redundant source picker');
+ ui.modes[0].fire('click');
+ assert.equal(ui.nodes['toc-list'].children.length,9,
+  'nine genuine sections fit directly in the overview');
+ assert.equal(ui.nodes['toc-overview-more'].hidden,true,
+  'never add a second see-more action below the existing full-view icon');
+ assert.equal(ui.nodes['toc-list'].children[1].children[0].attrs.get('aria-current'),'location',
+  'the real active H2 is highlighted when the short overview shows it');
+ ui.nodes['toc-list'].children[2].children[0].fire('click');
+ await tick();
+ assert(ui.calls.some(call=>call.operation==='toc.navigate'&&
+  call.payload.id==='h3'&&call.payload.sourceId==='s-1'),
+  'existing trusted TOC navigation remains operational');
+ ui.modes[2].fire('click');
+ assert.equal(ui.nodes['toc-list'].children.length,9,'full mode retains all nine headings');
+ ui.modes[3].fire('click');
+ assert.equal(ui.nodes['toc-member-entry'].disabled,true,'AI membership safety unchanged');
+ assert.equal(ui.nodes['toc-promo-title'].textContent,'广告位开放合作');
+});
+
+test('R1.8.2 long outlines keep the summary mode, full-view navigation and invisible source picker',async()=>{
+ const pkg=await createSidebarToolPackage(project);
+ const items=Array.from({length:22},(_,i)=>({
+  id:'h'+i,label:'Heading '+i,sourceId:'s-2',depth:i?1:0,topId:'h0'
+ }));
+ const snapshot={url:'https://example.com/long',
+  sources:[{id:'s-1',label:'Earlier answer'},{id:'s-2',label:'Current answer'}],
+  activeId:'h20',items,overview:{'s-2':{ids:['h0','h19','h20'],hiddenCount:19,representedId:'h20'}}};
+ const ui=boot(pkg.js,snapshot);
+ await tick();await tick();
+ ui.modes[0].fire('click');
+ assert.equal(ui.nodes['toc-source'].hidden,true);
+ assert.equal(ui.nodes['toc-list'].children.length,3,'large overview stays concise');
+ assert.equal(ui.nodes['toc-overview-more'].hidden,true,'no redundant more button');
+ ui.modes[2].fire('click');
+ assert.equal(ui.nodes['toc-list'].children.length,22,
+  'the existing full-mode icon always reveals every real heading');
 });

@@ -94,7 +94,7 @@ function render(){
  if(sourceChoice&&!sources.some(item=>item.id===sourceChoice))sourceChoice='';
  const activeSource=items.find(item=>item.id===activeId)?.sourceId;
  selected=sourceChoice||sources.find(item=>item.id===activeSource)?.id||sources[0]?.id||'';
- source.hidden=mode==='ai'||sources.length<2;
+ source.hidden=true; // The sidebar follows the active document/answer automatically; no dropdown.
  const followed=sources.find(item=>item.id===selected)?.label||t('sourceCurrent');
  const options=[{id:'',label:t('following',{source:followed})},...sources];
  if(source.options.length!==options.length||[...source.options].some((node,i)=>
@@ -105,14 +105,16 @@ function render(){
  const current=scoped.find(item=>item.id===activeId)||scoped[0];
  const overview=data.overview?.[selected];
  const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
- const represented=mode==='top'
+ // A short page already fits in the sidebar; never truncate it into a second action.
+ const overviewShowsAll=scoped.length<=12;
+ const represented=mode==='top'&&!overviewShowsAll
   ?scoped.find(item=>item.id===(overview?.representedId||current?.topId)):current;
  // For short outlines the trusted overview already represents every heading.
  // Keep both distinct H2s beneath two H1s in the default focus view, even
  // when the labels are identical. Long outlines still focus on the active tree.
  const compact=Boolean(scoped.length&&scoped.length<=5&&overview?.ids?.length===scoped.length);
  const shown=mode==='full'?scoped:mode==='top'
-  ?scoped.filter(item=>overviewIds.has(item.id))
+  ?(overviewShowsAll?scoped:scoped.filter(item=>overviewIds.has(item.id)))
   :compact?scoped:scoped.filter(item=>item.depth===0||item.topId===current?.topId);
  const key=mode+'|'+selected+'|'+shown.map(item=>item.id+':'+item.label+':'+item.depth).join('|');
  if(key!==lastKey){
@@ -141,7 +143,7 @@ function render(){
  empty.hidden=shown.length!==0||!hasSnapshot;
  empty.textContent=t('emptyLabel');
  const remaining=mode==='top'?Math.max(0,overview?.hiddenCount||0):0;
- more.hidden=remaining===0;moreCount=remaining;
+ more.hidden=true;moreCount=remaining; // The existing full-view icon opens long outlines.
  more.textContent=t('moreWithCount',{count:remaining});
  more.setAttribute('aria-label',t('moreAria',{count:remaining}));
 }

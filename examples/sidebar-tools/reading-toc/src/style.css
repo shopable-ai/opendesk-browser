@@ -49,5 +49,5 @@
 }
 
 /* R1.8.1: keep 200% zoomed narrow toolbars inside their own scroll area. */
-.toc-actions{flex:1 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+.toc-actions{flex:0 1 auto;margin-left:auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
 .toc-actions::-webkit-scrollbar{display:none}
