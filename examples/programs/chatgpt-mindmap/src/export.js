@@ -12,13 +12,28 @@ const escapeText=value=>String(value??'').replace(/\s+/g,' ')
 export function buildOutlineMarkdown(tree){
   if(!tree||!Array.isArray(tree.children))throw new Error('E_XMIND_OUTLINE_TREE');
   const lines=['# '+escapeText(tree.title||'本条回复')];
+  // The XMind converter promotes a unique, matching overarching heading
+  // to the root topic. The Markdown outline must mirror that exact hierarchy,
+  // not repeat the same title as a redundant first child.
+  const direct=tree.children;
+  const headings=direct.filter(item=>item.kind==='heading');
+  const heading=headings.length===1?headings[0]:null;
+  const at=heading?direct.indexOf(heading):-1;
+  const title=tree.title||'回答概览';
+  const matches=heading&&(heading.title===title||
+    (title.endsWith('…')&&heading.title.startsWith(title.slice(0,-1))));
+  const safe=at>=0&&direct.every((item,i)=>i===at||
+    (i<at&&item.kind==='paragraph'));
+  const promote=matches&&safe;
+  const visible=promote?[...direct.slice(0,at),...(heading.children||[])]:direct;
+  const rootNote=promote?[tree.content,heading.content].filter(Boolean).join('\n'):tree.content;
   let count=0;
   function notes(text,level){
     if(!text)return;
     for(const line of String(text).split(/\r?\n/))
       lines.push('  '.repeat(level)+'> '+escapeText(line));
   }
-  notes(tree.content,0);
+  notes(rootNote,0);
   function walk(nodes,depth){
     if(depth>10)throw new Error('E_XMIND_OUTLINE_LIMIT');
     for(const item of nodes){
@@ -28,7 +43,7 @@ export function buildOutlineMarkdown(tree){
       if(item.children?.length)walk(item.children,depth+1);
     }
   }
-  walk(tree.children,0);
+  walk(visible,0);
   return lines.join('\n')+'\n';
 }
 export async function verifyXmindZip(blob){
