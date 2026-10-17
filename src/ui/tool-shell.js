@@ -137,7 +137,7 @@ function startScheduledHost(){
 // A full catalog/tool tab also loads tool.html. It must never become a second
 // cloud-claiming Host merely because the extension's trusted UI is open.
 let cloudHosting=null;
-debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host}):null;
+debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host,reactUI:extensionList}):null;
 window.addEventListener('pagehide',()=>cloudHosting?.dispose(),{once:true});
 taskWorkbench.connectToolsView((visible,destination)=>{
   const accepted=sidebarTools.setVisible(visible,destination);

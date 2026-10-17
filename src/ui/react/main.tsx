@@ -5,6 +5,7 @@ import {flushSync} from 'react-dom';
 import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
 import {WorkflowHeader,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
+import {DebugDiagnosticText} from './tabs/debug.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -64,6 +65,24 @@ export function mountExtensionList(doc){
     ['script-run','script-save','script-stop'].some(id=>
       doc.getElementById(id)?.parentElement!==developerDock)))
     throw new Error('E_REACT_DEVELOPER_DOCK_MOUNT');
+  // Debug text transfers atomically; the legacy controller remains sole Host reader.
+  const debugIds={
+    summary:'debug-cloud-summary',pairing:'debug-pairing',connection:'debug-connection',
+    reconcile:'debug-reconcile',slot:'debug-slot',taskCount:'debug-task-count',
+    requestCount:'debug-request-count',snapshot:'debug-snapshot',feedback:'debug-feedback'
+  };
+  const debugNodes=Object.fromEntries(Object.entries(debugIds).map(([key,id])=>[
+    key,doc.getElementById(id)
+  ]));
+  const debugValues=Object.values(debugNodes);
+  const debugMounted=debugValues.every(Boolean);
+  if(debugValues.some(Boolean)&&!debugMounted)
+    throw new Error('E_REACT_DEBUG_PARTIAL_MOUNT');
+  if(debugMounted&&debugValues.some(node=>node.dataset.opendeskReactOwner||node.childElementCount))
+    throw new Error('E_REACT_DEBUG_ALREADY_OWNED');
+  const debugInitial=Object.fromEntries(Object.entries(debugNodes).map(([key,node])=>[
+    key,node?.textContent||''
+  ]));
   const developerNodes=Object.values(developer);
   const developerTargetMounted=developerNodes.every(Boolean);
   if(developerNodes.some(Boolean)&&!developerTargetMounted)
@@ -118,6 +137,10 @@ export function mountExtensionList(doc){
     node.replaceChildren();
     node.dataset.opendeskReactOwner='developer-target-'+name;
   }
+  if(debugMounted)for(const [key,node] of Object.entries(debugNodes)){
+    node.replaceChildren();
+    node.dataset.opendeskReactOwner='debug-'+key;
+  }
   const root=createRoot(host);
   let disposed=false,menuKey=null,detailModel=null;
   let rowMenuHost=null,rowMenuItems=[];
@@ -141,6 +164,7 @@ export function mountExtensionList(doc){
   };
   let developerTargetModel={host:'正在识别…',hostTitle:'',status:'检查中',
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
+  let debugModel=debugInitial;
   function paint(){
     if(disposed)return;
     // Extension Center restores focus immediately after draw(). Commit the
@@ -188,11 +212,22 @@ export function mountExtensionList(doc){
       {developerTargetMounted&&createPortal(
         <DeveloperTargetText value={developerTargetModel.url} node={developer.url}/>,
         developer.url)}
+      {debugMounted&&Object.entries(debugNodes).map(([key,node])=>
+        createPortal(<DebugDiagnosticText value={debugModel[key]}/>,node,key))}
     </>));
   }
   paint();
   return Object.freeze({
     owner:'extension-list',
+    debugMounted,
+    renderDebugDiagnostics(next){
+      if(disposed||!debugMounted||!next||typeof next!=='object'||Array.isArray(next))
+        throw new Error('E_REACT_DEBUG_OWNER');
+      for(const [key,value] of Object.entries(next))
+        if(!Object.hasOwn(debugNodes,key)||typeof value!=='string')
+          throw new Error('E_REACT_DEBUG_SNAPSHOT');
+      debugModel={...debugModel,...next};paint();
+    },
     developerTargetMounted,
     workflowMounted,
     workflowResultMounted,
@@ -299,6 +334,8 @@ export function mountExtensionList(doc){
       if(developerActionsActive)delete developerDock.dataset.opendeskReactOwner;
       if(developerFrameworkActive)delete developerChoices.dataset.opendeskReactOwner;
       if(developerTargetMounted)for(const node of developerNodes)
+        delete node.dataset.opendeskReactOwner;
+      if(debugMounted)for(const node of debugValues)
         delete node.dataset.opendeskReactOwner;
       for(const node of additional)delete node.dataset.opendeskReactOwner;
       delete toolbar.dataset.opendeskReactOwner;
