@@ -175,7 +175,7 @@ try{
   await until('!document.getElementById("local-project-tools").hidden');
   assert.equal(await evaluate('document.getElementById("manual-source-editor").hidden'),true,
     'Local project mode must hide the manual editor and show existing project tools');
-  assert((await evaluate('document.getElementById("local-project-status").textContent')).includes('UI_PREVIEW_ONLY'),
+  assert((await evaluate('document.getElementById("local-project-status").textContent')).includes('仅预览'),
     'No native authorization may be implied in offline preview');
   await screenshot('developer-local-project-360');
   await click('#local-project-refresh');
@@ -253,7 +253,7 @@ try{
     'Uninstall must switch to available scope');
   assert((await evaluate('document.querySelector('+JSON.stringify(importedSelector+' .ec-row-main')+').getAttribute("aria-label")')).includes('查看详情'),
     'Uninstalled app must not show Open');
-  assert((await evaluate('document.getElementById("od-sidebar-preview-controls").textContent')).includes('UI_PREVIEW_ONLY'),
+  assert((await evaluate('document.getElementById("od-sidebar-preview-controls").textContent')).includes('仅预览'),
     'Memory-only uninstall must retain preview-only notice');
   await screenshot('extension-uninstalled-360');
   assert.deepEqual(exceptions,[],'Browser errors');
@@ -263,7 +263,7 @@ try{
       'preview send/Host boundary','extension file choose','import review','in-memory install',
       'installed app usage, header and settings','same-ID update without duplicate',
       'uninstall review and available-list return',
-      'UI_PREVIEW_ONLY maintained'],nativeChrome:'NOT_TESTED'}));
+      'preview-only boundary preserved'],nativeChrome:'NOT_TESTED'}));
 }finally{
   try{socket?.close()}catch{}
   try{chrome?.kill('SIGTERM')}catch{}
