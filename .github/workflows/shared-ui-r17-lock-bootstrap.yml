@@ -1,0 +1,39 @@
+name: Shared UI R1.7 pinned React Aria lock bootstrap
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shared-ui-r17-lock-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  generate-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Generate genuine npm lock without publishing or changing source
+        run: |
+          npm install react-aria-components@1.22.1 --save-exact --package-lock-only --ignore-scripts --no-audit --no-fund
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          for (const file of ['package.json','package-lock.json']){
+            const value=readFileSync(file).toString('base64');
+            console.log('R17_LOCK_START '+file);
+            for(let i=0;i<value.length;i+=4096)console.log('R17_LOCK_PART '+file+' '+value.slice(i,i+4096));
+            console.log('R17_LOCK_END '+file);
+          }
+          NODE
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shared-ui-r17-real-npm-lock
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            package.json
+            package-lock.json
