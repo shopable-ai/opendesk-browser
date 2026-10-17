@@ -47,8 +47,14 @@
 .bm-quiet-action{display:inline-flex;gap:4px;align-items:center;border:0;background:none;color:var(--od-brand);padding:4px 6px;border-radius:6px;font-weight:590}
 .bm-readonly{padding:0 12px 9px;min-width:0}.bm-detail-title{display:flex;gap:6px;align-items:center;font-weight:620;min-width:0;color:var(--od-ink)}.bm-detail-title span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bm-detail-title svg{flex:none;color:var(--od-sub)}
 .bm-detail-path{font-size:11px;color:var(--od-sub);margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bm-detail-url{font-size:11px;color:var(--od-brand);text-decoration:none;display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
-.bm-detail-url svg{flex:none}.bm-detail-url:hover{text-decoration:underline}
+/* The displayed URL (not a 28px footer icon) is the primary open affordance.
+   Keep full URLs keyboard-focusable and wrap safely at narrow widths. */
+.bm-detail-url{display:inline-flex;align-items:flex-start;gap:5px;min-width:0;max-width:100%;min-height:28px;padding:4px 0;border-radius:5px;font-size:11px;line-height:1.5;color:var(--od-brand);text-decoration:none;white-space:normal;overflow-wrap:anywhere;word-break:break-word;cursor:pointer}
+.bm-detail-url>span{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.bm-detail-url svg{flex:none;margin-top:2px}
+.bm-detail-url:hover>span{text-decoration:underline}
+.bm-detail-url--disabled{color:var(--od-sub);cursor:default}
+.bm-detail-url--disabled:hover{text-decoration:none}
 .bm-inspector-tail{display:flex;align-items:center;justify-content:space-between;color:var(--od-sub);font-size:10.5px;min-height:24px}
 .bm-destructive{color:var(--od-negative)!important}.bm-empty-detail{font-size:11px;padding:0 12px 12px;margin:0;color:var(--od-sub)}
 .bm-editor{padding:0 12px 12px;display:grid;gap:7px}
