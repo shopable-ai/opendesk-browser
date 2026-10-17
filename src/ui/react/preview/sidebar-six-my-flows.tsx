@@ -81,6 +81,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const [rule,setRule]=React.useState('once');
   const [managerQuery,setManagerQuery]=React.useState('');
   const [managerFilter,setManagerFilter]=React.useState('all');
+  const [managerRemoving,setManagerRemoving]=React.useState('');
   const formBaseline=React.useRef('');
   const previousPlanView=React.useRef('list');
   const planListScroll=React.useRef(0);
@@ -89,6 +90,9 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const selected=plans.find(p=>p.id===selectedId);
   const selectedPresentation=selected?presentSchedulePlan(selected,selected.history):null;
   const visiblePlans=density==='empty'?[]:density==='single'?plans.slice(0,1):plans;
+  const managerRows=rows.filter(p=>(managerFilter==='all'||
+    p.enabled===(managerFilter==='enabled'))&&
+    [p.title,p.taskId,p.description].join(' ').toLocaleLowerCase().includes(managerQuery.trim().toLocaleLowerCase()));
   const found=rows.filter(p=>!catalogSearch||
     [p.title,p.description].join(' ').toLocaleLowerCase().includes(catalogSearch.toLocaleLowerCase()));
   const formSignature=()=>JSON.stringify([
@@ -160,9 +164,15 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       scroll.scrollTop=view==='list'?planListScroll.current:
         view==='form'&&previous==='manager'?planEditorScroll.current:0;
       previousPlanView.current=view;
-      if(view==='form')get('schedule-title').focus({preventScroll:true});
+      if(view==='form')(previous==='manager'?get('schedule-manage-tasks'):get('schedule-title'))
+        .focus({preventScroll:true});
       if(view==='manager')get('schedule-manager-search').focus({preventScroll:true});
     }
+    get('schedule-manager-count').textContent='显示 '+managerRows.length+' / '+rows.length+' 个已安装任务 · 仅预览';
+    get('schedule-uninstall-confirm').hidden=!managerRemoving;
+    get('schedule-uninstall-label').textContent=managerRemoving?
+      '确认从预览内存移除「'+(rows.find(p=>p.taskId===managerRemoving)?.title||managerRemoving)+
+      '」？正式安装和运行记录不会改变。':'';
     get('schedule-panel-title').textContent=view==='form'?(editingId?'编辑定时计划':'创建定时计划'):
       view==='detail'?'计划详情':view==='manager'?'任务管理':'定时计划';
     get('schedule-create').hidden=view!=='list';
@@ -192,7 +202,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-catalog-status').textContent=importReview||
       '仅预览 · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
-  },[tab,mode,rows,selectedTask,manageMode,removalReview,filter,showSearch,addOpen,addStatus,editingId,view,
+  },[tab,mode,rows,selectedTask,manageMode,removalReview,managerRows.length,managerRemoving,filter,showSearch,addOpen,addStatus,editingId,view,
     plans,density,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
@@ -293,6 +303,18 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-manager-back','click',()=>setView('form'));
     bind('schedule-manager-search','input',e=>setManagerQuery(e.currentTarget.value));
     bind('schedule-manager-filter','change',e=>setManagerFilter(e.currentTarget.value));
+    bind('schedule-uninstall-no','click',()=>{
+      const taskId=managerRemoving;setManagerRemoving('');
+      get('schedule-manager-list').querySelector('[data-manager-uninstall="'+taskId+'"]')
+        ?.focus({preventScroll:true});
+    });
+    bind('schedule-uninstall-yes','click',()=>{
+      if(!managerRemoving)return;
+      onTaskAction('uninstall',managerRemoving);
+      setManagerRemoving('');
+      setFeedback('仅从预览内存列表移除；未请求真实卸载，也未变更浏览器权限。');
+      get('schedule-manager-search').focus({preventScroll:true});
+    });
     bind('schedule-manager-create','click',onOpenDevelop);
     bind('schedule-new-script','click',onOpenDevelop);
     bind('schedule-task-empty-create','click',onOpenDevelop);
@@ -344,7 +366,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     });
     return ()=>off.forEach(fn=>fn());
   },[onMode,onOpenDevelop,onSearch,onFilter,onManageMode,onTaskAction,manageMode,
-    selectedTask,removalReview,selected,editingId,pending,view]);
+    selectedTask,removalReview,managerRemoving,selected,editingId,pending,view]);
   return <>
     {createPortal(found.map(p=><button key={p.taskId} type="button"
       className="catalog-card" aria-pressed={p.taskId===catalogSelected}
@@ -472,13 +494,62 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         </div>
       </div>}
     </div>,detail)}
-    {createPortal(<div className="od-preview-card od-stack">
-      <p>仅预览 · 原 TaskWorkbench 才能真正管理启停、卸载与执行权限。</p>
-      {rows.filter(p=>(!managerQuery||p.title.includes(managerQuery))&&
-        (managerFilter==='all'||(managerFilter==='enabled'&&p.enabled)||
-          (managerFilter==='disabled'&&!p.enabled))).map(p=>
-        <p key={p.taskId}>{p.title} · {p.enabled?'启用':'已停用'} · 只读</p>)}
-      {/* Header back is the single route to the editor; no duplicate body action. */}
-    </div>,manager)}
+    {createPortal(<>
+      {managerRows.length===0?<p className="task-search-empty" role="status">
+        {rows.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。'}
+      </p>:managerRows.map(p=><article key={p.taskId}
+        className="schedule-manager-card od-surface" data-manager-task-id={p.taskId}>
+        <div className="schedule-manager-card-head">
+          <div className="schedule-manager-identity">
+            <strong>{p.title}</strong>
+            <p className="hint">v{p.version||'1.0.0'} · {plans.filter(plan=>plan.taskId===p.taskId).length} 个关联计划</p>
+          </div>
+          <span className="schedule-manager-state" data-state={p.enabled?'enabled':'disabled'}>
+            {p.enabled?'已启用':'已停用'}</span>
+        </div>
+        <div className="schedule-manager-actions od-toolbar" role="group" aria-label={'管理「'+p.title+'」'}>
+          <button type="button" className="od-icon-button schedule-manager-action"
+            title="选择此任务并返回计划（保留未保存草稿）"
+            aria-label={'选择任务「'+p.title+'」'}
+            onClick={()=>{
+              const target=get('schedule-task-select');
+              if(![...target.options].some(option=>option.value===p.taskId))
+                target.add(new Option(p.title,p.taskId));
+              target.value=p.taskId;
+              setFeedback('已选择演示任务；未保存的计划内容保持不变。');
+              setView('form');
+            }}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4m10-4v4M4 9h16M5 5h14v15H5zM12 12v4l3 2"/></svg>
+          </button>
+          <button type="button" className="od-icon-button schedule-manager-action schedule-manager-toggle"
+            title={p.enabled?'停用任务（仅预览）':'启用任务（仅预览）'}
+            aria-label={(p.enabled?'停用':'启用')+'「'+p.title+'」'}
+            onClick={()=>{onTaskAction('toggle',p.taskId);
+              setFeedback('仅预览：已切换任务状态，未请求真实权限或 Registry 修改。');}}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path
+              d={p.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z'}/></svg>
+          </button>
+          <button type="button" className="od-icon-button schedule-manager-action"
+            title="复制到开发（仅预览）" aria-label={'复制「'+p.title+'」到开发'}
+            onClick={()=>{onTaskAction('fork',p.taskId);
+              setFeedback('仅预览：没有真实任务源码，不会创建开发草稿。');}}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+          <button type="button" className="od-icon-button od-icon-button--danger schedule-manager-action schedule-manager-uninstall"
+            data-manager-uninstall={p.taskId} title="卸载任务（需确认，仅预览）"
+            aria-label={'卸载「'+p.title+'」'}
+            onClick={()=>setManagerRemoving(p.taskId)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+          </button>
+        </div>
+        <details className="schedule-manager-more od-disclosure od-disclosure--flat">
+          <summary>版本与网站范围</summary>
+          <p className="hint">用途：{p.description}</p>
+          <p className="hint">任务 ID：{p.taskId}</p>
+          <p className="hint">固定演示版本：v{p.version||'1.0.0'}</p>
+          <p className="hint">适用网站：{(p.siteOrigins||[]).join('，')||'未指定'}</p>
+        </details>
+      </article>)}
+    </>,manager)}
   </>;
 }
