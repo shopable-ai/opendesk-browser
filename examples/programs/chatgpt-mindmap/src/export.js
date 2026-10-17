@@ -92,3 +92,21 @@ export async function verifyXmindWorkbook(sdk,blob,tree){
       {code:'E_XMIND_EXPORT_CONTENT',cause:error});
   }
 }
+
+
+export async function verifyPngBlob(blob){
+  if(!blob||!Number.isSafeInteger(blob.size)||blob.size<512||
+     blob.size>30*1024*1024||typeof blob.slice!=='function')
+    throw Object.assign(new Error('PNG 文件超出限制'),{code:'E_XMIND_PNG_SIZE'});
+  const bytes=new Uint8Array(await blob.slice(0,24).arrayBuffer());
+  const signature=[137,80,78,71,13,10,26,10];
+  const valid=signature.every((value,index)=>bytes[index]===value)&&
+    bytes[12]===73&&bytes[13]===72&&bytes[14]===68&&bytes[15]===82;
+  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+  const width=view.getUint32(16),height=view.getUint32(20);
+  if(!valid||width<100||height<100||width>8192||height>8192||
+    width*height>24_000_000)
+    throw Object.assign(new Error('PNG 文件头或完整尺寸无效'),
+      {code:'E_XMIND_PNG_INVALID'});
+  return blob;
+}
