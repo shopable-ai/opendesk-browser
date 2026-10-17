@@ -72,7 +72,9 @@ jobs:
           npm run build:dev
           npm run verify
       - name: Install Chinese fonts for readable UI screenshots
-        if: ${{ !cancelled() && steps.production_build.outcome == 'success' }}
+        # Preview UI evidence remains meaningful even if an unrelated product
+        # build fails; do not render Chinese titles as missing-glyph boxes.
+        if: ${{ !cancelled() }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y fonts-noto-cjk
