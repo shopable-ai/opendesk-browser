@@ -8,9 +8,22 @@ import {createLocalProjectProvider} from '../../native-agent/local-dev/provider.
 import {createLocalProjectClient} from '../../src/native-agent/local-project-client.js';
 import {createLocalProjectService} from '../../src/native-agent/local-project-service.js';
 import {MAX_BYTES} from '../../native-agent/wire.mjs';
+import {PAGE_FRAME_SOURCE_LIMIT} from '../../src/scripting/user-scripts/page-frame-resources.js';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const bindingId='local-'+'a'.repeat(20),epoch='epoch-a';
+test('Page resource capacity matches the wrapper while Native frames remain small',async t=>{
+  assert.equal(LIMITS.maxBytes,PAGE_FRAME_SOURCE_LIMIT);
+  const f=fixture('/*'+'中文😀'.repeat(422026)+'*/'),r=roundTrip(t,f);
+  assert.ok(f.value.sourceBytes>4*1024*1024);
+  const result=await r.client.request('project.resolve',{bindingId});
+  assert.equal(result.sourceUtf8,f.value.sourceUtf8);
+  assert.equal(result.sourceHash,f.value.sourceHash);
+  assert.ok(r.socket.sent.every(row=>Buffer.byteLength(JSON.stringify(row))<=MAX_BYTES));
+  assert.equal(validLocalProjectRequest('project.source.read',{
+    bindingId,transferId:'overflow',artifactId:f.value.artifactId,inputHash:f.value.inputHash,
+    sourceHash:f.value.sourceHash,sourceBytes:LIMITS.maxBytes+1,offset:0}),false);
+});
 function fixture(source='/*中文😀\n'+('x\\"\n'.repeat(35000))+'*/'){
   const binding={},value=Object.freeze({bindingId,projectId:'chart',runtimeKind:'page-userscript',entryFormat:'async-main',managedUI:true,
     sourceUtf8:source,sourceBytes:Buffer.byteLength(source),sourceHash:sha(source),inputHash:'b'.repeat(64),artifactId:'c'.repeat(64),sourceRevision:'b'.repeat(64),siteOrigins:['https://example.test']});

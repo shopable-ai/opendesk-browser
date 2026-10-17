@@ -15,7 +15,7 @@ import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
-  recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_REVOCATION_EPOCHS_STORE,
+  recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
   requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,tocSiteAllowed,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
@@ -2299,6 +2299,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   async function retryUninstallCleanup(id,event){
     if(!event?.isTrusted||disposed||busy||!visible||installedReadError)return {state:'blocked',toolId:id};
+    if(!(await getPendingToolCleanups(api))[id])return {state:'not-pending',toolId:id};
+    // Only fixed extension descriptors can prepare native cleanup. Installed
+    // package bytes never supply hooks; the installer still rechecks ownership.
+    const trusted=[focus,adblock,aiAccess,nativeTimeReview].find(owner=>owner?.id===id);
+    await trusted?.prepareUninstallCleanup?.({api,event,requestBrowserClick});
+    if(disposed||busy||!visible||installedReadError)return {state:'blocked',toolId:id};
     busy=true;render();
     try{
       const result=await retryUninstalledToolCleanup({api,lockManager,id});

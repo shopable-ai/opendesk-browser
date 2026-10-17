@@ -13,11 +13,13 @@
 | `rule-host.js` | 把业务限制原因转换为固定主框架 DNR 规则，处理父/子域名例外。 |
 | `rule-ownership.js` | 仅操作 730000–730199，自有规则写入及实际读回对账；不吞掉失败，不碰别的工具规则。 |
 | `tool-host.js` | 已有第一方 sidecar 的请求适配：Focus 专用审批文案、禁止 sandbox 发起授权/清空、包/hash/epoch 校验、发送与返回状态。平台传入原 iframe 会话和活动实例校验。 |
-| `host-controls.js` | 可信详情中的原生权限、启用/停用/清空控件；真实 click 内直接请求 Chrome 权限。既有 UI 与 DOM ID 保留。 |
+| `host-controls.js` | 可信详情中的原生权限、启用/停用/清空控件；真实 click 内只请求 optional `idle`。既有 UI 与 DOM ID 保留。 |
 | `lifecycle.js` | 既有安装事务的静态产品适配：停用清理自有规则；确认卸载后清理私有状态。平台仍拥有锁、先停用、epoch、registry、删除读回、恢复日志及重装保护。 |
 | `page-notice.js` | 经固定 page-relay 入口加载的页面提醒渲染/清理；只接受可信扩展消息，不暴露策略修改或动态授权。 |
 | `blocked.js`、`blocked.css`、`blocked-{quota,schedule,session,always}.html` | 固定扩展拦截说明页及交互资源；由现有 WXT/资源闭包/WAR 审计构建，不是网站远程代码。 |
 
 固定接线位于 `src/sw.js`、`src/entrypoints/stay-focus-controls.js`、`src/entrypoints/page-relay.js`、`src/entrypoints/blocked.js`。通用宿主 URL 校验位于 `src/sidebar-tools/sender.js`；它不是能力授权，不能替代服务中的 live document/安装身份检查。
+
+`declarativeNetRequestWithHostAccess` 是扩展共享的 required 权限，不由 Stay Focus 弹窗申请或移除。权限存在、工具已安装及 `idle` 已授权都不代表网站限制已开启；仍须在可信设置中显式开启，并核实包/hash/epoch 与网站权限。缺少 required DNR 时提示更新/重新加载扩展，不要求用户批准 optional DNR。撤销 `idle`、关闭、清空、停用或卸载仍只清理本工具规则，读回确认后才报告清理成功；不影响 AdBlock 等其他工具的规则。卸载在规则清理成功后才删除私有状态，失败由原安装事务保留恢复记录。
 
 开发/打包继续走现有工具和扩展构建流程。只改动态 UI 时打工具包；改本目录可信实现时构建和验证完整扩展。行为回归和真实 Chrome 的证据等级不同；本轮整理不会关闭完整额度耗尽、活跃 DNR 撤权或跨工具隔离的原生验收缺口。详细调用证据与回归见 [业务边界整理工作流](../../docs/framework/workstreams/stay-focus-boundary-r1-20261014.md)。

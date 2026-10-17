@@ -12,10 +12,11 @@ import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolC
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {FOCUS_RULE_FIRST} from '../../src/stay-focus/policy.js';
 import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_CAPABILITY,
-  ADBLOCK_RULE_FIRST,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+  ADBLOCK_RULE_FIRST,ADBLOCK_DNR_CLEANUP_STORE,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}
   from '../../examples/sidebar-tools/adblock/trusted/rules.js';
 import {createAdblockService,installAdblockService} from '../../examples/sidebar-tools/adblock/trusted/service.js';
+import {stopAdblockForTool} from '../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
 import {createAdblockPermissionControls} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {requestAdblockOperation,runTrustedAdblockOperation}
   from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
@@ -144,8 +145,11 @@ test('first optional DNR grant requires reload before enabling or writing Chrome
   const status=await f.service.dispatch(f.message('adblock.status'),sender);
   assert.equal(status.permissions.dnr,true);assert.equal(status.restartRequired,true);
   assert.equal(status.enabled,false);assert.equal(status.rules.verified,false);
-  await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),{
-    code:'E_ADBLOCK_RESTART_REQUIRED'});
+  await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),error=>{
+    assert.equal(error.code,'E_ADBLOCK_RESTART_REQUIRED');
+    assert.match(error.message,/保存.*重新加载 OpenDesk Browser 扩展/);
+    return true;
+  });
   assert.deepEqual([...f.stored],before,'first grant must not persist enabled intent');
   assert.equal(f.actions.length,0,'never submit to the uninitialized Chrome queue');
   assert.deepEqual(f.sessionStored.get('other-runtime'),{untouched:true});
@@ -284,6 +288,27 @@ test('uninstalled tool never activates and startup removes only stale AdBlock ru
   assert.equal(result.installed,false);
   assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
 });
+test('an installed package from an older bundle requires review without changing authority or rules',async()=>{
+  const f=await fixture({permission:false});
+  const older={...f.tool,version:'1.1.0'};
+  f.stored.set(SIDEBAR_TOOL_STORE,[older]);
+  const packageHash=await sidebarToolPackageHash(older);
+  const before=structuredClone([...f.stored]);
+  for(const operation of ['adblock.status','adblock.enable']){
+    await assert.rejects(f.service.dispatch({...f.message(operation),packageHash},sender),error=>{
+      assert.equal(error.code,'E_ADBLOCK_UPDATE_REQUIRED');
+      assert.match(error.message,/版本不匹配/);
+      assert.match(error.message,/重启 Chrome 不会更新工具包/);
+      return true;
+    });
+  }
+  assert.deepEqual([...f.stored],before,'a rejected old bundle cannot change installed authority or intent');
+  assert.equal(f.actions.length,0,'version diagnosis cannot write DNR rules');
+  assert.equal(f.permission,false,'version diagnosis cannot grant native permissions');
+  await assert.rejects(f.service.dispatch({...f.message('adblock.status'),packageHash,
+    installEpoch:'old'},sender),{code:'E_TOOL_CHANGED'});
+});
+
 test('forged sender, same-ID package digest and obsolete epoch are denied',async()=>{
   const f=await fixture(),msg=await f.message('adblock.enable');
   await assert.rejects(f.service.dispatch(msg,{...sender,id:'forged'}),{code:'E_ADBLOCK_SENDER'});
@@ -478,7 +503,7 @@ test('permission revocation disables durable intent, re-grant alone never resume
   assert.equal((await f.service.tick()).enabled,false);
   assert.equal((await f.service.dispatch(await f.message('adblock.enable'),sender)).enabled,true);
 });
-test('revocation exposes unconfirmed matcher cleanup until a new browser session',async()=>{
+test('revocation cleanup uncertainty survives both worker and extension session resets',async()=>{
   const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
   const writes=f.actions.length;
   f.setPermission(false);
@@ -493,7 +518,7 @@ test('revocation exposes unconfirmed matcher cleanup until a new browser session
   assert.equal(f.actions.length,writes,'revoked DNR API must never be invoked');
   for(const key of f.sessionChanges)f.sessionStored.delete(key);
   const restarted=await f.restartService().tick();
-  assert.equal(restarted.restartRequired,false);
+  assert.equal(restarted.restartRequired,true,'session reset cannot prove removal of a revoked matcher');
   assert.equal(restarted.permissions.dnr,false);assert.equal(restarted.enabled,false);
   assert.equal(restarted.rules.verified,false,'no permission means no native rule readback');
 });
@@ -516,7 +541,78 @@ test('installer stop prevents reactivation, uninstall journal retains failed cle
   f.stored.set(SIDEBAR_TOOL_STORE,[]);
   await retryUninstalledToolCleanup({api:f.api,lockManager:f.lockManager,id:ADBLOCK_ID});
   assert.equal(f.stored.has(ADBLOCK_STORE),false);
+  assert.equal(f.stored.has(ADBLOCK_DNR_CLEANUP_STORE),false);
   assert.equal(f.stored.get(TOOL_CLEANUP_STORE)?.[ADBLOCK_ID],undefined);
+});
+test('revoked DNR cannot complete uninstall cleanup or delete the recovery state',async()=>{
+  const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+  f.setPermission(false);
+  const actions=f.actions.length,state=structuredClone(f.stored.get(ADBLOCK_STORE));
+  await assert.rejects(stopAdblockForTool(f.api,ADBLOCK_ID),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.stored.get(ADBLOCK_DNR_CLEANUP_STORE),true);
+  await recordToolUninstall(f.api,f.tool);f.stored.set(SIDEBAR_TOOL_STORE,[]);
+  await assert.rejects(retryUninstalledToolCleanup({api:f.api,lockManager:f.lockManager,id:ADBLOCK_ID}),
+    {code:'E_TOOL_UNINSTALL_CLEANUP'});
+  assert.ok(f.stored.get(TOOL_CLEANUP_STORE)?.[ADBLOCK_ID]);
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE),state);
+  assert.equal(f.actions.length,actions,'never invoke the revoked native API');
+  assert.ok(f.rules.some(rule=>rule.id===ADBLOCK_RULE_FIRST),'the fixture retains the failed native matcher');
+  for(const key of f.sessionChanges)f.sessionStored.delete(key);
+  await assert.rejects(retryUninstalledToolCleanup({api:f.api,lockManager:f.lockManager,id:ADBLOCK_ID}),
+    {code:'E_TOOL_UNINSTALL_CLEANUP'});
+  assert.ok(f.stored.get(TOOL_CLEANUP_STORE)?.[ADBLOCK_ID],'extension reload cannot finish native cleanup');
+  f.setPermission(true);
+  // Simulate a fresh extension load with the capability present, without forging
+  // the fence or using this mock as evidence of a real Chrome grant.
+  for(const key of f.sessionChanges)f.sessionStored.delete(key);
+  await retryUninstalledToolCleanup({api:f.api,lockManager:f.lockManager,id:ADBLOCK_ID});
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  assert.equal(f.stored.has(ADBLOCK_STORE),false);
+  assert.equal(f.stored.has(ADBLOCK_DNR_CLEANUP_STORE),false);
+  assert.equal(f.stored.get(TOOL_CLEANUP_STORE)?.[ADBLOCK_ID],undefined);
+});
+test('installer cannot submit cleanup into the first-grant uninitialized queue',async()=>{
+  const f=await fixture({permission:false});await f.service.tick();
+  f.setPermission(true);
+  await assert.rejects(stopAdblockForTool(f.api,ADBLOCK_ID),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.actions.length,0);
+});
+test('never-granted AdBlock can uninstall, but uncertain session state cannot erase recovery',async()=>{
+  const f=await fixture({permission:false});await f.service.tick();
+  await recordToolUninstall(f.api,f.tool);f.stored.set(SIDEBAR_TOOL_STORE,[]);
+  await retryUninstalledToolCleanup({api:f.api,lockManager:f.lockManager,id:ADBLOCK_ID});
+  assert.equal(f.stored.get(TOOL_CLEANUP_STORE)?.[ADBLOCK_ID],undefined);
+  for(const failure of ['missing','read']){
+    const bad=await fixture({permission:false,sessionFailure:failure});
+    await assert.rejects(stopAdblockForTool(bad.api,ADBLOCK_ID),{code:'E_OUTCOME_UNKNOWN'});
+    assert.equal(bad.actions.length,0);
+  }
+});
+test('corrupt or unacknowledged cleanup uncertainty cannot be reported as clean',async()=>{
+  const f=await fixture({permission:false});await f.service.tick();
+  f.stored.set(ADBLOCK_DNR_CLEANUP_STORE,{pending:false});
+  await assert.rejects(stopAdblockForTool(f.api,ADBLOCK_ID),{code:'E_OUTCOME_UNKNOWN'});
+  f.stored.delete(ADBLOCK_DNR_CLEANUP_STORE);
+  f.setPermission(true);for(const key of f.sessionChanges)f.sessionStored.delete(key);
+  await f.service.dispatch(f.message('adblock.enable'),sender);f.setPermission(false);
+  const set=f.api.storage.local.set;
+  f.api.storage.local.set=async values=>{
+    if(Object.hasOwn(values,ADBLOCK_DNR_CLEANUP_STORE))return;
+    await set(values);
+  };
+  await assert.rejects(stopAdblockForTool(f.api,ADBLOCK_ID),{code:'E_OUTCOME_UNKNOWN'});
+  assert.ok(f.rules.some(rule=>rule.id===ADBLOCK_RULE_FIRST));
+});
+test('durable cleanup uncertainty prevents a new worker from resuming the old enabled intent',async()=>{
+  const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+  f.setPermission(false);
+  await assert.rejects(stopAdblockForTool(f.api,ADBLOCK_ID),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.stored.get(ADBLOCK_STORE).enabled,true,'simulate interruption before intent reconciliation');
+  f.setPermission(true);
+  assert.equal((await f.restartService().tick()).enabled,false);
+  assert.equal(f.stored.get(ADBLOCK_STORE).enabled,false);
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
+  assert.equal(f.stored.get(ADBLOCK_DNR_CLEANUP_STORE),false);
 });
 test('sandbox cannot authorize enable or arbitrary exception mutation',async()=>{
   const f=await fixture();
@@ -527,7 +623,7 @@ test('sandbox cannot authorize enable or arbitrary exception mutation',async()=>
     payload:{host:'news.example.com',filtering:false},event:{isTrusted:false}}),
   {code:'E_ADBLOCK_TRUSTED_CLICK'});
 });
-test('trusted native click gates optional Chrome permission prompt; disabled tool never prompts',async()=>{
+test('trusted native click enables required-permission filtering without an optional prompt',async()=>{
   class Node{
     constructor(){this.children=[];this.listeners={};this.hidden=false;this.disabled=false;
       this.attributes={};this.textContent='';}
@@ -541,7 +637,7 @@ test('trusted native click gates optional Chrome permission prompt; disabled too
   const runOperation=async(operation)=>{
     changes.push(operation);
     return {enabled:operation==='adblock.enable',exceptions:[],currentHost:'news.example.com',
-      permissions:{dnr:operation==='adblock.enable'},rules:{verified:operation==='adblock.enable'}};
+      permissions:{dnr:true},rules:{verified:true}};
   };
   const controls=createAdblockPermissionControls({api:{permissions:{request(){
     requests++;return Promise.resolve(true);
@@ -567,7 +663,7 @@ test('trusted native click gates optional Chrome permission prompt; disabled too
   assert.equal(site.attributes['aria-label'],'网站 news.example.com 的广告过滤');
   global.listeners.click({isTrusted:false});assert.equal(requests,0);
   global.listeners.click({isTrusted:true});
-  assert.equal(requests,1,'native Chrome permission request must begin synchronously');
+  assert.equal(requests,0,'required DNR must not enter an optional permission request');
   await new Promise(done=>setImmediate(done));
   assert.ok(changes.includes('adblock.enable'));
   assert.equal(global.attributes['aria-checked'],'true');

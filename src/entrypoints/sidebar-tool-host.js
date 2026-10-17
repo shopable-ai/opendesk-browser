@@ -4,7 +4,7 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {createSidebarTools} from '../ui/sidebar-tools.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_OPERATIONS} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
-import {createAdblockPermissionControls} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
+import {createAdblockPermissionControls,prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {probeAdblockService,runTrustedAdblockOperation,requestAdblockOperation} from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
 import {trustedTimeReviewUI} from '../time-review/trusted-native-ui.js';
 import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../ai-smart-access/policy.js';
@@ -27,6 +27,7 @@ export default defineUnlistedScript(()=>{
     value:Object.freeze({id:ADBLOCK_ID,capability:ADBLOCK_CAPABILITY,
       protocol:ADBLOCK_PROTOCOL,operations:ADBLOCK_OPERATIONS,
       createPermissionControls:createAdblockPermissionControls,
+      prepareUninstallCleanup:prepareAdblockUninstallCleanup,
       runTrustedOperation:runTrustedAdblockOperation,
       request:requestAdblockOperation,probe:probeAdblockService})
   });

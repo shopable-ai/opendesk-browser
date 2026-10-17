@@ -8,7 +8,8 @@ import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/
 import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../src/stay-focus/policy.js';
 import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../src/ai-smart-access/policy.js';
-import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
@@ -749,6 +750,37 @@ test('R4.5 an old iframe cannot read or write an identical reinstall even before
   assert.deepEqual(f.store.get(key),{note:'new instance private data'});
 });
 
+test('uninstalled trusted AdBlock can recover cleanup after required permission becomes available without reinstalling',async t=>{
+  const previous=globalThis.__opendeskAdblockTrustedUI;
+  globalThis.__opendeskAdblockTrustedUI=Object.freeze({id:ADBLOCK_ID,prepareUninstallCleanup:prepareAdblockUninstallCleanup});
+  t.after(()=>{if(previous===undefined)delete globalThis.__opendeskAdblockTrustedUI;
+    else globalThis.__opendeskAdblockTrustedUI=previous;});
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[ADBLOCK_DNR_CLEANUP_STORE,true],
+    [ADBLOCK_STORE,{enabled:false}],[TOOL_CLEANUP_STORE,{[ADBLOCK_ID]:{version:'1.1.1',createdAt:1}}]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  let granted=false,requests=0;
+  let rules=[{id:ADBLOCK_RULE_FIRST,priority:1,action:{type:'block'},condition:{urlFilter:'ads.test'}},
+    {id:1,priority:28,action:{type:'block'},condition:{urlFilter:'other.test'}}];
+  f.api.storage.session={get:async key=>({[key]:{version:1,ready:true}}),set:async()=>{}};
+  f.api.permissions={contains:async()=>granted,request:()=>{
+    requests++;throw Error('required DNR has no optional grant');
+  }};
+  f.api.declarativeNetRequest={getDynamicRules:async()=>structuredClone(rules),
+    updateDynamicRules:async({removeRuleIds,addRules})=>{
+      assert.deepEqual(addRules,[],'recovery never installs filtering');
+      rules=rules.filter(rule=>!removeRuleIds.includes(rule.id));
+    }};
+  await f.host.retryUninstallCleanup(ADBLOCK_ID,{isTrusted:false});assert.equal(requests,0);
+  await assert.rejects(f.host.retryUninstallCleanup(ADBLOCK_ID,{isTrusted:true}),{code:'E_ADBLOCK_PERMISSION'});
+  assert.ok(store.get(TOOL_CLEANUP_STORE)[ADBLOCK_ID]);assert.equal(store.get(ADBLOCK_DNR_CLEANUP_STORE),true);
+  assert.notEqual(f.elements['sidebar-tool-action-review'].hidden,false,'no nonexistent optional permission review');
+  granted=true;
+  assert.equal((await f.host.retryUninstallCleanup(ADBLOCK_ID,{isTrusted:true})).state,'cleaned');
+  assert.deepEqual(rules.map(rule=>rule.id),[1]);assert.equal(requests,0);
+  assert.equal(store.has(ADBLOCK_DNR_CLEANUP_STORE),false);assert.equal(store.has(ADBLOCK_STORE),false);
+  assert.equal(store.get(TOOL_CLEANUP_STORE)?.[ADBLOCK_ID],undefined);
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'cleanup never restores installation authority');
+});
 test('R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes',async t=>{
   const key=sidebarToolStorageKey(sample.id),privateData={privateNote:'left by interrupted uninstall'};
   const store=new Map([[SIDEBAR_TOOL_STORE,[]],[key,privateData],

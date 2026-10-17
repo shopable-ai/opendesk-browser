@@ -18,7 +18,10 @@ export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "alarms",
   // Chrome forbids "proxy" as an optional permission. The fixed, audited AI
   // Access service is the only product allowed to manage it after a real click.
-  "proxy"
+  "proxy",
+  // Loaded with the extension so Chrome initializes DNR before tool use.
+  // Availability does not grant installation authority or enable a tool.
+  "declarativeNetRequestWithHostAccess"
 ]);
 export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([
   "bookmarks",
@@ -28,7 +31,6 @@ export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([
   "clipboardWrite",
   "tabGroups",
   "webRequest",
-  "declarativeNetRequestWithHostAccess",
   "nativeMessaging",
   "idle"
 ]);

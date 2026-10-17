@@ -18,12 +18,25 @@ const BIN=process.env.CHROME_BIN,ROOT=path.resolve(process.env.OPENDESK_ADBLOCK_
 const OUT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_EVIDENCE||'artifacts/adblock-r12-native');
 const ENABLED=process.env.OPENDESK_ADBLOCK_NATIVE==='1';
 const STORE='opendesk.adblock.state.v1',F=741000,L=741199;
+const nativeCallTrace=[];
+const nativeCallTraceIds=new Set();
 function connect(url){
   const ws=new WebSocket(url),waiting=new Map(),events=[];let serial=0;
   const ready=new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});
   ws.onmessage=event=>{
     const obj=JSON.parse(event.data),row=waiting.get(obj.id);
-    if(!row){if(obj.method){events.push(obj);if(events.length>5000)events.shift();}return;}
+    if(!row){if(obj.method){events.push(obj);if(events.length>5000)events.shift();
+      if(obj.method==='Runtime.consoleAPICalled'){
+        const value=obj.params.args?.[0]?.value;
+        if(typeof value==='string'&&value.startsWith('ADBLOCK_NATIVE_CALL ')){
+          const record=JSON.parse(value.slice(20));
+          if(!nativeCallTraceIds.has(record.eventId)){
+            nativeCallTraceIds.add(record.eventId);
+            nativeCallTrace.push({sessionId:obj.sessionId,...record});
+          }
+        }
+      }
+    }return;}
     waiting.delete(obj.id);clearTimeout(row.timeout);
     obj.error?row.reject(Error(JSON.stringify(obj.error))):row.resolve(obj.result);
   };
@@ -51,7 +64,49 @@ async function attach(c,targetId){
   const s=(await c.send('Target.attachToTarget',{targetId,flatten:true})).sessionId;
   await c.send('Runtime.enable',{},s);await c.send('Page.enable',{},s);
   await c.send('Network.enable',{},s);
+  await evaluate(c,s,'('+observeNativeCalls.toString()+')()');
   return s;
+}
+// Observe actual Chrome calls without supplying permissions, results or gestures.
+// Invoke the original synchronously so permissions.request retains user activation.
+function observeNativeCalls(){
+  if(typeof document==='undefined'||location.protocol!=='chrome-extension:'||!globalThis.chrome?.runtime?.id||
+    globalThis.__adblockNativeObserved)return;
+  globalThis.__adblockNativeObserved=true;
+  const record=value=>console.debug('ADBLOCK_NATIVE_CALL '+JSON.stringify({
+    eventId:crypto.randomUUID(),at:new Date().toISOString(),url:location.href,...value}));
+  record({kind:'context',extensionId:chrome.runtime.id,manifest:chrome.runtime.getManifest(),
+    world:'trusted_document'});
+  const errorValue=error=>({name:error?.name,code:error?.code,
+    message:error?.message,stack:error?.stack});
+  for(const [owner,name] of [[chrome.permissions,'contains'],[chrome.permissions,'request'],
+    [chrome.permissions,'remove'],[chrome.runtime,'sendMessage'],
+    [chrome.declarativeNetRequest,'getDynamicRules'],
+    [chrome.declarativeNetRequest,'updateDynamicRules']]){
+    if(typeof owner?.[name]!=='function')continue;
+    const original=owner[name];
+    owner[name]=function(...args){
+      const message=args.find(value=>value&&typeof value==='object');
+      const observed=name!=='sendMessage'||message?.operation?.startsWith('adblock.');
+      if(!observed)return Reflect.apply(original,this,args);
+      const callId=crypto.randomUUID();
+      record({kind:'call',name,callId,args:message,stack:new Error('native call').stack,
+        userActivation:navigator.userActivation?.isActive});
+      let result;
+      try{result=Reflect.apply(original,this,args);}
+      catch(error){record({kind:'throw',name,callId,error:errorValue(error)});throw error;}
+      if(result&&typeof result.then==='function')result.then(
+        value=>record({kind:'return',name,callId,result:value}),
+        error=>record({kind:'reject',name,callId,error:errorValue(error)}));
+      return result;
+    };
+  }
+  for(const type of ['pointerdown','click'])document.addEventListener(type,event=>{
+    const control=event.target.closest?.('#sidebar-tool-adblock-native button');
+    if(control)record({kind:'input',type,isTrusted:event.isTrusted,
+      control:control.getAttribute('aria-label'),disabled:control.disabled,
+      checked:control.getAttribute('aria-checked'),stack:new Error('native input').stack});
+  },true);
 }
 async function click(c,session,selector){
   // CDP Input is genuine Chrome pointer/wheel input. Do not use DOM .click(),
@@ -283,7 +338,16 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     '--load-extension='+ROOT,'about:blank'];
   if(process.env.OPENDESK_ADBLOCK_CHROME_DIAGNOSTICS==='1')argv.unshift(
     '--enable-logging=stderr','--vmodule=*declarative_net_request*=2,*ruleset*=2,*data_decoder*=2');
-  const launch=()=>spawn(BIN,argv,{stdio:['ignore','ignore','pipe']});
+  report.browserSessions=[];
+  const launch=()=>{
+    const child=spawn(BIN,argv,{stdio:['ignore','ignore','pipe']});
+    report.browserSessions.push({pid:child.pid,profile,root:ROOT,chromeBin:BIN,
+      launchedAt:new Date().toISOString(),manifestSHA256:report.manifestSHA256});
+    child.once('exit',(code,signal)=>Object.assign(
+      report.browserSessions.find(session=>session.pid===child.pid),
+      {exitedAt:new Date().toISOString(),code,signal}));
+    return child;
+  };
   let chrome=launch(),client=null,errors='',passed=false;
   const capture=p=>p.stderr.on('data',chunk=>errors=(errors+chunk).slice(-300000));
   capture(chrome);
@@ -325,6 +389,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     }finally{
       report.serverCounts=counts;
       await preserve('server-requests.json',JSON.stringify(serverRequests,null,2)+'\n');
+      await preserve('native-call-trace.json',JSON.stringify(nativeCallTrace,null,2)+'\n');
       report.chromeErrorTail=errors.slice(-1000);
       await preserve('chrome-stderr.log',errors);
       report.success=passed&&report.evidenceErrors.length===0;

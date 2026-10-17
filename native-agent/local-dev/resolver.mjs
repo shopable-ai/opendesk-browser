@@ -1,4 +1,5 @@
 import {validatePageSource} from '../../src/scripting/user-scripts/page-bundle.js';
+import {PAGE_FRAME_RESOURCES_LIMITS} from '../../src/scripting/user-scripts/page-frame-resources.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -19,6 +20,7 @@ const VERSION='opendesk.local-dev-resolver.v3';
 const frozenValidators=new WeakMap();
 const FRAMEWORK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const BUILD_INPUTS=['src/platform/local-project-site-scope.js','src/scripting/user-scripts/page-bundle.js','src/scripting/user-scripts/remote-esm-contract.js','scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/page-component-entry.mjs','scripts/page-jsx-loader.cjs','scripts/page-vue-sfc-loader.cjs','src/libs/page-frameworks/contract.js','src/libs/page-frameworks/vue-compiler-contract.js','src/libs/page-frameworks/vue-sfc-transform.js','src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/page-program-rules.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
+BUILD_INPUTS.push('src/scripting/user-scripts/page-frame-resources.js');
 const require=createRequire(import.meta.url);
 const toolFiles=['webpack','acorn','terser','terser-webpack-plugin','esbuild'].map(name=>require.resolve(name+'/package.json'));
 const buildIdentity=()=>sha256(JSON.stringify([...BUILD_INPUTS.map(file=>{const actual=path.join(FRAMEWORK,file);return [file,sha256(safeRead(FRAMEWORK,actual,Math.min(fs.lstatSync(actual).size,4*1024*1024)).bytes)];}),...toolFiles.map(file=>[path.basename(path.dirname(file)),sha256(fs.readFileSync(file))])]));
@@ -168,10 +170,11 @@ export class LocalDevResolver{
     const preparationToken=this.preparation.token(bindingId);
     if(buildIdentity()!==this.buildIdentity)throw devError('E_DEV_TOOL_CHANGED','Build tools changed; restart the local connection');
     if(identity.isSymbolicLink()||String(identity.dev)+':'+String(identity.ino)!==binding.rootIdentity)throw devError('E_PROJECT_CHANGED','Bound root was replaced; explicitly attach again');
-    const snapshot=createSnapshot(binding.root),locks=createSnapshot(binding.root,{maxBytes:2*1024*1024+128*1024,maxFiles:2}),
+    const snapshot=createSnapshot(binding.root),frames=createSnapshot(binding.root,{maxBytes:PAGE_FRAME_RESOURCES_LIMITS.totalBytes,maxFiles:PAGE_FRAME_RESOURCES_LIMITS.count}),locks=createSnapshot(binding.root,{maxBytes:2*1024*1024+128*1024,maxFiles:2}),
       dependencies=createSnapshot(binding.root,{maxBytes:2*1024*1024,maxFiles:1024,lockedCache:true}),helpers=new Map();
     const readProjectFile=(file,limit)=>["package-lock.json",REMOTE_LOCK_FILE].includes(file)?locks.read(file,limit):
-      file.startsWith(REMOTE_CACHE_DIR+'/')?dependencies.read(file,limit):snapshot.read(file,limit);let pkg,project,sourceUtf8,sourceMapUtf8=null;
+      file.startsWith(REMOTE_CACHE_DIR+'/')?dependencies.read(file,limit):framePaths.has(file)?frames.read(file,limit):snapshot.read(file,limit);
+    const framePaths=new Set();let pkg,project,sourceUtf8,sourceMapUtf8=null;
     if(binding.single){
       sourceUtf8=utf8(snapshot.read(path.basename(binding.path),65536),path.basename(binding.path));
       staticOnly(sourceUtf8,path.basename(binding.path),'script',binding.runtimeKind==='controller'||binding.entryFormat==='async-main');
@@ -180,8 +183,9 @@ export class LocalDevResolver{
       if(binding.runtimeKind==='page-userscript')assertUserScriptExecutable(metadata,{entryFormat:binding.entryFormat,phase:'preview',dependenciesLocked:true});
       project={id:binding.bindingId,entry:path.basename(binding.path),runtimeKind:binding.runtimeKind,siteOrigins:[binding.siteOrigin]};
     }else{
-      const validated=await validateProgramProject(binding.root,{readProjectFile});
       pkg=JSON.parse(utf8(snapshot.read('package.json',65536),'package.json'));project=pkg.opendesk;
+      for(const row of Array.isArray(project?.pageFrames)?project.pageFrames:[])if(typeof row?.path==='string')framePaths.add(row.path);
+      const validated=await validateProgramProject(binding.root,{readProjectFile});
       const syntax=await Promise.all(validated.sourceFiles.map(async row=>{
         const text=row.path.endsWith('.vue')
           ?(await transformVueSFC({sourceUtf8:row.sourceUtf8,file:row.path,projectId:project.id})).code
@@ -208,7 +212,7 @@ export class LocalDevResolver{
     const identityKey=JSON.stringify({id:project.id,runtimeKind:project.runtimeKind});
     if(this.identities.has(bindingId)&&this.identities.get(bindingId)!==identityKey)throw devError('E_DEV_CONFLICT','Project ID or runtime changed; explicitly detach and attach the project');
     const helperRows=[...helpers].map(([file,bytes])=>({path:path.basename(file),sha256:sha256(bytes)}));
-    const manifest=()=>[...snapshot.manifest(),...locks.manifest(),...dependencies.manifest()].sort((a,b)=>a.path.localeCompare(b.path));
+    const manifest=()=>[...snapshot.manifest(),...frames.manifest(),...locks.manifest(),...dependencies.manifest()].sort((a,b)=>a.path.localeCompare(b.path));
     const hashInputs=(files,probes=[])=>sha256(JSON.stringify({version:VERSION,buildIdentity:this.buildIdentity,mode:'production',webpack:webpack.version,files,probes,helpers:helperRows,kind:project.runtimeKind,entryFormat:binding.entryFormat}));
     const validationHash=hashInputs(manifest()),cached=this.failures.get(bindingId)||this.cache.get(bindingId);
     validationMs=performance.now()-started;const dependencyStarted=performance.now();
@@ -223,7 +227,7 @@ export class LocalDevResolver{
     let inputHash=hashInputs(manifest(),sameGraph?cached.probes:[]),cacheHit=sameGraph&&cached?.inputHash===inputHash;
     dependencyMs=performance.now()-dependencyStarted;
     const verifyInputs=async(withHook=true)=>{
-      if(withHook)await beforeVerify?.();snapshot.verify();locks.verify();dependencies.verify();npm.verify();
+      if(withHook)await beforeVerify?.();snapshot.verify();frames.verify();locks.verify();dependencies.verify();npm.verify();
     for(const [file,bytes] of helpers){
       const root=HELPERS.includes(file)?path.dirname(UI):FRAMEWORK;
       if(!safeRead(root,file,256*1024).bytes.equals(bytes))

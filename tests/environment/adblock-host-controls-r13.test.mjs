@@ -78,6 +78,64 @@ test('two visible AdBlock panels synchronize both switches and aria after one di
   await tick();switches(a,false);switches(b,false);
 });
 
+test('missing required filtering capability never starts an optional grant',async()=>{
+  const f=fixture();let requests=0;const operations=[];
+  const current={...status(false),permissions:{dnr:false},restartRequired:true,rules:{verified:false}};
+  f.api.permissions.request=()=>{requests++;throw Error('required permission must not be requested');};
+  const panel=f.mount(async op=>{if(op!=='adblock.status')operations.push(op);return current;});
+  panel.controls.render(tool,false,true);await tick();
+  f.api.permissions.contains=async()=>false;
+  const recovery=panel.action('重新核对并清理残留广告规则');
+  assert.equal(recovery.hidden,false);assert.equal(panel.global.disabled,true);
+  recovery.listeners.click({isTrusted:false});recovery.listeners.click({isTrusted:true});await tick();
+  assert.equal(requests,0);assert.deepEqual(operations,[]);
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+  assert.match(panel.info.textContent,/必选权限.*无法单独授权.*重新加载/);
+});
+
+test('stale recovery and synthetic clicks cannot enable required-permission filtering',async()=>{
+  const f=fixture();const operations=[];
+  f.api.permissions.request=()=>{throw Error('no optional permission flow');};
+  const panel=f.mount(async op=>{operations.push(op);return {...status(false),permissions:{dnr:false},restartRequired:true,rules:{verified:false}};});
+  panel.controls.render(tool,false,true);await tick();panel.controls.render(null);
+  panel.action('重新核对并清理残留广告规则').listeners.click({isTrusted:true});
+  await tick();assert.deepEqual(operations,['adblock.status']);
+});
+
+test('bundle mismatch is actionable and clears after a fresh status or tool generation',async()=>{
+  const f=fixture();let failure=Object.assign(new Error('请在扩展管理中审阅更新；重启 Chrome 不会更新工具包'),
+    {code:'E_ADBLOCK_UPDATE_REQUIRED'}),current=status();
+  const panel=f.mount(async()=>{if(failure)throw failure;return current;});
+  const text=klass=>panel.find(node=>node.className===klass)?.textContent;
+  panel.controls.render(tool,false,true);await tick();
+  assert.equal(text('adblock-native-status-copy'),'广告拦截版本不匹配');
+  assert.equal(panel.global.disabled,true);
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+  assert.match(panel.info.textContent,/审阅更新.*重启 Chrome 不会更新工具包/);
+  assert.equal(panel.site.disabled,true);
+  assert.equal(panel.find(node=>node.textContent==='当前页面不支持过滤'),undefined);
+  failure=new Error('temporary status failure');f.change();await tick();
+  assert.equal(text('adblock-native-status-copy'),'Chrome 状态未确认');
+  assert.doesNotMatch(panel.info.textContent,/版本不匹配|审阅更新/);
+  failure=null;f.change();await tick();switches(panel,true);
+  assert.equal(panel.info.textContent,'');
+  failure=Object.assign(new Error('update required'),{code:'E_ADBLOCK_UPDATE_REQUIRED'});
+  f.change();await tick();
+  panel.controls.render({...tool,version:'1.3.1'},false,false);
+  assert.equal(text('adblock-native-status-copy'),'工具已停用，请在工具管理中启用');
+  assert.equal(panel.info.textContent,'');
+});
+
+test('pending status does not classify the current website as unsupported',async()=>{
+  const f=fixture(),pending=deferred(),panel=f.mount(()=>pending.promise);
+  panel.controls.render(tool,false,true);
+  assert.equal(panel.find(node=>node.textContent==='网站状态尚未取得')?.textContent,'网站状态尚未取得');
+  assert.equal(panel.find(node=>node.textContent==='当前页面不支持过滤'),undefined);
+  assert.equal(panel.site.disabled,true);
+  pending.resolve({...status(),currentHost:null});await tick();
+  assert.equal(panel.find(node=>node.textContent==='当前页面不支持过滤')?.textContent,'当前页面不支持过滤');
+});
+
 test('site guidance follows unavailable, globally paused, excepted and protected states',async()=>{
   const f=fixture();let current={...status(),currentHost:null};
   const panel=f.mount(async()=>structuredClone(current));
@@ -212,31 +270,24 @@ test('unknown permission status never requests or claims enabled',async()=>{
   assert.deepEqual(calls,['adblock.status']);
   assert.equal(panel.global.attributes['aria-checked'],'false');
 });
-test('permission requests stay synchronous and stale grants cannot enable another generation',async()=>{
-  const f=fixture(),grant=deferred();let requests=0;const operations=[];
-  f.api.permissions.request=()=>{requests++;f.added.emit({permissions:[ADBLOCK_PERMISSION]});
-    return grant.promise;};
+test('missing required permission cannot start a grant across generations',async()=>{
+  const f=fixture();let requests=0;const operations=[];
+  f.api.permissions.request=()=>{requests++;return Promise.resolve(true);};
   const panel=f.mount(async op=>{operations.push(op);return {...status(false),permissions:{dnr:false},rules:{verified:false}};});
   panel.controls.render(tool,false,true);await tick();
-  panel.global.listeners.click({isTrusted:false});assert.equal(requests,0);
-  panel.global.listeners.click({isTrusted:true});assert.equal(requests,1);
-  panel.controls.render(null);panel.controls.render(tool,false,true);
-  grant.resolve(true);await tick();
-  assert.equal(operations.includes('adblock.enable'),false);switches(panel,false);
+  panel.global.listeners.click({isTrusted:false});panel.global.listeners.click({isTrusted:true});
+  panel.controls.render(null);panel.controls.render(tool,false,true);await tick();
+  assert.equal(requests,0);assert.equal(operations.includes('adblock.enable'),false);
+  assert.equal(panel.global.attributes['aria-checked'],'false');
 });
 
-test('a permission event inside request still ends with a fresh read after enable',async()=>{
-  const f=fixture(),grant=deferred();let current={...status(false),permissions:{dnr:false},rules:{verified:false}},requests=0,reads=0;
-  f.api.permissions.request=()=>{requests++;f.added.emit({permissions:[ADBLOCK_PERMISSION]});
-    return grant.promise;};
-  const panel=f.mount(async op=>{
-    if(op==='adblock.enable')current=status();else reads++;
-    return structuredClone(current);
-  });
-  panel.controls.render(tool,false,true);await tick();
-  panel.global.listeners.click({isTrusted:true});assert.equal(requests,1);unknown(panel);
-  assert.equal(reads,1,'the permission event must wait for the busy action');
-  grant.resolve(true);await tick();switches(panel,true);assert.equal(reads,2);
+test('permission availability event reads state without restoring old enable intent',async()=>{
+  const f=fixture();let current={...status(false),permissions:{dnr:false},rules:{verified:false}},requests=0;
+  const operations=[];f.api.permissions.request=()=>{requests++;return Promise.resolve(true);};
+  const panel=f.mount(async op=>{operations.push(op);return current;});
+  panel.controls.render(tool,false,true);await tick();current=status(false);
+  f.added.emit({permissions:[ADBLOCK_PERMISSION]});await tick();
+  assert.equal(requests,0);assert.deepEqual(operations,['adblock.status','adblock.status']);switches(panel,false);
 });
 
 test('preview and dispose release only their own listeners and suppress stale read errors',async()=>{
@@ -254,45 +305,26 @@ test('preview and dispose release only their own listeners and suppress stale re
 });
 
 
-test('first optional DNR grant explains Chrome restart without presenting active filtering',async()=>{
+test('missing required permission explains reload without claiming filtering',async()=>{
   const f=fixture();let requests=0;
   f.api.permissions.request=()=>{requests++;return Promise.resolve(true);};
-  const panel=f.mount(async()=>({...status(false),restartRequired:true,rules:{verified:false}}));
-  panel.controls.render(tool,false,true);await tick();
-  assert.equal(panel.global.attributes['aria-checked'],'false');
-  assert.equal(panel.global.textContent,'需重启 Chrome');
-  assert.equal(panel.global.disabled,true);assert.equal(panel.site.disabled,true);
-  assert.match(panel.global.textContent,/重启 Chrome/);
-  assert.match(panel.info.textContent,/尚未开启/);
-  panel.global.listeners.click({isTrusted:false});assert.equal(requests,0);
+  const panel=f.mount(async()=>({...status(false),permissions:{dnr:false},rules:{verified:false}}));
+  panel.controls.render(tool,false,true);await tick();panel.global.listeners.click({isTrusted:true});await tick();
+  assert.equal(requests,0);assert.equal(panel.global.attributes['aria-checked'],'false');
+  assert.match(panel.info.textContent,/必选权限.*过滤保持关闭/);
 });
 
-test('first grant restart guidance does not leave a technical error across product pages',async()=>{
-  const f=fixture();let granted=false;
-  const panel=f.mount(async op=>{
-    if(op==='adblock.status')return granted?
-      {...status(false),restartRequired:true,rules:{verified:false}}:
-      {...status(false),permissions:{dnr:false},rules:{verified:false}};
-    granted=true;
-    throw Object.assign(Error('Chrome 首次批准 DNR 后需完整退出并重启浏览器，然后手动开启过滤'),
-      {code:'E_ADBLOCK_RESTART_REQUIRED'});
+test('unready required capability keeps reload guidance visible across product pages',async()=>{
+  const f=fixture();let unready=false;const panel=f.mount(async op=>{
+    if(op==='adblock.status')return unready?{...status(false),restartRequired:true,rules:{verified:false}}:status(false);
+    unready=true;throw Object.assign(Error('过滤会话尚未就绪'),{code:'E_ADBLOCK_RESTART_REQUIRED'});
   });
-  panel.controls.render(tool,false,true);await tick();
-  panel.global.listeners.click({isTrusted:true});await tick();await tick();
-  assert.equal(panel.global.disabled,true);
+  panel.controls.render(tool,false,true);await tick();panel.global.listeners.click({isTrusted:true});await tick();
   assert.equal(panel.global.attributes['aria-checked'],'false');
-  assert.match(panel.info.textContent,/权限已批准.*尚未开启.*完整退出.*重新打开/);
-  assert.doesNotMatch(panel.info.textContent,/E_ADBLOCK/);
-  assert.deepEqual(panel.notices,[],'expected restart guidance must stay in its authoritative product status');
-  assert.equal(panel.find(node=>node.textContent.includes('DNR')),undefined);
-  assert.equal(panel.find(node=>node.textContent.includes('可信宿主')),undefined);
-  assert.ok(panel.find(node=>node.textContent.includes('返回概览，在“当前网站”中开启过滤')));
-  panel.controls.toggleProductSettings();
-  assert.equal(panel.controls.view(),'settings');
-  assert.ok(panel.container.children[0].children.includes(panel.info),
-    'unresolved global protection status stays outside the page-specific content');
-  assert.match(panel.info.textContent,/全局保护.*尚未开启.*完整退出.*重新打开/);
-  assert.deepEqual(panel.notices,[],'navigating to settings must not retain a stale global error');
+  assert.match(panel.info.textContent,/尚未开启.*重新加载 OpenDesk Browser 扩展/);
+  assert.doesNotMatch(panel.info.textContent,/权限已批准|E_ADBLOCK/);
+  panel.controls.toggleProductSettings();assert.equal(panel.controls.view(),'settings');
+  assert.match(panel.info.textContent,/尚未开启.*重新加载/);assert.deepEqual(panel.notices,[]);
 });
 
 test('R1.9 trusted product cards and host-owned three-view navigation',async()=>{

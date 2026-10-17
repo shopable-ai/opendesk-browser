@@ -1,8 +1,9 @@
 // Shared, pure read-only transport contract. No Node imports or execution APIs.
 // The Native frame limit remains 60 KiB; only this versioned source transfer can
-// represent a linked Page capsule (512 KiB linked code + 4 KiB capsule header).
+// represent the existing Page capsule, including its frozen frame resources.
+import {PAGE_FRAME_SOURCE_LIMIT} from '../src/scripting/user-scripts/page-frame-resources.js';
 export const LOCAL_PROJECT_SOURCE = Object.freeze({
-  version:1,format:'opendesk.local-source.v1',maxBytes:516*1024,
+  version:1,format:'opendesk.local-source.v1',maxBytes:PAGE_FRAME_SOURCE_LIMIT,
   chunkBytes:24*1024,maxBase64Bytes:32*1024,maxTransfers:8,ttlMs:120000
 });
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);

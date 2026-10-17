@@ -18,7 +18,8 @@
     "notifications",
     "unlimitedStorage",
     "alarms",
-    "proxy"
+    "proxy",
+    "declarativeNetRequestWithHostAccess"
   ],
   "optional_permissions": [
     "bookmarks",
@@ -28,7 +29,6 @@
     "clipboardWrite",
     "tabGroups",
     "webRequest",
-    "declarativeNetRequestWithHostAccess",
     "nativeMessaging",
     "idle"
   ],

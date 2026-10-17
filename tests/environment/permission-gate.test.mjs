@@ -51,13 +51,13 @@ test('manifest and build verifier accept broad required sites and a finite API p
   assert.deepEqual(manifest.permissions,REQUIRED_BROWSER_API_PERMISSIONS);
   assert.deepEqual(manifest.optional_permissions,OPTIONAL_PLUGIN_API_PERMISSIONS);
   assert.equal(manifest.optional_host_permissions,undefined);
-  assert.equal(verifyManifest(manifest),undefined);
+  assert.equal(verifyManifest(manifest,{source:true}),undefined);
   assert(!manifest.permissions.includes('nativeMessaging'),'Native must remain a user-authorized optional permission');
   assert(manifest.optional_permissions.includes('nativeMessaging'));
   assert(manifest.permissions.every(name=>!manifest.optional_permissions.includes(name)));
   const escalated=structuredClone(manifest);
   escalated.permissions.push('nativeMessaging');
-  assert.throws(()=>verifyManifest(escalated),/required browser API/);
+  assert.throws(()=>verifyManifest(escalated,{source:true}),/required browser API/);
   for(const name of ['cookies','notifications','unlimitedStorage'])
     assert(REQUIRED_BROWSER_API_PERMISSIONS.includes(name),name+' remains an explicitly declared required API permission');
 
@@ -69,10 +69,10 @@ test('manifest and build verifier accept broad required sites and a finite API p
   assert(!manifest.optional_permissions.includes('proxy'),'Chrome proxy cannot be optional');
   const invalid=structuredClone(manifest);
   invalid.host_permissions=['https://*/*'];
-  assert.throws(()=>verifyManifest(invalid),/default all-site/);
+  assert.throws(()=>verifyManifest(invalid,{source:true}),/default all-site/);
   const duplicated=structuredClone(manifest);
   duplicated.optional_permissions.push('cookies');
-  assert.throws(()=>verifyManifest(duplicated),/optional plugin/);
+  assert.throws(()=>verifyManifest(duplicated,{source:true}),/optional plugin/);
 });
 
 test('declared optional plugin permission requests reject unknown, required and duplicate names', () => {

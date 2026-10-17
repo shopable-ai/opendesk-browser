@@ -5,6 +5,9 @@
   "type": "module",
   "description": "ChatGPT per-answer real XMind adapter; runtime admission BLOCKED (see README)",
   "author": "OpenDesk examples",
+  "scripts": {
+    "prepare:local": "node scripts/prepare-local-resources.mjs"
+  },
   "opendesk": {
     "format": "opendesk.project.v1",
     "id": "opendesk.chatgpt-mindmap",
@@ -25,6 +28,9 @@
         "path": "assets/ui.css",
         "kind": "css"
       }
+    ],
+    "pageFrames": [
+      {"resourceId": "xmind-runtime", "path": "assets/xmind-runtime.js"}
     ]
   }
 }

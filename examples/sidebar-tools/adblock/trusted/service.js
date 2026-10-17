@@ -9,6 +9,7 @@ import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
   ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_MAX_EXCEPTIONS,ADBLOCK_OPERATIONS,
   adblockError,adblockHost,readAdblockState} from './policy.js';
 import {wantedAdblockRules,reconcileAdblockRules,clearAdblockRules} from './rules.js';
+import {adblockDnrSessionReady,adblockDnrCleanupPending,confirmAdblockDnrCleanup} from './dnr-session.js';
 import {ADBLOCK_RULE_VERSION,ADBLOCK_REQUEST_DOMAINS} from '../rules/domains.js';
 
 const PROBE='adblock.probe';
@@ -104,43 +105,8 @@ export function createAdblockService({
     }catch{fail('E_ADBLOCK_SENDER','仅当前可信扩展工具页可以探测服务');}
   }
   const permission=async()=>api.permissions.contains({permissions:[ADBLOCK_PERMISSION]});
-  // The first optional DNR grant can leave Chrome's native update queue
-  // uninitialized until a full browser restart (Chromium 551296620).
-  // storage.session survives Service Worker recreation but is cleared by a
-  // Chrome/extension restart; persistent intent never proves native readiness.
-  const DNR_SESSION_KEY='opendesk.adblock.dnr-session-ready.v1';
-  async function dnrSessionReady(){
-    const session=api.storage?.session;
-    if(typeof session?.get!=='function'||typeof session?.set!=='function')
-      fail('E_OUTCOME_UNKNOWN','Chrome storage.session 不可用，无法验证原生 DNR 会话');
-    try{
-      const row=await session.get(DNR_SESSION_KEY);
-      if(!row||typeof row!=='object'||Array.isArray(row))
-        fail('E_OUTCOME_UNKNOWN','Chrome DNR 会话记录无法读取');
-      const current=row[DNR_SESSION_KEY];
-      if(current!==undefined){
-        if(!own(current,['version','ready'])||current.version!==1||
-           typeof current.ready!=='boolean')
-          fail('E_OUTCOME_UNKNOWN','DNR 会话围栏损坏，不能确认原生规则状态');
-        return current.ready;
-      }
-      // An ungranted first observation records ready=false. An in-session
-      // optional permission grant cannot promote this fence; only a new Chrome
-      // session with native DNR available can initialize ready=true.
-      const granted=await permission();
-      if(typeof granted!=='boolean')fail('E_OUTCOME_UNKNOWN','Chrome DNR 授权读取状态未知');
-      const next={version:1,ready:granted};
-      await session.set({[DNR_SESSION_KEY]:next});
-      const readback=(await session.get(DNR_SESSION_KEY))?.[DNR_SESSION_KEY];
-      if(!own(readback,['version','ready'])||readback.version!==1||
-         readback.ready!==next.ready)
-        fail('E_OUTCOME_UNKNOWN','Chrome DNR 会话围栏写入未获读回确认');
-      return next.ready;
-    }catch(error){
-      if(error?.code==='E_OUTCOME_UNKNOWN')throw error;
-      fail('E_OUTCOME_UNKNOWN','Chrome DNR 会话存储失败，禁止继续原生操作');
-    }
-  }
+  // The installer and SW share the same first-grant/revocation fence.
+  const dnrSessionReady=()=>adblockDnrSessionReady(api);
   async function activeSite(){
     let tabs;
     try{tabs=await api.tabs.query({active:true,lastFocusedWindow:true});}catch{return null;}
@@ -160,6 +126,7 @@ export function createAdblockService({
     const hasPermission=await permission().catch(()=>
       fail('E_OUTCOME_UNKNOWN','Chrome DNR 授权读取失败'));
     if(typeof hasPermission!=='boolean')fail('E_OUTCOME_UNKNOWN','Chrome DNR 授权状态未知');
+    let cleanupPending=await adblockDnrCleanupPending(api,{ready:dnrReady,granted:hasPermission,beforeWrite});
     let validPackage=false;
     try{validPackage=Boolean(auth.tool&&await sidebarToolPackageHash(auth.tool)===await compiledPackage());}
     catch(error){
@@ -173,11 +140,14 @@ export function createAdblockService({
     if(!validPackage||!auth.enabled){
       // Extension update, uninstallation, disable and same-ID impostor all
       // retire ONLY AdBlock-owned rules. No silent startup filtering.
-      if(hasPermission&&dnrReady)await clearAdblockRules(api,{beforeWrite});
+      if(hasPermission&&dnrReady){
+        await clearAdblockRules(api,{beforeWrite});
+        await confirmAdblockDnrCleanup(api,beforeWrite);
+      }
       return {installed:validPackage,toolEnabled:validPackage&&auth.enabled,
         enabled:false,permissions:{dnr:hasPermission},exceptions:[],
         currentHost:await activeSite(),rules:{verified:hasPermission&&dnrReady,ruleIds:[]},
-        restartRequired:hasPermission!==dnrReady,
+        restartRequired:hasPermission!==dnrReady||!hasPermission&&cleanupPending,
         version:ADBLOCK_RULE_VERSION,domainCount:ADBLOCK_REQUEST_DOMAINS.length};
     }
     let state;
@@ -193,7 +163,7 @@ export function createAdblockService({
     const approvalValid=state.approvedHash===hash&&state.approvedEpoch===auth.epoch;
     if(hasPermission&&!dnrReady){
       if(operation==='adblock.enable')
-        fail('E_ADBLOCK_RESTART_REQUIRED','Chrome 首次批准 DNR 后需完整退出并重启浏览器，然后手动开启过滤');
+        fail('E_ADBLOCK_RESTART_REQUIRED','Chrome 广告过滤会话尚未就绪，请保存工作并重新加载 OpenDesk Browser 扩展，然后手动开启过滤');
       if(operation!=='adblock.status')
         fail('E_OUTCOME_UNKNOWN','Chrome DNR 尚未完成会话初始化，无法确认规则变更');
       return {installed:true,toolEnabled:true,enabled:false,
@@ -203,7 +173,7 @@ export function createAdblockService({
         restartRequired:true,version:ADBLOCK_RULE_VERSION,
         domainCount:ADBLOCK_REQUEST_DOMAINS.length};
     }
-    if(!hasPermission||!approvalValid||revoked){
+    if(!hasPermission||!approvalValid||revoked||cleanupPending){
       const next={...state,enabled:false,approvedHash:null,approvedEpoch:null};
       if(!sameStorageValue(state,next)){
         await persist(next,auth.raw,'广告拦截撤权状态');
@@ -211,7 +181,7 @@ export function createAdblockService({
       }
     }
     if(operation==='adblock.enable'){
-      if(!hasPermission)fail('E_ADBLOCK_PERMISSION','请在可信控制区批准 Chrome 广告过滤权限');
+      if(!hasPermission)fail('E_ADBLOCK_PERMISSION','扩展必选广告过滤权限不可用，请保存工作并重新加载或启用 OpenDesk Browser 扩展');
       // Only a fresh trusted click can renew a natively revoked approval.
       // A permission-onAdded event alone never clears the revoked fence.
       state={...state,enabled:true,approvedHash:hash,approvedEpoch:auth.epoch};
@@ -244,6 +214,7 @@ export function createAdblockService({
     const fresh=await permission().catch(()=>
       fail('E_OUTCOME_UNKNOWN','Chrome DNR 二次授权读取失败'));
     if(typeof fresh!=='boolean')fail('E_OUTCOME_UNKNOWN','Chrome DNR 二次授权状态未知');
+    if(!fresh)cleanupPending=await adblockDnrCleanupPending(api,{ready:dnrReady,granted:false,beforeWrite});
     if(!fresh||generation!==epoch){
       if(operation==='adblock.enable'||operation==='adblock.site.set')
         fail('E_ADBLOCK_PERMISSION','操作期间 Chrome 原生授权已变更');
@@ -263,11 +234,12 @@ export function createAdblockService({
         state=next;
       }}):
       {verified:false,ruleIds:[],reason:'native-permission-missing'};
+    if(fresh&&rules.verified)await confirmAdblockDnrCleanup(api,beforeWrite);
     if(validateHost)await validateHost();
     if(generation===epoch)revoked=false;
     return {installed:true,toolEnabled:true,enabled:state.enabled&&fresh&&rules.verified,
       permissions:{dnr:fresh},exceptions:state.exceptions,
-      currentHost:await activeSite(),rules,restartRequired:!fresh&&dnrReady,version:ADBLOCK_RULE_VERSION,
+      currentHost:await activeSite(),rules,restartRequired:!fresh&&(dnrReady||cleanupPending),version:ADBLOCK_RULE_VERSION,
       domainCount:ADBLOCK_REQUEST_DOMAINS.length,refreshRequired:operation==='adblock.site.set'||
       operation==='adblock.site.restore'};
   }
@@ -317,9 +289,11 @@ export function createAdblockService({
       const dnrReady=await dnrSessionReady();
       const auth=await authority({beforeWrite,dnrReady});
       if(!auth.tool||!auth.enabled||message.installEpoch!==auth.epoch||
-         await sidebarToolPackageHash(auth.tool)!==message.packageHash||
-         await compiledPackage()!==message.packageHash)
+         await sidebarToolPackageHash(auth.tool)!==message.packageHash)
         fail('E_TOOL_CHANGED','AdBlock 工具包版本、安装状态或撤权 Epoch 已改变');
+      if(await compiledPackage()!==message.packageHash)
+        fail('E_ADBLOCK_UPDATE_REQUIRED',
+          '已安装的广告拦截与当前扩展内置版本不匹配，请在扩展管理中审阅更新；重启 Chrome 不会更新工具包');
       if(!own(message.payload,message.operation==='adblock.site.set'?['host','filtering']:
          message.operation==='adblock.site.restore'?['host']:[]))
         fail('E_ADBLOCK_REQUEST','不允许的广告操作参数');

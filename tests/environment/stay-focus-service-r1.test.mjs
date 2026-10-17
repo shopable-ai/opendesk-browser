@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createStayFocusService} from '../../src/stay-focus/service.js';
+import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../src/stay-focus/lifecycle.js';
 import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../src/stay-focus/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
@@ -17,8 +18,8 @@ function fixture(){
   const stored=new Map([[SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{}],
     [TOOL_REVOCATION_EPOCHS_STORE,{['stay-focus']:'epoch-1'}]]);
   const session=new Map(),alarms=new Map();
-  let clock=at,allowed=true,idle='active',focused=true,tabUrl='https://example.com/watch';
-  const rules=[],tabUpdates=[],nativeOps=[],pageMessages=[];
+  let clock=at,allowed=true,dnrAllowed=true,ruleReads=0,idle='active',focused=true,tabUrl='https://example.com/watch';
+  const rules=[],tabUpdates=[],nativeOps=[],pageMessages=[],permissionRemovals=[];
   const chromeStorage=map=>({
     async get(arg){const keys=Array.isArray(arg)?arg:arg===null?[...map.keys()]:[arg];
       return Object.fromEntries(keys.filter(key=>map.has(key)).map(key=>[key,structuredClone(map.get(key))]));},
@@ -31,7 +32,9 @@ function fixture(){
         frameId:0,incognito:false}]},
     storage:{local:chromeStorage(stored),session:chromeStorage(session)},
     permissions:{contains:async({permissions,origins})=>
-      Boolean(origins?.length)||Boolean(permissions?.length)&&allowed},
+      Boolean(origins?.length)||Boolean(permissions?.length)&&permissions.every(name=>
+        name==='declarativeNetRequestWithHostAccess'?dnrAllowed:name==='idle'&&allowed),
+      remove:async options=>{permissionRemovals.push(options);return true;}},
     idle:{queryState:async()=>idle},
     windows:{getLastFocused:async()=>({id:1,focused,type:'normal',incognito:false})},
     tabs:{query:async filter=>filter?.active===true?[{id:42,windowId:1,url:tabUrl,incognito:false}]:
@@ -41,7 +44,7 @@ function fixture(){
       update:async(id,options)=>{tabUpdates.push({id,...options});tabUrl=options.url;return {id,url:tabUrl};}},
     alarms:{get:async name=>alarms.get(name),create:async(name,options)=>{alarms.set(name,options);},
       clear:async name=>{alarms.delete(name);return true;}},
-    declarativeNetRequest:{getDynamicRules:async()=>structuredClone(rules),
+    declarativeNetRequest:{getDynamicRules:async()=>{ruleReads++;return structuredClone(rules);},
       updateDynamicRules:async({addRules=[],removeRuleIds=[]})=>{
         nativeOps.push({addRules:structuredClone(addRules),removeRuleIds:[...removeRuleIds]});
         for(const id of removeRuleIds){const index=rules.findIndex(rule=>rule.id===id);if(index>=0)rules.splice(index,1);}
@@ -52,9 +55,10 @@ function fixture(){
   const focus=createStayFocusService({api,lockManager,now:()=>clock});
   const msg=async(operation,payload={})=>({protocol:FOCUS_PROTOCOL,toolId:'stay-focus',operation,payload,
     packageHash:await focusPackageHash(tool),installEpoch:'epoch-1'});
-  return {tool,sender,stored,session,alarms,rules,tabUpdates,nativeOps,pageMessages,api,focus,msg,
+  return {tool,sender,stored,session,alarms,rules,tabUpdates,nativeOps,pageMessages,permissionRemovals,api,focus,msg,
     get clock(){return clock;},setTime:value=>{clock=value;},
-    setAllowed:value=>{allowed=value;},setIdle:value=>{idle=value;},
+    get ruleReads(){return ruleReads;},
+    setAllowed:value=>{allowed=value;},setDnrAllowed:value=>{dnrAllowed=value;},setIdle:value=>{idle=value;},
     setFocused:value=>{focused=value;},
     setUrl:value=>{tabUrl=value;},get url(){return tabUrl;}};
 }
@@ -72,6 +76,63 @@ test('trusted sender and exact package hash/epoch are mandatory for all mutation
   assert.equal(saved.sites[0].host,'example.com');
   assert.equal(f.rules.length,0,'site editing without enable cannot install DNR rules');
 });
+test('required DNR and optional idle availability do not enable Stay Focus',async()=>{
+  const f=fixture();
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
+  const state=await f.focus.tick({boot:true});
+  assert.deepEqual(state.permissions,{idle:true,dnr:true,ready:true});
+  assert.equal(state.enabled,false);
+  assert.equal(state.ruleReceipt.verified,true);
+  assert.equal(f.rules.length,0);
+  assert.equal(f.alarms.size,0);
+  f.setAllowed(false);
+  await assert.rejects(f.focus.dispatch(await f.msg('focus.enable'),f.sender),error=>
+    error.code==='E_FOCUS_PERMISSION'&&/空闲检测/.test(error.message)&&!/DNR/.test(error.message));
+  f.setAllowed(true);f.setDnrAllowed(false);
+  await assert.rejects(f.focus.dispatch(await f.msg('focus.enable'),f.sender),error=>
+    error.code==='E_FOCUS_PERMISSION'&&/必需.*DNR/.test(error.message));
+  assert.equal(f.stored.get(FOCUS_STORE).enabled,false);
+  assert.equal(f.rules.length,0);
+});
+for(const operation of ['focus.disable','focus.clear','tool.disable','tool.uninstall']){
+  for(const persistRemoval of [true,false])test(operation+' verifies owned cleanup with shared DNR; persisted='+persistRemoval,async()=>{
+    const f=fixture(),foreign={id:741000,priority:1,action:{type:'block'},condition:{urlFilter:'ads.example'}};
+    await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
+    await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+    f.rules.push(foreign);
+    const beforeReads=f.ruleReads,beforeWrites=f.nativeOps.length;
+    if(!persistRemoval)f.api.declarativeNetRequest.updateDynamicRules=async options=>{f.nativeOps.push(options);};
+    const removed=[];
+    const run=async()=>{
+      if(operation==='tool.disable')return stopStayFocusForTool(f.api,'stay-focus');
+      if(operation==='tool.uninstall')return cleanupUninstalledStayFocus(f.api,'stay-focus',async(api,key)=>{
+        removed.push(key);await api.storage.local.remove(key);
+      });
+      return f.focus.dispatch(await f.msg(operation,operation==='focus.clear'?{confirm:true}:{}),f.sender);
+    };
+    if(persistRemoval){
+      const result=await run();
+      assert.deepEqual(f.rules,[foreign],'AdBlock rules must survive Focus cleanup');
+      if(operation.startsWith('focus.')){
+        assert.equal(result.enabled,false);
+        assert.deepEqual(result.ruleReceipt,{changed:true,ruleIds:[],verified:true});
+        await f.focus.tick({boot:true});
+        assert.deepEqual(f.rules,[foreign],'required DNR cannot restart stopped Focus');
+      }
+      assert.deepEqual(removed,operation==='tool.uninstall'?[FOCUS_STORE]:[]);
+    }else{
+      await assert.rejects(run(),{code:'E_FOCUS_DNR_MISMATCH'});
+      assert.equal(f.rules.length,2,'failed deletion remains visible for retry');
+      assert.deepEqual(removed,[],'uninstall must preserve policy until rules are confirmed absent');
+      assert.equal(f.stored.has(FOCUS_STORE),true);
+    }
+    assert.ok(f.ruleReads>=beforeReads+2,'cleanup reads native rules before and after deletion');
+    assert.deepEqual(f.nativeOps[beforeWrites].removeRuleIds,[730000]);
+    assert.deepEqual(f.nativeOps[beforeWrites].addRules,[]);
+    assert.deepEqual(f.permissionRemovals,[],'Focus cleanup must never remove shared Chrome permission');
+    assert.equal(await f.api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}),true);
+  });
+}
 test('quota spends foreground Chrome time; real rule readback and existing tab remediation are recorded',async()=>{
   const f=fixture();
   await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com')}),f.sender);
@@ -128,7 +189,10 @@ test('removal, tool disable, permission revoke and uninstall reconcile only rese
   await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
   await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
   assert.equal(f.rules.length,1);
-  f.setAllowed(false);f.focus.invalidate({revoke:true});await f.focus.tick();
+  f.setAllowed(false);f.focus.invalidate({revoke:true});const revoked=await f.focus.tick();
+  assert.deepEqual(revoked.permissions,{idle:false,dnr:true,ready:false});
+  assert.equal(f.rules.length,0,'idle revocation immediately clears owned rules while required DNR remains');
+  assert.equal(revoked.ruleReceipt.verified,true);
   assert.equal((await f.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE].enabled,false);
   f.setAllowed(true);await f.focus.tick();
   assert.equal(f.rules.length,0,'rules cleared on native regrant after revoked authority');
@@ -293,7 +357,7 @@ test('R3.2 worker probe checks live sender and runtime without installing or gra
   assert.equal(result.protocol,FOCUS_PROTOCOL);
   assert.equal(result.serviceVersion,FOCUS_SERVICE_VERSION);
   assert.equal(result.serviceReady,true);
-  assert.deepEqual(result.permissions,{idle:false,dnr:false,ready:false});
+  assert.deepEqual(result.permissions,{idle:false,dnr:true,ready:false});
   assert.equal(f.rules.length,0);
   assert.equal(f.stored.has(FOCUS_STORE),false,'read-only probe may not create policy');
   assert.equal(f.alarms.size,0,'read-only probe must not arm an alarm');

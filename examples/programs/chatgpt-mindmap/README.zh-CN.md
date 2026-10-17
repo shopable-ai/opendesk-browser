@@ -1,5 +1,25 @@
 # ChatGPT 思维导图 R3.9.6 · 本地 XMind 已显示，核心使用流程待完善
 
+## 原目录 + opendesk-dev 最小验证（2026-10-17）
+
+当前原目录已声明公开 `pageFrames` 的 `xmind-runtime`。在仓库既有依赖已安装的环境，先执行一次：
+
+```bash
+cd examples/programs/chatgpt-mindmap
+npm run prepare:local
+opendesk browser dev "$PWD"
+```
+
+`prepare:local` 只用已有 esbuild 生成本机固定资源，不生成供手工粘贴的 program.js；原始参考资源和批准/安装状态不变。生成的 `assets/xmind-runtime.js` 与 `.opendesk-local/` 不提交。修改子帧源码或固定资源后需要重跑准备；普通父页面 UI 源码保存交给目录 Provider 自动准备，仍须在工作台明确点击运行。
+
+**2026-10-17 续修：真实原目录流程两轮通过。** Resolver 现按公开 Page 合同冻结固定资源（最多 4 项、单项 5 MiB、合计 6 MiB），复用原 builder 包装；普通源码仍用 384 KiB 输入预算。真实资源为 4,067,627 字节，首轮包装源码约 4.22 MB。Node 与 Go 维护源码的固定源码合同均已对齐现行 Page 包装上限 38,281,216 字节；仍使用原分块、SHA、冻结复核与身份绑定。更正旧判断：64 KiB 输出分支仅限 Controller，既有 builder 本就支持 `pageFrames`。
+
+本轮使用仓库既有打包器生成的当前 CLI，保持目录连接；官方脚本构建并更新 `mindmap-local-01a14949` 隔离 Native，原 CFT 隔离扩展也已更新传输合同。全局旧 CLI 和日常扩展未替换。Native 曾在打开文稿目录时阻塞；重启当前用户授权服务、重载本任务扩展后，目录已登记且真实工作台准备、主动 Run 均成功。此系统恢复操作不是正常开发的必需步骤。
+
+第一轮真实运行 Hash `e5ea038e66c93aabe6df451630aa1f4d60b426c5896a68dea8d3a029a1c951ea`。随后仅将关闭按钮改为“返回完整原文”；保存后第二轮 Run 复用自动准备产物（构建 0 次），最新 Hash `234efec852ffdc4cda270c71b1e6b521476ddc2902c7a04d7fc1ac346507ca51`，真实界面已显示新文案。两轮均原生点击最新中文公园计划下方的“思维导图”，显示真正 XMind，关闭后完整原文恢复；49 项原生 AX 正文、标题、列表标记与运行前一致。Node 定向测试 50 项、业务定向测试 17 项及 Go 维护源码 Source/Frozen 测试通过。详细身份、截图和必要运行条件见[续修记录](../../../docs/framework/workstreams/chatgpt-mindmap-local-project-capacity-20261017-01a14969.md)。仅为本地开发主流程验证，正式安装、production/F3/ZIP 等仍为 `NOT_TESTED`。
+
+前轮曾生成中文计划但未进入目录业务运行，原记录保留于[前轮工作记录](../../../docs/framework/workstreams/chatgpt-mindmap-local-project-20261017-01a14949.md)。下方手工构建流程及成功截图属于历史路径，不能替代本轮目录流程证据。
+
 ## R3.9.6 · 最新状态与续接（2026-10-17）
 
 本地独立 Mac CFT 的真实 ChatGPT 回复已通过真实 OpenDesk 开发工作台和既有固定资源通道显示真正 XMind，并原生进入导图全屏。当前图有 18 个 topic，中文可见；这仅证明实际绘制及进入全屏，不代表核心功能完成。原文同一 DOM 节点的完整 HTML/text 仍保留但被隐藏，不能据此宣称关闭恢复通过。
@@ -9,6 +29,26 @@
 先完成核心使用闭环，允许在开发环境测试，不新增生产候选、生产验收、许可搜索或边缘安全矩阵。现有静态扩展仅用于本地调试，正式 Program 仍 `BUILT_UNVERIFIED/installable:false`；不发布。下一轮直接复用当前有效资源通道，避免为业务 UI/解析问题重建扩展。
 
 可直接复制的完整续接提示词：[NEXT-CHAT-R3.9.6.zh-CN.txt](NEXT-CHAT-R3.9.6.zh-CN.txt)。本地最新证据在 `artifacts/chatgpt-mindmap-r396-local-frame-20261017/` 的 `handoff-core-state.json`、`handoff-source-state.json` 和 `handoff-actual-xmind-window.png`；以下保留按钮阶段历史，不覆盖原始结果。
+
+## 本轮实际开发方式（2026-10-17）
+
+本轮采用 **本地预编译 → 手工导入 `program.js` → Page 当前网页试运行**。没有开启工作台的「本地项目」，也没有启动 `opendesk browser dev` / `opendesk-dev` 关联业务目录。粘贴后出现「已编译程序 · 无项目源码快照」及 SHA-256、普通输入框隐藏，属于已有只读产物展示；修改仍在本地 `src/` 完成。
+
+这是为本轮固定 XMind 资源调试采用的临时路径，复用原有编译器和 Page UI 固定资源通道。日常开发仍推荐「本地项目 + 目录 CLI」，完整对比见 [本地项目开发指南](../../../docs/api/sidebar-local-projects.zh-CN.md#本地项目与手工导入编译产物的区别)。
+
+本轮 builder 为 [scripts/build-local-preview.mjs](scripts/build-local-preview.mjs)。从仓库根目录执行以下命令，`--out` 必须是尚不存在的新目录；`--compiler-root` 指向已有完整编译器目录，本机本轮复用的路径如下：
+
+```bash
+node examples/programs/chatgpt-mindmap/scripts/build-local-preview.mjs \
+  --out artifacts/chatgpt-mindmap-r396-local-frame-20261017/business-local-next \
+  --compiler-root artifacts/chatgpt-mindmap-r396-mac-20261017/loader/build-snapshot
+```
+
+该快照是本轮本机已有资源，不是其他项目的前置要求。builder 复制业务源码到输出目录的临时项目，声明 `xmind-runtime` 固定资源，输出 `build/program.js`、`build/artifact.json`、`build/program.opendesk-draft.json` 和 `local-preview.json`。原始参考资源保持原样，产物继续标记 `BUILT_UNVERIFIED/installable:false`。
+
+修改后须重新构建，再将**新的完整** `build/program.js` 导入/粘贴到「开发 → 直接编辑」，核对当前网页为测试 ChatGPT 会话，明确点击「在当前网页试运行」。这条路径不会监听源码并自动替换已导入程序；仅把当前业务目录接入本地项目，也不会自动添加 builder 在临时项目中声明的 XMind 固定资源。
+
+扩展宿主与业务程序分别处理：本轮已记录的宿主沿用独立静态目录 `artifacts/chatgpt-mindmap-r396-local-frame-20261017/build-snapshot/dist/production`，用于本地调试；这不代表已进入生产验收。日常扩展 `dist/development` 和已有 watcher 未替换。业务 UI、解析与关闭问题应先沿用有效资源通道修复，不因此重建扩展或开展生产环节。
 
 ## R3.9.6 · 按钮阶段历史结果（2026-10-17）
 

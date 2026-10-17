@@ -1,11 +1,18 @@
 // Fixed first-party Side Panel UI. Never import this module from an installed tool.
-import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE} from './policy.js';
-const GRANT_RESTART_COPY='全局保护：权限已批准，过滤尚未开启。请完整退出并重新打开 Chrome，再手动开启全局保护。';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from './policy.js';
+import {adblockDnrCleanupPending} from './dnr-session.js';
+const SESSION_RESTART_COPY='全局保护：扩展过滤能力尚未就绪，过滤尚未开启。请先保存当前工作并重新加载 OpenDesk Browser 扩展；也可完整退出并重新打开 Chrome。完成后手动开启全局保护。';
+
+export async function prepareAdblockUninstallCleanup({api,event}){
+  if(event?.isTrusted!==true)throw Object.assign(new Error('请在可信扩展页面恢复清理'),{code:'E_ADBLOCK_TRUSTED_CLICK'});
+  if(!await adblockDnrCleanupPending(api)||await api.permissions.contains({permissions:[ADBLOCK_PERMISSION]}))return;
+  throw Object.assign(new Error('广告过滤为扩展必选权限，无法单独重新授权。请保存工作并重新加载或启用 OpenDesk Browser 扩展后恢复清理；清理记录保留，过滤不会自动开启。'),{code:'E_ADBLOCK_PERMISSION'});
+}
 
 export function createAdblockPermissionControls({
   api,doc,container,notice,runOperation,onViewChange=()=>{},openToolManagement=()=>{},settingsControl=null
 }){
-  let toolKey='',visible=false,enabled=false,suspended=false,busy=false,state=null,reading=false;
+  let toolKey='',visible=false,enabled=false,suspended=false,busy=false,state=null,reading=false,readError=null;
   let sequence=0,generation=0,refreshPending=false,listening=false,view='overview';
   let exceptionsReturnView='overview',exceptionsReturnControl=null,pendingFocus=null;
   const make=(tag,klass='',value)=>{const node=doc.createElement(tag);node.className=klass;
@@ -34,6 +41,8 @@ export function createAdblockPermissionControls({
   const statusText=make('span','adblock-native-status-copy','正在核对 Chrome 规则');
   statusLine.append(statusDot,statusText);
   globalCard.append(globalRow,statusLine);overview.append(globalCard);
+  const recover=button('adblock-native-secondary','重新核对并清理残留广告规则','重新核对并清理残留规则');
+  recover.hidden=true;globalCard.append(recover);
 
   const siteCard=make('section','adblock-native-card adblock-native-site');
   siteCard.setAttribute('aria-label','当前网站');
@@ -107,7 +116,7 @@ export function createAdblockPermissionControls({
   settingsExceptions.setAttribute('data-adblock-nav','exceptions');
   manageSites.append(settingsExceptions);
   settingRow('网页异常处理','网页功能出现异常时，可临时停用当前网站过滤并刷新网页。');
-  settingRow('Chrome 权限与重启','首次批准广告过滤权限后，请完整退出并重新打开 Chrome，再手动开启全局保护。');
+  settingRow('Chrome 权限与恢复','广告过滤为扩展必选能力，工具默认关闭，不需要单独授权弹窗。关闭或卸载工具会清理自身规则并读回确认。网站访问、停用和卸载扩展由 Chrome 管理；能力不可用时先保存工作再重新加载扩展，之后手动开启过滤。');
   const manageTool=settingRow('工具管理','工具启停、版本、授权及卸载由 OpenDesk 统一管理。');
   const managementButton=button('adblock-native-secondary','打开通用工具管理','打开工具管理');
   manageTool.append(managementButton);settings.append(settingsCard);
@@ -148,30 +157,34 @@ export function createAdblockPermissionControls({
     const exceptionsList=Array.isArray(state?.exceptions)?state.exceptions:[];
     const host=typeof state?.currentHost==='string'&&state.currentHost?state.currentHost:null;
     global.textContent=!enabled?'工具已停用':!state?'状态未确认':
-      state.restartRequired?'需重启 Chrome':on?'开启':'关闭';
+      state.restartRequired?(permission?'需重新加载扩展':'需重启 Chrome'):on?'开启':'关闭';
     global.setAttribute('aria-checked',String(on));
     global.disabled=!visible||!enabled||busy||!state||
       typeof state.permissions?.dnr!=='boolean'||Boolean(state.restartRequired);
+    recover.hidden=!visible||!enabled||!state?.restartRequired||permission;
+    recover.disabled=busy||!state;
     statusLine.className='adblock-native-status'+(on?'':!state?' is-unknown':' is-off');
     statusText.textContent=!enabled?'工具已停用，请在工具管理中启用':
+      readError?.code==='E_ADBLOCK_UPDATE_REQUIRED'?'广告拦截版本不匹配':
       !state?'Chrome 状态未确认':
-      state.restartRequired?(permission?'过滤尚未开启，请完整退出并重新打开 Chrome 后手动开启':
+      state.restartRequired?(permission?'过滤尚未开启，请保存工作并重新加载扩展后手动开启':
         '权限已撤销，请完整重启 Chrome'):
       state.permissions?.dnr!==true&&state.permissions?.dnr!==false?'Chrome 权限状态未确认':
       !permission?'需要批准 Chrome 广告过滤权限':
       !state.rules?.verified?'Chrome 规则尚未通过读回验证':
       on?'已开启保护':'保护已关闭';
-    siteHost.textContent=host||'当前页面不可用';
-    siteMeta.textContent=host?'普通 HTTP(S) 网站 · '+host:'仅支持普通 HTTP(S) 网站';
+    siteHost.textContent=!state?'网站状态尚未取得':host||'当前页面不可用';
+    siteMeta.textContent=!state?'待广告拦截状态确认':host?'普通 HTTP(S) 网站 · '+host:'仅支持普通 HTTP(S) 网站';
     avatar.textContent=host?host[0].toUpperCase():'—';
     const siteOn=Boolean(host&&on&&!exceptionsList.includes(host));
     site.setAttribute('aria-checked',String(siteOn));
     site.setAttribute('aria-label',host?'网站 '+host+' 的广告过滤':'当前网站不可用');
     site.textContent=!host?'不可用':!state?'状态未确认':siteOn?'开启':'关闭';
     site.disabled=!visible||!enabled||busy||!on||!host;
-    siteHeading.textContent=host?'在此网站拦截':'当前页面不支持过滤';
-    siteScope.textContent=host?'仅影响当前域名':'请切换到普通 HTTP(S) 网站';
-    siteHelp.textContent=!host?'切换到普通 HTTP(S) 网站后，可在这里管理该网站的过滤。':
+    siteHeading.textContent=!state?'网站过滤状态未确认':host?'在此网站拦截':'当前页面不支持过滤';
+    siteScope.textContent=!state?'待广告拦截状态确认':host?'仅影响当前域名':'请切换到普通 HTTP(S) 网站';
+    siteHelp.textContent=!state?'取得广告拦截状态后，可在这里管理当前网站的过滤。':
+      !host?'切换到普通 HTTP(S) 网站后，可在这里管理该网站的过滤。':
       !on?'开启全局保护后，可单独管理当前网站的过滤。':
       siteOn?'网页显示异常时，可临时关闭当前网站过滤，再刷新网页。':
       '当前网站已停用过滤，重新开启后请刷新网页。';
@@ -200,7 +213,7 @@ export function createAdblockPermissionControls({
     if(state&&!target.disabled)target.focus?.({preventScroll:true});
   }
   const storageChanged=(changes,area)=>{
-    if(area==='local'&&Object.hasOwn(changes,ADBLOCK_STORE))void refresh();
+    if(area==='local'&&[ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE].some(key=>Object.hasOwn(changes,key)))void refresh();
   };
   const permissionsChanged=()=>{void refresh();};
   function listen(next){
@@ -213,7 +226,7 @@ export function createAdblockPermissionControls({
   async function refresh(){
     if(!visible||!enabled)return;
     const captured=++sequence;
-    state=null;paint();
+    state=null;readError=null;paint();
     if(busy||reading){refreshPending=true;return;}
     refreshPending=false;reading=true;
     try{
@@ -221,13 +234,13 @@ export function createAdblockPermissionControls({
       if(visible&&captured===sequence){
         state=data;
         report(data.restartRequired?(data.permissions?.dnr===true?
-          GRANT_RESTART_COPY:
+          SESSION_RESTART_COPY:
           '全局保护：Chrome 广告过滤权限已撤销，停止过滤尚未确认，请完整退出并重启 Chrome。'):'');
         paint();
       }
     }catch(e){
       if(visible&&captured===sequence){
-        state=null;report('状态读取失败：'+String(e.message||e),true);paint();
+        state=null;readError=e;report('状态读取失败：'+String(e.message||e),true);paint();
       }
     }finally{reading=false;if(refreshPending)void refresh();else restorePendingFocus();}
   }
@@ -261,7 +274,7 @@ export function createAdblockPermissionControls({
         // would otherwise survive navigation after the fresh status read.
         const restartRequired=e.code==='E_ADBLOCK_RESTART_REQUIRED';
         report(restartRequired?
-          GRANT_RESTART_COPY:
+          SESSION_RESTART_COPY:
           (e.code||'E_ADBLOCK')+'：'+String(e.message||e),!restartRequired);
       }
     }finally{
@@ -269,6 +282,9 @@ export function createAdblockPermissionControls({
       // newly installed tool, including when its readback resolves late.
       if(capturedGeneration===generation)finish();
     }
+  }
+  function reportMissingCapability(){
+    report('广告过滤为扩展必选权限，无法单独授权。请保存工作并重新加载或启用 OpenDesk Browser 扩展；过滤保持关闭，之后需手动开启。',true);
   }
   global.addEventListener('click',event=>{
     if(event?.isTrusted!==true||busy||!visible||!enabled||!state||
@@ -279,19 +295,23 @@ export function createAdblockPermissionControls({
     if(state.permissions.dnr===true){
       void operate('adblock.enable',{},event,focusAtDispatch);return;
     }
-    // Request the first Chrome grant synchronously, within this trusted click.
-    const captured=generation;busy=true;paint();let request;
-    try{request=api.permissions.request({permissions:[ADBLOCK_PERMISSION]});}
-    catch(e){report('Chrome 授权请求失败：'+String(e.message||e),true);finish();return;}
-    void Promise.resolve(request).then(granted=>{
+    reportMissingCapability();
+  });
+  recover.addEventListener('click',async event=>{
+    if(event?.isTrusted!==true||busy||!visible||!enabled||!state?.restartRequired||
+      state.permissions?.dnr!==false)return;
+    // Recovery requests permission only to clear rules. It never enables filtering.
+    const captured=generation;
+    busy=true;paint();
+    try{
+      const granted=await api.permissions.contains({permissions:[ADBLOCK_PERMISSION]});
       if(captured!==generation)return;
-      if(!granted)throw Error('未批准 Chrome 广告过滤权限，保护保持关闭');
-      busy=false;return operate('adblock.enable',{},event,focusAtDispatch);
-    }).catch(e=>{
-      if(captured!==generation)return;
-      state=null;report(String(e.message||e),true);
-      finish();
-    });
+      busy=false;
+      if(granted===true)await operate('adblock.disable',{},event);
+      else reportMissingCapability();
+    }catch(error){
+      if(captured===generation)report('清理状态读取失败：'+String(error.message||error),true);
+    }finally{if(captured===generation)finish();}
   });
   site.addEventListener('click',event=>{
     if(event?.isTrusted!==true||!state?.currentHost||!state?.enabled)return;
@@ -303,7 +323,7 @@ export function createAdblockPermissionControls({
     const nextKey=active?tool.id+'@'+tool.version:'';
     const changed=nextKey!==toolKey||enabled!==Boolean(active&&toolEnabled);
     if(changed){
-      listen(false);sequence++;generation++;refreshPending=false;busy=false;pendingFocus=null;state=null;report('');
+      listen(false);sequence++;generation++;refreshPending=false;busy=false;pendingFocus=null;state=null;readError=null;report('');
       view='overview';exceptionsReturnView='overview';exceptionsReturnControl=null;
     }
     toolKey=nextKey;visible=Boolean(active);enabled=Boolean(active&&toolEnabled);

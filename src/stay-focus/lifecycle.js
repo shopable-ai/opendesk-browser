@@ -4,6 +4,8 @@ import {FOCUS_ID,FOCUS_STORE} from './policy.js';
 import {clearFocusRules} from './rule-ownership.js';
 
 export async function stopStayFocusForTool(api,toolId){
+  // DNR is a shared required permission. Clear and verify only Focus rules;
+  // never remove extension permission when stopping or uninstalling this tool.
   if(toolId===FOCUS_ID&&await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
     await clearFocusRules(api);
 }

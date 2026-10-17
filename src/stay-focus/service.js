@@ -203,8 +203,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       // A removed tool must not leave an orphan in-page reminder. On every
       // lifecycle boot/revocation, clear displays without touching other tools.
       if(boot||wasRevoked)await clearPageNotices(api);
-      // A never-installed tool must not require the optional DNR permission.
-      // Chrome removes associated rules on a native permission revocation.
+      // Required DNR is shared with other tools; only retire our owned rules.
+      // Retain the missing-permission guard for an incompatible runtime.
       if(await api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}))
         await clearFocusRules(api);
       // A retired tool should not broadcast a clear to every tab forever.
@@ -264,7 +264,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(operation!=='focus.status'){
       if(!auth.enabled)throw focusError('工具已停用','E_TOOL_DISABLED');
       if(operation==='focus.enable'){
-        if(!permissions.ready)throw focusError('需在可信设置中批准 DNR 和空闲检测','E_FOCUS_PERMISSION');
+        if(!permissions.dnr)throw focusError('当前扩展缺少必需的 DNR 权限，请更新或重新加载扩展','E_FOCUS_PERMISSION');
+        if(!permissions.idle)throw focusError('需在可信设置中批准空闲检测','E_FOCUS_PERMISSION');
         state.authorizedHash=hash;state.authorizedEpoch=auth.epoch;
       }
       state=mutate(state,operation,payload,at);
@@ -296,9 +297,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     }
     // Durable policy is authoritative; DNR is a materialized, reconcilable view.
     const desired=state.enabled&&fresh.ready?wantedFocusRules(state,at):[];
-    // Without the optional native permission even read-only DNR calls may be
-    // rejected. The tool must still display a permission-needed state.
-    // Chrome automatically invalidates rules when native permission is removed.
+    // Required DNR availability does not enable this tool. Keep the readback
+    // guard for incompatible runtimes, and clear owned rules when idle is gone.
     const ruleReceipt=fresh.dnr?await reconcileFocusRules(api,desired):
       {changed:false,ruleIds:[],verified:false,reason:'native-permission-missing'};
     if(state.enabled&&fresh.ready){

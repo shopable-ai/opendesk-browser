@@ -1,4 +1,4 @@
-// Native permission prompts and destructive control originate only in the
+// Optional idle permission prompts and destructive control originate only in the
 // trusted Side Panel, never from the opaque-origin tool iframe.
 import {FOCUS_ID,FOCUS_CAPABILITY} from './policy.js';
 export function createStayFocusPermissionControls({api,doc,container,notice,runOperation}){
@@ -28,16 +28,17 @@ export function createStayFocusPermissionControls({api,doc,container,notice,runO
       section=doc.createElement('section');section.id='stay-focus-trusted-settings';
       section.className='time-review-trusted-actions';
       const intro=doc.createElement('p');
-      intro.textContent='首次授权并开启后，YouTube、TikTok、Instagram 等已识别娱乐网站默认共用每日 30 分钟，且可逐站暂停。授权前不会自动限制网站；计时和 Chrome 拦截均在本机完成。';
+      intro.textContent='首次授权空闲检测并开启后，YouTube、TikTok、Instagram 等已识别娱乐网站默认共用每日 30 分钟，且可逐站暂停。开启前不会自动限制网站；计时和 Chrome 拦截均在本机完成。';
       const grant=createButton('stay-focus-enable-native','授权并开启每日娱乐总额度',event=>{
         if(!event?.isTrusted||busy||!canGrant)return;
         setBusy(true);
-        // MUST call Chrome permission request synchronously in this real click.
+        // Required DNR is shared by the extension, never an optional tool grant.
+        // MUST request optional idle synchronously in this real click.
         let approval;
-        try{approval=api.permissions.request({permissions:['idle','declarativeNetRequestWithHostAccess']});}
+        try{approval=api.permissions.request({permissions:['idle']});}
         catch(error){setBusy(false);message(error.message,true);return;}
         Promise.resolve(approval).then(ok=>{
-          if(!ok)throw new Error('未批准空闲检测或 DNR 权限，不会启动限制');
+          if(!ok)throw new Error('未批准空闲检测权限，不会启动限制');
           return runOperation('focus.enable',{},event);
         }).then(()=>message('Stay Focus 已开启，受管娱乐网站共享每日总额度，Chrome 规则将按使用时间执行。'),
           error=>message((error.code||'E_FOCUS_PERMISSION')+'：'+error.message,true))

@@ -1,3 +1,13 @@
+# AdBlock · 个人开发使用
+
+2026-10-17 权限合同：扩展以必选 `declarativeNetRequestWithHostAccess` 提供过滤能力（从原 optional 移动同一项，未新增其他 DNR 权限，未扩大 host_permissions）。权限存在不表示工具已安装或开启；安装、更新、工具授权和全局开启仍分别经过原入口。工具默认关闭，点击全局开启后才配置规则。必选 DNR 不再弹出 optional 授权框；能力缺失时保持关闭，提示先保存工作并重载/启用扩展。
+
+关闭和卸载只清理 AdBlock 自己的规则，并读回确认；无法确认时保留清理状态，不报告已关闭。Chrome 网站权限仍由 Chrome 原生机制控制；停用/卸载整个扩展按 Chrome 原生机制生效。Stay Focus 共享该必选权限，不能通过移除它来表达某个工具停用。
+
+个人开发升级使用本轮受影响的定向 Node、包身份与实际 Chrome 开关网络检查，不以完整 production/Native/release 矩阵为前置。历史 Native 撤销 optional DNR 后 70 次新请求仍阻断的 FAIL 保留，不改网络失败断言，不宣称正式发布通过；本轮产物须由当前源码重新打包并走原审阅、身份校验及安装更新链。
+
+以下为此前实现和证据记录；旧 optional 授权合同由上文替代。
+
 # OpenDesk Browser · 广告拦截 R1.2
 
 **2026-10-15：正式代码已接入 main；实际 Chrome 网络级验收以独立原生证据为准。** 不能把原型模拟数据或单元测试当作真正的广告拦截通过。
@@ -6,7 +16,15 @@
 
 在 OpenDesk Browser 的「扩展」统一列表搜索 **广告拦截**，点击安装、审阅权限，再打开工具。工具的全局开关和「当前网站」开关由浏览器固定、可信的 Side Panel 宿主创建；首次开启调用 Chrome 原生 declarativeNetRequestWithHostAccess 授权。沙箱工具仅能读取实际状态和展示「已停用的网站」列表，恢复例外要在外层可信宿主再次确认。本站规则更改后需刷新网页，以便更新主框架和子框架过滤。
 
-Chrome 首次授予可选 DNR 权限存在[已确认的初始化缺陷](https://issues.chromium.org/issues/551296620)：读规则可用，但写规则可能永久等待。本工具因此保持过滤关闭并提示完整退出、重新打开 Chrome；重启后仍须手动开启。Service Worker 单独恢复不会解除这个提示。不将权限改为强制权限，不自动重载扩展或重放操作。
+Chrome 首次授予可选 DNR 权限时，更新队列可能尚未初始化，写规则可能永久等待（[上游报告](https://issues.chromium.org/issues/551296620)）。本工具因此保持过滤关闭；保存工作并安全重新加载 OpenDesk Browser 扩展后，再手动开启，也可完整退出并重新打开 Chrome。Service Worker 单独恢复不会解除这个围栏。该段为此前 optional 合同的历史说明；本轮已获授权改为必选权限，不自动重放开启操作。
+
+上游 [RulesMonitorService](https://github.com/chromium/chromium/blob/0a9bfccf49c3cbca9e368acf7f6a9c60f74f96ba/extensions/browser/api/declarative_net_request/rules_monitor_service.cc#L521-L528) 在无有效 DNR 权限加载时跳过初始化；后续权限变化缺少对应队列和 matcher 生命周期处理。该源码属于 Chromium 158，不能冒充现场 Chrome 155/156 精确 revision 验证。外部撤权后 API 不可用不等于已有 matcher 已移除；现有 Native 的 70 次新请求继续被阻断仍为 FAIL，扩展重载不能据此宣称修复撤权。旧候选未通过原 Native/release 门禁；本轮个人开发升级另以明确授权的定向准入验证。
+
+开发修复（2026-10-17）：停用/卸载与后台共用首次授权围栏，未初始化时不会提交清理请求。已观察到的撤权清理不确定性写入本机记录，扩展重载或完整浏览器重启均不会自动把它当作规则清空；规则 API 读回确认后才解除。清理未确认时保留原卸载恢复日志和 AdBlock 状态。概览提供可信的「重新授权并清理残留规则」按钮，只申请原 DNR 权限并执行关闭，不自动开启过滤；取消授权保持未确认，重新授权后若会话未初始化仍需先保存工作并重载扩展。这是主动恢复路径，不是外部撤权立即停止过滤的修复，也不补造旧候选证据；最新按钮及恢复路径真实 Chrome 仍为 NOT_TESTED。
+
+现行权限仍为 optional。最小必选 DNR 合同候选、共享 Stay Focus 的影响及验证条件见[本轮工作记录](../../../docs/framework/workstreams/adblock-development-20261017-01a14968.md)；未获具体合同决定前，不将该候选写入 manifest 或个人 Chrome。
+
+工具已卸载时，扩展管理的「恢复清理」仍可使用：原日志确认后，由固定可信 AdBlock 回调显示“重新授权并清理”审阅，再从该确认点击同步请求 Chrome 原生权限，继续原有带锁清理。拒绝、取消或未初始化会话保留恢复记录；不会重新安装工具或开启过滤。此入口的 Node 回归通过，真实 Chrome 尚未执行。
 
 工具类型为 optional，可通过正式安装器停用、启用、卸载；没有附带另一套 Service Worker、安装器或工具路由。未安装、未获批准及已停用时不应有本工具的 Chrome 过滤副作用。
 

@@ -8,6 +8,7 @@ import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusM
   focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../src/stay-focus/model.js';
 import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../src/stay-focus/catalog.js';
 import {installStayFocusBlockedPage} from '../../src/stay-focus/blocked.js';
+import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
   from '../../src/stay-focus/rule-host.js';
 
@@ -15,6 +16,42 @@ const at=new Date(2026,9,13,12,0,0).getTime();
 const mkSite=(host,overrides={})=>({host,subdomains:true,enabled:true,mode:'limit',minutes:15,group:'',...overrides});
 const tick=(state,time,site=null,options={})=>settleFocus(state,{at:time,session:'this-browser-session',
   current:site?{host:site.host,site,tabId:3,windowId:1}:null,...options});
+test('trusted enable requests only optional idle, and denial never enables Focus',async()=>{
+  class Node{
+    constructor(){this.children=[];this.listeners={};}
+    addEventListener(type,listener){this.listeners[type]=listener;}
+    append(...children){this.children.push(...children);}
+  }
+  for(const approved of [false,true]){
+    const container=new Node(),requests=[],operations=[],notices=[];
+    const controls=createStayFocusPermissionControls({
+      api:{permissions:{request(options){requests.push(options);return Promise.resolve(approved);}}},
+      doc:{createElement:()=>new Node()},container,
+      notice:(text,error)=>notices.push({text,error}),
+      runOperation:async(operation,payload,event)=>operations.push({operation,payload,event})
+    });
+    const tool={id:'stay-focus',capabilities:['focus.control']};
+    controls.render(tool,false,false);
+    const grant=container.children[0].children.find(node=>node.id==='stay-focus-enable-native');
+    grant.listeners.click({isTrusted:true});
+    assert.equal(requests.length,0,'disabled tool cannot request native access');
+    controls.render(tool,false,true);
+    grant.listeners.click({isTrusted:false});
+    assert.equal(requests.length,0,'synthetic clicks cannot grant idle or enable Focus');
+    const click={isTrusted:true};
+    grant.listeners.click(click);
+    assert.deepEqual(requests,[{permissions:['idle']}],
+      'required shared DNR must never be requested as an optional permission');
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual(operations,approved?[{operation:'focus.enable',payload:{},event:click}]:[]);
+    assert.equal(notices.at(-1).error,!approved);
+    if(!approved){
+      assert.match(notices.at(-1).text,/空闲检测/);
+      assert.doesNotMatch(notices.at(-1).text,/DNR/);
+    }
+    assert.equal(grant.disabled,false,'control recovers after approval or denial');
+  }
+});
 test('R3.1 Stay Focus CI resolves the current package version instead of pinning old artifacts',()=>{
   const workflow=readFileSync(new URL('../../.github/workflows/stay-focus-r1.yml',import.meta.url),'utf8');
   assert.match(workflow,/examples\/sidebar-tools\/stay-focus\/tool\.config\.json/);
