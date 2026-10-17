@@ -113,9 +113,9 @@
 
 /* R5.1: destructive site clean is discoverable in the Cookie toolbar, not buried
  * in site settings. A divider separates it from daily import/export/new. */
-.cookie-app .list-toolbar{flex-wrap:nowrap;gap:4px;min-width:0}
+.cookie-app .list-toolbar{flex-wrap:wrap;gap:4px;min-width:0}
 .cookie-app .list-toolbar>strong{flex:1 1 auto;min-width:0;white-space:nowrap}
-.cookie-app .toolbar-actions{flex:0 0 auto;flex-wrap:nowrap;gap:2px}
+.cookie-app .toolbar-actions{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;gap:2px}
 .cookie-app .toolbar-actions .action-separator{margin:0 3px}
 .cookie-app .toolbar-actions .cookie-clear-action{color:var(--od-negative);border-color:transparent}
 .cookie-app .toolbar-actions .cookie-clear-action:hover:not(:disabled){background:#fff0f2;border-color:#eac4c9}
@@ -124,6 +124,7 @@
   display:grid;gap:8px;background:#fff9f9;min-width:0}
 .cookie-app .clear-confirm strong{color:#9b3546;font-size:12px}
 .cookie-app .clear-confirm p{margin:0;font-size:12px;line-height:1.5;color:#774954;overflow-wrap:anywhere}
+.cookie-app .clear-confirm .panel-actions{flex-wrap:wrap}
 .cookie-app .clear-confirm .text-btn.danger{color:#fff;background:#a23f4d;border-color:#a23f4d}
 .theme-dark .cookie-app .clear-confirm{background:#3a2531;border-color:#7b5264}
 .theme-dark .cookie-app .clear-confirm strong,.theme-dark .cookie-app .clear-confirm p{color:#ffd1d7}
