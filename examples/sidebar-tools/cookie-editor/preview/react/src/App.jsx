@@ -110,7 +110,7 @@ export default function App(){
  const [rows,setRows]=React.useState(initialRows);const [scene,setScene]=React.useState('ready');const [dark,setDark]=React.useState(false);
  const [grantBusy,setGrantBusy]=React.useState(false);const [grantError,setGrantError]=React.useState('');
  const [query,setQuery]=React.useState('');const [filter,setFilter]=React.useState('all');const [sort,setSort]=React.useState('name');const [expandedFilters,setExpandedFilters]=React.useState(false);
- const [selected,setSelected]=React.useState(null);const [draft,setDraft]=React.useState(null);const [baseline,setBaseline]=React.useState(null);const [pending,setPending]=React.useState(null);const [reveal,setReveal]=React.useState(false);
+ const [selected,setSelected]=React.useState(null);const [draft,setDraft]=React.useState(null);const [baseline,setBaseline]=React.useState(null);const [pending,setPending]=React.useState(null);const [reveal,setReveal]=React.useState(false);const [advancedOpen,setAdvancedOpen]=React.useState(false);
  const [io,setIo]=React.useState(null);const [importText,setImportText]=React.useState('');const [fileName,setFileName]=React.useState('');const [overwrite,setOverwrite]=React.useState(false);const [format,setFormat]=React.useState('json');const [includeValues,setIncludeValues]=React.useState(true);
  const [confirm,setConfirm]=React.useState(null);const [saving,setSaving]=React.useState(false);const [needsVerify,setNeedsVerify]=React.useState(false);const [skipPartition,setSkipPartition]=React.useState(false);const [flash,setFlash]=React.useState(null);const [error,setError]=React.useState('');const [failNext,setFailNext]=React.useState('');
  const [version,setVersion]=React.useState(0); const fileRef=React.useRef(null);const fileReadRef=React.useRef(0);const dragDepthRef=React.useRef(0);const [fileDragging,setFileDragging]=React.useState(false);const epochRef=React.useRef(0); const focusKey=React.useRef(null);
@@ -124,24 +124,70 @@ export default function App(){
  const clearCandidates=rows.filter(c=>c.domain===demoSite&&c.storeId==='0'&&!c.partitionKey);
  const clearKeys=()=>clearCandidates.map(identity).sort();
  const notify=(text,tone='success')=>{setFlash({text,tone});setError('');};
- const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setReveal(false);setPending(null);setError('');};
+ const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setReveal(false);setAdvancedOpen(false);setPending(null);setError('');};
  const focusAfter=id=>{focusKey.current=id;};
  React.useEffect(()=>{if(focusKey.current){const k=focusKey.current;focusKey.current=null;requestAnimationFrame(()=>document.querySelector(k)?.focus());}},[selected,version]);
  React.useEffect(()=>{if(!flash?.ephemeral)return;const timer=setTimeout(()=>setFlash(v=>v===flash?null:v),2400);return()=>clearTimeout(timer);},[flash]);
- const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
+ const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setAdvancedOpen(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
  const requestSwitch=(id)=>{if(saving||!granted)return;if(selected===id){requestClose();return;}if(selected!==null&&dirty){setPending(id);setError('');return;}openEditor(id);};
  const requestClose=()=>{if(saving)return;if(dirty){setPending('close');return;}const old=selected;resetEditor();if(old&&old!=='new')focusAfter('[data-row="'+old+'"]');else focusAfter('[data-action="new"]');setVersion(v=>v+1);};
  const discard=()=>{const p=pending;setPending(null);if(p==='close'){const old=selected;resetEditor();focusAfter(old==='new'?'[data-action="new"]':'[data-row="'+old+'"]');setVersion(v=>v+1);}else if(p!==null)openEditor(p);};
  const update=(name,value)=>{setDraft(d=>({...d,[name]:value}));setError('');setFlash(null);};
- const save=async()=>{if(!canWrite||saving||needsVerify)return;if(!dirty){requestClose();return;}
-  if(!draft.name.trim()||!draft.path.startsWith('/')){setError('请填写 Cookie 名称，路径必须以 / 开头。');return;}
-  if(selected!=='new'&&(draft.domain!==current.domain||draft.path!==current.path||draft.storeId!==current.storeId||JSON.stringify(draft.partitionKey)!==JSON.stringify(current.partitionKey))){setError('现有 Cookie 的 Domain、Path、Store 和 Partition 身份不可修改。');return;}
-  const updated={...(current||{}),...draft,name:draft.name.trim(),value:draft.valueTouched?draft.valueInput:(current?.value||''),id:current?.id||'new-'+Date.now()};
-  const clash=rows.some(r=>r.id!==selected&&identity(r)===identity(updated));if(clash){setError('同一 Domain / Path / Store / Partition 已存在此名称，请更换名称。');return;}
-  const epoch=epochRef.current;setSaving(true);setError('');await sleep(300);if(epoch!==epochRef.current)return;setSaving(false);
-  if(failNext==='save'||scene==='saveError'){setFailNext('');setError('保存失败。输入已保留，可重试。');return;}
-  if(failNext==='unknown'||scene==='unknown'){setFailNext('');setNeedsVerify(true);setError('写入结果未知。请先点击顶部刷新核对，不要直接重试。');return;}
-  setRows(prev=>selected==='new'?[updated,...prev]:prev.map(r=>r.id===selected?updated:r));resetEditor();notify('已保存 Cookie');focusAfter('[data-row="'+updated.id+'"]');setVersion(v=>v+1);
+ const save=async()=>{
+  if(!canWrite||saving||needsVerify||!draft)return;
+  let issue='';
+  if(!draft.name||draft.name.length>256||/[\s;=\x00-\x1f\x7f]/.test(draft.name))
+    issue='名称不可为空，不能包含空白、分号、等号或控制字符。';
+  else if(draft.valueInput.length>4096||/[\r\n\x00]/.test(draft.valueInput))
+    issue='Cookie 值超过 4096 字符或包含无效字符。';
+  else if(!safeDomain(draft.domain)||draft.hostOnly&&draft.domain!==demoSite)
+    issue='Domain 必须属于本站，Host-only 只能使用精确主机。';
+  else if(selected==='new'&&draft.domain.replace(/^\./,'')!==demoSite)
+    issue='当前 SDK 仅支持新建精确主机 Cookie，不支持直接写入父域。';
+  else if(!draft.path.startsWith('/')||draft.path.length>512||/[\r\n\x00]/.test(draft.path))
+    issue='Path 必须以 / 开头、长度不超过 512 且不含控制字符。';
+  else if(draft.sameSite==='none'&&!draft.secure)
+    issue='SameSite=None 必须同时开启 Secure。';
+  else if(draft.name.startsWith('__Secure-')&&!draft.secure)
+    issue='__Secure- Cookie 必须开启 Secure。';
+  else if(draft.name.startsWith('__Host-')&&(!draft.secure||!draft.hostOnly||draft.path!=='/'))
+    issue='__Host- Cookie 必须开启 Secure、使用 Host-only 且 Path=/。';
+  else if(draft.partitionKey&&!draft.secure)
+    issue='分区 Cookie 必须开启 Secure。';
+  else if(current&&(draft.domain!==current.domain||draft.path!==current.path||
+    draft.hostOnly!==current.hostOnly||draft.storeId!==current.storeId||
+    JSON.stringify(draft.partitionKey)!==JSON.stringify(current.partitionKey)))
+    issue='Domain、Path、Host-only、Store 与 Partition 均为现有 Cookie 的只读身份。';
+  const unix=draft.session?undefined:unixFromLocal(draft.expiration);
+  if(!issue&&!draft.session&&(!Number.isFinite(unix)||unix<=Date.now()/1000||unix>253402300799))
+    issue='请选择有效的未来过期时间（本地时间），不能使用过去或超出范围的日期。';
+  if(issue){setError(issue);setAdvancedOpen(true);return;}
+  if(selected!=='new'&&!dirty){requestClose();return;}
+  if(current&&!draft.valueTouched&&!canValues){
+    setError('保留旧值需要敏感值读取授权，或明确输入新值（包括空值）。');return;
+  }
+  const renamed=Boolean(current&&draft.name!==current.name);
+  const updated={...(current||{}),...draft,
+    value:draft.valueTouched?draft.valueInput:(current?.value||''),
+    expiration:draft.session?'':draft.expiration,expirationDate:unix,
+    id:current?.id||'new-'+Date.now()};
+  delete updated.valueInput;delete updated.valueTouched;
+  if(rows.some(r=>r.id!==selected&&identity(r)===identity(updated))){
+    setError('相同 Domain / Path / Store / Partition 下此名称已存在，不会覆盖。');return;
+  }
+  const epoch=epochRef.current;setSaving(true);setError('');await sleep(300);
+  if(epoch!==epochRef.current)return;setSaving(false);
+  if(failNext==='save'||scene==='saveError'){
+    setFailNext('');setError('保存失败。输入保留，可重试。');return;
+  }
+  if(failNext==='unknown'||scene==='unknown'){
+    setFailNext('');setNeedsVerify(true);
+    setError('写入结果未知。改名时可能出现新旧 Cookie 并存；请先刷新核对，不要直接重试。');return;
+  }
+  setRows(prev=>selected==='new'?[updated,...prev]:prev.map(r=>r.id===selected?updated:r));
+  resetEditor();
+  notify(renamed?'已模拟重命名；正式版须先新建、核实，再删除旧身份。':'已保存 Cookie');
+  focusAfter('[data-row="'+updated.id+'"]');setVersion(v=>v+1);
  };
  const remove=async()=>{if(!current)return;setConfirm({type:'delete',message:'精确删除「'+current.name+'」？'});};
  const runDelete=async()=>{if(!current)return;const epoch=epochRef.current;setSaving(true);await sleep(200);if(epoch!==epochRef.current)return;setRows(a=>a.filter(x=>x.id!==current.id));setSaving(false);setConfirm(null);resetEditor();notify('已删除 Cookie');};
