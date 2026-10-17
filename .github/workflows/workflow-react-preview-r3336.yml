@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'src/ui/react/tabs/workflow.tsx'
+      - 'src/ui/react/main.tsx'
+      - 'src/ui/workflow/workflow-view.js'
       - 'src/ui/react/preview/workflow-preview.tsx'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
@@ -101,3 +103,36 @@ jobs:
           console.log('R3336_VERIFIED_PREVIEW_BLOB_SHA='+result.sha);
           console.log('R3336_VERIFIED_PREVIEW_BYTES='+file.length);
           JS
+
+  workflow-package-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source check (exact candidate)
+        run: npm run check
+      - name: Workflow focused Node contracts
+        run: |
+          node --test \
+            tests/environment/react-sidebar-r333.test.mjs \
+            tests/environment/workflow-react-preview-contract.test.mjs \
+            tests/environment/workflow-ui-states.test.mjs \
+            tests/environment/workflow-focus.test.mjs \
+            tests/environment/workflow-ai-data-sharing.test.mjs \
+            tests/environment/workflow-ai-observation.test.mjs \
+            tests/environment/workflow-local-codex.test.mjs \
+            tests/environment/workflow-provider-facade.test.mjs \
+            tests/environment/workflow-direct-execution.test.mjs
+      - name: Production WXT
+        run: npm run build
+      - name: Development WXT
+        run: npm run build:dev
+      - name: Production and development verification
+        run: npm run verify
+      - name: Fixed-entry and service worker budget
+        run: npm run build:size
