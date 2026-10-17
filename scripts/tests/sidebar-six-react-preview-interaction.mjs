@@ -169,6 +169,20 @@ try{
   await click('#workflow-ai-plan');
   await until('document.getElementById("workflow-status").textContent.includes("RunHost")');
   await screenshot('workflow-preview-feedback-360');
+  await click('#workflow-provider-toggle');
+  await until('!document.querySelector(".workflow-sheet-overlay").hidden');
+  await click('#workflow-source-https');
+  await until('document.getElementById("workflow-source-https").getAttribute("aria-pressed")==="true"');
+  await click('#workflow-ai-model');
+  await cdp('Input.insertText',{text:'gpt-preview-id'});
+  await until('document.getElementById("workflow-source-name")?.textContent==="gpt-preview-id"');
+  assert.equal(await evaluate('document.getElementById("workflow-source-name").textContent'),'gpt-preview-id',
+    'HTTPS source badge must show the configured model ID only');
+  await click('#workflow-source-local');
+  await until('document.getElementById("workflow-source-name")?.textContent==="Codex"');
+  await click('.workflow-sheet-panel button[aria-label="关闭 AI 设置"]');
+  await until('document.querySelector(".workflow-sheet-overlay").hidden');
+  await screenshot('workflow-source-codex-360');
   await click('#tab-develop');
   await until('!document.getElementById("workbench-develop").hidden');
   await click('#local-project-mode');
