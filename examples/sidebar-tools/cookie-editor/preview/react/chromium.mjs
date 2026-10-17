@@ -121,7 +121,7 @@ try{
   await page.getByRole('button',{name:'放弃',exact:true}).click();
   await page.locator('[data-row="b"]').click();
   await page.getByText('属性与高级设置').click();
-  await page.getByLabel('SameSite').selectOption('none');
+  await page.getByLabel('SameSite').selectOption('no_restriction');
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText(/SameSite=None 必须/).waitFor();
   await page.getByRole('button',{name:'取消',exact:true}).click();
