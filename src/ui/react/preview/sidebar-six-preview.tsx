@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty} from '../tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperRunStatus} from '../tabs/develop.tsx';
-import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
+import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
 import {DebugDiagnosticText} from '../tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from '../tabs/tasks.tsx';
 import {CloudOverviewText} from '../tabs/cloud.tsx';
@@ -43,6 +43,8 @@ const developerDock=get('develop-dock').querySelector('.dock-buttons');
 const developerStatus=get('script-status');
 const workflowHeader=get('workflow-editor').querySelector('.workflow-head-actions');
 const workflowTranscript=get('workflow-ai-transcript');
+const workflowHistoryHost=get('workflow-history-react-host');
+const workflowSourceHost=get('workflow-source-react-host');
 const workflowSheetHost=get('workflow-settings-react-host');
 const workflowSettings=get('workflow-provider-settings');
 const debugIds={
@@ -55,7 +57,7 @@ if(!toolbar||!developerChoices||!developerDock||!workflowHeader)throw Error('E_S
 for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,toolFrame,
   myCount,myRows,myDetail,...Object.values(cloudNodes),
   developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript,
-  ...Object.values(debugNodes)])
+  workflowHistoryHost,workflowSourceHost,...Object.values(debugNodes)])
   node.replaceChildren();
 const sampleExtensions=Object.freeze([
   {key:'preview-app',kind:'app',type:'应用',title:'示例工具（仅预览）',
@@ -130,6 +132,11 @@ function Preview(){
   const previousRoute=React.useRef('');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
+  const [workflowSource,setWorkflowSource]=React.useState('Codex');
+  const [workflowDraft,setWorkflowDraft]=React.useState('');
+  const [workflowConversationCleared,setWorkflowConversationCleared]=React.useState(false);
+  const [workflowNewReview,setWorkflowNewReview]=React.useState(false);
+  const [workflowFeedback,setWorkflowFeedback]=React.useState('');
   const [notice,setNotice]=React.useState('');
   const [extensionRecords,setExtensionRecords]=React.useState(sampleExtensions);
   const [importOpen,setImportOpen]=React.useState(false);
@@ -190,7 +197,7 @@ function Preview(){
       actions,busy:!!extensionReview,suspended:scene==='denied'||row.suspended===true,
       cleanupPending:false};
   })();
-  const transcript=messages[scene]||[];
+  const transcript=workflowConversationCleared?[]:(messages[scene]||[]);
   const allTaskRows=scene==='empty'||scene==='loading'?[]:[
     {taskId:'preview-task',title:'示例自动化（仅预览）',
       description:'来自原 TaskWorkbench 的任务资料投影',enabled:scene!=='denied'},
@@ -299,7 +306,12 @@ function Preview(){
     get('cloud-approval-section').hidden=!['ready','approval'].includes(cloudScenario);
     get('cloud-request-detail').hidden=!cloudDetailOpen;
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
-  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,transcript.length,detail,taskMode,
+    get('workflow-editor').dataset.historyOpen=String(history);
+    get('workflow-new-review').hidden=!workflowNewReview;
+    const workflowStatus=get('workflow-status');
+    workflowStatus.textContent=workflowFeedback;
+    workflowStatus.hidden=!workflowFeedback;
+  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,detail,taskMode,
     opened,openToolKey,toolSettingsOpen,projectMode,projectSelection,projectFeedback,
     importOpen,importCandidate,importError,extensionReview,extensionRecords]);
   React.useEffect(()=>{
@@ -486,6 +498,38 @@ function Preview(){
     for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
     return ()=>{open.remove();for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
   },[]);
+  // Offline workflow adapter: the *same* formal React portals and DOM hosts.
+  // Actions never read saved revisions, approve permissions or invoke Provider/RunHost.
+  React.useEffect(()=>{
+    const provider=get('workflow-ai-provider'),model=get('workflow-ai-model');
+    const draft=get('workflow-ai-request');
+    const refreshSource=()=>setWorkflowSource(provider.value==='local_codex'?'Codex':
+      ['cloud_responses','custom_https'].includes(provider.value)?model.value.trim():'');
+    const draftEdited=()=>setWorkflowDraft(draft.value);
+    const explainSend=()=>setWorkflowFeedback(
+      '仅预览工作流界面。发送和执行需要正式扩展的 Provider、授权和 RunHost。');
+    const keepDraft=()=>{setWorkflowNewReview(false);setWorkflowFeedback('已保留未发送草稿。');};
+    const discardDraft=()=>{
+      draft.value='';setWorkflowDraft('');setWorkflowNewReview(false);
+      setWorkflowConversationCleared(true);setHistory(false);
+      setWorkflowFeedback('已切换到演示空工作流；没有更改任何真实版本。');
+    };
+    provider.addEventListener('change',refreshSource);
+    model.addEventListener('input',refreshSource);
+    draft.addEventListener('input',draftEdited);
+    get('workflow-ai-plan').addEventListener('click',explainSend);
+    get('workflow-new-cancel').addEventListener('click',keepDraft);
+    get('workflow-new-discard').addEventListener('click',discardDraft);
+    refreshSource();draftEdited();
+    return ()=>{
+      provider.removeEventListener('change',refreshSource);
+      model.removeEventListener('input',refreshSource);
+      draft.removeEventListener('input',draftEdited);
+      get('workflow-ai-plan').removeEventListener('click',explainSend);
+      get('workflow-new-cancel').removeEventListener('click',keepDraft);
+      get('workflow-new-discard').removeEventListener('click',discardDraft);
+    };
+  },[]);
   React.useEffect(()=>{
     doc.documentElement.dataset.sidebarPreviewReady='true';
     window.__sidebarPreviewInfo=Object.freeze({sourceBound:true,tabs:6,
@@ -505,7 +549,7 @@ function Preview(){
         <option value="unpaired">未配对</option><option value="ready">已连接（演示）</option>
         <option value="approval">待授权</option><option value="disconnected">断线</option>
         <option value="error">异常</option><option value="unknown">结果未知</option>
-      </select></label>:<label>状态 <select data-preview-scenario value={scene} onChange={event=>setScene(event.target.value)}>
+      </select></label>:<label>状态 <select data-preview-scenario value={scene} onChange={event=>{setScene(event.target.value);setWorkflowConversationCleared(false);}}>
         <option value="normal">普通</option><option value="empty">空状态</option>
         <option value="loading">加载</option><option value="running">运行中</option>
         <option value="error">错误</option><option value="denied">权限拒绝</option>
@@ -582,9 +626,32 @@ function Preview(){
       saveLabel:projectMode?'安装固定版本':'保存版本',stopLabel:'停止'}}/>,developerDock)}
     {createPortal(<WorkflowHeader model={{
       saved:false,busy:scene==='loading',planning:scene==='loading',
-      historyExpanded:history,sessionHint:'新对话（预览）'}}
-      actions={{onHistory:()=>{setHistory(v=>!v);get('workflow-manage-panel').hidden=history;},
-        onNewSession:()=>setScene('empty'),onNewWorkflow:()=>setScene('empty')}}/>,workflowHeader)}
+      historyExpanded:history,sessionHint:'新对话（仅预览）'}}
+      actions={{
+        onHistory:()=>{setHistory(open=>!open);setWorkflowNewReview(false);
+          get('workflow-manage-panel').hidden=true;},
+        onNewSession:()=>{setHistory(false);setWorkflowConversationCleared(true);
+          setWorkflowFeedback('演示对话已清空；不删除或重新执行真实工作流。');},
+        onNewWorkflow:()=>{
+          setHistory(false);
+          if(workflowDraft.trim()){
+            setWorkflowNewReview(true);
+            setWorkflowFeedback('未发送草稿尚未保存，请选择继续编辑或放弃。');
+          }else{
+            setWorkflowConversationCleared(true);
+            setWorkflowFeedback('已打开演示空工作流；没有创建或删除真实版本。');
+          }
+        },
+        onOpenSavedHistory:()=>setWorkflowFeedback(
+          '这是只读演示条目。正式打开须通过 WorkflowView 验证版本、来源与源码哈希。')
+      }}/>,workflowHeader)}
+    {createPortal(<WorkflowHistory model={{open:history,canResume:false,busy:false,
+      rows:[{key:'preview-only',title:'演示工作流（仅预览）',
+        fullTitle:'无真实保存记录，不可作为已验证的修订版',
+        savedText:'预览条目 · 没有真实版本或哈希'}]}}
+      actions={{onOpenSavedHistory:()=>setWorkflowFeedback(
+        '预览无法加载工作流；正式打开会先核对来源、版本及源码哈希。')}}/>,workflowHistoryHost)}
+    {createPortal(<WorkflowSourceName value={workflowSource}/>,workflowSourceHost)}
     {createPortal(<WorkflowTranscript rows={transcript}/>,workflowTranscript)}
     {Object.entries(debugNodes).map(([key,node])=>
       createPortal(<DebugDiagnosticText value={debugPreview[key]}/>,node,key))}
