@@ -100,7 +100,7 @@ async function tocMouseClick(page,target,shadow,selector,iframeRect){
 test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inner UI',{timeout:120000},async t=>{
  assert(binary,'Chrome for Testing is required: no mock PREVIEW_PASS');
  const profile=await mkdtemp(join(tmpdir(),'toc-r14-chrome-'));
- const chrome=spawn(binary,['--headless=new','--window-size=1280,900','--no-sandbox','--disable-gpu',
+ const chrome=spawn(binary,['--headless=new','--window-size=1280,1500','--no-sandbox','--disable-gpu',
   '--disable-dev-shm-usage','--no-proxy-server','--no-first-run',
   '--disable-background-networking','--site-per-process','--remote-allow-origins=*',
   '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
@@ -133,9 +133,10 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   await until(()=>evaluate(page,'Boolean(document.querySelector("#opendesk-preview-frame")?.srcdoc)'),'Preview iframe missing');
   return {page,targetId};
  }
- async function screenshot(page,file){
+ async function screenshot(page,file,clip=null){
   await mkdir(resolve('artifacts/reading-toc-r41'),{recursive:true});
-  const result=await page.send('Page.captureScreenshot',{format:'png'});
+  const result=await page.send('Page.captureScreenshot',{format:'png',
+   ...(clip?{clip:{...clip,scale:1},captureBeyondViewport:true}:{})});
   const bytes=Buffer.from(result.data,'base64');
   await writeFile(resolve('artifacts/reading-toc-r41',file),bytes);
   return createHash('sha256').update(bytes).digest('hex');
@@ -264,7 +265,8 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  for(const label of ['周末城市公园活动计划','行程时间安排','交通与预算','雨天备选'])
   assert(markup.includes(label),'missing answer title inside closed shadow DOM: '+label);
  assert.equal((markup.match(/data-id="h-25"/g)||[]).length,1,'second answer duplicate heading lost');
- const imageHash=await screenshot(overlay.page,'toc-r186-three-answers-visible.png');
+ const imageHash=await screenshot(overlay.page,'toc-r186-three-answers-visible.png',
+  {x:frameRect.left,y:frameRect.top,width:frameRect.width,height:frameRect.height});
  await tocMouseClick(overlay.page,trusted,shadow,'button[data-id="h-25"]',frameRect);
  await until(()=>evaluate(overlay.page,
   'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：出行路线")'),
