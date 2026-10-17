@@ -15,6 +15,7 @@ import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
 import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/style.css?raw';
+import './tabs/bookmark-pilot.css';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
