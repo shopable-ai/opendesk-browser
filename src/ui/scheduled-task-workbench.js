@@ -983,7 +983,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const q=get('schedule-manager-search').value.trim().toLowerCase();
     const rows=installed.filter(row=>(filter==='all'||row.enabled===(filter==='enabled'))&&
       [row.taskId,candidate(row)?.manifest?.title||''].some(value=>value.toLowerCase().includes(q)));
-    text(get('schedule-manager-count'),'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
+    const total=get('schedule-manager-count');
+    if(total)text(total,'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
     if(!rows.length){
       parent.append(element(doc,'p','task-search-empty',
         installed.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。'));
