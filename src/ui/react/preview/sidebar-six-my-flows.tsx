@@ -90,7 +90,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-create').hidden=view!=='list';
     get('schedule-open-runner').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
-    get('schedule-manager-back').hidden=view!=='manager';
+    get('schedule-manager-back').hidden=true; // One authoritative back button in Header.
     get('schedule-save-confirm').hidden=!pending;
     get('schedule-discard-confirm').hidden=!dirtyConfirm;
     get('schedule-list-summary').textContent=plans.length+' 个内存演示计划 · 未注册调度';
@@ -285,8 +285,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         (managerFilter==='all'||(managerFilter==='enabled'&&p.enabled)||
           (managerFilter==='disabled'&&!p.enabled))).map(p=>
         <p key={p.taskId}>{p.title} · {p.enabled?'启用':'已停用'} · 只读</p>)}
-      <button type="button" className="od-button od-button--secondary"
-        onClick={()=>setView('form')}>返回编辑</button>
+      {/* Header back is the single route to the editor; no duplicate body action. */}
     </div>,manager)}
   </>;
 }
