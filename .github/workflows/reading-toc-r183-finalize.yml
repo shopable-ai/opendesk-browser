@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/reading-toc-r183-finalize.yml'
+      - 'tests/environment/reading-toc-multi-answer-r183.test.mjs'
   workflow_dispatch:
 permissions:
   contents: write
