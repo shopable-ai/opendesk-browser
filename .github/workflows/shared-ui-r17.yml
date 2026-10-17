@@ -1,0 +1,77 @@
+name: Shared UI R1.7 real JSX and sandbox release
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shared-ui-r17.yml'
+      - 'examples/sidebar-tools/shared-ui-demo/**'
+      - 'src/ui/react/components/ui/card.tsx'
+      - 'src/ui/react/components/ui/switch.tsx'
+      - 'src/ui/react/components/ui/sidebar-shared.css'
+      - 'src/entrypoints/sidebar-shared-ui.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'src/ui/sidebar-tools/package.js'
+      - 'wxt.config.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tests/environment/sidebar-shared-ui-r16.test.mjs'
+      - 'tests/environment/sidebar-shared-ui-r17.test.mjs'
+      - 'scripts/tests/shared-ui-r17-preview-chrome.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: shared-ui-r17-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  real-shared-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact React and React Aria dependency lock
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile and verify fixed browser assets
+        run: npm run build:dev
+      - name: Compile the unchanged author-facing JSX source with Vite
+        run: npm run build --prefix examples/sidebar-tools/shared-ui-demo
+      - name: Run source and mandatory built-output tests (no SKIP pass)
+        run: node --test tests/environment/sidebar-shared-ui-r16.test.mjs tests/environment/sidebar-shared-ui-r17.test.mjs
+      - name: Build, promote and verify a canonical signed-source tool package
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --out artifacts/sidebar-tools/shared-ui-demo/r17-candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --promote-from artifacts/sidebar-tools/shared-ui-demo/r17-candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --check-project
+          node --input-type=module <<'NODE'
+          import {readFileSync,statSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const root='examples/sidebar-tools/shared-ui-demo/';
+          const names=[root+'shared-ui-demo.opendesk-tool.json',root+'dist/tool.js',root+'dist/tool.css','dist/development/sidebar-shared-ui.js','dist/development/libs/page-frameworks/react-19.2.0.js'];
+          const rows=names.map(path=>{const body=readFileSync(path);return {path,bytes:body.byteLength,sha256:createHash('sha256').update(body).digest('hex')}});
+          const pkg=JSON.parse(readFileSync(names[0],'utf8'));
+          if(pkg.uiRuntime!=='opendesk.react-ui.v1'||pkg.capabilities.length)throw Error('Unsafe shared demo capabilities');
+          if(/ReactCurrentDispatcher|react\.production\.js|ReactDOMRoot/.test(pkg.js))throw Error('React runtime copied inside demo');
+          if(rows[4].bytes!==193163)throw Error('Pinned published React runtime drift');
+          console.log('R17_REAL_BYTES '+JSON.stringify(rows));
+          console.log('R17_PACKAGE_PAYLOAD_START');
+          const encoded=readFileSync(names[0]).toString('base64');
+          for(let i=0;i<encoded.length;i+=4096)console.log('R17_PACKAGE_PAYLOAD_PART '+encoded.slice(i,i+4096));
+          console.log('R17_PACKAGE_PAYLOAD_END');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-ui-r17-built-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            examples/sidebar-tools/shared-ui-demo/shared-ui-demo.opendesk-tool.json
+            examples/sidebar-tools/shared-ui-demo/dist/
+            artifacts/sidebar-tools/shared-ui-demo/
+            dist/development/sidebar-shared-ui.js
+            dist/development/libs/page-frameworks/react-19.2.0.js
+            docs/framework/evidence/wxt/builds/build-development.json
