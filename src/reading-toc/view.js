@@ -266,7 +266,8 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     scroll.hidden=false;aiView.hidden=true;
     // The approved four-icon toolbar is always visible, including compact outlines.
     modes.hidden=false;
-    const compact=scoped.length<=5&&(scoped.length===0||overview?.ids?.length===scoped.length);
+    // For short outlines, default to the complete overview; an explicit mode choice still wins.
+    const compact=scoped.length<=12;
     const displayMode=readingTocDisplayMode(mode,compact,modeExplicit);
     const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
     const overviewShowsAll=scoped.length<=12;

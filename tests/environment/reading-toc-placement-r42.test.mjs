@@ -301,6 +301,8 @@ test('R1.8.4 nine-section webpage overview renders directly; AI is fail-closed a
     view.render({adapter:'article',items,activeId:'h-2',
       sources:[{id:'s-1',label:'当前文章'}],
       overview:{'s-1':{ids:['h-1','h-4','h-7'],hiddenCount:6,representedId:'h-1'}}});
+    assert.equal(list.children.length,9,'nine-heading article is complete on first render without another click');
+    assert.equal(modes[0].attributes.get('aria-pressed'),'true','short outlines default to the complete overview');
     modes[0].fire('click');
     assert.equal(list.children.length,9,'overview directly displays all nine actual sections');
     assert.equal(scroll.children.length,2,'no extra see-all button exists');

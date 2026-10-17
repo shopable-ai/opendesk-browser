@@ -163,6 +163,15 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  const overlay=await open('reading-toc-r12-overlay-preview.html'),trusted=await child(browser,overlay.page);
  await until(()=>evaluate(trusted,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'Trusted overlay failed to mount');
  const original=await evaluate(trusted,'document.querySelector("article h1").textContent');
+ // Check the closed-shadow production view at first mount, before clicking overview.
+ const nineLabels=['OpenDesk Browser 阅读指南','产品目标','安装与开始使用','常用操作',
+  '快速打开工具','按需刷新目录','多语言界面','数据安全','扩展权限说明'];
+ await until(async()=>{
+  const tree=await trusted.send('Accessibility.getFullAXTree');
+  const names=new Set(tree.nodes.filter(node=>node.role?.value==='button')
+   .map(node=>node.name?.value));
+  return nineLabels.every(label=>names.has(label));
+ },'Initial production overlay must expose all nine real headings without another mode click');
  await select(overlay.page,'od-toc-language','en');
  await until(async()=>{const tree=await trusted.send('Accessibility.getFullAXTree');
   return tree.nodes.some(node=>node.name?.value==='On-page table of contents');},
