@@ -27,6 +27,9 @@ const toolbar=get('extension-center-list-view').querySelector('.ec-toolbar');
 const extensionList=get('extension-center-list');
 const extensionDetail=get('extension-center-detail-body');
 const extensionEmpty=get('extension-center-empty');
+const importHost=get('extension-center-import-host'),importPanel=get('sidebar-tool-import');
+const actionReview=get('sidebar-tool-action-review');
+importHost.append(importPanel); // Relocate the SAME installed DOM, preview-only adapter.
 const myCount=get('task-installed-count'),myRows=get('task-installed-cards');
 const myDetail=get('task-installed-detail'),myWorkspace=get('task-selected-workspace');
 const cloudKeys={myState:'cloud-my-state',summary:'cloud-overview-state',
@@ -55,9 +58,11 @@ for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,
   node.replaceChildren();
 const sampleExtensions=Object.freeze([
   {key:'preview-app',kind:'app',type:'应用',title:'示例工具（仅预览）',
-    description:'演示真实 React 列表布局 · 无安装记录',installed:true,primaryAction:'打开'},
+    description:'仅内存演示的安装条目 · 无真实记录',installed:true,enabled:true,
+    version:'1.0.0',update:true,primaryAction:'打开'},
   {key:'preview-page',kind:'page',type:'网页增强',title:'示例网页增强（仅预览）',
-    description:'演示类型与网站授权信息 · 无真实权限',installed:false,primaryAction:''}
+    description:'演示类型与网站授权信息 · 无真实权限',installed:false,
+    version:'1',enabled:false,primaryAction:''}
 ]);
 const labels={
   normal:'仅演示 UI，不读取真实数据',
@@ -99,15 +104,44 @@ function Preview(){
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
   const [notice,setNotice]=React.useState('');
+  const [extensionRecords,setExtensionRecords]=React.useState(sampleExtensions);
+  const [importOpen,setImportOpen]=React.useState(false);
+  const [importCandidate,setImportCandidate]=React.useState(null);
+  const [importError,setImportError]=React.useState('');
+  const [extensionReview,setExtensionReview]=React.useState(null);
   const rows=React.useMemo(()=>scene==='empty'||scene==='loading'?[]:
-    sampleExtensions.filter(row=>(kind==='all'||row.kind===kind)&&
+    extensionRecords.filter(row=>(kind==='all'||row.kind===kind)&&
       (scope!=='smart'||row.installed)&&
-      (!search||[row.title,row.description,row.type].join(' ').includes(search))),[scene,kind,scope,search]);
+      (scope!=='available'||!row.installed||row.update)&&
+      (!search||[row.title,row.description,row.type].join(' ').includes(search))),
+    [scene,kind,scope,search,extensionRecords]);
   const detail=selected===null?null:(()=>{
-    const row=sampleExtensions.find(x=>x.key===selected);
-    return row?{...row,version:'UI_PREVIEW_ONLY',installationText:'离线演示，不存在安装包或固定来源',
-      source:{label:'UI_PREVIEW_ONLY'},sites:row.kind==='page'?['example.invalid（仅演示）']:[],
-      actions:[],busy:false,suspended:scene==='denied',cleanupPending:false}:null;
+    const row=extensionRecords.find(x=>x.key===selected);
+    if(!row)return null;
+    const actions=[];
+    const add=(id,label)=>actions.push({id,label,onClick:()=>setExtensionReview({
+      type:id,key:row.key,title:row.title,kind:row.kind,
+      proposedVersion:row.update?'1.0.1':row.version
+    })});
+    if(row.kind==='app'){
+      if(row.installed){
+        add('settings','设置与权限…');
+        add('toggle',row.enabled===false?'启用（预览）':'停用（预览）');
+        if(row.update)add('update','审阅新版…');
+        add('uninstall','卸载…');
+      }else add('install','审阅并安装（预览）');
+    }else{
+      add('toggle',row.enabled?'停用自动运行':'启用自动运行');
+      add('revoke','撤销网站授权…');
+      add('develop','前往开发');
+    }
+    return {...row,version:row.version||'UI_PREVIEW_ONLY',
+      installationText:row.installed?'UI_PREVIEW_ONLY · 内存安装状态，未连接 Host':
+        'UI_PREVIEW_ONLY · 可安装演示项，未校验固定包',
+      source:{label:'UI_PREVIEW_ONLY（无真实来源回执）'},
+      sites:row.kind==='page'?['https://example.invalid/*（预览）']:[],
+      actions,busy:!!extensionReview,suspended:scene==='denied'||row.suspended===true,
+      cleanupPending:false};
   })();
   const transcript=messages[scene]||[];
   const allTaskRows=scene==='empty'||scene==='loading'?[]:[
@@ -144,6 +178,27 @@ function Preview(){
       tabButtons[i].setAttribute('aria-selected',String(active));
       tabButtons[i].tabIndex=active?0:-1;
     });
+    importPanel.hidden=!importOpen;
+    actionReview.hidden=!extensionReview;
+    get('sidebar-tool-preview').hidden=!importCandidate;
+    get('sidebar-tool-install').disabled=!importCandidate;
+    get('sidebar-tool-preview-title').textContent=importCandidate?.title||'';
+    get('sidebar-tool-preview-version').textContent=importCandidate?'v'+importCandidate.version+' · UI_PREVIEW_ONLY':'';
+    get('sidebar-tool-preview-description').textContent='预览仅做基础 JSON 结构检查；完整合法性和 Host 权限未校验。';
+    get('sidebar-tool-preview-capabilities').textContent=importCandidate?.capabilities?.join('、')||'尚未读取';
+    get('sidebar-tool-preview-file').textContent=importCandidate?.id||'';
+    get('sidebar-tool-file-error').hidden=!importError;
+    get('sidebar-tool-file-error').textContent=importError;
+    const prior=importCandidate&&extensionRecords.find(p=>p.key===importCandidate.key);
+    get('sidebar-tool-update').hidden=!prior?.installed;
+    get('sidebar-tool-update-versions').textContent=prior?.installed?
+      '内存版本 '+prior.version+' → '+importCandidate.version+'（UI_PREVIEW_ONLY）':'';
+    get('sidebar-tool-update-capabilities').textContent=prior?.installed?
+      '仅内存能力演示；正式更新必须重新审阅权限':'';
+    get('sidebar-tool-install').textContent=prior?.installed?'审阅并更新（仅预览）':'确认安装（仅预览）';
+    get('sidebar-tool-action-summary').textContent=extensionReview?
+      'UI_PREVIEW_ONLY · '+extensionReview.title+' · '+extensionReview.type+
+      '。确认仅修改内存 Fixture，绝不安装、执行或撤销真实权限。':'';
     const content=get('workspace-content');
     content.scrollTop=0;
     const dock=get('workspace-dock');
@@ -167,7 +222,8 @@ function Preview(){
     const cloud=get('cloud-status');
     cloud.textContent=labels[scene];
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
-  },[tab,width,scene,selected,sheetOpen,transcript.length,detail,taskMode]);
+  },[tab,width,scene,selected,sheetOpen,transcript.length,detail,taskMode,
+    importOpen,importCandidate,importError,extensionReview,extensionRecords]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
       const click=event=>{if(!event.isTrusted)return;setTab(names[i]);setSheetOpen(false);};
@@ -205,6 +261,67 @@ function Preview(){
       doc.removeEventListener('click',anchor,true);
     };
   },[tab]);
+  // The real import card, file chooser, update review and confirm IDs are
+  // borrowed from tool.html. No browser storage or installer is invoked.
+  React.useEffect(()=>{
+    const bind=(id,fn)=>{
+      const node=get(id);node.addEventListener('click',fn);
+      return ()=>node.removeEventListener('click',fn);
+    };
+    const closed=bind('sidebar-tool-import-close',()=>setImportOpen(false));
+    const open=bind('sidebar-tool-import-trigger',()=>{setImportOpen(true);setSelected(null);});
+    const closeReview=bind('sidebar-tool-action-cancel',()=>setExtensionReview(null));
+    const confirm=bind('sidebar-tool-action-continue',()=>{
+      if(!extensionReview)return;
+      const {type,key}=extensionReview;
+      if(type==='develop'){setTab('develop');setExtensionReview(null);return;}
+      setExtensionRecords(previous=>previous.map(row=>{
+        if(row.key!==key)return row;
+        if(type==='install')return {...row,installed:true,enabled:true};
+        if(type==='uninstall')return {...row,installed:false,enabled:false};
+        if(type==='update')return {...row,version:extensionReview.proposedVersion,update:false};
+        if(type==='toggle')return {...row,enabled:!row.enabled};
+        if(type==='revoke')return {...row,suspended:true,enabled:false};
+        return row;
+      }));
+      if(type==='uninstall'){setSelected(null);setScope('available');}
+      setNotice('UI_PREVIEW_ONLY · 仅修改内存扩展列表，无任何真实 Host 回执');
+      setExtensionReview(null);
+    });
+    const fileInput=get('sidebar-tool-file');
+    const readFile=async event=>{
+      const file=event.currentTarget.files?.[0];setImportCandidate(null);setImportError('');
+      if(!file)return;
+      if(file.size>1024*1024){setImportError('预览文件超过 1 MiB，未读取');return;}
+      try{
+        const value=JSON.parse(await file.text());
+        if(!value||typeof value!=='object'||Array.isArray(value)||
+          !/^[a-z0-9][a-z0-9._-]{1,63}$/.test(value.id||'')||
+          typeof value.version!=='string'||!value.version||
+          typeof value.title!=='string'||!value.title.trim()||
+          !Array.isArray(value.capabilities))
+          throw Error('缺少合法 id、title、version 或 capabilities');
+        const id=value.id;
+        setImportCandidate({key:'app:'+id,id,title:value.title.slice(0,100),
+          description:'从本地文件演示的应用 · 无 Host 记录',version:value.version.slice(0,40),
+          capabilities:value.capabilities.map(x=>String(x).slice(0,80)).slice(0,30),
+          type:'应用',kind:'app',installed:false,enabled:false,primaryAction:'查看详情'});
+      }catch(error){setImportError('UI_PREVIEW_ONLY · '+String(error?.message||error));}
+    };
+    fileInput.addEventListener('change',readFile);
+    const install=bind('sidebar-tool-install',()=>{
+      if(!importCandidate)return;
+      setExtensionRecords(previous=>{
+        const item={...importCandidate,installed:true,enabled:true,primaryAction:'打开'};
+        const found=previous.findIndex(row=>row.key===item.key);
+        return found<0?[...previous,item]:previous.map(row=>row.key===item.key?item:row);
+      });
+      setNotice('UI_PREVIEW_ONLY · 内存安装/更新演示；从未调用真实 Installer');
+      setImportOpen(false);setImportCandidate(null);setScope('smart');setSelected(null);
+    });
+    return ()=>{closed();open();closeReview();confirm();install();
+      fileInput.removeEventListener('change',readFile);};
+  },[extensionReview,importCandidate]);
   React.useEffect(()=>{
     doc.documentElement.dataset.sidebarPreviewReady='true';
     window.__sidebarPreviewInfo=Object.freeze({sourceBound:true,tabs:6,
@@ -242,8 +359,9 @@ function Preview(){
       onSearch:setSearch,onKind:setKind,onScope:setScope,onToggleMenu:()=>setMenuOpen(v=>!v),
       onReset:()=>{setSearch('');setKind('all');setScope('smart');},
       onMarket:()=>setNotice('市场仅为 UI 预览，不打开网络页面'),
-      onImport:()=>setNotice('仅预览：禁止导入、安装或授权'),
-      onReload:()=>setNotice('仅预览：不读取真实扩展状态')
+      onImport:()=>{setSelected(null);setImportOpen(true);
+        setNotice('UI_PREVIEW_ONLY · 可审阅本地 JSON；不会触发真实安装');},
+      onReload:()=>setNotice('UI_PREVIEW_ONLY · 已展示当前内存状态；没有真实安装回读')
     }}/>,toolbar)}
     {createPortal(<ExtensionRows rows={rows} busy={scene==='loading'}
       pendingKey={null} menuKey={null} onOpenRow={setSelected}
