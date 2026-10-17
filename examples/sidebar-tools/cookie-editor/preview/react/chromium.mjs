@@ -205,7 +205,8 @@ try{
   await page.locator('#cookie-name').fill('pending_rename');
   await page.locator('[data-testid="failure"]').selectOption('unknown');
   await page.getByRole('button',{name:'保存',exact:true}).click();
-  await page.getByText(/写入结果未知/).waitFor();
+  await page.locator('#cookie-editor-error[role="alert"]').waitFor();
+  assert.match(await page.locator('#cookie-editor-error').innerText(),/写入结果未知/,'error message must appear in the active editor, not a hidden scenario option');
   assert.equal(await page.locator('.delete-btn').isDisabled(),true);
   await page.getByRole('button',{name:'刷新 Cookie'}).click();
   assert.equal(await page.locator('.delete-btn').isDisabled(),false);
