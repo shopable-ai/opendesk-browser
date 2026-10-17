@@ -7,6 +7,7 @@ import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/w
 import {DebugDiagnosticText} from '../tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from '../tabs/tasks.tsx';
 import {CloudOverviewText} from '../tabs/cloud.tsx';
+import {PreviewMyFlows} from './sidebar-six-my-flows.tsx';
 
 // UI_PREVIEW_ONLY. No browser permissions, storage, Host, Provider, compiler or Task Authority.
 // Every visible product panel and every product React component is imported from
@@ -91,6 +92,9 @@ function Preview(){
   const [menuOpen,setMenuOpen]=React.useState(false);
   const [selected,setSelected]=React.useState(null);
   const [selectedTask,setSelectedTask]=React.useState('preview-task');
+  const [taskMode,setTaskMode]=React.useState('list');
+  const [taskSearch,setTaskSearch]=React.useState('');
+  const [taskFilter,setTaskFilter]=React.useState('all');
   const [framework,setFramework]=React.useState('javascript');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
@@ -106,12 +110,16 @@ function Preview(){
       actions:[],busy:false,suspended:scene==='denied',cleanupPending:false}:null;
   })();
   const transcript=messages[scene]||[];
-  const taskRows=scene==='empty'||scene==='loading'?[]:[
+  const allTaskRows=scene==='empty'||scene==='loading'?[]:[
     {taskId:'preview-task',title:'示例自动化（仅预览）',
       description:'来自原 TaskWorkbench 的任务资料投影',enabled:scene!=='denied'},
     {taskId:'preview-off',title:'已停用任务（仅预览）',
       description:'保留版本、权限及原始执行身份',enabled:false}
   ];
+  const taskRows=allTaskRows.filter(p=>
+    (taskFilter!=='disabled'||!p.enabled)&&
+    (!taskSearch||[p.title,p.taskId,p.description].join(' ').toLocaleLowerCase()
+      .includes(taskSearch.toLocaleLowerCase())));
   const cloudPreview={
     myState:labels[scene],summary:'云控状态展示 · UI_PREVIEW_ONLY',
     provider:scene==='normal'?'未配对':'待核对',
@@ -130,7 +138,7 @@ function Preview(){
     get('od-sidebar-preview-stage').style.width=width+'px';
     names.forEach((name,i)=>{
       const active=name===tab;
-      panels[i].hidden=!active;
+      panels[i].hidden=!active||(name==='tasks'&&taskMode==='catalog');
       tabButtons[i].removeAttribute('disabled');
       tabButtons[i].hidden=false; // Debug is previewed as a development-only tab.
       tabButtons[i].setAttribute('aria-selected',String(active));
@@ -143,7 +151,7 @@ function Preview(){
     taskDock.hidden=tab!=='tasks';
     developDock.hidden=tab!=='develop';
     workflowDock.hidden=true; // No real workflow RunHost in preview.
-    dock.hidden=tab!=='tasks'&&tab!=='develop';
+    dock.hidden=(tab!=='tasks'&&tab!=='develop')||(tab==='tasks'&&taskMode!=='list');
     get('extension-center-list-view').hidden=!!detail;
     get('extension-center-detail').hidden=!detail;
     const intro=get('workflow-chat-intro');
@@ -159,7 +167,7 @@ function Preview(){
     const cloud=get('cloud-status');
     cloud.textContent=labels[scene];
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
-  },[tab,width,scene,selected,sheetOpen,transcript.length,detail]);
+  },[tab,width,scene,selected,sheetOpen,transcript.length,detail,taskMode]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
       const click=event=>{if(!event.isTrusted)return;setTab(names[i]);setSheetOpen(false);};
@@ -204,6 +212,9 @@ function Preview(){
     return ()=>{delete doc.documentElement.dataset.sidebarPreviewReady;delete window.__sidebarPreviewInfo;};
   },[]);
   return <>
+    <PreviewMyFlows tab={tab} mode={taskMode} onMode={setTaskMode}
+      rows={allTaskRows} search={taskSearch} onSearch={setTaskSearch}
+      filter={taskFilter} onFilter={setTaskFilter}/>
     {createPortal(<div className="od-sidebar-preview-toolbar">
       <div className="od-sidebar-preview-heading"><strong>OpenDesk · 六 Tab 正式源码预览</strong>
         <span>UI_PREVIEW_ONLY · 开发版包含调试 · Native / 权限 / 执行全部未连接</span></div>
