@@ -358,6 +358,12 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .import-panel .import-actions #cancelImport{margin-right:auto}
 .import-panel .replace-warning{background:var(--od-negative-bg);color:var(--od-negative);padding:8px;border-radius:8px}
 /* R2.6.1: host tool actions follow existing gear and uninstall icons. */
+/* Width switch changes the simulated sidebar, not the browser viewport. */
+.sidepanel.is-compact .tool-host-head{gap:4px;padding-inline:8px}
+.sidepanel.is-compact .tool-host-head strong{font-size:12px}
+.sidepanel.is-compact .tool-host-head .od-icon-button,
+.sidepanel.is-compact .tool-host-head .host-add,
+.sidepanel.is-compact .transfer-holder>.od-icon-button{width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px}
 .uninstall-confirm{display:grid;gap:9px;padding:12px;margin-bottom:12px}
 .uninstall-confirm strong{font-size:12px}
 .uninstall-confirm p{margin:0;color:var(--od-sub);font-size:11px;line-height:1.55}
@@ -984,7 +990,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   notice(mode==='normal'?'已恢复正常输入场景':'已切换到「'+el('actionScenario').selectedOptions[0].textContent+'」测试场景（仅模拟）');
  });
  for(const width of [320,360,400,440])el('size'+width).addEventListener('click',()=>{
-  document.documentElement.style.setProperty('--panel-width',width+'px');notice('侧边栏模拟宽度：'+width+' CSS px');});
+  document.documentElement.style.setProperty('--panel-width',width+'px');el('sidepanel').classList.toggle('is-compact',width<=320);notice('侧边栏模拟宽度：'+width+' CSS px');});
  el('themeButton').addEventListener('click',()=>{
   const dark=document.documentElement.dataset.theme!=='dark';
   document.documentElement.dataset.theme=dark?'dark':'light';
