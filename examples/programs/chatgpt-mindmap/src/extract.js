@@ -9,7 +9,8 @@ const slice=(text,n)=>Array.from(text).slice(0,n).join('');
 // Describe the current AI answer, without model calls or neighboring turns.
 function rootLabel(children){
   const headings=children.filter(node=>node.kind==='heading');
-  const meaningful=children.find(node=>node.kind==='paragraph')||children[0];
+  const meaningful=children.find(node=>node.kind==='paragraph')||
+    children.find(node=>['heading','list','ordered'].includes(node.kind));
   if(!headings.length&&!meaningful)return '回答概览';
   const chosen=headings.length===1?headings[0]:meaningful||headings[0];
   const raw=trim(chosen.title);

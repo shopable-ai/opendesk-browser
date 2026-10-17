@@ -160,7 +160,9 @@ test('R3.5 icon toolbar is product-owned, mobile-capable and nonduplicating',asy
   assert.match(view,/aria-expanded/);
   // Fullscreen may be requested while the renderer is being retired; optional chaining is intentional.
   assert.match(view,/await renderer\?\.reflow\(\)/);
-  assert.match(registry,/buttonRef\.host\.hidden=!!view/);
+  assert.match(registry,/buttonRef\.host\.hidden=false/,
+    'Native action bar mind-map icon remains available in both modes');
+  assert.match(registry,/buttonRef\.button\.setAttribute\('aria-pressed',String\(!!view\)\)/);
   assert.match(registry,/view\?\.focusFullscreen\(\)/);
   assert.match(css,/@container \(max-width:390px\)/);
   assert.match(css,/\.odmm-menu \.odmm-menu-action\{display:flex;width:100%;min-width:100%/,
