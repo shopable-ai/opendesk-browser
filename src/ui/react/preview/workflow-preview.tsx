@@ -82,6 +82,10 @@ function Preview(){
     const provider=get('workflow-ai-provider');
     const sync=()=>{
       const local=provider.value==='local_codex';
+      get('workflow-source-local').setAttribute('aria-pressed',String(local));
+      get('workflow-source-https').setAttribute('aria-pressed',String(!local));
+      get('workflow-https-mode').hidden=local;
+      if(!local)get('workflow-https-protocol').value=provider.value;
       get('workflow-local-settings').hidden=!local;
       get('workflow-custom-settings').hidden=local;
       get('workflow-local-status').textContent='尚未连接 OpenDesk（离线预览，不探测）';
@@ -98,6 +102,14 @@ function Preview(){
       const node=get(id);node.addEventListener(type,fn);
       unsub.push(()=>node.removeEventListener(type,fn));
     };
+    const selectProvider=(value,event)=>{
+      if(!event.isTrusted)return;
+      provider.value=value;
+      provider.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    on('workflow-source-local','click',event=>selectProvider('local_codex',event));
+    on('workflow-source-https','click',event=>selectProvider('custom_https',event));
+    on('workflow-https-protocol','change',event=>selectProvider(event.target.value,event));
     on('workflow-provider-toggle','click',event=>{
       if(!event.isTrusted)return;
       settings.open=true;
