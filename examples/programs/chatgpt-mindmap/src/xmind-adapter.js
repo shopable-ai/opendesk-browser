@@ -1,4 +1,5 @@
 import {mindTreeToXmindBlob} from './xmind-convert.js';
+import {verifyXmindWorkbook} from './export.js';
 
 // Keep teardown owned by the product even when the original Snowbrush SDK
 // rejects close(). This controls DOM lifetime, NOT its document-global CSS.
@@ -232,6 +233,7 @@ export function createXmindRenderer({window,canvas,tree,skinMode='dark'}){
         {code:'E_XMIND_FRAME_DESTROYED'});
       // Use the real SDK Workbook; exporting must not change the live viewport.
       const blob=await mindTreeToXmindBlob(sdk,tree,appliedSkin,{defaultFolded:false});
+      await verifyXmindWorkbook(sdk,blob,tree);
       if(disposed)throw Object.assign(new Error('E_XMIND_FRAME_DESTROYED'),
         {code:'E_XMIND_FRAME_DESTROYED'});
       return blob;
