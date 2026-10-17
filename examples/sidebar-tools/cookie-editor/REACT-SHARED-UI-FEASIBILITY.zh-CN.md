@@ -151,3 +151,48 @@ function RenderTrustedCookieArea({container, snapshot, actions, admitted}) {
 反方检查点：直渲增加高权限页面受信代码的审计表面、固定升级可能降低用户独立工具迭代速度、共享按钮不等于统一业务代码、构建产物可能不去重、全局 CSS 仍可互相影响、单根 React 的事件与异步状态冲突、已安装工具从动态到静态的准入/版本兼容，以及带值 Cookie 的日志或备份泄露风险。
 
 **截至本文创建：DOC_CREATED；路线 B Cookie Editor 专项技术试验、正式源码迁移、Chrome 原生 Cookie 验证：NOT_TESTED。**
+## 9. 下一轮实施裁决与明确验收（2026-10-17 增补，未验证）
+
+> **阶段结论：优先验证 B（受审计静态 Trusted React UI），A（原有 Sandbox）是必须保持可运行的回退路径。不是已经批准 Cookie Editor 去掉 iframe，更不是修改所有动态工具的默认执行世界。** 下一轮优先实际做最小真实工程试点，而不是重复写架构、另造静态 Mock 或为了评分修改无关系统。
+
+### 9.1 四项必须冻结的决定
+
+1. **可信来源，不按作者身份提权。** 仅随 OpenDesk Browser 构建的、固定且审计过的第一方 Cookie 组件可以尝试通过既有准入进入宿主 React；运行时从用户安装 JSON、用户编辑器、市场、AI 输出加载的 JS/JSX，即使工具 ID 是 `cookie-editor`、自称“管理员”，仍为沙箱或安全拒绝。沿用 Time Review 的签发来源/版本/包哈希/安装与启停/撤销 epoch 合同，不得创建通用 `trusted:true` 配置来切换。
+2. **一个主 React Root、一个 Cookie UI 业务来源。** 可信宿主继续使用 `src/ui/react/main.tsx` 的唯一 Root/Portals；Cookie UI 从已认可的 JSX 按需抽取，预览和正式视图必须同源。业务解析、授予权限、存储、写入、回读仍有且只有一个权威 owner；React 不自行调用任意高权限 API，也不与旧 DOM renderer 同时控制同一区域。
+3. **保留当前业务/安装身份直至证据充分。** `cookie-editor` 当前正式版本 2.0.23 的已安装 JSON、Cookie 值、权限、原始输入和原生写入都不因 POC 改变。不因完成 JS 编译或模拟浏览器界面就自动下架旧 Sandbox。若 Trusted 可行，另评估“静态 UI 与现有安装注册表/启停/升级/撤权如何共存”，避免造成两个 Cookie Editor 产品或两个相冲突的版本所有者。
+4. **不建立新的 UI Kit/Host。** 纯 UI React 组件的当前唯一根仍是 `src/ui/react/components/ui/`；现在确知只有 Button、IconButton 两个 JSX 原语，样式和 Tokens 已有而非新的 shadcn 完整组件库。只为真实消费者扩展最小 UI。通用业务逻辑留在本工具职责范围，不向 R33 Tab 源码塞 Cookie 专属状态；`src/ui/trusted-cookie-workbench.js` 已有另一段原生可信 Cookie UI，先核对其**实际入口/消费者/权限范围**及可复用性，防止在不知情下实现第三套重叠工作台。该文件存在不等于它已覆盖完整 Cookie Editor。
+
+### 9.2 下一轮最低实际开发闭环：先解决最关键的不确定性
+
+| 顺序 | 实际工作 | 必须返回的证据；不满足时的处理 |
+|---|---|---|
+| G0 最新源码/并行核查 | 查看 `main` HEAD、AGENTS、R33 React DOM owner、Time Review admission、Cookie 正式 2.0.23/真实 SDK 与 `trusted-cookie-workbench.js`；记录是否有并行修改 | 路径/owner/版本/实际引用表；不擅自覆盖其他 Agent |
+| G1 JSX → 离线 HTML 一致性 | 用现有 `preview/react` 的 `npm run check` 检查新 JSX（当前可见 R4.11）与离线 `index.html`；若不一致按已有构建器定向修复 | `SOURCE_MATCH_PASS` 或 `FAIL`；旧 HTML 标题不是产物哈希证据 |
+| G2 真正共享组件 | 复用 **现有** Button/IconButton + Tokens，最少一个真实 Cookie UI 显示区域以 JSX 接入；统计改前改后重复组件、硬编码 Token 和对应 bundle bytes | 真实 import/编译与 UI 回归，不能用文档示意图或“已安装 React”冒充复用完成 |
+| G3 非敏感可信试点 | 用**静态编译**的虚构 Cookie 元数据在现有可信 React Root 里渲染一块可卸载 UI；验证无 iframe、无第二 Root、不执行安装包 JS，退出/切页/异常/重新挂载能清理；非受信安装仍走沙箱 | `BUILD_PASS` + 必要定向 Chromium UI / 准入反例；无证据不得标 Trusted 已正式可用 |
+| G4 只在 G3 通过后继续业务迁移 | 将 React 的 snapshot/actions 接到现有 Cookie SDK/Host 授权及真实读取、编辑、保存、精确删除、导入导出；先主流程，原有离线/清理/观察不能悄悄删掉；不持久化 Value | 定向受控测试与原业务对照；原装 2.0.23 仍可用，修复失败不影响安装记录 |
+| G5 路线裁决和发布计划 | 分别记录 sandbox 的主 JS/JSON 原始预算、Trusted 固定 WXT 入口增量、React 是否实际去重、独立 JSON 更新与整扩展升级差异 | **GO / NO-GO**：没有权限准入、包预算、核心回归证据时，不让 Trusted 取代已安装工具。保留 A；不可用扩大配额、CDN 或跳过 CSP 强行通过 |
+
+不要求 POC 一开始就启动完整生产和 Mac 原生矩阵；按 `AGENTS.md` 当前“核心需求先行 + 最小定向验证”规则执行。有用户真实 Cookie/Native 的测试必须独立授权并遵守个人数据最小暴露。**完成后输出可点击的同源离线 React 预览**，不要只给一份 JSX 代码或新的模拟演示页面。
+
+### 9.3 UI 改造中最容易遗漏的具体合同
+
+- 已批准的 380px 紧凑布局、导入/导出/新建顶栏图标、行内编辑、Value 输入框右侧显隐按钮、左右标签布局、dirty/撤销、授权成功后隐藏常驻引导、浅深色与窄屏保持，**未被点名的样式不大改**。
+- 2026-10-17 更新的导入 UX：文件/粘贴自动解析、错误可修改、**一次明确提交**，取消中间模拟预览和重复确认。不得误删后台 Store/Partition/真实网站权限及 Host 的必要授权保护。复制/下载也不叠加工具自造的多次“确认复制”弹窗；敏感内容必须通过真实值读取授权及不可绕过的原生/宿主安全审查。
+- 当前 `preview/react/src/App.jsx` 可见 R4.11 更新；早期 README/R4.9 文字可能仍保留已过时流程，**以实际最新源码、用户最新 UX 决定及正式安全逻辑交叉核对**。此处未执行 `npm run check`，不得认定离线产物已同源。
+- Cookie 主业务不因 React 化被抛弃：自定义目标、Store/PartitionKey、跨域限制、精确删除/重命名、过期/错误记录、单条 `set` 回退与 `setMany`、导入未知结果核验、原文保留、离线工作区、观察/清理、撤权/更新/多个实例的敏感数据清除。
+- 高权限宿主内，React UI 的 action handler 也属于**可信可执行代码**，不能因复用纯展示 Button/Field 就把整个业务声明为“无权限 UI”。真实 Cookie 值不得进入全局宿主 React store、Console、调试快照或不可控 DOM 字符串。
+
+### 9.4 独立量化、评分与否决条件
+
+- 本文“**共用 React UI 源码 0%**”是当前 Cookie JSX 的公共组件 import 事实，**不是**总软件复用率。记录新增 import 数/真实使用次数、消除的重复定义数、共用规则与硬编码颜色差异、UI 代码净变化；区分“移动代码”和“消除重复”。
+- 两种方案分别测原始 JS bytes、签名 JSON bytes、固定 WXT entry **增量**、CSP/构建、首屏交互及安装/更新代价；不把压缩率或第二份 React Runtime 的理论节省直接写成实测。
+- 每项**方案成熟度、业务完整性、UI 一致性、跨世界安全、可信准入、编译/构建、包体积、用户操作摩擦、无障碍、生命周期/回退、真实 Chromium/Chrome**均独立给出 PASS/FAIL/NOT_TESTED 和评分依据。目标为各相关维度 ≥95，但任何未测项不得被平均分或前一轮的 96/100 自评“覆盖”。
+- **NO-GO**：存在未经审批代码进入宿主、第二 Root/双 DOM owner、同名动态包提权、绕过 Chrome 用户手势、Cookie Value 持久泄露、撤权后旧请求生效、正式 Cookie 行为丢失、违反包预算/构建合同或覆盖并行工作时，必须停用受影响的 Trusted 方案并保留旧安装路径。
+- **实现收尾**：必须有“实际改了什么 + 源码/产物 SHA + UI 与包字节前后 + 真实运行命令/结果 + 尚未验证什么 + 下一步”，未动的正式安装包明确写 `UNTOUCHED`。
+
+### 9.5 与正在并行推进的 React Side Panel 协作
+
+下一轮**先在 Cookie 独立目录准备最小可复用 JSX/纯 UI 试验**，只有证明必须由宿主固定挂载时才调整 `src/ui/react/main.tsx` / 共用 Button，且必须先核对正在更新的 R33 代码和实际所有权。不可为了 Cookie 试点重写“我的/扩展/工作流/开发/云控/调试”，不可修改 Standard/Developer 动态工具编译或已有 Vue/JS 安装边界。所有修改只在 `main`、正常提交/推送自身变更；冲突时暂停冲突文件，其余独立部分照常推进。
+
+**本文在保存时仍只是静态设计与下一轮实装门槛：本项新的 Trusted Cookie React 原生试点、正式迁移与 Mac Chrome 安装验收全部为 `NOT_TESTED`。**
