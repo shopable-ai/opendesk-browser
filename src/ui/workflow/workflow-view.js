@@ -136,6 +136,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   const provider=()=>get('workflow-ai-provider').value;
   let lastHttpsProvider='custom_https';
   const chatRows=[];
+  let entryMode='new-workflow';
+  const exampleRequests=Object.freeze({
+    continue:'请继续修改刚才填写的内容，并读回确认。不要提交表单。',
+    check:'请检查当前网页中的输入内容与重要信息，先报告检查结果，不要进行写入。',
+    fill:'请将指定内容填入当前网页的目标表单，并读取输入框实际值进行验证，不要提交。',
+    read:'请只读提取当前网页的主要内容并整理，不要修改网页或提交表单。'
+  });
   let chatSequence=0;
   function clearChat() {
     chatRows.length=0;
