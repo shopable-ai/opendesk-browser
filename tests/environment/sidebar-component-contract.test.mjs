@@ -203,8 +203,10 @@ test('Other formal tabs reuse shared actions without restyling their unique filt
     ['sdk-install','primary'], ['script-save','secondary']
   ]) {
     const button = element(html, 'button', id);
-    assert.ok(has(button, 'od-button'), 'Missing shared button: ' + id);
-    if (variant !== 'primary') assert.ok(has(button, 'od-button--' + variant), 'Wrong role: ' + id);
+    const icon = ['task-refresh','task-uninstall'].includes(id);
+    assert.ok(has(button, icon?'od-icon-button':'od-button'), 'Missing shared button: ' + id);
+    if (variant !== 'primary' && (icon ? variant==='danger' : true))
+      assert.ok(has(button, (icon?'od-icon-button--':'od-button--') + variant), 'Wrong role: ' + id);
   }
   assert.match(workflow, /'od-field'/);
   assert.match(workflow, /'od-button od-button--danger'/);

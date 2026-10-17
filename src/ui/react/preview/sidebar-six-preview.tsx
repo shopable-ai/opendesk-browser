@@ -332,7 +332,7 @@ function Preview(){
     workflowStatus.hidden=!workflowFeedback;
   },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,detail,taskMode,
     opened,openToolKey,toolSettingsOpen,projectMode,projectSelection,projectFeedback,
-    importOpen,importCandidate,importError,extensionReview,extensionRecords]);
+    importOpen,importCandidate,importError,extensionReview,extensionRecords,taskNotice]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
       const click=event=>{if(!event.isTrusted)return;setTab(names[i]);

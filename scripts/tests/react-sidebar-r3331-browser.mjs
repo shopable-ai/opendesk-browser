@@ -290,10 +290,23 @@ try{
   await checkEventually('document.querySelector("[data-task-id=demo-b]").getAttribute("aria-expanded")==="true"');
   assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="task-select:demo-b").length'),1);
   assert.equal(await evaluate('document.getElementById("task-param-proof").value'),oldParam);
-  const taskInset=await evaluate('getComputedStyle(document.querySelector(".task-management-heading")).marginInlineStart');
-  assert.equal(taskInset,'12px','Nested Task Manager business heading should be inset');
-  const taskControlInset=await evaluate('getComputedStyle(document.querySelector(".task-management-actions")).paddingInlineStart');
-  assert.equal(taskControlInset,'12px','Nested Task Manager action area should be inset');
+  // The installed task More actions are now one-level and icon-only.
+  // Mount the exact trusted markup into the UI-only browser fixture before
+  // inspecting its geometry; do not test the retired nested manager HTML.
+  const {load:readTaskHtml}=await import('cheerio');
+  const official=(await import('node:fs/promises')).readFile;
+  const $task=readTaskHtml(await official('src/ui/tool.html','utf8'));
+  const moreMarkup=$task('#task-tools').toString();
+  assert.match(moreMarkup,/task-operation-strip/);
+  await evaluate('document.querySelector(".task-tools").outerHTML='+JSON.stringify(moreMarkup));
+  const strip=await evaluate('(()=>{const node=document.querySelector("#task-tools .task-operation-strip");'+
+    'const box=node.getBoundingClientRect();const parent=document.querySelector("#task-selected-workspace").getBoundingClientRect();'+
+    'return {display:getComputedStyle(node).display,buttons:node.querySelectorAll("button").length,'+
+    'left:box.left,right:box.right,parentLeft:parent.left,parentRight:parent.right}})()');
+  assert.equal(strip.display,'flex','More actions must be one aligned strip');
+  assert.equal(strip.buttons,5,'Refresh, draft, toggle, uninstall and catalog actions stay available');
+  assert(strip.left>=strip.parentLeft-1&&strip.right<=strip.parentRight+1,
+    'Compact action strip must not overflow a selected task card: '+JSON.stringify(strip));
   assert.deepEqual(exceptions,[],'React must not throw inside Chrome');
   await evaluate('window.__reactTest.dispose()');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),0);

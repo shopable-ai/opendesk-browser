@@ -428,7 +428,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         manage.setAttribute('aria-label',manageLabel);manage.title=manageLabel;
         const svg=doc.createElementNS?.('http://www.w3.org/2000/svg','svg')||doc.createElement('svg');
         svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-        svg.innerHTML='<path d="M4 7h9m6 0h1M4 17h1m6 0h9"/><circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/>';
+        const svgNode=(tag,attributes)=>{
+          const el=doc.createElementNS?.('http://www.w3.org/2000/svg',tag)||doc.createElement(tag);
+          for(const [key,value] of Object.entries(attributes))el.setAttribute(key,String(value));
+          return el;
+        };
+        svg.append(svgNode('path',{d:'M4 7h9m6 0h1M4 17h1m6 0h9'}),
+          svgNode('circle',{cx:16,cy:7,r:3}),svgNode('circle',{cx:8,cy:17,r:3}));
         manage.append(svg);
         manage.addEventListener('click',()=>openTaskManagement(row.taskId));
         group.append(manage);

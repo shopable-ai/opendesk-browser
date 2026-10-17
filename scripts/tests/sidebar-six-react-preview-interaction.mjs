@@ -99,16 +99,31 @@ try{
   await until('document.querySelector("[data-task-id=preview-task]").getAttribute("aria-expanded")==="true"');
   await click('[data-task-id="preview-off"]');
   await until('document.querySelector("[data-task-id=preview-off]").getAttribute("aria-expanded")==="true"');
-  assert.equal(await evaluate('document.getElementById("task-search-toggle").hidden'),true,
-    'Search affordance is intentionally hidden for early task lists');
-  assert.equal(await evaluate('document.getElementById("task-search-panel").hidden'),true,
-    'Hidden search filters may not appear in the primary task flow');
+  assert.equal(await evaluate('document.getElementById("task-search-toggle").hidden'),false,
+    'Task search is discoverable as an icon in the main task header');
+  assert.equal(await evaluate('document.getElementById("task-search-panel").hidden'),true);
+  await click('#task-search-toggle');
+  await until('!document.getElementById("task-search-panel").hidden');
+  await click('#task-search-toggle');
+  await until('document.getElementById("task-search-panel").hidden');
+  await click('#task-manage-toggle');
+  await until('document.getElementById("task-manage-toggle").getAttribute("aria-pressed")==="true"');
+  await until('document.querySelectorAll(".task-card-manage").length===2');
+  await click('.task-card-manage');
+  await until('document.getElementById("task-tools").open');
+  await click('#task-uninstall');
+  await until('!document.getElementById("task-uninstall-confirm").hidden');
+  await click('#task-uninstall-cancel');
+  await until('document.getElementById("task-uninstall-confirm").hidden');
+  await screenshot('my-manage-360');
+  await click('#task-manage-toggle');
+  await until('document.getElementById("task-manage-toggle").getAttribute("aria-pressed")==="false"');
   await click('#task-open-catalog');
   await until('!document.getElementById("task-add-menu").hidden');
   await screenshot('my-add-360');
   await click('#task-add-catalog');
   await until('!document.getElementById("workbench-discover").hidden');
-  await click('#catalog-dev-sidebar-status button');
+  await click('#task-catalog-back');
   await until('!document.querySelector("#workbench-tasks .tasks-surface").hidden');
   await click('#schedule-open');
   await until('!document.getElementById("scheduled-panel").hidden');

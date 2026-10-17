@@ -333,8 +333,8 @@ test('R5.1 Escape closes inline My search, clears filters and restores keyboard 
   assert.equal(f.get('local-discover-search').value,'');
   assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.get('task-installed-cards').children.length,2);
-  assert.equal(f.doc.activeElement,f.get('task-open-catalog'),
-    '隐藏搜索入口后焦点应回到可见的添加任务按钮');
+  assert.equal(f.doc.activeElement,f.get('task-search-toggle'),
+    '搜索入口已显示，Escape 应恢复焦点到搜索图标');
   assert.equal(f.get('task-run').disabled,false);
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
@@ -1013,4 +1013,29 @@ test('R6 Task reader reveals read-only exact frozen source and typed parameters 
   assert.match(guarded.children[1].textContent,/E_REVIEW_IDENTITY|固定源码身份已变化/);
   assert.doesNotMatch(guarded.children[1].textContent,/forged/);
   assert.equal(f.starts.length,0);
+});
+
+test('R24 one installed management list opens focused actions and cancel protects installation',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());
+  await tick();await tick();
+  const countBefore=f.get('task-installed-cards').children.length;
+  await f.click('task-manage-toggle');
+  assert.equal(f.get('task-manage-toggle').attributes['aria-pressed'],'true');
+  assert.equal(f.get('task-installed-cards').children.length,countBefore,
+    'management reuses the installed list, not a second catalog');
+  const second=f.get('task-installed-cards').children[1];
+  assert.ok(second.children[1],'per-task manage action must be visible');
+  second.children[1].fire('click');
+  assert.equal(f.get('task-installed-list').value,'demo.second');
+  assert.equal(f.get('task-tools').open,true);
+  await f.click('task-uninstall');
+  assert.equal(f.get('task-uninstall-confirm').hidden,false,
+    'uninstall first requires explicit review');
+  assert.equal(f.catalogState.installed.length,2,'open review cannot uninstall');
+  await f.click('task-uninstall-cancel');
+  assert.equal(f.get('task-uninstall-confirm').hidden,true);
+  assert.equal(f.catalogState.installed.length,2,'cancel never changes installed records');
+  await f.click('task-manage-toggle');
+  assert.equal(f.get('task-manage-toggle').attributes['aria-pressed'],'false');
+  assert.equal(f.get('task-tools').open,false);
 });
