@@ -60,7 +60,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .odmm-status,.odmm-warning,.odmm-error{padding:4px 8px;font-size:12px;overflow-wrap:anywhere}
 .odmm-error{color:#b63838}.odmm-status{color:var(--mm-muted)}
 .odmm-warning{background:#fff2d2;color:#704b07}
-@container (max-width:390px){
+@container (max-width:420px){
   .odmm-toolbar{gap:2px;padding:4px}
   .odmm-group{gap:0}
   .odmm-group+.odmm-group{padding-left:2px}

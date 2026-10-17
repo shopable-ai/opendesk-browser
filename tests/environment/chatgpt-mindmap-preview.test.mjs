@@ -167,7 +167,7 @@ test('R3.5 icon toolbar is product-owned, mobile-capable and nonduplicating',asy
     'Native action bar mind-map icon remains available in both modes');
   assert.match(registry,/buttonRef\.button\.setAttribute\('aria-pressed',String\(!!view\)\)/);
   assert.match(registry,/view\?\.focusFullscreen\(\)/);
-  assert.match(css,/@container \(max-width:390px\)/);
+  assert.match(css,/@container \(max-width:420px\)/);
   assert.match(css,/\.odmm-menu \.odmm-menu-action\{display:flex;width:100%;min-width:100%/,
     'Menu text needs the full item hit target rather than overflowing the 44px icon');
   assert.match(css,/\.odmm-canvas::after\{content:'左右拖动查看分支'/,
