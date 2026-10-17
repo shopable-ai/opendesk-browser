@@ -8,6 +8,9 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   const find=id=>doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
   let disposed=false,generation=0,selectionGeneration=0,connected=false,nativeConnected=false,epoch=null,projects=[],workspaces=[],selection='',savedName='',savedSourceId='',last=null,checking=false,diagnostic='';
   let backgroundTimer=null,backgroundRead=null,backgroundKey='',backgroundError=null,prepared=null,workspaceOpenError=null;
+  // Recovery pointers extend the existing selection preference. Authority still
+  // lives exclusively in durable Run results and installed Page/Task catalogs.
+  let lastVerifiedProof=null,lastInstalledRef=null,lastUnknownInstall=null;
   const sourceUnavailable='本机 OpenDesk 已连接，但可运行源码 Provider 尚未接入。已授权的单文件会自动恢复；目录项目可在原目录执行 opendesk browser dev . 或 opendesk-dev . 接入，无需重复 Native 配对。';
   const listeners=[];
   let pollTimer=null,pollBusy=false,preparationCheck=null,preparationAgain=false,preparationError=null,nativeUpdateError=null,workspaceCheck=null,catalogVersion=null;
@@ -52,7 +55,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     find('local-project-params-tools').hidden=!local||row?.runtimeKind!=='controller';
     find('manual-project-params-tools').hidden=local;
     const intro=find('local-project-intro');
-    if(intro)intro.textContent='本地项目与直接编辑使用同一运行流程；先准备所选入口及多文件依赖，再点击「运行本地项目」执行。打开文件仅用于编辑。';
+    if(intro)intro.textContent='选择已授权项目，可运行或核对安装；复用历史验证必须匹配当前源码、网页与持久回执。';
     select.disabled=checking||(!connected&&!workspaces.length);
     find('local-project-connect').textContent=row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗';
     find('local-project-connect').disabled=row?.fileOnly?!canOpenWorkspace():false;
@@ -100,7 +103,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     if(diagnostics)diagnostics.textContent=details;
     const refreshButton=find('local-project-refresh');
     refreshButton.disabled=checking;
-    refreshButton.hidden=connected&&!!row&&ready&&!nativeUpdateError;
+    refreshButton.hidden=false; // Always offer explicit refresh, including ready projects.
     onChange();
   }
   function resetBackground(){
@@ -175,7 +178,8 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     if(row){savedName=sourceName(row.name);savedSourceId=row.sourceId||'';}
     const paramsText=find('local-project-params').value;
     if(new TextEncoder().encode(paramsText).length>32768)return;
-    api.storage?.local?.set({[KEY]:{bindingId:selection,name:savedName,sourceId:savedSourceId,paramsText,localMode:active()}}).catch(()=>{});
+    api.storage?.local?.set({[KEY]:{bindingId:selection,name:savedName,sourceId:savedSourceId,
+      paramsText,localMode:active(),lastVerifiedProof,lastInstalledRef,lastUnknownInstall}}).catch(()=>{});
   }
   async function readWorkspaces(){
     try{
@@ -338,7 +342,14 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   const initial=selectionGeneration;
   api.storage?.local?.get(KEY).then(value=>{
     if(disposed||selectionGeneration!==initial)return;
-    const saved=value[KEY];if(saved&&typeof saved.bindingId==='string'){selection=saved.bindingId;savedName=sourceName(saved.name,'之前的项目');savedSourceId=typeof saved.sourceId==='string'?saved.sourceId:'';/* Restoring a UI preference does not authorize or execute. */if(saved.localMode===true)mode.checked=true;if(typeof saved.paramsText==='string'&&saved.paramsText.length<=32768)find('local-project-params').value=saved.paramsText;choices();}
+    const saved=value[KEY];if(saved&&typeof saved.bindingId==='string'){selection=saved.bindingId;savedName=sourceName(saved.name,'之前的项目');savedSourceId=typeof saved.sourceId==='string'?saved.sourceId:'';/* Restoring a UI preference does not authorize or execute. */if(saved.localMode===true)mode.checked=true;if(typeof saved.paramsText==='string'&&saved.paramsText.length<=32768)find('local-project-params').value=saved.paramsText;
+      if(saved.lastVerifiedProof&&typeof saved.lastVerifiedProof==='object'&&!Array.isArray(saved.lastVerifiedProof))
+        lastVerifiedProof=saved.lastVerifiedProof;
+      if(saved.lastInstalledRef&&typeof saved.lastInstalledRef==='object'&&!Array.isArray(saved.lastInstalledRef))
+        lastInstalledRef=saved.lastInstalledRef;
+      if(saved.lastUnknownInstall&&typeof saved.lastUnknownInstall==='object'&&!Array.isArray(saved.lastUnknownInstall))
+        lastUnknownInstall=saved.lastUnknownInstall;
+      choices();}
     render();if(active())void refresh();
   }).catch(()=>{});
   render();
@@ -369,7 +380,19 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   if(!api.storage?.local&&active())void refresh();
   return {active,connected:()=>connected&&!checking&&!nativeUpdateError&&!!runnable(),canAttemptRun,readyForRun,selectionKind,canOpenWorkspace,openWorkspace,selectedBindingId:()=>selection,providerEpoch:()=>epoch,
     preparationIdentity:()=>{const p=selected()?.preparation;return JSON.stringify([p?.state??null,p?.sourceRevision??prepared?.inputHash??null,p?.sourceHash??prepared?.sourceHash??null,p?.artifactId??null]);},
-    selectedProject:()=>{const row=selected();return row?{name:sourceName(row.name),sourceId:row.sourceId||''}:null;},
+    selectedProject:()=>{const row=selected();return row
+      ?{name:sourceName(row.name),sourceId:row.sourceId||'',runtimeKind:row.runtimeKind}
+      :selection?{name:savedName,sourceId:savedSourceId,runtimeKind:null}:null;},
+    previousVerification:()=>lastVerifiedProof?structuredClone(lastVerifiedProof):null,
+    rememberVerification:proof=>{lastVerifiedProof=proof?structuredClone(proof):null;persist();},
+    previousInstallation:()=>lastInstalledRef?structuredClone(lastInstalledRef):null,
+    previousInstallAttempt:()=>lastUnknownInstall?structuredClone(lastUnknownInstall):null,
+    rememberInstallAttempt:attempt=>{lastUnknownInstall=attempt?structuredClone(attempt):null;persist();},
+    rememberInstallation:ref=>{
+      if(!ref||lastInstalledRef?.id===ref.id&&lastInstalledRef?.kind===ref.kind&&
+          lastInstalledRef?.bindingId===ref.bindingId&&lastInstalledRef?.sourceId===ref.sourceId)return;
+      lastInstalledRef=structuredClone(ref);persist();
+    },
     capture,resolve,assertCaptured,assertReady,
     dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};

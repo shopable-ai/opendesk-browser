@@ -3,18 +3,21 @@
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 import {permissionPattern} from '../environment.js';
 import {prepareLocalProjectInstallation,assertLocalInstallVersion,assertLocalInstallTitle,
-  commitLocalProjectInstallation,readLocalInstallOutcome,sourceContract} from './local-project-install.js';
+  commitLocalProjectInstallation,readLocalInstallOutcome,sourceContract,
+  localProjectInstallId,getInstalledLocalProject} from './local-project-install.js';
 
 const hash=/^[a-f0-9]{64}$/;
 const issue=(code,message)=>Object.assign(new Error(message),{code});
-export function createLocalInstallUI({client,api,doc,currentPageTarget,getProject,retireManagedPreview,onState=()=>{}}){
+export function createLocalInstallUI({client,api,doc,currentPageTarget,getProject,readControllerRun,isBusy=()=>false,retireManagedPreview,onState=()=>{}}){
   const find=id=>doc.getElementById(id);
   const panel=find('local-install-review'),summary=find('local-install-summary'),
     title=find('local-install-title'),version=find('local-install-version'),
     warning=find('local-install-warning'),status=find('local-install-status'),
     confirmButton=find('local-install-confirm'),cancelButton=find('local-install-cancel');
   let verified=null,review=null,preparing=false,installing=false,unknown=false,installed=null,disposed=false;
-  let unknownReview=null,reconciling=false;
+  let unknownReview=null,reconciling=false,lookupKey='',lookupToken=0,checking=false,verificationReason='';
+  const selected=()=>{const local=project();return local?.active()&&local.selectedBindingId()?local:null;};
+  const isSelected=()=>!!selected();
   let onInstalled=()=>{};
   const message=error=>(error?.code||'E_INSTALL')+'：'+(error?.message||String(error));
   const say=(text,state='info')=>{status.textContent=text;status.dataset.state=state;};
@@ -46,19 +49,143 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   }
   const canSave=()=>unknown?!!unknownReview&&!reconciling&&!installing&&!preparing:
     current()&&!preparing&&!installing;
-  const sameInstalled=()=>installed&&verified&&installed.sourceHash===verified.source.sourceHash&&
-    installed.inputHash===verified.source.inputHash;
+  const sameInstalled=()=>installed&&verified&&installed.exact===true&&
+    installed.sourceHash===verified.source.sourceHash&&installed.inputHash===verified.source.inputHash;
   function hide(){review=null;panel.hidden=true;confirmButton.disabled=true;}
+  function pendingFor(local){
+    const attempt=local?.previousInstallAttempt?.();
+    return attempt?.bindingId===local?.selectedBindingId()&&
+      attempt?.projectSourceId===(local?.selectedProject()?.sourceId||'')&&
+      ['controller','page-userscript'].includes(attempt?.kind)&&
+      /^local-[a-f0-9]{24}$/.test(attempt?.id||'')&&
+      typeof attempt.attemptedVersion==='string'?attempt:null;
+  }
   function reset(){
-    verified=null;installed=null;unknown=false;unknownReview=null;hide();onState();
+    verified=null;installed=null;lookupKey='';++lookupToken;
+    // A lost install acknowledgement is not cleared by another Run or UI reset.
+    unknownReview=pendingFor(selected());unknown=!!unknownReview;
+    hide();onState();
+  }
+  const sameTarget=(a,b)=>a&&b&&b.status==='available'&&a.tabId===b.tabId&&
+    a.windowId===b.windowId&&(a.frameId??0)===(b.frameId??0)&&
+    a.documentId===b.documentId&&a.url===b.url;
+  function rememberInstalled(row,local){
+    local?.rememberInstallation?.({kind:row.kind,id:row.id,bindingId:local.selectedBindingId(),
+      sourceId:local.selectedProject()?.sourceId||''});
+  }
+  // A stored reference is a lookup hint only. Only original ledgers prove Run
+  // success or installation. Never execute Page or Controller during recovery.
+  async function inspect(token,local){
+    const same=()=>!disposed&&lookupToken===token&&selected()===local;
+    let source=null,binding=null;
+    const hint=local.previousInstallation?.();
+    verificationReason='当前源码尚无可复用的可信运行证明';
+    try{
+      if(local.connected()&&!isBusy()){
+        binding=local.capture();source=await local.resolve(binding);
+        if(!same())return;
+        local.assertCaptured(binding);
+      }
+      let ref=null;
+      if(source)ref={kind:source.runtimeKind,id:await localProjectInstallId({
+        binding,source,project:local.selectedProject()})};
+      else if(hint?.bindingId===local.selectedBindingId()&&
+          hint?.sourceId===(local.selectedProject()?.sourceId||'')&&
+          ['controller','page-userscript'].includes(hint?.kind)&&
+          /^local-[a-f0-9]{24}$/.test(hint?.id||''))ref={kind:hint.kind,id:hint.id};
+      if(ref){
+        const existing=await getInstalledLocalProject({client,review:ref});
+        if(!same())return;
+        if(existing){
+          let installedHash=existing.sourceHash||null;
+          if(source&&ref.kind==='controller'){
+            const catalog=await client.request('listTaskCatalog',{});
+            if(!same())return;
+            const candidate=(catalog?.catalog||[]).find(row=>row.taskId===ref.id&&
+              row.version===existing.version&&row.manifestHash===existing.manifestHash);
+            installedHash=candidate?.manifest?.program?.sourceHash||null;
+          }
+          installed={...ref,version:String(existing.version??existing.revision??''),
+            sourceHash:installedHash,exact:false,
+            changed:!!source&&!!installedHash&&installedHash!==source.sourceHash};
+          rememberInstalled(installed,local);
+        }else installed=null;
+      }else installed=null;
+      if(!same()||verified||unknown||unknownReview||isBusy()||!source)return;
+      if(source.runtimeKind==='page-userscript'){
+        verificationReason='Page 预览没有跨 Side Panel 持久证明；请主动再次运行，系统不会静默重放';
+        return;
+      }
+      const proof=local.previousVerification?.();
+      if(!proof||proof.kind!=='controller'||proof.bindingId!==binding.bindingId||
+          proof.sourceId!==(local.selectedProject()?.sourceId||''))return;
+      if(!sameTarget(proof.target,currentPageTarget?.snapshot)){
+        verificationReason='原成功运行绑定的网页文档已经变化，不能复用';return;
+      }
+      if(typeof readControllerRun!=='function'||!proof.runId||!proof.resultId){
+        verificationReason='上次运行缺少可核对的 runId / resultId';return;
+      }
+      assertLocalInstallVersion({kind:proof.kind,bindingId:proof.bindingId,
+        providerEpoch:proof.providerEpoch,sourceHash:proof.sourceHash,
+        inputHash:proof.inputHash,sourceBytes:proof.sourceBytes,
+        sourceContract:proof.sourceContract},source,binding);
+      const snapshot=await readControllerRun({runId:proof.runId});
+      if(!same())return;
+      const run=(snapshot?.runs||[]).find(row=>row.runId===proof.runId)||
+        (snapshot?.run?.runId===proof.runId?snapshot.run:null);
+      const result=(snapshot?.results||[]).find(row=>row.runId===proof.runId&&
+        row.resultId===proof.resultId&&row.revision?.sourceHash===source.sourceHash&&
+        row.state==='completed'&&row.outcome?.ok===true);
+      // Validate the original Authority-owned target, not merely the editable
+      // recovery pointer. A successful Run on another document is never proof.
+      const nativeTarget=run?.target;
+      const targetMatches=nativeTarget?.mode==='borrowed'&&
+        nativeTarget.tabId===proof.target.tabId&&
+        (nativeTarget.frameId??0)===(proof.target.frameId??0)&&
+        nativeTarget.documentId===proof.target.documentId&&
+        nativeTarget.expectedUrl===proof.target.url&&
+        nativeTarget.expectedWindowId===proof.target.windowId;
+      if(run?.state!=='completed'||run.retirementState!=='released'||
+        run.revision?.sourceHash!==source.sourceHash||run.resultId!==proof.resultId||
+        !targetMatches||!result){
+        verificationReason='原运行结果、成功终态或资源释放回执未能确认';return;
+      }
+      if(!same()||!sameTarget(proof.target,currentPageTarget?.snapshot))return;
+      succeeded({source,binding,target:currentPageTarget.snapshot,
+        runId:proof.runId,resultId:proof.resultId},{remember:false});
+      verificationReason='原持久运行结果已只读核验';
+    }catch(error){
+      if(!same())return;
+      verificationReason=error?.code==='E_DEV_CONFLICT'
+        ?'项目或来源版本改变，不能复用旧运行证明'
+        :(error?.code||'E_RECOVERY')+'：'+(error?.message||'状态暂不可用');
+    }finally{if(same()){checking=false;onState();}}
+  }
+  function inspectSelection(){
+    const local=selected(),target=currentPageTarget?.snapshot;
+    const key=JSON.stringify([local?.selectedBindingId()||'',local?.providerEpoch()||'',
+      local?.connected()||false,local?.preparationIdentity()||'',
+      local?.selectedProject()?.sourceId||'',local?.previousVerification?.()?.runId||'',
+      local?.previousInstallation?.()?.id||'',
+      local?.previousInstallAttempt?.()?.attemptedVersion||'',isBusy(),
+      target?.status||'',target?.windowId,target?.tabId,target?.documentId,target?.url]);
+    if(key===lookupKey)return;
+    lookupKey=key;const token=++lookupToken;installed=null;checking=!!local;
+    if(!installing&&!reconciling){
+      unknownReview=pendingFor(local);unknown=!!unknownReview;
+    }
+    if(local)void inspect(token,local);else verificationReason='请选择已授权项目';
   }
   function update(){
+    inspectSelection();
     const target=currentPageTarget?.snapshot;
     // Block Save while a passive refresh resolves identity; retain the original
     // proof only until the same window's actual document can be compared again.
     const resolvingSameWindow=sourceCurrent()&&target?.status==='resolving'&&
       target.windowId===verified.target.windowId;
-    if(verified&&!current()&&!resolvingSameWindow&&!unknown)reset();
+    if(verified&&!current()&&!resolvingSameWindow&&!unknown){
+      verified=null;hide();onState();
+    }
     confirmButton.disabled=unknown?!unknownReview||reconciling||installing:
       !review||preparing||installing||!current();
     confirmButton.textContent=reconciling?'正在核对…':installing?'正在保存…':
@@ -66,13 +193,22 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     cancelButton.disabled=preparing||installing||reconciling;
     title.readOnly=version.readOnly=unknown||preparing||installing||reconciling;
   }
-  function succeeded({source,binding,target,runId=null,previewId=null}){
+  function succeeded({source,binding,target,runId=null,resultId=null,previewId=null},{remember=true}={}){
     if(!hash.test(source?.sourceHash)||!hash.test(source?.inputHash)||
       !Number.isSafeInteger(source?.sourceBytes)||source?.bindingId!==binding?.bindingId)
       return reset(); // Provider must identify exact build inputs before Save becomes available.
     verified={source:structuredClone(source),binding:structuredClone(binding),
       target:structuredClone(target),runId,previewId,preparationIdentity:project()?.preparationIdentity()};
-    installed=null;unknown=false;unknownReview=null;hide();onState();
+    // An additional successful Run cannot resolve an ambiguous installation.
+    unknownReview=pendingFor(project());unknown=!!unknownReview;
+    hide();onState();
+    if(remember&&runId&&resultId&&source.runtimeKind==='controller'){
+      project()?.rememberVerification?.({kind:'controller',bindingId:binding.bindingId,
+        sourceId:project()?.selectedProject()?.sourceId||'',providerEpoch:binding.providerEpoch,
+        projectId:source.projectId,sourceHash:source.sourceHash,inputHash:source.inputHash,
+        sourceBytes:source.sourceBytes,sourceContract:sourceContract(source),
+        target:structuredClone(target),runId,resultId});
+    }
     // Read the ORIGINAL authoritative Page/Task catalog to recover the exact
     // installed version across Sidebar restarts; no parallel installation DB.
     const snapshot=verified;
@@ -80,8 +216,13 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       project:project()?.selectedProject(),target,runId})
       .then(row=>{
         if(disposed||verified!==snapshot||!current())return;
-        if(row.alreadyInstalled)installed={kind:row.kind,id:row.id,
-          sourceHash:source.sourceHash,inputHash:source.inputHash};
+        if(row.installedVersion!==null){
+          installed={kind:row.kind,id:row.id,version:String(row.installedVersion),
+            sourceHash:row.alreadyInstalled?source.sourceHash:null,
+            inputHash:row.alreadyInstalled?source.inputHash:null,
+            exact:row.alreadyInstalled,changed:!row.alreadyInstalled};
+          rememberInstalled(installed,project());
+        }
         onState();
       }).catch(()=>{ /* Read failure is not evidence of an installation. */ });
   }
@@ -95,8 +236,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         version:pending.attemptedVersion});
       if(disposed||unknownReview!==pending)return;
       if(observed.state==='confirmed'){
-        installed={...observed,sourceHash:pending.sourceHash,inputHash:pending.inputHash};
-        unknown=false;unknownReview=null;hide();
+        installed={...observed,sourceHash:pending.sourceHash,inputHash:pending.inputHash,exact:true};
+        rememberInstalled(installed,project());
+        unknown=false;unknownReview=null;project()?.rememberInstallAttempt?.(null);hide();
         say('已从原持久安装记录确认确定版本，不会再次执行脚本或提交安装。','success');
         onInstalled({kind:observed.kind,id:observed.id,version:observed.version,focus:true});
       }else{
@@ -115,7 +257,20 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   async function prepare(){
     if(disposed||preparing||installing||reconciling)return;
     if(unknown&&unknownReview)return reconcileUnknown();
-    if(!canSave())throw issue('E_VERIFICATION','请先在当前网页成功运行本地确定版本并核对结果');
+    if(!isSelected())return;
+    if(checking&&!verified){
+      say('正在只读核对已安装状态与历史证明；不会执行项目。','pending');
+      reveal();return;
+    }
+    if(!canSave()){
+      if(installed&&!installed.changed){
+        onInstalled({kind:installed.kind,id:installed.id,version:installed.version,focus:true});return;
+      }
+      summary.textContent=installed?'旧版本保留在原安装目录；更新前需要验证当前源码。':'当前项目还没有可复用的成功验证。';
+      warning.textContent=verificationReason||'请主动运行本地项目；Page 运行可能产生网页副作用。';
+      say('安装入口仍可使用；当前源码尚未取得安装资格。','unknown');
+      confirmButton.disabled=true;reveal();return;
+    }
     if(sameInstalled()){onInstalled({kind:installed.kind,id:installed.id,focus:true});return;}
     if(review){reveal();return;}
     const before=verified;
@@ -133,7 +288,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         project:local.selectedProject(),target:before.target,runId:before.runId});
       if(planned.alreadyInstalled){
         if(disposed||before!==verified||!current())throw issue('E_DEV_CONFLICT','已安装状态核对期间项目或网页改变');
-        installed={kind:planned.kind,id:planned.id,sourceHash:source.sourceHash,inputHash:source.inputHash};
+        installed={kind:planned.kind,id:planned.id,sourceHash:source.sourceHash,
+          inputHash:source.inputHash,exact:true};
+        rememberInstalled(installed,local);
         onInstalled({kind:planned.kind,id:planned.id,focus:true});
         return;
       }
@@ -215,7 +372,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         target:selected.target,title:approvedTitle,version:approvedVersion,
         onCandidate:value=>{attemptedManifestHash=value;}});
       if(disposed)return;
-      installed={...result,sourceHash:source.sourceHash,inputHash:source.inputHash};
+      installed={...result,sourceHash:source.sourceHash,inputHash:source.inputHash,exact:true};
+      local.rememberInstallAttempt?.(null);
+      rememberInstalled(installed,local);
       hide();say('已安装固定版本；修改本地源码不会自动更新已安装内容。','success');
       onInstalled({kind:result.kind,id:result.id,version:result.version});
     })().catch(error=>{
@@ -228,6 +387,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       unknown=!rejectedBeforeDispatch;
       unknownReview=unknown?{...selected.planned,attemptedVersion:approvedVersion,
         attemptedManifestHash,attemptedTitle:approvedTitle}:null;
+      project()?.rememberInstallAttempt?.(unknownReview);
       review=null;confirmButton.disabled=true;
       say(rejectedBeforeDispatch
         ?message(error)+'。尚未提交安装；检查网站访问后可以再次点击底部保存进行审阅。'
@@ -240,10 +400,12 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   const onConfirm=event=>confirm(event),onCancel=()=>cancel();
   confirmButton.addEventListener('click',onConfirm);
   cancelButton.addEventListener('click',onCancel);
-  return Object.freeze({canSave,saveLabel:()=>reconciling?'正在核对…':installing?'正在保存…':
-    preparing?'正在准备保存…':unknown?'核对安装状态':!current()?'待运行验证':
-    sameInstalled()?'管理已安装版本':review?'继续确认保存':
-    verified.source.runtimeKind==='page-userscript'?'安装网页增强':'保存为任务',
+  return Object.freeze({canSave,hasSelection:isSelected,saveLabel:()=>reconciling?'正在核对…':installing?'正在安装…':
+    preparing||checking?'正在核对…':unknown?'核对安装状态':
+    installed&&(sameInstalled()||!current()&&!installed.changed)?'管理已安装':
+    installed?'更新':review?'继续确认安装':
+    (verified?.source.runtimeKind==='page-userscript'||project()?.selectedProject()?.runtimeKind==='page-userscript')
+      ?'安装网页增强':'保存为任务',
     update,reset,succeeded,prepare,confirm,setOnInstalled(fn){onInstalled=fn||(()=>{});},
     dispose(){disposed=true;consent.dispose();confirmButton.removeEventListener('click',onConfirm);
       cancelButton.removeEventListener('click',onCancel);}});

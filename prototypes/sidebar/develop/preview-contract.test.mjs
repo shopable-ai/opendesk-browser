@@ -1,4 +1,4 @@
-// OpenDesk Browser Developer Preview R2.5: source-only regression gates.
+// OpenDesk Browser Developer Preview R2.6: source-only regression gates.
 // Run: node --test prototypes/sidebar/develop/preview-contract.test.mjs
 // Layout geometry and native Chrome require separate browser evidence.
 import test from 'node:test';
@@ -42,7 +42,7 @@ test('节奏：说明4、相关控件8、独立章节16，编辑器默认164',()
  assert.match(css,/\.code-editor\{[^}]*height:164px;min-height:140px;max-height:none/);
 });
 test('核心功能节点不因视觉简化被删除',()=>{
- for(const id of ['code-editor','params-editor','local-project-select','local-source-file','page-fold','page-install','page-toggle','page-uninstall','version-fold','task-fold','history-fold','advanced-fold','diagnostics-fold','health-fold','sdk-drawer','approve','revoke','run-btn','stop-btn','save-btn']){
+ for(const id of ['code-editor','params-editor','local-project-select','local-project-brief','page-fold','page-install','page-toggle','page-uninstall','version-fold','task-fold','history-fold','advanced-fold','diagnostics-fold','health-fold','sdk-drawer','approve','revoke','run-btn','stop-btn','save-btn']){
   assert.ok(html.includes('id="'+id+'"'),'丢失 '+id);
  }
 });
@@ -75,15 +75,18 @@ test('页头去重、编辑器尺寸和预览辅助菜单',()=>{
  assert.match(html,/id="sdk-inspect-inline"/);
 });
 
-test('本地项目：运行成功才出现正确安装动作',()=>{
+test('本地项目：选择后常驻安装入口，证明不足也能查看原因',()=>{
  assert.match(html, /id="local-toggle"/);
  assert.match(html, /id="local-install-review"[^>]*hidden/);
  assert.match(html, /id="local-install-confirm"/);
- assert.match(html, /id="local-installed-open"[^>]*hidden/);
+ assert.doesNotMatch(html,/id="local-installed-open"/);
+ assert.match(html, /id="local-project-brief"/);
+ assert.match(html, /state\.localReviewMode='blocked'/);
+ assert.match(html, /当前版本尚未验证/);
  assert.match(html, /const localProofCurrent=\(\)=>/);
  assert.match(html, /state\.localVerified=\{project:key,runId:run\.runId,documentId:docId\(\)/);
  assert.match(html, /resetLocalProof\(\)/);
- assert.match(html, /\$\('save-btn'\)\.hidden=state\.local&&!ready/);
+ assert.match(html, /\$\('save-btn'\)\.hidden=false/);
  assert.match(html, /\$\('save-btn'\)\.addEventListener\('click',\(\)=>state\.local\?openLocalReview\(false\):saveVersion\(\)\)/);
  assert.doesNotMatch(html, /id="local-install-review" hidden><svg/);
 });
@@ -92,7 +95,7 @@ test('不同安装目标复用原 Task / Page 分类，不可视为通用 Sideba
  assert.match(html, /'安装网页增强':'保存为任务'/);
 });
 test('安装审阅：名称、版本、站点、重复执行风险、取消与更新状态',()=>{
- for(const id of ['local-install-name','local-install-version','local-review-origin','local-review-warning','local-review-error','local-install-confirm','local-install-cancel','local-review-close','local-installed-open'])
+ for(const id of ['local-install-name','local-install-version','local-review-origin','local-review-warning','local-review-error','local-install-confirm','local-install-cancel','local-review-close'])
   assert.ok(html.includes('id="'+id+'"'),'本地安装审阅缺失 '+id);
  assert.match(html, /正式安装会再次执行冻结的网页程序/);
  assert.match(html, /还须具备真实页面操作的原生回执/);
@@ -101,4 +104,22 @@ test('安装审阅：名称、版本、站点、重复执行风险、取消与�
  assert.match(html, /localInstalled:Object\.create\(null\)/);
  assert.match(html, /view\.scrollTop\+=rect\.top-bounds\.top-12/);
  assert.match(html, /id="simulate-local-edit"/);
+});
+
+test('R2.6 移除只读源码浏览器，保留本地 Resolver 的产品边界',()=>{
+ for(const phrase of ['查看项目文件（只读）','项目源码快照','id="local-tree"',
+   'id="local-files"','id="local-file-view"','id="local-source-file"',
+   'id="local-source-code"','src/main.mjs','src/actions.mjs'])
+   assert.ok(!html.includes(phrase),'本地只读文件工作区仍有残留 '+phrase);
+ assert.match(html,/id="local-project-select"/);
+ assert.match(html,/id="local-refresh"/);
+ assert.match(html,/id="local-params-fold"/);
+});
+test('R2.6 恢复提示不会将 Page 模拟证明跨侧边栏复用',()=>{
+ assert.match(html,/localProofHistory:Object\.create\(null\)/);
+ assert.match(html,/id="simulate-local-reopen"/);
+ assert.match(html,/delete state\.localProofHistory\[key\]/);
+ assert.match(html,/PREVIEW_ONLY/);
+ assert.match(html,/安装入口始终可访问/);
+ assert.match(html,/Page 项目不会在后台静默重复执行/);
 });

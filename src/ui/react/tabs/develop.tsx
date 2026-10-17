@@ -25,7 +25,7 @@ export function DeveloperActions({model}){
       title={model.saveTitle||undefined}
       onClick={event=>model.onSave?.(event.nativeEvent)}>{model.saveLabel}</button>
     <button type="button" id="script-stop" className="od-button od-button--secondary"
-      disabled={Boolean(model.stopDisabled)}
+      disabled={Boolean(model.stopDisabled)} hidden={Boolean(model.stopHidden)}
       onClick={event=>model.onStop?.(event.nativeEvent)}>{model.stopLabel}</button>
   </>;
 }

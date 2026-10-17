@@ -52,6 +52,14 @@ function pageCandidate(source,target,id,revision){
     programId:id,revision,previewUrl:target.url,
     ...(source.pageRules?{pageRules:source.pageRules}:{})});
 }
+// Reuse the same immutable identity when looking up the existing installed record.
+export async function localProjectInstallId({binding,project,source}){
+  if(typeof binding?.bindingId!=='string'||!binding.bindingId||
+    !['controller','page-userscript'].includes(source?.runtimeKind))
+    throw fail('E_DEV_IDENTITY','缺少本地项目安装身份');
+  return 'local-'+(await sha256Utf8(JSON.stringify([
+    binding.bindingId,project?.sourceId||'',source.projectId||'',source.runtimeKind]))).slice(0,24);
+}
 export async function prepareLocalProjectInstallation({client,source,binding,project,target,runId}){
   assertSource(source,binding,target);
   if(source.sourceHash!==await sha256Utf8(source.sourceUtf8)||
@@ -60,8 +68,7 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   if(source.runtimeKind==='controller'&&(!runId||
     !/\basync\s+function\s+main\s*\(/.test(source.sourceUtf8)))
     throw fail('E_PROGRAM_KIND','Controller 保存任务需要已完成的持久运行及支持的 async function main() 入口');
-  const id='local-'+(await sha256Utf8(JSON.stringify([
-    binding.bindingId,project?.sourceId||'',source.projectId||'',source.runtimeKind]))).slice(0,24);
+  const id=await localProjectInstallId({binding,project,source});
   const page=source.runtimeKind==='page-userscript';
   const catalog=page?await client.request('listPagePrograms',{}):await client.request('listTaskCatalog',{});
   const rows=page?(catalog?.catalog||[]):taskRows(catalog).catalog;

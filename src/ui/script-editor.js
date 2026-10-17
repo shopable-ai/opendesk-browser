@@ -149,7 +149,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   let browserListenersAttached = false;
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
-  const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,retireManagedPreview:retireLocalPreviewForInstall,onState:()=>update()});
+  const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,readControllerRun:options=>host.controller.snapshotControllerRun(options),
+    isBusy:()=>running||previewBusy||stopping,retireManagedPreview:retireLocalPreviewForInstall,onState:()=>update()});
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
@@ -375,8 +376,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     let saveHidden=false,saveLabel='保存版本',runLabel='运行草稿';
     if(localProject?.active()){
       for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
-      saveHidden=!localInstaller.canSave();
-      saveDisabled=editingBusy||running||stopping||previewBusy||!localInstaller.canSave();
+      saveHidden=false; // Visibility is navigation; Authority still gates install confirmation.
+      saveDisabled=editingBusy||running||stopping||previewBusy||!localInstaller.hasSelection();
       saveLabel=localInstaller.saveLabel();
       runLabel='运行本地项目';
       runDisabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
@@ -390,7 +391,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     find('script-library-tools').hidden=!!localProject?.active();
     find('page-preview-tools').hidden=!!localProject?.active();
     const actions={runDisabled,runLabel,saveDisabled,saveHidden,saveTitle,saveLabel,
-      stopDisabled,stopLabel,onRun:start,onSave:saveClick,
+      stopDisabled,stopLabel,stopHidden:!!localProject?.active()&&stopDisabled,onRun:start,onSave:saveClick,
       onStop:event=>{if(event?.isTrusted&&!disposed)Promise.resolve().then(stop).catch(fail);}};
     if(reactDeveloperActions)reactDeveloperActions(actions);
     else{
@@ -398,7 +399,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       runButton.disabled=runDisabled;runButton.textContent=runLabel;
       saveButton.disabled=saveDisabled;saveButton.hidden=saveHidden;
       saveButton.title=saveTitle;saveButton.textContent=saveLabel;
-      stopButton.disabled=stopDisabled;stopButton.textContent=stopLabel;
+      stopButton.disabled=stopDisabled;stopButton.hidden=!!localProject?.active()&&stopDisabled;
+      stopButton.textContent=stopLabel;
     }
     dependencyInstaller?.update();
   }
@@ -940,7 +942,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           row.state==='completed'&&row.outcome?.ok===true);
         if(durable?.state==='completed'&&durable.retirementState==='released'&&
            durable.revision?.sourceHash===source.sourceHash&&returned)
-          localInstaller.succeeded({source,binding,target:captured,runId:claim.runId});
+          localInstaller.succeeded({source,binding,target:captured,runId:claim.runId,resultId:returned.resultId});
       }
     })().catch(error=>{
       startError=error;admittedRunId||=error.runId;localPageResult=null;localInstaller.reset();fail(error);

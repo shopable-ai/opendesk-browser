@@ -9,7 +9,8 @@
 | `r2.2-spacing-preview.html` | R2.2 间距整改基线 |
 | `r2.3-clean-preview.html` | R2.3 参数去重与间距审计基线 |
 | `r2.4-header-preview.html` | R2.4 页头与编辑器精简基线 |
-| `index.html` | **R2.5 最新原型**：本地项目运行验证后按 Controller/Page 类型安装，支持只读管理及升级演示 |
+| `r2.5-install-preview.html` | 归档的 R2.5 原型原始 HTML，保留原只读文件区域供历史对照 |
+| `index.html` | **R2.6 最新原型**：安装入口常驻、Controller 历史模拟恢复、原安装管理、移除只读文件区域 |
 | `preview-contract.test.mjs` | Node 静态回归：防止重复标题、覆盖补丁和功能 ID 缺失 |
 
 ## 设计原则与反方审计
@@ -94,3 +95,18 @@ R2.1 已在本次会话的 Chromium 静态页面环境做 **23 项交互断言�
 **重要限制**：本 HTML 是无持久化、无权限的离线 Mock，模拟安装结果只存在当前预览会话，关闭页面即失效。本文「已安装」指的是原型演示，并非真实 OpenDesk 安装回执。正式 R25.1 代码已具备对应流程，并不代表这一回合完成了新的正式功能验证。
 
 **建议后续**：将 R2.5 的类目文案与按需安装入口对齐现有 React 19 开发 Tab / `src/ui/local-project-install-ui.js`；核对旧「保存到我的工具」文案是否应改「安装网页增强」，并在真实 Native Provider、Chrome 扩展、安装后重启、更新与权限撤销场景中完成产品验收。
+
+## R2.6 本地项目状态恢复与安装入口（2026-10-17）
+
+**正式修复目标：**「开发 → 本地项目」底部安装/管理入口只由项目模式及项目选择控制可见与否；是否允许真正安装仍由已有 Authority 的原始可信证据决定。默认只有运行和安装/管理两个操作，发生运行期间才显示停止。刷新按钮不因准备就绪而消失。
+
+**运行与安装状态分离：**
+- 当前源码由原 Provider、Resolver 与 SHA-256 核实，不保存/展示多文件只读快照。
+- Controller 的历史成功提示只保存 `runId/resultId` 等**查找指针**，重新打开后必须只读重查原持久 Run、Result、来源版本及精确网页身份后才能作为本次安装候选依据；指针本身不产生安装资格。
+- Page 预览不具有跨会话的持久成功证明；重新打开后不得静默复跑。正式安装确认仍会警告冻结 Page 再次验证的副作用。
+- 已安装 Task/Page 从正式 catalog 查询；Provider 离线时可借之前记录的不可变项目安装 ID 查询并打开原管理页面，不能假设仅凭旧名称/布尔值即已安装。
+- 安装回执未知必须先走原只读对账；原有安装保留，不能用重新读取的历史成功结果清空 unknown 状态、触发第二次安装。
+
+**预览变更：** R2.5 的 `index.html` 原样归档至 `r2.5-install-preview.html`；新 `index.html` 删除文件树、只读源码切换与“项目源码快照”，删除重复的已安装管理按钮；保留项目下拉、刷新、简洁状态、安装确认和原语言/运行世界切换。预览辅助菜单增加“模拟侧边栏重开”，只演示 Controller 同文档复用和 Page 不持久复用；这不是原生运行或安装。
+
+**验收边界：** `preview-contract.test.mjs` 为 Node 静态结构校验，`tests/environment/local-project-install-ui-r26.test.mjs` 为 Fake RPC/DOM 的只读状态机单元回归。真实 Mac Chrome / Native Provider / 原始 Authority 安装与升级必须独立验收，未执行时标记 `NOT_TESTED`，不得以模拟图或静态检查宣称产品 95+。

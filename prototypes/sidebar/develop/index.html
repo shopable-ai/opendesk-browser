@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 开发选项卡 R2.5 · 本地项目安装闭环预览</title>
+<title>OpenDesk Browser · 开发页 R2.6 · 本地项目安装与历史状态预览</title>
 <style>
 :root{
  color-scheme:light; --ink:#1b2c49;--sub:#53647e;--meta:#617188;--brand:#365eda;--brand-soft:#edf2ff;
@@ -166,7 +166,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
 <section class="preview-help" id="preview-help" role="group" aria-label="预览说明与模拟工具" hidden>
  <div class="preview-help-title">离线原型 · 演示工具</div>
  <p class="muted">这里的运行、保存、安装与权限操作只改变模拟状态，不调用真实 Chrome 或 SDK。</p>
- <div class="preview-demo-actions"><button class="btn compact" id="simulate-local-edit" type="button">模拟本地源码变化</button><button class="btn compact" id="try-cross" type="button">模拟跨站拒绝</button><button class="btn compact" id="sdk-inspect-inline" type="button">模拟授权状态</button></div>
+ <div class="preview-demo-actions"><button class="btn compact" id="simulate-local-edit" type="button">模拟本地源码变化</button><button class="btn compact" id="simulate-local-reopen" type="button">模拟侧边栏重开</button><button class="btn compact" id="try-cross" type="button">模拟跨站拒绝</button><button class="btn compact" id="sdk-inspect-inline" type="button">模拟授权状态</button></div>
 </section>
 <nav class="top-tabs" aria-label="工作台视图"><span class="tab">我的</span><span class="tab">扩展</span><span class="tab">工作流</span><span class="tab" aria-current="page">开发</span><span class="tab">云控</span></nav>
 <main class="viewport" id="viewport" aria-label="开发工作区">
@@ -191,16 +191,15 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
     <details class="fold fold-inner" id="deps-fold"><summary><svg class="icon icon-sm"><use href="#i-folder"/></svg><span class="summary-label">编译与依赖诊断</span><span class="summary-end">按需查看</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">只有引入第三方模块或编译失败时才需要查看。系统会在运行前准备和校验依赖，不必手工编译。</div><div class="actions-wrap"><button class="btn compact" id="deps-check">检查依赖</button><button class="btn compact" id="deps-lock">检查固定版本</button></div><details class="fold fold-inner"><summary>许可证、源码哈希和编译产物 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="dependency-info">尚无外部依赖。此处只展示审核数据，不执行代码。</pre></div></details></div></details>
    </div>
    <div id="local-area" hidden class="stack">
-    <div class="banner"><svg class="icon icon-sm"><use href="#i-folder"/></svg><span>从本地项目运行代码；在 VS Code 中编辑，多文件会一起读取。</span></div>
+    
     <div class="hstack"><select class="control grow" id="local-project-select" aria-label="已授权本地项目"><option value="">选择已授权本地项目</option><option value="demo-page">reading-tool · Page</option><option value="demo-controller">browser-lab · Controller</option></select><button class="icon-btn outline" id="local-refresh" title="刷新项目" aria-label="刷新项目"><svg class="icon"><use href="#i-refresh"/></svg></button></div>
-    <div class="table-box" id="local-project-detail"><div class="table-row"><span>原生连接</span><strong style="color:var(--positive)">示例已连接</strong></div><div class="table-row"><span>源码 Provider</span><span>等待选择项目</span></div></div>
-    <div class="editor-card" id="local-tree"><div class="editor-head"><span>项目源码快照</span><span class="filename">只读</span></div><pre class="pre" id="local-files" style="margin:8px;background:white;border:0">请选择已授权项目后查看多文件入口。</pre><div class="field" id="local-file-view" hidden style="padding:0 var(--space-2) var(--space-2)"><label for="local-source-file">查看项目文件（只读）</label><select class="control" id="local-source-file"></select><pre class="pre" id="local-source-code">选择文件后显示示例源码。</pre></div></div>
+    <p id="local-project-brief" class="micro" role="status">示例已连接 · 请选择项目</p>
     <details class="fold fold-inner"><summary><svg class="icon icon-sm"><use href="#i-settings"/></svg><span class="summary-label">本地连接诊断与首次使用</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><p class="muted">仅在 Native 未连接时，需要在可信入口连接 OpenDesk。已授权项目自动准备，不必反复配对。</p><pre class="pre">opendesk browser dev .
 # 本地项目源码目录</pre><div class="actions-wrap"><button class="btn compact" id="local-connect">检查本机连接</button><button class="btn compact" id="local-guide">查看配置命令</button></div><div class="micro">参考 docs/api/local-projects.zh-CN.md</div></div></details>
     <details class="fold fold-inner" id="local-params-fold"><summary><svg class="icon icon-sm"><use href="#i-file"/></svg><span class="summary-label">项目参数</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><textarea class="control" id="local-params" rows="3" spellcheck="false" aria-label="本地项目运行参数 JSON">{}</textarea></div></details>
     <div class="local-publish-state" id="local-publish-state" role="status" aria-live="polite" hidden>
       <span id="local-publish-copy">先运行项目，验证成功后再安装。</span>
-      <button type="button" class="btn compact" id="local-installed-open" hidden>查看已安装版本</button>
+      
     </div>
     <section class="local-review" id="local-install-review" aria-labelledby="local-review-heading" tabindex="-1" hidden>
       <div class="section-head"><h3 id="local-review-heading">保存为任务</h3><button type="button" class="icon-btn outline" id="local-review-close" aria-label="关闭安装确认" title="关闭安装确认"><svg class="icon icon-sm"><use href="#i-x"/></svg></button></div>
@@ -285,7 +284,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   docSeq:1,frameId:0,sourceURL:demoURL,sourceOrigin:new URL(demoURL).origin,
   scripts:{...demos},dirty:false,versions:[],pages:[],pageInstalled:false,pageVerified:false,pageEnabled:false,
   versionSeq:0,history:[],pagePreviewOK:false,targets:[],receipt:null,pendingCross:null,originalFocus:null,
-  localVerified:null,localInstalled:Object.create(null),localSourceVersions:{'demo-page':1,'demo-controller':1},localReviewMode:null
+  localVerified:null,localProofHistory:Object.create(null),localInstalled:Object.create(null),localSourceVersions:{'demo-page':1,'demo-controller':1},localReviewMode:null
  };
  const chosenKey=()=>`${state.runtime}:${state.runtime==='page'?state.framework:'javascript'}`;
  const storedPageRow=$('page-program-list').closest('.field');$('page-management').querySelector('.fold-body').prepend(storedPageRow);
@@ -369,32 +368,45 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   const key=localProjectKey(),installed=key?state.localInstalled[key]:null,ready=localProofCurrent();
   const show=state.local&&!!key;
   $('local-publish-state').hidden=!show;
-  $('local-installed-open').hidden=!show||!installed;
-  let message='先点击「运行本地项目」，成功后才能安装。';
+  let message='尚无当前版本的成功运行证明；安装入口可查看所需条件。';
   if(show&&installed){
    message=`已安装到「${installed.destination}」 · v${installed.version}（仅预览）`;
-   if(ready&&installed.sourceVersion!==state.localVerified.sourceVersion)message+=' · 有待更新版本';
-  }else if(show&&ready){message=`运行已完成，可${localKind()==='page-userscript'?'安装网页增强':'保存为任务'}。`}
+   if(installed.sourceVersion!==state.localSourceVersions[key])message+=' · 已有新源码，验证后可更新';
+  }else if(show&&ready)message='当前版本已具备模拟成功证明，可进入安装确认。';
   $('local-publish-copy').textContent=message;
-  $('save-btn').hidden=state.local&&!ready;
+  // The persistent dock is a navigation affordance, never installation proof.
+  $('save-btn').hidden=false;
   if(state.local){
-   const same=ready&&installed?.sourceVersion===state.localVerified.sourceVersion&&installed?.origin===state.sourceOrigin;
-   $('save-label').textContent=same?'查看安装':installed?`更新${localKind()==='page-userscript'?'网页增强':'任务'}`:
+   const changed=!!installed&&installed.sourceVersion!==state.localSourceVersions[key];
+   $('save-label').textContent=installed?(ready&&changed?'更新':'管理已安装'):
      localKind()==='page-userscript'?'安装网页增强':'保存为任务';
-   $('save-btn').title=same?'查看已安装信息':'成功运行后安装当前固定项目版本';
-   $('save-btn').disabled=state.running;
+   $('save-btn').title=installed?'管理已安装；新源码必须另行验证':'查看当前项目的安装条件';
+   $('save-btn').disabled=state.running||!show;
    $('dock-more').hidden=true;
   }else{
    $('save-label').textContent='存快照';$('save-btn').title='保存浏览器执行快照，不提交 Git';
-   $('dock-more').hidden=false;
+   $('save-btn').disabled=false;$('dock-more').hidden=false;
   }
  }
  function resetLocalProof(){state.localVerified=null;closeLocalReview(false);updateLocalPublish();}
  function openLocalReview(installedOnly=false){
   const key=localProjectKey(),installed=state.localInstalled[key];
   if(!state.local||!key){notice('请先选择本地项目。',true);return}
-  if(!installedOnly&&!localProofCurrent()){notice('源码或目标网页已变化，请先运行最新版本。',true);return}
+  if(!installedOnly&&!localProofCurrent()&&installed)return openLocalReview(true);
+  if(!installedOnly&&!localProofCurrent()){
+   state.localReviewMode='blocked';
+   $('local-review-heading').textContent='当前版本尚未验证';
+   $('local-review-destination').textContent=`安装目标：「${localDestination()}」（仅模拟）`;
+   $('local-review-source').textContent='安装入口始终可访问，但不能代替真实 Authority 与固定源码证明。';
+   $('local-review-warning').textContent='请先运行最新版本，Page 项目不会在后台静默重复执行。';
+   $('local-install-review').querySelector('.local-review-fields').hidden=true;
+   $('local-install-review').hidden=false;
+   $('local-review-error').hidden=true;$('local-install-confirm').hidden=true;
+   $('local-review-heading').setAttribute('tabindex','-1');
+   $('local-review-heading').focus({preventScroll:true});return;
+  }
   if(installedOnly&&!installed){notice('此项目还未安装。',true);return}
+  $('local-install-review').querySelector('.local-review-fields').hidden=false;
   const installedSame=!!installed&&localProofCurrent()&&installed.sourceVersion===state.localVerified.sourceVersion&&installed.origin===state.sourceOrigin;
   const readonly=installedOnly||installedSame;
   const dest=readonly?installed.destination:localDestination();
@@ -424,7 +436,6 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
    event.preventDefault();closeLocalReview(true);
   }
  });
- $('local-installed-open').addEventListener('click',()=>openLocalReview(true));
  $('local-install-confirm').addEventListener('click',()=>{
   if(state.localReviewMode!=='install'||!localProofCurrent()){notice('本地项目或网页发生变化，必须重新运行并确认。',true);resetLocalProof();return}
   const name=$('local-install-name').value.trim(),version=$('local-install-version').value.trim(),type=localKind();
@@ -439,41 +450,34 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
     sourceVersion:state.localVerified.sourceVersion,destination:localDestination(),runId:state.localVerified.runId};
   closeLocalReview(false);updateLocalPublish();
   notice(`仅原型模拟已安装到「${localDestination()}」；正式安装尚未执行。`);
-  $('local-installed-open').focus();
+  $('save-btn').focus();
  });
  // Preview-only source change gesture lives in the hidden preview menu, never production UI.
+ $('simulate-local-reopen').addEventListener('click',()=>{
+  const key=localProjectKey();
+  if(localKind()==='page-userscript')delete state.localProofHistory[key];
+  state.localVerified=localKind()==='controller'?(state.localProofHistory[key]||null):null;
+  closeLocalReview(false);updateLocalPublish();togglePreviewHelp(false);
+  notice('模拟重新打开：Controller 可按同项目/版本/文档恢复；Page 不自动重放（PREVIEW_ONLY）。');
+ });
  $('simulate-local-edit').addEventListener('click',()=>{
   const key=localProjectKey();if(!key||!state.local){notice('请先打开并选择本地项目。',true);return}
   state.localSourceVersions[key]++;resetLocalProof();togglePreviewHelp(false);
   notice('已模拟本地项目源码更新，旧的运行验证失效；需要重新运行。');
  });
  $('local-toggle').addEventListener('change',event=>{
-  state.local=event.target.checked;$('manual-area').hidden=state.local;$('local-area').hidden=!state.local;resetLocalProof();
+  state.local=event.target.checked;$('manual-area').hidden=state.local;$('local-area').hidden=!state.local;closeLocalReview(false);
+  state.localVerified=state.localProofHistory[localProjectKey()]||null;updateLocalPublish();
   $('source-heading').textContent=state.local?'项目源码':'直接编辑';$('run-label').textContent=state.local?'运行本地项目':state.runtime==='controller'?'运行草稿':'网页试运行';
   notice(state.local?'已切换至本地项目；选择项目后再运行。':'已返回直接编辑，原有源码仍保留。');
  });
  $('local-project-select').addEventListener('change',()=>{
-  const key=$('local-project-select').value;
-  const isPage=key==='demo-page';
-  $('local-files').textContent=key?(isPage?'reading-tool/\n├── src/main.js\n├── src/toc.js\n└── src/styles.css':'browser-lab/\n├── src/main.mjs\n├── src/actions.mjs\n└── src/utils.mjs'):'请选择已授权项目后查看多文件入口。';
-  one('#local-project-detail .table-row:last-child span:last-child').textContent=key?(isPage?'Page · main.js · 3 files':'Controller · main.mjs · 3 files'):'等待选择项目';
-  $('local-file-view').hidden=!key;
-  $('local-params-fold').hidden=isPage;
-  const names=isPage?['src/main.js','src/toc.js','src/styles.css']:['src/main.mjs','src/actions.mjs','src/utils.mjs'];
-  resetLocalProof();$('local-source-file').replaceChildren(...(key?names.map(name=>new Option(name,name)):[]));
-  $('local-source-file').dispatchEvent(new Event('change'));
- });
- $('local-source-file').addEventListener('change',()=>{
-  const filename=$('local-source-file').value;
-  const snippets={
-   'src/main.js':`import {createTOC} from './toc.js';\ncreateTOC(document);`,
-   'src/toc.js':`export function createTOC(doc) {\n  return [...doc.querySelectorAll('h2')];\n}`,
-   'src/styles.css':`.opendesk-toc { padding: 12px; }`,
-   'src/main.mjs':`import {readTitle} from './actions.mjs';\nexport async function main() { return readTitle(page); }`,
-   'src/actions.mjs':`export async function readTitle(page) { return await page.title(); }`,
-   'src/utils.mjs':`export const identity = value => value;`
-  };
-  $('local-source-code').textContent=snippets[filename]||'请从上方选择项目源文件。';
+  const key=localProjectKey();
+  $('local-project-brief').textContent=key?
+    `已连接 · ${localKind()==='page-userscript'?'Page 网页增强':'Controller 自动化任务'} · 本地源码由 Provider 准备（仅模拟）`:
+    '示例已连接 · 请选择项目';
+  $('local-params-fold').hidden=!!key&&localKind()==='page-userscript';
+  state.localVerified=state.localProofHistory[key]||null;closeLocalReview(false);updateLocalPublish();
  });
  $('local-refresh').addEventListener('click',()=>notice('已刷新示例本地项目列表（未连接真实 Native）。'));
  $('local-connect').addEventListener('click',()=>notice('示例连接已就绪。正式产品需在可信 Native 通道中检测。'));
@@ -497,6 +501,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   state.running=false;state.runTimer=null;setRunningUI(false);
   const run=recordRun(kind);if(kind.startsWith('本地')){
    const key=localProjectKey();state.localVerified={project:key,runId:run.runId,documentId:docId(),origin:state.sourceOrigin,sourceVersion:state.localSourceVersions[key]};
+   state.localProofHistory[key]=structuredClone(state.localVerified);
    updateLocalPublish();
   }
   if(kind.startsWith('Page')){
