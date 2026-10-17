@@ -2,8 +2,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src data:; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>OpenDesk · Workflow 正式 React 同源离线预览</title>
-<meta name="od-source-input-sha256" content="c0439cbc405a985f0873916f8e40007a89aa0150a715b5ef4c5649d776f94ffc">
-<!-- SOURCE_BOUND_UI_PREVIEW React19; PREVIEW_ADAPTER_NOT_NATIVE; inputsSha256=c0439cbc405a985f0873916f8e40007a89aa0150a715b5ef4c5649d776f94ffc -->
+<meta name="od-source-input-sha256" content="20b880c7b7961edcf277e67c5acdbefd1d8d7cc5f14dcf9639690bbfc07f02ba">
+<!-- SOURCE_BOUND_UI_PREVIEW React19; PREVIEW_ADAPTER_NOT_NATIVE; inputsSha256=20b880c7b7961edcf277e67c5acdbefd1d8d7cc5f14dcf9639690bbfc07f02ba -->
 <style id="od-official-ui-css">/* R23: single, page-agnostic OpenDesk semantic tokens.
  * No resets, selectors for host pages, remote resources or page scroll policy.
  * Trusted extension UI only; never inject into tools, iframes or web pages. */
@@ -1495,7 +1495,8 @@ body{display:block!important;background:var(--od-bg);color:var(--od-ink);min-hei
 .od-workflow-preview-controls label{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--od-sub);white-space:nowrap;flex:0 0 auto}
 .od-workflow-preview-controls select{min-height:34px;min-width:110px;color:var(--od-ink);border:1px solid var(--od-input-border);background:var(--od-paper);border-radius:var(--radius-control);padding:5px 8px}
 .od-workflow-preview-frame{padding:12px 10px 20px;display:flex;justify-content:center}
-.od-workflow-preview-stage{max-width:100%;height:750px;max-height:calc(100dvh - 145px);min-height:490px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 10px 30px #142a4c14;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.od-workflow-preview-stage{max-width:100%;height:750px;max-height:calc(100dvh - 145px);min-height:490px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 10px 30px #142a4c14;overflow:hidden;display:flex;flex-direction:column;min-width:0;position:relative}
+.od-workflow-preview-stage .workflow-sheet-overlay{position:absolute}
 .od-workflow-preview-stage>.workbench-nav{flex:0 0 auto}
 .od-workflow-preview-stage>#workspace-content{flex:1;min-height:0;max-width:none;width:100%;overflow:hidden}
 .od-workflow-preview-stage #workbench-workflow{height:100%;min-height:0}
