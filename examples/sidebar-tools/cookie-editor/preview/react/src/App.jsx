@@ -35,7 +35,7 @@ const safeDomain=domain=>{
 };
 const newDraft=()=>({name:'',domain:demoSite,path:'/',hostOnly:true,secure:true,httpOnly:false,sameSite:'lax',session:true,expiration:'',storeId:'0',partitionKey:null,valueInput:'',valueTouched:false});
 const toDraft=c=>c?{name:c.name,domain:c.domain,path:c.path,hostOnly:c.hostOnly!==false,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite||'unspecified',session:c.session,expiration:c.session?'':Number.isFinite(c.expirationDate)?localFromUnix(c.expirationDate):(c.expiration||''),storeId:c.storeId,partitionKey:c.partitionKey,valueInput:'',valueTouched:false}:newDraft();
-const comparable=(d,oldValue='')=>({name:d.name,domain:d.domain,path:d.path,hostOnly:d.hostOnly,secure:d.secure,httpOnly:d.httpOnly,sameSite:d.sameSite,session:d.session,expiration:d.session?null:d.expiration,storeId:d.storeId,partitionKey:JSON.stringify(d.partitionKey||null),value:d.valueTouched?d.valueInput:oldValue});
+const comparable=(d,oldValue='')=>({name:d.name,domain:d.domain,path:d.path,hostOnly:d.hostOnly,secure:d.secure,httpOnly:d.httpOnly,sameSite:d.sameSite,session:d.session,expiration:d.session?null:(Number.isFinite(unixFromLocal(d.expiration))?unixFromLocal(d.expiration):d.expiration),storeId:d.storeId,partitionKey:JSON.stringify(d.partitionKey||null),value:d.valueTouched?d.valueInput:oldValue});
 const isDirty=(a,b,oldValue='')=>!!a&&!!b&&JSON.stringify(comparable(a,oldValue))!==JSON.stringify(comparable(b,oldValue));
 // Full Cookie identity, canonical PartitionKey property order.
 const identity=c=>JSON.stringify([c.name,c.domain.toLowerCase(),c.path,c.hostOnly===true,String(c.storeId),c.partitionKey?.topLevelSite??null,c.partitionKey?.hasCrossSiteAncestor??null]);
@@ -183,9 +183,11 @@ export default function App(){
     setError('保留旧值需要敏感值读取授权，或明确输入新值（包括空值）。');return;
   }
   const renamed=Boolean(current&&draft.name!==current.name);
+  const exactUnix=!draft.session&&current&&!current.session&&Number.isFinite(current.expirationDate)&&
+    unixFromLocal(baseline.expiration)===unix?current.expirationDate:unix;
   const updated={...(current||{}),...draft,
     value:draft.valueTouched?draft.valueInput:(current?.value||''),
-    expiration:draft.session?'':draft.expiration,expirationDate:unix,
+    expiration:draft.session?'':draft.expiration,expirationDate:exactUnix,
     id:current?.id||'new-'+Date.now()};
   delete updated.valueInput;delete updated.valueTouched;
   if(rows.some(r=>r.id!==selected&&identity(r)===identity(updated))){
