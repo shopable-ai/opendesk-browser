@@ -1,13 +1,16 @@
-/* Sandbox opt-in only; the original src/ui/design-tokens.css is authoritative. */
-.od-shared-card{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);color:var(--od-ink);box-shadow:0 1px 2px #0000000b}
+/* Opt-in opaque Sandbox only. src/ui/design-tokens.css owns the palette.
+ * shadcn/ui React Aria Card/Switch slots; never a website-global reset. */
+.od-shared-card{display:flex;flex-direction:column;min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);color:var(--od-ink);box-shadow:0 1px 2px #0000000b}
 .od-shared-card-content{padding:var(--space-3)}
-.od-shared-switch{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;width:42px;height:28px;cursor:pointer}
-.od-shared-switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:inherit}
-.od-shared-switch-track{display:flex;align-items:center;width:36px;height:22px;border-radius:var(--radius-pill);background:var(--od-input-border);padding:2px;transition:background .14s ease}
-.od-shared-switch-thumb{display:block;width:18px;height:18px;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 2px #0003;transition:transform .14s ease}
-.od-shared-switch input:checked+.od-shared-switch-track{background:var(--od-brand)}
-.od-shared-switch input:checked+.od-shared-switch-track .od-shared-switch-thumb{transform:translateX(14px)}
-.od-shared-switch input:focus-visible+.od-shared-switch-track{outline:2px solid var(--od-focus);outline-offset:3px}
-.od-shared-switch input:disabled+.od-shared-switch-track{opacity:.45}
-.od-shared-switch:has(input:disabled){cursor:not-allowed}
-@media(prefers-reduced-motion:reduce){.od-shared-switch-track,.od-shared-switch-thumb{transition:none}}
+.od-shared-card[data-size="sm"] .od-shared-card-content{padding:var(--space-2)}
+.od-shared-switch{position:relative;display:inline-flex;align-items:center;flex:none;box-sizing:border-box;width:36px;height:22px;border-radius:var(--radius-pill);background:var(--od-input-border);cursor:pointer;outline:none;transition:background .14s ease}
+.od-shared-switch::after{content:"";position:absolute;inset:-8px -12px;pointer-events:none}
+.od-shared-switch[data-size="sm"]{width:28px;height:18px}
+.od-shared-switch[data-selected]{background:var(--od-brand)}
+.od-shared-switch[data-disabled]{cursor:not-allowed;opacity:.45}
+.od-shared-switch[data-focus-visible]{outline:2px solid var(--od-focus);outline-offset:3px}
+.od-shared-switch-thumb{display:block;box-sizing:border-box;flex:none;width:18px;height:18px;margin-left:2px;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 2px #0003;transform:translateX(0);transition:transform .14s ease}
+.od-shared-switch[data-selected] .od-shared-switch-thumb{transform:translateX(14px)}
+.od-shared-switch[data-size="sm"] .od-shared-switch-thumb{width:14px;height:14px}
+.od-shared-switch[data-size="sm"][data-selected] .od-shared-switch-thumb{transform:translateX(10px)}
+@media(prefers-reduced-motion:reduce){.od-shared-switch,.od-shared-switch-thumb{transition:none}}
