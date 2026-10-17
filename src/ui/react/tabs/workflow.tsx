@@ -55,7 +55,7 @@ export function WorkflowHistory({model={open:false,rows:[],canResume:false},acti
   };
   const rows=model.rows||[];
   return <section id="workflow-history-panel" className="workflow-history-panel"
-    role="region" aria-label="历史" hidden={!model.open}>
+    role="region" aria-label="历史" tabIndex={-1} hidden={!model.open}>
     <div className="workflow-history-section">
       <h3>历史对话</h3>
       {model.canResume
