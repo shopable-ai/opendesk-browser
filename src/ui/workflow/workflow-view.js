@@ -477,6 +477,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     observationApproval=null;persistObservationApproval();
     historyOpen=false;
     get('workflow-editor').dataset.historyOpen='false';
+    clearChat();
+    get('workflow-ai-request').value='';
     workflow=clean;lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;lastRun='none';hasError=false;
@@ -1267,6 +1269,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-resume'),'click',onResumeSessionClick);
   const onOpenSavedHistory=(key,event)=>{
     if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    const unsaved=(Boolean(workflow.steps.length||
+      workflow.title!=='新工作流'||workflow.description)&&!matchesRevision())
+      ||Boolean(get('workflow-ai-request').value.trim());
+    if(unsaved){
+      status('当前有未保存内容。请先保存，或通过「新工作流」确认放弃后再打开历史。',true);
+      return;
+    }
     get('workflow-saved-list').value=key;
     void loadSaved().then(()=>{if(!disposed){closeHistory();get('workflow-ai-request').focus?.({preventScroll:true});}})
       .catch(error=>status(format(error),true));
@@ -1300,7 +1309,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       workflow.title!=='新工作流' || workflow.description) && !matchesRevision())
       || Boolean(get('workflow-ai-request').value.trim());
     if(dirty){
-      newReviewReturnFocus=get('workflow-ai-request');
+      newReviewReturnFocus=historyOpen?get('workflow-history-toggle'):get('workflow-ai-request');
       newReviewSignature=workflowReviewSignature();
       get('workflow-new-review').hidden=false;
       status('请确认是否保留当前尚未保存的内容。');
