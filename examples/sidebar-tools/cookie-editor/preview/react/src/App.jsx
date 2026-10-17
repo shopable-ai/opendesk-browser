@@ -197,7 +197,8 @@ export default function App(){
  };
  const handleConfirm=()=>{if(confirm?.type==='delete')runDelete();};
  const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFileName('');setOverwrite(false);fileReadRef.current++;setFailNext('');};
- const appKeydown=e=>{if(e.key!=='Escape')return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
+ // Escape closes panels, except while an IME owns Escape for candidate selection.
+ const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
    <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R4.11</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
       <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}><option value="ready">已授权</option><option value="first">未授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option></select></label>

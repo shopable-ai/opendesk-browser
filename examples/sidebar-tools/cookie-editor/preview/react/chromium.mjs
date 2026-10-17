@@ -90,6 +90,15 @@ try{
    assert.equal(await input.inputValue(),'[{"name":"safe","value":"ok"}]');
    await page.getByRole('button',{name:'取消',exact:true}).click();
  });
+ await test('R4.11 Chinese IME Escape preserves the import panel',async()=>{
+   await page.getByRole('button',{name:'导入 Cookie'}).click();
+   const input=page.getByRole('textbox',{name:'Cookie 内容'});
+   await input.evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,isComposing:true})));
+   assert.equal(await page.getByRole('button',{name:'关闭导入'}).count(),1,'IME candidate Escape must not dismiss import');
+   await input.focus();
+   await page.keyboard.press('Escape');
+   assert.equal(await page.getByRole('button',{name:'关闭导入'}).count(),0,'normal Escape should close import');
+ });
  await test('R4.11 full-value JSON and metadata backup without app confirmation',async()=>{
    await page.getByRole('button',{name:'导出 Cookie'}).click();
    assert.match(await page.locator('.export-brief').innerText(),/包含 Cookie 值/);
