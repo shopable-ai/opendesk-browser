@@ -489,7 +489,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const point={x:(box[0]+box[2]+box[4]+box[6])/4,
       y:(box[1]+box[3]+box[5]+box[7])/4};
     assert(point.x>=0&&point.y>=0,'TOC control is not in the visible viewport');
-    return point;
+    return {...point,backendNodeId:control.backendNodeId};
   }
   async function clickAt(x,y){
     await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,button:'none'});
@@ -540,11 +540,17 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'R4.2 TOC placement escaped the smaller viewport');
   await articlePage.send('Emulation.clearDeviceMetricsOverride');
   const toReset=await tocRect();
-  const resetPoint=await tocControlPoint('reset');
-  await clickAt(resetPoint.x,resetPoint.y);
+  // Production removed the extra reset button: Home on the existing drag
+  // handle is the approved keyboard action. Drive an actual Chromium key event.
+  const grabPoint=await tocControlPoint('grab');
+  await articlePage.send('DOM.focus',{backendNodeId:grabPoint.backendNodeId});
+  await articlePage.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home',
+    code:'Home',windowsVirtualKeyCode:36});
+  await articlePage.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Home',
+    code:'Home',windowsVirtualKeyCode:36});
   await eventually(()=>evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(
     values=>!Object.hasOwn(values,${JSON.stringify(placementKey)}))`),
-  'R4.2 reset did not remove the saved site-specific placement');
+  'R4.2 Home reset did not remove the saved site-specific placement');
   assert((await tocRect()).left>=(await tocRect()).viewportWidth/3,
     'R4.2 reset must restore a right-side responsive default');
   await capture(articlePage,'toc-r42-reset.png');
