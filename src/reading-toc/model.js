@@ -20,7 +20,13 @@ export function createReadingTocIndex(doc) {
       Boolean(heading.textContent?.trim());
   }
   function sourceRoot(heading,kind) {
-    if(kind==='chatgpt')return heading.closest('[data-message-author-role="assistant"]');
+    if(kind==='chatgpt'){
+      const root=heading.closest('[data-message-author-role="assistant"]');
+      const markdown=heading.closest('.markdown');
+      // Role labels and controls in an assistant turn are not Markdown answer content.
+      // Unknown ChatGPT layouts fail closed instead of indexing arbitrary chrome.
+      return root&&markdown?.closest('[data-message-author-role="assistant"]')===root?root:null;
+    }
     if(kind==='zhihu')return heading.closest('.AnswerItem');
     return heading.closest('article')||heading.closest('main,[role="main"]')||doc.body;
   }
@@ -56,12 +62,14 @@ export function createReadingTocIndex(doc) {
   }
   function rebuild() {
     const next=[],groupMap=new Map(),stacks=new Map(),nextSources=[];
-    const hasChat=Boolean(doc.querySelector('[data-message-author-role="assistant"]'));
+    const host=String(doc.location?.hostname||doc.defaultView?.location?.hostname||'').toLowerCase();
+    const onChatGPT=host==='chatgpt.com'||host==='chat.openai.com';
+    const hasChat=onChatGPT||Boolean(doc.querySelector('[data-message-author-role="assistant"]'));
     const hasZhihu=!hasChat&&Boolean(doc.querySelector('.AnswerItem'));
     adapter=hasChat?'chatgpt':hasZhihu?'zhihu':'article';
     const headings=[];
     for(const heading of doc.querySelectorAll('h1,h2,h3,h4,h5,h6')){
-      if(!visible(heading))continue;
+      if(!visible(heading)||adapter==='chatgpt'&&!sourceRoot(heading,adapter))continue;
       headings.push(heading);
       if(headings.length>=300)break;
     }
@@ -72,7 +80,8 @@ export function createReadingTocIndex(doc) {
       if(!root)continue; // No cross-answer inferred grouping.
       if(adapter==='article'&&(!withinRoot(heading,primaryRoot)||
         certainArticleTitle(heading,localRoot)))continue;
-      const label=heading.textContent.replace(/\s+/g,' ').trim().slice(0,200);
+      const text=heading.textContent.replace(/\s+/g,' ').trim();
+      const label=adapter==='chatgpt'?text:text.slice(0,200);
       if(!label)continue;
       const sourceId=idFor(root,sourceKeys,'s-');
       if(!groupMap.has(sourceId)) {
