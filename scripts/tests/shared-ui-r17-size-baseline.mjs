@@ -18,6 +18,8 @@ const shim={
   load(id){
     if(id!==alias)return;
     return [
+      'import '+JSON.stringify(resolve('src/ui/design-tokens.css'))+';',
+      'import '+JSON.stringify(resolve(component,'sidebar-shared.css'))+';',
       'export {Card,CardContent} from '+JSON.stringify(resolve(component,'card.tsx'))+';',
       'export {Switch} from '+JSON.stringify(resolve(component,'switch.tsx'))+';'
     ].join('\n');
