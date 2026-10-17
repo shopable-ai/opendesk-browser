@@ -131,8 +131,21 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
 
 function PreviewPane({tree,node,onClose,onEdit,onCopy}){
  const folder=isFolder(node),count=tree.children.get(node.id)?.length||0;
- return <aside className="bm-preview-pane" aria-label="书签只读预览" data-testid="bookmark-preview">
-  <div className="bm-preview-head"><strong>详情</strong><button type="button" className="bm-preview-close" aria-label="关闭预览" title="关闭预览" onClick={onClose}><Icon name="x" size={16}/></button></div>
+ const narrow=Boolean(globalThis.matchMedia?.('(max-width:739px)')?.matches);
+ const closeRef=useRef(null);
+ useEffect(()=>{if(narrow)closeRef.current?.focus({preventScroll:true})},[narrow]);
+ const onKeyDown=event=>{
+  if(!narrow||event.key!=='Tab')return;
+  const targets=[...event.currentTarget.querySelectorAll('button:not(:disabled),a[href]')];
+  if(!targets.length)return;
+  const first=targets[0],last=targets[targets.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+ };
+ return <aside className="bm-preview-pane" role={narrow?'dialog':'complementary'}
+  aria-modal={narrow?'true':undefined} aria-label="书签只读预览"
+  data-testid="bookmark-preview" onKeyDown={onKeyDown}>
+  <div className="bm-preview-head"><strong>详情</strong><button ref={closeRef} type="button" className="bm-preview-close" aria-label="关闭预览" title="关闭预览" onClick={onClose}><Icon name="x" size={16}/></button></div>
   <div className="bm-preview-content" aria-live="polite"><Inspector tree={tree} node={node} draft={null}/></div>
   {folder&&<div className="bm-preview-count">{count} 个子项</div>}
   <div className="bm-preview-actions">
@@ -381,7 +394,9 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
   {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
-  {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
+  {previewNode&&<button type="button" tabIndex={-1} aria-hidden="true"
+   className="bm-preview-backdrop" onClick={closePreview}/>}
+  {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>} 
   </div>
   {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={uncertain?requestCloseSheet:closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
