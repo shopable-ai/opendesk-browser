@@ -124,6 +124,10 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
     'suggestions can only fill the existing composer');
   assert.match(preview,/setWorkflowEntry\('new-chat'\)/);
   assert.match(preview,/setWorkflowEntry\('new-workflow'\)/);
+  assert.match(flows,/setManagerOrigin\('detail'\)/);
+  assert.match(flows,/setView\(managerOrigin\)/);
+  assert.ok(owner.includes("get('workflow-chat-intro').hidden=hasMessages || phase==='planning' || (hasSteps && entryMode!=='new-chat');"),
+    'new conversation suggestions should remain visible over an existing workflow draft');
   assert.match(presentation,/RUNNING:'positive',ADMITTED:'info'/);
   await transformWithEsbuild(flows,'sidebar-six-my-flows.tsx',
     {loader:'tsx',jsx:'transform',target:'es2022'});
