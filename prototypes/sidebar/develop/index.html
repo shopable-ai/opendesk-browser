@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 开发选项卡 R2.3 · 去重与间距统一预览</title>
+<title>OpenDesk Browser · 开发选项卡 R2.4 · 页头精简预览</title>
 <style>
 :root{
  color-scheme:light; --ink:#1b2c49;--sub:#53647e;--meta:#617188;--brand:#365eda;--brand-soft:#edf2ff;
@@ -33,7 +33,6 @@ button:disabled{cursor:not-allowed;opacity:.45}button:hover:not(:disabled){filte
 .tab{flex:1;min-width:0;display:grid;place-items:center;font-size:12px;font-weight:520;color:#64758c;position:relative}
 .tab[aria-current="page"]{font-weight:710;color:var(--brand)}.tab[aria-current="page"]:after{content:"";position:absolute;bottom:-1px;left:25%;right:25%;height:2px;background:var(--brand);border-radius:4px}
 .viewport{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;padding:var(--space-3) 11px var(--space-4)}
-.page-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:34px;margin-bottom:var(--space-2)}
 h1{font-size:15px;line-height:1.4;font-weight:680;letter-spacing:-.025em;margin:0}h2{font-size:12.5px;line-height:1.5;font-weight:720;margin:0}h3{font-size:12px;line-height:1.5;font-weight:680;margin:0}
 .pill{font-size:10.5px;line-height:1.3;font-weight:620;color:var(--positive);background:var(--positive-soft);border-radius:var(--r-pill);padding:4px 8px;white-space:nowrap}
 .pill.neutral{color:var(--sub);background:#f2f5f8}.pill.warn{background:var(--warn-soft);color:var(--warn)}
@@ -64,7 +63,7 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .editor-card{border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden;background:#fbfcfd}
 .editor-head{min-height:34px;padding:0 var(--space-3);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);background:#f7f8fa;border-bottom:1px solid var(--line-soft);font-size:10.5px;color:#8290a2}
 .editor-head .filename{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#748098}
-.code-editor{display:block;border:0;outline:0!important;width:100%;min-height:216px;max-height:330px;background:#fbfcfd;padding:var(--space-3);font:11.7px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#31445e;tab-size:2;white-space:pre;overflow:auto;border-radius:0;resize:vertical}
+.code-editor{display:block;border:0;outline:0!important;width:100%;height:164px;min-height:140px;max-height:none;background:#fbfcfd;padding:var(--space-3);font:11.7px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#31445e;tab-size:2;white-space:pre;overflow:auto;border-radius:0;resize:vertical}
 .code-editor:focus{box-shadow:inset 0 0 0 1px #8cacf8}
 .fold{border:1px solid var(--line);border-radius:var(--r-card);margin:0;background:#fff;min-width:0;overflow:hidden}
 .fold>summary{list-style:none;display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);font-size:12px;font-weight:675;cursor:pointer;user-select:none}
@@ -95,9 +94,15 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .cap-list{display:grid;gap:0}.cap-row{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px;cursor:pointer}.cap-row:last-child{border-bottom:0}.cap-row input{accent-color:var(--brand);height:15px;width:15px;flex-shrink:0}.cap-row .cap-name{font-weight:650}.cap-row .cap-code{font:10px/1.4 ui-monospace,monospace;color:var(--meta)}.cap-row .cap-extra{margin-left:auto;white-space:nowrap;color:var(--meta);font-size:10px}
 .pre{border-radius:9px;background:var(--soft);border:1px solid var(--line-soft);padding:var(--space-3);font:10.5px/1.65 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;margin:0}
 .actions-wrap{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}.actions-wrap .btn{flex:0 1 auto}
-.preview-footer{padding-top:var(--space-3);border-top:1px solid var(--line-soft);font-size:10.5px;color:var(--meta);display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-2);line-height:1.5}
+/* Preview-only utilities are accessible from the shell menu, never part of the product content. */
+.preview-help{position:absolute;right:var(--space-3);top:calc(55px + var(--space-1));width:336px;max-width:calc(100% - 24px);padding:var(--space-3);border:1px solid var(--line);border-radius:var(--r-card);background:var(--paper);box-shadow:0 8px 30px #27365028;z-index:18;display:grid;gap:var(--space-2);color:var(--ink)}
+.preview-help-title{font-size:12px;font-weight:700;line-height:1.5}
+.preview-help .muted{font-size:11.5px;line-height:1.55;margin:0}
+.preview-help .preview-demo-actions{display:flex;gap:var(--space-2);flex-wrap:wrap}
+@media(max-width:260px){.preview-help .preview-demo-actions .btn{flex:1 1 auto;min-width:0;white-space:normal}}
 
-/* R2.3: single-source spacing contract — no stacked R2.1/R2.2 override sheets. */
+
+/* R2.4: single-source spacing contract; default source editor remains vertically resizable. */
 .code-kind-row{justify-content:space-between;align-items:center;gap:var(--space-2);min-height:34px}
 .code-kind-row .segment{flex:none}
 .code-kind-row .seg-btn{min-width:43px;padding:6px 10px}
@@ -153,14 +158,18 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
 <div class="shell" id="shell">
 <header class="brandbar">
   <div class="brand"><span class="brandmark">O</span> OpenDesk <small>BROWSER</small></div>
-  <div class="head-actions"><button class="icon-btn" id="preview-search" aria-label="查看页面功能清单" title="查看页面功能清单"><svg class="icon"><use href="#i-search"/></svg></button><button class="icon-btn" id="preview-more" aria-label="预览说明" title="预览说明"><svg class="icon"><use href="#i-dots"/></svg></button></div>
+  <div class="head-actions"><button class="icon-btn" id="preview-search" aria-label="查看页面功能清单" title="查看页面功能清单"><svg class="icon"><use href="#i-search"/></svg></button><button type="button" class="icon-btn" id="preview-more" aria-label="预览说明与模拟工具" title="预览说明与模拟工具" aria-expanded="false" aria-controls="preview-help"><svg class="icon"><use href="#i-dots"/></svg></button></div>
 </header>
+<section class="preview-help" id="preview-help" role="group" aria-label="预览说明与模拟工具" hidden>
+ <div class="preview-help-title">离线原型 · 演示工具</div>
+ <p class="muted">这里的运行、保存、安装与权限操作只改变模拟状态，不调用真实 Chrome 或 SDK。</p>
+ <div class="preview-demo-actions"><button class="btn compact" id="try-cross" type="button">模拟跨站拒绝</button><button class="btn compact" id="sdk-inspect-inline" type="button">模拟授权状态</button></div>
+</section>
 <nav class="top-tabs" aria-label="工作台视图"><span class="tab">我的</span><span class="tab">扩展</span><span class="tab">工作流</span><span class="tab" aria-current="page">开发</span><span class="tab">云控</span></nav>
-<main class="viewport" id="viewport">
- <div class="page-head"><h1>开发</h1></div>
+<main class="viewport" id="viewport" aria-label="开发工作区">
+ <h1 class="sr-only">开发工作区</h1>
  <section class="section" aria-label="当前网页">
-  <div class="section-head"><h2>运行目标</h2><span class="trailing" id="target-kind">自动绑定</span></div>
-  <div class="target"><details id="target-details"><summary><span class="target-icon"><svg class="icon"><use href="#i-globe"/></svg></span><span class="grow"><span class="target-name" id="target-name">OpenDesk Browser · Browser Test Lab</span><span class="target-url" id="target-url">127.0.0.1:43111 / demo-form.html</span></span><span class="target-state" aria-label="可运行"><span class="dot"></span>可运行</span><svg class="icon icon-sm" style="color:#a2abba"><use href="#i-chevron"/></svg></summary><div class="target-detail"><div class="table-row"><span>文档</span><span id="target-document">doc-demo-1</span></div><div class="table-row"><span>frame</span><span>0 · 主文档</span></div><div class="micro">默认随活动网页切换，运行前再次校验身份。下方可手动选择精确目标。</div></div></details></div>
+  <div class="target"><span id="target-kind" hidden></span><details id="target-details"><summary><span class="target-icon"><svg class="icon"><use href="#i-globe"/></svg></span><span class="grow"><span class="target-name" id="target-name">OpenDesk Browser · Browser Test Lab</span><span class="target-url" id="target-url">127.0.0.1:43111 / demo-form.html</span></span><span class="target-state" aria-label="可运行"><span class="dot"></span>可运行</span><svg class="icon icon-sm" style="color:#a2abba"><use href="#i-chevron"/></svg></summary><div class="target-detail"><div class="table-row"><span>文档</span><span id="target-document">doc-demo-1</span></div><div class="table-row"><span>frame</span><span>0 · 主文档</span></div><div class="micro">默认随活动网页切换，运行前再次校验身份。下方可手动选择精确目标。</div></div></details></div>
  </section>
 
  <section class="section" aria-label="源码编辑">
@@ -215,7 +224,6 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   <details class="fold" id="advanced-fold"><summary><svg class="icon"><use href="#i-settings"/></svg><span class="summary-label">高级脚本与目标设置</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><details class="fold fold-inner" id="site-permission-fold"><summary>网站权限 · 默认全部网站 <span class="pill" style="margin-left:auto">已授权</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">Chrome 网站权限不等于脚本或网页 SDK 的应用级授权；用户脚本开关、隐身及浏览器内部页仍受独立限制。</div><div class="actions-wrap"><button class="btn compact" id="site-restore">恢复全部网站访问</button><button class="btn compact" id="site-refresh">刷新授权状态</button></div><div class="micro" id="site-state">演示环境：网站权限显示为可用，未查询实际 Chrome 权限。</div></div></details><div class="field"><label for="target-mode">目标方式</label><select class="control" id="target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div><div class="field" id="owned-url-wrap" hidden><label for="owned-url">隔离网页地址</label><input class="control" id="owned-url" type="url" placeholder="https://example.com/"></div><div class="stack-sm" id="borrowed-wrap" hidden><div class="field"><label for="existing-tab">现有网页</label><div class="hstack"><select class="control grow" id="existing-tab"><option value="lab">OpenDesk Browser · Browser Test Lab</option><option value="docs">文档示例 · https://example.com</option></select><button class="icon-btn outline" id="tab-refresh" aria-label="刷新网页列表" title="刷新网页列表"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div></div><div class="field"><label for="exact-document">精确文档</label><select class="control" id="exact-document"><option value="main">frame 0 · 主文档</option><option value="frame-1">frame 1 · 示例 iframe</option></select></div></div><details class="fold fold-inner" id="user-scripts-fold"><summary>用户脚本权限恢复（遇到问题时）<svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">Chrome 138+ 若关闭「允许用户脚本」，Page 试运行或安装会被阻止。必须前往扩展详情手动开启，不能由工具静默开启。</div><div class="actions-wrap"><button class="btn compact" id="scripts-settings">打开扩展设置</button><button class="btn compact" id="scripts-check">重新检测</button></div><div class="micro" id="user-scripts-status">原型仅展示恢复路径，未查询真实浏览器。</div></div></details><label class="hstack muted"><input type="checkbox" id="cookie-access" style="accent-color:var(--brand)">允许脚本访问目标网站的 Cookie</label><div class="actions-wrap"><button class="btn compact danger" id="delete-script">删除当前脚本</button></div><details class="fold fold-inner"><summary>当前网页精确身份 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="target-identity"></pre></div></details></div></details>
   <details class="fold" id="diagnostics-fold"><summary><svg class="icon"><use href="#i-terminal"/></svg><span class="summary-label">目标检查与开发诊断</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><button class="inline-card" id="sdk-from-diagnostics" type="button" hidden><span class="inline-icon" style="height:32px;width:32px"><svg class="icon"><use href="#i-code"/></svg></span><span class="grow"><span class="inline-title">网页 SDK 授权管理</span><span class="inline-sub">查看跨站目标、能力、精确文档与撤销记录</span></span><svg class="icon icon-sm"><use href="#i-chevron"/></svg></button><details class="fold fold-inner" id="health-fold"><summary>目标健康检查 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">检查仅确认测试页和已绑定文档间通信，不执行采集。</div><div class="field"><label for="health-url">测试页面地址</label><input type="url" class="control" id="health-url" value="http://127.0.0.1:43111/demo-form.html"></div><div class="actions-wrap"><button class="btn compact" id="health-create">创建检查页</button><button class="btn compact" id="health-source">检查原页面</button><button class="btn compact" id="health-bound">检查已绑定文档</button></div><pre class="pre" id="health-result">环境入口已加载（模拟）</pre></div></details><div class="micro">SDK 授权与自动化任务独立，诊断只读，不代表执行成功。</div></div></details>
  </section>
- <div class="preview-footer"><span>R2.3 · 离线交互预览；未调用真实 Chrome 或 SDK</span><div class="preview-demo-actions"><button class="btn ghost compact" id="try-cross">模拟跨站拒绝</button><button class="btn ghost compact" id="sdk-inspect-inline">模拟授权状态</button></div></div>
 </main>
 <footer class="footer-dock" id="dock"><button class="btn primary" id="run-btn"><svg class="icon icon-sm"><use href="#i-play"/></svg><span id="run-label">运行草稿</span></button><button class="btn" id="stop-btn" hidden><svg class="icon icon-sm"><use href="#i-square"/></svg>停止</button><button class="btn compact-save" id="save-btn" title="将当前任务草稿保存为浏览器运行快照，不提交 Git"><svg class="icon icon-sm"><use href="#i-save"/></svg>存快照</button><button class="icon-btn outline" id="dock-more" aria-label="更多：运行快照与任务发布" title="运行快照与任务发布"><svg class="icon"><use href="#i-dots"/></svg></button></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -440,7 +448,18 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   $('advanced-fold').open=true;$('publish-section').hidden=false;$('version-fold').open=true;$('page-fold').open=true;$('history-fold').open=true;
   notice('已展开功能入口：编辑、项目、结果、网页脚本、版本与诊断。');
  });
- $('preview-more').addEventListener('click',()=>notice('本 HTML 保留开发页完整结构。所有授权、安装和运行均为模拟，不连接真实扩展。'));
+ const previewHelp=$('preview-help'), previewMore=$('preview-more');
+ function togglePreviewHelp(open) {
+  previewHelp.hidden=!open;
+  previewMore.setAttribute('aria-expanded',String(open));
+ }
+ previewMore.addEventListener('click',()=>togglePreviewHelp(previewHelp.hidden));
+ document.addEventListener('pointerdown',event=>{
+  if(!previewHelp.hidden&&!previewHelp.contains(event.target)&&!previewMore.contains(event.target))togglePreviewHelp(false);
+ });
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!previewHelp.hidden){event.preventDefault();togglePreviewHelp(false);previewMore.focus();}
+ });
  $('version-refresh').addEventListener('click',()=>{refreshVersionLists();notice('已刷新当前预览会话的保存版本。')});
  $('load-version').addEventListener('click',()=>{
   const v=state.versions.find(v=>v.key===$('version-list').value || (v.id===$('script-id').value&&String(v.revision)===$('revision').value));
@@ -627,7 +646,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   sdkFeedback(confirmed()?'只读观察：当前文档有模拟附加授权。':'只读观察：当前文档没有额外授权。');updateSdk();
  }
  $('sdk-inspect').addEventListener('click',inspectSdk);
- $('sdk-inspect-inline').addEventListener('click',()=>{openDrawer();$('sdk-technical-fold').open=true;inspectSdk()});
+ $('sdk-inspect-inline').addEventListener('click',()=>{togglePreviewHelp(false);openDrawer();$('sdk-technical-fold').open=true;inspectSdk()});
  function demoNavigate(){
   state.docSeq++;state.receipt=null;state.pendingCross=null;state.pagePreviewOK=false;$('page-candidate-save').disabled=true;
   $('sdk-doc-select').value='main';sdkFeedback('模拟导航后旧文档授权已失效；请根据新文档重新批准。','warn');updateTarget();updateSdk();
@@ -643,7 +662,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
    state.pendingCross=example;openDrawer();sdkFeedback('已预填被拒绝的跨站目标，尚未批准。','warn');updateSdk();
   }
  }
- $('try-cross').addEventListener('click',simulateCross);
+ $('try-cross').addEventListener('click',()=>{togglePreviewHelp(false);simulateCross()});
  // Initial static preview: no stored grants, no remote code, no Chrome API.
  switchRuntime('controller','javascript');updateTarget();updateSdk();
 })();
