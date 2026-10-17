@@ -878,6 +878,25 @@
 
 .schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-3)}
 #schedule-task-manager{display:grid;gap:var(--space-3);min-width:0}
+#schedule-task-manager>.schedule-actions{justify-content:flex-end;margin:0}
+.schedule-manager-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,132px);gap:var(--space-2);align-items:end;min-width:0}
+.schedule-manager-controls>.od-field{min-width:0}
+#schedule-manager-count{margin:0}
+#schedule-manager-list{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);min-width:0}
+.schedule-manager-card{width:100%;gap:var(--space-2)}
+.schedule-manager-card-head{display:flex;gap:var(--space-2);align-items:flex-start;justify-content:space-between;min-width:0}
+.schedule-manager-identity{min-width:0;flex:1}
+.schedule-manager-identity strong{display:block;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.schedule-manager-identity .hint{margin-top:var(--space-1);font-size:11px}
+.schedule-manager-state{flex:none;white-space:nowrap;border-radius:var(--radius-pill);background:var(--od-muted);color:var(--od-sub);font-size:11px;font-weight:650;padding:3px 8px}
+.schedule-manager-state[data-state="enabled"]{color:var(--od-positive)}
+.schedule-manager-actions{justify-content:flex-end;min-width:0}
+.schedule-manager-action{flex:none;width:34px;height:34px;min-width:34px;min-height:34px}
+.schedule-manager-action svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.schedule-manager-more{min-width:0}
+.schedule-manager-more .hint{margin:var(--space-2) 0 0}
+@media(max-width:340px){.schedule-manager-controls{grid-template-columns:minmax(0,1fr)}}
+
 #schedule-uninstall-confirm{padding:var(--space-3);display:grid;gap:var(--space-2)}
 #schedule-uninstall-confirm p{margin:0;overflow-wrap:anywhere}
 @media(max-width:340px){
