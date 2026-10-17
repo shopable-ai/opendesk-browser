@@ -116,11 +116,26 @@ try{
   const projected=await evaluate('[...document.querySelectorAll("#schedule-plan-list .schedule-state")].map(x=>x.textContent)');
   for(const state of ['已安排','已暂停','运行中','已完成','需要处理','结果待核对','已错过'])
     assert(projected.includes(state),'multi-state projection must include '+state);
-  assert.equal(await evaluate('document.querySelectorAll("#schedule-plan-list .schedule-plan-actions button").length'),20,
-    'ten in-memory fixture plans each own two compact accessible icon buttons');
+  assert.equal(await evaluate('document.querySelectorAll("#schedule-plan-list .schedule-plan-actions button").length'),17,
+    'completed one-off cards must not show a fake restart; active Fire owns a distinct Stop');
+  assert.equal(await evaluate('Boolean(document.querySelector("[data-schedule-id=preview-3] [data-schedule-action=stop]"))'),true);
+  assert.equal(await evaluate('Boolean(document.querySelector("[data-schedule-id=preview-4] [data-schedule-action=toggle]"))'),false,
+    'successful one-off cannot silently be started a second time');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-plan-phase")?.textContent.includes("已安排")'),true,
+    'running Fire must remain separate from scheduled-plan lifecycle');
+  assert.equal(await evaluate('document.getElementById("schedule-list-summary").textContent.includes("运行中")'),true);
   await screenshot('my-schedule-multi-360');
+  await click('[data-schedule-id="preview-3"] [data-schedule-action="stop"]');
+  await until('document.querySelector("[data-schedule-id=preview-3] .schedule-recent-result")?.textContent.includes("已停止")');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-state")?.textContent'),"已安排",
+    'stopping current UI Fire must not pause recurring plan');
+  await click('[data-schedule-id="preview-2"] [data-schedule-action="toggle"]');
+  await until('document.querySelector("[data-schedule-id=preview-2] .schedule-state")?.textContent==="已安排"');
   await click('#schedule-create');
   await until('!document.getElementById("schedule-form").hidden');
+  const formCopy=await evaluate('document.getElementById("schedule-form").innerText');
+  assert.doesNotMatch(formCopy,/UI_PREVIEW_ONLY|未连接 Host|不写入真实计划/,
+    'technical preview guards belong in metadata or one top banner, not the create form');
   assert.equal(await evaluate('document.getElementById("schedule-timezone").getClientRects().length>0'),true,
     'Timezone must be a directly visible native select');
   assert.equal(await evaluate('document.getElementById("schedule-timezone-edit")===null'),true,
