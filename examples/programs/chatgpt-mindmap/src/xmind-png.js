@@ -49,8 +49,11 @@ function copyComputedStyles(window,source,clone){
     to.style.setProperty('overflow-x','visible','important');
     to.style.setProperty('overflow-y','visible','important');
     to.style.setProperty('clip-path','none','important');
-    if(to.hasAttribute('href')&&!tag.startsWith('lineargradient'))
-      to.removeAttribute('href');
+    const href=to.getAttribute('href')||to.getAttribute('xlink:href');
+    if(href&&!href.startsWith('#')){
+      if(tag==='a'){to.removeAttribute('href');to.removeAttribute('xlink:href');}
+      else throw failure('E_XMIND_PNG_EXTERNAL_RESOURCE');
+    }
     to.removeAttribute('onclick');
     to.removeAttribute('onload');
     if(tag==='input'||tag==='textarea')to.removeAttribute('value');
