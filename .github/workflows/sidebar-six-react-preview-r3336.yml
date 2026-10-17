@@ -5,12 +5,16 @@ on:
     paths:
       - 'src/ui/tool.html'
       - 'src/ui/react/**'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/cloud-hosting.js'
+      - 'src/ui/tool-shell.js'
       - 'src/ui/design-*.css'
       - 'src/ui/tool-shell.css'
       - 'src/ui/cloud-hosting.css'
       - 'src/ui/extension-center.css'
       - 'scripts/preview/build-sidebar-six-react-preview.mjs'
       - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
+      - 'tests/environment/react-my-cloud-r3338.test.mjs'
       - '.github/workflows/sidebar-six-react-preview-r3336.yml'
   workflow_dispatch:
 permissions:
@@ -34,7 +38,7 @@ jobs:
           node --test tests/environment/sidebar-six-react-preview-contract.test.mjs \
             tests/environment/react-sidebar-r333.test.mjs \
             tests/environment/react-sidebar-render-r3331.test.mjs \
-            tests/environment/react-debug-bridge-r3337.test.mjs
+            tests/environment/react-debug-bridge-r3337.test.mjs \
             tests/environment/react-my-cloud-r3338.test.mjs
           npm run check
       - name: Install CJK fonts for truthful Chinese visual review
