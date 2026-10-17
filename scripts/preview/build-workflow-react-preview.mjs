@@ -81,7 +81,10 @@ export async function generateWorkflowReactPreview(){
       '.od-workflow-preview-stage{max-width:100%;height:750px;max-height:calc(100dvh - 145px);'+
         'min-height:490px;background:var(--od-bg);border:1px solid var(--od-line);'+
         'border-radius:var(--radius-surface);box-shadow:0 10px 30px #142a4c14;'+
-        'overflow:hidden;display:flex;flex-direction:column;min-width:0}',
+        'overflow:hidden;display:flex;flex-direction:column;min-width:0;position:relative}',
+      // In the real extension the Side Panel IS the viewport. Here the
+      // external 360px review frame must bound the unchanged modal.
+      '.od-workflow-preview-stage .workflow-sheet-overlay{position:absolute}',
       '.od-workflow-preview-stage>.workbench-nav{flex:0 0 auto}',
       '.od-workflow-preview-stage>#workspace-content{flex:1;min-height:0;'+
         'max-width:none;width:100%;overflow:hidden}',
