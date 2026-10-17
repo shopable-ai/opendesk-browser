@@ -32,12 +32,17 @@ jobs:
       - name: Install pinned preview-local React 19 + Vite
         working-directory: examples/sidebar-tools/bookmark-manager/preview/react
         run: npm ci --no-audit --no-fund
-      - name: Bundle React and regenerate the one offline preview
+      - name: Build and verify isolated JSX offline HTML candidate
         working-directory: examples/sidebar-tools/bookmark-manager/preview/react
         run: |
-          npm run build
           npm run preview:build
           npm run preview:check
+          npm run preview:budget
+          npm run preview:watch:check
+          npm run preview:check
+      - name: Stage exact candidate ONLY in CI checkout for Chromium validation
+        run: |
+          cp examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/bookmark-react-candidate.html examples/sidebar-tools/bookmark-manager/preview/index.html
       - name: Static security and actual React runtime contract
         run: |
           node --check examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs
@@ -93,6 +98,7 @@ jobs:
           if-no-files-found: warn
           path: |
             examples/sidebar-tools/bookmark-manager/preview/index.html
+            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/budget-report.json
             examples/sidebar-tools/bookmark-manager/preview/evidence/r304/
             examples/sidebar-tools/bookmark-manager/preview/evidence/r3041/
       - name: Promote exact Chromium-tested HTML with concurrent main protection

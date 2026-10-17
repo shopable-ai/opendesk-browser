@@ -145,7 +145,7 @@ async function setInput(ctx,id,value){
 }
 
 
-const previewPath=resolve('examples/sidebar-tools/bookmark-manager/preview/index.html');
+const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'examples/sidebar-tools/bookmark-manager/preview/index.html');
 const report=[], {createHash}=await import('node:crypto');
 let browserInfo={};
 async function zoomKeys(steps){

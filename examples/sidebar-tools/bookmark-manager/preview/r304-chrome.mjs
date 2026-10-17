@@ -111,7 +111,7 @@ async function setInput(ctx,id,value){
   +JSON.stringify(value)+");el.dispatchEvent(new Event('input',{bubbles:true}));return el.value;");
 }
 
-const previewPath=resolve('examples/sidebar-tools/bookmark-manager/preview/index.html');
+const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'examples/sidebar-tools/bookmark-manager/preview/index.html');
 const html=await readFile(previewPath,'utf8');
 assert.match(html,/sandbox="allow-scripts"/);
 assert.doesNotMatch(html,/sandbox="[^"]*allow-same-origin/);

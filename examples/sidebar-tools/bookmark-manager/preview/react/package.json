@@ -9,7 +9,11 @@
   "scripts": {
     "build": "vite build",
     "preview:build": "node build-preview.mjs",
-    "preview:check": "node build-preview.mjs --check"
+    "preview:check": "node build-preview.mjs --check",
+    "preview:watch": "node build-preview.mjs --watch",
+    "preview:watch:check": "node watch-smoke.mjs",
+    "preview:chrome": "node run-chrome.mjs",
+    "preview:budget": "node check-bundle.mjs"
   },
   "dependencies": {
     "@fnando/sparkline": "0.3.10",
