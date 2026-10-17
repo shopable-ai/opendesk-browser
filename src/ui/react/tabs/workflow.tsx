@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-// R23.10: trusted chrome only. No Provider, Host, secrets, drafts or web-page
+// R23.11: trusted chrome only. No Provider, Host, secrets, drafts or web-page
 // content is copied into this view. Native user gestures go to WorkflowView.
 export function WorkflowHeader({model,actions}) {
   const forward = (action,event) => {
@@ -11,8 +11,8 @@ export function WorkflowHeader({model,actions}) {
       hidden={!model.saved} title={model.savedTitle||''}>{model.savedText||''}</span>
     <button type="button" id="workflow-history-toggle"
       className="workflow-icon-button od-icon-button"
-      aria-label="历史版本与设置" title="历史版本与设置"
-      aria-expanded={Boolean(model.historyExpanded)} aria-controls="workflow-manage-panel"
+      aria-label="历史" title="历史"
+      aria-expanded={Boolean(model.historyExpanded)} aria-controls="workflow-history-panel"
       onClick={event=>forward('onHistory',event)}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -39,6 +39,46 @@ export function WorkflowHeader({model,actions}) {
       </svg>
     </button>
   </>;
+}
+
+/** The label is presentation-only; source IDs and the API credential stay in WorkflowView. */
+export function WorkflowSourceName({value=''}) {
+  return value ? <span id="workflow-source-name" className="workflow-source-name"
+    title={`当前模型：${value}`} aria-label={`当前模型：${value}`}>{value}</span> : null;
+}
+
+/** The only history entries are real revision records or a resumable Codex session.
+ * Restoring a saved workflow still goes through WorkflowView's hash verification. */
+export function WorkflowHistory({model={open:false,rows:[],canResume:false},actions}) {
+  const forward=(action,event,key)=>{
+    if(event.nativeEvent?.isTrusted) actions?.[action]?.(key,event.nativeEvent);
+  };
+  const rows=model.rows||[];
+  return <section id="workflow-history-panel" className="workflow-history-panel"
+    role="region" aria-label="历史" hidden={!model.open}>
+    <div className="workflow-history-section">
+      <h3>历史对话</h3>
+      {model.canResume
+        ? <button type="button" id="workflow-history-resume"
+            className="workflow-history-row" onClick={event=>forward('onResumeHistory',event)}>
+            <span className="workflow-history-row-title">上次 Codex 对话</span>
+            <small>恢复模型对话，不重新执行网页操作</small>
+          </button>
+        : <p className="workflow-history-empty">暂无可恢复的历史对话</p>}
+    </div>
+    <div className="workflow-history-section">
+      <h3>已保存工作流</h3>
+      {rows.length ? <div className="workflow-history-list">
+        {rows.map(row=><button key={row.key} type="button"
+          className="workflow-history-row" disabled={Boolean(model.busy)}
+          title={row.fullTitle}
+          onClick={event=>forward('onOpenSavedHistory',event,row.key)}>
+          <span className="workflow-history-row-title">{row.title}</span>
+          <small>{row.savedText}</small>
+        </button>)}
+      </div> : <p className="workflow-history-empty">尚未保存工作流。完成任务后可以保存并在这里打开。</p>}
+    </div>
+  </section>;
 }
 
 function focusableElements(panel) {
