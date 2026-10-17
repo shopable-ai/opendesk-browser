@@ -23,8 +23,8 @@
       </div>
       <div id="task-add-menu" class="task-add-menu od-surface" role="group" aria-label="添加任务" hidden>
          <div class="task-add-heading od-toolbar"><strong>添加任务</strong><button id="task-add-close" type="button" class="od-icon-button" title="关闭添加任务" aria-label="关闭添加任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button></div>
-         <p class="hint">选择本地任务包，再按原流程验证和审阅权限；不会自动运行或安装。</p>
-         <button type="button" id="task-add-import" class="od-button">选择本地任务包 · JSON / JS</button>
+         <p class="hint">支持任务包 JSON、程序草稿 JSON 和 .js；扩展工具包应在「扩展」导入。</p>
+         <button type="button" id="task-add-import" class="od-button">导入任务文件</button>
          <input id="task-add-file" type="file" accept=".json,.js,application/json,text/javascript" aria-label="选择本地任务包" hidden>
          <div class="task-add-options od-toolbar"><button type="button" id="task-add-catalog" class="od-button od-button--secondary">浏览任务目录 ↗</button><button type="button" id="task-add-develop" class="od-button od-button--quiet">新建脚本</button></div>
          <p id="task-add-status" class="hint" role="status" aria-live="polite"></p>
@@ -607,7 +607,7 @@
       </details>
         </aside>
       </div>
-      <label for="task-package-file">导入任务包 JSON 或 JavaScript 草稿</label>
+      <label for="task-package-file">导入任务包 JSON、程序草稿 JSON 或 .js 文件</label>
       <input type="file" id="task-package-file" accept=".json,.js,application/json,text/javascript">
       <p id="task-catalog-status" role="status">仅本机验证，不代表第三方审核或签名认证</p>
       <div class="row"><button type="button" id="task-catalog-refresh" class="od-button od-button--secondary">刷新目录</button></div>

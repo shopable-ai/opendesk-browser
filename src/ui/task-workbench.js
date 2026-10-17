@@ -1,7 +1,7 @@
 import {permissionPattern} from '../environment.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
-import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
+import {createTaskPackage, validateTaskParams, TASK_PACKAGE_FORMAT} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
 import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
@@ -701,7 +701,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
     const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
+    if(/\.opendesk-tool\.json$/i.test(file.name)||['opendesk.sidebar-tool.v1','opendesk.sidebar-tool.v2'].includes(parsed?.format))
+      throw {code:'E_TASK_FILE_KIND',message:'这是扩展工具包，请到「扩展」选择「导入本地工具包」，不能作为自动化任务安装'};
     const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format) ? await validateProgramDraft(parsed) : null;
+    if(!project&&parsed&&parsed.format!==TASK_PACKAGE_FORMAT)
+      throw {code:'E_TASK_FILE_KIND',message:'支持任务包 opendesk.task-package.v1、程序草稿 JSON 或 .js 源码；扩展包请到「扩展」导入'};
     if(!project && file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
     if(project || file.name.toLowerCase().endsWith('.js')) {
       const draft=project || sourceUtf8;
@@ -905,7 +909,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(!file)return;
       try{
         await readFile(file);
-        get('task-add-status').textContent=get('task-catalog-status').textContent;
+        get('task-add-status').textContent=get('task-catalog-status').textContent+
+          (file.name.toLowerCase().endsWith('.js')?'':'；需要安装时，请打开「浏览任务目录」审阅和验证');
         if(doc.documentElement?.dataset?.opendeskTab==='develop'){
           showTaskAddMenu(false);
           get('tab-develop').focus?.({preventScroll:true});
