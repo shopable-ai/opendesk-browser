@@ -10,6 +10,11 @@ import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
 import {CloudOverviewText} from './tabs/cloud.tsx';
 import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
 import './tabs/cookie-pilot.css';
+// Fixed, reviewed Bookmark Manager sources only; no installed package scripts.
+import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
+import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
+import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
+import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/style.css?raw';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -205,6 +210,7 @@ export function mountExtensionList(doc){
   let debugModel=debugInitial;
   let myRowsModel={rows:[],selectedId:'',emptyText:'',onSelect:()=>{}};
   let cookiePilotHost=null;
+  let bookmarkPilot=null;
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
   function paint(){
     if(disposed)return;
@@ -225,6 +231,11 @@ export function mountExtensionList(doc){
         createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
       {cookiePilotHost&&createPortal(<CookieTrustedPilot/>,cookiePilotHost)}
+      {bookmarkPilot&&createPortal(<>
+        <style data-bookmark-trusted-style="">{bookmarkScopedCSS}</style>
+        <BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}
+          onStateChange={bookmarkPilot.onStateChange}/>
+       </>,bookmarkPilot.container,'bookmark-react-trusted')}
       {workflowMounted&&createPortal(
         <WorkflowHeader model={workflowHeaderModel} actions={workflowActions}/>,workflowHeader)}
       {workflowMounted&&createPortal(
@@ -268,6 +279,28 @@ export function mountExtensionList(doc){
     owner:'extension-list',
     debugMounted,
     myTasksMounted,cloudOverviewMounted,
+    mountBookmarkPilot({container,sdk,onStateChange}={}){
+      if(disposed||bookmarkPilot||!container||container.ownerDocument!==doc||
+        container.childNodes.length||container.dataset.opendeskReactOwner||
+        typeof sdk?.bookmarks?.getTree!=='function'||
+        typeof onStateChange!=='function'||!globalThis.BookmarkR2Service?.create||
+        !globalThis.BookmarkR2Model)
+        throw new Error('E_BOOKMARK_TRUSTED_PILOT_MOUNT');
+      bookmarkPilot={container,
+        runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk)}),
+        onStateChange};
+      container.dataset.opendeskReactOwner='bookmark-react-pilot';
+      paint();
+      let released=false;
+      return ()=>{
+        if(released)return;released=true;
+        if(bookmarkPilot?.container===container){
+          bookmarkPilot=null;
+          if(!disposed)paint();
+          delete container.dataset.opendeskReactOwner;
+        }
+      };
+    },
     mountCookieEditorPilot(container){
       // An opt-in, development-only *data-free* demo. No package JS is read
       // and the real Cookie Tool keeps its original iframe and SDK Host.
@@ -410,6 +443,7 @@ export function mountExtensionList(doc){
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
       if(cookiePilotHost){delete cookiePilotHost.dataset.opendeskReactOwner;cookiePilotHost=null;}
+      if(bookmarkPilot){delete bookmarkPilot.container.dataset.opendeskReactOwner;bookmarkPilot=null;}
       if(myTasksMounted){
         myRows.after(myWorkspace);
         for(const node of [myRows,myCount,myDetail])delete node.dataset.opendeskReactOwner;
