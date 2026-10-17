@@ -1,3 +1,4 @@
+import {MAX_XMIND_BYTES} from './export.js';
 import {bindFrameIdentity,matchesFrameIdentity,requireFramePort,frameEnvelope,frameError}
   from './xmind-frame-protocol.js';
 
@@ -31,6 +32,9 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     if(!item||data.command!==item.command||typeof data.ok!=='boolean')return;
     if(data.ok){
       if(data.command==='toggleAll'&&typeof data.value!=='boolean')return;
+      if(data.command==='exportXmind'&&(!data.value||
+        !Number.isSafeInteger(data.value.size)||data.value.size<4||
+        data.value.size>MAX_XMIND_BYTES||typeof data.value.arrayBuffer!=='function'))return;
       if(!Number.isSafeInteger(data.nodeCount)||data.nodeCount<0)return;
     }else if(typeof data.error?.code!=='string')return;
     pending.delete(data.id);clearTimeout(item.timer);
@@ -111,5 +115,6 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
   return Object.freeze({ready,destroy,
     fit:options=>command('fit',options),reflow:()=>command('reflow'),
     setTheme:mode=>command('setTheme',mode),zoomBy:factor=>command('zoomBy',factor),
-    toggleAll:()=>command('toggleAll'),get nodeCount(){return nodeCount;}});
+    toggleAll:()=>command('toggleAll'),exportXmind:()=>command('exportXmind'),
+    get nodeCount(){return nodeCount;}});
 }

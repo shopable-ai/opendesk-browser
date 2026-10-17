@@ -225,7 +225,21 @@ export function createXmindRenderer({window,canvas,tree,skinMode='dark'}){
   }):null;
   lastWidth=canvas.clientWidth;lastHeight=canvas.clientHeight;
   resize?.observe(canvas);
-  return Object.freeze({ready,fit,reflow,destroy,
+  function exportXmind(){
+    const operation=operations.then(async()=>{
+      await ready;
+      if(disposed)throw Object.assign(new Error('E_XMIND_FRAME_DESTROYED'),
+        {code:'E_XMIND_FRAME_DESTROYED'});
+      // Use the real SDK Workbook; exporting must not change the live viewport.
+      const blob=await mindTreeToXmindBlob(sdk,tree,appliedSkin,{defaultFolded:false});
+      if(disposed)throw Object.assign(new Error('E_XMIND_FRAME_DESTROYED'),
+        {code:'E_XMIND_FRAME_DESTROYED'});
+      return blob;
+    });
+    operations=operation.then(()=>{},()=>{});
+    return operation;
+  }
+  return Object.freeze({ready,fit,reflow,destroy,exportXmind,
     setTheme(mode){
       if(mode!=='light'&&mode!=='dark')return Promise.reject(new Error('E_XMIND_THEME'));
       if(disposed)return Promise.resolve();
