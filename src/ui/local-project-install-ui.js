@@ -197,6 +197,12 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       local?.previousInstallAttempt?.()?.attemptedVersion||'',isBusy(),
       target?.status||'',target?.windowId,target?.tabId,target?.documentId,target?.url]);
     if(key===lookupKey)return;
+    if(!unknown&&!unknownReview&&sameInstalled()&&current()){
+      // A newly installed, receipt-confirmed exact version is already stronger
+      // evidence than a passive registry lookup. Keep Management immediately
+      // available; do not replace it with an intermediate "checking" state.
+      lookupKey=key;++lookupToken;checking=false;return;
+    }
     lookupKey=key;const token=++lookupToken;installed=null;checking=!!local;
     if(!installing&&!reconciling){
       const pending=pendingFor(local);
