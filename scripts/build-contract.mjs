@@ -26,6 +26,8 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'scripting/packaged/page-session': './src/scripting/packaged/page-session.js',
   'scripting/sandbox/sandbox': './src/scripting/sandbox/sandbox.js',
   'sidebar-tools/bridge': './src/sidebar-tools/bridge.js',
+  // Opt-in opaque iframe UI entry, with externally shared pinned React.
+  'sidebar-shared-ui': './src/entrypoints/sidebar-shared-ui.js',
   'scripting/sandbox/worker-runtime': './src/scripting/sandbox/worker-runtime.js',
   'libs/runtime/page-core': './src/entrypoints/page-core.js',
   'libs/packages/lodash': './src/entrypoints/lodash.js',

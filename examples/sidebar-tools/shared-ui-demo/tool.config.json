@@ -1,0 +1,13 @@
+{
+  "id": "shared-ui-demo",
+  "version": "1.0.0",
+  "title": "广告拦截演示",
+  "description": "仅模拟状态的 React Card/Switch 演示，不使用 DNR。",
+  "capabilities": [],
+  "uiRuntime": "opendesk.react-ui.v1",
+  "files": {
+    "html": "src/root.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
+  }
+}

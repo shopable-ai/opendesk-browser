@@ -32,7 +32,7 @@ export function sameSidebarToolPackage(a,b) {
     try{return serializeSidebarToolPackage(a)===serializeSidebarToolPackage(b);}
     catch{return false;}
   }
-  return Boolean(a&&b)&&['format','id','version','title','description','html','css','js']
+  return Boolean(a&&b)&&['format','id','version','title','description','html','css','js','uiRuntime']
     .every(key=>a[key]===b[key])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities)&&
     JSON.stringify(a.requires??null)===JSON.stringify(b.requires??null)&&
     JSON.stringify(a.contributes??null)===JSON.stringify(b.contributes??null);
