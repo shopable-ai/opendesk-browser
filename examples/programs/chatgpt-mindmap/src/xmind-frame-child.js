@@ -1,5 +1,5 @@
 import {createXmindRenderer} from './xmind-adapter.js';
-import {MAX_XMIND_BYTES} from './export.js';
+import {MAX_XMIND_BYTES,verifyPngBlob} from './export.js';
 import {bindFrameIdentity,matchesFrameIdentity,requireFramePort,frameEnvelope,frameError,
   XMIND_FRAME_COMMANDS} from './xmind-frame-protocol.js';
 
@@ -18,7 +18,7 @@ export function serveXmindFrame({port,identity,window,canvas,
       ok,value,nodeCount:renderer?.nodeCount||0,...(error?{error:{code:error.code||'E_XMIND_RENDER'}}:{})}));
   }
   function validate(data){
-    if(data.command==='exportXmind'&&data.args!==undefined)throw frameError('E_XMIND_FRAME_ARGS');
+    if(['exportXmind','exportPng'].includes(data.command)&&data.args!==undefined)throw frameError('E_XMIND_FRAME_ARGS');
     if(data.command==='setTheme'&&!['light','dark'].includes(data.args))
       throw frameError('E_XMIND_THEME');
     if(data.command==='zoomBy'&&(!Number.isFinite(data.args)||data.args<=0))
@@ -47,6 +47,7 @@ export function serveXmindFrame({port,identity,window,canvas,
     if(data.command==='exportXmind'&&(!result||!Number.isSafeInteger(result.size)||
       result.size<4||result.size>MAX_XMIND_BYTES||
       typeof result.arrayBuffer!=='function'))throw frameError('E_XMIND_EXPORT_INVALID');
+    if(data.command==='exportPng')await verifyPngBlob(result);
     return result;
   }
   function receive(event){
