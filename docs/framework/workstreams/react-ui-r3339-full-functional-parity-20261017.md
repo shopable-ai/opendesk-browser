@@ -262,3 +262,10 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 五维评分认证：产品功能 **不足证据**；UI/UX **不足证据**；React 架构 **来源门禁 BLOCKED**；安全与权限 **Native NOT_TESTED**；测试可靠性 **当前 CI NOT_TESTED**。**不认证任何一项 ≥95**。
 
 下一步：Bookmark/Trusted Owner 先修复来源违规，同时在真实 Mac 上以最新 `main` 执行本轮列出的定向 Node → 同源生成器/--check → isolated Build → Chromium 多宽度 → 同 SHA CI → 已安装 Chrome/Host；逐项记录日志、截图、SHA、安装来源及真实任务结果，再进行五维评分。
+
+
+### R33.3.15-A · 计划十状态投影的独立源码执行
+
+- 新增 Node 回归用例 [175a04e](https://github.com/shopable-ai/opendesk-browser/commit/175a04e0ba453e674f6bec799de0b1119e754555)，覆盖「已安排 / 已暂停 / 运行中 / 已完成 / 执行失败 / 需要处理 / 结果未知 / 已错过 / 等待运行条件 / 正在结算」共十种状态的 **planState、badge、lastFireStatus**，并检查等待 Host 的提示、未知结果禁止自动重试、STOPPED 不等于计划暂停。
+- 直接读取 GitHub 正式展示模块 blob `9cac1aa62ab0bffe65b36e5a10269150bda9786e` 的真实 JavaScript 源码，在受限独立 V8 内执行 `presentSchedulePlan` 并核对上述十种组合：**10/10 PASS**。该证据定级为 **ISOLATED_SOURCE_EXECUTION_PASS**；并非执行了仓库 `node --test`，更不能证明 Host、调度、持久化、Chrome 或 Native PASS。
+- 仍须在 Mac 最新 `main` 执行原定的完整定向 Node 回归、同源 HTML 生成和 `--check`、隔离 Build、Chromium/CI、已安装扩展实际任务操作。与本次最新 commit 对齐的这些证据均保持 **NOT_TESTED**。
