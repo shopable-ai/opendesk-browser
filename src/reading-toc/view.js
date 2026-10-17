@@ -132,7 +132,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   }
   function updateLanguage(){
     panel.setAttribute('aria-label',t('pageLabel'));
-    caption.textContent=t('contents');
+    // Preserve the approved literal CONTENTS heading shared with the Side Panel.
+    // Accessible panel and control names remain localized.
+    caption.textContent='CONTENTS';
     modes.setAttribute('aria-label',t('modesLabel'));
     buttons.forEach((button,index)=>{
       button.title=t(['topLabel','focusLabel','fullLabel','aiLabel'][index]);

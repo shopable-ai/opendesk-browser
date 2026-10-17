@@ -178,6 +178,8 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   'Closed-shadow overlay did not present translated English accessible label');
 
  const axe=await trusted.send('Accessibility.getFullAXTree');
+ assert(axe.nodes.some(node=>node.name?.value==='CONTENTS'),
+  'webpage overlay preserves the CONTENTS heading after locale switch');
  const modeNames=['Chapter overview (automatically includes subheadings)','Current section','Full contents','AI outline'];
  const buttonNames=axe.nodes.filter(node=>node.role?.value==='button').map(node=>node.name?.value);
  for(const name of modeNames)assert(buttonNames.includes(name),
