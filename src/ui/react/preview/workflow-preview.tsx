@@ -37,6 +37,7 @@ function Preview(){
   const [width,setWidth]=React.useState(360);
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
+  const [manageOpen,setManageOpen]=React.useState(false);
   const [sourceName,setSourceName]=React.useState('Codex');
   const [review,setReview]=React.useState(false);
   const close=React.useCallback(()=>{
@@ -68,7 +69,7 @@ function Preview(){
       ?'本轮最多 24 项语义节点，仅发送给所选模型（离线示例；实际未发送）':'';
     get('workflow-new-review').hidden=!review;
     get('workflow-editor').dataset.historyOpen=String(history);
-    get('workflow-manage-panel').hidden=true;
+    get('workflow-manage-panel').hidden=!manageOpen;
     get('workflow-result-panel').hidden=scene!=='unknown';
     if(scene==='unknown'){
       get('workflow-technical').textContent='无真实 RunId、ResultId 或 sourceHash。';
@@ -76,7 +77,7 @@ function Preview(){
     get('workflow-status').hidden=scene!=='disconnected';
     if(scene==='disconnected')get('workflow-status').textContent=
       '离线预览未连接 OpenDesk Native，不能确认 Codex 已就绪。';
-  },[scene,rows,history,review]);
+  },[scene,rows,history,review,manageOpen]);
   React.useEffect(()=>{
     const provider=get('workflow-ai-provider');
     const sync=()=>{
@@ -131,10 +132,9 @@ function Preview(){
     });
     on('workflow-edit-details','click',event=>{
       if(!event.isTrusted)return;
-      setHistory(false);
-      get('workflow-manage-panel').hidden=false;
+      setHistory(false);setManageOpen(true);
     });
-    on('workflow-manage-close','click',()=>{get('workflow-manage-panel').hidden=true;});
+    on('workflow-manage-close','click',()=>setManageOpen(false));
     doc.documentElement.dataset.workflowPreviewReady='true';
     Object.defineProperty(window,'__workflowPreviewInfo',{configurable:true,
       value:Object.freeze({sourceBound:true,native:false,provider:false,
