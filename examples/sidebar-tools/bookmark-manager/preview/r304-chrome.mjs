@@ -165,8 +165,8 @@ try{
   await click(ctx,'[data-node-id="100"]');
   await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'one click preview '+width);
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),false,'readonly is nonmodal');
-  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\\"bookmark-preview\\"]')?.getAttribute('aria-modal')"),width<740?'true':null,'responsive modal semantics');
-  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\\"bookmark-preview\\"]')?.getAttribute('role')"),width<740?'dialog':'complementary','responsive preview role');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('aria-modal')"),width<740?'true':null,'responsive modal semantics');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('role')"),width<740?'dialog':'complementary','responsive preview role');
   if(width<740){
    const insets=await invoke(ctx,"const app=document.querySelector('.bm-app').getBoundingClientRect(),pane=document.querySelector('.bm-preview-pane').getBoundingClientRect();return [Math.round(pane.left-app.left),Math.round(app.right-pane.right),Math.round(app.bottom-pane.bottom)]");
    assert.deepEqual(insets,[12,12,12],'approved floating pane insets');
