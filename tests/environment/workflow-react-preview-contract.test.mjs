@@ -41,6 +41,18 @@ test('R33.3.6 compiled offline HTML has real source checksum and bundled React',
   assert.doesNotMatch(html,/<iframe[^>]+src="https?:/);
 });
 
+test('R23.12 preview offers 320px and preserves the chosen HTTPS protocol',async()=>{
+  const [entry,components]=await Promise.all([
+    read('src/ui/react/preview/workflow-preview.tsx'),
+    read('src/ui/react/tabs/workflow.tsx')
+  ]);
+  assert.match(entry,/<option value=\{320\}>320px<\/option>/);
+  assert.match(entry,/const lastHttps=React\.useRef\('custom_https'\)/);
+  assert.match(entry,/selectProvider\(lastHttps\.current,event\)/);
+  assert.match(components,/item\.tabIndex>=0/);
+  assert.match(components,/item\.getAttribute\('aria-hidden'\)!=='true'/);
+});
+
 test('R23.11 preview never forges saved history, native status or a provider token',async()=>{
   const [entry,builder,html,view]=await Promise.all([
     read('src/ui/react/preview/workflow-preview.tsx'),
