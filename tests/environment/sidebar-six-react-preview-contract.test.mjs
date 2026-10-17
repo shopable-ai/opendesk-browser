@@ -22,6 +22,12 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
     assert.match(builder,new RegExp("'"+key+"'"));
   }
   assert.ok($('#tab-debug').is('[hidden]'),'Debug stays hidden in official production DOM');
+  // The current scheduler header uses one accessible icon, not retired text controls.
+  const runner=$('#schedule-open-runner');
+  assert.equal(runner.length,1,'official scheduler keeps a single runner launch action');
+  assert.ok(runner.hasClass('od-icon-button'),'runner entry uses the official compact icon');
+  assert.equal(runner.attr('aria-label'),'打开独立运行页');
+  assert.equal(runner.text().trim(),'','the icon does not duplicate its tooltip as body text');
   assert.match(builder,/data-preview-development-only/);
   assert.match(builder,/UI_PREVIEW_ONLY/);
   assert.match(builder,/--check/);
