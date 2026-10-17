@@ -1,4 +1,5 @@
 import {createXmindRenderer} from './xmind-adapter.js';
+import {buildOutlineMarkdown,exportFileBase,verifyXmindZip} from './export.js';
 
 // All graphics are fixed, local path geometry; no runtime icon package or CDN.
 const ICONS={
@@ -15,7 +16,8 @@ const ICONS={
   refresh:['M20 11a8 8 0 0 0-14-5L3 9','M3 3v6h6','M4 13a8 8 0 0 0 14 5l3-3','M21 21v-6h-6'],
   sun:['M12 2v2','M12 20v2','M4.93 4.93l1.42 1.42','M17.65 17.65l1.42 1.42','M2 12h2','M20 12h2','M6.35 17.65l-1.42 1.42','M19.07 4.93l-1.42 1.42','M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0'],
   moon:['M20.985 12.486A9 9 0 0 1 11.514 3.015a7 7 0 1 0 9.471 9.471Z'],
-  more:['M5 12h.01','M12 12h.01','M19 12h.01']
+  more:['M5 12h.01','M12 12h.01','M19 12h.01'],
+  download:['M12 3v12','m-5-5 5 5 5-5','M5 17v3h14v-3']
 };
 function icon(document,name){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -55,6 +57,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   const branchGroup=makeGroup('分支','odmm-desktop-only');
   const fullGroup=makeGroup('全屏');
   const themeGroup=makeGroup('导图主题','odmm-desktop-only');
+  const exportGroup=makeGroup('导出','odmm-desktop-only');
   const refreshGroup=makeGroup('更新','odmm-desktop-only');
   const menuGroup=makeGroup('更多','odmm-mobile-only odmm-menu-wrap');
   const menu=el('div','odmm-menu');menu.id='odmm-more-menu';
@@ -62,7 +65,8 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   menu.hidden=true;
   const removers=[],renderButtons=[],buttons=new Map();
   let renderer=null,fullscreen=false,disposed=false,closing=null,inlineParent=null,inlineNext=null;
-  let preferredSkin='dark',menuOpen=false;
+  let preferredSkin='dark',menuOpen=false,exportOpen=false,exportBusy=false,exportReturn=null;
+  const exportUrls=new Set(),exportTimers=new Set();
   function syncThemeButton(){
     const dark=preferredSkin==='dark';
     update('theme',{glyph:dark?'sun':'moon',
@@ -149,13 +153,119 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     run:toggleTheme,group:menu,render:true,menuItem:true});
   action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
     run:onRefresh,group:menu,menuItem:true});
+  action({id:'export-open',glyph:'download',label:'导出导图',
+    run:()=>openExport(true),group:menu,menuItem:true,render:true});
   menuGroup.append(menu);
+  // The desktop Download icon and the mobile More -> Export entry share
+  // exactly one format menu and one in-flight operation.
+  const exportToggle=el('button','odmm-tool odmm-export-toggle');
+  exportToggle.type='button';exportToggle.title='导出导图';
+  exportToggle.setAttribute('aria-label','导出导图');
+  exportToggle.setAttribute('aria-haspopup','menu');
+  exportToggle.setAttribute('aria-expanded','false');
+  exportToggle.append(icon(document,'download'));exportToggle.disabled=true;
+  exportGroup.append(exportToggle);renderButtons.push(exportToggle);
+  const exportMenu=el('div','odmm-export-menu');exportMenu.hidden=true;
+  exportMenu.id='odmm-export-menu';exportMenu.setAttribute('role','menu');
+  exportMenu.setAttribute('aria-label','导出格式');
+  exportToggle.setAttribute('aria-controls',exportMenu.id);
+  const exportOptions=[
+    {id:'xmind',label:'XMind',extension:'.xmind'},
+    {id:'outline',label:'Markdown 大纲',extension:'-大纲.md'},
+    {id:'source',label:'Markdown 原文',reason:'无法取得可信的原始 Markdown'},
+    {id:'png',label:'PNG',reason:'完整画布图片导出尚未通过验证'},
+    {id:'png-hd',label:'PNG 高清 · VIP',reason:'ENTITLEMENT_NOT_READY'},
+    {id:'svg',label:'SVG · VIP',reason:'ENTITLEMENT_NOT_READY'}
+  ];
+  const exportButtons=[];
+  const exportStatus=el('div','odmm-export-status');exportStatus.hidden=true;
+  exportStatus.setAttribute('role','status');
+  function setExportStatus(message,error=false){
+    if(disposed)return;
+    exportStatus.hidden=false;exportStatus.textContent=message;
+    exportStatus.setAttribute('role',error?'alert':'status');
+  }
+  function closeExport(focus=false){
+    if(!exportOpen)return;
+    exportOpen=false;exportMenu.hidden=true;
+    exportToggle.setAttribute('aria-expanded','false');
+    const target=exportReturn;exportReturn=null;
+    if(focus)target?.focus();
+  }
+  function openExport(mobile=false){
+    if(disposed||exportBusy||exportToggle.disabled)return;
+    if(menuOpen)closeMenu();
+    exportReturn=mobile?more:exportToggle;
+    exportOpen=true;exportMenu.hidden=false;
+    exportToggle.setAttribute('aria-expanded','true');
+    exportButtons[0]?.focus();
+  }
+  function startDownload(blob,filename){
+    const api=window.URL||globalThis.URL;
+    if(typeof api?.createObjectURL!=='function'||
+      typeof api?.revokeObjectURL!=='function')
+      throw Object.assign(new Error('当前浏览器不支持文件下载'),{code:'E_XMIND_DOWNLOAD'});
+    const url=api.createObjectURL(blob);
+    exportUrls.add(url);
+    const link=el('a');link.href=url;link.download=filename;
+    try{host.append(link);link.click();}
+    catch(error){exportUrls.delete(url);api.revokeObjectURL(url);throw error;}
+    finally{link.remove();}
+    const timer=window.setTimeout(()=>{
+      exportTimers.delete(timer);exportUrls.delete(url);api.revokeObjectURL(url);
+    },30000);
+    exportTimers.add(timer);
+  }
+  async function runExport(option){
+    if(disposed||exportBusy)return;
+    closeExport(true);
+    if(option.reason){setExportStatus(option.reason,true);return;}
+    if(!renderer){setExportStatus('XMind 尚未准备就绪',true);return;}
+    exportBusy=true;exportToggle.disabled=true;
+    for(const button of exportButtons)button.disabled=true;
+    setExportStatus('正在生成 '+option.label+'…');
+    try{
+      let blob;
+      if(option.id==='xmind')blob=await verifyXmindZip(await renderer.exportXmind());
+      else if(option.id==='outline')blob=new Blob(
+        [buildOutlineMarkdown(tree)],{type:'text/markdown;charset=utf-8'});
+      else throw Object.assign(new Error('当前格式不可用'),
+        {code:'E_XMIND_EXPORT_UNAVAILABLE'});
+      if(disposed)return;
+      if(!blob.size)throw Object.assign(new Error('文件内容为空'),{code:'E_XMIND_EXPORT_EMPTY'});
+      startDownload(blob,exportFileBase(tree.title)+option.extension);
+      setExportStatus(truncated?'已发起下载（导图内容已截断）':'已发起文件下载');
+    }catch(error){
+      if(!disposed)setExportStatus('导出失败：'+String(error?.code||error?.message||'未知错误'),true);
+    }finally{
+      exportBusy=false;
+      if(!disposed){
+        exportToggle.disabled=false;
+        for(const button of exportButtons)button.disabled=false;
+      }
+    }
+  }
+  for(const option of exportOptions){
+    const button=el('button','odmm-export-item');button.type='button';
+    button.setAttribute('role','menuitem');button.setAttribute('data-export',option.id);
+    button.textContent=option.label+(option.reason?' · 未开放':'');
+    button.setAttribute('aria-label',option.label+(option.reason?'，'+option.reason:''));
+    if(option.reason){
+      button.setAttribute('aria-disabled','true');button.title=option.reason;
+    }
+    exportMenu.append(button);exportButtons.push(button);
+    removers.push(owner.on(button,'click',()=>runExport(option)));
+  }
+  toolbar.append(exportMenu);
+  removers.push(owner.on(exportToggle,'click',()=>{
+    if(exportOpen)closeExport(true);else openExport();
+  }));
   update('refresh',{hidden:true});
   update('fold',{pressed:false});
   update('fullscreen',{pressed:false});
   syncThemeButton();
   removers.push(owner.on(more,'click',()=>{
-    menuOpen=!menuOpen;menu.hidden=!menuOpen;
+    closeExport();menuOpen=!menuOpen;menu.hidden=!menuOpen;
     more.setAttribute('aria-expanded',String(menuOpen));
     if(menuOpen)focusMenu();
   }));
@@ -171,6 +281,20 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     focusMenu(event.key==='ArrowUp');event.preventDefault();event.stopPropagation();
   }));
   removers.push(owner.on(shadow,'keydown',event=>{
+    if(exportOpen){
+      if(event.key==='Escape'){
+        closeExport(true);event.stopPropagation();event.preventDefault();return;
+      }
+      if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+        const index=exportButtons.indexOf(shadow.activeElement);
+        const target=event.key==='Home'?0:event.key==='End'?exportButtons.length-1:
+          event.key==='ArrowDown'?(index+1)%exportButtons.length:
+          (index<0?0:index-1+exportButtons.length)%exportButtons.length;
+        exportButtons[target]?.focus();event.preventDefault();return;
+      }
+      if(event.key==='Tab')closeExport();
+      return;
+    }
     if(!menuOpen)return;
     if(event.key==='Escape'){
       closeMenu({restoreFocus:true});event.stopPropagation();event.preventDefault();
@@ -186,13 +310,15 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     items[target].focus();event.preventDefault();
   }));
   removers.push(owner.on(document,'pointerdown',event=>{
-    if(menuOpen&&!event.composedPath().includes(menuGroup))closeMenu();
+    const path=event.composedPath();
+    if(menuOpen&&!path.includes(menuGroup))closeMenu();
+    if(exportOpen&&!path.includes(exportMenu)&&!path.includes(exportToggle))closeExport();
   }));
   const canvas=el('div','odmm-canvas');canvas.tabIndex=0;
   canvas.setAttribute('aria-label','XMind 只读画布，可拖动和滚动浏览分支');
   const status=el('div','odmm-status','正在打开 XMind…');status.setAttribute('role','status');
   if(truncated){const warning=el('div','odmm-warning','内容超出导图上限，原文保持完整。');shell.append(warning);}
-  shell.append(toolbar,canvas,status);shadow.append(style,shell);
+  shell.append(toolbar,exportStatus,canvas,status);shadow.append(style,shell);
   async function start(){
     if(disposed)return;
     preferredSkin=host.getAttribute('data-dark')==='false'?'light':'dark';
@@ -263,7 +389,13 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   }
   function destroy(){
     if(closing)return closing;
-    disposed=true;closeMenu();for(const remove of removers)remove();
+    disposed=true;closeMenu();closeExport();
+    const api=window.URL||globalThis.URL;
+    for(const timer of exportTimers)window.clearTimeout(timer);
+    exportTimers.clear();
+    for(const url of exportUrls)api?.revokeObjectURL?.(url);
+    exportUrls.clear();
+    for(const remove of removers)remove();
     host.hidden=true;
     closing=(async()=>{try{await renderer?.destroy();}finally{host.remove();}})();
     return closing;
