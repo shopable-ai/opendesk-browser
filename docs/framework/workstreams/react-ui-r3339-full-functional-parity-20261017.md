@@ -217,3 +217,20 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 工作流设计基准：`prototypes/sidebar/workflow.html`（较新的简短入口，含 R23.10 历史/新对话设计）。旧 `prototypes/sidebar/workflow/index.html` 仅保留历史参考，不以旧版覆盖新入口。正式 Workflow Owner 不改，真实 Provider/Authority/RunHost 不随设计原型迁移。
 
 剩余范围（NOT_TESTED / NOT_IMPLEMENTED）：定时计划共享展示投影、Hover/触屏操作、多状态同源 React 预览、正式工作流 UI 差异修复、360/420/520px 截图、Mac Native。当前第一阶段仅为源码/回归脚本改动，不能申报 R33.3.14 总体 95+ 验收。生成器/Node/Build/Chromium/CI 均须以实际运行回执定级。
+
+
+## R33.3.15 · 2026-10-17 · 计划旧断言修复与同源工作流预览接线
+
+**真实写入范围 / 并行边界**：本轮仅通过有 SHA 校验的 GitHub Contents API 向最新 `main` 写入独立文件；未进入用户 Mac 工作区，也不能保证 Mac 本地未提交 diff。正式 `WorkflowView`、`React main.tsx`、Bookmark Trusted UI 和 Installer/RunHost 均由同期其他提交管理，本轮不覆盖这些 Owner。所有提交均非新分支、非 PR、非强推。
+
+- **定时计划旧断言**：`79753a1` 以 `formatScheduleRule` 四种规则的实际结果和正式 `presentSchedulePlan(plan,view.records)` 引用代替 `frequencyLabel(plan)` 旧实现位置检查。持续保护人类可读日期/间隔语义，禁止为兼容测试复制第二套展示算法；没有更改 Scheduler。
+- **工作流业务核查**：原 `src/ui/workflow/workflow-view.js` 已有 `connectWorkflowEvents` 和 `onHistory/onNewSession/onNewWorkflow/onResumeHistory/onOpenSavedHistory`，历史保存读取仍使用原 `loadSaved` 和来源/源码哈希校验；原 Provider、Permission、RunHost 不在本轮预览代码中模拟执行。工作流产品交互端到端 **仍需实际 Chrome 验证**；相关并行源码如再变更必须重新复核。
+- **同源六 Tab 预览**：`71715e0` 在原 `src/ui/react/preview/sidebar-six-preview.tsx` 接入正式 `WorkflowHistory`、`WorkflowSourceName` portals（复用正式 `tool.html` 的现有宿主节点），离线内存模拟历史/新对话/未保存草稿审阅；示例历史点击只说明真实来源验证要求，发送只说明缺少 Provider/Authority/RunHost，不假报真实副作用。原 Scheduler 状态卡仍消费 `presentSchedulePlan`。
+- **正式 AI 来源组件对齐**：`c67c4b4` 跟进正式 Provider 中新增的 Codex/HTTPS 按钮及协议切换；预览仅使用内存表单状态，在输入 HTTPS 模型 ID 后只显示该 ID，选 Codex 时只显示 `Codex`；不存储 Key 或批准网页读取。
+- **降低技术字符串噪声**：`2aa7020`、`4864baf` 将六 Tab 正文的 `UI_PREVIEW_ONLY` 改为可读的“仅预览”语义，保留源码/生成 HTML 的来源与离线边界标识；`48f1c37` 同步原 Chromium 语义断言。
+- **Chromium 可执行回归**：`c3a20ee`、`cd41f7f` 在正式 `scripts/tests/sidebar-six-react-preview-interaction.mjs` 添加历史展开、草稿保护、新工作流确认、无 Host 提示及来源切换/模型名称真实 CDP 指针操作；`3c4ef72` 为六 Tab CI 添加工作流 320/360/420/520px 截图。提交的是测试代码，**不代表测试实际 PASS**。
+- **设计入口**：继续采用 `prototypes/sidebar/workflow.html`；旧 `prototypes/sidebar/workflow/index.html` 不再作为当前产品基准。独立设计 Mock 不能替代正式 DOM/React/业务合约。
+
+**实际证据与限制**：GitHub Actions 六 Tab 工作流在 `cd41f7f` 对应 [Actions 39048163536](https://github.com/shopable-ai/opendesk-browser/actions/runs/39048163536) 查询时为 `queued`；没有本轮 Node/Build/Preview 生成、`--check`、截图、Chromium 点击、CI 全绿的完成回执。`prototypes/sidebar/react-preview/index.html` 不追踪在 `main`；若同源生成器在该 SHA 的 CI 成功，附件名为 `sidebar-six-react-preview`，在此之前不能提供“已生成”链接。Linux Chromium 本环境存在但没有可用完整仓库和依赖，**未在本轮运行项目测试**。Mac 已安装 Chrome/真实 Scheduler/Authority/RunHost 为 `NOT_TESTED`；测试失败或并行 Bookmark 来源门禁仍须按各 Owner 独立收敛。
+
+**验收准入**：五维（产品功能、UI/UX、React 架构、安全与权限、测试可靠性）**均未认证 ≥95**；待同一源码 SHA 的 Node、真实 Build、Chromium、CI 证据与 Mac Native 真实行为后逐项评分，不能以提交和静态断言替代。
