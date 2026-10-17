@@ -16,6 +16,10 @@ for(const node of [cards,reader,catalogBack,list,detail,manager])node.replaceChi
 const seed={id:'preview-1',title:'每日整理（仅预览）',kind:'daily',
   target:'https://example.invalid/',paused:false};
 const ruleName=k=>({once:'执行一次',daily:'每天',weekly:'每周',interval:'按间隔'})[k]||k;
+const previewDeviceZone=()=>{
+  try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
+  catch{return 'UTC';}
+};
 export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter}){
   const [showSearch,setShowSearch]=React.useState(false);
   const [addOpen,setAddOpen]=React.useState(false);
@@ -49,8 +53,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-title').value=plan?.title||'';
     get('schedule-target').value=plan?.target||'https://example.invalid/';
     get('schedule-params').value=plan?.paramsText||'{}';
-    get('schedule-timezone').value=plan?.timezone||'Asia/Tokyo';
-    get('schedule-timezone-summary').textContent=get('schedule-timezone').value+' · UI_PREVIEW_ONLY';
+    get('schedule-timezone').value=plan?.timezone||previewDeviceZone();
     get('schedule-once').value=plan?.once||'';
     get('schedule-clock').value=plan?.clock||'09:00';
     get('schedule-minutes').value=String(plan?.minutes||60);
@@ -112,10 +115,18 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     plans.length,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
-    if(zone.options.length<2)
-      zone.replaceChildren(...['Asia/Tokyo','Asia/Shanghai','Europe/London','UTC']
-        .map(value=>new Option(value+' · UI_PREVIEW_ONLY',value)));
-    get('schedule-timezone-summary').textContent=zone.value+' · UI_PREVIEW_ONLY';
+    if(zone.options.length<2){
+      const examples=[['Asia/Tokyo','日本 · 东京 · UTC+09:00'],
+        ['Asia/Shanghai','中国 · 北京 / 上海 · UTC+08:00'],
+        ['Europe/London','英国 · 伦敦（当前偏移由正式环境计算）'],
+        ['America/New_York','美国 · 纽约（当前偏移由正式环境计算）'],
+        ['UTC','协调世界时 · UTC+00:00']];
+      const device=previewDeviceZone();
+      if(!examples.some(([value])=>value===device))
+        examples.unshift([device,'设备时区 · '+device]);
+      zone.replaceChildren(...examples.map(([value,label])=>new Option(label,value)));
+      zone.value=device;
+    }
     const taskSelect=get('schedule-task-select');
     if(taskSelect.options.length<2)
       taskSelect.replaceChildren(new Option('示例任务 · UI_PREVIEW_ONLY','preview-task'),
@@ -171,28 +182,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-discard-yes','click',()=>{setDirtyConfirm(false);setPending(null);setView('list');});
     bind('schedule-discard-no','click',()=>setDirtyConfirm(false));
     bind('schedule-kind','change',e=>setRule(e.currentTarget.value));
-    bind('schedule-timezone-edit','click',()=>{
-      const controls=get('schedule-timezone-controls');
-      controls.hidden=!controls.hidden;
-      get('schedule-timezone-edit').setAttribute('aria-expanded',String(!controls.hidden));
-      if(!controls.hidden)get('schedule-timezone-search').focus();
-    });
-    bind('schedule-timezone-search','input',e=>{
-      const query=e.currentTarget.value.trim().toLowerCase();
-      let matches=0;
-      for(const option of zone.options){
-        option.hidden=Boolean(query&&!option.value.toLowerCase().includes(query));
-        if(!option.hidden)matches++;
-      }
-      get('schedule-timezone-match').textContent=matches+' 个示例时区 · UI_PREVIEW_ONLY';
-    });
     bind('schedule-timezone','change',()=>{
-      get('schedule-timezone-summary').textContent=zone.value+' · UI_PREVIEW_ONLY';
-    });
-    bind('schedule-timezone-done','click',()=>{
-      get('schedule-timezone-controls').hidden=true;
-      get('schedule-timezone-edit').setAttribute('aria-expanded','false');
-      get('schedule-timezone-edit').focus();
+      zone.title='IANA：'+zone.value+' · UI_PREVIEW_ONLY';
     });
     bind('schedule-manage-tasks','click',()=>setView('manager'));
     bind('schedule-manager-back','click',()=>setView('form'));
