@@ -16,7 +16,7 @@ for(const node of [cards,reader,catalogBack,list,detail,manager])node.replaceChi
 const seed={id:'preview-1',title:'每日整理（仅预览）',kind:'daily',
   target:'https://example.invalid/',paused:false};
 const ruleName=k=>({once:'执行一次',daily:'每天',weekly:'每周',interval:'按间隔'})[k]||k;
-export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFilter}){
+export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter}){
   const [showSearch,setShowSearch]=React.useState(false);
   const [catalogSearch,setCatalogSearch]=React.useState('');
   const [catalogSelected,setCatalogSelected]=React.useState('preview-task');
@@ -30,20 +30,38 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
   const [removeConfirm,setRemoveConfirm]=React.useState(false);
   const [rule,setRule]=React.useState('once');
   const [managerQuery,setManagerQuery]=React.useState('');
+  const [managerFilter,setManagerFilter]=React.useState('all');
+  const formBaseline=React.useRef('');
   const [feedback,setFeedback]=React.useState('');
   const selected=plans.find(p=>p.id===selectedId);
   const found=rows.filter(p=>!catalogSearch||
     [p.title,p.description].join(' ').toLocaleLowerCase().includes(catalogSearch.toLocaleLowerCase()));
+  const formSignature=()=>JSON.stringify([
+    ...['schedule-title','schedule-target','schedule-params','schedule-kind',
+      'schedule-timezone','schedule-once','schedule-clock','schedule-minutes'].map(id=>get(id).value),
+    ...[...get('schedule-weekdays-field').querySelectorAll('input')].map(input=>input.checked),
+    get('schedule-paused').checked
+  ]);
   const showForm=plan=>{
     setEditingId(plan?.id||'');setPending(null);setDirtyConfirm(false);
     get('schedule-title').value=plan?.title||'';
     get('schedule-target').value=plan?.target||'https://example.invalid/';
-    get('schedule-params').value='{}';
-    get('schedule-kind').value=plan?.kind||'once';setRule(plan?.kind||'once');setView('form');
+    get('schedule-params').value=plan?.paramsText||'{}';
+    get('schedule-timezone').value=plan?.timezone||'Asia/Tokyo';
+    get('schedule-timezone-summary').textContent=get('schedule-timezone').value+' · UI_PREVIEW_ONLY';
+    get('schedule-once').value=plan?.once||'';
+    get('schedule-clock').value=plan?.clock||'09:00';
+    get('schedule-minutes').value=String(plan?.minutes||60);
+    get('schedule-paused').checked=Boolean(plan?.paused);
+    for(const input of get('schedule-weekdays-field').querySelectorAll('input'))
+      input.checked=(plan?.weekdays||['1']).includes(input.value);
+    get('schedule-kind').value=plan?.kind||'once';
+    formBaseline.current=formSignature();
+    setRule(plan?.kind||'once');setView('form');
   };
   const back=()=>{
     if(view==='form'){
-      if(get('schedule-title').value.trim()){setDirtyConfirm(true);return;}
+      if(formSignature()!==formBaseline.current){setDirtyConfirm(true);return;}
       setView('list');setPending(null);return;
     }
     if(view!=='list'){setView('list');return;}
@@ -65,6 +83,7 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
       view==='detail'?'计划详情 · 预览':view==='manager'?'任务管理 · 预览':'定时计划';
     get('schedule-create').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
+    get('schedule-manager-back').hidden=view!=='manager';
     get('schedule-save-confirm').hidden=!pending;
     get('schedule-discard-confirm').hidden=!dirtyConfirm;
     get('schedule-list-summary').textContent=plans.length+' 个内存演示计划 · 未注册调度';
@@ -86,8 +105,14 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
     rule,feedback,found.length,importReview]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
-    zone.replaceChildren(new Option('Asia/Tokyo · UI_PREVIEW_ONLY','Asia/Tokyo'));
-    get('schedule-timezone-summary').textContent='Asia/Tokyo · UI_PREVIEW_ONLY';
+    if(zone.options.length<2)
+      zone.replaceChildren(...['Asia/Tokyo','Asia/Shanghai','Europe/London','UTC']
+        .map(value=>new Option(value+' · UI_PREVIEW_ONLY',value)));
+    get('schedule-timezone-summary').textContent=zone.value+' · UI_PREVIEW_ONLY';
+    const taskSelect=get('schedule-task-select');
+    if(taskSelect.options.length<2)
+      taskSelect.replaceChildren(new Option('示例任务 · UI_PREVIEW_ONLY','preview-task'),
+        new Option('已停用任务 · UI_PREVIEW_ONLY','preview-off'));
     const off=[];
     const bind=(id,event,fn)=>{
       const node=get(id);node.addEventListener(event,fn);
@@ -122,12 +147,36 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
     bind('schedule-discard-yes','click',()=>{setDirtyConfirm(false);setPending(null);setView('list');});
     bind('schedule-discard-no','click',()=>setDirtyConfirm(false));
     bind('schedule-kind','change',e=>setRule(e.currentTarget.value));
+    bind('schedule-timezone-edit','click',()=>{
+      const controls=get('schedule-timezone-controls');
+      controls.hidden=!controls.hidden;
+      get('schedule-timezone-edit').setAttribute('aria-expanded',String(!controls.hidden));
+      if(!controls.hidden)get('schedule-timezone-search').focus();
+    });
+    bind('schedule-timezone-search','input',e=>{
+      const query=e.currentTarget.value.trim().toLowerCase();
+      let matches=0;
+      for(const option of zone.options){
+        option.hidden=Boolean(query&&!option.value.toLowerCase().includes(query));
+        if(!option.hidden)matches++;
+      }
+      get('schedule-timezone-match').textContent=matches+' 个示例时区 · UI_PREVIEW_ONLY';
+    });
+    bind('schedule-timezone','change',()=>{
+      get('schedule-timezone-summary').textContent=zone.value+' · UI_PREVIEW_ONLY';
+    });
+    bind('schedule-timezone-done','click',()=>{
+      get('schedule-timezone-controls').hidden=true;
+      get('schedule-timezone-edit').setAttribute('aria-expanded','false');
+      get('schedule-timezone-edit').focus();
+    });
     bind('schedule-manage-tasks','click',()=>setView('manager'));
     bind('schedule-manager-back','click',()=>setView('form'));
     bind('schedule-manager-search','input',e=>setManagerQuery(e.currentTarget.value));
-    bind('schedule-manager-create','click',()=>onMode('list'));
-    bind('schedule-new-script','click',()=>onMode('list'));
-    bind('schedule-task-empty-create','click',()=>onMode('list'));
+    bind('schedule-manager-filter','change',e=>setManagerFilter(e.currentTarget.value));
+    bind('schedule-manager-create','click',onOpenDevelop);
+    bind('schedule-new-script','click',onOpenDevelop);
+    bind('schedule-task-empty-create','click',onOpenDevelop);
     bind('schedule-open-runner','click',()=>setFeedback('UI_PREVIEW_ONLY · 运行页需真实 Host'));
     bind('schedule-form','submit',e=>{
       e.preventDefault();
@@ -135,7 +184,25 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
       if(!title||!/^https?:\/\//.test(target)){
         setFeedback('预览表单：请输入名称与 HTTP(S) 目标网址');return;
       }
-      setPending({title,target,kind:get('schedule-kind').value});
+      const paramsText=get('schedule-params').value.trim()||'{}';
+      try{
+        const params=JSON.parse(paramsText);
+        if(!params||Array.isArray(params)||typeof params!=='object')throw Error('params');
+      }catch{setFeedback('预览表单：参数必须是合法 JSON 对象');return;}
+      const kind=get('schedule-kind').value;
+      const weekdays=[...get('schedule-weekdays-field').querySelectorAll('input:checked')]
+        .map(input=>input.value);
+      const minutes=Number(get('schedule-minutes').value);
+      if(kind==='weekly'&&!weekdays.length){
+        setFeedback('预览表单：每周至少选择一天');return;
+      }
+      if(kind==='interval'&&(!Number.isInteger(minutes)||minutes<1||minutes>10080)){
+        setFeedback('预览表单：间隔必须是 1–10080 分钟');return;
+      }
+      setPending({title,target,kind,paramsText,taskId:get('schedule-task-select').value,
+        timezone:get('schedule-timezone').value,
+        once:get('schedule-once').value,clock:get('schedule-clock').value,
+        weekdays,minutes,paused:get('schedule-paused').checked});
       setFeedback('UI_PREVIEW_ONLY · 待审阅，不会立即创建真实计划');
     });
     bind('schedule-confirm-no','click',()=>setPending(null));
@@ -143,12 +210,12 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
       if(!pending)return;
       const id=editingId||'preview-'+Date.now().toString(36);
       setPlans(all=>editingId?all.map(p=>p.id===id?{...p,...pending}:p):
-        [...all,{id,...pending,paused:false}]);
+        [...all,{id,...pending,paused:Boolean(pending.paused)}]);
       setSelectedId(id);setPending(null);setEditingId('');setView('list');
       setFeedback('UI_PREVIEW_ONLY · 内存列表更新，未保存或执行');
     });
     return ()=>off.forEach(fn=>fn());
-  },[onMode,onSearch,onFilter,selected,editingId,pending,view]);
+  },[onMode,onOpenDevelop,onSearch,onFilter,selected,editingId,pending,view]);
   return <>
     {createPortal(found.map(p=><button key={p.taskId} type="button"
       className="catalog-card" aria-pressed={p.taskId===catalogSelected}
@@ -168,7 +235,7 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
     </button>),list)}
     {createPortal(selected&&<div className="od-stack od-preview-card">
       <strong>{selected.title}</strong>
-      <p>{selected.target} · {ruleName(selected.kind)}</p>
+      <p>{selected.target} · {ruleName(selected.kind)} · {selected.timezone||'Asia/Tokyo'}</p>
       <p>UI_PREVIEW_ONLY · 未读取历史或授权</p>
       <div className="od-preview-actions">
         <button type="button" className="od-button od-button--secondary"
@@ -190,7 +257,9 @@ export function PreviewMyFlows({tab,mode,onMode,rows,search,onSearch,filter,onFi
     </div>,detail)}
     {createPortal(<div className="od-preview-card od-stack">
       <p>UI_PREVIEW_ONLY · 原 TaskWorkbench 才能真正管理启停、卸载与执行权限。</p>
-      {rows.filter(p=>!managerQuery||p.title.includes(managerQuery)).map(p=>
+      {rows.filter(p=>(!managerQuery||p.title.includes(managerQuery))&&
+        (managerFilter==='all'||(managerFilter==='enabled'&&p.enabled)||
+          (managerFilter==='disabled'&&!p.enabled))).map(p=>
         <p key={p.taskId}>{p.title} · {p.enabled?'启用':'已停用'} · 只读</p>)}
       <button type="button" className="od-button od-button--secondary"
         onClick={()=>setView('form')}>返回编辑</button>
