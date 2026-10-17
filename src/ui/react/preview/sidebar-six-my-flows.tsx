@@ -130,7 +130,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-open-catalog').setAttribute('aria-expanded',String(addOpen&&mode==='list'));
     get('task-add-status').textContent=addStatus;
     get('task-search-toggle').setAttribute('aria-expanded',String(showSearch));
-    get('local-discover-count').textContent='显示 '+rows.length+' 项 · UI_PREVIEW_ONLY';
+    get('local-discover-count').textContent='显示 '+rows.length+' 项 · 仅预览';
     for(const key of ['all','current','disabled'])
       get('local-filter-'+key).setAttribute('aria-pressed',String(filter===key));
     for(const [name,id] of [['list','schedule-list-view'],['detail','schedule-detail-view'],
@@ -165,9 +165,9 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-weekdays-field').hidden=rule!=='weekly';
     get('schedule-interval-field').hidden=rule!=='interval';
     get('schedule-next-time').textContent='仅预览执行规则，未计算真实调度时间';
-    get('task-catalog-count').textContent=found.length+' 个 · UI_PREVIEW_ONLY';
+    get('task-catalog-count').textContent=found.length+' 个 · 仅预览';
     get('task-catalog-status').textContent=importReview||
-      'UI_PREVIEW_ONLY · 仅展示正式目录 UI，安装须核对任务与授权';
+      '仅预览 · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
   },[tab,mode,rows.length,filter,showSearch,addOpen,addStatus,editingId,view,
     plans.length,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
@@ -187,8 +187,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     }
     const taskSelect=get('schedule-task-select');
     if(taskSelect.options.length<2)
-      taskSelect.replaceChildren(new Option('示例任务 · UI_PREVIEW_ONLY','preview-task'),
-        new Option('已停用任务 · UI_PREVIEW_ONLY','preview-off'));
+      taskSelect.replaceChildren(new Option('示例任务 · 仅预览','preview-task'),
+        new Option('已停用任务 · 仅预览','preview-off'));
     const off=[];
     const bind=(id,event,fn)=>{
       const node=get(id);node.addEventListener(event,fn);
@@ -208,20 +208,20 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       const input=e.currentTarget,file=input.files?.[0];
       if(!file)return;
       try{
-        if(file.size>1024*1024){setAddStatus('UI_PREVIEW_ONLY · 文件超过预览大小限制');return;}
+        if(file.size>1024*1024){setAddStatus('仅预览 · 文件超过预览大小限制');return;}
         if(/\.json$/i.test(file.name)){
           const value=JSON.parse(await file.text());
           if(/\.opendesk-tool\.json$/i.test(file.name)||/^opendesk\.sidebar-tool\./.test(value?.format||''))
-            setAddStatus('UI_PREVIEW_ONLY · 这是扩展工具包，请到「扩展」导入；未安装。');
+            setAddStatus('仅预览 · 这是扩展工具包，请到「扩展」导入；未安装。');
           else if(value?.format==='opendesk.task-package.v1')
-            setAddStatus('UI_PREVIEW_ONLY · 任务包已选择；须在正式目录核验固定源码及网站权限。');
+            setAddStatus('仅预览 · 任务包已选择；须在正式目录核验固定源码及网站权限。');
           else if(['opendesk.program-draft.v1','opendesk.program-draft.v2'].includes(value?.format))
-            setAddStatus('UI_PREVIEW_ONLY · 程序草稿已选择；正式导入后进入开发编辑器，不会运行。');
-          else setAddStatus('UI_PREVIEW_ONLY · 不是受支持的任务包或程序草稿 JSON；未导入。');
+            setAddStatus('仅预览 · 程序草稿已选择；正式导入后进入开发编辑器，不会运行。');
+          else setAddStatus('仅预览 · 不是受支持的任务包或程序草稿 JSON；未导入。');
         }else if(/\.js$/i.test(file.name))
-          setAddStatus('UI_PREVIEW_ONLY · JavaScript 草稿已选择；未运行');
-        else setAddStatus('UI_PREVIEW_ONLY · 仅支持 .json 或 .js；未导入。');
-      }catch{setAddStatus('UI_PREVIEW_ONLY · 文件解析失败，未导入');}
+          setAddStatus('仅预览 · JavaScript 草稿已选择；未运行');
+        else setAddStatus('仅预览 · 仅支持 .json 或 .js；未导入。');
+      }catch{setAddStatus('仅预览 · 文件解析失败，未导入');}
       finally{input.value='';}
     });
     bind('task-add-catalog','click',()=>{setAddOpen(false);onMode('catalog');});
@@ -230,17 +230,17 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('task-package-file','change',async e=>{
       const file=e.currentTarget.files?.[0];
       if(!file){setImportReview('');return;}
-      if(file.size>1024*1024){setImportReview('UI_PREVIEW_ONLY · 文件超过本预览 1 MiB 限制');return;}
+      if(file.size>1024*1024){setImportReview('仅预览 · 文件超过本预览 1 MiB 限制');return;}
       try{
         if(/\.json$/i.test(file.name)){
           const obj=JSON.parse(await file.text());
-          setImportReview('UI_PREVIEW_ONLY · '+file.name+
+          setImportReview('仅预览 · '+file.name+
             (obj?.format==='opendesk.task-package.v1'?' · 待验证任务包':
               ['opendesk.program-draft.v1','opendesk.program-draft.v2'].includes(obj?.format)?' · 程序草稿':
                 /^opendesk\.sidebar-tool\./.test(obj?.format||'')?' · 应由扩展中心导入':
                   ' · 格式不受支持')+'；没有 Host 安装。');
-        }else setImportReview('UI_PREVIEW_ONLY · 源码草稿已选择，未运行');
-      }catch{setImportReview('UI_PREVIEW_ONLY · JSON 无法解析；未安装');}
+        }else setImportReview('仅预览 · 源码草稿已选择，未运行');
+      }catch{setImportReview('仅预览 · JSON 无法解析；未安装');}
     });
     bind('schedule-open','click',()=>{setView('list');onMode('schedule');});
     bind('schedule-back','click',back);
@@ -251,7 +251,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-discard-no','click',()=>setDirtyConfirm(false));
     bind('schedule-kind','change',e=>setRule(e.currentTarget.value));
     bind('schedule-timezone','change',()=>{
-      zone.title='IANA：'+zone.value+' · UI_PREVIEW_ONLY';
+      zone.title='IANA：'+zone.value+' · 仅预览';
     });
     bind('schedule-manage-tasks','click',()=>setView('manager'));
     bind('schedule-manager-back','click',()=>setView('form'));
@@ -260,7 +260,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-manager-create','click',onOpenDevelop);
     bind('schedule-new-script','click',onOpenDevelop);
     bind('schedule-task-empty-create','click',onOpenDevelop);
-    bind('schedule-open-runner','click',()=>setFeedback('UI_PREVIEW_ONLY · 运行页需真实 Host'));
+    bind('schedule-open-runner','click',()=>setFeedback('仅预览 · 运行页需真实 Host'));
     bind('schedule-form','submit',e=>{
       e.preventDefault();
       const title=get('schedule-title').value.trim(),target=get('schedule-target').value.trim();
@@ -286,7 +286,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         timezone:get('schedule-timezone').value,
         once:get('schedule-once').value,clock:get('schedule-clock').value,
         weekdays,minutes,paused:get('schedule-paused').checked});
-      setFeedback('UI_PREVIEW_ONLY · 待审阅，不会立即创建真实计划');
+      setFeedback('仅预览 · 待审阅，不会立即创建真实计划');
     });
     bind('schedule-confirm-no','click',()=>setPending(null));
     bind('schedule-confirm-yes','click',()=>{
@@ -316,7 +316,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     </button>),cards)}
     {createPortal(<div className="od-stack">
       <strong>{rows.find(p=>p.taskId===catalogSelected)?.title||'选择候选'}</strong>
-      <p>UI_PREVIEW_ONLY · 当前没有真实已验证的固定任务；正式安装需核对来源、版本与权限。</p>
+      <p>仅预览 · 当前没有真实已验证的固定任务；正式安装需核对来源、版本与权限。</p>
     </div>,reader)}
     {createPortal(<button type="button" className="od-button od-button--secondary"
       onClick={()=>onMode('list')}>← 返回我的任务</button>,catalogBack)}
@@ -408,7 +408,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       </div>}
     </div>,detail)}
     {createPortal(<div className="od-preview-card od-stack">
-      <p>UI_PREVIEW_ONLY · 原 TaskWorkbench 才能真正管理启停、卸载与执行权限。</p>
+      <p>仅预览 · 原 TaskWorkbench 才能真正管理启停、卸载与执行权限。</p>
       {rows.filter(p=>(!managerQuery||p.title.includes(managerQuery))&&
         (managerFilter==='all'||(managerFilter==='enabled'&&p.enabled)||
           (managerFilter==='disabled'&&!p.enabled))).map(p=>
