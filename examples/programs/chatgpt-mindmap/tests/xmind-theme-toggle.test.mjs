@@ -6,6 +6,13 @@ import {createAnswerRegistry} from '../src/answer-registry.js';
 
 const KEY='opendesk.chatgpt-mindmap.viewer-theme.v1';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+// linkedom does not implement the browser-only :focus-visible pseudo-class.
+// Keep the production interaction unchanged, just model an unfocused opener.
+const withoutFocusVisible=button=>{
+  const matches=button.matches.bind(button);
+  button.matches=selector=>selector===':focus-visible'?false:matches(selector);
+  return button;
+};
 const owner={
   active:()=>true,
   on(target,type,handler){
@@ -62,7 +69,7 @@ test('default dark, explicit light persists across replies and is independent of
   }});
   registry.start();
   const buttons=[...document.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]')]
-    .map(host=>host.shadowRoot.querySelector('button'));
+    .map(host=>withoutFocusVisible(host.shadowRoot.querySelector('button')));
   assert.equal(buttons.length,2);
   buttons[0].dispatchEvent(new document.defaultView.Event('click'));
   buttons[1].dispatchEvent(new document.defaultView.Event('click'));await flush();
@@ -96,8 +103,8 @@ test('denied storage never prevents the user from switching themes',async()=>{
     views.push(view);return view;
   }});
   registry.start();
-  document.querySelector('[data-opendesk-chatgpt-mindmap="button"]').shadowRoot
-    .querySelector('button').dispatchEvent(new document.defaultView.Event('click'));
+  withoutFocusVisible(document.querySelector('[data-opendesk-chatgpt-mindmap="button"]').shadowRoot
+    .querySelector('button')).dispatchEvent(new document.defaultView.Event('click'));
   await flush();
   assert.equal(views[0].host.getAttribute('data-dark'),'true');
   await views[0].options.onToggleTheme();
