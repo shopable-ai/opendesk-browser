@@ -234,3 +234,31 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 **实际证据与限制**：GitHub Actions 六 Tab 工作流在 `cd41f7f` 对应 [Actions 39048163536](https://github.com/shopable-ai/opendesk-browser/actions/runs/39048163536) 查询时为 `queued`；没有本轮 Node/Build/Preview 生成、`--check`、截图、Chromium 点击、CI 全绿的完成回执。`prototypes/sidebar/react-preview/index.html` 不追踪在 `main`；若同源生成器在该 SHA 的 CI 成功，附件名为 `sidebar-six-react-preview`，在此之前不能提供“已生成”链接。Linux Chromium 本环境存在但没有可用完整仓库和依赖，**未在本轮运行项目测试**。Mac 已安装 Chrome/真实 Scheduler/Authority/RunHost 为 `NOT_TESTED`；测试失败或并行 Bookmark 来源门禁仍须按各 Owner 独立收敛。
 
 **验收准入**：五维（产品功能、UI/UX、React 架构、安全与权限、测试可靠性）**均未认证 ≥95**；待同一源码 SHA 的 Node、真实 Build、Chromium、CI 证据与 Mac Native 真实行为后逐项评分，不能以提交和静态断言替代。
+
+
+## R33.3.15-A · 2026-10-18 · GitHub 远端定向修复及证据分级
+
+### 本轮实际修改
+
+- **真实故障（已修复）**：正式 \`src/ui/react/tabs/workflow.tsx\` 的 \`WorkflowHistory\` 中，Codex「恢复历史」按钮在 \`model.busy=true\` 时仍保持可点击和可聚焦，而现有 \`WorkflowView.onResumeSessionClick\` 已拒绝 busy 恢复。先在 GitHub 原件上验证「React busy 禁用」检查 **FAIL**、Controller guard **PASS**，再为该按钮增加 \`disabled={Boolean(model.busy)}\`。不修改 Controller、Provider、授权、RunHost 或任务执行代码。
+- **测试保护**：\`tests/environment/workflow-ui-states.test.mjs\` 增加从正式 React 组件提取恢复按钮并验证禁用状态的断言，同时保留 Controller busy 拒绝校验。提交：[\`b9e3331\`](https://github.com/shopable-ai/opendesk-browser/commit/b9e333106764449581a476147a036e06faba9204)、[\`b94a510\`](https://github.com/shopable-ai/opendesk-browser/commit/b94a5109073d6f18e9f94035cd661d0d248d2242)、[\`6792f65\`](https://github.com/shopable-ai/opendesk-browser/commit/6792f6544b9934b3fa3ba9cb4bffe6df3674ba30)。最后一项是修复新增测试中的正则表达式转义，不是产品运行结果。
+- **修复后独立源码检查**：从 GitHub \`main\` 重读 React、Controller、测试文件，恢复按钮 \`disabled\` 匹配 **PASS**；测试表达式文本匹配 **PASS**；Controller \`busy\` 拒绝匹配 **PASS**。此级别仅为 **SOURCE_CONTRACT_PASS**，绝非 Node/Chromium/Native PASS。
+
+### 真实门禁、阻塞与限制
+
+- **Bookmark Trusted UI 来源 BLOCKED（并行 Owner）**：\`src/ui/react/main.tsx\` 第 16–17 行依然 \`from '../../../examples/sidebar-tools/bookmark-manager/…'\`，和 \`tests/environment/react-sidebar-r333.test.mjs\` 的受信任代码来源守卫冲突。绝不删除守卫、扩大 examples 信任范围或擅自修改并行 Bookmark 试点 Owner 源码。由该 Owner 将正式可信应用源码、导入路径、Bundle Provenance 与相关测试统一收敛。
+- **历史 CI，不能外推**：[\`39048163536\`](https://github.com/shopable-ai/opendesk-browser/actions/runs/39048163536) 的 \`six-tab-preview\` 已成功生成正式 DOM/CSS/React 同源 HTML；\`package-gates\` 中计划投影 3 项独立测试通过。但两个 Job 后来因 Runner shutdown/cancellation 未完成整体 Node、Build、Chromium、上传附件，均不是 PASS。该运行不对应本轮最后提交。
+- **本轮 GitHub 远端环境没有访问用户 Mac 工作区**，不能核对 \`git status\`、并行未提交 diff、\`npm run dev\` watcher、安装扩展路径或 Native/Host。当前独立 Linux 容器没有该完整仓库与 \`node_modules\`，不能运行用户列出的仓库 Node、Build、预览生成器或 Chromium 回归；均 **NOT_TESTED**。没有制造假的 HTML、截图或安装证据。
+- **同源 HTML**：权威生成器为 \`scripts/preview/build-sidebar-six-react-preview.mjs\`，预期本机产物路径 \`prototypes/sidebar/react-preview/index.html\` 是 Git 忽略的构建结果。当前提交未生成和验证同 SHA HTML/CI Artifact；不得链接不存在的产物。
+- **计划十状态、持久 Host 回读、暂停恢复、历史未知状态、工作流版本/sourceHash 恢复、停止/权限拒绝**：只读检查现有源码与测试，**还未取得当前 SHA 的端到端 Node/Installed Chrome/Native 证据**。
+- **安全约束**：仅对远端 \`main\` 执行 Contents API 的 blob-SHA 校验写入，未创建分支、Worktree、PR、未强推；不能由此推断 Mac 本地状态。正式 Owner 业务和特权框架未改。
+
+### 最终验收准入
+
+最新可读工作提交：\`6792f6544b9934b3fa3ba9cb4bffe6df3674ba30\`（本记录追加提交会形成更新的 HEAD，以最终仓库为准）。
+
+证据分级：\`SOURCE_CONTRACT_PASS\`（上述修复）｜\`NODE_PASS=NOT_TESTED\`｜\`BUILD_PASS=NOT_TESTED\`｜\`SOURCE_BOUND_PREVIEW_PASS=NOT_TESTED\`（当前 SHA）｜\`CHROMIUM_PASS=NOT_TESTED\`｜\`INSTALLED_CHROME_PASS=NOT_TESTED\`｜\`NATIVE_PASS=NOT_TESTED\`｜\`CI_PASS=NOT_TESTED\`（当前 SHA）。
+
+五维评分认证：产品功能 **不足证据**；UI/UX **不足证据**；React 架构 **来源门禁 BLOCKED**；安全与权限 **Native NOT_TESTED**；测试可靠性 **当前 CI NOT_TESTED**。**不认证任何一项 ≥95**。
+
+下一步：Bookmark/Trusted Owner 先修复来源违规，同时在真实 Mac 上以最新 \`main\` 执行本轮列出的定向 Node → 同源生成器/--check → isolated Build → Chromium 多宽度 → 同 SHA CI → 已安装 Chrome/Host；逐项记录日志、截图、SHA、安装来源及真实任务结果，再进行五维评分。
