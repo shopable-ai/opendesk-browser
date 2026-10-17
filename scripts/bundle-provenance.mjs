@@ -37,7 +37,7 @@ const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'f6789d278c59c8f4148ed0c0c4e55b29c68758d0',
   'examples/sidebar-tools/adblock/trusted/tool-host.js':'e967e44ec44e3d4085e517a6c11bd45e546df1b6',
-  'examples/sidebar-tools/adblock/trusted/host-controls.js':'3d64b388b90a5f6dbbde7b6e1a036d1545160506',
+  'examples/sidebar-tools/adblock/trusted/host-controls.js':'84c54339a5fe37f30ceaace9ed4ae29232873f33',
   'examples/sidebar-tools/adblock/rules/domains.js':'e78bbaea99f39b52cd3bc57d4379af68b166c2f9'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);
@@ -58,9 +58,9 @@ function reviewedCompiledAdblock(target,path,root){
 // independent tool package; only these three immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'dcc138aab6cb3a6d47325f259990c9ddcac0fb2a',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'1cf947812b5f946ab93496fe23dca6024d158c5e'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'24bebf36c112f0d37777c20599c18929504880b0'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){

@@ -150,12 +150,14 @@ export function createAdblockPermissionControls({
     global.textContent=!enabled?'工具已停用':!state?'状态未确认':
       state.restartRequired?'需重启 Chrome':on?'开启':'关闭';
     global.setAttribute('aria-checked',String(on));
-    global.disabled=!visible||!enabled||busy||!state||Boolean(state.restartRequired);
+    global.disabled=!visible||!enabled||busy||!state||
+      typeof state.permissions?.dnr!=='boolean'||Boolean(state.restartRequired);
     statusLine.className='adblock-native-status'+(on?'':!state?' is-unknown':' is-off');
     statusText.textContent=!enabled?'工具已停用，请在工具管理中启用':
       !state?'Chrome 状态未确认':
       state.restartRequired?(permission?'过滤尚未开启，请完整退出并重新打开 Chrome 后手动开启':
         '权限已撤销，请完整重启 Chrome'):
+      state.permissions?.dnr!==true&&state.permissions?.dnr!==false?'Chrome 权限状态未确认':
       !permission?'需要批准 Chrome 广告过滤权限':
       !state.rules?.verified?'Chrome 规则尚未通过读回验证':
       on?'已开启保护':'保护已关闭';
@@ -269,16 +271,21 @@ export function createAdblockPermissionControls({
     }
   }
   global.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||busy||!visible||!enabled||!state)return;
+    if(event?.isTrusted!==true||busy||!visible||!enabled||!state||
+      typeof state.permissions?.dnr!=='boolean')return;
     if(state.enabled){void operate('adblock.disable',{},event);return;}
-    // First-party synchronous permission request MUST precede any await.
     const focusAtDispatch=doc.activeElement===global?global:null;
+    // Reuse the verified grant; the worker rechecks permission before DNR writes.
+    if(state.permissions.dnr===true){
+      void operate('adblock.enable',{},event,focusAtDispatch);return;
+    }
+    // Request the first Chrome grant synchronously, within this trusted click.
     const captured=generation;busy=true;paint();let request;
     try{request=api.permissions.request({permissions:[ADBLOCK_PERMISSION]});}
     catch(e){report('Chrome 授权请求失败：'+String(e.message||e),true);finish();return;}
     void Promise.resolve(request).then(granted=>{
       if(captured!==generation)return;
-      if(!granted)throw Error('未批准 Chrome 广告过滤权限，不会开启过滤');
+      if(!granted)throw Error('未批准 Chrome 广告过滤权限，保护保持关闭');
       busy=false;return operate('adblock.enable',{},event,focusAtDispatch);
     }).catch(e=>{
       if(captured!==generation)return;
