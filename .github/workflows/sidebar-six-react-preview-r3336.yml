@@ -102,6 +102,15 @@ jobs:
               "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=tasks&mode=schedule&width=$width"
             test -s "artifacts/sidebar-six-react-preview/my-schedule-$width.png"
           done
+          for width in 320 360 420 520; do
+            window=$((width + 180))
+            "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --no-first-run --virtual-time-budget=4000 --window-size="$window",1050 \
+              --screenshot="$PWD/artifacts/sidebar-six-react-preview/workflow-$width.png" \
+              "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=workflow&width=$width"
+            test -s "artifacts/sidebar-six-react-preview/workflow-$width.png"
+          done
+          echo "SOURCE_BOUND_WORKFLOW_SCREENSHOTS=320,360,420,520"
           echo "SOURCE_BOUND_SCHEDULE_MULTI_STATE_SCREENSHOTS=320,360,420,520"
           echo "SOURCE_BOUND_UI_PREVIEW_CHROMIUM=6_TAB_SCREENSHOTS_ONLY"
           echo "INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED"
