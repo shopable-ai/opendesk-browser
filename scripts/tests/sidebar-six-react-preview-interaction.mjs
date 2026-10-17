@@ -243,7 +243,24 @@ try{
   await click('[data-workflow-example="check"]');
   await until('document.getElementById("workflow-ai-request").value.includes("检查当前网页")');
   assert.equal(await evaluate('window.__sidebarPreviewInfo.realHost'),false);
-  await screenshot('workflow-suggestions-full-width-420');
+  // Resize through the real preview select's change event, then read computed
+  // geometry from Chromium. No extra HTML page or fake workflow engine.
+  for(const targetWidth of [320,360,400,420,520]){
+    await evaluate('(()=>{const select=document.querySelector("[data-preview-width]");'+
+      'Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set.call(select,'+
+      JSON.stringify(String(targetWidth))+');'+
+      'select.dispatchEvent(new Event("change",{bubbles:true}));return select.value})()');
+    await until('Math.abs(document.getElementById("od-sidebar-preview-stage").getBoundingClientRect().width-'+targetWidth+')<1');
+    const layout=await evaluate('(()=>{const host=document.getElementById("workflow-intro-suggestions");'+
+      'const bounds=host.getBoundingClientRect();return {width:bounds.width,'+
+      'buttons:[...host.querySelectorAll("button:not([hidden])")].map(b=>({'+
+      'w:b.getBoundingClientRect().width,left:b.getBoundingClientRect().left,right:b.getBoundingClientRect().right}))}})()');
+    assert(layout.width>0&&layout.buttons.length===2,
+      targetWidth+'px: both workflow suggestions must be visible');
+    assert(layout.buttons.every(b=>Math.abs(b.w-layout.width)<2),
+      targetWidth+'px: suggestion must fill its parent '+JSON.stringify(layout));
+    await screenshot('workflow-suggestions-'+targetWidth);
+  }
   await click('#workflow-history-toggle');
   await until('!document.getElementById("workflow-history-panel").hidden');
   await click('#workflow-history-panel .workflow-history-row');
