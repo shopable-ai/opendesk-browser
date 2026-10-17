@@ -59,3 +59,9 @@
 - 唯一共享 React JSX 的 Cookie 工具栏将 `安全清理本站 Cookie` 垃圾桶按钮常显在导入↑、导出↓、新建＋后面，并以细分隔线区分破坏性操作。宿主 Header 的卸载垃圾桶不变。
 - 预览单击只打开带预期数量/范围的行内确认，取消不改数据；确认仅在内存中模拟 Store 0/非分区/Host-only 清理，父域、其他分区、其他 Store 和其他网站排除，且最多 50 条。真实功能仍由正式 2.0.23 `cookies.clearSite` / Host 的预检、用户确认及 Native 回读保证；不把它宣传成不受限的“删除所有 Cookie”。
 - 底部折叠仅保留低频变化观察，不再隐藏或重复展示清理入口。目标 Chromium 回归包括 320–520px 无溢出、可见清理入口、单击不删除、取消无副作用、明确确认后范围匹配。尚未晋升正式 SDK/安装包，不冒称 Mac Chrome 已验收。
+
+## R5.2 · 完整高级属性和 Session 日期编辑（React 预览）
+
+保留既有共享 React 19 JSX 与单一 Root；当前源码修复高级属性、安全校验、Unix 秒与本地 datetime-local 的双向转换，以及 Session 往返的 dirty 判定。Store ID、PartitionKey 与既有 Domain/Path/Host-only 只读；新建只支持当前 SDK 认可的精确主机范围。Cookie 空值与保留旧值区分；改名明确显示正式业务两步处理及未知结果风险。
+
+预览宿主 Header 只展示交互，绝不执行真实卸载、Chrome Cookie 或 SDK 调用；安全清理仍受 Store 0、Host-only、非分区与单次上限约束。导出格式与“包含值”同一行。只有本次构建后精确 HTML 的 Chromium 回归通过才能标记 PASS。
