@@ -133,6 +133,42 @@ try{
   await click('#schedule-confirm-yes');
   await until('document.getElementById("schedule-plan-list").textContent.includes("回归演示计划")');
   await screenshot('my-plan-confirmed-360');
+  // Real Chromium clicks against the same WorkflowHeader / History / SourceName
+  // portals as production. There is no Planner, revision storage or RunHost here.
+  await click('#tab-workflow');
+  await until('!document.getElementById("workbench-workflow").hidden');
+  await until('document.getElementById("workflow-source-name")?.textContent==="Codex"');
+  await click('#workflow-history-toggle');
+  await until('!document.getElementById("workflow-history-panel").hidden');
+  assert.equal(await evaluate('document.getElementById("workflow-history-toggle").getAttribute("aria-expanded")'),"true");
+  assert((await evaluate('document.getElementById("workflow-history-panel").textContent')).includes('演示工作流'),
+    'History must be the latest formal React portal, not the obsolete management view');
+  await screenshot('workflow-history-360');
+  await click('#workflow-history-toggle');
+  await until('document.getElementById("workflow-history-panel").hidden');
+  await click('#workflow-ai-request');
+  await cdp('Input.insertText',{text:'保留未发送草稿'});
+  await until('document.getElementById("workflow-ai-request").value.includes("保留未发送草稿")');
+  await click('#workflow-new');
+  await until('!document.getElementById("workflow-new-review").hidden');
+  await screenshot('workflow-unsaved-review-360');
+  await click('#workflow-new-cancel');
+  await until('document.getElementById("workflow-new-review").hidden');
+  assert((await evaluate('document.getElementById("workflow-ai-request").value')).includes('保留未发送草稿'),
+    'Cancel must preserve the unsaved composer draft');
+  await click('#workflow-new');
+  await until('!document.getElementById("workflow-new-review").hidden');
+  await click('#workflow-new-discard');
+  await until('document.getElementById("workflow-new-review").hidden');
+  assert.equal(await evaluate('document.getElementById("workflow-ai-request").value'),'');
+  await click('#workflow-history-toggle');
+  await until('!document.getElementById("workflow-history-panel").hidden');
+  await click('#workflow-history-panel .workflow-history-row');
+  await until('document.getElementById("workflow-status").textContent.includes("源码哈希")');
+  assert.equal(await evaluate('Boolean(window.__sidebarPreviewInfo?.realHost)'),false);
+  await click('#workflow-ai-plan');
+  await until('document.getElementById("workflow-status").textContent.includes("RunHost")');
+  await screenshot('workflow-preview-feedback-360');
   await click('#tab-develop');
   await until('!document.getElementById("workbench-develop").hidden');
   await click('#local-project-mode');
@@ -223,7 +259,8 @@ try{
   assert.deepEqual(exceptions,[],'Browser errors');
   console.log(JSON.stringify({kind:'SOURCE_BOUND_UI_PREVIEW_CHROMIUM',status:'PASS',
     checks:['real clicks: task collapse/reopen/switch','search','catalog','schedule form',
-      'schedule memory review','extension file choose','import review','in-memory install',
+      'schedule memory review','workflow history and unsaved draft',
+      'preview send/Host boundary','extension file choose','import review','in-memory install',
       'installed app usage, header and settings','same-ID update without duplicate',
       'uninstall review and available-list return',
       'UI_PREVIEW_ONLY maintained'],nativeChrome:'NOT_TESTED'}));
