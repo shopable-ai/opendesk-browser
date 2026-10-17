@@ -77,7 +77,6 @@ try{
    assert.equal(await page.locator('.list-toolbar').getByRole('button',{name:'安全清理本站 Cookie'}).count(),1);
  });
  await test('R5.2 advanced properties, Session toggle and timezone date validation',async()=>{
-  await page.locator('[data-testid="scenario"]').selectOption('ready');
   await page.locator('[data-row="b"]').click();
   await page.getByText('属性与高级设置').click();
   assert.equal(await page.getByLabel('Domain').inputValue(),'shop.example.com');
@@ -145,7 +144,6 @@ try{
   await page.getByRole('checkbox',{name:'Secure'}).check();
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText('已保存 Cookie').waitFor();
-  await page.locator('[data-testid="scenario"]').selectOption('ready');
  });
  await test('R5.2 full expanded form is responsive including zoom',async()=>{
   await page.locator('[data-row="h"]').click();
