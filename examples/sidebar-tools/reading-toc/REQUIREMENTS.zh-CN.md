@@ -1,0 +1,112 @@
+# 阅读目录 Reading TOC · 功能需求与验收规格（源码反向整理）
+
+> 状态：**现行能力反向规格 + 待实施的按钮文案变更**。整理日期：2026-10-18。
+>
+> 适用对象：OpenDesk Browser 官方 `reading-toc` 工具、网页内可信悬浮目录和 Side Panel 目录。
+>
+> 证据原则：本文件记录正式源码中实际存在的行为；“目标变更”未完成以前不得当成已交付。历史原型和 CI 记录不能替代当前安装包或用户 Mac Chrome 验收。
+
+## 1. 用户目标与范围
+
+在允许访问的 HTTP(S) 页面内提供轻量目录，识别真正的文章/回答章节，让读者快速概览、聚焦当前位置、展开全目录并准确跳转；同一工具还可在 Chrome Side Panel 中打开，不再安装第二个 Chrome 扩展。
+
+**当前四个图标模式**（`top / focus / full / ai`，顺序固定）：
+
+| 模式 | 现行显示/提示 | 主要行为 | 状态 |
+| --- | --- | --- | --- |
+| `top` | 章节概览；无障碍说明“章节概览（自动补充子章节）” | 优先展示顶层章节；在标题稀疏时自适应补充子章节，短目录直接完整展示 | 已实现；文案待改 |
+| `focus` | 当前章节 | 显示顶层结构和当前章节所属子树，随滚动高亮 | 已实现，默认 |
+| `full` | 完整目录 | 展开当前来源所有章节；ChatGPT 等多回答完整视图可跨回答显示并添加分隔 | 已实现 |
+| `ai` | AI 整理 | 展示未开放的会员功能/合作内容；不调用模型、不发起付费、不输出假目录 | 占位，未开放 |
+
+网页悬浮卡片保留四个图标、`CONTENTS` 标识、拖动手柄和章节项；**不新增网页刷新/归位/设置按钮，不恢复冗余“还有 N 个章节”按钮**。Side Panel 可独立有一个刷新按钮，不能被当作第五种目录模式。
+
+## 2. 第一按钮命名与 tooltip 变更（待实施）
+
+### 2.1 产品决策
+
+**统一名称：主要章节。** 不使用“主章节”作为最终文案，也不再用“智能概览”作为交互按钮名。
+
+原因：中文“主要章节”更自然，与“当前章节 / 完整目录”构成并列、可区分的三种视图；“主章节”容易被理解为只显示 H1，和现有自适应补充 H2–H4 的逻辑不符。内部 `top` 标识保持不变，避免修改持久化状态、协议和测试场景身份。
+
+| 文案用途 | 中文（目标） | 英文（目标） |
+| --- | --- | --- |
+| 短 tooltip（`title`） | 主要章节 | Main sections |
+| 无障碍名称（`aria-label`） | 主要章节（内容较少时自动补充子章节） | Main sections (automatically includes subsections when needed) |
+
+同一文案在**网页悬浮目录与 Side Panel** 保持一致。短 `title` 不堆叠算法说明，`aria-label` 精确反映可能显示子标题。英文必须通过现有 `locales.json` 双语校验，不在可信网页脚本另写一套硬编码文案。
+
+### 2.2 不得改变的交互
+
+- 只改名/tooltip，不把 `top` 改成“仅 H1”；标题从 H2 开始时仍正常构建顶层。
+- 主要章节模式不应自动滚动正文；点击真实章节项才调用定位能力。
+- 默认仍为“当前章节”（`focus`）；已实现的短目录自动概览规则不因改名变化。
+- 已选择模式、正在跟随的回答、拖动位置、网站启停及用户语言，不因切换模式或切换语言丢失。
+
+### 2.3 源码绑定
+
+- 唯一双语文案：`examples/sidebar-tools/reading-toc/locales.json` 中 `topTitle`（短 tooltip）、`topLabel`（无障碍名称）以及英文 `source/text`。
+- Side Panel 初始静态按钮：`examples/sidebar-tools/reading-toc/src/index.html`；运行时由 `src/main.js` 的 `paintLanguage()` 覆盖。
+- 网页可信浮层：`src/reading-toc/view.js`，`createReadingTocView()` 初始化和 `updateLanguage()` 均应使用 `topTitle` 设置 `title`、`topLabel` 设置 `aria-label`。其它模式保持现有 `*Label`。
+- 可信受审阅副本：**只能**由 `node scripts/generate-reading-toc-locales.mjs --write` 从 `locales.json` 生成 `src/reading-toc/locales.generated.js`，禁止手动更改校验 SHA。
+- 唯一正式可安装包由现有工具包生成器产生，经测试与 `--promote-from` 审核晋升，不手改分发 JSON 或跳过安装升级验证。
+- 离线主 HTML 必须由 `scripts/preview/build-preview.mjs` 根据现行正式源码重建，历史快照不可作为新设计依据。
+
+## 3. 目录功能现状需求（从已实现代码反推）
+
+**F-01 标题索引与来源身份。** 支持单篇文章、H2 起始页面、多 H1、重复标题以及多段 AI 回答；不同回答有独立标题层级和导航身份。不能以 DOM 全局 ID、标题文本或“每页只有一个 H1”冒充稳定身份。普通文章、ChatGPT 与知乎等页面适配以实际匹配结果为准。
+
+**F-02 自适应主要章节。** `src/reading-toc/overview.js` 用逻辑 `depth===0` 表示各来源的顶层（并不等于 HTML H1）。顶层不足 5 条时尝试逐层展开，目标至少 5 条，最多到逻辑深度 3；抽样时最多保留 12 条，优先保留当前阅读分支及相邻章节并均衡分配。当前来源的所有标题不超过 12 条时，UI 直接展示完整列表。多层隐藏时高亮最近可见父级。
+
+**F-03 当前章节。** 默认聚焦所属子树并保留同一来源的顶层结构；正文滚动触发高亮，不能因此强制滚动页面。短目录可自动概览，用户显式选定的模式优先。
+
+**F-04 完整目录。** 可切到全目录且无需额外“查看完整目录”按钮；多回答来源完整模式保留回答分隔，不串源。点击章节时以源 ID + 章节 ID 定位；失效时显示错误，不假报跳转成功。
+
+**F-05 内容动态更新。** 通过可信内容脚本监听网页 DOM/SPA 变化，受限范围内刷新索引；网页浮层没有手动刷新按钮，Side Panel 的刷新独立触发新扫描且不重载网页。读取失败有明确状态与恢复途径。
+
+**F-06 网页位置与可访问性。** 悬浮目录可拖动、按 Origin 记忆位置，双击手柄或 Home 归位；键盘方向键可移动。四个模式按钮应可聚焦，选中项用 `aria-pressed` 标记，目录项提供真实文本与当前高亮。避免遮挡聊天输入框、离屏或无限撑高。
+
+**F-07 授权与生命周期。** 官方工具 ID 是 `reading-toc`，工具包能力仅 `page.toc`；安装和停用由可信宿主管理。单页排除、整站停用与仅隐藏网页悬浮卡片是三种不同状态；Side Panel 与网页悬浮卡片复用索引，网页内容不交给任意工具脚本。
+
+**F-08 本地化。** 界面文案来自 `locales.json` 的 `zh-CN` / `en`；实际网页标题始终展示原文。切换语言不重置当前模式、来源或位置。任何源文案改动都须同步更新英文 `source` 字段并重新生成可信副本。
+
+**F-09 AI 未开放边界。** AI 模式只展示审核过的会员权益与合作信息；模型调用、真实会员权益、支付及 AI 章节生成均未接入，禁止冒充完成。
+
+## 4. 本次需求的验收用例
+
+| 场景 | 通过条件 |
+| --- | --- |
+| 网页中文悬浮目录 | 第一个图标 hover 为“主要章节”，AX 名称包含自适应说明；第二至第四按钮原样 |
+| Side Panel 中文工具 | 第一个图标 `title`/无障碍名称一致；刷新独立存在 |
+| 中英文切换 | tooltip 切为 `Main sections`，AX 为英文解释，模式和当前位置不丢失 |
+| 单 H1 + 20 H2 | “主要章节”仍补充 H2，不能退化为孤单 H1 |
+| 5 个顶层标题及子标题 | 概览以顶层为主，完整目录可看到所有子标题 |
+| 12 条以内短目录 | 概览不隐藏真实章节，不出现冗余“还有 N 个” |
+| H2/H3 起始、重复标题 | 顶层正确、同名章节独立定位 |
+| ChatGPT 多回答 | 当前来源跟随、完整视图回答分隔、切换模式不自动滚动正文 |
+| AI 占位、网站停用 | 不新增模型或授权调用；停用/隐藏/撤权仍按原合同工作 |
+| 安装包与生成 HTML | 重新生成镜像、候选包及三份同源预览，产物逐字节匹配正式源码 |
+
+## 5. 证据、测试和交付门槛
+
+定向 Node：
+`tests/environment/reading-toc-overview-r43.test.mjs`、
+`tests/environment/reading-toc-ai-r18.test.mjs`、
+`tests/environment/reading-toc-localization-preview-r12.test.mjs`、
+`tests/environment/reading-toc-r41.test.mjs`。
+
+真实 Chromium 预览：
+`tests/framework/reading-toc-preview-r14-native.test.mjs`；需更新英文无障碍名称断言。
+
+真实扩展及用户 Mac：
+`tests/framework/reading-toc-native-r41.test.mjs` 和现有安装/更新流程；必须在通过来源/包摘要和 production 门禁的同候选构建中运行。过去的预览/CI PASS 不等于本次产物已通过。
+
+**交付状态约束：** 文档创建不等于 tooltip 已上线；代码/译文/受信副本、正式包、同源 HTML、Node、Chromium、Mac Chrome、原位升级须分别给出 `PASS / FAIL / NOT_TESTED` 证据，不得把旧提交结果复制到新提交。
+
+## 6. 关联文档
+
+- [工具 README](README.md)：使用方式、迭代记录、构建与预览入口。
+- [历史 R3 标题结构设计](../../../docs/product/reading-toc-structure-r3.zh-CN.md)：主要解释 H1 与回答边界；其三按钮原型已被四模式正式实现取代。
+- [网站/页面设置 R4.8](../../../docs/product/reading-toc-settings-r48.zh-CN.md)：三种设置状态。
+- [R1.8 正式源码与验收](../../../docs/framework/workstreams/reading-toc-r18-source-migration-20261017.md)：四按钮迁移背景和发行门槛。
+- [R1.8.6 Mac 验收阻塞](../../../docs/framework/workstreams/reading-toc-r186-mac-20261018.md)：此前 production 构建与真实安装测试的失败/未测边界。

@@ -1,5 +1,7 @@
 # 官方阅读目录 R4.1（悬浮交互 R4.2 / 智能概览 R4.3）
 
+> [阅读目录现行功能需求与验收规格（源码反向整理）](REQUIREMENTS.zh-CN.md)：按实际代码区分已实现行为与待实施的第一按钮文案变更。
+
 「阅读目录」是 OpenDesk Browser 内**可安装的 Side Panel 工具**，不是第二个 Chrome 扩展。UI 包继续使用 `opendesk.sidebar-tool.v1`；导入的经典 JS 只在 opaque sandbox 中运行，网页内容索引/滚动/浮动 TOC 则由扩展内置可信 Content Script 执行。
 
 ## 最快使用
