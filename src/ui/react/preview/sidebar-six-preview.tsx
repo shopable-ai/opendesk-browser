@@ -340,6 +340,7 @@ function Preview(){
   },[]);
   return <>
     <PreviewMyFlows tab={tab} mode={taskMode} onMode={setTaskMode}
+      onOpenDevelop={()=>{setTab('develop');setTaskMode('list');}}
       rows={allTaskRows} search={taskSearch} onSearch={setTaskSearch}
       filter={taskFilter} onFilter={setTaskFilter}/>
     {createPortal(<div className="od-sidebar-preview-toolbar">
