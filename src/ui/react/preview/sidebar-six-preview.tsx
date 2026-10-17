@@ -64,7 +64,8 @@ const messages={
 function Preview(){
   const initial=new URLSearchParams(window.location.search).get('tab');
   const [tab,setTab]=React.useState(names.includes(initial)?initial:'tasks');
-  const [width,setWidth]=React.useState(360);
+  const initialWidth=Number(new URLSearchParams(window.location.search).get('width'));
+  const [width,setWidth]=React.useState([360,420,520].includes(initialWidth)?initialWidth:360);
   const [scene,setScene]=React.useState('normal');
   const [search,setSearch]=React.useState('');
   const [kind,setKind]=React.useState('all');
