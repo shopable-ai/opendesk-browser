@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet,WorkflowResultText} from '../tabs/workflow.tsx';
+import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowTranscript,WorkflowSettingsSheet,WorkflowResultText} from '../tabs/workflow.tsx';
 
 // PREVIEW_ADAPTER_NOT_NATIVE: official JSX/DOM, display-only scenarios.
 // Never import WorkflowView, chrome.*, Browser SDK, RunHost or a Provider.
@@ -16,6 +16,8 @@ if(!header)throw Error('E_WORKFLOW_PREVIEW_HEADER');
 const transcript=get('workflow-ai-transcript');
 const settings=get('workflow-provider-settings');
 const sheetHost=get('workflow-settings-react-host');
+const historyHost=get('workflow-history-react-host');
+const sourceHost=get('workflow-source-react-host');
 header.replaceChildren();transcript.replaceChildren();
 get('workflow-output').replaceChildren();
 const samples=Object.freeze({
@@ -35,6 +37,7 @@ function Preview(){
   const [width,setWidth]=React.useState(360);
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
+  const [sourceName,setSourceName]=React.useState('Codex');
   const [review,setReview]=React.useState(false);
   const close=React.useCallback(()=>{
     settings.open=false;
@@ -64,7 +67,8 @@ function Preview(){
     get('workflow-ai-approval-scope').textContent=scene==='approval'
       ?'本轮最多 24 项语义节点，仅发送给所选模型（离线示例；实际未发送）':'';
     get('workflow-new-review').hidden=!review;
-    get('workflow-manage-panel').hidden=!history;
+    get('workflow-editor').dataset.historyOpen=String(history);
+    get('workflow-manage-panel').hidden=true;
     get('workflow-result-panel').hidden=scene!=='unknown';
     if(scene==='unknown'){
       get('workflow-technical').textContent='无真实 RunId、ResultId 或 sourceHash。';
@@ -80,10 +84,12 @@ function Preview(){
       get('workflow-local-settings').hidden=!local;
       get('workflow-custom-settings').hidden=local;
       get('workflow-local-status').textContent='尚未连接 OpenDesk（离线预览，不探测）';
+      setSourceName(local?'Codex':get('workflow-ai-model').value.trim());
       get('workflow-observation-scope').textContent=
         '仅演示页面结构；网页摘要授权不持久化、不自动批准。';
     };
-    provider.addEventListener('change',sync);sync();
+    provider.addEventListener('change',sync);
+    get('workflow-ai-model').addEventListener('input',sync);sync();
     get('workflow-local-connect').disabled=true;
     get('workflow-observation-revoke').disabled=true;
     const unsub=[];
@@ -123,13 +129,19 @@ function Preview(){
       setReview(false);setHistory(false);setScene('empty');setRows([]);
       get('workflow-ai-request').value='';
     });
-    on('workflow-manage-close','click',()=>setHistory(false));
+    on('workflow-edit-details','click',event=>{
+      if(!event.isTrusted)return;
+      setHistory(false);
+      get('workflow-manage-panel').hidden=false;
+    });
+    on('workflow-manage-close','click',()=>{get('workflow-manage-panel').hidden=true;});
     doc.documentElement.dataset.workflowPreviewReady='true';
     Object.defineProperty(window,'__workflowPreviewInfo',{configurable:true,
       value:Object.freeze({sourceBound:true,native:false,provider:false,
         runHost:false,permission:false,realResult:false})});
     return ()=>{
       provider.removeEventListener('change',sync);
+      get('workflow-ai-model').removeEventListener('input',sync);
       for(const fn of unsub)fn();
       delete doc.documentElement.dataset.workflowPreviewReady;
       delete window.__workflowPreviewInfo;
@@ -166,7 +178,13 @@ function Preview(){
         planning:scene==='planning',historyExpanded:history,sessionHint:'保留当前工作流'}}
       actions={{onHistory:()=>setHistory(value=>!value),
         onNewSession:()=>{setRows([]);setScene('empty');setHistory(false);},
-        onNewWorkflow:()=>setReview(true)}}/>,header)}
+        onNewWorkflow:()=>{
+          if(rows.length||get('workflow-ai-request').value.trim())setReview(true);
+          else {setRows([]);setScene('empty');setHistory(false);}
+        }}}/>,header)}
+    {createPortal(<WorkflowHistory model={{open:history,rows:[],canResume:false,busy:scene==='planning'}}
+      actions={{}}/>,historyHost)}
+    {createPortal(<WorkflowSourceName value={sourceName}/>,sourceHost)}
     {createPortal(<WorkflowTranscript rows={rows}/>,transcript)}
     {createPortal(<WorkflowResultText value={scene==='unknown'
       ?'UNKNOWN（模拟 UI 状态）— 未获得持久结果，不能重放。':'尚未运行'}/>,get('workflow-output'))}
