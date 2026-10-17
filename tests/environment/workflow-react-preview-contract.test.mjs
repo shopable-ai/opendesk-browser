@@ -11,13 +11,14 @@ test('R33.3.6 source-bound preview only reuses real Workflow JSX and installed s
     read('src/ui/react/tabs/workflow.tsx')
   ]);
   assert.match(entry,/from '\.\.\/tabs\/workflow\.tsx'/);
-  for(const name of ['WorkflowHeader','WorkflowTranscript','WorkflowSettingsSheet'])
+  for(const name of ['WorkflowHeader','WorkflowTranscript','WorkflowSettingsSheet','WorkflowResultText'])
     assert.match(entry,new RegExp('createPortal\\(<'+name));
   for(const path of ['src/ui/tool.html','src/ui/design-tokens.css',
     'src/ui/design-system.css','src/ui/tool-shell.css','src/ui/react/tabs/workflow.tsx'])
     assert.ok(builder.includes(path),'canonical input missing '+path);
   assert.match(builder,/--check/);
   assert.match(component,/export function WorkflowSettingsSheet/);
+  assert.match(component,/export function WorkflowResultText/);
   // Comments may describe forbidden APIs; guard the executable code, not prose.
   const executable=entry.replace(/^\s*\/\/[^\n]*$/gm,'');
   assert.doesNotMatch(executable,/chrome\.|(?:^|\W)fetch\(|localStorage|sessionStorage|createWorkflowProviderFacade/);

@@ -4,7 +4,7 @@ import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
 import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
-import {WorkflowHeader,WorkflowSettingsSheet,WorkflowTranscript} from './tabs/workflow.tsx';
+import {WorkflowHeader,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -30,10 +30,15 @@ export function mountExtensionList(doc){
   const workflowSettings=doc.getElementById('workflow-provider-settings');
   const workflowSheetHost=doc.getElementById('workflow-settings-react-host');
   const workflowTranscript=doc.getElementById('workflow-ai-transcript');
+  const workflowResultOutput=doc.getElementById('workflow-output');
+  const workflowResultInitialText=workflowResultOutput?.textContent||'';
   const workflowMounted=Boolean(workflowHeader&&workflowSettings&&workflowSheetHost&&workflowTranscript);
   if(workflowMounted&&[workflowHeader,workflowSettings,workflowSheetHost,workflowTranscript]
     .some(node=>node.dataset.opendeskReactOwner))
     throw new Error('E_REACT_WORKFLOW_ALREADY_OWNED');
+  const workflowResultMounted=Boolean(workflowMounted&&workflowResultOutput);
+  if(workflowResultMounted&&workflowResultOutput.dataset.opendeskReactOwner)
+    throw new Error('E_REACT_WORKFLOW_RESULT_ALREADY_OWNED');
   const developerResultOutput=doc.getElementById('script-result');
   const developerResultKind=doc.getElementById('script-result-kind');
   const developerResultMounted=Boolean(developerResultOutput&&developerResultKind);
@@ -97,6 +102,10 @@ export function mountExtensionList(doc){
     workflowTranscript.dataset.opendeskReactOwner='workflow-transcript';
     workflowHeader.dataset.opendeskReactOwner='workflow-header';
     workflowSheetHost.dataset.opendeskReactOwner='workflow-sheet';
+    if(workflowResultMounted){
+      workflowResultOutput.replaceChildren();
+      workflowResultOutput.dataset.opendeskReactOwner='workflow-result';
+    }
   }
   if(developerStatusMounted){
     // React portals do not automatically clear pre-existing static text.
@@ -120,6 +129,7 @@ export function mountExtensionList(doc){
   let developerRunStatusModel={state:developerRunStatus?.dataset.state||'loading',
     text:developerRunStatusInitialText};
   let workflowMessages=[];
+  let workflowResultText=workflowResultInitialText;
   let workflowActions=null;
   let workflowHeaderModel={saved:false,savedText:'',savedTitle:'',historyExpanded:false,
     busy:false,planning:false,sessionHint:'保留当前工作流'};
@@ -148,6 +158,8 @@ export function mountExtensionList(doc){
         <WorkflowHeader model={workflowHeaderModel} actions={workflowActions}/>,workflowHeader)}
       {workflowMounted&&createPortal(
         <WorkflowTranscript rows={workflowMessages}/>,workflowTranscript)}
+      {workflowResultMounted&&createPortal(
+        <WorkflowResultText value={workflowResultText}/>,workflowResultOutput)}
       {workflowMounted&&createPortal(
         <WorkflowSettingsSheet open={workflowSettingsModel.open}
           onClose={workflowSettingsModel.onClose} settings={workflowSettings} doc={doc}/>,
@@ -183,6 +195,11 @@ export function mountExtensionList(doc){
     owner:'extension-list',
     developerTargetMounted,
     workflowMounted,
+    workflowResultMounted,
+    renderWorkflowResult(value){
+      if(disposed||!workflowResultMounted)throw new Error('E_REACT_WORKFLOW_RESULT_OWNER');
+      workflowResultText=String(value);paint();
+    },
     renderWorkflowMessages(rows){
       if(disposed||!workflowMounted)throw new Error('E_REACT_WORKFLOW_MESSAGES_OWNER');
       workflowMessages=rows;paint();
@@ -271,6 +288,7 @@ export function mountExtensionList(doc){
         delete workflowHeader.dataset.opendeskReactOwner;
         delete workflowTranscript.dataset.opendeskReactOwner;
         delete workflowSheetHost.dataset.opendeskReactOwner;
+        if(workflowResultMounted)delete workflowResultOutput.dataset.opendeskReactOwner;
       }
       if(developerResultActive){
         delete developerResultOutput.dataset.opendeskReactOwner;
