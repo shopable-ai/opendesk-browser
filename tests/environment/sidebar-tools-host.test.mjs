@@ -135,7 +135,9 @@ test('built-in host reads default sites and blocks stopped sites before sending 
     return {ok:true,data:{items:[],sources:[],activeId:''}};
   }};
   f.ask('toc.snapshot');await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'));
-  assert.equal(f.frame.contentWindow.sent.at(-1).ok,true);assert.equal(reads,1);
+  const firstReply=f.frame.contentWindow.sent.at(-1);
+  assert.equal(firstReply.ok,true,JSON.stringify(firstReply.error||firstReply));
+  assert.equal(reads,1);
   f.store.set(READING_TOC_SITE_STORE,changeTocSiteAllowed({},toc.id,url,false));
   f.ask('toc.navigate',{id:'h-1',sourceId:'s-1'},'2');await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='2'));
   assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);assert.equal(reads,1);

@@ -1,6 +1,6 @@
 # 官方阅读目录 R4.1（悬浮交互 R4.2 / 智能概览 R4.3）
 
-> [阅读目录现行功能需求与验收规格（源码反向整理）](REQUIREMENTS.zh-CN.md)：按实际代码区分已实现行为与待实施的第一按钮文案变更。
+> [阅读目录现行功能需求与验收规格（源码反向整理）](REQUIREMENTS.zh-CN.md)：按实际代码区分已完成的「主要章节」文案修改与仍待真实浏览器验收的功能。
 
 「阅读目录」是 OpenDesk Browser 内**可安装的 Side Panel 工具**，不是第二个 Chrome 扩展。UI 包继续使用 `opendesk.sidebar-tool.v1`；导入的经典 JS 只在 opaque sandbox 中运行，网页内容索引/滚动/浮动 TOC 则由扩展内置可信 Content Script 执行。
 
@@ -147,3 +147,9 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 - 四种视图保持原顺序；第一个模式在网页悬浮目录与 Side Panel 显示“主要章节”/“Main sections”，无障碍名称保留按需要补充子章节的说明。
 - 正式工具包版本 1.0.9；默认当前章节、章节识别、跳转、授权和 AI 未开放状态保持不变。源码、包和离线 HTML 需同候选重新测试；没有真实 Mac Chrome 证据时不得称验收通过。
+
+## R1.9.1 · 1.0.9 市场修订与验收状态
+
+- 当前正式 `reading-toc` 包与受信身份为 **1.0.9**；上述“R1.8.6 发行版本 1.0.8”记录是历史基线，不代表现行版本。
+- 原最新阅读组合 revision 7 仍固定 1.0.8，现追加不可变 revision 8 固定 1.0.9，保留历史版本及每个成员身份；源码提交见 [`c0060a0`](https://github.com/shopable-ai/opendesk-browser/commit/c0060a080754a5f5a33b72b605e218ad7ec1ccf0)。
+- CI 中的通用安装器测试不再借用官方保留 `reading-toc` ID；伪造官方 ID 仍须失败。真实网页目录、Site Panel、扩展安装升级和 Mac Chrome 未经同候选验证前不可标记 PASS，详细失败与状态见 [唯一需求规格](REQUIREMENTS.zh-CN.md#7-r191-版本一致性修复与真实验收边界2026-10-18)。

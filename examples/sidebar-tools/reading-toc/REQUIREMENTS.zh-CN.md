@@ -110,3 +110,11 @@
 - [网站/页面设置 R4.8](../../../docs/product/reading-toc-settings-r48.zh-CN.md)：三种设置状态。
 - [R1.8 正式源码与验收](../../../docs/framework/workstreams/reading-toc-r18-source-migration-20261017.md)：四按钮迁移背景和发行门槛。
 - [R1.8.6 Mac 验收阻塞](../../../docs/framework/workstreams/reading-toc-r186-mac-20261018.md)：此前 production 构建与真实安装测试的失败/未测边界。
+
+## 7. R1.9.1 版本一致性修复与真实验收边界（2026-10-18）
+
+- **正式包身份（已在源码核对，未以本机 Chrome 安装验证）：** `reading-toc` 1.0.9、`page.toc`，固定 SHA-256 `56890b9feeb6908c5967eb16aed19a1e811f8d376dd270c01e78c0c93b052071`；该值属于现行正式包，不由离线预览生成。
+- **市场修订（已提交，待同候选 CI）：** 先前最新 `reading-kit` revision 7 仍固定目录 1.0.8，与 1.0.9 正式发行包不一致。提交 [`c0060a0`](https://github.com/shopable-ai/opendesk-browser/commit/c0060a080754a5f5a33b72b605e218ad7ec1ccf0) 追加 revision 8（目录 1.0.9），原 revision 1–7 不得修改。既有通用安装器用例改为非保留 ID，额外验证伪造 `reading-toc` 在任何存储操作前被 `E_OFFICIAL_ID_RESERVED` 拒绝；安全门禁不放宽。
+- **历史 CI 证据（不能当作本次 PASS）：** [TOC 39056332684](https://github.com/shopable-ai/opendesk-browser/actions/runs/39056332684) 的离线 Chromium 预览测试通过，但本地化旧版本断言、Side Panel 默认访问用例失败；正式打包另受 AdBlock 可信源码审核门禁阻塞。[Market 39056332713](https://github.com/shopable-ai/opendesk-browser/actions/runs/39056332713) 含旧版 revision 7、通用安装测试误用保留 ID 等失败，另有独立开发服务失败。
+- **待验证：** 提交后的 Node、最新 CI、真实 Chrome 目录/跳转、Chrome 扩展原位升级、设置持久化、权限撤销/恢复和用户 Mac Chrome 均须给出同候选日志或截图；没有独立证据统一标记 `NOT_TESTED`。不要把历史预览通过等同正式安装通过。
+- **下一故障定位：** `tests/environment/sidebar-tools-host.test.mjs` 的默认访问用例增加实际错误回执断言信息；必须根据新 CI 输出确定原因再修业务或 Fixture，不能通过跳过验证、注入假身份或放宽 `page.toc` 权限解决。
