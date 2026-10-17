@@ -8,7 +8,7 @@ import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUI
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
-import {BROWSER_EDITION_RECORD,DEVELOPER_BROWSER_NAME,compilerResourcesForEdition,readEditionRecord} from './browser-editions-r245.mjs';
+import {BROWSER_EDITION_RECORD,STANDARD_BROWSER_NAME,DEVELOPER_BROWSER_NAME,BROWSER_MENU_SHORT_NAME,compilerResourcesForEdition,readEditionRecord} from './browser-editions-r245.mjs';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
@@ -181,9 +181,13 @@ export async function verifyBuiltinResourceManifest(directory) {
   return generated;
 }
 export function verifyManifest(manifest,{mode='production',source=false,edition='standard',channel=resolveMarketChannel({mode})}={}) {
-  if(manifest.name!==(edition==='developer'?DEVELOPER_BROWSER_NAME:'OpenDesk Browser'))
-    throw Error('Extension manifest name differs from reviewed browser edition');
-  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
+  if(manifest.name!==(edition==='developer'?DEVELOPER_BROWSER_NAME:STANDARD_BROWSER_NAME))
+    throw Error('Extension manifest name differs from root manifest.json branding');
+  if(manifest.short_name!==BROWSER_MENU_SHORT_NAME)
+    throw Error('Extension short_name differs from root manifest.json branding');
+  if(manifest.action?.default_title!==(source?'打开侧边栏':'打开 '+manifest.name))
+    throw Error('Extension toolbar label must follow emitted manifest brand');
+  const fields = ['manifest_version', 'name', 'short_name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');

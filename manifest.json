@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenDesk Browser",
+  "short_name": "OD",
   "version": "0.1.0",
   "description": "OpenDesk Browser 浏览器自动化框架。",
   "minimum_chrome_version": "138",
@@ -38,7 +39,7 @@
     "service_worker": "sw.js"
   },
   "action": {
-    "default_title": "打开 OpenDesk Browser"
+    "default_title": "打开侧边栏"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'",
