@@ -18,6 +18,24 @@ test('outline stays within its reply and preserves headings and notes',()=>{
   assert.ok(!md.includes('其他回复'));
 });
 
+test('Markdown outline promotes the same sole heading as XMind without duplicating its root',()=>{
+  const tree={title:'功能实施计划',children:[
+    {title:'开头说明',kind:'paragraph',children:[]},
+    {title:'功能实施计划',kind:'heading',content:'根标题备注',children:[
+      {title:'核心体验',children:[{title:'一键展开',children:[]}]},
+      {title:'安全与稳定性',children:[]}
+    ]}
+  ]};
+  const md=buildOutlineMarkdown(tree);
+  assert.equal((md.match(/功能实施计划/g)||[]).length,1,
+    'Promoted root must appear once, not as a duplicate first branch');
+  assert.match(md,/^# 功能实施计划$/m);
+  assert.match(md,/^> 根标题备注$/m);
+  assert.match(md,/^- 核心体验$/m);
+  assert.match(md,/^  - 一键展开$/m);
+  assert.match(md,/^- 安全与稳定性$/m);
+});
+
 test('download filename filters path separators and reserved names',()=>{
   assert.equal(exportFileBase('../危险/名称:<>?*'),'危险 名称');
   assert.equal(exportFileBase('CON'),'本条回复-思维导图');
