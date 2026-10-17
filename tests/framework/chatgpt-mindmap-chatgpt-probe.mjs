@@ -324,8 +324,9 @@ try{
   await page.getByRole('button',{name:'重建 B 操作栏'}).click();
   await page.waitForFunction(()=>{
     const turn=document.querySelector('[data-testid="conversation-turn-2"]');
-    return turn?.querySelector('.actions')?.nextElementSibling===
-      turn?.querySelector('[data-opendesk-chatgpt-mindmap="button"]');
+    const actionBar=turn?.querySelector('.actions');
+    const buttons=actionBar?.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]');
+    return buttons?.length===1&&!!buttons[0].shadowRoot?.querySelector('button');
   },null,{timeout:12000});
   assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
   await t(2).getByRole('button',{name:'Good response'}).click();
