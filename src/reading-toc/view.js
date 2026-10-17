@@ -82,7 +82,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const panel=make('section','panel');panel.setAttribute('aria-label','网页目录');
   const head=make('div','head'),caption=make('strong','heading');
   caption.textContent='CONTENTS';
-  const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
+  const modes=make('div','modes');modes.hidden=false;modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
   const types=['top','focus','full','ai'],buttons=[];
   let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
   types.forEach((name,index)=>{
