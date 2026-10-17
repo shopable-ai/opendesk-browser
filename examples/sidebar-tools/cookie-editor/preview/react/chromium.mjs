@@ -128,6 +128,9 @@ try{
    await drop('large.txt','x'.repeat(150001));
    await page.getByText(/文件超过 150 KB/).waitFor();
    assert.equal(await page.getByRole('textbox',{name:'Cookie 内容'}).inputValue(),'[{"name":"drag_replaced","value":"yes"}]','too-large replacement preserves valid input');
+   await drop('binary.txt','Cookie: bad='+String.fromCharCode(0));
+   await page.getByText(/文件不是有效的 Cookie 文本/).waitFor();
+   assert.equal(await page.getByRole('textbox',{name:'Cookie 内容'}).inputValue(),'[{"name":"drag_replaced","value":"yes"}]','binary input must not replace previous valid source');
    await drop('many.txt','Cookie: a=1',true);
    await page.getByText(/一次只能导入一个/).waitFor();
    await page.locator('input[type=file]').setInputFiles({name:'picked.txt',mimeType:'text/plain',buffer:Buffer.from('Cookie: picked=1')});
