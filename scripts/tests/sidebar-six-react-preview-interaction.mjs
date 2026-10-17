@@ -102,6 +102,9 @@ try{
   await click('#task-search-toggle');
   await until('!document.getElementById("task-search-panel").hidden');
   await click('#task-open-catalog');
+  await until('!document.getElementById("task-add-menu").hidden');
+  await screenshot('my-add-360');
+  await click('#task-add-catalog');
   await until('!document.getElementById("workbench-discover").hidden');
   await click('#catalog-dev-sidebar-status button');
   await until('!document.querySelector("#workbench-tasks .tasks-surface").hidden');
@@ -144,12 +147,16 @@ try{
     'menuHidden:document.getElementById("extension-center-menu").hidden,'+
     'rowCount:document.querySelectorAll("[data-extension-id=\\\"app:preview-import\\\"]").length,'+
     'focused:document.activeElement?.outerHTML?.slice(0,250)}))()');
-  assert.equal(rowState.detailHidden,false,
-    'Trusted pointer should open extension details: '+JSON.stringify(rowState));
-  assert((await evaluate('document.getElementById("extension-center-detail-body").textContent')).includes('UI_PREVIEW_ONLY'));
-  // Same fixed ID should update its row, not append a second installed identity.
-  await click('#extension-center-back');
-  await until('document.getElementById("extension-center-detail").hidden');
+  assert.equal(rowState.detailHidden,true,
+    'An installed app must NOT open pre-install detail: '+JSON.stringify(rowState));
+  await until('!document.getElementById("sidebar-tool-display").hidden');
+  assert((await evaluate('document.getElementById("sidebar-tool-frame").textContent')).includes('工具工作区'),
+    'Installed app should display the real shared tool container with a preview fixture');
+  await screenshot('extension-use-360');
+  await click('#sidebar-tool-settings-open');
+  await until('document.getElementById("sidebar-tool-frame").textContent.includes("工具设置")');
+  await click('#sidebar-tool-back');
+  await until('document.getElementById("sidebar-tool-display").hidden');
   await click('#extension-center-more');
   await until('!document.getElementById("extension-center-menu").hidden');
   await click('#extension-center-import');
@@ -166,11 +173,11 @@ try{
   const importedSelector='[data-extension-id="app:preview-import"]';
   await until('document.querySelectorAll('+JSON.stringify(importedSelector)+').length===1');
   await click('[data-extension-id="app:preview-import"] .ec-row-main');
-  await until('!document.getElementById("extension-center-detail").hidden');
-  assert((await evaluate('document.getElementById("extension-center-detail-body").textContent')).includes('1.3.0'),
-    'Update must replace version without creating another installed row');
-  await screenshot('extension-updated-360');
-  await click('[data-ec-detail-action="uninstall"]');
+  await until('!document.getElementById("sidebar-tool-display").hidden');
+  assert((await evaluate('document.getElementById("sidebar-tool-frame").textContent')).includes('1.3.0'),
+    'Updated app usage must show the new version without a duplicate installed ID');
+  await screenshot('extension-updated-use-360');
+  await click('#sidebar-tool-remove');
   await until('!document.getElementById("sidebar-tool-action-review").hidden');
   await screenshot('extension-uninstall-review-360');
   await click('#sidebar-tool-action-continue');
@@ -189,7 +196,8 @@ try{
   console.log(JSON.stringify({kind:'SOURCE_BOUND_UI_PREVIEW_CHROMIUM',status:'PASS',
     checks:['real clicks: task collapse/reopen/switch','search','catalog','schedule form',
       'schedule memory review','extension file choose','import review','in-memory install',
-      'same-ID in-memory update, no duplicate','uninstall review and available-list return',
+      'installed app usage, header and settings','same-ID update without duplicate',
+      'uninstall review and available-list return',
       'UI_PREVIEW_ONLY maintained'],nativeChrome:'NOT_TESTED'}));
 }finally{
   try{socket?.close()}catch{}
