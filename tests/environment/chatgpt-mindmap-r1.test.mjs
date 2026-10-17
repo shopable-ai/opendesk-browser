@@ -5,3 +5,5 @@ import '../../examples/programs/chatgpt-mindmap/tests/extract-wrapped-lists.test
 import '../../examples/programs/chatgpt-mindmap/tests/chatgpt-adapter.test.mjs';
 import '../../examples/programs/chatgpt-mindmap/tests/xmind-adapter.test.mjs';
 import '../../examples/programs/chatgpt-mindmap/tests/xmind-theme-toggle.test.mjs';
+import '../../examples/programs/chatgpt-mindmap/tests/export-r310.test.mjs';
+import '../../examples/programs/chatgpt-mindmap/tests/export-r310-integration.test.mjs';
