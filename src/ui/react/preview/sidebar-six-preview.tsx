@@ -215,7 +215,10 @@ function Preview(){
     snapshot:'仅预览：未读取 Host 诊断，未生成敏感快照。',
     feedback:'仅预览：只读文本展示，不执行刷新、配对或领取任务。'
   };
-  const sheetClose=React.useCallback(()=>setSheetOpen(false),[]);
+  const sheetClose=React.useCallback(()=>{
+    // Match WorkflowView.closeAISettings: the details must close with the sheet.
+    workflowSettings.open=false;setSheetOpen(false);
+  },[]);
   React.useLayoutEffect(()=>{
     get('od-sidebar-preview-stage').style.width=width+'px';
     names.forEach((name,i)=>{
@@ -316,7 +319,8 @@ function Preview(){
     importOpen,importCandidate,importError,extensionReview,extensionRecords]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
-      const click=event=>{if(!event.isTrusted)return;setTab(names[i]);setSheetOpen(false);};
+      const click=event=>{if(!event.isTrusted)return;setTab(names[i]);
+        workflowSettings.open=false;setSheetOpen(false);};
       button.addEventListener('click',click);
       return ()=>button.removeEventListener('click',click);
     });
@@ -333,6 +337,9 @@ function Preview(){
     nav.addEventListener('keydown',keydown);
     const sheetClick=event=>{
       if(!event.isTrusted)return;
+      // Match WorkflowView.openAISettings: a visible modal still needs its
+      // legacy details opened to expose the real Codex/HTTPS controls.
+      workflowSettings.open=true;
       setSheetOpen(true);
     };
     get('workflow-provider-toggle').addEventListener('click',sheetClick);
