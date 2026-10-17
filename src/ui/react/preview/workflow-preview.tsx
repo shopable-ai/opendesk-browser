@@ -79,6 +79,10 @@ function Preview(){
     if(scene==='disconnected')get('workflow-status').textContent=
       '离线预览未连接 OpenDesk Native，不能确认 Codex 已就绪。';
   },[scene,rows,history,review,manageOpen]);
+  React.useLayoutEffect(()=>{
+    // Match WorkflowView: a newly opened unsaved-change review receives focus.
+    if(review)get('workflow-new-cancel').focus({preventScroll:true});
+  },[review]);
   React.useEffect(()=>{
     const provider=get('workflow-ai-provider');
     const sync=()=>{
@@ -141,10 +145,16 @@ function Preview(){
       setRows(current=>[...current,{id:'grant'+Date.now(),speaker:'AI',
         message:'本轮批准交互示例，实际未发送数据或改变权限。'}]);
     });
-    on('workflow-new-cancel','click',()=>setReview(false));
+    on('workflow-new-cancel','click',()=>{
+      const wasInside=get('workflow-new-review').contains(doc.activeElement);
+      setReview(false);
+      // Keep an externally moved focus; otherwise restore the New icon.
+      if(wasInside)get('workflow-new').focus({preventScroll:true});
+    });
     on('workflow-new-discard','click',()=>{
       setReview(false);setHistory(false);setScene('empty');setRows([]);
       get('workflow-ai-request').value='';
+      get('workflow-ai-request').focus({preventScroll:true});
     });
     on('workflow-edit-details','click',event=>{
       if(!event.isTrusted)return;
@@ -194,10 +204,16 @@ function Preview(){
       model={{saved:false,savedText:'',savedTitle:'',busy:scene==='planning',
         planning:scene==='planning',historyExpanded:history,sessionHint:'保留当前工作流'}}
       actions={{onHistory:()=>setHistory(value=>!value),
-        onNewSession:()=>{setRows([]);setScene('empty');setHistory(false);},
+        onNewSession:()=>{
+          setRows([]);setScene('empty');setHistory(false);
+          get('workflow-ai-request').focus({preventScroll:true});
+        },
         onNewWorkflow:()=>{
           if(rows.length||get('workflow-ai-request').value.trim())setReview(true);
-          else {setRows([]);setScene('empty');setHistory(false);}
+          else {
+            setRows([]);setScene('empty');setHistory(false);
+            get('workflow-ai-request').focus({preventScroll:true});
+          }
         }}}/>,header)}
     {createPortal(<WorkflowHistory model={{open:history,rows:[],canResume:false,busy:scene==='planning'}}
       actions={{}}/>,historyHost)}
