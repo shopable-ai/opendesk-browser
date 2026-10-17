@@ -280,12 +280,18 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(()=>evaluate(overlay.page,
   'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：出行路线")'),
   'Physical click of duplicate heading did not reach the second answer');
+ // Also navigate the independent third answer, without collapsing to a
+ // duplicated label's first source or relying on synthetic JS clicks.
+ await tocMouseClick(overlay.page,trusted,shadow,'button[data-id="h-27"]',linkFrame);
+ await until(()=>evaluate(overlay.page,
+  'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：注意事项")'),
+  'Physical click of third assistant answer did not reach its own heading');
  const html=await readFile(resolve('examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html'),'utf8');
  const sourceHash=html.match(/"trustedOverlaySourceSha256":"([a-f0-9]{64})"/)?.[1]||null;
  await writeFile(resolve('artifacts/reading-toc-r41/toc-r186-visible-observation.json'),
   JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,trustedOverlaySourceSha256:sourceHash,
    browser:version.Browser,installed:false,scenario:'chatgpt-multi',
-   actualClosedShadow:true,visible,expanded,physicalClicks:['full','h-25'],
+   actualClosedShadow:true,visible,expanded,physicalClicks:['full','h-25','h-27'],
    screenshot:'toc-r186-three-answers-visible.png',screenshotSha256:imageHash},null,2)+'\n');
  console.log('TOC_R186_REAL_VISIBILITY '+JSON.stringify({visible,expanded,sourceHash,imageHash}));
  await screenshot(overlay.page,'toc-r183-multi-preview-overlay.png');
