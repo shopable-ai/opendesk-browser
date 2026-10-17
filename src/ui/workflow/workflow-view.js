@@ -989,8 +989,20 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // grant. A local task with valid permission does not request it again.
       permission=selected==='local_codex'?Promise.resolve(true):api.permissions.request({origins:[...new Set(origins)]});
     }catch(error){
-      if(error?.code==='E_AI_CONFIG')openAISettings(
-        provider()==='custom_https'?'workflow-ai-key':'workflow-ai-provider');
+      if(error?.code==='E_AI_CONFIG'){
+        let field='workflow-source-local';
+        if(provider()!=='local_codex'){
+          let endpointValid=false;
+          try{
+            const url=new URL(get('workflow-ai-endpoint').value.trim());
+            endpointValid=url.protocol==='https:'&&!url.username&&!url.password&&!url.hash;
+          }catch{}
+          field=!endpointValid?'workflow-ai-endpoint':
+            !get('workflow-ai-model').value.trim()?'workflow-ai-model':
+              'workflow-ai-key';
+        }
+        openAISettings(field);
+      }
       else if(error?.code==='E_AI_REQUEST')get('workflow-ai-request').focus();
       status(format(error),true);return;
     }
