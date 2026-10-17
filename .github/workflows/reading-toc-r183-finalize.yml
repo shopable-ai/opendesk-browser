@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/reading-toc-r183-finalize.yml'
       - 'tests/environment/reading-toc-multi-answer-r183.test.mjs'
+      - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
   workflow_dispatch:
 permissions:
   contents: write
@@ -51,6 +52,15 @@ jobs:
             node scripts/preview/build-preview.mjs --tool reading-toc --surface "$surface" --scenario "$scenario" --theme light --width 360 --height 760 --out "$dir/$file"
           done
           node --test tests/environment/reading-toc-localization-preview-r12.test.mjs
+      - name: Install Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Real Chromium two-surface source HTML interaction checks
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+        run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
       - name: Promote tested candidate through the only official packager
         shell: bash
         run: |

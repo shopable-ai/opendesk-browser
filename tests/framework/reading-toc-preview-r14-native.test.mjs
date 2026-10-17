@@ -134,6 +134,25 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="CONTENTS" && document.querySelector(".toc-panel")?.getAttribute("aria-label")==="阅读目录"'),'Chinese accessible label restore failed without changing the approved CONTENTS visual');
  assert.equal(await evaluate(panel,'document.querySelector("#toc-source").value'),'s-2');
  assert.equal(await evaluate(panel,'document.querySelector("[data-toc-mode=full]").getAttribute("aria-pressed")'),'true');
+ // R1.8.3: exercise actual packaged UI, not CSS-only snapshot matching.
+ await select(side.page,'od-toc-scenario','chatgpt-multi');
+ const grouped=await until(async()=>{
+  const result=await evaluate(panel,
+   '({rows:[...document.querySelectorAll("#toc-list button")].map(b=>({id:b.dataset.id,label:b.textContent.trim()})),starts:[...document.querySelectorAll("#toc-list li.toc-answer-start button")].map(b=>b.dataset.id)})');
+  return result.rows.length===8?result:null;
+ },'R1.8.3 full mode must show eight titles from three assistant turns');
+ assert.deepEqual(grouped.starts,['h-24','h-26'],
+  'two 1px separators occur only at real assistant turn boundaries');
+ assert.equal(grouped.rows.filter(row=>row.label==='出行路线').length,2);
+ assert.equal(new Set(grouped.rows.map(row=>row.id)).size,8);
+ await evaluate(panel,'document.querySelector("#toc-list button[data-id=h-25]").click()');
+ await until(()=>evaluate(side.page,
+  'document.querySelector("#od-toc-feedback")?.textContent.includes("出行路线")'),
+  'clicking the second assistant answer must navigate its own title');
+ await screenshot(side.page,'toc-r183-multi-preview-panel.png');
+ await select(side.page,'od-toc-scenario','success');
+ await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list li.toc-answer-start").length===0'),
+  'ordinary article must not retain assistant separators');
  await screenshot(side.page,'toc-r14-preview-panel.png');
  await select(side.page,'od-toc-scenario','error');
  await until(()=>evaluate(panel,'document.querySelector("#toc-error")?.dataset.state==="error"'),'Failure state did not activate');
@@ -157,6 +176,16 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  assert(!buttonNames.some(name=>/more sections|还有 \\d+ 个章节|see full contents/i.test(String(name))),
   'webpage TOC must not reintroduce the redundant see-all button');
  assert.equal(await evaluate(trusted,'document.querySelector("article h1").textContent'),original);
+ // The overlay test frame contains three real assistant Markdown turn wrappers.
+ await select(overlay.page,'od-toc-scenario','chatgpt-multi');
+ const turns=await until(async()=>{
+  const values=await evaluate(trusted,
+   'document.getElementById("preview-chat")?.hidden===false?[...document.querySelectorAll("#preview-chat [data-message-author-role=assistant]")].map(turn=>turn.querySelectorAll("h1,h2,h3,h4,h5,h6").length):null');
+  return values?.length===3?values:null;
+ },'trusted overlay preview must render all three independent Markdown answer fixtures');
+ assert.deepEqual(turns,[4,2,2],
+  'two H1 in the first answer never mean two assistant sources');
+ await screenshot(overlay.page,'toc-r183-multi-preview-overlay.png');
  await screenshot(overlay.page,'toc-r14-preview-overlay.png');
  console.log('TOC_PREVIEW_EVIDENCE '+JSON.stringify({browser:version.Browser,file:true,installed:false,
   screenshots:['toc-r14-preview-panel.png','toc-r14-preview-overlay.png']}));
