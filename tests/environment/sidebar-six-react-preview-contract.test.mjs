@@ -21,7 +21,7 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
     assert.equal($('#workbench-'+key).attr('role'),'tabpanel');
     assert.match(builder,new RegExp("'"+key+"'"));
   }
-  assert.equal($('#tab-debug').attr('hidden'),'');
+  assert.ok($('#tab-debug').is('[hidden]'),'Debug stays hidden in official production DOM');
   assert.match(builder,/data-preview-development-only/);
   assert.match(builder,/UI_PREVIEW_ONLY/);
   assert.match(builder,/--check/);
