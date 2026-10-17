@@ -30,6 +30,24 @@ try{
     headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
   session=await startXmindPreview();
   const page=await browser.newPage({viewport:{width:1220,height:860},acceptDownloads:true});
+  // Read-only browser test instrumentation. Observe the renderer's REAL
+  // Canvas pixels before the product intentionally fails E_XMIND_PNG_BLANK.
+  // No synthetic topics, alternate drawing or production diagnostics.
+  await page.addInitScript(()=>{
+    const original=CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.drawImage=function(...args){
+      const result=original.apply(this,args);
+      if(window.__odmmCaptureProbe===true&&this.canvas.width===64&&
+         this.canvas.height===64&&args[0] instanceof HTMLCanvasElement){
+        try{
+          const source=args[0];
+          window.__odmmCaptureTrace={width:source.width,height:source.height,
+            dataUrl:source.toDataURL('image/png')};
+        }catch(error){window.__odmmCaptureTrace={error:String(error)};}
+      }
+      return result;
+    };
+  });
   const origin=new URL(session.url).origin;
   const capture=async(name,{target=page,fullPage=false,answer='ALL'}={})=>{
     // Capture after real rendered geometry has settled (not after a blind timer).
@@ -203,13 +221,23 @@ try{
   // Download the real SDK's expanded offscreen workbook, never a viewport
   // screenshot or fabricated PNG fixture. Preserve the resulting file so
   // reviewers can inspect the actual pixels independently.
+  await page.evaluate(()=>{window.__odmmCaptureProbe=true;});
   const realDownload=page.waitForEvent('download',{timeout:45000});
   await viewer(1).locator('.odmm-export-toggle').click();
   await viewer(1).locator('[data-export="png"]').click();
   const pngError=viewer(1).locator('.odmm-export-status[role="alert"]')
-    .waitFor({timeout:45000}).then(async()=>{throw new Error(
-      'Real XMind PNG export failed: '+
-      await viewer(1).locator('.odmm-export-status').textContent());});
+    .waitFor({timeout:45000}).then(async()=>{
+      const diagnostics=await page.evaluate(()=>window.__odmmCaptureTrace||null);
+      if(diagnostics?.dataUrl){
+        const bytes=Buffer.from(diagnostics.dataUrl.split(',').at(-1),'base64');
+        await writeFile(join(out,'xmind-real-png-debug-on-failure.png'),bytes);
+      }
+      console.error('REAL_XMIND_PNG_DIAGNOSTICS',JSON.stringify({
+        width:diagnostics?.width,height:diagnostics?.height,
+        bytes:diagnostics?.dataUrl?.length||0,error:diagnostics?.error||null}));
+      throw new Error('Real XMind PNG export failed: '+
+        await viewer(1).locator('.odmm-export-status').textContent());
+    });
   const pngDownload=await Promise.race([realDownload,pngError]);
   assert.equal(await pngDownload.failure(),null);
   assert.match(pngDownload.suggestedFilename(),/\.png$/i);
