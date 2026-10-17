@@ -15,7 +15,7 @@ const pass=[];
 const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name)};
 try{
  await page.goto(url,{waitUntil:'load'});
- assert.equal(await page.title(),'Cookie Editor R4.11 · 380px 交互预览','React build must have the R4.11 preview title');
+ assert.equal(await page.title(),'Cookie Editor R5.2 · 380px 交互预览','React build must have the R4.11 preview title');
  await test('380px native-width panel when standalone HTML is opened on desktop',async()=>{
    await page.setViewportSize({width:1280,height:880});
    await page.locator('.cookie-app').waitFor();
@@ -68,8 +68,99 @@ try{
  await test('search pins active draft',async()=>{await page.locator('#cookie-name').fill('temporary');await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('renamed');await page.getByText('当前编辑项不符合筛选条件，暂时保留显示。').waitFor();await page.locator('#cookie-name').fill('locale');await page.getByRole('button',{name:'取消',exact:true}).click();await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('');});
  await test('create and value reveal',async()=>{
   await page.getByRole('button',{name:'新建 Cookie'}).click();await page.locator('#cookie-name').fill('created');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText('已保存 Cookie').waitFor();
-  await page.locator('[data-row="a"]').click();assert.equal(await page.getByText('sess_demo_only_C18').count(),0);await page.getByRole('button',{name:'读取并显示 Cookie 值'}).click();assert.equal(await page.getByText('sess_demo_only_C18').count(),1);
-  await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByText('sess_demo_only_C18').count(),0);await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.locator('[data-row="a"]').click();assert.equal(await page.getByLabel('Cookie 值').inputValue(),'');await page.getByRole('button',{name:'读取并显示 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值').inputValue(),'sess_demo_only_C18');
+  await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值').inputValue(),'');await page.getByRole('button',{name:'取消',exact:true}).click();
+ });
+
+ await test('R5.2 Host and Cookie destruction buttons belong to distinct toolbars',async()=>{
+   assert.equal(await page.locator('.preview-host-header').getByRole('button',{name:'卸载工具'}).count(),1);
+   assert.equal(await page.locator('.list-toolbar').getByRole('button',{name:'安全清理本站 Cookie'}).count(),1);
+ });
+ await test('R5.2 advanced properties, Session toggle and timezone date validation',async()=>{
+  await page.locator('[data-testid="scenario"]').selectOption('ready');
+  await page.locator('[data-row="b"]').click();
+  await page.getByText('属性与高级设置').click();
+  assert.equal(await page.getByLabel('Domain').inputValue(),'shop.example.com');
+  assert.equal(await page.getByLabel('Domain').getAttribute('readonly'),'');
+  assert.equal(await page.getByLabel('Path').getAttribute('readonly'),'');
+  assert.equal(await page.getByRole('checkbox',{name:/仅当前主机/}).isDisabled(),true);
+  await page.getByText('Store ID',{exact:true}).waitFor();
+  await page.getByText('PartitionKey',{exact:true}).waitFor();
+  const expiry=page.getByLabel('过期时间（本地时间）');
+  assert.match(await expiry.inputValue(),/^2027-12-10T10:30/);
+  await page.getByRole('checkbox',{name:/Session/}).check();
+  assert.equal(await page.getByLabel('过期时间（本地时间）').count(),0);
+  await page.getByRole('checkbox',{name:/Session/}).uncheck();
+  assert.match(await page.getByLabel('过期时间（本地时间）').inputValue(),/^2027-12-10T10:30/);
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+  await page.getByLabel('过期时间（本地时间）').fill('2020-01-01T12:00');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText(/请选择有效的未来过期时间/).waitFor();
+  await page.getByLabel('过期时间（本地时间）').fill('2027-12-10T10:30:00');
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.locator('[data-row="h"]').click();
+  await page.getByText('属性与高级设置').click();
+  await page.getByText(/partner.example.net/).waitFor();
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+ });
+ await test('R5.2 empty vs retained value, semantic dirty and secure constraints',async()=>{
+  await page.locator('[data-row="b"]').click();
+  const value=page.getByLabel('Cookie 值');
+  assert.equal(await value.getAttribute('type'),'password');
+  await page.getByRole('button',{name:'清空值'}).click();
+  await page.getByText('将写入空值').waitFor();
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
+  await page.getByRole('button',{name:'恢复原值'}).click();
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+  await value.fill('light');
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+  await value.fill('dark');
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.getByRole('button',{name:'放弃',exact:true}).click();
+  await page.locator('[data-row="b"]').click();
+  await page.getByText('属性与高级设置').click();
+  await page.getByLabel('SameSite').selectOption('none');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText(/SameSite=None 必须/).waitFor();
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.getByRole('button',{name:'放弃',exact:true}).click();
+ });
+ await test('R5.2 new persistent Cookie requires future expiration and prefix safety',async()=>{
+  await page.getByRole('button',{name:'新建 Cookie'}).click();
+  await page.locator('#cookie-name').fill('__Host-demo');
+  await page.getByText('属性与高级设置').click();
+  await page.getByRole('checkbox',{name:/Session/}).uncheck();
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText(/请选择有效的未来过期时间/).waitFor();
+  const future=await page.evaluate(()=>{
+   const d=new Date(Date.now()+365*24*60*60*1000),p=n=>String(n).padStart(2,'0');
+   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+  });
+  await page.getByLabel('过期时间（本地时间）').fill(future);
+  await page.getByRole('checkbox',{name:'Secure'}).uncheck();
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText(/__Host- Cookie 必须/).waitFor();
+  await page.getByRole('checkbox',{name:'Secure'}).check();
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText('已保存 Cookie').waitFor();
+  await page.locator('[data-testid="scenario"]').selectOption('ready');
+ });
+ await test('R5.2 full expanded form is responsive including zoom',async()=>{
+  await page.locator('[data-row="h"]').click();
+  await page.getByText('属性与高级设置').click();
+  for(const width of [320,360,380,420,520]){
+    await page.setViewportSize({width,height:850});
+    assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,'expanded width '+width);
+    for(const zoom of ['125%','150%','200%']){
+      await page.evaluate(z=>document.body.style.zoom=z,zoom);
+      assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,'expanded width '+width+' zoom '+zoom);
+    }
+    await page.evaluate('document.body.style.zoom=""');
+  }
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.setViewportSize({width:384,height:880});
  });
  await test('R4.11 automatically analyzes import, safe skip, overwrite on opt-in',async()=>{
    await page.getByRole('button',{name:'导入 Cookie'}).click();
@@ -177,8 +268,7 @@ try{
    assert.equal(await page.getByRole('button',{name:'确认下载'}).count(),0);
    const backup=JSON.parse(await readFile(await full.path(),'utf8'));
    assert.equal(backup.find(row=>row.name==='session_id').value,'sess_demo_only_C18');
-   await page.getByText('更多选项',{exact:true}).click();
-   await page.getByText('仅导出 Cookie 属性（不含值）').click();
+   await page.getByRole('checkbox',{name:'包含值'}).uncheck();
    assert.match(await page.locator('.export-brief').innerText(),/仅导出属性/);
    const [meta]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'下载',exact:true}).click()]);
    assert.ok(!Object.hasOwn(JSON.parse(await readFile(await meta.path(),'utf8'))[0],'value'));
