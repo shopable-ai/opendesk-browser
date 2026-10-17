@@ -6,6 +6,8 @@ on:
       - 'src/ui/tool.html'
       - 'src/ui/react/**'
       - 'src/ui/task-workbench.js'
+      - 'src/ui/scheduled-task-workbench.js'
+      - 'src/ui/schedule-plan-presentation.js'
       - 'src/ui/cloud-hosting.js'
       - 'src/ui/tool-shell.js'
       - 'src/ui/design-*.css'
@@ -115,6 +117,7 @@ jobs:
           node --test \
             tests/environment/task-workbench.test.mjs \
             tests/environment/scheduled-task-ui-r1.test.mjs \
+            tests/environment/schedule-plan-presentation-r33314.test.mjs \
             tests/environment/extension-center-r4.test.mjs \
             tests/environment/workflow-ui-states.test.mjs \
             tests/environment/workflow-focus.test.mjs \

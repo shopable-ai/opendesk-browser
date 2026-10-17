@@ -33,6 +33,7 @@ const inputs=[
   'src/ui/react/tabs/cloud.tsx',
   'src/ui/react/preview/sidebar-six-preview.tsx',
   'src/ui/react/preview/sidebar-six-my-flows.tsx',
+  'src/ui/schedule-plan-presentation.js',
   'scripts/preview/build-sidebar-six-react-preview.mjs',
   'package.json','package-lock.json'
 ];

@@ -117,7 +117,10 @@ function Preview(){
   const [toolDraft,setToolDraft]=React.useState('');
   const [toolFeedback,setToolFeedback]=React.useState('');
   const [selectedTask,setSelectedTask]=React.useState('preview-task');
-  const [taskMode,setTaskMode]=React.useState('list');
+  const initialMode=new URLSearchParams(window.location.search).get('mode');
+  const [taskMode,setTaskMode]=React.useState(
+    initial==='tasks'&&initialMode==='schedule'?'schedule':'list');
+  const [planDensity,setPlanDensity]=React.useState('many');
   const [taskSearch,setTaskSearch]=React.useState('');
   const [taskFilter,setTaskFilter]=React.useState('all');
   const [framework,setFramework]=React.useState('javascript');
@@ -493,10 +496,10 @@ function Preview(){
     <PreviewMyFlows tab={tab} mode={taskMode} onMode={setTaskMode}
       onOpenDevelop={()=>{setTab('develop');setTaskMode('list');}}
       rows={allTaskRows} search={taskSearch} onSearch={setTaskSearch}
-      filter={taskFilter} onFilter={setTaskFilter}/>
+      filter={taskFilter} onFilter={setTaskFilter} density={planDensity}/>
     {createPortal(<div className="od-sidebar-preview-toolbar">
       <div className="od-sidebar-preview-heading"><strong>OpenDesk · 六 Tab 正式源码预览</strong>
-        <span>UI_PREVIEW_ONLY · 开发版包含调试 · Native / 权限 / 执行全部未连接</span></div>
+        <span>UI 交互预览 · 未连接真实调度、Host 或网站权限</span></div>
       {tab==='cloud'?<label>云控场景 <select data-preview-cloud-scenario value={cloudScenario}
         onChange={event=>{setCloudScenario(event.target.value);setCloudDetailOpen(false);setCloudFeedback('');}}>
         <option value="unpaired">未配对</option><option value="ready">已连接（演示）</option>
@@ -507,6 +510,13 @@ function Preview(){
         <option value="loading">加载</option><option value="running">运行中</option>
         <option value="error">错误</option><option value="denied">权限拒绝</option>
         <option value="unknown">未知</option><option value="disconnected">断线</option>
+      </select></label>}
+      {tab==='tasks'&&taskMode==='schedule'&&<label>计划密度 <select
+        data-preview-schedule-density value={planDensity}
+        onChange={event=>setPlanDensity(event.target.value)}>
+        <option value="many">全部状态</option>
+        <option value="single">单计划</option>
+        <option value="empty">空状态</option>
       </select></label>}
       <label>宽度 <select data-preview-width value={width}
         onChange={event=>setWidth(Number(event.target.value))}>

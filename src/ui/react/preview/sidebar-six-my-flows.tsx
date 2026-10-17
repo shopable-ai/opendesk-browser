@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
+import {presentSchedulePlan,scheduleFireLabel,formatScheduleTime} from '../../schedule-plan-presentation.js';
 
 // Offline-only UI state. The installed TaskWorkbench and scheduler remain
 // the only authorities for task identity, drafts, installation and execution.
@@ -13,14 +14,56 @@ const catalogBack=get('catalog-dev-sidebar-status');
 const list=get('schedule-plan-list'),detail=get('schedule-detail-view');
 const manager=get('schedule-manager-list');
 for(const node of [cards,reader,catalogBack,list,detail,manager])node.replaceChildren();
-const seed={id:'preview-1',title:'每日整理（仅预览）',kind:'daily',
-  target:'https://example.invalid/',paused:false};
+const previewBase=Date.parse('2026-10-17T00:00:00Z'); // Fixed UI fixture clock, never a live scheduler.
+const previewFire=(id,status,when=previewBase)=>({
+  fireId:'preview-fire-'+id,status,scheduledAt:when});
+const fixture=(id,title,kind,details={})=>({
+  id,title,kind,triggerKind:kind,triggerSpec:
+    kind==='weekly'?{days:[5],hour:18,minute:0}:
+    kind==='interval'?{everyMinutes:30}:
+    kind==='once'?{at:previewBase}:
+    {hour:9,minute:0},
+  clock:kind==='weekly'?'18:00':'09:00',weekdays:['5'],minutes:30,
+  once:'2026-10-18T09:00',timezone:'Asia/Tokyo',
+  target:'https://example.invalid/',paramsText:'{}',
+  paused:false,needsAttention:false,nextDueAt:null,history:[],
+  ...details
+});
+const fixtures=[
+  fixture('preview-1','每日网页整理','daily',{
+    nextDueAt:Date.parse('2026-10-18T00:00:00Z'),
+    history:[previewFire('daily','SUCCESS')]}),
+  fixture('preview-2','每周报告','weekly',{
+    paused:true,previewNextDueAt:Date.parse('2026-10-23T09:00:00Z'),
+    history:[previewFire('weekly','SUCCESS')]}),
+  fixture('preview-3','进行中的资料同步','interval',{
+    nextDueAt:Date.parse('2026-10-18T00:30:00Z'),
+    history:[previewFire('active','RUNNING')]}),
+  fixture('preview-4','一次性资料归档','once',{
+    nextDueAt:null,once:'2026-10-15T20:00',
+    history:[previewFire('complete','SUCCESS',Date.parse('2026-10-15T11:00:00Z'))]}),
+  fixture('preview-5','失败后继续按计划执行','daily',{
+    nextDueAt:Date.parse('2026-10-18T00:00:00Z'),
+    history:[previewFire('failed','FAILED')]}),
+  fixture('preview-6','需要处理的网站权限','weekly',{
+    needsAttention:true,history:[previewFire('attention','NEEDS_ATTENTION')]}),
+  fixture('preview-7','未知结果待人工核对','once',{
+    history:[previewFire('unknown','UNKNOWN')]}),
+  fixture('preview-8','已错过的一次性计划','once',{
+    history:[previewFire('missed','MISSED')]}),
+  fixture('preview-9','等待运行条件','daily',{
+    nextDueAt:Date.parse('2026-10-18T00:00:00Z'),
+    history:[previewFire('waiting','WAITING_HOST')]}),
+  fixture('preview-10','正在核对结果','once',{
+    history:[previewFire('settling','SETTLING')]})
+];
+const seed=fixtures[0];
 const ruleName=k=>({once:'执行一次',daily:'每天',weekly:'每周',interval:'按间隔'})[k]||k;
 const previewDeviceZone=()=>{
   try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
   catch{return 'UTC';}
 };
-export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter}){
+export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter,density='many'}){
   const [showSearch,setShowSearch]=React.useState(false);
   const [addOpen,setAddOpen]=React.useState(false);
   const [addStatus,setAddStatus]=React.useState('');
@@ -28,7 +71,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const [catalogSelected,setCatalogSelected]=React.useState('preview-task');
   const [importReview,setImportReview]=React.useState('');
   const [view,setView]=React.useState('list');
-  const [plans,setPlans]=React.useState([seed]);
+  const [plans,setPlans]=React.useState(fixtures);
   const [selectedId,setSelectedId]=React.useState(seed.id);
   const [editingId,setEditingId]=React.useState('');
   const [pending,setPending]=React.useState(null);
@@ -43,6 +86,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const planEditorScroll=React.useRef(0);
   const [feedback,setFeedback]=React.useState('');
   const selected=plans.find(p=>p.id===selectedId);
+  const selectedPresentation=selected?presentSchedulePlan(selected,selected.history):null;
+  const visiblePlans=density==='empty'?[]:density==='single'?plans.slice(0,1):plans;
   const found=rows.filter(p=>!catalogSearch||
     [p.title,p.description].join(' ').toLocaleLowerCase().includes(catalogSearch.toLocaleLowerCase()));
   const formSignature=()=>JSON.stringify([
@@ -109,9 +154,9 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-manager-back').hidden=true; // One authoritative back button in Header.
     get('schedule-save-confirm').hidden=!pending;
     get('schedule-discard-confirm').hidden=!dirtyConfirm;
-    get('schedule-list-summary').textContent=plans.length+' 个内存演示计划 · 未注册调度';
-    get('schedule-host-status').textContent='UI_PREVIEW_ONLY · 未连接 Host';
-    get('schedule-message').textContent=feedback||'UI_PREVIEW_ONLY · 不写入真实计划';
+    get('schedule-list-summary').hidden=true; // Fixture density belongs to the preview toolbar.
+    get('schedule-host-status').hidden=true; // Preview banner already names the missing Host.
+    get('schedule-message').textContent=feedback||'';
     get('schedule-save-summary').textContent=pending?
       pending.title+' / '+pending.target+' / '+ruleName(pending.kind)+
       '\n仅本次预览，不核验执行授权。':'';
@@ -119,7 +164,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-clock-field').hidden=!['daily','weekly'].includes(rule);
     get('schedule-weekdays-field').hidden=rule!=='weekly';
     get('schedule-interval-field').hidden=rule!=='interval';
-    get('schedule-next-time').textContent='UI_PREVIEW_ONLY · 无真实调度';
+    get('schedule-next-time').textContent='仅预览执行规则，未计算真实调度时间';
     get('task-catalog-count').textContent=found.length+' 个 · UI_PREVIEW_ONLY';
     get('task-catalog-status').textContent=importReview||
       'UI_PREVIEW_ONLY · 仅展示正式目录 UI，安装须核对任务与授权';
@@ -247,10 +292,19 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-confirm-yes','click',()=>{
       if(!pending)return;
       const id=editingId||'preview-'+Date.now().toString(36);
-      setPlans(all=>editingId?all.map(p=>p.id===id?{...p,...pending}:p):
-        [...all,{id,...pending,paused:Boolean(pending.paused)}]);
+      // The preview has no Scheduler; the edit changes only an in-memory display plan.
+      const spec=pending.kind==='once'?{at:Date.parse(pending.once)}:
+        pending.kind==='interval'?{everyMinutes:pending.minutes}:
+        pending.kind==='weekly'?{days:pending.weekdays.map(Number),
+          hour:Number(pending.clock.split(':')[0]),minute:Number(pending.clock.split(':')[1])}:
+          {hour:Number(pending.clock.split(':')[0]),minute:Number(pending.clock.split(':')[1])};
+      setPlans(all=>editingId?all.map(p=>p.id===id?
+        {...p,...pending,triggerKind:pending.kind,triggerSpec:spec,
+          nextDueAt:pending.paused?null:p.nextDueAt,paused:Boolean(pending.paused)}:p):
+        [...all,fixture(id,pending.title,pending.kind,{...pending,
+          triggerSpec:spec,paused:Boolean(pending.paused)})]);
       setSelectedId(id);setPending(null);setEditingId('');setView('list');
-      setFeedback('UI_PREVIEW_ONLY · 内存列表更新，未保存或执行');
+      setFeedback('仅演示交互，未修改真实计划；下次触发时间尚未计算。');
     });
     return ()=>off.forEach(fn=>fn());
   },[onMode,onOpenDevelop,onSearch,onFilter,selected,editingId,pending,view]);
@@ -266,28 +320,88 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     </div>,reader)}
     {createPortal(<button type="button" className="od-button od-button--secondary"
       onClick={()=>onMode('list')}>← 返回我的任务</button>,catalogBack)}
-    {createPortal(plans.map(p=><button key={p.id} type="button"
-      className="od-preview-card" onClick={()=>{setSelectedId(p.id);setRemoveConfirm(false);setView('detail');}}>
-      <strong>{p.title}</strong><span>{ruleName(p.kind)} · {p.paused?'暂停':'启用'}（模拟）</span>
-      <small>UI_PREVIEW_ONLY · 无 Chrome 调度记录</small>
-    </button>),list)}
-    {createPortal(selected&&<div className="od-stack od-preview-card">
-      <strong>{selected.title}</strong>
-      <p>{selected.target} · {ruleName(selected.kind)} · {selected.timezone||'Asia/Tokyo'}</p>
-      <p>UI_PREVIEW_ONLY · 未读取历史或授权</p>
-      <div className="od-preview-actions">
+    {createPortal(<>
+      {visiblePlans.length===0?<div className="schedule-empty od-stack" role="status">
+        <h3 className="od-page-title">尚无定时计划</h3>
+        <p className="schedule-empty-hint hint">点击右上角新建，添加第一条计划。</p>
+      </div>:visiblePlans.map(p=>{
+        const present=presentSchedulePlan(p,p.history);
+        const toggle=()=>{
+          setPlans(all=>all.map(item=>item.id===p.id?
+            {...item,paused:!item.paused,
+              nextDueAt:item.paused?(item.previewNextDueAt??item.nextDueAt):null}:item));
+          setFeedback('仅演示交互，未修改真实计划。');
+        };
+        return <article key={p.id} className="schedule-card od-surface"
+          data-schedule-id={p.id} onClick={event=>{
+            if(!event.target.closest('button,a,summary,input,select')){
+              setSelectedId(p.id);setRemoveConfirm(false);setView('detail');
+            }
+          }}>
+          <div className="schedule-card-head od-toolbar">
+            <button type="button" className="od-button od-button--quiet schedule-plan-open"
+              onClick={()=>{setSelectedId(p.id);setRemoveConfirm(false);setView('detail');}}>
+              {p.title}
+            </button>
+            <span className="schedule-state" data-tone={present.tone}>{present.badge}</span>
+            <div className="schedule-plan-actions od-toolbar" role="group" aria-label="计划快捷操作">
+              <button type="button" className="od-icon-button schedule-plan-action"
+                title={p.paused?'恢复计划':'暂停计划'}
+                aria-label={(p.paused?'恢复计划':'暂停计划')+'「'+p.title+'」'}
+                onClick={toggle}>
+                {p.paused?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7Z"/></svg>:
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"/></svg>}
+              </button>
+              <button type="button" className="od-icon-button schedule-plan-action"
+                title="编辑计划" aria-label={'编辑计划「'+p.title+'」'} onClick={()=>showForm(p)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4Z"/></svg>
+              </button>
+            </div>
+          </div>
+          <p className="schedule-next-time">{present.timingText}</p>
+          {present.recentText&&<p className="schedule-recent-result" data-tone={present.recentTone}>
+            {present.recentText}</p>}
+        </article>;
+      })}
+    </>,list)}
+    {createPortal(selected&&<div className="od-stack schedule-detail-card">
+      <section className="schedule-detail-summary od-surface od-surface--padded od-stack">
+        <span className="schedule-state" data-tone={selectedPresentation.tone}>
+          {selectedPresentation.badge}</span>
+        <p className="schedule-next-time">{selectedPresentation.timingText}</p>
+        <p className="schedule-detail-url hint">目标网页：{selected.target}</p>
+        {selectedPresentation.recentText&&<p className="schedule-recent-result"
+          data-tone={selectedPresentation.recentTone}>{selectedPresentation.recentText}</p>}
+      </section>
+      <div className="schedule-actions od-toolbar">
         <button type="button" className="od-button od-button--secondary"
-          onClick={()=>setPlans(all=>all.map(p=>p.id===selected.id?
-            {...p,paused:!p.paused}:p))}>{selected.paused?'恢复':'暂停'}（预览）</button>
-        <button type="button" className="od-button od-button--danger"
-          onClick={()=>setRemoveConfirm(true)}>删除…</button>
+          onClick={()=>{setPlans(all=>all.map(p=>p.id===selected.id?
+            {...p,paused:!p.paused,
+              nextDueAt:p.paused?(p.previewNextDueAt??p.nextDueAt):null}:p));
+            setFeedback('仅演示交互，未修改真实计划。');}}>
+          {selected.paused?'恢复计划':'暂停计划'}</button>
       </div>
-      {removeConfirm&&<div className="od-preview-card">
-        <p>确认仅从内存 Fixture 中移除？真实计划不变。</p>
-        <div className="od-preview-actions">
-          <button type="button" className="od-button od-button--danger" onClick={()=>{
-            setPlans(all=>all.filter(p=>p.id!==selected.id));setView('list');setRemoveConfirm(false);
-          }}>确认删除（预览）</button>
+      {selected.needsAttention&&<p className="schedule-status-help">
+        固定任务版本或网站权限需要处理。此处仅展示状态，不会自动换绑。</p>}
+      <details className="schedule-history od-disclosure od-disclosure--flat">
+        <summary>运行记录{selected.history?.length?' · 最近 '+selectedPresentation.recentText:' · 暂无'}</summary>
+        {(selected.history||[]).map(fire=><div className="schedule-history-row" key={fire.fireId}>
+          {scheduleFireLabel(fire.status)} · {formatScheduleTime(fire.scheduledAt,selected.timezone)}
+          {fire.status==='UNKNOWN'&&<small>结果待人工核对，不能自动重复执行。</small>}
+        </div>)}
+      </details>
+      <details className="schedule-more od-disclosure od-disclosure--flat">
+        <summary>更多操作</summary>
+        <button type="button" className="od-button od-button--secondary schedule-danger-link"
+          onClick={()=>setRemoveConfirm(true)}>删除此计划…</button>
+      </details>
+      {removeConfirm&&<div className="schedule-delete-confirm od-surface">
+        <p>确认从预览内存中移除？真实计划与历史不会改变。</p>
+        <div className="schedule-actions od-toolbar">
+          <button type="button" className="od-button schedule-danger-button"
+            onClick={()=>{setPlans(all=>all.filter(p=>p.id!==selected.id));
+              setSelectedId('');setView('list');setRemoveConfirm(false);
+              setFeedback('仅演示交互，未修改真实计划。');}}>确认删除演示计划</button>
           <button type="button" className="od-button od-button--secondary"
             onClick={()=>setRemoveConfirm(false)}>取消</button>
         </div>
