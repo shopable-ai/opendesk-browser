@@ -97,6 +97,12 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   ]);
   const $=load(html);
   assert.equal($('#schedule-manager-count').length,1);
+  assert.equal($('#scheduled-panel > .schedule-header .od-page-actions > #schedule-manager-create').length,1,
+    'new task action belongs at page-title top right, not on a separate empty management row');
+  assert.equal($('#schedule-task-manager > .schedule-actions').length,0,
+    'manager body must not reserve space for a redundant action row');
+  assert.equal($('#schedule-manager-create[hidden]').length,1,
+    'header create action must remain hidden outside manager view');
   assert.equal($('#schedule-manager-list').length,1);
   assert.equal($('#schedule-manager-search').length,1);
   assert.equal($('#schedule-manager-filter').length,1);
