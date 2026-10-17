@@ -106,7 +106,8 @@ export async function generateSidebarSixReactPreview(){
     dock.toString()+'</div>';
   const temp=await mkdtemp(join(tmpdir(),'opendesk-six-react-'));
   try{
-    await build({root,configFile:false,logLevel:'error',build:{
+    await build({root,configFile:false,logLevel:'error',
+      define:{'process.env.NODE_ENV':JSON.stringify('production')},build:{
       target:'es2022',outDir:temp,emptyOutDir:true,
       minify:'esbuild',sourcemap:false,cssCodeSplit:false,
       lib:{entry:join(root,'src/ui/react/preview/sidebar-six-preview.tsx'),
@@ -116,6 +117,8 @@ export async function generateSidebarSixReactPreview(){
     must(jsFiles.length===1,'single offline React bundle required');
     const compiled=await readFile(join(temp,jsFiles[0]));
     must(compiled.length>20000,'React 19 / ReactDOM missing from bundle');
+    must(!compiled.toString('utf8').includes('process.env.NODE_ENV'),
+      'Vite failed to inline the production React condition');
     const previewCss=[
       '*,*::before,*::after{box-sizing:border-box}',
       'html,body{margin:0;min-width:0}',
