@@ -1,4 +1,4 @@
-# Reading TOC R1.2 · 与正式源码同源的交互预览
+# Reading TOC · 与正式源码同源的交互预览
 
 本目录的 R1.2 同源预览由正式生成器构建，不单独开发第二份正式实现；`reading-toc-r17-ai-desktop-preview.html` 是 **R1.7.4 已批准的视觉基准**，其中演示数据及业务模拟仍不构成真实 AI / 会员能力。预览 HTML 通过仓库的唯一 `scripts/preview/build-preview.mjs` 从当前阅读目录的**可安装工具包**与可信网页 `src/reading-toc/view.js` 现场生成。现有公共预览模板和浅色 Side Panel 外壳保持原有实现。
 
@@ -6,11 +6,12 @@
 # 仓库根目录，Node 22+
 npm ci --ignore-scripts
 npm run check
-node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --out examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html
-node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html
+node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out examples/sidebar-tools/reading-toc/preview/index.html
+# Side Panel 辅助验证入口：仍复用正式生成器
+node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --height 760 --out examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html
 ```
 
-用 Chrome 打开第一份 HTML：可切换 **Side Panel / 网页悬浮目录**、**简体中文 / English**、**有章节 / 无章节 / 加载 / 读取错误 / 无权限**。三种真实目录模式和刷新/导航点击会运行对应正式工具逻辑，网页悬浮使用可信 view/placement 的源码，只有页面快照和权限结果是离线模拟。另一个入口可用来重点检查网页悬浮。无网络、无真正的 Chrome 授权、没有实际网页 DOM 索引或导航。
+用 Chrome 打开稳定主入口 `preview/index.html`（默认展示模拟文章与正式 `view.js` 的网页悬浮目录）：可切换 **Side Panel / 网页悬浮目录**、**简体中文 / English**、**有章节 / 无章节 / 加载 / 读取错误 / 无权限**。三种真实目录模式和刷新/导航点击会运行对应正式工具逻辑，网页悬浮使用可信 view/placement 的源码，只有页面快照和权限结果是离线模拟。另一个入口可用来重点检查网页悬浮。无网络、无真正的 Chrome 授权、没有实际网页 DOM 索引或导航。
 
 **生成输出的身份：** HTML 中嵌入仓库当前 commit、设计系统与正式工具 JS/CSS 摘要；context.json 与 HTML 同时生成。CI 的 `.github/workflows/reading-toc-r41.yml` 也会生成并保留 `artifacts/previews/reading-toc/` 中同构的产物。当前暂不把每次变化的生成 HTML 当作第二份长期设计源码，避免生成物脱离正式实现。要查看最新交互，请按上面的命令生成。
 
@@ -50,3 +51,9 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 旧的 `reading-toc-r183-inpage-preview.html` 是离线导出的历史快照，并没有随着可信 `src/reading-toc/view.js` 自动更新，因此错误保留了“还有 6 个章节”按钮和旧的三模式工具栏。**不可再把旧快照当作本轮正式 UI。**
 
 唯一权威为 `scripts/preview/build-preview.mjs` 生成的 `reading-toc-r12-overlay-preview.html`：它嵌入正式可信 view / placement 源码，显示网页文章与四个（概览、当前、完整、AI）按钮，无冗余“更多章节”按钮；AI 仅提供未开放会员与合作招募提示。侧边栏同源入口 `reading-toc-r12-interactive-preview.html` 继续严格字节重现，不另建平行实现。隔离 HTML 不等于真实网站或用户 Mac Chrome 安装验收。
+
+## R1.8.6 · 稳定主入口
+
+- 主预览名称固定为 `index.html`；它由仓库唯一官方 `scripts/preview/build-preview.mjs` 的 `page-overlay` 输出，不是扩展安装包，也没有真实的授权、网站导航或 AI 服务。已验证的 Side Panel 与其他来源 HTML 暂保留供 CI 溯源。
+- 正式源码修改后必须重新生成主 HTML，并由 `tests/environment/reading-toc-localization-preview-r12.test.mjs` 对官方生成结果、正式工具 JS/CSS 摘要及可信网页源哈希做一致性验证。
+- Chromium 预览截图由 `tests/framework/reading-toc-preview-r14-native.test.mjs` 生成 `artifacts/reading-toc-r41/toc-index-360.png` 和 `toc-index-1280.png`。正式扩展截图 `toc-r186-default-{360,420,1280}.png` 须由原生 Chrome 测试实测生成，不能以离线 HTML 代替。
