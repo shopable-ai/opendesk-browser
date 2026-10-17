@@ -6,6 +6,20 @@ const SKIP='script,style,svg,button,input,textarea,select,nav,aside,[contentedit
   '[data-opendesk-chatgpt-mindmap]';
 const trim=value=>String(value??'').replace(/\s+/g,' ').trim();
 const slice=(text,n)=>Array.from(text).slice(0,n).join('');
+// Describe the current AI answer, without model calls or neighboring turns.
+function rootLabel(children){
+  const headings=children.filter(node=>node.kind==='heading');
+  const meaningful=children.find(node=>node.kind==='paragraph')||children[0];
+  if(!headings.length&&!meaningful)return '回答概览';
+  const chosen=headings.length===1?headings[0]:meaningful||headings[0];
+  const raw=trim(chosen.title);
+  const clause=raw.split(/[，。、：；！？!?;:]/,1)[0].trim();
+  const label=Array.from(clause).length>=4?clause:raw;
+  if(!label)return '回答概览';
+  const compact=slice(label,12)+(Array.from(label).length>12?'…':'');
+  return headings.length>1&&!children.some(node=>node.kind==='paragraph')
+    ?compact+'等主题':compact;
+}
 
 export function extractAnswerTree(content){
   const root={id:'root',title:'本条回复',kind:'root',depth:0,children:[]};
@@ -110,5 +124,6 @@ export function extractAnswerTree(content){
     }
   }
   visit(content);
+  root.title=rootLabel(root.children);
   return {tree:root,nodeCount:state.count-1,truncated:state.truncated};
 }

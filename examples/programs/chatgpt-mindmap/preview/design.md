@@ -219,3 +219,12 @@
 - 产品正式运行 `E_XMIND_RUNTIME_UNAVAILABLE`、产物 `installable:false` 和 Snowbrush `BLOCKED_GLOBAL_STYLE_RESIDUE` 未解决。原生安装、权限撤销、用户 Mac 的 Chromium 和真实登录 ChatGPT 与本预览明确隔离。
 
 完整事实、复验命令和待关闭项目见 `docs/framework/workstreams/chatgpt-mindmap-r37-acceptance.md`。
+
+
+## R3.9.7 · 内容根主题、纯图标开关与关闭原位恢复（候选合同）
+
+- 正式 `src/extract.js` 从当前 AI 答复内容生成中心主题：优先唯一顶层标题，否则首个有效短语，兜底「回答概览」；不调用外部模型、不跨回复取内容。最长 12 个 Unicode 字符与省略号，窄屏中心主题可读性仍须 Chromium 实测。
+- `src/xmind-convert.js` 在仅有一个总标题且可安全提升时，将其放到中心主题；之前的引言和下级分支仍作为可见节点，避免重复。
+- 正式操作栏 mind-map 按钮持续位于原来的位置，只有 SVG 图标；通过 `aria-label` / `aria-pressed` / `title` 表达状态。导图内部左上角采用 chevron-left 返回图标。原有其他 XMind 操作不变。
+- 打开时捕捉触发按钮的视口位置与最近滚动容器；用户主动关闭后，在旧画布清理完毕时补偿残余滚动偏差，同时以 `focus({preventScroll:true})` 还原键盘位置，避免跳到回复正文顶部。路由切换、卸载、自动失效不强制滚动。
+- 本地 `preview/chatgpt.html` 与正式程序继续使用同一份 UI JS/CSS；新图标不单独复制进模拟 HTML。设计状态继续 `PENDING_USER_CONFIRMATION`；本地预览不等于登录 ChatGPT、原生安装或第三方许可获批。

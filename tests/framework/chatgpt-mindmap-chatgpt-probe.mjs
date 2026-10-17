@@ -137,8 +137,9 @@ try{
   await capture('chatgpt-before.png',{fullPage:true});
   await button(1).click();
   await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:20000});
-  assert.equal(await button(1).isVisible(),false,
-    'The answer toolbar trigger must hide when the viewer provides Return to original');
+  assert.equal(await button(1).isVisible(),true,
+    'The native action-bar mind-map toggle must stay in its original slot');
+  assert.equal(await button(1).getAttribute('aria-pressed'),'true');
   report.topicsA=await viewer(1).locator('.topic:visible').count();
   assert.ok(report.topicsA>1,'XMind must render actual SDK topics');
   assert.equal(await t(1).locator('.markdown').isVisible(),false);

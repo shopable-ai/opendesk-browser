@@ -99,3 +99,13 @@ test('note budget includes separators and does not split emoji surrogate pairs',
 test('excluded-only DOM does not leak script/style text through a fallback',()=>{
   assert.equal(extractAnswerTree(e('div',e('script','private script'),e('style','css'))).nodeCount,0);
 });
+
+test('root uses the only top heading or concise first idea, without generic mode text',()=>{
+  const titled=extractAnswerTree(e('div',e('p','背景和开场介绍。'),e('h2','功能实施计划'),e('p','步骤细节')));
+  assert.equal(titled.tree.title,'功能实施计划');
+  assert.equal(titled.nodeCount,2);
+  const intro=extractAnswerTree(e('div',e('p','没有标题，也能自动生成有效的目录。')));
+  assert.equal(intro.tree.title,'没有标题');
+  assert.equal(intro.tree.children[0].title,'没有标题，也能自动生成有效的目录。');
+  assert.equal(extractAnswerTree(e('div',e('pre',e('code','code')))).tree.title,'回答概览');
+});
