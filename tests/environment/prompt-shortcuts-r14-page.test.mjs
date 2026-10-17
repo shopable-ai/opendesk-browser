@@ -256,7 +256,7 @@ test('R1.11: when editor is missing, entire multiline prompt is copied',async()=
   }finally{controller?.dispose();}
 });
 
-test('R1.7 narrow ChatGPT rail starts folded, expands on click, and tooltip retains entire prompt',async()=>{
+test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'首行🧑‍💻\n\n第三行',label:'🧑‍💻中'},null,()=> 'prompt-r17-narrow');
@@ -267,11 +267,10 @@ test('R1.7 narrow ChatGPT rail starts folded, expands on click, and tooltip reta
   try{
     await settle();
     assert.equal(f.rail().classList.items.has('narrow'),true);
-    assert.equal(f.rail().classList.items.has('folded'),true);
-    assert.equal(f.buttons().length,1);
-    assert.deepEqual(f.buttons()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
-    f.rail().children[0].emit('click',{isTrusted:true});await settle();
     assert.equal(f.rail().classList.items.has('folded'),false);
+    assert.equal(f.buttons().length,1);
+    assert.equal(f.rail().children.length,1,'no extra expand/collapse button');
+    assert.deepEqual(f.buttons()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
     f.buttons()[0].emit('mouseenter');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
     const tooltip=host.shadow.children.find(item=>item.className==='tip');
@@ -337,8 +336,8 @@ test('R1.8 open tooltip follows rail scroll and window layout without rewriting 
     assert.equal(content.textContent,f.row.body);
     f.main.getBoundingClientRect=()=>({left:260,top:80,width:540,height:640});
     f.events.get('resize')();await settle();
-    assert.equal(tip.hidden,true,'folded rail cannot retain a tooltip for a hidden owner');
-    assert.equal(button.getAttribute('aria-describedby'),undefined);
+    assert.equal(tip.hidden,false,'narrow rail remains visible and does not fold');
+    assert.equal(button.getAttribute('aria-describedby'),'opendesk-prompt-tooltip');
   }finally{f.controller.dispose();}
 });
 
