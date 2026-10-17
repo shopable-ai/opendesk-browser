@@ -281,6 +281,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(tasksChanged){taskListSignature=tasksSignature;populateChoices();}
     else if(shown&&activeView==='form')void showTaskVersion();
     if(plansChanged){renderPlans();planListSignature=plansSignature;}
+    else syncStopButtons(); // Host ownership may change without a plan snapshot change.
     if(tasksChanged||plansChanged)renderManager();
     renderRunner();
     if(shown){
@@ -444,6 +445,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       .filter(row=>row.querySelector('.schedule-run-details')?.open)
       .map(row=>row.dataset.fireId));
   }
+  function syncStopButtons(){
+    for(const button of get('schedule-plan-list').querySelectorAll('[data-schedule-action="stop"]')){
+      button.disabled=button.dataset.runId!==host.currentRun;
+      button.title=button.disabled?'仅当前运行宿主可停止此执行；请到运行页核对':
+        button.getAttribute('aria-label');
+    }
+  }
   async function stopCardRun(plan,fire){
     // A list card may stop only the exact admitted scheduled Fire owned by
     // this Host. Pausing a plan does not stop a running Controller execution.
@@ -542,6 +550,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         const stopButton=action(doc,'',()=>void stopCardRun(plan,activeFire),
           'od-icon-button schedule-plan-action');
         stopButton.dataset.scheduleAction='stop';
+        stopButton.dataset.runId=activeFire.runId;
         stopButton.setAttribute('aria-label',stopLabel);stopButton.title=stopLabel;
         stopButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
         stopButton.disabled=host.currentRun!==activeFire.runId;
