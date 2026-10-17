@@ -1237,7 +1237,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-approve'),'click',event=>answerObservation(event,true));
   listen(get('workflow-ai-deny'),'click',event=>answerObservation(event,false));
   const onNewSessionClick=event=>{
-    if(!event.isTrusted||busy)return;
+    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    closeHistory();
+    observationApproval=null;persistObservationApproval();
     clearChat();
     verifiedTurnHistory=[];lastProviderTurn=null;
     get('workflow-ai-request').focus?.({preventScroll:true});
@@ -1247,7 +1249,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     },error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);});
   };
   if(!workflowReact)listen(get('workflow-ai-new-session'),'click',onNewSessionClick);
-  listen(get('workflow-ai-resume'),'click',event=>{
+  const onResumeSessionClick=event=>{
     if(!event.isTrusted||busy||provider()!=='local_codex')return;
     // This explicit action only resumes the selected local provider, not web observation.
     const consent={model:true,workflow:true,observation:false};
@@ -1261,31 +1263,47 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       status('已恢复本机对话。继续发送需求即可；本次恢复没有执行网页操作。');
     })().catch(error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);})
       .finally(()=>{if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;if(!disposed)updateButtons();}});
-  });
+  };
+  listen(get('workflow-ai-resume'),'click',onResumeSessionClick);
+  const onOpenSavedHistory=(key,event)=>{
+    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+    get('workflow-saved-list').value=key;
+    void loadSaved().then(()=>{if(!disposed){closeHistory();get('workflow-ai-request').focus?.({preventScroll:true});}})
+      .catch(error=>status(format(error),true));
+  };
   function commitNewWorkflow(){
     
     dismissNewReview();
+    closeHistory();
     void stopPlanning({close:true}).catch(()=>{});
+    observationApproval=null;persistObservationApproval();
     verifiedTurnHistory=[];lastProviderTurn=null;
+    lastTrustedRun=null;runId=null;onRunOwner(null);
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
     revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
     clearChat();
     get('workflow-manage-panel').hidden=true;
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
+    newReviewReturnFocus=null;
     get('workflow-ai-request').value='';
     render();persistDraft();
     get('workflow-ai-request').focus?.({preventScroll:true});
     status('');
   }
-  const workflowReviewSignature=()=>JSON.stringify([workflow,phase]);
+  const workflowReviewSignature=()=>JSON.stringify([workflow,phase,get('workflow-ai-request').value]);
   const onNewWorkflowClick=event=>{
     if(!event.isTrusted||busy&&phase!=='planning')return;
-    const dirty=Boolean(workflow.steps.length ||
-      workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
+    if(host.executionPending||host.currentRun){
+      status('当前网页任务仍在执行，请先停止或完成，再新建工作流。',true);return;
+    }
+    const dirty=(Boolean(workflow.steps.length ||
+      workflow.title!=='新工作流' || workflow.description) && !matchesRevision())
+      || Boolean(get('workflow-ai-request').value.trim());
     if(dirty){
+      newReviewReturnFocus=get('workflow-ai-request');
       newReviewSignature=workflowReviewSignature();
       get('workflow-new-review').hidden=false;
-      status('请在页面内选择保留或明确放弃当前工作流草稿。',true);
+      status('请确认是否保留当前尚未保存的内容。');
       get('workflow-new-cancel').focus?.({preventScroll:true});
       return;
     }
@@ -1293,11 +1311,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   if(!workflowReact)listen(get('workflow-new'),'click',onNewWorkflowClick);
   workflowReact?.connectWorkflowEvents({
-    onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick
+    onHistory:onHistoryClick,onNewSession:onNewSessionClick,onNewWorkflow:onNewWorkflowClick,
+    onResumeHistory:(_key,event)=>onResumeSessionClick(event),
+    onOpenSavedHistory
   });
   listen(get('workflow-new-cancel'),'click',event=>{
     if(!event.isTrusted)return;
-    dismissNewReview();status('草稿已保留。');
+    const focus=newReviewReturnFocus;
+    dismissNewReview();newReviewReturnFocus=null;status('草稿已保留。');
+    focus?.focus?.({preventScroll:true});
   });
   listen(get('workflow-new-discard'),'click',event=>{
     if(!event.isTrusted||busy&&phase!=='planning'||newReviewSignature===null)return;
