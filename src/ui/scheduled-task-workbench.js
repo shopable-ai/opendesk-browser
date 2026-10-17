@@ -444,23 +444,44 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       .filter(row=>row.querySelector('.schedule-run-details')?.open)
       .map(row=>row.dataset.fireId));
   }
+  async function stopCardRun(plan,fire){
+    // A list card may stop only the exact admitted scheduled Fire owned by
+    // this Host. Pausing a plan does not stop a running Controller execution.
+    const current=allPlans.find(item=>item.scheduleId===plan.scheduleId)
+      ?.history?.find(item=>item.fireId===fire.fireId);
+    if(busy||!current||!['ADMITTED','RUNNING'].includes(current.status)||
+      !current.runId||current.runId!==fire.runId||host.currentRun!==current.runId){
+      message('当前执行不属于此运行宿主；请打开运行页核对。',true);return;
+    }
+    busy=true;
+    try{
+      await host.stop({runId:current.runId,controller:true});
+      message('停止请求已发送；是否真正停止，请以运行记录为准。');
+    }catch(error){
+      message('停止请求结果未确认，请查看运行历史后再操作：'+
+        (error?.message||String(error)),true);
+    }finally{busy=false;}
+  }
   function renderPlans(){
     rememberDetailState();
     const parent=get('schedule-plan-list');
     const focused=doc.activeElement?.closest?.('.schedule-card');
     const focusedId=focused&&parent.contains(focused)?focused.dataset.scheduleId:null;
-    const focusSelectors=['.schedule-plan-open','.schedule-plan-actions button:first-child',
-      '.schedule-plan-actions button:nth-child(2)'];
-    const focusedSelector=focusedId?focusSelectors.find(selector=>
-      doc.activeElement?.matches?.(selector)):null;
+    const focusAction=doc.activeElement?.dataset?.scheduleAction;
+    const focusedSelector=focusedId?doc.activeElement?.matches?.('.schedule-plan-open')?
+      '.schedule-plan-open':(['stop','toggle','edit'].includes(focusAction)?
+        '.schedule-plan-actions [data-schedule-action="'+focusAction+'"]':null):null;
     const ids=new Set(allPlans.map(plan=>plan.scheduleId));
     for(const id of historyViews.keys())if(!ids.has(id))historyViews.delete(id);
     parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
     const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
+    const paused=allPlans.filter(p=>p.paused).length;
+    const running=allPlans.filter(p=>(p.history||[]).some(f=>
+      ['ADMITTED','RUNNING'].includes(f.status))).length;
     get('schedule-list-summary').hidden=!allPlans.length;
     text(get('schedule-list-summary'),allPlans.length?
-      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排下次执行`:
+      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排 · ${paused} 个已暂停 · ${running} 个运行中`:
       '');
     if(!allPlans.length){
       const empty=element(doc,'div','schedule-empty od-stack');
@@ -490,25 +511,53 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         'od-button od-button--quiet schedule-plan-open'));
       const state=element(doc,'span','schedule-state',presentation.badge);
       state.dataset.tone=presentation.tone;
+      // Plan lifecycle and last Fire are independent: an active run may belong
+      // to a plan that is still scheduled for another occurrence.
+      const phase=presentation.badgeSource==='fire'&&presentation.planState!=='暂无后续计划'?
+        element(doc,'span','schedule-plan-phase','计划：'+presentation.planState):null;
       const toolbar=element(doc,'div','schedule-plan-actions od-toolbar');
       toolbar.setAttribute('aria-label','计划快捷操作');
       const toggleLabel=(plan.paused?'恢复计划「':'暂停计划「')+plan.title+'」';
       const toggle=action(doc,'',()=>void change(plan,plan.paused?'resume':'pause'),
         'od-icon-button schedule-plan-action');
       toggle.setAttribute('aria-label',toggleLabel);toggle.title=toggleLabel;
+      toggle.dataset.scheduleAction='toggle';
+      // A completed one-off or an already concluded one-off has nothing to
+      // "resume"; editing/re-scheduling is a separate explicit operation.
+      const togglable=plan.paused||plan.triggerKind!=='once'||Number.isFinite(plan.nextDueAt);
+      toggle.disabled=Boolean(plan.paused&&plan.needsAttention);
+      if(toggle.disabled)toggle.title='请先处理固定任务与网站权限，再恢复计划';
       toggle.innerHTML=plan.paused?
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7Z"/></svg>':
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"/></svg>';
       const editLabel='编辑计划「'+plan.title+'」';
       const editButton=action(doc,'',()=>edit(plan),'od-icon-button schedule-plan-action');
       editButton.setAttribute('aria-label',editLabel);editButton.title=editLabel;
+      editButton.dataset.scheduleAction='edit';
       editButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4Z"/></svg>';
-      toolbar.append(toggle,editButton);
-      head.append(state,toolbar);
-      const next=element(doc,'p','schedule-next-time',presentation.timingText);
-      card.append(head,next);
+      const activeFire=view.records.find(fire=>
+        ['ADMITTED','RUNNING'].includes(fire.status)&&typeof fire.runId==='string'&&fire.runId);
+      if(activeFire){
+        const stopLabel='停止本次执行「'+plan.title+'」';
+        const stopButton=action(doc,'',()=>void stopCardRun(plan,activeFire),
+          'od-icon-button schedule-plan-action');
+        stopButton.dataset.scheduleAction='stop';
+        stopButton.setAttribute('aria-label',stopLabel);stopButton.title=stopLabel;
+        stopButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+        stopButton.disabled=host.currentRun!==activeFire.runId;
+        if(stopButton.disabled)stopButton.title='仅当前运行宿主可停止此执行；请到运行页核对';
+        toolbar.append(stopButton);
+      }
+      if(togglable)toolbar.append(toggle);
+      toolbar.append(editButton);
+      head.append(state);
+      if(phase)head.append(phase);
+      head.append(toolbar);
+      const next=element(doc,'p','schedule-next-time',presentation.nextText);
+      const frequency=element(doc,'p','schedule-plan-frequency',presentation.frequencyText);
+      card.append(head,next,frequency);
       if(presentation.recentText){
-        const last=element(doc,'p','schedule-recent-result',presentation.recentText);
+        const last=element(doc,'p','schedule-recent-result','最近：'+presentation.recentText);
         last.dataset.tone=presentation.recentTone;card.append(last);
       }
       card.addEventListener('click',event=>{
@@ -520,7 +569,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(focusedId&&focusedSelector){
       const restored=[...parent.querySelectorAll('.schedule-card')].find(card=>
         card.dataset.scheduleId===focusedId);
-      restored?.querySelector(focusedSelector)?.focus();
+      (restored?.querySelector(focusedSelector)||restored?.querySelector('.schedule-plan-open'))
+        ?.focus({preventScroll:true});
     }
   }
   function renderDetail(){
