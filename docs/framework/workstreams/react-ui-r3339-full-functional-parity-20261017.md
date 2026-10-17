@@ -154,3 +154,12 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 1. Bookmark Manager/Trusted Runtime owner 在其负责源码中修复 React 特权来源问题；Cookie Editor Trusted provenance 若仍 FAIL 须由对应 owner 解决，不删除测试。
 2. 最新 main 重跑 `node scripts/preview/build-sidebar-six-react-preview.mjs --check`、受影响 `task-workbench.test.mjs`、六 Tab Chromium 点击回放与 360/420/520/200% 溢出检查，保留 artifact 对应 SHA。
 3. Mac 已安装 Chrome 实测任务包导入、固定身份审核、已安装工具使用、定时计划保存/执行/停止/未知结果；再补工作流、开发、云控和调试业务缺口。
+
+### R33.3.11 独立 Chromium 复核（生成器原件，非 Native）
+
+- 安全补丁 `a1b2618`：切换到开发 Tab 或任务文件导入成功进入开发页后，焦点恢复至可见的开发 Tab；添加面板关闭时只有仍在「我的」才聚焦原「添加」按钮。
+- 使用 [Actions 39036612758](https://github.com/shopable-ai/opendesk-browser/actions/runs/39036612758) 的 `9352213` 六 Tab 生成 HTML 原件（`od-source-input-sha256=27520aa3fb7df208c7de23b131ea15a89bc371dda1d4b6541fa90ff327805a87`），在隔离 Linux Chromium 的 Playwright `set_content` 模式进行点击、布局和表单检查。该方式是真实 JS 渲染/浏览器指针事件，**不是** Chrome Extension 安装、Host 或 Native 验收。
+- 复核矩阵：360 / 420 / 520px 各包含任务列表及添加、定时列表/表单/任务管理/每周/间隔、扩展列表/已安装使用/设置/返回/未安装详情、工作流/开发/云控/调试视图；另在 360px 做 200% 缩放计划编辑。**63 项断言 PASS，0 项 FAIL**；主内容区与预览舞台 3 个宽度及 200% 均未发现水平溢出；捕获 JS pageerror / console.error 均为空。该记录针对 `9352213`，不扩大解释为后续全仓库 CI 全绿。
+- 所有操作不写入实际 Chrome 用户数据；测试中的计划/安装/草稿仅内存 Fixture。UI 测试成功也不足以给出五维 95+ 或 Mac Native PASS。
+- 外部工作流仍存在 Trusted Bookmark React 来源约束及 Cookie provenance（待仓库最新 OWNER / CI 复核），不因为离线 Chromium PASS 而放行正式发布。
+
