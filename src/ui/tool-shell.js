@@ -89,6 +89,7 @@ if(importHost&&originalImport)importHost.append(originalImport);
 // The installed extension list is the first React-owned region. Installer,
 // detail, dynamic tool sandbox and the other tabs keep their original owners.
 const extensionList=mountExtensionList(document);
+if(extensionList.myTasksMounted)taskWorkbench.connectReactMyTasks(extensionList);
 // Render the trusted workflow portals BEFORE WorkflowView registers business
 // handlers; React owns the header/modal, the original view retains Authority.
 const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
@@ -177,7 +178,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       historyUI?.mount(document);
       trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??null;
     }
-    cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
+    cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList});
     startScheduledHost();
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
     return;

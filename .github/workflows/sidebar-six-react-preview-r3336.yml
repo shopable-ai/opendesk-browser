@@ -35,6 +35,7 @@ jobs:
             tests/environment/react-sidebar-r333.test.mjs \
             tests/environment/react-sidebar-render-r3331.test.mjs \
             tests/environment/react-debug-bridge-r3337.test.mjs
+            tests/environment/react-my-cloud-r3338.test.mjs
           npm run check
       - name: Install CJK fonts for truthful Chinese visual review
         run: |
@@ -111,6 +112,7 @@ jobs:
             tests/environment/workflow-ui-states.test.mjs \
             tests/environment/workflow-focus.test.mjs \
             tests/environment/cloud-control-sidebar-r28.test.mjs \
+            tests/environment/react-my-cloud-r3338.test.mjs \
             tests/environment/react-debug-bridge-r3337.test.mjs \
             tests/environment/sidebar-component-contract.test.mjs \
             tests/environment/ui-layout-conventions-r27.test.mjs

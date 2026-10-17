@@ -5,6 +5,8 @@ import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty} from '../
 import {DeveloperActions,DeveloperFramework,DeveloperRunStatus} from '../tabs/develop.tsx';
 import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
 import {DebugDiagnosticText} from '../tabs/debug.tsx';
+import {MyTaskCount,MyTaskRows,MyTaskDetail} from '../tabs/tasks.tsx';
+import {CloudOverviewText} from '../tabs/cloud.tsx';
 
 // UI_PREVIEW_ONLY. No browser permissions, storage, Host, Provider, compiler or Task Authority.
 // Every visible product panel and every product React component is imported from
@@ -24,6 +26,13 @@ const toolbar=get('extension-center-list-view').querySelector('.ec-toolbar');
 const extensionList=get('extension-center-list');
 const extensionDetail=get('extension-center-detail-body');
 const extensionEmpty=get('extension-center-empty');
+const myCount=get('task-installed-count'),myRows=get('task-installed-cards');
+const myDetail=get('task-installed-detail'),myWorkspace=get('task-selected-workspace');
+const cloudKeys={myState:'cloud-my-state',summary:'cloud-overview-state',
+  provider:'cloud-overview-provider',connection:'cloud-overview-connection',
+  host:'cloud-overview-host',slot:'cloud-overview-slot',
+  tasks:'cloud-overview-tasks',requests:'cloud-overview-requests'};
+const cloudNodes=Object.fromEntries(Object.entries(cloudKeys).map(([key,id])=>[key,get(id)]));
 const developerChoices=get('page-component-framework').querySelector('.page-component-choices');
 const developerDock=get('develop-dock').querySelector('.dock-buttons');
 const developerStatus=get('script-status');
@@ -39,6 +48,7 @@ const debugIds={
 const debugNodes=Object.fromEntries(Object.entries(debugIds).map(([key,id])=>[key,get(id)]));
 if(!toolbar||!developerChoices||!developerDock||!workflowHeader)throw Error('E_SIDEBAR_PREVIEW_PORTAL');
 for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,
+  myCount,myRows,myDetail,...Object.values(cloudNodes),
   developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript,
   ...Object.values(debugNodes)])
   node.replaceChildren();
@@ -80,6 +90,7 @@ function Preview(){
   const [scope,setScope]=React.useState('smart');
   const [menuOpen,setMenuOpen]=React.useState(false);
   const [selected,setSelected]=React.useState(null);
+  const [selectedTask,setSelectedTask]=React.useState('preview-task');
   const [framework,setFramework]=React.useState('javascript');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
@@ -95,6 +106,19 @@ function Preview(){
       actions:[],busy:false,suspended:scene==='denied',cleanupPending:false}:null;
   })();
   const transcript=messages[scene]||[];
+  const taskRows=scene==='empty'||scene==='loading'?[]:[
+    {taskId:'preview-task',title:'示例自动化（仅预览）',
+      description:'来自原 TaskWorkbench 的任务资料投影',enabled:scene!=='denied'},
+    {taskId:'preview-off',title:'已停用任务（仅预览）',
+      description:'保留版本、权限及原始执行身份',enabled:false}
+  ];
+  const cloudPreview={
+    myState:labels[scene],summary:'云控状态展示 · UI_PREVIEW_ONLY',
+    provider:scene==='normal'?'未配对':'待核对',
+    connection:scene==='normal'?'未连接':labels[scene],
+    host:scene==='normal'?'未就绪':'待核对',
+    slot:scene==='normal'?'不可用':'待核对',tasks:'0',requests:'0'
+  };
   const debugPreview={
     summary:'只读诊断 · '+labels[scene],pairing:'未检测',connection:'未连接',
     reconcile:'未检测',slot:'未检测',taskCount:'—',requestCount:'—',
@@ -195,8 +219,9 @@ function Preview(){
         <option value={520}>520px</option>
       </select></label>
       <span className="od-sidebar-preview-label" role="status">
-        {labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'||tab==='cloud'?
-          '原生 DOM Owner（React 待迁移）':tab==='tools'?
+        {labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
+          'React 任务列表/详情 + 原生执行与定时计划':tab==='cloud'?
+          'React 只读概览 + 原生授权与请求队列':tab==='tools'?
           'React 列表/详情 + 原生其余业务':tab==='develop'?
           'React 局部控件 + 原生编辑器':'React 标题/对话/设置 + 原生执行'}</span>
       {notice&&<span className="od-sidebar-preview-label" role="status">{notice}</span>}
@@ -215,6 +240,14 @@ function Preview(){
     {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
       emptyText:'UI_PREVIEW_ONLY · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
     {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
+    {createPortal(<MyTaskCount value={taskRows.length+' 个 · UI_PREVIEW_ONLY'}/>,myCount)}
+    {createPortal(<MyTaskRows rows={taskRows} selectedId={selectedTask}
+      workspace={myWorkspace} onSelect={setSelectedTask}
+      emptyText={'暂无任务 · UI_PREVIEW_ONLY'}/>,myRows)}
+    {createPortal(<MyTaskDetail value={taskRows.find(row=>row.taskId===selectedTask)?
+      '仅预览：任务版本与网站授权仍由原 TaskWorkbench 管理':''}/>,myDetail)}
+    {Object.entries(cloudNodes).map(([key,node])=>
+      createPortal(<CloudOverviewText value={cloudPreview[key]}/>,node,'cloud-'+key))}
     {createPortal(<DeveloperFramework model={{mode:framework,compilerEnabled:true,
       onSelect:setFramework}}/>,developerChoices)}
     {createPortal(<DeveloperRunStatus node={developerStatus}

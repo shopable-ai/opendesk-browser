@@ -23,6 +23,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
+  let reactMyTasks=null; // UI sink only, no duplicate task store or Host.
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, catalogSelectionEpoch=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
@@ -331,6 +332,32 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     for(const value of ['all','current','disabled'])
       get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
     get('local-discover-count').textContent=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
+    if(reactMyTasks?.myTasksMounted){
+      const emptyText=!installed.length?'暂无任务。点击上方「添加」导入本地任务。'
+        :localFilter==='current'&&!origin?'当前网页不可用。选择「全部」查看已安装任务。'
+        :localFilter==='disabled'&&!localQuery?'没有已停用任务。'
+        :'没有匹配的任务。试试其他关键词或选择「全部」。';
+      const rows=visible.map(row=>{
+        const info=candidateFor(row);
+        return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
+          title:info?.manifest.title||row.taskId,
+          description:info?.manifest.description||'已安装任务'};
+      });
+      reactMyTasks.renderMyTaskRows({rows,selectedId:selected,emptyText,
+        onSelect:taskId=>{
+          if(disposed||!installed.some(row=>row.taskId===taskId))return;
+          get('task-installed-list').value=taskId;renderInstalledSelection();
+        }});
+      if(focusedInWorkspace&&workspace.hidden)
+        (get('task-search-panel').hidden?get('task-search-toggle'):
+          get('local-discover-search')).focus?.({preventScroll:true});
+      else if(focusedInWorkspace&&focused?.isConnected!==false)
+        focused.focus?.({preventScroll:true});
+      else if(focusedTaskId&&!visible.some(row=>row.taskId===focusedTaskId))
+        (get('task-search-panel').hidden?get('task-search-toggle'):
+          get('local-discover-search')).focus?.({preventScroll:true});
+      return; // React alone owns card children and moves the original live form.
+    }
     // Move the same live controls under the selected card, never recreate them.
     // Filtering is a view only: neither installed identity nor task params change.
     parent.replaceChildren();
@@ -391,7 +418,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   function renderInstalled() {
     const count=get('task-installed-count');
-    if(count)count.textContent=installed.length+' 个';
+    if(reactMyTasks?.myTasksMounted)reactMyTasks.renderMyTaskCount(installed.length+' 个');
+    else if(count)count.textContent=installed.length+' 个';
     const sel=get('task-installed-list'),prior=sel.value;
     sel.replaceChildren(option(installed.length?'请选择已安装任务':'暂无已安装任务',''));
     for(const row of installed) {
@@ -404,9 +432,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   function renderInstalledSelection() {
     const row=installedRow(),info=candidateFor(row);
-    get('task-installed-detail').textContent=info
+    const detailText=info
       ?`适用网站：${info.manifest.siteOrigins.join('、')}\n所需能力：${info.manifest.permissions.join('、')}\n来源：${info.manifest.source} · v${row.version}`
       :'';
+    if(reactMyTasks?.myTasksMounted)reactMyTasks.renderMyTaskDetail(detailText);
+    else get('task-installed-detail').textContent=detailText;
     get('task-result-panel').hidden=true;
     get('task-history-panel').hidden=true;
     get('task-result').textContent='';
@@ -916,6 +946,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }).catch(fail);
   navigate('tasks',{initial:true});update();
   return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
+  connectReactMyTasks(view){
+    if(disposed||reactMyTasks||!view?.myTasksMounted)return;
+    reactMyTasks=view;view.renderMyTaskCount(installed.length+' 个');renderInstalledCards();
+  },
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();
