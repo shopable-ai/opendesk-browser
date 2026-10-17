@@ -196,3 +196,12 @@ function RenderTrustedCookieArea({container, snapshot, actions, admitted}) {
 下一轮**先在 Cookie 独立目录准备最小可复用 JSX/纯 UI 试验**，只有证明必须由宿主固定挂载时才调整 `src/ui/react/main.tsx` / 共用 Button，且必须先核对正在更新的 R33 代码和实际所有权。不可为了 Cookie 试点重写“我的/扩展/工作流/开发/云控/调试”，不可修改 Standard/Developer 动态工具编译或已有 Vue/JS 安装边界。所有修改只在 `main`、正常提交/推送自身变更；冲突时暂停冲突文件，其余独立部分照常推进。
 
 **本文在保存时仍只是静态设计与下一轮实装门槛：本项新的 Trusted Cookie React 原生试点、正式迁移与 Mac Chrome 安装验收全部为 `NOT_TESTED`。**
+
+
+## R5.0 · 2026-10-17 静态可信 React 试点（实施状态按证据分层）
+
+- 源码：`examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx` 为新纯展示 JSX View；宿主 `src/ui/react/main.tsx` 使用唯一 React Root 的 Portal 挂载它，静态 fixture 和交互归属 `src/ui/react/tabs/cookie-pilot.tsx`；公开 Button/IconButton 和宿主 Tokens/CSS 已在试点中消费。无第二 React Root、Cookie 工具 iframe 替换、真实 Cookie 值读取。
+- 安全：新增 `src/ui/trusted-cookie-admission.js`，要求精确官方版本 2.0.23、包摘要、发行来源、安装身份、启停和撤权 epoch；普通动态 JSON 不准自我声明可信。试点仅在开发构建的 **debug** Tab，并且 URL 显式 `cookieReactPilot=1` 且具备有效 `hostInstanceId` 时尝试挂载。工具真实业务仍使用旧沙箱。
+- 尚未完成：已批准完整预览 `preview/react/src/App.jsx` 尚未从新 JSX View 抽取；其 `preview/react/index.html` 保留原编译版，避免不经 Vite 重建造成源码/产物漂移。**目前不可宣称单 JSX 源正式迁移完成**。正式 Cookie Editor 2.0.23、安装 JSON、SDK/Host、原 HTML/CSS/JS 全部未改。
+- 路线结论：Trusted 替代正式工具为 **NO-GO**，直到共享 View 完整覆盖当前获批 R4.11 UI、正式 SDK adapter/敏感值/撤权与用户手势/安装升级、离线 HTML React19 重建及真实构建测试通过。本实施中的源码检查并不自动证明 Browser/CI/Mac Native PASS。
+- 定向检查入口：`node --test tests/environment/cookie-editor-r50-trusted-pilot.test.mjs`。当前远端仅源码写入的证据等级为 SOURCE_WIRED；构建/Chromium/Mac 原生一律未在本轮执行则记 NOT_TESTED。开发人工试点不得冒充正式授权或安装验收。

@@ -8,6 +8,8 @@ import {WorkflowHeader,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultTe
 import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
 import {CloudOverviewText} from './tabs/cloud.tsx';
+import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
+import './tabs/cookie-pilot.css';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -202,6 +204,7 @@ export function mountExtensionList(doc){
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
   let debugModel=debugInitial;
   let myRowsModel={rows:[],selectedId:'',emptyText:'',onSelect:()=>{}};
+  let cookiePilotHost=null;
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
   function paint(){
     if(disposed)return;
@@ -221,6 +224,7 @@ export function mountExtensionList(doc){
       {cloudOverviewMounted&&Object.entries(cloudNodes).map(([key,node])=>
         createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
+      {cookiePilotHost&&createPortal(<CookieTrustedPilot/>,cookiePilotHost)}
       {workflowMounted&&createPortal(
         <WorkflowHeader model={workflowHeaderModel} actions={workflowActions}/>,workflowHeader)}
       {workflowMounted&&createPortal(
@@ -264,6 +268,26 @@ export function mountExtensionList(doc){
     owner:'extension-list',
     debugMounted,
     myTasksMounted,cloudOverviewMounted,
+    mountCookieEditorPilot(container){
+      // An opt-in, development-only *data-free* demo. No package JS is read
+      // and the real Cookie Tool keeps its original iframe and SDK Host.
+      if(disposed||cookiePilotHost||!debugMounted||!container||
+        container.ownerDocument!==doc||container.childNodes.length||
+        container.dataset.opendeskReactOwner)
+        throw new Error('E_COOKIE_TRUSTED_PILOT_MOUNT');
+      cookiePilotHost=container;
+      container.dataset.opendeskReactOwner='cookie-react-pilot';
+      paint();
+      let released=false;
+      return ()=>{
+        if(released)return;released=true;
+        if(cookiePilotHost===container){
+          cookiePilotHost=null;
+          if(!disposed)paint();
+          delete container.dataset.opendeskReactOwner;
+        }
+      };
+    },
     renderMyTaskCount(value){
       if(disposed||!myTasksMounted)return;myCountText=String(value);paint();
     },
@@ -385,6 +409,7 @@ export function mountExtensionList(doc){
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      if(cookiePilotHost){delete cookiePilotHost.dataset.opendeskReactOwner;cookiePilotHost=null;}
       if(myTasksMounted){
         myRows.after(myWorkspace);
         for(const node of [myRows,myCount,myDetail])delete node.dataset.opendeskReactOwner;

@@ -15,6 +15,10 @@ import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountExtensionList} from './react/main.tsx';
+import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
+import {getInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from './sidebar-tools/lifecycle.js';
+import {admitsTrustedCookieEditor,TRUSTED_COOKIE_EDITOR_VERSION} from './trusted-cookie-admission.js';
 import {isActualSidePanelContext} from './sidepanel-context.js';
 import {createUiLocaleController} from './app-localization.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
@@ -89,6 +93,70 @@ if(importHost&&originalImport)importHost.append(originalImport);
 // The installed extension list is the first React-owned region. Installer,
 // detail, dynamic tool sandbox and the other tabs keep their original owners.
 const extensionList=mountExtensionList(document);
+/* Deliberately off in production and regular development. The opt-in URL must
+ * already contain its canonical hostInstanceId; a redirect drops unknown
+ * parameters. The candidate never replaces the installed Cookie iframe. */
+if(debugEnabled&&hostUrl.searchParams.get('cookieReactPilot')==='1'){
+  const debugPage=document.getElementById('workbench-debug');
+  if(debugPage){
+    const surface=document.createElement('section');
+    surface.className='od-surface';
+    surface.setAttribute('aria-label','Cookie React 静态准入试点');
+    const slot=document.createElement('div');
+    slot.textContent='正在核验固定官方 Cookie Editor 2.0.23 发行身份…';
+    surface.append(slot);debugPage.append(surface);
+    void (async()=>{
+      const catalog=await loadOfficialCatalog({api:chrome});
+      const release=catalog.apps.find(row=>row.toolId==='cookie-editor'&&
+        row.version===TRUSTED_COOKIE_EDITOR_VERSION);
+      const installed=await getInstalledSidebarTools(chrome);
+      const tool=installed.find(row=>row.id==='cookie-editor');
+      const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
+        MARKET_PROVENANCE_STORE];
+      const saved=await chrome.storage.local.get(keys);
+      const epochs=saved[TOOL_REVOCATION_EPOCHS_STORE];
+      const admitted=await admitsTrustedCookieEditor({tool,installed,release,
+        enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs,
+        expectedEpoch:epochs?.['cookie-editor']??null,
+        provenance:saved[MARKET_PROVENANCE_STORE]});
+      if(!admitted){
+        slot.textContent='未通过官方静态准入；未挂载可信 Cookie UI。原沙箱工具保持不变。';
+        return;
+      }
+      // Reject a grant revoked during async digest verification.
+      const fresh=await chrome.storage.local.get(keys);
+      if(keys.some(key=>JSON.stringify(fresh[key]??null)!==
+        JSON.stringify(saved[key]??null))){
+        slot.textContent='工具安装状态在核验期间变化；已拒绝挂载。';
+        return;
+      }
+      slot.replaceChildren();
+      const disposePilot=extensionList.mountCookieEditorPilot(slot);
+      let closed=false;
+      const close=()=>{
+        if(closed)return;closed=true;disposePilot();
+        chrome.storage.onChanged.removeListener(onChanged);
+        slot.textContent='安装状态变化，已卸载可信试点。请重新打开测试页。';
+      };
+      const onChanged=(changes,area)=>{
+        if(area==='local'&&keys.some(key=>Object.hasOwn(changes,key)))close();
+      };
+      chrome.storage.onChanged.addListener(onChanged);
+      window.addEventListener('pagehide',close,{once:true});
+      // Only after it has been shown does leaving Debug unmount its React state.
+      let shown=!debugPage.hidden;
+      const observer=new MutationObserver(()=>{
+        if(!debugPage.hidden)shown=true;
+        else if(shown){observer.disconnect();close();}
+      });
+      observer.observe(debugPage,{attributes:true,attributeFilter:['hidden']});
+      window.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
+    })().catch(()=>{
+      slot.textContent='官方准入检查失败；未执行可信 UI。原工具保持不变。';
+    });
+  }
+}
+
 if(extensionList.myTasksMounted)taskWorkbench.connectReactMyTasks(extensionList);
 // Render the trusted workflow portals BEFORE WorkflowView registers business
 // handlers; React owns the header/modal, the original view retains Authority.
