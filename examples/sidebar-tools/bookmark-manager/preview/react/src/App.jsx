@@ -40,7 +40,7 @@ function filteredRows(tree,expanded,query){
 }
 function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.title:'',url=mode==='edit'?(node.url||''):'',folder=mode==='edit'?node.parentId:parentId;return {mode,kind,id:node?.id||null,expected:node?{...node}:null,title,url,parentId:folder,initial:{title,url,parentId:folder}}}
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
-function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请恢复模拟权限后刷新。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
+function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请在工具设置中核对授权后重新打开。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
 function descendants(tree,id){return model.descendantSignatures(tree,id).length}
 function highlightSearchTitle(title,term){
  const q=term.trim();if(!q)return title;
