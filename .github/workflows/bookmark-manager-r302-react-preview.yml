@@ -38,7 +38,8 @@ jobs:
             tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs \
             tests/environment/bookmark-manager-r306-trusted-react.test.mjs \
             tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs \
-            tests/environment/bookmark-manager-r24-lifecycle.test.mjs
+            tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
+            tests/environment/bundle-provenance.test.mjs
       - name: Check formal source
         run: npm run check
       - name: Build official WXT code without promoting or installing any tool package
