@@ -51,7 +51,10 @@ export async function generateWorkflowReactPreview(){
   must(!/<\/style/i.test(officialCss),'CSS contains a style-closing token');
   const temp=await mkdtemp(join(tmpdir(),'opendesk-workflow-react-'));
   try{
+    // React 19's CJS entry reads process.env.NODE_ENV. Browser file:// has
+    // no Node process global; Vite library mode must replace this at build time.
     await build({root,configFile:false,logLevel:'error',
+      define:{'process.env.NODE_ENV':JSON.stringify('production')},
       build:{target:'es2022',outDir:temp,emptyOutDir:true,minify:'esbuild',
         sourcemap:false,cssCodeSplit:false,
         lib:{entry:join(root,'src/ui/react/preview/workflow-preview.tsx'),
