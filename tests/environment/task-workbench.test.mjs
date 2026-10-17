@@ -608,6 +608,18 @@ test('catalog installation stays in the complete directory and directs running b
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
+test('compact task Add rejects Sidebar Tool packages and explains the correct import tab',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  const text=JSON.stringify({format:'opendesk.sidebar-tool.v2',id:'demo-tool',version:'1.0.0'});
+  const input=f.get('task-add-file');
+  input.files=[{name:'demo-tool.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await input.fire('change');await tick();
+  assert.match(f.get('task-add-status').textContent,/扩展工具包/);
+  assert.equal(f.catalogOpens.length,0,'wrong file must not open the task catalog');
+  assert.equal(f.starts.length,0,'wrong file must never execute');
+  assert.equal(input.value,'','failed selection can be retried');
+});
+
 test('catalog JS import hands source to Sidebar and never enters a view with a hidden runner',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const source='async function main() { return "file draft"; }';
