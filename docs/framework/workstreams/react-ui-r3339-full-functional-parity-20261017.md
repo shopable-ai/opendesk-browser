@@ -121,3 +121,36 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 正式五 Tab 的 Native 逐入口完整覆盖、Chrome 已安装开发包、权限、Provider/RunHost、360px/200% 及长中文逐项可用性尚未取得足够证据，继续 `INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED`，95+ 五维评分不得认证。
 
 - 后续 [Actions 39029780977](https://github.com/shopable-ai/opendesk-browser/actions/runs/39029780977) 的 `six-tab-preview` 进入前置 `React/DOM contracts` 后 **FAIL**（11 tests / 10 PASS / 1 FAIL），尚未执行新 Chromium 交互回放。直接原因：并行 Bookmark Trusted React 试点在 `src/ui/react/main.tsx` 中引入 `../../../examples/sidebar-tools/bookmark-manager/...`，违反 `tests/environment/react-sidebar-r333.test.mjs` 的 privileged React UI 禁止导入 examples/sidebar-tools 合同。该门禁与 Cookie 的 `bundle-provenance` 失败原则一致。**不能因为此失败断言计划 UI 已错，也不能为了测试 PASS 放宽安全边界**；须由 Bookmark/Trusted owner 修正经过审核的静态 UI 源码归属。新的 HTML artifact 仅保留生成文件，没有 360px Chromium 截图和通过的交互证据；继续使用经 `b4b07b7a` PASS 的旧 HTML 时必须标出对应 SHA。
+
+## R33.3.11 · 添加任务 / 扩展使用页 / 定时计划导航修复（2026-10-17）
+
+### 已落地源码与 Owner 边界
+
+- 正式「我的」点击添加不再直接把完整 Task Catalog 推入用户视野：`tool.html` 使用顶部紧凑 `task-add-menu`，优先本地 JSON / JS 文件；可显式选择「浏览任务目录 ↗」打开原独立完整目录，或前往「开发」创建脚本。
+- `task-workbench.js` 的新入口**复用原 `readFile(fileOverride)` → `importTaskPackage` / 导入未保存草稿 → 原 Host 验证 → 原 Installer 审阅**，没有新建安装器、隐式授权或后台执行。文件失败提示保留在添加区，关闭可返回原任务列表。
+- 正式 `ExtensionCenter.openRow` 本来已按照 `resolveExtensionRowIntent` 调用 `sidebarTools.openTool`；本轮保留此真实路径。离线 `sidebar-six-preview.tsx` 则纠正已安装条目误入安装前详情：复用正式 `#sidebar-tool-display` 及返回 / 设置 / 卸载 Header，`#sidebar-tool-frame` 中只有 **UI_PREVIEW_ONLY 隔离 Fixture**，不加载或执行扩展。未安装候选仍进入安装审阅；内存更新不冒充 Host 回执。
+- 正式 `schedule-open-runner` 和 `schedule-create` 移至唯一 Header 右侧、34px SVG IconButton，并保留 title / aria-label；不再给运行页按钮设置 textContent 覆盖 SVG。宿主状态仍位于列表正文，原 `ScheduledTaskWorkbench` 的调度、时区、身份固定、历史、草稿保护和回退逻辑保持不变。
+- 离线 Schedule 创建/编辑标题区分、运行入口仅在列表页出现，任务管理使用 Header 单一返回入口；扩展菜单更改显示范围后自动关闭，避免覆盖条目并截获点击。
+
+### 本轮仓库提交
+
+- `0a9f564`：正式任务添加与计划 Header（`tool.html`、`task-workbench.js`、`scheduled-task-workbench.js`、`tool-shell.css`）。
+- `d476079`：任务添加/计划预览。
+- `e307bc2`：扩展使用页复用正式 Header 与隔离 Fixture。
+- `7f637db` / `a1341a1`：同步 Node / Chromium 路由断言。
+- `5ef4a23`：扩展可安装筛选菜单遮挡修复，安装审阅后返回已安装列表。
+- `9352213`：计划任务管理移除重复返回操作。
+
+### 实际验证与尚存阻塞（反方审计）
+
+- `a1341a1` 的 [Actions 39036100075](https://github.com/shopable-ai/opendesk-browser/actions/runs/39036100075)：`six-tab-preview` 中正式 DOM+CSS+React **生成步骤 PASS**，上传 `sidebar-six-react-preview` 单文件 HTML（输入 SHA-256 见页面元数据）；但随后 `react-sidebar-r333.test.mjs` **FAIL**，原因为并行 Bookmark Manager Trusted UI 从 `examples/sidebar-tools` 导入 privileged React 源码。Chromium CI 截图/交互步骤均 **BLOCKED**；`package-gates` 未完成全套验收、运行器被关闭。不要放宽源码来源、安全/Bundle Provenance 合同或假报 CI 绿色。
+- 已从上述 CI artifact 提取确实由生成器构建的 HTML，并在**独立 Linux Chromium + Playwright** 以 DOM 加载模式执行真实点击：六 Tab 初始化、任务添加展开、定时计划列表/创建、已安装扩展用页/设置/返回 **PASS（离线 UI）**，JS pageerror / console.error 为空。发现「可安装」筛选菜单仍覆盖条目，已经在 `5ef4a23` 定向修复，需后续同 SHA 预览复测。
+- 没有执行 Mac Native Chrome 已安装扩展、Host 权限、真实文件安装、真实定时执行和恢复；一律 **NOT_TESTED**。仅静态与离线成功不能支持功能完整性、安全或可靠性 ≥95 的交付评分。
+- 六 Tab 全功能闭环仍未完成：开发编译/安装 UI、工作流执行/历史、云控配对授权、调试刷新脱敏等须按本表原 Owner 继续逐项实际核对；不能为 Preview 重新实现 Host/Installer。
+- 独立专家质量：功能完整性 **待评分**、React/业务边界 **局部验证**、响应式 UX **局部验证**、权限隔离 **Native NOT_TESTED**、回归可靠性 **CI BLOCKED**。在全部真实证据和复核截图完成之前，**不认证五维 95+**。
+
+### 下一步最小闭环
+
+1. Bookmark Manager/Trusted Runtime owner 在其负责源码中修复 React 特权来源问题；Cookie Editor Trusted provenance 若仍 FAIL 须由对应 owner 解决，不删除测试。
+2. 最新 main 重跑 `node scripts/preview/build-sidebar-six-react-preview.mjs --check`、受影响 `task-workbench.test.mjs`、六 Tab Chromium 点击回放与 360/420/520/200% 溢出检查，保留 artifact 对应 SHA。
+3. Mac 已安装 Chrome 实测任务包导入、固定身份审核、已安装工具使用、定时计划保存/执行/停止/未知结果；再补工作流、开发、云控和调试业务缺口。
