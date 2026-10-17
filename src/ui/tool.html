@@ -725,7 +725,7 @@
             <button type="button" id="workflow-source-https" aria-pressed="false">HTTPS</button>
           </div>
           <label for="workflow-ai-provider" class="od-field-label visually-hidden">AI 来源（业务状态）</label>
-          <select id="workflow-ai-provider" class="od-field visually-hidden"><option value="local_codex">Codex</option><option value="cloud_responses">HTTPS · Responses</option><option value="custom_https">HTTPS · Chat Completions</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
+          <select id="workflow-ai-provider" class="od-field visually-hidden" tabindex="-1" aria-hidden="true"><option value="local_codex">Codex</option><option value="cloud_responses">HTTPS · Responses</option><option value="custom_https">HTTPS · Chat Completions</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
           <div id="workflow-https-mode" class="workflow-https-mode" hidden>
             <label for="workflow-https-protocol" class="od-field-label">HTTPS 协议</label>
             <select id="workflow-https-protocol" class="od-field">
