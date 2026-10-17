@@ -19,7 +19,8 @@ class Node {
 const ids=['local-install-review','local-install-summary','local-install-title',
   'local-install-version','local-install-warning','local-install-status',
   'local-install-confirm','local-install-cancel'];
-async function fixture({kind='controller',offline=false,withProof=false,installed=false,withPending=false}={}){
+async function fixture({kind='controller',offline=false,withProof=false,installed=false,withPending=false,
+    revoked=false}={}){
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={getElementById:id=>nodes[id]};
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
@@ -83,9 +84,10 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
     getProject:()=>project,readControllerRun:async({runId:requested})=>{
       seenRuns++;
       assert.equal(requested,runId);
-      return {runs:[{runId,state:'completed',retirementState:'released',
+      return {resultDeliveryDenied:revoked?[runId]:[],runs:[{runId,state:'completed',retirementState:'released',
         resultId,target:{mode:'borrowed',tabId:target.tabId,frameId:target.frameId,
-          documentId:target.documentId,url:target.url,windowId:target.windowId},
+          documentId:target.documentId,url:target.url,windowId:target.windowId,
+          allowedOrigin:'https://example.com'},
         revision:{sourceHash:source.sourceHash}}],
         results:[{runId,resultId,state:'completed',revision:{sourceHash:source.sourceHash},
           outcome:{ok:true}}]};
@@ -174,4 +176,12 @@ test('对账确认原已安装版本后才恢复管理，并清理未知指针',
   assert.equal(f.installedNotices.length,1);
   assert.equal(f.ui.saveLabel(),'管理已安装');
   assert.equal(f.requests.every(x=>x==='listTaskCatalog'),true);
+});
+
+test('历史持久结果已撤权时禁止恢复安装资格',async t=>{
+  const f=await fixture({withProof:true,revoked:true});t.after(f.dispose);
+  f.ui.update();await settle();
+  assert.equal(f.ui.canSave(),false);
+  assert.equal(f.reads,1,'只读查询原 Run，不重放');
+  assert.equal(f.requests.some(x=>/^(verify|install|import|run|preview)/i.test(x)),false);
 });

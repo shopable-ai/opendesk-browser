@@ -457,7 +457,9 @@ for(const siteScope of ['exact','all-sites'])test(`local project mode preserves 
   f.editor.connectLocalProjects(adapter);await tick();
   f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
   f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');
-  assert.equal(f.find('script-save').disabled,true);assert.equal(f.find('manual-source-editor').hidden,true);
+  assert.equal(f.find('script-save').disabled,false,'R2.6 keeps install/status accessible before first Run');
+   assert.equal(f.find('script-save').hidden,false);
+   assert.equal(f.find('manual-source-editor').hidden,true);
   assert.throws(()=>f.editor.importDraft('return 99;'),{code:'E_DEV_MODE'});
   assert.equal(f.starts.length,0,'project selection and preparation never execute source');
   for(let repeat=0;repeat<20;repeat++){
