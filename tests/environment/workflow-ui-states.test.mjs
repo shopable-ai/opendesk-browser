@@ -212,3 +212,37 @@ test('later AI Send retains committed Controller revision for optimistic Save',a
   assert.match(view,/workflow=structuredClone\(result\);touched=true;lastTrustedRun=null/);
   assert.doesNotMatch(view,/workflow=structuredClone\(result\);touched=true;revision=null/);
 });
+
+
+test('R23.11 installed Workflow preserves real host while React owns concise history and model label',async()=>{
+  const [html,css,view,react,components]=await Promise.all([
+    file('src/ui/tool.html'),file('src/ui/tool-shell.css'),
+    file('src/ui/workflow/workflow-view.js'),file('src/ui/react/main.tsx'),
+    file('src/ui/react/tabs/workflow.tsx')
+  ]);
+  const workflow=html.slice(html.indexOf('id="workbench-workflow"'),html.indexOf('id="workbench-develop"'));
+  for(const id of ['workflow-history-react-host','workflow-source-react-host',
+    'workflow-edit-details','workflow-source-local','workflow-source-https',
+    'workflow-https-protocol','workflow-history-toggle','workflow-ai-request'])
+    assert.match(workflow,new RegExp('id="'+id+'"'),id+' missing from production HTML');
+  assert.match(workflow,/id="workflow-ai-provider"[^>]*tabindex="-1"[^>]*aria-hidden="true"/);
+  assert.match(workflow,/id="workflow-ai-model"[^>]*placeholder="输入模型 ID"/);
+  assert.doesNotMatch(workflow,/id="workflow-ai-model"[^>]*value="gpt-4o-mini"/);
+  assert.match(components,/export function WorkflowHistory/);
+  assert.match(components,/export function WorkflowSourceName/);
+  assert.match(components,/onOpenSavedHistory/);
+  assert.match(react,/createPortal\(\s*<WorkflowHistory/);
+  assert.match(react,/createPortal\(\s*<WorkflowSourceName/);
+  assert.match(view,/selected==='local_codex'\?'Codex'/);
+  assert.match(view,/get\('workflow-ai-model'\)\.value\.trim\(\)/);
+  assert.match(view,/saveList\.map\(item=>/);
+  assert.match(view,/const saved=await host\.controller\.getControllerScript/);
+  assert.match(view,/if\(saved\?\.contentHash!==compile\.sourceHash/);
+  assert.match(view,/observationApproval=null;persistObservationApproval\(\)/);
+  assert.match(view,/get\('workflow-ai-request'\)\.value\.trim\(\)/);
+  assert.match(view,/if\(host\.executionPending\|\|host\.currentRun\)/);
+  assert.match(view,/control\.dispatchEvent\(new Event\('change'/);
+  assert.match(css,/\.workflow-history-panel\[hidden\]\{display:none!important\}/);
+  assert.match(css,/\.workflow-source-name\{/);
+  assert.doesNotMatch(components,/(?:createRoot\(|fetch\(|createWorkflowProviderFacade\()/);
+});
