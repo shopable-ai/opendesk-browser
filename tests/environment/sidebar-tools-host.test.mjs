@@ -15,6 +15,7 @@ import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
+import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
@@ -119,7 +120,14 @@ test('built-in host reads default sites and blocks stopped sites before sending 
   const target={snapshot:{status:'available',url},
     capture:()=>({url,origin:'https://new-site.example',tabId:7,documentId:'doc-default'}),
     async revalidate(){return true;}};
-  const f=await hostFixture(t,{tool:toc,target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]]])});
+  // A default all-sites grant exists only for the byte-pinned official installation.
+  // The previous test fixture omitted provenance and correctly failed closed.
+  const pin=OFFICIAL_READING_TOC_RELEASE;
+  assert.equal(toc.version,pin.version);
+  const f=await hostFixture(t,{tool:toc,target,store:new Map([
+    [SIDEBAR_TOOL_STORE,[toc]],
+    [MARKET_PROVENANCE_STORE,{[toc.id]:{marketId:pin.marketId,version:pin.version,sha256:pin.sha256}}]
+  ])});
   let reads=0;
   f.api.tabs={async sendMessage(tabId,message,options){
     reads++;assert.equal(tabId,7);assert.equal(message.expectedUrl,url);
@@ -132,6 +140,14 @@ test('built-in host reads default sites and blocks stopped sites before sending 
   f.ask('toc.navigate',{id:'h-1',sourceId:'s-1'},'2');await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='2'));
   assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);assert.equal(reads,1);
   assert.match(f.frame.contentWindow.sent.at(-1).error.message,/停用/);
+  // Site restored, but lost/forged official provenance must still fail closed.
+  f.store.delete(READING_TOC_SITE_STORE);
+  f.store.delete(MARKET_PROVENANCE_STORE);
+  f.ask('toc.snapshot',{},'3');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='3'));
+  assert.equal(f.frame.contentWindow.sent.at(-1).ok,false);
+  assert.match(f.frame.contentWindow.sent.at(-1).error.message,/身份/);
+  assert.equal(reads,1,'no page read after official provenance is removed');
 });
 
 test('R26 corrupted enable records preserve bytes and refuse execution or changes',async t=>{
