@@ -46,6 +46,18 @@ jobs:
             --no-first-run --virtual-time-budget=3500 \
             --dump-dom "file://$PWD/prototypes/sidebar/workflow/react-preview/index.html" \
             > artifacts/workflow-react-preview/dom.txt
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const dom=readFileSync('artifacts/workflow-react-preview/dom.txt','utf8');
+          const checks=['data-workflow-preview-ready="true"','data-preview-scenario',
+            'id="od-workflow-preview-stage"','id="od-workflow-preview-controls"',
+            'workflow-sheet-overlay','SOURCE_BOUND_UI_PREVIEW'];
+          console.log('OFFLINE_CHROME_DOM_BYTES='+Buffer.byteLength(dom));
+          for(const match of checks)
+            console.log('OFFLINE_DOM_'+match+'='+dom.includes(match));
+          console.log('OFFLINE_DOM_ROOT='+dom.slice(0,280));
+          console.log('OFFLINE_DOM_END='+dom.slice(-280));
+          JS
           grep -q 'data-workflow-preview-ready="true"' artifacts/workflow-react-preview/dom.txt
           grep -q 'data-preview-scenario' artifacts/workflow-react-preview/dom.txt
           "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
@@ -53,13 +65,15 @@ jobs:
             --screenshot="$PWD/artifacts/workflow-react-preview/360.png" \
             "file://$PWD/prototypes/sidebar/workflow/react-preview/index.html"
           test -s artifacts/workflow-react-preview/360.png
-      - name: Upload exact offline HTML and Chromium screenshot
+      - name: Upload exact offline HTML, diagnostic DOM and screenshot
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: workflow-react-r3336-offline-${{ github.sha }}
           path: |
             prototypes/sidebar/workflow/react-preview/index.html
             artifacts/workflow-react-preview/360.png
+            artifacts/workflow-react-preview/dom.txt
           retention-days: 14
       - name: Publish tested HTML as detached Git blob (no main write)
         env:
