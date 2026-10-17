@@ -5,6 +5,7 @@ import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
 import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
 import readingTocCatalog from '../reading-toc/locales.generated.js';
+import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
@@ -30,7 +31,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
     row.title===readingTocCatalog.messages['zh-CN'].title&&
     row.release?.toolId==='reading-toc'&&
+    row.release.sha256===OFFICIAL_READING_TOC_RELEASE.sha256&&
+    row.release.version===OFFICIAL_READING_TOC_RELEASE.version&&
     (!row.installed||(
+      sources[row.id]?.kind==='market'&&
       sources[row.id]?.sha256===row.release.sha256&&row.version===row.release.version
     ));
   const titleOf=row=>readingTocOfficial(row)?uiMessage(readingTocCatalog,language(),'title'):row.title||row.id;

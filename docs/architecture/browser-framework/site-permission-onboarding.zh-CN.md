@@ -24,6 +24,29 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 
 **验收**：官方阅读目录首次安装后在已有 Content Script 的普通网页立即可读取目录，且 `permissions.request=0`、无需写入“启用=true”；主动停用的网站不出现；恢复后自动出现；Side Panel 未打开仍可索引；Chrome 限权/受限网页正确失败；第三方 TOC/剪藏/知识保存不继承官方默认授权；显式停用的旧安装更新后仍停用。相关 Node 测试属于组件证据，Mac Chrome 仍需独立验证。
 
+
+### Extension Lifecycle R1.1：已安装工具的权限与运行类型审计
+
+以下结论来自正式源码声明与现有准入通道，仅表示**源码审计结果**；不把工具已声明能力等同于 Chrome 原生验收 PASS。安装与运行是两回事，默认“可用”不代表自动执行具有副作用的操作。
+
+| 工具 / 类型 | 正常安装后行为 | 自动网页运行 | 必须保留的独立权限 / 用户动作 | 依据与 R1.1 结果 |
+| --- | --- | --- | --- | --- |
+| 阅读目录 / 可信网页 UI | 官方 1.0.8 核验通过后安装即用，现有标签页补注入 | 是：合法页面、未停用且 Chrome 允许时 | 官方包固定 SHA、市场来源、停用与 Chrome Site Access | `src/reading-toc/policy.js`、`page.js`、`src/sidebar-tools/official-reading-toc.js`；已修复 ID 冒用 |
+| Prompt Shortcuts / Sidebar + 固定页面 UI | 可直接打开，已批准站点展示快捷入口 | 是：仅原已批准规则 | 第三方网站范围与右键菜单权限，使用文本仍由用户点击 | `examples/sidebar-tools/prompt-shortcuts/trusted/page.js`、`tool.config.json`；未见可直接删除的额外安装授权 |
+| ChatGPT Mind Map / Page Program | 固定版本/ChatGPT 范围获准后可使用 | 已安装且启用的固定程序按网页规则运行；导图开关由用户操作 | Installed Page identity、网页规则、Chrome User Scripts | `examples/programs/chatgpt-mindmap/`、`src/scripting/user-scripts/installed-programs.js`；沿用原有授权 |
+| Cookie Editor / Sidebar Tool | 预装后可直接打开编辑界面 | 否 | Cookie 值读取/写入/清理与浏览器网站权限，危险删除仍由用户确认 | `examples/sidebar-tools/cookie-editor/tool.config.json`；不可因预装默认读取全部 Cookie |
+| Bookmark Manager / Sidebar Tool | 安装后可打开书签管理 | 否 | Chrome Bookmarks 原生许可及写操作 | `examples/sidebar-tools/bookmark-manager/tool.config.json`、`src/platform/chrome/permission-gate.js`；保留按需检查 |
+| AdBlock / Sidebar Tool + Trusted Service | 安装后可打开并配置过滤规则 | 不以普通安装替代用户启用拦截 | DNR / 敏感规则及配置生命周期 | `examples/sidebar-tools/adblock/tool.config.json`、`trusted/lifecycle.js`；不自动撤销敏感确认 |
+| Quick Notes / Sidebar Tool | 预装后立即可打开笔记 | 否 | Storage 与用户主动打开 Task | `examples/sidebar-tools/quick-notes/tool.config.json`；不增加启用步骤 |
+| Knowledge Inbox / Sidebar Tool | 安装后可打开收集界面 | 否 | `page.capture`、`knowledge.store` 及精确网站批准 | `examples/sidebar-tools/knowledge-inbox/tool.config.json`；保留正文采集边界 |
+| Time Review / Trusted UI | 安装后可打开配置；不能仅因安装开始持续记录 | 否 | 明确站点授权、`idle` 与开始记录动作 | `src/ui/sidebar-tools.js` 的 `time.start` 审查；保留独立授权 |
+| Stay Focus / Trusted Service | 安装后可配置限制 | 不因安装自动创建限制规则 | 规则启用、阻断与可恢复控制 | `examples/sidebar-tools/stay-focus/tool.config.json`、`src/stay-focus/lifecycle.js` |
+| AI VIP Share / Sidebar + Proxy | 安装后可打开代理配置 | 否 | `browser.proxy.managed`、`network`、目标站点与明确代理启用 | `examples/sidebar-tools/ai-vip-share/tool.config.json`；不自动切换代理 |
+| 其他官方工具 / Sidebar | Markdown Workbench、Web Markdown Clipper 按需安装后可打开 | 否 | Clip 需网站来源授权；导出由用户动作触发 | `official-tools/catalog.json` 和各自 `tool.config.json` |
+| Page Program / Task / Workflow | 已保存、已安装或已批准才具有运行资格 | 仅固定 Page Program 在匹配范围自动运行 | Task/Workflow 的 Run 或既有定时触发；不可由安装自动执行 | `src/scripting/user-scripts/page-install-authorization.js`、`src/ui/installed-page-tools.js` |
+
+**审计处置**：本轮只修复证实的官方 TOC 默认准入漏洞、现有标签页注入缺失、重复脚本实例、Chrome 访问失效与 Side Panel 身份校验。其余工具没有仅凭上述源码审计就可安全删除的通用二次授权；敏感授权和用户主动停用仍保留，待各自原生端到端验证后再按实际证据做最小修改。
+
 ### 1. 浏览器层声明（唯一入口：根目录 `manifest.json`）
 
 | 层级 | 权限 | 生效方式 |

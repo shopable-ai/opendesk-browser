@@ -280,6 +280,21 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   console.log('TOC_NATIVE_STAGE: installed package recorded');
   assert.equal(installed.version,pkg.version);
   assert.deepEqual(installed.capabilities,['page.toc']);
+  // Static injection plus repeated trusted repair must not mount two overlays
+  // or duplicate the document controller. Test the real Chrome scripting API.
+  const repairReceipt=await evaluate(host,`chrome.tabs.query({}).then(async tabs=>{
+    const target=tabs.find(tab=>tab.url===${JSON.stringify(origin+'/article.html')});
+    if(!target)return {status:'missing'};
+    await chrome.scripting.executeScript({target:{tabId:target.id,allFrames:false},
+      files:['agents/page-relay.js']});
+    await chrome.scripting.executeScript({target:{tabId:target.id,allFrames:false},
+      files:['agents/page-relay.js']});
+    return {status:'done'};
+  })`);
+  assert.equal(repairReceipt.status,'done','Real Chrome could not repair the existing top frame');
+  await eventually(()=>evaluate(articlePage,
+    'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+    'Repeated trusted injection created duplicate floating directories');
   // Unlike a third-party TOC, the installed and enabled built-in reader is
   // intentionally available on ordinary HTTP(S) pages without another grant.
   await eventually(()=>evaluate(articlePage,

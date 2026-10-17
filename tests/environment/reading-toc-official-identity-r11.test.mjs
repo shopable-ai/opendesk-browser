@@ -8,6 +8,7 @@ import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc,MARKET_PROVENANCE
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {tocGrantAllowed,verifyOfficialReadingToc} from '../../src/reading-toc/policy.js';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
 
 const pin=OFFICIAL_READING_TOC_RELEASE;
 const official=()=>({[pin.id]:{marketId:pin.marketId,sha256:pin.sha256,version:pin.version}});
@@ -55,4 +56,16 @@ test('R1.1 unrelated page.toc tools still require positive site permission',asyn
   assert.equal(tocGrantAllowed([other],{},other.id,url),false);
   assert.equal(tocGrantAllowed([other],{'third-party':['https://example.com']},other.id,url),true);
   assert.equal(tocGrantAllowed([other],{'third-party':['https://example.com']},other.id,'https://evil.example'),false);
+});
+
+test('R1.1 the installer reserves the official ID from all local imports and forged reviews',async()=>{
+  const tool=await officialToolFixture(pin.id);
+  const uuid='123e4567-e89b-42d3-a456-426614174000';
+  for(const options of [
+    {candidate:tool,market:null},
+    {candidate:{...tool,js:tool.js+'/* unreviewed */'},market:null},
+    {candidate:tool,market:{marketId:pin.marketId,sha256:'0'.repeat(64),operationId:uuid}}
+  ])await assert.rejects(installReviewedSidebarTool({
+    ...options,reviewApproved:true
+  }),error=>error?.code==='E_OFFICIAL_ID_RESERVED');
 });
