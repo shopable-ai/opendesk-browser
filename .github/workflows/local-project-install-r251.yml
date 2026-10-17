@@ -1,4 +1,4 @@
-name: R25.1 local install fixed-version contracts
+name: R25.1-R2.6 local install fixed-version contracts
 
 on:
   push:
@@ -19,6 +19,9 @@ on:
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'tests/environment/local-project-install-r251.test.mjs'
       - 'tests/environment/local-project-install-ui-r251.test.mjs'
+      - 'tests/environment/local-project-install-ui-r26.test.mjs'
+      - 'prototypes/sidebar/develop/preview-contract.test.mjs'
+      - 'prototypes/sidebar/develop/index.html'
       - 'tests/environment/script-editor.test.mjs'
       - 'tests/environment/local-project-status-ui.test.mjs'
       - 'tests/environment/page-candidate-source.test.mjs'
@@ -48,6 +51,8 @@ jobs:
           node --test \
             tests/environment/local-project-install-r251.test.mjs \
             tests/environment/local-project-install-ui-r251.test.mjs \
+            tests/environment/local-project-install-ui-r26.test.mjs \
+            prototypes/sidebar/develop/preview-contract.test.mjs \
             tests/environment/script-editor.test.mjs \
             tests/environment/page-candidate-source.test.mjs \
             tests/environment/page-program-library.test.mjs \
