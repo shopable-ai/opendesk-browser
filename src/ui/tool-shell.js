@@ -15,6 +15,7 @@ import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountExtensionList} from './react/main.tsx';
+import {isActualSidePanelContext} from './sidepanel-context.js';
 import {createUiLocaleController} from './app-localization.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
@@ -27,17 +28,7 @@ import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 // Chrome can expose a tab-like current context in some builds; classify the
 // exact current document positively before choosing the catalog-only UI.
 // Match the full hostInstanceId URL, not just the extension origin/path.
-export async function isActualSidePanelContext({api,href}={}){
-  if(!api?.runtime?.getContexts||typeof href!=='string'||!href)return false;
-  try{
-    const contexts=await api.runtime.getContexts({
-      contextTypes:['SIDE_PANEL'],documentUrls:[href]
-    });
-    return Array.isArray(contexts)&&contexts.some(row=>
-      row?.contextType==='SIDE_PANEL'&&row.documentUrl===href&&
-      typeof row.documentId==='string'&&row.documentId.length>0);
-  }catch{return false;}
-}
+export {isActualSidePanelContext};
 
 // A source-only UI handoff. It never grants permissions, saves or starts a run.
 export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,receiveDraft}) {

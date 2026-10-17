@@ -44,8 +44,8 @@ jobs:
           cache: npm
       - name: Install locked repository build tools
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Build actual production extension
-        run: npm run build
+      - name: Build actual Developer Edition production extension
+        run: npm run build:developer
       - name: Build original React TOC ECharts JSON from its frozen offline cache
         shell: bash
         env:
@@ -79,7 +79,7 @@ jobs:
           OPENDESK_CFT_PROGRAM: ${{ runner.temp }}/opendesk-react-url-import-program
         run: |
           xvfb-run --auto-servernum node tests/framework/page-url-import-linux-cft.mjs \
-            --package=dist/production \
+            --package=dist/production-developer \
             --draft="$OPENDESK_CFT_PROGRAM/program.opendesk-draft.json" \
             --output=.runtime/tests/react-url-import-cft \
             --headed --install --browser-source
