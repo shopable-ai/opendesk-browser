@@ -19,6 +19,8 @@ const inputs=[
   'src/ui/tool-shell.css',
   'src/ui/react/preview/workflow-preview.tsx',
   'src/ui/react/tabs/workflow.tsx',
+  'src/ui/react/main.tsx',
+  'src/ui/workflow/workflow-view.js',
   'scripts/preview/build-workflow-react-preview.mjs',
   'package.json',
   'package-lock.json'
@@ -72,7 +74,7 @@ export async function generateWorkflowReactPreview(){
       '.od-workflow-preview-copy{flex:1 1 100%;display:grid;gap:3px;font-size:12px}',
       '.od-workflow-preview-copy strong{font-size:13px;font-weight:650}',
       '.od-workflow-preview-copy span{color:var(--od-sub);font-size:11px}',
-      '.od-workflow-preview-controls label{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--od-sub)}',
+      '.od-workflow-preview-controls label{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--od-sub);white-space:nowrap;flex:0 0 auto}',
       '.od-workflow-preview-controls select{min-height:34px;min-width:110px;color:var(--od-ink);'+
         'border:1px solid var(--od-input-border);background:var(--od-paper);border-radius:var(--radius-control);padding:5px 8px}',
       '.od-workflow-preview-frame{padding:12px 10px 20px;display:flex;justify-content:center}',
