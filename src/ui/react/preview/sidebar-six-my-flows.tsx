@@ -38,6 +38,9 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const [managerQuery,setManagerQuery]=React.useState('');
   const [managerFilter,setManagerFilter]=React.useState('all');
   const formBaseline=React.useRef('');
+  const previousPlanView=React.useRef('list');
+  const planListScroll=React.useRef(0);
+  const planEditorScroll=React.useRef(0);
   const [feedback,setFeedback]=React.useState('');
   const selected=plans.find(p=>p.id===selectedId);
   const found=rows.filter(p=>!catalogSearch||
@@ -88,6 +91,16 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     for(const [name,id] of [['list','schedule-list-view'],['detail','schedule-detail-view'],
       ['form','schedule-form'],['manager','schedule-task-manager']])
       get(id).hidden=name!==view;
+    if(mode==='schedule'&&view!==previousPlanView.current){
+      const scroll=get('workspace-content'),previous=previousPlanView.current;
+      if(previous==='list')planListScroll.current=scroll.scrollTop;
+      if(previous==='form'&&view==='manager')planEditorScroll.current=scroll.scrollTop;
+      scroll.scrollTop=view==='list'?planListScroll.current:
+        view==='form'&&previous==='manager'?planEditorScroll.current:0;
+      previousPlanView.current=view;
+      if(view==='form')get('schedule-title').focus({preventScroll:true});
+      if(view==='manager')get('schedule-manager-search').focus({preventScroll:true});
+    }
     get('schedule-panel-title').textContent=view==='form'?(editingId?'编辑定时计划':'创建定时计划'):
       view==='detail'?'计划详情':view==='manager'?'任务管理':'定时计划';
     get('schedule-create').hidden=view!=='list';
