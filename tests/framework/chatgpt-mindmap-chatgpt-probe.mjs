@@ -149,6 +149,57 @@ try{
   assert.ok(report.topicsB>1);
   assert.ok(await viewer(1).locator('.topic:visible').count()>1,'A remains open while B opens');
   report.checks.push('REAL_XMIND_A_AND_B_INDEPENDENT');
+  // Read the actual files Chrome downloaded and inspect the same XMind SDK ZIP
+  // content, not just the renderer's in-memory tree or the filename.
+  const zipDownloadPending=page.waitForEvent('download',{timeout:25000});
+  await viewer(1).locator('.odmm-export-toggle').click();
+  await viewer(1).locator('[data-export="xmind"]').click();
+  const zipDownload=await zipDownloadPending;
+  assert.equal(await zipDownload.failure(),null);
+  assert.match(zipDownload.suggestedFilename(),/\.xmind$/i);
+  const zipBytes=await readFile(await zipDownload.path());
+  assert.deepEqual([...zipBytes.subarray(0,4)],[80,75,3,4],
+    'Actual download must start with ZIP local file signature');
+  const workbook=await page.evaluate(async base64=>{
+    const bytes=Uint8Array.from(atob(base64),char=>char.charCodeAt(0));
+    const zip=await window.JSZip.loadAsync(bytes,{checkCRC32:true});
+    const content=zip.file('content.json');
+    if(!content)throw new Error('Downloaded XMind ZIP lacks content.json');
+    const sheet=JSON.parse(await content.async('string'))?.[0];
+    if(!sheet?.rootTopic)throw new Error('Downloaded XMind root missing');
+    const root=sheet.rootTopic;
+    const records=[];
+    function walk(item,depth){
+      if(depth>12||records.length>160)throw Error('Unexpected workbook depth/size');
+      records.push({title:item.title,depth,note:item.notes?.plain?.content||''});
+      for(const child of item.children?.attached||[])walk(child,depth+1);
+    }
+    walk(root,0);
+    return records;
+  },zipBytes.toString('base64'));
+  assert.ok(workbook.length>3,'Downloaded XMind has real hierarchical topics');
+  assert.ok(workbook.some(item=>item.depth>=2),'Real XMind has nested topics');
+  assert.match(JSON.stringify(workbook),/功能实施计划|核心体验|安全与稳定性/);
+  assert.doesNotMatch(JSON.stringify(workbook),/当回复内容更新时/);
+  await writeFile(join(out,'chatgpt-mindmap-real-answer-A.xmind'),zipBytes);
+  report.xmind={bytes:zipBytes.length,topics:workbook.length,
+    sha256:createHash('sha256').update(zipBytes).digest('hex'),
+    filename:zipDownload.suggestedFilename()};
+  report.checks.push('ACTUAL_XMIND_DOWNLOAD_ZIP_CRC_CONTENT_AND_REPLY_ISOLATION');
+  const mdDownloadPending=page.waitForEvent('download',{timeout:25000});
+  await viewer(1).locator('.odmm-export-toggle').click();
+  await viewer(1).locator('[data-export="outline"]').click();
+  const mdDownload=await mdDownloadPending;
+  assert.equal(await mdDownload.failure(),null);
+  assert.match(mdDownload.suggestedFilename(),/大纲\.md$/);
+  const outline=await readFile(await mdDownload.path(),'utf8');
+  assert.ok(outline.startsWith('# '));
+  assert.match(outline,/核心体验|安全与稳定性/);
+  assert.match(outline,/^  - /m,'Markdown outline must preserve nested branch depth');
+  assert.doesNotMatch(outline,/当回复内容更新时/);
+  await writeFile(join(out,'chatgpt-mindmap-real-answer-A-outline.md'),outline);
+  report.outline={bytes:Buffer.byteLength(outline),filename:mdDownload.suggestedFilename()};
+  report.checks.push('ACTUAL_MARKDOWN_OUTLINE_DOWNLOAD_DEPTH_AND_REPLY_ISOLATION');
   // Download the real SDK's expanded offscreen workbook, never a viewport
   // screenshot or fabricated PNG fixture. Preserve the resulting file so
   // reviewers can inspect the actual pixels independently.
@@ -543,7 +594,7 @@ try{
   await page.waitForFunction(()=>!document.getElementById('preview-conversation')
     ?.classList.contains('is-narrow'),null,{timeout:10000});
   report.responsive=[];
-  for(const width of [375,390,400,440,768,1220,1440]){
+  for(const width of [320,360,375,390,400,440,768,1220,1440]){
     await page.setViewportSize({width,height:860});
     await page.waitForFunction(expected=>document.documentElement.clientWidth===expected,
       width,{timeout:10000});
