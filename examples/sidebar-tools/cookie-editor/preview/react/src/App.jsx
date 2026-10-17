@@ -100,12 +100,16 @@ export default function App(){
  const canWrite=scene!=='readonly'&&granted; const canValues=granted&&scene!=='valuesDenied'; const busy=loading||saving||grantBusy;
  const current=selected==='new'?null:rows.find(x=>x.id===selected);
  const dirty=isDirty(draft,baseline);
+ // Preview scope mirrors the *limited* Host-only clearSite contract. It is
+ // intentionally not a pretend "delete all Cookie values" or domain-wide wipe.
+ const clearCandidates=rows.filter(c=>c.domain===demoSite&&c.storeId==='0'&&!c.partitionKey);
+ const clearKeys=()=>clearCandidates.map(identity).sort();
  const notify=(text,tone='success')=>{setFlash({text,tone});setError('');};
  const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setReveal(false);setPending(null);setError('');};
  const focusAfter=id=>{focusKey.current=id;};
  React.useEffect(()=>{if(focusKey.current){const k=focusKey.current;focusKey.current=null;requestAnimationFrame(()=>document.querySelector(k)?.focus());}},[selected,version]);
  React.useEffect(()=>{if(!flash?.ephemeral)return;const timer=setTimeout(()=>setFlash(v=>v===flash?null:v),2400);return()=>clearTimeout(timer);},[flash]);
- const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setIo(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
+ const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
  const requestSwitch=(id)=>{if(saving||!granted)return;if(selected===id){requestClose();return;}if(selected!==null&&dirty){setPending(id);setError('');return;}openEditor(id);};
  const requestClose=()=>{if(saving)return;if(dirty){setPending('close');return;}const old=selected;resetEditor();if(old&&old!=='new')focusAfter('[data-row="'+old+'"]');else focusAfter('[data-action="new"]');setVersion(v=>v+1);};
  const discard=()=>{const p=pending;setPending(null);if(p==='close'){const old=selected;resetEditor();focusAfter(old==='new'?'[data-action="new"]':'[data-row="'+old+'"]');setVersion(v=>v+1);}else if(p!==null)openEditor(p);};
@@ -220,8 +224,37 @@ export default function App(){
   }catch{setError(kind==='copy'?'未能写入剪贴板；可改用下载。':'无法提交下载请求，请检查浏览器设置。');}
   finally{setSaving(false);}
  };
- const handleConfirm=()=>{if(confirm?.type==='delete')runDelete();};
- const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFileName('');setOverwrite(false);fileReadRef.current++;resetFileDrag();setFailNext('');};
+ const requestClear=()=>{
+  if(!canWrite||busy||needsVerify)return;
+  if(dirty){setError('请先保存或取消当前 Cookie 修改，再清理本站。');return;}
+  if(clearCandidates.length>50){setError('当前可清理 Cookie 超过 50 条，需缩小范围，不会自动分批删除。');return;}
+  if(!clearCandidates.length){notify('当前范围没有可安全清理的 Host-only Cookie。','neutral');return;}
+  setIo(null);setError('');setFlash(null);
+  setConfirm({type:'clear',keys:clearKeys(),count:clearCandidates.length});
+ };
+ const runClear=async()=>{
+  const plan=confirm;
+  if(plan?.type!=='clear'||busy||needsVerify||!canWrite)return;
+  if(JSON.stringify(plan.keys)!==JSON.stringify(clearKeys())){
+   setConfirm(null);setError('Cookie 清理范围已变化，请刷新后重新预检。');return;
+  }
+  const started=epochRef.current;setSaving(true);
+  await sleep(180);
+  if(started!==epochRef.current)return;
+  setSaving(false);setConfirm(null);
+  if(failNext==='unknown'||scene==='unknown'){
+   setFailNext('');setNeedsVerify(true);
+   setError('模拟结果未知：请刷新核对，勿直接重试。');return;
+  }
+  if(JSON.stringify(plan.keys)!==JSON.stringify(clearKeys())){
+   setError('Cookie 身份在确认期间变化，已拒绝执行模拟清理。');return;
+  }
+  const included=new Set(plan.keys);
+  setRows(previous=>previous.filter(c=>!included.has(identity(c))));
+  notify('已模拟安全清理 '+plan.count+' 条本站 Host-only Cookie；其他身份保持不变。');
+ };
+ const handleConfirm=()=>{if(confirm?.type==='delete')runDelete();else if(confirm?.type==='clear')void runClear();};
+ const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setConfirm(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFileName('');setOverwrite(false);fileReadRef.current++;resetFileDrag();setFailNext('');};
  // Escape closes panels, except while an IME owns Escape for candidate selection.
  const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
@@ -242,7 +275,18 @@ export default function App(){
         {grantError&&needsSiteGrant&&<Message tone="error">{grantError}</Message>}
       </section>:<>
        <CookieToolbar count={rows.length} onImport={startImport} onExport={startExport}
-          onNew={()=>requestSwitch('new')} busy={busy} readonly={!canWrite}/>
+          onNew={()=>requestSwitch('new')} onClear={requestClear}
+          clearDisabled={!clearCandidates.length||needsVerify}
+          busy={busy} readonly={!canWrite}/>
+       {confirm?.type==='clear'&&<section className="clear-confirm"
+          role="group" aria-label="确认安全清理本站 Cookie">
+         <strong>安全清理本站 Cookie</strong>
+         <p>将模拟清理 <b>{confirm.count} 条</b>当前主机的 Host-only Cookie（Store 0、非分区）。不会清理父域 Cookie、其他 Store、分区 Cookie 或其他网站。</p>
+         <div className="panel-actions"><button className="text-btn" type="button"
+           onClick={()=>setConfirm(null)}>取消</button>
+           <button className="text-btn danger" type="button" disabled={saving}
+             onClick={handleConfirm}>确认清理 {confirm.count} 条</button></div>
+       </section>}
        <CookieSearch query={query} onQuery={setQuery}
           expandedFilters={expandedFilters}
           onToggleFilters={()=>setExpandedFilters(v=>!v)}
@@ -300,7 +344,7 @@ export default function App(){
             <div className="new-label">新建 Cookie</div>{renderEditor()}</div>:null}
           renderEditor={()=>renderEditor()}/>
        {scene==='readonly'&&<p className="quiet-note">当前仅可查看，编辑与导入需要独立写入授权。</p>}
-       <details className="secondary-tools"><summary>更多 · 清理与变化观察</summary><p>正式版本继续使用既有 Browser SDK 和可信宿主确认；本轮原型不模拟危险批量删除。</p></details>
+       <details className="secondary-tools"><summary>更多 · 变化观察</summary><p>正式观察由 Browser SDK 和可信宿主执行；本预览不模拟真实事件。</p></details>
        {confirm?.type==='delete'&&<section className="confirmation" role="alertdialog" aria-modal="true" aria-label="确认操作"><p>{confirm.message}</p><div className="panel-actions"><button className="text-btn" onClick={()=>setConfirm(null)}>取消</button><button className="text-btn primary" id="r491-export-confirm-yes" onClick={handleConfirm} disabled={saving}>{saving?'处理中…':'确认'}</button></div></section>}
        </>}
    </main>

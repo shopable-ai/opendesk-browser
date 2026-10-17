@@ -74,3 +74,18 @@ test('Cookie import and export arrows remain directionally consistent across sha
   assert.match(preview,/dropzone-symbol"><Icon name="upload"\/>/);
   assert.match(preview,/runExport\('download'\)\}><Icon name="download"\/>下载/);
 });
+
+test('R5.1 dedicated site-clear toolbar button shares the approved React JSX and never claims delete-all',async()=>{
+  const [view,preview,styles]=await Promise.all([
+    readFile('src/ui/react/cookie-editor/CookieEditorView.jsx','utf8'),
+    readFile('examples/sidebar-tools/cookie-editor/preview/react/src/App.jsx','utf8'),
+    readFile('examples/sidebar-tools/cookie-editor/preview/react/src/style.css','utf8')
+  ]);
+  assert.match(view,/<Action name="trash" label="安全清理本站 Cookie"/);
+  assert.match(view,/onClear\} disabled=\{busy\|\|readonly\|\|clearDisabled/);
+  assert.match(preview,/type:'clear',keys:clearKeys\(\),count:clearCandidates.length/);
+  assert.match(preview,/setConfirm\(null\);setError\('Cookie 清理范围已变化/);
+  assert.match(preview,/Host-only Cookie/);
+  assert.doesNotMatch(preview,/更多 · 清理与变化观察/);
+  assert.match(styles,/\.cookie-app \.toolbar-actions \.cookie-clear-action/);
+});

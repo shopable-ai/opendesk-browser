@@ -12,6 +12,7 @@ const shapes={
   download:<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>,
   upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,
   plus:<path d="M12 5v14M5 12h14"/>,
+  trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,
   chevron:<path d="m7 10 5 5 5-5"/>
 };
 export function CookieIcon({name}){
@@ -19,8 +20,9 @@ export function CookieIcon({name}){
     fill="none" stroke="currentColor" strokeWidth="1.7"
     strokeLinecap="round" strokeLinejoin="round">{shapes[name]||null}</svg>;
 }
-function Action({name,label,disabled=false,onClick,pressed}){
-  return <IconButton label={label} className="cookie-react-icon icon-btn"
+function Action({name,label,disabled=false,onClick,pressed,tone='normal'}){
+  return <IconButton label={label}
+    className={'cookie-react-icon icon-btn'+(tone==='danger'?' cookie-clear-action':'')}
     disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}
     onClick={onClick}><CookieIcon name={name}/></IconButton>;
 }
@@ -35,7 +37,8 @@ export function CookieSiteBar({site,loading=false,readonly=false,busy=false,gran
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
 }
-export function CookieToolbar({count=0,onImport,onExport,onNew,busy=false,readonly=false}){
+export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
+  busy=false,readonly=false,clearDisabled=false}){
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
@@ -43,9 +46,11 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,busy=false,readon
         disabled={busy||readonly||typeof onImport!=='function'}/>
       <Action name="download" label="导出 Cookie" onClick={onExport}
         disabled={busy||typeof onExport!=='function'}/>
-      <span className="action-separator"/>
       <span data-action="new"><Action name="plus" label="新建 Cookie"
         onClick={onNew} disabled={busy||readonly||typeof onNew!=='function'}/></span>
+      <span className="action-separator" aria-hidden="true"/>
+      <Action name="trash" label="安全清理本站 Cookie" tone="danger"
+        onClick={onClear} disabled={busy||readonly||clearDisabled||typeof onClear!=='function'}/>
     </div>
   </div>;
 }
@@ -117,7 +122,8 @@ export function CookieEditorView({
   site,rows=[],selected=null,onSelect=()=>{},onRefresh,
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
-  onImport,onExport,onNew,editor=null,busy=false,readonly=false
+  onImport,onExport,onNew,onClear,clearDisabled=false,
+  editor=null,busy=false,readonly=false
 }){
   const matching=row=>[row.name,row.domain,row.path].some(value=>
     String(value||'').toLowerCase().includes(query.toLowerCase()))&&
@@ -132,7 +138,8 @@ export function CookieEditorView({
   return <main className="cookie-react-view" aria-label="Cookie Editor">
     <CookieSiteBar site={site} readonly={readonly} busy={busy} onRefresh={onRefresh}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
-      onNew={onNew} busy={busy} readonly={readonly}/>
+      onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
+      busy={busy} readonly={readonly}/>
     <CookieSearch query={query} onQuery={onQuery}
       expandedFilters={expandedFilters} onToggleFilters={onToggleFilters}
       filter={filter} onFilter={onFilter} sort={sort} onSort={onSort}/>

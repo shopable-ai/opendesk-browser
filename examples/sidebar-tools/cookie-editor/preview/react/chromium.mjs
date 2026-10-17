@@ -37,6 +37,27 @@ try{
    assert.equal(await path('下载'),'M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4');
    await page.getByRole('button',{name:'关闭导出'}).click();
  });
+ await test('clear site is visible beside import/export and requires scoped confirmation',async()=>{
+   const clear=page.getByRole('button',{name:'安全清理本站 Cookie',exact:true});
+   assert.equal(await clear.count(),1);
+   const toolbar=page.locator('.list-toolbar');
+   assert.equal(await toolbar.getByRole('button',{name:'导入 Cookie'}).count(),1);
+   assert.equal(await toolbar.getByRole('button',{name:'导出 Cookie'}).count(),1);
+   assert.equal(await toolbar.getByRole('button',{name:'新建 Cookie'}).count(),1);
+   assert.equal(await toolbar.getByRole('button',{name:'安全清理本站 Cookie'}).count(),1);
+   await clear.click();
+   await page.getByRole('group',{name:'确认安全清理本站 Cookie'}).waitFor();
+   await page.getByText(/不会清理父域 Cookie/).waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),8,'click alone must never clear');
+   await page.getByRole('button',{name:'取消',exact:true}).click();
+   assert.equal(await page.locator('.cookie-row').count(),8,'cancellation preserves every fixture');
+   await clear.click();
+   await page.getByRole('button',{name:/确认清理 6 条/}).click();
+   await page.getByText(/已模拟安全清理 6 条/).waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),2,'domain and partition rows are excluded');
+   await page.locator('[data-testid="scenario"]').selectOption('ready');
+   assert.equal(await page.locator('.cookie-row').count(),8);
+ });
  await test('inline dirty restore and save',async()=>{
    await page.locator('[data-row="b"]').click();await page.locator('#cookie-name').fill('renamed');assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
    await page.locator('#cookie-name').fill('theme');assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
