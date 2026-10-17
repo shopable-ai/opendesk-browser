@@ -883,7 +883,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(open){
       get('workspace-content')?.scrollTo?.({top:0});
       get('task-add-import').focus?.({preventScroll:true});
-    }else get('task-open-catalog').focus?.({preventScroll:true});
+    }else if(doc.documentElement?.dataset?.opendeskTab==='tasks')
+      get('task-open-catalog').focus?.({preventScroll:true});
   }
   listen(get('task-open-catalog'),'click',()=>showTaskAddMenu(taskAddMenu?.hidden!==false));
   if(taskAddMenu){
@@ -894,7 +895,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       showTaskAddMenu(false);navigate('catalog');
     });
     listen(get('task-add-develop'),'click',()=>{
-      if(navigate('develop')!==false)showTaskAddMenu(false);
+      if(navigate('develop')!==false){
+        showTaskAddMenu(false);
+        get('tab-develop').focus?.({preventScroll:true});
+      }
     });
     listen(get('task-add-file'),'change',asyncAction(async()=>{
       const input=get('task-add-file'),file=input.files?.[0];
@@ -902,7 +906,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       try{
         await readFile(file);
         get('task-add-status').textContent=get('task-catalog-status').textContent;
-        if(doc.documentElement?.dataset?.opendeskTab==='develop')showTaskAddMenu(false);
+        if(doc.documentElement?.dataset?.opendeskTab==='develop'){
+          showTaskAddMenu(false);
+          get('tab-develop').focus?.({preventScroll:true});
+        }
       }catch(error){
         get('task-add-status').textContent=formatTaskError(error);
         throw error;
