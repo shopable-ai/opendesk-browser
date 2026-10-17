@@ -9,6 +9,8 @@ on:
       - 'tests/environment/reading-toc-placement-r42.test.mjs'
       - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
       - 'tests/environment/reading-toc-localization-preview-r12.test.mjs'
+      - 'tests/framework/reading-toc-native-r41.test.mjs'
+      - 'examples/sidebar-tools/reading-toc/preview/index.html'
   workflow_dispatch:
 permissions:
   contents: read
