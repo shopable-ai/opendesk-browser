@@ -1,4 +1,4 @@
-name: Bookmark Manager R3.1 · Trusted React Candidate and Chromium
+name: Bookmark Manager R3.2 · Formal React Source and Chromium
 on:
   push:
     branches: [main]
@@ -22,7 +22,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: bookmark-r31-react-${{ github.ref }}
+  group: bookmark-r32-react-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   trusted-source-build:
@@ -51,7 +51,7 @@ jobs:
       - name: Verify CSP, single packaged React runtime and immutable candidate size
         run: |
           node scripts/verify-package.mjs dist/production
-          mkdir -p artifacts/bookmark-r31
+          mkdir -p artifacts/bookmark-r32
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {readFile,stat,writeFile} from 'node:fs/promises';
@@ -65,18 +65,18 @@ jobs:
           assert.ok(content.byteLength<1048576,'existing tool-shell production hard budget');
           const report={entry,bytes:content.byteLength,sha256:createHash('sha256').update(content).digest('hex'),csp,
             installedBookmarkPackagePromoted:false,reactRuntime:'host-shared'};
-          await writeFile('artifacts/bookmark-r31/formal-bundle.json',JSON.stringify(report,null,2)+'\n');
-          console.log('R31_TRUSTED_BUNDLE',JSON.stringify(report));
+          await writeFile('artifacts/bookmark-r32/formal-bundle.json',JSON.stringify(report,null,2)+'\n');
+          console.log('R32_TRUSTED_BUNDLE',JSON.stringify(report));
           NODE
       - name: Preserve fixed WXT build evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bookmark-r31-trusted-source-${{ github.sha }}
+          name: bookmark-r32-trusted-source-${{ github.sha }}
           if-no-files-found: ignore
           retention-days: 14
           path: |
-            artifacts/bookmark-r31/formal-bundle.json
+            artifacts/bookmark-r32/formal-bundle.json
             docs/framework/evidence/wxt/builds/build-production.json
   react-chromium:
     runs-on: ubuntu-latest
@@ -111,7 +111,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bookmark-r31-react-chromium-${{ github.sha }}
+          name: bookmark-r32-react-chromium-${{ github.sha }}
           if-no-files-found: warn
           retention-days: 14
           path: |
