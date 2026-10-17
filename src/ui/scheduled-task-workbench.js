@@ -215,6 +215,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       scroller.scrollTop=view==='list'&&['detail','form'].includes(prior)?listScrollTop:
         view==='form'&&prior==='manager'&&managerReturn==='form'?formScrollTop:0;
     get('schedule-create').hidden=view!=='list';
+    get('schedule-manager-create').hidden=view!=='manager';
     get('schedule-detail-edit').hidden=view!=='detail';
     get('schedule-open-runner').hidden=view!=='list';
     const runnerLabel=isRunner()?'再打开一个独立运行页':'打开独立运行页';
