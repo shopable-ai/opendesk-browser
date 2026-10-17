@@ -112,12 +112,31 @@ try{
   await until('!document.getElementById("scheduled-panel").hidden');
   await click('#schedule-create');
   await until('!document.getElementById("schedule-form").hidden');
+  assert.equal(await evaluate('document.getElementById("schedule-timezone").getClientRects().length>0'),true,
+    'Timezone must be a directly visible native select');
+  assert.equal(await evaluate('document.getElementById("schedule-timezone-edit")===null'),true,
+    'No nested timezone edit/search/done steps');
+  assert((await evaluate('[...document.getElementById("schedule-timezone").options].map(x=>x.value)'))
+    .includes('Asia/Tokyo'),'Preview timezone picker offers Tokyo');
   await click('#schedule-title');await cdp('Input.insertText',{text:'回归演示计划'});
   await click('#schedule-save');
   await until('!document.getElementById("schedule-save-confirm").hidden');
   await click('#schedule-confirm-yes');
   await until('document.getElementById("schedule-plan-list").textContent.includes("回归演示计划")');
   await screenshot('my-plan-confirmed-360');
+  await click('#tab-develop');
+  await until('!document.getElementById("workbench-develop").hidden');
+  await click('#local-project-mode');
+  await until('!document.getElementById("local-project-tools").hidden');
+  assert.equal(await evaluate('document.getElementById("manual-source-editor").hidden'),true,
+    'Local project mode must hide the manual editor and show existing project tools');
+  assert((await evaluate('document.getElementById("local-project-status").textContent')).includes('UI_PREVIEW_ONLY'),
+    'No native authorization may be implied in offline preview');
+  await screenshot('developer-local-project-360');
+  await click('#local-project-refresh');
+  await until('document.getElementById("local-project-status").textContent.includes("Native")');
+  await click('#local-project-mode');
+  await until('document.getElementById("local-project-tools").hidden');
   await click('#tab-tools');
   await until('!document.getElementById("workbench-tools").hidden');
   await click('#extension-center-more');
