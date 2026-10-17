@@ -1,13 +1,16 @@
-import * as React from 'react';
+// Adapted from the official shadcn/ui React Aria Switch registry (MIT).
+// Accessible input, keyboard/focus and state behavior come from real
+// react-aria-components, never from a native checkbox imitation.
+import {composeRenderProps,Switch as AriaSwitch} from 'react-aria-components';
 
-// Controlled native switch with React Aria-compatible prop names.
-// Unlike react-aria-components itself, this is not an upstream official control.
-export function Switch({isSelected=false,onChange,isDisabled=false,className='',...props}){
-  return <label className={['od-shared-switch',className].filter(Boolean).join(' ')}>
-    <input {...props} type="checkbox" role="switch" checked={Boolean(isSelected)}
-      disabled={Boolean(isDisabled)} onChange={event=>onChange?.(event.target.checked)}/>
-    <span className="od-shared-switch-track" aria-hidden="true">
-      <span className="od-shared-switch-thumb"/>
-    </span>
-  </label>;
+export function Switch({className='',size='default',children,...props}){
+  return <AriaSwitch data-slot="switch" data-size={size}
+    className={['od-shared-switch',className].filter(Boolean).join(' ')}
+    {...props}>
+    {composeRenderProps(children,(content,{isSelected})=><>
+      <span data-slot="switch-thumb" data-selected={isSelected||undefined}
+        className="od-shared-switch-thumb" aria-hidden="true"/>
+      {content}
+    </>)}
+  </AriaSwitch>;
 }
