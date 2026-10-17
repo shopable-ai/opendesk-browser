@@ -230,6 +230,28 @@ test('native confirmation scrolling avoids nested preview scroll areas',async()=
   assert.equal(events[0].type,'mouseWheel');assert.equal(events[0].x,488);
   assert.deepEqual(events.slice(1).map(e=>e.type),['mousePressed','mouseReleased']);
 });
+test('native long-list scrolling keeps wheel input inside the visible Host viewport',async()=>{
+  const source=await readFile(driver,'utf8');
+  const helper=source.slice(source.indexOf('async function click('),source.indexOf('async function type('));
+  const events=[];let rowY=1724,frameY=100;
+  const input={type:'button',disabled:false,getClientRects:()=>[{}],
+    getBoundingClientRect:()=>({x:180,y:rowY,width:120,height:24}),contains:node=>node===input};
+  const frame={getBoundingClientRect:()=>({x:0,y:frameY})};
+  const click=runInNewContext(helper+';click',{
+    quote:JSON.stringify,toolSession:'tool',side:'side',sampleMode:true,guard:()=>{},sleep:async()=>{},
+    read:async(session,expression)=>runInNewContext(expression,{innerWidth:500,innerHeight:session==='tool'?1600:700,
+      document:{querySelector:()=>session==='tool'?input:frame,elementFromPoint:()=>session==='tool'?input:frame}}),
+    until:async fn=>{for(let attempt=0;attempt<20;attempt++){const point=await fn();if(point)return point;}throw Error('Wheel outside Host viewport');},
+    client:{send:async(method,event)=>{events.push({...event});if(event.type==='mouseWheel'){
+      assert(event.y>0&&event.y<700,'all wheel input must hit the Host viewport');
+      if(event.x===488)frameY-=300;else rowY-=300;
+    }}},
+  });
+  await click('tool','#editor-delete');
+  assert(events.some(e=>e.type==='mouseWheel'&&e.x!==488));
+  assert.deepEqual(events.slice(-2).map(e=>e.type),['mousePressed','mouseReleased']);
+});
+
 test('R4.10.2 native upgrade validates chosen Mac file digest, not just its version label',async()=>{
   const source=await readFile(driver,'utf8');
   assert.match(source,/preview\.source\?\.includes\('候选包 SHA-256（规范序列化）：'\+upgradeBaseline\.sha256\)/);
@@ -322,14 +344,14 @@ test('sample key observation tolerates active-site changes and isolates exact ab
   assert.equal(count([existing],before,[{...existing,value:'fictional-new'}],'chatgpt.com'),0,'Existing expired-key changes belong to the active site');
   assert.equal(count([{...row,partitionKey:{topLevelSite:'https://chatgpt.com'}}],[],
     [{...row,partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false}}],'chatgpt.com'),1);
-  const branch=source.slice(source.indexOf('if(sampleCases.includes(id))'),source.indexOf("if(id==='import-json-bulk')"));
+  const branch=source.slice(source.indexOf('if(sampleCases.includes(id))'),source.indexOf("if(id==='import-json-bulk'||"));
   assert.doesNotMatch(branch,/assert\.deepEqual\(await cookies\(\),before|select\(after\),select\(before\)/);
   assert.match(branch,/siteCookieCountBefore:before\.length,siteCookieCountAfter:previewCookies\.length,previewCreatedSampleKeys/);
 });
 
 test('sample preview snapshots native identities after file selection and before preview',async()=>{
   const source=await readFile(driver,'utf8');
-  const branch=source.slice(source.indexOf('if(sampleCases.includes(id))'),source.indexOf("if(id==='import-json-bulk')"));
+  const branch=source.slice(source.indexOf('if(sampleCases.includes(id))'),source.indexOf("if(id==='import-json-bulk'||"));
   const baseline=branch.indexOf('const before=await cookies();');
   assert(baseline>branch.indexOf('Exact authorized sample in memory'));
   assert(baseline<branch.indexOf("await click(toolSession,'#import-apply')"));

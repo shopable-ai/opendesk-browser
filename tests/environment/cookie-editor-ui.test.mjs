@@ -359,7 +359,7 @@ test('Cookie Editor is an optional two-mode tool without private cookies API',as
       'browser.cookies.write','browser.cookies.observe','browser.cookies.clear']);
   assert(!/request\(\s*['"]cookies\./.test(s.source));
   assert(!/browser\.cookies\.(?:approve|execute)/.test(s.source));
-  assert(s.source.includes('sdk.cookies.getAll({url:target.url,'),
+  assert(s.source.includes('readAllCookies(sdk,{url:target.url,'),
     'live Cookie reads must be scoped through the formal public SDK');
   assert(s.source.includes("permission?.callableNow"));
   assert(s.html.includes('id="mode-browser"')&&s.html.includes('id="mode-offline"'));
@@ -433,7 +433,7 @@ test('Import merge previews counts, deduplicates, and does not mutate source',as
   expectError(()=>a.saveToList(before,{...before[0],value:'again'}),/已存在/);
   assert.equal(a.saveToList(before,{...before[0],value:'again'},before[0])[0].value,'again');
 });
-test('Reject bad fields, foreign domains, insecure prefixes, expired and oversized imports',async()=>{
+test('Reject bad fields, foreign domains, insecure prefixes, expired and resource-exhausting imports',async()=>{
   const a=await harness();a.setSite('shop.example.com');
   for(const [record,pattern] of [
     [{name:'sid',value:'x',domain:'other.org'},/域名/],
@@ -445,9 +445,49 @@ test('Reject bad fields, foreign domains, insecure prefixes, expired and oversiz
   ])expectError(()=>a.normalizeCookie(record),pattern);
   expectError(()=>a.parseImport('not a cookie line','header'),/Header/);
   expectError(()=>a.parseImport('sid=x; sid=y','auto'),/重复/);
-  expectError(()=>a.parseImport('sid='+('x'.repeat(150001)),'header'),/150 KB/);
-  expectError(()=>a.parseImport('['+Array.from({length:501},(_,i)=>
-    '{"name":"n'+i+'","value":"x"}').join(',')+']','json'),/500/);
+  expectError(()=>a.parseImport(' '.repeat(8*1024*1024)+'sid=x','header'),/8 MiB/);
+});
+
+test('Imports and offline editing accept more than 500 rows and 150 KB without a count cap',async()=>{
+  const s=await harness();s.setSite('example.com');s.setLiveTarget('https://example.com/');
+  const source=JSON.stringify(Array.from({length:601},(_,i)=>({name:'row_'+i,value:'x'.repeat(300)})));
+  assert(Buffer.byteLength(source)>150000);
+  const rows=s.parseImport(source,'json');assert.equal(rows.length,601);
+  const merged=s.mergeImport(rows,[]);assert.equal(merged.cookies.length,601);
+  const edited=s.saveToList(merged.cookies,{name:'extra',value:'x'});
+  assert.equal(edited.length,602);
+  const batches=s.importBatches(rows);assert.equal(batches.flat().length,601);
+  assert(batches.every(batch=>batch.length<=50));
+});
+
+test('Import memory guard accepts its UTF-8 boundary and keeps prior input on an oversized file',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  assert.equal(s.parseImport(' '.repeat(8*1024*1024-5)+'sid=x','header').length,1);
+  s.fire('live-import','click');
+  const text=JSON.stringify(Array.from({length:601},(_,i)=>({name:'file_'+i,value:'x'.repeat(300)})));
+  s.getField('import-file').files=[{size:Buffer.byteLength(text),text:async()=>text}];
+  s.fire('import-file','change');await s.settle();
+  assert.equal(s.getField('import-text').value,text,'files above 150 KB must be retained without truncation');
+  let read=false;
+  s.getField('import-file').files=[{size:8*1024*1024+1,text:async()=>{read=true;return 'bad';}}];
+  s.fire('import-file','change');await s.settle();
+  assert.equal(read,false);assert.equal(s.getField('import-text').value,text);
+  assert.match(s.getStatusMessage(),/8 MiB.*已保留/);
+});
+
+test('Metadata reads automatically consume pages across the old 50 and 100 row boundaries',async()=>{
+  const rows=Array.from({length:131},(_,i)=>({name:'row_'+i,domain:'example.com',path:'/',hostOnly:true,session:true,storeId:'0'}));
+  let calls=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>{throw Error('legacy read must not be used');},
+    getAllPage:async({cursor,partitionKey})=>{
+      calls++;if(partitionKey)return {cookies:[]};
+      const offset=Number(cursor||0),end=offset+40;
+      return {cookies:rows.slice(offset,end),...(end<rows.length?{nextCursor:String(end)}:{})};
+    }}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  assert.equal(s.liveSnapshot().state,'ready');assert.equal(s.liveSnapshot().rows.length,131);
+  assert.equal(calls,5);
 });
 test('Offline rename changes Name without changing scope or overwriting another Cookie',async()=>{
   const a=await harness();a.setSite('example.com');
@@ -524,7 +564,7 @@ test('Browser metadata adapter never retains or reveals native Cookie values',as
   assert.equal(rows[0].partitionKey.topLevelSite,'https://example.com');
   assert.equal(native[0].value,'secret-that-must-not-survive','native reply remains unmodified');
   expectError(()=>s.redactMetadata([null]),/元数据/);
-  expectError(()=>s.redactMetadata(Array.from({length:501},()=>native[0])),/超出范围/);
+  assert.equal(s.redactMetadata(Array.from({length:501},()=>native[0])).length,501);
 });
 
 test('Offline workspace remains isolated and browser writes or clears are not performed',async()=>{

@@ -33,7 +33,7 @@ const requestedStage=process.env.COOKIE_NATIVE_STAGE;
 const supportedStages=['all','visual','upgrade','partial','negative','path','advanced','lifecycle','import-export','smoke'];
 assert(!requestedStage||supportedStages.includes(requestedStage),'Unknown COOKIE_NATIVE_STAGE');
 const sampleCases=['import-sample-file-preview','import-sample-paste-preview','import-sample-file','import-sample-paste'];
-const gapCases=[...sampleCases,'import-json-bulk','import-json-file','import-overwrite','import-skipped-rows',
+const gapCases=[...sampleCases,'import-json-bulk','import-json-paged','import-json-file','import-overwrite','import-skipped-rows',
   'import-json-auto','import-json-manual','import-header-auto',
   'import-header-manual','import-netscape-auto','import-netscape-manual','import-overwrite-cancel',
   'import-partial-cancel','import-invalid','import-preview-input-change',
@@ -292,9 +292,12 @@ async function click(session,selector){
     }
     previousPoint=undefined;
     if(p.y<0||p.y>=p.height){
-      const frame=session===toolSession?await read(side,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();return {x:r.x,y:r.y};})()'):{x:0,y:0};
+      const frame=session===toolSession?await read(side,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();return {x:r.x,y:r.y,width:innerWidth,height:innerHeight};})()'):{x:0,y:0,width:p.width,height:p.height};
+      // The sandbox can be taller than the physical Host viewport. Wheel at
+      // their visible intersection, otherwise Chrome ignores the input.
+      const top=Math.max(85,frame.y),bottom=Math.min(frame.height-8,frame.y+p.height);
       await client.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:frame.x+Math.max(8,Math.min(p.width-8,p.x)),
-        y:frame.y+Math.max(8,Math.min(p.height-8,p.height/2)),deltaX:0,deltaY:p.y<0?-250:250},session===toolSession?side:session);
+        y:Math.max(8,Math.min(frame.height-8,top<bottom?(top+bottom)/2:frame.height/2)),deltaX:0,deltaY:p.y<0?-250:250},session===toolSession?side:session);
     }else if(session!==toolSession&&!p.hit){
       // A sticky Host approval can cover a scrolled toolbar. Return the
       // parent viewport toward its top through actual wheel input.
@@ -552,6 +555,9 @@ try{
     const targetInfo=await until(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>t.url===context.documentUrl),'Actual Side Panel CDP target');
     sideTargetId=targetInfo.targetId;
     side=await attach(targetInfo);report.sidePanelContext=context;
+    if(nativeMode==='development')report.developmentConnection=await until(()=>read(side,
+      '(()=>{const n=document.querySelector("#opendesk-development-status");return n?.textContent.includes("开发服务已连接")?{status:n.textContent,identity:n.title}:null;})()'),
+      'Actual development client connection and revision');
     await click(side,'#tab-tools');return {context,targetInfo};
   });
   await step('official-install',async()=>{
@@ -859,12 +865,16 @@ try{
           });
           continue;
         }
-        if(id==='import-json-bulk')await step(id,async()=>{
-          const rows=Array.from({length:12},(_,index)=>row('od_bulk_'+index,randomUUID()));
+        if(id==='import-json-bulk'||id==='import-json-paged')await step(id,async()=>{
+          const rows=Array.from({length:id==='import-json-paged'?61:12},(_,index)=>row('od_bulk_'+index,randomUUID()));
           const before=await cookies(),preview=await previewImport(JSON.stringify(rows));
-          const summary=importPreviewSummary(preview);assert.equal(summary.valid,12);assert.equal(summary.created,12);
+          const summary=importPreviewSummary(preview);assert.equal(summary.valid,rows.length);assert.equal(summary.created,rows.length);
           assert.deepEqual(await cookies(),before,'Bulk preview is read-only');
-          return {summary,...await confirmImport(rows)};
+          const imported=await confirmImport(rows);
+          if(id==='import-json-paged')await until(()=>read(toolSession,
+            'document.querySelector("#live-count").textContent==='+quote('('+(before.length+rows.length)+')')),
+            'Complete paginated SDK metadata list after bulk import');
+          return {summary,...imported,...(id==='import-json-paged'?{renderedCount:before.length+rows.length}:{})};
         });
         else if(id==='import-overwrite')await step(id,async()=>{
           const replacement=[row(seed[0].name,randomUUID())],before=await cookies();

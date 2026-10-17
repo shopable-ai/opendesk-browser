@@ -4,6 +4,37 @@ import {createTrustedCookieHost} from '../../src/platform/chrome/browser-cookie-
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_OPERATIONS,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 
+test('getAllPage automatically fits the SDK budget and reads beyond 50 rows without leaking values',async()=>{
+  const f=fixture();
+  f.state.records=Array.from({length:131},(_,i)=>({name:'row_'+i,value:'PRIVATE_'+i,domain:'shop.example.test',
+    path:'/',storeId:'0',hostOnly:true,session:true}));
+  const all=[];let cursor,pages=0;
+  do{
+    const page=await f.run('getAllPage',{...(cursor?{cursor}:{})});
+    assert(Buffer.byteLength(JSON.stringify(page))<=11500);
+    assert(!JSON.stringify(page).includes('PRIVATE'));
+    all.push(...page.cookies);cursor=page.nextCursor;pages++;
+  }while(cursor);
+  assert.equal(all.length,131);assert(pages>=3);
+  assert.equal(new Set(all.map(row=>row.name)).size,131);
+  f.state.values=true;f.state.records.forEach(row=>row.value='x'.repeat(4000));
+  const page=await f.run('getAllPage',{includeValues:true});
+  assert.equal(page.cookies.length,2);assert(page.nextCursor);
+  assert(Buffer.byteLength(JSON.stringify(page))<=11500);
+});
+
+test('getAllPage rejects changed snapshots, changed scope and revoked authority before returning another page',async()=>{
+  const f=fixture(),first=await f.run('getAllPage',{limit:1});
+  assert(first.nextCursor);
+  await assert.rejects(f.run('getAllPage',{cursor:first.nextCursor,partitionKey}),reject('E_COOKIE_CONFLICT'));
+  f.state.records[0].path='/account';
+  await assert.rejects(f.run('getAllPage',{cursor:first.nextCursor}),reject('E_COOKIE_CONFLICT'));
+  f.state.allowed=false;
+  await assert.rejects(f.run('getAllPage',{cursor:first.nextCursor}),reject('E_GRANT_REVOKED'));
+  for(const args of [{cursor:'bad'}, {limit:0}, {limit:51}, {includeValues:'true'}])
+    assert.throws(()=>normalizeBrowserOperation('browser.cookies.getAllPage',{url:target,...args}));
+});
+
 test('setMany public facade uses the existing write capability, gesture and 12000-byte budget',async()=>{
   const operation='browser.cookies.setMany',calls=[];
   const sdk=createBrowserSdk({request:async(...args)=>calls.push(args)});

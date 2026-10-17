@@ -187,6 +187,14 @@
 - Scope: explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
+## OpenDeskSDK.browser.cookies.getAllPage
+
+- Signature: `(input: { readonly cursor?: string; readonly includeValues?: boolean; readonly limit?: number; readonly name?: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly storeId?: string; readonly url: string; }) => Promise<{ readonly cookies: Array<{ readonly domain: string; readonly expirationDate?: number; readonly hostOnly?: boolean; readonly httpOnly?: boolean; readonly name: string; readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly path: string; readonly sameSite?: "unspecified" | "lax" | "strict" | "no_restriction"; readonly secure?: boolean; readonly session?: boolean; readonly storeId?: string; readonly value?: string; readonly valueRedacted: boolean; }>; readonly nextCursor?: string; }>`
+- Mode: SCOPED; native: `chrome.cookies.getAll`
+- Capabilities: `browser.cookies.read`; Chrome permissions: `cookies`
+- Scope: Approved URL/Store/Partition; each page fits IPC budget; cursor binds owner, query and snapshot; user gesture: not required
+- Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
+
 ## OpenDeskSDK.browser.cookies.getCurrentStore
 
 - Signature: `(input: { readonly partitionKey?: { readonly hasCrossSiteAncestor?: boolean; readonly topLevelSite: string; }; readonly storeId?: string; readonly url: string; }) => Promise<{ readonly storeId: string; }>`

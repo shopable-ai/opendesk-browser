@@ -27,7 +27,7 @@ test('drift in missing methods or stale public aliases fails closed',()=>{
 test('Cookies Host operations exactly match the frozen public SDK roster',()=>{
   const registered=Object.keys(BROWSER_OPERATIONS)
     .filter(name=>name.startsWith('browser.cookies.')).sort();
-  assert.equal(registered.length,12);
+  assert.equal(registered.length,13);
   assert.deepEqual([...TRUSTED_COOKIE_OPERATIONS].sort(),registered);
 });
 

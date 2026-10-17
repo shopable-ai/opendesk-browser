@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "cookie-editor",
-  "version": "2.0.20",
+  "version": "2.0.21",
   "title": "Cookie Editor · Cookie 管理",
   "description": "Cookie Editor：保留正式 UI，文本和文件逐条预览新增、覆盖、过期及无效记录，自动分批导入并由 Chrome 原生回读。",
   "capabilities": [

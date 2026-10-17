@@ -114,7 +114,7 @@
 <div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>
 <details class="import-advanced"><summary>手动指定格式</summary><div class="field"><label for="import-format">导入格式</label><select id="import-format"><option value="auto" selected>自动识别</option><option value="json">JSON</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></div></details>
 <div class="field"><label for="import-text">导入内容</label><textarea id="import-text" data-sensitive="true" rows="5" spellcheck="false" placeholder="粘贴或选择本地文件…"></textarea></div>
-<p id="import-help" class="hint">先显示新增、覆盖、过期和无效记录。文本或文件最多 150 KB / 500 条；超限会明确提示，输入不会截断。</p>
+<p id="import-help" class="hint">先显示新增、覆盖、过期和无效记录；系统自动分批处理，无需手动拆分。资源不足会明确提示并保留输入。</p>
 <p id="live-import-preview" class="import-preview" role="status" aria-live="polite" hidden></p>
 <div class="form-actions"><button id="import-cancel" class="text-button" type="button">取消</button><button id="import-apply" class="text-button primary" type="button">确认导入</button><button id="live-import-confirm" class="text-button primary" type="button" hidden>确认写入 Chrome</button></div></section>
 <section id="confirm-panel" class="confirmation" role="alertdialog" aria-modal="true" aria-labelledby="confirm-message" hidden>

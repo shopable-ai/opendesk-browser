@@ -20,7 +20,7 @@ function parseTarget(input){
   return {hostname:url.hostname,origin:url.origin,url:url.origin+url.pathname};
 }
 function redactMetadata(rows){
-  if(!Array.isArray(rows)||rows.length>500)throw new Error('SDK 返回了超出范围的 Cookie 列表');
+  if(!Array.isArray(rows))throw new Error('SDK 返回的 Cookie 列表无效');
   return rows.map(row=>{
     if(!row||typeof row!=='object'||Array.isArray(row)||
        typeof row.name!=='string'||typeof row.domain!=='string'||
@@ -39,7 +39,13 @@ function redactMetadata(rows){
       valueRedacted:true};
   });
 }
-const MAX_COOKIES=200,MAX_IMPORT=500,MAX_TEXT_BYTES=150000;
+// Import/workspace memory and SDK export transport have different owners.
+// The 8 MiB local budget bounds parsing and retained data, not a Cookie count.
+const MAX_IMPORT_BYTES=8*1024*1024,MAX_TEXT_BYTES=150000;
+const checkWorkspace=list=>{
+  if(new Blob([JSON.stringify(list)]).size>MAX_IMPORT_BYTES)
+    throw new Error('离线工作区超过 8 MiB 内存保护预算');
+};
 const shown=new Set();
 const safeHost=value=>typeof value==='string'&&/^[a-z0-9.-]{1,253}$/i.test(value)&&!value.startsWith('.')&&!value.endsWith('.');
 const stale=()=>new Error('此 Cookie 已改变，请刷新离线列表后重新操作。');
@@ -479,7 +485,7 @@ function saveToList(list,row,previous=null){
   }else if(index!==-1)throw new Error('同身份 Cookie 已存在。请选择编辑，或通过导入进行覆盖。');
   const out=[...list];
   if(index<0)out.push(next);else out[index]=next;
-  if(out.length>MAX_COOKIES)throw new Error('单一工作区最多 200 条 Cookie');
+  checkWorkspace(out);
   return sortCookies(out);
 }
 async function refresh({preserveStatus=false}={}){
@@ -521,17 +527,31 @@ async function refresh({preserveStatus=false}={}){
 // Chrome-style default getAll() returns unpartitioned cookies only.
 // The public Host supplies ONLY the partition approved for this site/store;
 // query both explicit scopes without permitting a tool-selected foreign key.
+async function readAllCookies(sdk,args,isCurrent=()=>true){
+  if(typeof sdk.cookies.getAllPage!=='function')return sdk.cookies.getAll(args);
+  const rows=[],seen=new Set();let cursor;
+  do{
+    const page=await sdk.cookies.getAllPage({...args,...(cursor?{cursor}:{})});
+    if(!isCurrent())return null;
+    if(!Array.isArray(page?.cookies)||page.nextCursor!==undefined&&
+        (typeof page.nextCursor!=='string'||!page.nextCursor||seen.has(page.nextCursor)))
+      throw new Error('Host 返回了无效 Cookie 分页，请刷新');
+    rows.push(...page.cookies);cursor=page.nextCursor;
+    if(cursor)seen.add(cursor);
+  }while(cursor);
+  return rows;
+}
 async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>true}={}){
   if(typeof sdk?.cookies?.getAll!=='function'||typeof sdk.cookies.getPartitionKey!=='function')
     throw new Error('正式 Browser SDK 缺少真实 Cookie 分区查询接口');
-  const normal=await sdk.cookies.getAll({url:target.url,...(includeValues?{includeValues:true}:{})});
+  const normal=await readAllCookies(sdk,{url:target.url,...(includeValues?{includeValues:true}:{})},isCurrent);
   if(!isCurrent())return null;
   if(!Array.isArray(normal))throw new Error('Host 的普通 Cookie 返回不是数组');
   const partition=await sdk.cookies.getPartitionKey({url:target.url});
   if(!isCurrent())return null;
   if(!partition?.partitionKey?.topLevelSite)throw new Error('无法确定已授权 Partition');
-  const partitioned=await sdk.cookies.getAll({url:target.url,
-    partitionKey:partition.partitionKey,...(includeValues?{includeValues:true}:{})});
+  const partitioned=await readAllCookies(sdk,{url:target.url,
+    partitionKey:partition.partitionKey,...(includeValues?{includeValues:true}:{})},isCurrent);
   if(!isCurrent())return null;
   if(!Array.isArray(partitioned))throw new Error('Host 的分区 Cookie 返回不是数组');
   const combined=new Map();
@@ -542,7 +562,6 @@ async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>t
     if(combined.has(identity))throw new Error('Host 返回同一 Cookie 身份的重复记录，请刷新');
     combined.set(identity,row);
   }
-  if(combined.size>100)throw new Error('所选网址 Cookie 总数超过 100 条，请缩小 Path 范围');
   return [...combined.values()];
 }
 async function readBrowserMetadata(){
@@ -908,8 +927,8 @@ async function prepareLiveImport(){
       const scopeKey=JSON.stringify([route.href,row.partitionKey||null]);
       let found=reads.get(scopeKey);
       if(!found){
-        found=await browserSdk().cookies.getAll({url:route.href,storeId:scope.storeId,
-          ...(row.partitionKey?{partitionKey:row.partitionKey}:{})});
+        found=await readAllCookies(browserSdk(),{url:route.href,storeId:scope.storeId,
+          ...(row.partitionKey?{partitionKey:row.partitionKey}:{})},()=>stillCurrent(id,target));
         if(!stillCurrent(id,target))return;
         if(!Array.isArray(found))throw new Error('Host 未确认预览');
         reads.set(scopeKey,found);
@@ -1035,8 +1054,9 @@ function exportText(format,source=null){
   throw new Error('请选择受支持的导出格式');
 }
 function inspectImport(text,format){
-  if(typeof text!=='string'||!text.trim()||new Blob([text]).size>MAX_TEXT_BYTES)
-    throw new Error('请输入不超过 150 KB 的 Cookie 文本');
+  if(typeof text!=='string'||!text.trim())throw new Error('请输入 Cookie 文本');
+  if(new Blob([text]).size>MAX_IMPORT_BYTES)
+    throw new Error('Cookie 文本超过 8 MiB 内存保护预算；输入已保留');
   let rows;
   const trimmed=text.replace(/^\uFEFF/,'').trim();
   if(format==='auto'){
@@ -1076,7 +1096,7 @@ function inspectImport(text,format){
         session:expires===0,...(expires?{expirationDate:expires}:{})};
     });
   }else throw new Error('请选择支持的 Cookie 格式');
-  if(!rows.length||rows.length>MAX_IMPORT)throw new Error('一次可预览 1–500 条 Cookie（文本/文件最多 150 KB），请缩小输入范围');
+  if(!rows.length)throw new Error('没有可预览的 Cookie');
   const records=rows.map((raw,index)=>{
     try{
       if(format!=='json'&&raw?.importError)throw new Error(raw.importError);
@@ -1111,7 +1131,7 @@ function mergeImport(rows,original){
     if(map.has(key(row)))replaced++;else created++;
     map.set(key(row),row);
   }
-  if(map.size>MAX_COOKIES)throw new Error('合并后超过每个工作区 200 条限制');
+  checkWorkspace([...map.values()]);
   return {cookies:sortCookies([...map.values()]),created,replaced};
 }
 function prepareImport(){
@@ -1190,8 +1210,8 @@ function openImportPanel(){
   importer.hidden=false;clearImportPreview();clean();
   E('import-heading').textContent=browser?'导入真实 Chrome Cookie':'导入离线工作区';
   E('import-help').textContent=browser?
-    '粘贴 JSON、Cookie Header 或 Netscape，或选择文件。先逐条预览新增、覆盖和跳过原因；系统自动分批写入，无需手动拆分。最多 150 KB / 500 条。':
-    '仅修改临时内存；最多 150 KB / 500 条，合并后的离线工作区最多 200 条，不影响 Chrome。';
+    '粘贴 JSON、Cookie Header 或 Netscape，或选择文件。先逐条预览新增、覆盖和跳过原因；系统自动分批写入，无需手动拆分。':
+    '仅修改临时内存，不影响 Chrome；关闭工具后离线数据不保留。';
   E('import-apply').textContent=browser?'预览导入':'确认导入';
   renderBrowser();E('import-text').focus();
 }
@@ -1356,7 +1376,7 @@ E('import-file').addEventListener('change',async()=>{
   const sequence=++importFileSequence,bound=epoch;
   clearImportPreview();
   const file=E('import-file').files?.[0];if(!file)return;
-  if(file.size>150000){status('文件超过 150 KB。','error');return;}
+  if(file.size>MAX_IMPORT_BYTES){status('文件超过 8 MiB 内存保护预算；现有输入已保留。','error');return;}
   try{
     const text=await file.text();
     if(bound!==epoch||sequence!==importFileSequence||importer.hidden||E('import-file').files?.[0]!==file)return;

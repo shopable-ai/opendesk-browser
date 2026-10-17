@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 76,
-    "public": 74,
+    "approved": 77,
+    "public": 75,
     "hostOnly": 2
   },
   "bindings": [
@@ -979,6 +979,45 @@
         "sidebar-tool"
       ],
       "siteScope": "explicit approved HTTP(S) Origin + one non-incognito Chrome store + approved partition, no active tab required for repeat reads",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 12000,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.cookies.getAllPage",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "SCOPED",
+      "nativeApis": [
+        "chrome.cookies.getAll"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.cookies.getAll",
+          "kind": "METHOD",
+          "signature": "getAll(details: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAllPage",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "Approved URL/Store/Partition; each page fits IPC budget; cursor binds owner, query and snapshot",
       "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,

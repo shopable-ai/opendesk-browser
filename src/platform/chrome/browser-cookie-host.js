@@ -8,7 +8,7 @@ import {normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js
 import {COOKIE_BATCH_ERROR_CODES} from '../../framework/sdk/browser-schemas.js';
 
 export const TRUSTED_COOKIE_OPERATIONS=Object.freeze([
-  'browser.cookies.get','browser.cookies.getAll','browser.cookies.set','browser.cookies.setMany','browser.cookies.remove',
+  'browser.cookies.get','browser.cookies.getAll','browser.cookies.getAllPage','browser.cookies.set','browser.cookies.setMany','browser.cookies.remove',
   'browser.cookies.clearSite','browser.cookies.getCurrentStore','browser.cookies.getPartitionKey',
   'browser.cookies.observe.start','browser.cookies.observe.getStatus',
   'browser.cookies.observe.read','browser.cookies.observe.stop'
@@ -36,6 +36,7 @@ function partitionKey(value){
 function normalized(op,input={}){
   if(!TRUSTED_COOKIE_OPERATIONS.includes(op))throw error('E_SERVICE_UNSUPPORTED');
   if(op==='browser.cookies.setMany')throw error('E_SERVICE_UNSUPPORTED','Batch writes require installed-tool authority');
+  if(op==='browser.cookies.getAllPage')throw error('E_SERVICE_UNSUPPORTED','Paged reads require installed-tool authority');
   switch(op){
     case 'browser.cookies.get':
       fields(input,['name','storeId','partitionKey'],['name']);
@@ -247,7 +248,7 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
   // This is an alternate identity/scope on the SAME native Cookie Service and
   // Chrome event listener. Tool-provided data can never create authority.
   async function executeInstalled(op,args,{origin,storeId,partitionKey=null,ownerKey,authorize}){
-    if(op==='browser.cookies.setMany')args=normalizeBrowserOperation(op,args);
+    if(op==='browser.cookies.setMany'||op==='browser.cookies.getAllPage')args=normalizeBrowserOperation(op,args);
     if(!TRUSTED_COOKIE_OPERATIONS.includes(op)||typeof authorize!=='function'||
        typeof storeId!=='string'||typeof ownerKey!=='string'||new URL(httpUrl(args.url)).origin!==origin)
       throw error('E_COOKIE_SCOPE');
@@ -317,14 +318,32 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     };
     await check('pre');
     let result;
-    if(op==='browser.cookies.get'||op==='browser.cookies.getAll'){
-      const rows=await scan({url:args.url,...key,...(args.name?{name:args.name}:{})});
+    if(op==='browser.cookies.get'||op==='browser.cookies.getAll'||op==='browser.cookies.getAllPage'){
+      const rows=await scan({url:args.url,...key,...(args.name?{name:args.name}:{})},
+        op==='browser.cookies.getAllPage'?10000:50);
       if(op==='browser.cookies.get'){
         const matches=rows.filter(row=>row.name===args.name&&
           (args.domain===undefined||row.domain===args.domain)&&
           (args.path===undefined||row.path===args.path));
         if(matches.length>1)throw error('E_COOKIE_AMBIGUOUS');
         result={cookie:redact(matches[0]??null,args.includeValues===true),scope:'APPROVED_URL'};
+      }else if(op==='browser.cookies.getAllPage'){
+        // Stateless pages revalidate the same authority and exact snapshot on every request.
+        const all=rows.map(row=>redact(row,args.includeValues===true));
+        const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',
+          new TextEncoder().encode(JSON.stringify([ownerKey,args,all],(key,value)=>
+            key==='cursor'||key==='limit'?undefined:value))));
+        const snapshot=Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
+        const [expected,offsetText]=args.cursor?.split(':')??[snapshot,'0'];
+        const offset=Number(offsetText);
+        if(expected!==snapshot||offset>=all.length&&offset!==0)throw error('E_COOKIE_CONFLICT');
+        const cookies=[];
+        for(const row of all.slice(offset,offset+(args.limit??50))){
+          if(byteLength({cookies:[...cookies,row],nextCursor:snapshot+':10000'})>11500)break;
+          cookies.push(row);
+        }
+        if(!cookies.length&&offset<all.length)throw error('E_LIMIT','A Cookie exceeds SDK page budget');
+        result={cookies,...(offset+cookies.length<all.length?{nextCursor:snapshot+':'+(offset+cookies.length)}:{})};
       }else{
         result=rows.map(row=>redact(row,args.includeValues===true));
         if(byteLength(result)>11500)throw error('E_LIMIT','Cookie response exceeds SDK budget');

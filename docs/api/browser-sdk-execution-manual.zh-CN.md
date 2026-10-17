@@ -174,7 +174,7 @@ docs/api/browser-sdk-interface-matrix.json#approvedOperations 是唯一逐接口
 唯一受信操作名（按现行 src/platform/chrome/browser-cookie-host.js#TRUSTED_COOKIE_OPERATIONS）：
 
 1. browser.cookies.get：当前所选页面 URL 的 Cookie，按名称查询；同名跨 Path/partition 多条返回 E_COOKIE_AMBIGUOUS，不能任意选第一条。
-2. browser.cookies.getAll：已安装工具只返回已明确授权的网站 URL / Cookie Store / PartitionKey 范围内的匹配集合，上限 50 条且有约 11.5 KB 的回执预算；不持有全浏览器 Cookie 列表。
+2. browser.cookies.getAll：已安装工具只返回已明确授权的网站 URL / Cookie Store / PartitionKey 范围内的匹配集合，单请求上限 50 条且有约 11.5 KB 的回执预算。需完整列表时使用 `cookies.getAllPage({url,...scope,cursor?,limit?})`，自动跟随 `nextCursor`，直到省略；返回 `{cookies,nextCursor?}`，每页至多 50 条且实际按字节缩小。游标绑定安装 owner、查询和完整快照，变化返回 `E_COOKIE_CONFLICT`，不得把前后不同快照拼接。每页重新核权；敏感值仍须原 values 授权。不存在要求用户手动缩小网站 Path 的产品条数限制。
 3. browser.cookies.set：name/value、Path、SameSite、Secure、__Host-/__Secure- 和 Domain 不扩权，提交后按 Driver 回读/未知效果语义验收。
 4. browser.cookies.remove：必须精确匹配 name/domain/path/storeId/partitionKey，缺失拒绝、歧义拒绝。
 5. browser.cookies.clearSite：只作用当前所选页面实际匹配 Cookie；部分删除后的未知效果返回 E_OUTCOME_UNKNOWN，不自动重试。
