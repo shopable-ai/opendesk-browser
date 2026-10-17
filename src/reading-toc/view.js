@@ -45,9 +45,6 @@ const CSS=[
 '.link[aria-current=location]{border-left-color:#426cff}',
 '.label{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;max-height:2.9em}',
 '.empty{margin:7px 0 0;color:#777b8a;font-size:12px}',
-'.more{display:block;width:100%;margin-top:6px;padding:7px 8px;text-align:left;',
-'border:1px solid #e9e9ef;border-radius:7px;background:#f8f9fc;color:#5062a0;font-size:12px}',
-'.more:hover{background:#eef2ff;color:#2c49b6}.more[hidden]{display:none}',
 '@media(prefers-color-scheme:dark){:host{color:#e6e8ef}.panel{background:#1b1c24;border-color:#383a48}',
 '.heading{color:#a4a7b3}.modes{background:#16171e;border-color:#383a48}',
 '.mode{color:#8b90a1}.mode[aria-pressed=true]{background:#2a2d3a;color:#e3e7f4}',
@@ -105,7 +102,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   head.append(grab,modes);
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
   empty.textContent=t('pageEmpty');scroll.append(list,empty);
-  // Copy the reviewed, untranslated AI membership/partner contract from the
+  // Reuse the reviewed, localized AI membership/partner contract from the
   // official Side Panel. This trusted view never calls a model or payment API.
   const aiView=make('section','ai-view');aiView.hidden=true;
   const member=make('div','ai-member'),memberHead=make('div','ai-member-head');
