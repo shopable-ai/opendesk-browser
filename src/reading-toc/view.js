@@ -27,6 +27,7 @@ const CSS=[
 '.scroll{max-height:min(68dvh,calc(100dvh - 150px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}',
 '.list{list-style:none;margin:0;padding:0;display:grid;gap:1px}',
 '.list li{margin:0;padding-left:calc(var(--depth,0)*12px)}',
+'.list li.answer-start{border-top:1px solid #e9e9ef;margin-top:7px;padding-top:7px}',
 '.link{display:block;width:100%;text-align:left;border:0;border-left:2px solid transparent;background:transparent;color:#6b7280;',
 'border-radius:0 3px 3px 0;padding:2px 0 2px 10px;line-height:1.45;font-size:13px}',
 '.link.child{font-size:12px}.link:hover,.link[aria-current=location]{color:#20222b}',
@@ -40,6 +41,7 @@ const CSS=[
 '.heading{color:#a4a7b3}.modes{background:#16171e;border-color:#383a48}',
 '.mode{color:#8b90a1}.mode[aria-pressed=true]{background:#2a2d3a;color:#e3e7f4}',
 '.link{color:#a0a5b4}.link:hover,.link[aria-current=location]{color:#f4f5f7}',
+'.list li.answer-start{border-color:#383a48}',
 '.more{background:#272936;color:#acbfff;border-color:#383a48}.more:hover{background:#303850;color:#d4dfff}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}}',
 '@media(max-width:720px){:host{top:auto;bottom:var(--toc-bottom,8px);right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
@@ -211,7 +213,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   observer?.observe(panel);
   function render(next) {
     if(next)snapshot=next;
-    const {items,sources,activeId}=snapshot;
+    const {items,sources,activeId,adapter}=snapshot;
     // Website overlay follows the currently read answer automatically.
     // Source IDs remain internal so navigation never crosses answer boundaries.
     const activeSource=items.find(i=>i.id===activeId)?.sourceId;
@@ -221,17 +223,21 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     const overview=snapshot.overview?.[selected];
     const compact=scoped.length<=5&&(scoped.length===0||overview?.ids?.length===scoped.length);
     const displayMode=readingTocDisplayMode(mode,compact,modeExplicit);
-    modes.hidden=compact&&!modeExplicit;
+    // Keep the full-outline icon accessible when several ChatGPT answers exist.
+    modes.hidden=compact&&!modeExplicit&&!(adapter==='chatgpt'&&sources.length>1);
     const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
     const represented=displayMode==='top'
       ?scoped.find(item=>item.id===(overview?.representedId||active?.topId)):active;
-    const show=displayMode==='full'?scoped:displayMode==='top'?scoped.filter(item=>overviewIds.has(item.id)):
+    const isChatFull=adapter==='chatgpt'&&displayMode==='full';
+    const show=isChatFull?items:displayMode==='full'?scoped:displayMode==='top'?scoped.filter(item=>overviewIds.has(item.id)):
       scoped.filter(item=>item.depth===0||item.topId===active?.topId);
-    const key=displayMode+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth).join('|');
+    const key=displayMode+'|'+(isChatFull?'chat-all':'source')+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth+'-'+i.sourceId).join('|');
     if(key!==lastKey){
       const fragment=doc.createDocumentFragment();
-      for(const item of show){
-        const li=make('li');li.style.setProperty('--depth',String(Math.min(item.depth,3)));
+      for(const [index,item] of show.entries()){
+        const li=make('li');
+        if(isChatFull&&index>0&&show[index-1].sourceId!==item.sourceId)li.classList.add('answer-start');
+        li.style.setProperty('--depth',String(Math.min(item.depth,3)));
         const button=make('button','link'+(item.depth?' child':''));button.type='button';
         button.dataset.id=item.id;button.title=item.label;button.setAttribute('aria-label',item.label);
         const span=make('span','label');span.textContent=item.label;button.append(span);
