@@ -45,3 +45,10 @@
 - **唯一维护路径：** React 源码位于 `preview/react/src/`，修改后使用 `preview/react/package.json` 的 `npm run build` 重新生成并提交 `preview/react/index.html`；`npm run check` 验证源码与 HTML 构建一致性，`npm run test:chromium` 做真实 Chromium UI 回归。仅审核现有 HTML 无须执行这些命令。
 - **历史预览保护：** `preview/index.html` 仍保留 R4.6 版本；此处不改正式工具源码或已安装 JSON 包。
 
+
+## R4.10.4 · 导入／导出工具栏图标统一（2026-10-17）
+
+- React 19 主预览 `preview/react/index.html` 与唯一 JSX 源码 `preview/react/src/App.jsx`：导入使用向下进入托盘，导出使用向上离开托盘，与正式 `src/index.html` 的方向一致。
+- 旧入口 `preview/index.html` 仅交换工具栏文件向下／向上图标；冻结的 R4.9.2 approved 和 R4.3 原始历史文件不改写。
+- 导出面板内的「下载」仍用向下图标，导入面板内的「选择文件」仍用上传/选取图标。工具栏按钮保持 34×34 CSS px、title 与 aria-label。
+- 增加 React Chromium 图标方向回归与 R4.6 静态语义回归；预览只有虚构数据，不能代替真实 Cookie Host 验收。

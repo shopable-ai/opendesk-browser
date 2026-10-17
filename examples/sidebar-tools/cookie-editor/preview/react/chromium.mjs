@@ -28,6 +28,14 @@ try{
  });
  await test('React 19 render eight cookies',async()=>{await page.locator('.cookie-row').first().waitFor();assert.equal(await page.locator('.cookie-row').count(),8);});
  await page.screenshot({path:join(output,'384-initial.png'),fullPage:true});
+ await test('import/export icons convey data flow, download icon still means file download',async()=>{
+   const path=async(label)=>page.getByRole('button',{name:label,exact:true}).locator('svg path').first().getAttribute('d');
+   assert.equal(await path('导入 Cookie'),'M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4');
+   assert.equal(await path('导出 Cookie'),'M12 21V9m-4 4 4-4 4 4M4 3v4h16V3');
+   await page.getByRole('button',{name:'导出 Cookie'}).click();
+   assert.equal(await path('下载'),'M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4');
+   await page.getByRole('button',{name:'关闭导出'}).click();
+ });
  await test('inline dirty restore and save',async()=>{
    await page.locator('[data-row="b"]').click();await page.locator('#cookie-name').fill('renamed');assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
    await page.locator('#cookie-name').fill('theme');assert.equal(await page.getByText('未保存',{exact:true}).count(),0);

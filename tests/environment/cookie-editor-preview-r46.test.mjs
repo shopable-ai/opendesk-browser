@@ -42,7 +42,7 @@ async function harness(){
 test('R4.6 uses original 384px list and stands apart from real Chrome',async()=>{
   const h=await harness();
   for(const marker of ['width:min(100%,384px)','class="item-summary"','data-scene="empty"',
-    "iconBtn('fileUp','import'","iconBtn('fileDown','export'","iconBtn('plus','new'",'data-lab="saveFailure"'])
+    "iconBtn('fileDown','import'","iconBtn('fileUp','export'","iconBtn('plus','new'",'data-lab="saveFailure"'])
     assert.ok(h.html.includes(marker),marker);
   assert.match(h.html,/仅虚构 Cookie/);
   assert.doesNotMatch(h.html,/OpenDeskSDK/);
