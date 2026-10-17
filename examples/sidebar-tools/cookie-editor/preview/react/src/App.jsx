@@ -65,7 +65,7 @@ function HostHeader({onAction}){
   </div>
  </header>;
 }
-function Message({tone='neutral',children}){return <p className={'message '+tone} role={tone==='error'?'alert':'status'} aria-live="polite">{children}</p>}
+function Message({tone='neutral',children,id}){return <p id={id} className={'message '+tone} role={tone==='error'?'alert':'status'} aria-live="polite">{children}</p>}
 function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
 // Preview-only parser: skip ordinary invalid records, block unsafe scope and partition ambiguity.
 function parseInput(text){
@@ -80,8 +80,10 @@ function parseInput(text){
    format='Netscape';
    input=s.split(/\r?\n/).filter(line=>line.trim()&&(!line.startsWith('#')||line.startsWith('#HttpOnly_'))).map((line,i)=>{
     const cols=line.split('\t');if(cols.length!==7)return {record:null,line:i+1};
-    const session=cols[4]==='0',expiration=session?'':new Date(Number(cols[4])*1000).toISOString();
-    return {line:i+1,record:{name:cols[5],value:cols[6],domain:cols[0].replace(/^#HttpOnly_/,''),path:cols[2],secure:cols[3].toUpperCase()==='TRUE',httpOnly:cols[0].startsWith('#HttpOnly_'),session,expiration}};
+    const expires=Number(cols[4]);
+    if(!Number.isSafeInteger(expires)||expires<0||expires>253402300799)return {record:null,line:i+1};
+    const session=expires===0;
+    return {line:i+1,record:{name:cols[5],value:cols[6],domain:cols[0].replace(/^#HttpOnly_/,''),path:cols[2],secure:cols[3].toUpperCase()==='TRUE',httpOnly:cols[0].startsWith('#HttpOnly_'),session,expirationDate:session?undefined:expires}};
    });
   }else{
    format='Cookie Header';
@@ -106,7 +108,10 @@ function parseInput(text){
     catch{throw Error('第 '+line+' 条分区顶级站点无效');}
     partitionKey={topLevelSite:origin,hasCrossSiteAncestor:key.hasCrossSiteAncestor};
    }
-   const row={...newDraft(),...c,name:c.name.trim(),domain,path,hostOnly,storeId:String(c.storeId??'0'),partitionKey,value:c.value,id:'import-'+line,valueTouched:false,expirationDate:c.session?undefined:Number.isFinite(c.expirationDate)?c.expirationDate:unixFromLocal(c.expiration||'')};
+   const session=typeof c.session==='boolean'?c.session:!(Number.isFinite(c.expirationDate)||!!c.expiration);
+   const expirationDate=session?undefined:Number.isFinite(c.expirationDate)?c.expirationDate:unixFromLocal(c.expiration||'');
+   if(!session&&(!Number.isFinite(expirationDate)||expirationDate<=Date.now()/1000||expirationDate>253402300799)){invalid++;continue;}
+   const row={...newDraft(),...c,name:c.name.trim(),domain,path,hostOnly,session,expiration:session?'':localFromUnix(expirationDate),storeId:String(c.storeId??'0'),partitionKey,value:c.value,id:'import-'+line,valueTouched:false,expirationDate};
    if(!safeDomain(domain)||(hostOnly&&domain!==demoSite)){invalid++;continue;}
    if((['none','no_restriction'].includes(row.sameSite)||row.name.startsWith('__Secure-')||!!partitionKey)&&!row.secure){invalid++;continue;}
    if(row.sameSite==='none')row.sameSite='no_restriction';
@@ -119,7 +124,7 @@ function parseInput(text){
 }
 function exportContent(rows,fmt,includeValue){
  if(fmt==='header')return rows.map(c=>c.name+'='+c.value).join('; ');
- if(fmt==='netscape')return '# Netscape HTTP Cookie File\n'+rows.map(c=>[c.httpOnly?'#HttpOnly_'+c.domain:c.domain,c.domain.startsWith('.')?'TRUE':'FALSE',c.path,c.secure?'TRUE':'FALSE',c.session?'0':String(Math.floor(new Date(c.expiration).getTime()/1000)),c.name,c.value].join('\t')).join('\n');
+ if(fmt==='netscape')return '# Netscape HTTP Cookie File\n'+rows.map(c=>[c.httpOnly?'#HttpOnly_'+c.domain:c.domain,c.domain.startsWith('.')?'TRUE':'FALSE',c.path,c.secure?'TRUE':'FALSE',c.session?'0':String(Math.floor(Number.isFinite(c.expirationDate)?c.expirationDate:unixFromLocal(c.expiration))),c.name,c.value].join('\t')).join('\n');
  return JSON.stringify(rows.map(c=>{const o={name:c.name,domain:c.domain,path:c.path,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite==='none'?'no_restriction':c.sameSite,session:c.session,expirationDate:c.session?null:(c.expirationDate??unixFromLocal(c.expiration)),hostOnly:c.hostOnly,storeId:c.storeId,partitionKey:c.partitionKey};if(includeValue)o.value=c.value;return o;}),null,2);
 }
 export default function App(){
@@ -142,12 +147,17 @@ export default function App(){
  const notify=(text,tone='success')=>{setFlash({text,tone});setError('');};
  const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setReveal(false);setAdvancedOpen(false);setPending(null);setError('');};
  const focusAfter=id=>{focusKey.current=id;};
- React.useEffect(()=>{if(focusKey.current){const k=focusKey.current;focusKey.current=null;requestAnimationFrame(()=>document.querySelector(k)?.focus());}},[selected,version]);
+ React.useEffect(()=>{
+  if(!focusKey.current)return;
+  const target=focusKey.current;focusKey.current=null;
+  const frame=requestAnimationFrame(()=>(document.querySelector(target)||document.querySelector('[aria-label="搜索 Cookie"]'))?.focus());
+  return ()=>cancelAnimationFrame(frame);
+ },[selected,version]);
  React.useEffect(()=>{if(!flash?.ephemeral)return;const timer=setTimeout(()=>setFlash(v=>v===flash?null:v),2400);return()=>clearTimeout(timer);},[flash]);
  const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setAdvancedOpen(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
  const requestSwitch=(id)=>{if(saving||!granted)return;if(selected===id){requestClose();return;}if(selected!==null&&dirty){setPending(id);setError('');return;}openEditor(id);};
- const requestClose=()=>{if(saving)return;if(dirty){setPending('close');return;}const old=selected;resetEditor();if(old&&old!=='new')focusAfter('[data-row="'+old+'"]');else focusAfter('[data-action="new"]');setVersion(v=>v+1);};
- const discard=()=>{const p=pending;setPending(null);if(p==='close'){const old=selected;resetEditor();focusAfter(old==='new'?'[data-action="new"]':'[data-row="'+old+'"]');setVersion(v=>v+1);}else if(p!==null)openEditor(p);};
+ const requestClose=()=>{if(saving)return;if(dirty){setPending('close');return;}const old=selected;resetEditor();if(old&&old!=='new')focusAfter('[data-row="'+old+'"]');else focusAfter('[data-action="new"] button');setVersion(v=>v+1);};
+ const discard=()=>{const p=pending;setPending(null);if(p==='close'){const old=selected;resetEditor();focusAfter(old==='new'?'[data-action="new"] button':'[data-row="'+old+'"]');setVersion(v=>v+1);}else if(p!==null)openEditor(p);};
  const update=(name,value)=>{setDraft(d=>({...d,[name]:value}));setError('');setFlash(null);};
  const save=async()=>{
   if(!canWrite||saving||needsVerify||!draft)return;
@@ -177,7 +187,16 @@ export default function App(){
   const unix=draft.session?undefined:unixFromLocal(draft.expiration);
   if(!issue&&!draft.session&&(!Number.isFinite(unix)||unix<=Date.now()/1000||unix>253402300799))
     issue='请选择有效的未来过期时间（本地时间），不能使用过去或超出范围的日期。';
-  if(issue){setError(issue);setAdvancedOpen(true);return;}
+  if(issue){
+   setError(issue);
+   if(issue.startsWith('名称')){focusAfter('#cookie-name');setVersion(v=>v+1);}
+   else if(issue.startsWith('Cookie 值')){focusAfter('#cookie-value');setVersion(v=>v+1);}
+   else{
+    setAdvancedOpen(true);
+    if(issue.startsWith('请选择有效的未来')){focusAfter('[aria-label="过期时间（本地时间）"]');setVersion(v=>v+1);}
+   }
+   return;
+  }
   if(selected!=='new'&&!dirty){requestClose();return;}
   if(current&&!draft.valueTouched&&!canValues){
     setError('保留旧值需要敏感值读取授权，或明确输入新值（包括空值）。');return;
@@ -207,8 +226,18 @@ export default function App(){
   notify(renamed?'已模拟重命名；正式版须先新建、核实，再删除旧身份。':'已保存 Cookie');
   focusAfter('[data-row="'+updated.id+'"]');setVersion(v=>v+1);
  };
- const remove=async()=>{if(!current)return;setConfirm({type:'delete',message:'精确删除「'+current.name+'」？'});};
- const runDelete=async()=>{if(!current)return;const epoch=epochRef.current;setSaving(true);await sleep(200);if(epoch!==epochRef.current)return;setRows(a=>a.filter(x=>x.id!==current.id));setSaving(false);setConfirm(null);resetEditor();notify('已删除 Cookie');};
+ const remove=()=>{if(!current||saving||needsVerify||!canWrite)return;setConfirm({type:'delete',message:'精确删除「'+current.name+'」？',id:current.id,key:identity(current)});};
+ const runDelete=async()=>{
+  const plan=confirm;
+  if(plan?.type!=='delete'||!current||saving||needsVerify||!canWrite||
+    plan.id!==current.id||plan.key!==identity(current)){
+   setConfirm(null);setError('Cookie 身份已变化或仍待核对，请刷新后再删除。');return;
+  }
+  const epoch=epochRef.current;setSaving(true);await sleep(200);
+  if(epoch!==epochRef.current)return;
+  setRows(a=>a.filter(x=>x.id!==plan.id));setSaving(false);setConfirm(null);
+  resetEditor();notify('已删除 Cookie');
+ };
  const useScene=v=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setScene(v);setFlash(null);setError('');setConfirm(null);setIo(null);resetEditor();setQuery('');if(v==='empty')setRows([]);else setRows(initialRows());};
  const requestGrant=async()=>{
    if(!needsSiteGrant||grantBusy)return;
@@ -435,15 +464,15 @@ export default function App(){
  </div>;
  function renderEditor(){return <section className="inline-editor" aria-label={selected==='new'?'新建 Cookie':'编辑 Cookie'} data-testid="editor">
     <div className="editor-top"><span>{selected==='new'?'新建':'编辑'} Cookie</span><span className="editor-top-right">{dirty&&<em>未保存</em>}<IconButton name="close" label="关闭编辑" small onClick={requestClose} disabled={saving}/></span></div>
-    <Field label="名称"><input id="cookie-name" type="text" value={draft.name} onChange={e=>update('name',e.target.value)} maxLength="256" autoComplete="off" disabled={!canWrite||saving}/></Field>
-    <Field label="值"><div className="value-input"><input aria-label="Cookie 值" type={reveal?'text':'password'} autoComplete="off" value={draft.valueTouched?draft.valueInput:(reveal?current?.value||'':'')} placeholder={selected==='new'?'输入值（可为空）':'保留原值 · 点击眼睛查看'} onChange={e=>setDraft(d=>({...d,valueInput:e.target.value,valueTouched:true}))} disabled={!canWrite||saving}/>
+    <Field label="名称"><input id="cookie-name" type="text" aria-invalid={error.startsWith('名称')||undefined} aria-describedby={error?'cookie-editor-error':undefined} value={draft.name} onChange={e=>update('name',e.target.value)} maxLength="256" autoComplete="off" disabled={!canWrite||saving}/></Field>
+    <Field label="值"><div className="value-input"><input id="cookie-value" aria-label="Cookie 值" aria-invalid={error.startsWith('Cookie 值')||undefined} aria-describedby={error?'cookie-editor-error':undefined} type={reveal?'text':'password'} autoComplete="off" value={draft.valueTouched?draft.valueInput:(reveal?current?.value||'':'')} placeholder={selected==='new'?'输入值（可为空）':'保留原值 · 点击眼睛查看'} onChange={e=>setDraft(d=>({...d,valueInput:e.target.value,valueTouched:true}))} disabled={!canWrite||saving}/>
       {<IconButton small name={reveal?'eyeoff':'eye'} label={reveal?'隐藏 Cookie 值':'读取并显示 Cookie 值'} onClick={()=>{if(!canValues){setError('尚未授权敏感值读取，请在工具设置中单独授权。');return;}setError('');setReveal(a=>!a)}}/>}</div></Field>
     
     {current&&<div className="value-controls">{draft.valueTouched?<><span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span><button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}>恢复原值</button></>:<button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:true}))}>清空值</button>}</div>}
-    <details className="advanced" open={advancedOpen} onToggle={e=>setAdvancedOpen(e.currentTarget.open)}><summary>属性与高级设置</summary><div className="advanced-body"><div className="pair"><Field label="Domain"><input value={draft.domain} onChange={e=>update('domain',e.target.value)} readOnly={selected!=='new'}/></Field><Field label="Path"><input value={draft.path} onChange={e=>update('path',e.target.value)} readOnly={selected!=='new'}/></Field></div><div className="toggles-row"><span className="toggles-label">Host-only</span><div className="toggles"><label><input type="checkbox" checked={draft.hostOnly} disabled={selected!=='new'||!canWrite||saving} onChange={e=>update('hostOnly',e.target.checked)}/> {draft.hostOnly?'仅当前主机':'Domain Cookie'}</label></div></div><Field label="SameSite"><select value={draft.sameSite} onChange={e=>update('sameSite',e.target.value)} disabled={!canWrite||saving}><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></Field><div className="toggles-row"><span className="toggles-label">选项</span><div className="toggles"><label><input type="checkbox" checked={draft.secure} onChange={e=>update('secure',e.target.checked)} disabled={!canWrite||saving}/> Secure</label><label><input type="checkbox" checked={draft.httpOnly} onChange={e=>update('httpOnly',e.target.checked)} disabled={!canWrite||saving}/> HttpOnly</label><label><input type="checkbox" checked={draft.session} onChange={e=>update('session',e.target.checked)} disabled={!canWrite||saving}/> Session</label></div></div>{!draft.session&&<Field label="过期时间"><input aria-label="过期时间（本地时间）" type="datetime-local" step="1" value={draft.expiration} onChange={e=>update('expiration',e.target.value)} disabled={!canWrite||saving}/></Field>}{!draft.session&&<p className="editor-timezone">设备本地时间；保存时转换为 Unix 秒，不按 UTC 直接解释输入。</p>}<div className="editor-identity"><div><span>Store ID</span><code>{draft.storeId}</code></div><div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'无（非分区）'}</code></div></div><p className="editor-hint">Domain、Path、Host-only、Store、Partition 为既有 Cookie 的只读身份；HttpOnly 无法由普通网页 JS 直接读取。</p></div></details>
+    <details className="advanced" open={advancedOpen} onToggle={e=>setAdvancedOpen(e.currentTarget.open)}><summary>属性与高级设置</summary><div className="advanced-body"><div className="pair"><Field label="Domain"><input value={draft.domain} onChange={e=>update('domain',e.target.value)} readOnly={selected!=='new'}/></Field><Field label="Path"><input value={draft.path} onChange={e=>update('path',e.target.value)} readOnly={selected!=='new'}/></Field></div><div className="toggles-row"><span className="toggles-label">Host-only</span><div className="toggles"><label><input type="checkbox" checked={draft.hostOnly} disabled={selected!=='new'||!canWrite||saving} onChange={e=>update('hostOnly',e.target.checked)}/> {draft.hostOnly?'仅当前主机':'Domain Cookie'}</label></div></div><Field label="SameSite"><select value={draft.sameSite} onChange={e=>update('sameSite',e.target.value)} disabled={!canWrite||saving}><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></Field><div className="toggles-row"><span className="toggles-label">选项</span><div className="toggles"><label><input type="checkbox" checked={draft.secure} onChange={e=>update('secure',e.target.checked)} disabled={!canWrite||saving}/> Secure</label><label><input type="checkbox" checked={draft.httpOnly} onChange={e=>update('httpOnly',e.target.checked)} disabled={!canWrite||saving}/> HttpOnly</label><label><input type="checkbox" checked={draft.session} onChange={e=>update('session',e.target.checked)} disabled={!canWrite||saving}/> Session</label></div></div>{!draft.session&&<Field label="过期时间"><input aria-label="过期时间（本地时间）" aria-invalid={error.startsWith('请选择有效的未来')||undefined} aria-describedby={error?'cookie-editor-error':undefined} type="datetime-local" step="1" value={draft.expiration} onChange={e=>update('expiration',e.target.value)} disabled={!canWrite||saving}/></Field>}{!draft.session&&<p className="editor-timezone">设备本地时间；保存时转换为 Unix 秒，不按 UTC 直接解释输入。</p>}<div className="editor-identity"><div><span>Store ID</span><code>{draft.storeId}</code></div><div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'无（非分区）'}</code></div></div><p className="editor-hint">Domain、Path、Host-only、Store、Partition 为既有 Cookie 的只读身份；HttpOnly 无法由普通网页 JS 直接读取。</p></div></details>
     {current&&draft.name!==current.name&&<p className="editor-hint">名称变更不是原地覆盖：正式版先创建并核实新 Cookie，再删除旧名称；失败可能两条并存。</p>}
-    {error&&<Message tone="error">{error}</Message>}
+    {error&&<Message id="cookie-editor-error" tone="error">{error}</Message>}
     {pending!==null&&<div className="discard-row" role="status"><span>放弃当前未保存修改？</span><button type="button" className="text-btn" onClick={()=>setPending(null)}>继续编辑</button><button type="button" className="text-btn" onClick={discard}>放弃</button></div>}
-    <div className="editor-actions">{selected!=='new'&&<button className="delete-btn" type="button" onClick={remove} disabled={saving||!canWrite}><Icon name="trash"/>删除</button>}<span className="spacer"/><button className="text-btn" type="button" onClick={requestClose} disabled={saving}>取消</button><button className="text-btn primary" type="button" onClick={save} disabled={!canWrite||saving||needsVerify}>{saving?'保存中…':'保存'}</button></div>
+    <div className="editor-actions">{selected!=='new'&&<button className="delete-btn" type="button" onClick={remove} disabled={saving||needsVerify||!canWrite}><Icon name="trash"/>删除</button>}<span className="spacer"/><button className="text-btn" type="button" onClick={requestClose} disabled={saving}>取消</button><button className="text-btn primary" type="button" onClick={save} disabled={!canWrite||saving||needsVerify}>{saving?'保存中…':'保存'}</button></div>
   </section>}
 }

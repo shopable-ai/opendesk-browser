@@ -65,3 +65,10 @@
 保留既有共享 React 19 JSX 与单一 Root；当前源码修复高级属性、安全校验、Unix 秒与本地 datetime-local 的双向转换，以及 Session 往返的 dirty 判定。Store ID、PartitionKey 与既有 Domain/Path/Host-only 只读；新建只支持当前 SDK 认可的精确主机范围。Cookie 空值与保留旧值区分；改名明确显示正式业务两步处理及未知结果风险。
 
 预览宿主 Header 只展示交互，绝不执行真实卸载、Chrome Cookie 或 SDK 调用；安全清理仍受 Store 0、Host-only、非分区与单次上限约束。导出格式与“包含值”同一行。只有本次构建后精确 HTML 的 Chromium 回归通过才能标记 PASS。
+
+## R5.2.1 · 完整编辑体验收敛（仅 React 19 预览）
+
+- 基础名称/值校验只聚焦错误字段，不无故展开高级面板；输入组件补充 `aria-invalid` 与 `aria-describedby`。新建取消或放弃草稿后，键盘焦点恢复到真正的新建按钮。
+- 模拟保存结果未知时禁用精确删除直到刷新核对；正式身份校验不可只靠预览保证，预览确认删除前也重新比对目标身份。
+- Netscape 持久 Cookie 导入按 Unix 秒读取，转换为本地编辑时间并检验有效范围；保存、重新编辑、导出保留时间，不再把本地日期误读为 UTC。
+- 此轮新加三项 Chromium 回归。既有 23 项 PASS 是历史证据；仅当前提交 CI 全部通过且自动晋升 `index.html` 后才声明新候选 HTML PASS。正式 2.0.23、SDK、Host、安装包以及 Mac Chrome 未改动。

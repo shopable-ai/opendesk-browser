@@ -168,6 +168,37 @@ try{
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.setViewportSize({width:384,height:880});
  });
+ await test('R5.2.1 compact validation and new-editor keyboard focus',async()=>{
+  await page.getByRole('button',{name:'新建 Cookie'}).click();
+  await page.locator('#cookie-name').fill('invalid name');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText(/名称不可为空/).waitFor();
+  assert.equal(await page.locator('details.advanced').getAttribute('open'),null,'basic error must not expand advanced fields');
+  assert.equal(await page.locator('#cookie-name').getAttribute('aria-invalid'),'true');
+  await page.waitForFunction(()=>document.activeElement?.id==='cookie-name');
+  await page.locator('#cookie-name').fill('');
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='新建 Cookie');
+  await page.getByRole('button',{name:'新建 Cookie'}).click();
+  await page.locator('#cookie-name').fill('temporary');
+  await page.getByRole('button',{name:'关闭编辑'}).click();
+  await page.getByText('放弃当前未保存修改？').waitFor();
+  await page.getByRole('button',{name:'放弃',exact:true}).click();
+  await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='新建 Cookie');
+ });
+ await test('R5.2.1 unknown writes block deletion until refresh',async()=>{
+  await page.locator('[data-row="b"]').click();
+  await page.locator('#cookie-name').fill('pending_rename');
+  await page.locator('[data-testid="failure"]').selectOption('unknown');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText(/写入结果未知/).waitFor();
+  assert.equal(await page.locator('.delete-btn').isDisabled(),true);
+  await page.getByRole('button',{name:'刷新 Cookie'}).click();
+  assert.equal(await page.locator('.delete-btn').isDisabled(),false);
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.getByRole('button',{name:'放弃',exact:true}).click();
+  await page.locator('[data-testid="scenario"]').selectOption('ready');
+ });
  await test('R4.11 automatically analyzes import, safe skip, overwrite on opt-in',async()=>{
    await page.getByRole('button',{name:'导入 Cookie'}).click();
    const input=page.getByRole('textbox',{name:'Cookie 内容'});
@@ -207,6 +238,41 @@ try{
    await page.getByText(/导入未完成/).waitFor();
    assert.equal(await input.inputValue(),'[{"name":"safe","value":"ok"}]');
    await page.getByRole('button',{name:'取消',exact:true}).click();
+ });
+ await test('R5.2.1 Netscape local datetime and Unix expiration roundtrip',async()=>{
+  await page.locator('[data-testid="scenario"]').selectOption('ready');
+  await page.getByRole('button',{name:'导入 Cookie'}).click();
+  await page.getByRole('textbox',{name:'Cookie 内容'}).fill('# Netscape HTTP Cookie File\nshop.example.com\tFALSE\t/\tTRUE\t1893456000\tfuture_roundtrip\tdemo');
+  await page.getByText('Netscape · 1 条').waitFor();
+  await page.getByRole('button',{name:'导入 1 条'}).click();
+  await page.getByText(/已导入 1 条/).waitFor();
+  const row=page.locator('.cookie-row').filter({hasText:'future_roundtrip'});
+  await row.locator('.row-trigger').click();
+  await page.getByText('属性与高级设置').click();
+  const expiry=page.getByLabel('过期时间（本地时间）');
+  assert.equal(await expiry.evaluate(el=>new Date(el.value).getTime()/1000),1893456000);
+  const adjusted=await page.evaluate(()=>{
+   const d=new Date(1893459600*1000),p=n=>String(n).padStart(2,'0');
+   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+  });
+  await expiry.fill(adjusted);
+  await page.getByText('未保存',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText('已保存 Cookie').waitFor();
+  await row.locator('.row-trigger').click();
+  await page.getByText('属性与高级设置').click();
+  assert.equal(await page.getByLabel('过期时间（本地时间）').inputValue(),adjusted);
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.getByRole('button',{name:'导出 Cookie'}).click();
+  await page.getByLabel('导出格式').selectOption('netscape');
+  await page.locator('.partition-option input').check();
+  const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'下载',exact:true}).click()]);
+  const content=await readFile(await download.path(),'utf8');
+  const matching=content.split('\n').find(line=>line.includes('\tfuture_roundtrip\t'));
+  assert.ok(matching,'persistent Cookie missing from exported Netscape');
+  assert.equal(matching.split('\t')[4],'1893459600','Unix seconds must survive editor save and export');
+  await page.getByRole('button',{name:'关闭导出'}).click();
+  await page.locator('[data-testid="scenario"]').selectOption('ready');
  });
  await test('R4.11.1 copy button compact and search SVG fixed size and unfilled',async()=>{
    await page.getByRole('button',{name:'导出 Cookie'}).click();
