@@ -503,8 +503,21 @@ function Preview(){
   React.useEffect(()=>{
     const provider=get('workflow-ai-provider'),model=get('workflow-ai-model');
     const draft=get('workflow-ai-request');
-    const refreshSource=()=>setWorkflowSource(provider.value==='local_codex'?'Codex':
-      ['cloud_responses','custom_https'].includes(provider.value)?model.value.trim():'');
+    const protocol=get('workflow-https-protocol');
+    const localSource=get('workflow-source-local'),httpsSource=get('workflow-source-https');
+    const refreshSource=()=>{
+      const local=provider.value==='local_codex',external=['cloud_responses','custom_https'].includes(provider.value);
+      setWorkflowSource(local?'Codex':external?model.value.trim():'');
+      localSource.setAttribute('aria-pressed',String(local));
+      httpsSource.setAttribute('aria-pressed',String(external));
+      get('workflow-local-settings').hidden=!local;
+      get('workflow-custom-settings').hidden=!external;
+      get('workflow-https-mode').hidden=!external;
+      if(external)protocol.value=provider.value;
+    };
+    const chooseLocal=()=>{provider.value='local_codex';refreshSource();};
+    const chooseHttps=()=>{provider.value=protocol.value||'custom_https';refreshSource();};
+    const chooseProtocol=()=>{if(provider.value!=='local_codex'){provider.value=protocol.value;refreshSource();}};
     const draftEdited=()=>setWorkflowDraft(draft.value);
     const explainSend=()=>setWorkflowFeedback(
       '仅预览工作流界面。发送和执行需要正式扩展的 Provider、授权和 RunHost。');
@@ -515,6 +528,9 @@ function Preview(){
       setWorkflowFeedback('已切换到演示空工作流；没有更改任何真实版本。');
     };
     provider.addEventListener('change',refreshSource);
+    localSource.addEventListener('click',chooseLocal);
+    httpsSource.addEventListener('click',chooseHttps);
+    protocol.addEventListener('change',chooseProtocol);
     model.addEventListener('input',refreshSource);
     draft.addEventListener('input',draftEdited);
     get('workflow-ai-plan').addEventListener('click',explainSend);
@@ -523,6 +539,9 @@ function Preview(){
     refreshSource();draftEdited();
     return ()=>{
       provider.removeEventListener('change',refreshSource);
+      localSource.removeEventListener('click',chooseLocal);
+      httpsSource.removeEventListener('click',chooseHttps);
+      protocol.removeEventListener('change',chooseProtocol);
       model.removeEventListener('input',refreshSource);
       draft.removeEventListener('input',draftEdited);
       get('workflow-ai-plan').removeEventListener('click',explainSend);
