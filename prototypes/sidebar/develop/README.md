@@ -5,7 +5,10 @@
 | 文件 | 作用 |
 | --- | --- |
 | `r2-full-preview.html` | R2 原始完整基线（保留旧的全部显式按钮和功能入口，用于回退与对照） |
-| `index.html` | R2.1 最新精简审计版：完整功能保留，减少默认展示的执行概念与低频操作 |
+| `r2.1-audited-preview.html` | R2.1 精简审计基线 |
+| `r2.2-spacing-preview.html` | R2.2 间距整改基线 |
+| `index.html` | **R2.3 当前预览**：运行参数去重、间距单源、响应式与键盘处理 |
+| `preview-contract.test.mjs` | Node 静态回归：防止重复标题、覆盖补丁和功能 ID 缺失 |
 
 ## 设计原则与反方审计
 
@@ -30,14 +33,14 @@ R2.1 已在本次会话的 Chromium 静态页面环境做 **23 项交互断言�
 
 ## 下一步
 
-1. 用户确认可见信息架构及截图；若有不满意，**只**修改 R2.2 对应区域。
+1. 用户确认可见信息架构及截图；若有不满意，**只**修改当前 R2.3 对应区域。
 2. 使用 `scripts/sidebar-preview-kit.mjs create/check` 或对应平台正式预览流程，通过既有浅色壳和设计 Tokens 输出来源可查、静态可 lint 的 UI。
 3. 真正迁入已有 React 19 单一 Root；保留源码编辑器、RunHost、Page 运行、SDK Authority 和原有业务 DOM/事件语义，不用 Mock 覆盖真实操作。
 4. CI Chromium + 本地 macOS Chrome 做 E2E；对任意未测试场景标注 NOT_TESTED，不伪造“95+ PASS”。
 
 ## R2.2 垂直节奏精修（2026-10-17）
 
-- 最新 HTML：`index.html`（R2.2）；R2.1 原样归档为 `r2.1-audited-preview.html`，R2 原样归档为 `r2-full-preview.html`。不覆盖历史。
+- 当时的最新 HTML：`index.html`（R2.2，现已归档）；R2.1 原样归档为 `r2.1-audited-preview.html`，R2 原样归档为 `r2-full-preview.html`。不覆盖历史。
 - **修复根因，而不是加负 margin 补丁**：把浏览器默认 `p/pre` 上下外边距归零；统一移除折叠区 `.fold` 自带的底部 8px margin，由所属区域统一管理 gap；SDK 抽屉 `.drawer-section` 不再把 `section-head` 的 margin 和 Grid gap 重复计算。
 - **统一尺寸**：章节 16px、同组 8px、标签/说明 4px、卡片内 12px、图标按钮 34px、通常输入 36px、源码编辑器至少 216px。结果标题 / 当前运行状态 / 复制按钮合为同一个头部，源代码和说明为独立 `editor-code-group`，保留原功能 ID。
 - **页面状态**：默认 JS Controller、Page 模式、React、Vue、本地多文件、历史展开、长标题、SDK 抽屉与高级权限，均仍由原离线 Mock 处理；这不是正式 RunHost/SDK 调用。没有修改 `src/ui/` 或权限 Authority。
@@ -45,3 +48,19 @@ R2.1 已在本次会话的 Chromium 静态页面环境做 **23 项交互断言�
 - **回归结果**：原有 23/23 个交互场景通过；新 75/75 个布局/状态断言通过（320/360/420px、长标题、折叠、模式、本地项目、SDK 抽屉、键盘 Escape 和页面/区域横向溢出），来自本会话本地 headless Chromium + Playwright 自测；不是独立外部专家验收。
 - **仍需正式验证**：官方 `sidebar-preview-kit.mjs check` / 官方 Preview Shell、React 19 正式组件迁移、真实 Chrome Side Panel 和 Mac 原生验收均为 `NOT_TESTED`。非正式模板合同，不宣称已取得独立专家评分 95+ 或生产环境 95+。
 - **后续注意**：生产 React 迁移必须复用正式 `--space-1/2/3/4` 和 `od-*`，**由布局父容器负责间距、取消子控件重复 margin**，保留已有精确文档授权与实际运行/安装语义。不要把 Mock 的静态状态误接入真实 Authority。
+
+## R2.3 参数去重与间距合同（2026-10-17）
+
+**本轮问题根因：** R2.2 的「参数 JSON（可选）」摘要右侧重复打印 `{"value":0}`，展开又有第二个「参数 JSON」标签；同时先前 R2/R2.1/R2.2 连续在样式末尾覆盖早期 CSS，导致 token、控件高度、间距所有权难以推导。过去只核对总 gap 与横向溢出，未将**可见文案重复**及**展开态 computed geometry**设为回归门槛。
+
+**本轮变更：**
+- 折叠标题只显示「运行参数｜可选」；展开后直接是带 `sr-only` label 的编辑框，JSON 数据不出现在折叠摘要里。格式错误时展开并聚焦编辑框、显示就地错误，输入纠正后自动清除错误。
+- 保留 R2.2 视觉语言；把 R2.1/R2.2 的末尾覆盖并入原始 CSS 规则，`:root` 只存在一处；`viewport`、`page-head`、`fold>summary` 等均只有一个基础定义。取消冗余「当前网页」装饰标签与初始重复结果状态。
+- 运行结果未生成前禁用复制；新建结果后启用。代码编辑器保留 Tab 缩进，Escape 后 Tab 可以离开输入框；窄屏 180/220px 的操作区自动折行；弱对比度元数据及未选中 Tab 文本提高到理论 WCAG AA 白底 4.5:1 以上（静态颜色计算）。
+- **不删除原有业务入口：** JS / React / Vue、Controller / Page、独立本地项目、版本与任务候选、网页增强的安装/启停/卸载、SDK 按需授权、目标诊断等保留。R2.2 与 R2.1 旧文件均独立归档。
+
+**本次同一候选的本地证据：** Chromium 144.0 headless，在 220/240/320/360/420/520 CSS px 下做 176 项静态/交互/布局断言，`176/176 PASS`，包含 420px 下 14 处关键内容间隔精确命中 4/8/16px，SDK 抽屉四处章节间隔均为 16px，模拟运行、错误恢复、Page 保存/安装/卸载、权限变更、焦点恢复等。GitHub 保留的 Node 静态合同有 8 项（含主动恢复重复标题的反例），本地等价 Node 候选脚本 `8/8 PASS`；**GitHub CI 运行此新文件尚未核实**。原有 R2.2 的 172 个 DOM ID 全部保留，新增一个 `params-error`。
+
+**证据边界：** 此 HTML 仍是原生 HTML/CSS/JS 离线模拟，不是 React 组件，也不执行真实浏览器 SDK 或系统授权。官方 `scripts/sidebar-preview-kit.mjs check`、正式 React 19 迁移、独立外部专家评审、macOS Chrome 扩展实装均为 `NOT_TESTED`；不得将 176 项模拟断言或专家自评分称作正式产品 95+ 验收。
+
+**下一步：** 使用 `.agents/skills/opendesk-extension-ui/SKILL.md` 和 `opendesk-ui-preview`，以 R2.3 的内容层级和间距合同迁入现有 React 19 单一 Root / `od-*` 宿主组件。先检查重复文案和可见性，再跑源码同源模板测试、Chromium 布局与实际 Mac Chrome；避免再次在 CSS 文件末尾追加覆盖规则。
