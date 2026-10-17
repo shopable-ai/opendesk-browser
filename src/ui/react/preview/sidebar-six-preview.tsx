@@ -337,6 +337,7 @@ function Preview(){
         if(type==='revoke')return {...row,suspended:true,enabled:false};
         return row;
       }));
+      if(type==='install'){setScope('smart');setSelected(null);}
       if(type==='uninstall'){
         setOpenToolKey(null);setToolSettingsOpen(false);setSelected(null);setScope('available');
         // Restore focus to a visible control when the detail and review close.
@@ -414,7 +415,7 @@ function Preview(){
     </div>,controls)}
     {createPortal(<ExtensionToolbar model={{
       query:search,kind,scope,menuOpen,language:'zh-CN',
-      onSearch:setSearch,onKind:setKind,onScope:setScope,onToggleMenu:()=>setMenuOpen(v=>!v),
+      onSearch:setSearch,onKind:setKind,onScope:next=>{setScope(next);setMenuOpen(false);},onToggleMenu:()=>setMenuOpen(v=>!v),
       onReset:()=>{setSearch('');setKind('all');setScope('smart');},
       onMarket:()=>setNotice('市场仅为 UI 预览，不打开网络页面'),
       onImport:()=>{beginImport();
