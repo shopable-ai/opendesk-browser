@@ -592,7 +592,7 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
 
 // Component-only DOM fixture. No Chrome permission, native input, Fire or Result
 // is fabricated as product evidence; genuine native coverage lives in R3.
-async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0}={}){
+async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0,host={}}={}){
   const {document,window}=parseHTML(await load('src/ui/tool.html'));
   let focused=document.body;
   Object.defineProperty(document,'activeElement',{get:()=>focused});
@@ -635,7 +635,7 @@ async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0}={}
     throw Error('Unexpected component RPC '+method);
   }};
   const ui=createScheduledTaskWorkbench({client,document,
-    host:{},taskWorkbench:{navigate(){}},api:{permissions:{contains:async()=>true}}});
+    host,taskWorkbench:{navigate(){}},api:{permissions:{contains:async()=>true}}});
   await ui.open();
   return {document,window,state,ui,get:id=>document.getElementById(id),
     flush:()=>new Promise(resolve=>setImmediate(resolve))};
@@ -720,6 +720,43 @@ test('R32 runner action keeps the live Host status while its launch button moves
   assert.equal(status.textContent,'宿主已断开；等待重新连接');
   assert.equal(get('schedule-create').getAttribute('aria-label'),'新建定时计划');
   assert.equal(document.querySelectorAll('#schedule-open-runner').length,1);
+  ui.dispose();
+});
+
+test('R33.3.15-C plan cards stop only the current owned Fire and keep the plan scheduled',async()=>{
+  const stops=[],host={currentRun:'run-0',
+    async stop(input){stops.push(input);return {state:'unknown'};}};
+  const {ui,get,state,flush}=await scheduledDomFixture({host});
+  const plan=state.plans[0];
+  plan.paused=false;plan.nextDueAt=Date.now()+3600000;
+  plan.history[0].status='RUNNING';
+  await ui.refresh();
+  let card=get('schedule-plan-list').querySelector('.schedule-card');
+  let stop=card.querySelector('[data-schedule-action="stop"]');
+  assert.ok(stop,'admitted/running Fire exposes a distinct quick-stop icon');
+  assert.equal(stop.disabled,false,'only the verified current Host run can be stopped');
+  assert.match(stop.getAttribute('aria-label'),/^停止本次执行/);
+  assert.match(card.querySelector('.schedule-state').textContent,/运行中/);
+  assert.match(card.querySelector('.schedule-plan-phase').textContent,/计划：已安排/,
+    'run state must not overwrite the scheduled plan lifecycle');
+  assert.match(card.querySelector('.schedule-plan-frequency').textContent,/每天/);
+  assert.match(card.querySelector('.schedule-next-time').textContent,/下次/);
+  stop.click();await flush();
+  assert.deepEqual(stops,[{runId:'run-0',controller:true}]);
+  assert.equal(state.plans[0].paused,false,'stopping a Fire does not pause a schedule');
+  assert.match(get('schedule-message').textContent,/以运行记录为准/);
+  // A stale or foreign Host must not gain a functional stop control.
+  host.currentRun='different-run';
+  await ui.refresh();
+  card=get('schedule-plan-list').querySelector('.schedule-card');
+  stop=card.querySelector('[data-schedule-action="stop"]');
+  assert.equal(stop.disabled,true);
+  stop.click();await flush();
+  assert.equal(stops.length,1,'no second stop request after Host ownership changes');
+  state.plans[0].history[0].status='UNKNOWN';
+  await ui.refresh();
+  assert.equal(get('schedule-plan-list').querySelector('[data-schedule-action="stop"]'),null,
+    'unknown execution is not safe to stop or automatically retry');
   ui.dispose();
 });
 
