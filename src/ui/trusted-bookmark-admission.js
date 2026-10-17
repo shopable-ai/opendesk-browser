@@ -6,6 +6,7 @@ import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_BOOKMARK_ID='bookmark-manager';
 export const TRUSTED_BOOKMARK_VERSION='0.3.8';
+export const TRUSTED_BOOKMARK_COMPONENT_VERSION='R3.0.6';
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
   ?value[TRUSTED_BOOKMARK_ID]:null;
