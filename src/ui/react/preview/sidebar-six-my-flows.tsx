@@ -18,6 +18,8 @@ const seed={id:'preview-1',title:'每日整理（仅预览）',kind:'daily',
 const ruleName=k=>({once:'执行一次',daily:'每天',weekly:'每周',interval:'按间隔'})[k]||k;
 export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter}){
   const [showSearch,setShowSearch]=React.useState(false);
+  const [addOpen,setAddOpen]=React.useState(false);
+  const [addStatus,setAddStatus]=React.useState('');
   const [catalogSearch,setCatalogSearch]=React.useState('');
   const [catalogSelected,setCatalogSelected]=React.useState('preview-task');
   const [importReview,setImportReview]=React.useState('');
@@ -60,6 +62,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     setRule(plan?.kind||'once');setView('form');
   };
   const back=()=>{
+    if(view==='manager'){setView('form');return;}
     if(view==='form'){
       if(formSignature()!==formBaseline.current){setDirtyConfirm(true);return;}
       setView('list');setPending(null);return;
@@ -72,6 +75,9 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('workbench-tasks').querySelector('.tasks-surface').hidden=mode!=='list';
     get('scheduled-panel').hidden=mode!=='schedule';
     get('task-search-panel').hidden=!showSearch;
+    get('task-add-menu').hidden=!addOpen||mode!=='list';
+    get('task-open-catalog').setAttribute('aria-expanded',String(addOpen&&mode==='list'));
+    get('task-add-status').textContent=addStatus;
     get('task-search-toggle').setAttribute('aria-expanded',String(showSearch));
     get('local-discover-count').textContent='显示 '+rows.length+' 项 · UI_PREVIEW_ONLY';
     for(const key of ['all','current','disabled'])
@@ -79,9 +85,10 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     for(const [name,id] of [['list','schedule-list-view'],['detail','schedule-detail-view'],
       ['form','schedule-form'],['manager','schedule-task-manager']])
       get(id).hidden=name!==view;
-    get('schedule-panel-title').textContent=view==='form'?'创建 / 编辑计划 · 预览':
-      view==='detail'?'计划详情 · 预览':view==='manager'?'任务管理 · 预览':'定时计划';
+    get('schedule-panel-title').textContent=view==='form'?(editingId?'编辑定时计划':'创建定时计划'):
+      view==='detail'?'计划详情':view==='manager'?'任务管理':'定时计划';
     get('schedule-create').hidden=view!=='list';
+    get('schedule-open-runner').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
     get('schedule-manager-back').hidden=view!=='manager';
     get('schedule-save-confirm').hidden=!pending;
@@ -101,8 +108,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-catalog-status').textContent=importReview||
       'UI_PREVIEW_ONLY · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
-  },[tab,mode,rows.length,filter,showSearch,view,plans.length,pending,dirtyConfirm,
-    rule,feedback,found.length,importReview]);
+  },[tab,mode,rows.length,filter,showSearch,addOpen,addStatus,editingId,view,
+    plans.length,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
     if(zone.options.length<2)
@@ -125,7 +132,24 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('task-search-panel','keydown',e=>{
       if(e.key==='Escape'&&!e.isComposing){setShowSearch(false);get('task-search-toggle').focus();}
     });
-    bind('task-open-catalog','click',()=>onMode('catalog'));
+    bind('task-open-catalog','click',()=>setAddOpen(open=>!open));
+    bind('task-add-close','click',()=>{setAddOpen(false);get('task-open-catalog').focus();});
+    bind('task-add-import','click',()=>get('task-add-file').click());
+    bind('task-add-file','change',async e=>{
+      const input=e.currentTarget,file=input.files?.[0];
+      if(!file)return;
+      try{
+        if(file.size>1024*1024){setAddStatus('UI_PREVIEW_ONLY · 文件超过预览大小限制');return;}
+        if(/\.json$/i.test(file.name)){
+          const value=JSON.parse(await file.text());
+          setAddStatus('UI_PREVIEW_ONLY · '+file.name+' · '+String(value?.taskId||value?.id||'未识别身份')+
+            ' · 仅解析，不导入、不授权');
+        }else setAddStatus('UI_PREVIEW_ONLY · JavaScript 草稿已选择；未运行');
+      }catch{setAddStatus('UI_PREVIEW_ONLY · 文件解析失败，未导入');}
+      finally{input.value='';}
+    });
+    bind('task-add-catalog','click',()=>{setAddOpen(false);onMode('catalog');});
+    bind('task-add-develop','click',()=>{setAddOpen(false);onOpenDevelop();});
     bind('task-search','input',e=>setCatalogSearch(e.currentTarget.value));
     bind('task-package-file','change',async e=>{
       const file=e.currentTarget.files?.[0];
