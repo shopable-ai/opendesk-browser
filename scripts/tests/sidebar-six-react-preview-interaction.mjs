@@ -147,18 +147,50 @@ try{
   assert.equal(rowState.detailHidden,false,
     'Trusted pointer should open extension details: '+JSON.stringify(rowState));
   assert((await evaluate('document.getElementById("extension-center-detail-body").textContent')).includes('UI_PREVIEW_ONLY'));
+  // Same fixed ID should update its row, not append a second installed identity.
+  await click('#extension-center-back');
+  await until('document.getElementById("extension-center-detail").hidden');
+  await click('#extension-center-more');
+  await until('!document.getElementById("extension-center-menu").hidden');
+  await click('#extension-center-import');
+  await until('!document.getElementById("sidebar-tool-import").hidden');
+  const upgrade=join(profile,'demo-upgrade.opendesk-tool.json');
+  await writeFile(upgrade,JSON.stringify({format:'opendesk.sidebar-tool.v2',
+    id:'preview-import',title:'演示导入工具',version:'1.3.0',
+    capabilities:['storage.local'],html:'<main>upgrade fixture</main>',css:'',js:''}));
+  await cdp('DOM.setFileInputFiles',{nodeId:file.nodeId,files:[upgrade]});
+  await until('document.getElementById("sidebar-tool-preview-version").textContent.includes("1.3.0")');
+  assert((await evaluate('document.getElementById("sidebar-tool-update-versions").textContent')).includes('1.2.0'),
+    'Same-ID import must show previous version before updating');
+  await click('#sidebar-tool-install');
+  const importedSelector='[data-extension-id="app:preview-import"]';
+  await until('document.querySelectorAll('+JSON.stringify(importedSelector)+').length===1');
+  await click('[data-extension-id="app:preview-import"] .ec-row-main');
+  await until('!document.getElementById("extension-center-detail").hidden');
+  assert((await evaluate('document.getElementById("extension-center-detail-body").textContent')).includes('1.3.0'),
+    'Update must replace version without creating another installed row');
+  await screenshot('extension-updated-360');
   await click('[data-ec-detail-action="uninstall"]');
   await until('!document.getElementById("sidebar-tool-action-review").hidden');
   await screenshot('extension-uninstall-review-360');
   await click('#sidebar-tool-action-continue');
-  await until('!document.getElementById("extension-center-detail").hidden');
-  assert.equal(await evaluate('document.querySelectorAll("[data-extension-id=\\"app:preview-import\\"]").length'),1,
-    'Uninstalled fixture remains only in available list');
+  await until('document.getElementById("extension-center-detail").hidden && '+
+    '!document.getElementById("extension-center-list-view").hidden');
+  assert.equal(await evaluate('document.querySelectorAll('+JSON.stringify(importedSelector)+').length'),1,
+    'Uninstalled fixture remains once, only in available list');
+  assert.equal(await evaluate('document.querySelector("[data-ec-scope=available]").getAttribute("aria-pressed")'),'true',
+    'Uninstall must switch to available scope');
+  assert((await evaluate('document.querySelector('+JSON.stringify(importedSelector+' .ec-row-main')+').getAttribute("aria-label")')).includes('查看详情'),
+    'Uninstalled app must not show Open');
+  assert((await evaluate('document.getElementById("od-sidebar-preview-controls").textContent')).includes('UI_PREVIEW_ONLY'),
+    'Memory-only uninstall must retain preview-only notice');
+  await screenshot('extension-uninstalled-360');
   assert.deepEqual(exceptions,[],'Browser errors');
   console.log(JSON.stringify({kind:'SOURCE_BOUND_UI_PREVIEW_CHROMIUM',status:'PASS',
     checks:['real clicks: task collapse/reopen/switch','search','catalog','schedule form',
       'schedule memory review','extension file choose','import review','in-memory install',
-      'uninstall review','UI_PREVIEW_ONLY maintained'],nativeChrome:'NOT_TESTED'}));
+      'same-ID in-memory update, no duplicate','uninstall review and available-list return',
+      'UI_PREVIEW_ONLY maintained'],nativeChrome:'NOT_TESTED'}));
 }finally{
   try{socket?.close()}catch{}
   try{chrome?.kill('SIGTERM')}catch{}
