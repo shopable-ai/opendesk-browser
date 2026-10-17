@@ -117,7 +117,8 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Active RunHost history is guarded in the real Workflow Controller
-        run: node --experimental-vm-modules --test --test-name-pattern="component: active RunHost blocks" tests/environment/workflow-focus.test.mjs
+        run: |
+          node --experimental-vm-modules --test --test-name-pattern="component: active RunHost blocks" tests/environment/workflow-focus.test.mjs
       - name: Full Workflow Controller component suite
         run: node --experimental-vm-modules --test tests/environment/workflow-focus.test.mjs
 
