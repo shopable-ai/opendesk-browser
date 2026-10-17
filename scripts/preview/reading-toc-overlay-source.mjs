@@ -36,6 +36,16 @@ const sampleItems=[
  {id:'h-8',sourceId:'s-1',label:'数据安全',depth:0,topId:'h-8'},
  {id:'h-9',sourceId:'s-1',label:'扩展权限说明',depth:1,topId:'h-8'}
 ];
+const chatItems=[
+ {id:'h-20',sourceId:'s-1',label:'周末城市公园活动计划',depth:0,topId:'h-20'},
+ {id:'h-21',sourceId:'s-1',label:'出行路线',depth:1,parentId:'h-20',topId:'h-20'},
+ {id:'h-22',sourceId:'s-1',label:'行程时间安排',depth:0,topId:'h-22'},
+ {id:'h-23',sourceId:'s-1',label:'注意事项',depth:1,parentId:'h-22',topId:'h-22'},
+ {id:'h-24',sourceId:'s-2',label:'交通与预算',depth:0,topId:'h-24'},
+ {id:'h-25',sourceId:'s-2',label:'出行路线',depth:1,parentId:'h-24',topId:'h-24'},
+ {id:'h-26',sourceId:'s-3',label:'雨天备选',depth:0,topId:'h-26'},
+ {id:'h-27',sourceId:'s-3',label:'注意事项',depth:1,parentId:'h-26',topId:'h-26'}
+];
 let scenario=${JSON.stringify(scenario)};
 let locale=${JSON.stringify(locale)};
 let selected='h-2';
@@ -45,24 +55,33 @@ const surface=createReadingTocView({
  doc:document,win:window,initialLocale:locale,
  onPlacementChange:next=>{position=next;},
  onNavigate:(id,sourceId)=>{
-  if(sourceId!=='s-1'||!sampleItems.some(row=>row.id===id))return;
+  const target=(scenario==='chatgpt-multi'?chatItems:sampleItems).find(row=>row.id===id&&row.sourceId===sourceId);
+  if(!target)return;
   selected=id;
   document.getElementById(id)?.scrollIntoView({block:'start'});
   render();
-  parent.postMessage({kind:'opendesk-toc-preview-navigation',label:sampleItems.find(row=>row.id===id).label},'*');
+  parent.postMessage({kind:'opendesk-toc-preview-navigation',label:target.label},'*');
  }
 });
 function render(){
- const show=scenario==='success';
- stage.textContent=show?'模拟文章 · 章节保留原文':
+ const multi=scenario==='chatgpt-multi',show=scenario==='success';
+ document.getElementById('preview-article').hidden=multi;
+ document.getElementById('preview-chat').hidden=!multi;
+ stage.textContent=multi?'ChatGPT 三条 AI 回答 · 目录按来源分隔（模拟数据）':show?'模拟文章 · 章节保留原文':
    scenario==='empty'?'模拟空目录：当前网页没有可识别的标题':
    scenario==='loading'?'模拟加载状态：网页章节暂未读取完成':
    scenario==='permission-denied'||scenario==='untrusted'?'模拟授权受限：未读取真实页面':
    '模拟读取错误：不访问网页或网络';
- const items=show?sampleItems:[];
+ const items=multi?chatItems:show?sampleItems:[];
+ const sources=multi?['s-1','s-2','s-3'].map((id,i)=>({id,label:'回答 '+(i+1),kind:'answer'})):
+   show?[{id:'s-1',label:'当前文章'}]:[];
  surface.render({
-   items,sources:show?[{id:'s-1',label:'当前文章'}]:[],activeId:show?selected:'',
-   overview:show?{'s-1':{ids:['h-1','h-4','h-8'],hiddenCount:6,representedId:'h-1'}}:{}
+   adapter:multi?'chatgpt':'article',items,sources,
+   activeId:items.some(row=>row.id===selected)?selected:multi?'h-25':show?'h-2':'',
+   overview:multi?Object.fromEntries(sources.map(source=>[source.id,{
+     ids:chatItems.filter(item=>item.sourceId===source.id).map(item=>item.id),
+     hiddenCount:0,representedId:chatItems.find(item=>item.sourceId===source.id)?.id||''
+   }])):show?{'s-1':{ids:['h-1','h-4','h-8'],hiddenCount:6,representedId:'h-1'}}:{}
  });
 }
 window.addEventListener('message',event=>{
@@ -71,7 +90,7 @@ window.addEventListener('message',event=>{
    locale=event.data.locale;surface.setLocale(locale);
  }
  if(event.data.kind==='opendesk-toc-preview-scenario'&&
-  ['success','empty','error','loading','permission-denied','untrusted'].includes(event.data.scenario)){
+  ['success','empty','error','loading','permission-denied','untrusted','chatgpt-multi'].includes(event.data.scenario)){
    scenario=event.data.scenario;render();
  }
 });
@@ -90,11 +109,16 @@ article{max-width:480px}article h1{font-size:21px;margin:14px 0}article h2{font-
 article p{max-width:310px;color:#737987;line-height:1.8;margin:0}
 </style></head><body>
 <div id="simulated-stage" role="status">模拟网页 · 未连接任何网站</div>
-<article aria-label="模拟文章，标题原文保持不变">
+<article id="preview-article" aria-label="模拟文章，标题原文保持不变">
 <h1 id="h-1">OpenDesk Browser 阅读指南</h1><h2 id="h-2">产品目标</h2><p>以下模拟文章仅用于展示真实的可信网页悬浮目录 UI。</p>
 <h2 id="h-3">安装与开始使用</h2><p>点击右侧真实悬浮目录的条目，在模拟文章内导航。</p>
 <h1 id="h-4">常用操作</h1><h2 id="h-5">快速打开工具</h2><p>中文与英文切换不翻译网页标题。</p>
 <h2 id="h-6">按需刷新目录</h2><h2 id="h-7">多语言界面</h2><h1 id="h-8">数据安全</h1><h2 id="h-9">扩展权限说明</h2>
+</article>
+<article id="preview-chat" hidden aria-label="ChatGPT 三条 AI 回答模拟场景">
+<section data-message-author-role="assistant"><div class="markdown"><h1 id="h-20">周末城市公园活动计划</h1><h2 id="h-21">出行路线</h2><p>第一条回答的第一部分。</p><h1 id="h-22">行程时间安排</h1><h2 id="h-23">注意事项</h2><p>同一条回答中的第二个 H1，不增加分隔线。</p></div></section>
+<section data-message-author-role="assistant"><div class="markdown"><h1 id="h-24">交通与预算</h1><h2 id="h-25">出行路线</h2><p>第二条 AI 回答，保留重名标题的独立跳转。</p></div></section>
+<section data-message-author-role="assistant"><div class="markdown"><h1 id="h-26">雨天备选</h1><h2 id="h-27">注意事项</h2><p>第三条 AI 回答。</p></div></section>
 </article><script type="module" src="${dataUrl(moduleSource)}"></script></body></html>`;
   return Object.freeze({html,sourceSha256:sha256(JSON.stringify([view,placement,uiLocale,catalog])),
     moduleSha256:sha256(moduleSource),realView:true,mockData:true});
