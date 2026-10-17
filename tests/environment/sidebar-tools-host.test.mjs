@@ -1193,7 +1193,7 @@ for(const [toolId,key,url,origin] of [
   const deny=f.elements['sidebar-tool-settings-deny'];
   assert.equal(allow.disabled,false);
   assert.equal(allow.attributes.get('aria-pressed'),'false');
-  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,toolId==='reading-toc'?/默认可用于所有 HTTP\(S\) 网页/:/点击授权后直接生效/);
+  assert.match(f.elements['sidebar-tool-settings-hint'].textContent,toolId==='reading-toc'?/安装后默认适用于普通 HTTP\(S\) 网页.*无需逐站授权/:/点击授权后直接生效/);
   globalThis.confirm=()=>{dialogCount++;return false;};
   allow.focus();
   allow.emit('click');
