@@ -18,6 +18,7 @@ on:
       - 'tests/environment/sidebar-shared-ui-r16.test.mjs'
       - 'tests/environment/sidebar-shared-ui-r17.test.mjs'
       - 'scripts/tests/shared-ui-r17-preview-chrome.mjs'
+      - 'scripts/tests/shared-ui-r17-size-baseline.mjs'
 permissions:
   contents: read
 concurrency:
@@ -62,6 +63,8 @@ jobs:
           for(let i=0;i<encoded.length;i+=4096)console.log('R17_PACKAGE_PAYLOAD_PART '+encoded.slice(i,i+4096));
           console.log('R17_PACKAGE_PAYLOAD_END');
           NODE
+      - name: Measure real bundled-React baseline versus shared author JSX
+        run: node scripts/tests/shared-ui-r17-size-baseline.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Run actual compiled JSX and browser Shared UI in headless Chrome
@@ -82,3 +85,4 @@ jobs:
             dist/development/libs/page-frameworks/react-19.2.0.js
             docs/framework/evidence/wxt/builds/build-development.json
             artifacts/sidebar-tools/shared-ui-demo/chrome/
+            artifacts/sidebar-tools/shared-ui-demo/standalone-baseline/size-report.json
