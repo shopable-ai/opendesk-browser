@@ -979,46 +979,83 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   function renderManager(){
     const parent=get('schedule-manager-list');parent.replaceChildren();
-    const filter=get('schedule-manager-filter').value,q=get('schedule-manager-search').value.trim().toLowerCase();
+    const filter=get('schedule-manager-filter').value;
+    const q=get('schedule-manager-search').value.trim().toLowerCase();
     const rows=installed.filter(row=>(filter==='all'||row.enabled===(filter==='enabled'))&&
       [row.taskId,candidate(row)?.manifest?.title||''].some(value=>value.toLowerCase().includes(q)));
-    if(!rows.length){parent.append(element(doc,'p','hint','没有符合条件的已安装任务。'));return;}
+    text(get('schedule-manager-count'),'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
+    if(!rows.length){
+      parent.append(element(doc,'p','task-search-empty',
+        installed.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。'));
+      return;
+    }
+    // Uses the original Task Registry and mutation receipts. Only this card's
+    // trusted presentation changes; actions remain in this single workbench.
+    const iconAction=(label,path,callback,extra='')=>{
+      const button=action(doc,label,callback,'od-icon-button schedule-manager-action '+extra);
+      button.title=label;button.setAttribute('aria-label',label);button.textContent='';
+      const svg=doc.createElementNS?.('http://www.w3.org/2000/svg','svg')||doc.createElement('svg');
+      svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+      const shape=doc.createElementNS?.('http://www.w3.org/2000/svg','path')||doc.createElement('path');
+      shape.setAttribute('d',path);svg.append(shape);button.append(svg);
+      return button;
+    };
     for(const row of rows){
-      const details=candidate(row),card=element(doc,'article','schedule-manager-card od-surface');
-      card.append(element(doc,'strong',null,details?.manifest?.title||row.taskId));
-      card.append(element(doc,'p','hint',
-        `${row.taskId} · v${row.version} · ${row.enabled?'已启用':'已停用'} · 关联计划 ${allPlans.filter(p=>p.taskId===row.taskId).length}`));
-      card.append(element(doc,'p','hint','网站权限：'+(details?.manifest?.siteOrigins||[]).join('，')));
-      const toolbar=element(doc,'div','schedule-actions od-toolbar');
-      // An editor-origin manager must never silently reset the unsaved draft.
+      const details=candidate(row),title=details?.manifest?.title||row.taskId;
+      const originList=details?.manifest?.siteOrigins||[];
+      const linked=allPlans.filter(plan=>plan.taskId===row.taskId).length;
+      const card=element(doc,'article','schedule-manager-card od-surface');
+      const heading=element(doc,'div','schedule-manager-card-head');
+      const identity=element(doc,'div','schedule-manager-identity');
+      identity.append(element(doc,'strong',null,title));
+      identity.append(element(doc,'p','hint','v'+row.version+' · '+linked+' 个关联计划'));
+      const state=element(doc,'span','schedule-manager-state',row.enabled?'已启用':'已停用');
+      state.dataset.state=row.enabled?'enabled':'disabled';
+      heading.append(identity,state);card.append(heading);
+      const controls=element(doc,'div','schedule-manager-actions od-toolbar');
+      controls.setAttribute('role','group');
+      controls.setAttribute('aria-label','管理「'+title+'」');
+      // A detour from an unsaved schedule form must never reset its draft.
       if(canStartScheduleFromManager(managerReturn)){
-        toolbar.append(action(doc,'设置定时',()=>{managerReturn='list';formReturnView='manager';show('form');
-          reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
-          showTaskVersion();get('schedule-title').value=(details?.manifest?.title||row.taskId)+' 定时';}));
+        controls.append(iconAction('为「'+title+'」设置定时',
+          'M7 3v4m10-4v4M4 9h16M5 5h14v15H5zM12 12v4l3 2',()=>{
+            managerReturn='list';formReturnView='manager';show('form');
+            reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
+            showTaskVersion();get('schedule-title').value=title+' 定时';
+          }));
       }
-      toolbar.append(action(doc,row.enabled?'停用':'启用',async event=>{
+      controls.append(iconAction((row.enabled?'停用':'启用')+'「'+title+'」',
+        row.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z',async()=>{
         if(busy)return;busy=true;
         try{
-          if(!row.enabled)await requireChromePermissions({api,request:{origins:(details?.manifest?.siteOrigins||[])
+          if(!row.enabled)await requireChromePermissions({api,request:{origins:originList
             .map(origin=>permissionPattern(origin))}});
           await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,
             enabled:!row.enabled,expectedGeneration:row.generation??null,
             expectedInstallationId:row.installationId??null});
           await refresh();message('任务安装状态已更新');
         }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
-      },'od-button od-button--secondary schedule-manager-toggle'));
-      toolbar.append(action(doc,'复制到开发',async()=>{
-        try{
-          const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
-          hidePanel();
-          await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
-        }catch(error){message(error?.message||String(error),true);}
-      }));
-      toolbar.append(action(doc,'卸载',()=>{
-        confirmUninstall=row;get('schedule-uninstall-confirm').hidden=false;
-        text(get('schedule-uninstall-label'),`确认卸载「${details?.manifest?.title||row.taskId}」v${row.version}？历史运行记录将保留。`);
-      },'od-button od-button--secondary schedule-manager-uninstall'));
-      card.append(toolbar);parent.append(card);
+      },'schedule-manager-toggle'));
+      controls.append(iconAction('复制「'+title+'」到开发',
+        'M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3',async()=>{
+          try{
+            const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
+            hidePanel();await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
+          }catch(error){message(error?.message||String(error),true);}
+        }));
+      controls.append(iconAction('卸载「'+title+'」',
+        'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',()=>{
+          confirmUninstall=row;get('schedule-uninstall-confirm').hidden=false;
+          text(get('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
+            '？历史运行记录将保留。');
+        },'od-icon-button--danger schedule-manager-uninstall'));
+      const detail=element(doc,'details','schedule-manager-more od-disclosure od-disclosure--flat');
+      detail.append(element(doc,'summary',null,'版本与网站范围'));
+      detail.append(element(doc,'p','hint','任务 ID：'+row.taskId));
+      detail.append(element(doc,'p','hint','固定版本：v'+row.version));
+      detail.append(element(doc,'p','hint','适用网站：'+(originList.join('，')||'未指定')));
+      card.append(controls,detail);
+      parent.append(card);
     }
   }
   function openManager(returnView){
