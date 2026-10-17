@@ -480,6 +480,12 @@
 .workflow-chat-mark{height:28px;width:28px;border-radius:var(--radius-control);background:#eaf0ff;color:#3c64bf;display:grid;place-items:center;font-size:16px;margin-bottom:12px}
 .workflow-chat-intro h3{font-size:14px;line-height:1.4;margin-bottom:6px}
 .workflow-chat-intro p{font-size:var(--od-note-size);color:var(--od-sub);line-height:1.55;margin:0 0 var(--space-2)}
+.workflow-chat-intro{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.workflow-intro-suggestions{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);margin-top:var(--space-4);width:100%;max-width:100%;min-width:0}
+.workflow-intro-suggestions button{display:block;width:100%;min-width:0;max-width:100%;min-height:38px;padding:var(--space-2) var(--space-3);box-sizing:border-box;text-align:left;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);cursor:pointer}
+.workflow-intro-suggestions button[hidden]{display:none!important}
+.workflow-intro-suggestions button:hover{border-color:var(--od-brand);background:var(--od-muted)}
+.workflow-intro-suggestions button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat,
 .workflow-editor[data-view-state="empty"] .workflow-chat{border-color:transparent;background:transparent;padding:8px}
 .workflow-editor[data-view-state="ai-unconfigured"]:not(:has(#workflow-manage-panel:not([hidden]))) .workflow-scroll,
