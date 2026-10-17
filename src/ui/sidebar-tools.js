@@ -18,7 +18,7 @@ import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPa
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
   requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
-  websiteOrigin,grantedOrigins,tocSiteAllowed,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
+  websiteOrigin,grantedOrigins,tocSiteAllowed,tocGrantAllowed,verifyOfficialReadingToc,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
   changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,
   disabledTocPages,changeTocPageAllowed} from '../reading-toc/policy.js';
@@ -1690,6 +1690,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const target=currentPageTarget.capture();
         const sites=(await api.storage.local.get(READING_TOC_SITE_STORE))[READING_TOC_SITE_STORE];
         const pages=(await api.storage.local.get(READING_TOC_PAGE_RULES_STORE))[READING_TOC_PAGE_RULES_STORE];
+        if(tool.id===READING_TOC_TOOL_ID){
+          const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE]);
+          const verified=await verifyOfficialReadingToc(saved[SIDEBAR_TOOL_STORE],saved[MARKET_PROVENANCE_STORE]);
+          if(!tocGrantAllowed(saved[SIDEBAR_TOOL_STORE],sites,tool.id,target.url,
+            saved[SIDEBAR_TOOL_ENABLE_STORE],verified))
+            throw new Error('官方阅读目录的安装身份或访问范围未通过校验，请通过官方目录重新安装');
+        }
         if(!readingTocPageAllowed(pages,tool.id,target.url))throw new Error('当前页面已设置为不可用');
         if(!target.origin||!tocSiteAllowed(sites,tool.id,target.url))
           throw new Error(tool.id===READING_TOC_TOOL_ID?'当前网站已停用，请在工具设置中恢复':'请在工具详情设置中授权当前网站');
@@ -1702,11 +1709,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         }
         await currentPageTarget.revalidate(target);
         assertSession(source,token);
-        const response=await api.tabs.sendMessage(target.tabId,{
-          protocol:READING_TOC_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url,installEpoch:revocationEpoch,
-          ...(id?{id,sourceId}:{}),
-          ...(operation==='toc.snapshot'&&payload?.refresh===true?{forceRefresh:true}:{})
-        },{frameId:0,documentId:target.documentId});
+        let response;
+        try{
+          response=await api.tabs.sendMessage(target.tabId,{
+            protocol:READING_TOC_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url,installEpoch:revocationEpoch,
+            ...(id?{id,sourceId}:{}),
+            ...(operation==='toc.snapshot'&&payload?.refresh===true?{forceRefresh:true}:{})
+          },{frameId:0,documentId:target.documentId});
+        }catch(error){
+          if(/receiving end does not exist|could not establish connection|cannot access contents|cannot access a chrome/i.test(
+            String(error?.message||error)))
+            throw new Error('网页目录脚本未接入或 Chrome 网站访问已受限，请刷新网页，或在 Chrome 扩展详情恢复该网站访问');
+          throw error;
+        }
         assertSession(source,token);
         await currentPageTarget.revalidate(target);
         if(!response?.ok)throw new Error(String(response?.error||'目录读取或跳转失败').slice(0,200));

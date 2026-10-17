@@ -145,21 +145,19 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',...position,button:'left',clickCount:1});
     await pause(150);
   }
-  // Reuse the actual Extension Center import flow for older profiles and
-  // reinstall. Chrome's native file picker binds the fixed release bytes.
-  async function importTocFromFile(panel){
-    await trustedClick(panel,'#extension-center-more');
-    await trustedClick(panel,'#extension-center-import');
-    await panel.send('DOM.enable');
-    const tree=await panel.send('DOM.getDocument',{depth:1});
-    const file=await panel.send('DOM.querySelector',{
-      nodeId:tree.root.nodeId,selector:'#sidebar-tool-file'});
-    assert(file.nodeId,'Visible Extension Center import has no file input');
-    await panel.send('DOM.setFileInputFiles',{
-      files:[resolve('dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json')],
-      nodeId:file.nodeId});
+  // Official reserved IDs cannot be imported from arbitrary JSON files.
+  // Exercise the original bundled official-catalog review/installer instead.
+  async function installTocFromOfficial(panel){
+    await trustedClick(panel,'#sidebar-tool-discover-toggle');
+    await eventually(()=>evaluate(panel,
+      '!document.querySelector("#sidebar-tool-discover-panel").hidden'),
+      'Trusted official tool catalog was not opened');
+    await eventually(()=>evaluate(panel,
+      '!!document.querySelector("#sidebar-tool-official-reading-toc-install")'),
+      'Bundled first-party TOC release not found');
+    await trustedClick(panel,'#sidebar-tool-official-reading-toc-install');
     await eventually(()=>evaluate(panel,'!document.querySelector("#sidebar-tool-preview").hidden'),
-      'Real file import did not create a validated tool preview');
+      'Official package verification did not open the reviewed installation');
     assert.equal(await evaluate(panel,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
     await trustedClick(panel,'#sidebar-tool-install');
   }
@@ -273,7 +271,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   }else{
     // Not auto-installed (for example an existing profile): import exactly
     // the extension-bundled release via the current trusted file UI.
-    await importTocFromFile(host);
+    await installTocFromOfficial(host);
   }
   const installed=await eventually(async()=>{
     const rows=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
@@ -635,11 +633,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // retired hidden legacy toolbar. Keep the actual Chrome file-input event.
   if(!await evaluate(side,'document.querySelector("#sidebar-tool-display").hidden'))
     await trustedClick(side,'#sidebar-tool-back');
-  await importTocFromFile(side);
+  await installTocFromOfficial(side);
   await eventually(async()=>{
     const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
-  },'Real Side Panel local import did not install the package');
+  },'Real Side Panel official review did not install the package');
   // Built-in default availability and explicit site stops use real controls.
   // The extension must not open a second blocking JavaScript confirmation.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
@@ -711,7 +709,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'R4.4 Side Panel did not automatically follow the active second answer');
   console.log('TOC_NATIVE_STAGE: R4.4 Side Panel followed the active answer automatically');
   await capture(side,'real-sidepanel-toc.png');
-  console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
+  console.log('TOC_NATIVE_STAGE: real Side Panel official install, site controls and two-H1 outline succeeded');
   await trustedClick(side,'#sidebar-tool-back');
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),
     'Returning from the TOC iframe did not restore installed tools');

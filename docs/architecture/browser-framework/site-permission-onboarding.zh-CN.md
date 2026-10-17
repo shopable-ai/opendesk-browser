@@ -18,7 +18,7 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 
 **权限边界仍然有效。** Chrome 原生网站访问被限制、User Scripts 被关闭、已安装版本/能力/Origin 改变、用户主动停用、授权撤销、来源不可信时必须停止相应准入。读取/保存网页正文、Cookie、历史、空闲检测、持续记录、网络或 Native 等额外能力，不因宿主 manifest 拥有权限就自动转授第三方工具；已有合法授权应静默复用，缺失权限只在可信用户动作中按精确范围申请，拒绝后不自动重放。官方阅读目录专用的默认站点放行绝不扩展到第三方自报的 `page.toc`，更不能扩大为通用 DOM 访问。
 
-**运行时单一事实来源**：Sidebar Tool 的安装记录为 `SIDEBAR_TOOL_STORE`，停用覆盖为 `SIDEBAR_TOOL_ENABLE_STORE`；默认缺失停用记录即处于可用状态，损坏记录则拒绝。阅读目录由 `src/entrypoints/page-relay.js` 的固定 Content Script 和 `src/reading-toc/page.js` 的存储变更监听启动，安装写入后无需宿主额外启用 RPC。不同窗口或已打开文档的实际注入取决于 Content Script 是否已存在及 Chrome 权限，必要时提示刷新网页，不能假称已注入。手动停用、升级、卸载、站点例外、SPA/BFCache 和权限撤销必须继续沿原有 Host/Authority 的身份校验和回收规则执行。
+**运行时单一事实来源**：Sidebar Tool 的安装记录为 `SIDEBAR_TOOL_STORE`，停用覆盖为 `SIDEBAR_TOOL_ENABLE_STORE`；默认缺失停用记录即处于可用状态，损坏记录则拒绝。阅读目录由 `src/entrypoints/page-relay.js` 的固定 Content Script 和 `src/reading-toc/page.js` 的存储变更监听启动，安装写入后无需宿主额外启用 RPC。对安装前已打开的网页，可信 Service Worker 在核实官方包内容、来源与 Chrome 网站访问后，仅补注入内置 `agents/page-relay.js`；Content Script 使用文档级单例避免重复目录。被 Chrome 拒绝或其他受限标签页不绕过权限，仍须提示用户刷新网页或恢复网站访问；不能假称已注入。手动停用、升级、卸载、站点例外、SPA/BFCache 和权限撤销必须继续沿原有 Host/Authority 的身份校验和回收规则执行。
 
 **交互文案合同**：阅读目录显示“安装后自动显示目录”“停用/恢复”，Side Panel 的“打开”解释为“查看侧栏目录”。Sidebar 应用显示“安装后可打开”，不要把可打开状态误报为后台代码已执行；Installed Page 显示安装/自动运行/受限实际状态。不要新增通用确认模态框、权限存储副本或第二套安装器。新扩展先按类型与权限评审，不能通过更改名称、工具 ID、CSS 或前缀绕过受信运行资格。
 
