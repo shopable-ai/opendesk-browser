@@ -720,8 +720,19 @@
         </div>
         <details id="workflow-provider-settings" class="workflow-provider od-disclosure od-disclosure--flat">
           <summary>AI 设置</summary>
-          <label for="workflow-ai-provider" class="od-field-label visually-hidden">AI 来源</label>
-          <select id="workflow-ai-provider" class="od-field"><option value="local_codex">Codex</option><option value="cloud_responses">HTTPS · Responses</option><option value="custom_https">HTTPS · Chat Completions</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
+          <div class="workflow-source-switch" role="group" aria-label="AI 来源">
+            <button type="button" id="workflow-source-local" aria-pressed="true">Codex</button>
+            <button type="button" id="workflow-source-https" aria-pressed="false">HTTPS</button>
+          </div>
+          <label for="workflow-ai-provider" class="od-field-label visually-hidden">AI 来源（业务状态）</label>
+          <select id="workflow-ai-provider" class="od-field visually-hidden"><option value="local_codex">Codex</option><option value="cloud_responses">HTTPS · Responses</option><option value="custom_https">HTTPS · Chat Completions</option><option value="opendesk_cloud" disabled>OpenDesk 官方 AI（尚未开放）</option></select>
+          <div id="workflow-https-mode" class="workflow-https-mode" hidden>
+            <label for="workflow-https-protocol" class="od-field-label">HTTPS 协议</label>
+            <select id="workflow-https-protocol" class="od-field">
+              <option value="custom_https">Chat Completions</option>
+              <option value="cloud_responses">Responses</option>
+            </select>
+          </div>
           <details id="workflow-provider-privacy" class="workflow-provider-info od-disclosure od-disclosure--flat">
             <summary>数据与隐私</summary>
             <p id="workflow-provider-scope" class="workflow-minor-note">模型推理可能联网，已同意的内容可能保存在 Codex 本机对话中。复用官方 CLI 登录，请勿填写 Codex 登录凭据。</p>
