@@ -1,7 +1,7 @@
 // Private MessagePort capability protocol. No window message or origin trust.
 export const XMIND_FRAME_PROTOCOL='opendesk.xmind-frame.test.v1';
 export const XMIND_FRAME_COMMANDS=Object.freeze(
-  ['init','fit','reflow','setTheme','zoomBy','toggleAll','exportXmind','destroy']);
+  ['init','fit','reflow','setTheme','zoomBy','toggleAll','exportXmind','exportPng','destroy']);
 export const frameError=(code,message=code)=>Object.assign(new Error(message),{code});
 
 export function bindFrameIdentity(identity){
