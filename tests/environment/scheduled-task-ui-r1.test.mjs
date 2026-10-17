@@ -482,7 +482,10 @@ test('R2.8 true host refresh retains keyboard focus, open details and inline con
   assert.match(source,/view\.open=Boolean\(root\.querySelector\('\.schedule-history'\)\?\.open\)/);
   assert.match(source,/view\.moreOpen=Boolean\(root\.querySelector\('\.schedule-more'\)\?\.open\)/);
   assert.match(source,/view\.deleteReview=Boolean\(root\.querySelector\('\.schedule-delete-confirm'\)\)/);
-  assert.match(source,/restored\?\.querySelector\(focusedSelector\)\?\.focus\(\)/);
+  assert.match(source,/restored\?\.querySelector\(focusedSelector\)\|\|restored\?\.querySelector\('\.schedule-plan-open'\)/,
+    'removed Stop buttons must return focus to the plan title');
+  assert.match(source,/\?\.focus\(\{preventScroll:true\}\)/,
+    'background updates must restore focus without scrolling the list');
   assert.match(source,/scheduleId:plan\.scheduleId,offset:view\.records\.length,limit:20/);
   assert.match(source,/const overlap=!latest\.length\|\|!view\.records\.length/);
   assert.match(source,/view\.records=mergeScheduleHistoryView\(latest,overlap\?view\.records:\[\]\)/,
