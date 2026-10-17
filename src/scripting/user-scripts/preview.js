@@ -143,10 +143,29 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     const slot = await storage.transaction(['runs'], 'readonly', tx => tx.get('runs','@slot'));
     invariant(!slot?.currentRunId&&(!slot?.preview||slot.preview.nonce===nonce), 'E_OWNER', 'Controller/Page preview owns slot');
   }
-  async function preview(request, sender, authorize) {
+  async function preview(request, sender, authorize, {managedVerification=false}={}) {
     invariant(!active, 'E_OWNER', '已有页面脚本试运行正在等待浏览器回执');
     active = true;
-    try {return await evaluate(request,sender,authorize);} finally {active = false;}
+    let receipt,verificationPreview;
+    try {
+      // Only the frozen-candidate verifier selects this internal option. Reuse
+      // the original workbench's owned lifecycle, including its cleanup fence.
+      if(managedVerification&&(await readPageFrameResources(request.sourceUtf8)).length){
+        const owner=await assertHost(sender),target=freezeTarget(request.target);
+        const prior=(await worlds.records()).filter(row=>row.tabId===target.tabId&&
+          row.documentId===target.documentId&&row.managed?.registrationId===owner.registrationId&&
+          !['retired','discarded'].includes(row.managed.state));
+        invariant(prior.length<=1,'E_UI_OWNER','旧受管预览仍需原工作台确认清理');
+        verificationPreview=crypto.randomUUID();
+        request={...request,managedUI:{previewId:verificationPreview,
+          bindingId:prior[0]?.managed.bindingId??'browser-v1-'+crypto.randomUUID().replaceAll('-','').slice(0,24),enabled:true}};
+      }
+      receipt=await evaluate(request,sender,authorize);
+    } finally {active = false;}
+    // A failed or unknown execution never reaches this cleanup or a Verified
+    // proof. Successful verification must also confirm managed UI retirement.
+    if(verificationPreview)await retire({previewId:verificationPreview},sender);
+    return receipt;
   }
   // Only the installed-program broker supplies this internal guard. It is
   // never accepted as a field in a UI/Native preview request.

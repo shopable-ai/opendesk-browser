@@ -173,7 +173,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     };
     await authorize();
     const receipt=await preview.preview({sourceUtf8:candidate.sourceUtf8,entryFormat:m.entryFormat,
-      importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender,authorize);
+      importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender,authorize,{managedVerification:true});
     invariant(receipt.state==='preview-evaluated'&&receipt.sourceHash===m.sourceHash&&receipt.world==='USER_SCRIPT',
       'E_PAGE_VERIFICATION','Page 类型验证身份不一致');
     await verifiedEnvironment(candidate,receipt);
@@ -568,7 +568,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       await requireSiteGrant(row);
       const desired=await descriptor(row),frames=await api.webNavigation.getAllFrames({tabId:sender.tab.id}),
         frame=frames?.find(f=>f.frameId===0&&f.documentId===sender.documentId),tab=await api.tabs.get(sender.tab.id);
-      invariant(frame&&!frame.errorOccurred&&frame.documentLifecycle==='active'&&frame.url===sender.url&&
+      // MessageSender keeps the injection URL across same-document history.
+      // The exact document and current approved URL remain authoritative.
+      invariant(frame&&!frame.errorOccurred&&frame.documentLifecycle==='active'&&
+        httpUrl(frame.url).origin===httpUrl(sender.url).origin&&
         frame.url===tab.url&&!tab.incognito&&!tab.pendingUrl&&pageProgramUrlMatches(row.pageRules,frame.url),
         'E_DOCUMENT_STALE','原父文档已经改变');
       const native=await nativeAPI(),registered=await native.getScripts({ids:[row.nativeId]});

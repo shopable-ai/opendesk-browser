@@ -9,6 +9,7 @@ import {PAGE_WORLD_CSP} from '../../src/scripting/user-scripts/execution-source.
 import {wrapPageFrameSource} from '../../src/scripting/user-scripts/page-frame-resources.js';
 import {createPreviewWorlds} from '../../src/scripting/user-scripts/preview-worlds.js';
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
+import {createManagedUIPreview} from '../../src/native-agent/managed-preview.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
 
 // Node protocol/DOM doubles, never Chrome or approved child-frame evidence.
@@ -73,13 +74,14 @@ function fixture(){
   const assertHost=async()=>host,dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
   const make=()=>{
     const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:'session'});
-    f.executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:async()=>fakeBuiltinSource});
-    const preview={...f.executor,preview:async input=>({state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:f.rows().find(row=>row.sourceUtf8===input.sourceUtf8).manifest.sourceHash,
+    f.executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,managedFactory:createManagedUIPreview,loadBuiltin:async()=>fakeBuiltinSource});
+    const preview={...f.executor,preview:async (input,...args)=>f.realVerification?f.executor.preview(input,...args):({state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:f.rows().find(row=>row.sourceUtf8===input.sourceUtf8).manifest.sourceHash,
       documentId:target.documentId,builtinAbi:fakeBuiltinSource.abi,builtinCatalogSha256:fakeBuiltinSource.catalogSha256,builtinBundleSha256:fakeBuiltinSource.sha256})};
     f.service=createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session:'session',loadBuiltin:async()=>fakeBuiltinSource});
   };
   f.rows=()=>[...db.get('frameworkKV').values()];f.installation=()=>f.rows().find(row=>row.tag==='page-installed-v1');
   f.records=()=>Object.values(session).flat().filter(row=>row.installed);
+  f.previewRecords=()=>Object.values(session).flat().filter(row=>row.managed);
   f.context=()=>contexts.get(f.records()[0]?.worldId)||[...contexts.values()].at(-1);
   f.restart=make;make();
   f.install=async(body,revision=1,sourceUtf8=source(body))=>{
@@ -97,6 +99,20 @@ function fixture(){
   f.dispose=()=>{for(const context of contexts.values())vm.runInContext('globalThis.ui?.destroy()',context);};
   return f;
 }
+test('frozen frame verification uses the real managed lifecycle and retires it before installation',async t=>{
+  const f=fixture();t.after(f.dispose);f.realVerification=true;
+  const sourceUtf8=await wrapPageFrameSource(source(),[{resourceId:'fixed.renderer',code:'globalThis.resourceReady=true;'}]);
+  await f.executor.preview({sourceUtf8,entryFormat:'async-main',lockId:null,target:f.target,
+    managedUI:{previewId:crypto.randomUUID(),bindingId:'browser-v1-'+'a'.repeat(24),enabled:true}},{});
+  await f.install(undefined,1,sourceUtf8);
+  assert.equal(f.installation().nativeState,'registered');
+  const worlds=f.previewRecords();
+  assert.equal(worlds.length,2);
+  assert.ok(worlds.every(row=>row.managed.state==='retired'),'old preview and verification must both retire');
+  assert.equal(f.doc.querySelectorAll().length,0,'verification must leave no managed UI');
+  await f.boot();
+  assert.equal(f.rows().find(row=>row.tag==='page-execution-v1').state,'completed');
+});
 test('installed frozen frame resources enable parent messaging and bind the bootstrap to the fixed execution',async t=>{
   const f=fixture();t.after(f.dispose);
   const resourceId='mindmap.renderer';

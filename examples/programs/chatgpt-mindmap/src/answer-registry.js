@@ -101,7 +101,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     const busy=isStreaming(root)||(lastChange>0&&Date.now()-lastChange<STABLE_MS);
     buttonRef.button.disabled=busy&&!view;
     buttonRef.button.setAttribute('aria-pressed',String(!!view));
-    const label=view?'恢复本条回复原文':'查看本条 AI 回复的思维导图';
+    const label=view?'返回完整原文':'查看本条 AI 回复的思维导图';
     buttonRef.button.setAttribute('aria-label',label);
     buttonRef.button.title=label;
     // Keep the native action-bar trigger in its exact slot in either mode.

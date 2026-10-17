@@ -1,4 +1,14 @@
-# ChatGPT 思维导图 R3.9.6 · 本地 XMind 已显示，核心使用流程待完善
+# ChatGPT 思维导图 R3.9.6 · 本地正式安装与两轮最小验证通过
+
+## Page Authority 本地正式安装（2026-10-18）
+
+原业务目录经现有 `build:program`、草稿包导入与 Candidate → Verification → Available → Installed，正式安装为 `opendesk.chatgpt-mindmap:r2`。安装 ID `4faafc60-cfab-4c97-b547-418b61c9af7f`，授权 generation 4，Chrome 注册为 registered；「扩展 → 网页增强」可检索。范围仅 `https://chatgpt.com/*`，顶层 `USER_SCRIPT`、`document_idle`，网站访问已满足。升级验证期间主动暂时停用 r1，安装 r2 后恢复原自动运行状态。
+
+最终源码与 `program.js` SHA-256：`87df82aed270f60e02fdcb82fba14998bb681335b9a13dca230c9d7fe499f969`；`artifact.json` SHA-256：`9d3d4abacc8b8fe35462aae727084893962282d3ca78982b64c6e9f8f71644f9`。固定 XMind 资源 SHA-256：`2c852069020e732a23be82c161ddcc3df6543b1c493368fb813bf75f862a2df0`。构建器本身的 BUILT_UNVERIFIED 状态未被改写；正式安装证据来自真实 Authority 和 Chrome。详细原始证据保留在本机 `artifacts/chatgpt-mindmap-installed-r396-20261018/installation-evidence.json`，工作记录保留在本机 `docs/framework/workstreams/chatgpt-mindmap-installed-r396-20261018-01a14a9e.md`；两者按仓库忽略规则不随本次提交分发。
+
+本任务目录 CLI 退出后，在 **OpenDesk MindMap R396 CFT** 的两个新 ChatGPT 文档中自动激活。两轮均原生点击入口，显示真正中文 XMind 与层级，再点击「返回完整原文」恢复全部正文和列表；打开前与恢复后的可访问正文逐项一致，两次资源均已 retired。私人会话地址、原始可访问正文和截图仅保留在上述本机证据目录。窗口保留；Native 最终 doctor 为 connected=true。
+
+最小修复：恢复返回按钮文案；通用验证器补受管资源生命周期，同文档 History 路由变化继续核对真实 Document、同源及当前批准 URL。业务定向测试 19+7、运行时受影响测试 52 均通过。最终 r2 采用新文档验证；旧会话刷新恢复、登录会话、重启、远端/生产发布、全量回归及高级矩阵均 `NOT_TESTED`。下文旧阶段阻塞和历史证据保留，不代表本次安装状态，也不据此改变资源许可或远端发布准入。
 
 ## 原目录 + opendesk-dev 最小验证（2026-10-17）
 

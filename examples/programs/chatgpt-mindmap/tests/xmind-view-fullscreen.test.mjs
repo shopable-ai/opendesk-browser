@@ -108,7 +108,7 @@ test('the return control is a text-free back chevron with an accessible label',a
   const h=await setup({iframe:false});
   const back=h.view.host.shadowRoot.querySelector('[data-action="original"]');
   assert.equal(back.textContent,'');
-  assert.equal(back.getAttribute('aria-label'),'恢复本条回复原文');
+  assert.equal(back.getAttribute('aria-label'),'返回完整原文');
   assert.equal(back.querySelector('path')?.getAttribute('d'),'M15 18l-6-6 6-6');
   await h.view.destroy();
 });

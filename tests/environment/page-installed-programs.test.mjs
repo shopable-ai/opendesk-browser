@@ -38,7 +38,7 @@ function fixture(){
     permissions:{contains:async()=>f.granted,request:async request=>{f.permissionRequests.push(request);return false;}},tabs:{query:async()=>[{id:1}],get:async()=>{
       if(++f.tabReads===3)await f.beforeExecute?.();
       return {id:1,windowId:1,active:true,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
-    webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl}],
+    webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl,documentLifecycle:f.documentLifecycle}],
       getFrame:async input=>{assert.deepEqual(input,{documentId:target.documentId});if(f.frameObservationError)throw Error('observation failed');
         return f.exactDocumentGone?null:{documentId:target.documentId,documentLifecycle:f.documentLifecycle};}},
     userScripts:{
@@ -71,7 +71,8 @@ function fixture(){
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {builtinAbi:f.builtinSource.abi,builtinCatalogSha256:f.builtinSource.catalogSha256,builtinBundleSha256:f.builtinSource.sha256,state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
-    executeInstalled:executor.executeInstalled};
+    executeInstalled:executor.executeInstalled,
+    executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
   const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
@@ -105,6 +106,23 @@ function fixture(){
   return f;
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
+
+test('installed resources follow same-document history within the approved path',async()=>{
+  const f=fixture();
+  f.target.expectedUrl='https://example.com/app/start';f.sender.url=f.target.expectedUrl;
+  const candidate=await f.prepare('document-idle',{site:'https://example.com/app/*'});
+  await f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  await f.service.handleBoot(f.message(),f.sender);
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1');
+  const message={protocol:PAGE_BOOT_PROTOCOL,action:'page-frame',executionKey:execution.executionKey,
+    receiptNonce:execution.receiptNonce,operation:'execute',requestId:crypto.randomUUID(),
+    resourceId:'renderer',url:'about:blank',portToken:'unused',data:{}};
+  // Chrome retains the injection URL in MessageSender after history.pushState.
+  f.target.expectedUrl='https://example.com/app/conversation';
+  assert.equal((await f.service.handleBoot(message,f.sender)).state,'frame-authorized');
+  f.target.expectedUrl='https://example.com/outside';
+  await fails(()=>f.service.handleBoot({...message,requestId:crypto.randomUUID()},f.sender),'E_DOCUMENT_STALE');
+});
 
 test('installed Page name uses the original registry and survives disabled upgrade and restart',async()=>{
   const f=fixture(),candidate=await f.prepare();

@@ -105,7 +105,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     group.append(button);
     return button;
   }
-  const original=action({id:'original',glyph:'original',label:'恢复本条回复原文',
+  const original=action({id:'original',glyph:'original',label:'返回完整原文',
     run:onOriginal,group:originalGroup});
   action({id:'zoom-out',glyph:'zoomOut',label:'缩小导图',
     run:()=>renderer.zoomBy(.8),group:zoomGroup,render:true});
