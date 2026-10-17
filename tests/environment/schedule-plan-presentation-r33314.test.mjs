@@ -40,7 +40,14 @@ test('R33.3.14 Fire states do not silently pause or authorize a run',()=>{
   assert.equal(failed.recentTone,'negative');
   assert.equal(presentSchedulePlan(base({paused:true}),[fire('RUNNING')]).planState,'已暂停');
   assert.equal(presentSchedulePlan(base({needsAttention:true}),[fire('SUCCESS')]).badge,'需要处理');
-  assert.equal(presentSchedulePlan(base(),[fire('RUNNING')]).badge,'运行中');
+  const running=presentSchedulePlan(base(),[fire('RUNNING')]);
+  assert.equal(running.badge,'运行中');
+  assert.equal(running.tone,'positive');
+  assert.equal(running.recentTone,'positive');
+  assert.equal(running.badgeSource,'fire');
+  const admitted=presentSchedulePlan(base(),[fire('ADMITTED')]);
+  assert.equal(admitted.badge,'已启动');
+  assert.equal(admitted.tone,'info');
 });
 
 test('R33.3.14 display uses fixed time zone, no scheduler or Host access',()=>{
