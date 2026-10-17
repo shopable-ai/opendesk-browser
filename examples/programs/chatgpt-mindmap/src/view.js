@@ -1,5 +1,5 @@
 import {createXmindRenderer} from './xmind-adapter.js';
-import {buildOutlineMarkdown,exportFileBase,verifyXmindZip} from './export.js';
+import {buildOutlineMarkdown,exportFileBase,verifyXmindZip,verifyPngBlob} from './export.js';
 
 // All graphics are fixed, local path geometry; no runtime icon package or CDN.
 const ICONS={
@@ -173,7 +173,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     {id:'xmind',label:'XMind',extension:'.xmind'},
     {id:'outline',label:'Markdown 大纲',extension:'-大纲.md'},
     {id:'source',label:'Markdown 原文',reason:'无法取得可信的原始 Markdown'},
-    {id:'png',label:'PNG',reason:'完整画布图片导出尚未通过验证'},
+    {id:'png',label:'PNG',extension:'.png'},
     {id:'png-hd',label:'PNG 高清 · VIP',reason:'ENTITLEMENT_NOT_READY'},
     {id:'svg',label:'SVG · VIP',reason:'ENTITLEMENT_NOT_READY'}
   ];
@@ -229,6 +229,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
       if(option.id==='xmind')blob=await verifyXmindZip(await renderer.exportXmind());
       else if(option.id==='outline')blob=new Blob(
         [buildOutlineMarkdown(tree)],{type:'text/markdown;charset=utf-8'});
+      else if(option.id==='png')blob=await verifyPngBlob(await renderer.exportPng());
       else throw Object.assign(new Error('当前格式不可用'),
         {code:'E_XMIND_EXPORT_UNAVAILABLE'});
       if(disposed)return;
