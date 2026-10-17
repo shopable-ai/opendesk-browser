@@ -32,6 +32,10 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     if(!item||data.command!==item.command||typeof data.ok!=='boolean')return;
     if(data.ok){
       if(data.command==='toggleAll'&&typeof data.value!=='boolean')return;
+      if(data.command==='exportPng'&&(!data.value||
+        !Number.isSafeInteger(data.value.size)||data.value.size<512||
+        data.value.size>30*1024*1024||data.value.type!=='image/png'||
+        typeof data.value.arrayBuffer!=='function'))return;
       if(data.command==='exportXmind'&&(!data.value||
         !Number.isSafeInteger(data.value.size)||data.value.size<4||
         data.value.size>MAX_XMIND_BYTES||typeof data.value.arrayBuffer!=='function'))return;
@@ -116,5 +120,6 @@ export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',ide
     fit:options=>command('fit',options),reflow:()=>command('reflow'),
     setTheme:mode=>command('setTheme',mode),zoomBy:factor=>command('zoomBy',factor),
     toggleAll:()=>command('toggleAll'),exportXmind:()=>command('exportXmind'),
+    exportPng:()=>command('exportPng'),
     get nodeCount(){return nodeCount;}});
 }
