@@ -182,7 +182,7 @@ function Preview(){
     {createPortal(<div className="od-workflow-preview-controls">
       <div className="od-workflow-preview-copy">
         <strong>正式 React 同源预览</strong>
-        <span>离线 Preview Adapter · 不连接 Provider / Native / RunHost</span>
+        <span>仅界面预览 · 不连接本机，不执行网页操作</span>
       </div>
       <label>界面状态
         <select data-preview-scenario value={scene}

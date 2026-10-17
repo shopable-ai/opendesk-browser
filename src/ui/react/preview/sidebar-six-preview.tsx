@@ -91,14 +91,14 @@ const labels={
 };
 const messages={
   normal:[{id:'w1',speaker:'你',message:'给我一个亿的项目'},
-    {id:'w2',speaker:'AI',message:'这是正式 React 对话组件的离线展示，不连接真实模型。'}],
+    {id:'w2',speaker:'AI',message:'请确认任务目标和网页范围，确认后再执行。'}],
   empty:[],
-  loading:[{id:'w3',speaker:'AI',message:'正在准备规划（UI 演示）。'}],
-  running:[{id:'w4',speaker:'AI',message:'步骤执行中（无真实 RunHost）。'}],
-  error:[{id:'w5',speaker:'AI',message:'E_PREVIEW_ONLY：无真实 Provider。'}],
-  denied:[{id:'w6',speaker:'AI',message:'本轮网页摘要授权已拒绝（UI 演示）。'}],
+  loading:[{id:'w3',speaker:'AI',message:'正在规划网页操作步骤…'}],
+  running:[{id:'w4',speaker:'AI',message:'正在执行网页操作步骤…'}],
+  error:[{id:'w5',speaker:'AI',message:'模型连接不可用，请检查 AI 设置。'}],
+  denied:[{id:'w6',speaker:'AI',message:'本轮网页摘要授权已拒绝。'}],
   unknown:[{id:'w7',speaker:'AI',message:'运行回执未知；不能自动重复执行。'}],
-  disconnected:[{id:'w8',speaker:'AI',message:'Native Host 未连接，无法执行网页操作。'}]
+  disconnected:[{id:'w8',speaker:'AI',message:'本机连接已断开，请检查连接设置。'}]
 };
 function Preview(){
   const initial=new URLSearchParams(window.location.search).get('tab');
@@ -520,6 +520,14 @@ function Preview(){
       get('workflow-local-settings').hidden=!local;
       get('workflow-custom-settings').hidden=!external;
       get('workflow-https-mode').hidden=!external;
+      // The shared product markup stays disconnected: no preview Native/Host claims.
+      get('workflow-local-status').textContent='未连接';
+      get('workflow-local-status').dataset.state='DISCONNECTED';
+      get('workflow-local-status').title='本机连接未建立';
+      get('workflow-local-status-detail').textContent='请在已安装的 OpenDesk 扩展中连接本机应用。';
+      get('workflow-local-connected').hidden=true;
+      get('workflow-local-connect').disabled=true;
+      get('workflow-local-connect').title='请在已安装的 OpenDesk 扩展中连接';
       if(external)protocol.value=provider.value;
     };
     const chooseLocal=()=>{provider.value='local_codex';refreshSource();};
@@ -527,12 +535,12 @@ function Preview(){
     const chooseProtocol=()=>{if(provider.value!=='local_codex'){provider.value=protocol.value;refreshSource();}};
     const draftEdited=()=>setWorkflowDraft(draft.value);
     const explainSend=()=>setWorkflowFeedback(
-      '仅预览工作流界面。发送和执行需要正式扩展的 Provider、授权和 RunHost。');
+      'OpenDesk 尚未连接。请在 AI 设置中完成连接后重试。');
     const keepDraft=()=>{setWorkflowNewReview(false);setWorkflowFeedback('已保留未发送草稿。');};
     const discardDraft=()=>{
       draft.value='';setWorkflowDraft('');setWorkflowNewReview(false);
       setWorkflowConversationCleared(true);setHistory(false);
-      setWorkflowFeedback('已切换到演示空工作流；没有更改任何真实版本。');
+      setWorkflowFeedback('已清空草稿，可以开始新工作流。');
     };
     provider.addEventListener('change',refreshSource);
     localSource.addEventListener('click',chooseLocal);

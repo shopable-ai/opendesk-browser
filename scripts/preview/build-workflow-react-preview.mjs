@@ -109,8 +109,7 @@ export async function generateWorkflowReactPreview(){
       '</head><body>',
       '<div class="od-workflow-preview-top" id="od-workflow-preview-controls"></div>',
       '<div class="od-workflow-preview-frame">'+actualDom+'</div>',
-      '<p class="od-workflow-preview-footer">正式 React 19 组件与正式 DOM/CSS；'+
-        '模拟 UI 状态不代表 Native/Provider/RunHost 业务验收</p>',
+      '<p class="od-workflow-preview-footer">交互仅用于界面审阅，不会连接模型或操作网页</p>',
       '<div id="od-workflow-preview-root" hidden></div>',
       '<script src="data:text/javascript;base64,'+compiled.toString('base64')+'"></script>',
       '</body></html>\n'

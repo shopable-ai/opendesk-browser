@@ -73,3 +73,15 @@ test('R33.3.6 planned preview guards missing/stale bundled inputs',async()=>{
   assert.match(src,/default-src/);
   assert.doesNotMatch(src,/force.*git|git\s+push/);
 });
+
+test('R23.14 six-tab Workflow shares compact disconnected controls and production-facing copy',async()=>{
+  const [adapter,html]=await Promise.all([
+    read('src/ui/react/preview/sidebar-six-preview.tsx'),read('src/ui/tool.html')
+  ]);
+  assert.match(adapter,/get\('workflow-local-status'\)\.textContent='未连接'/);
+  assert.match(adapter,/get\('workflow-local-connect'\)\.disabled=true/);
+  assert.match(adapter,/get\('workflow-local-connected'\)\.hidden=true/);
+  assert.doesNotMatch(adapter,/仅预览工作流界面。发送和执行需要正式扩展|E_PREVIEW_ONLY：无真实 Provider|已切换到演示空工作流/);
+  assert.match(html,/class="workflow-connection-line"/);
+  assert.match(html,/id="workflow-local-status-detail"/);
+});
