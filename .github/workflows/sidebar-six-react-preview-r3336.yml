@@ -15,6 +15,7 @@ on:
       - 'scripts/preview/build-sidebar-six-react-preview.mjs'
       - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
       - 'tests/environment/react-my-cloud-r3338.test.mjs'
+      - 'scripts/tests/sidebar-six-react-preview-interaction.mjs'
       - '.github/workflows/sidebar-six-react-preview-r3336.yml'
   workflow_dispatch:
 permissions:
@@ -86,6 +87,8 @@ jobs:
           done
           echo "SOURCE_BOUND_UI_PREVIEW_CHROMIUM=6_TAB_SCREENSHOTS_ONLY"
           echo "INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED"
+      - name: Replay real Chromium pointer and file-import UI flows
+        run: node scripts/tests/sidebar-six-react-preview-interaction.mjs
       - name: Upload exact generated HTML and screenshots (no write to main)
         if: always()
         uses: actions/upload-artifact@v4
