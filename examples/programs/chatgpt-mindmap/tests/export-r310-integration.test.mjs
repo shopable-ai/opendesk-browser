@@ -58,7 +58,7 @@ test('original toolbar offers one desktop download, a mobile export entry, and s
   const create=document.createElement.bind(document);
   document.createElement=(tag)=>{
     const item=create(tag);
-    if(tag==='a')item.click=()=>downloads.push(item.download);
+    if(tag==='a')item.click=()=>downloads.push(decodeURIComponent(item.download));
     return item;
   };
   window.URL={
