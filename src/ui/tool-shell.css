@@ -517,7 +517,7 @@
 .workflow-sheet-content .workflow-provider select{min-width:0;width:100%;max-width:100%}
 .workflow-sheet-content #workflow-ai-provider{background:var(--od-muted);border-radius:var(--radius-control);font-weight:650}
 .workflow-source-switch{display:flex;align-items:stretch;gap:4px;padding:4px;min-width:0;border:1px solid var(--od-line);border-radius:11px;background:var(--od-muted)}
-.workflow-source-switch button{flex:1 1 0;min-width:0;min-height:38px;padding:6px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--od-sub);font:600 12px/1.4 inherit;cursor:pointer}
+.workflow-source-switch button{flex:1 1 0;min-width:0;min-height:38px;padding:6px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--od-sub);font-family:inherit;font-weight:600;font-size:12px;line-height:1.4;cursor:pointer}
 .workflow-source-switch button[aria-pressed="true"]{background:var(--od-paper);color:var(--od-ink);border-color:var(--od-line);box-shadow:0 1px 3px #1a2e500c}
 .workflow-source-switch button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .workflow-https-mode{display:grid;gap:6px;margin-top:var(--space-3);min-width:0}
