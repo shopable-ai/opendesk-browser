@@ -46,7 +46,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     const switchHead=find('developer-source-switch');
     switchHead.dataset.mode=local?'local':'manual';
     const heading=switchHead.querySelector?.('.od-page-title');
-    if(heading)heading.textContent=local?'本地项目':'直接编辑';
+    if(heading)heading.textContent=local?'项目连接':'直接编辑';
     find('local-project-tools').hidden=!local;
     find('manual-source-editor').hidden=local;
     find('local-project-params-tools').hidden=!local||row?.runtimeKind!=='controller';
