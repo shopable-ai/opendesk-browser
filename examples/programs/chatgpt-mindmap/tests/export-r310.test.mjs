@@ -31,3 +31,17 @@ test('XMind Blob needs ZIP header and bounded nonzero size',async()=>{
   await assert.rejects(verifyXmindZip(new Blob([])),/E_XMIND_EXPORT_SIZE/);
   assert.equal(MAX_XMIND_BYTES,25*1024*1024);
 });
+
+
+test('PNG preflight rejects empty, forged signatures and oversized pixel dimensions',async()=>{
+  const {verifyPngBlob}=await import('../src/export.js');
+  await assert.rejects(verifyPngBlob(new Blob([])),{code:'E_XMIND_PNG_SIZE'});
+  const raw=new Uint8Array(512);
+  const dv=new DataView(raw.buffer);
+  dv.setUint32(16,128);dv.setUint32(20,128);
+  await assert.rejects(verifyPngBlob(new Blob([raw])),{code:'E_XMIND_PNG_INVALID'});
+  raw.set([137,80,78,71,13,10,26,10]);
+  raw.set([73,72,68,82],12);
+  dv.setUint32(16,10000);dv.setUint32(20,10000);
+  await assert.rejects(verifyPngBlob(new Blob([raw])),{code:'E_XMIND_PNG_INVALID'});
+});
