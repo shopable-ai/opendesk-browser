@@ -102,3 +102,5 @@ jobs:
             artifacts/reading-toc-r183/
             examples/sidebar-tools/reading-toc/preview/reading-toc-r12-*.html
             examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-*.html
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html
+            artifacts/reading-toc-r41/*.png
