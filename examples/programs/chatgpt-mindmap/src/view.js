@@ -40,6 +40,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     return node;
   };
   const host=el('section');host.setAttribute('data-opendesk-chatgpt-mindmap','viewer');
+  host.setAttribute('data-dark','true');
   const shadow=host.attachShadow({mode:'open'});
   const style=el('style');style.textContent=css;
   const shell=el('div','odmm-shell'),toolbar=el('div','odmm-toolbar');
@@ -194,7 +195,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   shell.append(toolbar,canvas,status);shadow.append(style,shell);
   async function start(){
     if(disposed)return;
-    preferredSkin=host.getAttribute('data-dark')==='true'?'dark':'light';
+    preferredSkin=host.getAttribute('data-dark')==='false'?'light':'dark';
     syncThemeButton();
     renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
     await renderer.ready;

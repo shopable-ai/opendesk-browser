@@ -19,7 +19,7 @@ export function requireXmindRuntime(scope=globalThis){
   return scope;
 }
 
-export function createXmindRenderer({window,canvas,tree,skinMode='light'}){
+export function createXmindRenderer({window,canvas,tree,skinMode='dark'}){
   const sdk=requireXmindRuntime(window);
   let controller=null,mount=null,disposed=false,folded=false,closing=null;
   let appliedSkin=skinMode,desiredSkin=skinMode,manualViewport=false;

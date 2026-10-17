@@ -9,7 +9,7 @@ export function requireXmindFrameFactory(factory){
 
 // NON-RELEASE integration seam. The caller owns a fixed test frame/bootstrap
 // and hands over a private port directly. Never discover a loader on the page.
-export function createXmindFrameRenderer({window,canvas,tree,skinMode='light',identity,
+export function createXmindFrameRenderer({window,canvas,tree,skinMode='dark',identity,
   frameFactory,timeoutMs=10000}){
   requireXmindFrameFactory(frameFactory);
   if(!Number.isFinite(timeoutMs)||timeoutMs<=0)throw frameError('E_XMIND_FRAME_TIMEOUT');
