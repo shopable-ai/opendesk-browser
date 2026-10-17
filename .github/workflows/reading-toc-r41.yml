@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'src/reading-toc/**'
+      - 'src/sidebar-tools/official-reading-toc.js'
+      - 'src/sidebar-tools/reading-toc-existing-tabs.js'
+      - 'src/entrypoints/page-relay.js'
+      - 'src/entrypoints/preinstall-intent.js'
+      - 'tests/environment/reading-toc-*-r11.test.mjs'
       - 'src/entrypoints/page-relay.js'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/package.js'
@@ -56,7 +61,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
-          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-chatgpt-content-r182.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/sidebar-tool-localization-r12.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
+          node --test tests/environment/reading-toc-official-identity-r11.test.mjs tests/environment/reading-toc-existing-tabs-r11.test.mjs tests/environment/reading-toc-worker-access-r11.test.mjs tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-chatgpt-content-r182.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/sidebar-tool-localization-r12.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
           # Latest collection must match actual packaged releases; old revisions remain immutable.
           node --test --test-name-pattern='R5 newest fixed reading kit|R5 immutable archive conflicts' tests/environment/app-market-r5.test.mjs
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --check-project

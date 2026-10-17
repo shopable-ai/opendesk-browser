@@ -18,6 +18,18 @@ export function chromeSitePattern(url){
   const target=new URL(origin);
   return target.protocol+'//'+target.hostname+'/*';
 }
+// Only this extension's top-frame content script may request a live Chrome
+// site-access check. This is not a permission request or an origin grant.
+export async function checkReadingTocContentAccess({api,sender,expectedUrl}={}){
+  if(!api?.permissions?.contains||sender?.id!==api?.runtime?.id||
+    !Number.isSafeInteger(sender?.tab?.id)||sender.tab.id<0||sender.frameId!==0)
+    return false;
+  const senderOrigin=websiteOrigin(sender.url),requestedOrigin=websiteOrigin(expectedUrl);
+  if(!senderOrigin||senderOrigin!==requestedOrigin)return false;
+  try{return await api.permissions.contains({origins:[chromeSitePattern(sender.url)]})===true;}
+  catch{return false;}
+}
+
 export async function repairReadingTocOpenTabs({api,logger=console}={}){
   const result={state:'complete',injected:0,skipped:0,denied:0,failed:0};
   if(!api?.tabs?.query||!api?.scripting?.executeScript||

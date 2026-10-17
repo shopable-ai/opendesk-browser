@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initReadingToc} from '../../src/reading-toc/page.js';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
-import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
+import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE,READING_TOC_CHROME_ACCESS_PROTOCOL}
+  from '../../src/sidebar-tools/official-reading-toc.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE,
   changeTocPageAllowed,changeTocSiteAllowed,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
@@ -67,6 +68,26 @@ test('built-in default access starts without grants and site/page stops release 
     change(SIDEBAR_TOOL_STORE,[]);assert.equal(f.Observer.active,0);await tick();await tick();
     assert.equal((await request()).ok,false,'default access never survives uninstall');
   }finally{controller.dispose();globalThis.MutationObserver=prior;}
+});
+
+test('R1.1 a Chrome access recheck removes the observer and blocks future snapshots without a new grant',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;
+  globalThis.MutationObserver=f.Observer;let controller;
+  try{
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+    await tick();await tick();assert.equal(f.Observer.active,1);
+    f.api.runtime.sendMessage=async()=>({ok:true,allowed:false});
+    f.messages.send({protocol:READING_TOC_CHROME_ACCESS_PROTOCOL,operation:'recheck'},
+      {id:f.api.runtime.id,url:f.api.runtime.getURL('sw.js')});
+    assert.equal(f.Observer.active,0);
+    await tick();await tick();
+    assert.equal((await f.send({})).ok,false);
+    f.api.runtime.sendMessage=async()=>({ok:true,allowed:true});
+    f.messages.send({protocol:READING_TOC_CHROME_ACCESS_PROTOCOL,operation:'recheck'},
+      {id:f.api.runtime.id,url:f.api.runtime.getURL('sw.js')});
+    await tick();await tick();
+    assert.equal(f.Observer.active,1);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
 });
 
 test('R26 stop releases TOC observers immediately and BFCache cannot restore disabled authority',async()=>{
@@ -249,7 +270,7 @@ function pageFixture(){
     [READING_TOC_SITE_STORE,{'test-toc':['https://example.com']}]]);
   const api={
     runtime:{id:'self-extension',getURL:p=>'chrome-extension://self-extension/'+p,
-      onMessage:messages},
+      async sendMessage(){return {ok:true,allowed:true};},onMessage:messages},
     storage:{local:{async get(keys){
       const array=Array.isArray(keys)?keys:[keys];
       return Object.fromEntries(array.map(key=>[key,state.get(key)]));

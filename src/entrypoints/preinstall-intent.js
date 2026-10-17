@@ -1,7 +1,8 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {registerDefaultPreinstall} from '../sidebar-tools/preinstall-intent.js';
 import {resumeDefaultPreinstall} from '../sidebar-tools/default-preinstall.js';
-import {repairReadingTocOpenTabs} from '../sidebar-tools/reading-toc-existing-tabs.js';
+import {repairReadingTocOpenTabs,checkReadingTocContentAccess} from '../sidebar-tools/reading-toc-existing-tabs.js';
+import {READING_TOC_CHROME_ACCESS_PROTOCOL} from '../sidebar-tools/official-reading-toc.js';
 
 // Trusted packaged classic script, outside the 320 KiB SW main bundle.
 // It verifies and saves official packages through the original installer,
@@ -27,6 +28,27 @@ export default defineUnlistedScript(()=>{
     }
   });
   chrome.runtime.onStartup?.addListener(()=>{void repair();});
+  chrome.runtime.onMessage.addListener((message,sender,sendResponse)=>{
+    if(message?.protocol!==READING_TOC_CHROME_ACCESS_PROTOCOL)return false;
+    void checkReadingTocContentAccess({api:chrome,sender,expectedUrl:message.expectedUrl})
+      .then(allowed=>sendResponse({ok:true,allowed}),
+        ()=>sendResponse({ok:false,allowed:false}));
+    return true;
+  });
+  // Chrome revocation never enlarges application grants. Existing documents
+  // recheck their effective access and immediately release the UI/observer.
+  const recheck=()=>chrome.tabs.query({}).then(tabs=>Promise.allSettled(tabs
+    .filter(tab=>Number.isSafeInteger(tab?.id)&&tab.id>=0)
+    .map(tab=>chrome.tabs.sendMessage(tab.id,{
+      protocol:READING_TOC_CHROME_ACCESS_PROTOCOL,operation:'recheck'
+    },{frameId:0}).catch(()=>{}))))
+    .catch(error=>console.warn('READING_TOC_ACCESS_RECHECK',error?.message||error));
+  chrome.permissions.onRemoved?.addListener(changes=>{
+    if(changes.origins?.length)void recheck();
+  });
+  chrome.permissions.onAdded?.addListener(changes=>{
+    if(changes.origins?.length)void recheck().then(()=>repair());
+  });
   // A SW restart resumes only a persisted first-install intent; updates and
   // past user choices can never create or widen that intent.
   void resume();

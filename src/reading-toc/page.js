@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
   websiteOrigin,tocGrantAllowed,verifyOfficialReadingToc,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
   readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
-import {MARKET_PROVENANCE_STORE} from '../sidebar-tools/official-reading-toc.js';
+import {MARKET_PROVENANCE_STORE,READING_TOC_CHROME_ACCESS_PROTOCOL} from '../sidebar-tools/official-reading-toc.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../ui/app-localization.js';
@@ -60,6 +60,17 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   }
   const maxScroll=root=>Math.max(0,root.scrollHeight-root.clientHeight);
   const redraw=()=>{if(view)view.render(index.snapshot(activeId));};
+  async function chromeSiteAllowed(url){
+    // Only the fixed service-worker sidecar checks the live browser setting.
+    // Missing SW, revoked access and transport errors fail closed.
+    if(!api?.runtime?.sendMessage)return false;
+    try{
+      const reply=await api.runtime.sendMessage({
+        protocol:READING_TOC_CHROME_ACCESS_PROTOCOL,expectedUrl:url
+      });
+      return reply?.ok===true&&reply.allowed===true;
+    }catch{return false;}
+  }
   function updateFromScroll() {
     spyFrame=0;
     if(!enabled||!index.items.length||disposed||settled?.running)return;
@@ -76,9 +87,12 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(closest&&closest.id!==activeId){activeId=closest.id;redraw();}
   }
   function scheduleSpy(){if(!spyFrame)spyFrame=win.requestAnimationFrame(updateFromScroll);}
-  function rebuild() {
+  async function rebuild() {
     rebuildTimer=0;if(!enabled||disposed)return;
     if(win.location.href!==href){href=win.location.href;activeId='';void refreshPolicy();return;}
+    const epoch=navEpoch,url=win.location.href,allowed=await chromeSiteAllowed(url);
+    if(!enabled||disposed||epoch!==navEpoch||url!==win.location.href)return;
+    if(!allowed){stop();return;}
     index.rebuild();
     if(!index.items.some(row=>row.id===activeId))activeId=index.items[0]?.id||'';
     redraw();scheduleSpy();
@@ -154,7 +168,9 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
       knownIds=ids;
       const verifiedOfficial=await verifyOfficialReadingToc(installed,stored[MARKET_PROVENANCE_STORE]);
+      const chromeAllowed=await chromeSiteAllowed(currentUrl);
       if(disposed||suspended||token!==refreshEpoch||win.location.href!==currentUrl)return;
+      if(!chromeAllowed){if(enabled)stop();return;}
       const pageRules=stored[READING_TOC_PAGE_RULES_STORE];
       const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)&&
         readingTocPageAllowed(pageRules,id,currentUrl));
@@ -174,7 +190,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const permissionEpoch=navEpoch,expectedUrl=win.location.href;
     const grants=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
     const verifiedOfficial=await verifyOfficialReadingToc(grants[SIDEBAR_TOOL_STORE],grants[MARKET_PROVENANCE_STORE]);
-    if(disposed||suspended||permissionEpoch!==navEpoch||expectedUrl!==win.location.href||
+    const chromeAllowed=await chromeSiteAllowed(expectedUrl);
+    if(disposed||suspended||!chromeAllowed||permissionEpoch!==navEpoch||expectedUrl!==win.location.href||
        !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl,grants[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)||
        !readingTocPageAllowed(grants[READING_TOC_PAGE_RULES_STORE],toolId,expectedUrl))
       return {ok:false,error:'工具或网站授权已变化'};
@@ -239,7 +256,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       const painted=await waitForPaint();
       const confirmed=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
       const confirmedOfficial=await verifyOfficialReadingToc(confirmed[SIDEBAR_TOOL_STORE],confirmed[MARKET_PROVENANCE_STORE]);
-      if(!same()||doc.visibilityState==='hidden'||
+      const confirmedChrome=await chromeSiteAllowed(startedHref);
+      if(!confirmedChrome||!same()||doc.visibilityState==='hidden'||
         (confirmed[TOOL_REVOCATION_EPOCHS_STORE]?.[toolId]??null)!==installEpoch||
         !tocGrantAllowed(confirmed[SIDEBAR_TOOL_STORE],confirmed[READING_TOC_SITE_STORE],toolId,startedHref,confirmed[SIDEBAR_TOOL_ENABLE_STORE],confirmedOfficial)||
         !readingTocPageAllowed(confirmed[READING_TOC_PAGE_RULES_STORE],toolId,startedHref)){
@@ -271,7 +289,8 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const before=win.location.href,permissionEpoch=navEpoch;
     const stored=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
     const verifiedOfficial=await verifyOfficialReadingToc(stored[SIDEBAR_TOOL_STORE],stored[MARKET_PROVENANCE_STORE]);
-    if(disposed||suspended||permissionEpoch!==navEpoch||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
+    const chromeAllowed=await chromeSiteAllowed(before);
+    if(disposed||suspended||!chromeAllowed||permissionEpoch!==navEpoch||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
       stored[READING_TOC_SITE_STORE],message.toolId,before,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)||
       !readingTocPageAllowed(stored[READING_TOC_PAGE_RULES_STORE],message.toolId,before))
       return {ok:false,error:'工具、网站或当前页面未授权'};
@@ -296,6 +315,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     return {ok:false,error:'不支持的目录操作'};
   }
   const messageListener=(message,sender,sendResponse)=>{
+    if(message?.protocol===READING_TOC_CHROME_ACCESS_PROTOCOL&&
+       message.operation==='recheck'&&sender?.id===api.runtime.id&&!sender.tab){
+      navEpoch++;settled=null;stop();void refreshPolicy();return false;
+    }
     if(message?.protocol!==READING_TOC_PROTOCOL)return false;
     void handle(message,sender).then(sendResponse,error=>sendResponse({ok:false,error:String(error?.message||error).slice(0,150)}));
     return true;
