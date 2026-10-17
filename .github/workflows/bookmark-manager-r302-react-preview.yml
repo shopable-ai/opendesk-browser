@@ -91,6 +91,11 @@ jobs:
           npm run preview:build
           npm run preview:check
           npm run preview:budget
+      - name: Install CJK font support for readable Chinese Chromium evidence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match 'Noto Sans CJK SC'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Real Chromium 360/400/960, floating details, URL anchor, keyboard and CRUD mock fixture

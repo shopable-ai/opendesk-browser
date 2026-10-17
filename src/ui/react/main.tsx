@@ -9,13 +9,13 @@ import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
 import {CloudOverviewText} from './tabs/cloud.tsx';
 import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
-import './tabs/cookie-pilot.css';
+import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
 // Fixed, reviewed Bookmark Manager sources only; no installed package scripts.
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
 import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/style.css?raw';
-import './tabs/bookmark-pilot.css';
+import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -218,6 +218,9 @@ export function mountExtensionList(doc){
     // Extension Center restores focus immediately after draw(). Commit the
     // single React tree and all portals synchronously before that readback.
     flushSync(()=>root.render(<>
+      {/* WXT fixed entry is JS-only. Scope audited pilot CSS into the
+          existing React tree; never emit an unlisted tool-shell.css asset. */}
+      <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
       {createPortal(<ExtensionToolbar model={toolbarModel}/>,toolbar)}
       {createPortal(<ExtensionRows {...model} menuKey={menuKey}/>,container)}
       {createPortal(<ExtensionDetail model={detailModel} container={detailContainer}/>,detailContainer)}
