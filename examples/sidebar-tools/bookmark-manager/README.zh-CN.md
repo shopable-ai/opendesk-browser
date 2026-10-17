@@ -93,10 +93,10 @@ SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk
 
 回归优先使用既有 \`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\`，覆盖真实 Chromium 两视口下正常选择、编辑、草稿切换、外部诊断界面与被隔离 iframe 的边界。测试状态只称 \`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED\`；没有 Mac 正式安装、Full Bookmarks 授权及 Native CRUD 证据时，\`NATIVE_NOT_TESTED\`、Issue #75 OPEN、专家逐维 95+ NOT_SCORED。
 
-## R3.0.5 · React JSX 同源预览与非发布可行性门禁
+## R3.2 · 正式 React 源码唯一来源（非发布候选）
 
-- React 19 UI 的单一 JSX 实现在 `preview/react/src/App.jsx`；`src/main.jsx` 为 Mock 预览挂载入口，`src/formal.jsx` 为**不发布**的真实 SDK/Root 挂载可行性入口。两者引用同一个 App，既有 Model/Service 仍位于正式工具 `src/`。
-- 在 `preview/react/` 执行 `npm ci` 后，`npm run preview:watch` 启动一次；编辑 JSX/CSS、固定 Model/Service、Mock 或 Token 会原子更新 `.opendesk-preview/bookmark-react-candidate.html`，直接以 `file://` 打开，不需要 HTTP 服务和手工重复 build。失败保留上一份有效候选。
-- `npm run preview:build` 单次生成候选；`npm run preview:check` 重新编译校验候选同源；`npm run preview:chrome` 在候选上复用既有 R3.0.4 Chromium 回归；`npm run preview:budget` 使用正式 v2 packer/schema 检查同 App 的正式挂载构建，报告保存在忽略目录 `.opendesk-preview/budget-report.json`。
-- `preview/index.html` 是已认证 HTML。上述本地命令**不会写入它**。GitHub CI 仅在隔离 checkout 复制候选运行 Chrome；全部检查通过后才通过既有非强推、并发保护的晋升步骤提交确切 HTML。
-- `tool.config.json`、正式 `src/index.html/main.js/style.css`、已安装 JSON、版本号和用户原始书签在本阶段一律不改。正式包可行性成功仅代表静态候选，不是 R3.1 迁移批准，也不是 Mac Native PASS。失败报告 `BUDGET_BLOCKED` 或 `NOT_TESTED`，禁止绕开平台限制。
+- **正式 UI 唯一维护位置**：`src/react/App.jsx`、`src/react/style.css`。生产可信 Host 在 `src/ui/react/main.tsx` 静态编译导入，沿用唯一 React Root、既有 Bookmark Model/Service、Full Bookmarks SDK 和原 Host；不从安装包动态执行 JSX。
+- **Preview 只是 Adapter**：`preview/react/src/main.jsx` 与 `preview/react/src/formal.jsx` 均导入上述同一 JSX/CSS，不含独立业务实现。切换到 `preview/react/` 执行 `npm ci`、`npm run preview:build`、`npm run preview:check`、`npm run preview:chrome`，自动生成被 Git 忽略的 `preview/dev.html`。该预览使用 Mock Fixture，不等于 Native PASS。
+- **保留历史审核入口**：`preview/index.html` 尚未晋升为 R3.2 交互 HTML；此阶段不更换该文件，也不覆盖 `bookmark-manager.opendesk-tool.json`、官方 Catalog 或工具版本 `0.3.8`。Classic `src/main.js` 仍是已安装动态沙箱工具的兼容入口，直至独立原生验收批准。
+- **预算范围分离**：可信 JSX 走 WXT 固定 Host 的 1 MiB `ui/tool-shell.js` 硬限；`npm run preview:budget` 测试的是独立 IIFE Sidebar Tool 可行性，当前旧动态工具 JS 220,000 bytes/完整包 320,000 bytes，`BUDGET_BLOCKED` 不等于可信 WXT 失败。没有新动态工具业务的必要性，不扩大整个安装框架。
+- **真实验证**：Node/CI 测试、Chromium Mock 与 Mac 原生独立分栏报告。隔离 Profile 的真实 Full Bookmarks 授权、2,159+ 书签、130+ 文件夹、CRUD、危险删除、撤权、跨窗口更新和新标签页事件尚无本版本证据时为 `NOT_TESTED`；正式版本不提前发布。
