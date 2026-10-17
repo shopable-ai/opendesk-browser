@@ -204,8 +204,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-params-panel').hidden=!hasSteps || (!hasParams && !hasActions);
     get('workflow-run-consent').hidden=!hasActions;
     get('workflow-result-panel').hidden=!['success','failed'].includes(lastRun);
-    const intro=get('workflow-chat-intro');
-    intro.hidden=hasMessages || phase==='planning' || (hasSteps && entryMode!=='new-chat');
+    get('workflow-chat-intro').hidden=hasMessages || phase==='planning' || (hasSteps && entryMode!=='new-chat');
     get('workflow-ai-title').textContent=entryMode==='new-chat'?'开始新对话':'创建新工作流';
     get('workflow-intro-description').textContent=entryMode==='new-chat'
       ?'保留当前工作流，可以继续提出下一步需求。'
