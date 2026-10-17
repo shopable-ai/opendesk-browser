@@ -134,7 +134,8 @@ test('R1.4 checked-in interactive previews are byte-reproducible from the curren
   'offline AI answer reproduces the real duplicate-H2 native regression');
  for(const [surface,file] of [
   ['side-panel','reading-toc-r12-interactive-preview.html'],
-  ['page-overlay','reading-toc-r12-overlay-preview.html']
+  ['page-overlay','reading-toc-r12-overlay-preview.html'],
+  ['page-overlay','index.html']
  ]){
   const saved=await readFile(root+file,'utf8');
   const generated=await generatePreview({tool:'reading-toc',surface,
