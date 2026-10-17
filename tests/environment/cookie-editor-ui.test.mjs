@@ -1500,6 +1500,117 @@ test('Bulk text preview keeps valid rows while explicitly skipping expired and i
   assert.equal(s.getField('import-text').value,'');assert.match(s.getStatusMessage(),/已确认导入 27 条，跳过 5 条/);
 });
 
+test('Import single-write SDK handles more than ten rows with exact scopes and explicit confirmation',async()=>{
+  const saved=[];
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],set:async options=>{
+      // Match the structured-clone boundary of the VM sandbox transport.
+      normalizeBrowserOperation('browser.cookies.set',structuredClone(options));
+      saved.push(options);return {saved:true,verified:true};
+    }
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const rows=Array.from({length:30},(_,i)=>({name:'fictional_'+i,value:'fictional_'+i,
+    domain:'.example.com',hostOnly:false,path:i%2?'/area':'/',secure:true,httpOnly:true,sameSite:'lax',
+    storeId:'0',...(i%3?{}:{partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}}),
+    session:false,expirationDate:i<3?1:Math.floor(Date.now()/1000)+86400.125}));
+  const source=JSON.stringify(rows);
+  s.fire('live-import','click');s.getField('import-text').value=source;s.getField('import-format').value='json';
+  s.fire('import-apply','click');await s.settle();
+  assert.match(s.getField('live-import-preview').textContent,/可导入 27.*已过期 3/);
+  s.fire('live-import-confirm','click');
+  assert.equal(saved.length,0);assert.equal(s.getField('import-text').value,source);
+  assert.match(s.getField('confirm-message').textContent,/逐条.*每条.*确认/);
+  s.fire('confirm-accept','click');await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(saved.length,27);
+  for(let i=0;i<saved.length;i++){
+    const expected=rows[i+3],actual=saved[i];
+    assert.equal(actual.url,'https://example.com/');
+    for(const field of ['name','value','domain','path','secure','httpOnly','sameSite','storeId','expirationDate'])
+      assert.equal(actual[field],expected[field],field);
+    assert.equal(JSON.stringify(actual.partitionKey),JSON.stringify(expected.partitionKey));
+  }
+  assert.equal(s.getField('import-text').value,'');
+  assert.match(s.getStatusMessage(),/已确认导入 27 条，跳过 3 条/);
+});
+
+for(const [label,outcome] of [
+  ['unknown',Object.assign(new Error('FICTIONAL_PRIVATE_HOST_DETAIL'),{code:'E_OUTCOME_UNKNOWN'})],
+  ['revoked',Object.assign(new Error('FICTIONAL_PRIVATE_HOST_DETAIL'),{code:'E_GRANT_REVOKED'})],
+  ['refused',Object.assign(new Error('FICTIONAL_PRIVATE_HOST_DETAIL'),{code:'E_PERMISSION'})],
+  ['not saved',{saved:false,verified:true}],
+  ['unverified',{saved:true,verified:false}],
+  ['missing verification',{saved:true}],
+  ['empty receipt',null]
+])test('Import single-write SDK stops without replay and retains input after '+label,async()=>{
+  let calls=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[],
+    set:async()=>{
+      calls++;if(calls===1)return {saved:true,verified:true};
+      if(outcome instanceof Error)throw outcome;return outcome;
+    }
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const source=JSON.stringify(Array.from({length:3},(_,i)=>({name:'fictional_'+i,value:'fictional',storeId:'0'})));
+  s.fire('live-import','click');s.getField('import-text').value=source;s.getField('import-format').value='json';
+  s.fire('import-apply','click');await s.settle();
+  s.fire('live-import-confirm','click');s.fire('confirm-accept','click');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(calls,2);assert.equal(s.getField('import-text').value,source);
+  assert.match(s.getStatusMessage(),/已确认 1\/3 条；第 2 条停止/);
+  assert(s.getStatusMessage().includes(outcome?.code||'E_OUTCOME_UNKNOWN'));
+  assert(!s.getStatusMessage().includes('FICTIONAL_PRIVATE_HOST_DETAIL'));
+  s.fire('live-import-confirm','click');s.fire('confirm-accept','click');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();assert.equal(calls,2);
+});
+
+for(const event of ['opendesk-cookie-grants-changed','opendesk-page-changed'])
+test('Import single-write SDK ignores late receipts and stops after '+event,async()=>{
+  const started=deferred(),receipt=deferred();let calls=0,approved=true;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:approved})},cookies:{getAll:async()=>[],
+    set:async()=>{calls++;started.resolve();return receipt.promise;}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');s.getField('import-text').value='fictional_one=1; fictional_two=2';
+  s.getField('import-format').value='auto';
+  s.fire('import-apply','click');await s.settle();
+  s.fire('live-import-confirm','click');s.fire('confirm-accept','click');
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);await started.promise;
+  approved=false;s.fireRoot(event);await s.settle();
+  const message=s.getStatusMessage();receipt.resolve({saved:true,verified:true});
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(calls,1);assert.equal(s.getStatusMessage(),message);
+  assert(!/已确认导入/.test(message));
+});
+
+test('Import batch failure never changes to the single-write SDK after an effect may have happened',async()=>{
+  let batches=0,singles=0;
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[],
+    setMany:async()=>{batches++;throw Object.assign(new Error('FICTIONAL_PRIVATE_HOST_DETAIL'),{code:'E_OUTCOME_UNKNOWN'});},
+    set:async()=>{singles++;return {saved:true,verified:true};}
+  }});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const source='fictional_one=1; fictional_two=2';
+  s.fire('live-import','click');s.getField('import-text').value=source;
+  s.getField('import-format').value='auto';
+  s.fire('import-apply','click');await s.settle();
+  s.fire('live-import-confirm','click');s.fire('confirm-accept','click');
+  await new Promise(resolve=>setImmediate(resolve));await s.settle();
+  assert.equal(batches,1);assert.equal(singles,0);assert.equal(s.getField('import-text').value,source);
+  assert.match(s.getStatusMessage(),/已确认 0\/2.*E_OUTCOME_UNKNOWN/);
+});
+
+test('Import with no write SDK preserves the preview and input without offering confirmation',async()=>{
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{getAll:async()=>[]}});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  const source='fictional=1';s.fire('live-import','click');s.getField('import-text').value=source;
+  s.getField('import-format').value='auto';
+  s.fire('import-apply','click');await s.settle();s.fire('live-import-confirm','click');
+  assert.equal(s.getField('import-text').value,source);
+  assert.match(s.getStatusMessage(),/缺少 Cookie 写入接口.*原文已保留/);
+  assert.equal(s.getField('confirm-panel').hidden,true);
+});
+
 test('BOM, Cookie prefix, newline pairs, equals in values and Netscape empty values round trip',async()=>{
   const s=await harness();s.setSite('example.com');
   const header=s.parseImport('\uFEFF  Cookie: a=x=y=z; b=\n\nCookie: c=3\r\nd=4;  ','auto');

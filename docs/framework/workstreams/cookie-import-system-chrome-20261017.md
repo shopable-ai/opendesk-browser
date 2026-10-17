@@ -1,7 +1,7 @@
 # Cookie Editor 系统 Chrome 手动导入续查 · 2026-10-17
 
 - Owner：本次 Codex；main 原位；已获仅提交本任务文件与正常推送 main 授权。不建分支/worktree/PR，保留其他 Agent 差异。
-- 状态：LOCAL_FIX_VERIFIED_SYSTEM_RUNTIME_REFRESH_PENDING。范围：用户当前系统 Chrome 安装版手动 JSON 导入；不做 production、全量原生、缩放、UI 重构。
+- 状态：LOCAL_SINGLE_WRITE_FIX_VERIFIED_INSTALL_PENDING。范围：用户当前系统 Chrome 安装版手动 JSON 导入；不做 production、全量原生、缩放、UI 重构。
 - 写入范围：`examples/sidebar-tools/cookie-editor/src/main.js`、`tool.config.json`、`README.zh-CN.md`、唯一正式 JSON；`tests/environment/cookie-editor-ui.test.mjs`、`cookie-editor-r43-parity.test.mjs`（仅版本断言）；本记录。通用 SDK/Host/权限默认只读。独立只读 explore 子 Agent 检查预检异常链，不接触真实样本或浏览器；已完成并关闭。
 - 已读 testing-guide、cookie-import-real/native-driver/sdk-batch/limits 四份 20261017 记录，既有 248/248 与 31/31 依原输入限定复用；61 条虚构导入单项 PASS 与随后清理失败保留，不提升为完整原生 PASS。
 - 持续开发：固定 `dist/development`；唯一既有 npm dev / node PID34253，43119/43120 listener。未启动第二 writer。系统 Chrome PID77828；独立其他任务 CFT PID53072、56004 不接管、不关闭。
@@ -41,3 +41,21 @@
 - `opendesk browser doctor` 正常返回 connected=true，local.extensionId 与 response.result.extensionId 均为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；现有 Native manifest allowed_origins 也精确包含该 ID。未改配对、权限或 Native 配置。`--json` 参数不受支持产生 E_SCHEMA，改用该 CLI 默认 JSON 输出后只读核对成功，不将首次命令错误记为功能失败。
 - `src/development/page.js` / `worker.js` 与 `src/ui/tool-shell.js` 现有安全刷新会等待 tool dirty、RunHost/native/草稿释放；dev TCP 已连接不保证该栅栏已通过。未制造源码改动触发重载，未直接调用 runtime.reload 或绕过工具策略。SDK_GAP_NOT_PROVEN；不修改通用 SDK/Host。
 - 已请求用户经 Chrome 原有入口刷新同 ID 扩展，再打开 Cookie Editor 只生成预览并报告计数/安全码；明确先不要确认写入，且不发送敏感内容或截图。该人工步骤源于自动安全审批阻塞，不是再次请求权限。真实刷新、活动 facade 与本次预检结果仍待反馈；本轮不重复真实样本写入。
+
+## 当前阻塞的工具内修复 · 用户要求直接判断并解决
+
+- 用户最新要求直接修复眼前问题，不再让用户判断 iframe/SDK 更新细节。继续作为同一任务执行；SDK/Host/bridge 仍只读，不绕过浏览器工具策略。
+- 写入负责人仍为本 Codex，修改文件仍限工具 `src/main.js`、版本配置、README、唯一正式 JSON、UI 测试及版本断言和本记录。写前这些源码/测试文件没有并行差异；其他 Agent 的 broker、Page runtime、Adblock 与构建改动保留。复用现有 watcher、固定 dist，无第二 writer；不占用其他 CFT/Profile。
+- 公开文档 `docs/api/browser-sdk.developer.generated.md` 的 `cookies.set` 与 Schema 已提供 `{saved:boolean,verified:boolean}`，现有工具新建/编辑也使用该公开接口。SDK_GAP_NOT_PROVEN：可在工具目录内解决缺批量 facade 的导入，不增加 API、权限或 raw request。
+- 拟实现：有 `setMany` 时保留原分批路径；只有单条 `set` 时顺序调既有 SDK，每条必须经可信 Host 真实确认，并同时核对 saved/verified；缺两种写入方法才阻塞。提前显示逐条确认成本。任一拒绝、坏回执、未知结果、目标/授权变化立即停，不重放、不在批量失败后改走单条。不删除/重写 Store/Partition，不修改过期时间，失败保留原文。
+- 通过条件：虚构多条输入在缺 setMany 的旧 facade 下、显式最终确认前零写入，之后逐条成功计数；精确范围/属性保留；异常和迟到回执停止、零重试；原批量仍优先且失败不降级；受影响测试和包晋升/同源通过。真实系统 Chrome 2.0.23 与写入仍需相应原生证据，不能由 Node 测试提升。
+
+### 本次实现与定向结果
+
+- 已实现上述工具内路径选择；只在发请求前按 facade 是否存在选一次，有批量方法时不变。单条路径直接调用公开 `cookies.set`，只接受真实接口回执的 `saved===true && verified===true`，没有合成 Host/native ack 或 raw request。每条仍经原 Host 单条确认和精确回读；业务层统一保留原文及未知结果停止规则。
+- 新增 12 项定向用例最终全部 PASS；27 条有效虚构记录与 3 条过期记录的预览/写入计数、原顺序、Domain/Path/Store/Partition/属性/小数有效期均验证。最终确认前零调用；七种失败/坏回执停在第 2 条、保留输入且不能直接重放；授权/页面变化时忽略迟到成功；批量方法存在时优先且未知失败不改走单条；两种写方法均缺失才阻塞。
+- 保留红测和夹具修复：最初有单条方法却被旧硬拒绝的用例复现失败；早期四个 Header 夹具漏设格式，后显式设 auto；完整首轮 248/249，唯一失败是 VM 参数直接送入另一 realm 的 strict plain-object normalizer。夹具改为模拟真实 structured-clone transport，未放宽生产 Schema。日志 `single-write-before*.tap`、`single-write-tool-package.tap` 与最终 `single-write-tool-package-final.tap` 均保留。
+- 最终工具 UI/包对应/Sidebar Host/安装及单条 Cookie SDK、确认等待合同 **249/249 PASS**，无跳过/取消。源码检查 **PASS（808 files）**。未运行全量套件/production/CFT，不重复真实样本写入；沿用 2.0.22 的全目录 17/18 历史结果，不把它改写成本轮 PASS。
+- 原打包器候选 `artifacts/sidebar-tools/cookie-editor/2.0.23/candidate.opendesk-tool.json` 经测试后 `--promote-from` / `--check-project` PASS。唯一正式包 **2.0.23，134473 bytes，SHA256 `3f566d12e56b3f2391b9e4cec918dec002a2cd7c7cf97c84c6fa7ba1ac8835b9`**；candidate/正式包/现有 watcher 的 development 副本相同，dist 官方目录版本/bytes/SHA 一致，ID/capabilities/requires 未改。无第二 writer。
+- 本轮未再次读取真实样本，也没有真实 Cookie 写请求或 Cookie 截图/敏感 trace。活动 iframe 精确版本、系统 Chrome 2.0.23 升级及最终导入仍 **NOT_TESTED**；自动安全审批禁止内部扩展页及绕过，不能用工具内测试冒充原生完成。用户无需再判断技术方案，当前提供可经原有机制更新的同 ID 修复包。
+- Git 集成资源：远端新增 prompt-shortcuts 的 provenance pin，本工作区另有 Adblock Owner 未提交的 `scripts/bundle-provenance.mjs` pin，两个位置不同但同文件，非本任务写入范围。不暂存/修改/stash 该并行文件；本任务先仅在 main 提交上述 7 个自有路径。再用已提交 main 两端的 `merge-tree` 核对无冲突，生成用于远端 main 的正常双亲合并提交，并做无强推的 fast-forward push；不切分支、不建 worktree、不改变该工作区文件/索引。本地 main 暂保留自有提交，待该文件 Owner 收尾后再正常快进；交付/两端引用和验证输入写入 `single-write-closeout.json`。

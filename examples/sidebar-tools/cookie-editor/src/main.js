@@ -986,12 +986,17 @@ function confirmLiveImport(){
   if(plan.rows.some(row=>!row.session&&row.expirationDate<=Date.now()/1000)){
     clearImportPreview();status('预览后有记录已过期；请重新预览以更新跳过情况。原文已保留。','error');return;
   }
-  if(typeof browserSdk()?.cookies?.setMany!=='function'){
-    status('当前 OpenDesk Browser 尚不支持批量 Cookie 写入，请更新扩展后重新预览；原文已保留。','error');return;
+  const useBatch=typeof browserSdk()?.cookies?.setMany==='function';
+  if(!useBatch&&typeof browserSdk()?.cookies?.set!=='function'){
+    status('当前 OpenDesk Browser 缺少 Cookie 写入接口，请刷新扩展后重新预览；原文已保留。','error');return;
   }
-  const skipped=plan.records.length-plan.rows.length,batches=importBatches(plan.rows);
+  const skipped=plan.records.length-plan.rows.length;
+  let batches=importBatches(plan.rows);
+  if(!useBatch)batches=batches.flat().map(cookie=>[cookie]);
+  const confirmation=useBatch?'系统自动分为 '+batches.length+' 批，每批确认一次；每条写入后原生回读。':
+    '当前浏览器将逐条导入，每条都需在 OpenDesk 确认；每条写入后原生回读。';
   ask('向 '+target.hostname+' 导入 '+plan.rows.length+' 条：新增 '+plan.created+'、覆盖 '+plan.replaced+
-    '、跳过 '+skipped+'。系统自动分为 '+batches.length+' 批，每批确认一次；每条写入后原生回读。继续？',
+    '、跳过 '+skipped+'。'+confirmation+'继续？',
     '确认导入真实浏览器',async()=>{
     if(!stillCurrent(plan.epoch,target)||importPreview!==plan)return;
     clearImportPreview();let succeeded=0,failed=null,complete=false;setBusy(true);
@@ -999,17 +1004,24 @@ function confirmLiveImport(){
       for(const cookies of batches){
         if(!stillCurrent(plan.epoch,target))break;
         try{
-          const receipt=await browserSdk().cookies.setMany({url:target.url,cookies});
+          const receipt=useBatch?await browserSdk().cookies.setMany({url:target.url,cookies}):
+            await browserSdk().cookies.set({url:target.url,...cookies[0]});
           if(!stillCurrent(plan.epoch,target))break;
-          if(!Array.isArray(receipt?.results))throw Object.assign(new Error('Chrome 回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
-          for(let index=0;index<cookies.length;index++){
-            const item=receipt.results[index];
-            if(item?.index!==index||item.saved!==true||item.verified!==true)
-              throw Object.assign(new Error('批次未完成'),{code:item?.code||'E_OUTCOME_UNKNOWN'});
+          if(useBatch){
+            if(!Array.isArray(receipt?.results))throw Object.assign(new Error('Chrome 回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
+            for(let index=0;index<cookies.length;index++){
+              const item=receipt.results[index];
+              if(item?.index!==index||item.saved!==true||item.verified!==true)
+                throw Object.assign(new Error('批次未完成'),{code:item?.code||'E_OUTCOME_UNKNOWN'});
+              succeeded++;
+            }
+          }else{
+            if(receipt?.saved!==true||receipt.verified!==true)
+              throw Object.assign(new Error('Chrome 回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
             succeeded++;
           }
         }catch(error){failed=error;break;}
-        status('Chrome 已回读确认 '+succeeded+'/'+plan.rows.length+' 条；请继续确认下一批。');
+        status('Chrome 已回读确认 '+succeeded+'/'+plan.rows.length+' 条；请继续确认下一'+(useBatch?'批':'条')+'。');
       }
       if(stillCurrent(plan.epoch,target)){
         if(!failed&&succeeded===plan.rows.length){
