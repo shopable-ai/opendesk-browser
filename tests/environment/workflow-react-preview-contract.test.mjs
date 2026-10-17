@@ -11,7 +11,7 @@ test('R33.3.6 source-bound preview only reuses real Workflow JSX and installed s
     read('src/ui/react/tabs/workflow.tsx')
   ]);
   assert.match(entry,/from '\.\.\/tabs\/workflow\.tsx'/);
-  for(const name of ['WorkflowHeader','WorkflowTranscript','WorkflowSettingsSheet','WorkflowResultText'])
+  for(const name of ['WorkflowHeader','WorkflowHistory','WorkflowSourceName','WorkflowTranscript','WorkflowSettingsSheet','WorkflowResultText'])
     assert.match(entry,new RegExp('createPortal\\(<'+name));
   for(const path of ['src/ui/tool.html','src/ui/design-tokens.css',
     'src/ui/design-system.css','src/ui/tool-shell.css','src/ui/react/tabs/workflow.tsx'])
@@ -39,4 +39,22 @@ test('R33.3.6 compiled offline HTML has real source checksum and bundled React',
   assert.match(html,/connect-src 'none'/);
   assert.doesNotMatch(html,/<script(?=\s)[^>]*src="https?:/);
   assert.doesNotMatch(html,/<iframe[^>]+src="https?:/);
+});
+
+test('R23.11 preview never forges saved history, native status or a provider token',async()=>{
+  const [entry,builder,html,view]=await Promise.all([
+    read('src/ui/react/preview/workflow-preview.tsx'),
+    read('scripts/preview/build-workflow-react-preview.mjs'),
+    read('src/ui/tool.html'),
+    read('src/ui/workflow/workflow-view.js')
+  ]);
+  for(const node of ['workflow-history-react-host','workflow-source-react-host',
+    'workflow-source-local','workflow-source-https','workflow-https-protocol'])
+    assert.match(html,new RegExp('id="'+node+'"'));
+  assert.match(entry,/model=\{\{open:history,rows:\[\],canResume:false/);
+  assert.match(entry,/setSourceName\(local\?'Codex'/);
+  assert.match(entry,/sourceBound:true,native:false,provider:false/);
+  assert.match(builder,/src\/ui\/react\/preview\/workflow-preview\.tsx/);
+  assert.match(builder,/src\/ui\/workflow\/workflow-view\.js/);
+  assert.match(view,/get\('workflow-ai-model'\)\.value\.trim\(\)/);
 });
