@@ -39,9 +39,9 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,busy=false,readon
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
-      <Action name="download" label="导入 Cookie" onClick={onImport}
+      <Action name="upload" label="导入 Cookie" onClick={onImport}
         disabled={busy||readonly||typeof onImport!=='function'}/>
-      <Action name="upload" label="导出 Cookie" onClick={onExport}
+      <Action name="download" label="导出 Cookie" onClick={onExport}
         disabled={busy||typeof onExport!=='function'}/>
       <span className="action-separator"/>
       <span data-action="new"><Action name="plus" label="新建 Cookie"

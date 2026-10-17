@@ -65,3 +65,12 @@ test('R5 trusted pilot is static, data-free and mounted through the ONE host Rea
   assert.doesNotMatch(pilot,/examples\/sidebar-tools\//,'fixed privileged bundle must never import tool source');
   assert.match(pilot,/UI-only 技术试点/);
 });
+
+test('Cookie import and export arrows remain directionally consistent across shared React and offline preview',async()=>{
+  const view=await readFile('src/ui/react/cookie-editor/CookieEditorView.jsx','utf8');
+  const preview=await readFile('examples/sidebar-tools/cookie-editor/preview/react/src/App.jsx','utf8');
+  assert.match(view,/<Action name="upload" label="导入 Cookie"/);
+  assert.match(view,/<Action name="download" label="导出 Cookie"/);
+  assert.match(preview,/dropzone-symbol"><Icon name="upload"\/>/);
+  assert.match(preview,/runExport\('download'\)\}><Icon name="download"\/>下载/);
+});
