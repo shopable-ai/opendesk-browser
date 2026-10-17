@@ -33,6 +33,8 @@ import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
+import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,
+  trustedBookmarkProvenanceChanged} from './trusted-bookmark-admission.js';
 
 // Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
 // whole sandbox postMessage. The host adds a bounded envelope separately.
@@ -65,7 +67,7 @@ export function checkSidebarToolRequestBudget(message){
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null}) {
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -407,7 +409,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     importTrigger.setAttribute('aria-expanded',String(open));
     if(!open)clearImport();
   }
-  const sameInstance=(source,token)=>!disposed&&active&&frame&&frame.contentWindow===source&&instance===token;
+  // Only a private Symbol lets statically compiled JSX reuse the existing
+  // Browser SDK dispatcher; no postMessage or user package can forge it.
+  const trustedBookmarkSource=Symbol('opendesk.trusted.bookmark');
+  const sameInstance=(source,token)=>!disposed&&active&&instance===token&&
+    ((frame&&frame.contentWindow===source)||
+     (source===trustedBookmarkSource&&active.id===TRUSTED_BOOKMARK_ID&&
+      (nativePending||nativeUI?.kind==='bookmark')));
   const toolById=id=>installed.find(row=>row.id===id);
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
@@ -523,7 +531,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();
     frameRoot.replaceChildren();
-    if(frameRoot.dataset)delete frameRoot.dataset.timeReviewNative;
+    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;}
   }
   // The only admission for privileged Time Review rendering. Built-in code
   // never consumes the installed package's html/css/js as executable input.
@@ -571,6 +579,55 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       throw error;
     }
+  }
+// A verified release can opt into one React portal in developer mode. Every
+  // SDK call still uses dispatch(), its original Host envelope and approval UI.
+  async function admittedNativeBookmark(tool,expectedEpoch){
+    if(trustedBookmarkPilot?.enabled!==true||
+       typeof trustedBookmarkPilot.mount!=='function')return false;
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===TRUSTED_BOOKMARK_ID&&
+      row.version===TRUSTED_BOOKMARK_VERSION);
+    if(!release)return false;
+    const saved=await api.storage.local.get([
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE]);
+    return admitsTrustedBookmark({tool,release,expectedEpoch,
+      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
+      epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
+      provenance:saved[MARKET_PROVENANCE_STORE]});
+  }
+  async function requestTrustedBookmark(tool,token,epoch,operation,payload={}){
+    const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
+      nativeUI?.kind==='bookmark';
+    if(!current())throw Object.assign(new Error('书签可信界面已关闭'),{code:'E_TOOL_CHANGED'});
+    if(!await admittedNativeBookmark(tool,epoch)||!current()){
+      if(current()){destroyFrame();tocSettingsOpen=true;render();
+        notice('书签官方安装身份或授权已变化，可信界面已关闭。',true);}
+      throw Object.assign(new Error('书签可信准入已失效'),{code:'E_TOOL_CHANGED'});
+    }
+    return dispatch(operation,payload,tool,trustedBookmarkSource,token,epoch);
+  }
+  function trustedBookmarkSDK(tool,token,epoch){
+    const request=(operation,payload={})=>requestTrustedBookmark(tool,token,epoch,operation,payload);
+    const names=['getTree','get','search','create','update','move','remove',
+      'prepareRemoveTree','removeTree'];
+    const bookmarks=Object.fromEntries(names.map(name=>[name,args=>
+      request('browser.bookmarks.'+name,args)]));
+    bookmarks.observe=Object.freeze({
+      start:args=>request('browser.bookmarks.observe.start',args),
+      read:args=>request('browser.bookmarks.observe.read',args),
+      stop:args=>request('browser.bookmarks.observe.stop',args)
+    });
+    return Object.freeze({
+      bookmarks:Object.freeze(bookmarks),
+      capabilities:Object.freeze({
+        list:()=>request('browser.capabilities.list'),
+        getStatus:args=>request('browser.capabilities.getStatus',args)
+      }),
+      page:Object.freeze({getContext:()=>request('browser.page.getContext')})
+    });
   }
   // An optional installed-list companion, never another top-level tab.
   function setDiscoveryOpen(open){
@@ -995,6 +1052,40 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(disposed||active!==tool||instance!==token)return;
         destroyFrame();tocSettingsOpen=true;render();
         notice('官方包身份校验失败，未执行特权 UI：'+String(error?.message||error).slice(0,180),true);
+      });
+      return;
+    }
+    if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_BOOKMARK_ID&&
+       trustedBookmarkPilot?.enabled===true&&typeof trustedBookmarkPilot.mount==='function'){
+      nativePending=true;render();backButton.focus?.({preventScroll:true});
+      notice('正在核验书签管理官方安装身份…');
+      void admittedNativeBookmark(tool,frameRevocationEpoch).then(admitted=>{
+        if(disposed||active!==tool||instance!==token)return;
+        if(!admitted){
+          mountTool(tool,{forceSandbox:true});
+          notice('书签正式工具仍在原有沙箱中运行；未授予可信 UI 准入。');
+          return;
+        }
+        try{
+          const sdk=trustedBookmarkSDK(tool,token,frameRevocationEpoch);
+          const dispose=trustedBookmarkPilot.mount({container:frameRoot,sdk,
+            onStateChange:state=>{
+              if(disposed||active!==tool||instance!==token)return;
+              toolDirty=Boolean(state?.dirty);toolSaving=Boolean(state?.saving);
+              frameDraft=String(state?.draft||'').slice(0,8192);
+            }});
+          if(disposed||active!==tool||instance!==token){dispose();return;}
+          nativeUI={dispose,kind:'bookmark'};nativePending=false;
+          frameRoot.dataset.bookmarkTrusted='true';
+          render();notice('');
+        }catch(error){
+          destroyFrame();tocSettingsOpen=true;render();
+          notice('书签可信 React 试点拒绝挂载：'+String(error?.message||error).slice(0,160),true);
+        }
+      }).catch(error=>{
+        if(disposed||active!==tool||instance!==token)return;
+        destroyFrame();tocSettingsOpen=true;render();
+        notice('书签官方身份校验失败：'+String(error?.message||error).slice(0,160),true);
       });
       return;
     }
@@ -1806,7 +1897,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       render();
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
-      menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};render();
+      menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};
+      if(active?.id===TRUSTED_BOOKMARK_ID&&nativeUI?.kind==='bookmark'){
+        const grant=menuGrants?.[TRUSTED_BOOKMARK_ID];
+        if(grant?.bookmarkFull!==true||grant.version!==active.version||
+           grant.installEpoch!==frameRevocationEpoch){
+          destroyFrame();tocSettingsOpen=true;
+          notice('完整书签授权已撤销，已清除可信视图中的书签数据。',true);
+        }
+      }
+      render();
       if(isCookieTool(active)&&frame&&instance)
         frame.contentWindow?.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
           kind:'cookie-grants-changed',instance,toolId:active.id},'*');
@@ -1844,16 +1944,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null)){
         if(nativeUI||nativePending){
           destroyFrame();tocSettingsOpen=true;render();
-          notice('时间回顾安装代际已撤销；请重新打开已核验工具。',true);
+          notice('可信工具安装代际已撤销；请重新打开已核验工具。',true);
         }else notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
       }
     }
     if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)&&
-       trustedTimeReviewProvenanceChanged(changes[MARKET_PROVENANCE_STORE])){
-      // Retire only when this exact tool's own trusted source changed or the
-      // map cannot be checked. Another tool's install must not close Time Review.
+       (active?.id===TIME_REVIEW_ID
+         ?trustedTimeReviewProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
+         :active?.id===TRUSTED_BOOKMARK_ID
+           ?trustedBookmarkProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
+           :false)){
+      // Only this admitted tool's own provenance revokes its React/native UI.
       destroyFrame();tocSettingsOpen=true;render();
-      notice('Time Review 官方来源身份发生变化；可信 UI 已关闭。',true);
+      notice('官方来源身份发生变化；可信 UI 已关闭。',true);
     }
     // Do not refresh the native view for every TIME_REVIEW_KEY write: the
     // Host persists status reads, and echoing them would form a poll loop.
