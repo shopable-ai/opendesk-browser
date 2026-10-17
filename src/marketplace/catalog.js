@@ -14,6 +14,8 @@ const APP_PRESENTATION = Object.freeze([
 export const OFFICIAL_COLLECTIONS = Object.freeze([
   // Publish a new immutable revision whenever any packaged member advances.
   // Revisions 1–5 remain pinned to their original versions.
+  {id:'reading-kit',revision:8,title:'阅读与摘录',description:'阅读目录 1.0.9：主要章节名称和无障碍提示完善；网页剪藏 1.0.1、网页笔记 1.1.9。',
+    members:[{id:'opendesk/reading-toc',version:'1.0.9'},{id:'opendesk/web-markdown-clipper',version:'1.0.1'},{id:'opendesk/quick-notes',version:'1.1.9'}]},
   {id:'reading-kit',revision:7,title:'阅读与摘录',description:'目录 1.0.8、新增 AI 会员与合作招募界面；网页剪藏 1.0.1、网页笔记 1.1.9。',
     members:[{id:'opendesk/reading-toc',version:'1.0.8'},{id:'opendesk/web-markdown-clipper',version:'1.0.1'},{id:'opendesk/quick-notes',version:'1.1.9'}]},
   {id:'reading-kit',revision:6,title:'阅读与摘录',description:'目录 1.0.7、网页剪藏 1.0.1 与网页笔记 1.1.9 的固定组合。',

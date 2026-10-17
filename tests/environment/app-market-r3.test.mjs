@@ -13,7 +13,8 @@ import {officialFixtures} from '../helpers/official-tools.mjs';
 const official=await officialFixtures();
 const OFFICIAL_APPS=officialMarketApps(official.catalog);
 
-const tool=(id='reading-toc',version='1.0.2')=>({format:SIDEBAR_TOOL_FORMAT,id,version,title:'Example '+id,
+const MARKET_TEST_ID='market-contract-tool';
+const tool=(id=MARKET_TEST_ID,version='1.0.2')=>({format:SIDEBAR_TOOL_FORMAT,id,version,title:'Example '+id,
   description:'A tool for exercising official market v1 installs',capabilities:[],html:'<main>Ready</main>',
   css:'',js:'globalThis.OpenDeskTool && 1;'});
 function browser(){
@@ -36,7 +37,7 @@ function browser(){
   const locks={request:async (_name,fn)=>fn()};
   return {api:{storage:{local}},locks,values,operations};
 }
-const identity=(id='reading-toc')=>({marketId:'opendesk/'+id,
+const identity=(id=MARKET_TEST_ID)=>({marketId:'opendesk/'+id,
   sha256:createHash('sha256').update(serializeSidebarToolPackage(tool(id))).digest('hex'),
   operationId:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'});
 test('market catalog uses pinned immutable member identity and every registered tool version',async()=>{
@@ -79,14 +80,21 @@ test('every official release is the exact packaged tool ID, version and title',a
     assert.ok(Array.isArray(pkg.capabilities));
   }
 });
-test('manual tool replacement clears stale official publisher identity',async()=>{
+test('reserved Reading TOC cannot be installed from a forged generic market fixture',async()=>{
+  const {api,locks,values,operations}=browser(),candidate=tool('reading-toc');
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate,
+    reviewApproved:true,market:identity('reading-toc')}),{code:'E_OFFICIAL_ID_RESERVED'});
+  assert.deepEqual(values,{});
+  assert.deepEqual(operations,[],'identity denial happens before storage writes');
+});
+test('manual tool replacement clears stale market publisher identity',async()=>{
   const {api,locks,values}=browser(),candidate=tool();
   await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:null,reviewApproved:true,market:identity()});
-  const edited=tool('reading-toc','1.0.3');
+  const edited=tool(MARKET_TEST_ID,'1.0.3');
   const changed=await installReviewedSidebarTool({api,lockManager:locks,candidate:edited,baseline:candidate,reviewApproved:true});
   assert.equal(changed.state,'installed');
-  assert.equal(values[MARKET_PROVENANCE_STORE]['reading-toc'],undefined);
-  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool('reading-toc','1.0.4'),
+  assert.equal(values[MARKET_PROVENANCE_STORE][MARKET_TEST_ID],undefined);
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool(MARKET_TEST_ID,'1.0.4'),
     baseline:edited,reviewApproved:true,
     market:{...identity(),operationId:'dddddddd-bbbb-4ccc-8ddd-eeeeeeeeeeee'}}),
     e=>e.code==='E_PUBLISHER_CONFLICT');
@@ -102,8 +110,8 @@ test('never installs without explicit review or runs tool code',async()=>{
   assert.equal(result.state,'installed');
   assert.equal(values[SIDEBAR_TOOL_STORE].length,1);
   assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'succeeded');
-  assert.equal(values[MARKET_PROVENANCE_STORE]['reading-toc'].marketId,'opendesk/reading-toc');
-  assert.equal(operations.some(op=>op.method==='remove'&&op.keys===sidebarToolStorageKey('reading-toc')),false,
+  assert.equal(values[MARKET_PROVENANCE_STORE][MARKET_TEST_ID].marketId,'opendesk/'+MARKET_TEST_ID);
+  assert.equal(operations.some(op=>op.method==='remove'&&op.keys===sidebarToolStorageKey(MARKET_TEST_ID)),false,
     'fresh install may not delete unowned data before the package registry commit');
 });
 test('same release is idempotent; stale baseline and author conflicts fail closed',async()=>{
@@ -113,10 +121,10 @@ test('same release is idempotent; stale baseline and author conflicts fail close
   assert.equal((await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:copy,reviewApproved:true,
     market:{...identity(),operationId:'bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee'}})).state,'already-installed');
   assert.equal(values[SIDEBAR_TOOL_STORE].length,1);
-  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool('reading-toc','1.0.3'),
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool(MARKET_TEST_ID,'1.0.3'),
     baseline:null,reviewApproved:true}),e=>e.code==='E_TOOL_CHANGED');
   values[MARKET_PROVENANCE_STORE]={};
-  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool('reading-toc','1.0.3'),
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool(MARKET_TEST_ID,'1.0.3'),
     baseline:candidate,reviewApproved:true,market:{...identity(),operationId:'cccccccc-bbbb-4ccc-8ddd-eeeeeeeeeeee'}}),
     e=>e.code==='E_PUBLISHER_CONFLICT');
 });
@@ -210,7 +218,7 @@ test('data-only transfer rejects script, site grants, tokens, duplicates and unk
 });
 
 test('R4.5 legacy source adoption requires explicit confirmation and preserves the original private data',async()=>{
-  const {api,locks,values}=browser(),old=tool('reading-toc','0.0.1'),candidate=tool();
+  const {api,locks,values}=browser(),old=tool(MARKET_TEST_ID,'0.0.1'),candidate=tool();
   const key=sidebarToolStorageKey(old.id),saved={note:'既有用户内容'};
   values[SIDEBAR_TOOL_STORE]=[old];values[key]=structuredClone(saved);
   const args={api,lockManager:locks,candidate,baseline:old,reviewApproved:true,market:identity()};
@@ -220,7 +228,7 @@ test('R4.5 legacy source adoption requires explicit confirmation and preserves t
   assert.equal((await installReviewedSidebarTool({...args,approveSourceChange:()=>true,approveUpdate:()=>false})).state,'cancelled');
   assert.deepEqual(values[SIDEBAR_TOOL_STORE],[old]);assert.deepEqual(values[key],saved);
   assert.equal((await installReviewedSidebarTool({...args,approveSourceChange:()=>true,approveUpdate:()=>true})).state,'installed');
-  assert.deepEqual(values[key],saved);assert.equal(values[MARKET_PROVENANCE_STORE][old.id].marketId,'opendesk/reading-toc');
+  assert.deepEqual(values[key],saved);assert.equal(values[MARKET_PROVENANCE_STORE][old.id].marketId,'opendesk/'+MARKET_TEST_ID);
 });
 
 test('R4.5 capability additions cannot activate orphan site grants and retained capabilities preserve existing sites',async()=>{
@@ -230,7 +238,7 @@ test('R4.5 capability additions cannot activate orphan site grants and retained 
   // from the durable site authorization namespace.
   const {CAPTURE_SITE_STORE}=await import('../../src/knowledge/policy.js');stores[2][0]=CAPTURE_SITE_STORE;
   for(const [store,capability] of stores){
-    const {api,locks,values}=browser(),old=tool('reading-toc','0.0.1');
+    const {api,locks,values}=browser(),old=tool(MARKET_TEST_ID,'0.0.1');
     const candidate={...tool(),capabilities:[capability]};
     values[SIDEBAR_TOOL_STORE]=[old];values[store]={[old.id]:['https://approved.example']};
     await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:old,reviewApproved:true});
@@ -265,7 +273,7 @@ test('fresh or newly capable tools never publish a registry entry while orphan s
   const {CAPTURE_SITE_STORE}=await import('../../src/knowledge/policy.js');
   for(const [store,capability] of [['opendesk.sidebar-tools.toc-sites.v1','page.toc'],
     ['opendesk.sidebar-tools.clip-sites.v1','page.clip'],[CAPTURE_SITE_STORE,'page.capture']]){
-    for(const existing of [null,tool('reading-toc','0.0.1')]){
+    for(const existing of [null,tool(MARKET_TEST_ID,'0.0.1')]){
       const {api,locks,values}=browser(),candidate={...tool(),capabilities:[capability]},published=[];
       if(existing)values[SIDEBAR_TOOL_STORE]=[existing];
       values[store]={[candidate.id]:['https://orphan.example']};
@@ -289,7 +297,7 @@ test('orphan-grant cleanup failure cannot activate a fresh package; registry fai
     assert.equal(values[SIDEBAR_TOOL_STORE],undefined,'failed cleanup must not publish a newly authorized tool');
   }
   {
-    const {api,locks,values}=browser(),old={...tool('reading-toc','0.0.1'),capabilities:['page.toc']},set=api.storage.local.set;
+    const {api,locks,values}=browser(),old={...tool(MARKET_TEST_ID,'0.0.1'),capabilities:['page.toc']},set=api.storage.local.set;
     const originalData={note:'保留原数据'};values[SIDEBAR_TOOL_STORE]=[old];values[store]={[old.id]:[origin]};
     values[sidebarToolStorageKey(old.id)]=originalData;
     api.storage.local.set=rows=>Object.hasOwn(rows,SIDEBAR_TOOL_STORE)?Promise.reject(Error('disk full')):set(rows);
@@ -312,7 +320,7 @@ test('uninstall recovery accepts a real package version and never deletes a newl
 });
 
 test('host quota refusal before registry commit retains the previous package and its private data',async()=>{
-  const {api,locks,values}=browser(),original=tool(),next=tool('reading-toc','1.0.3'),key=sidebarToolStorageKey(original.id);
+  const {api,locks,values}=browser(),original=tool(),next=tool(MARKET_TEST_ID,'1.0.3'),key=sidebarToolStorageKey(original.id);
   values[SIDEBAR_TOOL_STORE]=[original];values[key]={draft:'must survive'};
   const set=api.storage.local.set;
   api.storage.local.set=async rows=>{
@@ -353,9 +361,9 @@ test('partially failed uninstall keeps recovery journal and never deletes reinst
 
 });
 
-test('an acknowledged official baseline can finalize an upgrade with a lost registry acknowledgement without replay',async()=>{
+test('an acknowledged market baseline can finalize an upgrade with a lost registry acknowledgement without replay',async()=>{
   for(const conflict of ['none','changed-source','legacy-journal','malformed-snapshot','changed-snapshot-in-lock']){
-    const {api,locks,values}=browser(),old={...tool('reading-toc','1.0.1'),capabilities:['page.toc']};
+    const {api,locks,values}=browser(),old={...tool(MARKET_TEST_ID,'1.0.1'),capabilities:['page.toc']};
     const candidate={...old,version:'1.0.2',js:'void "official update";'};
     const release=(pkg,operationId)=>({marketId:'opendesk/'+pkg.id,operationId,
       sha256:createHash('sha256').update(serializeSidebarToolPackage(pkg)).digest('hex')});
@@ -421,7 +429,7 @@ test('orphaned notes are retained when new same-ID installation cannot safely co
 });
 
 test('installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows',async()=>{
-  const good=tool('reading-toc'),privateKey=sidebarToolStorageKey(good.id);
+  const good=tool(MARKET_TEST_ID),privateKey=sidebarToolStorageKey(good.id);
   const invalid=[good,{...good,id:'invalid id'}];
   const duplicate=[good,structuredClone(good)];
   const overflow=Array.from({length:MAX_INSTALLED_TOOLS+1},(_,index)=>tool('entry'+index));
