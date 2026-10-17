@@ -6,6 +6,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {mkdtemp,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
+import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {setTimeout as pause} from 'node:timers/promises';
 const binary=[process.env.CHROME_BIN,'google-chrome-stable','google-chrome','chromium']
@@ -69,6 +70,33 @@ async function child(browser,page){
  assert(await evaluate(inFrame,'Boolean(document.querySelector("#tool-root,[data-opendesk-toc-root]"))'));
  return inFrame;
 }
+// A closed Shadow Root cannot be inspected with document.querySelector.
+// Use Chromium's native DOM domain, then dispatch a physical mouse click in
+// the outer page (rather than JS .click() or a synthetic DOM event).
+async function tocClosedShadow(target){
+ await target.send('DOM.enable');
+ const doc=(await target.send('DOM.getDocument',{depth:1,pierce:true})).root;
+ const host=(await target.send('DOM.querySelector',{nodeId:doc.nodeId,selector:'[data-opendesk-toc-root]'})).nodeId;
+ assert(host,'trusted TOC host is absent from the iframe DOM');
+ const node=(await target.send('DOM.describeNode',{nodeId:host,pierce:true})).node;
+ assert.equal(node.shadowRoots?.[0]?.shadowRootType,'closed','must inspect the production closed shadow root');
+ return node.shadowRoots[0].nodeId;
+}
+async function tocNode(target,shadow,selector){
+ const {nodeId}=await target.send('DOM.querySelector',{nodeId:shadow,selector});
+ assert(nodeId,'missing production shadow control: '+selector);
+ return nodeId;
+}
+async function tocMouseClick(page,target,shadow,selector,iframeRect){
+ const id=await tocNode(target,shadow,selector);
+ const box=(await target.send('DOM.getBoxModel',{nodeId:id})).model.content;
+ const x=iframeRect.left+(box[0]+box[4])/2,y=iframeRect.top+(box[1]+box[5])/2;
+ const hit=await evaluate(page,'(()=>{const frame=document.getElementById("opendesk-preview-frame");return document.elementFromPoint('+x+','+y+')===frame})()');
+ assert(hit,'shadow button is obscured in outer screenshot viewport: '+selector);
+ await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});
+ await page.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,x,y});
+ await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x,y});
+}
 test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inner UI',{timeout:120000},async t=>{
  assert(binary,'Chrome for Testing is required: no mock PREVIEW_PASS');
  const profile=await mkdtemp(join(tmpdir(),'toc-r14-chrome-'));
@@ -108,7 +136,9 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  async function screenshot(page,file){
   await mkdir(resolve('artifacts/reading-toc-r41'),{recursive:true});
   const result=await page.send('Page.captureScreenshot',{format:'png'});
-  await writeFile(resolve('artifacts/reading-toc-r41',file),Buffer.from(result.data,'base64'));
+  const bytes=Buffer.from(result.data,'base64');
+  await writeFile(resolve('artifacts/reading-toc-r41',file),bytes);
+  return createHash('sha256').update(bytes).digest('hex');
  }
  const side=await open('reading-toc-r12-interactive-preview.html'),panel=await child(browser,side.page);
  await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length>0'),'Compiled TOC did not start in real sandbox');
@@ -196,8 +226,59 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  },'trusted overlay preview must render all three independent Markdown answer fixtures');
  assert.deepEqual(turns,[4,2,2],
   'two H1 in the first answer never mean two assistant sources');
+ // P0: the *actual* trusted floating card must be visible, unobstructed,
+ // and interactive on the three-answer scenario, not merely mounted/AX-listed.
+ const visible=await until(()=>evaluate(trusted,`(()=>{
+  const host=document.querySelector('[data-opendesk-toc-root]');
+  if(!host)return null;
+  const style=getComputedStyle(host),r=host.getBoundingClientRect();
+  const x=r.left+r.width/2,y=r.top+Math.min(45,r.height/2);
+  return !host.hidden&&style.display!=='none'&&style.visibility==='visible'&&
+   Number(style.opacity)>0&&r.width>=180&&r.height>=60&&r.left>=0&&r.top>=0&&
+   r.right<=innerWidth&&r.bottom<=innerHeight&&document.elementFromPoint(x,y)===host
+   ?{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height,
+     opacity:style.opacity}:null;
+ })()`),'Production overlay is mounted but hidden, offscreen, zero-sized or occluded');
+ const frameRect=await evaluate(overlay.page,`(()=>{
+  const frame=document.getElementById('opendesk-preview-frame'),r=frame.getBoundingClientRect();
+  return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,
+   width:r.width,height:r.height,viewportWidth:innerWidth,viewportHeight:innerHeight};
+ })()`);
+ assert(frameRect.left+visible.left>=0&&frameRect.top+visible.top>=0&&
+  frameRect.left+visible.right<=frameRect.viewportWidth&&
+  frameRect.top+visible.bottom<=frameRect.viewportHeight,
+  'Floating card is clipped out of the outer screenshot viewport: '+JSON.stringify({frameRect,visible}));
+ let shadow=await tocClosedShadow(trusted);
+ await tocMouseClick(overlay.page,trusted,shadow,'button[data-mode="full"]',frameRect);
+ const expanded=await until(async()=>{
+  shadow=await tocClosedShadow(trusted);
+  const full=await tocNode(trusted,shadow,'button[data-mode="full"]');
+  const attrs=(await trusted.send('DOM.getAttributes',{nodeId:full})).attributes;
+  if(attrs[attrs.indexOf('aria-pressed')+1]!=='true')return null;
+  const rows=(await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'.list button.link'})).nodeIds;
+  const starts=(await trusted.send('DOM.querySelectorAll',{nodeId:shadow,selector:'.list li.answer-start'})).nodeIds;
+  return rows.length===8&&starts.length===2?{rows:rows.length,separators:starts.length}:null;
+ },'Full contents did not physically expand to eight titles and two answer separators');
+ const list=await tocNode(trusted,shadow,'.list');
+ const markup=(await trusted.send('DOM.getOuterHTML',{nodeId:list})).outerHTML;
+ for(const label of ['周末城市公园活动计划','行程时间安排','交通与预算','雨天备选'])
+  assert(markup.includes(label),'missing answer title inside closed shadow DOM: '+label);
+ assert.equal((markup.match(/data-id="h-25"/g)||[]).length,1,'second answer duplicate heading lost');
+ const imageHash=await screenshot(overlay.page,'toc-r186-three-answers-visible.png');
+ await tocMouseClick(overlay.page,trusted,shadow,'button[data-id="h-25"]',frameRect);
+ await until(()=>evaluate(overlay.page,
+  'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：出行路线")'),
+  'Physical click of duplicate heading did not reach the second answer');
+ const html=await readFile(resolve('examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html'),'utf8');
+ const sourceHash=html.match(/"trustedOverlaySourceSha256":"([a-f0-9]{64})"/)?.[1]||null;
+ await writeFile(resolve('artifacts/reading-toc-r41/toc-r186-visible-observation.json'),
+  JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,trustedOverlaySourceSha256:sourceHash,
+   browser:version.Browser,installed:false,scenario:'chatgpt-multi',
+   actualClosedShadow:true,visible,expanded,physicalClicks:['full','h-25'],
+   screenshot:'toc-r186-three-answers-visible.png',screenshotSha256:imageHash},null,2)+'\n');
+ console.log('TOC_R186_REAL_VISIBILITY '+JSON.stringify({visible,expanded,sourceHash,imageHash}));
  await screenshot(overlay.page,'toc-r183-multi-preview-overlay.png');
  await screenshot(overlay.page,'toc-r14-preview-overlay.png');
  console.log('TOC_PREVIEW_EVIDENCE '+JSON.stringify({browser:version.Browser,file:true,installed:false,
-  screenshots:['toc-r14-preview-panel.png','toc-r14-preview-overlay.png']}));
+  screenshots:['toc-r14-preview-panel.png','toc-r14-preview-overlay.png','toc-r186-three-answers-visible.png']}));
 });
