@@ -89,8 +89,15 @@ async function tocNode(target,shadow,selector){
 }
 async function tocMouseClick(page,target,shadow,selector,iframeRect){
  const id=await tocNode(target,shadow,selector);
+ // The 8-row full outline can be scrollable: bring the *real* link into
+ // the visible scrollport before dispatching Chromium input.
+ await target.send('DOM.scrollIntoViewIfNeeded',{nodeId:id});
  const box=(await target.send('DOM.getBoxModel',{nodeId:id})).model.content;
- const x=iframeRect.left+(box[0]+box[4])/2,y=iframeRect.top+(box[1]+box[5])/2;
+ const localX=(box[0]+box[4])/2,localY=(box[1]+box[5])/2;
+ const x=iframeRect.left+localX,y=iframeRect.top+localY;
+ const shadowHit=await evaluate(target,
+  'document.elementFromPoint('+localX+','+localY+')?.hasAttribute("data-opendesk-toc-root")');
+ assert(shadowHit,'target shadow control is clipped or covered inside frame: '+selector);
  const hit=await evaluate(page,'(()=>{const frame=document.getElementById("opendesk-preview-frame");return document.elementFromPoint('+x+','+y+')===frame})()');
  assert(hit,'shadow button is obscured in outer screenshot viewport: '+selector);
  await page.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});
@@ -267,7 +274,8 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  assert.equal((markup.match(/data-id="h-25"/g)||[]).length,1,'second answer duplicate heading lost');
  const imageHash=await screenshot(overlay.page,'toc-r186-three-answers-visible.png',
   {x:frameRect.left,y:frameRect.top,width:frameRect.width,height:frameRect.height});
- await tocMouseClick(overlay.page,trusted,shadow,'button[data-id="h-25"]',frameRect);
+ const linkFrame=await evaluate(overlay.page,`(()=>{const r=document.getElementById('opendesk-preview-frame').getBoundingClientRect();return {left:r.left,top:r.top};})()`);
+ await tocMouseClick(overlay.page,trusted,shadow,'button[data-id="h-25"]',linkFrame);
  await until(()=>evaluate(overlay.page,
   'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：出行路线")'),
   'Physical click of duplicate heading did not reach the second answer');
