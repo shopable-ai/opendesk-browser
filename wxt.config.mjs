@@ -158,10 +158,10 @@ export default defineConfig({
       config.build.lib.formats = ['iife'];
       // Only opt-in sandbox UI externalizes the packaged React 19.2.0 runtime.
       const sharedUI=target==='sidebar-shared-ui.js';
-      config.build.rollupOptions.external = sharedUI?['react','react/jsx-runtime']:[];
+      config.build.rollupOptions.external = sharedUI?['react','react-dom','react/jsx-runtime']:[];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife',
         inlineDynamicImports: true,
-        ...(sharedUI?{globals:{react:'OpenDeskPageReact','react/jsx-runtime':'OpenDeskPageReact'}}:{})};
+        ...(sharedUI?{globals:{react:'OpenDeskPageReact','react-dom':'OpenDeskPageReact','react/jsx-runtime':'OpenDeskPageReact'}}:{})};
       // lodash-es@4.18.1 has an unreachable Function('return this')()
       // fallback in its upstream _root module. It is forbidden by the strict
       // MV3 classic-IIFE verifier even when dead after minification. Replace
