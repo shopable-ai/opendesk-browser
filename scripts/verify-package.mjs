@@ -83,6 +83,7 @@ function editionFiles(edition){
   const browserCompilerESM=compilerFiles.map(row=>row.output).filter(path=>path.endsWith('.mjs'));
   const expectedJS=[...generatedJS,...vendorJS,...frameworkJS,...browserCompilerJS].sort();
   const required=['manifest.json',BROWSER_EDITION_RECORD,MARKET_CHANNEL_PATH,SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST,
+    'licenses/shared-ui-third-party-notices.txt',
     ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,...browserCompilerESM,
     ...(edition==='developer'?[PAGE_BROWSER_COMPILER.licensePath]:[]),
     ...Object.keys(HTML_REFERENCES),'stay-focus/blocked.css','ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/time-review.css','ui/cloud-hosting.css','ui/extension-center.css','ui/cloud-control-console.css','native-agent/settings.css','native-agent/workspace.css','ui/marketplace.css',...officialPaths,...expectedJS,...Object.keys(FIXED_ASSETS)].sort();
