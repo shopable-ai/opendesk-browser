@@ -402,15 +402,20 @@ try{
     host.shadowRoot.querySelector('.odmm-canvas'),'::after').content);
   assert.match(panHint,/左右拖动查看分支/);
   await page.keyboard.press('ArrowDown');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1,
+    'The theme toggle is part of the original toolbar More menu on 320px');
+  await page.keyboard.press('ArrowDown');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('Home');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
   await page.keyboard.press('End');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('ArrowUp');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1);
+  await page.keyboard.press('ArrowUp');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
   await page.keyboard.press('ArrowDown');
-  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1);
   await page.keyboard.press('Home');
   await capture('chatgpt-narrow-320-menu.png',{target:viewer(2),answer:'B'});
   await page.keyboard.press('Escape');
