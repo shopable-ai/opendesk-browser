@@ -7,7 +7,8 @@
 | `r2-full-preview.html` | R2 原始完整基线（保留旧的全部显式按钮和功能入口，用于回退与对照） |
 | `r2.1-audited-preview.html` | R2.1 精简审计基线 |
 | `r2.2-spacing-preview.html` | R2.2 间距整改基线 |
-| `index.html` | **R2.3 当前预览**：运行参数去重、间距单源、响应式与键盘处理 |
+| `r2.3-clean-preview.html` | R2.3 参数去重与间距审计基线 |
+| `index.html` | **R2.4 最新原型**：冗余页头移除、默认编辑器高度收敛、预览测试工具移入顶部菜单 |
 | `preview-contract.test.mjs` | Node 静态回归：防止重复标题、覆盖补丁和功能 ID 缺失 |
 
 ## 设计原则与反方审计
@@ -64,3 +65,14 @@ R2.1 已在本次会话的 Chromium 静态页面环境做 **23 项交互断言�
 **证据边界：** 此 HTML 仍是原生 HTML/CSS/JS 离线模拟，不是 React 组件，也不执行真实浏览器 SDK 或系统授权。官方 `scripts/sidebar-preview-kit.mjs check`、正式 React 19 迁移、独立外部专家评审、macOS Chrome 扩展实装均为 `NOT_TESTED`；不得将 176 项模拟断言或专家自评分称作正式产品 95+ 验收。
 
 **下一步：** 使用 `.agents/skills/opendesk-extension-ui/SKILL.md` 和 `opendesk-ui-preview`，以 R2.3 的内容层级和间距合同迁入现有 React 19 单一 Root / `od-*` 宿主组件。先检查重复文案和可见性，再跑源码同源模板测试、Chromium 布局与实际 Mac Chrome；避免再次在 CSS 文件末尾追加覆盖规则。
+
+## R2.4 页头精简（2026-10-17）
+
+- 删除与顶部「开发」Tab 重复的可见 H1「开发」，保留无障碍专用「开发工作区」标题。
+- 目标网页卡片已显示站点、URL、状态；删除重复的「运行目标」区块标题和「自动绑定」可见文字。隐藏的 \`#target-kind\` 保留为原型动态状态锚点；默认运行时仍按当前网页刷新并校验。
+- 「当前草稿」源码 textarea 默认高度由最小 216px 改为 **164px**（最小 140px），保留竖向拖拽调整与已有源码内容；不添加额外编辑器按钮。
+- 移除正文底部的版本及「离线预览」提示；**真实业务功能不受影响**。模拟跨站请求与只读授权状态按钮进入页头右侧 \`···\` 的「预览说明与模拟工具」菜单，默认不显示，点击外部或按 Escape 关闭并同步 \`aria-expanded\`，避免将模拟授权按钮误认成正式开发功能。
+- 旧版 R2.3 原样归档 \`r2.3-clean-preview.html\`；其余 R2、R2.1、R2.2 基线仍保留，不改变 React、RunHost、SDK Authority 或正式工具源码。
+- 本轮离线 Chromium 通过 320／360／420px 三种宽度的主要布局与交互冒烟测试：编辑器 164px、可纵向调整、页面无横向溢出、菜单开启/关闭与焦点返回、模拟运行和 SDK 抽屉；**这些检查仅代表离线 HTML**。本地 Node 静态合同测试 9/9 PASS；仓库 CI / 同版本真实 Mac Chrome 安装 / React 19 正式迁移仍 **NOT_TESTED**。
+
+**预览入口**：\`prototypes/sidebar/develop/index.html\`。静态合同：\`node --test prototypes/sidebar/develop/preview-contract.test.mjs\`。官方源码同源模板、React 正式业务和权限仍是独立验收阶段。
