@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
+      - 'src/libs/page-frameworks/react-19.2.0.js'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/preview/**'
       - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
@@ -49,6 +50,11 @@ jobs:
           node --check scripts/preview/adblock-host-preview.js
           node --check scripts/tests/adblock-preview-chrome.mjs
           node --check tests/environment/adblock-preview-contract.test.mjs
+          node --check examples/sidebar-tools/adblock/preview/app.js
+          node --check examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
+          node --check examples/sidebar-tools/adblock/preview/acceptance.mjs
+          node examples/sidebar-tools/adblock/preview/vendor/rebuild-htm.mjs
+          git diff --exit-code -- examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
           node scripts/preview/check-preview-contract.mjs
       - name: Verify lock is byte-identical to official source regeneration
         run: |
@@ -77,6 +83,14 @@ jobs:
           name: adblock-source-bound-preview
           path: artifacts/previews/adblock/*.html
           if-no-files-found: error
+      - name: Provide CJK fonts for shared Chrome visual evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          fc-match -f '%{family}' ':lang=zh-cn' | grep -Eq 'Noto (Sans|Serif) CJK'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Run generated offline preview in real headless Chrome
@@ -87,6 +101,11 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
+      - name: Run file:// React zero-build preview acceptance in real Chrome
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          ADBLOCK_PREVIEW_EVIDENCE_DIR: artifacts/preview-chrome/adblock-react-file
+        run: node examples/sidebar-tools/adblock/preview/acceptance.mjs
       - name: R2.6 Bookmark Manager interactive source-bound preview in Chrome
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}

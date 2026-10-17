@@ -73,12 +73,22 @@ node examples/sidebar-tools/adblock/preview/acceptance.mjs
 
 脚本先验证固定 React SHA、资源路径、无 CDN/浏览器 Babel；再通过 **真实 Chrome DevTools Protocol** 打开本地 `file://` 文件，并禁止 HTTP(S) 请求，测试 React 挂载、开关同步、例外关闭与恢复、模拟站点、限制页面、设置与返回、深浅色、重置后刷新、**主动模拟 localStorage 禁用时的内存降级**、320/360px 无溢出与桌面下真实 360px 工具画布，以及**临时复制页面的 `app.js` 改动后直接刷新生效**。禁止使用静态截图代替运行结果。真实浏览器未执行时仅能报告「待验收」，不能宣称 PASS。
 
-CI 额外设置 `ADBLOCK_PREVIEW_EVIDENCE_DIR`，通过真正的 Chrome CDP 导出 `320/360/1024` 浅色与 `360` 深色 PNG，并分别上传至 `adblock-r20-ubuntu-latest-chrome-file`、`adblock-r20-macos-15-chrome-file` Actions artifacts（保留 7 天）。图片可用于人工视觉对比，但**截图存在不代表 UI 相似度自动达到 95 分**。Linux Chrome CI、macOS GitHub runner、用户 Mac 本机已安装 Chrome 是三个不同证据等级；不得相互替代。 Ubuntu CI 为避免无中文字形导致的方框截图，**仅在测试 runner 上安装系统 `fonts-noto-cjk`**；该字体不属于预览资源或正式扩展，也不影响用户打开 `file://` 文件的离线工作流。截图须实际查看中文字形、行高与间距，方框截图不能作为视觉保真通过证据。
+统一的 [Sidebar Preview Contract CI](https://github.com/shopable-ai/opendesk-browser/actions/workflows/sidebar-preview-contract.yml) 在 Ubuntu 真实 Chrome 中运行同一 `acceptance.mjs`，不再维护专用于 AdBlock React 文件的独立 Actions YAML。共享作业读取仓库已锁定 React/HTM 资源，校验可复现性，并在 `artifacts/preview-chrome/adblock-react-file/` 输出 320/360/1024px 浅色及 360px 深色的真实 Chrome PNG；截图包含在统一预览浏览器证据工件中。Linux CI runner 安装 `fonts-noto-cjk` 只为中文截图可读，不影响浏览器本地离线使用。**共享 Ubuntu Chrome、用户 Mac 本机 Chrome、macOS 正式扩展安装与 DNR 是不同证据等级，不能相互冒充。**
 
 ### 设计历史与生产快照
 
 - 已批准 R1 HTML 原件：2026-10-15 Git blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`，SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`。R2 CSS 继承此前 `preview/index.html` 的已批准视觉变量。
 - `../adblock-r1-interactive-preview.html` 是 `scripts/preview/build-preview.mjs` 生成的**生产源码同源快照**，不是此已批准 React 交互预览，不能互相覆盖。正式 Chrome DNR / 安装升级仍需独立验收。
+
+## R2.2 · CI 统一入口（2026-10-17）
+
+用户明确要求不得为了验证某个 React 预览文件而长期保留单独的 GitHub Actions 工作流。现有 `.github/workflows/sidebar-preview-contract.yml` 已负责共享 Sidebar 预览、官方生产同源 Mock、多个工具与真实 Chrome；因此将 AdBlock `file://` React 验收和中文截图并入这一现有工作流，并移除 `.github/workflows/adblock-r20-react-zero-build.yml`。**没有新增第二套 CI、运行时、打包器或宿主特权。**
+
+- 日常设计预览：直接 Chrome 打开 `preview/index.html`，编辑 `app.js`/ `style.css` 后刷新，不要求执行 npm。
+- 本机定向回归：`node examples/sidebar-tools/adblock/preview/acceptance.mjs`；是否通过必须记录实际 Node + Chrome 结果。
+- 共享 CI：`Sidebar Preview Contract R1` 的 Ubuntu Chrome 作业，包含固定 HTM 复现、真实 `file://`、离线、键盘与 320/360px 检查、截图。不能把其 `npm ci`（服务于其它共享测试）误写成预览日常依赖。
+- macOS Runner 独立 React 预览矩阵随重复工作流移除；Mac 本机 `file://` 验收仍需独立证据，正式 AdBlock 安装/DNR 继续使用现有正式发布门禁。
+- ChatGPT 当前对话内近似交互 UI 必须标记 `CHAT_ADAPTER_NOT_SOURCE_HTML`；**只有直接打开真实仓库 `preview/index.html` 才证明运行的是 React 源码。**
 
 ## R2.1 · Mac CI、官方来源合同和 360px 收敛（2026-10-17）
 
