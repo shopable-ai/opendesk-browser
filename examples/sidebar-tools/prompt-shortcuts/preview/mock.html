@@ -23,9 +23,7 @@
 .shortcuts button span{display:block}
 .shortcuts button:hover,.shortcuts button:focus-visible{border-color:var(--od-brand);background:color-mix(in srgb,var(--od-brand) 12%,var(--stage-bubble))}
 .shortcuts button.round{border-radius:50%}
-.shortcuts button.foldButton{display:none}
-.shortcuts.folded{max-height:48px;overflow:hidden}
-.shortcuts.folded button:not(.foldButton){display:none}
+/* Buttons remain visible on narrow screens, with a scrollable vertical rail. */
 /* Portal-style tooltip lives beside the rail, NOT inside the scrolling rail. */
 .shortcut-tooltip{position:absolute;left:60px;top:10px;z-index:15;width:360px;max-width:calc(100% - 16px);max-height:min(340px,calc(100% - 16px));overflow:auto;overscroll-behavior:contain;border:1px solid var(--stage-border);border-radius:12px;padding:13px 15px;background:var(--stage-bg);color:var(--stage-ink);box-shadow:0 10px 32px #00000028;scrollbar-width:thin;overflow-wrap:anywhere}
 .tooltip-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
@@ -38,8 +36,6 @@
 .stage.is-narrow .composewrap{width:calc(100% - 28px);margin-bottom:20px}
 .stage.is-narrow .shortcuts{max-height:min(200px,calc(100% - 20px))}
 .stage.is-narrow .shortcuts button{width:36px;height:36px;min-height:36px}
-.stage.is-narrow .shortcuts button.foldButton{display:flex;background:var(--od-brand);color:#fff;border-color:var(--od-brand)}
-.stage.is-narrow .shortcuts:not(.folded) button.foldButton{order:-1}
 .management{background:var(--od-paper);border-radius:12px;padding:22px;border:1px solid var(--od-line);min-height:620px}.mghead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.mghead h2{font-size:17px;margin:0}.mglist{display:grid;gap:8px}.mgrow{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px;border:1px solid var(--od-line);border-radius:12px;padding:12px}.mgicon{width:38px;height:38px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:10px;display:grid;place-items:center;font-weight:700}.mgtext strong{display:block}.mgtext small{display:block;color:var(--od-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}.mgactions{display:flex;align-items:center;gap:4px}.tiny{padding:5px 7px}.form{max-width:620px;display:grid;gap:12px}.form label{display:grid;gap:4px;font-weight:600}.form input,.form textarea,.form select{border:1px solid #91a0b4;background:var(--od-paper);color:var(--od-ink);border-radius:8px;padding:9px 10px}.form textarea{min-height:200px;resize:vertical}
 .form-optional{border:1px solid var(--od-line);border-radius:12px;padding:12px;display:grid;gap:12px;background:var(--od-bg)}
 .form-optional strong{font-size:12px}.form-optional p{margin:0;color:var(--od-sub);font-size:11px}
@@ -89,7 +85,7 @@
 <script>
 (()=>{'use strict';
  let items=[{id:'a',label:'润色',name:'专业文字润色',body:'请在不改变原意的前提下润色以下文字：\n1. 保持语气专业、自然；\n2. 改进逻辑和清晰度；\n3. 输出优化后的完整正文。',enabled:true,shape:'square'}, {id:'b',label:'总结',name:'重点总结',body:'请将上述信息总结为：\n一、核心结论；\n二、重要依据；\n三、建议下一步。',enabled:true,shape:'square'},{id:'c',label:'翻译',name:'中英双向翻译',body:'请根据原文语言进行中英双向翻译，保留段落结构、专有名词和原有语气。',enabled:true,shape:'round'},{id:'d',label:'检查',name:'逻辑检查',body:'请检查内容中的逻辑漏洞、遗漏与相互矛盾处，逐条说明并提供修复建议。',enabled:true,shape:'square'}];
- let mode='chat',edit=null,folded=false,responsive=false,tipOwner=null,hideTimer=0,menuEnabled=true,selectedDraft='',selectionMenuVisible=false;
+ let mode='chat',edit=null,responsive=false,tipOwner=null,hideTimer=0,menuEnabled=true,selectedDraft='',selectionMenuVisible=false;
  const $=s=>document.querySelector(s),status=$('#status'),bar=$('#shortcuts'),draft=$('#draft'),stage=$('#stage');
  const segmenter=typeof Intl.Segmenter==='function'?new Intl.Segmenter('zh',{granularity:'grapheme'}):null;
  const glyphs=s=>segmenter?Array.from(segmenter.segment(s),p=>p.segment):Array.from(s);
@@ -133,11 +129,10 @@
      b.addEventListener('click',()=>insert(item.body));bar.append(b);
    }
    if(!enabled.length){const b=document.createElement('button');b.disabled=true;b.textContent='无';b.setAttribute('aria-label','当前没有已启用的提示词');bar.append(b)}
-   if(responsive){const fold=document.createElement('button');fold.className='foldButton';fold.type='button';fold.textContent=folded?'展':'收';fold.setAttribute('aria-label',folded?'展开左侧快捷按钮栏':'收起左侧快捷按钮栏');fold.setAttribute('aria-expanded',String(!folded));fold.addEventListener('click',()=>{folded=!folded;renderBar()});bar.prepend(fold)}
-   bar.classList.toggle('folded',responsive&&folded);requestAnimationFrame(positionBar);
+   requestAnimationFrame(positionBar);
  }
  function syncLayout(){const next=stage.classList.contains('compact')||stage.getBoundingClientRect().width<680;
-   if(next!==responsive){responsive=next;folded=next;stage.classList.toggle('is-narrow',next);renderBar()}
+   if(next!==responsive){responsive=next;stage.classList.toggle('is-narrow',next);renderBar()}
    requestAnimationFrame(positionBar);
  }
  if(typeof ResizeObserver==='function'){const resize=new ResizeObserver(syncLayout);resize.observe(stage);resize.observe(region);resize.observe(conversation)}
@@ -147,7 +142,7 @@
  function listView(){edit=null;$('#mform').hidden=true;$('#mglist').hidden=false;$('#madd').hidden=false;$('#mtitle').textContent='我的提示词';const list=$('#mglist');list.replaceChildren();items.forEach((it,i)=>{const row=document.createElement('div');row.className='mgrow';const icon=document.createElement('div');icon.className='mgicon';icon.textContent=it.label;icon.style.borderRadius=it.shape==='round'?'50%':'10px';const txt=document.createElement('div');txt.className='mgtext';const strong=document.createElement('strong');strong.textContent=it.name+(it.enabled?'':' · 已停用');const small=document.createElement('small');small.textContent=it.body.replace(/\n/g,' / ');txt.append(strong,small);const acts=document.createElement('div');acts.className='mgactions';const button=(name,fn)=>{const b=document.createElement('button');b.className='btn tiny';b.type='button';b.textContent=name;b.addEventListener('click',fn);acts.append(b)};button('编辑',()=>editView(it.id));button(it.enabled?'停用':'启用',()=>{it.enabled=!it.enabled;listView();renderBar()});button('↑',()=>move(i,-1));button('↓',()=>move(i,1));button('删除',()=>{if(confirm('删除“'+it.name+'”？此操作只作用于模拟数据。')){items=items.filter(x=>x.id!==it.id);listView();renderBar()}});button('复制',()=>navigator.clipboard?.writeText(it.body).then(()=>say('已复制完整提示词')).catch(()=>say('浏览器不允许当前预览复制，请使用编辑视图')));row.append(icon,txt,acts);list.append(row)})}
  function move(i,n){const j=i+n;if(j<0||j>=items.length)return;[items[i],items[j]]=[items[j],items[i]];listView();renderBar()}
  function editView(id,prefill=null){edit=id;const it=items.find(x=>x.id===id);$('#mglist').hidden=true;$('#mform').hidden=false;$('#madd').hidden=true;$('#mtitle').textContent=it?'编辑提示词':'新建提示词';const f=$('#mform');f.elements.body.value=it?.body??prefill?.body??'';f.elements.label.value=it?.labelAuto?'':(it?.label??prefill?.label??'');f.elements.name.value=it?.nameAuto?'':(it?.name??prefill?.name??'');f.elements.shape.value=it?.shape||'square';f.elements.enabled.checked=it?.enabled??true;$('#merror').textContent='';updateNamePreview();f.elements.body.focus()}
- $('#vChat').onclick=()=>view('chat');$('#vManage').onclick=()=>view('manage');$('#nav').onclick=()=>{stage.classList.toggle('nonav');$('#nav').textContent=stage.classList.contains('nonav')?'展开原生导航':'收起原生导航';syncLayout();say('原生导航改变后，工具栏仍紧贴 ChatGPT 主内容区左边缘，纵向居中')};$('#narrow').onclick=()=>{stage.classList.toggle('compact');$('#narrow').textContent=stage.classList.contains('compact')?'恢复宽屏':'模拟窄屏';syncLayout();say('窄屏：工具栏紧贴主内容左边缘并安全折叠；不会移到文本列中间、输入框或右侧')};$('#dark').onclick=()=>{stage.classList.toggle('dark');$('#dark').textContent=stage.classList.contains('dark')?'浅色模式':'深色模式'};$('#madd').onclick=()=>editView(null);$('#mcancel').onclick=listView;
+ $('#vChat').onclick=()=>view('chat');$('#vManage').onclick=()=>view('manage');$('#nav').onclick=()=>{stage.classList.toggle('nonav');$('#nav').textContent=stage.classList.contains('nonav')?'展开原生导航':'收起原生导航';syncLayout();say('原生导航改变后，工具栏仍紧贴 ChatGPT 主内容区左边缘，纵向居中')};$('#narrow').onclick=()=>{stage.classList.toggle('compact');$('#narrow').textContent=stage.classList.contains('compact')?'恢复宽屏':'模拟窄屏';syncLayout();say('窄屏：按钮持续可见，超出高度可滚动；不会移到文本列中间、输入框或右侧')};$('#dark').onclick=()=>{stage.classList.toggle('dark');$('#dark').textContent=stage.classList.contains('dark')?'浅色模式':'深色模式'};$('#madd').onclick=()=>editView(null);$('#mcancel').onclick=listView;
  $('#mform').addEventListener('input',updateNamePreview);
  $('#mform').addEventListener('submit',e=>{
    e.preventDefault();const f=e.currentTarget,body=f.elements.body.value,rawLabel=f.elements.label.value.trim(),rawName=f.elements.name.value.trim();
