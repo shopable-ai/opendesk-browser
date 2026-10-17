@@ -6,6 +6,7 @@ import {toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender} from '../../src/environment.js';
 import {parseHTML} from 'linkedom';
 import {createScheduledTaskWorkbench,mergeScheduleHistoryView,commitScheduledMutation} from '../../src/ui/scheduled-task-workbench.js';
+import {formatScheduleRule,presentSchedulePlan} from '../../src/ui/schedule-plan-presentation.js';
 
 const load=path=>readFile(path,'utf8');
 const extension='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
@@ -138,7 +139,18 @@ test('R1.12 real runner focuses the scheduled page and keeps human-readable plan
   assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] \.workbench-nav\{display:none!important\}/);
   assert.match(css,/:root\[data-opendesk-surface="scheduled-runner"\] #workspace-content\{/);
   assert.match(css,/max-width:760px/);
-  assert.match(ui,/frequencyLabel\(plan\)/,'plan displays translated schedule instead of internal trigger enum');
+  // R33.3.14: display rules have one pure owner, shared by the real card and preview.
+  const plan={triggerKind:'daily',triggerSpec:{hour:9,minute:5},timezone:'Asia/Tokyo',
+    nextDueAt:Date.parse('2026-10-18T00:00:00Z'),paused:false,needsAttention:false};
+  assert.equal(formatScheduleRule({...plan,triggerKind:'once'}),'执行一次');
+  assert.equal(formatScheduleRule(plan),'每天 09:05');
+  assert.equal(formatScheduleRule({...plan,triggerKind:'weekly',
+    triggerSpec:{days:[5,1],hour:18,minute:30}}),'每周一、五 18:30');
+  assert.equal(formatScheduleRule({...plan,triggerKind:'interval',
+    triggerSpec:{everyMinutes:15}}),'每隔 15 分钟');
+  assert.match(presentSchedulePlan(plan,[]).timingText,/每天 09:05/);
+  assert.match(ui,/presentSchedulePlan\(plan,view\.records\)/,
+    'cards/details must share the production presentation rather than a duplicate formatter');
   assert.match(ui,/scheduleStatus\(last.status\)/,'history status is user-readable');
   assert.match(ui,/catalogEntry\?\.manifest\?\.title\|\|plan.taskId/,'installed Task title is preferred');
   assert.match(ui,/再开运行页 ↗/,'runner tab has a distinct second-host action');
