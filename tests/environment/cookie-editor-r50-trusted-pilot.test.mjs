@@ -54,6 +54,9 @@ test('R5 trusted pilot is static, data-free and mounted through the ONE host Rea
   assert.match(shell,/admitsTrustedCookieEditor/);
   assert.match(view,/components\/ui\/button\.tsx/);
   assert.match(view,/import \{Button,IconButton\}/);
+  const preview=await readFile('examples/sidebar-tools/cookie-editor/preview/react/src/App.jsx','utf8');
+  for(const name of ['CookieSiteBar','CookieToolbar','CookieSearch','CookieRows'])
+    assert(preview.includes('<'+name),name+' must be rendered from shared JSX');
   for(const source of [pilot,view]){
     assert.doesNotMatch(source,/\bOpenDeskSDK\b|\bchrome\.cookies\b|document\.cookie|dangerouslySetInnerHTML|<iframe/i);
   }

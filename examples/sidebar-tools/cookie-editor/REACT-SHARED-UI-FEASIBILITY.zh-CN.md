@@ -205,3 +205,10 @@ function RenderTrustedCookieArea({container, snapshot, actions, admitted}) {
 - 尚未完成：已批准完整预览 `preview/react/src/App.jsx` 尚未从新 JSX View 抽取；其 `preview/react/index.html` 保留原编译版，避免不经 Vite 重建造成源码/产物漂移。**目前不可宣称单 JSX 源正式迁移完成**。正式 Cookie Editor 2.0.23、安装 JSON、SDK/Host、原 HTML/CSS/JS 全部未改。
 - 路线结论：Trusted 替代正式工具为 **NO-GO**，直到共享 View 完整覆盖当前获批 R4.11 UI、正式 SDK adapter/敏感值/撤权与用户手势/安装升级、离线 HTML React19 重建及真实构建测试通过。本实施中的源码检查并不自动证明 Browser/CI/Mac Native PASS。
 - 定向检查入口：`node --test tests/environment/cookie-editor-r50-trusted-pilot.test.mjs`。当前远端仅源码写入的证据等级为 SOURCE_WIRED；构建/Chromium/Mac 原生一律未在本轮执行则记 NOT_TESTED。开发人工试点不得冒充正式授权或安装验收。
+
+
+### R5.0 共享 JSX 与 React19 离线预览（增量记录）
+
+- `preview/react/src/App.jsx` 中站点栏、工具栏、搜索/筛选、Cookie 行列表都已替换为 `ui/CookieEditorView.jsx` 的共享纯展示组件；可信宿主亦从该 JSX 组合视图渲染。原 Preview Adapter 的模拟授权/导入导出/编辑状态和正式 SDK 业务均不迁入宿主。
+- 独立 Vite 使用 preview/react 内锁定的 React19；需由现有 `cookie-editor-r49-react-preview.yml` 在本次源码提交后真正编译 Chromium 验证，再由其受控提升生成文件 `preview/react/index.html`。**这条流水线未 PASS 时，旧 HTML 与新 JSX 尚不一致，应标 NOT_TESTED/DRIFT，不能冒称已交付同源 HTML。**
+- 正式业务仍然使用 2.0.23 HTML/JS 及 SDK/Host，独立 JSON 包不变；Cookie Trusted 产品接管仍 NO-GO。

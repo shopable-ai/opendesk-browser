@@ -1,4 +1,5 @@
 import React from 'react';
+import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows} from '../../../ui/CookieEditorView.jsx';
 
 // PREVIEW-ONLY: virtual fixture rows; no Chrome APIs, SDK, persistence, or network.
 const demoSite='shop.example.com';
@@ -230,13 +231,9 @@ export default function App(){
       <button className="lab-button" type="button" onClick={()=>setDark(a=>!a)}>{dark?'浅色':'深色'}</button><button className="lab-button" type="button" onClick={resetAll}>重置</button>
    </div></section>
    <main className="cookie-app" onKeyDown={appKeydown} aria-label="Cookie Editor">
-      <header className="site-bar">
-        <span className="site-symbol"><Icon name="globe"/></span>
-        <div className="site-name"><span>当前网站</span><strong title={demoSite}>{demoSite}</strong></div>
-        {loading&&<span className="site-status muted">读取中</span>}
-        {scene==='readonly'&&<span className="site-status limited">仅查看</span>}
-        <IconButton name="refresh" label="刷新 Cookie" onClick={()=>{if(needsVerify){setNeedsVerify(false);setError('');notify('已核对模拟数据。请确认草稿后再保存。','neutral');return;}if(dirty){setError('有未保存的修改，请先保存或取消。');return;}setFlash(null);setError('');setVersion(v=>v+1);notify('已刷新 Cookie 列表')}} disabled={busy||!granted}/>
-      </header>
+      <CookieSiteBar site={demoSite} loading={loading}
+        readonly={scene==='readonly'} busy={busy} granted={granted}
+        onRefresh={()=>{if(needsVerify){setNeedsVerify(false);setError('');notify('已核对模拟数据。请确认草稿后再保存。','neutral');return;}if(dirty){setError('有未保存的修改，请先保存或取消。');return;}setFlash(null);setError('');setVersion(v=>v+1);notify('已刷新 Cookie 列表')}}/>
       {!granted?<section className="permission-state" aria-label={loading?'正在读取 Cookie':'网站访问授权'}>
         <span className="permission-illustration"><Icon name={loading?'refresh':'shield'}/></span>
         <strong>{loading?'正在读取本站 Cookie…':'允许访问本站 Cookie'}</strong>
@@ -244,9 +241,12 @@ export default function App(){
         {needsSiteGrant&&<button data-testid="request-access" className="text-btn primary permission-primary" type="button" disabled={grantBusy} onClick={requestGrant}>{grantBusy?'正在请求授权…':'允许访问'}</button>}
         {grantError&&needsSiteGrant&&<Message tone="error">{grantError}</Message>}
       </section>:<>
-       <div className="list-toolbar"><strong>Cookie <span>{rows.length}</span></strong><div className="toolbar-actions"><IconButton name="download" label="导入 Cookie" onClick={startImport} disabled={busy||!canWrite}/><IconButton name="upload" label="导出 Cookie" onClick={startExport} disabled={busy}/><span className="action-separator"/><span data-action="new"><IconButton name="plus" label="新建 Cookie" onClick={()=>requestSwitch('new')} disabled={busy||!canWrite}/></span></div></div>
-       <div className="searchbar"><div className="searchbox"><Icon name="search"/><input value={query} type="search" onChange={e=>setQuery(e.target.value)} placeholder="搜索名称、域名或路径" aria-label="搜索 Cookie"/></div><IconButton name="filter" label="筛选与排序" pressed={expandedFilters} onClick={()=>setExpandedFilters(v=>!v)}/></div>
-       {expandedFilters&&<section className="filter-panel" aria-label="筛选与排序"><div className="filter-chips">{[['all','全部'],['secure','Secure'],['httpOnly','HttpOnly'],['session','会话'],['partitioned','分区']].map(([key,label])=><button key={key} type="button" className={'chip '+(filter===key?'selected':'')} onClick={()=>setFilter(key)} aria-pressed={filter===key}>{label}</button>)}</div><label className="sort-field">排序<select value={sort} onChange={e=>setSort(e.target.value)}><option value="name">名称</option><option value="domain">域名</option><option value="path">路径</option><option value="expiration">过期时间</option></select></label></section>}
+       <CookieToolbar count={rows.length} onImport={startImport} onExport={startExport}
+          onNew={()=>requestSwitch('new')} busy={busy} readonly={!canWrite}/>
+       <CookieSearch query={query} onQuery={setQuery}
+          expandedFilters={expandedFilters}
+          onToggleFilters={()=>setExpandedFilters(v=>!v)}
+          filter={filter} onFilter={setFilter} sort={sort} onSort={setSort}/>
        {flash&&<Message tone={flash.tone}>{flash.text}</Message>}
        {error&&selected===null&&!io&&<Message tone="error">{error}</Message>}
        {io==='import'&&<section className="io-panel import-panel" aria-label="导入 Cookie">
@@ -294,16 +294,11 @@ export default function App(){
          <div className="export-actions"><button className="text-btn" disabled={saving} onClick={()=>runExport('copy')}><Icon name="copy"/>复制</button><button className="text-btn primary" disabled={saving} onClick={()=>runExport('download')}><Icon name="download"/>下载</button></div>
        </section>}
        {io&&error&&<Message tone="error">{error}</Message>}
-       <section className="cookie-list" aria-label="Cookie 列表">
-         {selected==='new'&&<div className="new-row" data-testid="new-row"><div className="new-label">新建 Cookie</div>{renderEditor()}</div>}
-         {pinned.length>0&&<p className="pinned-note">当前编辑项不符合筛选条件，暂时保留显示。</p>}
-         {shown.map(c=><article className={'cookie-row '+(selected===c.id?'expanded':'')} key={c.id}>
-           <button className="row-trigger" type="button" data-row={c.id} onClick={()=>requestSwitch(c.id)} aria-expanded={selected===c.id} aria-controls={'editor-'+c.id}>
-             <span className="row-text"><strong>{c.name}</strong><small>{c.domain} <span>·</span> {c.path}</small></span><span className="row-flags">{c.httpOnly&&<abbr title="HttpOnly">H</abbr>}{c.secure&&<abbr title="Secure">S</abbr>}{c.partitionKey&&<abbr title="Partitioned">P</abbr>}</span><Icon name="chevron"/>
-           </button>{selected===c.id&&<div id={'editor-'+c.id}>{renderEditor()}</div>}
-         </article>)}
-         {shown.length===0&&selected!=='new'&&<div className="empty-list"><strong>{rows.length===0?'本站暂无 Cookie':'没有匹配的 Cookie'}</strong><span>{rows.length===0?'可以新建或导入。':'尝试更换关键词或筛选条件。'}</span></div>}
-       </section>
+       <CookieRows rows={shown} totalCount={rows.length}
+          selected={selected} onSelect={requestSwitch} pinnedNote={pinned.length>0}
+          newEditor={selected==='new'?<div className="new-row" data-testid="new-row">
+            <div className="new-label">新建 Cookie</div>{renderEditor()}</div>:null}
+          renderEditor={()=>renderEditor()}/>
        {scene==='readonly'&&<p className="quiet-note">当前仅可查看，编辑与导入需要独立写入授权。</p>}
        <details className="secondary-tools"><summary>更多 · 清理与变化观察</summary><p>正式版本继续使用既有 Browser SDK 和可信宿主确认；本轮原型不模拟危险批量删除。</p></details>
        {confirm?.type==='delete'&&<section className="confirmation" role="alertdialog" aria-modal="true" aria-label="确认操作"><p>{confirm.message}</p><div className="panel-actions"><button className="text-btn" onClick={()=>setConfirm(null)}>取消</button><button className="text-btn primary" id="r491-export-confirm-yes" onClick={handleConfirm} disabled={saving}>{saving?'处理中…':'确认'}</button></div></section>}
