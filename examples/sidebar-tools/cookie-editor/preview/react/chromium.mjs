@@ -90,6 +90,52 @@ try{
    assert.equal(await input.inputValue(),'[{"name":"safe","value":"ok"}]');
    await page.getByRole('button',{name:'取消',exact:true}).click();
  });
+ await test('R4.11.1 copy button compact and search SVG fixed size and unfilled',async()=>{
+   await page.getByRole('button',{name:'导出 Cookie'}).click();
+   for(const width of [320,360,384]){
+     await page.setViewportSize({width,height:880});
+     const copy=await page.getByRole('button',{name:'复制',exact:true}).boundingBox();
+     const download=await page.getByRole('button',{name:'下载',exact:true}).boundingBox();
+     const search=await page.locator('.searchbox>svg').boundingBox();
+     assert.ok(copy&&download&&search,'export controls and search icon visible');
+     assert.ok(copy.width<=100&&download.width>copy.width,'copy must be compact; download primary');
+     assert.ok(search.width<=17&&search.height<=17,'search icon must stay 16px');
+     assert.equal(await page.locator('.searchbox>svg circle').evaluate(e=>getComputedStyle(e).fill),'none','search lens never filled');
+     assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,'no layout overflow');
+   }
+   await page.setViewportSize({width:384,height:880});
+   await page.getByRole('button',{name:'关闭导出'}).click();
+ });
+ await test('R4.11.1 drag-drop file parse, replacement, invalid file safety and picker compatibility',async()=>{
+   await page.getByRole('button',{name:'导入 Cookie'}).click();
+   const zone=page.getByRole('button',{name:'选择或拖入 Cookie 文件'});
+   assert.equal(await zone.count(),1);
+   await zone.focus();
+   const drop=async(name,content,extra=false)=>zone.evaluate((element,{name,content,extra})=>{
+     const dt=new DataTransfer();
+     dt.items.add(new File([content],name,{type:'text/plain'}));
+     if(extra)dt.items.add(new File(['Cookie: other=1'],'second.txt',{type:'text/plain'}));
+     element.dispatchEvent(new DragEvent('dragenter',{bubbles:true,cancelable:true,dataTransfer:dt}));
+     element.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:dt}));
+     element.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));
+   },{name,content,extra});
+   await drop('first.txt','Cookie: drag_cookie=1; second_cookie=2');
+   await page.getByText('Cookie Header · 2 条').waitFor();
+   await page.getByText('first.txt',{exact:true}).waitFor();
+   await drop('second.json','[{"name":"drag_replaced","value":"yes"}]');
+   await page.getByText('JSON · 1 条').waitFor();
+   await page.getByText('second.json',{exact:true}).waitFor();
+   await drop('large.txt','x'.repeat(150001));
+   await page.getByText(/文件超过 150 KB/).waitFor();
+   assert.equal(await page.getByRole('textbox',{name:'Cookie 内容'}).inputValue(),'[{"name":"drag_replaced","value":"yes"}]','too-large replacement preserves valid input');
+   await drop('many.txt','Cookie: a=1',true);
+   await page.getByText(/一次只能导入一个/).waitFor();
+   await page.locator('input[type=file]').setInputFiles({name:'picked.txt',mimeType:'text/plain',buffer:Buffer.from('Cookie: picked=1')});
+   await page.getByText('picked.txt',{exact:true}).waitFor();
+   await page.getByRole('button',{name:'清空'}).click();
+   assert.equal(await page.getByRole('textbox',{name:'Cookie 内容'}).inputValue(),'');
+   await page.getByRole('button',{name:'取消',exact:true}).click();
+ });
  await test('R4.11 Chinese IME Escape preserves the import panel',async()=>{
    await page.getByRole('button',{name:'导入 Cookie'}).click();
    const input=page.getByRole('textbox',{name:'Cookie 内容'});

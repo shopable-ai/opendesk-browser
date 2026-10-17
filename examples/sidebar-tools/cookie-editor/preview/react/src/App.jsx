@@ -93,7 +93,7 @@ export default function App(){
  const [selected,setSelected]=React.useState(null);const [draft,setDraft]=React.useState(null);const [baseline,setBaseline]=React.useState(null);const [pending,setPending]=React.useState(null);const [reveal,setReveal]=React.useState(false);
  const [io,setIo]=React.useState(null);const [importText,setImportText]=React.useState('');const [fileName,setFileName]=React.useState('');const [overwrite,setOverwrite]=React.useState(false);const [format,setFormat]=React.useState('json');const [includeValues,setIncludeValues]=React.useState(true);
  const [confirm,setConfirm]=React.useState(null);const [saving,setSaving]=React.useState(false);const [needsVerify,setNeedsVerify]=React.useState(false);const [skipPartition,setSkipPartition]=React.useState(false);const [flash,setFlash]=React.useState(null);const [error,setError]=React.useState('');const [failNext,setFailNext]=React.useState('');
- const [version,setVersion]=React.useState(0); const fileRef=React.useRef(null);const fileReadRef=React.useRef(0);const epochRef=React.useRef(0); const focusKey=React.useRef(null);
+ const [version,setVersion]=React.useState(0); const fileRef=React.useRef(null);const fileReadRef=React.useRef(0);const dragDepthRef=React.useRef(0);const [fileDragging,setFileDragging]=React.useState(false);const epochRef=React.useRef(0); const focusKey=React.useRef(null);
  const needsSiteGrant=scene==='first';const loading=scene==='loading';
  const granted=!needsSiteGrant&&!loading;
  const canWrite=scene!=='readonly'&&granted; const canValues=granted&&scene!=='valuesDenied'; const busy=loading||saving||grantBusy;
@@ -150,8 +150,32 @@ export default function App(){
  },[importText,rows]);
  const importCount=importPlan&&!importPlan.error?importPlan.added+(overwrite?importPlan.replacing:0):0;
  const importSkipped=importPlan&&!importPlan.error?importPlan.invalid+importPlan.duplicate+(overwrite?0:importPlan.replacing):0;
- const startImport=()=>{setIo(io==='import'?null:'import');setConfirm(null);setError('');setFlash(null);};
- const startExport=()=>{if(io!=='export'){setFormat('json');setIncludeValues(true);setSkipPartition(false);}setIo(io==='export'?null:'export');setConfirm(null);setError('');setFlash(null);};
+ const resetFileDrag=()=>{dragDepthRef.current=0;setFileDragging(false);};
+ const closeImport=()=>{fileReadRef.current++;resetFileDrag();setIo(null);setError('');};
+ const readImportFile=async file=>{
+  if(!file||saving)return;
+  const token=++fileReadRef.current;
+  if(file.size>150000){setError('文件超过 150 KB，当前输入已保留。');return;}
+  try{
+   const value=await file.text();
+   if(token!==fileReadRef.current)return;
+   if(value.includes('\\0')){setError('文件不是有效的 Cookie 文本，当前输入已保留。');return;}
+   setImportText(value);setFileName(file.name||'未命名文件');setOverwrite(false);setError('');
+  }catch{if(token===fileReadRef.current)setError('文件读取失败，当前输入已保留，可重新选择。');}
+ };
+ const isFileDrag=e=>Array.from(e.dataTransfer?.types||[]).includes('Files');
+ const handleImportDragEnter=e=>{if(saving||!isFileDrag(e))return;e.preventDefault();dragDepthRef.current++;setFileDragging(true);};
+ const handleImportDragOver=e=>{if(saving||!isFileDrag(e))return;e.preventDefault();e.dataTransfer.dropEffect='copy';};
+ const handleImportDragLeave=e=>{if(!isFileDrag(e))return;e.preventDefault();dragDepthRef.current=Math.max(0,dragDepthRef.current-1);if(dragDepthRef.current===0)setFileDragging(false);};
+ const handleImportDrop=e=>{
+  e.preventDefault();resetFileDrag();
+  if(saving)return;
+  const files=Array.from(e.dataTransfer?.files||[]);
+  if(files.length>1){setError('一次只能导入一个 Cookie 文件，请重新拖入。');return;}
+  if(files.length===1)void readImportFile(files[0]);
+ };
+ const startImport=()=>{if(io==='import'){closeImport();return;}resetFileDrag();setIo('import');setConfirm(null);setError('');setFlash(null);};
+ const startExport=()=>{resetFileDrag();fileReadRef.current++;if(io!=='export'){setFormat('json');setIncludeValues(true);setSkipPartition(false);}setIo(io==='export'?null:'export');setConfirm(null);setError('');setFlash(null);};
  const runImport=async()=>{
   if(!importPlan||importPlan.error||!importCount||saving||needsVerify)return;
   if(!canWrite){setError('当前仅可查看；写入需要网站授权。');return;}
@@ -196,7 +220,7 @@ export default function App(){
   finally{setSaving(false);}
  };
  const handleConfirm=()=>{if(confirm?.type==='delete')runDelete();};
- const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFileName('');setOverwrite(false);fileReadRef.current++;setFailNext('');};
+ const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFileName('');setOverwrite(false);fileReadRef.current++;resetFileDrag();setFailNext('');};
  // Escape closes panels, except while an IME owns Escape for candidate selection.
  const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
@@ -226,18 +250,30 @@ export default function App(){
        {flash&&<Message tone={flash.tone}>{flash.text}</Message>}
        {error&&selected===null&&!io&&<Message tone="error">{error}</Message>}
        {io==='import'&&<section className="io-panel import-panel" aria-label="导入 Cookie">
-         <div className="panel-heading"><strong>导入 Cookie</strong><IconButton name="close" label="关闭导入" onClick={()=>setIo(null)} disabled={saving}/></div>
-         <input type="file" accept=".json,.txt,text/plain,application/json" hidden ref={fileRef} onChange={async e=>{
-          const f=e.target.files?.[0];if(!f)return;
-          const token=++fileReadRef.current;e.target.value='';
-          if(f.size>150000){setError('文件超过 150 KB；原输入已保留。');return;}
-          try{const value=await f.text();if(token!==fileReadRef.current)return;setImportText(value);setFileName(f.name);setOverwrite(false);setError('');}
-          catch{if(token===fileReadRef.current)setError('文件读取失败，可重新选择或粘贴。');}
+         <div className="panel-heading"><strong>导入 Cookie</strong><IconButton name="close" label="关闭导入" onClick={closeImport} disabled={saving}/></div>
+         <input type="file" accept=".json,.txt,text/plain,application/json" hidden ref={fileRef} onChange={e=>{
+          const f=e.target.files?.[0];e.target.value='';if(f)void readImportFile(f);
          }}/>
          <div className="import-source">
-          <button type="button" className="file-select" disabled={saving} onClick={()=>fileRef.current?.click()}><Icon name="upload"/>{fileName?'更换文件':'选择文件'}</button>
-          {fileName&&<span className="selected-file" title={fileName}>{fileName}</span>}
-          {!!importText&&<button type="button" className="clear-source" disabled={saving} onClick={()=>{fileReadRef.current++;setFileName('');setImportText('');setOverwrite(false);setError('');}}>清空</button>}
+          <button type="button"
+            className={'import-dropzone'+(fileDragging?' is-dragging':'')}
+            aria-label="选择或拖入 Cookie 文件"
+            disabled={saving}
+            onClick={()=>fileRef.current?.click()}
+            onDragEnter={handleImportDragEnter}
+            onDragOver={handleImportDragOver}
+            onDragLeave={handleImportDragLeave}
+            onDrop={handleImportDrop}>
+            <span className="dropzone-symbol"><Icon name="upload"/></span>
+            <span className="dropzone-copy">
+              <strong>{fileDragging?'松开即可读取文件':fileName?'拖入新文件替换，或点击选择':'拖入 Cookie 文件，或点击选择'}</strong>
+              <small>JSON / TXT · 最大 150 KB</small>
+            </span>
+          </button>
+          {!!importText&&<div className="import-source-meta">
+            {fileName?<span className="selected-file" title={fileName}>{fileName}</span>:<span className="selected-file">已输入 Cookie 内容</span>}
+            <button type="button" className="clear-source" disabled={saving} onClick={()=>{fileReadRef.current++;setFileName('');setImportText('');setOverwrite(false);setError('');resetFileDrag();}}>清空</button>
+          </div>}
          </div>
          <Field label="或粘贴 Cookie 内容"><textarea aria-label="Cookie 内容" rows="5" disabled={saving} value={importText} onChange={e=>{fileReadRef.current++;setFileName('');setImportText(e.target.value);setOverwrite(false);setError('');}} placeholder={'[{"name":"theme","value":"dark"}]\n或 Cookie: theme=dark; locale=zh-CN'}/></Field>
          {importPlan?.error&&<Message tone="error">{importPlan.error}</Message>}
@@ -247,7 +283,7 @@ export default function App(){
            {importPlan.replacing>0&&<label className="overwrite-option"><input type="checkbox" checked={overwrite} disabled={saving} onChange={e=>setOverwrite(e.target.checked)}/> 覆盖现有同身份 Cookie（默认跳过）</label>}
            {(importSkipped>0||overwrite)&&<small>将导入 {importCount} 条 · 跳过 {importSkipped} 条；按 Name / Domain / Path / Store / Partition 匹配</small>}
          </div>}
-         <div className="panel-actions"><button className="text-btn" type="button" disabled={saving} onClick={()=>{setIo(null);setError('')}}>取消</button><button className="text-btn primary" type="button" disabled={!importCount||saving||needsVerify||!canWrite} onClick={runImport}>{saving?'导入中…':'导入 '+importCount+' 条'}</button></div>
+         <div className="panel-actions"><button className="text-btn" type="button" disabled={saving} onClick={closeImport}>取消</button><button className="text-btn primary" type="button" disabled={!importCount||saving||needsVerify||!canWrite} onClick={runImport}>{saving?'导入中…':'导入 '+importCount+' 条'}</button></div>
        </section>}
        {io==='export'&&<section className="io-panel" aria-label="导出 Cookie"><div className="panel-heading"><strong>导出 Cookie</strong><IconButton name="close" label="关闭导出" onClick={()=>{setIo(null);setConfirm(null);setError('')}} disabled={saving}/></div>
          <div className="export-format"><Field label="格式"><select aria-label="导出格式" value={format} disabled={saving} onChange={e=>{setFormat(e.target.value);setConfirm(null);setSkipPartition(false);setError('')}}><option value="json">JSON · 推荐</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></Field></div>
