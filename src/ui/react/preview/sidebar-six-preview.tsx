@@ -4,6 +4,7 @@ import {createRoot} from 'react-dom/client';
 import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty} from '../tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperRunStatus} from '../tabs/develop.tsx';
 import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
+import {DebugDiagnosticText} from '../tabs/debug.tsx';
 
 // UI_PREVIEW_ONLY. No browser permissions, storage, Host, Provider, compiler or Task Authority.
 // Every visible product panel and every product React component is imported from
@@ -30,9 +31,16 @@ const workflowHeader=get('workflow-editor').querySelector('.workflow-head-action
 const workflowTranscript=get('workflow-ai-transcript');
 const workflowSheetHost=get('workflow-settings-react-host');
 const workflowSettings=get('workflow-provider-settings');
+const debugIds={
+  summary:'debug-cloud-summary',pairing:'debug-pairing',connection:'debug-connection',
+  reconcile:'debug-reconcile',slot:'debug-slot',taskCount:'debug-task-count',
+  requestCount:'debug-request-count',snapshot:'debug-snapshot',feedback:'debug-feedback'
+};
+const debugNodes=Object.fromEntries(Object.entries(debugIds).map(([key,id])=>[key,get(id)]));
 if(!toolbar||!developerChoices||!developerDock||!workflowHeader)throw Error('E_SIDEBAR_PREVIEW_PORTAL');
 for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,
-  developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript])
+  developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript,
+  ...Object.values(debugNodes)])
   node.replaceChildren();
 const sampleExtensions=Object.freeze([
   {key:'preview-app',kind:'app',type:'应用',title:'示例工具（仅预览）',
@@ -64,7 +72,8 @@ const messages={
 function Preview(){
   const initial=new URLSearchParams(window.location.search).get('tab');
   const [tab,setTab]=React.useState(names.includes(initial)?initial:'tasks');
-  const [width,setWidth]=React.useState(360);
+  const initialWidth=Number(new URLSearchParams(window.location.search).get('width'));
+  const [width,setWidth]=React.useState([360,420,520].includes(initialWidth)?initialWidth:360);
   const [scene,setScene]=React.useState('normal');
   const [search,setSearch]=React.useState('');
   const [kind,setKind]=React.useState('all');
@@ -86,6 +95,12 @@ function Preview(){
       actions:[],busy:false,suspended:scene==='denied',cleanupPending:false}:null;
   })();
   const transcript=messages[scene]||[];
+  const debugPreview={
+    summary:'只读诊断 · '+labels[scene],pairing:'未检测',connection:'未连接',
+    reconcile:'未检测',slot:'未检测',taskCount:'—',requestCount:'—',
+    snapshot:'UI_PREVIEW_ONLY：未读取 Host 诊断，未生成敏感快照。',
+    feedback:'UI_PREVIEW_ONLY：只读文本展示，不执行刷新、配对或领取任务。'
+  };
   const sheetClose=React.useCallback(()=>setSheetOpen(false),[]);
   React.useLayoutEffect(()=>{
     get('od-sidebar-preview-stage').style.width=width+'px';
@@ -119,8 +134,6 @@ function Preview(){
     status.dataset.state=scene;
     const cloud=get('cloud-status');
     cloud.textContent=labels[scene];
-    get('debug-cloud-summary').textContent='只读诊断 · '+labels[scene];
-    get('debug-snapshot').textContent='UI_PREVIEW_ONLY：未读取 Host 诊断，未生成敏感快照。';
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
   },[tab,width,scene,selected,sheetOpen,transcript.length,detail]);
   React.useEffect(()=>{
@@ -215,6 +228,8 @@ function Preview(){
       actions={{onHistory:()=>{setHistory(v=>!v);get('workflow-manage-panel').hidden=history;},
         onNewSession:()=>setScene('empty'),onNewWorkflow:()=>setScene('empty')}}/>,workflowHeader)}
     {createPortal(<WorkflowTranscript rows={transcript}/>,workflowTranscript)}
+    {Object.entries(debugNodes).map(([key,node])=>
+      createPortal(<DebugDiagnosticText value={debugPreview[key]}/>,node,key))}
     {createPortal(<WorkflowSettingsSheet open={sheetOpen} onClose={sheetClose}
       settings={workflowSettings} doc={doc}/>,workflowSheetHost)}
   </>;

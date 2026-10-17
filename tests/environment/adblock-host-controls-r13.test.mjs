@@ -185,11 +185,38 @@ test('a pending mutation cannot revive state in a new tool generation',async()=>
   latest.resolve(status());await tick();switches(panel,true);
 });
 
+test('reuses already-granted DNR authorization with no repeat prompt',async()=>{
+  const f=fixture();let requests=0,current=status(false);const calls=[];
+  f.api.permissions.request=()=>{requests++;throw Error('redundant request');};
+  const panel=f.mount(async op=>{
+    calls.push(op);
+    if(op==='adblock.enable')current=status();
+    return structuredClone(current);
+  });
+  panel.controls.render(tool,false,true);await tick();
+  panel.global.listeners.click({isTrusted:true,currentTarget:panel.global});await tick();
+  assert.equal(requests,0);
+  assert.deepEqual(calls,['adblock.status','adblock.enable']);
+  switches(panel,true);
+});
+test('unknown permission status never requests or claims enabled',async()=>{
+  const f=fixture();let requests=0;const calls=[];
+  f.api.permissions.request=()=>{requests++;return Promise.resolve(true);};
+  const panel=f.mount(async op=>{
+    calls.push(op);return {...status(false),permissions:{dnr:null},rules:{verified:false}};
+  });
+  panel.controls.render(tool,false,true);await tick();
+  assert.equal(panel.global.disabled,true);
+  panel.global.listeners.click({isTrusted:true});await tick();
+  assert.equal(requests,0);
+  assert.deepEqual(calls,['adblock.status']);
+  assert.equal(panel.global.attributes['aria-checked'],'false');
+});
 test('permission requests stay synchronous and stale grants cannot enable another generation',async()=>{
   const f=fixture(),grant=deferred();let requests=0;const operations=[];
   f.api.permissions.request=()=>{requests++;f.added.emit({permissions:[ADBLOCK_PERMISSION]});
     return grant.promise;};
-  const panel=f.mount(async op=>{operations.push(op);return status(false);});
+  const panel=f.mount(async op=>{operations.push(op);return {...status(false),permissions:{dnr:false},rules:{verified:false}};});
   panel.controls.render(tool,false,true);await tick();
   panel.global.listeners.click({isTrusted:false});assert.equal(requests,0);
   panel.global.listeners.click({isTrusted:true});assert.equal(requests,1);
@@ -199,7 +226,7 @@ test('permission requests stay synchronous and stale grants cannot enable anothe
 });
 
 test('a permission event inside request still ends with a fresh read after enable',async()=>{
-  const f=fixture(),grant=deferred();let current=status(false),requests=0,reads=0;
+  const f=fixture(),grant=deferred();let current={...status(false),permissions:{dnr:false},rules:{verified:false}},requests=0,reads=0;
   f.api.permissions.request=()=>{requests++;f.added.emit({permissions:[ADBLOCK_PERMISSION]});
     return grant.promise;};
   const panel=f.mount(async op=>{
@@ -244,7 +271,8 @@ test('first grant restart guidance does not leave a technical error across produ
   const f=fixture();let granted=false;
   const panel=f.mount(async op=>{
     if(op==='adblock.status')return granted?
-      {...status(false),restartRequired:true,rules:{verified:false}}:status(false);
+      {...status(false),restartRequired:true,rules:{verified:false}}:
+      {...status(false),permissions:{dnr:false},rules:{verified:false}};
     granted=true;
     throw Object.assign(Error('Chrome 首次批准 DNR 后需完整退出并重启浏览器，然后手动开启过滤'),
       {code:'E_ADBLOCK_RESTART_REQUIRED'});

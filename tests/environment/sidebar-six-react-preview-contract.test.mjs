@@ -29,13 +29,13 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
   assert.match(builder,/connect-src/);
   for(const path of ['src/ui/tool.html','src/ui/react/main.tsx',
     'src/ui/react/tabs/tools.tsx','src/ui/react/tabs/develop.tsx',
-    'src/ui/react/tabs/workflow.tsx','src/ui/design-tokens.css',
+    'src/ui/react/tabs/debug.tsx','src/ui/react/tabs/workflow.tsx','src/ui/design-tokens.css',
     'src/ui/design-system.css','src/ui/tool-shell.css',
     'src/ui/cloud-hosting.css','src/ui/extension-center.css'])
     assert.ok(builder.includes(path),'missing official input '+path);
   for(const name of ['ExtensionToolbar','ExtensionRows','ExtensionDetail',
     'DeveloperFramework','DeveloperActions','WorkflowHeader','WorkflowTranscript',
-    'WorkflowSettingsSheet'])
+    'WorkflowSettingsSheet','DebugDiagnosticText'])
     assert.match(adapter,new RegExp('createPortal\\(<'+name+'\\b'));
   assert.match(adapter,/const root=createRoot\(/);
   assert.match(adapter,/realHost:false/);

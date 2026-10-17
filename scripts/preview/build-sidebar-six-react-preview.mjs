@@ -27,6 +27,7 @@ const inputs=[
   'src/ui/react/components/ui/button.tsx',
   'src/ui/react/tabs/tools.tsx',
   'src/ui/react/tabs/develop.tsx',
+  'src/ui/react/tabs/debug.tsx',
   'src/ui/react/tabs/workflow.tsx',
   'src/ui/react/preview/sidebar-six-preview.tsx',
   'scripts/preview/build-sidebar-six-react-preview.mjs',
