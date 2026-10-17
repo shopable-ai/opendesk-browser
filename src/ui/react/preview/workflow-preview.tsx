@@ -17,6 +17,7 @@ const transcript=get('workflow-ai-transcript');
 const settings=get('workflow-provider-settings');
 const sheetHost=get('workflow-settings-react-host');
 header.replaceChildren();transcript.replaceChildren();
+get('workflow-output').replaceChildren();
 const samples=Object.freeze({
   empty:[],
   conversation:[
