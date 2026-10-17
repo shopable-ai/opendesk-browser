@@ -78,6 +78,7 @@
         <div class="od-page-actions">
           <button id="schedule-open-runner" type="button" class="od-icon-button" title="在独立标签页打开运行概览" aria-label="打开独立运行页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
           <button id="schedule-create" type="button" class="od-icon-button" title="新建定时计划" aria-label="新建定时计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button id="schedule-manager-create" type="button" class="od-icon-button" aria-label="新建任务（前往开发）" title="新建任务 · 前往开发" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
           <button id="schedule-detail-edit" type="button" class="od-icon-button" title="编辑当前计划" aria-label="编辑当前计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4z"></path></svg></button>
           <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
         </div>
@@ -236,10 +237,7 @@
         </div>
       </form>
       <div id="schedule-task-manager" class="od-stack" hidden>
-        <div class="schedule-actions od-toolbar">
-          <button id="schedule-manager-back" type="button" class="od-button od-button--secondary" hidden>← 返回计划</button>
-          <button id="schedule-manager-create" type="button" class="od-icon-button" aria-label="新建脚本" title="新建脚本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8"></path></svg></button>
-        </div>
+        <button id="schedule-manager-back" type="button" class="od-button od-button--secondary" hidden>← 返回计划</button>
         <div class="schedule-manager-controls">
           <label class="od-field" for="schedule-manager-search">搜索已安装任务
             <input id="schedule-manager-search" type="search" placeholder="任务名称 / ID" class="od-field">
