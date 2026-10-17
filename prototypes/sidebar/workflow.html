@@ -451,10 +451,11 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
 .device .composer .compose-bottom button#settings:hover,
 .device .composer .compose-bottom button#settings:focus-visible{background:var(--canvas)}
 .device .composer .compose-bottom #r23-source-label{
-  flex:0 1 auto;min-width:0;max-width:160px;
-  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  flex:0 1 auto;min-width:0;max-width:144px;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;unicode-bidi:isolate;
   color:var(--secondary);font-size:11.5px;line-height:1.5;font-weight:600
 }
+.device .composer .compose-bottom #r23-source-label[hidden]{display:none!important}
 .device .composer .compose-bottom .compose-actions{margin-left:auto;flex:0 0 auto}
 .device .composer .compose-bottom button.send-btn{
   display:grid;place-items:center;flex:none;width:36px;height:36px;min-width:36px;min-height:36px;
@@ -551,9 +552,10 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
   $('settings').setAttribute('aria-expanded','false');$('settings').setAttribute('aria-controls','r23-settings-panel');
   const composeActions=$('form').querySelector('.compose-bottom');
   const left=document.createElement('div');left.className='r233-left';
-  const sourceLabel=document.createElement('span');sourceLabel.id='r23-source-label';sourceLabel.textContent='本机 Codex';
+  const sourceLabel=document.createElement('span');sourceLabel.id='r23-source-label';sourceLabel.textContent='Codex';
   sourceLabel.setAttribute('aria-live','polite');
-  sourceLabel.setAttribute('aria-label','当前 AI 来源');
+  sourceLabel.setAttribute('aria-label','当前模型：Codex');
+  sourceLabel.dir='auto';
   $('settings').classList.add('r233-settings-trigger');
   $('settings').setAttribute('aria-label','AI 设置');$('settings').title='AI 设置';
   left.append($('settings'),sourceLabel);
@@ -578,7 +580,7 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
     }
     for(const layer of sheetBackground)if(layer)layer.inert=data.settingsOpen;
     $('settings').setAttribute('aria-expanded',String(data.settingsOpen));
-    sourceLabel.textContent=isNative()?'本机 Codex':'HTTPS 模型';
+    syncComposerModelLabel();
   }
   function openSheet(){
     if(data.dialog)return;
@@ -612,6 +614,16 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
   // No network request, secret persistence or Provider/Host/Chrome permission changes.
   const defaultHttpsEndpoint='https://api.openai.com/v1/responses';
   const httpsConfig={endpoint:defaultHttpsEndpoint,model:'',key:''};
+  function syncComposerModelLabel(){
+    // The composer shows only a short model identity. The settings sheet retains
+    // full provider, connection, and permission information.
+    const name=isNative()?'Codex':httpsConfig.model.trim();
+    sourceLabel.textContent=name;
+    sourceLabel.hidden=!name;
+    sourceLabel.title=name;
+    if(name)sourceLabel.setAttribute('aria-label','当前模型：'+name);
+    else sourceLabel.removeAttribute('aria-label');
+  }
   let httpsFeedback={kind:'idle',text:'未检查'};
   function inferredHttpsSource(endpoint){
     try{return new URL(endpoint.trim()).pathname==='/v1/responses'?'cloud_responses':'custom_https';}
@@ -665,6 +677,7 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
     $('r23-api-key').setAttribute('aria-describedby','r234-key-help');
     const previousEndpoint=httpsConfig.endpoint;
     captureConfig();
+    syncComposerModelLabel();
     if(previousEndpoint!==httpsConfig.endpoint){
       // Never reuse the previous recipient's credential at another endpoint.
       httpsConfig.key='';
