@@ -1,4 +1,4 @@
-// OpenDesk Browser Developer Preview R2.4: source-only regression gates.
+// OpenDesk Browser Developer Preview R2.5: source-only regression gates.
 // Run: node --test prototypes/sidebar/develop/preview-contract.test.mjs
 // Layout geometry and native Chrome require separate browser evidence.
 import test from 'node:test';
@@ -73,4 +73,32 @@ test('页头去重、编辑器尺寸和预览辅助菜单',()=>{
  assert.match(html,/id="preview-more"[^>]*aria-expanded="false"/);
  assert.match(html,/id="try-cross"/);
  assert.match(html,/id="sdk-inspect-inline"/);
+});
+
+test('本地项目：运行成功才出现正确安装动作',()=>{
+ assert.match(html, /id="local-toggle"/);
+ assert.match(html, /id="local-install-review"[^>]*hidden/);
+ assert.match(html, /id="local-install-confirm"/);
+ assert.match(html, /id="local-installed-open"[^>]*hidden/);
+ assert.match(html, /const localProofCurrent=\(\)=>/);
+ assert.match(html, /state\.localVerified=\{project:key,runId:run\.runId,documentId:docId\(\)/);
+ assert.match(html, /resetLocalProof\(\)/);
+ assert.match(html, /\$\('save-btn'\)\.hidden=state\.local&&!ready/);
+ assert.match(html, /\$\('save-btn'\)\.addEventListener\('click',\(\)=>state\.local\?openLocalReview\(false\):saveVersion\(\)\)/);
+ assert.doesNotMatch(html, /id="local-install-review" hidden><svg/);
+});
+test('不同安装目标复用原 Task / Page 分类，不可视为通用 Sidebar Tool 转换',()=>{
+ assert.match(html, /localKind\(\)==='page-userscript'\?'扩展 → 网页增强':'我的 → 自动化任务'/);
+ assert.match(html, /'安装网页增强':'保存为任务'/);
+});
+test('安装审阅：名称、版本、站点、重复执行风险、取消与更新状态',()=>{
+ for(const id of ['local-install-name','local-install-version','local-review-origin','local-review-warning','local-review-error','local-install-confirm','local-install-cancel','local-review-close','local-installed-open'])
+  assert.ok(html.includes('id="'+id+'"'),'本地安装审阅缺失 '+id);
+ assert.match(html, /正式安装会再次执行冻结的网页程序/);
+ assert.match(html, /还须具备真实页面操作的原生回执/);
+ assert.match(html, /请先运行最新版本/);
+ assert.match(html, /当前原型会话的安装记录/);
+ assert.match(html, /localInstalled:Object\.create\(null\)/);
+ assert.match(html, /view\.scrollTop\+=rect\.top-bounds\.top-12/);
+ assert.match(html, /id="simulate-local-edit"/);
 });
