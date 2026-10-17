@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/reading-toc-r181-candidate.yml'
       - 'examples/sidebar-tools/reading-toc/src/style.css'
+      - 'src/reading-toc/view.js'
+      - 'tests/environment/reading-toc-placement-r42.test.mjs'
       - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
       - 'tests/environment/reading-toc-localization-preview-r12.test.mjs'
   workflow_dispatch:
@@ -29,35 +31,38 @@ jobs:
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out artifacts/reading-toc-r181/reading-toc-r12-overlay-preview.html
           sha256sum artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json artifacts/reading-toc-r181/*.html
           wc -c artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json artifacts/reading-toc-r181/*.html
-      - name: Export canonical R1.8.2 HTML bytes for one-time source sync
+      - name: Export exact R1.8.4 source-derived HTML bytes for preview synchronization
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import base64,hashlib
-          for name in ['reading-toc-r12-interactive-preview.html','reading-toc-r12-overlay-preview.html']:
+          for name in ('reading-toc-r12-interactive-preview.html','reading-toc-r12-overlay-preview.html'):
               path=Path('artifacts/reading-toc-r181')/name
               raw=path.read_bytes()
-              data=base64.b64encode(raw).decode('ascii')
-              print('R182_BEGIN '+name+' '+str(len(raw))+' '+hashlib.sha256(raw).hexdigest())
-              for pos in range(0,len(data),4096):
-                  print('R182_DATA '+data[pos:pos+4096])
-              print('R182_END '+name)
+              encoded=base64.b64encode(raw).decode('ascii')
+              print('R184_BEGIN '+name+' '+str(len(raw))+' '+hashlib.sha256(raw).hexdigest())
+              for i in range(0,len(encoded),4096):
+                  print('R184_DATA '+encoded[i:i+4096])
+              print('R184_END '+name)
           PY
       - name: Candidate focused sources, strict check and production builds
         run: |
-          node --test tests/environment/reading-toc-ai-r18.test.mjs tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs
+          node --test tests/environment/reading-toc-ai-r18.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs
           npm run check
           npm run build
           npm run build:dev
           npm run verify
       - name: Assert both committed source-derived previews are byte-reproducible
+        if: ${{ !cancelled() }}
         run: node --test tests/environment/reading-toc-localization-preview-r12.test.mjs
       - name: Install Chrome for Testing (offline preview only)
+        if: ${{ !cancelled() }}
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
       - name: Real Chromium offline preview rendering and screenshot evidence
+        if: ${{ !cancelled() }}
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
@@ -87,17 +92,19 @@ jobs:
       - name: macOS 1.0.8 package, exact preview and source contract
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc
-          node --test tests/environment/reading-toc-ai-r18.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
+          node --test tests/environment/reading-toc-ai-r18.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
           npm run check
           npm run build
           npm run build:dev
           npm run verify
       - name: Install Chrome for Testing on GitHub hosted macOS
+        if: ${{ !cancelled() }}
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
       - name: Native macOS Chrome offline file previews
+        if: ${{ !cancelled() }}
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: node --test tests/framework/reading-toc-preview-r14-native.test.mjs

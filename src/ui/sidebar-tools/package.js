@@ -5,6 +5,7 @@ export const SIDEBAR_TOOL_FORMAT_V2 = 'opendesk.sidebar-tool.v2';
 export const SIDEBAR_TOOL_STORE = 'opendesk.sidebar-tools.installed.v1';
 export const SIDEBAR_TOOL_DATA_PREFIX = 'opendesk.sidebar-tools.data.v1:';
 export const SIDEBAR_TOOL_PROTOCOL = 'opendesk.sidebar-tool.bridge.v1';
+export const SIDEBAR_TOOL_SHARED_UI_RUNTIME='opendesk.react-ui.v1';
 export const MAX_INSTALLED_TOOLS = 12;
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
 const MAX_PACKAGE_BYTES = 320000;
@@ -14,7 +15,7 @@ const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
-const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js']);
+const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
@@ -31,6 +32,8 @@ export function validateSidebarToolPackage(value) {
       !/^[a-z][a-z0-9-]{1,39}$/.test(value.id) ||
       typeof value.version!=='string' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value.version))
     fail('工具格式、ID 或版本无效');
+  if(value.uiRuntime!==undefined&&value.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)
+    fail('不支持的共享 UI Runtime','E_TOOL_RUNTIME');
   for (const name of ['title','description','html','css','js'])
     if (!validText(value[name],LIMITS[name],name==='css')) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
   const supportedCapabilities=v2?V2_CAPABILITIES:CAPABILITIES;

@@ -30,6 +30,10 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **不采用“一切 `src/` 变更都违规”的路径禁令**：用户本来要求修通用 SDK、安装撤权或第一方可信模块时，允许其 owner 正常修改 `src/` 并定向回归。CI 静态门禁不因并行提交包含 `src/` 就一票否决；它也不能证明未来所有 AI 不漂移。真实模型路由、Chrome 安装及撤权未执行时标 `NOT_TESTED`。具体门禁以 [唯一 Extension Creation Workflow](.agents/workflows/extension-creation.md) 与 [现行八个 Skill 路由](.agents/skills/README.md) 为准。
 
+## 安装即用与权限一次审阅（2026-10-17）
+
+**统一产品规则：用户完成安装审阅后，正常功能直接可用，不再要求通用“启用”或每次到站重复授权。** 第一方经审计网页增强（例如官方阅读目录）在 Chrome 已允许访问、原安装有效、未被用户主动停用时自动显示页面 UI；普通 Sidebar 应用安装后可按需打开界面，但不自动运行沙箱；Installed Page Program 仅按已批准固定匹配范围自动运行，Controller/Task 仍需用户 Run 或独立批准的计划触发。设置中的“停用 / 恢复”保留供主动管理，绝不是安装后的第二步。**复用合法授权不等于扩权**：Cookie、正文采集、持续统计、网络、Native、跨站动作以及缺失的 Chrome optional 权限仍走原可信用户手势与 Authority，撤销和新能力拒绝时必须停止，未知效果不得自动重放。不得把官方 `reading-toc` 默认页面规则扩给第三方自报能力或同名脚本。实施与测试以[唯一安装即用及权限合同](docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md)为准，不新建第二套 Host、Registry 或授权层。
+
 ## React UI 共享组件与自定义 UI 零退化（2026-10-16，R33.3）
 
 **本轮产品 P0 是五个可信 Side Panel Tab 最终统一 React 工作台**，优先「开发」「扩展」，再「工作流」「我的」「云控」；阶段性分模块迁移不等于最终长期保留两套 UI。UI 组件首选评估 shadcn/ui（React Aria base）+ Tailwind v4 + 既有 OpenDesk Tokens，须先以真实依赖、CSS scope、交互/焦点和构建体积确认，再实施正式可信 UI；不是仅创建 Starter/组件包或重写 Browser SDK/Host。

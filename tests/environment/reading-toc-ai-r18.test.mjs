@@ -70,6 +70,8 @@ test('R1.8 source package keeps stable v1 ID, permissions and four trusted tab b
  assert.equal(pkg.id,'reading-toc');
  assert.equal(pkg.version,'1.0.8');
  assert.deepEqual(pkg.capabilities,['page.toc']);
+ assert.match(pkg.css,/\.toc-panel\{margin-inline:8px;/,
+  'the CONTENTS card must retain symmetric outer side gutters');
  assert.deepEqual([...pkg.html.matchAll(/data-toc-mode="([^"]+)"/g)].map(match=>match[1]),
   ['top','focus','full','ai']);
  assert.match(pkg.html,/id="toc-ai-view"/);

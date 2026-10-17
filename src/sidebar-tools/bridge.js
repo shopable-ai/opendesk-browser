@@ -1,5 +1,5 @@
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
-import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation} from '../framework/sdk/browser-contract.js';
 // The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
@@ -190,7 +190,29 @@ export function initSidebarToolSandbox() {
         document.body.append(script);
       });
     }
+    // Fixed browser-owned resources, only for explicitly opted-in tools.
+    async function loadSharedUI(){
+      if(tool.uiRuntime===undefined)return;
+      if(tool.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)throw Error('E_TOOL_UI_RUNTIME');
+      for(const path of ['../libs/page-frameworks/react-19.2.0.js','../sidebar-shared-ui.js']){
+        if(disposed)throw Error('E_TOOL_DISPOSED');
+        await new Promise((resolve,reject)=>{
+          const script=document.createElement('script');
+          script.src=new URL(path,document.baseURI).href;
+          script.addEventListener('load',()=>disposed?reject(Error('E_TOOL_DISPOSED')):resolve(),{once:true});
+          script.addEventListener('error',()=>reject(Error('E_TOOL_SHARED_UI_LOAD: '+path)),{once:true});
+          document.body.append(script);
+        });
+      }
+      if(globalThis.OpenDeskPageReact?.version!=='19.2.0'||
+        typeof globalThis.OpenDeskPageReact.createRoot!=='function'||
+        typeof globalThis.OpenDeskPageReact.jsx!=='function'||
+        typeof globalThis.OpenDeskSidebarUI?.Card!=='function'||
+        typeof globalThis.OpenDeskSidebarUI?.Switch!=='function')
+        throw Error('E_TOOL_SHARED_UI_INCOMPATIBLE');
+    }
     void (async()=>{
+      await loadSharedUI();
       for(const row of fixed){
         if(disposed)throw Error('E_TOOL_DISPOSED');
         await verifySource(row);

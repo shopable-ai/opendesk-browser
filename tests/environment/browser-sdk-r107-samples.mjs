@@ -62,7 +62,9 @@ export const SAMPLE_ARGS = Object.freeze({
   'browser.operations.cancel': {operationId: REF},
   'browser.cookies.get': {url: TARGET_URL, name: 'sid'},
   'browser.cookies.getAll': {url: TARGET_URL},
+  'browser.cookies.getAllPage': {url: TARGET_URL, limit: 20},
   'browser.cookies.set': {url: TARGET_URL, name: 'sid', value: 'fixture'},
+  'browser.cookies.setMany': {url: TARGET_URL, cookies: [{name: 'fixture', value: 'synthetic'}]},
   'browser.cookies.remove': {
     url: TARGET_URL, name: 'sid', domain: 'example.org', path: '/'
   },

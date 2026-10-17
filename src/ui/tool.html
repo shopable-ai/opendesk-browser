@@ -18,10 +18,18 @@
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">
       <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head od-toolbar">
-        <div class="task-section-copy"><strong>自动化任务</strong><span id="task-installed-count" aria-live="polite"></span></div>
-        <div class="task-section-actions"><button id="task-search-toggle" type="button" class="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
+        <div class="task-section-copy"><strong>自动化任务</strong><span id="task-installed-count" class="visually-hidden" aria-live="polite"></span></div>
+        <div class="task-section-actions"><button id="task-search-toggle" type="button" hidden tabindex="-1" class="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-button" aria-label="添加任务" title="添加任务" aria-expanded="false" aria-controls="task-add-menu">＋ 添加</button></div>
       </div>
-      <div id="task-search-panel" class="task-search-panel" hidden>
+      <div id="task-add-menu" class="task-add-menu od-surface" role="group" aria-label="添加任务" hidden>
+         <div class="task-add-heading od-toolbar"><strong>添加任务</strong><button id="task-add-close" type="button" class="od-icon-button" title="关闭添加任务" aria-label="关闭添加任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button></div>
+         <p class="hint">支持任务包 JSON、程序草稿 JSON 和 .js；扩展工具包应在「扩展」导入。</p>
+         <button type="button" id="task-add-import" class="od-button">导入任务文件</button>
+         <input id="task-add-file" type="file" accept=".json,.js,application/json,text/javascript" aria-label="选择本地任务包" hidden>
+         <div class="task-add-options od-toolbar"><button type="button" id="task-add-catalog" class="od-button od-button--secondary">浏览任务目录 ↗</button><button type="button" id="task-add-develop" class="od-button od-button--quiet">新建脚本</button></div>
+         <p id="task-add-status" class="hint" role="status" aria-live="polite"></p>
+       </div>
+       <div id="task-search-panel" class="task-search-panel" hidden>
         <div class="local-discovery-search-row od-toolbar">
           <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
           <input type="search" id="local-discover-search" class="od-field" placeholder="搜索已安装任务…" autocomplete="off" aria-controls="task-installed-cards">
@@ -50,9 +58,11 @@
       <details class="task-scope-panel od-disclosure"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>
       <details class="task-tools od-disclosure"><summary>更多操作</summary>
         <div class="row"><button type="button" id="task-refresh" class="od-button od-button--secondary">刷新任务</button><button type="button" id="task-fork-draft" disabled class="od-button od-button--secondary">复制草稿</button></div>
-        <details class="od-disclosure od-disclosure--flat"><summary>任务管理</summary>
-          <div class="row"><button type="button" id="task-toggle" disabled class="od-button od-button--secondary">停用 / 启用</button><button type="button" id="task-uninstall" disabled class="od-button od-button--danger">卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
-          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
+        <details class="od-disclosure od-disclosure--flat"><summary><span class="task-management-heading">任务管理</span></summary>
+          <div class="task-management-actions">
+            <div class="row"><button type="button" id="task-toggle" disabled class="od-button od-button--secondary">停用 / 启用</button><button type="button" id="task-uninstall" disabled class="od-button od-button--danger">卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
+            <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
+          </div>
         </details>
       </details>
       </div>
@@ -62,7 +72,8 @@
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
         <div class="schedule-header-heading"><strong id="schedule-panel-title" class="od-page-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint" hidden></p></div>
         <div class="od-page-actions">
-          <button id="schedule-create" type="button" class="od-button" hidden>＋ 新建</button>
+          <button id="schedule-open-runner" type="button" class="od-icon-button" title="在独立标签页打开运行概览" aria-label="打开独立运行页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+          <button id="schedule-create" type="button" class="od-icon-button" title="新建定时计划" aria-label="新建定时计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
           <button id="schedule-detail-edit" type="button" class="od-icon-button" title="编辑当前计划" aria-label="编辑当前计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4z"></path></svg></button>
           <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
         </div>
@@ -104,9 +115,6 @@
         </details>
       </section>
       <div id="schedule-list-view" class="od-stack">
-        <div class="schedule-actions od-toolbar schedule-list-utilities">
-          <button id="schedule-open-runner" type="button" class="od-button od-button--quiet" title="打开可以在 Side Panel 关闭时运行的可见扩展页面">运行页 ↗</button>
-        </div>
         <p id="schedule-host-status" class="hint" role="status">正在检查可用运行宿主…</p>
         <p id="schedule-list-summary" class="schedule-list-summary" role="status" aria-live="polite">正在读取定时计划…</p>
         <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
@@ -161,21 +169,12 @@
             <div class="schedule-rule-field">
               <label id="schedule-timezone-label" for="schedule-timezone">执行时区</label>
                <div class="schedule-timezone-picker">
-                 <div class="schedule-timezone-selected">
-                   <strong id="schedule-timezone-summary" aria-live="polite">正在识别设备时区…</strong>
-                   <button id="schedule-timezone-edit" type="button" class="od-button od-button--secondary" aria-expanded="false" aria-controls="schedule-timezone-controls">更改</button>
-                 </div>
-                 <div id="schedule-timezone-controls" class="schedule-timezone-controls" hidden>
-                   <input id="schedule-timezone-search" type="search" autocomplete="off" spellcheck="false" aria-label="搜索城市、地区或 IANA 时区（只筛选，不更改时区）" aria-controls="schedule-timezone" placeholder="搜索城市或 IANA 时区" class="od-field">
-                   <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error" class="od-field"><option value="">正在识别当前时区…</option></select>
-                   <p class="hint schedule-timezone-help" id="schedule-timezone-help">搜索只会筛选地区；选择下拉项才会更改。编辑现有计划时保留原时区。</p>
-                   <p class="hint schedule-timezone-match" id="schedule-timezone-match" role="status" aria-live="polite"></p>
-                   <button id="schedule-timezone-done" type="button" class="od-button od-button--quiet">完成时区选择</button>
-                 </div>
+                 <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error" class="od-field" title="执行时区（保存后固定）"><option value="">正在识别设备时区…</option></select>
+                 <p class="hint schedule-timezone-help" id="schedule-timezone-help">默认使用设备时区；计划按所选城市的当地时间执行。</p>
                </div>
             </div>
           </div>
-          <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
+                    <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
             <input id="schedule-once" type="datetime-local" aria-describedby="schedule-time-error" class="od-field">
           </label>
           <label id="schedule-clock-field" class="od-field" for="schedule-clock" hidden>当地时间
@@ -479,10 +478,11 @@
   <div id="workbench-cloud" role="tabpanel" aria-labelledby="tab-cloud" class="od-page" data-workbench-page="cloud" hidden>
     <section class="cloud-panel od-stack" aria-label="云控管理">
       <header class="cloud-panel-head od-toolbar">
-        <div class="cloud-panel-heading"><strong class="od-page-title">云控</strong><p class="hint">授权一次，可信外部服务即可重复调用已安装任务</p></div>
-        <span id="cloud-my-state" role="status" aria-live="polite" class="cloud-status-brief">托管未启用</span>
+        <strong class="od-page-title">云控</strong>
+        <div class="cloud-panel-actions od-action-group">
         <button type="button" id="cloud-open-console" class="od-icon-button" title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"></path></svg></button>
         <button type="button" id="cloud-overview-refresh" class="od-icon-button" title="刷新云控状态" aria-label="刷新云控状态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"></path></svg></button>
+        </div>
       </header>
       <section class="cloud-overview od-surface" aria-label="云控连接状态">
         <p id="cloud-overview-state" role="status" aria-live="polite">正在检查连接与授权…</p>
@@ -497,6 +497,7 @@
             <div>执行槽 <strong id="cloud-overview-slot">检测中</strong></div>
             <div>云请求 <strong id="cloud-overview-requests">—</strong></div>
           </div>
+          <p id="cloud-my-state" class="cloud-overview-detail">托管未启用</p>
         </details>
       </section>
       <div id="cloud-first-run" class="cloud-first-run od-surface" hidden>
@@ -504,7 +505,7 @@
         <button type="button" id="cloud-configure" class="od-button">连接提供者</button>
       </div>
       <section id="cloud-approval-section" class="cloud-approval-section od-surface" aria-label="已安装任务的远程授权" hidden>
-        <div class="cloud-section-title od-toolbar"><strong>允许远程调用的任务</strong><span class="hint">按任务独立批准</span></div>
+        <div class="cloud-section-title od-toolbar"><strong>允许远程调用的任务</strong></div>
         <p class="cloud-privacy-note">执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。</p>
         <fieldset class="cloud-task-approvals"><legend class="visually-hidden">选择任务，最多 32 项</legend>
           <div id="cloud-task-list" role="group" aria-label="逐任务确认版本、网站及结果权限"><p class="hint">正在读取已安装任务…</p></div>
@@ -522,7 +523,7 @@
           <button id="cloud-stop" type="button" class="od-button od-button--secondary">停止远程调用</button></div>
       </section>
       <section class="cloud-requests od-surface" aria-label="云请求历史和原始结果入口">
-        <div class="cloud-section-title od-toolbar"><strong>请求记录</strong><span class="hint">每页 5 条 · 只读，不重试</span></div>
+        <div class="cloud-section-title od-toolbar"><strong>请求记录</strong></div>
         <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
         <div class="cloud-request-pagination" aria-label="云请求历史翻页">
           <button id="cloud-request-prev" type="button" class="od-button od-button--secondary" disabled>上一页</button>
@@ -546,7 +547,7 @@
       </section>
       <details id="cloud-clients" class="cloud-clients od-disclosure">
         <summary>外部应用授权 <span id="cloud-clients-count" class="hint">按需管理</span></summary>
-        <p class="cloud-privacy-note">只有本浏览器已批准的固定任务可以向外部应用授权。密钥只展示一次，不保存到扩展配置；仅通过可信渠道交给应用。</p>
+        <p class="cloud-privacy-note">密钥只展示一次，不保存到扩展配置；请仅通过可信渠道交给应用。</p>
         <div class="cloud-client-form">
           <label for="cloud-client-name">外部应用名称</label>
           <input id="cloud-client-name" class="od-field" maxlength="60" autocomplete="off" placeholder="例如：我的自动化服务">
@@ -563,8 +564,8 @@
         <div class="cloud-action-row"><button id="cloud-client-refresh" type="button" class="od-button od-button--secondary">刷新应用列表</button><button id="cloud-client-more" type="button" class="od-button od-button--secondary" hidden>查看更多</button></div>
         <ul id="cloud-clients-list" class="cloud-clients-list" aria-label="已授权的外部应用"></ul>
       </details>
-      <details id="cloud-hosting" class="task-scope-panel od-disclosure"><summary>连接设置与解除配对 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
-        <p class="hint">连接只用于经过批准的已安装任务，不能远程投递任意脚本。</p>
+      <details id="cloud-hosting" class="task-scope-panel od-disclosure"><summary>连接设置与解除配对</summary>
+        <p class="hint">当前状态：<span id="cloud-brief" class="cloud-status-brief">未配对</span></p>
         <label>可信提供者 HTTPS 地址 <input id="cloud-url" type="url" placeholder="https://provider.example" class="od-field"></label>
         <label>提供者身份 <input id="cloud-provider-id" autocomplete="off" class="od-field"></label>
         <label>一次性配对码 <input id="cloud-pairing-code" type="password" autocomplete="off" class="od-field"></label>
@@ -575,8 +576,8 @@
           <button id="cloud-refresh" type="button" class="od-button od-button--secondary">核对状态</button></div>
         <p class="hint">停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。</p>
         <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
+        <p class="hint">云控沿用「我的」任务权限与原 RunHost；关闭 Side Panel 后不保证任务继续运行。</p>
       </details>
-      <p class="hint">云控复用「我的」已安装授权的任务和原 RunHost。切换选项卡不会启动第二个执行器；关闭 Side Panel 后不承诺任务继续运行。</p>
     </section>
   </div>
   <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->
@@ -608,7 +609,7 @@
       </details>
         </aside>
       </div>
-      <label for="task-package-file">导入任务包 JSON 或 JavaScript 草稿</label>
+      <label for="task-package-file">导入任务包 JSON、程序草稿 JSON 或 .js 文件</label>
       <input type="file" id="task-package-file" accept=".json,.js,application/json,text/javascript">
       <p id="task-catalog-status" role="status">仅本机验证，不代表第三方审核或签名认证</p>
       <div class="row"><button type="button" id="task-catalog-refresh" class="od-button od-button--secondary">刷新目录</button></div>

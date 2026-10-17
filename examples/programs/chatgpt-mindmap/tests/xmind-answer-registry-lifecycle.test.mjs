@@ -26,7 +26,8 @@ function setup({firstDestroy,firstTheme}={}){
     handlers.set(target,listener);return ()=>handlers.delete(target);
   },observe(target,listener,options){observers.push({listener,options});},
   setTimeout(){return 1;},setInterval(){return 1;}};
-  const registry=createAnswerRegistry({document,window:{location:{pathname:'/c/test',search:''}},owner,css:'',
+  const fakeWindow={location:{pathname:'/c/test',search:''}};
+  const registry=createAnswerRegistry({document,window:fakeWindow,owner,css:'',
     createView(options){
       const index=views.length,host=document.createElement('section');
       let retirement;
@@ -43,7 +44,8 @@ function setup({firstDestroy,firstTheme}={}){
   const trigger=triggerHost.shadowRoot.querySelector('button');
   const matches=trigger.matches.bind(trigger);
   trigger.matches=selector=>selector===':focus-visible'?false:matches(selector);
-  return {registry,content,views,triggerHost,trigger,error:triggerHost.shadowRoot.querySelector('[role="alert"]'),
+  return {registry,content,views,triggerHost,trigger,window:fakeWindow,
+    error:triggerHost.shadowRoot.querySelector('[role="alert"]'),
     click:()=>handlers.get(trigger)(),
     theme:()=>observers.find(row=>row.options.attributeFilter?.includes('class')).listener()};
 }
@@ -73,10 +75,11 @@ test('official actions retain one visible toggle across open close reopen close'
     await h.click();
     assert.equal(h.triggerHost.parentElement,bar);
     assert.equal(h.triggerHost.hidden,false);
-    assert.equal(h.trigger.textContent,'关闭思维导图');
+    assert.equal(h.trigger.textContent,'');
+    assert.equal(h.trigger.querySelectorAll('svg').length,1);
     assert.equal(h.trigger.getAttribute('aria-pressed'),'true');
     await h.click();
-    assert.equal(h.trigger.textContent,'思维导图');
+    assert.equal(h.trigger.textContent,'');
     assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
     assert.equal(h.triggerHost.hidden,false);
     assert.equal(node.isConnected,true);
@@ -100,7 +103,9 @@ test('late old toolbar retirement failure cannot close a replacement and remains
   assert.equal(replacement.destroyCalls,0);
   assert.equal(replacement.host.isConnected,true);
   assert.equal(h.content.getAttribute('aria-hidden'),'true');
-  assert.equal(h.triggerHost.hidden,false);assert.equal(h.error.hidden,true);
+  assert.equal(h.triggerHost.hidden,false);
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'true');
+  assert.equal(h.error.hidden,true);
   await assert.rejects(h.registry.destroy(),error=>error instanceof AggregateError&&error.errors.includes(failure));
 });
 
@@ -154,4 +159,35 @@ test('failure UI cannot arrive after a new view opens during retirement',async()
   await h.click();const replacement=h.views[1];firstDestroy.resolve();await failure;
   assert.equal(replacement.destroyCalls,0);assert.equal(replacement.host.isConnected,true);
   assert.equal(h.error.hidden,true);await h.registry.destroy();
+});
+
+test('mind-map icon toggles in place without a text label',async()=>{
+  const h=setup();
+  assert.equal(h.trigger.textContent,'');
+  assert.equal(h.trigger.querySelectorAll('svg').length,1);
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+  await h.click();
+  assert.equal(h.triggerHost.hidden,false);
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'true');
+  await h.views[0].options.onOriginal();
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+  await h.registry.destroy();
+});
+
+test('return-to-original compensates nested-scroll drift back to opener position',async()=>{
+  const h=setup();
+  const scroller=h.triggerHost.closest('article');
+  Object.defineProperty(scroller,'scrollHeight',{configurable:true,value:2000});
+  Object.defineProperty(scroller,'clientHeight',{configurable:true,value:300});
+  scroller.scrollTop=150;
+  let screenY=190;
+  h.triggerHost.getBoundingClientRect=()=>({top:screenY,bottom:screenY+36});
+  h.window.innerHeight=900;
+  h.window.getComputedStyle=node=>({overflowY:node===scroller?'auto':'visible'});
+  await h.click();
+  screenY=320; // original content replaces a taller mind-map viewport
+  await h.views[0].options.onOriginal();
+  assert.equal(scroller.scrollTop,280);
+  assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+  await h.registry.destroy();
 });

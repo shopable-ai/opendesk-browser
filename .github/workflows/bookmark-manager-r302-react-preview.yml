@@ -1,136 +1,116 @@
-name: Bookmark Manager R3.0.4.1 React Preview · Real Chrome Zoom and UX Closure
+name: Bookmark Manager R3.1 · Trusted React Candidate and Chromium
 on:
   push:
     branches: [main]
     paths:
       - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
-      - 'examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs'
       - 'examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs'
-      - 'examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs'
-      - 'examples/sidebar-tools/bookmark-manager/preview/chrome-zoom-x11.py'
-      - '.github/workflows/bookmark-manager-r302-react-preview.yml'
-      - 'scripts/preview/bookmark-manager-mock.js'
       - 'examples/sidebar-tools/bookmark-manager/src/model.js'
       - 'examples/sidebar-tools/bookmark-manager/src/service.js'
+      - 'src/ui/react/main.tsx'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/trusted-bookmark-admission.js'
+      - 'src/ui/tool-shell.js'
+      - 'tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs'
+      - 'tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs'
+      - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
+      - '.github/workflows/bookmark-manager-r302-react-preview.yml'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: bookmark-r304-react-preview
-  cancel-in-progress: true # only latest preview candidate should run; skip superseded tests
+  group: bookmark-r31-react-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  react-preview-chromium:
+  trusted-source-build:
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install pinned preview-local React 19 + Vite
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
-        run: npm ci --no-audit --no-fund
-      - name: Bundle React and regenerate the one offline preview
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Official admission, React lifecycle, clickable URL and sandbox regression
         run: |
-          npm run build
-          npm run preview:build
-          npm run preview:check
-      - name: Static security and actual React runtime contract
+          node --test \
+            tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs \
+            tests/environment/bookmark-manager-r306-trusted-react.test.mjs \
+            tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs \
+            tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
+            tests/environment/bundle-provenance.test.mjs
+      - name: Check formal source
+        run: npm run check
+      - name: Build official WXT code without promoting or installing any tool package
+        run: npm run build
+      - name: Verify CSP, single packaged React runtime and immutable candidate size
         run: |
-          node --check examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs
-          node --check examples/sidebar-tools/bookmark-manager/preview/r302-chrome.mjs
-          node --check examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs
-          node --check examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs
+          node scripts/verify-package.mjs dist/production
+          mkdir -p artifacts/bookmark-r31
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
-          import {readFile} from 'node:fs/promises';
-          const index=await readFile('examples/sidebar-tools/bookmark-manager/preview/index.html','utf8');
-          assert.match(index,/sandbox="allow-scripts"/);
-          assert.doesNotMatch(index,/sandbox="[^"]*allow-same-origin/);
-          const manifest=JSON.parse(index.match(/id="opendesk-preview-manifest">([^<]+)<\/script>/)[1]);
-          assert.equal(manifest.reactRuntime,true);
-          assert.equal(manifest.sourceBound,false);
-          assert.equal(manifest.nativeVerified,false);
-          const frame=Buffer.from(index.match(/atob\('([A-Za-z0-9+/=]+)'\)/)[1],'base64').toString('utf8');
-          assert.match(frame,/data-react-root="bookmark-r304"/);
-          assert.match(frame,/connect-src &#39;none&#39;/);
-          assert.doesNotMatch(frame,/https?:\/\/(?:cdn|unpkg|jsdelivr)\./);
-          assert.doesNotMatch(frame,/allow-same-origin/);
-          const scripts=[...frame.matchAll(/src="data:text\/javascript;base64,([A-Za-z0-9+/=]+)"/g)];
-          assert.equal(scripts.length,4,'Mock + real model + real service + Vite React IIFE');
-          const react=Buffer.from(scripts[3][1],'base64').toString('utf8');
-          assert.match(react,/__BookmarkReactPreview/);
-          assert.ok(react.length>40000,'No fake React placeholder');
-          assert.equal((index.match(/id="od-preview-bookmark-lab"/g)||[]).length,1);
-          assert.doesNotMatch(frame,/od-preview-bookmark-lab/);
-          console.log('R304_OFFLINE_REACT_SOURCE_AND_SANDBOX_PASS');
+          import {readFile,stat,writeFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          const entry='dist/production/ui/tool-shell.js';
+          const content=await readFile(entry);
+          const manifest=JSON.parse(await readFile('dist/production/manifest.json','utf8'));
+          const csp=manifest.content_security_policy?.extension_pages||'';
+          assert.match(csp,/script-src 'self'/);
+          assert.doesNotMatch(csp,/unsafe-eval|https?:\/\//);
+          assert.ok(content.byteLength<1048576,'existing tool-shell production hard budget');
+          const report={entry,bytes:content.byteLength,sha256:createHash('sha256').update(content).digest('hex'),csp,
+            installedBookmarkPackagePromoted:false,reactRuntime:'host-shared'};
+          await writeFile('artifacts/bookmark-r31/formal-bundle.json',JSON.stringify(report,null,2)+'\n');
+          console.log('R31_TRUSTED_BUNDLE',JSON.stringify(report));
           NODE
-      - name: Install CJK screenshot fonts
-        run: |
-          sudo apt-get install -y -qq fonts-noto-cjk xvfb xclip libxtst6 || {
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq fonts-noto-cjk xvfb xclip libxtst6
-          }
-      - uses: browser-actions/setup-chrome@v2
-        id: chrome
-      - name: Real Chromium R3.0.4 no-footer, cancel, details, edit, menu, delete and focus acceptance
-        env:
-          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs examples/sidebar-tools/bookmark-manager/preview/evidence/r304
-      - name: R3.0.4.1 real headed Chrome 100 125 150 percent Zoom keyboard and OS clipboard
-        env:
-          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: xvfb-run -a -s '-screen 0 1920x1200x24' node examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs examples/sidebar-tools/bookmark-manager/preview/evidence/r3041
-      - name: Preserve exact candidate and browser evidence even on failure
+      - name: Preserve fixed WXT build evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bookmark-r304-react-${{ github.sha }}-${{ github.run_attempt }}
+          name: bookmark-r31-trusted-source-${{ github.sha }}
+          if-no-files-found: ignore
           retention-days: 14
-          if-no-files-found: warn
           path: |
-            examples/sidebar-tools/bookmark-manager/preview/index.html
-            examples/sidebar-tools/bookmark-manager/preview/evidence/r304/
-            examples/sidebar-tools/bookmark-manager/preview/evidence/r3041/
-      - name: Promote exact Chromium-tested HTML with concurrent main protection
-        if: github.event_name == 'push'
-        shell: bash
+            artifacts/bookmark-r31/formal-bundle.json
+            docs/framework/evidence/wxt/builds/build-production.json
+  react-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned offline React 19 preview dependencies
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        run: npm ci --no-audit --no-fund
+      - name: Build and check exactly the current JSX candidate
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
         run: |
-          set -euo pipefail
-          git fetch origin main
-          remote_head="$(git rev-parse origin/main)"
-          if [ "$remote_head" != "$GITHUB_SHA" ]; then
-            if ! git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
-              echo "::error::main rewrote history or diverged; refusing promotion."
-              exit 1
-            fi
-            overlap="$(git diff --name-only "$GITHUB_SHA" "$remote_head" -- \
-              examples/sidebar-tools/bookmark-manager/ \
-              scripts/preview/bookmark-manager-mock.js \
-              src/ui/design-tokens.css \
-              src/ui/design-system.css \
-              .github/workflows/bookmark-manager-r302-react-preview.yml)"
-            if [ -n "$overlap" ]; then
-              echo "::error::Concurrent change overlaps React preview source or input; refusing promotion."
-              printf '%s\n' "$overlap"
-              exit 1
-            fi
-            echo "Concurrent unrelated changes only; preserve them with a local non-force rebase."
-          fi
-          git add -- examples/sidebar-tools/bookmark-manager/preview/index.html # screenshots live in Actions artifacts, not Git
-          if git diff --cached --quiet; then
-            echo "Exact React preview already committed."
-            exit 0
-          fi
-          git -c user.name='OpenDesk Preview CI' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'build(bookmark-manager): promote verified R3.0.4.1 real-Zoom React preview'
-          if [ "$remote_head" != "$GITHUB_SHA" ]; then
-            git -c user.name='OpenDesk Preview CI' \
-              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              rebase origin/main
-          fi
-          git push origin HEAD:main
-          echo "Promoted exact tested HTML onto latest main without force or branch creation."
+          npm run preview:build
+          npm run preview:check
+          npm run preview:budget
+      - name: Install CJK font support for readable Chinese Chromium evidence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match 'Noto Sans CJK SC'
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real Chromium 360/400/960, floating details, URL anchor, keyboard and CRUD mock fixture
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run preview:chrome
+      - name: Preserve exact candidate and Chromium evidence (never auto-promote)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-r31-react-chromium-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            examples/sidebar-tools/bookmark-manager/preview/dev.html
+            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence/
+            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/budget-report.json

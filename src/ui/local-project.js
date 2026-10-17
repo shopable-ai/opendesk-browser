@@ -43,7 +43,10 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     const identity=JSON.stringify([local,checking,connected,nativeConnected,epoch,selection,row,workspaces.length,row?.fileOnly?programsFor(row).length:null,diagnostic,last,preparationError?.code,nativeUpdateError?.code,backgroundError,prepared,workspaceOpenError,message]);
     if(identity===rendered)return;
     rendered=identity;
-    find('developer-source-switch').dataset.mode=local?'local':'manual';
+    const switchHead=find('developer-source-switch');
+    switchHead.dataset.mode=local?'local':'manual';
+    const heading=switchHead.querySelector?.('.od-page-title');
+    if(heading)heading.textContent=local?'项目连接':'直接编辑';
     find('local-project-tools').hidden=!local;
     find('manual-source-editor').hidden=local;
     find('local-project-params-tools').hidden=!local||row?.runtimeKind!=='controller';

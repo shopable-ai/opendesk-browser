@@ -72,3 +72,60 @@
 .theme-dark .site-permissions>summary{color:var(--od-sub)}
 .theme-dark .site-permissions>summary:hover,.theme-dark .site-permissions[open]>summary,.theme-dark .permission-manage:hover:not(:disabled){background:#273a56}
 .theme-dark .permission-illustration{background:#283d66}
+
+/* R4.11: only IO panels change; list and inline editor geometry stays untouched. */
+.import-panel{gap:10px;min-width:0}
+.import-panel .import-source{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.import-panel .selected-file{flex:1;min-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--od-sub)}
+.import-panel .clear-source{border:0;background:transparent;color:var(--od-brand);font-size:12px;min-height:32px;padding:4px}
+.import-panel .field{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0}
+.import-panel .field>span{font-size:12px}
+.import-panel .field textarea{display:block;grid-column:1;width:100%;min-width:0;min-height:112px;resize:vertical;padding:9px;line-height:1.5}
+.import-panel .import-summary{gap:5px;padding:9px;overflow-wrap:anywhere}
+.import-panel .import-summary strong{font-weight:650}
+.import-panel .overwrite-option{display:flex;align-items:flex-start;gap:7px;font-size:11px;line-height:1.5;cursor:pointer}
+.import-panel .overwrite-option input{accent-color:var(--od-brand);margin:2px 0 0;flex:none}
+.import-panel .panel-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.import-panel .panel-actions .text-btn{min-width:76px}
+.theme-dark .import-panel .clear-source{color:var(--od-brand)}
+
+/* R4.11.1: isolate icons so consumer CSS cannot enlarge or fill the search lens. */
+.cookie-app .searchbox > svg{width:16px;height:16px;min-width:16px;min-height:16px;max-width:16px;max-height:16px;flex:0 0 16px;fill:none;stroke:currentColor;stroke-width:1.7px}
+.cookie-app .searchbox > svg circle{fill:none;stroke:currentColor;stroke-width:1.7px}
+.cookie-app .export-actions{grid-template-columns:98px minmax(0,1fr);min-width:0;gap:8px}
+.cookie-app .export-actions>.text-btn{min-width:0;max-width:100%;white-space:nowrap;padding-inline:10px}
+.cookie-app .export-actions>.text-btn>svg{width:16px;height:16px;flex:0 0 16px;fill:none}
+.import-panel .import-source{display:grid;gap:5px;min-width:0}
+.import-panel .import-dropzone{display:flex;align-items:center;gap:10px;text-align:left;width:100%;min-width:0;min-height:62px;padding:10px 12px;border:1px dashed #b3c4da;border-radius:8px;background:var(--od-paper);color:var(--od-ink)}
+.import-panel .import-dropzone:hover:not(:disabled),.import-panel .import-dropzone:focus-visible{border-color:var(--od-brand);background:#f0f4ff}
+.import-panel .import-dropzone.is-dragging{border-style:solid;border-color:var(--od-brand);background:#eef3ff;box-shadow:inset 0 0 0 1px var(--od-brand)}
+.import-panel .dropzone-symbol{width:30px;height:30px;flex:0 0 30px;display:grid;place-items:center;background:var(--od-bg);color:var(--od-brand);border-radius:8px}
+.import-panel .dropzone-symbol svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor}
+.import-panel .dropzone-copy{display:grid;gap:3px;min-width:0;max-width:100%}
+.import-panel .dropzone-copy strong{font-size:12px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.import-panel .dropzone-copy small{font-size:11px;color:var(--od-sub);line-height:1.25}
+.import-panel .import-source-meta{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0;min-height:25px}
+.import-panel .selected-file{min-width:0;flex:1}
+.import-panel .clear-source{flex:none}
+.theme-dark .import-dropzone{border-color:#596e8c}
+.theme-dark .import-dropzone:hover:not(:disabled),.theme-dark .import-dropzone:focus-visible,.theme-dark .import-dropzone.is-dragging{background:#243653;border-color:var(--od-brand)}
+.theme-dark .dropzone-symbol{background:#283d66}
+
+/* R5.1: destructive site clean is discoverable in the Cookie toolbar, not buried
+ * in site settings. A divider separates it from daily import/export/new. */
+.cookie-app .list-toolbar{flex-wrap:wrap;gap:4px;min-width:0}
+.cookie-app .list-toolbar>strong{flex:1 1 auto;min-width:0;white-space:nowrap}
+.cookie-app .toolbar-actions{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;gap:2px}
+.cookie-app .toolbar-actions .action-separator{margin:0 3px}
+.cookie-app .toolbar-actions .cookie-clear-action{color:var(--od-negative);border-color:transparent}
+.cookie-app .toolbar-actions .cookie-clear-action:hover:not(:disabled){background:#fff0f2;border-color:#eac4c9}
+.theme-dark .cookie-app .toolbar-actions .cookie-clear-action:hover:not(:disabled){background:#482c37;border-color:#9c626d}
+.cookie-app .clear-confirm{border:1px solid #eac5c9;border-radius:10px;padding:10px;
+  display:grid;gap:8px;background:#fff9f9;min-width:0}
+.cookie-app .clear-confirm strong{color:#9b3546;font-size:12px}
+.cookie-app .clear-confirm p{margin:0;font-size:12px;line-height:1.5;color:#774954;overflow-wrap:anywhere}
+.cookie-app .clear-confirm .panel-actions{flex-wrap:wrap}
+.cookie-app .clear-confirm .text-btn.danger{color:#fff;background:#a23f4d;border-color:#a23f4d}
+.theme-dark .cookie-app .clear-confirm{background:#3a2531;border-color:#7b5264}
+.theme-dark .cookie-app .clear-confirm strong,.theme-dark .cookie-app .clear-confirm p{color:#ffd1d7}
+@media(max-width:340px){.cookie-app .list-toolbar>strong{font-size:12px}.cookie-app .toolbar-actions .icon-btn{width:32px;height:32px}}

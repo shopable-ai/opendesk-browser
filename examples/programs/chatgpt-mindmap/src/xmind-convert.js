@@ -36,7 +36,7 @@ async function mindTreeToXmindBlob(sdk, tree, skinMode, options = { defaultFolde
   if (!JSZip || !Workbook || !Topic || !Dumper) {
     throw new Error("XMind SDK \u672A\u52A0\u8F7D");
   }
-  const centerTitle = tree.title || "本条回复";
+  const centerTitle = tree.title || "回答概览";
   const workbook = new Workbook();
   const sheet = workbook.createSheet("sheet-mind", centerTitle);
   const topic = new Topic({ sheet });
@@ -58,12 +58,27 @@ async function mindTreeToXmindBlob(sdk, tree, skinMode, options = { defaultFolde
       appendTopicRecord(childId, child);
     });
   };
-  const childRecords = buildTopicRecords(tree);
+  // Promote the only overarching heading to the central topic rather than
+  // repeating it immediately below the root; keep leading paragraphs.
+  const direct=tree.children||[];
+  const headings=direct.filter(item=>item.kind==='heading');
+  const heading=headings.length===1?headings[0]:null;
+  const at=heading?direct.indexOf(heading):-1;
+  const matches=heading&&(heading.title===centerTitle||
+    (centerTitle.endsWith('…')&&heading.title.startsWith(centerTitle.slice(0,-1))));
+  const safe=at>=0&&direct.every((item,index)=>index===at||
+    (index<at&&item.kind==='paragraph'));
+  // Even a heading-only answer has a meaningful root: never repeat the
+  // identical heading as an empty child topic.
+  const promote=matches&&safe;
+  const visible=promote?[...direct.slice(0,at),...heading.children]:direct;
+  const childRecords=buildTopicRecords({children:visible});
+  const rootNote=promote?[tree.content,heading.content].filter(Boolean).join('\n'):tree.content;
   const rootTopicId = topic.rootTopicId || topic.cid(centerTitle);
   if (!rootTopicId) {
     throw new Error("XMind SDK \u672A\u8FD4\u56DE\u6839 topic id");
   }
-  if (tree.content) topic.on(rootTopicId).note(tree.content);
+  if (rootNote) topic.on(rootTopicId).note(rootNote);
   childRecords.forEach((record) => {
     appendTopicRecord(rootTopicId, record);
   });

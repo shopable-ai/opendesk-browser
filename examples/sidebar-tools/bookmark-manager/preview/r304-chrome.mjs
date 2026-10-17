@@ -111,7 +111,7 @@ async function setInput(ctx,id,value){
   +JSON.stringify(value)+");el.dispatchEvent(new Event('input',{bubbles:true}));return el.value;");
 }
 
-const previewPath=resolve('examples/sidebar-tools/bookmark-manager/preview/index.html');
+const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'examples/sidebar-tools/bookmark-manager/preview/index.html');
 const html=await readFile(previewPath,'utf8');
 assert.match(html,/sandbox="allow-scripts"/);
 assert.doesNotMatch(html,/sandbox="[^"]*allow-same-origin/);
@@ -165,13 +165,29 @@ try{
   await click(ctx,'[data-node-id="100"]');
   await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'one click preview '+width);
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),false,'readonly is nonmodal');
-  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('aria-modal')"),null,'non-modal aria');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('aria-modal')"),width<740?'true':null,'responsive modal semantics');
+  assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('role')"),width<740?'dialog':'complementary','responsive preview role');
+  if(width<740){
+   const insets=await invoke(ctx,"const app=document.querySelector('.bm-app').getBoundingClientRect(),pane=document.querySelector('.bm-preview-pane').getBoundingClientRect();return [Math.round(pane.left-app.left),Math.round(app.right-pane.right),Math.round(app.bottom-pane.bottom)]");
+   assert.deepEqual(insets,[12,12,12],'approved floating pane insets');
+  }
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-detail-title')?.textContent.includes('OpenDesk 产品资料')"),true,'one click shows correct bookmark');
   assert.equal(await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)"),originalHeight,'preview does not reflow list');
+  const directLink=await invoke(ctx,"const a=document.querySelector('[data-testid=bookmark-preview] a.bm-detail-url');return a?{url:a.getAttribute('href'),target:a.target,rel:a.rel,text:a.querySelector('span')?.textContent,icon:!!a.querySelector('svg')}:null");
+  assert.ok(directLink?.url?.startsWith('https://')||directLink?.url?.startsWith('http://'),'HTTP(S) anchor is directly clickable');
+  assert.equal(directLink.target,'_blank');
+  assert.ok(directLink.rel.includes('noopener')&&directLink.rel.includes('noreferrer')&&directLink.icon&&directLink.text);
   await screenshot('bookmark-r304-'+width+'-preview.png');
+  if(width<740){
+   await click(ctx,'.bm-preview-backdrop');
+   await gone(ctx,'[data-testid="bookmark-preview"]','backdrop closes floating preview');
+   await click(ctx,'[data-node-id="100"]');
+   await until(ctx,"!!document.querySelector('[data-testid=bookmark-preview]')",'reopen preview after backdrop');
+  }
   const five=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row')].filter(row=>!row.hasAttribute('aria-expanded')).slice(0,5).map(x=>x.dataset.nodeId)");
   assert.equal(five.length,5);
   for(const id of five){
+   if(width<740)await click(ctx,'.bm-preview-close');
    await click(ctx,'[data-node-id="'+id+'"] .bm-node-title');
    assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=bookmark-preview] .bm-detail-title span')?.textContent"),await invoke(ctx,"return document.querySelector("+JSON.stringify('[data-node-id="'+id+'"] .bm-node-title')+")?.textContent"),'five bookmark clicks switch readonly previews '+id);
   }
@@ -205,7 +221,7 @@ try{
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-tree-scroll').scrollTop"),offset,'close does not jump scroll');
   await openMenu(ctx,'100');
   await choose(ctx,0);
-  await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'menu view reuses nonmodal preview');
+  await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'menu view reuses responsive preview');
   await click(ctx,'[data-testid="bookmark-preview"] [aria-label="编辑"]');
   await until(ctx,"!!document.getElementById('bm-edit-url')",'preview enters existing editor');
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),true,'editor stays a modal Sheet');

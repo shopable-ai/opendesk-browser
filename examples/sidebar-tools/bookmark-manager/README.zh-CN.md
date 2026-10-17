@@ -8,8 +8,8 @@
 ## 需求与预览归档入口（2026-10-15）
 
 - **[正式产品与交互需求](REQUIREMENTS.zh-CN.md)**：记录书签树、只读选择、显式编辑、脏草稿保护、权限和安全删除，以及后续改进的验收边界。
-- **[R2.8 历史候选预览](preview/index.html)**：存储从 CI `f76dab1b` 原样保存的 360px 可操作离线 HTML。**用户认为这一版视觉/交互质量仍不理想；仅作版本留存，尚未批准为最终设计。**
-- 该 HTML 的原始 SHA-256 为 `16792a707abfba8b1d6564fa0ad7b671e59aea4e3679594fd5c4bc259e8765b2`。它是旧候选的快照，不是可安装包，也不随最新 `main` 自动更新；生产 UI 仍由 `src/` 和 `tool.config.json` 唯一决定。
+- **[当前 R3.0.5 React 离线预览](preview/index.html)**：由独立候选通过 Chromium 回归后自动晋升；仍使用 Mock，不代表 R3.1 正式 UI 替换或原生安装。
+- R2.8 历史候选初始 SHA-256 为 `16792a707abfba8b1d6564fa0ad7b671e59aea4e3679594fd5c4bc259e8765b2`，只在 Git 历史中保留；当前 `preview/index.html` 不再是该旧快照。正式 UI 仍由 `src/` 和 `tool.config.json` 决定。
 - 下一轮视觉优化先对照这个保存版本提出新候选并征得确认，不得误删、迁移到非扩展目录或无理由覆盖归档版本；所有评审、版本和来源都记录在 `REQUIREMENTS.zh-CN.md` 中。
 
 ## 当前 R11.2 合同与安装状态
@@ -92,3 +92,11 @@ SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk
 离线 HTML 预览分为两个严格隔离部分：模拟 Side Panel（\`iframe#opendesk-preview-frame\` 内是正式包同源业务 UI）和模拟设备**之外**的「预览测试辅助工具」折叠区。后者属于 \`scripts/preview/\`，仅发送明确列举的 Mock 内存诊断，绝不进入 \`tool.config.json\` 的 \`files\`、独立安装 JSON、浏览器宿主源码或 Side Panel 生产 UI。其辅助操作只用于复现写入失败、未知结果、跨窗口冲突、读取超时、撤权等场景。
 
 回归优先使用既有 \`scripts/tests/bookmark-manager-r26-preview-chrome.mjs\`，覆盖真实 Chromium 两视口下正常选择、编辑、草稿切换、外部诊断界面与被隔离 iframe 的边界。测试状态只称 \`MOCK_BROWSER_INTERACTION_PASS_NOT_INSTALLED\`；没有 Mac 正式安装、Full Bookmarks 授权及 Native CRUD 证据时，\`NATIVE_NOT_TESTED\`、Issue #75 OPEN、专家逐维 95+ NOT_SCORED。
+
+## R3.0.5 · React JSX 同源预览与非发布可行性门禁
+
+- React 19 UI 的单一 JSX 实现在 `preview/react/src/App.jsx`；`src/main.jsx` 为 Mock 预览挂载入口，`src/formal.jsx` 为**不发布**的真实 SDK/Root 挂载可行性入口。两者引用同一个 App，既有 Model/Service 仍位于正式工具 `src/`。
+- 在 `preview/react/` 执行 `npm ci` 后，`npm run preview:watch` 启动一次；编辑 JSX/CSS、固定 Model/Service、Mock 或 Token 会原子更新 `.opendesk-preview/bookmark-react-candidate.html`，直接以 `file://` 打开，不需要 HTTP 服务和手工重复 build。失败保留上一份有效候选。
+- `npm run preview:build` 单次生成候选；`npm run preview:check` 重新编译校验候选同源；`npm run preview:chrome` 在候选上复用既有 R3.0.4 Chromium 回归；`npm run preview:budget` 使用正式 v2 packer/schema 检查同 App 的正式挂载构建，报告保存在忽略目录 `.opendesk-preview/budget-report.json`。
+- `preview/index.html` 是已认证 HTML。上述本地命令**不会写入它**。GitHub CI 仅在隔离 checkout 复制候选运行 Chrome；全部检查通过后才通过既有非强推、并发保护的晋升步骤提交确切 HTML。
+- `tool.config.json`、正式 `src/index.html/main.js/style.css`、已安装 JSON、版本号和用户原始书签在本阶段一律不改。正式包可行性成功仅代表静态候选，不是 R3.1 迁移批准，也不是 Mac Native PASS。失败报告 `BUDGET_BLOCKED` 或 `NOT_TESTED`，禁止绕开平台限制。

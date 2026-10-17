@@ -53,6 +53,30 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
+// R3.1: The Bookmark Manager trusted React pilot compiles exactly four
+// reviewed first-party files into the EXISTING ui/tool-shell.js. They are
+// author-controlled static imports, not installed or user-supplied package
+// code. Every Git blob is pinned to fail closed on source drift, and no other
+// output or examples module is permitted. Runtime official-release/epoch
+// admission and the dynamic opaque iframe boundary remain independent.
+const compiledBookmarkReactInputs=Object.freeze({
+  'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
+  'examples/sidebar-tools/bookmark-manager/src/service.js':'1c1541ee128e37dd8897b073581bd476ce8f4171',
+  'examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx':'a8f81581c5607c16d9ec123fa493ed1b20ccc696',
+  'examples/sidebar-tools/bookmark-manager/preview/react/src/style.css':'1db0dbaf6896bd66e0c39f5184c1ae41d7436cf4'
+});
+function reviewedCompiledBookmarkReact(target,path,root){
+  if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Bookmark React source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledBookmarkReactInputs[path])
+    throw Error('Trusted Bookmark React source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 // Prompt Shortcuts is a reviewed fixed, site-specific content adapter.
 // The Classic model is exactly the same audited resource declared in the
 // independent tool package; only these three immutable blobs may enter
@@ -107,7 +131,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledAdblock(chunk.fileName,path,root)||
-      reviewedCompiledPromptShortcuts(chunk.fileName,path,root);
+      reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
+      reviewedCompiledBookmarkReact(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,

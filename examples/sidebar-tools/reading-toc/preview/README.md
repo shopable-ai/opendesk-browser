@@ -36,3 +36,17 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 - 两个 HTML 的正式源码构建身份均为 v1.0.8，保留 `uiSha256`、`trustedOverlaySourceSha256`、模拟标识与严格 sandbox 来源；并非手工修改 HTML 版本号。`tests/environment/reading-toc-localization-preview-r12.test.mjs` 验证存档字节与当下官方生成器一致。
 - CI 候选构建与工具包摘要见 [#38959360526](https://github.com/shopable-ai/opendesk-browser/actions/runs/38959360526)；离线 Chromium 144 128/128 个交互/布局组合 PASS（**CSS zoom，非真实浏览器菜单缩放**）。默认 AI 卡片为**会员服务未开放 + 合作招募**；没有 AI 章节、支付或身份 Mock 成功。
 - R1.7.4 已批准原型继续保存，不修改其原型身份和模拟状态。后续每次修改真实源码、共享外壳或可信 Overlay 都须重新生成并验证这两份存档 HTML，不能放宽来源断言。
+
+## R1.8.3 · CONTENTS 边距与网页插入形态（2026-10-17）
+
+- Side Panel 的正式工具 `src/style.css` 在 `.toc-panel` 上保留左右各 **8 CSS px** 外边距，内部 12px padding、四个模式图标及右侧刷新按钮均不变。
+- 网页内悬浮目录由受信 `src/reading-toc/view.js` 注入，仍只有 **概览 / 当前 / 完整** 三模式。网页端已经由 `src/reading-toc/page.js` 的 `MutationObserver` + SPA 监听自动更新，故移除了会被误认成“刷新”的圆箭头归位按钮；用户仍可在原拖动手柄按 **Home** 或 **双击** 恢复默认位置。侧边栏已有刷新按钮保持。
+- 两份已保存 HTML 均由唯一官方 `scripts/preview/build-preview.mjs` 生成，原文件不手写版本号。更新后的 Side Panel：211,874 bytes，SHA-256 `539816a19011dcdf36ed16f869d3515b7c5a475306b5f17dfde0b6c4bea4ba86`；网页悬浮：218,832 bytes，SHA-256 `0d86cca75da1e8dfc272459378a5ebe091d971cc6a9326a4b04d0683858a1a47`。
+- 若要看“真实网页正文旁边插入后的效果”，在 `reading-toc-r12-overlay-preview.html` 选择「网页悬浮目录」，即可看到内嵌模拟文章 + **真实生产 `view.js`** 的目录层。模拟文章的标题与跳转回执不是实际网站操作，不代表授权、真实 Mac Chrome 安装或发布验收已完成。
+- 源码定向测试 **28/28 PASS**；构建/验证 PASS（[R1.8.3 候选 CI 产物](https://github.com/shopable-ai/opendesk-browser/actions/runs/39027494384)）。同步前严格预览测试拒绝旧文件，之后须复测转绿；用户 Mac 安装升级为 `NOT_TESTED`，不得静默晋升正式 JSON。
+
+## R1.8.4 · 网页实际悬浮 UI 已修复旧预览漂移
+
+旧的 `reading-toc-r183-inpage-preview.html` 是离线导出的历史快照，并没有随着可信 `src/reading-toc/view.js` 自动更新，因此错误保留了“还有 6 个章节”按钮和旧的三模式工具栏。**不可再把旧快照当作本轮正式 UI。**
+
+唯一权威为 `scripts/preview/build-preview.mjs` 生成的 `reading-toc-r12-overlay-preview.html`：它嵌入正式可信 view / placement 源码，显示网页文章与四个（概览、当前、完整、AI）按钮，无冗余“更多章节”按钮；AI 仅提供未开放会员与合作招募提示。侧边栏同源入口 `reading-toc-r12-interactive-preview.html` 继续严格字节重现，不另建平行实现。隔离 HTML 不等于真实网站或用户 Mac Chrome 安装验收。

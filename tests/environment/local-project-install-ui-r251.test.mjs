@@ -242,7 +242,7 @@ test('R25.1 Page Save warns before explicit second execution and installs only a
   const f=await fixture({kind:'page-userscript'});t.after(()=>f.dispose());
   f.ui.setOnInstalled(result=>f.installedNotices.push(result));
   f.ui.succeeded({source:f.source,binding:f.binding,target:f.target});
-  assert.equal(f.ui.saveLabel(),'保存到我的工具');
+  assert.equal(f.ui.saveLabel(),'安装网页增强');
   await f.ui.prepare();
   assert.equal(f.get('local-install-confirm').disabled,false);
   assert.match(f.get('local-install-warning').textContent,/再次执行.*Page/);

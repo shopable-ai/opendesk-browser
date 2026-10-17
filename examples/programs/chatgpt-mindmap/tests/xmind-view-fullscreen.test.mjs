@@ -103,3 +103,12 @@ test('standalone renderer without iframe retains unsupported-browser preview beh
   assert.equal(h.view.host.parentNode,h.inline);assert.equal(h.view.host.nextSibling,h.next);
   assert.equal(h.insertions.length,2);assert.equal(h.moves.length,0);await h.view.destroy();
 });
+
+test('the return control is a text-free back chevron with an accessible label',async()=>{
+  const h=await setup({iframe:false});
+  const back=h.view.host.shadowRoot.querySelector('[data-action="original"]');
+  assert.equal(back.textContent,'');
+  assert.equal(back.getAttribute('aria-label'),'恢复本条回复原文');
+  assert.equal(back.querySelector('path')?.getAttribute('d'),'M15 18l-6-6 6-6');
+  await h.view.destroy();
+});

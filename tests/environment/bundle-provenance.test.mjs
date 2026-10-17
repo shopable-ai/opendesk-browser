@@ -132,3 +132,49 @@ test('a symlink cannot substitute a pinned Time Review source in privileged outp
     fileName:'ui/sidebar-tool-host.js',modules:{[file]:{}}
   },root:project,lock:{packages:{}}}),/Trusted Time Review source must not be a symlink/);
 });
+
+test('R3.1 trusted Bookmark React compiles only four pinned first-party blobs into the existing tool-shell',()=>{
+  const inputs=[
+    'examples/sidebar-tools/bookmark-manager/src/model.js',
+    'examples/sidebar-tools/bookmark-manager/src/service.js',
+    'examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx',
+    'examples/sidebar-tools/bookmark-manager/preview/react/src/style.css'
+  ];
+  const modules=Object.fromEntries(inputs.map(path=>[resolve(path),{renderedLength:42,originalLength:42}]));
+  const compiled=describeBundle({chunk:{fileName:'ui/tool-shell.js',modules},lock:{packages:{}}});
+  assert.equal(compiled.modules.length,inputs.length);
+  for(const row of compiled.modules)assert.match(row.reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
+  for(const target of ['sw.js','ui/sidebar-tool-host.js','scripting/sandbox/sandbox.js'])
+    assert.throws(()=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}}),
+      /cannot enter a privileged fixed bundle/);
+  for(const path of ['examples/sidebar-tools/bookmark-manager/src/main.js',
+    'examples/sidebar-tools/bookmark-manager/preview/react/src/formal.jsx',
+    'examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx',
+    'examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json'])
+    assert.throws(()=>describeBundle({chunk:{
+      fileName:'ui/tool-shell.js',modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}
+    },lock:{packages:{}}}),/cannot enter a privileged fixed bundle/,
+    'installed, arbitrary, or non-audited tool code must not be privileged: '+path);
+});
+test('R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX',async t=>{
+  const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-bookmark-pin-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  const path='examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
+  const file=join(project,path);
+  await mkdir(join(project,'examples/sidebar-tools/bookmark-manager/preview/react/src'),{recursive:true});
+  await writeFile(file,'export default function Unexpected(){return null}');
+  assert.throws(()=>describeBundle({chunk:{
+    fileName:'ui/tool-shell.js',modules:{[file]:{renderedLength:8,originalLength:8}}
+  },root:project,lock:{packages:{}}}),/Trusted Bookmark React source changed/);
+});
+test('R3.1 symlink substitution cannot bypass trusted Bookmark static pin',async t=>{
+  const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-bookmark-symlink-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  const path='examples/sidebar-tools/bookmark-manager/src/model.js';
+  const file=join(project,path);
+  await mkdir(join(project,'examples/sidebar-tools/bookmark-manager/src'),{recursive:true});
+  await symlink(resolve('src/ui/react/main.tsx'),file);
+  assert.throws(()=>describeBundle({chunk:{
+    fileName:'ui/tool-shell.js',modules:{[file]:{renderedLength:9,originalLength:9}}
+  },root:project,lock:{packages:{}}}),/Trusted Bookmark React source must not be a symlink/);
+});

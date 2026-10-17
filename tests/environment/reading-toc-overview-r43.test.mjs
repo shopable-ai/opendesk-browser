@@ -71,11 +71,14 @@ test('R4.3 even 50 H2 rows show an explicit remainder, but no invented headings'
 
 test('R4.3 trusted index publishes per-answer overview, parent identity and stable duplicates',()=>{
   const assistantA={type:'assistant'},assistantB={type:'assistant'};
-  const headings=[...['H1','H2','H2','H1','H2'].map((tag,i)=>({tagName:tag,textContent:'重复',parentElement:assistantA})),
-    ...['H1','H2','H3'].map((tag,i)=>({tagName:tag,textContent:'重复',parentElement:assistantB}))];
+  const markdownA={parentElement:assistantA,closest:sel=>sel==='[data-message-author-role="assistant"]'?assistantA:null};
+  const markdownB={parentElement:assistantB,closest:sel=>sel==='[data-message-author-role="assistant"]'?assistantB:null};
+  const headings=[...['H1','H2','H2','H1','H2'].map((tag,i)=>({tagName:tag,textContent:'重复',parentElement:markdownA})),
+    ...['H1','H2','H3'].map((tag,i)=>({tagName:tag,textContent:'重复',parentElement:markdownB}))];
   for(const node of headings){
     node.isConnected=true;node.getClientRects=()=>[1];
-    node.closest=sel=>sel==='[data-message-author-role="assistant"]'?node.parentElement:null;
+    node.closest=sel=>sel==='[data-message-author-role="assistant"]'?node.parentElement.parentElement:
+      sel==='.markdown'?node.parentElement:null;
   }
   const doc={body:{},defaultView:{getComputedStyle:()=>({display:'block',visibility:'visible'})},
     querySelector:sel=>sel==='[data-message-author-role="assistant"]'?assistantA:null,

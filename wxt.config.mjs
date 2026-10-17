@@ -33,7 +33,7 @@ export default defineConfig({
   webExt: {disabled: true},
   dev: {reloadCommand: false, server: {host:'127.0.0.1',port:outputGuardPort(process.env.OPENDESK_DEV_PORT??43119)}},
   manifest: structuredClone(manifest),
-  vite: () => ({define:{__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
+  vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
@@ -156,8 +156,12 @@ export default defineConfig({
         }
       });
       config.build.lib.formats = ['iife'];
-      config.build.rollupOptions.external = [];
-      config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
+      // Only opt-in sandbox UI externalizes the packaged React 19.2.0 runtime.
+      const sharedUI=target==='sidebar-shared-ui.js';
+      config.build.rollupOptions.external = sharedUI?['react','react/jsx-runtime']:[];
+      config.build.rollupOptions.output = {entryFileNames: target, format: 'iife',
+        inlineDynamicImports: true,
+        ...(sharedUI?{globals:{react:'OpenDeskPageReact','react/jsx-runtime':'OpenDeskPageReact'}}:{})};
       // lodash-es@4.18.1 has an unreachable Function('return this')()
       // fallback in its upstream _root module. It is forbidden by the strict
       // MV3 classic-IIFE verifier even when dead after minification. Replace

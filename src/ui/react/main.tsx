@@ -6,6 +6,16 @@ import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionR
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
 import {WorkflowHeader,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
 import {DebugDiagnosticText} from './tabs/debug.tsx';
+import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
+import {CloudOverviewText} from './tabs/cloud.tsx';
+import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
+import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
+// Fixed, reviewed Bookmark Manager sources only; no installed package scripts.
+import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
+import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
+import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
+import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/style.css?raw';
+import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // One trusted React root and three portals in the existing fixed Side Panel.
 // Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
@@ -20,6 +30,29 @@ export function mountExtensionList(doc){
   const count=doc.getElementById('extension-center-count');
   const status=doc.getElementById('extension-center-status');
   const additional=[cleanups,empty,count,status];
+  const myCount=doc.getElementById('task-installed-count');
+  const myRows=doc.getElementById('task-installed-cards');
+  const myWorkspace=doc.getElementById('task-selected-workspace');
+  const myDetail=doc.getElementById('task-installed-detail');
+  const myNodes=[myCount,myRows,myWorkspace,myDetail],myTasksMounted=myNodes.every(Boolean);
+  if(myNodes.some(Boolean)&&!myTasksMounted)throw new Error('E_REACT_MY_PARTIAL_MOUNT');
+  if(myTasksMounted&&[myCount,myRows,myDetail].some(node=>node.dataset.opendeskReactOwner))
+    throw new Error('E_REACT_MY_ALREADY_OWNED');
+  const myInitialCount=myCount?.textContent||'',myInitialDetail=myDetail?.textContent||'';
+  const cloudIds={myState:'cloud-my-state',summary:'cloud-overview-state',
+    provider:'cloud-overview-provider',connection:'cloud-overview-connection',
+    host:'cloud-overview-host',slot:'cloud-overview-slot',
+    tasks:'cloud-overview-tasks',requests:'cloud-overview-requests'};
+  const cloudNodes=Object.fromEntries(Object.entries(cloudIds).map(([key,id])=>[
+    key,doc.getElementById(id)
+  ]));
+  const cloudValues=Object.values(cloudNodes),cloudOverviewMounted=cloudValues.every(Boolean);
+  if(cloudValues.some(Boolean)&&!cloudOverviewMounted)throw new Error('E_REACT_CLOUD_PARTIAL_MOUNT');
+  if(cloudOverviewMounted&&cloudValues.some(node=>node.dataset.opendeskReactOwner))
+    throw new Error('E_REACT_CLOUD_ALREADY_OWNED');
+  const cloudInitial=Object.fromEntries(Object.entries(cloudNodes).map(([key,node])=>[
+    key,node?.textContent||''
+  ]));
   const developer={
     host:doc.getElementById('script-current-page-host'),
     status:doc.getElementById('script-current-page-status'),
@@ -107,6 +140,17 @@ export function mountExtensionList(doc){
   // One-time handoff removes the legacy empty placeholder from this React-
   // owned region; the non-React fallback HTML remains intact for old hosts.
   empty.replaceChildren();
+  if(myTasksMounted){
+    // TaskWorkbench may already have installed live cards and a params form.
+    myRows.after(myWorkspace);
+    for(const node of [myRows,myCount,myDetail])node.replaceChildren();
+    myRows.dataset.opendeskReactOwner='my-task-rows';
+    myCount.dataset.opendeskReactOwner='my-task-count';
+    myDetail.dataset.opendeskReactOwner='my-task-detail';
+  }
+  if(cloudOverviewMounted)for(const [key,node] of Object.entries(cloudNodes)){
+    node.replaceChildren();node.dataset.opendeskReactOwner='cloud-'+key;
+  }
   container.dataset.opendeskReactOwner='extension-list';
   detailContainer.dataset.opendeskReactOwner='extension-detail';
   toolbar.dataset.opendeskReactOwner='extension-toolbar';
@@ -165,11 +209,18 @@ export function mountExtensionList(doc){
   let developerTargetModel={host:'正在识别…',hostTitle:'',status:'检查中',
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
   let debugModel=debugInitial;
+  let myRowsModel={rows:[],selectedId:'',emptyText:'',onSelect:()=>{}};
+  let cookiePilotHost=null;
+  let bookmarkPilot=null;
+  let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
   function paint(){
     if(disposed)return;
     // Extension Center restores focus immediately after draw(). Commit the
     // single React tree and all portals synchronously before that readback.
     flushSync(()=>root.render(<>
+      {/* WXT fixed entry is JS-only. Scope audited pilot CSS into the
+          existing React tree; never emit an unlisted tool-shell.css asset. */}
+      <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
       {createPortal(<ExtensionToolbar model={toolbarModel}/>,toolbar)}
       {createPortal(<ExtensionRows {...model} menuKey={menuKey}/>,container)}
       {createPortal(<ExtensionDetail model={detailModel} container={detailContainer}/>,detailContainer)}
@@ -177,7 +228,18 @@ export function mountExtensionList(doc){
       {createPortal(<ExtensionEmpty model={feedbackModel} container={empty}/>,empty)}
       {createPortal(feedbackModel.countText,count)}
       {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
+      {myTasksMounted&&createPortal(<MyTaskCount value={myCountText}/>,myCount)}
+      {myTasksMounted&&createPortal(<MyTaskRows {...myRowsModel} workspace={myWorkspace}/>,myRows)}
+      {myTasksMounted&&createPortal(<MyTaskDetail value={myDetailText}/>,myDetail)}
+      {cloudOverviewMounted&&Object.entries(cloudNodes).map(([key,node])=>
+        createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
+      {cookiePilotHost&&createPortal(<CookieTrustedPilot/>,cookiePilotHost)}
+      {bookmarkPilot&&createPortal(<>
+        <style data-bookmark-trusted-style="">{bookmarkScopedCSS}</style>
+        <BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}
+          onStateChange={bookmarkPilot.onStateChange}/>
+       </>,bookmarkPilot.container,'bookmark-react-trusted')}
       {workflowMounted&&createPortal(
         <WorkflowHeader model={workflowHeaderModel} actions={workflowActions}/>,workflowHeader)}
       {workflowMounted&&createPortal(
@@ -220,6 +282,77 @@ export function mountExtensionList(doc){
   return Object.freeze({
     owner:'extension-list',
     debugMounted,
+    myTasksMounted,cloudOverviewMounted,
+    mountBookmarkPilot({container,sdk,onStateChange}={}){
+      if(disposed||bookmarkPilot||!container||container.ownerDocument!==doc||
+        container.childNodes.length||container.dataset.opendeskReactOwner||
+        typeof sdk?.bookmarks?.getTree!=='function'||
+        typeof onStateChange!=='function'||!globalThis.BookmarkR2Service?.create||
+        !globalThis.BookmarkR2Model)
+        throw new Error('E_BOOKMARK_TRUSTED_PILOT_MOUNT');
+      bookmarkPilot={container,
+        runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk)}),
+        onStateChange};
+      container.dataset.opendeskReactOwner='bookmark-react-pilot';
+      try{paint();}catch(error){
+        // A failed initial React render must never leave a privileged portal
+        // or stale private data owned by the shared root.
+        bookmarkPilot=null;delete container.dataset.opendeskReactOwner;
+        try{paint();}catch{/* Let Host fail closed and discard its slot. */}
+        throw error;
+      }
+      let released=false;
+      return ()=>{
+        if(released)return;released=true;
+        if(bookmarkPilot?.container===container){
+          bookmarkPilot=null;
+          if(!disposed)paint();
+          delete container.dataset.opendeskReactOwner;
+        }
+      };
+    },
+    mountCookieEditorPilot(container){
+      // An opt-in, development-only *data-free* demo. No package JS is read
+      // and the real Cookie Tool keeps its original iframe and SDK Host.
+      if(disposed||cookiePilotHost||!debugMounted||!container||
+        container.ownerDocument!==doc||container.childNodes.length||
+        container.dataset.opendeskReactOwner)
+        throw new Error('E_COOKIE_TRUSTED_PILOT_MOUNT');
+      cookiePilotHost=container;
+      container.dataset.opendeskReactOwner='cookie-react-pilot';
+      paint();
+      let released=false;
+      return ()=>{
+        if(released)return;released=true;
+        if(cookiePilotHost===container){
+          cookiePilotHost=null;
+          if(!disposed)paint();
+          delete container.dataset.opendeskReactOwner;
+        }
+      };
+    },
+    renderMyTaskCount(value){
+      if(disposed||!myTasksMounted)return;myCountText=String(value);paint();
+    },
+    renderMyTaskDetail(value){
+      if(disposed||!myTasksMounted)return;myDetailText=String(value);paint();
+    },
+    renderMyTaskRows(next){
+      if(disposed||!myTasksMounted)return;
+      if(!next||!Array.isArray(next.rows)||typeof next.onSelect!=='function'||
+        typeof next.selectedId!=='string'||typeof next.emptyText!=='string')
+        throw new Error('E_REACT_MY_SNAPSHOT');
+      myRowsModel=next;paint();
+    },
+    renderCloudOverview(next){
+      if(disposed||!cloudOverviewMounted)return;
+      if(!next||typeof next!=='object'||Array.isArray(next))
+        throw new Error('E_REACT_CLOUD_SNAPSHOT');
+      for(const [key,value] of Object.entries(next))
+        if(!Object.hasOwn(cloudNodes,key)||typeof value!=='string')
+          throw new Error('E_REACT_CLOUD_SNAPSHOT');
+      cloudModel={...cloudModel,...next};paint();
+    },
     renderDebugDiagnostics(next){
       if(disposed||!debugMounted||!next||typeof next!=='object'||Array.isArray(next))
         throw new Error('E_REACT_DEBUG_OWNER');
@@ -319,6 +452,14 @@ export function mountExtensionList(doc){
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
+      if(cookiePilotHost){delete cookiePilotHost.dataset.opendeskReactOwner;cookiePilotHost=null;}
+      if(bookmarkPilot){delete bookmarkPilot.container.dataset.opendeskReactOwner;bookmarkPilot=null;}
+      if(myTasksMounted){
+        myRows.after(myWorkspace);
+        for(const node of [myRows,myCount,myDetail])delete node.dataset.opendeskReactOwner;
+      }
+      if(cloudOverviewMounted)for(const node of cloudValues)
+        delete node.dataset.opendeskReactOwner;
       if(workflowMounted){
         delete workflowHeader.dataset.opendeskReactOwner;
         delete workflowTranscript.dataset.opendeskReactOwner;

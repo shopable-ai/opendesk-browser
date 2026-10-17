@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDesk Browser · 开发选项卡 R2.2 · 垂直节奏精修交互预览</title>
+<style>
+:root{
+ color-scheme:light; --ink:#1d293b;--sub:#637184;--meta:#8793a5;--brand:#365eda;--brand-soft:#edf2ff;
+ --positive:#117a5d;--positive-soft:#e8f7f1;--negative:#b44650;--negative-soft:#fff1f1;
+ --warn:#946418;--warn-soft:#fff8e9;--line:#e4e9f0;--line-soft:#edf0f4;
+ --paper:#fff;--bg:#f6f8fa;--soft:#f7f9fc;--shadow:#17253a20;
+ --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;
+ --r-input:9px;--r-card:12px;--r-pill:999px;--control:36px;--icon-control:34px;
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+body{background:#edf0f5;display:flex;align-items:flex-start;justify-content:center}
+button,input,select,textarea{font:inherit}p,pre,figure,fieldset{margin:0}button{cursor:pointer}input,select,textarea{min-width:0;max-width:100%;outline:none}
+[hidden]{display:none!important}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+button:disabled{cursor:not-allowed;opacity:.45}button:hover:not(:disabled){filter:brightness(.984)}
+.shell{position:relative;width:420px;max-width:100vw;min-width:0;height:100dvh;max-height:1000px;min-height:620px;background:var(--paper);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 55px var(--shadow)}
+@media(max-width:440px){body{background:#fff}.shell{width:100vw;height:100dvh;min-height:0;max-height:none;box-shadow:none}}
+.icon{width:18px;height:18px;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;fill:none;flex-shrink:0}
+.icon-sm{width:15px;height:15px}.icon-lg{width:21px;height:21px}
+.brandbar{height:55px;flex-shrink:0;border-bottom:1px solid var(--line);padding:0 var(--space-4);display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.brand{display:flex;align-items:center;gap:var(--space-2);white-space:nowrap;font-size:14px;font-weight:730;letter-spacing:-.025em}
+.brandmark{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:#25334c;color:white;font-weight:850;font-size:15px}
+.brand small{color:var(--meta);font-size:10px;letter-spacing:.04em;font-weight:540;margin-left:var(--space-1)}
+.head-actions{display:flex;gap:var(--space-1)}
+.icon-btn{height:34px;width:34px;display:grid;place-items:center;flex-shrink:0;background:transparent;color:#687a92;border:1px solid transparent;border-radius:var(--r-input);padding:0}
+.icon-btn:hover{background:var(--soft)}.icon-btn.outline{border-color:var(--line);background:#fff}.icon-btn.danger{color:var(--negative)}
+.top-tabs{height:45px;border-bottom:1px solid var(--line);display:flex;flex-shrink:0;padding:0 var(--space-2)}
+.tab{flex:1;min-width:0;display:grid;place-items:center;font-size:12px;font-weight:520;color:#8996a7;position:relative}
+.tab[aria-current="page"]{font-weight:710;color:var(--brand)}.tab[aria-current="page"]:after{content:"";position:absolute;bottom:-1px;left:25%;right:25%;height:2px;background:var(--brand);border-radius:4px}
+.viewport{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;padding:var(--space-4) var(--space-4) var(--space-6)}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:31px;margin-bottom:var(--space-4)}
+h1{font-size:19px;line-height:1.3;font-weight:740;letter-spacing:-.035em;margin:0}h2{font-size:12.5px;line-height:1.5;font-weight:720;margin:0}h3{font-size:12px;line-height:1.5;font-weight:680;margin:0}
+.chip{display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:7px;font-size:11px;background:#f4f6f9;color:#8b96a5;white-space:nowrap}
+.pill{font-size:10.5px;line-height:1.3;font-weight:620;color:var(--positive);background:var(--positive-soft);border-radius:var(--r-pill);padding:4px 8px;white-space:nowrap}
+.pill.neutral{color:var(--sub);background:#f2f5f8}.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.section{margin:0 0 var(--space-4)}.section:last-child{margin-bottom:0}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-2)}
+.section-head .trailing{font-size:11px;color:var(--meta);font-weight:500}
+.muted{font-size:11.5px;color:var(--sub);line-height:1.6}.micro{font-size:11px;color:var(--meta);line-height:1.5}
+.stack{display:grid;gap:var(--space-3)}.stack-sm{display:grid;gap:var(--space-2)}.hstack{display:flex;align-items:center;gap:var(--space-2);min-width:0}.hstack>label{min-width:0}
+.grow{flex:1;min-width:0}.align-end{justify-content:flex-end}.space-between{justify-content:space-between}
+.field{display:grid;gap:var(--space-1);min-width:0}.field>label{font-size:11.5px;font-weight:650;color:#4a5a6e}
+.field input:not([type=checkbox]),.field select,.field textarea,input[type=text].control,input[type=url].control,select.control,textarea.control{width:100%;background:#fff;border:1px solid #dce3ed;border-radius:var(--r-input);padding:8px 11px;color:var(--ink);min-height:var(--control)}
+input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!important}textarea{resize:vertical}
+.field .help{font-size:11px;color:var(--meta)}
+.btn{border:1px solid var(--line);background:#fff;color:#51627a;display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);min-height:var(--control);border-radius:var(--r-input);padding:7px 12px;font-weight:650;font-size:12px;white-space:nowrap}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.ghost{border-color:transparent;background:transparent}.btn.danger{border-color:#f0d4d9;color:var(--negative);background:#fffafa}.btn.compact{padding:6px 10px;min-height:32px;font-size:11.5px}.btn.wide{width:100%}
+.divider{border:0;border-top:1px solid var(--line-soft);margin:var(--space-3) 0}
+.target{display:flex;align-items:center;gap:var(--space-3);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--space-3);min-width:0}
+.target-icon{width:36px;height:36px;display:grid;place-items:center;flex:none;border-radius:10px;background:#eff3f9;color:#61738d}
+.target-name{display:block;font-size:12.5px;font-weight:690;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.target-url{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--meta);margin-top:2px}
+.target-state{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--positive);white-space:nowrap}.dot{height:6px;width:6px;border-radius:50%;background:currentColor;display:inline-block}
+.target details{width:100%;min-width:0}.target summary{list-style:none;display:flex;align-items:center;gap:var(--space-3);cursor:pointer}.target summary::-webkit-details-marker{display:none}.target summary .grow{min-width:0;flex:1}.target-detail{padding:var(--space-3) 0 0;margin-top:var(--space-3);border-top:1px solid var(--line-soft);display:grid;gap:var(--space-2)}
+.target-detail .micro{overflow-wrap:anywhere}
+.editor-top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.switch{display:inline-flex;align-items:center;gap:var(--space-2);cursor:pointer;color:#617084;font-size:11.5px}.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{height:20px;width:34px;background:#cdd5df;border-radius:30px;display:flex;align-items:center;padding:3px;transition:background .17s}.switch .track:after{content:"";width:14px;height:14px;background:white;box-shadow:0 1px 4px #0001;border-radius:50%;transition:transform .17s}.switch input:checked+.track{background:var(--brand)}.switch input:checked+.track:after{transform:translateX(14px)}.switch input:focus-visible+.track{outline:2px solid var(--brand);outline-offset:3px}
+.segment{display:inline-flex;align-items:center;background:#f2f4f8;border-radius:10px;padding:3px;gap:2px;max-width:100%}.seg-btn{border:0;background:transparent;padding:6px 12px;min-height:28px;line-height:1.3;border-radius:8px;color:#8793a5;font-size:11.5px;font-weight:520}.seg-btn[aria-pressed=true]{background:#fff;box-shadow:0 1px 4px #243b5722;color:#35465c;font-weight:720}
+.mode-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:33px}
+.editor-card{border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden;background:#fbfcfd}
+.editor-head{min-height:34px;padding:0 var(--space-3);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);background:#f7f8fa;border-bottom:1px solid var(--line-soft);font-size:10.5px;color:#8290a2}
+.editor-head .filename{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#748098}
+.code-editor{display:block;border:0;outline:0!important;width:100%;min-height:173px;max-height:330px;background:#fbfcfd;padding:var(--space-3);font:11.7px/1.85 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#31445e;tab-size:2;white-space:pre;overflow:auto;border-radius:0;resize:vertical}
+.code-editor:focus{box-shadow:inset 0 0 0 1px #8cacf8}
+.fold{border:1px solid var(--line);border-radius:var(--r-card);margin:0;background:#fff;min-width:0;overflow:hidden}
+.fold>summary{list-style:none;display:flex;align-items:center;gap:var(--space-2);min-height:43px;padding:10px var(--space-3);font-size:12px;font-weight:675;cursor:pointer;user-select:none}
+.fold>summary::-webkit-details-marker{display:none}.fold>summary .summary-label{flex:1;min-width:0}.fold>summary .summary-end{font-size:11px;font-weight:500;color:var(--meta)}
+.fold>summary .chevron{color:#8f9bad;transition:transform .16s}.fold[open]>summary .chevron{transform:rotate(90deg)}.fold[open]>summary{border-bottom:1px solid var(--line-soft)}
+.fold-body{padding:var(--space-3);display:grid;gap:var(--space-2)}
+.fold-inner{border:1px solid var(--line-soft);background:#fcfdff;border-radius:10px;margin:0}.fold-inner>summary{min-height:39px;font-size:11.8px}.fold-inner .fold-body{padding:var(--space-3)}
+.result-card{border:1px solid var(--line-soft);background:var(--soft);border-radius:10px;padding:var(--space-3);min-height:65px;display:block;max-height:195px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.7 ui-monospace,Menlo,monospace;color:#68798c}
+.result-card.success{color:#25694f}.result-card.error{color:var(--negative)}
+.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-2)}
+.inline-card{border:1px solid var(--line);border-radius:var(--r-card);padding:var(--space-3);display:flex;align-items:center;gap:var(--space-3);min-width:0;width:100%;text-align:left;background:#fff}
+.inline-card:hover{background:#fbfcff}.inline-icon{height:36px;width:36px;display:grid;place-items:center;background:var(--positive-soft);color:var(--positive);border-radius:10px;flex-shrink:0}
+.inline-title{display:block;font-weight:690;font-size:12.5px}.inline-sub{display:block;color:var(--meta);font-size:11px;margin-top:2px;line-height:1.4}
+.note-panel{padding:var(--space-3);border-radius:9px;background:var(--soft);border:1px solid var(--line-soft);font-size:11.5px;color:var(--sub);line-height:1.6}
+.banner{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:9px;background:#f1f5ff;color:#526488;border:1px solid #e9effc;font-size:11px;line-height:1.5}.banner.warn{background:var(--warn-soft);border-color:#f4e7c9;color:var(--warn)}.banner.error{background:var(--negative-soft);border-color:#f1dade;color:var(--negative)}.banner.success{background:var(--positive-soft);border-color:#d2eddf;color:var(--positive)}
+.table-box{display:grid;gap:var(--space-2)}.table-row{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);font-size:11.5px}.table-row span:first-child{color:var(--sub)}
+.footer-dock{height:61px;flex-shrink:0;display:flex;align-items:center;gap:var(--space-2);border-top:1px solid var(--line);background:#fff;padding:var(--space-2) var(--space-4);box-shadow:0 -7px 19px #24395308}
+.footer-dock .btn{min-height:38px}.footer-dock .primary{flex:1}.footer-dock .compact-save{width:74px}
+.toast{position:absolute;bottom:73px;left:var(--space-4);right:var(--space-4);z-index:12;padding:11px 13px;border-radius:10px;border:1px solid #d7e3f6;background:#f4f8ff;box-shadow:0 6px 24px #344b6520;color:#334760;font-size:11.5px;line-height:1.5;display:none}.toast.visible{display:block}.toast.bad{background:var(--negative-soft);border-color:#f1dade;color:var(--negative)}
+/* SDK bottom sheet: one reusable tokenized surface, no global page permission assumed. */
+.overlay{position:absolute;inset:0;background:#17233966;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}.drawer{position:absolute;z-index:21;left:0;right:0;bottom:0;height:min(89%,860px);display:flex;flex-direction:column;background:#fff;box-shadow:0 -10px 48px #17233925;border-radius:18px 18px 0 0;transform:translateY(102%);transition:transform .23s ease;visibility:hidden}
+.drawer-open .overlay{pointer-events:auto;opacity:1}.drawer-open .drawer{visibility:visible;transform:translateY(0)}
+.grip{width:32px;height:4px;margin:9px auto 0;background:#dfe5ee;border-radius:30px;flex-shrink:0}
+.drawer-head{min-height:65px;display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-bottom:1px solid var(--line);flex-shrink:0}.drawer-head h2{font-size:15px;font-weight:740}.drawer-head p{margin:2px 0 0;font-size:11px;color:var(--meta)}
+.drawer-scroll{flex:1;overflow:auto;padding:var(--space-4);display:grid;gap:var(--space-4);align-content:start;scrollbar-width:thin}.drawer-section{display:grid;gap:var(--space-2)}
+.drawer-foot{flex-shrink:0;border-top:1px solid var(--line);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2);background:white}.drawer-foot .hstack>*{flex:1}.drawer-notice{text-align:center;color:var(--meta);font-size:10.5px}
+.origin-list{display:grid;gap:var(--space-2)}.origin-item{display:flex;align-items:center;gap:8px;min-height:36px;padding:3px 6px 3px 10px;background:var(--soft);border:1px solid var(--line-soft);border-radius:9px;font:11px/1.5 ui-monospace,monospace}.origin-item span{flex:1;min-width:0;overflow-wrap:anywhere}.origin-list-empty{text-align:center;padding:16px;color:var(--meta);border:1px dashed var(--line);border-radius:9px;font-size:11px}
+.cap-list{display:grid;gap:0}.cap-row{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px;cursor:pointer}.cap-row:last-child{border-bottom:0}.cap-row input{accent-color:var(--brand);height:15px;width:15px;flex-shrink:0}.cap-row .cap-name{font-weight:650}.cap-row .cap-code{font:10px/1.4 ui-monospace,monospace;color:var(--meta)}.cap-row .cap-extra{margin-left:auto;white-space:nowrap;color:var(--meta);font-size:10px}
+.pre{border-radius:9px;background:var(--soft);border:1px solid var(--line-soft);padding:var(--space-3);font:10.5px/1.65 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;margin:0}
+.actions-wrap{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}.actions-wrap .btn{flex:0 1 auto}
+.preview-footer{padding-top:var(--space-3);border-top:1px solid var(--line-soft);font-size:10.5px;color:#a2acb9;text-align:center}
+
+/* R2.1 UX audit — official OpenDesk spacing rhythm (4/8/12/16); one gutter owner. */
+:root{--ink:#1b2c49;--sub:#53647e;--line:#e1e8f1;--bg:#f5f7fb;--meta:#8793a5;--r-input:8px;--r-card:12px}
+.viewport{padding:12px 11px 16px}
+.page-head{min-height:34px;margin-bottom:8px}
+h1{font-size:15px;line-height:1.4;font-weight:680}
+.section{margin:0 0 16px}
+.section-head{min-height:20px;margin-bottom:8px}
+.editor-top{min-height:34px}
+.stack{gap:12px}.stack-sm{gap:8px}
+.code-kind-row{justify-content:space-between;align-items:center;gap:8px;min-height:34px}
+.code-kind-row .segment{flex:none}
+.code-kind-row .seg-btn{min-width:43px;padding:6px 10px}
+.code-kind-row #run-location{margin-left:auto;gap:6px;flex:none}
+.code-kind-row label{white-space:nowrap;color:var(--sub)}
+select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-weight:650;background:var(--paper)}
+.code-editor{min-height:216px;line-height:1.65}
+.fold>summary{min-height:42px;padding:8px 12px}
+.fold>.fold-body{padding:12px}
+#page-publish-actions[hidden],#page-publish-actions:empty{display:none}
+#page-install[hidden]{display:none!important}
+#page-management .fold-body{gap:8px}
+#page-publish-actions:not(:has(> :not([hidden]))){display:none}
+.preview-footer{display:flex;flex-direction:column;gap:8px;align-items:flex-start;line-height:1.5}
+.preview-demo-actions{display:flex;gap:8px;flex-wrap:wrap}
+.preview-demo-actions .btn{font-weight:500;font-size:11px}
+.section[aria-label="高级设置与诊断"]{display:grid;gap:var(--space-2)}
+.drawer-section>.section-head{margin-bottom:0}
+.editor-code-group{display:grid;gap:var(--space-1)}
+.result-heading{min-height:40px;margin-bottom:var(--space-2)}
+.result-heading-copy{min-width:0;display:grid;gap:var(--space-1)}
+.result-heading-copy .micro{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-heading>.hstack{flex:none;gap:var(--space-2)}
+#history-fold{margin-top:var(--space-2)}
+#run-result{margin:0}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0!important;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:360px){.code-kind-row .seg-btn{min-width:36px;padding:6px 7px}.code-kind-row label{display:none}.code-kind-row #run-location{gap:0}}
+</style>
+</head>
+<body>
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+ <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 9-4 3 4 3m8-6 4 3-4 3m-6 4 4-10"/></symbol>
+ <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9m0-18c-3 3-4 6-4 9s1 6 4 9"/></symbol>
+ <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+ <symbol id="i-square" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+ <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h12l3 3v13H4V4h1zm2 0v6h10V4m-11 16v-7h12v7"/></symbol>
+ <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+ <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 5.5M20 4v7h-7"/></symbol>
+ <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+ <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1 2-2 2-2-.5a8.9 8.9 0 0 1-2 1l-1 1.7H10l-1-1.7a8.9 8.9 0 0 1-2-1L5 19l-2-2 .5-2a8.9 8.9 0 0 1-1-2L1 12l1.5-1a8.9 8.9 0 0 1 1-2L3 7l2-2 2 .5a8.9 8.9 0 0 1 2-1L10 3h2.5l1 1.5a8.9 8.9 0 0 1 2 1L17.5 5l2 2-.5 2a8.9 8.9 0 0 1 1 2l1.5 1-1.5 1a8.9 8.9 0 0 1-.6 2Z"/></symbol>
+ <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7h7l2 3h9v10H3zM3 10V5h6l2 2h10v3"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM15 2v6h5M9 12h8m-8 4h8"/></symbol>
+ <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 1 2.5 6M3 17v-5h5m4-5v5l4 3"/></symbol>
+ <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m5 0h5"/></symbol>
+ <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 11 4.6-2.4 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></symbol>
+ <symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 2 10 18H2Zm0 7v5m0 3h.01"/></symbol>
+ <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+ <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+ <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+</svg>
+<div class="shell" id="shell">
+<header class="brandbar">
+  <div class="brand"><span class="brandmark">O</span> OpenDesk <small>BROWSER</small></div>
+  <div class="head-actions"><button class="icon-btn" id="preview-search" aria-label="查看页面功能清单" title="查看页面功能清单"><svg class="icon"><use href="#i-search"/></svg></button><button class="icon-btn" id="preview-more" aria-label="预览说明" title="预览说明"><svg class="icon"><use href="#i-dots"/></svg></button></div>
+</header>
+<nav class="top-tabs" aria-label="工作台视图"><span class="tab">我的</span><span class="tab">扩展</span><span class="tab">工作流</span><span class="tab" aria-current="page">开发</span><span class="tab">云控</span></nav>
+<main class="viewport" id="viewport">
+ <div class="page-head"><h1>开发</h1><span class="chip">当前网页</span></div>
+ <section class="section" aria-label="当前网页">
+  <div class="section-head"><h2>运行目标</h2><span class="trailing" id="target-kind">自动绑定</span></div>
+  <div class="target"><details id="target-details"><summary><span class="target-icon"><svg class="icon"><use href="#i-globe"/></svg></span><span class="grow"><span class="target-name" id="target-name">OpenDesk Browser · Browser Test Lab</span><span class="target-url" id="target-url">127.0.0.1:43111 / demo-form.html</span></span><span class="target-state"><span class="dot"></span>可运行</span><svg class="icon icon-sm" style="color:#a2abba"><use href="#i-chevron"/></svg></summary><div class="target-detail"><div class="table-row"><span>文档</span><span id="target-document">doc-demo-1</span></div><div class="table-row"><span>frame</span><span>0 · 主文档</span></div><div class="micro">默认随活动网页切换，运行前再次校验身份。下方可手动选择精确目标。</div></div></details></div>
+ </section>
+
+ <section class="section" aria-label="源码编辑">
+  <div class="editor-top"><h2 id="source-heading">直接编辑</h2><div class="hstack"><button class="icon-btn" id="new-draft" title="新建草稿" aria-label="新建草稿"><svg class="icon"><use href="#i-plus"/></svg></button><label class="switch"><input id="local-toggle" type="checkbox" role="switch"><span class="track"></span><span>本地项目</span></label></div></div>
+  <div class="stack" style="margin-top:var(--space-2)">
+   <div class="stack-sm" id="manual-area">
+    <div class="mode-row code-kind-row" id="framework-area"><div class="segment" role="group" aria-label="代码类型"><button type="button" class="seg-btn" data-framework="javascript" aria-pressed="true">JS</button><button type="button" class="seg-btn" data-framework="react" aria-pressed="false">React</button><button type="button" class="seg-btn" data-framework="vue" aria-pressed="false">Vue</button></div><div class="hstack" id="run-location"><label class="micro" for="js-runtime-select">运行位置</label><select class="control mini-select" id="js-runtime-select" aria-label="JS 运行方式"><option value="controller">任务</option><option value="page">网页</option></select></div><span id="mode-caption" class="sr-only" aria-live="polite">任务 · JS</span></div>
+    <div class="editor-code-group"><div class="editor-card"><div class="editor-head"><span>当前草稿 <span id="dirty-dot" hidden>· 未保存</span></span><span class="filename" id="filename">main.js</span></div><textarea class="code-editor" id="code-editor" spellcheck="false" aria-label="源码编辑器">async function main() {
+  return {
+    title: await page.title(),
+    url: await page.url()
+  };
+}</textarea></div>
+    <div class="micro" id="code-hint">保存不会运行。运行时会校验当前网页。</div></div>
+    <details class="fold fold-inner" id="params-fold"><summary><svg class="icon icon-sm"><use href="#i-file"/></svg><span class="summary-label">参数 JSON（可选）</span><span class="summary-end">{&quot;value&quot;: 0}</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="field"><label for="params-editor">参数 JSON</label><textarea class="control" id="params-editor" rows="3" spellcheck="false">{"value":0}</textarea></div></div></details>
+    <details class="fold fold-inner" id="deps-fold"><summary><svg class="icon icon-sm"><use href="#i-folder"/></svg><span class="summary-label">编译与依赖诊断</span><span class="summary-end">按需查看</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">只有引入第三方模块或编译失败时才需要查看。系统会在运行前准备和校验依赖，不必手工编译。</div><div class="actions-wrap"><button class="btn compact" id="deps-check">检查依赖</button><button class="btn compact" id="deps-lock">检查固定版本</button></div><details class="fold fold-inner"><summary>许可证、源码哈希和编译产物 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="dependency-info">尚无外部依赖。此处只展示审核数据，不执行代码。</pre></div></details></div></details>
+   </div>
+   <div id="local-area" hidden class="stack">
+    <div class="banner"><svg class="icon icon-sm"><use href="#i-folder"/></svg><span>从本地项目运行代码；在 VS Code 中编辑，多文件会一起读取。</span></div>
+    <div class="hstack"><select class="control grow" id="local-project-select" aria-label="已授权本地项目"><option value="">选择已授权本地项目</option><option value="demo-page">reading-tool · Page</option><option value="demo-controller">browser-lab · Controller</option></select><button class="icon-btn outline" id="local-refresh" title="刷新项目" aria-label="刷新项目"><svg class="icon"><use href="#i-refresh"/></svg></button></div>
+    <div class="table-box" id="local-project-detail"><div class="table-row"><span>原生连接</span><strong style="color:var(--positive)">示例已连接</strong></div><div class="table-row"><span>源码 Provider</span><span>等待选择项目</span></div></div>
+    <div class="editor-card" id="local-tree"><div class="editor-head"><span>项目源码快照</span><span class="filename">只读</span></div><pre class="pre" id="local-files" style="margin:8px;background:white;border:0">请选择已授权项目后查看多文件入口。</pre><div class="field" id="local-file-view" hidden style="padding:0 var(--space-2) var(--space-2)"><label for="local-source-file">查看项目文件（只读）</label><select class="control" id="local-source-file"></select><pre class="pre" id="local-source-code">选择文件后显示示例源码。</pre></div></div>
+    <details class="fold fold-inner"><summary><svg class="icon icon-sm"><use href="#i-settings"/></svg><span class="summary-label">本地连接诊断与首次使用</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><p class="muted">仅在 Native 未连接时，需要在可信入口连接 OpenDesk。已授权项目自动准备，不必反复配对。</p><pre class="pre">opendesk browser dev .
+# 本地项目源码目录</pre><div class="actions-wrap"><button class="btn compact" id="local-connect">检查本机连接</button><button class="btn compact" id="local-guide">查看配置命令</button></div><div class="micro">参考 docs/api/local-projects.zh-CN.md</div></div></details>
+    <details class="fold fold-inner"><summary><svg class="icon icon-sm"><use href="#i-file"/></svg><span class="summary-label">本地项目参数 JSON</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><textarea class="control" id="local-params" rows="3" spellcheck="false">{}</textarea></div></details>
+    <div class="actions-wrap"><button class="btn compact" id="local-install-review" hidden><svg class="icon icon-sm"><use href="#i-save"/></svg>准备安装快照</button><span class="micro">需先运行成功</span></div>
+   </div>
+  </div>
+ </section>
+
+ <section class="section" aria-label="运行结果">
+  <div class="section-head result-heading"><div class="result-heading-copy"><h2>运行结果</h2><span class="micro" id="result-context">草稿 · 等待运行</span></div><div class="hstack"><span class="trailing" id="result-badge">尚未运行</span><button class="icon-btn outline" id="copy-result" aria-label="复制运行结果" title="复制结果"><svg class="icon icon-sm"><use href="#i-copy"/></svg></button></div></div>
+  <pre class="result-card" id="run-result">点击底部「运行草稿」，查看本次执行结果。</pre>
+  <details class="fold fold-inner" id="history-fold"><summary><svg class="icon icon-sm"><use href="#i-history"/></svg><span class="summary-label">运行记录与技术信息</span><span class="summary-end" id="history-count">0 次</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="hstack"><select class="control grow" id="history-select" aria-label="历史运行"><option value="">选择历史运行记录</option></select><button class="icon-btn outline" id="refresh-history" title="刷新运行记录" aria-label="刷新运行记录"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div><details class="fold fold-inner"><summary>完整历史与版本身份 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="history-detail">无运行记录</pre></div></details><details class="fold fold-inner"><summary>结果下载与任务查询 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="field"><label for="run-id-input">查询 runId（留空读取全部历史）</label><input class="control" id="run-id-input" placeholder="runId"></div><div class="actions-wrap"><button class="btn compact" id="lookup-run">查询任务</button><button class="btn compact" id="download-result"><svg class="icon icon-sm"><use href="#i-download"/></svg>下载结果 JSON</button></div><div class="micro">保留持久结果类型信息，真实环境以 RunHost 回执为准。</div></div></details><details class="fold fold-inner"><summary>运行目标与版本 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="run-identity">运行目标：尚未建立</pre></div></details></div></details>
+ </section>
+
+ <section class="section" aria-label="网页脚本试运行与安装">
+  <details class="fold" id="page-fold"><summary><svg class="icon"><use href="#i-globe"/></svg><span class="summary-label">网页增强 · 试运行与发布</span><span class="summary-end">Page</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">需要网页注入时，先试运行，再选择是否保存并安装。运行不等于自动安装。</div><div class="actions-wrap"><button class="btn primary compact" id="page-preview-run"><svg class="icon icon-sm"><use href="#i-play"/></svg>试运行当前网页</button><button class="btn compact" id="page-candidate-save" disabled>保存为网页增强</button></div><div class="banner" id="page-status">尚未试运行；试运行不会保存版本或安装任务。</div><div class="field"><label for="page-program-list">已保存网页脚本</label><select class="control" id="page-program-list"><option value="">请选择网页脚本版本</option></select></div><div class="actions-wrap" id="page-publish-actions"><button class="btn compact primary" id="page-install" hidden>检查并安装</button></div><details class="fold fold-inner" id="page-management" hidden><summary><svg class="icon icon-sm"><use href="#i-settings"/></svg><span class="summary-label">已保存网页增强 · 管理</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">安装后将按批准的网站规则自动运行。日常启停或卸载建议在「扩展 → 网页增强」管理。</div><div class="actions-wrap"><button class="btn compact" id="page-load">加载源码</button><button class="btn compact" id="page-toggle" hidden>停用自动运行</button><button class="icon-btn outline" id="page-refresh" aria-label="刷新网页脚本状态" title="刷新状态"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div><details class="fold fold-inner" id="page-danger-fold" hidden><summary>故障恢复与卸载<svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="actions-wrap"><button class="btn compact" id="page-restore" hidden>恢复网站访问</button><button class="btn compact danger" id="page-uninstall">卸载自动运行</button></div><div class="note-panel" id="page-uninstall-confirm" hidden role="group" aria-label="确认卸载网页增强"><strong>确定停止并卸载此网页增强？</strong><div class="micro" style="margin-top:4px">已执行的网页效果无法撤回。</div><div class="actions-wrap" style="margin-top:8px"><button class="btn compact danger" id="page-uninstall-yes">确认卸载</button><button class="btn compact" id="page-uninstall-no">取消</button></div></div></div></details><button type="button" id="page-verify" hidden>技术校验</button></div></details><div class="micro">只有明确安装后才会自动运行；停止或卸载不回滚已执行的网页操作。</div><details class="fold fold-inner"><summary>Page 技术信息 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="page-technical">等待来源、源代码哈希和目标文档的真实核验。</pre></div></details></div></details>
+ </section>
+
+ <section class="section" id="publish-section" aria-label="浏览器运行快照与发布" hidden>
+  <details class="fold" id="version-fold"><summary><svg class="icon"><use href="#i-file"/></svg><span class="summary-label">运行快照与任务发布</span><span class="summary-end" id="version-counter">尚未保存</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">本地源码的历史由 Git 管理；这里保存的是浏览器执行、安装或回滚时使用的不可变源码快照，不替代 Git。</div><div class="field"><label for="version-list">已保存脚本</label><div class="hstack"><select class="control grow" id="version-list"><option value="">尚无已保存版本</option></select><button class="icon-btn outline" id="version-refresh" aria-label="刷新版本" title="刷新"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div></div><div class="field"><label for="script-id">脚本名称 / ID</label><input class="control" id="script-id" value="my-script" maxlength="60"></div><div class="field"><label for="revision">revision</label><div class="hstack"><input class="control grow" type="number" min="1" id="revision" placeholder="留空加载最新版本"><button class="btn compact" id="load-version">加载版本</button></div></div><div class="banner" id="version-status">尚未保存；保存版本不运行网页。</div><details class="fold fold-inner" id="task-fold"><summary><span class="summary-label">制作可安装任务（高级）</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">任务候选需要真实运行、验证后才能发布与安装。</div><div class="field"><label for="task-id">稳定任务标识</label><input class="control" id="task-id" value="my-first-task"></div><div class="field"><label for="task-version">任务版本</label><input class="control" id="task-version" value="1.0.0"></div><div class="field"><label for="task-name">名称</label><input class="control" id="task-name" value="我的第一个任务"></div><div class="field"><label for="task-desc">用途</label><input class="control" id="task-desc" value="运行当前网页的自动化脚本"></div><div class="field"><label for="task-author">作者</label><input class="control" id="task-author" value="local-developer"></div><div class="field"><label for="task-schema">参数 Schema（JSON）</label><textarea class="control" id="task-schema" rows="4" spellcheck="false">{"type":"object","properties":{},"required":[],"additionalProperties":false}</textarea></div><button class="btn primary wide" id="make-task">保存为待验证任务候选</button><div class="micro" id="task-feedback">候选需要真实运行验证后才能安装</div></div></details></div></details>
+ </section>
+
+ <section class="section" aria-label="开发环境与 SDK">
+  <div class="section-head"><h2>开发环境</h2><span class="trailing">自动管理</span></div>
+  <button class="inline-card" type="button" id="open-sdk" aria-expanded="false" aria-controls="sdk-drawer"><span class="inline-icon"><svg class="icon icon-lg"><use href="#i-code"/></svg></span><span class="grow"><span class="inline-title">网页 SDK</span><span class="inline-sub" id="sdk-inline-sub">axiosx 已加载 · 同源请求可用</span></span><span class="pill" id="sdk-inline-state">基础可用</span><svg class="icon icon-sm" style="color:#a1acba"><use href="#i-chevron"/></svg></button>
+
+ </section>
+
+ <section class="section" aria-label="高级设置与诊断">
+  <details class="fold" id="advanced-fold"><summary><svg class="icon"><use href="#i-settings"/></svg><span class="summary-label">高级脚本与目标设置</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><details class="fold fold-inner" id="site-permission-fold"><summary>网站权限 · 默认全部网站 <span class="pill" style="margin-left:auto">已授权</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">Chrome 网站权限不等于脚本或网页 SDK 的应用级授权；用户脚本开关、隐身及浏览器内部页仍受独立限制。</div><div class="actions-wrap"><button class="btn compact" id="site-restore">恢复全部网站访问</button><button class="btn compact" id="site-refresh">刷新授权状态</button></div><div class="micro" id="site-state">演示环境：网站权限显示为可用，未查询实际 Chrome 权限。</div></div></details><div class="field"><label for="target-mode">目标方式</label><select class="control" id="target-mode"><option value="current">当前网页（默认）</option><option value="owned">创建隔离网页（高级）</option><option value="borrowed">手动选择精确文档（高级）</option></select></div><div class="field" id="owned-url-wrap" hidden><label for="owned-url">隔离网页地址</label><input class="control" id="owned-url" type="url" placeholder="https://example.com/"></div><div class="stack-sm" id="borrowed-wrap" hidden><div class="field"><label for="existing-tab">现有网页</label><div class="hstack"><select class="control grow" id="existing-tab"><option value="lab">OpenDesk Browser · Browser Test Lab</option><option value="docs">文档示例 · https://example.com</option></select><button class="icon-btn outline" id="tab-refresh" aria-label="刷新网页列表" title="刷新网页列表"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div></div><div class="field"><label for="exact-document">精确文档</label><select class="control" id="exact-document"><option value="main">frame 0 · 主文档</option><option value="frame-1">frame 1 · 示例 iframe</option></select></div></div><details class="fold fold-inner" id="user-scripts-fold"><summary>用户脚本权限恢复（遇到问题时）<svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">Chrome 138+ 若关闭「允许用户脚本」，Page 试运行或安装会被阻止。必须前往扩展详情手动开启，不能由工具静默开启。</div><div class="actions-wrap"><button class="btn compact" id="scripts-settings">打开扩展设置</button><button class="btn compact" id="scripts-check">重新检测</button></div><div class="micro" id="user-scripts-status">原型仅展示恢复路径，未查询真实浏览器。</div></div></details><label class="hstack muted"><input type="checkbox" id="cookie-access" style="accent-color:var(--brand)">允许脚本访问目标网站的 Cookie</label><div class="actions-wrap"><button class="btn compact danger" id="delete-script">删除当前脚本</button></div><details class="fold fold-inner"><summary>当前网页精确身份 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><pre class="pre" id="target-identity"></pre></div></details></div></details>
+  <details class="fold" id="diagnostics-fold"><summary><svg class="icon"><use href="#i-terminal"/></svg><span class="summary-label">目标检查与开发诊断</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><button class="inline-card" id="sdk-from-diagnostics" type="button" hidden><span class="inline-icon" style="height:32px;width:32px"><svg class="icon"><use href="#i-code"/></svg></span><span class="grow"><span class="inline-title">网页 SDK 授权管理</span><span class="inline-sub">查看跨站目标、能力、精确文档与撤销记录</span></span><svg class="icon icon-sm"><use href="#i-chevron"/></svg></button><details class="fold fold-inner" id="health-fold"><summary>目标健康检查 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">检查仅确认测试页和已绑定文档间通信，不执行采集。</div><div class="field"><label for="health-url">测试页面地址</label><input type="url" class="control" id="health-url" value="http://127.0.0.1:43111/demo-form.html"></div><div class="actions-wrap"><button class="btn compact" id="health-create">创建检查页</button><button class="btn compact" id="health-source">检查原页面</button><button class="btn compact" id="health-bound">检查已绑定文档</button></div><pre class="pre" id="health-result">环境入口已加载（模拟）</pre></div></details><div class="micro">SDK 授权与自动化任务独立，诊断只读，不代表执行成功。</div></div></details>
+ </section>
+ <div class="preview-footer"><span>R2.2 · 离线交互预览；未调用真实 Chrome 或 SDK</span><div class="preview-demo-actions"><button class="btn ghost compact" id="try-cross">模拟跨站拒绝</button><button class="btn ghost compact" id="sdk-inspect-inline">模拟授权状态</button></div></div>
+</main>
+<footer class="footer-dock" id="dock"><button class="btn primary" id="run-btn"><svg class="icon icon-sm"><use href="#i-play"/></svg><span id="run-label">运行草稿</span></button><button class="btn" id="stop-btn" hidden><svg class="icon icon-sm"><use href="#i-square"/></svg>停止</button><button class="btn compact-save" id="save-btn" title="将当前任务草稿保存为浏览器运行快照，不提交 Git"><svg class="icon icon-sm"><use href="#i-save"/></svg>存快照</button><button class="icon-btn outline" id="dock-more" aria-label="更多：运行快照与任务发布" title="运行快照与任务发布"><svg class="icon"><use href="#i-dots"/></svg></button></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="overlay" id="overlay"></div>
+<section class="drawer" id="sdk-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="网页 SDK 授权管理">
+ <div class="grip"></div>
+ <div class="drawer-head"><span class="grow"><h2>网页 SDK</h2><p>同源请求自动可用，跨站访问按需授权</p></span><button class="icon-btn outline" id="close-sdk" aria-label="关闭 SDK 设置"><svg class="icon"><use href="#i-x"/></svg></button></div>
+ <div class="drawer-scroll">
+  <section class="drawer-section"><div class="section-head"><h2>当前网页</h2><span class="pill" id="sdk-current">主文档</span></div><div class="target"><span class="target-icon"><svg class="icon"><use href="#i-globe"/></svg></span><span class="grow"><div class="target-name" id="sdk-page-name">Browser Test Lab</div><div class="target-url" id="sdk-origin">http://127.0.0.1:43111</div></span></div><div class="table-row"><span>SDK 基础能力</span><strong style="color:var(--positive)">同源网络可用</strong></div><div class="micro" id="sdk-summary-counter">附加授权 0 项</div></section>
+  <section class="drawer-section"><div class="section-head"><h2>额外访问的网站</h2><span class="trailing">最多 8 个目标</span></div><div class="origin-list" id="origin-list"><div class="origin-list-empty">尚无额外跨站目标</div></div><div class="hstack"><input type="url" class="control grow" id="origin-input" placeholder="https://api.example.com" aria-label="添加跨站目标 Origin"><button class="btn" id="add-origin">添加</button></div><div class="micro">只填写完整网站来源（协议、域名、端口）。添加后仍需点击授权。</div></section>
+  <section class="drawer-section"><details class="fold fold-inner" id="cap-details"><summary><svg class="icon icon-sm"><use href="#i-settings"/></svg><span class="summary-label">其他功能（按需）</span><span class="summary-end" id="cap-count">未选择</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body" style="gap:0"><div class="cap-list">
+   <label class="cap-row"><input type="checkbox" data-cap="storage.session"><span class="grow"><span class="cap-name">会话存储</span><br><span class="cap-code">storage.session</span></span><span class="cap-extra">按需</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="storage.persistent"><span class="grow"><span class="cap-name">持久存储</span><br><span class="cap-code">storage.persistent</span></span><span class="cap-extra">按需</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="notifications"><span class="grow"><span class="cap-name">通知</span><br><span class="cap-code">notifications</span></span><span class="cap-extra">按需</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="device.id"><span class="grow"><span class="cap-name">应用标识</span><br><span class="cap-code">device.id</span></span><span class="cap-extra">敏感</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="service.log"><span class="grow"><span class="cap-name">开发日志</span><br><span class="cap-code">service.log</span></span><span class="cap-extra">按需</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="service.time"><span class="grow"><span class="cap-name">后台时间</span><br><span class="cap-code">service.time</span></span><span class="cap-extra">按需</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="resources.packaged"><span class="grow"><span class="cap-name">读取内置资源</span><br><span class="cap-code">resources.packaged</span></span><span class="cap-extra">按需</span></label>
+   <label class="cap-row"><input type="checkbox" data-cap="network.info" disabled><span class="grow"><span class="cap-name" style="color:var(--meta)">外部网络信息</span><br><span class="cap-code">network.info</span></span><span class="cap-extra">当前不可用</span></label>
+  </div></div></details></section>
+  <section class="drawer-section"><div class="section-head"><h2>授权有效范围</h2><span class="pill neutral">仅当前文档</span></div><div class="note-panel">文档导航、关闭或撤权后额外授权失效。网页中的第三方脚本也可能调用已授权能力，因此不会默认开放跨站访问。</div><div class="banner" id="sdk-feedback">当前尚无额外授权。</div></section>
+  <section class="drawer-section"><details class="fold fold-inner" id="sdk-technical-fold"><summary><svg class="icon icon-sm"><use href="#i-terminal"/></svg><span class="summary-label">技术诊断与精确文档</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">以下仅为原型快照，不会申请 Chrome 原生权限。真实产品需重新核查 Authority 回执。</div><div class="field"><label for="sdk-tab-select">网页</label><div class="hstack"><select class="control grow" id="sdk-tab-select"><option value="current">当前网页（自动绑定）</option><option value="other">示例其他网页 · https://example.com</option></select><button class="icon-btn outline" type="button" id="sdk-refresh-tabs" aria-label="刷新网页列表" title="刷新网页列表"><svg class="icon icon-sm"><use href="#i-refresh"/></svg></button></div></div><div class="field"><label for="sdk-doc-select">精确文档</label><select class="control" id="sdk-doc-select"><option value="main">frame 0 · 当前主文档</option><option value="frame1">frame 1 · 示例子文档</option></select></div><pre class="pre" id="sdk-json"></pre><button class="btn wide" id="sdk-inspect">只读查询当前授权</button><button class="btn wide" id="navigate-demo">模拟页面导航 · 授权失效</button></div></details></section>
+ </div>
+ <div class="drawer-foot"><div class="hstack"><button class="btn primary grow" id="approve" disabled>批准附加权限</button><button class="btn danger" id="revoke" hidden>撤销</button><button class="btn" id="drawer-cancel">关闭</button></div><div class="drawer-notice">交互预览 · 不申请 Chrome 权限，不发送网络请求</div></div>
+</section>
+</div>
+<script>
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const one=(selector,root=document)=>root.querySelector(selector);
+ const all=(selector,root=document)=>Array.from(root.querySelectorAll(selector));
+ const format=(value)=>JSON.stringify(value,null,2);
+ const demoURL='http://127.0.0.1:43111/demo-form.html';
+ const demos={
+  'controller:javascript':`async function main() {\n  return {\n    title: await page.title(),\n    url: await page.url()\n  };\n}`,
+  'page:javascript':`// 当前网页 JavaScript 试运行\nconst heading = document.querySelector('h1');\nconsole.log(heading?.textContent);`,
+  'page:react':`import * as React from 'react';\n\nexport default function App() {\n  return <div className="opendesk-card">\n    当前网页的 React 组件\n  </div>;\n}`,
+  'page:vue':`<script setup>\nconst title = '当前网页的 Vue 组件';\n<\/script>\n\n<template>\n  <div class="opendesk-card">{{ title }}</div>\n</template>\n\n<style scoped>\n.opendesk-card { padding: 12px; }\n<\/style>`
+ };
+ const state={
+  runtime:'controller',framework:'javascript',jsRuntime:'controller',local:false,runSeq:0,runTimer:null,running:false,lastRun:null,
+  docSeq:1,frameId:0,sourceURL:demoURL,sourceOrigin:new URL(demoURL).origin,
+  scripts:{...demos},dirty:false,versions:[],pages:[],pageInstalled:false,pageVerified:false,pageEnabled:false,
+  versionSeq:0,history:[],pagePreviewOK:false,targets:[],receipt:null,pendingCross:null,originalFocus:null
+ };
+ const chosenKey=()=>`${state.runtime}:${state.runtime==='page'?state.framework:'javascript'}`;
+ const storedPageRow=$('page-program-list').closest('.field');$('page-management').querySelector('.fold-body').prepend(storedPageRow);
+ const deps=$('deps-fold');$('advanced-fold').querySelector('.fold-body').append(deps);
+ const caps=all('[data-cap]');
+ const pickedCaps=()=>caps.filter(x=>x.checked&&!x.disabled).map(x=>x.dataset.cap);
+ const docId=()=>`demo-document-${state.docSeq}${state.frameId?`-frame-${state.frameId}`:''}`;
+ const safe=(text)=>String(text).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ const now=()=>new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+ let toastTimeout;
+ function notice(message,bad=false){
+  const el=$('toast');el.textContent=message;el.classList.toggle('bad',bad);el.classList.add('visible');
+  clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('visible'),3400);
+ }
+ function paneStatus(id,message,kind=''){
+  const el=$(id);el.textContent=message;el.className='banner'+(kind?' '+kind:'');
+ }
+ function writeResult(value,label='模拟结果',kind='success',source='Controller · 当前网页'){
+  $('run-result').textContent=typeof value==='string'?value:format(value);
+  $('run-result').className='result-card '+(kind||'');$('result-badge').textContent=label;$('result-context').textContent=source;
+ }
+ function updateTarget(){
+  const u=new URL(state.sourceURL);$('target-name').textContent=u.hostname==='127.0.0.1'?'OpenDesk Browser · Browser Test Lab':u.hostname;
+  $('target-url').textContent=u.host+' / '+(u.pathname.replace(/^\//,'')||'');$('target-name').title=$('target-name').textContent;
+  $('target-document').textContent=docId();$('sdk-current').textContent=state.frameId?'子文档':'主文档';
+  $('sdk-page-name').textContent=$('target-name').textContent;
+  $('sdk-origin').textContent=state.sourceOrigin;
+  $('target-kind').textContent=$('target-mode').value==='current'?'自动绑定':'手动目标';
+  $('target-identity').textContent=format({tabId:560066858,frameId:state.frameId,documentId:docId(),url:state.sourceURL,origin:state.sourceOrigin,kind:'PREVIEW_ONLY'});
+  if(state.lastRun)$('run-identity').textContent=format({runId:state.lastRun.runId,documentId:state.lastRun.documentId,sourceHash:'模拟预览无真实哈希',runtime:state.lastRun.runtime,sourceOrigin:state.lastRun.origin});
+  updateSdk();
+ }
+ function snapshotEdits(){if(!state.local)state.scripts[chosenKey()]=$('code-editor').value}
+ function updateDirty(dirty){state.dirty=dirty;$('dirty-dot').hidden=!dirty}
+ function switchRuntime(runtime,framework=state.framework){
+  snapshotEdits();state.runtime=runtime;state.framework=runtime==='page'?framework:'javascript';if(state.framework==='javascript')state.jsRuntime=runtime;
+  all('[data-framework]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.framework===state.framework)));
+  $('run-location').hidden=state.framework!=='javascript';
+  $('js-runtime-select').value=state.jsRuntime;
+  $('mode-caption').textContent=runtime==='controller'?'任务 · JS':`网页 · ${{javascript:'JS',react:'React',vue:'Vue'}[state.framework]}`;
+  $('filename').textContent=runtime==='controller'?'main.js':state.framework==='javascript'?'page.js':state.framework==='react'?'App.jsx':'App.vue';
+  $('code-editor').value=state.scripts[chosenKey()]??demos[chosenKey()];
+  $('params-fold').hidden=runtime==='page';
+  $('code-hint').textContent=runtime==='controller'?'保存不会运行。运行时会校验当前网页。':
+   state.framework==='javascript'?'网页 JavaScript 直接试运行，保存冻结版本后可审核并安装。':
+   state.framework==='react'?'React JSX 按固定依赖编译后以受管组件在目标网页试运行。':'Vue SFC 按固定依赖编译后以受管组件在目标网页试运行。';
+  $('run-label').textContent=state.local?'运行本地项目':runtime==='controller'?'运行草稿':'网页试运行';
+  updateDirty(false);
+ }
+ $('js-runtime-select').addEventListener('change',()=>{if(state.local)return;switchRuntime($('js-runtime-select').value,'javascript')});
+ all('[data-framework]').forEach(b=>b.addEventListener('click',()=>{if(state.local)return;switchRuntime(b.dataset.framework==='javascript' ? state.jsRuntime : 'page',b.dataset.framework)}));
+ $('code-editor').addEventListener('input',()=>{state.scripts[chosenKey()]=$('code-editor').value;updateDirty(true);state.pagePreviewOK=false;$('page-candidate-save').disabled=true});
+ $('code-editor').addEventListener('keydown',event=>{
+  if(event.key==='Tab'&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey){event.preventDefault();const el=event.target,from=el.selectionStart,to=el.selectionEnd;el.setRangeText('  ',from,to,'end');el.dispatchEvent(new Event('input',{bubbles:true}))}
+ });
+ $('new-draft').addEventListener('click',()=>{
+  if(state.local){notice('请先关闭本地项目，再新建直接编辑草稿。',true);return;}
+  state.scripts[chosenKey()]=demos[chosenKey()];$('code-editor').value=demos[chosenKey()];updateDirty(false);notice('已新建草稿，未影响已保存版本。');
+ });
+ $('local-toggle').addEventListener('change',event=>{
+  state.local=event.target.checked;$('manual-area').hidden=state.local;$('local-area').hidden=!state.local;$('save-btn').hidden=state.local;
+  $('source-heading').textContent=state.local?'本地项目':'直接编辑';$('run-label').textContent=state.local?'运行本地项目':state.runtime==='controller'?'运行草稿':'网页试运行';
+  notice(state.local?'已切换至本地项目；选择项目后再运行。':'已返回直接编辑，原有源码仍保留。');
+ });
+ $('local-project-select').addEventListener('change',()=>{
+  const key=$('local-project-select').value;
+  const isPage=key==='demo-page';
+  $('local-files').textContent=key?(isPage?'reading-tool/\n├── src/main.js\n├── src/toc.js\n└── src/styles.css':'browser-lab/\n├── src/main.mjs\n├── src/actions.mjs\n└── src/utils.mjs'):'请选择已授权项目后查看多文件入口。';
+  one('#local-project-detail .table-row:last-child span:last-child').textContent=key?(isPage?'Page · main.js · 3 files':'Controller · main.mjs · 3 files'):'等待选择项目';
+  $('local-file-view').hidden=!key;
+  const names=isPage?['src/main.js','src/toc.js','src/styles.css']:['src/main.mjs','src/actions.mjs','src/utils.mjs'];
+  $('local-install-review').hidden=true;$('local-source-file').replaceChildren(...(key?names.map(name=>new Option(name,name)):[]));
+  $('local-source-file').dispatchEvent(new Event('change'));
+ });
+ $('local-source-file').addEventListener('change',()=>{
+  const filename=$('local-source-file').value;
+  const snippets={
+   'src/main.js':`import {createTOC} from './toc.js';\ncreateTOC(document);`,
+   'src/toc.js':`export function createTOC(doc) {\n  return [...doc.querySelectorAll('h2')];\n}`,
+   'src/styles.css':`.opendesk-toc { padding: 12px; }`,
+   'src/main.mjs':`import {readTitle} from './actions.mjs';\nexport async function main() { return readTitle(page); }`,
+   'src/actions.mjs':`export async function readTitle(page) { return await page.title(); }`,
+   'src/utils.mjs':`export const identity = value => value;`
+  };
+  $('local-source-code').textContent=snippets[filename]||'请从上方选择项目源文件。';
+ });
+ $('local-refresh').addEventListener('click',()=>notice('已刷新示例本地项目列表（未连接真实 Native）。'));
+ $('local-connect').addEventListener('click',()=>notice('示例连接已就绪。正式产品需在可信 Native 通道中检测。'));
+ $('local-guide').addEventListener('click',()=>notice('本地命令与授权说明位于 docs/api/local-projects.zh-CN.md。'));
+ $('local-install-review').addEventListener('click',()=>{
+  if(!$('local-project-select').value){notice('请先选择项目；此预览不会安装真实代码。',true);return}
+  $('version-fold').open=true;$('viewport').scrollTo({top:$('version-fold').offsetTop-130,behavior:'smooth'});
+  notice('固定版本安装确认已展示为版本管理入口；正式安装还需真实运行通过。');
+ });
+ $('deps-check').addEventListener('click',()=>{
+  $('dependency-info').textContent=`当前源码类型：${$('filename').textContent}\n检查状态：模拟完成\n依赖固定：需要真实缓存、SHA-256 与许可证检查\n这份预览不下载外部资源。`;
+  notice('已展示依赖检查信息（模拟）。');
+ });
+ $('deps-lock').addEventListener('click',()=>{
+  $('dependency-info').textContent='演示固定锁：尚未关联真实版本。\n正式执行前会核对依赖字节、来源与批准记录。';notice('已查看固定依赖状态（模拟）。');
+ });
+ function recordRun(kind){
+  const obj={runId:`preview-run-${++state.runSeq}`,documentId:docId(),origin:state.sourceOrigin,runtime:kind,at:now(),state:'completed',type:'PREVIEW_ONLY'};
+  state.lastRun=obj;state.history.unshift(obj);
+  $('history-count').textContent=`${state.history.length} 次`;
+  const select=$('history-select');select.add(new Option(`${obj.at} · ${obj.runtime} · 模拟完成`,obj.runId),1);select.value=obj.runId;
+  $('history-detail').textContent=format(obj);$('run-identity').textContent=format(obj);return obj;
+ }
+ function finishRun(kind){
+  state.running=false;state.runTimer=null;setRunningUI(false);
+  const run=recordRun(kind);if(kind.startsWith('本地'))$('local-install-review').hidden=false;
+  if(kind.startsWith('Page')){
+   state.pagePreviewOK=true;$('page-candidate-save').disabled=false;paneStatus('page-status',`${run.at} 模拟试运行完成；可以保存网页脚本候选。`,'success');
+   $('page-technical').textContent=format({entryFormat:state.framework,documentId:docId(),previewId:run.runId,evidence:'PREVIEW_ONLY'});$('page-fold').open=true;
+  }
+  writeResult({
+   preview:true,executed:false,runtime:kind,
+   message:'这是静态 HTML 的交互模拟，没有执行输入的脚本。',
+   title:$('target-name').textContent,url:state.sourceURL,runId:run.runId
+  },'模拟完成 · '+run.at,'success',`${kind} · 当前网页（原型）`);
+  $('history-fold').open=false;
+ }
+ function setRunningUI(on){
+  $('run-btn').disabled=on;$('save-btn').disabled=on;$('stop-btn').hidden=!on;$('dock-more').disabled=on;
+  $('run-label').textContent=on?'执行中…':state.local?'运行本地项目':state.runtime==='controller'?'运行草稿':'网页试运行';
+ }
+ function startRun(override){
+  if(state.running)return;
+  const kind=override|| (state.local?`本地 ${$('local-project-select').value==='demo-page'?'Page':'Controller'}`:state.runtime==='controller'?'Controller':'Page '+state.framework);
+  if(state.local&&!$('local-project-select').value){notice('请先选择本地项目。',true);return}
+  if(!state.local && !$('code-editor').value.trim()){notice('源码不能为空。',true);return}
+  if(!state.local&&state.runtime==='controller'){
+   try{JSON.parse($('params-editor').value)}catch{notice('参数 JSON 无效，请先修正。',true);$('params-fold').open=true;return}
+  }
+  if(state.local){try{JSON.parse($('local-params').value)}catch{notice('本地项目参数 JSON 无效。',true);return}}
+  state.running=true;setRunningUI(true);$('result-badge').textContent='模拟运行中';$('run-result').textContent='正在演示权限检查 → 固定源码快照 → RunHost 状态更新…';$('run-result').className='result-card';
+  state.runTimer=setTimeout(()=>finishRun(kind),650);
+ }
+ $('run-btn').addEventListener('click',()=>startRun());
+ $('stop-btn').addEventListener('click',()=>{
+  if(!state.running)return;clearTimeout(state.runTimer);state.runTimer=null;state.running=false;setRunningUI(false);
+  writeResult('模拟运行已停止。没有真实网页执行或资源可以释放。','已停止','', '交互原型');
+ });
+ $('page-preview-run').addEventListener('click',()=>{
+  if(state.local){notice('请关闭本地项目模式，再试运行当前网页草稿。',true);return}
+  if(state.runtime!=='page')switchRuntime('page','javascript');
+  startRun('Page '+state.framework);
+ });
+ function refreshVersionLists(){
+  const list=$('version-list');list.replaceChildren(new Option('选择已保存版本',''));
+  state.versions.slice().reverse().forEach(x=>list.add(new Option(`${x.id} · r${x.revision}`,x.key)));
+  $('version-counter').textContent=state.versions.length?`${state.versions.length} 个版本`:'尚未保存';
+ }
+ function saveVersion(){
+  if(state.local){notice('本地项目请先运行通过，再确认安装固定源码版本。',true);return}
+  if(state.runtime==='page'){
+   $('page-fold').open=true;notice('先试运行，确认符合预期后再选择是否安装网页增强。');
+   return;
+  }
+  const id=$('script-id').value.trim();if(!/^[a-z][a-z0-9_-]{1,59}$/.test(id)){notice('脚本 ID 需由小写字母开头，仅含小写字母、数字、- 或 _。',true);$('version-fold').open=true;return}
+  const latest=state.versions.filter(v=>v.id===id).reduce((r,v)=>Math.max(r,v.revision),0);
+  const obj={key:id+':'+(latest+1),id,revision:latest+1,source: $('code-editor').value,kind:state.runtime,at:now()};
+  state.versions.push(obj);refreshVersionLists();$('version-list').value=obj.key;
+  $('revision').value=obj.revision;paneStatus('version-status',`已模拟保存 ${id} · r${obj.revision}；未安装任务。`,'success');
+  updateDirty(false);notice(`已保存 ${id} · r${obj.revision}（仅在本预览会话中）。`);
+ }
+ $('save-btn').addEventListener('click',saveVersion);
+ $('dock-more').addEventListener('click',()=>{$('publish-section').hidden=false;$('version-fold').open=true;$('viewport').scrollTo({top:$('version-fold').offsetTop-120,behavior:'smooth'});notice('已展开完整版本管理与任务制作。')});
+ $('preview-search').addEventListener('click',()=>{
+  $('advanced-fold').open=true;$('publish-section').hidden=false;$('version-fold').open=true;$('page-fold').open=true;$('history-fold').open=true;
+  notice('已展开功能入口：编辑、项目、结果、网页脚本、版本与诊断。');
+ });
+ $('preview-more').addEventListener('click',()=>notice('本 HTML 保留开发页完整结构。所有授权、安装和运行均为模拟，不连接真实扩展。'));
+ $('version-refresh').addEventListener('click',()=>{refreshVersionLists();notice('已刷新当前预览会话的保存版本。')});
+ $('load-version').addEventListener('click',()=>{
+  const v=state.versions.find(v=>v.key===$('version-list').value || (v.id===$('script-id').value&&String(v.revision)===$('revision').value));
+  if(!v){notice('请选择现有版本；当前未连接真实存储。',true);return}
+  $('local-toggle').checked=false;state.local=false;$('manual-area').hidden=false;$('local-area').hidden=true;$('save-btn').hidden=false;$('source-heading').textContent='直接编辑';
+  switchRuntime(v.kind);state.scripts[chosenKey()]=v.source;$('code-editor').value=v.source;updateDirty(false);
+  paneStatus('version-status',`已模拟加载 ${v.id} · r${v.revision}，不会自动运行。`,'success');notice('已加载保存的代码快照。');
+ });
+ $('make-task').addEventListener('click',()=>{
+  if(!state.versions.length){$('task-feedback').textContent='请先保存脚本版本。';notice('需要已保存版本才能创建候选。',true);return}
+  try{const schema=JSON.parse($('task-schema').value);if(!schema||typeof schema!=='object'||Array.isArray(schema))throw Error('schema');}catch{notice('参数 Schema JSON 无效。',true);return}
+  const task={id:$('task-id').value.trim(),version:$('task-version').value.trim(),title:$('task-name').value.trim()};
+  if(!task.id||!task.version||!task.title){notice('请填写任务标识、版本和名称。',true);return}
+  $('task-feedback').textContent=`已创建模拟候选 ${task.id}@${task.version}，待真实验证、审阅与安装。`;notice('候选已建立（仅原型会话）。');
+ });
+ $('history-select').addEventListener('change',()=>{
+  const r=state.history.find(x=>x.runId===$('history-select').value);$('history-detail').textContent=r?format(r):'无运行记录';
+ });
+ $('refresh-history').addEventListener('click',()=>notice('已读取当前原型会话历史；不会重新执行脚本。'));
+ $('lookup-run').addEventListener('click',()=>{
+  const id=$('run-id-input').value.trim();const found=id?state.history.find(r=>r.runId===id):state.history;
+  $('history-detail').textContent=format(found??{error:'未找到模拟运行 ID'});
+ });
+ $('download-result').addEventListener('click',()=>{
+  if(!state.lastRun){notice('没有可下载的结果。',true);return}
+  const blob=new Blob([format({run:state.lastRun,result:$('run-result').textContent})],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='opendesk-preview-result.json';a.click();URL.revokeObjectURL(url);notice('已下载当前原型的模拟结果 JSON。');
+ });
+ $('copy-result').addEventListener('click',async()=>{
+  const text=$('run-result').textContent;
+  try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else{const el=document.createElement('textarea');el.value=text;document.body.append(el);el.select();if(!document.execCommand('copy'))throw Error('copy');el.remove()};notice('已复制当前结果。')}
+  catch{notice('浏览器未授权剪贴板；可手动选中结果复制。',true)}
+ });
+ function refreshPages(){const el=$('page-program-list');el.replaceChildren(new Option('选择网页脚本版本',''));
+  state.pages.forEach((r,i)=>el.add(new Option(`${r.id} · r${r.revision}`,String(i))));
+ }
+ $('page-candidate-save').addEventListener('click',()=>{
+  if(!state.pagePreviewOK){notice('请先完成 Page 试运行。',true);return}
+  const id=$('script-id').value.trim()||'my-page';const obj={id,revision:state.pages.length+1,source:$('code-editor').value,framework:state.framework};
+  state.pages.push(obj);refreshPages();$('page-program-list').value=String(state.pages.length-1);
+  state.pageVerified=false;state.pageInstalled=false;state.pageEnabled=false;state.pagePreviewOK=false;
+  $('page-candidate-save').disabled=true;$('page-install').hidden=false;$('page-management').hidden=false;
+  paneStatus('page-status',`已保存 Page 候选 ${id} · r${obj.revision}（模拟），下一步验证冻结版本。`,'success');
+ });
+ $('page-load').addEventListener('click',()=>{
+  const p=state.pages[Number($('page-program-list').value)];if(!p){notice('请选择保存的 Page 程序。',true);return}
+  if(state.local){state.local=false;$('local-toggle').checked=false;$('manual-area').hidden=false;$('local-area').hidden=true;$('save-btn').hidden=false;$('source-heading').textContent='直接编辑';}
+  switchRuntime('page',p.framework);$('code-editor').value=p.source;state.scripts[chosenKey()]=p.source;updateDirty(false);notice('已加载固定 Page 源码副本，未运行。');
+ });
+ $('page-verify').addEventListener('click',()=>{
+  if(!state.pages.length){notice('请先保存为网页增强。',true);return}
+  state.pageVerified=true;paneStatus('page-status','已模拟验证冻结版本；真实版本需校验 SHA、网站授权与执行回执。','success');
+ });
+ $('page-install').addEventListener('click',()=>{
+  if(!state.pages.length){notice('请先保存网页增强。',true);return}
+  state.pageVerified=true;state.pageInstalled=true;state.pageEnabled=true;$('page-install').hidden=true;$('page-management').open=true;$('page-toggle').hidden=false;$('page-danger-fold').hidden=false;
+  paneStatus('page-status','已模拟完成冻结源码校验及安装；自动运行处于启用状态。真实扩展未安装任何程序。','success');
+ });
+ $('page-toggle').addEventListener('click',()=>{
+  if(!state.pageInstalled){notice('没有已安装的 Page 程序。',true);return}
+  state.pageEnabled=!state.pageEnabled;$('page-toggle').textContent=state.pageEnabled?'停用自动运行':'启用自动运行';
+  paneStatus('page-status',state.pageEnabled?'自动运行已在原型中启用。':'自动运行已在原型中停用。','warn');
+ });
+ $('page-restore').addEventListener('click',()=>notice('实际网站访问恢复必须从可信 Chrome 扩展界面发起，此处仅展示入口。'));
+ $('page-uninstall').addEventListener('click',()=>{if(!state.pageInstalled){notice('没有已安装程序。',true);return};$('page-uninstall-confirm').hidden=false;$('page-uninstall-yes').focus()});
+ $('page-uninstall-no').addEventListener('click',()=>{$('page-uninstall-confirm').hidden=true;$('page-uninstall').focus()});
+ $('page-uninstall-yes').addEventListener('click',()=>{state.pageInstalled=false;state.pageEnabled=false;$('page-install').hidden=false;$('page-uninstall-confirm').hidden=true;$('page-toggle').hidden=true;$('page-danger-fold').hidden=true;paneStatus('page-status','原型已卸载自动运行状态；既有网页效果不会回滚。','warn');$('page-uninstall').focus()});
+ $('page-refresh').addEventListener('click',()=>notice('已刷新原型 Page 列表，未访问真实浏览器。'));
+ $('site-restore').addEventListener('click',()=>notice('原型不申请 Chrome 权限。正式产品需由用户在可信界面点击授权。'));
+ $('scripts-settings').addEventListener('click',()=>{$('user-scripts-status').textContent='请打开 chrome://extensions，在 OpenDesk Browser 详情中开启「允许用户脚本」；本预览不会改变真实设置。';notice('已显示 Chrome 用户脚本恢复说明。')});
+ $('scripts-check').addEventListener('click',()=>{$('user-scripts-status').textContent='预览无法查询 chrome.userScripts；需要在真实扩展中执行检查。';notice('用户脚本开关检测为模拟状态。')});
+ $('site-refresh').addEventListener('click',()=>{$('site-state').textContent='预览：当前默认全部网站可用；真实状态须以 Chrome permissions.contains 为准。';notice('已刷新预览权限状态。')});
+ $('delete-script').addEventListener('click',()=>{notice('删除是破坏性操作，正式版需二次确认。本原型不删除真实脚本。');$('publish-section').hidden=false;$('version-fold').open=true});
+ $('tab-refresh').addEventListener('click',()=>notice('模拟网页列表已刷新。'));
+ function setTargetURL(url, frame=0){
+  try{const u=new URL(url);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)throw Error('bad');
+   const changed=state.sourceURL!==u.href||state.frameId!==frame;state.sourceURL=u.href;state.sourceOrigin=u.origin;state.frameId=frame;
+   if(changed){state.docSeq++;state.receipt=null;state.pendingCross=null;state.pagePreviewOK=false;$('page-candidate-save').disabled=true;}
+   updateTarget();return true;
+  }catch{notice('目标必须是完整的 HTTP(S) 地址。',true);return false}
+ }
+ $('target-mode').addEventListener('change',()=>{
+  const mode=$('target-mode').value;
+  $('owned-url-wrap').hidden=mode!=='owned';$('borrowed-wrap').hidden=mode!=='borrowed';
+  if(mode==='current')setTargetURL(demoURL,0);
+  if(mode==='borrowed')setTargetURL($('existing-tab').value==='lab'?demoURL:'https://example.com/', $('exact-document').value==='main'?0:1);
+  updateTarget();
+ });
+ $('owned-url').addEventListener('change',()=>setTargetURL($('owned-url').value,0));
+ const onBorrowed=()=>setTargetURL($('existing-tab').value==='lab'?demoURL:'https://example.com/', $('exact-document').value==='main'?0:1);
+ $('existing-tab').addEventListener('change',onBorrowed);$('exact-document').addEventListener('change',onBorrowed);
+ $('cookie-access').addEventListener('change',()=>notice($('cookie-access').checked?'已勾选 Cookie 能力（仅示意；真实运行仍需 Authority 批准）。':'已取消附加 Cookie 能力。'));
+ function health(message,kind=''){ $('health-result').textContent=`${now()} · ${message}\n检查类型：PREVIEW_ONLY\n没有创建网页，也没有向真实 Host 发送请求。`;notice(message,kind==='bad')}
+ $('health-create').addEventListener('click',()=>{
+  try{const u=new URL($('health-url').value);if(!['http:','https:'].includes(u.protocol))throw Error('bad');health('已模拟创建检查页（没有打开真实 Tab）。')}
+  catch{notice('请填写有效 HTTP(S) URL。',true)}
+ });
+ $('health-source').addEventListener('click',()=>health('原页面通信模拟正常。'));
+ $('health-bound').addEventListener('click',()=>health('绑定文档通信模拟正常。'));
+ // SDK permission scope in this preview deliberately does not persist across documents.
+ function canonicalOrigin(input){
+  const s=input.trim();if(!s||s.length>2048||/[\u0000-\u0020\u007f-\u009f\s\\@*?#%]/u.test(s)||!/^https?:\/\/[^/]+\/?$/i.test(s))throw Error('只能填写完整 HTTP(S) Origin，不含账号、路径、通配符和查询');
+  let url;try{url=new URL(s)}catch{throw Error('目标 Origin 无效')}
+  if(url.username||url.password||url.pathname!=='/'||url.search||url.hash||!url.hostname)throw Error('请输入精确 Origin');
+  return url.origin;
+ }
+ function selectedSdkOrigin(){return $('sdk-tab-select').value==='other'?'https://example.com':state.sourceOrigin}
+ function currentSdkDocId(){return ($('sdk-tab-select').value==='other'?'example-document-1':docId())+($('sdk-doc-select').value==='frame1'?'-sdk-frame1':'')}
+ function sdkInputs(){const capabilities=[...(state.targets.length?['network']:[]),...pickedCaps()].sort();
+  return {sourceOrigin:selectedSdkOrigin(),documentId:currentSdkDocId(),capabilities,targetOrigins:[...state.targets].sort()};
+ }
+ function equalScope(a,b){return !!(a&&b)&&JSON.stringify(a)===JSON.stringify(b)}
+ function confirmed(){return state.receipt&&state.receipt.documentId===currentSdkDocId()&&state.receipt.sourceOrigin===selectedSdkOrigin()}
+ function sdkFeedback(msg,kind=''){paneStatus('sdk-feedback',msg,kind)}
+ function updateSdk(){
+  const n=pickedCaps().length,t=state.targets.length,active=confirmed();
+  $('cap-count').textContent=n?`已选择 ${n} 项`:'未选择';
+  $('sdk-summary-counter').textContent=active?`当前文档已批准 ${state.receipt.targetOrigins.length} 个跨站目标，${state.receipt.capabilities.filter(c=>c!=='network').length} 项高级服务`:'附加授权 0 项';
+  const mainActive=active&&$('sdk-tab-select').value==='current';
+  $('sdk-inline-state').textContent=mainActive?'已扩权':'基础可用';
+  $('sdk-inline-sub').textContent=mainActive?`已批准 ${state.receipt.targetOrigins.length} 个跨站 Origin · 点击管理`:'axiosx 已加载 · 同源请求可用';
+  $('origin-list').replaceChildren();
+  if(!t){const p=document.createElement('div');p.className='origin-list-empty';p.textContent='尚无额外跨站目标';$('origin-list').append(p)}
+  state.targets.forEach((origin,i)=>{
+   const row=document.createElement('div');row.className='origin-item';
+   const span=document.createElement('span');span.textContent=origin;
+   const b=document.createElement('button');b.className='icon-btn';b.type='button';b.title='删除待批准目标';b.setAttribute('aria-label',`删除 ${origin}`);b.style.width='28px';b.style.height='28px';
+   b.innerHTML='<svg class="icon icon-sm"><use href="#i-x"/></svg>';
+   b.addEventListener('click',()=>{state.targets.splice(i,1);sdkFeedback('待批准目标已变化；不会自动改变既有授权。','warn');updateSdk()});
+   row.append(span,b);$('origin-list').append(row);
+  });
+  $('approve').disabled=(!n&&!t)||equalScope(state.receipt,sdkInputs());
+  $('approve').textContent=active?'更新当前文档授权':'批准附加权限';$('revoke').hidden=!active;
+  $('sdk-json').textContent=format({mode:'PREVIEW_ONLY',tabId:560066858,frameId:$('sdk-doc-select').value==='frame1'?1:0,documentId:currentSdkDocId(),sourceOrigin:selectedSdkOrigin(),requested:sdkInputs(),observedGrant:active?state.receipt:null,authority:'真实授权需核验 Chrome 权限、精确文档和服务能力'});
+  $('sdk-current').textContent=$('sdk-doc-select').value==='frame1'?'子文档':'主文档';
+  $('sdk-page-name').textContent=$('sdk-tab-select').value==='other'?'示例其他网页':$('target-name').textContent;
+  $('sdk-origin').textContent=selectedSdkOrigin();
+ }
+ function openDrawer(){
+  if($('shell').classList.contains('drawer-open'))return;
+  state.originalFocus=document.activeElement;$('shell').classList.add('drawer-open');$('sdk-drawer').setAttribute('aria-hidden','false');$('open-sdk').setAttribute('aria-expanded','true');
+  $('viewport').inert=true;$('dock').inert=true;one('.brandbar').inert=true;one('.top-tabs').inert=true;
+  updateSdk();$('close-sdk').focus();
+ }
+ function closeDrawer(){
+  $('shell').classList.remove('drawer-open');$('sdk-drawer').setAttribute('aria-hidden','true');$('open-sdk').setAttribute('aria-expanded','false');
+  $('viewport').inert=false;$('dock').inert=false;one('.brandbar').inert=false;one('.top-tabs').inert=false;
+  (state.originalFocus instanceof HTMLElement?state.originalFocus:$('open-sdk')).focus();
+ }
+ for(const id of ['open-sdk','sdk-from-diagnostics'])$(id).addEventListener('click',openDrawer);
+ for(const id of ['close-sdk','drawer-cancel'])$(id).addEventListener('click',closeDrawer);
+ $('overlay').addEventListener('click',closeDrawer);
+ $('sdk-drawer').addEventListener('keydown',ev=>{
+  if(ev.key==='Escape'){ev.preventDefault();closeDrawer()}
+  if(ev.key!=='Tab')return;
+  const focusables=all('button:not([disabled]):not([hidden]),input:not([disabled]),select:not([disabled]),summary,[tabindex="0"]',$('sdk-drawer')).filter(e=>e.offsetParent!==null);
+  if(!focusables.length)return;const first=focusables[0],last=focusables[focusables.length-1];
+  if(ev.shiftKey&&document.activeElement===first){ev.preventDefault();last.focus()}
+  if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus()}
+ });
+ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&$('shell').classList.contains('drawer-open'))closeDrawer()});
+ function addOrigin(){
+  const raw=$('origin-input').value;let value;
+  try{value=canonicalOrigin(raw)}catch(error){sdkFeedback(error.message,'error');return false}
+  if(value===selectedSdkOrigin()){sdkFeedback('来源同源无需额外授权。');$('origin-input').value='';return false}
+  if(state.targets.includes(value)){sdkFeedback('目标已存在，不会重复添加。','warn');$('origin-input').value='';return false}
+  if(state.targets.length>=8){sdkFeedback('最多允许 8 个额外跨站目标。','error');return false}
+  state.targets.push(value);$('origin-input').value='';sdkFeedback('已加入待批准范围，尚未授予权限。','warn');updateSdk();return true;
+ }
+ $('add-origin').addEventListener('click',addOrigin);
+ $('origin-input').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();addOrigin()}});
+ caps.forEach(el=>el.addEventListener('change',()=>{sdkFeedback('能力选择已更新；不会自动扩大之前的授权。','warn');updateSdk()}));
+ $('sdk-doc-select').addEventListener('change',()=>{sdkFeedback('已更换精确文档。请重新查询或批准。','warn');updateSdk()});
+ $('sdk-tab-select').addEventListener('change',()=>{sdkFeedback('已更换网页。此前授权不会自动作用于新网页。','warn');updateSdk()});
+ $('sdk-refresh-tabs').addEventListener('click',()=>notice('已刷新演示网页列表。真实版本读取 Chrome.tabs.query。'));
+ $('approve').addEventListener('click',()=>{
+  const s=sdkInputs();if(!s.capabilities.length){sdkFeedback('请添加跨站目标或选择高级能力。','error');return}
+  state.receipt=structuredClone(s);state.pendingCross=null;
+  sdkFeedback(`已模拟批准 ${s.targetOrigins.length} 个跨站目标和 ${s.capabilities.filter(x=>x!=='network').length} 项其他能力。`,'success');
+  updateSdk();
+ });
+ $('revoke').addEventListener('click',()=>{state.receipt=null;state.pendingCross=null;sdkFeedback('原型授权已撤销。已发生的网页操作不会回滚。','warn');updateSdk()});
+ function inspectSdk(){
+  sdkFeedback(confirmed()?'只读观察：当前文档有模拟附加授权。':'只读观察：当前文档没有额外授权。');updateSdk();
+ }
+ $('sdk-inspect').addEventListener('click',inspectSdk);
+ $('sdk-inspect-inline').addEventListener('click',()=>{openDrawer();$('sdk-technical-fold').open=true;inspectSdk()});
+ function demoNavigate(){
+  state.docSeq++;state.receipt=null;state.pendingCross=null;state.pagePreviewOK=false;$('page-candidate-save').disabled=true;
+  $('sdk-doc-select').value='main';sdkFeedback('模拟导航后旧文档授权已失效；请根据新文档重新批准。','warn');updateTarget();updateSdk();
+ }
+ $('navigate-demo').addEventListener('click',demoNavigate);
+ function simulateCross(){
+  const example='https://api.example.com';
+  if(confirmed()&&state.receipt.capabilities.includes('network')&&state.receipt.targetOrigins.includes(example)){
+   writeResult('✓ 模拟跨站请求通过\nGET '+example+'\nAuthority: 已核验当前文档与目标 Origin（模拟）','模拟跨站成功','success','axiosx · 当前网页（原型）');notice('模拟跨站请求通过，未真正发送网络流量。');
+  }else{
+   writeResult('E_PERMISSION · 跨站来源未获批准\n目标：'+example+'\n请检查并明确批准额外 Origin。','需要授权','error','axiosx · 当前网页（原型）');
+   if(!state.targets.includes(example)&&state.targets.length<8)state.targets.push(example);
+   state.pendingCross=example;openDrawer();sdkFeedback('已预填被拒绝的跨站目标，尚未批准。','warn');updateSdk();
+  }
+ }
+ $('try-cross').addEventListener('click',simulateCross);
+ // Initial static preview: no stored grants, no remote code, no Chrome API.
+ switchRuntime('controller','javascript');updateTarget();updateSdk();
+})();
+</script>
+</body>
+</html>

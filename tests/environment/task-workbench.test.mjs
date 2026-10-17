@@ -40,6 +40,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   // This lightweight DOM fake does not parse initial attributes. Reflect the
   // real HTML collapsed state before dispatching search-toggle clicks.
   get('task-search-panel').hidden=/<div id="task-search-panel"[^>]*\shidden\b/.test(html);
+  get('task-search-toggle').hidden=/<button id="task-search-toggle"[^>]*\shidden\b/.test(html);
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
@@ -308,7 +309,10 @@ test('My searches a single installed task list on demand without executing or re
   assert.equal(cards.children.length,2,'closing search restores all installed tasks');
   assert.equal(f.get('local-discover-search').value,'','search text resets on collapse');
   await f.click('task-open-catalog');
-  assert.equal(f.catalogOpens.length,1,'catalog opens only on the explicit Add action');
+  assert.equal(f.get('task-add-menu').hidden,false,'Add opens the compact inline actions');
+  assert.equal(f.catalogOpens.length,0,'Add must not open full catalog automatically');
+  await f.click('task-add-catalog');
+  assert.equal(f.catalogOpens.length,1,'Catalog only opens on explicit catalog choice');
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
 });
 
@@ -329,7 +333,8 @@ test('R5.1 Escape closes inline My search, clears filters and restores keyboard 
   assert.equal(f.get('local-discover-search').value,'');
   assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.get('task-installed-cards').children.length,2);
-  assert.equal(f.doc.activeElement,f.get('task-search-toggle'));
+  assert.equal(f.doc.activeElement,f.get('task-open-catalog'),
+    '隐藏搜索入口后焦点应回到可见的添加任务按钮');
   assert.equal(f.get('task-run').disabled,false);
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
@@ -406,7 +411,10 @@ test('R4 idle Extensions has no fixed footer and My task search import still ope
   assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
   await f.click('tab-my-tasks');
   await f.click('task-open-catalog');
-  assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
+  assert.equal(f.get('task-add-menu').hidden,false,'Add actions should be visible first');
+  assert.equal(f.catalogOpens.length,0,'Full catalog is not the primary Add page');
+  await f.click('task-add-catalog');
+  assert.equal(f.catalogOpens.length,1,'Optional catalog opens on explicit choice');
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
 });
@@ -600,6 +608,18 @@ test('catalog installation stays in the complete directory and directs running b
   assert.equal(f.get('workbench-tasks').hidden,true);
   assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的」/);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+});
+
+test('compact task Add rejects Sidebar Tool packages and explains the correct import tab',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  const text=JSON.stringify({format:'opendesk.sidebar-tool.v2',id:'demo-tool',version:'1.0.0'});
+  const input=f.get('task-add-file');
+  input.files=[{name:'demo-tool.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await input.fire('change');await tick();
+  assert.match(f.get('task-add-status').textContent,/扩展工具包/);
+  assert.equal(f.catalogOpens.length,0,'wrong file must not open the task catalog');
+  assert.equal(f.starts.length,0,'wrong file must never execute');
+  assert.equal(input.value,'','failed selection can be retried');
 });
 
 test('catalog JS import hands source to Sidebar and never enters a view with a hidden runner',async t=>{

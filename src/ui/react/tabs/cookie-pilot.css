@@ -1,0 +1,38 @@
+/* Scoped, fixed trusted React pilot. No global resets or sandbox CSS injection. */
+.cookie-react-pilot{width:min(100%,380px);min-width:0;margin:var(--space-3) auto;padding:0;color:var(--od-ink);font-size:var(--od-body-size,13px)}
+.cookie-react-pilot .cookie-react-fixture{font-weight:650;margin:0 0 var(--space-2);overflow-wrap:anywhere}
+.cookie-react-pilot .cookie-react-fixture-note{font-size:var(--od-note-size,12px);color:var(--od-sub);line-height:1.5;margin:var(--space-2) 0}
+.cookie-react-pilot .cookie-react-view{min-width:0;max-width:380px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
+.cookie-react-pilot .site-bar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);border-bottom:1px solid var(--od-line)}
+.cookie-react-pilot .site-symbol{display:grid;place-items:center;color:var(--od-sub);width:24px;height:24px;flex-shrink:0}
+.cookie-react-pilot svg{width:17px;height:17px;flex-shrink:0}
+.cookie-react-pilot .site-name{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.cookie-react-pilot .site-name>span{font-size:11px;color:var(--od-sub)}
+.cookie-react-pilot .site-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-react-pilot .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3)}
+.cookie-react-pilot .list-toolbar>strong{white-space:nowrap}
+.cookie-react-pilot .toolbar-actions{display:flex;gap:var(--space-1);align-items:center}
+.cookie-react-pilot .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
+.cookie-react-pilot .cookie-react-icon{display:inline-grid;place-items:center;min-width:32px;width:32px;height:32px;flex-shrink:0}
+.cookie-react-pilot .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-3) var(--space-2)}
+.cookie-react-pilot .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.cookie-react-pilot .searchbox input{width:100%;height:34px;min-width:0;border:0;background:transparent;outline-offset:0;color:var(--od-ink)}
+.cookie-react-pilot .filter-panel{padding:var(--space-2) var(--space-3);border-top:1px solid var(--od-line);border-bottom:1px solid var(--od-line)}
+.cookie-react-pilot .filter-chips{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.cookie-react-pilot .chip{border:1px solid var(--od-line);border-radius:999px;background:var(--od-paper);padding:4px 9px;color:var(--od-sub);font:inherit}
+.cookie-react-pilot .chip.selected{border-color:var(--od-brand);color:var(--od-brand)}
+.cookie-react-pilot .sort-field{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}
+.cookie-react-pilot .sort-field select{max-width:68%;min-width:0}
+.cookie-react-pilot .cookie-row{border-top:1px solid var(--od-line)}
+.cookie-react-pilot .row-trigger{width:100%;border:0;background:transparent;display:flex;gap:var(--space-2);align-items:center;text-align:left;color:var(--od-ink);padding:var(--space-3);cursor:pointer}
+.cookie-react-pilot .row-trigger:hover{background:var(--od-bg)}
+.cookie-react-pilot .row-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.cookie-react-pilot .row-text{min-width:0;flex:1;display:grid;gap:2px}
+.cookie-react-pilot .row-text strong,.cookie-react-pilot .row-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-react-pilot .row-text small{font-size:11px;color:var(--od-sub)}
+.cookie-react-pilot .row-flags{display:flex;gap:3px;color:var(--od-sub)}
+.cookie-react-pilot .row-flags abbr{border:0;text-decoration:none;font-size:10px}
+.cookie-react-pilot .cookie-react-detail{padding:var(--space-3);border-top:1px solid var(--od-line);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}
+.cookie-react-pilot .empty-list{display:grid;gap:var(--space-1);padding:var(--space-4);text-align:center;color:var(--od-sub)}
+.cookie-react-pilot .empty-list strong{color:var(--od-ink)}
+.cookie-react-pilot :is(button,input,select):focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}

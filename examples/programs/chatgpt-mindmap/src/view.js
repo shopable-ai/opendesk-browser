@@ -2,7 +2,7 @@ import {createXmindRenderer} from './xmind-adapter.js';
 
 // All graphics are fixed, local path geometry; no runtime icon package or CDN.
 const ICONS={
-  original:['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z','M14 2v6h6','M8 13h8','M8 17h6'],
+  original:['M15 18l-6-6 6-6'],
   zoomOut:['M21 21l-4.3-4.3','M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0','M8 11h6'],
   zoomIn:['M21 21l-4.3-4.3','M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0','M8 11h6','M11 8v6'],
   fit:['M8 3H5a2 2 0 0 0-2 2v3','M16 3h3a2 2 0 0 1 2 2v3','M3 16v3a2 2 0 0 0 2 2h3','M21 16v3a2 2 0 0 1-2 2h-3'],
@@ -105,9 +105,8 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     group.append(button);
     return button;
   }
-  const original=action({id:'original',glyph:'original',label:'关闭思维导图，恢复本条完整原文',
+  const original=action({id:'original',glyph:'original',label:'恢复本条回复原文',
     run:onOriginal,group:originalGroup});
-  original.append(el('span','', '返回完整原文'));
   action({id:'zoom-out',glyph:'zoomOut',label:'缩小导图',
     run:()=>renderer.zoomBy(.8),group:zoomGroup,render:true});
   action({id:'zoom-in',glyph:'zoomIn',label:'放大导图',

@@ -1,0 +1,103 @@
+# GOAL：OpenDesk Browser Cookie Editor R5.0 — TRUSTED REACT 19 FIRST · REAL SHARED UI · SINGLE JSX SOURCE · REAL SDK PRESERVATION · 95+ ACCEPTANCE
+
+默认中文｜LATEST MAIN｜IMPLEMENTATION FIRST｜EXISTING SOURCE FIRST｜APPROVED UI FIRST｜REACT 19｜SINGLE TRUSTED ROOT｜STATIC TRUST GATE｜SOURCE-BOUND OFFLINE HTML｜SAFE FALLBACK｜TARGETED TESTS｜SAFE MAIN｜NO FAKE PASS
+
+## 一、最高目标
+
+直接基于 GitHub shopable-ai/opendesk-browser 的最新 main，**真正推进 Cookie Editor 的 React 19 + 公共 UI 组件迁移**。不是再写一套 HTML Mock、不是只写架构文档、不是重新开发 Cookie SDK/Host，也不是把所有可安装工具变成可信代码。
+
+最重要的新增要求：**优先验证“第一方静态编译 Trusted React UI，无须 iframe，并直接复用宿主现有 React Root/Design Tokens/组件”这一候选 B**，而不是默认采用“React IIFE 打包进独立 sandbox”的候选 A。
+
+候选 B 必须有真实源码、构建、准入/反例和必要 Chromium 证据才可以取代已安装工具；**旧 Sandbox 2.0.23 一直保留为安全回退**。不能因为用户开发、官方 ID、组件共用或配置开关就让动态包提权。
+
+本轮首先完成可运行的最小可信试点与组件实复用。如果门槛明确通过，继续把核心正式 Cookie 业务迁移；如尚未通过，交付已有的可靠增量、测量结果、明确 FAIL/BLOCKED/NOT_TESTED，而不是编造正式发布。
+
+## 二、唯一依据与先读源码
+
+必须先读：
+- AGENTS.md
+- examples/sidebar-tools/cookie-editor/REACT-SHARED-UI-FEASIBILITY.zh-CN.md（尤其第 9 节 G0-G5）
+- docs/architecture/react-ui-shared-components-r33.zh-CN.md
+- docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md
+- docs/framework/workstreams/trusted-ui-render-boundary-20261017.md
+- docs/framework/workstreams/cookie-editor-react-shared-ui-20261017.md
+- examples/sidebar-tools/cookie-editor/README.zh-CN.md
+- examples/sidebar-tools/cookie-editor/preview/react/src/{App.jsx,style.css}
+- examples/sidebar-tools/cookie-editor/preview/react/{package.json,index.html}
+- examples/sidebar-tools/cookie-editor/src/{index.html,style.css,main.js}
+- examples/sidebar-tools/cookie-editor/tool.config.json
+- src/ui/react/{main.tsx,components/ui/button.tsx}
+- src/ui/{design-tokens.css,design-system.css,trusted-cookie-workbench.js,sidebar-tools.js}
+- src/time-review/{trusted-admission.js,trusted-native-ui.js}
+- 2026-10-17 Cookie Import SDK/Host 相关工作记录。
+
+源码核查基线：正式 Cookie Editor 仍为原生 HTML/JS、工具 ID cookie-editor、版本 2.0.23；React 19 预览已有，公共 JSX 组件实际只有 Button/IconButton 两个，Cookie JSX 当前真实 import 数为 0。以上**必须以执行时最新 main 重核**，不可把历史静态统计当本轮验收。
+
+## 三、P0 实施顺序（不再反复重讨论架构）
+
+### P0-1：源码及预览同源
+
+核对用户已认可的 R4.9.2 样式与随后 R4.10.x/R4.11 的最新交互改动；不要凭旧 README 恢复过时的导入预览或多次确认。实际运行现有 preview/react 的构建一致性检查；仅在必要时用原构建器刷新可双击打开的离线 HTML，不直接手改内联 bundle。
+
+从已批准 App.jsx 中渐进提取可复用的 CookieEditorView/专用组件；同一个 JSX View 同时作为可信 UI 和离线 Preview 的呈现来源。模拟数据、场景开关、模拟授权和等待时钟只留 Preview Adapter，绝不进入正式 Host 业务。
+
+### P0-2：真实共用组件，不创建第二套 UI
+
+复用 src/ui/react/components/ui/button.tsx 已有的 Button/IconButton，引用官方 Tokens 和现有 CSS primitives；只有真实需要且两端消费者确实复用时，再最小增补 Field/Message/Menu 等。
+
+保留原有 380px 紧凑布局、顶部导入/导出/新建、行内编辑、Value 显隐按钮位置、语义 dirty、授权后隐藏引导、焦点和浅深色；未提出修改的区域不重新设计。输出实际复用组件/调用次数、已消除的重复定义、硬编码 Token 改动，不能把 UI 共用比例 0%（原基线）伪报为已完成 50%/80%。
+
+### P0-3：优先完成无敏感数据的 Trusted React 最小试点
+
+使用已经静态审核/编译的 Cookie UI JSX，以虚构 Cookie 元数据，在现有 src/ui/react/main.tsx 的**唯一宿主 React Root/Portal**中展示并正确卸载；不创建第二 React Root、第二入口、第二 Installer、第二 SDK/Host。先核对 R33 当前文件 owner 与并行任务，不直接重写六 Tab。
+
+先调查 src/ui/trusted-cookie-workbench.js 的**实际引用和功能重叠**，以及 Time Review 已实现的可信 UI 固定准入。不能为 UI 名称创建第三套 Cookie 工作台。
+
+证明：静态编译的受审 UI 可直渲而不使用 iframe；普通安装、同 ID 冒充、来源/哈希/版本失配、启停和 epoch 撤销后的动态 JS 始终留沙箱或安全拒绝。禁止从 JSON、用户文件、远端/CDN、AI 生成字符串加载 JS 到可信页；不通过任何 trusted:true/admin 标记提权。
+
+此阶段只使用虚构数据。必要的非敏感 Demo 对照、DOM owner、卸载、旧 instance 失效和构建证据必须实际执行；未知项保持 NOT_TESTED。
+
+### P0-4：通过 P0-3 后接入正式 Cookie 核心操作
+
+正式能力只能复用现有可信 Host、Browser SDK/原权限与数据合同。React 负责视图与组件状态，Controller/Adapter 负责真实网站、授权、Cookie 列表、精确保存/删除、导入导出、错误回执及生命周期。不能让旧 DOM renderer 与 React 同时更新同一节点。
+
+保留当前网站和合法自定义目标、Store/PartitionKey 完整身份、Value 授权、写入回读、重命名、过期与无效记录、setMany/单条 set 回退、未知结果不自动重试、输入保留、离线工作区、观察和清理；已经实现的功能不能因 Preview 没画出而丢失。
+
+操作体验：导入文件或粘贴内容后自动解析，**一次明确点击执行**，不新增独立预览页、重复导入确认；复制/下载正常情况一次操作，不额外发明确认弹窗。仍保留真实 Chrome/Host 必需的网站及敏感 Cookie 值读取授权和危险操作安全限制。写入结果未知不能误报成功或自动重放。
+
+### P0-5：真实编译、预算、安全与回退
+
+同时对照两种路线：
+A：React Sandbox 预编译后的主 JS <= 220000 原始 bytes、完整 JSON <= 320000 bytes；不得用 gzip、CDN 或放宽 CSP 伪通过。
+B：现有 WXT 固定入口的真实增量、React 是否运行时去重、现有 extension 安装/权限/内存/升级代价；只有审计来源和准入均实测通过才可以逐步启用。
+
+React 19/JSX 开发允许编译，但保存代码应通过原有 Vite/WXT/dev 自动构建，不要求用户每次手动打包。独立 file:// 预览仍直接可打开。不要新增 packages/opendesk-ui-react、动态渲染 DSL、第二 React Root 或全量重做构建器。
+
+如果 B 无法在已有安全或包体积合同内成立，保持 A 和正式 2.0.23 原样，不强迫改成危险的可信 UI；若确有可证明且安全的最小修复，则只修改必要模块。正式发布前必须明确“更新浏览器扩展”与“仅更新 Cookie JSON”的不同机制，不能声称只换 JSON 可部署内置可信代码。
+
+## 四、验证策略与产物
+
+遵守 AGENTS.md 当前的“核心需求优先 + 最小定向验证”；不要为了初期 UI 试点启动无关全仓/多版本/压力矩阵。
+
+- 实测 Preview 源码到 HTML 的一致性、React 19 构建与必要定向 Chromium 交互；
+- 实测共享 Button/IconButton/Token 是否真正被编译消费，CSS、焦点、ARIA、窄屏、浅深色无回归；
+- 可信试点测试静态来源、无第二 Root、撤销/退出/重新打开、同 ID 冒充的 fail-closed 和旧 Sandbox 不受影响；
+- 真正接入 SDK 的部分跑 Cookie 定向行为测试；不允许用 mock Cookie 代替原生 Host 成功；
+- 分开记录 JS/CSS/原始 JSON/固定 WXT Entry 的前后字节量与消除的重复源码，保留源码 SHA、构建日志、Chrome / CI 回执链接；
+- Mac Chrome 安装后权限/原生 Cookie 测试如果没有真实证据，写 NOT_TESTED。每维目标 >=95 分，但任何 FAIL/NOT_TESTED 都不能靠总分掩盖。
+
+如需要发布 Sandbox 版本，继续只保留根目录一个 cookie-editor.opendesk-tool.json：原 packer 构建候选 -> 定向测试 -> --promote-from -> --check-project；未通过不能覆盖旧正式包。Trusted UI 发布需要真实 WXT 构建、固定来源及安装/撤权验证，不能凭模拟页面或 Tool JSON 代替。
+
+## 五、工作区与交付边界
+
+仅在 shopable-ai/opendesk-browser 的 main 修改，先核对 git status/HEAD/并行 owner；不建分支、worktree、PR、不强推、不擅自 stash/reset/clean、不覆盖别人文件、不停止现有 npm run dev watcher/Chrome Profile。无关 R33 五/六 Tab、SDK/Host、其他扩展、用户自定义 HTML/Vue/React 开发路径均保持不变。若发现确切共享组件或 Host 缺口，记录重现与最小范围后再调整。
+
+完成本轮时必须直接给出：
+1. 真正已修改/提交/推送的文件、commit SHA、主分支状态。
+2. 可点击离线 HTML 预览、正式 Cookie UI 状态和是否仍是旧安装包。
+3. A/B 路线的 GO / NO-GO 判定，理由与未验证项。
+4. 公共组件实际消费数、UI 重复代码消除量、真实 bundle/包体积前后对比。
+5. 测试命令与 PASS/FAIL/NOT_TESTED，独立专家维度评价（目标各维 95+，不能虚报）。
+6. 仍未完成的最小下一步；如源码冲突或原生条件不具备，只报告精确阻塞而不是再次输出空泛总方案。
+
+**本轮核心不是重新建议 React，而是以真实代码证明它可在 OpenDesk Browser 中安全、低重复、低维护成本地运行。**

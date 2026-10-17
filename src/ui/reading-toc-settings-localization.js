@@ -18,8 +18,8 @@ const rows=[
   ],
   [
     "toggleHeading",
-    "工具启停",
-    "Tool availability"
+    "使用状态",
+    "Usage status"
   ],
   [
     "overlayHeading",
@@ -43,8 +43,8 @@ const rows=[
   ],
   [
     "advancedHeading",
-    "已有授权与页面例外",
-    "Website access and page exceptions"
+    "网站停用与页面排除",
+    "Disabled websites and excluded pages"
   ],
   [
     "exceptionsHeading",
@@ -68,23 +68,23 @@ const rows=[
   ],
   [
     "enable",
-    "启用工具",
-    "Enable tool"
+    "恢复阅读目录",
+    "Resume Reading TOC"
   ],
   [
     "disable",
-    "停用工具",
-    "Disable tool"
+    "停用阅读目录",
+    "Pause Reading TOC"
   ],
   [
     "enabledHint",
-    "工具已启用。启用不会自动运行代码。",
-    "Tool enabled. Enabling does not automatically run code."
+    "安装后即可使用：普通网页自动显示目录，无需再点击启用或逐网站授权。Chrome 限制或主动停用的页面除外。",
+    "Ready after installation: the TOC appears automatically on regular webpages without another enable step or per-site approval, except on restricted or disabled pages."
   ],
   [
     "disabledHint",
-    "工具已停用。数据、网站授权和显示偏好保留。",
-    "Tool disabled. Saved data, website access, and visibility preferences are retained."
+    "已停用。网页目录监听停止；网站停用和显示偏好保留。",
+    "Disabled. On-page TOC observation has stopped; disabled sites and visibility preferences are preserved."
   ],
   [
     "enableError",
@@ -93,8 +93,8 @@ const rows=[
   ],
   [
     "launch",
-    "打开工具",
-    "Open tool"
+    "查看侧边栏目录",
+    "View sidebar TOC"
   ],
   [
     "launchDisabled",
@@ -113,8 +113,8 @@ const rows=[
   ],
   [
     "siteEnable",
-    "启用当前网站",
-    "Enable on this website"
+    "恢复当前网站",
+    "Resume on this website"
   ],
   [
     "siteDisable",
@@ -123,8 +123,8 @@ const rows=[
   ],
   [
     "tocIntro",
-    "阅读目录默认可用于所有 HTTP(S) 网页；可在此停用当前网站或排除单页。",
-    "Reading TOC is available on HTTP(S) pages by default. You can disable this website or exclude an individual page."
+    "阅读目录安装后默认适用于普通 HTTP(S) 网页；此处仅管理网站停用、单页排除和恢复，无需逐站授权。",
+    "Reading TOC works on regular HTTP(S) pages after installation. These settings only manage site opt-outs, page exclusions and recovery; no per-site approval is required."
   ],
   [
     "unsupportedPage",

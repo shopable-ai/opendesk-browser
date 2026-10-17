@@ -37,6 +37,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const descriptionOf=row=>readingTocOfficial(row)&&
     row.description===readingTocCatalog.messages['zh-CN'].description?
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
+  const installedAppUsage=row=>{
+    if(!readingTocOfficial(row))
+      return '应用已安装，可按需打开界面；有额外权限需求的操作会独立检查。';
+    if(row.stateKnown===false)return '安装状态尚待核对；不会据此自动恢复目录。';
+    if(row.enabled===false)return '阅读目录已被主动停用；可在设置中恢复。';
+    return '阅读目录安装后会在符合条件的网页自动显示；无需再次启用或逐站授权。“打开”仅查看侧边栏目录。';
+  };
   const typeOf=row=>row.kind==='page'?'网页增强':'应用';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
     enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups]});
@@ -403,6 +410,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         focusAction:focused,
         installed:row.installed,cleanupPending:row.cleanupPending,
         version:row.version,source:sources[row.id]||null,
+        usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
         sites:row.kind==='page'?(row.record?.installed?.pageRules?.matches||[]):[],
         suspended:row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended',
         installationText:row.installed?
@@ -451,7 +459,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         const source=sources[row.id];
         meta.append(node('p','','来源：'+(source?.label||'暂未读取安装来源')));
         if(source?.sha256)meta.append(node('p','','固定包 SHA-256：'+source.sha256));
-        meta.append(node('p','','设置不会自动运行应用。'));
+        meta.append(node('p','',installedAppUsage(row)));
       }else meta.append(node('p','',row.cleanupPending?
         '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
         '正式安装必须在现有应用市场审阅固定包和能力清单。'));
@@ -464,7 +472,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       for(const pattern of matches)ul.append(node('li','',pattern));
       sites.append(ul,node('p','',installedPage.authorization?.status==='suspended'?
         '网站访问受限；需要按照原授权规则重新授权。':
-        '启用时仅按现有固定网站规则申请必要权限，不扩大安装范围。'));
+        '仅在原安装批准的网站范围内运行，不因扩展本身具备网站访问权限而扩大程序授权。'));
       area.append(meta,sites);
       if(focused&&!busy)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
       return;

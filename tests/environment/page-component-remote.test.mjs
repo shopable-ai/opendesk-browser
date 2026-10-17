@@ -47,6 +47,7 @@ function fixture({missingOrigin=false,denyOrigin=false}={}){
     if(!denyOrigin)grant=true;
     return Promise.resolve(!denyOrigin);
   }}};
+  f.preparer=preparer;
   f.controller=createPageComponentRemote({client,preparer,api,document:{getElementById:id=>nodes.get(id)},getInput:()=>f.source});
   f.get=id=>nodes.get('page-component-remote'+id);f.click=trusted=>f.get('-prepare').click(trusted);
   f.runClick=()=>{inClick=true;try{return f.controller.confirmRun({isTrusted:true},f.source);}
@@ -210,4 +211,56 @@ test('R7.4 bare pinned npm import primes native origin grant without custom dire
   assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0,
     'a Chrome permission grant is neither a network fetch nor an approval');
   assert.equal(assertPinnedESMSource(pinnedNpm),pinnedNpm);
+});
+
+test('R33.3.8 foreground dependency inspection cannot be cancelled by late background permission warm',async t=>{
+  const f=fixture();t.after(()=>f.controller.dispose());
+  const original=f.preparer.inspect.bind(f.preparer);
+  let serial=0;
+  f.preparer.inspect=async input=>{
+    const mine=++serial;
+    await new Promise(resolve=>setTimeout(resolve,260)); // past 200ms warm deadline
+    if(mine!==serial)throw Object.assign(new Error('background superseded foreground'),{code:'E_PAGE_COMPILER_STALE'});
+    return original(input);
+  };
+  await f.click(); // explicit trusted review starts before the 200ms warm timer
+  assert.equal(f.get('-status').dataset.state,'download');
+  assert.equal(serial,1,'background inspector must not supersede active explicit review');
+  assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0);
+});
+
+test('R33.3.8 explicit dependency review supersedes an already running background warm',async t=>{
+  const f=fixture();t.after(()=>f.controller.dispose());
+  const original=f.preparer.inspect.bind(f.preparer);
+  const warmStarted=deferred();let serial=0;
+  f.preparer.inspect=async input=>{
+    const mine=++serial;
+    if(mine===1)warmStarted.resolve();
+    await new Promise(resolve=>setTimeout(resolve,260));
+    if(mine!==serial)throw Object.assign(new Error('superseded warm'),{code:'E_PAGE_COMPILER_STALE'});
+    return original(input);
+  };
+  await warmStarted.promise;
+  await f.click();
+  assert.equal(f.get('-status').dataset.state,'download');
+  assert.equal(serial,2);
+  assert.equal(f.calls.filter(row=>row.method==='preparePageComponentDependencies').length,0);
+});
+
+test('R33.3.8 explicit ESM auto-load leases the compiler until outer prepare completes',async t=>{
+  const f=fixture();t.after(()=>f.controller.dispose());
+  const original=f.preparer.inspect.bind(f.preparer);let inspections=0;
+  f.preparer.inspect=async input=>{inspections++;return original(input);};
+  const loaded=await f.controller.autoLoadForRun(f.source);
+  assert.equal(loaded.modules.length,2);
+  const before=inspections;
+  // A simulated slow outer compile must never be cancelled by a background
+  // re-prime started at the auto-loader boundary.
+  await new Promise(resolve=>setTimeout(resolve,240));
+  assert.equal(inspections,before,'worker lease is held across outer compilation');
+  f.controller.resumeRunPermissionWarm();
+  for(let n=0;n<20&&!f.controller.readyForRun;n++)
+    await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(f.controller.readyForRun,true,'safe read-only warm resumes after compilation');
+  assert.equal(f.permissions.length,0,'no implicit Chrome permission requests');
 });

@@ -12,9 +12,9 @@
     "auditOnly": true
   },
   "summary": {
-    "operationCount": 73,
+    "operationCount": 75,
     "implementationCounts": {
-      "IMPLEMENTED": 73,
+      "IMPLEMENTED": 75,
       "PLANNED": 0,
       "HOST_ONLY": 0,
       "NOT_EXPOSED": 0
@@ -1942,6 +1942,49 @@
       "evidence": []
     },
     {
+      "api": "browser.cookies.getAllPage",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAllPage:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.getAllPage:output",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.read"
+      ],
+      "effectClass": "read",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Current installed iframe, real Chrome cursor and per-page Native readback NOT_TESTED"
+      ],
+      "nextTask": "Read-only pagination with same site/store/partition and current document",
+      "commits": [],
+      "evidence": []
+    },
+    {
       "api": "browser.cookies.getCurrentStore",
       "module": "browser.cookies",
       "apiVersion": "1.0.0",
@@ -2571,6 +2614,49 @@
         "33b3f574f11b557f6c01830b5758f610d59266f8",
         "3b1f25b83a96aae53f57e7f33a0be9a230bf28dd"
       ],
+      "evidence": []
+    },
+    {
+      "api": "browser.cookies.setMany",
+      "module": "browser.cookies",
+      "apiVersion": "1.0.0",
+      "implementation": "IMPLEMENTED",
+      "executionContexts": [
+        "sidebar-tool"
+      ],
+      "exposure": "APPROVED_TOOL",
+      "inputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.setMany:input",
+      "outputSchema": "src/framework/sdk/browser-schemas.js#browser.cookies.setMany:output",
+      "chromePermissions": [
+        "cookies"
+      ],
+      "toolCapabilities": [
+        "browser.cookies.write"
+      ],
+      "effectClass": "write",
+      "riskLevel": "high",
+      "siteScope": "approved-cookie-site",
+      "lifecycle": "request",
+      "hostImplementation": "src/platform/chrome/context-menus.js#handleTool → existing createTrustedCookieHost",
+      "sdkEntry": "src/framework/sdk/browser.js",
+      "positiveTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "denialTest": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "nativeChrome": {
+        "status": "NOT_TESTED",
+        "evidence": []
+      },
+      "callableNowVerification": "NOT_TESTED",
+      "blockers": [
+        "Historical user iframe lacked setMany; current installed frame and Host transaction NOT_TESTED"
+      ],
+      "nextTask": "Use synthetic minimal consent, exact per-row readback, stop on UNKNOWN, no automatic replay",
+      "commits": [],
       "evidence": []
     },
     {

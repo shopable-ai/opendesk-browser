@@ -29,7 +29,10 @@ const inputs=[
   'src/ui/react/tabs/develop.tsx',
   'src/ui/react/tabs/debug.tsx',
   'src/ui/react/tabs/workflow.tsx',
+  'src/ui/react/tabs/tasks.tsx',
+  'src/ui/react/tabs/cloud.tsx',
   'src/ui/react/preview/sidebar-six-preview.tsx',
+  'src/ui/react/preview/sidebar-six-my-flows.tsx',
   'scripts/preview/build-sidebar-six-react-preview.mjs',
   'package.json','package-lock.json'
 ];
@@ -100,10 +103,14 @@ export async function generateSidebarSixReactPreview(){
     });
     return panel.toString();
   }).join('\n');
+  const catalog=workspace.find('#workbench-discover').first();
+  must(catalog.length===1,'authoritative task catalog missing');
+  catalog.attr('hidden','');
+  const previewPanels=panelHtml+'\n'+catalog.toString();
   dock.find('script').remove();
   const actualDom='<div id="od-sidebar-preview-stage" class="od-sidebar-preview-stage" '+
     'style="width:360px">'+nav.toString()+
-    '<main id="workspace-content">'+panelHtml+'</main>'+
+    '<main id="workspace-content">'+previewPanels+'</main>'+
     dock.toString()+'</div>';
   const temp=await mkdtemp(join(tmpdir(),'opendesk-six-react-'));
   try{
@@ -137,6 +144,13 @@ export async function generateSidebarSixReactPreview(){
       '.od-sidebar-preview-stage>.workbench-nav{flex:none}',
       '.od-sidebar-preview-stage>#workspace-content{flex:1;min-height:0;max-width:none;width:100%;overflow-y:auto}',
       '.od-sidebar-preview-stage>.workspace-dock{flex:none}',
+      '.od-sidebar-preview-stage #workbench-discover .catalog-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}',
+      '.od-sidebar-preview-stage #workbench-discover .catalog-card-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}',
+      '.od-sidebar-preview-stage #workbench-discover .catalog-card{min-height:60px;padding:10px}',
+      '.od-sidebar-preview-stage #workbench-discover .catalog-intro h2{font-size:17px!important}',
+      '.od-sidebar-preview-stage .od-preview-card{display:grid;gap:6px;min-width:0;text-align:left;background:var(--od-paper);border:1px solid var(--od-line);padding:12px;border-radius:var(--radius-surface);color:var(--od-ink)}',
+      '.od-sidebar-preview-stage .od-preview-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}',
+      '.od-sidebar-preview-stage .schedule-rule-row{grid-template-columns:minmax(0,1fr)}',
       '.od-sidebar-preview-footer{padding:0 10px 12px;text-align:center;font-size:10px;color:var(--od-sub)}',
       '@media(max-width:380px){.od-sidebar-preview-frame{padding-inline:0}.od-sidebar-preview-stage{border-radius:0}}'
     ].join('\n');

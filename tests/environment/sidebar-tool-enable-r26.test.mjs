@@ -47,6 +47,18 @@ test('R26 legacy absence enables installed tools; damaged records fail closed wi
     assert.throws(()=>requireToolEnableRecords(damaged),{code:'E_STORAGE_CORRUPT'});
   }
 });
+test('new reviewed reading-toc installation is immediately usable without a second enable or site approval',async()=>{
+  const f=fixture();f.values[SIDEBAR_TOOL_STORE]=[];
+  const result=await installReviewedSidebarTool({...f,candidate:tool,baseline:null,reviewApproved:true});
+  assert.equal(result.state,'installed');
+  assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE],undefined,'installation must not add a second enable step');
+  assert.equal(sidebarToolEnabled(f.values[SIDEBAR_TOOL_ENABLE_STORE],tool.id),true);
+  assert.equal(f.values[READING_TOC_SITE_STORE],undefined,'installation must not create a positive site grant');
+  assert.equal(tocGrantAllowed(f.values[SIDEBAR_TOOL_STORE],f.values[READING_TOC_SITE_STORE],
+    tool.id,'https://example.com/article',f.values[SIDEBAR_TOOL_ENABLE_STORE]),true);
+  assert.equal(f.writes.some(row=>Object.hasOwn(row,SIDEBAR_TOOL_ENABLE_STORE)),false);
+});
+
 test('R26 stop/resume preserve package/data/grants/preferences and fence every transition',async()=>{
   const f=fixture(),key=sidebarToolStorageKey(tool.id);
   Object.assign(f.values,{[key]:{note:'私有数据'},[READING_TOC_SITE_STORE]:{[tool.id]:['https://example.com']},

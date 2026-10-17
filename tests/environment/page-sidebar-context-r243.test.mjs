@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {isActualSidePanelContext} from '../../src/ui/tool-shell.js';
+import {isActualSidePanelContext} from '../../src/ui/sidepanel-context.js';
 
 const href='chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=owner-123';
 function fixture(contexts){

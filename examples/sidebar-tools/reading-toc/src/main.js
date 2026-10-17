@@ -90,7 +90,7 @@ function showStatus(key='',values={},state=''){
 }
 function render(){
  paintAi();
- const {items,sources,activeId}=data;
+ const {items,sources,activeId,adapter}=data;
  if(sourceChoice&&!sources.some(item=>item.id===sourceChoice))sourceChoice='';
  const activeSource=items.find(item=>item.id===activeId)?.sourceId;
  selected=sourceChoice||sources.find(item=>item.id===activeSource)?.id||sources[0]?.id||'';
@@ -113,14 +113,17 @@ function render(){
  // Keep both distinct H2s beneath two H1s in the default focus view, even
  // when the labels are identical. Long outlines still focus on the active tree.
  const compact=Boolean(scoped.length&&scoped.length<=5&&overview?.ids?.length===scoped.length);
- const shown=mode==='full'?scoped:mode==='top'
+ const isChatFull=adapter==='chatgpt'&&mode==='full';
+  const shown=isChatFull?items:mode==='full'?scoped:mode==='top'
   ?(overviewShowsAll?scoped:scoped.filter(item=>overviewIds.has(item.id)))
   :compact?scoped:scoped.filter(item=>item.depth===0||item.topId===current?.topId);
- const key=mode+'|'+selected+'|'+shown.map(item=>item.id+':'+item.label+':'+item.depth).join('|');
+ const key=mode+'|'+(isChatFull?'chat-all':'source')+'|'+selected+'|'+shown.map(item=>item.id+':'+item.label+':'+item.depth+':'+item.sourceId).join('|');
  if(key!==lastKey){
   const fragment=document.createDocumentFragment();
-  shown.forEach(item=>{
-   const li=document.createElement('li');li.style.setProperty('--depth',String(Math.min(item.depth,3)));
+  shown.forEach((item,index)=>{
+   const li=document.createElement('li');
+   if(isChatFull&&index>0&&shown[index-1].sourceId!==item.sourceId)li.classList.add('toc-answer-start');
+   li.style.setProperty('--depth',String(Math.min(item.depth,3)));
    const button=document.createElement('button');button.className='toc-link'+(item.depth?' child':'');
    button.type='button';button.title=item.label;button.dataset.id=item.id;button.setAttribute('aria-label',item.label);
    const span=document.createElement('span');span.textContent=item.label;button.append(span);

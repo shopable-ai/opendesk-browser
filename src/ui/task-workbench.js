@@ -1,7 +1,7 @@
 import {permissionPattern} from '../environment.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
-import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
+import {createTaskPackage, validateTaskParams, TASK_PACKAGE_FORMAT} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
 import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
@@ -23,6 +23,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
+  let reactMyTasks=null; // UI sink only, no duplicate task store or Host.
+  let fallbackExpandedTaskId=null, fallbackLastSelection=null; // legacy DOM UI only
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, catalogSelectionEpoch=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
@@ -317,6 +319,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-create-candidate').disabled=working;
     syncRunDock();
   }
+  const taskSearchReturnFocus=()=>get('task-search-toggle').hidden?
+    get('task-open-catalog'):get('task-search-toggle');
   function renderInstalledCards() {
     const parent=get('task-installed-cards'),selected=get('task-installed-list').value,
       workspace=get('task-selected-workspace');
@@ -331,6 +335,32 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     for(const value of ['all','current','disabled'])
       get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
     get('local-discover-count').textContent=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
+    if(reactMyTasks?.myTasksMounted){
+      const emptyText=!installed.length?'暂无任务。点击上方「添加」导入本地任务。'
+        :localFilter==='current'&&!origin?'当前网页不可用。选择「全部」查看已安装任务。'
+        :localFilter==='disabled'&&!localQuery?'没有已停用任务。'
+        :'没有匹配的任务。试试其他关键词或选择「全部」。';
+      const rows=visible.map(row=>{
+        const info=candidateFor(row);
+        return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
+          title:info?.manifest.title||row.taskId,
+          description:info?.manifest.description||'已安装任务'};
+      });
+      reactMyTasks.renderMyTaskRows({rows,selectedId:selected,emptyText,
+        onSelect:taskId=>{
+          if(disposed||!installed.some(row=>row.taskId===taskId))return;
+          get('task-installed-list').value=taskId;renderInstalledSelection();
+        }});
+      if(focusedInWorkspace&&workspace.hidden)
+        (get('task-search-panel').hidden?taskSearchReturnFocus():
+          get('local-discover-search')).focus?.({preventScroll:true});
+      else if(focusedInWorkspace&&focused?.isConnected!==false)
+        focused.focus?.({preventScroll:true});
+      else if(focusedTaskId&&!visible.some(row=>row.taskId===focusedTaskId))
+        (get('task-search-panel').hidden?taskSearchReturnFocus():
+          get('local-discover-search')).focus?.({preventScroll:true});
+      return; // React alone owns card children and moves the original live form.
+    }
     // Move the same live controls under the selected card, never recreate them.
     // Filtering is a view only: neither installed identity nor task params change.
     parent.replaceChildren();
@@ -347,7 +377,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
             : '没有匹配的任务。试试其他关键词或选择「全部」。';
       parent.append(empty,workspace);
       if(focusedInWorkspace)
-        (get('task-search-panel').hidden?get('task-search-toggle'):get('local-discover-search')).focus?.({preventScroll:true});
+        (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
       return;
     }
     let attached=false;
@@ -357,7 +387,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       button.type='button';button.className='task-card';
       button.dataset.taskId=row.taskId;
       button.setAttribute('aria-pressed',String(row.taskId===selected));
-      button.setAttribute('aria-expanded',String(row.taskId===selected));
+      button.setAttribute('aria-expanded',String(row.taskId===selected&&row.taskId===fallbackExpandedTaskId));
       button.setAttribute('aria-controls','task-selected-workspace');
       const badge=doc.createElement('span');badge.className='task-card-icon';
       badge.textContent=(info?.manifest.title || row.taskId).slice(0,1).toUpperCase();
@@ -372,26 +402,37 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(focusedTaskId===row.taskId)replacementFocus=button;
       button.addEventListener('click',()=>{
         const wasFocused=doc.activeElement===button;
-        get('task-installed-list').value=row.taskId;renderInstalledSelection();
+        if(get('task-installed-list').value===row.taskId){
+           fallbackExpandedTaskId=fallbackExpandedTaskId===row.taskId?null:row.taskId;
+           renderInstalledCards(); // No RunHost/draft/result changes on collapse.
+         }else{
+           get('task-installed-list').value=row.taskId;renderInstalledSelection();
+         }
         if(wasFocused) {
           for(const next of get('task-installed-cards').querySelectorAll?.('.task-card')||[])
             if(next.dataset.taskId===row.taskId){next.focus?.({preventScroll:true});break;}
         }
       });
       group.append(button);
-      if(row.taskId===selected){workspace.hidden=false;group.append(workspace);attached=true;}
+      if(row.taskId===selected){
+        // Keep the one live workspace inside its selected card when collapsed;
+        // no extra sibling and no remounted parameters, results or listeners.
+        workspace.hidden=row.taskId!==fallbackExpandedTaskId;
+        group.append(workspace);attached=true;
+      }
       parent.append(group);
     }
     if(!attached){workspace.hidden=true;parent.append(workspace);}
     if(focusedInWorkspace && !workspace.hidden && focused?.isConnected!==false)
       focused.focus?.({preventScroll:true});
     else if(focusedInWorkspace && workspace.hidden)
-      (get('task-search-panel').hidden?get('task-search-toggle'):get('local-discover-search')).focus?.({preventScroll:true});
+      (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
     else replacementFocus?.focus?.({preventScroll:true});
   }
   function renderInstalled() {
     const count=get('task-installed-count');
-    if(count)count.textContent=installed.length+' 个';
+    if(reactMyTasks?.myTasksMounted)reactMyTasks.renderMyTaskCount(installed.length+' 个');
+    else if(count)count.textContent=installed.length+' 个';
     const sel=get('task-installed-list'),prior=sel.value;
     sel.replaceChildren(option(installed.length?'请选择已安装任务':'暂无已安装任务',''));
     for(const row of installed) {
@@ -403,10 +444,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderInstalledSelection();
   }
   function renderInstalledSelection() {
+    const currentSelection=get('task-installed-list').value;
+    if(currentSelection!==fallbackLastSelection){
+      fallbackLastSelection=currentSelection;
+      fallbackExpandedTaskId=currentSelection||null;
+    }
     const row=installedRow(),info=candidateFor(row);
-    get('task-installed-detail').textContent=info
+    const detailText=info
       ?`适用网站：${info.manifest.siteOrigins.join('、')}\n所需能力：${info.manifest.permissions.join('、')}\n来源：${info.manifest.source} · v${row.version}`
       :'';
+    if(reactMyTasks?.myTasksMounted)reactMyTasks.renderMyTaskDetail(detailText);
+    else get('task-installed-detail').textContent=detailText;
     get('task-result-panel').hidden=true;
     get('task-history-panel').hidden=true;
     get('task-result').textContent='';
@@ -647,16 +695,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-dev-status').textContent=`已创建待验证候选 ${identity(value)}；请先运行相同源码并提供真实 runId`;
     navigate('catalog');
   }
-  async function readFile() {
-    const file=get('task-package-file').files?.[0];
+  async function readFile(fileOverride=null) {
+    // Both Sidebar and full catalog share one parser, Host import and validation.
+    const file=fileOverride||get('task-package-file').files?.[0];
     if(!file)return;
-    // Capture the File first, then allow the same file to be selected again
-    // after either a successful import or a rejected/failed handoff.
-    get('task-package-file').value='';
+    if(!fileOverride)get('task-package-file').value='';
     if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
     const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
+    if(/\.opendesk-tool\.json$/i.test(file.name)||['opendesk.sidebar-tool.v1','opendesk.sidebar-tool.v2'].includes(parsed?.format))
+      throw {code:'E_TASK_FILE_KIND',message:'这是扩展工具包，请到「扩展」选择「导入本地工具包」，不能作为自动化任务安装'};
     const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format) ? await validateProgramDraft(parsed) : null;
+    if(!project&&parsed&&parsed.format!==TASK_PACKAGE_FORMAT)
+      throw {code:'E_TASK_FILE_KIND',message:'支持任务包 opendesk.task-package.v1、程序草稿 JSON 或 .js 源码；扩展包请到「扩展」导入'};
     if(!project && file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
     if(project || file.name.toLowerCase().endsWith('.js')) {
       const draft=project || sourceUtf8;
@@ -830,7 +881,48 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     });
   }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
-  listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
+  const taskAddMenu=get('task-add-menu');
+  function showTaskAddMenu(open){
+    if(!taskAddMenu){if(open)navigate('catalog');return;}
+    taskAddMenu.hidden=!open;
+    get('task-open-catalog').setAttribute('aria-expanded',String(open));
+    if(open){
+      get('workspace-content')?.scrollTo?.({top:0});
+      get('task-add-import').focus?.({preventScroll:true});
+    }else if(doc.documentElement?.dataset?.opendeskTab==='tasks')
+      get('task-open-catalog').focus?.({preventScroll:true});
+  }
+  listen(get('task-open-catalog'),'click',()=>showTaskAddMenu(taskAddMenu?.hidden!==false));
+  if(taskAddMenu){
+    taskAddMenu.hidden=true;
+    listen(get('task-add-close'),'click',()=>showTaskAddMenu(false));
+    listen(get('task-add-import'),'click',()=>get('task-add-file').click());
+    listen(get('task-add-catalog'),'click',()=>{
+      showTaskAddMenu(false);navigate('catalog');
+    });
+    listen(get('task-add-develop'),'click',()=>{
+      if(navigate('develop')!==false){
+        showTaskAddMenu(false);
+        get('tab-develop').focus?.({preventScroll:true});
+      }
+    });
+    listen(get('task-add-file'),'change',asyncAction(async()=>{
+      const input=get('task-add-file'),file=input.files?.[0];
+      if(!file)return;
+      try{
+        await readFile(file);
+        get('task-add-status').textContent=get('task-catalog-status').textContent+
+          (file.name.toLowerCase().endsWith('.js')?'':'；需要安装时，请打开「浏览任务目录」审阅和验证');
+        if(doc.documentElement?.dataset?.opendeskTab==='develop'){
+          showTaskAddMenu(false);
+          get('tab-develop').focus?.({preventScroll:true});
+        }
+      }catch(error){
+        get('task-add-status').textContent=formatTaskError(error);
+        throw error;
+      }finally{input.value='';}
+    }));
+  }
   function setTaskSearchOpen(open){
     const panel=get('task-search-panel'),toggle=get('task-search-toggle');
     panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
@@ -839,7 +931,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       get('local-discover-search').focus?.({preventScroll:true});
     }else{
       localQuery='';localFilter='all';get('local-discover-search').value='';
-      renderInstalledCards();update();toggle.focus?.({preventScroll:true});
+      renderInstalledCards();update();taskSearchReturnFocus().focus?.({preventScroll:true});
     }
   }
   listen(get('task-search-toggle'),'click',()=>setTaskSearchOpen(get('task-search-panel').hidden));
@@ -891,7 +983,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   listen(get('task-refresh'),'click',asyncAction(()=>refresh()));
   listen(get('task-catalog-refresh'),'click',asyncAction(()=>refresh()));
   listen(get('task-create-candidate'),'click',asyncAction(createCandidate));
-  listen(get('task-package-file'),'change',asyncAction(readFile));
+  listen(get('task-package-file'),'change',asyncAction(()=>readFile()));
   listen(get('task-verify'),'click',asyncAction(verify));
   listen(get('task-publish'),'click',asyncAction(publish));
   listen(get('task-install'),'click',asyncAction(install));
@@ -915,7 +1007,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks',{initial:true});update();
-  return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
+  return {navigate,showCatalogPage,refresh,connectReactMyTasks(view){
+    if(disposed||reactMyTasks||!view?.myTasksMounted)return;
+    reactMyTasks=view;view.renderMyTaskCount(installed.length+' 个');renderInstalledCards();
+  },setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();

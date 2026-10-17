@@ -108,6 +108,7 @@ class Element {
     while(node){
       if(selector==='[data-message-author-role="assistant"]' && node.kind==='assistant')return node;
       if(selector==='.AnswerItem' && node.kind==='zhihu')return node;
+      if(selector==='.markdown' && node.kind==='markdown')return node;
       if(selector==='article' && node.kind==='article')return node;
       if(selector==='header' && node.kind==='header')return node;
       if(selector==='main,[role="main"]' && node.kind==='main')return node;
@@ -186,14 +187,15 @@ test('R4.7 without main use the strongest article, or one body fallback',()=>{
 
 test('R4.1 assistant answer fragment grouping is wrapper-based, never adjacent-text guessing',()=>{
   const assistantA=new Element('assistant'),assistantB=new Element('assistant');
-  const fragmentsA=[new Element('fragment','DIV',assistantA),new Element('fragment','DIV',assistantA),new Element('fragment','DIV',assistantA)];
+  const markdownA=new Element('markdown','DIV',assistantA),markdownB=new Element('markdown','DIV',assistantB);
+  const fragmentsA=[new Element('fragment','DIV',markdownA),new Element('fragment','DIV',markdownA),new Element('fragment','DIV',markdownA)];
   const answerA=[
     new Element('heading','H1',fragmentsA[0],'第一部分'),
     new Element('heading','H2',fragmentsA[0],'概览'),
     new Element('heading','H1',fragmentsA[1],'第二个 H1'),
     new Element('heading','H2',fragmentsA[2],'总结')
   ];
-  const answerB=[new Element('heading','H1',assistantB,'独立回答'),new Element('heading','H2',assistantB,'总结')];
+  const answerB=[new Element('heading','H1',markdownB,'独立回答'),new Element('heading','H2',markdownB,'总结')];
   const index=createReadingTocIndex(docFor([...answerA,...answerB],{chat:true}));
   const result=index.rebuild();
   assert.equal(result.adapter,'chatgpt');

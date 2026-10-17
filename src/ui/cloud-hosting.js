@@ -31,7 +31,7 @@ export function projectCloudInstalledTasks(data,approved=[]){
 const cloudChoiceKey=task=>[task.taskId,task.version,task.manifestHash,task.sourceHash,
   task.installationId,task.generation].join('|');
 
-export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome}){
+export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI=null}){
   const get=id=>doc.getElementById(id),cloud=client.cloud;let disposed=false,busy=false,starting=false,timer;
   const status=get('cloud-status'),brief=get('cloud-brief'),myState=get('cloud-my-state');
   const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
@@ -43,6 +43,15 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let statusText=status.textContent,operationFeedback='';
   let activeClientTasks=[],lastClientTasksStamp='',clientNextOffset=null,oneTimeToken='';
   const put=(id,text)=>{const el=get(id);if(el)el.textContent=text;};
+  const renderOverview=values=>{
+    if(disposed)return;
+    if(reactUI?.cloudOverviewMounted){reactUI.renderCloudOverview(values);return;}
+    for(const [key,text] of Object.entries(values)){
+      if(key==='myState')myState.textContent=text;
+      else if(key==='summary')overview.textContent=text;
+      else put('cloud-overview-'+key,text);
+    }
+  };
   const updateStatus=()=>{status.textContent=[statusText,operationFeedback].filter(Boolean).join('\n');};
   const selectedTasks=()=>taskChoices.filter(task=>
     task.eligible&&selections.get(cloudChoiceKey(task))?.selected);
@@ -319,8 +328,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   const fail=error=>{
     if(disposed)return;
     brief.textContent='状态异常';statusText='云控状态暂不可读取，请稍后核对。'+(error?' '+cloudErrorText(error):'');updateStatus();
-    myState.textContent='状态不可读取';overview.textContent='云端托管状态暂不可读取';
-    for(const metric of ['provider','connection','host','slot','tasks','requests'])put('cloud-overview-'+metric,'待核对');
+    renderOverview({myState:'状态不可读取',summary:'云端托管状态暂不可读取',
+      provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',
+      tasks:'待核对',requests:'待核对'});
     get('cloud-pair').disabled=true;get('cloud-approve').disabled=true;
     get('cloud-refresh').disabled=false;get('cloud-overview-refresh').disabled=false;
     lastSamples='';sampleList.replaceChildren();const li=doc.createElement('li');li.textContent='请求状态暂不可读取';sampleList.append(li);
@@ -337,19 +347,18 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       !projected.slotAvailable?cloudSlotStateLabel(projected.slotState):projected.pendingResources!==false?'待处理资源待核对':'可用';
     statusText=summary+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;updateStatus();
     const latest=samples[0];
-    myState.textContent=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务'+
+    const myStateText=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务'+
       (projected.pendingResources===true?' · 仍有待处理资源，等待停止、核对及资源释放':projected.pendingResources===false?'':' · 待处理资源状态待核对')+
       (latest?' · 最近请求：'+[latest.title,latest.state,latest.run,latest.result,latest.settlement,latest.receipt,latest.reason].filter(Boolean).join(' · '):'');
-    overview.textContent=summary;
     get('cloud-first-run').hidden=!!s.provider;
     get('cloud-approval-section').hidden=!s.provider;
     put('cloud-next-step','先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。');
-    put('cloud-overview-provider',projected.paired?'已配对':'未配对');
-    put('cloud-overview-connection',projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接');
-    put('cloud-overview-host',projected.hostReady?'已就绪':'不可用');
-    put('cloud-overview-slot',cloudSlotStateLabel(projected.slotState));
-    put('cloud-overview-tasks',String(projected.approvedTasks));
-    put('cloud-overview-requests',String(projected.requests.total));
+    renderOverview({myState:myStateText,summary,
+      provider:projected.paired?'已配对':'未配对',
+      connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
+      host:projected.hostReady?'已就绪':'不可用',
+      slot:cloudSlotStateLabel(projected.slotState),
+      tasks:String(projected.approvedTasks),requests:String(projected.requests.total)});
     hostingEnabled=s.enabled===true;updateResultConsent();
     requestNextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
     get('cloud-request-prev').disabled=requestOffset===0;

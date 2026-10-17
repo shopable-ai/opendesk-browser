@@ -17,19 +17,23 @@ function makeButton(doc,css,owner,handleClick){
   host.style.cssText='display:inline-flex;vertical-align:middle;max-width:100%;';
   const shadow=host.attachShadow({mode:'open'});
   const style=make(doc,'style');style.textContent=css;
-  const button=make(doc,'button','思维导图');
+  const button=make(doc,'button');
   button.type='button';button.className='odmm-trigger';
   button.setAttribute('aria-label','查看本条 AI 回复的思维导图');
   button.setAttribute('aria-pressed','false');
-  // Keep native ChatGPT action buttons fully intact. Our glyph is contained
-  // within our own shadow tree, not an injected SVG in a React-owned toolbar.
-  const glyph=doc.createElementNS('http://www.w3.org/2000/svg','svg');
+  // Bounded mind-map icon lives only in our Shadow DOM.
+  const ns='http://www.w3.org/2000/svg';
+  const glyph=doc.createElementNS(ns,'svg');
   glyph.setAttribute('viewBox','0 0 20 20');glyph.setAttribute('aria-hidden','true');
-  for(const [d] of [['M5 4 L14 4 M5 4 L5 10 M5 10 L14 10 M14 10 L14 16 M5 10 L5 16']]){
-    const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',d);glyph.append(path);
+  glyph.setAttribute('focusable','false');
+  const branches=doc.createElementNS(ns,'path');
+  branches.setAttribute('d','M5 10h5M10 5v10M10 5h5M10 15h5');glyph.append(branches);
+  for(const [cx,cy] of [[3.5,10],[16.5,5],[16.5,15]]){
+    const node=doc.createElementNS(ns,'circle');
+    node.setAttribute('cx',String(cx));node.setAttribute('cy',String(cy));
+    node.setAttribute('r','1.5');glyph.append(node);
   }
-  button.prepend(glyph);
+  button.append(glyph);
   const remove=owner.on(button,'click',handleClick);
   const error=make(doc,'span');error.hidden=true;error.className='odmm-error';error.setAttribute('role','alert');
   shadow.append(style,button,error);
@@ -43,13 +47,41 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0,viewSession=0;
   const readMessageId=()=>root.getAttribute('data-message-id')||root.id||null;
   let messageId=readMessageId();
-  let busyTimer=null,buttonRef=null;
+  let busyTimer=null,buttonRef=null,openingAnchor=null;
   const handleClick=async()=>{
     if(disposed||buttonRef?.button.disabled)return;
-    if(view){await close();return;}
+    if(view){await close({restorePosition:true});return;}
     await open();
   };
   buttonRef=makeButton(document,css,owner,handleClick);
+  function captureAnchor(){
+    const rect=buttonRef.host.getBoundingClientRect?.();
+    if(!rect||!Number.isFinite(rect.top))return null;
+    const height=window.innerHeight||document.documentElement?.clientHeight||0;
+    if(height&&!(rect.bottom>0&&rect.top<height))return null;
+    let scroller=buttonRef.host.parentElement;
+    while(scroller&&scroller!==document.documentElement){
+      const overflow=window.getComputedStyle?.(scroller)?.overflowY||'';
+      if(/^(auto|scroll|overlay)$/.test(overflow)&&scroller.scrollHeight>scroller.clientHeight)break;
+      scroller=scroller.parentElement;
+    }
+    return {top:rect.top,scroller:scroller||document.scrollingElement||document.documentElement,
+      messageId};
+  }
+  function restoreAnchor(anchor){
+    if(!anchor||disposed||!buttonRef.host.isConnected||readMessageId()!==anchor.messageId)return;
+    const top=buttonRef.host.getBoundingClientRect?.().top;
+    const delta=top-anchor.top;
+    if(!Number.isFinite(delta)||Math.abs(delta)<2)return;
+    const scroller=anchor.scroller;
+    if(scroller===document.scrollingElement||scroller===document.documentElement||
+      scroller===document.body){
+      if(typeof window.scrollBy==='function')window.scrollBy({top:delta,left:0,behavior:'instant'});
+      else if(scroller)scroller.scrollTop+=delta;
+    }else if(scroller?.isConnected){
+      scroller.scrollTop+=delta;
+    }
+  }
   function syncTheme(){
     if(disposed)return;
     const theme=dark(document)?'true':'false';
@@ -67,12 +99,14 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   function syncButton(){
     if(disposed)return;
     const busy=isStreaming(root)||(lastChange>0&&Date.now()-lastChange<STABLE_MS);
-    buttonRef.button.disabled=busy;
+    buttonRef.button.disabled=busy&&!view;
     buttonRef.button.setAttribute('aria-pressed',String(!!view));
-    buttonRef.button.setAttribute('aria-label',view?'关闭思维导图，返回原文':'查看本条 AI 回复的思维导图');
+    const label=view?'恢复本条回复原文':'查看本条 AI 回复的思维导图';
+    buttonRef.button.setAttribute('aria-label',label);
+    buttonRef.button.title=label;
+    // Keep the native action-bar trigger in its exact slot in either mode.
     buttonRef.host.hidden=false;
     buttonRef.host.removeAttribute('aria-hidden');
-    buttonRef.button.lastChild.textContent=view?'关闭思维导图':'思维导图';
     if(busy&&busyTimer===null){
       busyTimer=owner.setTimeout(()=>{busyTimer=null;syncButton();},STABLE_MS+40);
     }
@@ -103,13 +137,17 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     content.style.setProperty('display','none','important');
     content.setAttribute('aria-hidden','true');
   }
-  function close({focus=false}={}){
+  function close({focus=false,restorePosition=focus}={}){
+    const anchor=openingAnchor;openingAnchor=null;
     coordinator.releaseFull(api);
     const previous=view;view=null;restore();syncButton();
-    // A closing viewer needs teardown, not the viewport reflow used on exit.
+    // Retire directly; restore the opener position after the old layout is gone.
     const retired=coordinator.retire(previous);
-    if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
-    return retired;
+    return retired.finally(()=>{
+      if(disposed)return;
+      if(focus&&buttonRef.host.isConnected)buttonRef.button.focus({preventScroll:true});
+      if(restorePosition)restoreAnchor(anchor);
+    });
   }
   async function failed(error,source,session){
     // A retired viewer can still reject a toolbar or renderer operation.
@@ -134,6 +172,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     const result=extractAnswerTree(content);
     if(!result.nodeCount)return;
     const session=++viewSession;
+    openingAnchor=captureAnchor();
     const nextView=createView({document,window,owner,css,...result,
       identity:Object.freeze({instanceId,revision}),
       onError:error=>failed(error,nextView,session),
@@ -142,7 +181,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api)});
     try{
       // The original content remains connected, immutable and restorable.
-      if(content.contains(document.activeElement))buttonRef.button.focus();
+      if(content.contains(document.activeElement))buttonRef.button.focus({preventScroll:true});
       content.insertAdjacentElement('afterend',nextView.host);
       view=nextView;viewRevision=revision;conceal();syncTheme();syncButton();
       await nextView.start();

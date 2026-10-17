@@ -57,11 +57,11 @@ const article=`<!doctype html><html><meta charset="utf-8"><style>body{margin:0;p
 const single=`<!doctype html><html><meta charset="utf-8"><style>body{padding:30px 100px;font-family:sans-serif}h2{margin:45px 0}</style>
 <main><article><h1>一篇只有一个一级标题的文章</h1>${Array.from({length:20},(_,i)=>'<h2>步骤 '+(i+1)+'</h2>').join('')}<div style="height:700px"></div></article></main></html>`;
 const chat=`<!doctype html><html><meta charset="utf-8"><style>body{padding:24px 90px;font-family:sans-serif;}section[data-part]{margin:30px 0}h1,h2{margin:15px 0}</style>
-<main><article data-testid="conversation-turn-1"><div data-message-author-role="assistant">
+<main><article data-testid="conversation-turn-1"><div data-message-author-role="assistant"><div class="markdown">
 <section data-part="a"><h1 id="dup">回答一 H1</h1><h2>重复标题</h2></section>
 <section data-part="b"><h1 id="dup">同一回答第二个 H1</h1></section>
-<section data-part="c"><h2>重复标题</h2></section></div></article>
-<article data-testid="conversation-turn-2"><div data-message-author-role="assistant"><h1>回答二 H1</h1><h2>重复标题</h2></div></article></main></html>`;
+<section data-part="c"><h2>重复标题</h2></section></div></div></article>
+<article data-testid="conversation-turn-2"><div data-message-author-role="assistant"><div class="markdown"><h1>回答二 H1</h1><h2>重复标题</h2></div></div></article></main></html>`;
 
 test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and revokes page UI',{timeout:150000},async t=>{
   assert.ok(binary,'Missing Chrome for Testing binary: cannot claim real Chrome acceptance');

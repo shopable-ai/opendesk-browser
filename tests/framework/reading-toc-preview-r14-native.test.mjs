@@ -72,7 +72,7 @@ async function child(browser,page){
 test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inner UI',{timeout:120000},async t=>{
  assert(binary,'Chrome for Testing is required: no mock PREVIEW_PASS');
  const profile=await mkdtemp(join(tmpdir(),'toc-r14-chrome-'));
- const chrome=spawn(binary,['--headless=new','--no-sandbox','--disable-gpu',
+ const chrome=spawn(binary,['--headless=new','--window-size=1280,900','--no-sandbox','--disable-gpu',
   '--disable-dev-shm-usage','--no-proxy-server','--no-first-run',
   '--disable-background-networking','--site-per-process','--remote-allow-origins=*',
   '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
@@ -112,6 +112,9 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  }
  const side=await open('reading-toc-r12-interactive-preview.html'),panel=await child(browser,side.page);
  await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length>0'),'Compiled TOC did not start in real sandbox');
+ const gutters=await evaluate(panel, '(()=>{const rect=document.querySelector(".toc-panel").getBoundingClientRect();return {left:rect.left,right:document.documentElement.clientWidth-rect.right};})()');
+ assert(gutters.left>=7&&gutters.right>=7,
+  'CONTENTS card has visible symmetric left/right outer gutters: '+JSON.stringify(gutters));
  assert.equal(await evaluate(panel,'document.querySelector("#toc-source")?.hidden'),true,
   'the sidebar hides the extra multi-source dropdown');
  await evaluate(panel,"document.querySelector('[data-toc-mode=top]').click()");
@@ -131,6 +134,25 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="CONTENTS" && document.querySelector(".toc-panel")?.getAttribute("aria-label")==="阅读目录"'),'Chinese accessible label restore failed without changing the approved CONTENTS visual');
  assert.equal(await evaluate(panel,'document.querySelector("#toc-source").value'),'s-2');
  assert.equal(await evaluate(panel,'document.querySelector("[data-toc-mode=full]").getAttribute("aria-pressed")'),'true');
+ // R1.8.3: exercise actual packaged UI, not CSS-only snapshot matching.
+ await select(side.page,'od-toc-scenario','chatgpt-multi');
+ const grouped=await until(async()=>{
+  const result=await evaluate(panel,
+   '({rows:[...document.querySelectorAll("#toc-list button")].map(b=>({id:b.dataset.id,label:b.textContent.trim()})),starts:[...document.querySelectorAll("#toc-list li.toc-answer-start button")].map(b=>b.dataset.id)})');
+  return result.rows.length===8?result:null;
+ },'R1.8.3 full mode must show eight titles from three assistant turns');
+ assert.deepEqual(grouped.starts,['h-24','h-26'],
+  'two 1px separators occur only at real assistant turn boundaries');
+ assert.equal(grouped.rows.filter(row=>row.label==='出行路线').length,2);
+ assert.equal(new Set(grouped.rows.map(row=>row.id)).size,8);
+ await evaluate(panel,'document.querySelector("#toc-list button[data-id=h-25]").click()');
+ await until(()=>evaluate(side.page,
+  'document.querySelector("#od-toc-feedback")?.textContent.includes("出行路线")'),
+  'clicking the second assistant answer must navigate its own title');
+ await screenshot(side.page,'toc-r183-multi-preview-panel.png');
+ await select(side.page,'od-toc-scenario','success');
+ await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list li.toc-answer-start").length===0'),
+  'ordinary article must not retain assistant separators');
  await screenshot(side.page,'toc-r14-preview-panel.png');
  await select(side.page,'od-toc-scenario','error');
  await until(()=>evaluate(panel,'document.querySelector("#toc-error")?.dataset.state==="error"'),'Failure state did not activate');
@@ -141,11 +163,40 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  const overlay=await open('reading-toc-r12-overlay-preview.html'),trusted=await child(browser,overlay.page);
  await until(()=>evaluate(trusted,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'Trusted overlay failed to mount');
  const original=await evaluate(trusted,'document.querySelector("article h1").textContent');
+ // Check the closed-shadow production view at first mount, before clicking overview.
+ const nineLabels=['OpenDesk Browser 阅读指南','产品目标','安装与开始使用','常用操作',
+  '快速打开工具','按需刷新目录','多语言界面','数据安全','扩展权限说明'];
+ await until(async()=>{
+  const tree=await trusted.send('Accessibility.getFullAXTree');
+  const names=new Set(tree.nodes.filter(node=>node.role?.value==='button')
+   .map(node=>node.name?.value));
+  return nineLabels.every(label=>names.has(label));
+ },'Initial production overlay must expose all nine real headings without another mode click');
  await select(overlay.page,'od-toc-language','en');
  await until(async()=>{const tree=await trusted.send('Accessibility.getFullAXTree');
   return tree.nodes.some(node=>node.name?.value==='On-page table of contents');},
   'Closed-shadow overlay did not present translated English accessible label');
+
+ const axe=await trusted.send('Accessibility.getFullAXTree');
+ assert(axe.nodes.some(node=>node.name?.value==='CONTENTS'),
+  'webpage overlay preserves the CONTENTS heading after locale switch');
+ const modeNames=['Chapter overview (automatically includes subheadings)','Current section','Full contents','AI outline'];
+ const buttonNames=axe.nodes.filter(node=>node.role?.value==='button').map(node=>node.name?.value);
+ for(const name of modeNames)assert(buttonNames.includes(name),
+  'injected webpage TOC must expose all four real mode icons: '+name);
+ assert(!buttonNames.some(name=>/more sections|还有 \\d+ 个章节|see full contents/i.test(String(name))),
+  'webpage TOC must not reintroduce the redundant see-all button');
  assert.equal(await evaluate(trusted,'document.querySelector("article h1").textContent'),original);
+ // The overlay test frame contains three real assistant Markdown turn wrappers.
+ await select(overlay.page,'od-toc-scenario','chatgpt-multi');
+ const turns=await until(async()=>{
+  const values=await evaluate(trusted,
+   'document.getElementById("preview-chat")?.hidden===false?[...document.querySelectorAll("#preview-chat [data-message-author-role=assistant]")].map(turn=>turn.querySelectorAll("h1,h2,h3,h4,h5,h6").length):null');
+  return values?.length===3?values:null;
+ },'trusted overlay preview must render all three independent Markdown answer fixtures');
+ assert.deepEqual(turns,[4,2,2],
+  'two H1 in the first answer never mean two assistant sources');
+ await screenshot(overlay.page,'toc-r183-multi-preview-overlay.png');
  await screenshot(overlay.page,'toc-r14-preview-overlay.png');
  console.log('TOC_PREVIEW_EVIDENCE '+JSON.stringify({browser:version.Browser,file:true,installed:false,
   screenshots:['toc-r14-preview-panel.png','toc-r14-preview-overlay.png']}));

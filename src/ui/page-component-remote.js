@@ -67,14 +67,22 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   // Prime Chrome's read-only permission observation after typing, before a
   // trusted Run click. The click itself owns the native request; we never
   // call permissions.request from an async dependency download callback.
-  function scheduleRunPermissionWarm(){
+  function suspendRunPermissionWarm(){
+    // A trusted, explicit review owns the compiler. Revoke any queued warm
+    // observer without cancelling its replacement or creating new authority.
     warmEpoch++;if(warmTimer){clearTimeout(warmTimer);warmTimer=null;}
+  }
+  function scheduleRunPermissionWarm(){
+    suspendRunPermissionWarm();
     warmed=null;warmError=null;
     const input={...getInput()},epoch=warmEpoch;
     if(!needsSourceConsent(input)||typeof preparer.inspect!=='function')return;
     warmTimer=setTimeout(async()=>{
       warmTimer=null;
       const valid=()=>!disposed&&epoch===warmEpoch&&inputKey(input)===inputKey(getInput());
+      // Background observation never supersedes a user-initiated prepare
+      // through the compiler's single-flight cancellation mechanism.
+      if(!valid()||busy)return;
       try{
         const analysis=await inspect(input);
         if(!valid())return;
@@ -139,6 +147,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   async function click(event){
     if(!event?.isTrusted||disposed||busy||isBlocked())return;
     const input={...getInput()};if(!compatible(input))return;
+    suspendRunPermissionWarm();
     const ticket=++generation,previous=state;
     // Permission consent must be invoked synchronously from this trusted click;
     // an existing Chrome host grant does not replace source confirmation.
@@ -186,7 +195,14 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     }catch(cause){
       if(ticket!==generation||disposed)return;
       state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};render();
-    }finally{if(ticket===generation){busy=false;render();}}
+    }finally{if(ticket===generation){
+      busy=false;render();
+      // A pending warm could have been dropped while explicit review owned
+      // the Worker. Reprime only after it has finished, never in parallel.
+      if(!disposed&&needsSourceConsent(input)&&
+        warmed?.key!==inputKey(input)&&warmError?.key!==inputKey(input))
+        scheduleRunPermissionWarm();
+    }}
   }
   // Native/File-first R7.2: the Run/Save click is the single author intent.
   // Keep the old manual review UI for advanced forensics, but the normal path
@@ -195,6 +211,7 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   // and by the fixed compiler Worker; no downloaded code runs in this UI.
   async function autoLoadForRun(input,assertRunCurrent=()=>{}){
     if(busy)throw error('E_REMOTE_PENDING','当前已有依赖操作；请先结束或取消');
+    suspendRunPermissionWarm();
     const ticket=++generation;busy=true;render();
     const verify=()=>{assertRunCurrent();current(ticket,input);};
     let analysis;
@@ -264,6 +281,14 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       throw cause;
     }finally{if(!disposed&&ticket===generation){busy=false;render();}}
   }
+  function resumeRunPermissionWarm(){
+    if(disposed||busy)return;
+    // This is called only AFTER the outer caller has finished its actual
+    // compiler prepare job; otherwise a new observer would cancel that job.
+    const input=getInput(),key=inputKey(input);
+    if(needsSourceConsent(input)&&warmed?.key!==key&&warmError?.key!==key)
+      scheduleRunPermissionWarm();
+  }
   async function loadForRun(input){
     if(busy)throw error('E_REMOTE_PENDING','请先完成或取消当前依赖准备');
     // Older injected compiler test doubles lack inspect(); the production
@@ -282,7 +307,8 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   const onCancel=event=>{if(event?.isTrusted)cancel();},onSelection=()=>render();
   button?.addEventListener('click',click);cancelButton?.addEventListener('click',onCancel);selector?.addEventListener('change',onSelection);
   scheduleRunPermissionWarm();
-  return Object.freeze({loadForRun,autoLoadForRun,confirmRun,refresh,cancel,update:()=>render(false),
+  return Object.freeze({loadForRun,autoLoadForRun,confirmRun,resumeRunPermissionWarm,
+    refresh,cancel,update:()=>render(false),
     get readyForRun(){return readyForRun();},get busy(){return busy;},
     dispose(){if(disposed)return;disposed=true;generation++;warmEpoch++;if(warmTimer)clearTimeout(warmTimer);permissions.dispose();
       button?.removeEventListener('click',click);cancelButton?.removeEventListener('click',onCancel);selector?.removeEventListener('change',onSelection);}});

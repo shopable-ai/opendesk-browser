@@ -73,7 +73,7 @@ export function ExtensionDetail({model,container}){
       {model.kind==='app'&&<>
         {model.installed?<><p>来源：{model.source?.label||'暂未读取安装来源'}</p>
           {model.source?.sha256&&<p>固定包 SHA-256：{model.source.sha256}</p>}
-          <p>设置不会自动运行应用。</p></>:<p>{model.cleanupPending?
+          <p>{model.usageText||'应用已安装，可按需打开界面。'}</p></>:<p>{model.cleanupPending?
             '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
             '正式安装必须在现有应用市场审阅固定包和能力清单。'}</p>}
       </>}
@@ -83,7 +83,7 @@ export function ExtensionDetail({model,container}){
       <ul className="ec-sites">{model.sites.map(site=><li key={site}>{site}</li>)}</ul>
       <p>{model.suspended?
         '网站访问受限；需要按照原授权规则重新授权。':
-        '启用时仅按现有固定网站规则申请必要权限，不扩大安装范围。'}</p>
+        '仅在原安装批准的网站范围内运行，不因扩展本身具备网站访问权限而扩大程序授权。'}</p>
     </section>}
   </>;
 }

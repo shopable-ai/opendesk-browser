@@ -1,0 +1,110 @@
+name: Reading TOC R1.8.3 - validated package and exact HTML previews
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/reading-toc-r183-finalize.yml'
+      - 'tests/environment/reading-toc-multi-answer-r183.test.mjs'
+      - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  validate-and-finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build isolated candidate and run focused source tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/reading-toc-r183
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --out artifacts/reading-toc-r183/candidate.opendesk-tool.json
+          node --test \
+            tests/environment/reading-toc-chatgpt-content-r182.test.mjs \
+            tests/environment/reading-toc-multi-answer-r183.test.mjs \
+            tests/environment/reading-toc-r41.test.mjs \
+            tests/environment/reading-toc-overview-r43.test.mjs \
+            tests/environment/reading-toc-recovery-r48.test.mjs \
+            tests/environment/reading-toc-ai-r18.test.mjs \
+            tests/environment/reading-toc-placement-r42.test.mjs
+      - name: Regenerate approved R1.2 source-derived previews and R1.8.3 multi-answer scenes
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir=examples/sidebar-tools/reading-toc/preview
+          for row in 'side-panel reading-toc-r12-interactive-preview.html success' \
+            'page-overlay reading-toc-r12-overlay-preview.html success' \
+            'side-panel reading-toc-r183-source-panel-preview.html chatgpt-multi' \
+            'page-overlay reading-toc-r183-source-overlay-preview.html chatgpt-multi'; do
+            read -r surface file scenario <<< "$row"
+            node scripts/preview/build-preview.mjs --tool reading-toc --surface "$surface" --scenario "$scenario" --theme light --width 360 --height 760 --out "$dir/$file"
+          done
+          node --test tests/environment/reading-toc-localization-preview-r12.test.mjs
+      - name: Install Chinese fonts for readable screenshot evidence
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Install Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Real Chromium two-surface source HTML interaction checks
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+        run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
+      - name: Promote tested candidate through the only official packager
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --promote-from artifacts/reading-toc-r183/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --check-project
+          node --test tests/environment/reading-toc-r41.test.mjs
+      - name: Fast-forward only the validated package and four preview HTML files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || {
+            echo 'MAIN_ADVANCED: abort promotion commit; never overwrite newer main'
+            exit 1
+          }
+          git add -- \
+            examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json \
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html \
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html \
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-panel-preview.html \
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-overlay-preview.html
+          if git diff --cached --quiet; then
+            echo 'PROJECT_PACKAGE_AND_PREVIEWS_ALREADY_MATCH'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(reading-toc): promote tested package and exact R1.8.3 HTML previews'
+          git push origin HEAD:main
+      - name: Retain reproducible HTML and candidate evidence on every result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reading-toc-r183-candidate-and-previews
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/reading-toc-r183/
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r12-*.html
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-*.html
+            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html
+            artifacts/reading-toc-r41/*.png

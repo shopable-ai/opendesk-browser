@@ -76,3 +76,33 @@ Mac Chrome 需核对已加载构建的扩展 ID/版本/路径，在 Side Panel �
 **试点实施门槛：** 先核查 WXT 严格 IIFE、自包含静态入口、生产 512 KiB 单入口预算、CSP/Manifest/正式工具包兼容性，再只迁 Time Review。定向测试必须覆盖同 ID 伪装、包版本与哈希错配、恶意 JS 不进入可信页、跨工具无法获权、完整授权/撤销、SW 与 Chrome 恢复、工具更新/卸载及真实 Side Panel 交互。若必须通过提高预算、削弱验证、复制并行安装器、动态提权等方式才可工作，则**不迁移**，维持现有已隔离工具路径并记为 BLOCKED。没有同候选真实 Chrome 证据，95+ 专家评分保持 `NOT_SCORED`。
 
 实施和验收续接见 [Time Review 工作流](../../framework/workstreams/time-review-r15.md) 与 [R1.6 实施 GOAL](../../framework/prompts/goal-time-review-r16-trusted-native-ui-pilot.zh-CN.md)。
+
+## 2026-10-17 增补：优先复用宿主 UI，不把界面布局问题误判为沙箱问题
+
+> **本节为当前设计裁决，非功能已完成或 Mac 原生 PASS。** 上方 2026-10-13 R1.6 小节的“尚未迁移”描述是其当日历史状态；当前源码已有 Time Review 的 `src/time-review/trusted-native-ui.js`、`trusted-admission.js` 正例。它仍不能证明所有内置工具或 R33 React UI 完全迁移、真实 Chrome 已验收。
+
+### 第一原则：将 UI 渲染所有权与 JS 执行权限解耦
+
+| UI / 代码来源 | 推荐做法 | 仍需保持的边界 |
+| --- | --- | --- |
+| 随扩展编译、经审计的 React / 固定 UI 组件 | 使用现有可信 `src/ui/react/` 组件和唯一 React Root/Portals；在其所属宿主 DOM 内直接渲染，**无需工具 iframe** | 单 DOM Owner、受控事件、业务 Host/SDK、卸载和异步生命周期；非 React 静态可信 UI 也可在已明确 Owner 的区域直接挂载 |
+| 经宿主校验的纯 UI 数据（仅显示文本、数字、状态等） | 宿主可用固定受信组件安全渲染，**不执行来源提供的 JS/HTML/事件处理器** | 当前不新增通用 JSON UI Schema/DSL；确有两个以上实际消费者和安全白名单需求时再单独评审 |
+| 用户本人、AI、第三方、市场动态安装的 HTML/CSS/JS 或编译后的 React/Vue 包 | **保持现有 opaque-origin iframe**，通过已有 `OpenDeskTool`/`OpenDeskSDK` 访问许可范围内能力 | “自己写的”“官方名称”“样式简单”都不能将包中可执行代码提升到扩展页面，包 ID/签名/版本不能代替静态代码审计 |
+| Page/Controller/USER_SCRIPT 的网页运行与网页 UI | 继续使用对应现有执行世界/权限及网页 DOM 作用域方案 | 不能把目标网页脚本世界等同于特权 Side Panel |
+
+**没有必要的问题不解决：** 现有 `src/ui/design-tokens.css` 与 `design-system.css` 已承担布局/颜色/按钮/间距规则；共享可信 React 组件沿用 `src/ui/react/components/ui/`，新功能不另建组件库、第二 Root、全局 CSS 前缀生成器、默认 Shadow DOM 或每工具 iframe。受信 DOM 由固定宿主规范约束即可；只有真实出现选择器/门户/第三方样式冲突时，才按单个组件审查并定向做 CSS 作用域。对动态工具，iframe 已提供独立文档与 CSS 边界，无需再为冲突强行改造其源码。
+
+**避免误解：** “共享设计系统”不等于沙箱自动继承宿主 CSS。原动态包按既有文档维护自身受限 CSS/视觉值映射；不得直接加载可信 Side Panel 的 CSS/Preflight 或执行其 React 运行时代码。`ShadowRoot`、CSS Modules、Vue Scoped 和前缀只处理呈现冲突，不限制 JS 调用 `chrome.*`。可信 Side Panel 的代码一旦在扩展特权环境执行，SDK 包装不能阻止其绕开 SDK 调用扩展级权限。任何外部 HTML/Markdown/URL/动作描述直接插入可信 DOM 前还必须有严格验证与安全文本渲染，不以 `innerHTML` 作为便捷升级路径。
+
+### 工程约束与实施顺序（最小改动）
+
+1. **P0 现有能力优先：** 固定可信组件不加 iframe；已安装动态工具、原 `sidebar-tools/sandbox.html`、Host、SDK、Installer、权限、存储命名空间、CSP、代码预算以及 R33 单 React Root 保持不变。只读核对实际缺口后再动源码。
+2. **P0 原生准入：** 以现有 Time Review 的静态编译/精确官方来源/规范化包 SHA/版本/安装/撤销代际为参考；仅预编译可信源码可挂载。任何字段切换如 `sandbox:false`、用户管理员开关、同名官方工具包均不能自行改变运行世界；校验失败安全拒绝或保持沙箱，不会将动态源码回退执行到宿主。
+3. **P1 最小 UI 复用：** 优先采用 R33 已有 Button/IconButton、Tokens 与固定 React 组件；当前共享组件尚未全面建成，按真实页面需求增补，不为“统一”重写旧 HTML/Vue/React 工具或打乱用户批准的 UI。每个 DOM 区域只能有一个 Owner，事件、焦点、异步请求与 dispose 不得重复。
+4. **P1 样本验证而非批量迁移：** A 已有 React 扩展 Tab 作为纯可信 UI 正例；B Time Review 验证 Native 准入/挂载/卸载正例；C Quick Notes 作为动态沙箱负例（可选 React Starter 测编译兼容）。AdBlock 的可信宿主开关与普通沙箱已经混合共存，适合额外的**只读 UI/边界检查**，但 Chrome DNR 授权、规则/网络/滑块修复属正在进行的独立 AdBlock 工作，不作为本架构首个可写试验。
+5. **P1 验收与回滚：** 有真实问题才定向修改并回归；保存用户数据、已批准 UI、工具身份/版本与安装事务。检查窄屏 320/360/420 CSS px、缩放/键盘/ARIA、存储及多实例、权限拒绝/撤销、变更中的异步请求、同名/伪造包、资源体积。Node、构建、模拟 Chromium、原生 Chrome/Mac 逐层标记 `PASS/FAIL/BLOCKED/NOT_TESTED`；无同候选原始证据，专家 95+ 为目标而非结论。
+
+**不属于此决议：** 全量重构 AdBlock、自动授权 Chrome 权限、开发新沙箱/Runner、全量 Shadow DOM 化、直接把动态 JSX/JS 在 Side Panel 特权页执行、重建用户工具 SDK、改变 R33 已批准布局、替所有工具新建 JSON UI 配置或部署新的工具市场协议。
+
+设计/试点/反方遗漏的续接清单见 [2026-10-17 渲染边界工作流](../../framework/workstreams/trusted-ui-render-boundary-20261017.md)；React 单根/组件归属和迁移状态仍以 [R33 React 架构文档](../react-ui-shared-components-r33.zh-CN.md) 为准。本小节不取代既有产品 UI 冻结和动态工具安全合同。
+

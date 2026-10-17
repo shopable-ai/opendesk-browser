@@ -1,8 +1,5 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
-import './style.css';
-
 const model=globalThis.BookmarkR2Model;
-const service=globalThis.BookmarkR2Service.create(globalThis.OpenDeskSDK.browser);
 const iconPaths={
  folder:<><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10H3z"/></>,
  link:<><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></>,
@@ -43,7 +40,17 @@ function filteredRows(tree,expanded,query){
 }
 function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.title:'',url=mode==='edit'?(node.url||''):'',folder=mode==='edit'?node.parentId:parentId;return {mode,kind,id:node?.id||null,expected:node?{...node}:null,title,url,parentId:folder,initial:{title,url,parentId:folder}}}
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
-function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请恢复模拟权限后刷新。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
+function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请在工具设置中核对授权后重新打开。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
+// Existing imported Chrome bookmarks may contain chrome:, file:, data: or other
+// schemes. Display those URLs as text, never navigate to them from a trusted UI.
+function safeBookmarkHref(value){
+ if(typeof value!=='string')return null;
+ try{
+  const target=new URL(value);
+  return (target.protocol==='https:'||target.protocol==='http:')&&
+   !target.username&&!target.password?target.href:null;
+ }catch{return null;}
+}
 function descendants(tree,id){return model.descendantSignatures(tree,id).length}
 function highlightSearchTitle(title,term){
  const q=term.trim();if(!q)return title;
@@ -112,6 +119,7 @@ function FolderPicker({tree,value,onChange,onClose,currentId}){
  </div>
 }
 function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,pickerOpen,setPickerOpen,busy,uncertain,error}){
+ const clickableHref=node&&!isFolder(node)?safeBookmarkHref(node.url):null;
  return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
   <span id="bm-inspector-id" className="bm-sr-only">{node?.id||''}</span>
   {draft?<form className="bm-editor" onSubmit={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==="Enter"&&!e.nativeEvent.isComposing&&["bm-edit-name","bm-edit-url"].includes(e.target.id)){e.preventDefault();onSave(e)}}} data-testid="bookmark-editor">
@@ -126,7 +134,12 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
   node?<div className="bm-readonly">
    <div className="bm-detail-title" title={node.title}><Icon name={isFolder(node)?'folder':'link'} size={17}/><span>{node.title}</span></div>
    <div className="bm-detail-path" title={folderLabel(tree,node.parentId)}>{folderLabel(tree,node.parentId)}</div>
-   {!isFolder(node)&&<a className="bm-detail-url" href={node.url} target="_blank" rel="noopener noreferrer" title={node.url}>{node.url}<Icon name="external" size={13}/></a>}
+   {!isFolder(node)&&(clickableHref?
+    <a className="bm-detail-url" href={clickableHref} target="_blank" rel="noopener noreferrer"
+     aria-label={'打开网址：'+node.url} title={'在新标签页打开 '+node.url}>
+     <span>{node.url}</span><Icon name="external" size={13}/>
+    </a>:
+    <span className="bm-detail-url bm-detail-url--disabled" title="该网址协议不支持直接打开">{node.url}</span>)}
 
   </div>:<p className="bm-empty-detail">选择书签可以查看详情，点击「编辑」才会修改内容。</p>}
  </section>
@@ -134,12 +147,24 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
 
 function PreviewPane({tree,node,onClose,onEdit,onCopy}){
  const folder=isFolder(node),count=tree.children.get(node.id)?.length||0;
- return <aside className="bm-preview-pane" aria-label="书签只读预览" data-testid="bookmark-preview">
-  <div className="bm-preview-head"><strong>详情</strong><button type="button" className="bm-preview-close" aria-label="关闭预览" title="关闭预览" onClick={onClose}><Icon name="x" size={16}/></button></div>
+ const narrow=Boolean(globalThis.matchMedia?.('(max-width:739px)')?.matches);
+ const closeRef=useRef(null);
+ useEffect(()=>{if(narrow)closeRef.current?.focus({preventScroll:true})},[narrow]);
+ const onKeyDown=event=>{
+  if(!narrow||event.key!=='Tab')return;
+  const targets=[...event.currentTarget.querySelectorAll('button:not(:disabled),a[href]')];
+  if(!targets.length)return;
+  const first=targets[0],last=targets[targets.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+ };
+ return <aside className="bm-preview-pane" role={narrow?'dialog':'complementary'}
+  aria-modal={narrow?'true':undefined} aria-label="书签只读预览"
+  data-testid="bookmark-preview" onKeyDown={onKeyDown}>
+  <div className="bm-preview-head"><strong>详情</strong><button ref={closeRef} type="button" className="bm-preview-close" aria-label="关闭预览" title="关闭预览" onClick={onClose}><Icon name="x" size={16}/></button></div>
   <div className="bm-preview-content" aria-live="polite"><Inspector tree={tree} node={node} draft={null}/></div>
   {folder&&<div className="bm-preview-count">{count} 个子项</div>}
   <div className="bm-preview-actions">
-   {!folder&&<a href={node.url} target="_blank" rel="noopener noreferrer" className="bm-preview-action" aria-label="打开书签" title="打开书签"><Icon name="external" size={17}/></a>}
    {!folder&&<button type="button" className="bm-preview-action" aria-label="复制网址" title="复制网址" onClick={()=>onCopy(node.url)}><Icon name="copy" size={17}/></button>}
    {!node.locked&&<button type="button" className="bm-preview-action" aria-label="编辑" title="编辑" onClick={()=>onEdit(node.id)}><Icon name="edit" size={17}/></button>}
   </div>
@@ -211,12 +236,57 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
   </div>
  </div>;
 }
-export default function App(){
+export default function App({runtime=null,mode='preview',onStateChange=null}={}){
+ const sdk=runtime?.sdk??globalThis.OpenDeskSDK?.browser;
+ const service=useMemo(()=>runtime?.service??globalThis.BookmarkR2Service.create(sdk),[runtime,sdk]);
  const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
- const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
+ const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
- const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[]);
- useEffect(()=>{void load({initial:true})},[load]);
+ useEffect(()=>{onStateChange?.({dirty:dirtyDraft(draft),saving:busy,draft:draft?JSON.stringify({title:draft.title,url:draft.url,parentId:draft.parentId}).slice(0,8192):''})},[onStateChange,draft,busy]);
+ const load=useCallback(async({initial=false,reconcileUnknown=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(reconcileUnknown)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[service]);
+ useEffect(()=>{if(mode!=='trusted')void load({initial:true})},[mode,load]);
+ useEffect(()=>{
+  if(mode!=='trusted')return;
+  let closed=false,session=null,timer=null,needsSnapshot=true;
+  async function stop(old){if(old)try{await service.watchStop(old)}catch{/* Host sessions are bounded by expiry. */}}
+  async function poll(){
+   if(closed)return;
+   try{
+    if(!session||Date.now()>session.expiresAt-5000){
+     const old=session;session=null;await stop(old);if(closed)return;
+     const next=await service.watchStart();if(closed){await stop(next);return}
+     session=next;needsSnapshot=true;
+    }
+    // Observe before the first snapshot, including every session renewal.
+    // Changes during pagination are then available via the same observer.
+    if(needsSnapshot){
+     const snapshot=await load({initial:true});
+     if(closed)return;
+     if(!snapshot)return; // Retry the failed snapshot without losing observation.
+     needsSnapshot=false;
+    }
+    const result=await service.watchRead(session);
+    if(closed)return;
+    session={...session,cursor:result.nextCursor,expiresAt:result.expiresAt};
+    if(result.events.length)await load(); // Never clear an unknown write automatically.
+   }catch(error){
+    if(closed)return;
+    const old=session;session=null;needsSnapshot=true;void stop(old);
+    if(['E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED'].includes(error?.code)){
+     readEpoch.current++;setTree(null);setDraft(null);setSelectedId(null);setPreviewOpen(false);setMenu(null);
+     setLoading(false);setError('完整书签访问已失效，请在工具设置中重新授权后打开。');closed=true;
+    }else if(error?.code==='E_BOOKMARK_EVENT_GAP'){
+     // The cursor is no longer trustworthy: hide the stale tree and renew
+     // observer -> complete snapshot on the next cycle, preserving any draft.
+     readEpoch.current++;setTree(null);setPreviewOpen(false);setLoading(true);
+    }else{
+     setLoading(false);setError(humanError(error));
+    }
+   }finally{if(!closed)timer=setTimeout(()=>void poll(),2500)}
+  }
+  void poll();
+  return()=>{closed=true;if(timer!==null)clearTimeout(timer);void stop(session);session=null;};
+ },[mode,service,load]);
  useEffect(()=>{if(!notice||notice.startsWith('写入结果未知'))return;const timer=setTimeout(()=>setNotice(''),3300);return()=>clearTimeout(timer)},[notice]);
  const rows=useMemo(()=>filteredRows(tree,expanded,query),[tree,expanded,query]);
  useLayoutEffect(()=>{
@@ -294,42 +364,69 @@ export default function App(){
  function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
  function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
- async function save(e){globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||uncertain)return;
+ async function save(e){if(mode==='preview')globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||busyRef.current||uncertain)return;
   let title,url;try{title=model.displayName(draft.title);url=draft.kind==='bookmark'?model.asHttpUrl(draft.url):undefined;model.parentFolder(tree,draft.parentId);
    if(draft.kind==='folder'&&draft.mode==='edit'&&model.isDescendant(tree,draft.parentId,draft.id))throw Error('文件夹不能移动到自身或子目录');
   }catch(ex){setError(humanError(ex));return}
-  globalThis.__bmReactSaveStage='validated';setBusy(true);setError('');
+  if(mode==='preview')globalThis.__bmReactSaveStage='validated';busyRef.current=true;setBusy(true);setError('');
   let completedWrite=false;
    try{let result,expected=draft.expected;
-   if(draft.mode==='create'){result=draft.kind==='folder'?await service.createFolder({title,parentId:draft.parentId}):await service.createBookmark({title,url,parentId:draft.parentId});completedWrite=true}
+   if(draft.mode==='create'){
+    if(draft.kind==='folder')result=await service.createFolder({title,parentId:draft.parentId});
+    else{
+     const source=draft.sourcePage?.url===url?draft.sourcePage:null;
+     if(source){
+      const currentPage=await sdk.page.getContext();
+      if(currentPage?.status!=='available'||currentPage.url!==source.url||
+        currentPage.tabRef!==source.tabRef||currentPage.documentRef!==source.documentRef)
+        throw Object.assign(Error('当前网页已变化，请重新点击收藏当前页'),{code:'E_DOCUMENT_STALE'});
+     }
+     result=await service.createBookmark({title,url,parentId:draft.parentId,
+      ...(source?{sourcePage:source}:{})});
+    }
+    completedWrite=true;
+   }
    else{
     const moved=draft.parentId!==expected.parentId;
     if(moved){result=await service.move({expected,parentId:draft.parentId});completedWrite=true;expected=result}
     if(title!==expected.title||(draft.kind==='bookmark'&&url!==expected.url)){result=await service.update({expected,title,url});completedWrite=true;expected=result}
     if(!result)result=expected;
    }
-   globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
+   if(mode==='preview')globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
-   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
-  }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
+   if(mode==='preview')globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
+  }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}
  }
- async function removeConfirmed(){if(!confirmDelete||busy||uncertain)return;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{if(activeRef.current)setBusy(false)}}
+ async function removeConfirmed(){if(!confirmDelete||busy||busyRef.current||uncertain)return;busyRef.current=true;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}}
  function bookmarkCurrentPage(){request({type:'currentPage'})}
- async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
+ async function fillCurrentPage(){if(busy)return;try{
+  const info=await sdk.page.getContext();
+  if(info.status!=='available')throw Error('当前页不可用');
+  if(mode==='trusted'&&(!info.tabRef||!info.documentRef))
+   throw Object.assign(Error('当前页缺少可信 Tab/Document 引用'),{code:'E_DOCUMENT_BINDING_REQUIRED'});
+  const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';
+  setDraft({...initialDraft('create','bookmark',null,parent),
+   title:info.title,url:info.url,
+   ...(info.tabRef&&info.documentRef?{sourcePage:{url:info.url,
+    tabRef:info.tabRef,documentRef:info.documentRef}}:{})});
+  setNotice('已填写当前网页，确认后再保存。');
+ }catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.4">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div>
    <div className="bm-top-actions"><div className="bm-create-actions" aria-label="新建书签或文件夹">
     <button title="新建书签" aria-label="新建书签" className="bm-icon-btn bm-icon-btn--primary" type="button" onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></button>
     <button title="新建文件夹" aria-label="新建文件夹" className="bm-icon-btn" type="button" onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></button></div>
-    <button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
-    <button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button>
+    <button title="收藏当前页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
+    <button title="刷新书签" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load({reconcileUnknown:true})} disabled={loading}><Icon name="refresh" size={17}/></button>
    </div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></button>}</div></div>
-  {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
+  {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load({reconcileUnknown:true})}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
-  {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {previewNode&&<button type="button" tabIndex={-1} aria-hidden="true"
+   className="bm-preview-backdrop" onClick={closePreview}/>}
+  {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>} 
   </div>
   {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
     <Inspector tree={tree} node={current} draft={draft} setDraft={setDraft} onSave={save} onCancel={uncertain?requestCloseSheet:closeSheet} onOpenPicker={setPickerOpen} pickerOpen={pickerOpen} setPickerOpen={setPickerOpen} busy={busy} uncertain={uncertain} error={error}/>
