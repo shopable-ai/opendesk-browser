@@ -1,10 +1,8 @@
-:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;color:var(--od-ink);background:var(--od-paper);color-scheme:light}
-*{box-sizing:border-box}[hidden]{display:none!important}
-html,body,#tool-root{height:100%;min-height:0;max-height:100%;width:100%;margin:0;overflow:hidden}
-body{font-size:13px;line-height:1.46}
-button,input{font:inherit}button{cursor:pointer;touch-action:manipulation}
-button:disabled{opacity:.45;cursor:not-allowed}
-button:focus-visible,input:focus-visible,.bm-tree-scroll:focus-visible,a:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.bm-app{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.46;color-scheme:light}
+.bm-app *{box-sizing:border-box}.bm-app [hidden]{display:none!important}
+.bm-app button,.bm-app input{font:inherit}.bm-app button{cursor:pointer;touch-action:manipulation}
+.bm-app button:disabled{opacity:.45;cursor:not-allowed}
+.bm-app button:focus-visible,.bm-app input:focus-visible,.bm-app .bm-tree-scroll:focus-visible,.bm-app a:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .bm-sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
 .bm-app{display:flex;flex-direction:column;min-width:0;height:100%;overflow:hidden;background:var(--od-paper);color:var(--od-ink)}
 .bm-topbar{height:42px;min-height:42px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--od-line);padding:0 12px}
