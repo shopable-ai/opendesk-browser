@@ -185,3 +185,10 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 正式 Side Panel 的本地项目首次授权仍偏开发者命令式，未来可在既有 Native 身份/权限框架上研究**明确用户手势的选择文件/目录 GUI**；不能用未经确认的 Web File Picker 授予 Host 本机目录权限。
 - 添加任务后优先展示“已导入待验证/下一步审阅”回执，避免把编写源码与安装已审核任务混为同一种操作；可基于目前单一 Task Catalog 打磨，勿新增任务 Installer。
 - 对正式计划做真实 Native 360px/200% 与键盘/焦点回归，检查时区修改不抹掉保存草稿；完成后才能评价阶段性 UX 95+。
+
+### R33.3.12 离线 Chromium 实际复核（来源 SHA 绑定）
+
+- 对应 [Actions 39039265448](https://github.com/shopable-ai/opendesk-browser/actions/runs/39039265448)，GitHub 正式生成器的 **Build from installed DOM, CSS and real React components = PASS**，取得 `d61f46eadb45529b7c89633f78eaccafeb1e8df2` 对应 `sidebar-six-react-preview` 完整 HTML（含真实 tool.html/CSS/React TSX + 预览 adapter 的输入 SHA-256 元信息）。CI 的 **React/DOM 合同仍失败**，后续 CI Chromium 步骤未执行，不能伪造 CI GREEN。
+- 在独立 Linux Chromium + Playwright `set_content` 上运行 360 / 420 / 520px 多状态、真 click/select/file-input：**34 项 PASS / 0 FAIL / 0 JS errors**。涉及直接时区选择，IANA Tokyo/New York，可见区域无横向滚动，「开发」本地项目切换/选择/刷新/返回，以及任务导入时拒绝扩展工具 JSON。这是 **OFFLINE_UI_PREVIEW** 层级，不是原生安装、Host 或任务执行验证。
+- 本轮针对 screenshot 发现「本地项目」标题与同名开关重复：正式 `local-project.js` + 离线 `sidebar-six-preview.tsx` 更新为左「项目连接」、右「本地项目」，提交 `7a4a2a7` / `d61f46e`；上述 34 项复核使用修正后的 d61f46e 生成 HTML。保留原 Host 授权/固定源码校验，无新用户目录授权路径。
+- 未运行 Mac Native Chrome、Provider、真实定时任务。包括 Native 真实授权、原计划固定时区与 DST 切换、任务安装/回读在内均 **NOT_TESTED**，不得通过预览状态或离线评分间接标记 PASS。
