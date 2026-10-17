@@ -59,7 +59,7 @@ export function presentSchedulePlan(plan,history=plan?.history||[]){
       completedOnce?'无后续计划':'暂无后续触发';
   const recentText=recent?scheduleFireLabel(recent.status)+' · '+
     formatScheduleTime(recent.scheduledAt,plan.timezone)+
-    (recent.status==='UNKNOWN'?' · 请人工核对，禁止自动重试'):'';
+    (recent.status==='UNKNOWN'?' · 请人工核对，禁止自动重试':''):'';
   return Object.freeze({planState,badge,badgeSource,tone,
     timingText:formatScheduleRule(plan)+' · '+nextText,
     recentText,recentTone:recent?resultTones[recent.status]||'muted':'neutral',
