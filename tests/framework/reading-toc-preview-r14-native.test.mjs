@@ -112,6 +112,9 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  }
  const side=await open('reading-toc-r12-interactive-preview.html'),panel=await child(browser,side.page);
  await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length>0'),'Compiled TOC did not start in real sandbox');
+ const gutters=await evaluate(panel, '(()=>{const rect=document.querySelector(".toc-panel").getBoundingClientRect();return {left:rect.left,right:document.documentElement.clientWidth-rect.right};})()');
+ assert(gutters.left>=7&&gutters.right>=7,
+  'CONTENTS card has visible symmetric left/right outer gutters: '+JSON.stringify(gutters));
  assert.equal(await evaluate(panel,'document.querySelector("#toc-source")?.hidden'),true,
   'the sidebar hides the extra multi-source dropdown');
  await evaluate(panel,"document.querySelector('[data-toc-mode=top]').click()");
