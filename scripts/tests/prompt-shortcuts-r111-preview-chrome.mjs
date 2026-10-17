@@ -322,7 +322,30 @@ async function run(){
   await click('.prompt-use');
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','double-failure notice');
   x=await state();assert.match(x.notice,/安全停止：模拟编辑器与剪贴板均不可用/);assert.equal(x.copyDialog,false);
-  report.simulatedFailure=true;report.result='PASS';
+  report.simulatedFailure=true;
+  // R2.6.1: canonical host gear + uninstall in the header; no extra explanatory menu text.
+  await click('#size320');
+  const header=await evalChrome('(()=>{const panel=document.querySelector("#sidepanel").getBoundingClientRect(),title=document.querySelector("#hostToolTitle").getBoundingClientRect(),remove=document.querySelector("#hostRemove").getBoundingClientRect();return {noOverflow:document.querySelector("#hostToolHead").scrollWidth<=document.querySelector("#hostToolHead").clientWidth+1,titleWidth:title.width,removeRight:remove.right,panelRight:panel.right,gear:document.querySelector("#ps-icon-settings")?.innerHTML.includes("<circle"),trash:document.querySelector("#hostRemove use")?.getAttribute("href"),visible:!document.querySelector("#hostRemove").hidden,menuNote:document.querySelector(".transfer-note")!==null};})()');
+  assert.equal(header.noOverflow,true,'320px header must not overflow');
+  assert(header.titleWidth>=80,'tool title must remain legible at 320px');
+  assert(header.removeRight<=header.panelRight+1,'uninstall must be inside the panel');
+  assert.equal(header.gear,true);assert.equal(header.trash,'#ps-icon-uninstall');
+  assert.equal(header.visible,true);assert.equal(header.menuNote,false);
+  await click('#hostRemove');
+  assert.equal(await evalChrome('!document.querySelector("#uninstallConfirm").hidden'),true);
+  await shot('r261-uninstall-confirm-320px');
+  await click('#cancelUninstall');
+  assert.equal(await evalChrome('document.querySelector("#uninstallConfirm").hidden'),true);
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4,'cancel keeps all prompts');
+  await click('#hostRemove');
+  await click('#confirmUninstall');
+  assert.equal(await evalChrome('!document.querySelector("#toolListView").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#reopenTool").hidden'),true);
+  assert.equal(await evalChrome('document.querySelector("#pageRail").hidden'),true);
+  await click('#resetButton');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),4);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),4);
+  report.unifiedGearAndUninstall=true;report.result='PASS';
   console.log('PROMPT_SHORTCUTS_R111_REAL_CHROME_MOCK_PASS',JSON.stringify(report));
 }
 try{await run();}
