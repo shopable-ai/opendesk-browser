@@ -279,7 +279,15 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
       }
       if(!disposed&&ticket===generation)state={stage:'error',message:(cause.code||'E_REMOTE_PREPARE')+'：'+(cause.message||cause)};
       throw cause;
-    }finally{if(!disposed&&ticket===generation){busy=false;render();}}
+    }finally{if(!disposed&&ticket===generation){
+      busy=false;render();
+      // Auto-preparation (including Controller Save) may have superseded a
+      // background permission observer. Resume read-only priming AFTER the
+      // Worker is free; Run will still require a new trusted user gesture.
+      if(needsSourceConsent(input)&&
+        warmed?.key!==inputKey(input)&&warmError?.key!==inputKey(input))
+        scheduleRunPermissionWarm();
+    }}
   }
   async function loadForRun(input){
     if(busy)throw error('E_REMOTE_PENDING','请先完成或取消当前依赖准备');
