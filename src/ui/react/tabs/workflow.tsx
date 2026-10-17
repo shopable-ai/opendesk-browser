@@ -60,7 +60,8 @@ export function WorkflowHistory({model={open:false,rows:[],canResume:false},acti
       <h3>历史对话</h3>
       {model.canResume
         ? <button type="button" id="workflow-history-resume"
-            className="workflow-history-row" onClick={event=>forward('onResumeHistory',event)}>
+            className="workflow-history-row" disabled={Boolean(model.busy)}
+            onClick={event=>forward('onResumeHistory',event)}>
             <span className="workflow-history-row-title">上次 Codex 对话</span>
             <small>恢复模型对话，不重新执行网页操作</small>
           </button>
