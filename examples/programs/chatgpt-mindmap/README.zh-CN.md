@@ -1,6 +1,16 @@
-# ChatGPT 思维导图 R3.9.6 · 真实回复按钮已验证，XMind 转换仍阻塞
+# ChatGPT 思维导图 R3.9.6 · 本地 XMind 已显示，核心使用流程待完善
 
-## R3.9.6 · 当前结果（2026-10-17）
+## R3.9.6 · 最新状态与续接（2026-10-17）
+
+本地独立 Mac CFT 的真实 ChatGPT 回复已通过真实 OpenDesk 开发工作台和既有固定资源通道显示真正 XMind，并原生进入导图全屏。当前图有 18 个 topic，中文可见；这仅证明实际绘制及进入全屏，不代表核心功能完成。原文同一 DOM 节点的完整 HTML/text 仍保留但被隐藏，不能据此宣称关闭恢复通过。
+
+**最新用户反馈优先处理：回复下方看不到明显的“思维导图”大开关，打开后无法关闭。** 下一轮先在每条回复下方提供清楚、可达的文字开关，打开后明确显示关闭/返回原文入口，修复普通和全屏状态下的关闭、原文可见恢复及开关状态同步。不要以小图标、折叠容器或技术结果面板代替这个用户入口。随后修复真实三级列表被合并成长节点的问题，再验证折叠展开、缩放与全屏切换。
+
+先完成核心使用闭环，允许在开发环境测试，不新增生产候选、生产验收、许可搜索或边缘安全矩阵。现有静态扩展仅用于本地调试，正式 Program 仍 `BUILT_UNVERIFIED/installable:false`；不发布。下一轮直接复用当前有效资源通道，避免为业务 UI/解析问题重建扩展。
+
+可直接复制的完整续接提示词：[NEXT-CHAT-R3.9.6.zh-CN.txt](NEXT-CHAT-R3.9.6.zh-CN.txt)。本地最新证据在 `artifacts/chatgpt-mindmap-r396-local-frame-20261017/` 的 `handoff-core-state.json`、`handoff-source-state.json` 和 `handoff-actual-xmind-window.png`；以下保留按钮阶段历史，不覆盖原始结果。
+
+## R3.9.6 · 按钮阶段历史结果（2026-10-17）
 
 [本轮按钮原生证据](tests/mac-button-r396-20261017.json)：独立 Mac CFT 155.0.8059.39、mock keychain、真实 OpenDesk 扩展，在新建 ChatGPT 匿名测试会话的真实回复中插入并原生点击“思维导图”。回复含准备/路线/活动/收尾四个二级标题、实际三级列表、中文、English、数字与链接；每条回复只有一个按钮，位于原操作栏旁。当前 ChatGPT 使用 `li[data-message-role="assistant"]` 与 `[data-assistant-markdown-root]`，已补充这些实际选择器及流式完成状态。
 

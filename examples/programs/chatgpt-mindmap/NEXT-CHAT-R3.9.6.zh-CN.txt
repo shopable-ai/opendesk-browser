@@ -1,0 +1,63 @@
+继续 ChatGPT Mind Map R3.9.6，默认中文，本地 Mac。直接实施并验证核心功能，不只提供计划。
+
+仓库：/Users/shopme/Documents/workspace/opendesk-browser
+业务：examples/programs/chatgpt-mindmap/
+
+用户最新反馈及最高优先级：
+1. 在每条 ChatGPT 回复下方，看不到清楚、明显的“思维导图”大开关按钮。
+2. 思维导图打开后无法关闭。
+先解决这两个真实使用问题。不要把“曾原生点击一个小按钮”“XMind已经绘制”或“原文节点还在但被隐藏”当作关闭功能通过。
+
+目标交互：
+- 每条完成的回复下方都有一个明显、带中文文字的“思维导图”开关；位置在本条回复底部，不依赖调试面板或悬浮工具栏才能发现。
+- 打开后，开关状态与实际显示同步；用户能直接看见“关闭思维导图/返回原文”的明确入口。导图内普通及全屏状态也应有清楚可用的关闭入口。
+- 关闭能可靠移除当前查看器/子框架，恢复同一回复的完整原文、可见状态及合理滚动/焦点；开关复位，可再次打开。每条回复只保留一个入口。
+- 完成开关和关闭闭环后，修复真实三级嵌套列表被合并成长节点的问题，再验证折叠展开、缩放及全屏切换。
+- 最终重新打开可用导图，保留测试窗口让我直接查看，不要立即关闭或清理 Profile。
+
+执行原则：
+- 核心功能没完成，不进入后续边缘环节。允许先开发环境测试，不要过早新增生产构建、生产验收或发行流程。
+- 普通本地读取、修改、调试、业务候选构建、原生测试和安全提交已授权，无需再次询问。先检查代码和真实页面，最小修复。
+- 本地既有 XMind 参考资源允许用于合法开发测试；正式生产再分发是另一件事。不发布、不伪造许可批准、不把正式安装状态改成成功；许可材料不足不阻断当前核心调试。
+- 只用 main，保留他人修改/暂存。禁止分支、worktree、PR、reset/clean、强推。仅提交本任务路径；推送仍按当前用户授权边界，不混入其他 Agent 的未提交文件。
+- 日常 dist/development 和已有 npm run dev watcher 保留；不要覆盖其输出或擅自停止服务。需要环境切换时核对实际路径、ID、连接状态并说明模式。
+
+先读：
+1. AGENTS.md、.agents/workflows/extension-creation.md、必要的 opendesk-script-authoring Skill；业务默认仅改自身目录。
+2. examples/programs/chatgpt-mindmap/README.zh-CN.md 最新状态。
+3. docs/framework/workstreams/chatgpt-mindmap-r396-local-frame-20261017.md 最新续接及用户反馈段。
+4. artifacts/chatgpt-mindmap-r396-local-frame-20261017/handoff-core-state.json、handoff-source-state.json、handoff-actual-xmind-window.png。
+5. 同目录 HANDOFF-core-first-next-chat.txt 记录详细资源/环境。其旧优先级须服从本提示词：先大开关与可靠关闭，再列表层级。
+
+已完成的基础，不要重复建设：
+- 真实 ChatGPT 新匿名会话：https://chatgpt.com/uc/6ad335f8-20c0-83ea-b027-145296742a98
+- 内容为“周末城市公园活动计划”，准备/路线/活动/收尾四个二级标题，实际三级列表，中文、English、数字及链接；原文757字符。
+- 真实选择器已适配 li[data-message-role="assistant"]、[data-assistant-markdown-root]、[data-assistant-message-actions]、button[data-copy-message]。
+- createPageUI().createFrame({resourceId,data}) 和既有 Broker/Authority/固定资源已打通，真正 Snowbrush/XMind 已出现，18个topic，独立子文档有 snowbrush_style。
+- 已原生进入全屏；未验证退出、折叠、缩放、关闭后的原文可见恢复。用户最新反馈“打开后无法关闭”是下一轮当前事实，不可用历史失败恢复证据覆盖。
+- 业务脚本 src/main.js、view.js、answer-registry.js、extract.js、assets/ui.css 是优先检查范围；通用框架默认只读。不在宿主新增 Mind Map 业务特例，不新建 Manager/Installer/Host。
+
+可复用本地环境，先检查是否仍存活，不要默认重建：
+- 窗口/应用 OpenDesk MindMap R396 CFT，主进程此前PID73878；mock keychain、独立Profile、真实OpenDesk扩展。
+- app：.runtime/mindmap-r396-cft/Google Chrome for Testing.app
+- chrome-launch.json 位于 artifacts/chatgpt-mindmap-r396-local-frame-20261017/；Profile与DevTools端口以当前文件/进程为准。
+- 已加载真实扩展ID acfngehajboacgkmdhbcnkhjdabfhfon，路径 artifacts/chatgpt-mindmap-r396-local-frame-20261017/build-snapshot/dist/production。
+- 现有包hash 1945c90b081d8f6d3e80eec11510a4907c277a70e72651d78f4e9f3b91d23b10，是现成的本地静态调试包，不是生产发布或正式安装。
+- 优先直接复用这个真实扩展，仅重建本地业务候选；修按钮/关闭/HTML解析不需要重建整个扩展。
+- 如需重新启动独立CFT或处理实际钥匙串阻塞，使用 chrome-testing-keychain Skill。输入和点击只能真实原生控制；不用内嵌浏览器、临时测试扩展、synthetic events、DOM赋值或伪ack。
+- CDP仅被动观察。AX可能含4MB源码，输出前过滤过长行。粘贴固定程序后会显示只读编译产物，核对界面字节/SHA，不用隐藏textarea为空判断失败。
+
+本地业务构建：
+node examples/programs/chatgpt-mindmap/scripts/build-local-preview.mjs --out artifacts/chatgpt-mindmap-r396-local-frame-20261017/business-candidate5 --compiler-root artifacts/chatgpt-mindmap-r396-mac-20261017/loader/build-snapshot
+输出目录必须不存在，已有candidate5时用新的编号。复用既有webpack依赖，不新增安装。上一候选business-candidate4/build/program.js为4225142 bytes，SHA-256=76ce407076bca492e4683d7bf25fcae4d55a95363af32871dfa24dea2504a272。
+builder仅在独立临时项目加入xmind-runtime。原参考字节不改，唯一 eval(task) fallback以显式抛错替换并记录，CSP/validator不放宽。正式Program继续BUILT_UNVERIFIED/installable:false。
+
+已有测试和后置问题：
+- 业务旧基线47 PASS/3 SKIP已复用；真实SDK定向6 PASS/0 SKIP；新增固定frame9 PASS；editor新增8 PASS、既有100 PASS、UI77 PASS；平台早期215 PASS范围见已有证据。都不是完整业务原生PASS。
+- 未完成的加载期间Stop/worker重启retirement边缘补丁已保存在 deferred-retirement/，没有应用到根源码。核心闭环完成前不要恢复这份半成品，不为补安全矩阵转移任务。
+- 相关运行时、工作台接线、本地builder及child入口已经在801444da0提交中保存；随后main远端更新已合入。以当前git log/status确认实际提交和推送状态，不重写历史。
+- 不重跑通用loader样例、不泛搜22份许可/15个npm版本、不新增评分/总计划。
+
+验证顺序：真实回复下方能看见大开关 → 原生打开真正XMind → 普通状态关闭回完整原文 → 再打开/进入全屏/明确关闭回原文 → 确认一条回复一个入口和正确状态 → 再修层级/内容及验证其他核心交互。使用真实会话，保留前后截图和准确原始证据。发现问题修业务并重验受影响部分，不反复全量重建。
+
+最终报告：大开关位置和可发现性；打开/关闭/完整原文恢复的真实结果；层级与核心交互结果；保留窗口和截图；仍未通过项及本地提交。没验证的项目明确NOT_TESTED，不以组件或构建PASS代替。
