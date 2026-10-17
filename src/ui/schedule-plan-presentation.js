@@ -60,8 +60,10 @@ export function presentSchedulePlan(plan,history=plan?.history||[]){
   const recentText=recent?scheduleFireLabel(recent.status)+' · '+
     formatScheduleTime(recent.scheduledAt,plan.timezone)+
     (recent.status==='UNKNOWN'?' · 请人工核对，禁止自动重试':''):'';
+  // Existing timingText remains compatible; cards may separate frequency from next run.
+  const frequencyText=formatScheduleRule(plan);
   return Object.freeze({planState,badge,badgeSource,tone,
-    timingText:formatScheduleRule(plan)+' · '+nextText,
+    frequencyText,nextText,timingText:frequencyText+' · '+nextText,
     recentText,recentTone:recent?resultTones[recent.status]||'muted':'neutral',
     lastFireStatus:recent?.status||null});
 }
