@@ -48,6 +48,14 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
   assert.match(adapter,/realHost:false/);
   assert.match(adapter,/realPermission:false/);
   assert.match(adapter,/realResult:false/);
+  // AI settings must expose the existing <details> controls in the trusted
+  // React portal, matching WorkflowView openAISettings/closeAISettings.
+  assert.match(installed,/id="workflow-provider-settings"/);
+  assert.match(installed,/id="workflow-source-https"/);
+  assert.match(adapter,/workflowSettings\.open=true;/,
+    'opening preview AI sheet must reveal the real HTTPS source selector');
+  assert.match(adapter,/workflowSettings\.open=false;setSheetOpen\(false\)/,
+    'closing preview AI sheet must close the original details panel');
   const withoutComments=adapter.replace(/^\s*\/\/[^\n]*$/gm,'');
   assert.doesNotMatch(withoutComments,/chrome\.|fetch\(|localStorage|sessionStorage|\bRunHost\s*\(|new Worker\(/);
   assert.doesNotMatch(withoutComments,/from ['"][^'"]*(?:platform\/host|framework\/sdk|sandbox|installer)/);
