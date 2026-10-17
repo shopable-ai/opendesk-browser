@@ -49,9 +49,12 @@ async function click(selector){
     'hit:(()=>{const h=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return h===n||n.contains(h);})()}})()');
   assert(rect.w>0&&rect.h>0&&!rect.hidden&&rect.hit,
     selector+' must be visible and receive native pointer input '+JSON.stringify(rect));
+  // Allow the Chromium compositor to apply scroll/hit-test before pressing.
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y,button:'none'});
+  await sleep(90);
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',clickCount:1});
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,button:'left',clickCount:1});
-  await sleep(95);
+  await sleep(155);
 }
 async function screenshot(name){
   const result=await cdp('Page.captureScreenshot',{format:'png'});
@@ -135,7 +138,14 @@ try{
   await until('!!document.querySelector("[data-extension-id=\\"app:preview-import\\"]")');
   assert.equal(await evaluate('document.querySelectorAll("[data-extension-id=\\"app:preview-import\\"]").length'),1);
   await click('[data-extension-id="app:preview-import"] .ec-row-main');
-  await until('!document.getElementById("extension-center-detail").hidden');
+  await sleep(220);
+  const rowState=await evaluate('(()=>({detailHidden:document.getElementById("extension-center-detail").hidden,'+
+    'listHidden:document.getElementById("extension-center-list-view").hidden,'+
+    'menuHidden:document.getElementById("extension-center-menu").hidden,'+
+    'rowCount:document.querySelectorAll("[data-extension-id=\\\"app:preview-import\\\"]").length,'+
+    'focused:document.activeElement?.outerHTML?.slice(0,250)}))()');
+  assert.equal(rowState.detailHidden,false,
+    'Trusted pointer should open extension details: '+JSON.stringify(rowState));
   assert((await evaluate('document.getElementById("extension-center-detail-body").textContent')).includes('UI_PREVIEW_ONLY'));
   await click('[data-ec-detail-action="uninstall"]');
   await until('!document.getElementById("sidebar-tool-action-review").hidden');
