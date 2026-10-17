@@ -231,11 +231,11 @@ test('R23.11 installed Workflow preserves real host while React owns concise his
   assert.match(components,/export function WorkflowHistory/);
   assert.match(components,/export function WorkflowSourceName/);
   assert.match(components,/onOpenSavedHistory/);
-  const resumeButton=components.match(/id="workflow-history-resume"[\\s\\S]*?<\\/button>/)?.[0];
+  const resumeButton=components.match(/id="workflow-history-resume"[\s\S]*?<\/button>/)?.[0];
   assert.ok(resumeButton,'the resumable Codex action exists in the trusted React component');
-  assert.match(resumeButton,/disabled=\\{Boolean\\(model\\.busy\\)\\}/,
+  assert.match(resumeButton,/disabled=\{Boolean\(model\.busy\)\}/,
     'busy workflows must disable resume in the React UI, not only reject it in WorkflowView');
-  assert.match(view,/const onResumeSessionClick=event=>\\{\\s*if\\(!event\\.isTrusted\\|\\|busy\\|\\|/,
+  assert.match(view,/const onResumeSessionClick=event=>\{\s*if\(!event\.isTrusted\|\|busy\|\|/,
     'the original Controller also rejects a resume during active work');
   assert.match(react,/createPortal\(\s*<WorkflowHistory/);
   assert.match(react,/createPortal\(\s*<WorkflowSourceName/);
