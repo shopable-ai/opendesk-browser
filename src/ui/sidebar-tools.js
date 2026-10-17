@@ -600,7 +600,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   async function requestTrustedBookmark(tool,token,epoch,operation,payload={}){
     const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
-      nativeUI?.kind==='bookmark';
+      (nativePending||nativeUI?.kind==='bookmark');
     if(!current())throw Object.assign(new Error('书签可信界面已关闭'),{code:'E_TOOL_CHANGED'});
     if(!await admittedNativeBookmark(tool,epoch)||!current()){
       if(current()){destroyFrame();tocSettingsOpen=true;render();
