@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
-import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
+import {createSidebarTools,checkSidebarToolRequestBudget} from '../../src/ui/sidebar-tools.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
 import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../src/stay-focus/policy.js';
