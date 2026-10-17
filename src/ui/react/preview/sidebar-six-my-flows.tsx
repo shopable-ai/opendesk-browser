@@ -97,6 +97,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-paused').checked
   ]);
   const showForm=plan=>{
+    // A prior list operation must not leave an unrelated notice in the form.
+    setFeedback('');
     setEditingId(plan?.id||'');setPending(null);setDirtyConfirm(false);
     get('schedule-title').value=plan?.title||'';
     get('schedule-target').value=plan?.target||'https://example.invalid/';
