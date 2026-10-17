@@ -49,10 +49,22 @@ const svgPaths={
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
   check:<path d="m5 12 5 5L20 7"/>,alert:<><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v5M12 18h.01"/></>,copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
   shield:<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></>,
-  more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>
+  more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,back:<path d="m14 6-6 6 6 6"/>,external:<path d="M6 18 19 5m-9 0h9v9"/>,settings:<><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></>
 };
 function Icon({name}){return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{svgPaths[name]}</svg>}
 function IconButton({name,label,onClick,disabled=false,pressed,small=false}){return <button type="button" className={'icon-btn'+(small?' small':'')} onClick={onClick} aria-label={label} title={label} disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}><Icon name={name}/></button>}
+// The real OpenDesk Host owns these controls; this preview never invokes Host actions.
+function HostHeader({onAction}){
+ return <header className="preview-host-header" aria-label="OpenDesk 宿主工具栏">
+  <IconButton name="back" label="返回扩展" onClick={()=>onAction('返回扩展')}/>
+  <strong className="preview-host-title">Cookie Editor</strong>
+  <div className="preview-host-actions">
+   <IconButton name="external" label="新标签页打开工具" onClick={()=>onAction('新标签页打开工具')}/>
+   <IconButton name="settings" label="工具设置" onClick={()=>onAction('工具设置')}/>
+   <IconButton name="trash" label="卸载工具" onClick={()=>onAction('卸载工具')}/>
+  </div>
+ </header>;
+}
 function Message({tone='neutral',children}){return <p className={'message '+tone} role={tone==='error'?'alert':'status'} aria-live="polite">{children}</p>}
 function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
 // Preview-only parser: skip ordinary invalid records, block unsafe scope and partition ambiguity.
@@ -82,6 +94,7 @@ function parseInput(text){
   for(const {record:c,line} of input){
    if(!c||typeof c!=='object'||Array.isArray(c)||typeof c.name!=='string'||!c.name.trim()||typeof c.value!=='string'||/[;\r\n\t]/.test(c.name)){invalid++;continue;}
    const domain=String(c.domain||demoSite).toLowerCase(),path=String(c.path||'/');
+   const hostOnly=typeof c.hostOnly==='boolean'?c.hostOnly:!domain.startsWith('.');
    if(![demoSite,'.example.com'].includes(domain))throw Error('第 '+line+' 条域名不属于当前网站：'+domain);
    if(!path.startsWith('/')||/[\r\n]/.test(path)){invalid++;continue;}
    if(c.partitioned&&!c.partitionKey)throw Error('第 '+line+' 条分区 Cookie 缺少 PartitionKey');
@@ -93,8 +106,10 @@ function parseInput(text){
     catch{throw Error('第 '+line+' 条分区顶级站点无效');}
     partitionKey={topLevelSite:origin,hasCrossSiteAncestor:key.hasCrossSiteAncestor};
    }
-   const row={...newDraft(),...c,name:c.name.trim(),domain,path,storeId:String(c.storeId??'0'),partitionKey,value:c.value,id:'import-'+line,valueTouched:false};
-   if(row.name.startsWith('__Host-')&&(!row.secure||row.path!=='/'||row.domain.startsWith('.')))throw Error('第 '+line+' 条违反 __Host- Cookie 身份约束');
+   const row={...newDraft(),...c,name:c.name.trim(),domain,path,hostOnly,storeId:String(c.storeId??'0'),partitionKey,value:c.value,id:'import-'+line,valueTouched:false,expirationDate:c.session?undefined:Number.isFinite(c.expirationDate)?c.expirationDate:unixFromLocal(c.expiration||'')};
+   if(!safeDomain(domain)||(hostOnly&&domain!==demoSite)){invalid++;continue;}
+   if((row.sameSite==='none'||row.name.startsWith('__Secure-')||!!partitionKey)&&!row.secure){invalid++;continue;}
+   if(row.name.startsWith('__Host-')&&(!row.secure||row.path!=='/'||!row.hostOnly))throw Error('第 '+line+' 条违反 __Host- Cookie 身份约束');
    const key=identity(row);if(seen.has(key)){duplicate++;continue;}seen.add(key);rows.push(row);
   }
   if(!rows.length)return {error:invalid||duplicate?'没有可安全导入的有效 Cookie。':'没有可导入的 Cookie。'};
@@ -104,7 +119,7 @@ function parseInput(text){
 function exportContent(rows,fmt,includeValue){
  if(fmt==='header')return rows.map(c=>c.name+'='+c.value).join('; ');
  if(fmt==='netscape')return '# Netscape HTTP Cookie File\n'+rows.map(c=>[c.httpOnly?'#HttpOnly_'+c.domain:c.domain,c.domain.startsWith('.')?'TRUE':'FALSE',c.path,c.secure?'TRUE':'FALSE',c.session?'0':String(Math.floor(new Date(c.expiration).getTime()/1000)),c.name,c.value].join('\t')).join('\n');
- return JSON.stringify(rows.map(c=>{const o={name:c.name,domain:c.domain,path:c.path,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite,session:c.session,expiration:c.expiration||null,storeId:c.storeId,partitionKey:c.partitionKey};if(includeValue)o.value=c.value;return o;}),null,2);
+ return JSON.stringify(rows.map(c=>{const o={name:c.name,domain:c.domain,path:c.path,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite,session:c.session,expirationDate:c.session?null:(c.expirationDate??unixFromLocal(c.expiration)),hostOnly:c.hostOnly,storeId:c.storeId,partitionKey:c.partitionKey};if(includeValue)o.value=c.value;return o;}),null,2);
 }
 export default function App(){
  const [rows,setRows]=React.useState(initialRows);const [scene,setScene]=React.useState('ready');const [dark,setDark]=React.useState(false);
@@ -323,12 +338,13 @@ export default function App(){
  // Escape closes panels, except while an IME owns Escape for candidate selection.
  const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
-   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R4.11</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
+   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R5.2</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
       <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}><option value="ready">已授权</option><option value="first">未授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option></select></label>
       <label>下次操作 <select data-testid="failure" value={failNext} onChange={e=>setFailNext(e.target.value)}><option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option><option value="grantDenied">授权被拒绝</option><option value="grantError">授权请求失败</option></select></label>
       <button className="lab-button" type="button" onClick={()=>setDark(a=>!a)}>{dark?'浅色':'深色'}</button><button className="lab-button" type="button" onClick={resetAll}>重置</button>
    </div></section>
    <main className="cookie-app" onKeyDown={appKeydown} aria-label="Cookie Editor">
+      <HostHeader onAction={action=>notify(action+" 由 OpenDesk 宿主管理，本预览不执行真实操作。","neutral")}/>
       <CookieSiteBar site={demoSite} loading={loading}
         readonly={scene==='readonly'} busy={busy} granted={granted}
         onRefresh={()=>{if(needsVerify){setNeedsVerify(false);setError('');notify('已核对模拟数据。请确认草稿后再保存。','neutral');return;}if(dirty){setError('有未保存的修改，请先保存或取消。');return;}setFlash(null);setError('');setVersion(v=>v+1);notify('已刷新 Cookie 列表')}}/>
@@ -395,11 +411,11 @@ export default function App(){
          <div className="panel-actions"><button className="text-btn" type="button" disabled={saving} onClick={closeImport}>取消</button><button className="text-btn primary" type="button" disabled={!importCount||saving||needsVerify||!canWrite} onClick={runImport}>{saving?'导入中…':'导入 '+importCount+' 条'}</button></div>
        </section>}
        {io==='export'&&<section className="io-panel" aria-label="导出 Cookie"><div className="panel-heading"><strong>导出 Cookie</strong><IconButton name="close" label="关闭导出" onClick={()=>{setIo(null);setConfirm(null);setError('')}} disabled={saving}/></div>
-         <div className="export-format"><Field label="格式"><select aria-label="导出格式" value={format} disabled={saving} onChange={e=>{setFormat(e.target.value);setConfirm(null);setSkipPartition(false);setError('')}}><option value="json">JSON · 推荐</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></Field></div>
+         <div className="export-format"><Field label="格式"><select aria-label="导出格式" value={format} disabled={saving} onChange={e=>{setFormat(e.target.value);setConfirm(null);setSkipPartition(false);setError('')}}><option value="json">JSON · 推荐</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></Field>{format==='json'&&<label className="export-inline-values"><input type="checkbox" checked={includeValues} disabled={saving} onChange={e=>{setIncludeValues(e.target.checked);setError('')}}/>包含值</label>}</div>
          <p className="export-brief" role="status"><Icon name="check"/>{format==='json'&&!includeValues?'仅导出属性，不能用于恢复 Cookie 内容':`包含 Cookie 值 · ${format==='json'?'保留可导出属性':format==='header'?'仅名称与值':'兼容旧格式'}`}</p>
          {format!=='json'&&<p className="quiet-note">{format==='header'?'Cookie Header 不保留域名、路径等属性；不适合完整备份。':'Netscape 不保留 SameSite、Store、PartitionKey。'} 如需完整备份请选择 JSON。</p>}
          {format!=='json'&&rows.some(c=>c.partitionKey)&&<label className="partition-option"><input type="checkbox" checked={skipPartition} onChange={e=>{setSkipPartition(e.target.checked);setConfirm(null);setError('')}}/> 跳过 {rows.filter(c=>c.partitionKey).length} 条不支持的分区 Cookie</label>}
-         {format==='json'&&<details className="export-advanced"><summary>更多选项</summary><label className="export-metadata"><input type="checkbox" checked={!includeValues} onChange={e=>{setIncludeValues(!e.target.checked);setConfirm(null);setError('')}}/>仅导出 Cookie 属性（不含值）</label><p className="quiet-note">仅用于查看和检查配置，不能恢复 Cookie 内容。</p></details>}
+         {format==='json'&&!includeValues&&<p className="quiet-note">仅导出属性，不能恢复 Cookie 值。</p>}
          <div className="export-actions"><button className="text-btn" disabled={saving} onClick={()=>runExport('copy')}><Icon name="copy"/>复制</button><button className="text-btn primary" disabled={saving} onClick={()=>runExport('download')}><Icon name="download"/>下载</button></div>
        </section>}
        {io&&error&&<Message tone="error">{error}</Message>}
