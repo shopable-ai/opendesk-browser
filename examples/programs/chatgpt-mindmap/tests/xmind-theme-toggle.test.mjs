@@ -33,11 +33,11 @@ test('desktop and mobile menu expose a text-free theme action; XMind receives bo
   assert.equal(mobile.textContent,'');
   assert.equal(toolbar.getAttribute('aria-label'),'切换为浅色导图');
   assert.equal(mobile.getAttribute('role'),'menuitem');
-  toolbar.click();await flush();
+  toolbar.dispatchEvent(new window.Event('click'));await flush();
   assert.deepEqual(applied,['light']);
   assert.equal(toolbar.getAttribute('aria-label'),'切换为深色导图');
   assert.equal(mobile.getAttribute('aria-label'),'切换为深色导图');
-  mobile.click();await flush();
+  mobile.dispatchEvent(new window.Event('click'));await flush();
   assert.deepEqual(applied,['light','dark']);
   assert.equal(toolbar.getAttribute('aria-label'),'切换为浅色导图');
   await view.destroy();
@@ -64,7 +64,8 @@ test('default dark, explicit light persists across replies and is independent of
   const buttons=[...document.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]')]
     .map(host=>host.shadowRoot.querySelector('button'));
   assert.equal(buttons.length,2);
-  buttons[0].click();buttons[1].click();await flush();
+  buttons[0].dispatchEvent(new document.defaultView.Event('click'));
+  buttons[1].dispatchEvent(new document.defaultView.Event('click'));await flush();
   assert.equal(views.length,2);
   assert.deepEqual(views.map(view=>view.host.getAttribute('data-dark')),['true','true']);
   assert.deepEqual(views.map(view=>view.themes),[[true],[true]]);
@@ -96,7 +97,7 @@ test('denied storage never prevents the user from switching themes',async()=>{
   }});
   registry.start();
   document.querySelector('[data-opendesk-chatgpt-mindmap="button"]').shadowRoot
-    .querySelector('button').click();
+    .querySelector('button').dispatchEvent(new document.defaultView.Event('click'));
   await flush();
   assert.equal(views[0].host.getAttribute('data-dark'),'true');
   await views[0].options.onToggleTheme();
