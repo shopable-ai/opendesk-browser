@@ -11,11 +11,11 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --height 760 --out examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html
 ```
 
-用 Chrome 打开稳定主入口 `preview/index.html`（默认展示模拟文章与正式 `view.js` 的网页悬浮目录）：可切换 **Side Panel / 网页悬浮目录**、**简体中文 / English**、**有章节 / 无章节 / 加载 / 读取错误 / 无权限**。三种真实目录模式和刷新/导航点击会运行对应正式工具逻辑，网页悬浮使用可信 view/placement 的源码，只有页面快照和权限结果是离线模拟。另一个入口可用来重点检查网页悬浮。无网络、无真正的 Chrome 授权、没有实际网页 DOM 索引或导航。
+用 Chrome 打开稳定主入口 `index.html`（默认展示模拟文章与正式 `view.js` 的网页悬浮目录）：可切换 **Side Panel / 网页悬浮目录**、**简体中文 / English**、**有章节 / 无章节 / 加载 / 读取错误 / 无权限**。四种真实目录模式及章节导航使用正式 UI 逻辑，网页悬浮直接使用可信 view/placement 源码（没有额外刷新/归位图标）；页面快照与权限结果仍是离线模拟。辅助 Side Panel 入口用于核对侧边栏原有刷新与导航。无网络、无真正的 Chrome 授权、没有实际网页 DOM 索引或导航。
 
 **生成输出的身份：** HTML 中嵌入仓库当前 commit、设计系统与正式工具 JS/CSS 摘要；context.json 与 HTML 同时生成。CI 的 `.github/workflows/reading-toc-r41.yml` 也会生成并保留 `artifacts/previews/reading-toc/` 中同构的产物。当前暂不把每次变化的生成 HTML 当作第二份长期设计源码，避免生成物脱离正式实现。要查看最新交互，请按上面的命令生成。
 
-**边界：** `PREVIEW_PASS` 仅指从 1.0.8 候选生成并在 Chromium 离线沙箱内验证的 HTML；不等于 `NATIVE_PASS`。原生验收需要在真实 Mac Chrome 隔离 Profile 从已发行 `1.0.7` 安装并由用户主动升级到候选 `1.0.8`，验证网页索引/导航、授权撤销、SPA、恢复、卸载与数据持久化。
+**边界：** `PREVIEW_PASS` 只说明从 1.0.8 正式源码生成并经 Chromium 离线验证的 HTML；不等于 `NATIVE_PASS`，也不能在本轮 Chromium 尚未执行时预先宣称通过。原生验收需要在真实 Mac Chrome 隔离 Profile 从已发行 `1.0.7` 安装并由用户主动升级到候选 `1.0.8`，验证网页索引/导航、授权撤销、SPA、恢复、卸载与数据持久化。
 
 ## R1.7.1 · AI 整理桌面 UI 候选（2026-10-16）
 
@@ -41,7 +41,7 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel -
 ## R1.8.3 · CONTENTS 边距与网页插入形态（2026-10-17）
 
 - Side Panel 的正式工具 `src/style.css` 在 `.toc-panel` 上保留左右各 **8 CSS px** 外边距，内部 12px padding、四个模式图标及右侧刷新按钮均不变。
-- 网页内悬浮目录由受信 `src/reading-toc/view.js` 注入，仍只有 **概览 / 当前 / 完整** 三模式。网页端已经由 `src/reading-toc/page.js` 的 `MutationObserver` + SPA 监听自动更新，故移除了会被误认成“刷新”的圆箭头归位按钮；用户仍可在原拖动手柄按 **Home** 或 **双击** 恢复默认位置。侧边栏已有刷新按钮保持。
+- 此条为 **R1.8.3 历史实现记录**：当时网页悬浮目录由受信 `src/reading-toc/view.js` 注入，仍只有 **概览 / 当前 / 完整** 三模式；**当前正式网页目录已升级为四模式**。网页端已经由 `src/reading-toc/page.js` 的 `MutationObserver` + SPA 监听自动更新，故移除了会被误认成“刷新”的圆箭头归位按钮；用户仍可在原拖动手柄按 **Home** 或 **双击** 恢复默认位置。侧边栏已有刷新按钮保持。
 - 两份已保存 HTML 均由唯一官方 `scripts/preview/build-preview.mjs` 生成，原文件不手写版本号。更新后的 Side Panel：211,874 bytes，SHA-256 `539816a19011dcdf36ed16f869d3515b7c5a475306b5f17dfde0b6c4bea4ba86`；网页悬浮：218,832 bytes，SHA-256 `0d86cca75da1e8dfc272459378a5ebe091d971cc6a9326a4b04d0683858a1a47`。
 - 若要看“真实网页正文旁边插入后的效果”，在 `reading-toc-r12-overlay-preview.html` 选择「网页悬浮目录」，即可看到内嵌模拟文章 + **真实生产 `view.js`** 的目录层。模拟文章的标题与跳转回执不是实际网站操作，不代表授权、真实 Mac Chrome 安装或发布验收已完成。
 - 源码定向测试 **28/28 PASS**；构建/验证 PASS（[R1.8.3 候选 CI 产物](https://github.com/shopable-ai/opendesk-browser/actions/runs/39027494384)）。同步前严格预览测试拒绝旧文件，之后须复测转绿；用户 Mac 安装升级为 `NOT_TESTED`，不得静默晋升正式 JSON。
