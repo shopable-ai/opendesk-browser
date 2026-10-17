@@ -73,21 +73,21 @@ const sampleExtensions=Object.freeze([
 // UI_PREVIEW_ONLY: read-only strings; no Provider/RunHost/Authority is invoked.
 const cloudScenarios=Object.freeze({
   unpaired:{brief:'未配对',summary:'未配对 · 需要连接可信提供者（仅界面演示）',myState:'无真实配对回执',provider:'未配对',connection:'未连接',host:'未就绪',slot:'不可用',tasks:'0',requests:'0'},
-  ready:{brief:'已连接（演示）',summary:'连接可用 · UI_PREVIEW_ONLY（非真实连接）',myState:'无真实 Provider、执行宿主或任务批准回执',provider:'已配对（模拟）',connection:'已连接（模拟）',host:'已就绪（模拟）',slot:'空闲（模拟）',tasks:'2（模拟）',requests:'1（模拟）'},
-  approval:{brief:'待授权（演示）',summary:'任务授权尚未完成 · UI_PREVIEW_ONLY',myState:'需逐项核对固定版本、网站和结果许可',provider:'已配对（模拟）',connection:'已连接（模拟）',host:'待授权',slot:'未开放',tasks:'0',requests:'0'},
+  ready:{brief:'已连接（演示）',summary:'连接可用 · 仅预览（非真实连接）',myState:'无真实 Provider、执行宿主或任务批准回执',provider:'已配对（模拟）',connection:'已连接（模拟）',host:'已就绪（模拟）',slot:'空闲（模拟）',tasks:'2（模拟）',requests:'1（模拟）'},
+  approval:{brief:'待授权（演示）',summary:'任务授权尚未完成 · 仅预览',myState:'需逐项核对固定版本、网站和结果许可',provider:'已配对（模拟）',connection:'已连接（模拟）',host:'待授权',slot:'未开放',tasks:'0',requests:'0'},
   disconnected:{brief:'断线（演示）',summary:'Provider 连接断开 · 需核对请求与回执',myState:'断线时不可自动重试未知操作',provider:'已配对（模拟）',connection:'断线（模拟）',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'},
   error:{brief:'状态异常（演示）',summary:'连接或授权状态读取失败 · 请核对',myState:'读取失败不代表凭据已经撤销',provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'},
   unknown:{brief:'结果未知（演示）',summary:'结果未知 · 不允许自动重试',myState:'需核对原始结果、资源释放和授权状态',provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'}
 });
 const labels={
   normal:'仅演示 UI，不读取真实数据',
-  empty:'无项目 · UI_PREVIEW_ONLY',
-  loading:'加载中 · UI_PREVIEW_ONLY',
-  running:'运行中 · UI_PREVIEW_ONLY（未执行）',
-  error:'错误演示 · UI_PREVIEW_ONLY',
-  denied:'权限拒绝 · UI_PREVIEW_ONLY',
+  empty:'无项目 · 仅预览',
+  loading:'加载中 · 仅预览',
+  running:'运行中 · 仅预览（未执行）',
+  error:'错误演示 · 仅预览',
+  denied:'权限拒绝 · 仅预览',
   unknown:'状态未知 · 禁止自动重试',
-  disconnected:'Host 断开 · UI_PREVIEW_ONLY'
+  disconnected:'Host 断开 · 仅预览'
 };
 const messages={
   normal:[{id:'w1',speaker:'你',message:'给我一个亿的项目'},
@@ -189,10 +189,10 @@ function Preview(){
       add('revoke','撤销网站授权…');
       add('develop','前往开发');
     }
-    return {...row,version:row.version||'UI_PREVIEW_ONLY',
-      installationText:row.installed?'UI_PREVIEW_ONLY · 内存安装状态，未连接 Host':
-        'UI_PREVIEW_ONLY · 可安装演示项，未校验固定包',
-      source:{label:'UI_PREVIEW_ONLY（无真实来源回执）'},
+    return {...row,version:row.version||'仅预览',
+      installationText:row.installed?'仅预览 · 内存安装状态，未连接 Host':
+        '仅预览 · 可安装演示项，未校验固定包',
+      source:{label:'仅预览（无真实来源回执）'},
       sites:row.kind==='page'?['https://example.invalid/*（预览）']:[],
       actions,busy:!!extensionReview,suspended:scene==='denied'||row.suspended===true,
       cleanupPending:false};
@@ -212,8 +212,8 @@ function Preview(){
   const debugPreview={
     summary:'只读诊断 · '+labels[scene],pairing:'未检测',connection:'未连接',
     reconcile:'未检测',slot:'未检测',taskCount:'—',requestCount:'—',
-    snapshot:'UI_PREVIEW_ONLY：未读取 Host 诊断，未生成敏感快照。',
-    feedback:'UI_PREVIEW_ONLY：只读文本展示，不执行刷新、配对或领取任务。'
+    snapshot:'仅预览：未读取 Host 诊断，未生成敏感快照。',
+    feedback:'仅预览：只读文本展示，不执行刷新、配对或领取任务。'
   };
   const sheetClose=React.useCallback(()=>setSheetOpen(false),[]);
   React.useLayoutEffect(()=>{
@@ -249,15 +249,15 @@ function Preview(){
     const localStatus=get('local-project-status');
     localStatus.dataset.state='disconnected';
     localStatus.textContent=projectMode?(projectFeedback||
-      (projectSelection?'UI_PREVIEW_ONLY · 已选示例，Native 与源码 Provider 均未连接，无法运行或安装。':
-        'UI_PREVIEW_ONLY · 正式环境从 Native 读取已授权项目；当前没有真实项目授权。')):'';
-    get('local-project-diagnostics').textContent='UI_PREVIEW_ONLY · Chrome Native：未连接；源码 Provider：未连接；固定项目身份与源代码均未读取。';
+      (projectSelection?'仅预览 · 已选示例，Native 与源码 Provider 均未连接，无法运行或安装。':
+        '仅预览 · 正式环境从 Native 读取已授权项目；当前没有真实项目授权。')):'';
+    get('local-project-diagnostics').textContent='仅预览 · Chrome Native：未连接；源码 Provider：未连接；固定项目身份与源代码均未读取。';
     importPanel.hidden=!importOpen;
     actionReview.hidden=!extensionReview;
     get('sidebar-tool-preview').hidden=!importCandidate;
     get('sidebar-tool-install').disabled=!importCandidate;
     get('sidebar-tool-preview-title').textContent=importCandidate?.title||'';
-    get('sidebar-tool-preview-version').textContent=importCandidate?'v'+importCandidate.version+' · UI_PREVIEW_ONLY':'';
+    get('sidebar-tool-preview-version').textContent=importCandidate?'v'+importCandidate.version+' · 仅预览':'';
     get('sidebar-tool-preview-description').textContent='预览仅做基础 JSON 结构检查；完整合法性和 Host 权限未校验。';
     get('sidebar-tool-preview-capabilities').textContent=importCandidate?.capabilities?.join('、')||'尚未读取';
     get('sidebar-tool-preview-file').textContent=importCandidate?.id||'';
@@ -266,12 +266,12 @@ function Preview(){
     const prior=importCandidate&&extensionRecords.find(p=>p.key===importCandidate.key);
     get('sidebar-tool-update').hidden=!prior?.installed;
     get('sidebar-tool-update-versions').textContent=prior?.installed?
-      '内存版本 '+prior.version+' → '+importCandidate.version+'（UI_PREVIEW_ONLY）':'';
+      '内存版本 '+prior.version+' → '+importCandidate.version+'（仅预览）':'';
     get('sidebar-tool-update-capabilities').textContent=prior?.installed?
       '仅内存能力演示；正式更新必须重新审阅权限':'';
     get('sidebar-tool-install').textContent=prior?.installed?'审阅并更新（仅预览）':'确认安装（仅预览）';
     get('sidebar-tool-action-summary').textContent=extensionReview?
-      'UI_PREVIEW_ONLY · '+extensionReview.title+' · '+extensionReview.type+
+      '仅预览 · '+extensionReview.title+' · '+extensionReview.type+
       '。确认仅修改内存 Fixture，绝不安装、执行或撤销真实权限。':'';
     const content=get('workspace-content');
     const route=[tab,taskMode,selected||'',openToolKey||'',importOpen?'import':''].join('|');
@@ -300,7 +300,7 @@ function Preview(){
     status.textContent=labels[scene];
     status.dataset.state=scene;
     const cloud=get('cloud-status');
-    cloud.textContent='UI_PREVIEW_ONLY · '+cloudPreview.brief+'；未连接真实 Provider。';
+    cloud.textContent='仅预览 · '+cloudPreview.brief+'；未连接真实 Provider。';
     get('cloud-brief').textContent=cloudPreview.brief;
     get('cloud-first-run').hidden=cloudScenario!=='unpaired';
     get('cloud-approval-section').hidden=!['ready','approval'].includes(cloudScenario);
@@ -372,16 +372,16 @@ function Preview(){
   React.useEffect(()=>{
     const mode=get('local-project-mode'),select=get('local-project-select');
     select.replaceChildren(new Option('选择演示项目（不代表授权）',''),
-      new Option('Controller 示例 · UI_PREVIEW_ONLY','preview-controller'),
-      new Option('Page 示例 · UI_PREVIEW_ONLY','preview-page'));
+      new Option('Controller 示例 · 仅预览','preview-controller'),
+      new Option('Page 示例 · 仅预览','preview-page'));
     const modeChanged=()=>{setProjectMode(mode.checked);setProjectFeedback('');};
     const projectChanged=()=>{setProjectSelection(select.value);setProjectFeedback('');};
-    const refresh=()=>setProjectFeedback('UI_PREVIEW_ONLY · 无法读取 Native 项目列表；请在正式 Chrome 扩展中刷新。');
-    const connect=()=>setProjectFeedback('UI_PREVIEW_ONLY · 离线文件不能连接本机 OpenDesk；正式扩展使用现有选项页连接。');
+    const refresh=()=>setProjectFeedback('仅预览 · 无法读取 Native 项目列表；请在正式 Chrome 扩展中刷新。');
+    const connect=()=>setProjectFeedback('仅预览 · 离线文件不能连接本机 OpenDesk；正式扩展使用现有选项页连接。');
     const guide=()=>{
       get('local-project-guide').open=true;
       get('local-project-guide').querySelector('summary')?.focus({preventScroll:true});
-      setProjectFeedback('UI_PREVIEW_ONLY · 下方展示正式项目授权与接入说明。');
+      setProjectFeedback('仅预览 · 下方展示正式项目授权与接入说明。');
     };
     const listeners=[['local-project-mode','change',modeChanged],
       ['local-project-select','change',projectChanged],
@@ -420,7 +420,7 @@ function Preview(){
         // Restore focus to a visible control when the detail and review close.
         requestAnimationFrame(()=>get('extension-center-search').focus({preventScroll:true}));
       }
-      setNotice('UI_PREVIEW_ONLY · 仅修改内存扩展列表，无任何真实 Host 回执');
+      setNotice('仅预览 · 仅修改内存扩展列表，无任何真实 Host 回执');
       setExtensionReview(null);
     });
     const fileInput=get('sidebar-tool-file');
@@ -441,7 +441,7 @@ function Preview(){
           description:'从本地文件演示的应用 · 无 Host 记录',version:value.version.slice(0,40),
           capabilities:value.capabilities.map(x=>String(x).slice(0,80)).slice(0,30),
           type:'应用',kind:'app',installed:false,enabled:false,primaryAction:'查看详情'});
-      }catch(error){setImportError('UI_PREVIEW_ONLY · '+String(error?.message||error));}
+      }catch(error){setImportError('仅预览 · '+String(error?.message||error));}
     };
     fileInput.addEventListener('change',readFile);
     const install=bind('sidebar-tool-install',()=>{
@@ -451,7 +451,7 @@ function Preview(){
         const found=previous.findIndex(row=>row.key===item.key);
         return found<0?[...previous,item]:previous.map(row=>row.key===item.key?item:row);
       });
-      setNotice('UI_PREVIEW_ONLY · 内存安装/更新演示；从未调用真实 Installer');
+      setNotice('仅预览 · 内存安装/更新演示；从未调用真实 Installer');
       setImportOpen(false);setImportCandidate(null);setScope('smart');setSelected(null);
     });
     return ()=>{closed();open();closeReview();confirm();install();
@@ -462,23 +462,23 @@ function Preview(){
     const task=doc.createElement('div');task.className='cloud-task-choice';
     const label=doc.createElement('label');
     const check=doc.createElement('input');check.type='checkbox';check.disabled=true;
-    const name=doc.createElement('span');name.textContent='示例任务（UI_PREVIEW_ONLY）';
+    const name=doc.createElement('span');name.textContent='示例任务（仅预览）';
     label.append(check,name);task.append(label);
     const scope=doc.createElement('p');scope.className='cloud-task-scope';
     scope.textContent='固定版本、网站范围、结果许可必须由真实 Host 核对';
     task.append(scope);get('cloud-task-list').replaceChildren(task);
     get('cloud-approval-summary').textContent='演示布局：不能批准、启用或保存。';
-    get('cloud-clients-status').textContent='UI_PREVIEW_ONLY · 无真实凭据可创建、复制或撤销。';
+    get('cloud-clients-status').textContent='仅预览 · 无真实凭据可创建、复制或撤销。';
     const li=doc.createElement('li'),title=doc.createElement('span');
     title.textContent='请求版式示例 · 非真实请求';
-    const state=doc.createElement('span');state.textContent='结果未知 · UI_PREVIEW_ONLY';
+    const state=doc.createElement('span');state.textContent='结果未知 · 仅预览';
     const open=doc.createElement('button');open.type='button';
     open.className='od-button od-button--secondary';open.textContent='查看详情';
     open.addEventListener('click',()=>setCloudDetailOpen(true));
     li.append(title,state,open);get('cloud-request-samples').replaceChildren(li);
     get('cloud-request-page').textContent='仅演示 1 条版式 · 无真实历史';
     get('cloud-request-detail-title').textContent='请求详情（仅预览）';
-    get('cloud-request-detail-state').textContent='结果未知 · UI_PREVIEW_ONLY';
+    get('cloud-request-detail-state').textContent='结果未知 · 仅预览';
     get('cloud-request-detail-facts').textContent='无真实请求、时间或 Run ID。';
     get('cloud-request-detail-reason').textContent='未知结果禁止自动重试。';
     get('cloud-request-detail-run-id').textContent='无真实 Run ID';
@@ -487,13 +487,13 @@ function Preview(){
       'cloud-client-create','cloud-client-copy','cloud-request-open-result'])
       get(id).disabled=true;
     const handlers=[
-      ['cloud-open-console',()=>setCloudFeedback('UI_PREVIEW_ONLY · 正式控制台仅在真实扩展中打开')],
-      ['cloud-overview-refresh',()=>setCloudFeedback('UI_PREVIEW_ONLY · 未调用 Provider，仍显示本地场景')],
+      ['cloud-open-console',()=>setCloudFeedback('仅预览 · 正式控制台仅在真实扩展中打开')],
+      ['cloud-overview-refresh',()=>setCloudFeedback('仅预览 · 未调用 Provider，仍显示本地场景')],
       ['cloud-configure',()=>{get('cloud-hosting').open=true;get('cloud-url').focus({preventScroll:true});
-        setCloudFeedback('UI_PREVIEW_ONLY · 查看连接表单，配对操作已禁用');}],
+        setCloudFeedback('仅预览 · 查看连接表单，配对操作已禁用');}],
       ['cloud-request-close',()=>setCloudDetailOpen(false)],
-      ['cloud-client-refresh',()=>setCloudFeedback('UI_PREVIEW_ONLY · 无凭据可刷新')],
-      ['cloud-refresh',()=>setCloudFeedback('UI_PREVIEW_ONLY · 无真实状态可核对')]
+      ['cloud-client-refresh',()=>setCloudFeedback('仅预览 · 无凭据可刷新')],
+      ['cloud-refresh',()=>setCloudFeedback('仅预览 · 无真实状态可核对')]
     ];
     for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
     return ()=>{open.remove();for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
@@ -568,7 +568,7 @@ function Preview(){
         <option value={520}>520px</option>
       </select></label>
       <span className="od-sidebar-preview-label" role="status">
-        {tab==='cloud'?cloudPreview.brief+' · UI_PREVIEW_ONLY':labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
+        {tab==='cloud'?cloudPreview.brief+' · 仅预览':labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
           'React 任务列表/详情 + 原生执行与定时计划':tab==='cloud'?
           'React 只读概览 + 原生授权与请求队列':tab==='tools'?
           'React 列表/详情 + 原生其余业务':tab==='develop'?
@@ -582,16 +582,16 @@ function Preview(){
       onReset:()=>{setSearch('');setKind('all');setScope('smart');},
       onMarket:()=>setNotice('市场仅为 UI 预览，不打开网络页面'),
       onImport:()=>{beginImport();
-        setNotice('UI_PREVIEW_ONLY · 可审阅本地 JSON；不会触发真实安装');},
-      onReload:()=>setNotice('UI_PREVIEW_ONLY · 已展示当前内存状态；没有真实安装回读')
+        setNotice('仅预览 · 可审阅本地 JSON；不会触发真实安装');},
+      onReload:()=>setNotice('仅预览 · 已展示当前内存状态；没有真实安装回读')
     }}/>,toolbar)}
     {createPortal(<ExtensionRows rows={rows} busy={scene==='loading'}
       pendingKey={null} menuKey={null} onOpenRow={openExtensionRow}
       onMore={setSelected}/>,extensionList)}
     {createPortal(opened&&<section className="od-preview-card od-stack"
-      aria-label="已安装工具使用页面 · UI_PREVIEW_ONLY">
+      aria-label="已安装工具使用页面 · 仅预览">
       <strong>工具工作区 · {opened.title}</strong>
-      <small>v{opened.version} · UI_PREVIEW_ONLY · 隔离 Fixture，未连接真实 iframe 或 Host。</small>
+      <small>v{opened.version} · 仅预览 · 隔离 Fixture，未连接真实 iframe 或 Host。</small>
       {toolSettingsOpen?<div className="od-preview-card">
         <strong>工具设置（仅预览）</strong>
         <p>实际网站权限、启停与持久数据由原工具 Host 管理；预览不更改这些状态。</p>
@@ -601,17 +601,17 @@ function Preview(){
           value={toolDraft} onChange={event=>setToolDraft(event.target.value)}
           placeholder="在这里体验工具使用页；不会发送或保存"/>
         <button type="button" className="od-button"
-          onClick={()=>setToolFeedback('UI_PREVIEW_ONLY · 当前页内存草稿，未调用扩展 API')}>保存预览草稿</button>
+          onClick={()=>setToolFeedback('仅预览 · 当前页内存草稿，未调用扩展 API')}>保存预览草稿</button>
         {toolFeedback&&<p role="status">{toolFeedback}</p>}
       </>}
     </section>,toolFrame)}
     {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
-      emptyText:'UI_PREVIEW_ONLY · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
+      emptyText:'仅预览 · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
     {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
     {createPortal(<MyTaskCount value={taskRows.length+' 个已安装任务'}/>,myCount)}
     {createPortal(<MyTaskRows rows={taskRows} selectedId={selectedTask}
       workspace={myWorkspace} onSelect={setSelectedTask}
-      emptyText={'暂无任务 · UI_PREVIEW_ONLY'}/>,myRows)}
+      emptyText={'暂无任务 · 仅预览'}/>,myRows)}
     {createPortal(<MyTaskDetail value={taskRows.find(row=>row.taskId===selectedTask)?
       '仅预览：任务版本与网站授权仍由原 TaskWorkbench 管理':''}/>,myDetail)}
     {Object.entries(cloudNodes).map(([key,node])=>
