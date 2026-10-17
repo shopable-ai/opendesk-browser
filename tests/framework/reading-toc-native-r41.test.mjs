@@ -61,7 +61,10 @@ const chat=`<!doctype html><html><meta charset="utf-8"><style>body{padding:24px 
 <section data-part="a"><h1 id="dup">回答一 H1</h1><h2>重复标题</h2></section>
 <section data-part="b"><h1 id="dup">同一回答第二个 H1</h1></section>
 <section data-part="c"><h2>重复标题</h2></section></div></div></article>
-<article data-testid="conversation-turn-2"><div data-message-author-role="assistant"><div class="markdown"><h1>回答二 H1</h1><h2>重复标题</h2></div></div></article></main></html>`;
+<article data-testid="conversation-turn-2"><div data-message-author-role="assistant"><div class="markdown"><h1>回答二 H1</h1><h2>重复标题</h2></div></div></article>
+<div style="height:650px" aria-hidden="true"></div>
+<article data-testid="conversation-turn-3"><div data-message-author-role="assistant"><div class="markdown"><h1>回答三 H1</h1><h2>重复标题</h2></div></div></article>
+<div style="height:700px" aria-hidden="true"></div></main></html>`;
 
 test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and revokes page UI',{timeout:150000},async t=>{
   assert.ok(binary,'Missing Chrome for Testing binary: cannot claim real Chrome acceptance');
@@ -586,11 +589,15 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await capture(chatPage,'chat-multi-h1.png');
   const conversation=await panelSend(origin+'/chat.html','toc.snapshot');
   assert.equal(conversation.ok,true,JSON.stringify(conversation));
-  assert.equal(conversation.data.sources.length,2);
-  assert.equal(conversation.data.items.filter(x=>x.rank===1).length,3,
-    'Multiple H1 across 3 fragments/2 answers must be preserved');
+  assert.equal(conversation.data.sources.length,3,'all three assistant answers must be indexed');
+  assert.equal(conversation.data.items.length,8,'three assistant answers contain eight real headings');
+  assert.equal(conversation.data.items.filter(x=>x.rank===1).length,4,
+    'Two H1 in the first answer and one in each later answer must be preserved');
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
+  assert.notEqual(conversation.data.items[5].sourceId,conversation.data.items[6].sourceId);
+  assert.equal(new Set(conversation.data.items.filter(row=>row.label==='重复标题').map(row=>row.id)).size,3,
+    'same heading text in three answers must have independent navigation IDs');
   // Keep the actual webpage active: its origin controls must not target tool.html.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
