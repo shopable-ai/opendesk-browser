@@ -28,7 +28,7 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 ```
 
-可导入的已审阅正式包为 `examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.7）。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.7/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
+可导入的已审阅正式包为 `examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.8）。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
 ## 当前证据与边界
 
@@ -107,7 +107,7 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 阅读目录的 Side Panel 沙箱和可信网页悬浮 UI 共享 `locales.json` 的 `zh-CN` / `en` 文案；来源标题与网页标题仍保持原文。用户在「扩展」→「更多操作」选择界面语言，加载后或切换中，当前目录模式、来源、章节、悬浮位置以及未完成的读取请求应继续保留。应用默认中文；工具单条英文缺失时回退中文，所有文字资源离线随正式工具版本发布。权威合同：[Sidebar Tool 本地化](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
 
-**发行版本（R1.8.1 核实）：** `tool.config.json` 源码候选为 **`1.0.8`**；经正式构建器生成、尚未晋升的 1.0.8 JSON 位于 `artifacts/sidebar-tools/reading-toc/1.0.8/`。根目录唯一稳定可安装 JSON **仍为 `1.0.7`**，在真实 Mac Chrome 完成旧版本安装、用户主动升级、持久化、撤权和回滚验收之前不得通过 `--promote-from` 晋升。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 仅生成候选，不会覆盖稳定安装文件。
+**发行版本（R1.8.6 复核）：** `tool.config.json`、根目录正式安装包、官方 Catalog 的 `reading-kit` revision 7 均指向 **`1.0.8`**。根目录正式 JSON 为 28,481 UTF-8 字节，SHA-256 为 `df3ab8fb74c4b32ae5932333c521f326d72a71256ebfeda412b3d6155f990c42`；本轮按 `--check-project` 校验，无需重复晋升或改变版本。历史 R1.8.1 时尚未晋升的 1.0.7/1.0.8 说明不再代表当前仓库状态。**用户本机 Mac Chrome 1.0.7 → 1.0.8 主动升级、持久化、撤权、回滚与卸载仍须独立验收，不得仅凭发行包一致性宣称通过。**
 
 ### 语言资源与可信悬浮 UI 的边界
 
