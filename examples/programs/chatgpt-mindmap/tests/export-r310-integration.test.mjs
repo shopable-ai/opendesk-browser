@@ -7,7 +7,7 @@ import {parseHTML} from 'linkedom';
 import {createXmindFrameRenderer} from '../src/xmind-frame.js';
 import {serveXmindFrame} from '../src/xmind-frame-child.js';
 import {createAnswerView} from '../src/view.js';
-import {verifyXmindZip} from '../src/export.js';
+import {verifyXmindZip,verifyPngBlob} from '../src/export.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
@@ -32,6 +32,15 @@ test('XMind export travels the existing bound child MessagePort and survives sta
               return new Blob([new Uint8Array([80,75,3,4,1,2,3,4])],{
                 type:'application/octet-stream'});
             },
+            async exportPng(){
+              calls.push(['png']);
+              // Transport contract only: real XMind pixels are asserted in Chromium.
+              const bytes=new Uint8Array(512),header=new DataView(bytes.buffer);
+              bytes.set([137,80,78,71,13,10,26,10]);
+              bytes.set([73,72,68,82],12);
+              header.setUint32(16,256);header.setUint32(20,192);
+              return new Blob([bytes],{type:'image/png'});
+            },
             async destroy(){calls.push(['destroy']);}};
         }});
       return {port:port1,async destroy(){await child.destroy();}};
@@ -44,7 +53,9 @@ test('XMind export travels the existing bound child MessagePort and survives sta
     const blob=await renderer.exportXmind();
     await verifyXmindZip(blob);
     assert.equal(blob.size,8);
-    assert.deepEqual(calls.slice(0,3),[['theme','light'],['fold'],['export',1]]);
+    const png=await renderer.exportPng();
+    assert.equal((await verifyPngBlob(png)).size,512);
+    assert.deepEqual(calls.slice(0,4),[['theme','light'],['fold'],['export',1],['png']]);
   }finally{await renderer.destroy();}
   assert.equal(calls.filter(row=>row[0]==='destroy').length,1);
   await assert.rejects(renderer.exportXmind(),{code:'E_XMIND_FRAME_DESTROYED'});
