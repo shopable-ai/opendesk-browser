@@ -13,6 +13,10 @@ test('R33.3.14 recurring SUCCESS remains scheduled; only completed once may be c
   const repeat=presentSchedulePlan(base(),[fire('SUCCESS')]);
   assert.equal(repeat.planState,'已安排');
   assert.equal(repeat.badge,'已安排');
+  assert.equal(repeat.frequencyText,'每天 09:00');
+  assert.match(repeat.nextText,/下次/);
+  assert.equal(repeat.timingText,repeat.frequencyText+' · '+repeat.nextText,
+    'existing consumers keep their complete label while cards may separate fields');
   assert.match(repeat.recentText,/执行成功/);
   const pendingOnce=base({triggerKind:'once',nextDueAt:null,history:[fire('SETTLING')]});
   assert.equal(presentSchedulePlan(pendingOnce).badge,'正在结算');
