@@ -295,11 +295,80 @@ try{
   const pngWidth=pngBytes.readUInt32BE(16),pngHeight=pngBytes.readUInt32BE(20);
   assert.ok(pngWidth>=100&&pngHeight>=100&&
     pngWidth*pngHeight<=24_000_000,'Real PNG must have bounded full-map dimensions');
+  // Decode the bytes downloaded by Chromium, not the source canvas or mock
+  // data. Assert actual foreground coverage and breathing room on all edges.
+  const raster=await page.evaluate(async base64=>{
+    const image=new Image();
+    image.src='data:image/png;base64,'+base64;
+    await image.decode();
+    const canvas=document.createElement('canvas');
+    canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(image,0,0);
+    const {data}=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const color=(x,y)=>{const i=(y*canvas.width+x)*4;
+      return [data[i],data[i+1],data[i+2]];};
+    const base=color(0,0),buckets=new Set();
+    let painted=0,minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
+    for(let y=0;y<canvas.height;y+=2){
+      for(let x=0;x<canvas.width;x+=2){
+        const [r,g,b]=color(x,y);
+        if(Math.abs(r-base[0])<=28&&Math.abs(g-base[1])<=28&&
+          Math.abs(b-base[2])<=28)continue;
+        painted++;minX=Math.min(minX,x);minY=Math.min(minY,y);
+        maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+        buckets.add([r>>5,g>>5,b>>5].join(','));
+      }
+    }
+    return {painted,colors:buckets.size,background:base,
+      margins:{left:minX,top:minY,right:canvas.width-1-maxX,
+        bottom:canvas.height-1-maxY}};
+  },pngBytes.toString('base64'));
+  assert.ok(raster.painted>=1000&&raster.colors>=5,
+    'Downloaded PNG must contain real multicolored XMind nodes and connectors');
+  assert.ok(Object.values(raster.margins).every(n=>n>=32),
+    'Downloaded PNG content must not touch any image boundary');
   await writeFile(join(out,'chatgpt-mindmap-real-xmind-full.png'),pngBytes);
   report.png={type:'ORIGINAL_XMIND_FULL_MAP',width:pngWidth,height:pngHeight,
     bytes:pngBytes.length,filename:pngDownload.suggestedFilename(),
+    raster,
     sha256:createHash('sha256').update(pngBytes).digest('hex')};
-  report.checks.push('ORIGINAL_XMIND_FULL_MAP_PNG_DOWNLOADED_AND_DECODED_HEADER');
+  report.checks.push('ORIGINAL_XMIND_FULL_MAP_PNG_DOWNLOADED_PIXEL_AUDITED');
+
+  // The other answer has the SAME title. Download both formats from B and
+  // parse actual downloaded bytes, proving filenames do not imply identity.
+  const xmindBPending=page.waitForEvent('download',{timeout:25000});
+  await viewer(2).locator('.odmm-export-toggle').click();
+  await viewer(2).locator('[data-export="xmind"]').click();
+  const xmindBDownload=await xmindBPending;
+  assert.equal(await xmindBDownload.failure(),null);
+  const xmindBBytes=await readFile(await xmindBDownload.path());
+  const bTopics=await page.evaluate(async base64=>{
+    const bytes=Uint8Array.from(atob(base64),char=>char.charCodeAt(0));
+    const zip=await window.JSZip.loadAsync(bytes,{checkCRC32:true});
+    const sheet=JSON.parse(await zip.file('content.json').async('string'))?.[0];
+    const titles=[];
+    function walk(topic){titles.push(topic.title);
+      for(const child of topic.children?.attached||[])walk(child);}
+    walk(sheet.rootTopic);return titles;
+  },xmindBBytes.toString('base64'));
+  assert.match(bTopics.join(' '),/独立缩放和滚动位置|独立折叠状态/);
+  assert.doesNotMatch(bTopics.join(' '),/安全与稳定性|缩放与画布适配/);
+  await writeFile(join(out,'chatgpt-mindmap-real-answer-B.xmind'),xmindBBytes);
+  report.xmindB={bytes:xmindBBytes.length,topics:bTopics.length,
+    sha256:createHash('sha256').update(xmindBBytes).digest('hex')};
+  const mdBPending=page.waitForEvent('download',{timeout:25000});
+  await viewer(2).locator('.odmm-export-toggle').click();
+  await viewer(2).locator('[data-export="outline"]').click();
+  const mdBDownload=await mdBPending;
+  assert.equal(await mdBDownload.failure(),null);
+  const mdB=await readFile(await mdBDownload.path(),'utf8');
+  assert.match(mdB,/独立折叠状态/);
+  assert.doesNotMatch(mdB,/安全与稳定性|缩放与画布适配/);
+  await writeFile(join(out,'chatgpt-mindmap-real-answer-B-outline.md'),mdB);
+  report.outlineB={bytes:Buffer.byteLength(mdB),
+    sha256:createHash('sha256').update(mdB).digest('hex')};
+  report.checks.push('TWO_SAME_TITLE_ANSWERS_REAL_ZIP_CRC_AND_MARKDOWN_DOWNLOAD_ISOLATION');
 
   // Query the *computed* CSS inside the real product ShadowRoot. A container
   // cannot style itself via @container; the containing .odmm-shell must own it.

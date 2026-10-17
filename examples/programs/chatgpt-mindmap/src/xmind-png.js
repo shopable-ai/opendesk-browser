@@ -60,7 +60,35 @@ function copyComputedStyles(window,source,clone){
   }
   return clone;
 }
-async function decodeSVG(window,svg,width,height){
+// Verify painted pixels inside EVERY XMind topic, not just the PNG signature
+// or a global color sample. A clipped/shifted foreignObject could otherwise
+// produce a plausible-looking but incomplete image.
+function verifyTopicPixels(context,topics,width,height,background){
+  const base=background==='#282828'?[40,40,40]:[255,255,255];
+  for(const box of topics){
+    const x0=Math.max(0,Math.floor(box.left));
+    const y0=Math.max(0,Math.floor(box.top));
+    const x1=Math.min(width,Math.ceil(box.right));
+    const y1=Math.min(height,Math.ceil(box.bottom));
+    if(x1-x0<2||y1-y0<2)throw failure('E_XMIND_PNG_INCOMPLETE');
+    const w=x1-x0,h=y1-y0;
+    const rgba=context.getImageData(x0,y0,w,h).data;
+    let ink=0;
+    outer:for(let y=1;y<h;y+=2){
+      for(let x=1;x<w;x+=2){
+        const i=(y*w+x)*4;
+        if(rgba[i+3]>80&&(Math.abs(rgba[i]-base[0])>28||
+          Math.abs(rgba[i+1]-base[1])>28||
+          Math.abs(rgba[i+2]-base[2])>28)){
+          if(++ink>=8)break outer;
+        }
+      }
+    }
+    if(ink<8)throw failure('E_XMIND_PNG_INCOMPLETE',
+      '完整 XMind 导图有节点未成功栅格化');
+  }
+}
+async function decodeSVG(window,svg,width,height,topics,background){
   // In Chromium, foreignObject via blob: taints canvas even for local bytes.
   // A self-contained data: SVG can be drawn and read without that taint.
   if(svg.length>18_000_000)throw failure('E_XMIND_PNG_DOM_LIMIT');
@@ -87,6 +115,7 @@ async function decodeSVG(window,svg,width,height){
     for(let i=0;i<rgba.length;i+=32)
       colors.add([rgba[i],rgba[i+1],rgba[i+2],rgba[i+3]].join(','));
     if(colors.size<3)throw failure('E_XMIND_PNG_BLANK');
+    verifyTopicPixels(context,topics,width,height,background);
     return await new Promise((resolve,reject)=>canvas.toBlob(
       blob=>blob?resolve(blob):reject(failure('E_XMIND_PNG_ENCODING')),'image/png'));
   }finally{/* data: SVG is self-contained and has no object URL to revoke. */}
@@ -143,6 +172,11 @@ export async function captureXmindPng({sdk,window,canvas,tree,skinMode='dark'}){
     if(width<100||height<100||width>MAX_EDGE||height>MAX_EDGE||
       width*height>MAX_PIXELS)throw failure('E_XMIND_PNG_DIMENSIONS');
     const clone=copyComputedStyles(window,stage,stage.cloneNode(true));
+    // Expand/collapse controls belong to the interactive editor, not the
+    // exported map. Their Snowbrush icon-font glyphs become tofu squares in
+    // Chromium's self-contained SVG image, so hide only these cloned controls.
+    for(const control of clone.querySelectorAll('.collapseextend [data-name="action-area"]'))
+      control.style.setProperty('display','none','important');
     clone.style.setProperty('position','relative','important');
     clone.style.setProperty('left','0','important');
     clone.style.setProperty('top','0','important');
@@ -162,7 +196,13 @@ export async function captureXmindPng({sdk,window,canvas,tree,skinMode='dark'}){
       '<rect width="100%" height="100%" fill="'+background+'"/>'+
       '<foreignObject width="'+width+'" height="'+height+'">'+markup+
       '</foreignObject></svg>';
-    result=await decodeSVG(window,svg,width,height);
+    const exportedBoxes=bounds.map(r=>({
+      left:r.left-stageBounds.left-left,
+      top:r.top-stageBounds.top-top,
+      right:r.right-stageBounds.left-left,
+      bottom:r.bottom-stageBounds.top-top
+    }));
+    result=await decodeSVG(window,svg,width,height,exportedBoxes,background);
     if(result.size<512||result.size>30*1024*1024)
       throw failure('E_XMIND_PNG_SIZE');
   }catch(error){primaryError=error;}
