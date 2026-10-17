@@ -15,6 +15,7 @@ import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createInstalledPageTools} from './installed-page-tools.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountExtensionList} from './react/main.tsx';
+import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from './trusted-bookmark-admission.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
@@ -90,6 +91,7 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
   // Explicit developer-only, non-release opt-in. All other opens use the
   // unchanged opaque sandbox; mounting uses the already-owned React root.
   trustedBookmarkPilot:{
+    componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
     enabled:Boolean(debugEnabled&&hostUrl.searchParams.get('bookmarkReactPilot')==='1'),
     mount:args=>{
       if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
