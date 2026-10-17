@@ -652,7 +652,14 @@
           <div id="workflow-chat-intro" class="workflow-chat-intro">
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
             <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
-            <p>描述希望在当前网页完成的任务，查看结果后可以保存为工作流。</p>
+            <p id="workflow-intro-description">描述希望在当前网页完成的任务，查看结果后可以保存为工作流。</p>
+            <div id="workflow-intro-suggestions" class="workflow-intro-suggestions"
+              role="group" aria-label="工作流示例任务">
+              <button type="button" data-workflow-example="continue" data-example-mode="new-chat" hidden>继续修改填写内容</button>
+              <button type="button" data-workflow-example="check" data-example-mode="new-chat" hidden>检查当前网页</button>
+              <button type="button" data-workflow-example="fill" data-example-mode="new-workflow">填写表单并读回</button>
+              <button type="button" data-workflow-example="read" data-example-mode="new-workflow">只读提取网页信息</button>
+            </div>
           </div>
           <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="浏览器任务对话与执行记录" aria-live="polite" hidden></div>
           <p id="workflow-planning-indicator" class="workflow-planning-indicator" role="status" hidden>✦ 正在整理可检查的语义步骤…</p>
