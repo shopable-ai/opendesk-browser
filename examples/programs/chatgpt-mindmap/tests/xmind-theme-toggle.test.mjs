@@ -13,6 +13,25 @@ const withoutFocusVisible=button=>{
   button.matches=selector=>selector===':focus-visible'?false:matches(selector);
   return button;
 };
+// Reproduce the same inline-style priority behavior used by the existing
+// answer-registry lifecycle tests. linkedom omits CSS !important metadata.
+const withPriorityStyles=document=>{
+  for(const content of document.querySelectorAll('.markdown')){
+    const original=content.style,priorities=new Map();
+    Object.defineProperty(content,'style',{value:{
+      getPropertyValue:name=>original.getPropertyValue(name),
+      getPropertyPriority:name=>priorities.get(name)||'',
+      setProperty(name,value,priority=''){
+        priorities.set(name,priority);
+        original.setProperty(name,value);
+      },
+      removeProperty(name){
+        priorities.delete(name);
+        return original.removeProperty(name);
+      }
+    }});
+  }
+};
 const owner={
   active:()=>true,
   on(target,type,handler){
@@ -58,6 +77,7 @@ test('default dark, explicit light persists across replies and is independent of
     '<div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div>'+
     '</article>').join('')+'</body></html>';
   const {document}=parseHTML(markup),values=new Map(),views=[];
+  withPriorityStyles(document);
   const window={location:{pathname:'/c/theme',search:''},
     localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)}};
   const registry=createAnswerRegistry({document,window,owner,css:'',createView(options){
@@ -95,6 +115,7 @@ test('denied storage never prevents the user from switching themes',async()=>{
     '<div class="markdown"><h2>Answer</h2><p>Body</p></div></div>'+
     '<div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div>'+
     '</article></body></html>');
+  withPriorityStyles(document);
   const views=[],window={location:{pathname:'/c/storage',search:''},
     get localStorage(){throw Object.assign(new Error('denied'),{name:'SecurityError'});}};
   const registry=createAnswerRegistry({document,window,owner,css:'',createView(options){
