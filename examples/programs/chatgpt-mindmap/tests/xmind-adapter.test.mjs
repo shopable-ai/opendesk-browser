@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {requireXmindRuntime,retireXmindMount} from '../src/xmind-adapter.js';
+import {verifyXmindWorkbook} from '../src/export.js';
 import {mindTreeToXmindBlob,getXmindStyleData} from '../src/xmind-convert.js';
 
 test('missing runtime fails closed without falling back to another engine',()=>{
@@ -89,4 +90,31 @@ test('REAL SDK: a sole semantic heading becomes the central topic without duplic
     const out=await workbook(node('唯一总标题',[heading]));
     assert.equal(out.rootTopic.title,'唯一总标题');
     assert.equal(out.rootTopic.children?.attached?.length||0,0);
+  });
+
+
+test('REAL SDK: exported ZIP has exactly the active reply structure, notes and duplicate titles',
+  {skip:!directory&&'XMIND_REFERENCE_DIR missing; real SDK NOT_TESTED'},async()=>{
+    const api=await actualSDK();
+    const tree=node('中文根节点',[
+      node('同名主题',[],'第一条回复备注'),
+      node('同名主题',[node('真正的孙节点',[],'多层级内容')],'第二条回复备注')
+    ],'当前根节点说明');
+    const blob=await mindTreeToXmindBlob(api,tree,'dark',{defaultFolded:false});
+    const verified=await verifyXmindWorkbook(api,blob,tree);
+    assert.equal(verified.topicCount,4);
+    assert.equal(verified.byteLength,blob.size);
+    const other=node('中文根节点',[
+      node('同名主题',[],'其他回复'),
+      node('同名主题',[node('真正的孙节点',[],'多层级内容')],'第二条回复备注')
+    ],'当前根节点说明');
+    await assert.rejects(verifyXmindWorkbook(api,blob,other),
+      {code:'E_XMIND_EXPORT_CONTENT'});
+    const modified=node('中文根节点',[node('不同回复的新节点')]);
+    await assert.rejects(verifyXmindWorkbook(api,blob,modified),
+      {code:'E_XMIND_EXPORT_CONTENT'});
+    const heading={...node('唯一总标题',[node('真实分支')]),kind:'heading'};
+    const promoted=node('唯一总标题',[heading]);
+    const promotedBlob=await mindTreeToXmindBlob(api,promoted,'light',{defaultFolded:false});
+    assert.equal((await verifyXmindWorkbook(api,promotedBlob,promoted)).topicCount,2);
   });
