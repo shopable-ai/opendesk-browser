@@ -40,3 +40,55 @@ export async function verifyXmindZip(blob){
     throw new Error('E_XMIND_EXPORT_NOT_ZIP');
   return blob;
 }
+
+
+// Validate the actual SDK archive and semantic content, not merely its PK header.
+// This runs inside the same approved XMind frame that already owns JSZip.
+export async function verifyXmindWorkbook(sdk,blob,tree){
+  await verifyXmindZip(blob);
+  if(typeof sdk?.JSZip!=='function'||!tree||!Array.isArray(tree.children))
+    throw Object.assign(new Error('无法核对 XMind 工作簿'),{code:'E_XMIND_EXPORT_CONTENT'});
+  const invalid=()=>Object.assign(new Error('导出的 XMind 与当前回复不一致'),
+    {code:'E_XMIND_EXPORT_CONTENT'});
+  try{
+    const zip=await new sdk.JSZip().loadAsync(
+      new Uint8Array(await blob.arrayBuffer()),{checkCRC32:true});
+    const entry=zip.file('content.json');
+    if(!entry||entry._data?.uncompressedSize>8*1024*1024)throw invalid();
+    const sheet=JSON.parse(await entry.async('string'))?.[0];
+    const root=sheet?.rootTopic;
+    if(!root)throw invalid();
+    // Mirror only the converter's semantic promotion rule. This is archive
+    // verification, not another drawing, ZIP generation, or XMind engine.
+    const direct=tree.children;
+    const headings=direct.filter(item=>item.kind==='heading');
+    const heading=headings.length===1?headings[0]:null;
+    const at=heading?direct.indexOf(heading):-1;
+    const title=tree.title||'回答概览';
+    const matches=heading&&(heading.title===title||
+      (title.endsWith('…')&&heading.title.startsWith(title.slice(0,-1))));
+    const safe=at>=0&&direct.every((item,i)=>i===at||
+      (i<at&&item.kind==='paragraph'));
+    const promote=matches&&safe;
+    const expected=promote?[...direct.slice(0,at),...heading.children]:direct;
+    const note=promote?[tree.content,heading.content].filter(Boolean).join('\n'):tree.content;
+    let count=0;
+    const check=(actual,expectedTitle,expectedNote,expectedChildren,depth)=>{
+      if(depth>11||String(actual?.title??'')!==String(expectedTitle??''))throw invalid();
+      if(expectedNote&&actual?.notes?.plain?.content!==expectedNote)throw invalid();
+      const children=actual?.children?.attached||[];
+      if(children.length!==expectedChildren.length)throw invalid();
+      if(++count>161)throw invalid();
+      for(let i=0;i<children.length;i++){
+        const child=expectedChildren[i];
+        check(children[i],child.title||'',child.content||'',child.children||[],depth+1);
+      }
+    };
+    check(root,title,note||'',expected,0);
+    return Object.freeze({topicCount:count,byteLength:blob.size});
+  }catch(error){
+    if(error?.code==='E_XMIND_EXPORT_CONTENT')throw error;
+    throw Object.assign(new Error('无法解析导出的 XMind 内容'),
+      {code:'E_XMIND_EXPORT_CONTENT',cause:error});
+  }
+}
