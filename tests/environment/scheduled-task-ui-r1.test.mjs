@@ -336,33 +336,29 @@ test('R2.6 real runner never labels SETTLING or stale terminal Run as running',a
   assert.match(preview,/next===null\?'暂无后续执行'/);
 });
 
-test('R2.7 compact pinned timezone and important next-run callout match the canonical preview',async()=>{
+test('R33.3.12 direct native timezone selector preserves IANA scheduling and next-run projection',async()=>{
   const [html,css,ui,preview]=await Promise.all([
     load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
     load('src/ui/scheduled-task-workbench.js'),
     load('examples/ui/scheduled-tasks-r2.5-preview.html')
   ]);
-  for(const id of ['schedule-timezone-summary','schedule-timezone-edit',
-    'schedule-timezone-controls','schedule-timezone-done','schedule-timezone-search',
+  for(const id of ['schedule-timezone','schedule-timezone-help',
     'schedule-next','schedule-next-time','schedule-next-zone'])
     assert.match(html,new RegExp('id="'+id+'"'));
-  assert.match(html,/id="schedule-timezone-controls"[^>]*hidden/);
-  assert.match(html,/id="schedule-timezone-edit"[^>]*aria-expanded="false"/);
-  assert.match(ui,/function setTimeZoneExpanded\(expanded,focus=false\)/);
-  assert.match(ui,/updateTimeZoneSummary\(selected\)/);
+  for(const id of ['schedule-timezone-summary','schedule-timezone-edit',
+    'schedule-timezone-controls','schedule-timezone-search','schedule-timezone-done'])
+    assert.doesNotMatch(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/<select id="schedule-timezone" required aria-describedby=/);
   assert.match(ui,/populateTimeZoneSelect\(plan\.timezone\)/,
-    'editing continues to preserve the original fixed IANA time zone');
-  assert.match(ui,/setTimeZoneExpanded\(false\)/);
+    'editing must preserve the saved concrete IANA time zone');
+  assert.match(ui,/function scheduleZoneOffset\(zone\)/);
   assert.match(ui,/text\(get\('schedule-next-time'\),describeTime\(next,zone\)\)/);
-  assert.match(ui,/setTimeZoneExpanded\(get\('schedule-timezone-controls'\)\.hidden,true\)/);
   assert.match(css,/\.schedule-next-preview>strong\{font-size:17px/);
-  assert.match(css,/\.schedule-timezone-selected\{/);
+  assert.match(css,/\.schedule-timezone-picker #schedule-timezone\{/);
   assert.doesNotMatch(css,/\.schedule-form \.od-field,\.schedule-rule \.od-field/,
-    'R2.7 must not turn input.od-field and select.od-field into grid containers');
+    'native text inputs must remain standard controls');
+  // The historical R2.5 static prototype remains a historical comparison.
   assert.match(preview,/id="zone-summary"/);
-  assert.match(preview,/data-action="zone-expand"/);
-  assert.match(preview,/s\.zoneExpanded\?'':'hidden'/);
-  assert.match(preview,/case 'zone-done'/);
 });
 
 test('R2.7 unavailable Controller task has an actionable, truthful empty state',async()=>{
@@ -397,8 +393,8 @@ test('R2.7 runner presents focus before compact summary and defers details',asyn
   assert.match(css,/\.schedule-runner-view \.schedule-runner-extra\{order:3\}/);
   assert.match(ui,/text\(get\('schedule-runner-focus-time'\)/);
   assert.match(ui,/host\.stop\(\{runId:selectedFire,controller:true\}\)/);
-  assert.match(native,/await click\(client,session,'#schedule-timezone-edit'\)/);
-  assert.match(native,/await click\(client,session,'#schedule-timezone-done'\)/);
+  assert.match(native,/await click\(client,session,'#schedule-timezone'\)/);
+  assert.doesNotMatch(native,/await click\(client,session,'#schedule-timezone-edit'\)/);
   assert.match(native,/chrome\.tabs\.setZoom/,'real zoom is not viewport emulation');
 });
 
@@ -484,10 +480,10 @@ test('R2.8 production create form keeps 36px controls and a distinct field label
     load('src/ui/tool.html'),load('src/ui/tool-shell.css'),load('src/ui/design-system.css')
   ]);
   for(const id of ['schedule-source-section-title','schedule-target-section-title',
-    'schedule-timezone-summary','schedule-timezone-edit','schedule-timezone-controls',
-    'schedule-next-time','schedule-next-zone','schedule-confirm-yes'])
+    'schedule-timezone','schedule-timezone-help','schedule-next-time',
+    'schedule-next-zone','schedule-confirm-yes'])
     assert.match(html,new RegExp('id="'+id+'"'));
-  assert.match(html,/id="schedule-timezone-controls"[^>]*hidden/);
+  assert.doesNotMatch(html,/id="schedule-timezone-controls"/);
   assert.match(css,/\.schedule-form label\.od-field,#schedule-task-manager label\.od-field\{display:grid;gap:var\(--space-2\)/);
   assert.match(css,/#schedule-task-manager input,#schedule-task-manager select\{max-width:100%;width:100%;min-width:0;min-height:36px/);
   assert.match(css,/\.schedule-source-row\{display:grid;grid-template-columns:minmax\(0,1fr\) max-content max-content/);
