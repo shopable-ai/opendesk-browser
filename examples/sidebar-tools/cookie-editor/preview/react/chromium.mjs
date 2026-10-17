@@ -15,6 +15,7 @@ const pass=[];
 const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name)};
 try{
  await page.goto(url,{waitUntil:'load'});
+ assert.equal(await page.title(),'Cookie Editor R4.11 · 380px 交互预览','React build must have the R4.11 preview title');
  await test('380px native-width panel when standalone HTML is opened on desktop',async()=>{
    await page.setViewportSize({width:1280,height:880});
    await page.locator('.cookie-app').waitFor();
