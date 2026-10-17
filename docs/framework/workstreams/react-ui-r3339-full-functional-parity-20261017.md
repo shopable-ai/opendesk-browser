@@ -163,3 +163,25 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 所有操作不写入实际 Chrome 用户数据；测试中的计划/安装/草稿仅内存 Fixture。UI 测试成功也不足以给出五维 95+ 或 Mac Native PASS。
 - 外部工作流仍存在 Trusted Bookmark React 来源约束及 Cookie provenance（待仓库最新 OWNER / CI 复核），不因为离线 Chromium PASS 而放行正式发布。
 
+## R33.3.12 · 时区、导入格式及本地项目模式 UX 修正（2026-10-17）
+
+**用户发现的三个真实场景**：定时计划以“更改→搜索→选择→完成”暴露 IANA 实现细节；我的导入 JSON / JS 与扩展工具包格式混淆；离线六 Tab「开发→本地项目」开关未绑定事件、无可见反馈。
+
+### 源码对齐与实际修复
+
+- **时区（正式 + 预览）**：`tool.html` 改为直接显示唯一原生 `#schedule-timezone` select，不再显示更改、搜索、完成面板；`ScheduledTaskWorkbench.populateTimeZoneSelect` 保持 `getScheduleDeviceTimeZone` 默认、常用城市及完整 IANA 分组、编辑时旧时区固定和 `saveSchedule` 实际权限/保存契约。选项显示可读城市与**当前** UTC 偏移；DST 仍由 `platform/tasks/schedule-time.js` 计算，偏移不是存储键。无自动重绑定、无第二调度器。
+- **我的导入**：严格区分 `opendesk.task-package.v1`（任务包 JSON）/`opendesk.program-draft.v1|v2`（源码草稿 JSON）/`.js`（源码草稿）与扩展 `opendesk.sidebar-tool.v1|v2`（`.opendesk-tool.json`）。导错文件给清晰入口提示，不能自动安装、授权或运行；原任务候选验证与 Host 仍是唯一权威。
+- **本地项目**：正式 `createLocalProjectView` 已存在、复用原 Native/Provider/RunHost 与单一安装权威；它**不是**浏览器直接任意选择目录功能。可运行项目须通过 `opendesk browser dev .` / `opendesk-dev .` 或单文件 `opendesk browser project add` 明确授权，再由 `projects.list/project.resolve` 回读与校验。正式模式切换现在同步「本地项目」标题。离线 Preview 复用 `#local-project-mode/#local-project-tools/#local-project-select`，可切换样例、查看状态、刷新及首次接入说明，但**未连接真实 Native**；所有有副作用操作均为 `UI_PREVIEW_ONLY` 或禁用。
+- **滚动与焦点**：预览仅切换路由时重置主滚动，项目模式/时区/设置变更不应使页面跳顶；计划列表、表单、任务管理各保留合理滚动与聚焦。共享 DOM、React Root、Design Tokens 与 Authoritative Owners 不变。
+
+### 对应提交与验证范围
+
+- 正式时区：`93b5fc7`；React 预览：`48f1ee4`；本地项目控件：`f00ea61`，正式标题与任务文件类型提示：`d45e12d`；导入 Preview：`9a362f2`；相关 Node/Native/Chromium 合同测试：`0d34c94` / `a7b5c24` / `1a60dc2` / `efd807c` / `75659d3`；滚动/焦点：`6d18b35` / `c124703`。
+- 本任务直接影响 `src/ui/tool.html`、`scheduled-task-workbench.js`、`task-workbench.js`、`local-project.js`、`tool-shell.css`、两个正式 DOM 的离线 React 适配及受影响测试。没有修改原 Installer、Provider/RunHost、安全域与 Package Provenance。
+- **当前门禁：CI 待执行；未取得与最终源码一致的完整构建/Chromium 证据时保持 `NOT_TESTED`**。Mac 已安装 Chrome 的单次计划、夏令时、任务包验证与本地 Native 项目授权/回读没有本轮实测，也不能继承旧截图宣称 PASS。安全来源阻塞不得通过删除合同测试来绕过。
+
+### 后续产品改善（不在本次混入重构）
+
+- 正式 Side Panel 的本地项目首次授权仍偏开发者命令式，未来可在既有 Native 身份/权限框架上研究**明确用户手势的选择文件/目录 GUI**；不能用未经确认的 Web File Picker 授予 Host 本机目录权限。
+- 添加任务后优先展示“已导入待验证/下一步审阅”回执，避免把编写源码与安装已审核任务混为同一种操作；可基于目前单一 Task Catalog 打磨，勿新增任务 Installer。
+- 对正式计划做真实 Native 360px/200% 与键盘/焦点回归，检查时区修改不抹掉保存草稿；完成后才能评价阶段性 UX 95+。
