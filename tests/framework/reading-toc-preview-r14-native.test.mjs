@@ -72,7 +72,7 @@ async function child(browser,page){
 test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inner UI',{timeout:120000},async t=>{
  assert(binary,'Chrome for Testing is required: no mock PREVIEW_PASS');
  const profile=await mkdtemp(join(tmpdir(),'toc-r14-chrome-'));
- const chrome=spawn(binary,['--headless=new','--no-sandbox','--disable-gpu',
+ const chrome=spawn(binary,['--headless=new','--window-size=1280,900','--no-sandbox','--disable-gpu',
   '--disable-dev-shm-usage','--no-proxy-server','--no-first-run',
   '--disable-background-networking','--site-per-process','--remote-allow-origins=*',
   '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
