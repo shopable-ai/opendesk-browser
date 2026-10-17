@@ -16,6 +16,7 @@ import {createControllerESMSavedSource,readControllerESMAuthorSource,
   verifiedControllerESMAuthorSource,createControllerClassicSavedSource,
   readControllerClassicAuthorSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from '../scripting/user-scripts/page-bundle.js';
+import {inspectPageFrameSource} from '../scripting/user-scripts/page-frame-resources.js';
 import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../scripting/user-scripts/execution-source.js';
 import {createBrowserPageComponentPreparer} from './page-component-preparer.js';
 import {createStaticESMPreparer} from './static-esm-preparer.js';
@@ -973,7 +974,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (componentMode==='javascript'&&(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)) ||
       editingBusy || running || host.currentRun) return;
     if(localProject?.active())return;
-    let captured, permission, pageSource,componentSnapshot,frozenComponent,prepareTicket;
+    let captured, permission, pageSource,componentSnapshot,frozenComponent,fixedFrameSource,prepareTicket;
     const runMode=mode.value,runKind=programSource.kind(),version=selectionVersion;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
@@ -1001,9 +1002,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
           const framework=/^\/\/ @opendesk-lib (react|vue)\s*$/m.exec(pageSource.sourceUtf8)?.[1];
           if(!framework)throw {code:'E_PROGRAM_DRAFT',message:'固定组件缺少唯一框架身份'};
           frozenComponent={framework,source:pageSource.sourceUtf8,sourceHash:artifact.build.sourceHash,projectId:artifact.project.id};
+        }else if(!pageSource.sourceFormat&&inspectPageFrameSource(pageSource.sourceUtf8)?.resources.length){
+          // Fixed child resources need the same host-owned lifecycle as a
+          // component, but their verified JavaScript is never recompiled.
+          fixedFrameSource={source:pageSource.sourceUtf8};
         }
       }
-      if((componentSnapshot||frozenComponent)&&(browserEffectUnknown||browserManagedPreview?.recoveredOnly))
+      if((componentSnapshot||frozenComponent||fixedFrameSource)&&(browserEffectUnknown||browserManagedPreview?.recoveredOnly))
         throw {code:'E_EFFECT_UNKNOWN',message:'上次受管运行仍需清理；已查询到的原回执只用于停止，不会自动重新运行'};
       // Source permission is requested synchronously from this trusted Run
       // gesture if the editor has already observed a missing Chrome grant.
@@ -1016,7 +1021,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
             componentSource:componentSnapshot.source,framework:componentSnapshot.framework}):Promise.resolve(true)
       ]);
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
-    const managedInput=componentSnapshot||frozenComponent;
+    const managedInput=componentSnapshot||frozenComponent||fixedFrameSource;
     prepareTicket=++browserPrepareGeneration;
     if(managedInput)browserPreparing=true;
     const assertPreparation=()=>{
@@ -1024,6 +1029,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         throw {code:'E_PAGE_COMPILER_STALE',message:'组件准备已取消；迟到结果不会运行'};
       if(programSource.source()!==managedInput.source||componentSnapshot&&componentMode!==componentSnapshot.framework)
         throw {code:'E_PAGE_COMPILER_STALE',message:'组件源码或框架已变化；旧结果不会运行'};
+      if(fixedFrameSource&&(componentMode!=='javascript'||programSource.kind()!==runKind||mode.value!==runMode||selectionVersion!==version))
+        throw {code:'E_DEPENDENCY_STALE',message:'网页草稿或运行模式已变化；不会执行旧代码'};
     };
     lastPagePreview=null;previewBusy=true;update();pageTechnicalPanel.hidden=true;pageTechnical.textContent='';
     displayPreview('running','正在核对当前文档与固定源码…','');
@@ -1034,10 +1041,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
       await currentPageTarget.revalidate(captured);
       if(managedInput){
         assertPreparation();
-        const built=await prepareManagedSource(managedInput,captured,assertPreparation,{frozen:!!frozenComponent,entryFormat:pageSource?.entryFormat});
+        if(fixedFrameSource)pageSource=await dependencyResolver.resolveForRun(pageSource,assertPreparation);
+        const built=await prepareManagedSource(managedInput,captured,assertPreparation,{frozen:!!frozenComponent||!!fixedFrameSource,entryFormat:pageSource?.entryFormat});
         await currentPageTarget.revalidate(captured);assertPreparation();
         const previewId=crypto.randomUUID(),managedUI={previewId,bindingId:browserBinding,enabled:true};
-        const identity={previewId,bindingId:browserBinding,target:captured,sourceHash:built.sourceHash,framework:managedInput.framework};
+        const identity={previewId,bindingId:browserBinding,target:captured,sourceHash:built.sourceHash,
+          ...(managedInput.framework?{framework:managedInput.framework}:{})};
         browserPreparing=false;update(); // No further compile cancellation can undo a dispatched native effect.
         let result;
         try{
@@ -1080,13 +1089,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
         browserManagedPreview=identity;
         await currentPageTarget.revalidate(captured);
         lastPagePreview={sourceUtf8:built.sourceUtf8,entryFormat:built.entryFormat,lockId:pageSource?.lockId??null,
+          ...(pageSource?.programId!==undefined?{programId:pageSource.programId}:{}),
           importSourceUrl:pageSource?.importSourceUrl??null,authoringSourceUtf8:managedInput.source,componentMode,
           previewUrl:captured.url,documentId:captured.documentId,tabId:captured.tabId,target:captured,
           sourceHash:built.sourceHash,previewId};
         const editorChanged=!previewMatchesEditor(lastPagePreview);
-        componentMessage('completed',editorChanged?'旧源码已运行，但编辑内容已变化；先停止旧组件，再运行最新源码':
+        if(!fixedFrameSource)componentMessage('completed',editorChanged?'旧源码已运行，但编辑内容已变化；先停止旧组件，再运行最新源码':
           '组件已运行 · 可停止或保存固定版本 · 保存不会自动运行或安装');
-        displayPreview('completed','组件已在当前网页运行；停止可清理受管 UI。可保存固定版本并单独审阅安装。',result.resultText ?? 'undefined');
+        displayPreview('completed',fixedFrameSource?
+          '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。':
+          '组件已在当前网页运行；停止可清理受管 UI。可保存固定版本并单独审阅安装。',result.resultText ?? 'undefined');
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent=JSON.stringify({...result,authoring:{framework:built.framework,compilerVersion:built.compilerVersion,
           sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs,remoteModules:built.remoteModules||[]}},null,2);
@@ -1138,7 +1150,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     })().catch(error=>{
       const recovered=error.previewRecovered?'；已读取原完成回执，可以停止原组件。未重放运行。':'';
       displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)+recovered,'');
-      if(managedInput)componentMessage('error',(error.code||'E_PAGE_COMPILER')+'：'+(error.message||error)+recovered);
+      if(componentSnapshot||frozenComponent)componentMessage('error',(error.code||'E_PAGE_COMPILER')+'：'+(error.message||error)+recovered);
       if(error.response?.state==='preview-failed'){
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;pageTechnical.textContent=JSON.stringify(error.response,null,2);
       }
@@ -1146,9 +1158,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   async function prepareManagedSource(input,captured,check,{frozen=false,entryFormat='async-main'}={}){
     if(frozen){
-      // Frozen JSON executes its verified program.js; source snapshots remain data.
+      // Frozen JSON and fixed frame JavaScript execute their verified bytes;
+      // source snapshots remain data and do not select a framework compiler.
       await validatePageSource(input.source,{plainLimit:100000});check();
-      return {sourceUtf8:input.source,sourceHash:input.sourceHash,entryFormat,framework:input.framework,
+      const sourceHash=input.sourceHash??await digestUtf8(input.source);check();
+      return {sourceUtf8:input.source,sourceHash,entryFormat,framework:input.framework,
         projectId:input.projectId,compilerVersion:'frozen-json',cacheHit:true,prepareMs:0};
     }
     const compilerInput={componentSource:input.source,framework:input.framework};

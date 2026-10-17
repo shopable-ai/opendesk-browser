@@ -55,7 +55,8 @@ export function createPreviewWorlds({api}) {
       // their original channel for frame retirement and managed disposal.
     const configurations = await native.getWorldConfigurations();
     invariant(Array.isArray(configurations), 'E_WORLD_ISOLATION', '无法读取浏览器执行世界配置');
-      const liveInstalled=new Set((await ledger()).filter(row=>row.installed&&row.installed.state!=='retired')
+      const liveInstalled=new Set((await ledger()).filter(row=>row.installed&&row.installed.state!=='retired'||
+        row.previewFrames&&row.managed&&!['retired','discarded'].includes(row.managed.state))
         .map(row=>row.worldId));
     for (const configuration of configurations) {
         if (typeof configuration.worldId === 'string' && configuration.worldId.startsWith(PREFIX)&&

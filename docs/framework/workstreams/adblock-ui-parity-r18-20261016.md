@@ -183,3 +183,11 @@
 - 同一新 production 静态候选在真实 Mac CFT **Chrome 156.0.8078.4** 安装、默认中文，真实 extension ID `caldphaccflihgiaaecgcloilngklpho`，加载路径为本轮 `source/dist/production`。360×815/DPR2 新概览、首次授权、设置、例外和焦点截图在 `ui-production-guidance/`，无横向溢出。独立 reviewer 的 `independent-review.json` 给 UI还原96、布局96、可读性94、三页导航/状态95、可见无障碍96；原P2已解决，剩余均P3。不取整、不将目标分数写为已通过；继续按真实可读性问题润色。
 - 原生物理分隔线操作未改变实际360px宽度；320/400/480及完整四档仍 **NOT_TESTED/NOT_SCORED**。只评可见焦点，不提升为完整辅助技术/WCAG接受。既有撤权后网络仍被拦截的原始失败保留；卸载/升级/共存等未测后续不晋升。**正式 JSON 未晋升**，工具目录尚无正式 JSON，1.1.1临时候选身份不变。
 - 本轮独立 CFT/Profile 已通过自己的 harness 正常关闭，并已向获得用户协调授权的 Cookie Editor 聊天交接前台原生资源。共享 Git 事务按 owner 串行，保留其 Cookie/SDK 和其他 Agent 工作。
+
+### R1.9.9 可读性后续候选（独立快照，等待原生交接）
+
+- 根据独立评审的 P3-03/04/05 做最小中文润色：DNR→广告过滤权限、可信宿主→OpenDesk统一管理；重启明确为完整退出并重新打开Chrome；网站例外返回位置明确为概览的“当前网站”。主仓库 Host/工具文件在 Cookie Editor 的持续开发验收窗口中保持冻结，修改先在独立快照完成，未抢占原生前台。
+- 快照刷新到本地 `a33d8422` 时的真实源码（含最新React菜单/状态Portal及并行已冻结Cookie/SDK），59个差异文件与旧内容存入 `source-refresh-readability.json` / `before-readability-source-delta.zip`。只读源码绑定在 `readability-source-binding.json`；本候选不能代替后续main整体回归。
+- 新候选 production `c1419e0fe87c8ef37df72118bf8b584cc9e68ac0a624f9d7c8452eeb485786df`、development `500d90aecce6bbfe031b2e58c8259d2522d201b9d139312b33922d9c2059d8f6`，双构建/Verify PASS，构建期间及之后均无sourceInputs漂移；receipt独立保留在 `builds-readability/`。可信Host blob pin `3d64b388b90a5f6dbbde7b6e1a036d1545160506`。
+- 快照 **99/99**受影响AdBlock/React定向、**177/177**编辑器、**9/9**来源扫描、**2/2**两包整包来源验证PASS；check **794文件PASS**。最新React Chromium真实Input PASS，包含菜单可信点击、开发状态、Run/Save/Stop、禁用、框架radio和unmount。最初未设置CHROME_BIN、误用默认receipt目录的失败日志保留；修正实际二进制与独立receipt路径后通过，没有修改产品以过测。
+- 此中文润色候选新截图及独立复评 **PENDING**，不得沿用上一候选的分数。正式JSON仍未晋升；既有撤权网络失败和另外三档物理宽度缺口未关闭。

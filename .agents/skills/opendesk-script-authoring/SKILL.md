@@ -17,6 +17,8 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 
 ## 先读当前仓库，而不是复述过时教程
 
+**先完成当前核心需求，再选最小验证。** 解释脚本时只读代码和相关公开文档；普通编写/修复只验证本次使用的执行世界和主流程。用户未特别要求时，不扩展为生产验收、变异测试、全部语言/版本组合、全量故障注入或长时间循环；下文场景是按差异选择的参考集合，不是每次必跑清单。只有当前任务确实需要独立 Chrome/CFT 启动或出现钥匙串阻塞时，才按需使用 `chrome-testing-keychain`，不因提到浏览器就启动环境自测。
+
 1. `AGENTS.md`、`docs/framework/testing-guide.md`、最新 `main`、当前文件/并行资源与原始证据；只处理本任务文件，不覆盖其他 Agent 的改动。
 2. `docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md`、`docs/api/controller.zh-CN.md`、`docs/api/page-userscript.zh-CN.md`、`docs/api/page-ui-frameworks.zh-CN.md`、`docs/api/sidebar-local-projects.zh-CN.md`。
 3. 普通作者只按实际需求阅读 `docs/api/local-projects.zh-CN.md`、`docs/api/page-import-persistence.zh-CN.md`、`docs/api/dependencies-and-errors.zh-CN.md`、项目示例/README 与公开类型/Schema；依赖异常查 `docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md`。只有平台任务或已复现通用缺口，平台维护者才需要调查 `src/ui/script-editor.js`、`src/ui/page-component-preparer.js` 等内部实现。
@@ -89,7 +91,7 @@ const count = ref(0);
 ## 标准调试闭环
 
 1. 确认当前版本 Standard/Developer、直接编辑/本地项目、运行世界、当前目标网站及真实 Chrome 用户脚本/站点授权；UI 缺少模式时不能虚构按钮。
-2. 读用户原代码或实际示例，做最小修改。先校验语法与真实依赖，再用对应入口明确 Run；编辑或保存本身不得自动执行。
+2. 读用户原代码或实际示例，做最小修改。先校验语法与真实依赖；当前任务需要试运行时，再用对应入口明确 Run。只解释代码时不启动浏览器；编辑或保存本身不得自动执行。
 3. Controller 核对 `runId/resultId/revision.sourceHash/retirementState`；`PENDING` 只算入场。Page 核对 `previewId/sourceHash/documentId`、真实 DOM/交互和原 Stop 回执。不能把两者结果混用。
 4. 异常优先给**准确源码位置、环境/权限/依赖错误和最小修复**；修改后用新的有意运行确认结果。回执丢失、断线、导航、撤权、受管 UI 清理未知时查询原身份，不盲目重放副作用。
 5. 用户要求继续安装/保存任务时，说明冻结/权限的独立验证步骤后衔接发布 Skill，不自动批准或安装。
@@ -98,12 +100,12 @@ const count = ref(0);
 
 优先 `examples/tasks/demo-form.html`。使用前检查端口/Chrome Profile 的既有占用；空闲时从仓库根启动 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，打开 `http://127.0.0.1:43111/demo-form.html`。
 
-最低用户场景：Controller 的 `page.title()` 真值与持久回执；Page 的 DOM 真值；Developer JSX 和 Vue SFC 真按钮交互/Stop；Standard React/Vue Direct 项目运行与清理；语法错误、依赖缺锁/错版本、撤权/导航的安全拒绝；从开发转入安装与 Sidebar Tool 时边界仍成立。按相关差异优先定向：
+按本次实际改动选择用户场景：Controller 的 `page.title()` 真值与持久回执；Page 的 DOM 真值；使用 JSX、Vue SFC 或 Direct 项目时才核对相应交互/Stop/清理；语法、依赖、撤权/导航保护只回归受影响项。仅在任务要求转入安装时验证安装边界。修改 Controller 零参数入口时，可选以下对应定向测试：
 
 ```sh
-node --test tests/environment/script-editor.test.mjs tests/environment/runtime-globals-zero-arg.test.mjs tests/environment/page-jsx-component-r243.test.mjs tests/environment/page-vue-sfc-compiler-r243.test.mjs tests/environment/page-direct-component-r243.test.mjs
+node --test tests/environment/runtime-globals-zero-arg.test.mjs
 ```
 
-必要时追加 `npm run check`、Standard/Developer 构建以及 `tests/framework/page-browser-worker-r243-cft.mjs` 与 `page-browser-ui-r243-cycles.mjs` 的真实 Chrome 测试；不能把测试驱动文件存在当成已运行。
+编辑器、JSX、Vue SFC 和 Direct 模式分别选择 `script-editor.test.mjs`、`page-jsx-component-r243.test.mjs`、`page-vue-sfc-compiler-r243.test.mjs`、`page-direct-component-r243.test.mjs` 中受影响的 `tests/environment/` 测试。仅改文档或 Skill 不跑这些产品测试。
 
-**95+ 是目标，不是自动评分**。评估：正确入口/用户价值 20、世界/权限安全 20、架构复用 15、JS/React/Vue 真实交互 15、Run/Stop 与失败恢复 10、依赖与来源 10、身份绑定的实测证据 10。没有真实 Mac Chrome、最终扩展包或全链权限证据时，相应条目标 `NOT_TESTED` / `BLOCKED`，不能因创建 Skill 或 Node mock PASS 就宣称产品已达 95 分。报告实际修改文件、受影响测试、PASS/FAIL/NOT_TESTED 和残余风险。
+只有本次改动需要时才追加 `npm run check` 或对应 edition 构建。真实 Chrome 测试按当前用户流程选用；`tests/framework/page-browser-worker-r243-cft.mjs` 与 `page-browser-ui-r243-cycles.mjs` 不自动成为普通开发门禁。正式验收或独立评分只在用户明确要求时开展；没有对应实测的项保留 `NOT_TESTED`，不能把测试驱动存在或 Node PASS 当作已获原生/安装证据。报告实际修改文件、所选验证和结果；无关高级验收不阻塞开发阶段收尾。

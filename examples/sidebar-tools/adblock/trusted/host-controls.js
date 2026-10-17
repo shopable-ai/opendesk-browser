@@ -1,6 +1,6 @@
 // Fixed first-party Side Panel UI. Never import this module from an installed tool.
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE} from './policy.js';
-const GRANT_RESTART_COPY='全局保护：Chrome 权限已批准，过滤尚未开启，请完整重启后手动开启。';
+const GRANT_RESTART_COPY='全局保护：权限已批准，过滤尚未开启。请完整退出并重新打开 Chrome，再手动开启全局保护。';
 
 export function createAdblockPermissionControls({
   api,doc,container,notice,runOperation,onViewChange=()=>{},openToolManagement=()=>{},settingsControl=null
@@ -87,7 +87,7 @@ export function createAdblockPermissionControls({
   exceptionsBack.setAttribute('data-adblock-nav','overview');
   exceptionsHead.append(exceptionsBack,exceptionsTitle,exceptionsSummary);
   exceptions.append(exceptionsHead,make('p','adblock-native-intro',
-    '这些网站将不使用广告过滤。你可以恢复过滤，或返回网页打开当前网站开关。'));
+    '这些网站已停用过滤。你可以在列表中恢复，或返回概览，在“当前网站”中开启过滤。'));
 
   const settings=make('section','adblock-native-subpage');
   settings.setAttribute('aria-label','AdBlock 产品设置');settings.hidden=true;
@@ -107,8 +107,8 @@ export function createAdblockPermissionControls({
   settingsExceptions.setAttribute('data-adblock-nav','exceptions');
   manageSites.append(settingsExceptions);
   settingRow('网页异常处理','网页功能出现异常时，可临时停用当前网站过滤并刷新网页。');
-  settingRow('Chrome 权限与重启','首次批准 DNR 权限后需完整退出并重启 Chrome，之后再手动开启保护。');
-  const manageTool=settingRow('工具管理','工具启停、版本、授权及卸载由 OpenDesk 可信宿主控制。');
+  settingRow('Chrome 权限与重启','首次批准广告过滤权限后，请完整退出并重新打开 Chrome，再手动开启全局保护。');
+  const manageTool=settingRow('工具管理','工具启停、版本、授权及卸载由 OpenDesk 统一管理。');
   const managementButton=button('adblock-native-secondary','打开通用工具管理','打开工具管理');
   manageTool.append(managementButton);settings.append(settingsCard);
   settings.append(make('p','adblock-native-setting-note',
@@ -154,9 +154,9 @@ export function createAdblockPermissionControls({
     statusLine.className='adblock-native-status'+(on?'':!state?' is-unknown':' is-off');
     statusText.textContent=!enabled?'工具已停用，请在工具管理中启用':
       !state?'Chrome 状态未确认':
-      state.restartRequired?(permission?'请完整重启 Chrome，再手动开启过滤':
+      state.restartRequired?(permission?'过滤尚未开启，请完整退出并重新打开 Chrome 后手动开启':
         '权限已撤销，请完整重启 Chrome'):
-      !permission?'需要批准 Chrome DNR 权限':
+      !permission?'需要批准 Chrome 广告过滤权限':
       !state.rules?.verified?'Chrome 规则尚未通过读回验证':
       on?'已开启保护':'保护已关闭';
     siteHost.textContent=host||'当前页面不可用';
@@ -278,7 +278,7 @@ export function createAdblockPermissionControls({
     catch(e){report('Chrome 授权请求失败：'+String(e.message||e),true);finish();return;}
     void Promise.resolve(request).then(granted=>{
       if(captured!==generation)return;
-      if(!granted)throw Error('未批准 Chrome DNR，不会开启过滤');
+      if(!granted)throw Error('未批准 Chrome 广告过滤权限，不会开启过滤');
       busy=false;return operate('adblock.enable',{},event,focusAtDispatch);
     }).catch(e=>{
       if(captured!==generation)return;

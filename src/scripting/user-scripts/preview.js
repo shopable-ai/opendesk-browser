@@ -109,6 +109,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   const worlds = createPreviewWorlds({api});
   const pageFrames=createPageFrameRuntime({api,worlds});
   const managed=managedFactory?.({worlds,assertHost,verifyTarget});
+  // Developer authority is captured from the original trusted Host. A worker
+  // restart cannot reconstruct it from a user-script message or an installation.
+  const framePreviews=new Map();
   let active = false;
   let permissionRemovalEpoch=0;
   api.permissions.onRemoved?.addListener(()=>{permissionRemovalEpoch++;});
@@ -187,26 +190,45 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
       script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSources});
     }
+    const frameResources=await readPageFrameResources(frozen.sourceUtf8);
     const native=await nativeAPI();
     invariant(!frozen.managedUI||managed,'E_UI_LIFECYCLE','受管预览未加载');
     const context=frozen.managedUI?await managed.inspect(frozen,owner):null;
+    invariant(!frameResources.length||context,'E_UI_LIFECYCLE','固定资源预览需要原工作台的受管 UI 生命周期');
     // Both routes prove isolation, including the transitional packaged-library
     // checkbox. Legacy source-hash worlds can also exhaust Chromium's budget.
     const worldId = await worlds.allocate(native,frozen.target);
     await assertHost(sender);
     const tabId = frozen.target.tabId, documentId = frozen.target.documentId;
     await admission.reserve({nonce:receiptNonce,tabId,documentId,sourceHash:script.sourceHash},sender);
-    let dispatched=false,confirmed=false,previousCleanup;
+    let dispatched=false,confirmed=false,previousCleanup,frameContext;
     try {
     await verifyTarget(frozen.target,receiptNonce);
     if(context?.previous){
+        const previousFrames=framePreviews.get(context.previous.worldId);
+        if(previousFrames)previousFrames.stopping=true;
       previousCleanup=await managed.retire(native,context.previous,receiptNonce,{sender,dispatch:()=>{dispatched=true;confirmed=false;},confirm:()=>{confirmed=true;}});
     }
     const managedRecord=context?await managed.prepare(native,context,worldId,script.sourceHash,receiptNonce,sender):null;
+      let js=script.js;
+      if(frameResources.length){
+        frameContext={...managedRecord,receiptNonce,sender,guard,epoch:permissionRemovalEpoch,parentSettled:false,stopping:false,
+          candidate:{sourceUtf8:frozen.sourceUtf8}};
+        await worlds.editRecords(rows=>{
+          const row=rows.find(row=>row.worldId===worldId);
+          invariant(row?.managed?.nonce===managedRecord.nonce&&!row.previewFrames,'E_FRAME_IDENTITY','原受管预览世界已改变');
+          row.previewFrames={previewId:managedRecord.previewId,sourceHash:script.sourceHash,receiptNonce,state:'ready',frames:[]};
+        });
+        framePreviews.set(worldId,frameContext);
+        await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
+        const bootstrap=pageFrameBootstrapSource({previewId:managedRecord.previewId,worldId,sourceHash:script.sourceHash,
+          receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)});
+        js=[{code:bootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
+      }
     await guard();
     dispatched=true;confirmed=false;
     const results = await native.execute({target:{tabId,documentIds:[documentId]},
-      world:script.world,worldId,js:script.js});
+      world:script.world,worldId,js});
     invariant(Array.isArray(results) && results.length === 1 &&
       results[0]?.frameId === 0 && results[0]?.documentId === documentId,
       'E_RESULT_FORMAT', 'Native user script returned no exact document receipt');
@@ -220,6 +242,11 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       format:completion.format,nonce:completion.nonce,ok:completion.ok,
       ...(!completion.ok?{error:String(completion.error||'').slice(0,2048)}:{})});
     confirmed=true;
+    if(frameContext)await worlds.editRecords(rows=>{
+      const row=rows.find(row=>row.worldId===worldId);
+      invariant(row?.previewFrames?.receiptNonce===receiptNonce,'E_FRAME_IDENTITY','原预览资源身份已改变');
+      row.previewFrames.state=completion.ok?'evaluated':'failed';
+    });
       const identity={tabId,documentId,sourceHash:script.sourceHash,world:script.world,worldId,receiptNonce,
         builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
         builtinBundleSha256:script.builtinBundleSha256,
@@ -256,11 +283,70 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；原页面执行效果未知，不能自动重试');
       if(dispatched&&confirmed)error.effectConfirmed=true;
       throw error;
-    }finally{if(!dispatched||confirmed)await admission.release({nonce:receiptNonce});}
+    }finally{
+      if(frameContext){
+        frameContext.parentSettled=confirmed;
+        if(!dispatched)framePreviews.delete(worldId);
+      }
+      if((!dispatched||confirmed)&&(!frameContext||await framesSettled(frameContext)))await admission.release({nonce:receiptNonce});
+    }
+  }
+  async function framesSettled(context){
+    const row=(await worlds.records()).find(row=>row.worldId===context.worldId);
+    return row?.previewFrames?.receiptNonce===context.receiptNonce&&
+      !row.previewFrames.frames.some(frame=>['dispatched','unknown'].includes(frame.state));
+  }
+  async function handlePreviewFrame(message,sender){
+    const common=['protocol','action','previewId','worldId','sourceHash','receiptNonce','operation','requestId'];
+    fields(message,message?.operation==='retire'?common:[...common,'resourceId','url','portToken','data']);
+    const context=framePreviews.get(message.worldId),t=context?.target;
+    invariant(context&&message.protocol==='opendesk.page-installed.boot.v1'&&message.action==='page-frame'&&
+      message.previewId===context.previewId&&message.sourceHash===context.sourceHash&&message.receiptNonce===context.receiptNonce&&
+      /^[a-f0-9-]{36}$/.test(message.requestId)&&sender?.id===api.runtime.id&&sender.frameId===0&&
+      sender.tab?.id===t.tabId&&!sender.tab.incognito&&sender.documentId===t.documentId&&
+      sender.url===t.expectedUrl&&sender.origin===new URL(t.expectedUrl).origin,
+      'E_FRAME_IDENTITY','子帧只接受原工作台预览的真实父文档消息');
+    const authorize=async()=>{
+      invariant(!context.stopping&&permissionRemovalEpoch===context.epoch,'E_FRAME_IDENTITY','原预览已停止或权限已变化');
+      const row=(await worlds.records()).find(row=>row.worldId===context.worldId);
+      invariant(row?.managed?.nonce===context.nonce&&row.managed.sourceHash===context.sourceHash&&
+        ['executing','evaluated'].includes(row.managed.state)&&row.managed.completion?.ok!==false&&
+        row.previewFrames?.receiptNonce===context.receiptNonce&&['ready','evaluated'].includes(row.previewFrames.state),
+        'E_FRAME_IDENTITY','原受管预览已经结束或身份已改变');
+      invariant((await assertHost(context.sender)).registrationId===context.registrationId,'E_OWNER','原预览工作台已变化');
+      await context.guard();await nativeAPI();
+      await verifyTarget(t,held?message.requestId:context.receiptNonce,{requireActive:false});
+      invariant(!context.stopping&&permissionRemovalEpoch===context.epoch,'E_FRAME_IDENTITY','原预览已停止或权限已变化');
+    };
+    const parent={nonce:context.receiptNonce,registrationId:context.registrationId,
+      tabId:t.tabId,documentId:t.documentId,sourceHash:context.sourceHash};
+    const reservation={nonce:message.requestId,tabId:t.tabId,documentId:t.documentId,sourceHash:context.sourceHash};
+    let held=false,dispatched=false,confirmed=false;
+    const dispatch=async invoke=>{
+      const claim=await admission.reserveFrame(reservation,parent,context.sender);held=!claim.shared;
+      await authorize();await admission.assertFrame(reservation,parent,context.sender,claim);
+      // No asynchronous observation between Stop/revocation and Chrome dispatch.
+      invariant(!context.stopping&&permissionRemovalEpoch===context.epoch,'E_FRAME_IDENTITY','原预览已停止或权限已变化');
+      dispatched=true;const completion=Promise.resolve(invoke());completion.catch(()=>{});return {completion};
+    };
+    try{
+      if(message.operation!=='retire')await authorize();
+      const result=await pageFrames.execute({message,sender,candidate:context.candidate,preview:context},authorize,dispatch);
+      confirmed=true;
+      if(message.operation==='retire')await admission.release({nonce:message.requestId});
+      return result;
+    }finally{
+      if(held&&(!dispatched||confirmed))await admission.release({nonce:message.requestId});
+      if(context.parentSettled&&await framesSettled(context))await admission.release({nonce:context.receiptNonce});
+    }
   }
   async function retire(request,sender){
     invariant(!active&&managed,'E_OWNER','受管清理不可用或忙碌');active=true;
-    try{return await managed.retirePreview(request,sender,{assertHost,verifyTarget,nativeAPI,admission});}
+    try{
+      const owner=await assertHost(sender),record=await managed.read(request?.previewId,owner);
+      const context=framePreviews.get(record.worldId);if(context)context.stopping=true;
+      return await managed.retirePreview(request,sender,{assertHost,verifyTarget,nativeAPI,admission});
+    }
     finally{active=false;}
   }
   // Read the original receipt only. A UI timeout must never turn into another
@@ -480,7 +566,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       }finally{active=false;}
     }
   }
-  return Object.freeze({preview,retire,query,executeInstalled,retireInstalled,executeFrame:pageFrames.execute,async cleanupWorlds(details){
+  return Object.freeze({preview,retire,query,executeInstalled,retireInstalled,executeFrame:pageFrames.execute,handlePreviewFrame,async cleanupWorlds(details){
+    for(const [worldId,context] of framePreviews)if(context.target.tabId===details.tabId&&
+      (details.removed||context.target.documentId!==details.documentId)){context.stopping=true;if(details.removed)framePreviews.delete(worldId);}
     if(details.removed)await admission.release({removedTabId:details.tabId});
     return worlds.cleanup(details);
   }});

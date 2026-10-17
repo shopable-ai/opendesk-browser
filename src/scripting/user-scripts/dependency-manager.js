@@ -78,9 +78,7 @@ function sourceSummary(url) {
   return {name:npm?.[1] || path.split('/').at(-1) || new URL(url).hostname,version:npm?.[2] || null};
 }
 function manifestFor(request) {
-  ensure(typeof request.sourceUtf8==='string' &&
-    (request.sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)?(inspectPageSource(request.sourceUtf8),true):
-      encoder.encode(request.sourceUtf8).byteLength<=128*1024),'E_SOURCE','普通页面脚本最大 128 KiB；大型资源须有固定版本与哈希');
+  inspectPageSource(request.sourceUtf8);
   const entryFormat=request.entryFormat===undefined ? 'async-main' : request.entryFormat;
   ensure(['classic-userscript','async-main'].includes(entryFormat),'E_ENTRY_FORMAT','页面入口必须明确为 classic-userscript 或 async-main');
   ensure(request.sourceFormat===undefined || Object.hasOwn(STATIC_ESM_WORLDS,request.sourceFormat),'E_SOURCE_FORMAT','源码格式不受支持');
@@ -108,7 +106,7 @@ export async function describeDependencyManifest(request) {
   return {...profile,manifestDigest:await hashObject(profile.manifest)};
 }
 async function validateFixedResource(sourceUtf8){
-  if(typeof sourceUtf8==='string'&&sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX))await validatePageSource(sourceUtf8);
+  await validatePageSource(sourceUtf8);
 }
 function decodeCode(bytes) {
   try { return new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes); }

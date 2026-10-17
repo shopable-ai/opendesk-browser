@@ -253,14 +253,17 @@ test('first grant restart guidance does not leave a technical error across produ
   panel.global.listeners.click({isTrusted:true});await tick();await tick();
   assert.equal(panel.global.disabled,true);
   assert.equal(panel.global.attributes['aria-checked'],'false');
-  assert.match(panel.info.textContent,/权限已批准.*尚未开启.*重启/);
+  assert.match(panel.info.textContent,/权限已批准.*尚未开启.*完整退出.*重新打开/);
   assert.doesNotMatch(panel.info.textContent,/E_ADBLOCK/);
   assert.deepEqual(panel.notices,[],'expected restart guidance must stay in its authoritative product status');
+  assert.equal(panel.find(node=>node.textContent.includes('DNR')),undefined);
+  assert.equal(panel.find(node=>node.textContent.includes('可信宿主')),undefined);
+  assert.ok(panel.find(node=>node.textContent.includes('返回概览，在“当前网站”中开启过滤')));
   panel.controls.toggleProductSettings();
   assert.equal(panel.controls.view(),'settings');
   assert.ok(panel.container.children[0].children.includes(panel.info),
     'unresolved global protection status stays outside the page-specific content');
-  assert.match(panel.info.textContent,/全局保护.*尚未开启.*重启/);
+  assert.match(panel.info.textContent,/全局保护.*尚未开启.*完整退出.*重新打开/);
   assert.deepEqual(panel.notices,[],'navigating to settings must not retain a stale global error');
 });
 

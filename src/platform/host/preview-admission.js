@@ -13,6 +13,33 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
         await tx.put('runs',{...(slot||{tag:'slot',currentRunId:null}),preview:{...preview,registrationId:host.registrationId}},'@slot');
       });
     },
+    async reserveFrame(preview,parent,sender) {
+      const host=await assertHost(sender);
+      return storage.transaction(['runs','commandJournal'],'readwrite',async tx=>{
+        await currentHost(tx,host,sender);
+        invariant(host.registrationId===parent.registrationId,'E_OWNER','原预览工作台已经改变');
+        const slot=await tx.get('runs','@slot'),prior=slot?.preview;
+        invariant(!slot?.currentRunId&&(!prior||prior.nonce===parent.nonce&&
+          prior.registrationId===parent.registrationId&&prior.tabId===parent.tabId&&
+          prior.documentId===parent.documentId&&prior.sourceHash===parent.sourceHash),
+          'E_OWNER','资源入口被其他执行占用；不自动重试');
+        if(prior)return {shared:true};
+        await tx.put('runs',{...(slot||{tag:'slot',currentRunId:null}),preview:{...preview,
+          registrationId:host.registrationId,frameParentNonce:parent.nonce}},'@slot');
+        return {shared:false};
+      });
+    },
+    async assertFrame(preview,parent,sender,{shared}) {
+      const host=await assertHost(sender);
+      await storage.transaction(['runs','commandJournal'],'readonly',async tx=>{
+        await currentHost(tx,host,sender);
+        const slot=await tx.get('runs','@slot'),prior=slot?.preview;
+        invariant(host.registrationId===parent.registrationId&&!slot?.currentRunId&&
+          prior?.nonce===(shared?parent.nonce:preview.nonce)&&prior.registrationId===parent.registrationId&&
+          prior.tabId===parent.tabId&&prior.documentId===parent.documentId&&prior.sourceHash===parent.sourceHash&&
+          (shared||prior.frameParentNonce===parent.nonce),'E_OWNER','资源最终派发前原预览准入已经改变');
+      });
+    },
     async reserveInstalled(preview,installation,{resource=false}={}) {
       // The same slot is used by Controller, developer previews and installed
       // Page scripts. This internal call cannot manufacture a Host identity.
