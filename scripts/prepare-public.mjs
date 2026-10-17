@@ -21,6 +21,7 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/marketplace/marketplace.html':'ui/marketplace.html',
   'src/marketplace/marketplace.css':'ui/marketplace.css',
   'src/ui/design-tokens.css':'ui/design-tokens.css',
+  'docs/contracts/licenses/shared-ui-third-party-notices.txt':'licenses/shared-ui-third-party-notices.txt',
   'src/ui/design-system.css':'ui/design-system.css',
   'src/ui/tool-shell.css':'ui/tool-shell.css',
   'src/ui/extension-center.css':'ui/extension-center.css',
