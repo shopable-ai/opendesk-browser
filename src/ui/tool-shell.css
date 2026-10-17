@@ -1032,13 +1032,15 @@
 /* R33.3.15-C: actual floating controls on mouse/focus, touch fallback.
  * One plan may be scheduled while its last Fire is RUNNING, STOPPED or UNKNOWN. */
 .schedule-card{position:relative}
-.schedule-card .schedule-card-head{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:4px}
+.schedule-panel .schedule-card{gap:var(--space-1)}
+.schedule-card .schedule-card-head{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:2px}
 .schedule-card .schedule-card-head>.schedule-plan-open{grid-column:1;grid-row:1}
 .schedule-card .schedule-card-head>.schedule-state{grid-column:1;grid-row:2}
 .schedule-card .schedule-card-head>.schedule-plan-phase{grid-column:1;grid-row:3}
 .schedule-card .schedule-plan-phase{font-size:11px;line-height:1.45;color:var(--od-sub)}
-.schedule-card .schedule-next-time{font-size:14px;line-height:1.5;font-weight:700;color:var(--od-ink)}
-.schedule-card .schedule-plan-frequency{margin:0;font-size:12px;line-height:1.5;color:var(--od-sub)}
+.schedule-card .schedule-next-time{font-size:13px;line-height:1.45;font-weight:700;color:var(--od-ink)}
+.schedule-card .schedule-plan-frequency{margin:0;font-size:11px;line-height:1.45;color:var(--od-sub)}
+.schedule-card .schedule-recent-result{font-size:11px;line-height:1.45}
 .schedule-card .schedule-plan-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px}
 .schedule-card .schedule-action-stop:not(:disabled){color:var(--od-negative)}
 @media(hover:hover) and (pointer:fine){
