@@ -214,12 +214,15 @@ test('R2 history pagination is authorized and preserves original Run/Result audi
   assert.match(authority,/'listSchedules','listScheduleHistory','listDueSchedules'/);
 });
 
-test('R2 current authorization controls plan badge without hiding historical needs-attention failure',async()=>{
-  const ui=await load('src/ui/scheduled-task-workbench.js');
-  assert.match(ui,/plan\.paused\?'已暂停':plan\.needsAttention\?'需要处理':/);
-  assert.match(ui,/!Number\.isFinite\(plan\.nextDueAt\)\?'暂无后续':'已启用'/);
-  assert.match(ui,/Number\.isFinite\(plan\.nextDueAt\)\?\s*'下次：'/);
-  assert.doesNotMatch(ui,/plan\.history\?\.\[0\]\?\.status==='NEEDS_ATTENTION'\?'需要处理'/);
+test('R33.3.14 current plan authorization and history display are independent',async()=>{
+  const [ui,presentation]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),
+    load('src/ui/schedule-plan-presentation.js')
+  ]);
+  assert.match(ui,/presentSchedulePlan\(plan,view\.records\)/);
+  assert.match(presentation,/plan\.paused\?'已暂停':plan\.needsAttention\?'需要处理':/);
+  assert.match(presentation,/completedOnce\?'已完成'/);
+  assert.doesNotMatch(presentation,/plan\.history\?\.\[0\]\?\.status==='NEEDS_ATTENTION'\?'需要处理'/);
   assert.match(ui,/scheduleStatus\(last.status\)/,'historical denial remains visible in history');
 });
 
@@ -251,7 +254,7 @@ test('R2.6 plan list keeps next run prominent and destructive actions behind exp
   assert.match(ui,/more\.append\(remove\)/);
   assert.match(ui,/\`确定删除「\$\{plan\.title\}」/);
   assert.match(ui,/client\.request\('changeSchedule'/);
-  assert.match(css,/\.schedule-card \.schedule-next-time\{font-size:16px/);
+  assert.match(css,/\.schedule-card \.schedule-next-time\{font-size:13px/);
   assert.match(css,/\.schedule-plan-actions\{justify-content:flex-start/);
   assert.match(shared,/(?:^|\n):focus-visible,#workspace-content :focus-visible\{outline:2px solid var\(--od-focus\);outline-offset:2px\}/);
   assert.match(shared,/\.od-disclosure--flat>summary\{min-height:36px/);
@@ -668,7 +671,9 @@ test('R32 list editing keeps contextual return text and secondary plan actions',
   const {ui,get,document}=await scheduledDomFixture();
   const buttons=get('schedule-plan-list').querySelectorAll('.schedule-plan-actions button');
   assert.equal(buttons.length,2);
-  assert.equal([...buttons].every(button=>button.classList.contains('od-button--secondary')),true);
+  assert.equal([...buttons].every(button=>button.classList.contains('od-icon-button')),true);
+  assert.deepEqual([...buttons].map(button=>button.getAttribute('aria-label').slice(0,4)),
+    ['恢复计划','编辑计划']);
   get('schedule-plan-list').querySelector('.schedule-plan-open').click();
   get('schedule-detail-edit').click();
   assert.equal(get('schedule-cancel').textContent,'返回计划详情');

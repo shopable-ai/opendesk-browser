@@ -955,8 +955,34 @@
 .schedule-card .schedule-next-time{font-size:16px;line-height:1.4;font-weight:780;color:var(--od-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .schedule-panel .schedule-plan-meta{margin:0;font-size:12px;line-height:1.5}
 .schedule-panel .schedule-status-help{margin:0;padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
-.schedule-plan-actions{justify-content:flex-start;border-top:1px solid var(--od-line);padding-top:var(--space-2)}
-.schedule-plan-actions .od-button{min-height:36px}
+/* R33.3.14: title + plan state + actions share one stable compact card. */
+.schedule-card-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:var(--space-2);row-gap:var(--space-1)}
+.schedule-card-head>.schedule-plan-open{grid-column:1;grid-row:1}
+.schedule-card-head>.schedule-state{grid-column:1;grid-row:2;justify-self:start}
+.schedule-plan-actions{justify-content:flex-start;display:flex;grid-column:2;grid-row:1/span 2;gap:var(--space-2);flex-wrap:nowrap}
+.schedule-plan-actions .od-icon-button{width:var(--od-icon-size);height:var(--od-icon-size);flex:none}
+.schedule-plan-actions .od-icon-button svg{width:17px;height:17px}
+.schedule-card .schedule-next-time{font-size:13px;line-height:1.5;font-weight:500;letter-spacing:0;color:var(--od-sub)}
+.schedule-card .schedule-recent-result,.schedule-detail-summary .schedule-recent-result{margin:0;font-size:12px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
+.schedule-state[data-tone="positive"],.schedule-recent-result[data-tone="positive"]{color:var(--od-positive)}
+.schedule-state[data-tone="negative"],.schedule-recent-result[data-tone="negative"]{color:var(--od-negative)}
+.schedule-state[data-tone="warning"],.schedule-recent-result[data-tone="warning"]{color:var(--od-warning-ink)}
+.schedule-state[data-tone="info"],.schedule-recent-result[data-tone="info"]{color:var(--od-accent-ink)}
+@media(min-width:420px){
+ .schedule-card-head{grid-template-columns:minmax(0,1fr) auto auto}
+ .schedule-card-head>.schedule-state{grid-column:2;grid-row:1}
+ .schedule-plan-actions{grid-column:3;grid-row:1}
+}
+@media(hover:hover) and (pointer:fine){
+ .schedule-card .schedule-plan-actions{opacity:0;pointer-events:none;transition:opacity .12s ease}
+ .schedule-card:is(:hover,:focus-within) .schedule-plan-actions{opacity:1;pointer-events:auto}
+}
+@media(hover:none), (pointer:coarse){
+ .schedule-card .schedule-plan-actions .od-icon-button{width:44px;height:44px;min-width:44px;min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ .schedule-card .schedule-plan-actions{transition:none}
+}
 .schedule-more{min-width:0}
 
 
@@ -1062,7 +1088,7 @@
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-metric strong{font-size:14px}
 :root[data-opendesk-surface="scheduled-runner"] .schedule-runner-intro{align-items:flex-start}
 @media(max-width:340px){
- .schedule-card .schedule-next-time{font-size:15px}
+ .schedule-card .schedule-next-time{font-size:13px}
  .schedule-header{gap:var(--space-2)}
  .schedule-form .schedule-actions>.od-button{flex:1 1 115px;min-width:0}
  .schedule-plan-actions>.od-button{flex:1 1 85px;min-width:0}

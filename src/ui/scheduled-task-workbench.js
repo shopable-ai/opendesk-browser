@@ -1,6 +1,8 @@
 import {permissionPattern} from '../environment.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime} from '../platform/tasks/schedule-time.js';
+import {formatScheduleRule as frequencyLabel,formatScheduleTime as describeTime,
+  scheduleFireLabel as scheduleStatus,presentSchedulePlan} from './schedule-plan-presentation.js';
 
 const terminal=new Set(['SUCCESS','FAILED','STOPPED','UNKNOWN','MISSED','CANCELLED','NEEDS_ATTENTION']);
 const text=(node,value)=>{node.textContent=value??'';return node;};
@@ -14,14 +16,6 @@ function action(doc,label,fn,css='od-button od-button--secondary'){
   const button=element(doc,'button',css,label);
   button.type='button';button.addEventListener('click',fn);return button;
 }
-const scheduleStatusLabels=Object.freeze({
-  READY:'待执行',WAITING_HOST:'等待运行页',WAITING_TARGET:'等待目标页',
-  WAITING_SLOT:'等待执行槽',ADMITTED:'已启动',RUNNING:'运行中',
-  SUCCESS:'成功',SETTLING:'正在结算',FAILED:'失败',STOPPED:'已停止',
-  UNKNOWN:'结果未确认',MISSED:'已错过',CANCELLED:'已取消',
-  NEEDS_ATTENTION:'需要处理'
-});
-const scheduleStatus=status=>scheduleStatusLabels[status]||status||'未知';
 // Task management is a safe detour for an active editor, not a new-plan flow.
 export const canStartScheduleFromManager=returnView=>returnView!=='form';
 const scheduleStatusGuidance=Object.freeze({
@@ -58,26 +52,6 @@ export async function commitScheduledMutation(commit,refreshView){
   try{await refreshView();return {result,refreshError:null};}
   catch(refreshError){return {result,refreshError};}
 }
-const pad2=value=>String(value).padStart(2,'0');
-const frequencyLabel=plan=>{
-  const kind=plan.triggerKind,rule=plan.triggerSpec||{};
-  const at=pad2(rule.hour)+':'+pad2(rule.minute);
-  if(kind==='once')return '执行一次';
-  if(kind==='daily')return '每天 '+at;
-  if(kind==='weekly'){
-    const weekdays=['日','一','二','三','四','五','六'];
-    return '每周'+(rule.days||[]).slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(i=>weekdays[i]).join('、')+' '+at;
-  }
-  if(kind==='interval')return '每隔 '+rule.everyMinutes+' 分钟';
-  return kind||'未知频率';
-};
-const describeTime=(at,zone)=>{
-  if(at===null||!Number.isFinite(at))return '无后续触发';
-  try{return new Intl.DateTimeFormat('zh-CN',{timeZone:zone,year:'numeric',month:'2-digit',
-    day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(at));}
-  catch{return new Date(at).toISOString();}
-};
-
 /* Only UI choices; the storage/Alarm contract still accepts a concrete IANA
  * timeZone string. A detected device zone is a one-time default, not an auto
  * binding that silently shifts an existing scheduled plan. */
@@ -501,19 +475,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     for(const plan of sorted){
       const card=element(doc,'article','schedule-card od-surface');
       card.dataset.scheduleId=plan.scheduleId;
-      const head=element(doc,'div','schedule-card-head od-toolbar');
-      head.append(action(doc,plan.title,()=>openDetail(plan.scheduleId),
-        'od-button od-button--quiet schedule-plan-open'),
-        element(doc,'span','schedule-state',
-          plan.paused?'已暂停':plan.needsAttention?'需要处理':
-            !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'));
-      const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
-      const next=element(doc,'p','schedule-next-time',
-        plan.paused?'已暂停 · 不会触发':plan.needsAttention?'需要处理后才能执行':
-          Number.isFinite(plan.nextDueAt)?
-            '下次：'+describeTime(plan.nextDueAt,plan.timezone):'暂无后续执行');
-      const info=element(doc,'p','schedule-plan-meta hint',
-        frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId));
       const previous=historyViews.get(plan.scheduleId);
       const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false};
       const latest=plan.history||[];
@@ -523,11 +484,36 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       view.records=mergeScheduleHistoryView(latest,overlap?view.records:[]);
       if(!previous||!overlap)view.hasMore=latest.length===20;
       historyViews.set(plan.scheduleId,view);
-      const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-plan-actions');
-      toolbar.append(action(doc,plan.paused?'恢复':'暂停',
-        ()=>void change(plan,plan.paused?'resume':'pause')));
-      toolbar.append(action(doc,'编辑',()=>edit(plan)));
-      card.append(head,next,info,toolbar);
+      const presentation=presentSchedulePlan(plan,view.records);
+      const head=element(doc,'div','schedule-card-head od-toolbar');
+      head.append(action(doc,plan.title,()=>openDetail(plan.scheduleId),
+        'od-button od-button--quiet schedule-plan-open'));
+      const state=element(doc,'span','schedule-state',presentation.badge);
+      state.dataset.tone=presentation.tone;
+      const toolbar=element(doc,'div','schedule-plan-actions od-toolbar');
+      toolbar.setAttribute('aria-label','计划快捷操作');
+      const toggleLabel=(plan.paused?'恢复计划「':'暂停计划「')+plan.title+'」';
+      const toggle=action(doc,'',()=>void change(plan,plan.paused?'resume':'pause'),
+        'od-icon-button schedule-plan-action');
+      toggle.setAttribute('aria-label',toggleLabel);toggle.title=toggleLabel;
+      toggle.innerHTML=plan.paused?
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7Z"/></svg>':
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"/></svg>';
+      const editLabel='编辑计划「'+plan.title+'」';
+      const editButton=action(doc,'',()=>edit(plan),'od-icon-button schedule-plan-action');
+      editButton.setAttribute('aria-label',editLabel);editButton.title=editLabel;
+      editButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4Z"/></svg>';
+      toolbar.append(toggle,editButton);
+      head.append(state,toolbar);
+      const next=element(doc,'p','schedule-next-time',presentation.timingText);
+      card.append(head,next);
+      if(presentation.recentText){
+        const last=element(doc,'p','schedule-recent-result',presentation.recentText);
+        last.dataset.tone=presentation.recentTone;card.append(last);
+      }
+      card.addEventListener('click',event=>{
+        if(!event.target.closest?.('button,a,summary,input,select'))openDetail(plan.scheduleId);
+      });
       parent.append(card);
     }
     renderDetail();
@@ -563,16 +549,17 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const card=element(doc,'div','schedule-detail-card od-stack');
     const summary=element(doc,'section','schedule-detail-summary od-surface od-surface--padded od-stack');
     const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
-    summary.append(
-      element(doc,'span','schedule-state',plan.paused?'已暂停':plan.needsAttention?'需要处理':
-        !Number.isFinite(plan.nextDueAt)?'暂无后续':'已启用'),
-      element(doc,'p','schedule-next-time',plan.paused?'已暂停 · 不会触发':
-        plan.needsAttention?'需要处理后才能执行':
-        Number.isFinite(plan.nextDueAt)?'下次：'+describeTime(plan.nextDueAt,plan.timezone):'暂无后续执行'),
-      element(doc,'p','schedule-plan-meta hint',
-        frequencyLabel(plan)+' · '+(catalogEntry?.manifest?.title||plan.taskId)),
-      element(doc,'p','schedule-detail-url hint','目标网页：'+plan.targetUrl)
-    );
+    const presentation=presentSchedulePlan(plan,view.records);
+    const state=element(doc,'span','schedule-state',presentation.badge);
+    state.dataset.tone=presentation.tone;
+    summary.append(state,
+      element(doc,'p','schedule-next-time',presentation.timingText),
+      element(doc,'p','schedule-plan-meta hint',catalogEntry?.manifest?.title||plan.taskId),
+      element(doc,'p','schedule-detail-url hint','目标网页：'+plan.targetUrl));
+    if(presentation.recentText){
+      const recent=element(doc,'p','schedule-recent-result',presentation.recentText);
+      recent.dataset.tone=presentation.recentTone;summary.append(recent);
+    }
       const last=view.records[0];
       const warning=plan.needsAttention?
         '当前任务安装身份或网站权限不足；请检查已安装任务，不会自动换绑新版。':
