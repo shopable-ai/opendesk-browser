@@ -217,14 +217,18 @@ try{
   assert.equal(await evaluate('window.__inputs>0'),true,'native input event fired');
   assert.equal(await evaluate('window.__effects'),0,'no form/site action dispatched');
   scenes.push({step:'textarea native insert',preservedDraft:true,unicodeAndBlankLines:true,noAutoSend:true});
-  // Actual Chromium native keyboard Undo, not a scripted value assignment.
+  // Chromium native Undo. macOS CDP needs an explicit editing command with
+  // Meta+Z; modifier-only key events do not invoke the platform shortcut.
+  const macUndo=process.platform==='darwin',undoModifiers=macUndo?4:2;
   await evaluate('document.querySelector("#draft").focus()');
   await rpc('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'z',code:'KeyZ',
-    windowsVirtualKeyCode:90,modifiers:2});
+    windowsVirtualKeyCode:90,modifiers:undoModifiers,...(macUndo?{commands:['undo']}:{})});
   await rpc('Input.dispatchKeyEvent',{type:'keyUp',key:'z',code:'KeyZ',
-    windowsVirtualKeyCode:90,modifiers:2});
-  await poll('document.querySelector("#draft").value==="旧草稿"','native Ctrl+Z restores draft');
-  scenes.push({step:'Chromium native textarea undo',restoredOriginalDraft:true});
+    windowsVirtualKeyCode:90,modifiers:undoModifiers});
+  await poll('document.querySelector("#draft").value==="旧草稿"',
+    'native '+(macUndo?'Meta+Z / CDP undo':'Ctrl+Z')+' restores draft');
+  scenes.push({step:'Chromium native textarea undo',restoredOriginalDraft:true,
+    input:macUndo?'CDP native undo command (Meta+Z)':'native Ctrl+Z'});
   await shot('desktop-trusted-rail');
   await evaluate('window.__setRule(null)');
   await poll('!document.querySelector("[data-opendesk-prompts]")','site rule disabled');

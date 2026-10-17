@@ -1,6 +1,6 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.2`。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
+> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.4`。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
 
 ## 使用流程
 

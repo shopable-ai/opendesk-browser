@@ -9,7 +9,7 @@ let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWr
 const SITE_KEY='sites';
 let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
-let sitePoll=0,siteSession=null,siteEpoch=0,siteDiscardPending=false;
+let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
 function report(){setState({dirty:dirty||siteDirty,busy:busy||siteBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
@@ -235,9 +235,13 @@ function renderSites(){
   }
   siteLock();
 }
+function protectSiteDraft(){
+  if(!siteDirty)return false;
+  siteMessage('请先保存或明确取消当前未保存的网站配置。',true);return true;
+}
 function openSiteForm(rule){
-  if(siteBusy||siteUnconfirmedWrite)return;
-  ++siteEpoch;siteSession=null;siteVerified=null;siteDiscardPending=false;
+  if(siteBusy||siteUnconfirmedWrite||protectSiteDraft())return;
+  void stopSitePick();siteVerified=null;siteDiscardPending=false;
   siteEditing=rule?siteKey(rule):null;siteOrigin=rule?.origin||null;
   el('ps-site-form').hidden=false;
   el('ps-site-container').value=rule?.containerSelector||'';
@@ -254,7 +258,7 @@ function openSiteForm(rule){
 
 async function openCurrentSite(){
   if(!sitesReady||siteBusy||siteUnconfirmedWrite)return;
-  if(siteDirty){siteMessage('请先保存或取消当前未保存的网站配置。',true);return;}
+  if(protectSiteDraft())return;
   try{
     const epoch=siteEpoch;
     const context=await request('prompt.page.context',{});
@@ -268,27 +272,51 @@ async function openCurrentSite(){
     if(matching){openSiteForm(matching);return;}
     openSiteForm(null);siteOrigin=context.origin;
     el('ps-site-origin').textContent=context.origin;
+    if(context.origin==='https://gemini.google.com'){
+      el('ps-site-container').value='chat-window';
+      el('ps-site-editor').value='[aria-label="为 Gemini 输入提示"]';
+    }
     siteBaseline=JSON.stringify(siteDraft());siteDirty=false;report();
     siteMessage('请在网页上选择两个目标，然后测试并保存。');
   }catch(error){siteMessage(error.code||error.message,true);}
 }
+async function cancelSiteSession(session,token){
+  const notify=!siteSession&&!siteStarting;
+  try{
+    const result=await request('prompt.page.pick.cancel',{session});
+    if(result?.state!=='cancelled')throw Error('网页未确认退出元素选择');
+    if(notify&&token===siteEpoch&&!siteSession&&!siteStarting)
+      siteMessage('选择已取消，网站配置草稿已保留。');
+  }catch(error){
+    if(notify&&token===siteEpoch&&!siteSession&&!siteStarting)
+      siteMessage('取消选择未确认：'+(error.code||error.message)+'。草稿仍保留，请在网页按 Esc 退出选择。',true);
+  }
+}
 async function stopSitePick(){
   ++siteEpoch;clearTimeout(sitePoll);sitePoll=0;
-  const session=siteSession;siteSession=null;
-  if(session)try{await request('prompt.page.pick.cancel',{session});}catch{}
+  const session=siteSession,starting=siteStarting;siteSession=null;siteStarting=0;
+  if(session)await cancelSiteSession(session,siteEpoch);
+  else if(starting)siteMessage('正在取消选择，等待网页确认；网站配置草稿已保留。');
 }
 async function pickSite(kind){
-  if(!siteOrigin||siteBusy||siteSession)return;
+  if(!siteOrigin||siteBusy||siteSession||siteStarting)return;
   const field=el(kind==='editor'?'ps-site-editor':'ps-site-container');
-  const token=++siteEpoch;
+  const token=++siteEpoch;siteStarting=token;
   try{
     const current=await request('prompt.page.context',{});
     if(token!==siteEpoch)return;
     if(current?.origin!==siteOrigin)throw Error('请切换到 '+siteOrigin+' 的网页');
     const launched=await request('prompt.page.pick.start',{kind});
-    if(token!==siteEpoch)return;
-    if(launched?.state!=='selecting'||typeof launched.session!=='string')
-      throw Error('网页未确认元素选择模式');
+    const valid=launched?.state==='selecting'&&typeof launched.session==='string'&&
+      /^[a-f0-9-]{24,64}$/.test(launched.session);
+    if(token!==siteEpoch){
+      // Only the immediate cancellation epoch may report this old request's cleanup.
+      if(valid&&launched.session!==siteSession)await cancelSiteSession(launched.session,token+1);
+      else if(!valid&&siteEpoch===token+1&&!siteSession&&!siteStarting)
+        siteMessage('取消选择未确认：网页未返回有效选取会话。网站配置草稿仍保留。',true);
+      return;
+    }
+    if(!valid)throw Error('网页未确认元素选择模式');
     siteSession=launched.session;siteMessage('请在网页中点击目标元素；按 Esc 可以取消。');
     let attempts=0;
     const poll=async()=>{
@@ -313,7 +341,12 @@ async function pickSite(kind){
       }
     };
     sitePoll=setTimeout(()=>void poll(),1000);
-  }catch(error){if(token===siteEpoch)siteMessage('无法开始选择：'+(error.code||error.message),true);}
+  }catch(error){
+    if(token===siteEpoch)siteMessage('无法开始选择：'+(error.code||error.message),true);
+    else if(siteEpoch===token+1&&!siteSession&&!siteStarting)
+      siteMessage('取消选择未确认：'+(error.code||error.message)+'。草稿仍保留，请在网页按 Esc 退出选择。',true);
+  }
+  finally{if(siteStarting===token)siteStarting=0;}
 }
 async function testSite(){
   if(!siteOrigin||siteBusy||siteUnconfirmedWrite||siteSession)return;
@@ -358,6 +391,7 @@ async function saveSite(){
 }
 async function cancelSiteForm(){
   if(siteBusy||siteUnconfirmedWrite)return;
+  if(siteSession||siteStarting){siteDiscardPending=false;await stopSitePick();return;}
   if(siteDirty&&!siteDiscardPending){
     siteDiscardPending=true;
     siteMessage('存在未保存的网站配置。再次点击「取消」才会放弃；也可以继续编辑。',true);
@@ -369,7 +403,7 @@ async function cancelSiteForm(){
 async function toggleSites(){
   if(siteBusy||siteUnconfirmedWrite)return;
   const panel=el('ps-sites-panel'),open=panel.hidden;
-  if(!open&&siteDirty){siteMessage('请先保存或明确取消未保存的网站配置。',true);return;}
+  if(!open&&protectSiteDraft())return;
   if(!open)await stopSitePick();
   panel.hidden=!open;el('ps-sites-open').setAttribute('aria-expanded',String(open));
   if(!open){sitesReady=false;return;}

@@ -505,3 +505,25 @@
 - **最终专项 CI [Run 38910587019](https://github.com/shopable-ai/opendesk-browser/actions/runs/38910587019) = SUCCESS，两个 job 均通过**。Prompt Node **84/84 PASS**（包括同区域校验、SPA 漂移、焦点劫持回退），共享 Sidebar Tool Node **6/6 PASS**；语法/精确来源 Git blob 校验、正式 JSON 候选、测试后晋升、正式管理 UI Chromium 模拟 Host 和正式可信页面真实 Chromium DOM Fixture（包括匿名富文本、失败回退、页面规则生命周期、容器与编辑器关系、原生键盘 Ctrl+Z）均 **PASS**。这些属于自动化证据，不是 Mac 实装。
 - 官方发布同步提交 [4bdbbd332c](https://github.com/shopable-ai/opendesk-browser/commit/4bdbbd332c237be3cbc77ad5de6028a2378b0bc8) 将 **唯一** `examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json` 升至版本 **1.1.2**。大小 **73,205 字节**，SHA-256 **`36277a82becc4a200b5ac5ccfb5875e11054bcf6d6d2ac378be30c08bda9b02f`**；源版本和可安装 JSON 经最新 `--check-project=PROJECT_PACKAGE_MATCH` 验证。旧 R2.3 初始描述“JSON 1.1.1 未变”只针对当时可信页面单独提交，现已被 R1.18 的 1.1.2 正式发版替代。
 - 最新可信页面 `trusted/page.js` Git blob `1cf947812b5f946ab93496fe23dca6024d158c5e` 由 Chrome **固定构建**消费，与 Sandbox JSON 的独立发布版本和 SHA 必须分别核对。用户 Mac 的 `dist/development` 加载路径、Extension ID、存储数据保留、真实已登录 Claude / Gemini / ChatGPT 框架状态和输入、中文 IME、Cmd+Z、SPA/权限撤销、关闭 Side Panel 均 **NOT_TESTED**。九维 95+ 原生评分全部 **NOT_SCORED**；下一步只需要本地 Codex 按相同正式工具 ID 对最新 main 执行真实网页验收、按真实失败最小修复。
+
+
+## R2.4-MAC 本机最终验收（2026-10-16，STOPPED_AT_USER_REQUEST）
+
+- 负责人：Codex 会话 `01a14513-d944-7183-9885-e77fa1d24847`。写入范围为本交接文档、实证缺陷涉及的 `examples/sidebar-tools/prompt-shortcuts/` 及对应专项测试；无公共契约变更计划。只读子代理核查 CI / 测试复用。
+- 起始本地 HEAD `9b9c78f4f8bdd40f203ba14102f9f6d7b45a6a4f`，工作区干净；安全快进至远端 `b43e95edbe7a762b6c5fef13bce2116275ef29d5`。不创建分支、worktree 或 PR。
+- 类型与所有权：既有 Sidebar Tool v2；沙箱管理 UI 使用 OpenDeskTool，固定可信网页适配器维持原身份与权限。主 Skill 为 sidebar-tool-package，业务修复遵循 sidebar-tool-dev / trusted-sidebar-feature；没有已证实公共 SDK 缺口。
+- 资源：日常 Chrome 只做非破坏性检查；真实扩展详情显示 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载 `dist/development`。未发现本仓库 dev watcher；目录内工具仍为 1.1.1（SHA `d8194d106eaa4c171203c5ad3f131bbdb4b65864e8036d5cb7460abff4a4ffc5`），正式源码包为 1.1.2（SHA `36277a82becc4a200b5ac5ccfb5875e11054bcf6d6d2ac378be30c08bda9b02f`）。先保留真实安装与数据，再恢复原目录持续开发，不以 JSON 更新替代可信模块更新。
+- 原始证据：忽略目录 `artifacts/prompt-shortcuts-r24-mac/`。升级/故障注入只用本轮隔离 Profile；不占其他工作流 Profile、端口或 dist。既有 Node/Chromium/CI PASS 先核对输入与原始证据；实装、真实 Host、三站、Undo/IME 未取得证据前均 NOT_TESTED，九维 NOT_SCORED。
+
+- 并行写入登记：独立 executor 仅负责 `examples/sidebar-tools/prompt-shortcuts/src/main.js`、`tests/environment/prompt-shortcuts-r14-management.test.mjs`，以回归复现并修复网站表单切换丢稿和晚到 pick.start 的取消泄漏；不碰版本、正式包、可信 page、公共 Host 或 Git。主代理负责其余验收、版本/包晋升与整合。
+
+- 本轮 Chromium Mac 驱动修复归属：Averroes 仅写 `scripts/tests/prompt-shortcuts-r21-page-chromium.mjs`；原脚本固定 Ctrl+Z 在 Mac CFT 未触发撤销，独立探针已证明原生 CDP `undo` 编辑命令可恢复草稿。保留原失败日志与断言，仅修正平台原生键盘驱动后重跑完整 Page 脚本，不改业务/适配器。
+
+- 用户最后指令为“谷歌选择器里面的内容，填写到代码中。然后停止当前任务”。已在新建 Gemini 网站配置时预填实测容器 `chat-window`、编辑器 `[aria-label="为 Gemini 输入提示"]`；已保存规则优先，仍须测试定位并保存。本轮不继续最终验收、提交或推送，现有修改保留在 main 工作区；子代理已停止并清理自有测试 Profile。
+- 真实 Chrome：扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、路径 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`；工具同身份从 1.0.2 升至 1.1.2，再升至修复候选 1.1.3，未卸载或清库。原四条提示词的 Host library 回读摘要最终仍为 `8912b36ee168d02159abe2f42f92b428f7abb42a9198f863d2c947fc8dfa0bb8`；临时测试提示词已通过正常管理 UI 删除。真实 Gemini 网站规则已独立保存并读回。
+- 真实匿名 ChatGPT / Gemini 均观察到草稿保留、Unicode 多行插入与原生 Cmd+Z 恢复；Gemini 刷新及网站启停、工具全局启停已观察。开发扩展更新后的旧 ChatGPT 文档曾出现插入拒绝/复制回退，普通页面刷新后恢复；保留此证据，不提升为无条件最终 PASS。Claude 停在登录页；中文 IME、完整 SPA、真实重启、撤权与故障注入仍 NOT_TESTED。三站最终验收和九维 95+ 评分未完成，保持 NOT_SCORED。
+- 收尾选择器修改后管理 Node 回归 **50/50 PASS**（`artifacts/prompt-shortcuts-r24-mac/gemini-prefill-management.log`）。同一打包器同步唯一 1.1.3 JSON，75,051 bytes，SHA-256 `234dd28d052c8c8b4c4486111bc42d5d3d45283e738f1c54081199ab622330f2`。本次收尾包未重新安装；先前实装包 SHA `ff70cfba7e66d072f895183fd120aa2a0846a08a031f1866307e8479f7dba9f7` 不作为收尾包实装证据。原始测试、失败与浏览器观察保存在 `artifacts/prompt-shortcuts-r24-mac/` 和 `artifacts/prompt-shortcuts-r24-mac-sidecheck/`。
+
+### 2026-10-17 交付续接
+
+用户已另行授权核对、提交并推送上述遗留代码；最新交付记录见 [待提交代码交付](prompt-shortcuts-delivery-20261017.md)。唯一正式包使用同 ID **1.1.4**，不将本节历史 1.1.3 候选覆盖到已经交付的同版本包。最新开发原生证据仍见 [R2.5.1 记录](prompt-shortcuts-r251-mac-20261017.md)，其包身份与本次 1.1.4 分开保留；本次不新增 E2E 或生产验收。

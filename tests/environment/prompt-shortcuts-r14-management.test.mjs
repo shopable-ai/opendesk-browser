@@ -54,7 +54,7 @@ function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
   assert(button,'missing clickable '+text);return button;
 }
-async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,initial=null,initialStored=initial,menuSelection=null,storageFault=null}={}){
+async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,initial=null,initialStored=initial,initialSites=null,pickRequest=null,menuSelection=null,storageFault=null}={}){
   const [html,main,modelSource]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),readFile(tool+'/src/main.js','utf8'),
     readFile(tool+'/trusted/model.js','utf8')
@@ -80,12 +80,14 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     addEventListener(){},
   };
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
-  let siteStored=null,siteVersion='b'.repeat(64),siteWrites=0;
+  let siteStored=structuredClone(initialSites),siteVersion='b'.repeat(64),siteWrites=0;
   const states=[],requests=[],pending=[],readbacks=[],sitePending=[],launches=[];
+  const timers=new Map();let timerId=0;
   const request=async(op,payload={})=>{
     requests.push({op,payload});
     if(op==='prompt.page.context')return {status:'available',origin:'https://example.org',path:'/compose'};
     if(op==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
+    if(op.startsWith('prompt.page.pick.')&&pickRequest)return pickRequest(op,payload);
     if(op==='storage.get'&&payload.key==='sites'){
       if(siteReadbackFault&&siteWrites>0)throw Error('Website rules readback unavailable');
       return {value:structuredClone(siteStored),etag:siteVersion};
@@ -124,6 +126,8 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   };
   const sandbox={
     Intl,TextEncoder,URL,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},
+    setTimeout:callback=>{const id=++timerId;timers.set(id,callback);return id;},
+    clearTimeout:id=>timers.delete(id),
     OpenDeskTool:{root,request,setState:row=>states.push({...row})},
     OpenDeskSDK:{browser:{contextMenu:{
       getStatus:async()=>({enabled:false,approvedOrigins:[],browserPermission:false}),
@@ -134,7 +138,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
   return {nodes,root,requests,states,pending,readbacks,sitePending,launches,copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
-    siteStored:()=>siteStored,siteWrites:()=>siteWrites};
+    siteStored:()=>siteStored,siteWrites:()=>siteWrites,timers};
 }
 test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard and quota recovery',async()=>{
   const f=await fixture(),n=f.nodes;
@@ -665,4 +669,219 @@ test('R1.18 delayed native selection cannot overwrite an active user draft',asyn
   await settle();
   assert.equal(n['ps-body'].value,'刚刚输入的本地草稿');
   assert.equal(n['ps-edit'].hidden,false);assert.equal(f.writes(),0);
+});
+
+for(const target of [0,1])test('R2.4 site draft survives '+(target?'switching rules':'editing the same rule again'),async()=>{
+  const initialSites={schema:1,rules:[
+    {origin:'https://example.org',pathScope:'/',containerSelector:'main',editorSelector:'textarea',placement:'left-center',editorType:'auto',enabled:true},
+    {origin:'https://other.example',pathScope:'/',containerSelector:'article',editorSelector:'input',placement:'left-center',editorType:'auto',enabled:true}
+  ]};
+  const f=await fixture({initialSites}),n=f.nodes;
+  n['ps-sites-open'].click();await settle();
+  const rows=n['ps-sites-list'].children.filter(node=>node.className==='ps-site-row');
+  buttonByText(rows[0],'编辑').click();
+  n['ps-site-container'].value='section[data-draft]';n['ps-site-container'].emit('input');
+  n['ps-site-editor'].value='[contenteditable="true"]';n['ps-site-editor'].emit('input');
+  n['ps-site-path'].value='/draft';n['ps-site-path'].emit('input');
+  n['ps-site-enabled'].checked=false;n['ps-site-enabled'].emit('change');
+  const snapshot=()=>[n['ps-site-origin'].textContent,n['ps-site-form-title'].textContent,
+    n['ps-site-container'].value,n['ps-site-editor'].value,n['ps-site-path'].value,n['ps-site-enabled'].checked];
+  const draft=snapshot();
+  for(let attempt=0;attempt<2;attempt++){
+    buttonByText(rows[target],'编辑').click();await settle();
+    assert.deepEqual(snapshot(),draft,'list edit must not replace any unsaved field');
+    assert.equal(f.states.at(-1).dirty,true);
+    assert.match(n['ps-site-status'].textContent,/未保存/);
+  }
+  n['ps-site-current'].click();n['ps-sites-open'].click();await settle();
+  assert.deepEqual(snapshot(),draft,'current-site and panel guards preserve the same draft');
+  n['ps-site-cancel'].click();await settle();
+  assert.equal(n['ps-site-form'].hidden,false,'first discard confirmation keeps the draft');
+  assert.deepEqual(snapshot(),draft);
+  n['ps-site-editor'].emit('input');
+  buttonByText(rows[target],'编辑').click();await settle();
+  assert.deepEqual(snapshot(),draft,'continuing to edit must not confirm discard');
+  n['ps-site-test'].click();await settle();n['ps-site-save'].click();await settle();
+  assert.equal(f.siteWrites(),1);
+  assert.equal(f.siteStored().rules[0].origin,'https://example.org');
+  assert.equal(f.siteStored().rules[0].pathScope,'/draft');
+  assert.equal(f.siteStored().rules[0].editorSelector,'[contenteditable="true"]');
+  assert.equal(f.siteStored().rules[0].enabled,false);
+  assert.deepEqual(f.siteStored().rules[1],initialSites.rules[1]);
+});
+
+for(const phase of ['pending','active'])test('R2.4 cancelling '+phase+' picker retains the complete dirty site draft',async()=>{
+  let resolveStart;
+  const session='a'.repeat(32),f=await fixture({pickRequest:async op=>{
+    if(op==='prompt.page.pick.start')return new Promise(resolve=>{resolveStart=resolve;});
+    if(op==='prompt.page.pick.cancel')return {state:'cancelled'};
+    throw Error('unexpected picker operation '+op);
+  }}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-site-path'].value='/draft';n['ps-site-path'].emit('input');
+  n['ps-site-enabled'].checked=false;n['ps-site-enabled'].emit('change');
+  const snapshot=()=>[n['ps-site-origin'].textContent,n['ps-site-container'].value,
+    n['ps-site-editor'].value,n['ps-site-path'].value,n['ps-site-enabled'].checked];
+  const draft=snapshot();
+  n['ps-pick-container'].click();await settle();
+  if(phase==='active'){resolveStart({state:'selecting',session});await settle();}
+  n['ps-site-cancel'].click();await settle();
+  if(phase==='pending'){resolveStart({state:'selecting',session});await settle();}
+  assert.deepEqual(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').map(row=>row.payload.session),[session]);
+  assert.equal(n['ps-site-form'].hidden,false);
+  assert.deepEqual(snapshot(),draft);
+  assert.equal(f.states.at(-1).dirty,true);
+  assert.equal(f.siteWrites(),0);
+  assert.equal(f.timers.size,0,'cancelled picker must not leave a poll scheduled');
+  assert.match(n['ps-site-status'].textContent,/取消/);
+  assert.equal(n['ps-site-status'].dataset.error,'false');
+  n['ps-site-test'].click();await settle();n['ps-site-save'].click();await settle();
+  assert.equal(f.siteStored().rules[0].pathScope,'/draft');
+  assert.equal(f.siteStored().rules[0].enabled,false);
+});
+
+for(const sharedSession of [false,true])test('R2.4 late picker receipt preserves the newer '+(sharedSession?'same':'distinct')+' session',async()=>{
+  const starts=[],oldSession='a'.repeat(32),newSession=sharedSession?oldSession:'b'.repeat(32);
+  const f=await fixture({pickRequest:async(op,payload)=>{
+    if(op==='prompt.page.pick.start')return new Promise(resolve=>starts.push(resolve));
+    if(op==='prompt.page.pick.cancel')return {state:'cancelled'};
+    if(op==='prompt.page.pick.status'){
+      assert.equal(payload.session,newSession);return {state:'selected',selector:'textarea#new'};
+    }
+    throw Error('unexpected picker operation '+op);
+  }}),n=f.nodes;
+  n['ps-sites-open'].click();await settle();n['ps-site-current'].click();await settle();
+  n['ps-pick-container'].click();await settle();
+  n['ps-site-cancel'].click();await settle();
+  assert.equal(n['ps-site-form'].hidden,false,'cancel selection keeps even a clean form open');
+  n['ps-pick-editor'].click();await settle();
+  starts[1]({state:'selecting',session:newSession});await settle();
+  const currentMessage=n['ps-site-status'].textContent;
+  starts[0]({state:'selecting',session:oldSession});await settle();
+  assert.deepEqual(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').map(row=>row.payload.session),sharedSession?[]:[oldSession]);
+  assert.equal(n['ps-site-status'].textContent,currentMessage,'stale cleanup cannot replace the active picker message');
+  assert.equal(f.timers.size,1);
+  const [id,poll]=f.timers.entries().next().value;f.timers.delete(id);poll();await settle();
+  assert.equal(n['ps-site-editor'].value,'textarea#new');
+  assert.equal(n['ps-site-container'].value,'');
+  assert.equal(f.states.at(-1).dirty,true);
+});
+
+for(const outcome of ['reject','bad-ack'])test('R2.4 late picker cleanup '+outcome+' stays unconfirmed without replay',async()=>{
+  let resolveStart;
+  const f=await fixture({pickRequest:async op=>{
+    if(op==='prompt.page.pick.start')return new Promise(resolve=>{resolveStart=resolve;});
+    if(op==='prompt.page.pick.cancel'){
+      if(outcome==='reject')throw Object.assign(Error('transport unavailable'),{code:'E_TRANSPORT'});
+      return {state:'selecting'};
+    }
+    throw Error('unexpected picker operation '+op);
+  }}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-pick-container'].click();await settle();n['ps-site-cancel'].click();await settle();
+  resolveStart({state:'selecting',session:'c'.repeat(32)});await settle();
+  assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').length,1,'cleanup cannot be replayed blindly');
+  assert.match(n['ps-site-status'].textContent,/取消.*未确认/);
+  assert.doesNotMatch(n['ps-site-status'].textContent,/已取消|清理成功/);
+  assert.equal(n['ps-site-status'].dataset.error,'true');
+  assert.equal(n['ps-site-form'].hidden,false);
+  assert.equal(n['ps-site-container'].value,'main');assert.equal(n['ps-site-editor'].value,'textarea');
+  assert.equal(f.states.at(-1).dirty,true);
+  assert.equal(f.siteWrites(),0);assert.equal(f.timers.size,0);
+});
+
+for(const outcome of ['cancelled','reject'])test('R2.4 stale cleanup '+outcome+' cannot overwrite a newer completed pick',async()=>{
+  const starts=[];let finishCancel;
+  const oldSession='a'.repeat(32),newSession='b'.repeat(32);
+  const f=await fixture({pickRequest:async(op,payload)=>{
+    if(op==='prompt.page.pick.start')return new Promise(resolve=>starts.push(resolve));
+    if(op==='prompt.page.pick.cancel'){
+      assert.equal(payload.session,oldSession);
+      return new Promise((resolve,reject)=>{finishCancel=()=>outcome==='reject'?
+        reject(Error('old cleanup unavailable')):resolve({state:'cancelled'});});
+    }
+    assert.equal(op,'prompt.page.pick.status');assert.equal(payload.session,newSession);
+    return {state:'selected',selector:'textarea#new'};
+  }}),n=f.nodes;
+  n['ps-sites-open'].click();await settle();n['ps-site-current'].click();await settle();
+  n['ps-pick-container'].click();await settle();n['ps-site-cancel'].click();await settle();
+  n['ps-pick-editor'].click();await settle();starts[1]({state:'selecting',session:newSession});await settle();
+  if(outcome==='reject'){starts[0]({state:'selecting',session:oldSession});await settle();}
+  const [id,poll]=f.timers.entries().next().value;f.timers.delete(id);poll();await settle();
+  const message=n['ps-site-status'].textContent;
+  assert.equal(n['ps-site-editor'].value,'textarea#new');
+  if(outcome==='cancelled'){starts[0]({state:'selecting',session:oldSession});await settle();}
+  finishCancel();await settle();
+  assert.equal(n['ps-site-status'].textContent,message);
+  assert.equal(n['ps-site-status'].dataset.error,'false');
+  assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').length,1);
+  assert.equal(f.timers.size,0);
+});
+
+test('R2.4 malformed late picker receipts cannot issue a cancellation',async()=>{
+  for(const receipt of [{state:'selecting',session:''},{state:'selecting',session:'invalid'},
+    {state:'selecting',session:42},{state:'selected',session:'d'.repeat(32)}]){
+    let resolveStart;
+    const f=await fixture({pickRequest:async op=>{
+      assert.equal(op,'prompt.page.pick.start');return new Promise(resolve=>{resolveStart=resolve;});
+    }}),n=f.nodes;
+    await startVerifiedSite(f);
+    n['ps-pick-container'].click();await settle();n['ps-site-cancel'].click();await settle();
+    resolveStart(receipt);await settle();
+    assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').length,0);
+    assert.equal(f.timers.size,0);
+    assert.equal(n['ps-site-form'].hidden,false);assert.equal(f.states.at(-1).dirty,true);
+    assert.doesNotMatch(n['ps-site-status'].textContent,/已取消|清理成功/);
+  }
+});
+
+test('R2.4 cancelled picker start rejection reports an unconfirmed cancellation without replay',async()=>{
+  let rejectStart;
+  const f=await fixture({pickRequest:async op=>{
+    assert.equal(op,'prompt.page.pick.start');
+    return new Promise((_resolve,reject)=>{rejectStart=reject;});
+  }}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-site-path'].value='/draft';n['ps-site-path'].emit('input');
+  n['ps-site-enabled'].checked=false;n['ps-site-enabled'].emit('change');
+  const snapshot=()=>[n['ps-site-origin'].textContent,n['ps-site-container'].value,
+    n['ps-site-editor'].value,n['ps-site-path'].value,n['ps-site-enabled'].checked];
+  const draft=snapshot();
+  n['ps-pick-container'].click();await settle();n['ps-site-cancel'].click();await settle();
+  assert.match(n['ps-site-status'].textContent,/正在取消/);
+  rejectStart(Object.assign(Error('start acknowledgement unavailable'),{code:'E_TRANSPORT'}));await settle();
+  assert.match(n['ps-site-status'].textContent,/取消.*未确认/);
+  assert.match(n['ps-site-status'].textContent,/E_TRANSPORT/);
+  assert.match(n['ps-site-status'].textContent,/Esc/);
+  assert.doesNotMatch(n['ps-site-status'].textContent,/正在取消|已取消|清理成功/);
+  assert.equal(n['ps-site-status'].dataset.error,'true');
+  assert.equal(n['ps-site-form'].hidden,false);assert.deepEqual(snapshot(),draft);
+  assert.equal(f.states.at(-1).dirty,true);assert.equal(f.siteWrites(),0);
+  assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.start').length,1);
+  assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').length,0);
+  assert.equal(f.timers.size,0);
+});
+
+test('R2.4 cancelled picker start rejection cannot overwrite or cancel a newer session',async()=>{
+  const starts=[],session='e'.repeat(32);
+  const f=await fixture({pickRequest:async(op,payload)=>{
+    if(op==='prompt.page.pick.start')return new Promise((resolve,reject)=>starts.push({resolve,reject}));
+    assert.equal(op,'prompt.page.pick.status');assert.equal(payload.session,session);
+    return {state:'selected',selector:'textarea#new'};
+  }}),n=f.nodes;
+  await startVerifiedSite(f);
+  n['ps-pick-container'].click();await settle();n['ps-site-cancel'].click();await settle();
+  n['ps-pick-editor'].click();await settle();starts[1].resolve({state:'selecting',session});await settle();
+  const message=n['ps-site-status'].textContent;
+  starts[0].reject(Object.assign(Error('old start acknowledgement unavailable'),{code:'E_TRANSPORT'}));await settle();
+  assert.equal(n['ps-site-status'].textContent,message);
+  assert.equal(n['ps-site-status'].dataset.error,'false');
+  assert.equal(n['ps-site-form'].hidden,false);assert.equal(f.states.at(-1).dirty,true);
+  assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.start').length,2);
+  assert.equal(f.requests.filter(row=>row.op==='prompt.page.pick.cancel').length,0);
+  assert.equal(f.timers.size,1);
+  const [id,poll]=f.timers.entries().next().value;f.timers.delete(id);poll();await settle();
+  assert.equal(n['ps-site-editor'].value,'textarea#new');
+  assert.equal(n['ps-site-container'].value,'main');
+  assert.equal(f.siteWrites(),0);assert.equal(f.timers.size,0);
 });
