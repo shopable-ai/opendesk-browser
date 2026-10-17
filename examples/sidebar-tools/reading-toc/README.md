@@ -113,7 +113,7 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 - 可编辑唯一源：`examples/sidebar-tools/reading-toc/locales.json`。独立包构建器在 `src/main.js` 中编入校验通过的文案。
 - 可信代码使用 `src/reading-toc/locales.generated.js`，由 `node scripts/generate-reading-toc-locales.mjs --write` 确定性生成并带源 blob 摘要；生成后审阅差异再提交。`npm run check`、`npm run build`、`npm run dev` 都会拒绝未经同步的资源，保持 Content Script 安全来源检查。不得在可信 bundle 中直接 import 工具项目。
-- 本地可交互预览由同一个 `scripts/preview/build-preview.mjs` 生成，示例命令见 [preview/README.md](preview/README.md)。同时复用安装包的 HTML/CSS/JS 和可信 `src/reading-toc/view.js`；模拟文章不是正式浏览器网站或真实 Chrome 验收。
+- 本地可交互主预览为 [preview/index.html](preview/index.html)，由唯一 `scripts/preview/build-preview.mjs` 官方生成器输出；示例命令见 [preview/README.md](preview/README.md)。它复用正式安装包与可信 `src/reading-toc/view.js`，并不代表真实网站、授权或 Mac Chrome 验收。
 
 ## R1.8 · 已批准 AI 侧栏 UI 的正式源码迁移（2026-10-17）
 
@@ -135,4 +135,8 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 - 网页可信 `src/reading-toc/view.js` 已补齐与 Side Panel 同顺序的第四个 AI 星芒图标，普通短文章和多条 ChatGPT 回答都保留四个图标；保留原有拖动与 Home / 双击归位。
 - **彻底移除**网页悬浮目录的冗余“还有 N 个章节 · 查看完整目录”按钮及其 DOM。短目录（≤12 条）概览直接显示全部有效标题；长目录仍允许选择顶部“完整目录”，ChatGPT 完整视图保持回答之间的分隔线。
 - AI 模式仅显示已经审核的未开放会员卡和合作招募卡；没有模型请求、额度、支付操作或假 AI 章节。切回免费模式保留原快照和标题跳转，撤权、SPA、DOM 自动更新均仍由现有可信 Content Script 管理。
-- `reading-toc-r183-inpage-preview.html` 是旧离线演示输出，不再作为最新 HTML 证据。以本轮唯一正式生成器写入的 `preview/reading-toc-r12-overlay-preview.html` 为准；未通过真实安装升级前，稳定 JSON 仍按候选/发行分离。
+- `reading-toc-r183-inpage-preview.html` 是历史离线快照，不再作为最新 UI 证据。以唯一正式生成器输出的 [preview/index.html](preview/index.html) 为默认主入口；原同源 HTML 暂保留 CI 追溯。离线预览与真实 Chrome 安装升级分别验收。
+
+## R1.8.6 · 主预览与正式版隔离
+
+默认预览入口为 `preview/index.html`，显示模拟文章和可信网页悬浮目录，仍保留 Side Panel 历史同源验证页。测试通过真实手柄双击完成归位，不恢复网页独立归位图标。正式 `reading-toc.opendesk-tool.json` 为唯一可安装包（`1.0.8`）；离线 HTML、Linux Chromium 与 hosted macOS 均不能冒充用户本机 Mac 的 1.0.7→1.0.8 主动升级结果。
