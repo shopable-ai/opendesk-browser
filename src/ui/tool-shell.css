@@ -1101,12 +1101,11 @@
 @media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
 
 /* R5.2 Cloud: task-first authorization, advanced technical identity and one page gutter. */
-#workbench-cloud .cloud-overview-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);margin-top:var(--space-2)}
+#workbench-cloud .cloud-overview-secondary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--space-2);margin-top:var(--space-2)}
 #workbench-cloud .cloud-overview-secondary>div{min-width:0;font-size:12px;line-height:1.5;color:var(--od-sub)}
 #workbench-cloud .cloud-overview-secondary strong{display:block;color:var(--od-ink);overflow-wrap:anywhere}
 #workbench-cloud .cloud-diagnostics{margin-top:0;min-width:0}
 #workbench-cloud .cloud-overview-detail{margin:var(--space-2) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line);color:var(--od-sub);font-size:11px;line-height:1.55;overflow-wrap:anywhere}
-@media(max-width:380px){#workbench-cloud .cloud-overview-secondary{grid-template-columns:minmax(0,1fr)}}
 
 #workbench-cloud .cloud-first-run{padding:var(--space-3);display:grid;gap:var(--space-2);min-width:0}
 #workbench-cloud .cloud-first-run[hidden],#workbench-cloud .cloud-approval-section[hidden]{display:none}

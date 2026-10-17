@@ -197,8 +197,15 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 ## R33.3.13 · 云控 Header 与正文状态分层（2026-10-17）
 
 - **基线与写入范围**：远端 main `44b3c3ee88da11ca78508fae043674d2e939e3cf`；目标文件仅 `src/ui/tool.html`、`src/ui/tool-shell.css`、`src/ui/react/preview/sidebar-six-preview.tsx`、本记录和 `tests/environment/cloud-layout-r33313.test.mjs`。独立 GitHub Connector 写入，未读到 Mac 本机工作区/暂存/并行 Agent 状态，不假报本地干净或 Native 验收。
-- **正式 UI**：Header 只保留「云控」及原 `cloud-open-console` / `cloud-overview-refresh` SVG IconButton；`cloud-my-state` 原动态详情进入既有 `cloud-diagnostics` 折叠区，不再造成标题拥挤，也不重复向读屏器直播。保持 `cloud-overview-state` 为正文 live 主状态，连接/授权任务数为精简指标，Provider/Host/Slot/Requests 低频折叠；380px 以下诊断单列，原 270px 以下主要指标单列规则保留。客户端密钥/Side Panel 停止承诺仍可在低频设置中查阅。
+- **正式 UI**：Header 只保留「云控」及原 `cloud-open-console` / `cloud-overview-refresh` SVG IconButton；`cloud-my-state` 原动态详情进入既有 `cloud-diagnostics` 折叠区，不再造成标题拥挤，也不重复向读屏器直播。保持 `cloud-overview-state` 为正文 live 主状态，连接/授权任务数为精简指标，Provider/Host/Slot/Requests 低频折叠；诊断采用自适应列宽（在 320/360/420px 实际内容容器自动单列，520px 可双列），原 270px 以下主要指标单列规则保留。客户端密钥/Side Panel 停止承诺仍可在低频设置中查阅。
 - **业务保真**：CloudHosting 仍唯一拥有 Provider 配对、连接、云请求、逐任务许可、外部凭据与撤销；未改 `cloud-hosting.js`、原 RunHost、Authority、React 单根或设计 Token。旧 ID 不改，长中文和错误文本按原 CSS 正常换行。
 - **交互预览**：沿用 `build-sidebar-six-react-preview.mjs` 从正式 DOM/CSS 和 React TSX 生成页面。适配器只投影六种本地场景、为 Header 图标提供可见的预览反馈，使用原 DOM 展示禁用的任务审阅、非真实请求详情和原有应用/设置折叠。所有预览示例显式 `UI_PREVIEW_ONLY`，禁用配对/批准/停止/撤权/Run 跳转，不创建第二执行器或假冒真实请求。
 - **验证等级**：GitHub 源码/树 blob 校核与可在当前环境执行的静态不变量独立记录；如未获得同 SHA 的正式生成器 `--check`、Node 套件、production Build、真实 Chromium 点击截图/CI、Mac Native Chrome 等回执，统一标 `NOT_TESTED`，**不能打正式五维 95+**。远端 main 不追踪 `prototypes/sidebar/react-preview/index.html` 生成 HTML；不能以手写 HTML 代替正式同源构建产物。
 - **跟进**：Mac main 工作区核对真实并行改动后运行定向 Node、生成 HTML / --check、360/420/520px 与 200% Chromium 截图及 Provider/授权失败回归，保留 CI commit/hash 与真实运行证据。对其他试点来源门禁按 owner 协调，不跨界修改。
+
+### R33.3.13 同 SHA CI 与 Chromium 追踪
+
+- 初次功能提交 `0051e7a15a9272ae63e84dd8eda03148ca1212fd` 的 [six-tab-preview Actions 39041550969](https://github.com/shopable-ai/opendesk-browser/actions/runs/39041550969)：**正式 DOM/CSS/React 生成步骤 PASS**，发布单文件 `sidebar-six-react-preview` artifact，HTML 中 `od-source-input-sha256=9d80d05829bffdcb0390ae4b508ead35a5b0c9e33673e105d6a11246eeb8dee7`；`Guard source drift and React/DOM contracts` **10 PASS / 1 FAIL**，失败为既有 `react-sidebar-r333.test.mjs` 对 `src/ui/react/main.tsx` 的 `examples/sidebar-tools` 特权 React 导入来源门禁，非本轮 Cloud Header/状态测试，CI Chromium 与 production Build 未执行。应由并行 Bookmark/React owner 修复，不放宽断言。
+- 对上述 Actions 真实生成 HTML，在独立 Linux Chromium + Playwright `set_content` 中渲染 React，切云控、切场景，360 / 420 / 520px Header 单行（34px 高，34px 图标）、主内容宽度等于滚动宽度、0 JS pageerror，控制台/刷新预览反馈、连接设置展开、请求详情开关 PASS。辅助产物级 Node 合同 4/4 PASS，但这**不是**仓库 `node --test tests/environment/cloud-layout-r33313.test.mjs` 的运行记录。
+- 复核发现原 `@media(max-width:380px)` 只响应外层浏览器窗口，离线预览把 Stage 缩小到 320/360px 时不触发，折叠诊断展开仍双列；本次后续改为 `repeat(auto-fit,minmax(min(100%,200px),1fr))`，经浏览器样式注入实测 320/360/420 单列、520 双列。该变动须通过**更新后的**正式生成器及同 SHA Chromium 再验；对初次提交的截图不得声称覆盖后续 CSS。
+- 200% 仅做过 CSS Zoom 测试，不是已安装 Chrome 的真实浏览器缩放；Mac Native Chrome / Provider/Host 安全回归 / CI 全绿依然 `NOT_TESTED` 或 `FAIL`，五维 95+ 不予认证。

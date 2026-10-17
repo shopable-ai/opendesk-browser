@@ -38,7 +38,7 @@ test('R33.3.13 adaptive Cloud display preserves CloudHosting and Preview owners'
     read('scripts/preview/build-sidebar-six-react-preview.mjs')
   ]);
   assert.match(css,/\.cloud-panel-head>\.cloud-panel-actions\{[^}]*flex-wrap:nowrap/);
-  assert.match(css,/@media\(max-width:380px\)\{#workbench-cloud \.cloud-overview-secondary\{grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(css,/#workbench-cloud \.cloud-overview-secondary\{[^}]*grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,200px\),1fr\)\)/);
   assert.match(css,/\.cloud-overview-metrics\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(host,/click\('cloud-overview-refresh',async\(\)=>\{\}\)/);
   assert.match(host,/click\('cloud-configure'/);
