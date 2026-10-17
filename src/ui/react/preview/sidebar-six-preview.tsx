@@ -155,6 +155,7 @@ function Preview(){
   const [workflowSource,setWorkflowSource]=React.useState('Codex');
   const [workflowDraft,setWorkflowDraft]=React.useState('');
   const [workflowConversationCleared,setWorkflowConversationCleared]=React.useState(false);
+  const [workflowEntry,setWorkflowEntry]=React.useState('new-workflow');
   const [workflowNewReview,setWorkflowNewReview]=React.useState(false);
   const [workflowFeedback,setWorkflowFeedback]=React.useState('');
   const [notice,setNotice]=React.useState('');
@@ -316,6 +317,13 @@ function Preview(){
     get('extension-center-detail').hidden=!detail;
     const intro=get('workflow-chat-intro');
     intro.hidden=transcript.length>0;
+    const isNewChat=workflowEntry==='new-chat';
+    get('workflow-ai-title').textContent=isNewChat?'开始新对话':'创建新工作流';
+    get('workflow-intro-description').textContent=isNewChat
+      ?'保留当前工作流，可以继续提出下一步需求。'
+      :'用一句话描述任务，或选择下方示例开始。';
+    for(const button of get('workflow-intro-suggestions').querySelectorAll('[data-example-mode]'))
+      button.hidden=button.dataset.exampleMode!==workflowEntry;
     workflowTranscript.hidden=transcript.length===0;
     get('workflow-editor').dataset.viewState=transcript.length?'conversation':'empty';
     get('workflow-planning-indicator').hidden=scene!=='loading';
@@ -336,7 +344,7 @@ function Preview(){
     const workflowStatus=get('workflow-status');
     workflowStatus.textContent=workflowFeedback;
     workflowStatus.hidden=!workflowFeedback;
-  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,detail,taskMode,
+  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,workflowEntry,detail,taskMode,
     opened,openToolKey,toolSettingsOpen,projectMode,projectSelection,projectFeedback,
     importOpen,importCandidate,importError,extensionReview,extensionRecords,taskNotice]);
   React.useEffect(()=>{
@@ -558,10 +566,27 @@ function Preview(){
     const draftEdited=()=>setWorkflowDraft(draft.value);
     const explainSend=()=>setWorkflowFeedback(
       'OpenDesk 尚未连接。请在 AI 设置中完成连接后重试。');
+    // Exact installed suggestion nodes. Filling text never starts AI or a RunHost.
+    const examplePrompts={
+      continue:'请继续修改刚才填写的内容，并读回确认。不要提交表单。',
+      check:'请检查当前网页中的输入内容与重要信息，先报告检查结果，不要进行写入。',
+      fill:'请将指定内容填入当前网页的目标表单，并读取输入框实际值进行验证，不要提交。',
+      read:'请只读提取当前网页的主要内容并整理，不要修改网页或提交表单。'
+    };
+    const exampleButtons=[...get('workflow-intro-suggestions').querySelectorAll('[data-workflow-example]')];
+    const fillExample=event=>{
+      if(!event.isTrusted)return;
+      const requestText=examplePrompts[event.currentTarget.dataset.workflowExample];
+      if(!requestText)return;
+      draft.value=requestText;setWorkflowDraft(requestText);
+      draft.focus({preventScroll:true});
+      setWorkflowFeedback('示例已填入草稿，没有触发发送或网页执行。');
+    };
+    for(const button of exampleButtons)button.addEventListener('click',fillExample);
     const keepDraft=()=>{setWorkflowNewReview(false);setWorkflowFeedback('已保留未发送草稿。');};
     const discardDraft=()=>{
       draft.value='';setWorkflowDraft('');setWorkflowNewReview(false);
-      setWorkflowConversationCleared(true);setHistory(false);
+      setWorkflowConversationCleared(true);setWorkflowEntry('new-workflow');setHistory(false);
       setWorkflowFeedback('已清空草稿，可以开始新工作流。');
     };
     provider.addEventListener('change',refreshSource);
@@ -581,6 +606,7 @@ function Preview(){
       protocol.removeEventListener('change',chooseProtocol);
       model.removeEventListener('input',refreshSource);
       draft.removeEventListener('input',draftEdited);
+      for(const button of exampleButtons)button.removeEventListener('click',fillExample);
       get('workflow-ai-plan').removeEventListener('click',explainSend);
       get('workflow-new-cancel').removeEventListener('click',keepDraft);
       get('workflow-new-discard').removeEventListener('click',discardDraft);
@@ -622,7 +648,7 @@ function Preview(){
       </select></label>}
       <label>宽度 <select data-preview-width value={width}
         onChange={event=>setWidth(Number(event.target.value))}>
-        <option value={320}>320px</option><option value={360}>360px</option><option value={420}>420px</option>
+        <option value={320}>320px</option><option value={360}>360px</option><option value={400}>400px</option><option value={420}>420px</option>
         <option value={520}>520px</option>
       </select></label>
       {!(tab==='tasks'&&taskMode==='schedule')&&<span className="od-sidebar-preview-label" role="status">
@@ -690,6 +716,7 @@ function Preview(){
         onHistory:()=>{setHistory(open=>!open);setWorkflowNewReview(false);
           get('workflow-manage-panel').hidden=true;},
         onNewSession:()=>{setHistory(false);setWorkflowConversationCleared(true);
+          setWorkflowEntry('new-chat');
           setWorkflowFeedback('演示对话已清空；不删除或重新执行真实工作流。');},
         onNewWorkflow:()=>{
           setHistory(false);
@@ -697,7 +724,7 @@ function Preview(){
             setWorkflowNewReview(true);
             setWorkflowFeedback('未发送草稿尚未保存，请选择继续编辑或放弃。');
           }else{
-            setWorkflowConversationCleared(true);
+            setWorkflowConversationCleared(true);setWorkflowEntry('new-workflow');
             setWorkflowFeedback('已打开演示空工作流；没有创建或删除真实版本。');
           }
         },
