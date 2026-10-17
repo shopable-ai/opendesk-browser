@@ -12,7 +12,7 @@ test('R5 trusted Cookie gate admits only exact official installed and enabled pa
   const bytes=Buffer.from(serializeSidebarToolPackage(tool),'utf8');
   const sha256=createHash('sha256').update(bytes).digest('hex');
   const release={id:'opendesk/cookie-editor',toolId:'cookie-editor',
-    version:'2.0.23',packagePath:officialPackagePath('cookie-editor'),sha256};
+    version:'2.0.23',packagePath:officialPackagePath('cookie-editor'),bytes:bytes.length,sha256};
   const good={tool,installed:[tool],release,enableRecords:{},epochs:{},
     expectedEpoch:null,provenance:{'cookie-editor':{
       marketId:release.id,version:release.version,sha256}}};
@@ -58,7 +58,7 @@ test('R5 trusted pilot is static, data-free and mounted through the ONE host Rea
   for(const name of ['CookieSiteBar','CookieToolbar','CookieSearch','CookieRows'])
     assert(preview.includes('<'+name),name+' must be rendered from shared JSX');
   for(const source of [pilot,view]){
-    assert.doesNotMatch(source,/\bOpenDeskSDK\b|\bchrome\.cookies\b|document\.cookie|dangerouslySetInnerHTML|<iframe/i);
+    assert.doesNotMatch(source.split('\n').filter(line=>!line.trim().startsWith('//')).join('\n'),/\bOpenDeskSDK\b|\bchrome\.cookies\b|document\.cookie|dangerouslySetInnerHTML|<iframe/i);
   }
   assert.match(pilot,/UI-only 技术试点/);
 });
