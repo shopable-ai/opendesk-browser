@@ -252,7 +252,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         savedText:revision?(matchesRevision()?'已保存':'未保存更改'):'',
         savedTitle:revision?'工作流版本 r'+revision.revision+
           (matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存'):'',
-        historyExpanded:!get('workflow-manage-panel').hidden,
+        historyExpanded:historyOpen,
         busy,planning:phase==='planning',sessionHint
       });
     }else{
@@ -1124,22 +1124,45 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   const observation=createWorkflowObservation({api,host,currentPageTarget,onRunOwner,
     onRunId:id=>{runId=id;if(!disposed)updateButtons();}});
+  const closeHistory=()=>{
+    historyOpen=false;
+    get('workflow-editor').dataset.historyOpen='false';
+    updateButtons();
+  };
   const onHistoryClick=event=>{
     if(!event.isTrusted)return;
-    const panel=get('workflow-manage-panel');
-    panel.hidden=!panel.hidden;
-    get('workflow-history-toggle').setAttribute('aria-expanded',String(!panel.hidden));
-    if(!panel.hidden){
-      panel.scrollIntoView?.({block:'nearest'});
-      get('workflow-saved-list').focus?.({preventScroll:true});
+    if(!workflowReact){
+      const panel=get('workflow-manage-panel');
+      panel.hidden=!panel.hidden;
+      get('workflow-history-toggle').setAttribute('aria-expanded',String(!panel.hidden));
+      if(!panel.hidden)get('workflow-saved-list').focus?.({preventScroll:true});
+      updateButtons();return;
     }
+    historyOpen=!historyOpen;
+    get('workflow-editor').dataset.historyOpen=String(historyOpen);
+    if(historyOpen)get('workflow-manage-panel').hidden=true;
     updateButtons();
+    if(historyOpen)
+      (get('workflow-history-resume')||
+        get('workflow-history-panel')?.querySelector('button')||
+        get('workflow-history-panel'))?.focus?.({preventScroll:true});
+    else get('workflow-ai-request').focus?.({preventScroll:true});
   };
   if(!workflowReact)listen(get('workflow-history-toggle'),'click',onHistoryClick);
   listen(get('workflow-manage-close'),'click',()=>{
     get('workflow-manage-panel').hidden=true;
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
-    get('workflow-history-toggle').focus?.({preventScroll:true});
+    (get('workflow-edit-details')||get('workflow-history-toggle')).focus?.({preventScroll:true});
+    updateButtons();
+  });
+  listen(get('workflow-edit-details'),'click',event=>{
+    if(!event.isTrusted)return;
+    const panel=get('workflow-manage-panel');
+    panel.hidden=!panel.hidden;
+    if(!panel.hidden){
+      panel.scrollIntoView?.({block:'nearest'});
+      get('workflow-title').focus?.({preventScroll:true});
+    }else get('workflow-edit-details').focus?.({preventScroll:true});
     updateButtons();
   });
   listen(get('workflow-provider-toggle'),'click',event=>{
