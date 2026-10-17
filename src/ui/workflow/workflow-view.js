@@ -781,7 +781,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     openCatalog();
   }
   // React owns the modal wrapper, never the actual provider/permission fields.
-  const closeWorkflowSheet=()=>closeAISettings(true);
+  const closeWorkflowSheet=()=>closeAISettings(false);
   function syncAISettings(){
     const opened=get('workflow-provider-settings').open;
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(opened));
@@ -1352,7 +1352,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       workflow.title!=='新工作流' || workflow.description) && !matchesRevision())
       || Boolean(get('workflow-ai-request').value.trim());
     if(dirty){
-      newReviewReturnFocus=historyOpen?get('workflow-history-toggle'):get('workflow-ai-request');
+      newReviewReturnFocus=historyOpen?get('workflow-history-toggle'):get('workflow-new');
       newReviewSignature=workflowReviewSignature();
       get('workflow-new-review').hidden=false;
       status('请确认是否保留当前尚未保存的内容。');
@@ -1370,8 +1370,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-new-cancel'),'click',event=>{
     if(!event.isTrusted)return;
     const focus=newReviewReturnFocus;
+    const focusWasInsideReview=get('workflow-new-review').contains(doc.activeElement);
     dismissNewReview();newReviewReturnFocus=null;status('草稿已保留。');
-    focus?.focus?.({preventScroll:true});
+    // Restore the opening control only when closing an actively focused review.
+    // Do not steal focus if the user moved to another field meanwhile.
+    if(focusWasInsideReview)focus?.focus?.({preventScroll:true});
   });
   listen(get('workflow-new-discard'),'click',event=>{
     if(!event.isTrusted||busy&&phase!=='planning'||newReviewSignature===null)return;

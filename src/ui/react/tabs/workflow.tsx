@@ -123,7 +123,8 @@ export function WorkflowSettingsSheet({open=false,onClose,settings,doc}) {
     const editor=doc.getElementById('workflow-editor');
     const previous=doc.activeElement;
     const composer=doc.getElementById('workflow-ai-request');
-    const restoreFocus=previous?.id==='workflow-provider-toggle'?composer:previous;
+    // Return to the actual opener after Escape, backdrop or Close, not the composer.
+    const restoreFocus=doc.getElementById('workflow-provider-toggle')||previous||composer;
     const wasInert=editor?.inert;
     if(editor)editor.inert=true;
     const currentPanel=panel.current;

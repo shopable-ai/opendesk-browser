@@ -233,7 +233,9 @@ if(!vm.SourceTextModule) {
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
   const observe=id=>({stepId:id,op:'observe'});
   const assertFocus=(fixture,element)=>{
-    assert.equal(fixture.doc.activeElement,element);
+    const name=item=>item?.id||item?.dataset?.workflowFocus||item?.tagName||'none';
+    assert.ok(fixture.doc.activeElement===element,
+      'focus mismatch: expected '+name(element)+', got '+name(fixture.doc.activeElement));
     assert.ok(element.visible(),'focus destination must be visible');
     assert.equal(element.disabled,false,'focus destination must be enabled');
   };
