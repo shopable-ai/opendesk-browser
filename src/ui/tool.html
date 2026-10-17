@@ -50,9 +50,11 @@
       <details class="task-scope-panel od-disclosure"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>
       <details class="task-tools od-disclosure"><summary>更多操作</summary>
         <div class="row"><button type="button" id="task-refresh" class="od-button od-button--secondary">刷新任务</button><button type="button" id="task-fork-draft" disabled class="od-button od-button--secondary">复制草稿</button></div>
-        <details class="od-disclosure od-disclosure--flat"><summary>任务管理</summary>
-          <div class="row"><button type="button" id="task-toggle" disabled class="od-button od-button--secondary">停用 / 启用</button><button type="button" id="task-uninstall" disabled class="od-button od-button--danger">卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
-          <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
+        <details class="od-disclosure od-disclosure--flat"><summary><span class="task-management-heading">任务管理</span></summary>
+          <div class="task-management-actions">
+            <div class="row"><button type="button" id="task-toggle" disabled class="od-button od-button--secondary">停用 / 启用</button><button type="button" id="task-uninstall" disabled class="od-button od-button--danger">卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
+            <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
+          </div>
         </details>
       </details>
       </div>
