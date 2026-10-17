@@ -154,23 +154,29 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-manager-back').hidden=true; // One authoritative back button in Header.
     get('schedule-save-confirm').hidden=!pending;
     get('schedule-discard-confirm').hidden=!dirtyConfirm;
-    get('schedule-list-summary').hidden=true; // Fixture density belongs to the preview toolbar.
+    const arranged=visiblePlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
+    const pausedCount=visiblePlans.filter(p=>p.paused).length;
+    const activeCount=visiblePlans.filter(p=>(p.history||[]).some(fire=>
+      ['ADMITTED','RUNNING'].includes(fire.status))).length;
+    get('schedule-list-summary').hidden=view!=='list'||visiblePlans.length===0;
+    get('schedule-list-summary').textContent=
+      '共 '+visiblePlans.length+' 个计划 · '+arranged+' 个已安排 · '+
+      pausedCount+' 个已暂停 · '+activeCount+' 个运行中';
     get('schedule-host-status').hidden=true; // Preview banner already names the missing Host.
     get('schedule-message').textContent=feedback||'';
     get('schedule-save-summary').textContent=pending?
-      pending.title+' / '+pending.target+' / '+ruleName(pending.kind)+
-      '\n仅本次预览，不核验执行授权。':'';
+      pending.title+' / '+pending.target+' / '+ruleName(pending.kind):'';
     get('schedule-once-field').hidden=rule!=='once';
     get('schedule-clock-field').hidden=!['daily','weekly'].includes(rule);
     get('schedule-weekdays-field').hidden=rule!=='weekly';
     get('schedule-interval-field').hidden=rule!=='interval';
-    get('schedule-next-time').textContent='仅预览执行规则，未计算真实调度时间';
+    get('schedule-next-time').textContent='请核对执行规则与时区';
     get('task-catalog-count').textContent=found.length+' 个 · 仅预览';
     get('task-catalog-status').textContent=importReview||
       '仅预览 · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
   },[tab,mode,rows.length,filter,showSearch,addOpen,addStatus,editingId,view,
-    plans.length,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
+    plans,density,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
     if(zone.options.length<2){
@@ -187,8 +193,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     }
     const taskSelect=get('schedule-task-select');
     if(taskSelect.options.length<2)
-      taskSelect.replaceChildren(new Option('示例任务 · 仅预览','preview-task'),
-        new Option('已停用任务 · 仅预览','preview-off'));
+      taskSelect.replaceChildren(new Option('演示任务','preview-task'),
+        new Option('已停用的演示任务','preview-off'));
     const off=[];
     const bind=(id,event,fn)=>{
       const node=get(id);node.addEventListener(event,fn);
@@ -260,33 +266,33 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-manager-create','click',onOpenDevelop);
     bind('schedule-new-script','click',onOpenDevelop);
     bind('schedule-task-empty-create','click',onOpenDevelop);
-    bind('schedule-open-runner','click',()=>setFeedback('仅预览 · 运行页需真实 Host'));
+    bind('schedule-open-runner','click',()=>setFeedback('运行页需要已安装的扩展。'));
     bind('schedule-form','submit',e=>{
       e.preventDefault();
       const title=get('schedule-title').value.trim(),target=get('schedule-target').value.trim();
       if(!title||!/^https?:\/\//.test(target)){
-        setFeedback('预览表单：请输入名称与 HTTP(S) 目标网址');return;
+        setFeedback('请输入计划名称和有效的 HTTP(S) 网页地址');return;
       }
       const paramsText=get('schedule-params').value.trim()||'{}';
       try{
         const params=JSON.parse(paramsText);
         if(!params||Array.isArray(params)||typeof params!=='object')throw Error('params');
-      }catch{setFeedback('预览表单：参数必须是合法 JSON 对象');return;}
+      }catch{setFeedback('任务参数必须是合法的 JSON 对象');return;}
       const kind=get('schedule-kind').value;
       const weekdays=[...get('schedule-weekdays-field').querySelectorAll('input:checked')]
         .map(input=>input.value);
       const minutes=Number(get('schedule-minutes').value);
       if(kind==='weekly'&&!weekdays.length){
-        setFeedback('预览表单：每周至少选择一天');return;
+        setFeedback('每周至少选择一天');return;
       }
       if(kind==='interval'&&(!Number.isInteger(minutes)||minutes<1||minutes>10080)){
-        setFeedback('预览表单：间隔必须是 1–10080 分钟');return;
+        setFeedback('执行间隔必须是 1–10080 分钟');return;
       }
       setPending({title,target,kind,paramsText,taskId:get('schedule-task-select').value,
         timezone:get('schedule-timezone').value,
         once:get('schedule-once').value,clock:get('schedule-clock').value,
         weekdays,minutes,paused:get('schedule-paused').checked});
-      setFeedback('仅预览 · 待审阅，不会立即创建真实计划');
+      setFeedback('请检查计划信息，再确认保存。');
     });
     bind('schedule-confirm-no','click',()=>setPending(null));
     bind('schedule-confirm-yes','click',()=>{
@@ -304,7 +310,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         [...all,fixture(id,pending.title,pending.kind,{...pending,
           triggerSpec:spec,paused:Boolean(pending.paused)})]);
       setSelectedId(id);setPending(null);setEditingId('');setView('list');
-      setFeedback('仅演示交互，未修改真实计划；下次触发时间尚未计算。');
+      setFeedback('已更新预览展示；真实计划未修改。');
     });
     return ()=>off.forEach(fn=>fn());
   },[onMode,onOpenDevelop,onSearch,onFilter,selected,editingId,pending,view]);
@@ -326,11 +332,27 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         <p className="schedule-empty-hint hint">点击右上角新建，添加第一条计划。</p>
       </div>:visiblePlans.map(p=>{
         const present=presentSchedulePlan(p,p.history);
+        const active=(p.history||[]).find(fire=>['ADMITTED','RUNNING'].includes(fire.status));
+        const canToggle=p.paused||p.triggerKind!=='once'||Number.isFinite(p.nextDueAt);
         const toggle=()=>{
+          if(p.paused&&p.needsAttention)return;
           setPlans(all=>all.map(item=>item.id===p.id?
             {...item,paused:!item.paused,
               nextDueAt:item.paused?(item.previewNextDueAt??item.nextDueAt):null}:item));
           setFeedback('仅演示交互，未修改真实计划。');
+        };
+        const stopCurrent=()=>{
+          if(!active)return;
+          // This is explicitly an offline UI fixture, NOT a Host stop receipt.
+          setPlans(all=>all.map(item=>item.id===p.id?{...item,
+            history:item.history.map(fire=>fire.fireId===active.fireId?
+              {...fire,status:'STOPPED'}:fire)}:item));
+          setFeedback('仅演示停止按钮；真实执行未受影响。');
+          requestAnimationFrame(()=>{
+            const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+              .find(row=>row.dataset.scheduleId===p.id);
+            card?.querySelector('.schedule-plan-open')?.focus({preventScroll:true});
+          });
         };
         return <article key={p.id} className="schedule-card od-surface"
           data-schedule-id={p.id} onClick={event=>{
@@ -344,23 +366,36 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
               {p.title}
             </button>
             <span className="schedule-state" data-tone={present.tone}>{present.badge}</span>
+            {present.badgeSource==='fire'&&present.planState!=='暂无后续计划'&&
+              <span className="schedule-plan-phase">计划：{present.planState}</span>}
             <div className="schedule-plan-actions od-toolbar" role="group" aria-label="计划快捷操作">
-              <button type="button" className="od-icon-button schedule-plan-action"
-                title={p.paused?'恢复计划':'暂停计划'}
+              {active&&<button type="button"
+                className="od-icon-button schedule-plan-action schedule-action-stop"
+                data-schedule-action="stop" title="停止本次执行"
+                aria-label={'停止本次执行「'+p.title+'」'} onClick={stopCurrent}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+              </button>}
+              {canToggle&&<button type="button" className="od-icon-button schedule-plan-action"
+                data-schedule-action="toggle" disabled={Boolean(p.paused&&p.needsAttention)}
+                title={p.paused?'恢复计划（下次触发时执行）':'暂停后续计划'}
                 aria-label={(p.paused?'恢复计划':'暂停计划')+'「'+p.title+'」'}
                 onClick={toggle}>
                 {p.paused?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7Z"/></svg>:
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"/></svg>}
-              </button>
+              </button>}
               <button type="button" className="od-icon-button schedule-plan-action"
+                data-schedule-action="edit"
                 title="编辑计划" aria-label={'编辑计划「'+p.title+'」'} onClick={()=>showForm(p)}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4Z"/></svg>
               </button>
             </div>
           </div>
-          <p className="schedule-next-time">{present.timingText}</p>
+          <p className="schedule-next-time">{present.nextText}</p>
+          <p className="schedule-plan-frequency">{present.frequencyText}</p>
           {present.recentText&&<p className="schedule-recent-result" data-tone={present.recentTone}>
-            {present.recentText}</p>}
+            最近：{present.recentText}</p>}
         </article>;
       })}
     </>,list)}
@@ -368,7 +403,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       <section className="schedule-detail-summary od-surface od-surface--padded od-stack">
         <span className="schedule-state" data-tone={selectedPresentation.tone}>
           {selectedPresentation.badge}</span>
-        <p className="schedule-next-time">{selectedPresentation.timingText}</p>
+        <p className="schedule-next-time">{selectedPresentation.nextText}</p>
+        <p className="schedule-plan-frequency">{selectedPresentation.frequencyText}</p>
         <p className="schedule-detail-url hint">目标网页：{selected.target}</p>
         {selectedPresentation.recentText&&<p className="schedule-recent-result"
           data-tone={selectedPresentation.recentTone}>{selectedPresentation.recentText}</p>}
