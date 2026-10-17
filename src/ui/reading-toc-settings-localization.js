@@ -43,8 +43,8 @@ const rows=[
   ],
   [
     "advancedHeading",
-    "已有授权与页面例外",
-    "Website access and page exceptions"
+    "网站停用与页面排除",
+    "Disabled websites and excluded pages"
   ],
   [
     "exceptionsHeading",
@@ -78,13 +78,13 @@ const rows=[
   ],
   [
     "enabledHint",
-    "工具已启用。启用不会自动运行代码。",
-    "Tool enabled. Enabling does not automatically run code."
+    "已启用。普通网页自动显示目录，无需逐站授权；Chrome 限制或主动停用的页面除外。",
+    "Enabled. The TOC appears automatically on regular webpages without additional site consent, except on Chrome-restricted or disabled pages."
   ],
   [
     "disabledHint",
-    "工具已停用。数据、网站授权和显示偏好保留。",
-    "Tool disabled. Saved data, website access, and visibility preferences are retained."
+    "已停用。网页目录监听停止；网站停用和显示偏好保留。",
+    "Disabled. On-page TOC observation has stopped; disabled sites and visibility preferences are preserved."
   ],
   [
     "enableError",
