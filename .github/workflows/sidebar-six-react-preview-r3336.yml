@@ -34,6 +34,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Build from installed DOM, CSS and real React components
+        id: build_preview
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
       - name: Guard source drift and React/DOM contracts
         run: |
@@ -45,11 +46,13 @@ jobs:
             tests/environment/react-my-cloud-r3338.test.mjs
           npm run check
       - name: Install CJK fonts for truthful Chinese visual review
+        if: ${{ steps.build_preview.outcome == 'success' && !cancelled() }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
           fc-match -f '%{family}\n' ':lang=zh'
       - name: Render six actual panels in Chromium (UI-only, not installed extension)
+        if: ${{ steps.build_preview.outcome == 'success' && !cancelled() }}
         shell: bash
         run: |
           set -euo pipefail
@@ -87,9 +90,19 @@ jobs:
               "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=$tab&width=$width"
             test -s "artifacts/sidebar-six-react-preview/$tab-$width.png"
           done
+          for width in 320 360 420 520; do
+            window=$((width + 180))
+            "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --no-first-run --virtual-time-budget=4000 --window-size="$window",1050 \
+              --screenshot="$PWD/artifacts/sidebar-six-react-preview/my-schedule-$width.png" \
+              "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=tasks&mode=schedule&width=$width"
+            test -s "artifacts/sidebar-six-react-preview/my-schedule-$width.png"
+          done
+          echo "SOURCE_BOUND_SCHEDULE_MULTI_STATE_SCREENSHOTS=320,360,420,520"
           echo "SOURCE_BOUND_UI_PREVIEW_CHROMIUM=6_TAB_SCREENSHOTS_ONLY"
           echo "INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED"
       - name: Replay real Chromium pointer and file-import UI flows
+        if: ${{ steps.build_preview.outcome == 'success' && !cancelled() }}
         run: node scripts/tests/sidebar-six-react-preview-interaction.mjs
       - name: Upload exact generated HTML and screenshots (no write to main)
         if: always()

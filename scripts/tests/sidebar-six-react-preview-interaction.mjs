@@ -112,6 +112,13 @@ try{
   await until('!document.querySelector("#workbench-tasks .tasks-surface").hidden');
   await click('#schedule-open');
   await until('!document.getElementById("scheduled-panel").hidden');
+  await until('document.querySelectorAll("#schedule-plan-list .schedule-card").length>=8');
+  const projected=await evaluate('[...document.querySelectorAll("#schedule-plan-list .schedule-state")].map(x=>x.textContent)');
+  for(const state of ['已安排','已暂停','运行中','已完成','需要处理','结果待核对','已错过'])
+    assert(projected.includes(state),'multi-state projection must include '+state);
+  assert.equal(await evaluate('document.querySelectorAll("#schedule-plan-list .schedule-plan-actions button").length'),20,
+    'ten in-memory fixture plans each own two compact accessible icon buttons');
+  await screenshot('my-schedule-multi-360');
   await click('#schedule-create');
   await until('!document.getElementById("schedule-form").hidden');
   assert.equal(await evaluate('document.getElementById("schedule-timezone").getClientRects().length>0'),true,
