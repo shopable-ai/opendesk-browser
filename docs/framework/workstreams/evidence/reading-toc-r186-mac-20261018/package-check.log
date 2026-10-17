@@ -1,0 +1,10 @@
+{
+  "status": "PROJECT_PACKAGE_MATCH",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json",
+  "id": "reading-toc",
+  "version": "1.0.8",
+  "bytes": 28481,
+  "sha256": "df3ab8fb74c4b32ae5932333c521f326d72a71256ebfeda412b3d6155f990c42",
+  "validated": true,
+  "installed": false
+}

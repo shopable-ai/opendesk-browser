@@ -1,0 +1,50 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/39] axios[K⠙ [1/39] axios[K⠹ [1/39] axios[K⠸ [1/39] axios[K⠼ [1/39] axios[K⠴ [1/39] axios[K⠦ [1/39] axios[K⠧ [1/39] axios[K⠇ [1/39] axios[K⠏ [1/39] axios[K⠋ [1/39] axios[K⠙ [1/39] axios[K⠹ [1/39] axios[K⠸ [1/39] axios[K⠼ [1/39] axios[K⠴ [1/39] axios[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K⠸ [2/39] sw[K⠼ [2/39] sw[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K⠸ [2/39] sw[K⠼ [2/39] sw[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K⠸ [2/39] sw[K⠼ [2/39] sw[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K⠸ [2/39] sw[K⠼ [2/39] sw[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K⠸ [2/39] sw[K⠼ [2/39] sw[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K⠸ [2/39] sw[K⠼ [2/39] sw[K⠴ [2/39] sw[K⠦ [2/39] sw[K⠧ [2/39] sw[K⠇ [2/39] sw[K⠏ [2/39] sw[K⠋ [2/39] sw[K⠙ [2/39] sw[K⠹ [2/39] sw[K✗ Build failed in 5.78s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-sw] Trusted AdBlock source changed; review and re-pin before fixed build: examples/sidebar-tools/adblock/trusted/policy.js
+
+    at reviewedCompiledAdblock (scripts/bundle-provenance.mjs:52:11)
+    at scripts/bundle-provenance.mjs:133:7
+    at Array.map (<anonymous>)
+    at describeBundle (scripts/bundle-provenance.mjs:129:47)
+    at recordBundle (scripts/bundle-provenance.mjs:159:16)
+    at async Object.generateBundle (wxt.config.mjs:224:11)
+    at async Bundle.generate (node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+    at async node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+    at async catchUnfinishedHookActions (node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+    at async buildEnvironment (node_modules/vite/dist/node/chunks/config.js:33623:64)
+
+FAILED_BUILD_DIAGNOSTIC=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/reading-toc-r186-mac/build-evidence/build-production-failed-1792255833151-7a181a77-99c5-4415-9f94-05427f561af0.json
+file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21
+			throw Error(`Failed to build ${groupNames.join(", ")}`, { cause: err });
+			      ^
+
+Error: Failed to build sw
+    at buildEntrypoints (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/wxt/dist/core/build.mjs:21:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/scripts/build.mjs:38:1 {
+  [cause]: [opendesk-fixed-sw] Trusted AdBlock source changed; review and re-pin before fixed build: examples/sidebar-tools/adblock/trusted/policy.js
+      at reviewedCompiledAdblock (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/scripts/bundle-provenance.mjs:52:11)
+      at file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/scripts/bundle-provenance.mjs:133:7
+      at Array.map (<anonymous>)
+      at describeBundle (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/scripts/bundle-provenance.mjs:129:47)
+      at recordBundle (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/scripts/bundle-provenance.mjs:159:16)
+      at async Object.generateBundle (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/wxt.config.mjs:224:11)
+      at async Bundle.generate (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+      at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+      at async catchUnfinishedHookActions (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+      at async buildEnvironment (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/reading-toc-r186-mac/source/node_modules/vite/dist/node/chunks/config.js:33623:64) {
+    code: 'PLUGIN_ERROR',
+    plugin: 'opendesk-fixed-sw',
+    hook: 'generateBundle'
+  }
+}
+
+Node.js v26.3.1

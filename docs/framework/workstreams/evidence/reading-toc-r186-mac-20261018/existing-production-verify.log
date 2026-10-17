@@ -1,0 +1,16 @@
+node:internal/fs/promises:640
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/framework/browser-edition.json'
+    at async open (node:internal/fs/promises:640:25)
+    at async readFile (node:internal/fs/promises:1287:14)
+    at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:513:35)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:652:30 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/framework/browser-edition.json'
+}
+
+Node.js v24.16.0

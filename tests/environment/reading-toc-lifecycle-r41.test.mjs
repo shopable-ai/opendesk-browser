@@ -10,6 +10,12 @@ import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
+async function waitForObservers(f){
+  // Official package hashing uses WebCrypto; setImmediate is not a completion fence.
+  for(let attempt=0;attempt<100&&f.Observer.active!==1;attempt++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.Observer.active,1,'verified installed reader becomes ready');
+}
 const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
@@ -31,7 +37,7 @@ test('installing reading-toc on an existing HTTP document activates without an e
       sha256:OFFICIAL_READING_TOC_RELEASE.sha256}});
     f.state.set(SIDEBAR_TOOL_STORE,installed);
     f.changes.send({[SIDEBAR_TOOL_STORE]:{newValue:installed}},'local');
-    await tick();await tick();
+    await waitForObservers(f);
     assert.equal(f.Observer.active,1,'the installed reader indexes without opening the Side Panel');
     assert.equal((await f.send({toolId:id})).ok,true);
     assert.equal(f.state.has(SIDEBAR_TOOL_ENABLE_STORE),false,'no second enabled flag is required');
@@ -54,11 +60,11 @@ test('built-in default access starts without grants and site/page stops release 
   const request=()=>f.send({toolId:id});
   const change=(key,value)=>{f.state.set(key,value);f.changes.send({[key]:{newValue:value}},'local');};
   try{
-    await tick();await tick();assert.equal(f.Observer.active,1);
+    await waitForObservers(f);
     assert.equal((await request()).ok,true,'no positive origin grant is needed for the reader');
     change(READING_TOC_SITE_STORE,changeTocSiteAllowed({},id,f.win.location.href,false));
     assert.equal(f.Observer.active,0);await tick();await tick();assert.equal((await request()).ok,false);
-    change(READING_TOC_SITE_STORE,{});await tick();await tick();assert.equal(f.Observer.active,1);
+    change(READING_TOC_SITE_STORE,{});await waitForObservers(f);
     change(READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed({},id,f.win.location.href,false));
     assert.equal(f.Observer.active,0);await tick();await tick();assert.equal((await request()).ok,false);
     change(READING_TOC_PAGE_RULES_STORE,{});await tick();await tick();assert.equal((await request()).ok,true);

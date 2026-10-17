@@ -89,8 +89,14 @@ test('R4.8 first-install intent uses fixed classic WXT resource without bundling
   assert(entry.includes("registerDefaultPreinstall({...options,reason:details.reason})"));
   assert(entry.includes('resumeDefaultPreinstall(options)'),
     'fixed first-party worker script installs immediately and can recover on restart');
-  assert(!entry.includes('chrome.runtime.onMessage'),
-    'no page/tool request can trigger default package installation');
+  const messageHandler=entry.match(/chrome\.runtime\.onMessage\.addListener\(\(message,sender,sendResponse\)=>\{([\s\S]*?)\n  \}\);/)?.[1];
+  assert(messageHandler,'fixed sidecar exposes the current Chrome access check');
+  assert.equal((entry.match(/chrome\.runtime\.onMessage\.addListener/g)||[]).length,1,
+    'no additional message listener can expose a package installation path');
+  assert(messageHandler.includes('if(message?.protocol!==READING_TOC_CHROME_ACCESS_PROTOCOL)return false;'));
+  assert(messageHandler.includes('checkReadingTocContentAccess({api:chrome,sender,expectedUrl:message.expectedUrl})'));
+  assert(!/registerDefaultPreinstall|resumeDefaultPreinstall|repair\(/.test(messageHandler),
+    'page/tool messages only check access; they cannot install or repair packages');
   assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
   assert.equal(contract.PACKAGE_ENTRIES['sidebar-tools/preinstall-intent'],'./src/entrypoints/preinstall-intent.js');
   assert.equal(contract.FIXED_OUTPUTS['preinstall-intent'],'sidebar-tools/preinstall-intent.js');
