@@ -160,7 +160,7 @@ export default function App(){
   try{
    const value=await file.text();
    if(token!==fileReadRef.current)return;
-   if(value.includes('\\0')){setError('文件不是有效的 Cookie 文本，当前输入已保留。');return;}
+   if(value.includes(String.fromCharCode(0))){setError('文件不是有效的 Cookie 文本，当前输入已保留。');return;}
    setImportText(value);setFileName(file.name||'未命名文件');setOverwrite(false);setError('');
   }catch{if(token===fileReadRef.current)setError('文件读取失败，当前输入已保留，可重新选择。');}
  };
