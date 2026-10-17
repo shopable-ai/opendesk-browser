@@ -10,10 +10,9 @@ const get=id=>{
   return node;
 };
 const cards=get('task-catalog-cards'),reader=get('task-catalog-detail');
-const catalogBack=get('catalog-dev-sidebar-status');
 const list=get('schedule-plan-list'),detail=get('schedule-detail-view');
 const manager=get('schedule-manager-list');
-for(const node of [cards,reader,catalogBack,list,detail,manager])node.replaceChildren();
+for(const node of [cards,reader,list,detail,manager])node.replaceChildren();
 const previewBase=Date.parse('2026-10-17T00:00:00Z'); // Fixed UI fixture clock, never a live scheduler.
 const previewFire=(id,status,when=previewBase)=>({
   fireId:'preview-fire-'+id,status,scheduledAt:when});
@@ -63,10 +62,12 @@ const previewDeviceZone=()=>{
   try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
   catch{return 'UTC';}
 };
-export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter,density='many'}){
+export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter,
+  selectedTask='',manageMode=false,onManageMode=()=>{},onTaskAction=()=>{},density='many'}){
   const [showSearch,setShowSearch]=React.useState(false);
   const [addOpen,setAddOpen]=React.useState(false);
   const [addStatus,setAddStatus]=React.useState('');
+  const [removalReview,setRemovalReview]=React.useState('');
   const [catalogSearch,setCatalogSearch]=React.useState('');
   const [catalogSelected,setCatalogSelected]=React.useState('preview-task');
   const [importReview,setImportReview]=React.useState('');
@@ -130,6 +131,20 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-search-panel').hidden=!showSearch;
     get('task-add-menu').hidden=!addOpen||mode!=='list';
     get('task-open-catalog').setAttribute('aria-expanded',String(addOpen&&mode==='list'));
+    get('task-manage-toggle').setAttribute('aria-pressed',String(manageMode));
+    const current=rows.find(p=>p.taskId===selectedTask);
+    if(manageMode)get('task-tools').open=true;
+    for(const id of ['task-toggle','task-uninstall','task-fork-draft'])
+      get(id).disabled=!current;
+    get('task-toggle').title=current?.enabled?'停用任务':'启用任务';
+    get('task-toggle').setAttribute('aria-label',get('task-toggle').title);
+    for(const icon of get('task-toggle').children)
+      if(icon.dataset?.taskToggleIcon)
+        icon.hidden=icon.dataset.taskToggleIcon!==(current?.enabled?'pause':'play');
+    get('task-uninstall-confirm').hidden=removalReview!==selectedTask;
+    get('task-uninstall-summary').textContent=current
+      ?'确认卸载「'+current.title+'」？历史结果仍可能保留。'
+      :'确认卸载此任务？';
     get('task-add-status').textContent=addStatus;
     get('task-search-toggle').setAttribute('aria-expanded',String(showSearch));
     get('local-discover-count').textContent='显示 '+rows.length+' 项 · 仅预览';
@@ -177,7 +192,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-catalog-status').textContent=importReview||
       '仅预览 · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
-  },[tab,mode,rows.length,filter,showSearch,addOpen,addStatus,editingId,view,
+  },[tab,mode,rows,selectedTask,manageMode,removalReview,filter,showSearch,addOpen,addStatus,editingId,view,
     plans,density,pending,dirtyConfirm,rule,feedback,found.length,importReview]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
@@ -203,6 +218,19 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       off.push(()=>node.removeEventListener(event,fn));
     };
     bind('task-search-toggle','click',()=>setShowSearch(v=>!v));
+    bind('task-manage-toggle','click',()=>onManageMode(!manageMode));
+    bind('task-refresh','click',()=>onTaskAction('refresh',selectedTask));
+    bind('task-fork-draft','click',()=>onTaskAction('fork',selectedTask));
+    bind('task-toggle','click',()=>onTaskAction('toggle',selectedTask));
+    bind('task-uninstall','click',()=>setRemovalReview(selectedTask));
+    bind('task-uninstall-cancel','click',()=>{
+      setRemovalReview('');get('task-uninstall').focus({preventScroll:true});
+    });
+    bind('task-uninstall-yes','click',()=>{
+      if(removalReview===selectedTask){onTaskAction('uninstall',selectedTask);setRemovalReview('');}
+    });
+    bind('open-catalog','click',()=>onMode('catalog'));
+    bind('task-catalog-back','click',()=>onMode('list'));
     bind('local-discover-search','input',e=>onSearch(e.currentTarget.value));
     for(const key of ['all','current','disabled'])
       bind('local-filter-'+key,'click',()=>onFilter(key));
@@ -315,7 +343,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       setFeedback('已更新预览展示；真实计划未修改。');
     });
     return ()=>off.forEach(fn=>fn());
-  },[onMode,onOpenDevelop,onSearch,onFilter,selected,editingId,pending,view]);
+  },[onMode,onOpenDevelop,onSearch,onFilter,onManageMode,onTaskAction,manageMode,
+    selectedTask,removalReview,selected,editingId,pending,view]);
   return <>
     {createPortal(found.map(p=><button key={p.taskId} type="button"
       className="catalog-card" aria-pressed={p.taskId===catalogSelected}
@@ -324,10 +353,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     </button>),cards)}
     {createPortal(<div className="od-stack">
       <strong>{rows.find(p=>p.taskId===catalogSelected)?.title||'选择候选'}</strong>
-      <p>仅预览 · 当前没有真实已验证的固定任务；正式安装需核对来源、版本与权限。</p>
+      <p>安装前请核对来源、权限及版本。</p>
     </div>,reader)}
-    {createPortal(<button type="button" className="od-button od-button--secondary"
-      onClick={()=>onMode('list')}>← 返回我的任务</button>,catalogBack)}
     {createPortal(<>
       {visiblePlans.length===0?<div className="schedule-empty od-stack" role="status">
         <h3 className="od-page-title">尚无定时计划</h3>

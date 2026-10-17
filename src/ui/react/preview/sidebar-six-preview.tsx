@@ -119,6 +119,22 @@ function Preview(){
   const [toolDraft,setToolDraft]=React.useState('');
   const [toolFeedback,setToolFeedback]=React.useState('');
   const [selectedTask,setSelectedTask]=React.useState('preview-task');
+  const [taskManageMode,setTaskManageMode]=React.useState(false);
+  const [taskEnabled,setTaskEnabled]=React.useState({'preview-task':true,'preview-off':false});
+  const [taskNotice,setTaskNotice]=React.useState('');
+  const onTaskAction=(action,id)=>{
+    if(!id)return;
+    if(action==='toggle'){
+      setTaskEnabled(old=>({...old,[id]:!old[id]}));
+      setTaskNotice('已在预览内切换启停；未更改实际安装状态。');
+    }else if(action==='uninstall'){
+      setTaskNotice('预览不执行卸载；正式扩展在确认后卸载固定版本。');
+    }else if(action==='fork'){
+      setTaskNotice('正式扩展会复制固定源码到独立草稿；预览未读取源码。');
+    }else if(action==='refresh'){
+      setTaskNotice('预览列表未连接任务服务；正式扩展会重新读取安装状态。');
+    }
+  };
   const initialMode=new URLSearchParams(window.location.search).get('mode');
   const [taskMode,setTaskMode]=React.useState(
     initial==='tasks'&&initialMode==='schedule'?'schedule':'list');
@@ -199,10 +215,10 @@ function Preview(){
   })();
   const transcript=workflowConversationCleared?[]:(messages[scene]||[]);
   const allTaskRows=scene==='empty'||scene==='loading'?[]:[
-    {taskId:'preview-task',title:'示例自动化（仅预览）',
-      description:'来自原 TaskWorkbench 的任务资料投影',enabled:scene!=='denied'},
-    {taskId:'preview-off',title:'已停用任务（仅预览）',
-      description:'保留版本、权限及原始执行身份',enabled:false}
+    {taskId:'preview-task',title:'网页资料填写',
+      description:'将项目名称填入表单并读回',enabled:taskEnabled['preview-task']},
+    {taskId:'preview-off',title:'每周资料整理',
+      description:'整理目标网页中的所需信息',enabled:taskEnabled['preview-off']}
   ];
   const taskRows=allTaskRows.filter(p=>
     (taskFilter!=='disabled'||!p.enabled)&&
@@ -300,7 +316,7 @@ function Preview(){
     get('workflow-ai-progress').hidden=scene!=='loading';
     get('workflow-ai-approval').hidden=scene!=='denied';
     const status=get('task-status');
-    status.textContent=labels[scene];
+    status.textContent=taskNotice||labels[scene];
     status.dataset.state=scene;
     const cloud=get('cloud-status');
     cloud.textContent='仅预览 · '+cloudPreview.brief+'；未连接真实 Provider。';
@@ -574,7 +590,9 @@ function Preview(){
     <PreviewMyFlows tab={tab} mode={taskMode} onMode={setTaskMode}
       onOpenDevelop={()=>{setTab('develop');setTaskMode('list');}}
       rows={allTaskRows} search={taskSearch} onSearch={setTaskSearch}
-      filter={taskFilter} onFilter={setTaskFilter} density={planDensity}/>
+      filter={taskFilter} onFilter={setTaskFilter} density={planDensity}
+      selectedTask={selectedTask} manageMode={taskManageMode} onManageMode={setTaskManageMode}
+      onTaskAction={onTaskAction}/>
     {createPortal(<div className="od-sidebar-preview-toolbar">
       <div className="od-sidebar-preview-heading"><strong>OpenDesk · 六 Tab 正式源码预览</strong>
         <span>UI 交互预览 · 未连接真实调度，操作不会更改真实任务</span></div>
@@ -644,10 +662,11 @@ function Preview(){
     {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
     {createPortal(<MyTaskCount value={taskRows.length+' 个已安装任务'}/>,myCount)}
     {createPortal(<MyTaskRows rows={taskRows} selectedId={selectedTask}
-      workspace={myWorkspace} onSelect={setSelectedTask}
-      emptyText={'暂无任务 · 仅预览'}/>,myRows)}
+      workspace={myWorkspace} manageMode={taskManageMode}
+      onManage={setSelectedTask} onSelect={setSelectedTask}
+      emptyText={'暂无任务'}/>,myRows)}
     {createPortal(<MyTaskDetail value={taskRows.find(row=>row.taskId===selectedTask)?
-      '仅预览：任务版本与网站授权仍由原 TaskWorkbench 管理':''}/>,myDetail)}
+      '适用网站：example.invalid\n所需能力：网页自动化\n来源：本地任务 · 界面预览':''}/>,myDetail)}
     {Object.entries(cloudNodes).map(([key,node])=>
       createPortal(<CloudOverviewText value={cloudPreview[key]}/>,node,'cloud-'+key))}
     {createPortal(<DeveloperFramework model={{mode:framework,compilerEnabled:true,
