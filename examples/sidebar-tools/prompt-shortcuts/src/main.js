@@ -6,11 +6,12 @@ const dom=(tag,cls='',text='')=>{const n=root.ownerDocument.createElement(tag);n
 const KEY='library',MENU_ACTION='add-selection';
 let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='index',editId=null;
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
+let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
 let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
-function report(){setState({dirty:dirty||siteDirty,busy:busy||siteBusy});}
+function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||transferBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-body-error').hidden=!message;}
@@ -50,13 +51,21 @@ function changed(){
   dirty=JSON.stringify(form())!==baseline;if(el('ps-body').value.trim())bodyError('');preview();report();
 }
 function lock(){
-  for(const id of ['ps-new','ps-save','ps-save-next','ps-web'])
-    el(id).disabled=!ready||busy||unconfirmedWrite;
+  for(const id of ['ps-new','ps-save','ps-save-next','ps-web','ps-transfer'])
+    el(id).disabled=!ready||busy||transferBusy||unconfirmedWrite||(id==='ps-new'&&Boolean(stagedImport));
+  const blocked=!ready||busy||transferBusy||unconfirmedWrite;
+  el('ps-import').disabled=blocked;
+  el('ps-export').disabled=blocked||Boolean(stagedImport);
+  const append=stagedImport?importCandidate('append'):null;
+  const replace=stagedImport?importCandidate('replace'):null;
+  el('ps-import-cancel').disabled=busy||transferBusy;
+  el('ps-import-append').disabled=blocked||!append||Boolean(append.error||append.overLimit||append.added===0);
+  el('ps-import-replace').disabled=blocked||!replace||Boolean(replace.error||replace.overLimit);
   for(const id of ['ps-cancel','ps-discard'])el(id).disabled=busy;
   el('ps-form').setAttribute('aria-busy',String(busy));
   el('ps-save').textContent=busy?'保存中…':'保存';
   el('ps-save-next').textContent=busy?'保存中…':'保存并继续';
-  for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||unconfirmedWrite||b.dataset.locked==='1';
+  for(const b of el('ps-list').querySelectorAll('button'))b.disabled=!ready||busy||transferBusy||unconfirmedWrite||Boolean(stagedImport)||b.dataset.locked==='1';
   report();
 }
 function index(){
@@ -70,7 +79,7 @@ function back(callback=index){
   pendingLeave=callback;el('ps-leave').hidden=false;el('ps-stay').focus();
 }
 function start(id=null,preset=''){
-  if(!ready||busy||unconfirmedWrite)return;
+  if(!ready||busy||transferBusy||unconfirmedWrite||stagedImport)return;
   const row=id?data.items.find(item=>item.id===id):null;
   if(id&&!row){status('原条目已变化，请重新打开工具核对。',true);return;}
   mode='form';editId=id;expanded=null;pendingDelete=null;
@@ -100,7 +109,10 @@ const ICON_PATHS=Object.freeze({
   down:['M12 5v14','M5 12l7 7 7-7'],
   copy:['M8 8h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8Z','M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2'],
   trash:['M3 6h18','M8 6V4h8v2','M6 6l1 15h10l1-15','M10 10v7','M14 10v7'],
-  'chevron-down':['M6 9l6 6 6-6']
+  'chevron-down':['M6 9l6 6 6-6'],
+  transfer:['M7 7h14','M17 3l4 4-4 4','M17 17H3','M7 13l-4 4 4 4'],
+  export:['M12 21V9','M8 13l4-4 4 4','M4 7V3h16v4'],
+  import:['M12 3v12','M8 11l4 4 4-4','M4 17v4h16v-4']
 });
 function icon(name){
   const doc=root.ownerDocument,ns='http://www.w3.org/2000/svg';
@@ -477,6 +489,140 @@ function render(){
   }
   lock();
 }
+
+function closeTransfer(){
+  const menu=el('ps-transfer-menu');
+  menu.hidden=true;el('ps-transfer').setAttribute('aria-expanded','false');
+}
+function discardImport(){
+  importTicket++;stagedImport=null;stagedEtag=null;replaceArmed=false;
+  el('ps-import-panel').hidden=true;el('ps-import-warning').hidden=true;
+  el('ps-import-replace').textContent='替换现有';report();lock();
+}
+const sameLibrary=(a,b)=>JSON.stringify(a,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+  ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row)===
+  JSON.stringify(b,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+  ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
+function importCandidate(mode){
+  try{return model.backupPlan(data,stagedImport,mode);}
+  catch(e){return {error:e.message,overLimit:true,added:0,skipped:0,bytes:0};}
+}
+function showImport(){
+  if(!stagedImport)return;
+  const append=importCandidate('append'),replace=importCandidate('replace');
+  el('ps-import-stats').textContent='文件 '+stagedImport.length+' 条 · 可追加 '+append.added+
+    ' 条 · 跳过重复 '+append.skipped+' 条';
+  el('ps-import-preview').textContent=stagedImport.slice(0,3)
+    .map((row,i)=>(i+1)+'. '+row.name).join('\n')+(stagedImport.length>3?'\n…':'');
+  el('ps-import-append').disabled=Boolean(append.error||append.overLimit||append.added===0);
+  el('ps-import-replace').disabled=Boolean(replace.error||replace.overLimit);
+  el('ps-import-append').title=append.error||(append.overLimit?'超过 8 KiB 存储上限':'');
+  el('ps-import-replace').title=replace.error||(replace.overLimit?'超过 8 KiB 存储上限':'');
+  el('ps-import-panel').hidden=false;
+  if(append.error||append.overLimit){
+    const reason=append.error||('追加后 '+append.bytes+' / 8192 B，超出容量');
+    status('追加导入不可用：'+reason+(replace.error||replace.overLimit?'；替换也不可用。':'；可选择替换。'),true);
+  }
+  report();lock();
+}
+async function exportJson(){
+  if(!ready||busy||transferBusy||unconfirmedWrite||stagedImport)return;
+  closeTransfer();transferBusy=true;lock();
+  try{
+    const saved=await readLibrary();
+    if(saved.etag!==etag){
+      data=saved.value;etag=saved.etag;render();
+      status('其他窗口修改了提示词库，列表已更新；请重新点击导出。',true);return;
+    }
+    const exportedAt=new Date().toISOString();
+    const text=model.backupExport(saved.value,exportedAt);
+    const filename='opendesk-prompt-shortcuts-'+exportedAt.slice(0,10)+'.json';
+    const outcome=await request('browser.downloads.text',{text,filename});
+    if(outcome?.started!==true)throw Error('Chrome 尚未确认接收下载请求');
+    status('Chrome 已受理 JSON 下载，请在下载记录中确认落盘。');
+  }catch(e){status('导出未确认：'+(e.code||e.message)+'；请检查下载记录，不会自动重试。',true);}
+  finally{transferBusy=false;lock();}
+}
+async function chooseImportFile(){
+  const input=el('ps-import-file'),file=input.files?.[0];
+  input.value='';if(!file)return; // Browser file picker cancelled: no side effect.
+  if(!ready||busy||transferBusy||unconfirmedWrite)return;
+  const ticket=++importTicket;
+  transferBusy=true;lock();
+  try{
+    if(!Number.isSafeInteger(file.size)||file.size<1||file.size>model.BACKUP_MAX_BYTES)
+      throw Error('JSON 文件必须为 1 B～256 KiB');
+    if(typeof file.text!=='function')throw Error('浏览器不支持读取此本地文件');
+    const content=await file.text();
+    if(ticket!==importTicket)return;
+    const parsed=model.backupParse(content);
+    if(ticket!==importTicket)return;
+    stagedImport=parsed;stagedEtag=etag;replaceArmed=false;
+    el('ps-import-name').textContent=String(file.name||'备份 JSON').slice(0,160);
+    el('ps-import-warning').hidden=true;el('ps-import-replace').textContent='替换现有';
+    showImport();el('ps-import-append').focus({preventScroll:true});
+    status('导入内容已预检查，确认前不会修改已保存的提示词。');
+  }catch(e){
+    if(ticket===importTicket){discardImport();status('导入预检查失败：'+(e.code||e.message)+'；原有数据未修改。',true);}
+  }finally{transferBusy=false;lock();}
+}
+async function applyImport(mode){
+  if(!stagedImport||!ready||busy||transferBusy||unconfirmedWrite)return;
+  const candidate=importCandidate(mode);
+  if(candidate.error||candidate.overLimit){
+    status('不能导入：'+(candidate.error||('超过提示词库 8192 B 存储上限'))+'；原有数据未修改。',true);return;
+  }
+  if(mode==='append'&&candidate.added===0){
+    status('没有新增内容，重复正文已经跳过。');return;
+  }
+  if(mode==='replace'&&!replaceArmed){
+    replaceArmed=true;
+    el('ps-import-warning').textContent='将替换现有 '+data.items.length+' 条提示词；再次点击「确认替换」执行。';
+    el('ps-import-warning').hidden=false;el('ps-import-replace').textContent='确认替换';
+    el('ps-import-replace').focus({preventScroll:true});return;
+  }
+  transferBusy=true;lock();
+  try{
+    // Re-read immediately before CAS; never commit against a stale preview.
+    const fresh=await readLibrary();
+    if(fresh.etag!==etag||fresh.etag!==stagedEtag){
+      data=fresh.value;etag=fresh.etag;stagedEtag=etag;replaceArmed=false;
+      el('ps-import-warning').hidden=true;el('ps-import-replace').textContent='替换现有';
+      render();showImport();
+      status('提示词库已经变化，预览已重算；请再次确认，不会自动覆盖。',true);return;
+    }
+    const planned=model.backupPlan(fresh.value,stagedImport,mode);
+    if(planned.overLimit)throw Error('保存容量超过 8192 B');
+    // Commit sets busy synchronously and uses Host's existing ETag compare-and-set.
+    await commit(planned.next);
+    // Save acknowledgement alone is insufficient for a destructive import.
+    let checked;
+    try{
+      checked=await readLibrary();
+      if(checked.etag!==etag||!sameLibrary(checked.value,planned.next))
+        throw Error('保存后的回读与提交内容不一致');
+    }catch(error){
+      unconfirmedWrite=true;lock();
+      throw Object.assign(Error('保存结果无法完整核实：'+error.message+'；不得重复提交'),{code:'E_OUTCOME_UNKNOWN'});
+    }
+    data=checked.value;etag=checked.etag;
+    discardImport();expanded=null;pendingDelete=null;render();
+    status((mode==='replace'?'已替换 ':'已追加 ')+planned.added+' 条，跳过 '+planned.skipped+
+      ' 条重复；已核实保存，网页按钮将通过存储事件同步。');
+    el('ps-transfer').focus({preventScroll:true});
+  }catch(e){
+    replaceArmed=false;el('ps-import-warning').hidden=true;
+    el('ps-import-replace').textContent='替换现有';
+    if(e.code==='E_STORAGE_CONFLICT'){
+      try{
+        const fresh=await readLibrary();data=fresh.value;etag=fresh.etag;stagedEtag=etag;
+        render();showImport();
+      }catch{/* Keep staged file without submitting it twice. */}
+    }
+    status('导入未完成：'+(e.code||e.message)+'。备份内容仍在预览中，请核实后选择重试或取消。',true);
+  }finally{transferBusy=false;lock();}
+}
+
 async function readLibrary(){
   const saved=await request('storage.get',{key:KEY,withEtag:true});
   if(!/^[0-9a-f]{64}$/.test(saved?.etag||''))throw Error('宿主未提供 ETag 并发保护');
@@ -608,11 +754,35 @@ async function launch(){
   }catch{/* An ordinary opening does not carry a one-use native menu ticket. */}
 }
 el('ps-new').append(icon('plus'));
+el('ps-transfer').append(icon('transfer'));
+el('ps-export').prepend(icon('export'));el('ps-import').prepend(icon('import'));
+el('ps-transfer').addEventListener('click',()=>{
+  if(!ready||busy||transferBusy||unconfirmedWrite)return;
+  const next=el('ps-transfer-menu').hidden;
+  closeTransfer();el('ps-transfer-menu').hidden=!next;
+  el('ps-transfer').setAttribute('aria-expanded',String(next));
+  if(next)el('ps-export').focus({preventScroll:true});
+});
+el('ps-export').addEventListener('click',()=>void exportJson());
+el('ps-import').addEventListener('click',()=>{
+  closeTransfer();
+  if(!ready||busy||transferBusy||unconfirmedWrite)return;
+  el('ps-import-file').click();
+});
+el('ps-import-file').addEventListener('change',()=>void chooseImportFile());
+el('ps-import-cancel').addEventListener('click',()=>{discardImport();el('ps-transfer').focus({preventScroll:true});});
+el('ps-import-append').addEventListener('click',()=>void applyImport('append'));
+el('ps-import-replace').addEventListener('click',()=>void applyImport('replace'));
+root.addEventListener('click',event=>{
+  if(!el('ps-transfer-control').contains?.(event.target))closeTransfer();
+});
 el('ps-new').addEventListener('click',()=>start());
 root.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
   if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'delete');event.preventDefault();}
   else if(expanded){const id=expanded;expanded=null;render();focusListAction(id,'more');event.preventDefault();}
+  else if(!el('ps-transfer-menu').hidden){closeTransfer();el('ps-transfer').focus({preventScroll:true});event.preventDefault();}
+  else if(stagedImport&&!busy&&!transferBusy){discardImport();el('ps-transfer').focus({preventScroll:true});event.preventDefault();}
 });
 // The sandbox intentionally disallows forms. Native button activation must
 // save directly, without relying on the browser dispatching a submit event.

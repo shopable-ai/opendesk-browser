@@ -264,8 +264,10 @@ try{
   await clickJS('window.__railRoot.querySelector(".item")');
   await poll('window.__richInputs>0','native contenteditable input event');
   await sleep(420);
-  const richOutcome=await evaluate('({html:document.querySelector("#rich-container [contenteditable]").innerHTML,text:document.querySelector("#rich-container [contenteditable]").innerText,feedback:window.__railRoot.querySelector(".feedback").textContent,copied:window.__copied,edits:window.__edits})');
-  assert.match(richOutcome.feedback,/已插入输入框/,JSON.stringify(richOutcome));
+  const richOutcome=await evaluate('({html:document.querySelector("#rich-container [contenteditable]").innerHTML,text:document.querySelector("#rich-container [contenteditable]").innerText,feedback:window.__railRoot.querySelector(".feedback").textContent,feedbackHidden:window.__railRoot.querySelector(".feedback").hidden,announcement:window.__railRoot.querySelector(".announcer").textContent,copied:window.__copied,edits:window.__edits})');
+  assert.equal(richOutcome.feedbackHidden,true,'verified edit must not display a success toast');
+  assert.equal(richOutcome.feedback,'','no visible feedback text remains after verified insertion');
+  assert.match(richOutcome.announcement,/已插入草稿，未发送/,JSON.stringify(richOutcome));
   assert.deepEqual(richOutcome.copied,[body],'verified contenteditable avoids duplicate clipboard fallback');
   scenes.push({step:'anonymous contenteditable scoped selector and native multiline commit',
     editorSelector:richPick.data.selector,statePersisted:true});

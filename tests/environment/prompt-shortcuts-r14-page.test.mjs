@@ -52,11 +52,25 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     [PROMPT_SITE_STORE,grants]
   ]);
   const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map(),runtimeMessages=new Set();
+  // Preserve 3s/5s toast timeouts without making the Node suite wait for them.
+  const toastTimers=new Map();let nextToastTimer=100000;
+  const fireToast=()=>{
+    const first=toastTimers.entries().next().value;
+    if(!first)return;
+    const [id,entry]=first;toastTimers.delete(id);entry.fn();
+  };
   const win={
     location:{href:CHATGPT_ORIGIN+'/c/mock'},innerWidth:1366,innerHeight:768,
     addEventListener(name,fn){events.set(name,fn);},
     removeEventListener(name){events.delete(name);},
-    setTimeout:fn=>setTimeout(fn,0),clearTimeout,clearInterval(){},
+    setTimeout(fn,ms){
+      if(ms===3000||ms===5000){
+        const id=++nextToastTimer;toastTimers.set(id,{fn,ms});return id;
+      }
+      return setTimeout(fn,0);
+    },
+    clearTimeout(handle){toastTimers.delete(handle);clearTimeout(handle);},
+    clearInterval(){},
     setInterval(){return 1;},
     navigator:{clipboard:{writeText:async text=>{if(rejectCopy)throw Error('剪贴板未授权');copied.push(text);}}},
     MutationObserver:class{observe(){}disconnect(){}}
@@ -99,7 +113,8 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   const rail=()=>root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined)
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
-  return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,docEvents,runtimeMessages};
+  return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,
+    docEvents,runtimeMessages,toastTimers,fireToast};
 }
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -179,7 +194,7 @@ test('R1.5 IME composition prevents edit; corrupted line breaks never count as i
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
     const feedback=host?.shadow?.children.find(item=>item.className==='feedback');
     assert.equal(feedback?.hidden,false,'unconfirmed insertion displays a small status');
-    assert.match(feedback.textContent,/已复制完整提示词/);
+    assert.match(feedback.textContent,/已复制，请粘贴/);
     assert.deepEqual(f.copied,[row.body],'original multiline prompt is copied');
     assert.equal(f.calls.length,1,'never retry an ambiguous native insert automatically');
   }finally{controller?.dispose();}
@@ -209,8 +224,10 @@ test('R1.5 reconstructs sibling editor paragraphs and empty lines without relyin
     assert.equal(f.editor.textContent,'已有草稿第一行第三行');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
     const feedback=host?.shadow?.children.find(item=>item.className==='feedback');
-    assert.equal(feedback?.hidden,false,'verified insertion displays a success status');
-    assert.match(feedback.textContent,/已插入输入框/);
+    assert.equal(feedback?.hidden,true,'verified insertion must not show a toast');
+    assert.equal(feedback.textContent,'');
+    const announcer=host.shadow.children.find(item=>item.className==='announcer');
+    assert.match(announcer.textContent,/已插入草稿，未发送/);
     assert.equal(f.copied.length,0,'verified insert never also copies');
   }finally{controller?.dispose();}
 });
@@ -251,7 +268,7 @@ test('R1.11: when editor is missing, entire multiline prompt is copied',async()=
     assert.deepEqual(f.copied,[row.body]);
     const host=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined);
     const feedback=host.shadow.children.find(x=>x.className==='feedback');
-    assert.match(feedback.textContent,/已复制完整提示词/);
+    assert.match(feedback.textContent,/已复制，请粘贴/);
     assert.equal(feedback.dataset.kind,'success');
   }finally{controller?.dispose();}
 });
@@ -414,10 +431,11 @@ test('R1.8 current insertion failure copies the complete prompt without focusing
     const feedback=f.panel('feedback');
     assert.deepEqual(f.copied,[f.row.body]);
     assert.equal(feedback.hidden,false);
-    assert.match(feedback.textContent,/已复制完整提示词/);
+    assert.match(feedback.textContent,/已复制，请粘贴/);
     assert.equal(feedback.dataset.kind,'success');
-    assert.equal(feedback.getAttribute('role'),'status');
-    assert.equal(feedback.getAttribute('aria-live'),'polite');
+    assert.equal(feedback.getAttribute('aria-hidden'),'true');
+    assert.equal(f.panel('announcer').getAttribute('role'),'status');
+    assert.equal(f.panel('announcer').getAttribute('aria-live'),'polite');
     assert.equal(feedback.focused,undefined);
     assert.equal(f.host().shadow.activeElement,undefined,'copy feedback must not steal editor focus');
   }finally{f.controller.dispose();}
@@ -533,7 +551,8 @@ test('R1.8 logged-out mobile-composer textarea appends complete draft via accept
     assert.equal(f.editor.value,before+'\n'+f.row.body);
     assert.equal(f.editor.focused,true);
     const feedback=f.panel('feedback');
-    assert.equal(feedback.hidden,false);assert.match(feedback.textContent,/已插入输入框/);
+    assert.equal(feedback.hidden,true,'verified mobile insertion is visually silent');
+    assert.match(f.panel('announcer').textContent,/已插入草稿，未发送/);
     assert.deepEqual(f.copied,[],'verified insertion never also copies');
   }finally{f.controller.dispose();}
 });
@@ -556,7 +575,7 @@ for(const state of ['hidden','css-hidden','disabled','readonly','disconnected','
       }
       const feedback=f.panel('feedback');
       assert.equal(feedback.hidden,false);
-      assert.match(feedback.textContent,/已复制完整提示词/);
+      assert.match(feedback.textContent,/已复制，请粘贴/);
       assert.equal(feedback.dataset.kind,'success');
       assert.deepEqual(f.copied,[f.row.body]);
       assert.equal(feedback.focused,undefined,'copy feedback must not steal focus');
@@ -835,4 +854,87 @@ test('R2.3 refuses native edit when site steals focus during editor focus()',asy
     assert.equal(f.editor.value,'原草稿','old draft preserved');
     assert.deepEqual(f.copied,[row.body],'copy fallback retains full body');
   }finally{controller.dispose();}
+});
+
+
+test('R2.7 transient fallback toast expires and old callback cannot hide a newer toast',async()=>{
+  const f=await readyPage();
+  try{
+    f.doc.execCommand=()=>false;
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    const first=f.toastTimers.values().next().value;
+    assert.equal(first?.ms,3000);
+    assert.equal(f.panel('feedback').hidden,false);
+    const second={...f.row,id:'prompt-second-r27',body:'替代的提示词',order:1};
+    f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[f.row,second],settings:{webButtons:true}}});
+    await settle();
+    assert.equal(f.toastTimers.size,0,'storage remount cancels old timeout');
+    f.buttons()[1].emit('click',{isTrusted:true});await settle();
+    assert.equal(f.panel('feedback').hidden,false);
+    first.fn(); // the already-cancelled callback is not allowed to clear the new toast
+    assert.equal(f.panel('feedback').hidden,false);
+    f.fireToast();
+    assert.equal(f.panel('feedback').hidden,true);
+    assert.equal(f.panel('feedback').textContent,'');
+    assert.equal(f.panel('announcer').textContent,'');
+  }finally{f.controller.dispose();}
+  assert.equal(f.toastTimers.size,0,'disposal clears remaining timeout handles');
+});
+
+test('R2.7 failed clipboard toast is bounded to five seconds and cleaned on disable',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'未能复制的提示词'},null,()=> 'prompt-r27-failure');
+  const f=fixture({pkg,grants:{},noEditor:true,rejectCopy:true,
+    library:{schema:1,items:[row],settings:{webButtons:true}}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    const toast=f.root.children.find(x=>x.attributes['data-opendesk-prompts']!==undefined)
+      .shadow.children.find(x=>x.className==='feedback');
+    assert.equal(toast.hidden,false);assert.equal(toast.dataset.kind,'error');
+    assert.equal(f.toastTimers.values().next().value?.ms,5000);
+    assert.equal(toast.children.at(-1)?.getAttribute('aria-label'),'关闭提示');
+    toast.children.at(-1).emit('click');assert.equal(toast.hidden,true);
+    assert.equal(f.toastTimers.size,0,'user close cancels error timer');
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(toast.hidden,false,'new failure can appear after dismiss');
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(toast.hidden,true);
+    assert.equal(toast.textContent,'');
+    assert.equal(f.toastTimers.size,0);
+  }finally{controller.dispose();}
+});
+
+test('R2.7 storage-confirmed create/edit/reorder/delete/import and enable changes update an open tab immediately',async()=>{
+  const f=await readyPage(),first=f.row;
+  try{
+    const model=globalThis.OpenDeskPromptShortcutsModel;
+    const second={...model.draft({body:'新创建的🧑‍💻按钮',label:'新增'},null,()=> 'prompt-r27-created'),order:1};
+    const update=items=>f.change(PROMPT_DATA_STORE,{
+      library:{schema:1,settings:{webButtons:true},items}
+    });
+    assert.equal(f.buttons().length,1);
+    update([first,second]);await settle();
+    assert.equal(f.buttons().length,2,'confirmed create/import immediately appears');
+    assert.equal(f.buttons()[1].title,second.name);
+    const edited={...second,body:'更改后的正文',label:'更改',name:'自定义新名称'};
+    update([first,edited]);await settle();
+    assert.equal(f.buttons().length,2);
+    assert.equal(f.buttons()[1].title,'自定义新名称','confirmed edit updates the mounted label');
+    update([{...edited,order:0},{...first,order:1}]);await settle();
+    assert.equal(f.buttons()[0].title,'自定义新名称','confirmed reorder updates DOM order');
+    update([{...edited,order:0,enabled:false},{...first,order:1}]);await settle();
+    assert.equal(f.buttons().length,1,'confirmed disable hides only that shortcut');
+    update([{...first,order:0}]);await settle();
+    assert.equal(f.buttons().length,1,'confirmed delete removes without page reload');
+    f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first],
+      settings:{webButtons:false}}});await settle();
+    assert.equal(f.buttons().length,0,'global web disable removes rail');
+    update([first,second]);await settle();
+    assert.equal(f.buttons().length,2,'global re-enable remounts exactly once');
+    assert.equal(f.siteEvents.size,1,'no duplicate storage listener across remounts');
+    assert.equal(f.runtimeMessages.size,1,'no duplicate trusted runtime handlers');
+  }finally{f.controller.dispose();}
+  assert.equal(f.siteEvents.size,0);
 });

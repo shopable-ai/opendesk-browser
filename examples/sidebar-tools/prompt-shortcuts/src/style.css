@@ -138,3 +138,26 @@
 .ps-site-builtin strong{font-size:var(--od-note-size)}
 .ps-site-builtin small{display:block;color:var(--od-sub);font-size:var(--od-meta-size)}
 .ps-site-builtin>span{flex:none;color:var(--od-sub);font-size:var(--od-meta-size)}
+/* R2.7 transfer: one compact action next to New, Host keeps its own back/settings/uninstall. */
+.ps-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-1);min-width:0}
+.ps-transfer-control{position:relative;flex:none}
+.ps-transfer-menu{position:absolute;right:0;top:calc(100% + 6px);width:170px;display:grid;gap:3px;
+ padding:6px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);
+ box-shadow:0 12px 28px var(--od-line);z-index:15}
+.ps-transfer-menu[hidden],#ps-import-panel[hidden]{display:none!important}
+.ps-transfer-menu .od-button{display:flex;align-items:center;justify-content:flex-start;gap:var(--space-2);
+ min-height:40px;width:100%;white-space:nowrap;text-align:left}
+.ps-transfer-menu .ps-icon-svg{width:17px;height:17px;flex:none}
+.ps-import-panel{display:grid;gap:var(--space-2);min-width:0;min-height:0;
+ padding:var(--space-3);background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.ps-import-panel strong{font-size:var(--od-body-size)}
+.ps-import-panel p{margin:0;font-size:var(--od-meta-size);color:var(--od-sub);line-height:1.55;overflow-wrap:anywhere}
+.ps-import-panel .ps-import-name{font-weight:650;color:var(--od-ink);word-break:break-all}
+.ps-import-panel .ps-import-preview{background:var(--od-paper);border:1px solid var(--od-line);
+ border-radius:var(--radius-control);padding:var(--space-2);max-height:90px;overflow:auto;white-space:pre-wrap}
+.ps-import-panel .ps-import-warning{background:var(--od-negative-bg);color:var(--od-negative);
+ border-radius:var(--radius-control);padding:var(--space-2)}
+.ps-import-panel .ps-import-actions{margin-top:0;gap:var(--space-1)}
+.ps-import-panel .ps-import-actions #ps-import-cancel{margin-right:auto}
+.ps-import-panel .ps-import-actions .od-button{min-height:36px;min-width:0}
+@media(max-width:340px){.ps-import-actions{justify-content:flex-end}}

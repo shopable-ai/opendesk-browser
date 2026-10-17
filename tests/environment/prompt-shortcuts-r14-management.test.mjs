@@ -62,7 +62,8 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   const nodes=Object.fromEntries([...html.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)]
     .map(([,tag,attrs,id])=>{const node=new FakeNode(tag,id);
       node.type=attrs.match(/\btype="([^"]+)"/)?.[1]||'';return [id,node];}));
-  for(const id of ['ps-edit','ps-leave','ps-empty','ps-error','ps-body-error'])nodes[id].hidden=true;
+  for(const id of ['ps-edit','ps-leave','ps-empty','ps-error','ps-body-error',
+    'ps-transfer-menu','ps-import-panel','ps-import-warning','ps-import-file'])nodes[id].hidden=true;
   nodes['ps-body'].tagName='TEXTAREA';
   nodes['ps-label'].tagName='INPUT';nodes['ps-name'].tagName='INPUT';
   nodes['ps-enabled'].checked=true;nodes['ps-web'].checked=true;
@@ -81,10 +82,13 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   };
   let stored=structuredClone(initialStored),version='a'.repeat(64),writes=0,reads=0;
   let siteStored=structuredClone(initialSites),siteVersion='b'.repeat(64),siteWrites=0;
-  const states=[],requests=[],pending=[],readbacks=[],sitePending=[],launches=[];
+  const states=[],requests=[],pending=[],readbacks=[],sitePending=[],launches=[],downloads=[];
   const timers=new Map();let timerId=0;
   const request=async(op,payload={})=>{
     requests.push({op,payload});
+    if(op==='browser.downloads.text'){
+      downloads.push(payload);return {started:true};
+    }
     if(op==='prompt.page.context')return {status:'available',origin:'https://example.org',path:'/compose'};
     if(op==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
     if(op.startsWith('prompt.page.pick.')&&pickRequest)return pickRequest(op,payload);
@@ -105,7 +109,8 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
       assert.equal(payload.key,'library');
       assert.equal(payload.withEtag,true);
       reads++;
-      if(reads>1&&storageFault==='unknown')throw Error('Authoritative readback unavailable');
+      if(reads>1&&(storageFault==='unknown'||(storageFault==='unknown-after-write'&&writes>0)))
+        throw Error('Authoritative readback unavailable');
       if(reads>1&&deferReadback){
         const result=await new Promise((resolve,reject)=>readbacks.push({resolve,reject}));
         if(result!==undefined)return result;
@@ -118,7 +123,8 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
       const outcome=deferWrites?await new Promise((resolve,reject)=>pending.push({resolve,reject})):null;
       stored=structuredClone(payload.value);writes++;
       version=String(writes).padStart(64,'0');
-      if(storageFault==='unknown')throw Object.assign(Error('Acknowledgment not verified'),{code:'E_OUTCOME_UNKNOWN'});
+      if(['unknown','unknown-after-write'].includes(storageFault))
+        throw Object.assign(Error('Acknowledgment not verified'),{code:'E_OUTCOME_UNKNOWN'});
       if(outcome?.failure)throw outcome.failure;
       return outcome&&Object.hasOwn(outcome,'ack')?outcome.ack:{saved:true,etag:version};
     }
@@ -137,7 +143,9 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   runInNewContext(modelSource,sandbox,{filename:'trusted/model.js'});
   runInNewContext(main,sandbox,{filename:'src/main.js'});
   await settle();
-  return {nodes,root,requests,states,pending,readbacks,sitePending,launches,copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
+  return {nodes,root,requests,states,pending,readbacks,sitePending,launches,downloads,
+    copies:()=>copies.slice(),stored:()=>stored,writes:()=>writes,
+    externalWrite:value=>{stored=structuredClone(value);version='c'.repeat(64);},
     siteStored:()=>siteStored,siteWrites:()=>siteWrites,timers};
 }
 test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard and quota recovery',async()=>{
@@ -884,4 +892,128 @@ test('R2.4 cancelled picker start rejection cannot overwrite or cancel a newer s
   assert.equal(n['ps-site-editor'].value,'textarea#new');
   assert.equal(n['ps-site-container'].value,'main');
   assert.equal(f.siteWrites(),0);assert.equal(f.timers.size,0);
+});
+
+
+// R2.7 real classic Sandbox-source tests; mocked Host, not OS download / Chrome installation.
+const R27_SEED={schema:1,settings:{webButtons:true},items:[{
+  id:'prompt-seed-r27',body:' 已有正文\r\n第二行 ',label:'已有',name:'已存在',
+  labelAuto:false,nameAuto:false,shape:'square',enabled:true,order:0
+}]};
+const R27_BACKUP=items=>JSON.stringify({format:'opendesk.prompt-shortcuts',version:1,
+  exportedAt:'2026-10-17T00:00:00.000Z',items});
+async function r27Select(f,content,filename='prompt.json'){
+  const input=f.nodes['ps-import-file'];
+  input.files=[{name:filename,size:Buffer.byteLength(content),text:async()=>content}];
+  input.emit('change');await settle();
+}
+test('R2.7 export reads authoritative ETag library and requests Host JSON download only',async()=>{
+  const f=await fixture({initial:R27_SEED}),n=f.nodes;
+  n['ps-export'].click();await settle();
+  assert.equal(f.downloads.length,1);
+  const payload=f.downloads[0],backup=JSON.parse(payload.text);
+  assert.match(payload.filename,/^opendesk-prompt-shortcuts-\d{4}-\d\d-\d\d\.json$/);
+  assert.equal(backup.format,'opendesk.prompt-shortcuts');
+  assert.equal(backup.version,1);
+  assert.deepEqual(backup.items.map(row=>row.body),R27_SEED.items.map(row=>row.body));
+  assert.deepEqual(backup.items.map(row=>row.id),R27_SEED.items.map(row=>row.id));
+  assert.equal(Object.hasOwn(backup,'sites'),false);
+  assert.equal(f.writes(),0,'export does not write the library or site configuration');
+  assert.equal(f.siteWrites(),0);
+  assert.match(n['ps-status'].textContent,/Chrome 已受理|下载记录/);
+});
+test('R2.7 import preview + append dedupes normalized body and verifies readback',async()=>{
+  const f=await fixture({initial:R27_SEED}),n=f.nodes;
+  const file=R27_BACKUP([
+    {body:'已有正文\n第二行',label:'已有',name:'重复',enabled:true},
+    {id:'prompt-seed-r27',body:'另一个🧑‍💻\n提示词',labelAuto:true,nameAuto:true,enabled:false,shape:'round'}
+  ]);
+  await r27Select(f,file);
+  assert.equal(n['ps-import-panel'].hidden,false);
+  assert.match(n['ps-import-stats'].textContent,/可追加 1 条/);
+  assert.equal(f.writes(),0,'preview never writes');
+  assert.equal(n['ps-new'].disabled,true,'editing is frozen during import confirmation');
+  n['ps-import-append'].click();await settle();
+  assert.equal(f.writes(),1);
+  assert.equal(f.stored().items.length,2);
+  assert.equal(f.stored().items[0].body,R27_SEED.items[0].body);
+  assert.equal(f.stored().items[1].enabled,false);
+  assert.equal(f.stored().items[1].shape,'round');
+  assert.notEqual(f.stored().items[1].id,'prompt-seed-r27','backup IDs are never trusted');
+  assert.equal(f.siteWrites(),0);
+  assert.equal(n['ps-import-panel'].hidden,true);
+  assert.match(n['ps-status'].textContent,/已核实保存/);
+  assert.equal(f.requests.filter(req=>req.op==='storage.get'&&req.payload.key==='library').length>=3,true);
+});
+test('R2.7 import replace requires two clicks and retains original settings',async()=>{
+  const f=await fixture({initial:{...R27_SEED,settings:{webButtons:false}}}),n=f.nodes;
+  await r27Select(f,R27_BACKUP([{body:'新正文',label:'新正',enabled:true}]));
+  n['ps-import-replace'].click();await settle();
+  assert.equal(f.writes(),0,'first click arms but never writes');
+  assert.equal(n['ps-import-warning'].hidden,false);
+  assert.equal(n['ps-import-replace'].textContent,'确认替换');
+  n['ps-import-replace'].click();await settle();
+  assert.equal(f.writes(),1,'all entries replaced atomically');
+  assert.equal(f.stored().items.length,1);
+  assert.equal(f.stored().items[0].body,'新正文');
+  assert.equal(f.stored().settings.webButtons,false,'import must preserve global web preference');
+  assert.equal(f.siteWrites(),0);
+});
+test('R2.7 import cancellation, invalid JSON, invalid fields and oversized files fail closed',async()=>{
+  const f=await fixture({initial:R27_SEED}),n=f.nodes;
+  n['ps-import-file'].files=[];n['ps-import-file'].emit('change');await settle();
+  assert.equal(f.writes(),0);
+  for(const payload of ['{',R27_BACKUP([{body:'',label:'xx'}]),
+    JSON.stringify({format:'opendesk.prompt-shortcuts',version:99,items:[{body:'x'}]}),
+    R27_BACKUP([{body:'合法正文',label:'超过三字'}]),'x'.repeat(262145)]){
+    await r27Select(f,payload);
+    assert.equal(f.writes(),0,'invalid import cannot save');
+    assert.equal(n['ps-import-panel'].hidden,true);
+    assert.match(n['ps-status'].textContent,/预检查失败/);
+  }
+  await r27Select(f,R27_BACKUP([{body:'取消预览'}]));
+  assert.equal(n['ps-import-panel'].hidden,false);
+  n['ps-import-cancel'].click();await settle();
+  assert.equal(n['ps-import-panel'].hidden,true);
+  assert.equal(f.writes(),0);
+  assert.equal(f.stored().items.length,1);
+});
+test('R2.7 ETag stale preview is recomputed without overwriting other window',async()=>{
+  const f=await fixture({initial:R27_SEED}),n=f.nodes;
+  await r27Select(f,R27_BACKUP([{body:'新增正文'}]));
+  const other={...R27_SEED,items:[...R27_SEED.items,
+    {id:'prompt-other-r27',body:'其他窗口新增',label:'其他',name:'其他窗口',
+      labelAuto:false,nameAuto:false,shape:'square',enabled:true,order:1}]};
+  f.externalWrite(other);
+  n['ps-import-append'].click();await settle();
+  assert.equal(f.writes(),0,'must not overwrite changed ETag');
+  assert.equal(n['ps-import-panel'].hidden,false);
+  assert.match(n['ps-status'].textContent,/已经变化/);
+  assert.equal(f.stored().items.length,2);
+});
+test('R2.7 unknown write receipt keeps pending staged import and blocks replay',async()=>{
+  const f=await fixture({initial:R27_SEED,storageFault:'unknown-after-write'}),n=f.nodes;
+  await r27Select(f,R27_BACKUP([{body:'未确认的新正文'}]));
+  n['ps-import-append'].click();await settle();
+  assert.equal(f.writes(),1,'one Host write may have been persisted');
+  assert.equal(n['ps-import-panel'].hidden,false,'do not drop source backup');
+  assert.equal(n['ps-import-append'].disabled,true,'unknown write locks resubmission');
+  n['ps-import-append'].click();await settle();
+  assert.equal(f.writes(),1,'unknown result must never auto retry');
+  assert.match(n['ps-status'].textContent,/导入未完成/);
+});
+test('R2.7 export/import roundtrip preserves normalized model fields',async()=>{
+  const f=await fixture({initial:R27_SEED}),n=f.nodes;
+  n['ps-export'].click();await settle();
+  const json=f.downloads[0].text;
+  // Replace content with the same payload, verifying that a valid exported record
+  // can be safely imported under newly issued ID with all appearance flags intact.
+  await r27Select(f,json);
+  n['ps-import-replace'].click();await settle();
+  n['ps-import-replace'].click();await settle();
+  assert.equal(f.writes(),1);
+  const before=R27_SEED.items[0],after=f.stored().items[0];
+  for(const field of ['body','label','name','labelAuto','nameAuto','shape','enabled'])
+    assert.equal(after[field],before[field],field);
+  assert.notEqual(after.id,before.id);
 });

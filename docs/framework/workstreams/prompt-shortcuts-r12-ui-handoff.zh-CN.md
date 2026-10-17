@@ -527,3 +527,23 @@
 ### 2026-10-17 交付续接
 
 用户已另行授权核对、提交并推送上述遗留代码；最新交付记录见 [待提交代码交付](prompt-shortcuts-delivery-20261017.md)。唯一正式包使用同 ID **1.1.4**，不将本节历史 1.1.3 候选覆盖到已经交付的同版本包。最新开发原生证据仍见 [R2.5.1 记录](prompt-shortcuts-r251-mac-20261017.md)，其包身份与本次 1.1.4 分开保留；本次不新增 E2E 或生产验收。
+
+## R2.7 导入导出迁移与网页 Toast 修复（2026-10-17）
+
+> R2.6.1 用户确认的交互预览入口为 `examples/sidebar-tools/prompt-shortcuts/preview/index.html`。此版本只增量整合，不更改原型布局。R2.7 使用新的 **1.1.5** 源码候选版本，不能把最近一次 1.1.4 的候选包或真实验收结果当作 1.1.5 的证据。
+
+### 数据与同步契约
+
+- JSON: `format="opendesk.prompt-shortcuts"`、`version=1`、`exportedAt` 为 ISO 时间、`items` 为提示词数组。正文、显示名、短标签、自动标记、按钮形状、启停、排序属于备份；网站规则、网站选择器、原生菜单授权不属于备份。
+- 最大文件 256 KiB、最多 80 条；使用 `trusted/model.js` 真正验证 Unicode 字素/正文/字段类型/ID/排序，并为导入的备份 ID 安全分配新 ID。以 NFC 标准化正文、换行规范化和去首尾空白跳过重复。**8,192 UTF-8 bytes 上限针对完整 library 单个存储项**，包括 JSON 元数据与所有提示词。
+- 原有网站规则维持独立 `sites` 数据项；导入只对 `library` 使用带 ETag 的 `storage.get/set`，先预览、再确认，替换需二次确认，提交后完整回读比较。ETag 冲突重建预览，结果未知保留备份且禁止自动重试。
+- 已打开网页由 `chrome.storage.onChanged` 驱动可信页面适配器刷新；不得因文件选择、导入预览或取消而通知网页有新内容。只显示即时快捷按钮，不恢复展开/折叠按钮。
+- 网页插入成功只有隐藏的 aria-live 成功播报，无视觉浮层；复制成功 3 秒 Toast、双失败 5 秒 Toast。新反馈替换旧反馈，定时器使用代数令牌，页面导航/SPA/停用/卸载立即移除。
+- Host 负责公共的返回、齿轮设置及卸载。本次 Sandbox 只有新建和紧凑的导入导出入口；不重复 Host 控件。导出调用 `browser.downloads.text` 与原有 `user.export`，必须经过受信任 Host 的本次授权；`started:true` 并非磁盘落盘证据。
+
+### 验收和发布证据界限
+
+- 新源码增补 `tests/environment/prompt-shortcuts-r14-management.test.mjs` 和 `tests/environment/prompt-shortcuts-r14-page.test.mjs` 的导出回读、取消、导入去重、替换二次确认、冲突、未知回执、Toast 生命周期、已打开网页同步回归。
+- GitHub Actions `.github/workflows/prompt-shortcuts-r14.yml` 负责 Node、Chromium 模拟 Host 与候选打包；只有 workflow PASS 后才通过已有 `--promote-from` 门禁并自动同步唯一正式 JSON。CI 未通过前标注 **PENDING/FAILED** 而非发布完成。
+- 真实 Mac Chrome 的安装升级、已登录 ChatGPT 原页面、中文 IME 与 Cmd+Z 需要本版本对应的真实操作证据；不可从过往 1.1.4 继承。没有真实证据时这些项目为 **NOT_TESTED**。
+

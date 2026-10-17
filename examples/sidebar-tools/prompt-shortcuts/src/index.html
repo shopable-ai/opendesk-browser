@@ -1,7 +1,32 @@
 <main class="ps od-page">
   <section id="ps-index" aria-labelledby="ps-title">
-    <header class="ps-head od-page-head"><h2 id="ps-title" class="ps-sr-only">提示词快捷按钮</h2><button id="ps-new" class="od-icon-button od-icon-button--primary ps-action-control" type="button" aria-label="新建提示词" title="新建提示词"></button></header>
+    <header class="ps-head od-page-head"><h2 id="ps-title" class="ps-sr-only">提示词快捷按钮</h2>
+      <div class="ps-head-actions">
+        <button id="ps-new" class="od-icon-button od-icon-button--primary ps-action-control" type="button" aria-label="新建提示词" title="新建提示词"></button>
+        <div id="ps-transfer-control" class="ps-transfer-control">
+          <button id="ps-transfer" class="od-icon-button ps-action-control" type="button" aria-label="导入与导出" title="导入与导出" aria-expanded="false" aria-haspopup="true" aria-controls="ps-transfer-menu"></button>
+          <div id="ps-transfer-menu" class="ps-transfer-menu od-surface" role="group" aria-label="提示词导入导出" hidden>
+            <button id="ps-export" class="od-button od-button--quiet" type="button">导出 JSON</button>
+            <button id="ps-import" class="od-button od-button--quiet" type="button">导入 JSON</button>
+          </div>
+          <input id="ps-import-file" type="file" accept=".json,application/json" aria-label="选择提示词备份 JSON" hidden>
+        </div>
+      </div>
+    </header>
     <div class="ps-list-caption ps-sr-only"><small id="ps-count" role="status" aria-live="polite">0 个 · 0 个启用</small></div>
+    <section id="ps-import-panel" class="ps-import-panel od-surface" aria-labelledby="ps-import-heading" hidden>
+      <strong id="ps-import-heading">导入提示词</strong>
+      <p id="ps-import-name" class="ps-import-name"></p>
+      <p id="ps-import-stats" role="status" aria-live="polite"></p>
+      <p id="ps-import-preview" class="ps-import-preview"></p>
+      <p class="ps-import-explain">默认追加并跳过重复正文；替换保留工具设置及网站规则。</p>
+      <p id="ps-import-warning" class="ps-import-warning" role="alert" hidden></p>
+      <div class="ps-actions ps-import-actions">
+        <button id="ps-import-cancel" class="od-button od-button--secondary" type="button">取消</button>
+        <button id="ps-import-replace" class="od-button od-button--danger" type="button">替换现有</button>
+        <button id="ps-import-append" class="od-button od-button--primary" type="button">追加导入</button>
+      </div>
+    </section>
     <div id="ps-list" class="ps-list"></div>
     <div id="ps-empty" class="ps-empty" hidden><strong>尚未创建提示词</strong><p>点击右上角的新建图标添加第一个快捷按钮。</p></div>
     <section class="ps-settings" aria-label="旧版设置兼容容器" aria-hidden="true" hidden>

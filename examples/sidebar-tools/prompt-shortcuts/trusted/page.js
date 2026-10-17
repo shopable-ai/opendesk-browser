@@ -20,9 +20,15 @@ button:hover{background:#eef2ff;border-color:#365eda}
 /* No blocking fallback dialog: status is announced without changing focus. */
 .feedback{pointer-events:none;position:absolute;left:60px;top:0;width:min(300px,calc(100vw - 84px));
  background:#fff;color:#263347;border:1px solid #d9dbe2;border-radius:10px;box-shadow:0 7px 20px #0000001b;
- padding:10px 12px;font:12px/1.55 system-ui,sans-serif;overflow-wrap:anywhere}
+ padding:10px 38px 10px 12px;font:12px/1.55 system-ui,sans-serif;overflow-wrap:anywhere}
+.feedback button{pointer-events:auto;position:absolute;right:4px;top:4px;width:28px;height:28px;
+ min-height:28px;display:grid;place-items:center;padding:0;background:transparent;color:inherit;
+ border:0;border-radius:6px;box-shadow:none;font:20px/1 system-ui,sans-serif}
 .feedback[data-kind="error"]{color:#992f42;border-color:#d79ba6}
 .feedback[data-kind="success"]{color:#157255;border-color:#9accbc}
+.feedback[hidden]{display:none!important}
+.announcer{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;
+ clip:rect(0,0,0,0)!important;white-space:nowrap!important;pointer-events:none!important}
 `;
 const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
   PROMPT_DATA_STORE];
@@ -32,7 +38,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
-  let feedback=null,items=[],observer=null,resizeObserver=null,layoutTimer=0;
+  let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
+  let items=[],observer=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
   let locationTimer=0,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
@@ -56,13 +63,18 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     detachPicker(picker);
     win.clearTimeout(picker.timer);picker=null;
   };
+  const clearFeedback=()=>{
+    win.clearTimeout(feedbackTimer);feedbackTimer=0;feedbackToken++;
+    if(feedback){feedback.hidden=true;feedback.replaceChildren();feedback.textContent='';}
+    if(announcer)announcer.textContent='';
+  };
   const stop=()=>{
-    visible=false;items=[];activeRule=null;closePicker();
+    visible=false;items=[];activeRule=null;closePicker();clearFeedback();
     observer?.disconnect();observer=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
     host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;
-    feedback=null;
+    feedback=null;announcer=null;
   };
 
   // User selectors are inert CSS data. Match exactly one live, visible node.
@@ -369,28 +381,36 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     hint.textContent='点击仅追加到草稿，不会自动发送';
     tip.append(title,content,hint);tip.hidden=false;
     button.setAttribute('aria-describedby',tip.id);
-    if(feedback)feedback.hidden=true;
+    clearFeedback();
     positionTip();
   };
-  const showFeedback=(message,kind='info')=>{
-    if(!feedback||!host?.isConnected)return;
-    feedback.textContent=message;feedback.dataset.kind=kind;feedback.hidden=false;
+  const showFeedback=(message,kind='success')=>{
+    clearFeedback();
+    if(disposed||paused||!feedback||!host?.isConnected)return;
+    feedback.replaceChildren();feedback.textContent=message;feedback.dataset.kind=kind;feedback.hidden=false;
+    const dismiss=doc.createElement('button');
+    dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','关闭提示');
+    dismiss.addEventListener('click',()=>clearFeedback());
+    feedback.append(dismiss);
+    if(announcer)announcer.textContent=message;
+    const token=feedbackToken;
+    feedbackTimer=win.setTimeout(()=>{
+      if(token!==feedbackToken||disposed||paused)return;
+      clearFeedback();
+    },kind==='error'?5000:3000);
   };
-  const fallbackCopy=async(body,reason)=>{
+  const fallbackCopy=async(body,_reason)=>{
+    const token=epoch,location=win.location.href;
+    const current=()=>!disposed&&!paused&&visible&&token===epoch&&location===win.location.href&&host?.isConnected;
+    if(!current())return;
     hideTip();
     try{
       if(!win.navigator?.clipboard?.writeText)throw Error('浏览器没有提供可用的剪贴板写入接口');
       await win.navigator.clipboard.writeText(body);
-      showFeedback(reason==='单行输入框不支持多行提示词'?
-        '当前是单行输入框，不支持换行；已复制完整提示词，请改用多行编辑器。':
-        reason==='编辑器剩余长度不足，已取消插入'?
-        '输入框长度不足；已复制完整提示词，未修改原草稿。':
-        reason?
-        '编辑器插入未确认；已复制完整提示词。请先检查草稿再粘贴，避免重复。':
-        '已复制提示词，可直接粘贴。','success');
+      if(current())showFeedback('已复制，请粘贴','success');
     }catch(error){
-      showFeedback('插入失败，复制也失败：'+(error?.message||'剪贴板访问被拒绝')+
-        '。请检查网页与剪贴板权限后重试。','error');
+      if(current())showFeedback('插入失败，复制也失败：'+(error?.message||'剪贴板访问被拒绝')+
+        '；请检查剪贴板权限。','error');
     }
   };
   const editor=()=>{
@@ -482,7 +502,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!target.isConnected||typeof after!=='string'||
         normalizeDraft(after)!==normalizeDraft(before+insertion))
         throw Error('草稿正文或换行未得到完整确认，请核对并手动复制');
-      hideTip();showFeedback('已插入输入框，未发送。','success');
+      hideTip();clearFeedback();
+      // The edit is its own visible confirmation; announce silently for screen readers.
+      if(announcer&&host?.isConnected)announcer.textContent='提示词已插入草稿，未发送';
     }catch(error){
       if(!disposed&&!paused&&visible&&!composing&&token===epoch&&location===win.location.href&&host?.isConnected)
         await fallbackCopy(row.body,error.message);
@@ -504,10 +526,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       tip.addEventListener('mouseleave',delayHideTip);
       tip.addEventListener('focusin',()=>win.clearTimeout(hideTipTimer));
       tip.addEventListener('focusout',delayHideTip);
-      shadow.addEventListener('keydown',event=>{if(event.key==='Escape'){hideTip();if(feedback)feedback.hidden=true;}});
+      shadow.addEventListener('keydown',event=>{if(event.key==='Escape'){hideTip();clearFeedback();}});
       feedback=doc.createElement('div');feedback.className='feedback';feedback.hidden=true;
-      feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
-      shadow.append(style,rail,tip,feedback);doc.documentElement.append(host);
+      feedback.setAttribute('aria-hidden','true');
+      announcer=doc.createElement('span');announcer.className='announcer';
+      announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');
+      shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
     rail.replaceChildren();
     for(const row of items){
@@ -530,7 +554,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   async function refresh(){
     if(disposed||paused)return;
     closePicker();
-    const token=++epoch,url=win.location.href;href=url;
+    const token=++epoch,url=win.location.href;
+    if(href!==url)clearFeedback();
+    href=url;
     try{
       const values=await api.storage.local.get(KEYS);
       const sites=supportedOrigin(url)?null:MODEL.sitesLoad(values[PROMPT_DATA_STORE]?.sites);
@@ -567,7 +593,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   const onCompositionEnd=()=>{composing=false;};
   const onPageShow=()=>{paused=false;void refresh();};
   const onPageHide=event=>{epoch++;paused=true;stop();if(!event.persisted)dispose();};
-  const onNav=()=>{if(href!==win.location.href)void refresh();else schedule();};
+  const onNav=()=>{if(href!==win.location.href){clearFeedback();void refresh();}else schedule();};
   function dispose(){
     if(disposed)return;disposed=true;epoch++;stop();
     win.clearInterval(locationTimer);
