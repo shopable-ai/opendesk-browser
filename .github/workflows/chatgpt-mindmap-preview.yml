@@ -222,7 +222,7 @@ jobs:
             --browser "$XMIND_CHROME" \
             --playwright "$GITHUB_WORKSPACE/node_modules/playwright-core/index.mjs" \
             --out "${RUNNER_TEMP}/r36-xmind-proof"
-      - name: Preserve only screenshots and result (never SDK vendor bytes)
+      - name: Preserve screenshots, fixture downloads and results (no SDK vendor bytes)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -230,6 +230,8 @@ jobs:
           path: |
             ${{ runner.temp }}/r36-xmind-proof/*.png
             ${{ runner.temp }}/r36-xmind-proof/*.json
+            ${{ runner.temp }}/r36-xmind-proof/*.xmind
+            ${{ runner.temp }}/r36-xmind-proof/*.md
           retention-days: 7
           if-no-files-found: ignore
       - name: Declare proof scope
