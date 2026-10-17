@@ -93,3 +93,78 @@
 - 定向静态/URL 协议测试：`tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs`（是否 PASS 应以对应 Commit 的真实 Node/CI 记录为准）。
 - 纯演示 HTML 在当前聊天中创建，不是可复用的正式 JSX 源码或通过 Chromium 的发行产物；`preview/index.html` 未晋升，`preview/dev.html` 仍为被 Git 忽略的构建候选。
 - **仍未发布**：原正式 `examples/sidebar-tools/bookmark-manager/src/main.js`、工具版本 `0.3.8`、官方 Catalog、可安装 JSON 未被替换。下一轮先验证 R3.0.8 同源 React 预览和真实原生 SDK 行为，再明确实施范围与批准门槛。
+
+
+## R3.1 正式可信 React 非发布候选实测（2026-10-17）
+
+> **SOURCE_BUILD_PASS / REACT_MOCK_CHROMIUM_PASS / NATIVE_NOT_TESTED / RELEASE_BLOCKED**。
+> 所有 PASS 均归属于下方明确的 CI SHA；不将 Mock Fixture 当作正式安装验证。
+> 未修改工具版本、正式包的源文件、安装 Catalog，也未将 React 预览晋升到 `preview/index.html`。
+
+### 实际实施和修复
+
+- 复用 `src/ui/react/main.tsx` 的既有单 React Root/Portal 和原 Host SDK Dispatcher；
+  `App.jsx` 是 React UI 的唯一来源。依然由开发者 URL `bookmarkReactPilot=1`
+  显式启用且经过官方发行身份和撤权 epoch 准入；普通正式工具仍使用 opaque iframe。
+- 调整可信书签观察为 **watchStart → 完整树快照 → watchRead**，观察会话重建时也强制
+  新快照；`E_BOOKMARK_EVENT_GAP` 丢弃过期树、重新观察。异步关闭后停止观察。
+  自动跨窗口变更重读不会清除写入结果未知标志；用户显式刷新并成功读回才能解除。
+- 构建安全门禁在首次正式构建失败后，未对 `examples/` 设通配例外。
+  `scripts/bundle-provenance.mjs` 对指定 `ui/tool-shell.js` 的四个第一方输入
+  （`src/model.js`、`src/service.js`、唯一 `App.jsx`、`style.css`）
+  使用精确 Git Blob SHA-1 固定、符号链接拒绝，来源发生变化需要重新审阅。
+  动态安装包 JS/JSX 仍不能进入可信 JS 构建。
+- React 中 Cookie/Bookmark 试点局部 CSS 使用 `?raw` 并随既有 React Root
+  输出单一受作用域约束的样式节点，避免 Vite 生成未经固定产物表登记的根级
+  `tool-shell.css`。不改变其他工具样式，不提高工具包限制或关闭 CSP。
+- R3.0.7 窄屏 12px 悬浮详情、宽屏非模态右侧详情及 R3.0.8 原生可点击 HTTP(S)
+  URL 保持原有 JSX；未新建第二个业务 UI。
+
+### 可复核的真实门禁证据
+
+- 正式主线源码提交依次为
+  `b5539418ff2b1e413b6278f4d7dbd9ea10cacdb2`、
+  `a2e25bcd0a117c965998fc25f5cf2c4f0158fd55`、
+  `62ef4881ff0cee403b7d4bdd3d41beec1148761f`、
+  `f1e6edd6702888de0eceab6f6a75f9b77debe5e7`。
+- **成功 CI**：https://github.com/shopable-ai/opendesk-browser/actions/runs/39042573072
+  （head `f1e6edd6702888de0eceab6f6a75f9b77debe5e7`）。
+  `trusted-source-build`：Node 30/30 PASS、`npm run check` PASS、
+  `npm run build` PASS、`scripts/verify-package.mjs dist/production` PASS。
+  `react-chromium`：JSX 构建、候选一致性、独立预算报告、真实 Chromium
+  360/400/960px Fixture 交互 PASS；安装 CJK 字体后已保存可读截图。
+- **生产 `ui/tool-shell.js`**：900,994 bytes；
+  SHA-256 `a49b7e000f736734cb3b88725ab3cdfe95deb52c38cec1059f206d11892ae241`；
+  1,048,576 bytes 硬门槛 PASS；余量 147,582 bytes；利用率 85.93%，
+  **超出 655,360 bytes 的非阻断审阅线**（`requiresSizeReview=true`）。
+  生产包总量 4,988,922 bytes；Bundle 全部固定 JS 合计 3,571,183 bytes。
+  实际增量尚无同环境的迁移前基线，不能用过时的旧构建记录直接相减。
+- `manifest.json` 特权页面 CSP `script-src 'self'; object-src 'self'`；
+  正式包校验 `privilegedDynamicExecutionFound=false`。
+  `ui/tool-shell.js` 的模块图包含四个精确审核的 Bookmark 文件及复用的 React npm
+  模块；没有独立工具 React Runtime 安装。
+- 已构建但**未晋升**的官方 Classic Bookmark Manager 工具包：
+  `0.3.8`、86,736 bytes、
+  SHA-256 `0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76`。
+- 独立 JSX 离线交互 HTML：`preview/dev.html`，521,905 bytes，
+  SHA-256 `eef03b3c0d6a08327b911f887075264a9183b846c1217c21d8c86e71f77b2dc7`，
+  `mock=true`、`nativeVerified=false`、`sourceBound=false`；
+  同一个 `App.jsx`，但宿主数据与 SDK 是隔离 Fixture。
+  独立 React IIFE 为 225,001 bytes，超过动态工具 220,000 bytes 限制：
+  `BUDGET_BLOCKED`，不得安装，更不得通过提高包限额掩盖。
+  预览采用离线专用打包，不代表正式 Host 又打入一份独立 Runtime。
+
+### 未完成且禁止视为 PASS
+
+1. 开发版 Mac Chrome 的真实安装 Profile：Book­mark Manager 已安装、Full Bookmarks
+   授权、撤权、原生分页、跨窗口变化、危险删除票据、原始 TabRef/DocumentRef、
+   修改/更新/停用/卸载以及 Host 临界竞态。均 **NOT_TESTED**。
+2. URL 锚点的浏览器原生新标签页创建/打开事件及焦点去向尚未在正式 Host
+   中验证；已验证的仅为实际 Chromium 中的锚点结构、HTTP(S) 约束与可点击区域。
+3. Cookie/Bookmark 与其余动态 iframe 共存的**真实安装操作**，以及端到端
+   旧版沙箱合法用户体验、较大书签数据下的稳定性与内存峰值。**NOT_TESTED**。
+4. 10 个维度的独立产品专家 ≥95 分未取得真实端到端证据，全部保留
+   `NOT_SCORED`，不以单次 Mock 浏览器通过替代独立评分。
+
+**结论**：批准继续在非发布可信 React 候选上做开发版 Native 端到端验收；
+**不批准正式版本升级、安装包替换、Catalog 修改或发布**。
