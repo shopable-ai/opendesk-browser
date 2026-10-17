@@ -2674,6 +2674,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(window,'message',onMessage);
   if(retiredDraftDismiss)listen(retiredDraftDismiss,'click',()=>{if(active)recoverableDrafts.delete(active.id);render();});
   // Knowledge drafts do not register browser-native exit confirmations.
+  // Native Chrome permission removal must erase already-rendered private
+  // bookmarks immediately, without waiting for the next observe poll.
+  if(api.permissions?.onRemoved?.addListener){
+    const onBookmarkChromeGrantRemoved=details=>{
+      if(!details?.permissions?.includes('bookmarks')||
+         active?.id!==TRUSTED_BOOKMARK_ID||
+         !(nativeUI?.kind==='bookmark'||nativePending))return;
+      destroyFrame();tocSettingsOpen=true;render();
+      notice('Chrome 完整书签权限已撤销；可信界面及书签数据已清空。',true);
+    };
+    api.permissions.onRemoved.addListener(onBookmarkChromeGrantRemoved);
+    listeners.push(()=>api.permissions.onRemoved.removeListener(onBookmarkChromeGrantRemoved));
+  }
   const enableReady=loadEnableRecords().catch(error=>notice(error.message,true));
   const installedReady=loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
   const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
