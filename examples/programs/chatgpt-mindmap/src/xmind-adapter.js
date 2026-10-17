@@ -1,5 +1,6 @@
 import {mindTreeToXmindBlob} from './xmind-convert.js';
 import {verifyXmindWorkbook} from './export.js';
+import {captureXmindPng} from './xmind-png.js';
 
 // Keep teardown owned by the product even when the original Snowbrush SDK
 // rejects close(). This controls DOM lifetime, NOT its document-global CSS.
@@ -241,7 +242,20 @@ export function createXmindRenderer({window,canvas,tree,skinMode='dark'}){
     operations=operation.then(()=>{},()=>{});
     return operation;
   }
-  return Object.freeze({ready,fit,reflow,destroy,exportXmind,
+  function exportPng(){
+    const operation=operations.then(async()=>{
+      await ready;
+      if(disposed)throw Object.assign(new Error('E_XMIND_FRAME_DESTROYED'),
+        {code:'E_XMIND_FRAME_DESTROYED'});
+      const blob=await captureXmindPng({sdk,window,canvas,tree,skinMode:appliedSkin});
+      if(disposed)throw Object.assign(new Error('E_XMIND_FRAME_DESTROYED'),
+        {code:'E_XMIND_FRAME_DESTROYED'});
+      return blob;
+    });
+    operations=operation.then(()=>{},()=>{});
+    return operation;
+  }
+  return Object.freeze({ready,fit,reflow,destroy,exportXmind,exportPng,
     setTheme(mode){
       if(mode!=='light'&&mode!=='dark')return Promise.reject(new Error('E_XMIND_THEME'));
       if(disposed)return Promise.resolve();
