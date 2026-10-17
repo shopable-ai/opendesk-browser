@@ -10,6 +10,16 @@ const make=(doc,tag,text)=>{
 };
 const dark=doc=>doc.documentElement.classList.contains('dark')||
   doc.documentElement.getAttribute('data-theme')==='dark';
+// Only a non-sensitive theme choice is kept in ChatGPT's origin storage.
+// Restrictive/privacy contexts still support the toggle for this session.
+const VIEW_THEME_KEY='opendesk.chatgpt-mindmap.viewer-theme.v1';
+const readViewerTheme=win=>{
+  try{return win.localStorage?.getItem(VIEW_THEME_KEY)==='light'?'light':'dark';}
+  catch{return 'dark';}
+};
+const saveViewerTheme=(win,mode)=>{
+  try{win.localStorage?.setItem(VIEW_THEME_KEY,mode);}catch{/* optional storage */}
+};
 
 function makeButton(doc,css,owner,handleClick){
   const host=make(doc,'span');
@@ -42,7 +52,7 @@ function makeButton(doc,css,owner,handleClick){
   }};
 }
 
-function answerController({document,window,owner,css,parts,coordinator,createView,instanceId}){
+function answerController({document,window,owner,css,parts,coordinator,createView,instanceId,themePreference}){
   let {root,content,bar}=parts;
   let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0,viewSession=0;
   const readMessageId=()=>root.getAttribute('data-message-id')||root.id||null;
@@ -83,18 +93,20 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     }
   }
   function syncTheme(){
-    if(disposed)return;
-    const theme=dark(document)?'true':'false';
-    if(buttonRef.host.getAttribute('data-dark')!==theme){
-      buttonRef.host.setAttribute('data-dark',theme);
+    if(disposed)return Promise.resolve();
+    // The trigger blends into ChatGPT, while the workbook has its own
+    // persistent light/dark preference and never changes the page theme.
+    const pageTheme=dark(document)?'true':'false';
+    if(buttonRef.host.getAttribute('data-dark')!==pageTheme){
+      buttonRef.host.setAttribute('data-dark',pageTheme);
     }
-    if(view&&view.host.getAttribute('data-dark')!==theme){
-      view.host.setAttribute('data-dark',theme);
-      // Keep the original XMind workbook skin in step with the host, not
-      // just the shadow-toolbar colors. Rendering is serialized per answer.
+    const viewerTheme=themePreference.mode==='dark'?'true':'false';
+    if(view&&view.host.getAttribute('data-dark')!==viewerTheme){
+      view.host.setAttribute('data-dark',viewerTheme);
       const current=view,session=viewSession;
-      view.setTheme(theme==='true').catch(error=>failed(error,current,session));
+      return view.setTheme(viewerTheme==='true').catch(error=>failed(error,current,session));
     }
+    return Promise.resolve();
   }
   function syncButton(){
     if(disposed)return;
@@ -178,7 +190,8 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
       onError:error=>failed(error,nextView,session),
       onOriginal:()=>close({focus:true}),
       onRefresh:()=>refresh(),
-      onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api)});
+      onFullscreen:()=>coordinator.setFull(coordinator.full===api?null:api),
+      onToggleTheme:()=>themePreference.toggle()});
     try{
       // The original content remains connected, immutable and restorable.
       if(content.contains(document.activeElement))buttonRef.button.focus({preventScroll:true});
@@ -249,6 +262,17 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
   let nextInstance=0;
   let disposed=false,pending=false,route=window.location.pathname+window.location.search;
   let full=null,lastScanned=0;
+  let preferredTheme=readViewerTheme(window);
+  const themePreference={
+    get mode(){return preferredTheme;},
+    toggle(){
+      if(disposed)return Promise.resolve();
+      preferredTheme=preferredTheme==='dark'?'light':'dark';
+      saveViewerTheme(window,preferredTheme);
+      // All open replies share one explicit user choice.
+      return Promise.all([...controllers].map(controller=>controller.syncTheme()));
+    }
+  };
   const retiring=new Set(),cleanupErrors=[];
   function retire(view,after=Promise.resolve()){
     if(!view)return Promise.resolve();
@@ -288,7 +312,7 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
       }
       if(existing&&controllers.has(existing)){existing.reconcile(parts);continue;}
       const controller=answerController({document,window,owner,css,parts,coordinator,createView,
-        instanceId:`answer-${++nextInstance}`});
+        instanceId:`answer-${++nextInstance}`,themePreference});
       byRoot.set(root,controller);controllers.add(controller);
     }
   }
@@ -336,12 +360,19 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
       {subtree:true,childList:true,characterData:true,attributes:true,
         attributeFilter:['data-is-streaming','aria-busy','data-message-id','id','data-message-complete']});
     owner.on(window,'keydown',keydown);
-    // A theme mutation is visible at the next microtask, before a delayed
-    // 140 ms answer rescan. This also updates already-open A/B viewers.
+    // A page-theme mutation updates the native trigger only; it never
+    // overrides the user's separately saved workbook skin.
     owner.observe(document.documentElement,()=>{
       if(disposed)return;
       for(const controller of controllers)controller.syncTheme();
     },{attributes:true,attributeFilter:['class','data-theme']});
+    owner.on(window,'storage',event=>{
+      if(disposed||event.key!==VIEW_THEME_KEY)return;
+      const next=event.newValue==='light'?'light':'dark';
+      if(next===preferredTheme)return;
+      preferredTheme=next;
+      for(const controller of controllers)controller.syncTheme();
+    });
     owner.setInterval(checkRoute,1100);
     scan();
   }

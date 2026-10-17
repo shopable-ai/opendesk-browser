@@ -13,6 +13,8 @@ const ICONS={
   shrink:['M3 3l6 6','M9 4v5H4','M21 3l-6 6','M15 4v5h5',
     'M3 21l6-6','M9 20v-5H4','M21 21l-6-6','M15 20v-5h5'],
   refresh:['M20 11a8 8 0 0 0-14-5L3 9','M3 3v6h6','M4 13a8 8 0 0 0 14 5l3-3','M21 21v-6h-6'],
+  sun:['M12 2v2','M12 20v2','M4.93 4.93l1.42 1.42','m17.65 17.65 1.42 1.42','M2 12h2','M20 12h2','m6.35 17.65-1.42 1.42','m19.07 4.93-1.42 1.42','M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0'],
+  moon:['M20.985 12.486A9 9 0 0 1 11.514 3.015a7 7 0 1 0 9.471 9.471Z'],
   more:['M5 12h.01','M12 12h.01','M19 12h.01']
 };
 function icon(document,name){
@@ -30,7 +32,7 @@ function icon(document,name){
 
 // Each answer owns one controller. Its DOM stays inside the existing reply.
 export function createAnswerView({document,window,owner,css,tree,nodeCount,truncated,
-  onOriginal,onRefresh,onFullscreen,onError,identity,rendererFactory=createXmindRenderer}){
+  onOriginal,onRefresh,onFullscreen,onToggleTheme,onError,identity,rendererFactory=createXmindRenderer}){
   const el=(tag,className,label)=>{
     const node=document.createElement(tag);
     if(className)node.className=className;
@@ -51,6 +53,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   const zoomGroup=makeGroup('缩放');
   const branchGroup=makeGroup('分支','odmm-desktop-only');
   const fullGroup=makeGroup('全屏');
+  const themeGroup=makeGroup('导图主题','odmm-desktop-only');
   const refreshGroup=makeGroup('更新','odmm-desktop-only');
   const menuGroup=makeGroup('更多','odmm-mobile-only odmm-menu-wrap');
   const menu=el('div','odmm-menu');menu.id='odmm-more-menu';
@@ -58,7 +61,12 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   menu.hidden=true;
   const removers=[],renderButtons=[],buttons=new Map();
   let renderer=null,fullscreen=false,disposed=false,closing=null,inlineParent=null,inlineNext=null;
-  let preferredSkin=null,menuOpen=false;
+  let preferredSkin='dark',menuOpen=false;
+  function syncThemeButton(){
+    const dark=preferredSkin==='dark';
+    update('theme',{glyph:dark?'sun':'moon',
+      label:dark?'切换为浅色导图':'切换为深色导图'});
+  }
   function remember(id,button){
     if(!buttons.has(id))buttons.set(id,[]);
     buttons.get(id).push(button);
@@ -124,6 +132,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     run:toggleFold,group:branchGroup,render:true});
   action({id:'fullscreen',glyph:'expand',label:'进入全屏',
     run:onFullscreen,group:fullGroup,render:true});
+  const toggleTheme=()=>onToggleTheme?onToggleTheme():setTheme(preferredSkin!=='dark');
+  action({id:'theme',glyph:'sun',label:'切换为浅色导图',
+    run:toggleTheme,group:themeGroup,render:true});
   action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
     run:onRefresh,group:refreshGroup});
   const more=el('button','odmm-tool odmm-more');
@@ -133,12 +144,15 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   menuGroup.append(more);
   action({id:'fold',glyph:'fold',label:'折叠所有分支',
     run:toggleFold,group:menu,render:true,menuItem:true});
+  action({id:'theme',glyph:'sun',label:'切换为浅色导图',
+    run:toggleTheme,group:menu,render:true,menuItem:true});
   action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
     run:onRefresh,group:menu,menuItem:true});
   menuGroup.append(menu);
   update('refresh',{hidden:true});
   update('fold',{pressed:false});
   update('fullscreen',{pressed:false});
+  syncThemeButton();
   removers.push(owner.on(more,'click',()=>{
     menuOpen=!menuOpen;menu.hidden=!menuOpen;
     more.setAttribute('aria-expanded',String(menuOpen));
@@ -181,6 +195,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   async function start(){
     if(disposed)return;
     preferredSkin=host.getAttribute('data-dark')==='true'?'dark':'light';
+    syncThemeButton();
     renderer=rendererFactory({window,canvas,tree,skinMode:preferredSkin,identity});
     await renderer.ready;
     if(disposed)return;
@@ -194,8 +209,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   async function setTheme(isDark){
     if(disposed)return;
     const next=isDark?'dark':'light';
-    if(preferredSkin===next)return;
+    if(preferredSkin===next){syncThemeButton();return;}
     preferredSkin=next;
+    syncThemeButton();
     if(renderer){
       host.dataset.skinPending=next;
       await renderer.setTheme(next);
