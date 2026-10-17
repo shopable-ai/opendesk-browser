@@ -12,16 +12,27 @@ const CSS=[
 ':host([hidden]){display:none!important}',
 '.head{display:flex;justify-content:space-between;align-items:center;gap:2px;margin-bottom:8px}',
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
-'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}',
+'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex:0 1 auto;overflow:hidden}',
 '.grab:active{cursor:grabbing}.grab svg{width:13px;height:13px;flex:none;color:#8b90a1}',
 ':host([data-toc-custom]){transition:left .16s ease,top .16s ease}',
 ':host([data-toc-dragging]){transition:none!important}',
 ':host([data-toc-dragging]) .panel{box-shadow:0 9px 25px #1018272b}',
-'.heading{font-size:12px;font-weight:650;letter-spacing:.045em;color:#727685}',
-'.modes{display:flex;align-items:center;gap:1px;margin-left:auto;padding:2px;border:1px solid #e9e9ef;border-radius:8px;background:#fafafd}',
-'.mode{display:grid;place-items:center;width:27px;height:27px;border:0;border-radius:5px;background:transparent;color:#858996;padding:0}',
-'.mode svg{width:14px;height:14px}.mode[aria-pressed=true]{background:#fff;box-shadow:0 1px 3px #171d2a15;color:#303342}',
-'.modes[hidden]{display:none}',
+'.heading{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:650;letter-spacing:.045em;color:#727685}',
+'.modes{display:flex;align-items:center;gap:1px;margin-left:auto;padding:2px;border:1px solid #e9e9ef;border-radius:8px;background:#fafafd;flex:none}',
+'.mode{display:grid;place-items:center;flex:none;width:25px;height:27px;border:0;border-radius:5px;background:transparent;color:#858996;padding:0}',
+'.mode svg{width:13px;height:13px}.mode[aria-pressed=true]{background:#fff;box-shadow:0 1px 3px #171d2a15;color:#303342}',
+'.scroll[hidden],.ai-view[hidden]{display:none!important}',
+'.ai-view{min-width:0}',
+'.ai-member{padding:10px;background:#f8faff;border:1px solid #e4eaf7;border-radius:9px}',
+'.ai-member-head,.ai-promo-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px}',
+'.ai-member-title{color:#1b2c49;font-size:12px;font-weight:680}',
+'.ai-member-tag,.ai-promo-brand,.ai-promo-kind{color:#7889a2;font-size:10px}',
+'.ai-member-copy{margin:5px 0 7px;color:#566982;font-size:11px;line-height:1.5}',
+'.ai-member-status{color:#697b96;font-size:11px}',
+'.ai-member-disclaimer{margin:5px 0 0;color:#8b96a8;font-size:10px;line-height:1.45}',
+'.ai-promo{margin-top:9px;padding:10px;background:#fff;border:1px solid #e6ebf3;border-radius:9px}',
+'.ai-promo-title{margin:5px 0 0;color:#2c3b56;font-size:12px;font-weight:650}',
+'.ai-promo-copy{margin:4px 0 0;color:#6d7f95;font-size:11px;line-height:1.5}',
 // Available height follows the viewport rather than the narrowed layout width
 // (opening Chrome Side Panel can shrink an otherwise tall desktop to <1100px).
 '.scroll{max-height:min(68dvh,calc(100dvh - 150px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}',
@@ -42,7 +53,11 @@ const CSS=[
 '.mode{color:#8b90a1}.mode[aria-pressed=true]{background:#2a2d3a;color:#e3e7f4}',
 '.link{color:#a0a5b4}.link:hover,.link[aria-current=location]{color:#f4f5f7}',
 '.list li.answer-start{border-color:#383a48}',
-'.more{background:#272936;color:#acbfff;border-color:#383a48}.more:hover{background:#303850;color:#d4dfff}}',
+'.ai-member{background:#23283a;border-color:#39415d}',
+'.ai-member-title,.ai-promo-title{color:#edf1fc}',
+'.ai-member-copy,.ai-member-status{color:#abb8d0}',
+'.ai-member-tag,.ai-member-disclaimer,.ai-promo-brand,.ai-promo-kind,.ai-promo-copy{color:#9aa8be}',
+'.ai-promo{background:#1b1c24;border-color:#383a48}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}}',
 '@media(max-width:720px){:host{top:auto;bottom:var(--toc-bottom,8px);right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
@@ -50,7 +65,8 @@ const CSS=[
 const ICONS=[
 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></svg>',
 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2"/></svg>',
-'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg>'
+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg>',
+'<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.55 5.2L19 10l-5.45 1.8L12 17l-1.55-5.2L5 10l5.45-1.8L12 3Z"/><path d="m19 17 .65 1.35L21 19l-1.35.65L19 21l-.65-1.35L17 19l1.35-.65L19 17ZM4 15l.62 1.38L6 17l-1.38.62L4 19l-.62-1.38L2 17l1.38-.62L4 15Z"/></svg>'
 ];
 // A short outline defaults to overview without mutating the user's selected mode.
 export function readingTocDisplayMode(mode,compact,userSelected=false){
@@ -70,10 +86,10 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const head=make('div','head'),caption=make('strong','heading');
   caption.textContent='CONTENTS';
   const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
-  const types=['top','focus','full'],buttons=[];
-  let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='',moreRemaining=0;
+  const types=['top','focus','full','ai'],buttons=[];
+  let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
   types.forEach((name,index)=>{
-    const button=make('button','mode');button.type='button';button.title=t(['topLabel','focusLabel','fullLabel'][index]);
+    const button=make('button','mode');button.type='button';button.title=t(['topLabel','focusLabel','fullLabel','aiLabel'][index]);
     button.setAttribute('aria-label',button.title);button.dataset.mode=name;
     button.setAttribute('aria-pressed',String(index===0));button.innerHTML=ICONS[index];
     button.addEventListener('click',()=>{mode=name;modeExplicit=true;render();});buttons.push(button);modes.append(button);
@@ -88,23 +104,45 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   // refresh-like circular-arrow action. Position reset remains on Home/double-click.
   head.append(grab,modes);
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
-  const more=make('button','more');more.type='button';more.hidden=true;
-  more.addEventListener('click',()=>{mode='full';modeExplicit=true;render();});
-  empty.textContent=t('pageEmpty');scroll.append(list,more,empty);panel.append(head,scroll);root.append(panel);
-  function updateMore(){
-    more.textContent=t('moreWithCount',{count:moreRemaining});
-    more.setAttribute('aria-label',t('moreAria',{count:moreRemaining}));
+  empty.textContent=t('pageEmpty');scroll.append(list,empty);
+  // Copy the reviewed, untranslated AI membership/partner contract from the
+  // official Side Panel. This trusted view never calls a model or payment API.
+  const aiView=make('section','ai-view');aiView.hidden=true;
+  const member=make('div','ai-member'),memberHead=make('div','ai-member-head');
+  const memberTitle=make('strong','ai-member-title'),memberTag=make('span','ai-member-tag');
+  const memberCopy=make('p','ai-member-copy'),memberStatus=make('div','ai-member-status');
+  const memberDisclaimer=make('p','ai-member-disclaimer');
+  memberHead.append(memberTitle,memberTag);
+  member.append(memberHead,memberCopy,memberStatus,memberDisclaimer);
+  const promo=make('section','ai-promo'),promoHead=make('div','ai-promo-head');
+  const promoBrand=make('span','ai-promo-brand'),promoKind=make('span','ai-promo-kind');
+  const promoTitle=make('strong','ai-promo-title'),promoCopy=make('p','ai-promo-copy');
+  promoHead.append(promoBrand,promoKind);
+  promo.append(promoHead,promoTitle,promoCopy);aiView.append(member,promo);
+  panel.append(head,scroll,aiView);root.append(panel);
+  function updateAiCopy(){
+    aiView.setAttribute('aria-label',t('aiLabel'));
+    memberTitle.textContent=t('memberTitle');
+    memberTag.textContent=t('memberTag');
+    memberCopy.textContent=t('memberDescription');
+    memberStatus.textContent=t('memberUnavailableMeta');
+    memberDisclaimer.textContent=t('memberUnavailableDisclaimer');
+    promo.setAttribute('aria-label',t('promoRecruit'));
+    promoBrand.textContent=t('recruitBrand');
+    promoKind.textContent=t('recruitKind');
+    promoTitle.textContent=t('recruitTitle');
+    promoCopy.textContent=t('recruitDescription');
   }
   function updateLanguage(){
     panel.setAttribute('aria-label',t('pageLabel'));
     caption.textContent=t('contents');
     modes.setAttribute('aria-label',t('modesLabel'));
     buttons.forEach((button,index)=>{
-      button.title=t(['topLabel','focusLabel','fullLabel'][index]);
+      button.title=t(['topLabel','focusLabel','fullLabel','aiLabel'][index]);
       button.setAttribute('aria-label',button.title);
     });
     grab.title=t('dragTitle');grab.setAttribute('aria-label',t('dragAria'));
-    empty.textContent=t('pageEmpty');updateMore();
+    empty.textContent=t('pageEmpty');updateAiCopy();
   }
   updateLanguage();
   (doc.body||doc.documentElement).append(host);
@@ -221,15 +259,23 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     const scoped=items.filter(item=>item.sourceId===selected);
     const active=scoped.find(item=>item.id===activeId)||scoped[0];
     const overview=snapshot.overview?.[selected];
+    // All four modes remain visible even for a single-heading page.
+    // AI is intentionally read-only and retains the last free TOC snapshot.
+    if(mode==='ai'){
+      scroll.hidden=true;aiView.hidden=false;
+      for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode==='ai'));
+      reposition();place();return;
+    }
+    scroll.hidden=false;aiView.hidden=true;
     const compact=scoped.length<=5&&(scoped.length===0||overview?.ids?.length===scoped.length);
     const displayMode=readingTocDisplayMode(mode,compact,modeExplicit);
-    // Keep the full-outline icon accessible when several ChatGPT answers exist.
-    modes.hidden=compact&&!modeExplicit&&!(adapter==='chatgpt'&&sources.length>1);
     const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
-    const represented=displayMode==='top'
+    const overviewShowsAll=scoped.length<=12;
+    const represented=displayMode==='top'&&!overviewShowsAll
       ?scoped.find(item=>item.id===(overview?.representedId||active?.topId)):active;
     const isChatFull=adapter==='chatgpt'&&displayMode==='full';
-    const show=isChatFull?items:displayMode==='full'?scoped:displayMode==='top'?scoped.filter(item=>overviewIds.has(item.id)):
+    const show=isChatFull?items:displayMode==='full'?scoped:displayMode==='top'
+      ?(overviewShowsAll?scoped:scoped.filter(item=>overviewIds.has(item.id))):
       scoped.filter(item=>item.depth===0||item.topId===active?.topId);
     const key=displayMode+'|'+(isChatFull?'chat-all':'source')+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth+'-'+i.sourceId).join('|');
     if(key!==lastKey){
@@ -252,9 +298,6 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       else button.removeAttribute('aria-current');
     }
     empty.hidden=show.length>0;
-    const remaining=displayMode==='top'?Math.max(0,overview?.hiddenCount||0):0;
-    more.hidden=remaining===0;
-    moreRemaining=remaining;updateMore();
     reposition();place();
     const current=list.querySelector('[aria-current="location"]');
     if(current){
