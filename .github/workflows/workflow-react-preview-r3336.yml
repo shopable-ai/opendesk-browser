@@ -1,0 +1,89 @@
+name: Workflow R33.3.6 React source-bound preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/react/tabs/workflow.tsx'
+      - 'src/ui/react/preview/workflow-preview.tsx'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
+      - 'scripts/preview/build-workflow-react-preview.mjs'
+      - 'tests/environment/workflow-react-preview-contract.test.mjs'
+      - 'prototypes/sidebar/workflow/react-preview/**'
+      - '.github/workflows/workflow-react-preview-r3336.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  workflow-react-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Generate exact React and tool.html offline preview
+        run: node scripts/preview/build-workflow-react-preview.mjs
+      - name: Source-drift guard and focused contracts
+        run: |
+          node scripts/preview/build-workflow-react-preview.mjs --check
+          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/react-sidebar-r333.test.mjs tests/environment/workflow-ui-states.test.mjs
+      - name: Actual source JSX in Chromium (not installed extension)
+        run: node scripts/tests/react-sidebar-r3331-browser.mjs
+      - name: Real Chrome offline preview DOM and 360px screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME"
+          mkdir -p artifacts/workflow-react-preview
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --virtual-time-budget=3500 \
+            --dump-dom "file://$PWD/prototypes/sidebar/workflow/react-preview/index.html" \
+            > artifacts/workflow-react-preview/dom.txt
+          grep -q 'data-workflow-preview-ready="true"' artifacts/workflow-react-preview/dom.txt
+          grep -q 'data-preview-scenario' artifacts/workflow-react-preview/dom.txt
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --virtual-time-budget=3500 --window-size=520,950 \
+            --screenshot="$PWD/artifacts/workflow-react-preview/360.png" \
+            "file://$PWD/prototypes/sidebar/workflow/react-preview/index.html"
+          test -s artifacts/workflow-react-preview/360.png
+      - name: Upload exact offline HTML and Chromium screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-react-r3336-offline-${{ github.sha }}
+          path: |
+            prototypes/sidebar/workflow/react-preview/index.html
+            artifacts/workflow-react-preview/360.png
+          retention-days: 14
+      - name: Publish tested HTML as detached Git blob (no main write)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises';
+          const file=await readFile('prototypes/sidebar/workflow/react-preview/index.html');
+          const response=await fetch(
+            'https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/git/blobs',{
+              method:'POST',
+              headers:{
+                Authorization:'Bearer '+process.env.GITHUB_TOKEN,
+                Accept:'application/vnd.github+json',
+                'X-GitHub-Api-Version':'2022-11-28',
+                'Content-Type':'application/json'
+              },
+              body:JSON.stringify({content:file.toString('base64'),encoding:'base64'})
+            });
+          const result=await response.json();
+          if(!response.ok||!(/^[0-9a-f]{40}$/.test(result.sha||'')))
+            throw Error('E_PREVIEW_BLOB_UPLOAD: '+response.status+' '+JSON.stringify(result));
+          console.log('R3336_VERIFIED_PREVIEW_BLOB_SHA='+result.sha);
+          console.log('R3336_VERIFIED_PREVIEW_BYTES='+file.length);
+          JS
