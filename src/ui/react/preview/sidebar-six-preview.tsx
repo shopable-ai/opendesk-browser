@@ -112,6 +112,7 @@ function Preview(){
   const [projectMode,setProjectMode]=React.useState(false);
   const [projectSelection,setProjectSelection]=React.useState('');
   const [projectFeedback,setProjectFeedback]=React.useState('');
+  const previousRoute=React.useRef('');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
   const [notice,setNotice]=React.useState('');
@@ -257,7 +258,13 @@ function Preview(){
       'UI_PREVIEW_ONLY · '+extensionReview.title+' · '+extensionReview.type+
       '。确认仅修改内存 Fixture，绝不安装、执行或撤销真实权限。':'';
     const content=get('workspace-content');
-    content.scrollTop=0;
+    const route=[tab,taskMode,selected||'',openToolKey||'',importOpen?'import':''].join('|');
+    // A route change starts at the top; typing, changing timezone, local-mode
+    // toggles and other in-page state updates must not jump the scroller.
+    if(previousRoute.current!==route){
+      content.scrollTop=0;
+      previousRoute.current=route;
+    }
     const dock=get('workspace-dock');
     const taskDock=get('task-dock'),developDock=get('develop-dock'),workflowDock=get('workflow-dock');
     taskDock.hidden=tab!=='tasks';
