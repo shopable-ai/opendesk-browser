@@ -1280,6 +1280,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       await localPlanner.resume({consent,signal:abort.signal});
       planningCurrent(epoch,serial,'local_codex');
       status('已恢复本机对话。继续发送需求即可；本次恢复没有执行网页操作。');
+      closeHistory();
+      get('workflow-ai-request').focus?.({preventScroll:true});
     })().catch(error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);})
       .finally(()=>{if(epoch===planningGeneration){busy=false;phase='idle';planningAbort=null;if(!disposed)updateButtons();}});
   };
