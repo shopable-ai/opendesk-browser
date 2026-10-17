@@ -29,7 +29,7 @@ try{
   browser=await chromium.launch({executablePath:resolve(args.browser),
     headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
   session=await startXmindPreview();
-  const page=await browser.newPage({viewport:{width:1220,height:860}});
+  const page=await browser.newPage({viewport:{width:1220,height:860},acceptDownloads:true});
   const origin=new URL(session.url).origin;
   const capture=async(name,{target=page,fullPage=false,answer='ALL'}={})=>{
     // Capture after real rendered geometry has settled (not after a blind timer).
@@ -149,6 +149,31 @@ try{
   assert.ok(report.topicsB>1);
   assert.ok(await viewer(1).locator('.topic:visible').count()>1,'A remains open while B opens');
   report.checks.push('REAL_XMIND_A_AND_B_INDEPENDENT');
+  // Download the real SDK's expanded offscreen workbook, never a viewport
+  // screenshot or fabricated PNG fixture. Preserve the resulting file so
+  // reviewers can inspect the actual pixels independently.
+  const realDownload=page.waitForEvent('download',{timeout:45000});
+  await viewer(1).locator('.odmm-export-toggle').click();
+  await viewer(1).locator('[data-export="png"]').click();
+  const pngError=viewer(1).locator('.odmm-export-status[role="alert"]')
+    .waitFor({timeout:45000}).then(async()=>{throw new Error(
+      'Real XMind PNG export failed: '+
+      await viewer(1).locator('.odmm-export-status').textContent());});
+  const pngDownload=await Promise.race([realDownload,pngError]);
+  assert.equal(await pngDownload.failure(),null);
+  assert.match(pngDownload.suggestedFilename(),/\.png$/i);
+  const pngBytes=await readFile(await pngDownload.path());
+  assert.deepEqual([...pngBytes.subarray(0,8)],[137,80,78,71,13,10,26,10],
+    'Downloaded file must be actual PNG bytes');
+  const pngWidth=pngBytes.readUInt32BE(16),pngHeight=pngBytes.readUInt32BE(20);
+  assert.ok(pngWidth>=100&&pngHeight>=100&&
+    pngWidth*pngHeight<=24_000_000,'Real PNG must have bounded full-map dimensions');
+  await writeFile(join(out,'chatgpt-mindmap-real-xmind-full.png'),pngBytes);
+  report.png={type:'ORIGINAL_XMIND_FULL_MAP',width:pngWidth,height:pngHeight,
+    bytes:pngBytes.length,filename:pngDownload.suggestedFilename(),
+    sha256:createHash('sha256').update(pngBytes).digest('hex')};
+  report.checks.push('ORIGINAL_XMIND_FULL_MAP_PNG_DOWNLOADED_AND_DECODED_HEADER');
+
   // Query the *computed* CSS inside the real product ShadowRoot. A container
   // cannot style itself via @container; the containing .odmm-shell must own it.
   report.desktopToolbar=await viewer(1).evaluate(host=>{
