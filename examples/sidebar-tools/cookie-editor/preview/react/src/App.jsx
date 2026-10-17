@@ -13,13 +13,32 @@ const rawRows=[
   {id:'g',name:'实验_超长Cookie名称_用于测试在窄屏下的安全折行与原位编辑',value:'演示数据',domain:demoSite,path:'/用户/long-path/nested',secure:true,httpOnly:false,sameSite:'lax',session:true,expiration:'',storeId:'0',partitionKey:null},
   {id:'h',name:'embedded_pref',value:'enabled',domain:demoSite,path:'/',secure:true,httpOnly:false,sameSite:'none',session:false,expiration:'2027-05-03T07:00',storeId:'0',partitionKey:{topLevelSite:'https://partner.example.net',hasCrossSiteAncestor:false}},
 ];
-const initialRows=()=>rawRows.map(x=>({...x,partitionKey:x.partitionKey?{...x.partitionKey}:null}));
-const newDraft=()=>({name:'',domain:demoSite,path:'/',secure:true,httpOnly:false,sameSite:'lax',session:true,expiration:'',storeId:'0',partitionKey:null,valueInput:'',valueTouched:false});
-const toDraft=c=>c?{name:c.name,domain:c.domain,path:c.path,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite,session:c.session,expiration:c.expiration,storeId:c.storeId,partitionKey:c.partitionKey,valueInput:'',valueTouched:false}:newDraft();
-const comparable=d=>({name:d.name,domain:d.domain,path:d.path,secure:d.secure,httpOnly:d.httpOnly,sameSite:d.sameSite,session:d.session,expiration:d.expiration,storeId:d.storeId,partitionKey:JSON.stringify(d.partitionKey||null),valueInput:d.valueTouched?d.valueInput:null,valueTouched:d.valueTouched});
-const isDirty=(a,b)=>!!a&&!!b&&JSON.stringify(comparable(a))!==JSON.stringify(comparable(b));
+const initialRows=()=>rawRows.map(x=>({...x,hostOnly:!x.domain.startsWith('.'),
+ expirationDate:x.session?undefined:new Date(x.expiration).getTime()/1000,
+ partitionKey:x.partitionKey?{...x.partitionKey}:null}));
+const pad=n=>String(n).padStart(2,'0');
+const localFromUnix=seconds=>{
+ const d=new Date(seconds*1000);
+ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+
+   'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+};
+const unixFromLocal=input=>{
+ if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(input||''))return NaN;
+ const seconds=new Date(input).getTime()/1000;
+ return Number.isFinite(seconds)&&localFromUnix(seconds).slice(0,input.length)===input?seconds:NaN;
+};
+const safeDomain=domain=>{
+ const host=domain.replace(/^\./,'').toLowerCase();
+ return host.length<=253&&host.split('.').every(label=>label.length<=63&&
+   /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label))&&
+   (demoSite===host||demoSite.endsWith('.'+host));
+};
+const newDraft=()=>({name:'',domain:demoSite,path:'/',hostOnly:true,secure:true,httpOnly:false,sameSite:'lax',session:true,expiration:'',storeId:'0',partitionKey:null,valueInput:'',valueTouched:false});
+const toDraft=c=>c?{name:c.name,domain:c.domain,path:c.path,hostOnly:c.hostOnly!==false,secure:c.secure,httpOnly:c.httpOnly,sameSite:c.sameSite||'unspecified',session:c.session,expiration:c.session?'':Number.isFinite(c.expirationDate)?localFromUnix(c.expirationDate):(c.expiration||''),storeId:c.storeId,partitionKey:c.partitionKey,valueInput:'',valueTouched:false}:newDraft();
+const comparable=(d,oldValue='')=>({name:d.name,domain:d.domain,path:d.path,hostOnly:d.hostOnly,secure:d.secure,httpOnly:d.httpOnly,sameSite:d.sameSite,session:d.session,expiration:d.session?null:d.expiration,storeId:d.storeId,partitionKey:JSON.stringify(d.partitionKey||null),value:d.valueTouched?d.valueInput:oldValue});
+const isDirty=(a,b,oldValue='')=>!!a&&!!b&&JSON.stringify(comparable(a,oldValue))!==JSON.stringify(comparable(b,oldValue));
 // Full Cookie identity, canonical PartitionKey property order.
-const identity=c=>JSON.stringify([c.name,c.domain.toLowerCase(),c.path,String(c.storeId),c.partitionKey?.topLevelSite??null,c.partitionKey?.hasCrossSiteAncestor??null]);
+const identity=c=>JSON.stringify([c.name,c.domain.toLowerCase(),c.path,c.hostOnly===true,String(c.storeId),c.partitionKey?.topLevelSite??null,c.partitionKey?.hasCrossSiteAncestor??null]);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const svgPaths={
   plus:<path d="M12 5v14M5 12h14"/>,download:<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>,upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,
@@ -99,7 +118,7 @@ export default function App(){
  const granted=!needsSiteGrant&&!loading;
  const canWrite=scene!=='readonly'&&granted; const canValues=granted&&scene!=='valuesDenied'; const busy=loading||saving||grantBusy;
  const current=selected==='new'?null:rows.find(x=>x.id===selected);
- const dirty=isDirty(draft,baseline);
+ const dirty=isDirty(draft,baseline,current?.value||'');
  // Preview scope mirrors the *limited* Host-only clearSite contract. It is
  // intentionally not a pretend "delete all Cookie values" or domain-wide wipe.
  const clearCandidates=rows.filter(c=>c.domain===demoSite&&c.storeId==='0'&&!c.partitionKey);
