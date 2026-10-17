@@ -945,11 +945,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks',{initial:true});update();
-  return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
-  connectReactMyTasks(view){
+  return {navigate,showCatalogPage,refresh,connectReactMyTasks(view){
     if(disposed||reactMyTasks||!view?.myTasksMounted)return;
     reactMyTasks=view;view.renderMyTaskCount(installed.length+' 个');renderInstalledCards();
-  },
+  },setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();
