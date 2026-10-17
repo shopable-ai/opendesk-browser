@@ -54,6 +54,8 @@ if(!vm.SourceTextModule) {
     matches(selector){
       if(selector==='[data-workflow-focus]')return Object.hasOwn(this.dataset,'workflowFocus');
       if(selector==='[data-workflow-param]')return Object.hasOwn(this.dataset,'workflowParam');
+      if(selector==='[data-example-mode]')return Object.hasOwn(this.dataset,'exampleMode');
+      if(selector==='[data-workflow-example]')return Object.hasOwn(this.dataset,'workflowExample');
       if(selector==='summary')return this.tagName==='SUMMARY';
       if(selector==='details.workflow-step'||selector==='details.workflow-step[open]')
         return this.tagName==='DETAILS'&&this.className.split(' ').includes('workflow-step')&&(!selector.endsWith('[open]')||this.open);
@@ -87,6 +89,8 @@ if(!vm.SourceTextModule) {
       for(const [name,value] of Object.entries(raw.attribs)) {
         if(name==='id'){element.id=value;nodes.set(value,element);}
         else if(name==='class')element.className=value;
+        else if(name.startsWith('data-'))
+          element.dataset[name.slice(5).replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())]=value;
         else if(['hidden','open','checked','disabled'].includes(name))element[name]=true;
         else if(name==='value'||name==='type')element[name]=value;
       }
