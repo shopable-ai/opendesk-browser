@@ -6,6 +6,7 @@ on:
       - 'examples/sidebar-tools/cookie-editor/ui/**'
       - 'examples/sidebar-tools/cookie-editor/preview/react/src/**'
       - 'src/ui/react/tabs/cookie-pilot.*'
+      - 'src/ui/react/cookie-editor/**'
       - 'src/ui/react/main.tsx'
       - 'src/ui/trusted-cookie-admission.js'
       - 'src/ui/tool-shell.js'

@@ -45,7 +45,7 @@ test('R5 retains original Cookie installer, Chrome SDK and isolated untrusted ex
 test('R5 trusted pilot is static, data-free and mounted through the ONE host React root',async()=>{
   const [main,pilot,view,shell]=await Promise.all([
     'src/ui/react/main.tsx','src/ui/react/tabs/cookie-pilot.tsx',
-    base+'/ui/CookieEditorView.jsx','src/ui/tool-shell.js'
+    'src/ui/react/cookie-editor/CookieEditorView.jsx','src/ui/tool-shell.js'
   ].map(p=>readFile(p,'utf8')));
   assert.equal((main.match(/createRoot\(/g)||[]).length,1);
   assert.match(main,/createPortal\(<CookieTrustedPilot\/>,cookiePilotHost\)/);
@@ -60,5 +60,8 @@ test('R5 trusted pilot is static, data-free and mounted through the ONE host Rea
   for(const source of [pilot,view]){
     assert.doesNotMatch(source.split('\n').filter(line=>!line.trim().startsWith('//')).join('\n'),/\bOpenDeskSDK\b|\bchrome\.cookies\b|document\.cookie|dangerouslySetInnerHTML|<iframe/i);
   }
+  const previewBridge=await readFile('examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx','utf8');
+  assert.match(previewBridge,/src\/ui\/react\/cookie-editor\/CookieEditorView\.jsx/);
+  assert.doesNotMatch(pilot,/examples\/sidebar-tools\//,'fixed privileged bundle must never import tool source');
   assert.match(pilot,/UI-only 技术试点/);
 });

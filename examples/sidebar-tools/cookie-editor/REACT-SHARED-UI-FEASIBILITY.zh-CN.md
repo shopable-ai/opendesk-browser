@@ -212,3 +212,10 @@ function RenderTrustedCookieArea({container, snapshot, actions, admitted}) {
 - `preview/react/src/App.jsx` 中站点栏、工具栏、搜索/筛选、Cookie 行列表都已替换为 `ui/CookieEditorView.jsx` 的共享纯展示组件；可信宿主亦从该 JSX 组合视图渲染。原 Preview Adapter 的模拟授权/导入导出/编辑状态和正式 SDK 业务均不迁入宿主。
 - 独立 Vite 使用 preview/react 内锁定的 React19；需由现有 `cookie-editor-r49-react-preview.yml` 在本次源码提交后真正编译 Chromium 验证，再由其受控提升生成文件 `preview/react/index.html`。**这条流水线未 PASS 时，旧 HTML 与新 JSX 尚不一致，应标 NOT_TESTED/DRIFT，不能冒称已交付同源 HTML。**
 - 正式业务仍然使用 2.0.23 HTML/JS 及 SDK/Host，独立 JSON 包不变；Cookie Trusted 产品接管仍 NO-GO。
+
+
+### R5.0 安全来源门槛的实际修正（2026-10-17）
+
+- 首次 WXT 构建因 `scripts/bundle-provenance.mjs` 拒绝 `examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx` 进入固定 Host bundle 而 **FAIL**，这是正确的来源保护，不可改为广泛允许 examples/**。
+- 现在把唯一共享 JSX 放到 `src/ui/react/cookie-editor/CookieEditorView.jsx`；examples/ui 原文件只 re-export 给 React19 离线预览。可信宿主固定入口只直接 import `src/ui/react/**` 代码，规避重复 JSX 和不可信代码混入。
+- 现有 React19 预览 CI 监听可信 View 和 re-export 的变更；在最新主线定向 WXT CI 实际通过前，不能称此修正为 BUILD_PASS。正式 Cookie Editor 2.0.23 仍 Sandbox，不迁 SDK。

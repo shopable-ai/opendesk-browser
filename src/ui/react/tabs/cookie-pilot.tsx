@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CookieEditorView} from '../../../../examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx';
+import {CookieEditorView} from '../cookie-editor/CookieEditorView.jsx';
 
 // Development-only inert fixture. No Cookie values, SDK methods or real origins.
 // The production Cookie Editor remains the installed v2.0.23 sandbox package.
