@@ -35,7 +35,7 @@ jobs:
         run: |
           node scripts/preview/build-workflow-react-preview.mjs --check
           # Workflow-specific regression; generic React contracts also run in the package job.
-          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs
+          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs
       - name: Actual source JSX in Chromium (not installed extension)
         run: node scripts/tests/react-sidebar-r3331-browser.mjs
       - name: Real Chrome offline preview DOM and 360px screenshot
@@ -106,6 +106,8 @@ jobs:
           JS
 
   workflow-package-regression:
+    needs: workflow-react-preview
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -118,6 +120,7 @@ jobs:
       - name: Source check (exact candidate)
         run: npm run check
       - name: Workflow focused Node contracts
+        if: always()
         run: |
           node --test \
             tests/environment/react-sidebar-r333.test.mjs \
