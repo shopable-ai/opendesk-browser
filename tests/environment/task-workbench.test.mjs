@@ -308,7 +308,10 @@ test('My searches a single installed task list on demand without executing or re
   assert.equal(cards.children.length,2,'closing search restores all installed tasks');
   assert.equal(f.get('local-discover-search').value,'','search text resets on collapse');
   await f.click('task-open-catalog');
-  assert.equal(f.catalogOpens.length,1,'catalog opens only on the explicit Add action');
+  assert.equal(f.get('task-add-menu').hidden,false,'Add opens the compact inline actions');
+  assert.equal(f.catalogOpens.length,0,'Add must not open full catalog automatically');
+  await f.click('task-add-catalog');
+  assert.equal(f.catalogOpens.length,1,'Catalog only opens on explicit catalog choice');
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
 });
 
@@ -406,7 +409,10 @@ test('R4 idle Extensions has no fixed footer and My task search import still ope
   assert.equal(f.get('workspace-dock').hidden,false,'task Run is visible in My Tasks');
   await f.click('tab-my-tasks');
   await f.click('task-open-catalog');
-  assert.equal(f.catalogOpens.length,1,'inline import opens existing full-page catalog');
+  assert.equal(f.get('task-add-menu').hidden,false,'Add actions should be visible first');
+  assert.equal(f.catalogOpens.length,0,'Full catalog is not the primary Add page');
+  await f.click('task-add-catalog');
+  assert.equal(f.catalogOpens.length,1,'Optional catalog opens on explicit choice');
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);
 });
