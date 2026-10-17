@@ -48,6 +48,12 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   }));
   assert.match(detail,/data-ec-detail-action="settings"/);
   assert.match(detail,/固定包 SHA-256/);
+  const readerDetail=renderToStaticMarkup(React.createElement(ExtensionDetail,{
+    container:null,model:{kind:'app',type:'应用',installed:true,busy:false,
+      version:'1.0.7',title:'阅读目录',description:'章节导航',
+      installationText:'本机已安装',actions:[],usageText:'安装后自动显示目录'}
+  }));
+  assert.match(readerDetail,/安装后自动显示目录/,'React detail explains page auto-activation');
   assert.match(detail,/&lt;script&gt;/);
   assert.doesNotMatch(detail,/<script\b/i);
 
