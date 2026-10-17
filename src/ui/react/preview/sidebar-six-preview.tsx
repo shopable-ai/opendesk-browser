@@ -27,6 +27,7 @@ const toolbar=get('extension-center-list-view').querySelector('.ec-toolbar');
 const extensionList=get('extension-center-list');
 const extensionDetail=get('extension-center-detail-body');
 const extensionEmpty=get('extension-center-empty');
+const toolFrame=get('sidebar-tool-frame');
 const importHost=get('extension-center-import-host'),importPanel=get('sidebar-tool-import');
 const actionReview=get('sidebar-tool-action-review');
 importHost.append(importPanel); // Relocate the SAME installed DOM, preview-only adapter.
@@ -51,7 +52,7 @@ const debugIds={
 };
 const debugNodes=Object.fromEntries(Object.entries(debugIds).map(([key,id])=>[key,get(id)]));
 if(!toolbar||!developerChoices||!developerDock||!workflowHeader)throw Error('E_SIDEBAR_PREVIEW_PORTAL');
-for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,
+for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,toolFrame,
   myCount,myRows,myDetail,...Object.values(cloudNodes),
   developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript,
   ...Object.values(debugNodes)])
@@ -61,8 +62,11 @@ const sampleExtensions=Object.freeze([
     description:'仅内存演示的安装条目 · 无真实记录',installed:true,enabled:true,
     version:'1.0.0',update:true,primaryAction:'打开'},
   {key:'preview-page',kind:'page',type:'网页增强',title:'示例网页增强（仅预览）',
-    description:'演示类型与网站授权信息 · 无真实权限',installed:false,
-    version:'1',enabled:false,primaryAction:''}
+    description:'演示类型与网站授权信息 · 无真实权限',installed:true,
+    version:'1',enabled:false,primaryAction:''},
+  {key:'preview-new',kind:'app',type:'应用',title:'可安装候选（仅预览）',
+    description:'固定身份与能力需由真实 Installer 审阅',installed:false,
+    version:'1.0.0',enabled:false,primaryAction:''}
 ]);
 const labels={
   normal:'仅演示 UI，不读取真实数据',
@@ -96,6 +100,10 @@ function Preview(){
   const [scope,setScope]=React.useState('smart');
   const [menuOpen,setMenuOpen]=React.useState(false);
   const [selected,setSelected]=React.useState(null);
+  const [openToolKey,setOpenToolKey]=React.useState(null);
+  const [toolSettingsOpen,setToolSettingsOpen]=React.useState(false);
+  const [toolDraft,setToolDraft]=React.useState('');
+  const [toolFeedback,setToolFeedback]=React.useState('');
   const [selectedTask,setSelectedTask]=React.useState('preview-task');
   const [taskMode,setTaskMode]=React.useState('list');
   const [taskSearch,setTaskSearch]=React.useState('');
@@ -119,8 +127,22 @@ function Preview(){
     extensionRecords.filter(row=>(kind==='all'||row.kind===kind)&&
       (scope!=='smart'||row.installed)&&
       (scope!=='available'||!row.installed||row.update)&&
-      (!search||[row.title,row.description,row.type].join(' ').includes(search))),
+      (!search||[row.title,row.description,row.type].join(' ').includes(search)))
+      .map(row=>({...row,primaryAction:row.kind==='app'&&row.installed&&
+        row.enabled===true&&!['unknown','disconnected'].includes(scene)?'打开':''})),
     [scene,kind,scope,search,extensionRecords]);
+  const opened=extensionRecords.find(row=>row.key===openToolKey&&row.kind==='app'&&
+    row.installed===true&&row.enabled===true)||null;
+  // Mirrors resolveExtensionRowIntent: an active installed app opens usage UI.
+  // All Host, install, permissions and Sandbox behavior remain unavailable here.
+  const openExtensionRow=key=>{
+    const row=extensionRecords.find(item=>item.key===key);
+    if(row?.kind==='app'&&row.installed&&row.enabled===true&&
+      !['unknown','disconnected'].includes(scene)){
+      setSelected(null);setImportOpen(false);setOpenToolKey(key);
+      setToolSettingsOpen(false);setToolFeedback('');
+    }else{setOpenToolKey(null);setSelected(key);}
+  };
   const detail=selected===null?null:(()=>{
     const row=extensionRecords.find(x=>x.key===selected);
     if(!row)return null;
@@ -184,6 +206,13 @@ function Preview(){
       tabButtons[i].setAttribute('aria-selected',String(active));
       tabButtons[i].tabIndex=active?0:-1;
     });
+    get('sidebar-tool-list-view').hidden=!!opened;
+    get('sidebar-tool-display').hidden=!opened;
+    get('sidebar-tool-title').textContent=opened?.title||'';
+    get('sidebar-tool-settings-open').hidden=!opened;
+    get('sidebar-tool-settings-open').setAttribute('aria-expanded',String(!!opened&&toolSettingsOpen));
+    get('sidebar-tool-remove').disabled=!opened;
+    get('sidebar-tool-settings-view').hidden=true; // Host settings cannot execute offline.
     importPanel.hidden=!importOpen;
     actionReview.hidden=!extensionReview;
     get('sidebar-tool-preview').hidden=!importCandidate;
@@ -229,7 +258,7 @@ function Preview(){
     cloud.textContent=labels[scene];
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
   },[tab,width,scene,selected,sheetOpen,transcript.length,detail,taskMode,
-    importOpen,importCandidate,importError,extensionReview,extensionRecords]);
+    opened,openToolKey,toolSettingsOpen,importOpen,importCandidate,importError,extensionReview,extensionRecords]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
       const click=event=>{if(!event.isTrusted)return;setTab(names[i]);setSheetOpen(false);};
@@ -267,6 +296,24 @@ function Preview(){
       doc.removeEventListener('click',anchor,true);
     };
   },[tab]);
+  React.useEffect(()=>{
+    const back=()=>{
+      const key=openToolKey;
+      setOpenToolKey(null);setToolSettingsOpen(false);
+      requestAnimationFrame(()=>doc.querySelector('[data-extension-id="'+key+'"] .ec-row-main')
+        ?.focus({preventScroll:true}));
+    };
+    const settings=()=>setToolSettingsOpen(value=>!value);
+    const uninstall=()=>{
+      if(!opened)return;
+      setExtensionReview({type:'uninstall',key:opened.key,title:opened.title,
+        kind:'app',proposedVersion:opened.version});
+    };
+    const handlers=[['sidebar-tool-back',back],['sidebar-tool-settings-open',settings],
+      ['sidebar-tool-remove',uninstall]];
+    for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
+    return ()=>{for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
+  },[openToolKey,opened]);
   // The real import card, file chooser, update review and confirm IDs are
   // borrowed from tool.html. No browser storage or installer is invoked.
   React.useEffect(()=>{
@@ -291,7 +338,7 @@ function Preview(){
         return row;
       }));
       if(type==='uninstall'){
-        setSelected(null);setScope('available');
+        setOpenToolKey(null);setToolSettingsOpen(false);setSelected(null);setScope('available');
         // Restore focus to a visible control when the detail and review close.
         requestAnimationFrame(()=>get('extension-center-search').focus({preventScroll:true}));
       }
@@ -375,8 +422,25 @@ function Preview(){
       onReload:()=>setNotice('UI_PREVIEW_ONLY · 已展示当前内存状态；没有真实安装回读')
     }}/>,toolbar)}
     {createPortal(<ExtensionRows rows={rows} busy={scene==='loading'}
-      pendingKey={null} menuKey={null} onOpenRow={setSelected}
+      pendingKey={null} menuKey={null} onOpenRow={openExtensionRow}
       onMore={setSelected}/>,extensionList)}
+    {createPortal(opened&&<section className="od-preview-card od-stack"
+      aria-label="已安装工具使用页面 · UI_PREVIEW_ONLY">
+      <strong>工具工作区 · {opened.title}</strong>
+      <small>v{opened.version} · UI_PREVIEW_ONLY · 隔离 Fixture，未连接真实 iframe 或 Host。</small>
+      {toolSettingsOpen?<div className="od-preview-card">
+        <strong>工具设置（仅预览）</strong>
+        <p>实际网站权限、启停与持久数据由原工具 Host 管理；预览不更改这些状态。</p>
+      </div>:<>
+        <label className="od-field" htmlFor="preview-tool-draft">工作区草稿（仅内存）</label>
+        <textarea id="preview-tool-draft" className="od-field" rows={4}
+          value={toolDraft} onChange={event=>setToolDraft(event.target.value)}
+          placeholder="在这里体验工具使用页；不会发送或保存"/>
+        <button type="button" className="od-button"
+          onClick={()=>setToolFeedback('UI_PREVIEW_ONLY · 当前页内存草稿，未调用扩展 API')}>保存预览草稿</button>
+        {toolFeedback&&<p role="status">{toolFeedback}</p>}
+      </>}
+    </section>,toolFrame)}
     {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
       emptyText:'UI_PREVIEW_ONLY · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
     {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
