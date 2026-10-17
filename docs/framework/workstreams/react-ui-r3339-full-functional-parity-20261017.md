@@ -100,3 +100,13 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 终态门禁：完整矩阵逐操作确认、同源 HTML 检查通过、Linux Chromium 真实交互通过、
 最新 main 指向已通过源码的提交、Mac 原生安装与权限 PASS，
 然后才能给出独立五维 95+ 专家评价。
+
+
+## R33.3.10 · CI 交互阻塞与预览状态修正（新 CI 待复核）
+
+- 基线：远端 main `30327518938acf930a6cbe43da8138de88416468`；严格只改 source-bound Preview adapter、定向 Chromium 回放、本文工作记录。Installer、RunHost、Page Authority、Sandbox 和真实权限合同不变。
+- 历史失败：[39028578195](https://github.com/shopable-ai/opendesk-browser/actions/runs/39028578195)。卸载审阅确认后错误断言详情应继续显示；预览设计确实清除选中项并返回可安装列表。
+- Chromium 回放现在断言：详情关闭、列表显示、可安装范围选中、同一固定身份不重复、卸载后操作文案为“查看详情”、模拟标记保留。新增同 ID 的 1.2.0 → 1.3.0 文件导入和版本核对。
+- 产品预览修复：内存安装/卸载同步主要操作文案，修复“卸载后仍显示打开”；重新打开导入时清空旧 file input 以允许同名文件重选；卸载后把焦点移到扩展搜索。
+- 这些是预览行为和回归检查，不是生产扩展安装实现的替代品。最新提交的 Actions 执行结果未知前标为 `PENDING`；Mac Chrome 原生安装、Host、真实网站权限与任务执行为 `NOT_TESTED`。
+- `prototypes/sidebar/react-preview/index.html` 是本地/CI 生成产物，当前不在 Git 跟踪中；以同 SHA 的 CI 附件交付完整 HTML 和截图，禁止将旧附件冒充本轮新版。
