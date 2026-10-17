@@ -138,6 +138,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   };
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
+  let uninstallReturnFocus=null;
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0,formScrollTop=0;
   let managerScrollTop=0;
@@ -1045,8 +1046,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
           }catch(error){message(error?.message||String(error),true);}
         }));
       controls.append(iconAction('卸载「'+title+'」',
-        'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',()=>{
-          confirmUninstall=row;get('schedule-uninstall-confirm').hidden=false;
+        'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',event=>{
+          uninstallReturnFocus=event.currentTarget;confirmUninstall=row;get('schedule-uninstall-confirm').hidden=false;
           text(get('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
             '？历史运行记录将保留。');
         },'od-icon-button--danger schedule-manager-uninstall'));
@@ -1074,6 +1075,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
           expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null}),
         refresh);
       get('schedule-uninstall-confirm').hidden=true;confirmUninstall=null;
+      get('schedule-manager-search').focus?.({preventScroll:true});
       message(refreshError?'固定版本已卸载，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
         '已卸载固定版本；关联计划需重新安装授权',Boolean(refreshError));
@@ -1205,7 +1207,11 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   bind('schedule-manager-search','input',renderManager);
   bind('schedule-manager-filter','change',renderManager);
   bind('schedule-uninstall-yes','click',()=>void uninstall());
-  bind('schedule-uninstall-no','click',()=>{confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;});
+  bind('schedule-uninstall-no','click',()=>{
+    confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
+    if(uninstallReturnFocus?.isConnected)uninstallReturnFocus.focus?.({preventScroll:true});
+    uninstallReturnFocus=null;
+  });
   for(const id of ['schedule-kind','schedule-once','schedule-timezone','schedule-clock',
     'schedule-minutes','schedule-weekdays-field'])
     bind(id,'change',()=>{
