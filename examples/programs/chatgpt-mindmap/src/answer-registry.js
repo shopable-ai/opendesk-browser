@@ -125,6 +125,12 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   }
   function insertButton(next){
     if(!next?.isConnected)return;
+    // ChatGPT may clone a reply action bar containing our icon host.
+    // cloneNode(true) retains its marker but not the live ShadowRoot or
+    // controller. Drop only such inert copies before moving the real host.
+    for(const candidate of next.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]')){
+      if(candidate!==buttonRef.host)candidate.remove();
+    }
     if(buttonRef.host.parentNode!==next)next.append(buttonRef.host);
   }
   function restore(){

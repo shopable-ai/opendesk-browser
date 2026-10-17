@@ -132,3 +132,28 @@ test('denied storage never prevents the user from switching themes',async()=>{
   assert.equal(views[0].host.getAttribute('data-dark'),'false');
   await registry.destroy();
 });
+
+test('cloned native action bar retains one live mind-map button rather than an inert duplicate',async()=>{
+  const {document}=parseHTML('<html><body><article data-testid="conversation-turn-1">'+
+    '<div data-message-author-role="assistant" data-message-id="A">'+
+    '<div class="markdown"><h2>Answer</h2><p>Body</p></div></div>'+
+    '<div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div>'+
+    '</article></body></html>');
+  const window={location:{pathname:'/c/replace-toolbar',search:''}};
+  const registry=createAnswerRegistry({document,window,owner,css:''});
+  registry.start();
+  const original=document.querySelector('[data-testid="message-actions"]');
+  const selector='[data-opendesk-chatgpt-mindmap="button"]';
+  const actual=original.querySelector(selector);
+  assert.ok(actual?.shadowRoot);
+  const copy=original.cloneNode(true);
+  original.replaceWith(copy);
+  assert.equal(copy.querySelectorAll(selector).length,1,
+    'The page cloned an inert icon marker while rebuilding the toolbar');
+  registry.scan();
+  assert.equal(copy.querySelectorAll(selector).length,1,
+    'Reconciliation removes the cloned icon and reinserts the live instance');
+  assert.equal(copy.querySelector(selector),actual);
+  assert.ok(actual.shadowRoot.querySelector('button'));
+  await registry.destroy();
+});
