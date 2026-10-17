@@ -84,3 +84,12 @@
 **未批准 R3.1**：不得替换正式 `src/main.js` 和已安装工具的沙箱 UI；
 不得更新工具包或版本，不得将动态工具升格为可信代码。
 待以上独立门槛均有可信证据且各项 ≥95/100，再呈交正式迁移批准清单。
+
+## R3.0.8 网址直接点击 · UI 认可的小范围补丁（2026-10-17）
+
+- 设计意图：书签详情内**直接点击整段网址**打开新标签页，外链小图标跟随网址；详情底部只保留复制与编辑，删除重复的“小按钮打开”。
+- 正式共享 JSX：`preview/react/src/App.jsx` 的 `Inspector` 渲染原生 `<a target="_blank" rel="noopener noreferrer">`，由 `safeBookmarkHref` 仅允许不含凭据的 HTTP(S)，旧书签里的其他协议保留只读文本，不允许在可信 UI 中导航执行。
+- 样式：`preview/react/src/style.css` 提升整个网址的点击/键盘聚焦区域，窄屏允许完整换行；保留 R3.0.7 360/400px 12px 四周间距底部浮动卡片和 960px 右侧详情，不重排书签树。
+- 定向静态/URL 协议测试：`tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs`（是否 PASS 应以对应 Commit 的真实 Node/CI 记录为准）。
+- 纯演示 HTML 在当前聊天中创建，不是可复用的正式 JSX 源码或通过 Chromium 的发行产物；`preview/index.html` 未晋升，`preview/dev.html` 仍为被 Git 忽略的构建候选。
+- **仍未发布**：原正式 `examples/sidebar-tools/bookmark-manager/src/main.js`、工具版本 `0.3.8`、官方 Catalog、可安装 JSON 未被替换。下一轮先验证 R3.0.8 同源 React 预览和真实原生 SDK 行为，再明确实施范围与批准门槛。
