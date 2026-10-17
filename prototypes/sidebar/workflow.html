@@ -431,7 +431,9 @@ body[data-theme=dark] .device .r23-settings .r234-field label{color:var(--ink)}
 .device .r2310-item-main em{font-style:normal;color:var(--secondary);font-size:10px;opacity:.8}
 .device .r2310-arrow{font-size:20px;color:var(--secondary);flex:none}
 .device .r2310-history-foot{font-size:10.5px;color:var(--secondary);line-height:1.5;margin:10px 2px 0}
-.device .r2310-suggestions{display:grid;gap:8px;margin:18px auto 0;width:min(100%,255px)}
+.device .message.intro.r2310-intro{width:100%;max-width:100%;box-sizing:border-box}
+.device .r2310-suggestions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:18px 0 0;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.device .r2310-suggestions button{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
 .device .r2310-suggestions button{text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--outline);border-radius:9px;padding:9px 12px;font-size:11.5px;min-height:37px}
 .device .r2310-suggestions button:hover{border-color:var(--primary);color:var(--primary)}
 .device .r2310-intro .hello-mark{margin-inline:auto}
