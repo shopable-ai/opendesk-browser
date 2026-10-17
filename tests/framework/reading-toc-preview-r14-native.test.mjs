@@ -140,10 +140,12 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   await until(()=>evaluate(page,'Boolean(document.querySelector("#opendesk-preview-frame")?.srcdoc)'),'Preview iframe missing');
   return {page,targetId};
  }
- async function screenshot(page,file,clip=null){
+ async function screenshot(page,file){
   await mkdir(resolve('artifacts/reading-toc-r41'),{recursive:true});
-  const result=await page.send('Page.captureScreenshot',{format:'png',
-   ...(clip?{clip:{...clip,scale:1},captureBeyondViewport:true}:{})});
+  // Capture the whole outer page: cropped CDP coordinates can be relative
+  // to the visual viewport rather than the scrolled iframe surface.
+  const result=await page.send('Page.captureScreenshot',{
+   format:'png',captureBeyondViewport:true});
   const bytes=Buffer.from(result.data,'base64');
   await writeFile(resolve('artifacts/reading-toc-r41',file),bytes);
   return createHash('sha256').update(bytes).digest('hex');
@@ -272,8 +274,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  for(const label of ['周末城市公园活动计划','行程时间安排','交通与预算','雨天备选'])
   assert(markup.includes(label),'missing answer title inside closed shadow DOM: '+label);
  assert.equal((markup.match(/data-id="h-25"/g)||[]).length,1,'second answer duplicate heading lost');
- const imageHash=await screenshot(overlay.page,'toc-r186-three-answers-visible.png',
-  {x:frameRect.left,y:frameRect.top,width:frameRect.width,height:frameRect.height});
+ const imageHash=await screenshot(overlay.page,'toc-r186-three-answers-visible.png');
  const linkFrame=await evaluate(overlay.page,`(()=>{const r=document.getElementById('opendesk-preview-frame').getBoundingClientRect();return {left:r.left,top:r.top};})()`);
  await tocMouseClick(overlay.page,trusted,shadow,'button[data-id="h-25"]',linkFrame);
  await until(()=>evaluate(overlay.page,
