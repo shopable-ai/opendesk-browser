@@ -1,7 +1,7 @@
 # Cookie Editor 系统 Chrome 手动导入续查 · 2026-10-17
 
 - Owner：本次 Codex；main 原位；已获仅提交本任务文件与正常推送 main 授权。不建分支/worktree/PR，保留其他 Agent 差异。
-- 状态：LOCAL_FIX_VERIFIED_SYSTEM_UPGRADE_PENDING。范围：用户当前系统 Chrome 安装版手动 JSON 导入；不做 production、全量原生、缩放、UI 重构。
+- 状态：LOCAL_FIX_VERIFIED_SYSTEM_RUNTIME_REFRESH_PENDING。范围：用户当前系统 Chrome 安装版手动 JSON 导入；不做 production、全量原生、缩放、UI 重构。
 - 写入范围：`examples/sidebar-tools/cookie-editor/src/main.js`、`tool.config.json`、`README.zh-CN.md`、唯一正式 JSON；`tests/environment/cookie-editor-ui.test.mjs`、`cookie-editor-r43-parity.test.mjs`（仅版本断言）；本记录。通用 SDK/Host/权限默认只读。独立只读 explore 子 Agent 检查预检异常链，不接触真实样本或浏览器；已完成并关闭。
 - 已读 testing-guide、cookie-import-real/native-driver/sdk-batch/limits 四份 20261017 记录，既有 248/248 与 31/31 依原输入限定复用；61 条虚构导入单项 PASS 与随后清理失败保留，不提升为完整原生 PASS。
 - 持续开发：固定 `dist/development`；唯一既有 npm dev / node PID34253，43119/43120 listener。未启动第二 writer。系统 Chrome PID77828；独立其他任务 CFT PID53072、56004 不接管、不关闭。
@@ -32,3 +32,12 @@
 - 用户已再次明确授权 Agent 直接控制浏览器并完成测试；不再把授权作为阻塞。浏览器自动审批禁止内部扩展页且禁止绕过，实际升级仍受工具策略阻塞。没有直接改安装记录、卸载或清数据。实际当前 iframe 字节、2.0.22 系统 Chrome 安装成功、真实样本预检/写入均 **NOT_TESTED**。
 - 本轮不启动 CFT，不与其他任务争用 profile/native input；61 条旧单项 PASS / 后续清理失败、旧样本限定 PASS 均按原身份保留，不升级成本候选完整原生 PASS。
 - Git 收尾仅上述 7 个路径；提交前核对完整索引和相关文件漂移，正常推送 main，禁止强推。远端 main 已推进，保留本地已有独有提交，先核对相关路径无重叠再正常合并已有提交；不把其他 Agent 未提交文件纳入本任务提交。最终提交/推送身份写入忽略目录下的 `closeout.json`，避免改写本记录自指提交。
+
+## 用户安装后的新证据 · 16:42 后
+
+- 用户明确报告已直接导入本目录正式 JSON，随后看到“当前 OpenDesk Browser 尚不支持批量 Cookie 写入，请更新扩展后重新预览；原文已保留。”。这是最新真实运行证据，优先于之前只读磁盘 WAL 的旧安装记录；不能继续把当前问题归为旧版整批过期拒绝。
+- 对应 `confirmLiveImport` 的精确分支是 `typeof browserSdk()?.cookies?.setMany !== 'function'`，位于 `ask` 与 `setMany` 请求之前，说明当前沙箱公开 facade 缺方法；该分支没有发出 Cookie 写请求，也不是 Store/Partition/网站授权错误。新提示存在于 2.0.20 之后，单凭提示仍不能锁定活动 iframe 的精确版本。
+- 当前源码 `createBrowserSdk` 实例的 `cookies.setMany` 为 function；现有 watcher 的 `dist/development/sidebar-tools/bridge.js` 含 canonical `browser.cookies.setMany`，SHA256 `c16dbb62a4c1fc432f057ed6062a33ee62dd351ba0d8c31062d4814cf00972d6`。记录为 `sdk-runtime-difference.json`，没有向真实浏览器发请求。可证明当前运行 facade 与磁盘开发产物存在差异；旧 bridge/未刷新扩展是待原生刷新核实的解释，不假称已读到活动 iframe 字节。
+- `opendesk browser doctor` 正常返回 connected=true，local.extensionId 与 response.result.extensionId 均为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；现有 Native manifest allowed_origins 也精确包含该 ID。未改配对、权限或 Native 配置。`--json` 参数不受支持产生 E_SCHEMA，改用该 CLI 默认 JSON 输出后只读核对成功，不将首次命令错误记为功能失败。
+- `src/development/page.js` / `worker.js` 与 `src/ui/tool-shell.js` 现有安全刷新会等待 tool dirty、RunHost/native/草稿释放；dev TCP 已连接不保证该栅栏已通过。未制造源码改动触发重载，未直接调用 runtime.reload 或绕过工具策略。SDK_GAP_NOT_PROVEN；不修改通用 SDK/Host。
+- 已请求用户经 Chrome 原有入口刷新同 ID 扩展，再打开 Cookie Editor 只生成预览并报告计数/安全码；明确先不要确认写入，且不发送敏感内容或截图。该人工步骤源于自动安全审批阻塞，不是再次请求权限。真实刷新、活动 facade 与本次预检结果仍待反馈；本轮不重复真实样本写入。

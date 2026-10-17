@@ -8,6 +8,8 @@
 
 新版逐条区分可导入、过期和无效记录；过期跳过，不改变有效期。预检失败分别指出存储区查询、分区查询、回执校验或已有 Cookie 查询，并保留已知安全错误码（例如 `E_COOKIE_STORE`、`E_COOKIE_PARTITION`、`E_SITE_GRANT_REQUIRED`）；未知错误码回退 `E_COOKIE_IMPORT`，不会显示 Host 异常正文。原输入和格式保留，可在同一输入框修改后重新预览，失败预检不会写 Cookie。不要为排错删除 Store/Partition 或扩大权限。
 
+若更新工具后显示“当前 OpenDesk Browser 尚不支持批量 Cookie 写入”，说明当前沙箱公开 SDK 的 `cookies.setMany` 不存在，尚未发出 Cookie 写请求。工具 JSON 与 Chrome 加载的扩展脚本分别更新；磁盘已有接口不能证明当前桥接文档已经加载它。先保留本地导入文件，通过 Chrome 原有扩展刷新入口加载更新后的 OpenDesk Browser，再重新打开工具生成预览。日常开发的安全刷新也可能因任务、原生请求或工具未保存输入而延后，不应跳过保护、扩大权限或改用未经确认的逐条写入来绕过。
+
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
 **路径 A：使用内置官方工具，不需要单独编译本工具。** 全新 OpenDesk Browser 安装自动预装 Cookie Editor：Side Panel →「扩展」→ Cookie Editor → **打开**；首次使用在工具可信「设置」中独立批准网站和所需 Cookie 权限。对于已有 Chrome Profile，更新版本、重启、访问「扩展」或主动卸载后不会强制补装；如果未安装，会作为默认可见的可信预装候选，选择 **安装 → 审阅能力 → 确认安装 → 打开**。工具安装不运行 Cookie 代码，也不自动批准任何网站。若正在运行的旧版扩展缺少官方候选，仍须让原 `dist/development` 开发构建正确更新；修改 GitHub 源码并不会自动更新已加载的扩展。
