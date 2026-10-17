@@ -343,7 +343,8 @@ test('R1.8 tooltip retains focus on itself or descendants, then hides after focu
     const child=mockElement('div'),nested=mockElement('button');child.append(nested);tip.append(child);
     nested.focus();tip.emit('focusin');tip.emit('mouseleave');await settle();
     assert.equal(tip.hidden,false,'focus anywhere inside tooltip retains it');
-    f.rail().children[0].focus();tip.emit('focusout');await settle();
+    const outside=mockElement('button');f.rail().append(outside);
+    outside.focus();tip.emit('focusout');await settle();
     assert.equal(tip.hidden,true,'leaving tooltip without a pointer event dismisses it');
     assert.equal(button.getAttribute('aria-describedby'),undefined);
     button.focus();button.emit('focus');button.emit('mouseleave');await settle();
@@ -897,8 +898,10 @@ test('R2.7 failed clipboard toast is bounded to five seconds and cleaned on disa
     assert.equal(toast.children.at(-1)?.getAttribute('aria-label'),'关闭提示');
     toast.children.at(-1).emit('click');assert.equal(toast.hidden,true);
     assert.equal(f.toastTimers.size,0,'user close cancels error timer');
+    // The trusted adapter intentionally blocks same-prompt double clicks for 700ms.
+    await new Promise(resolve=>setTimeout(resolve,760));
     f.buttons()[0].emit('click',{isTrusted:true});await settle();
-    assert.equal(toast.hidden,false,'new failure can appear after dismiss');
+    assert.equal(toast.hidden,false,'new failure can appear after double-click guard expires');
     f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
     assert.equal(toast.hidden,true);
     assert.equal(toast.textContent,'');
@@ -918,7 +921,8 @@ test('R2.7 storage-confirmed create/edit/reorder/delete/import and enable change
     update([first,second]);await settle();
     assert.equal(f.buttons().length,2,'confirmed create/import immediately appears');
     assert.equal(f.buttons()[1].title,second.name);
-    const edited={...second,body:'更改后的正文',label:'更改',name:'自定义新名称'};
+    const edited={...second,body:'更改后的正文',label:'更改',name:'自定义新名称',
+      labelAuto:false,nameAuto:false};
     update([first,edited]);await settle();
     assert.equal(f.buttons().length,2);
     assert.equal(f.buttons()[1].title,'自定义新名称','confirmed edit updates the mounted label');

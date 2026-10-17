@@ -58,9 +58,9 @@ function reviewedCompiledAdblock(target,path,root){
 // independent tool package; only these three immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'dcc138aab6cb3a6d47325f259990c9ddcac0fb2a',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'1cf947812b5f946ab93496fe23dca6024d158c5e'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'24bebf36c112f0d37777c20599c18929504880b0'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
