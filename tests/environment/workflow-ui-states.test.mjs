@@ -162,7 +162,8 @@ test('workflow R23.10 has three independent header actions and one React modal o
   assert.match(workflowReact,/doc\.addEventListener\('keydown',onKeydown,true\)/);
   assert.match(workflowReact,/editor\.inert=true/);
   assert.match(view,/workflowReact\?\.connectWorkflowEvents\(/);
-  assert.match(view,/state\.ready\?'Codex 已就绪':state\.message/);
+  assert.match(view,/state\.ready\?'Codex 已就绪':compact\[state\.state\]/);
+  assert.match(view,/get\('workflow-local-status-detail'\)\.textContent=detail/);
   assert.match(view,/sessionState\.sessionId&&localCapability\.resumeSupported===false/);
   assert.match(view,/if\(describeLocalCodex\(localCapability\)\.ready\)closeAISettings\(true\)/);
   assert.doesNotMatch(view,/showCreateMenu\(/);
