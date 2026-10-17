@@ -33,7 +33,7 @@ import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
-import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,
+import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
   trustedBookmarkProvenanceChanged} from './trusted-bookmark-admission.js';
 
 // Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
@@ -584,6 +584,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // SDK call still uses dispatch(), its original Host envelope and approval UI.
   async function admittedNativeBookmark(tool,expectedEpoch){
     if(trustedBookmarkPilot?.enabled!==true||
+       trustedBookmarkPilot.componentVersion!==TRUSTED_BOOKMARK_COMPONENT_VERSION||
        typeof trustedBookmarkPilot.mount!=='function')return false;
     if(!officialLoaded&&!officialError)await officialReady;
     if(!officialLoaded||officialError)return false;
