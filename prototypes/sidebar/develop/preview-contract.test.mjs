@@ -1,4 +1,4 @@
-// OpenDesk Browser Developer Preview R2.3: source-only regression gates.
+// OpenDesk Browser Developer Preview R2.4: source-only regression gates.
 // Run: node --test prototypes/sidebar/develop/preview-contract.test.mjs
 // Layout geometry and native Chrome require separate browser evidence.
 import test from 'node:test';
@@ -28,17 +28,18 @@ test('负向对照：重新插入重复标题会被检测',()=>{
 });
 test('设计 Token 只有一个定义源，无层层叠加的历史补丁',()=>{
  assert.equal(occurrences(':root{',css),1);
- for(const name of ['.viewport{','.page-head{','.fold>summary{']) assert.equal(occurrences(name,css),1,name);
+ for(const name of ['.viewport{','.fold>summary{']) assert.equal(occurrences(name,css),1,name);
+ assert.equal(occurrences('.page-head{',css),0,'不再为重复标题保留样式规则');
  assert.doesNotMatch(css,/R2\.1 UX audit|PREVIOUS_SPACING_OVERRIDE_R21/);
 });
-test('节奏：说明4、相关控件8、独立章节16，编辑器216',()=>{
+test('节奏：说明4、相关控件8、独立章节16，编辑器默认164',()=>{
  assert.match(css,/--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px/);
- assert.match(css,/\.page-head\{[^}]*margin-bottom:var\(--space-2\)/);
+ assert.match(css,/\.viewport\{[^}]*padding:var\(--space-3\) 11px var\(--space-4\)/);
  assert.match(css,/\.section\{margin:0 0 var\(--space-4\)/);
  assert.match(css,/\.editor-code-group\{display:grid;gap:var\(--space-1\)/);
  assert.match(css,/#history-fold\{margin-top:var\(--space-2\)/);
  assert.match(css,/\.drawer-scroll\{[^}]*gap:var\(--space-4\)/);
- assert.match(css,/\.code-editor\{[^}]*min-height:216px/);
+ assert.match(css,/\.code-editor\{[^}]*height:164px;min-height:140px;max-height:none/);
 });
 test('核心功能节点不因视觉简化被删除',()=>{
  for(const id of ['code-editor','params-editor','local-project-select','local-source-file','page-fold','page-install','page-toggle','page-uninstall','version-fold','task-fold','history-fold','advanced-fold','diagnostics-fold','health-fold','sdk-drawer','approve','revoke','run-btn','stop-btn','save-btn']){
@@ -60,4 +61,16 @@ test('本预览不使用远程代码，不冒充原生授权',()=>{
  assert.doesNotMatch(html,/<link[^>]+https?:/i);
  assert.ok(html.includes('PREVIEW_ONLY'));
  assert.ok(html.includes('真实授权需核验 Chrome 权限'));
+});
+
+test('页头去重、编辑器尺寸和预览辅助菜单',()=>{
+ assert.doesNotMatch(html,/<div class="page-head">/);
+ assert.doesNotMatch(html,/<h2>运行目标<\/h2>/);
+ assert.match(html,/<main class="viewport"[^>]*aria-label="开发工作区"/);
+ assert.match(html,/<span id="target-kind" hidden><\/span>/);
+ assert.doesNotMatch(html,/<div class="preview-footer">/);
+ assert.match(html,/<section class="preview-help" id="preview-help"[^>]* hidden>/);
+ assert.match(html,/id="preview-more"[^>]*aria-expanded="false"/);
+ assert.match(html,/id="try-cross"/);
+ assert.match(html,/id="sdk-inspect-inline"/);
 });
