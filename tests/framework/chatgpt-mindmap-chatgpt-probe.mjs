@@ -34,6 +34,36 @@ try{
   // Canvas pixels before the product intentionally fails E_XMIND_PNG_BLANK.
   // No synthetic topics, alternate drawing or production diagnostics.
   await page.addInitScript(()=>{
+    const originalSerialize=XMLSerializer.prototype.serializeToString;
+    XMLSerializer.prototype.serializeToString=function(node){
+      if(window.__odmmCaptureProbe===true&&node?.querySelector?.('.topic')){
+        const root=node.querySelector('.topic');
+        const originalStage=[...document.body.children].find(el=>
+          el.style?.left==='-100000px');
+        const originalTopic=originalStage?.querySelector('.topic');
+        const cssSummary=el=>{
+          const style=el?.style;
+          return {tag:el?.tagName||null,classes:String(el?.className||'').slice(0,100),
+            left:style?.left,top:style?.top,transform:style?.transform,
+            translate:style?.translate,width:style?.width,height:style?.height,
+            position:style?.position,overflow:style?.overflow,
+            opacity:style?.opacity,display:style?.display};
+        };
+        const chain=[];let cursor=root;
+        while(cursor&&cursor!==node&&chain.length<18){
+          chain.push(cssSummary(cursor));cursor=cursor.parentElement;
+        }
+        const stageBounds=originalStage?.getBoundingClientRect();
+        const real=originalTopic?.getBoundingClientRect();
+        window.__odmmPngDomMetrics={
+          wrapper:cssSummary(node),topicCount:node.querySelectorAll('.topic').length,
+          originalStage:{x:stageBounds?.x,y:stageBounds?.y,width:stageBounds?.width,
+            height:stageBounds?.height},
+          originalTopic:{x:real?.x,y:real?.y,width:real?.width,height:real?.height},
+          ancestorChain:chain};
+      }
+      return originalSerialize.call(this,node);
+    };
     const original=CanvasRenderingContext2D.prototype.drawImage;
     CanvasRenderingContext2D.prototype.drawImage=function(...args){
       const result=original.apply(this,args);
@@ -232,6 +262,8 @@ try{
         const bytes=Buffer.from(diagnostics.dataUrl.split(',').at(-1),'base64');
         await writeFile(join(out,'xmind-real-png-debug-on-failure.png'),bytes);
       }
+      const domMetrics=await page.evaluate(()=>window.__odmmPngDomMetrics||null);
+      console.error('REAL_XMIND_PNG_DOM_METRICS',JSON.stringify(domMetrics));
       console.error('REAL_XMIND_PNG_DIAGNOSTICS',JSON.stringify({
         width:diagnostics?.width,height:diagnostics?.height,
         bytes:diagnostics?.dataUrl?.length||0,error:diagnostics?.error||null}));
