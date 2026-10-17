@@ -21,6 +21,8 @@ on:
       - 'src/sw.js'
       - 'examples/sidebar-tools/browser-sdk-r13/**'
       - 'tests/environment/browser-sdk-r13.test.mjs'
+      - 'tests/environment/browser-sdk-context-menu-r11.test.mjs'
+      - 'tests/environment/browser-editions-r245.test.mjs'
       - 'tests/environment/sidebar-tools*.test.mjs'
       - 'src/platform/chrome/browser-*.js'
       - 'src/sidebar-tools/bridge.js'
@@ -67,6 +69,9 @@ jobs:
           git rev-parse HEAD
           node --version
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R1.1 native flat-menu migration and edition branding contracts
+        run: |
+          node --test --test-reporter=spec tests/environment/browser-sdk-context-menu-r11.test.mjs tests/environment/browser-editions-r245.test.mjs
       - name: Browser SDK R1.3 and existing tool install regressions
         run: |
           node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-budget-policy.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs
