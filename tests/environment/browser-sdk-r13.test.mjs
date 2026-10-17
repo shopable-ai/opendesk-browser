@@ -28,7 +28,8 @@ function makeChrome(){
   });
   let granted=false,siteAccess=true;
   const api={
-    runtime:{id:'ext-r13',lastError:null,getURL:path=>'chrome-extension://ext-r13/'+path},
+    runtime:{id:'ext-r13',lastError:null,getURL:path=>'chrome-extension://ext-r13/'+path,
+      getManifest:()=>({name:'OpenDesk Browser',short_name:'OD'})},
     storage:{local:store(values,'local'),session:store(sessionValues,'session'),
       onChanged:{addListener:fn=>changes.push(fn)}},
     permissions:{contains:async request=>Array.isArray(request?.origins)?siteAccess:granted},
@@ -101,14 +102,17 @@ test('menus use browser optional permission, idempotent sync, real click and one
   assert.equal(menus.size,0);
   fake.setPermission(true);
   await host.synchronize();
-  assert.equal(menus.has(BROWSER_MENU_ROOT),true);
-  assert.equal(menus.size,2);
+  assert.equal(menus.has(BROWSER_MENU_ROOT),false,'no permanent parent or open-menu entry');
+  assert.equal(menus.size,0,'no approved tool action means no context-menu items');
   await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:sample.id,enabled:true,
     origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
     hostInstanceId:uid},sender);
   assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),true);
+  const native=menus.get('opendesk.tool.selection-notes.capture-selection');
+  assert.equal(Object.hasOwn(native,'parentId'),false,'single action must be a native top-level entry');
+  assert.equal(native.title,'OD · 保存到选区笔记');
   await host.synchronize();
-  assert.equal(menus.size,3,'sync cannot create duplicate menu IDs');
+  assert.equal(menus.size,1,'sync cannot create duplicate menu IDs');
   const browserStatus=await host.handleTool({operation:'browser.capabilities.getStatus',
     args:{operation:'browser.contextMenu.register'},...hostContext},sender);
   assert.equal(browserStatus.callableNow,true);
@@ -160,7 +164,7 @@ test('uninstall, site revocation, stale package, stale document invalidate menus
     'same-version modified package must not inherit the old digest grant');
   await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
   await host.synchronize();
-  assert.equal(menus.size,2,'uninstall must remove only owned tool menu IDs');
+  assert.equal(menus.size,0,'uninstall must remove all owned tool menu IDs');
   assert.equal((await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]?.[sample.id]?.version,sample.version,
     'actual installer handles durable grant cleanup, not menu sync');
 });

@@ -39,6 +39,8 @@ export default defineConfig({
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
     'build:manifestGenerated'(wxt,output){
       if(browserEdition==='developer')output.name=DEVELOPER_BROWSER_NAME;
+      // The toolbar label follows the output Manifest name; no embedded brand.
+      output.action={...output.action,default_title:'打开 '+output.name};
       const channel=resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||wxt.config.mode||'production'});
       const external=marketExternalConnectable(channel);
       if(external)output.externally_connectable=external;

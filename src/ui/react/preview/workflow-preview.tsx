@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
+import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet,WorkflowResultText} from '../tabs/workflow.tsx';
 
 // PREVIEW_ADAPTER_NOT_NATIVE: official JSX/DOM, display-only scenarios.
 // Never import WorkflowView, chrome.*, Browser SDK, RunHost or a Provider.
@@ -17,6 +17,7 @@ const transcript=get('workflow-ai-transcript');
 const settings=get('workflow-provider-settings');
 const sheetHost=get('workflow-settings-react-host');
 header.replaceChildren();transcript.replaceChildren();
+get('workflow-output').replaceChildren();
 const samples=Object.freeze({
   empty:[],
   conversation:[
@@ -66,7 +67,6 @@ function Preview(){
     get('workflow-manage-panel').hidden=!history;
     get('workflow-result-panel').hidden=scene!=='unknown';
     if(scene==='unknown'){
-      get('workflow-output').textContent='UNKNOWN（模拟 UI 状态）— 未获得持久结果，不能重放。';
       get('workflow-technical').textContent='无真实 RunId、ResultId 或 sourceHash。';
     }
     get('workflow-status').hidden=scene!=='disconnected';
@@ -168,6 +168,8 @@ function Preview(){
         onNewSession:()=>{setRows([]);setScene('empty');setHistory(false);},
         onNewWorkflow:()=>setReview(true)}}/>,header)}
     {createPortal(<WorkflowTranscript rows={rows}/>,transcript)}
+    {createPortal(<WorkflowResultText value={scene==='unknown'
+      ?'UNKNOWN（模拟 UI 状态）— 未获得持久结果，不能重放。':'尚未运行'}/>,get('workflow-output'))}
     {createPortal(<WorkflowSettingsSheet open={sheetOpen} onClose={close}
       settings={settings} doc={doc}/>,sheetHost)}
   </>;

@@ -305,3 +305,56 @@ npm run build
 ### R10.5 Registry 发现回执预算
 
 `browser.capabilities.list` 返回全部当前 48 项带权限状态的类型化条目，不为旧 12 KB 门槛裁剪或隐藏拒绝原因。仅该只读发现接口采用 **20 KB** 响应上限；其他 Browser SDK 操作继续保留原 12 KB 限制，最大 64 条 Schema 数组及所有权限/Origin/身份检查保持不变。
+
+
+## SDK 右键菜单 R1.1（2026-10-17）— 原生一级入口与安全升级
+
+**正式行为**：仅对已安装、启用、已获网站和操作授权、匹配原生右键上下文的工具创建菜单。
+不再创建固定的 'opendesk.browser.root' / 'opendesk.browser.open'；工具菜单
+'opendesk.tool.<toolId>.<actionId>' 不设置 parentId。
+同一页面/上下文只有 1 个可见操作时 Chrome 原生一级显示；有多个时 Chrome
+自动以**当前安装版本的 Manifest name** 收起。不能独立设定 Chrome 的原生分组名，
+也不应通过模拟 HTML、手动父菜单或 onShown 重建声称改变此规则。
+扩展工具栏及既有 Side Panel 入口继续保留。
+
+**唯一品牌配置**：仓库根目录 'manifest.json' 的 name / short_name，例如
+"name": "OpenDesk Browser", "short_name": "OD"。short_name 最多 12 个字符，
+菜单动作显示为 'OD · 保存到选区笔记'；运行时来自
+chrome.runtime.getManifest()，不修改工具 JSON、操作 ID、安装 Epoch、包摘要或授权。
+缺失、过长或含控制/双向字符的短名称回退到 Manifest name 的安全截断；
+动作名也限长、清除危险控制字符并避免重复前缀。
+Standard 使用配置的 name，Developer 自动派生 '<name> Developer'，
+两种发行版共用同一 short_name。WXT 输出工具栏标题自动按发行版名称生成；
+改名后重新构建两个发行版即可，无需编辑 dist/、SDK/Host 源码。
+Chrome 内置分组名就是扩展 name，不能只改 short_name 来覆盖。
+
+**旧版本升级（可中断恢复）**：'src/platform/chrome/context-menus.js#synchronize'
+读取原有 BROWSER_MENU_MATERIALIZED_STORE ID 数组；新 ID **写前日志**
+使用 JSON { "phase": "reconciling", "ids": ["..."] } 标记待同步所有权，不宣称成功。
+先 remove(opendesk.browser.root)（Chrome 级联删除旧子菜单），再移除旧
+opendesk.browser.open 和旧记录中的过时工具菜单；随后建立无父级的新平级项。
+只有原生 API 返回和 Local Storage 回读都确认后，才将数组写为最终成功记录。
+Service Worker 意外退出、部分 create() 失败、重复同步时由日志继续协调。
+不使用 removeAll()，不会主动删除其他受信模块的菜单。
+停用、卸载、撤销授权与变更安装代际通过已有 Host 同步删除关联 ID；
+Chrome 菜单权限被撤销时，原有站点授权按旧机制失效，重新授予 Chrome 权限
+不会恢复旧工具站点授权。
+
+**权限边界**：Chrome contextMenus 仍是 optional_permissions；工具仍须声明
+browser.contextMenu capability，获得确切 Origin 和具体 action 的用户授权。
+原生菜单的 documentUrlPatterns 是 Chrome match pattern，**不匹配端口号**：
+对相同主机不同端口，Chrome 可能展示同一菜单项，但可信 Host 点击后必须使用
+真正的网页 Origin（含端口）、Chrome 站点权限、文档/Frame/导航状态、
+Package Hash、Epoch、60 秒单次票据重新拒绝未授权的执行。
+在不用运行时 onShown 的本轮方案中，不能承诺“同主机未授权端口绝对不显示”。
+菜单点击必须先在原生 onClicked 同步调用 chrome.sidePanel.open()，
+随后才异步验证文档和启动具体工具，禁止给沙箱 chrome.contextMenus 权限。
+
+**复核**：先执行 'npm run check && npm test && npm run build && npm run build:dev && npm run verify'，
+再执行 'npm run build:developer && npm run verify:developer'。
+在 macOS Chrome 138+ 用 chrome://extensions 分别加载真实构建目录，
+按零/单/多操作、page/selection/link、已授权/未授权网站、两个本地端口、
+旧版本覆盖升级、Service Worker 停止/唤醒、工具撤权/卸载验证浏览器**原生**菜单；
+在扩展 SW Inspect 查看菜单日志和错误，并检查 chrome.runtime.getManifest()。
+Node Mock / CI 构建或普通 HTML 预览均不等于人工原生菜单 UI 验收，
+Mac Chrome 未真实操作时必须记为 **NOT_TESTED**。

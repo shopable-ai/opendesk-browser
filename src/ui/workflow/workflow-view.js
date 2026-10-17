@@ -61,6 +61,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   reactUI=null}) {
   const get=id=>doc.getElementById(id);
   const workflowReact=reactUI?.workflowMounted?reactUI:null;
+  // WorkflowView is still the only trusted Result source; React only owns the
+  // text children after the root's explicit one-time DOM handoff.
+  const writeWorkflowOutput=value=>{
+    if(workflowReact?.workflowResultMounted)workflowReact.renderWorkflowResult(value);
+    else get('workflow-output').textContent=String(value);
+  };
   const session=()=>Number.isSafeInteger(currentPageTarget?.windowId)
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
@@ -504,19 +510,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       workerRetired:run?.workerRetired===true,retirement:run?.retirementState||null},null,2);
     const raw=get('workflow-raw'),reveal=get('workflow-result-raw');
     raw.textContent='';reveal.hidden=true;reveal.open=false;
-    if(!result){get('workflow-output').textContent='后台尚无可核对的 Durable Result；未知状态不得自动重放。';return false;}
+    if(!result){writeWorkflowOutput('后台尚无可核对的 Durable Result；未知状态不得自动重放。');return false;}
     if(!result.outcome?.ok) {
-      get('workflow-output').textContent=formatTaskError(result.outcome?.error||{code:'E_WORKFLOW_RUN'});
+      writeWorkflowOutput(formatTaskError(result.outcome?.error||{code:'E_WORKFLOW_RUN'}));
       return false;
     }
     try {
       const value=decodeValue(result.outcome.valueWire),presented=presentTaskValue(value);
-      get('workflow-output').textContent=presented.text;
+      writeWorkflowOutput(presented.text);
       if(presented.redacted||presented.truncated){
         raw.textContent=formatRunValue(value);reveal.hidden=false;
       }
       return true;
-    }catch(error){get('workflow-output').textContent='持久结果解码失败：'+format(error);return false;}
+    }catch(error){writeWorkflowOutput('持久结果解码失败：'+format(error));return false;}
   }
   function run(event,prepared=null) {
     if((!prepared&&!event?.isTrusted)||(busy&&!prepared)||host.executionPending||host.currentRun||(!compiled&&!prepared))
@@ -542,7 +548,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     lastTrustedRun=null; // Failed or unknown new attempts must not reuse an old success hint.
     onRunOwner('pending');
     busy=true;phase='running';lastRun='running';hasError=false;
-    get('workflow-output').textContent='尚无本次持久结果';
+    writeWorkflowOutput('尚无本次持久结果');
     get('workflow-technical').textContent='';
     status(prepared?'正在执行本次对话任务（现有 RunHost）…':'已冻结源码、参数、页面和用户授权请求；准备通过现有 RunHost 执行');
     updateButtons();
@@ -692,7 +698,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }
     })().catch(error=>{
       lastRun='failed';
-      get('workflow-output').textContent=format(error)+'；失败不会自动重放';
+      writeWorkflowOutput(format(error)+'；失败不会自动重放');
       status(format(error)+'；失败不会自动重放',true);
       return {ok:false,error};
     }).finally(()=>{

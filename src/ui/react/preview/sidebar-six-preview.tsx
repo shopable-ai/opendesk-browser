@@ -1,0 +1,224 @@
+import * as React from 'react';
+import {createPortal} from 'react-dom';
+import {createRoot} from 'react-dom/client';
+import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty} from '../tabs/tools.tsx';
+import {DeveloperActions,DeveloperFramework,DeveloperRunStatus} from '../tabs/develop.tsx';
+import {WorkflowHeader,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
+
+// UI_PREVIEW_ONLY. No browser permissions, storage, Host, Provider, compiler or Task Authority.
+// Every visible product panel and every product React component is imported from
+// the installed Side Panel source; all sample state stops at this adapter.
+const doc=document;
+const get=id=>{
+  const el=doc.getElementById(id);
+  if(!el)throw new Error('E_SIDEBAR_PREVIEW_MISSING:'+id);
+  return el;
+};
+const names=['tasks','tools','workflow','develop','cloud','debug'];
+const tabButtons=names.map(key=>doc.querySelector('[data-workbench-tab="'+key+'"]'));
+if(tabButtons.some(el=>!el))throw Error('E_SIDEBAR_PREVIEW_NAV');
+const panels=names.map(key=>get('workbench-'+key));
+const controls=get('od-sidebar-preview-controls');
+const toolbar=get('extension-center-list-view').querySelector('.ec-toolbar');
+const extensionList=get('extension-center-list');
+const extensionDetail=get('extension-center-detail-body');
+const extensionEmpty=get('extension-center-empty');
+const developerChoices=get('page-component-framework').querySelector('.page-component-choices');
+const developerDock=get('develop-dock').querySelector('.dock-buttons');
+const developerStatus=get('script-status');
+const workflowHeader=get('workflow-editor').querySelector('.workflow-head-actions');
+const workflowTranscript=get('workflow-ai-transcript');
+const workflowSheetHost=get('workflow-settings-react-host');
+const workflowSettings=get('workflow-provider-settings');
+if(!toolbar||!developerChoices||!developerDock||!workflowHeader)throw Error('E_SIDEBAR_PREVIEW_PORTAL');
+for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,
+  developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript])
+  node.replaceChildren();
+const sampleExtensions=Object.freeze([
+  {key:'preview-app',kind:'app',type:'应用',title:'示例工具（仅预览）',
+    description:'演示真实 React 列表布局 · 无安装记录',installed:true,primaryAction:'打开'},
+  {key:'preview-page',kind:'page',type:'网页增强',title:'示例网页增强（仅预览）',
+    description:'演示类型与网站授权信息 · 无真实权限',installed:false,primaryAction:''}
+]);
+const labels={
+  normal:'仅演示 UI，不读取真实数据',
+  empty:'无项目 · UI_PREVIEW_ONLY',
+  loading:'加载中 · UI_PREVIEW_ONLY',
+  running:'运行中 · UI_PREVIEW_ONLY（未执行）',
+  error:'错误演示 · UI_PREVIEW_ONLY',
+  denied:'权限拒绝 · UI_PREVIEW_ONLY',
+  unknown:'状态未知 · 禁止自动重试',
+  disconnected:'Host 断开 · UI_PREVIEW_ONLY'
+};
+const messages={
+  normal:[{id:'w1',speaker:'你',message:'给我一个亿的项目'},
+    {id:'w2',speaker:'AI',message:'这是正式 React 对话组件的离线展示，不连接真实模型。'}],
+  empty:[],
+  loading:[{id:'w3',speaker:'AI',message:'正在准备规划（UI 演示）。'}],
+  running:[{id:'w4',speaker:'AI',message:'步骤执行中（无真实 RunHost）。'}],
+  error:[{id:'w5',speaker:'AI',message:'E_PREVIEW_ONLY：无真实 Provider。'}],
+  denied:[{id:'w6',speaker:'AI',message:'本轮网页摘要授权已拒绝（UI 演示）。'}],
+  unknown:[{id:'w7',speaker:'AI',message:'运行回执未知；不能自动重复执行。'}],
+  disconnected:[{id:'w8',speaker:'AI',message:'Native Host 未连接，无法执行网页操作。'}]
+};
+function Preview(){
+  const initial=new URLSearchParams(window.location.search).get('tab');
+  const [tab,setTab]=React.useState(names.includes(initial)?initial:'tasks');
+  const [width,setWidth]=React.useState(360);
+  const [scene,setScene]=React.useState('normal');
+  const [search,setSearch]=React.useState('');
+  const [kind,setKind]=React.useState('all');
+  const [scope,setScope]=React.useState('smart');
+  const [menuOpen,setMenuOpen]=React.useState(false);
+  const [selected,setSelected]=React.useState(null);
+  const [framework,setFramework]=React.useState('javascript');
+  const [sheetOpen,setSheetOpen]=React.useState(false);
+  const [history,setHistory]=React.useState(false);
+  const [notice,setNotice]=React.useState('');
+  const rows=React.useMemo(()=>scene==='empty'||scene==='loading'?[]:
+    sampleExtensions.filter(row=>(kind==='all'||row.kind===kind)&&
+      (scope!=='smart'||row.installed)&&
+      (!search||[row.title,row.description,row.type].join(' ').includes(search))),[scene,kind,scope,search]);
+  const detail=selected===null?null:(()=>{
+    const row=sampleExtensions.find(x=>x.key===selected);
+    return row?{...row,version:'UI_PREVIEW_ONLY',installationText:'离线演示，不存在安装包或固定来源',
+      source:{label:'UI_PREVIEW_ONLY'},sites:row.kind==='page'?['example.invalid（仅演示）']:[],
+      actions:[],busy:false,suspended:scene==='denied',cleanupPending:false}:null;
+  })();
+  const transcript=messages[scene]||[];
+  const sheetClose=React.useCallback(()=>setSheetOpen(false),[]);
+  React.useLayoutEffect(()=>{
+    get('od-sidebar-preview-stage').style.width=width+'px';
+    names.forEach((name,i)=>{
+      const active=name===tab;
+      panels[i].hidden=!active;
+      tabButtons[i].removeAttribute('disabled');
+      tabButtons[i].hidden=false; // Debug is previewed as a development-only tab.
+      tabButtons[i].setAttribute('aria-selected',String(active));
+      tabButtons[i].tabIndex=active?0:-1;
+    });
+    const content=get('workspace-content');
+    content.scrollTop=0;
+    const dock=get('workspace-dock');
+    const taskDock=get('task-dock'),developDock=get('develop-dock'),workflowDock=get('workflow-dock');
+    taskDock.hidden=tab!=='tasks';
+    developDock.hidden=tab!=='develop';
+    workflowDock.hidden=true; // No real workflow RunHost in preview.
+    dock.hidden=tab!=='tasks'&&tab!=='develop';
+    get('extension-center-list-view').hidden=!!detail;
+    get('extension-center-detail').hidden=!detail;
+    const intro=get('workflow-chat-intro');
+    intro.hidden=transcript.length>0;
+    workflowTranscript.hidden=transcript.length===0;
+    get('workflow-editor').dataset.viewState=transcript.length?'conversation':'empty';
+    get('workflow-planning-indicator').hidden=scene!=='loading';
+    get('workflow-ai-progress').hidden=scene!=='loading';
+    get('workflow-ai-approval').hidden=scene!=='denied';
+    const status=get('task-status');
+    status.textContent=labels[scene];
+    status.dataset.state=scene;
+    const cloud=get('cloud-status');
+    cloud.textContent=labels[scene];
+    get('debug-cloud-summary').textContent='只读诊断 · '+labels[scene];
+    get('debug-snapshot').textContent='UI_PREVIEW_ONLY：未读取 Host 诊断，未生成敏感快照。';
+    get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
+  },[tab,width,scene,selected,sheetOpen,transcript.length,detail]);
+  React.useEffect(()=>{
+    const handlers=tabButtons.map((button,i)=>{
+      const click=event=>{if(!event.isTrusted)return;setTab(names[i]);setSheetOpen(false);};
+      button.addEventListener('click',click);
+      return ()=>button.removeEventListener('click',click);
+    });
+    const nav=doc.querySelector('.workbench-nav');
+    const keydown=event=>{
+      if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+      const current=names.indexOf(tab);
+      const index=event.key==='Home'?0:event.key==='End'?names.length-1:
+        (current+(event.key==='ArrowRight'?1:-1)+names.length)%names.length;
+      event.preventDefault();
+      tabButtons[index].focus({preventScroll:true});
+      setTab(names[index]);
+    };
+    nav.addEventListener('keydown',keydown);
+    const sheetClick=event=>{
+      if(!event.isTrusted)return;
+      setSheetOpen(true);
+    };
+    get('workflow-provider-toggle').addEventListener('click',sheetClick);
+    const back=()=>setSelected(null);
+    get('extension-center-back').addEventListener('click',back);
+    const submit=event=>event.preventDefault();
+    doc.addEventListener('submit',submit,true);
+    const anchor=event=>{if(event.target.closest('a[href]'))event.preventDefault();};
+    doc.addEventListener('click',anchor,true);
+    return ()=>{
+      handlers.forEach(fn=>fn());
+      nav.removeEventListener('keydown',keydown);
+      get('workflow-provider-toggle').removeEventListener('click',sheetClick);
+      get('extension-center-back').removeEventListener('click',back);
+      doc.removeEventListener('submit',submit,true);
+      doc.removeEventListener('click',anchor,true);
+    };
+  },[tab]);
+  React.useEffect(()=>{
+    doc.documentElement.dataset.sidebarPreviewReady='true';
+    window.__sidebarPreviewInfo=Object.freeze({sourceBound:true,tabs:6,
+      previewOnly:true,realHost:false,realProvider:false,realPermission:false,realResult:false});
+    return ()=>{delete doc.documentElement.dataset.sidebarPreviewReady;delete window.__sidebarPreviewInfo;};
+  },[]);
+  return <>
+    {createPortal(<div className="od-sidebar-preview-toolbar">
+      <div className="od-sidebar-preview-heading"><strong>OpenDesk · 六 Tab 正式源码预览</strong>
+        <span>UI_PREVIEW_ONLY · 开发版包含调试 · Native / 权限 / 执行全部未连接</span></div>
+      <label>状态 <select data-preview-scenario value={scene} onChange={event=>setScene(event.target.value)}>
+        <option value="normal">普通</option><option value="empty">空状态</option>
+        <option value="loading">加载</option><option value="running">运行中</option>
+        <option value="error">错误</option><option value="denied">权限拒绝</option>
+        <option value="unknown">未知</option><option value="disconnected">断线</option>
+      </select></label>
+      <label>宽度 <select data-preview-width value={width}
+        onChange={event=>setWidth(Number(event.target.value))}>
+        <option value={360}>360px</option><option value={420}>420px</option>
+        <option value={520}>520px</option>
+      </select></label>
+      <span className="od-sidebar-preview-label" role="status">
+        {labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'||tab==='cloud'?
+          '原生 DOM Owner（React 待迁移）':tab==='tools'?
+          'React 列表/详情 + 原生其余业务':tab==='develop'?
+          'React 局部控件 + 原生编辑器':'React 标题/对话/设置 + 原生执行'}</span>
+      {notice&&<span className="od-sidebar-preview-label" role="status">{notice}</span>}
+    </div>,controls)}
+    {createPortal(<ExtensionToolbar model={{
+      query:search,kind,scope,menuOpen,language:'zh-CN',
+      onSearch:setSearch,onKind:setKind,onScope:setScope,onToggleMenu:()=>setMenuOpen(v=>!v),
+      onReset:()=>{setSearch('');setKind('all');setScope('smart');},
+      onMarket:()=>setNotice('市场仅为 UI 预览，不打开网络页面'),
+      onImport:()=>setNotice('仅预览：禁止导入、安装或授权'),
+      onReload:()=>setNotice('仅预览：不读取真实扩展状态')
+    }}/>,toolbar)}
+    {createPortal(<ExtensionRows rows={rows} busy={scene==='loading'}
+      pendingKey={null} menuKey={null} onOpenRow={setSelected}
+      onMore={setSelected}/>,extensionList)}
+    {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
+      emptyText:'UI_PREVIEW_ONLY · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
+    {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
+    {createPortal(<DeveloperFramework model={{mode:framework,compilerEnabled:true,
+      onSelect:setFramework}}/>,developerChoices)}
+    {createPortal(<DeveloperRunStatus node={developerStatus}
+      model={{state:scene==='error'?'error':scene==='running'?'running':'unknown',
+        text:labels[scene]}}/>,developerStatus)}
+    {createPortal(<DeveloperActions model={{runDisabled:true,saveDisabled:true,stopDisabled:true,
+      runLabel:'运行草稿',saveLabel:'保存版本',stopLabel:'停止'}}/>,developerDock)}
+    {createPortal(<WorkflowHeader model={{
+      saved:false,busy:scene==='loading',planning:scene==='loading',
+      historyExpanded:history,sessionHint:'新对话（预览）'}}
+      actions={{onHistory:()=>{setHistory(v=>!v);get('workflow-manage-panel').hidden=history;},
+        onNewSession:()=>setScene('empty'),onNewWorkflow:()=>setScene('empty')}}/>,workflowHeader)}
+    {createPortal(<WorkflowTranscript rows={transcript}/>,workflowTranscript)}
+    {createPortal(<WorkflowSettingsSheet open={sheetOpen} onClose={sheetClose}
+      settings={workflowSettings} doc={doc}/>,workflowSheetHost)}
+  </>;
+}
+const root=createRoot(get('od-sidebar-preview-root'));
+root.render(<Preview/>);
+window.addEventListener('pagehide',()=>root.unmount(),{once:true});

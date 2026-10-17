@@ -56,6 +56,10 @@ export function WorkflowTranscript({rows=[]}) {
   </div>);
 }
 
+// Only the trusted Durable Result presentation is React-owned; its value comes
+// exclusively from WorkflowView after the existing RunHost receipt is read.
+export function WorkflowResultText({value=''}) {return <>{String(value)}</>;}
+
 // The legacy provider fields retain their actual DOM nodes and event listeners.
 // React owns only the sheet, its modal semantics, lifecycle and focus trap.
 export function WorkflowSettingsSheet({open=false,onClose,settings,doc}) {

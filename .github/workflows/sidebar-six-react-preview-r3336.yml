@@ -1,0 +1,68 @@
+name: Sidebar R33.3.6 six-tab source-bound preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/tool.html'
+      - 'src/ui/react/**'
+      - 'src/ui/design-*.css'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/cloud-hosting.css'
+      - 'src/ui/extension-center.css'
+      - 'scripts/preview/build-sidebar-six-react-preview.mjs'
+      - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
+      - '.github/workflows/sidebar-six-react-preview-r3336.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  six-tab-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build from installed DOM, CSS and real React components
+        run: node scripts/preview/build-sidebar-six-react-preview.mjs
+      - name: Guard source drift and React/DOM contracts
+        run: |
+          node scripts/preview/build-sidebar-six-react-preview.mjs --check
+          node --test tests/environment/sidebar-six-react-preview-contract.test.mjs \
+            tests/environment/react-sidebar-r333.test.mjs \
+            tests/environment/react-sidebar-render-r3331.test.mjs
+          npm run check
+      - name: Render six actual panels in Chromium (UI-only, not installed extension)
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME"
+          mkdir -p artifacts/sidebar-six-react-preview
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --virtual-time-budget=5000 \
+            --dump-dom "file://$PWD/prototypes/sidebar/react-preview/index.html" \
+            > artifacts/sidebar-six-react-preview/dom.txt
+          grep -q 'data-sidebar-preview-ready="true"' artifacts/sidebar-six-react-preview/dom.txt
+          grep -q 'data-preview-scenario' artifacts/sidebar-six-react-preview/dom.txt
+          for tab in tasks tools workflow develop cloud debug; do
+            "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --no-first-run --virtual-time-budget=4000 --window-size=540,950 \
+              --screenshot="$PWD/artifacts/sidebar-six-react-preview/$tab-360.png" \
+              "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=$tab"
+            test -s "artifacts/sidebar-six-react-preview/$tab-360.png"
+          done
+          echo "SOURCE_BOUND_UI_PREVIEW_CHROMIUM=6_TAB_SCREENSHOTS_ONLY"
+          echo "INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED"
+      - name: Upload exact generated HTML and screenshots (no write to main)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sidebar-six-react-preview
+          path: |
+            prototypes/sidebar/react-preview/index.html
+            artifacts/sidebar-six-react-preview/*-360.png
+            artifacts/sidebar-six-react-preview/dom.txt
+          retention-days: 14

@@ -38,7 +38,7 @@ import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL,BROWSER_MENU_ROOT,BRO
   BROWSER_MENU_MATERIALIZED_STORE,BROWSER_MENU_LAUNCH_STORE,
   BROWSER_API_VERSION,BROWSER_OPERATIONS,browserCapabilityList,browserOperation,
   deniedBrowserStatus,normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
-const ROOT_OPEN='opendesk.browser.open';
+const ROOT_OPEN='opendesk.browser.open'; // Pre-R1.1 legacy ID; never create or launch it.
 const ID_PREFIX='opendesk.tool.';
 const MAX_SELECTION=16384,MAX_CONTEXT=65536,LIFETIME=60000;
 const failure=(code,message)=>Object.assign(new Error(message||code),{code});
@@ -50,6 +50,34 @@ const jsonBytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLengt
 function parsedHttp(value){
   try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url:null;}
   catch{return null;}
+}
+// Display-only branding comes from the BUILT extension manifest. It never
+// changes tool IDs, package digests, grants, or the Browser SDK protocol.
+// Native Chrome owns the grouping label (Manifest "name").
+const MENU_BIDI_OR_CONTROL=/[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/;
+function menuText(value,max){
+  if(typeof value!=='string')return '';
+  const cleaned=value.normalize('NFKC')
+    .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g,' ')
+    .replace(/\s+/g,' ').trim();
+  const points=[...cleaned];
+  return points.length>max?points.slice(0,max-1).join('')+'…':cleaned;
+}
+export function formatBrowserMenuTitle(actionTitle,manifest={}){
+  const raw=manifest?.short_name;
+  const short=typeof raw==='string'&&[...raw].length<=12&&!MENU_BIDI_OR_CONTROL.test(raw)
+    ?menuText(raw,12):'';
+  const prefix=short||menuText(manifest?.name,12);
+  let title=menuText(actionTitle,80)||'操作';
+  if(!prefix)return title; // No arbitrary hard-coded replacement brand.
+  const escaped=[...prefix].map(char=>'\\^$.*+?()[]{}|'.includes(char)?'\\'+char:char).join('');
+  const duplicate=new RegExp('^'+escaped+'(?:\\s*[·:|–—-]\\s*|\\s+)','i');
+  for(let i=0;i<3;i++){
+    const next=title.replace(duplicate,'').trim();
+    if(!next||next===title)break;
+    title=next;
+  }
+  return title.toLocaleLowerCase()===prefix.toLocaleLowerCase()?prefix:prefix+' · '+title;
 }
 export function matchesMenuDocument(action,url){
   const doc=parsedHttp(url);
@@ -424,10 +452,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }
     const {tools,grants,enabled}=await readSources(api);
     const nextMenuOrigins=new Set(),sitePermissionCache=new Map();
-    const desired=new Map([
-      [BROWSER_MENU_ROOT,{id:BROWSER_MENU_ROOT,title:'OpenDesk Browser',contexts:['page','selection','link']}],
-      [ROOT_OPEN,{id:ROOT_OPEN,parentId:BROWSER_MENU_ROOT,title:'打开 OpenDesk Browser',contexts:['page','selection','link']}]
-    ]);
+    const desired=new Map();
+    // Synchronous Chrome runtime API: built Standard/Developer branding, not
+    // untrusted tool metadata or an async fetch that could lose click gestures.
+    const brand=api.runtime?.getManifest?.()||{};
     for(const tool of tools)for(const action of menuActions(tool)){
       if(!sidebarToolEnabled(enabled,tool.id))continue;
       const origins=await permittedOrigins(api,await approvedOrigins(grants,tool),sitePermissionCache);
@@ -436,21 +464,40 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       if(!patterns.length||!Array.isArray(active)||!active.includes(action.actionId))continue;
       for(const origin of origins)if(matchesMenuDocument(action,origin))nextMenuOrigins.add(origin);
       const id=menuId(tool.id,action.actionId);
-      desired.set(id,{id,parentId:BROWSER_MENU_ROOT,title:action.title,contexts:action.contexts,
+      desired.set(id,{id,title:formatBrowserMenuTitle(action.title,brand),contexts:action.contexts,
         documentUrlPatterns:patterns});
     }
     const before=(await api.storage.local.get(BROWSER_MENU_MATERIALIZED_STORE))[BROWSER_MENU_MATERIALIZED_STORE];
-    const previous=Array.isArray(before)?before.filter(id=>typeof id==='string'&&
-      (id===ROOT_OPEN||id===BROWSER_MENU_ROOT||id.startsWith(ID_PREFIX))):[];
-    // Always reconcile IDs: Chrome does not provide a general list/read menu API.
-    // Create-or-update handles service-worker resurrection without removeAll().
-    for(const item of desired.values())await apiMenu('create',[item]);
-    for(const id of previous.filter(id=>!desired.has(id)).reverse()){
+    // Legacy array = confirmed IDs. A reconciliation journal deliberately does
+    // NOT claim that each ID exists. It survives a crashed SW or failed create.
+    const tracked=Array.isArray(before)?before:
+      before?.phase==='reconciling'&&Array.isArray(before.ids)?before.ids:[];
+    const previous=[...new Set(tracked.filter(id=>typeof id==='string'&&
+      (id===ROOT_OPEN||id===BROWSER_MENU_ROOT||
+       /^opendesk\.tool\.[a-z][a-z0-9-]{1,39}\.[a-z][a-z0-9-]{0,39}$/.test(id))))];
+    const untracked=[...desired.keys()].filter(id=>!previous.includes(id));
+    if(untracked.length){
+      // Durable write-ahead ownership journal, BEFORE native create(). If the
+      // Worker stops after creating a menu, the next run can still remove it.
+      await confirmedWrite(api.storage.local,BROWSER_MENU_MATERIALIZED_STORE,
+        {phase:'reconciling',ids:[...previous,...untracked]});
+    }
+    const removeOwned=async id=>{
       try{await apiMenu('remove',[id]);}
       catch(error){if(!/not found|cannot find|does not exist/i.test(error.message||''))throw error;}
-    }
+    };
+    // Removing Chrome's old parent cascades to its children. update(id,{...})
+    // does NOT safely erase an existing parentId. Never call removeAll(): other
+    // trusted extension modules may own their own menu items.
+    await removeOwned(BROWSER_MENU_ROOT);
+    await removeOwned(ROOT_OPEN);
+    for(const id of previous)
+      if(id!==BROWSER_MENU_ROOT&&id!==ROOT_OPEN&&!desired.has(id))await removeOwned(id);
+    // New items are TOP LEVEL. Multiple VISIBLE items collapse natively under
+    // the installed extension's Manifest name, not a hand-built folder.
+    for(const item of desired.values())await apiMenu('create',[item]);
     await confirmedWrite(api.storage.local,BROWSER_MENU_MATERIALIZED_STORE,[...desired.keys()]);
-    menuActionsAvailable=desired.size>2;
+    menuActionsAvailable=desired.size>0;
     activeMenuOrigins.clear();
     for(const origin of nextMenuOrigins)activeMenuOrigins.add(origin);
     for(const [key,context] of recentSourceContexts)
@@ -1089,7 +1136,6 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   async function clicked(info,tab,clickEpoch,sourceDocument){
     const id=String(info.menuItemId||'');
-    if(id===ROOT_OPEN)return;
     const match=/^opendesk\.tool\.([a-z][a-z0-9-]{1,39})\.([a-z][a-z0-9-]{0,39})$/.exec(id);
     if(!match||!tab||tab.incognito||!Number.isInteger(tab.id))return;
     const [ ,toolId,actionId]=match;
@@ -1135,12 +1181,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   function onClicked(info,tab){
     const id=String(info.menuItemId||'');
-    if(id!==ROOT_OPEN&&!/^opendesk\.tool\./.test(id))return;
+    if(!/^opendesk\.tool\.[a-z][a-z0-9-]{1,39}\.[a-z][a-z0-9-]{0,39}$/.test(id))return;
     // No await, storage read or Broker initialization before the user gesture.
     try{const result=api.sidePanel.open(tab?.id?{tabId:tab.id}:{windowId:tab?.windowId});
       Promise.resolve(result).catch(e=>logger.warn('OpenDesk menu open',e));}
     catch(error){logger.warn('OpenDesk menu open',error);return;}
-    if(id!==ROOT_OPEN){
+    {
       const frameId=Number.isInteger(info.frameId)?info.frameId:0;
       const clickEpoch=captureEpoch(tab?.id,frameId);
       const key=epochKey(tab?.id,frameId),pending=pendingSourceContexts.get(key);

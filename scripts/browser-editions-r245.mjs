@@ -2,10 +2,26 @@
 // This selector only controls extension PACKAGING. It never disables the
 // already installed Node/Native local-project JSX/SFC resolver.
 import {PAGE_BROWSER_PRIVATE_FILES} from '../src/libs/page-frameworks/contract.js';
+import {readFileSync} from 'node:fs';
 
 export const BROWSER_EDITION_RECORD='framework/browser-edition.json';
 export const BROWSER_EDITIONS=Object.freeze(['standard','developer']);
-export const DEVELOPER_BROWSER_NAME='OpenDesk Browser Developer';
+// Root manifest.json is the ONLY editable name/prefix source. Changing it
+// changes both distributions on rebuild; no second Developer branding JSON.
+const branding=JSON.parse(readFileSync(new URL('../manifest.json',import.meta.url),'utf8'));
+const safeBrand=value=>typeof value==='string'&&value.trim()===value&&
+  !/[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/.test(value);
+export const STANDARD_BROWSER_NAME=branding.name;
+export const BROWSER_MENU_SHORT_NAME=branding.short_name;
+export function deriveDeveloperBrowserName(name){
+  if(!safeBrand(name)||!name||[...name].length>65)
+    throw Error('E_BROWSER_BRAND: invalid Standard name (Developer suffix needs room)');
+  return name+' Developer';
+}
+if(!safeBrand(BROWSER_MENU_SHORT_NAME)||!BROWSER_MENU_SHORT_NAME||
+   [...BROWSER_MENU_SHORT_NAME].length>12)
+  throw Error('E_BROWSER_BRAND: short_name must be a safe nonempty Chrome short name <=12 chars');
+export const DEVELOPER_BROWSER_NAME=deriveDeveloperBrowserName(STANDARD_BROWSER_NAME);
 
 export function resolveBrowserEdition(value=process.env.OPENDESK_BROWSER_EDITION){
   const edition=value===undefined?'standard':value;
