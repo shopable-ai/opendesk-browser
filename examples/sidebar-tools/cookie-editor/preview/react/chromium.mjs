@@ -68,8 +68,8 @@ try{
  await test('search pins active draft',async()=>{await page.locator('#cookie-name').fill('temporary');await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('renamed');await page.getByText('当前编辑项不符合筛选条件，暂时保留显示。').waitFor();await page.locator('#cookie-name').fill('locale');await page.getByRole('button',{name:'取消',exact:true}).click();await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('');});
  await test('create and value reveal',async()=>{
   await page.getByRole('button',{name:'新建 Cookie'}).click();await page.locator('#cookie-name').fill('created');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText('已保存 Cookie').waitFor();
-  await page.locator('[data-row="a"]').click();assert.equal(await page.getByLabel('Cookie 值').inputValue(),'');await page.getByRole('button',{name:'读取并显示 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值').inputValue(),'sess_demo_only_C18');
-  await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值').inputValue(),'');await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.locator('[data-row="a"]').click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'');await page.getByRole('button',{name:'读取并显示 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'sess_demo_only_C18');
+  await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'');await page.getByRole('button',{name:'取消',exact:true}).click();
  });
 
  await test('R5.2 Host and Cookie destruction buttons belong to distinct toolbars',async()=>{
@@ -106,7 +106,7 @@ try{
  });
  await test('R5.2 empty vs retained value, semantic dirty and secure constraints',async()=>{
   await page.locator('[data-row="b"]').click();
-  const value=page.getByLabel('Cookie 值');
+  const value=page.getByLabel('Cookie 值',{exact:true});
   assert.equal(await value.getAttribute('type'),'password');
   await page.getByRole('button',{name:'清空值'}).click();
   await page.getByText('将写入空值').waitFor();
