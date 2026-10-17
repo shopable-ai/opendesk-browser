@@ -693,12 +693,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-dev-status').textContent=`已创建待验证候选 ${identity(value)}；请先运行相同源码并提供真实 runId`;
     navigate('catalog');
   }
-  async function readFile() {
-    const file=get('task-package-file').files?.[0];
+  async function readFile(fileOverride=null) {
+    // Both Sidebar and full catalog share one parser, Host import and validation.
+    const file=fileOverride||get('task-package-file').files?.[0];
     if(!file)return;
-    // Capture the File first, then allow the same file to be selected again
-    // after either a successful import or a rejected/failed handoff.
-    get('task-package-file').value='';
+    if(!fileOverride)get('task-package-file').value='';
     if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
     const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
@@ -876,7 +875,40 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     });
   }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
-  listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
+  const taskAddMenu=get('task-add-menu');
+  function showTaskAddMenu(open){
+    if(!taskAddMenu){if(open)navigate('catalog');return;}
+    taskAddMenu.hidden=!open;
+    get('task-open-catalog').setAttribute('aria-expanded',String(open));
+    if(open){
+      get('workspace-content')?.scrollTo?.({top:0});
+      get('task-add-import').focus?.({preventScroll:true});
+    }else get('task-open-catalog').focus?.({preventScroll:true});
+  }
+  listen(get('task-open-catalog'),'click',()=>showTaskAddMenu(taskAddMenu?.hidden!==false));
+  if(taskAddMenu){
+    taskAddMenu.hidden=true;
+    listen(get('task-add-close'),'click',()=>showTaskAddMenu(false));
+    listen(get('task-add-import'),'click',()=>get('task-add-file').click());
+    listen(get('task-add-catalog'),'click',()=>{
+      showTaskAddMenu(false);navigate('catalog');
+    });
+    listen(get('task-add-develop'),'click',()=>{
+      if(navigate('develop')!==false)showTaskAddMenu(false);
+    });
+    listen(get('task-add-file'),'change',asyncAction(async()=>{
+      const input=get('task-add-file'),file=input.files?.[0];
+      if(!file)return;
+      try{
+        await readFile(file);
+        get('task-add-status').textContent=get('task-catalog-status').textContent;
+        if(doc.documentElement?.dataset?.opendeskTab==='develop')showTaskAddMenu(false);
+      }catch(error){
+        get('task-add-status').textContent=formatTaskError(error);
+        throw error;
+      }finally{input.value='';}
+    }));
+  }
   function setTaskSearchOpen(open){
     const panel=get('task-search-panel'),toggle=get('task-search-toggle');
     panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
@@ -937,7 +969,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   listen(get('task-refresh'),'click',asyncAction(()=>refresh()));
   listen(get('task-catalog-refresh'),'click',asyncAction(()=>refresh()));
   listen(get('task-create-candidate'),'click',asyncAction(createCandidate));
-  listen(get('task-package-file'),'change',asyncAction(readFile));
+  listen(get('task-package-file'),'change',asyncAction(()=>readFile()));
   listen(get('task-verify'),'click',asyncAction(verify));
   listen(get('task-publish'),'click',asyncAction(publish));
   listen(get('task-install'),'click',asyncAction(install));

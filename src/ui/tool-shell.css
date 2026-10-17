@@ -1283,3 +1283,25 @@
 #sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
 #sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-prompt-native-action{font-size:0}
 @media(prefers-reduced-motion:reduce){#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::before,#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::after{transition:none}}
+
+/* R33.3.11 compact Add; keep a single workspace scroll owner. */
+.task-add-menu{min-width:0;margin:0 0 var(--space-3);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);gap:var(--space-3)}
+.task-add-menu[hidden]{display:none}
+.task-add-menu:not([hidden]){display:grid}
+.task-add-menu .task-add-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+.task-add-heading strong{font-size:13px}
+.task-add-heading .od-icon-button{flex:0 0 var(--od-icon-size)}
+.task-add-menu .hint{margin:0;line-height:1.5;overflow-wrap:anywhere}
+.task-add-menu .task-add-options{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.task-add-menu .task-add-options .od-button{flex:1 1 115px;min-width:0;white-space:normal}
+.task-add-menu #task-add-import{justify-self:stretch;min-height:36px;white-space:normal}
+.task-add-menu #task-add-status:empty{display:none}
+/* R33.3.11 schedule Header: compact icon actions on one baseline. */
+.schedule-panel .schedule-header{display:flex;flex-wrap:nowrap;align-items:center;gap:var(--space-2);min-width:0}
+.schedule-header-heading{flex:1 1 auto;min-width:0}
+.schedule-header-heading .od-page-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schedule-header .od-page-actions{margin-inline-start:auto;display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex:none;flex-wrap:nowrap}
+.schedule-header .od-icon-button{flex:0 0 var(--od-icon-size);width:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0}
+.schedule-panel #schedule-host-status{margin:0}
+.schedule-panel .schedule-form-section,.schedule-panel .schedule-rule-field{min-width:0}
+.schedule-panel #schedule-form input,.schedule-panel #schedule-form select,.schedule-panel #schedule-form textarea{max-width:100%}

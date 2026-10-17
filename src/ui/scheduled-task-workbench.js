@@ -156,9 +156,7 @@ export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
   document:doc=globalThis.document,onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),listeners=[];
-  // Keep the secondary runner action beside its live context. Reuse the
-  // existing toolbar and status node, including the Host's status binding.
-  get('schedule-open-runner').parentElement.prepend(get('schedule-host-status'));
+  // Single Header owns navigation. Host availability remains in the list.
   get('schedule-create').setAttribute('aria-label','新建定时计划');
   const bind=(id,event,fn)=>{
     const node=get(id);if(!node)throw new Error('Missing schedule UI: '+id);
@@ -243,9 +241,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         view==='form'&&prior==='manager'&&managerReturn==='form'?formScrollTop:0;
     get('schedule-create').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
-    // The separately visible runner is already a Host, not a second Side Panel.
-    text(get('schedule-open-runner'),isRunner()?'再开运行页 ↗':'运行页 ↗');
-    get('schedule-open-runner').setAttribute('aria-label',isRunner()?'再打开一个运行页':'打开独立运行页');
+    get('schedule-open-runner').hidden=view!=='list';
+    const runnerLabel=isRunner()?'再打开一个独立运行页':'打开独立运行页';
+    get('schedule-open-runner').setAttribute('aria-label',runnerLabel);
+    get('schedule-open-runner').title=runnerLabel;
     get('schedule-back').hidden=isRunner()&&view==='runner';
     const backLabel=view==='detail'?(detailReturnView==='runner'?'返回运行概览':'返回计划列表'):
       view==='form'?(formReturnView==='detail'?'返回计划详情':
