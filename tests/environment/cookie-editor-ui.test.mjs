@@ -1250,6 +1250,69 @@ test('R4.10.1 error codes with credential-looking content never appear in the UI
 });
 
 
+for(const scenario of [
+  {at:'store',code:'E_COOKIE_STORE',phase:'当前存储区查询'},
+  {at:'partition',code:'E_COOKIE_PARTITION',phase:'当前分区查询'},
+  {at:'store-receipt',code:'E_COOKIE_STORE',phase:'Store/Partition 回执校验'},
+  {at:'partition-receipt',code:'E_COOKIE_PARTITION',phase:'Store/Partition 回执校验'},
+  ...['E_COOKIE_SCOPE','E_CHROME_PERMISSION_REQUIRED','E_CHROME_UNSUPPORTED',
+    'E_SITE_GRANT_REQUIRED','E_GRANT_REVOKED','E_COOKIE_CONFLICT','E_LIMIT',
+    'E_DOCUMENT_CHANGED','E_TOOL_CHANGED','E_CHROME'].map(code=>({at:'read',code,phase:'已有 Cookie 查询'})),
+  {at:'read',code:'E_COOKIE_FICTIONAL_SECRET',expected:'E_COOKIE_IMPORT',phase:'已有 Cookie 查询'},
+  {at:'read-receipt',code:'E_SCHEMA',phase:'已有 Cookie 查询'},
+  {at:'page-receipt',code:'E_SCHEMA',phase:'已有 Cookie 查询'},
+  {at:'page-cursor',code:'E_SCHEMA',phase:'已有 Cookie 查询'}
+])test('Import preflight identifies '+scenario.at+' / '+scenario.code+' safely and permits same-field correction',async()=>{
+  let fault=false,writes=0;
+  const secret='FICTIONAL_SECRET_IN_HOST_MESSAGE';
+  const reject=()=>{throw Object.assign(new Error(secret),{code:scenario.code});};
+  const cookies={
+    getCurrentStore:async()=>{
+      if(fault&&scenario.at==='store')reject();
+      return fault&&scenario.at==='store-receipt'?{storeId:''}:{storeId:'0'};
+    },
+    getPartitionKey:async()=>{
+      if(fault&&scenario.at==='partition')reject();
+      return fault&&scenario.at==='partition-receipt'?{}:
+        {partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}};
+    },
+    getAll:async()=>{
+      if(fault&&scenario.at==='read')reject();
+      return fault&&scenario.at==='read-receipt'?null:[];
+    },
+    ...(scenario.at.startsWith('page-')?{getAllPage:async()=>fault?
+      scenario.at==='page-cursor'?{cookies:[],nextCursor:'fictional-repeated-cursor'}:
+        {cookies:null}:{cookies:[]}}:{}),
+    setMany:async()=>{writes++;assert.fail('preflight must never write');}
+  };
+  const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies});
+  s.setSite('example.com');s.setLiveTarget('https://example.com/');await s.readBrowserMetadata();
+  s.fire('live-import','click');s.getField('import-format').value='json';
+  const input=JSON.stringify([{name:'fictional',value:'FICTIONAL_DRAFT_VALUE',storeId:'0'}]);
+  s.getField('import-text').value=input;fault=true;
+  s.fire('import-apply','click');await s.settle();
+  const message=s.getStatusMessage();
+  assert.match(message,/真实导入预检失败/);
+  assert(message.includes(scenario.phase),message);
+  assert(message.includes(scenario.expected||scenario.code),message);
+  assert(!message.includes(secret));assert(!message.includes('FICTIONAL_DRAFT_VALUE'));
+  assert(!message.includes('E_COOKIE_FICTIONAL_SECRET'));
+  assert.equal(s.getField('import-text').value,input);
+  assert.equal(s.getField('import-format').value,'json');
+  assert.equal(s.getField('import-panel').hidden,false);
+  assert.equal(s.getField('live-import-confirm').hidden,true);
+  assert.equal(s.getField('import-apply').disabled,false);
+  assert.equal(writes,0);
+  fault=false;
+  const corrected=JSON.stringify([{name:'fictional',value:'FICTIONAL_CORRECTED_VALUE',storeId:'0'}]);
+  s.getField('import-text').value=corrected;s.fire('import-panel','input');
+  s.fire('import-apply','click');await s.settle();
+  assert.equal(s.getField('import-text').value,corrected);
+  assert.match(s.getField('live-import-preview').textContent,/可导入 1/);
+  assert.equal(s.getField('live-import-confirm').hidden,false);
+  assert.equal(writes,0);
+});
+
 test('R4.10.1 a forged permission reason must not reveal any credential-like text',async()=>{
   const secret='FICTIONAL_COOKIE_VALUE_IN_REASON_CODE';
   const s=await harness({capabilities:{getStatus:async()=>({

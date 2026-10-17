@@ -1,6 +1,12 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.19 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.19 的完整导出/缩放矩阵仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+**入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.22 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.22 在用户系统 Chrome 的升级及导入仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
+
+## 手动导入报错与安装版本（2.0.22）
+
+系统 Chrome 可能仍安装 2.0.19：它会因一条过期记录拒绝整份输入，还保留真实导入 10 条限制，并统一显示 `E_COOKIE_IMPORT`。更新扩展的 `dist/development` **不会自动更新已安装工具或当前 iframe**。在「扩展」中通过原有官方候选的「更新」，或「更多操作 → 导入本地工具包」选择本目录唯一 JSON，核对同 ID `cookie-editor`、版本 **2.0.22** 后确认更新，再主动打开；不要卸载或清数据。更新前保留自己的输入，不能从目录版本推断当前运行版本。
+
+新版逐条区分可导入、过期和无效记录；过期跳过，不改变有效期。预检失败分别指出存储区查询、分区查询、回执校验或已有 Cookie 查询，并保留已知安全错误码（例如 `E_COOKIE_STORE`、`E_COOKIE_PARTITION`、`E_SITE_GRANT_REQUIRED`）；未知错误码回退 `E_COOKIE_IMPORT`，不会显示 Host 异常正文。原输入和格式保留，可在同一输入框修改后重新预览，失败预检不会写 Cookie。不要为排错删除 Store/Partition 或扩大权限。
 
 ## 快速开始：使用已安装扩展，或编译本地 JSON
 
@@ -26,7 +32,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check
 
 **两个 JSON 的区别：** `tool.config.json` 是构建配置，不能直接导入；`cookie-editor.opendesk-tool.json` 才是可直接安装的发布包。后者由原有 `scripts/build-sidebar-tool.mjs` 生成，`artifacts/sidebar-tools/<id>/<version>/` 是保留的本机输出。随项目提交的预生成 JSON **不是第二份业务源码**，所有修改应从 `src/` 重新打包，自动一致性测试能防止包与代码漂移。该工具是 **OpenDesk Sidebar App**，不是能通过 `chrome://extensions`「加载已解压的扩展程序」直接安装的 Chrome Manifest 扩展。
 
-**什么时候才需要编译整个 OpenDesk Browser？** 如果刚修改了 `src/` 中的可信 Cookies Host、Browser SDK、权限或 Catalog，或者当前安装的旧扩展缺少相应能力，须在独立开发 Chrome Profile 中从仓库根目录执行 `npm run build:dev`，用 `chrome://extensions`「加载已解压的扩展程序」加载 `dist/development/`，重新打开 Side Panel。**只有本目录 UI/JS/CSS 变化时，不需要重编整个扩展**。验证真实 Cookie 读写前先打开普通 HTTP(S) 网站，并在已安装工具的可信「设置」中按网站和能力分别授权；不要把“工具已安装”误当作“已经有 Cookie 权限”。
+**什么时候才需要更新整个 OpenDesk Browser？** 日常开发复用既有 `npm run dev` watcher 和固定 `dist/development/`，核对 Chrome 实际加载路径、扩展 ID 及「调试」中的开发连接/构建指纹；不要另起静态构建覆盖 watcher。工具包仍需按同 ID 正式更新。**只有本目录 UI/JS/CSS 变化时，不需要重编整个扩展**。验证真实 Cookie 读写前先打开普通 HTTP(S) 网站，并在已安装工具的可信「设置」中按网站和能力分别授权；不要把“工具已安装”误当作“已经有 Cookie 权限”。
 
 用于不安装的只读预览：`node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/cookie-editor`。它会生成 `STAGED_NOT_INSTALLED` 快照，**不能**替代正式安装、授权或真实 Chrome 验收。
 
@@ -39,7 +45,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check
 5. `observe.start/getStatus/read/stop` 手动启动最长 15 秒的有界脱敏变化观察，携带 cursor/gap。事件不传 Cookie 值。
 6. 文本或文件可自动识别 JSON 数组、带 `cookies` 的对象、单条记录、名称值字典、Cookie Header 和 Netscape。支持 UTF-8 BOM、`Cookie:` 前缀、分号/换行及值中的等号。预览逐条列出新增、覆盖、过期及无效原因，确认时仅写可导入项并明确统计跳过数；错误后保留原文供修改。JSON 导出可直接回导。真实导出 JSON 默认含值，复制或下载仍需已有敏感值授权与本次最终确认；仅导出属性放在「更多选项」。
 
-### 2.0.20 批量导入范围
+### 2.0.20–2.0.22 批量导入范围
 
 - 真实导入没有每批 10 条、预览 500 条、离线工作区 200 条等用户条数限制；系统自动分批，用户无需拆文件。原文与离线规范数据采用独立的 8 MiB 暂定内存保护预算，超限明确提示并保留输入，不截断。它不是 Chrome Cookie 数量上限。
 - 使用公开 `cookies.setMany`，系统按 SDK 单请求 12,000 字节合同保留余量，自动分为不超过 11,500 字节 / 50 条且同 Store/Partition 的批次，用户无需拆文件；每批一次可信操作确认。需包含该公共接口的新版扩展。

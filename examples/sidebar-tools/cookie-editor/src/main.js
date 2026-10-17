@@ -75,7 +75,10 @@ const safeErrorCodes=new Set([
   'E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SESSION_EXPIRED','E_COOKIE_VALUES',
   'E_COOKIE_READ','E_COOKIE_SET','E_COOKIE_REMOVE','E_COOKIE_CLEAR',
   'E_COOKIE_OBSERVE','E_COOKIE_IMPORT','E_COOKIE_EXPORT','E_CLIPBOARD',
-  'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION'
+  'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION',
+  'E_COOKIE_SCOPE','E_COOKIE_STORE','E_COOKIE_PARTITION','E_CHROME',
+  'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_LIMIT',
+  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED'
 ]);
 const safeCookieCode=(error,fallback)=>safeErrorCodes.has(error?.code)?error.code:fallback;
 const safeCookieDetails=new Set([
@@ -535,7 +538,7 @@ async function readAllCookies(sdk,args,isCurrent=()=>true){
     if(!isCurrent())return null;
     if(!Array.isArray(page?.cookies)||page.nextCursor!==undefined&&
         (typeof page.nextCursor!=='string'||!page.nextCursor||seen.has(page.nextCursor)))
-      throw new Error('Host 返回了无效 Cookie 分页，请刷新');
+      throw Object.assign(new Error('Host 返回了无效 Cookie 分页，请刷新'),{code:'E_SCHEMA'});
     rows.push(...page.cookies);cursor=page.nextCursor;
     if(cursor)seen.add(cursor);
   }while(cursor);
@@ -896,16 +899,22 @@ function showImportPreview(plan){
 async function prepareLiveImport(){
   if(busy||pending||!liveTarget||liveState!=='ready'||targetPending)return;
   clearImportPreview();
-  const target=liveTarget,id=epoch;let plan;
+  const target=liveTarget,id=epoch;let plan,phase='格式解析';
   setBusy(true);
   try{
     plan=inspectImport(E('import-text').value,E('import-format').value);
+    phase='当前存储区查询';
     const scope=await browserSdk().cookies.getCurrentStore({url:target.url});
     if(!stillCurrent(id,target))return;
+    phase='当前分区查询';
     const partition=await browserSdk().cookies.getPartitionKey({url:target.url});
     if(!stillCurrent(id,target))return;
-    if(typeof scope?.storeId!=='string'||!partition?.partitionKey?.topLevelSite)
-      throw new Error('Store/Partition 无法确定');
+    phase='Store/Partition 回执校验';
+    if(typeof scope?.storeId!=='string'||!scope.storeId)
+      throw Object.assign(new Error('Store 无法确定'),{code:'E_COOKIE_STORE'});
+    if(!partition?.partitionKey?.topLevelSite)
+      throw Object.assign(new Error('Partition 无法确定'),{code:'E_COOKIE_PARTITION'});
+    phase='记录身份校验';
     for(const entry of plan.records){
       if(entry.status!=='ready')continue;
       const row=entry.cookie;
@@ -920,6 +929,7 @@ async function prepareLiveImport(){
     }
     rejectImportDuplicates(plan.records);
     const reads=new Map();plan.created=0;plan.replaced=0;
+    phase='已有 Cookie 查询';
     for(const entry of plan.records){
       if(entry.status!=='ready')continue;
       if(!stillCurrent(id,target))return;
@@ -930,13 +940,14 @@ async function prepareLiveImport(){
         found=await readAllCookies(browserSdk(),{url:route.href,storeId:scope.storeId,
           ...(row.partitionKey?{partitionKey:row.partitionKey}:{})},()=>stillCurrent(id,target));
         if(!stillCurrent(id,target))return;
-        if(!Array.isArray(found))throw new Error('Host 未确认预览');
+        if(!Array.isArray(found))throw Object.assign(new Error('Host 未确认预览'),{code:'E_SCHEMA'});
         reads.set(scopeKey,found);
       }
       if(found.some(cookie=>key(cookie)===key(row))){plan.replaced++;entry.action='覆盖';}
       else{plan.created++;entry.action='新增';}
     }
     if(!stillCurrent(id,target))return;
+    phase='预览生成';
     plan.rows=plan.records.filter(entry=>entry.status==='ready').map(entry=>entry.cookie);
     // Memory-only; invalidate whenever the source, format, file or target changes.
     importPreview={...plan,epoch:id,url:target.url,source:E('import-text').value,
@@ -945,8 +956,9 @@ async function prepareLiveImport(){
     E('live-import-confirm').hidden=!plan.rows.length;
     status(plan.rows.length?'预览已生成；确认后仅导入可用记录，其他记录按上述原因跳过。':'没有可导入记录；请按逐条说明修改原文后重新预览。',plan.rows.length?'':'error');
   }catch(error){
-    if(stillCurrent(id,target))status(plan?'真实导入预检失败（'+safeCookieCode(error,'E_COOKIE_IMPORT')+
-      '）：请检查 Store/Partition 与网站授权；输入已保留。':'导入格式错误：'+String(error.message)+'；输入已保留，可修改后重新预览。','error');
+    // Only fixed local phase labels and exact allowlisted codes may cross this boundary.
+    if(stillCurrent(id,target))status(plan?'真实导入预检失败：'+phase+'（'+safeCookieCode(error,'E_COOKIE_IMPORT')+
+      '）；输入已保留，可修改后重新预览。':'导入格式错误：'+String(error.message)+'；输入已保留，可修改后重新预览。','error');
   }finally{if(id===epoch){setBusy(false);render();}}
 }
 function importBatches(rows){
