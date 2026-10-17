@@ -109,6 +109,9 @@ function Preview(){
   const [taskSearch,setTaskSearch]=React.useState('');
   const [taskFilter,setTaskFilter]=React.useState('all');
   const [framework,setFramework]=React.useState('javascript');
+  const [projectMode,setProjectMode]=React.useState(false);
+  const [projectSelection,setProjectSelection]=React.useState('');
+  const [projectFeedback,setProjectFeedback]=React.useState('');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
   const [notice,setNotice]=React.useState('');
@@ -213,6 +216,25 @@ function Preview(){
     get('sidebar-tool-settings-open').setAttribute('aria-expanded',String(!!opened&&toolSettingsOpen));
     get('sidebar-tool-remove').disabled=!opened;
     get('sidebar-tool-settings-view').hidden=true; // Host settings cannot execute offline.
+    // Mirror only the real local-project DOM layout; the Native Provider,
+    // runtime approvals and fixed source hashes cannot exist offline.
+    const sourceSwitch=get('developer-source-switch');
+    sourceSwitch.dataset.mode=projectMode?'local':'manual';
+    sourceSwitch.querySelector('.od-page-title').textContent=projectMode?'本地项目':'直接编辑';
+    get('local-project-mode').checked=projectMode;
+    get('local-project-tools').hidden=!projectMode;
+    get('manual-source-editor').hidden=projectMode;
+    get('manual-project-params-tools').hidden=projectMode;
+    get('local-project-recovery').hidden=!projectMode;
+    get('local-project-params-tools').hidden=!projectMode||projectSelection!=='preview-controller';
+    get('local-project-select').disabled=!projectMode;
+    get('local-project-intro').textContent='选择已授权的本地项目，核对来源后明确运行。离线预览只能展示交互。';
+    const localStatus=get('local-project-status');
+    localStatus.dataset.state='disconnected';
+    localStatus.textContent=projectMode?(projectFeedback||
+      (projectSelection?'UI_PREVIEW_ONLY · 已选示例，Native 与源码 Provider 均未连接，无法运行或安装。':
+        'UI_PREVIEW_ONLY · 正式环境从 Native 读取已授权项目；当前没有真实项目授权。')):'';
+    get('local-project-diagnostics').textContent='UI_PREVIEW_ONLY · Chrome Native：未连接；源码 Provider：未连接；固定项目身份与源代码均未读取。';
     importPanel.hidden=!importOpen;
     actionReview.hidden=!extensionReview;
     get('sidebar-tool-preview').hidden=!importCandidate;
@@ -258,7 +280,8 @@ function Preview(){
     cloud.textContent=labels[scene];
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
   },[tab,width,scene,selected,sheetOpen,transcript.length,detail,taskMode,
-    opened,openToolKey,toolSettingsOpen,importOpen,importCandidate,importError,extensionReview,extensionRecords]);
+    opened,openToolKey,toolSettingsOpen,projectMode,projectSelection,projectFeedback,
+    importOpen,importCandidate,importError,extensionReview,extensionRecords]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
       const click=event=>{if(!event.isTrusted)return;setTab(names[i]);setSheetOpen(false);};
@@ -314,6 +337,28 @@ function Preview(){
     for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
     return ()=>{for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
   },[openToolKey,opened]);
+  React.useEffect(()=>{
+    const mode=get('local-project-mode'),select=get('local-project-select');
+    select.replaceChildren(new Option('选择演示项目（不代表授权）',''),
+      new Option('Controller 示例 · UI_PREVIEW_ONLY','preview-controller'),
+      new Option('Page 示例 · UI_PREVIEW_ONLY','preview-page'));
+    const modeChanged=()=>{setProjectMode(mode.checked);setProjectFeedback('');};
+    const projectChanged=()=>{setProjectSelection(select.value);setProjectFeedback('');};
+    const refresh=()=>setProjectFeedback('UI_PREVIEW_ONLY · 无法读取 Native 项目列表；请在正式 Chrome 扩展中刷新。');
+    const connect=()=>setProjectFeedback('UI_PREVIEW_ONLY · 离线文件不能连接本机 OpenDesk；正式扩展使用现有选项页连接。');
+    const guide=()=>{
+      get('local-project-guide').open=true;
+      get('local-project-guide').querySelector('summary')?.focus({preventScroll:true});
+      setProjectFeedback('UI_PREVIEW_ONLY · 下方展示正式项目授权与接入说明。');
+    };
+    const listeners=[['local-project-mode','change',modeChanged],
+      ['local-project-select','change',projectChanged],
+      ['local-project-refresh','click',refresh],
+      ['local-project-connect','click',connect],
+      ['local-project-guide-open','click',guide]];
+    for(const [id,event,fn] of listeners)get(id).addEventListener(event,fn);
+    return ()=>{for(const [id,event,fn] of listeners)get(id).removeEventListener(event,fn);};
+  },[]);
   // The real import card, file chooser, update review and confirm IDs are
   // borrowed from tool.html. No browser storage or installer is invoked.
   React.useEffect(()=>{
@@ -459,7 +504,8 @@ function Preview(){
       model={{state:scene==='error'?'error':scene==='running'?'running':'unknown',
         text:labels[scene]}}/>,developerStatus)}
     {createPortal(<DeveloperActions model={{runDisabled:true,saveDisabled:true,stopDisabled:true,
-      runLabel:'运行草稿',saveLabel:'保存版本',stopLabel:'停止'}}/>,developerDock)}
+      runLabel:projectMode?'运行本地项目':'运行草稿',
+      saveLabel:projectMode?'安装固定版本':'保存版本',stopLabel:'停止'}}/>,developerDock)}
     {createPortal(<WorkflowHeader model={{
       saved:false,busy:scene==='loading',planning:scene==='loading',
       historyExpanded:history,sessionHint:'新对话（预览）'}}
