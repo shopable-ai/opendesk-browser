@@ -16,7 +16,8 @@ import {createInstalledPageTools} from './installed-page-tools.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountExtensionList} from './react/main.tsx';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
-import {getInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
+import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
+import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from './sidebar-tools/lifecycle.js';
 import {admitsTrustedCookieEditor,TRUSTED_COOKIE_EDITOR_VERSION} from './trusted-cookie-admission.js';
 import {isActualSidePanelContext} from './sidepanel-context.js';
@@ -119,11 +120,13 @@ if(debugEnabled&&hostUrl.searchParams.get('cookieReactPilot')==='1'){
       const catalog=await loadOfficialCatalog({api:chrome});
       const release=catalog.apps.find(row=>row.toolId==='cookie-editor'&&
         row.version===TRUSTED_COOKIE_EDITOR_VERSION);
-      const installed=await getInstalledSidebarTools(chrome);
-      const tool=installed.find(row=>row.id==='cookie-editor');
-      const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,
-        MARKET_PROVENANCE_STORE];
+      // One consistent snapshot includes the real installed registry, not
+      // merely the enabled/epoch/provenance maps. Revalidate after hashing.
+      const keys=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,
+        TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE];
       const saved=await chrome.storage.local.get(keys);
+      const installed=requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]);
+      const tool=installed.find(row=>row.id==='cookie-editor');
       const epochs=saved[TOOL_REVOCATION_EPOCHS_STORE];
       const admitted=await admitsTrustedCookieEditor({tool,installed,release,
         enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs,
@@ -142,25 +145,26 @@ if(debugEnabled&&hostUrl.searchParams.get('cookieReactPilot')==='1'){
       }
       slot.replaceChildren();
       const disposePilot=extensionList.mountCookieEditorPilot(slot);
-      let closed=false;
+      let closed=false,observer=null;
       const close=()=>{
         if(closed)return;closed=true;disposePilot();
         chrome.storage.onChanged.removeListener(onChanged);
+        observer?.disconnect();
+        window.removeEventListener('pagehide',close);
         slot.textContent='安装状态变化，已卸载可信试点。请重新打开测试页。';
       };
       const onChanged=(changes,area)=>{
         if(area==='local'&&keys.some(key=>Object.hasOwn(changes,key)))close();
       };
       chrome.storage.onChanged.addListener(onChanged);
-      window.addEventListener('pagehide',close,{once:true});
+      window.addEventListener('pagehide',close);
       // Only after it has been shown does leaving Debug unmount its React state.
       let shown=!debugPage.hidden;
-      const observer=new MutationObserver(()=>{
+      observer=new MutationObserver(()=>{
         if(!debugPage.hidden)shown=true;
         else if(shown){observer.disconnect();close();}
       });
       observer.observe(debugPage,{attributes:true,attributeFilter:['hidden']});
-      window.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
     })().catch(()=>{
       slot.textContent='官方准入检查失败；未执行可信 UI。原工具保持不变。';
     });
