@@ -269,3 +269,30 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 新增 Node 回归用例 [175a04e](https://github.com/shopable-ai/opendesk-browser/commit/175a04e0ba453e674f6bec799de0b1119e754555)，覆盖「已安排 / 已暂停 / 运行中 / 已完成 / 执行失败 / 需要处理 / 结果未知 / 已错过 / 等待运行条件 / 正在结算」共十种状态的 **planState、badge、lastFireStatus**，并检查等待 Host 的提示、未知结果禁止自动重试、STOPPED 不等于计划暂停。
 - 直接读取 GitHub 正式展示模块 blob `9cac1aa62ab0bffe65b36e5a10269150bda9786e` 的真实 JavaScript 源码，在受限独立 V8 内执行 `presentSchedulePlan` 并核对上述十种组合：**10/10 PASS**。该证据定级为 **ISOLATED_SOURCE_EXECUTION_PASS**；并非执行了仓库 `node --test`，更不能证明 Host、调度、持久化、Chrome 或 Native PASS。
 - 仍须在 Mac 最新 `main` 执行原定的完整定向 Node 回归、同源 HTML 生成和 `--check`、隔离 Build、Chromium/CI、已安装扩展实际任务操作。与本次最新 commit 对齐的这些证据均保持 **NOT_TESTED**。
+
+
+## R33.3.15-B · 2026-10-18 · 同源六 Tab HTML、定向功能与失败证据
+
+### 当前产物及真实浏览器结果
+
+- 提交 a5407ccdbe4a93a946b320faa31474fed5c8d491 对应 GitHub Actions https://github.com/shopable-ai/opendesk-browser/actions/runs/39055902859 生成六 Tab 同源离线 HTML，并上传 Artifact ID 12109477605（名称 sidebar-six-react-preview）；文件路径 prototypes/sidebar/react-preview/index.html、大小 606163 B、SHA-256 df29c34100fcd522aaf1aa17daa3742782608121d0c63043365e136c87a828a8，正式输入 SHA-256 329d83856a0c9c5b584ffdb622774134f3f556ca35d12de67c8aa9ebdc041c83。
+- 同 Artifact 包含 my-schedule 与 workflow 的 320/360/420/520px Chromium 截图、定时计划多状态、工作流历史/未保存保护、DOM 快照。HTML 保留正式 React19 组件和正式 DOM/CSS，但离线 Fixture 不执行 Scheduler/Provider/RunHost/Authority。
+- 同 SHA 的真实 Chromium 点击回放 FAIL：工作流 AI 设置弹层已出现，但 #workflow-source-https 被祖先关闭的 details 隐藏；鼠标点击断言命中矩形 w=0,h=0。不可将已生成截图当作 Chromium 交互通过。
+
+### 实际修复
+
+- f152738dbe64b410d4bbb07012e7c06846fc80f7：修复 scheduled-task-ui-r1.test.mjs 中已淘汰的文字运行页、同父节点断言，按正式图标 Header、aria-label 和独立运行页创建行为核对。https://github.com/shopable-ai/opendesk-browser/actions/runs/39055810869 的 scheduled-components Node：UI 43/43 PASS、Scheduled Tasks 39/39 PASS。
+- a5407ccdbe4a93a946b320faa31474fed5c8d491：为六 Tab 正式 HTML 生成器增加图标 Header 与 aria-label 合同。
+- e2ee6a13ac8a0354e30ec860682eb4f1ef66b440：修正离线 preview adapter 的工作流设置打开/关闭行为，和真实 WorkflowView 一样同步 workflowSettings.open 与 React sheetOpen，使用真实现有表单，不模拟 Provider 成功。
+- 925cde443f079cf001781e93b8be052f8b4275d7：sidebar-component-contract.test.mjs 云控旧 .cloud-panel-heading 断言更新为当前 .cloud-panel-head；a540 的 Node 154/155 PASS，唯一 FAIL 是这个旧断言。两个后续修复完成了源码对照，仍须新 CI 证明回归 PASS。
+
+### 来源安全和实际 Build 阻塞
+
+- 当前 Bookmark Trusted React 固定导入的四个源码 Git Blob 已在 scripts/bundle-provenance.mjs 的 compiledBookmarkReactInputs 逐文件白名单中，逐项与最新树匹配，不能继续无条件定性为未经审计的导入。但这不等于独立的运行时授权/安装/沙箱测试完成，也不能放宽来源门禁。
+- WXT 生产/开发 Build 均 FAIL，原因为另一个并行 AdBlock Owner 修改了四个受信任固定文件，而 compiledAdblockInputs 尚未审核重新锁定：trusted/service.js、trusted/policy.js、trusted/lifecycle.js、trusted/host-controls.js。构建 fail-closed 正常；严禁盲目更新哈希、删除校验、移出安全守卫。verify 因缺少生产产物失败，size 因失败构建而停止，不能计为独立产品缺陷。
+
+### 分层门禁（按 a540 最终已出证据与后续独立变更分别记录）
+
+- a540：SOURCE_BOUND_PREVIEW=PASS（生成并上传正式离线 HTML）；NODE=PARTIAL（六 Tab 154/155、R1 UI 43/43 与 Scheduled Tasks 39/39）；BUILD=FAIL、VERIFY=FAIL、SIZE=FAIL（AdBlock Provenance）；CHROMIUM=PARTIAL（静态 DOM/截图有证据，原生点击 FAIL）；CI=FAIL；INSTALLED_CHROME=NOT_TESTED；NATIVE=NOT_TESTED；真实 Scheduler/Controller/Host 持久化=NOT_TESTED。
+- e2ee、925c 后的新回归在获得实际 CI 证据前保持 NOT_TESTED，不得沿用前序 PASS。
+- 五维 95+ 尚不认证：产品功能、UI/UX、React 架构、安全权限、测试可靠性仍需完整源码同 SHA CI、实际安装 Chrome/Native/Host 真实证据。下一步先复测云控 Header 和 HTTPS 设置原生点击，再由 AdBlock Owner 审计更新固定 Blob，完成 WXT Build/Verify/Size 与 Mac 真机功能。
