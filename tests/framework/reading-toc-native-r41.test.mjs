@@ -553,6 +553,17 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   'R4.2 Home reset did not remove the saved site-specific placement');
   assert((await tocRect()).left>=(await tocRect()).viewportWidth/3,
     'R4.2 reset must restore a right-side responsive default');
+  for(const width of [360,420,1280]){
+    await articlePage.send('Emulation.setDeviceMetricsOverride',{
+      width,height:900,deviceScaleFactor:1,mobile:false});
+    await eventually(async()=>{
+      const rect=await tocRect();
+      return rect.left>=-1&&rect.top>=-1&&
+        rect.right<=rect.viewportWidth+1&&rect.bottom<=rect.viewportHeight+1;
+    },'R1.8.6 Home reset escaped the '+width+'px viewport');
+    await capture(articlePage,'toc-r186-default-'+width+'.png');
+  }
+  await articlePage.send('Emulation.clearDeviceMetricsOverride');
   await capture(articlePage,'toc-r42-reset.png');
   console.log('TOC_NATIVE_STAGE: real pointer drag, snap, free position, reload, resize and reset succeeded');
   const second=await openTab(origin+'/chat.html');chatPage=second.cdp;
