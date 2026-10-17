@@ -724,11 +724,12 @@
 #cloud-my-open svg,#cloud-overview-refresh svg,#cloud-open-console svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .cloud-panel{min-width:0;gap:var(--space-3)}
 .cloud-panel-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
-.cloud-panel-heading{min-width:0}
-.cloud-panel-heading .hint{font-size:11px;line-height:1.5;margin:var(--space-1) 0 0;color:var(--od-sub)}
+.cloud-panel-head>.od-page-title{flex:1 1 auto;min-width:0;margin:0}
+.cloud-panel-head>.cloud-panel-actions{display:flex;flex:0 0 auto;flex-wrap:nowrap;align-items:center;gap:var(--space-2);margin-inline-start:auto}
 .cloud-overview,.cloud-requests{min-width:0;padding:var(--space-3)}
-#cloud-overview-state{margin:0 0 var(--space-3);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
-.cloud-overview-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}
+.cloud-overview{display:grid;gap:var(--space-3)}
+#cloud-overview-state{margin:0;font-size:12px;line-height:1.55;font-weight:650;overflow-wrap:anywhere}
+.cloud-overview-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);padding-block:var(--space-3);border-block:1px solid var(--od-line)}
 .cloud-overview-metrics>div{display:grid;gap:var(--space-1);min-width:0}
 .cloud-overview-metrics span{color:var(--od-sub);font-size:11px}
 .cloud-overview-metrics strong{font-size:12px;overflow-wrap:anywhere}
@@ -1103,7 +1104,9 @@
 #workbench-cloud .cloud-overview-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);margin-top:var(--space-2)}
 #workbench-cloud .cloud-overview-secondary>div{min-width:0;font-size:12px;line-height:1.5;color:var(--od-sub)}
 #workbench-cloud .cloud-overview-secondary strong{display:block;color:var(--od-ink);overflow-wrap:anywhere}
-#workbench-cloud .cloud-diagnostics{margin-top:var(--space-3);min-width:0}
+#workbench-cloud .cloud-diagnostics{margin-top:0;min-width:0}
+#workbench-cloud .cloud-overview-detail{margin:var(--space-2) 0 0;padding-top:var(--space-2);border-top:1px solid var(--od-line);color:var(--od-sub);font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:380px){#workbench-cloud .cloud-overview-secondary{grid-template-columns:minmax(0,1fr)}}
 
 #workbench-cloud .cloud-first-run{padding:var(--space-3);display:grid;gap:var(--space-2);min-width:0}
 #workbench-cloud .cloud-first-run[hidden],#workbench-cloud .cloud-approval-section[hidden]{display:none}

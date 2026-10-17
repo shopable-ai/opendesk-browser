@@ -192,3 +192,13 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 在独立 Linux Chromium + Playwright `set_content` 上运行 360 / 420 / 520px 多状态、真 click/select/file-input：**34 项 PASS / 0 FAIL / 0 JS errors**。涉及直接时区选择，IANA Tokyo/New York，可见区域无横向滚动，「开发」本地项目切换/选择/刷新/返回，以及任务导入时拒绝扩展工具 JSON。这是 **OFFLINE_UI_PREVIEW** 层级，不是原生安装、Host 或任务执行验证。
 - 本轮针对 screenshot 发现「本地项目」标题与同名开关重复：正式 `local-project.js` + 离线 `sidebar-six-preview.tsx` 更新为左「项目连接」、右「本地项目」，提交 `7a4a2a7` / `d61f46e`；上述 34 项复核使用修正后的 d61f46e 生成 HTML。保留原 Host 授权/固定源码校验，无新用户目录授权路径。
 - 未运行 Mac Native Chrome、Provider、真实定时任务。包括 Native 真实授权、原计划固定时区与 DST 切换、任务安装/回读在内均 **NOT_TESTED**，不得通过预览状态或离线评分间接标记 PASS。
+
+
+## R33.3.13 · 云控 Header 与正文状态分层（2026-10-17）
+
+- **基线与写入范围**：远端 main `44b3c3ee88da11ca78508fae043674d2e939e3cf`；目标文件仅 `src/ui/tool.html`、`src/ui/tool-shell.css`、`src/ui/react/preview/sidebar-six-preview.tsx`、本记录和 `tests/environment/cloud-layout-r33313.test.mjs`。独立 GitHub Connector 写入，未读到 Mac 本机工作区/暂存/并行 Agent 状态，不假报本地干净或 Native 验收。
+- **正式 UI**：Header 只保留「云控」及原 `cloud-open-console` / `cloud-overview-refresh` SVG IconButton；`cloud-my-state` 原动态详情进入既有 `cloud-diagnostics` 折叠区，不再造成标题拥挤，也不重复向读屏器直播。保持 `cloud-overview-state` 为正文 live 主状态，连接/授权任务数为精简指标，Provider/Host/Slot/Requests 低频折叠；380px 以下诊断单列，原 270px 以下主要指标单列规则保留。客户端密钥/Side Panel 停止承诺仍可在低频设置中查阅。
+- **业务保真**：CloudHosting 仍唯一拥有 Provider 配对、连接、云请求、逐任务许可、外部凭据与撤销；未改 `cloud-hosting.js`、原 RunHost、Authority、React 单根或设计 Token。旧 ID 不改，长中文和错误文本按原 CSS 正常换行。
+- **交互预览**：沿用 `build-sidebar-six-react-preview.mjs` 从正式 DOM/CSS 和 React TSX 生成页面。适配器只投影六种本地场景、为 Header 图标提供可见的预览反馈，使用原 DOM 展示禁用的任务审阅、非真实请求详情和原有应用/设置折叠。所有预览示例显式 `UI_PREVIEW_ONLY`，禁用配对/批准/停止/撤权/Run 跳转，不创建第二执行器或假冒真实请求。
+- **验证等级**：GitHub 源码/树 blob 校核与可在当前环境执行的静态不变量独立记录；如未获得同 SHA 的正式生成器 `--check`、Node 套件、production Build、真实 Chromium 点击截图/CI、Mac Native Chrome 等回执，统一标 `NOT_TESTED`，**不能打正式五维 95+**。远端 main 不追踪 `prototypes/sidebar/react-preview/index.html` 生成 HTML；不能以手写 HTML 代替正式同源构建产物。
+- **跟进**：Mac main 工作区核对真实并行改动后运行定向 Node、生成 HTML / --check、360/420/520px 与 200% Chromium 截图及 Provider/授权失败回归，保留 CI commit/hash 与真实运行证据。对其他试点来源门禁按 owner 协调，不跨界修改。

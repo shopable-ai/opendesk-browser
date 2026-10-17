@@ -68,6 +68,15 @@ const sampleExtensions=Object.freeze([
     description:'固定身份与能力需由真实 Installer 审阅',installed:false,
     version:'1.0.0',enabled:false,primaryAction:''}
 ]);
+// UI_PREVIEW_ONLY: read-only strings; no Provider/RunHost/Authority is invoked.
+const cloudScenarios=Object.freeze({
+  unpaired:{brief:'未配对',summary:'未配对 · 需要连接可信提供者（仅界面演示）',myState:'无真实配对回执',provider:'未配对',connection:'未连接',host:'未就绪',slot:'不可用',tasks:'0',requests:'0'},
+  ready:{brief:'已连接（演示）',summary:'连接可用 · UI_PREVIEW_ONLY（非真实连接）',myState:'无真实 Provider、执行宿主或任务批准回执',provider:'已配对（模拟）',connection:'已连接（模拟）',host:'已就绪（模拟）',slot:'空闲（模拟）',tasks:'2（模拟）',requests:'1（模拟）'},
+  approval:{brief:'待授权（演示）',summary:'任务授权尚未完成 · UI_PREVIEW_ONLY',myState:'需逐项核对固定版本、网站和结果许可',provider:'已配对（模拟）',connection:'已连接（模拟）',host:'待授权',slot:'未开放',tasks:'0',requests:'0'},
+  disconnected:{brief:'断线（演示）',summary:'Provider 连接断开 · 需核对请求与回执',myState:'断线时不可自动重试未知操作',provider:'已配对（模拟）',connection:'断线（模拟）',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'},
+  error:{brief:'状态异常（演示）',summary:'连接或授权状态读取失败 · 请核对',myState:'读取失败不代表凭据已经撤销',provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'},
+  unknown:{brief:'结果未知（演示）',summary:'结果未知 · 不允许自动重试',myState:'需核对原始结果、资源释放和授权状态',provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'}
+});
 const labels={
   normal:'仅演示 UI，不读取真实数据',
   empty:'无项目 · UI_PREVIEW_ONLY',
@@ -95,6 +104,9 @@ function Preview(){
   const initialWidth=Number(new URLSearchParams(window.location.search).get('width'));
   const [width,setWidth]=React.useState([360,420,520].includes(initialWidth)?initialWidth:360);
   const [scene,setScene]=React.useState('normal');
+  const [cloudScenario,setCloudScenario]=React.useState('unpaired');
+  const [cloudFeedback,setCloudFeedback]=React.useState('');
+  const [cloudDetailOpen,setCloudDetailOpen]=React.useState(false);
   const [search,setSearch]=React.useState('');
   const [kind,setKind]=React.useState('all');
   const [scope,setScope]=React.useState('smart');
@@ -186,13 +198,7 @@ function Preview(){
     (taskFilter!=='disabled'||!p.enabled)&&
     (!taskSearch||[p.title,p.taskId,p.description].join(' ').toLocaleLowerCase()
       .includes(taskSearch.toLocaleLowerCase())));
-  const cloudPreview={
-    myState:labels[scene],summary:'云控状态展示 · UI_PREVIEW_ONLY',
-    provider:scene==='normal'?'未配对':'待核对',
-    connection:scene==='normal'?'未连接':labels[scene],
-    host:scene==='normal'?'未就绪':'待核对',
-    slot:scene==='normal'?'不可用':'待核对',tasks:'0',requests:'0'
-  };
+  const cloudPreview=cloudScenarios[cloudScenario];
   const debugPreview={
     summary:'只读诊断 · '+labels[scene],pairing:'未检测',connection:'未连接',
     reconcile:'未检测',slot:'未检测',taskCount:'—',requestCount:'—',
@@ -284,9 +290,13 @@ function Preview(){
     status.textContent=labels[scene];
     status.dataset.state=scene;
     const cloud=get('cloud-status');
-    cloud.textContent=labels[scene];
+    cloud.textContent='UI_PREVIEW_ONLY · '+cloudPreview.brief+'；未连接真实 Provider。';
+    get('cloud-brief').textContent=cloudPreview.brief;
+    get('cloud-first-run').hidden=cloudScenario!=='unpaired';
+    get('cloud-approval-section').hidden=!['ready','approval'].includes(cloudScenario);
+    get('cloud-request-detail').hidden=!cloudDetailOpen;
     get('workflow-provider-toggle').setAttribute('aria-expanded',String(sheetOpen));
-  },[tab,width,scene,selected,sheetOpen,transcript.length,detail,taskMode,
+  },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,transcript.length,detail,taskMode,
     opened,openToolKey,toolSettingsOpen,projectMode,projectSelection,projectFeedback,
     importOpen,importCandidate,importError,extensionReview,extensionRecords]);
   React.useEffect(()=>{
@@ -432,6 +442,47 @@ function Preview(){
     return ()=>{closed();open();closeReview();confirm();install();
       fileInput.removeEventListener('change',readFile);};
   },[extensionReview,importCandidate]);
+  // Installed DOM stays the only markup; fixture rows never leave memory.
+  React.useEffect(()=>{
+    const task=doc.createElement('div');task.className='cloud-task-choice';
+    const label=doc.createElement('label');
+    const check=doc.createElement('input');check.type='checkbox';check.disabled=true;
+    const name=doc.createElement('span');name.textContent='示例任务（UI_PREVIEW_ONLY）';
+    label.append(check,name);task.append(label);
+    const scope=doc.createElement('p');scope.className='cloud-task-scope';
+    scope.textContent='固定版本、网站范围、结果许可必须由真实 Host 核对';
+    task.append(scope);get('cloud-task-list').replaceChildren(task);
+    get('cloud-approval-summary').textContent='演示布局：不能批准、启用或保存。';
+    get('cloud-clients-status').textContent='UI_PREVIEW_ONLY · 无真实凭据可创建、复制或撤销。';
+    const li=doc.createElement('li'),title=doc.createElement('span');
+    title.textContent='请求版式示例 · 非真实请求';
+    const state=doc.createElement('span');state.textContent='结果未知 · UI_PREVIEW_ONLY';
+    const open=doc.createElement('button');open.type='button';
+    open.className='od-button od-button--secondary';open.textContent='查看详情';
+    open.addEventListener('click',()=>setCloudDetailOpen(true));
+    li.append(title,state,open);get('cloud-request-samples').replaceChildren(li);
+    get('cloud-request-page').textContent='仅演示 1 条版式 · 无真实历史';
+    get('cloud-request-detail-title').textContent='请求详情（仅预览）';
+    get('cloud-request-detail-state').textContent='结果未知 · UI_PREVIEW_ONLY';
+    get('cloud-request-detail-facts').textContent='无真实请求、时间或 Run ID。';
+    get('cloud-request-detail-reason').textContent='未知结果禁止自动重试。';
+    get('cloud-request-detail-run-id').textContent='无真实 Run ID';
+    get('cloud-request-detail-note').textContent='不能跳转真实 Run / Result';
+    for(const id of ['cloud-approve','cloud-stop','cloud-pair','cloud-unpair',
+      'cloud-client-create','cloud-client-copy','cloud-request-open-result'])
+      get(id).disabled=true;
+    const handlers=[
+      ['cloud-open-console',()=>setCloudFeedback('UI_PREVIEW_ONLY · 正式控制台仅在真实扩展中打开')],
+      ['cloud-overview-refresh',()=>setCloudFeedback('UI_PREVIEW_ONLY · 未调用 Provider，仍显示本地场景')],
+      ['cloud-configure',()=>{get('cloud-hosting').open=true;get('cloud-url').focus({preventScroll:true});
+        setCloudFeedback('UI_PREVIEW_ONLY · 查看连接表单，配对操作已禁用');}],
+      ['cloud-request-close',()=>setCloudDetailOpen(false)],
+      ['cloud-client-refresh',()=>setCloudFeedback('UI_PREVIEW_ONLY · 无凭据可刷新')],
+      ['cloud-refresh',()=>setCloudFeedback('UI_PREVIEW_ONLY · 无真实状态可核对')]
+    ];
+    for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
+    return ()=>{open.remove();for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
+  },[]);
   React.useEffect(()=>{
     doc.documentElement.dataset.sidebarPreviewReady='true';
     window.__sidebarPreviewInfo=Object.freeze({sourceBound:true,tabs:6,
@@ -446,24 +497,30 @@ function Preview(){
     {createPortal(<div className="od-sidebar-preview-toolbar">
       <div className="od-sidebar-preview-heading"><strong>OpenDesk · 六 Tab 正式源码预览</strong>
         <span>UI_PREVIEW_ONLY · 开发版包含调试 · Native / 权限 / 执行全部未连接</span></div>
-      <label>状态 <select data-preview-scenario value={scene} onChange={event=>setScene(event.target.value)}>
+      {tab==='cloud'?<label>云控场景 <select data-preview-cloud-scenario value={cloudScenario}
+        onChange={event=>{setCloudScenario(event.target.value);setCloudDetailOpen(false);setCloudFeedback('');}}>
+        <option value="unpaired">未配对</option><option value="ready">已连接（演示）</option>
+        <option value="approval">待授权</option><option value="disconnected">断线</option>
+        <option value="error">异常</option><option value="unknown">结果未知</option>
+      </select></label>:<label>状态 <select data-preview-scenario value={scene} onChange={event=>setScene(event.target.value)}>
         <option value="normal">普通</option><option value="empty">空状态</option>
         <option value="loading">加载</option><option value="running">运行中</option>
         <option value="error">错误</option><option value="denied">权限拒绝</option>
         <option value="unknown">未知</option><option value="disconnected">断线</option>
-      </select></label>
+      </select></label>}
       <label>宽度 <select data-preview-width value={width}
         onChange={event=>setWidth(Number(event.target.value))}>
         <option value={360}>360px</option><option value={420}>420px</option>
         <option value={520}>520px</option>
       </select></label>
       <span className="od-sidebar-preview-label" role="status">
-        {labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
+        {tab==='cloud'?cloudPreview.brief+' · UI_PREVIEW_ONLY':labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
           'React 任务列表/详情 + 原生执行与定时计划':tab==='cloud'?
           'React 只读概览 + 原生授权与请求队列':tab==='tools'?
           'React 列表/详情 + 原生其余业务':tab==='develop'?
           'React 局部控件 + 原生编辑器':'React 标题/对话/设置 + 原生执行'}</span>
       {notice&&<span className="od-sidebar-preview-label" role="status">{notice}</span>}
+      {tab==='cloud'&&cloudFeedback&&<span className="od-sidebar-preview-label" role="status">{cloudFeedback}</span>}
     </div>,controls)}
     {createPortal(<ExtensionToolbar model={{
       query:search,kind,scope,menuOpen,language:'zh-CN',
