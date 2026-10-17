@@ -97,10 +97,9 @@ function viewFixture(){
     createDocumentFragment:()=>new MockElement('fragment',win)};
   const host=()=>doc.body.children[0];
   const handle=()=>host().shadow.children[0].children[0].children[0];
-  const reset=()=>host().shadow.children[0].children[0].children[2];
   const pointer=(x,y)=>({pointerId:7,button:0,isPrimary:true,clientX:x,clientY:y,
     preventDefault(){}});
-  return {doc,win,host,handle,reset,pointer};
+  return {doc,win,host,handle,pointer};
 }
 
 test('expanded composer above the viewport midpoint keeps the compact card outside the whole form',()=>{
@@ -160,18 +159,24 @@ test('R4.2 real view controls drag only from handle, persist at release, reset a
     f.handle().fire('keydown',{key:'ArrowDown',shiftKey:true,preventDefault(){}});
     assert.equal(writes.length,2);
     assert(writes[1].y>writes[0].y,'keyboard moves in 32px increments with Shift');
-    f.reset().fire('click');
-    assert.deepEqual(writes,[writes[0],writes[1],null],'reset clears stored preference');
+    assert.equal(f.host().shadow.children[0].children[0].children.length,2,
+      'in-page toolbar contains only the grab handle and three free view modes');
+    f.handle().fire('dblclick');
+    assert.deepEqual(writes,[writes[0],writes[1],null],
+      'double-click on the existing drag handle resets position without a refresh-like icon');
     assert.equal(f.host().attributes.has('data-toc-custom'),false);
+    f.handle().fire('keydown',{key:'ArrowDown',preventDefault(){}});
+    f.handle().fire('keydown',{key:'Home',preventDefault(){}});
+    assert.equal(writes.at(-1),null,'Home keeps existing keyboard reset semantics');
     const original=f.host().getBoundingClientRect();
     f.handle().fire('pointerdown',f.pointer(original.left+25,original.top+20));
     f.handle().fire('pointermove',f.pointer(50,100));
     f.handle().fire('pointercancel',f.pointer(50,100));
-    assert.equal(writes.length,3,'canceled drags do not save');
+    assert.equal(writes.length,5,'canceled drags do not save');
     assert.equal(f.host().attributes.has('data-toc-custom'),false);
     view.setPlacement({v:1,dock:'right',x:0.7,y:0.5});
     assert.equal(f.host().getBoundingClientRect().right,f.win.innerWidth-8);
-    assert.equal(writes.length,3,'restoring another tab preference does not re-save');
+    assert.equal(writes.length,5,'restoring another tab preference does not re-save');
     view.dispose();view.dispose();
     assert.equal(f.host().removed,true);
     assert.equal(f.win.events.get('resize').size,0,'no window listener leak');

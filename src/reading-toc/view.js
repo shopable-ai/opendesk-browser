@@ -14,9 +14,6 @@ const CSS=[
 '.grab{display:flex;align-items:center;gap:4px;min-width:0;padding:3px 1px;border:0;border-radius:6px;',
 'background:transparent;color:inherit;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}',
 '.grab:active{cursor:grabbing}.grab svg{width:13px;height:13px;flex:none;color:#8b90a1}',
-'.reset{display:grid;place-items:center;flex:none;width:24px;height:27px;border:0;border-radius:6px;',
-'background:transparent;color:#858996;padding:0}.reset svg{width:14px;height:14px}',
-'.reset:hover{background:#f1f3f8;color:#303342}',
 ':host([data-toc-custom]){transition:left .16s ease,top .16s ease}',
 ':host([data-toc-dragging]){transition:none!important}',
 ':host([data-toc-dragging]) .panel{box-shadow:0 9px 25px #1018272b}',
@@ -43,7 +40,6 @@ const CSS=[
 '.heading{color:#a4a7b3}.modes{background:#16171e;border-color:#383a48}',
 '.mode{color:#8b90a1}.mode[aria-pressed=true]{background:#2a2d3a;color:#e3e7f4}',
 '.link{color:#a0a5b4}.link:hover,.link[aria-current=location]{color:#f4f5f7}',
-'.reset:hover{background:#2a2d3a;color:#e3e7f4}',
 '.more{background:#272936;color:#acbfff;border-color:#383a48}.more:hover{background:#303850;color:#d4dfff}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}}',
 '@media(max-width:720px){:host{top:auto;bottom:var(--toc-bottom,8px);right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}}',
@@ -86,11 +82,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   grab.setAttribute('aria-keyshortcuts','ArrowUp ArrowDown ArrowLeft ArrowRight Home');
   grab.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="3" r="1"/><circle cx="11" cy="3" r="1"/><circle cx="5" cy="8" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="5" cy="13" r="1"/><circle cx="11" cy="13" r="1"/></svg>';
   grab.append(caption);
-  const reset=make('button','reset');reset.type='button';
-  reset.title=t('resetTitle');
-  reset.setAttribute('aria-label',t('resetAria'));
-  reset.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 3 7"/><path d="M3 4v7h7"/><path d="M12 7v5l3 2"/></svg>';
-  head.append(grab,modes,reset);
+  // The webpage outline already follows DOM/SPA changes, so its toolbar has no
+  // refresh-like circular-arrow action. Position reset remains on Home/double-click.
+  head.append(grab,modes);
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
   const more=make('button','more');more.type='button';more.hidden=true;
   more.addEventListener('click',()=>{mode='full';modeExplicit=true;render();});
@@ -108,7 +102,6 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       button.setAttribute('aria-label',button.title);
     });
     grab.title=t('dragTitle');grab.setAttribute('aria-label',t('dragAria'));
-    reset.title=t('resetTitle');reset.setAttribute('aria-label',t('resetAria'));
     empty.textContent=t('pageEmpty');updateMore();
   }
   updateLanguage();
@@ -209,7 +202,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     const point=tocClampPoint(rect.left+dx*unit,rect.top+dy*unit,rect,viewport);
     setPlacement(tocPlacementFromPoint(point.left,point.top,rect,viewport),{persist:true});
   });
-  reset.addEventListener('click',()=>setPlacement(null,{persist:true}));
+  grab.addEventListener('dblclick',()=>setPlacement(null,{persist:true}));
   const onResize=()=>{reposition();place();};
   win.addEventListener('resize',onResize);
   win.visualViewport?.addEventListener('resize',onResize);
