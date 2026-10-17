@@ -11,6 +11,29 @@ const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
 
+test('installing reading-toc on an existing HTTP document activates without an enable click or site grant',async()=>{
+  const f=pageFixture(),prior=globalThis.MutationObserver,id='reading-toc';
+  f.state.set(SIDEBAR_TOOL_STORE,[]);
+  f.state.delete(READING_TOC_SITE_STORE);
+  f.state.set(READING_TOC_VISIBILITY_STORE,changeReadingTocVisibility({},id,f.win.location.href,'site',true));
+  let chromeRequests=0;
+  f.api.permissions={request(){chromeRequests++;throw Error('Unexpected Chrome permission prompt');}};
+  globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await tick();await tick();assert.equal(f.Observer.active,0,'uninstalled tool never indexes');
+    const installed=[{...tool,id}];
+    f.state.set(SIDEBAR_TOOL_STORE,installed);
+    f.changes.send({[SIDEBAR_TOOL_STORE]:{newValue:installed}},'local');
+    await tick();await tick();
+    assert.equal(f.Observer.active,1,'the installed reader indexes without opening the Side Panel');
+    assert.equal((await f.send({toolId:id})).ok,true);
+    assert.equal(f.state.has(SIDEBAR_TOOL_ENABLE_STORE),false,'no second enabled flag is required');
+    assert.equal(f.state.has(READING_TOC_SITE_STORE),false,'no positive site grant is required');
+    assert.equal(chromeRequests,0,'no Chrome permission request on installation or render');
+  }finally{controller.dispose();globalThis.MutationObserver=prior;}
+});
+
 test('built-in default access starts without grants and site/page stops release observers',async()=>{
   const f=pageFixture(),id='reading-toc',prior=globalThis.MutationObserver;
   f.state.set(SIDEBAR_TOOL_STORE,[{...tool,id}]);f.state.delete(READING_TOC_SITE_STORE);
