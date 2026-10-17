@@ -136,6 +136,11 @@ export async function generateSidebarSixReactPreview(){
       '.od-sidebar-preview-footer{padding:0 10px 12px;text-align:center;font-size:10px;color:var(--od-sub)}',
       '@media(max-width:380px){.od-sidebar-preview-frame{padding-inline:0}.od-sidebar-preview-stage{border-radius:0}}'
     ].join('\n');
+    // Tiny isolated bootstrap probe: capture an actual Chromium script error
+    // without creating a second React UI or touching installed extension code.
+    const probe=Buffer.from("document.documentElement.dataset.previewBootScript='started';"+
+      "window.addEventListener('error',event=>{document.documentElement.dataset.previewBootError=String(event.message).slice(0,250)});"+
+      "window.addEventListener('unhandledrejection',event=>{document.documentElement.dataset.previewBootRejection=String(event.reason).slice(0,250)});");
     const result=[
       '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -154,6 +159,7 @@ export async function generateSidebarSixReactPreview(){
       '<p class="od-sidebar-preview-footer">导航 6 Tab；正式 5 Tab + 开发专用调试。'+
       '没有 Native/Provider/安装/配对/执行/授权；仅截图和视觉操作可验收。</p>',
       '<div id="od-sidebar-preview-root" hidden></div>',
+      '<script src="data:text/javascript;base64,'+probe.toString('base64')+'"></script>',
       '<script src="data:text/javascript;base64,'+compiled.toString('base64')+'"></script>',
       '</body></html>\n'
     ].join('\n');
