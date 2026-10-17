@@ -76,9 +76,10 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     MutationObserver:class{observe(){}disconnect(){}}
   };
   win.top=win;
-  const main=mockElement('main'),editor=mockElement('editor');
+  const main=mockElement('main'),editor=mockElement('DIV');
   editor.textContent='已有草稿';editor.isContentEditable=true;
-  editor.getBoundingClientRect=()=>({width:540,height:100});
+  editor.setAttribute('contenteditable','true');
+  editor.getBoundingClientRect=()=>({left:350,top:480,width:540,height:100});
   const root=mockElement('html'),body=mockElement('body');root.append(body);
   const range={selectNodeContents(){},collapse(){}};
   const selection={removeAllRanges(){},addRange(){}};
@@ -96,6 +97,9 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     },
     addEventListener(name,fn){docEvents.set(name,fn);},
     removeEventListener(name){docEvents.delete(name);}
+  };
+  doc.querySelectorAll=selector=>{
+    const node=doc.querySelector(selector);return node?[node]:[];
   };
   // The fixture's focus must have the same activeElement contract as DOM focus.
   const nativeEditorFocus=editor.focus.bind(editor);
@@ -528,8 +532,66 @@ test('R1.8 follows the full-height conversation container after a sidebar transi
   assert(!f.docEvents.has('transitionend'),'dispose removes the transition listener');
 });
 
+// Shape observed in the logged-in ChatGPT composer: no legacy id/testid.
+function loggedInComposer(f,{before='',extra=[]}={}){
+  const query=f.doc.querySelector;
+  f.editor.setAttribute('role','textbox');
+  f.editor.setAttribute('aria-label','询问 ChatGPT');
+  f.editor.setAttribute('data-composer-markdown','');
+  f.editor.children=before.split('\n').map(text=>({tagName:'P',innerText:text||'\n'}));
+  f.doc.querySelectorAll=selector=>{
+    if(!selector.startsWith('main '))return [];
+    const legacy=extra;
+    return selector.includes('[data-composer-markdown]')?[...legacy,f.editor]:legacy;
+  };
+  f.doc.querySelector=selector=>selector.startsWith('main ')?
+    f.doc.querySelectorAll(selector)[0]||null:query(selector);
+  f.doc.execCommand=(command,_show,text)=>{
+    f.calls.push({command,text});
+    f.editor.children=(before+text).split('\n').map(line=>({tagName:'P',innerText:line||'\n'}));
+    return true;
+  };
+}
+for(const before of ['', '已有草稿\n第二段']){
+  test('logged-in anonymous ChatGPT composer preserves multiline draft: '+(before?'append':'empty'),async()=>{
+    const f=await readyPage();
+    try{
+      loggedInComposer(f,{before});
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      const text=(before?'\n':'')+f.row.body;
+      assert.deepEqual(f.calls,[{command:'insertText',text}],'only one native edit, no submit');
+      assert.equal(f.editor.children.map(p=>p.innerText==='\n'?'':p.innerText).join('\n'),before+text);
+      assert.deepEqual(f.copied,[],'successful insertion must not enter clipboard fallback');
+      assert.match(f.panel('announcer').textContent,/已插入草稿，未发送/);
+    }finally{f.controller.dispose();}
+  });
+}
+for(const state of ['hidden','readonly','noneditable','duplicate','replaced-on-focus']){
+  test('ChatGPT composer discovery safely handles legacy candidate: '+state,async()=>{
+    const f=await readyPage();
+    try{
+      const old=mockElement('TEXTAREA');old.value='不能覆盖的旧草稿';
+      if(state==='hidden')old.hidden=true;
+      if(state==='readonly')old.readOnly=true;
+      if(state==='noneditable')old.tagName='DIV';
+      loggedInComposer(f,{extra:state==='replaced-on-focus'?[]:[old]});
+      if(state==='replaced-on-focus'){
+        const focus=f.editor.focus;
+        f.editor.focus=()=>{focus();f.doc.querySelectorAll=()=>[old];};
+      }
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      const refuse=['duplicate','replaced-on-focus'].includes(state);
+      assert.equal(f.calls.length,refuse?0:1);
+      assert.equal(old.value,'不能覆盖的旧草稿');
+      assert.deepEqual(f.copied,refuse?[f.row.body]:[]);
+      assert.equal(f.panel('announcer').textContent.includes('已插入'),!refuse);
+    }finally{f.controller.dispose();}
+  });
+}
+
 function mobileComposer(f,{accepted=true}={}){
   const query=f.doc.querySelector,selections=[];
+  f.editor.tagName='TEXTAREA';
   f.editor.isContentEditable=false;f.editor.id='mobile-composer-prompt';f.editor.value='已有草稿';
   f.editor.setSelectionRange=(start,end)=>selections.push([start,end]);
   f.doc.querySelector=selector=>selector.startsWith('main ')?

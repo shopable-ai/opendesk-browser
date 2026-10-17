@@ -415,12 +415,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const editor=()=>{
     if(activeRule)return checkedEditor();
-    const node=doc.querySelector('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea,main textarea#mobile-composer-prompt');
-    if(!node||!node.isConnected||node.disabled||node.readOnly||node.hidden||node.closest('[data-opendesk-prompts]'))return null;
-    const style=win.getComputedStyle?.(node);
-    if(style&&(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||style.opacity==='0'))return null;
-    const box=node.getBoundingClientRect();
-    return box.width>0&&box.height>0?node:null;
+    // Logged-in ChatGPT also uses an anonymous markdown composer without
+    // the legacy id/testid. Ignore stale hidden fields, but never choose
+    // arbitrarily between multiple visible, editable composers.
+    const nodes=Array.from(doc.querySelectorAll('main #prompt-textarea[contenteditable="true"],main [data-testid="composer-text-input"][contenteditable="true"],main textarea#prompt-textarea,main textarea#mobile-composer-prompt,main [data-composer-markdown][contenteditable="true"][role="textbox"]'))
+      .filter(node=>editorKind(node));
+    return nodes.length===1?nodes[0]:null;
   };
   const readDraft=target=>{
     if(!target.isContentEditable)return target.value;
