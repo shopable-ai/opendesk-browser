@@ -116,6 +116,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Install dependencies for real preview source contracts
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Prove four original JS are Git-tracked directly in preview/
         shell: bash
         run: |
