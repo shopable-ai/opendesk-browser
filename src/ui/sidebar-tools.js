@@ -34,6 +34,34 @@ import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATION
 import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
 
+// Browser SDK maxRequestBytes is a UTF-8 JSON ARGUMENT budget, not the
+// whole sandbox postMessage. The host adds a bounded envelope separately.
+// Never silently drop a request: the sandbox must receive a definitive error.
+export function checkSidebarToolRequestBudget(message){
+  let serialized;
+  try{serialized=JSON.stringify(message);}catch{return {ok:false,code:'E_SCHEMA'};}
+  if(typeof serialized!=='string')return {ok:false,code:'E_SCHEMA'};
+  const operation=typeof message?.operation==='string'?browserOperation(message.operation):null;
+  if(operation){
+    let input;
+    try{input=JSON.stringify(message.payload??{});}catch{return {ok:false,code:'E_SCHEMA'};}
+    if(typeof input!=='string')return {ok:false,code:'E_SCHEMA'};
+    const encoder=new TextEncoder();
+    const inputBytes=encoder.encode(input).byteLength;
+    const envelopeBytes=encoder.encode(serialized).byteLength;
+    // The trusted identity/operation envelope is bounded independently of
+    // the Registry argument budget; extra untrusted fields cannot inflate it.
+    if(inputBytes>operation.maxRequestBytes||envelopeBytes-inputBytes>512)
+      return {ok:false,code:'E_LIMIT'};
+    return {ok:true};
+  }
+  // Keep non-Browser tool request budgets unchanged in this scoped fix.
+  return serialized.length<=(
+    ['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)
+      ?170000:12000
+  )?{ok:true}:{ok:false,code:'E_LIMIT'};
+}
+
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
@@ -1723,9 +1751,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
-    let bytes;
-    try{bytes=JSON.stringify(message).length;}catch{return;}
-    if(bytes>(['browser.clipboard.writeText','browser.downloads.text','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
@@ -1733,6 +1758,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           message:String(error?.message||error).slice(0,250)}})
       },'*');
     };
+    const budget=checkSidebarToolRequestBudget(message);
+    if(!budget.ok){
+      reply(false,null,Object.assign(new Error('工具请求未通过容量或格式检查'),{code:budget.code}));
+      return;
+    }
     if(message.operation==='knowledge.editorState'){
       // Set the guard immediately; do not queue it behind content operations.
       void dispatch(message.operation,message.payload,tool,source,token,revocationEpoch).then(result=>reply(true,result),error=>reply(false,null,error));
