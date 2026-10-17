@@ -68,21 +68,25 @@ try{
  await test('search pins active draft',async()=>{
    assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true');
    await page.locator('#cookie-name').fill('temporary');
-   await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('not-a-matching-cookie-r52');
-   // Capture browser facts before the existing strict assertion; diagnose React vs test failures.
-   const pinFacts=await page.evaluate(()=>({
-     search:document.querySelector('[aria-label="搜索 Cookie"]')?.value,
-     activeRows:[...document.querySelectorAll('.row-trigger[aria-expanded="true"]')].map(el=>el.dataset.row),
-     shownRows:[...document.querySelectorAll('.row-trigger')].map(el=>el.dataset.row),
-     draft:document.querySelector('#cookie-name')?.value??null,
-     note:document.querySelector('.pinned-note')?.textContent??null
-   }));
-   console.log('R522_PIN_FACTS',JSON.stringify(pinFacts));
-   await page.screenshot({path:join(output,'search-pin-diagnostic.png'),fullPage:true});
+   const searchBox=page.getByRole('searchbox',{name:'搜索 Cookie'});
+   await searchBox.fill('not-a-matching-cookie-r52');
+   assert.equal(await searchBox.inputValue(),'not-a-matching-cookie-r52','search text must enter search, never the draft');
+   assert.equal(await page.locator('#cookie-name').inputValue(),'temporary','search must not corrupt the unsaved draft');
    await page.locator('.pinned-note').waitFor();
+   assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true','dirty editor stays expanded after unmatched search');
+   await page.getByRole('button',{name:'筛选与排序'}).click();
+   await page.getByRole('button',{name:'分区',exact:true}).click();
+   assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true','filter must keep active draft');
+   await page.locator('.pinned-note').waitFor();
+   await page.getByRole('button',{name:'全部',exact:true}).click();
+   await page.screenshot({path:join(output,'search-pin-draft.png'),fullPage:true});
    await page.locator('#cookie-name').fill('locale');
+   assert.equal(await page.getByText('未保存',{exact:true}).count(),0,'restoring the original name clears dirty');
    await page.getByRole('button',{name:'取消',exact:true}).click();
-   await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('');
+   assert.equal(await page.locator('.pinned-note').count(),0,'clean editor close removes the pin');
+   await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='搜索 Cookie');
+   await searchBox.fill('');
+   assert.equal(await searchBox.inputValue(),'');
  });
  await test('create and value reveal',async()=>{
   await page.getByRole('button',{name:'新建 Cookie'}).click();await page.locator('#cookie-name').fill('created');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText('已保存 Cookie').waitFor();

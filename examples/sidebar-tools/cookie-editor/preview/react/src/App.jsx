@@ -147,11 +147,13 @@ export default function App(){
  const notify=(text,tone='success')=>{setFlash({text,tone});setError('');};
  const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setReveal(false);setAdvancedOpen(false);setPending(null);setError('');};
  const focusAfter=id=>{focusKey.current=id;};
- React.useEffect(()=>{
-  if(!focusKey.current)return;
-  const target=focusKey.current;focusKey.current=null;
-  const frame=requestAnimationFrame(()=>(document.querySelector(target)||document.querySelector('[aria-label="搜索 Cookie"]'))?.focus());
-  return ()=>cancelAnimationFrame(frame);
+ // A deferred RAF can steal focus back from a search field the user already entered.
+ // Commit DOM synchronously before focusing; never leave a stale autofocus queued.
+ React.useLayoutEffect(()=>{
+  const target=focusKey.current;
+  if(!target)return;
+  focusKey.current=null;
+  (document.querySelector(target)||document.querySelector('[aria-label="搜索 Cookie"]'))?.focus();
  },[selected,version]);
  React.useEffect(()=>{if(!flash?.ephemeral)return;const timer=setTimeout(()=>setFlash(v=>v===flash?null:v),2400);return()=>clearTimeout(timer);},[flash]);
  const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setAdvancedOpen(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
