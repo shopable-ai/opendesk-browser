@@ -2304,7 +2304,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   async function install() {
     if(!canCommitReview()||installButton.disabled)return;
     busy=true;installButton.disabled=true;fileInput.disabled=true;importClose.disabled=true;
-    let accepted=null;
+    let accepted=null,officialTocInstalled=false;
     try{
       const candidate=validateSidebarToolPackage(pending),baseline=pendingBaseline;
       requireToolRuntime(candidate); // Revalidate before committing reviewed bytes.
@@ -2335,6 +2335,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           return true;
         }});
       if(['installed','already-installed'].includes(result.state))accepted=result.tool;
+      // An installed, verified official reader already runs in its page Content Script.
+      // Opening the sidebar merely shows another view of that existing directory.
+      officialTocInstalled=Boolean(accepted&&release?.toolId===READING_TOC_TOOL_ID&&
+        accepted.id===READING_TOC_TOOL_ID&&accepted.capabilities.includes(TOC_CAPABILITY));
       installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       await Promise.all([loadSites(),loadClipSites()]);
       const capture=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE];
@@ -2352,7 +2356,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(!accepted||disposed)return;
     setImportOpen(false);setDiscoveryOpen(false);render();focusToolInList(accepted.id);
-    notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
+    notice(officialTocInstalled?
+      '阅读目录已安装。符合条件的网页自动显示目录，无需再启用或逐站授权；“打开”仅查看侧边栏目录。':
+      '已安装「'+accepted.title+'」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。');
   }
   async function remove(id=active?.id,{confirmed=false}={}) {
     if(installedReadError)throw new Error('安装记录待核对，无法卸载旧缓存中的工具');
@@ -2643,7 +2649,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           destroyFrame();toolDirty=false;toolSaving=false;knowledgeDirty=false;tocSettingsOpen=true;
         }
         await Promise.all([loadEnableRecords(),loadInstalled()]);
-        notice(enabled?'已启用；点击“打开工具”后运行':'已停用；数据和授权保留');
+        notice(enabled?(id===READING_TOC_TOOL_ID?
+          '阅读目录已恢复；符合条件的网页会自动显示目录。':
+          '应用已恢复使用；可按需打开界面。'):'已停用；数据和授权保留');
         return true;
       }finally{busy=false;render();}
     };
