@@ -188,7 +188,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     // User-initiated prepare/confirm owns the frozen source transaction.
     // Do not start a second passive Provider.resolve while reviewing or
     // committing; status will be refreshed after the active step settles.
-    if(preparing||installing||reconciling)return;
+    if(preparing||installing||reconciling||review)return;
     const local=selected(),target=currentPageTarget?.snapshot;
     const key=JSON.stringify([local?.selectedBindingId()||'',local?.providerEpoch()||'',
       local?.connected()||false,local?.preparationIdentity()||'',
