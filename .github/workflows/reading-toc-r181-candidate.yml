@@ -53,13 +53,16 @@ jobs:
           npm run build:dev
           npm run verify
       - name: Assert both committed source-derived previews are byte-reproducible
+        if: ${{ !cancelled() }}
         run: node --test tests/environment/reading-toc-localization-preview-r12.test.mjs
       - name: Install Chrome for Testing (offline preview only)
+        if: ${{ !cancelled() }}
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
       - name: Real Chromium offline preview rendering and screenshot evidence
+        if: ${{ !cancelled() }}
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: xvfb-run -a node --test tests/framework/reading-toc-preview-r14-native.test.mjs
@@ -95,11 +98,13 @@ jobs:
           npm run build:dev
           npm run verify
       - name: Install Chrome for Testing on GitHub hosted macOS
+        if: ${{ !cancelled() }}
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
       - name: Native macOS Chrome offline file previews
+        if: ${{ !cancelled() }}
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: node --test tests/framework/reading-toc-preview-r14-native.test.mjs
