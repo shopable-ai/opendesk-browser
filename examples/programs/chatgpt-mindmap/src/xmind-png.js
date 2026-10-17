@@ -121,6 +121,15 @@ export async function captureXmindPng({sdk,window,canvas,tree,skinMode='dark'}){
     // failure is safer than a seemingly complete PNG with missing connectors.
     if(stage.querySelector('canvas,iframe,object,embed,img,svg image'))
       throw failure('E_XMIND_PNG_UNSUPPORTED_DOM');
+    // A live XMind SVG is laid out INSIDE nested scrollers. Serializing DOM
+    // does not preserve scroll offsets, so normalize them BEFORE taking topic
+    // bounds. The previous order measured scrolled topics, reset scroll and
+    // cloned shifted topics: the resulting PNG contained background only.
+    for(const item of stage.querySelectorAll('*')){
+      if(item.scrollLeft)item.scrollLeft=0;
+      if(item.scrollTop)item.scrollTop=0;
+    }
+    await pause(window);await pause(window);
     const bounds=topics.map(node=>node.getBoundingClientRect());
     if(bounds.some(r=>!Number.isFinite(r.left)||!Number.isFinite(r.top)||
       r.width<1||r.height<1))throw failure('E_XMIND_PNG_LAYOUT');
@@ -133,12 +142,6 @@ export async function captureXmindPng({sdk,window,canvas,tree,skinMode='dark'}){
     const width=right-left,height=bottom-top;
     if(width<100||height<100||width>MAX_EDGE||height>MAX_EDGE||
       width*height>MAX_PIXELS)throw failure('E_XMIND_PNG_DIMENSIONS');
-    // The original scrollers must match their cloned zero-offset state.
-    for(const item of stage.querySelectorAll('*')){
-      if(item.scrollLeft)item.scrollLeft=0;
-      if(item.scrollTop)item.scrollTop=0;
-    }
-    await pause(window);
     const clone=copyComputedStyles(window,stage,stage.cloneNode(true));
     clone.style.setProperty('position','relative','important');
     clone.style.setProperty('left','0','important');
