@@ -21,8 +21,8 @@ const data=[
 const sourceOf=async file=>readFile(file,'utf8');
 function presentation(source,kind,adapter,mode,items=data){
  const match=source.match(kind==='sidebar'
-  ? /const shown=([\s\S]*?);\n  const key=/
-  : /const show=([\s\S]*?);\n    const key=/);
+  ? /const shown=([\s\S]*?);\n  [ \t]*const key=/
+  : /const show=([\s\S]*?);\n    [ \t]*const key=/);
  assert(match,'presentation expression must remain source-bound for '+kind);
  const selected='s-2',scoped=items.filter(item=>item.sourceId===selected);
  const active=scoped[0],current=active;
