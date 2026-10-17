@@ -296,3 +296,13 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - a540：SOURCE_BOUND_PREVIEW=PASS（生成并上传正式离线 HTML）；NODE=PARTIAL（六 Tab 154/155、R1 UI 43/43 与 Scheduled Tasks 39/39）；BUILD=FAIL、VERIFY=FAIL、SIZE=FAIL（AdBlock Provenance）；CHROMIUM=PARTIAL（静态 DOM/截图有证据，原生点击 FAIL）；CI=FAIL；INSTALLED_CHROME=NOT_TESTED；NATIVE=NOT_TESTED；真实 Scheduler/Controller/Host 持久化=NOT_TESTED。
 - e2ee、925c 后的新回归在获得实际 CI 证据前保持 NOT_TESTED，不得沿用前序 PASS。
 - 五维 95+ 尚不认证：产品功能、UI/UX、React 架构、安全权限、测试可靠性仍需完整源码同 SHA CI、实际安装 Chrome/Native/Host 真实证据。下一步先复测云控 Header 和 HTTPS 设置原生点击，再由 AdBlock Owner 审计更新固定 Blob，完成 WXT Build/Verify/Size 与 Mac 真机功能。
+
+
+### R33.3.15-B 最终回归 · 8cb729c · 同源 HTML / 真实 Chromium PASS
+
+- 最新本轮实际修复提交：8cb729c4829d805c2b57dba2fc27e3816dfeb1d3；对应专用 CI https://github.com/shopable-ai/opendesk-browser/actions/runs/39056687567，Artifact ID 12109747686（sidebar-six-react-preview）。
+- 该 SHA 的六 Tab Node package-gates：155/155 PASS；六 Tab preview Job 的 Node：47/47 PASS + 11/11 PASS；真实 Chromium 交互脚本输出 SOURCE_BOUND_UI_PREVIEW_CHROMIUM status=PASS，包含工作流 Codex/HTTPS 来源切换、定时计划表单、历史、新建与草稿处理、扩展导入升级卸载，以及本地数据隔离。Chromium 原生指针和 DOM 操作确实执行，不能理解为正式 Host 已可操作。
+- 正式 HTML 原路径 prototypes/sidebar/react-preview/index.html，大小 606211 B，SHA-256 a25bd50416b14c42e249efa0fc1ce2b994c5e84dd16c86c21df15a52baac549f；生成器 input SHA-256 b54520833d53b7bd5feb6ba32dfc11367d6df0968b8929c78995a9e217ef867c。对应 320/360/420/520px 与状态、历史、模型来源截图均在该 CI Artifact 中。
+- 准确门禁：SOURCE_BOUND_PREVIEW_PASS、定向 NODE_PASS、离线 CHROMIUM_PASS；但 Build-production=FAIL、Build-development=FAIL（AdBlock Trusted Provenance fail-closed），Verify/Size=BLOCKED_BY_BUILD，整个 CI=FAIL；Installed Chrome=NOT_TESTED，真实 Scheduler/Host/RunHost/Native=NOT_TESTED。
+- 最新 main 继续被并行 Owner 推进，若 HEAD SHA 不同须以产物 8cb729c 和上述 input SHA 识别真正同源 UI；本次不覆盖其他 Owner 文件、不放松 AdBlock、Bookmark 来源权限。
+- 尚未认证五维 95+：产品功能、UI/UX、React 架构、安全权限、测试可靠性仍需通过正式安全 Build 与 Mac 原生运行；UI/离线层的绿色测试不足以替代完整交付。
