@@ -40,6 +40,10 @@ export function grantedOrigins(settings,id) {
 // Only trusted extension code may compute this flag from the stored bytes and
 // verified provenance. A page message, ID or capability can never supply it.
 export async function verifyOfficialReadingToc(installed,provenance) {
+  // Ambiguous duplicate owners cannot acquire the reserved built-in grant,
+  // even if one of the colliding packages happens to have correct bytes.
+  if(!Array.isArray(installed)||
+     installed.filter(row=>row?.id===OFFICIAL_READING_TOC_RELEASE.id).length!==1)return false;
   const tool=admittedTocTool(installed,OFFICIAL_READING_TOC_RELEASE.id);
   if(!tool||!matchesOfficialReadingToc(tool,provenance,OFFICIAL_READING_TOC_RELEASE.sha256))return false;
   try {return matchesOfficialReadingToc(tool,provenance,await sidebarToolPackageHash(tool));}

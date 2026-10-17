@@ -168,12 +168,16 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
       knownIds=ids;
       const verifiedOfficial=await verifyOfficialReadingToc(installed,stored[MARKET_PROVENANCE_STORE]);
-      const chromeAllowed=await chromeSiteAllowed(currentUrl);
       if(disposed||suspended||token!==refreshEpoch||win.location.href!==currentUrl)return;
-      if(!chromeAllowed){if(enabled)stop();return;}
       const pageRules=stored[READING_TOC_PAGE_RULES_STORE];
       const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)&&
         readingTocPageAllowed(pageRules,id,currentUrl));
+      // No URL is sent to the worker unless an installed and site-approved
+      // reader actually has work to do on this document.
+      if(!any){if(enabled)stop();return;}
+      const chromeAllowed=await chromeSiteAllowed(currentUrl);
+      if(disposed||suspended||token!==refreshEpoch||win.location.href!==currentUrl)return;
+      if(!chromeAllowed){if(enabled)stop();return;}
       const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)&&
         readingTocPageAllowed(pageRules,READING_TOC_TOOL_ID,currentUrl)&&
         readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;

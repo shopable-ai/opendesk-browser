@@ -33,6 +33,8 @@ test('R1.1 only authenticated installed bytes AND provenance enable the official
   assert.equal(tocGrantAllowed(installed,{},pin.id,url,{},await verifyOfficialReadingToc(installed,official())),true);
   assert.equal(tocGrantAllowed(installed,{},pin.id,url),false);
   assert.equal(await verifyOfficialReadingToc(installed,{}),false,'missing provenance');
+  assert.equal(await verifyOfficialReadingToc([tool,{...tool,js:tool.js+'/* other owner */'}],official()),false,
+    'duplicate owners cannot inherit the first valid built-in identity');
   for(const provenance of [
     {[pin.id]:{...official()[pin.id],sha256:'0'.repeat(64)}},
     {[pin.id]:{...official()[pin.id],marketId:'attacker/reading-toc'}},
