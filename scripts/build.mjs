@@ -16,7 +16,7 @@ const mode = process.argv[2] || 'production';
 if (!['production', 'development'].includes(mode)) throw new Error('Invalid build mode');
 const edition=resolveBrowserEdition(),outputLabel=editionOutputName(mode,edition);
 async function sourceInputs() {
-  const paths = [...await officialToolInputs(), ...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt'].sort();
+  const paths = [...await officialToolInputs(), ...(await filesAt('src')).map(path => `src/${path}`), ...(await filesAt('scripts')).map(path => `scripts/${path}`), 'manifest.json', 'wxt.config.mjs', 'package.json', 'package-lock.json', 'docs/contracts/licenses/todo-user-vue-MIT.txt', 'docs/contracts/licenses/shared-ui-third-party-notices.txt'].sort();
   return Promise.all(paths.map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
 }
 const releaseOutput=await acquireDevelopmentLock('build');
