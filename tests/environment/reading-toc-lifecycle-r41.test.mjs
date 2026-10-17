@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initReadingToc} from '../../src/reading-toc/page.js';
+import {officialToolFixture} from '../helpers/official-tools.mjs';
+import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE,
   changeTocPageAllowed,changeTocSiteAllowed,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
@@ -22,7 +24,10 @@ test('installing reading-toc on an existing HTTP document activates without an e
   const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
   try{
     await tick();await tick();assert.equal(f.Observer.active,0,'uninstalled tool never indexes');
-    const installed=[{...tool,id}];
+    const installed=[await officialToolFixture(id)];
+    f.state.set(MARKET_PROVENANCE_STORE,{[id]:{
+      marketId:OFFICIAL_READING_TOC_RELEASE.marketId,version:OFFICIAL_READING_TOC_RELEASE.version,
+      sha256:OFFICIAL_READING_TOC_RELEASE.sha256}});
     f.state.set(SIDEBAR_TOOL_STORE,installed);
     f.changes.send({[SIDEBAR_TOOL_STORE]:{newValue:installed}},'local');
     await tick();await tick();
@@ -36,7 +41,11 @@ test('installing reading-toc on an existing HTTP document activates without an e
 
 test('built-in default access starts without grants and site/page stops release observers',async()=>{
   const f=pageFixture(),id='reading-toc',prior=globalThis.MutationObserver;
-  f.state.set(SIDEBAR_TOOL_STORE,[{...tool,id}]);f.state.delete(READING_TOC_SITE_STORE);
+  f.state.set(SIDEBAR_TOOL_STORE,[await officialToolFixture(id)]);
+  f.state.set(MARKET_PROVENANCE_STORE,{[id]:{
+    marketId:OFFICIAL_READING_TOC_RELEASE.marketId,version:OFFICIAL_READING_TOC_RELEASE.version,
+    sha256:OFFICIAL_READING_TOC_RELEASE.sha256}});
+  f.state.delete(READING_TOC_SITE_STORE);
   // Isolate the content-service lifecycle from the separately tested view DOM.
   f.state.set(READING_TOC_VISIBILITY_STORE,changeReadingTocVisibility({},id,f.win.location.href,'site',true));
   globalThis.MutationObserver=f.Observer;

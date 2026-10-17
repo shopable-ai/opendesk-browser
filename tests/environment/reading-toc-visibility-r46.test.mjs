@@ -39,7 +39,7 @@ test('R4.6 site-level hidden preference covers sibling pages and restores indepe
 test('R4.6 display choices cannot grant/revoke page.toc and are scoped per tool',()=>{
   const grants=changeTocGrant({},id,page,true);
   const preferences=changeReadingTocVisibility({},id,page,'site',true);
-  assert.equal(tocGrantAllowed([tool],grants,id,page),true);
+  assert.equal(tocGrantAllowed([tool],grants,id,page),false,'display preferences cannot authenticate a fake official package');
   assert.equal(readingTocDisplayState(preferences,id,page).show,false);
   assert.equal(readingTocDisplayState(preferences,'other-toc',page).show,true);
   assert.equal(tocGrantAllowed([tool],grants,'other-toc',page),false);

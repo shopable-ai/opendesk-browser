@@ -40,11 +40,12 @@ test('imported TOC tools still require explicit origin grants',()=>{
 test('built-in reader defaults to HTTP(S) pages and preserves explicit site stops',()=>{
   const id=pack.id,url='https://example.com/a?private=1#chapter';
   for(const settings of [undefined,{}, {[id]:['https://previous.example'] }]){
-    assert.equal(tocGrantAllowed([pack],settings,id,url),true);
-    assert.equal(tocGrantAllowed([pack],settings,id,'http://another.example:43111/a'),true);
+    assert.equal(tocGrantAllowed([pack],settings,id,url),false,'ID alone is never official');
+    assert.equal(tocGrantAllowed([pack],settings,id,url,undefined,true),true,'trusted-only verification gates site defaults');
+    assert.equal(tocGrantAllowed([pack],settings,id,'http://another.example:43111/a',undefined,true),true);
   }
   assert.equal(tocGrantAllowed([],{},id,url),false);
-  assert.equal(tocGrantAllowed([pack],{},id,url,{[id]:false}),false);
+  assert.equal(tocGrantAllowed([pack],{},id,url,{[id]:false},true),false);
   const prior={'custom-toc':['https://example.com']};
   const denied=changeTocSiteAllowed(prior,id,url,false);
   assert.deepEqual(denied,{...prior,[id]:{mode:'all-except',blockedOrigins:['https://example.com']}});

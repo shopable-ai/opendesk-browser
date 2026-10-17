@@ -2,8 +2,9 @@ import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
-  websiteOrigin,tocGrantAllowed,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
+  websiteOrigin,tocGrantAllowed,verifyOfficialReadingToc,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
   readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
+import {MARKET_PROVENANCE_STORE} from '../sidebar-tools/official-reading-toc.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../ui/app-localization.js';
@@ -141,7 +142,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const token=++refreshEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
-      const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
+      const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
         READING_TOC_PAGE_RULES_STORE,UI_LOCALE_STORE,...(key?[key]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
@@ -152,10 +153,12 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
       knownIds=ids;
+      const verifiedOfficial=await verifyOfficialReadingToc(installed,stored[MARKET_PROVENANCE_STORE]);
+      if(disposed||suspended||token!==refreshEpoch||win.location.href!==currentUrl)return;
       const pageRules=stored[READING_TOC_PAGE_RULES_STORE];
-      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE])&&
+      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)&&
         readingTocPageAllowed(pageRules,id,currentUrl));
-      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE])&&
+      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)&&
         readingTocPageAllowed(pageRules,READING_TOC_TOOL_ID,currentUrl)&&
         readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;
       if(!any){if(enabled)stop();return;}
@@ -169,9 +172,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   }
   async function navigate(id,sourceId,toolId=READING_TOC_TOOL_ID,requestEpoch) {
     const permissionEpoch=navEpoch,expectedUrl=win.location.href;
-    const grants=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+    const grants=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+    const verifiedOfficial=await verifyOfficialReadingToc(grants[SIDEBAR_TOOL_STORE],grants[MARKET_PROVENANCE_STORE]);
     if(disposed||suspended||permissionEpoch!==navEpoch||expectedUrl!==win.location.href||
-       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl,grants[SIDEBAR_TOOL_ENABLE_STORE])||
+       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl,grants[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)||
        !readingTocPageAllowed(grants[READING_TOC_PAGE_RULES_STORE],toolId,expectedUrl))
       return {ok:false,error:'工具或网站授权已变化'};
     const installEpoch=grants[TOOL_REVOCATION_EPOCHS_STORE]?.[toolId]??null;
@@ -233,10 +237,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     };
     for(let attempt=0;attempt<3;attempt++){
       const painted=await waitForPaint();
-      const confirmed=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+      const confirmed=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+      const confirmedOfficial=await verifyOfficialReadingToc(confirmed[SIDEBAR_TOOL_STORE],confirmed[MARKET_PROVENANCE_STORE]);
       if(!same()||doc.visibilityState==='hidden'||
         (confirmed[TOOL_REVOCATION_EPOCHS_STORE]?.[toolId]??null)!==installEpoch||
-        !tocGrantAllowed(confirmed[SIDEBAR_TOOL_STORE],confirmed[READING_TOC_SITE_STORE],toolId,startedHref,confirmed[SIDEBAR_TOOL_ENABLE_STORE])||
+        !tocGrantAllowed(confirmed[SIDEBAR_TOOL_STORE],confirmed[READING_TOC_SITE_STORE],toolId,startedHref,confirmed[SIDEBAR_TOOL_ENABLE_STORE],confirmedOfficial)||
         !readingTocPageAllowed(confirmed[READING_TOC_PAGE_RULES_STORE],toolId,startedHref)){
         if(token===navEpoch)settled=null;
         return {ok:false,error:'网页或章节已变化，已取消定位'};
@@ -264,9 +269,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
        message?.protocol!==READING_TOC_PROTOCOL||message?.expectedUrl!==win.location.href ||
        typeof message?.toolId!=='string')return {ok:false,error:'来源或文档已变化'};
     const before=win.location.href,permissionEpoch=navEpoch;
-    const stored=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+    const stored=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+    const verifiedOfficial=await verifyOfficialReadingToc(stored[SIDEBAR_TOOL_STORE],stored[MARKET_PROVENANCE_STORE]);
     if(disposed||suspended||permissionEpoch!==navEpoch||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
-      stored[READING_TOC_SITE_STORE],message.toolId,before,stored[SIDEBAR_TOOL_ENABLE_STORE])||
+      stored[READING_TOC_SITE_STORE],message.toolId,before,stored[SIDEBAR_TOOL_ENABLE_STORE],verifiedOfficial)||
       !readingTocPageAllowed(stored[READING_TOC_PAGE_RULES_STORE],message.toolId,before))
       return {ok:false,error:'工具、网站或当前页面未授权'};
     if((message.installEpoch??null)!==(stored[TOOL_REVOCATION_EPOCHS_STORE]?.[message.toolId]??null))
@@ -305,6 +311,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
        [SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))||
        Object.hasOwn(changes,READING_TOC_SITE_STORE)||
        Object.hasOwn(changes,READING_TOC_PAGE_RULES_STORE)||
+       Object.hasOwn(changes,MARKET_PROVENANCE_STORE)||
        Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){navEpoch++;settled=null;stop();void refreshPolicy();return;}
     if(Object.hasOwn(changes,READING_TOC_VISIBILITY_STORE)){
       // Appearance changes never revoke page.toc authority or cancel navigation.

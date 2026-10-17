@@ -1,5 +1,6 @@
 import {sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../ui/sidebar-tools/package.js';
+import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 
 export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
 // A distinct storage key per HTTP(S) origin prevents unrelated sites from
@@ -36,9 +37,18 @@ export function grantedOrigins(settings,id) {
   return [...new Set(settings[id].filter(value=>
     typeof value==='string'&&value.length<300&&websiteOrigin(value)===value))].slice(0,64);
 }
-export function tocGrantAllowed(installed,settings,id,url,enableRecords) {
+// Only trusted extension code may compute this flag from the stored bytes and
+// verified provenance. A page message, ID or capability can never supply it.
+export async function verifyOfficialReadingToc(installed,provenance) {
+  const tool=admittedTocTool(installed,OFFICIAL_READING_TOC_RELEASE.id);
+  if(!tool||!matchesOfficialReadingToc(tool,provenance,OFFICIAL_READING_TOC_RELEASE.sha256))return false;
+  try {return matchesOfficialReadingToc(tool,provenance,await sidebarToolPackageHash(tool));}
+  catch{return false;}
+}
+export function tocGrantAllowed(installed,settings,id,url,enableRecords,verifiedOfficial=false) {
   const origin=websiteOrigin(url);
-  return Boolean(sidebarToolEnabled(enableRecords,id)&&origin&&admittedTocTool(installed,id)&&tocSiteAllowed(settings,id,url));
+  return Boolean(sidebarToolEnabled(enableRecords,id)&&origin&&admittedTocTool(installed,id)&&
+    (id!==READING_TOC_TOOL_ID||verifiedOfficial===true)&&tocSiteAllowed(settings,id,url));
 }
 // Only the built-in reader defaults to all HTTP(S) pages. Its old positive
 // arrays remain compatible; imported TOC tools keep explicit origin grants.

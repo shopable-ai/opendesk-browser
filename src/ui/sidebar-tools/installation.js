@@ -1,6 +1,8 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
 import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash} from './package.js';
+import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../sidebar-tools/official-reading-toc.js';
+export {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
@@ -13,7 +15,6 @@ import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/si
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../ai-smart-access/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 
-export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
 // Fixed official site-grant store name. Test equality against the independent
@@ -299,6 +300,13 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=validateSidebarToolPackage(candidate);
   const identity=marketIdentity(market,tool);
+  // An imported package cannot reserve or impersonate the built-in reader ID.
+  // The trusted bundled release must match BOTH the reviewed source and bytes.
+  if(tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
+     (identity?.marketId!==OFFICIAL_READING_TOC_RELEASE.marketId||
+      identity.sha256!==OFFICIAL_READING_TOC_RELEASE.sha256||
+      tool.version!==OFFICIAL_READING_TOC_RELEASE.version))
+    throw error('阅读目录是官方保留 ID，请从内置官方目录安装经过校验的发行包','E_OFFICIAL_ID_RESERVED');
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   const lock=(name,work)=>lockManager.request('opendesk.sidebar-tools:'+name,work);
   return lock('tool:'+tool.id,()=>lock('catalog',async()=>{
