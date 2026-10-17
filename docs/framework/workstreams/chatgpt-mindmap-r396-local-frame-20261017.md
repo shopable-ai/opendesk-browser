@@ -52,4 +52,14 @@ UI接线新增8 PASS、既有editor100 PASS、UI77 PASS；原平台215 PASS/实�
 
 本轮早先未提交的运行时、工作台、本地builder与child入口已由并行集成负责人保存为801444da0；远端更新随后合入58ed3bf2c。核对时索引已清洁，未撤销或纳入此前他人的暂存。本次Git事务仅增加本工作流、业务README与NEXT-CHAT-R3.9.6.zh-CN.txt；提交后安全推送main，非fast-forward则保留状态并重新核对，不强推。
 
-新的正式续接提示词：examples/programs/chatgpt-mindmap/NEXT-CHAT-R3.9.6.zh-CN.txt。它覆盖旧HANDOFF中先修列表的顺序，优先修入口与可靠关闭；旧原始证据和详细环境仍保留。
+新的正式续接提示词：examples/programs/chatgpt-mindmap/NEXT-CHAT-R3.9.6.zh-CN.txt。它覆盖旧HANDOFF中先修列表的顺序；旧原始证据和详细环境仍保留。
+
+## 用户最新定位与切换反馈（2026-10-17，覆盖上节旧描述）
+
+负责人仍为本轮 Mind Map 交接负责人；本次只更新本文件、业务 README 的最新状态段及 NEXT-CHAT-R3.9.6.zh-CN.txt。README 中并行新增的本地项目/手工导入说明及 docs/api/sidebar-local-projects.zh-CN.md 不属于本次提交范围，保留其工作区修改。
+
+用户明确按钮必须添加到本条 assistant 回复的官方操作组内，和官方复制等按钮同一位置。实际元素带 data-assistant-message-actions、data-message-actions 和 role="group"，中文 aria-label="回复操作"；混淆 class 及本地化 aria-label 只作为当前页面观察，不作为定位合同。续接须用稳定 data 属性、结构及正确回复作用域，保持每条回复一个可见文字开关。
+
+最新具体故障是“关闭后无法再次打开/切换”，取代早先仅描述“打开后无法关闭”的当前诊断。核心通过条件为原生“打开→关闭→再次打开→再次关闭”，普通及全屏流程都能重复；每次真正显示 XMind、关闭后恢复同一原文节点的完整 HTML/text/可见性，状态与 aria-pressed 一致。未执行新的原生验证，不登记修复 PASS。
+
+已安全合入远端 reading-toc 两笔并行提交，保持 main、保留双方历史；无强推。此处交接仅修正文档与下一轮优先级，不新增生产构建或边缘验收。
