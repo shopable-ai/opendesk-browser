@@ -110,3 +110,12 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 产品预览修复：内存安装/卸载同步主要操作文案，修复“卸载后仍显示打开”；重新打开导入时清空旧 file input 以允许同名文件重选；卸载后把焦点移到扩展搜索。
 - 这些是预览行为和回归检查，不是生产扩展安装实现的替代品。最新提交的 Actions 执行结果未知前标为 `PENDING`；Mac Chrome 原生安装、Host、真实网站权限与任务执行为 `NOT_TESTED`。
 - `prototypes/sidebar/react-preview/index.html` 是本地/CI 生成产物，当前不在 Git 跟踪中；以同 SHA 的 CI 附件交付完整 HTML 和截图，禁止将旧附件冒充本轮新版。
+
+### R33.3.10 CI 实际结果、后续计划交互（2026-10-17）
+
+- Preview Chromium 真实指针/文件选择回放：**PASS**，参见 [Actions 39029498691](https://github.com/shopable-ai/opendesk-browser/actions/runs/39029498691) 的 `six-tab-preview` Job，对应 `b4b07b7a`。该证据包含：扩展同 ID 升级、卸载审阅与关闭详情、返回列表及 UI_PREVIEW_ONLY；**不**证明主分支全部构建 PASS。
+- 同一 CI 的 `package-gates`：**FAIL**。Build production/build:dev 根因是并行 Cookie Editor 静态可信 UI 试点 `examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx` 被导入 privileged bundle，触发 `scripts/bundle-provenance.mjs` 的历史/第三方源码边界检查。严禁禁用 provenance 或直接信任示例代码。由 Cookie 试点源码 owner 调整可信源码归属/架构和配套校验；本轮没有跨 owner 改写。Verify/Size 因上游构建失败而 BLOCKED。
+- 计划预览实现：`9e81ee0d` 复用原 DOM 增加表单原值指纹草稿保护、计划字段编辑回填、预览时区选择与搜索、任务管理筛选、JSON 对象参数/周规则/间隔规则验证和暂停初始值。跳转：`8446fbac` 将“新建脚本”导向真实存在的开发 Tab，而不是无反馈返回任务列表。
+- **新变更尚待证据**：计划表单增强由 [Actions 39029780977](https://github.com/shopable-ai/opendesk-browser/actions/runs/39029780977) 回放，未完成时保持 `CHROMIUM_PENDING`；导入/卸载通过的旧截图、HTML 不得冒充该提交的成果。
+- 交互 HTML 是生成器真实产物，CI artifact 名称 `sidebar-six-react-preview`（含 `prototypes/sidebar/react-preview/index.html`）。交付时应以对应源码 SHA 的 artifact 为准；不能将 `UI_PREVIEW_ONLY` 的内存更新标成 Host/Installer 持久操作。
+- 正式五 Tab 的 Native 逐入口完整覆盖、Chrome 已安装开发包、权限、Provider/RunHost、360px/200% 及长中文逐项可用性尚未取得足够证据，继续 `INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED`，95+ 五维评分不得认证。
