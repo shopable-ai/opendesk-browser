@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 开发选项卡 R2.4 · 页头精简预览</title>
+<title>OpenDesk Browser · 开发选项卡 R2.5 · 本地项目安装闭环预览</title>
 <style>
 :root{
  color-scheme:light; --ink:#1b2c49;--sub:#53647e;--meta:#617188;--brand:#365eda;--brand-soft:#edf2ff;
@@ -78,10 +78,13 @@ input:disabled,select:disabled{background:var(--soft)!important;color:#9aa6b5!im
 .inline-card:hover{background:#fbfcff}.inline-icon{height:36px;width:36px;display:grid;place-items:center;background:var(--positive-soft);color:var(--positive);border-radius:10px;flex-shrink:0}
 .inline-title{display:block;font-weight:690;font-size:12.5px}.inline-sub{display:block;color:var(--meta);font-size:11px;margin-top:var(--space-1);line-height:1.4}
 .note-panel{padding:var(--space-3);border-radius:9px;background:var(--soft);border:1px solid var(--line-soft);font-size:11.5px;color:var(--sub);line-height:1.6}
+.local-publish-state{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:0 var(--space-1);color:var(--sub);font-size:11.5px;line-height:1.5;min-width:0}.local-publish-state span{min-width:0;overflow-wrap:anywhere}.local-publish-state .btn{flex:none}
+.local-review{display:grid;gap:var(--space-3);border:1px solid var(--line);border-radius:var(--r-card);background:var(--paper);padding:var(--space-3);min-width:0}.local-review .section-head{margin:0}.local-review .section-head h3{margin:0;font-size:13px}.local-review-fields{display:grid;grid-template-columns:minmax(0,1fr) 94px;gap:var(--space-2)}.local-review .field{min-width:0}.local-review .note-panel{color:var(--ink)}.local-review-scope{display:grid;gap:var(--space-1);color:var(--sub);font-size:11.5px}.local-review-scope strong{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink);font-weight:600;overflow-wrap:anywhere}.local-review .error{margin:0;color:var(--negative);font-size:11.5px}.local-review .actions-wrap{margin:0}.local-review .micro{margin:0}
+@media(max-width:280px){.local-review-fields{grid-template-columns:minmax(0,1fr)}.local-publish-state{flex-wrap:wrap}.local-review .actions-wrap{flex-direction:column}.local-review .actions-wrap .btn{width:100%}}
 .banner{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:9px;background:#f1f5ff;color:#526488;border:1px solid #e9effc;font-size:11px;line-height:1.5}.banner.warn{background:var(--warn-soft);border-color:#f4e7c9;color:var(--warn)}.banner.error{background:var(--negative-soft);border-color:#f1dade;color:var(--negative)}.banner.success{background:var(--positive-soft);border-color:#d2eddf;color:var(--positive)}
 .table-box{display:grid;gap:var(--space-2)}.table-row{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);font-size:11.5px}.table-row span:first-child{color:var(--sub)}
 .footer-dock{height:61px;flex-shrink:0;display:flex;align-items:center;gap:var(--space-2);border-top:1px solid var(--line);background:#fff;padding:var(--space-2) var(--space-4);box-shadow:0 -7px 19px #24395308}
-.footer-dock .btn{min-height:38px}.footer-dock .primary{flex:1}.footer-dock .compact-save{width:74px}
+.footer-dock .btn{min-height:38px}.footer-dock .primary{flex:1;min-width:0}.footer-dock .compact-save{min-width:74px;max-width:54%;width:auto;flex:0 0 auto;padding-inline:10px}
 .toast{position:absolute;bottom:73px;left:var(--space-4);right:var(--space-4);z-index:12;padding:11px 13px;border-radius:10px;border:1px solid #d7e3f6;background:#f4f8ff;box-shadow:0 6px 24px #344b6520;color:#334760;font-size:11.5px;line-height:1.5;display:none}.toast.visible{display:block}.toast.bad{background:var(--negative-soft);border-color:#f1dade;color:var(--negative)}
 /* SDK bottom sheet: one reusable tokenized surface, no global page permission assumed. */
 .overlay{position:absolute;inset:0;background:#17233966;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}.drawer{position:absolute;z-index:21;left:0;right:0;bottom:0;height:min(89%,860px);display:flex;flex-direction:column;background:#fff;box-shadow:0 -10px 48px #17233925;border-radius:18px 18px 0 0;transform:translateY(102%);transition:transform .23s ease;visibility:hidden}
@@ -163,7 +166,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
 <section class="preview-help" id="preview-help" role="group" aria-label="预览说明与模拟工具" hidden>
  <div class="preview-help-title">离线原型 · 演示工具</div>
  <p class="muted">这里的运行、保存、安装与权限操作只改变模拟状态，不调用真实 Chrome 或 SDK。</p>
- <div class="preview-demo-actions"><button class="btn compact" id="try-cross" type="button">模拟跨站拒绝</button><button class="btn compact" id="sdk-inspect-inline" type="button">模拟授权状态</button></div>
+ <div class="preview-demo-actions"><button class="btn compact" id="simulate-local-edit" type="button">模拟本地源码变化</button><button class="btn compact" id="try-cross" type="button">模拟跨站拒绝</button><button class="btn compact" id="sdk-inspect-inline" type="button">模拟授权状态</button></div>
 </section>
 <nav class="top-tabs" aria-label="工作台视图"><span class="tab">我的</span><span class="tab">扩展</span><span class="tab">工作流</span><span class="tab" aria-current="page">开发</span><span class="tab">云控</span></nav>
 <main class="viewport" id="viewport" aria-label="开发工作区">
@@ -194,8 +197,21 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
     <div class="editor-card" id="local-tree"><div class="editor-head"><span>项目源码快照</span><span class="filename">只读</span></div><pre class="pre" id="local-files" style="margin:8px;background:white;border:0">请选择已授权项目后查看多文件入口。</pre><div class="field" id="local-file-view" hidden style="padding:0 var(--space-2) var(--space-2)"><label for="local-source-file">查看项目文件（只读）</label><select class="control" id="local-source-file"></select><pre class="pre" id="local-source-code">选择文件后显示示例源码。</pre></div></div>
     <details class="fold fold-inner"><summary><svg class="icon icon-sm"><use href="#i-settings"/></svg><span class="summary-label">本地连接诊断与首次使用</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><p class="muted">仅在 Native 未连接时，需要在可信入口连接 OpenDesk。已授权项目自动准备，不必反复配对。</p><pre class="pre">opendesk browser dev .
 # 本地项目源码目录</pre><div class="actions-wrap"><button class="btn compact" id="local-connect">检查本机连接</button><button class="btn compact" id="local-guide">查看配置命令</button></div><div class="micro">参考 docs/api/local-projects.zh-CN.md</div></div></details>
-    <details class="fold fold-inner"><summary><svg class="icon icon-sm"><use href="#i-file"/></svg><span class="summary-label">项目参数</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><textarea class="control" id="local-params" rows="3" spellcheck="false" aria-label="本地项目运行参数 JSON">{}</textarea></div></details>
-    <div class="actions-wrap"><button class="btn compact" id="local-install-review" hidden><svg class="icon icon-sm"><use href="#i-save"/></svg>准备安装快照</button><span class="micro">需先运行成功</span></div>
+    <details class="fold fold-inner" id="local-params-fold"><summary><svg class="icon icon-sm"><use href="#i-file"/></svg><span class="summary-label">项目参数</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><textarea class="control" id="local-params" rows="3" spellcheck="false" aria-label="本地项目运行参数 JSON">{}</textarea></div></details>
+    <div class="local-publish-state" id="local-publish-state" role="status" aria-live="polite" hidden>
+      <span id="local-publish-copy">先运行项目，验证成功后再安装。</span>
+      <button type="button" class="btn compact" id="local-installed-open" hidden>查看已安装版本</button>
+    </div>
+    <section class="local-review" id="local-install-review" aria-labelledby="local-review-heading" tabindex="-1" hidden>
+      <div class="section-head"><h3 id="local-review-heading">保存为任务</h3><button type="button" class="icon-btn outline" id="local-review-close" aria-label="关闭安装确认" title="关闭安装确认"><svg class="icon icon-sm"><use href="#i-x"/></svg></button></div>
+      <div class="note-panel" id="local-review-destination">安装到「我的 → 自动化任务」</div>
+      <div class="local-review-fields"><div class="field"><label for="local-install-name">名称</label><input class="control" id="local-install-name" maxlength="100" autocomplete="off" value="" /></div><div class="field"><label for="local-install-version">版本</label><input class="control" id="local-install-version" maxlength="24" autocomplete="off" value="" /></div></div>
+      <div class="local-review-scope"><span>适用网站</span><strong id="local-review-origin">—</strong></div>
+      <p class="micro" id="local-review-source">确认安装时会重新读取并核对本地项目，安装固定版本，不需要持续连接本地编辑器。</p>
+      <div class="banner warn" id="local-review-warning">安装不会修改 Git；网页副作用不会回滚。</div>
+      <p id="local-review-error" role="alert" class="error" hidden></p>
+      <div class="actions-wrap"><button type="button" class="btn primary" id="local-install-confirm">确认安装</button><button type="button" class="btn" id="local-install-cancel">取消</button></div>
+    </section>
    </div>
   </div>
  </section>
@@ -225,7 +241,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   <details class="fold" id="diagnostics-fold"><summary><svg class="icon"><use href="#i-terminal"/></svg><span class="summary-label">目标检查与开发诊断</span><svg class="icon icon-sm chevron"><use href="#i-chevron"/></svg></summary><div class="fold-body"><button class="inline-card" id="sdk-from-diagnostics" type="button" hidden><span class="inline-icon" style="height:32px;width:32px"><svg class="icon"><use href="#i-code"/></svg></span><span class="grow"><span class="inline-title">网页 SDK 授权管理</span><span class="inline-sub">查看跨站目标、能力、精确文档与撤销记录</span></span><svg class="icon icon-sm"><use href="#i-chevron"/></svg></button><details class="fold fold-inner" id="health-fold"><summary>目标健康检查 <svg class="icon icon-sm chevron" style="margin-left:auto"><use href="#i-chevron"/></svg></summary><div class="fold-body"><div class="muted">检查仅确认测试页和已绑定文档间通信，不执行采集。</div><div class="field"><label for="health-url">测试页面地址</label><input type="url" class="control" id="health-url" value="http://127.0.0.1:43111/demo-form.html"></div><div class="actions-wrap"><button class="btn compact" id="health-create">创建检查页</button><button class="btn compact" id="health-source">检查原页面</button><button class="btn compact" id="health-bound">检查已绑定文档</button></div><pre class="pre" id="health-result">环境入口已加载（模拟）</pre></div></details><div class="micro">SDK 授权与自动化任务独立，诊断只读，不代表执行成功。</div></div></details>
  </section>
 </main>
-<footer class="footer-dock" id="dock"><button class="btn primary" id="run-btn"><svg class="icon icon-sm"><use href="#i-play"/></svg><span id="run-label">运行草稿</span></button><button class="btn" id="stop-btn" hidden><svg class="icon icon-sm"><use href="#i-square"/></svg>停止</button><button class="btn compact-save" id="save-btn" title="将当前任务草稿保存为浏览器运行快照，不提交 Git"><svg class="icon icon-sm"><use href="#i-save"/></svg>存快照</button><button class="icon-btn outline" id="dock-more" aria-label="更多：运行快照与任务发布" title="运行快照与任务发布"><svg class="icon"><use href="#i-dots"/></svg></button></footer>
+<footer class="footer-dock" id="dock"><button class="btn primary" id="run-btn"><svg class="icon icon-sm"><use href="#i-play"/></svg><span id="run-label">运行草稿</span></button><button class="btn" id="stop-btn" hidden><svg class="icon icon-sm"><use href="#i-square"/></svg>停止</button><button class="btn compact-save" id="save-btn" title="将当前任务草稿保存为浏览器运行快照，不提交 Git"><svg class="icon icon-sm"><use href="#i-save"/></svg><span id="save-label">存快照</span></button><button class="icon-btn outline" id="dock-more" aria-label="更多：运行快照与任务发布" title="运行快照与任务发布"><svg class="icon"><use href="#i-dots"/></svg></button></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="overlay" id="overlay"></div>
 <section class="drawer" id="sdk-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="网页 SDK 授权管理">
@@ -268,7 +284,8 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   runtime:'controller',framework:'javascript',jsRuntime:'controller',local:false,runSeq:0,runTimer:null,running:false,lastRun:null,
   docSeq:1,frameId:0,sourceURL:demoURL,sourceOrigin:new URL(demoURL).origin,
   scripts:{...demos},dirty:false,versions:[],pages:[],pageInstalled:false,pageVerified:false,pageEnabled:false,
-  versionSeq:0,history:[],pagePreviewOK:false,targets:[],receipt:null,pendingCross:null,originalFocus:null
+  versionSeq:0,history:[],pagePreviewOK:false,targets:[],receipt:null,pendingCross:null,originalFocus:null,
+  localVerified:null,localInstalled:Object.create(null),localSourceVersions:{'demo-page':1,'demo-controller':1},localReviewMode:null
  };
  const chosenKey=()=>`${state.runtime}:${state.runtime==='page'?state.framework:'javascript'}`;
  const storedPageRow=$('page-program-list').closest('.field');$('page-management').querySelector('.fold-body').prepend(storedPageRow);
@@ -335,9 +352,104 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   if(state.local){notice('请先关闭本地项目，再新建直接编辑草稿。',true);return;}
   state.scripts[chosenKey()]=demos[chosenKey()];$('code-editor').value=demos[chosenKey()];updateDirty(false);notice('已新建草稿，未影响已保存版本。');
  });
+ const localKind=()=>$('local-project-select').value==='demo-page'?'page-userscript':'controller';
+ const localDestination=()=>localKind()==='page-userscript'?'扩展 → 网页增强':'我的 → 自动化任务';
+ const localProjectKey=()=>$('local-project-select').value;
+ const localProofCurrent=()=>{
+  const proof=state.localVerified,key=localProjectKey();
+  return state.local&&!!key&&!!proof&&proof.project===key&&proof.documentId===docId()&&
+    proof.origin===state.sourceOrigin&&proof.sourceVersion===state.localSourceVersions[key];
+ };
+ function closeLocalReview(focus=false){
+  $('local-install-review').hidden=true;state.localReviewMode=null;
+  $('local-review-error').hidden=true;$('local-review-error').textContent='';
+  if(focus&&!$('save-btn').hidden)$('save-btn').focus();
+ }
+ function updateLocalPublish(){
+  const key=localProjectKey(),installed=key?state.localInstalled[key]:null,ready=localProofCurrent();
+  const show=state.local&&!!key;
+  $('local-publish-state').hidden=!show;
+  $('local-installed-open').hidden=!show||!installed;
+  let message='先点击「运行本地项目」，成功后才能安装。';
+  if(show&&installed){
+   message=`已安装到「${installed.destination}」 · v${installed.version}（仅预览）`;
+   if(ready&&installed.sourceVersion!==state.localVerified.sourceVersion)message+=' · 有待更新版本';
+  }else if(show&&ready){message=`运行已完成，可${localKind()==='page-userscript'?'安装网页增强':'保存为任务'}。`}
+  $('local-publish-copy').textContent=message;
+  $('save-btn').hidden=state.local&&!ready;
+  if(state.local){
+   const same=ready&&installed?.sourceVersion===state.localVerified.sourceVersion&&installed?.origin===state.sourceOrigin;
+   $('save-label').textContent=same?'查看安装':installed?`更新${localKind()==='page-userscript'?'网页增强':'任务'}`:
+     localKind()==='page-userscript'?'安装网页增强':'保存为任务';
+   $('save-btn').title=same?'查看已安装信息':'成功运行后安装当前固定项目版本';
+   $('save-btn').disabled=state.running;
+   $('dock-more').hidden=true;
+  }else{
+   $('save-label').textContent='存快照';$('save-btn').title='保存浏览器执行快照，不提交 Git';
+   $('dock-more').hidden=false;
+  }
+ }
+ function resetLocalProof(){state.localVerified=null;closeLocalReview(false);updateLocalPublish();}
+ function openLocalReview(installedOnly=false){
+  const key=localProjectKey(),installed=state.localInstalled[key];
+  if(!state.local||!key){notice('请先选择本地项目。',true);return}
+  if(!installedOnly&&!localProofCurrent()){notice('源码或目标网页已变化，请先运行最新版本。',true);return}
+  if(installedOnly&&!installed){notice('此项目还未安装。',true);return}
+  const installedSame=!!installed&&localProofCurrent()&&installed.sourceVersion===state.localVerified.sourceVersion&&installed.origin===state.sourceOrigin;
+  const readonly=installedOnly||installedSame;
+  const dest=readonly?installed.destination:localDestination();
+  state.localReviewMode=readonly?'inspect':'install';
+  $('local-review-heading').textContent=readonly?'已安装版本':installed?`更新到「${dest}」`:localKind()==='page-userscript'?'安装网页增强':'保存为任务';
+  $('local-review-destination').textContent=`${readonly?'已安装':'将安装'}到「${dest}」 · ${readonly?'仅查看':'点击确认后才安装'}（此页仅模拟）`;
+  $('local-install-name').value=installed?.name||(key==='demo-page'?'阅读目录示例':'浏览器测试任务');
+  $('local-install-version').value=readonly?installed.version:installed?(localKind()==='page-userscript'?String(Number(installed.version)+1):installed.version.replace(/\d+$/,v=>String(Number(v)+1))):(localKind()==='page-userscript'?'1':'1.0.0');
+  $('local-install-name').readOnly=readonly;$('local-install-version').readOnly=readonly;
+  $('local-review-origin').textContent=readonly?installed.origin:state.sourceOrigin;
+  $('local-review-source').textContent=readonly?'已安装的是固定源码副本；本地文件后来修改，不会自动更新已安装内容。':
+    `本次验证记录：${state.localVerified.runId} · 项目版本 ${state.localVerified.sourceVersion}（模拟）。确认前正式系统会重新读取并校验项目身份与源码。`;
+  $('local-review-warning').textContent=readonly?'这是仅当前原型会话的安装记录，不会存入真实浏览器。':
+    localKind()==='page-userscript'?'正式安装会再次执行冻结的网页程序完成验证，可能产生网页副作用；同意后才执行与安装。':
+      '正式安装只使用本次持久 Controller 成功回执，还须具备真实页面操作的原生回执；只返回数据不一定满足安装条件。';
+  $('local-install-confirm').hidden=readonly;
+  $('local-install-review').hidden=false;
+  $('local-review-error').hidden=true;
+  const view=$('viewport'),rect=$('local-install-review').getBoundingClientRect(),bounds=view.getBoundingClientRect();
+  view.scrollTop+=rect.top-bounds.top-12;
+  $('local-review-heading').setAttribute('tabindex','-1');$('local-review-heading').focus({preventScroll:true});
+ }
+ $('local-review-close').addEventListener('click',()=>closeLocalReview(true));
+ $('local-install-cancel').addEventListener('click',()=>closeLocalReview(true));
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!$('local-install-review').hidden&&$('local-install-review').contains(document.activeElement)){
+   event.preventDefault();closeLocalReview(true);
+  }
+ });
+ $('local-installed-open').addEventListener('click',()=>openLocalReview(true));
+ $('local-install-confirm').addEventListener('click',()=>{
+  if(state.localReviewMode!=='install'||!localProofCurrent()){notice('本地项目或网页发生变化，必须重新运行并确认。',true);resetLocalProof();return}
+  const name=$('local-install-name').value.trim(),version=$('local-install-version').value.trim(),type=localKind();
+  const valid=type==='page-userscript'?/^[1-9]\d*$/.test(version)&&Number.isSafeInteger(Number(version)):/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version);
+  if(!name||name.length>100||!valid){
+   $('local-review-error').hidden=false;
+   $('local-review-error').textContent=!name||name.length>100?'名称必须为 1–100 个字符。':`版本格式无效，${type==='page-userscript'?'网页增强请使用正整数':'任务请使用 1.0.0 格式'}。`;
+   (!name||name.length>100?$('local-install-name'):$('local-install-version')).focus();return;
+  }
+  const key=localProjectKey();
+  state.localInstalled[key]={name,version,origin:state.sourceOrigin,kind:type,
+    sourceVersion:state.localVerified.sourceVersion,destination:localDestination(),runId:state.localVerified.runId};
+  closeLocalReview(false);updateLocalPublish();
+  notice(`仅原型模拟已安装到「${localDestination()}」；正式安装尚未执行。`);
+  $('local-installed-open').focus();
+ });
+ // Preview-only source change gesture lives in the hidden preview menu, never production UI.
+ $('simulate-local-edit').addEventListener('click',()=>{
+  const key=localProjectKey();if(!key||!state.local){notice('请先打开并选择本地项目。',true);return}
+  state.localSourceVersions[key]++;resetLocalProof();togglePreviewHelp(false);
+  notice('已模拟本地项目源码更新，旧的运行验证失效；需要重新运行。');
+ });
  $('local-toggle').addEventListener('change',event=>{
-  state.local=event.target.checked;$('manual-area').hidden=state.local;$('local-area').hidden=!state.local;$('save-btn').hidden=state.local;
-  $('source-heading').textContent=state.local?'本地项目':'直接编辑';$('run-label').textContent=state.local?'运行本地项目':state.runtime==='controller'?'运行草稿':'网页试运行';
+  state.local=event.target.checked;$('manual-area').hidden=state.local;$('local-area').hidden=!state.local;resetLocalProof();
+  $('source-heading').textContent=state.local?'项目源码':'直接编辑';$('run-label').textContent=state.local?'运行本地项目':state.runtime==='controller'?'运行草稿':'网页试运行';
   notice(state.local?'已切换至本地项目；选择项目后再运行。':'已返回直接编辑，原有源码仍保留。');
  });
  $('local-project-select').addEventListener('change',()=>{
@@ -346,8 +458,9 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   $('local-files').textContent=key?(isPage?'reading-tool/\n├── src/main.js\n├── src/toc.js\n└── src/styles.css':'browser-lab/\n├── src/main.mjs\n├── src/actions.mjs\n└── src/utils.mjs'):'请选择已授权项目后查看多文件入口。';
   one('#local-project-detail .table-row:last-child span:last-child').textContent=key?(isPage?'Page · main.js · 3 files':'Controller · main.mjs · 3 files'):'等待选择项目';
   $('local-file-view').hidden=!key;
+  $('local-params-fold').hidden=isPage;
   const names=isPage?['src/main.js','src/toc.js','src/styles.css']:['src/main.mjs','src/actions.mjs','src/utils.mjs'];
-  $('local-install-review').hidden=true;$('local-source-file').replaceChildren(...(key?names.map(name=>new Option(name,name)):[]));
+  resetLocalProof();$('local-source-file').replaceChildren(...(key?names.map(name=>new Option(name,name)):[]));
   $('local-source-file').dispatchEvent(new Event('change'));
  });
  $('local-source-file').addEventListener('change',()=>{
@@ -365,11 +478,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
  $('local-refresh').addEventListener('click',()=>notice('已刷新示例本地项目列表（未连接真实 Native）。'));
  $('local-connect').addEventListener('click',()=>notice('示例连接已就绪。正式产品需在可信 Native 通道中检测。'));
  $('local-guide').addEventListener('click',()=>notice('本地命令与授权说明位于 docs/api/local-projects.zh-CN.md。'));
- $('local-install-review').addEventListener('click',()=>{
-  if(!$('local-project-select').value){notice('请先选择项目；此预览不会安装真实代码。',true);return}
-  $('version-fold').open=true;$('viewport').scrollTo({top:$('version-fold').offsetTop-130,behavior:'smooth'});
-  notice('固定版本安装确认已展示为版本管理入口；正式安装还需真实运行通过。');
- });
+
  $('deps-check').addEventListener('click',()=>{
   $('dependency-info').textContent=`当前源码类型：${$('filename').textContent}\n检查状态：模拟完成\n依赖固定：需要真实缓存、SHA-256 与许可证检查\n这份预览不下载外部资源。`;
   notice('已展示依赖检查信息（模拟）。');
@@ -386,7 +495,10 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
  }
  function finishRun(kind){
   state.running=false;state.runTimer=null;setRunningUI(false);
-  const run=recordRun(kind);if(kind.startsWith('本地'))$('local-install-review').hidden=false;
+  const run=recordRun(kind);if(kind.startsWith('本地')){
+   const key=localProjectKey();state.localVerified={project:key,runId:run.runId,documentId:docId(),origin:state.sourceOrigin,sourceVersion:state.localSourceVersions[key]};
+   updateLocalPublish();
+  }
   if(kind.startsWith('Page')){
    state.pagePreviewOK=true;$('page-candidate-save').disabled=false;paneStatus('page-status',`${run.at} 模拟试运行完成；可以保存网页脚本候选。`,'success');
    $('page-technical').textContent=format({entryFormat:state.framework,documentId:docId(),previewId:run.runId,evidence:'PREVIEW_ONLY'});$('page-fold').open=true;
@@ -410,13 +522,14 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   if(!state.local&&state.runtime==='controller'){
    try{JSON.parse($('params-editor').value)}catch{$('params-fold').open=true;$('params-editor').setAttribute('aria-invalid','true');$('params-error').textContent='JSON 格式无效，请修改后再运行。';$('params-error').hidden=false;$('params-editor').focus();return}
   }
-  if(state.local){try{JSON.parse($('local-params').value)}catch{notice('本地项目参数 JSON 无效。',true);return}}
+  if(state.local){try{if(localKind()==='controller')JSON.parse($('local-params').value)}catch{notice('本地项目参数 JSON 无效。',true);return}
+   resetLocalProof();}
   state.running=true;setRunningUI(true);$('copy-result').disabled=true;$('result-badge').textContent='模拟运行中';$('run-result').textContent='正在演示权限检查 → 固定源码快照 → RunHost 状态更新…';$('run-result').className='result-card';
   state.runTimer=setTimeout(()=>finishRun(kind),650);
  }
  $('run-btn').addEventListener('click',()=>startRun());
  $('stop-btn').addEventListener('click',()=>{
-  if(!state.running)return;clearTimeout(state.runTimer);state.runTimer=null;state.running=false;setRunningUI(false);
+  if(!state.running)return;clearTimeout(state.runTimer);state.runTimer=null;state.running=false;setRunningUI(false);if(state.local)resetLocalProof();
   writeResult('模拟运行已停止。没有真实网页执行或资源可以释放。','已停止','', '交互原型');
  });
  $('page-preview-run').addEventListener('click',()=>{
@@ -442,7 +555,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
   $('revision').value=obj.revision;paneStatus('version-status',`已模拟保存 ${id} · r${obj.revision}；未安装任务。`,'success');
   updateDirty(false);notice(`已保存 ${id} · r${obj.revision}（仅在本预览会话中）。`);
  }
- $('save-btn').addEventListener('click',saveVersion);
+ $('save-btn').addEventListener('click',()=>state.local?openLocalReview(false):saveVersion());
  $('dock-more').addEventListener('click',()=>{$('publish-section').hidden=false;$('version-fold').open=true;$('viewport').scrollTo({top:$('version-fold').offsetTop-120,behavior:'smooth'});notice('已展开完整版本管理与任务制作。')});
  $('preview-search').addEventListener('click',()=>{
   $('advanced-fold').open=true;$('publish-section').hidden=false;$('version-fold').open=true;$('page-fold').open=true;$('history-fold').open=true;
@@ -464,7 +577,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
  $('load-version').addEventListener('click',()=>{
   const v=state.versions.find(v=>v.key===$('version-list').value || (v.id===$('script-id').value&&String(v.revision)===$('revision').value));
   if(!v){notice('请选择现有版本；当前未连接真实存储。',true);return}
-  $('local-toggle').checked=false;state.local=false;$('manual-area').hidden=false;$('local-area').hidden=true;$('save-btn').hidden=false;$('source-heading').textContent='直接编辑';
+  $('local-toggle').checked=false;state.local=false;$('manual-area').hidden=false;$('local-area').hidden=true;resetLocalProof();$('source-heading').textContent='直接编辑';
   switchRuntime(v.kind);state.scripts[chosenKey()]=v.source;$('code-editor').value=v.source;updateDirty(false);
   paneStatus('version-status',`已模拟加载 ${v.id} · r${v.revision}，不会自动运行。`,'success');notice('已加载保存的代码快照。');
  });
@@ -506,7 +619,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
  });
  $('page-load').addEventListener('click',()=>{
   const p=state.pages[Number($('page-program-list').value)];if(!p){notice('请选择保存的 Page 程序。',true);return}
-  if(state.local){state.local=false;$('local-toggle').checked=false;$('manual-area').hidden=false;$('local-area').hidden=true;$('save-btn').hidden=false;$('source-heading').textContent='直接编辑';}
+  if(state.local){state.local=false;$('local-toggle').checked=false;$('manual-area').hidden=false;$('local-area').hidden=true;resetLocalProof();$('source-heading').textContent='直接编辑';}
   switchRuntime('page',p.framework);$('code-editor').value=p.source;state.scripts[chosenKey()]=p.source;updateDirty(false);notice('已加载固定 Page 源码副本，未运行。');
  });
  $('page-verify').addEventListener('click',()=>{
@@ -537,7 +650,7 @@ select.mini-select{width:76px;min-width:76px;height:34px;min-height:34px;padding
  function setTargetURL(url, frame=0){
   try{const u=new URL(url);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)throw Error('bad');
    const changed=state.sourceURL!==u.href||state.frameId!==frame;state.sourceURL=u.href;state.sourceOrigin=u.origin;state.frameId=frame;
-   if(changed){state.docSeq++;state.receipt=null;state.pendingCross=null;state.pagePreviewOK=false;$('page-candidate-save').disabled=true;}
+   if(changed){state.docSeq++;state.receipt=null;state.pendingCross=null;state.pagePreviewOK=false;$('page-candidate-save').disabled=true;resetLocalProof();}
    updateTarget();return true;
   }catch{notice('目标必须是完整的 HTTP(S) 地址。',true);return false}
  }
