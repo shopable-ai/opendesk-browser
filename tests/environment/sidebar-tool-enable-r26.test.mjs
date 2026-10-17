@@ -4,7 +4,9 @@ import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT,sidebarToolStorageKey,sidebarTool
 import {BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,sidebarToolEnabled,sidebarToolLifecycleChanged} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {setInstalledSidebarToolEnabled,installReviewedSidebarTool,recordToolUninstall,cleanupUninstalledToolLocked,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
-import {tocGrantAllowed,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE} from '../../src/reading-toc/policy.js';
+import {tocGrantAllowed,verifyOfficialReadingToc,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE} from '../../src/reading-toc/policy.js';
+import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE} from '../../src/sidebar-tools/official-reading-toc.js';
+import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {clipGrantAllowed,CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {captureAllowed,CAPTURE_SITE_STORE,KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,knowledgePackageHash} from '../../src/knowledge/policy.js';
 import {createKnowledgeService} from '../../src/knowledge/service.js';
@@ -47,15 +49,25 @@ test('R26 legacy absence enables installed tools; damaged records fail closed wi
     assert.throws(()=>requireToolEnableRecords(damaged),{code:'E_STORAGE_CORRUPT'});
   }
 });
-test('new reviewed reading-toc installation is immediately usable without a second enable or site approval',async()=>{
-  const f=fixture();f.values[SIDEBAR_TOOL_STORE]=[];
-  const result=await installReviewedSidebarTool({...f,candidate:tool,baseline:null,reviewApproved:true});
+test('new reviewed official Reading TOC installs from its pinned market identity without second approval',async()=>{
+  const official=await officialToolFixture('reading-toc'),pin=OFFICIAL_READING_TOC_RELEASE;
+  const f=fixture(official);f.values[SIDEBAR_TOOL_STORE]=[];
+  await assert.rejects(installReviewedSidebarTool({
+    ...f,candidate:tool,baseline:null,reviewApproved:true
+  }),{code:'E_OFFICIAL_ID_RESERVED'});
+  assert.equal(f.writes.length,0,'an untrusted import must not modify official records');
+  const result=await installReviewedSidebarTool({
+    ...f,candidate:official,baseline:null,reviewApproved:true,
+    market:{marketId:pin.marketId,sha256:pin.sha256,operationId:'123e4567-e89b-42d3-a456-426614174000'}
+  });
   assert.equal(result.state,'installed');
   assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE],undefined,'installation must not add a second enable step');
-  assert.equal(sidebarToolEnabled(f.values[SIDEBAR_TOOL_ENABLE_STORE],tool.id),true);
+  assert.equal(sidebarToolEnabled(f.values[SIDEBAR_TOOL_ENABLE_STORE],official.id),true);
   assert.equal(f.values[READING_TOC_SITE_STORE],undefined,'installation must not create a positive site grant');
+  const verified=await verifyOfficialReadingToc(f.values[SIDEBAR_TOOL_STORE],f.values[MARKET_PROVENANCE_STORE]);
+  assert.equal(verified,true,'only the byte-pinned marketplace release receives default site access');
   assert.equal(tocGrantAllowed(f.values[SIDEBAR_TOOL_STORE],f.values[READING_TOC_SITE_STORE],
-    tool.id,'https://example.com/article',f.values[SIDEBAR_TOOL_ENABLE_STORE]),true);
+    official.id,'https://example.com/article',f.values[SIDEBAR_TOOL_ENABLE_STORE],verified),true);
   assert.equal(f.writes.some(row=>Object.hasOwn(row,SIDEBAR_TOOL_ENABLE_STORE)),false);
 });
 
@@ -145,12 +157,13 @@ test('R26 TOC, clip and capture grants cannot bypass stopped or malformed enable
     assert.equal(captureAllowed([knowledge],{[knowledge.id]:['https://chatgpt.com']},'https://chatgpt.com/c/test',state),false);
   }
 });
-test('R26 reinstalling identical reviewed package is a no-op and update retains stopped state',async()=>{
-  const f=fixture();f.values[SIDEBAR_TOOL_ENABLE_STORE]={[tool.id]:false};
-  const result=await installReviewedSidebarTool({...f,candidate:tool,baseline:tool,reviewApproved:true});
+test('R26 non-reserved tool reinstall is a no-op and update retains stopped state',async()=>{
+  const userTool={...tool,id:'user-toc'},f=fixture(userTool);
+  f.values[SIDEBAR_TOOL_ENABLE_STORE]={[userTool.id]:false};
+  const result=await installReviewedSidebarTool({...f,candidate:userTool,baseline:userTool,reviewApproved:true});
   assert.equal(result.state,'already-installed');assert.equal(f.writes.length,0);
-  await installReviewedSidebarTool({...f,candidate:{...tool,version:'1.0.1'},baseline:tool,reviewApproved:true});
-  assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][tool.id],false);
+  await installReviewedSidebarTool({...f,candidate:{...userTool,version:'1.0.1'},baseline:userTool,reviewApproved:true});
+  assert.equal(f.values[SIDEBAR_TOOL_ENABLE_STORE][userTool.id],false);
 });
 test('R26 confirmed uninstall uses recovery transaction and removes only its own runtime preference',async()=>{
   const f=fixture();f.values[SIDEBAR_TOOL_ENABLE_STORE]={[tool.id]:false,'other-tool':false};
