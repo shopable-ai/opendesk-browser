@@ -18,8 +18,8 @@
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">
       <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head od-toolbar">
-        <div class="task-section-copy"><strong>自动化任务</strong><span id="task-installed-count" class="visually-hidden" aria-live="polite"></span></div>
-        <div class="task-section-actions"><button id="task-search-toggle" type="button" hidden tabindex="-1" class="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-button" aria-label="添加任务" title="添加任务" aria-expanded="false" aria-controls="task-add-menu">＋ 添加</button></div>
+        <div class="task-section-copy"><strong>自动化任务</strong><span id="task-installed-count" aria-live="polite"></span></div>
+        <div class="task-section-actions"><button id="task-search-toggle" type="button" class="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button><button id="task-manage-toggle" type="button" class="od-icon-button" title="管理自动化任务" aria-label="管理自动化任务" aria-pressed="false" aria-controls="task-installed-cards"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button><button id="schedule-open" type="button" class="od-icon-button" title="定时计划" aria-label="打开定时计划" aria-controls="scheduled-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button><button type="button" id="task-open-catalog" class="od-icon-button" aria-label="添加任务" title="添加任务" aria-expanded="false" aria-controls="task-add-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></div>
       </div>
       <div id="task-add-menu" class="task-add-menu od-surface" role="group" aria-label="添加任务" hidden>
          <div class="task-add-heading od-toolbar"><strong>添加任务</strong><button id="task-add-close" type="button" class="od-icon-button" title="关闭添加任务" aria-label="关闭添加任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button></div>
@@ -56,14 +56,18 @@
       </div>
       <details id="task-history-panel" class="task-history-panel od-disclosure" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>
       <details class="task-scope-panel od-disclosure"><summary>网站与权限</summary><div id="task-installed-detail" class="task-detail" aria-live="polite"></div></details>
-      <details class="task-tools od-disclosure"><summary>更多操作</summary>
-        <div class="row"><button type="button" id="task-refresh" class="od-button od-button--secondary">刷新任务</button><button type="button" id="task-fork-draft" disabled class="od-button od-button--secondary">复制草稿</button></div>
-        <details class="od-disclosure od-disclosure--flat"><summary><span class="task-management-heading">任务管理</span></summary>
-          <div class="task-management-actions">
-            <div class="row"><button type="button" id="task-toggle" disabled class="od-button od-button--secondary">停用 / 启用</button><button type="button" id="task-uninstall" disabled class="od-button od-button--danger">卸载当前版本</button><button type="button" id="open-catalog" class="catalog-open" aria-label="打开完整任务目录以导入或管理任务">导入/管理任务 ↗</button></div>
-            <p class="hint">卸载不删除已有结果；停用将阻止后续启动。</p>
-          </div>
-        </details>
+      <details id="task-tools" class="task-tools od-disclosure od-disclosure--flat"><summary>更多操作</summary>
+        <div class="task-operation-strip" role="group" aria-label="当前任务操作">
+          <button type="button" id="task-refresh" class="od-icon-button" title="刷新任务列表" aria-label="刷新任务列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"></path></svg></button>
+          <button type="button" id="task-fork-draft" disabled class="od-icon-button" title="复制为新草稿" aria-label="复制为新草稿"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"></path></svg></button>
+          <button type="button" id="task-toggle" disabled class="od-icon-button" title="停用任务" aria-label="停用任务"><svg data-task-toggle-icon="pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"></path></svg><svg data-task-toggle-icon="play" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="m8 5 12 7-12 7Z"></path></svg></button>
+          <button type="button" id="task-uninstall" disabled class="od-icon-button od-icon-button--danger" title="卸载当前版本" aria-label="卸载当前版本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+          <button type="button" id="open-catalog" class="od-icon-button" title="打开本地任务目录" aria-label="打开本地任务目录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+        </div>
+        <div id="task-uninstall-confirm" class="task-uninstall-confirm" role="group" aria-label="确认卸载任务" hidden>
+          <p id="task-uninstall-summary">确认卸载当前任务版本？历史运行结果不会一并删除。</p>
+          <div class="task-uninstall-confirm-actions"><button type="button" id="task-uninstall-cancel" class="od-button od-button--secondary">取消</button><button type="button" id="task-uninstall-yes" class="od-button od-button--danger">确认卸载</button></div>
+        </div>
       </details>
       </div>
     </section>
@@ -583,10 +587,14 @@
   <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->
   <div id="workbench-discover" class="od-page" data-workbench-page="catalog" hidden>
     <section aria-labelledby="discover-heading" class="catalog-section">
-      <div class="catalog-intro"><p class="eyebrow">LOCAL TASK CATALOG</p><h2 id="discover-heading">发现本地任务</h2>
-      <p class="hint">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p>
-      <div class="row"><button id="catalog-open-dev-sidebar" class="od-button od-button--secondary" type="button">打开开发侧栏</button>
-      <span id="catalog-dev-sidebar-status" class="hint" role="status" aria-live="polite"></span></div></div>
+      <div class="catalog-intro">
+        <header class="catalog-header od-page-head">
+          <button type="button" id="task-catalog-back" class="od-icon-button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
+          <h2 id="discover-heading" class="od-page-title">发现本地任务</h2>
+          <div class="od-page-actions"><button id="catalog-open-dev-sidebar" class="od-icon-button" type="button" title="打开开发侧栏" aria-label="打开开发侧栏"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button></div>
+        </header>
+        <p id="catalog-dev-sidebar-status" class="hint" role="status" aria-live="polite"></p>
+      </div>
       <label for="task-search" class="visually-hidden">搜索任务</label><input type="search" id="task-search" placeholder="搜索任务名称、用途、作者或网站…" autocomplete="off" class="od-field">
       <div class="category-chips" id="task-categories" aria-label="任务分类">
         <button type="button" class="category-chip selected" data-catalog-filter="all">全部</button>

@@ -40,7 +40,7 @@
 .task-card-list{display:grid;gap:8px;margin:0}
 .task-card-group{min-width:0;background:var(--od-paper);border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}
 .task-card-group.selected{border-color:var(--od-focus);box-shadow:0 0 0 1px var(--od-focus)}
-.task-card{display:flex;align-items:center;text-align:left;gap:10px;width:100%;min-height:64px;padding:10px 12px!important;color:var(--ink)!important;background:transparent!important;border:0!important;border-radius:0!important}
+.task-card{display:flex;align-items:center;text-align:left;gap:10px;width:100%;min-width:0;min-height:64px;padding:10px 12px!important;color:var(--ink)!important;background:transparent!important;border:0!important;border-radius:0!important}
 .task-card:hover{background:var(--od-muted)!important}
 .task-card:focus-visible{outline-offset:-3px}
 .task-card-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-accent-ink);font-size:14px;font-weight:600}
@@ -82,14 +82,29 @@
 .task-history-tech{font-size:10px}
 
 #task-history{overflow-wrap:anywhere;font-size:11px}
-.task-tools .row button{background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-input-border);font-size:12px;min-height:36px}
-.task-tools details{margin:6px 0}
-.task-tools .hint{font-size:11px;line-height:1.45}
-/* Scope Task Manager's indentation to business content; shared disclosure
- * summary height/border/padding remain solely owned by design-system.css. */
-.task-management-heading{margin-inline-start:var(--space-3)}
-.task-management-actions{min-width:0;max-width:100%;padding-inline:var(--space-3)}
-.catalog-open{background:#eef3ff!important;color:#3657a7!important}
+/* One-level task action strip: never nest another disclosure in More. */
+#task-tools{min-width:0}
+#task-tools>.task-operation-strip{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-wrap:wrap;min-width:0;margin-block:var(--space-2)}
+#task-tools .task-operation-strip .od-icon-button{padding:0;width:34px;height:34px;min-width:34px;min-height:34px;color:var(--od-ink)}
+#task-tools .task-operation-strip .od-icon-button--danger{color:var(--od-negative);background:var(--od-negative-bg);border-color:var(--od-negative)}
+#task-tools .task-operation-strip svg[hidden]{display:none}
+.task-uninstall-confirm{display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-warning-border);border-radius:var(--radius-control);background:var(--od-warning-bg);margin-top:var(--space-2)}
+.task-uninstall-confirm[hidden]{display:none}
+.task-uninstall-confirm p{margin:0;font-size:12px;line-height:1.5;color:var(--od-warning-ink)}
+.task-uninstall-confirm-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.task-uninstall-confirm-actions button{font-size:12px;min-height:34px}
+.task-detail-facts{display:grid;gap:var(--space-2);min-width:0}
+.task-detail-fact{display:grid;grid-template-columns:minmax(64px,.32fr) minmax(0,1fr);gap:var(--space-2);min-width:0;align-items:start}
+.task-detail-fact span{color:var(--od-sub);font-size:11px}
+.task-detail-fact strong{font-size:11px;color:var(--od-ink);font-weight:500;overflow-wrap:anywhere}
+.task-card-group[data-management="true"]{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.task-card-group[data-management="true"]>.task-card{min-width:0}
+.task-card-group[data-management="true"]>.task-selected-workspace{grid-column:1/-1}
+.task-card-manage{margin-inline-end:var(--space-2);width:34px;height:34px;min-width:34px;min-height:34px}
+.task-card-manage svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#task-manage-toggle[aria-pressed="true"]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
+#task-installed-count:empty{display:none}
+@media(max-width:340px){#task-tools>.task-operation-strip{gap:6px}#task-tools .task-operation-strip .od-icon-button{width:32px;height:32px;min-width:32px;min-height:32px}}
 .task-card-list>.hint{background:var(--od-paper);border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}
 
 /* Task search expands within the existing installed Task list, never beside schedules. */
@@ -220,8 +235,13 @@
 
 /* Existing authenticated full-size catalog: keep its reader and install UI. */
 #workbench-discover .catalog-section{background:transparent;border:0;box-shadow:none;padding:0}
-.catalog-intro h2{font-size:25px!important;letter-spacing:-.04em!important;margin:0 0 6px!important}
-.catalog-intro .eyebrow{margin:4px 0;color:var(--od-sub);letter-spacing:.12em;font-weight:800;font-size:10px}
+.catalog-intro{display:grid;gap:var(--space-1);min-width:0}
+.catalog-header{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.catalog-header #discover-heading{flex:1;min-width:0;margin:0;font-size:16px;font-weight:700;line-height:1.35}
+.catalog-header .od-page-actions{margin-inline-start:auto}
+.catalog-header .od-icon-button{width:36px;height:36px;min-width:36px;min-height:36px}
+.catalog-header .od-icon-button svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#catalog-dev-sidebar-status:empty{display:none}
 #task-search{width:100%;max-width:680px;background:#fff;margin:15px 0 11px;font-size:12px}
 .category-chips{display:flex;gap:7px;overflow-x:auto;min-height:42px;padding:2px 0}
 .category-chip{border:1px solid #dfe6f1;background:#fff;color:#65768f;font-size:11px;padding:6px 11px;white-space:nowrap;border-radius:var(--radius-control)}
@@ -310,7 +330,7 @@
 .sidebar-tools-head{margin:0 0 8px}
 .sidebar-tools-head strong,.task-section-head strong{font-size:12px;font-weight:600;color:var(--od-ink)}
 .task-section-actions button{min-height:34px;padding:5px 9px;background:transparent;border:1px solid transparent;border-radius:var(--radius-control);color:var(--od-accent-ink);font-size:12px;font-weight:600;white-space:nowrap}
-.task-section-actions .od-icon-button{padding:0;min-height:var(--od-icon-size)}
+.task-section-actions .od-icon-button{padding:0;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size)}
 .task-section-actions .od-icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .task-section-actions button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-input-border)}
 .sidebar-tools-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);margin-left:auto;flex:0 0 auto;min-width:0}
@@ -424,7 +444,7 @@
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
 .task-section-head{margin:0 0 8px}
-.task-section-actions{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.task-section-actions{display:flex;align-items:center;gap:6px;min-width:0;flex:0 0 auto}
 #task-installed-count{font-size:11px;color:var(--od-sub);white-space:nowrap}
 @media(max-width:360px){.sidebar-tool-import{padding:10px}}
 @media(max-width:280px){.sidebar-tool-preview-heading{align-items:flex-start;flex-direction:column;gap:2px}}
@@ -905,7 +925,7 @@
 
 /* R29: host action groups share a compact trailing edge; fields retain 36px. */
 .od-action-group{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);min-width:0}
-.task-section-copy{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-1);min-width:0}
+.task-section-copy{display:flex;align-items:baseline;flex-wrap:nowrap;gap:var(--space-1);min-width:0}
 .cloud-panel-actions{flex:none;margin-inline-start:auto;gap:var(--space-2)}
 #workbench-tasks #cloud-hosting>.cloud-actions{justify-content:flex-end;align-items:center}
 #workbench-tasks #cloud-hosting>.cloud-actions>button{flex:0 0 auto;min-height:34px;padding:var(--space-1) var(--space-3);font-size:12px;line-height:1.45}

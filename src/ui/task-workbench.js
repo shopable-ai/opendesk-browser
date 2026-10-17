@@ -47,7 +47,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
-  let localQuery='', localFilter='all';
+  let localQuery='', localFilter='all', taskManagementMode=false, pendingTaskUninstall=null;
   const parameterDrafts=new Map();
   let parameterDraftKey, parametersEdited=false, parameterSerial='', parameterWrites=Promise.resolve();
   function rememberParams() {
@@ -308,9 +308,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       !taskMatchesView(row,info,origin);
     get('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
     get('task-fork-draft').disabled=!row||working;
-    get('task-toggle').disabled=!row||working;
-    get('task-toggle').textContent=row?.enabled?'停用任务':'启用任务';
+    const toggleAction=get('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
+    toggleAction.disabled=!row||working;
+    toggleAction.title=toggleLabel;toggleAction.setAttribute('aria-label',toggleLabel);
+    toggleAction.querySelector('[data-task-toggle-icon="pause"]').hidden=!row?.enabled;
+    toggleAction.querySelector('[data-task-toggle-icon="play"]').hidden=Boolean(row?.enabled);
     get('task-uninstall').disabled=!row||working;
+    get('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
     get('task-verify').disabled=working||!selected||selected.stage!=='candidate';
     get('task-publish').disabled=working||!selected||selected.stage!=='verified';
     get('task-install').disabled=working||!selected||selected.stage!=='available'||
@@ -347,6 +351,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           description:info?.manifest.description||'已安装任务'};
       });
       reactMyTasks.renderMyTaskRows({rows,selectedId:selected,emptyText,
+        manageMode:taskManagementMode,onManage:openTaskManagement,
         onSelect:taskId=>{
           if(disposed||!installed.some(row=>row.taskId===taskId))return;
           get('task-installed-list').value=taskId;renderInstalledSelection();
@@ -384,6 +389,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     for(const row of visible){
       const info=candidateFor(row),group=doc.createElement('div'),button=doc.createElement('button');
       group.className='task-card-group'+(row.taskId===selected?' selected':'');
+      if(taskManagementMode)group.dataset.management='true';
       button.type='button';button.className='task-card';
       button.dataset.taskId=row.taskId;
       button.setAttribute('aria-pressed',String(row.taskId===selected));
@@ -414,6 +420,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         }
       });
       group.append(button);
+      if(taskManagementMode){
+        const manage=doc.createElement('button');manage.type='button';
+        manage.className='task-card-manage od-icon-button';
+        manage.setAttribute('aria-label','管理「'+(info?.manifest.title||row.taskId)+'」');
+        manage.title=manage.getAttribute('aria-label');
+        const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+        svg.innerHTML='<path d="M4 7h9m6 0h1M4 17h1m6 0h9"/><circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/>';
+        manage.append(svg);
+        manage.addEventListener('click',()=>openTaskManagement(row.taskId));
+        group.append(manage);
+      }
       if(row.taskId===selected){
         // Keep the one live workspace inside its selected card when collapsed;
         // no extra sibling and no remounted parameters, results or listeners.
@@ -428,6 +446,34 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     else if(focusedInWorkspace && workspace.hidden)
       (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
     else replacementFocus?.focus?.({preventScroll:true});
+  }
+  function openTaskManagement(taskId) {
+    if(disposed||!installed.some(row=>row.taskId===taskId))return;
+    if(get('task-installed-list').value!==taskId) {
+      get('task-installed-list').value=taskId;renderInstalledSelection();
+    }
+    fallbackExpandedTaskId=taskId;
+    get('task-tools').open=true;
+    renderInstalledCards();
+  }
+  function setTaskManagementMode(open) {
+    taskManagementMode=Boolean(open);
+    get('task-manage-toggle').setAttribute('aria-pressed',String(taskManagementMode));
+    if(taskManagementMode){
+      get('task-tools').open=true;
+      if(!installedRow()&&installed[0]){
+        get('task-installed-list').value=installed[0].taskId;
+        renderInstalledSelection();
+      }
+    }else{
+      dismissTaskUninstall();
+      get('task-tools').open=false;
+    }
+    renderInstalledCards();
+  }
+  function dismissTaskUninstall() {
+    pendingTaskUninstall=null;
+    get('task-uninstall-confirm').hidden=true;
   }
   function renderInstalled() {
     const count=get('task-installed-count');
@@ -445,6 +491,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   function renderInstalledSelection() {
     const currentSelection=get('task-installed-list').value;
+    if(pendingTaskUninstall&&pendingTaskUninstall.taskId!==currentSelection)
+      dismissTaskUninstall();
+    if(taskManagementMode)get('task-tools').open=true;
     if(currentSelection!==fallbackLastSelection){
       fallbackLastSelection=currentSelection;
       fallbackExpandedTaskId=currentSelection||null;
@@ -934,6 +983,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       renderInstalledCards();update();taskSearchReturnFocus().focus?.({preventScroll:true});
     }
   }
+  listen(get('task-manage-toggle'),'click',event=>{
+    if(!event.isTrusted)return;
+    setTaskManagementMode(!taskManagementMode);
+  });
   listen(get('task-search-toggle'),'click',()=>setTaskSearchOpen(get('task-search-panel').hidden));
   listen(get('task-search-panel'),'keydown',event=>{
     if(event.key!=='Escape'||event.defaultPrevented||event.isComposing)return;
@@ -988,7 +1041,38 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   listen(get('task-publish'),'click',asyncAction(publish));
   listen(get('task-install'),'click',asyncAction(install));
   listen(get('task-toggle'),'click',asyncAction(toggle));
-  listen(get('task-uninstall'),'click',asyncAction(uninstall));
+  listen(get('task-uninstall'),'click',event=>{
+    if(!event.isTrusted||working)return;
+    const row=installedRow();if(!row)return;
+    pendingTaskUninstall={taskId:row.taskId,version:row.version,
+      generation:row.generation??null,installationId:row.installationId??null};
+    const info=candidateFor(row);
+    get('task-uninstall-summary').textContent=
+      '卸载「'+(info?.manifest.title||row.taskId)+'」v'+row.version+'？历史结果仍可能保留。';
+    get('task-uninstall-confirm').hidden=false;
+    get('task-uninstall-cancel').focus?.({preventScroll:true});
+    update();
+  });
+  listen(get('task-uninstall-cancel'),'click',event=>{
+    if(!event.isTrusted)return;
+    dismissTaskUninstall();
+    get('task-uninstall').focus?.({preventScroll:true});
+    update();
+  });
+  listen(get('task-uninstall-yes'),'click',asyncAction(async event=>{
+    if(!event.isTrusted||!pendingTaskUninstall)return;
+    const selected=installedRow(),pending=pendingTaskUninstall;
+    if(!selected||selected.taskId!==pending.taskId||selected.version!==pending.version||
+      (selected.generation??null)!==pending.generation||
+      (selected.installationId??null)!==pending.installationId){
+      dismissTaskUninstall();
+      throw {code:'E_TASK_CHANGED',message:'安装版本已变化，请重新检查后卸载'};
+    }
+    try{await uninstall();}finally{dismissTaskUninstall();}
+  }));
+  listen(get('task-tools'),'toggle',()=>{
+    if(!get('task-tools').open)dismissTaskUninstall();
+  });
   listen(get('task-fork-draft'),'click',asyncAction(fork));
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     currentPage=next;update();renderInstalledCards();
