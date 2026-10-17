@@ -35,6 +35,11 @@ jobs:
             tests/environment/react-sidebar-r333.test.mjs \
             tests/environment/react-sidebar-render-r3331.test.mjs
           npm run check
+      - name: Install CJK fonts for truthful Chinese visual review
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match -f '%{family}\n' ':lang=zh'
       - name: Render six actual panels in Chromium (UI-only, not installed extension)
         shell: bash
         run: |
@@ -63,6 +68,16 @@ jobs:
               "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=$tab"
             test -s "artifacts/sidebar-six-react-preview/$tab-360.png"
           done
+          for viewport in develop-420 cloud-520; do
+            tab="${viewport%-*}"
+            width="${viewport#*-}"
+            window=$((width + 180))
+            "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --no-first-run --virtual-time-budget=4000 --window-size="$window",950 \
+              --screenshot="$PWD/artifacts/sidebar-six-react-preview/$tab-$width.png" \
+              "file://$PWD/prototypes/sidebar/react-preview/index.html?tab=$tab&width=$width"
+            test -s "artifacts/sidebar-six-react-preview/$tab-$width.png"
+          done
           echo "SOURCE_BOUND_UI_PREVIEW_CHROMIUM=6_TAB_SCREENSHOTS_ONLY"
           echo "INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED"
       - name: Upload exact generated HTML and screenshots (no write to main)
@@ -72,6 +87,43 @@ jobs:
           name: sidebar-six-react-preview
           path: |
             prototypes/sidebar/react-preview/index.html
-            artifacts/sidebar-six-react-preview/*-360.png
+            artifacts/sidebar-six-react-preview/*.png
             artifacts/sidebar-six-react-preview/dom.txt
           retention-days: 14
+
+  package-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Core six-tab Node regressions
+        run: |
+          node --test \
+            tests/environment/task-workbench.test.mjs \
+            tests/environment/scheduled-task-ui-r1.test.mjs \
+            tests/environment/extension-center-r4.test.mjs \
+            tests/environment/workflow-ui-states.test.mjs \
+            tests/environment/workflow-focus.test.mjs \
+            tests/environment/cloud-control-sidebar-r28.test.mjs \
+            tests/environment/sidebar-component-contract.test.mjs \
+            tests/environment/ui-layout-conventions-r27.test.mjs
+      - name: React Sidebar real Chromium runner
+        if: always()
+        run: node scripts/tests/react-sidebar-r3331-browser.mjs
+      - name: Build production candidate
+        if: always()
+        run: npm run build
+      - name: Build development candidate
+        if: always()
+        run: npm run build:dev
+      - name: Verify generated candidate packages
+        if: always()
+        run: npm run verify
+      - name: Audit generated package size and limits
+        if: always()
+        run: npm run build:size
