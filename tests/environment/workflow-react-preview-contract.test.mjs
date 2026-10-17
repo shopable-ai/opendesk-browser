@@ -18,8 +18,10 @@ test('R33.3.6 source-bound preview only reuses real Workflow JSX and installed s
     assert.ok(builder.includes(path),'canonical input missing '+path);
   assert.match(builder,/--check/);
   assert.match(component,/export function WorkflowSettingsSheet/);
-  assert.doesNotMatch(entry,/chrome\.|(?:^|\W)fetch\(|localStorage|sessionStorage|createWorkflowProviderFacade/);
-  assert.doesNotMatch(entry,/from ['"][^'"]*(?:framework\/sdk|platform\/host|installer|sandbox)/);
+  // Comments may describe forbidden APIs; guard the executable code, not prose.
+  const executable=entry.replace(/^\s*\/\/[^\n]*$/gm,'');
+  assert.doesNotMatch(executable,/chrome\.|(?:^|\W)fetch\(|localStorage|sessionStorage|createWorkflowProviderFacade/);
+  assert.doesNotMatch(executable,/from ['"][^'"]*(?:framework\/sdk|platform\/host|installer|sandbox)/);
   const result=await transformWithEsbuild(entry,'workflow-preview.tsx',
     {loader:'tsx',jsx:'transform',target:'es2022'});
   assert.ok(result.code.length>1000);
