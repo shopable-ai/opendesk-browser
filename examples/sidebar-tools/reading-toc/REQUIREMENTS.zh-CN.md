@@ -118,3 +118,23 @@
 - **历史 CI 证据（不能当作本次 PASS）：** [TOC 39056332684](https://github.com/shopable-ai/opendesk-browser/actions/runs/39056332684) 的离线 Chromium 预览测试通过，但本地化旧版本断言、Side Panel 默认访问用例失败；正式打包另受 AdBlock 可信源码审核门禁阻塞。[Market 39056332713](https://github.com/shopable-ai/opendesk-browser/actions/runs/39056332713) 含旧版 revision 7、通用安装测试误用保留 ID 等失败，另有独立开发服务失败。
 - **待验证：** 提交后的 Node、最新 CI、真实 Chrome 目录/跳转、Chrome 扩展原位升级、设置持久化、权限撤销/恢复和用户 Mac Chrome 均须给出同候选日志或截图；没有独立证据统一标记 `NOT_TESTED`。不要把历史预览通过等同正式安装通过。
 - **下一故障定位：** `tests/environment/sidebar-tools-host.test.mjs` 的默认访问用例增加实际错误回执断言信息；必须根据新 CI 输出确定原因再修业务或 Fixture，不能通过跳过验证、注入假身份或放宽 `page.toc` 权限解决。
+
+## 8. R1.9.1 同候选 CI 与独立主要章节函数校验（2026-10-18）
+
+本节证据针对 **`85fc1ccd387833384a2207c45e6b3dbf7685902e`**；不能自动外推到后续并行提交的 HEAD。
+
+| 项目 | 状态 | 可复核证据 |
+| --- | --- | --- |
+| 正式 1.0.9 包及 SHA-256 | **PASS（静态包身份）** | 从 GitHub 读取正式安装 JSON，按正式规范化字段独立计算 28,525 UTF-8 字节，SHA-256 与官方 pin 完全一致；未安装浏览器 |
+| Reading TOC 定向 Node + 可信桥接 | **PASS（83/83）** | [TOC CI #39058916850](https://github.com/shopable-ai/opendesk-browser/actions/runs/39058916850)，`Reproducible TOC tool and trusted bridge regression` 中 83 项全过 |
+| 同源 HTML 与 Chromium 离线交互 | **PASS（同候选离线预览 1/1）** | 同一 TOC CI 的 `R1.4 real Chromium offline preview interaction`；Chrome/155、`file: true`、`installed: false`，多回答预览 2 条分隔线 |
+| Sidebar Tools 宿主回归 | **PASS（99/99）** | 同一 TOC CI 的 `Existing Sidebar tool regression`，含默认网站读取与停用用例 |
+| 扩展范围的其他 Node | **FAIL（61/62）** | 同一 TOC CI 中 Cookie Editor 原型与正式项目版本不一致；不是 Reading TOC 目录算法失败 |
+| 受信 production/development WXT 构建 | **BLOCKED/FAIL** | 同一 TOC CI 均受 `Trusted AdBlock source changed` 安全摘要门禁拒绝；不得绕过 |
+| 市场 Node 回归 | **FAIL（4 项跨模块）** | [Market CI #39058916901](https://github.com/shopable-ai/opendesk-browser/actions/runs/39058916901) 中剩余 `dev-service` 输出文件缺失及 toolbar label 品牌断言，旧 `reading-kit` 版本及 `E_OFFICIAL_ID_RESERVED` 误用故障不再出现 |
+| 市场 macOS/Linux 宿主组件 | **PASS（组件步骤）** | 同一 Market CI 两系统 `R5 handoff, installer, immutable archive and client state components` 均成功；后续真正构建被 AdBlock 门禁拦截 |
+| 原生安装、1.0.8→1.0.9 原位升级、Mac Chrome 实站 | **NOT_TESTED** | 构建门禁使同候选已安装扩展的原生测试没有完成；离线浏览器截图不得算真实安装 |
+
+额外将 GitHub 现行 `src/reading-toc/overview.js` blob `a148dc645ec49b22f0f0a911f4861960442617b5` 在隔离 V8 执行其真实纯函数，覆盖「单 H1 + 20 H2」「五个顶层及子节点」「H2/H3 起始逻辑树」「四个活动章节位置」「空树」五项，**5/5 PASS（仅纯函数执行）**。其中单 H1 + 20 H2 显示 12 个、保留当前 H2、隐藏 9 个；不是浏览器 DOM/滚动/截图证明。
+
+**下一关：** 先由负责 AdBlock 安全发布的改动解决受信来源摘要，不要更改这项安全规则来推进 TOC；再基于新的同一 HEAD 重跑构建、原生扩展安装与升级。真实网页双语、重复 ID 导航、SPA、撤权以及用户 Mac Chrome 必须另行记录 PASS/FAIL/NOT_TESTED。
