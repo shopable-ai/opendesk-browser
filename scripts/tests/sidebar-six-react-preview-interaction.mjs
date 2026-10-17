@@ -182,7 +182,9 @@ try{
   await until('document.getElementById("workflow-status").textContent.includes("源码哈希")');
   assert.equal(await evaluate('Boolean(window.__sidebarPreviewInfo?.realHost)'),false);
   await click('#workflow-ai-plan');
-  await until('document.getElementById("workflow-status").textContent.includes("RunHost")');
+  await until('document.getElementById("workflow-status").textContent.includes("未连接")');
+  assert((await evaluate('document.getElementById("workflow-status").textContent')).includes('AI 设置'),
+    'offline Workflow send must explain how to connect instead of reporting fabricated Host success');
   await screenshot('workflow-preview-feedback-360');
   await click('#workflow-provider-toggle');
   await until('!document.querySelector(".workflow-sheet-overlay").hidden');
