@@ -72,3 +72,19 @@
 .theme-dark .site-permissions>summary{color:var(--od-sub)}
 .theme-dark .site-permissions>summary:hover,.theme-dark .site-permissions[open]>summary,.theme-dark .permission-manage:hover:not(:disabled){background:#273a56}
 .theme-dark .permission-illustration{background:#283d66}
+
+/* R4.11: only IO panels change; list and inline editor geometry stays untouched. */
+.import-panel{gap:10px;min-width:0}
+.import-panel .import-source{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.import-panel .selected-file{flex:1;min-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--od-sub)}
+.import-panel .clear-source{border:0;background:transparent;color:var(--od-brand);font-size:12px;min-height:32px;padding:4px}
+.import-panel .field{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0}
+.import-panel .field>span{font-size:12px}
+.import-panel .field textarea{display:block;grid-column:1;width:100%;min-width:0;min-height:112px;resize:vertical;padding:9px;line-height:1.5}
+.import-panel .import-summary{gap:5px;padding:9px;overflow-wrap:anywhere}
+.import-panel .import-summary strong{font-weight:650}
+.import-panel .overwrite-option{display:flex;align-items:flex-start;gap:7px;font-size:11px;line-height:1.5;cursor:pointer}
+.import-panel .overwrite-option input{accent-color:var(--od-brand);margin:2px 0 0;flex:none}
+.import-panel .panel-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.import-panel .panel-actions .text-btn{min-width:76px}
+.theme-dark .import-panel .clear-source{color:var(--od-brand)}
