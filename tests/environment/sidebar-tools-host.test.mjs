@@ -1860,6 +1860,46 @@ test('native Time Review forwards day, classification, settings and CSV payloads
   await assert.rejects(request('time.siteGrant',{mode:'all',allow:true},{isTrusted:true}),{code:'E_TIME_TRUSTED_CLICK'});
   assert.equal(calls.length,before,'native markup cannot replace the separate consent controls');
 });
+test('sandbox Browser RPC honors Registry argument-byte budget and settles oversized requests',async t=>{
+  // Fictional data only. The old Side Panel checked JSON.stringify(entire
+  // postMessage).length > 12000 and silently dropped this valid 11,900-byte
+  // Cookie batch, leaving the iframe waiting for a timeout.
+  const tool=await officialToolFixture('cookie-editor');
+  const oldLocation=globalThis.location;
+  globalThis.location={href:'chrome-extension://test/ui/tool.html?hostInstanceId=01234567-89ab-4def-8123-456789abcdef'};
+  t.after(()=>{globalThis.location=oldLocation;});
+  const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  const near={url:'https://example.org/',cookies:Array.from({length:12},(_,index)=>({
+    name:'test'+index,value:'x'.repeat(960)
+  }))};
+  const envelope={protocol:f.loaded.protocol,kind:'request',
+    instance:f.loaded.instance,toolId:tool.id,requestId:'near-limit',
+    operation:'browser.cookies.setMany',payload:near};
+  assert.equal(new TextEncoder().encode(JSON.stringify(near)).byteLength,11900);
+  assert.ok(JSON.stringify(envelope).length>12000);
+  assert.deepEqual(checkSidebarToolRequestBudget(envelope),{ok:true});
+  f.ask('browser.cookies.setMany',near,'near-limit');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='near-limit'));
+  const reached=f.frame.contentWindow.sent.find(row=>row.requestId==='near-limit');
+  assert.equal(reached.ok,false);
+  assert.equal(reached.error.code,'E_SITE_GRANT_REQUIRED',
+    'the admitted request reaches normal site-authorization refusal; no Cookie is written');
+
+  const oversized={...near,cookies:near.cookies.map(row=>({...row,value:row.value+'x'.repeat(30)}))};
+  assert.deepEqual(checkSidebarToolRequestBudget({...envelope,payload:oversized}),{ok:false,code:'E_LIMIT'});
+  f.ask('browser.cookies.setMany',oversized,'too-large');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='too-large'));
+  const denied=f.frame.contentWindow.sent.find(row=>row.requestId==='too-large');
+  assert.equal(denied.ok,false);
+  assert.equal(denied.error.code,'E_LIMIT','oversized input must receive an explicit response, not time out');
+  assert.equal(denied.result,undefined);
+  assert.deepEqual(checkSidebarToolRequestBudget({...envelope,untrusted:'z'.repeat(800)}),{ok:false,code:'E_LIMIT'},
+    'extra untrusted envelope fields do not expand the RPC budget');
+  const unicode={...near,cookies:near.cookies.map((row,i)=>i===0?{...row,value:'中文'.repeat(960)}:row)};
+  assert.deepEqual(checkSidebarToolRequestBudget({...envelope,payload:unicode}),{ok:false,code:'E_LIMIT'},
+    'UTF-8 byte budget must reject large multibyte payloads');
+});
+
 test('R10 canonical exports need real Side Panel click plus one-use Host authorization',async t=>{
   const tool={...sample,capabilities:[...sample.capabilities,'user.export']};
   const f=await hostFixture(t,{tool,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
