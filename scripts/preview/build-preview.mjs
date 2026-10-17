@@ -38,7 +38,7 @@ export async function generatePreview({
   if(surface!=='side-panel'&&!(tool==='reading-toc'&&surface==='page-overlay'))
     fail('surface '+surface+' has no verified production preview adapter');
   if(!['quick-notes','bookmark-manager','adblock','reading-toc'].includes(tool))fail('mock SDK adapter is not implemented for '+tool);
-  if(!PREVIEW_SCENARIOS.includes(scenario))fail('unsupported scenario');
+  if(!PREVIEW_SCENARIOS.includes(scenario)&&!(tool==='reading-toc'&&scenario==='chatgpt-multi'))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
   if(tool==='reading-toc'&&theme!=='light')fail('Reading TOC preview shell is light only');
   if(!Number.isInteger(width)||width<240||width>1440||

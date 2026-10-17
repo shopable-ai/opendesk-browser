@@ -26,6 +26,7 @@ export function addReadingTocControls(html,{sidePanelHtml,overlayHtml,scenario,s
 </select></label>
 <label>模拟页面状态<select id="od-toc-scenario">
 <option value="success"${select(scenario,'success')}>有章节</option>
+<option value="chatgpt-multi"${select(scenario,'chatgpt-multi')}>ChatGPT 三次回答</option>
 <option value="empty"${select(scenario,'empty')}>无章节</option>
 <option value="loading"${select(scenario,'loading')}>正在读取</option>
 <option value="error"${select(scenario,'error')}>读取错误</option>
