@@ -36,6 +36,10 @@ jobs:
       - name: Build from installed DOM, CSS and real React components
         id: build_preview
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
+      - name: Verify R33.3.14 schedule projections and existing UI
+        run: |
+          node --test tests/environment/schedule-plan-presentation-r33314.test.mjs \
+            tests/environment/scheduled-task-ui-r1.test.mjs
       - name: Guard source drift and React/DOM contracts
         run: |
           node scripts/preview/build-sidebar-six-react-preview.mjs --check
