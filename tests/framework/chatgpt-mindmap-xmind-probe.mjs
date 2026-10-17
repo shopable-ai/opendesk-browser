@@ -55,7 +55,7 @@ try{
  await trigger(1).click();await page.waitForFunction(()=>document.querySelector('[data-testid="conversation-turn-1"] .markdown').style.display!=='none');
  assert.equal(await viewer(1).count(),0);passed('Missing runtime restores original without an alternate renderer');
  await page.goto(base+'?delay=250');await page.waitForFunction(()=>window.fixtureReady);
- await trigger(1).click();await control(1,'恢复本条回复原文').click();
+ await trigger(1).click();await control(1,'返回完整原文').click();
  await viewer(1).waitFor({state:'detached'});
  const late=await page.evaluate(()=>({created:fixture.calls.created,closed:fixture.calls.closed,hidden:document.querySelector('.markdown').style.display==='none'}));
  assert.equal(late.created,1);assert.equal(late.closed,1);assert.equal(late.hidden,false);
@@ -89,7 +89,7 @@ try{
  assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),6);passed('Toolbar replacement does not duplicate buttons');
  await page.getByRole('button',{name:'更新 B 正文',exact:true}).click();await page.waitForTimeout(850);
  await control(2,'重新读取本条回复').click();await ready(2);passed('Refresh recreates B from its updated content');
- for(let i=0;i<20;i++){await trigger(3).click();await ready(3);await control(3,'恢复本条回复原文').click();await viewer(3).waitFor({state:'detached'});}
+ for(let i=0;i<20;i++){await trigger(3).click();await ready(3);await control(3,'返回完整原文').click();await viewer(3).waitFor({state:'detached'});}
  passed('20 actual SDK open/close cycles');
  await page.screenshot({path:join(out,'light-fixture.png'),fullPage:true});
  await page.setViewportSize({width:320,height:740});await page.waitForTimeout(250);await page.screenshot({path:join(out,'narrow-fixture.png'),fullPage:true});
@@ -176,7 +176,7 @@ try{
   await viewer(3).and(previewPage.locator('[data-ready="true"]')).waitFor({timeout:15000});
   assert.ok(await viewer(3).locator('.topic:visible').count()>3);
   passed('R2.2 third answer renders real XMind from table/code/quote content');
-  await viewer(3).getByRole('button',{name:'恢复本条回复原文',exact:true}).click();
+  await viewer(3).getByRole('button',{name:'返回完整原文',exact:true}).click();
   await viewer(3).waitFor({state:'detached'});
   await previewPage.getByRole('button',{name:'将 C 切换为大型导图'}).click();
   await previewPage.waitForTimeout(850);
