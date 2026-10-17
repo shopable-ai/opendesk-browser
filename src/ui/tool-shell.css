@@ -489,6 +489,36 @@
 .workflow-composer .workflow-send-button{flex:none}
 #workflow-provider-settings:not([open]){display:none}
 #workflow-provider-settings>summary{display:none}
+/* R23.11: the approved history is a dedicated React view, not the advanced manager. */
+.workflow-history-react-host{display:contents}
+.workflow-history-panel{flex:1;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:22px;padding:14px 2px 18px}
+.workflow-history-panel[hidden]{display:none!important}
+.workflow-editor[data-history-open="true"] .workflow-scroll,
+.workflow-editor[data-history-open="true"] .workflow-composer{display:none!important}
+.workflow-history-section{min-width:0;display:grid;align-content:start;gap:9px}
+.workflow-history-section h3{font-size:13px;font-weight:700;line-height:1.4;color:var(--od-ink);margin:0}
+.workflow-history-list{display:grid;gap:8px;min-width:0}
+.workflow-history-row{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;min-width:0;min-height:56px;padding:11px 12px;text-align:left;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink);cursor:pointer}
+.workflow-history-row:hover{border-color:var(--od-brand);background:var(--od-muted)}
+.workflow-history-row:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.workflow-history-row:disabled{opacity:.55;cursor:wait}
+.workflow-history-row-title{display:block;max-width:100%;font-size:12px;font-weight:650;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workflow-history-row small{font-size:11px;color:var(--od-sub);line-height:1.5}
+.workflow-history-empty{margin:0;padding:14px 12px;border:1px dashed var(--od-line);border-radius:var(--radius-surface);font-size:12px;line-height:1.5;color:var(--od-sub);background:var(--od-paper)}
+.workflow-step-tools{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.workflow-step-tools .workflow-icon-button{width:34px;height:34px}
+.workflow-composer-actions #workflow-provider-toggle{width:34px;height:34px;flex:none}
+.workflow-source-react-host{display:flex;align-items:center;min-width:0;flex:1 1 auto;overflow:hidden}
+.workflow-source-name{display:block;min-width:0;max-width:100%;font-size:11.5px;font-weight:600;line-height:1.35;color:var(--od-sub);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.workflow-composer-actions .workflow-send-button{margin-left:auto}
+.workflow-sheet-content,.workflow-sheet-content .workflow-provider,
+.workflow-sheet-content .workflow-provider>*{min-width:0;max-width:100%}
+.workflow-sheet-content .workflow-provider input:not([type=checkbox]),
+.workflow-sheet-content .workflow-provider select{min-width:0;width:100%;max-width:100%}
+.workflow-sheet-content #workflow-ai-provider{background:var(--od-muted);border-radius:var(--radius-control);font-weight:650}
+.workflow-sheet-panel{width:min(100%,520px)}
+@media(max-width:360px){.workflow-history-panel{padding:10px 0 14px;gap:16px}.workflow-history-row{padding:10px}}
+
 /* R23.10: one React Portal overlays the existing workflow without remounting
  * provider inputs or adding a new scroll/theme system. Uses shared tokens. */
 .workflow-sheet-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;min-width:0;overflow:hidden}
