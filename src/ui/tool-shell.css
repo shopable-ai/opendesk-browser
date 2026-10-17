@@ -1009,18 +1009,9 @@
   padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);
   color:var(--od-sub);font-size:12px;line-height:1.55;overflow-wrap:anywhere
 }
-.schedule-timezone-picker,.schedule-timezone-controls{display:grid;gap:var(--space-2);min-width:0}
-.schedule-timezone-selected{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
-  gap:var(--space-2);min-width:0;
-  border:1px solid var(--od-input-border);border-radius:var(--radius-control);
-  background:var(--od-paper);padding:var(--space-2);
-}
-.schedule-timezone-selected strong{font-size:12px;font-weight:650;line-height:1.55;overflow-wrap:anywhere;min-width:0}
-.schedule-timezone-selected .od-button{min-height:34px}
-.schedule-timezone-controls{padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control)}
-.schedule-timezone-controls :is(input,select){margin:0;min-width:0;max-width:100%}
-.schedule-timezone-controls .od-button{justify-self:start}
+.schedule-timezone-picker{display:grid;gap:var(--space-1);min-width:0}
+.schedule-timezone-picker #schedule-timezone{width:100%;min-width:0;max-width:100%;min-height:36px}
+.schedule-timezone-picker .schedule-timezone-help{margin:0;font-size:11px;line-height:1.45;color:var(--od-sub)}
 .schedule-next-preview{
   display:grid;gap:var(--space-1);min-width:0;margin:0;padding:var(--space-3);
   border:1px solid var(--od-action-border);border-radius:var(--radius-control);

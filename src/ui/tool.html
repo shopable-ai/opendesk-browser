@@ -169,21 +169,12 @@
             <div class="schedule-rule-field">
               <label id="schedule-timezone-label" for="schedule-timezone">执行时区</label>
                <div class="schedule-timezone-picker">
-                 <div class="schedule-timezone-selected">
-                   <strong id="schedule-timezone-summary" aria-live="polite">正在识别设备时区…</strong>
-                   <button id="schedule-timezone-edit" type="button" class="od-button od-button--secondary" aria-expanded="false" aria-controls="schedule-timezone-controls">更改</button>
-                 </div>
-                 <div id="schedule-timezone-controls" class="schedule-timezone-controls" hidden>
-                   <input id="schedule-timezone-search" type="search" autocomplete="off" spellcheck="false" aria-label="搜索城市、地区或 IANA 时区（只筛选，不更改时区）" aria-controls="schedule-timezone" placeholder="搜索城市或 IANA 时区" class="od-field">
-                   <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error" class="od-field"><option value="">正在识别当前时区…</option></select>
-                   <p class="hint schedule-timezone-help" id="schedule-timezone-help">搜索只会筛选地区；选择下拉项才会更改。编辑现有计划时保留原时区。</p>
-                   <p class="hint schedule-timezone-match" id="schedule-timezone-match" role="status" aria-live="polite"></p>
-                   <button id="schedule-timezone-done" type="button" class="od-button od-button--quiet">完成时区选择</button>
-                 </div>
+                 <select id="schedule-timezone" required aria-describedby="schedule-timezone-help schedule-time-error" class="od-field" title="执行时区（保存后固定）"><option value="">正在识别设备时区…</option></select>
+                 <p class="hint schedule-timezone-help" id="schedule-timezone-help">默认使用设备时区；计划按所选城市的当地时间执行。</p>
                </div>
             </div>
           </div>
-          <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
+                    <label id="schedule-once-field" class="od-field" for="schedule-once">执行日期和时间
             <input id="schedule-once" type="datetime-local" aria-describedby="schedule-time-error" class="od-field">
           </label>
           <label id="schedule-clock-field" class="od-field" for="schedule-clock" hidden>当地时间

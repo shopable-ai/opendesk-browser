@@ -786,40 +786,36 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(showAll||touched.has(name))fieldError(name,errors[name]||'');
     return Object.keys(errors).length?null:{title,row,url,params,rule};
   }
-  function setTimeZoneExpanded(expanded,focus=false){
-    const pane=get('schedule-timezone-controls'),button=get('schedule-timezone-edit');
-    pane.hidden=!expanded;
-    button.setAttribute('aria-expanded',String(expanded));
-    text(button,expanded?'收起':'更改');
-    if(focus)(expanded?get('schedule-timezone-search'):button).focus();
+  // One native picker; values remain IANA. Current offset is only a
+  // display hint (DST may change); canonical scheduling stays untouched.
+  function scheduleZoneOffset(zone){
+    try{
+      const part=new Intl.DateTimeFormat('en-US',{timeZone:zone,timeZoneName:'shortOffset'})
+        .formatToParts(new Date()).find(item=>item.type==='timeZoneName')?.value;
+      if(part==='GMT'||part==='UTC')return 'UTC+00:00';
+      const match=/^(?:GMT|UTC)([+-])(\d{1,2})(?::(\d{2}))?$/.exec(part||'');
+      return match?'UTC'+match[1]+match[2].padStart(2,'0')+':'+(match[3]||'00'):'';
+    }catch{return '';}
   }
-  function updateTimeZoneSummary(zone){
-    const named=commonScheduleTimeZones.find(([value])=>value===zone)?.[1]||
-      zone.replaceAll('_',' ');
-    text(get('schedule-timezone-summary'),isScheduleTimeZone(zone,globalThis.Intl)?
-      (editing?'固定时区 · ':'已选择 · ')+named+'（'+zone+'）':
-      '原计划时区不可用 · '+zone+'；请选择有效地区');
-  }
-  function populateTimeZoneSelect(selected=getScheduleDeviceTimeZone(),search=''){
-    const select=get('schedule-timezone');
-    const all=listScheduleTimeZoneGroups(globalThis.Intl,selected);
-    const groups=filterScheduleTimeZoneGroups(all,search,selected);
+  function populateTimeZoneSelect(selected=getScheduleDeviceTimeZone()){
+    const select=get('schedule-timezone'),groups=listScheduleTimeZoneGroups(globalThis.Intl,selected);
     select.replaceChildren(...groups.map(row=>{
       const group=doc.createElement('optgroup');
       group.label=row.label;
       for(const {value,label} of row.options){
         const option=doc.createElement('option');
-        option.value=value;text(option,label);group.append(option);
+        option.value=value;
+        const name=label.replace(/\s*\([^)]*\)\s*$/,'').replace(/^自动识别 · /,'设备时区 · ');
+        const offset=scheduleZoneOffset(value);
+        text(option,name+(offset?' · '+offset:''));
+        option.title=value;
+        group.append(option);
       }
       return group;
     }));
-    // Search is a filter: the fixed IANA value never silently changes.
+    // Do not silently rebind an existing plan to the device timezone.
     select.value=selected;
-    updateTimeZoneSummary(selected);
-    const count=groups.flatMap(group=>group.options).filter(item=>item.value!==selected).length;
-    text(get('schedule-timezone-match'),search.trim()?
-      (count?`找到 ${count} 个其他匹配地区；选择下拉项才会更改时区。`:
-        '未找到其他匹配地区；当前时区保持不变。'):'');
+    select.title='IANA：'+selected;
   }
   function reset(){
     editing=null;pendingTask=null;formDirty=false;
@@ -833,8 +829,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     // must be computed in the SAME selected IANA zone, not host Date getters.
     get('schedule-once').value=formatWallScheduleTime(selectedZone,Date.now()+10*60000);
     populateTimeZoneSelect(selectedZone);
-    setTimeZoneExpanded(false);
-    get('schedule-timezone-search').value='';
     get('schedule-params').value='{}';get('schedule-kind').value='once';
     get('schedule-task-select').disabled=false;
     get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
@@ -852,9 +846,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-target').value=plan.targetUrl;
     get('schedule-params').value=JSON.stringify(plan.params,null,2);
     get('schedule-kind').value=plan.triggerKind;
-    get('schedule-timezone-search').value='';
     populateTimeZoneSelect(plan.timezone);
-    setTimeZoneExpanded(false);
     if(plan.triggerKind==='once')
       get('schedule-once').value=formatWallScheduleTime(plan.timezone,plan.triggerSpec.at);
     else if(['daily','weekly'].includes(plan.triggerKind)){
@@ -879,7 +871,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const invalid=Object.keys(formFields).find(name=>get(formFields[name])?.getAttribute('aria-invalid')==='true');
       if(invalid==='time'){
          const badZone=!isScheduleTimeZone(get('schedule-timezone').value,globalThis.Intl);
-         if(badZone)setTimeZoneExpanded(true);
          const kind=get('schedule-kind').value;
          const target=badZone?get('schedule-timezone'):
            kind==='once'?get('schedule-once'):
@@ -1109,17 +1100,11 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   bind('schedule-task-select','change',()=>{
     formDirty=true;editRevision++;clearConfirmation();void showTaskVersion();
   });
-  bind('schedule-timezone-search','input',()=>
-    populateTimeZoneSelect(get('schedule-timezone').value,get('schedule-timezone-search').value));
   bind('schedule-timezone','change',()=>{
     formDirty=true;editRevision++;clearConfirmation();
-    const selected=get('schedule-timezone').value;
-    get('schedule-timezone-search').value='';
-    populateTimeZoneSelect(selected);
+    // Keep the open native picker and keyboard focus stable.
+    get('schedule-timezone').title='IANA：'+get('schedule-timezone').value;
   });
-  bind('schedule-timezone-edit','click',()=>
-    setTimeZoneExpanded(get('schedule-timezone-controls').hidden,true));
-  bind('schedule-timezone-done','click',()=>setTimeZoneExpanded(false,true));
   bind('schedule-task-empty-create','click',enterDeveloper);
   bind('scheduled-panel','keydown',event=>{
     if(event.key!=='Escape'||event.defaultPrevented)return;
@@ -1127,9 +1112,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       event.preventDefault();get('schedule-discard-no').click();
     }else if(!get('schedule-save-confirm').hidden){
       event.preventDefault();clearConfirmation();get('schedule-save').focus();
-    }else if(!get('schedule-timezone-controls').hidden&&
-      get('schedule-timezone-controls').contains(doc.activeElement)){
-      event.preventDefault();setTimeZoneExpanded(false,true);
     }
   });
   bind('schedule-new-script','click',enterDeveloper);
