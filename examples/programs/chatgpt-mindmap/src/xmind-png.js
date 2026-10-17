@@ -58,7 +58,10 @@ function copyComputedStyles(window,source,clone){
   return clone;
 }
 async function decodeSVG(window,svg,width,height){
-  const svgUrl=window.URL.createObjectURL(new window.Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+  // In Chromium, foreignObject via blob: taints canvas even for local bytes.
+  // A self-contained data: SVG can be drawn and read without that taint.
+  if(svg.length>18_000_000)throw failure('E_XMIND_PNG_DOM_LIMIT');
+  const svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   try{
     const image=new window.Image();
     await new Promise((resolve,reject)=>{
@@ -83,7 +86,7 @@ async function decodeSVG(window,svg,width,height){
     if(colors.size<3)throw failure('E_XMIND_PNG_BLANK');
     return await new Promise((resolve,reject)=>canvas.toBlob(
       blob=>blob?resolve(blob):reject(failure('E_XMIND_PNG_ENCODING')),'image/png'));
-  }finally{window.URL.revokeObjectURL(svgUrl);}
+  }finally{/* data: SVG is self-contained and has no object URL to revoke. */}
 }
 export async function captureXmindPng({sdk,window,canvas,tree,skinMode='dark'}){
   const document=canvas.ownerDocument;
