@@ -74,6 +74,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   let touched=false,saveList=[],draftWrites=Promise.resolve();
   let directVerifiedSerial=null; // Verified fill source is the same byte sequence saved later.
   let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
+  let historyOpen=false,newReviewReturnFocus=null;
   let planningGeneration=0,planningAbort=null,planningTarget=null,pendingApproval=null,localChecking=false;
   let observationApproval=null,planningObservation=null,approvalWrites=Promise.resolve();
   let localCapability={state:'UNKNOWN',readyForTurn:false},aiCleanup=Promise.resolve();
@@ -199,8 +200,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     transcript.hidden=!hasMessages;
     get('workflow-planning-indicator').hidden=phase!=='planning';
     get('workflow-dock').dataset.empty=String(!hasSteps&&!runId);
-    get('workflow-display-title').textContent=hasSteps && workflow.title!=='新工作流'
-      ?workflow.title:'新工作流';
+    get('workflow-display-title').textContent=historyOpen?'历史':
+       hasSteps && workflow.title!=='新工作流'?workflow.title:'新工作流';
     const origin=currentOrigin(),warning=get('workflow-target-warning');
     const mismatch=hasSteps && (!origin || origin!==workflow.siteOrigin);
     warning.hidden=!mismatch;
@@ -231,6 +232,21 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-ai-resume').hidden=provider()!=='local_codex'||!sessionState.resumable;
     get('workflow-ai-resume').disabled=busy;
     if(workflowReact){
+      const selected=provider();
+      const modelName=selected==='local_codex'?'Codex':
+        ['cloud_responses','custom_https'].includes(selected)
+          ?get('workflow-ai-model').value.trim():'';
+      workflowReact.renderWorkflowSourceName(modelName);
+      workflowReact.renderWorkflowHistory({
+        open:historyOpen,busy,
+        canResume:selected==='local_codex'&&Boolean(sessionState.resumable),
+        rows:saveList.map(item=>({
+          key:item.key,title:String(item.workflow.title||'未命名工作流'),
+          fullTitle:String(item.workflow.title||'未命名工作流')+' · r'+item.revision,
+          savedText:'r'+item.revision+' · '+(Number.isFinite(item.savedAt)
+            ?new Date(item.savedAt).toLocaleString('zh-CN'):'保存时间未知')
+        }))
+      });
       workflowReact.renderWorkflowHeader({
         saved:Boolean(revision),
         savedText:revision?(matchesRevision()?'已保存':'未保存更改'):'',
@@ -442,6 +458,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     for(const item of saveList)select.append(new Option(
       item.workflow.title+' · r'+item.revision+' · '+item.workflow.siteOrigin,item.key));
     if(saveList.some(item=>item.key===prior))select.value=prior;
+    if(workflowReact)updateButtons();
   }
   async function loadSaved() {
     const record=saveList.find(item=>item.key===get('workflow-saved-list').value);
@@ -457,6 +474,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
     void stopPlanning({close:true}).catch(()=>{});
     verifiedTurnHistory=[];lastProviderTurn=null;
+    observationApproval=null;persistObservationApproval();
+    historyOpen=false;
+    get('workflow-editor').dataset.historyOpen='false';
     workflow=clean;lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;lastRun='none';hasError=false;
