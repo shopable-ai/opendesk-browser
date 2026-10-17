@@ -281,6 +281,21 @@ try{
   assert.ok(await viewer(2).locator('.topic:visible').count()>1,
     'Twenty A cycles must not affect B');
   report.checks.push('TWENTY_OPEN_RESTORE_CYCLES_NO_ORPHAN_UI');
+  // The opener should occupy the same screen position after a real XMind
+  // workbook replaces a differently sized source reply and is closed.
+  await button(1).scrollIntoViewIfNeeded();
+  const originalOpenerY=await button(1).evaluate(el=>el.getBoundingClientRect().top);
+  await button(1).click();
+  await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:25000});
+  assert.equal(await button(1).getAttribute('aria-pressed'),'true');
+  await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(1).waitFor({state:'detached',timeout:20000});
+  const restoredOpenerY=await button(1).evaluate(el=>el.getBoundingClientRect().top);
+  assert.ok(Math.abs(restoredOpenerY-originalOpenerY)<=10,
+    'Restoring the source answer must retain the icon position in the viewport: '+
+    JSON.stringify({before:originalOpenerY,after:restoredOpenerY}));
+  assert.equal(await button(1).getAttribute('aria-pressed'),'false');
+  report.checks.push('REAL_BROWSER_RETURN_PRESERVES_NATIVE_BUTTON_SCREEN_POSITION');
   await page.locator('#developer-lab summary').click();
   // React-like action-bar replacement must move—not duplicate—the real
   // button, and the mock copy/feedback behavior must remain delegated.

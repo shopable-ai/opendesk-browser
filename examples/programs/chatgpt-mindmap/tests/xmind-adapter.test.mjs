@@ -82,3 +82,11 @@ test('REAL SDK: HTML visible text is not reinterpreted as Markdown or task statu
     assert.equal(out.rootTopic.children.attached[0].title,'[x] **literal**');
     assert.match(out.rootTopic.children.attached[0].notes.plain.content,/^- code\n# code/);
   });
+
+test('REAL SDK: a sole semantic heading becomes the central topic without duplication',
+  {skip:!directory&&'XMIND_REFERENCE_DIR missing; real SDK NOT_TESTED'},async()=>{
+    const heading={...node('唯一总标题'),kind:'heading'};
+    const out=await workbook(node('唯一总标题',[heading]));
+    assert.equal(out.rootTopic.title,'唯一总标题');
+    assert.equal(out.rootTopic.children?.attached?.length||0,0);
+  });

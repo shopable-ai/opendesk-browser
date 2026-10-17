@@ -68,7 +68,9 @@ async function mindTreeToXmindBlob(sdk, tree, skinMode, options = { defaultFolde
     (centerTitle.endsWith('…')&&heading.title.startsWith(centerTitle.slice(0,-1))));
   const safe=at>=0&&direct.every((item,index)=>index===at||
     (index<at&&item.kind==='paragraph'));
-  const promote=matches&&safe&&(at>0||heading.children.length>0);
+  // Even a heading-only answer has a meaningful root: never repeat the
+  // identical heading as an empty child topic.
+  const promote=matches&&safe;
   const visible=promote?[...direct.slice(0,at),...heading.children]:direct;
   const childRecords=buildTopicRecords({children:visible});
   const rootNote=promote?[tree.content,heading.content].filter(Boolean).join('\n'):tree.content;
