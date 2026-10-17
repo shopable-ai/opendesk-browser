@@ -19,6 +19,7 @@ on:
       - 'tests/environment/sidebar-shared-ui-r17.test.mjs'
       - 'scripts/tests/shared-ui-r17-preview-chrome.mjs'
       - 'scripts/tests/shared-ui-r17-size-baseline.mjs'
+      - 'scripts/tests/shared-ui-r17-installed-chrome.mjs'
 permissions:
   contents: read
 concurrency:
@@ -71,6 +72,10 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/shared-ui-r17-preview-chrome.mjs artifacts/sidebar-tools/shared-ui-demo/chrome
+      - name: Install actual OpenDesk extension in headless Chrome and import reviewed JSON
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/shared-ui-r17-installed-chrome.mjs artifacts/sidebar-tools/shared-ui-demo/installed-chrome
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -85,4 +90,5 @@ jobs:
             dist/development/libs/page-frameworks/react-19.2.0.js
             docs/framework/evidence/wxt/builds/build-development.json
             artifacts/sidebar-tools/shared-ui-demo/chrome/
+            artifacts/sidebar-tools/shared-ui-demo/installed-chrome/
             artifacts/sidebar-tools/shared-ui-demo/standalone-baseline/size-report.json
