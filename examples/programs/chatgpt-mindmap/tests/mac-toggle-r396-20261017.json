@@ -1,0 +1,488 @@
+{
+  "format": "opendesk.chatgpt-mindmap.toggle-native.v1",
+  "scope": "LOCAL_MAC_REAL_CHATGPT_PAGE_PREVIEW",
+  "observedAt": "2026-10-17T10:48:22.525Z",
+  "status": "CORE_VERIFIED_LOCAL_ONLY",
+  "candidate": {
+    "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/business-candidate7/build/program.js",
+    "bytes": 4225512,
+    "sha256": "c996d1412aae5c19091cdeca39db2335e5001b37dbe4d5f4c968da0f3e36b051",
+    "status": "BUILT_UNVERIFIED",
+    "installable": false,
+    "fixedResource": {
+      "resourceId": "xmind-runtime",
+      "bytes": 4072771,
+      "sha256": "4523e609bf4fb3378bc24c075c796ae90c694c28a2db7edd6f5fb90b9b24ed17"
+    }
+  },
+  "sourceFiles": {
+    "src/xmind-convert.js": "f257596b94af2daf379695b4e59ae627f0bb225dc2ea4c4e8c8c7050a1aa7e40",
+    "src/xmind-adapter.js": "b564ef5baec29ecaec37c4db0c873cf0961f78e28ba132ff187d864d539c06e4",
+    "src/xmind-frame-protocol.js": "07474bfe9ef55924c82228c9b758dfaea6385e9f3c4aa6d74538603d43f75da4",
+    "src/xmind-installed-frame.js": "9e5c24ae2528d9cbee6ecf649d5533e349e476d154f97f1159232088e94b0129",
+    "src/xmind-installed-child.js": "6e69394b776bcc3e175b2f9457164030bad7656f1450b54ad7a251e1f3682db3",
+    "src/main.js": "15911d0729b17c23ffb0734b9bc26e21ede5a3465e858ef3ef0b1d05baa346bf",
+    "src/extract.js": "8ba8850d266f3aab01e5954e9b4b92d8ebeb353cea94f999af287bc3e20068ea",
+    "src/xmind-frame-child.js": "5a64381f7a0ea1adee413d7e4440e9331d67b0a0dfd5e5779973872cbb3c1dad",
+    "src/chatgpt-adapter.js": "3e5ef944dbcf977a5cd12e95421850f27671d98cb015bef7bdb79ef5a17a7116",
+    "src/view.js": "15c38af7fa3e7d0d7fb346f93a64628945fac7676b737fa4ec852082e89ce858",
+    "src/xmind-frame.js": "fbd8bb901c454331a441873031454da6ad47e2aa910409735ab27c61a9f58048",
+    "src/answer-registry.js": "f8f1cfcee7b00288abaf6c1186ebb4eea419982c9bff32c77c0bd9310049d823",
+    "assets/ui.css": "bf145967dbd676d54675bb6bfed9f9058e02502a67cd8f5a0afe411f2b627496"
+  },
+  "environment": {
+    "app": "OpenDesk MindMap Toggle CFT",
+    "bundleId": "dev.opendesk.mindmap.r396.toggle.01a1493f",
+    "pid": 16932,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-_bpk0tj3",
+    "devtoolsPort": 59469,
+    "extensionId": "acfngehajboacgkmdhbcnkhjdabfhfon",
+    "extensionPath": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/build-snapshot/dist/production",
+    "mode": "EXISTING_STATIC_LOCAL_DEBUG_EXTENSION",
+    "hostInstanceId": "40840f6e-98b5-411b-b950-f30282a7cfa8",
+    "input": "native CUA only",
+    "observation": "passive CDP / screenshots",
+    "dailyWatcher": "UNCHANGED",
+    "anonymousReplyRefreshed": false
+  },
+  "reply": {
+    "url": "https://chatgpt.com/uc/6ad34b3d-8ffc-83ea-b764-0be826bf2efb",
+    "lang": "zh-CN",
+    "contentBackendNodeId": 1480,
+    "htmlHash": "b4fe01ee3f4080f772193ac901d24e025f82d669b54891b773b21555bb025f44",
+    "textHash": "bd21af601e4c40a625efdf6ce7281451e9ae3e38e8887c205222c09b8d829e08",
+    "textLength": 668
+  },
+  "officialEntry": {
+    "status": "PASS",
+    "selector": "[data-assistant-message-actions][data-message-actions][role=\"group\"]",
+    "location": "inside the current assistant reply official group, alongside copy/share",
+    "unique": true,
+    "localizedAriaOrClassDependency": false
+  },
+  "candidate6NativeVerdict": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c6-native-verdict.json",
+  "candidate7NativeLoops": [
+    {
+      "phase": "open1",
+      "status": "PASS",
+      "time": "2026-10-17T10:42:58.186Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true,
+        "real_xmind": true
+      }
+    },
+    {
+      "phase": "close1",
+      "status": "PASS",
+      "time": "2026-10-17T10:45:02.537Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true
+      }
+    },
+    {
+      "phase": "open2",
+      "status": "PASS",
+      "time": "2026-10-17T10:45:15.991Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true,
+        "real_xmind": true
+      }
+    },
+    {
+      "phase": "close2",
+      "status": "PASS",
+      "time": "2026-10-17T10:45:34.438Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true
+      }
+    },
+    {
+      "phase": "full1",
+      "status": "PASS",
+      "time": "2026-10-17T10:46:33.367Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true,
+        "real_xmind": true
+      }
+    },
+    {
+      "phase": "fullclose1",
+      "status": "PASS",
+      "time": "2026-10-17T10:46:49.474Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true
+      }
+    },
+    {
+      "phase": "full2",
+      "status": "PASS",
+      "time": "2026-10-17T10:47:17.118Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true,
+        "real_xmind": true
+      }
+    },
+    {
+      "phase": "fullclose2",
+      "status": "PASS",
+      "time": "2026-10-17T10:47:32.335Z",
+      "checks": {
+        "url": true,
+        "htmlHash": true,
+        "textHash": true,
+        "textLength": true,
+        "contentBackendNodeId": true,
+        "unique_official_toggle": true,
+        "state": true,
+        "original_visibility": true,
+        "viewer_frame": true
+      }
+    }
+  ],
+  "list": {
+    "status": "PASS",
+    "realExtraction": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-real-extraction.json",
+    "renderedTopics": 62,
+    "listLevels": 3,
+    "treeDepthIncludingHeadings": 5,
+    "renderedTitleMultisetMatchesTree": true
+  },
+  "interactions": {
+    "foldUnfold": {
+      "status": "PASS",
+      "expandedVisibleTopics": 62,
+      "collapsedVisibleTopics": 2
+    },
+    "zoom": {
+      "status": "PASS",
+      "observedScales": {
+        "unfold": 0.5,
+        "zoom-in": 0.625,
+        "zoom-out": 0.504,
+        "fit": 0.504
+      }
+    },
+    "fit": {
+      "status": "PASS",
+      "manualViewportAfterFit": false
+    },
+    "fullscreenEnterExit": {
+      "status": "PASS",
+      "sameChildDocument": true
+    }
+  },
+  "validation": {
+    "targetedTests": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "skip": 0,
+      "log": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-final-tests.tap"
+    },
+    "businessBuild": "PASS",
+    "syntax": "PASS",
+    "diffCheck": "PASS"
+  },
+  "priorFailurePreserved": {
+    "candidate5DirectFullscreenClose": "FAIL: delayed cleanup / E_XMIND_CLEANUP",
+    "rawEvidence": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-exclusive-fullclose2.json",
+    "candidate6HandoffUnexplainedTransition": "NOT_COUNTED_AS_PASS"
+  },
+  "notTested": [
+    "actual English ChatGPT interface",
+    "formal installation/upgrade/revocation",
+    "production acceptance/publish",
+    "broad security/adversarial/stress/version matrices"
+  ],
+  "retained": {
+    "window": "OPEN",
+    "profile": "PRESERVED",
+    "map": "OPEN_EXPANDED_FULLSCREEN",
+    "screenshot": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-final-window.png",
+    "pageScreenshot": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-final-open.png",
+    "frameUrl": "about:blank#opendesk-24003a0e-4bcf-4526-8f26-4dfaa44e7927"
+  },
+  "evidence": [
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-build.log",
+      "bytes": 476,
+      "sha256": "9cd3740e85d065ab1fabbd319336c3eccfd3467a09ed9bc22e689f65a61e66db"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-final-tests.tap",
+      "bytes": 3974,
+      "sha256": "139a2b58290030a3c5ef3b6afa016b8fcf942f29ce910b91a94f2c0170b03ee4"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-real-extraction.json",
+      "bytes": 15685,
+      "sha256": "f6981859af8b7e4bb55850ab6a36b7898d5bf46ca28b36c9d382abaeeee74d59"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-sdk-tests.tap",
+      "bytes": 629,
+      "sha256": "3c09ce478225419294828c03516552f2184d9768a457d9ae69bdaa458425cd0d"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/candidate7-source-tests.tap",
+      "bytes": 4126,
+      "sha256": "f71dffb62f9d4ac7330e237dca9e5725b11bb576e5795f5c18907f45673d2654"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/observe-native.mjs",
+      "bytes": 5538,
+      "sha256": "b1e6196f3b57484be5da21bc9a4b78d8695f66070dd91f3d059350c31d3fd952"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c6-evidence-manifest.json",
+      "bytes": 3111,
+      "sha256": "43817e2468d958be436602d3f2acf9f2d0b16cc58e26dc6e773eed1cdbe6bf38"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c6-native-verdict.json",
+      "bytes": 3990,
+      "sha256": "c589aff9a72a638580782e85765c96b0831ed9818cee6f2e3fbea1feeb4a2e91"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-baseline.json",
+      "bytes": 151099,
+      "sha256": "77b1e12d97628a3cd73e9e031e37ed43ad8db1d7e15fbcd342ca632964c94ae6"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-baseline.png",
+      "bytes": 284369,
+      "sha256": "96e464a0366ca5769c3faf0ceb6291ebd68c9cd7b63b08e8a2a9876105b24b49"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-close1.json",
+      "bytes": 150825,
+      "sha256": "5855a5a020bc00ae194dc1a2fb3344d6f54e7b4f50fe611741b5e2add846dda3"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-close1.png",
+      "bytes": 284369,
+      "sha256": "96e464a0366ca5769c3faf0ceb6291ebd68c9cd7b63b08e8a2a9876105b24b49"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-close2.json",
+      "bytes": 150730,
+      "sha256": "065a86ffb7e23102c559ace4726bb4eb89af38834c2f9713e4d4de66b1e307ed"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-close2.png",
+      "bytes": 348969,
+      "sha256": "ef83fc598c72574b21fcc90a5d4690b5a931e9c281780de0c2a4a11ff2534495"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-final-open.json",
+      "bytes": 380490,
+      "sha256": "eb6b8fe01608be73acfc8d702f2ee239aea043fc42de38ee50063a1502e024e0"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-final-open.png",
+      "bytes": 370839,
+      "sha256": "383b96eb9508c107aaaf7a04c2a586caa6bd22203fb85e7c71384141be77dedb"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-final-window.png",
+      "bytes": 880034,
+      "sha256": "abf29e1241b724c9e02e93a85380e503ae6a133f49b7bfec623c99feafc989b3"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fit.json",
+      "bytes": 380702,
+      "sha256": "eb66c806b0504f602225815e4b0661e39f07b30d97276f51aeabeeaf085994e6"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fit.png",
+      "bytes": 399788,
+      "sha256": "1560c497278bb672d112a5f3266cddea055d9d0fbc35f3d871e39b86a66386d2"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fold-visible.json",
+      "bytes": 315160,
+      "sha256": "2e4b9dc0d52c85670b71f743b6b6d233295368b1bb49cf04edf5ffcb03470827"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fold-visible.png",
+      "bytes": 255013,
+      "sha256": "98e559ccc54fecf43a2ee8111b8df2a6d9f088759c720e865fac8b284b7bccf0"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fold.json",
+      "bytes": 314861,
+      "sha256": "b15981f3ba4d043f5aed56cf07d490e8afc3098013d3d7cd27479a56c7fb0dd0"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fold.png",
+      "bytes": 255013,
+      "sha256": "98e559ccc54fecf43a2ee8111b8df2a6d9f088759c720e865fac8b284b7bccf0"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full-entry.json",
+      "bytes": 380490,
+      "sha256": "273ffb273ae33e916fb5bae2b36ea22fd9e22f8736e599a49f51365aefa7d92e"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full-entry.png",
+      "bytes": 370839,
+      "sha256": "383b96eb9508c107aaaf7a04c2a586caa6bd22203fb85e7c71384141be77dedb"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full-exit.json",
+      "bytes": 380646,
+      "sha256": "67ac4d98025d68962b4baa9070696f941555582ac05504b69f129bbac5bb82a4"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full-exit.png",
+      "bytes": 396755,
+      "sha256": "8a18c575f0cd9eeaa44c35c045ad7301b71642419964f5fd744bcab669e20955"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full1.json",
+      "bytes": 380490,
+      "sha256": "01f8ec241cc20d0defc592212ef8f7b09550e1c404a05fd3f2a62fe84c2c0efd"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full1.png",
+      "bytes": 370839,
+      "sha256": "383b96eb9508c107aaaf7a04c2a586caa6bd22203fb85e7c71384141be77dedb"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full2.json",
+      "bytes": 380490,
+      "sha256": "40bd75694b93efeae2c6dbec5a948f52d4c29a521706a05267d0e48cfd07c24b"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-full2.png",
+      "bytes": 370839,
+      "sha256": "383b96eb9508c107aaaf7a04c2a586caa6bd22203fb85e7c71384141be77dedb"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fullclose1.json",
+      "bytes": 150825,
+      "sha256": "76376611f999277667073bf36939a983ab2c801f526e6eb8ef4192d9c7266e5f"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fullclose1.png",
+      "bytes": 284369,
+      "sha256": "96e464a0366ca5769c3faf0ceb6291ebd68c9cd7b63b08e8a2a9876105b24b49"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fullclose2.json",
+      "bytes": 150825,
+      "sha256": "274e8660e07df84d0f161e2efd35a8c112e95a75bac40b6821a8c85646328db0"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-fullclose2.png",
+      "bytes": 284369,
+      "sha256": "96e464a0366ca5769c3faf0ceb6291ebd68c9cd7b63b08e8a2a9876105b24b49"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-open1.json",
+      "bytes": 377341,
+      "sha256": "5f5f7b72f18ae696d996761a8520d691fc593cf4b58807996ae021c9414832ae"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-open1.png",
+      "bytes": 396449,
+      "sha256": "c881014302a224749d6623ed4cf9afa08560b6fd4d50dc3b74eab8f0a4a00dcb"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-open2.json",
+      "bytes": 380372,
+      "sha256": "b70bd1367033d024f76eee3da2613e14da63d4d72dc23c602f1886bca5e196e9"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-open2.png",
+      "bytes": 397079,
+      "sha256": "e6246cc1843a09469c177e5dd6a87980a6fd815cd9026aa9b4afd183c18f37ee"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-unfold.json",
+      "bytes": 380646,
+      "sha256": "255ef4714a55e78630b74c4778b6fcead8f918254b2a2c204c0fd8b2d0159393"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-unfold.png",
+      "bytes": 396926,
+      "sha256": "f683b4e30f37401ba375f43193f11817ea5b88c48c6c48d63fb646440735f64d"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-zoom-in.json",
+      "bytes": 380690,
+      "sha256": "714b20d43387cbb8f6699934ae8b2b59df30b678731477d33ce90f353b5b2200"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-zoom-in.png",
+      "bytes": 398170,
+      "sha256": "809c005f4a96a162ab6bf6aaeccb3531404569d725fd66025aef43c0a70163d7"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-zoom-out.json",
+      "bytes": 380698,
+      "sha256": "1033f74c3d84adc70744f4f08cd64e7cdd43f87907132528618cc7dfef958f60"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-local-frame-20261017/toggle-c7-zoom-out.png",
+      "bytes": 399931,
+      "sha256": "a13078f19431e7d4bb7834c7fc89b9ea5e7c1f4fa2ccd2f9d796735f6267f7d0"
+    }
+  ]
+}

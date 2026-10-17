@@ -31,6 +31,74 @@ test('current anonymous transcript binds each assistant body to its own reply ac
   assert.equal(inspectAnswer(roots[1]).ok,true);
 });
 
+test('official reply groups bind Chinese and English aria-only controls without crossing replies',()=>{
+  const {document}=parseHTML(`<html><body><ol>${reply('A')}${reply('B')}</ol></body></html>`);
+  const roots=discoverAnswers(document);
+  const labels=['复制回复','Copy response'];
+  const bars=roots.map(root=>root.querySelector('[data-assistant-message-actions][data-message-actions][role="group"]'));
+  roots.forEach((root,index)=>{
+    const copy=bars[index].querySelector('button');
+    copy.removeAttribute('data-copy-message');
+    copy.setAttribute('aria-label',labels[index]);
+    copy.textContent=labels[index];
+    assert.ok(inspectAnswer(root).bar===bars[index]);
+    copy.setAttribute('aria-label',`${labels[index]} · updated`);
+    copy.textContent='';
+    assert.ok(inspectAnswer(root).bar===bars[index]);
+  });
+  bars[0].remove();
+  assert.equal(inspectAnswer(roots[0]).ok,false);
+  assert.ok(inspectAnswer(roots[1]).bar===bars[1]);
+});
+
+test('an official group inside the assistant takes priority over other turn copy controls',()=>{
+  const {document}=parseHTML(`<html><body><article data-testid="conversation-turn-1">
+    <div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div>
+    <div data-message-author-role="assistant"><div class="markdown"><p>Answer</p></div>
+      <div data-assistant-message-actions data-message-actions role="group"><button aria-label="更多操作"></button></div>
+    </div>
+    <div data-assistant-message-actions><button data-copy-message>复制</button></div>
+  </article></body></html>`);
+  const root=discoverAnswers(document)[0];
+  const parts=inspectAnswer(root);
+  assert.equal(parts.ok,true);
+  assert.ok(parts.bar===root.querySelector('[data-assistant-message-actions][data-message-actions][role="group"]'));
+});
+
+test('multiple official groups in one reply are rejected instead of choosing a copy button',()=>{
+  const {document}=parseHTML(`<html><body>${reply('A')}</body></html>`);
+  const root=discoverAnswers(document)[0];
+  const bar=root.querySelector('[data-assistant-message-actions]');
+  const other=bar.cloneNode(true);
+  other.querySelector('button').removeAttribute('data-copy-message');
+  other.querySelector('button').setAttribute('aria-label','Other action');
+  bar.after(other);
+  assert.equal(inspectAnswer(root).ok,false);
+});
+
+test('reply content and injected UI cannot supply the official action group',()=>{
+  const {document}=parseHTML(`<html><body>${reply('A')}</body></html>`);
+  const root=discoverAnswers(document)[0];
+  const bar=root.querySelector('[data-assistant-message-actions]');
+  root.querySelector('[data-assistant-markdown-root]').append(bar.cloneNode(true));
+  const own=document.createElement('div');
+  own.setAttribute('data-opendesk-chatgpt-mindmap','');
+  own.append(bar.cloneNode(true));root.append(own);
+  assert.ok(inspectAnswer(root).bar===bar);
+  bar.remove();
+  assert.equal(inspectAnswer(root).ok,false);
+});
+
+test('localized copy aria and text alone cannot identify a legacy action bar',()=>{
+  for(const label of ['复制回复','Copy response']){
+    const {document}=parseHTML(`<html><body><article data-testid="conversation-turn-1">
+      <div data-message-author-role="assistant"><div class="markdown"><p>Answer</p></div></div>
+      <div role="toolbar"><button aria-label="${label}">${label}</button><button>Share</button></div>
+    </article></body></html>`);
+    assert.equal(inspectAnswer(discoverAnswers(document)[0]).ok,false);
+  }
+});
+
 test('anonymous in-progress and aria-busy replies stay disabled until complete',()=>{
   const {document}=parseHTML(`<html><body>${reply('A','')}</body></html>`);
   const root=discoverAnswers(document)[0];assert.equal(isStreaming(root),true);

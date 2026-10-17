@@ -105,8 +105,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     group.append(button);
     return button;
   }
-  const original=action({id:'original',glyph:'original',label:'恢复本条回复原文',
+  const original=action({id:'original',glyph:'original',label:'关闭思维导图，返回原文',
     run:onOriginal,group:originalGroup});
+  original.append(el('span','', '关闭导图，返回原文'));
   action({id:'zoom-out',glyph:'zoomOut',label:'缩小导图',
     run:()=>renderer.zoomBy(.8),group:zoomGroup,render:true});
   action({id:'zoom-in',glyph:'zoomIn',label:'放大导图',

@@ -43,13 +43,22 @@ export function extractAnswerTree(content){
   }
   function list(element,parent){
     for(const li of element.children){
-      if(li.tagName!=='LI')continue;
-      const title=[...li.childNodes].filter(item=>item.nodeType!==1||!
-        ['UL','OL','PRE','TABLE'].includes(item.tagName))
-        .map(item=>item.textContent).join(' ').trim();
+      if(li.tagName!=='LI'||li.matches(SKIP)||li.hidden||li.getAttribute('aria-hidden')==='true')continue;
+      const nested=[];
+      // Transparent wrappers do not own list levels. Stop at each semantic
+      // structure so its text and descendants are handled only by its owner.
+      function ownText(item){
+        if(item.nodeType===3)return item.textContent;
+        if(item.nodeType!==1||item.matches(SKIP)||item.hidden||item.getAttribute('aria-hidden')==='true')return '';
+        if(['UL','OL','PRE','TABLE'].includes(item.tagName)){
+          nested.push(item);return '';
+        }
+        return [...item.childNodes].map(ownText).join('');
+      }
+      const title=[...li.childNodes].map(ownText).join(' ').trim();
       const child=add(parent,title||'列表项',element.tagName==='OL'?'ordered':'list');
       if(!child)continue;
-      for(const sub of li.children){
+      for(const sub of nested){
         if(sub.tagName==='UL'||sub.tagName==='OL')list(sub,child);
         if(sub.tagName==='PRE')note(child,sub.textContent);
         if(sub.tagName==='TABLE')table(sub,child);

@@ -12,6 +12,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .odmm-trigger{min-height:36px;padding:4px 8px;display:inline-flex;gap:5px;align-items:center;
   border:0;border-radius:8px;background:transparent;color:var(--mm-muted);white-space:nowrap}
 .odmm-trigger:hover,.odmm-trigger[aria-pressed="true"]{background:var(--mm-soft);color:var(--mm-fg)}
+.odmm-tool[data-action="original"]{display:inline-flex;align-items:center;width:auto;gap:5px;padding-inline:8px;white-space:nowrap}
 .odmm-trigger svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round}
 :host([data-opendesk-chatgpt-mindmap="button"]){display:inline-flex;vertical-align:middle;max-width:100%}

@@ -30,8 +30,8 @@ function setup({firstDestroy,firstTheme}={}){
     createView(options){
       const index=views.length,host=document.createElement('section');
       let retirement;
-      const view={host,options,destroyCalls:0,async start(){},focusPrimary(){},markStale(){},
-        async setFull(){},setTheme(){return index===0&&firstTheme?firstTheme.promise:Promise.resolve();},
+      const view={host,options,destroyCalls:0,fullCalls:[],async start(){},focusPrimary(){},markStale(){},
+        async setFull(value){view.fullCalls.push(value);},setTheme(){return index===0&&firstTheme?firstTheme.promise:Promise.resolve();},
         destroy(){
           if(!retirement){view.destroyCalls++;retirement=(index===0&&firstDestroy?firstDestroy.promise:Promise.resolve()).finally(()=>host.remove());}
           return retirement;
@@ -48,6 +48,47 @@ function setup({firstDestroy,firstTheme}={}){
     theme:()=>observers.find(row=>row.options.attributeFilter?.includes('class')).listener()};
 }
 
+test('closing fullscreen retires directly and releases the next fullscreen owner',async()=>{
+  const h=setup();
+  for(let i=0;i<2;i++){
+    await h.click();
+    h.views[i].options.onFullscreen();
+    await Promise.resolve();
+    assert.deepEqual(h.views[i].fullCalls,[true]);
+    await h.views[i].options.onOriginal();
+    assert.deepEqual(h.views[i].fullCalls,[true], 'closing must not wait for an exit reflow');
+    assert.equal(h.views[i].destroyCalls,1);
+    assert.equal(h.views[i].host.isConnected,false);
+    assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+    assert.notEqual(h.content.style.getPropertyValue('display'),'none');
+  }
+  await h.registry.destroy();
+});
+
+test('official actions retain one visible toggle across open close reopen close',async()=>{
+  const h=setup(),node=h.content,html=node.innerHTML,text=node.textContent;
+  const bar=h.triggerHost.parentElement;
+  assert.equal(bar.getAttribute('data-testid'),'message-actions');
+  for(let i=0;i<2;i++){
+    await h.click();
+    assert.equal(h.triggerHost.parentElement,bar);
+    assert.equal(h.triggerHost.hidden,false);
+    assert.equal(h.trigger.textContent,'关闭思维导图');
+    assert.equal(h.trigger.getAttribute('aria-pressed'),'true');
+    await h.click();
+    assert.equal(h.trigger.textContent,'思维导图');
+    assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+    assert.equal(h.triggerHost.hidden,false);
+    assert.equal(node.isConnected,true);
+    assert.equal(node.innerHTML,html);assert.equal(node.textContent,text);
+    assert.notEqual(node.style.getPropertyValue('display'),'none');
+    assert.equal(node.hasAttribute('aria-hidden'),false);
+    assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-mindmap="button"]').length,1);
+    assert.equal(h.views[i].destroyCalls,1);
+  }
+  await h.registry.destroy();
+});
+
 test('late old toolbar retirement failure cannot close a replacement and remains a cleanup error',async()=>{
   const firstDestroy=deferred(),h=setup({firstDestroy});
   await h.click();const old=h.views[0];
@@ -59,7 +100,7 @@ test('late old toolbar retirement failure cannot close a replacement and remains
   assert.equal(replacement.destroyCalls,0);
   assert.equal(replacement.host.isConnected,true);
   assert.equal(h.content.getAttribute('aria-hidden'),'true');
-  assert.equal(h.triggerHost.hidden,true);assert.equal(h.error.hidden,true);
+  assert.equal(h.triggerHost.hidden,false);assert.equal(h.error.hidden,true);
   await assert.rejects(h.registry.destroy(),error=>error instanceof AggregateError&&error.errors.includes(failure));
 });
 

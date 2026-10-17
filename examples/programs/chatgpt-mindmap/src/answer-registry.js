@@ -69,21 +69,17 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     const busy=isStreaming(root)||(lastChange>0&&Date.now()-lastChange<STABLE_MS);
     buttonRef.button.disabled=busy;
     buttonRef.button.setAttribute('aria-pressed',String(!!view));
-    buttonRef.button.setAttribute('aria-label',view?'恢复本条回复原文':'查看本条 AI 回复的思维导图');
-    // Only one visible return-to-original entry: the viewer owns it while open.
-    buttonRef.host.hidden=!!view;
-    buttonRef.host.setAttribute('aria-hidden',String(!!view));
-    buttonRef.button.lastChild.textContent='思维导图';
+    buttonRef.button.setAttribute('aria-label',view?'关闭思维导图，返回原文':'查看本条 AI 回复的思维导图');
+    buttonRef.host.hidden=false;
+    buttonRef.host.removeAttribute('aria-hidden');
+    buttonRef.button.lastChild.textContent=view?'关闭思维导图':'思维导图';
     if(busy&&busyTimer===null){
       busyTimer=owner.setTimeout(()=>{busyTimer=null;syncButton();},STABLE_MS+40);
     }
   }
   function insertButton(next){
-    if(!next?.parentNode)return;
-    if(buttonRef.host.parentNode!==next.parentNode||
-       buttonRef.host.previousSibling!==next){
-      next.parentNode.insertBefore(buttonRef.host,next.nextSibling);
-    }
+    if(!next?.isConnected)return;
+    if(buttonRef.host.parentNode!==next)next.append(buttonRef.host);
   }
   function restore(){
     if(!hidden)return;
@@ -108,10 +104,10 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     content.setAttribute('aria-hidden','true');
   }
   function close({focus=false}={}){
-    const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
+    coordinator.releaseFull(api);
     const previous=view;view=null;restore();syncButton();
-    // Finish moving a fullscreen viewer back before SDK teardown.
-    const retired=coordinator.retire(previous,exiting);
+    // A closing viewer needs teardown, not the viewport reflow used on exit.
+    const retired=coordinator.retire(previous);
     if(focus&&buttonRef.host.isConnected)buttonRef.button.focus();
     return retired;
   }
@@ -199,10 +195,9 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     },
     destroy(){
       if(disposed)return;disposed=true;
-      // setFull(null) must not return an orphan viewer to a removed answer.
-      const exiting=coordinator.full===api?coordinator.setFull(null):Promise.resolve();
+      coordinator.releaseFull(api);
       const previous=view;view=null;restore();
-      coordinator.retire(previous,exiting);
+      coordinator.retire(previous);
       buttonRef.destroy();
     }
   };
@@ -223,7 +218,7 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
     pending.then(()=>retiring.delete(pending),error=>{retiring.delete(pending);cleanupErrors.push(error);});
     return pending;
   }
-  const coordinator={retire,get full(){return full;},setFull(next){
+  const coordinator={retire,releaseFull(current){if(full===current)full=null;},get full(){return full;},setFull(next){
     if(full===next)return Promise.resolve();
     const old=full;full=null;
     const exiting=old?old.setFull(false).catch(error=>cleanupErrors.push(error)):

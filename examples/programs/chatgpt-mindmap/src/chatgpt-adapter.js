@@ -3,11 +3,10 @@
 const ANSWER='[data-message-author-role="assistant"],[data-message-role="assistant"]';
 const CONTENT=['.markdown','.prose','[data-testid="message-content"]',
   '[data-assistant-markdown-root]'];
+const ACTIONS='[data-assistant-message-actions][data-message-actions][role="group"]';
 const COPY=['button[data-testid="copy-turn-action-button"]',
   'button[data-copy-message]',
-  'button[data-testid="copy-button"]',
-  'button[aria-label="Copy"]','button[aria-label="Copy response"]',
-  'button[aria-label="复制"]','button[aria-label="复制回复"]'];
+  'button[data-testid="copy-button"]'];
 const TURN='[data-testid^="conversation-turn-"], [data-testid="conversation-turn"], article, li[data-message-role="assistant"]';
 const own=element=>element?.closest?.('[data-opendesk-chatgpt-mindmap]');
 
@@ -29,7 +28,11 @@ function turnFor(root) {
   return candidate;
 }
 
-function actionBar(turn,content){
+function actionBar(root,turn,content){
+  // The official reply group is independent of copy labels and button markup.
+  const groups=cleanCandidates(root,ACTIONS)
+    .filter(group=>!content.contains(group)&&!group.contains(content));
+  if(groups.length)return groups.length===1?groups[0]:null;
   const copyButtons=COPY.flatMap(selector=>[...turn.querySelectorAll(selector)])
     .filter(node=>!own(node)&&!content.contains(node));
   const unique=[...new Set(copyButtons)];
@@ -66,7 +69,7 @@ export function inspectAnswer(root) {
   const top=unique.filter(el=>!unique.some(other=>other!==el&&other.contains(el)));
   if(top.length!==1)return {ok:false,reason:top.length?'ambiguous-content':'missing-content'};
   const content=top[0];
-  const bar=actionBar(turn,content);
+  const bar=actionBar(root,turn,content);
   if(!bar)return {ok:false,reason:'missing-or-ambiguous-actions'};
   if(!bar.parentElement||content.contains(bar.parentElement))return {ok:false,reason:'unsafe-actions'};
   return {ok:true,root,turn,content,bar};
