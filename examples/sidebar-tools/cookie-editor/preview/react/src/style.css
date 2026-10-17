@@ -131,6 +131,8 @@
 @media(max-width:340px){.cookie-app .list-toolbar>strong{font-size:12px}.cookie-app .toolbar-actions .icon-btn{width:32px;height:32px}}
 
 /* R5.2 complete editor: the preview shell is separate from Cookie business UI. */
+/* R5.2.1: surface only the invalid field, using the existing light/dark token. */
+.inline-editor .field input[aria-invalid="true"]{border-color:var(--od-negative)}
 .preview-host-header{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;border-bottom:1px solid var(--od-line);padding:0 0 8px}
 .preview-host-title{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .preview-host-actions{display:flex;gap:1px;min-width:0;flex-wrap:wrap;margin-left:auto}

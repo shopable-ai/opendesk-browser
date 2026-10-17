@@ -197,7 +197,6 @@ try{
   assert.equal(await page.locator('.delete-btn').isDisabled(),false);
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.getByRole('button',{name:'放弃',exact:true}).click();
-  await page.locator('[data-testid="scenario"]').selectOption('ready');
  });
  await test('R4.11 automatically analyzes import, safe skip, overwrite on opt-in',async()=>{
    await page.getByRole('button',{name:'导入 Cookie'}).click();

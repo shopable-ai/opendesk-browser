@@ -1,7 +1,7 @@
-# Cookie Editor R4.9.2 · 用户已确认的 React UI 基线
+# Cookie Editor R5.2.1 · React 19 完整编辑器审阅候选
 
 **归属：** `examples/sidebar-tools/cookie-editor/preview/react/`。
-**阶段：** UI 已经用户审阅确认；实际 Chrome Cookie 业务迁移 **尚未执行**。
+**阶段：** R4.9.2 旧 UI 已经用户审阅确认；R5.2.1 的完整高级编辑器等待新候选 Chromium 验收与用户批准。实际 Chrome Cookie 业务迁移 **尚未执行**。
 **保护：** 只在预览目录内修改。正式 `src/{index.html,style.css,main.js}`、`tool.config.json`、安装包、Host/SDK、R4.3 原版及 `preview/index.html` 均不随本候选自动覆盖。
 
 ## 已确认的交互合同
@@ -9,8 +9,8 @@
 - 当前网站 → 连续紧凑 Cookie 列表 → 点击行在原处打开唯一编辑器；列表 Name / Domain / Path 为主要信息，高级属性折叠。
 - Name 与 Value 以及高级字段为**左侧标签 / 右侧控件**，Value 右侧显示/隐藏图标与输入框中心线对齐（Chromium 320/384/520px 中心误差均为 0 CSS px）。
 - 真正修改才标记 dirty，恢复原值变回 clean；无修改立即取消，有修改时行内放弃确认。保存失败保留草稿、切换/搜索不静默丢数据。
-- 工具栏只常显导入、导出、新建。导入选择文件或粘贴 → 自动识别 → 预览新增/覆盖 → 确认。
-- 导出选择 JSON（默认）、Cookie Header 或 Netscape；**JSON 默认包含可读取的 Cookie 值**，用于实际备份。"仅导出属性（不含值）" 属于「更多选项」，不是默认选项。
+- Cookie 工具栏常显导入、导出、新建，并用分隔线区分安全清理本站；导入选择文件或粘贴 → 自动识别 → 预览新增/覆盖 → 确认。
+- 导出选择 JSON（默认）、Cookie Header 或 Netscape；**JSON 默认包含可读取的 Cookie 值**，用于实际备份。“包含值”与格式位于同一紧凑行，可显式关闭后仅备份属性。
 - 导出操作区只有 **「复制」「下载」** 两个主要按钮；涉及敏感值的操作要单独的值读取能力与*操作前*就地确认，不能因为默认选中而静默导出。
 - 非 JSON 格式有属性信息损失；不支持 PartitionKey 无损保存的格式必须阻断或让用户明确选择跳过分区数据，绝不静默丢失。
 - 所有 Cookie 与权限场景均是纯内存虚构测试，**不得把演示场景/模拟授权与 mock 行为打进正式工具包**。
