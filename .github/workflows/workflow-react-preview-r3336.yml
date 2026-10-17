@@ -34,7 +34,8 @@ jobs:
       - name: Source-drift guard and focused contracts
         run: |
           node scripts/preview/build-workflow-react-preview.mjs --check
-          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/react-sidebar-r333.test.mjs tests/environment/workflow-ui-states.test.mjs
+          # Workflow-specific regression; generic React contracts also run in the package job.
+          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs
       - name: Actual source JSX in Chromium (not installed extension)
         run: node scripts/tests/react-sidebar-r3331-browser.mjs
       - name: Real Chrome offline preview DOM and 360px screenshot
@@ -104,7 +105,26 @@ jobs:
           console.log('R3336_VERIFIED_PREVIEW_BYTES='+file.length);
           JS
 
+  workflow-focused-controller:
+    needs: workflow-react-preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Active RunHost history is guarded in the real Workflow Controller
+        run: |
+          node --experimental-vm-modules --test --test-name-pattern="component: active RunHost blocks" tests/environment/workflow-focus.test.mjs
+      - name: Full Workflow Controller component suite
+        run: node --experimental-vm-modules --test tests/environment/workflow-focus.test.mjs
+
   workflow-package-regression:
+    needs: workflow-focused-controller
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -117,6 +137,7 @@ jobs:
       - name: Source check (exact candidate)
         run: npm run check
       - name: Workflow focused Node contracts
+        if: always()
         run: |
           node --test \
             tests/environment/react-sidebar-r333.test.mjs \

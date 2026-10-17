@@ -4,7 +4,7 @@
 
 原业务目录经现有 `build:program`、草稿包导入与 Candidate → Verification → Available → Installed，正式安装为 `opendesk.chatgpt-mindmap:r2`。安装 ID `4faafc60-cfab-4c97-b547-418b61c9af7f`，授权 generation 4，Chrome 注册为 registered；「扩展 → 网页增强」可检索。范围仅 `https://chatgpt.com/*`，顶层 `USER_SCRIPT`、`document_idle`，网站访问已满足。升级验证期间主动暂时停用 r1，安装 r2 后恢复原自动运行状态。
 
-最终源码与 `program.js` SHA-256：`87df82aed270f60e02fdcb82fba14998bb681335b9a13dca230c9d7fe499f969`；`artifact.json` SHA-256：`9d3d4abacc8b8fe35462aae727084893962282d3ca78982b64c6e9f8f71644f9`。固定 XMind 资源 SHA-256：`2c852069020e732a23be82c161ddcc3df6543b1c493368fb813bf75f862a2df0`。构建器本身的 BUILT_UNVERIFIED 状态未被改写；正式安装证据来自真实 Authority 和 Chrome。详细原始证据保留在本机 `artifacts/chatgpt-mindmap-installed-r396-20261018/installation-evidence.json`，工作记录保留在本机 `docs/framework/workstreams/chatgpt-mindmap-installed-r396-20261018-01a14a9e.md`；两者按仓库忽略规则不随本次提交分发。
+本轮已安装 r2 的源码与 `program.js` SHA-256：`87df82aed270f60e02fdcb82fba14998bb681335b9a13dca230c9d7fe499f969`；`artifact.json` SHA-256：`9d3d4abacc8b8fe35462aae727084893962282d3ca78982b64c6e9f8f71644f9`。固定 XMind 资源 SHA-256：`2c852069020e732a23be82c161ddcc3df6543b1c493368fb813bf75f862a2df0`。构建器本身的 BUILT_UNVERIFIED 状态未被改写；正式安装证据来自真实 Authority 和 Chrome。详细原始证据保留在本机 `artifacts/chatgpt-mindmap-installed-r396-20261018/installation-evidence.json`，工作记录保留在本机 `docs/framework/workstreams/chatgpt-mindmap-installed-r396-20261018-01a14a9e.md`；两者按仓库忽略规则不随本次提交分发。上述原生证据仅对应所列 r2 指纹，后续合入的独立浅色/深色导图主题改动不在该原生证据范围。
 
 本任务目录 CLI 退出后，在 **OpenDesk MindMap R396 CFT** 的两个新 ChatGPT 文档中自动激活。两轮均原生点击入口，显示真正中文 XMind 与层级，再点击「返回完整原文」恢复全部正文和列表；打开前与恢复后的可访问正文逐项一致，两次资源均已 retired。私人会话地址、原始可访问正文和截图仅保留在上述本机证据目录。窗口保留；Native 最终 doctor 为 connected=true。
 

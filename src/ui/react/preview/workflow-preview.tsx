@@ -39,6 +39,7 @@ function Preview(){
   const [history,setHistory]=React.useState(false);
   const [manageOpen,setManageOpen]=React.useState(false);
   const [sourceName,setSourceName]=React.useState('Codex');
+  const lastHttps=React.useRef('custom_https');
   const [review,setReview]=React.useState(false);
   const close=React.useCallback(()=>{
     settings.open=false;
@@ -85,7 +86,10 @@ function Preview(){
       get('workflow-source-local').setAttribute('aria-pressed',String(local));
       get('workflow-source-https').setAttribute('aria-pressed',String(!local));
       get('workflow-https-mode').hidden=local;
-      if(!local)get('workflow-https-protocol').value=provider.value;
+      if(!local){
+        get('workflow-https-protocol').value=provider.value;
+        lastHttps.current=provider.value;
+      }
       get('workflow-local-settings').hidden=!local;
       get('workflow-custom-settings').hidden=local;
       get('workflow-local-status').textContent='尚未连接 OpenDesk（离线预览，不探测）';
@@ -108,7 +112,7 @@ function Preview(){
       provider.dispatchEvent(new Event('change',{bubbles:true}));
     };
     on('workflow-source-local','click',event=>selectProvider('local_codex',event));
-    on('workflow-source-https','click',event=>selectProvider('custom_https',event));
+    on('workflow-source-https','click',event=>selectProvider(lastHttps.current,event));
     on('workflow-https-protocol','change',event=>selectProvider(event.target.value,event));
     on('workflow-provider-toggle','click',event=>{
       if(!event.isTrusted)return;
@@ -179,6 +183,7 @@ function Preview(){
       <label>宽度
         <select data-preview-width value={width}
           onChange={event=>setWidth(Number(event.target.value))}>
+          <option value={320}>320px</option>
           <option value={360}>360px</option>
           <option value={420}>420px</option>
           <option value={520}>520px</option>

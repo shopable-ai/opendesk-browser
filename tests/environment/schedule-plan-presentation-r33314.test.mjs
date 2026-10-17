@@ -51,3 +51,35 @@ test('R33.3.14 display uses fixed time zone, no scheduler or Host access',()=>{
   presentSchedulePlan(original,[fire('FAILED')]);
   assert.deepEqual(original,before);
 });
+
+
+test('R33.3.15-A ten presentation states separate plan, fire and host conditions',()=>{
+  const once=overrides=>base({triggerKind:'once',nextDueAt:null,...overrides});
+  const cases=[
+    ['已安排',base(),[],                    '已安排','已安排',null],
+    ['已暂停',base({paused:true}),[fire('SUCCESS')],'已暂停','已暂停','SUCCESS'],
+    ['运行中',base(),[fire('RUNNING')],       '已安排','运行中','RUNNING'],
+    ['已完成',once(),[fire('SUCCESS')],       '已完成','已完成','SUCCESS'],
+    ['执行失败',once(),[fire('FAILED')],      '暂无后续计划','执行失败','FAILED'],
+    ['需要处理',base({needsAttention:true}),[fire('NEEDS_ATTENTION')],
+      '需要处理','需要处理','NEEDS_ATTENTION'],
+    ['结果未知',once(),[fire('UNKNOWN')],     '暂无后续计划','结果待核对','UNKNOWN'],
+    ['已错过',once(),[fire('MISSED')],        '暂无后续计划','已错过','MISSED'],
+    ['等待运行条件',base(),[fire('WAITING_HOST')],
+      '已安排','已安排','WAITING_HOST'],
+    ['正在结算',once(),[fire('SETTLING')],    '暂无后续计划','正在结算','SETTLING']
+  ];
+  assert.equal(cases.length,10);
+  for(const [name,plan,history,planState,badge,lastFireStatus] of cases){
+    const result=presentSchedulePlan(plan,history);
+    assert.equal(result.planState,planState,name+' plan lifecycle');
+    assert.equal(result.badge,badge,name+' headline');
+    assert.equal(result.lastFireStatus,lastFireStatus,name+' fire receipt');
+  }
+  const waiting=presentSchedulePlan(base(),[fire('WAITING_HOST')]);
+  assert.match(waiting.recentText,/等待运行页/,'host waiting is visible separately from the plan');
+  const unknown=presentSchedulePlan(once(),[fire('UNKNOWN')]);
+  assert.match(unknown.recentText,/禁止自动重试/,'unknown effects need human review');
+  const stopped=presentSchedulePlan(base(),[fire('STOPPED')]);
+  assert.equal(stopped.planState,'已安排','stopping a single run must not pause the plan');
+});

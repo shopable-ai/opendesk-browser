@@ -15,7 +15,7 @@ class Node{
   fire(name,event={}){for(const fn of this.listeners.get(name)||[])fn(event);}
   focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
-const ids=['local-install-review','local-install-summary','local-install-title',
+const ids=['script-save','local-project-select','local-install-review','local-install-summary','local-install-title',
   'local-install-version','local-install-warning','local-install-status',
   'local-install-confirm','local-install-cancel'];
 async function fixture({permission=true,kind='controller',lostInstallAck=false,pageMatches=null,managedUI=false,retireManagedPreview}={}){
@@ -176,7 +176,7 @@ test('R25.1 bottom Save opens one actual fixed-version review and does not rerun
   const f=await fixture();t.after(()=>f.dispose());
   f.ui.setOnInstalled(result=>f.installedNotices.push(result));
   assert.equal(f.ui.canSave(),false);
-  assert.equal(f.ui.saveLabel(),'待运行验证');
+  assert.equal(f.ui.saveLabel(),'保存为任务'); // R2.6: always-visible action, confirmation still gated.
   f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
   assert.equal(f.ui.canSave(),true);
   assert.equal(f.ui.saveLabel(),'保存为任务');
@@ -193,7 +193,7 @@ test('R25.1 bottom Save opens one actual fixed-version review and does not rerun
   await settle(()=>f.installedNotices.length===1);
   assert.equal(f.installs,1,'only one real installation transaction');
   assert.equal(f.approvals,0,'already-granted permission cannot show a second Chrome prompt');
-  assert.equal(f.ui.saveLabel(),'管理已安装版本');
+  assert.equal(f.ui.saveLabel(),'管理已安装');
   assert.equal(f.get('local-install-review').hidden,true);
   assert.equal(f.requests.filter(name=>name==='verifyTaskCandidate').length,1);
   assert.equal(f.requests.filter(name=>name==='installTask').length,1);
@@ -257,7 +257,7 @@ test('R25.1 Page Save warns before explicit second execution and installs only a
   assert.equal(f.installs,1);
   assert.equal(f.requests.filter(name=>name==='verifyPageCandidate').length,1);
   assert.equal(f.requests.filter(name=>name==='installPageProgram').length,1);
-  assert.equal(f.ui.saveLabel(),'管理已安装版本');
+  assert.equal(f.ui.saveLabel(),'管理已安装');
 });
 test('R25.1 unknown install receipt is recovered by reading original Task registry only',async t=>{
   const f=await fixture({lostInstallAck:true});t.after(()=>f.dispose());
@@ -274,7 +274,7 @@ test('R25.1 unknown install receipt is recovered by reading original Task regist
   await settle(()=>f.installedNotices.length===1);
   assert.equal(f.requests.filter(method=>method==='installTask').length,count);
   assert.equal(f.requests.filter(method=>method==='verifyTaskCandidate').length,1);
-  assert.equal(f.ui.saveLabel(),'管理已安装版本');
+  assert.equal(f.ui.saveLabel(),'管理已安装');
   assert.equal(f.installedNotices[0].focus,true);
 });
 test('R25.1 confirmation freezes version and title before any async permission check',async t=>{
@@ -437,4 +437,22 @@ test('Controller Save never invokes managed Page retirement',async t=>{
   let calls=0;const f=await fixture({retireManagedPreview:async()=>{calls++;throw Error('unexpected');}});
   t.after(()=>f.dispose());f.ui.setOnInstalled(result=>f.installedNotices.push(result));verified(f);await f.ui.prepare();f.ui.confirm({isTrusted:true});
   await settle(()=>f.installedNotices.length===1);assert.equal(calls,0);assert.equal(f.installs,1);
+});
+
+test('R2.6 review Escape/Cancel restores focus without dispatching installation',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.get('script-save').hidden=false;
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  let prevented=false;
+  f.get('local-install-review').fire('keydown',{key:'Escape',preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);
+  assert.equal(f.get('local-install-review').hidden,true);
+  assert.equal(f.doc.activeElement,f.get('script-save'));
+  assert.equal(f.installs,0);
+  await f.ui.prepare();
+  f.get('local-install-cancel').fire('click');
+  assert.equal(f.get('local-install-review').hidden,true);
+  assert.equal(f.doc.activeElement,f.get('script-save'));
+  assert.equal(f.installs,0);
 });

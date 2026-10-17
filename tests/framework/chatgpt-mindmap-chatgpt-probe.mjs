@@ -166,6 +166,21 @@ try{
   assert.ok(report.desktopToolbar.button>=36);
   assert.ok(report.desktopToolbar.scroll<=report.desktopToolbar.client+1);
   await capture('chatgpt-xmind.png',{fullPage:true});
+  // The viewer theme is independent from the ChatGPT page. Both real XMind
+  // workbooks must repaint when the toolbar control changes the preference.
+  assert.equal(await viewer(1).getAttribute('data-dark'),'true');
+  assert.equal(await viewer(2).getAttribute('data-dark'),'true');
+  await viewer(1).getByRole('button',{name:'切换为浅色导图'}).click();
+  await page.waitForFunction(()=>{
+    const hosts=[...document.querySelectorAll('[data-opendesk-chatgpt-mindmap="viewer"]')];
+    return hosts.length===2&&hosts.every(host=>
+      host.getAttribute('data-dark')==='false'&&
+      host.dataset.skinReady==='light'&&!host.dataset.skinPending&&
+      !!host.shadowRoot?.querySelector('.topic'));
+  },null,{timeout:20000});
+  assert.equal(await page.evaluate(()=>
+    localStorage.getItem('opendesk.chatgpt-mindmap.viewer-theme.v1')),'light');
+  report.checks.push('USER_LIGHT_TOGGLE_REPAINTS_BOTH_REAL_XMIND_WORKBOOKS');
   await capture('chatgpt-answer-A-light.png',{target:t(1),answer:'A'});
   await capture('chatgpt-answer-B-light.png',{target:t(2),answer:'B'});
   report.desktopA=await geometry(1);
@@ -246,13 +261,20 @@ try{
   report.checks.push('RESTORE_A_DOES_NOT_CLOSE_B');
   await page.getByRole('button',{name:'切换模拟页面深浅色主题'}).click();
   assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
-  assert.equal(await viewer(2).getAttribute('data-dark'),'true');
+  // Changing ChatGPT appearance must not override an explicit light workbook.
+  assert.equal(await viewer(2).getAttribute('data-dark'),'false');
+  assert.equal(await viewer(2).getAttribute('data-skin-ready'),'light');
+  report.checks.push('CHATGPT_PAGE_THEME_DOES_NOT_OVERRIDE_VIEWER_PREFERENCE');
+  await viewer(2).getByRole('button',{name:'切换为深色导图'}).click();
   await page.waitForFunction(()=>{
     const host=document.querySelector('[data-testid="conversation-turn-2"] [data-opendesk-chatgpt-mindmap="viewer"]');
-    return host?.dataset.skinReady==='dark'&&!host.dataset.skinPending&&
+    return host?.getAttribute('data-dark')==='true'&&
+      host.dataset.skinReady==='dark'&&!host.dataset.skinPending&&
       !!host.shadowRoot?.querySelector('.topic');
   },null,{timeout:20000});
-  report.checks.push('DARK_MODE_PROPAGATES_TO_ORIGINAL_XMIND_WORKBOOK');
+  assert.equal(await page.evaluate(()=>
+    localStorage.getItem('opendesk.chatgpt-mindmap.viewer-theme.v1')),'dark');
+  report.checks.push('USER_DARK_TOGGLE_REPAINTS_ORIGINAL_XMIND_WORKBOOK');
   await capture('chatgpt-answer-B-dark.png',{target:t(2),answer:'B'});
   // C intentionally has no heading: retain the rendered paragraph, table,
   // code and quotation semantics through the *same* product renderer.
@@ -380,15 +402,20 @@ try{
     host.shadowRoot.querySelector('.odmm-canvas'),'::after').content);
   assert.match(panHint,/左右拖动查看分支/);
   await page.keyboard.press('ArrowDown');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1,
+    'The theme toggle is part of the original toolbar More menu on 320px');
+  await page.keyboard.press('ArrowDown');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('Home');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
   await page.keyboard.press('End');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('ArrowUp');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1);
+  await page.keyboard.press('ArrowUp');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
   await page.keyboard.press('ArrowDown');
-  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1);
   await page.keyboard.press('Home');
   await capture('chatgpt-narrow-320-menu.png',{target:viewer(2),answer:'B'});
   await page.keyboard.press('Escape');

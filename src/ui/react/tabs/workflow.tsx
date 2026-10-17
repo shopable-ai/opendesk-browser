@@ -10,7 +10,7 @@ export function WorkflowHeader({model,actions}) {
     <span id="workflow-saved-state" className="workflow-pill"
       hidden={!model.saved} title={model.savedTitle||''}>{model.savedText||''}</span>
     <button type="button" id="workflow-history-toggle"
-      className="workflow-icon-button od-icon-button"
+      className="workflow-icon-button od-icon-button" disabled={Boolean(model.busy)}
       aria-label="历史" title="历史"
       aria-expanded={Boolean(model.historyExpanded)} aria-controls="workflow-history-panel"
       onClick={event=>forward('onHistory',event)}>
@@ -84,7 +84,8 @@ export function WorkflowHistory({model={open:false,rows:[],canResume:false},acti
 
 function focusableElements(panel) {
   return [...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
-    .filter(item => !item.closest('[hidden],[inert]') && item.getClientRects().length > 0);
+    .filter(item => item.tabIndex>=0 && item.getAttribute('aria-hidden')!=='true' &&
+      !item.closest('[hidden],[inert]') && item.getClientRects().length>0);
 }
 
 

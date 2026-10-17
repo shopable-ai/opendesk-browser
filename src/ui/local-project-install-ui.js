@@ -84,6 +84,13 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       if(local.connected()&&!isBusy()){
         binding=local.capture();source=await local.resolve(binding);
         if(!same())return;
+        // A project switch or stale Provider result must never borrow the
+        // previous binding's Run/result evidence, even if a UI fixture or
+        // delayed adapter returns internally consistent old bytes.
+        if(binding?.bindingId!==local.selectedBindingId()||
+            source?.bindingId!==binding?.bindingId||
+            (source?.providerEpoch!==undefined&&source.providerEpoch!==binding.providerEpoch))
+          throw issue('E_DEV_CONFLICT','本地项目来源绑定已变化，旧验证不得复用');
         local.assertCaptured(binding);
       }
       let ref=null;
@@ -105,9 +112,24 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
               row.version===existing.version&&row.manifestHash===existing.manifestHash);
             installedHash=candidate?.manifest?.program?.sourceHash||null;
           }
+          let pageVersionChanged=null;
+          if(source?.runtimeKind==='page-userscript'&&
+              currentPageTarget?.snapshot?.status==='available'){
+            // The existing Page preparer owns normalized site rules and
+            // dependency lock equality. This read does not verify or execute.
+            try{
+              const planned=await prepareLocalProjectInstallation({client,source,binding,
+                project:local.selectedProject(),target:currentPageTarget.snapshot});
+              if(!same())return;
+              pageVersionChanged=!planned.alreadyInstalled;
+            }catch{
+              // Unknown preparation state is not evidence of an upgrade.
+            }
+          }
           installed={...ref,version:String(existing.version??existing.revision??''),
             sourceHash:installedHash,exact:false,
-            changed:!!source&&!!installedHash&&installedHash!==source.sourceHash};
+            changed:!!source&&(pageVersionChanged===true||
+              !!installedHash&&installedHash!==source.sourceHash)};
           rememberInstalled(installed,local);
         }else installed=null;
       }else installed=null;
@@ -147,7 +169,8 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         nativeTarget.windowId===proof.target.windowId;
       if(run?.state!=='completed'||run.retirementState!=='released'||
         run.revision?.sourceHash!==source.sourceHash||run.resultId!==proof.resultId||
-        !targetMatches||!result){
+        !targetMatches||nativeTarget?.allowedOrigin!==new URL(proof.target.url).origin||
+        snapshot?.resultDeliveryDenied?.includes(proof.runId)||!result){
         verificationReason='原运行结果、成功终态或资源释放回执未能确认';return;
       }
       if(!same()||!sameTarget(proof.target,currentPageTarget?.snapshot))return;
@@ -162,6 +185,10 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     }finally{if(same()){checking=false;onState();}}
   }
   function inspectSelection(){
+    // User-initiated prepare/confirm owns the frozen source transaction.
+    // Do not start a second passive Provider.resolve while reviewing or
+    // committing; status will be refreshed after the active step settles.
+    if(preparing||installing||reconciling||review)return;
     const local=selected(),target=currentPageTarget?.snapshot;
     const key=JSON.stringify([local?.selectedBindingId()||'',local?.providerEpoch()||'',
       local?.connected()||false,local?.preparationIdentity()||'',
@@ -170,9 +197,23 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       local?.previousInstallAttempt?.()?.attemptedVersion||'',isBusy(),
       target?.status||'',target?.windowId,target?.tabId,target?.documentId,target?.url]);
     if(key===lookupKey)return;
+    if(!unknown&&!unknownReview&&sameInstalled()&&current()){
+      // A newly installed, receipt-confirmed exact version is already stronger
+      // evidence than a passive registry lookup. Keep Management immediately
+      // available; do not replace it with an intermediate "checking" state.
+      lookupKey=key;++lookupToken;checking=false;return;
+    }
     lookupKey=key;const token=++lookupToken;installed=null;checking=!!local;
     if(!installing&&!reconciling){
-      unknownReview=pendingFor(local);unknown=!!unknownReview;
+      const pending=pendingFor(local);
+      if(pending){unknownReview=pending;unknown=true;}
+      else if(!unknownReview||unknownReview.bindingId!==local?.selectedBindingId()||
+          unknownReview.projectSourceId!==(local?.selectedProject()?.sourceId||'')){
+        // Preserve an in-memory unknown outcome for the same project even if
+        // storage is temporarily unavailable. Never interpret read failure as
+        // proof that an earlier installation had no effect.
+        unknownReview=null;unknown=false;
+      }
     }
     if(local)void inspect(token,local);else verificationReason='请选择已授权项目';
   }
@@ -396,17 +437,30 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       panel.hidden=false;
     }).finally(()=>{installing=false;if(!disposed){update();onState();}});
   }
-  const cancel=()=>{if(preparing||installing||reconciling)return;hide();onState();};
+  const cancel=()=>{
+    if(preparing||installing||reconciling)return;
+    hide();
+    // Closing the inline review must return keyboard focus to the original
+    // action (or project picker if that action has become unavailable).
+    const save=find('script-save');
+    const focus=save&&!save.hidden&&!save.disabled?save:find('local-project-select');
+    focus?.focus?.();onState();
+  };
   const onConfirm=event=>confirm(event),onCancel=()=>cancel();
+  const onReviewKeyDown=event=>{
+    if(event?.key!=='Escape'||panel.hidden||preparing||installing||reconciling)return;
+    event.preventDefault?.();cancel();
+  };
+  panel.addEventListener('keydown',onReviewKeyDown);
   confirmButton.addEventListener('click',onConfirm);
   cancelButton.addEventListener('click',onCancel);
   return Object.freeze({canSave,hasSelection:isSelected,saveLabel:()=>reconciling?'正在核对…':installing?'正在安装…':
-    preparing||checking?'正在核对…':unknown?'核对安装状态':
+    preparing?'正在准备安装…':unknown?'核对安装状态':checking?'正在核对…':
     installed&&(sameInstalled()||!current()&&!installed.changed)?'管理已安装':
     installed?'更新':review?'继续确认安装':
     (verified?.source.runtimeKind==='page-userscript'||project()?.selectedProject()?.runtimeKind==='page-userscript')
       ?'安装网页增强':'保存为任务',
     update,reset,succeeded,prepare,confirm,setOnInstalled(fn){onInstalled=fn||(()=>{});},
-    dispose(){disposed=true;consent.dispose();confirmButton.removeEventListener('click',onConfirm);
+    dispose(){disposed=true;consent.dispose();panel.removeEventListener('keydown',onReviewKeyDown);confirmButton.removeEventListener('click',onConfirm);
       cancelButton.removeEventListener('click',onCancel);}});
 }

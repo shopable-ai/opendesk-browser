@@ -217,8 +217,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   function updateButtons() {
     if(disposed)return;
+    // An active RunHost also owns the viewport, even after AI planning settles.
+    const operationBusy=busy||Boolean(host.executionPending||host.currentRun);
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
-      !busy && !host.executionPending && !host.currentRun);
+      !operationBusy && !historyOpen);
     get('workflow-run').disabled=!runnable;
     get('workflow-save').disabled=busy || !compiled;
     get('workflow-candidate').disabled=busy || !matchesRevision();
@@ -231,7 +233,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const sessionHint=sessionState.sessionId&&localCapability.resumeSupported===false
       ?'新对话（结束后旧对话不可恢复）':'新对话（保留当前工作流）';
     get('workflow-ai-resume').hidden=provider()!=='local_codex'||!sessionState.resumable;
-    get('workflow-ai-resume').disabled=busy;
+    get('workflow-ai-resume').disabled=operationBusy;
     if(workflowReact){
       const selected=provider();
       const modelName=selected==='local_codex'?'Codex':
@@ -239,7 +241,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           ?get('workflow-ai-model').value.trim():'';
       workflowReact.renderWorkflowSourceName(modelName);
       workflowReact.renderWorkflowHistory({
-        open:historyOpen,busy,
+        open:historyOpen,busy:operationBusy,
         canResume:selected==='local_codex'&&Boolean(sessionState.resumable),
         rows:saveList.map(item=>({
           key:item.key,title:String(item.workflow.title||'未命名工作流'),
@@ -254,10 +256,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         savedTitle:revision?'工作流版本 r'+revision.revision+
           (matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存'):'',
         historyExpanded:historyOpen,
-        busy,planning:phase==='planning',sessionHint
+        busy:operationBusy,planning:phase==='planning',sessionHint
       });
     }else{
-      get('workflow-ai-new-session').disabled=busy;
+      get('workflow-ai-new-session').disabled=operationBusy;
       get('workflow-ai-new-session').title=sessionHint;
       const savedStatus=get('workflow-saved-state');
       savedStatus.hidden=!revision;
@@ -488,6 +490,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-editor').dataset.historyOpen='false';
     clearChat();
     get('workflow-ai-request').value='';
+    runId=null;onRunOwner(null);
     workflow=clean;lastTrustedRun=null;
     directVerifiedSerial=record.verificationMode==='fill-readback'?stable():null;
     revision=record;touched=true;lastRun='none';hasError=false;
@@ -1158,7 +1161,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateButtons();
   };
   const onHistoryClick=event=>{
-    if(!event.isTrusted)return;
+    if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
     if(!workflowReact){
       const panel=get('workflow-manage-panel');
       panel.hidden=!panel.hidden;
@@ -1290,7 +1293,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   if(!workflowReact)listen(get('workflow-ai-new-session'),'click',onNewSessionClick);
   const onResumeSessionClick=event=>{
-    if(!event.isTrusted||busy||provider()!=='local_codex')return;
+    if(!event.isTrusted||busy||host.executionPending||host.currentRun||provider()!=='local_codex')return;
     // This explicit action only resumes the selected local provider, not web observation.
     const consent={model:true,workflow:true,observation:false};
     

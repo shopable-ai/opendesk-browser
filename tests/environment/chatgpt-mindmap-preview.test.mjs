@@ -136,7 +136,10 @@ test('R3.3 production code alone owns theme, workbook skin and answer identity',
   ]);
   assert.match(registry,/for\(const controller of controllers\)controller\.syncTheme\(\)/,
     'Open viewers must switch themes without the delayed answer rescan');
-  assert.match(registry,/view\.setTheme\(theme==='true'\)/);
+  assert.match(registry,/view\.setTheme\(viewerTheme==='true'\)/);
+  assert.match(registry,/onToggleTheme:\(\)=>themePreference\.toggle\(\)/);
+  assert.match(view,/group:themeGroup,render:true/);
+  assert.match(view,/group:menu,render:true,menuItem:true/);
   assert.match(view,/renderer\.setTheme\(next\)/);
   assert.match(view,/host\.dataset\.skinReady=next/);
   assert.match(adapter,/await render\(folded,\{preserve:true,mode:target\}\)/,

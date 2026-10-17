@@ -68,7 +68,7 @@ test('a directory without an executable binding keeps file opening auxiliary and
   const f=fixture(t,{files:[workspace]});await tick();
   assert.equal(f.view.selectionKind(),'file-workspace');
   assert.equal(f.view.canOpenWorkspace(),true);
-  assert.match(f.find('local-project-intro').textContent,/直接编辑.*同一运行流程/);
+  assert.match(f.find('local-project-intro').textContent,/选择已授权项目.*可运行或核对安装/);
   assert.doesNotMatch(f.find('local-project-intro').textContent,/系统自动准备/);
   assert.equal(f.find('local-project-params-tools').hidden,true);
   assert.equal(f.view.canAttemptRun(),false);

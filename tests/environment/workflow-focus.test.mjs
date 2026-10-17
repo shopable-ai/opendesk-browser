@@ -103,13 +103,14 @@ if(!vm.SourceTextModule) {
   }
 
   async function make(t,{steps=[],approval=false,observeGate=null,storedGrant=null,
-    sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null}={}) {
+    sessionId='component-session',initialPermission=true,savedRecord=null,configureHost=null,
+    resumable=false}={}) {
     const doc=documentFixture(),get=id=>doc.getElementById(id),draft=contract.emptyWorkflow('https://a.example',crypto.randomUUID());
     draft.steps=structuredClone(steps);
     const planGate=deferred(),approvalReady=deferred(),answers=[],observations=[];
-    let plannerOptions,currentSessionId=sessionId;const compiled=[],sessionWrites=[];
+    let plannerOptions,currentSessionId=sessionId,resumeCalls=0;const compiled=[],sessionWrites=[];
     const proposal=workflow=>({...structuredClone(workflow),title:'Component proposal',steps:[{stepId:'proposed',op:'observe'}]});
-    const planner={snapshot:()=>({sessionId:currentSessionId,state:'READY_FOR_TURN',readyForTurn:true}),
+    const planner={snapshot:()=>({sessionId:currentSessionId,state:'READY_FOR_TURN',readyForTurn:true,resumable}),
       probe:async()=>({state:'READY_FOR_TURN',readyForTurn:true}),
       async plan(options){
         plannerOptions=options;
@@ -120,7 +121,7 @@ if(!vm.SourceTextModule) {
         }
         await planGate.promise;
         return proposal(options.workflow);
-      },cancel:async()=>{},close:async()=>{currentSessionId=null;},dispose(){},resume:async()=>{}};
+      },cancel:async()=>{},close:async()=>{currentSessionId=null;},dispose(){},resume:async()=>{resumeCalls++;}};
     const observation={cancel:async()=>{},dispose:async()=>{},async observe(...args){
       observations.push(args);if(observeGate)await observeGate.promise;return {componentFixture:true};
     }};
@@ -227,7 +228,7 @@ if(!vm.SourceTextModule) {
     return {doc,get,ui,click,openCreation,clickNew,focusNew,control,stepsNow,startPlan,planGate,approvalReady,answers,observations,compiled,
       permissions,permissionRequests,sessionWrites,sessionStore,setPage,removePermission,host,savedKey,
       setSessionId:value=>{currentSessionId=value;},
-      get plannerOptions(){return plannerOptions;}};
+      get plannerOptions(){return plannerOptions;},get resumeCalls(){return resumeCalls;}};
   }
   const fill=id=>({stepId:id,op:'fill',locatorKind:'css',selector:'#keyword',text:''});
   const observe=id=>({stepId:id,op:'observe'});
@@ -262,6 +263,25 @@ if(!vm.SourceTextModule) {
     assertFocus(f,f.get('workflow-ai-new-session'));
     await f.get('workflow-editor').fire('keydown',{key:'Escape',preventDefault(){}});
     assertFocus(f,f.get('workflow-ai-new-session'));
+  });
+
+  test('component: active RunHost blocks history switching, Codex resume and new conversation',async t=>{
+    const f=await make(t,{resumable:true});
+    const field=f.get('workflow-ai-request');
+    field.value='保留未发送内容';
+    for(const kind of ['currentRun','executionPending']){
+      f.host.currentRun=kind==='currentRun'?'active-run':null;
+      f.host.executionPending=kind==='executionPending';
+      await f.click(f.get('workflow-history-toggle'));
+      assert.equal(f.get('workflow-manage-panel').hidden,true,'active RunHost must keep the current view visible');
+      await f.click(f.get('workflow-ai-resume'));
+      assert.equal(f.resumeCalls,0,'active RunHost must not restore a provider session');
+      await f.click(f.get('workflow-ai-new-session'));
+      assert.equal(field.value,'保留未发送内容','active RunHost must not discard draft context');
+    }
+    f.host.currentRun=null;f.host.executionPending=false;
+    await f.click(f.get('workflow-history-toggle'));
+    assert.equal(f.get('workflow-manage-panel').hidden,false,'history works again after RunHost releases');
   });
 
   test('component: New conversation clears conversation but keeps current unsaved workflow and draft request',async t=>{
