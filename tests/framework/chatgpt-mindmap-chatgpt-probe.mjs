@@ -410,6 +410,9 @@ try{
   await page.keyboard.press('Home');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
   await page.keyboard.press('End');
+  assert.equal(await viewer(2).locator('.odmm-menu button[data-action="export-open"]:focus').count(),1,
+    'End must reach the last actual More action: Export');
+  await page.keyboard.press('ArrowUp');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="refresh"]:focus').count(),1);
   await page.keyboard.press('ArrowUp');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1);
@@ -417,7 +420,26 @@ try{
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="fold"]:focus').count(),1);
   await page.keyboard.press('ArrowDown');
   assert.equal(await viewer(2).locator('.odmm-menu button[data-action="theme"]:focus').count(),1);
+  await page.keyboard.press('End');
+  await page.keyboard.press('Enter');
+  const exportMenu=viewer(2).locator('.odmm-export-menu');
+  assert.equal(await exportMenu.evaluate(el=>!el.hidden),true,
+    'Enter on Export in More must open the shared format menu');
+  assert.equal(await more.getAttribute('aria-expanded'),'false',
+    'More must close while the format menu is open');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="xmind"]:focus').count(),1);
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="outline"]:focus').count(),1);
+  await page.keyboard.press('End');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="svg"]:focus').count(),1);
   await page.keyboard.press('Home');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="xmind"]:focus').count(),1);
+  await page.keyboard.press('Escape');
+  assert.equal(await exportMenu.evaluate(el=>el.hidden),true);
+  assert.equal(await more.evaluate(el=>el.matches(':focus')),true,
+    'Escape in the format menu must restore focus to More');
+  report.checks.push('MOBILE_EXPORT_ENTER_ARROWS_HOME_END_ESCAPE_FOCUS');
+  await more.focus();await page.keyboard.press('ArrowDown');
   await capture('chatgpt-narrow-320-menu.png',{target:viewer(2),answer:'B'});
   await page.keyboard.press('Escape');
   assert.equal(await more.getAttribute('aria-expanded'),'false');
