@@ -69,6 +69,16 @@ try{
    assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true');
    await page.locator('#cookie-name').fill('temporary');
    await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('not-a-matching-cookie-r52');
+   // Capture browser facts before the existing strict assertion; diagnose React vs test failures.
+   const pinFacts=await page.evaluate(()=>({
+     search:document.querySelector('[aria-label="搜索 Cookie"]')?.value,
+     activeRows:[...document.querySelectorAll('.row-trigger[aria-expanded="true"]')].map(el=>el.dataset.row),
+     shownRows:[...document.querySelectorAll('.row-trigger')].map(el=>el.dataset.row),
+     draft:document.querySelector('#cookie-name')?.value??null,
+     note:document.querySelector('.pinned-note')?.textContent??null
+   }));
+   console.log('R522_PIN_FACTS',JSON.stringify(pinFacts));
+   await page.screenshot({path:join(output,'search-pin-diagnostic.png'),fullPage:true});
    await page.locator('.pinned-note').waitFor();
    await page.locator('#cookie-name').fill('locale');
    await page.getByRole('button',{name:'取消',exact:true}).click();
