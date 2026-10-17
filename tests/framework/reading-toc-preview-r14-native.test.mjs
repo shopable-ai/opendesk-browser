@@ -1,4 +1,4 @@
-// Real Chromium acceptance of the two committed OFFLINE preview HTML files.
+// Real Chromium acceptance of source-derived OFFLINE HTML including index.html.
 // These scenarios cannot certify the installed extension or a user's Mac profile.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -131,10 +131,38 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
   const input=resolve('examples/sidebar-tools/reading-toc/preview',name);
   const contents=await readFile(input,'utf8');assert(contents.includes('opendesk-preview-manifest'));
   const targetId=(await browser.send('Target.createTarget',{url:pathToFileURL(input).href})).targetId;
-  const url=await until(async()=>{const data=await(await fetch(base+'/json/list')).json();
-   return data.find(row=>row.id===targetId)?.webSocketDebuggerUrl;},'Missing target for '+name);
-  const page=await connect(url);pages.push(page);
-  await page.send('Runtime.enable');await page.send('Page.enable');
+  // A target may accept a direct WebSocket while Runtime.enable stalls on hosted macOS.
+  // Attach using the already-ready browser connection, with one bounded recovery.
+  await until(async()=>{
+   const {targetInfo}=await browser.send('Target.getTargetInfo',{targetId});
+   return targetInfo?.type==='page'&&targetInfo.url.startsWith('file:');
+  },'Real file tab did not reach the expected target URL: '+name);
+  await browser.send('Target.activateTarget',{targetId});
+  let page,lastError;
+  for(let attempt=0;attempt<2;attempt++){
+   const {sessionId}=await browser.send('Target.attachToTarget',{targetId,flatten:true});
+   const attached={
+    send:(method,params={},timeout=12000)=>browser.send(method,params,timeout,sessionId),
+    onEvent(listener){browser.onEvent(event=>{
+     if(event.sessionId===sessionId)listener(event);
+    });},
+    close(){void browser.send('Target.detachFromTarget',{sessionId},3000).catch(()=>{});}
+   };
+   try{
+    await attached.send('Page.enable',{},8000);
+    await attached.send('Runtime.enable',{},8000);
+    page=attached;break;
+   }catch(error){
+    lastError=error;
+    attached.close();
+    if(attempt===0)await pause(250);
+   }
+  }
+  if(!page)throw Error('R1.8.6 CDP target did not become ready: '+name+
+   '; browser='+version.Browser+'; error='+String(lastError?.message||lastError));
+  pages.push(page);
+  await until(()=>evaluate(page,'document.readyState!=="loading"'),
+   'Attached Chrome target had no execution context: '+name);
   await until(()=>evaluate(page,'Boolean(document.querySelector("#od-toc-language"))'), 'Preview shell did not render '+name);
   assert.equal(await evaluate(page,'location.protocol'),'file:');
   await until(()=>evaluate(page,'Boolean(document.querySelector("#opendesk-preview-frame")?.srcdoc)'),'Preview iframe missing');
@@ -200,7 +228,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(()=>evaluate(panel,'document.querySelector("#toc-error")?.hidden===true'),'Failure did not recover');
  await browser.send('Target.closeTarget',{targetId:side.targetId});
  console.log('TOC_PREVIEW_STAGE: real Chromium panel locale, source, mode, duplicates, recovery passed');
- const overlay=await open('reading-toc-r12-overlay-preview.html'),trusted=await child(browser,overlay.page);
+ const overlay=await open('index.html'),trusted=await child(browser,overlay.page);
  await until(()=>evaluate(trusted,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'Trusted overlay failed to mount');
  const original=await evaluate(trusted,'document.querySelector("article h1").textContent');
  // Check the closed-shadow production view at first mount, before clicking overview.
@@ -286,7 +314,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(()=>evaluate(overlay.page,
   'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：注意事项")'),
   'Physical click of third assistant answer did not reach its own heading');
- const html=await readFile(resolve('examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html'),'utf8');
+ const html=await readFile(resolve('examples/sidebar-tools/reading-toc/preview/index.html'),'utf8');
  const sourceHash=html.match(/"trustedOverlaySourceSha256":"([a-f0-9]{64})"/)?.[1]||null;
  await writeFile(resolve('artifacts/reading-toc-r41/toc-r186-visible-observation.json'),
   JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,trustedOverlaySourceSha256:sourceHash,
@@ -295,7 +323,17 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
    screenshot:'toc-r186-three-answers-visible.png',screenshotSha256:imageHash},null,2)+'\n');
  console.log('TOC_R186_REAL_VISIBILITY '+JSON.stringify({visible,expanded,sourceHash,imageHash}));
  await screenshot(overlay.page,'toc-r183-multi-preview-overlay.png');
+ await select(overlay.page,'od-toc-scenario','success');
+ await until(()=>evaluate(trusted,'document.querySelector("#preview-article")?.hidden===false'),
+  'Main index.html did not restore the simulated article');
+ for(const width of [360,1280]){
+  await overlay.page.send('Emulation.setDeviceMetricsOverride',{
+   width,height:900,deviceScaleFactor:1,mobile:false});
+  await screenshot(overlay.page,'toc-index-'+width+'.png');
+ }
+ await overlay.page.send('Emulation.clearDeviceMetricsOverride');
  await screenshot(overlay.page,'toc-r14-preview-overlay.png');
  console.log('TOC_PREVIEW_EVIDENCE '+JSON.stringify({browser:version.Browser,file:true,installed:false,
-  screenshots:['toc-r14-preview-panel.png','toc-r14-preview-overlay.png','toc-r186-three-answers-visible.png']}));
+  screenshots:['toc-r14-preview-panel.png','toc-r14-preview-overlay.png',
+   'toc-r186-three-answers-visible.png','toc-index-360.png','toc-index-1280.png']}));
 });
