@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R2.6</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R2.6.1</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -348,7 +348,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .transfer-menu button{min-height:40px;border:0;background:transparent;color:var(--od-ink);text-align:left;border-radius:7px;padding:7px 9px;font-size:12px;display:flex;align-items:center;gap:8px}
 .transfer-menu button:hover,.transfer-menu button:focus-visible{background:var(--od-muted)}
 .transfer-menu .od-glyph{width:16px;height:16px}
-.transfer-note{color:var(--od-sub);font-size:10px;line-height:1.5;padding:4px 8px 2px}
 .import-panel{border:1px solid var(--od-line);border-radius:12px;background:var(--od-bg);padding:12px;display:grid;gap:9px;margin:0 0 12px}
 .import-panel strong{font-size:13px}
 .import-panel p{margin:0;color:var(--od-sub);line-height:1.55;font-size:11px;overflow-wrap:anywhere}
@@ -358,14 +357,24 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .import-panel .import-actions button{min-height:36px;padding:5px 9px;font-size:11px}
 .import-panel .import-actions #cancelImport{margin-right:auto}
 .import-panel .replace-warning{background:var(--od-negative-bg);color:var(--od-negative);padding:8px;border-radius:8px}
-@media(max-width:380px){.tool-host-head{gap:5px;padding-inline:8px}.tool-host-head strong{font-size:12px}.transfer-holder .od-icon-button{width:36px;min-width:36px}}
+/* R2.6.1: host tool actions follow existing gear and uninstall icons. */
+.uninstall-confirm{display:grid;gap:9px;padding:12px;margin-bottom:12px}
+.uninstall-confirm strong{font-size:12px}
+.uninstall-confirm p{margin:0;color:var(--od-sub);font-size:11px;line-height:1.55}
+.uninstall-confirm .uninstall-draft{color:var(--od-negative)}
+.uninstall-actions{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}
+.uninstall-actions .od-button{min-height:36px;padding:6px 8px;font-size:11px}
+@media(max-width:380px){.tool-host-head{gap:4px;padding-inline:8px}.tool-host-head strong{font-size:12px}
+ .tool-host-head .od-icon-button,.tool-host-head .host-add,.transfer-holder>.od-icon-button{width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px}
+}
 </style>
 </head>
 <body>
 <svg class="od-icon-sprite" width="0" height="0" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
  <symbol id="ps-icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
  <symbol id="ps-icon-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5m7-7-7 7 7 7"/></symbol>
- <symbol id="ps-icon-settings" viewBox="0 0 24 24"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3"/><path d="M1 14h6M9 8h6M17 16h6"/></symbol>
+ <symbol id="ps-icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"/></symbol>
+ <symbol id="ps-icon-uninstall" viewBox="0 0 24 24"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></symbol>
  <symbol id="ps-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
  <symbol id="ps-icon-pencil" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
  <symbol id="ps-icon-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -385,7 +394,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R2.6 · 即时同步 · 安全导入导出</p></div></div>
+  <p>交互预览 R2.6.1 · 统一工具栏 · 安全导入导出</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
@@ -441,16 +450,25 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
      <div id="transferMenu" class="transfer-menu" role="group" aria-label="提示词导入导出" hidden>
       <button id="exportJson" type="button"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-export"/></svg>导出 JSON</button>
       <button id="chooseImport" type="button"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#ps-icon-import"/></svg>导入 JSON</button>
-      <span class="transfer-note">仅提示词，不含网站规则</span>
-     </div><input id="importFile" type="file" accept=".json,application/json" aria-label="选择提示词备份 JSON" hidden>
+           </div><input id="importFile" type="file" accept=".json,application/json" aria-label="选择提示词备份 JSON" hidden>
     </div>
     <button id="hostSettings" class="od-icon-button" type="button" aria-label="工具设置" title="工具设置" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-settings"/></svg></button>
+    <button id="hostRemove" class="od-icon-button" type="button" aria-label="卸载当前工具及本地数据" title="卸载工具及本地数据" aria-controls="uninstallConfirm" aria-expanded="false"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-uninstall"/></svg></button>
   </div>
   <div class="panel-body" id="panelBody">
    <div id="panelStatus" class="status" role="status" aria-live="polite" hidden></div>
+    <section id="uninstallConfirm" class="uninstall-confirm od-surface" aria-label="卸载工具确认" hidden>
+     <strong>卸载提示词快捷按钮？</strong>
+     <p>卸载会删除本工具保存的提示词和网站规则。建议先导出备份。</p>
+     <p id="uninstallDraftWarning" class="uninstall-draft" hidden>当前还有未保存的草稿，确认卸载将一并放弃。</p>
+     <div class="uninstall-actions">
+      <button id="cancelUninstall" class="od-button" type="button">取消</button>
+      <button id="confirmUninstall" class="od-button od-button--danger" type="button">确认卸载并删除数据</button>
+     </div>
+    </section>
    <section id="toolListView" hidden class="tool-list-placeholder od-surface" aria-labelledby="toolListHeading">
     <h2 id="toolListHeading" class="heading-mini">已安装应用</h2>
-    <p>已模拟返回宿主工具列表。选择下方工具可重新进入管理页。</p>
+    <p id="toolListMessage">已模拟返回宿主工具列表。选择下方工具可重新进入管理页。</p>
     <button id="reopenTool" type="button" class="od-button">提示词快捷按钮 · 打开工具 ›</button>
    </section>
    <section id="indexView" aria-label="提示词列表">
@@ -534,7 +552,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  const COPY=()=>INITIAL.map(item=>({...item}));
  let state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};
  let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
- let stagedImport=null,importRevision=0,replaceArmed=false;
+ let stagedImport=null,importRevision=0,replaceArmed=false,installed=true;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
  function icon(name){
   // The fixed icon names map only to trusted inline SVG symbols. No external assets or HTML injection.
@@ -570,13 +588,38 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   return glyphs(body).slice(0,36).join('')||'空提示词';
  }
  function countText(){const enabled=state.items.filter(item=>item.enabled).length;return `${state.items.length} 个 · ${enabled} 个启用`;}
+ function closeUninstall(){el('uninstallConfirm').hidden=true;el('hostRemove').setAttribute('aria-expanded','false');}
+ function openUninstall(){
+  if(saving){showFormError('保存正在进行中，请等待保存结果后再卸载。');return;}
+  closeTransfer();
+  const open=el('uninstallConfirm').hidden;
+  el('uninstallConfirm').hidden=!open;el('hostRemove').setAttribute('aria-expanded',String(open));
+  el('uninstallDraftWarning').hidden=!(currentView==='form'&&dirty);
+  if(open){el('uninstallConfirm').scrollIntoView({block:'nearest'});el('cancelUninstall').focus({preventScroll:true});}
+  else el('hostRemove').focus({preventScroll:true});
+ }
+ function uninstallMock(){
+  closeUninstall();closeTransfer();discardImport();
+  state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false},items:[],toolEnabled:false};
+  installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
+  el('mockContextMenu').hidden=true;
+  previewRules=[];siteEnabled={};siteDrafts={};storageCorrupt=false;
+  try{localStorage.removeItem(SITE_STORAGE);}catch{}
+  el('toolListMessage').textContent='已模拟卸载「提示词快捷按钮」。本次预览数据已清空，可点击实验台顶部「重置模拟数据」恢复初始演示。';
+  el('reopenTool').hidden=true;
+  renderIndex();renderRail();setView('toolList');
+  notice('已完成模拟卸载；真实扩展不受影响。','success');
+  el('resetButton').focus({preventScroll:true});
+ }
  function setView(next){
+  closeUninstall();
   currentView=next;
   for(const v of ['index','form','settings','toolList'])el(v+'View').hidden=v!==next;
   el('hostToolHead').hidden=next==='toolList';
   el('hostToolTitle').textContent=next==='form'?(editId?'编辑提示词':'新建提示词'):next==='settings'?'工具设置':'提示词快捷按钮';
   el('addButton').hidden=next!=='index';
   el('transferControl').hidden=next!=='index';
+  el('hostRemove').hidden=next==='toolList';
   if(next!=='index'){closeTransfer();discardImport();}
   el('hostSettings').hidden=next==='form';
   el('hostBack').setAttribute('aria-label',next==='settings'?'返回提示词列表':'返回已安装工具列表');
@@ -670,7 +713,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('importReplace').addEventListener('click',()=>applyImport('replace'));
  document.addEventListener('click',e=>{if(!el('transferControl').contains(e.target))closeTransfer();});
  function renderRail(){const rail=el('pageRail');rail.replaceChildren();el('webTooltip').hidden=true;tipButton=null;
-  if(!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
+  if(!installed||!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
   if(!active.length){rail.append(create('div','page-rail-empty','没有已启用的按钮'));return;}
   for(const item of active){const b=create('button','page-shortcut');b.type='button';b.title=itemIdentity(item);b.setAttribute('aria-label','插入提示词：'+itemIdentity(item));b.append(stack(item.label||defaultShort(item.body)||'…'));
@@ -900,7 +943,10 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   openForm(null,{body:text});notice('已预填选中文字；只需确认正文即可保存，短标签和名称可留空自动生成。');}
  el('mockSelection').addEventListener('click',prepareSelection);el('mockMenuAdd').addEventListener('click',confirmSelection);
  el('addButton').addEventListener('click',()=>openForm());el('cancelForm').addEventListener('click',()=>requestBack('index'));
- el('hostBack').addEventListener('click',()=>{if(currentView==='settings'){setView('index');renderIndex();el('hostSettings').focus();}else requestBack('host');});el('reopenTool').addEventListener('click',()=>{setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
+ el('hostRemove').addEventListener('click',openUninstall);
+ el('cancelUninstall').addEventListener('click',()=>{closeUninstall();el('hostRemove').focus({preventScroll:true});});
+ el('confirmUninstall').addEventListener('click',uninstallMock);
+ el('hostBack').addEventListener('click',()=>{if(currentView==='settings'){setView('index');renderIndex();el('hostSettings').focus();}else requestBack('host');});el('reopenTool').addEventListener('click',()=>{if(!installed)return;setView('index');renderIndex();renderRail();el('addButton').focus({preventScroll:true});});
  el('verifySaved').addEventListener('click',()=>{
   const target=el('verificationRows');target.replaceChildren();
   if(!state.items.length)target.append(create('p','','当前还没有已保存的提示词。'));
@@ -948,10 +994,11 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('themeButton').setAttribute('aria-pressed',String(dark));
  });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
+  state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
+  if(!el('uninstallConfirm').hidden){closeUninstall();el('hostRemove').focus({preventScroll:true});event.preventDefault();return;}
   if(!el('transferMenu').hidden){closeTransfer();el('transferButton').focus({preventScroll:true});event.preventDefault();return;}
   if(!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();event.preventDefault();}
   else if(!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}
