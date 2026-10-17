@@ -85,7 +85,7 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
       assert.equal(requested,runId);
       return {runs:[{runId,state:'completed',retirementState:'released',
         resultId,target:{mode:'borrowed',tabId:target.tabId,frameId:target.frameId,
-          documentId:target.documentId,expectedUrl:target.url,expectedWindowId:target.windowId},
+          documentId:target.documentId,url:target.url,windowId:target.windowId},
         revision:{sourceHash:source.sourceHash}}],
         results:[{runId,resultId,state:'completed',revision:{sourceHash:source.sourceHash},
           outcome:{ok:true}}]};

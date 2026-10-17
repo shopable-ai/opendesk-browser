@@ -143,8 +143,8 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         nativeTarget.tabId===proof.target.tabId&&
         (nativeTarget.frameId??0)===(proof.target.frameId??0)&&
         nativeTarget.documentId===proof.target.documentId&&
-        nativeTarget.expectedUrl===proof.target.url&&
-        nativeTarget.expectedWindowId===proof.target.windowId;
+        nativeTarget.url===proof.target.url&&
+        nativeTarget.windowId===proof.target.windowId;
       if(run?.state!=='completed'||run.retirementState!=='released'||
         run.revision?.sourceHash!==source.sourceHash||run.resultId!==proof.resultId||
         !targetMatches||!result){
