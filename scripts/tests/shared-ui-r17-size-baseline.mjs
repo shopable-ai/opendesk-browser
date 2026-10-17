@@ -43,13 +43,14 @@ const baseline=await size(resolve(out,'tool.js'));
 const baselineCss=await size(resolve(out,'tool.css'));
 const entry=await size(resolve('dist/development/sidebar-shared-ui.js'));
 const pinned=await size(resolve('dist/development/libs/page-frameworks/react-19.2.0.js'));
+const license=await size(resolve('dist/development/licenses/shared-ui-third-party-notices.txt'));
 assert.ok(baseline>shared*2,'Baseline must actually contain React, ReactDOM and official UI');
-const browserAdded=entry;
+const browserAdded=entry+license;
 const report={
   status:'BUILD_OUTPUT_MEASURED',basis:'Raw compiled asset bytes (not ZIP/Gzip)',
   baseline:{js:baseline,css:baselineCss,total:baseline+baselineCss},
   sharedTool:{js:shared,css:sharedCss,total:shared+sharedCss},
-  browser:{preexistingPinnedReact19:193163,sharedUIAdded:browserAdded},
+  browser:{preexistingPinnedReact19:193163,sharedUIResourceJS:entry,sharedUIThirdPartyNotices:license,sharedUIAddedTotal:browserAdded},
   sharedToolBytesSaved:baseline+baselineCss-shared-sharedCss,
   sharedToolReductionPercent:Number((100*(1-(shared+sharedCss)/(baseline+baselineCss))).toFixed(2)),
   important:'Browser sharedUIAdded includes React Aria behavior and Card/Switch style; pinned React19 is preexisting, not incremental'
