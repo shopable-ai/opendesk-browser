@@ -13,8 +13,8 @@ const here=dirname(fileURLToPath(import.meta.url));
 const toolDir=resolve(here,'../..');
 const root=resolve(toolDir,'../../..');
 const approved=join(toolDir,'preview/index.html');
-const candidateDir=join(here,'.opendesk-preview');
-const candidate=join(candidateDir,'bookmark-react-candidate.html');
+const candidateDir=join(toolDir,'preview');
+const candidate=join(candidateDir,'dev.html');
 const sha=x=>createHash('sha256').update(x).digest('hex');
 const read=p=>readFile(p,'utf8');
 const manifestPattern=/(<script type="application\/json" id="opendesk-preview-manifest">)([^<]+)(<\/script>)/;
@@ -55,7 +55,7 @@ async function generate(){
    '<meta name="viewport" content="width=device-width,initial-scale=1">'+
    '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; script-src data: &#39;unsafe-inline&#39;; style-src data: &#39;unsafe-inline&#39;; img-src data:; connect-src &#39;none&#39;; object-src &#39;none&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;">'+
    '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+style)+'">'+
-   '</head><body><div id="tool-root" data-react-root="bookmark-r304" aria-label="书签管理"></div>'+
+   '</head><body><div id="tool-root" data-react-root="bookmark-r304" aria-label="书签管理" style="height:100vh;min-height:0;overflow:hidden"></div>'+
    '<script>globalThis.__opendeskPreviewScenario="success";</script>'+scripts+'</body></html>';
   assert.equal((frame.match(/data:text\/javascript;base64,/g)||[]).length,4);
   const reactFiles={bundle:sha(bundle),css:sha(style),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
