@@ -6,14 +6,14 @@ import {fileURLToPath} from 'node:url';
 import {verifyFixedXmindAssets} from '../preview/serve.mjs';
 import {verifyLicenseReview} from '../scripts/verify-license-review.mjs';
 
-test('R395 captured references verify one exact artifact without approving redistribution',async()=>{
+test('R396 captured references verify two exact artifacts without approving redistribution',async()=>{
   const testsRoot=fileURLToPath(new URL('./',import.meta.url));
-  const review=JSON.parse(await readFile(new URL('./xmind-license-review-r395.json',import.meta.url),'utf8'));
+  const review=JSON.parse(await readFile(new URL('./xmind-license-review-r396.json',import.meta.url),'utf8'));
   const provenanceBytes=await readFile(new URL('./xmind-provenance.json',import.meta.url));
   const result=await verifyLicenseReview({review,provenanceBytes,testsRoot,
     resources:await verifyFixedXmindAssets()});
-  assert.equal(result.references.length,16);
-  assert.deepEqual(result.byteMappings.map(row=>row.asset),['jszip.min.js']);
+  assert.equal(result.references.length,22);
+  assert.deepEqual(result.byteMappings.map(row=>row.asset),['jszip.min.js','polyfill-45b9836beb.min.js']);
   assert.equal(result.status,'BLOCKED');
   assert.equal(result.legalApproval,false);
   assert.equal(result.installable,false);
@@ -28,6 +28,6 @@ test('license CLI reports integrity and the mandatory approval gate still exits 
   const report=JSON.parse(child.stdout.trim().replace(/^XMIND_RUNTIME_LICENSE_AUDIT /,''));
   assert.equal(report.status,'BLOCKED');
   assert.equal(report.redistributionApproved,false);
-  assert.equal(report.evidenceIntegrity.byteMappings.length,1);
-  assert.equal(report.files.filter(row=>row.upstreamArtifactMapping==='EXACT_CAPTURED_UPSTREAM_BYTES').length,1);
+  assert.equal(report.evidenceIntegrity.byteMappings.length,2);
+  assert.equal(report.files.filter(row=>row.upstreamArtifactMapping==='EXACT_CAPTURED_UPSTREAM_BYTES').length,2);
 });

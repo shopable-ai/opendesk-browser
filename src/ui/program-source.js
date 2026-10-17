@@ -1,11 +1,14 @@
 import {validatePageSource,PAGE_BUNDLE_LIMITS} from '../scripting/user-scripts/page-bundle.js';
+import {inspectPageFrameSource,PAGE_FRAME_DRAFT_LIMIT} from '../scripting/user-scripts/page-frame-resources.js';
 import {validateRemoteLock} from '../scripting/user-scripts/remote-esm-contract.js';
 import {digest,digestUtf8, invariant} from '../platform/protocol.js';
 
 export const PROGRAM_DRAFT_FORMAT = 'opendesk.program-draft.v1';
 export const PROGRAM_DRAFT_LIMIT = 512000;
 export const PROGRAM_DRAFT_V2_FORMAT='opendesk.program-draft.v2';
-export const PROGRAM_DRAFT_INPUT_LIMIT=PAGE_BUNDLE_LIMITS.draftBytes;
+// File-read/transport ceiling only; validateProgramDraft keeps the old budgets
+// unless the Page source contains a strictly validated frame container.
+export const PROGRAM_DRAFT_INPUT_LIMIT=PAGE_FRAME_DRAFT_LIMIT;
 const bytes = value => new TextEncoder().encode(value).length;
 // Source snapshots cannot grant execution privileges. Component projects may
 // display official JSX/SFC files; their frozen program.js is what executes.
@@ -26,10 +29,11 @@ export async function validateProgramDraft(input) {
   fields(value.project,['id','version','entry',...(Object.hasOwn(value.project??{},'entryMode')?['entryMode']:[])]);
   fields(value.build,['mode','sourceHash','byteLength']);
   const v2=value.format===PROGRAM_DRAFT_V2_FORMAT;
+  const framed=value.runtimeKind==='page-userscript'&&typeof value.sourceUtf8==='string'&&inspectPageFrameSource(value.sourceUtf8);
   fields(value.authoring,v2?['files','remoteLock']:['files']);
   invariant((value?.format === PROGRAM_DRAFT_FORMAT||v2&&value.runtimeKind==='page-userscript'), 'E_PROGRAM_DRAFT', '需要本地程序草稿包');
-  invariant(bytes(JSON.stringify(value)) <= (v2?PROGRAM_DRAFT_INPUT_LIMIT:PROGRAM_DRAFT_LIMIT), 'E_LIMIT',
-    `程序草稿包超过 ${v2?PROGRAM_DRAFT_INPUT_LIMIT:PROGRAM_DRAFT_LIMIT} 字节`);
+  const envelopeLimit=framed?PAGE_FRAME_DRAFT_LIMIT:v2?PAGE_BUNDLE_LIMITS.draftBytes:PROGRAM_DRAFT_LIMIT;
+  invariant(bytes(JSON.stringify(value)) <= envelopeLimit, 'E_LIMIT',`程序草稿包超过 ${envelopeLimit} 字节`);
   invariant(['controller','page-userscript'].includes(value.runtimeKind), 'E_PROGRAM_KIND', '未知程序运行环境');
   const component=value.project.entryMode==='component';
   invariant(value.project.entryMode===undefined||
@@ -40,9 +44,9 @@ export async function validateProgramDraft(input) {
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
   const executableLimit = value.runtimeKind === 'controller' ? 65536 : 100000;
   invariant(typeof value.sourceUtf8==='string'&&value.sourceUtf8.trim(),'E_LIMIT','执行产物必须为非空文本');
+  const bundle=v2||framed?await validatePageSource(value.sourceUtf8,{plainLimit:100000}):null;
   if(v2){
-    const bundle=await validatePageSource(value.sourceUtf8,{plainLimit:100000});
-    invariant(bundle,'E_PROGRAM_DRAFT','Page v2 必须提供有版本的固定执行资源');
+    invariant(bundle?.descriptor,'E_PROGRAM_DRAFT','Page v2 必须提供有版本的固定执行资源');
     const lock=validateRemoteLock(value.authoring.remoteLock);
     invariant(lock.format==='opendesk.remote-lock.v2'&&await digest(lock)===bundle.descriptor.dependencies.lockSha256,
       'E_PROGRAM_HASH','远端锁与固定执行资源的图身份不同');
@@ -54,7 +58,10 @@ export async function validateProgramDraft(input) {
     invariant(graph.moduleCount<=pins.length&&graph.sourceBytes<=pins.reduce((n,row)=>n+row.bytes,0)&&
       graph.sourceBytes>=graph.roots.reduce((n,row)=>n+lock.modules[row.url].bytes,0),
       'E_PROGRAM_HASH','执行资源声明的依赖数量或字节数与固定锁不一致');
-  }else invariant(bytes(value.sourceUtf8)<=executableLimit,'E_LIMIT',`执行产物必须非空且不超过 ${executableLimit} 字节`);
+  }else {
+    invariant(!bundle?.descriptor,'E_PROGRAM_DRAFT','Linked Page 资源须保留 v2 依赖锁');
+    invariant(framed||bytes(value.sourceUtf8)<=executableLimit,'E_LIMIT',`执行产物必须非空且不超过 ${executableLimit} 字节`);
+  }
   if(component){
     // The existing build directive chooses the pinned Page framework. Do not
     // infer it from a filename or silently accept a React/Vue mixed snapshot.

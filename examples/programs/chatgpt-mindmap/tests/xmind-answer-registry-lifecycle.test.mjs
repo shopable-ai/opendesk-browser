@@ -13,9 +13,15 @@ function setup({firstDestroy,firstTheme}={}){
   const {document}=parseHTML('<html><body><article data-testid="conversation-turn-1"><div data-message-author-role="assistant" data-message-id="A"><div class="markdown"><h2>Answer</h2><p>Original answer body</p></div></div><div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div></article></body></html>');
   const content=document.querySelector('.markdown'),handlers=new Map(),observers=[],views=[];
   // Linkedom does not implement CSS priority; retain the browser style contract.
-  const style=content.style,priorities=new Map(),set=style.setProperty.bind(style);
-  style.getPropertyPriority=name=>priorities.get(name)||'';
-  style.setProperty=(name,value,priority='')=>{priorities.set(name,priority);set(name,value);};
+  const style=content.style,priorities=new Map();
+  // Assigning methods to Linkedom's style Proxy creates CSS declarations.
+  // Wrap the element's style instead so restoration really checks priority.
+  Object.defineProperty(content,'style',{value:{
+    getPropertyValue:name=>style.getPropertyValue(name),
+    getPropertyPriority:name=>priorities.get(name)||'',
+    setProperty(name,value,priority=''){priorities.set(name,priority);style.setProperty(name,value);},
+    removeProperty(name){priorities.delete(name);return style.removeProperty(name);}
+  }});
   const owner={active:()=>true,on(target,type,listener){
     handlers.set(target,listener);return ()=>handlers.delete(target);
   },observe(target,listener,options){observers.push({listener,options});},
@@ -79,7 +85,26 @@ test('current render failure restores original content and reports its own error
   await h.views[0].options.onError(Object.assign(new Error('render failed'),{code:'E_RENDER'}));
   assert.equal(h.views[0].destroyCalls,1);assert.equal(h.content.hasAttribute('aria-hidden'),false);
   assert.equal(h.triggerHost.hidden,false);assert.equal(h.error.hidden,false);
+  assert.equal(h.error.textContent,'XMind 打开失败，原文已恢复。');
   assert.equal(h.trigger.title,'E_RENDER');await h.registry.destroy();
+});
+
+test('missing fixed XMind resource reports unavailable conversion and restores the answer',async()=>{
+  const h=setup();await h.click();
+  await h.views[0].options.onError(Object.assign(new Error('resource not bound'),{code:'E_FRAME_RESOURCE'}));
+  assert.equal(h.content.hasAttribute('aria-hidden'),false);
+  assert.equal(h.triggerHost.hidden,false);assert.equal(h.error.hidden,false);
+  assert.equal(h.error.textContent,'当前版本未包含 XMind 运行资源，暂无法生成导图，原文已恢复。');
+  assert.equal(h.trigger.title,'E_FRAME_RESOURCE');
+  assert.equal(h.views[0].host.isConnected,false);await h.registry.destroy();
+});
+
+test('preview without a fixed-resource capability reports its actual boundary',async()=>{
+  const h=setup(),original=h.content.outerHTML;await h.click();
+  await h.views[0].options.onError(Object.assign(new Error('no authorized frame entry'),{code:'E_FRAME_UNAVAILABLE'}));
+  assert.equal(h.error.textContent,'当前预览没有已授权的 XMind 固定资源入口，暂无法生成导图，原文已恢复。');
+  assert.equal(h.trigger.title,'E_FRAME_UNAVAILABLE');
+  assert.equal(h.content.outerHTML,original);await h.registry.destroy();
 });
 
 test('failure UI cannot arrive after a new view opens during retirement',async()=>{

@@ -20,6 +20,7 @@ import {PAGE_FRAMEWORK_IMPORTS,PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-f
 import {createPageComponentEntry,COMPONENT_ENTRY_FILE} from './page-component-entry.mjs';
 import {resolveRemoteImport} from '../src/scripting/user-scripts/remote-esm-contract.js';
 import {createPageBundle,validatePageSource,inspectPageSource,PAGE_BUNDLE_LIMITS} from '../src/scripting/user-scripts/page-bundle.js';
+import {wrapPageFrameSource,PAGE_FRAME_DRAFT_LIMIT} from '../src/scripting/user-scripts/page-frame-resources.js';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const runtimeName='__opendeskProjectModule';
@@ -275,10 +276,11 @@ async function npmLockHash(root){
 }
 
 function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode,remoteLock}){
-  const bundle=inspectPageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
+  const inspected=inspectPageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
+  const bundle=inspected?.descriptor,framed=Boolean(inspected?.resources);
   const files=before.sourceFiles.map(({path,sourceUtf8,sha256})=>({path,sourceUtf8,sha256}));
   const byteLength=Buffer.byteLength(sourceUtf8,'utf8');
-  ensure(bundle||byteLength<=SOURCE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft runtime source exceeds UI import limit',
+  ensure(bundle||framed||byteLength<=SOURCE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft runtime source exceeds UI import limit',
     {project:project.id,phase:'draft',location:'program.js'});
   ensure(files.length<=AUTHORING_FILE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft authoring file count exceeds UI import limit',
     {project:project.id,phase:'draft'});
@@ -295,7 +297,7 @@ function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode,remoteLock
     authoring:{files,...(bundle?{remoteLock}:{})}
   };
   const bytes=Buffer.byteLength(JSON.stringify(draft,null,2)+'\n','utf8');
-  ensure(bytes<=(bundle?PAGE_BUNDLE_LIMITS.draftBytes:ENVELOPE_LIMIT),'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
+  ensure(bytes<=(framed?PAGE_FRAME_DRAFT_LIMIT:bundle?PAGE_BUNDLE_LIMITS.draftBytes:ENVELOPE_LIMIT),'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
     {project:project.id,phase:'draft'});
   return draft;
 }
@@ -396,12 +398,13 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     let sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
     if(project.remoteDependencies)sourceUtf8=await createPageBundle(sourceUtf8,{
       remoteModules:remote.modules,remoteImports:before.remoteImports,remoteLock:remote.lock});
+    if(before.pageFrames?.length)sourceUtf8=await wrapPageFrameSource(sourceUtf8,before.pageFrames);
     if(project.runtimeKind==='controller'&&project.libraries?.length)
       sourceUtf8=project.libraries.map(id=>'// @opendesk-lib '+id).join('\n')+'\n'+sourceUtf8;
     const bytes=Buffer.from(sourceUtf8,'utf8');
     const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
     if(project.runtimeKind==='page-userscript')await validatePageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
-    ensure(bytes.length>0&&(project.remoteDependencies||bytes.length<=limit),'E_PROJECT_OUTPUT_LIMIT',
+    ensure(bytes.length>0&&(project.remoteDependencies||before.pageFrames?.length||bytes.length<=limit),'E_PROJECT_OUTPUT_LIMIT',
       'Program build output exceeds the current execution chain limit',
       {project:projectLabel,phase:'build',location:'program.js'});
     try{parse(sourceUtf8,{ecmaVersion:'latest',sourceType:'script'});}
@@ -433,10 +436,12 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
     const hash=sha(bytes);
     const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
-    const sourceMapUtf8=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header)+(project.remoteDependencies?1:0),file:'program.js'});
+    const lineOffset=lineCount(header)+(project.remoteDependencies?1:0)+(before.pageFrames?.length?1:0);
+    const sourceMapUtf8=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset,file:'program.js'});
   if(memoryOnly)return Object.freeze({pkg,project,before,sourceUtf8,sourceHash:hash,sourceBytes:bytes.length,sourceMapUtf8,modules:compiled.modules,remoteModules:remote.modules,webpackMs:compiled.webpackMs});
     const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
-      ...(before.assets.length?{assets:before.assets}:{}),remoteModules:remote.modules})));
+      ...(before.assets.length?{assets:before.assets}:{}),
+      ...(before.pageFrames?{pageFrames:before.pageFrames.map(({code,...row})=>row)}:{}),remoteModules:remote.modules})));
     const out=resolve(outputDirectory||join(process.cwd(),
       'artifacts','programs',project.id,pkg.version,'r31-'+mode,hash.slice(0,16)+'-'+authoringHash.slice(0,12)));
     const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode,remoteLock:remote.lock});
@@ -456,6 +461,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       sourceModules:before.sources,
       sourceFiles:before.sources,
       ...(before.assets.length?{assets:before.assets}:{}),
+      ...(before.pageFrames?{pageFrames:before.pageFrames.map(({code,...row})=>row)}:{}),
       npmPackages:before.npmPackages,
       // npm lock provenance is distinct from actual Webpack module inclusion.
       // A tree-shaken unused import may have zero emitted modules; never claim
@@ -496,9 +502,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     await mkdir(out,{recursive:true});
     await immutableWrite(join(out,'program.js'),sourceUtf8);
     if(sourceMapFile&&compiled.sourceMapUtf8){
-      const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
-      const shifted=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header)+(project.remoteDependencies?1:0),file:'program.js'});
-      await immutableWrite(join(out,sourceMapFile),JSON.stringify(JSON.parse(shifted),null,2)+'\n');
+      await immutableWrite(join(out,sourceMapFile),JSON.stringify(JSON.parse(sourceMapUtf8),null,2)+'\n');
     }
     if(taskPackage)await immutableWrite(join(out,'program.opendesk-task.json'),JSON.stringify(taskPackage,null,2)+'\n');
     await immutableWrite(join(out,'program.opendesk-draft.json'),JSON.stringify(draft,null,2)+'\n');

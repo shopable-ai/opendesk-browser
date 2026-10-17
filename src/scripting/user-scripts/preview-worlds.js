@@ -38,8 +38,9 @@ export function createPreviewWorlds({api}) {
   }
   async function probe(native, target, code, expected, worldId) {
     const receipt = await native.execute({target:{tabId:target.tabId,documentIds:[target.documentId]},
+      ...(target.frameId>0?{injectImmediately:true}:{}),
       world:'USER_SCRIPT', ...(worldId ? {worldId} : {}), js:[{code}]});
-    invariant(Array.isArray(receipt) && receipt.length === 1 && receipt[0].frameId === 0 &&
+    invariant(Array.isArray(receipt) && receipt.length === 1 && receipt[0].frameId === (target.frameId ?? 0) &&
       receipt[0].documentId === target.documentId && receipt[0].error === undefined && receipt[0].result === expected,
       'E_WORLD_ISOLATION', '浏览器未确认独立脚本世界；请刷新网页后重试，未注入依赖或用户代码');
   }
@@ -50,11 +51,15 @@ export function createPreviewWorlds({api}) {
     // World configurations persist beyond storage.session and tab-close events
     // are not guaranteed during shutdown. Reconcile only our preview prefix on
     // every allocation, including the first one after a browser restart. Reset
-    // affects future contexts, not already-created worlds or document budgets.
+      // may change messaging in existing contexts. Installed parents still need
+      // their original channel for frame retirement and managed disposal.
     const configurations = await native.getWorldConfigurations();
     invariant(Array.isArray(configurations), 'E_WORLD_ISOLATION', '无法读取浏览器执行世界配置');
+      const liveInstalled=new Set((await ledger()).filter(row=>row.installed&&row.installed.state!=='retired')
+        .map(row=>row.worldId));
     for (const configuration of configurations) {
-      if (typeof configuration.worldId === 'string' && configuration.worldId.startsWith(PREFIX))
+        if (typeof configuration.worldId === 'string' && configuration.worldId.startsWith(PREFIX)&&
+          !liveInstalled.has(configuration.worldId))
         await native.resetWorldConfiguration(configuration.worldId);
     }
     const worldId = await reserve(target), marker = '__opendesk_probe_' + token();

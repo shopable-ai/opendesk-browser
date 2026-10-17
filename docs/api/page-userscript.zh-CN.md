@@ -92,6 +92,18 @@ export default async function main({assets}) {
 
 移除 @opendesk/ui 前先 Stop 原实例，否则 E_UI_MODE_CONFLICT。MCP provider 断开禁用新的源码 Run；原 Sidebar Host 已拥有的受管 UI 可通过「停止受管 UI」清理。新 Host 不静默接管旧文档实例。[恢复规则](dependencies-and-errors.zh-CN.md#断连和未知结果)。
 
+## 已安装版本的受管清理（R396）
+
+已安装 Page 程序也接入现有受管 UI 生命周期。停用、撤销网站授权、卸载及固定版本升级时，现有安装链尝试在原顶层文档和原 USER_SCRIPT 世界中清理旧授权的 `createPageUI` 实例，并等待已登记的异步 `ui.onDispose` 返回。清理绑定原 Program Revision、sourceHash、manifestHash、installationId、grantGeneration、executionKey、文档及固定编译字节 SHA；不会重新执行程序源码。程序自行创建的 iframe、连接等资源应通过 `ui.onDispose` 登记关闭。
+
+安装状态和卸载结果可包含 `managedCleanup: {scope:'managed-ui-only', state:'retired'|'unknown', records:number}`；`records` 是核对的执行记录数量，不能当作 UI 实例数。`retired` 仅证明这部分受管资源已退休或原文档已确认消失。未登记的 DOM 修改、异步工作及其他业务效果仍可能需要刷新，卸载结果继续保留 `livePagesNeedRefresh:true`，现有 UI 刷新提示仍适用。
+
+清理失败、超时、回执缺失、身份不匹配、BFCache 文档或观察失败均保守保留未知/失败栅栏，不自动重试控制、不重放源码；同一文档中的后续安装版本也不能绕过未解决的清理。真实文档退出后才可解除对应文档限制。扩展重载导致账本丢失也不能据此宣布清理成功。
+
+固定子帧资源通过项目 `pageFrames: [{resourceId,path}]` 声明本地已编译 JS，由原打包器冻结字节与 SHA。公开 `ui.createFrame({resourceId,data})` 只解析当前已安装固定源码声明的资源，复用原 Broker/Authority 核对安装身份、授权代数和精确父/子文档，并随受管 UI 清理；普通 iframe DOM 不获得这些能力。资源最多四项、单项 5 MiB、合计 6 MiB，不支持运行时导入。该合同不批准远程代码或厂商再分发。没有获授权资源入口的开发预览报 `E_FRAME_UNAVAILABLE`；不得把它当作绘图成功。
+
+R396 定向 Node 测试覆盖异步 dispose、停用/撤权/卸载及未知态；同候选 build 和真实 Chrome 安装证据由各自验收记录提供，不能从 Node PASS 推导。ChatGPT Mind Map 的真实回复按钮已在开发预览中原生点击，但没有厂商生产资源，转换仍阻塞；前序停用失败的源码修复尚未原生复验。
+
 ## 预览与固定版本
 
 预览回执只属于此次网页文档。保存固定 Candidate、验证、Available、Installed 是另外的正式生命周期，预览成功或构建 BUILT_UNVERIFIED 不能替代这些状态，也不能宣称下次打开网页自动生效。参见[现有 Candidate 说明](../product/program-development-dual-format-and-sidebar.zh-CN.md#page-试运行后保存固定版本r12-候选入口)。

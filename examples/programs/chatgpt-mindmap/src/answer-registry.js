@@ -41,7 +41,8 @@ function makeButton(doc,css,owner,handleClick){
 function answerController({document,window,owner,css,parts,coordinator,createView,instanceId}){
   let {root,content,bar}=parts;
   let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0,viewSession=0;
-  let messageId=root.getAttribute('data-message-id');
+  const readMessageId=()=>root.getAttribute('data-message-id')||root.id||null;
+  let messageId=readMessageId();
   let busyTimer=null,buttonRef=null;
   const handleClick=async()=>{
     if(disposed||buttonRef?.button.disabled)return;
@@ -86,12 +87,13 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
   }
   function restore(){
     if(!hidden)return;
-    const {node,oldDisplay,oldPriority,oldAria}=hidden;
+    const {node,oldDisplay,oldPriority,oldAria,hadStyle}=hidden;
     if(node.style.getPropertyValue('display')==='none'&&
        node.style.getPropertyPriority('display')==='important'){
       if(oldDisplay)node.style.setProperty('display',oldDisplay,oldPriority);
       else node.style.removeProperty('display');
     }
+    if(!hadStyle&&node.getAttribute('style')?.trim()==='')node.removeAttribute('style');
     if(node.getAttribute('aria-hidden')==='true'){
       if(oldAria===null)node.removeAttribute('aria-hidden');
       else node.setAttribute('aria-hidden',oldAria);
@@ -99,7 +101,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     hidden=null;
   }
   function conceal(){
-    hidden={node:content,oldDisplay:content.style.getPropertyValue('display'),
+    hidden={node:content,hadStyle:content.hasAttribute('style'),oldDisplay:content.style.getPropertyValue('display'),
       oldPriority:content.style.getPropertyPriority('display'),
       oldAria:content.getAttribute('aria-hidden')};
     content.style.setProperty('display','none','important');
@@ -119,7 +121,12 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     if(disposed||view!==source||viewSession!==session)return;
     await close();
     if(disposed||viewSession!==session)return;
-    buttonRef.error.hidden=false;buttonRef.error.textContent="XMind 打开失败，原文已恢复。";
+    buttonRef.error.hidden=false;
+    buttonRef.error.textContent=error?.code==='E_FRAME_UNAVAILABLE'
+      ?'当前预览没有已授权的 XMind 固定资源入口，暂无法生成导图，原文已恢复。'
+      :error?.code==='E_FRAME_RESOURCE'||error?.code==='E_XMIND_RUNTIME_UNAVAILABLE'
+      ?'当前版本未包含 XMind 运行资源，暂无法生成导图，原文已恢复。'
+      :'XMind 打开失败，原文已恢复。';
     buttonRef.button.title=String(error?.code||"E_XMIND_RENDER");
   }
   async function open(){
@@ -163,7 +170,7 @@ function answerController({document,window,owner,css,parts,coordinator,createVie
     get buttonHost(){return buttonRef.host;},get button(){return buttonRef.button;},
     reconcile(next){
       if(disposed)return;
-      const nextId=root.getAttribute('data-message-id');
+      const nextId=readMessageId();
       if(next.content!==content||nextId!==messageId){
         close();content=next.content;messageId=nextId;lastChange=0;revision++;
       }
@@ -293,7 +300,7 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
     if(disposed)throw new Error('E_MINDMAP_DESTROYED');
     owner.observe(document.documentElement,mutations,
       {subtree:true,childList:true,characterData:true,attributes:true,
-        attributeFilter:['data-is-streaming','aria-busy','data-message-id']});
+        attributeFilter:['data-is-streaming','aria-busy','data-message-id','id','data-message-complete']});
     owner.on(window,'keydown',keydown);
     // A theme mutation is visible at the next microtask, before a delayed
     // 140 ms answer rescan. This also updates already-open A/B viewers.

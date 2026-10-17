@@ -8,10 +8,13 @@ import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {PAGE_BROWSER_COMPILER} from '../../libs/page-frameworks/contract.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibraries, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS} from './execution-source.js';
+import {compileLockedPageSource, builtinReadinessSource, pageWantsJquery, pageSelectedPackagedLibraries, pageOptionalLibraryId, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_WORLD_CSP} from './execution-source.js';
 import {inspectPageSource} from './page-bundle.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
+import {managedUIBootstrapSource,managedUIRetireSource} from './managed-ui-lifecycle.js';
+import {createPageFrameRuntime,pageFrameBootstrapSource} from './page-frame-runtime.js';
+import {readPageFrameResources} from './page-frame-resources.js';
 
 // One-shot developer preview only. Not a Task Candidate, durable Controller
 // Result, installed Page Program or a persistent userScripts.register grant.
@@ -104,6 +107,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   invariant(api && storage && typeof assertHost === 'function'&&typeof admission?.reserve==='function'&&typeof admission.release==='function', 'E_SCHEMA', 'Trusted preview dependencies missing');
   const dependencyManager = dependencies || createDependencyManager({api,storage,assertHost,fetchImpl});
   const worlds = createPreviewWorlds({api});
+  const pageFrames=createPageFrameRuntime({api,worlds});
   const managed=managedFactory?.({worlds,assertHost,verifyTarget});
   let active = false;
   let permissionRemovalEpoch=0;
@@ -288,14 +292,108 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   // Only the trusted installed-program service supplies frozen bytes and its
   // persisted grant. No UI/Native message route exposes this method directly.
   // Reuse the compiler, native world proof and unique Authority slot.
+  const installedIdentity=['namespace','programId','revision','sourceHash','manifestHash',
+    'installationId','grantGeneration','executionKey','receiptNonce'];
+  async function markInstalled(worldId,receiptNonce,change){
+    await worlds.editRecords(rows=>{
+      const row=rows.find(row=>row.worldId===worldId);
+      invariant(row?.installed?.receiptNonce===receiptNonce,'E_UI_LIFECYCLE','原安装清理身份已变化');
+      row.installed={...row.installed,...change(row.installed)};
+    });
+  }
+  // Internal broker control only: no UI message accepts an installation or
+  // source here. Reuse the existing world ledger and lexical UI registry.
+  async function retireInstalled(installation,{includeCurrent=true}={}){
+    const records=(await worlds.records()).filter(row=>{
+      const r=row.installed,a=installation.authorization;
+      return r&&r.namespace===installation.namespace&&r.programId===installation.programId&&
+        r.installationId===a?.installationId&&r.grantGeneration<=a.generation&&
+        (includeCurrent||r.grantGeneration<a.generation);
+    });
+    // Extension reload or session-ledger loss does not prove an old document
+    // died. The persisted execution still fences a false "nothing to clean".
+    const executions=await storage.transaction(['frameworkKV'],'readonly',async tx=>(await tx.all('frameworkKV')).filter(r=>
+      r?.tag==='page-execution-v1'&&r.namespace===installation.namespace&&r.programId===installation.programId&&
+      r.installationId===installation.authorization?.installationId&&r.grantGeneration<=installation.authorization.generation&&
+      (includeCurrent||r.grantGeneration<installation.authorization.generation)&&r.managedUI));
+    let unknown=false;
+    for(const execution of executions){
+      if(records.some(row=>row.worldId===execution.managedUI.worldId&&
+        installedIdentity.every(key=>row.installed[key]===execution[key])))continue;
+      try{
+        const frame=await api.webNavigation.getFrame({documentId:execution.documentId});
+        if(frame!==null&&frame!==undefined)unknown=true;
+      }catch{unknown=true;}
+    }
+    for(const row of records){
+      const r=row.installed;
+      if(r.state==='retired'||r.state==='discarded')continue;
+      let dispatched=false;
+      try{
+        const execution=await storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',r.executionKey));
+        invariant(execution?.tag==='page-execution-v1'&&installedIdentity.every(key=>execution[key]===r[key])&&
+          execution.tabId===row.tabId&&execution.documentId===row.documentId&&r.target?.tabId===row.tabId&&
+          r.target.documentId===row.documentId&&/^[a-f0-9]{64}$/.test(r.compiledSha256)&&
+          execution.managedUI?.worldId===row.worldId&&execution.managedUI.compiledSha256===r.compiledSha256,
+          'E_UI_LIFECYCLE','受管清理与原始安装执行不一致');
+        // getAllFrames omits BFCache. Only exact UUID absence proves death.
+        // Chrome validates optional tab/frame query fields against the UUID;
+        // getFrame's RESULT has parentFrameId, not tabId or frameId.
+        const frame=await api.webNavigation.getFrame({tabId:row.tabId,frameId:0,documentId:row.documentId});
+        if(frame===null||frame===undefined){
+          const original=await api.webNavigation.getFrame({documentId:row.documentId});
+          invariant(original===null||original===undefined,'E_DOCUMENT_STALE','原文档仍存在但不属于此顶层目标');
+          await markInstalled(row.worldId,r.receiptNonce,()=>({state:'retired',contextGone:true}));continue;
+        }
+        // Uncertain cleanup can observe document death, but must never replay.
+        if(['retiring','unknown','failed'].includes(r.state)){unknown=true;continue;}
+        invariant(frame.documentId===row.documentId&&frame.parentFrameId===-1&&frame.parentDocumentId===undefined&&
+          frame.frameType==='outermost_frame'&&
+          !frame.errorOccurred&&(!frame.documentLifecycle||frame.documentLifecycle==='active'),
+          'E_DOCUMENT_STALE','原安装文档当前不可清理');
+        const native=await nativeAPI(),requestNonce=crypto.randomUUID();
+        await markInstalled(row.worldId,r.receiptNonce,current=>{
+          invariant(['ready','evaluated'].includes(current.state),'E_EFFECT_UNKNOWN','原清理状态已变化');
+          return {state:'retiring'};
+        });
+        dispatched=true;
+        const results=await native.execute({target:{tabId:row.tabId,documentIds:[row.documentId]},
+          world:'USER_SCRIPT',worldId:row.worldId,js:[{code:managedUIRetireSource(r.receiptNonce,requestNonce)}]});
+        const result=results?.[0],receipt=result?.result;
+        invariant(Array.isArray(results)&&results.length===1&&result.frameId===0&&
+          result.documentId===row.documentId&&result.error===undefined&&
+          receipt?.format==='opendesk.managed-ui.v1'&&receipt.nonce===r.receiptNonce&&
+          receipt.requestNonce===requestNonce&&receipt.scope==='managed-ui-only'&&
+          typeof receipt.ok==='boolean'&&Number.isSafeInteger(receipt.instances)&&receipt.instances>=0,
+          'E_EFFECT_UNKNOWN','缺少原文档的受管清理回执');
+        await markInstalled(row.worldId,r.receiptNonce,()=>({state:receipt.ok?'retired':'failed',receipt}));
+        if(!receipt.ok)unknown=true;
+      }catch(error){
+        unknown=true;
+        await markInstalled(row.worldId,r.receiptNonce,()=>({state:'unknown',
+          error:{code:dispatched?'E_EFFECT_UNKNOWN':error.code||'E_EFFECT_UNKNOWN',message:String(error.message||error).slice(0,1024)}}));
+      }
+    }
+    return {scope:'managed-ui-only',state:unknown?'unknown':'retired',records:Math.max(records.length,executions.length)};
+  }
   async function executeInstalled({candidate,resolution,target,installation},authorize,dispatch) {
     invariant(!active&&typeof admission.reserveInstalled==='function','E_OWNER','页面执行入口正忙');
     const t=freezeTarget(target);
-    active=true;let dispatched=false,confirmed=false,reserved=false;
+    active=true;let dispatched=false,confirmed=false,reserved=false,installedWorld;
     const receiptNonce=crypto.randomUUID();
     try {
       invariant(typeof dispatch==='function','E_OWNER','缺少安装派发授权');
       await authorize();await verifyTarget(t,undefined,{requireActive:false,allowLoading:true});
+      const history=await storage.transaction(['frameworkKV'],'readonly',async tx=>(await tx.all('frameworkKV')).filter(row=>
+        row?.tag==='page-execution-v1'&&row.namespace===installation.namespace&&row.programId===installation.programId&&
+        row.documentId===t.documentId&&row.executionKey!==installation.executionKey&&row.managedUI));
+      const known=await worlds.records();
+      invariant(history.every(execution=>known.some(row=>row.worldId===execution.managedUI.worldId&&
+        row.tabId===execution.tabId&&row.documentId===execution.documentId&&
+        installedIdentity.every(key=>row.installed?.[key]===execution[key])&&
+        row.installed.compiledSha256===execution.managedUI.compiledSha256&&
+        ['retired','discarded'].includes(row.installed.state))),
+        'E_UI_CLEANUP_FAILED','原安装的受管清理未确认；请重新加载原网页，不执行新源码');
       const builtinSource=await loadBuiltin({runtime:api.runtime,fetchImpl});
       assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(builtinSource));
       const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
@@ -313,13 +411,37 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation);reserved=true;
+      invariant(script.sourceHash===installation.sourceHash,'E_SOURCE_HASH','安装源码已变化');
+      const frameResources=await readPageFrameResources(candidate.sourceUtf8);
+      if(frameResources.length)await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
+      const frameBootstrap=frameResources.length?pageFrameBootstrapSource({executionKey:installation.executionKey,
+        receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)}):'';
+      const js=[{code:managedUIBootstrapSource(receiptNonce)+';\n'+frameBootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
+      const compiledSha256=await sha256Utf8(js[0].code);
+      // Persist the world/code binding in the original Authority execution too;
+      // session metadata alone cannot choose a world for privileged control.
+      await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+        const execution=await tx.get('frameworkKV',installation.executionKey);
+        invariant(execution?.state==='prepared'&&execution.receiptNonce===receiptNonce&&
+          execution.sourceHash===script.sourceHash&&!execution.managedUI,'E_UI_LIFECYCLE','原执行已变化');
+        await tx.put('frameworkKV',{...execution,managedUI:{worldId,compiledSha256}},installation.executionKey);
+      });
+      await worlds.editRecords(rows=>{
+        const row=rows.find(row=>row.worldId===worldId);
+        invariant(row&&!row.installed&&!row.managed,'E_UI_LIFECYCLE','安装执行世界已被占用');
+        row.installed={namespace:installation.namespace,programId:installation.programId,revision:installation.revision,
+          sourceHash:script.sourceHash,manifestHash:installation.manifestHash,
+          installationId:installation.authorization.installationId,grantGeneration:installation.authorization.generation,
+          executionKey:installation.executionKey,receiptNonce,target:t,compiledSha256,state:'ready',
+          builtinBundleSha256:script.builtinBundleSha256,dependencyHashes:resolution.entries.map(row=>row.sha256)};
+      });installedWorld=worldId;
       await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true});
       // Serialize the last grant check and native invocation with disable and
       // replacement. Release that queue before awaiting user code completion.
       const pending=await dispatch(receiptNonce,()=>{
         dispatched=true;
         return native.execute({target:{tabId:t.tabId,documentIds:[t.documentId]},
-          world:'USER_SCRIPT',worldId,js:script.js});
+          world:'USER_SCRIPT',worldId,js});
       });
       const results=await pending.completion;
       invariant(Array.isArray(results)&&results.length===1&&results[0]?.frameId===0&&
@@ -330,6 +452,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       invariant(completion?.format===PAGE_PREVIEW_RECEIPT_FORMAT&&completion.nonce===receiptNonce&&
         typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION','安装脚本缺少完成回执');
       confirmed=true;
+      await markInstalled(worldId,receiptNonce,current=>current.state==='ready'?{state:'evaluated'}:{});
       invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error||'安装脚本执行失败');
       await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true});
       await authorize(); // A completed native effect does not revive a revoked grant.
@@ -351,11 +474,13 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       if(dispatched&&confirmed)error.effectConfirmed=true;
       throw error;
     }finally{
-      if(reserved&&(!dispatched||confirmed))await admission.release({nonce:receiptNonce});
-      active=false;
+      try{
+        if(installedWorld&&!dispatched)await markInstalled(installedWorld,receiptNonce,()=>({state:'discarded'}));
+        if(reserved&&(!dispatched||confirmed))await admission.release({nonce:receiptNonce});
+      }finally{active=false;}
     }
   }
-  return Object.freeze({preview,retire,query,executeInstalled,async cleanupWorlds(details){
+  return Object.freeze({preview,retire,query,executeInstalled,retireInstalled,executeFrame:pageFrames.execute,async cleanupWorlds(details){
     if(details.removed)await admission.release({removedTabId:details.tabId});
     return worlds.cleanup(details);
   }});

@@ -19,7 +19,7 @@ if(pkg.opendesk?.id!=='opendesk.chatgpt-mindmap'||
 const resources=await verifyFixedXmindAssets();
 // Captured texts and exact upstream comparisons are checked independently of
 // the unchanged production approval fields in the original provenance.
-const reviewPath='tests/xmind-license-review-r395.json';
+const reviewPath='tests/xmind-license-review-r396.json';
 const review=JSON.parse(await readFile(resolve(project,reviewPath),'utf8'));
 const evidenceIntegrity=await verifyLicenseReview({review,provenanceBytes,resources,
   testsRoot:resolve(project,'tests')});

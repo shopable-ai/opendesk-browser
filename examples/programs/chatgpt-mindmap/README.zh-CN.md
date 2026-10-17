@@ -1,6 +1,21 @@
-# ChatGPT 思维导图 R3.9.5 · 许可映射与准入加固，正式安装仍阻塞
+# ChatGPT 思维导图 R3.9.6 · 真实回复按钮已验证，XMind 转换仍阻塞
 
-## R3.9.5 · 当前结果（2026-10-17）
+## R3.9.6 · 当前结果（2026-10-17）
+
+[本轮按钮原生证据](tests/mac-button-r396-20261017.json)：独立 Mac CFT 155.0.8059.39、mock keychain、真实 OpenDesk 扩展，在新建 ChatGPT 匿名测试会话的真实回复中插入并原生点击“思维导图”。回复含准备/路线/活动/收尾四个二级标题、实际三级列表、中文、English、数字与链接；每条回复只有一个按钮，位于原操作栏旁。当前 ChatGPT 使用 `li[data-message-role="assistant"]` 与 `[data-assistant-markdown-root]`，已补充这些实际选择器及流式完成状态。
+
+点击进入真实 Page UI 流程，返回 `E_FRAME_UNAVAILABLE`，明确显示“当前预览没有已授权的 XMind 固定资源入口，暂无法生成导图，原文已恢复。”原回复为同一 DOM 节点且完整 HTML 不变，没有残留查看器。**真实按钮/点击的开发预览验证通过；真实 XMind 转换仍 BLOCKED；正式安装、自动运行和撤权未获本轮原生验证。** 原始记录和截图位于 `artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/`，结果范围不可提升为安装成功。
+
+本次无厂商资源构建为 59,828 字节，sourceHash `1b63ecc6852b00d720a60b20d815b3f724dc6e9843fea5ef2f6dd8c92633661d`；原生复制到开发入口时仅移除末尾 LF，实际预览为 59,827 字节，sourceHash `6d38b46880a370fd18055eb5baf36cf0daf14dff1b46ac56791be4a45e6e7d78`，已与真实预览回执逐字节绑定。Program 仍为 `opendesk.chatgpt-mindmap / 0.2.0 / BUILT_UNVERIFIED / installable:false`。
+
+以下 [前序 R3.9.6 验收记录](ACCEPTANCE-R3.9.6.zh-CN.md) 与 [前序机器索引](tests/mac-acceptance-r396.json) 保留原始候选和失败，不覆盖为本次结果。
+[许可证据](tests/xmind-license-review-r396.json) 增至 22 份：polyfill 与 `babel-polyfill@6.26.0` 的完整 dist 逐字节相同；Snowbrush 与官方 CDN 的固定原文件相同，但精确构建和再分发授权仍缺失。SDK、历史 GSAP 条款、嵌入 Pako 及 NOTICE 闭包继续阻塞。原 provenance 批准字段未改，完整性检查不等于法律批准。
+
+通用固定资源容器与公开 `createPageUI().createFrame({resourceId,data})` 已实现，复用原 Broker/Authority 和受管清理；本次沿用已冻结扩展包，不重建该能力。厂商资源许可闭包仍缺失，未加入生产厂商资源。前序停用时的 messaging 失败保留；修复源码已包含在该扩展候选，但本轮未复验停用，不能登记原生 PASS。
+
+R395 的 19 个任务文件已安全保存在本地提交 `1fbba04d42e55574f88f20a9069308b2b835cacf`；未推送。
+
+## R3.9.5 · 历史结果（2026-10-17）
 
 [许可证据清单](tests/xmind-license-review-r395.json) 现在包含 16 份可离线校验的参考材料，
 其中独立 JSZip 与上游 3.10.1 dist 逐字节一致。GSAP 仅有头部匹配，Pako 仅有文件级许可参考；

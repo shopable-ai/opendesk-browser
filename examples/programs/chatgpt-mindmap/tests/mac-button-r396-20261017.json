@@ -1,0 +1,209 @@
+{
+  "format": "opendesk.chatgpt-mindmap.button-native.v1",
+  "observedAt": "2026-10-17T08:23:49.060Z",
+  "scope": "REAL_CHATGPT_PAGE_PREVIEW_BUTTON_ONLY",
+  "launch": {
+    "pid": 56004,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qnbve9w2",
+    "mockKeychain": true
+  },
+  "extension": {
+    "id": "ghphiepbcmidcbmaeaioolbjgjnbeoma",
+    "name": "OpenDesk Browser",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-mindmap-r396-mac-20261017/loader/build-snapshot/dist/production",
+    "state": "ENABLED",
+    "version": "0.1.0"
+  },
+  "packageHash": "dd540e77a55c82375d55633f6f4ad723963c1dee3de2e9b6aad596df36afbe9b",
+  "chromeVersion": "155.0.8059.39",
+  "build": {
+    "sourceBytes": 59828,
+    "sourceHash": "1b63ecc6852b00d720a60b20d815b3f724dc6e9843fea5ef2f6dd8c92633661d",
+    "status": "BUILT_UNVERIFIED",
+    "installable": false
+  },
+  "preview": {
+    "sourceBytes": 59827,
+    "sourceHash": "6d38b46880a370fd18055eb5baf36cf0daf14dff1b46ac56791be4a45e6e7d78",
+    "onlyFinalNewlineRemoved": true,
+    "receipt": {
+      "state": "preview-evaluated",
+      "durable": false,
+      "registered": false,
+      "tabId": 146616544,
+      "documentId": "19E9D1C1D77522005076304DED0C1258",
+      "sourceHash": "6d38b46880a370fd18055eb5baf36cf0daf14dff1b46ac56791be4a45e6e7d78",
+      "world": "USER_SCRIPT",
+      "worldId": "opendesk-preview-d1-40751e110af44cd2815954cfe45f84d9",
+      "receiptNonce": "eaedfb73-01e5-40be-998d-cf3a025ecdad",
+      "builtinAbi": "opendesk-builtins.v10",
+      "builtinCatalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+      "builtinBundleSha256": "9f8870de026862393755dd385843072a6017c9914634e3bb975521d232059cda",
+      "entryFormat": "async-main",
+      "lockId": null,
+      "manifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+      "dependencies": [],
+      "warnings": [
+        {
+          "severity": "warning",
+          "code": "W_USER_SCRIPT_ISOLATION",
+          "message": "D1 uses USER_SCRIPT isolation without implicit GM_info, GM.info or unsafeWindow; this is a supported subset of UserScript managers"
+        },
+        {
+          "severity": "warning",
+          "code": "W_PREVIEW_TIMING",
+          "message": "Immediate preview runs in the approved current main document now; it does not replay @run-at, match selection or frame scheduling"
+        }
+      ],
+      "resultText": "{\"answers\":3,\"programId\":\"opendesk.chatgpt-mindmap\",\"runtime\":\"USER_SCRIPT\",\"status\":\"active\"}"
+    }
+  },
+  "sourceDrift": [],
+  "reply": {
+    "url": "https://chatgpt.com/uc/6ad32e2e-9f18-83ea-9a63-a4239817efc7",
+    "id": "b534544a-c6d2-4ff3-b7ca-0d0555df90ab",
+    "headings": [
+      "准备",
+      "路线",
+      "活动",
+      "收尾"
+    ],
+    "depth3": true,
+    "button": {
+      "text": "思维导图",
+      "label": "查看本条 AI 回复的思维导图",
+      "disabled": false,
+      "replyButtons": 1,
+      "totalButtons": 3,
+      "besideActions": true
+    }
+  },
+  "click": {
+    "code": "E_FRAME_UNAVAILABLE",
+    "message": "当前预览没有已授权的 XMind 固定资源入口，暂无法生成导图，原文已恢复。",
+    "originalUnchanged": true,
+    "sameOriginalNode": true,
+    "remainingViewers": 0
+  },
+  "realXmindConversion": "BLOCKED",
+  "formalInstallation": "NOT_TESTED",
+  "inputMethod": "Native CUA via chrome-testing-keychain managed CFT; CDP only read DOM/source/receipts and capture screenshots. No synthetic input.",
+  "validation": {
+    "business": {
+      "tests": 50,
+      "pass": 47,
+      "fail": 0,
+      "skip": 3,
+      "skipReason": "XMIND_REFERENCE_DIR missing; real SDK NOT_TESTED"
+    },
+    "targeted": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0
+    },
+    "build": "PASS via existing isolated snapshot builder; root incomplete webpack failure preserved",
+    "platformInputs": "14 source/contract files byte-identical to loaded snapshot",
+    "packageIdentity": "PASS same loaded production package",
+    "nodeSyntax": "PASS",
+    "projectValidation": "AUTHORING_VALID_NOT_PACKAGED"
+  },
+  "blockers": [
+    "Current public development preview has no authorized fixed XMind frame resource entry (E_FRAME_UNAVAILABLE).",
+    "SDK exact build/source mapping absent.",
+    "Snowbrush exact build and redistribution authorization absent.",
+    "Historical GSAP terms absent.",
+    "Embedded Pako mapping and complete NOTICE closure absent."
+  ],
+  "lifecycleNativeRetest": "NOT_TESTED: prior disable messaging failure retained; source fix present in loaded candidate",
+  "evidenceManifest": {
+    "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/evidence-manifest.json",
+    "sha256": "8b273ca4f62bc99e302d9475e5597ea675b63ced17334c06e8e7ef32c1b2f6ca"
+  },
+  "evidence": [
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/chrome-launch.json",
+      "bytes": 1120,
+      "sha256": "64732b52bbac96d8f7c321bb78ca6e05f899fa37fbe7ae6a4e43ebf9d14c5a06"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/chatgpt-dom-evidence.json",
+      "bytes": 12175,
+      "sha256": "2e008fc59723a4a4ac7f2023a1deed235e4feaa9124375ab3f6c05120591cdc7"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/qualified-before-click.json",
+      "bytes": 52259,
+      "sha256": "594cc97ea500116d928edadb236d5d61d224cbf896dd183a9560702e745e73ff"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/qualified-after-click.json",
+      "bytes": 51401,
+      "sha256": "3307fe0d6caf5ee0a4a9f51d5eb7e5e01cca2ffe52b02ad41555568f3b68c8b5"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/qualified-preview-details.json",
+      "bytes": 65662,
+      "sha256": "95209030944184aaf3cd52dfaabc5f513b154efb8288382df6734e58cbeda399"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/qualified-after-click-page.png",
+      "bytes": 304472,
+      "sha256": "530606175fad8157c5dd00c3ad50a07358109e19fae9f5256b03f7fcc62cc7b5"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/qualified-visible-after-click.png",
+      "bytes": 278060,
+      "sha256": "07de22c3660f354bb255832e4fd5f28903c2aaeb54a40f2fab111faefb36070f"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/qualified-native-identity.json",
+      "bytes": 3409,
+      "sha256": "12b1d588d57eb287665110dbd167e8a0d7c90c9a9f67cbf036c39d0cf765b59a"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/loaded-package-verify.json",
+      "bytes": 25586,
+      "sha256": "1b6ca28850cd28a649eec8d88fd5a8d974d6137b379d461ffa6a3423fd63622b"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/platform-input-reuse.json",
+      "bytes": 2501,
+      "sha256": "ebffff484f0e818de59ad0f74b34898ddfcd873256f7ac19b311605e4b0f3513"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/business-regression.log",
+      "bytes": 4786,
+      "sha256": "5b11bd061e0a90ddc2e1fccb298f4b25b1447066f2d188a09c963bba55eac897"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/targeted-tests-candidate2.log",
+      "bytes": 1313,
+      "sha256": "a96aafd128a6146b4c091df00074b33ff19480431a9e878900588a5b6efde4de"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/business-build.log",
+      "bytes": 1125,
+      "sha256": "c11bab76b1756d4ff53f80e2fc18599a3b1121404a3e4caf3be35c4f459ef4f7"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/business-build-candidate2.json",
+      "bytes": 6783,
+      "sha256": "829b800e7bb091828d8d891e27173e057c6f54ee06cdb64801d1ced169836b15"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/mindmap-build-candidate2/artifact.json",
+      "bytes": 6625,
+      "sha256": "15dc489614b6b2c192e0bd9cad7122800552525645d2720cd2b756ae71d4ae53"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-r396-mac-20261017/button-native/mindmap-build-candidate2/program.js",
+      "bytes": 59828,
+      "sha256": "1b63ecc6852b00d720a60b20d815b3f724dc6e9843fea5ef2f6dd8c92633661d"
+    }
+  ],
+  "localResourceCleanup": {
+    "ownedCftPid": 56004,
+    "temporaryProfileRemoved": true,
+    "dailyWatcherUnchanged": true
+  }
+}

@@ -166,7 +166,11 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount,pageRule
     },180);
     onDispose(()=>win.clearTimeout(timer));
   }
-  return Object.freeze({id,host,shadowRoot,content,overlay,active,destroy,close:destroy,onDispose,
+  function createFrame(options){
+    check(active()&&typeof __opendeskPageFramesV1!=='undefined','E_FRAME_UNAVAILABLE','此执行没有已授权的固定子帧资源');
+    return __opendeskPageFramesV1.create(options,onDispose,content);
+  }
+  return Object.freeze({id,host,shadowRoot,content,overlay,active,destroy,close:destroy,onDispose,createFrame,
     addStyle,getAsset,on,setTimeout:setTimeoutManaged,setInterval:setIntervalManaged,observe,objectURL,
     verifyMount:placement.verifyMount,getMountDiagnostics:placement.getMountDiagnostics});
 }

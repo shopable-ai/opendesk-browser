@@ -10,6 +10,7 @@ import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../lib
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
+import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
   PAGE_INSTALL_TAG="page-installed-v1",
@@ -68,6 +69,7 @@ const publicInstall=row=>row?{programId:row.programId,revision:row.revision,mani
   title:row.title??row.programId,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
   authorization:row.authorization?structuredClone(row.authorization):null,
+  ...(row.managedCleanup?{managedCleanup:structuredClone(row.managedCleanup)}:{}),
   error:row.error,lastExecution:row.lastExecution?publicExecution(row.lastExecution):null}:null;
 function publicExecution(row){const {installationToken,...receipt}=row;return receipt;}
 
@@ -308,13 +310,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         await tx.delete(PAGE_STORE,installKey);
       });
       return {programId:row.programId,manifestHash:row.manifestHash,
-        uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true};
+        uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true,
+        ...(after.managedCleanup?{managedCleanup:after.managedCleanup}:{})};
     });
   }
   function nativeEqual(actual,expected){return actual&&['id','matches','excludeMatches','runAt','allFrames','world','worldId','js']
     .every(k=>equal(actual[k]??(k==='excludeMatches'?[]:null),expected[k]));}
   async function reconcileOne(row){
-    let state='blocked',error=null;
+    let state='blocked',error=null,managedCleanup;
     try{
       const native=await nativeAPI(),existing=await native.getScripts({ids:[row.nativeId]});
       if(!active(row)){if(existing.length)await native.unregister({ids:[row.nativeId]});
@@ -339,12 +342,19 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // independently checks the persistent grant and frozen proof each time.
       try{const native=await nativeAPI();await native.unregister({ids:[row.nativeId]});}catch{ /* Keep blocked/unknown visible. */ }
     }
+    // Revoking a registration only fences future boots. Retire resources of
+    // older grants in their original worlds even when no result was delivered.
+    // This fixed internal control cannot restore permission or replay source.
+    if(preview.retireInstalled)try{
+      managedCleanup=await preview.retireInstalled(row,{includeCurrent:!active(row)||state!=='registered'});
+    }catch(cause){managedCleanup={scope:'managed-ui-only',state:'unknown',error:{code:cause.code||PAGE_UNKNOWN_ERROR,
+      message:String(cause.message||cause).slice(0,1024)}};}
     await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
       const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),current=await tx.get(PAGE_STORE,installKey);
       if(current?.token===row.token&&current.enabled===row.enabled){
         const suspend=current.authorization?.status==='active'&&
           [PAGE_PERMISSION_ERROR,'E_USER_SCRIPTS_UNAVAILABLE','E_PAGE_AUTHORIZATION','E_PAGE_ENVIRONMENT'].includes(error?.code);
-        await tx.put(PAGE_STORE,{...current,nativeState:state,error,...(suspend?{
+        await tx.put(PAGE_STORE,{...current,nativeState:state,error,...(managedCleanup?{managedCleanup}:{}),...(suspend?{
           token:crypto.randomUUID().replaceAll('-',''),authorization:{...current.authorization,
             generation:current.authorization.generation+1,status:'suspended'}}:{})},installKey);
       }
@@ -535,7 +545,78 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     if(error)throw Object.assign(new FoundationError(error.code,error.message),error.pageAccessLost?{pageAccessLost:true}:{});
     return {receiptId,state:'completed'};
   }
+  async function frameBoot(message,sender){
+    const epoch=removals.length;
+    const common=['protocol','action','executionKey','receiptNonce','operation','requestId'];
+    fields(message,message.operation==='retire'?common:[...common,'resourceId','url','portToken','data']);
+    invariant(message.protocol===PAGE_BOOT_PROTOCOL&&message.action===PAGE_FRAME_ACTION&&
+      sender?.id===api.runtime.id&&sender.frameId===0&&typeof sender.documentId==='string'&&
+      Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito&&
+      typeof message.executionKey==='string'&&message.executionKey.length<=2048&&
+      typeof message.requestId==='string'&&/^[a-f0-9-]{36}$/.test(message.requestId),
+      'E_OWNER','子帧只接受原安装父文档的用户脚本消息');
+    const execution=await read(tx=>tx.get(PAGE_STORE,message.executionKey));
+    invariant(execution?.tag==='page-execution-v1'&&execution.namespace===namespace&&
+      execution.executionKey===message.executionKey&&execution.receiptNonce===message.receiptNonce&&
+      execution.tabId===sender.tab.id&&execution.documentId===sender.documentId&&
+      execution.browserSessionIncarnation===session&&execution.managedUI,'E_FRAME_IDENTITY','子帧父执行已失效');
+    const authorize=async()=>{
+      const row=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,execution.programId)));
+      invariant(row&&active(row)&&row.manifestHash===execution.manifestHash&&row.sourceHash===execution.sourceHash&&
+        row.authorization.installationId===execution.installationId&&row.authorization.generation===execution.grantGeneration&&
+        ['dispatched','completed'].includes(execution.state),'E_PAGE_AUTHORIZATION','原安装授权已变化');
+      await requireSiteGrant(row);
+      const desired=await descriptor(row),frames=await api.webNavigation.getAllFrames({tabId:sender.tab.id}),
+        frame=frames?.find(f=>f.frameId===0&&f.documentId===sender.documentId),tab=await api.tabs.get(sender.tab.id);
+      invariant(frame&&!frame.errorOccurred&&frame.documentLifecycle==='active'&&frame.url===sender.url&&
+        frame.url===tab.url&&!tab.incognito&&!tab.pendingUrl&&pageProgramUrlMatches(row.pageRules,frame.url),
+        'E_DOCUMENT_STALE','原父文档已经改变');
+      const native=await nativeAPI(),registered=await native.getScripts({ids:[row.nativeId]});
+      invariant(registered.length===1&&nativeEqual(registered[0],desired.script),'E_PAGE_AUTHORIZATION','原安装引导已撤销');
+      const latest=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,execution.programId)));
+      invariant(latest&&active(latest)&&latest.token===row.token&&latest.authorization.generation===execution.grantGeneration,
+        'E_PAGE_AUTHORIZATION','子帧派发前授权已变化');
+      invariant(removals.length===epoch,'E_PAGE_AUTHORIZATION','子帧准备期间权限已变化');
+      return {...desired,grant:latest};
+    };
+    let held=false,dispatched=false,confirmed=false;
+    const dispatch=invoke=>ordered(async()=>{
+      const current=await authorize();
+      const reservation=await admission.reserveInstalled({nonce:message.requestId,tabId:execution.tabId,
+        documentId:execution.documentId,sourceHash:execution.sourceHash},
+        {...current.grant,executionKey:execution.executionKey,receiptNonce:message.receiptNonce},{resource:true});
+      held=reservation?.shared!==true;
+      await storage.transaction([PAGE_STORE,'runs'],PAGE_WRITE,async tx=>{
+        const grant=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,execution.programId)),
+          slot=await tx.get('runs','@slot');
+        invariant(grant&&active(grant)&&grant.token===current.grant.token&&
+          grant.authorization.generation===execution.grantGeneration&&removals.length===epoch,
+          'E_PAGE_AUTHORIZATION','资源最终派发前原安装已改变');
+        invariant(!slot?.currentRunId&&slot?.preview?.executionKey===execution.executionKey&&
+          slot.preview.nonce===(held?message.requestId:message.receiptNonce),
+          'E_OWNER','资源最终派发前共享入口已经改变');
+      });
+      // Same queue as disable/uninstall. No asynchronous observation between
+      // this final epoch check and invoking Chrome; do not hold the queue while
+      // an asynchronous resource completes or asks for retirement.
+      invariant(removals.length===epoch,'E_PAGE_AUTHORIZATION','权限已撤销');
+      dispatched=true;
+      const completion=Promise.resolve(invoke());completion.catch(()=>{});
+      return {completion};
+    });
+    // Retirement only observes destruction; it never reauthorizes source.
+    const desired=message.operation==='retire'?{candidate:null}:await authorize();
+    try{
+      const result=await preview.executeFrame({message,sender,candidate:desired.candidate,execution},authorize,dispatch);
+      confirmed=true;
+      if(message.operation==='retire'&&result.state==='retired')await admission.release({nonce:message.requestId});
+      return result;
+    }finally{
+      if(held&&(confirmed||!dispatched))await admission.release({nonce:message.requestId});
+    }
+  }
   function handleBoot(message,sender){
+    if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
     const next=executions.then(()=>boot(message,sender)).catch(async error=>{
       // Chrome's User Scripts toggle does not necessarily emit permissions
       // onRemoved. A real access failure must durably suspend this installation

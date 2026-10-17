@@ -18,6 +18,7 @@ import {PAGE_FRAMEWORK_IMPORTS} from '../src/libs/page-frameworks/contract.js';
 import {pageOptionalLibraryId,PAGE_OPTIONAL_LIBRARY_LIMIT} from '../src/scripting/user-scripts/execution-source.js';
 import {BUILTIN_RUNTIME_CATALOG} from '../src/libs/runtime-contract.js';
 import {transformVueSFC} from '../src/libs/page-frameworks/vue-sfc-transform.js';
+import {PAGE_FRAME_RESOURCE_ID,PAGE_FRAME_RESOURCES_LIMITS} from '../src/scripting/user-scripts/page-frame-resources.js';
 
 const FORMAT='opendesk.project.v1';
 const IDENTIFIER=/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/;
@@ -89,10 +90,10 @@ function metadata(pkg,projectLabel){
 
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
-    ?[...shared,'pageRules','framework','libraries','entryMode','remoteDependencies']
+    ?[...shared,'pageRules','framework','libraries','entryMode','remoteDependencies','pageFrames']
     :[...shared,'siteOrigins','permissions','paramsSchema','libraries'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies'&&k!=='libraries').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies'&&k!=='libraries'&&k!=='pageFrames').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
@@ -105,6 +106,17 @@ function metadata(pkg,projectLabel){
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
+    if(p.pageFrames!==undefined){
+      const frameDetails={...details,location:'package.json#opendesk.pageFrames'};
+      ensure(Array.isArray(p.pageFrames)&&p.pageFrames.length<=PAGE_FRAME_RESOURCES_LIMITS.count&&
+        p.pageFrames.every(row=>plain(row)&&Object.keys(row).sort().join(',')==='path,resourceId'&&
+          typeof row.resourceId==='string'&&PAGE_FRAME_RESOURCE_ID.test(row.resourceId)),
+        'E_PROJECT_PAGE_FRAME','pageFrames requires at most four {resourceId,path} entries',frameDetails);
+      const paths=p.pageFrames.map(row=>declaredPath(row.path,frameDetails));
+      ensure(unique(p.pageFrames.map(row=>row.resourceId))&&unique(paths)&&
+        paths.every(path=>extname(path)==='.js'&&path!==p.entry),
+        'E_PROJECT_PAGE_FRAME','Frame IDs and paths must be unique project .js files distinct from the entry',frameDetails);
+    }
     if(p.remoteDependencies!==undefined){
       const r=p.remoteDependencies;
       ensure(plain(r)&&Object.keys(r).sort().join(',')==='format,imports,profile'&&
@@ -171,7 +183,7 @@ function dependencyName(spec,details){
   return value;
 }
 
-function parseImports(text,file,projectLabel){
+function parseImports(text,file,projectLabel,{sourceType='module'}={}){
   let ast;
   try{
     const parserSource=file.endsWith('.jsx')?transformSync(text,{
@@ -179,7 +191,7 @@ function parseImports(text,file,projectLabel){
       jsxFactory:'globalThis.OpenDeskPageReact.createElement',
       jsxFragment:'globalThis.OpenDeskPageReact.Fragment',sourcefile:file
     }).code:text;
-    ast=parse(parserSource,{ecmaVersion:'latest',sourceType:'module',locations:true});
+    ast=parse(parserSource,{ecmaVersion:'latest',sourceType,locations:true});
   }
   catch(error){
     fail('E_PROJECT_SYNTAX',file+': '+error.message,
@@ -366,6 +378,21 @@ export async function validateProgramProject(input,{readProjectFile}={}){
   }
   buildAssetRecords(assets,assetContents);
 
+  const pageFrames=[];
+  let frameBytes=0;
+  for(const {resourceId,path} of p.pageFrames||[]){
+    const details=context(projectLabel,'validate',path);
+    const bytes=await read(path,PAGE_FRAME_RESOURCES_LIMITS.resourceBytes,details);
+    const code=decode(bytes,details,true);
+    frameBytes+=bytes.length;
+    ensure(bytes.length>0&&bytes.length<=PAGE_FRAME_RESOURCES_LIMITS.resourceBytes&&code.trim()&&
+      frameBytes<=PAGE_FRAME_RESOURCES_LIMITS.totalBytes,
+      'E_PROJECT_PAGE_FRAME','Frame code exceeds the 5 MiB per-file or 6 MiB total budget',details);
+    // Already compiled classic code only: reuse the existing import/eval rejection.
+    parseImports(code,path,projectLabel,{sourceType:'script'});
+    pageFrames.push({resourceId,path,code,bytes:bytes.length,sha256:sha(bytes)});
+  }
+
   const sourceFiles=[...graph.values()].sort((a,b)=>a.path.localeCompare(b.path));
   const sources=sourceFiles.map(({path,bytes,sha256})=>({path,bytes,sha256}));
   ensure(sources.reduce((n,row)=>n+row.bytes,0)<=128*1024,'E_PROJECT_LIMIT',
@@ -388,6 +415,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     sources,
     sourceFiles,
     assets,
+    ...(p.pageFrames?{pageFrames}:{}),
     ...(componentStyles.length?{componentStyles:componentStyles.sort((a,b)=>a.path.localeCompare(b.path))}:{}),
     npmPackages:[...bare].sort(),
     npmDependencies,

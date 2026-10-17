@@ -13,10 +13,10 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
         await tx.put('runs',{...(slot||{tag:'slot',currentRunId:null}),preview:{...preview,registrationId:host.registrationId}},'@slot');
       });
     },
-    async reserveInstalled(preview,installation) {
+    async reserveInstalled(preview,installation,{resource=false}={}) {
       // The same slot is used by Controller, developer previews and installed
       // Page scripts. This internal call cannot manufacture a Host identity.
-      await storage.transaction(['runs','frameworkKV'],'readwrite',async tx=>{
+      const reservation=await storage.transaction(['runs','frameworkKV'],'readwrite',async tx=>{
         const grant=await tx.get('frameworkKV','page-installed:'+canonical([installation.namespace,installation.programId]));
         invariant(grant?.tag==='page-installed-v1'&&grant.enabled===true&&
           grant.namespace===installation.namespace&&grant.programId===installation.programId&&
@@ -29,7 +29,10 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
           authorization.generation===capturedAuthorization.generation,
           'E_PERMISSION','页面脚本安装授权已经改变');
         const execution=await tx.get('frameworkKV',installation.executionKey);
-        invariant(execution?.tag==='page-execution-v1'&&execution.state==='prepared'&&
+        invariant(execution?.tag==='page-execution-v1'&&
+          (resource?['dispatched','completed'].includes(execution.state)&&
+            typeof installation.receiptNonce==='string'&&installation.receiptNonce.length>0&&
+            execution.receiptNonce===installation.receiptNonce:execution.state==='prepared')&&
           execution.executionKey===installation.executionKey&&execution.namespace===grant.namespace&&
           execution.programId===grant.programId&&execution.revision===grant.revision&&
           execution.installationId===authorization.installationId&&execution.grantGeneration===authorization.generation&&
@@ -38,12 +41,18 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
           execution.documentId===preview.documentId&&execution.tabId===preview.tabId,
           'E_OWNER','页面执行准入身份已经改变');
         const slot=await tx.get('runs','@slot');
-        invariant(!slot?.currentRunId&&!slot?.preview,'E_OWNER','已有执行占用共享入口；不会自动重试页面脚本');
+        invariant(!slot?.currentRunId&&(!slot?.preview||resource&&
+          slot.preview.executionKey===execution.executionKey&&slot.preview.nonce===execution.receiptNonce),
+          'E_OWNER','已有执行占用共享入口；不会自动重试页面脚本');
+        // A parent main awaiting createFrame keeps its original slot and receipt.
+        if(resource&&slot?.preview)return {shared:true};
         await tx.put('runs',{...(slot||{tag:'slot',currentRunId:null}),preview:{...preview,
           installedProgramId:grant.programId,manifestHash:grant.manifestHash,
           executionKey:installation.executionKey,browserSessionIncarnation:session}},'@slot');
+        if(resource)return {shared:false};
         await tx.put('frameworkKV',{...execution,receiptNonce:preview.nonce},installation.executionKey);
       });
+      if(resource)return reservation;
     },
     async release({nonce,removedTabId}) {
       await storage.transaction(['runs'],'readwrite',async tx=>{

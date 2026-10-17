@@ -47,8 +47,8 @@ export const PAGE_BROWSER_UI_HELPER=/* @__PURE__ */Object.freeze({
   id:'page-ui-helper',version:'opendesk.page-ui-helper.r243',
   source:'src/libs/page-frameworks/page-ui-helper-r243.js',
   output:'libs/page-frameworks/page-ui-helper-r243.js',
-  bytes:17898,
-  sha256:'4b93bc414b7f2b4d42dd2d7ac0c68d6d5a2174377358d3a819e04513df2e1a28',
+  bytes:18127,
+  sha256:'40db7b7f1bb936259f5f734560a3578173cd6b88b6d56b105f6cb7e32e471240',
   sourceGraph:/* @__PURE__ */Object.freeze(['src/scripting/user-scripts/page-ui.js',
     'src/scripting/user-scripts/page-ui-mount.js',
     'src/scripting/user-scripts/page-program-rules.js'])

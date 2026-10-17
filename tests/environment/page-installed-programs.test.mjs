@@ -51,7 +51,7 @@ function fixture(){
         if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
         const code=input.js.at(-1).code,probe=code.includes('__opendesk_probe_');
         if(!probe){f.executeCalls++;if(f.executionError)throw f.executionError;await f.completionGate;}
-        const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{}}));
+        const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{},setTimeout,clearTimeout}));
         // Optional-library receipt wiring is a component test: only vendor DOM
         // initialization is replaced, after production loader/hash validation.
         if(!probe)f.executedCode=code;

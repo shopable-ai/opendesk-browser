@@ -1,12 +1,14 @@
 // DOM-only ChatGPT adapter. Selector candidates MUST be verified against a
 // logged-in current ChatGPT build before declaring native acceptance.
-const ANSWER='[data-message-author-role="assistant"]';
-const CONTENT=['.markdown','.prose','[data-testid="message-content"]'];
+const ANSWER='[data-message-author-role="assistant"],[data-message-role="assistant"]';
+const CONTENT=['.markdown','.prose','[data-testid="message-content"]',
+  '[data-assistant-markdown-root]'];
 const COPY=['button[data-testid="copy-turn-action-button"]',
+  'button[data-copy-message]',
   'button[data-testid="copy-button"]',
   'button[aria-label="Copy"]','button[aria-label="Copy response"]',
   'button[aria-label="复制"]','button[aria-label="复制回复"]'];
-const TURN='[data-testid^="conversation-turn-"], [data-testid="conversation-turn"], article';
+const TURN='[data-testid^="conversation-turn-"], [data-testid="conversation-turn"], article, li[data-message-role="assistant"]';
 const own=element=>element?.closest?.('[data-opendesk-chatgpt-mindmap]');
 
 export function answerRootOf(node) {
@@ -35,7 +37,7 @@ function actionBar(turn,content){
   const copy=unique[0];
   // Prefer a semantic action group; otherwise find the tightest shallow
   // container with peer buttons. Never select the entire conversation turn.
-  let bar=copy.closest('[data-testid="message-actions"],[role="toolbar"]');
+  let bar=copy.closest('[data-testid="message-actions"],[data-assistant-message-actions],[role="toolbar"]');
   if(!bar){
     bar=copy.parentElement;
     for(let p=copy.parentElement,n=0;p&&p!==turn&&n<4;p=p.parentElement,n++){
@@ -71,6 +73,7 @@ export function inspectAnswer(root) {
 }
 
 export function isStreaming(root){
-  return Boolean(root.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming')||
+  return Boolean(root.matches('li[data-message-role="assistant"]:not([data-message-complete])')||
+    root.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming')||
     root.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
 }

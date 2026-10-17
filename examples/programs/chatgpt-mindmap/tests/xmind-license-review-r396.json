@@ -1,0 +1,366 @@
+{
+  "format": "opendesk.mindmap.license-reference-review.v1",
+  "reviewedOn": "2026-10-17",
+  "status": "BLOCKED",
+  "installable": false,
+  "redistributionApproved": false,
+  "scope": "R396_CAPTURED_EXACT_ARTIFACTS_AND_HISTORICAL_LICENSE_REFERENCES_NOT_APPROVAL",
+  "provenanceSha256": "8c7a31e6b6dcfde8525c72d941df13866b148d806c6c2f47eff5141e0eab9de6",
+  "assets": [
+    {
+      "name": "jszip.min.js",
+      "bytes": 97630,
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e",
+      "approval": "BLOCKED"
+    },
+    {
+      "name": "polyfill-45b9836beb.min.js",
+      "bytes": 104563,
+      "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a",
+      "approval": "BLOCKED"
+    },
+    {
+      "name": "xmind-sdk.bundle.js",
+      "bytes": 401113,
+      "sha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b",
+      "approval": "BLOCKED"
+    },
+    {
+      "name": "snowbrush-2c2b5d62b5.js",
+      "bytes": 3439267,
+      "sha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "approval": "BLOCKED"
+    }
+  ],
+  "references": [
+    {
+      "component": "jszip-3.10.1",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/0f2f1e4d0509514417db83fe5b86bde90e0ffe8d/LICENSE.markdown",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "STANDALONE_JSZIP_ONLY_EXACT_DIST_BYTES",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/jszip-3.10.1.LICENSE.txt",
+      "bytes": 33753,
+      "sha256": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4"
+    },
+    {
+      "component": "jszip-3.4.0",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/v3.4.0/LICENSE.markdown",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/jszip-3.4.0.LICENSE.txt",
+      "bytes": 33738,
+      "sha256": "14450c78405ad2a2173e25740b56406556779149df9c4c83523a8c63d0686210"
+    },
+    {
+      "component": "jszip-3.5.0",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/v3.5.0/LICENSE.markdown",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/jszip-3.5.0.LICENSE.txt",
+      "bytes": 33738,
+      "sha256": "14450c78405ad2a2173e25740b56406556779149df9c4c83523a8c63d0686210"
+    },
+    {
+      "component": "core-js-2.5.0",
+      "sourceUrl": "https://raw.githubusercontent.com/zloirock/core-js/v2.5.0/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/core-js-2.5.0.LICENSE.txt",
+      "bytes": 1064,
+      "sha256": "5733f332a058d2ed4dd346a9e1c6a123feed6290e9448ce050dcc5e7faf34dcf"
+    },
+    {
+      "component": "core-js-2.6.11",
+      "sourceUrl": "https://raw.githubusercontent.com/zloirock/core-js/v2.6.11/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/core-js-2.6.11.LICENSE.txt",
+      "bytes": 1064,
+      "sha256": "722e1193901ad1ed4460753dded483d68ca2ad0528c67f86f76abc46b9aa25f5"
+    },
+    {
+      "component": "punycode-2.1.0",
+      "sourceUrl": "https://raw.githubusercontent.com/mathiasbynens/punycode.js/v2.1.0/LICENSE-MIT.txt",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/punycode-2.1.0.LICENSE.txt",
+      "bytes": 1077,
+      "sha256": "483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a"
+    },
+    {
+      "component": "mathjax-3.1.2",
+      "sourceUrl": "https://raw.githubusercontent.com/mathjax/MathJax/3.1.2/LICENSE",
+      "referenceLicense": "Apache-2.0",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/mathjax-3.1.2.LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "component": "xmind-sdk-reference",
+      "sourceUrl": "https://raw.githubusercontent.com/xmindltd/xmind-sdk-js/1f4819f1daa8e88da0a33b0236731a24e21f3733/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r394/xmind-sdk-reference.LICENSE.txt",
+      "bytes": 1067,
+      "sha256": "afa20618a775e70cbd73d2ad019524b7744ea530de30e782372311c61013b796"
+    },
+    {
+      "component": "jszip-3.10.1-dist",
+      "sourceUrl": "https://raw.githubusercontent.com/Stuk/jszip/0f2f1e4d0509514417db83fe5b86bde90e0ffe8d/dist/jszip.min.js",
+      "referenceLicense": "MIT OR GPL-3.0",
+      "exactEmbeddedArtifactMapping": "EXACT_WHOLE_FILE_BYTES",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/jszip-3.10.1.dist.min.js.reference.txt",
+      "bytes": 97630,
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+    },
+    {
+      "component": "gsap-3.5.1-core-header",
+      "sourceUrl": "https://raw.githubusercontent.com/greensock/GSAP/147a6b6594d6bf272ab74ddbbbb2060190c6cce5/src/gsap-core.js",
+      "referenceLicense": "HISTORICAL_GREENSOCK_TERMS_UNRESOLVED",
+      "exactEmbeddedArtifactMapping": "HEADER_BYTES_ONLY_NOT_MODULE",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/embedded-GSAP-3.5.1.notice.txt.reference.txt",
+      "bytes": 299,
+      "sha256": "dbb9a63416302d53969ffafcb311644eef943cacb9b53263dc31f21970b4a9cf"
+    },
+    {
+      "component": "gsap-3.5.1-cssplugin-header",
+      "sourceUrl": "https://raw.githubusercontent.com/greensock/GSAP/147a6b6594d6bf272ab74ddbbbb2060190c6cce5/src/CSSPlugin.js",
+      "referenceLicense": "HISTORICAL_GREENSOCK_TERMS_UNRESOLVED",
+      "exactEmbeddedArtifactMapping": "HEADER_BYTES_ONLY_NOT_MODULE",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/embedded-CSSPlugin-3.5.1.notice.txt.reference.txt",
+      "bytes": 295,
+      "sha256": "ed4fa234ae16173248bf1c93386dd6d4e95e55109f1c684701ddad6f20032907"
+    },
+    {
+      "component": "gsap-3.5.1-package",
+      "sourceUrl": "https://raw.githubusercontent.com/greensock/GSAP/147a6b6594d6bf272ab74ddbbbb2060190c6cce5/package.json",
+      "referenceLicense": "REFERENCE_METADATA_NOT_LICENSE_GRANT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/gsap-3.5.1.package.json.reference.txt",
+      "bytes": 1833,
+      "sha256": "86e1cd4ed009639e42dd8badb822be8049b9ddc85082992798bd8a3fe19cca0a"
+    },
+    {
+      "component": "pako-1.0.11-mit",
+      "sourceUrl": "https://raw.githubusercontent.com/nodeca/pako/a718e4f6e5ce87b0964d8f84541d92a23263365b/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "UNPROVEN_EMBEDDED_VERSION",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/pako-1.0.11.LICENSE.reference.txt",
+      "bytes": 1104,
+      "sha256": "a04665b3b2de56c66730c1f720f528175739e4104f79073614aa611da1e85539"
+    },
+    {
+      "component": "pako-1.0.11-readme",
+      "sourceUrl": "https://raw.githubusercontent.com/nodeca/pako/a718e4f6e5ce87b0964d8f84541d92a23263365b/README.md",
+      "referenceLicense": "MIT AND Zlib FILE_SPECIFIC",
+      "exactEmbeddedArtifactMapping": "UNPROVEN_EMBEDDED_VERSION",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/pako-1.0.11.README.md.reference.txt",
+      "bytes": 6066,
+      "sha256": "8174ca473d9df9da15064d199064e8e3ff88d46beb66b545e048756e6f0fb469"
+    },
+    {
+      "component": "pako-1.0.11-package",
+      "sourceUrl": "https://raw.githubusercontent.com/nodeca/pako/a718e4f6e5ce87b0964d8f84541d92a23263365b/package.json",
+      "referenceLicense": "MIT AND Zlib FILE_SPECIFIC",
+      "exactEmbeddedArtifactMapping": "UNPROVEN_EMBEDDED_VERSION",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/pako-1.0.11.package.json.reference.txt",
+      "bytes": 1026,
+      "sha256": "0014f350a6834ed6a2d1211e0a2e3aa471cb426edf63379c785f9647ea2b4e01"
+    },
+    {
+      "component": "pako-1.0.11-zlib-header",
+      "sourceUrl": "https://raw.githubusercontent.com/nodeca/pako/a718e4f6e5ce87b0964d8f84541d92a23263365b/lib/zlib/deflate.js",
+      "referenceLicense": "Zlib",
+      "exactEmbeddedArtifactMapping": "REFERENCE_HEADER_ONLY_UNPROVEN_EMBEDDED_VERSION",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r395/pako-1.0.11.zlib-deflate.header.txt.reference.txt",
+      "bytes": 976,
+      "sha256": "b8b8e497c7f47c0cab90af90f087ccf77baf4f57539ca2be2e9be9f0cdb26dc3"
+    },
+    {
+      "component": "babel-polyfill-6.26.0-dist",
+      "sourceUrl": "https://registry.npmjs.org/babel-polyfill/-/babel-polyfill-6.26.0.tgz#package/dist/polyfill.min.js",
+      "referenceLicense": "MIT_PACKAGE_WITH_TRANSITIVE_NOTICE_REVIEW_PENDING",
+      "exactEmbeddedArtifactMapping": "WHOLE_FILE_EXACT_DIST_BYTES",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r396/babel-polyfill-6.26.0.dist.reference.txt",
+      "bytes": 104563,
+      "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a"
+    },
+    {
+      "component": "babel-6.26-license",
+      "sourceUrl": "https://raw.githubusercontent.com/babel/babel/cee4cde53e4f452d89229986b9368ecdb41e00da/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "PACKAGE_DIST_IDENTITY_ONLY",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r396/babel-6.26.LICENSE.reference.txt",
+      "bytes": 1099,
+      "sha256": "f533455c5981c9213689ee68bcc54fb717d8396739781b7e30c344e94323d752"
+    },
+    {
+      "component": "babel-6.26-polyfill-package",
+      "sourceUrl": "https://raw.githubusercontent.com/babel/babel/cee4cde53e4f452d89229986b9368ecdb41e00da/packages/babel-polyfill/package.json",
+      "referenceLicense": "METADATA_NOT_LICENSE",
+      "exactEmbeddedArtifactMapping": "PACKAGE_6.26.0_METADATA",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r396/babel-6.26.polyfill-package.reference.txt",
+      "bytes": 475,
+      "sha256": "ff8ae9ce713b08013a7b1d8285322545dd4d66ecbc6af3a8d03725e7cb39bf8a"
+    },
+    {
+      "component": "core-js-2.5.0-license",
+      "sourceUrl": "https://raw.githubusercontent.com/zloirock/core-js/63ae52d7625b5ba9bf5cb27558e7d0ae705e39e0/LICENSE",
+      "referenceLicense": "MIT",
+      "exactEmbeddedArtifactMapping": "DEPENDENCY_FILE_MAPPING_UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r396/core-js-2.5.0.LICENSE.reference.txt",
+      "bytes": 1064,
+      "sha256": "5733f332a058d2ed4dd346a9e1c6a123feed6290e9448ce050dcc5e7faf34dcf"
+    },
+    {
+      "component": "regenerator-runtime-0.10.5-historical-license",
+      "sourceUrl": "https://raw.githubusercontent.com/facebook/regenerator/74c76264bf3be1f2bf60082c2e03dec522c96816/LICENSE",
+      "referenceLicense": "BSD-3-CLAUSE_HISTORICAL_REFERENCE",
+      "exactEmbeddedArtifactMapping": "MINIFIED_MODULE_MAPPING_UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r396/regenerator-0.10.5.LICENSE.reference.txt",
+      "bytes": 1334,
+      "sha256": "acacd15e10610fc0aca63c3e09ba85910c302f17f4175ec3e5bb76ab5cba0de8"
+    },
+    {
+      "component": "regenerator-runtime-0.10.5-historical-patents",
+      "sourceUrl": "https://raw.githubusercontent.com/facebook/regenerator/74c76264bf3be1f2bf60082c2e03dec522c96816/PATENTS",
+      "referenceLicense": "PATENTS_HISTORICAL_REFERENCE",
+      "exactEmbeddedArtifactMapping": "MINIFIED_MODULE_MAPPING_UNPROVEN",
+      "noticeClosure": "UNPROVEN",
+      "redistributionApproved": false,
+      "captureStatus": "CAPTURED",
+      "file": "license-evidence/r396/regenerator-0.10.5.PATENTS.reference.txt",
+      "bytes": 1980,
+      "sha256": "5663cbf7746947ee91d02c6d45163694238bd07ceadcfc3f6dab2fbe23b85b86"
+    }
+  ],
+  "unresolved": [
+    "Standalone JSZip maps exactly to upstream v3.10.1 dist. Exact polyfill, SDK and Snowbrush build/version mapping and exhaustive embedded dependency inventory remain unproven.",
+    "Snowbrush exact payload grant is unproven; MIT wrapper/name is insufficient.",
+    "GSAP 3.5.1 header references historical custom GreenSock standard/membership terms; their applicability to these exact embedded bytes is unresolved.",
+    "Pako version is unproven; upstream has MIT and Zlib file-specific terms, not uniformly MIT.",
+    "License and NOTICE obligations must map to actual redistribution locations; captured upstream reference texts do not satisfy bundle closure.",
+    "XMind SDK reference tag v1.2.71 has package version 1.2.70; exact relationship to fixed bundle is unproven."
+  ],
+  "additionalSources": [
+    {
+      "url": "https://raw.githubusercontent.com/greensock/GSAP/3.5.1/src/gsap-core.js",
+      "finding": "GSAP 3.5.1 source header points to custom standard and membership license agreements; no exact bundle clearance."
+    },
+    {
+      "url": "https://gsap.com/community/standard-license/",
+      "finding": "Historical license URL redirects to newer terms; no assumption of retroactive applicability."
+    },
+    {
+      "url": "https://github.com/nodeca/pako/blob/a718e4f6e5ce87b0964d8f84541d92a23263365b/README.md#L174-L178",
+      "finding": "Upstream distinguishes MIT outside lib/zlib and Zlib within lib/zlib. Embedded version unidentified."
+    },
+    {
+      "url": "https://github.com/xmindltd/xmind-viewer/blob/272b324bd82ea8567739c6617154d8d2556f6b50/README.md#L40-L44",
+      "finding": "Snowbrush named as internal renderer; wrapper MIT does not prove exact fixed payload rights."
+    }
+  ],
+  "byteMappings": [
+    {
+      "asset": "jszip.min.js",
+      "reference": "jszip-3.10.1-dist",
+      "bytes": 97630,
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+    },
+    {
+      "asset": "polyfill-45b9836beb.min.js",
+      "reference": "babel-polyfill-6.26.0-dist",
+      "bytes": 104563,
+      "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a"
+    }
+  ],
+  "researchCapture": {
+    "path": "artifacts/chatgpt-mindmap-r395-mac-20261017/license-research/capture-20261016T182403Z",
+    "manifestSha256": "471236e1146ca38f6b4b05d95c8e75aa2d3601f832d805fce3666afcb097a065",
+    "scope": "IGNORED_RAW_RESEARCH_NOT_LEGAL_APPROVAL"
+  },
+  "r396Findings": {
+    "polyfillArchive": {
+      "url": "https://registry.npmjs.org/babel-polyfill/-/babel-polyfill-6.26.0.tgz",
+      "integrity": "sha512-F2rZGQnAdaHWQ8YAoeRbukc7HS9QgdgeyJ0rQDd485v9opwuPvjpPFcOOT/WmkKTdgy9ESgSPXDcTNpzrGr6iQ==",
+      "sha256": "c5832182f92d691d5a786bb65c263fa659f21b61e954afb38755ca241abebc16",
+      "archiveMember": "package/dist/polyfill.min.js",
+      "integrityVerified": true
+    },
+    "snowbrushOfficialSource": {
+      "sourceUrl": "https://assets.xmind.net/www/assets/vendor/js/snowbrush-2c2b5d62b5.js",
+      "bytes": 3439267,
+      "sha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a",
+      "status": "EXACT_OFFICIAL_CDN_BYTES_ONLY",
+      "buildAndRedistributionGrant": "UNPROVEN"
+    },
+    "pako": "UNMAPPED_6_OF_16_NONEMPTY_CANONICAL_MATCHES_ARE_NOT_WHOLE_FILE_IDENTITY",
+    "gsap": "HISTORICAL_TERMS_APPLICABILITY_UNPROVEN",
+    "sdk": "EXACT_BUILD_UNMAPPED",
+    "notice": "HISTORICAL_BSD_AND_PATENTS_INCLUDED_CLOSURE_STILL_UNPROVEN"
+  }
+}

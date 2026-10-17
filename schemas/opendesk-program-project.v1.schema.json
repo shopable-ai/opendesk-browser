@@ -111,6 +111,25 @@
             },
             "framework": {"enum": ["react", "vue"]},
             "entryMode": {"const": "component"},
+            "pageFrames": {
+              "description": "Frozen project-local, precompiled self-contained .js frame resources; at most 5 MiB each and 6 MiB combined, with no runtime imports.",
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "required": ["resourceId", "path"],
+                "properties": {
+                  "resourceId": {"type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,79}$"},
+                  "path": {
+                    "type": "string",
+                    "maxLength": 240,
+                    "pattern": "^[A-Za-z0-9@][A-Za-z0-9@._/-]*\\.js$",
+                    "not": {"pattern": "(?:^|/)(?:\\.\\.?|node_modules|\\.git)(?:/|$)|//"}
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
             "pageRules": {
               "type": "object",
               "required": [

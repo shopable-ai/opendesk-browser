@@ -3,6 +3,7 @@
 // rules. Nothing in this module evaluates source or fetches a URL.
 import {digest,digestUtf8,invariant} from '../../platform/protocol.js';
 import {remoteURL,REMOTE_PAGE_LIBRARY_LIMITS} from './remote-esm-contract.js';
+import {PREFIX as PAGE_FRAME_PREFIX,inspectPageFrameSource,readPageFrameResources} from './page-frame-resources.js';
 export const PAGE_BUNDLE_FORMAT='opendesk.page-linked-resource.v1';
 export const PAGE_BUNDLE_PREFIX='// OpenDesk Page linked resource v1 ';
 export const PAGE_BUNDLE_LIMITS=Object.freeze({linkedBytes:512*1024,descriptorBytes:4096,draftBytes:768*1024});
@@ -12,6 +13,11 @@ const exact=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&
   Object.keys(value).length===keys.length&&keys.every(k=>Object.hasOwn(value,k));
 export function inspectPageSource(sourceUtf8,{plainLimit=128*1024}={}){
   invariant(typeof sourceUtf8==='string'&&sourceUtf8.trim(),'E_SOURCE','页面源码必须为非空文本');
+  const framed=inspectPageFrameSource(sourceUtf8);
+  if(framed){
+    const bundle=inspectPageSource(framed.body,{plainLimit});
+    return {...bundle,...framed};
+  }
   if(!sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)){
     invariant(bytes(sourceUtf8)<=plainLimit,'E_SOURCE','普通页面源码超过原有容量；大型依赖须使用固定 Page 资源格式');
     return null;
@@ -38,13 +44,14 @@ export function inspectPageSource(sourceUtf8,{plainLimit=128*1024}={}){
     new Set(graph.roots.map(row=>row.url)).size===graph.roots.length,
     'E_PAGE_BUNDLE','固定 Page 资源缺少完整的依赖图身份');
   const linked=sourceUtf8.slice(end+1);
-  invariant(bytes(linked)===descriptor.linkedBytes&&!linked.startsWith(PAGE_BUNDLE_PREFIX),
+  invariant(bytes(linked)===descriptor.linkedBytes&&!linked.startsWith(PAGE_BUNDLE_PREFIX)&&!linked.startsWith(PAGE_FRAME_PREFIX),
     'E_PAGE_BUNDLE','固定 Page 资源字节数不符或含嵌套资源');
   return {descriptor,linked};
 }
 export async function validatePageSource(sourceUtf8,options){
   const bundle=inspectPageSource(sourceUtf8,options);
-  if(bundle)invariant(await digestUtf8(bundle.linked)===bundle.descriptor.linkedSha256,
+  await readPageFrameResources(sourceUtf8);
+  if(bundle?.descriptor)invariant(await digestUtf8(bundle.linked)===bundle.descriptor.linkedSha256,
     'E_PAGE_BUNDLE_HASH','固定 Page 执行资源 SHA-256 不符；不会下载或回退其它版本');
   return bundle;
 }
