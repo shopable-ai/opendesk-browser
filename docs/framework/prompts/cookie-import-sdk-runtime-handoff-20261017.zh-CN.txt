@@ -1,0 +1,28 @@
+继续修复 OpenDesk Browser 的 Cookie 手动导入，并排查同类 SDK/沙箱/宿主接口不一致。请直接实施必要修复和定向验证，不只给建议，不把尚未验证的风险写成已知故障。
+
+仓库：/Users/shopme/Documents/workspace/opendesk-browser。
+遵守 AGENTS.md：只在 main 工作，保留并行改动，不创建分支/worktree/PR。已授权本任务必要修改、只提交自己的文件并正常推送 main；禁止强推、破坏性 reset/clean、擅自 stash 或覆盖他人文件。没有必要重复请求普通可逆步骤的确认。
+
+先读：docs/framework/testing-guide.md、docs/framework/workstreams/cookie-import-system-chrome-20261017.md、cookie-import-limits-20261017.md，以及 cookie-import-real/native-driver/sdk-batch 的 20261017 记录。按 .agents/skills/README.md 路由：工具自身用 sidebar-tool-dev/package；有证据的公共运行时缺口用 extension-runtime。Browser SDK 的唯一实施入口是 docs/api/browser-sdk-execution-manual.zh-CN.md 和 browser-sdk-interface-matrix.json，不另建总工作流、SDK、Host、Authority 或安装器。
+
+已交付事实：
+1. Cookie Editor 唯一正式包是 examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json，版本 2.0.23，134473 bytes，SHA256 3f566d12e56b3f2391b9e4cec918dec002a2cd7c7cf97c84c6fa7ba1ac8835b9。
+2. 修复提交 a1e1e5ce1e18847a7d013f60542a1fb81e9c010b，已由 a9bbdc8810d8c1160fe594e86365c8ce4b2fcdbf 正常集成推送 main；远端仍有其他后续提交，不回退。本地 main 曾为保留另一个 Owner 未提交的 scripts/bundle-provenance.mjs 而暂未快进，先核实现状，不能强制覆盖它。
+3. 用户报告的“尚不支持批量 Cookie 写入”对应活动 facade 缺 cookies.setMany，发生在写请求前，不能误判为格式/Store/Partition/网站授权错误。2.0.23 在请求前选择已有公开方法：有 setMany 走批量；否则有 set 则逐条可信确认和精确回读；异常停止保留原文，批量失败后不降级重放。没有新增权限、raw request 或新 SDK。
+4. 受影响测试 249/249 PASS（新增 12 项），源码检查 808 files PASS，原打包器晋升和同源 PASS；候选/正式包/development 副本相同。这些是限定源码证据。用户系统 Chrome 是否已安装 2.0.23、当前 iframe 精确字节及真实导入仍 NOT_TESTED。历史 61 条虚构导入单项 PASS 之后清理失败，不能写成完整原生 PASS。
+
+同类盘点的准确口径：
+当前 Registry 有 75 个公开操作、19 个一级 namespace；createBrowserSdk 的 76 个函数包含 1 个 network.watch convenience。Registry→Facade 缺失 0；批准矩阵 77=75 public+2 Host-only。generate-browser-bindings.mjs --check 和 --check-developer 均 PASS。
+当前证实的运行时缺方法只有 cookies.setMany 这 1 项；其余活动运行时接口未测，不能称全都正常。6 个工具声明同一个 browserSdk:1.0.0（ai-vip-share、bookmark-manager、browser-sdk-acceptance、cookie-editor、papaparse-csv-export、prompt-shortcuts），该版本号本身不能证明活动文档支持哪些方法。固定 SDK 版本和缺少方法集/构建指纹握手是待核实的共性风险，不是 6 或 75 个已证实缺陷。
+
+执行顺序与通过条件：
+A. 优先关闭用户眼前的手动导入问题。核实系统 Chrome 实际加载目录/ID、dev 服务连接、构建指纹、已安装工具身份/版本，以及活动 iframe 是否重建。历史已核对路径 dist/development、ID ccfcjegpkdlgbclopjmadlcjedelidmf；这些必须按当前状态重新确认，不能用磁盘包或旧 WAL 代替活动文档证据。通过现有同 ID 更新/打开机制验证，不卸载、不清数据、不改 Native 配对。
+B. 对 75 个公开操作建立只读对照：批准合同/生成文档→源码 facade→活动 sandbox→Side Panel→Host/Driver→输入及回执合同。先用方法存在性和允许的只读诊断，禁止为盘点而批量执行写 Cookie、下载、代理、清理等有副作用接口。精确列出“已证实缺陷/待核实/权限或世界限制/无差异”的数量与具体方法，区分静态与原生证据，剔除 Host-only 和 convenience 计数差异。
+C. 若发现多处共因，先证明是哪一层旧文档、旧脚本、协议或身份不同；评估现有能力发现、打开/更新/安全刷新和诊断能否最小修复。只有证明公共缺口后修改对应平台 owner，业务继续留工具目录。不能删 Store/Partition、放宽权限、绕过真实 sender/document/install hash/epoch，不能伪造回执、盲目重试未知副作用，不能给每个工具加第二套 SDK 或永久维护错误旧 API。
+D. 每个已证实缺口先锁定失败再最小修复，只重测受影响项。源码/Node/包/真实 Chrome 分级记录；旧结果按相关输入身份复用。工具包变更按既有候选测试→--promote-from→--check-project 晋升唯一正式包，不能只更新 dist 便宣称安装自动升级。
+
+资源与隐私：日常固定复用现有 npm run dev 和 dist/development，先查 watcher，禁止第二 writer/全量 build 覆盖；先查 CFT/Profile/端口占用，不结束其他任务进程。本轮不扩展 production、全量验收、缩放或 UI 重构。真实样本 /Users/shopme/Documents/temp/cookie-gpt.json 仅本地使用；禁止输出 Cookie 名称、值、完整输入、截图和敏感 trace，禁止复制进仓库，不修改有效期；过期数量随测试时间重新计算。优先虚构数据验证，不为刷绿反复写真实样本。
+
+此前浏览器自动安全审批拒绝内部扩展页，并明确禁止通过其他通道绕过。如果当前工具仍有该限制，遵守实际拒绝，只继续允许的独立工作，准确记录原生阻塞；不要让用户判断 iframe/SDK 技术方案或假报安装完成。
+
+最终交付：当前实际运行身份/版本与未知项、接口总数及已证实问题数、每项根因和修复文件、定向验证及原生结果、提交/正常推送状态、仍未验证事项。保持简短进度更新，直接推进到本轮可验证的闭环。

@@ -59,3 +59,14 @@
 - 原打包器候选 `artifacts/sidebar-tools/cookie-editor/2.0.23/candidate.opendesk-tool.json` 经测试后 `--promote-from` / `--check-project` PASS。唯一正式包 **2.0.23，134473 bytes，SHA256 `3f566d12e56b3f2391b9e4cec918dec002a2cd7c7cf97c84c6fa7ba1ac8835b9`**；candidate/正式包/现有 watcher 的 development 副本相同，dist 官方目录版本/bytes/SHA 一致，ID/capabilities/requires 未改。无第二 writer。
 - 本轮未再次读取真实样本，也没有真实 Cookie 写请求或 Cookie 截图/敏感 trace。活动 iframe 精确版本、系统 Chrome 2.0.23 升级及最终导入仍 **NOT_TESTED**；自动安全审批禁止内部扩展页及绕过，不能用工具内测试冒充原生完成。用户无需再判断技术方案，当前提供可经原有机制更新的同 ID 修复包。
 - Git 集成资源：远端新增 prompt-shortcuts 的 provenance pin，本工作区另有 Adblock Owner 未提交的 `scripts/bundle-provenance.mjs` pin，两个位置不同但同文件，非本任务写入范围。不暂存/修改/stash 该并行文件；本任务先仅在 main 提交上述 7 个自有路径。再用已提交 main 两端的 `merge-tree` 核对无冲突，生成用于远端 main 的正常双亲合并提交，并做无强推的 fast-forward push；不切分支、不建 worktree、不改变该工作区文件/索引。本地 main 暂保留自有提交，待该文件 Owner 收尾后再正常快进；交付/两端引用和验证输入写入 `single-write-closeout.json`。
+
+## 同类接口盘点与新对话交接 · 2026-10-17
+
+- 用户授权创建新对话、提交相关文件并正常推送，要求说明还有多少同类接口问题并提供网页可复制提示词。本轮负责人为本 Codex；新增写入仅本记录和 `docs/framework/prompts/cookie-import-sdk-runtime-handoff-20261017.zh-CN.txt`。SDK/Bridge/Host/各工具仅做只读盘点，不启动浏览器、不读取真实样本、不触发任何接口副作用、不重跑已通过的 249 项。
+- 已核对 Cookie 修复提交 `a1e1e5ce1e18847a7d013f60542a1fb81e9c010b` 经正常合并提交 `a9bbdc8810d8c1160fe594e86365c8ce4b2fcdbf` 推送。远端已继续前进，不回退；本地 main 因保留他人未提交 provenance 文件暂未快进。
+- 当前只读实例化 `createBrowserSdk` 并递归检查方法存在性（request stub 禁止调用）：Registry **75** 个公开操作，覆盖 **19** 个一级 namespace；Facade **76** 个函数，其中多出的 `network.watch` 是已记载 convenience。Registry→Facade 缺失 **0**；批准矩阵/生成目录 **77 = 75 public + 2 Host-only**。不将权限拒绝、Page 世界未开放和 Host-only 当作缺失 API。
+- `node scripts/generate-browser-bindings.mjs --check` 与 `--check-developer` 均 PASS，75 个公开接口的生成目录/类型/开发文档未漂移。这是当前源码一致性证据，不证明活动 iframe/Side Panel/SW 使用相同构建，也不证明 75 项原生读写 PASS。
+- 当前确证的同类运行时缺方法仍只有 **1 项：`cookies.setMany`**（来自用户先前的准确提示；活动文档精确版本未核实）。这不是宣称其他接口没有问题。当前静态盘点未发现另一个漏接方法；活动 Chrome 的其余方法状态为 NOT_TESTED。
+- 当前 **6** 个工具声明 `requires.browserSdk: 1.0.0`：ai-vip-share、bookmark-manager、browser-sdk-acceptance、cookie-editor、papaparse-csv-export、prompt-shortcuts。`browser.js` 的 apiVersion 也是 1.0.0；package.js 只接受该版本，Bridge load/ready 没有交换 Registry 方法集/构建指纹。此为版本诊断粒度风险，并非 6 个已证实故障，更非 75 个接口损坏。后续先证明实际不一致，再选择最小公共修复。
+- 独立只读 explore（Godel）同样未发现另一个静态漏接口，缺失集合 `[]`；核对 `cookies.setMany` 当前 Registry/Side Panel/Host 均有对应入口。可复用 `tests/environment/browser-sdk-r107-public-routing.test.mjs:33` 的方法集合断言，不再造第二套注册表。机器盘点及 15 项输入 SHA 见忽略目录 `artifacts/cookie-import-system-chrome-20261017/interface-inventory-20261017.json`，不包含真实 Cookie。
+- 新对话通过条件：先关闭当前 Cookie 手动导入的原生缺口；再输出以单个接口为单位的源码/活动 facade/Side Panel/Host/输入回执合同差异清单和分级计数。无副作用能力盘点不得批量执行 75 个接口；只对证实缺口做最小修改和定向测试，不建立第二 SDK/安装器/Authority，不以永久兼容层替代刷新与身份核验。
