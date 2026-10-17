@@ -250,7 +250,7 @@ try{
   assert.equal(await viewer(2).count(),1,'Fullscreen Escape must return to the original answer');
   await viewer(2).and(page.locator('[data-layout-ready="inline"]')).waitFor({timeout:20000});
   report.checks.push('NATIVE_FULLSCREEN_ESCAPE_RESTORES_POSITION');
-  await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(1).getByRole('button',{name:'返回完整原文'}).click();
   await viewer(1).waitFor({state:'detached',timeout:15000});
   assert.equal(await t(1).locator('.markdown').isVisible(),true);
   assert.equal(await button(1).isVisible(),true);
@@ -287,7 +287,7 @@ try{
   assert.match(cTopicText,/引用/);
   assert.ok(report.topicsC>=4,'C should contain real structured SDK topics');
   await capture('chatgpt-answer-C-structured.png',{target:t(3),answer:'C'});
-  await viewer(3).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(3).getByRole('button',{name:'返回完整原文'}).click();
   await viewer(3).waitFor({state:'detached',timeout:15000});
   assert.equal(await t(3).locator('.markdown').evaluate(node=>node.innerHTML),originalC);
   report.checks.push('HEADINGLESS_TABLE_CODE_QUOTE_REAL_TOPICS_AND_LOSSLESS_RESTORE');
@@ -295,7 +295,7 @@ try{
   for(let i=0;i<20;i++){
     await button(1).click();
     await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:25000});
-    await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
+    await viewer(1).getByRole('button',{name:'返回完整原文'}).click();
     await viewer(1).waitFor({state:'detached',timeout:20000});
     assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
     assert.equal(await t(1).locator('.markdown').evaluate(node=>node.innerHTML),originalA);
@@ -310,7 +310,7 @@ try{
   await button(1).click();
   await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:25000});
   assert.equal(await button(1).getAttribute('aria-pressed'),'true');
-  await viewer(1).getByRole('button',{name:'恢复本条回复原文'}).click();
+  await viewer(1).getByRole('button',{name:'返回完整原文'}).click();
   await viewer(1).waitFor({state:'detached',timeout:20000});
   const restoredOpenerY=await button(1).evaluate(el=>el.getBoundingClientRect().top);
   assert.ok(Math.abs(restoredOpenerY-originalOpenerY)<=10,
