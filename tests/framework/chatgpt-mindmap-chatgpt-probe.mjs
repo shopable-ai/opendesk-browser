@@ -190,6 +190,22 @@ try{
   assert.equal(await button(1).getAttribute('aria-pressed'),'true');
   report.topicsA=await viewer(1).locator('.topic:visible').count();
   assert.ok(report.topicsA>1,'XMind must render actual SDK topics');
+  // Diagnose glyphs using the actual original SVG topic DOM. No changes to
+  // real renderer, production DOM or image content are made by this probe.
+  const glyphAudit=await viewer(1).evaluate(host=>{
+    const elements=[...host.shadowRoot.querySelectorAll(
+      '.topic text,.topic tspan,.topic foreignObject,.topic [class*="icon"]')];
+    return elements.map(el=>{
+      const text=(el.textContent||'').trim();
+      if(!text||text.length>80)return null;
+      const cps=[...text].map(ch=>ch.codePointAt(0));
+      return {tag:el.localName,cls:el.getAttribute('class'),
+        text:text.slice(0,45),codepoints:cps.slice(0,45),
+        font:getComputedStyle(el).fontFamily,
+        html:el.outerHTML.slice(0,350)};
+    }).filter(Boolean).slice(0,80);
+  });
+  console.log('REAL_XMIND_GLYPH_AUDIT',JSON.stringify(glyphAudit));
   assert.equal(await t(1).locator('.markdown').isVisible(),false);
   await button(2).click();
   await viewer(2).and(page.locator('[data-ready="true"]')).waitFor({timeout:20000});
