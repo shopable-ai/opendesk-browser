@@ -221,7 +221,7 @@ function Preview(){
     // runtime approvals and fixed source hashes cannot exist offline.
     const sourceSwitch=get('developer-source-switch');
     sourceSwitch.dataset.mode=projectMode?'local':'manual';
-    sourceSwitch.querySelector('.od-page-title').textContent=projectMode?'本地项目':'直接编辑';
+    sourceSwitch.querySelector('.od-page-title').textContent=projectMode?'项目连接':'直接编辑';
     get('local-project-mode').checked=projectMode;
     get('local-project-tools').hidden=!projectMode;
     get('manual-source-editor').hidden=projectMode;
