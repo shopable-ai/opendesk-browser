@@ -1,0 +1,80 @@
+Window: "chatgpt.com/?noauth_recent_chat_failed=1", App: OpenDesk Prompt R251 CFT.
+0 标准窗口 chatgpt.com/?noauth_recent_chat_failed=1 - Google Chrome for Testing, URL: chatgpt.com/?noauth_recent_chat_failed=1, Secondary Actions: Raise
+	1 container chatgpt.com/?noauth_recent_chat_failed=1 - Google Chrome for Testing, URL: chatgpt.com/?noauth_recent_chat_failed=1
+		2 container
+			3 工具栏
+				4 滚动区
+					5 工具栏
+						6 按钮 返回, Help: 点击后退，长按查看历史记录
+						7 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+						8 按钮 重新加载, Help: 重新加载此页
+				9 container
+					10 弹出式按钮 查看网站信息
+					11 文本栏 (settable) 地址和搜索栏, Value: chatgpt.com/?noauth_recent_chat_failed=1, Placeholder: 问问 Google 或输入网址
+					12 按钮 为此标签页添加书签
+				13 container
+					14 弹出式按钮 已允许在此网站上使用扩展程序。选择即可打开菜单
+					15 按钮 关闭侧边栏
+				16 按钮 您
+				17 弹出式按钮 Chromium
+			18 container
+			19 container 信息栏容器
+				20 container 信息栏
+					21 文本 Chrome 测试版 v156.0.8078.4 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					22 链接 下载 Chrome
+			23 滚动区
+				24 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=7a141b8e-56c4-4a80-ac8f-8549707c922f
+					25 标签组 工作台
+						26 标签 (settable, integer) 我的, Value: 0
+						27 标签 (selected) 扩展, Value: 1
+						28 标签 (settable, integer) 工作流, Value: 0
+						29 标签 (settable, integer) 开发, Value: 0
+						30 标签 (settable, integer) 云控, Value: 0
+						31 标签 (settable, integer) 调试, Value: 0
+					32 container 扩展
+						33 container 自定义工具
+							34 container 当前工具界面
+								35 按钮 返回自定义工具列表
+								36 文本 提示词快捷按钮
+								37 按钮 在新标签页打开当前工具
+								38 按钮 工具设置
+								39 按钮 卸载「提示词快捷按钮」及其本地数据
+								40 container 工具设置
+									41 文本 启用工具
+									42 文本 停用后提示词仍保留
+									43 切换 启用工具, Value: on
+									44 container
+										45 text 网页快捷按钮 在已支持的网站显示快捷按钮
+										46 切换 网页快捷按钮, Help: 在已支持的网站显示快捷按钮, Value: on
+									47 container
+										48 text 选中文字快速添加 Chrome 原生右键，可选
+										49 切换 (disabled) 选中文字快速添加, Help: 请先打开 chatgpt.com 网页, Value: on
+			50 滑块 侧边栏大小调整手柄（可拖动）, Secondary Actions: Decrement, Increment
+			51 container
+				52 文本 OpenDesk Browser Developer
+				53 复选框 固定到工具栏, Value: 0
+				54 按钮 关闭侧边栏
+			55 弹出式按钮 标签页搜索
+			56 container
+				57 标签组
+					58 标签 (selected, settable, boolean) chatgpt.com/?noauth_recent_chat_failed=1, Value: on
+						59 按钮 关闭
+					60 标签 (settable, boolean) 扩展程序 - OpenDesk Browser Developer, Value: off
+						61 按钮 关闭
+			62 按钮 新标签页
+	63 关闭按钮
+	64 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	65 最小化按钮
+66 menu bar
+	67 Google Chrome for Testing
+	68 文件
+	69 编辑
+	70 显示
+	71 历史记录
+	72 书签
+	73 个人资料
+	74 标签页
+	75 窗口
+	76 帮助
+
+The focused UI element is 35 按钮 返回自定义工具列表

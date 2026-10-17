@@ -1,0 +1,28 @@
+{
+  "scope": "development only; production excluded by latest user instruction",
+  "reviews": [
+    {
+      "direction": "产品与操作体验",
+      "agent": "01a148e4-480a-7d43-8b18-56132234d23c",
+      "name": "Halley",
+      "score": "NOT_SCORED",
+      "summary": "已测核心流程可用；未发现已测范围明确阻断操作的问题。360px、插入、Undo、开发连接和数据指纹有依据。缺少三宽、真实IME及旧版本升级，不能给95分。刷新尚未加载时0按钮不能判定产品缺陷或PASS。",
+      "laterEvidence": "评审完成后另行获得dev-live-root-refresh.ax.txt：真正加载ChatGPT且按钮3个。未据此提高评分。"
+    },
+    {
+      "direction": "UI/UX 与视觉",
+      "agent": "01a148cd-2485-7ec0-9c00-5bc0b5eff249",
+      "name": "Dalton",
+      "score": "NOT_SCORED",
+      "response": "补充结论：**新增证据支持开发环境 360px 下的布局符合本轮要求；整体仍为 NOT_SCORED。生产构建问题移出本轮范围。**\n\n- 开发连接记录确认真实扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、服务已连接、指纹 `a49453beef57`。watcher `34253` 与 `dist/development` 采用用户提供的信息，本次未检查进程。\n- 真截图确认单一**可见**标题、右侧 Plus、正文主内容与每条单 More；卡片、圆角、图标及危险操作颜色基本协调，未见新增明显视觉问题。\n- 布局记录确认实际 `360px`、无横向溢出；六按钮均 `40×40px`、间距 `6px`、右对齐，均有名称。\n- 展开记录确认六项操作可访问，焦点位于“编辑”。**新增材料未包含开发环境 Escape 前后证据**，不能把旧候选的结果直接提升为当前开发指纹 PASS。\n- AX 仍保留工具内部标题，故仅能认定视觉单标题，不能认定语义标题已去重。布局记录中的早期控制台报错也不足以判定为产品故障。\n\n**320／380／400px、IME 均为 NOT_TESTED；不评分至 95。** 已只读查看截图与三份 AX，无文件修改、测试或浏览器操作。",
+      "laterEvidence": "评审后补dev-more-enter/tab/escape.ax.txt，未据此提高评分。"
+    },
+    {
+      "direction": "前端、无障碍与数据安全",
+      "agent": "01a148c3-3c23-7ec0-8ee7-95c629fca124",
+      "name": "Confucius",
+      "score": "NOT_SCORED",
+      "response": "回主代理：**开发范围评审 `CLEAR`，未发现新增 P0/P1。production 为 `OUT_OF_SCOPE`，旧 pin 不再阻塞 dev，也不请求修改。**\n\n- **开发身份已对齐：** PID 34253 仍为 dev 进程；AX 确认 Developer、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、`dist/development` 及连接指纹 `a49453beef57`。[加载路径:83](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-extension-details.ax.txt:83)、[连接:112](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-connection.ax.txt:112)。所列 sourcemap 源码及 Host `storage-state.js` 均已独立核对与工作区一致。\n- **开关证据成立：** 网页按钮可关闭；工具停用后子开关 disabled，刷新后仍停用；右键开关可启用。[网页关闭:99](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-switch-web-off.ax.txt:99)、[停用刷新:96](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-off-refresh.ax.txt:96)、[右键开启:106](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-native-menu-toggle.ax.txt:106)。\n- **数据与编辑证据成立：** 前后完整 library 均为 3 条、SHA-256 同为 `26c47ab2…6134c36`；插入保留原草稿和多行正文，Undo 恢复原草稿。[before:83](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-fingerprint-before.ax.txt:83)、[after:87](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-fingerprint-after.ax.txt:87)、[插入:56](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-live-insert.ax.txt:56)、[Undo:56](/Users/shopme/Documents/workspace/opendesk-browser/artifacts/prompt-shortcuts-r24-mac/r251-20261017/dev-live-undo.ax.txt:56)。\n- **ETag／unknown 结论可限定复用：** 当前源码仍拒绝旧 ETag，写入后回读确认；客户端回读不一致则保持禁止重写。[Host:1646](/Users/shopme/Documents/workspace/opendesk-browser/src/ui/sidebar-tools.js:1646)、[回读:21](/Users/shopme/Documents/workspace/opendesk-browser/src/ui/sidebar-tools/storage-state.js:21)、[客户端:475](/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/prompt-shortcuts/src/main.js:475)。新增 AX 支持正常路径，**不提升为真实并发冲突或丢回执故障注入 PASS**；library 指纹也不是 ETag 实测。\n\nIME、正常 1.1.2 升级继续 `NOT_TESTED`；全域评分 `NOT_SCORED`。本次仅只读核查，未运行测试、浏览器或修改文件。"
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+Window: "ChatGPT: Chat, Work, Create & Code with AI", App: OpenDesk Prompt R251 CFT.
+0 标准窗口 ChatGPT: Chat, Work, Create & Code with AI - Google Chrome for Testing, URL: chatgpt.com/, Secondary Actions: Raise
+	1 container ChatGPT: Chat, Work, Create & Code with AI - Google Chrome for Testing, URL: chatgpt.com/
+		2 container
+			3 工具栏
+				4 滚动区
+					5 container chrome://webui-toolbar.top-chrome/
+						6 工具栏
+							7 按钮 (disabled) 返回, Help: 点击后退，长按查看历史记录
+							8 按钮 (disabled) 前进, Help: 点击前进，长按查看历史记录
+							9 按钮 重新加载, Help: 重新加载此页
+				10 container
+					11 弹出式按钮 查看网站信息
+					12 文本栏 (settable) 地址和搜索栏, Value: chatgpt.com, Placeholder: 问问 Google 或输入网址
+					13 按钮 安装“ChatGPT”
+					14 按钮 为此标签页添加书签
+				15 container
+					16 弹出式按钮 已允许在此网站上使用扩展程序。选择即可打开菜单
+					17 按钮 关闭侧边栏
+				18 按钮 您
+				19 弹出式按钮 Chromium
+			20 container
+				21 滚动区
+					22 HTML 内容 ChatGPT: Chat, Work, Create & Code with AI, URL: chatgpt.com/
+						23 container ChatGPT
+							24 container
+								25 container 侧边栏
+									26 container
+										27 link ChatGPT 徽标, Value: chatgpt.com/?noauth_recent_chat_failed=1
+										28 按钮 关闭边栏
+										29 link 新聊天, Value: chatgpt.com/?noauth_recent_chat_failed=1
+										30 container 侧边栏
+											31 link 图像, Value: chatgpt.com/images
+											32 link 插件, Value: chatgpt.com/plugins
+											33 弹出式按钮 深度研究
+											34 link 查看套餐和定价, Value: openai.com/chatgpt/pricing/
+											35 link OpenAI 帮助, Value: help.openai.com/zh-hans-cn/collections/3742473-chatgpt
+											36 按钮 设置
+										37 container 获取为你量身定制的回复
+											38 标题 获取为你量身定制的回复, Value: 2
+												39 文本 获取为你量身定制的回复
+											40 文本 登录以获取基于已保存聊天的回答，并可创建图片和上传文件。
+											41 按钮 登录
+								42 container
+									43 弹出式按钮 ChatGPT
+									44 按钮 登录
+									45 按钮 免费注册
+								46 container 对话
+									47 container 对话 chat-1e43bb13-9ebc-4ea4-ba10-0e3c0b0632f0
+										48 内容列表 对话
+								49 container
+									50 标题 我们先从哪里开始呢？, Value: 1
+										51 文本 我们先从哪里开始呢？
+									52 container
+										53 按钮 添加文件等
+										54 文本 与 ChatGPT 聊天
+										55 文本输入区 (settable) 与 ChatGPT 聊天, Placeholder: 询问 ChatGPT
+										56 按钮 开始听写
+										57 link 开启语音, Value: chatgpt.com/?mode=voice
+								58 container
+									59 文本 ChatGPT 是 AI。使用即表示你同意我们的
+									60 link 条款, Value: openai.com/terms
+									61 文本 和
+									62 link 隐私政策, Value: openai.com/privacy
+									63 文本 。聊天内容可能会被审核，并用于改进我们的 AI 模型。
+									64 link 了解更多：了解您的数据如何用于改进 AI 模型, Value: help.openai.com/en/articles/5722486-how-your-data-is-used-to-improve-model-performance
+						65 container 网页目录
+							66 按钮 拖动阅读目录；方向键移动，Home 归位, Help: 拖动目录；方向键调整位置，Shift 加速，Home 归位
+							67 按钮 将阅读目录归位, Help: 归位：恢复网页目录默认位置
+							68 内容列表
+								69 按钮 你想做点什么？我们先从哪里开始呢？
+			70 container 信息栏容器
+				71 container 信息栏
+					72 文本 Chrome 测试版 v156.0.8078.4 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					73 链接 下载 Chrome
+			74 滚动区
+				75 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=7a141b8e-56c4-4a80-ac8f-8549707c922f
+					76 标签组 工作台
+						77 标签 (settable, integer) 我的, Value: 0
+						78 标签 (selected) 扩展, Value: 1
+						79 标签 (settable, integer) 工作流, Value: 0
+						80 标签 (settable, integer) 开发, Value: 0
+						81 标签 (settable, integer) 云控, Value: 0
+						82 标签 (settable, integer) 调试, Value: 0
+					83 container 扩展
+						84 container 自定义工具
+							85 container 当前工具界面
+								86 按钮 返回自定义工具列表
+								87 文本 提示词快捷按钮
+								88 按钮 在新标签页打开当前工具
+								89 按钮 工具设置
+								90 按钮 卸载「提示词快捷按钮」及其本地数据
+								91 按钮 (disabled) 已停用，请在设置中启用
+								92 container 工具设置
+									93 文本 启用工具
+									94 文本 停用后提示词仍保留
+									95 切换 启用工具, Value: off
+									96 container
+										97 text 网页快捷按钮 在已支持的网站显示快捷按钮
+										98 切换 (disabled) 网页快捷按钮, Help: 在已支持的网站显示快捷按钮, Value: on
+									99 container
+										100 text 选中文字快速添加 Chrome 原生右键，可选
+										101 切换 (disabled) 选中文字快速添加, Help: 仅影响 Chrome 原生右键快捷添加, Value: off
+							102 文本 已停用；数据和授权保留
+			103 滑块 侧边栏大小调整手柄（可拖动）, Secondary Actions: Decrement, Increment
+			104 container
+				105 文本 OpenDesk Browser Developer
+				106 复选框 固定到工具栏, Value: 0
+				107 按钮 关闭侧边栏
+			108 弹出式按钮 标签页搜索
+			109 container
+				110 标签组
+					111 标签 (selected, settable, boolean) ChatGPT: Chat, Work, Create & Code with AI, Value: on
+						112 按钮 关闭
+					113 标签 (settable, boolean) 扩展程序 - OpenDesk Browser Developer, Value: off
+						114 按钮 关闭
+			115 按钮 新标签页
+	116 关闭按钮
+	117 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	118 最小化按钮
+119 menu bar
+	120 Google Chrome for Testing
+	121 文件
+	122 编辑
+	123 显示
+	124 历史记录
+	125 书签
+	126 个人资料
+	127 标签页
+	128 窗口
+	129 帮助
+
+The focused UI element is 75 HTML 内容 OpenDesk Browser, URL: chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=7a141b8e-56c4-4a80-ac8f-8549707c922f

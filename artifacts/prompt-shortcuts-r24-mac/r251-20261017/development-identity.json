@@ -1,0 +1,66 @@
+{
+  "head": "8530dcefc93fb259474ebeb75ddc2f3dac15ba4b",
+  "mode": "serve development developer",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "watcherPid": 34253,
+  "server": "http://127.0.0.1:43119",
+  "revision": "a49453beef576c639339d789c3778549366566250db4eb4a6838df4f15152a2f",
+  "sourceMapMatches": [
+    {
+      "bundle": "agents/page-relay.js",
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/model.js",
+      "match": true
+    },
+    {
+      "bundle": "agents/page-relay.js",
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/policy.js",
+      "match": true
+    },
+    {
+      "bundle": "agents/page-relay.js",
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+      "match": true
+    },
+    {
+      "bundle": "ui/sidebar-tool-host.js",
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/model.js",
+      "match": true
+    },
+    {
+      "bundle": "ui/sidebar-tool-host.js",
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/policy.js",
+      "match": true
+    },
+    {
+      "bundle": "ui/sidebar-tool-host.js",
+      "path": "src/ui/sidebar-tools.js",
+      "match": true
+    }
+  ],
+  "inputs": {
+    "examples/sidebar-tools/prompt-shortcuts/trusted/model.js": "f05e824470307589e911a0cd4948452c715d29efecff8c12d708135eb88f3ab7",
+    "examples/sidebar-tools/prompt-shortcuts/trusted/policy.js": "30616d8f5ad892c6f6ad555e55bc33fa0b35d8bcfb6a7d9238e275155bdc8ba3",
+    "examples/sidebar-tools/prompt-shortcuts/trusted/page.js": "19d98007132851dd52f943579eb0a8674f4177bb522e7c63fdd7a74b0a9c043d",
+    "src/ui/sidebar-tools.js": "21a8a140e68a3d8b0d350f34e0fa86e54d7e2106e1591fc12eb7eb11fd296356",
+    "src/ui/tool.html": "6e1018fa350069956c5b9333715009d585898232ad7e4a2951afe4f15721fca1",
+    "src/ui/tool-shell.css": "9e022b0ad736473ca032de18e053f7af01ba4d416dbd1b58d5bb8bebced47edd",
+    "examples/sidebar-tools/prompt-shortcuts/src/main.js": "4056edba7cb6ed3b82c490cb06bb214c026e94827ecd2c02215c29a17d6b3b9d",
+    "examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json": "234dd28d052c8c8b4c4486111bc42d5d3d45283e738f1c54081199ab622330f2"
+  },
+  "bundles": {
+    "agents/page-relay.js": "e1cba746fd69665d48da0ebaa17e35564291bfccd0519b4068dbe193bcf1c3c4",
+    "ui/sidebar-tool-host.js": "ecd9bd30b66ae61fc2a9fc039970bd2e56171f2ef8e4aa07d8f5ed18fd9fbdd7",
+    "ui/tool-shell.js": "2dcaffaec2f4546a99b10002394bdcee73d89c086a8a85ce9003c4383568965c",
+    "sw.js": "d12fa62d7581285833913e788079d9c01cfaf7ac199ed3e8fe5f55f03fd74822"
+  },
+  "finalHead": "06697b37aeb8e19c3571a7ae7d753326df7a0ce4",
+  "sourceDrift": [],
+  "bundleDrift": [],
+  "installedTool": {
+    "id": "prompt-shortcuts",
+    "version": "1.1.3",
+    "packageSha256": "445653867550086bca12a5f6328dc1edd4d106b5c91c7dcc5e8aae3843a096d6",
+    "source": "committed main package; not dirty working-tree candidate"
+  }
+}

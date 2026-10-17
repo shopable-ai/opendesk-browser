@@ -1,0 +1,110 @@
+Window: "DevTools - chrome-extension:…56c4-4a80-ac8f-8549707c922f", App: OpenDesk Prompt R251 CFT.
+0 标准窗口 Secondary Actions: Raise, DevTools - chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=7a141b8e-56c4-4a80-ac8f-8549707c922f, URL: devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@f842f52ef39fd97b449eb27cff414bf05a98ddce/&targetType=tab&panel=elements&isChromeForTesting=true
+	1 container DevTools - chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/tool.html?hostInstanceId=7a141b8e-56c4-4a80-ac8f-8549707c922f, URL: devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@f842f52ef39fd97b449eb27cff414bf05a98ddce/&targetType=tab&panel=elements&isChromeForTesting=true
+		2 container
+			3 container
+				4 滚动区
+					5 HTML 内容 DevTools, URL: devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@f842f52ef39fd97b449eb27cff414bf05a98ddce/&targetType=tab&panel=elements&isChromeForTesting=true
+						6 container
+							7 container
+								8 container DevTools is now available in Chinese
+									9 文本 DevTools is now available in Chinese
+									10 按钮 Don’t show again
+									11 按钮 Always match Chrome’s language
+									12 按钮 Switch DevTools to Chinese
+									13 container Close
+										14 按钮 Close
+								15 container
+									16 container Main toolbar
+										17 工具栏
+											18 container Select an element in the page to inspect it, Help: Select an element in the page to inspect it - ⌘ ⇧ C
+												19 切换按钮 Select an element in the page to inspect it - ⌘ ⇧ C, Value: 0
+										20 container
+											21 标签组 Panels
+												22 标签 (settable, integer) Elements, Value: 0
+												23 标签 (selected) Console, Value: 1
+												24 标签 (settable, integer) Sources, Value: 0
+												25 标签 (settable, integer) Network, Value: 0
+												26 标签 (settable, integer) Performance, Value: 0
+												27 标签 (settable, integer) Memory, Value: 0
+											28 弹出式按钮 More tabs
+										29 工具栏
+											30 container Open Console to view 1 error
+												31 按钮 Open Console to view 1 error
+											32 container Settings, Help: Settings - F1 - ⇧ ?
+												33 按钮 Settings - F1 - ⇧ ?
+											34 弹出式按钮 Customize and control DevTools
+												35 按钮 Customize and control DevTools
+									36 container Console panel
+										37 container console
+											38 container
+												39 工具栏
+													40 container Show Console sidebar
+														41 按钮 Show Console sidebar
+													42 container Clear console, Help: Clear console - Ctrl L - ⌘ K
+														43 按钮 Clear console - Ctrl L - ⌘ K
+													44 container Collapse all
+														45 按钮 Collapse all
+													46 按钮 JavaScript context: top
+													47 container Create live expression
+														48 按钮 Create live expression
+													49 文本输入区 (settable) Filter
+														50 文本 Filter
+													51 弹出式按钮 Log level: Default levels
+														52 文本 Default levels
+													53 container Some problems no longer generate console messages, but are surfaced in the Issues tab Click to go to the Issues tab
+														54 按钮 Some problems no longer generate console messages, but are surfaced in the Issues tab Click to go to the Issues tab
+													55 文本 2 hidden
+													56 container Console settings
+														57 切换按钮 Console settings, Value: 0
+													58 container 2 messages in console
+												59 container
+													60 container
+														61 container Uncaught SyntaxError: Unexpected token ')'
+															62 container
+																63 container Error
+																64 container  Uncaught Stack table collapsed
+																	65 container
+																		66 链接 VM185:1, Help: debugger:///VM185:1
+																			67 文本 VM185:1
+																		68 text Uncaught SyntaxError: Unexpected token ')'  (at 
+																		69 链接 VM185:1:560, Help: debugger:///VM185:1:560
+																			70 文本 VM185:1:560
+																		71 文本 )
+														72 container
+															73 text JSON . stringify ( await chrome . storage . local . get ([ 'opendesk.sidebar-tools.data.v1:prompt-shortcuts' , 'opendesk.sidebar-tools.installed.v1' , 'opendesk.sidebar-tools.enabled.v1' , 'opendesk.sidebar-tools.menu-grants.v1' ]))
+														74 container  Stack table collapsed
+															75 container `{"opendesk.sidebar-tools.data.v1:prompt-shortcuts":{"library":{"items":[{"body":"中文验收\\nEnglish Prompt 🙂🚀\\n第三行：保留完整内容。","enabled":true,"id":"e8ec398b-8104-462f-95e0-f36bfcbb5a60","label":"中文","labelAuto":true,"name":"中文","nameAuto":true,"order":0,"shape":"square"},{"body":"第二条 · Narrow acceptance","enabled":true,"id":"80c89e80-d02d-4176-9a77-264f9dd8d80d","label":"第二","labelAuto":true,"name":"第二","nameAuto":true,"order":1,"shape":"square"},{"body":"第三条 · 安全保留","enabled":true,"id":"ada8887e-2d72-40bf-8a6
+																76 文本 `{"opendesk.sidebar-tools.data.v1:prompt-shortcuts":{"library":{"items":[{"body":"中文验收\\nEnglish Prompt 🙂🚀\\n第三行：保留完整内容。","enabled":true,"id":"e8ec398b-8104-462f-95e0-f36bfcbb5a60","label":"中文","labelAuto":true,"name":"中文","nameAuto":true,"order":0,"shape":"square"},{"body":"第二条 · Narrow acceptance","enabled":true,"id":"80c89e80-d02d-4176-9a77-264f9dd8d80d","label":"第二","labelAuto":true,"name":"第二","nameAuto":true,"order":1,"shape":"square"},{"body":"第三条 · 安全保留","enabled":true,"id":"ada8887e-2d72-40bf-8a6
+																77 按钮 Show more (275 kB)
+																78 按钮 Copy
+														79 container
+															80 text JSON . stringify ( await  ( async ()=>{  const k = 'opendesk.sidebar-tools.data.v1:prompt-shortcuts' ;  const s = await chrome . storage . local . get ( k );  const l = s [ k ]. library ;  const b = await crypto . subtle . digest ( 'SHA-256' , new TextEncoder (). encode ( JSON . stringify ( l )));  return  { count : l . items . length , settings : l . settings , keys : Object . keys ( l ), sha256 : Array . from ( new Uint8Array ( b )). map ( x => x . toString ( 16 ). padStart ( 2 , '0' )). join ( '' )}; })())
+														81 container '{"count":3,"settings":{"webButtons":true},"keys":["items","schema","settings"],"sha256":"26c47ab2fc320f9414a727227165eb548123a272d26b5c69a449145be6134c36"}' Stack table collapsed
+															82 文本 '{"count":3,"settings":{"webButtons":true},"keys":["items","schema","settings"],"sha256":"26c47ab2fc320f9414a727227165eb548123a272d26b5c69a449145be6134c36"}'
+													83 container
+														84 container
+															85 文本输入区 (settable) Console prompt, Value: 
+
+							86 文本 DevTools is undocked
+			87 container 信息栏容器
+				88 container 信息栏
+					89 文本 Chrome 测试版 v156.0.8078.4 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。
+					90 链接 下载 Chrome
+	91 关闭按钮
+	92 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	93 最小化按钮
+	94 文本 DevTools - chrome-extension:…56c4-4a80-ac8f-8549707c922f
+95 menu bar
+	96 Google Chrome for Testing
+	97 文件
+	98 编辑
+	99 显示
+	100 历史记录
+	101 书签
+	102 个人资料
+	103 标签页
+	104 窗口
+	105 帮助
+
+The focused UI element is 85 文本输入区 (settable) Console prompt, Value: 
