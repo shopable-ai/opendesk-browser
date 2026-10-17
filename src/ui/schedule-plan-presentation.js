@@ -32,7 +32,7 @@ export function formatScheduleTime(at,zone){
 }
 const resultTones=Object.freeze({SUCCESS:'positive',FAILED:'negative',UNKNOWN:'warning',
   NEEDS_ATTENTION:'warning',MISSED:'warning',SETTLING:'warning',
-  RUNNING:'info',ADMITTED:'info',WAITING_HOST:'muted',WAITING_TARGET:'muted',
+  RUNNING:'positive',ADMITTED:'info',WAITING_HOST:'muted',WAITING_TARGET:'muted',
   WAITING_SLOT:'muted',STOPPED:'muted',CANCELLED:'muted'});
 export function presentSchedulePlan(plan,history=plan?.history||[]){
   if(!plan||typeof plan!=='object')throw new TypeError('Expected schedule plan');
@@ -47,7 +47,8 @@ export function presentSchedulePlan(plan,history=plan?.history||[]){
     completedOnce?'positive':'neutral',badgeSource='plan';
   if(!plan.paused&&!plan.needsAttention&&!completedOnce){
     if(recent?.status==='RUNNING'||recent?.status==='ADMITTED'){
-      badge=recent.status==='RUNNING'?'运行中':'已启动';tone='info';badgeSource='fire';
+      badge=recent.status==='RUNNING'?'运行中':'已启动';
+      tone=resultTones[recent.status];badgeSource='fire';
     }else if(recent?.status==='SETTLING'){
       badge='正在结算';tone='warning';badgeSource='fire';
     }else if(!nextKnown&&['UNKNOWN','FAILED','MISSED','STOPPED','CANCELLED'].includes(recent?.status)){
