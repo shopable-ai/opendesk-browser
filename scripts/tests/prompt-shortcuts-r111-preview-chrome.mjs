@@ -181,6 +181,39 @@ async function run(){
   assert.equal(await evalChrome('!document.querySelector("#indexView").hidden'),true);
   assert.equal(await evalChrome('document.querySelector("#hostToolTitle").textContent'),"提示词快捷按钮");
   report.compactHostSettings=true;
+  // R2.6 import/export stays in the tool header without overflowing the 360px sidebar.
+  await click('#size360');
+  await click('#transferButton');
+  assert.equal(await evalChrome('!document.querySelector("#transferMenu").hidden'),true);
+  const menuFits=await evalChrome('(()=>{const p=document.querySelector("#sidepanel").getBoundingClientRect(),m=document.querySelector("#transferMenu").getBoundingClientRect();return m.left>=p.left-1&&m.right<=p.right+1;})()');
+  assert.equal(menuFits,true);
+  await shot('r26-transfer-menu-360px');
+  // Capture the browser Blob export in the source page without a download manager dependency.
+  await evalChrome('(()=>{window.__anchorClick=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=function(){window.__exportUrl=this.href;window.__exportName=this.download;};})()');
+  await click('#exportJson');
+  const backup=await evalChrome('(async()=>{const data=JSON.parse(await (await fetch(window.__exportUrl)).text());HTMLAnchorElement.prototype.click=window.__anchorClick;return {format:data.format,version:data.version,count:data.items.length,file:window.__exportName};})()');
+  assert.equal(backup.format,'opendesk.prompt-shortcuts');
+  assert.equal(backup.version,1);assert.equal(backup.count,4);
+  assert.match(backup.file,/^opendesk-prompt-shortcuts-\d{4}-\d{2}-\d{2}\.json$/);
+  // HTML File selection, import precheck, duplicate filtering and target-page immediate repaint.
+  await evalChrome('(()=>{const body=document.querySelector(".prompt-content").textContent,items=[{body,label:"润色",name:"duplicate"},{body:"R2.6 新导入的提示词正文",label:"导入",name:"立即同步"}];const dt=new DataTransfer();dt.items.add(new File([JSON.stringify({format:"opendesk.prompt-shortcuts",version:1,items})],"r26-append.json",{type:"application/json"}));const input=document.getElementById("importFile");input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await poll('!document.querySelector("#importPanel").hidden','import precheck');
+  assert.equal(await evalChrome('document.querySelector("#importStats").textContent.includes("可新增 1 条")'),true);
+  await shot('r26-import-preview-360px');
+  await click('#importAppend');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),5);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,'no extra fold button');
+  assert.equal(await evalChrome('document.querySelector("#panelStatus").textContent.includes("网页按钮已即时同步")'),true);
+  // Replacement is two explicit actions and never alters the list before confirmation.
+  await evalChrome('(()=>{const dt=new DataTransfer();dt.items.add(new File([JSON.stringify({format:"opendesk.prompt-shortcuts",version:1,items:[{body:"替换确认样例",label:"替换",name:"仅此一条"}]})],"r26-replace.json",{type:"application/json"}));const input=document.getElementById("importFile");input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));})()');
+  await poll('!document.querySelector("#importPanel").hidden','replace precheck');
+  await click('#importReplace');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),5,'first click is non-destructive');
+  assert.equal(await evalChrome('!document.querySelector("#replaceWarning").hidden'),true);
+  await click('#importReplace');
+  assert.equal(await evalChrome('document.querySelectorAll(".prompt-card").length'),1);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),1);
+  report.jsonImportExport=true;report.immediateRailSync=true;report.noUnexpectedFold=true;
   await click('#resetButton');
   await click('.prompt-use');x=await state();
   assert(x.draft.includes('请在不改变原意的前提下润色以下文字：\n1. '));
@@ -237,11 +270,13 @@ async function run(){
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===5&&document.querySelector("#promptBody").value===""','save and continue first');
   x=await state();assert.equal(x.editing,true);assert.equal(x.cards,5);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),5,'save-and-continue instantly updates the injected rail');
   await shot('batch-create-320px');
   await evalChrome('(()=>{const f=document.querySelector("#promptBody");f.value="连续创建第二条：列出下一步计划。";f.dispatchEvent(new Event("input",{bubbles:true}));})()');
   await click('#saveContinue');
   await poll('document.querySelectorAll(".prompt-card").length===6&&document.querySelector("#promptBody").value===""','save and continue second');
   x=await state();assert.equal(x.cards,6);assert.equal(x.editing,true);
+  assert.equal(await evalChrome('document.querySelectorAll("#pageRail button").length'),6,'second save instantly updates the injected rail');
   await click('#cancelForm');x=await state();assert.equal(x.editing,false);
   report.batchCreateAndReset=true;
   await click('#resetButton');
