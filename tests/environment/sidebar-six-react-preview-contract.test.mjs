@@ -85,3 +85,44 @@ test('R23.14 six-tab Workflow shares compact disconnected controls and productio
   assert.match(html,/class="workflow-connection-line"/);
   assert.match(html,/id="workflow-local-status-detail"/);
 });
+
+test('R33.3.16 source-owned task manager and dual workflow examples are not a parallel preview',async()=>{
+  const [html,css,owner,preview,flows,prototype,presentation]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),
+    read('src/ui/workflow/workflow-view.js'),
+    read('src/ui/react/preview/sidebar-six-preview.tsx'),
+    read('src/ui/react/preview/sidebar-six-my-flows.tsx'),
+    read('prototypes/sidebar/workflow.html'),
+    read('src/ui/schedule-plan-presentation.js')
+  ]);
+  const $=load(html);
+  assert.equal($('#schedule-manager-count').length,1);
+  assert.equal($('#schedule-manager-list').length,1);
+  assert.equal($('#schedule-manager-search').length,1);
+  assert.equal($('#schedule-manager-filter').length,1);
+  assert.equal($('#schedule-task-manager .schedule-manager-controls').length,1);
+  assert.match(css,/\.schedule-manager-controls\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(css,/\.schedule-manager-card\{width:100%/);
+  assert.match(flows,/createPortal\(<[\s\S]*?schedule-manager-card od-surface/);
+  assert.match(flows,/setManagerRemoving\(p\.taskId\)/);
+  assert.match(flows,/onTaskAction\('uninstall',managerRemoving\)/);
+  assert.match(preview,/setInstalledTaskIds\(old=>old\.filter\(/);
+  assert.match(preview,/\[320,360,400,420,520\]/);
+  const exampleButtons=$('#workflow-intro-suggestions button');
+  assert.equal(exampleButtons.length,4);
+  assert.equal(exampleButtons.filter('[data-example-mode="new-chat"]').length,2);
+  assert.equal(exampleButtons.filter('[data-example-mode="new-workflow"]').length,2);
+  assert.match(css,/\.workflow-intro-suggestions\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(css,/\.workflow-intro-suggestions button\{display:block;width:100%/);
+  assert.match(prototype,/\.r2310-suggestions\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(owner,/get\('workflow-intro-suggestions'\)/);
+  assert.match(owner,/draft\.value=requestText/);
+  assert.doesNotMatch(owner.slice(owner.indexOf('  for(const button of get(\'workflow-intro-suggestions\')'),
+    owner.indexOf('  const onResumeSessionClick')), /client\.request|startPlanning|runWorkflow/,
+    'suggestions can only fill the existing composer');
+  assert.match(preview,/setWorkflowEntry\('new-chat'\)/);
+  assert.match(preview,/setWorkflowEntry\('new-workflow'\)/);
+  assert.match(presentation,/RUNNING:'positive',ADMITTED:'info'/);
+  await transformWithEsbuild(flows,'sidebar-six-my-flows.tsx',
+    {loader:'tsx',jsx:'transform',target:'es2022'});
+});
