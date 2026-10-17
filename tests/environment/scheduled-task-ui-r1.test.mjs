@@ -153,7 +153,10 @@ test('R1.12 real runner focuses the scheduled page and keeps human-readable plan
     'cards/details must share the production presentation rather than a duplicate formatter');
   assert.match(ui,/scheduleStatus\(last.status\)/,'history status is user-readable');
   assert.match(ui,/catalogEntry\?\.manifest\?\.title\|\|plan.taskId/,'installed Task title is preferred');
-  assert.match(ui,/再开运行页 ↗/,'runner tab has a distinct second-host action');
+  assert.match(ui,/const runnerLabel=isRunner\(\)\?'再打开一个独立运行页':'打开独立运行页'/,
+    'runner tab must expose a distinct accessible second-host action');
+  assert.match(ui,/bind\('schedule-open-runner','click',\(\)=>void api\.tabs\.create\(/,
+    'runner launch must still create a separate tab through the existing API');
   assert.match(host,/host\.start\(/,'layout must not replace the actual Controller runner');
 });
 
@@ -701,14 +704,16 @@ test('R32 list editing keeps contextual return text and secondary plan actions',
   ui.dispose();
 });
 
-test('R32 runner action keeps the original live status binding in a secondary context toolbar',async()=>{
+test('R32 runner action keeps the live Host status while its launch button moves to the header',async()=>{
   const {document,ui,get}=await scheduledDomFixture({count:0});
   const status=get('schedule-host-status'),runner=get('schedule-open-runner');
-  assert.equal(status.parentElement,runner.parentElement);
-  assert.equal(runner.parentElement.classList.contains('schedule-list-utilities'),true);
-  assert.equal(runner.textContent,'运行页 ↗');
+  assert.equal(status.parentElement?.id,'schedule-list-view',
+    'the live Host status stays in the plan list instead of being moved into the header');
+  assert.equal(runner.parentElement.classList.contains('od-page-actions'),true,
+    'the compact runner entry belongs to the current header actions');
+  assert.equal(runner.textContent.trim(),'','the runner icon has no redundant visible label');
   assert.equal(runner.getAttribute('aria-label'),'打开独立运行页');
-  assert.equal(runner.classList.contains('od-button--quiet'),true);
+  assert.equal(runner.classList.contains('od-icon-button'),true);
   status.textContent='宿主已断开；等待重新连接';
   await ui.refresh();
   assert.equal(get('schedule-host-status'),status,'the host retains the same status node');
