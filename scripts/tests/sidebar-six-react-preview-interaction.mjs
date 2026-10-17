@@ -99,8 +99,10 @@ try{
   await until('document.querySelector("[data-task-id=preview-task]").getAttribute("aria-expanded")==="true"');
   await click('[data-task-id="preview-off"]');
   await until('document.querySelector("[data-task-id=preview-off]").getAttribute("aria-expanded")==="true"');
-  await click('#task-search-toggle');
-  await until('!document.getElementById("task-search-panel").hidden');
+  assert.equal(await evaluate('document.getElementById("task-search-toggle").hidden'),true,
+    'Search affordance is intentionally hidden for early task lists');
+  assert.equal(await evaluate('document.getElementById("task-search-panel").hidden'),true,
+    'Hidden search filters may not appear in the primary task flow');
   await click('#task-open-catalog');
   await until('!document.getElementById("task-add-menu").hidden');
   await screenshot('my-add-360');

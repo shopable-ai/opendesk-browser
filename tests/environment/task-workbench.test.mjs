@@ -40,6 +40,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   // This lightweight DOM fake does not parse initial attributes. Reflect the
   // real HTML collapsed state before dispatching search-toggle clicks.
   get('task-search-panel').hidden=/<div id="task-search-panel"[^>]*\shidden\b/.test(html);
+  get('task-search-toggle').hidden=/<button id="task-search-toggle"[^>]*\shidden\b/.test(html);
   const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
   const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
@@ -332,7 +333,8 @@ test('R5.1 Escape closes inline My search, clears filters and restores keyboard 
   assert.equal(f.get('local-discover-search').value,'');
   assert.equal(f.get('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.get('task-installed-cards').children.length,2);
-  assert.equal(f.doc.activeElement,f.get('task-search-toggle'));
+  assert.equal(f.doc.activeElement,f.get('task-open-catalog'),
+    '隐藏搜索入口后焦点应回到可见的添加任务按钮');
   assert.equal(f.get('task-run').disabled,false);
   assert.equal(f.starts.length,0);
   assert.equal(f.permissions.length,0);

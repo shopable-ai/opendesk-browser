@@ -319,6 +319,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-create-candidate').disabled=working;
     syncRunDock();
   }
+  const taskSearchReturnFocus=()=>get('task-search-toggle').hidden?
+    get('task-open-catalog'):get('task-search-toggle');
   function renderInstalledCards() {
     const parent=get('task-installed-cards'),selected=get('task-installed-list').value,
       workspace=get('task-selected-workspace');
@@ -350,12 +352,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           get('task-installed-list').value=taskId;renderInstalledSelection();
         }});
       if(focusedInWorkspace&&workspace.hidden)
-        (get('task-search-panel').hidden?get('task-search-toggle'):
+        (get('task-search-panel').hidden?taskSearchReturnFocus():
           get('local-discover-search')).focus?.({preventScroll:true});
       else if(focusedInWorkspace&&focused?.isConnected!==false)
         focused.focus?.({preventScroll:true});
       else if(focusedTaskId&&!visible.some(row=>row.taskId===focusedTaskId))
-        (get('task-search-panel').hidden?get('task-search-toggle'):
+        (get('task-search-panel').hidden?taskSearchReturnFocus():
           get('local-discover-search')).focus?.({preventScroll:true});
       return; // React alone owns card children and moves the original live form.
     }
@@ -375,7 +377,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
             : '没有匹配的任务。试试其他关键词或选择「全部」。';
       parent.append(empty,workspace);
       if(focusedInWorkspace)
-        (get('task-search-panel').hidden?get('task-search-toggle'):get('local-discover-search')).focus?.({preventScroll:true});
+        (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
       return;
     }
     let attached=false;
@@ -424,7 +426,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(focusedInWorkspace && !workspace.hidden && focused?.isConnected!==false)
       focused.focus?.({preventScroll:true});
     else if(focusedInWorkspace && workspace.hidden)
-      (get('task-search-panel').hidden?get('task-search-toggle'):get('local-discover-search')).focus?.({preventScroll:true});
+      (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
     else replacementFocus?.focus?.({preventScroll:true});
   }
   function renderInstalled() {
@@ -929,7 +931,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       get('local-discover-search').focus?.({preventScroll:true});
     }else{
       localQuery='';localFilter='all';get('local-discover-search').value='';
-      renderInstalledCards();update();toggle.focus?.({preventScroll:true});
+      renderInstalledCards();update();taskSearchReturnFocus().focus?.({preventScroll:true});
     }
   }
   listen(get('task-search-toggle'),'click',()=>setTaskSearchOpen(get('task-search-panel').hidden));

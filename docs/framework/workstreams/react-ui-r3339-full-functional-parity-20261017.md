@@ -209,3 +209,11 @@ Controller Run/Stop、定时计划真实执行和断线恢复、Provider 撤权�
 - 对上述 Actions 真实生成 HTML，在独立 Linux Chromium + Playwright `set_content` 中渲染 React，切云控、切场景，360 / 420 / 520px Header 单行（34px 高，34px 图标）、主内容宽度等于滚动宽度、0 JS pageerror，控制台/刷新预览反馈、连接设置展开、请求详情开关 PASS。辅助产物级 Node 合同 4/4 PASS，但这**不是**仓库 `node --test tests/environment/cloud-layout-r33313.test.mjs` 的运行记录。
 - 复核发现原 `@media(max-width:380px)` 只响应外层浏览器窗口，离线预览把 Stage 缩小到 320/360px 时不触发，折叠诊断展开仍双列；本次后续改为 `repeat(auto-fit,minmax(min(100%,200px),1fr))`，经浏览器样式注入实测 320/360/420 单列、520 双列。该变动须通过**更新后的**正式生成器及同 SHA Chromium 再验；对初次提交的截图不得声称覆盖后续 CSS。
 - 200% 仅做过 CSS Zoom 测试，不是已安装 Chrome 的真实浏览器缩放；Mac Native Chrome / Provider/Host 安全回归 / CI 全绿依然 `NOT_TESTED` 或 `FAIL`，五维 95+ 不予认证。
+
+## R33.3.14 · 2026-10-17 · 主页面 Header 第一阶段
+
+范围：正式「我的」页面隐藏低使用频率的搜索/筛选入口，将安装计数保留为屏幕阅读器专用状态，不删除 TaskWorkbench 的筛选能力、DOM ID 或安装任务权限判断。隐藏入口不应接收 Tab 焦点；表单收起后的焦点回到可见的「添加任务」。React 同源预览的计数不再把 UI_PREVIEW_ONLY 混进标题，Chrome 回放改为断言搜索确实隐藏。
+
+工作流设计基准：`prototypes/sidebar/workflow.html`（较新的简短入口，含 R23.10 历史/新对话设计）。旧 `prototypes/sidebar/workflow/index.html` 仅保留历史参考，不以旧版覆盖新入口。正式 Workflow Owner 不改，真实 Provider/Authority/RunHost 不随设计原型迁移。
+
+剩余范围（NOT_TESTED / NOT_IMPLEMENTED）：定时计划共享展示投影、Hover/触屏操作、多状态同源 React 预览、正式工作流 UI 差异修复、360/420/520px 截图、Mac Native。当前第一阶段仅为源码/回归脚本改动，不能申报 R33.3.14 总体 95+ 验收。生成器/Node/Build/Chromium/CI 均须以实际运行回执定级。

@@ -554,7 +554,7 @@ function Preview(){
     {createPortal(<ExtensionEmpty model={{showEmpty:rows.length===0,
       emptyText:'UI_PREVIEW_ONLY · 当前没有匹配项目'}} container={extensionEmpty}/>,extensionEmpty)}
     {createPortal(<ExtensionDetail model={detail} container={extensionDetail}/>,extensionDetail)}
-    {createPortal(<MyTaskCount value={taskRows.length+' 个 · UI_PREVIEW_ONLY'}/>,myCount)}
+    {createPortal(<MyTaskCount value={taskRows.length+' 个已安装任务'}/>,myCount)}
     {createPortal(<MyTaskRows rows={taskRows} selectedId={selectedTask}
       workspace={myWorkspace} onSelect={setSelectedTask}
       emptyText={'暂无任务 · UI_PREVIEW_ONLY'}/>,myRows)}
