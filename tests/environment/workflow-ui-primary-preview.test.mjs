@@ -5,7 +5,7 @@ import {Script} from 'node:vm';
 
 test('Workflow current primary HTML keeps compact composer, three independent actions and real provider sheet UI',async()=>{
   const html=await readFile('prototypes/sidebar/workflow.html','utf8');
-  const source=html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+  const source=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(source,'one offline script required');
   new Script(source,{filename:'workflow-primary-preview.js'});
   assert.match(html,/id="history"[^>]+aria-label="历史对话"/);
