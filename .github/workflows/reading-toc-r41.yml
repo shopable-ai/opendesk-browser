@@ -62,6 +62,7 @@ jobs:
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
           node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12.html
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12-overlay.html
+          node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/index.html
           npm run check
       - name: Production and development bundles with unchanged strict packaging
         id: production_build
