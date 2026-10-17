@@ -328,7 +328,21 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   if(mode==='preview')globalThis.__bmReactSaveStage='validated';busyRef.current=true;setBusy(true);setError('');
   let completedWrite=false;
    try{let result,expected=draft.expected;
-   if(draft.mode==='create'){result=draft.kind==='folder'?await service.createFolder({title,parentId:draft.parentId}):await service.createBookmark({title,url,parentId:draft.parentId});completedWrite=true}
+   if(draft.mode==='create'){
+    if(draft.kind==='folder')result=await service.createFolder({title,parentId:draft.parentId});
+    else{
+     const source=draft.sourcePage?.url===url?draft.sourcePage:null;
+     if(source){
+      const currentPage=await sdk.page.getContext();
+      if(currentPage?.status!=='available'||currentPage.url!==source.url||
+        currentPage.tabRef!==source.tabRef||currentPage.documentRef!==source.documentRef)
+        throw Object.assign(Error('当前网页已变化，请重新点击收藏当前页'),{code:'E_DOCUMENT_STALE'});
+     }
+     result=await service.createBookmark({title,url,parentId:draft.parentId,
+      ...(source?{sourcePage:source}:{})});
+    }
+    completedWrite=true;
+   }
    else{
     const moved=draft.parentId!==expected.parentId;
     if(moved){result=await service.move({expected,parentId:draft.parentId});completedWrite=true;expected=result}
@@ -342,7 +356,18 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
  }
  async function removeConfirmed(){if(!confirmDelete||busy||busyRef.current||uncertain)return;busyRef.current=true;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}}
  function bookmarkCurrentPage(){request({type:'currentPage'})}
- async function fillCurrentPage(){if(busy)return;try{const info=await sdk.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
+ async function fillCurrentPage(){if(busy)return;try{
+  const info=await sdk.page.getContext();
+  if(info.status!=='available')throw Error('当前页不可用');
+  if(mode==='trusted'&&(!info.tabRef||!info.documentRef))
+   throw Object.assign(Error('当前页缺少可信 Tab/Document 引用'),{code:'E_DOCUMENT_BINDING_REQUIRED'});
+  const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';
+  setDraft({...initialDraft('create','bookmark',null,parent),
+   title:info.title,url:info.url,
+   ...(info.tabRef&&info.documentRef?{sourcePage:{url:info.url,
+    tabRef:info.tabRef,documentRef:info.documentRef}}:{})});
+  setNotice('已填写当前网页，确认后再保存。');
+ }catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.4">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div>
    <div className="bm-top-actions"><div className="bm-create-actions" aria-label="新建书签或文件夹">
