@@ -668,8 +668,8 @@ function Preview(){
       rows:[{key:'preview-only',title:'演示工作流（仅预览）',
         fullTitle:'无真实保存记录，不可作为已验证的修订版',
         savedText:'预览条目 · 没有真实版本或哈希'}]}}
-      actions={{onOpenSavedHistory:()=>setWorkflowFeedback(
-        '预览无法加载工作流；正式打开会先核对来源、版本及源码哈希。')}}/>,workflowHistoryHost)}
+      actions={{onOpenSavedHistory:()=>{setHistory(false);setWorkflowFeedback(
+        '预览无法加载工作流；正式打开会先核对来源、版本及源码哈希。');}}}/>,workflowHistoryHost)}
     {createPortal(<WorkflowSourceName value={workflowSource}/>,workflowSourceHost)}
     {createPortal(<WorkflowTranscript rows={transcript}/>,workflowTranscript)}
     {Object.entries(debugNodes).map(([key,node])=>
