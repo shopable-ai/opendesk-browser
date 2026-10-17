@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {validateSidebarToolPackage,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {
   canonicalUiLocale,resolveUiLocale,compileToolLocaleCatalog,uiMessage,
@@ -45,9 +46,9 @@ test('R1.2 reviewed source and EN resource compile safely with placeholder fallb
   assert.throws(()=>compileToolLocaleCatalog(tokens),/E_TOOL_LOCALE_STALE_OR_UNSAFE/);
 });
 
-test('R1.8 source v1.0.8 package stays strict, with all reviewed words embedded offline',async()=>{
+test('current pinned official Reading TOC package stays strict with reviewed offline words',async()=>{
   const pkg=await createSidebarToolPackage(root);
-  assert.equal(pkg.version,'1.0.8');
+  assert.equal(pkg.version,OFFICIAL_READING_TOC_RELEASE.version);
   assert.equal(pkg.id,'reading-toc');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v1');
   assert.deepEqual(pkg.capabilities,['page.toc']);
