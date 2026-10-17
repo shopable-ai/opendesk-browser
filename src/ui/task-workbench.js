@@ -311,8 +311,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const toggleAction=get('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
     toggleAction.disabled=!row||working;
     toggleAction.title=toggleLabel;toggleAction.setAttribute('aria-label',toggleLabel);
-    toggleAction.querySelector('[data-task-toggle-icon="pause"]').hidden=!row?.enabled;
-    toggleAction.querySelector('[data-task-toggle-icon="play"]').hidden=Boolean(row?.enabled);
+    for(const icon of toggleAction.children||[])
+      if(icon?.dataset?.taskToggleIcon)
+        icon.hidden=icon.dataset.taskToggleIcon!==(row?.enabled?'pause':'play');
     get('task-uninstall').disabled=!row||working;
     get('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
     get('task-verify').disabled=working||!selected||selected.stage!=='candidate';
@@ -423,9 +424,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(taskManagementMode){
         const manage=doc.createElement('button');manage.type='button';
         manage.className='task-card-manage od-icon-button';
-        manage.setAttribute('aria-label','管理「'+(info?.manifest.title||row.taskId)+'」');
-        manage.title=manage.getAttribute('aria-label');
-        const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
+        const manageLabel='管理「'+(info?.manifest.title||row.taskId)+'」';
+        manage.setAttribute('aria-label',manageLabel);manage.title=manageLabel;
+        const svg=doc.createElementNS?.('http://www.w3.org/2000/svg','svg')||doc.createElement('svg');
         svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
         svg.innerHTML='<path d="M4 7h9m6 0h1M4 17h1m6 0h9"/><circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/>';
         manage.append(svg);
