@@ -464,7 +464,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   async function loadSaved() {
     const record=saveList.find(item=>item.key===get('workflow-saved-list').value);
     if(!record)throw err('E_WORKFLOW_REVISION','请选择已保存版本');
-    if(busy)throw err('E_WORKFLOW_BUSY','请在当前操作结束后再打开历史版本');
+    if(busy||host.executionPending||host.currentRun)
+      throw err('E_WORKFLOW_BUSY','当前操作尚未完成，不能切换历史版本');
+    const serialBefore=stable(),requestBefore=get('workflow-ai-request').value;
+    if((Boolean(workflow.steps.length||workflow.title!=='新工作流'||workflow.description)
+      && !matchesRevision())||requestBefore.trim())
+      throw err('E_WORKFLOW_DIRTY','请先保存当前工作流，或确认新建后再打开历史版本');
     const clean=validateWorkflow(record.workflow);
     if(record.verificationMode&&record.verificationMode!=='fill-readback')
       throw err('E_WORKFLOW_SCHEMA','保存版本使用了未知验证模式');
@@ -473,6 +478,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(saved?.contentHash!==compile.sourceHash || saved.sourceUtf8!==compile.sourceUtf8 ||
       record.sourceHash!==compile.sourceHash)
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
+    if(disposed||busy||host.executionPending||host.currentRun||
+      serialBefore!==stable()||requestBefore!==get('workflow-ai-request').value)
+      throw err('E_WORKFLOW_STALE','历史版本读取期间工作流已变化，已保留当前编辑内容');
     void stopPlanning({close:true}).catch(()=>{});
     verifiedTurnHistory=[];lastProviderTurn=null;
     observationApproval=null;persistObservationApproval();
@@ -1216,6 +1224,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       // approval instead of silently sending to a stale recipient.
       if(phase==='planning')void stopPlanning({close:true})
         .catch(error=>{if(!disposed)status(format(error),true);});
+      observationApproval=null;persistObservationApproval();
       verifiedTurnHistory=[];lastProviderTurn=null;
       updateButtons();
     });
