@@ -1,0 +1,21 @@
+# GOAL：OpenDesk Browser R33.3.8 — Mac 已安装扩展增量测试、修复、验收
+
+默认中文｜main ONLY｜REAL INSTALLED CHROME｜FIX FIRST｜DO NOT REPEAT FULL OLD TESTS｜NO FAKE PASS
+
+仓库：shopable-ai/opendesk-browser；本地目录：/Users/shopme/Documents/workspace/opendesk-browser。
+先读 AGENTS.md、docs/framework/parallel-development.md 和 docs/framework/workstreams/react-ui-r3338-my-cloud-partial-20261017.md。
+预期代码至少包含 7e1bcaba、6cc9c65b、757f78d9、35b3e4d3、441d584、8f9b43、b6e013a。先 git status --short / git branch --show-current / git rev-parse HEAD / git fetch origin main；只有没有未提交冲突且不会覆盖其他 Agent 时才执行 git pull --ff-only。只能 main，禁止分支、worktree、PR、强推、reset/clean/stash、覆盖并行文件。
+
+仅增量验证新增 React Owner 与真实权限/执行：
+1. 从同一个最新 HEAD 构建候选包（按项目脚本），核对实际加载的 Chrome 扩展 ID、Manifest/版本、构建哈希、Side Panel URL、Native Host 在线状态。不能用直接打开 HTML、Mock 或 Linux Chromium 代替 Mac 已安装扩展。
+2. 我：任务数量、搜索和筛选、启停展示、选中卡片、任务可信详情和真实 Run/Stop；确认列表/参数编辑区唯一 DOM Owner。切换任务及 Tab 时检查原生输入框中文 IME、焦点、光标、撤销、输入内容及草稿，删除/恢复、计划入口、历史没有回归；无第二数据库/Revision。
+3. 云控：Provider 配对、连接、Host、slot、已授权任务数、请求数，分别观察正常、拒绝、断线、未知。核实只读 React Projection 不 Claim、不重调度、不自动重试、不放大授权。手动停止、本地中止、远程撤权回执严格区分。
+4. 扩展：安装/详情/返回/搜索/启停/导入/卸载/权限审阅和回读；Sandbox iframe 与原 Install Authority 仍然唯一。
+5. 工作流：测试页 http://127.0.0.1:43111/demo-form.html；第一轮“给我一个亿的项目”，第二轮“项目已启动”。核对真实输入、RunId、ResultId、sourceHash、停止、Result/Revision、最终任务退休，无意外导航或提交。仅核对既有历史对话 UI，不重新设计或加设置。
+6. 开发：360/420/520px 验证 JS/React/Vue、Controller/Page、保存/运行/停止、多文件与本地项目；核对 textarea/代码编辑器横向滚动不撑破 Side Panel、IME/选择/光标与错误定位。真实 Chrome 点击授权并验证 ESM Worker/静态锁，不得放宽权限。
+7. 调试：确认生产默认隐藏，开发可见且只读；脱敏、复制、刷新、加载/未知/断线/错误；Unmount/Dispose 后无新写入、无重复监听。
+8. 定向复现历史 ERR_UNKNOWN_FILE_EXTENSION 与 Node does not have a layout object：优先使用新 CI 修复后对应测试。对 E_PAGE_COMPILER_STALE、后台预检查/前台 prepare 竞态和 Controller Save→Run 验证使用最新提交的单位测试及真实 Chromium CFT，禁止删除测试、延长超时掩盖业务错误。
+9. 按实际改动执行必要 Node/Chromium、npm run check/build/build:dev/verify/build:size；若无代码变更可复用**相同 SHA** CI 证据，不重复已通过且未受影响的全量矩阵。
+10. 结果输出六 Tab Owner→Adapter→Snapshot→Subscription→Dispose、每条测试 PASS/FAIL/NOT_TESTED、安装包哈希、真实 Chrome DevTools/Native 日志（脱敏）、证据截图及对应提交。必须将本轮证据记录在新文档，仅提交自己修改的文件并正常推送 main；如失败优先修复，不能把等待/模拟当通过。
+
+仅当 React 架构、UX、Chrome 权限、安全可靠性、反方审计五项基于实际证据分别≥95 时才能宣称 R33.3.8 完成。未达标逐条列出最小剩余缺口与复测命令。
