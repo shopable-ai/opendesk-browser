@@ -412,7 +412,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         }
       });
       group.append(button);
-      if(row.taskId===selected&&row.taskId===fallbackExpandedTaskId){workspace.hidden=false;group.append(workspace);attached=true;}
+      if(row.taskId===selected){
+        // Keep the one live workspace inside its selected card when collapsed;
+        // no extra sibling and no remounted parameters, results or listeners.
+        workspace.hidden=row.taskId!==fallbackExpandedTaskId;
+        group.append(workspace);attached=true;
+      }
       parent.append(group);
     }
     if(!attached){workspace.hidden=true;parent.append(workspace);}
