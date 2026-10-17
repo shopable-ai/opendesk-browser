@@ -1,7 +1,7 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import App from './App.jsx';
-import './style.css';
+import App from '../../../src/react/App.jsx';
+import '../../../src/react/style.css';
 
 // Non-release feasibility entry. Same App.jsx shared by preview/formal.
 const host=globalThis.OpenDeskTool;

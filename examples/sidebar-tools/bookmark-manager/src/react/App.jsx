@@ -104,15 +104,15 @@ function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActi
   <div className="bm-tree-preview-tail" aria-hidden="true"/>
  </div>
 }
-function FolderPicker({tree,value,onChange,onClose,currentId}){
+function FolderPicker({tree,value,onChange,onClose,currentId,disabled=false}){
  const [term,setTerm]=useState('');
  const folders=useMemo(()=>[...tree.byId.values()].filter(n=>isFolder(n)&&canTarget(tree,n)&&(!currentId||!model.isDescendant(tree,n.id,currentId))).filter(n=>(n.title+' '+folderLabel(tree,n.id)).toLocaleLowerCase().includes(term.trim().toLocaleLowerCase())),[tree,term,currentId]);
  return <div className="bm-picker" data-testid="folder-picker">
   <div className="bm-picker-head"><strong>选择目标文件夹</strong><button className="bm-close" onClick={onClose} type="button" aria-label="关闭文件夹选择"><Icon name="x" size={16}/></button></div>
   <label className="bm-sr-only" htmlFor="bm-folder-search">搜索目标文件夹</label>
-  <input id="bm-folder-search" autoFocus placeholder="搜索文件夹或路径" value={term} onChange={e=>setTerm(e.target.value)}/>
+  <input id="bm-folder-search" autoFocus disabled={disabled} placeholder="搜索文件夹或路径" value={term} onChange={e=>setTerm(e.target.value)}/>
   <div className="bm-picker-list" role="listbox" aria-label="目标文件夹">
-   {folders.map(folder=><button role="option" aria-selected={value===folder.id} key={folder.id} type="button" className={'bm-picker-item'+(value===folder.id?' picked':'')} onClick={()=>{onChange(folder.id);onClose()}}>
+   {folders.map(folder=><button role="option" disabled={disabled} aria-selected={value===folder.id} key={folder.id} type="button" className={'bm-picker-item'+(value===folder.id?' picked':'')} onClick={()=>{onChange(folder.id);onClose()}}>
     <Icon name="folder" size={16}/><span><b>{folder.title}</b><small>{folderLabel(tree,folder.parentId)}</small></span></button>)}
    {!folders.length&&<p className="bm-note">没有可用的目标文件夹</p>}
   </div><small className="bm-note">共 {folders.length} 个符合条件的目标 · 已排除自身、子目录及受保护节点</small>
@@ -123,10 +123,10 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
  return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
   <span id="bm-inspector-id" className="bm-sr-only">{node?.id||''}</span>
   {draft?<form className="bm-editor" onSubmit={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==="Enter"&&!e.nativeEvent.isComposing&&["bm-edit-name","bm-edit-url"].includes(e.target.id)){e.preventDefault();onSave(e)}}} data-testid="bookmark-editor">
-   <div className="bm-field"><label htmlFor="bm-edit-name">名称</label><input id="bm-edit-name" autoFocus maxLength={256} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></div>
-   {draft.kind==='bookmark'&&<div className="bm-field"><label htmlFor="bm-edit-url">网址</label><input id="bm-edit-url" type="url" required maxLength={2048} value={draft.url} placeholder="https://example.com" onChange={e=>setDraft({...draft,url:e.target.value})}/></div>}
-   <div className="bm-parent-line"><span className="bm-note">所在文件夹：</span><span className="bm-parent-path" title={folderLabel(tree,draft.parentId)}>{folderLabel(tree,draft.parentId)}</span><button type="button" className="bm-text-button" aria-expanded={pickerOpen} onClick={()=>onOpenPicker(!pickerOpen)}>更改</button></div>
-   {pickerOpen&&<FolderPicker tree={tree} value={draft.parentId} currentId={draft.mode==='edit'&&draft.kind==='folder'?draft.id:null} onChange={id=>setDraft({...draft,parentId:id})} onClose={()=>setPickerOpen(false)}/>}
+   <div className="bm-field"><label htmlFor="bm-edit-name">名称</label><input id="bm-edit-name" autoFocus disabled={busy} maxLength={256} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></div>
+   {draft.kind==='bookmark'&&<div className="bm-field"><label htmlFor="bm-edit-url">网址</label><input id="bm-edit-url" type="url" required disabled={busy} maxLength={2048} value={draft.url} placeholder="https://example.com" onChange={e=>setDraft({...draft,url:e.target.value})}/></div>}
+   <div className="bm-parent-line"><span className="bm-note">所在文件夹：</span><span className="bm-parent-path" title={folderLabel(tree,draft.parentId)}>{folderLabel(tree,draft.parentId)}</span><button type="button" className="bm-text-button" disabled={busy} aria-expanded={pickerOpen} onClick={()=>onOpenPicker(!pickerOpen)}>更改</button></div>
+   {pickerOpen&&<FolderPicker tree={tree} disabled={busy} value={draft.parentId} currentId={draft.mode==='edit'&&draft.kind==='folder'?draft.id:null} onChange={id=>setDraft({...draft,parentId:id})} onClose={()=>setPickerOpen(false)}/>}
    <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存</Button><button type="button" className="bm-button" onClick={onCancel} disabled={busy}>取消</button></div>
    {error&&<p className="bm-sheet-error" role="alert">{error}</p>}
    {uncertain&&<p className="bm-warning">写入结果未知，已禁止重复保存。请先核对书签状态。</p>}
@@ -339,7 +339,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   else if(action.type==='currentPage')void fillCurrentPage();
  }
  // Explicit cancel means discard. No modal for unsaved drafts.
- function request(action){if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
+ function request(action){if(busyRef.current)return;if(uncertain&&['create','edit','delete','currentPage'].includes(action.type)){setError('上次写入结果未知，请先刷新核对后再继续。');return}perform(action)}
  function select(id){setActiveId(id);if(draft)return;request({type:'select',id})}
  function changeSearch(value){
   setQuery(value);setPreviewOpen(false);setMenu(null);

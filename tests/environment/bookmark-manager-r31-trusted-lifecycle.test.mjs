@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const appFile='examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
+const appFile='examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
 const chromeFile='examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs';
 const read=file=>readFile(file,'utf8');
 

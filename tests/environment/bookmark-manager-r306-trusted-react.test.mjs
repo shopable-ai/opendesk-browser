@@ -55,8 +55,8 @@ test('R3.0.6 only the exact official, enabled, current installed package enters 
 test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe intact',async()=>{
  const [react,host,shell,app,css,entry,formal,build,chrome,ignore,wxt]=await Promise.all([
   'src/ui/react/main.tsx','src/ui/sidebar-tools.js','src/ui/tool-shell.js',
-  'examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx',
-  'examples/sidebar-tools/bookmark-manager/preview/react/src/style.css',
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx',
+  'examples/sidebar-tools/bookmark-manager/src/react/style.css',
   'examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx',
   'examples/sidebar-tools/bookmark-manager/preview/react/src/formal.jsx',
   'examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs',
@@ -65,7 +65,7 @@ test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe inta
  ].map(read));
  assert.match(react,/createPortal\(<[\s\S]*BookmarkReactApp/);
  assert.match(react,/mountBookmarkPilot\(/);
- assert.match(react,/BookmarkReactApp from .*preview\/react\/src\/App\.jsx/);
+ assert.match(react,/BookmarkReactApp from .*bookmark-manager\/src\/react\/App\.jsx/);
  assert.equal((react.match(/createRoot\(/g)||[]).length,1);
  assert.match(shell,/bookmarkReactPilot/);
  assert.match(shell,/debugEnabled/);
@@ -82,8 +82,8 @@ test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe inta
  assert.match(app,/sourcePage:source/);
  assert.doesNotMatch(app,/^const service=globalThis\./m);
  assert.doesNotMatch(css,/^:root|^html,body|^button,input/m);
- assert.match(entry,/import '\.\/style\.css'/);
- assert.match(formal,/import '\.\/style\.css'/);
+ assert.match(entry,/import '\.\.\/\.\.\/\.\.\/src\/react\/style\.css'/);
+ assert.match(formal,/import '\.\.\/\.\.\/\.\.\/src\/react\/style\.css'/);
  assert.match(build,/preview'\);\nconst candidate=join\(candidateDir,'dev\.html'\)/);
  assert.match(chrome,/preview\/dev\.html/);
  assert.match(ignore,/^\/dev\.html$/m);

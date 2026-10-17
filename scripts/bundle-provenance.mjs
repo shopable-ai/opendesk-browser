@@ -53,7 +53,7 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
-// R3.1: The Bookmark Manager trusted React pilot compiles exactly four
+// R3.2: The Bookmark Manager trusted React pilot compiles exactly four
 // reviewed first-party files into the EXISTING ui/tool-shell.js. They are
 // author-controlled static imports, not installed or user-supplied package
 // code. Every Git blob is pinned to fail closed on source drift, and no other
@@ -62,8 +62,8 @@ function reviewedCompiledAdblock(target,path,root){
 const compiledBookmarkReactInputs=Object.freeze({
   'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
   'examples/sidebar-tools/bookmark-manager/src/service.js':'1c1541ee128e37dd8897b073581bd476ce8f4171',
-  'examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx':'a8f81581c5607c16d9ec123fa493ed1b20ccc696',
-  'examples/sidebar-tools/bookmark-manager/preview/react/src/style.css':'1db0dbaf6896bd66e0c39f5184c1ae41d7436cf4'
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'a9da341d824e29ac8b8a29fb28874bfd247e4159',
+  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'1db0dbaf6896bd66e0c39f5184c1ae41d7436cf4'
 });
 function reviewedCompiledBookmarkReact(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;

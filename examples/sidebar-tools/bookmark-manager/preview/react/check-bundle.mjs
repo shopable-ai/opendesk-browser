@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // R3.0.5 non-release feasibility. Build the SAME App.jsx with formal SDK mount,
-// then use the existing Sidebar Tool v2 validator/encoder. Never touch src or package.
+// then use the existing Sidebar Tool v2 validator/encoder. Never overwrite Classic src/main.js or the official package.
 import {build} from 'vite';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';

@@ -21,7 +21,7 @@ const manifestPattern=/(<script type="application\/json" id="opendesk-preview-ma
 const framePattern=/atob\('[A-Za-z0-9+/=]+'\)/;
 const encoded=x=>Buffer.from(x,'utf8').toString('base64');
 const inputs=[
- join(here,'src/App.jsx'),join(here,'src/main.jsx'),join(here,'src/style.css'),
+ join(toolDir,'src/react/App.jsx'),join(here,'src/main.jsx'),join(toolDir,'src/react/style.css'),
  join(here,'vite.config.mjs'),join(here,'package-lock.json'),
  join(root,'src/ui/design-tokens.css'),join(root,'scripts/preview/bookmark-manager-mock.js'),
  join(toolDir,'src/model.js'),join(toolDir,'src/service.js')
@@ -38,7 +38,7 @@ async function generate(){
    read(join(here,'dist/bookmark-react.css')),read(join(root,'src/ui/design-tokens.css')),
    read(join(root,'scripts/preview/bookmark-manager-mock.js')),
    read(join(toolDir,'src/model.js')),read(join(toolDir,'src/service.js')),
-   read(join(here,'src/main.jsx')),read(join(here,'src/App.jsx'))
+   read(join(here,'src/main.jsx')),read(join(toolDir,'src/react/App.jsx'))
   ]);
   if(before!==await inputFingerprint())continue;
   const oldManifest=JSON.parse(out.match(manifestPattern)?.[2]||'null');
@@ -104,7 +104,7 @@ if(process.argv.includes('--watch')){
  const schedule=()=>{if(closed)return;dirty=true;clearTimeout(timer);timer=setTimeout(()=>void drain(),150)};
  const watches=[
   fsWatch(join(here,'src'),{recursive:true},schedule),
-  fsWatch(join(toolDir,'src'),{},schedule),
+  fsWatch(join(toolDir,'src'),{recursive:true},schedule),
   fsWatch(join(root,'scripts/preview'),{},(type,file)=>{if(String(file)==='bookmark-manager-mock.js')schedule()}),
   fsWatch(join(root,'src/ui'),{},(type,file)=>{if(String(file)==='design-tokens.css')schedule()}),
   fsWatch(here,{},(type,file)=>{if(['vite.config.mjs','package-lock.json','package.json'].includes(String(file)))schedule()}),

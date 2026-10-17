@@ -168,3 +168,12 @@
 
 **结论**：批准继续在非发布可信 React 候选上做开发版 Native 端到端验收；
 **不批准正式版本升级、安装包替换、Catalog 修改或发布**。
+
+
+## R3.2 · 正式应用 JSX 源码迁移（非发布候选）
+
+- 可信 App 与样式唯一可维护源移至 `examples/sidebar-tools/bookmark-manager/src/react/{App.jsx,style.css}`；预览入口只引用正式源码，不保留第二份 JSX/CSS。生产 `src/ui/react/main.tsx` 保留唯一 React Root、Portal、静态 Bookmark Model/Service、原 Host Admission。
+- 保存期间禁止编辑名称、网址和目标文件夹，阻止另起写操作；不改变 R3.0.7/3.0.8 已批准的悬浮详情及 HTTP(S) 网址链接。
+- `preview/dev.html` 仍是 Mock 数据离线候选；`preview/index.html`、0.3.8 正式包、Catalog、Classic `src/{index.html,main.js,model.js,service.js}` 不晋升或替换。新提交的 Chrome 原生授权/撤权、真实新标签打开和 Mac 安装均需独立测试，无证据标为 `NOT_TESTED`。
+- **包预算决策**：本候选运行于固定 WXT Host，而非将 React IIFE 作为动态 Sidebar Tool 安装。225,001-byte 离线 IIFE 超旧 220,000 限制不等于正式可信包超限。本轮保留动态工具 JS 220,000 bytes、完整包 320,000 bytes；768 KiB JS / 1 MiB 包预算仅在确有新动态工具需求时再统一调整及边界测试，不进行无证据平台放宽。`ui/tool-shell.js` 的 1 MiB 硬门槛保持不变。
+- 新增定向 Mock Service 回归用于证明 Full SDK Consumer 逻辑、100 条游标分页、2,292 节点/130 文件夹、CRUD/观察/撤权拒绝；不是 Chrome 原生书签 API PASS。新候选 Bundle bytes、SHA-256、CI 与 Chromium 结果必须以当前 HEAD 的实测证据为准。

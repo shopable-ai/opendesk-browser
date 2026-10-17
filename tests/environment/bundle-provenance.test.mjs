@@ -137,8 +137,8 @@ test('R3.1 trusted Bookmark React compiles only four pinned first-party blobs in
   const inputs=[
     'examples/sidebar-tools/bookmark-manager/src/model.js',
     'examples/sidebar-tools/bookmark-manager/src/service.js',
-    'examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx',
-    'examples/sidebar-tools/bookmark-manager/preview/react/src/style.css'
+    'examples/sidebar-tools/bookmark-manager/src/react/App.jsx',
+    'examples/sidebar-tools/bookmark-manager/src/react/style.css'
   ];
   const modules=Object.fromEntries(inputs.map(path=>[resolve(path),{renderedLength:42,originalLength:42}]));
   const compiled=describeBundle({chunk:{fileName:'ui/tool-shell.js',modules},lock:{packages:{}}});
@@ -159,9 +159,9 @@ test('R3.1 trusted Bookmark React compiles only four pinned first-party blobs in
 test('R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX',async t=>{
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-bookmark-pin-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
-  const path='examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
+  const path='examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/bookmark-manager/preview/react/src'),{recursive:true});
+  await mkdir(join(project,'examples/sidebar-tools/bookmark-manager/src/react'),{recursive:true});
   await writeFile(file,'export default function Unexpected(){return null}');
   assert.throws(()=>describeBundle({chunk:{
     fileName:'ui/tool-shell.js',modules:{[file]:{renderedLength:8,originalLength:8}}

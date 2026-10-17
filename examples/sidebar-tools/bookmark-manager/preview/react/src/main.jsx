@@ -1,7 +1,7 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import App from './App.jsx';
-import './style.css';
+import App from '../../../src/react/App.jsx';
+import '../../../src/react/style.css';
 const container=document.getElementById('tool-root');
 if(!container)throw Error('E_BOOKMARK_REACT_ROOT_MISSING');
 const root=createRoot(container);

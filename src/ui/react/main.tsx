@@ -13,8 +13,8 @@ import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
 // Fixed, reviewed Bookmark Manager sources only; no installed package scripts.
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
-import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/App.jsx';
-import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/preview/react/src/style.css?raw';
+import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
+import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/src/react/style.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // One trusted React root and three portals in the existing fixed Side Panel.

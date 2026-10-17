@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
+      - 'examples/sidebar-tools/bookmark-manager/src/react/**'
       - 'examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs'
       - 'examples/sidebar-tools/bookmark-manager/src/model.js'
       - 'examples/sidebar-tools/bookmark-manager/src/service.js'
@@ -14,6 +15,8 @@ on:
       - 'tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs'
       - 'tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs'
       - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
+      - 'tests/environment/bookmark-manager-r32-formal-source.test.mjs'
+      - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
   workflow_dispatch:
 permissions:
@@ -38,6 +41,7 @@ jobs:
             tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs \
             tests/environment/bookmark-manager-r306-trusted-react.test.mjs \
             tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs \
+            tests/environment/bookmark-manager-r32-formal-source.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
             tests/environment/bundle-provenance.test.mjs
       - name: Check formal source
