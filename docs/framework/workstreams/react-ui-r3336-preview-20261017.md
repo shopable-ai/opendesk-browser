@@ -23,7 +23,7 @@ HTML 离线单文件包含编译的 React 19、正式生产 JSX、正式 CSS 和
 ## 三 Tab 差异矩阵（真实边界）
 | 页面 | 原型 | 正式 React / 业务 | 本轮处理与剩余 |
 | --- | --- | --- | --- |
-| 工作流 | prototypes/sidebar/workflow/index.html，R23.9.2 独立演示 | JSX 已接管 Header / Transcript / Bottom Sheet；业务状态由 WorkflowView 提供 | 生成真正正式同源 360px HTML；输入/步骤/结果仍是旧 DOM Owner，待完成真实 React 业务迁移 |
+| 工作流 | prototypes/sidebar/workflow/index.html，R23.9.2 独立演示 | JSX 已接管 Header / Transcript / Bottom Sheet；业务状态由 WorkflowView 提供 | 生成真正正式同源 360px HTML；输入/步骤编辑及 Result 技术信息仍由既有业务逻辑提供；Durable Result 文本已迁移为同一 React Root 的 WorkflowResultText Portal |
 | 开发 | prototypes/sidebar/develop/index.html 与 r2-full-preview.html | JS/React/Vue、多文件、草稿、Run/Save/Stop 必须保留 | 复用正式 od-* 和 34px icon，未证明全页视觉差异清零，不迁移业务 |
 | 扩展 | prototypes/sidebar/extension-center-r47-frequency-first-preview.html | 列表/详情/工具栏已有 React owner，原 Host 管理权限/安装 | 不做重复 Mock 改版；窄屏/键盘/释放要按实际包单独验收 |
 
@@ -34,3 +34,12 @@ HTML 离线单文件包含编译的 React 19、正式生产 JSX、正式 CSS 和
 - 正式 HTTPS 每轮摘要披露需重新确认；批准摘要不代表运行网页填写/点击权限。
 - Preview Chrome 只可记 SOURCE_BOUND_UI_PREVIEW_CHROMIUM；不能升级为 INSTALLED_EXTENSION_NATIVE_CHROME。
 - 真实 Mac 两轮输入、RunId/ResultId/sourceHash、task retirement、三 Tab 完整视觉审计、Workflow 编辑/结果全 React Ownership 尚未通过此次离线预览证明；保留 PARTIAL/NOT_TESTED，不伪造 95+ 评分。
+
+## R33.3.6 实际实施补充（2026-10-17）
+
+1. P0-B 已完成的最小业务迁移：正式 `src/ui/react/main.tsx` 为 `#workflow-output` 指定单一 React 子节点 Owner，正式 `WorkflowView` 只把经过原有 RunHost / Durable Result 解码的文本交给 `renderWorkflowResult`。无异步执行逻辑或权限改写；未提供 React root 的旧测试环境保留原始 DOM 文本 fallback。
+2. 离线预览 `src/ui/react/preview/workflow-preview.tsx` 同样直接复用正式 `WorkflowResultText`，不会同时对输出节点重复写入。
+3. 360px 嵌入式预览不是浏览器完整窗口；Bottom Sheet 本身保留正式 `position: fixed`，只在预览外壳作用域覆盖为 `position: absolute`，使打开后的抽屉仍限制在 360/420/520px 框内。正式业务 CSS 保持不变。
+4. GitHub CI 证据：`39017327959` 是已验证的 React 19 单文件、正式 DOM 实际 Chrome 渲染和 React 浏览器交互；`39017783462` 已执行结果迁移后的 HTML/Chromium/定向 Node 回归；`39017951661` 单独执行 check、Node、Production、Development、verify、size，其中后四项被当前仓库内 Prompt Shortcuts 源码可信哈希检查阻断，不能称为完整构建 PASS。
+5. 可信来源阻断：`[opendesk-fixed-page-relay] Trusted Prompt Shortcuts source changed; review and re-pin before fixed build: examples/sidebar-tools/prompt-shortcuts/trusted/page.js`。该模块归 Prompt Shortcuts 所有，本轮绝不能改写 hash、跳过 provenance 或把失败归咎于 Workflow React。
+6. Mac Chrome 实际安装及两轮输入仍然 `NOT_TESTED`。所有 95+ 评分仍为 `NOT_SCORED`，等待真实安装 Native 与全量门禁通过。
