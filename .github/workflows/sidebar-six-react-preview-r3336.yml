@@ -46,6 +46,14 @@ jobs:
             --no-first-run --virtual-time-budget=5000 \
             --dump-dom "file://$PWD/prototypes/sidebar/react-preview/index.html" \
             > artifacts/sidebar-six-react-preview/dom.txt
+          node --input-type=module <<'DIAGNOSTICS'
+          import {readFileSync} from 'node:fs';
+          const dom=readFileSync('artifacts/sidebar-six-react-preview/dom.txt','utf8');
+          const markers=['data-sidebar-preview-ready="true"','data-preview-scenario','od-sidebar-preview-controls','od-sidebar-preview-root'];
+          console.log('CHROMIUM_DIAGNOSTICS='+JSON.stringify({bytes:dom.length,markers:Object.fromEntries(markers.map(k=>[k,dom.includes(k)])),
+            bodyHead:dom.slice(Math.max(0,dom.indexOf('<body')),Math.max(0,dom.indexOf('<body'))+800),
+            documentTail:dom.slice(-850)}));
+          DIAGNOSTICS
           grep -q 'data-sidebar-preview-ready="true"' artifacts/sidebar-six-react-preview/dom.txt
           grep -q 'data-preview-scenario' artifacts/sidebar-six-react-preview/dom.txt
           for tab in tasks tools workflow develop cloud debug; do
@@ -58,6 +66,7 @@ jobs:
           echo "SOURCE_BOUND_UI_PREVIEW_CHROMIUM=6_TAB_SCREENSHOTS_ONLY"
           echo "INSTALLED_EXTENSION_NATIVE_CHROME=NOT_TESTED"
       - name: Upload exact generated HTML and screenshots (no write to main)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sidebar-six-react-preview
