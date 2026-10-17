@@ -85,6 +85,13 @@
 .task-tools .row button{background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-input-border);font-size:12px;min-height:36px}
 .task-tools details{margin:6px 0}
 .task-tools .hint{font-size:11px;line-height:1.45}
+/* Keep the approved flat nested Task Manager; its actionable controls need
+ * the same 12px inset as other trusted disclosures, not a zero gutter. */
+.task-tools>.od-disclosure--flat>summary{padding-inline:var(--space-3)}
+.task-tools>.od-disclosure--flat>:not(summary){
+  margin-inline:var(--space-3);
+  max-width:calc(100% - var(--space-3) - var(--space-3));
+}
 .catalog-open{background:#eef3ff!important;color:#3657a7!important}
 .task-card-list>.hint{background:var(--od-paper);border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}
 

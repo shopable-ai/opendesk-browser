@@ -24,6 +24,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let reactMyTasks=null; // UI sink only, no duplicate task store or Host.
+  let fallbackExpandedTaskId=null, fallbackLastSelection=null; // legacy DOM UI only
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, catalogSelectionEpoch=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
@@ -384,7 +385,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       button.type='button';button.className='task-card';
       button.dataset.taskId=row.taskId;
       button.setAttribute('aria-pressed',String(row.taskId===selected));
-      button.setAttribute('aria-expanded',String(row.taskId===selected));
+      button.setAttribute('aria-expanded',String(row.taskId===selected&&row.taskId===fallbackExpandedTaskId));
       button.setAttribute('aria-controls','task-selected-workspace');
       const badge=doc.createElement('span');badge.className='task-card-icon';
       badge.textContent=(info?.manifest.title || row.taskId).slice(0,1).toUpperCase();
@@ -399,14 +400,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(focusedTaskId===row.taskId)replacementFocus=button;
       button.addEventListener('click',()=>{
         const wasFocused=doc.activeElement===button;
-        get('task-installed-list').value=row.taskId;renderInstalledSelection();
+        if(get('task-installed-list').value===row.taskId){
+           fallbackExpandedTaskId=fallbackExpandedTaskId===row.taskId?null:row.taskId;
+           renderInstalledCards(); // No RunHost/draft/result changes on collapse.
+         }else{
+           get('task-installed-list').value=row.taskId;renderInstalledSelection();
+         }
         if(wasFocused) {
           for(const next of get('task-installed-cards').querySelectorAll?.('.task-card')||[])
             if(next.dataset.taskId===row.taskId){next.focus?.({preventScroll:true});break;}
         }
       });
       group.append(button);
-      if(row.taskId===selected){workspace.hidden=false;group.append(workspace);attached=true;}
+      if(row.taskId===selected&&row.taskId===fallbackExpandedTaskId){workspace.hidden=false;group.append(workspace);attached=true;}
       parent.append(group);
     }
     if(!attached){workspace.hidden=true;parent.append(workspace);}
@@ -431,6 +437,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderInstalledSelection();
   }
   function renderInstalledSelection() {
+    const currentSelection=get('task-installed-list').value;
+    if(currentSelection!==fallbackLastSelection){
+      fallbackLastSelection=currentSelection;
+      fallbackExpandedTaskId=currentSelection||null;
+    }
     const row=installedRow(),info=candidateFor(row);
     const detailText=info
       ?`适用网站：${info.manifest.siteOrigins.join('、')}\n所需能力：${info.manifest.permissions.join('、')}\n来源：${info.manifest.source} · v${row.version}`
