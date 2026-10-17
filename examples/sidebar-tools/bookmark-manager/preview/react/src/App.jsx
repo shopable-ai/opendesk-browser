@@ -243,30 +243,45 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
  const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
  useEffect(()=>{onStateChange?.({dirty:dirtyDraft(draft),saving:busy,draft:draft?JSON.stringify({title:draft.title,url:draft.url,parentId:draft.parentId}).slice(0,8192):''})},[onStateChange,draft,busy]);
- const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[service]);
- useEffect(()=>{void load({initial:true})},[load]);
+ const load=useCallback(async({initial=false,reconcileUnknown=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(reconcileUnknown)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[service]);
+ useEffect(()=>{if(mode!=='trusted')void load({initial:true})},[mode,load]);
  useEffect(()=>{
   if(mode!=='trusted')return;
-  let closed=false,session=null,timer=null;
-  async function stop(old){if(old)try{await service.watchStop(old)}catch{/* Session expires on Host. */}}
+  let closed=false,session=null,timer=null,needsSnapshot=true;
+  async function stop(old){if(old)try{await service.watchStop(old)}catch{/* Host sessions are bounded by expiry. */}}
   async function poll(){
    if(closed)return;
    try{
     if(!session||Date.now()>session.expiresAt-5000){
      const old=session;session=null;await stop(old);if(closed)return;
-     const next=await service.watchStart();if(closed){await stop(next);return}session=next;
+     const next=await service.watchStart();if(closed){await stop(next);return}
+     session=next;needsSnapshot=true;
+    }
+    // Observe before the first snapshot, including every session renewal.
+    // Changes during pagination are then available via the same observer.
+    if(needsSnapshot){
+     const snapshot=await load({initial:true});
+     if(closed)return;
+     if(!snapshot)return; // Retry the failed snapshot without losing observation.
+     needsSnapshot=false;
     }
     const result=await service.watchRead(session);
     if(closed)return;
     session={...session,cursor:result.nextCursor,expiresAt:result.expiresAt};
-    if(result.events.length)await load();
+    if(result.events.length)await load(); // Never clear an unknown write automatically.
    }catch(error){
     if(closed)return;
-    const old=session;session=null;void stop(old);
+    const old=session;session=null;needsSnapshot=true;void stop(old);
     if(['E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED'].includes(error?.code)){
      readEpoch.current++;setTree(null);setDraft(null);setSelectedId(null);setPreviewOpen(false);setMenu(null);
-     setError('完整书签访问已失效，请在工具设置中重新授权后打开。');closed=true;
-    }else if(error?.code==='E_BOOKMARK_EVENT_GAP')void load();
+     setLoading(false);setError('完整书签访问已失效，请在工具设置中重新授权后打开。');closed=true;
+    }else if(error?.code==='E_BOOKMARK_EVENT_GAP'){
+     // The cursor is no longer trustworthy: hide the stale tree and renew
+     // observer -> complete snapshot on the next cycle, preserving any draft.
+     readEpoch.current++;setTree(null);setPreviewOpen(false);setLoading(true);
+    }else{
+     setLoading(false);setError(humanError(error));
+    }
    }finally{if(!closed)timer=setTimeout(()=>void poll(),2500)}
   }
   void poll();
@@ -402,10 +417,10 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
     <button title="新建书签" aria-label="新建书签" className="bm-icon-btn bm-icon-btn--primary" type="button" onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></button>
     <button title="新建文件夹" aria-label="新建文件夹" className="bm-icon-btn" type="button" onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></button></div>
     <button title="收藏当前页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
-    <button title="刷新书签" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button>
+    <button title="刷新书签" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load({reconcileUnknown:true})} disabled={loading}><Icon name="refresh" size={17}/></button>
    </div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></button>}</div></div>
-  {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
+  {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load({reconcileUnknown:true})}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
   {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
