@@ -34,7 +34,8 @@ jobs:
       - name: Source-drift guard and focused contracts
         run: |
           node scripts/preview/build-workflow-react-preview.mjs --check
-          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/react-sidebar-r333.test.mjs tests/environment/workflow-ui-states.test.mjs
+          # Workflow-specific regression; generic React contracts also run in the package job.
+          node --test tests/environment/workflow-react-preview-contract.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/workflow-focus.test.mjs
       - name: Actual source JSX in Chromium (not installed extension)
         run: node scripts/tests/react-sidebar-r3331-browser.mjs
       - name: Real Chrome offline preview DOM and 360px screenshot
