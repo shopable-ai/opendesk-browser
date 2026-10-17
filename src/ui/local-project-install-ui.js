@@ -437,8 +437,21 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       panel.hidden=false;
     }).finally(()=>{installing=false;if(!disposed){update();onState();}});
   }
-  const cancel=()=>{if(preparing||installing||reconciling)return;hide();onState();};
+  const cancel=()=>{
+    if(preparing||installing||reconciling)return;
+    hide();
+    // Closing the inline review must return keyboard focus to the original
+    // action (or project picker if that action has become unavailable).
+    const save=find('script-save');
+    const focus=save&&!save.hidden&&!save.disabled?save:find('local-project-select');
+    focus?.focus?.();onState();
+  };
   const onConfirm=event=>confirm(event),onCancel=()=>cancel();
+  const onReviewKeyDown=event=>{
+    if(event?.key!=='Escape'||panel.hidden||preparing||installing||reconciling)return;
+    event.preventDefault?.();cancel();
+  };
+  panel.addEventListener('keydown',onReviewKeyDown);
   confirmButton.addEventListener('click',onConfirm);
   cancelButton.addEventListener('click',onCancel);
   return Object.freeze({canSave,hasSelection:isSelected,saveLabel:()=>reconciling?'正在核对…':installing?'正在安装…':
@@ -448,6 +461,6 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     (verified?.source.runtimeKind==='page-userscript'||project()?.selectedProject()?.runtimeKind==='page-userscript')
       ?'安装网页增强':'保存为任务',
     update,reset,succeeded,prepare,confirm,setOnInstalled(fn){onInstalled=fn||(()=>{});},
-    dispose(){disposed=true;consent.dispose();confirmButton.removeEventListener('click',onConfirm);
+    dispose(){disposed=true;consent.dispose();panel.removeEventListener('keydown',onReviewKeyDown);confirmButton.removeEventListener('click',onConfirm);
       cancelButton.removeEventListener('click',onCancel);}});
 }

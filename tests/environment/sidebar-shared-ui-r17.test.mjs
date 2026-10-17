@@ -70,7 +70,7 @@ test('HTML preview references the same built files, never an alternate mocked to
   assert.doesNotMatch(preview,/<input[^>]+type=["']checkbox|role=["']switch/);
   await stat(new URL('../../'+demo+'preview/index.html',import.meta.url));
   const license=await read('docs/contracts/licenses/shared-ui-third-party-notices.txt');
-  assert.match(license,/shadcn\\/ui MIT License/);
+  assert.match(license,/shadcn\/ui MIT License/);
   assert.match(license,/Apache License/);
   await stat(new URL('../../dist/development/licenses/shared-ui-third-party-notices.txt',import.meta.url));
 });
