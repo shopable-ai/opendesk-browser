@@ -1,3 +1,16 @@
+## 2026-10-17 · 当前 75 公共接口验收账本补齐（非 Native PASS）
+
+Registry 已注册 75 项；历史 73 项账本漏列 `cookies.getAllPage` 与 `cookies.setMany`。
+当前两项仅记 **SOURCE_WIRED / NOT_TESTED**，不回填历史 PASS 或执行写入；`setMany`
+曾在用户活动沙箱中缺少方法，其当前 Mac Chrome 实际身份仍未确认。
+详见 `docs/framework/workstreams/cookie-import-sdk-interface-matrix-20261017.md`。
+以下为对应机器账本中的状态，不改变其他 73 项历史证据：
+
+| API | Implementation | Exposure | Positive | Denial | Native Chrome |
+| --- | --- | --- | --- | --- | --- |
+| `browser.cookies.getAllPage` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+| `browser.cookies.setMany` | IMPLEMENTED | APPROVED_TOOL | NOT_TESTED | NOT_TESTED | NOT_TESTED |
+
 ## Managed Proxy SDK R1 — 2026-10-15
 
 3 项高风险代理操作经独立 Installed Tool Capability + Chrome `proxy` 权限管理；ENABLE / STOP 经过可信 Side Panel 单次点击，仅公共 Host 执行有限声明式 PAC。旧 `ai-smart-access` 暂保留历史身份与资源收敛，不得移除保护后直接删除。新增能力当前仅代表 **SOURCE_WIRED**，旧候选的 PASS 不能视为本轮新能力的验证。
