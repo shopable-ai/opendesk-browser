@@ -12,10 +12,7 @@ button{font:inherit;cursor:pointer;color:#293549;background:#fff;border:1px soli
 button:focus-visible{outline:2px solid #365eda}
 button:hover{background:#eef2ff;border-color:#365eda}
 .item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:650;font-size:12px;line-height:1.05}
-.fold{display:none}
-.rail.narrow .fold{display:flex;align-items:center;justify-content:center;width:38px;height:38px;min-height:38px;background:#365eda;border-color:#365eda;color:#fff}
-.rail.narrow.folded{max-height:48px;overflow:hidden}
-.rail.narrow.folded .item{display:none}
+/* Narrow screens retain the same buttons; overflow is scrollable within the rail. */
 .tip{pointer-events:auto;position:absolute;left:60px;top:0;width:360px;max-width:calc(100vw - 80px);max-height:min(340px,calc(100vh - 24px));overflow:auto;overscroll-behavior:contain;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 10px 32px #00000028;padding:13px 15px;overflow-wrap:anywhere}
 .tip strong{display:block;margin-bottom:8px;font-size:13px}
 .tip pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;font:12px/1.7 system-ui,sans-serif}
@@ -34,10 +31,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
-  let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0,toggleButton=null;
+  let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,items=[],observer=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
-  let locationTimer=0,folded=false,narrowMode=null,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
+  let locationTimer=0,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
     'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
@@ -64,8 +61,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     observer?.disconnect();observer=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
-    host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;toggleButton=null;
-    feedback=null;narrowMode=null;folded=false;
+    host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;
+    feedback=null;
   };
 
   // User selectors are inert CSS data. Match exactly one live, visible node.
@@ -332,14 +329,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(host.style.left!==left+'px')host.style.left=left+'px';
     if(host.style.top!==top+'px')host.style.top=top+'px';
     host.style.transform='translateY(-50%)';
-    const narrow=rect.width<680;
-    if(narrow!==narrowMode){narrowMode=narrow;folded=narrow;}
-    rail.classList.toggle('narrow',narrow);rail.classList.toggle('folded',narrow&&folded);
-    if(toggleButton){
-      toggleButton.textContent=folded?'＋':'−';
-      toggleButton.setAttribute('aria-label',folded?'展开提示词按钮栏':'收起提示词按钮栏');
-      toggleButton.setAttribute('aria-expanded',String(!folded));
-    }
+    // Do not introduce a new expand/collapse control on narrow pages.
+    rail.classList.toggle('narrow',rect.width<680);
     positionTip();
   };
   const schedule=()=>{if(!layoutTimer)layoutTimer=win.setTimeout(layout,120);};
@@ -358,7 +349,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const positionTip=()=>{
     if(!tip||tip.hidden||!tipOwner||!host?.isConnected)return;
-    if(!tipOwner.isConnected||(narrowMode&&folded)){hideTip();return;}
+    if(!tipOwner.isConnected){hideTip();return;}
     const hostRect=host.getBoundingClientRect(),buttonRect=tipOwner.getBoundingClientRect();
     const tipHeight=tip.getBoundingClientRect().height||240;
     const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
@@ -519,10 +510,6 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.append(style,rail,tip,feedback);doc.documentElement.append(host);
     }
     rail.replaceChildren();
-    const toggle=doc.createElement('button');toggle.type='button';toggle.className='fold';
-    toggleButton=toggle;
-    toggle.addEventListener('click',event=>{if(event.isTrusted===false)return;folded=!folded;schedule();});
-    rail.append(toggle);
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
       button.className='item';
