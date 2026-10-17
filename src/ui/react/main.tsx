@@ -291,7 +291,13 @@ export function mountExtensionList(doc){
         runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk)}),
         onStateChange};
       container.dataset.opendeskReactOwner='bookmark-react-pilot';
-      paint();
+      try{paint();}catch(error){
+        // A failed initial React render must never leave a privileged portal
+        // or stale private data owned by the shared root.
+        bookmarkPilot=null;delete container.dataset.opendeskReactOwner;
+        try{paint();}catch{/* Let Host fail closed and discard its slot. */}
+        throw error;
+      }
       let released=false;
       return ()=>{
         if(released)return;released=true;
