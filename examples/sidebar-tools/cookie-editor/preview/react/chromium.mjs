@@ -267,7 +267,8 @@ try{
   assert.equal(await expiry.evaluate(el=>new Date(el.value).getTime()/1000),1893456000);
   const adjusted=await page.evaluate(()=>{
    const d=new Date(1893459600*1000),p=n=>String(n).padStart(2,'0');
-   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+   // datetime-local normalizes zero seconds to HH:mm; preserve sub-minute seconds only when needed.
+   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())+(d.getSeconds()?':'+p(d.getSeconds()):'');
   });
   await expiry.fill(adjusted);
   await page.getByText('未保存',{exact:true}).waitFor();
