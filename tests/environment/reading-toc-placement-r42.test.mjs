@@ -160,7 +160,9 @@ test('R4.2 real view controls drag only from handle, persist at release, reset a
     assert.equal(writes.length,2);
     assert(writes[1].y>writes[0].y,'keyboard moves in 32px increments with Shift');
     assert.equal(f.host().shadow.children[0].children[0].children.length,2,
-      'in-page toolbar contains only the grab handle and three free view modes');
+      'in-page toolbar contains only the grab handle and four view modes');
+    assert.equal(f.host().shadow.children[0].children[0].children[1].children.length,4,
+      'the webpage overlay includes the approved fourth AI icon');
     f.handle().fire('dblclick');
     assert.deepEqual(writes,[writes[0],writes[1],null],
       'double-click on the existing drag handle resets position without a refresh-like icon');
@@ -198,25 +200,34 @@ test('R4.3 webpage view shows adaptive summary and opens full outline only on re
     view.render({items,sources:[{id:'s-1',label:'当前网页'}],activeId:'h-25',
       overview:{'s-1':overview}});
     const scroll=f.host().shadow.children[0].children[1];
-    const list=scroll.children[0],more=scroll.children[1];
+    const list=scroll.children[0],ai=f.host().shadow.children[0].children[2];
+    assert.equal(scroll.children.length,2,'no extra see-all button can be mounted');
     assert.equal(f.host().shadow.children[0].children[0].children[1].hidden,false,
-      'long outlines retain the existing view modes');
+      'all four modes remain visible on long outlines');
     const modes=f.host().shadow.children[0].children[0].children[1].children;
     assert.equal(modes[1].attributes.get('aria-pressed'),'true','current chapter is selected by default');
     assert.equal(modes[0].attributes.get('aria-pressed'),'false');
     assert.equal(list.children.length,25,'current chapter expands its children by default');
     assert.equal(list.children.at(-1).children[0].attributes.get('aria-current'),'location',
       'default view highlights the active chapter rather than the overview root');
-    assert.equal(more.hidden,true,'overview overflow is hidden in current chapter mode');
     modes[0].fire('click');
-    assert.equal(list.children.length,12,'adaptive overview is not the full 25 headings');
-    assert.equal(more.hidden,false);
-    assert.match(more.textContent,/还有 13 个章节/);
+    assert.equal(list.children.length,12,'long overview is a real twelve-heading sample');
+    assert.equal(scroll.children.length,2,'long overview adds no redundant action');
     list.children[1].children[0].fire('click');
     assert.deepEqual(nav,['h-2'],'real visible child remains navigable');
-    more.fire('click');
-    assert.equal(list.children.length,25,'more switches to existing complete mode');
-    assert.equal(more.hidden,true);
+    modes[2].fire('click');
+    assert.equal(list.children.length,25,'existing full icon reveals all headings');
+    modes[3].fire('click');
+    assert.equal(scroll.hidden,true,'AI view hides the free navigation');
+    assert.equal(ai.hidden,false,'fourth icon opens the real unavailable AI surface');
+    assert.equal(ai.children.length,2,'member and partner cards only');
+    assert.equal(ai.querySelectorAll('button').length,0,'no fake AI or purchase buttons');
+    assert.equal(ai.children[0].children[2].textContent,'服务暂未开放');
+    assert.equal(ai.children[1].children[1].textContent,'广告位开放合作');
+    modes[2].fire('click');
+    assert.equal(ai.hidden,true);
+    assert.equal(scroll.hidden,false);
+    assert.equal(list.children.length,25,'switching back keeps all real headings');
     view.dispose();
   }finally{globalThis.CSSStyleSheet=oldSheet;}
 });
@@ -241,11 +252,12 @@ test('R4.7 webpage TOC follows the active answer without a source selector',()=>
     const modes=panel.children[0].children[1],list=panel.children[1].children[0];
     const show=activeId=>view.render({items,sources,activeId,overview});
     const shown=()=>list.children[0]?.children[0]?.dataset?.id;
-    assert.equal(panel.children.length,2,'no injected source dropdown or spare filter row');
+    assert.equal(panel.children.length,3,'header, free outline and hidden AI cards, without a source picker');
     assert.equal(panel.children.some(x=>x.tagName==='SELECT'),false);
     show('h-a');
     assert.equal(shown(),'h-a');
-    assert.equal(modes.hidden,true,'a one-heading answer needs no view switcher');
+    assert.equal(modes.hidden,false,'four mode icons remain visible even for one heading');
+    assert.equal(modes.children.length,4);
     show('h-b');
     assert.equal(shown(),'h-b','overlay automatically follows the currently read answer');
     list.children[0].children[0].fire('click');
@@ -270,4 +282,42 @@ test('R4.6 narrow viewports keep viewport-adaptive scroll height instead of fixe
     assert.match(css,/--toc-scroll-limit/,'existing composer collision adjustment remains active');
     view.dispose();
   }finally{globalThis.CSSStyleSheet=oldSheet;}
+});
+
+test('R1.8.4 nine-section webpage overview renders directly; AI is fail-closed and localized',()=>{
+  const previousSheet=globalThis.CSSStyleSheet;
+  globalThis.CSSStyleSheet=class {replaceSync(){}};
+  try{
+    const f=viewFixture(),navigated=[];
+    const view=createReadingTocView({doc:f.doc,win:f.win,
+      onNavigate:(id,sourceId)=>navigated.push([id,sourceId])});
+    const items=Array.from({length:9},(_,i)=>({
+      id:'h-'+(i+1),label:'章节 '+(i+1),sourceId:'s-1',
+      depth:i%3===0?0:1,topId:'h-'+(Math.floor(i/3)*3+1)
+    }));
+    const panel=f.host().shadow.children[0];
+    const modes=panel.children[0].children[1].children;
+    const scroll=panel.children[1],list=scroll.children[0],ai=panel.children[2];
+    view.render({adapter:'article',items,activeId:'h-2',
+      sources:[{id:'s-1',label:'当前文章'}],
+      overview:{'s-1':{ids:['h-1','h-4','h-7'],hiddenCount:6,representedId:'h-1'}}});
+    modes[0].fire('click');
+    assert.equal(list.children.length,9,'overview directly displays all nine actual sections');
+    assert.equal(scroll.children.length,2,'no extra see-all button exists');
+    assert.equal(list.children[1].children[0].attributes.get('aria-current'),'location',
+      'active real heading is highlighted when all are shown');
+    modes[3].fire('click');
+    assert.equal(ai.hidden,false);
+    assert.equal(scroll.hidden,true);
+    assert.equal(ai.querySelectorAll('button').length,0);
+    view.setLocale('en');
+    assert.equal(ai.children[0].children[2].textContent,'Not yet available',
+      'English member unavailability comes from reviewed source locales');
+    assert.equal(ai.children[1].children[1].textContent,'Sponsorship space available');
+    modes[2].fire('click');
+    assert.equal(list.children.length,9,'free chapters persist after visiting AI');
+    list.children[2].children[0].fire('click');
+    assert.deepEqual(navigated,[['h-3','s-1']]);
+    view.dispose();
+  }finally{globalThis.CSSStyleSheet=previousSheet;}
 });
