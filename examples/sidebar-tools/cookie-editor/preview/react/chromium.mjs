@@ -61,7 +61,7 @@ try{
  await test('inline dirty restore and save',async()=>{
    await page.locator('[data-row="b"]').click();await page.locator('#cookie-name').fill('renamed');assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
    await page.locator('#cookie-name').fill('theme');assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
-   await page.locator('#cookie-name').fill('renamed');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText('已保存 Cookie').waitFor();
+   await page.locator('#cookie-name').fill('renamed');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText(/已模拟重命名/).waitFor();
    assert.match(await page.locator('[data-row="b"]').innerText(),/renamed/);
  });
  await test('draft switch and discard inline',async()=>{await page.locator('[data-row="b"]').click();await page.locator('#cookie-name').fill('again');await page.locator('[data-row="c"]').click();await page.getByText('放弃当前未保存修改？').waitFor();await page.getByRole('button',{name:'放弃',exact:true}).click();assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true');});
