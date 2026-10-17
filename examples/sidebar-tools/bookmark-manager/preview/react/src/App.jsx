@@ -1,8 +1,5 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
-import './style.css';
-
 const model=globalThis.BookmarkR2Model;
-const service=globalThis.BookmarkR2Service.create(globalThis.OpenDeskSDK.browser);
 const iconPaths={
  folder:<><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10H3z"/></>,
  link:<><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></>,
@@ -211,12 +208,42 @@ function Confirm({title,description,confirm,cancelLabel='取消',canConfirm=true
   </div>
  </div>;
 }
-export default function App(){
+export default function App({runtime=null,mode='preview',onStateChange=null}={}){
+ const sdk=runtime?.sdk??globalThis.OpenDeskSDK?.browser;
+ const service=useMemo(()=>runtime?.service??globalThis.BookmarkR2Service.create(sdk),[runtime,sdk]);
  const [tree,setTree]=useState(null),[expanded,setExpanded]=useState(new Set(['1','2','10','11'])),[query,setQuery]=useState(''),[selectedId,setSelectedId]=useState(null),[activeId,setActiveId]=useState('1'),[draft,setDraft]=useState(null),[pickerOpen,setPickerOpen]=useState(false),[previewOpen,setPreviewOpen]=useState(false),[menu,setMenu]=useState(null),[confirmDiscard,setConfirmDiscard]=useState(false),[confirmDelete,setConfirmDelete]=useState(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[uncertain,setUncertain]=useState(false);
- const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null);
+ const scrollRef=useRef(null),pendingFolderReveal=useRef(null),readEpoch=useRef(0),activeRef=useRef(true),menuButtonRef=useRef(null),busyRef=useRef(false);
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++}},[]);
- const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[]);
+ useEffect(()=>{onStateChange?.({dirty:dirtyDraft(draft),saving:busy,draft:draft?JSON.stringify({title:draft.title,url:draft.url,parentId:draft.parentId}).slice(0,8192):''})},[onStateChange,draft,busy]);
+ const load=useCallback(async({initial=false}={})=>{const stamp=++readEpoch.current;setLoading(true);setError('');try{const next=await service.load();if(!activeRef.current||stamp!==readEpoch.current)return null;setTree(next);setLoading(false);if(!initial)setUncertain(false);setNotice('');return next}catch(ex){if(activeRef.current&&stamp===readEpoch.current){setLoading(false);setError(humanError(ex));if(['E_GRANT_REVOKED','E_BOOKMARK_PERMISSION'].includes(ex?.code)){setTree(null);setSelectedId(null);setUncertain(true);setPreviewOpen(false);setMenu(null)}}return null}},[service]);
  useEffect(()=>{void load({initial:true})},[load]);
+ useEffect(()=>{
+  if(mode!=='trusted')return;
+  let closed=false,session=null,timer=null;
+  async function stop(old){if(old)try{await service.watchStop(old)}catch{/* Session expires on Host. */}}
+  async function poll(){
+   if(closed)return;
+   try{
+    if(!session||Date.now()>session.expiresAt-5000){
+     const old=session;session=null;await stop(old);if(closed)return;
+     const next=await service.watchStart();if(closed){await stop(next);return}session=next;
+    }
+    const result=await service.watchRead(session);
+    if(closed)return;
+    session={...session,cursor:result.nextCursor,expiresAt:result.expiresAt};
+    if(result.events.length)await load();
+   }catch(error){
+    if(closed)return;
+    const old=session;session=null;void stop(old);
+    if(['E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED'].includes(error?.code)){
+     readEpoch.current++;setTree(null);setDraft(null);setSelectedId(null);setPreviewOpen(false);setMenu(null);
+     setError('完整书签访问已失效，请在工具设置中重新授权后打开。');closed=true;
+    }else if(error?.code==='E_BOOKMARK_EVENT_GAP')void load();
+   }finally{if(!closed)timer=setTimeout(()=>void poll(),2500)}
+  }
+  void poll();
+  return()=>{closed=true;if(timer!==null)clearTimeout(timer);void stop(session);session=null;};
+ },[mode,service,load]);
  useEffect(()=>{if(!notice||notice.startsWith('写入结果未知'))return;const timer=setTimeout(()=>setNotice(''),3300);return()=>clearTimeout(timer)},[notice]);
  const rows=useMemo(()=>filteredRows(tree,expanded,query),[tree,expanded,query]);
  useLayoutEffect(()=>{
@@ -294,11 +321,11 @@ export default function App(){
  function prepareDelete(id){const node=tree?.byId.get(id);if(node&&!node.locked){setConfirmDelete({id,expected:{...node},descendantSignatures:isFolder(node)?model.descendantSignatures(tree,id):[],count:isFolder(node)?descendants(tree,id):0})}}
  function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
- async function save(e){globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||uncertain)return;
+ async function save(e){if(mode==='preview')globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||busyRef.current||uncertain)return;
   let title,url;try{title=model.displayName(draft.title);url=draft.kind==='bookmark'?model.asHttpUrl(draft.url):undefined;model.parentFolder(tree,draft.parentId);
    if(draft.kind==='folder'&&draft.mode==='edit'&&model.isDescendant(tree,draft.parentId,draft.id))throw Error('文件夹不能移动到自身或子目录');
   }catch(ex){setError(humanError(ex));return}
-  globalThis.__bmReactSaveStage='validated';setBusy(true);setError('');
+  if(mode==='preview')globalThis.__bmReactSaveStage='validated';busyRef.current=true;setBusy(true);setError('');
   let completedWrite=false;
    try{let result,expected=draft.expected;
    if(draft.mode==='create'){result=draft.kind==='folder'?await service.createFolder({title,parentId:draft.parentId}):await service.createBookmark({title,url,parentId:draft.parentId});completedWrite=true}
@@ -308,27 +335,27 @@ export default function App(){
     if(title!==expected.title||(draft.kind==='bookmark'&&url!==expected.url)){result=await service.update({expected,title,url});completedWrite=true;expected=result}
     if(!result)result=expected;
    }
-   globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
+   if(mode==='preview')globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
-   globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
-  }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{if(activeRef.current)setBusy(false)}
+   if(mode==='preview')globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
+  }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}
  }
- async function removeConfirmed(){if(!confirmDelete||busy||uncertain)return;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{if(activeRef.current)setBusy(false)}}
+ async function removeConfirmed(){if(!confirmDelete||busy||busyRef.current||uncertain)return;busyRef.current=true;setBusy(true);setError('');let completedWrite=false;try{await service.remove({expected:confirmDelete.expected,confirmed:true,expectedDescendantSignatures:confirmDelete.descendantSignatures});completedWrite=true;const refreshed=await service.load();if(refreshed.byId.has(confirmDelete.id))throw Object.assign(Error('删除后仍发现目标，拒绝认定成功'),{code:'E_OUTCOME_UNKNOWN'});if(!activeRef.current)return;setTree(refreshed);if(selectedId===confirmDelete.id)setSelectedId(null);setConfirmDelete(null);setDraft(null);setPreviewOpen(false);setNotice('已删除')}catch(ex){if(activeRef.current){const unknown=completedWrite||ex?.code==='E_OUTCOME_UNKNOWN';setError(humanError(unknown?Object.assign(Error('删除结果未知，先刷新核对'),{code:'E_OUTCOME_UNKNOWN'}):ex));if(unknown){setUncertain(true);setConfirmDelete(null)}}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}}
  function bookmarkCurrentPage(){request({type:'currentPage'})}
- async function fillCurrentPage(){if(busy)return;try{const info=await globalThis.OpenDeskSDK.browser.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前模拟网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
+ async function fillCurrentPage(){if(busy)return;try{const info=await sdk.page.getContext();if(info.status!=='available')throw Error('当前页不可用');const parent=(current&&isFolder(current)?current.id:current?.parentId)||'1';setDraft(initialDraft('create','bookmark',null,parent));setDraft(d=>({...d,title:info.title,url:info.url}));setNotice('已填写当前网页，确认后再保存。')}catch(ex){setError(humanError(ex))}}
  return <div className="bm-app" data-react-bookmark="r3.0.4">
   <header className="bm-topbar"><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div>
    <div className="bm-top-actions"><div className="bm-create-actions" aria-label="新建书签或文件夹">
     <button title="新建书签" aria-label="新建书签" className="bm-icon-btn bm-icon-btn--primary" type="button" onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></button>
     <button title="新建文件夹" aria-label="新建文件夹" className="bm-icon-btn" type="button" onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></button></div>
-    <button title="收藏当前模拟网页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
-    <button title="从 Mock 重新读取" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button>
+    <button title="收藏当前页" aria-label="收藏当前页" className="bm-icon-btn" type="button" onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
+    <button title="刷新书签" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load()} disabled={loading}><Icon name="refresh" size={17}/></button>
    </div></header>
   <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></button>}</div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" onClick={()=>{setError('');void load()}}>刷新</button></div>}
   {notice&&<div className="bm-notice" role="status">{notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
-  {loading&&!tree?<div className="bm-loading" role="status">正在读取离线模拟书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
+  {loading&&!tree?<div className="bm-loading" role="status">正在读取书签…</div>:tree?<Tree rows={rows} expanded={expanded} selectedId={selectedId} activeId={activeId} setActiveId={setActiveId} onSelect={select} onFolder={navigateFolder} onToggle={toggle} onMenu={onMenu} searchActive={Boolean(query.trim())} searchTerm={query} onEdit={id=>request({type:'edit',id})} onScrollClose={()=>setMenu(null)} scrollRef={scrollRef}/>:<div className="bm-empty">暂时无法读取书签。使用刷新重试。</div>}</section>
   {previewNode&&<PreviewPane tree={tree} node={previewNode} onClose={closePreview} onEdit={id=>request({type:'edit',id})} onCopy={copyPreviewUrl}/>}
   </div>
   {tree&&draft&&<Sheet title={draft?(draft.mode==='create'?(draft.kind==='folder'?'新建文件夹':'新建书签'):'编辑'+(draft.kind==='folder'?'文件夹':'书签')):'书签详情'} onClose={requestCloseSheet} canClose={!busy} dismissOnBackdrop={!busy&&!dirtyDraft(draft)}>
