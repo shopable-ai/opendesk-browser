@@ -96,7 +96,7 @@ try{
   await page.getByLabel('过期时间（本地时间）').fill('2020-01-01T12:00');
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText(/请选择有效的未来过期时间/).waitFor();
-  await page.getByLabel('过期时间（本地时间）').fill('2027-12-10T10:30:00');
+  await page.getByLabel('过期时间（本地时间）').fill('2027-12-10T10:30');
   assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.locator('[data-row="h"]').click();
