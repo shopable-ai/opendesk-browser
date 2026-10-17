@@ -104,7 +104,7 @@ function Preview(){
   const initial=new URLSearchParams(window.location.search).get('tab');
   const [tab,setTab]=React.useState(names.includes(initial)?initial:'tasks');
   const initialWidth=Number(new URLSearchParams(window.location.search).get('width'));
-  const [width,setWidth]=React.useState([320,360,420,520].includes(initialWidth)?initialWidth:360);
+  const [width,setWidth]=React.useState([320,360,400,420,520].includes(initialWidth)?initialWidth:420);
   const [scene,setScene]=React.useState('normal');
   const [cloudScenario,setCloudScenario]=React.useState('unpaired');
   const [cloudFeedback,setCloudFeedback]=React.useState('');
@@ -121,6 +121,7 @@ function Preview(){
   const [selectedTask,setSelectedTask]=React.useState('preview-task');
   const [taskManageMode,setTaskManageMode]=React.useState(false);
   const [taskEnabled,setTaskEnabled]=React.useState({'preview-task':true,'preview-off':false});
+  const [installedTaskIds,setInstalledTaskIds]=React.useState(['preview-task','preview-off']);
   const [taskNotice,setTaskNotice]=React.useState('');
   const onTaskAction=(action,id)=>{
     if(!id)return;
@@ -128,7 +129,10 @@ function Preview(){
       setTaskEnabled(old=>({...old,[id]:!old[id]}));
       setTaskNotice('已在预览内切换启停；未更改实际安装状态。');
     }else if(action==='uninstall'){
-      setTaskNotice('预览不执行卸载；正式扩展在确认后卸载固定版本。');
+      // Only the offline memory fixture changes, never a Chrome installation.
+      setInstalledTaskIds(old=>old.filter(taskId=>taskId!==id));
+      setSelectedTask(old=>old===id?'':old);
+      setTaskNotice('已从预览列表移除演示任务；实际安装与权限均未更改。');
     }else if(action==='fork'){
       setTaskNotice('正式扩展会复制固定源码到独立草稿；预览未读取源码。');
     }else if(action==='refresh'){
@@ -215,11 +219,13 @@ function Preview(){
   })();
   const transcript=workflowConversationCleared?[]:(messages[scene]||[]);
   const allTaskRows=scene==='empty'||scene==='loading'?[]:[
-    {taskId:'preview-task',title:'网页资料填写',
+    {taskId:'preview-task',title:'网页资料填写',version:'1.0.0',
+      siteOrigins:['https://example.invalid/*'],
       description:'将项目名称填入表单并读回',enabled:taskEnabled['preview-task']},
-    {taskId:'preview-off',title:'每周资料整理',
+    {taskId:'preview-off',title:'每周资料整理',version:'1.0.0',
+      siteOrigins:['https://example.invalid/*'],
       description:'整理目标网页中的所需信息',enabled:taskEnabled['preview-off']}
-  ];
+  ].filter(row=>installedTaskIds.includes(row.taskId));
   const taskRows=allTaskRows.filter(p=>
     (taskFilter!=='disabled'||!p.enabled)&&
     (!taskSearch||[p.title,p.taskId,p.description].join(' ').toLocaleLowerCase()
