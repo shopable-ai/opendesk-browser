@@ -140,7 +140,7 @@ export function WorkflowSettingsSheet({open=false,onClose,settings,doc}) {
       }
     };
     doc.addEventListener('keydown',onKeydown,true);
-    (currentPanel.querySelector('#workflow-source-local')||
+    (currentPanel.querySelector('.workflow-source-switch button[aria-pressed="true"]')||
       currentPanel.querySelector('#workflow-ai-provider')||currentPanel).focus({preventScroll:true});
     return ()=>{
       doc.removeEventListener('keydown',onKeydown,true);
