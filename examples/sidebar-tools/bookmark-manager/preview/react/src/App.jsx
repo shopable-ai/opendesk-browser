@@ -41,6 +41,16 @@ function filteredRows(tree,expanded,query){
 function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.title:'',url=mode==='edit'?(node.url||''):'',folder=mode==='edit'?node.parentId:parentId;return {mode,kind,id:node?.id||null,expected:node?{...node}:null,title,url,parentId:folder,initial:{title,url,parentId:folder}}}
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
 function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请在工具设置中核对授权后重新打开。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
+// Existing imported Chrome bookmarks may contain chrome:, file:, data: or other
+// schemes. Display those URLs as text, never navigate to them from a trusted UI.
+function safeBookmarkHref(value){
+ if(typeof value!=='string')return null;
+ try{
+  const target=new URL(value);
+  return (target.protocol==='https:'||target.protocol==='http:')&&
+   !target.username&&!target.password?target.href:null;
+ }catch{return null;}
+}
 function descendants(tree,id){return model.descendantSignatures(tree,id).length}
 function highlightSearchTitle(title,term){
  const q=term.trim();if(!q)return title;
@@ -109,6 +119,7 @@ function FolderPicker({tree,value,onChange,onClose,currentId}){
  </div>
 }
 function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,pickerOpen,setPickerOpen,busy,uncertain,error}){
+ const clickableHref=node&&!isFolder(node)?safeBookmarkHref(node.url):null;
  return <section className={'bm-inspector'+(draft?' is-editing':'')+(!node&&!draft?' is-empty':'')} aria-label={draft?'编辑书签':'书签详情'} data-testid="bookmark-inspector">
   <span id="bm-inspector-id" className="bm-sr-only">{node?.id||''}</span>
   {draft?<form className="bm-editor" onSubmit={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==="Enter"&&!e.nativeEvent.isComposing&&["bm-edit-name","bm-edit-url"].includes(e.target.id)){e.preventDefault();onSave(e)}}} data-testid="bookmark-editor">
@@ -123,7 +134,12 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
   node?<div className="bm-readonly">
    <div className="bm-detail-title" title={node.title}><Icon name={isFolder(node)?'folder':'link'} size={17}/><span>{node.title}</span></div>
    <div className="bm-detail-path" title={folderLabel(tree,node.parentId)}>{folderLabel(tree,node.parentId)}</div>
-   {!isFolder(node)&&<a className="bm-detail-url" href={node.url} target="_blank" rel="noopener noreferrer" title={node.url}>{node.url}<Icon name="external" size={13}/></a>}
+   {!isFolder(node)&&(clickableHref?
+    <a className="bm-detail-url" href={clickableHref} target="_blank" rel="noopener noreferrer"
+     aria-label={'打开网址：'+node.url} title={'在新标签页打开 '+node.url}>
+     <span>{node.url}</span><Icon name="external" size={13}/>
+    </a>:
+    <span className="bm-detail-url bm-detail-url--disabled" title="该网址协议不支持直接打开">{node.url}</span>)}
 
   </div>:<p className="bm-empty-detail">选择书签可以查看详情，点击「编辑」才会修改内容。</p>}
  </section>
@@ -149,7 +165,6 @@ function PreviewPane({tree,node,onClose,onEdit,onCopy}){
   <div className="bm-preview-content" aria-live="polite"><Inspector tree={tree} node={node} draft={null}/></div>
   {folder&&<div className="bm-preview-count">{count} 个子项</div>}
   <div className="bm-preview-actions">
-   {!folder&&<a href={node.url} target="_blank" rel="noopener noreferrer" className="bm-preview-action" aria-label="打开书签" title="打开书签"><Icon name="external" size={17}/></a>}
    {!folder&&<button type="button" className="bm-preview-action" aria-label="复制网址" title="复制网址" onClick={()=>onCopy(node.url)}><Icon name="copy" size={17}/></button>}
    {!node.locked&&<button type="button" className="bm-preview-action" aria-label="编辑" title="编辑" onClick={()=>onEdit(node.id)}><Icon name="edit" size={17}/></button>}
   </div>
