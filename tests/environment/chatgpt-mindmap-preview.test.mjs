@@ -117,7 +117,7 @@ test('verified loopback serves the ChatGPT simulation with same CSP and denies a
   const session=await startXmindPreview();
   try{
     for(const route of ['/chatgpt.html','/preview/chatgpt.css','/preview/chatgpt.js',
-      '/src/view.js','/src/export.js','/src/xmind-adapter.js']){
+      '/src/view.js','/src/export.js','/src/xmind-adapter.js','/src/xmind-png.js']){
       const response=await fetch(new URL(route,session.url));
       assert.equal(response.status,200,route);
       assert.match(response.headers.get('content-security-policy'),/script-src 'self'/);
