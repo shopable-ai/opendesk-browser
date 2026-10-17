@@ -200,7 +200,7 @@ test('checked-in AdBlock HTML stays generator-identical independent of unrelated
 
 test('user-approved R1 interactive design stays byte-exact under adblock/preview and distinct from generated CI preview',async()=>{
   const reference=await readFile(new URL(
-    '../../examples/sidebar-tools/adblock/preview/adblock-r1-interactive-preview.html',import.meta.url));
+    '../../examples/sidebar-tools/adblock/preview/index-r1.html',import.meta.url));
   assert.equal(reference.byteLength,23624,'original user-approved file must not be regenerated');
   assert.equal(createHash('sha256').update(reference).digest('hex'),
     'c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7',

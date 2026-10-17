@@ -1,6 +1,6 @@
 # AdBlock · React 19 离线零构建交互预览（R2.0）
 
-**唯一当前已批准 UI 的 React 交互预览**：[index.html](index.html)。本目录只用于产品演示，**不会调用 Chrome DNR、网页权限、扩展后台、Browser SDK，也不是正式工具安装包**。
+**当前 React 19 零构建交互预览**：[index.html](index.html)。**R1 原始独立 HTML 归档**：[index-r1.html](index-r1.html)（仅改名，原始字节不变；不是当前 React 组件）。本目录只用于产品演示，**不会调用 Chrome DNR、网页权限、扩展后台、Browser SDK，也不是正式工具安装包**。
 
 ## 日常开发：保存 → 刷新
 
@@ -18,7 +18,8 @@ open examples/sidebar-tools/adblock/preview/index.html
 
 | 文件 | 用途 |
 |---|---|
-| `index.html` | 稳定的 `file://` 启动页面，只包含本地样式、React/HTM/应用的经典脚本，按顺序 `defer` |
+| `index.html` | **当前** `file://` React 19 零构建入口，经典脚本按顺序 `defer` |
+| `index-r1.html` | **历史 R1 原型**：无 React 依赖的独立 HTML，旧文件 `adblock-r1-interactive-preview.html` 仅更名为此，不修改设计原件 |
 | `app.js` | **日常可编辑源码**：AdBlockApp、ToolHeader、GlobalProtection、CurrentSite、RulesSummary、ExceptionsView、SettingsView、PreviewControls 和 MockAdBlockService |
 | `style.css` | 从已批准的 R1 HTML 中提取的同一套布局、字号、颜色变量、间距和圆角 |
 | `../../../../src/libs/page-frameworks/react-19.2.0.js` | **固定离线 React 19.2.0 + React DOM Client 浏览器预构建运行时**（仓库现有资源，避免复制 193 KB/双 React 版本） |
@@ -77,7 +78,7 @@ node examples/sidebar-tools/adblock/preview/acceptance.mjs
 
 ### 设计历史与生产快照
 
-- 已批准 R1 HTML 原件：2026-10-15 Git blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`，SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`。R2 CSS 继承此前 `preview/index.html` 的已批准视觉变量。
+- 已批准 R1 HTML 原件：[index-r1.html](index-r1.html)（由 `preview/adblock-r1-interactive-preview.html` 重命名，内容完全不变）；2026-10-15 Git blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`，SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`。R2 CSS 继承此前 `preview/index.html` 的已批准视觉变量。
 - `../adblock-r1-interactive-preview.html` 是 `scripts/preview/build-preview.mjs` 生成的**生产源码同源快照**，不是此已批准 React 交互预览，不能互相覆盖。正式 Chrome DNR / 安装升级仍需独立验收。
 
 ## R2.2 · CI 统一入口（2026-10-17）
@@ -117,3 +118,10 @@ node examples/sidebar-tools/adblock/preview/acceptance.mjs
 以下分别记账：`STATIC_GUARDS`、`LINUX_FILE_CHROME`、`MACOS_RUNNER_FILE_CHROME`、`USER_MAC_CHROME`、`INSTALLED_EXTENSION`、`NATIVE_DNR_NETWORK_REVOKE`。其中最后一项由 [正式 AdBlock CI](https://github.com/shopable-ai/opendesk-browser/actions/workflows/adblock-r12.yml) 独立负责。旧版本撤权测试超时仍属发布阻塞；不得以本目录 React 预览的 PASS 解除。
 
 代码改动后执行：`node examples/sidebar-tools/adblock/preview/acceptance.mjs`；正式同源对照仍需独立执行 `node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760`、`node scripts/preview/check-preview-contract.mjs` 与三个已存在的 `tests/environment/sidebar-preview-*.test.mjs` 定向测试。聊天内适配展示必须标 `CHAT_ADAPTER_NOT_SOURCE_HTML`，不能称为真实 React `index.html` 执行。
+
+
+## R2.2.1 · R1 归档命名与本地 Switch CSS 级联修复（2026-10-17）
+
+- `preview/index.html` 仍是当前 React 源码入口；将已批准的静态 HTML 原样归档为 `preview/index-r1.html`，Git Blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`，原始 SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`。工具根目录 `../adblock-r1-interactive-preview.html` 是**正式源码生成快照**，不随本次重命名。
+- 本预览使用 React 19.2.0、HTM 3.1.1、自有组件和 OpenDesk 共享 CSS Tokens/Primitives；**没有引入 shadcn/ui、Radix UI、React Aria 或独立组件构建工程**。共享 `design-system.css` 全局 `button { min-height:34px }` 会覆盖原本 `.toggle { height:27px }` 的高度目标，现通过局部 `.toggle { min-height:27px }` 修复，宽度 46px、圆点 21px 保留。
+- 真实 Chromium `file://` 定向回归按 320px/360px 分别测量全局/本站开关的 `getBoundingClientRect()`、`getComputedStyle().minHeight` 与圆点高度，不再只看按钮是否可点击。聊天内 HTML 适配器没有执行相同 React/CSS 字节，**绝不能用其外观代表本地真实页面视觉通过**。

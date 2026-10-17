@@ -333,9 +333,14 @@ try {
     const dimension=await evaluate('({scroll:document.documentElement.scrollWidth,view:innerWidth,frame:document.querySelector(".frame").getBoundingClientRect().width})');
     assert.ok(dimension.scroll <= dimension.view+1,'overflow at '+width+': '+JSON.stringify(dimension));
     assert.ok(dimension.frame <=360,'frame wider than 360px');
+    const switches=await evaluate('(["global-switch","site-switch"].map(id=>{const button=document.getElementById(id);const knob=button.querySelector(".knob");const rect=button.getBoundingClientRect();return {id,width:Math.round(rect.width),height:Math.round(rect.height),minHeight:getComputedStyle(button).minHeight,knobHeight:Math.round(knob.getBoundingClientRect().height)}}))');
+    for (const sw of switches) {
+      assert.deepEqual(sw,{id:sw.id,width:46,height:27,minHeight:'27px',knobHeight:21},
+        'React file:// switch geometry drift at '+width+'px for '+sw.id);
+    }
   }
   await send('Emulation.clearDeviceMetricsOverride');
-  console.log('06 WIDTH_320_360_PASS');
+  console.log('06 WIDTH_320_360_PASS · SWITCH_46x27_COMPUTED_STYLE_PASS');
   await send('Emulation.setDeviceMetricsOverride',{width:1024,height:850,deviceScaleFactor:1,mobile:false});
   const placement=await evaluate('({frame:document.querySelector(".frame").getBoundingClientRect().toJSON(),notes:document.querySelector(".notes").getBoundingClientRect().toJSON(),nested:!!document.querySelector(".frame .notes")})');
   assert.equal(Math.round(placement.frame.width),360,'tool canvas should be 360px on desktop');
