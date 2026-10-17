@@ -1322,6 +1322,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     },error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);});
   };
   if(!workflowReact)listen(get('workflow-ai-new-session'),'click',onNewSessionClick);
+  // Only fill the trusted composer; examples never submit, request permissions,
+  // start AI planning, or mutate any current page.
+  for(const button of get('workflow-intro-suggestions').querySelectorAll('[data-workflow-example]')){
+    listen(button,'click',event=>{
+      if(!event.isTrusted||busy||host.executionPending||host.currentRun)return;
+      const requestText=exampleRequests[button.dataset.workflowExample];
+      if(!requestText)return;
+      const draft=get('workflow-ai-request');
+      draft.value=requestText;
+      draft.focus?.({preventScroll:true});
+      status('示例已填入输入框；不会自动发送或运行。');
+    });
+  }
   const onResumeSessionClick=event=>{
     if(!event.isTrusted||busy||host.executionPending||host.currentRun||provider()!=='local_codex')return;
     // This explicit action only resumes the selected local provider, not web observation.
@@ -1363,7 +1376,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     lastTrustedRun=null;runId=null;onRunOwner(null);
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());directVerifiedSerial=null;
     revision=null;touched=true;lastRun='none';hasError=false;phase='idle';
-    clearChat();
+    clearChat();entryMode='new-workflow';
     get('workflow-manage-panel').hidden=true;
     get('workflow-history-toggle').setAttribute('aria-expanded','false');
     newReviewReturnFocus=null;
