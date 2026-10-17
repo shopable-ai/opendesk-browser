@@ -112,6 +112,12 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  }
  const side=await open('reading-toc-r12-interactive-preview.html'),panel=await child(browser,side.page);
  await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length>0'),'Compiled TOC did not start in real sandbox');
+ assert.equal(await evaluate(panel,'document.querySelector("#toc-source")?.hidden'),true,
+  'the sidebar hides the extra multi-source dropdown');
+ await evaluate(panel,"document.querySelector('[data-toc-mode=top]').click()");
+ await until(()=>evaluate(panel,'document.querySelectorAll("#toc-list button").length===9 && document.querySelector("#toc-overview-more")?.hidden===true'),
+  'the short overview must directly display all nine headings without a more button');
+ await evaluate(panel,"document.querySelector('[data-toc-mode=focus]').click()");
  await select(side.page,'od-toc-language','en');
  await until(()=>evaluate(panel,'document.querySelector(".toc-title")?.textContent==="CONTENTS" && document.querySelector(".toc-panel")?.getAttribute("aria-label")==="Reading table of contents"'),'English accessible label and fixed CONTENTS heading failed');
  await evaluate(panel,"(()=>{const s=document.querySelector('#toc-source');s.value='s-2';s.dispatchEvent(new Event('change',{bubbles:true}));})()");
