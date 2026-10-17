@@ -131,8 +131,11 @@ jobs:
       - name: Production WXT
         run: npm run build
       - name: Development WXT
+        if: always()
         run: npm run build:dev
       - name: Production and development verification
+        if: always()
         run: npm run verify
       - name: Fixed-entry and service worker budget
+        if: always()
         run: npm run build:size
