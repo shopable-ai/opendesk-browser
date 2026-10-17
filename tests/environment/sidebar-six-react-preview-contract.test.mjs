@@ -117,8 +117,10 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   assert.match(prototype,/\.r2310-suggestions\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
   assert.match(owner,/get\('workflow-intro-suggestions'\)/);
   assert.match(owner,/draft\.value=requestText/);
-  assert.doesNotMatch(owner.slice(owner.indexOf('  for(const button of get(\'workflow-intro-suggestions\')'),
-    owner.indexOf('  const onResumeSessionClick')), /client\.request|startPlanning|runWorkflow/,
+  const examplesStart=owner.lastIndexOf('  for(const button of get(\'workflow-intro-suggestions\')');
+  assert(examplesStart>=0,'trusted suggestion handler must be present');
+  assert.doesNotMatch(owner.slice(examplesStart,
+    owner.indexOf('  const onResumeSessionClick',examplesStart)), /client\.request|startPlanning|runWorkflow/,
     'suggestions can only fill the existing composer');
   assert.match(preview,/setWorkflowEntry\('new-chat'\)/);
   assert.match(preview,/setWorkflowEntry\('new-workflow'\)/);
