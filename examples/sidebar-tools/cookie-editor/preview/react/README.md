@@ -1,7 +1,7 @@
-# Cookie Editor R5.2.1 · React 19 完整编辑器审阅候选
+# Cookie Editor R5.2.2 · React 19 完整编辑器 · 用户审阅候选
 
 **归属：** `examples/sidebar-tools/cookie-editor/preview/react/`。
-**阶段：** R4.9.2 旧 UI 已经用户审阅确认；R5.2.1 的完整高级编辑器等待新候选 Chromium 验收与用户批准。实际 Chrome Cookie 业务迁移 **尚未执行**。
+**阶段：** R5.2.2 React 19 完整预览已经通过同一候选 26/26 Chromium 验收，生成 HTML 已经安全晋升 `main`；仍待用户最终视觉审阅和明确批准。正式 Cookie Editor 2.0.23 / SDK / Host / 安装包未迁移。
 **保护：** 只在预览目录内修改。正式 `src/{index.html,style.css,main.js}`、`tool.config.json`、安装包、Host/SDK、R4.3 原版及 `preview/index.html` 均不随本候选自动覆盖。
 
 ## 已确认的交互合同
@@ -31,8 +31,8 @@
 ## 已验证与待验
 
 - **LOCAL_SCOPED PASS**：本地 Chromium 8 组旧交互回归 + 3 种宽度 Value 图标中心线测量、页面无横向溢出。验证入口为相同 JSX 的 React16 测试兼容层，**不是 React 19 的正式构建或原生安装证据**。
-- **REACT19_BUILD / CI / CHROME_NATIVE：** 需按本次提交实际工作流结果更新记录，未观察到的结论写 `NOT_TESTED`；不得直接借用旧 R4.9 的成功报告。
-- **95+：** 是下一轮各项独立验收目标，并非本轮已取得的统一评分。
+- **REACT19_BUILD / CI：PASS（2026-10-18）**：源码候选 `b7696352268662c4239220dba86c04b97fa2e011` 的 [CI 39054270031](https://github.com/shopable-ai/opendesk-browser/actions/runs/39054270031) 完整执行 26/26 Chromium PASS、Vite Build PASS、HTML `--check` PASS；自动晋升提交 `0af66c8a4c3e9b3d043056b6f1d397a9efb17c9c`。`index.html` 350,463 bytes，SHA256 `a8ed019ac42dd31c7ada46c02f5ea487fc3f10678554d61e87ef91e06309790d`（已从仓库重新读取并独立校验）。
+- **CHROME_NATIVE / 视觉批准：NOT_TESTED / 待用户审阅。** 上述成功仅限 Linux Chrome for Testing、虚构内存数据和 `file://` React 预览。真实 Mac Chrome 侧边栏/Chrome Cookie SDK、OS 级浏览器页面缩放及最终中文字体视觉审阅不得冒充 PASS。独立九维 95+ 仍是目标，不是自动化用例数量可以证明的分数。
 
 ## R4.10.3 · 首次授权自动隐藏（仅原型）
 
@@ -71,4 +71,12 @@
 - 基础名称/值校验只聚焦错误字段，不无故展开高级面板；输入组件补充 `aria-invalid` 与 `aria-describedby`。新建取消或放弃草稿后，键盘焦点恢复到真正的新建按钮。
 - 模拟保存结果未知时禁用精确删除直到刷新核对；正式身份校验不可只靠预览保证，预览确认删除前也重新比对目标身份。
 - Netscape 持久 Cookie 导入按 Unix 秒读取，转换为本地编辑时间并检验有效范围；保存、重新编辑、导出保留时间，不再把本地日期误读为 UTC。
-- 此轮新加三项 Chromium 回归。既有 23 项 PASS 是历史证据；仅当前提交 CI 全部通过且自动晋升 `index.html` 后才声明新候选 HTML PASS。正式 2.0.23、SDK、Host、安装包以及 Mac Chrome 未改动。
+- R5.2.2 已修复 `requestAnimationFrame` 延迟焦点导致搜索字符串进入未保存名称草稿的问题；改为 React `useLayoutEffect` 同步执行焦点恢复，补充草稿与筛选双向保护断言。另收紧未知结果提示的 Playwright 定位，并使用规范化 `datetime-local` 输入进行 Unix 秒往返验证。最终 26/26 PASS；正式 2.0.23、SDK、Host、安装包以及 Mac Chrome 未改动。
+
+## R5.2.2 · 交付边界与审阅注意
+
+- 一律复用 `src/App.jsx`、`src/style.css` 和 `src/ui/react/cookie-editor/CookieEditorView.jsx`，没有单独的缩减版 Mock；离线 HTML 内嵌 React 19 与样式，CSP 禁止网络。
+- 26 组真实 Chromium 用例覆盖 320/360/380/420/520px、CSS Zoom、深色、焦点、dirty、Session 和 Netscape 秒级日期；**CSS Zoom 不等于真实 Chrome 浏览器页面缩放**。
+- Linux 截图机器需要 CJK 字体才可审阅中文，因此工作流单独安装 `fonts-noto-cjk`，不将字体打入 HTML 或正式工具包。
+- 当前 React bundle 为 **233,817 JS UTF-16 单元**，超出正式 Tool **220,000** 单元预算；本轮仅预览不阻止晋升。R5.3 必须先评估同一现有构建的体积与正式 Host/SDK 接入，不可直接宣称已可打包迁移。
+- `file://` 手工审阅仍需用户在 Mac 本地拉取最新 `main` 并打开本目录的 `index.html`，未经明确批准不迁移正式产品。
