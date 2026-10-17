@@ -280,6 +280,28 @@ test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button
   }finally{controller.dispose();}
 });
 
+test('R2.6 newly saved library entries appear on injected page via storage change without refresh',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const first=model.draft({body:'检查一：文字润色',label:'润色'},null,()=> 'prompt-r26-one');
+  const second=model.draft({body:'检查二：新的提示词',label:'新建'},null,()=> 'prompt-r26-two');
+  const settings={webButtons:true};
+  const f=fixture({pkg,library:{schema:1,items:[first],settings}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();
+    assert.equal(f.buttons().length,1);
+    f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first,second],settings}});
+    await settle();
+    assert.equal(f.buttons().length,2,'storage change must update currently opened page');
+    assert.equal(f.rail().children.length,2,'no extra fold button or duplicated injection');
+    assert.equal(f.buttons()[1].getAttribute('aria-label'),'插入提示词：'+second.name);
+    f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first],settings}});
+    await settle();
+    assert.equal(f.buttons().length,1,'delete also refreshes the same rail');
+  }finally{controller.dispose();}
+});
+
 async function readyPage(){
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整正文\n第二行'},null,()=> 'prompt-r18');
