@@ -44,3 +44,9 @@ node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay
 - 两份已保存 HTML 均由唯一官方 `scripts/preview/build-preview.mjs` 生成，原文件不手写版本号。更新后的 Side Panel：211,874 bytes，SHA-256 `539816a19011dcdf36ed16f869d3515b7c5a475306b5f17dfde0b6c4bea4ba86`；网页悬浮：218,832 bytes，SHA-256 `0d86cca75da1e8dfc272459378a5ebe091d971cc6a9326a4b04d0683858a1a47`。
 - 若要看“真实网页正文旁边插入后的效果”，在 `reading-toc-r12-overlay-preview.html` 选择「网页悬浮目录」，即可看到内嵌模拟文章 + **真实生产 `view.js`** 的目录层。模拟文章的标题与跳转回执不是实际网站操作，不代表授权、真实 Mac Chrome 安装或发布验收已完成。
 - 源码定向测试 **28/28 PASS**；构建/验证 PASS（[R1.8.3 候选 CI 产物](https://github.com/shopable-ai/opendesk-browser/actions/runs/39027494384)）。同步前严格预览测试拒绝旧文件，之后须复测转绿；用户 Mac 安装升级为 `NOT_TESTED`，不得静默晋升正式 JSON。
+
+## R1.8.4 · 网页实际悬浮 UI 已修复旧预览漂移
+
+旧的 `reading-toc-r183-inpage-preview.html` 是离线导出的历史快照，并没有随着可信 `src/reading-toc/view.js` 自动更新，因此错误保留了“还有 6 个章节”按钮和旧的三模式工具栏。**不可再把旧快照当作本轮正式 UI。**
+
+唯一权威为 `scripts/preview/build-preview.mjs` 生成的 `reading-toc-r12-overlay-preview.html`：它嵌入正式可信 view / placement 源码，显示网页文章与四个（概览、当前、完整、AI）按钮，无冗余“更多章节”按钮；AI 仅提供未开放会员与合作招募提示。侧边栏同源入口 `reading-toc-r12-interactive-preview.html` 继续严格字节重现，不另建平行实现。隔离 HTML 不等于真实网站或用户 Mac Chrome 安装验收。

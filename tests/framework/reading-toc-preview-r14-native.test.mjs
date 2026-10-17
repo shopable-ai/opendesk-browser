@@ -148,6 +148,14 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(async()=>{const tree=await trusted.send('Accessibility.getFullAXTree');
   return tree.nodes.some(node=>node.name?.value==='On-page table of contents');},
   'Closed-shadow overlay did not present translated English accessible label');
+
+ const axe=await trusted.send('Accessibility.getFullAXTree');
+ const modeNames=['Chapter overview (automatically includes subheadings)','Current section','Full contents','AI outline'];
+ const buttonNames=axe.nodes.filter(node=>node.role?.value==='button').map(node=>node.name?.value);
+ for(const name of modeNames)assert(buttonNames.includes(name),
+  'injected webpage TOC must expose all four real mode icons: '+name);
+ assert(!buttonNames.some(name=>/more sections|还有 \\d+ 个章节|see full contents/i.test(String(name))),
+  'webpage TOC must not reintroduce the redundant see-all button');
  assert.equal(await evaluate(trusted,'document.querySelector("article h1").textContent'),original);
  await screenshot(overlay.page,'toc-r14-preview-overlay.png');
  console.log('TOC_PREVIEW_EVIDENCE '+JSON.stringify({browser:version.Browser,file:true,installed:false,
