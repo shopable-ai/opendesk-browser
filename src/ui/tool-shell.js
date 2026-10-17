@@ -84,7 +84,17 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options)});
-const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController});
+let extensionList=null;
+const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,
+  // Explicit developer-only, non-release opt-in. All other opens use the
+  // unchanged opaque sandbox; mounting uses the already-owned React root.
+  trustedBookmarkPilot:{
+    enabled:Boolean(debugEnabled&&hostUrl.searchParams.get('bookmarkReactPilot')==='1'),
+    mount:args=>{
+      if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
+      return extensionList.mountBookmarkPilot(args);
+    }
+  }});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
 // R4 reuses the same installer form and trusted Tool host, without cloning either.
 const importHost=document.getElementById('extension-center-import-host');
@@ -92,7 +102,7 @@ const originalImport=document.getElementById('sidebar-tool-import');
 if(importHost&&originalImport)importHost.append(originalImport);
 // The installed extension list is the first React-owned region. Installer,
 // detail, dynamic tool sandbox and the other tabs keep their original owners.
-const extensionList=mountExtensionList(document);
+extensionList=mountExtensionList(document);
 /* Deliberately off in production and regular development. The opt-in URL must
  * already contain its canonical hostInstanceId; a redirect drops unknown
  * parameters. The candidate never replaces the installed Cookie iframe. */
