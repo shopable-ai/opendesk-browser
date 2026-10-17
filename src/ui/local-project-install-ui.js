@@ -143,7 +143,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       title.value=planned.defaultTitle;
       title.readOnly=false;
       version.value=planned.version;
-      summary.textContent=(planned.kind==='page-userscript'?'网页工具':'自动化任务')+
+      summary.textContent=(planned.kind==='page-userscript'?'网页增强':'自动化任务')+
         (planned.installedVersion?' · 更新 '+planned.installedVersion+' → ':' · 安装 ')+planned.version+
         (planned.installedVersion?'\n原网站范围：'+planned.installedSiteOrigins.join('、'):'')+
         '\n适用网站：'+planned.siteOrigins.join('、')+
@@ -243,7 +243,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   return Object.freeze({canSave,saveLabel:()=>reconciling?'正在核对…':installing?'正在保存…':
     preparing?'正在准备保存…':unknown?'核对安装状态':!current()?'待运行验证':
     sameInstalled()?'管理已安装版本':review?'继续确认保存':
-    verified.source.runtimeKind==='page-userscript'?'保存到我的工具':'保存为任务',
+    verified.source.runtimeKind==='page-userscript'?'安装网页增强':'保存为任务',
     update,reset,succeeded,prepare,confirm,setOnInstalled(fn){onInstalled=fn||(()=>{});},
     dispose(){disposed=true;consent.dispose();confirmButton.removeEventListener('click',onConfirm);
       cancelButton.removeEventListener('click',onCancel);}});
