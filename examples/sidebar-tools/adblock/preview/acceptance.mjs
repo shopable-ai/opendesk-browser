@@ -13,7 +13,7 @@ const preview = dirname(fileURLToPath(import.meta.url));
 const root = resolve(preview, '../../../..');
 const reactFile = join(root, 'src/libs/page-frameworks/react-19.2.0.js');
 const reactHash = 'd1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758';
-const src = readFileSync(join(preview, 'index.html'), 'utf8');
+const src = readFileSync(join(preview, 'index-react.html'), 'utf8');
 const app = readFileSync(join(preview, 'app.js'), 'utf8');
 const htm = readFileSync(join(preview, 'vendor/htm-3.1.1.js'), 'utf8');
 assert.match(src, /src="\.\.\/\.\.\/\.\.\/\.\.\/src\/libs\/page-frameworks\/react-19\.2\.0\.js"/);
@@ -91,7 +91,7 @@ try {
     '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost'
   ];
   if (platform() === 'linux') flags.push('--no-sandbox'); // GitHub's shared runners may restrict user namespaces.
-  flags.push(pathToFileURL(join(preview,'index.html')).href);
+  flags.push(pathToFileURL(join(preview,'index-react.html')).href);
   const executable=chromeExecutable();
   console.log('CHROME_LAUNCH '+JSON.stringify({platform:platform(),executable,protocol:'file://'}));
   browser = spawn(executable,flags,{stdio:['ignore','ignore','pipe']});
@@ -378,7 +378,7 @@ try {
   const vendor=join(replica,'vendor');
   mkdirSync(vendor,{recursive:true});
   const copy=(relative)=>copyFileSync(join(preview,relative),join(replica,relative));
-  for(const file of ['index.html','style.css','app.js','vendor/htm-3.1.1.js'])copy(file);
+  for(const file of ['index-react.html','style.css','app.js','vendor/htm-3.1.1.js'])copy(file);
   const replicaRuntime=join(sandbox,'src/libs/page-frameworks/react-19.2.0.js');
   mkdirSync(dirname(replicaRuntime),{recursive:true});
   copyFileSync(reactFile,replicaRuntime);
@@ -387,7 +387,7 @@ try {
     mkdirSync(dirname(destination),{recursive:true});
     copyFileSync(join(root,relative),destination);
   }
-  const isolated=pathToFileURL(join(replica,'index.html')).href;
+  const isolated=pathToFileURL(join(replica,'index-react.html')).href;
   await send('Page.navigate',{url:isolated});
   await query('document.getElementById("global-switch")?.getAttribute("aria-checked")','true');
   const updated=readFileSync(join(replica,'app.js'),'utf8').replace(

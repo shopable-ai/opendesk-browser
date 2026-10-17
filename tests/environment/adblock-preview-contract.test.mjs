@@ -200,12 +200,19 @@ test('checked-in AdBlock HTML stays generator-identical independent of unrelated
 
 test('user-approved R1 interactive design stays byte-exact under adblock/preview and distinct from generated CI preview',async()=>{
   const reference=await readFile(new URL(
-    '../../examples/sidebar-tools/adblock/preview/index-r1.html',import.meta.url));
+    '../../examples/sidebar-tools/adblock/preview/index.html',import.meta.url));
   assert.equal(reference.byteLength,23624,'original user-approved file must not be regenerated');
   assert.equal(createHash('sha256').update(reference).digest('hex'),
     'c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7',
     'design baseline changed without a new explicit user review');
   const original=reference.toString('utf8');
+  // Naming contract: index.html is immutable self-contained R1;
+  // index-react.html is the separate editable zero-build React design.
+  const react=await source('examples/sidebar-tools/adblock/preview/index-react.html');
+  assert.match(react,/name="od-preview-kind" content="DESIGN_REACT_MOCK_NOT_INSTALLED"/);
+  assert.match(react,/src="app\.js"/);
+  assert.match(react,/src="vendor\/htm-3\.1\.1\.js"/);
+  assert.notEqual(original,react,'R1 standalone file must remain distinct from React preview');
   for(const key of ['id="global-switch"','id="site-switch"','id="open-allowlist"',
     'id="open-settings"','id="domain-select"','id="theme-button"',
     'OpenDesk · AdBlock R1 交互原型（非真实广告拦截）'])

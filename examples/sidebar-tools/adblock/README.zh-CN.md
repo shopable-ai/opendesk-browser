@@ -42,9 +42,10 @@ Chrome 首次授予可选 DNR 权限存在[已确认的初始化缺陷](https://
 
 测试包括工具包结构、身份防伪、授权撤销、启停、域名规范化、DNR 所有权与跨工具优先级、状态失败回读、并发、浏览器恢复和卸载。**这些自动化测试是工程证据，不是 Mac 原生请求结果。** 原生验收须使用隔离 Profile、Chrome for Testing、真实请求和可信用户输入，并保存 DNR 回读与网络请求两套证据。Mac 未运行时标记 NOT_TESTED，不可虚构 95+ 评分。
 
-## 三个预览入口：当前 React · R1 归档 · 正式同源
+## 三个不同技术与来源的 HTML 预览入口
 
-- **AdBlock 交互设计**：[`preview/index.html`](preview/index.html)，独立、可直接打开的 Mock 页面。2026-10-16 按用户要求由旧预览文件重命名并规范顶部标题栏（盾牌图标、「广告拦截」标题、34px 设置图标），保留已确认的交互流程。原件 SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7` 与 Git blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a` 仅用于历史追溯，不作为当前文件校验值；详见 [`preview/README.md`](preview/README.md)。
-- **R1 历史原型（原文件不变，仅重命名）**：[`preview/index-r1.html`](preview/index-r1.html)。从原 `preview/adblock-r1-interactive-preview.html` 重命名，保留 Git Blob/SHA；与当前 React 和生产同源预览不同。
-- **生产源码驱动的离线验收 HTML**：[`adblock-r1-interactive-preview.html`](adblock-r1-interactive-preview.html)，由 `scripts/preview/build-preview.mjs` 生成，不复制或覆盖上述设计基准。
-- 三者均非已安装的真实 Chrome 界面，不产生真实 Chrome DNR/网络效果。正式产品应将当前设计稿作为信息架构基准，与同源预览及原生安装结果逐项对照并分别验收。
+- **R1 早期纯 HTML 单文件原型**：[`preview/index.html`](preview/index.html)。内联 CSS + 原生 JavaScript，不依赖 React，也不依赖构建；原始 SHA-256 `c0a030441720ee74e599e47d9e61d7725b5f947aa62da9324e5ac5b56356c8b7`，Git Blob `f10b6f6671480b3ea4828a04541e7bffa4e4d58a`，字节不可修改。
+- **当前 React 19.2.0 + HTM 零构建原型**：[`preview/index-react.html`](preview/index-react.html)。直接使用 `file://` 打开；日常编辑 `preview/app.js` 与 `preview/style.css`，保存刷新即可见，不运行 npm build，也不加载远程代码。使用 OpenDesk 已有 CSS Tokens/Primitives；模拟数据仅供设计验收。
+- **正式产品源码同源预览**：[`adblock-r1-interactive-preview.html`](adblock-r1-interactive-preview.html)。由 `scripts/preview/build-preview.mjs` 生成，使用正式 Host/工具业务源代码与安全 Mock；它既不是早期独立 HTML，也不是 React 设计样例，禁止手工修改生成快照。
+
+上述三个入口都不能代表已安装的真实 Chrome DNR/网络拦截已通过。历史曾使用 `preview/adblock-r1-interactive-preview.html` 和 `preview/index-r1.html` 存放 R1 原件，现仅将它原样映射为 `preview/index.html`，新名称不再依赖版本猜测实现技术。
