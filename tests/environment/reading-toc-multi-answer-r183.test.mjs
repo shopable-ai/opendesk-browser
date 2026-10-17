@@ -75,8 +75,8 @@ test('R1.8.3 preview supports three genuine source IDs without modifying approve
   sourceOf('examples/sidebar-tools/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html')
  ]);
  assert.match(sidebar,/source\.hidden=true/,'the old source selector stays hidden');
- assert.match(overlay,/modes\.hidden=compact&&!modeExplicit&&!\(adapter==='chatgpt'&&sources\.length>1\)/,
-  'full mode remains selectable when an active answer happens to be short');
+ assert.match(overlay,/modes\.hidden=false/,
+  'approved toolbar stays visible for both compact and multi-answer outlines');
  assert.match(styles,/li\.toc-answer-start\{border-top:1px solid/);
  assert.match(prototype,/const records=\[\['overview',1,'sectionOverview','s-1'\]/);
  assert.match(prototype,/const records=.*'s-3'/);
