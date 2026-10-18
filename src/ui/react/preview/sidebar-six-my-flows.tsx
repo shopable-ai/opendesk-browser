@@ -182,6 +182,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('schedule-manager-create').hidden=view!=='manager';
     get('schedule-open-runner').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
+    get('schedule-detail-delete').hidden=view!=='detail';
     get('schedule-manager-back').hidden=true; // One authoritative back button in Header.
     get('schedule-save-confirm').hidden=!pending;
     get('schedule-discard-confirm').hidden=!dirtyConfirm;
@@ -296,6 +297,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-back','click',back);
     bind('schedule-create','click',()=>showForm(null));
     bind('schedule-detail-edit','click',()=>{if(selected)showForm(selected);});
+    bind('schedule-detail-delete','click',()=>setRemoveConfirm(open=>!open));
     bind('schedule-cancel','click',back);
     bind('schedule-discard-yes','click',()=>{setDirtyConfirm(false);setPending(null);setView('list');});
     bind('schedule-discard-no','click',()=>setDirtyConfirm(false));
@@ -464,14 +466,16 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         {selectedPresentation.recentText&&<p className="schedule-recent-result"
           data-tone={selectedPresentation.recentTone}>{selectedPresentation.recentText}</p>}
       </section>
-      <div className="schedule-actions od-toolbar">
-        <button type="button" className="od-button od-button--secondary"
-          onClick={()=>{setPlans(all=>all.map(p=>p.id===selected.id?
-            {...p,paused:!p.paused,
-              nextDueAt:p.paused?(p.previewNextDueAt??p.nextDueAt):null}:p));
-            setFeedback('仅演示交互，未修改真实计划。');}}>
-          {selected.paused?'恢复计划':'暂停计划'}</button>
-      </div>
+      {(selected.paused||selected.triggerKind!=='once'||Number.isFinite(selected.nextDueAt))&&
+        <div className="schedule-actions od-toolbar">
+          <button type="button" className="od-button od-button--secondary"
+            disabled={Boolean(selected.paused&&selected.needsAttention)}
+            onClick={()=>{setPlans(all=>all.map(p=>p.id===selected.id?
+              {...p,paused:!p.paused,
+                nextDueAt:p.paused?(p.previewNextDueAt??p.nextDueAt):null}:p));
+              setFeedback('仅演示交互，未修改真实计划。');}}>
+            {selected.paused?'恢复计划':'暂停计划'}</button>
+        </div>
       {selected.needsAttention&&<>
         <p className="schedule-status-help">
           固定任务版本或网站权限需要处理。此处仅展示状态，不会自动换绑。</p>
@@ -488,9 +492,8 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         </div>)}
       </details>
       <details className="schedule-more od-disclosure od-disclosure--flat">
-        <summary>更多操作</summary>
-        <button type="button" className="od-button od-button--secondary schedule-danger-link"
-          onClick={()=>setRemoveConfirm(true)}>删除此计划…</button>
+        <summary>固定任务与执行信息</summary>
+        <p className="hint">执行时区：{selected.timezone}</p>
       </details>
       {removeConfirm&&<div className="schedule-delete-confirm od-surface">
         <p>确认从预览内存中移除？真实计划与历史不会改变。</p>

@@ -266,7 +266,9 @@ test('R2.6 plan list keeps next run prominent and destructive actions behind exp
   assert.match(html,/id="schedule-list-summary"[^>]*aria-live="polite"/);
   assert.match(ui,/const next=element\(doc,'p','schedule-next-time'/);
   assert.match(ui,/const more=element\(doc,'details','schedule-more od-disclosure od-disclosure--flat'\)/);
-  assert.match(ui,/more\.append\(remove\)/);
+  assert.match(html,/id="schedule-detail-delete"[^>]*aria-label="删除当前计划"[^>]*hidden/);
+  assert.match(ui,/bind\('schedule-detail-delete','click',toggleDeleteReview\)/);
+  assert.doesNotMatch(ui,/more\.append\(remove\)/);
   assert.match(ui,/\`确定删除「\$\{plan\.title\}」/);
   assert.match(ui,/client\.request\('changeSchedule'/);
   assert.match(css,/\.schedule-card \.schedule-next-time\{font-size:13px/);
@@ -704,6 +706,27 @@ test('R32 list editing keeps contextual return text and secondary plan actions',
   assert.equal(get('schedule-back').getAttribute('aria-label'),'返回运行概览');
   get('schedule-cancel').click();
   assert.equal(get('schedule-runner-view').hidden,false);
+  ui.dispose();
+});
+
+test('R24.2 finished one-off detail hides impossible pause, and header delete still requires confirmation',async()=>{
+  const {get,state,ui}=await scheduledDomFixture();
+  const plan=state.plans[0];
+  plan.triggerKind='once';plan.paused=false;plan.nextDueAt=null;
+  await ui.refresh();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  assert.equal(get('schedule-detail-delete').hidden,false);
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-detail-actions button'),null,
+    'a finished one-off must not offer a pause/resume in detail');
+  get('schedule-detail-delete').click();
+  const confirmation=get('schedule-detail-view').querySelector('.schedule-delete-confirm');
+  assert.ok(confirmation,'header action must open review rather than deleting immediately');
+  assert.equal(state.plans.length,1);
+  confirmation.querySelectorAll('button')[1].click();
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-delete-confirm'),null);
+  assert.equal(state.plans.length,1,'cancel cannot remove a plan');
+  get('schedule-back').click();
+  assert.equal(get('schedule-detail-delete').hidden,true);
   ui.dispose();
 });
 

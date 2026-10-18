@@ -161,6 +161,18 @@ try{
     'stopping current UI Fire must not pause recurring plan');
   await click('[data-schedule-id="preview-2"] [data-schedule-action="toggle"]');
   await until('document.querySelector("[data-schedule-id=preview-2] .schedule-state")?.textContent==="已安排"');
+  await click('[data-schedule-id="preview-4"] .schedule-plan-open');
+  await until('!document.getElementById("schedule-detail-view").hidden');
+  assert.equal(await evaluate('document.querySelector("#schedule-detail-view .schedule-detail-actions button")===null'),true,
+    'completed one-off detail must not offer fake pause/resume');
+  assert.equal(await evaluate('!document.getElementById("schedule-detail-delete").hidden'),true,
+    'plan deletion belongs to the detail header');
+  await click('#schedule-detail-delete');
+  await until('!!document.querySelector("#schedule-detail-view .schedule-delete-confirm")');
+  await click('#schedule-detail-view .schedule-delete-confirm button:last-child');
+  await until('!document.querySelector("#schedule-detail-view .schedule-delete-confirm")');
+  await click('#schedule-back');
+  await until('!document.getElementById("schedule-list-view").hidden');
   await click('#schedule-create');
   await until('!document.getElementById("schedule-form").hidden');
   const formCopy=await evaluate('document.getElementById("schedule-form").innerText');

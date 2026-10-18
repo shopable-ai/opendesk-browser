@@ -217,6 +217,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     get('schedule-create').hidden=view!=='list';
     get('schedule-manager-create').hidden=view!=='manager';
     get('schedule-detail-edit').hidden=view!=='detail';
+    get('schedule-detail-delete').hidden=view!=='detail';
     get('schedule-open-runner').hidden=view!=='list';
     const runnerLabel=isRunner()?'再打开一个独立运行页':'打开独立运行页';
     get('schedule-open-runner').setAttribute('aria-label',runnerLabel);
@@ -602,7 +603,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       doc.activeElement?.matches?.('.schedule-run-details > summary')?
         doc.activeElement.closest('.schedule-history-row')?.dataset.fireId:null;
     const focusSelectors=['.schedule-history > summary','.schedule-load-more',
-      '.schedule-more > summary','.schedule-danger-link',
+      '.schedule-more > summary',
       '.schedule-delete-confirm button:first-child','.schedule-delete-confirm button:nth-child(2)',
       '.schedule-detail-actions button','.schedule-status-help button'];
     const focusSelector=parent.contains(doc.activeElement)?
@@ -679,25 +680,21 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       history.append(historyList);
 
     const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-detail-actions');
-    toolbar.append(action(doc,plan.paused?'恢复计划':'暂停计划',
-      ()=>void change(plan,plan.paused?'resume':'pause'),'od-button od-button--secondary'));
-      const more=element(doc,'details','schedule-more od-disclosure od-disclosure--flat');
-      more.open=view.moreOpen;
-      more.append(element(doc,'summary',null,'更多操作与固定版本'));
-      more.append(element(doc,'p','hint',
-        `固定版本 v${plan.version} · IANA 时区 ${plan.timezone} · 任务 ${plan.taskId}`));
-      const remove=action(doc,'删除此计划',()=>{
-        const existing=card.querySelector('.schedule-delete-confirm');
-        if(existing){existing.remove();return;}
-        const confirm=element(doc,'div','schedule-delete-confirm od-surface');
-        confirm.append(element(doc,'p',null,
-          `确定删除「${plan.title}」？已有的 Run/Result 审计历史不会随之清除。`));
-        confirm.append(action(doc,'确认删除',()=>void change(plan,'delete'),
-          'od-button schedule-danger-button'),
-          action(doc,'取消',()=>{confirm.remove();remove.focus();}));
-        card.append(confirm);confirm.querySelector('button')?.focus();
-      },'od-button od-button--secondary schedule-danger-link');
-      more.append(remove);
+    // Keep the detail consistent with the list: a finished one-off plan has
+    // nothing to resume, and a blocked paused plan cannot be resumed.
+    const canToggle=plan.paused||plan.triggerKind!=='once'||Number.isFinite(plan.nextDueAt);
+    if(canToggle){
+      const toggle=action(doc,plan.paused?'恢复计划':'暂停计划',
+        ()=>void change(plan,plan.paused?'resume':'pause'),'od-button od-button--secondary');
+      toggle.disabled=Boolean(plan.paused&&plan.needsAttention);
+      if(toggle.disabled)toggle.title='请先处理固定任务与网站权限，再恢复计划';
+      toolbar.append(toggle);
+    }
+    const more=element(doc,'details','schedule-more od-disclosure od-disclosure--flat');
+    more.open=view.moreOpen;
+    more.append(element(doc,'summary',null,'固定任务与执行信息'));
+    more.append(element(doc,'p','hint',
+      `固定版本 v${plan.version} · IANA 时区 ${plan.timezone} · 任务 ${plan.taskId}`));
 
     card.append(summary);
     if(hint)card.append(hint);
@@ -705,7 +702,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     parent.dataset.scheduleId=plan.scheduleId;
     parent.replaceChildren(card);
     // Reopen the inline review only; never invoke its dangerous RPC here.
-    if(view.deleteReview)remove.click();
+    if(view.deleteReview)toggleDeleteReview();
     if(focusSelector)(card.querySelector(focusSelector)||get('schedule-back'))?.focus({preventScroll:true});
     if(focusedRun)[...historyList.querySelectorAll('.schedule-history-row')]
       .find(row=>row.dataset.fireId===focusedRun)?.querySelector('.schedule-run-details > summary')
@@ -714,6 +711,22 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       text(get('schedule-panel-title'),plan.title);
       const scroller=get('workspace-content');if(scroller)scroller.scrollTop=scrollTop;
     }
+  }
+  function toggleDeleteReview(){
+    const card=get('schedule-detail-view').querySelector('.schedule-detail-card');
+    const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
+    if(!card||!plan)return;
+    const existing=card.querySelector('.schedule-delete-confirm');
+    if(existing){existing.remove();return;}
+    const confirm=element(doc,'div','schedule-delete-confirm od-surface');
+    confirm.append(element(doc,'p',null,
+      `确定删除「${plan.title}」？已有的 Run/Result 审计历史不会随之清除。`));
+    confirm.append(action(doc,'确认删除',()=>void change(plan,'delete'),
+      'od-button schedule-danger-button'),
+      action(doc,'取消',()=>{
+        confirm.remove();get('schedule-detail-delete').focus({preventScroll:true});
+      }));
+    card.append(confirm);confirm.querySelector('button')?.focus({preventScroll:true});
   }
   function openDetail(scheduleId){
     if(!allPlans.some(plan=>plan.scheduleId===scheduleId))return;
@@ -1151,6 +1164,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       details.querySelector('summary')?.focus();}
   });
   bind('schedule-create','click',()=>{formReturnView=isRunner()?'runner':'list';reset();show('form');get('schedule-title').focus();});
+  bind('schedule-detail-delete','click',toggleDeleteReview);
   bind('schedule-detail-edit','click',()=>{
     const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
     if(plan)edit(plan);
