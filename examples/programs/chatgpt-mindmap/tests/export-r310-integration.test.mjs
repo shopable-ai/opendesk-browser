@@ -61,7 +61,7 @@ test('XMind export travels the existing bound child MessagePort and survives sta
   await assert.rejects(renderer.exportXmind(),{code:'E_XMIND_FRAME_DESTROYED'});
 });
 
-test('original toolbar offers one desktop download, a mobile export entry, and safe format gates',async()=>{
+test('export menu follows desktop and mobile triggers with only PNG, XMind, and Markdown',async()=>{
   const {document,window}=parseHTML('<html><body></body></html>');
   const owner={on(node,event,handler){node.addEventListener(event,handler);
     return ()=>node.removeEventListener(event,handler);}};
@@ -84,6 +84,13 @@ test('original toolbar offers one desktop download, a mobile export entry, and s
       ready:Promise.resolve(),
       async fit(){},
       async exportXmind(){return new Blob([new Uint8Array([80,75,3,4,1])]);},
+      async exportPng(){
+        const bytes=new Uint8Array(512),header=new DataView(bytes.buffer);
+        bytes.set([137,80,78,71,13,10,26,10]);
+        bytes.set([73,72,68,82],12);
+        header.setUint32(16,256);header.setUint32(20,192);
+        return new Blob([bytes],{type:'image/png'});
+      },
       async destroy(){}
     })
   });
@@ -96,22 +103,37 @@ test('original toolbar offers one desktop download, a mobile export entry, and s
     assert.ok(desktop);assert.ok(mobile);
     desktop.dispatchEvent(new window.Event('click'));
     assert.equal(desktop.getAttribute('aria-expanded'),'true');
-    assert.equal(shadow.querySelectorAll('[data-export]').length,6);
-    const source=shadow.querySelector('[data-export="source"]');
-    assert.equal(source.getAttribute('aria-disabled'),'true');
-    source.dispatchEvent(new window.Event('click'));await tick();
-    assert.equal(downloads.length,0);
-    assert.match(shadow.querySelector('.odmm-export-status').textContent,/原始 Markdown/);
-    desktop.dispatchEvent(new window.Event('click'));
-    shadow.querySelector('[data-export="outline"]').dispatchEvent(new window.Event('click'));
+    const menu=shadow.querySelector('.odmm-export-menu');
+    assert.equal(menu.parentElement,shadow.querySelector('.odmm-export-wrap'));
+    assert.equal(menu.hidden,false);
+    assert.deepEqual([...menu.querySelectorAll('[data-export]')].map(item=>item.textContent),
+      ['PNG','XMind','Markdown']);
+    assert.equal(desktop.getAttribute('aria-label'),'Export');
+    assert.equal(mobile.getAttribute('aria-label'),'Export');
+    for(const removed of ['source','png-hd','svg'])
+      assert.equal(menu.querySelector('[data-export="'+removed+'"]'),null);
+    menu.querySelector('[data-export="outline"]').dispatchEvent(new window.Event('click'));
     await tick();
     assert.deepEqual(downloads,['本条回复-大纲.md']);
     desktop.dispatchEvent(new window.Event('click'));
-    shadow.querySelector('[data-export="xmind"]').dispatchEvent(new window.Event('click'));
+    menu.querySelector('[data-export="xmind"]').dispatchEvent(new window.Event('click'));
     await tick();
     assert.deepEqual(downloads,['本条回复-大纲.md','本条回复.xmind']);
-    assert.equal(shadow.querySelector('[data-export="png-hd"]').getAttribute('aria-disabled'),'true');
-    assert.equal(shadow.querySelector('[data-export="svg"]').getAttribute('aria-disabled'),'true');
+    desktop.dispatchEvent(new window.Event('click'));
+    menu.querySelector('[data-export="png"]').dispatchEvent(new window.Event('click'));
+    await tick();
+    assert.deepEqual(downloads,['本条回复-大纲.md','本条回复.xmind','本条回复.png']);
+    const more=shadow.querySelector('.odmm-more');
+    more.dispatchEvent(new window.Event('click'));
+    mobile.dispatchEvent(new window.Event('click'));await tick();
+    assert.equal(menu.parentElement,shadow.querySelector('.odmm-menu-wrap'));
+    assert.equal(menu.hidden,false);
+    assert.deepEqual([...menu.querySelectorAll('[data-export]')].map(item=>item.textContent),
+      ['PNG','XMind','Markdown']);
+    menu.querySelector('[data-export="png"]').dispatchEvent(new window.Event('click'));
+    await tick();
+    assert.equal(menu.hidden,true);
+    assert.equal(downloads.at(-1),'本条回复.png');
   }finally{await view.destroy();}
   assert.ok(revocations.includes('blob:fake-download'));
 });

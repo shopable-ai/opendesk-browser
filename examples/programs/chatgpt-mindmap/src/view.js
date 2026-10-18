@@ -57,7 +57,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   const branchGroup=makeGroup('分支','odmm-desktop-only');
   const fullGroup=makeGroup('全屏');
   const themeGroup=makeGroup('导图主题','odmm-desktop-only');
-  const exportGroup=makeGroup('导出','odmm-desktop-only');
+  const exportGroup=makeGroup('导出','odmm-desktop-only odmm-export-wrap');
   const refreshGroup=makeGroup('更新','odmm-desktop-only');
   const menuGroup=makeGroup('更多','odmm-mobile-only odmm-menu-wrap');
   const menu=el('div','odmm-menu');menu.id='odmm-more-menu';
@@ -153,29 +153,26 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     run:toggleTheme,group:menu,render:true,menuItem:true});
   action({id:'refresh',glyph:'refresh',label:'重新读取本条回复',
     run:onRefresh,group:menu,menuItem:true});
-  action({id:'export-open',glyph:'download',label:'导出导图',
+  action({id:'export-open',glyph:'download',label:'Export',
     run:()=>openExport(true),group:menu,menuItem:true,render:true});
   menuGroup.append(menu);
   // The desktop Download icon and the mobile More -> Export entry share
   // exactly one format menu and one in-flight operation.
   const exportToggle=el('button','odmm-tool odmm-export-toggle');
-  exportToggle.type='button';exportToggle.title='导出导图';
-  exportToggle.setAttribute('aria-label','导出导图');
+  exportToggle.type='button';exportToggle.title='Export';
+  exportToggle.setAttribute('aria-label','Export');
   exportToggle.setAttribute('aria-haspopup','menu');
   exportToggle.setAttribute('aria-expanded','false');
   exportToggle.append(icon(document,'download'));exportToggle.disabled=true;
   exportGroup.append(exportToggle);renderButtons.push(exportToggle);
   const exportMenu=el('div','odmm-export-menu');exportMenu.hidden=true;
   exportMenu.id='odmm-export-menu';exportMenu.setAttribute('role','menu');
-  exportMenu.setAttribute('aria-label','导出格式');
+  exportMenu.setAttribute('aria-label','Export formats');
   exportToggle.setAttribute('aria-controls',exportMenu.id);
   const exportOptions=[
-    {id:'xmind',label:'XMind',extension:'.xmind'},
-    {id:'outline',label:'Markdown 大纲',extension:'-大纲.md'},
-    {id:'source',label:'Markdown 原文',reason:'无法取得可信的原始 Markdown'},
     {id:'png',label:'PNG',extension:'.png'},
-    {id:'png-hd',label:'PNG 高清 · VIP',reason:'ENTITLEMENT_NOT_READY'},
-    {id:'svg',label:'SVG · VIP',reason:'ENTITLEMENT_NOT_READY'}
+    {id:'xmind',label:'XMind',extension:'.xmind'},
+    {id:'outline',label:'Markdown',extension:'-大纲.md'}
   ];
   const exportButtons=[];
   const exportStatus=el('div','odmm-export-status');exportStatus.hidden=true;
@@ -196,6 +193,9 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
     if(disposed||exportBusy||exportToggle.disabled)return;
     if(menuOpen)closeMenu();
     exportReturn=mobile?more:exportToggle;
+    // One menu; anchor it to the actual trigger in either toolbar layout.
+    const anchor=mobile?menuGroup:exportGroup;
+    if(exportMenu.parentNode!==anchor)anchor.append(exportMenu);
     exportOpen=true;exportMenu.hidden=false;
     exportToggle.setAttribute('aria-expanded','true');
     exportButtons[0]?.focus();
@@ -219,7 +219,6 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   async function runExport(option){
     if(disposed||exportBusy)return;
     closeExport(true);
-    if(option.reason){setExportStatus(option.reason,true);return;}
     if(!renderer){setExportStatus('XMind 尚未准备就绪',true);return;}
     exportBusy=true;exportToggle.disabled=true;
     for(const button of exportButtons)button.disabled=true;
@@ -249,18 +248,17 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   for(const option of exportOptions){
     const button=el('button','odmm-export-item');button.type='button';
     button.setAttribute('role','menuitem');button.setAttribute('data-export',option.id);
-    button.textContent=option.label+(option.reason?' · 未开放':'');
-    button.setAttribute('aria-label',option.label+(option.reason?'，'+option.reason:''));
-    if(option.reason){
-      button.setAttribute('aria-disabled','true');button.title=option.reason;
-    }
+    button.textContent=option.label;
+    button.setAttribute('aria-label',option.label);
     exportMenu.append(button);exportButtons.push(button);
     removers.push(owner.on(button,'click',()=>runExport(option)));
   }
-  toolbar.append(exportMenu);
+  exportGroup.append(exportMenu);
   removers.push(owner.on(exportToggle,'click',()=>{
     if(exportOpen)closeExport(true);else openExport();
   }));
+  // A breakpoint/orientation change invalidates the previous menu anchor.
+  removers.push(owner.on(window,'resize',()=>closeExport()));
   update('refresh',{hidden:true});
   update('fold',{pressed:false});
   update('fullscreen',{pressed:false});
@@ -350,6 +348,7 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   }
   async function setFull(value){
     if(disposed||fullscreen===value)return;
+    closeExport();
     const previousParent=host.parentNode,previousNext=host.nextSibling;
     const destination=value?document.body:inlineParent;
     const reference=!value&&inlineNext?.parentNode===destination?inlineNext:null;
