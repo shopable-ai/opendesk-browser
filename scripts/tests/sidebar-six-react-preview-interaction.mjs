@@ -376,6 +376,10 @@ try{
   // real DOM-owned detail form before deleting its enclosing React card.
   await click('#tab-my-tasks');
   await until('!document.getElementById("workbench-tasks").hidden');
+  // Switching tabs does not silently exit the scheduled-plan subview.
+  // Return explicitly to the installed task list before managing tasks.
+  await click('#schedule-back');
+  await until('!document.querySelector("#workbench-tasks .tasks-surface").hidden');
   await click('#task-manage-toggle');
   await until('document.getElementById("task-manage-toggle").getAttribute("aria-pressed")==="true"');
   await click('#task-uninstall');

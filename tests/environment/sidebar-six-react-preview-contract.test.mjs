@@ -113,7 +113,7 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   assert.match(flows,/setManagerRemoving\(p\.taskId\)/);
   assert.match(flows,/onTaskAction\('uninstall',managerRemoving\)/);
   assert.match(preview,/setInstalledTaskIds\(old=>old\.filter\(/);
-  assert.match(preview,/\[320,360,400,420,520\]/);
+  assert.match(preview,/\[320,360,400,420,440,520\]/);
   const exampleButtons=$('#workflow-intro-suggestions button');
   assert.equal(exampleButtons.length,4);
   assert.equal(exampleButtons.filter('[data-example-mode="new-chat"]').length,2);
