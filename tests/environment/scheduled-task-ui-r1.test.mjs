@@ -103,6 +103,29 @@ test('R34.2 installed task mutation distinguishes a committed toggle from a fail
     'do not hide the only error surface before Developer accepts the draft');
 });
 
+test('R34.5 installed Task copy cannot replace an unsaved Developer draft without an explicit trusted review',async()=>{
+  const [ui,native]=await Promise.all([
+    load('src/ui/scheduled-task-workbench.js'),
+    load('tests/framework/scheduled-tasks-r1-native-mac.test.mjs')
+  ]);
+  assert.match(ui,/copyReview\.id='schedule-copy-confirm'/);
+  assert.match(ui,/copyApprove=action\(doc,'确认覆盖并复制'/);
+  assert.match(ui,/copyCancel=action\(doc,'取消',\(\)=>closeCopyReview\(true\)/);
+  assert.match(ui,/onCopy:row=>reviewCopyManagedTask\(row,row\.title\)/);
+  assert.match(ui,/\(\)=>reviewCopyManagedTask\(row,title\)/);
+  assert.match(ui,/copyReview\.hidden=false;copyReview\.scrollIntoView/);
+  const review=ui.slice(ui.indexOf('  function reviewCopyManagedTask(row,title){'),
+    ui.indexOf('  async function copyManagedTask(row){'));
+  assert.doesNotMatch(review,/receiveDraft\(/);
+  const copy=ui.slice(ui.indexOf('  async function copyManagedTask(row){'),
+    ui.indexOf('  function createPlanFromManagedTask(row,title){'));
+  assert.match(copy,/current\.installationId!==row\.installationId/);
+  assert.ok(copy.indexOf('await taskWorkbench.receiveDraft(')>0);
+  assert.match(native,/nativeManagerCopyCancelPreservesDeveloperDraft='PASS'/);
+  assert.match(native,/await click\(client,formSid,'#schedule-copy-no'\)/);
+  assert.match(native,/await click\(client,formSid,'#schedule-copy-yes'\)/);
+});
+
 test('official scheduled plan is nested inside 我的 and keeps icon-only task actions',async()=>{
   const html=await load('src/ui/tool.html');
   assert.match(html,/id="workbench-tasks"/);

@@ -1201,6 +1201,13 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.readyState==="complete"&&new URL(location.href).searchParams.has("hostInstanceId")&&typeof globalThis.__opendeskTrustedHistoryUI?.createScheduledTaskHost==="function"',formSid),
       'canonical form Side Panel initialized');
+    // A genuine unsaved Developer draft must survive cancellation. Only a
+    // physical pointer confirmation can authorize replacement of this buffer.
+    const protectedDeveloperDraft='async function main(){return {draft:"R34.5 preserve on cancel"};}';
+    if(PRODUCT_MATRIX){
+      await click(client,formSid,'#tab-develop');
+      await type(client,formSid,'#script-source',protectedDeveloperDraft);
+    }
     await click(client,formSid,'#tab-my-tasks');
     await deadline(()=>evaluate(client,'document.querySelector("#workbench-tasks")?.getClientRects().length>0&&document.querySelector("#tab-my-tasks")?.getAttribute("aria-selected")==="true"',formSid),
       'native form My page is visible');
@@ -1512,8 +1519,20 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       await clickFloatingPlanAction(client,formSid,
         managerCard+' [data-manager-action="copy"]');
       await deadline(()=>evaluate(client,
+        'document.querySelector("#schedule-copy-confirm")?.hidden===false&&document.querySelector("#script-source")?.value==='+JSON.stringify(protectedDeveloperDraft),formSid),
+        'copy to Developer requires explicit review before replacing the unsaved editor');
+      await click(client,formSid,'#schedule-copy-no');
+      assert.equal(await evaluate(client,expr('#script-source')+'.value',formSid),
+        protectedDeveloperDraft,'cancelling copy preserves Developer unsaved source');
+      assert.deepEqual((await durable(client,formSid)).plans,managerBaseline.plans);
+      assert.deepEqual((await durable(client,formSid)).installs,managerBaseline.installs);
+      report.tests.nativeManagerCopyCancelPreservesDeveloperDraft='PASS';
+      await clickFloatingPlanAction(client,formSid,
+        managerCard+' [data-manager-action="copy"]');
+      await click(client,formSid,'#schedule-copy-yes');
+      await deadline(()=>evaluate(client,
         'document.querySelector("#tab-develop")?.getAttribute("aria-selected")==="true"&&document.querySelector("#script-source")?.value==='+JSON.stringify(task.sourceUtf8),formSid),
-        'genuine Task copy enters original Developer with exact source bytes');
+        'confirmed genuine Task copy enters original Developer with exact source bytes');
       const afterCopy=await durable(client,formSid);
       assert.deepEqual(afterCopy.plans,managerBaseline.plans,
         'Copy to Developer does not mutate or rebind any saved schedule');

@@ -150,7 +150,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   };
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
-  let uninstallReturnFocus=null;
+  let uninstallReturnFocus=null,pendingCopyTask=null,copyTaskReturnId=null;
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0,formScrollTop=0;
   let managerScrollTop=0;
@@ -210,6 +210,35 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const isRunner=()=>doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner';
   const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
     detail:get('schedule-detail-view'),form:get('schedule-form'),manager:get('schedule-task-manager')};
+  // Never replace an unsaved Developer buffer without the user's decision.
+  // This review is trusted UI next to the existing manager; the Task Registry,
+  // Scheduler and Developer stay the only owners of their actual data.
+  const copyReview=element(doc,'div','od-surface');
+  copyReview.id='schedule-copy-confirm';copyReview.hidden=true;
+  copyReview.setAttribute('role','group');
+  copyReview.setAttribute('aria-label','确认覆盖开发草稿');
+  const copyReviewLabel=element(doc,'p');copyReviewLabel.id='schedule-copy-label';
+  const copyReviewActions=element(doc,'div','schedule-actions od-toolbar');
+  const copyApprove=action(doc,'确认覆盖并复制',()=>{
+    const row=pendingCopyTask;
+    if(!row||busy)return;
+    closeCopyReview();void copyManagedTask(row);
+  },'od-button');
+  copyApprove.id='schedule-copy-yes';
+  const copyCancel=action(doc,'取消',()=>closeCopyReview(true),'od-button od-button--secondary');
+  copyCancel.id='schedule-copy-no';
+  copyReviewActions.append(copyApprove,copyCancel);
+  copyReview.append(copyReviewLabel,copyReviewActions);
+  views.manager.append(copyReview);
+  function closeCopyReview(restoreFocus=false){
+    const taskId=copyTaskReturnId;
+    pendingCopyTask=null;copyTaskReturnId=null;copyReview.hidden=true;
+    if(restoreFocus&&taskId){
+      const card=[...get('schedule-manager-list').querySelectorAll('.schedule-manager-card')]
+        .find(node=>node.dataset.managerTaskId===taskId);
+      card?.querySelector('[data-manager-action="copy"]')?.focus({preventScroll:true});
+    }
+  }
   const show=view=>{
     // Preserve the index position across detail/editor transitions. A new
     // subview always starts at the top: 20+ plans can scroll far beyond a
@@ -222,6 +251,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     // runner. Polling never calls show() so active form errors persist.
     if(changing)message('');
     activeView=view;
+    if(view!=='manager')closeCopyReview();
     for(const [key,node] of Object.entries(views))node.hidden=key!==view;
     if(changing&&scroller)
       scroller.scrollTop=view==='list'&&['detail','form'].includes(prior)?listScrollTop:
@@ -267,7 +297,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     onOpen();
   };
   function hidePanel(){
-    shown=false;get('scheduled-panel').hidden=true;
+    closeCopyReview();shown=false;get('scheduled-panel').hidden=true;
     taskWorkbench.setScheduledSurfaceActive?.(false);
     doc.querySelector('#workbench-tasks .tasks-surface').hidden=false;
     const cloudEntry=doc.querySelector('#workbench-tasks .cloud-my-entry');
@@ -1058,9 +1088,24 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         (error?.message||String(error)),true);
     }finally{busy=false;}
   }
+  function reviewCopyManagedTask(row,title){
+    if(busy||disposed)return;
+    // Copy and uninstall never share a pending destructive intention.
+    confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
+    pendingCopyTask=row;copyTaskReturnId=row.taskId;
+    text(copyReviewLabel,'将「'+title+'」v'+row.version+
+      ' 复制到开发？开发编辑器当前未保存的源码与修改将被替换。'+
+      '请先保存或备份草稿。已安装任务、固定身份与定时计划均不会改变。');
+    copyReview.hidden=false;copyReview.scrollIntoView?.({block:'nearest'});
+    copyApprove.focus({preventScroll:true});
+  }
   async function copyManagedTask(row){
     if(busy)return;busy=true;
     try{
+      const current=installed.find(value=>value.taskId===row.taskId);
+      if(!current||current.version!==row.version||
+        current.installationId!==row.installationId||current.generation!==row.generation)
+        throw Error('任务固定版本或安装身份已变化，请刷新后重新复制');
       const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
       await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
       hidePanel(); // Leave manager only after the existing Developer accepts the draft.
@@ -1073,7 +1118,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     showTaskVersion();get('schedule-title').value=title+' 定时';
   }
   function confirmManagedTaskUninstall(row,title,trigger){
-    uninstallReturnFocus=trigger;confirmUninstall=row;
+    closeCopyReview();uninstallReturnFocus=trigger;confirmUninstall=row;
     const review=get('schedule-uninstall-confirm');
     review.hidden=false;
     text(get('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
@@ -1108,7 +1153,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         emptyText:installed.length?'没有符合条件的任务，可更改搜索或筛选。':
           '暂无已安装任务，请先到开发页创建并安装。',
         onToggle:row=>void toggleManagedTask(row,row.siteOrigins),
-        onCopy:row=>void copyManagedTask(row),
+        onCopy:row=>reviewCopyManagedTask(row,row.title),
         onCreatePlan:row=>createPlanFromManagedTask(row,row.title),
         onUninstall:(row,trigger)=>confirmManagedTaskUninstall(row,row.title,trigger)
       });
@@ -1165,7 +1210,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       toggle.dataset.managerAction='toggle';controls.append(toggle);
       const copy=iconAction('复制「'+title+'」到开发',
         'M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3',
-        ()=>void copyManagedTask(row),'schedule-manager-copy');
+        ()=>reviewCopyManagedTask(row,title),'schedule-manager-copy');
       copy.dataset.managerAction='copy';controls.append(copy);
       const disclosure=element(doc,'details','schedule-manager-menu');
       disclosure.open=menuOpenTask===row.taskId;
@@ -1359,6 +1404,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       event.preventDefault();clearConfirmation();get('schedule-save').focus();
     }else if(!get('schedule-uninstall-confirm').hidden){
       event.preventDefault();get('schedule-uninstall-no').click();
+    }else if(!copyReview.hidden){
+      event.preventDefault();closeCopyReview(true);
     }else{
       const menu=doc.querySelector('.schedule-manager-menu[open]');
       if(menu){
@@ -1378,8 +1425,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   };
   doc.addEventListener('pointerdown',closeManagerMenus);
   listeners.push(()=>doc.removeEventListener('pointerdown',closeManagerMenus));
-  bind('schedule-manager-search','input',renderManager);
-  bind('schedule-manager-filter','change',renderManager);
+  bind('schedule-manager-search','input',()=>{closeCopyReview();renderManager();});
+  bind('schedule-manager-filter','change',()=>{closeCopyReview();renderManager();});
   bind('schedule-uninstall-yes','click',()=>void uninstall());
   bind('schedule-uninstall-no','click',()=>{
     confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
