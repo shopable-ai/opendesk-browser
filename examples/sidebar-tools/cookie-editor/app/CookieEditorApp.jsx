@@ -242,7 +242,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         </ul>}
       </section>}
     </>}
-    {snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
+    {mode==='browser'&&snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
     {confirmation&&<div className="cookie-confirm od-alert od-alert--warning" role="alertdialog" aria-modal="true"

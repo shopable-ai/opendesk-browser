@@ -15,6 +15,11 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
   const [site,setSite]=React.useState(initialTarget||null);
   const [rows,setRows]=React.useState([]);
   const [selected,setSelected]=React.useState(null);
+  const [query,setQuery]=React.useState('');
+  const [filter,setFilter]=React.useState('all');
+  const [sort,setSort]=React.useState('name');
+  const [filtersExpanded,setFiltersExpanded]=React.useState(false);
+  const [page,setPage]=React.useState(1);
   const [importing,setImporting]=React.useState(false);
   const [preview,setPreview]=React.useState(null);
   const [format,setFormat]=React.useState('auto');
@@ -50,7 +55,9 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       const next=parseTarget(siteInput.trim());
       fileGeneration.current++;
       cookies.current.length=0;importPlan.current=null;setSelected(null);
-      setPreview(null);setImporting(false);setSite(next);refreshRows();mark(false);
+      setPreview(null);setImporting(false);setSite(next);
+      setQuery('');setFilter('all');setPage(1);
+      refreshRows();mark(false);
       setMessage('已切换离线网站范围，旧临时 Cookie 已清除。');
     }catch{setMessage('请输入有效 HTTP(S) 网站地址；不会请求 Chrome 授权。');}
   };
@@ -117,6 +124,11 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       <Button type="button" disabled={busy||dirty} onClick={applySite}>应用范围</Button>
     </div>
     {site&&<CookieEditorView site={site.hostname} rows={rows} busy={busy}
+      query={query} onQuery={value=>{setQuery(value);setPage(1);}}
+      filter={filter} onFilter={value=>{setFilter(value);setPage(1);}}
+      sort={sort} onSort={value=>{setSort(value);setPage(1);}}
+      expandedFilters={filtersExpanded} onToggleFilters={()=>setFiltersExpanded(x=>!x)}
+      page={page} onPage={setPage} clearDisabled={!rows.length}
       selected={selected} onSelect={id=>guarded(()=>setSelected(id))}
       onNew={()=>guarded(()=>setSelected('new'))}
       onImport={()=>guarded(()=>{fileGeneration.current++;setImporting(x=>!x);})}
