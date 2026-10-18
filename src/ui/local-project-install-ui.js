@@ -297,7 +297,13 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     }finally{reconciling=false;if(!disposed){update();onState();}}
     // Completion observers see the settled Save state, not the transient
     // "checking" label. No additional install or verification is dispatched.
-    if(confirmedResult&&!disposed)onInstalled(confirmedResult);
+    if(confirmedResult&&!disposed){
+      // A confirmed original-registry read wins over any passive lookup
+      // started while the recovery state was settling. Cancel that obsolete
+      // observation instead of showing an endless "checking" Save action.
+      ++lookupToken;checking=false;onState();
+      onInstalled(confirmedResult);
+    }
   }
   async function prepare(){
     if(disposed||preparing||installing||reconciling)return;
