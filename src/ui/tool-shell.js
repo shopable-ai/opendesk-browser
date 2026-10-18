@@ -74,6 +74,7 @@ const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarg
 let debugWorkbench=null;
 let extensionList=null,reactNavigationRequest=null,pendingReactTab='tasks';
 const reactNavigation=Object.freeze({
+  ownsPages:true,
   connect(handler){
     if(reactNavigationRequest||typeof handler!=='function')
       throw new Error('E_REACT_NAVIGATION_ACTION_OWNER');
@@ -99,6 +100,13 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options),
   reactNavigation});
+// Commit the single trusted React App Shell before binding tools and installer
+// controllers. No second root, installer or permission owner.
+extensionList=mountExtensionList(document,{debugEnabled,appShell:true,
+  onNavigate:view=>reactNavigationRequest?.(view)??false});
+extensionList.renderNavigation(pendingReactTab);
+// Construct tool controllers only after the trusted React app has adopted
+// their live DOM. Installed extensions retain their sandbox and SDK Hosts.
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,
   // Explicit developer-only, non-release opt-in. All other opens use the
   // unchanged opaque sandbox; mounting uses the already-owned React root.
@@ -111,11 +119,6 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
     }
   }});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
-// Commit the React page before moving the pre-existing trusted installer
-// into the reserved imperative slot. No second installer or permission owner.
-extensionList=mountExtensionList(document,{debugEnabled,
-  onNavigate:view=>reactNavigationRequest?.(view)??false});
-extensionList.renderNavigation(pendingReactTab);
 const importHost=document.getElementById('extension-center-import-host');
 const originalImport=document.getElementById('sidebar-tool-import');
 if(importHost&&originalImport)importHost.append(originalImport);
