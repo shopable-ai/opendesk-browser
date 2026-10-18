@@ -399,6 +399,11 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
+  // Confirm the one shipped React root owns the real extension rows before
+  // trying discovery. A painted legacy fallback is not native acceptance.
+  await until(()=>evaluate(browser,side,
+    'document.querySelector("#extension-center-list")?.dataset.opendeskReactOwner==="extension-list"'),
+    'actual production React Extension Center mounted');
   // Product discovery is now React-owned; the hidden legacy tools header is
   // not an acceptable native installation path.
   assert.equal(await evaluate(browser,side,
