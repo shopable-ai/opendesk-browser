@@ -26,7 +26,8 @@ node --test tests/environment/sidebar-quick-notes.test.mjs tests/environment/sid
 node --test tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run compare --prefix examples/sidebar-tools/quick-notes-react > artifacts/quick-notes-comparison.json
+OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node examples/sidebar-tools/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-comparison.json
+node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs
 ```
 
 浏览器访问（需确认端口闲置，再以仓库根作为根目录运行 `python3 -m http.server 43129 --bind 127.0.0.1`）：

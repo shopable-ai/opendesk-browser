@@ -1,5 +1,6 @@
 // Reproducible static accounting; browser performance requires separate real Chrome runs.
 import {readFile,stat} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../../../scripts/build-sidebar-tool.mjs';
@@ -8,6 +9,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const repo=resolve(root,'../../..');
 const original=resolve(repo,'examples/sidebar-tools/quick-notes');
 const count=content=>content.trimEnd().split('\n').length;
+const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const read=async(dir,path)=>readFile(resolve(dir,path),'utf8');
 const source=async(dir,paths)=>{
   const rows=[];
@@ -30,8 +32,8 @@ async function main(){
     versions:{native:native.version,react:react.version},
     countedHandwrittenSources:{native:nativeSource,react:reactSource},
     generatedToolBytes:{
-      native:{js:Buffer.byteLength(native.js),css:Buffer.byteLength(native.css),package:installedNative.length},
-      react:{js:Buffer.byteLength(react.js),css:Buffer.byteLength(react.css),package:installedReact.length}
+      native:{js:Buffer.byteLength(native.js),css:Buffer.byteLength(native.css),package:installedNative.length,sha256:sha256(installedNative)},
+      react:{js:Buffer.byteLength(react.js),css:Buffer.byteLength(react.css),package:installedReact.length,sha256:sha256(installedReact)}
     },
     fixedBrowserResourcesNotFree:{
       react19:PAGE_FRAMEWORK_RUNTIMES.react.bytes,

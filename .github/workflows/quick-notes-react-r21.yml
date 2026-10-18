@@ -48,7 +48,8 @@ jobs:
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-          OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run compare --prefix examples/sidebar-tools/quick-notes-react > artifacts/quick-notes-implementation-comparison.json
+          OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node examples/sidebar-tools/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-implementation-comparison.json
+          node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Chrome real UI preview tests (memory adapter, not installed extension)
