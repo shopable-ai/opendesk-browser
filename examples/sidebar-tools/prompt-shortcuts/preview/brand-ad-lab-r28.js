@@ -347,6 +347,7 @@
       const id=b.dataset.spot;
       const selected=state.id===id||state.extra===id;
       b.dataset.r28Current=String(selected);
+      b.dataset.r29Dismissed=String(state.closedWeb.has(id)||!old.state.enabled);
       b.dataset.r28Hidden=String(!selected&&(!state.boundaries||state.group!==id[0]));
       b.setAttribute('role','group');b.setAttribute('aria-label',id+' · '+name(id));
       const trigger=b.querySelector('.r29-zone-trigger');
@@ -356,7 +357,9 @@
       const showAd=old.state.enabled&&!state.closedWeb.has(id)&&(state.sold>0||state.mode==='sales');
       if(selected&&showAd){
         const art=make('span','r28-selected-art');
-        if(site.clientWidth<720&&['N05','N08','N11'].includes(id)){
+        const restricted=window.OpenDeskR28?.R29?.meta?.[id]?.narrow==='restricted'
+          ||['N05','N07','N08','N11','N12','C01','C02','C06'].includes(id);
+        if(site.clientWidth<720&&restricted){
           art.append(make('span','r28-risk-banner',T('riskHint')));
         }else if(id==='C06')art.append(make('span','r28-risk-banner',T('blocked')+' · '+T('notRecommended')));
         else art.append(adCard(0,state.sold===0,false,state.layout));
