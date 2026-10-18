@@ -174,8 +174,12 @@ test('same-version import rejects missing or unrelated native registration witho
 test('same-version import rejects failed native readback without returning stored registered receipt',async()=>{
   const f=fixture(),pkg=await packageFor(),installed=await f.import(pkg),snapshot=structuredClone(f.rows());
   const cleanups=f.cleanups;
-  f.nativeReadError=Error('userScripts unavailable');
+  // Reproduce Chrome's exact disabled-userScripts guard and verify generic
+  // native errors retain a separate, actionable error classification.
+  f.nativeReadError=Error("'userScripts.getScripts' is not available in this context.");
   await assert.rejects(f.import(pkg,installed),{code:'E_USER_SCRIPTS_UNAVAILABLE'});
+  f.nativeReadError=Error('userScripts unavailable');
+  await assert.rejects(f.import(pkg,installed),{code:'E_USER_SCRIPTS_NATIVE'});
   assert.deepEqual(f.rows(),snapshot);assert.equal(f.registers,1);assert.equal(f.executes,0);
   assert.equal(f.previews,0);assert.equal(f.cleanups,cleanups);
 });

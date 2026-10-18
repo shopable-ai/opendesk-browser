@@ -36,6 +36,10 @@ jobs:
           cache: npm
       - name: Restore pinned project dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build real WXT and Shared UI Demo prerequisites for build-bound tests
+        run: |
+          npm run build:dev
+          npm run build --prefix examples/sidebar-tools/shared-ui-demo
       - name: Domain, controller, SDK and exact legacy release regressions
         run: |
           node --check examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js
@@ -59,8 +63,6 @@ jobs:
             tests/environment/sidebar-tools.test.mjs
       - name: Build independent React 19 tool using pinned externals
         run: npm run build --prefix examples/sidebar-tools/cookie-editor
-      - name: Build existing host runtime to validate shared-runtime compatibility
-        run: npm run build:dev
       - name: Stage React candidate via canonical installed-package packer
         run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
       - name: Verify real Vite bytes and staged official packer artifact
