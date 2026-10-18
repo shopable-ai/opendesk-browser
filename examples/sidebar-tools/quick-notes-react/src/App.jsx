@@ -173,7 +173,7 @@ export default function App({request,setState,hostRoot,markUrl}){
         text:snapshot.text,include:snapshot.include,pageInfo:linked});
       const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:state.etag});
       if(!mounted.current)return;
-      if(typeof result?.etag!=='string'||!/^[0-9a-f]{64}$/.test(result.etag))
+      if(result?.saved!==true||typeof result?.etag!=='string'||!/^[0-9a-f]{64}$/.test(result.etag))
         throw Error('写入回执异常，请重新打开核对');
       const changed=live.current.text!==snapshot.text||live.current.attach!==snapshot.include;
       patch({notes:next,etag:result.etag,selectedId:id,dirty:changed});
@@ -198,7 +198,7 @@ export default function App({request,setState,hostRoot,markUrl}){
     try{
       const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:state.etag});
       if(!mounted.current)return;
-      if(typeof result?.etag!=='string'||!/^[0-9a-f]{64}$/.test(result.etag))
+      if(result?.saved!==true||typeof result?.etag!=='string'||!/^[0-9a-f]{64}$/.test(result.etag))
         throw Error('删除回执异常，请重新打开核对');
       const selected=next[0]||null;
       patch({notes:next,etag:result.etag,selectedId:selected?.id||null,dirty:false,
