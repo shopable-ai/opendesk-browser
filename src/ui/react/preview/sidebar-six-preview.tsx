@@ -330,7 +330,10 @@ function Preview(){
     get('workflow-ai-progress').hidden=scene!=='loading';
     get('workflow-ai-approval').hidden=scene!=='denied';
     const status=get('task-status');
-    status.textContent=taskNotice||labels[scene];
+    // Preview boundary is already stated once in the preview toolbar.
+    // Keep the default task detail clean; announce scoped feedback only on
+    // actionable changes or non-default failure/connection scenarios.
+    status.textContent=taskNotice||(scene==='normal'?'':labels[scene]);
     status.dataset.state=scene;
     const cloud=get('cloud-status');
     cloud.textContent='仅预览 · '+cloudPreview.brief+'；未连接真实 Provider。';

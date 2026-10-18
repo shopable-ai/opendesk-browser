@@ -90,6 +90,8 @@ try{
   await cdp('Page.navigate',{url:pathToFileURL(html).href});
   await until('document.documentElement.dataset.sidebarPreviewReady==="true"');
   await until('document.querySelector("[data-task-id=preview-task]")?.getAttribute("aria-expanded")==="true"');
+  assert.equal(await evaluate('document.getElementById("task-status").textContent'),'',
+    'Normal task detail must not repeat the preview-only warning inside the product card');
   await screenshot('my-expanded-360');
   await click('[data-task-id="preview-task"]');
   await until('document.querySelector("[data-task-id=preview-task]").getAttribute("aria-expanded")==="false"');
