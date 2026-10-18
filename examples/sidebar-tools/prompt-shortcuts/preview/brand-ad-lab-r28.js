@@ -400,11 +400,14 @@
         const art=make('span','r28-selected-art');
         const restricted=window.OpenDeskR28?.R29?.meta?.[id]?.narrow==='restricted'
           ||['N05','N07','N08','N11','N12','C01','C02','C06'].includes(id);
-        if(site.clientWidth<720&&restricted){
-          art.append(make('span','r28-risk-banner',T('riskHint')));
+        const narrowSuppressed=site.clientWidth<720&&restricted;
+        b.dataset.r29NarrowSuppressed=String(narrowSuppressed);
+        if(narrowSuppressed){
+          // This anchor stays selectable in the atlas; the risky ad is NOT rendered over the composer.
         }else if(id==='C06')art.append(make('span','r28-risk-banner',T('blocked')+' · '+T('notRecommended')));
         else art.append(adCard(0,state.sold===0,false,state.layout));
-        trigger.append(art);
+        if(art.childNodes.length)trigger.append(art);
+        if(narrowSuppressed)continue;
         const dismiss=make('button','r29-spot-dismiss','×');dismiss.type='button';
         dismiss.setAttribute('aria-label',T('dismiss')+' · '+id);
         dismiss.addEventListener('click',()=>{state.closedWeb.add(id);sync();$('r28Restore').focus();});
@@ -562,6 +565,6 @@
   for(const el of [$('placement'),$('format'),...document.querySelectorAll('.preset')]){
     el.addEventListener(el.tagName==='SELECT'?'change':'click',()=>{state.active=false;state.preset='';hidePop();sync();});
   }
-  window.OpenDeskR28={sync,choose,preset,positions,state,layoutOpts};
+  window.OpenDeskR28={sync,choose,preset,openDialog,positions,state,layoutOpts};
   preset('brand');
 })();
