@@ -66,7 +66,8 @@ test('only pinned Stay Focus trusted module blobs enter fixed privileged outputs
     originalLength:300,renderedLength:200}}},root:process.cwd(),lock:{packages:{}}});
   assert.match(graph('sw.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
   assert.match(graph('ui/stay-focus-controls.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
-  assert.throws(()=>graph('libs/packages/dayjs.js'),/Historical\/user\/vendor code/);
+  assert.match(graph('knowledge/knowledge-host.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  assert.throws(()=>graph('unregistered/custom.js'),/Historical\\/user\\/vendor code/);
   const untrusted=resolve('examples/sidebar-tools/quick-notes/src/main.js');
   assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',modules:{[untrusted]:{
     originalLength:20,renderedLength:15}}},root:process.cwd(),lock:{packages:{}}}),

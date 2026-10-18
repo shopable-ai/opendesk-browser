@@ -117,10 +117,10 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/service.js':'02ee2a8c590a196286cf483ba9cb94e44414989f',
   'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'c971af818fd17a8964f0e0e9584efc281931b371'
 });
-const stayFocusFixedTargets=new Set([
-  'sw.js','ui/stay-focus-controls.js','ui/tool-shell.js',
-  'ui/sidebar-tool-host.js','agents/page-relay.js','stay-focus/blocked.js'
-]);
+// The shared lifecycle module is statically linked by other approved hosts
+// (including knowledge-host). Reuse AdBlock's exact fixed-output registry:
+// only pinned reviewed blobs, never arbitrary example/user modules.
+const stayFocusFixedTargets=preapprovedFixedTargets;
 function reviewedCompiledStayFocus(target,path,root){
   if(!stayFocusFixedTargets.has(target)||!Object.hasOwn(compiledStayFocusInputs,path))return null;
   const file=resolve(root,path);

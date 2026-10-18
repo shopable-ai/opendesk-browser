@@ -12,7 +12,7 @@
 
 ## 固定可信来源审计
 
-构建来源门禁 `scripts/bundle-provenance.mjs` 对应用 `trusted/*.js` 的 **11 个精确 Git blob SHA** 逐项审核，仅允许它们进入已有固定 SW、Side Panel、Page Relay 与 Blocked entry。非 Stay Focus 的其他 `examples/` 仍被拒绝；修改任一高权限业务源后必须人工审查并重新锁定 SHA，不允许以目录通配符放行。源码提取本身不改变动态包信任边界。
+构建来源门禁 `scripts/bundle-provenance.mjs` 对应用 `trusted/*.js` 的 **11 个精确 Git blob SHA** 逐项审核，仅允许它们进入 `FIXED_OUTPUTS` 及 SW 已批准的固定生成入口（含共享安装器传递引用的 Knowledge Host），而不是放开目录级导入。非 Stay Focus 的其他 `examples/` 仍被拒绝；修改任一高权限业务源后必须人工审查并重新锁定 SHA，不允许以目录通配符放行。源码提取本身不改变动态包信任边界。
 
 ## 用户功能与安全验收
 
