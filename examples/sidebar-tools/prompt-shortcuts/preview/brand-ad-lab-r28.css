@@ -221,3 +221,19 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
  .r28-convo-foot{width:100%;max-width:100%}
 }
 @media(prefers-reduced-motion:reduce){.r29-solo-card *{transition:none!important}}
+
+
+/* R2.10 format behavior in the actual mock, separate from the catalogue. */
+.r28-demo-ad[data-layout=hover-card]{position:relative;flex-wrap:wrap;border-style:solid;box-shadow:0 4px 15px #0001}
+.r29-inline-hover{display:none;font-size:10px;line-height:1.4;color:var(--text);background:var(--surface);
+  border:1px solid var(--line);padding:8px;border-radius:7px;flex-basis:100%}
+.r28-demo-ad[data-layout=hover-card]:hover .r29-inline-hover,
+.r28-demo-ad[data-layout=hover-card]:focus-visible .r29-inline-hover{display:block}
+.r28-demo-ad[data-layout=expand-card]{border:1px solid var(--brand)}
+.r29-expand-indicator,.r29-directory-indicator{font-size:13px;flex:none;color:var(--brand)}
+.r28-demo-ad[data-layout=icon-text]{border-left:3px solid var(--brand)}
+.r28-demo-ad[data-layout=directory]{background:var(--surface);border-bottom:2px solid var(--line)}
+.r28-demo-ad[data-layout=self]{border-left:3px solid var(--brand)}
+.r28-demo-ad[data-layout=recruit]{border-style:dashed}
+.r28-demo-ad[data-layout=affiliate]{cursor:help}
+@media(max-width:440px){.r29-inline-hover{max-height:80px;overflow:auto}}
