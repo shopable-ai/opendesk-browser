@@ -1017,17 +1017,24 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     try{
       if(!row.enabled)await requireChromePermissions({api,request:{origins:originList
         .map(origin=>permissionPattern(origin))}});
-      await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,
-        enabled:!row.enabled,expectedGeneration:row.generation??null,
-        expectedInstallationId:row.installationId??null});
-      await refresh();message('任务安装状态已更新');
+      const {refreshError}=await commitScheduledMutation(
+        ()=>client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,
+          enabled:!row.enabled,expectedGeneration:row.generation??null,
+          expectedInstallationId:row.installationId??null}),refresh);
+      const outcome=row.enabled?'任务已停用':'任务已启用';
+      message(refreshError?outcome+'，但列表刷新失败：'+
+        (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
+        outcome+'；已重新读取安装状态',Boolean(refreshError));
     }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
   }
   async function copyManagedTask(row){
+    if(busy)return;busy=true;
     try{
       const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
-      hidePanel();await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
-    }catch(error){message(error?.message||String(error),true);}
+      await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
+      hidePanel(); // Leave manager only after the existing Developer accepts the draft.
+    }catch(error){message('复制到开发失败：'+(error?.message||String(error)),true);}
+    finally{busy=false;}
   }
   function createPlanFromManagedTask(row,title){
     managerReturn='list';formReturnView='manager';show('form');
