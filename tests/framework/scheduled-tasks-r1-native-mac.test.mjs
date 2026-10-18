@@ -85,6 +85,10 @@ async function click(client,session,selector){
 // Scrolling a hidden hover action into view does not activate CSS :hover.
 // Do not synthesize DOM events, mutate styles, or replay after mousePressed.
 async function clickFloatingPlanAction(client,session,selector){
+  // Mutation acknowledgement and the subsequent React list paint are
+  // asynchronous. Wait for the actual visible control BEFORE asking CDP for
+  // its layout; no user input or DOM mutation occurs during this wait.
+  await deadline(()=>visible(client,session,selector),'visible hover plan action '+selector);
   const target=await client.send('Runtime.evaluate',{
     expression:expr(selector),returnByValue:false
   },session);
@@ -1277,7 +1281,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert.equal((await durable(client,formSid)).plans.length,1,'Discarded draft never creates a schedule');
     report.tests.nativeUnsavedDraftConfirmation='PASS';
     for(const [kind,index] of [['daily',1],['weekly',2],['interval',3]]){
-      await clickFloatingPlanAction(client,formSid,card+' .schedule-plan-actions button:nth-child(2)');
+      await clickFloatingPlanAction(client,formSid,card+' [data-schedule-action="edit"]');
       assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
         'Editing preserves the previously pinned timezone');
       assert.equal(await evaluate(client,expr('#schedule-task-select')+'.disabled',formSid),true,
