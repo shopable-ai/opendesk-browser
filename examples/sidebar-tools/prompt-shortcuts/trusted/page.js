@@ -16,7 +16,6 @@ button:hover{background:#eef2ff;border-color:#365eda}
 .tip{pointer-events:auto;position:absolute;left:60px;top:0;width:360px;max-width:calc(100vw - 80px);max-height:min(340px,calc(100vh - 24px));overflow:auto;overscroll-behavior:contain;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 10px 32px #00000028;padding:13px 15px;overflow-wrap:anywhere}
 .tip strong{display:block;margin-bottom:8px;font-size:13px}
 .tip pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;font:12px/1.7 system-ui,sans-serif}
-.tip small{display:block;margin-top:12px;padding-top:8px;border-top:1px solid #ccd2df;color:#53647e;font-size:11px}
 /* No blocking fallback dialog: status is announced without changing focus. */
 .feedback{pointer-events:none;position:absolute;left:60px;top:0;width:min(300px,calc(100vw - 84px));
  background:#fff;color:#263347;border:1px solid #d9dbe2;border-radius:10px;box-shadow:0 7px 20px #0000001b;
@@ -421,10 +420,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     win.clearTimeout(hideTipTimer);hideTipTimer=0;
     if(tipOwner&&tipOwner!==button)tipOwner.removeAttribute?.('aria-describedby');
     tipOwner=button;tip.replaceChildren();
-    const title=doc.createElement('strong'),content=doc.createElement('pre'),hint=doc.createElement('small');
+    const title=doc.createElement('strong'),content=doc.createElement('pre');
     title.textContent=row.name;content.textContent=row.body;
-    hint.textContent='点击仅追加到草稿，不会自动发送';
-    tip.append(title,content,hint);tip.hidden=false;
+    tip.append(title,content);tip.hidden=false;
     button.setAttribute('aria-describedby',tip.id);
     clearFeedback();
     positionTip();
