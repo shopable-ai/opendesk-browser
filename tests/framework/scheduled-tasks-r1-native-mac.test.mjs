@@ -606,6 +606,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const evidence=await viewportEvidence(client,sideSid,'sidepanel',report);
     report.screenshots.push(...evidence.map(x=>x.screenshot));
   }
+  // R34.3: the launch control lives inside an intentionally collapsed
+  // disclosure. Open it by a REAL pointer first; clicking a closed child
+  // merely hits #workspace-content and cannot create a visible runner tab.
+  await details(client,sideSid,'.schedule-storage-details');
   await click(client,sideSid,'#schedule-open-runner');
   let runnerTarget;
   try{
