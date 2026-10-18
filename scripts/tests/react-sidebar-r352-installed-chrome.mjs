@@ -165,6 +165,10 @@ try{
   console.log('REACT_SIDEBAR_R352_INSTALLED_CHROME_PASS',JSON.stringify(report));
 }catch(error){
   report.status='FAIL';report.error=String(error.stack||error);process.exitCode=1;
+  if(socket?.readyState===WebSocket.OPEN){
+    try{report.targets=(await call('Target.getTargets')).targetInfos.map(t=>
+      ({type:t.type,url:t.url?.slice(0,210)}));}catch{}
+  }
   if(host){
     try{report.failure=await snapshot();}catch(e){report.snapshotError=String(e);}
     try{
