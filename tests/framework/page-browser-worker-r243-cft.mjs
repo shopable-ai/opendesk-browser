@@ -235,6 +235,8 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       return;
     }
     for(const framework of ['react','vue']){
+      assert.equal(await sidebar.read('document.querySelector("#develop-dock .dock-buttons")?.dataset.opendeskReactOwner'),
+        'developer-actions','the real React dock must own the public Run action');
       await selectFramework(sidebar,framework);
       await until(()=>sidebar.read('document.querySelector("#page-component-'+framework+'").checked===true'),
         'official '+framework+' selected');
@@ -246,9 +248,9 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
         'the existing current-tab identity must remain the website');
       const expanded=await sidebar.read('document.querySelector("#page-preview-tools").open');
       if(!expanded)await clickReal(sidebar,'document.querySelector("#page-preview-tools > summary")');
-      await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+      await until(()=>sidebar.read('!document.querySelector("#script-run").disabled'),
         framework+' Page run enabled',20000);
-      await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+      await clickReal(sidebar,'document.querySelector("#script-run")');
       const state=await until(()=>sidebar.read('(()=>{const node=document.querySelector("#page-preview-status");'+
         'return ["completed","error"].includes(node?.dataset.state)?{state:node.dataset.state,text:node.textContent}:null})()'),
       framework+' exact Page run completion',60000);
@@ -275,7 +277,7 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       const proof={name:'r243-browser-'+framework+'-no-native-real-run-stop',
         status:'PASS',sourceHash:receipt.sourceHash,previewId:receipt.managedPreviewId,
         documentId:receipt.documentId,frameworkSha256:receipt.packagedFrameworkSha256,
-        actualPointerInput:true,domClean:true,noNative:true,packageVerified:true};
+        actualPointerInput:true,reactPrimaryRun:true,domClean:true,noNative:true,packageVerified:true};
       report.tests.push(proof);
       await sidebar.call('Page.captureScreenshot',{format:'png'}).then(async image=>
         fs.writeFileSync(path.join(output,'r243-browser-'+framework+'-editor.png'),Buffer.from(image.data,'base64')));
@@ -299,9 +301,9 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
         'native editor input preserved exact authored bytes',10000);
     }
     await typeSource(brokenVue);
-    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+    await until(()=>sidebar.read('!document.querySelector("#script-run").disabled'),
       'invalid source is still reviewable via explicit Run');
-    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    await clickReal(sidebar,'document.querySelector("#script-run")');
     const invalid=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
       'return el?.dataset.state==="error"?el.textContent:null})()'),
       'syntax-error source rejected by on-demand SFC compiler',60000);
@@ -318,9 +320,9 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     // A later corrected source is a separate explicit Run/Stop with its own
     // previewId; a failed transform cannot poison the next valid candidate.
     await typeSource(originalVue);
-    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+    await until(()=>sidebar.read('!document.querySelector("#script-run").disabled'),
       'corrected Vue source ready for explicit user Run',15000);
-    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    await clickReal(sidebar,'document.querySelector("#script-run")');
     const recovered=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
       'return el?.dataset.state==="completed"?el.textContent:null})()'),
       'genuine Vue component recovery after compiler failure',60000);
@@ -356,9 +358,9 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
     ].join('\n');
     await typeSource(teleportSource);
     assert.equal(await website.session.read('document.querySelector("#r243-teleported-vue")'),null);
-    await until(()=>sidebar.read('!document.querySelector("#page-preview-run").disabled'),
+    await until(()=>sidebar.read('!document.querySelector("#script-run").disabled'),
       'Teleport source ready for explicit Run');
-    await clickReal(sidebar,'document.querySelector("#page-preview-run")');
+    await clickReal(sidebar,'document.querySelector("#script-run")');
     const teleportState=await until(()=>sidebar.read('(()=>{const el=document.querySelector("#page-preview-status");'+
       'return ["completed","error"].includes(el?.dataset.state)?{state:el.dataset.state,text:el.textContent}:null})()'),
       'genuine Vue Teleport Page preview receipt',60000);
