@@ -48,7 +48,7 @@ function fixture(){
       unregister:async({ids})=>ids.forEach(id=>f.native.delete(id)),execute:async()=>{f.executes++;throw Error('must not execute');}}};
   const dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
   const preview={preview:async()=>{f.previews++;throw Error('must not preview');},
-    retireInstalled:async()=>{f.cleanups++;return {state:'unknown',scope:'managed-ui-only'};}};
+    retireInstalled:async()=>{f.cleanups++;return {state:f.cleanupUncertain?'unknown':'retired',scope:'managed-ui-only'};}};
   const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission:{},session:'session',loadBuiltin:async()=>fakeBuiltinSource});
   f.service=make();f.restart=()=>{f.service=make();};f.rows=()=>[...db.get('frameworkKV').values()];
   f.installation=()=>f.rows().find(r=>r.tag==='page-installed-v1');f.storage=storage;
@@ -148,6 +148,23 @@ test('package upgrades reuse original installer CAS, scope approval and disabled
     const snapshot=structuredClone(f.rows());assert.deepEqual(await f.import(next,upgraded),upgraded);
     assert.deepEqual(f.rows(),snapshot);assert.equal(f.previews,0);assert.equal(f.executes,0);
   }
+});
+
+test('pending managed UI cleanup cannot be overwritten by an upgrade',async()=>{
+  const f=fixture(),pkg=await packageFor(),first=await f.import(pkg);
+  f.cleanupUncertain=true;
+  const disabled=await f.service.setInstalledPageEnabled({
+    programId:pkg.programId,manifestHash:first.manifestHash,
+    expectedGeneration:first.authorization.generation,enabled:false
+  },{id:'test'});
+  assert.equal(f.installation().managedCleanup?.state,'unknown');
+  const altered=source+'\n// new content';
+  const next=await packageFor({revision:2,version:'1.1.0',
+    sourceUtf8:altered,sourceHash:await digestUtf8(altered)});
+  const before=structuredClone(f.rows()),registers=f.registers;
+  await assert.rejects(f.import(next,disabled),{code:'E_PAGE_CLEANUP_PENDING'});
+  assert.deepEqual(f.rows(),before);
+  assert.equal(f.registers,registers);
 });
 
 test('native unknown readback is queryable and re-import never replays registration',async()=>{
