@@ -220,21 +220,27 @@ for(const runtimeKind of ['controller','page-userscript']){
     await f.select(p.bindings.B);await f.select(p.bindings.A);
     await f.poll();await f.save();
     assert.deepEqual(f.dispatches,[]);assert.deepEqual(f.manualRuns,[]);
-    assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,0);
+    // Passive install/proof reconciliation may read and hash authorized source.
+    // It must never capture a target or dispatch code merely from navigation/Save.
+    assert.equal(f.effects.filter(effect=>effect==='capture').length,0);
     await f.click(false);
     assert.deepEqual(f.effects,[]);assert.deepEqual(f.permissions,[]);
     await f.click();
     await until(()=>f.dispatches.length===1,'trusted Run did not reach the local adapter');
     await f.settle();
-    const first=f.resolutions[0];
+    // Passive reconciliation may resolve another project before the explicit Run.
+    // Check the dispatched bundle against the frozen source for selected A.
+    const first=await p.resolve(p.bindings.A);
     assert.equal(first.bindingId,p.bindings.A);
     assertDispatch(f,p,first,0,runtimeKind);
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[0])),{project:'A',value:'A-v1'});
     assert.ok(first.files.some(row=>row.path==='src/main.js'));
     assert.ok(first.files.some(row=>row.path==='src/value.js'));
     assert.notEqual(first.sourceUtf8,await readFile(path.join(p.resolver.get(p.bindings.A).root,'src/main.js'),'utf8'));
-    assert.ok(f.trace.indexOf('target.capture')<f.trace.indexOf('project.resolve:'+p.bindings.A));
-    assert.ok(f.trace.indexOf('project.resolve:'+p.bindings.A)<f.trace.indexOf('target.revalidate'));
+    const capturedAt=f.trace.indexOf('target.capture');
+    const runResolvedAt=f.trace.findIndex((entry,i)=>i>capturedAt&&entry==='project.resolve:'+p.bindings.A);
+    assert.ok(capturedAt>=0&&runResolvedAt>capturedAt,'trusted Run must resolve only after target capture');
+    assert.ok(runResolvedAt<f.trace.indexOf('target.revalidate'),'latest source must precede revalidation');
     assert.ok(f.trace.indexOf('target.revalidate')<f.trace.indexOf('adapter.'+f.dispatches[0].method));
     if(runtimeKind==='page-userscript'){
       assert.equal(f.find('script-result').textContent,'fixture page result');
@@ -255,7 +261,8 @@ for(const runtimeKind of ['controller','page-userscript']){
     assert.notEqual(latest.sourceHash,first.sourceHash);
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[1])),{project:'A',value:'A-v2'});
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[0])),{project:'A',value:'A-v1'});
-    assert.ok(f.requests.filter(row=>row.method==='project.resolve').every(row=>row.params.bindingId===p.bindings.A));
+    assert.ok(f.requests.some(row=>row.method==='project.resolve'&&row.params.bindingId===p.bindings.A),
+      'Run resolves selected A; prior read-only install reconciliation may inspect B');
   });
 
   test(runtimeKind+' rejects stale Run transactions after capture and before adapter dispatch',async t=>{
@@ -296,7 +303,9 @@ for(const runtimeKind of ['controller','page-userscript']){
       await tick();await tick();
       assert.deepEqual(f.dispatches.map(row=>row.method),[],name+' must invalidate the captured Run');
       assert.deepEqual(f.manualRuns,[]);assert.deepEqual(f.opened,[]);
-      assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,1,'no automatic replay after invalidation');
+      // Read-only installation review may resolve additional sources, but must
+      // never capture or dispatch a second Run after this one is invalidated.
+      assert.equal(f.effects.filter(effect=>effect==='capture').length,1,'no automatic Run replay after invalidation');
     });
   });
 
@@ -382,7 +391,8 @@ test('local Run guards are enforced by the handler even if a disabled button rec
     await f.click();
     if(guard==='permission')await until(()=>f.find('script-status').dataset.state==='error','missing website permission was ignored');
     assert.deepEqual(f.dispatches,[]);assert.deepEqual(f.manualRuns,[]);assert.deepEqual(f.opened,[]);
-    assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,0);
+    // Guarded Run may not execute. Passive installed-version reads are allowed.
+    assert.ok(f.effects.filter(effect=>effect==='capture').length<=(guard==='permission'?1:0));
   });
 });
 
@@ -409,7 +419,7 @@ test('local Page uses page.get for pending results and rejects mismatched previe
     await until(()=>f.dispatches.length===2,'pending Page preview did not use page.get');
     await f.settle();
     assert.deepEqual(f.dispatches.map(row=>row.method),['page.preview','page.get']);
-    assertDispatch(f,p,f.resolutions[0],0,'page-userscript');
+    assertDispatch(f,p,await p.resolve(p.bindings.A),0,'page-userscript');
     if(corruption==='none'){
       assert.equal(f.find('script-result').textContent,'current Page result');
       assert.equal(f.find('script-copy-result').disabled,false);
@@ -420,7 +430,11 @@ test('local Page uses page.get for pending results and rejects mismatched previe
       assert.equal(f.find('script-status').dataset.state,'error');
       assert.match(f.find('script-status').textContent,corruption==='execution error'?/E_PAGE_SCRIPT_EXECUTION/:/E_DEV_HASH/);
       assert.equal(f.find('script-copy-result').disabled,true);
-      assert.equal(f.find('script-save').hidden,true);
+      // Failed Page preview cannot qualify for install; the Save entry stays
+      // discoverable, while its confirmation must remain disabled.
+      assert.equal(f.find('script-save').hidden,false);
+      await f.save();
+      assert.equal(f.find('local-install-confirm').disabled,true);
     }
   });
 });
@@ -483,7 +497,8 @@ for(const targetAvailable of [true,false])for(const slotAvailable of [true,false
     assert.equal(f.find('script-run').textContent,'运行本地项目');
     assert.equal(f.find('script-run').disabled,true);
     assert.match(f.find('local-project-status').textContent,/尚未发现可运行入口/);
-    assert.equal(f.find('script-save').hidden,true);
+    assert.equal(f.find('script-save').hidden,false);
+    assert.equal(f.find('script-save').disabled,true,'file-only workspace has no executable install identity');
     f.find('local-project-params').value='invalid JSON';
     await f.click(false);assert.deepEqual(f.opened,[]);
     await f.click();
@@ -533,7 +548,7 @@ test('runnable program keeps target, slot and Native revocation guards',async t=
   const f=await fixture(t,{files:[],projects:[program],connected:true});
   assert.equal(f.find('script-run').textContent,'运行本地项目');
   assert.equal(f.find('script-run').disabled,false);
-  assert.equal(f.find('script-save').textContent,'待运行验证');
+  assert.equal(f.find('script-save').textContent,'保存为任务');
   f.setTarget({status:'unavailable',reason:'E_TARGET'});
   assert.equal(f.find('script-run').disabled,true);
   f.setTarget(availableTarget);
