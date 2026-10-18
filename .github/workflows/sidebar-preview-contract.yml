@@ -37,6 +37,12 @@ jobs:
           node-version: '22'
       - name: Install checked-in preview-kit parser dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build production Shared UI before any source-bound AdBlock preview tests
+        run: |
+          node scripts/build-adblock-react.mjs
+          git diff --exit-code -- examples/sidebar-tools/adblock/src/main.js examples/sidebar-tools/adblock/src/style.css
+          npm run build
+          test -s dist/production/sidebar-shared-ui.js
       - name: Validate syntax and source freshness
         run: |
           node --check scripts/preview/shared-tool-design.mjs
