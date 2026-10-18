@@ -6,6 +6,8 @@ on:
       - 'src/ui/script-editor.js'
       - 'src/ui/controller-revision-view.js'
       - 'src/ui/react/tabs/develop.tsx'
+      - 'src/ui/react/main.tsx'
+      - 'src/ui/tool-shell.js'
       - 'src/ui/tool.html'
       - 'src/ui/program-source.js'
       - 'src/ui/task-workbench.js'
@@ -32,8 +34,12 @@ jobs:
         run: |
           node --check src/ui/script-editor.js
           node --check src/ui/controller-revision-view.js
+          node --check src/ui/tool-shell.js
           node --check src/ui/program-source.js
           node --check src/ui/task-workbench.js
+      - name: Parse trusted React Developer TSX
+        run: |
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; import {transformSync} from 'esbuild'; for(const file of ['src/ui/react/tabs/develop.tsx','src/ui/react/main.tsx']) transformSync(readFileSync(file,'utf8'),{loader:'tsx',format:'esm',jsx:'automatic'});"
       - name: Controller, Page, React/Vue state, Task and Program regressions
         run: |
           node --test \
