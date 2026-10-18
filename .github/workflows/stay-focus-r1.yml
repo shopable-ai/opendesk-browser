@@ -35,6 +35,7 @@ on:
       - 'tests/environment/stay-focus-extraction-r2.test.mjs'
       - 'tests/environment/stay-focus-r41-policy-package.test.mjs'
       - 'tests/environment/stay-focus-r1.test.mjs'
+      - 'tests/environment/extension-runtime-r14-lifecycle.test.mjs'
       - 'tests/environment/stay-focus-service-r1.test.mjs'
       - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'tests/framework/stay-focus-r1-native.test.mjs'
@@ -65,7 +66,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Strict policy, time, DNR and component assertions
         run: |
-          node --test tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/stay-focus-r45-marketplace-admission.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/stay-focus-r44-transport.test.mjs tests/environment/stay-focus-r44-policy-review.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/stay-focus-extraction-r2.test.mjs
+          node --test tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r45-marketplace-admission.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/stay-focus-r44-transport.test.mjs tests/environment/stay-focus-r44-policy-review.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/stay-focus-extraction-r2.test.mjs
           node --check tests/framework/stay-focus-r1-native.test.mjs
       - name: Build independent user-installable Stay Focus release
         run: |
