@@ -1284,14 +1284,16 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
         'Existing plan cannot silently select another fixed Task');
       await select(client,formSid,'#schedule-kind',index);
       if(kind==='daily'){
-        await click(client,formSid,'#schedule-timezone-edit');
-        await type(client,formSid,'#schedule-timezone-search','America/New_York');
-        assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
-          'Timezone search never changes the pinned selection');
-        const index=await evaluate(client,
-          '[...document.querySelector("#schedule-timezone").options].findIndex(option=>option.value==="America/New_York")',formSid);
-        await select(client,formSid,'#schedule-timezone',index);
-        await click(client,formSid,'#schedule-timezone-done');zone='America/New_York';
+        // The shipped form has one native IANA <select>. Drive the genuine
+        // Chrome/AppKit picker; the former search/done popover no longer exists.
+        const nextZone='America/New_York';
+        const zoneIndex=await evaluate(client,
+          '[...document.querySelector("#schedule-timezone").options].findIndex(option=>option.value==='+JSON.stringify(nextZone)+')',formSid);
+        assert(zoneIndex>=0,'The real timezone picker offers '+nextZone);
+        await select(client,formSid,'#schedule-timezone',zoneIndex);
+        assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),nextZone,
+          'The native picker changes only the selected IANA timezone');
+        zone=nextZone;
       }
       if(kind==='weekly'){
         for(const day of [3,5])await click(client,formSid,'#schedule-weekdays-field input[value="'+day+'"]');
