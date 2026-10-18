@@ -144,16 +144,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
   let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null,reactDeveloperResult=null,reactDeveloperSource=null,reactDeveloperWorld=null;
   // The original Script Editor exclusively owns authorized result values.
   // Its legacy DOM writer survives only until the React portal handoff.
-  const resultProjection={text:output.textContent||'',kind:resultKind.textContent||''};
   function writeResultField(key,value){
-    resultProjection[key]=value??'';
-    if(reactDeveloperResult)reactDeveloperResult({...resultProjection});
-    else (key==='text'?output:resultKind).textContent=resultProjection[key];
+    if(reactDeveloperResult)reactDeveloperResult({[key]:value??''});
+    else (key==='text'?output:resultKind).textContent=value??'';
   }
   const setResultText=value=>writeResultField('text',value);
   const setResultKind=value=>writeResultField('kind',value);
   let currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
-    selectionVersion = 0, running = false, disposed = false;
+    selectionVersion = 0, authoringEpoch=0, running = false, disposed = false;
   const listeners = [];
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
@@ -166,6 +164,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
+  // Transfer each control exactly once; never fabricate a user gesture.
+  function transferReactOwner(elements,event,code){
+    const groups=elements.map(element=>listeners.filter(entry=>entry.element===element&&entry.event===event));
+    if(groups.some(entries=>entries.length!==1))throw new Error(code);
+    for(const entry of groups.flat()){
+      entry.element.removeEventListener(entry.event,entry.listener);
+      listeners.splice(listeners.indexOf(entry),1);
+    }
+  }
   const programSource = createProgramSourceView({document:doc,listen,onChange:() => {loadedPageSource=false;javascriptWorld='controller';javascriptDrafts.controller=programSource.source();dependencyResolver?.refresh();dependencyInstaller?.refresh();componentRemote?.refresh();update();}});
 
   // Controller Classic uses the existing native source-permission consent, not
@@ -376,7 +383,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       !programSource.source().trim()||programSource.kind()==='controller'||
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
-    find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
     if(pageExecution)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
@@ -890,7 +896,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
         localInstaller.succeeded({source,binding,target:captured,previewId:claim.previewId});
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
         const valueText=result.result?.resultText ?? 'undefined';
-        find('page-preview-result').textContent=valueText;
         setResultText(valueText);setResultKind('本地 Page · 本次结果');
         copyResult.disabled=false;find('developer-results-panel').open=true;
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
@@ -955,7 +960,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
-      if(result!==undefined)find('page-preview-result').textContent=result;
       display(state,message);
       if(state==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) showUserScriptsRecovery();
       else if(state==='error' && message.startsWith('E_USER_SCRIPTS_NATIVE')) showUserScriptsRecovery('error', message);
@@ -1307,7 +1311,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       componentMessage('error','请先结束当前运行、保存或准备并停止受管组件，再切换代码类型');
       return;
     }
-    browserPreparer.cancel();browserPrepareGeneration++;
+    browserPreparer.cancel();browserPrepareGeneration++;authoringEpoch++;
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
     else componentDrafts[componentMode]=programSource.source();
     componentMode=next;
@@ -1325,7 +1329,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
       update();return;
     }
-    browserPreparer.cancel();browserPrepareGeneration++;
+    browserPreparer.cancel();browserPrepareGeneration++;authoringEpoch++;
     javascriptDrafts[javascriptWorld]=programSource.source();
     javascriptWorld=next;loadedPageSource=false;lastPagePreview=null;
     programSource.replaceSource(javascriptDrafts[next]);
@@ -1340,7 +1344,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const javascriptWorldSelect=find('script-javascript-world');
   if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
   function sourceInput(){
-    browserPreparer.cancel();browserPrepareGeneration++;
+    browserPreparer.cancel();browserPrepareGeneration++;authoringEpoch++;
     programSource.replaceSource(programSource.source());
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
     else componentDrafts[componentMode]=programSource.source();
@@ -1533,7 +1537,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   return {host,connectReactDeveloperResult(render){
     if(disposed||reactDeveloperResult||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_RESULT_OWNERSHIP');
-    reactDeveloperResult=render;render({...resultProjection});
+    reactDeveloperResult=render;render({text:output.textContent||'',kind:resultKind.textContent||''});
   },connectReactDeveloperStatus(render){
     if(disposed||reactDeveloperStatus||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_STATUS_OWNERSHIP');
@@ -1542,48 +1546,24 @@ export function createScriptEditor({client, currentPageTarget, development=false
   },connectReactDeveloperSource(render){
     if(disposed||reactDeveloperSource||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_SOURCE_OWNERSHIP');
-    const attached=listeners.filter(entry=>entry.element===find('script-source')&&entry.event==='input');
-    if(attached.length!==1)throw new Error('E_REACT_DEVELOPER_SOURCE_LEGACY_LISTENER');
-    for(const entry of attached){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
+    transferReactOwner([find('script-source')],'input','E_REACT_DEVELOPER_SOURCE_LEGACY_LISTENER');
     reactDeveloperSource=render;
     programSource.connectReactEditor(model=>render({...model,onInput:sourceInput}));
   },connectReactDeveloperWorld(render){
     if(disposed||reactDeveloperWorld||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_WORLD_OWNERSHIP');
-    const attached=listeners.filter(entry=>entry.element===find('script-javascript-world')&&entry.event==='change');
-    if(attached.length!==1)throw new Error('E_REACT_DEVELOPER_WORLD_LEGACY_LISTENER');
-    for(const entry of attached){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
+    transferReactOwner([find('script-javascript-world')],'change','E_REACT_DEVELOPER_WORLD_LEGACY_LISTENER');
     reactDeveloperWorld=render;update();
   },connectReactDeveloperFramework(render){
     if(disposed||reactDeveloperFramework||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNERSHIP');
-    const attached=Object.values(componentInputs).map(element=>
-      listeners.filter(entry=>entry.element===element&&entry.event==='change'));
-    if(attached.some(entries=>entries.length!==1))
-      throw new Error('E_REACT_DEVELOPER_FRAMEWORK_LEGACY_LISTENERS');
-    for(const entry of attached.flat()){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
+    transferReactOwner(Object.values(componentInputs),'change','E_REACT_DEVELOPER_FRAMEWORK_LEGACY_LISTENERS');
     reactDeveloperFramework=render;syncComponentInputs();
   },connectReactDeveloperActions(render){
     if(disposed||reactDeveloperActions||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_ACTIONS_OWNERSHIP');
-    const attached=['script-run','script-save','script-stop'].map(id=>
-      listeners.filter(entry=>entry.element===find(id)&&entry.event==='click'));
-    if(attached.some(entries=>entries.length!==1))
-      throw new Error('E_REACT_DEVELOPER_LEGACY_LISTENERS');
-    // Remove the legacy listeners before React replaces the DOM children.
-    for(const entry of attached.flat()){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
+    transferReactOwner(['script-run','script-save','script-stop'].map(find),'click',
+      'E_REACT_DEVELOPER_LEGACY_LISTENERS');
     reactDeveloperActions=render;update();
   },connectReactDeveloperTarget(render){
     if(disposed||reactDeveloperTarget||typeof render!=='function')
@@ -1613,16 +1593,22 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'手工草稿已保留；请先切换到手工草稿模式再导入'};
     if (disposed || editingBusy || previewBusy || componentRemote?.busy || browserManagedPreview) throw {code:'E_BUSY',message:'请先停止当前受管组件，再导入或保存版本'};
     if (sourceUtf8 && typeof sourceUtf8 === 'object') {
+      const epoch=authoringEpoch,original=programSource.source();
       editingBusy = true; update();
-      return programSource.importProject(sourceUtf8).then(value => {
+      return programSource.importProject(sourceUtf8,()=>!disposed&&epoch===authoringEpoch&&original===programSource.source()).then(value => {
         if (disposed) throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
+        if(!value)throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
         applyImported(value.sourceUtf8);
       }).finally(() => {editingBusy=false;if(!disposed)update();});
     }
     if(typeof sourceUtf8==='string'&&sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)){
+      const epoch=authoringEpoch,original=programSource.source();
       inspectPageSource(sourceUtf8,{plainLimit:100000});editingBusy=true;update();
       return validatePageSource(sourceUtf8,{plainLimit:100000}).then(()=>{
-        if(disposed)throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};applyImported(sourceUtf8);
+        if(disposed)throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
+        if(epoch!==authoringEpoch||original!==programSource.source())
+          throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
+        applyImported(sourceUtf8);
       }).finally(()=>{editingBusy=false;if(!disposed)update();});
     }
     if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > 100000)
