@@ -223,3 +223,39 @@ browserTest('REAL Chromium: responsive, languages, theme, zoom, draft vs hotspot
  await page.locator('#r28Restore').click();
  assert.equal(await page.locator('#draft').inputValue(),'Keep this draft');
 });
+
+
+browserTest('REAL Chromium: closing one ad survives language/theme and does not close siblings',async page=>{
+ await page.locator('#r28Sold').selectOption('2');
+ await page.evaluate(()=>window.OpenDeskR28.choose('B03'));
+ await page.locator('.r29-rail-close').click();
+ await page.evaluate(()=>window.OpenDeskR28.choose('B04'));
+ assert.equal(await page.locator('#r28Sponsor').isVisible(),true);
+ await page.locator('#language').selectOption('ja');
+ await page.locator('#theme').selectOption('dark');
+ await page.evaluate(()=>window.OpenDeskR28.choose('B03'));
+ assert.equal(await page.locator('#r28Sponsor').isVisible(),false);
+ assert.equal(await page.locator('#r28Brand').isVisible(),true);
+ await page.locator('#r28Restore').click();
+ assert.equal(await page.locator('#r28Sponsor').isVisible(),true);
+ await page.evaluate(()=>window.OpenDeskR28.choose('S04'));
+ await page.locator('#r28SlotS04 .r28-dismiss-card').click();
+ await page.evaluate(()=>window.OpenDeskR28.choose('S05'));
+ assert.equal(await page.locator('#r28SlotS05 .r28-demo-ad').count(),1);
+ await page.evaluate(()=>window.OpenDeskR28.choose('S04'));
+ assert.equal(await page.locator('#r28SlotS04 .r28-demo-ad').count(),0);
+});
+
+browserTest('REAL Chromium: R2.7 A1–A10 remain selectable inside legacy disclosure',async page=>{
+ await page.locator('.r28-legacy summary').click();
+ for(let n=1;n<=10;n++){
+  const id='A'+n;
+  await page.locator('#placement').selectOption(id);
+  assert.equal(await page.locator('#placement').inputValue(),id);
+  assert.equal(await page.evaluate(()=>window.OpenDeskR28.state.active),false);
+ }
+ await page.locator('#r28Map').count().catch(()=>0);
+ await page.evaluate(()=>window.OpenDeskR28.choose('B01'));
+ assert.equal(await page.evaluate(()=>window.OpenDeskR28.state.active),true);
+ assert.equal(await page.locator('#r28Brand').isVisible(),true);
+});
