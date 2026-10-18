@@ -20,7 +20,8 @@ const at=new Date(2026,9,18,10,0,0).getTime();
 
 test('real Stay Focus install package carries bounded data, no privileged JS',async()=>{
   const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
-  assert.equal(tool.version,'1.0.3');
+  assert.equal(tool.version,'1.0.4');
+  assert.ok(tool.backgroundPolicy.defaultSites.includes('pinterest.com'));
   assert.equal(tool.backgroundPolicy.kind,'site-budget.v2');
   assert.equal(tool.backgroundPolicy.dailyMinutes,30);
   assert.ok(tool.backgroundPolicy.defaultSites.includes('youtube.com'));
@@ -186,9 +187,11 @@ test('R4.3 package first-use defaults execute; user preferences win after packag
     {id:'entertainment',minutes:51}),f.sender);
   await f.focus.dispatch(await f.msg(app,'focus.site.put',
     {site:site('user-choice.example.com')}),f.sender);
-  const upgraded={...app,version:'1.0.4',backgroundPolicy:{
+  const upgraded={...app,version:'1.0.5',backgroundPolicy:{
     ...app.backgroundPolicy,dailyMinutes:71,
-    defaultSites:[...app.backgroundPolicy.defaultSites,'pinterest.com'],
+    suggestions:app.backgroundPolicy.suggestions.map(row=>row.host==='github.com'?
+      {...row,suggestLimit:true}:row),
+    defaultSites:[...app.backgroundPolicy.defaultSites,'github.com'],
     schedule:{...app.backgroundPolicy.schedule,enabled:true}
   }};
   const installed=await installReviewedSidebarTool({api:f.api,
@@ -202,13 +205,57 @@ test('R4.3 package first-use defaults execute; user preferences win after packag
   assert.equal(stopped.groups.entertainment,51,'user quota overrides new default');
   assert.deepEqual(stopped.schedule,app.backgroundPolicy.schedule,'existing schedule retained');
   assert.ok(stopped.sites.some(row=>row.host==='user-choice.example.com'));
-  assert.ok(!stopped.sites.some(row=>row.host==='pinterest.com'));
+  assert.ok(!stopped.sites.some(row=>row.host==='github.com'));
   assert.ok(stopped.catalog.some(row=>row.host==='pinterest.com'));
   await assert.rejects(f.focus.dispatch(await f.msg(app,'focus.status'),f.sender),
     {code:'E_TOOL_CHANGED'});
   const resumed=await f.focus.dispatch(await f.msg(upgraded,'focus.enable'),f.sender);
   assert.equal(resumed.enabled,true);
   assert.equal(resumed.groups.entertainment,51);
-  assert.ok(!resumed.sites.some(row=>row.host==='pinterest.com'),
+  assert.ok(!resumed.sites.some(row=>row.host==='github.com'),
     'new default must not enroll during reauthorization');
+});
+
+test('R4.4 1.0.3 to 1.0.4: identical worker, package-only upgrade and explicit Pinterest enrollment',async()=>{
+  const app=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  const previous={...app,version:'1.0.3',backgroundPolicy:{...app.backgroundPolicy,
+    defaultSites:app.backgroundPolicy.defaultSites.filter(host=>host!=='pinterest.com')}};
+  const f=fixture();f.stored.set(SIDEBAR_TOOL_STORE,[previous]);
+  const baseline=await f.focus.dispatch(await f.msg(previous,'focus.enable'),f.sender);
+  assert.ok(!baseline.sites.some(row=>row.host==='pinterest.com'));
+  const savedSchedule={enabled:true,days:[1,2],startMinute:420,endMinute:600};
+  await f.focus.dispatch(await f.msg(previous,'focus.schedule.set',{schedule:savedSchedule}),f.sender);
+  await f.focus.dispatch(await f.msg(previous,'focus.group.put',{id:'entertainment',minutes:43}),f.sender);
+  await f.focus.dispatch(await f.msg(previous,'focus.whitelist.set',{hosts:['docs.google.com']}),f.sender);
+  const paused=baseline.sites.find(row=>row.host==='youtube.com');
+  await f.focus.dispatch(await f.msg(previous,'focus.site.put',{site:{...site(paused.host),group:'entertainment',enabled:false}}),f.sender);
+  const install=await installReviewedSidebarTool({api:f.api,
+    lockManager:{request:async(_key,run)=>run()},candidate:app,baseline:previous,
+    reviewApproved:true,approveUpdate:async()=>true});
+  assert.equal(install.state,'installed');
+  assert.equal(f.stored.get(SIDEBAR_TOOL_STORE)[0].version,'1.0.4');
+  f.focus.invalidate({revoke:true});
+  const waiting=await f.focus.tick({boot:true});
+  assert.equal(waiting.enabled,false);
+  assert.equal(waiting.ruleReceipt.verified,true);
+  assert.equal(waiting.groups.entertainment,43);
+  assert.deepEqual(waiting.schedule,savedSchedule);
+  assert.deepEqual(waiting.whitelist,['docs.google.com']);
+  assert.equal(waiting.sites.find(row=>row.host==='youtube.com').enabled,false);
+  assert.ok(!waiting.sites.some(row=>row.host==='pinterest.com'));
+  assert.equal(waiting.catalog.find(row=>row.host==='pinterest.com').auto,true);
+  await assert.rejects(f.focus.dispatch(await f.msg(previous,'focus.status'),f.sender),
+    {code:'E_TOOL_CHANGED'});
+  await f.focus.dispatch(await f.msg(app,'focus.enable'),f.sender);
+  const result=await requestStayFocusOperation({api:f.api,tool:app,
+    operation:'focus.site.put',payload:{site:site('pinterest.com','always')},
+    revocationEpoch:'epoch-1',assertCurrent(){},requestBrowserClick({message,run}){
+      assert.match(message,/pinterest\.com/);
+      return run({isTrusted:true});
+    },openSettings(){throw Error('unexpected');}});
+  assert.equal(result.enabled,true);
+  assert.equal(result.ruleReceipt.verified,true);
+  assert.ok(f.rules.some(rule=>rule.condition.regexFilter.includes('pinterest\\.com')));
+  assert.equal(result.groups.entertainment,43);
+  assert.equal(result.sites.find(row=>row.host==='youtube.com').enabled,false);
 });

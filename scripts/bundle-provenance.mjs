@@ -113,7 +113,7 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
   'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
-  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'80c44d3f18b81a50953b0d424e4437fae52ab98c',
+  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
   'examples/sidebar-tools/stay-focus/trusted/service.js':'4fb4e14cec6fbfab91497578872508e5a62bb7f7',
   'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'2f4b071d66c0d41ab055d87300c87ed4efda1122'
 });

@@ -20,8 +20,10 @@ const shape=rule=>JSON.stringify([
   extra(rule.action?.redirect,['extensionPath']),
   extra(rule.condition,['regexFilter','resourceTypes','excludedRequestDomains'])
 ]);
+const mappedFocusDnrError=(message,code)=>focusError(message,
+  code==='E_MANAGED_DNR_MISMATCH'?'E_FOCUS_DNR_MISMATCH':code);
 export function reconcileFocusRules(api,wanted=[]){
   return reconcileManagedDynamicRules(api,{wanted,ownsRule:isFocusRuleId,
-    signature:shape,error:focusError});
+    signature:shape,error:mappedFocusDnrError});
 }
 export function clearFocusRules(api){return reconcileFocusRules(api,[]);}
