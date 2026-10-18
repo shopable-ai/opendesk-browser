@@ -112,6 +112,10 @@ async function importTool(tool){
     return;
   }
   await click(host,'#extension-center-more');
+  const menuProbe=await evaluate(host,'(()=>{const b=document.querySelector("#extension-center-import"),m=document.querySelector("#extension-center-menu"),t=document.querySelector("#extension-center-more"),r=b?.getBoundingClientRect(),s=b?getComputedStyle(b):null;return {expanded:t?.getAttribute("aria-expanded"),menuHidden:m?.hidden,buttonHidden:b?.hidden,offsetParent:!!b?.offsetParent,style:s?.display,visibility:s?.visibility,rect:r&&{x:r.x,y:r.y,width:r.width,height:r.height},screen:{width:innerWidth,height:innerHeight},status:document.querySelector("#extension-center-status")?.textContent}})()');
+  console.log('R21_REAL_IMPORT_MENU_STATE '+JSON.stringify(menuProbe));
+  if(menuProbe.menuHidden||!menuProbe.offsetParent)
+    throw Error('REAL_IMPORT_MENU_NOT_VISIBLE '+JSON.stringify(menuProbe));
   await click(host,'#extension-center-import');
   await call('DOM.enable',{},host);
   const root=(await call('DOM.getDocument',{depth:1},host)).root;
