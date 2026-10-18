@@ -187,8 +187,9 @@ async function exercise(kind,path,port){
     assert.ok(row.scroll<=row.width+2,'document overflow at '+width+': '+JSON.stringify(row));
     assert.equal(row.notes,1);
   }
+  let sdkSafety=null;
   if(kind==='react'){
-    const sdkSafety=await exerciseReactSDK();
+    sdkSafety=await exerciseReactSDK();
     assert.equal(await evalJs('globalThis.OpenDeskPageReact?.version'),'19.2.0');
     assert.equal(await evalJs('document.querySelectorAll("[data-slot=card]").length'),1);
     await evalJs('dispatchEvent(new Event("pagehide"))');
