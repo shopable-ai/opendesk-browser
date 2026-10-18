@@ -1683,8 +1683,11 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   };
   const lookalike={...pkg,id:'time-review-lookalike'};
   await importPackage(lookalike,'time-review-lookalike');
-  const visibleIdentities=await evaluate(browser,importer,'[...document.querySelectorAll(".sidebar-tool-item-identity")].map(n=>{const r=n.getBoundingClientRect(),button=n.closest("button"),s=getComputedStyle(n);return {text:n.textContent,inViewport:r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight,uncropped:n.scrollWidth<=n.clientWidth+1&&n.scrollHeight<=n.clientHeight+1&&s.visibility!=="hidden"&&s.display!=="none",aria:button?.getAttribute("aria-label")}})');
-  for(const id of ['time-review','time-review-lookalike'])assert.ok(visibleIdentities.some(row=>row.text==='安装 ID：'+id&&row.inViewport&&row.uncropped&&row.aria?.endsWith('安装 ID：'+id)),'actual same-title identity is visible, uncropped and accessible: '+id);
+  // The React Extension Center now owns the installed rows; duplicated titles
+  // must keep distinct visible package IDs and matching screen-reader labels.
+  await nativeExtensionScope(browser,importer,'smart');
+  const visibleIdentities=await evaluate(browser,importer,'[...document.querySelectorAll("#extension-center-list .ec-identity")].map(n=>{const r=n.getBoundingClientRect(),button=n.closest("button"),s=getComputedStyle(n);return {text:n.textContent,inViewport:r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight,uncropped:n.scrollWidth<=n.clientWidth+1&&n.scrollHeight<=n.clientHeight+1&&s.visibility!=="hidden"&&s.display!=="none",aria:button?.getAttribute("aria-label")}})');
+  for(const id of ['time-review','time-review-lookalike'])assert.ok(visibleIdentities.some(row=>row.text==='安装 ID：'+id&&row.inViewport&&row.uncropped&&row.aria?.includes('安装 ID：'+id)),'actual React same-title identity is visible, uncropped and accessible: '+id);
   note('same-name-visible-identities',{identities:visibleIdentities});
   evidence.screenshots.push(await screenshot(browser,importer,'same-title-installed-identities'));
   await nativeOpenInstalledApp(browser,importer,'time-review-lookalike');
