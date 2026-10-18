@@ -639,8 +639,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         current?.record?.manifestHash!==row.record.manifestHash||current.enabled!==targetEnabled)
         message('网页增强操作尚未由 Page Authority 读回确认；请刷新后检查注册状态。','error');
       else if(targetEnabled&&(current.record.installed.nativeState!=='registered'||
-        current.record.installed.authorization?.status!=='active'))
+        current.record.installed.authorization?.status!=='active'||current.record.installed.error))
         message('已确认启用设置，但 Chrome 原生注册状态仍待核对。','info');
+      else if(!targetEnabled&&(current.record.installed.nativeState!=='disabled'||
+        current.record.installed.authorization?.status!=='disabled'||
+        current.record.installed.managedCleanup?.state==='unknown'||current.record.installed.error))
+        message('已确认停用设置，但 Chrome 原生注销或受管清理仍待核对。','info');
       else message('已从 Page Authority 确认自动运行状态。','success');
     }finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();
       else restoreRowFocus(row.key,'more');}}

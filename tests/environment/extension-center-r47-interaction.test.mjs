@@ -181,6 +181,11 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     if(!pageAckOnly){
       program.installed.enabled=args.enabled;
       program.installed.authorization.generation++;
+      program.installed.authorization.status=args.enabled?'active':'disabled';
+      // Model the Authority's real native readback without inventing a
+      // successful registration for a pre-existing blocked/pending state.
+      if(['registered','disabled'].includes(program.installed.nativeState))
+        program.installed.nativeState=args.enabled?'registered':'disabled';
     }
     return {enabled:args.enabled};
   }};
@@ -775,6 +780,32 @@ test('R5.0 an unconfirmed launch is visible and does not claim that the tool ope
   assert.match(f.nodes['extension-center-status'].textContent,/应用尚未打开/);
   f.button('app:quick-notes','primary').dispatch('click');
   assert.match(f.nodes['extension-center-status'].textContent,/应用尚未打开/);
+});
+
+
+test('R5.6 disabled setting with unconfirmed native unregister remains a pending result',async t=>{
+  const f=fixture(t);f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('停用自动运行').dispatch('click');
+  await settle(()=>f.writes.length===1);
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
+  assert.equal(f.programs[0].installed.enabled,false);
+  assert.equal(f.programs[0].installed.nativeState,'blocked');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'info');
+  assert.match(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
+});
+
+test('R5.6 unknown managed UI cleanup cannot be reported as completed after disabling',async t=>{
+  const f=fixture(t);f.programs[0].installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
+  await f.ui.refresh();
+  f.button('page:reader','more').dispatch('click');
+  f.menuItem('停用自动运行').dispatch('click');
+  await settle(()=>f.writes.length===1);
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
+  assert.equal(f.programs[0].installed.nativeState,'disabled');
+  assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'info');
+  assert.match(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
 });
 
 test('R5.0 Page RPC acknowledgement without Authority state change cannot be reported successful',async t=>{
