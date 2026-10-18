@@ -273,6 +273,23 @@ try{
     try{result.failureDocument=await evaluate(host,'({url:location.href,body:document.body?.innerText.slice(0,3500)})');}
     catch{}
     try{
+      result.hostReactOwnership=await evaluate(host,`(()=>{
+        const list=document.querySelector("#extension-center-list");
+        const center=document.querySelector("#extension-center");
+        const app=document.querySelector("#opendesk-react-app");
+        return {reactShellCount:document.querySelectorAll("#opendesk-react-app").length,
+          centerCount:document.querySelectorAll("#extension-center").length,
+          listCount:document.querySelectorAll("#extension-center-list").length,
+          listOwner:list?.dataset.opendeskReactOwner||null,
+          centerOwner:center?.dataset.opendeskReactOwner||null,
+          listConnected:Boolean(list?.isConnected),
+          shellContainsList:Boolean(app?.contains(list)),
+          shellContainsCenter:Boolean(app?.contains(center)),
+          bodyContainsList:Boolean(document.body.contains(list))};
+      })()`);
+    }catch{}
+
+    try{
       const shot=await call('Page.captureScreenshot',{format:'png'},host);
       await writeFile(join(out,'failure.png'),Buffer.from(shot.data,'base64'));
     }catch{}
