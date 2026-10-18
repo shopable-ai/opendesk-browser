@@ -29,4 +29,9 @@ test('R34.1 trusted scheduler and preview share one React schedule card',async()
   assert.match(preview,/createPortal\(<SchedulePlanRows/);
   assert.doesNotMatch(preview,/return <article key=\{p\.id\} className="schedule-card/);
   assert.match(builder,/src\/ui\/react\/tabs\/schedule\.tsx/);
+  // The installed shell verifier consumes strict non-self-closing HTML tags.
+  // A self-closing SVG path in tool.html previously blocked all WXT builds.
+  const officialHtml=await read('src/ui/tool.html');
+  assert.doesNotMatch(officialHtml,/<path\s+[^>]*\/\s*>/);
+
 });

@@ -729,9 +729,10 @@ test('R32 runner action keeps the live Host status while its launch button moves
 });
 
 test('R33.3.15-C mouse hover, focus and touch reveal safe schedule card actions',async()=>{
-  const [css,preview]=await Promise.all([
+  const [css,preview,shared]=await Promise.all([
     load('src/ui/tool-shell.css'),
-    load('src/ui/react/preview/sidebar-six-my-flows.tsx')
+    load('src/ui/react/preview/sidebar-six-my-flows.tsx'),
+    load('src/ui/react/tabs/schedule.tsx')
   ]);
   assert.match(css,/\.schedule-card:is\(:hover,:focus-within\) \.schedule-plan-actions/,
     'mouse hover and keyboard focus both reveal quick actions');
@@ -739,10 +740,11 @@ test('R33.3.15-C mouse hover, focus and touch reveal safe schedule card actions'
     'touch devices do not depend on hover to show controls');
   assert.match(css,/\.schedule-card \.schedule-plan-actions\{position:absolute/,
     'fine-pointer toolbar must float instead of reserving an always-visible action column');
-  assert.match(preview,/data-schedule-action="stop"/);
-  assert.match(preview,/data-schedule-action="toggle"/);
-  assert.match(preview,/present\.nextText/);
-  assert.match(preview,/present\.frequencyText/);
+  assert.match(preview,/createPortal\(<SchedulePlanRows/);
+  assert.match(shared,/data-schedule-action="stop"/);
+  assert.match(shared,/data-schedule-action="toggle"/);
+  assert.match(shared,/presentation\.nextText/);
+  assert.match(shared,/presentation\.frequencyText/);
   assert.doesNotMatch(preview,/UI_PREVIEW_ONLY ·|预览表单：|不写入真实计划/,
     'development markers must not leak into the create form');
 });
