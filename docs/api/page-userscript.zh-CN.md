@@ -112,8 +112,8 @@ R396 定向 Node 测试覆盖异步 dispose、停用/撤权/卸载及未知态�
 
 ## R24.1 · 网站范围、原生 DOM、React/Vue
 
-参阅 [完整教程](page-ui-frameworks.zh-CN.md)。`createPageUI({pageRules})` 是可选的同文档 SPA 路由清理保护，不是 Chrome 网站权限或安装授权。固定 Page 版本的已安装自动触发仍通过既有独立安装链；手动试运行不会自动安装。React/Vue JSX/SFC 必须先离线预编译为 `.js` ESM；源码模板未通过真实 Chrome 验收不得宣布交付完成。
+参阅 [完整教程](page-ui-frameworks.zh-CN.md)。`createPageUI({pageRules})` 是可选的同文档 SPA 路由清理保护，不是 Chrome 网站权限或安装授权。固定 Page 版本的已安装自动触发仍通过既有独立安装链；手动试运行不会自动安装。执行资产必须经过对应编译，但作者不必一律手工预编译：Developer 的单文件 JSX/SFC 可由浏览器内现有编译入口准备；Standard 使用 Direct JS 或经本地项目准备的代码。步骤见 [脚本编写 Skill](../../.agents/skills/opendesk-script-authoring/SKILL.md) 与下节；源码模板未通过真实 Chrome 验收不得宣布交付完成。
 
 ## R24.2：React/Vue 免手工编译入口
 
-可选新项目字段 `opendesk.framework: "react"|"vue"`。示例：[React 19 纯 JavaScript](../../examples/programs/page-ui-react-direct/README.md)、[Vue 3 纯 JavaScript](../../examples/programs/page-ui-vue-direct/README.md)。只修改 `.js` 文件，保存后显式点击 Run，OpenDesk 自动准备代码并预装框架。无需用户 npm、Vite 或 `.jsx`/`.vue` 编译；组件挂在 `ui.content`，停止时卸载和恢复 DOM。详见 [Page UI 框架开发规范](page-ui-frameworks.zh-CN.md#r242--默认免手工编译的-reactvue-网页增强)。
+可选新项目字段 `opendesk.framework: "react"|"vue"`。示例：[React 19 纯 JavaScript](../../examples/programs/page-ui-react-direct/README.md)、[Vue 3 纯 JavaScript](../../examples/programs/page-ui-vue-direct/README.md)。只修改 `.js` 文件，保存后显式点击 Run，OpenDesk 自动准备代码并预装框架。无需用户 npm、Vite 或 `.jsx`/`.vue` 编译；组件挂在 `ui.content`，停止时卸载和恢复 DOM。详见 [Page UI 框架开发规范](page-ui-frameworks.zh-CN.md)。

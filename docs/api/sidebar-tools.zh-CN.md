@@ -1,6 +1,6 @@
 # 扩展中心「应用」Sidebar Tool API 参考
 
-> 本页只说明 **`opendesk.sidebar-tool.v1` 的当前接口合同**。**所有同类型工具的统一开发方法**（选型、目录规范、预览、打包、安装、测试）请先阅读 [Side Panel 工具统一开发规范](sidebar-tool-development.zh-CN.md)。示例见 [examples/sidebar-tools](../../examples/sidebar-tools/README.zh-CN.md)；AI/Codex 用 [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
+> 本页说明 **`opendesk.sidebar-tool.v1/v2` 的现行工具包与受限接口合同**；历史 R 章节按其注明的范围阅读。**所有同类型工具的统一开发方法**（选型、目录规范、预览、打包、安装、测试）请先阅读 [Side Panel 工具统一开发规范](sidebar-tool-development.zh-CN.md)。示例见 [examples/sidebar-tools](../../examples/sidebar-tools/README.zh-CN.md)；AI/Codex 用 [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
 这是 Side Panel「扩展」中的「应用」类型 HTML/CSS/JS Sidebar Tool 包（现行入口见 [R4 产品规格](../product/sidebar-ui-spec.zh-CN.md)），不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**第三方的开发合同由本文、[统一开发规范](sidebar-tool-development.zh-CN.md)、工具配置、示例及公开 SDK 确定，不依赖 Browser 内部 `src/`**。若文档与行为冲突，由平台维护者凭实际复现再核对 Host、Broker 和打包实现，不能要求第三方直接调用内部函数。
 
@@ -36,11 +36,20 @@
 }
 ```
 
-这里的字符串是**字段示意**，不是可安装的完整示例；请用打包器从真实文件生成。最终 JSON 只允许 `format/id/version/title/description/capabilities/html/css/js`，不是 `manifest.json`。源配置只允许 `id/version/title/description/capabilities/files/assets`。
+这里的字符串是**字段示意**，不是可安装的完整示例；请用打包器从真实文件生成。以上展示 v1 基础字段，不是所有版本的字段全集，也不是 `manifest.json`。当前构建器还支持以下严格限定的输入，不能自行添加任意字段：
+
+| 可选内容 | 源配置 → 最终包 | 运行边界 |
+| --- | --- | --- |
+| v2 SDK 与贡献 | 源配置声明 `format: "opendesk.sidebar-tool.v2"`、`requires`、`contributes`，保留到最终包 | 具体名称与许可见 [Browser SDK](browser-sdk.zh-CN.md)，不是直接授权 |
+| v2 多 JS 依赖 | `files.dependencies`：最多 8 个有序、不重复的固定 Classic 文件；构建成 `scripts` 中的 name/sha256/code | 沙箱校验字节后依序加载，再运行主 js；v1 不接受 dependencies/scripts，不开放任意后台 JS |
+| 固定 Shared UI | v1/v2 均可显式声明 `uiRuntime: "opendesk.react-ui.v1"`，同名字段进入包 | 只选择已支持的固定沙箱 React/UI 资源；工具在自己的文档创建 Root，没有宿主 Chrome 权限 |
+| UI 本地化 | 源配置 `locales` 经构建校验后嵌入原 js，不增加最终 locales 字段 | 使用只读展示语言，详见 [本地化合同](sidebar-tool-localization.zh-CN.md) |
+
+[Prompt Shortcuts 配置](../../examples/sidebar-tools/prompt-shortcuts/tool.config.json) 展示纯模型多入口复用，[AdBlock 配置](../../examples/sidebar-tools/adblock/tool.config.json) 展示固定 Shared UI；详细开发和构建流程仍归 [统一开发规范](sidebar-tool-development.zh-CN.md)。源目录名与 package capability 均不能把沙箱代码提升成特权入口。
 
 | 项目 | 当前约束 |
 | --- | --- |
-| 格式 | `opendesk.sidebar-tool.v1` |
+| 格式 | `opendesk.sidebar-tool.v1` 或 `opendesk.sidebar-tool.v2` |
 | id | `^[a-z][a-z0-9-]{1,39}$`，稳定且安装时按 ID 区分 |
 | version | 数字 `major.minor.patch`，没有前缀/预发布标签 |
 | title / description | 最长 80 / 300 字符 |
@@ -49,7 +58,7 @@
 | 安装数量 | 最多 12 个 |
 | 图片 assets | 最多 16 个；每张 ≤96 KiB；PNG/JPEG/WebP，本地预嵌入 |
 
-HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联事件、`javascript:` 等；CSS 不允许远程 `@import`、HTTP/JS 资源；JS 必须是单个本地经典脚本，不能直接保留顶层 `import/export`。校验器不能代替 CSP、安全审计或真实浏览器验收。
+HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联事件、`javascript:` 等；CSS 不允许远程 `@import`、HTTP/JS 资源；主 JS 及 v2 所选固定依赖必须是 Classic；原始 ESM/JSX/SFC 先按项目构建，不能直接保留顶层 `import/export`。校验器不能代替 CSP、安全审计或真实浏览器验收。
 
 ## 1.1 官方可选发行与安装状态（R4.5）
 
@@ -69,14 +78,22 @@ HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联
 
 ## 2. 工具的运行 API
 
-隔离沙箱的唯一工具对象：
+隔离沙箱的基础工具对象（v2 另按批准合同提供 OpenDeskSDK）。以下 Classic 片段要求工具 HTML 已声明 `#save` 按钮和 `#status` 回显元素，并在用户点击时读写获准的 storage.local：
 
 ```javascript
-const {root, request} = globalThis.OpenDeskTool;
-const status = root.querySelector('#status');
-const {value,etag} = await request('storage.get', {key:'note',withEtag:true});
-await request('storage.set', {key:'note',value:'hello',ifMatch:etag});
-status.textContent = '已保存';
+(() => {
+  const {root, request} = globalThis.OpenDeskTool;
+  const status = root.querySelector('#status');
+  root.querySelector('#save').addEventListener('click', async () => {
+    try {
+      const {etag} = await request('storage.get', {key:'note',withEtag:true});
+      await request('storage.set', {key:'note',value:'hello',ifMatch:etag});
+      status.textContent = '已保存';
+    } catch (error) {
+      status.textContent = error?.message || '保存失败，请保留当前草稿';
+    }
+  });
+})();
 ```
 
 `root` 是该工具 UI 自己的根元素。`request(operation,payload)` 异步返回经过宿主验证的结果，或以错误拒绝。任何需要用户数据/站点内容的操作都应在明确的用户动作后执行，不吞掉异步错误。
@@ -140,12 +157,12 @@ status.textContent = '已保存';
 - **开发者与 AI**：[API 首页](README.md)、[AI Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)、[测试指南](../framework/testing-guide.md)。
 - **源码合同**：`src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/sidebar-tools/official-catalog.js`、`scripts/build-sidebar-tool.mjs`、`scripts/build-official-tools.mjs`。
 
-本页记录现有 `v1` 能力，不表示正在设计中的应用市场远端安装、个人内容批量迁移、自动发布、完整 React 热同步或通用 Native API 已落地。
+本页记录现有 `v1/v2` 工具能力，不表示正在设计中的应用市场远端安装、个人内容批量迁移、自动发布、完整 React 热同步或通用 Native API 已落地。
 
 
 ## 5. 安装后的本地保存位置、扩容和数据恢复（2026-10-11）
 
-以下均为扩展宿主自己的 **`chrome.storage.local`** 持久化键，不是用户可任意访问的文件夹；浏览器的当前 Profile 和此扩展 ID 决定实际存储归属。安装包是完整的 `opendesk.sidebar-tool.v1` 扁平包，不附加来源、作者或支付信息：
+以下均为扩展宿主自己的 **`chrome.storage.local`** 持久化键，不是用户可任意访问的文件夹；浏览器的当前 Profile 和此扩展 ID 决定实际存储归属。安装包按 v1/v2 封闭字段保存，不附加来源、作者或支付信息：
 
 | 内容 | 存储键/前缀 | 说明 |
 | --- | --- | --- |
@@ -181,13 +198,13 @@ status.textContent = '已保存';
 
 ## R4.8 官方默认预装与 Side Panel 入口
 
-正式工具包格式保持 `opendesk.sidebar-tool.v1`，扩展内官方源码 Catalog 的 `installationPolicy` 额外支持 `optional` 和 `preinstalled`。后者不属于普通可导入的工具包字段；用户自行导入 JSON 无权触发预装。
+R4.8 当时的预装工具包使用 `opendesk.sidebar-tool.v1`；当前其他工具亦可使用 v2。扩展内官方源码 Catalog 的 `installationPolicy` 额外支持 `optional` 和 `preinstalled`。后者不属于普通可导入的工具包字段；用户自行导入 JSON 无权触发预装。
 
 新安装扩展时，可信 Service Worker 只登记一次性意图；后台的可信固定资源立即调用原安装器预装 `reading-toc` 和 `quick-notes`，仅登记到原 `opendesk.sidebar-tools.installed.v1`。未确认的新 Profile、升级、重新打开 Side Panel 不会自动安装。持久初始化状态为 `opendesk.sidebar-tools.bootstrap.v1`；存储异常失败关闭，不重放未知提交。用户卸载或停用选择优先于任何预装策略。
 
 **R4.8 历史导航说明**：当时「工具」Tab 将「我的工具 / 发现工具」分开显示。**现行 Extension Center R4** 在「扩展」使用单列表，默认优先显示已安装应用和网页增强；搜索或筛选可查看官方候选/可安装项，行内「应用 / 网页增强」仅为类型标签，不是额外的 Tab。已安装项使用打开/管理入口，更新仍需审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
 
-R4.8 暂不提供新的全局工具启停按钮；原有“当前网站目录显示/授权”是网站级规则，不是整个工具的停用开关。只有在所有启动入口统一拦截后才可发布全局启停。
+R4.8 当时尚未提供全局启停；当前安装器已有工具级启停，仍需与网站级授权分开理解。停用、卸载和关闭界面的效果按 [生命周期指南](extension-development-selection.zh-CN.md) 及各工具实际清理合同核验，不能把停用一律解释为删除业务数据。
 
 
 ## Browser SDK v2 菜单贡献（R1.3）
@@ -207,4 +224,4 @@ v1/v2 JSON 直接导入既有工具安装器，无需开发者另编译 Chrome �
 
 规范 `browser.clipboard.writeText` / `browser.downloads.text` 与便捷层共用原 `user.export`、安装锁和服务；旧操作保持兼容。菜单授权通过可信详情按钮与 Chrome 原生权限，不新增工具 alert/confirm/prompt。
 
-最新实施/组件/原生状态及精确候选见 [R1.3 当前总表](../framework/workstreams/browser-sdk-r13-20261011.md) 和 [验收 JSON](../framework/workstreams/browser-sdk-r13-acceptance.json)。组件通过不能提升为原生菜单、F3 或 ZIP 通过。
+R1.3 历史实施、组件和原生状态及精确候选见 [R1.3 总表](../framework/workstreams/browser-sdk-r13-20261011.md)。该记录曾引用的 `browser-sdk-r13-acceptance.json` 已不在当前 main，不能据失效链接确认验收；后续能力和当前可调用状态查 [Browser SDK](browser-sdk.zh-CN.md)。组件通过不能提升为原生菜单、F3 或 ZIP 通过。

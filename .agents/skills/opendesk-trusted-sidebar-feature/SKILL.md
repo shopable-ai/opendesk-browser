@@ -17,6 +17,12 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 **第三方与第一方的边界**：普通沙箱 Sidebar Tool、Page USER_SCRIPT 的独立业务仍在各自项目和公开 SDK 中维护，不触发本可信源码 Skill。只有经证实需第一方固定预编译特权、并完成来源/授权审计时，才最小修改其 `src/<feature>/`，通用宿主问题再交 Runtime Skill。缺乏通用能力证据记 `SDK_GAP_NOT_PROVEN`，第三方无法合规取得的 Chrome/Native 特权操作记 `BLOCKED`；不得因工具统一展示在「扩展」Tab 就将动态代码提升到可信页面。
 
+## 先解释产品选择与独立升级边界
+
+普通开发者先读 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md)：Controller、Page、Sidebar Tool 各有现成合同；组合式应用是职责组合。源码归产品、入口决定运行环境、权限由 Authority 核验；文件名、目录和 React/Vue 不决定信任。独立工具 UI 可以在自己的沙箱文档创建 React Root，不应因组件复杂就把业务放入主工作台。
+
+独立源码、独立 UI 安装、关闭 UI 后继续运行、独立后台升级是四个不同目标。Stay Focus R2 已完成源码提取，已有 focus.* 支持参数变化；JSON 不替换固定计时/DNR/提醒代码。后续沿 [Stay Focus R4 唯一需求](../../../examples/sidebar-tools/stay-focus/REQUIREMENTS.zh-CN.md) 评估最小声明式公共能力，不能把未实现需求写成 API，不重开迁移或后台运行器。
+
 ## 先以当前源码确立可信界限
 
 先读 `AGENTS.md`、`docs/framework/testing-guide.md`、`docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md`、`docs/api/sidebar-tool-development.zh-CN.md`、`docs/architecture/ui-layout-conventions-r27.zh-CN.md`、`docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md`。再核查实际 `main` 与并行改动，不用旧 GOAL 的状态替代现实。
@@ -31,7 +37,7 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 | 动态工具包、AI 生成、用户改包、离线同 ID 导入 | 原 `sidebar-tools/sandbox.html` opaque-origin iframe | `OpenDeskTool.request` 经现有 Host 授权；绝不在特权页解释/注入包中 JS |
 | 网页 UI、Page `USER_SCRIPT` 或 Controller Worker | 各自当前世界与 Authority | 不能从 Sidebar 显示工具就自动获得站点读取、Chrome API 或 Native 特权 |
 
-扩展级 `chrome.*` 权限**不是每工具的权限**。`toolId`、`capabilities`、签名文字、Shadow DOM、ESM 闭包都不是可信代码来源证明；一旦把任意 JS 放到扩展特权页，简单 SDK 检查不能阻止其直接调用扩展 API。不得以优化 UI 为由打开这条通路。
+扩展级 `chrome.*` 权限**不是每工具的权限**。当前 Manifest 的 declarativeNetRequestWithHostAccess 是必需权限，idle 是可选权限；可信点击、网站授权与已安装包身份仍分别核验。纯模型可以通过明确的 v2 files.dependencies 选入沙箱（Prompt Shortcuts 已使用 trusted/model.js），它在沙箱里不拥有可信入口权限；不得把 trusted/ 目录约定当作权限机制。`toolId`、`capabilities`、签名文字、Shadow DOM、ESM 闭包都不是可信代码来源证明；一旦把任意 JS 放到扩展特权页，简单 SDK 检查不能阻止其直接调用扩展 API。不得以优化 UI 为由打开这条通路。
 
 ## 最小职责划分（优先修已有文件）
 
@@ -48,9 +54,9 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 ## 两个必须区分的具体案例
 
-**Stay Focus（R2，2026-10-18 已提取）**：真正业务源在 `examples/sidebar-tools/stay-focus/trusted/`，由 `src/sw.js`、`src/entrypoints/{stay-focus-controls,page-relay,blocked}.js` 等固定入口静态加载；`src/stay-focus/*.js` 只是兼容转发，不得向其中重新写入业务。DNR 拦截规则归属、每日额度、站点识别、页面提醒、撤权与后台状态应有专用职责。参阅 `docs/framework/workstreams/stay-focus-extraction-r2-20261018.md`。工具 UI 只展示/发起受限操作，不缓存规则真相、不复制第二套调度器；变更通用安装器的卸载清理必须有跨工具负向回归。
+**Stay Focus（R2，2026-10-18 已提取）**：真正业务源在 `examples/sidebar-tools/stay-focus/trusted/`，由 `src/sw.js`、`src/entrypoints/{stay-focus-controls,page-relay,blocked}.js` 等固定入口静态加载；`src/stay-focus/*.js` 只是兼容转发，不得向其中重新写入业务。DNR 拦截规则归属、每日额度、站点识别、页面提醒、撤权与后台状态应有专用职责。参阅 `docs/framework/workstreams/stay-focus-extraction-r2-20261018.md`。工具 UI 展示/发起受限操作，不缓存规则真相、不复制第二套调度器。关闭 UI、focus.session.stop、focus.disable、停用和卸载须分别核查：停用保留设置/使用数据，卸载删除业务存储并回读自有规则清理；不承诺共用 Chrome 权限或所有临时键均被删除；变更通用安装器的卸载清理必须有跨工具负向回归。
 
-**Time Review（尚保留可信业务在 `src/time-review/`）**：`src/time-review/service.js` 经 `src/entrypoints/time-review-host.js` 固定接入 Background；`src/time-review/trusted-native-ui.js` 静态引用 `examples/sidebar-tools/time-review/src/` 的可维护 UI 源，并由 `trusted-admission.js` 核实来源与安装身份；不是从已安装 JSON 读取任意 JS 在可信页执行。不得假定 R1.6 历史通过即意味着当前所有 Chrome 生命周期或其他官方工具也支持可信直挂。服务仍由后台独立完成，撤权、包版本改变和卸载都应销毁相关 UI 会话但不伪造历史数据。
+**Time Review（尚保留可信业务在 `src/time-review/`）**：`src/time-review/service.js` 经 `src/entrypoints/time-review-host.js` 固定接入 Background；`src/time-review/trusted-native-ui.js` 静态引用 `examples/sidebar-tools/time-review/src/` 的可维护 UI 源，并由 `trusted-admission.js` 核实来源与安装身份；不是从已安装 JSON 读取任意 JS 在可信页执行。不得假定 R1.6 历史通过即意味着当前所有 Chrome 生命周期或其他官方工具也支持可信直挂。服务仍由后台独立完成，撤权、包版本改变和卸载都应销毁相关 UI 会话但不伪造历史数据。后续提取应同时核查通用 sidebar-tools.js 的 time.* 私有处理和 installation.js 对 TIME_REVIEW_KEY 的直接清理；本轮存在并行工具任务时仅记录具体调用方，交由 owner 修复。
 
 **AdBlock** 的可安装 UI 位于 `examples/sidebar-tools/adblock/src/`，固定受信代码位于其 `trusted/`，由 `src/sw.js` / `src/entrypoints/sidebar-tool-host.js` 预编译接入，不能随动态包获得 DNR。对 Cookie Editor、订阅管理、计划、其他工具按同样边界核查，但**不得把所有模块强行迁为可信直挂**。单个试点的结果不能推导其余工具均已迁移。
 
@@ -68,6 +74,8 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 以上是信息归属约定，**不授权改变**工具来源分流、动态沙箱、权限或已批准的 SDK 合同，也不要求为了整理文档移动代码、测试或已有原型。
 
 ## UI、测试及交付
+
+仅改文档/Skill 时验证链接、事实、元数据与场景阅读，不运行下面的产品测试/构建；代码变更才选择对应定向门槛。未执行真实 Chrome、Native、安装升级或后台恢复必须标 `NOT_TESTED`。
 
 Side Panel 优先复用 `od-page/od-stack/od-surface/od-button/od-field`，真实 token 在 `src/ui/design-tokens.css`；密度遵守 4/8/12/16px、单层 gutter、窄屏及 200% 缩放。动态 iframe 的 CSS 独立映射尺寸，不能向特权 Host 借 JS/CSS 作为安全边界。中文长文案、暗色、键盘/焦点、停止与卸载后的 DOM/事件清理都要验收。
 

@@ -2,7 +2,9 @@
 
 **权威使用合同｜2026-10-12｜OpenDesk Browser。** 本文用于 Sidebar AI 生成代码、源码 Demo、开发文档和验收任务；`src/libs/runtime-contract.js` / `src/libs/catalog.js` 仍是**实际库的 ID、世界、版本和 API** 权威，本文不建立第二份可执行注册表。**长期产品需求是普通用户零参数直接调用受控能力；它不是把所有库塞进 SW，也不是让每个世界共享同一组全局。**
 
-> **五种依赖使用方式（2026-10-14）**：在**本地多文件** Page/Controller 的同一 `main.js` 中，① 固定 HTTPS ESM `import`、② 精确 npm ESM `import`、③ 相对模块 `import` 是**三条真实静态导入**；④ `opendesk.libraries` 通过项目元数据**按需启用扩展内固定库（不写 import）**；⑤ `_`、`dayjs`、`OpenDeskLibs` 为对应执行世界**默认变量（无需 import）**。详细表格、纯计算示例及尚未验收的边界以[唯一依赖使用合同](../framework/universal-dependency-runtime-usage-contract.zh-CN.md#2026-10-14-统一使用合同五种依赖使用方式r794混合实测待执行)为准。单文件直接编辑器无相对目录上下文；其他执行世界不继承 Controller/Page 默认库。此五来源综合示例尚非 Chrome PASS。
+> **五种依赖使用方式（2026-10-14）**：在**本地多文件** Page/Controller 的同一 `main.js` 中，① 固定 HTTPS ESM `import`、② 精确 npm ESM `import`、③ 相对模块 `import` 是**三条真实静态导入**；④ `opendesk.libraries` 通过项目元数据**按需启用扩展内固定库（不写 import）**；⑤ `_`、`dayjs`、`OpenDeskLibs` 为对应执行世界**默认变量（无需 import）**。详细表格、纯计算示例及尚未验收的边界以[唯一依赖使用合同](../framework/universal-dependency-runtime-usage-contract.zh-CN.md)为准。单文件直接编辑器无相对目录上下文；其他执行世界不继承 Controller/Page 默认库。此五来源综合示例尚非 Chrome PASS。
+
+**先选开发方式：** [四类用户需求、Stay Focus 多 JS 分工与生命周期](extension-development-selection.zh-CN.md)。该指南回答“想做什么、在哪里运行、谁启动和停止”；本页继续维护各世界变量、入口语法和依赖合同。语言/框架、源码模块与运行环境不是同一概念。
 
 ## 1. 入口合同：推荐零参数，不把内部绑定参数当成用户 API
 
@@ -119,7 +121,7 @@ if (label) label.textContent = '工具已初始化';
 可信 Background / Side Panel 宿主 / 扩展自定义页面的源码可以在其各自 WXT 固定入口中静态导入实际需要的包，例如 `import dayjs from 'dayjs'`，**不是**把 `OpenDeskLibs` 全局注入所有扩展页面；这属于框架开发者构建行为，而不是普通用户脚本需要写的 import。
 
 
-### 实际可运行示例：四种扩展世界不要混用
+### 可信入口与沙箱工具的不同写法
 
 - [Background 的 ESM 模块示例](../../examples/libs/trusted-imports/background.mjs)：从固定 npm 锁静态 `import dayjs from 'dayjs'`、`import {words} from 'lodash-es'`；只把所需模块编入该受信 WXT entry，**不能**假设有 Controller `page`。
 - [可信 Side Panel 宿主模块](../../examples/libs/trusted-imports/sidebar-host.mjs)：显式导入 `query-string`、`dayjs`，是扩展维护者的受信代码，绝不导入到用户工具的 opaque iframe。
@@ -127,9 +129,9 @@ if (label) label.textContent = '工具已初始化';
 - [可打包的 Side Panel 用户工具](../../examples/sidebar-tools/runtime-globals-demo/README.md)：`tool.config.json` + HTML/CSS/经典 JS，真实通过 `globalThis.OpenDeskTool.root/request` 使用已授权桥；有明确导入与手工验收流程。
 - [单文件 Page 的零参数示例](../../examples/programs/single-file/page-globals-zero-arg.js)：`async function main()` + `document` + 默认 `_`、`dayjs`；单文件编辑器不要粘贴 ESM 的 `export default`。
 
-三个可信入口示例是**可在 Node 执行的受审静态 import 模块**，供维护者把实际需要的函数放进已有 `src/**` WXT 入口，不是已在产品注册的三个新入口，更不能直接把 examples 目录当成生产 SW 依赖；否则会被构建来源审查拒绝。它们的独立 `npm ci` + Node 方法测试不构成真实扩展页面安装回执。
+以上三个 `examples/libs/trusted-imports/` 模块是**可在 Node 执行的静态 import 示例**，没有登记为产品固定入口；接入仍需明确的构建来源审查。这个限制不是对整个 `examples/` 目录的禁令：Stay Focus/AdBlock 已审核的项目 `trusted/` 由固定入口实际消费。目录名不授予信任，独立 `npm ci` + Node 方法测试也不构成真实扩展页面安装回执。
 
-已安装小工具是第四种独立世界：没有 `page` / `_` / `dayjs` 自动注入，不需要 `main({page})`，也不能把可信宿主中的原始 import 放进经典工具 JS。真要使用第三方库，应在该工具本地先打包为审核过的自包含经典 JS；用户依然不用重新编译整个 Chrome 扩展。
+已安装工具在独立沙箱世界运行：没有 `page` / `_` / `dayjs` 自动注入，不需要 `main({page})`，不能把可信宿主的原始 import 粘进经典工具 JS。依赖按工具本地构建处理；v2 可明确选择固定纯模块，React 工具也可按已支持的 `uiRuntime: "opendesk.react-ui.v1"` 选择固定 Shared UI。这些都不继承特权宿主内存或 Chrome 权限。完整规则见 [Sidebar Tool 开发规范](sidebar-tool-development.zh-CN.md)。
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
@@ -137,7 +139,7 @@ node --test tests/environment/runtime-globals-zero-arg.test.mjs tests/environmen
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/runtime-globals-demo
 ```
 
-构建后的工具 JSON 还须用户在「工具」中审阅、确认安装与主动打开；真实 Chrome 验收用原始版本/权限/文档/构建哈希判断，L2 与实测不能混作一个 PASS。
+构建后的工具 JSON 还须用户在「扩展 → 应用」中审阅、确认安装与主动打开；真实 Chrome 验收用原始版本/权限/文档/构建哈希判断，L2 与实测不能混作一个 PASS。
 
 ## 多库声明（R16.6）
 

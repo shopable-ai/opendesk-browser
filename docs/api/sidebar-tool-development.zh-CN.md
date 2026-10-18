@@ -32,7 +32,7 @@
 | 目标 | 推荐开发路线 | 打包和运行 | 特别限制 |
 | --- | --- | --- | --- |
 | 常规笔记、格式转换、Markdown、个人信息面板 | **轻量工具**：HTML + CSS + 经典 JS | `tool.config.json` → `build-sidebar-tool.mjs` → 由用户导入并打开 | 不需要每个工具再建 Chrome 扩展或后台运行器 |
-| 有组件/复杂 UI 的工具 | **预编译工具**：React/Vue/可选 Tailwind | 先用 Vite 产出单个 IIFE JS + 静态 CSS，再走相同工具打包器 | 框架代码计入包预算；不能在 sandbox 直接运行 JSX/TSX/.vue/ESM |
+| 有组件/复杂 UI 的工具 | **预编译工具**：React/Vue/可选 Tailwind | 先用项目构建产出 IIFE JS + 静态 CSS，再走相同工具打包器；可显式选择已支持的 Shared UI | 自带依赖计入包预算；选择固定 `uiRuntime` 时按其外部依赖合同构建，不能在 sandbox 直接运行 JSX/TSX/.vue/ESM |
 | 在网页插入按钮、访问 DOM、添加 React/Vue UI | **Page USER_SCRIPT / Page Program**，见 [公开规范](page-userscript.zh-CN.md) | `examples/programs/<id>/`；独立 Page 安装/权限合同 | 不把网页增强误当 Sidebar Tool，不默认修改 Host |
 | 已确认为第一方可信特权功能 | **可信扩展增强**：经审查的固定 Content/后台或 Side Panel 功能 | 专属业务优先归已有项目 `trusted/`，或保留有必要职责的 `src/<feature>/`；固定入口审计、定向测试并重建整个扩展 | 普通第三方不能靠 JSON 声明获得任意 Chrome/Native 权限 |
 | 运行网页 USER_SCRIPT 或 Controller 自动化 | **不是这种工具包** | 阅读 [Page USER_SCRIPT](page-userscript.zh-CN.md) 或 [Controller](controller.zh-CN.md) | 不把 `.opendesk-task.json`、`package.json.opendesk` 与 `.opendesk-tool.json` 混用 |
@@ -64,7 +64,7 @@ official-tools/catalog.json                 # 官方可信源码登记，无版�
 src/sidebar-tools/                          # 框架 bridge/sandbox/可信目录解析
 .wxt/public/official-tools/                  # WXT 暂存生成资源
 dist/{production,development}/official-tools/ # 最终固定 Catalog + 按 ID 分目录的工具 JSON
-examples/sidebar-tools/<id>/trusted/          # 仅经审计第一方业务源码；不进入动态 JSON
+examples/sidebar-tools/<id>/trusted/          # 受审业务源码；入口决定权限，纯模型可被明确选入沙箱
 src/<feature>/                               # 兼容转发或尚未提取的必要受信产品服务
 tests/environment/<feature>.test.mjs          # 组件/打包/权限/存储负例
 tests/framework/<feature>-native*.test.mjs    # 需要 Chrome 原生验收时
@@ -88,6 +88,12 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 | 扩展阻止页 | 固定 HTML/CSS/JS 资源 | 由 manifest/WAR 和正式打包器限定；不得插入动态工具 JS |
 
 具体例子：Stay Focus 已在 R2 将唯一受信业务源码抽至 `examples/sidebar-tools/stay-focus/trusted/`，可安装沙箱 UI 则位于同项目 `src/`；旧 `src/stay-focus/*.js` 只做兼容转发。AdBlock 已在自身项目 `trusted/` 维护可信后台；Time Review 仍由 `src/time-review/` 承担必要计时业务、独立项目保留 UI。参阅 [Stay Focus R2 提取记录](../framework/workstreams/stay-focus-extraction-r2-20261018.md)；对尚未提取的工具应按消费者逐项判断，**不借“独立”直接把 JSON 包脚本提升为 Background 或 Content Script**。
+
+**复用模块不共享权限或内存。** `files` 明确选择包字节；当前 v2 支持最多 8 个有序且不重复的 Classic `files.dependencies`，构建时保留为包内固定 scripts，运行时按声明顺序在主 JS 前加载，不是扫描目录或任意 import loader。[Prompt Shortcuts](../../examples/sidebar-tools/prompt-shortcuts/tool.config.json) 实际选择 `trusted/model.js` 进入沙箱，其固定网页入口也导入该模型。目录名不产生特权，两个环境是独立实例；只升级 JSON 不更新已编译的网页副本，需保持数据合同兼容。
+
+**打开、关闭、停用与卸载要分开设计。** 打开工具创建 UI 实例；文档卸载清理自己的 Root/监听/定时器；重开从获准存储恢复。关闭 UI 不会回滚已提交的 Cookie 操作或后台规则。可信后台通过 Chrome 事件和持久状态继续工作，停用/卸载按产品自身生命周期撤销规则并分别决定保留/删除数据；不能要求 iframe 常驻。Stay Focus 的实际五种停止操作及 JSON/固定后台升级边界见 [选型指南](extension-development-selection.zh-CN.md)，不在本规范复制产品细则。
+
+**复杂 UI 仍归工具自己的文档。** 当前 AdBlock 已使用 `uiRuntime: "opendesk.react-ui.v1"`、独立 `src/App.jsx` 和固定 Shared UI，在沙箱中创建自己的 React Root；这不违背主工作台文档的单 Root 约束。工具组件、业务模型不能为了共享 React 就导入主工作台。是否使用固定 runtime 必须看具体配置，不能把任意宿主库当成默认全局。
 
 平台依赖只能向通用能力流动：`工具 UI → 既有沙箱消息桥 → 可信宿主/授权 → 静态产品服务 → Chrome`。平台可在明示的编译期接入点引用特定产品，但通用安装器、UI Host、Bridge 不应内嵌某个产品的业务算法、策略文案、私有状态/规则清理。特权源码即使被移到 `examples/` 也**不能动态从可安装包提升权限**；必须先进入受审计的固定扩展构建闭包。
 
@@ -121,8 +127,8 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 
 - `id` 必须匹配源码中的 `^[a-z][a-z0-9-]{1,39}$`，发布后保持稳定；更改 ID 会形成另一个工具及数据命名空间。
 - `version` 使用非负整数的 `major.minor.patch`（例如 `1.0.1`，不能带 `v`、预发布标签）；更新用户可见功能/权限/数据结构时明确升级版本、审查兼容性。版本号与代码哈希是不同维度。
-- `title/description/capabilities/files/assets` 属于 **tool.config.json 源清单**；最终打包文件只包含 `format/id/version/title/description/capabilities/html/css/js`。不要给严格 JSON 加 `permissions`、`native`、`packageUrl`、`marketId` 等未实现的字段。
-- `files` 的三个源路径均为项目根下的相对路径。打包器会检查路径穿越和软链接越界；`assets` 最多 16 个、每张不超过 96 KiB，允许 PNG/JPEG/WebP。通过 `{{asset:assets/icon.png}}` 引用，打包器嵌为 `data:` URL；不是 HTTP/CDN 资源。
+- `title/description/capabilities/files/assets` 属于 **tool.config.json 源清单**；最终包的基础字段为 `format/id/version/title/description/capabilities/html/css/js`；v2 的 `requires/contributes/scripts`、显式 `uiRuntime` 等受限字段按 [公开工具 API](sidebar-tools.zh-CN.md) 及当前 Schema 校验，不能将这份基础列表当作全部版本的字段全集。不要给严格 JSON 加 `permissions`、`native`、`packageUrl`、`marketId` 等未实现的字段。
+- `files` 的 html/css/js 三个源路径均为项目根下的相对路径；v2 可选 dependencies 按上文受限顺序构建，v1 不接受该字段。打包器会检查路径穿越和软链接越界；`assets` 最多 16 个、每张不超过 96 KiB，允许 PNG/JPEG/WebP。通过 `{{asset:assets/icon.png}}` 引用，打包器嵌为 `data:` URL；不是 HTTP/CDN 资源。
 - 当前合同：最终包最大 **320,000 UTF-8 字节**；HTML ≤64,000、CSS ≤120,000、JS ≤220,000 **字符**，打包器对输入源码还有字节预算。最多同时安装 12 个工具。以代码实时限制为准，不能为了通过校验任意放大预算。
 - 改代码但不改变版本时可以生成不同的**开发快照**；正式安装/更新时要明确审查新包字节、所申请能力和升级策略，不把“相同版本”当“已审批”。
 
@@ -257,7 +263,7 @@ npm run verify
 - **无障碍**：表单 `label`，图标按钮 `aria-label`，键盘焦点/Enter/Escape，动态状态 `role=status`，足够对比度，不仅凭颜色表示状态；加载中、错误、无数据、权限不足、只读预览、保存成功都需明确反馈。
 - **数据与性能**：不反复对整页做昂贵扫描，不在主工具 iframe 里执行持续后台任务；页面监听、定时器、Observer 应有销毁策略。处理长文本、超额/并发冲突时给错误和恢复路径，不静默截断或覆盖。
 - **安全**：页面内容通过 `textContent` 或明确净化的数据模型展示；不要把不可信 HTML 直接插入。不能借助 DOM 字符串过滤代替真实 CSP、授权与消息校验。
-- **依赖**：普通工具优先零运行时依赖。React/Vue/第三方库必须锁定版本、本地编译、遵守许可证与包预算；不假定宿主提供 React、Tailwind 或 CDN。
+- **依赖**：普通工具优先零运行时依赖。React/Vue/第三方库必须锁定版本、本地编译、遵守许可证与包预算；只在明确声明且宿主支持 `uiRuntime` 时使用对应固定 Shared UI，不假定其他宿主库、Tailwind 或 CDN 自动可用。
 
 ## 6A. 可安装工具的信息架构与交互基线（知识收件箱 R24 验证经验）
 
@@ -317,7 +323,7 @@ npm run pack
 | **特殊工具补充说明（人）** | `examples/sidebar-tools/<id>/DEVELOPMENT.zh-CN.md`（按需） | 仅写与统一规范不同的可信逻辑/迁移/测试 |
 | **仓库/工具 AI 限制（AI）** | 根 `AGENTS.md`、可选工具目录 `AGENTS.md` | Agent 只读/可写职责和禁止事项 |
 | **复用执行流程（AI）** | `.agents/skills/opendesk-sidebar-tool-dev/SKILL.md` | 按任务类型选择修改、打包、测试、报告 |
-| **需求与业务路线（人）** | `docs/product/` | 用户故事、产品优先级、未实施需求 |
+| **需求与业务路线（人）** | 单工具自己的 `REQUIREMENTS/ROADMAP`；跨工具路线才归 `docs/product/` | 用户故事、产品优先级、未实施需求，避免在通用文档复制私有产品规格 |
 | **工程验收与原始证据** | `docs/framework/workstreams/`、`evidence/` | 候选 SHA、包身份、原始日志和限制 |
 
 **交付必须自检**：源码能单独维护；所生成 JSON 与授权声明一致；默认预览不执行写入；手动导入能审查并确认；官方发行由 Catalog 从可信源码生成并验证；UI 可访问/可用；权限/撤权/数据保留符合设计；测试结果及未测边界有证据；不修改无关工具或重建工具框架。

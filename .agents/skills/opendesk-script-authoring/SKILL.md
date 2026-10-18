@@ -15,6 +15,10 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 - [`opendesk-sidebar-tool-dev`](../opendesk-sidebar-tool-dev/SKILL.md)：用户/AI 在 **「扩展」中安装的「应用」（Sidebar Tool）**，`opendesk.sidebar-tool.v1`、iframe 沙箱及 `OpenDeskTool` 桥。
 - [`opendesk-trusted-sidebar-feature`](../opendesk-trusted-sidebar-feature/SKILL.md)：随扩展静态构建、经过审计的 **第一方可信 Side Panel 功能**；不能把动态工具源码改作可信 UI。
 
+## 先按用户需求分流
+
+用 [四类需求选择指南](../../../docs/api/extension-development-selection.zh-CN.md) 先区分网页自动化、网页增强、侧边栏应用和组合式扩展。JS/React/Vue 是编写方式；多个源文件不等于多个运行环境。纯网页增强默认沿 Page 路径，已有 Prompt Shortcuts 等复合工具保留其安装身份；需要关 UI 后继续工作的业务先核对已有受审能力，不能把 Controller Worker 当持久后台。
+
 ## 先读当前仓库，而不是复述过时教程
 
 **先完成当前核心需求，再选最小验证。** 解释脚本时只读代码和相关公开文档；普通编写/修复只验证本次使用的执行世界和主流程。用户未特别要求时，不扩展为生产验收、变异测试、全部语言/版本组合、全量故障注入或长时间循环；下文场景是按差异选择的参考集合，不是每次必跑清单。只有当前任务确实需要独立 Chrome/CFT 启动或出现钥匙串阻塞时，才按需使用 `chrome-testing-keychain`，不因提到浏览器就启动环境自测。
@@ -79,11 +83,19 @@ const count = ref(0);
 
 **多文件 ESM Controller/Page** 推荐 `export default async function main()`；**组件**则默认导出 React 函数/Vue 组件，不能机械改成 `main()`。Side Panel 单文件经典 JS 不应强加 `export default`。例子以 `examples/programs/single-file/`、`local-controller/`、`local-page-ui/`、`page-ui-react/`、`page-ui-vue/`、`page-ui-react-direct/`、`page-ui-vue-direct/` 的现有配置与源码为准。
 
+## 项目声明、运行入口与停止
+
+- 本地项目在 `package.json.opendesk` 声明 `format: "opendesk.project.v1"`、`sourceFormat: "esm"`、`runtimeKind` 与 `entry`。现有 runtimeKind 仅为 `controller` / `page-userscript`；Controller 配 siteOrigins/permissions/paramsSchema，Page 配 pageRules。沿 [完整项目合同](../../../docs/api/local-projects.zh-CN.md) 及既有示例，不发明 background/sidebar-app 值。
+- 开发界面通过既有 project.resolve 核验类型、绑定身份、源码摘要和准备代际；显式运行才转 run.start / page.preview。单文件由实际 Run/Preview 入口决定；已声明类型不符时拒绝，不能按文件名猜世界。相对 import 由入口构建图收集，不是每文件启动一个进程。
+- Controller Stop 或实际 RunHost 文档销毁会终止其 Worker；隐藏界面、切 Tab 不自动等于销毁，后台恢复不能承诺重放。Page 试运行不因关闭编辑器自动消失，正式安装的匹配启动与编辑器独立。
+- 当前正式 Page 自动入口是顶层文档、document_idle；注册的是固定 bootstrap，获准后执行已安装版本。`pageFrames` 子页面资源合同另行检查，不推广为任意 allFrames 自动注入。
+- 预览 Stop 只请求退役对应预览的受管 UI，不停用已安装程序；安装版的停用/卸载另撤销后续自动启动。清理回执可能 unknown，保留未知状态；存在未知清理栅栏时按原协议关闭原标签页后在新文档继续，不能把刷新说成必定解除；任意脚本添加的 DOM、Observer、监听、定时器需作者在既有生命周期登记清理。旧文档/BFCache 与回执代际分别核验，不能把 unregister 说成撤销所有已执行效果。
+
 ## 运行时、依赖和隔离
 
 - Controller `page/params/axiosx` 是受控 Worker **词法能力**，不是网站 `window.page`；Page `USER_SCRIPT` 可用 `document`，不能拿到 Controller 专属能力。`_`、`dayjs`、`OpenDeskLibs` 按各执行世界的预装合同判断，不能假设工具 iframe、网站 MAIN、SW 全有这些全局。
 - React/Vue 网页组件用既有受管容器、官方固定 Runtime、`root.unmount()` / `app.unmount()` 与 Stop。不要自己再创建框架 Host，不能把 Shadow DOM 当作权限沙箱。
-- 第三方依赖优先复用现有固定库与标准 `import`。Developer 浏览器内 ESM/本地项目的精确版本、锁定来源、SHA 和世界限制要按当前 `src/libs` / Compiler / Dependency Manager 验证；不宣传任意 npm 裸名、`latest`、远程 CDN 或动态导入均可直接运行。
+- 第三方依赖优先复用现有固定库与标准 `import`。Developer 浏览器内 ESM/本地项目的精确版本、锁定来源、SHA 和世界限制，作者先按公开依赖合同、准备结果和明确错误核对；只有合同不足或行为冲突，才由平台维护者追踪 `src/libs` / Compiler / Dependency Manager；不宣传任意 npm 裸名、`latest`、远程 CDN 或动态导入均可直接运行。
 - 用户主动 Run 不要求逐库人工核对 SHA；自动准备仍必须保留真实 Chrome 权限、固定版本、来源和内容完整性。缺失依赖/授权时报告真实阻塞，不使用 `eval`、动态 `<script>`、伪造 Host 回执或旧成功代码兜底。
 - 本地开发只连接已授权目录，项目已锁 npm 先在项目内合法安装；不要重复搭建 Node Runner 或借执行脚本获得任意磁盘读取。`opendesk browser dev .` 保存后准备，**只在用户明确 Run 时执行**。
 - 不跨站扩大 `pageRules`；不猜测当前 `tabId/documentId/origin`、不自动获取可选 Chrome 权限、不以发布/安装替代手势。停止不会回滚已经产生的网页/网络副作用。

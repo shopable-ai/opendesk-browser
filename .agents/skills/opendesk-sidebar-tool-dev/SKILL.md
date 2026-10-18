@@ -1,6 +1,6 @@
 ---
 name: opendesk-sidebar-tool-dev
-description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI and business logic in examples/sidebar-tools/<id> with OpenDeskTool.request; hand off packaging, install verification and offline release to opendesk-sidebar-tool-package, not Page/Task or audited trusted runtime features.
+description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI and business logic in independent examples/sidebar-tools projects with OpenDeskTool.request; hand off packaging, install verification and offline release to opendesk-sidebar-tool-package, not Page/Task or audited trusted runtime features.
 ---
 
 # OpenDesk Browser · 扩展中心应用（Sidebar Tool）开发 Skill
@@ -9,7 +9,7 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 当用户说「在**扩展**里开发、安装、打开或管理一个**小应用**」或要求 AI/Codex 创建、修改、打包、预览、安装和验收 Side Panel 可安装应用时使用。**「扩展」是一级 Tab，「应用」是行级类型标签**，不是单独 Tab。本 Skill 不负责 Controller Task、Page USER_SCRIPT「网页增强」或第一方可信功能。
 
-先读 [R4 现行产品导航与术语](../../../docs/product/sidebar-ui-spec.zh-CN.md)。保留技术模型 `examples/sidebar-tools/<id>/`、`opendesk.sidebar-tool.v1/v2`、opaque-origin iframe、`OpenDeskTool.request`、打包器、Host 和安装协议，**不因产品叫扩展而改变技术身份**。
+先用 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 判断：侧栏管理 UI 选本 Skill；自动化、网页增强各走原脚本合同；组合式应用按职责协作，不能声明一个 JSON 就取得任意后台 JS。再读 [R4 现行产品导航与术语](../../../docs/product/sidebar-ui-spec.zh-CN.md)。保留技术模型 `examples/sidebar-tools/<id>/`、`opendesk.sidebar-tool.v1/v2`、opaque-origin iframe、`OpenDeskTool.request`、打包器、Host 和安装协议，**不因产品叫扩展而改变技术身份**。
 
 **零技术输入的前置关卡**：用户只用一句话描述工具目标时，先执行[自然语言扩展开发工作流 R2](../../workflows/extension-creation.md) 的 Phase 0–3，恢复已批准的产品场景/原型和最新源码，生成带 F/S/A 编号、证据来源与 P0/P1 的功能树。未通过 Gate A 不直接生成 HTML 或提交工具源码；仅补全低风险推断，对权限/隐私/不可逆行为保留批准门禁。通过后继续复用本 Skill、现有 Preview Skill 和唯一打包器，不建立新路由器；当前自动化执行入口仍为 `NOT_IMPLEMENTED`。
 
@@ -40,7 +40,7 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 | 可信 Side Panel / 扩展页面 | 真实点击、Chrome 原生权限申请、危险操作确认 | 独立项目 `trusted/tool-host.js`、`trusted/host-controls.js` 或尚在 `src/<feature>/` 的审计代码由固定扩展构建入口引用；不能从动态工具包导入 JS |
 | 扩展拦截说明页 | DNR 导航说明、无敏感信息显示 | 经固定资源清单编译；不加载可安装 UI 的动态字节 |
 
-**以已完成 R2 业务提取的 Stay Focus 为例**：`examples/sidebar-tools/stay-focus/src/` 是独立工具 UI；同一项目 `trusted/` 才是受审后台、策略、DNR、页面提醒和权限适配的唯一业务源，经原 `src/sw.js`、`src/entrypoints/` 固定入口编译；`src/stay-focus/*.js` 只是兼容转发，不再接收业务。用户 JSON 不包含 `trusted/`，修改它要重建整个浏览器的可信代码。见 [产品说明](../../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 和 [R2 提取证据](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。**不为路径美观二次搬动已通过的代码**。
+**以已完成 R2 业务提取的 Stay Focus 为例**：`examples/sidebar-tools/stay-focus/src/` 是独立工具 UI；同一项目 `trusted/` 才是受审后台、策略、DNR、页面提醒和权限适配的唯一业务源，经原 `src/sw.js`、`src/entrypoints/` 固定入口编译；`src/stay-focus/*.js` 只是兼容转发，不再接收业务。当前 Stay Focus 的 files 只选 UI；修改固定可信模块要重建浏览器扩展。该结论不是目录禁令：Prompt Shortcuts 的 v2 files.dependencies 选择了 trusted/model.js 这一纯模型进入沙箱，网页入口也复用它；两个环境不共享内存、权限或升级后的代码实例。见 [产品说明](../../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 和 [R2 提取证据](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。**不为路径美观二次搬动已通过的代码**。
 
 依赖方向以 `工具 UI → 受控工具请求 → 现有可信宿主/授权 → 工具受信任服务 → Chrome 能力` 为准。共用宿主可以有**固定、审计的组合入口**，但不得继续长出某个工具的业务策略、确认文案、私有存储/DNR 清理细节；这些属于该工具的受信任模块。反过来，工具也不能复制通用安装器、消息授权、SW 或构建器。
 
@@ -61,7 +61,7 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 区分 **工具已安装、工具已启用、后台/网页服务真实可用、Chrome 原生权限已批准**。声明 capability、侧栏出现一个 JS 适配器、源码构建通过，都不能证明 Background/Content Script 具有真实工作能力。先核查真实消费者和已有 Browser SDK、Page Relay、Controller/USER_SCRIPT、可信 Host，不为工具新建运行器。
 
-Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当前 MV3 Service Worker 验证服务协议与必要 Chrome API。此请求不是沙箱公开能力，不需要先安装，也不申请原生权限。缺失、错误版本或不可达服务是 `RUNTIME_UNAVAILABLE`，阻止继续持久化安装并保留已有用户数据；尚未批准 `idle` 或 `declarativeNetRequestWithHostAccess` 是 `PERMISSION_REQUIRED`，在真实可信点击之后申请，不应误报缺失后台。探测正常并不证明计时、提醒、DNR 已在 Chrome 实测。
+Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当前 MV3 Service Worker 验证服务协议与必要 Chrome API。此请求不是沙箱公开能力，不需要先安装，也不申请原生权限。缺失、错误版本或不可达服务是 `RUNTIME_UNAVAILABLE`，阻止继续持久化安装并保留已有用户数据；当前 Manifest 已把 `declarativeNetRequestWithHostAccess` 声明为必需权限；`idle` 才是可由可信真实点击申请的可选权限。服务缺失与尚未取得可选权限/网站授权要分别报告，不能把两项都写成点击后申请的可选权限。探测正常并不证明计时、提醒、DNR 已在 Chrome 实测。
 
 逐项核对「应用/用户场景 → Sandbox、Side Panel、SW、ISOLATED 或 MAIN → 实际操作 → Manifest/原生权限 → 显式网站授权 → 重启/撤权/停用副作用 → 测试和真实证据」。状态用 `SUPPORTED`、`PERMISSION_REQUIRED`、`RUNTIME_UNAVAILABLE`、`UNSUPPORTED`、`NOT_TESTED`；没有同候选真实 Chrome 证据不能判原生通过。独立安装不要求普通用户有项目源码，但预编译特权服务必须随正式扩展发行。
 
@@ -80,7 +80,7 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 ## 任务判断（先选一条，再改代码）
 
 - **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
-- **复杂组件**：复用 `react-starter` 或 `vue-starter`，编译成一个本地 IIFE + 静态 CSS；Tailwind 仅作为构建期可选工具。先成功本地构建再调用统一打包器。
+- **复杂组件**：复用既有 React/Vue 项目与本地 IIFE + 静态 CSS 构建。当前工具可显式选择 `uiRuntime: "opendesk.react-ui.v1"` 使用固定 Shared UI，按实际项目配置处理外部依赖；最新 AdBlock 已有真实例子。工具在自己的沙箱文档创建 Root，不把 App 导入主工作台 Root。Tailwind 仅作为构建期可选工具；构建后仍走唯一打包器。
 - **网页按钮 / DOM 增强**：先确认是否为 Page USER_SCRIPT，属于该类型就走 `examples/programs/<id>/` 与 `opendesk-script-authoring`，不能因为用户说“扩展”就默认建可信 Content/Host。
 - **Native / 特权数据**：先查公开 `OpenDeskTool.request`，固定 `page.toc/page.clip/page.capture/knowledge.store` 不是第三方任意 DOM API。缺公开能力记 `SDK_GAP_NOT_PROVEN`，危险权限无法合规授予记 `BLOCKED`；仅在经审计的一方可信业务才移交 `opendesk-trusted-sidebar-feature` 调查必要的 `src/<feature>/`。
 - **普通工具导入**：测试通过后在当前工具目录提交唯一、规范构建的 `<id>.opendesk-tool.json` 供导入，不能只给 CI ZIP；**官方可选工具**继续维护可信源码与 `official-tools/catalog.json`，由同一构建器生成浏览器离线资源。正式包是受验证的生成产物，绝不手工编辑，不为每次构建增加新文件。
@@ -103,18 +103,21 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 ## 必须始终保护的合同
 
 - 封闭 JSON 字段、稳定 toolId 和三段版本；审阅是否超包/字符/资产/存储配额。密钥/私人记录不可入包。
-- sandbox 只有 `globalThis.OpenDeskTool.{root,request}`；`chrome.*`、任意站点 DOM、Native、跨域请求、下载任意文件与远程可执行脚本不得变成隐式权限。
+- sandbox 使用公开 `globalThis.OpenDeskTool`（root/request、只读 locale 等）及获准 v2 `OpenDeskSDK`；具体全局以对应合同为准，不能说只有两个字段；`chrome.*`、任意站点 DOM、Native、跨域请求、下载任意文件与远程可执行脚本不得变成隐式权限。
 - 授权按具体 capability、真实 sender/document、当前安装包、显式站点许可和真实用户行为落实。装了工具不等于网页已授权。
-- 数据原文、用户编辑、修订冲突、异步结果未知和卸载时清理/备份均需按当前代码及用户需求设计。不使用定时器假装持久后台。
+- 数据原文、用户编辑、修订冲突、异步结果未知和卸载时清理/备份均需按当前代码及用户需求设计。不使用 UI 定时器假装持久后台。UI 卸载后内存实例结束；重开从获准存储恢复。停止专注时段、停用全部规则、停用工具与卸载是不同操作：不能把关闭 UI 说成撤销 Cookie 修改/DNR，也不能把停用一律说成删除业务数据。
+- 同 ID JSON 升级只更换该包选择的代码和对现有批准能力的调用，不替换固定 Background/Content/权限适配器。纯模块跨环境复用时核对数据合同和版本兼容；独立后台需求链接既有产品 REQUIREMENTS，不新增任意 JS 权限入口。
 - 视觉遵守现有 Side Panel R19/R20/R21/R23 设计原则：紧凑、一致、浅深模式、键盘和无障碍。但 iframe 样式不会自动继承宿主 token；需在工具自己 CSS 实现，不能未经审查改变公共设计系统。
 - 尊重并行 main 的**实际文件所有权**、构建锁、Chrome Profile 与既有证据；不以“全局唯一 writer”阻塞不相交任务，不覆盖同一文件的并行改动；未经授权不推送远端或执行完整发布/强推/重置。
 
 ## 质量门槛与交付
 
+**文档/Skill 变更仅做链接、示例、事实和元数据校验**；下列测试/构建按运行代码实际影响选择，不能因修订说明就启动全量产品测试或制造新的正式包。
+
 1. `npm run check`、`node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs`；增改权限/宿主/具体工具时加影响范围对应回归。Stay Focus 类可信工具先复核已有 `stay-focus-boundary-r1`、`stay-focus-service-r1` 和其他被影响的测试，检查目录源码归属、跨 World 接线、撤权、旧 epoch、未知副作用、DNR 自有规则与跨工具清理；不要重复创建一份空洞的目录专用测试。
 2. 官方扩展变更：`npm run build` + `node scripts/verify-package.mjs dist/production`；如执行 `npm run build:dev`，则 `npm run verify`。组件 PASS 不等于 Chrome PASS。
 3. 真实 Chrome 检查文件选择/审批/安装、iframe 主动打开/关闭、预览只读、窄屏/暗色/键盘、拒绝未知权限、更新/撤权/卸载和数据处理。官网实际网页与 Mac Native 只能用各自真实证据判定。
-4. **文档归属**：通用方法仅改 `docs/api/sidebar-tool-development.zh-CN.md`；公共 API `docs/api/sidebar-tools.zh-CN.md`；具体使用 `examples/sidebar-tools/<id>/README`；特殊开发说明 `DEVELOPMENT.zh-CN.md`；AI 局部约束 `AGENTS.md`；产品路线 `docs/product/`；原始测试 `docs/framework/workstreams/`。
+4. **文档归属**：通用方法仅改 `docs/api/sidebar-tool-development.zh-CN.md`；公共 API `docs/api/sidebar-tools.zh-CN.md`；具体使用 `examples/sidebar-tools/<id>/README`；特殊开发说明 `DEVELOPMENT.zh-CN.md`；AI 局部约束 `AGENTS.md`；单工具路线归自己的 REQUIREMENTS/ROADMAP，跨工具产品路线才归 `docs/product/`；原始测试 `docs/framework/workstreams/`。
 5. 汇报 `PASS/FAIL/BLOCKED/NOT_TESTED`，带候选 commit SHA、工具包 hash、具体测试与未测边界。`STAGED_NOT_INSTALLED`、构建通过和受控网页 fixture 都不能声称真实用户已安装、网站已测试或文件已落盘。
 
 当真实代码/合同与本 Skill 不一致时，先纠正文档或报告差异，不要静默添加新的私有 API 或绕过包验证。

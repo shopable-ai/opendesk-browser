@@ -13,6 +13,10 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 **可进入框架修改的判据**：明确要求修通用 Page Program 安装/撤权、Browser SDK、MV3/Host/Authority 的任务，本来就属于平台所有权，允许按职责修改 `src/`，不能被“凡 src 变更就拒绝”的 CI 误拦截。若从某独立扩展衍生，需先证明公开 SDK 的具体限制、可复现失败、为何业务目录无法解决、跨工具通用价值、最小公共接口/文件/测试及权限/兼容/生命周期影响，否则标 `SDK_GAP_NOT_PROVEN` 并保持平台只读。通用 Broker/Installer 禁止硬编码 ChatGPT、Mind Map、Cookie Editor 等单工具业务。
 
+## 用户先选需求，再调查运行环境
+
+先用 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 解释：网页自动化用 Controller，网页增强用 Page USER_SCRIPT，独立管理 UI 用 Sidebar Tool，多职责产品组合已有能力。不要用 Background/Worker 作为普通用户第一轮选项；产品类型、运行环境、源码模块、文件入口、语言/框架、触发时机分开。普通作者沿公开 API 与示例开发，不要求先读框架源码。
+
 ## 必须先读的权威事实
 
 先检查当前 `main`、`AGENTS.md`、`docs/framework/testing-guide.md`、对应工作流、当前 diff/共享构建资源。按任务读取：
@@ -44,18 +48,22 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 ### 同一扩展项目含多个 JS 文件：先找实际加载入口
 
-文件名、目录、`import` 和 React/Vue/JS 语言本身都**不授予运行世界**。调查现有实现时按顺序给每个文件标出：**谁声明角色 → 谁编译/加载 → 运行在哪个 JS World → 谁校验权限 → 谁控制启动/停止**。如果纯模块同时被两个可信入口导入，属于两个构建闭包里的独立实例，不能假定共享内存、全局或权限。
+文件名、目录、`import` 和 React/Vue/JS 语言本身都**不授予运行世界**。调查现有实现时按顺序给每个文件标出：**谁声明角色 → 谁编译/加载 → 运行在哪个 JS World → 谁校验权限 → 谁控制启动/停止**。同一执行图可复用模块实例；同一纯模块被不同世界的入口消费时，各自有独立实例，不能假定共享内存、全局或权限。Prompt Shortcuts 的 v2 `files.dependencies` 把 `trusted/model.js` 选进沙箱，固定网页入口也导入该模型：复用源码不提升沙箱权限，也不使网页副本随 JSON 自动升级。
 
 | 用户或扩展源码 | 由谁决定执行位置 | 当前实际链路及边界 |
 | --- | --- | --- |
 | 单文件 Controller 草稿、已授权本地 Controller 项目 | “开发”的运行草稿入口 / 项目 `runtimeKind: controller` | `src/ui/script-editor.js` → `src/run-host.js` → `src/scripting/sandbox/worker-runtime.js`；Worker 有词法 `page`/Locator，无网页 `document` |
 | 单文件 Page 试运行、本地 Page 项目 | “在当前网页试运行”入口 / `runtimeKind: page-userscript` | `src/ui/script-editor.js` → `previewPageScript` / 本地 `page.preview` → 受信 Broker → `chrome.userScripts.execute` 的 `USER_SCRIPT`；临时预览不是已安装自动运行 |
-| 正式安装的 Page Program | 固定 Page Candidate/验证、批准的 `pageRules`、用户确认安装 | `src/scripting/user-scripts/installed-programs.js` 管理 `chrome.userScripts.register`、启停/撤权与固定网页匹配；不能把用户源码登记成后台 SW |
+| 正式安装的 Page Program | 固定 Page Candidate/验证、批准的 `pageRules`、用户确认安装 | `src/scripting/user-scripts/installed-programs.js` 先 register 固定 bootstrap，命中后经安装/文档/代际核验再 execute 固定源码；当前正式自动入口为顶层文档、document_idle；`pageFrames` 是另一受管资源合同 |
 | OpenDesk Background / 固定 Content | `wxt.config.mjs`、`manifest.json` 及 `src/entrypoints/` 静态构建入口 | `src/entrypoints/background.js` → `src/sw.js`；`page-relay.js` 对应 ISOLATED；独立的 MAIN SDK 由 Manifest 指定；同一个项目的多个文件由静态 `import` 链接 |
-| Sidebar Tool | `tool.config.json` + 统一工具打包器 + 原安装器 | `examples/sidebar-tools/<id>/src/` 中已审阅的 UI 字节进入 opaque iframe；`trusted/`/可信后端代码不会因目录相邻或同 ID 而进入动态工具包 |
+| Sidebar Tool | `tool.config.json` + 统一工具打包器 + 原安装器 | `tool.config.json.files` 选择 UI 及允许依赖进入 opaque iframe；目录名不授予权限，选入的纯模块仍在沙箱；固定可信后台不能由 JSON 替换 |
 | 第一方多世界应用 | 各自唯一业务目录 + 经审查的固定扩展入口 | Stay Focus R2：`examples/sidebar-tools/stay-focus/trusted/` 是唯一可信业务源，`src/stay-focus/*.js` 仅兼容转发；AdBlock 的 `trusted/` 亦由固定入口接入；Time Review 仍由 `src/time-review/` 维护可信后台，UI 源在其安装式项目 |
 
 诊断时必须**反向追踪 import/注册/事件监听**，并核对 Manifest 生成产物、工具配置所选文件、受信任入口的实际消费者。`src/` 不必然是平台业务，`examples/` 不必然是沙箱代码；最终权限取决于是否进入已审计的固定构建闭包及运行时 Authority。普通导入的 `.opendesk-tool.json` 不得附带任意可执行 Background/Content 模块；需要新跨环境能力时先找公开 SDK，证实缺口后才最小扩充平台。
+
+**控制权与停止要追到实际 owner**：本地 `runtimeKind` 仅支持 `controller` / `page-userscript`，由 project.resolve 核验身份和准备代际，编辑器分发 run.start / page.preview。Controller 由真实可见扩展文档中的 RunHost 拥有，pagehide/dispose 终止其 Worker；切 Tab/隐藏 UI 不等于 owner 销毁，SW 恢复不得重放旧任务。Page 预览可在编辑器关闭后留在原网页；预览 Stop 只退役对应预览，安装版停用/卸载另撤销后续注册启动。受管 UI 清理仍可能返回 unknown；未知栅栏须按原协议结束原文档，不能盲目重试。未登记的 DOM/监听/计时器副作用可能需刷新，不能宣称 unregister 销毁整个 USER_SCRIPT 世界。
+
+**升级与权限分层**：Stay Focus 已支持通过受审 focus.* 修改参数，但替换计时、DNR 或提醒实现仍需固定扩展升级；独立后台升级沿其既有 R4 REQUIREMENTS，不新建运行器。当前 Manifest 的 declarativeNetRequestWithHostAccess 是必需权限，idle 才是可选权限；工具许可、网站许可和真实手势仍分别检查。
 
 推荐按一个真实用户流程走查：安装/打开 UI → 原生许可与工具身份 → SW/USER_SCRIPT/Controller 实际调用 → 网页或 DNR 效果 → 关闭侧边栏 → 站点切换、停用、撤权、更新、卸载的真实收尾。记录 SOURCE_CONFIRMED 与 NOT_TESTED，**不把编译成功等同于正在运行**。
 
@@ -71,6 +79,8 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 6. **权限最小化**：区分 `permissions`、`optional_permissions`、`host_permissions`、用户网页脚本开关和各 Program/Tool 的独立许可，避免从扩展“拥有全站权限”推导所有工具可以全站读取。
 
 ## 一次工程变更的最短闭环
+
+**仅改文档/Skill**：验证链接、示例与源码事实、元数据及场景阅读；不触发下列产品测试和构建。只有运行代码变化才按影响选择对应验证，真实 Chrome/Native/安装升级/恢复未执行时标 `NOT_TESTED`。
 
 - **事实表**：源码文件、构建入口、执行世界、来源与目标身份、信任边界、代码运行后结果/停止归属、当前观察到的真实缺口。
 - **最小修改**：先修既有模块/消费者，保持一个真实入口和一条结果链，不建立重复 Registry、Host、Worker 或灰度兼容副本。
