@@ -77,7 +77,7 @@ function App(){
         setNotice('页面或工具已切换，之前的操作结果不确定；正在读取当前 Chrome 状态。');
         return;
       }
-      const cancelled=error?.code='E_CANCELLED'||/cancel|取消/i.test(errorText(error));
+      const cancelled=error?.code==='E_CANCELLED'||/cancel|取消/i.test(errorText(error));
       if(cancelled)setNotice('已取消，未提交这次更改。');
       else{
         current.current=null;setState(null);setProblem(true);
