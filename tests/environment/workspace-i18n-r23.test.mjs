@@ -53,7 +53,16 @@ test('R23 trusted Workspace and Settings each expose one language chooser withou
   assert.match(controller,/formatFileSize\(count\)/);
   assert.match(controller,/assertAuthority\(authority\)/);
   assert.match(controller,/expectedSha256:record.sha256/);
-  assert.match(controller,/result\.sha256!==await textSHA256\(content\)/);
+  // R23.1 moved the ACK identity/SHA guard into the pure Native domain.
+  // Assert the controller actually uses it, then exercise the unknown-outcome
+  // rejection; a source-shape assertion cannot substitute for this behavior.
+  assert.match(controller,/verifyWorkspaceWriteReceipt\(result,/);
+  assert.match(controller,/verifyWorkspaceWriteReadBack\(disk,/);
+  const {verifyWorkspaceWriteReceipt}=await import('../../src/native-agent/workspace-domain.js');
+  const expected={workspaceId:'workspace-test',path:'README.md',sha256:'a'.repeat(64)};
+  assert.equal(verifyWorkspaceWriteReceipt({saved:true,...expected},expected),true);
+  assert.throws(()=>verifyWorkspaceWriteReceipt({saved:true,...expected,sha256:'b'.repeat(64)},expected),
+    {code:'E_FILES_PROTOCOL',outcome:'OUTCOME_UNKNOWN'});
   assert.match(controller,/const disk=await readFile\(record.workspaceId,record.path,authority\)/);
 });
 
