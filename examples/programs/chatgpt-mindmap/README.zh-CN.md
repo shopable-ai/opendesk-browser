@@ -1,5 +1,31 @@
 # ChatGPT 思维导图 · 真实页面入口与免费导出
 
+## 当前如何运行（2026-10-18 安装态续验）
+
+**日常 Chrome 已安装当前修复源码，关闭本项目 `opendesk-dev` / `opendesk browser dev` 后可以继续使用。** 打开或刷新 `https://chatgpt.com/*`，已有助手回复底部原操作栏最右侧自动出现导图图标；无需进入开发页点击 Run。管理入口为 OpenDesk「扩展 → 网页增强 → opendesk.chatgpt-mindmap」。
+
+| 方式 | 当前结果 | 所需程序与入口 |
+| --- | --- | --- |
+| 本地项目临时运行 | 历史真实页面 PASS；本次 Provider 已退出 | Chrome、OpenDesk 扩展、配对 Native、本项目 CLI；在开发页明确运行，仅属于预览 |
+| OpenDesk 已安装网页增强 | **PASS** | 保持原 OpenDesk 扩展启用，直接访问 ChatGPT；已验证不依赖本项目 CLI。本次 Native 后台仍连接，完全断开 Native 的运行 **NOT_TESTED** |
+| 独立 Chrome MV3 | 本机加载 PASS；真实回复闭环待登录验证；可分发包 **BLOCKED** | 已有仅供本机验证的加载目录。源码不调用 OpenDesk、Native 或本地 HTTP；厂商 runtime 生产再分发许可未获批准，未生成可分发 ZIP/CRX |
+
+当前日常安装通过原 Candidate → Verification → Available → Installed 链完成，程序为 `opendesk.chatgpt-mindmap`、源码版本 `0.2.0`、安装 Revision `r1`，已启用、已授权，Chrome 状态 `registered`。批准范围仅 `https://chatgpt.com/*`，顶层 `USER_SCRIPT`、`document_idle`。原扩展 ID 仍为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载目录仍为 `dist/development`，Chrome `155.0.8059.84`。本轮未替换日常扩展或停止其他会话的 `npm run dev` watcher。
+
+安装源码 SHA-256：`226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e`；构建输入 SHA-256：`dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556`。结束临时受管 UI 并收到清理回执后刷新真实 ChatGPT，两条已有回复自动出现按钮；已完成 XMind 打开、浅色切换、返回原文、重开及主题保留。安装态 XMind 下载通过 ZIP CRC，含 30 个节点、8 条备注。未发送 ChatGPT 消息。详见 [`tests/mac-install-standalone-20261018.json`](tests/mac-install-standalone-20261018.json)；私人截图、原文、下载及原始回执仍仅保存在本机忽略目录。
+
+### 独立 MV3 本机验证入口
+
+新增薄包装复用 `src/answer-registry.js`、`src/view.js`、原 XMind 子帧协议及三格式导出。业务位于静态 `ISOLATED` content script；扩展 relay 只认证并转交私有 MessagePort；原绘图代码位于无扩展 API、无同源权限的 sandbox。四份原始资源仍先核对固定 SHA，输出记录唯一原有 timer guard 转换及产物 SHA；没有远程代码或开发服务器。
+
+```sh
+node examples/programs/chatgpt-mindmap/scripts/build-standalone.mjs --local-validation-only --out artifacts/chatgpt-mindmap-standalone/my-local-validation
+```
+
+输出目录必须是仓库已忽略的 `artifacts/` 下尚不存在的目录。通过 Chrome 支持的本机方式：打开 `chrome://extensions` → 开发者模式 → 加载未打包的扩展程序 → 选择生成目录；然后刷新 ChatGPT。当前已实际加载的候选目录为 `artifacts/chatgpt-mindmap-standalone/executor-validation-20261018-final/`，独立扩展 ID `kagejdafejipmdciobcmapdobmiohopf`，隔离 Chrome `155.0.8059.39`，其中未安装 OpenDesk。
+
+上述目录及厂商资源仅供本机验证，不能作为允许分发的安装包。默认构建会以 `E_XMIND_LICENSE_BLOCKED` 拒绝；缺少 [`tests/xmind-license-review-r396.json`](tests/xmind-license-review-r396.json) 所列资源的有效生产再分发许可及原审阅链批准。未提交 vendor runtime，未修改批准标志或移除资源校验。获得许可后仍需完成发布打包准入和对应真实浏览器验证，不能把本机加载成功当作商店发布成功。
+
 ## 已登录真实页面续修（2026-10-18）
 
 当前 Mac Chrome 155.0.8059.84 的已登录页面已改用搜索单元、助手标题标记和 DIL 正文，旧消息 role 属性不存在。适配器现在识别这一路结构，只绑定当前 turn 的直接助手操作栏，排除嵌套用户操作栏；正文或操作栏有歧义时不挂载。搜索消息身份与 turn 完成状态继续接入原 registry 的更新和清理。
@@ -10,7 +36,7 @@
 
 本机另发现全局旧 Native 仍按 516 KiB 拒绝约 4 MB 固定资源源码；经原 `browser update` 更新到已有维护版本后，原扩展 ID 与配对保持一致，目录运行成功。一次打开导图状态下的换版清理超时已保留失败证据；按回执结束旧文档并重连原侧栏后恢复，没有重放未知动作。该清理异常未作为正式生命周期 PASS。
 
-## Page Authority 本地正式安装（2026-10-18）
+## 历史隔离 CFT 的 Page Authority 安装（2026-10-18，旧源码）
 
 原业务目录经现有 `build:program`、草稿包导入与 Candidate → Verification → Available → Installed，正式安装为 `opendesk.chatgpt-mindmap:r2`。安装 ID `4faafc60-cfab-4c97-b547-418b61c9af7f`，授权 generation 4，Chrome 注册为 registered；「扩展 → 网页增强」可检索。范围仅 `https://chatgpt.com/*`，顶层 `USER_SCRIPT`、`document_idle`，网站访问已满足。升级验证期间主动暂时停用 r1，安装 r2 后恢复原自动运行状态。
 

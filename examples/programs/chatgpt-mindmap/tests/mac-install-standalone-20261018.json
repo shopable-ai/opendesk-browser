@@ -1,0 +1,246 @@
+{
+  "format": "opendesk.chatgpt-mindmap.install-standalone-evidence.v1",
+  "date": "2026-10-18",
+  "checkedAt": "2026-10-18T08:58:05.193809+00:00",
+  "programId": "opendesk.chatgpt-mindmap",
+  "version": "0.2.0",
+  "sourceHash": "226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e",
+  "inputHash": "dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556",
+  "businessSourceFiles": {
+    "src/xmind-convert.js": "ab9866e43f400b28649a0b49d831e0fcec14b8021e6f44325117b5784af745b4",
+    "src/xmind-adapter.js": "0992b16b394fad2b94709034cd3ff9a43102eb8b613798f7f2cc4801122f0147",
+    "src/export.js": "9dcb147a2b4bc6e20c170bcdf1a2a46641d834ffc736e1c125eda2446fce1201",
+    "src/xmind-frame-protocol.js": "69a6624f648011b3ee279c07ce58863d2a93275cbf4a2350e16f2241b68f4052",
+    "src/xmind-png.js": "f2ca81404f9b3d16001eb6503059d51c572cd16fc79b26c865606be0a722a2c6",
+    "src/xmind-installed-frame.js": "9e5c24ae2528d9cbee6ecf649d5533e349e476d154f97f1159232088e94b0129",
+    "src/xmind-installed-child.js": "6e69394b776bcc3e175b2f9457164030bad7656f1450b54ad7a251e1f3682db3",
+    "src/main.js": "15911d0729b17c23ffb0734b9bc26e21ede5a3465e858ef3ef0b1d05baa346bf",
+    "src/extract.js": "ed0ae96bb7ac67bf40ca4c3b58e4bb2184ea4bea1aff93d791ebdd521cd1d832",
+    "src/xmind-frame-child.js": "796054477754ed6acb985de31751f4c2be509c863f63fba8b9113e955600aa1a",
+    "src/chatgpt-adapter.js": "03a95fd4226b7a0b0c91ac2ff7d1815c0fc167618497d2e652b3585f86556b7c",
+    "src/view.js": "ec72c43dcb058d978a4b1a0d8e3306c65ac260d0f4afb44d5dd58aea2d1babd7",
+    "src/xmind-frame.js": "7085aa3c1e2df7408b65aa7bc7e7550f29f2a365c7b3e98dcf3b7dcf46015486",
+    "src/answer-registry.js": "09ee22e1037ac415213975133fa571ae8499d719fe20fa088cb309af40d20ae1",
+    "assets/ui.css": "e9dc78e6695cece3abcacda2a7387a1dc06d05c96101a841a7a30292262923e2",
+    "tests/chatgpt-adapter.test.mjs": "8f1964317ec66dc6b0947f6d8f288a87ea060f6c250cb4197e398a286b71481b",
+    "tests/xmind-answer-registry-lifecycle.test.mjs": "0871efc5dd486a3b6ae46c752295290d7a8d4593e38d94f97a06396eed6bc834",
+    "tests/xmind-theme-toggle.test.mjs": "8d4b1214cc590f568ec66d7fad630c2e46c17b6b6fde57032cd756d1e87e1de6",
+    "tests/xmind-view-fullscreen.test.mjs": "8da20479289e934ee22d88c9949495273890f2e51aef1efea14790bbc5010227"
+  },
+  "initialState": {
+    "dailyInstalledPagePrograms": 0,
+    "activeMode": "LOCAL_PROJECT_PREVIEW",
+    "previewId": "acdf8b85-df45-4bf2-bbab-cc80af6111ef",
+    "previewSourceHash": "226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e",
+    "oldR2InstallationAppliesTo": "ISOLATED_CFT_ONLY",
+    "oldR2SourceHash": "87df82aed270f60e02fdcb82fba14998bb681335b9a13dca230c9d7fe499f969",
+    "oldR2InstallationId": "4faafc60-cfab-4c97-b547-418b61c9af7f"
+  },
+  "localPreview": {
+    "status": "PASS",
+    "evidence": "examples/programs/chatgpt-mindmap/tests/mac-real-chatgpt-20261018.json",
+    "currentState": "STOPPED",
+    "taskProviderRunning": false
+  },
+  "installed": {
+    "status": "PASS",
+    "chrome": "155.0.8059.84",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "dist/development",
+    "hostMode": "CONTINUOUS_DEVELOPMENT_EXTENSION",
+    "revision": 1,
+    "state": "Available",
+    "authorization": "已授权",
+    "registration": "registered",
+    "enabled": true,
+    "websiteAccess": "已满足",
+    "matchPatterns": [
+      "https://chatgpt.com/*"
+    ],
+    "world": "USER_SCRIPT",
+    "runAt": "document_idle",
+    "installationUuid": null,
+    "installationUuidNote": "Original management UI exposes programId/revision/sourceHash/authorization/registration, not installation UUID; historical UUID is not reused.",
+    "authorityReceipt": "opendesk.chatgpt-mindmap · r1 · Available; 安装：r1 · 已授权 · Chrome 已注册 · registered",
+    "steps": [
+      "current source imported through existing program draft importer",
+      "Page Candidate saved for opendesk.chatgpt-mindmap r1",
+      "frozen revision verified through existing UI",
+      "installed through existing Authority with website access satisfied",
+      "managed preview stopped and cleanup receipt confirmed",
+      "task CLI/Provider confirmed exited; unrelated dev watcher retained",
+      "real ChatGPT refreshed without clicking development Run",
+      "two existing replies showed automatic map buttons",
+      "opened real XMind with original toolbar",
+      "switched theme, returned original text and reopened with theme preserved",
+      "downloaded and verified installed-current.xmind"
+    ],
+    "taskCliRequired": false,
+    "previewActiveDuringValidation": false,
+    "nativeHostObserved": true,
+    "nativeUnplugged": "NOT_TESTED",
+    "unrelatedDevWatcherStopped": false,
+    "productionStaticHostValidation": "NOT_TESTED",
+    "duplicateInstall": "NONE_IN_DAILY_PROFILE",
+    "importIdCandidate": "import-1792312312599 (UNINSTALLED)"
+  },
+  "standalone": {
+    "status": "BLOCKED",
+    "localBuild": "PASS",
+    "chromeUnpackedLoad": "PASS",
+    "chrome": "155.0.8059.39",
+    "extensionId": "kagejdafejipmdciobcmapdobmiohopf",
+    "profile": "TEMPORARY_ISOLATED_MOCK_KEYCHAIN",
+    "openDeskInstalledInProfile": false,
+    "onlyExtensionInProfile": true,
+    "candidateDirectory": "artifacts/chatgpt-mindmap-standalone/executor-validation-20261018-final",
+    "manifestSha256": "8563a29888fc4b72923948310e016b04831ee50794d129f5a10385410d8699b5",
+    "metadataSha256": "0e2d03b97516ac6a88fd6f14b89c67a4fb59db51b57318754fafde5d0a2b00bb",
+    "sourceAndOutputDrift": [],
+    "realReplyLoop": "NOT_TESTED",
+    "realReplyBlocker": "ChatGPT sign-in required in isolated profile; user handoff requested.",
+    "openDeskDependency": false,
+    "nativeDependency": false,
+    "localHttpDependency": false,
+    "dependencyClaimScope": "STATIC_WRAPPER_AND_EMPTY_PROFILE_LOAD; real reply runtime still NOT_TESTED",
+    "packagedRedistribution": "BLOCKED",
+    "redistributionApproved": false,
+    "zipProduced": false,
+    "crxProduced": false,
+    "defaultBuildResult": "E_XMIND_LICENSE_BLOCKED",
+    "licenseReview": {
+      "path": "examples/programs/chatgpt-mindmap/tests/xmind-license-review-r396.json",
+      "sha256": "60764fa5a2bfa9ad4667cde1d3d12964fc390570dea220f6d365bbb39bdafffe",
+      "status": "BLOCKED"
+    },
+    "licenseMissing": "Production redistribution permission for fixed vendor runtime plus approval through original license review chain; release packaging gate remains unimplemented until licensed.",
+    "executionWorlds": [
+      "static ISOLATED content script",
+      "extension relay authenticated through original sender tab/frame/document identity",
+      "opaque sandbox drawing document without extension APIs or same-origin access"
+    ],
+    "businessSourceSingleSource": true,
+    "originalResourceHashes": [
+      {
+        "path": "/jszip.min.js",
+        "bytes": 97630,
+        "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+      },
+      {
+        "path": "/polyfill-45b9836beb.min.js",
+        "bytes": 104563,
+        "sha256": "59173f786dd1f3802f7ab26fd339aac4099dc10c6cb54a6a92213e6af277592a"
+      },
+      {
+        "path": "/xmind-sdk.bundle.js",
+        "bytes": 401113,
+        "sha256": "e3fa6927652a2abb0d8c32af267a9f2a531f3997c7df69332d434a4cbcb7e70b"
+      },
+      {
+        "path": "/snowbrush-2c2b5d62b5.js",
+        "bytes": 3439267,
+        "sha256": "036ed215959338eef9af16ac9fa5164f41075cf529ed4b66df5f84f4cfedee8a"
+      }
+    ],
+    "resourceTransforms": [
+      {
+        "path": "/snowbrush-2c2b5d62b5.js",
+        "from": "eval(task)",
+        "to": "(()=>{throw new Error(\"E_XMIND_STRING_TIMER_UNSUPPORTED\");})()",
+        "count": 1
+      }
+    ]
+  },
+  "tests": {
+    "command": "node --test chatgpt-adapter.test.mjs xmind-answer-registry-lifecycle.test.mjs xmind-view-fullscreen.test.mjs xmind-theme-toggle.test.mjs standalone-extension.test.mjs",
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "standaloneReview": "No blocking source issues found by independent reviewer; browser loading and true renderer runtime are separate claims."
+  },
+  "installedDownload": {
+    "status": "PASS",
+    "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/installed-current.xmind",
+    "bytes": 24553,
+    "sha256": "255c9a49c2ab163b2959f19af29b6e738813d6be463bebfa8bab7654fe1d2765",
+    "zipCRC": "PASS",
+    "nodes": 30,
+    "notes": 8
+  },
+  "evidence": {
+    "artifacts/chatgpt-mindmap-real-page-20261018/install-candidate.png": {
+      "bytes": 912950,
+      "sha256": "5871bdf847f8f807984d390bbf75948d1660446feb0bd46f6bba4f4df4f4314a"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-authority.ax.txt": {
+      "bytes": 43877,
+      "sha256": "9ce7602cd3f986d18158a3cf2636d1469239688932d5c29b00fd8562abb7e59b"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-authority.png": {
+      "bytes": 910488,
+      "sha256": "b4a9fdf0e8392d5dc9cb1d0c42c75d2d28183824db57d2ec482566651f16f185"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-management.ax.txt": {
+      "bytes": 27547,
+      "sha256": "3e7f95cd47cd374ab2a96350230ce1c1f54bcba14ffeddb51d4798f6285c10e8"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-management.png": {
+      "bytes": 644682,
+      "sha256": "0d7c2c00672139690aefa3b22d076ca5b3e586cfca4c6b7f9ab98f575f5eb802"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-xmind-dark.png": {
+      "bytes": 798627,
+      "sha256": "6395db88dabb350634f25486bb0331876b4ba085906c88f374ea3d1505afa0f9"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-xmind-light-reopened.png": {
+      "bytes": 804053,
+      "sha256": "94baaf2833eb4a7f275dae1c42bf8d40726bf7ef72925cfd65cb2a5f6faf74ce"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-processes.json": {
+      "bytes": 410,
+      "sha256": "b7bb13baae1915071e38da4e8a7e827ee3be25f7ade8d8a41c8caf3379788b86"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/installed-download-verification.json": {
+      "bytes": 361,
+      "sha256": "33ea1e212aa0ffefff4e80cafcd12232bb5e9fd0449bb378d4c920347a6b8a7f"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/install-standalone-targeted-tests.log": {
+      "bytes": 4057,
+      "sha256": "1a05c09d89e3bc3e81daf2720a5378d5e29a7828364851380af1e22edf613828"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/install-current/program.js": {
+      "bytes": 4257970,
+      "sha256": "226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e"
+    },
+    "artifacts/chatgpt-mindmap-real-page-20261018/install-current/artifact.json": {
+      "bytes": 7816,
+      "sha256": "d7c81b34682101b0c8d799e9f6eae29c192ae586d8604970fbbd26297eda2fa1"
+    },
+    "artifacts/chatgpt-mindmap-standalone/loaded-unpacked.ax.txt": {
+      "bytes": 3938,
+      "sha256": "b8746ae2183727e73b80e235a3d51b9aec78943f650b1413bf4eca1121359c06"
+    },
+    "artifacts/chatgpt-mindmap-standalone/loaded-unpacked.png": {
+      "bytes": 315878,
+      "sha256": "354e47f80647cd9ef5ced2312be9117d233a25d7f8d5d5e13dd829edebe51f4d"
+    },
+    "artifacts/chatgpt-mindmap-standalone/executor-validation-20261018-final/metadata.json": {
+      "bytes": 6028,
+      "sha256": "0e2d03b97516ac6a88fd6f14b89c67a4fb59db51b57318754fafde5d0a2b00bb"
+    }
+  },
+  "previousScreenshotRecheck": {
+    "path": "artifacts/chatgpt-mindmap-real-page-20261018/B-xmind-dark.png",
+    "sha256": "4ffdda6791cbef16920843ebc2ef3f99519df67f72aae0175db804982aa3d871",
+    "publicIndexMatches": true
+  },
+  "retainedLimitations": {
+    "openViewerSourceReplacementCleanup": "FAIL (prior E_EFFECT_UNKNOWN / E_UI_CLEANUP_TIMEOUT; not retried as comprehensive lifecycle PASS)",
+    "trustedMarkdownOriginal": "BLOCKED",
+    "longReplyExtraction": "Existing extraction limit still applies; export matches current map",
+    "SVG": "OUT_OF_SCOPE",
+    "VIP": "OUT_OF_SCOPE",
+    "noChatGPTMessageSent": true,
+    "privateScreenshotsDownloadsLogsCommitted": false
+  }
+}
