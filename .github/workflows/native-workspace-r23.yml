@@ -46,7 +46,13 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run check
+      # Audit source separately: an R35-owned test can be malformed during
+      # concurrent main development. Continue to run the R23 Chrome smoke and
+      # retain its evidence, but fail the job at the end if the global gate fails.
+      - name: Global source syntax check
+        id: source_check
+        continue-on-error: true
+        run: npm run check
       - run: npm run build
       - run: npm run build:dev
       - name: Real package verification (not a substitute for Mac Native E2E)
@@ -64,3 +70,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           path: artifacts/native-workspace-r23/chrome/
+      - name: Enforce global source syntax check
+        if: steps.source_check.outcome == 'failure'
+        run: exit 1

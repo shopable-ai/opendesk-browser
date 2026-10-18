@@ -129,6 +129,14 @@ export function initTrustedPageLocale({doc=globalThis.document,api=globalThis.ch
     }
   }
   const picker=doc.getElementById(page==='workspace'?'workspace-locale':'settings-locale');
+  // One locale registry owns choices across trusted pages. Adding a language
+  // never requires modifying Workspace/Settings HTML or a second selector.
+  if(picker){
+    const names=[['auto',translate('common.browserLanguage')],...SUPPORTED_LOCALES.map(id=>[id,LOCALE_NAMES[id]])];
+    picker.replaceChildren(...names.map(([id,label])=>{
+      const option=doc.createElement('option');option.value=id;option.textContent=label;return option;
+    }));
+  }
   function render(locale){
     doc.documentElement.lang=locale;
     doc.title=translate(page+'.documentTitle',{},locale);
@@ -141,7 +149,11 @@ export function initTrustedPageLocale({doc=globalThis.document,api=globalThis.ch
       if(slot.kind==='text')slot.node.nodeValue=slot.last;
       else slot.node.setAttribute(slot.attribute,slot.last);
     }
-    if(picker)picker.value=preference;
+    if(picker){
+      const auto=picker.querySelector('option[value="auto"]');
+      if(auto)auto.textContent=translate('common.browserLanguage',{},locale);
+      picker.value=preference;
+    }
   }
   const stop=subscribeLocale(render);
   const onChange=()=>setLocalePreference(picker.value,{api});
