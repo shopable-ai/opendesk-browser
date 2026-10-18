@@ -644,8 +644,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     // A saved Controller revision selects its execution world as well as its bytes.
     componentDrafts[componentMode]=source;
-    loadedPageSource=false;componentMode='javascript';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
-    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm(); remember(row, {
+    loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
+    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);javascriptDrafts.controller=programSource.source(); scheduleControllerClassicWarm(); remember(row, {
       head: !revisionText || revisions.get(id) === row.revision,
       authorSourceUtf8:recorded ? null : row.sourceUtf8});
     componentRemote.refresh();
@@ -663,8 +663,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     componentDrafts[componentMode]=source;
-    loadedPageSource=false;componentMode='javascript';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
-    find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm();
+    loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
+    find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);javascriptDrafts.controller=programSource.source(); scheduleControllerClassicWarm();
     dependencyResolver.refresh();
     remember(row,{authorSourceUtf8:recorded ? null : row.sourceUtf8});
     componentRemote.refresh();
@@ -1299,8 +1299,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value)
       throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
     componentDrafts[componentMode]=source;
-    loadedPageSource=true;componentMode='javascript';syncComponentInputs();
-    programSource.replaceSource(saved.authorSourceUtf8??saved.sourceUtf8);find('script-id').value=row.programId;
+    loadedPageSource=true;componentMode='javascript';javascriptWorld='page';syncComponentInputs();
+    programSource.replaceSource(saved.authorSourceUtf8??saved.sourceUtf8);javascriptDrafts.page=programSource.source();find('script-id').value=row.programId;
     find('script-revision').value=String(row.revision);lastPagePreview=null;
     if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
     else dependencyResolver.refresh();
@@ -1541,10 +1541,22 @@ export function createScriptEditor({client, currentPageTarget, development=false
           }
           if(!browserCompilerEnabled&&saved.componentMode!=='javascript'){
             componentMode='javascript';
-            programSource.replaceSource(componentDrafts.javascript||'async function main(){return document.title;}');
+            programSource.replaceSource(componentDrafts.javascript||javascriptDrafts.controller);
           }else componentMode=saved.componentMode;
           syncComponentInputs();
         }
+        if(saved.javascriptDrafts&&typeof saved.javascriptDrafts==='object'&&!Array.isArray(saved.javascriptDrafts)){
+          for(const name of ['controller','page']){
+            const source=saved.javascriptDrafts[name];
+            if(typeof source==='string'&&new TextEncoder().encode(source).length<=128*1024)
+              javascriptDrafts[name]=source;
+          }
+        }
+        javascriptWorld=['controller','page'].includes(saved.javascriptWorld)?saved.javascriptWorld:
+          loadedPageSource?'page':'controller';
+        if(programSource.kind()==='page-userscript')javascriptWorld='page';
+        if(programSource.kind()==='controller')javascriptWorld='controller';
+        if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
         for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name]??'';
         dependencyResolver.refresh();componentRemote.refresh();
       }
@@ -1554,7 +1566,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
   function applyImported(sourceUtf8) {
     browserPreparer.cancel();browserPrepareGeneration++;
-    loadedPageSource=false;componentMode='javascript';syncComponentInputs();
+    const pageImport=programSource.kind()==='page-userscript'||sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX);
+    loadedPageSource=pageImport;componentMode='javascript';javascriptWorld=pageImport?'page':'controller';syncComponentInputs();
+    javascriptDrafts[javascriptWorld]=sourceUtf8;
     currentRevision = undefined;
     find('script-id').value = `import-${Date.now()}`;
     find('script-revision').value = '';
