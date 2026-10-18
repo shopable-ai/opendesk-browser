@@ -26,7 +26,7 @@
       sketch:'样式示意',sponsor:'赞助 · 虚构',demo:'离线模拟',recruit:'合作展示位',
       summary:'截图方案：',brand:'品牌类',sponsors:'赞助类',cards:'卡片类',business:'商业展示类',
       narrowBlock:'窄屏不展示此位置的广告，保留输入和正文操作。',caution:'在第三方网页内容中模拟，绝非上线许可。',
-      help:'点击热区查看说明；独立 × 关闭当前广告，恢复按钮可以再次显示。'},
+      help:'点击热区查看说明；独立 × 关闭当前广告，恢复按钮可以再次显示。',jump:'查看模拟页面 ↓'},
     en:{title:'01 · Ad format gallery',subtitle:'Inspect the format first, then experiment with a placement. All sponsors are fictional.',
       map:'02 · Visual map of 35 placements',mapHelp:'Choose a position to reveal its mapped interface anchor. Mouse, keyboard and touch work.',
       selection:'03 · Placement fit & risk',anchor:'Visual anchor',suitable:'Supported formats',fit:'Current format',good:'Suitable',bad:'Not recommended',
@@ -37,7 +37,7 @@
       sketch:'Visual sample',sponsor:'Sponsored · Fictional',demo:'Offline mock',recruit:'Available sponsor slot',
       summary:'Screenshot preset:',brand:'Brand',sponsors:'Sponsorship',cards:'Cards',business:'Commercial formats',
       narrowBlock:'Hide the ad on narrow mock pages; keep draft and messages usable.',caution:'Mock third-party content only. This is not an approval to deploy.',
-      help:'Click a hotspot for details, use its own × to dismiss, and Restore to bring it back.'},
+      help:'Click a hotspot for details, use its own × to dismiss, and Restore to bring it back.',jump:'View mock page ↓'},
     ja:{title:'01 · 広告表示形式ギャラリー',subtitle:'形式を確認してから配置を選びます。協賛ブランドはすべて架空です。',
       map:'02 · 35 箇所の配置マップ',mapHelp:'選ぶと模擬画面上の対応箇所が表示されます。キーボードとタッチに対応。',
       selection:'03 · 配置とリスク',anchor:'画面上の場所',suitable:'対応する形式',fit:'選択した形式',good:'適合',bad:'推奨しない',
@@ -48,7 +48,7 @@
       sketch:'見本',sponsor:'協賛 · 架空',demo:'オフライン模擬',recruit:'協賛募集中',
       summary:'撮影プリセット：',brand:'ブランド',sponsors:'協賛',cards:'カード',business:'商業形式',
       narrowBlock:'狭い画面では広告を非表示にし、入力欄を優先します。',caution:'架空の第三者ページのみ。実装許可ではありません。',
-      help:'表示位置をクリックすると説明、× で個別に閉じ、復元で再表示します。'}
+      help:'表示位置をクリックすると説明、× で個別に閉じ、復元で再表示します。',jump:'模擬ページを見る ↓'}
   };
   const T=k=>(copy[bridge.state.lang]||copy.zh)[k]||k;
   // Format metadata, NOT placement/rendering logic. R2.8 owns actual ad instances.
@@ -163,6 +163,9 @@
   map.insertAdjacentElement('afterend',info);
   const presetInfo=make('p','r29-preset-status');presetInfo.id='r29PresetStatus';
   $('r28Presets').insertAdjacentElement('afterend',presetInfo);
+  const jump=make('button','r29-jump');jump.type='button';jump.id='r29Jump';
+  jump.addEventListener('click',()=>document.querySelector('main.stage').scrollIntoView({behavior:'smooth',block:'start'}));
+  $('r28Current').closest('.r28-summary').append(jump);
   let lastLang='';
   function formatVisual(id){
     const sample=make('div','r29-sample');
@@ -170,7 +173,17 @@
     const mark=make('span','r29-sample-mark',id.startsWith('brand-')||id==='self'?'OD':id==='event'?'EV':id==='directory'?'DX':id==='affiliate'?'↗':'+');
     const txt=make('span','r29-sample-text',id==='recruit'?T('recruit'):id.startsWith('brand-')?'OpenDesk':id==='affiliate'?'CPM / CPC / CPA':id==='event'?'Productivity Week':id==='directory'?'Tools · Picks':'FlowNest');
     sample.append(mark,txt);
-    if(['hero','mini'].includes(id))sample.append(make('span','r29-sample-extra','▦'));
+    if(id==='hero'){
+      const stack=make('span','r29-sample-stack');
+      stack.append(make('i'),make('i'));sample.append(stack);
+    }
+    if(id==='mini'){
+      const pair=make('span','r29-sample-pair');
+      pair.append(make('i'),make('i'));sample.append(pair);
+    }
+    if(id==='expand-card')sample.append(make('span','r29-sample-extra','↗'));
+    if(id==='hover-card')sample.append(make('span','r29-sample-extra','⌁'));
+    if(id==='directory')sample.append(make('span','r29-sample-extra','☷'));
     return sample;
   }
   function buildGallery(){
@@ -251,6 +264,7 @@
       mapHead.querySelector('p').textContent=T('mapHelp');
       buildGallery();buildMap();
     }
+    jump.textContent=T('jump');
     gallery.querySelectorAll('[data-format]').forEach(el=>{
       if(el.matches('button'))el.setAttribute('aria-pressed',String(el.dataset.format===lab.state.layout));
     });
