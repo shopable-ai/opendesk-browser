@@ -5,6 +5,7 @@ on:
     paths:
       - 'examples/sidebar-tools/cookie-editor/preview/react/**'
       - 'examples/sidebar-tools/cookie-editor/ui/**'
+      - 'examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx'
       - 'src/ui/react/cookie-editor/**'
       - '.github/workflows/cookie-editor-r49-react-preview.yml'
   workflow_dispatch:
