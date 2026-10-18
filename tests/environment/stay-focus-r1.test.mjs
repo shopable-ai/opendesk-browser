@@ -526,8 +526,9 @@ test('R1.6 settings save through button clicks when sandbox denies form submissi
     const start=script.indexOf("$('"+prefix+'-save' +"').addEventListener");
     assert.ok(start>=0,prefix+' must not depend on sandbox-blocked submit');
     const end=script.indexOf('\n  });',start)+7;
-    runInNewContext(script.slice(start,end),{$,state:{enabled:true},
-      call:(op,data)=>requests.push({op,data}),message:()=>{},escapeHost:focusHost,
+    runInNewContext(script.slice(start,end),{$,state:{enabled:true,sites:[]},
+      editingSite:null,call:(op,data)=>{requests.push({op,data});return Promise.resolve(false);},
+      message:()=>{},escapeHost:focusHost,
       checkTime:value=>Number(value.slice(0,2))*60+Number(value.slice(3))});
     assert.match(html,new RegExp('id="'+prefix+'-save"[^>]*type="button"'));
     $(prefix+'-save').listeners.click({preventDefault(){}});
