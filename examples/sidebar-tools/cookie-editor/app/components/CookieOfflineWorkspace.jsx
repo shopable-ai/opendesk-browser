@@ -18,6 +18,7 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
   const [format,setFormat]=React.useState('auto');
   const [exportFormat,setExportFormat]=React.useState('json');
   const [confirmClear,setConfirmClear]=React.useState(false);
+  const [pendingDelete,setPendingDelete]=React.useState(null);
   const [busy,setBusy]=React.useState(false);
   const [message,setMessage]=React.useState('离线工作区仅在本次打开期间有效；不写入 Chrome，也不持久化。');
   const [dirty,setDirty]=React.useState(false);
@@ -115,8 +116,7 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       editor={row=><CookieInlineEditor key={row.id} row={row} target={site}
         disabled={busy} onDirty={mark} onSave={save}
         onCancel={()=>guarded(()=>setSelected(null))}
-        onDelete={id=>{cookies.current=cookies.current.filter(x=>key(x)!==id);
-          refreshRows();setSelected(null);mark(false);}}/>}/>}
+        onDelete={id=>setPendingDelete(id)}/>}/>}
     {site&&selected==='new'&&<CookieInlineEditor key="new" target={site} disabled={busy}
       onSave={save} onDirty={mark} onCancel={()=>guarded(()=>setSelected(null))}/>}
     {importing&&<section className="cookie-panel" aria-label="离线导入">
@@ -158,6 +158,14 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       <button type="button" className="danger"
         onClick={()=>resolveDiscard(true)}>放弃修改</button>
     </div>}
+    {pendingDelete&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
+      aria-label="删除离线 Cookie"><p>只删除离线内存中的这条 Cookie，不影响 Chrome。确定吗？</p>
+      <button type="button" onClick={()=>setPendingDelete(null)}>取消</button>
+      <button type="button" className="danger" onClick={()=>{
+        cookies.current=cookies.current.filter(x=>key(x)!==pendingDelete);
+        setPendingDelete(null);refreshRows();setSelected(null);mark(false);
+        setMessage('已删除离线 Cookie，Chrome 未更改。');
+      }}>删除</button></div>}
     {confirmClear&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
       aria-label="清空离线工作区"><p>只清空当前临时内存，不影响 Chrome。确定吗？</p>
       <button type="button" onClick={()=>setConfirmClear(false)}>取消</button>
