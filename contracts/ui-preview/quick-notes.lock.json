@@ -9,11 +9,11 @@
     "examples/sidebar-tools/quick-notes/src/main.js": "4bb061a4b40d8204823939efc967081260426c95",
     "examples/sidebar-tools/quick-notes/src/style.css": "f37e4c11f2717c716525d5631602fbaf278b5f79",
     "examples/sidebar-tools/quick-notes/assets/mark.png": "a8920cb7fdbb3fc95d4e4323dc83ba6fa4a19b1e",
-    "scripts/build-sidebar-tool.mjs": "9a5a110bd3d5c4a76abcf6ba4922fe7f2c06db0b",
+    "scripts/build-sidebar-tool.mjs": "e635829927b6d6acd86d924ac7f87074f60e44c1",
     "scripts/preview/shared-tool-design.mjs": "d5f8fba474ff934298c6b897db45c2c3fff82981",
     "scripts/preview/sidebar-shell-source.mjs": "f20eb823f253495c185d0d12454f94f97ad054e6",
     "scripts/templates/sidebar-tool-preview-shell.html": "045ed375fa39a6107c9ee32649a25abbb7daeb49",
-    "scripts/preview/build-preview.mjs": "627624ad59969c61fb133345b043ac7ec46ed719",
+    "scripts/preview/build-preview.mjs": "59b147cf901eeffc89d0012ed4acdc196a7ead4f",
     "scripts/preview/quick-notes-mock.js": "65f447314af901386eb3b32136d2f224701dd7b6",
     "scripts/preview/check-preview-contract.mjs": "0fc4aa33ee084c864884f57fcce224e3b86e3770"
   }
