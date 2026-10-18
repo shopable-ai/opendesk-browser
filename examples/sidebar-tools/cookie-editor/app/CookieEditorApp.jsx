@@ -14,6 +14,7 @@ import CookieOfflineWorkspace from './components/CookieOfflineWorkspace.jsx';
 export default function CookieEditorApp({request,hostRoot,setState}){
   const [view,setView]=React.useState(null);
   const [mode,setMode]=React.useState('browser');
+  const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const [panel,setPanel]=React.useState(null);
   const [selected,setSelected]=React.useState(null);
   const [query,setQuery]=React.useState('');
@@ -105,7 +106,17 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     setSelected(null);setPanel(name);setPage(1);setStatus('');
   });
   const switchMode=next=>guarded(()=>{
+    if(next===mode)return;
     scrubSensitive();
+    if(next==='offline'){
+      // Closing the live mode must retire observe sessions, wipe live Cookie
+      // identities and prevent an outstanding native read from resurfacing.
+      setOfflineInitialSite(controller.snapshot().target);
+      controller.invalidate('已退出实时 Cookie 模式；重新进入后需重新授权读取。');
+    }else{
+      // Reenter by explicitly rechecking the current or selected website.
+      void controller.load(appliedSite.current);
+    }
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
   const save=async(row,options)=>{
@@ -158,7 +169,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onClick={()=>switchMode('offline')}>离线</Button>
       </div>
     </header>
-    {mode==='offline'?<CookieOfflineWorkspace initialTarget={target}
+    {mode==='offline'?<CookieOfflineWorkspace initialTarget={offlineInitialSite}
       adapter={adapter} onDirty={setDirty}/>:
     <>
       <div className="cookie-site-select">
