@@ -72,6 +72,31 @@
     ['directory','business','260 × 94','列表式轻量推荐','点击合作说明；× 关闭','工具目录推荐','不能伪造自然排名'],
     ['affiliate','business','280 × 85','仅说明不投放','只阅读合作模型','联盟合作模型研究','禁止偷偷改链或跟踪']
   ];
+  // Compact user-facing metadata in all three languages: narrow, gesture, purpose, risk.
+  const localized={
+    'brand-logo':{en:['Tiny fixed mark','Hover to learn; tap for details; mark stays','Brand origin','Must not impersonate the website'],ja:['小型の固定マーク','ホバー・タップで説明、マークは常設','ブランドの出典','サイトのマークと誤認される恐れ']},
+    'brand-hover':{en:['Popover adapts','Hover / focus / Escape closes','Brand introduction','May obscure prompt controls'],ja:['ポップを調整','ホバー・フォーカス・Escで閉じる','ブランド紹介','プロンプト操作を妨げる恐れ']},
+    'brand-attribution':{en:['Single-line truncation','Open identity details','Source attribution','Competes with prompt text'],ja:['一行を省略','出典の詳細を表示','出典の明示','プロンプト本文を圧迫']},
+    'icon':{en:['Keep one icon','Details on click; close individually','Minimal sponsor','Could look like a shortcut'],ja:['アイコン1つ','クリックで詳細、個別に閉じる','最小協賛','ショートカットと混同']},
+    'text':{en:['Wrap gracefully','Details and separate dismissal','Text sponsorship','Disclosure can be too subtle'],ja:['自然に改行','説明と個別の閉じる操作','テキスト協賛','広告表示が目立たない']},
+    'icon-text':{en:['Drop icon if needed','Click details; dismiss','Compact partnership','Density and stray taps'],ja:['必要ならアイコン省略','詳細を開き個別に閉じる','小型協賛','密度と誤操作']},
+    'hover-card':{en:['Tap opens on touch','Hover / focus / click / dismiss','Partner preview','Intrusive popover'],ja:['タッチはタップで開く','ホバー・フォーカス・タップ','協賛プレビュー','ポップの割り込み']},
+    'expand-card':{en:['Open details in dialog','Click details; Escape closes','Partnership details','Takes focus from main task'],ja:['詳細はダイアログ','タップで開きEscで閉じる','協賛の説明','主な作業から焦点を奪う']},
+    'landscape':{en:['One responsive column','Open details / dismiss','Horizontal sponsor card','Consumes list height'],ja:['レスポンシブな1列','詳細を表示・閉じる','横長カード','一覧の高さを消費']},
+    'vertical':{en:['Convert to horizontal','Open details / dismiss','Vertical brand card','Tall on small screens'],ja:['横長に切り替え','詳細を表示・閉じる','縦長カード','小画面では縦に長い']},
+    'mini':{en:['Stack on 320px','Dismiss each card','Two small cards','Hard to read at scale'],ja:['320pxでは縦並び','カードごとに閉じる','2列の小型カード','文字が小さくなる']},
+    'hero':{en:['Stack large then small','Each card closes separately','Lead sponsor plus minis','Displaces prompt list'],ja:['大カードと小カードを縦並び','各カードを個別に閉じる','主要協賛と小型枠','一覧を圧迫']},
+    'recruit':{en:['Sales mode only','Partner details / dismiss','Unsold inventory','Must stay hidden to users'],ja:['営業モード限定','協賛説明・閉じる','未販売枠','一般利用者に出さない']},
+    'self':{en:['Collapse to one line','Open product introduction','First-party recommendation','Blurs tool / ad roles'],ja:['1行の紹介に縮小','自社機能の説明を開く','自社機能紹介','機能と広告の境界が曖昧']},
+    'event':{en:['Single static row','Details / dismiss','Mock event banner','Must not fake urgency'],ja:['静的な1行','詳細・閉じる','模擬イベントバナー','偽の緊急感は禁止']},
+    'directory':{en:['Compact list style','Details / dismiss','Tool directory','No fabricated ranking'],ja:['小さな一覧','詳細・閉じる','ツール目録','架空の順位を避ける']},
+    'affiliate':{en:['Explanation only','Read-only; no tracking','Affiliate model research','No silent link changes'],ja:['説明のみ','読み取り専用・追跡なし','成果報酬モデルの研究','黙ってリンクを変えない']}
+  };
+  const localizedField=(format,key)=>{
+    if(i()===0||key==='ideal')return format[key];
+    const fields=['narrow','action','purpose','risk'],part=localized[format.id]?.[bridge.state.lang];
+    return part?.[fields.indexOf(key)]||format[key];
+  };
   const formats=Object.fromEntries(specs.map(a=>[a[0],{id:a[0],family:a[1],ideal:a[2],narrow:a[3],action:a[4],purpose:a[5],risk:a[6]}]));
   const nameById=Object.fromEntries(lab.layoutOpts.map(([key,names])=>[key,names]));
   const fmtName=id=>tr(nameById[id]||[id,id,id]);
@@ -158,9 +183,9 @@
         const spec=formats[fmt[0]];
         const b=make('button','r29-format-card');b.type='button';b.dataset.format=spec.id;
         b.append(make('strong','',fmtName(spec.id)),formatVisual(spec.id));
-        const hint=make('span','r29-format-descriptor',T('ideal')+': '+spec.ideal+' · '+spec.purpose);
-        const methods=make('span','r29-format-methods',spec.narrow+' · '+spec.action);
-        const risk=make('span','r29-format-risk',T('risk')+': '+spec.risk);
+        const hint=make('span','r29-format-descriptor',T('ideal')+': '+spec.ideal+' · '+localizedField(spec,'purpose'));
+        const methods=make('span','r29-format-methods',localizedField(spec,'narrow')+' · '+localizedField(spec,'action'));
+        const risk=make('span','r29-format-risk',T('risk')+': '+localizedField(spec,'risk'));
         b.append(hint,methods,risk);
         b.addEventListener('click',()=>{lab.state.active=true;lab.state.layout=spec.id;lab.state.preset='';bridge.state.format='logo';bridge.state.placement='A1';bridge.render();});
         group.append(b);
@@ -195,16 +220,16 @@
     description.replaceChildren();
     const riskName=v=>T(v==='restricted'?'high':v==='responsive'?'low':v);
     const supported=m.formats.includes(s.layout);
-    const narrowText=m.narrow==='restricted'?T('narrowBlock'):format.narrow;
+    const narrowText=m.narrow==='restricted'?T('narrowBlock'):localizedField(format,'narrow');
     description.append(
       metric(T('anchor'),m.anchor),
       metric(T('suitable'),m.formats.map(fmtName).join(' · ')),
       metric(T('fit'),fmtName(s.layout)+' — '+T(supported?'good':'bad')),
       metric(T('ideal'),format.ideal),
       metric(T('narrow'),narrowText),
-      metric(T('action'),format.action),
-      metric(T('purpose'),format.purpose),
-      metric(T('risk'),format.risk),
+      metric(T('action'),localizedField(format,'action')),
+      metric(T('purpose'),localizedField(format,'purpose')),
+      metric(T('risk'),localizedField(format,'risk')),
       metric(T('ux'),riskName(m.ux)),
       metric(T('share'),riskName(m.share)),
       metric(T('confusion'),riskName(m.confusion)),
