@@ -187,3 +187,8 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
  .r29-spot-dismiss{width:24px;height:24px}
  .r28-zone[data-r28-current=true] .r29-zone-trigger{padding-right:10px}
 }
+
+/* A dismissed web ad consumes no ad-specific space, although the lab marker stays selectable. */
+.r28-inline-spot[data-r29-dismissed=true][data-r28-current=true]{min-height:26px}
+.r28-zone[data-r29-dismissed=true][data-r28-current=true] .r29-zone-trigger{min-height:18px}
+.r28-zone[data-r29-dismissed=true] .r28-selected-art{display:none}
