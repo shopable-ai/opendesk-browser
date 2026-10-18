@@ -1747,7 +1747,7 @@ test('Page static imports save author source and approved lock alongside the act
     authorManifestDigest:f.compiled[0].manifestDigest,compilerVersion:'7.29.9',
     target:{tabId:11,frameId:0,documentId:'doc-11',expectedUrl:'https://a.example/',expectedWindowId:7}});
   assert.equal(f.find('script-source').value,f.sourceUtf8);
-  assert.equal(f.find('page-preview-result').textContent,'7');
+  assert.equal(f.find('script-result').textContent,'7');
   assert.equal(f.find('page-candidate-save').disabled,false);
   await f.click('page-candidate-save');await tick();
   assert.equal(f.commits.length,0);assert.equal(imports.length,1);
