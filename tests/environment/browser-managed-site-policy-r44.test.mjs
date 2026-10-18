@@ -71,3 +71,43 @@ test('managed DNR only modifies owned rules and requires native readback',async(
   assert.deepEqual(await call([]),{changed:true,ruleIds:[],verified:true});
   assert.deepEqual(rules,[competing]);
 });
+
+import {subscribeManagedSiteActivity} from '../../src/platform/chrome/managed-site-lifecycle.js';
+test('shared MV3 managed-site activity hooks resume and invalidate without another Worker',()=>{
+  const event=()=>{const handlers=new Set();return {addListener:f=>handlers.add(f),
+    removeListener:f=>handlers.delete(f),emit:(...args)=>[...handlers].forEach(f=>f(...args)),
+    get count(){return handlers.size;}};};
+  const api={alarms:{onAlarm:event()},tabs:{onActivated:event(),onUpdated:event(),onRemoved:event()},
+    windows:{onFocusChanged:event()},idle:{onStateChanged:event()},
+    permissions:{onRemoved:event(),onAdded:event()},runtime:{onStartup:event()},
+    storage:{onChanged:event()}};
+  let invalidated=0;const runs=[],removed=[],stored=[];
+  const dispose=subscribeManagedSiteActivity(api,{alarmName:'managed.a',
+    invalidate:()=>{invalidated++;},run:args=>runs.push(args??null),
+    onPermissionRemoved:change=>removed.push(change),
+    onStorageChanged:(changes,area)=>stored.push({changes,area})});
+  assert.deepEqual(runs,[{boot:true}]);
+  api.alarms.onAlarm.emit({name:'other'});
+  assert.equal(runs.length,1,'other app alarm cannot wake this service');
+  api.tabs.onUpdated.emit(2,{status:'loading'});
+  assert.equal(invalidated,0);
+  api.tabs.onActivated.emit({tabId:2});
+  api.tabs.onUpdated.emit(2,{url:'https://example.com/'});
+  api.windows.onFocusChanged.emit(1);
+  api.idle.onStateChanged.emit('idle');
+  api.permissions.onAdded.emit({});
+  assert.equal(invalidated,5);
+  api.alarms.onAlarm.emit({name:'managed.a'});
+  assert.equal(runs.length,7);
+  api.permissions.onRemoved.emit({permissions:['idle']});
+  api.storage.onChanged.emit({key:{newValue:1}},'local');
+  assert.deepEqual(removed,[{permissions:['idle']}]);
+  assert.deepEqual(stored,[{changes:{key:{newValue:1}},area:'local'}]);
+  api.runtime.onStartup.emit();
+  assert.deepEqual(runs.at(-1),{boot:true});
+  dispose();
+  assert.equal(api.tabs.onActivated.count,0);
+  const before=runs.length;
+  api.tabs.onActivated.emit({tabId:3});
+  assert.equal(runs.length,before,'disposed service cannot resurrect');
+});

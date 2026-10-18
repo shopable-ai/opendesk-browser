@@ -13,6 +13,7 @@ import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusM
 import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultsForPackage,focusDefaultMinutesForPackage,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
 import {observeManagedForeground} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
+import {subscribeManagedSiteActivity} from '../../../../src/platform/chrome/managed-site-lifecycle.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
   Object.keys(payload).sort().join(',')===names.slice().sort().join(',');
@@ -382,23 +383,16 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
       error=>reply({ok:false,error:{code:error?.code||'E_FOCUS',message:String(error?.message||error).slice(0,240)}}));
     return true;
   });
-  listen(api.alarms.onAlarm,alarm=>{if(alarm.name===FOCUS_ALARM)run();});
-  const activity=()=>{service.invalidate();run();};
-  listen(api.tabs.onActivated,activity);
-  listen(api.tabs.onUpdated,(_id,change)=>{if(change.url||change.status==='complete')activity();});
-  listen(api.tabs.onRemoved,activity);
-  listen(api.windows.onFocusChanged,activity);
-  listen(api.idle?.onStateChanged,activity);
-  listen(api.permissions.onRemoved,removed=>{
+  const disposeActivity=subscribeManagedSiteActivity(api,{
+    alarmName:FOCUS_ALARM,run,invalidate:()=>service.invalidate(),
+    onPermissionRemoved:removed=>{
     const nativeRevoked=Boolean(removed?.permissions?.some(name=>
       ['idle','declarativeNetRequestWithHostAccess'].includes(name)));
     const removedOrigins=Array.isArray(removed?.origins)?removed.origins.slice(0,128):[];
     service.invalidate({revoke:nativeRevoked});
     run({removedOrigins});
-  });
-  listen(api.permissions.onAdded,activity);
-  listen(api.runtime.onStartup,()=>run({boot:true}));
-  listen(api.storage.onChanged,(changes,area)=>{
+    },
+    onStorageChanged:(changes,area)=>{
     // A tool uninstall may remove its entire business record before reconcile
     // observes it. Clear the short-lived page notice from that event directly.
     if(area==='local'&&changes[SIDEBAR_TOOL_STORE]){
@@ -410,7 +404,7 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
     }
     if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]
       .some(key=>Object.hasOwn(changes,key))){service.invalidate({revoke:true});run({boot:true});}
+    }
   });
-  run({boot:true});
-  return {service,dispose(){for(const remove of removers)remove();}};
+  return {service,dispose(){disposeActivity();for(const remove of removers)remove();}};
 }
