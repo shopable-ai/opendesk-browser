@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {existsSync,readFileSync} from 'node:fs';
+import {existsSync,readFileSync,readdirSync} from 'node:fs';
+import {resolve,dirname,relative} from 'node:path';
 
 const file=path=>new URL('../../'+path,import.meta.url);
 const read=path=>readFileSync(file(path),'utf8');
@@ -33,4 +34,38 @@ test('R1 approved fixed runtime entrypoints use app-owned sources and existing H
   const sidebarHost=read('src/entrypoints/sidebar-tool-host.js');
   assert.ok(sidebarHost.includes('examples/sidebar-tools/time-review/trusted/trusted-native-ui.js'));
   assert.ok(sidebarHost.includes('examples/sidebar-tools/ai-vip-share/trusted/tool-host.js'));
+});
+
+test('R1.1 fixed Time Review executable WXT entry is the actual package contract',()=>{
+  const contract=read('scripts/build-contract.mjs');
+  assert.match(contract,/'time-review\/time-review-host': '\.\/src\/entrypoints\/time-review-host\.js'/);
+  const entry=read('src/entrypoints/time-review-host.js');
+  assert.match(entry,/defineUnlistedScript\(\(\)=>installTimeReviewService\(\)\)/);
+  assert.match(entry,/examples\/sidebar-tools\/time-review\/trusted\/service\.js/);
+  assert.match(read('src/sw.js'),/importScripts\('time-review\/time-review-host\.js'\)/);
+});
+
+test('R1.1 source modules no longer import removed application-owned src directories',()=>{
+  const dead=new Set(['src/stay-focus','src/time-review','src/ai-smart-access']);
+  const roots=['src','scripts'];
+  function walk(folder){
+    for(const item of readdirSync(folder,{withFileTypes:true})){
+      const path=resolve(folder,item.name);
+      if(item.isSymbolicLink())throw Error('Unexpected symlink in audited source: '+path);
+      if(item.isDirectory()){walk(path);continue;}
+      if(!/\.(?:js|mjs|cjs)$/.test(path))continue;
+      const source=readFileSync(path,'utf8');
+      // Validate actual literal import/export/require specifiers, not comments
+      // about the migration or user-authored strings in installed packages.
+      for(const match of source.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s*)['"]([^'"]+)['"]/g)){
+        const spec=match[1];
+        if(!spec.startsWith('.'))continue;
+        const dest=relative(process.cwd(),resolve(dirname(path),spec)).replaceAll('\\','/');
+        const obsolete=[...dead].find(root=>dest===root||dest.startsWith(root+'/'));
+        assert.equal(obsolete,undefined,
+          'obsolete app-owned source import in '+relative(process.cwd(),path)+': '+spec);
+      }
+    }
+  }
+  roots.forEach(walk);
 });
