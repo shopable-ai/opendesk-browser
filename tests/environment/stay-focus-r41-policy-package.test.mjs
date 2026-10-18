@@ -20,8 +20,11 @@ const at=new Date(2026,9,18,10,0,0).getTime();
 
 test('real Stay Focus install package carries bounded data, no privileged JS',async()=>{
   const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
-  assert.equal(tool.version,'1.0.2');
-  assert.deepEqual(tool.backgroundPolicy,policy);
+  assert.equal(tool.version,'1.0.3');
+  assert.equal(tool.backgroundPolicy.kind,'site-budget.v2');
+  assert.equal(tool.backgroundPolicy.dailyMinutes,30);
+  assert.ok(tool.backgroundPolicy.defaultSites.includes('youtube.com'));
+  assert.ok(tool.backgroundPolicy.suggestions.some(row=>row.host==='pinterest.com'));
   assert.ok(!Object.hasOwn(tool,'backgroundJs')&&!Object.hasOwn(tool,'trusted'));
   assert.deepEqual(validateSidebarToolPackage(JSON.parse(serializeSidebarToolPackage(tool))),tool);
 });
@@ -150,4 +153,62 @@ test('same Host SHA / only app package changes: no silent rules, trusted approva
     row.condition.regexFilter.includes('pinterest\\.com')));
   assert.equal(result.groups.custom,37);
   assert.ok(f.writes.length>1);
+});
+
+test('R4.3 v2 policy rejects unreviewed default scopes and malformed time data',async()=>{
+  const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  const policy=tool.backgroundPolicy;
+  for(const candidate of [
+    {...policy,defaultSites:[...policy.defaultSites,'unreviewed.example']},
+    {...policy,defaultSites:[...policy.defaultSites,policy.defaultSites[0]]},
+    {...policy,dailyMinutes:0},
+    {...policy,schedule:{...policy.schedule,startMinute:500,endMinute:500}},
+    {...policy,schedule:{...policy.schedule,days:[1,1]}},
+    {...policy,suggestions:[...policy.suggestions,{host:'evil.example',name:'E',category:'C',suggestLimit:true,quick:true,code:'alert(1)'}]}
+  ])assert.throws(()=>validateSidebarToolPackage({...tool,backgroundPolicy:candidate}),{code:'E_TOOL_POLICY'});
+  const reordered={...tool,backgroundPolicy:{...policy,
+    schedule:{startMinute:policy.schedule.startMinute,days:policy.schedule.days,
+      enabled:policy.schedule.enabled,endMinute:policy.schedule.endMinute}}};
+  assert.equal(await focusPackageHash(tool),await focusPackageHash(reordered));
+});
+test('R4.3 package first-use defaults execute; user preferences win after package-only update',async()=>{
+  const f=fixture(),app=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  f.stored.set(SIDEBAR_TOOL_STORE,[app]);
+  const before=await f.focus.dispatch(await f.msg(app,'focus.status'),f.sender);
+  assert.equal(before.dailyBudget.minutes,app.backgroundPolicy.dailyMinutes);
+  assert.deepEqual(before.sites,[]);
+  const first=await f.focus.dispatch(await f.msg(app,'focus.enable'),f.sender);
+  assert.equal(first.enabled,true);
+  assert.deepEqual(new Set(first.sites.map(row=>row.host)),new Set(app.backgroundPolicy.defaultSites));
+  assert.deepEqual(first.schedule,app.backgroundPolicy.schedule);
+  assert.equal(first.groups.entertainment,30);
+  await f.focus.dispatch(await f.msg(app,'focus.group.put',
+    {id:'entertainment',minutes:51}),f.sender);
+  await f.focus.dispatch(await f.msg(app,'focus.site.put',
+    {site:site('user-choice.example.com')}),f.sender);
+  const upgraded={...app,version:'1.0.4',backgroundPolicy:{
+    ...app.backgroundPolicy,dailyMinutes:71,
+    defaultSites:[...app.backgroundPolicy.defaultSites,'pinterest.com'],
+    schedule:{...app.backgroundPolicy.schedule,enabled:true}
+  }};
+  const installed=await installReviewedSidebarTool({api:f.api,
+    lockManager:{request:async(_key,run)=>run()},candidate:upgraded,baseline:app,
+    reviewApproved:true,approveUpdate:async()=>true});
+  assert.equal(installed.state,'installed');
+  f.focus.invalidate({revoke:true});
+  const stopped=await f.focus.tick({boot:true});
+  assert.equal(stopped.enabled,false,'a new signed package is not silently reauthorized');
+  assert.equal(stopped.ruleReceipt.verified,true);
+  assert.equal(stopped.groups.entertainment,51,'user quota overrides new default');
+  assert.deepEqual(stopped.schedule,app.backgroundPolicy.schedule,'existing schedule retained');
+  assert.ok(stopped.sites.some(row=>row.host==='user-choice.example.com'));
+  assert.ok(!stopped.sites.some(row=>row.host==='pinterest.com'));
+  assert.ok(stopped.catalog.some(row=>row.host==='pinterest.com'));
+  await assert.rejects(f.focus.dispatch(await f.msg(app,'focus.status'),f.sender),
+    {code:'E_TOOL_CHANGED'});
+  const resumed=await f.focus.dispatch(await f.msg(upgraded,'focus.enable'),f.sender);
+  assert.equal(resumed.enabled,true);
+  assert.equal(resumed.groups.entertainment,51);
+  assert.ok(!resumed.sites.some(row=>row.host==='pinterest.com'),
+    'new default must not enroll during reauthorization');
 });

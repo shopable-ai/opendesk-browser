@@ -126,8 +126,8 @@ export function settleFocus(state,{at,session,current=null,boot=false}){
       pool:focusPool(current.site),at,day:today,offset,session};
   return {state,clockRollback:false};
 }
-export function focusSummary(state,at=Date.now(),catalog=FOCUS_CATALOG){
-  const minutes=state.groups[FOCUS_DEFAULT_GROUP]??FOCUS_DEFAULT_MINUTES;
+export function focusSummary(state,at=Date.now(),catalog=FOCUS_CATALOG,defaultMinutes=FOCUS_DEFAULT_MINUTES){
+  const minutes=state.groups[FOCUS_DEFAULT_GROUP]??defaultMinutes;
   const budgetMs=minutes*60000,usedMs=state.usage['g:'+FOCUS_DEFAULT_GROUP]||0;
   return {enabled:state.enabled,authorized:Boolean(state.authorizedHash),day:state.day,
     schedule:state.schedule,focusUntil:state.focusUntil,groups:state.groups,whitelist:state.whitelist,

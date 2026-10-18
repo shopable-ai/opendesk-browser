@@ -29,7 +29,16 @@ export function focusCatalogMatch(host){
 // JSON-only same-ID upgrade on an unchanged Browser build. Nothing is installed
 // in DNR or copied into a user's policy before an explicit confirmed site.put.
 export function focusCatalogForPackage(tool){
-  const rows=tool?.backgroundPolicy?.kind==='site-budget.v1'?tool.backgroundPolicy.suggestions:[];
+  const policy=tool?.backgroundPolicy;
+  if(policy?.kind==='site-budget.v2'){
+    const auto=new Set(policy.defaultSites);
+    return Object.freeze(policy.suggestions.map(row=>Object.freeze({
+      host:row.host,name:row.name,category:row.category,
+      auto:auto.has(row.host),quick:row.quick,
+      minutes:row.suggestLimit?policy.dailyMinutes:0
+    })));
+  }
+  const rows=policy?.kind==='site-budget.v1'?policy.suggestions:[];
   if(!rows.length)return FOCUS_CATALOG;
   const additions=new Map(rows.map(row=>[row.host,{
     host:row.host,name:row.name,category:row.category,auto:false,quick:row.quick,
@@ -49,4 +58,22 @@ export function focusDefaultSites(){
     host:row.host,subdomains:true,enabled:true,mode:'limit',
     minutes:FOCUS_DEFAULT_MINUTES,group:FOCUS_DEFAULT_GROUP
   }));
+}
+
+// Only an explicitly approved first-use profile consumes package defaults.
+// Already configured profiles are never migrated from changed suggestions.
+export function focusDefaultMinutesForPackage(tool){
+  const policy=tool?.backgroundPolicy;
+  return policy?.kind==='site-budget.v2'?policy.dailyMinutes:FOCUS_DEFAULT_MINUTES;
+}
+export function focusDefaultsForPackage(tool){
+  const policy=tool?.backgroundPolicy;
+  if(policy?.kind!=='site-budget.v2')
+    return {minutes:FOCUS_DEFAULT_MINUTES,sites:focusDefaultSites(),schedule:null};
+  const approved=new Set(policy.defaultSites);
+  return {minutes:policy.dailyMinutes,schedule:structuredClone(policy.schedule),
+    sites:policy.suggestions.filter(row=>approved.has(row.host)).map(row=>({
+      host:row.host,subdomains:true,enabled:true,mode:'limit',
+      minutes:policy.dailyMinutes,group:FOCUS_DEFAULT_GROUP
+    }))};
 }

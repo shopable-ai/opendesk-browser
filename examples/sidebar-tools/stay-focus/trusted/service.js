@@ -8,7 +8,7 @@ import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_S
   FOCUS_OPERATIONS,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
-import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultSites,focusCatalogForPackage} from './catalog.js';
+import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultsForPackage,focusDefaultMinutesForPackage,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
@@ -108,7 +108,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(!await api.permissions.contains({origins:[originPattern]}))return null;
     return {host,site,tabId:tab.id,windowId:win.id};
   }
-  function mutate(state,operation,payload,at){
+  function mutate(state,operation,payload,at,defaultMinutes=FOCUS_DEFAULT_MINUTES){
     if(operation==='focus.enable'){
       requirePayload(payload,[]);
       state.enabled=true;
@@ -120,7 +120,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       const raw=payload.site;if(!raw||typeof raw.host!=='string')throw focusError('请提供域名和额度');
       const site=focusSite({...raw,host:focusHost(raw.host)});
       if(site.group===FOCUS_DEFAULT_GROUP&&!Object.hasOwn(state.groups,FOCUS_DEFAULT_GROUP))
-        state.groups[FOCUS_DEFAULT_GROUP]=FOCUS_DEFAULT_MINUTES;
+        state.groups[FOCUS_DEFAULT_GROUP]=defaultMinutes;
       if(site.group&&!Object.hasOwn(state.groups,site.group))throw focusError('请先创建共享额度组');
       const index=state.sites.findIndex(row=>row.host===site.host);
       if(index<0){if(state.sites.length>=FOCUS_MAX_SITES)throw focusError('最多可添加 60 个网站');state.sites.push(site);}
@@ -227,8 +227,10 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     // Only genuinely new, never-configured installations receive automatic
     // enrollment. A pre-existing custom/empty policy is never silently widened.
     if(operation==='focus.enable'&&raw===undefined){
-      state.groups[FOCUS_DEFAULT_GROUP]=FOCUS_DEFAULT_MINUTES;
-      state.sites=focusDefaultSites();
+      const defaults=focusDefaultsForPackage(auth.tool);
+      state.groups[FOCUS_DEFAULT_GROUP]=defaults.minutes;
+      state.sites=defaults.sites;
+      if(defaults.schedule)state.schedule=defaults.schedule;
     }
     // A Chrome site-access revocation applies only to intersecting restrictions.
     // Keep other sites and Time Review completely independent. Regranting Chrome
@@ -268,7 +270,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
         if(!permissions.idle)throw focusError('需在可信设置中批准空闲检测','E_FOCUS_PERMISSION');
         state.authorizedHash=hash;state.authorizedEpoch=auth.epoch;
       }
-      state=mutate(state,operation,payload,at);
+      state=mutate(state,operation,payload,at,focusDefaultMinutesForPackage(auth.tool));
       // A newly enabled tool starts a clean checkpoint, never borrows idle time.
       if(operation==='focus.enable')state.checkpoint=null;
     }
@@ -327,7 +329,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(startGeneration===generation){
       revoked=false;settledGeneration=startGeneration;
     }
-    return {...focusSummary(state,at,focusCatalogForPackage(auth.tool)),permissions:fresh,ruleReceipt,tabs};
+    return {...focusSummary(state,at,focusCatalogForPackage(auth.tool),
+      focusDefaultMinutesForPackage(auth.tool)),permissions:fresh,ruleReceipt,tabs};
   }
   const tick=options=>lock(()=>reconcileLocked(options));
   // A read-only worker roundtrip before installation. This API can never modify

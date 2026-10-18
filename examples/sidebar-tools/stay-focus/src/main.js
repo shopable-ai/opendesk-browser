@@ -6,7 +6,7 @@
     const el=document.createElement(tag);if(klass)el.className=klass;
     if(text!==undefined)el.textContent=text;return el;
   };
-  let state=null,busy=false,firstSettings=true,currentSuggestion=null;
+  let state=null,busy=false,firstSettings=true,currentSuggestion=null,editingSite=null;
   const message=(text,error=false)=>{$('message').textContent=text;$('message').dataset.error=String(error);};
   const minutes=ms=>ms>=3600000?Math.floor(ms/3600000)+' 小时 '+Math.floor(ms%3600000/60000)+' 分钟':Math.max(0,Math.ceil(ms/60000))+' 分钟';
   const escapeHost=value=>{
@@ -80,7 +80,7 @@
   };
   const formatTime=value=>String(Math.floor(value/60)).padStart(2,'0')+':'+String(value%60).padStart(2,'0');
   const call=async(op,payload={})=>{
-    if(busy)return;
+    if(busy)return false;
     busy=true;
     const buttons=[...root.querySelectorAll('button')];buttons.forEach(x=>x.disabled=true);
     try{
@@ -92,6 +92,7 @@
       else if(result?.ruleReceipt?.verified!==true)message('设置已存入本机，但尚未验证 Chrome DNR 生效。请检查原生拦截权限。',true);
       else if(result?.tabs?.failed>0)message('Chrome 拦截规则已核对，但有 '+result.tabs.failed+' 个已打开页面无法自动切换，请手动重新导航。',true);
       else message('规则已保存，并完成 Chrome DNR 规则读回核对。');
+      return true;
     }catch(error){
       if(op==='focus.disable'&&error?.code==='E_FOCUS_TRUSTED_CLICK')
         message('已打开外层可信设置；请点击「停止所有 Stay Focus 限制」完成停用。');
@@ -100,11 +101,19 @@
         $('native-state').textContent='状态核对失败';
         $('native-state').dataset.warning='true';
       }
+      return false;
     }finally{
       busy=false;buttons.forEach(x=>x.disabled=false);
       if(state)$('focus-start').disabled=!state.enabled;
     }
   };
+  function resetSiteEditor(){
+    editingSite=null;
+    $('site-host').readOnly=false;
+    $('site-host').value='';
+    $('site-save').textContent='保存网站规则';
+    $('site-new').hidden=true;
+  }
   const badgeSite=(site)=>{
     const row=create('article','sf-site');row.dataset.blocked=String(Boolean(site.reason));
     const left=create('div','sf-site-main');
@@ -116,7 +125,10 @@
     const edit=create('button','','编辑');edit.type='button';edit.setAttribute('aria-label','编辑 '+site.host);
     edit.addEventListener('click',()=>{
       $('manual-site').open=true;
-      $('site-host').value=site.host;$('site-minutes').value=site.minutes;
+      editingSite=site.host;
+      $('site-host').value=site.host;$('site-host').readOnly=true;
+      $('site-save').textContent='保存网站修改';$('site-new').hidden=false;
+      $('site-minutes').value=site.minutes;
       $('site-mode').value=site.mode;$('site-subdomains').checked=site.subdomains;
       $('site-group').value=site.group;$('site-host').focus();
     });
@@ -216,15 +228,21 @@
       void call('focus.site.put',{site:siteRule(currentSuggestion)});
   });
   $('quick-refresh').addEventListener('click',()=>{void recognizeCurrent();});
+  $('site-new').addEventListener('click',()=>{resetSiteEditor();$('site-host').focus();});
   $('site-save').addEventListener('click',event=>{
     event.preventDefault();
     const host=escapeHost($('site-host').value),minutesValue=Number($('site-minutes').value);
     if(!host||!Number.isInteger(minutesValue)||minutesValue<1||minutesValue>1440){
       message('请输入有效的 HTTP(S) 网站域名和 1–1440 分钟的限额。',true);return;
     }
-    call('focus.site.put',{site:{host,minutes:minutesValue,
-      subdomains:$('site-subdomains').checked,enabled:true,
-      mode:$('site-mode').value,group:$('site-group').value}});
+    if(editingSite&&host!==editingSite){
+      message('不能直接更改已管理网站的域名；请移除旧网站，再添加新网站。',true);return;
+    }
+    const existing=state?.sites?.find(site=>site.host===host);
+    void call('focus.site.put',{site:{host,minutes:minutesValue,
+      subdomains:$('site-subdomains').checked,enabled:existing?.enabled??true,
+      mode:$('site-mode').value,group:$('site-group').value}})
+      .then(saved=>{if(saved)resetSiteEditor();});
   });
   $('add-current').addEventListener('click',async()=>{
     if(busy)return;
@@ -233,6 +251,7 @@
       const host=escapeHost(current?.url);
       if(!host)throw new Error('当前选中的标签页不支持添加，先切换到正常网站。');
       const suggestion=classifyCurrent(current);
+      resetSiteEditor();
       $('site-host').value=suggestion?.host||host;
       if(suggestion?.minutes>0)$('site-minutes').value=state?.dailyBudget?.minutes??30;
       $('site-group').value='entertainment';

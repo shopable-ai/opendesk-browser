@@ -2,7 +2,7 @@
 // trusted Side Panel, never from the opaque-origin tool iframe.
 import {FOCUS_ID,FOCUS_CAPABILITY} from './policy.js';
 export function createStayFocusPermissionControls({api,doc,container,notice,runOperation}){
-  let section=null,confirm=null,busy=false,buttons=[],grantButton=null,canGrant=false;
+  let section=null,confirm=null,busy=false,buttons=[],grantButton=null,canGrant=false,intro=null;
   const message=(text,error=false)=>notice(text,error);
   function createButton(id,label,handler){
     const node=doc.createElement('button');
@@ -27,8 +27,7 @@ export function createStayFocusPermissionControls({api,doc,container,notice,runO
     if(!section){
       section=doc.createElement('section');section.id='stay-focus-trusted-settings';
       section.className='time-review-trusted-actions';
-      const intro=doc.createElement('p');
-      intro.textContent='首次授权空闲检测并开启后，YouTube、TikTok、Instagram 等已识别娱乐网站默认共用每日 30 分钟，且可逐站暂停。开启前不会自动限制网站；计时和 Chrome 拦截均在本机完成。';
+      intro=doc.createElement('p');
       const grant=createButton('stay-focus-enable-native','授权并开启每日娱乐总额度',event=>{
         if(!event?.isTrusted||busy||!canGrant)return;
         setBusy(true);
@@ -66,6 +65,15 @@ export function createStayFocusPermissionControls({api,doc,container,notice,runO
       section.append(intro,grant,stop,openClear,confirm);container.append(section);
     }
     section.hidden=false;
+    const policy=tool.backgroundPolicy;
+    if(policy?.kind==='site-budget.v2'){
+      const names=new Map(policy.suggestions.map(row=>[row.host,row.name]));
+      const siteLabels=policy.defaultSites.map(host=>names.get(host)||host).join('、');
+      intro.textContent='首次开启将管理：'+(siteLabels||'无预设网站')+
+        '。默认共享每日 '+policy.dailyMinutes+' 分钟，工作时段可自行调整。'+
+        '请先审阅站点；更新应用包不会自动增加或重置已有设置。关闭侧栏后仍由浏览器后台执行。';
+    }else intro.textContent='首次授权并开启后，YouTube、TikTok、Instagram 等已识别娱乐网站默认共用每日 30 分钟。'+
+      '开启前不自动限制网站，已开启时关闭侧栏仍由浏览器后台执行。';
     grantButton.title=canGrant?'授权并开启本机限制':'请先在工具设置中启用 Stay Focus';
     setBusy(busy);
   }
