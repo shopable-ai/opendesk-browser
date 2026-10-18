@@ -10,6 +10,7 @@ import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusM
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
 import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultsForPackage,focusDefaultMinutesForPackage,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
+import {observeManagedForeground} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
   Object.keys(payload).sort().join(',')===names.slice().sort().join(',');
@@ -96,17 +97,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return {idle,dnr,ready:Boolean(idle&&dnr)};
   }
   async function observe(state,permissions){
-    if(!permissions.ready)return null;
-    if(await api.idle.queryState(60)!=='active')return null;
-    const win=await api.windows.getLastFocused();
-    if(!win?.focused||win.incognito||win.type!=='normal')return null;
-    const tabs=await api.tabs.query({active:true,windowId:win.id}),tab=tabs.length===1?tabs[0]:null;
-    if(!tab?.url||tab.incognito||tab.pendingUrl)return null;
-    const host=focusHost(tab.url),site=focusMatchingSite(state,host);
-    if(!site)return null;
-    const address=new URL(tab.url),originPattern=address.protocol+'//'+address.hostname+'/*';
-    if(!await api.permissions.contains({origins:[originPattern]}))return null;
-    return {host,site,tabId:tab.id,windowId:win.id};
+    return observeManagedForeground(api,{ready:permissions.ready,hostFromUrl:focusHost,
+      siteForHost:host=>focusMatchingSite(state,host)});
   }
   function mutate(state,operation,payload,at,defaultMinutes=FOCUS_DEFAULT_MINUTES){
     if(operation==='focus.enable'){

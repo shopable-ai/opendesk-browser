@@ -1,0 +1,9 @@
+# Stay Focus R4.4 — 公共受管后台提取阶段记录（2026-10-19）
+
+- 负责人：当前 Stay Focus R4.4 对话；仓库仅 main；起始 HEAD `def46133becb0d2531403e285f2c27e31c405520`。
+- 写入范围：`src/platform/chrome/browser-managed-site-policy.js`、`tests/environment/browser-managed-site-policy-r44.test.mjs`、Stay Focus `trusted/service.js`、`trusted/model.js`、`trusted/rule-ownership.js`、`scripts/bundle-provenance.mjs`、`.github/workflows/stay-focus-r1.yml`、本记录。
+- 公共契约：新增固定编译的 Chrome 受管前台观察、保守预算结算和 DNR 归属读回原语。原 `focus.*` RPC、存储键、规则 ID、Host 可信文档验证、packageHash/epoch 与用户权限流程不改。未公开新的沙箱 SDK 操作；禁止任意安装包后台 JavaScript。
+- 真实消费者：Stay Focus SW `trusted/service.js` → 公共前台观察；`trusted/model.js` → 公共结算；`trusted/rule-ownership.js` → 公共 DNR 对账。原有静态 Service 仍保留，不把此阶段误报为全部后台 Runtime 独立升级。
+- 本次仅新增可由 Node 验证的隔离/休眠/跨日/DNR 对账测试；原生 Chrome、固定宿主跨版本安装、独立应用升级仍需真实证据。
+- 写入前无共享本地文件/进程使用，远端 main 更新用 expected HEAD 栅栏；无分支、worktree、PR、强推或覆盖他人文件。
+- 状态：实施提交待 CI 验证；此记录不是正式版本验收。

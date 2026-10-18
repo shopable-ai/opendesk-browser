@@ -109,12 +109,12 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
   'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'5f22f27e452b675f3df48a044457fb7bfe2f76c5',
   'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'2f5de0ad7751c36ae210d7f8f5297bddb450287f',
-  'examples/sidebar-tools/stay-focus/trusted/model.js':'6bfae7b11920ad26ec1871fb0a99023482f34979',
+  'examples/sidebar-tools/stay-focus/trusted/model.js':'e160e2636a31a91815a7a8fb4e4e79437b83d137',
   'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
   'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
-  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'c500b8b94ae5b723f0e1d6a3014c0519676ac852',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'20c196d7a931f655baad066335643fd1f08206bb',
+  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'80c44d3f18b81a50953b0d424e4437fae52ab98c',
+  'examples/sidebar-tools/stay-focus/trusted/service.js':'9ed654c5d864c3c457f43f8fd6ef2aa3671c6d18',
   'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'c971af818fd17a8964f0e0e9584efc281931b371'
 });
 // The shared lifecycle module is statically linked by other approved hosts
