@@ -258,21 +258,21 @@ test('R2.3 explains audit retention and shows native Chrome origin-wide storage 
     'storage disclosure uses the shared focus ring');
 });
 
-test('R2.6 plan list keeps next run prominent and destructive actions behind explicit review',async()=>{
+test('R33.3.19 two-line plan list keeps authoritative header deletion behind explicit review',async()=>{
   const [html,css,ui,shared]=await Promise.all([
     load('src/ui/tool.html'),load('src/ui/tool-shell.css'),
     load('src/ui/scheduled-task-workbench.js'),load('src/ui/design-system.css')
   ]);
   assert.match(html,/id="schedule-list-summary"[^>]*aria-live="polite"/);
-  assert.match(ui,/const next=element\(doc,'p','schedule-next-time'/);
+  assert.match(ui,/const timing=element\(doc,'p','schedule-plan-meta schedule-timing-line'\)/);
   assert.match(ui,/const more=element\(doc,'details','schedule-more od-disclosure od-disclosure--flat'\)/);
-  assert.match(html,/id="schedule-detail-delete"[^>]*aria-label="删除当前计划"[^>]*hidden/);
-  assert.match(ui,/bind\('schedule-detail-delete','click',toggleDeleteReview\)/);
   assert.doesNotMatch(ui,/more\.append\(remove\)/);
+  assert.match(html,/id="schedule-detail-delete"[^>]*aria-label="删除当前计划"/);
+  assert.match(ui,/bind\('schedule-detail-delete','click'/);
   assert.match(ui,/\`确定删除「\$\{plan\.title\}」/);
   assert.match(ui,/client\.request\('changeSchedule'/);
-  assert.match(css,/\.schedule-card \.schedule-next-time\{font-size:13px/);
-  assert.match(css,/\.schedule-plan-actions\{justify-content:flex-start/);
+  assert.match(css,/\.schedule-card \.schedule-plan-meta\{display:flex/);
+  assert.match(css,/\.schedule-card \.schedule-plan-actions\{display:flex/);
   assert.match(shared,/(?:^|\n):focus-visible,#workspace-content :focus-visible\{outline:2px solid var\(--od-focus\);outline-offset:2px\}/);
   assert.match(shared,/\.od-disclosure--flat>summary\{min-height:36px/);
 });
@@ -588,7 +588,7 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
   assert.match(source,/afterSave=editing\?formReturnView/);
   assert.match(source,/if\(returnAfterDelete&&activeView==='detail'\)leaveDetail\(\)/);
   assert.match(source,/scheduleId:plan.scheduleId,offset:view.records.length,limit:20/);
-  assert.match(source,/if\(view.deleteReview\)toggleDeleteReview\(\)/);
+  assert.match(source,/if\(view.deleteReview\)\{/);
   assert.match(source,/expectedGeneration:plan.generation,action:operation/);
   assert.match(css,/\.schedule-card-head \.schedule-plan-open\{/);
   assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
@@ -709,37 +709,16 @@ test('R32 list editing keeps contextual return text and secondary plan actions',
   ui.dispose();
 });
 
-test('R24.2 finished one-off detail hides impossible pause, and header delete still requires confirmation',async()=>{
-  const {get,state,ui}=await scheduledDomFixture();
-  const plan=state.plans[0];
-  plan.triggerKind='once';plan.paused=false;plan.nextDueAt=null;
-  await ui.refresh();
-  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
-  assert.equal(get('schedule-detail-delete').hidden,false);
-  assert.equal(get('schedule-detail-view').querySelector('.schedule-detail-actions button'),null,
-    'a finished one-off must not offer a pause/resume in detail');
-  get('schedule-detail-delete').click();
-  const confirmation=get('schedule-detail-view').querySelector('.schedule-delete-confirm');
-  assert.ok(confirmation,'header action must open review rather than deleting immediately');
-  assert.equal(state.plans.length,1);
-  confirmation.querySelectorAll('button')[1].click();
-  assert.equal(get('schedule-detail-view').querySelector('.schedule-delete-confirm'),null);
-  assert.equal(state.plans.length,1,'cancel cannot remove a plan');
-  get('schedule-back').click();
-  assert.equal(get('schedule-detail-delete').hidden,true);
-  ui.dispose();
-});
-
 test('R32 runner action keeps the live Host status while its launch button moves to the header',async()=>{
   const {document,ui,get}=await scheduledDomFixture({count:0});
   const status=get('schedule-host-status'),runner=get('schedule-open-runner');
   assert.equal(status.parentElement?.id,'schedule-list-view',
     'the live Host status stays in the plan list instead of being moved into the header');
-  assert.equal(runner.parentElement.classList.contains('od-page-actions'),true,
-    'the compact runner entry belongs to the current header actions');
-  assert.equal(runner.textContent.trim(),'','the runner icon has no redundant visible label');
+  assert.equal(runner.parentElement.classList.contains('schedule-runner-secondary'),true,
+    'runner is secondary to top-right plan management and creation');
+  assert.equal(runner.textContent.trim(),'打开运行概览');
   assert.equal(runner.getAttribute('aria-label'),'打开独立运行页');
-  assert.equal(runner.classList.contains('od-icon-button'),true);
+  assert.equal(runner.classList.contains('od-button'),true);
   status.textContent='宿主已断开；等待重新连接';
   await ui.refresh();
   assert.equal(get('schedule-host-status'),status,'the host retains the same status node');
@@ -781,9 +760,9 @@ test('R33.3.15-C plan cards stop only the current owned Fire and keep the plan s
   assert.ok(stop,'admitted/running Fire exposes a distinct quick-stop icon');
   assert.equal(stop.disabled,false,'only the verified current Host run can be stopped');
   assert.match(stop.getAttribute('aria-label'),/^停止本次执行/);
-  assert.match(card.querySelector('.schedule-state').textContent,/运行中/);
-  assert.match(card.querySelector('.schedule-plan-phase').textContent,/计划：已安排/,
-    'run state must not overwrite the scheduled plan lifecycle');
+  assert.match(card.querySelector('.schedule-state').getAttribute('aria-label'),/执行：运行中；计划：已安排/,
+    'the one-line icon tooltip must distinguish Fire execution from plan lifecycle');
+  assert.equal(card.querySelector('.schedule-state').getAttribute('role'),'img');
   assert.match(card.querySelector('.schedule-plan-frequency').textContent,/每天/);
   assert.match(card.querySelector('.schedule-next-time').textContent,/下次/);
   stop.click();await flush();
@@ -802,6 +781,59 @@ test('R33.3.15-C plan cards stop only the current owned Fire and keep the plan s
   await ui.refresh();
   assert.equal(get('schedule-plan-list').querySelector('[data-schedule-action="stop"]'),null,
     'unknown execution is not safe to stop or automatically retry');
+  ui.dispose();
+});
+
+
+test('R33.3.19 manager is in plan header; detail delete has one owner and cancellable review',async()=>{
+  const {document,ui,get}=await scheduledDomFixture();
+  assert.equal(get('schedule-open-manager').hidden,false);
+  get('schedule-open-manager').click();
+  assert.equal(get('schedule-task-manager').hidden,false);
+  assert.equal(get('schedule-manager-create').hidden,false);
+  const taskCard=get('schedule-manager-list').querySelector('.schedule-manager-card');
+  assert.ok(taskCard);
+  assert.equal(taskCard.querySelector('.schedule-manager-title-line .schedule-manager-state')
+    .getAttribute('role'),'img');
+  assert.ok(taskCard.querySelector('.schedule-manager-menu > summary'));
+  assert.ok(taskCard.querySelector('.schedule-manager-menu-panel .schedule-manager-uninstall'));
+  get('schedule-back').click();
+  assert.equal(get('schedule-list-view').hidden,false);
+  assert.equal(get('schedule-open-manager').hidden,false);
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  assert.equal(get('schedule-detail-delete').hidden,false);
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-more .schedule-danger-link'),null,
+    'deletion cannot remain inside additional actions');
+  get('schedule-detail-delete').click();
+  assert.equal(get('schedule-detail-view').querySelectorAll('.schedule-delete-confirm').length,1);
+  const review=get('schedule-detail-view').querySelector('.schedule-delete-confirm');
+  assert.match(review.textContent,/Run\/Result 历史不会因删除计划自动清除/);
+  assert.equal(document.activeElement,review.querySelector('button'));
+  review.querySelectorAll('button')[1].click();
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-delete-confirm'),null);
+  assert.equal(document.activeElement,get('schedule-detail-delete'));
+  assert.equal(get('schedule-detail-view').hidden,false,
+    'cancel only closes the review; it never commits a delete');
+  ui.dispose();
+});
+test('R24.2 finished one-off detail hides impossible pause; header deletion requires confirmation',async()=>{
+  const {get,state,ui}=await scheduledDomFixture();
+  const plan=state.plans[0];
+  plan.triggerKind='once';plan.paused=false;plan.nextDueAt=null;
+  await ui.refresh();
+  get('schedule-plan-list').querySelector('.schedule-plan-open').click();
+  assert.equal(get('schedule-detail-delete').hidden,false);
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-detail-actions button'),null,
+    'a finished one-off must not offer pause or resume');
+  get('schedule-detail-delete').click();
+  const review=get('schedule-detail-view').querySelector('.schedule-delete-confirm');
+  assert.ok(review,'header action opens review, not deletion');
+  assert.equal(state.plans.length,1);
+  review.querySelectorAll('button')[1].click();
+  assert.equal(get('schedule-detail-view').querySelector('.schedule-delete-confirm'),null);
+  assert.equal(state.plans.length,1);
+  get('schedule-back').click();
+  assert.equal(get('schedule-detail-delete').hidden,true);
   ui.dispose();
 });
 

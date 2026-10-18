@@ -68,3 +68,28 @@ export function presentSchedulePlan(plan,history=plan?.history||[]){
     recentText,recentTone:recent?resultTones[recent.status]||'muted':'neutral',
     lastFireStatus:recent?.status||null});
 }
+
+/* A visual glyph mapping, not a second scheduler state machine.
+   Both the trusted DOM owner and offline React preview consume this projection. */
+const scheduleIconPaths=Object.freeze({
+  '已安排':'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18M12 7v5l3 2',
+  '运行中':'M8 5v14l11-7Z','已启动':'M8 5v14l11-7Z',
+  '已暂停':'M8 5v14M16 5v14',
+  '已完成':'M4 12l5 5L20 6M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18',
+  '执行失败':'M5 5l14 14M19 5L5 19M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18',
+  '正在结算':'M20 12a8 8 0 0 1-8 8M4 12a8 8 0 0 1 8-8M17 4h-5v5M7 20h5v-5',
+  '需要处理':'M12 3 2 21h20L12 3ZM12 9v5M12 17v1',
+  '结果待核对':'M12 3 2 21h20L12 3ZM12 9v5M12 17v1',
+  '已错过':'M12 3 2 21h20L12 3ZM12 9v5M12 17v1',
+  '暂无后续计划':'M4 12h16M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18',
+  '已停止':'M6 6h12v12H6z','已取消':'M4 12h16',
+  '等待运行页':'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18M12 7v5l3 2'
+});
+export const schedulePlanIconPath=presentation=>
+  scheduleIconPaths[presentation?.badge]||scheduleIconPaths['已安排'];
+export const schedulePlanStatusLabel=presentation=>
+  presentation?.badgeSource==='fire'&&presentation.planState!==presentation.badge?
+    '执行：'+presentation.badge+'；计划：'+presentation.planState:
+    presentation?.badge||'状态未知';
+export const schedulePlanNeedsNotice=presentation=>
+  ['FAILED','UNKNOWN','NEEDS_ATTENTION','MISSED','SETTLING'].includes(presentation?.lastFireStatus);

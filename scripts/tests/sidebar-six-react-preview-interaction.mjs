@@ -140,37 +140,46 @@ try{
   await click('#schedule-open');
   await until('!document.getElementById("scheduled-panel").hidden');
   await until('document.querySelectorAll("#schedule-plan-list .schedule-card").length>=8');
-  const projected=await evaluate('[...document.querySelectorAll("#schedule-plan-list .schedule-state")].map(x=>x.textContent)');
-  for(const state of ['已安排','已暂停','运行中','已完成','需要处理','结果待核对','已错过'])
-    assert(projected.includes(state),'multi-state projection must include '+state);
+  const projected=await evaluate('[...document.querySelectorAll("#schedule-plan-list .schedule-state")].map(x=>x.getAttribute("aria-label"))');
+  for(const state of ['已安排','已暂停','运行中','已完成','需要处理','结果待核对','已错过','正在结算'])
+    assert(projected.some(label=>label.includes(state)),'accessible icon must identify '+state);
+  assert.equal(await evaluate('[...document.querySelectorAll("#schedule-plan-list .schedule-state")].every(x=>x.getAttribute("role")==="img")'),true);
   assert.equal(await evaluate('document.querySelectorAll("#schedule-plan-list .schedule-plan-actions button").length'),17,
     'completed one-off cards must not show a fake restart; active Fire owns a distinct Stop');
   assert.equal(await evaluate('Boolean(document.querySelector("[data-schedule-id=preview-3] [data-schedule-action=stop]"))'),true);
   assert.equal(await evaluate('Boolean(document.querySelector("[data-schedule-id=preview-4] [data-schedule-action=toggle]"))'),false,
     'successful one-off cannot silently be started a second time');
-  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-plan-phase")?.textContent.includes("已安排")'),true,
-    'running Fire must remain separate from scheduled-plan lifecycle');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-state")?.getAttribute("aria-label").includes("计划：已安排")'),true,
+    'running Fire and scheduled plan lifecycle must share one truthful accessible icon');
   assert.equal(await evaluate('document.getElementById("schedule-list-summary").textContent.includes("运行中")'),true);
   assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-state").dataset.tone'),'positive');
-  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-recent-result").dataset.tone'),'positive');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-recent-result")===null'),true,
+    'ordinary running state needs no duplicate third line');
   assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-2] .schedule-state").dataset.tone'),'muted');
   await screenshot('my-schedule-multi-360');
   await click('[data-schedule-id="preview-3"] [data-schedule-action="stop"]');
-  await until('document.querySelector("[data-schedule-id=preview-3] .schedule-recent-result")?.textContent.includes("已停止")');
-  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-state")?.textContent'),"已安排",
-    'stopping current UI Fire must not pause recurring plan');
+  await until('document.querySelector("[data-schedule-id=preview-3] .schedule-state")?.getAttribute("aria-label")==="已安排"');
+  assert.equal(await evaluate('document.querySelector("[data-schedule-id=preview-3] .schedule-plan-meta").textContent.includes("下次")'),true,
+    'stopping current UI Fire must leave the recurring plan schedule intact');
   await click('[data-schedule-id="preview-2"] [data-schedule-action="toggle"]');
-  await until('document.querySelector("[data-schedule-id=preview-2] .schedule-state")?.textContent==="已安排"');
-  await click('[data-schedule-id="preview-4"] .schedule-plan-open');
+  await until('document.querySelector("[data-schedule-id=preview-2] .schedule-state")?.getAttribute("aria-label")==="已安排"');
+  // Real pointer steps exercise the single header delete entry and its review.
+  await click('[data-schedule-id="preview-1"] .schedule-plan-open');
   await until('!document.getElementById("schedule-detail-view").hidden');
-  assert.equal(await evaluate('document.querySelector("#schedule-detail-view .schedule-detail-actions button")===null'),true,
-    'completed one-off detail must not offer fake pause/resume');
-  assert.equal(await evaluate('!document.getElementById("schedule-detail-delete").hidden'),true,
-    'plan deletion belongs to the detail header');
+  assert.equal(await evaluate('document.getElementById("schedule-detail-delete").hidden'),false);
+  assert.equal(await evaluate('document.querySelectorAll("#schedule-detail-view .schedule-danger-link").length'),0);
   await click('#schedule-detail-delete');
-  await until('!!document.querySelector("#schedule-detail-view .schedule-delete-confirm")');
+  await until('Boolean(document.querySelector("#schedule-detail-view .schedule-delete-confirm"))');
+  await screenshot('schedule-header-delete-confirm-360');
   await click('#schedule-detail-view .schedule-delete-confirm button:last-child');
   await until('!document.querySelector("#schedule-detail-view .schedule-delete-confirm")');
+  assert.equal(await evaluate('document.activeElement?.id'),"schedule-detail-delete",
+    'cancel must return focus to the header delete trigger');
+  await click('#schedule-back');
+  await until('!document.getElementById("schedule-list-view").hidden');
+  await click('#schedule-open-manager');
+  await until('!document.getElementById("schedule-task-manager").hidden');
+  await screenshot('task-manager-from-header-360');
   await click('#schedule-back');
   await until('!document.getElementById("schedule-list-view").hidden');
   await click('#schedule-create');
@@ -191,7 +200,9 @@ try{
   const managerGeometry=await evaluate('(()=>{const card=document.querySelector("#schedule-manager-list .schedule-manager-card");const host=document.getElementById("schedule-manager-list");return {card:card.getBoundingClientRect().width,host:host.getBoundingClientRect().width}})()');
   assert(managerGeometry.card>=managerGeometry.host-2,'manager card must fill content width');
   await click('#schedule-manager-list .schedule-manager-toggle');
-  await until('document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-state").textContent==="已停用"');
+  await until('document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-state").getAttribute("aria-label")==="已停用"');
+  await click('[data-manager-more="preview-off"]');
+  await until('document.querySelector("[data-manager-more=preview-off]").parentElement.open');
   await click('[data-manager-uninstall="preview-off"]');
   await until('!document.getElementById("schedule-uninstall-confirm").hidden');
   assert.equal(await evaluate('document.querySelectorAll("#schedule-manager-list .schedule-manager-card").length'),2,
@@ -208,10 +219,22 @@ try{
   await click('#schedule-confirm-yes');
   await until('document.getElementById("schedule-plan-list").textContent.includes("回归演示计划")');
   await screenshot('my-plan-confirmed-360');
+  // Completed one-off detail must not offer a misleading re-run/pause control.
+  await click('[data-schedule-id="preview-4"] .schedule-plan-open');
+  await until('!document.getElementById("schedule-detail-view").hidden');
+  assert.equal(await evaluate('document.querySelector("#schedule-detail-view .schedule-detail-actions button")===null'),true);
+  await click('#schedule-detail-delete');
+  await until('!!document.querySelector("#schedule-detail-view .schedule-delete-confirm")');
+  await click('#schedule-detail-view .schedule-delete-confirm button:last-child');
+  await until('!document.querySelector("#schedule-detail-view .schedule-delete-confirm")');
+  await click('#schedule-back');
+  await until('!document.getElementById("schedule-list-view").hidden');
   await click('#schedule-create');
   await until('!document.getElementById("schedule-form").hidden');
   await click('#schedule-manage-tasks');
   await until('!document.getElementById("schedule-task-manager").hidden');
+  await click('[data-manager-more="preview-off"]');
+  await until('document.querySelector("[data-manager-more=preview-off]").parentElement.open');
   await click('[data-manager-uninstall="preview-off"]');
   await until('!document.getElementById("schedule-uninstall-confirm").hidden');
   await click('#schedule-uninstall-yes');

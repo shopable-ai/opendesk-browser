@@ -22,12 +22,15 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
     assert.match(builder,new RegExp("'"+key+"'"));
   }
   assert.ok($('#tab-debug').is('[hidden]'),'Debug stays hidden in official production DOM');
-  // The current scheduler header uses one accessible icon, not retired text controls.
+  // The run overview remains available but secondary to header management.
   const runner=$('#schedule-open-runner');
-  assert.equal(runner.length,1,'official scheduler keeps a single runner launch action');
-  assert.ok(runner.hasClass('od-icon-button'),'runner entry uses the official compact icon');
+  assert.equal(runner.length,1,'one authoritative runner launch entry');
+  assert.ok(runner.parent().hasClass('schedule-runner-secondary'),
+    'runner lives behind a secondary disclosure, not at header top right');
   assert.equal(runner.attr('aria-label'),'打开独立运行页');
-  assert.equal(runner.text().trim(),'','the icon does not duplicate its tooltip as body text');
+  assert.equal(runner.text().trim(),'打开运行概览');
+  assert.equal($('#scheduled-panel > .schedule-header #schedule-open-manager').length,1);
+  assert.equal($('#scheduled-panel > .schedule-header #schedule-detail-delete').length,1);
   assert.match(builder,/data-preview-development-only/);
   assert.match(builder,/UI_PREVIEW_ONLY/);
   assert.match(builder,/--check/);
@@ -111,6 +114,15 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   assert.match(css,/\.schedule-manager-card\{width:100%/);
   assert.match(flows,/createPortal\(<[\s\S]*?schedule-manager-card od-surface/);
   assert.match(flows,/setManagerRemoving\(p\.taskId\)/);
+  assert.match(flows,/schedulePlanIconPath\(present\)/);
+  assert.match(flows,/schedulePlanStatusLabel\(present\)/);
+  assert.match(flows,/get\('schedule-detail-delete'\)\.hidden=view!=='detail'/);
+  assert.match(flows,/bind\('schedule-open-manager','click'/);
+  assert.match(flows,/bind\('schedule-detail-delete','click'/);
+  assert.doesNotMatch(flows,/schedule-danger-link/,
+    'dangerous delete can only be launched from the formal detail header');
+  assert.match(css,/\.schedule-manager-menu-panel\{position:absolute/);
+  assert.match(css,/\.schedule-plan-title-row/);
   assert.match(flows,/onTaskAction\('uninstall',managerRemoving\)/);
   assert.match(preview,/setInstalledTaskIds\(old=>old\.filter\(/);
   assert.match(preview,/\[320,360,400,420,440,520\]/);

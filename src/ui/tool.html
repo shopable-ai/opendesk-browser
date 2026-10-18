@@ -76,11 +76,11 @@
         <button id="schedule-back" class="od-icon-button" type="button" title="返回我的任务" aria-label="返回我的任务"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"></path></svg></button>
         <div class="schedule-header-heading"><strong id="schedule-panel-title" class="od-page-title">定时计划</strong><p id="schedule-panel-subtitle" class="hint" hidden></p></div>
         <div class="od-page-actions">
-          <button id="schedule-open-runner" type="button" class="od-icon-button" title="在独立标签页打开运行概览" aria-label="打开独立运行页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+          <button id="schedule-open-manager" type="button" class="od-icon-button" title="任务管理" aria-label="任务管理" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/></svg></button>
           <button id="schedule-create" type="button" class="od-icon-button" title="新建定时计划" aria-label="新建定时计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
           <button id="schedule-manager-create" type="button" class="od-icon-button" aria-label="新建任务（前往开发）" title="新建任务 · 前往开发" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
           <button id="schedule-detail-edit" type="button" class="od-icon-button" title="编辑当前计划" aria-label="编辑当前计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4z"></path></svg></button>
-          <button id="schedule-detail-delete" type="button" class="od-icon-button od-icon-button--danger" title="删除当前计划" aria-label="删除当前计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+          <button id="schedule-detail-delete" type="button" class="od-icon-button od-icon-button--danger" title="删除当前计划（需要确认）" aria-label="删除当前计划" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
           <button id="schedule-stop" type="button" class="od-button od-button--secondary" hidden>停止本次</button>
         </div>
       </header>
@@ -125,7 +125,8 @@
         <p id="schedule-list-summary" class="schedule-list-summary" role="status" aria-live="polite">正在读取定时计划…</p>
         <div id="schedule-plan-list" class="od-stack" aria-label="已保存的定时计划"></div>
         <details class="schedule-storage-details od-disclosure">
-          <summary>本地运行记录与存储</summary>
+          <summary>运行概览与本地记录</summary>
+          <div class="schedule-runner-secondary"><button id="schedule-open-runner" type="button" class="od-button od-button--secondary" title="在独立标签页打开运行概览" aria-label="打开独立运行页">打开运行概览</button></div>
           <p id="schedule-storage-status" class="hint" role="status" aria-live="polite">历史记录按计划分页展示；未知副作用、未结算执行和审计记录不会自动清除。</p>
         </details>
       </div>

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
-import {presentSchedulePlan,scheduleFireLabel,formatScheduleTime} from '../../schedule-plan-presentation.js';
+import {presentSchedulePlan,scheduleFireLabel,formatScheduleTime,schedulePlanIconPath,
+  schedulePlanStatusLabel,schedulePlanNeedsNotice} from '../../schedule-plan-presentation.js';
 
 // Offline-only UI state. The installed TaskWorkbench and scheduler remain
 // the only authorities for task identity, drafts, installation and execution.
@@ -72,6 +73,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const [catalogSelected,setCatalogSelected]=React.useState('preview-task');
   const [importReview,setImportReview]=React.useState('');
   const [view,setView]=React.useState('list');
+  const [formOrigin,setFormOrigin]=React.useState('list');
   const [plans,setPlans]=React.useState(fixtures);
   const [selectedId,setSelectedId]=React.useState(seed.id);
   const [editingId,setEditingId]=React.useState('');
@@ -105,6 +107,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
   const showForm=plan=>{
     // A prior list operation must not leave an unrelated notice in the form.
     setFeedback('');
+    setFormOrigin(view==='detail'?'detail':view==='manager'?'manager':'list');
     setEditingId(plan?.id||'');setPending(null);setDirtyConfirm(false);
     get('schedule-title').value=plan?.title||'';
     get('schedule-target').value=plan?.target||'https://example.invalid/';
@@ -124,7 +127,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     if(view==='manager'){setManagerRemoving('');setView(managerOrigin);return;}
     if(view==='form'){
       if(formSignature()!==formBaseline.current){setDirtyConfirm(true);return;}
-      setView('list');setPending(null);return;
+      setView(formOrigin);setPending(null);return;
     }
     if(view!=='list'){setView('list');return;}
     onMode('list');
@@ -170,15 +173,24 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       if(view==='manager')get('schedule-manager-search').focus({preventScroll:true});
       if(view==='detail'&&previous==='manager')
         get('schedule-detail-view').querySelector('[data-schedule-open-manager]')?.focus({preventScroll:true});
+      if(view==='detail'&&previous==='form')get('schedule-detail-edit').focus({preventScroll:true});
     }
+    get('schedule-cancel').textContent=formOrigin==='detail'?'返回计划详情':
+      formOrigin==='manager'?'返回任务管理':'返回定时计划';
     get('schedule-manager-count').textContent='显示 '+managerRows.length+' / '+rows.length+' 个已安装任务 · 仅预览';
     get('schedule-uninstall-confirm').hidden=!managerRemoving;
+    if(managerRemoving)requestAnimationFrame(()=>{
+      const review=get('schedule-uninstall-confirm');
+      review.scrollIntoView?.({block:'nearest'});
+      review.querySelector('button')?.focus({preventScroll:true});
+    });
     get('schedule-uninstall-label').textContent=managerRemoving?
       '确认从预览内存移除「'+(rows.find(p=>p.taskId===managerRemoving)?.title||managerRemoving)+
       '」？正式安装和运行记录不会改变。':'';
     get('schedule-panel-title').textContent=view==='form'?(editingId?'编辑定时计划':'创建定时计划'):
-      view==='detail'?'计划详情':view==='manager'?'任务管理':'定时计划';
+      view==='detail'?(selected?.title||'计划详情'):view==='manager'?'任务管理':'定时计划';
     get('schedule-create').hidden=view!=='list';
+    get('schedule-open-manager').hidden=view!=='list';
     get('schedule-manager-create').hidden=view!=='manager';
     get('schedule-open-runner').hidden=view!=='list';
     get('schedule-detail-edit').hidden=view!=='detail';
@@ -296,10 +308,17 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-open','click',()=>{setView('list');onMode('schedule');});
     bind('schedule-back','click',back);
     bind('schedule-create','click',()=>showForm(null));
+    bind('schedule-open-manager','click',()=>{setManagerOrigin('list');setView('manager');});
     bind('schedule-detail-edit','click',()=>{if(selected)showForm(selected);});
-    bind('schedule-detail-delete','click',()=>setRemoveConfirm(open=>!open));
+    bind('schedule-detail-delete','click',()=>{
+      if(selected&&view==='detail'){
+        setRemoveConfirm(true);
+        requestAnimationFrame(()=>get('schedule-detail-view')
+          .querySelector('.schedule-delete-confirm button')?.focus({preventScroll:true}));
+      }
+    });
     bind('schedule-cancel','click',back);
-    bind('schedule-discard-yes','click',()=>{setDirtyConfirm(false);setPending(null);setView('list');});
+    bind('schedule-discard-yes','click',()=>{setDirtyConfirm(false);setPending(null);setView(formOrigin);});
     bind('schedule-discard-no','click',()=>setDirtyConfirm(false));
     bind('schedule-kind','change',e=>setRule(e.currentTarget.value));
     bind('schedule-timezone','change',()=>{
@@ -311,7 +330,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('schedule-manager-filter','change',e=>setManagerFilter(e.currentTarget.value));
     bind('schedule-uninstall-no','click',()=>{
       const taskId=managerRemoving;setManagerRemoving('');
-      get('schedule-manager-list').querySelector('[data-manager-uninstall="'+taskId+'"]')
+      get('schedule-manager-list').querySelector('[data-manager-more="'+taskId+'"]')
         ?.focus({preventScroll:true});
     });
     bind('schedule-uninstall-yes','click',()=>{
@@ -321,6 +340,21 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       setFeedback('仅从预览内存列表移除；未请求真实卸载，也未变更浏览器权限。');
       get('schedule-manager-search').focus({preventScroll:true});
     });
+    bind('scheduled-panel','keydown',event=>{
+      if(event.key!=='Escape'||event.defaultPrevented)return;
+      const menu=get('schedule-manager-list').querySelector('.schedule-manager-menu[open]');
+      if(menu){event.preventDefault();menu.open=false;
+        menu.querySelector('summary')?.focus({preventScroll:true});
+      }else if(managerRemoving){event.preventDefault();get('schedule-uninstall-no').click();
+      }else if(removeConfirm){event.preventDefault();setRemoveConfirm(false);
+        get('schedule-detail-delete').focus({preventScroll:true});}
+    });
+    const dismissMenus=event=>{
+      for(const menu of get('schedule-manager-list').querySelectorAll('.schedule-manager-menu[open]'))
+        if(!menu.contains(event.target))menu.open=false;
+    };
+    document.addEventListener('pointerdown',dismissMenus);
+    off.push(()=>document.removeEventListener('pointerdown',dismissMenus));
     bind('schedule-manager-create','click',onOpenDevelop);
     bind('schedule-new-script','click',onOpenDevelop);
     bind('schedule-task-empty-create','click',onOpenDevelop);
@@ -367,12 +401,12 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
           nextDueAt:pending.paused?null:p.nextDueAt,paused:Boolean(pending.paused)}:p):
         [...all,fixture(id,pending.title,pending.kind,{...pending,
           triggerSpec:spec,paused:Boolean(pending.paused)})]);
-      setSelectedId(id);setPending(null);setEditingId('');setView('list');
+      setSelectedId(id);setPending(null);setEditingId('');setView(editingId?formOrigin:'list');
       setFeedback('已更新预览展示；真实计划未修改。');
     });
     return ()=>off.forEach(fn=>fn());
   },[onMode,onOpenDevelop,onSearch,onFilter,onManageMode,onTaskAction,manageMode,
-    selectedTask,removalReview,managerRemoving,managerOrigin,selected,editingId,pending,view]);
+    selectedTask,removalReview,managerRemoving,managerOrigin,selected,editingId,pending,view,removeConfirm,formOrigin]);
   return <>
     {createPortal(found.map(p=><button key={p.taskId} type="button"
       className="catalog-card" aria-pressed={p.taskId===catalogSelected}
@@ -418,13 +452,17 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
             }
           }}>
           <div className="schedule-card-head od-toolbar">
-            <button type="button" className="od-button od-button--quiet schedule-plan-open"
-              onClick={()=>{setSelectedId(p.id);setRemoveConfirm(false);setView('detail');}}>
-              {p.title}
-            </button>
-            <span className="schedule-state" data-tone={present.tone}>{present.badge}</span>
-            {present.badgeSource==='fire'&&present.planState!=='暂无后续计划'&&
-              <span className="schedule-plan-phase">计划：{present.planState}</span>}
+            <div className="schedule-plan-title-row">
+              <button type="button" className="od-button od-button--quiet schedule-plan-open"
+                onClick={()=>{setSelectedId(p.id);setRemoveConfirm(false);setView('detail');}}>
+                {p.title}
+              </button>
+              <span className="schedule-state schedule-state-icon" data-tone={present.tone}
+                role="img" title={schedulePlanStatusLabel(present)}
+                aria-label={schedulePlanStatusLabel(present)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d={schedulePlanIconPath(present)}/></svg>
+              </span>
+            </div>
             <div className="schedule-plan-actions od-toolbar" role="group" aria-label="计划快捷操作">
               {active&&<button type="button"
                 className="od-icon-button schedule-plan-action schedule-action-stop"
@@ -449,10 +487,14 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
               </button>
             </div>
           </div>
-          <p className="schedule-next-time">{present.nextText}</p>
-          <p className="schedule-plan-frequency">{present.frequencyText}</p>
-          {present.recentText&&<p className="schedule-recent-result" data-tone={present.recentTone}>
-            最近：{present.recentText}</p>}
+          <p className="schedule-plan-meta schedule-timing-line">
+            <span className="schedule-plan-frequency">{present.frequencyText}</span>
+            <span className="schedule-timing-separator"> · </span>
+            <span className="schedule-next-time">{present.nextText}</span>
+          </p>
+          {(p.needsAttention||schedulePlanNeedsNotice(present))&&present.recentText&&
+            <p className="schedule-recent-result" data-tone={present.recentTone}>
+              最近：{present.recentText}</p>}
         </article>;
       })}
     </>,list)}
@@ -492,18 +534,18 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         </div>)}
       </details>
       <details className="schedule-more od-disclosure od-disclosure--flat">
-        <summary>固定任务与执行信息</summary>
-        <p className="hint">执行时区：{selected.timezone}</p>
+        <summary>固定版本与时区</summary>
+        <p className="hint">v{selected.version||'1.0.0'} · {selected.timezone}</p>
       </details>
       {removeConfirm&&<div className="schedule-delete-confirm od-surface">
-        <p>确认从预览内存中移除？真实计划与历史不会改变。</p>
+        <p>删除将停止此计划后续触发；已有 Run/Result 历史不会自动清除。这里只移除预览内存数据，真实计划不受影响。</p>
         <div className="schedule-actions od-toolbar">
           <button type="button" className="od-button schedule-danger-button"
             onClick={()=>{setPlans(all=>all.filter(p=>p.id!==selected.id));
               setSelectedId('');setView('list');setRemoveConfirm(false);
               setFeedback('仅演示交互，未修改真实计划。');}}>确认删除演示计划</button>
           <button type="button" className="od-button od-button--secondary"
-            onClick={()=>setRemoveConfirm(false)}>取消</button>
+            onClick={()=>{setRemoveConfirm(false);get('schedule-detail-delete').focus({preventScroll:true});}}>取消</button>
         </div>
       </div>}
     </div>,detail)}
@@ -514,27 +556,19 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         className="schedule-manager-card od-surface" data-manager-task-id={p.taskId}>
         <div className="schedule-manager-card-head">
           <div className="schedule-manager-identity">
-            <strong>{p.title}</strong>
+            <div className="schedule-manager-title-line">
+              <strong>{p.title}</strong>
+              <span className="schedule-manager-state schedule-state-icon"
+                data-state={p.enabled?'enabled':'disabled'} role="img"
+                title={p.enabled?'已启用':'已停用'} aria-label={p.enabled?'已启用':'已停用'}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path
+                  d={p.enabled?'M4 12l5 5L20 6':'M8 5v14M16 5v14'}/></svg>
+              </span>
+            </div>
             <p className="hint">v{p.version||'1.0.0'} · {plans.filter(plan=>plan.taskId===p.taskId).length} 个关联计划</p>
           </div>
-          <span className="schedule-manager-state" data-state={p.enabled?'enabled':'disabled'}>
-            {p.enabled?'已启用':'已停用'}</span>
         </div>
         <div className="schedule-manager-actions od-toolbar" role="group" aria-label={'管理「'+p.title+'」'}>
-          {managerOrigin!=='form'&&<button type="button"
-            className="od-icon-button schedule-manager-action" title="为此任务设置定时（仅预览）"
-            aria-label={'为「'+p.title+'」设置定时'}
-            onClick={()=>{
-              showForm(null);
-              const target=get('schedule-task-select');
-              if(![...target.options].some(option=>option.value===p.taskId))
-                target.add(new Option(p.title,p.taskId));
-              target.value=p.enabled?p.taskId:'';
-              get('schedule-title').value=p.title+' 定时';
-              setFeedback('已载入演示定时计划草稿，未创建或执行任何计划。');
-            }}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4m10-4v4M4 9h16M5 5h14v15H5zM12 12v4l3 2"/></svg>
-          </button>}
           <button type="button" className="od-icon-button schedule-manager-action schedule-manager-toggle"
             title={p.enabled?'停用任务（仅预览）':'启用任务（仅预览）'}
             aria-label={(p.enabled?'停用':'启用')+'「'+p.title+'」'}
@@ -543,26 +577,45 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
             <svg viewBox="0 0 24 24" aria-hidden="true"><path
               d={p.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z'}/></svg>
           </button>
-          <button type="button" className="od-icon-button schedule-manager-action"
+          <button type="button" className="od-icon-button schedule-manager-action schedule-manager-copy"
             title="复制到开发（仅预览）" aria-label={'复制「'+p.title+'」到开发'}
             onClick={()=>{onTaskAction('fork',p.taskId);
               setFeedback('仅预览：没有真实任务源码，不会创建开发草稿。');}}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
           </button>
-          <button type="button" className="od-icon-button od-icon-button--danger schedule-manager-action schedule-manager-uninstall"
-            data-manager-uninstall={p.taskId} title="卸载任务（需确认，仅预览）"
-            aria-label={'卸载「'+p.title+'」'}
-            onClick={()=>setManagerRemoving(p.taskId)}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
-          </button>
+          <details className="schedule-manager-menu">
+            <summary className="od-icon-button schedule-manager-action schedule-manager-menu-trigger"
+              data-manager-more={p.taskId} title="更多操作" aria-label={'更多操作：'+p.title}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+              </svg>
+            </summary>
+            <div className="schedule-manager-menu-panel od-surface" role="group" aria-label={'其他操作：'+p.title}>
+              {managerOrigin!=='form'&&<button type="button" className="od-button od-button--quiet"
+                onClick={event=>{
+                  event.currentTarget.closest('details').open=false;
+                  showForm(null);
+                  const target=get('schedule-task-select');
+                  if(![...target.options].some(option=>option.value===p.taskId))
+                    target.add(new Option(p.title,p.taskId));
+                  target.value=p.enabled?p.taskId:'';
+                  get('schedule-title').value=p.title+' 定时';
+                  setFeedback('已载入演示定时计划草稿，未创建或执行任何计划。');
+                }}>为此任务设置定时</button>}
+              <button type="button" className="od-button od-button--quiet schedule-manager-uninstall"
+                data-manager-uninstall={p.taskId} aria-label={'卸载固定版本「'+p.title+'」'}
+                onClick={event=>{event.currentTarget.closest('details').open=false;
+                  setManagerRemoving(p.taskId);}}>卸载固定版本</button>
+              <details className="schedule-manager-more od-disclosure od-disclosure--flat">
+                <summary>固定版本与网站范围</summary>
+                <p className="hint">用途：{p.description}</p>
+                <p className="hint">任务 ID：{p.taskId}</p>
+                <p className="hint">固定演示版本：v{p.version||'1.0.0'}</p>
+                <p className="hint">适用网站：{(p.siteOrigins||[]).join('，')||'未指定'}</p>
+              </details>
+            </div>
+          </details>
         </div>
-        <details className="schedule-manager-more od-disclosure od-disclosure--flat">
-          <summary>版本与网站范围</summary>
-          <p className="hint">用途：{p.description}</p>
-          <p className="hint">任务 ID：{p.taskId}</p>
-          <p className="hint">固定演示版本：v{p.version||'1.0.0'}</p>
-          <p className="hint">适用网站：{(p.siteOrigins||[]).join('，')||'未指定'}</p>
-        </details>
       </article>)}
     </>,manager)}
   </>;
