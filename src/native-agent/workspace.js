@@ -10,7 +10,11 @@ import {createWorkspaceFileIcon,createWorkspaceTreeChevron} from './workspace-fi
 import {readToolSnapshot} from './tool-snapshot.js';
 import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
 import {initKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
-import {localizeLiteral,subscribeLocale,translate,formatFileSize} from '../i18n/index.js';
+import {localizeLiteral,subscribeLocale,translate,formatFileSize,getLocale} from '../i18n/index.js';
+import {isDirtyWorkspaceDraft as dirty,sameWorkspaceAuthority as sameAuthority,
+  workspaceRecordKey,validateWorkspaceRead,createWorkspaceDraft,reconcileWorkspaceRead,
+  verifyWorkspaceWriteReceipt,verifyWorkspaceWriteReadBack} from './workspace-domain.js';
+import {createWorkspaceStore,projectWorkspaceState} from './workspace-store.js';
 
 export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document,client}={}){
   const root=doc.getElementById('file-workspace');if(!root)return;
@@ -36,6 +40,8 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
   let treeFolders=new Map(),treeIdentity='',treeRevision=0;
   let knowledgeHandoff=null,resolveActionReview=null;
+  const store=createWorkspaceStore();
+  const viewStore=Object.freeze({getSnapshot:store.getSnapshot,subscribe:store.subscribe});
   // Non-modal, in-page choice. Operations waiting for a decision keep their
   // native authority/identity and revalidate before committing any side effect.
   function requestActionReview(message,button='继续'){
@@ -66,13 +72,21 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }catch{ /* Display history is optional, never permission. */ }
   })();
   let lastStatus='',lastStatusError=false;
-  const status=(text,error=false)=>{lastStatus=text;lastStatusError=error;const el=byId('workspace-status');el.textContent=localizeLiteral(text);el.classList.toggle('error',error);};
+  function publishSnapshot(){
+    // Immutable data projection only. No session/lease credential enters React.
+    store.publish(projectWorkspaceState({connected,busy,demo,workspaceId,
+      rows:[...workspaceRows.values()],
+      targets:[...targets].map(([tabId,target])=>({...target,tabId})),
+      targetId:byId('target-picker')?.value||'',current,treeFolders,view,
+      status:localizeLiteral(lastStatus),statusError:lastStatusError,locale:getLocale(),
+      access:workspaceAccess.get(workspaceId)||'none',creationPending}));
+  }
+  const status=(text,error=false)=>{lastStatus=text;lastStatusError=error;const el=byId('workspace-status');el.textContent=localizeLiteral(text);el.classList.toggle('error',error);publishSnapshot();};
   const toolPreviewStatus=(message,error=false)=>{
     const node=byId('preview-sidebar-tool-status');
     if(node){node.textContent=localizeLiteral(message);node.classList.toggle('error',error);}
   };
   const failure=e=>status((e.code?e.code+' · ':'')+(e.message||String(e)),true);
-  const dirty=record=>!!record&&record.content!==record.baseContent;
   const writable=()=>current&&workspaceAccess.get(current.workspaceId)==='read-write';
   const authorityFor=(ws=workspaceId)=>{
     const row=workspaceRows.get(ws);if(!connected||!row)return null;
@@ -80,7 +94,6 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       sessionId:fileState.sessionId||(demo?'memory-demo-session':null),access:row.access,
       devLeaseEpoch:fileState.devLeaseEpoch===1?1:0});
   };
-  const sameAuthority=(a,b)=>!!a&&!!b&&['workspaceId','sourceId','leaseEpoch','sessionId','access'].every(k=>a[k]===b[k]);
   const expected=authority=>authority?.sessionId?{sessionId:authority.sessionId}:{};
   const fileParams=(params,authority)=>({...params,...(authority?.devLeaseEpoch===1?{leaseEpoch:authority.leaseEpoch}:{})});
   async function assertAuthority(authority){
@@ -154,6 +167,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('file-title').title=current?.path||'打开一个文件';
     byId('file-meta').title=byId('file-meta').textContent;
     chatEdit?.controls({busy,connected:connected&&workspaceAccess.has(workspaceId)});
+    publishSnapshot();
   }
   async function operation(action){
     if(busy||closed)return;
@@ -208,24 +222,18 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('directory-name').title=parent?'当前路径：/'+parent:'当前路径：根目录';
     renderPreview();controls();
   }
-  function validateRead(data,ws,path){
-    if(!data||data.workspaceId!==ws||data.path!==path||typeof data.content!=='string'||
-      !/^[a-f0-9]{64}$/.test(data.sha256)||!Number.isSafeInteger(data.bytes)||data.bytes!==new TextEncoder().encode(data.content).length||data.bytes>32768)
-      throw {code:'E_FILES_PROTOCOL',message:'文件响应格式不完整，未替换当前草稿'};
-    return data;
-  }
   async function readFile(ws,path,authority=authorityFor(ws)){
     if(!authority)throw {code:'E_FILES_SESSION',message:'目录当前不可用。',outcome:'NOT_DISPATCHED'};
-    const data=validateRead(await client.request('files.read',fileParams({workspaceId:ws,path},authority),expected(authority)),ws,path);
+    const data=validateWorkspaceRead(await client.request('files.read',fileParams({workspaceId:ws,path},authority),expected(authority)),ws,path);
     if(await textSHA256(data.content)!==data.sha256)throw {code:'E_FILES_PROTOCOL',message:'文件内容与版本不一致，未替换草稿'};
     if(!sameAuthority(authority,authorityFor(ws)))throw {code:'E_FILES_SESSION',message:'读取期间目录连接已变化，未更新草稿。'};
     return {...data,authority};
   }
   async function openFile(path){
     if(!await leaveImportedDraft())return;
-    const ws=workspaceId,key=ws+'\0'+path,authority=authorityFor(ws);
+    const ws=workspaceId,key=workspaceRecordKey(ws,path),authority=authorityFor(ws);
     let record=records.get(key);
-    if(!record){const data=await readFile(ws,path,authority);record={...data,baseContent:data.content};records.set(key,record);}
+    if(!record){const data=await readFile(ws,path,authority);record=createWorkspaceDraft(data);records.set(key,record);}
     if(workspaceId===ws){showRecord(record);status(demo?'这是可编辑的内存演示文件。':'已从授权目录读取文件；尚未发送到 AI。');}
   }
   async function leaveImportedDraft(){
@@ -264,7 +272,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   }
   function renderFileTree(){
     const list=byId('file-list'),rootFolder=treeFolders.get('');
-    if(!rootFolder){list.replaceChildren();byId('tree-message').textContent='';return;}
+    if(!rootFolder){list.replaceChildren();byId('tree-message').textContent='';publishSnapshot();return;}
     const rows=[{path:'',name:translate('workspace.rootDirectory'),kind:'directory',depth:0,pos:1,size:1}],warnings=[];
     function visit(path,depth){
       const folder=treeFolders.get(path);
@@ -313,6 +321,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('tree-message').textContent=rootFolder.entries===null?translate('runtime.loadingTree'):
       (rows.length===1?translate('runtime.emptyFolder'):translate('runtime.treeVisible',{visible:rows.length-1,expanded}))+
       (warnings.length?translate('runtime.treePartial',{count:warnings.length}):'');
+    publishSnapshot();
   }
   async function loadFileFolder(path,authority,{force=false}={}){
     const folder=treeFolders.get(path);
@@ -517,11 +526,16 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   async function reread(){
     const record=current;if(!record)return;
     const disk=await readFile(record.workspaceId,record.path);
-    if(dirty(record)&&disk.sha256===record.sha256){record.unknown=false;record.remote=null;record.authority=disk.authority;status('磁盘仍为读取时的版本，当前草稿已保留。');return;}
-    if(dirty(record)&&disk.content!==record.content){record.remote=disk;record.unknown=false;
-      status('磁盘版本已读取。当前草稿保留，请比较版本，或另存为新文件。',true);
-    }else{Object.assign(record,disk,{baseContent:disk.content,remote:null,unknown:false});
-      if(current===record)showRecord(record);status('已重新读取并核对文件内容。');}
+    const result=reconcileWorkspaceRead(record,disk);
+    Object.assign(record,result.record);
+    if(result.kind==='unchanged'){
+      status('磁盘仍为读取时的版本，当前草稿已保留。');return;
+    }
+    if(result.kind==='conflict'){
+      status('磁盘版本已读取。当前草稿保留，请比较版本，或另存为新文件。',true);return;
+    }
+    if(current===record)showRecord(record);
+    status('已重新读取并核对文件内容。');
   }
   async function save(){
     const record=current;if(!record||record.remote||record.unknown||record.importedDraft||!dirty(record))return;
@@ -530,12 +544,11 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     const authority=record.authority;
     try{
       const result=await client.request('files.write',fileParams({workspaceId:record.workspaceId,path:record.path,content,expectedSha256:record.sha256},authority),expected(authority));
-      if(result?.saved!==true||result.workspaceId!==record.workspaceId||result.path!==record.path||result.sha256!==await textSHA256(content))
-        throw {code:'E_FILES_PROTOCOL',message:'保存回执无法核对，请重读磁盘。',outcome:'OUTCOME_UNKNOWN'};
+      verifyWorkspaceWriteReceipt(result,{workspaceId:record.workspaceId,path:record.path,sha256:await textSHA256(content)});
       // A write ACK is not sufficient to claim the current disk contents.
       record.unknown=true;
       const disk=await readFile(record.workspaceId,record.path,authority);
-      if(disk.content!==content||disk.sha256!==result.sha256){record.remote=disk;record.unknown=false;
+      if(!verifyWorkspaceWriteReadBack(disk,{workspaceId:record.workspaceId,path:record.path,content,sha256:result.sha256})){record.remote=disk;record.unknown=false;
         status('保存已收到回执，但磁盘内容随后发生变化。草稿已保留。',true);return;}
       Object.assign(record,disk,{baseContent:content,unknown:false,remote:null});
       if(current===record)showRecord(record);
@@ -547,24 +560,23 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       }else{if(e.outcome==='OUTCOME_UNKNOWN'||record.unknown)record.unknown=true;throw e;}
     }
   }
-  async function saveAs(){
-    const record=current,path=byId('save-as-path').value.trim();if(!record||!path)throw new Error('请填写新文件的相对路径');
+  async function saveAs(newPath=null){
+    const record=current,path=String(newPath??byId('save-as-path').value).trim();if(!record||!path)throw new Error('请填写新文件的相对路径');
     await assertSaveAuthority(record);
     const ws=record.workspaceId,content=record.content,authority=record.authority;
     let acknowledged=false,data;
     try{
       creationPending={workspaceId:ws,path,content,authority};
       const ack=await client.request('files.create',fileParams({workspaceId:ws,path,content},authority),expected(authority));
-      if(ack?.saved!==true||ack.created!==true||ack.path!==path||ack.workspaceId!==ws||ack.sha256!==await textSHA256(content))
-        throw {code:'E_FILES_PROTOCOL',message:'未能核对新文件回执。请刷新目录并重读；不会自动重试。',outcome:'OUTCOME_UNKNOWN'};
+      verifyWorkspaceWriteReceipt(ack,{workspaceId:ws,path,sha256:await textSHA256(content),create:true});
       acknowledged=true;
-      data=await readFile(ws,path,authority);if(data.content!==content)throw new Error('新文件已创建，但其内容随后发生变化，请重新读取');
+      data=await readFile(ws,path,authority);if(!verifyWorkspaceWriteReadBack(data,{workspaceId:ws,path,content,sha256:ack.sha256}))throw new Error('新文件已创建，但其内容随后发生变化，请重新读取');
     }catch(e){if(e.outcome==='OUTCOME_UNKNOWN'||acknowledged)status(acknowledged?'新文件已收到创建回执，但读回未完成。请点击「核对新文件」，不要重复创建。':'新文件创建结果未知。请点击「核对新文件」，不要重复创建。',true);
       else{creationPending=null;throw e;}return;}
     await showCreated(data,'新文件已创建并读回核对。');
   }
   async function showCreated(data,message){
-    const record={...data,baseContent:data.content};records.set(data.workspaceId+'\0'+data.path,record);
+    const record=createWorkspaceDraft(data);records.set(workspaceRecordKey(data.workspaceId,data.path),record);
     workspaceId=data.workspaceId;byId('workspace-picker').value=workspaceId;creationPending=null;
     showRecord(record);byId('save-as-path').value='';
     try{await revealFileInTree(data.path);status(message);}
@@ -586,9 +598,11 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     status(remove?'已移除当前网页中的预览。':'已在目标网页显示当前文件的静态预览。');
   }
   function chooseView(next){
+    if(!['preview','source','split','app'].includes(next))return;
     view=next;for(const b of root.querySelectorAll('[data-view]'))if(b.tagName==='BUTTON')b.setAttribute('aria-pressed',String(b.dataset.view===view));
     byId('file-surface').hidden=next==='app';byId('app-surface').hidden=next!=='app';
     if(next!=='app')byId('file-surface').dataset.view=next;
+    publishSnapshot();
   }
   chatEdit=initWorkspaceChatEdit({api,doc,demo,getRecord:()=>connected&&workspaceAccess.has(workspaceId)&&current?.workspaceId===workspaceId?current:null,
     getTarget:()=>targets.get(Number(byId('target-picker').value)),getAuthority:()=>authorityFor(),assertAuthority,
@@ -608,7 +622,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
         return {data};
       }
       if(!await leaveImportedDraft())throw {code:'E_EDIT_BASE',message:'已保留尚未创建的知识草稿；本次未读取其他文件。',outcome:'NOT_DISPATCHED'};
-      const ws=workspaceId,key=ws+'\0'+request.path,previous=records.get(key);
+      const ws=workspaceId,key=workspaceRecordKey(ws,request.path),previous=records.get(key);
       if(previous&&(dirty(previous)||previous.unknown||previous.remote))throw {code:'E_EDIT_BASE',message:'该文件有未保存或待核对的草稿，请先处理。'};
       const disk=await readFile(ws,request.path,authority);
       await assertAuthority(authority);
@@ -649,7 +663,17 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     if(connected&&workspaceAccess.has(workspaceId))await refreshFileTree();
   }));
   byId('target-picker').addEventListener('change',()=>{chatEdit.invalidate('已切换目标对话，旧请求和提案已失效。');controls();});
-  byId('file-editor').addEventListener('input',()=>{if(!current||busy)return;current.content=byId('file-editor').value;controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);});
+  function updateDraftContent(value,{allowBusy=false}={}){
+    if(!current||busy&&!allowBusy)return false;
+    current.content=String(value);
+    // Do not rewrite the same textarea value while typing: retain caret,
+    // selection and IME composition in the existing editor.
+    const editor=byId('file-editor');
+    if(editor.value!==current.content)editor.value=current.content;
+    controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);
+    return true;
+  }
+  byId('file-editor').addEventListener('input',()=>{updateDraftContent(byId('file-editor').value);});
   byId('save-file').addEventListener('click',()=>operation(save));
   byId('reload-file').addEventListener('click',()=>operation(reread));
   byId('discard-file-draft').addEventListener('click',()=>operation(async()=>{
@@ -722,13 +746,25 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   // Closing a browser tab does not show a JS-created beforeunload modal.
   // Explicit in-app switches still require the nonmodal draft choice above.
   const stopLocale=subscribeLocale(()=>{if(closed)return;controls();if(lastStatus)status(lastStatus,lastStatusError);renderFileTree();});
-  const unload=()=>{closed=true;stopLocale();finishActionReview(false);knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
+  const unload=()=>{closed=true;store.dispose();stopLocale();finishActionReview(false);knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);
       api.tabs.onRemoved?.removeListener?.(onTabRemoved);}
   };
   globalThis.addEventListener('pagehide',unload,{once:true});
+  const actions=Object.freeze({
+    refresh:()=>operation(refresh),
+    refreshFiles:()=>operation(()=>refreshFileTree({expanded:true})),
+    collapseFiles:()=>{if(!busy)collapseFileTree();},
+    toggleDirectory:path=>operation(()=>toggleFileDirectory(path)),
+    openFile:path=>operation(()=>openFile(path)),
+    updateDraft:value=>updateDraftContent(value),
+    save:()=>operation(save),
+    reread:()=>operation(reread),
+    saveAs:path=>operation(()=>saveAs(path)),
+    chooseView
+  });
   controls();void operation(refresh);
-  return {dispose:unload};
+  return {dispose:unload,store:viewStore,actions};
 }

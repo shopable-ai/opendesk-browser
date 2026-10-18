@@ -6,9 +6,13 @@ on:
       - '.github/workflows/native-workspace-r23.yml'
       - 'src/i18n/**'
       - 'src/native-agent/workspace.*'
+      - 'src/native-agent/workspace-domain.js'
+      - 'src/native-agent/workspace-store.js'
       - 'src/native-agent/settings.*'
       - 'src/native-agent/workspace-chat-edit-ui.js'
       - 'tests/environment/workspace-i18n-r23.test.mjs'
+      - 'tests/environment/workspace-domain-r231.test.mjs'
+      - 'tests/environment/workspace-integration.test.mjs'
       - 'scripts/tests/native-workspace-r23-chrome.mjs'
   workflow_dispatch:
 permissions:
@@ -30,6 +34,7 @@ jobs:
       - name: Four catalogs, locale selection and native file authorization regressions
         run: |
           node --test tests/environment/workspace-i18n-r23.test.mjs \
+            tests/environment/workspace-domain-r231.test.mjs \
             tests/environment/workspace-integration.test.mjs \
             tests/environment/workspace-chat-edit.test.mjs \
             tests/environment/workspace-file-tree.test.mjs \

@@ -333,3 +333,32 @@ test('Workspace file tree separates expansion state on workspace switch',async t
   assert.ok(find('src'));assert.equal(find('src/app'),undefined);
   assert.equal(find('src').getAttribute('aria-expanded'),'false');
 });
+
+test('R23.1 observable Workspace snapshot mirrors real file operations without leaking Native credentials',async t=>{
+  const h=await fixture(t),notifications=[];
+  assert.ok(h.ui.store?.getSnapshot&&h.ui.store?.subscribe);
+  assert.equal('publish' in h.ui.store,false,'React gets a read-only projection, not the publisher');
+  const stop=h.ui.store.subscribe(()=>notifications.push(h.ui.store.getSnapshot().revision));
+  t.after(stop);
+  const ready=h.ui.store.getSnapshot();
+  assert.equal(ready.connected,true);
+  assert.equal(ready.workspaceId,A);
+  assert.equal(ready.file.path,'README.md');
+  assert.equal(ready.file.dirty,false);
+  assert.equal(JSON.stringify(ready).includes(h.state.sessionId),false);
+  assert.equal(JSON.stringify(ready).includes(h.rows[0].leaseEpoch),false);
+
+  assert.equal(h.ui.actions.updateDraft('Changed by controller action'),true);
+  const edited=h.ui.store.getSnapshot();
+  assert.equal(edited.file.content,'Changed by controller action');
+  assert.equal(edited.file.dirty,true);
+  assert.equal(h.get('file-editor').value,'Changed by controller action');
+  await h.ui.actions.save();await h.settle();
+  const saved=h.ui.store.getSnapshot();
+  assert.equal(saved.file.content,'Changed by controller action');
+  assert.equal(saved.file.dirty,false);
+  assert.equal(h.files.get(A),'Changed by controller action');
+  h.ui.actions.chooseView('split');
+  assert.equal(h.ui.store.getSnapshot().view,'split');
+  assert.ok(notifications.length>=3,'subscribers observe real draft, write and view transitions');
+});
