@@ -23,3 +23,9 @@ details{margin-top:var(--space-4);border-top:1px solid var(--od-line);padding-to
 summary{cursor:pointer;color:var(--od-brand);font-weight:600}
 @media(max-width:400px){.settings-actions>button{flex:1 1 100%}h1{font-size:20px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+.settings-locale-row{display:flex;justify-content:flex-end;min-width:0}
+.locale-switcher{display:inline-flex;align-items:center;gap:var(--space-2);font-size:12px;color:var(--od-sub)}
+.locale-switcher select{min-height:36px;max-width:180px;padding:6px 8px;font:inherit;border:1px solid var(--od-input-border);
+  border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}
+.locale-switcher select:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}

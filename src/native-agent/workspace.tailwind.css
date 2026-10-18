@@ -275,3 +275,14 @@
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after {scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* R23: workspace locale selector uses the existing tokens. */
+@layer components {
+  #file-workspace .locale-switcher {display:inline-flex;align-items:center;gap:6px;max-width:100%;font-size:12px;color:var(--od-sub)}
+  #file-workspace .locale-switcher select {max-width:136px;min-height:34px;padding:5px 6px;border:1px solid var(--od-line);
+    border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}
+}
+@media(max-width:650px) {
+  #file-workspace .locale-switcher span {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  #file-workspace .locale-switcher select {max-width:110px}
+}

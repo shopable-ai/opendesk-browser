@@ -173,5 +173,20 @@ export default Object.freeze({
   "runtime.demoFolder": "メモリ内デモフォルダー",
   "runtime.unknownFolder": "フォルダー識別情報の接続確認待ち",
   "runtime.partial": "一部",
-  "runtime.nativeTruncated": "Native のフォルダー一覧は途中で切り詰められ、すべてのファイルは表示されません"
+  "runtime.nativeTruncated": "Native のフォルダー一覧は途中で切り詰められ、すべてのファイルは表示されません",
+  "common.browserLanguage": "ブラウザーの言語",
+  "runtime.treeVisible": "{visible} 件表示 · {expanded} 個のサブフォルダーを展開中",
+  "runtime.treePartial": " · {count} 個のフォルダーは一部のみ表示",
+  "settings.stateAgent": "Native Agent: {state}",
+  "settings.stateHost": "Native Host: {state}",
+  "settings.enabled": "有効",
+  "settings.disabled": "オフ",
+  "settings.connected": "接続済み",
+  "settings.hostCount": "登録済みワークベンチ: {count}",
+  "settings.extensionId": "Extension ID: {id}",
+  "settings.requiresReload": "権限は許可されていますが、ブラウザーの Native API は未更新です。実行中のタスクを終了し、chrome://extensions で拡張機能を再読み込みしてから状態を更新してください。",
+  "settings.trying": "ローカル OpenDesk に接続しています…",
+  "settings.notConnected": "未接続です。デスクトップアプリのインストールと信頼済み拡張機能のペアリングを確認し、「接続を確認」を選択してください。",
+  "settings.pairWait": "デスクトップ版 OpenDesk の確認を待っています。申請は2分後に期限切れになります。このウィンドウの拡張機能 ID を照合してください。確認後、ここで「接続を確認」を選択してください。\nExtension ID: {id}",
+  "settings.pairFailure": "ペアリング申請を作成できませんでした: {error}"
 });

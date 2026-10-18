@@ -173,5 +173,20 @@ export default Object.freeze({
   "runtime.demoFolder": "内存演示目录",
   "runtime.unknownFolder": "目录身份待连接核验",
   "runtime.partial": "部分",
-  "runtime.nativeTruncated": "Native 目录列表被截断，并非全部文件"
+  "runtime.nativeTruncated": "Native 目录列表被截断，并非全部文件",
+  "common.browserLanguage": "浏览器语言",
+  "runtime.treeVisible": "{visible} 项可见 · {expanded} 个子目录展开",
+  "runtime.treePartial": " · {count} 个目录仅显示部分条目",
+  "settings.stateAgent": "Native Agent：{state}",
+  "settings.stateHost": "Native Host：{state}",
+  "settings.enabled": "已启用",
+  "settings.disabled": "关闭",
+  "settings.connected": "已连接",
+  "settings.hostCount": "已注册工作台：{count}",
+  "settings.extensionId": "Extension ID：{id}",
+  "settings.requiresReload": "权限已授予，当前浏览器尚未刷新 Native API。结束运行中的任务后，在 chrome://extensions 重新加载扩展，再刷新状态。",
+  "settings.trying": "正在尝试与本机 OpenDesk 建立连接…",
+  "settings.notConnected": "未连接。请确认本机程序已安装并完成可信扩展配对，然后点击「检测连接」。",
+  "settings.pairWait": "等待 OpenDesk 原生确认。申请两分钟后过期；请核对本窗口的扩展 ID。确认后回到这里点击「检测连接」。\nExtension ID：{id}",
+  "settings.pairFailure": "未能创建配对申请：{error}"
 });

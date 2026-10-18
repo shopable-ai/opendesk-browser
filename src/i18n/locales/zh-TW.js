@@ -173,5 +173,20 @@ export default Object.freeze({
   "runtime.demoFolder": "記憶體示範目錄",
   "runtime.unknownFolder": "目錄身分待連線核驗",
   "runtime.partial": "部分",
-  "runtime.nativeTruncated": "Native 目錄清單已截斷，並非所有檔案"
+  "runtime.nativeTruncated": "Native 目錄清單已截斷，並非所有檔案",
+  "common.browserLanguage": "瀏覽器語言",
+  "runtime.treeVisible": "可見 {visible} 項 · 已展開 {expanded} 個子目錄",
+  "runtime.treePartial": " · {count} 個目錄僅顯示部分項目",
+  "settings.stateAgent": "Native Agent：{state}",
+  "settings.stateHost": "Native Host：{state}",
+  "settings.enabled": "已啟用",
+  "settings.disabled": "關閉",
+  "settings.connected": "已連線",
+  "settings.hostCount": "已註冊工作台：{count}",
+  "settings.extensionId": "Extension ID：{id}",
+  "settings.requiresReload": "權限已授予，但目前瀏覽器尚未更新 Native API。完成執行中的任務後，請到 chrome://extensions 重新載入擴充功能，再重新整理狀態。",
+  "settings.trying": "正在嘗試與本機 OpenDesk 建立連線…",
+  "settings.notConnected": "尚未連線。請確認已安裝本機程式並完成可信擴充功能配對，再按「檢查連線」。",
+  "settings.pairWait": "等待 OpenDesk 原生程式確認。請求兩分鐘後逾期；請比對此視窗的擴充功能 ID。確認後返回並按「檢查連線」。\nExtension ID：{id}",
+  "settings.pairFailure": "無法建立配對請求：{error}"
 });

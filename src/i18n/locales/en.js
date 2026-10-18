@@ -173,5 +173,20 @@ export default Object.freeze({
   "runtime.demoFolder": "In-memory demo folder",
   "runtime.unknownFolder": "Folder identity awaiting connection verification",
   "runtime.partial": "Partial",
-  "runtime.nativeTruncated": "Native folder listing was truncated; not all files are shown"
+  "runtime.nativeTruncated": "Native folder listing was truncated; not all files are shown",
+  "common.browserLanguage": "Browser language",
+  "runtime.treeVisible": "{visible} visible · {expanded} subfolders expanded",
+  "runtime.treePartial": " · {count} folders show partial listings",
+  "settings.stateAgent": "Native Agent: {state}",
+  "settings.stateHost": "Native Host: {state}",
+  "settings.enabled": "Enabled",
+  "settings.disabled": "Off",
+  "settings.connected": "Connected",
+  "settings.hostCount": "Registered workbenches: {count}",
+  "settings.extensionId": "Extension ID: {id}",
+  "settings.requiresReload": "Permission granted, but this browser has not refreshed the Native API. Finish active tasks, reload the extension in chrome://extensions, then refresh the status.",
+  "settings.trying": "Trying to connect to local OpenDesk…",
+  "settings.notConnected": "Not connected. Confirm that the desktop app is installed and the trusted extension is paired, then select “Check connection”.",
+  "settings.pairWait": "Waiting for OpenDesk desktop confirmation. The request expires in two minutes; verify this window's extension ID. After confirming, return here and select “Check connection”.\nExtension ID: {id}",
+  "settings.pairFailure": "Could not create pairing request: {error}"
 });
