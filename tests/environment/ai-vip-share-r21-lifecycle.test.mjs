@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {setImmediate} from 'node:timers/promises';
 import {AI_ID,LEGACY_AI_ID,AI_STORE,LEGACY_AI_STORE,AI_ALARM,LEGACY_AI_ALARM,
-  AI_PROTOCOL,AI_CAPABILITY,desiredAiProxy} from '../../src/ai-smart-access/policy.js';
+  AI_PROTOCOL,AI_CAPABILITY,desiredAiProxy} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
 import {EMPTY_AI_STATE,stopAiAccessForTool,cleanupUninstalledAiAccess}
-  from '../../src/ai-smart-access/lifecycle.js';
-import {createAiAccessService} from '../../src/ai-smart-access/service.js';
+  from '../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
+import {createAiAccessService} from '../../examples/sidebar-tools/ai-vip-share/trusted/service.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../src/ui/sidebar-tools/lifecycle.js';

@@ -5,7 +5,7 @@
 // This is private lifecycle coordination, not a public Managed Proxy SDK.
 import {AI_ID,AI_STORE,AI_ALARM,LEGACY_AI_ID,LEGACY_AI_STORE,LEGACY_AI_ALARM,
   controlLevel,aiError,matchesAiProxy,validAiProxyOwner,validEndpoint} from './policy.js';
-import {writeVerifiedLocalValue,sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
+import {writeVerifiedLocalValue,sameStorageValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 export const EMPTY_AI_STATE=Object.freeze({schema:1,desired:false,releasePending:false,deviceId:null,lease:null});
 const namespaces={
   [AI_ID]:{store:AI_STORE,alarm:AI_ALARM},

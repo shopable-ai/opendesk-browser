@@ -1,10 +1,10 @@
 // Privileged requests only from the extension-owned Side Panel controls.
 // The installed opaque UI can read state but can never approve global proxy.
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled}
-  from '../ui/sidebar-tools/lifecycle.js';
+  from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage}
-  from '../ui/sidebar-tools/installation.js';
+  from '../../../../src/ui/sidebar-tools/installation.js';
 import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_VERSION,AI_OPERATIONS,aiError} from './policy.js';
 
 const changes=new Set(['aiAccess.enable','aiAccess.disable','aiAccess.activate']);

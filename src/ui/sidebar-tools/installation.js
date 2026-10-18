@@ -12,7 +12,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocation
 import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
-import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../ai-smart-access/lifecycle.js';
+import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';

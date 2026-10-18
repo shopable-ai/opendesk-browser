@@ -5,12 +5,12 @@ import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {AI_ID,LEGACY_AI_ID,AI_PROTOCOL,AI_STORE,LEGACY_AI_STORE,LEGACY_AI_ALARM,AI_DOMAINS,AI_CAPABILITY,
   compileAiPac,validEndpoint,validLease,desiredAiProxy,matchesAiProxy}
-  from '../../src/ai-smart-access/policy.js';
-import {createAiAccessService} from '../../src/ai-smart-access/service.js';
+  from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
+import {createAiAccessService} from '../../examples/sidebar-tools/ai-vip-share/trusted/service.js';
 import {requestAiAccessOperation,runTrustedAiAccessOperation}
-  from '../../src/ai-smart-access/tool-host.js';
+  from '../../examples/sidebar-tools/ai-vip-share/trusted/tool-host.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess,EMPTY_AI_STATE}
-  from '../../src/ai-smart-access/lifecycle.js';
+  from '../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash}
   from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}

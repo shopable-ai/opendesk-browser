@@ -6,10 +6,10 @@ import {createSidebarTools} from '../ui/sidebar-tools.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_OPERATIONS} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {probeAdblockService,runTrustedAdblockOperation,requestAdblockOperation} from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
-import {trustedTimeReviewUI} from '../time-review/trusted-native-ui.js';
-import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../ai-smart-access/policy.js';
-import {createAiAccessPermissionControls} from '../ai-smart-access/host-controls.js';
-import {runTrustedAiAccessOperation,requestAiAccessOperation,probeAiAccessService} from '../ai-smart-access/tool-host.js';
+import {trustedTimeReviewUI} from '../../examples/sidebar-tools/time-review/trusted/trusted-native-ui.js';
+import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
+import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';
+import {runTrustedAiAccessOperation,requestAiAccessOperation,probeAiAccessService} from '../../examples/sidebar-tools/ai-vip-share/trusted/tool-host.js';
 export default defineUnlistedScript(()=>{
   // Bundled only into this existing audited extension entry, never loaded
   // from an installed sidebar-tool package or dynamically imported at runtime.

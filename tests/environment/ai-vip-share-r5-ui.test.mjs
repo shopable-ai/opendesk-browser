@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {createAiAccessPermissionControls} from '../../src/ai-smart-access/host-controls.js';
+import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';
 
 function element(tag){
   return {tag,children:[],attributes:{},listeners:{},hidden:false,disabled:false,

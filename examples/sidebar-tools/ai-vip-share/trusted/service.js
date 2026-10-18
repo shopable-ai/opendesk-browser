@@ -2,16 +2,16 @@
 // All privileged mutations require an exact live extension Host document,
 // installed package hash/epoch and a real trusted UI click.
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
-  from '../ui/sidebar-tools/package.js';
+  from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
-  from '../ui/sidebar-tools/lifecycle.js';
-import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
+  from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {AI_RUNTIME_PROVIDER,AI_LOCAL_TEST_ENABLED,AI_LOCAL_PACKAGE_HASH} from './provider-config.js';
 import {AI_ID,LEGACY_AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_VERSION,AI_STORE,AI_ALARM,LEGACY_AI_ALARM,
   AI_OPERATIONS,aiError,validLease,leaseUsable,desiredAiProxy,matchesAiProxy,controlLevel} from './policy.js';
 import {parseAiState,storeAiState,stopAiAccessForTool,
   readAiStates,matchesAiStateProxy,withAiProxyMutation} from './lifecycle.js';
-import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
+import {sameStorageValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 
 const probeOperation='aiAccess.probe';
 const exact=(object,keys)=>object&&typeof object==='object'&&!Array.isArray(object)&&
