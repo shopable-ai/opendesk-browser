@@ -77,3 +77,15 @@
 .cookie-editor-react .empty-list{display:grid;gap:var(--space-1);padding:var(--space-4);text-align:center;color:var(--od-sub)}
 .cookie-editor-react .empty-list strong{color:var(--od-ink)}
 @media(max-width:400px){.cookie-editor-react .cookie-editor-grid{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .cookie-mode-tabs{width:100%}.cookie-editor-react .cookie-mode-tabs>button{flex:1}.cookie-editor-react .cookie-site-select{gap:var(--space-1)}.cookie-editor-react .cookie-editor-actions button{flex:1 1 auto}.cookie-editor-react .cookie-spacer{display:none}}
+
+/* Approved Preview's inline export geometry; shared Host design owns colors and controls. */
+.cookie-editor-react .cookie-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.cookie-editor-react .cookie-export-options{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
+.cookie-editor-react .cookie-export-format{display:flex;align-items:center;gap:var(--space-2);flex:1 1 145px;min-width:0}
+.cookie-editor-react .cookie-export-format select{flex:1;min-width:0}
+.cookie-editor-react .cookie-export-values{display:flex;gap:var(--space-1);align-items:center;flex:none}
+.cookie-editor-react .cookie-export-confirm{display:grid;gap:var(--space-2)}
+.cookie-editor-react .cookie-export-confirm p{margin:0}
+.cookie-editor-react .cookie-export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.cookie-editor-react .cookie-export-actions button{min-width:0}
+@media(max-width:350px){.cookie-editor-react .cookie-export-format{flex-basis:100%}}

@@ -1,34 +1,79 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
+
+// Identical export choices to the approved React preview. Only the existing
+// Controller/SDK may read values or write clipboard/download bytes.
 export default function CookieExport({controller,disabled=false,onClose}){
   const [format,setFormat]=React.useState('json');
-  const [metadata,setMetadata]=React.useState(true);
+  const [includeValues,setIncludeValues]=React.useState(true);
+  const [confirmation,setConfirmation]=React.useState(null);
   const [working,setWorking]=React.useState(false);
-  const exportNow=async method=>{
+  const cancelRef=React.useRef(null);
+  const metadata=format==='json'&&!includeValues;
+  const rows=controller.snapshot().rows;
+  const partitioned=rows.some(row=>Boolean(row.partitionKey));
+  const lossy=partitioned&&format!=='json';
+  const busy=disabled||working;
+  React.useEffect(()=>{if(confirmation)cancelRef.current?.focus();},[confirmation]);
+  const deliver=async method=>{
+    setConfirmation(null);
     setWorking(true);
-    try{await controller.exportTo({format:metadata?'json':format,metadata,method});}
-    finally{setWorking(false);}
+    try{
+      // A false/unknown result must never become a success toast or automatic retry.
+      await controller.exportTo({format,metadata,method});
+    }finally{setWorking(false);}
   };
-  return <section className="cookie-panel od-surface od-surface--padded" aria-label="导出 Cookie">
-    <h3>导出 Cookie</h3>
-    <label><input type="checkbox" checked={metadata}
-      disabled={disabled||working} onChange={e=>setMetadata(e.target.checked)}/>
-      仅导出元数据（不包含 Cookie Value）</label>
-    {!metadata&&<p className="cookie-message od-alert od-alert--warning" role="note">
-      导出敏感值需额外授权，内容可能包含登录凭据。下载或复制后请自行安全保管。</p>}
-    <label>格式 <select className="od-field" disabled={disabled||working||metadata} value={format}
-      onChange={e=>setFormat(e.target.value)}>
-      <option value="json">JSON</option>
-      <option value="header">Cookie Header</option>
-      <option value="netscape">Netscape</option>
-    </select></label>
-    <div className="cookie-editor-actions">
-      <Button type="button" disabled={working} onClick={onClose}>关闭</Button>
-      <span className="cookie-spacer"/>
-      <Button type="button" disabled={disabled||working}
-        onClick={()=>void exportNow('copy')}>复制</Button>
-      <Button type="button" variant="primary" disabled={disabled||working}
-        onClick={()=>void exportNow('download')}>保存文件</Button>
+  const choose=method=>{
+    if(busy||lossy)return;
+    if(metadata){void deliver(method);return;}
+    // A default checked "include values" is only a preference; it never grants
+    // cookie.values permission or waives explicit exfiltration confirmation.
+    setConfirmation(method);
+  };
+  return <section className="cookie-panel cookie-export-panel od-surface od-surface--padded"
+    aria-label="导出 Cookie">
+    <div className="cookie-panel-heading">
+      <h3>导出 Cookie</h3>
+      <Button type="button" className="od-button--quiet" disabled={busy}
+        onClick={onClose} aria-label="关闭导出">关闭</Button>
+    </div>
+    <div className="cookie-export-options">
+      <label className="cookie-export-format">格式
+        <select className="od-field" disabled={busy} value={format}
+          aria-label="导出格式" onChange={e=>{setFormat(e.target.value);setConfirmation(null);}}>
+          <option value="json">JSON</option>
+          <option value="header">Cookie Header</option>
+          <option value="netscape">Netscape</option>
+        </select>
+      </label>
+      {format==='json'&&<label className="cookie-export-values">
+        <input type="checkbox" checked={includeValues} disabled={busy}
+          onChange={e=>{setIncludeValues(e.target.checked);setConfirmation(null);}}/>
+        包含 Cookie 值
+      </label>}
+    </div>
+    <p className="cookie-message" role="note">{metadata
+      ?'仅导出元数据，不能用来恢复 Cookie。'
+      :format==='json'
+        ?'JSON 备份可保留 Store 和 Partition；读取敏感值需独立授权。'
+        :'此格式无法无损保留全部身份与属性；请优先使用 JSON 备份。'}</p>
+    {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
+      本站含分区 Cookie。此格式无法无损保存 Partition，已禁止导出；请选择 JSON。
+    </p>}
+    {confirmation&&<div className="cookie-export-confirm od-alert od-alert--warning"
+      role="group" aria-label="确认导出敏感 Cookie">
+      <p>导出内容可能包含登录凭据。确认{confirmation==='copy'?'复制到剪贴板':'下载到本机'}？
+        授权仍由 OpenDesk Host 单独核验。</p>
+      <div className="cookie-editor-actions">
+        <Button ref={cancelRef} type="button" onClick={()=>setConfirmation(null)}>取消</Button>
+        <Button type="button" variant="primary" disabled={busy}
+          onClick={()=>void deliver(confirmation)}>确认导出</Button>
+      </div>
+    </div>}
+    <div className="cookie-export-actions">
+      <Button type="button" disabled={busy||lossy} onClick={()=>choose('copy')}>复制</Button>
+      <Button type="button" variant="primary" disabled={busy||lossy}
+        onClick={()=>choose('download')}>保存文件</Button>
     </div>
   </section>;
 }

@@ -35,6 +35,10 @@ test('import inspection rejects duplicate identities and expired entries',()=>{
   rejectImportDuplicates(plan.records);
   assert.deepEqual(plan.records.map(x=>x.status),['invalid','invalid','expired']);
   assert.equal(exportText('header',[row()]),'session=s3cr3t\n');
+  const partitioned=row({partitionKey:{topLevelSite:'https://partner.example.com'}});
+  assert.throws(()=>exportText('header',[partitioned]),/不支持分区 Cookie/);
+  assert.throws(()=>exportText('netscape',[partitioned]),/不支持分区 Cookie/);
+  assert.match(exportText('json',[partitioned]),/topLevelSite/);
 });
 test('scoped reads page ordinary and partitioned results without stale values',async()=>{
   const seen=[];
