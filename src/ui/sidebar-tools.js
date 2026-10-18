@@ -458,10 +458,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const cancel=()=>settle(false,Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'}));
       requestActionReview({message,button,toolId,cancel,run:event=>{
         if(!event?.isTrusted){cancel();return;}
+        // Expiration only applies while approval has not been clicked. Once
+        // submitted, a slow Chrome write must resolve from its real receipt.
+        if(toolId===ADBLOCK_ID)clearTimeout(timer);
         try{Promise.resolve(run(event)).then(v=>settle(true,v),e=>settle(false,e));}
         catch(e){settle(false,e);}
       }});
-      timer=setTimeout(()=>{if(pendingAction?.cancel===cancel)cancelActionReview();},90000);
+      timer=setTimeout(()=>{
+        if(pendingAction?.cancel!==cancel)return;
+        if(toolId===ADBLOCK_ID){
+          pendingAction=null;actionReview.hidden=true;
+          settle(false,Object.assign(new Error('可信确认等待超时，操作尚未提交'),{
+            code:'E_ADBLOCK_CONFIRM_TIMEOUT'}));
+        }else cancelActionReview();
+      },90000);
     });
   }
   // chrome.storage may reorder object properties; compare the validated schema values.

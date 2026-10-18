@@ -62,6 +62,7 @@ function App(){
   },[api]);
   const operate=React.useCallback(async(operation,payload={})=>{
     if(locked.current||!current.current)return;
+    let needsReadback=false;
     locked.current=true;reading.current++;
     setBusy(true);setProblem(false);setNotice('请在可信宿主中确认此次操作…');
     try{
@@ -79,12 +80,13 @@ function App(){
       if(cancelled)setNotice('已取消，未提交这次更改。');
       else{
         current.current=null;setState(null);setProblem(true);
-        setNotice('结果未确认（'+String(error?.code||'E_ADBLOCK')+'）：'+errorText(error)+'。请重新读取状态。');
+        needsReadback=true;
+        setNotice('结果未确认（'+String(error?.code||'E_ADBLOCK')+'）：'+errorText(error)+'。正在重新读取 Chrome 状态，不会自动重试写入。');
       }
     }finally{
       locked.current=false;
       if(alive.current){setBusy(false);setLoading(false);
-        if(queued.current){queued.current=false;void refresh(true);}}
+        if(queued.current||needsReadback){queued.current=false;void refresh(true);}}
     }
   },[api,refresh]);
   React.useEffect(()=>{
