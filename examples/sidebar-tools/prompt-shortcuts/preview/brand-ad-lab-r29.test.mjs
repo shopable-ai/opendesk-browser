@@ -18,7 +18,7 @@ test('R2.9 loads after R2.8 and preserves R2.7 inline behavior',()=>{
  assert.match(html,/window\.OpenDeskR27Bridge=/);
  assert.ok(html.indexOf('brand-ad-lab-r28.js') < html.indexOf('brand-ad-lab-r29.js'));
  assert.ok(html.indexOf('brand-ad-lab-r28.css') < html.indexOf('brand-ad-lab-r29.css'));
- assert.match(html,/R2\.9/);
+ assert.match(html,/R2\.10/);
 });
 test('both R2.8 and R2.9 scripts parse',()=>{
  new vm.Script(base,{filename:'R28'});
