@@ -10,6 +10,10 @@
 - 通用宿主只保留固定、可审计的构建入口和原有安装事务：`src/sw.js`、`src/entrypoints/{stay-focus-controls,page-relay,blocked}.js`、`src/ui/sidebar-tools{,.js}/`。现有 `src/stay-focus/*.js` 成为不含业务实现的兼容导出，防止旧消费者失效。
 - Chrome 公共 URL 不变：`stay-focus/blocked-{quota,schedule,session,always}.html`。源资源改由应用的 `trusted/` 提供；Chrome DNR ID 730000–730199 不变，不影响 AdBlock 等其他规则。
 
+## 固定可信来源审计
+
+构建来源门禁 `scripts/bundle-provenance.mjs` 对应用 `trusted/*.js` 的 **11 个精确 Git blob SHA** 逐项审核，仅允许它们进入已有固定 SW、Side Panel、Page Relay 与 Blocked entry。非 Stay Focus 的其他 `examples/` 仍被拒绝；修改任一高权限业务源后必须人工审查并重新锁定 SHA，不允许以目录通配符放行。源码提取本身不改变动态包信任边界。
+
 ## 用户功能与安全验收
 
 1. 官方目录仍可单独安装 / 打开 / 停用 / 卸载 Stay Focus，缺少 Worker 或服务版本不符须失败并提示升级；`1.0.1` UI 发行版本暂不变。

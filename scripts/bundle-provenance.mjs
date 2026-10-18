@@ -100,6 +100,39 @@ function reviewedCompiledPromptShortcuts(target,path,root){
   return hash;
 }
 
+// Stay Focus R2: exactly audited application-owned trusted source blobs may
+// enter the existing fixed Chrome Host outputs. Moving the business source out
+// of src/ must not turn examples/ into an executable-code wildcard.
+// These blob pins intentionally require review when privileged code changes.
+const compiledStayFocusInputs=Object.freeze({
+  'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
+  'examples/sidebar-tools/stay-focus/trusted/catalog.js':'f1dde0a26ec229f109f8fe7d3fe1f3710a13e1bb',
+  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'1b337b73606105f2acf438e40a4d157c5cfae172',
+  'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'2f5de0ad7751c36ae210d7f8f5297bddb450287f',
+  'examples/sidebar-tools/stay-focus/trusted/model.js':'7fed759764d5910b0ea37beca29ee8699caf0ae6',
+  'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
+  'examples/sidebar-tools/stay-focus/trusted/policy.js':'d689b4be3d3695230f919248a10e780b91ff437a',
+  'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
+  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'c500b8b94ae5b723f0e1d6a3014c0519676ac852',
+  'examples/sidebar-tools/stay-focus/trusted/service.js':'02ee2a8c590a196286cf483ba9cb94e44414989f',
+  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'c971af818fd17a8964f0e0e9584efc281931b371'
+});
+const stayFocusFixedTargets=new Set([
+  'sw.js','ui/stay-focus-controls.js','ui/tool-shell.js',
+  'ui/sidebar-tool-host.js','agents/page-relay.js','stay-focus/blocked.js'
+]);
+function reviewedCompiledStayFocus(target,path,root){
+  if(!stayFocusFixedTargets.has(target)||!Object.hasOwn(compiledStayFocusInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Stay Focus source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledStayFocusInputs[path])
+    throw Error('Trusted Stay Focus source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
 export function assertLibraryModuleBoundary(target,path,npmName) {
@@ -133,7 +166,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledAdblock(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
-      reviewedCompiledBookmarkReact(chunk.fileName,path,root);
+      reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
+      reviewedCompiledStayFocus(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 
 const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 const app='examples/sidebar-tools/stay-focus/';
@@ -56,4 +58,17 @@ test('privileged service imports shared platform contracts rather than old produ
     assert.match(content,/from '\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/sidebar-tools\/package\.js'/);
     assert.doesNotMatch(content,/from '\.\.\/ui\/sidebar-tools\//);
   }
+});
+
+test('only pinned Stay Focus trusted module blobs enter fixed privileged outputs',()=>{
+  const path=app+'trusted/policy.js',file=resolve(path);
+  const graph=target=>describeBundle({chunk:{fileName:target,modules:{[file]:{
+    originalLength:300,renderedLength:200}}},root:process.cwd(),lock:{packages:{}}});
+  assert.match(graph('sw.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  assert.match(graph('ui/stay-focus-controls.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  assert.throws(()=>graph('libs/packages/dayjs.js'),/Historical\/user\/vendor code/);
+  const untrusted=resolve('examples/sidebar-tools/quick-notes/src/main.js');
+  assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',modules:{[untrusted]:{
+    originalLength:20,renderedLength:15}}},root:process.cwd(),lock:{packages:{}}}),
+    /Historical\/user\/vendor code/);
 });
