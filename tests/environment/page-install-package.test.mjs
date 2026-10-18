@@ -161,10 +161,16 @@ test('pending managed UI cleanup cannot be overwritten by an upgrade',async()=>{
   const altered=source+'\n// new content';
   const next=await packageFor({revision:2,version:'1.1.0',
     sourceUtf8:altered,sourceHash:await digestUtf8(altered)});
-  const before=structuredClone(f.rows()),registers=f.registers;
+  const before=structuredClone(f.installation()),registers=f.registers;
+  const nativeBefore=structuredClone([...f.native.entries()]);
   await assert.rejects(f.import(next,disabled),{code:'E_PAGE_CLEANUP_PENDING'});
-  assert.deepEqual(f.rows(),before);
+  // Preparing a new candidate/proof may persist those independent records.
+  // The installed version, authorization, native registration and execution
+  // MUST remain untouched after the cleanup-pending rejection.
+  assert.deepEqual(f.installation(),before);
+  assert.deepEqual([...f.native.entries()],nativeBefore);
   assert.equal(f.registers,registers);
+  assert.equal(f.previews,0);assert.equal(f.executes,0);
 });
 
 test('native unknown readback is queryable and re-import never replays registration',async()=>{
