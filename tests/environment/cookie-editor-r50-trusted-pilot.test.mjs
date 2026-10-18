@@ -61,7 +61,7 @@ test('R5 trusted pilot is static, data-free and mounted through the ONE host Rea
     assert.doesNotMatch(source.split('\n').filter(line=>!line.trim().startsWith('//')).join('\n'),/\bOpenDeskSDK\b|\bchrome\.cookies\b|document\.cookie|dangerouslySetInnerHTML|<iframe/i);
   }
   const previewBridge=await readFile('examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx','utf8');
-  assert.match(previewBridge,/src\/ui\/react\/cookie-editor\/CookieEditorView\.jsx/);
+  assert.match(previewBridge,/app\/components\/CookieEditorView\.jsx/);
   assert.doesNotMatch(pilot,/examples\/sidebar-tools\//,'fixed privileged bundle must never import tool source');
   assert.match(pilot,/UI-only 技术试点/);
 });

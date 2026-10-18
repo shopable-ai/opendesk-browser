@@ -1,3 +1,4 @@
-// Preview entry only; a single trusted JSX implementation.
+// Single independent presentation owner shared by React preview and official app.
+// No dependency on the privileged OpenDesk main sidebar React tree.
 export {CookieIcon,CookieEditorView,CookieSiteBar,CookieToolbar,CookieSearch,CookieRows}
-  from '../../../../src/ui/react/cookie-editor/CookieEditorView.jsx';
+  from '../app/components/CookieEditorView.jsx';

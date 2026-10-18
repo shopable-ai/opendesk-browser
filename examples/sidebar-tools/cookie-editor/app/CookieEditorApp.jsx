@@ -138,9 +138,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     <header className="cookie-main-head">
       <div><h2>Cookie Editor</h2><p>独立 React 19 · 真实 Browser SDK</p></div>
       <div className="cookie-mode-tabs" role="group" aria-label="工作模式">
-        <Button isDisabled={locked} aria-pressed={mode==='browser'}
+        <Button disabled={locked} aria-pressed={mode==='browser'}
           onClick={()=>switchMode('browser')}>浏览器</Button>
-        <Button isDisabled={locked} aria-pressed={mode==='offline'}
+        <Button disabled={locked} aria-pressed={mode==='offline'}
           onClick={()=>switchMode('offline')}>离线</Button>
       </div>
     </header>
@@ -151,11 +151,11 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         <label htmlFor="cookie-target-url">切换或选择网站
           <input id="cookie-target-url" type="url" value={siteInput} disabled={locked}
             placeholder="留空则跟随当前网页" onChange={e=>setSiteInput(e.target.value)}/></label>
-        <Button isDisabled={locked} onClick={()=>guarded(()=>{
+        <Button disabled={locked} onClick={()=>guarded(()=>{
           appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
           void controller.load(appliedSite.current);
         })}>应用</Button>
-        <Button isDisabled={locked} onClick={()=>guarded(()=>{
+        <Button disabled={locked} onClick={()=>guarded(()=>{
           appliedSite.current='';setSiteInput('');void controller.load();
         })}>当前页</Button>
       </div>
