@@ -140,6 +140,22 @@
 .cookie-editor-react .export-actions>button{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-width:0}
 .cookie-editor-react .export-actions svg{width:16px;height:16px;flex:none}
 
+/* The Preview advanced-property hierarchy is now the official hierarchy. */
+.cookie-editor-react .advanced-body{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3) 0}
+.cookie-editor-react .advanced-body .field{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:var(--space-2);min-width:0}
+.cookie-editor-react .advanced-body .field>span{font-size:var(--od-note-size)}
+.cookie-editor-react .advanced-body .field :is(input,select){width:100%;min-width:0}
+.cookie-editor-react .advanced-body .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.cookie-editor-react .advanced-body .pair .field{grid-template-columns:minmax(0,1fr)}
+.cookie-editor-react .advanced-body .toggles-row{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+.cookie-editor-react .advanced-body .toggles-label{flex:0 0 76px}
+.cookie-editor-react .advanced-body .toggles{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
+.cookie-editor-react .advanced-body .editor-identity{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+.cookie-editor-react .advanced-body .editor-identity>div{display:grid;gap:var(--space-1);min-width:0}
+.cookie-editor-react .advanced-body code{overflow-wrap:anywhere}
+.cookie-editor-react .advanced-body .editor-timezone,.cookie-editor-react .advanced-body .editor-hint{overflow-wrap:anywhere}
+@media(max-width:350px){.cookie-editor-react .advanced-body .pair,.cookie-editor-react .advanced-body .editor-identity{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .advanced-body .field{grid-template-columns:56px minmax(0,1fr)}}
+
 /* Preview is the main surface: no duplicate Host heading or multi-layer Card padding. */
 .cookie-editor-react .cookie-utility-settings{margin-top:var(--space-3)}
 .cookie-editor-react .cookie-utility-settings summary,.cookie-editor-react .cookie-observe-fold summary{cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}

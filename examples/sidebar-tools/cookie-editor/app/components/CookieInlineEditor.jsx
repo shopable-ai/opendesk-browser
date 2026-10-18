@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import {CookieIcon,CookieFormField} from './CookieEditorView.jsx';
+import {CookieIcon,CookieFormField,CookieAdvancedFields} from './CookieEditorView.jsx';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
@@ -175,34 +175,12 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     </div>}
     <output ref={revealedRef} data-cookie-secret-output="true"
       className="cookie-sensitive-output" aria-label="临时敏感值" hidden/>
-    <details className="cookie-editor-details od-disclosure">
-      <summary>Cookie 属性与作用域</summary>
-      <div className="cookie-editor-grid">
-        <label>Domain <input className="od-field" value={draft.domain} disabled={disabled||edited}
-          onChange={e=>update('domain',e.target.value)}/></label>
-        <label>Path <input className="od-field" value={draft.path} disabled={disabled||edited}
-          onChange={e=>update('path',e.target.value)}/></label>
-        <label>SameSite <select className="od-field" value={draft.sameSite} disabled={disabled}
-          onChange={e=>update('sameSite',e.target.value)}>
-          <option value="unspecified">Unspecified</option>
-          <option value="lax">Lax</option><option value="strict">Strict</option>
-          <option value="no_restriction">None（要求 Secure）</option></select></label>
-        <label><input type="checkbox" checked={draft.hostOnly} disabled={disabled||edited}
-          onChange={e=>update('hostOnly',e.target.checked)}/> Host-only</label>
-        <label><input type="checkbox" checked={draft.secure} disabled={disabled}
-          onChange={e=>update('secure',e.target.checked)}/> Secure</label>
-        <label><input type="checkbox" checked={draft.httpOnly} disabled={disabled}
-          onChange={e=>update('httpOnly',e.target.checked)}/> HttpOnly</label>
-        <label><input type="checkbox" checked={draft.session} disabled={disabled}
-          onChange={e=>update('session',e.target.checked)}/> Session</label>
-        {!draft.session&&<label>过期时间（本地）
-          <input className="od-field" type="datetime-local" value={draft.expiration} disabled={disabled}
-            onChange={e=>update('expiration',e.target.value)}/></label>}
-      </div>
-      <p className="cookie-editor-scope">Store: {draft.storeId||'当前 Store'} · Partition: {
-        draft.partitionKey?.topLevelSite||'普通 Cookie'}</p>
-      {edited&&<p className="cookie-editor-scope">已存在 Cookie 的 Domain、Path、Host-only、Store 与 Partition 不能在原条目中改变。更名时先写入新 Cookie 再删除旧名称。</p>}
-    </details>
+    <CookieAdvancedFields draft={draft} existing={edited} disabled={disabled}
+      onChange={update} error={message}/>
+    {edited&&draft.name!==row.name&&<p className="editor-hint">
+      名称变更不是原地覆盖：正式版先创建并核实新 Cookie，再删除旧名称；
+      失败时两条可能并存。
+    </p>}
     {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
     {discardConfirm&&<div className="discard-row" role="status">
       <span>放弃当前未保存修改？</span>

@@ -79,6 +79,69 @@ export function CookieExportActions({onCopy,onDownload,disabled=false,downloadLa
       disabled={disabled} onClick={onDownload}><CookieIcon name="download"/>{downloadLabel}</button>
   </div>;
 }
+// One advanced editor surface; Cookie identity rules and validation remain
+// solely with the caller's Domain/Controller, never inside presentation.
+export function CookieAdvancedFields({draft,existing=false,disabled=false,onChange=()=>{},
+  advancedOpen,onAdvancedToggle,error=''}){
+  return <details className="advanced cookie-editor-details od-disclosure"
+    open={advancedOpen} onToggle={onAdvancedToggle}>
+    <summary>属性与高级设置</summary>
+    <div className="advanced-body">
+      <div className="pair">
+        <CookieFormField label="Domain">
+          <input className="od-field" aria-label="Domain" value={draft.domain||''}
+            onChange={e=>onChange('domain',e.target.value)}
+            readOnly={existing} disabled={disabled}/>
+        </CookieFormField>
+        <CookieFormField label="Path">
+          <input className="od-field" aria-label="Path" value={draft.path||'/'}
+            onChange={e=>onChange('path',e.target.value)}
+            readOnly={existing} disabled={disabled}/>
+        </CookieFormField>
+      </div>
+      <div className="toggles-row">
+        <span className="toggles-label">Host-only</span>
+        <div className="toggles"><label>
+          <input type="checkbox" checked={draft.hostOnly===true}
+            disabled={existing||disabled} onChange={e=>onChange('hostOnly',e.target.checked)}/>
+          {' '}{draft.hostOnly?'仅当前主机':'Domain Cookie'}
+        </label></div>
+      </div>
+      <CookieFormField label="SameSite">
+        <select className="od-field" aria-label="SameSite"
+          value={draft.sameSite||'unspecified'} disabled={disabled}
+          onChange={e=>onChange('sameSite',e.target.value)}>
+          <option value="unspecified">未指定</option>
+          <option value="lax">Lax</option><option value="strict">Strict</option>
+          <option value="no_restriction">None</option>
+        </select>
+      </CookieFormField>
+      <div className="toggles-row">
+        <span className="toggles-label">选项</span>
+        <div className="toggles">
+          <label><input type="checkbox" checked={draft.secure===true}
+            disabled={disabled} onChange={e=>onChange('secure',e.target.checked)}/> Secure</label>
+          <label><input type="checkbox" checked={draft.httpOnly===true}
+            disabled={disabled} onChange={e=>onChange('httpOnly',e.target.checked)}/> HttpOnly</label>
+          <label><input type="checkbox" checked={draft.session===true}
+            disabled={disabled} onChange={e=>onChange('session',e.target.checked)}/> Session</label>
+        </div>
+      </div>
+      {!draft.session&&<CookieFormField label="过期时间">
+        <input className="od-field" aria-label="过期时间（本地时间）"
+          aria-invalid={error.startsWith('请选择有效的未来')||undefined}
+          type="datetime-local" step="1" value={draft.expiration||''}
+          onChange={e=>onChange('expiration',e.target.value)} disabled={disabled}/>
+      </CookieFormField>}
+      {!draft.session&&<p className="editor-timezone">设备本地时间；保存时转换为 Unix 秒，不按 UTC 直接解释输入。</p>}
+      <div className="editor-identity">
+        <div><span>Store ID</span><code>{draft.storeId??'当前 Store'}</code></div>
+        <div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'无（非分区）'}</code></div>
+      </div>
+      <p className="editor-hint">Domain、Path、Host-only、Store、Partition 为既有 Cookie 的只读身份；HttpOnly 无法由普通网页 JS 直接读取。</p>
+    </div>
+  </details>;
+}
 // Pure presentation shared by Preview and official React.
 export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,onRefresh}){
   return <header className="site-bar">

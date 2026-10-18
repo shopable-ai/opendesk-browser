@@ -73,6 +73,22 @@ test('Preview IO presentation is shared without moving native Cookie operations 
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);
 });
 
+test('advanced Cookie identities are Preview-owned JSX and formal read-only fields',async()=>{
+  const [view,preview,editor]=await Promise.all([
+    get('app/components/CookieEditorView.jsx'),
+    get('preview/react/src/App.jsx'),
+    get('app/components/CookieInlineEditor.jsx')
+  ]);
+  assert.match(view,/export function CookieAdvancedFields/);
+  assert.match(view,/readOnly=\{existing\}/);
+  assert.match(view,/Store ID/);
+  assert.match(view,/PartitionKey/);
+  assert.match(view,/属性与高级设置/);
+  assert.match(preview,/<CookieAdvancedFields draft=\{draft\}/);
+  assert.match(editor,/<CookieAdvancedFields draft=\{draft\}/);
+  assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|localStorage/);
+});
+
 test('formal native package unchanged until candidate passes all gates',async()=>{
   const [config,official,vite]=await Promise.all([
     get('tool.config.json').then(JSON.parse),
