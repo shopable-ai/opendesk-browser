@@ -9,10 +9,13 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function receiptPlugin(){
   return {name:'quick-notes-react-build-receipt',apply:'build',
     generateBundle(_,bundle){
-      for(const item of Object.values(bundle)){
-        if(item.type==='chunk'&&(item.imports.length||item.dynamicImports.length))
-          throw Error('Quick Notes React must have one self-contained classic JS chunk');
-      }
+      // Rollup lists approved external globals in chunk.imports even in an IIFE.
+      // Only unexpected modules, dynamic loading or extra chunks are forbidden.
+      const allowed=new Set(['react','react-dom/client','react/jsx-runtime','@opendesk/ui']);
+      const chunks=Object.values(bundle).filter(item=>item.type==='chunk');
+      if(chunks.length!==1||chunks[0].dynamicImports.length||
+         chunks[0].imports.some(name=>!allowed.has(name)))
+        throw Error('Quick Notes React must use one classic chunk and approved global externals');
     },
     async writeBundle(){
       const files={};
