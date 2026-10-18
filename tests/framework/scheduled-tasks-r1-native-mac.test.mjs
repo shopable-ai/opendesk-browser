@@ -1482,6 +1482,50 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
         limitations:['Widths are CDP CSS viewport emulation; physical Side Panel drag is separate',
           '120-history pagination uses component/source-renderer fixtures; no 120 native Fire records are fabricated']};
       report.screenshots.push(await screenshot(client,formSid,'r12-retained-run-detail'));
+      // Finish the genuine Task Manager handoff using the same immutable
+      // installed Task. Keep native gestures and assert the original Developer
+      // receives exact source bytes; never substitute a mock registry or editor.
+      await click(client,formSid,'#schedule-back');
+      await click(client,formSid,'#schedule-open-manager');
+      const managerCard='#schedule-manager-list .schedule-manager-card';
+      await deadline(()=>evaluate(client,
+        'document.querySelector("#schedule-task-manager")?.hidden===false&&document.querySelectorAll('+JSON.stringify(managerCard)+').length===1',formSid),
+        'real Task Manager lists the immutable installed Task');
+      const managerBaseline=await durable(client,formSid);
+      await type(client,formSid,'#schedule-manager-search','no-matching-immutable-task-zz');
+      await deadline(()=>evaluate(client,
+        'document.querySelectorAll('+JSON.stringify(managerCard)+').length===0&&document.querySelector("#schedule-manager-count")?.textContent?.includes("0 / 1")',formSid),
+        'real installed Task search filters to zero results');
+      await type(client,formSid,'#schedule-manager-search',original.taskId);
+      await deadline(()=>evaluate(client,
+        'document.querySelector('+JSON.stringify(managerCard)+')?.dataset.managerTaskId==='+JSON.stringify(original.taskId),formSid),
+        'Task Manager search restores the exact fixed Task');
+      await select(client,formSid,'#schedule-manager-filter',2);
+      await deadline(()=>evaluate(client,
+        'document.querySelector("#schedule-manager-filter")?.value==="disabled"&&document.querySelectorAll('+JSON.stringify(managerCard)+').length===0',formSid),
+        'real disabled filter excludes the enabled installed Task');
+      await select(client,formSid,'#schedule-manager-filter',1);
+      await deadline(()=>evaluate(client,
+        'document.querySelector("#schedule-manager-filter")?.value==="enabled"&&document.querySelector('+JSON.stringify(managerCard)+')?.dataset.managerTaskId==='+JSON.stringify(original.taskId),formSid),
+        'real enabled filter restores the installed Task');
+      report.tests.nativeManagerSearchAndFilter='PASS';
+      await clickFloatingPlanAction(client,formSid,
+        managerCard+' [data-manager-action="copy"]');
+      await deadline(()=>evaluate(client,
+        'document.querySelector("#tab-develop")?.getAttribute("aria-selected")==="true"&&document.querySelector("#script-source")?.value==='+JSON.stringify(task.sourceUtf8),formSid),
+        'genuine Task copy enters original Developer with exact source bytes');
+      const afterCopy=await durable(client,formSid);
+      assert.deepEqual(afterCopy.plans,managerBaseline.plans,
+        'Copy to Developer does not mutate or rebind any saved schedule');
+      assert.deepEqual(afterCopy.installs,managerBaseline.installs,
+        'Copy to Developer does not reinstall, disable or replace a fixed Task');
+      report.tests.nativeManagerCopyToDeveloper='PASS';
+      await click(client,formSid,'#tab-my-tasks');
+      await click(client,formSid,'#schedule-open');
+      await deadline(()=>evaluate(client,
+        'document.querySelector("#schedule-list-view")?.hidden===false&&document.querySelector('+JSON.stringify(card)+')',formSid),
+        'genuine Developer-to-plan-list return preserves saved plans');
+      report.tests.nativeManagerDeveloperReturn='PASS';
     }
     }catch(error){
       report.formMatrixFailure=await evaluate(client,
