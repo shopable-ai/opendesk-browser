@@ -1,6 +1,6 @@
 # OpenDesk Browser React UI R34.4 — 计划详情与任务管理实证收敛
 
-日期：2026-10-18。负责人：本次 R34.4 对话。工作分支：`main`，初始远端 HEAD `1c32dd4f903fed63598af22db6a408a7194a01f5`。状态：`ACTIVE`（任务管理新增原生测试尚待最终 CI 结果）；本机验收仍为 `LOCAL_MAC_NOT_TESTED`。
+日期：2026-10-18。负责人：本次 R34.4 对话。工作分支：`main`，初始远端 HEAD `1c32dd4f903fed63598af22db6a408a7194a01f5`。状态：`BLOCKED_BY_ADBLOCK_PROVENANCE`（本轮计划 CRUD 已通过原生 Chrome；新增任务管理流程的最终回归被并行 AdBlock 固定源码校验阻断）；本机验收仍为 `LOCAL_MAC_NOT_TESTED`。
 
 ## 用户目标与工作范围
 
@@ -42,3 +42,12 @@
 ## 资源与并行状态
 
 GitHub `main` 仅做最小原子文件更新；不拥有长期锁、后台 watcher、Chrome profile、共享 dist 或 Native 配对。当前无需要转交的本地写入资源。工作流 CI 运行独占各自 GitHub runner 与临时 profile，其完成状态以实际 Actions 作业为准。
+
+## 最终续接与归属：AdBlock 固定源码安全门禁
+
+- [R3 39132972937](https://github.com/shopable-ai/opendesk-browser/actions/runs/39132972937) 已在真正安装的 macOS Chrome 执行到任务管理搜索、启用/停用筛选、固定源码导入原 Developer 之后。唯一最后失败是测试表达式将 `querySelector()` DOM 节点返回给 DevTools，触发 `Object reference chain is too long`。修复 `97854bf5c7d421fdd43ff9842703dc39ba61d331` 把该读回变为布尔值，不改变真实产品或输入手势。
+- [修复后 R3 39133752231](https://github.com/shopable-ai/opendesk-browser/actions/runs/39133752231) 在 **`npm run build`** 阶段 FAIL，尚未启动原生 Chrome；唯一直接错误为 `[opendesk-fixed-sidebar-tool-host] Trusted AdBlock source changed; review and re-pin before fixed build: examples/sidebar-tools/adblock/trusted/host-controls.js`。
+- 安全白名单 `scripts/bundle-provenance.mjs` 对该可信模块固定旧 Git Blob `1a849fe2823ac1846b8ef081360f3846f2cd60f4`，而并行 AdBlock React 实现的实际新 Blob 为 `79dbe97eaf1eb61315e634384d922079f2d4b136`；该 AdBlock 文件确实从 371 行原生 UI 实现替换为约 174 行 React 状态展示适配层，属于需要独立审查的功能改动。
+- **不得**在 Scheduler 任务中删掉 SHA 白名单、扩大信任范围、悄悄更新 pin 或回滚其他代理的 AdBlock 代码。交由 AdBlock 负责人先审查真实 React 行为/安全事件/原生 Chrome 产品验收，确认后只更新准确可信 blob pin，再在当时最新 main 重新执行 R3 生产构建与原生流程。
+- 此阻塞不是已成功的 R3 [39132327223](https://github.com/shopable-ai/opendesk-browser/actions/runs/39132327223) 的倒退；该通过证据对应历史不可变提交 `88f66d0e1446f9e1290c4225d884037947c82c78`，不能冒充今日最新 main 安装验收。
+- 六维正式交付可信度与未全部独立验证的 95+ 总目标必须保留 `NOT_SCORED` / `BLOCKED`，不能从部分成功用例推导最终 PASS。
