@@ -857,7 +857,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.getAttribute("aria-label")?.startsWith("停用")',
       runnerSid),'real installed Task manager exposes Disable');
-    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
     const disabled=await deadline(async()=>{
       const state=await durable(client,runnerSid);
       return state.installs.find(x=>x.taskId===before.plan.taskId)?.enabled===false?state:null;
@@ -890,7 +890,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.getAttribute("aria-label")?.startsWith("启用")',
       runnerSid),'Task can be reenabled from real management interface');
-    await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
     const restored=await deadline(async()=>{
       const state=await durable(client,runnerSid),inst=state.installs.find(x=>x.taskId===before.plan.taskId);
       return inst?.enabled&&inst.generation>disabledInstall.generation?{state,inst}:null;
@@ -913,6 +913,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert.equal(await evaluate(client,'!!document.querySelector("#done")',siteSid),false);
     report.tests.rotatedGenerationDeniedNativeRun='PASS';
     note('rotated-generation-fire',{...second});
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-menu-trigger');
     await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-uninstall');
     await deadline(()=>evaluate(client,
       '!document.querySelector("#schedule-uninstall-confirm").hidden',runnerSid),
@@ -1135,6 +1136,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       if(capture)report.screenshots.push(capture);
       throw error;
     }
+    await details(client,sideAgainSid,'.schedule-storage-details');
     await click(client,sideAgainSid,'#schedule-open-runner');
     const runnerAgain=await deadline(async()=>{
       const targets=(await client.send('Target.getTargets')).targetInfos;
