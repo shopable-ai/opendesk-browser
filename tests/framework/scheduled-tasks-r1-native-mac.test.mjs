@@ -677,6 +677,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     // A second visible extension document races the SAME durable FireId.
     // It is opened through the original product UI, never an injected Host.
     await client.send('Target.activateTarget',{targetId:runnerId});
+    // The runner's Manage action returns to the list where this button
+    // lives inside the same default-closed details as the Side Panel.
+    // Expand it with actual input before a second deliberate user click.
+    await details(client,runnerSid,'.schedule-storage-details');
     await click(client,runnerSid,'#schedule-open-runner');
     const second=await deadline(async()=>{
       const rows=(await client.send('Target.getTargets')).targetInfos;
