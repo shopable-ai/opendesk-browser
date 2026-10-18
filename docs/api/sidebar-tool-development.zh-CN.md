@@ -32,12 +32,12 @@
 | 常规笔记、格式转换、Markdown、个人信息面板 | **轻量工具**：HTML + CSS + 经典 JS | `tool.config.json` → `build-sidebar-tool.mjs` → 由用户导入并打开 | 不需要每个工具再建 Chrome 扩展或后台运行器 |
 | 有组件/复杂 UI 的工具 | **预编译工具**：React/Vue/可选 Tailwind | 先用 Vite 产出单个 IIFE JS + 静态 CSS，再走相同工具打包器 | 框架代码计入包预算；不能在 sandbox 直接运行 JSX/TSX/.vue/ESM |
 | 在网页插入按钮、访问 DOM、添加 React/Vue UI | **Page USER_SCRIPT / Page Program**，见 [公开规范](page-userscript.zh-CN.md) | `examples/programs/<id>/`；独立 Page 安装/权限合同 | 不把网页增强误当 Sidebar Tool，不默认修改 Host |
-| 已确认为第一方可信特权功能 | **可信扩展增强**：经审查的固定 Content/后台或 Side Panel 功能 | 仅必要时编辑 `src/<feature>/`、定向测试并构建整个扩展 | 普通第三方不能靠 JSON 声明获得任意 Chrome/Native 权限 |
+| 已确认为第一方可信特权功能 | **可信扩展增强**：经审查的固定 Content/后台或 Side Panel 功能 | 专属业务优先归已有项目 `trusted/`，或保留有必要职责的 `src/<feature>/`；固定入口审计、定向测试并重建整个扩展 | 普通第三方不能靠 JSON 声明获得任意 Chrome/Native 权限 |
 | 运行网页 USER_SCRIPT 或 Controller 自动化 | **不是这种工具包** | 阅读 [Page USER_SCRIPT](page-userscript.zh-CN.md) 或 [Controller](controller.zh-CN.md) | 不把 `.opendesk-task.json`、`package.json.opendesk` 与 `.opendesk-tool.json` 混用 |
 
 **默认从轻量工具开始**；出现确切组件复用需要时再选 React/Vue。既有 Side Panel 的工具宿主、RunHost、权限、Native 通道与 Design System 不重新搭建第二套。
 
-**当前选型决定（2026-10-14）：保留同仓库的 `examples/sidebar-tools/<id>/` 独立工具项目，不迁出为 `opendesk-tools` 仓库。** 用户界面与发行源码归各自项目；确需特权的 Background、Content Script 或可信 Side Panel 代码继续在已有 `src/<feature>/` 静态模块中，由固定入口编译接入。目录外观与真正耦合度不能混为一谈，先治理依赖方向，再考虑移动文件。
+**当前选型决定（2026-10-14）：保留同仓库的 `examples/sidebar-tools/<id>/` 独立工具项目，不迁出为 `opendesk-tools` 仓库。** 用户界面与发行源码归各自项目；经审计的第一方特权业务可以同项目独立保存于 `trusted/`，由已有 `src/entrypoints/` 和 `src/sw.js` 的固定入口预编译接入。尚未迁移且确需特权的业务仍可在 `src/<feature>/`，但通用 Host 不应拥有产品策略。目录外观与真正耦合度不能混为一谈，先治理依赖方向，再考虑移动文件。
 
 **已有正式工具身份优先**：Prompt Shortcuts 已是 `examples/sidebar-tools/prompt-shortcuts/` 中的 `opendesk.sidebar-tool.v2`，同时复用现有 `trusted/page.js`、公开 [Browser SDK v2](browser-sdk.zh-CN.md) 和安装许可。为该工具增加其他网站双选择器应优先修改原业务目录与受审现有适配器，**不能仅因网页上显示按钮便自动迁移为 Page Program**；全新网页增强仍应优先判断 Page USER_SCRIPT。Cookie Editor/Bookmark Manager 也使用已审阅的 v2 工具与各自受控能力，不应因为要 React 重排就修改通用 Host/安装器。
 
@@ -62,7 +62,8 @@ official-tools/catalog.json                 # 官方可信源码登记，无版�
 src/sidebar-tools/                          # 框架 bridge/sandbox/可信目录解析
 .wxt/public/official-tools/                  # WXT 暂存生成资源
 dist/{production,development}/official-tools/ # 最终固定 Catalog + 按 ID 分目录的工具 JSON
-src/<feature>/                               # 确需时才有：静态审计的产品服务/权限/页面适配
+examples/sidebar-tools/<id>/trusted/          # 仅经审计第一方业务源码；不进入动态 JSON
+src/<feature>/                               # 兼容转发或尚未提取的必要受信产品服务
 tests/environment/<feature>.test.mjs          # 组件/打包/权限/存储负例
 tests/framework/<feature>-native*.test.mjs    # 需要 Chrome 原生验收时
 
@@ -78,13 +79,13 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 | 环境 | 对应职责 | 边界 |
 | --- | --- | --- |
 | 工具 Sandbox UI | `examples/sidebar-tools/<id>/src/` 生成的安装包 UI | `OpenDeskTool.root/request`；opaque origin；不能直接用 `chrome.*` |
-| 扩展 MV3 Background | `src/<feature>/service.js` 等，经既有 SW 固定引用 | Alarm/DNR/存储由可信代码执行；SW 非常驻，恢复必须读取持久状态 |
-| ISOLATED Content Script | `src/<feature>/page*.js` 等，经原 `page-relay` 审核接入 | 只在获准站点/文档运行；不把消息当作授权 |
+| 扩展 MV3 Background | 独立项目 `trusted/service.js` 或 `src/<feature>/service.js`，经既有 SW 固定引用 | Alarm/DNR/存储由可信代码执行；SW 非常驻，恢复必须读取持久状态 |
+| ISOLATED Content Script | 独立项目 `trusted/page*.js` 或 `src/<feature>/page*.js`，经原 `page-relay` 审核接入 | 只在获准站点/文档运行；不把消息当作授权 |
 | MAIN 网页世界 | 默认无需创建 | 若确需网站原生 JS，复用现有 Page/SDK 世界合同；不能沿用后台/宿主全局对象 |
-| 可信 Side Panel | `src/<feature>/tool-host.js`、`host-controls.js` 等静态模块 | 真实点击、权限申请、当前包 hash/epoch/真实 document 二次复核 |
+| 可信 Side Panel | 独立项目 `trusted/tool-host.js` / `host-controls.js` 或 `src/<feature>/` 静态模块 | 真实点击、权限申请、当前包 hash/epoch/真实 document 二次复核 |
 | 扩展阻止页 | 固定 HTML/CSS/JS 资源 | 由 manifest/WAR 和正式打包器限定；不得插入动态工具 JS |
 
-具体例子：`examples/sidebar-tools/stay-focus/` 是官方真实 UI 源；`src/stay-focus/` 是经过审计的专属后台/受信任产品模块，不应因为位于扩展 `src/` 就误判为必须迁出。已完成的最小职责整理见 [Stay Focus 源码说明](../../src/stay-focus/README.zh-CN.md) 和 [测试证据](../framework/workstreams/stay-focus-boundary-r1-20261014.md)。**本阶段保持这两个路径，不重写打包器、Catalog、Host、DNR 或 Chrome 权限**。
+具体例子：Stay Focus 已在 R2 将唯一受信业务源码抽至 `examples/sidebar-tools/stay-focus/trusted/`，可安装沙箱 UI 则位于同项目 `src/`；旧 `src/stay-focus/*.js` 只做兼容转发。AdBlock 已在自身项目 `trusted/` 维护可信后台；Time Review 仍由 `src/time-review/` 承担必要计时业务、独立项目保留 UI。参阅 [Stay Focus R2 提取记录](../framework/workstreams/stay-focus-extraction-r2-20261018.md)；对尚未提取的工具应按消费者逐项判断，**不借“独立”直接把 JSON 包脚本提升为 Background 或 Content Script**。
 
 平台依赖只能向通用能力流动：`工具 UI → 既有沙箱消息桥 → 可信宿主/授权 → 静态产品服务 → Chrome`。平台可在明示的编译期接入点引用特定产品，但通用安装器、UI Host、Bridge 不应内嵌某个产品的业务算法、策略文案、私有状态/规则清理。特权源码即使被移到 `examples/` 也**不能动态从可安装包提升权限**；必须先进入受审计的固定扩展构建闭包。
 

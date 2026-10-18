@@ -42,6 +42,23 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 选择环境必须基于**行为、生命周期和信任关系**，不能因为“Background 好实现”就塞入全部任务，也不能因关闭 Side Panel 需要持续运行就使用 UI 计时器模拟后台。Controller `page` 是 Worker 词法对象/受控消息路径，不是网站 `window.page`；不要误称一切都在 Content Script 直接运行。
 
+### 同一扩展项目含多个 JS 文件：先找实际加载入口
+
+文件名、目录、`import` 和 React/Vue/JS 语言本身都**不授予运行世界**。调查现有实现时按顺序给每个文件标出：**谁声明角色 → 谁编译/加载 → 运行在哪个 JS World → 谁校验权限 → 谁控制启动/停止**。如果纯模块同时被两个可信入口导入，属于两个构建闭包里的独立实例，不能假定共享内存、全局或权限。
+
+| 用户或扩展源码 | 由谁决定执行位置 | 当前实际链路及边界 |
+| --- | --- | --- |
+| 单文件 Controller 草稿、已授权本地 Controller 项目 | “开发”的运行草稿入口 / 项目 `runtimeKind: controller` | `src/ui/script-editor.js` → `src/run-host.js` → `src/scripting/sandbox/worker-runtime.js`；Worker 有词法 `page`/Locator，无网页 `document` |
+| 单文件 Page 试运行、本地 Page 项目 | “在当前网页试运行”入口 / `runtimeKind: page-userscript` | `src/ui/script-editor.js` → `previewPageScript` / 本地 `page.preview` → 受信 Broker → `chrome.userScripts.execute` 的 `USER_SCRIPT`；临时预览不是已安装自动运行 |
+| 正式安装的 Page Program | 固定 Page Candidate/验证、批准的 `pageRules`、用户确认安装 | `src/scripting/user-scripts/installed-programs.js` 管理 `chrome.userScripts.register`、启停/撤权与固定网页匹配；不能把用户源码登记成后台 SW |
+| OpenDesk Background / 固定 Content | `wxt.config.mjs`、`manifest.json` 及 `src/entrypoints/` 静态构建入口 | `src/entrypoints/background.js` → `src/sw.js`；`page-relay.js` 对应 ISOLATED；独立的 MAIN SDK 由 Manifest 指定；同一个项目的多个文件由静态 `import` 链接 |
+| Sidebar Tool | `tool.config.json` + 统一工具打包器 + 原安装器 | `examples/sidebar-tools/<id>/src/` 中已审阅的 UI 字节进入 opaque iframe；`trusted/`/可信后端代码不会因目录相邻或同 ID 而进入动态工具包 |
+| 第一方多世界应用 | 各自唯一业务目录 + 经审查的固定扩展入口 | Stay Focus R2：`examples/sidebar-tools/stay-focus/trusted/` 是唯一可信业务源，`src/stay-focus/*.js` 仅兼容转发；AdBlock 的 `trusted/` 亦由固定入口接入；Time Review 仍由 `src/time-review/` 维护可信后台，UI 源在其安装式项目 |
+
+诊断时必须**反向追踪 import/注册/事件监听**，并核对 Manifest 生成产物、工具配置所选文件、受信任入口的实际消费者。`src/` 不必然是平台业务，`examples/` 不必然是沙箱代码；最终权限取决于是否进入已审计的固定构建闭包及运行时 Authority。普通导入的 `.opendesk-tool.json` 不得附带任意可执行 Background/Content 模块；需要新跨环境能力时先找公开 SDK，证实缺口后才最小扩充平台。
+
+推荐按一个真实用户流程走查：安装/打开 UI → 原生许可与工具身份 → SW/USER_SCRIPT/Controller 实际调用 → 网页或 DNR 效果 → 关闭侧边栏 → 站点切换、停用、撤权、更新、卸载的真实收尾。记录 SOURCE_CONFIRMED 与 NOT_TESTED，**不把编译成功等同于正在运行**。
+
 需要解释旧/新实现时输出两张真实路径图，列出旧 `chromePage` 到现有 `page / RunHost` 的职责对应，并标记 `SOURCE_CONFIRMED`、`RUNTIME_TESTED`、`UNKNOWN`，不靠假定的原生调用图。
 
 ## Chrome 官方 API、来源与生命周期的硬门槛

@@ -37,28 +37,28 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 | 层 | 正确职责 | 反例 |
 | --- | --- | --- |
-| `src/<feature>/policy.js`、`model.js` | 该功能私有数据合同、状态机、站点范围和校验 | 把 Stay Focus 域名分类规则放入通用工具包校验器 |
-| `src/<feature>/service.js` 与按需的 `rule-ownership.js` | 后台持久工作、DNR/idle/状态、撤销和重启对账 | Side Panel 关闭导致服务停止；iframe 定时器代替后台 |
-| `src/<feature>/host-controls.js` / 可信 UI adapter | 用户可见状态与真实 Chrome 权限点击、危险确认 | 不可信 iframe 的合成事件直接授权/删除 |
+| 已审计工具项目 `trusted/{policy,model}.js`，或尚在 `src/<feature>/` 的唯一业务模块 | 私有数据合同、状态机、站点范围和校验；先查真实调用方 | 把 Stay Focus 域名分类规则放入通用工具包校验器 |
+| 对应唯一业务源的 `service.js`、`rule-ownership.js` | Background 计时、DNR/idle、撤销和重启对账；只从固定入口编译 | Side Panel 关闭导致服务停止；iframe 定时器代替后台 |
+| 对应唯一业务源的 `host-controls.js` / 可信 UI adapter | 用户可见状态、真实 Chrome 权限点击、危险确认；只由固定可信页面加载 | 不可信 iframe 的合成事件直接授权/删除 |
 | `examples/sidebar-tools/<id>/src/` | 需要保留沙箱可安装包时的一份工具 UI 源 | 长期复制两个互相漂移的官方 UI 实现 |
 | `src/ui/sidebar-tools*.js` 和 `src/ui/sidebar-tools/` | 通用安装、展示、挂载、生命周期、审查和消息分发 | 新业务判断大段复制进通用 Host，或因一个工具改动破坏其他工具 |
 | `src/ui/design-tokens.css` / `design-system.css` | 共享可信 Side Panel token 和语义组件 | 每个功能重新定义全局 reset、动态 Tailwind、跨 iframe 注入 CSS |
 
-**最小解耦顺序**：定位具体耦合及调用方 → 测试复现 → 把纯业务策略/数据放回 `src/<feature>/` → 通用 Host 只留已证明必要的通用接线/受限适配 → 原入口与安装/撤权身份不变 → 做受影响回归。不存在代码缺陷时不为了“分层好看”重构所有工具；禁止增加一个通用巨型 Registry 代替旧巨型文件。
+**最小解耦顺序**：定位具体耦合及调用方 → 测试复现 → 把纯业务策略/数据归还**已有独立项目的唯一业务源**（已迁移的工具保留 `examples/sidebar-tools/<id>/trusted/`；尚未迁移的第一方模块先核查 `src/<feature>/` 是否真有必须的可信职责）→ 通用 Host 只留固定接线/受限适配 → 原入口与安装/撤权身份不变 → 做受影响回归。不存在代码缺陷时不为了“分层好看”重构所有工具；禁止增加一个通用巨型 Registry 代替旧巨型文件。
 
 ## 两个必须区分的具体案例
 
-**Stay Focus**：先核查 `src/stay-focus/{policy,model,service,catalog,rule-host,rule-ownership,page-notice,host-controls}.js` 和 `examples/sidebar-tools/stay-focus/`。DNR 拦截规则归属、每日额度、站点识别、10/5/1 分钟页面提醒、撤权与后台状态应有专用职责。工具 UI 只展示/发起受限操作，不缓存规则真相、不复制第二套调度器；变更通用安装器的卸载清理必须有跨工具负向回归。
+**Stay Focus（R2，2026-10-18 已提取）**：真正业务源在 `examples/sidebar-tools/stay-focus/trusted/`，由 `src/sw.js`、`src/entrypoints/{stay-focus-controls,page-relay,blocked}.js` 等固定入口静态加载；`src/stay-focus/*.js` 只是兼容转发，不得向其中重新写入业务。DNR 拦截规则归属、每日额度、站点识别、页面提醒、撤权与后台状态应有专用职责。参阅 `docs/framework/workstreams/stay-focus-extraction-r2-20261018.md`。工具 UI 只展示/发起受限操作，不缓存规则真相、不复制第二套调度器；变更通用安装器的卸载清理必须有跨工具负向回归。
 
-**Time Review**：`src/time-review/trusted-native-ui.js` 静态引用 `examples/sidebar-tools/time-review/src/` 的可维护 UI 源，并由 `trusted-admission.js` 核实来源与安装身份；不是从已安装 JSON 读取任意 JS 在可信页执行。不得假定 R1.6 历史通过即意味着当前所有 Chrome 生命周期或其他官方工具也支持可信直挂。服务仍由后台独立完成，撤权、包版本改变和卸载都应销毁相关 UI 会话但不伪造历史数据。
+**Time Review（尚保留可信业务在 `src/time-review/`）**：`src/time-review/service.js` 经 `src/entrypoints/time-review-host.js` 固定接入 Background；`src/time-review/trusted-native-ui.js` 静态引用 `examples/sidebar-tools/time-review/src/` 的可维护 UI 源，并由 `trusted-admission.js` 核实来源与安装身份；不是从已安装 JSON 读取任意 JS 在可信页执行。不得假定 R1.6 历史通过即意味着当前所有 Chrome 生命周期或其他官方工具也支持可信直挂。服务仍由后台独立完成，撤权、包版本改变和卸载都应销毁相关 UI 会话但不伪造历史数据。
 
-对 Cookie Editor、订阅管理、计划、其他工具按同样边界核查，但**不得把所有模块强行迁为可信直挂**。单个试点的结果不能推导其余工具均已迁移。
+**AdBlock** 的可安装 UI 位于 `examples/sidebar-tools/adblock/src/`，固定受信代码位于其 `trusted/`，由 `src/sw.js` / `src/entrypoints/sidebar-tool-host.js` 预编译接入，不能随动态包获得 DNR。对 Cookie Editor、订阅管理、计划、其他工具按同样边界核查，但**不得把所有模块强行迁为可信直挂**。单个试点的结果不能推导其余工具均已迁移。
 
 ## 工具专属文档归属
 
-对 `src/<feature>/` 中的第一方可信产品，**产品事实归产品目录维护**，不要把每个工具的功能宇宙、交互细则、AI 设想、商业方案和实现说明复制到 `docs/product/`、`docs/api/` 或通用 Host 文档：
+对第一方可信产品，不论受审业务源位于独立项目 `trusted/` 还是既有 `src/<feature>/`，**产品事实归其唯一产品目录维护**，不要把每个工具的功能宇宙、交互细则、AI 设想、商业方案和实现说明复制到 `docs/product/`、`docs/api/` 或通用 Host 文档：
 
-- `src/<feature>/README.zh-CN.md` 为模块使用/源码/安全与 P0 交互的唯一入口。
+- 以现有唯一项目 README 为产品入口：Stay Focus 使用 `examples/sidebar-tools/stay-focus/README.zh-CN.md`；尚未迁移的 `src/<feature>/` 可沿用原 README。兼容转发目录不能重写第二份业务事实。
 - 只有路线足够长、需要持续独立维护时，才增设一份 `ROADMAP.zh-CN.md`；P1–P3、商业实验及隐私限制放其中，不为每次讨论新建分散的 GOAL 或大批 Markdown。
 - UI 交互 HTML 可以留在现有 `prototypes/` 统一预览画廊；由模块 README 指向它，不保存两套会漂移的副本。
 - `docs/framework/workstreams/` 和 `evidence/` 继续归属跨会话验收身份、原始证据和资源账本。各模块 README 只引用，不能把静态设计自评分提升为 Chrome PASS。

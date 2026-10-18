@@ -34,13 +34,13 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 | 世界 | 工具的典型责任 | 当前源码落点与接入方式 |
 | --- | --- | --- |
 | Sandbox 工具 UI | 表单、展示、`OpenDeskTool.request` | `examples/sidebar-tools/<id>/src/`；独立构建安装的 JSON，opaque-origin iframe；不接触 `chrome.*` |
-| 扩展 Background / MV3 SW | 长期策略、Alarm、Chrome DNR、事件恢复 | 确需可信服务时由 `src/<feature>/` 的**固定预编译**代码通过现有 `src/sw.js` 接线；SW 可休眠，业务状态须持久化 |
+| 扩展 Background / MV3 SW | 长期策略、Alarm、Chrome DNR、事件恢复 | 确需可信服务时由已审计项目 `trusted/` 或原有 `src/<feature>/` 的**固定预编译**代码通过现有 `src/sw.js` 接线；SW 可休眠，业务状态须持久化 |
 | Content Script / ISOLATED | 限定目标文档中的提醒、授权后的 DOM 操作 | 确需时经既有静态 `src/entrypoints/page-relay.js` 接线；不能依赖 Side Panel 持续打开 |
 | Page / MAIN | 极少数需要网页 JS 上下文的操作 | 默认**无**此入口；如必须使用，沿用既有明确授权的 SDK/User Script 世界合同，严禁把可信宿主权限送入网站 |
-| 可信 Side Panel / 扩展页面 | 真实点击、Chrome 原生权限申请、危险操作确认 | `src/<feature>/tool-host.js`、`host-controls.js` 等审计代码由固定扩展构建入口引用；不能从动态工具包导入 JS |
+| 可信 Side Panel / 扩展页面 | 真实点击、Chrome 原生权限申请、危险操作确认 | 独立项目 `trusted/tool-host.js`、`trusted/host-controls.js` 或尚在 `src/<feature>/` 的审计代码由固定扩展构建入口引用；不能从动态工具包导入 JS |
 | 扩展拦截说明页 | DNR 导航说明、无敏感信息显示 | 经固定资源清单编译；不加载可安装 UI 的动态字节 |
 
-**以已经完成最小整理的 Stay Focus 为完整例子**：`examples/sidebar-tools/stay-focus/` 保留为官方 UI 项目；`src/stay-focus/` 保留为可信后台、产品模型、页面提醒和规则适配模块；既有 `tool-host.js`、`lifecycle.js` 与 `src/sidebar-tools/sender.js` 已承担明确职责。见 [业务目录说明](../../../src/stay-focus/README.zh-CN.md) 及 [现有整理证据](../../../docs/framework/workstreams/stay-focus-boundary-r1-20261014.md)。**不为路径美观二次搬动已通过的代码**。
+**以已完成 R2 业务提取的 Stay Focus 为例**：`examples/sidebar-tools/stay-focus/src/` 是独立工具 UI；同一项目 `trusted/` 才是受审后台、策略、DNR、页面提醒和权限适配的唯一业务源，经原 `src/sw.js`、`src/entrypoints/` 固定入口编译；`src/stay-focus/*.js` 只是兼容转发，不再接收业务。用户 JSON 不包含 `trusted/`，修改它要重建整个浏览器的可信代码。见 [产品说明](../../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 和 [R2 提取证据](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。**不为路径美观二次搬动已通过的代码**。
 
 依赖方向以 `工具 UI → 受控工具请求 → 现有可信宿主/授权 → 工具受信任服务 → Chrome 能力` 为准。共用宿主可以有**固定、审计的组合入口**，但不得继续长出某个工具的业务策略、确认文案、私有存储/DNR 清理细节；这些属于该工具的受信任模块。反过来，工具也不能复制通用安装器、消息授权、SW 或构建器。
 
