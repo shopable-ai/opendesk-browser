@@ -13,7 +13,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'knowledge/knowledge-host': './src/knowledge/service.js',
   'platform/context-menus': './src/entrypoints/context-menus.js',
   'cloud-control/cloud-host': './src/cloud-control/service.js',
-  'time-review/time-review-host': './src/time-review/service.js',
+  'time-review/time-review-host': './examples/sidebar-tools/time-review/trusted/service.js',
   'stay-focus/blocked': './examples/sidebar-tools/stay-focus/trusted/blocked.js',
   'sidebar-tools/preinstall-intent': './src/entrypoints/preinstall-intent.js',
   'agents/health': './src/agents/health.js',
