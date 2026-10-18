@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenDesk · 品牌与广告布局实验室 R2.7（仅原型）</title>
+<title>OpenDesk · 广告宇宙交互实验室 R2.8（仅原型）</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 离线品牌、广告位置、截图及招商交互实验。无真实广告、无数据收集。">
 <style>
 :root {
@@ -120,12 +120,13 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
 @media(max-width:420px){.fake-browser{padding:8px}.chat-content h2{font-size:15px}.chat-content p{font-size:11px}.compose-foot{flex-wrap:wrap}.tip{left:57px;width:calc(100% - 68px)}.tip-head{padding:10px 10px 6px}.tip-content{padding:0 10px 9px}.tip-ad{padding:0 8px 7px}.tip-brand{padding:7px 9px}.control.wide{min-width:195px}.models .model-grid{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
+<link rel="stylesheet" href="./brand-ad-lab-r28.css">
 </head>
 <body>
 <header class="top">
  <div class="identity"><span class="od-mark" aria-hidden="true">OD</span><div>
   <h1 data-i18n="title">品牌 × 广告布局实验室</h1>
-  <p data-i18n="subtitle">Prompt Shortcuts · R2.7 · 离线 HTML 原型</p>
+  <p data-i18n="subtitle">Prompt Shortcuts · R2.8 · 离线 HTML 原型</p>
  </div></div>
  <div class="top-actions">
   <span class="small-note" data-i18n="prototype">仅模拟 · 未投放 · 非正式合作</span>
@@ -232,7 +233,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
  </aside>
 </main>
 <section class="analysis">
- <h2 data-i18n="matrixTitle">A1–A10 独立位置评估</h2>
+ <h2 data-i18n="matrixTitle">R2.7 · A1–A10 历史对照</h2>
  <p data-i18n="matrixDesc">定性判断，不代表获批或真实转化结果。表格可横向滚动，当前选中项高亮。</p>
  <div class="table-scroll"><table><thead><tr>
   <th data-i18n="colPlace">位置</th><th data-i18n="colUx">UX 影响</th><th data-i18n="colBrand">截图价值</th>
@@ -259,7 +260,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
  const $=id=>document.getElementById(id);
  const translations={
   zh:{
-   title:"品牌 × 广告布局实验室",subtitle:"Prompt Shortcuts · R2.7 · 离线 HTML 原型",prototype:"仅模拟 · 未投放 · 非正式合作",back:"← 返回完整交互预览",
+   title:"品牌 × 广告布局实验室",subtitle:"Prompt Shortcuts · R2.8 · 离线 HTML 原型",prototype:"仅模拟 · 未投放 · 非正式合作",back:"← 返回完整交互预览",
    placement:"广告位置（A1–A10）",format:"广告形式",language:"界面语言",theme:"主题",light:"浅色",dark:"深色",width:"侧边栏宽度",zoom:"预览缩放",
    adsEnabled:"允许演示广告（取消即全部关闭）",longPrompt:"长提示词压力场景",captures:"截图场景",shot1:"① 悬浮窗 + Logo",shot2:"② 悬浮赞助 + Logo",shot3:"③ 编辑页 + 招商卡",reset:"恢复关闭的广告位",
    fakePage:"网页模拟",siteName:"模拟聊天网页",fakeSite:"不是真实 ChatGPT 页面",notInjected:"未向任何网站注入广告",hoverHint:"悬浮预览，点击插入模拟草稿",promptName:"润色文字",
@@ -268,7 +269,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    panelDemo:"侧边栏模拟",listTitle:"我的提示词",editTitle:"编辑提示词",settings:"工具设置 / 介绍",promptShort:"润色并保留原意，给出改进建议…",translatePrompt:"翻译",translateDesc:"保留段落、语气和术语…",summaryPrompt:"内容摘要",summaryDesc:"梳理三条关键结论…",use:"使用",
    bodyLabel:"提示词正文",nameLabel:"显示名称（可选）",cancel:"取消",saveDemo:"模拟保存",emptyTitle:"还没有提示词",emptyDesc:"开始添加第一个快捷按钮。下面的合作位置仅用于招商实验。",addFirst:"新建提示词",settingsDesc:"快捷按钮服务于内容插入。合作区域必须独立标注，可完整关闭。",
    settingsPrivacy:"这里不读取用户提示词、不收集行为，也不加载远程广告脚本。",panelFooter:"原型内容 · 不联网",
-   matrixTitle:"A1–A10 独立位置评估",matrixDesc:"定性判断，不代表获批或真实转化结果。表格可横向滚动，当前选中项高亮。",
+   matrixTitle:"R2.7 · A1–A10 历史对照",matrixDesc:"定性判断，不代表获批或真实转化结果。表格可横向滚动，当前选中项高亮。",
    colPlace:"位置",colUx:"UX 影响",colBrand:"截图价值",colCost:"开发成本",colNarrow:"窄屏",colPolicy:"商店风险",colConfuse:"原生广告混淆",colPublish:"发布可行性",colOff:"完全关闭",
    modelTitle:"商业模式比较 · 仅定性",modelNoNumbers:"未接入曝光量、点击、转化、支付、联盟链接或用户画像；不能推断收入。",
    disclaimer:"这是独立 HTML 原型，所有合作品牌均为虚构示例。不会修改真实网页、正式扩展、权限或存储。",
@@ -282,7 +283,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    disabledHint:"A8/A9 只在模拟网页渲染，正式注入被明确排除。",riskShared:"仅为布局评估；任何上线均需明确披露、用户可关闭和政策审核。"
   },
   en:{
-   title:"Brand & Ad Placement Lab",subtitle:"Prompt Shortcuts · R2.7 · Offline HTML Prototype",prototype:"Prototype only · No live sponsors",back:"← Back to full interactive preview",
+   title:"Brand & Ad Placement Lab",subtitle:"Prompt Shortcuts · R2.8 · Offline HTML Prototype",prototype:"Prototype only · No live sponsors",back:"← Back to full interactive preview",
    placement:"Placement (A1–A10)",format:"Ad format",language:"Language",theme:"Theme",light:"Light",dark:"Dark",width:"Side panel width",zoom:"Preview zoom",
    adsEnabled:"Show demo ads (uncheck to hide all)",longPrompt:"Long prompt stress test",captures:"Screenshot presets",shot1:"① Tooltip + Logo",shot2:"② Sponsor + Logo",shot3:"③ Edit form + Sponsor",reset:"Restore dismissed ads",
    fakePage:"Mock page",siteName:"Simulated chat page",fakeSite:"Not real ChatGPT",notInjected:"No third-party injections",hoverHint:"Hover to preview, click to insert into demo draft",promptName:"Polish text",
@@ -291,7 +292,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    panelDemo:"Side panel mock",listTitle:"My prompts",editTitle:"Edit prompt",settings:"Settings / About",promptShort:"Polish while preserving meaning…",translatePrompt:"Translate",translateDesc:"Keep paragraphs and terminology…",summaryPrompt:"Summarize",summaryDesc:"Three key takeaways…",use:"Use",
    bodyLabel:"Prompt body",nameLabel:"Display name (optional)",cancel:"Cancel",saveDemo:"Save in mock",emptyTitle:"No prompts yet",emptyDesc:"Create your first shortcut. The area below is only a sponsorship placeholder.",addFirst:"New prompt",settingsDesc:"Shortcuts serve text insertion. Sponsored content must be separate, labeled, and dismissible.",
    settingsPrivacy:"No prompt reading, behavioral profiling or remote ad scripts.",panelFooter:"Offline prototype",
-   matrixTitle:"Independent A1–A10 placement evaluation",matrixDesc:"Qualitative analysis; not an approval or measured conversion. Scroll the table sideways.",
+   matrixTitle:"R2.7 A1–A10 legacy evaluation",matrixDesc:"Qualitative analysis; not an approval or measured conversion. Scroll the table sideways.",
    colPlace:"Placement",colUx:"UX impact",colBrand:"Screenshot value",colCost:"Dev effort",colNarrow:"Narrow screens",colPolicy:"Store risk",colConfuse:"Native-ad confusion",colPublish:"Release potential",colOff:"Can disable",
    modelTitle:"Business models · Qualitative only",modelNoNumbers:"No impression, click, conversion, payment, affiliate or profiling tracking. Revenue cannot be estimated.",
    disclaimer:"Standalone HTML prototype. Every sponsor is fictitious; no site, installed extension, permission or storage is changed.",
@@ -305,7 +306,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    disabledHint:"A8/A9 render only in a fake page. Live injection is out of scope.",riskShared:"All launch candidates need disclosure, user controls and policy review."
   },
   ja:{
-   title:"ブランド・広告配置ラボ",subtitle:"Prompt Shortcuts · R2.7 · オフライン HTML 試作",prototype:"試作のみ · 実際のスポンサーなし",back:"← 既存プレビューへ戻る",
+   title:"ブランド・広告配置ラボ",subtitle:"Prompt Shortcuts · R2.8 · オフライン HTML 試作",prototype:"試作のみ · 実際のスポンサーなし",back:"← 既存プレビューへ戻る",
    placement:"広告配置（A1–A10）",format:"広告の種類",language:"言語",theme:"テーマ",light:"ライト",dark:"ダーク",width:"サイドパネル幅",zoom:"プレビュー倍率",
    adsEnabled:"広告の試作を表示（解除ですべて非表示）",longPrompt:"長いプロンプトを表示",captures:"スクリーンショット例",shot1:"① ポップアップ + Logo",shot2:"② スポンサー + Logo",shot3:"③ 編集画面 + 広告",reset:"閉じた広告を復元",
    fakePage:"模擬ページ",siteName:"模擬チャット画面",fakeSite:"実際の ChatGPT ではありません",notInjected:"実サイトへの広告挿入なし",hoverHint:"ホバーで表示、クリックで模擬下書きに挿入",promptName:"文章を推敲",
@@ -314,7 +315,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    panelDemo:"サイドパネル模擬",listTitle:"マイプロンプト",editTitle:"プロンプト編集",settings:"設定 / 紹介",promptShort:"意味を保って文章を推敲…",translatePrompt:"翻訳",translateDesc:"段落と用語を保持…",summaryPrompt:"要約",summaryDesc:"重要なポイントを3つ…",use:"使用",
    bodyLabel:"プロンプト本文",nameLabel:"表示名（任意）",cancel:"キャンセル",saveDemo:"模擬保存",emptyTitle:"プロンプトはまだありません",emptyDesc:"最初のボタンを追加。下の協賛枠は表示例のみです。",addFirst:"新規作成",settingsDesc:"主機能はテキスト挿入。協賛は明示し、完全に非表示にできます。",
    settingsPrivacy:"ユーザープロンプトの読取・行動追跡・外部広告スクリプトはありません。",panelFooter:"オフライン試作",
-   matrixTitle:"A1–A10 の配置別評価",matrixDesc:"定性的な検討であり、公開承認や実測結果ではありません。横スクロール可。",
+   matrixTitle:"R2.7 · A1–A10 の配置評価",matrixDesc:"定性的な検討であり、公開承認や実測結果ではありません。横スクロール可。",
    colPlace:"配置",colUx:"UX影響",colBrand:"画面共有価値",colCost:"開発負荷",colNarrow:"狭い画面",colPolicy:"規約リスク",colConfuse:"サイト広告との混同",colPublish:"公開可能性",colOff:"完全非表示",
    modelTitle:"収益モデル · 定性的比較",modelNoNumbers:"表示・クリック・成果・決済・アフィリエイト・行動追跡は実装しません。収益予測もありません。",
    disclaimer:"独立した HTML 試作です。スポンサーはすべて架空で、実サイト・拡張機能・権限・保存領域は変更しません。",
@@ -484,6 +485,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    const key=preset.dataset.preset;const yes=key==="logo"&&state.placement==="A1"||key==="sponsor"&&state.placement==="A3"||key==="edit"&&state.placement==="A6";
    preset.setAttribute("aria-pressed",String(yes));
   }
+  if(window.OpenDeskR28 && window.OpenDeskR28.sync)window.OpenDeskR28.sync();
  }
  function setPlacement(id){
   state.placement=id;state.tipOpen=true;
@@ -541,8 +543,10 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
   state.view=p==="edit"?"edit":"list";render();
  }));
  $("editPrompt").value=sample.zh;
+ window.OpenDeskR27Bridge={state,render,setPlacement,insertDraft,applyLanguage,closed,partnerDialog};
  applyLanguage();render();
 })();
 </script>
+<script src="./brand-ad-lab-r28.js"></script>
 </body>
 </html>
