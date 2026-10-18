@@ -49,6 +49,14 @@ test('source-bound dual preview matches the native and pinned browser asset byte
     assert.equal(bytes.length,file.bytes);
     assert.equal(hash(bytes),file.sha256);
   }
+  const packaged=await createSidebarToolPackage(project);
+  const cssBytes=await readFile(resolve(preview,'react.css'));
+  assert.equal(cssBytes.toString('utf8'),packaged.css,
+    'React source-bound preview MUST use final canonical install-package CSS, not raw Vite CSS');
+  assert.equal(receipt.reactPackageCss.sha256,hash(cssBytes));
+  assert.equal(receipt.reactPackageCss.bytes,cssBytes.length);
+  const html=await readFile(resolve(project,'preview/index.html'),'utf8');
+  assert.match(html,/\.opendesk-preview\/react\.css/);
   const fixed=receipt.browserAssets.find(x=>x.path===PAGE_FRAMEWORK_RUNTIMES.react.output);
   assert.equal(fixed.sha256,PAGE_FRAMEWORK_RUNTIMES.react.sha256);
   assert.equal(fixed.bytes,PAGE_FRAMEWORK_RUNTIMES.react.bytes);

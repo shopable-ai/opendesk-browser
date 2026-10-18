@@ -61,6 +61,12 @@ async function run(){
     await write(resolve(browserOutput,path),bytes);
     staged.push(record(path,bytes));
   }
+  // The Vite CSS is a source input; the installed package CSS additionally includes
+  // canonical shared design/reset rules. Preview the exact packaged bytes.
+  const reactPackage=await createSidebarToolPackage(project);
+  if(reactPackage.id!=='quick-notes-react'||reactPackage.uiRuntime!=='opendesk.react-ui.v1')
+    throw Error('Unexpected React package identity/runtime');
+  await write(resolve(output,'react.css'),reactPackage.css);
   // Only the native official sources are used; no copied native business implementation.
   const pkg=await createSidebarToolPackage(original);
   if(pkg.id!=='quick-notes')throw Error('Native baseline identity changed');
@@ -88,6 +94,7 @@ async function run(){
     extensionDir:relative(repo,browserBuild),
     extensionManifest:record('manifest.json',manifest),
     sources:before,toolBuild:Object.values(tools),browserAssets:staged,
+    reactPackageCss:record('react.css',Buffer.from(reactPackage.css)),
     nativePreview:Object.entries(nativeFiles).map(([name,data])=>record(name,Buffer.from(data)))
   },null,2)+'\n');
   process.stdout.write('STAGED_SOURCE_BOUND_PREVIEW '+resolve(project,'preview/compare.html')+'\n');
