@@ -1523,7 +1523,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       await click(client,formSid,'#tab-my-tasks');
       await click(client,formSid,'#schedule-open');
       await deadline(()=>evaluate(client,
-        'document.querySelector("#schedule-list-view")?.hidden===false&&document.querySelector('+JSON.stringify(card)+')',formSid),
+        'document.querySelector("#schedule-list-view")?.hidden===false&&!!document.querySelector('+JSON.stringify(card)+')',formSid),
         'genuine Developer-to-plan-list return preserves saved plans');
       report.tests.nativeManagerDeveloperReturn='PASS';
     }
