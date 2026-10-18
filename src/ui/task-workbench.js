@@ -121,16 +121,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     // Ask the live tool before changing panes or destroying its editor.
     if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;
-    for(const [element,view] of [
-      ['tasks','tasks'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
-    ])get('workbench-'+element).hidden=view!==name;
-    // React owns the tab buttons in the installed Side Panel. The legacy
-    // writer survives only in isolated controller tests without a React shell.
-    if(reactNavigation?.select)reactNavigation.select(name);
-    else for(const [view,id] of [['tasks','tab-my-tasks'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
-      const tab=get(id);
-      tab.setAttribute('aria-selected',String(name===view));
-      tab.tabIndex=name===view?0:-1;
+    if(reactNavigation?.ownsPages){
+      // The installed App Shell alone owns tabpanel visibility and tab ARIA.
+      // A veto above returns before this synchronous React state publication.
+      reactNavigation.select(name);
+    }else{
+      // Legacy fallback is only for isolated Controller tests without a full
+      // React Shell; it preserves their existing DOM behavior.
+      for(const [element,view] of [
+        ['tasks','tasks'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
+      ])get('workbench-'+element).hidden=view!==name;
+      if(reactNavigation?.select)reactNavigation.select(name);
+      else for(const [view,id] of [['tasks','tab-my-tasks'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
+        const tab=get(id);
+        tab.setAttribute('aria-selected',String(name===view));
+        tab.tabIndex=name===view?0:-1;
+      }
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
