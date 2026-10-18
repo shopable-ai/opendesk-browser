@@ -40,7 +40,11 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
       - name: Verify actual installed MV3 App Shell and repeated opening
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/react-sidebar-r352-installed-chrome.mjs
       - name: Upload installed Chrome diagnostics
         if: always()
