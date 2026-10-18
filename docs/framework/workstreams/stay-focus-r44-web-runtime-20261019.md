@@ -7,3 +7,9 @@
 - 本次仅新增可由 Node 验证的隔离/休眠/跨日/DNR 对账测试；原生 Chrome、固定宿主跨版本安装、独立应用升级仍需真实证据。
 - 写入前无共享本地文件/进程使用，远端 main 更新用 expected HEAD 栅栏；无分支、worktree、PR、强推或覆盖他人文件。
 - 状态：实施提交待 CI 验证；此记录不是正式版本验收。
+
+## R4.4 用户修改结果未知修复
+
+- 修正 SidePanel/Sandbox 桥对于 `focus.*` 写入超时误标 `E_TOOL_TIMEOUT` 的问题，改为 `E_OUTCOME_UNKNOWN`，提示先读取真实 Host/DNR 状态，不盲目重复写入。
+- 修正应用自有可信 Host 写入后 sender 已退役、与 worker 消息失联时的结果未知分类；只读 status 出错单独标注，不假称授权失败。
+- 新增有真实包、安装代际、可信 Host mock driver 的定向消费测试。真实 Chrome 网络断开/原生 DNR 的测试仍待 CI。

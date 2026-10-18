@@ -74,9 +74,10 @@ export function initSidebarToolSandbox() {
         waiting.delete(requestId);
         // The host may already have committed a write. Do not interpret loss
         // of transport acknowledgement as cancellation or reissue the write.
-        const uncertain=toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation);
+        const uncertain=toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
+          toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status';
         const error=new Error(uncertain?
-          '确认或 DNR 回读超时，结果未知；请重新读取 Chrome 规则，不要重复提交':'工具请求超时');
+          '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时');
         error.code=uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT';
         reject(error);
       },timeoutMs);

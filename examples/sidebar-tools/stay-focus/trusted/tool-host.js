@@ -42,8 +42,10 @@ export async function runTrustedStayFocusOperation({api,tool,operation,payload,e
   const installEpoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
   const packageHash=await focusPackageHash(tool);
   assertCurrent('before-send');
-  const result=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,
-    toolId:tool.id,operation,payload,packageHash,installEpoch});
+  let result;
+  try{result=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,
+    toolId:tool.id,operation,payload,packageHash,installEpoch});}
+  catch{throw error('后台连接中断，执行结果未知；请重新读取 Chrome 规则','E_OUTCOME_UNKNOWN');}
   if(!result?.ok)throw error(result?.error?.message||'专注 Host 未确认',result?.error?.code||'E_FOCUS');
   try{assertCurrent('after-send');}catch{
     throw error('宿主已改变，请核查 Chrome 规则状态','E_OUTCOME_UNKNOWN');
@@ -68,10 +70,18 @@ export async function requestStayFocusOperation({api,tool,operation,payload,revo
       throw error('工具身份或授权版本已变化','E_TOOL_CHANGED');
     const packageHash=await focusPackageHash(tool);
     assertCurrent();
-    const response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:tool.id,
-      operation,payload,packageHash,installEpoch:revocationEpoch});
+    let response;
+    try{response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:tool.id,
+      operation,payload,packageHash,installEpoch:revocationEpoch});}
+    catch{
+      throw error(operation==='focus.status'?'后台状态读取失败':'后台连接中断，执行结果未知；请先读取状态，不要重复提交',
+        operation==='focus.status'?'E_FOCUS_STATUS':'E_OUTCOME_UNKNOWN');
+    }
     if(!response?.ok)throw error(response?.error?.message||'专注操作未确认',response?.error?.code||'E_FOCUS');
-    assertCurrent();return response.data;
+    try{assertCurrent();}catch{
+      throw error('宿主已改变，执行结果未知；请核查网站状态与 Chrome 规则','E_OUTCOME_UNKNOWN');
+    }
+    return response.data;
   };
   if(operation==='focus.status')return send();
   const target=operation==='focus.site.put'?'保存「'+String(payload?.site?.host||'').slice(0,80)+'」的网站限制':
