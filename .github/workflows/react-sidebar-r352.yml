@@ -1,0 +1,46 @@
+name: React Sidebar R35.2 App Shell Chromium
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/react/**'
+      - 'scripts/tests/react-sidebar-r352-browser.mjs'
+      - 'tests/environment/react-sidebar-app-shell-r351.test.mjs'
+      - '.github/workflows/react-sidebar-r352.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  app-shell-source-and-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: App Shell and React source contracts
+        run: |
+          node --test tests/environment/react-sidebar-app-shell-r351.test.mjs
+          node --test tests/environment/react-sidebar-r333.test.mjs
+          node --test tests/environment/react-sidebar-render-r3331.test.mjs
+          node --test tests/environment/react-sidebar-schedule-r341.test.mjs
+      - name: Execute appShell:true against formal HTML in real Chromium
+        run: node scripts/tests/react-sidebar-r352-browser.mjs
+      - name: Source checks and both production/dev candidates
+        run: |
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Declare evidence boundary
+        if: always()
+        run: |
+          echo "SOURCE_UI_SIMULATION_CHROMIUM=R35.2 tests"
+          echo "INSTALLED_EXTENSION_CHROME=NOT_TESTED"
