@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {itemBytes,recoverNotes,validNote,noteLabel,pageInfoFrom,proposedSave,
   proposedDelete,MAX_NOTES,STORAGE_KEY} from '../../examples/sidebar-tools/quick-notes-react/src/model.js';
 const repo=new URL('../../',import.meta.url);
@@ -93,4 +93,38 @@ test('preview SDK cannot be confused with real installed RPC',async()=>{
   assert.match(preview,/store=\{notes:null,note:null\}/);
   assert.doesNotMatch(main,/sdk-preview|localStorage|sessionStorage/);
   assert.match(stage,/createSidebarToolPackage\(original\)/);
+});
+
+test('host source cannot import Quick Notes React business or duplicate its runtime',async()=>{
+  const source=new URL('../../src/',import.meta.url);
+  const all=[];
+  async function visit(dir){
+    for(const row of await readdir(dir,{withFileTypes:true})){
+      if(row.isDirectory()){await visit(new URL(row.name+'/',dir));continue;}
+      if(row.isFile()&&/\\.(?:js|jsx|mjs|ts|tsx)$/.test(row.name))
+        all.push(new URL(row.name,dir));
+    }
+  }
+  await visit(source);
+  assert.ok(all.length>0,'scan all framework sources, not a hand-selected list');
+  for(const file of all){
+    const code=await readFile(file,'utf8');
+    assert.doesNotMatch(code,
+      /\\b(?:import|export)\\s+[^;\\n]*?\\bfrom\\s*['"][^'"]*quick-notes-react\\/(?:src|dist)\\//,
+      'framework must not import Quick Notes React business: '+file.pathname);
+    assert.doesNotMatch(code,
+      /\\b(?:import|require)\\s*\\(\\s*['"][^'"]*quick-notes-react\\/(?:src|dist)\\//,
+      'framework must not load Quick Notes React business dynamically: '+file.pathname);
+  }
+  const [app,entry,model]=await Promise.all([
+    read('examples/sidebar-tools/quick-notes-react/src/App.jsx'),
+    read('examples/sidebar-tools/quick-notes-react/src/main.jsx'),
+    read('examples/sidebar-tools/quick-notes-react/src/model.js')
+  ]);
+  assert.match(entry,/globalThis\\.OpenDeskTool/);
+  assert.match(entry,/bridge\\.request/);
+  for(const business of [app,entry,model]){
+    assert.doesNotMatch(business,/\\bchrome\\.(?:storage|runtime|tabs)\\b|\\blocalStorage\\b|\\bsessionStorage\\b/);
+    assert.doesNotMatch(business,/quick-notes\\/src\\//,'must not import native Quick Notes');
+  }
 });
