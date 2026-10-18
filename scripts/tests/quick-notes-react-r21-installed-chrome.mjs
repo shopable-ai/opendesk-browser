@@ -116,9 +116,10 @@ async function persistedPackage(id){
   return evaluate(host,'chrome.storage.local.get('+JSON.stringify(SIDEBAR_TOOL_STORE)+
     ').then(x=>(x['+JSON.stringify(SIDEBAR_TOOL_STORE)+']||[]).find(p=>p.id==='+JSON.stringify(id)+')||null)');
 }
-async function importTool(tool){
+async function importTool(tool,{update=false}={}){
   const already=await persistedPackage(tool.id);
-  if(already){
+  if(update)assert.ok(already,'real Host update requires an installed baseline');
+  if(already&&!update){
     assert.equal(hash(Buffer.from(serializeSidebarToolPackage(already))),tool.sha,
       'preinstalled native package must match its original source baseline');
     result.operations.push('PREINSTALLED_PACKAGE_MATCH_'+tool.id);
@@ -142,10 +143,13 @@ async function importTool(tool){
   },'review '+tool.id);
   assert.equal(approval.title.trim(),tool.title,'review matches imported package title');
   await click(host,'#sidebar-tool-install');
-  const saved=await until(()=>persistedPackage(tool.id),'installed '+tool.id);
+  const saved=await until(async()=>{
+    const value=await persistedPackage(tool.id);
+    return value&&hash(Buffer.from(serializeSidebarToolPackage(value)))===tool.sha?value:null;
+  },(update?'updated ':'installed ')+tool.id);
   assert.equal(hash(Buffer.from(serializeSidebarToolPackage(saved))),tool.sha,
     'real installed package must match tested candidate bytes');
-  result.operations.push('TRUSTED_UI_IMPORT_'+tool.id);
+  result.operations.push((update?'TRUSTED_UI_UPDATE_':'TRUSTED_UI_IMPORT_')+tool.id);
 }
 async function openTool(id){
   const row='#extension-center-list button[data-extension-key="app:'+id+'"][data-extension-action="primary"]';
@@ -341,6 +345,24 @@ try{
   assert.equal(reactFinally,reactDigest);
   result.dataIsolation='PASS';
   result.operations.push('REAL_SDK_ISOLATION','BOTH_INDEPENDENTLY_INSTALLED');
+  // A genuine user-confirmed Host update from a controlled version fixture,
+  // never a claim that a historical 1.0.1 release exists. Compiled JS/CSS
+  // remains byte-identical, isolating installer + per-ID storage semantics.
+  const upgrade=validateSidebarToolPackage({
+    ...JSON.parse(await readFile(paths[1],'utf8')),version:'1.0.1'
+  });
+  const upgradeBytes=Buffer.from(serializeSidebarToolPackage(upgrade));
+  const upgradeFile=join(profile,'quick-notes-react-update-fixture.opendesk-tool.json');
+  await writeFile(upgradeFile,upgradeBytes);
+  result.upgradeFixture={from:packages[1].version,to:upgrade.version,
+    packageSha256:hash(upgradeBytes),historicalRelease:false,sameBusinessCode:true};
+  await importTool({file:upgradeFile,id:upgrade.id,title:upgrade.title,
+    version:upgrade.version,sha:hash(upgradeBytes)},{update:true});
+  assert.equal(await storageDigest('quick-notes'),nativeDigest,'update must preserve native data');
+  assert.equal(await storageDigest('quick-notes-react'),reactDigest,'update must preserve React data');
+  await reopenVerify('quick-notes-react','React 独立数据');
+  result.upgrade='PASS_REAL_HOST_VERSION_FIXTURE';
+  result.operations.push('REAL_HOST_UPDATE_REACT');
   await editReact();
   assert.equal(await storageDigest('quick-notes'),nativeDigest,'React edit must preserve native data');
   await deleteReact();
