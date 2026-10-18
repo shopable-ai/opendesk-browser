@@ -35,6 +35,7 @@ jobs:
           node --test tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-quick-notes-react-r21.test.mjs
           node --check examples/sidebar-tools/quick-notes-react/src/model.js
           node --check examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs
+          node --check scripts/tests/quick-notes-react-r21-installed-chrome.mjs
       - name: Build the fixed shared runtime in the existing MV3 host
         run: npm run build:dev
       - name: Compile the real React JSX and stage both source-bound previews
