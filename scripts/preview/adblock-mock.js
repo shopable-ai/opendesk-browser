@@ -60,6 +60,10 @@
       pending.delete(msg.requestId);
       if(msg.accepted!==true){item.reject(error('E_CANCELLED','用户取消了本次模拟操作'));return;}
       try{
+        // A real Host rechecks authority after approval, not only at request time.
+        // Preview must reject a permission revocation while the dialog is open.
+        if(!state.permissions.dnr||!state.rules.verified||!state.toolEnabled)
+          throw error('E_ADBLOCK_PERMISSION','确认期间过滤权限已撤销');
         validate(item.operation,item.payload);apply(item.operation,item.payload);
         item.resolve(clone(state));
         window.parent.postMessage({type:'opendesk.preview.adblock.review-receipt',
@@ -69,9 +73,13 @@
       if(!['success','empty','untrusted'].includes(scenario))return;
       if(typeof msg.enabled!=='boolean'||typeof msg.granted!=='boolean'||
          !Array.isArray(msg.exceptions)||msg.exceptions.some(x=>!allowed.has(x)))return;
+      const nextHost=msg.currentHost??state.currentHost;
+      if(typeof nextHost!=='string'||!allowed.has(nextHost))return;
+      const pageChanged=nextHost!==state.currentHost;
+      state.currentHost=nextHost;
       state.enabled=msg.enabled;state.permissions.dnr=msg.granted;
       state.rules.verified=msg.granted;state.exceptions=[...new Set(msg.exceptions)];
-      root.dispatchEvent(new Event('opendesk-tool-state-changed'));
+      root.dispatchEvent(new Event(pageChanged?'opendesk-page-changed':'opendesk-tool-state-changed'));
     }
   });
   if(typeof ResizeObserver==='function'){
