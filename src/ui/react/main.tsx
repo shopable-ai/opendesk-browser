@@ -5,7 +5,7 @@ import {SidebarNavigation} from './tabs/navigation.tsx';
 import {prepareSidebarAppShell,SidebarAppShell} from './app-shell.tsx';
 import {flushSync} from 'react-dom';
 import {ExtensionCenterPage,ExtensionRowMenu} from './tabs/tools.tsx';
-import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
+import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText,DeveloperSourceEditor,DeveloperJavascriptWorld} from './tabs/develop.tsx';
 import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
 import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
@@ -124,6 +124,20 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     ['page-component-javascript','page-component-react','page-component-vue'].some(id=>
       doc.getElementById(id)?.closest('.page-component-choices')!==developerChoices)))
     throw new Error('E_REACT_DEVELOPER_FRAMEWORK_MOUNT');
+  const developerSourceHost=doc.getElementById('script-source-react-host');
+  const developerSourceInput=doc.getElementById('script-source');
+  const developerSourceMounted=Boolean(developerSourceHost&&developerSourceInput);
+  if(Boolean(developerSourceHost)!==Boolean(developerSourceInput)||
+    developerSourceHost?.dataset.opendeskReactOwner||
+    (developerSourceMounted&&developerSourceInput.parentElement!==developerSourceHost))
+    throw new Error('E_REACT_DEVELOPER_SOURCE_MOUNT');
+  const developerWorldHost=doc.getElementById('script-javascript-world-row');
+  const developerWorldChoice=doc.getElementById('script-javascript-world');
+  const developerWorldMounted=Boolean(developerWorldHost&&developerWorldChoice);
+  if(Boolean(developerWorldHost)!==Boolean(developerWorldChoice)||
+    developerWorldHost?.dataset.opendeskReactOwner||
+    (developerWorldMounted&&developerWorldChoice.parentElement!==developerWorldHost))
+    throw new Error('E_REACT_DEVELOPER_WORLD_MOUNT');
   const developerDock=doc.querySelector('#develop-dock .dock-buttons');
   const developerActionsMounted=Boolean(developerDock);
   if(developerActionsMounted&&(
@@ -244,6 +258,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   let workflowSettingsModel={open:false,onClose:null};
   let workflowHistoryModel={open:false,rows:[],canResume:false,busy:false};
   let workflowSourceName='';
+  let developerSourceActive=false,developerSourceRevision=0,developerSourceModel=null;
+  let developerWorldActive=false,developerWorldModel=null;
   let developerActionsActive=false,developerActionsModel=null;
   let developerFrameworkActive=false,developerFrameworkModel=null;
   let developerResultActive=false,developerResultModel={
@@ -323,6 +339,10 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
         <DeveloperFramework model={developerFrameworkModel}/>,developerChoices)}
       {developerActionsActive&&createPortal(
         <DeveloperActions model={developerActionsModel}/>,developerDock)}
+      {developerSourceActive&&createPortal(
+        <DeveloperSourceEditor model={developerSourceModel}/>,developerSourceHost)}
+      {developerWorldActive&&createPortal(
+        <DeveloperJavascriptWorld model={developerWorldModel}/>,developerWorldHost)}
       {developerTargetMounted&&createPortal(
         <DeveloperTargetText value={developerTargetModel.host}
           node={developer.host} title={developerTargetModel.hostTitle}/>,developer.host)}
@@ -516,6 +536,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       workflowSettingsModel=next;paint();
     },
     developerActionsMounted,
+    developerSourceMounted,
+    developerWorldMounted,
     developerFrameworkMounted,
     developerStatusMounted,
     developerResultMounted,
@@ -546,6 +568,34 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     renderRowMenu(items){
       if(disposed||!rowMenuHost)throw new Error('E_REACT_EXTENSION_ROW_MENU_OWNER');
       rowMenuItems=items;paint();
+    },
+    renderDeveloperSource(next){
+      if(disposed||!developerSourceMounted||typeof next.source!=='string'||
+        typeof next.onInput!=='function')throw new Error('E_REACT_DEVELOPER_SOURCE_OWNER');
+      const current=doc.getElementById('script-source');
+      if(!developerSourceActive){
+        if(current?.parentElement!==developerSourceHost||
+          developerSourceHost.dataset.opendeskReactOwner)
+          throw new Error('E_REACT_DEVELOPER_SOURCE_ALREADY_OWNED');
+        developerSourceHost.replaceChildren();
+        developerSourceHost.dataset.opendeskReactOwner='developer-source';
+        developerSourceActive=true;
+      }else if(current?.value!==next.source){
+        developerSourceRevision++;
+      }
+      developerSourceModel={...next,revision:developerSourceRevision};paint();
+    },
+    renderDeveloperWorld(next){
+      if(disposed||!developerWorldMounted||typeof next.onSelect!=='function')
+        throw new Error('E_REACT_DEVELOPER_WORLD_OWNER');
+      if(!developerWorldActive){
+        if(developerWorldHost.dataset.opendeskReactOwner)
+          throw new Error('E_REACT_DEVELOPER_WORLD_ALREADY_OWNED');
+        developerWorldHost.replaceChildren();
+        developerWorldHost.dataset.opendeskReactOwner='developer-world';
+        developerWorldActive=true;
+      }
+      developerWorldModel=next;paint();
     },
     renderDeveloperFramework(next){
       if(disposed||!developerFrameworkMounted)throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNER');
@@ -605,6 +655,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       if(developerStatusMounted)delete developerRunStatus.dataset.opendeskReactOwner;
       if(rowMenuHost)delete rowMenuHost.dataset.opendeskReactOwner;
       if(developerActionsActive)delete developerDock.dataset.opendeskReactOwner;
+      if(developerSourceActive)delete developerSourceHost.dataset.opendeskReactOwner;
+      if(developerWorldActive)delete developerWorldHost.dataset.opendeskReactOwner;
       if(developerFrameworkActive)delete developerChoices.dataset.opendeskReactOwner;
       if(developerTargetMounted)for(const node of developerNodes)
         delete node.dataset.opendeskReactOwner;

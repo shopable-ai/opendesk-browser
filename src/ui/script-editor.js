@@ -141,7 +141,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null,reactDeveloperResult=null;
+  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null,reactDeveloperResult=null,reactDeveloperSource=null,reactDeveloperWorld=null;
   // The original Script Editor exclusively owns authorized result values.
   // Its legacy DOM writer survives only until the React portal handoff.
   const resultProjection={text:output.textContent||'',kind:resultKind.textContent||''};
@@ -321,7 +321,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const pageExecution=isComponentDraft()||isPageDraft();
     const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
     if(worldRow)worldRow.hidden=componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot();
-    if(worldChoice){
+    if(reactDeveloperWorld)reactDeveloperWorld({
+      value:javascriptWorld,disabled:frameworkBusy(),
+      onSelect:(next,event)=>{if(event?.isTrusted&&!disposed)chooseJavascriptWorld(next);}
+    });
+    else if(worldChoice){
       worldChoice.value=javascriptWorld;
       worldChoice.disabled=frameworkBusy();
     }
@@ -1335,7 +1339,21 @@ export function createScriptEditor({client, currentPageTarget, development=false
   });
   const javascriptWorldSelect=find('script-javascript-world');
   if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
-  on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();scheduleControllerClassicWarm();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();else componentDrafts[componentMode]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();scheduleControllerClassicWarm();update();});
+  function sourceInput(){
+    browserPreparer.cancel();browserPrepareGeneration++;
+    programSource.replaceSource(programSource.source());
+    if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
+    else componentDrafts[componentMode]=programSource.source();
+    dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();
+    scheduleControllerClassicWarm();update();
+  }
+  on('script-target-mode','change',update);
+  on('script-id','input',()=>{
+    dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;
+    if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();
+    scheduleControllerClassicWarm();update();
+  });
+  on('script-revision','input',update); on('script-source','input',sourceInput);
   on('script-params','input',update);
   listen(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
@@ -1521,6 +1539,27 @@ export function createScriptEditor({client, currentPageTarget, development=false
       throw new Error('E_REACT_DEVELOPER_STATUS_OWNERSHIP');
     reactDeveloperStatus=render;
     render({state:status.dataset.state||'loading',text:status.textContent||''});
+  },connectReactDeveloperSource(render){
+    if(disposed||reactDeveloperSource||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_SOURCE_OWNERSHIP');
+    const attached=listeners.filter(entry=>entry.element===find('script-source')&&entry.event==='input');
+    if(attached.length!==1)throw new Error('E_REACT_DEVELOPER_SOURCE_LEGACY_LISTENER');
+    for(const entry of attached){
+      entry.element.removeEventListener(entry.event,entry.listener);
+      listeners.splice(listeners.indexOf(entry),1);
+    }
+    reactDeveloperSource=render;
+    programSource.connectReactEditor(model=>render({...model,onInput:sourceInput}));
+  },connectReactDeveloperWorld(render){
+    if(disposed||reactDeveloperWorld||typeof render!=='function')
+      throw new Error('E_REACT_DEVELOPER_WORLD_OWNERSHIP');
+    const attached=listeners.filter(entry=>entry.element===find('script-javascript-world')&&entry.event==='change');
+    if(attached.length!==1)throw new Error('E_REACT_DEVELOPER_WORLD_LEGACY_LISTENER');
+    for(const entry of attached){
+      entry.element.removeEventListener(entry.event,entry.listener);
+      listeners.splice(listeners.indexOf(entry),1);
+    }
+    reactDeveloperWorld=render;update();
   },connectReactDeveloperFramework(render){
     if(disposed||reactDeveloperFramework||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNERSHIP');
@@ -1592,7 +1631,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(!disposed)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; revisionView.dispose(); reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; revisionView.dispose(); reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null;reactDeveloperSource=null;reactDeveloperWorld=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
     listeners.length = 0;

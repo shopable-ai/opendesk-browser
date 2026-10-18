@@ -202,6 +202,10 @@ if(extensionList.developerTargetMounted)
   scriptEditor.connectReactDeveloperTarget(model=>extensionList.renderDeveloperTarget(model));
 if(extensionList.developerActionsMounted)
   scriptEditor.connectReactDeveloperActions(model=>extensionList.renderDeveloperActions(model));
+if(extensionList.developerSourceMounted)
+  scriptEditor.connectReactDeveloperSource(model=>extensionList.renderDeveloperSource(model));
+if(extensionList.developerWorldMounted)
+  scriptEditor.connectReactDeveloperWorld(model=>extensionList.renderDeveloperWorld(model));
 if(extensionList.developerFrameworkMounted)
   scriptEditor.connectReactDeveloperFramework(model=>extensionList.renderDeveloperFramework(model));
 if(extensionList.developerStatusMounted)

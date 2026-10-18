@@ -70,3 +70,26 @@ export function DeveloperRunStatus({model,node}){
 export function DeveloperResultText({value=''}){
   return value;
 }
+
+ // React owns the editable element; Program Source owns the executable bytes.
+ // An uncontrolled textarea preserves native IME, selection and undo between
+ // renders. Only a deliberate external source replacement advances revision.
+ export function DeveloperSourceEditor({model}){
+   return <textarea key={model.revision} id="script-source" rows={6} wrap="off"
+     aria-label="JavaScript、React JSX 或 Vue SFC 源码编辑器"
+     spellCheck={false} autoCapitalize="off" className="od-field"
+     defaultValue={model.source} readOnly={Boolean(model.readOnly)}
+     hidden={Boolean(model.hidden)}
+     onInput={event=>model.onInput?.(event.nativeEvent)}/>;
+ }
+ export function DeveloperJavascriptWorld({model}){
+   return <>
+     <label htmlFor="script-javascript-world" className="od-field-label">运行环境</label>
+     <select id="script-javascript-world" className="od-field" aria-label="JavaScript 执行环境"
+       value={model.value} disabled={Boolean(model.disabled)}
+       onChange={event=>model.onSelect?.(event.target.value,event.nativeEvent)}>
+       <option value="controller">Controller · 自动化 API</option>
+       <option value="page">Page · 当前网页 DOM</option>
+     </select>
+   </>;
+ }

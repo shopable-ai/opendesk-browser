@@ -842,9 +842,10 @@
         <option value="page">Page · 当前网页 DOM</option>
       </select>
     </div>
-    <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label><textarea id="script-source" rows="6" wrap="off" spellcheck="false" autocapitalize="off" class="od-field">async function main() {
+    <label for="script-source" class="visually-hidden">JavaScript、React JSX 或 Vue SFC 源码编辑器</label>
+    <div id="script-source-react-host"><textarea id="script-source" rows="6" wrap="off" spellcheck="false" autocapitalize="off" class="od-field">async function main() {
   return {title: await page.title(), url: await page.url(), value: params.value};
-}</textarea>
+}</textarea></div>
     <p id="page-component-hint" class="hint">保存草稿不会运行网页</p>
     <details id="page-dependency-panel" class="od-stack od-disclosure od-disclosure--flat" aria-label="第三方 Classic JS 依赖固定详情" hidden>
       <summary>第三方 JS 依赖 · 自动固定与缓存（高级详情）</summary>
