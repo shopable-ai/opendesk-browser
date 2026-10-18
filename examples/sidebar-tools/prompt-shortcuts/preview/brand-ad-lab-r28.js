@@ -310,7 +310,7 @@
         cell.append(close);holder.append(cell);
       }
     }
-    if(state.group==='S'&&state.boundaries&&['S04','S05','S06','S07','S08'].includes(state.id)
+    if(state.group==='S'&&state.boundaries&&['S01','S02','S04','S05','S06','S07','S08'].includes(state.id)
       &&!slots[state.id].childElementCount){
       slots[state.id].append(make('span','r29-anchor-empty',state.id+' · '+T('clickZone')));
     }
@@ -561,6 +561,15 @@
     old.state.tipOpen=['B06','B07','B08'].includes(state.id);
     old.render();
   });
+  // Leaving a mock form must also clear the active form-placement highlight.
+  for(const id of ['cancelEdit','saveEdit']){
+    $(id).addEventListener('click',()=>{
+      if(old.state.view==='list'&&state.group==='S'&&['S04','S05'].includes(state.id)){
+        state.id='S02';state.formMode='new';
+        sync();
+      }
+    });
+  }
   $('r28Bounds').addEventListener('change',e=>{state.boundaries=e.target.checked;sync();});
   $('r28Dismiss').addEventListener('click',()=>{old.state.enabled=false;old.render();});
   $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;old.render();});
