@@ -4,7 +4,7 @@ import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolC
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {FOCUS_ID,FOCUS_STORE,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {FOCUS_ID,FOCUS_STORE,FOCUS_SESSION,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation,probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 import {isSidebarToolHostSender} from '../../src/sidebar-tools/sender.js';
@@ -48,11 +48,23 @@ function fixture(){
     [SIDEBAR_TOOL_ENABLE_STORE,{}],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'epoch-before'}],
     [sidebarToolStorageKey(tool.id),{draft:'private'}]]);
   let rules=[{id:FOCUS_RULE_FIRST},{id:12}],failRules=false,readbackMismatch=false;
+  // Native uninstall must remove the Focus session and verify the readback.
+  // Chrome session storage is independent of local; peers must survive retry.
+  const session=new Map([[FOCUS_SESSION,'focus-old-session'],['peer.session','peer-kept']]);
   const writes=[],lockNames=[];
   const api={permissions:{async contains(){return true;}},storage:{local:{
     async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(data.get(key))]));},
     async set(rows){for(const [key,value] of Object.entries(rows)){writes.push(key);data.set(key,structuredClone(value));}},
     async remove(key){data.delete(key);}
+  },session:{
+    async get(key){
+      const keys=key===null?[...session.keys()]:Array.isArray(key)?key:[key];
+      return Object.fromEntries(keys.filter(name=>session.has(name))
+        .map(name=>[name,structuredClone(session.get(name))]));
+    },
+    async remove(key){
+      for(const name of Array.isArray(key)?key:[key])session.delete(name);
+    }
   }},declarativeNetRequest:{
     async getDynamicRules(){return structuredClone(rules);},
     async updateDynamicRules({removeRuleIds,addRules}){
@@ -61,7 +73,7 @@ function fixture(){
     }
   }};
   const lockManager={async request(name,work){lockNames.push(name);return work();}};
-  return {api,lockManager,data,writes,lockNames,focusState,otherState,get rules(){return rules;},
+  return {api,lockManager,data,session,writes,lockNames,focusState,otherState,get rules(){return rules;},
     failRules(value){failRules=value;},mismatch(value){readbackMismatch=value;}};
 }
 test('Focus stop clears only owned DNR, keeps budget and invalidates the old install epoch',async()=>{
@@ -92,9 +104,15 @@ test('Focus uninstall failure remains recoverable, retry clears business data wi
   assert.ok(f.data.get(TOOL_CLEANUP_STORE)[tool.id]);
   assert.deepEqual(f.data.get(FOCUS_STORE),f.focusState);
   assert.deepEqual(f.data.get(TIME_REVIEW_KEY),f.otherState);
+  assert.equal(f.session.get(FOCUS_SESSION),'focus-old-session',
+    'failed DNR cleanup cannot erase an unverified Focus session');
   f.failRules(false);
   assert.equal((await retryUninstalledToolCleanup({...f,id:tool.id})).state,'cleaned');
   assert.equal(f.data.has(FOCUS_STORE),false);
+  assert.equal(f.session.has(FOCUS_SESSION),false,
+    'verified uninstall clears the Focus session storage value');
+  assert.equal(f.session.get('peer.session'),'peer-kept',
+    'Focus uninstall must not remove another app session');
   assert.equal(f.data.has(sidebarToolStorageKey(tool.id)),false);
   assert.deepEqual(f.data.get(TOOL_CLEANUP_STORE),{});
   assert.deepEqual(f.rules,[{id:12}]);
