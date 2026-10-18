@@ -17,7 +17,7 @@ test('installed React bundle consumes host-owned runtime and releases its React 
     useCallback:fn=>fn,useEffect:effect=>effects.push(effect),
     createRoot:node=>{
       assert.equal(node,target);created++;
-      return {render(element){assert.equal(element.type.name,'App');element.type();
+      return {render(element){assert.equal(typeof element.type,'function','the compiled React entry must mount a component');element.type();
         for(const effect of effects)effect();},
         unmount(){disposed++;}};
     }
@@ -40,7 +40,8 @@ test('installed React bundle consumes host-owned runtime and releases its React 
 
 test('sandbox bundle is a React product, not the former restore-only DOM script',async()=>{
   const pkg=await createSidebarToolPackage(resolve('examples/sidebar-tools/adblock'));
-  assert.match(pkg.js,/createRoot\(target\)/);
+  assert.match(pkg.js,/\.createRoot\(/,'compiled React must use host-owned createRoot');
+  assert.match(pkg.js,/E_ADBLOCK_REACT_ROOT/,'missing target must fail closed');
   assert.match(pkg.js,/adblock\.enable/);
   assert.match(pkg.js,/adblock\.disable/);
   assert.match(pkg.js,/adblock\.site\.set/);
