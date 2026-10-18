@@ -809,9 +809,9 @@ test('R36.2 active/invalid world selection does not bypass managed execution own
   assert.equal(input.value,'controller','invalid world must restore the original choice');
   await f.setCurrentRun('busy-controller');
   assert.equal(f.find('script-run').disabled,true);
-  assert.equal(input.disabled,false,'run ownership must be enforced by the Run button and RunHost');
+  assert.equal(input.disabled,true,'running Controller owns the execution state');
   input.value='page';input.fire('change');
-  assert.equal(input.value,'page','switching an idle editor buffer does not stop an unrelated RunHost owner');
+  assert.equal(input.value,'controller','running Controller cannot lose its editor execution world');
   assert.deepEqual(f.manualRuns,[]);
   assert.deepEqual(f.dispatches,[]);
 });
