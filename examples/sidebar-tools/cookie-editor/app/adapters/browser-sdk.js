@@ -59,7 +59,7 @@ export function createCookieSdkAdapter({getBrowser,request}){
     return includeValues?result:redactMetadata(result);
   }
   async function exactList(target,row,isCurrent=()=>true){
-    const result=await readAllCookies(browser().cookies,{
+    const result=await readAllCookies(browser(),{
       url:exactRoute(target,row),...identityScope(row)
     },isCurrent);
     return result===null?null:redactMetadata(result);
