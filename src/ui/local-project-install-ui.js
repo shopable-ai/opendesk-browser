@@ -203,7 +203,13 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       // available; do not replace it with an intermediate "checking" state.
       lookupKey=key;++lookupToken;checking=false;return;
     }
-    lookupKey=key;const token=++lookupToken;installed=null;checking=!!local;
+    lookupKey=key;const token=++lookupToken;
+    // A receipt-confirmed installation remains manageable while an unrelated
+    // passive project lookup resolves. That lookup can later correct the state,
+    // but it is never stronger than the original durable receipt mid-flight.
+    const haveConfirmedInstalled=Boolean(installed?.exact&&!unknown&&!unknownReview);
+    if(!haveConfirmedInstalled)installed=null;
+    checking=Boolean(local)&&!haveConfirmedInstalled;
     if(!installing&&!reconciling){
       const pending=pendingFor(local);
       if(pending){unknownReview=pending;unknown=true;}
@@ -297,13 +303,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     }finally{reconciling=false;if(!disposed){update();onState();}}
     // Completion observers see the settled Save state, not the transient
     // "checking" label. No additional install or verification is dispatched.
-    if(confirmedResult&&!disposed){
-      // A confirmed original-registry read wins over any passive lookup
-      // started while the recovery state was settling. Cancel that obsolete
-      // observation instead of showing an endless "checking" Save action.
-      ++lookupToken;checking=false;onState();
-      onInstalled(confirmedResult);
-    }
+    if(confirmedResult&&!disposed)onInstalled(confirmedResult);
   }
   async function prepare(){
     if(disposed||preparing||installing||reconciling)return;
