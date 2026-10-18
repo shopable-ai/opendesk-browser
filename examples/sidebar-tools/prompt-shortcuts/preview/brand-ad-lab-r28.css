@@ -200,3 +200,24 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
 .panel-footer #r28SlotS03{display:inline-flex;gap:2px;align-items:center;max-width:55%;min-width:0}
 .panel-footer #r28SlotS03 button{min-width:0;font-size:9px;white-space:normal;padding:3px 5px}
 .panel-footer #r28SlotS03 .r29-footer-dismiss{width:22px;min-width:22px;height:22px;font-size:14px;padding:0}
+
+
+/* R2.10 — inline ad-close controls are siblings, never nested in a button. */
+.r29-solo-card{position:relative;margin:8px 0;min-width:0}
+.r29-solo-card .r28-demo-ad{padding-right:37px;min-height:46px}
+.r29-solo-card .r28-dismiss-card{top:6px;right:6px}
+.r29-anchor-empty{display:block;border:1px dashed var(--line);color:var(--muted);
+  background:var(--surface-soft);font-size:10px;border-radius:7px;padding:7px}
+.r28-panel-slot:has(.r29-anchor-empty){min-height:0}
+.r28-zone[data-r29-narrow-suppressed=true]{max-height:30px;min-height:25px;overflow:hidden}
+.r28-zone[data-r29-narrow-suppressed=true] .r28-selected-art{display:none}
+.r28-zone[data-r29-narrow-suppressed=true] .r29-zone-trigger{min-height:20px}
+.r29-solo-card button:focus-visible,.r29-anchor-empty:focus-visible,.r29-rail-close:focus-visible{
+  outline:3px solid var(--focus);outline-offset:2px
+}
+@media(max-width:700px){
+ .r28-abs[data-r29-narrow-suppressed=true]{width:auto;max-width:24%;padding:3px}
+ .r28-zone[data-spot=C06][data-r29-narrow-suppressed=true]{max-height:30px}
+ .r28-convo-foot{width:100%;max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){.r29-solo-card *{transition:none!important}}
