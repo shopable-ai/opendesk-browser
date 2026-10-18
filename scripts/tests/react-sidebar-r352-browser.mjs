@@ -179,6 +179,12 @@ try{
   await mouseClick('#tab-workflow');
   await eventually('window.__r352.accepted==="workflow"');
   await evaluate('window.__r352.blocked="develop";document.getElementById("tab-workflow").focus()');
+  // A rejected trusted pointer activation must restore focus to the selected
+  // tab instead of leaving a tabIndex=-1 button focused.
+  await mouseClick('#tab-develop');
+  assert.equal(await evaluate('window.__r352.accepted'),'workflow');
+  assert.equal(await evaluate('document.activeElement.id'),'tab-workflow',
+    'Rejected mouse navigation restores roving tab focus');
   await key('ArrowRight','ArrowRight',39);
   assert.equal(await evaluate('window.__r352.accepted'),'workflow');
   assert.equal(await evaluate('document.activeElement.id'),'tab-workflow');
