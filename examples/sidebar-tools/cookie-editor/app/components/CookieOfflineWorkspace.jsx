@@ -21,7 +21,16 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
   const [busy,setBusy]=React.useState(false);
   const [message,setMessage]=React.useState('离线工作区仅在本次打开期间有效；不写入 Chrome，也不持久化。');
   const [dirty,setDirty]=React.useState(false);
+  const [discard,setDiscard]=React.useState(null);
   const mark=value=>{setDirty(value);onDirty(value);};
+  const guarded=action=>{
+    if(dirty){setDiscard({action});return;}
+    action();
+  };
+  const resolveDiscard=accept=>{
+    const proposed=discard;setDiscard(null);
+    if(accept&&proposed?.action){mark(false);proposed.action();}
+  };
   const refreshRows=()=>{
     setRows(redactMetadata(cookies.current).map(row=>({...row,id:key(row)})));
   };
@@ -98,18 +107,18 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       <button type="button" disabled={busy||dirty} onClick={applySite}>应用范围</button>
     </div>
     {site&&<CookieEditorView site={site.hostname} rows={rows} busy={busy}
-      selected={selected} onSelect={id=>{if(dirty)return;setSelected(id);}}
-      onNew={()=>{if(!dirty)setSelected('new');}}
-      onImport={()=>{if(!dirty)setImporting(x=>!x);}}
+      selected={selected} onSelect={id=>guarded(()=>setSelected(id))}
+      onNew={()=>guarded(()=>setSelected('new'))}
+      onImport={()=>guarded(()=>setImporting(x=>!x))}
       onExport={()=>void exportNow('download')}
       onClear={()=>setConfirmClear(true)}
       editor={row=><CookieInlineEditor key={row.id} row={row} target={site}
         disabled={busy} onDirty={mark} onSave={save}
-        onCancel={()=>{setSelected(null);mark(false);}}
+        onCancel={()=>guarded(()=>setSelected(null))}
         onDelete={id=>{cookies.current=cookies.current.filter(x=>key(x)!==id);
           refreshRows();setSelected(null);mark(false);}}/>}/>}
     {site&&selected==='new'&&<CookieInlineEditor key="new" target={site} disabled={busy}
-      onSave={save} onDirty={mark} onCancel={()=>{setSelected(null);mark(false);}}/>}
+      onSave={save} onDirty={mark} onCancel={()=>guarded(()=>setSelected(null))}/>}
     {importing&&<section className="cookie-panel" aria-label="离线导入">
       <h3>导入到离线工作区</h3>
       <label>格式 <select value={format} onChange={e=>{setFormat(e.target.value);
@@ -127,7 +136,9 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
         onInput={()=>{mark(true);importPlan.current=null;setPreview(null);}}/></label>
       {preview&&<p role="status">总计 {preview.total}，可导入 {preview.accepted}，跳过 {preview.skipped}</p>}
       <div className="cookie-editor-actions">
-        <button type="button" onClick={()=>{setImporting(false);importPlan.current=null;mark(false);}}>取消</button>
+        <button type="button" onClick={()=>guarded(()=>{
+          setImporting(false);importPlan.current=null;
+        })}>取消</button>
         <button type="button" onClick={inspect}>预检</button>
         <button type="button" disabled={!preview?.accepted} onClick={applyImport}>导入内存</button>
       </div>
@@ -139,6 +150,13 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       </select></label>
       <button type="button" disabled={busy} onClick={()=>void exportNow('copy')}>复制离线数据</button>
       <button type="button" disabled={busy} onClick={()=>void exportNow('download')}>保存离线文件</button>
+    </div>}
+    {discard&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
+      aria-label="未保存的离线编辑">
+      <p>当前离线 Cookie 或导入内容尚未保存。要放弃这些修改吗？</p>
+      <button type="button" onClick={()=>resolveDiscard(false)}>继续编辑</button>
+      <button type="button" className="danger"
+        onClick={()=>resolveDiscard(true)}>放弃修改</button>
     </div>}
     {confirmClear&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
       aria-label="清空离线工作区"><p>只清空当前临时内存，不影响 Chrome。确定吗？</p>
