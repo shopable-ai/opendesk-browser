@@ -159,7 +159,7 @@ async function saveText(opened,text,id){
   await click(opened.frame,'button[aria-label="保存笔记"]');
   await until(async()=>{
     const value=await evaluate(opened.frame,'({n:document.querySelectorAll(".note-list button").length,'+
-      'status:document.querySelector(".note-status")?.textContent||null})');
+      'status:document.querySelector("#note-status, .note-status")?.textContent||null})');
     return value.n===1&&/已保存/.test(value.status||'')?value:null;
   },'real Host storage acknowledged '+id);
   result.operations.push('REAL_SDK_WRITE_'+id);
