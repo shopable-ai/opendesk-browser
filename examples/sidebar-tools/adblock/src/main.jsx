@@ -1,0 +1,11 @@
+import * as React from 'react';
+import {createRoot} from 'react-dom/client';
+import App from './App.jsx';
+import './layout.css';
+const target=globalThis.OpenDeskTool?.root?.querySelector('#tool-app');
+if(!target)throw Error('E_ADBLOCK_REACT_ROOT');
+const root=createRoot(target);
+root.render(React.createElement(App));
+let released=false;
+const release=()=>{if(!released){released=true;root.unmount();}};
+globalThis.addEventListener('pagehide',release,{once:true});

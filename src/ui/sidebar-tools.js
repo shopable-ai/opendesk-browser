@@ -779,7 +779,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
-    adblockControls?.render(active,readOnlyPreview,enabled,tocSettingsOpen);
+    // React AdBlock owns its complete UI; retire the legacy fixed host view
+    // only for packages opting into the real shared-UI runtime.
+    adblockControls?.render(managed&&id===ADBLOCK_ID&&active.uiRuntime==='opendesk.react-ui.v1'?null:active,
+      readOnlyPreview,enabled,tocSettingsOpen);
     aiPermissions?.render(active,readOnlyPreview,enabled);
     // Only legacy ai.access installations use the separately hosted control card.
     // v2 browser.proxy.managed tools own their visible UI via the audited SDK.
@@ -806,7 +809,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       adblockManagement?'返回 AdBlock 产品':'打开 AdBlock 产品设置':tocText('settingsTitle');
     settingsButton.setAttribute('aria-label',settingsButton.title);
     settingsButton.setAttribute('aria-controls',id===ADBLOCK_ID&&!tocSettingsOpen?
-      'sidebar-tool-adblock-native':'sidebar-tool-settings-view');
+      (active?.uiRuntime==='opendesk.react-ui.v1'?'sidebar-tool-frame':'sidebar-tool-adblock-native'):'sidebar-tool-settings-view');
     backButton.title=tocText('backAction');
     backButton.setAttribute('aria-label',backButton.title);
     if(openTabButton){
@@ -851,7 +854,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
     frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||
-      (managed&&id===ADBLOCK_ID&&adblockControls?.view?.()!=='exceptions');
+      (managed&&id===ADBLOCK_ID&&active?.uiRuntime!=='opendesk.react-ui.v1'&&
+         adblockControls?.view?.()!=='exceptions');
     renderCookieSettings(show);
     fullBookmarkSettings.hidden=!(show&&managed&&isFullBookmarkTool(active));
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
@@ -2735,7 +2739,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(active.id===ADBLOCK_ID&&!tocSettingsOpen){
       // Reuse the real trusted toolbar action adjacent to Uninstall.
       // Product settings cannot trigger a native permission request.
-      adblockControls?.toggleProductSettings?.();
+      if(active.uiRuntime==='opendesk.react-ui.v1'){
+        // A navigation hint only; no DNR privilege or synthetic trusted click.
+        // The tool owns the Settings page and remains inside its opaque iframe.
+        frame?.contentWindow?.postMessage({protocol:'opendesk.adblock.ui.v1',
+          kind:'settings',toolId:ADBLOCK_ID,instance},'*');
+      }else adblockControls?.toggleProductSettings?.();
       return;
     }
     if(active.id===PROMPT_ID){

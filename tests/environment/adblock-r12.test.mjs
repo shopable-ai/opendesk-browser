@@ -239,7 +239,7 @@ test('official optional AdBlock uses one canonical installable project package',
 });
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.1.1');
+  assert.equal(pkg.version,'1.2.0');
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });
@@ -697,16 +697,45 @@ test('durable cleanup uncertainty prevents a new worker from resuming the old en
   assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
   assert.equal(f.stored.get(ADBLOCK_DNR_CLEANUP_STORE),false);
 });
-test('sandbox cannot authorize enable or arbitrary exception mutation',async()=>{
+test('React sandbox proposes operations but cannot mutate DNR without host confirmation',async()=>{
   const f=await fixture();
-  const input={api:f.api,tool:f.tool,operation:'adblock.enable',revocationEpoch:'epoch-1',
-    assertCurrent:()=>{},openSettings:()=>{},requestBrowserClick:()=>{throw Error('should not click');}};
-  await assert.rejects(requestAdblockOperation(input),{code:'E_ADBLOCK_TRUSTED_CLICK'});
-  await assert.rejects(runTrustedAdblockOperation({...input,operation:'adblock.site.set',
-    payload:{host:'news.example.com',filtering:false},event:{isTrusted:false}}),
-  {code:'E_ADBLOCK_TRUSTED_CLICK'});
+  f.api.runtime.sendMessage=async message=>({ok:true,data:await f.service.dispatch(message,sender)});
+  const input={api:f.api,tool:f.tool,operation:'adblock.enable',payload:{},
+    revocationEpoch:'epoch-1',assertCurrent:()=>{}};
+  let review=null;
+  const pending=requestAdblockOperation({...input,requestBrowserClick:async args=>{
+    review=args;return args.run({isTrusted:false});
+  }});
+  await assert.rejects(pending,{code:'E_ADBLOCK_TRUSTED_CLICK'});
+  assert.equal(review.toolId,ADBLOCK_ID);
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST],
+    'sandbox request must not reach native DNR before a trusted click');
+  const result=await requestAdblockOperation({...input,
+    requestBrowserClick:args=>args.run({isTrusted:true})});
+  assert.equal(result.enabled,true);assert.equal(result.rules.verified,true);
+  assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST,ADBLOCK_RULE_FIRST]);
+  await assert.rejects(runTrustedAdblockOperation({...input,
+    operation:'adblock.site.set',payload:{host:'news.example.com',filtering:false},
+    event:{isTrusted:false}}),{code:'E_ADBLOCK_TRUSTED_CLICK'});
 });
-test('trusted native click enables required-permission filtering without an optional prompt',async()=>{
+test('trusted AdBlock approval expires when the active website changes',async()=>{
+  const f=await fixture();
+  f.api.runtime.sendMessage=async message=>({ok:true,data:await f.service.dispatch(message,sender)});
+  await f.service.dispatch(f.message('adblock.enable'),sender);
+  const before=f.actions.length;
+  await assert.rejects(requestAdblockOperation({
+    api:f.api,tool:f.tool,operation:'adblock.site.set',
+    payload:{host:'news.example.com',filtering:false},
+    revocationEpoch:'epoch-1',assertCurrent:()=>{},
+    requestBrowserClick:args=>{
+      f.setCurrent('https://other.example/article');
+      return args.run({isTrusted:true});
+    }
+  }),{code:'E_ADBLOCK_STATE_CHANGED'});
+  assert.deepEqual(f.stored.get(ADBLOCK_STORE).exceptions,[]);
+  assert.equal(f.actions.length,before,'stale approval must not mutate DNR');
+});
+test.skip('R1.1 legacy fixed native view (superseded by installable React UI)',async()=>{
   class Node{
     constructor(){this.children=[];this.listeners={};this.hidden=false;this.disabled=false;
       this.attributes={};this.textContent='';}
