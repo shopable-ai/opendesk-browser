@@ -633,44 +633,39 @@ export function createScriptEditor({client, currentPageTarget, development=false
       display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；${host.currentRun?'当前任务继续使用启动时的版本':'保存不会运行脚本'}`);
     }finally{if(esm||classic){browserPreparing=false;editingBusy=false;update();}}
   }
-  async function load() {
-    const id = scriptId(), revisionText = find('script-revision').value.trim(), source = programSource.source();
-    const row = await host.controller.getControllerScript({scriptId:id,
-      ...(revisionText ? {revision:Number(revisionText)} : {})});
+  // Formal Controller versions share one guarded reader. The temporary
+  // editor remains the draft; fetching a revision never executes that source.
+  async function loadControllerVersion(fromList=false){
+    const id=fromList?scriptList.value:scriptId(),activeId=scriptId(),
+      revisionText=find('script-revision').value.trim(),source=programSource.source(),
+      selectedHead=revisions.get(id);
+    if(fromList&&!id)throw {code:'E_REVISION',message:'请选择已保存脚本'};
+    const row=await host.controller.getControllerScript({scriptId:id,
+      ...(!fromList&&revisionText?{revision:Number(revisionText)}:{})});
     const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8)||
       await verifiedControllerClassicAuthorSource(row.sourceUtf8);
-    if (disposed) return;
-    if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
-      throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    // A saved Controller revision selects its execution world as well as its bytes.
-    componentDrafts[componentMode]=source;
-    loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
-    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);javascriptDrafts.controller=programSource.source(); scheduleControllerClassicWarm(); remember(row, {
-      head: !revisionText || revisions.get(id) === row.revision,
-      authorSourceUtf8:recorded ? null : row.sourceUtf8});
-    componentRemote.refresh();
-    dependencyResolver.refresh();
-    display('loaded', `已加载持久版本 r${row.revision}`);
-  }
-  async function loadLatestFromList() {
-    const id = scriptList.value, activeId = scriptId(), revisionText = find('script-revision').value.trim(), source = programSource.source();
-    if (!id) throw {code:'E_REVISION',message:'请选择已保存脚本'};
-    const selectedHead = revisions.get(id);
-    const row = await host.controller.getControllerScript({scriptId:id});
-    const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8)||
-      await verifiedControllerClassicAuthorSource(row.sourceUtf8);
-    if (disposed) return;
-    if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
+    if(disposed)return;
+    if(scriptId()!==activeId||(fromList?scriptList.value!==id:scriptId()!==id)||
+      find('script-revision').value.trim()!==revisionText||programSource.source()!==source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     componentDrafts[componentMode]=source;
-    loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
-    find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);javascriptDrafts.controller=programSource.source(); scheduleControllerClassicWarm();
-    dependencyResolver.refresh();
-    remember(row,{authorSourceUtf8:recorded ? null : row.sourceUtf8});
-    componentRemote.refresh();
-    if (selectedHead !== row.revision) await refreshScripts({silent: true});
-    display('loaded', `已加载 ${id} 最新 r${row.revision}`);
+    if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=source;
+    // The saved Controller revision selects the execution world, but not
+    // ownership of the user's prior Page/JSX/Vue authoring buffers.
+    loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';
+    syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
+    if(fromList)find('script-id').value=id;
+    programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);
+    javascriptDrafts.controller=programSource.source();
+    scheduleControllerClassicWarm();
+    remember(row,{head:fromList||!revisionText||revisions.get(id)===row.revision,
+      authorSourceUtf8:recorded?null:row.sourceUtf8});
+    dependencyResolver.refresh();componentRemote.refresh();
+    if(fromList&&selectedHead!==row.revision)await refreshScripts({silent:true});
+    display('loaded',fromList?`已加载 ${id} 最新 r${row.revision}`:`已加载持久版本 r${row.revision}`);
   }
+  const load=()=>loadControllerVersion();
+  const loadLatestFromList=()=>loadControllerVersion(true);
   async function remove() {
     const id = scriptId(), expectedRevision = revisions.get(id);
     if (!expectedRevision) throw {code:'E_REVISION',message:'请先加载最新持久版本'};
