@@ -72,6 +72,18 @@ let trustedHistoryWorkbench=null,historyClosed=false;
 window.addEventListener('pagehide',()=>{historyClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
 let debugWorkbench=null;
+let extensionList=null,reactNavigationRequest=null,pendingReactTab='tasks';
+const reactNavigation=Object.freeze({
+  connect(handler){
+    if(reactNavigationRequest||typeof handler!=='function')
+      throw new Error('E_REACT_NAVIGATION_ACTION_OWNER');
+    reactNavigationRequest=handler;
+  },
+  select(view){
+    pendingReactTab=view;
+    extensionList?.renderNavigation(view);
+  }
+});
 // The full-size tool/catalog page must never overwrite the Side Panel's last tab.
 const tabMemory=createSidebarTabMemory({
   storage:chrome.storage.local,
@@ -85,8 +97,8 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
-  onTabSelected:(view,options)=>tabMemory.record(view,options)});
-let extensionList=null;
+  onTabSelected:(view,options)=>tabMemory.record(view,options),
+  reactNavigation});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,
   // Explicit developer-only, non-release opt-in. All other opens use the
   // unchanged opaque sandbox; mounting uses the already-owned React root.
@@ -101,7 +113,9 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
 // Commit the React page before moving the pre-existing trusted installer
 // into the reserved imperative slot. No second installer or permission owner.
-extensionList=mountExtensionList(document);
+extensionList=mountExtensionList(document,{debugEnabled,
+  onNavigate:view=>reactNavigationRequest?.(view)??false});
+extensionList.renderNavigation(pendingReactTab);
 const importHost=document.getElementById('extension-center-import-host');
 const originalImport=document.getElementById('sidebar-tool-import');
 if(importHost&&originalImport)importHost.append(originalImport);
