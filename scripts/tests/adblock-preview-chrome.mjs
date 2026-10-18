@@ -289,6 +289,61 @@ try{
         'global-disable-enable','site-exception','settings-back',
         'opaque-sandbox','offline-no-network','forged-review-ignored']});
   }
+  // Browser-delivered external state change during an unconfirmed write.
+  // The 8+ second wait is deliberate: a stale request must not target the
+  // newly active site, even when the old preview confirmation remains open.
+  {
+    const {ctx}=await open('success');
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
+      'navigation race ready');
+    await clickReact(SITE,ctx);
+    await poll(async()=>(await parent()).dialog,'delayed site confirmation');
+    await delay(8200);
+    await evaluate('('+function(){
+      document.getElementById('opendesk-preview-frame').contentWindow.postMessage({
+        type:'opendesk.preview.adblock.state',enabled:true,granted:true,
+        exceptions:['news.example.com'],currentHost:'video.example.com'
+      },'*');
+    }.toString()+')()');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>{
+      const view=await child(ctx);
+      return view.text.includes('video.example.com')&&
+        selected(view,'当前网站广告过滤').selected===true&&
+        /已停用的网站\s*1/.test(view.nav);
+    },'old page write must not cross into new site');
+    const switched=await child(ctx);
+    assert.equal(switched.noticeError,'false','re-read current Chrome-like state, never fake old approval');
+    assert.match(switched.text,/video\.example\.com/);
+    offlineSafety();
+    report.push({scenario:'delayed-page-switch',checks:[
+      '8-second-pending-confirmation','old-site-write-rejected',
+      'new-site-readback','no-replayed-write','offline-not-DNR']});
+  }
+  {
+    const {ctx}=await open('success');
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
+      'permission race ready');
+    await clickReact(SITE,ctx);
+    await poll(async()=>(await parent()).dialog,'permission-revocation confirmation');
+    await evaluate('('+function(){
+      document.getElementById('opendesk-preview-frame').contentWindow.postMessage({
+        type:'opendesk.preview.adblock.state',enabled:true,granted:false,
+        exceptions:['news.example.com']
+      },'*');
+    }.toString()+')()');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>{
+      const view=await child(ctx);
+      return view.status.includes('过滤权限不可用')&&
+        selected(view,'当前网站广告过滤').disabled===true;
+    },'revoked permission cannot complete pending write');
+    assert.match((await child(ctx)).nav,/已停用的网站\s*1/);
+    offlineSafety();
+    report.push({scenario:'revoked-during-confirmation',checks:[
+      'permission-rechecked-on-accept','no-write-after-revocation',
+      'readback-disables-controls','offline-not-DNR']});
+  }
   for(const width of [320,360,400,440])for(const theme of ['light','dark']){
     const {ctx,built}=await open('success',width,theme);
     await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
