@@ -183,7 +183,19 @@
     }
     if(id==='expand-card')sample.append(make('span','r29-sample-extra','↗'));
     if(id==='hover-card')sample.append(make('span','r29-sample-extra','⌁'));
-    if(id==='directory')sample.append(make('span','r29-sample-extra','☷'));
+    if(id==='directory'){
+      const picks=make('span','r29-directory-lines');
+      picks.append(make('i'),make('i'),make('i'));sample.append(picks);
+    }
+    if(id==='brand-hover'||id==='hover-card'){
+      sample.append(make('span','r29-sample-pop',id==='brand-hover'?'OpenDesk · '+T('demo'):T('sponsor')+' · '+T('demo')));
+    }
+    if(id==='brand-attribution')sample.append(make('small','r29-byline','by OpenDesk'));
+    if(id==='icon-text')sample.append(make('small','r29-sponsored-chip',T('sponsor')));
+    if(id==='self')sample.append(make('small','r29-official-chip','OD'));
+    if(id==='event')sample.append(make('small','r29-event-chip',T('demo')));
+    if(id==='affiliate')sample.append(make('small','r29-disclaimer-chip','No links'));
+    if(id==='recruit')sample.append(make('small','r29-recruit-chip',T('demo')));
     return sample;
   }
   function buildGallery(){
@@ -200,7 +212,13 @@
         const methods=make('span','r29-format-methods',localizedField(spec,'narrow')+' · '+localizedField(spec,'action'));
         const risk=make('span','r29-format-risk',T('risk')+': '+localizedField(spec,'risk'));
         b.append(hint,methods,risk);
-        b.addEventListener('click',()=>{lab.state.active=true;lab.state.layout=spec.id;lab.state.preset='';bridge.state.format='logo';bridge.state.placement='A1';bridge.render();});
+        b.addEventListener('click',()=>{
+          lab.state.active=true;lab.state.layout=spec.id;lab.state.preset='';
+          bridge.state.format='logo';bridge.state.placement='A1';bridge.render();
+          // Touch cannot hover: detail formats open a real accessible modal on click.
+          if(spec.id==='hover-card'||spec.id==='expand-card')lab.openDialog('sponsor');
+          if(spec.id==='brand-hover')lab.openDialog('brand');
+        });
         group.append(b);
       }
       section.append(group);root.append(section);
@@ -217,7 +235,16 @@
         const button=make('button','r29-placement');button.type='button';button.dataset.place=m.id;
         button.append(make('b','',m.id),make('span','',m.names[i()]));
         if(m.simulatedOnly)button.append(make('small','',T('only')));
-        button.addEventListener('click',()=>lab.choose(m.id));
+        button.title=m.anchor;
+        button.addEventListener('click',()=>{
+          lab.choose(m.id);
+          const selector=m.anchor.split(' → ')[0];
+          let target=document.querySelector(selector);
+          if(!target||!target.getClientRects().length){
+            target=$(m.group==='S'?'sidePanel':m.group==='B'?'rail':'r28Page');
+          }
+          target?.scrollIntoView({behavior:'auto',block:'center',inline:'nearest'});
+        });
         group.append(button);
       }
       section.append(group);root.append(section);
@@ -236,6 +263,7 @@
     const narrowText=m.narrow==='restricted'?T('narrowBlock'):localizedField(format,'narrow');
     description.append(
       metric(T('anchor'),m.anchor),
+      metric(m.id+' · '+T('demo'),m.simulatedOnly?T('only'):m.brand?T('no'):s.sold===0&&s.mode==='user'?T('recruit')+' · '+T('no'):T('yes')),
       metric(T('suitable'),m.formats.map(fmtName).join(' · ')),
       metric(T('fit'),fmtName(s.layout)+' — '+T(supported?'good':'bad')),
       metric(T('ideal'),format.ideal),
