@@ -267,13 +267,13 @@
     const groupView=view==='edit'?'S04':view==='empty'?'S06':view==='settings'?'S07':'S02';
     const showCards=state.sold>0||state.mode==='sales';
     if(view==='list'){
-      const holder=state.id==='S01'?slots.S01:slots.S02;
+      const holder=state.id==='S01'?slots.S01:state.id==='S08'?slots.S08:slots.S02;
       if(showCards) {
         const row=make('div','r28-card-row');row.append(make('strong','',T('sold')+' '+state.sold+'/3'));
         const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{for(let i=0;i<3;i++)state.closedCards.add(i);sync();$('r28Restore').focus();});
         row.append(close);holder.append(row);
         const list=make('div','r28-inventory');list.dataset.layout=state.layout==='mini'?'mini':state.layout==='hero'?'hero':'standard';
-        const max=state.id==='S01' ? 1:3;
+        const max=['S01','S08'].includes(state.id)?1:3;
         for(let i=0;i<max;i++){
           if(i>=state.sold&&state.mode==='user')continue;
           if(state.closedCards.has(i))continue;
@@ -294,7 +294,18 @@
       if(!state.closedCards.has(0))holder.append(adCard(0,state.sold===0,true));
     }
     if(state.id==='S03'||(state.group==='S'&&state.boundaries)){
-      const button=make('button','', 'S03 · '+T('partner'));button.type='button';button.addEventListener('click',()=>choose('S03'));slots.S03.append(button);
+      const selected=state.id==='S03';
+      const canAd=selected&&showCards&&!state.closedCards.has('S03');
+      const button=make('button','',canAd?'S03 · '+T('partner'):'S03 · '+name('S03'));
+      button.type='button';button.setAttribute('aria-label','S03 · '+name('S03'));
+      button.addEventListener('click',()=>canAd?openDialog('sponsor'):choose('S03'));
+      slots.S03.append(button);
+      if(canAd){
+        const close=make('button','r29-footer-dismiss','×');close.type='button';
+        close.setAttribute('aria-label',T('dismiss')+' · S03');
+        close.addEventListener('click',()=>{state.closedCards.add('S03');sync();$('r28Restore').focus();});
+        slots.S03.append(close);
+      }
     }
     for(const id of ['S01','S02','S03','S04','S05','S06','S07','S08']){
       if(state.id===id&&slots[id])slots[id].dataset.r28Current='true';
