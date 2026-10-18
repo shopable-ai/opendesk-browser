@@ -10,6 +10,7 @@ import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey,validateSidebarToolPackage,
   serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,sidebarToolEnabled} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 const extension=resolve(process.env.OPENDESK_SHARED_UI_EXTENSION_DIR||'dist/development');
 const paths=[
@@ -33,7 +34,8 @@ async function waitForChromeExit(child){
 let processChrome,profile,socket,sequence=0,launchError,host,extensionId;
 const outstanding=new Map(),attached=new Map(),browserErrors=[],networkFailures=[],browserLog=[];
 const result={scope:'REAL_OPEN_DESK_EXTENSION_HOST_CHROME_CATALOG',macNativeSidePanel:'NOT_TESTED',
-  simulatedSDK:false,isolatedProfile:true,status:'RUNNING',packages:[],operations:[],dataIsolation:'NOT_TESTED'};
+  simulatedSDK:false,isolatedProfile:true,status:'RUNNING',packages:[],operations:[],
+  dataIsolation:'NOT_TESTED',upgrade:'NOT_TESTED'};
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 function call(method,params={},sessionId=null){
@@ -177,6 +179,7 @@ async function saveText(opened,text,id){
       'status:document.querySelector("#note-status, .note-status")?.textContent||null})');
     return value.n===1&&/已保存/.test(value.status||'')?value:null;
   },'real Host storage acknowledged '+id);
+  assert.deepEqual(await storedTexts(id),[text],'Host readback must match entered note');
   result.operations.push('REAL_SDK_WRITE_'+id);
 }
 async function closeTool(){
@@ -190,6 +193,80 @@ async function storageDigest(id){
     JSON.stringify(key)+']??null)');
   assert.ok(state,'persistent data namespace must exist for '+id);
   return hash(Buffer.from(JSON.stringify(state)));
+}
+
+async function storedTexts(id){
+  const key=sidebarToolStorageKey(id);
+  return evaluate(host,'chrome.storage.local.get('+JSON.stringify(key)+').then(x=>'+
+    'x['+JSON.stringify(key)+']?.notes?.map(n=>n.text)??null)');
+}
+async function enabledFromHost(id){
+  const value=await evaluate(host,'chrome.storage.local.get('+JSON.stringify(SIDEBAR_TOOL_ENABLE_STORE)+
+    ').then(x=>x['+JSON.stringify(SIDEBAR_TOOL_ENABLE_STORE)+'])');
+  return sidebarToolEnabled(value,id);
+}
+async function manageReact(action){
+  await click(host,'#extension-center-list button[data-extension-key="app:quick-notes-react"]'+
+    '[data-extension-action="more"]');
+  await until(()=>evaluate(host,'(()=>{const menu=document.querySelector("#extension-center-row-menu");'+
+    'return menu&&!menu.hidden&&!!menu.querySelector('+
+    JSON.stringify('[data-ec-context-action="'+action+'"]')+')})()'),'real React manager '+action);
+  await click(host,'#extension-center-row-menu button[data-ec-context-action="'+action+'"]');
+}
+async function editReact(){
+  const opened=await openTool('quick-notes-react');
+  const content='React 已修改的独立数据';
+  await evaluate(opened.frame,'(()=>{const e=document.querySelector("#note-text");'+
+    'e.focus();e.select();return e.value})()');
+  await call('Input.insertText',{text:content},opened.frame);
+  await until(()=>evaluate(opened.frame,
+    'document.querySelector("#note-text")?.value==='+JSON.stringify(content)),'real React edit');
+  await click(opened.frame,'button[aria-label="保存笔记"]');
+  await until(async()=>{
+    const values=await storedTexts('quick-notes-react');
+    return values?.length===1&&values[0]===content;
+  },'React edited Host storage');
+  await closeTool();
+  result.operations.push('REAL_SDK_EDIT_REACT');
+}
+async function deleteReact(){
+  const opened=await openTool('quick-notes-react');
+  await click(opened.frame,'button[aria-label="删除当前笔记"]');
+  await until(()=>evaluate(opened.frame,'!!document.querySelector("#note-confirm-message")'),
+    'React delete confirmation');
+  await click(opened.frame,'.note-confirm .confirm-actions button:last-child');
+  await until(async()=>{
+    const values=await storedTexts('quick-notes-react');
+    const ui=await evaluate(opened.frame,'(()=>({count:document.querySelectorAll(".note-list button").length,'+
+      'text:document.querySelector("#note-text")?.value}))()');
+    return values?.length===0&&ui.count===0&&ui.text==='';
+  },'React delete acknowledged by Host and UI');
+  await closeTool();
+  result.operations.push('REAL_SDK_DELETE_REACT');
+}
+async function toggleReact(enabled){
+  await manageReact('toggle');
+  await until(async()=>await enabledFromHost('quick-notes-react')===enabled,
+    enabled?'React re-enabled by real Host':'React disabled by real Host');
+  assert.ok(await persistedPackage('quick-notes-react'),'toggle must not uninstall the package');
+  result.operations.push(enabled?'REAL_HOST_REENABLE_REACT':'REAL_HOST_DISABLE_REACT');
+}
+async function uninstallReact(){
+  await manageReact('settings');
+  await until(()=>evaluate(host,'!document.querySelector("#sidebar-tool-display")?.hidden'),
+    'React settings visible');
+  await click(host,'#sidebar-tool-remove');
+  await until(()=>evaluate(host,'!document.querySelector("#sidebar-tool-inline-remove")?.hidden'),
+    'real uninstall confirmation');
+  await click(host,'#sidebar-tool-inline-remove-confirm');
+  const key=sidebarToolStorageKey('quick-notes-react');
+  await until(async()=>{
+    const pkg=await persistedPackage('quick-notes-react');
+    const data=await evaluate(host,'chrome.storage.local.get('+JSON.stringify(key)+
+      ').then(x=>x['+JSON.stringify(key)+']??null)');
+    return !pkg&&data===null;
+  },'Host uninstall and per-ID storage cleanup');
+  result.operations.push('REAL_HOST_UNINSTALL_REACT');
 }
 async function reopenVerify(id,text){
   const opened=await openTool(id);
@@ -264,6 +341,16 @@ try{
   assert.equal(reactFinally,reactDigest);
   result.dataIsolation='PASS';
   result.operations.push('REAL_SDK_ISOLATION','BOTH_INDEPENDENTLY_INSTALLED');
+  await editReact();
+  assert.equal(await storageDigest('quick-notes'),nativeDigest,'React edit must preserve native data');
+  await deleteReact();
+  assert.equal(await storageDigest('quick-notes'),nativeDigest,'React delete must preserve native data');
+  await toggleReact(false);
+  await toggleReact(true);
+  await uninstallReact();
+  assert.equal(await storageDigest('quick-notes'),nativeDigest,'React uninstall must preserve native data');
+  assert.ok(await persistedPackage('quick-notes'),'native package must remain installed');
+  result.operations.push('NATIVE_PACKAGE_AND_DATA_UNCHANGED');
   assert.deepEqual(browserErrors,[],'No uncaught runtime errors from observed extension targets');
   assert.deepEqual(networkFailures,[],'No failed observed extension resources');
   result.status='PASS';
