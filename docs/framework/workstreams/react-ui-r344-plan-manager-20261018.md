@@ -7,7 +7,7 @@
 让现有正式 React Side Panel 的计划详情、规则编辑、删除、运行历史及任务管理成为完整可操作的真实业务链。底层 Chrome Alarm、Task Registry、Host RPC、Developer 导入及 React Root 均复用原实现，不增第二套执行器或业务 UI。
 
 本次只写入：
-- `tests/framework/scheduled-tasks-r1-native-mac.test.mjs`（三次最小原生用户流程修复/扩展）；
+- `tests/framework/scheduled-tasks-r1-native-mac.test.mjs`（四次最小原生用户流程修复/扩展）；
 - 本工作记录。
 
 公共 API、权限、持久化 schema、React 正式 JSX、HTML、CSS 和打包器未改动。现有 `docs/framework/workstreams/react-ui-r343-installable-scheduler-20261018.md` 和历史证据保持原样。无本机共享 Git 索引、Chrome profile 或构建输出资源占用；通过 GitHub main 文件 Blob SHA 比对写入，保护并行提交，不创建新分支、Worktree 或 PR。
@@ -16,7 +16,8 @@
 
 1. [`bf373d63a36a65d4000ae61041f82ba9a00453db`](https://github.com/shopable-ai/opendesk-browser/commit/bf373d63a36a65d4000ae61041f82ba9a00453db)：R3 macOS 真机流程仍寻找已移除的 `#schedule-timezone-edit/search/done`；正式界面已使用 `#schedule-timezone` 原生 IANA 下拉框。测试改为真实 Chrome/AppKit 下拉选择并断言实际值，不恢复旧按钮。R3 [39131831026](https://github.com/shopable-ai/opendesk-browser/actions/runs/39131831026) 确认每日和每周修改保存成功，但随后暴露第二个测试可见性故障。
 2. [`88f66d0e1446f9e1290c4225d884037947c82c78`](https://github.com/shopable-ai/opendesk-browser/commit/88f66d0e1446f9e1290c4225d884037947c82c78)：原生点击测试在保存后、卡片再次可见前调用 CDP 布局接口，出现 `Node does not have a layout object`。仅在鼠标手势之前等待实际按钮可见，并用当前 React 的 `data-schedule-action="edit"` 定位；无 DOM 写值、合成点击或重复未知操作。
-3. [`87da1007700bddc917bac00043da9b75bbb83b80`](https://github.com/shopable-ai/opendesk-browser/commit/87da1007700bddc917bac00043da9b75bbb83b80)：在现有 R3 真实 Chrome 产品流程末尾补充任务管理搜索、已启用/停用筛选、固定源码真实复制到 Developer、返回计划列表及身份/计划不变断言。其 [R3 流程 39132972937](https://github.com/shopable-ai/opendesk-browser/actions/runs/39132972937) 提交时尚未得到结果，不能把新增部分报作通过。
+3. [`87da1007700bddc917bac00043da9b75bbb83b80`](https://github.com/shopable-ai/opendesk-browser/commit/87da1007700bddc917bac00043da9b75bbb83b80)：在现有 R3 真实 Chrome 产品流程末尾补充搜索、已启用/停用筛选、固定源码复制到 Developer、返回计划及持久化不变断言。[39132972937](https://github.com/shopable-ai/opendesk-browser/actions/runs/39132972937) 已在真实 Chrome 通过前三段动作，最后断言返回了 DOM 节点导致 DevTools 序列化报 `Object reference chain is too long`，并非业务回退。
+4. [`97854bf5c7d421fdd43ff9842703dc39ba61d331`](https://github.com/shopable-ai/opendesk-browser/commit/97854bf5c7d421fdd43ff9842703dc39ba61d331)：将最后一步的 DevTools 读回改为布尔值，保留原始真实鼠标与 Host 查询。[R3 39133752231](https://github.com/shopable-ai/opendesk-browser/actions/runs/39133752231) 结果待核对；仅此结果 PASS 后才可标记完整真实任务管理闭环。
 
 **没有发现需要更改的调度引擎或 React 产品实现缺陷；前两项是原生测试与已交付界面不同步和点击前可见性时序。**
 
@@ -29,8 +30,8 @@
 
 ## 尚未宣称通过的范围
 
-1. 新增的“任务管理搜索/筛选/复制到 Developer/返回”连续原生用例：上述 39132972937 完成后逐项更新真实状态；R2 的启停/卸载 PASS 不代替复制操作。
-2. `prototypes/sidebar/react-preview/index.html` 是通过 `scripts/preview/build-sidebar-six-react-preview.mjs` 从正式 DOM/React/CSS 生成的忽略文件，不在 main 源码树中。本轮未持有原始 HTML 字节，故 `HTML_SHA256=NOT_VERIFIED`；旧 CI 来源输入 hash 不能冒充 HTML 输出 SHA256。官方预览 CI [39126984802](https://github.com/shopable-ai/opendesk-browser/actions/runs/39126984802) 仅为 `SOURCE_BOUND_PREVIEW`，不是 Host RPC 验收。本次起点至三个改动均未修改其业务输入。
+1. 新增的“任务管理搜索/筛选/复制到 Developer/返回”连续原生用例：39132972937 已执行前三段动作，最后出现测试读回 DOM 对象的 CDP 序列化故障，修正后 R3 39133752231 待完成；R2 的启停/卸载 PASS 不代替复制操作。
+2. `prototypes/sidebar/react-preview/index.html` 已由并行工作提交至 main；实读 Git Blob `65b50480b8e4119e41ce91bdc006a6edf0c119ca`，**真实 HTML UTF-8 字节 SHA-256 `d891c95262ca397cc489c30a154e5e468becbeb1295db5887b3de194ab0eed2f`，651430 字节**；其中输入来源标记 `b7c2fe36c93865662e65fef1f3c407c991ad86f5f5d798fde929f3c14145b385` 为另一字段，不能冒充 HTML 输出哈希。该文件是来源约束的离线 UI，官方预览 CI [39126984802](https://github.com/shopable-ai/opendesk-browser/actions/runs/39126984802) 不能证明 Host RPC。最新输入 SHA 与脚本重新生成的一致性仍需执行 `--check`，不以仅存在文件代替同源检查。
 3. 无法访问用户的 `/Users/shopme/Documents/workspace/opendesk-browser`、日常 `npm run dev` watcher、Mac Chrome 安装/升级 profile：`LOCAL_MAC_NOT_TESTED`。本轮未在用户本机运行 `npm run check`、`npm run build:dev`、`npm run verify`，不能凭 CI 子范围代替。
 4. 无完整本机验收、输出 HTML 哈希及新增经理操作验收之前，整体“95+ 最终产品交付”不得宣称 PASS；逐维评分只以实际可追溯证据为基础。
 
