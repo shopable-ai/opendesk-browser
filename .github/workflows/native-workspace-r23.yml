@@ -1,0 +1,52 @@
+name: Native Workspace R23 localization and existing safety
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/native-workspace-r23.yml'
+      - 'src/i18n/**'
+      - 'src/native-agent/workspace.*'
+      - 'src/native-agent/settings.*'
+      - 'src/native-agent/workspace-chat-edit-ui.js'
+      - 'tests/environment/workspace-i18n-r23.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-workspace-r23-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  locale-and-native-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Four catalogs, locale selection and native file authorization regressions
+        run: |
+          node --test tests/environment/workspace-i18n-r23.test.mjs \
+            tests/environment/workspace-integration.test.mjs \
+            tests/environment/workspace-chat-edit.test.mjs \
+            tests/environment/workspace-file-tree.test.mjs \
+            tests/environment/workspace-chat-request.test.mjs
+      - name: Compile official Workspace Tailwind CSS with native tokens
+        run: node --input-type=module -e "import {compileWorkspaceStyle} from './scripts/build-workspace-style.mjs'; console.log(await compileWorkspaceStyle(process.env.RUNNER_TEMP));"
+  package-and-static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
+      - run: npm run build
+      - run: npm run build:dev
+      - name: Real package verification (not a substitute for Mac Native E2E)
+        run: npm run verify
