@@ -504,6 +504,7 @@ for(const targetAvailable of [true,false])for(const slotAvailable of [true,false
     await f.save();
     assert.equal(f.find('local-install-review').hidden,false);
     assert.match(f.find('local-install-warning').textContent,/文件工作区不能直接运行或安装/);
+    assert.match(f.find('local-install-status').textContent,/未安装.*文件工作区/);
     assert.equal(f.find('local-install-confirm').disabled,true);
     f.find('local-project-params').value='invalid JSON';
     await f.click(false);assert.deepEqual(f.opened,[]);
