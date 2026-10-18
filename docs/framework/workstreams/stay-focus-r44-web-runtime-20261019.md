@@ -13,3 +13,9 @@
 - 修正 SidePanel/Sandbox 桥对于 `focus.*` 写入超时误标 `E_TOOL_TIMEOUT` 的问题，改为 `E_OUTCOME_UNKNOWN`，提示先读取真实 Host/DNR 状态，不盲目重复写入。
 - 修正应用自有可信 Host 写入后 sender 已退役、与 worker 消息失联时的结果未知分类；只读 status 出错单独标注，不假称授权失败。
 - 新增有真实包、安装代际、可信 Host mock driver 的定向消费测试。真实 Chrome 网络断开/原生 DNR 的测试仍待 CI。
+
+## 公共安装身份与权限栅栏
+
+- 新增 `src/platform/host/managed-site-authority.js`，只读取已有 Sidebar Tool Registry、enabled、revocation epochs，并对单个已安装工具做严格能力、包哈希及安装代际校验；完全没有新建 Registry/Host/Storage。
+- Stay Focus 真实 `service.js` 的 `authority()` 与可信 mutation dispatch 已改为上述共享入口，仍使用应用自有 `focusPackageHash`、`focus.control` 和原始 `FOCUS_STORE`。真实 Origin/Host 文档检查依旧由现有 `hostDocument` 执行。
+- 单独覆盖损坏/重复/撤权/禁用/旧包哈希/旧 epoch 的拒绝测试。本节属于固定可信后台基础设施，尚未注册成对沙箱开放的公共 SDK 新方法。

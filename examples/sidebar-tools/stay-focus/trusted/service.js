@@ -1,7 +1,9 @@
 // Trusted MV3 worker service. No sandbox may call Chrome DNR, idle or tabs.
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
+import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {readManagedSiteToolAuthority,assertManagedSiteToolLease}
+  from '../../../../src/platform/host/managed-site-authority.js';
 import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
@@ -41,14 +43,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return session;
   }
   async function authority(){
-    const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,
-      TOOL_REVOCATION_EPOCHS_STORE,FOCUS_STORE]);
-    const rows=saved[SIDEBAR_TOOL_STORE],matches=Array.isArray(rows)?rows.filter(row=>row?.id===FOCUS_ID):[];
-    let tool=null;
-    if(matches.length===1){try{tool=validateSidebarToolPackage(matches[0]);}catch{}}
-    if(!tool?.capabilities.includes(FOCUS_CAPABILITY))tool=null;
-    return {tool,saved,enabled:sidebarToolEnabled(saved[SIDEBAR_TOOL_ENABLE_STORE],FOCUS_ID),
-      epoch:saved[TOOL_REVOCATION_EPOCHS_STORE]?.[FOCUS_ID]??null};
+    return readManagedSiteToolAuthority(api,{toolId:FOCUS_ID,capability:FOCUS_CAPABILITY,
+      extraStoreKeys:[FOCUS_STORE]});
   }
   async function hostDocument(sender,expectedDocumentId=sender?.documentId){
     if(!isSidebarToolHostSender(api,sender,FOCUS_ID)||sender.tab?.incognito||
@@ -359,9 +355,10 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       throw focusError('Stay Focus 请求格式无效','E_FOCUS_REQUEST');
     const documentId=await hostDocument(sender);
     return lock(async()=>{
-      const auth=await authority();
-      if(!auth.tool||!auth.enabled||await focusPackageHash(auth.tool)!==message.packageHash||
-         auth.epoch!==(message.installEpoch??null))throw focusError('工具已经更新、撤权、停用或卸载','E_TOOL_CHANGED');
+      const auth=await assertManagedSiteToolLease(api,{
+        toolId:FOCUS_ID,capability:FOCUS_CAPABILITY,packageHash:message.packageHash,
+        installEpoch:message.installEpoch,hashPackage:focusPackageHash,extraStoreKeys:[FOCUS_STORE]
+      });
       await hostDocument(sender,documentId);
       const result=await reconcileLocked({operation:message.operation,payload:message.payload,auth,
         validateHost:()=>hostDocument(sender,documentId)});
