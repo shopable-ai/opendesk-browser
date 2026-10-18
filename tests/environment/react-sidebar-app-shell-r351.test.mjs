@@ -59,7 +59,8 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
 test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',async t=>{
   const vite=await createServer({
     configFile:false,root:process.cwd(),appType:'custom',
-    server:{middlewareMode:true},logLevel:'error'
+    server:{middlewareMode:true},logLevel:'error',
+    optimizeDeps:{noDiscovery:true,entries:[]}
   });
   t.after(()=>vite.close());
   const {SidebarAppShell}=await vite.ssrLoadModule('/src/ui/react/app-shell.tsx');
@@ -77,7 +78,7 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   }
   assert.equal($('#tab-tools').attr('aria-selected'),'true');
   assert.equal($('#tab-tools').attr('tabindex'),'0');
-  assert.equal($('#tab-debug').attr('hidden'),'');
+  assert.equal($('#tab-debug').is('[hidden]'),true);
   assert.equal($('#workspace-content').length,1);
   assert.equal($('#workbench-tools').length,1);
   assert.equal($('#workbench-tools').attr('hidden'),undefined);
@@ -97,8 +98,8 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
     scaffold,activeTab:'tasks',debugEnabled:true
   }));
   const $tasks=load(tasks);
-  assert.equal($tasks('#workbench-tools').attr('hidden'),'');
-  assert.equal($tasks('#workbench-cloud').attr('hidden'),'');
+  assert.equal($tasks('#workbench-tools').is('[hidden]'),true);
+  assert.equal($tasks('#workbench-cloud').is('[hidden]'),true);
   assert.equal($tasks('#tab-debug').attr('hidden'),undefined);
   assert.equal($tasks('#tab-my-tasks').attr('aria-selected'),'true');
 });
@@ -106,7 +107,8 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
 test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY)',async t=>{
   const vite=await createServer({
     configFile:false,root:process.cwd(),appType:'custom',
-    server:{middlewareMode:true},logLevel:'error'
+    server:{middlewareMode:true},logLevel:'error',
+    optimizeDeps:{noDiscovery:true,entries:[]}
   });
   t.after(()=>vite.close());
   const {CloudConnectionPage}=await vite.ssrLoadModule('/src/ui/react/tabs/cloud.tsx');
