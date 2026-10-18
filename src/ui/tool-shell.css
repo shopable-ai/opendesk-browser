@@ -10,6 +10,10 @@
 #script-version{font-size:11px;overflow-wrap:anywhere}
 .row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
 
+/* R35.1: the installed Side Panel is one vertically stacked React App Shell.
+ * The retained run dock is adopted intact while its Host stays authoritative. */
+.opendesk-react-app{display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;width:100%}
+.opendesk-react-dock-host{flex:none;min-width:0}
 /* Six official tabs and development Debug share one trusted RunHost; only the tablist scrolls. */
 .workbench-nav{flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
 .workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
