@@ -40,7 +40,8 @@ async function connect(){
     let lines;
     for(let i=0;i<130;i++){
       if(launchError)throw launchError;
-      if(chrome.exitCode!==null)throw Error('Chrome exit before extension load '+chrome.exitCode);
+      if(chrome.exitCode!==null||chrome.signalCode!==null)
+        throw Error('Chrome exit before extension load '+String(chrome.exitCode??chrome.signalCode));
       try{lines=(await readFile(join(profile,'DevToolsActivePort'),'utf8')).trim().split('\n');if(lines?.length>=2)break;}catch{}
       await sleep(100);
     }
@@ -272,7 +273,10 @@ try{
       '--no-default-browser-check','--user-data-dir='+profile,'--remote-debugging-port=0',
       '--disable-extensions-except='+extension,'--load-extension='+extension,'about:blank'];
     if(!native&&process.env.OPENDESK_SHARED_UI_HEADFUL!=='1')flags.unshift('--headless=new');
-    if(process.getuid?.()===0)flags.unshift('--no-sandbox');
+    // Hosted Ubuntu CI blocks user namespaces. Never disable the OS sandbox in
+    // production or on a local Mac; this exception is for isolated Linux CI.
+    if(process.getuid?.()===0||(process.platform==='linux'&&process.env.GITHUB_ACTIONS==='true'))
+      flags.unshift('--no-sandbox');
     chrome=spawn(process.env.CHROME_BIN||'chromium',flags,{stdio:['ignore','ignore','pipe']});
     chrome.on('error',error=>{launchError=error;});
     chrome.stderr.on('data',data=>browserLog.push(String(data)));

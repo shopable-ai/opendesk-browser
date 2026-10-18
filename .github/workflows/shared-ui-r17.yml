@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/shared-ui-r17.yml'
       - 'examples/sidebar-tools/shared-ui-demo/**'
+      - 'src/ui/react/components/ui/button.tsx'
+      - 'src/ui/design-system.css'
       - 'src/ui/react/components/ui/card.tsx'
       - 'src/ui/react/components/ui/switch.tsx'
       - 'src/ui/react/components/ui/sidebar-shared.css'

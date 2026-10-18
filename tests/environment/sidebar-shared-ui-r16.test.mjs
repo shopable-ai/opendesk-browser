@@ -35,6 +35,7 @@ test('JSX imports map to fixed sandbox globals and opt-in resource path',async()
   assert.match(bridge,/\.\.\/libs\/page-frameworks\/react-19\.2\.0\.js/);
   assert.match(entry,/tokensCSS\+'\\n'\+componentCSS/);
   assert.match(contract,/'sidebar-shared-ui':/);
+  assert.match(entry,/E_TOOL_SHARED_UI_CSS_DRIFT/);
   assert.deepEqual(tool.capabilities,[]);
   assert.equal(tool.uiRuntime,SIDEBAR_TOOL_SHARED_UI_RUNTIME);
   assert.match(preview,/\.opendesk-preview\/browser\/sidebar-shared-ui\.js/);
@@ -86,10 +87,17 @@ test('fixed shared UI compiles against pinned React with zero module imports',as
   for(const name of ['jsx','jsxs','Fragment'])assert.equal(compiled[name],runtime[name]);
   assert.equal(compiled.React,runtime);
   compiled.entry.main();
+  assert.equal(typeof context.OpenDeskSidebarUI.Button,'function');
+  assert.equal(typeof context.OpenDeskSidebarUI.IconButton,'function');
+  assert.equal(context.OpenDeskSidebarUI.Button({children:'运行'}).type,'button');
+  assert.equal(context.OpenDeskSidebarUI.IconButton({label:'操作'}).type,'button');
+  assert.throws(()=>context.OpenDeskSidebarUI.IconButton({}),/accessible label/);
   assert.equal(typeof context.OpenDeskSidebarUI.Card,'function');
   assert.equal(typeof context.OpenDeskSidebarUI.Switch,'function');
   assert.equal(context.OpenDeskSidebarUI.Card({}).type,'div');
   assert.equal(styles.length,1);
+  assert.match(styles[0].textContent,/\.od-button\{/);
+  assert.match(styles[0].textContent,/\.od-icon-button\{/);
   assert.throws(()=>compiled.entry.main(),/E_TOOL_SHARED_UI_COLLISION/);
   for(const supplied of [undefined,{...runtime,version:'19.1.0'}])
     assert.throws(()=>vm.runInNewContext(chunk.code,{OpenDeskPageReact:supplied}),/E_TOOL_SHARED_REACT_VERSION/);

@@ -31,7 +31,8 @@ async function connect(){
   let port=0;
   for(let i=0;i<120;i++){
     if(launchError)throw launchError;
-    if(browser.exitCode!==null)throw Error('CHROME_EXIT '+browser.exitCode);
+    if(browser.exitCode!==null||browser.signalCode!==null)
+      throw Error('CHROME_EXIT '+String(browser.exitCode??browser.signalCode));
     try{port=Number((await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0]);if(port)break;}catch{}
     await sleep(100);
   }
@@ -169,7 +170,10 @@ try{
   const flags=['--disable-gpu','--disable-dev-shm-usage','--use-mock-keychain','--password-store=basic',
     '--no-first-run','--no-default-browser-check','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'];
   if(!result.headful)flags.unshift('--headless=new');
-  if(process.getuid?.()===0)flags.unshift('--no-sandbox');
+  // Hosted Ubuntu CI blocks user namespaces. Never disable the OS sandbox in
+    // production or on a local Mac; this exception is for isolated Linux CI.
+    if(process.getuid?.()===0||(process.platform==='linux'&&process.env.GITHUB_ACTIONS==='true'))
+      flags.unshift('--no-sandbox');
   browser=spawn(process.env.CHROME_BIN||'chromium',flags,{stdio:['ignore','ignore','pipe']});
   browser.on('error',error=>{launchError=error;});
   browser.stderr.on('data',data=>browserLog.push(String(data)));
