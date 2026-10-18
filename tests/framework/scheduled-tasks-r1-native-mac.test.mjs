@@ -872,7 +872,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-cancel');
     await click(client,runnerSid,'#schedule-runner-manage');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-plan-list .schedule-card .schedule-state")?.textContent?.includes("需要处理")',
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-state")?.getAttribute("aria-label")?.includes("需要处理")',
       runnerSid),'old plan shows requires-attention when Task disabled');
     const rejected=await deadline(async()=>{
       const state=await durable(client,runnerSid);
@@ -965,7 +965,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-runner-refresh');
     await click(client,runnerSid,'#schedule-runner-manage');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-plan-list .schedule-card .schedule-state")?.textContent?.includes("需要处理")',
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-state")?.getAttribute("aria-label")?.includes("需要处理")',
       runnerSid),'revoked plan displays requires-attention status');
     report.tests.revokedPlanUI='PASS';
     const denied=await deadline(async()=>{
@@ -1277,7 +1277,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert.equal((await durable(client,formSid)).plans.length,1,'Discarded draft never creates a schedule');
     report.tests.nativeUnsavedDraftConfirmation='PASS';
     for(const [kind,index] of [['daily',1],['weekly',2],['interval',3]]){
-      await click(client,formSid,card+' .schedule-plan-actions button:nth-child(2)');
+      await clickFloatingPlanAction(client,formSid,card+' .schedule-plan-actions button:nth-child(2)');
       assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
         'Editing preserves the previously pinned timezone');
       assert.equal(await evaluate(client,expr('#schedule-task-select')+'.disabled',formSid),true,
@@ -1389,14 +1389,14 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const secondCard='#schedule-plan-list .schedule-card[data-schedule-id='+JSON.stringify(second.scheduleId)+']';
     report.screenshots.push(await screenshot(client,formSid,'r29-two-paused-plans'));
     await click(client,formSid,secondCard+' .schedule-plan-open');
-    await details(client,formSid,'#schedule-detail-view .schedule-more');
-    await click(client,formSid,'#schedule-detail-view .schedule-danger-link');
+    // Detail deletion has one dedicated top-right action in the approved UI.
+    await click(client,formSid,'#schedule-detail-delete');
     assert.deepEqual((await durable(client,formSid)).plans,two.plans,
       'Delete review preserves both plans, generations, deletion flags and fixed Task identities');
     await click(client,formSid,'#schedule-detail-view .schedule-delete-confirm button:last-of-type');
     assert.deepEqual((await durable(client,formSid)).plans,two.plans,
       'Cancelled deletion preserves both plans, generations, deletion flags and fixed Task identities');
-    await click(client,formSid,'#schedule-detail-view .schedule-danger-link');
+    await click(client,formSid,'#schedule-detail-delete');
     await click(client,formSid,'#schedule-detail-view .schedule-delete-confirm button:first-of-type');
     const remaining=await deadline(async()=>{const state=await durable(client,formSid);return state.plans.find(plan=>
       plan.scheduleId===second.scheduleId)?.deleted===true?state:null;},
