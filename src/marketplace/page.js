@@ -46,7 +46,7 @@ const fail=(message,code='E_MARKET')=>Object.assign(new Error(message),{code});
 export async function verifyMarketplaceToolRuntime({api,tool}){
   if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return null;
   if(tool.id!==FOCUS_ID)throw fail('该工具未获 Stay Focus 可信运行能力','E_TOOL_RUNTIME_UNAVAILABLE');
-  return probeStayFocusService({api});
+  return probeStayFocusService({api,tool});
 }
 const copy=async value=>{
   if(!navigator.clipboard?.writeText)throw fail('当前浏览器不支持写入剪贴板');
