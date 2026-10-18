@@ -261,6 +261,9 @@
     copy.append(make('strong','',unsold?T('recruit'):firstParty?layout==='brand-attribution'?'OpenDesk · Prompt Shortcuts':T('official'):layout==='event'?(['模拟效率活动','Demo productivity event','模擬イベント'][idx()]):layout==='directory'?(['工具精选 · 虚构示例','Tool picks · Fictional','ツール紹介 · 架空'][idx()]):layout==='affiliate'?(['联盟合作说明 · 不跟踪','Affiliate model · No tracking','アフィリエイト解説'][idx()]):'FlowNest · '+T('fiction')));
     copy.append(make('small','',unsold?'ID '+(index+1)+' · '+T('view'):firstParty?T('brandSlot'):T('partner')+' · '+T('demo')));
     unit.append(icon,copy);
+    if(layout==='hover-card')unit.append(make('span','r29-inline-hover',T('sponsorDetails')));
+    if(layout==='expand-card')unit.append(make('span','r29-expand-indicator','↗'));
+    if(layout==='directory')unit.append(make('span','r29-directory-indicator','☷'));
     if(layout==='text')unit.dataset.layout='text';
     return unit;
   }
