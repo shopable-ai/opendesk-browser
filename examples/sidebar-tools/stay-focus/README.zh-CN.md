@@ -2,13 +2,13 @@
 
 > 2026-10-13。工具 ID `stay-focus`。本项目是 OpenDesk 原有 Side Panel「工具」选项卡中的**可选独立工具**，不是另一款 Chrome 扩展，也不是 Time Review 子模块。
 
-**源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 仅保留兼容转发。详见 [R2 源码提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
+**源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 已删除，测试与生产入口直接引用本目录业务源码。详见 [R2 源码提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
 **R4.1 有界规则包源码已接线（原生验收未完成）**：从 1.0.2 起，工具 JSON 包允许携带经校验的 `backgroundPolicy: {kind:'site-budget.v1',suggestions:[...]}`。可信后台从已安装包解析网站建议；用户在 UI 点击加入、经可信 Host 确认并重新启用后，才能通过既有 `focus.site.put` / DNR 规则实现新站点额度。同一 OpenDesk Browser 构建可以安装 1.0.1 与 1.0.2 两个版本的工具 JSON 完成对照。版本更换使旧 `authorizedHash` 失效，旧 DNR 先清理，不自动拦截新增网站；原网站额度与使用记录保留。该字段**不是可执行后台 JS**。目前仍有初始默认清单/额度、时段等旧固定模型；将所有业务策略变成应用包可独立升级属于后续 R4.2/R4.3，不可宣称 R4 整体完成。完整需求见 [Stay Focus R4](REQUIREMENTS.zh-CN.md)。
 
 ## R2 · 独立业务源码（2026-10-18）
 
-- **单一业务源码**：本应用目录的 `src/` 负责独立发行的沙箱 UI，`trusted/` 负责只在可信构建期加载的计时、网站策略、DNR、授权、安装清理、提醒和限制页。宿主原有 `src/stay-focus/*.js` 均为兼容转发，不再维护第二套业务代码。
+- **单一业务源码**：本应用目录的 `src/` 负责独立发行的沙箱 UI，`trusted/` 负责只在可信构建期加载的计时、网站策略、DNR、授权、安装清理、提醒和限制页。原宿主 `src/stay-focus/*.js` 兼容转发层已删除，不再维护第二套业务代码。
 - **运行时安全边界**：可安装 JSON **只包含** `tool.config.json` 声明的三个 UI 文件，不包含 `trusted/`。Chrome 原生 DNR、Alarms 与 idle 必须由预编译可信适配器执行，沙箱不能从 JSON 动态获得原生权限；旧版 OpenDesk Host 若无对应服务会明确返回 `RUNTIME_UNAVAILABLE`，不得声称通用 Host 已可热加载任意特权扩展。
 - **身份与数据兼容**：工具 ID `stay-focus`、协议、Store、Alarm、DNR ID 段、已授权包摘要与卸载事务均不更换；原用户安装和日常额度无需迁移或重置。
 - **唯一打包入口**：`npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus`。更改 `trusted/` 时需要重新构建 OpenDesk Browser 的固定可信模块，不能只更新 UI JSON 即宣称后台功能已升级。

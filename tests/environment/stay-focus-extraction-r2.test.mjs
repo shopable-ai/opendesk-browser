@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 
@@ -9,18 +9,13 @@ const app='examples/sidebar-tools/stay-focus/';
 const modules=["blocked.js","catalog.js","host-controls.js","lifecycle.js","model.js","page-notice.js","policy.js","rule-host.js","rule-ownership.js","service.js","tool-host.js"];
 const resources=["blocked-always.html","blocked-quota.html","blocked-schedule.html","blocked-session.html","blocked.css"];
 
-test('Stay Focus business code has exactly one app-owned trusted source',async()=>{
+test('Stay Focus business has one app-owned source and no obsolete src re-exports',async()=>{
   for(const file of modules){
     const impl=read(app+'trusted/'+file);
-    const shim=read('src/stay-focus/'+file);
     assert.ok(impl.length>100,'missing real app implementation: '+file);
-    assert.equal(shim,
-      "// Compatibility export only; Stay Focus business source is owned by its installable app.\n"+
-      "export * from '../../examples/sidebar-tools/stay-focus/trusted/"+file+"';\n");
+    assert.equal(existsSync(new URL('../../src/stay-focus/'+file,import.meta.url)),false,'obsolete shim must be physically deleted: '+file);
   }
   const newPolicy=await import('../../examples/sidebar-tools/stay-focus/trusted/policy.js');
-  const oldPolicy=await import('../../src/stay-focus/policy.js');
-  assert.strictEqual(newPolicy.focusPackageHash,oldPolicy.focusPackageHash);
   assert.equal(newPolicy.FOCUS_ID,'stay-focus');
   assert.equal(newPolicy.FOCUS_RULE_FIRST,730000);
   assert.equal(newPolicy.FOCUS_RULE_LAST,730199);

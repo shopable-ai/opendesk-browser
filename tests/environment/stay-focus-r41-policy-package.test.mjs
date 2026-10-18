@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../src/stay-focus/policy.js';
-import {focusCatalogForPackage,FOCUS_CATALOG} from '../../src/stay-focus/catalog.js';
-import {createStayFocusService} from '../../src/stay-focus/service.js';
+import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {focusCatalogForPackage,FOCUS_CATALOG} from '../../examples/sidebar-tools/stay-focus/trusted/catalog.js';
+import {createStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/service.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
-import {requestStayFocusOperation} from '../../src/stay-focus/tool-host.js';
+import {requestStayFocusOperation} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 const suggestion={host:'pinterest.com',name:'Pinterest',category:'社交娱乐',suggestLimit:true,quick:true};
