@@ -35,12 +35,20 @@ test('hosting control rules match the dedicated Cloud container and wrap action 
   assert.match(css,/#workbench-tasks #cloud-hosting>div button\{flex:1 1 130px;min-height:36px\}/);
 });
 
-test('Cloud controls exist once within Cloud and refresh stays read-only',async()=>{
-  const [html,cloud,shell]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/cloud-hosting.js'),read('src/ui/tool-shell.js')]);
+test('Cloud controls exist once across React and trusted legacy forms; refresh remains read-only',async()=>{
+  const [html,cloud,shell,react,appShell]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/cloud-hosting.js'),
+    read('src/ui/tool-shell.js'),read('src/ui/react/tabs/cloud.tsx'),
+    read('src/ui/react/app-shell.tsx')]);
   const panel=html.slice(html.indexOf('id="workbench-cloud"'),html.indexOf('id="workbench-discover"'));
-  for(const id of ['cloud-hosting','cloud-pair','cloud-approve','cloud-stop','cloud-refresh','cloud-overview-refresh','cloud-request-samples'])
+  // React owns request history and first-run; the sensitive approval/pair
+  // forms still belong to the sole CloudHosting controller.
+  for(const id of ['cloud-hosting','cloud-pair','cloud-approve','cloud-stop','cloud-refresh'])
     assert.ok(panel.includes('id="'+id+'"'),id);
+  for(const id of ['cloud-overview-refresh','cloud-request-samples','cloud-first-run'])
+    assert.ok(react.includes('id="'+id+'"'),id);
+  assert.match(appShell,/cloudLegacySections/);
+  assert.match(react,/legacySections/);
   assert.match(cloud,/async function dispatchNext\(/);
   assert.match(cloud,/const readOnly=id==='cloud-refresh'\|\|id==='cloud-overview-refresh'/);
   assert.match(cloud,/click\('cloud-overview-refresh',async\(\)=>\{\}\)/);
