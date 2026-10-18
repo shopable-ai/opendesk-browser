@@ -588,7 +588,7 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
   assert.match(source,/afterSave=editing\?formReturnView/);
   assert.match(source,/if\(returnAfterDelete&&activeView==='detail'\)leaveDetail\(\)/);
   assert.match(source,/scheduleId:plan.scheduleId,offset:view.records.length,limit:20/);
-  assert.match(source,/if\(view.deleteReview\)remove.click\(\)/);
+  assert.match(source,/if\(view.deleteReview\)toggleDeleteReview\(\)/);
   assert.match(source,/expectedGeneration:plan.generation,action:operation/);
   assert.match(css,/\.schedule-card-head \.schedule-plan-open\{/);
   assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
