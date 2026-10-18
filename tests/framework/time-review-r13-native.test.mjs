@@ -83,6 +83,67 @@ async function nativeClick(client,session,selector){
     await client.send('Input.dispatchMouseEvent',{type,x:point.x,y:point.y,button:'left',clickCount:1},session);
   return {selector,x:point.x,y:point.y};
 }
+
+/**
+ * Real React Extension Center user path. All actions use native CDP pointer
+ * input at observed, visible coordinates; no hidden legacy control clicks.
+ * Installed apps and official candidates share the existing installer.
+ */
+async function nativeExtensionScope(client,session,scope){
+  assert.ok(['smart','available'].includes(scope));
+  const menu='#extension-center-more';
+  const option='#extension-center-menu button[data-ec-scope="'+scope+'"]';
+  await until(()=>evaluate(client,session,
+    'Boolean(document.querySelector("#extension-center-more"))'),'actual Extension Center toolbar');
+  const selected=await evaluate(client,session,
+    'document.querySelector('+JSON.stringify(option)+')?.getAttribute("aria-pressed")');
+  if(selected!=='true'){
+    const opened=await evaluate(client,session,
+      'document.querySelector("#extension-center-more")?.getAttribute("aria-expanded")==="true"');
+    if(!opened)await nativeClick(client,session,menu);
+    await nativeClick(client,session,option);
+    await until(()=>evaluate(client,session,
+      'document.querySelector('+JSON.stringify(option)+')?.getAttribute("aria-pressed")==="true"'),
+      'actual Extension Center scope '+scope);
+  }
+  if(await evaluate(client,session,
+    'document.querySelector("#extension-center-more")?.getAttribute("aria-expanded")==="true"'))
+    await nativeClick(client,session,menu);
+}
+async function nativeOfficialReview(client,session,id){
+  await nativeExtensionScope(client,session,'available');
+  const key='app:'+id;
+  const entry='[data-extension-key="'+key+'"][data-extension-action="main"]';
+  await until(()=>evaluate(client,session,
+    '(()=>{const n=document.querySelector('+JSON.stringify(entry)+');return !!n&&!n.disabled&&n.checkVisibility();})()'),
+    'official candidate in actual Extension Center: '+id);
+  await nativeClick(client,session,entry);
+  const action=await until(()=>evaluate(client,session,
+    '(()=>{const panel=document.querySelector("#extension-center-detail");if(!panel||panel.hidden)return null;return ["install","update"].find(a=>{const n=panel.querySelector("[data-ec-detail-action="+a+"]");return !!n&&!n.disabled&&n.checkVisibility()})||null;})()'),
+    'review action in actual extension details: '+id);
+  await nativeClick(client,session,'#extension-center-detail [data-ec-detail-action="'+action+'"]');
+  await until(()=>evaluate(client,session,
+    '(()=>{const n=document.querySelector("#sidebar-tool-preview");return !!n&&!n.hidden&&!n.closest("[hidden]")})()'),
+    'existing trusted package review opens for '+id);
+}
+async function nativeOpenInstalledApp(client,session,id){
+  await nativeExtensionScope(client,session,'smart');
+  const entry='[data-extension-key="app:'+id+'"][data-extension-action="main"]';
+  await until(()=>evaluate(client,session,
+    '(()=>{const n=document.querySelector('+JSON.stringify(entry)+');return !!n&&!n.disabled&&n.checkVisibility();})()'),
+    'installed app in actual Extension Center: '+id);
+  await nativeClick(client,session,entry);
+}
+async function nativeOpenImport(client,session){
+  if(await evaluate(client,session,'document.querySelector("#sidebar-tool-import")?.hidden===false'))return;
+  const opened=await evaluate(client,session,
+    'document.querySelector("#extension-center-more")?.getAttribute("aria-expanded")==="true"');
+  if(!opened)await nativeClick(client,session,'#extension-center-more');
+  await nativeClick(client,session,'#extension-center-import');
+  await until(()=>evaluate(client,session,
+    'document.querySelector("#sidebar-tool-import")?.hidden===false'),
+    'real Extension Center import review');
+}
 // The new inline consent card auto-closes after a trusted start. Avoid
 // blind toggles that could mistake the correct UI for a missing permission.
 async function setTimeReviewSettingsVisible(client,side,visible){
@@ -165,8 +226,7 @@ async function installReviewedPackage(client,session,candidate,name,helper,pid,n
   await writeFile(file,bytes);
   const target=(await client.send('Target.getTargetInfo',{},session)).targetInfo;
   await client.send('Target.activateTarget',{targetId:target.targetId});
-  if(await evaluate(client,session,'document.querySelector("#sidebar-tool-import").hidden'))
-    await nativeClick(client,session,'#sidebar-tool-import-trigger');
+  await nativeOpenImport(client,session);
   await chooseNativeFile(client,session,file,helper,pid);
   await until(()=>evaluate(client,session,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-version").textContent.includes('+JSON.stringify(candidate.version)+')'),
     'exact reviewed local package version');
@@ -339,22 +399,23 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   await browser.send('Runtime.enable',{},side);await browser.send('Page.enable',{},side);
   evidence.realSidePanel='PASS';
   await nativeClick(browser,side,'#tab-tools');
-  // The production R4.9 UI uses the compact '+' button, not the obsolete
-  // #sidebar-tool-discover-tab control from the historical knowledge driver.
-  await nativeClick(browser,side,'#sidebar-tool-discover-toggle');
-  await until(()=>evaluate(browser,side,
-    '!document.querySelector("#sidebar-tool-discover-panel").hidden'),'official discovery visible');
-  await nativeClick(browser,side,'#sidebar-tool-official-time-review-install');
+  // Product discovery is now React-owned; the hidden legacy tools header is
+  // not an acceptable native installation path.
+  assert.equal(await evaluate(browser,side,
+    'document.querySelector("#sidebar-tool-discover-toggle")?.checkVisibility()'),false,
+    'legacy discovery is intentionally hidden in the production extension center');
+  await nativeOfficialReview(browser,side,'time-review');
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-preview")?.hidden'),'review package');
   assert.equal(await evaluate(browser,side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,
     'review does not execute uninstalled code');
   await nativeClick(browser,side,'#sidebar-tool-install');
-  const installed='[data-sidebar-tool-action=open][data-sidebar-tool-id=time-review]';
+  const installed='[data-extension-key="app:time-review"][data-extension-action="main"]';
   await until(()=>evaluate(browser,side,'Boolean(document.querySelector('+JSON.stringify(installed)+'))'),'official Time Review installed');
   const saved=await evaluate(browser,side,
     'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(x=>x.id==="time-review")?.version)');
   assert.equal(saved,pkg.version,'real installed package persisted with exact built tool version');
   evidence.install='PASS';note('install',{version:saved});
+  await nativeExtensionScope(browser,side,'smart');
   await nativeClick(browser,side,installed);
   await until(()=>evaluate(browser,side,'!document.querySelector("#sidebar-tool-display").hidden'),'tool opened');
   await until(()=>evaluate(browser,side,`(()=>{
@@ -767,18 +828,12 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     await nativeClick(browser,otherManager,'#sidebar-tool-back');
     for(const toolId of ['reading-toc','cookie-editor','stay-focus']){
       const previouslyInstalled=await evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==='+JSON.stringify(toolId)+'))');
-      if(await evaluate(browser,otherManager,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
-        await nativeClick(browser,otherManager,'#sidebar-tool-discover-toggle');
-      await nativeClick(browser,otherManager,'#sidebar-tool-filter-all');
-      const button='#sidebar-tool-official-'+toolId+'-install';
-      await until(()=>evaluate(browser,otherManager,'Boolean(document.querySelector('+JSON.stringify(button)+'))'),'official '+toolId+' catalog entry');
       if(!previouslyInstalled){
-        await nativeClick(browser,otherManager,button);
-        await until(()=>evaluate(browser,otherManager,'!document.querySelector("#sidebar-tool-preview").hidden'),'review official '+toolId);
+        await nativeOfficialReview(browser,otherManager,toolId);
         await nativeClick(browser,otherManager,'#sidebar-tool-install');
       }
       await until(()=>evaluate(browser,side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==='+JSON.stringify(toolId)+'))'),'other official package installed');
-      await nativeClick(browser,otherManager,'[data-sidebar-tool-action=open][data-sidebar-tool-id='+toolId+']');
+      await nativeOpenInstalledApp(browser,otherManager,toolId);
       await nativeClick(browser,otherManager,'#sidebar-tool-settings-open');
       for(const enabled of [false,true]){
         await nativeClick(browser,otherManager,'#sidebar-tool-enable');
@@ -801,12 +856,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
       await installReviewedPackage(browser,otherManager,older,'older-'+toolId,zoomInput,proc.pid,note);
       assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:nativeRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},side)).result.value,true,
         'other reviewed version replacement preserves the same Time Review native root');
-      if(await evaluate(browser,otherManager,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
-        await nativeClick(browser,otherManager,'#sidebar-tool-discover-toggle');
-      await nativeClick(browser,otherManager,'#sidebar-tool-filter-all');
-      await until(()=>evaluate(browser,otherManager,'document.querySelector("[data-official-tool-id='+toolId+']")?.dataset.installationState==="update"'),'actual other-tool version upgrade available');
-      await nativeClick(browser,otherManager,button);
-      await until(()=>evaluate(browser,otherManager,'!document.querySelector("#sidebar-tool-preview").hidden'),'review actual official upgrade '+toolId);
+      await nativeOfficialReview(browser,otherManager,toolId);
+      await until(()=>evaluate(browser,otherManager,
+        'document.querySelector("#sidebar-tool-preview-version")?.textContent.includes('+JSON.stringify(officialTool.version)+')'),
+        'review actual official upgrade '+toolId);
       await nativeClick(browser,otherManager,'#sidebar-tool-install');
       const upgraded=await until(()=>evaluate(browser,otherManager,'chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1","opendesk.market.provenance.v1"]).then(v=>({tool:v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==='+JSON.stringify(toolId)+'),provenance:v["opendesk.market.provenance.v1"]?.['+JSON.stringify(toolId)+']}))')
         .then(row=>row.tool?.version===officialTool.version&&row.provenance?row:null),'actual other official upgrade settles');
@@ -1543,14 +1596,12 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   await nativeClick(browser,manager,'#tab-tools');
   const readOtherPackage=()=>evaluate(browser,manager,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="reading-toc")||null)');
   if(!await readOtherPackage()){
-    if(await evaluate(browser,manager,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
-      await nativeClick(browser,manager,'#sidebar-tool-discover-toggle');
-    await nativeClick(browser,manager,'#sidebar-tool-filter-all');
-    await nativeClick(browser,manager,'#sidebar-tool-official-reading-toc-install');
+    await nativeOfficialReview(browser,manager,'reading-toc');
     await until(()=>evaluate(browser,manager,'!document.querySelector("#sidebar-tool-preview").hidden'),'independent Reading TOC review');
     await nativeClick(browser,manager,'#sidebar-tool-install');await until(readOtherPackage,'Reading TOC installed before selective uninstall');
   }
   const preservedOtherPackage=await readOtherPackage();
+  await nativeExtensionScope(browser,manager,'smart');
   await nativeClick(browser,manager,installed);
   await until(()=>evaluate(browser,manager,
     '!document.querySelector("#sidebar-tool-display").hidden'),'reopened installed tool');
@@ -1604,11 +1655,10 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
     'stale worker events may not resurrect uninstalled Time Review data');
   evidence.uninstall='PASS';
   note('real-tool-uninstall',{selective:true,recordDeleted:true,othersIntact:true,noResurrection:true});
-  if(await evaluate(browser,manager,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
-    await nativeClick(browser,manager,'#sidebar-tool-discover-toggle');
-  await nativeClick(browser,manager,'#sidebar-tool-official-time-review-install');
+  await nativeOfficialReview(browser,manager,'time-review');
   await until(()=>evaluate(browser,manager,'!document.querySelector("#sidebar-tool-preview").hidden'),'official reinstall review');
   await nativeClick(browser,manager,'#sidebar-tool-install');
+  await nativeExtensionScope(browser,manager,'smart');
   await until(()=>evaluate(browser,manager,'Boolean(document.querySelector('+JSON.stringify(installed)+'))'),'official reinstall persisted');
   await nativeClick(browser,manager,installed);
   await until(()=>evaluate(browser,manager,'Boolean(document.querySelector("#sidebar-tool-frame main.review"))&&!document.querySelector("#sidebar-tool-frame iframe")'),'reinstalled genuine native UI');
@@ -1637,7 +1687,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   for(const id of ['time-review','time-review-lookalike'])assert.ok(visibleIdentities.some(row=>row.text==='安装 ID：'+id&&row.inViewport&&row.uncropped&&row.aria?.endsWith('安装 ID：'+id)),'actual same-title identity is visible, uncropped and accessible: '+id);
   note('same-name-visible-identities',{identities:visibleIdentities});
   evidence.screenshots.push(await screenshot(browser,importer,'same-title-installed-identities'));
-  await nativeClick(browser,importer,'[data-sidebar-tool-action=open][data-sidebar-tool-id=time-review-lookalike]');
+  await nativeOpenInstalledApp(browser,importer,'time-review-lookalike');
   await until(()=>evaluate(browser,importer,'!!document.querySelector("#sidebar-tool-frame iframe")&&!document.querySelector("#sidebar-tool-frame main.review")'),'same-name local package remains opaque sandbox');
   assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:trustedRoot,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},manager)).result.value,true,'lookalike install preserves actual official native root');
   evidence.sameNameSandbox='PASS';note('same-name-real-sandbox',{sameTitle:true,sameCapability:true,differentId:true,iframe:true});
@@ -1699,12 +1749,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   const beforeOfficialUpgrade=await evaluate(browser,importer,'chrome.storage.local.get('+JSON.stringify(KEY)+').then(v=>v['+JSON.stringify(KEY)+'])');
   assert.ok(Object.values(beforeOfficialUpgrade.days).some(rows=>Object.values(rows).some(ms=>ms>500)),'official upgrade checks actual captured history');
   await nativeClick(browser,importer,'#sidebar-tool-back');
-  if(await evaluate(browser,importer,'document.querySelector("#sidebar-tool-discover-panel").hidden'))
-    await nativeClick(browser,importer,'#sidebar-tool-discover-toggle');
-  await nativeClick(browser,importer,'#sidebar-tool-filter-all');
-  await until(()=>evaluate(browser,importer,'document.querySelector("[data-official-tool-id=time-review]")?.dataset.installationState==="update"'),
-    'actual catalog exposes a version upgrade under All');
-  await nativeClick(browser,importer,'#sidebar-tool-official-time-review-install');
+  await nativeOfficialReview(browser,importer,'time-review');
   await until(()=>evaluate(browser,importer,'!document.querySelector("#sidebar-tool-preview").hidden&&document.querySelector("#sidebar-tool-preview-version").textContent.includes('+JSON.stringify(pkg.version)+')'),'actual official upgrade review');
   await nativeClick(browser,importer,'#sidebar-tool-install');
   const upgraded=await until(async()=>{
@@ -1715,7 +1760,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   for(const key of ['days','categories','minuteDays','minuteConsent','settings','siteGrants'])
     assert.deepEqual(upgraded.state[key],beforeOfficialUpgrade[key],'official upgrade preserves '+key);
   assert.equal((await browser.send('Runtime.callFunctionOn',{objectId:legacyFrame,functionDeclaration:'function(){return this.isConnected}',returnByValue:true},importer)).result.value,false,'older sandbox document retired by official upgrade');
-  await nativeClick(browser,importer,installed);
+  await nativeOpenInstalledApp(browser,importer,'time-review');
   await until(()=>evaluate(browser,importer,'!!document.querySelector("#sidebar-tool-frame main.review")&&!document.querySelector("#sidebar-tool-frame iframe")'),'official upgrade admits only the actual compiled native UI');
   evidence.officialUpgrade='PASS';note('actual-official-upgrade',{fromVersion:legacy.version,fromSource:'reviewed-local-older-version-fixture',toVersion:pkg.version,toSource:'actual-official-catalog',exactPackage:true,officialProvenance:true,historyPreserved:true,oldSandboxRetired:true,noAutoStart:true});
   evidence.screenshots.push(await screenshot(browser,importer,'official-upgrade-native-1.6.0'));
