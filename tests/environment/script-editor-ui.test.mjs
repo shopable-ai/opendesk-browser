@@ -840,3 +840,44 @@ test('R36.2 manual Page JavaScript Run retains exact USER_SCRIPT preview transpo
   assert.deepEqual(f.manualRuns,[],'Page JavaScript must never route through Controller RunHost');
   assert.deepEqual(f.dispatches,[],'manual Page JavaScript must not invoke Native local projects');
 });
+
+test('R36.3 React framework cannot replace the editor during an owned Controller run',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  let framework;
+  f.editor.connectReactDeveloperFramework(model=>{framework=model;});
+  await f.setCurrentRun('active-controller');
+  assert.equal(f.find('page-component-framework').disabled,true);
+  assert.equal(framework.disabled,true);
+  framework.onSelect('react',{isTrusted:true});
+  assert.equal(framework.mode,'javascript');
+  assert.equal(f.find('script-source').value,manualSource);
+  assert.equal(f.find('script-javascript-world').value,'controller');
+  assert.deepEqual(f.manualRuns,[]);
+  assert.deepEqual(f.dispatches,[]);
+});
+
+test('R36.3 Page Candidate load refuses a late response after a React source switch',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const row={programId:'race-page',revision:1,stage:'Candidate',pageRules:{matches:['https://a.example/*']},sourceHash:'a'.repeat(64)};
+  const gate=deferred();let requested=false;
+  f.client.request=async method=>{
+    if(method==='listPagePrograms')return {catalog:[row],programs:[]};
+    if(method==='getPageCandidate'){requested=true;return gate.promise;}
+    return {catalog:[],programs:[]};
+  };
+  f.find('page-program-refresh').fire('click',{isTrusted:true});
+  await until(()=>f.find('page-program-list').children.some(option=>option.value==='race-page:1'),'Page catalog unavailable');
+  f.find('page-program-list').value='race-page:1';f.find('page-program-list').fire('change');
+  await until(()=>!f.find('page-program-load').disabled,'Page candidate could not be selected');
+  f.find('page-program-load').fire('click',{isTrusted:true});
+  await until(()=>requested,'Page candidate read did not begin');
+  const react=f.find('page-component-react');react.checked=true;react.fire('change');
+  const latest='export default function App(){return <p>latest</p>;}';
+  f.find('script-source').value=latest;f.find('script-source').fire('input');
+  gate.resolve({...row,sourceUtf8:'async function main(){return document.title;}',manifest:{}});
+  await until(()=>/E_REVISION/.test(f.find('page-program-status').textContent),'Late Page candidate was not rejected');
+  assert.equal(f.find('script-source').value,latest);
+  assert.equal(f.find('page-component-react').checked,true);
+  assert.equal(f.find('script-id').value,'manual');
+  assert.deepEqual(f.dispatches,[]);
+});
