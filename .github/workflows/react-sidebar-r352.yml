@@ -7,6 +7,8 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
       - 'src/ui/task-workbench.js'
+      - 'scripts/bundle-provenance.mjs'
+      - 'examples/sidebar-tools/stay-focus/trusted/**'
       - 'src/ui/react/**'
       - 'scripts/tests/react-sidebar-r352-browser.mjs'
       - 'scripts/tests/react-sidebar-r352-installed-chrome.mjs'
