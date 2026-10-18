@@ -1,0 +1,47 @@
+name: Developer R36.2 execution semantic gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/script-editor.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/program-source.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/page-program-library.js'
+      - 'tests/environment/script-editor-ui.test.mjs'
+      - 'tests/environment/developer-layout.test.mjs'
+      - '.github/workflows/developer-r362.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  developer-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Syntax of real Editor and Program Source
+        run: |
+          node --check src/ui/script-editor.js
+          node --check src/ui/program-source.js
+          node --check src/ui/task-workbench.js
+      - name: Controller, Page, React/Vue state, Task and Program regressions
+        run: |
+          node --test \
+            tests/environment/script-editor-ui.test.mjs \
+            tests/environment/script-editor.test.mjs \
+            tests/environment/developer-layout.test.mjs \
+            tests/environment/program-source.test.mjs \
+            tests/environment/page-program-library.test.mjs \
+            tests/environment/task-workbench.test.mjs
+      - name: Native evidence boundary
+        if: always()
+        run: |
+          echo "NODE_SOURCE_TESTS_ONLY: no installed Chrome extension"
+          echo "MAC_CHROME_NOT_TESTED"
+          echo "MAC_NATIVE_NOT_TESTED"
