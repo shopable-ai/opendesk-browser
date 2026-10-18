@@ -815,3 +815,28 @@ test('R36.2 active/invalid world selection does not bypass managed execution own
   assert.deepEqual(f.manualRuns,[]);
   assert.deepEqual(f.dispatches,[]);
 });
+
+test('R36.2 manual Page JavaScript Run retains exact USER_SCRIPT preview transport',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const previews=[];
+  f.client.request=async(method,params)=>{
+    if(method==='previewPageScript'){
+      previews.push(params);
+      throw {code:'E_TEST_PAGE_WORLD',message:'existing preview transport reached'};
+    }
+    if(method==='listPagePrograms')return {catalog:[],programs:[]};
+    return {catalog:[],programs:[]};
+  };
+  const select=f.find('script-javascript-world');
+  select.value='page';select.fire('change');
+  await tick();await tick();
+  assert.equal(f.find('script-run').disabled,false,'page source should become runnable after target checks');
+  await f.click();
+  await until(()=>previews.length===1,'Page Run did not dispatch its original preview protocol');
+  assert.equal(previews[0].target.documentId,'document-a');
+  assert.equal(previews[0].target.tabId,11);
+  assert.equal(previews[0].target.expectedUrl,'https://a.example/');
+  assert.equal(typeof previews[0].sourceUtf8,'string');
+  assert.deepEqual(f.manualRuns,[],'Page JavaScript must never route through Controller RunHost');
+  assert.deepEqual(f.dispatches,[],'manual Page JavaScript must not invoke Native local projects');
+});
