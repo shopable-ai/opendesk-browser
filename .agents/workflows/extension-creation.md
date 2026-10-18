@@ -10,7 +10,7 @@
 
 **目标：** 用户用一句话描述“想做什么”，AI 先读取真实产品、源码与相关历史，推理用户场景并生成可追溯的需求/功能树；通过需求关卡后，才生成可操作 HTML、正式代码、测试并安全交付。**不能从一句话直接跳到界面或编码**。这不是第二套 SDK、Runner、Host、Agent Skill、Chrome Extension 或发布系统。
 
-现有规范：[AGENTS.md](../../AGENTS.md) · [八个 Skill 路由](../skills/README.md) · [Sidebar Tool 开发](../../docs/api/sidebar-tool-development.zh-CN.md) · [预览合同](../../docs/api/sidebar-preview-kit.zh-CN.md) · [测试证据](../../docs/framework/testing-guide.md)。本工作流编排已有能力，不复制技术权威；有冲突时，以当前源码与对应正式安全合同为准。
+现有规范：[AGENTS.md](../../AGENTS.md) · **[四类用户需求与多 JS 执行位置的唯一选型指南](../../docs/api/extension-development-selection.zh-CN.md)** · [八个 Skill 路由](../skills/README.md) · [Sidebar Tool 开发](../../docs/api/sidebar-tool-development.zh-CN.md) · [预览合同](../../docs/api/sidebar-preview-kit.zh-CN.md) · [测试证据](../../docs/framework/testing-guide.md)。本工作流编排已有能力，不复制技术权威；有冲突时，以当前源码与对应正式安全合同为准。
 
 ## 一、普通用户只做三件事
 
@@ -47,14 +47,14 @@
 
 ## 二-A、Extension Type & Ownership Gate（编码前强制）
 
-Phase 0–3 / Gate A 中必须先确定类型和源码所有权，再编码。AI 输出一个**简短的架构确认摘要**，用户已有明确需求不重复征求分类确认，也不要求用户填技术表单。默认只读公开 [Sidebar Tool 规范](../../docs/api/sidebar-tool-development.zh-CN.md)、[Sidebar Tool API](../../docs/api/sidebar-tools.zh-CN.md)、[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)、示例和当前项目；第三方开发不依赖宿主内部 `src/`。
+Phase 0–3 / Gate A 中先按[四类用户目标](../../docs/api/extension-development-selection.zh-CN.md#1-先选需求普通开发者只需要理解四类)判断需求：Controller 自动化、Page 网页增强、Sidebar Tool 应用、或多个既有运行世界协作的组合式扩展；**第四类不是新的 JS World 或可以动态加载任意 Background 的安装包**。随后确定每个模块实际运行类型和源码所有权再编码。AI 输出一个**简短的架构确认摘要**，用户已有明确需求不重复征求分类确认，也不要求用户填技术表单。默认只读公开 [Sidebar Tool 规范](../../docs/api/sidebar-tool-development.zh-CN.md)、[Sidebar Tool API](../../docs/api/sidebar-tools.zh-CN.md)、[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)、示例和当前项目；第三方开发不依赖宿主内部 `src/`。
 
 | 类型 | 业务目录 | 执行世界 / 开发主 Skill | 正式交付 |
 | --- | --- | --- | --- |
 | Sidebar Tool | `examples/sidebar-tools/<id>/` | opaque-origin iframe / `opendesk-sidebar-tool-dev` | `opendesk-sidebar-tool-package` 生成唯一正式 JSON |
 | Page USER_SCRIPT / Program | `examples/programs/<id>/` | USER_SCRIPT、`document` / `opendesk-script-authoring` | `opendesk-program-publish`，Page Candidate → Verified → Available → Installed |
 | Controller Task | 现有 Controller 项目 | Worker、`page`/Locator / `opendesk-script-authoring` | `opendesk-program-publish`，Task 不是 Sidebar JSON |
-| 第一方可信功能 | 工具目录 + 必要 `src/<feature>/` | 固定编译代码 / `opendesk-trusted-sidebar-feature` | 静态资源、安全权限与原生回归 |
+| 第一方可信功能 | 工具目录的 `trusted/` + 必要的旧 `src/<feature>/` 兼容/可信模块 | 固定编译代码 / `opendesk-trusted-sidebar-feature` | 静态资源、安全权限与原生回归 |
 | 通用 Framework / SDK | 当前平台模块 | 共享 Host/SDK / `opendesk-extension-runtime` | 通用 Authority、安装/撤权和 SDK 回归 |
 
 **摘要包含八项**：扩展类型、执行世界、公开 SDK、默认业务目录、当前主 Skill、是否需要框架改动、框架改动证据是否充分、实际包格式与验收方式。阶段切换允许开发和打包采用不同主 Skill，不能因为 Page 要安装就直接改成 Runtime Skill。不能静默省略原始自动注入、权限、数据及运行场景。 **正式安装、额外授权和敏感数据操作仍须在正确的可信界面获得用户确认；架构摘要或模拟测试不能代替批准。**

@@ -27,6 +27,8 @@
 
 ## 1. 先分清项目类型和开发路线
 
+**还没确定要做 Side Panel 应用、网页增强、自动化还是混合功能？** 先看 [普通开发者的四类需求选择与多 JS 分工](extension-development-selection.zh-CN.md)。本规范只负责明确选择 Sidebar Tool 后的具体实现与打包；组合式扩展需要按实际运行位置拆分职责，不能由一个 JSON 自动取得任意后台权限。
+
 | 目标 | 推荐开发路线 | 打包和运行 | 特别限制 |
 | --- | --- | --- | --- |
 | 常规笔记、格式转换、Markdown、个人信息面板 | **轻量工具**：HTML + CSS + 经典 JS | `tool.config.json` → `build-sidebar-tool.mjs` → 由用户导入并打开 | 不需要每个工具再建 Chrome 扩展或后台运行器 |
