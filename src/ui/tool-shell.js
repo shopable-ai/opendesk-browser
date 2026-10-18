@@ -280,7 +280,11 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     const status=document.getElementById('catalog-dev-sidebar-status');
     const openOriginalSidebar=(button,targetTab)=>{
       // One trusted Side Panel; this full-page Catalog is not another Host.
-      const windowId=currentPageTarget.windowId;
+      // This catalog is itself a real Chrome tab: its windowId is stable even
+      // while the separate active-page target is resolving after tab changes.
+      // Resolve it synchronously so the original trusted click activation is
+      // still intact when sidePanel.open() is called.
+      const windowId=Number.isSafeInteger(tab.windowId)?tab.windowId:currentPageTarget.windowId;
       if(!Number.isSafeInteger(windowId)||typeof chrome.sidePanel?.open!=='function'){
         status.textContent='无法打开侧栏，请从 Chrome 扩展按钮打开 OpenDesk';
         return;

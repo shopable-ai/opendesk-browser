@@ -4,6 +4,8 @@
 
 **源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 仅保留兼容转发。详见 [R2 源码提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
+**R4 后续目标（尚未实施）**：独立安装包不等于独立后台代码执行。已将多文件应用、后台运行世界、受管策略/SDK、安全隔离与业务独立升级的正式需求保存到 [Stay Focus R4 需求与架构边界](REQUIREMENTS.zh-CN.md)。本说明保留 R2 已有实现和使用方法，不把 R4 目标冒充现有能力。
+
 ## R2 · 独立业务源码（2026-10-18）
 
 - **单一业务源码**：本应用目录的 `src/` 负责独立发行的沙箱 UI，`trusted/` 负责只在可信构建期加载的计时、网站策略、DNR、授权、安装清理、提醒和限制页。宿主原有 `src/stay-focus/*.js` 均为兼容转发，不再维护第二套业务代码。

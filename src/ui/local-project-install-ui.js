@@ -304,6 +304,15 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       reveal();return;
     }
     if(!canSave()){
+      if(project()?.selectionKind?.()==='file-workspace'){
+        // A file workspace has no executable source identity. Keep the Save
+        // review accessible, but explain how to connect a real project instead
+        // of suggesting a Run that this workspace is explicitly forbidden to do.
+        summary.textContent='当前选择的是文件工作区，尚无可运行的项目入口。';
+        warning.textContent='请在项目 package.json 中配置 opendesk 运行入口并连接源码 Provider，再选择具体的 Controller 或 Page 程序。文件工作区不能直接运行或安装。';
+        say('未安装：文件工作区尚无可执行项目。','unknown');
+        confirmButton.disabled=true;reveal();return;
+      }
       if(installed&&!installed.changed){
         onInstalled({kind:installed.kind,id:installed.id,version:installed.version,focus:true});return;
       }

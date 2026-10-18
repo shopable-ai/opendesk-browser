@@ -526,9 +526,15 @@ for(const targetAvailable of [true,false])for(const slotAvailable of [true,false
     assert.equal(f.find('script-run').textContent,'运行本地项目');
     assert.equal(f.find('script-run').disabled,true);
     assert.match(f.find('local-project-status').textContent,/尚未发现可运行入口/);
-    assert.equal(f.find('script-save').hidden,false,'file selections retain the review entry');
+    assert.equal(f.find('script-save').hidden,false);
+    // Save is an explanation/review entry, not installation authority for a
+    // file-only workspace. A real click must show why installation is blocked.
+    assert.equal(f.find('script-save').disabled,false);
     await f.save();
-    assert.equal(f.find('local-install-confirm').disabled,true,'a file-only selection cannot authorize installation');
+    assert.equal(f.find('local-install-review').hidden,false);
+    assert.match(f.find('local-install-warning').textContent,/文件工作区不能直接运行或安装/);
+    assert.match(f.find('local-install-status').textContent,/未安装.*文件工作区/);
+    assert.equal(f.find('local-install-confirm').disabled,true);
     f.find('local-install-confirm').fire('click',{isTrusted:true});await tick();await tick();
     f.find('local-project-params').value='invalid JSON';
     await f.click(false);assert.deepEqual(f.opened,[]);
