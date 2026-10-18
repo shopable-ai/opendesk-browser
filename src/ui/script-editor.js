@@ -97,7 +97,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   const syncComponentInputs=()=>{
     if(reactDeveloperFramework)reactDeveloperFramework({
-      mode:componentMode,compilerEnabled:browserCompilerEnabled,
+      mode:componentMode,compilerEnabled:browserCompilerEnabled,disabled:frameworkBusy(),
       onSelect:(next,event)=>{if(event?.isTrusted&&!disposed)chooseComponentMode(next);}
     });
     else for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
@@ -155,9 +155,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
   let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
-  let browserListenersAttached = false;
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
+  // Native DOM and React share one execution-ownership gate.
+  const frameworkBusy=()=>editingBusy||running||stopping||previewBusy||browserPreparing||
+    !!host.currentRun||!!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown||
+    !!localProject?.active()||!!programSource.snapshot();
   const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,readControllerRun:options=>host.controller.snapshotControllerRun(options),
     isBusy:()=>running||previewBusy||stopping,retireManagedPreview:retireLocalPreviewForInstall,onState:()=>update()});
   const listen = (element, event, listener) => {
@@ -340,8 +343,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(worldRow)worldRow.hidden=componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot();
     if(worldChoice){
       worldChoice.value=javascriptWorld;
-      worldChoice.disabled=editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||
-        !!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown;
+      worldChoice.disabled=frameworkBusy();
     }
     const paramsTools=find('manual-project-params-tools');
     if(paramsTools)paramsTools.hidden=pageExecution||!!localProject?.active();
@@ -379,7 +381,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       mode.value === 'current' && currentPageState?.status !== 'available';
     const stopDisabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
     const stopLabel=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
-    if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
+    if(componentSelector&&componentSelector.disabled!==frameworkBusy()){
+      componentSelector.disabled=frameworkBusy();if(reactDeveloperFramework)syncComponentInputs();
+    }
     if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
     find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
       (componentMode==='javascript'&&(dependencyResolver?.busy||
@@ -392,7 +396,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(pageExecution)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
-    if(pageCandidateButton)pageCandidateButton.title='';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
@@ -638,7 +641,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function loadControllerVersion(fromList=false){
     const id=fromList?scriptList.value:scriptId(),activeId=scriptId(),
       revisionText=find('script-revision').value.trim(),source=programSource.source(),
-      selectedHead=revisions.get(id);
+      selectedHead=revisions.get(id),editorTicket=browserPrepareGeneration,
+      originalMode=componentMode,originalWorld=javascriptWorld;
     if(fromList&&!id)throw {code:'E_REVISION',message:'请选择已保存脚本'};
     const row=await host.controller.getControllerScript({scriptId:id,
       ...(!fromList&&revisionText?{revision:Number(revisionText)}:{})});
@@ -646,7 +650,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       await verifiedControllerClassicAuthorSource(row.sourceUtf8);
     if(disposed)return;
     if(scriptId()!==activeId||(fromList?scriptList.value!==id:scriptId()!==id)||
-      find('script-revision').value.trim()!==revisionText||programSource.source()!==source)
+      find('script-revision').value.trim()!==revisionText||programSource.source()!==source||
+      editorTicket!==browserPrepareGeneration||componentMode!==originalMode||javascriptWorld!==originalWorld)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=source;
     else componentDrafts[componentMode]=source;
@@ -1289,9 +1294,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     isBlocked:()=>editingBusy||previewBusy||running||stopping||!!host.currentRun,onState:update});
   const pageLibrary=createPageProgramLibrary({client,currentPageTarget,api,document:doc,onLoad:async row=>{
     if(editingBusy||localProject?.active())throw {code:'E_BUSY',message:'请先结束当前编辑操作并切换为手工草稿'};
-    const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value;
+    const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value,
+      editorTicket=browserPrepareGeneration,originalMode=componentMode,originalWorld=javascriptWorld;
     const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
-    if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value)
+    if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value||
+      editorTicket!==browserPrepareGeneration||componentMode!==originalMode||javascriptWorld!==originalWorld)
       throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=source;
     else componentDrafts[componentMode]=source;
@@ -1335,7 +1342,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   listen(find('script-save'),'click',saveClick);
   listen(find('script-save-version'),'click',saveClick);
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
-  on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
+  on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',refreshScripts);
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
   on('script-history-run','change',()=>{find('script-history-open').disabled=!find('script-history-run').value;});
@@ -1359,9 +1366,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function chooseComponentMode(next){
     if(next===componentMode)return;
     if(next!=='javascript'&&!browserCompilerEnabled){syncComponentInputs();return;}
-    if(previewBusy||browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
+    if(frameworkBusy()){
       syncComponentInputs();
-      componentMessage('error','请先停止旧组件或打开新网页，再切换框架');
+      componentMessage('error','请先结束当前运行、保存或准备并停止受管组件，再切换代码类型');
       return;
     }
     browserPreparer.cancel();browserPrepareGeneration++;
@@ -1378,9 +1385,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   function chooseJavascriptWorld(next){
     if(next===javascriptWorld)return;
-    if(!['controller','page'].includes(next)||disposed||componentMode!=='javascript'||
-      editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||componentRemote?.busy||
-      browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
+    if(!['controller','page'].includes(next)||disposed||componentMode!=='javascript'||frameworkBusy()){
       componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
       update();return;
     }
@@ -1498,7 +1503,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   on('script-stop','click',stop);
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
-  browserListenersAttached = true;
   const unsubscribeRun = host.subscribe(next => {
     if (disposed) return;
     if (currentTask?.runId === next.runId) renderTask({...currentTask,...next});
@@ -1660,10 +1664,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     applyImported(sourceUtf8);
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
-    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
+    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(!disposed)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
     if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
-    browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
     listeners.length = 0;
     for (const entry of downloads.values()) { clearTimeout(entry.timer); entry.timer = null; }
