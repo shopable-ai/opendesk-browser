@@ -114,7 +114,7 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
   'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'d6f26386d30cadb51709bbe296168561d1d0968b',
+  'examples/sidebar-tools/stay-focus/trusted/service.js':'57515710f0ef1529e0ef735d3ec8db7dcd26bf59',
   'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'ee290971b9969a36031637d63c5e267684dc16d0'
 });
 // The shared lifecycle module is statically linked by other approved hosts
