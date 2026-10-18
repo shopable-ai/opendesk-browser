@@ -54,6 +54,23 @@ test('R1.2 UI fences late poll responses and distinguishes committed writes from
   assert.doesNotMatch(source,/chrome\.alarms\.create|new Worker\(/);
 });
 
+test('R34.2 installed task mutation distinguishes a committed toggle from a failed readback',async()=>{
+  const source=await load('src/ui/scheduled-task-workbench.js');
+  const toggle=source.slice(source.indexOf('  async function toggleManagedTask(row,originList){'),
+    source.indexOf('  async function copyManagedTask(row){'));
+  const copy=source.slice(source.indexOf('  async function copyManagedTask(row){'),
+    source.indexOf('  function createPlanFromManagedTask(row,title){'));
+  assert.match(toggle,/const \{refreshError\}=await commitScheduledMutation\(/);
+  assert.match(toggle,/\(\)=>client\.request\('setInstalledTaskEnabled'/);
+  assert.match(toggle,/expectedGeneration:row\.generation/);
+  assert.match(toggle,/expectedInstallationId:row\.installationId/);
+  assert.match(toggle,/列表刷新失败/);
+  assert.match(copy,/if\(busy\)return;busy=true;/);
+  assert.ok(copy.indexOf('await taskWorkbench.receiveDraft(')>=0);
+  assert.ok(copy.indexOf('hidePanel();')>copy.indexOf('await taskWorkbench.receiveDraft('),
+    'do not hide the only error surface before Developer accepts the draft');
+});
+
 test('official scheduled plan is nested inside 我的 and keeps icon-only task actions',async()=>{
   const html=await load('src/ui/tool.html');
   assert.match(html,/id="workbench-tasks"/);

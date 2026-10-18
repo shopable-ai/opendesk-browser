@@ -1111,9 +1111,10 @@
   min-width:32px;min-height:32px;padding:5px;flex:none}
 .schedule-manager-actions .schedule-manager-action svg{width:16px;height:16px}
 .schedule-manager-menu{position:relative;flex:none;min-width:0}
-.schedule-manager-menu-trigger{list-style:none;cursor:pointer}
-.schedule-manager-menu-trigger::-webkit-details-marker{display:none}
-.schedule-manager-menu-trigger::marker{content:""}
+.schedule-manager-menu>summary{list-style:none;cursor:pointer}
+/* Hide only the UA marker: the summary stays visible, focusable and touchable. */
+.schedule-manager-menu>summary::-webkit-details-marker{display:none}
+.schedule-manager-menu>summary::marker{content:""}
 .schedule-manager-menu[open]>.schedule-manager-menu-trigger{background:var(--od-muted)}
 .schedule-manager-menu-panel{position:absolute;right:0;top:calc(100% + 5px);z-index:20;
   display:grid;gap:4px;width:min(260px,calc(100vw - 48px));max-height:min(360px,65vh);

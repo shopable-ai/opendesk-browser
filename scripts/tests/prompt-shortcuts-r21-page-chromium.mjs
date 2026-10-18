@@ -100,6 +100,7 @@ boot=[
   ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',
   'window.__rule='+JSON.stringify(rule)+';',
   'localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
+  'window.__initPromptShortcuts=initPromptShortcuts;window.__trustedApi=api;',
   'window.__controller=initPromptShortcuts({api,doc:document,win:window});',
   'window.__ready=true;'
 ].join('\n');
@@ -287,6 +288,63 @@ try{
   await rpc('Emulation.setDeviceMetricsOverride',{width:360,height:780,deviceScaleFactor:1,mobile:false});
   await sleep(250);
   await shot('narrow-360-trusted-rail');
+  // The real Chromium document simulates ChatGPT's native fixed-site adapter.
+  // Only the location facade and extension Host/storage are mocked; DOM,
+  // MutationObserver, trusted CDP clicks and text editing remain browser-native.
+  await rpc('Emulation.setDeviceMetricsOverride',
+    {width:1150,height:800,deviceScaleFactor:1,mobile:false});
+  await evaluate(`(()=>{
+    window.__controller.dispose();
+    const real=window,proxy={
+      location:{href:'https://chatgpt.com/c/history-1'},
+      innerWidth:real.innerWidth,innerHeight:real.innerHeight,
+      navigator:real.navigator,MutationObserver:real.MutationObserver,ResizeObserver:real.ResizeObserver,
+      addEventListener:real.addEventListener.bind(real),
+      removeEventListener:real.removeEventListener.bind(real),
+      setTimeout:real.setTimeout.bind(real),clearTimeout:real.clearTimeout.bind(real),
+      setInterval:real.setInterval.bind(real),clearInterval:real.clearInterval.bind(real),
+      getComputedStyle:real.getComputedStyle.bind(real)
+    };
+    proxy.top=proxy;window.__chatgptProxy=proxy;
+    const main=document.createElement('main');
+    main.id='main';main.style.marginLeft='170px';main.style.marginTop='25px';
+    main.style.width='680px';main.style.height='600px';
+    const area=document.createElement('textarea');
+    area.id='prompt-textarea';area.value='旧历史会话草稿';
+    main.append(area);document.body.append(main);
+    window.__controller=window.__initPromptShortcuts({
+      api:window.__trustedApi,doc:document,win:proxy
+    });
+  })()`);
+  await poll('document.querySelector("main#main") && '+
+    'document.querySelector("[data-opendesk-prompts]")?.hidden===false && '+
+    'window.__railRoot?.querySelector(".item")?.isConnected && '+
+    'document.querySelector("[data-opendesk-prompts]").style.left.endsWith("px")',
+    'simulated ChatGPT fixed-site adapter mounted and positioned');
+  const beforeHistoryLeft=await evaluate('document.querySelector("[data-opendesk-prompts]").style.left');
+  await evaluate(`(()=>{
+    const old=document.querySelector('main#main');
+    const next=old.cloneNode(true);
+    next.style.marginLeft='340px';next.querySelector('#prompt-textarea').value='新历史会话草稿';
+    old.replaceWith(next);
+    const host=document.querySelector('[data-opendesk-prompts]');
+    window.__historyHost=host;host.remove();
+    window.__chatgptProxy.location.href='https://chatgpt.com/c/history-2';
+  })()`);
+  await poll('document.querySelector("[data-opendesk-prompts]")===window.__historyHost && '+
+    '!window.__historyHost.hidden && window.__historyHost.style.left!=='+JSON.stringify(beforeHistoryLeft)+
+    ' && window.__railRoot?.querySelectorAll(".item").length===1',
+    'history SPA remount reuses dock and repositions');
+  await clickJS('window.__railRoot.querySelector(".item")');
+  await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("第二行")',
+    'history conversation native insertion');
+  assert.equal(await evaluate('document.querySelector("main#main textarea#prompt-textarea").value'),
+    '新历史会话草稿\n'+body);
+  assert.equal(await evaluate('document.querySelectorAll("[data-opendesk-prompts]").length'),1);
+  scenes.push({step:'ChatGPT-origin simulated SPA history navigation',
+    actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
+    nativeDraftConfirmed:true,installedExtension:false});
+  await shot('chatgpt-spa-history-recovery');
   assert.equal(jsErrors.length,0,JSON.stringify(jsErrors));
   const report={kind:'ACTUAL_CHROMIUM_DOM_FIXED_PAGE_WITH_MOCK_HOST',installedExtension:false,
     realThirdPartySite:false,realMacIme:false,version:pkg.version,scenes,consoleErrors:jsErrors};

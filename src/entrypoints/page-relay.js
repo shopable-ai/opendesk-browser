@@ -3,7 +3,7 @@ import {initPageRelay} from '../agents/page-relay.js';
 import {initReadingToc} from '../reading-toc/page.js';
 import {initPageClip} from '../page-clip/page.js';
 import {initKnowledgeCapture} from '../knowledge/page.js';
-import {installFocusPageNotice} from '../stay-focus/page-notice.js';
+import {installFocusPageNotice} from '../../examples/sidebar-tools/stay-focus/trusted/page-notice.js';
 import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js';
 export default defineUnlistedScript(() => {
   // Static registration and trusted repair injection may reach the same

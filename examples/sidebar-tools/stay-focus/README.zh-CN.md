@@ -2,7 +2,15 @@
 
 > 2026-10-13。工具 ID `stay-focus`。本项目是 OpenDesk 原有 Side Panel「工具」选项卡中的**可选独立工具**，不是另一款 Chrome 扩展，也不是 Time Review 子模块。
 
-**源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的扩展预编译源码在 [`src/stay-focus`](../../../src/stay-focus/README.zh-CN.md)。详见 [本轮调用链与边界证据](../../../docs/framework/workstreams/stay-focus-boundary-r1-20261014.md)。
+**源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；`examples/sidebar-tools/stay-focus/trusted/` 仅保留旧调用方兼容导出。详见 [本轮调用链与边界证据](../../../docs/framework/workstreams/stay-focus-boundary-r1-20261014.md)。
+
+## R2 · 独立业务源码（2026-10-18）
+
+- **单一业务源码**：本应用目录的 `src/` 负责独立发行的沙箱 UI，`trusted/` 负责只在可信构建期加载的计时、网站策略、DNR、授权、安装清理、提醒和限制页。宿主的 `examples/sidebar-tools/stay-focus/trusted/*.js` 均为兼容转发，不再维护第二套业务代码。
+- **运行时安全边界**：可安装 JSON **只包含** `tool.config.json` 声明的三个 UI 文件，不包含 `trusted/`。Chrome 原生 DNR、Alarms 与 idle 必须由预编译可信适配器执行，沙箱不能从 JSON 动态获得原生权限；旧版 OpenDesk Host 若无对应服务会明确返回 `RUNTIME_UNAVAILABLE`，不得声称通用 Host 已可热加载任意特权扩展。
+- **身份与数据兼容**：工具 ID `stay-focus`、协议、Store、Alarm、DNR ID 段、已授权包摘要与卸载事务均不更换；原用户安装和日常额度无需迁移或重置。
+- **唯一打包入口**：`npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus`。更改 `trusted/` 时需要重新构建 OpenDesk Browser 的固定可信模块，不能只更新 UI JSON 即宣称后台功能已升级。
+- **自动验证**：新增 `tests/environment/stay-focus-extraction-r2.test.mjs` 防止业务回流宿主，原策略/服务/授权/真实 Chrome 测试继续承担行为验证。参见 [R2 提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
 ## 用户场景与安装
 
@@ -25,10 +33,10 @@
 | 层 | 入口 | 作用 |
 |---|---|---|
 | 安装包 | `tool.config.json`, `src/index.html`, `src/style.css`, `src/main.js` | 用户可见的工具沙箱 UI。所有策略变更通过可信 Side Panel 二次确认 |
-| Side Panel | `src/ui/sidebar-tools.js`, `src/stay-focus/host-controls.js` | 原生权限申请、确认、工具身份和撤权 epoch |
-| Worker | `src/stay-focus/service.js` | 活动观察、持久策略、Chrome alarms、真正的 DNR 写入与打开标签页处理 |
-| 规则 | `src/stay-focus/model.js`, `src/stay-focus/policy.js`, `src/stay-focus/rule-host.js` | 安全域名、每日额度、优先级、DNR ID 730000–730199 |
-| 限制页 | `src/stay-focus/blocked-*.html`, `blocked.js/css` | 固定的本扩展页，不向外部网站跳转 |
+| Side Panel | `src/ui/sidebar-tools.js`, `examples/sidebar-tools/stay-focus/trusted/host-controls.js` | 原生权限申请、确认、工具身份和撤权 epoch |
+| Worker | `examples/sidebar-tools/stay-focus/trusted/service.js` | 活动观察、持久策略、Chrome alarms、真正的 DNR 写入与打开标签页处理 |
+| 规则 | `examples/sidebar-tools/stay-focus/trusted/model.js`, `examples/sidebar-tools/stay-focus/trusted/policy.js`, `examples/sidebar-tools/stay-focus/trusted/rule-host.js` | 安全域名、每日额度、优先级、DNR ID 730000–730199 |
+| 限制页 | `examples/sidebar-tools/stay-focus/trusted/blocked-*.html`, `blocked.js/css` | 固定的本扩展页，不向外部网站跳转 |
 | 卸载 | `src/ui/sidebar-tools/installation.js` | 与原有工具安装事务复用，权限撤销与独立数据清理 |
 
 ## 时间语义和可测边界
