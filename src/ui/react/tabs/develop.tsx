@@ -49,7 +49,7 @@ export function DeveloperFramework({model}){
       <label key={kind} htmlFor={'page-component-'+kind} title={title}>
         <input id={'page-component-'+kind} type="radio" name="page-component-choice"
           value={kind} aria-label={label} checked={model.mode===kind}
-          disabled={!model.compilerEnabled&&kind!=='javascript'}
+          disabled={Boolean(model.disabled)||(!model.compilerEnabled&&kind!=='javascript')}
           onClick={event=>select(kind,event)}
           onChange={event=>select(kind,event)}/>
         <span>{kind==='javascript'?'JavaScript':kind==='react'?'React':'Vue'}</span>
