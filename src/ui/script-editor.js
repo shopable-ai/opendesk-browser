@@ -12,9 +12,9 @@ import {parseControllerClassicDependencies} from '../scripting/user-scripts/cont
 import {createProgramSourceView,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {createPageComponentRemote} from './page-component-remote.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
-import {createControllerESMSavedSource,readControllerESMAuthorSource,
-  verifiedControllerESMAuthorSource,createControllerClassicSavedSource,
-  readControllerClassicAuthorSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
+import {createControllerESMSavedSource,verifiedControllerESMAuthorSource,
+  createControllerClassicSavedSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
+import {createControllerRevisionView} from './controller-revision-view.js';
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from '../scripting/user-scripts/page-bundle.js';
 import {inspectPageFrameSource} from '../scripting/user-scripts/page-frame-resources.js';
 import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../scripting/user-scripts/execution-source.js';
@@ -59,7 +59,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const tab = find('script-tab'), frame = find('script-document'), mode = find('script-target-mode');
   const currentPageStatus = find('script-current-page-status'), currentPageHost = find('script-current-page-host'),
     currentPageDebug = find('script-current-page-debug'), runningTargetStatus = find('script-running-target');
-  const revisions = new Map(), documents = new Map();
+  const documents = new Map();
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
@@ -140,7 +140,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     draftWrites=draftWrites.then(()=>api.storage.session.set({[draftKey]:value}))
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
-  let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
+  let ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
   let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null,reactDeveloperResult=null;
   // The original Script Editor exclusively owns authorized result values.
   // Its legacy DOM writer survives only until the React portal handoff.
@@ -152,7 +152,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   const setResultText=value=>writeResultField('text',value);
   const setResultKind=value=>writeResultField('kind',value);
-  let currentRevision, currentRevisionAuthorSource, currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
+  let currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
   let dependencyResolver,dependencyReview,dependencyInstaller;
@@ -262,28 +262,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         error?.code === 'E_VALUE_SERIALIZATION') setResultText(help);
   };
   const scriptId = () => find('script-id').value.trim();
-  function renderRevisionState() {
-    const node = find('script-version');
-    if (!currentRevision || currentRevision.scriptId !== scriptId()) {
-      node.dataset.dirty = 'false';
-      node.textContent = currentRevision ? '当前脚本 ID 尚未加载持久版本；仍可直接运行草稿' : '未保存草稿可直接运行；只有点击保存才创建正式版本';
-      return;
-    }
-    if (currentRevision.revision !== Number(find('script-revision').value)) {
-      node.dataset.dirty = 'false';
-      node.textContent = `已加载 r${currentRevision.revision}；本次运行始终使用编辑器当前草稿`;
-      return;
-    }
-    let savedSource=currentRevision.sourceUtf8;
-    try{savedSource=(readControllerESMAuthorSource(savedSource)||
-      readControllerClassicAuthorSource(savedSource))?.authorSourceUtf8??savedSource;}
-    catch{savedSource='';} // Damaged authoring headers must not appear clean.
-    const dirty = programSource.source() !== savedSource;
-    node.dataset.dirty = String(dirty);
-    node.textContent = dirty
-      ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
-      : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`;
-  }
+  const revisionView=createControllerRevisionView({host,document:doc,getScriptId:scriptId,
+    getSource:()=>programSource.source(),onUpdate:update,onStatus:display});
   function otherTabOwnsBrowserUI(){
     return !!browserManagedPreview&&currentPageState?.status==='available'&&
       (browserManagedPreview.target.tabId!==currentPageState.tabId||
@@ -337,7 +317,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     if(localPageResult)copyResult.disabled=!localPageResultIsCurrent();
     persistDraft();
-    renderRevisionState();
+    revisionView.renderRevisionState();
     const pageExecution=isComponentDraft()||isPageDraft();
     const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
     if(worldRow)worldRow.hidden=componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot();
@@ -373,7 +353,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const saveTitle=isComponentDraft()?'保存组件候选':
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?'保存已试运行的 Page import 候选':'保存 Controller 固定版本';
     find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
-    find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
+    find('script-delete').disabled = editingBusy || !revisionView.has(scriptId());
     let runDisabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       (componentMode!=='javascript'||!programSource.source().trim()) || programSource.kind() === 'page-userscript' ||
       (browserCompilerEnabled&&hasUnbuiltESM(programSource.source())&&!componentRemote?.readyForRun) ||
@@ -509,45 +489,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     renderRunningTarget(run?.target, run?.runId);
     runningTargetStatus.dataset.state = run?.state || 'idle';
   }
-  function remember(row, {head = true, authorSourceUtf8 = row.sourceUtf8} = {}) {
-    if (head) revisions.set(row.scriptId, row.revision);
-    currentRevision = row; currentRevisionAuthorSource = authorSourceUtf8;
-    find('script-revision').value = String(row.revision);
-    update(); return row;
-  }
-  function savedControllerSource(authorSourceUtf8,compiledSourceUtf8) {
-    if(currentRevision?.scriptId!==scriptId()||
-      currentRevision.revision!==Number(find('script-revision').value))return compiledSourceUtf8;
-    let recorded;
-    try{recorded=readControllerESMAuthorSource(currentRevision.sourceUtf8)||
-      readControllerClassicAuthorSource(currentRevision.sourceUtf8);}
-    catch{return compiledSourceUtf8;} // An old damaged header cannot block a new draft.
-    // A stored header alone does not prove its author/compiled relationship.
-    // Only the current compiler or SHA-verified Classic preparation may do so.
-    if(recorded?.programId===scriptId()&&recorded.authorSourceUtf8===authorSourceUtf8&&
-      recorded.compiledSourceUtf8===compiledSourceUtf8){
-      currentRevisionAuthorSource=authorSourceUtf8;return currentRevision.sourceUtf8;
-    }
-    return compiledSourceUtf8;
-  }
-  function renderScriptList(rows) {
-    const selected = scriptList.value || scriptId();
-    revisions.clear();
-    scriptList.replaceChildren(new Option(rows.length ? '选择已保存脚本' : '没有已保存脚本', ''));
-    for (const row of rows) {
-      revisions.set(row.scriptId, row.revision);
-      scriptList.append(new Option(`${row.scriptId} · r${row.revision} · ${row.contentHash}`, row.scriptId));
-    }
-    if (rows.some(row => row.scriptId === selected)) scriptList.value = selected;
-    update();
-  }
-  async function refreshScripts({silent = false} = {}) {
-    const token = ++scriptListSequence;
-    const rows = await host.controller.listControllerScripts({});
-    if (disposed || token !== scriptListSequence) return;
-    renderScriptList(rows);
-    if (!silent) display('scripts', rows.length ? `已刷新 ${rows.length} 个已保存脚本` : '没有已保存脚本');
-  }
   function clearDocuments() {
     selectionVersion++; documents.clear();
     frame.replaceChildren(new Option('请选择当前精确文档', '')); update();
@@ -610,7 +551,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const id=scriptId(),source=programSource.source(),esm=hasUnbuiltESM(source),
       classic=parseControllerClassicDependencies(source).length>0;
     if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
-    const previous=revisions.get(id)||0,ticket=++browserPrepareGeneration;
+    const previous=revisionView.head(id)||0,ticket=++browserPrepareGeneration;
     if(esm||classic){editingBusy=true;browserPreparing=true;update();}
     try{
       let executable=source;
@@ -631,8 +572,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       }
       const row=await host.controller.commitControllerScript({scriptId:id,expectedRevision:previous,sourceUtf8:executable});
       if(disposed)return;
-      if(scriptId()===id)remember(row,{authorSourceUtf8:row.sourceUtf8===executable?source:null});
-      await refreshScripts({silent:true});
+      if(scriptId()===id)revisionView.remember(row,{authorSourceUtf8:row.sourceUtf8===executable?source:null});
+      await revisionView.refresh({silent:true});
       display('saved',`${id} · r${row.revision} 已持久保存固定${esm?' ESM ':classic?' Classic ':''}版本；${host.currentRun?'当前任务继续使用启动时的版本':'保存不会运行脚本'}`);
     }finally{if(esm||classic){browserPreparing=false;editingBusy=false;update();}}
   }
@@ -641,7 +582,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function loadControllerVersion(fromList=false){
     const id=fromList?scriptList.value:scriptId(),activeId=scriptId(),
       revisionText=find('script-revision').value.trim(),source=programSource.source(),
-      selectedHead=revisions.get(id),editorTicket=browserPrepareGeneration,
+      selectedHead=revisionView.head(id),editorTicket=browserPrepareGeneration,
       originalMode=componentMode,originalWorld=javascriptWorld;
     if(fromList&&!id)throw {code:'E_REVISION',message:'请选择已保存脚本'};
     const row=await host.controller.getControllerScript({scriptId:id,
@@ -663,23 +604,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);
     javascriptDrafts.controller=programSource.source();
     scheduleControllerClassicWarm();
-    remember(row,{head:fromList||!revisionText||revisions.get(id)===row.revision,
+    revisionView.remember(row,{head:fromList||!revisionText||revisionView.head(id)===row.revision,
       authorSourceUtf8:recorded?null:row.sourceUtf8});
     dependencyResolver.refresh();componentRemote.refresh();
-    if(fromList&&selectedHead!==row.revision)await refreshScripts({silent:true});
+    if(fromList&&selectedHead!==row.revision)await revisionView.refresh({silent:true});
     display('loaded',fromList?`已加载 ${id} 最新 r${row.revision}`:`已加载持久版本 r${row.revision}`);
   }
   const load=()=>loadControllerVersion();
   const loadLatestFromList=()=>loadControllerVersion(true);
-  async function remove() {
-    const id = scriptId(), expectedRevision = revisions.get(id);
-    if (!expectedRevision) throw {code:'E_REVISION',message:'请先加载最新持久版本'};
-    await host.controller.tombstoneControllerScript({scriptId:id,expectedRevision});
-    revisions.delete(id); if (currentRevision?.scriptId === id) currentRevision = undefined;
-    find('script-version').textContent = '脚本已删除'; update();
-    await refreshScripts({silent: true});
-    display('deleted','脚本已删除；已运行版本的源码保留至任务退休');
-  }
   function showSnapshot(snapshot) {
     if (disposed) return;
     projection = snapshot;
@@ -866,7 +798,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           localProject?.active()||mode.value!==runMode||version!==selectionVersion)
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
-        sourceUtf8=savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);
+        sourceUtf8=revisionView.savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);
         browserPreparing=false;update();
       }else if(classic){
         const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
@@ -877,7 +809,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           prepared.authorSourceHash!==await digestUtf8(authorSourceUtf8)||
           !/^controller-classic-[a-f0-9]{64}$/.test(prepared.lockId))
           throw {code:'E_CONTROLLER_CLASSIC_LOCK',message:'固定 Classic 版本或技术锁无效'};
-        sourceUtf8=savedControllerSource(authorSourceUtf8,prepared.sourceUtf8);
+        sourceUtf8=revisionView.savedControllerSource(authorSourceUtf8,prepared.sourceUtf8);
         browserPreparing=false;update();
       }
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
@@ -1342,7 +1274,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   listen(find('script-save'),'click',saveClick);
   listen(find('script-save-version'),'click',saveClick);
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
-  on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',refreshScripts);
+  on('script-read','click',()=>read('')); on('script-delete','click',edit(revisionView.remove)); on('script-list-refresh','click',revisionView.refresh);
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
   on('script-history-run','change',()=>{find('script-history-open').disabled=!find('script-history-run').value;});
@@ -1566,13 +1498,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     draftKey=key;update();
   }).catch(error=>console.warn('Sidebar draft could not be restored',error));
-  refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
+  refreshTabs().catch(fail); revisionView.refresh({silent: true}).catch(fail); update();
   function applyImported(sourceUtf8) {
     browserPreparer.cancel();browserPrepareGeneration++;
     const pageImport=programSource.kind()==='page-userscript'||sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX);
     loadedPageSource=pageImport;componentMode='javascript';javascriptWorld=pageImport?'page':'controller';syncComponentInputs();
     javascriptDrafts[javascriptWorld]=sourceUtf8;
-    currentRevision = undefined;
+    revisionView.clearCurrent();
     find('script-id').value = `import-${Date.now()}`;
     find('script-revision').value = '';
     programSource.replaceSource(sourceUtf8);
@@ -1636,13 +1568,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
   },executionSource:()=>{
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'本地开发项目请通过正式打包流程创建已安装任务'};
-    const source=programSource.source();
-    // Task candidates use the exact saved executable; author edits still fail
-    // the workbench's saved-source comparison instead of reusing stale code.
-    if(currentRevision?.scriptId===scriptId()&&
-      currentRevision.revision===Number(find('script-revision').value)&&
-      currentRevisionAuthorSource===source)return currentRevision.sourceUtf8;
-    return source;
+    // Task candidates still compare the exact persisted executable and revision.
+    return revisionView.executionSource(programSource.source());
   }, importDraft(sourceUtf8) {
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'手工草稿已保留；请先切换到手工草稿模式再导入'};
     if (disposed || editingBusy || previewBusy || componentRemote?.busy || browserManagedPreview) throw {code:'E_BUSY',message:'请先停止当前受管组件，再导入或保存版本'};
@@ -1665,7 +1592,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(!disposed)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; revisionView.dispose(); reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
     listeners.length = 0;
