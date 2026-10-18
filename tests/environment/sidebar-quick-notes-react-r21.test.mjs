@@ -101,7 +101,7 @@ test('host source cannot import Quick Notes React business or duplicate its runt
   async function visit(dir){
     for(const row of await readdir(dir,{withFileTypes:true})){
       if(row.isDirectory()){await visit(new URL(row.name+'/',dir));continue;}
-      if(row.isFile()&&/\\.(?:js|jsx|mjs|ts|tsx)$/.test(row.name))
+      if(row.isFile()&&/\.(?:js|jsx|mjs|ts|tsx)$/.test(row.name))
         all.push(new URL(row.name,dir));
     }
   }
@@ -110,10 +110,10 @@ test('host source cannot import Quick Notes React business or duplicate its runt
   for(const file of all){
     const code=await readFile(file,'utf8');
     assert.doesNotMatch(code,
-      /\\b(?:import|export)\\s+[^;\\n]*?\\bfrom\\s*['"][^'"]*quick-notes-react\\/(?:src|dist)\\//,
+      /\b(?:import|export)\s+[^;\n]*?\bfrom\s*['"][^'"]*quick-notes-react\/(?:src|dist)\//,
       'framework must not import Quick Notes React business: '+file.pathname);
     assert.doesNotMatch(code,
-      /\\b(?:import|require)\\s*\\(\\s*['"][^'"]*quick-notes-react\\/(?:src|dist)\\//,
+      /\b(?:import|require)\s*\(\s*['"][^'"]*quick-notes-react\/(?:src|dist)\//,
       'framework must not load Quick Notes React business dynamically: '+file.pathname);
   }
   const [app,entry,model]=await Promise.all([
@@ -121,10 +121,10 @@ test('host source cannot import Quick Notes React business or duplicate its runt
     read('examples/sidebar-tools/quick-notes-react/src/main.jsx'),
     read('examples/sidebar-tools/quick-notes-react/src/model.js')
   ]);
-  assert.match(entry,/globalThis\\.OpenDeskTool/);
-  assert.match(entry,/bridge\\.request/);
+  assert.match(entry,/globalThis\.OpenDeskTool/);
+  assert.match(entry,/bridge\.request/);
   for(const business of [app,entry,model]){
-    assert.doesNotMatch(business,/\\bchrome\\.(?:storage|runtime|tabs)\\b|\\blocalStorage\\b|\\bsessionStorage\\b/);
-    assert.doesNotMatch(business,/quick-notes\\/src\\//,'must not import native Quick Notes');
+    assert.doesNotMatch(business,/\bchrome\.(?:storage|runtime|tabs)\b|\blocalStorage\b|\bsessionStorage\b/);
+    assert.doesNotMatch(business,/quick-notes\/src\//,'must not import native Quick Notes');
   }
 });
