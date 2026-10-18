@@ -168,7 +168,7 @@
   $('r28Current').closest('.r28-summary').append(jump);
   let lastLang='';
   function formatVisual(id){
-    const sample=make('div','r29-sample');
+    const sample=make('span','r29-sample');
     sample.dataset.format=id;
     const mark=make('span','r29-sample-mark',id.startsWith('brand-')||id==='self'?'OD':id==='event'?'EV':id==='directory'?'DX':id==='affiliate'?'↗':'+');
     const txt=make('span','r29-sample-text',id==='recruit'?T('recruit'):id.startsWith('brand-')?'OpenDesk':id==='affiliate'?'CPM / CPC / CPA':id==='event'?'Productivity Week':id==='directory'?'Tools · Picks':'FlowNest');
