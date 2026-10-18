@@ -2,6 +2,7 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {SidebarNavigation} from './tabs/navigation.tsx';
+import {prepareSidebarAppShell,SidebarAppShell} from './app-shell.tsx';
 import {flushSync} from 'react-dom';
 import {ExtensionCenterPage,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
@@ -21,18 +22,27 @@ import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // One trusted React root. Extension Center is a single React-owned subtree;
 // the other legacy views still use temporary portals until migrated.
-export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null}={}){
-  const section=doc.getElementById('extension-center');
+export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appShell=false}={}){
+  let section=doc.getElementById('extension-center');
   if(!section||section.dataset.opendeskReactOwner)
     throw new Error('E_REACT_EXTENSION_MOUNT');
-  const navigationHost=typeof onNavigate==='function'
+  if(appShell&&typeof onNavigate!=='function')
+    throw new Error('E_REACT_APP_SHELL_NAVIGATION');
+  const initialTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
+  const navigationHost=!appShell&&typeof onNavigate==='function'
     ?doc.querySelector('.workbench-nav'):null;
-  if(typeof onNavigate==='function'&&
+  if(!appShell&&typeof onNavigate==='function'&&
     (!navigationHost||navigationHost.dataset.opendeskReactOwner))
     throw new Error('E_REACT_NAVIGATION_MOUNT');
-  const root=createRoot(section);
-  // Commit real React DOM before the existing Controller binds to IDs.
-  flushSync(()=>root.render(<ExtensionCenterPage/>));
+  const shell=appShell?prepareSidebarAppShell(doc):null;
+  const root=createRoot(shell?.mount||section);
+  // The installed path commits the complete React App Shell first; legacy
+  // Controller nodes are reparented intact before any subsequent binding.
+  flushSync(()=>root.render(shell?<><style data-opendesk-trusted-react-css="">
+    {cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
+    <SidebarAppShell scaffold={shell.scaffold} activeTab={initialTab}
+      debugEnabled={debugEnabled} onNavigate={onNavigate}/></>:<ExtensionCenterPage/>));
+  if(shell)section=doc.getElementById('extension-center');
   const container=doc.getElementById('extension-center-list');
   const detailContainer=doc.getElementById('extension-center-detail-body');
   const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
@@ -205,7 +215,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null}={}){
     node.dataset.opendeskReactOwner='debug-'+key;
   }
   let disposed=false,menuKey=null,detailModel=null;
-  let navigationTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
+  let navigationTab=initialTab;
   if(navigationHost){
     // Replace the static tab button tree in one handoff. TaskWorkbench was
     // constructed with a navigation sink, so it has no competing DOM listeners.
@@ -246,20 +256,23 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null}={}){
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
   function paint(){
     if(disposed)return;
+    const pageProps={rowsModel:model,menuKey,toolbarModel,detailModel,
+      feedbackModel,recoveryModel,statusModel,view:extensionView,
+      onBack:onExtensionBack,detailContainer};
     // Extension Center restores focus immediately after draw(). Commit the
     // single React tree and all portals synchronously before that readback.
     flushSync(()=>root.render(<>
       {/* WXT fixed entry is JS-only. Scope audited pilot CSS into the
           existing React tree; never emit an unlisted tool-shell.css asset. */}
       <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
-      {navigationHost&&createPortal(<SidebarNavigation
-        activeTab={navigationTab} debugEnabled={debugEnabled}
-        onNavigate={onNavigate}/>,navigationHost)}
-      <ExtensionCenterPage rowsModel={model} menuKey={menuKey}
-        toolbarModel={toolbarModel} detailModel={detailModel}
-        feedbackModel={feedbackModel} recoveryModel={recoveryModel}
-        statusModel={statusModel} view={extensionView} onBack={onExtensionBack}
-        detailContainer={detailContainer}/>
+      {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
+        debugEnabled={debugEnabled} onNavigate={onNavigate}
+        extensionProps={pageProps}/>:<>
+        {navigationHost&&createPortal(<SidebarNavigation
+          activeTab={navigationTab} debugEnabled={debugEnabled}
+          onNavigate={onNavigate}/>,navigationHost)}
+        <ExtensionCenterPage {...pageProps}/>
+      </>}
       {myTasksMounted&&createPortal(<MyTaskCount value={myCountText}/>,myCount)}
       {myTasksMounted&&createPortal(<MyTaskRows {...myRowsModel} workspace={myWorkspace}/>,myRows)}
       {myTasksMounted&&createPortal(<MyTaskDetail value={myDetailText}/>,myDetail)}
@@ -321,9 +334,10 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null}={}){
   paint();
   return Object.freeze({
     owner:'extension-list',
-    navigationMounted:Boolean(navigationHost),
+    navigationMounted:Boolean(navigationHost||shell),
+    appShellMounted:Boolean(shell),
     renderNavigation(view){
-      if(disposed||!navigationHost)return;
+      if(disposed||!(navigationHost||shell))return;
       if(!['tasks','tools','workflow','develop','cloud','catalog','debug'].includes(view))
         throw new Error('E_REACT_NAVIGATION_SNAPSHOT');
       if(navigationTab===view)return;
