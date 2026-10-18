@@ -53,8 +53,9 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
     read('docs/architecture/react-ui-shared-components-r33.zh-CN.md')
   ]);
   assert.match(html,/id="extension-center-list" class="ec-list"/);
-  assert.match(main,/createRoot\(section\)/);
-  assert.match(main,/<ExtensionCenterPage rowsModel=\{model\}/);
+  assert.match(main,/createRoot\(shell\?\.mount\|\|section\)/);
+  assert.match(main,/<SidebarAppShell scaffold=\{shell\.scaffold\}/);
+  assert.match(main,/<ExtensionCenterPage \{\.\.\.pageProps\}\/>/);
   assert.doesNotMatch(main,/createPortal\(<ExtensionRows/);
   assert.match(main,/createPortal\(<ExtensionRowMenu/);
   assert.match(main,/attachRowMenu\(element\)/);
