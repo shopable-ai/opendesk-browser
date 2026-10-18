@@ -16,6 +16,7 @@ on:
       - 'src/sidebar-tools/bridge.js'
       - 'scripts/prepare-public.mjs'
       - 'scripts/build-contract.mjs'
+      - 'scripts/bundle-provenance.mjs'
       - 'scripts/verify-package.mjs'
       - 'manifest.json'
       - 'official-tools/catalog.json'
