@@ -53,6 +53,17 @@ export async function commitScheduledMutation(commit,refreshView){
   try{await refreshView();return {result,refreshError:null};}
   catch(refreshError){return {result,refreshError};}
 }
+// The Host client can time out after a durable mutation (E_EFFECT_UNKNOWN),
+// and schedule-service reconciles alarms after committing a schedule. Only
+// known pre-write contract/revision rejections prove that nothing changed.
+const rejectedBeforeMutation=new Set(['E_SCHEMA','E_REVISION','E_REQUEST_CONFLICT','E_VERIFICATION']);
+export function describeScheduleMutationFailure(error,action='操作'){
+  const detail=String(error?.message||error||'Host 请求未完成').slice(0,240);
+  const confirmedRejection=rejectedBeforeMutation.has(error?.code);
+  return {uncertain:!confirmedRejection,message:confirmedRejection?
+    action+'未完成：'+detail:
+    action+'结果未知：'+detail+'。请重新读取真实状态核对，确认前不要重复操作。'};
+}
 /* Only UI choices; the storage/Alarm contract still accepts a concrete IANA
  * timeZone string. A detected device zone is a one-time default, not an auto
  * binding that silently shifts an existing scheduled plan. */
@@ -786,7 +797,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       message(refreshError?outcome+'，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新打开定时计划核对。':outcome,
         Boolean(refreshError));
-    }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
+    }catch(error){
+      const failure=describeScheduleMutationFailure(error,operation==='delete'?'删除计划':'修改计划');
+      if(failure.uncertain&&operation==='delete'){
+        const view=historyViews.get(plan.scheduleId);
+        if(view){view.deleteReview=false;renderDetail();}
+      }
+      message(failure.message,true);
+    }finally{busy=false;}
   }
   function switchKind(){
     const kind=get('schedule-kind').value;
@@ -1003,7 +1021,15 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       message(refreshError?'定时计划已保存，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新打开定时计划核对。':
         '定时计划已保存，Chrome Alarms 已按照持久计划对账',Boolean(refreshError));
-    }catch(error){message('无法保存计划：'+(error?.message||String(error)),true);}
+    }catch(error){
+      const failure=describeScheduleMutationFailure(error,'保存计划');
+      if(failure.uncertain){
+        // The first create may already exist; discard the old submit intent
+        // without discarding the user's form draft for manual reconciliation.
+        clearConfirmation();formDirty=true;
+      }
+      message(failure.message,true);
+    }
     finally{busy=false;get('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
@@ -1014,9 +1040,11 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
 
   async function toggleManagedTask(row,originList){
     if(busy)return;busy=true;
+    let rpcStarted=false;
     try{
       if(!row.enabled)await requireChromePermissions({api,request:{origins:originList
         .map(origin=>permissionPattern(origin))}});
+      rpcStarted=true;
       const {refreshError}=await commitScheduledMutation(
         ()=>client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,
           enabled:!row.enabled,expectedGeneration:row.generation??null,
@@ -1025,7 +1053,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       message(refreshError?outcome+'，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
         outcome+'；已重新读取安装状态',Boolean(refreshError));
-    }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
+    }catch(error){
+      message(rpcStarted?describeScheduleMutationFailure(error,row.enabled?'停用任务':'启用任务').message:
+        (error?.message||String(error)),true);
+    }finally{busy=false;}
   }
   async function copyManagedTask(row){
     if(busy)return;busy=true;
@@ -1188,7 +1219,16 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       message(refreshError?'固定版本已卸载，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
         '已卸载固定版本；关联计划需重新安装授权',Boolean(refreshError));
-    }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
+    }catch(error){
+      const failure=describeScheduleMutationFailure(error,'卸载任务');
+      if(failure.uncertain){
+        // Keep the stale row for inspection, but do not leave a destructive
+        // confirmation available for a blind second submission.
+        confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
+        get('schedule-manager-search').focus?.({preventScroll:true});
+      }
+      message(failure.message,true);
+    }finally{busy=false;}
   }
   async function open(view='list'){
     taskWorkbench.navigate('tasks');showPanel();show(view);message('');

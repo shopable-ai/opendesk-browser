@@ -606,11 +606,37 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const evidence=await viewportEvidence(client,sideSid,'sidepanel',report);
     report.screenshots.push(...evidence.map(x=>x.screenshot));
   }
+  // R34.3: the launch control lives inside an intentionally collapsed
+  // disclosure. Open it by a REAL pointer first; clicking a closed child
+  // merely hits #workspace-content and cannot create a visible runner tab.
+  await details(client,sideSid,'.schedule-storage-details');
   await click(client,sideSid,'#schedule-open-runner');
-  const runnerTarget=await deadline(async()=>{
-    const rows=(await client.send('Target.getTargets')).targetInfos;
-    return rows.find(x=>x.url?.includes('/ui/tool.html?')&&x.url.includes('scheduledRunner=1'));
-  },'user-opened visible scheduled RunHost tab',18000);
+  let runnerTarget;
+  try{
+    runnerTarget=await deadline(async()=>{
+      const rows=(await client.send('Target.getTargets')).targetInfos;
+      return rows.find(x=>x.url?.includes('/ui/tool.html?')&&x.url.includes('scheduledRunner=1'));
+    },'user-opened visible scheduled RunHost tab',18000);
+  }catch(error){
+    // Diagnostics ONLY, never a substitute for the real tab assertion.
+    // Do not synthesize a click or retry a possibly committed user gesture.
+    const targets=(await client.send('Target.getTargets').catch(()=>({targetInfos:[]}))).targetInfos
+      .filter(row=>row.type==='page').map(row=>({type:row.type,url:row.url?.slice(0,220)}));
+    const tabs=await evaluate(client,
+      'chrome.tabs.query({}).then(rows=>rows.map(row=>({id:row.id,url:row.url?.slice(0,220),status:row.status})))',
+      sideSid).catch(failure=>({diagnosticError:String(failure)}));
+    const ui=await evaluate(client,
+      '(()=>{const b=document.querySelector("#schedule-open-runner"),r=b?.getBoundingClientRect(),'+
+      'hit=r?document.elementFromPoint(r.left+r.width/2,r.top+r.height/2):null;return {'+
+      'buttonHidden:b?.hidden,buttonDisabled:b?.disabled,buttonHitId:hit?.id,'+
+      'buttonHitTag:hit?.tagName,buttonHitContains:!!b?.contains(hit),'+
+      'message:document.querySelector("#schedule-message")?.textContent,'+
+      'messageState:document.querySelector("#schedule-message")?.dataset?.state,'+
+      'activeView:document.querySelector("#schedule-list-view")?.hidden?"other":"list"}})()',
+      sideSid).catch(failure=>({diagnosticError:String(failure)}));
+    note('runner-open-diagnostics',{targets,tabs,ui,error:String(error?.message||error)});
+    throw error;
+  }
   runnerId=runnerTarget.targetId;
   const runnerSid=await attach(client,runnerId);
   const runnerContext=await deadline(async()=>{
