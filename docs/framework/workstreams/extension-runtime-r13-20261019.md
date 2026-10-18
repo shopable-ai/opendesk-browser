@@ -31,6 +31,6 @@
 
 ## 证据与不足
 
-首轮 Cloud R5.2 CI 曾因过时 React UI 测试失败（85 项中 84 PASS、1 FAIL）；已修复测试，但必须等待修复后实际 CI 回执。真实 Chrome/Mac/Native、独立安装更新、后台恢复、授权撤销、全部场景逐项实机验证、组合应用原子生命周期：**NOT_TESTED 或 NOT_IMPLEMENTED**，不报 95+。
+Cloud R5.2 GitHub Actions [#39157673765](https://github.com/shopable-ai/opendesk-browser/actions/runs/39157673765) 已 **SUCCESS**：云控协议/安全组件 85/85 PASS、Controller Authority 121/121 PASS，并通过受影响 Cloud Side Panel 验证。该组件/合同 CI 不等于真实 Chrome 原生验收或无人值守 Controller 验证。真实 Chrome/Mac/Native、独立安装更新、后台恢复、授权撤销、全部场景逐项实机验证、组合应用原子生命周期：**NOT_TESTED 或 NOT_IMPLEMENTED**，不报 95+。
 
 后续重点是把后台公共能力与组合生命周期变成真实可用的独立安装协议，并实现可见且 fenced 的无人值守 Controller 宿主；不得用文档或 Mock 代替交付。
