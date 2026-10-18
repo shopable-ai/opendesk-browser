@@ -12,13 +12,13 @@ import {SIDEBAR_TOOL_SHARED_UI_RUNTIME}
 const project=resolve('examples/sidebar-tools/adblock');
 const read=path=>readFile(resolve(project,path),'utf8');
 
-test('formal AdBlock 1.2.0 is the SINGLE source-built React 19 Shared UI tool',async()=>{
+test('AdBlock 1.2.1 candidate uses one compiled React 19 Shared UI tool',async()=>{
   const [pkg,config,jsx,entry,css,compiled]=await Promise.all([
     createSidebarToolPackage(project),read('tool.config.json'),read('src/App.jsx'),
     read('src/main.jsx'),read('src/style.css'),read('src/main.js')]);
   const meta=JSON.parse(config);
   assert.equal(pkg.id,'adblock');
-  assert.equal(pkg.version,'1.2.0');
+  assert.equal(pkg.version,'1.2.1');
   assert.deepEqual(pkg.capabilities,['adblock.control']);
   assert.equal(pkg.uiRuntime,SIDEBAR_TOOL_SHARED_UI_RUNTIME);
   assert.equal(pkg.html,'<div id="tool-app"></div>\n');
@@ -38,9 +38,15 @@ test('formal AdBlock 1.2.0 is the SINGLE source-built React 19 Shared UI tool',a
   const files=(await import('node:fs/promises')).readdir;
   assert.deepEqual((await files(project)).filter(name=>name.endsWith('.opendesk-tool.json')),
     ['adblock.opendesk-tool.json']);
-  const receipt=await checkSidebarToolProjectPackage(project);
-  assert.equal(receipt.status,'PROJECT_PACKAGE_MATCH');
-  assert.equal(receipt.installed,false,'package matching is not a Chrome install receipt');
+  const published=JSON.parse(await read('adblock.opendesk-tool.json'));
+  if(published.version===pkg.version){
+    const receipt=await checkSidebarToolProjectPackage(project);
+    assert.equal(receipt.status,'PROJECT_PACKAGE_MATCH');
+    assert.equal(receipt.installed,false,'package matching is not a Chrome install receipt');
+  }else{
+    assert.equal(published.version,'1.2.0',
+      '1.2.1 source candidate must not silently claim that 1.2.0 was replaced');
+  }
 });
 
 test('sandbox-owned JSX does not inherit Chrome DNR authority',async()=>{

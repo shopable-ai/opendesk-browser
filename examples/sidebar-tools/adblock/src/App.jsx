@@ -14,11 +14,14 @@ const valid=value=>value&&typeof value.enabled==='boolean'&&
   typeof value.rules?.verified==='boolean';
 function confirmed(result,checked,operation,payload){
   if(!valid(result)||!valid(checked)||!verified(result)||!verified(checked)||
+     result.toolEnabled!==true||checked.toolEnabled!==true||
+     result.restartRequired||checked.restartRequired||
      result.enabled!==checked.enabled||
      JSON.stringify(result.exceptions)!==JSON.stringify(checked.exceptions))return false;
   if(operation==='adblock.enable')return checked.enabled===true;
   if(operation==='adblock.disable')return checked.enabled===false;
   if(operation==='adblock.site.set')return checked.enabled===true&&
+    checked.currentSite?.status==='ready'&&checked.currentHost===payload.host&&
     checked.exceptions.includes(payload.host)===!payload.filtering;
   if(operation==='adblock.site.restore')return !checked.exceptions.includes(payload.host);
   return false;
@@ -43,6 +46,7 @@ function App(){
   const [view,setView]=React.useState('overview');
   const alive=React.useRef(true),reading=React.useRef(0),locked=React.useRef(false);
   const queued=React.useRef(false),current=React.useRef(null);
+  const contextRevision=React.useRef(0);
   const api=globalThis.OpenDeskTool;
   const refresh=React.useCallback(async(silent=false)=>{
     if(locked.current){queued.current=true;return;}
@@ -64,10 +68,19 @@ function App(){
     if(locked.current||!current.current)return;
     let needsReadback=false;
     locked.current=true;reading.current++;
+    const operationContext=contextRevision.current;
     setBusy(true);setProblem(false);setNotice('请在可信宿主中确认此次操作…');
     try{
       const result=await api.request(operation,payload);
       const checked=await api.request('adblock.status',{});
+      if(operationContext!==contextRevision.current){
+        needsReadback=true;
+        if(alive.current){
+          current.current=null;setState(null);setProblem(true);
+          setNotice('页面或工具在确认期间已切换，旧操作结果不用于当前网页；正在重新读取 Chrome 状态。');
+        }
+        return;
+      }
       if(!confirmed(result,checked,operation,payload))throw Error('Chrome DNR 规则回读不一致');
       if(!alive.current)return;
       current.current=checked;setState(checked);
@@ -76,7 +89,12 @@ function App(){
         :checked.enabled?'Chrome 已确认开启过滤。':'Chrome 已确认关闭过滤。');
     }catch(error){
       if(!alive.current)return;
-      const cancelled=error?.code==='E_CANCELLED'||/cancel|取消/i.test(errorText(error));
+      if(operationContext!==contextRevision.current){
+        needsReadback=true;current.current=null;setState(null);setProblem(true);
+        setNotice('页面或工具已切换，之前的操作结果不确定；正在读取当前 Chrome 状态。');
+        return;
+      }
+      const cancelled=error?.code='E_CANCELLED'||/cancel|取消/i.test(errorText(error));
       if(cancelled)setNotice('已取消，未提交这次更改。');
       else{
         current.current=null;setState(null);setProblem(true);
@@ -93,9 +111,12 @@ function App(){
     alive.current=true;
     const onVisible=()=>{if(!document.hidden)void refresh(true);};
     const onPageChanged=()=>{
-      // The sandbox bridge dispatches this event on OpenDeskTool.root, not
-      // window. Immediately discard the previous tab's host before its read.
+      // Invalidate both pending status reads and any already-confirmed write
+      // whose result belongs to a previous tab, page or tool generation.
+      contextRevision.current++;
+      reading.current++;
       current.current=null;setState(null);setLoading(true);
+      if(locked.current)queued.current=true;
       void refresh();
     };
     const onMessage=event=>{
