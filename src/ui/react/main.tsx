@@ -7,6 +7,7 @@ import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStat
 import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
 import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
+import {SchedulePlanRows} from './tabs/schedule.tsx';
 import {CloudOverviewText} from './tabs/cloud.tsx';
 import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
 import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
@@ -35,6 +36,11 @@ export function mountExtensionList(doc){
   const myWorkspace=doc.getElementById('task-selected-workspace');
   const myDetail=doc.getElementById('task-installed-detail');
   const myNodes=[myCount,myRows,myWorkspace,myDetail],myTasksMounted=myNodes.every(Boolean);
+  const schedulePlanList=doc.getElementById('schedule-plan-list');
+  const schedulePlansMounted=Boolean(schedulePlanList);
+  if(schedulePlansMounted&&
+    (schedulePlanList.dataset.opendeskReactOwner||schedulePlanList.childElementCount))
+    throw new Error('E_REACT_SCHEDULE_ALREADY_OWNED');
   if(myNodes.some(Boolean)&&!myTasksMounted)throw new Error('E_REACT_MY_PARTIAL_MOUNT');
   if(myTasksMounted&&[myCount,myRows,myDetail].some(node=>node.dataset.opendeskReactOwner))
     throw new Error('E_REACT_MY_ALREADY_OWNED');
@@ -150,6 +156,7 @@ export function mountExtensionList(doc){
     myCount.dataset.opendeskReactOwner='my-task-count';
     myDetail.dataset.opendeskReactOwner='my-task-detail';
   }
+  if(schedulePlansMounted)schedulePlanList.dataset.opendeskReactOwner='schedule-plan-rows';
   if(cloudOverviewMounted)for(const [key,node] of Object.entries(cloudNodes)){
     node.replaceChildren();node.dataset.opendeskReactOwner='cloud-'+key;
   }
@@ -216,6 +223,7 @@ export function mountExtensionList(doc){
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
   let debugModel=debugInitial;
   let myRowsModel={rows:[],selectedId:'',emptyText:'',onSelect:()=>{}};
+  let scheduleRowsModel=null;
   let cookiePilotHost=null;
   let bookmarkPilot=null;
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
@@ -237,6 +245,8 @@ export function mountExtensionList(doc){
       {myTasksMounted&&createPortal(<MyTaskCount value={myCountText}/>,myCount)}
       {myTasksMounted&&createPortal(<MyTaskRows {...myRowsModel} workspace={myWorkspace}/>,myRows)}
       {myTasksMounted&&createPortal(<MyTaskDetail value={myDetailText}/>,myDetail)}
+      {schedulePlansMounted&&scheduleRowsModel&&createPortal(
+        <SchedulePlanRows {...scheduleRowsModel}/>,schedulePlanList)}
       {cloudOverviewMounted&&Object.entries(cloudNodes).map(([key,node])=>
         createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
@@ -353,6 +363,20 @@ export function mountExtensionList(doc){
         typeof next.selectedId!=='string'||typeof next.emptyText!=='string')
         throw new Error('E_REACT_MY_SNAPSHOT');
       myRowsModel=next;paint();
+    },
+    schedulePlansMounted,
+    renderScheduledPlanRows(next){
+      if(disposed||!schedulePlansMounted)throw new Error('E_REACT_SCHEDULE_OWNER');
+      if(!next||!Array.isArray(next.plans)||
+        !['onOpen','onToggle','onEdit','onStop'].every(name=>typeof next[name]==='function'))
+        throw new Error('E_REACT_SCHEDULE_SNAPSHOT');
+      scheduleRowsModel=next;paint();
+    },
+    renderScheduledCurrentRun(runId){
+      if(disposed||!schedulePlansMounted||!scheduleRowsModel)return;
+      const next=typeof runId==='string'?runId:'';
+      if(scheduleRowsModel.currentRunId===next)return;
+      scheduleRowsModel={...scheduleRowsModel,currentRunId:next};paint();
     },
     renderCloudOverview(next){
       if(disposed||!cloudOverviewMounted)return;
@@ -476,6 +500,7 @@ export function mountExtensionList(doc){
         myRows.after(myWorkspace);
         for(const node of [myRows,myCount,myDetail])delete node.dataset.opendeskReactOwner;
       }
+      if(schedulePlansMounted)delete schedulePlanList.dataset.opendeskReactOwner;
       if(cloudOverviewMounted)for(const node of cloudValues)
         delete node.dataset.opendeskReactOwner;
       if(workflowMounted){

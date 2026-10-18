@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
-import {presentSchedulePlan,scheduleFireLabel,formatScheduleTime,schedulePlanIconPath,
-  schedulePlanStatusLabel,schedulePlanNeedsNotice} from '../../schedule-plan-presentation.js';
+import {presentSchedulePlan,scheduleFireLabel,formatScheduleTime} from '../../schedule-plan-presentation.js';
+import {SchedulePlanRows} from '../tabs/schedule.tsx';
 
 // Offline-only UI state. The installed TaskWorkbench and scheduler remain
 // the only authorities for task identity, drafts, installation and execution.
@@ -417,87 +417,28 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       <strong>{rows.find(p=>p.taskId===catalogSelected)?.title||'选择候选'}</strong>
       <p>安装前请核对来源、权限及版本。</p>
     </div>,reader)}
-    {createPortal(<>
-      {visiblePlans.length===0?<div className="schedule-empty od-stack" role="status">
-        <h3 className="od-page-title">尚无定时计划</h3>
-        <p className="schedule-empty-hint hint">点击右上角新建，添加第一条计划。</p>
-      </div>:visiblePlans.map(p=>{
-        const present=presentSchedulePlan(p,p.history);
-        const active=(p.history||[]).find(fire=>['ADMITTED','RUNNING'].includes(fire.status));
-        const canToggle=p.paused||p.triggerKind!=='once'||Number.isFinite(p.nextDueAt);
-        const toggle=()=>{
-          if(p.paused&&p.needsAttention)return;
-          setPlans(all=>all.map(item=>item.id===p.id?
-            {...item,paused:!item.paused,
-              nextDueAt:item.paused?(item.previewNextDueAt??item.nextDueAt):null}:item));
-          setFeedback('仅演示交互，未修改真实计划。');
-        };
-        const stopCurrent=()=>{
-          if(!active)return;
-          // This is explicitly an offline UI fixture, NOT a Host stop receipt.
-          setPlans(all=>all.map(item=>item.id===p.id?{...item,
-            history:item.history.map(fire=>fire.fireId===active.fireId?
-              {...fire,status:'STOPPED'}:fire)}:item));
-          setFeedback('仅演示停止按钮；真实执行未受影响。');
-          requestAnimationFrame(()=>{
-            const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
-              .find(row=>row.dataset.scheduleId===p.id);
-            card?.querySelector('.schedule-plan-open')?.focus({preventScroll:true});
-          });
-        };
-        return <article key={p.id} className="schedule-card od-surface"
-          data-schedule-id={p.id} onClick={event=>{
-            if(!event.target.closest('button,a,summary,input,select')){
-              setSelectedId(p.id);setRemoveConfirm(false);setView('detail');
-            }
-          }}>
-          <div className="schedule-card-head od-toolbar">
-            <div className="schedule-plan-title-row">
-              <button type="button" className="od-button od-button--quiet schedule-plan-open"
-                onClick={()=>{setSelectedId(p.id);setRemoveConfirm(false);setView('detail');}}>
-                {p.title}
-              </button>
-              <span className="schedule-state schedule-state-icon" data-tone={present.tone}
-                role="img" title={schedulePlanStatusLabel(present)}
-                aria-label={schedulePlanStatusLabel(present)}>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d={schedulePlanIconPath(present)}/></svg>
-              </span>
-            </div>
-            <div className="schedule-plan-actions od-toolbar" role="group" aria-label="计划快捷操作">
-              {active&&<button type="button"
-                className="od-icon-button schedule-plan-action schedule-action-stop"
-                data-schedule-action="stop" title="停止本次执行"
-                aria-label={'停止本次执行「'+p.title+'」'} onClick={stopCurrent}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="6" y="6" width="12" height="12" rx="2"/>
-                </svg>
-              </button>}
-              {canToggle&&<button type="button" className="od-icon-button schedule-plan-action"
-                data-schedule-action="toggle" disabled={Boolean(p.paused&&p.needsAttention)}
-                title={p.paused?'恢复计划（下次触发时执行）':'暂停后续计划'}
-                aria-label={(p.paused?'恢复计划':'暂停计划')+'「'+p.title+'」'}
-                onClick={toggle}>
-                {p.paused?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7Z"/></svg>:
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"/></svg>}
-              </button>}
-              <button type="button" className="od-icon-button schedule-plan-action"
-                data-schedule-action="edit"
-                title="编辑计划" aria-label={'编辑计划「'+p.title+'」'} onClick={()=>showForm(p)}>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4Z"/></svg>
-              </button>
-            </div>
-          </div>
-          <p className="schedule-plan-meta schedule-timing-line">
-            <span className="schedule-plan-frequency">{present.frequencyText}</span>
-            <span className="schedule-timing-separator"> · </span>
-            <span className="schedule-next-time">{present.nextText}</span>
-          </p>
-          {(p.needsAttention||schedulePlanNeedsNotice(present))&&present.recentText&&
-            <p className="schedule-recent-result" data-tone={present.recentTone}>
-              最近：{present.recentText}</p>}
-        </article>;
-      })}
-    </>,list)}
+    {createPortal(<SchedulePlanRows plans={visiblePlans} canStop={()=>true}
+      onOpen={id=>{setSelectedId(id);setRemoveConfirm(false);setView('detail');}}
+      onToggle={plan=>{
+        if(plan.paused&&plan.needsAttention)return;
+        setPlans(all=>all.map(item=>item.id===plan.id?
+          {...item,paused:!item.paused,
+            nextDueAt:item.paused?(item.previewNextDueAt??item.nextDueAt):null}:item));
+        setFeedback('仅演示交互，未修改真实计划。');
+      }}
+      onEdit={plan=>showForm(plan)}
+      onStop={(plan,fire)=>{
+        // Offline fixture only; never present a simulated stop as a Host receipt.
+        setPlans(all=>all.map(item=>item.id===plan.id?{...item,
+          history:item.history.map(entry=>entry.fireId===fire.fireId?
+            {...entry,status:'STOPPED'}:entry)}:item));
+        setFeedback('仅演示停止按钮；真实执行未受影响。');
+        requestAnimationFrame(()=>{
+          const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+            .find(row=>row.dataset.scheduleId===plan.id);
+          card?.querySelector('.schedule-plan-open')?.focus({preventScroll:true});
+        });
+      }}/>,list)}
     {createPortal(selected&&<div className="od-stack schedule-detail-card">
       <section className="schedule-detail-summary od-surface od-surface--padded od-stack">
         <span className="schedule-state" data-tone={selectedPresentation.tone}>

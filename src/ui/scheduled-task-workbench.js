@@ -129,7 +129,7 @@ export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
 }
 
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
-  document:doc=globalThis.document,onClose=()=>{},onOpen=()=>{}}){
+  document:doc=globalThis.document,reactUI=null,onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),listeners=[];
   // Single Header owns navigation. Host availability remains in the list.
   get('schedule-create').setAttribute('aria-label','新建定时计划');
@@ -451,6 +451,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       .map(row=>row.dataset.fireId));
   }
   function syncStopButtons(){
+    if(reactUI?.schedulePlansMounted){
+      reactUI.renderScheduledCurrentRun(host.currentRun);
+      return; // React alone owns action availability after the handoff.
+    }
     for(const button of get('schedule-plan-list').querySelectorAll('[data-schedule-action="stop"]')){
       button.disabled=button.dataset.runId!==host.currentRun;
       button.title=button.disabled?'仅当前运行宿主可停止此执行；请到运行页核对':
@@ -478,6 +482,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function renderPlans(){
     rememberDetailState();
     const parent=get('schedule-plan-list');
+    const reactOwned=Boolean(reactUI?.schedulePlansMounted),reactRows=[];
+    const publishReactRows=()=>reactUI.renderScheduledPlanRows({
+      plans:reactRows,currentRunId:host.currentRun||'',
+      onOpen:openDetail,onToggle:plan=>void change(plan,plan.paused?'resume':'pause'),
+      onEdit:edit,onStop:(plan,fire)=>void stopCardRun(plan,fire)
+    });
     const focused=doc.activeElement?.closest?.('.schedule-card');
     const focusedId=focused&&parent.contains(focused)?focused.dataset.scheduleId:null;
     const focusAction=doc.activeElement?.dataset?.scheduleAction;
@@ -486,7 +496,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         '.schedule-plan-actions [data-schedule-action="'+focusAction+'"]':null):null;
     const ids=new Set(allPlans.map(plan=>plan.scheduleId));
     for(const id of historyViews.keys())if(!ids.has(id))historyViews.delete(id);
-    parent.replaceChildren();
+    if(!reactOwned)parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
     const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
     const paused=allPlans.filter(p=>p.paused).length;
@@ -497,6 +507,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       `共 ${allPlans.length} 个计划 · ${enabled} 个已安排 · ${paused} 个已暂停 · ${running} 个运行中`:
       '');
     if(!allPlans.length){
+      if(reactOwned){publishReactRows();renderDetail();return;}
       const empty=element(doc,'div','schedule-empty od-stack');
       empty.setAttribute('role','status');
       const icon=element(doc,'span','schedule-empty-icon','◷');
@@ -507,8 +518,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       renderDetail();return;
     }
     for(const plan of sorted){
-      const card=element(doc,'article','schedule-card od-surface');
-      card.dataset.scheduleId=plan.scheduleId;
       const previous=historyViews.get(plan.scheduleId);
       const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false};
       const latest=plan.history||[];
@@ -518,6 +527,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       view.records=mergeScheduleHistoryView(latest,overlap?view.records:[]);
       if(!previous||!overlap)view.hasMore=latest.length===20;
       historyViews.set(plan.scheduleId,view);
+      if(reactOwned){
+        reactRows.push({...plan,history:view.records});
+        continue;
+      }
+      const card=element(doc,'article','schedule-card od-surface');
+      card.dataset.scheduleId=plan.scheduleId;
       const presentation=presentSchedulePlan(plan,view.records);
       const head=element(doc,'div','schedule-card-head od-toolbar');
       const titleRow=element(doc,'div','schedule-plan-title-row');
@@ -583,6 +598,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       });
       parent.append(card);
     }
+    if(reactOwned)publishReactRows();
     renderDetail();
     if(focusedId&&focusedSelector){
       const restored=[...parent.querySelectorAll('.schedule-card')].find(card=>

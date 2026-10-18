@@ -200,7 +200,7 @@ const scheduleStatus=message=>{
   }
 };
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
-  api:chrome,document,onOpen:()=>scheduleStatus(scheduleHost?
+  api:chrome,document,reactUI:extensionList,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
 function startScheduledHost(){
   if(scheduleHost)return;

@@ -30,6 +30,7 @@ const inputs=[
   'src/ui/react/tabs/debug.tsx',
   'src/ui/react/tabs/workflow.tsx',
   'src/ui/react/tabs/tasks.tsx',
+  'src/ui/react/tabs/schedule.tsx',
   'src/ui/react/tabs/cloud.tsx',
   'src/ui/react/preview/sidebar-six-preview.tsx',
   'src/ui/react/preview/sidebar-six-my-flows.tsx',
