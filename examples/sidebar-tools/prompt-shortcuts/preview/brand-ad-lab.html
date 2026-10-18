@@ -370,11 +370,14 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
   en:"Polish the following text while preserving its meaning. Keep a natural tone, provide the revision, then explain three key changes.",
   ja:"元の意味を変えずに文章を推敲してください。自然なトーンを保ち、修正稿と変更点3つを示してください。"
  };
- const state={lang:"zh",placement:"A1",format:"logo",width:360,theme:"light",enabled:true,long:false,tipOpen:true,view:"list"};
+ const initialLang=new URLSearchParams(location.search).get("lang");
+ const state={lang:["zh","en","ja"].includes(initialLang)?initialLang:"zh",placement:"A1",format:"logo",width:360,theme:"light",enabled:true,long:false,tipOpen:true,view:"list"};
  const closed=new Set();
  const L=key=>translations[state.lang][key]||key;
  const label=arr=>arr[["zh","en","ja"].indexOf(state.lang)];
  const setText=(id,text)=>{$(id).textContent=text;};
+ let suppressShortcutFocus=false;
+ function returnToShortcut(){suppressShortcutFocus=true;$("shortcut").focus();suppressShortcutFocus=false;}
  const placeSelect=$("placement"),formatSelect=$("format");
  for(const id of Object.keys(placementNames)){const o=document.createElement("option");o.value=id;o.textContent=id+" · "+label(placementNames[id]);placeSelect.append(o);}
  for(const id of Object.keys(formats)){const o=document.createElement("option");o.value=id;o.textContent=label(formats[id]);formatSelect.append(o);}
@@ -386,6 +389,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
   document.querySelectorAll("[data-i18n-title]").forEach(el=>{el.title=L(el.dataset.i18nTitle);el.setAttribute("aria-label",L(el.dataset.i18nTitle));});
   document.querySelectorAll("[data-i18n-aria]").forEach(el=>el.setAttribute("aria-label",L(el.dataset.i18nAria)));
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=L(el.dataset.i18nPlaceholder));
+  for(const [id,key] of [["placement","placement"],["format","format"],["language","language"],["theme","theme"],["tip","promptName"],["draft","draftPlace"],["sidePanel","panelDemo"]])$(id).setAttribute("aria-label",L(key));
   for(const o of placeSelect.options)o.textContent=o.value+" · "+label(placementNames[o.value]);
   for(const o of formatSelect.options)o.textContent=label(formats[o.value]);
  }
@@ -470,7 +474,6 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
   $("language").value=state.lang;$("theme").value=state.theme;placeSelect.value=state.placement;formatSelect.value=state.format;
   $("adsEnabled").checked=state.enabled;$("longPrompt").checked=state.long;
   for(const b of document.querySelectorAll("[data-width]"))b.setAttribute("aria-pressed",String(Number(b.dataset.width)===state.width));
-  const disabled=state.placement==="A1"||state.format==="none"||state.format==="logo"||state.format==="affiliate";
   const reason=!state.enabled?L("adOff"):state.placement==="A1"?L("onlyBrand"):state.long&&(state.placement==="A2"||state.placement==="A3")?L("hiddenLong"):closed.has(state.placement+"|"+state.format)?L("closed"):L("statusReady");
   setText("stateSummary",L("summaryPrefix")+" · "+state.placement+" / "+label(formats[state.format])+" · "+reason+(state.placement==="A8"||state.placement==="A9"?" "+L("disabledHint"):""));
   $("tip").hidden=!state.tipOpen;
@@ -499,12 +502,12 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
  function showTip(){cancelTipHide();state.tipOpen=true;render();}
  $("shortcut").addEventListener("mouseenter",showTip);
  $("shortcut").addEventListener("mouseleave",scheduleTipHide);
- $("shortcut").addEventListener("focus",showTip);
+ $("shortcut").addEventListener("focus",()=>{if(!suppressShortcutFocus)showTip();});
  $("shortcut").addEventListener("blur",scheduleTipHide);
  $("tip").addEventListener("mouseenter",cancelTipHide);
  $("tip").addEventListener("mouseleave",scheduleTipHide);
  $("tip").addEventListener("focusout",scheduleTipHide);
- $("closeTip").addEventListener("click",()=>{state.tipOpen=false;render();$("shortcut").focus();});
+ $("closeTip").addEventListener("click",()=>{state.tipOpen=false;render();returnToShortcut();});
  function insertDraft(){
   const draft=$("draft"),body=sample[state.lang],before=draft.value;
   draft.value=before+(before&&!before.endsWith("\n")?"\n":"")+body;
@@ -521,7 +524,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
  $("cancelEdit").addEventListener("click",()=>view("list"));
  $("saveEdit").addEventListener("click",()=>{view("list");announce(L("previewSaved"));});
  $("dialogClose").addEventListener("click",()=>$("partnerDialog").close());
- document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("partnerDialog").open&&state.tipOpen){state.tipOpen=false;render();$("shortcut").focus();}});
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("partnerDialog").open&&state.tipOpen){state.tipOpen=false;render();returnToShortcut();}});
  $("placement").addEventListener("change",e=>setPlacement(e.target.value));
  $("format").addEventListener("change",e=>{state.format=e.target.value;render();});
  $("language").addEventListener("change",e=>{state.lang=e.target.value;applyLanguage();render();});
