@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenDesk · 广告宇宙交互实验室 R2.8（仅原型）</title>
+<title>OpenDesk · 广告宇宙交互实验室 R2.9（仅原型）</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 离线品牌、广告位置、截图及招商交互实验。无真实广告、无数据收集。">
 <style>
 :root {
@@ -121,12 +121,13 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="./brand-ad-lab-r28.css">
+<link rel="stylesheet" href="./brand-ad-lab-r29.css">
 </head>
 <body>
 <header class="top">
  <div class="identity"><span class="od-mark" aria-hidden="true">OD</span><div>
   <h1 data-i18n="title">品牌 × 广告布局实验室</h1>
-  <p data-i18n="subtitle">Prompt Shortcuts · R2.8 · 离线 HTML 原型</p>
+  <p data-i18n="subtitle">Prompt Shortcuts · R2.9 · 离线 HTML 原型</p>
  </div></div>
  <div class="top-actions">
   <span class="small-note" data-i18n="prototype">仅模拟 · 未投放 · 非正式合作</span>
@@ -260,7 +261,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
  const $=id=>document.getElementById(id);
  const translations={
   zh:{
-   title:"品牌 × 广告布局实验室",subtitle:"Prompt Shortcuts · R2.8 · 离线 HTML 原型",prototype:"仅模拟 · 未投放 · 非正式合作",back:"← 返回完整交互预览",
+   title:"品牌 × 广告布局实验室",subtitle:"Prompt Shortcuts · R2.9 · 离线 HTML 原型",prototype:"仅模拟 · 未投放 · 非正式合作",back:"← 返回完整交互预览",
    placement:"广告位置（A1–A10）",format:"广告形式",language:"界面语言",theme:"主题",light:"浅色",dark:"深色",width:"侧边栏宽度",zoom:"预览缩放",
    adsEnabled:"允许演示广告（取消即全部关闭）",longPrompt:"长提示词压力场景",captures:"截图场景",shot1:"① 悬浮窗 + Logo",shot2:"② 悬浮赞助 + Logo",shot3:"③ 编辑页 + 招商卡",reset:"恢复关闭的广告位",
    fakePage:"网页模拟",siteName:"模拟聊天网页",fakeSite:"不是真实 ChatGPT 页面",notInjected:"未向任何网站注入广告",hoverHint:"悬浮预览，点击插入模拟草稿",promptName:"润色文字",
@@ -283,7 +284,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    disabledHint:"A8/A9 只在模拟网页渲染，正式注入被明确排除。",riskShared:"仅为布局评估；任何上线均需明确披露、用户可关闭和政策审核。"
   },
   en:{
-   title:"Brand & Ad Placement Lab",subtitle:"Prompt Shortcuts · R2.8 · Offline HTML Prototype",prototype:"Prototype only · No live sponsors",back:"← Back to full interactive preview",
+   title:"Brand & Ad Placement Lab",subtitle:"Prompt Shortcuts · R2.9 · Offline HTML Prototype",prototype:"Prototype only · No live sponsors",back:"← Back to full interactive preview",
    placement:"Placement (A1–A10)",format:"Ad format",language:"Language",theme:"Theme",light:"Light",dark:"Dark",width:"Side panel width",zoom:"Preview zoom",
    adsEnabled:"Show demo ads (uncheck to hide all)",longPrompt:"Long prompt stress test",captures:"Screenshot presets",shot1:"① Tooltip + Logo",shot2:"② Sponsor + Logo",shot3:"③ Edit form + Sponsor",reset:"Restore dismissed ads",
    fakePage:"Mock page",siteName:"Simulated chat page",fakeSite:"Not real ChatGPT",notInjected:"No third-party injections",hoverHint:"Hover to preview, click to insert into demo draft",promptName:"Polish text",
@@ -306,7 +307,7 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
    disabledHint:"A8/A9 render only in a fake page. Live injection is out of scope.",riskShared:"All launch candidates need disclosure, user controls and policy review."
   },
   ja:{
-   title:"ブランド・広告配置ラボ",subtitle:"Prompt Shortcuts · R2.8 · オフライン HTML 試作",prototype:"試作のみ · 実際のスポンサーなし",back:"← 既存プレビューへ戻る",
+   title:"ブランド・広告配置ラボ",subtitle:"Prompt Shortcuts · R2.9 · オフライン HTML 試作",prototype:"試作のみ · 実際のスポンサーなし",back:"← 既存プレビューへ戻る",
    placement:"広告配置（A1–A10）",format:"広告の種類",language:"言語",theme:"テーマ",light:"ライト",dark:"ダーク",width:"サイドパネル幅",zoom:"プレビュー倍率",
    adsEnabled:"広告の試作を表示（解除ですべて非表示）",longPrompt:"長いプロンプトを表示",captures:"スクリーンショット例",shot1:"① ポップアップ + Logo",shot2:"② スポンサー + Logo",shot3:"③ 編集画面 + 広告",reset:"閉じた広告を復元",
    fakePage:"模擬ページ",siteName:"模擬チャット画面",fakeSite:"実際の ChatGPT ではありません",notInjected:"実サイトへの広告挿入なし",hoverHint:"ホバーで表示、クリックで模擬下書きに挿入",promptName:"文章を推敲",
@@ -548,5 +549,6 @@ dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}d
 })();
 </script>
 <script src="./brand-ad-lab-r28.js"></script>
+<script src="./brand-ad-lab-r29.js"></script>
 </body>
 </html>
