@@ -158,3 +158,32 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
 .r28-zone .r28-risk-banner{font-size:9px;max-width:100%;overflow-wrap:anywhere}
 #r28SlotS01:empty,#r28SlotS02:empty{display:none}
 .panel-footer #r28SlotS03 button{padding:3px 6px;font-size:9px}
+
+/* R2.9 P0 repairs. Hidden takes precedence over legacy R2.7 ad container. */
+#railSponsor[hidden],.sim-site[data-r28-legacy=true] #railSponsor[hidden]{display:none!important}
+.quick-rail .r29-rail-close{position:absolute;right:-6px;bottom:-8px;z-index:3;min-width:18px;width:18px;height:18px;padding:0;border-radius:50%;font-size:13px;line-height:1;background:var(--surface);border:1px solid var(--line);color:var(--text)}
+.quick-rail .r29-rail-close[hidden]{display:none!important}
+.r28-zone{position:relative}
+.r28-zone:hover,.r28-zone:focus-within{opacity:1!important;border-color:var(--brand);background:var(--web-soft);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 16%,transparent)}
+.r29-zone-trigger{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;width:100%;min-height:22px;border:0;background:transparent!important;color:inherit!important;border-radius:7px;padding:0 14px 0 0;text-align:center;font-size:inherit;overflow-wrap:anywhere}
+.r29-zone-trigger:hover{background:transparent}
+.r29-zone-trigger:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.r29-spot-dismiss{position:absolute;z-index:2;right:-5px;top:-8px;width:22px;height:22px;min-width:22px;padding:0;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:15px;line-height:1}
+.r29-spot-dismiss:hover,.r29-spot-dismiss:focus-visible{border-color:var(--brand);background:var(--surface-soft)}
+.r28-selected-art{display:block;flex-basis:100%;min-width:0}
+.r28-selected-art .r28-demo-ad{width:100%;cursor:default}
+.r28-zone[data-spot=C06] .r28-selected-art{display:block}
+.r28-demo-ad[data-layout=brand-logo] .r28-ad-copy,.r28-demo-ad[data-layout=brand-hover] .r28-ad-copy small{display:none}
+.r28-demo-ad[data-layout=brand-logo]{max-width:66px;justify-content:center}
+.r28-demo-ad[data-layout=brand-attribution]{min-height:22px;padding:4px 7px}
+.r28-demo-ad[data-layout=brand-attribution] .r28-ad-icon{width:17px;height:17px;font-size:7px}
+.r28-demo-ad[data-layout=brand-attribution] .r28-ad-copy small{display:none}
+.r28-demo-ad[data-layout=hover-card],.r28-demo-ad[data-layout=expand-card]{border-style:dashed}
+.r28-demo-ad[data-layout=event]{border-left:4px solid var(--brand)}
+.r28-demo-ad[data-layout=affiliate]{border-style:dotted}
+.r28-demo-ad[data-layout=icon] .r28-ad-copy,.r28-demo-ad[data-layout=brand-hover] .r28-ad-copy small{display:none}
+#editView[data-r29-form=new] #r28SlotS05,#editView[data-r29-form=edit] #r28SlotS04{display:none!important}
+@media(max-width:450px){
+ .r29-spot-dismiss{width:24px;height:24px}
+ .r28-zone[data-r28-current=true] .r29-zone-trigger{padding-right:10px}
+}
