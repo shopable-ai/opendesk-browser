@@ -109,6 +109,16 @@ try{
   await click('#task-manage-toggle');
   await until('document.getElementById("task-manage-toggle").getAttribute("aria-pressed")==="true"');
   await until('document.querySelectorAll(".task-card-manage").length===2');
+  const managementRow=await evaluate('(()=>{const group=document.querySelector(".task-card-group.selected");'+
+    'const row=group?.querySelector(":scope > .task-card");'+
+    'const icon=group?.querySelector(":scope > .task-card-manage");'+
+    'const form=group?.querySelector(":scope > .task-selected-workspace");'+
+    'if(!row||!icon||!form)return {order:false,aligned:false};'+
+    'const a=row.getBoundingClientRect(),b=icon.getBoundingClientRect();'+
+    'return {order:icon.previousElementSibling===row&&icon.nextElementSibling===form,'+
+    'aligned:b.top>=a.top&&b.bottom<=a.bottom}})()');
+  assert.deepEqual(managementRow,{order:true,aligned:true},
+    'Task management icon must be aligned beside row, BEFORE native detail in DOM and tab order');
   await click('.task-card-manage');
   await until('document.getElementById("task-tools").open');
   await click('#task-uninstall');

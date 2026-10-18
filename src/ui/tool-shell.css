@@ -950,7 +950,8 @@
 
 /* R29: host action groups share a compact trailing edge; fields retain 36px. */
 .od-action-group{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);min-width:0}
-.task-section-copy{display:flex;align-items:baseline;flex-wrap:nowrap;gap:var(--space-1);min-width:0}
+.task-section-copy{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:var(--space-1);row-gap:0;min-width:0}
+.task-section-copy>strong{white-space:nowrap}
 .cloud-panel-actions{flex:none;margin-inline-start:auto;gap:var(--space-2)}
 #workbench-tasks #cloud-hosting>.cloud-actions{justify-content:flex-end;align-items:center}
 #workbench-tasks #cloud-hosting>.cloud-actions>button{flex:0 0 auto;min-height:34px;padding:var(--space-1) var(--space-3);font-size:12px;line-height:1.45}

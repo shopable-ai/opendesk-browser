@@ -45,9 +45,13 @@ export function MyTaskRows({rows=[],selectedId='',workspace=null,emptyText='',on
   React.useLayoutEffect(()=>{
     if(!workspace)return;
     const selected=selectedGroup.current,holder=selected||fallback.current;
-    if(holder&&workspace.parentNode!==holder)holder.append(workspace);
+    // React may insert a management button after the borrowed workspace.
+    // Keep the native workspace LAST and the management button next to the
+    // task row, in visual AND keyboard order, without remounting any field.
+    if(holder&&(workspace.parentNode!==holder||(selected&&holder.lastElementChild!==workspace)))
+      holder.append(workspace);
     workspace.hidden=!selected;
-  },[rows,selectedId,expanded,workspace]);
+  },[rows,selectedId,expanded,workspace,manageMode]);
   return <>
     {rows.length===0&&<p className="task-search-empty">{emptyText}</p>}
     {rows.map(row=><div key={row.taskId}
