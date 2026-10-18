@@ -7,6 +7,7 @@ on:
       - 'tests/framework/page-browser-ui-r243-cycles.mjs'
       - 'tests/framework/page-browser-worker-r243-cft.mjs'
       - 'src/ui/script-editor.js'
+      - 'src/ui/tool-shell.js'
       - 'src/ui/page-component-preparer.js'
       - 'src/ui/page-component-compiler-worker.js'
       - 'src/libs/page-frameworks/**'
@@ -26,10 +27,10 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate stress fixture syntax without executing Page code
         run: node --check tests/framework/page-browser-ui-r243-cycles.mjs
-      - name: Audit and build original MV3 package
+      - name: Audit and build original MV3 Developer Edition package
         run: |
           npm run check
-          npm run build
+          npm run build:developer
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
@@ -39,6 +40,7 @@ jobs:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
           OPENDESK_R243_BROWSER_FULL_UI: '1'
           OPENDESK_R243_BROWSER_STRESS: '1'
+          OPENDESK_DEV_PACKAGE_DIR: dist/production-developer
           OPENDESK_DEV_EVIDENCE: .runtime/tests/page-browser-ui-r243-40
           OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
         run: node tests/framework/page-browser-worker-r243-cft.mjs
