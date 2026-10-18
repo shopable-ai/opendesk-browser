@@ -52,6 +52,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     [PROMPT_SITE_STORE,grants]
   ]);
   const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map(),runtimeMessages=new Set();
+  const mutationObservers=[],intervals=[];
   // Preserve 3s/5s toast timeouts without making the Node suite wait for them.
   const toastTimers=new Map();let nextToastTimer=100000;
   const fireToast=()=>{
@@ -71,9 +72,14 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     },
     clearTimeout(handle){toastTimers.delete(handle);clearTimeout(handle);},
     clearInterval(){},
-    setInterval(){return 1;},
+    setInterval(fn){intervals.push(fn);return intervals.length;},
     navigator:{clipboard:{writeText:async text=>{if(rejectCopy)throw Error('剪贴板未授权');copied.push(text);}}},
-    MutationObserver:class{observe(){}disconnect(){}}
+    MutationObserver:class{
+      constructor(callback){this.callback=callback;mutationObservers.push(this);}
+      observe(target){this.target=target;}
+      disconnect(){this.target=null;}
+      notify(records){if(this.target)this.callback(records);}
+    }
   };
   win.top=win;
   const main=mockElement('main'),editor=mockElement('DIV');
@@ -118,7 +124,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     ?.shadow?.children.find(item=>item.tagName==='nav');
   const buttons=()=>rail()?.children.filter(item=>item.className.includes('item'))||[];
   return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,
-    docEvents,runtimeMessages,toastTimers,fireToast};
+    docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,intervals};
 }
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -1003,4 +1009,136 @@ test('R2.7 storage-confirmed create/edit/reorder/delete/import and enable change
     assert.equal(f.runtimeMessages.size,1,'no duplicate trusted runtime handlers');
   }finally{f.controller.dispose();}
   assert.equal(f.siteEvents.size,0);
+});
+
+
+// R2.8: Regressions for ChatGPT history navigation and React remounts.
+// These use the production controller and a simulated DOM/storage, not an
+// installed extension or a real chatgpt.com session.
+test('R2.8 history conversation navigation restores one dock on the new composer',async()=>{
+  const f=await readyPage();
+  try{
+    const oldHost=f.host(),oldDraft=f.editor.textContent;
+    const nextMain=mockElement('main'),nextEditor=mockElement('DIV');
+    nextMain.getBoundingClientRect=()=>regionRect(420,60,700,700);
+    nextEditor.isContentEditable=true;nextEditor.setAttribute('contenteditable','true');
+    nextEditor.textContent='新会话草稿';
+    nextEditor.getBoundingClientRect=()=>regionRect(500,570,550,70);
+    nextEditor.closest=selector=>selector==='main'?nextMain:null;
+    nextEditor.parentElement=nextMain;
+    nextEditor.focus=()=>{f.doc.activeElement=nextEditor;};
+    f.doc.querySelectorAll=selector=>selector==='main'?[nextMain]:
+      selector.startsWith('main ')?[nextEditor]:[];
+    f.doc.querySelector=selector=>selector==='main'||selector==='main#main'?nextMain:null;
+    f.doc.execCommand=(command,_show,value)=>{
+      f.calls.push({command,value});nextEditor.textContent+=value;return true;
+    };
+    f.win.location.href=CHATGPT_ORIGIN+'/c/history-conversation';
+    oldHost.remove(); // Site DOM rewrite removed the extension-owned node.
+    f.mutationObservers[0].notify([{target:f.doc.body}]);
+    await settle();
+    assert.equal(f.host(),oldHost,'reuse the original host/shadow, do not duplicate');
+    assert.equal(f.host().hidden,false,'dock visible in new conversation');
+    assert.equal(f.host().style.left,'432px','re-anchor to the new conversation area');
+    assert.equal(f.buttons().length,1,'exactly one shortcut after navigation');
+    assert.equal(f.siteEvents.size,1,'single storage listener');
+    f.buttons()[0].emit('click',{isTrusted:true});await settle();
+    assert.equal(nextEditor.textContent,'新会话草稿\n'+f.row.body);
+    assert.equal(f.editor.textContent,oldDraft,'previous composer untouched');
+    assert.equal(f.calls.length,1,'one native insertion, no automatic send');
+    assert.deepEqual(f.copied,[],'no fallback copy on confirmed insertion');
+  }finally{f.controller.dispose();}
+});
+
+test('R2.8 recover same-URL host detach, including a replaced html root',async()=>{
+  const f=await readyPage();
+  try{
+    const host=f.host(),newRoot=mockElement('html'),newBody=mockElement('body');
+    newRoot.append(newBody);
+    host.remove();
+    f.doc.documentElement=newRoot;f.doc.body=newBody;
+    f.intervals[0](); // Bounded fallback covers a replaced observed document root.
+    await settle();
+    const hosts=newRoot.children.filter(node=>node.attributes['data-opendesk-prompts']!==undefined);
+    assert.deepEqual(hosts,[host],'re-attach existing host only once');
+    assert.equal(host.hidden,false);
+    assert.equal(f.mutationObservers.length,1,'never allocate a second observer');
+    assert.equal(f.mutationObservers[0].target,newRoot,'observe the current root');
+    f.intervals[0]();await settle();
+    assert.equal(newRoot.children.filter(node=>node===host).length,1,'periodic checks are idempotent');
+  }finally{f.controller.dispose();}
+});
+
+test('R2.8 composer temporarily absent and CSS-hidden old main cannot strand the dock',async()=>{
+  const f=await readyPage();
+  try{
+    const oldMain=f.main,newMain=mockElement('main');
+    newMain.getBoundingClientRect=()=>regionRect(530,65,700,620);
+    f.doc.querySelectorAll=selector=>selector==='main'?[oldMain,newMain]:[];
+    f.doc.querySelector=selector=>selector==='main'||selector==='main#main'?oldMain:null;
+    f.win.getComputedStyle=node=>({display:'block',visibility:node===oldMain?'hidden':'visible',opacity:'1'});
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().hidden,false);
+    assert.equal(f.host().style.left,'542px','ignore the CSS-hidden previous main');
+    f.doc.querySelectorAll=()=>[];
+    f.doc.querySelector=()=>null;
+    f.mutationObservers[0].notify([{target:f.doc.body}]);await settle();
+    assert.equal(f.host().hidden,true,'hide only while no live area exists');
+    f.doc.querySelectorAll=selector=>selector==='main'?[newMain]:[];
+    f.doc.querySelector=selector=>selector==='main'||selector==='main#main'?newMain:null;
+    f.mutationObservers[0].notify([{target:f.doc.body}]);await settle();
+    assert.equal(f.host().hidden,false,'restore automatically without a reload');
+    assert.equal(f.host().style.left,'542px');
+  }finally{f.controller.dispose();}
+});
+
+test('R2.8 a same-URL editor replacement during permission read never modifies the new draft',async()=>{
+  const f=await readyPage();
+  try{
+    const nativeGet=f.api.storage.local.get;
+    let release;
+    f.api.storage.local.get=()=>new Promise(resolve=>{release=resolve;});
+    f.buttons()[0].emit('click',{isTrusted:true});
+    assert.equal(typeof release,'function');
+    const replacement=mockElement('DIV');
+    replacement.isContentEditable=true;replacement.setAttribute('contenteditable','true');
+    replacement.textContent='不要修改这个草稿';
+    f.doc.querySelectorAll=selector=>selector==='main'?[f.main]:
+      selector.startsWith('main ')?[replacement]:[];
+    release(await nativeGet(KEYS_FOR_PENDING_READ));
+    await settle();
+    assert.equal(f.calls.length,0,'must not write to replaced composer');
+    assert.equal(replacement.textContent,'不要修改这个草稿');
+    assert.deepEqual(f.copied,[],'stale click must not change clipboard');
+    assert.match(f.panel('feedback').textContent,/输入框已切换/);
+  }finally{f.controller.dispose();}
+});
+
+test('R2.8 temporary storage read failure recovers; disable still blocks revival',async()=>{
+  const f=await readyPage();
+  try{
+    const oldGet=f.api.storage.local.get;let reads=0;
+    f.api.storage.local.get=async keys=>{
+      reads++;if(reads===1)throw Error('transient storage failure');
+      return oldGet(keys);
+    };
+    f.win.location.href=CHATGPT_ORIGIN+'/c/another-history-conversation';
+    f.events.get('popstate')();await settle();
+    assert(reads>=2,'bounded retry reads storage again after transient failure');
+    assert.equal(f.buttons().length,1,'recovers without manual refresh');
+    assert.equal(f.host().hidden,false);
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(f.buttons().length,0);
+    f.intervals[0]();await settle();
+    assert.equal(f.buttons().length,0,'disabled extension never resurrects buttons');
+  }finally{f.controller.dispose();}
+});
+
+test('R2.8 long history scrolling keeps the shortcuts in the visible conversation slice',async()=>{
+  const f=await readyPage();
+  try{
+    f.main.getBoundingClientRect=()=>regionRect(260,-2000,900,5000);
+    f.events.get('scroll')();await settle();
+    assert.equal(f.host().style.top,'384px','center the visible viewport, not a far-away document midpoint');
+  }finally{f.controller.dispose();}
 });
