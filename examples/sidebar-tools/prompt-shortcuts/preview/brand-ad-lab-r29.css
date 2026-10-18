@@ -90,3 +90,53 @@
 .r29-sample[data-format=hero] .r29-sample-mark{width:42px;height:36px}
 .r29-sample[data-format=hover-card]{box-shadow:0 5px 15px #0002}
 .r29-sample[data-format=expand-card] .r29-sample-extra{margin-left:auto;font-size:15px}
+
+
+/* R2.10 — the gallery shows different component shapes, not renamed identical cards. */
+.r29-sample[data-format=brand-hover],.r29-sample[data-format=hover-card]{
+  position:relative;overflow:visible;min-height:78px;align-items:flex-start
+}
+.r29-sample-pop{position:absolute;right:5px;bottom:5px;max-width:85%;padding:6px 7px;
+  border-radius:7px;background:var(--surface);color:var(--text);border:1px solid var(--brand);
+  box-shadow:0 6px 16px #0002;font-size:9px;line-height:1.3;opacity:0;transform:translateY(3px);
+  pointer-events:none;transition:opacity .12s ease,transform .12s ease}
+.r29-format-card:hover .r29-sample-pop,.r29-format-card:focus-visible .r29-sample-pop,
+.r29-format-card[aria-pressed=true] .r29-sample-pop{opacity:1;transform:translateY(0)}
+.r29-sample[data-format=brand-logo]{background:var(--surface);border-style:none}
+.r29-sample[data-format=brand-attribution]{border:0;background:transparent;padding:5px;min-height:28px}
+.r29-byline{font-size:9px;font-style:italic;color:var(--muted);white-space:nowrap}
+.r29-sample[data-format=icon]{border:1px dashed var(--brand);background:transparent;border-radius:50%;width:48px;min-height:48px}
+.r29-sample[data-format=icon] .r29-sample-mark{border-radius:50%;width:26px;height:26px}
+.r29-sponsored-chip,.r29-official-chip,.r29-event-chip,.r29-disclaimer-chip,.r29-recruit-chip{
+  font-size:9px;padding:3px 5px;border-radius:5px;border:1px solid var(--line);
+  color:var(--muted);margin-left:auto;white-space:nowrap
+}
+.r29-sample[data-format=text]{min-height:28px;padding:4px 7px;border-radius:4px;border-left:3px solid var(--brand)}
+.r29-sample[data-format=icon-text]{gap:5px}
+.r29-sample[data-format=expand-card]{min-height:75px;border:1px solid var(--brand);box-shadow:inset 0 -14px 0 color-mix(in srgb,var(--brand) 10%,transparent)}
+.r29-sample[data-format=landscape]{min-height:55px;flex-direction:row;max-width:100%}
+.r29-sample[data-format=vertical]{width:106px;min-height:92px;align-items:center;text-align:center}
+.r29-sample[data-format=mini]{display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:4px;padding:5px}
+.r29-sample[data-format=mini] .r29-sample-text{display:none}
+.r29-sample[data-format=mini] .r29-sample-pair{grid-column:2;grid-row:1;align-self:center}
+.r29-sample[data-format=hero]{min-height:86px;position:relative;display:grid;grid-template-columns:1fr 37px;grid-template-rows:1fr 1fr;gap:3px}
+.r29-sample[data-format=hero] .r29-sample-mark{grid-row:1/3;width:100%;height:100%;border-radius:6px}
+.r29-sample[data-format=hero] .r29-sample-text{display:none}
+.r29-sample[data-format=hero] .r29-sample-stack{grid-column:2;grid-row:1/3;flex-direction:column;align-self:stretch;justify-content:stretch;gap:3px}
+.r29-sample[data-format=hero] .r29-sample-stack i,.r29-sample[data-format=hero] .r29-sample-stack i+i{width:36px;flex:1;height:auto}
+.r29-sample[data-format=recruit]{min-height:62px}
+.r29-sample[data-format=recruit] .r29-sample-mark{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.r29-sample[data-format=self]{border-left:3px solid var(--brand)}
+.r29-sample[data-format=event]{background:color-mix(in srgb,var(--brand) 8%,var(--surface))}
+.r29-sample[data-format=directory]{display:grid;grid-template-columns:28px minmax(0,1fr);grid-template-rows:auto auto;min-height:75px}
+.r29-directory-lines{grid-column:1/-1;display:flex;flex-direction:column;gap:3px}
+.r29-directory-lines i{height:4px;border-radius:3px;background:var(--line);width:92%}
+.r29-directory-lines i:nth-child(2){width:72%}.r29-directory-lines i:nth-child(3){width:82%}
+.r29-sample[data-format=affiliate]{flex-wrap:wrap;min-height:76px;border-color:var(--warning)}
+.r29-disclaimer-chip{color:var(--warning)}
+.r29-map [data-place]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media(max-width:440px){
+ .r29-sample[data-format=hero],.r29-sample[data-format=directory]{min-height:68px}
+ .r29-sponsored-chip,.r29-recruit-chip,.r29-event-chip{display:none}
+}
+@media(prefers-reduced-motion:reduce){.r29-sample-pop{transition:none}}
