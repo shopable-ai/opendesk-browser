@@ -70,7 +70,8 @@ if(!historyUI?.createCloudHosting)throw new Error('E_TRUSTED_CLOUD_UI_MISSING');
 const createCloudHosting=historyUI.createCloudHosting;
 let trustedHistoryWorkbench=null,historyClosed=false;
 window.addEventListener('pagehide',()=>{historyClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
-const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
+const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,
+  development:Boolean(installDevelopment),reactDeveloperUI:true});
 let debugWorkbench=null;
 let extensionList=null,reactNavigationRequest=null,pendingReactTab='tasks';
 const reactNavigation=Object.freeze({
@@ -198,20 +199,16 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog'),reactUI:extensionList});
 // React owns the developer indicators and dock buttons; the original
 // Script Editor remains sole owner of draft, compiler, RunHost and Stop.
-if(extensionList.developerTargetMounted)
-  scriptEditor.connectReactDeveloperTarget(model=>extensionList.renderDeveloperTarget(model));
-if(extensionList.developerActionsMounted)
-  scriptEditor.connectReactDeveloperActions(model=>extensionList.renderDeveloperActions(model));
-if(extensionList.developerSourceMounted)
-  scriptEditor.connectReactDeveloperSource(model=>extensionList.renderDeveloperSource(model));
-if(extensionList.developerWorldMounted)
-  scriptEditor.connectReactDeveloperWorld(model=>extensionList.renderDeveloperWorld(model));
-if(extensionList.developerFrameworkMounted)
-  scriptEditor.connectReactDeveloperFramework(model=>extensionList.renderDeveloperFramework(model));
-if(extensionList.developerStatusMounted)
-  scriptEditor.connectReactDeveloperStatus(model=>extensionList.renderDeveloperStatus(model));
-if(extensionList.developerResultMounted)
-  scriptEditor.connectReactDeveloperResult(model=>extensionList.renderDeveloperResult(model));
+const developerPortals=['developerTargetMounted','developerActionsMounted','developerSourceMounted',
+  'developerWorldMounted','developerFrameworkMounted','developerStatusMounted','developerResultMounted'];
+if(developerPortals.some(name=>!extensionList[name]))throw new Error('E_REACT_DEVELOPER_REQUIRED');
+scriptEditor.connectReactDeveloperTarget(model=>extensionList.renderDeveloperTarget(model));
+scriptEditor.connectReactDeveloperActions(model=>extensionList.renderDeveloperActions(model));
+scriptEditor.connectReactDeveloperSource(model=>extensionList.renderDeveloperSource(model));
+scriptEditor.connectReactDeveloperWorld(model=>extensionList.renderDeveloperWorld(model));
+scriptEditor.connectReactDeveloperFramework(model=>extensionList.renderDeveloperFramework(model));
+scriptEditor.connectReactDeveloperStatus(model=>extensionList.renderDeveloperStatus(model));
+scriptEditor.connectReactDeveloperResult(model=>extensionList.renderDeveloperResult(model));
 const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,extensionList});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){

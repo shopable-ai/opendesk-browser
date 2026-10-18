@@ -48,7 +48,7 @@ const availableTarget={status:'available',windowId:7,tabId:11,frameId:0,
   documentId:'document-a',url:'https://a.example/',origin:'https://a.example',title:'A'};
 
 async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspace],projects=[],
-  connected=false,local=true,resolveSource,handle}={}){
+  connected=false,local=true,reactDeveloperUI=false,resolveSource,handle}={}){
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const find=id=>nodes.get(id),view=new Element();
   const doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
@@ -98,7 +98,8 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
       }
       assert.fail('unexpected local-project request: '+method);
     },subscribeLocalProjects(callback){localListener=callback;return ()=>{};}};
-  const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,hostFactory:()=>host});
+  const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,
+    reactDeveloperUI,hostFactory:()=>host});
   t.after(()=>{
     editor.dispose();
     assert.deepEqual(commits,[],'selection, inspection and review must not commit Controller source');
@@ -626,14 +627,17 @@ test('local Run stays disabled during refresh and Native disconnect',async t=>{
 for(const bridge of ['legacy','react'])for(const framework of ['react','vue'])
 for(const control of ['script-load','script-list-load'])
 test(`R343 ${bridge} ${framework} ${control} restores Controller routing and retains framework drafts`,async t=>{
-  const f=await fixture(t,{local:false,files:[]});
+  const f=await fixture(t,{local:false,files:[],reactDeveloperUI:bridge==='react'});
   const source='async function main(){return "loaded-controller";}';
   const row={scriptId:'manual',revision:1,sourceUtf8:source,contentHash:hash(source)};
   f.holdLoad(row);
-  let actions,frameworkModel;
+  let actions,frameworkModel,sourceModel;
   if(bridge==='react'){
     f.editor.connectReactDeveloperActions(model=>{actions=model;});
     f.editor.connectReactDeveloperFramework(model=>{frameworkModel=model;});
+    f.editor.connectReactDeveloperSource(model=>{
+      sourceModel=model;f.find('script-source').value=model.source;
+    });
   }
   const select=async kind=>{
     if(bridge==='react')frameworkModel.onSelect(kind,{isTrusted:true});
@@ -649,7 +653,9 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   const componentDraft=framework==='react'
     ?'export default function MyDraft(){return null;}'
     :'<template><p>retained Vue draft</p></template>';
-  f.find('script-source').value=componentDraft;f.find('script-source').fire('input');
+  f.find('script-source').value=componentDraft;
+  if(bridge==='react')sourceModel.onInput({isTrusted:true});
+  else f.find('script-source').fire('input');
   await tick();await tick();
   if(control==='script-list-load')f.find('script-list').value=row.scriptId;
   f.find(control).fire('click',{isTrusted:true});
@@ -842,7 +848,7 @@ test('R36.2 manual Page JavaScript Run retains exact USER_SCRIPT preview transpo
 });
 
 test('R36.3 React framework cannot replace the editor during an owned Controller run',async t=>{
-  const f=await fixture(t,{local:false,files:[]});
+  const f=await fixture(t,{local:false,files:[],reactDeveloperUI:true});
   let framework;
   f.editor.connectReactDeveloperFramework(model=>{framework=model;});
   await f.setCurrentRun('active-controller');
@@ -882,11 +888,11 @@ test('R36.3 Page Candidate load refuses a late response after a React source swi
   assert.deepEqual(f.dispatches,[]);
 });
 
-test('R36.4 React source and JavaScript world handoff removes legacy listeners without losing drafts',async t=>{
-  const f=await fixture(t,{local:false,files:[]});
+test('R36.6 React source and JavaScript world own controls without transient native listeners',async t=>{
+  const f=await fixture(t,{local:false,files:[],reactDeveloperUI:true});
   const source=f.find('script-source'),world=f.find('script-javascript-world');
-  assert.equal(source.listeners.get('input')?.size,1);
-  assert.equal(world.listeners.get('change')?.size,1);
+  assert.equal(source.listeners.get('input')?.size??0,0);
+  assert.equal(world.listeners.get('change')?.size??0,0);
   let editorModel,worldModel,renders=0;
   // Fake only the React DOM commit. Never emulate an actual Chrome gesture.
   f.editor.connectReactDeveloperSource(model=>{
@@ -896,8 +902,8 @@ test('R36.4 React source and JavaScript world handoff removes legacy listeners w
   f.editor.connectReactDeveloperWorld(model=>{
     worldModel=model;world.value=model.value;world.disabled=model.disabled;
   });
-  assert.equal(source.listeners.get('input')?.size,0,'legacy input listener was not detached');
-  assert.equal(world.listeners.get('change')?.size,0,'legacy world listener was not detached');
+  assert.equal(source.listeners.get('input')?.size??0,0,'React input must never have a native competing listener');
+  assert.equal(world.listeners.get('change')?.size??0,0,'React world must never have a native competing listener');
   assert.equal(editorModel.source,manualSource);
   const typed='async function main(){return "REACT_TEXT_PRESERVED";}';
   source.value=typed;editorModel.onInput({isTrusted:true});
@@ -918,6 +924,27 @@ test('R36.4 React source and JavaScript world handoff removes legacy listeners w
   assert.equal(source.value,pageDraft,'Page source must survive Controller edits');
   assert.deepEqual(f.manualRuns,[],'source/world changes do not trigger Controller Run');
   assert.deepEqual(f.dispatches,[],'source/world changes do not trigger Page Run');
+});
+
+test('R36.6 trusted React Developer controls have no parallel native listeners',async t=>{
+  const f=await fixture(t,{local:false,files:[],reactDeveloperUI:true});
+  const controls=[['script-source','input'],['script-javascript-world','change'],
+    ...['javascript','react','vue'].map(kind=>['page-component-'+kind,'change']),
+    ...['script-run','script-save','script-stop'].map(id=>[id,'click'])];
+  for(const [id,event] of controls)
+    assert.equal(f.find(id).listeners.get(event)?.size??0,0,id+' must be React-only');
+  let actions;f.editor.connectReactDeveloperActions(model=>{actions=model;});
+  const runs=[];
+  f.host.start=async request=>{
+    runs.push(request);return {runId:'r366',sourceKind:'draft',target:request.target,state:'completed'};
+  };
+  f.find('script-run').fire('click',{isTrusted:true});await tick();
+  assert.equal(runs.length,0,'removed native Run may not dispatch');
+  actions.onRun({isTrusted:false});await tick();
+  assert.equal(runs.length,0,'untrusted React Run may not dispatch');
+  actions.onRun({isTrusted:true});
+  await until(()=>runs.length===1,'trusted React Run did not reach RunHost');
+  assert.equal(runs.length,1,'one trusted React Run must dispatch once');
 });
 
 test('R36.5 async project validation cannot replace a newer user edit',async t=>{

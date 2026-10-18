@@ -46,7 +46,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer,
   staticESMPreparerFactory=createStaticESMPreparer,
   browserCompilerEnabled=typeof __OPENDESK_BROWSER_COMPILER_ENABLED__==='undefined'||
-    __OPENDESK_BROWSER_COMPILER_ENABLED__!==false}) {
+    __OPENDESK_BROWSER_COMPILER_ENABLED__!==false,reactDeveloperUI=false}) {
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
@@ -164,15 +164,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
-  // Transfer each control exactly once; never fabricate a user gesture.
-  function transferReactOwner(elements,event,code){
-    const groups=elements.map(element=>listeners.filter(entry=>entry.element===element&&entry.event===event));
-    if(groups.some(entries=>entries.length!==1))throw new Error(code);
-    for(const entry of groups.flat()){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
-  }
+  // Trusted React owns the core controls without transient native listeners.
+  // Standalone editor consumers retain the existing native DOM fallback.
+  const listenNativeEditor=(element,event,handler)=>{
+    if(!reactDeveloperUI)listen(element,event,handler);
+  };
+  const requireReactDeveloperUI=()=>{
+    if(!reactDeveloperUI)throw new Error('E_REACT_DEVELOPER_MODE');
+  };
   const programSource = createProgramSourceView({document:doc,listen,onChange:() => {loadedPageSource=false;javascriptWorld='controller';javascriptDrafts.controller=programSource.source();dependencyResolver?.refresh();dependencyInstaller?.refresh();componentRemote?.refresh();update();}});
 
   // Controller Classic uses the existing native source-permission consent, not
@@ -1281,7 +1280,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       isComponentDraft()?savePreparedComponent():loadedPageSource?savePageCandidate():
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
   }
-  listen(find('script-save'),'click',saveClick);
+  listenNativeEditor(find('script-save'),'click',saveClick);
   listen(find('script-save-version'),'click',saveClick);
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(revisionView.remove)); on('script-list-refresh','click',revisionView.refresh);
@@ -1340,11 +1339,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     componentMessage('idle',next==='page'?'网页 JavaScript 使用当前网页 DOM；运行前仍须网站授权':'');
     update();
   }
-  for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
+  for(const [next,input] of Object.entries(componentInputs))if(input)listenNativeEditor(input,'change',()=>{
     if(input.checked)chooseComponentMode(next);
   });
   const javascriptWorldSelect=find('script-javascript-world');
-  if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
+  if(javascriptWorldSelect)listenNativeEditor(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
   function sourceInput(){
     browserPreparer.cancel();browserPrepareGeneration++;
     programSource.replaceSource(programSource.source());
@@ -1359,9 +1358,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();
     scheduleControllerClassicWarm();update();
   });
-  on('script-revision','input',update); on('script-source','input',sourceInput);
+  on('script-revision','input',update); if(!reactDeveloperUI)on('script-source','input',sourceInput);
   on('script-params','input',update);
-  listen(find('script-run'), 'click', start);
+  listenNativeEditor(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
     if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
     const url = userScriptsSettingsURL(api);
@@ -1457,7 +1456,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     try {await host.stop({runId:ownedDraftRunId,controller:true});}
     finally {stopping = false; update();}
   }
-  on('script-stop','click',stop);
+  if(!reactDeveloperUI)on('script-stop','click',stop);
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
   const unsubscribeRun = host.subscribe(next => {
     if (disposed) return;
@@ -1539,37 +1538,39 @@ export function createScriptEditor({client, currentPageTarget, development=false
   return {host,connectReactDeveloperResult(render){
     if(disposed||reactDeveloperResult||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_RESULT_OWNERSHIP');
+    requireReactDeveloperUI();
     reactDeveloperResult=render;render({text:output.textContent||'',kind:resultKind.textContent||''});
   },connectReactDeveloperStatus(render){
     if(disposed||reactDeveloperStatus||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_STATUS_OWNERSHIP');
+    requireReactDeveloperUI();
     reactDeveloperStatus=render;
     render({state:status.dataset.state||'loading',text:status.textContent||''});
   },connectReactDeveloperSource(render){
     if(disposed||reactDeveloperSource||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_SOURCE_OWNERSHIP');
-    transferReactOwner([find('script-source')],'input','E_REACT_DEVELOPER_SOURCE_LEGACY_LISTENER');
+    requireReactDeveloperUI();
     reactDeveloperSource=render;
     programSource.connectReactEditor(model=>render({...model,onInput:sourceInput}));
   },connectReactDeveloperWorld(render){
     if(disposed||reactDeveloperWorld||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_WORLD_OWNERSHIP');
-    transferReactOwner([find('script-javascript-world')],'change','E_REACT_DEVELOPER_WORLD_LEGACY_LISTENER');
+    requireReactDeveloperUI();
     reactDeveloperWorld=render;update();
   },connectReactDeveloperFramework(render){
     if(disposed||reactDeveloperFramework||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNERSHIP');
-    transferReactOwner(Object.values(componentInputs),'change','E_REACT_DEVELOPER_FRAMEWORK_LEGACY_LISTENERS');
+    requireReactDeveloperUI();
     reactDeveloperFramework=render;syncComponentInputs();
   },connectReactDeveloperActions(render){
     if(disposed||reactDeveloperActions||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_ACTIONS_OWNERSHIP');
-    transferReactOwner(['script-run','script-save','script-stop'].map(find),'click',
-      'E_REACT_DEVELOPER_LEGACY_LISTENERS');
+    requireReactDeveloperUI();
     reactDeveloperActions=render;update();
   },connectReactDeveloperTarget(render){
     if(disposed||reactDeveloperTarget||typeof render!=='function')
       throw new Error('E_REACT_DEVELOPER_TARGET_OWNERSHIP');
+    requireReactDeveloperUI();
     reactDeveloperTarget=render;renderCurrentPage(currentPageState);
   },async prepareDevelopmentReload(){
     const idle=()=>!disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&!ownedManagedPreview&&!browserManagedPreview&&
