@@ -47,6 +47,17 @@ async function evalRead(c,session,expression){
   if(x.exceptionDetails)throw Error(JSON.stringify(x.exceptionDetails).slice(0,350));
   return x.result.value;
 }
+// This is a genuine chrome.alarms read from an installed extension document;
+// no mocked event, injected Alarm or synthetic quota ledger is accepted.
+async function nativeFocusHeartbeat(c,session,active,phase){
+  return until(async()=>{
+    const alarm=await evalRead(c,session,
+      'chrome.alarms.get("opendesk.stay-focus.heartbeat.v1").then(x=>x?'+
+      '{name:x.name,periodInMinutes:x.periodInMinutes}:null)');
+    if(active)return alarm?.periodInMinutes===0.5?alarm:false;
+    return alarm===null?{absent:true}:false;
+  },'native Stay Focus heartbeat '+phase,20000);
+}
 async function click(c,session,selector){
   const parent=inputParents.get(session);
   // Scroll with actual input, never scrollIntoView or DOM focus/value writes.
@@ -161,6 +172,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     quota:'NATIVE_NOT_TESTED',zeroConfig:'NOT_TESTED',pageReminder:'NOT_TESTED',
     realSharedTwoHosts:'NOT_TESTED',quotaTrace:[],screenshots:[],
     background:'NOT_TESTED',closedSidePanel:'NOT_TESTED',workerRestart:'NOT_TESTED',
+    heartbeat:{},
     permissionRevocation:'NOT_TESTED',otherTools:'NOT_TESTED',
     disabled:'NOT_TESTED',reenabled:'NOT_TESTED',restart:'NOT_TESTED',
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
@@ -275,6 +287,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     '{managed:v.sites.length,minutes:v.groups.entertainment,used:v.usage,sites:v.sites}:null})()'),
     'true first-activation default 30-minute shared pool',15000);
   report.zeroConfig='PASS';report.approval='PASS';
+  report.heartbeat.enabled=await nativeFocusHeartbeat(client,sid,true,'enabled');
   assert.equal(defaultPool.managed,11);
   assert.ok(defaultPool.sites.every(site=>site.enabled&&site.mode==='limit'&&site.group==='entertainment'));
   assert.ok(!defaultPool.sites.some(site=>site.host==='github.com'),'work sites excluded by default');
@@ -394,6 +407,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await evalRead(client,uid,'chrome.sidePanel.close({windowId:'+focusedTab.windowId+'})');
   await until(()=>evalRead(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.length===0)'),
     'Side Panel document really closed');
+  report.heartbeat.closedSidePanel=await nativeFocusHeartbeat(client,uid,true,'side-panel closed');
   diagnosticSessions=[{name:'catalog',session:uid}];
   await client.send('Target.activateTarget',{targetId:live.targetId});
   await evalRead(client,uid,'(async()=>{const rows=await chrome.tabs.query({url:'+JSON.stringify(page)+'});'+
@@ -563,6 +577,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const workerQuota=await evalRead(client,uid,quotaObservation);
   assert.ok(workerQuota.usedMs>=backgroundAfter.usedMs,'fresh worker retains recorded usage');
   if(reached)assert.ok(workerQuota.usedMs>=120000&&workerQuota.rules.length>=2,'fresh worker restores exhausted rules');
+  report.heartbeat.workerRestart=await nativeFocusHeartbeat(client,uid,true,'worker restart');
   report.workerRestart=reached?'PASS':'PASS_DATA_ONLY_DNR_NOT_TESTED';note('real-worker-restart',{old:oldWorker.targetId,current:nextWorker.targetId,quota:workerQuota});
 
   await until(()=>evalRead(client,frame,'!!document.querySelector("#managed-site-details")'),'reopened tool rendered');
@@ -593,6 +608,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
     return state.enabled===false&&state.owned===0?state:null;
   },'Chrome DNR rule retired after real trusted disable',15000);
+  report.heartbeat.disabled=await nativeFocusHeartbeat(client,sid,false,'trusted disable');
   const pausedPage=await client.send('Target.createTarget',{url:page});
   await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -609,6 +625,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
     return state.enabled===true&&(reached?state.owned>=2:state.owned===0)?state:null;
   },'trusted reenable state and rule readback',15000);
+  report.heartbeat.reenabled=await nativeFocusHeartbeat(client,sid,true,'trusted reenable');
   const reblocked=await client.send('Target.createTarget',{url:page});
   await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -657,6 +674,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       'r.action?.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length}})()');
     return value.enabled===true&&value.usage===beforeRestart&&(reached?value.quotaRules>=2:value.quotaRules===0)?value:null;
   },'persisted quota and owned DNR rule after full Chrome restart',22000);
+  report.heartbeat.chromeRestart=await nativeFocusHeartbeat(client,reopenedSession,true,'full Chrome restart');
   const postRestartVisit=await client.send('Target.createTarget',{url:page});
   const redirectedAfterRestart=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -695,6 +713,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       JSON.stringify(store)+'),installed:x["opendesk.sidebar-tools.installed.v1"]?.some(t=>t.id==="stay-focus"),owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length};})()');
     return result.present===false&&result.installed===false&&result.owned===0?result:null;
   },'uninstall removes independent data and all DNR rules',15000);
+  report.heartbeat.uninstalled=await nativeFocusHeartbeat(client,sid,false,'uninstall');
   const restored=await client.send('Target.createTarget',{url:page});
   const allowedURL=await until(async()=>{
     const x=(await client.send('Target.getTargets')).targetInfos.find(row=>row.targetId===restored.targetId);
