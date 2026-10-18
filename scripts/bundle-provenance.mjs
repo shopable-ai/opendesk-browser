@@ -156,7 +156,13 @@ const compiledAppOwnedBackgroundInputs=Object.freeze({
   'examples/sidebar-tools/time-review/trusted/trusted-native-ui.js':'d9aae298be73fac262490cd943c531414bf8d3d4'
 });
 function reviewedCompiledAppOwnedBackground(target,path,root){
-  if(!preapprovedFixedTargets.has(target)||!Object.hasOwn(compiledAppOwnedBackgroundInputs,path))return null;
+  // App-owned privileged services are not sandbox, third-party library or
+  // dynamically installed script inputs. A reviewed blob is necessary but
+  // must never expand an untrusted execution world's output admission.
+  // Keep the audited fixed Host targets; block the two extensible worlds.
+  if(!preapprovedFixedTargets.has(target)||
+     target.startsWith('scripting/')||target.startsWith('libs/')||
+     !Object.hasOwn(compiledAppOwnedBackgroundInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted app-owned source must not be a symlink: '+path);
   const bytes=readFileSync(file);
