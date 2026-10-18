@@ -45,3 +45,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --c
 ```
 
 未执行 Mac 构建、宿主 E2E、Chrome 真实安装或资源采样的环节，必须写 `NOT_TESTED`，不得把本项目的预览或模拟 SDK 当作 PASS。详细公平性、分项评分与验收门槛见 `COMPARISON.zh-CN.md`。
+
+## 实际扩展 Host SDK 交叉验收
+
+新增 `scripts/tests/quick-notes-react-r21-installed-chrome.mjs`：在**隔离临时 Chrome Profile** 中加载真正的 OpenDesk MV3 扩展，从扩展中心经真实审核安装 React 工具（原生 Quick Notes 若已预装则验证原版包 SHA），两边通过宿主 `OpenDeskTool.request` 保存不同文本，关闭/重开并校验数据命名空间互不影响。此测试没有模拟 SDK，CI 中运行的是 Linux Chrome 的扩展目录页面，**不是 Mac 原生 Side Panel，也不能替代 Mac 本地生命周期、200% 缩放及性能测试**。测试失败或缺少证据时不得视为通过。

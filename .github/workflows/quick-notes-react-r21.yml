@@ -8,6 +8,7 @@ on:
       - 'examples/sidebar-tools/quick-notes/**'
       - 'tests/environment/sidebar-quick-notes-react-*.test.mjs'
       - 'scripts/tests/quick-notes-react-r21-preview-chrome.mjs'
+      - 'scripts/tests/quick-notes-react-r21-installed-chrome.mjs'
       - 'scripts/build-sidebar-tool.mjs'
       - 'src/entrypoints/sidebar-shared-ui.js'
       - 'src/ui/react/components/ui/**'
@@ -54,6 +55,10 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/quick-notes-react-r21-preview-chrome.mjs artifacts/sidebar-tools/quick-notes-react/chrome
+      - name: Real Chrome installed OpenDesk Host SDK and two-tool data isolation
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/quick-notes-react-r21-installed-chrome.mjs artifacts/sidebar-tools/quick-notes-react/installed-chrome
       - name: Promote React package ONLY in tested ephemeral CI checkout
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json

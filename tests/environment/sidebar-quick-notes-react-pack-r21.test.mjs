@@ -50,6 +50,12 @@ test('source-bound dual preview matches the native and pinned browser asset byte
     assert.equal(hash(bytes),file.sha256);
   }
   const packaged=await createSidebarToolPackage(project);
+  const builtCSS=await readFile(resolve(project,'dist/tool.css'),'utf8');
+  assert.ok(builtCSS.startsWith('/* @opendesk-shared-design */'),
+    'Compiled CSS must retain the explicit design opt-in marker');
+  assert.ok(packaged.css.startsWith('/* opendesk.shared-design.v1 sha256='),
+    'Installed CSS must embed canonical design reset as the native tool');
+  assert.match(packaged.css,/\*\{box-sizing:border-box\}/);
   const cssBytes=await readFile(resolve(preview,'react.css'));
   assert.equal(cssBytes.toString('utf8'),packaged.css,
     'React source-bound preview MUST use final canonical install-package CSS, not raw Vite CSS');

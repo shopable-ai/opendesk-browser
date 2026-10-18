@@ -18,6 +18,16 @@ function receiptPlugin(){
         throw Error('Quick Notes React must use one classic chunk and approved global externals');
     },
     async writeBundle(){
+      // Vite drops ordinary CSS comments. Restore the explicit opt-in
+      // AFTER compilation so the existing packer embeds canonical design.
+      const sourceCss=await readFile(join(root,'src','style.css'),'utf8');
+      const marker='/* @opendesk-shared-design */';
+      if(!sourceCss.trimStart().startsWith(marker))
+        throw Error('Quick Notes source stylesheet must opt into shared design');
+      const compiledCssFile=join(root,'dist','tool.css');
+      const compiledCss=await readFile(compiledCssFile,'utf8');
+      if(!compiledCss.trimStart().startsWith(marker))
+        await writeFile(compiledCssFile,marker+'\n'+compiledCss);
       const files={};
       for(const name of ['tool.js','tool.css']){
         const bytes=await readFile(join(root,'dist',name));
