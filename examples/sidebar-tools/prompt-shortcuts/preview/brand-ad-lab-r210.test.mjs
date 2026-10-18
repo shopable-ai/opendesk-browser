@@ -254,7 +254,6 @@ browserTest('REAL Chromium: R2.7 A1–A10 remain selectable inside legacy disclo
   assert.equal(await page.locator('#placement').inputValue(),id);
   assert.equal(await page.evaluate(()=>window.OpenDeskR28.state.active),false);
  }
- await page.locator('#r28Map').count().catch(()=>0);
  await page.evaluate(()=>window.OpenDeskR28.choose('B01'));
  assert.equal(await page.evaluate(()=>window.OpenDeskR28.state.active),true);
  assert.equal(await page.locator('#r28Brand').isVisible(),true);
