@@ -81,6 +81,29 @@ async function click(client,session,selector){
   }
   throw last??Error('Native pointer context unavailable');
 }
+// Hover-only plan controls need a real pointerMove before their click.
+// Scrolling a hidden hover action into view does not activate CSS :hover.
+// Do not synthesize DOM events, mutate styles, or replay after mousePressed.
+async function clickFloatingPlanAction(client,session,selector){
+  const target=await client.send('Runtime.evaluate',{
+    expression:expr(selector),returnByValue:false
+  },session);
+  assert(target.result?.objectId,'Real floating schedule action required');
+  try{
+    await client.send('DOM.scrollIntoViewIfNeeded',{objectId:target.result.objectId},session);
+    const pos=await evaluate(client,'(()=>{const r='+expr(selector)+
+      '.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()',session);
+    await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:pos.x,y:pos.y},session);
+    await sleep(210);
+    const canHit=await evaluate(client,'(()=>{const b='+expr(selector)+
+      ';const r=b?.getBoundingClientRect(),h=r&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);'+
+      'return !!b&&!!h&&(b===h||b.contains(h))})()',session);
+    assert.equal(canHit,true,'native pointer must hit revealed hover control: '+selector);
+  }finally{
+    await client.send('Runtime.releaseObject',{objectId:target.result.objectId},session).catch(()=>{});
+  }
+  await click(client,session,selector);
+}
 async function key(client,session,name,code,keyCode,modifiers=0){
   for(const type of ['rawKeyDown','keyUp'])
     await client.send('Input.dispatchKeyEvent',{type,key:name,code,windowsVirtualKeyCode:keyCode,modifiers},session);
@@ -733,7 +756,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await deadline(()=>evaluate(client,
     'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("暂停")',
     runnerSid),'real first plan action is Pause, not Edit');
-  await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+  await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
   await deadline(async()=>{
     const state=await durable(client,runnerSid);
     return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
@@ -751,7 +774,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("恢复")',
       runnerSid),'real disabled plan presents Resume, not stale Pause');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const resumed=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan?.generation===oldGeneration+1&&plan.paused===false&&Number.isSafeInteger(plan.nextDueAt)?plan:null;
@@ -808,7 +831,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("暂停")',
       reopenedSid),'reopened scheduler exposes Pause on active plan');
-    await click(client,reopenedSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,reopenedSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,reopenedSid);
       return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
@@ -821,7 +844,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
       'clean genuine page before task authorization change');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const before=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan&&!plan.paused&&Number.isSafeInteger(plan.nextDueAt)?{
@@ -907,7 +930,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-back');
     await click(client,runnerSid,'#schedule-cancel');
     await click(client,runnerSid,'#schedule-runner-manage');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,runnerSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
@@ -920,7 +943,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
       'untouched page before real website permission revocation');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const resumed=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan&&!plan.paused&&plan.generation>=2&&Number.isSafeInteger(plan.nextDueAt)?plan:null;
@@ -968,7 +991,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       'permission restoration never replays old denied FireId');
     report.tests.actualChromePermissionRestored='PASS';
     note('real-chrome-site-access-restored',{restored,fireId:denied.fire.fireId});
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,runnerSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
@@ -981,7 +1004,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("恢复")',
       runnerSid),'visible resume before full Chrome exit');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const before=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan?.generation>=2&&!plan.paused&&Number.isSafeInteger(plan.nextDueAt)?{plan,state}:null;
@@ -1152,7 +1175,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.screenshots.push(await screenshot(client,runnerAgainSid,'r2-restarted-visible-runner'));
     report.screenshots.push(await screenshot(client,freshSiteSid,'r2-restarted-real-web-effect'));
     await click(client,runnerAgainSid,'#schedule-runner-manage');
-    await click(client,runnerAgainSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
+    await clickFloatingPlanAction(client,runnerAgainSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,runnerAgainSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
