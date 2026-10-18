@@ -4,11 +4,14 @@ on:
     branches: [main]
     paths:
       - 'src/ui/script-editor.js'
+      - 'src/ui/controller-revision-view.js'
+      - 'src/ui/react/tabs/develop.tsx'
       - 'src/ui/tool.html'
       - 'src/ui/program-source.js'
       - 'src/ui/task-workbench.js'
       - 'src/ui/page-program-library.js'
       - 'tests/environment/script-editor-ui.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
       - 'tests/environment/developer-layout.test.mjs'
       - '.github/workflows/developer-r362.yml'
   workflow_dispatch:
@@ -28,6 +31,7 @@ jobs:
       - name: Syntax of real Editor and Program Source
         run: |
           node --check src/ui/script-editor.js
+          node --check src/ui/controller-revision-view.js
           node --check src/ui/program-source.js
           node --check src/ui/task-workbench.js
       - name: Controller, Page, React/Vue state, Task and Program regressions
