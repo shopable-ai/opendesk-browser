@@ -77,11 +77,11 @@ jobs:
           test -s artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
           sha256sum artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
           sha256sum examples/sidebar-tools/adblock/rules/domains.js
-          node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760 --out artifacts/previews/adblock/candidate-source.html
       - name: Source check and complete production and development validation
         run: |
           npm run check
           npm run build
+          node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760 --out artifacts/previews/adblock/candidate-source.html
           npm run build:dev
           npm run verify
           node scripts/verify-package.mjs dist/production

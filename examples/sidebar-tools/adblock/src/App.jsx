@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Card,CardContent,Switch,Button} from '@opendesk/ui';
+import {valid,verified,confirmed,siteHost} from './model.js';
 
 const siteCopy={
   navigating:'页面正在导航，加载完成后可管理本站。',
@@ -8,26 +9,8 @@ const siteCopy={
   unavailable:'当前网站身份暂不可用，请切换标签页后重试。'
 };
 const errorText=error=>String(error?.message||error||'操作失败').slice(0,220);
-const verified=value=>value&&value.rules?.verified===true&&value.permissions?.dnr===true;
-const valid=value=>value&&typeof value.enabled==='boolean'&&
-  Array.isArray(value.exceptions)&&typeof value.permissions?.dnr==='boolean'&&
-  typeof value.rules?.verified==='boolean';
-function confirmed(result,checked,operation,payload){
-  if(!valid(result)||!valid(checked)||!verified(result)||!verified(checked)||
-     result.toolEnabled!==true||checked.toolEnabled!==true||
-     result.restartRequired||checked.restartRequired||
-     result.enabled!==checked.enabled||
-     JSON.stringify(result.exceptions)!==JSON.stringify(checked.exceptions))return false;
-  if(operation==='adblock.enable')return checked.enabled===true;
-  if(operation==='adblock.disable')return checked.enabled===false;
-  if(operation==='adblock.site.set')return checked.enabled===true&&
-    checked.currentSite?.status==='ready'&&checked.currentHost===payload.host&&
-    checked.exceptions.includes(payload.host)===!payload.filtering;
-  if(operation==='adblock.site.restore')return !checked.exceptions.includes(payload.host);
-  return false;
-}
 function Status({state,loading}){
-  const known=verified(state)&&state.toolEnabled!==false&&!state.restartRequired;
+  const known=verified(state)&&state.toolEnabled===true&&!state.restartRequired;
   const active=Boolean(known&&state.enabled);
   const label=loading?'正在核对 Chrome…':!state?'Chrome 状态未知':
     state.toolEnabled===false?'工具已停用':state.restartRequired?'需要重载扩展':
@@ -138,9 +121,9 @@ function App(){
       api?.root?.removeEventListener?.('opendesk-page-changed',onPageChanged);
       api?.root?.removeEventListener?.('opendesk-tool-state-changed',onPageChanged);};
   },[refresh]);
-  const ready=Boolean(verified(state)&&state.toolEnabled!==false&&!state.restartRequired);
+  const ready=Boolean(verified(state)&&state.toolEnabled===true&&!state.restartRequired);
   const on=Boolean(ready&&state.enabled);
-  const host=state?.currentSite?.status==='ready'?state.currentHost:null;
+  const host=siteHost(state);
   const exceptions=Array.isArray(state?.exceptions)?state.exceptions:[];
   const siteOn=Boolean(on&&host&&!exceptions.includes(host));
   const switchLocked=loading||busy||!ready;
