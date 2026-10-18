@@ -37,6 +37,7 @@ on:
       - 'tests/environment/stay-focus-r1.test.mjs'
       - 'tests/environment/extension-runtime-r14-lifecycle.test.mjs'
       - 'tests/environment/stay-focus-service-r1.test.mjs'
+      - 'tests/environment/stay-focus-boundary-r1.test.mjs'
       - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'tests/framework/stay-focus-r1-native.test.mjs'
       - '.github/workflows/stay-focus-r1.yml'
