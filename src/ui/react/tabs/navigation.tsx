@@ -41,7 +41,17 @@ export function SidebarNavigation({activeTab='tasks',debugEnabled=false,onNaviga
       aria-controls={'workbench-'+tab.key}
       hidden={isDebug&&!debugEnabled}
       tabIndex={selected?0:-1}
-      onClick={()=>navigate(tab.key)}
+      onClick={event=>{
+        // A rejected mouse activation has already moved native focus to this
+        // button. Restore roving-tabindex focus to the still-selected tab.
+        // Keyboard veto is handled separately without moving the focus.
+        if(!navigate(tab.key)){
+          const selectedTab=available.find(value=>value.key===activeTab);
+          if(selectedTab&&selectedTab.id!==tab.id)
+            event.currentTarget.ownerDocument.getElementById(selectedTab.id)
+              ?.focus({preventScroll:true});
+        }
+      }}
       onKeyDown={event=>{if(index>=0)onKeyDown(event,index);}}>
       {tab.label}
     </button>;
