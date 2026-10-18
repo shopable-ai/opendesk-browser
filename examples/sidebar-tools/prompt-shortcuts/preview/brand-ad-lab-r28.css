@@ -146,3 +146,15 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
  .r28-points{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(prefers-reduced-motion:reduce){.r28-rail-pop{transition:none}}
+
+/* Additive R2.8 usability refinements */
+.r28-inventory .r28-panel-slot{position:relative;margin:0}
+.r28-inventory .r28-demo-ad{padding-right:29px;min-height:43px}
+.r28-dismiss-card{position:absolute;top:4px;right:4px;height:24px;width:24px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:17px}
+.r28-dismiss-card:hover{background:var(--surface)}
+.r28-demo-ad[data-layout=icon] .r28-ad-copy small{display:none}
+.r28-demo-ad[data-layout=icon] .r28-ad-icon{height:27px;width:27px}
+.r28-abs[data-spot=N11][data-r28-current=true],.r28-abs[data-spot=N12][data-r28-current=true]{display:flex}
+.r28-zone .r28-risk-banner{font-size:9px;max-width:100%;overflow-wrap:anywhere}
+#r28SlotS01:empty,#r28SlotS02:empty{display:none}
+.panel-footer #r28SlotS03 button{padding:3px 6px;font-size:9px}
