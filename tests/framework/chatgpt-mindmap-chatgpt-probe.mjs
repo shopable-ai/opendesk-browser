@@ -2,7 +2,7 @@
 // Uses the original four Git-tracked XMind JS and the SAME product registry,
 // not a second engine or an installed/real-chatgpt.com claim.
 import assert from 'node:assert/strict';
-import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
@@ -23,17 +23,110 @@ const screenshots={gitSha,source:'LOCAL_CHATGPT_SIMULATION_ONLY',
 const report={scope:'LOCAL_CHATGPT_SIMULATION_ONLY',nativeInstalled:'NOT_TESTED',
   loggedInChatGPT:'NOT_TESTED',productionStyleIsolation:'BLOCKED',
   engine:'ORIGINAL_FOUR_GIT_TRACKED_JS',externalRequests:[],errors:[],checks:[]};
+// Independent expectations transcribed from the fixed chatgpt.html fixture,
+// never obtained from the extractor/converter under test. Heading promotion
+// moves its paragraphs to the root note and retains A's leading paragraph.
+const expected={
+  A:[
+    {title:'功能实施计划',depth:0,note:'把一条回复里的标题、列表和段落转换为层级主题，同时完整保留用户原文。'},
+    {title:'这套功能的目标很明确：只需安装一次，就能在 ChatGPT 的每条 AI 回复中打开独立的思维导图。',depth:1,note:''},
+    {title:'核心体验',depth:1,note:''},
+    {title:'回复操作栏自动出现「思维导图」按钮',depth:2,note:''},
+    {title:'使用原始 XMind 引擎绘制主题和连接线',depth:2,note:''},
+    {title:'缩放与画布适配',depth:3,note:''},
+    {title:'分支折叠与展开',depth:3,note:''},
+    {title:'退出导图后恢复本条原文',depth:2,note:''},
+    {title:'安全与稳定性',depth:1,note:'按回复分配独立控制器；禁用、页面导航时终止程序，并在正式产品中确保第三方引擎样式隔离。'}
+  ],
+  B:[
+    {title:'功能实施计划',depth:0,note:'可以。这是第二条回复，虽然标题与第一条相同，但导图状态必须完全独立。\n当回复内容更新时，提示刷新该条导图，不使用另一条回复的状态。'},
+    {title:'独立的内容节点身份',depth:1,note:''},
+    {title:'独立缩放和滚动位置',depth:1,note:''},
+    {title:'独立折叠状态',depth:1,note:''},
+    {title:'单独恢复原文，不影响其他回复',depth:1,note:''}
+  ]
+};
+const expectedOutline={
+  A:'# 功能实施计划\n'+
+    '> 把一条回复里的标题、列表和段落转换为层级主题，同时完整保留用户原文。\n'+
+    '- 这套功能的目标很明确：只需安装一次，就能在 ChatGPT 的每条 AI 回复中打开独立的思维导图。\n'+
+    '- 核心体验\n'+
+    '  - 回复操作栏自动出现「思维导图」按钮\n'+
+    '  - 使用原始 XMind 引擎绘制主题和连接线\n'+
+    '    - 缩放与画布适配\n'+
+    '    - 分支折叠与展开\n'+
+    '  - 退出导图后恢复本条原文\n'+
+    '- 安全与稳定性\n'+
+    '  > 按回复分配独立控制器；禁用、页面导航时终止程序，并在正式产品中确保第三方引擎样式隔离。\n',
+  B:'# 功能实施计划\n'+
+    '> 可以。这是第二条回复，虽然标题与第一条相同，但导图状态必须完全独立。\n'+
+    '> 当回复内容更新时，提示刷新该条导图，不使用另一条回复的状态。\n'+
+    '- 独立的内容节点身份\n- 独立缩放和滚动位置\n- 独立折叠状态\n'+
+    '- 单独恢复原文，不影响其他回复\n'
+};
+const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+const project=resolve('examples/programs/chatgpt-mindmap');
+const sourcePaths=[resolve('tests/framework/chatgpt-mindmap-chatgpt-probe.mjs'),
+  join(project,'assets/ui.css')];
+for(const directory of ['src','preview'])for(const file of await readdir(join(project,directory)))
+  if(directory==='src'?file.endsWith('.js'):/\.(?:html|js|css)$/.test(file))
+    sourcePaths.push(join(project,directory,file));
+sourcePaths.sort();
+const fingerprint=()=>Promise.all(sourcePaths.map(async path=>{
+  const bytes=await readFile(path);return {path,bytes:bytes.length,sha256:sha256(bytes)};
+}));
+report.sourcesBefore=await fingerprint();
+await writeFile(join(out,'fixture-expectations.json'),JSON.stringify({expected,expectedOutline},null,2)+'\n');
+await writeFile(join(out,'chatgpt-fixture.html'),await readFile(
+  resolve('examples/programs/chatgpt-mindmap/preview/chatgpt.html')));
 let browser=null,session=null,success=false;
 try{
   const {chromium}=await import(pathToFileURL(resolve(args.playwright)).href);
   browser=await chromium.launch({executablePath:resolve(args.browser),
     headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
   session=await startXmindPreview();
+  report.chromiumVersion=browser.version();
+  report.browserExecutable=resolve(args.browser);report.playwrightModule=resolve(args.playwright);
+  report.startedAt=new Date().toISOString();
   const page=await browser.newPage({viewport:{width:1220,height:860},acceptDownloads:true});
+  report.downloadEvents=[];
+  page.on('download',download=>report.downloadEvents.push({
+    filename:download.suggestedFilename(),url:download.url(),time:new Date().toISOString()}));
   // Read-only browser test instrumentation. Observe the renderer's REAL
   // Canvas pixels before the product intentionally fails E_XMIND_PNG_BLANK.
   // No synthetic topics, alternate drawing or production diagnostics.
   await page.addInitScript(()=>{
+    // Observe real Blob URL/anchor/timer ownership without changing results,
+    // deadlines, renderer input or export completion ordering.
+    const resources={urls:[],anchors:[],timers:[]};
+    window.__odmmDownloadResources=resources;
+    const createURL=URL.createObjectURL,revokeURL=URL.revokeObjectURL;
+    URL.createObjectURL=function(blob){
+      const url=createURL.call(this,blob);
+      resources.urls.push({url,type:blob?.type,size:blob?.size,created:performance.now(),revoked:null});
+      return url;
+    };
+    URL.revokeObjectURL=function(url){
+      for(const item of resources.urls)if(item.url===url)item.revoked=performance.now();
+      return revokeURL.call(this,url);
+    };
+    const click=HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click=function(){
+      if(this.download)resources.anchors.push({url:this.href,filename:this.download,time:performance.now()});
+      return click.call(this);
+    };
+    const set=window.setTimeout,clear=window.clearTimeout;
+    window.setTimeout=function(callback,delay,...args){
+      if(delay!==30000||!new Error().stack?.includes('/src/view.js'))
+        return set.call(this,callback,delay,...args);
+      const item={id:null,delay,created:performance.now(),state:'pending'};
+      item.id=set.call(this,function(...values){item.state='fired';return callback.apply(this,values);},delay,...args);
+      resources.timers.push(item);return item.id;
+    };
+    window.clearTimeout=function(id){
+      for(const item of resources.timers)if(item.id===id&&item.state==='pending')item.state='cleared';
+      return clear.call(this,id);
+    };
     const originalSerialize=XMLSerializer.prototype.serializeToString;
     XMLSerializer.prototype.serializeToString=function(node){
       if(window.__odmmCaptureProbe===true&&node?.querySelector?.('.topic')){
@@ -55,12 +148,45 @@ try{
         }
         const stageBounds=originalStage?.getBoundingClientRect();
         const real=originalTopic?.getBoundingClientRect();
+        const offset=new DOMMatrixReadOnly(node.style.transform);
+        const semantics=root=>({
+          topics:[...root.querySelectorAll('.topic')].map(topic=>topic.textContent),
+          text:[...root.querySelectorAll('text,tspan,foreignObject')].map(el=>el.textContent),
+          paths:[...root.querySelectorAll('path')].map(el=>el.getAttribute('d'))
+        });
+        const sourceElements=[originalStage,...originalStage.querySelectorAll('*')];
+        const cloneStage=node.firstElementChild;
+        const cloneElements=[cloneStage,...cloneStage.querySelectorAll('*')];
+        const unexpectedHides=[];
+        for(let i=0;i<sourceElements.length;i++){
+          const source=sourceElements[i],clone=cloneElements[i];
+          if(clone?.style.display==='none'&&getComputedStyle(source).display!=='none'&&
+            !clone.matches('.icon-information,.collapseextend [data-name="action-area"]'))
+            unexpectedHides.push({index:i,tag:clone.tagName,classes:clone.getAttribute('class')});
+        }
+        const cloneAudit={source:semantics(originalStage),clone:semantics(cloneStage),
+          sourceElements:sourceElements.length,cloneElements:cloneElements.length,unexpectedHides,
+          noteIcons:[...cloneStage.querySelectorAll('.icon-information')].map(icon=>({
+            display:icon.style.getPropertyValue('display'),priority:icon.style.getPropertyPriority('display'),
+            text:icon.textContent,html:icon.outerHTML})),
+          sourceNoteIcons:[...originalStage.querySelectorAll('.icon-information')].map(icon=>({
+            display:getComputedStyle(icon).display,text:icon.textContent}))};
         window.__odmmPngDomMetrics={
           wrapper:cssSummary(node),topicCount:node.querySelectorAll('.topic').length,
           originalStage:{x:stageBounds?.x,y:stageBounds?.y,width:stageBounds?.width,
             height:stageBounds?.height},
           originalTopic:{x:real?.x,y:real?.y,width:real?.width,height:real?.height},
-          ancestorChain:chain};
+          ancestorChain:chain,cloneAudit,offset:{x:offset.m41,y:offset.m42},
+          topics:[...(originalStage?.querySelectorAll('.topic')||[])].map(topic=>{
+            const rect=topic.getBoundingClientRect();
+            return {text:topic.textContent,left:rect.left-stageBounds.left+offset.m41,
+              top:rect.top-stageBounds.top+offset.m42,
+              right:rect.right-stageBounds.left+offset.m41,
+              bottom:rect.bottom-stageBounds.top+offset.m42,
+              width:rect.width,height:rect.height};
+          })};
+        window.__odmmSerializedPngDom=originalSerialize.call(this,node);
+        return window.__odmmSerializedPngDom;
       }
       return originalSerialize.call(this,node);
     };
@@ -213,162 +339,182 @@ try{
   assert.ok(report.topicsB>1);
   assert.ok(await viewer(1).locator('.topic:visible').count()>1,'A remains open while B opens');
   report.checks.push('REAL_XMIND_A_AND_B_INDEPENDENT');
-  // Read the actual files Chrome downloaded and inspect the same XMind SDK ZIP
-  // content, not just the renderer's in-memory tree or the filename.
-  const zipDownloadPending=page.waitForEvent('download',{timeout:25000});
-  await viewer(1).locator('.odmm-export-toggle').click();
-  await viewer(1).locator('[data-export="xmind"]').click();
-  const zipDownload=await zipDownloadPending;
-  assert.equal(await zipDownload.failure(),null);
-  assert.match(zipDownload.suggestedFilename(),/\.xmind$/i);
-  const zipBytes=await readFile(await zipDownload.path());
-  assert.deepEqual([...zipBytes.subarray(0,4)],[80,75,3,4],
-    'Actual download must start with ZIP local file signature');
-  const workbook=await page.evaluate(async base64=>{
-    const bytes=Uint8Array.from(atob(base64),char=>char.charCodeAt(0));
-    const zip=await window.JSZip.loadAsync(bytes,{checkCRC32:true});
-    const content=zip.file('content.json');
-    if(!content)throw new Error('Downloaded XMind ZIP lacks content.json');
-    const sheet=JSON.parse(await content.async('string'))?.[0];
-    if(!sheet?.rootTopic)throw new Error('Downloaded XMind root missing');
-    const root=sheet.rootTopic;
-    const records=[];
-    function walk(item,depth){
-      if(depth>12||records.length>160)throw Error('Unexpected workbook depth/size');
-      records.push({title:item.title,depth,note:item.notes?.plain?.content||''});
-      for(const child of item.children?.attached||[])walk(child,depth+1);
-    }
-    walk(root,0);
-    return records;
-  },zipBytes.toString('base64'));
-  assert.ok(workbook.length>3,'Downloaded XMind has real hierarchical topics');
-  assert.ok(workbook.some(item=>item.depth>=2),'Real XMind has nested topics');
-  assert.match(JSON.stringify(workbook),/功能实施计划|核心体验|安全与稳定性/);
-  assert.doesNotMatch(JSON.stringify(workbook),/当回复内容更新时/);
-  await writeFile(join(out,'chatgpt-mindmap-real-answer-A.xmind'),zipBytes);
-  report.xmind={bytes:zipBytes.length,topics:workbook.length,
-    sha256:createHash('sha256').update(zipBytes).digest('hex'),
-    filename:zipDownload.suggestedFilename()};
-  report.checks.push('ACTUAL_XMIND_DOWNLOAD_ZIP_CRC_CONTENT_AND_REPLY_ISOLATION');
-  const mdDownloadPending=page.waitForEvent('download',{timeout:25000});
-  await viewer(1).locator('.odmm-export-toggle').click();
-  await viewer(1).locator('[data-export="outline"]').click();
-  const mdDownload=await mdDownloadPending;
-  assert.equal(await mdDownload.failure(),null);
-  assert.match(mdDownload.suggestedFilename(),/大纲\.md$/);
-  const outline=await readFile(await mdDownload.path(),'utf8');
-  assert.ok(outline.startsWith('# '));
-  assert.match(outline,/核心体验|安全与稳定性/);
-  assert.match(outline,/^  - /m,'Markdown outline must preserve nested branch depth');
-  assert.doesNotMatch(outline,/当回复内容更新时/);
-  await writeFile(join(out,'chatgpt-mindmap-real-answer-A-outline.md'),outline);
-  report.outline={bytes:Buffer.byteLength(outline),filename:mdDownload.suggestedFilename()};
-  report.checks.push('ACTUAL_MARKDOWN_OUTLINE_DOWNLOAD_DEPTH_AND_REPLY_ISOLATION');
-  // Download the real SDK's expanded offscreen workbook, never a viewport
-  // screenshot or fabricated PNG fixture. Preserve the resulting file so
-  // reviewers can inspect the actual pixels independently.
-  await page.evaluate(()=>{window.__odmmCaptureProbe=true;});
-  const realDownload=page.waitForEvent('download',{timeout:45000});
-  await viewer(1).locator('.odmm-export-toggle').click();
-  await viewer(1).locator('[data-export="png"]').click();
-  const pngError=viewer(1).locator('.odmm-export-status[role="alert"]')
-    .waitFor({timeout:45000}).then(async()=>{
-      const diagnostics=await page.evaluate(()=>window.__odmmCaptureTrace||null);
-      if(diagnostics?.dataUrl){
-        const bytes=Buffer.from(diagnostics.dataUrl.split(',').at(-1),'base64');
-        await writeFile(join(out,'xmind-real-png-debug-on-failure.png'),bytes);
+  // All formats use the existing product toolbar and Chromium's download
+  // event. Persist the bytes before asserting, so failures remain reviewable.
+  const downloadFormat=async(n,format,stem)=>{
+    const pending=page.waitForEvent('download',{timeout:45000});
+    await viewer(n).locator('.odmm-export-toggle').click();
+    await viewer(n).locator('[data-export="'+format+'"]').click();
+    const failed=viewer(n).locator('.odmm-export-status[role="alert"]')
+      .waitFor({timeout:45000}).then(async()=>{
+        throw Error('Real '+format+' export failed: '+
+          await viewer(n).locator('.odmm-export-status').textContent());
+      });
+    const download=await Promise.race([pending,failed]);
+    assert.equal(await download.failure(),null);
+    const filename=download.suggestedFilename();
+    assert.match(filename,format==='outline'?/大纲\.md$/:new RegExp('\\.'+format+'$','i'));
+    const bytes=await readFile(await download.path());
+    const file=join(out,stem+(format==='outline'?'.md':'.'+format));
+    await writeFile(file,bytes);
+    return {bytes,metadata:{file,bytes:bytes.length,sha256:sha256(bytes),filename}};
+  };
+  const auditXmind=async(n,key,stem='chatgpt-mindmap-real-answer-'+key)=>{
+    const {bytes,metadata}=await downloadFormat(n,'xmind',stem);
+    assert.deepEqual([...bytes.subarray(0,4)],[80,75,3,4]);
+    const workbook=await page.evaluate(async base64=>{
+      const bytes=Uint8Array.from(atob(base64),char=>char.charCodeAt(0));
+      const zip=await window.JSZip.loadAsync(bytes,{checkCRC32:true});
+      const file=zip.file('content.json');
+      if(!file)throw Error('Downloaded XMind ZIP lacks content.json');
+      const content=await file.async('string');
+      const sheets=JSON.parse(content);
+      if(!Array.isArray(sheets)||sheets.length!==1||!sheets[0].rootTopic)
+        throw Error('Expected exactly one complete downloaded XMind sheet');
+      const records=[];
+      function walk(topic,depth,path){
+        if(depth>12||records.length>=160)throw Error('Unexpected workbook depth/size');
+        records.push({id:topic.id,path,title:topic.title,depth,note:topic.notes?.plain?.content||''});
+        for(const [kind,children] of Object.entries(topic.children||{})){
+          if(kind!=='attached'&&children.length)throw Error('Unexpected XMind child category: '+kind);
+          for(const [i,child] of children.entries())walk(child,depth+1,path+'/'+i);
+        }
       }
-      const domMetrics=await page.evaluate(()=>window.__odmmPngDomMetrics||null);
-      console.error('REAL_XMIND_PNG_DOM_METRICS',JSON.stringify(domMetrics));
-      console.error('REAL_XMIND_PNG_DIAGNOSTICS',JSON.stringify({
-        width:diagnostics?.width,height:diagnostics?.height,
-        bytes:diagnostics?.dataUrl?.length||0,error:diagnostics?.error||null}));
-      throw new Error('Real XMind PNG export failed: '+
-        await viewer(1).locator('.odmm-export-status').textContent());
+      walk(sheets[0].rootTopic,0,'0');
+      return {records,content,entries:Object.keys(zip.files).sort(),checkCRC32:true};
+    },bytes.toString('base64'));
+    await writeFile(join(out,stem+'.content.json'),workbook.content);
+    await writeFile(join(out,stem+'.records.json'),JSON.stringify(workbook.records,null,2)+'\n');
+    const result={...metadata,topics:workbook.records.length,records:workbook.records,
+      entries:workbook.entries,checkCRC32:workbook.checkCRC32};
+    // Exact ordered comparison catches extra/missing topics, shifted hierarchy,
+    // lost Chinese text, wrong notes and a duplicated unpromoted root heading.
+    assert.deepEqual(workbook.records.map(({title,depth,note})=>({title,depth,note})),
+      expected[key],key+' downloaded XMind must equal the entire fixed HTML expectation');
+    assert.equal(new Set(workbook.records.map(record=>record.id)).size,workbook.records.length);
+    assert.equal(workbook.records.filter(record=>record.title==='功能实施计划').length,1);
+    return result;
+  };
+  const auditOutline=async(n,key,stem='chatgpt-mindmap-real-answer-'+key+'-outline')=>{
+    const {bytes,metadata}=await downloadFormat(n,'outline',stem);
+    assert.deepEqual(bytes,Buffer.from(expectedOutline[key],'utf8'),
+      key+' complete Markdown bytes, Chinese, notes, depth and heading promotion');
+    const outline=bytes.toString('utf8');
+    assert.ok(outline.startsWith('# '));
+    assert.equal(outline.split('\n').filter(line=>line.startsWith('# ')).length,1);
+    assert.doesNotMatch(outline,/^- 功能实施计划$/m);
+    if(key==='A'){
+      assert.match(outline,/^    - /m);
+      assert.doesNotMatch(outline,/当回复内容更新时/);
+    }else assert.doesNotMatch(outline,/安全与稳定性|缩放与画布适配/);
+    return {...metadata,completeExpectedMatch:true};
+  };
+  const auditPng=async(n,key,theme,stem)=>{
+    const liveNoteIcons=()=>viewer(n).evaluate(host=>[
+      ...host.shadowRoot.querySelectorAll('.odmm-canvas .icon-information')
+    ].map(icon=>{const rect=icon.getBoundingClientRect();
+      return {display:getComputedStyle(icon).display,text:icon.textContent,
+        width:rect.width,height:rect.height};}));
+    const liveIconsBefore=await liveNoteIcons();
+    await page.evaluate(()=>{
+      window.__odmmCaptureProbe=true;
+      window.__odmmPngDomMetrics=null;window.__odmmCaptureTrace=null;
+      window.__odmmSerializedPngDom=null;
     });
-  const pngDownload=await Promise.race([realDownload,pngError]);
-  assert.equal(await pngDownload.failure(),null);
-  assert.match(pngDownload.suggestedFilename(),/\.png$/i);
-  const pngBytes=await readFile(await pngDownload.path());
-  assert.deepEqual([...pngBytes.subarray(0,8)],[137,80,78,71,13,10,26,10],
-    'Downloaded file must be actual PNG bytes');
-  const pngWidth=pngBytes.readUInt32BE(16),pngHeight=pngBytes.readUInt32BE(20);
-  assert.ok(pngWidth>=100&&pngHeight>=100&&
-    pngWidth*pngHeight<=24_000_000,'Real PNG must have bounded full-map dimensions');
-  // Decode the bytes downloaded by Chromium, not the source canvas or mock
-  // data. Assert actual foreground coverage and breathing room on all edges.
-  const raster=await page.evaluate(async base64=>{
-    const image=new Image();
-    image.src='data:image/png;base64,'+base64;
-    await image.decode();
-    const canvas=document.createElement('canvas');
-    canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(image,0,0);
-    const {data}=ctx.getImageData(0,0,canvas.width,canvas.height);
-    const color=(x,y)=>{const i=(y*canvas.width+x)*4;
-      return [data[i],data[i+1],data[i+2]];};
-    const base=color(0,0),buckets=new Set();
-    let painted=0,minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
-    for(let y=0;y<canvas.height;y+=2){
-      for(let x=0;x<canvas.width;x+=2){
-        const [r,g,b]=color(x,y);
-        if(Math.abs(r-base[0])<=28&&Math.abs(g-base[1])<=28&&
-          Math.abs(b-base[2])<=28)continue;
+    let downloaded;
+    try{downloaded=await downloadFormat(n,'png',stem);}
+    finally{
+      const diagnostics=await page.evaluate(()=>({dom:window.__odmmPngDomMetrics,
+        trace:window.__odmmCaptureTrace,markup:window.__odmmSerializedPngDom}));
+      await writeFile(join(out,stem+'.dom.json'),JSON.stringify(diagnostics.dom,null,2)+'\n');
+      if(diagnostics.markup)await writeFile(join(out,stem+'.serialized.xhtml'),diagnostics.markup);
+      if(!downloaded&&diagnostics.trace?.dataUrl)await writeFile(
+        join(out,stem+'-debug-on-failure.png'),Buffer.from(diagnostics.trace.dataUrl.split(',').at(-1),'base64'));
+    }
+    const {bytes,metadata}=downloaded;
+    assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    const width=bytes.readUInt32BE(16),height=bytes.readUInt32BE(20);
+    const dom=await page.evaluate(()=>window.__odmmPngDomMetrics);
+    assert.ok(width>=100&&height>=100&&width*height<=24_000_000);
+    assert.equal(dom?.topicCount,expected[key].length,'Original SDK clone must contain all topics');
+    // Decode the downloaded file; source Canvas pixels are diagnostic only.
+    // Coordinates come from real offscreen SDK DOM plus the actual serializer
+    // wrapper translation, without mounting/moving/modifying the clone.
+    const raster=await page.evaluate(async({base64,topics})=>{
+      const image=new Image();image.src='data:image/png;base64,'+base64;
+      await image.decode();
+      const canvas=document.createElement('canvas');
+      canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
+      const {data}=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const color=(x,y)=>Array.from(data.slice((y*canvas.width+x)*4,(y*canvas.width+x)*4+4));
+      const base=color(0,0),buckets=new Set();
+      const ink=(x,y)=>{const i=(y*canvas.width+x)*4;
+        return data[i+3]>80&&(Math.abs(data[i]-base[0])>28||
+          Math.abs(data[i+1]-base[1])>28||Math.abs(data[i+2]-base[2])>28);};
+      let painted=0,minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
+      for(let y=0;y<canvas.height;y+=2)for(let x=0;x<canvas.width;x+=2){
+        if(!ink(x,y))continue;
         painted++;minX=Math.min(minX,x);minY=Math.min(minY,y);
         maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
-        buckets.add([r>>5,g>>5,b>>5].join(','));
+        const [r,g,b]=color(x,y);buckets.add([r>>5,g>>5,b>>5].join(','));
       }
+      const topicPixels=topics.map(topic=>{
+        const x0=Math.max(0,Math.floor(topic.left)),y0=Math.max(0,Math.floor(topic.top));
+        const x1=Math.min(canvas.width,Math.ceil(topic.right)),y1=Math.min(canvas.height,Math.ceil(topic.bottom));
+        let painted=0,samples=0;
+        for(let y=y0+1;y<y1;y+=2)for(let x=x0+1;x<x1;x+=2){samples++;if(ink(x,y))painted++;}
+        return {...topic,painted,samples,coverage:samples?painted/samples:0};
+      });
+      return {painted,colors:buckets.size,background:base,
+        corners:[base,color(canvas.width-1,0),color(0,canvas.height-1),color(canvas.width-1,canvas.height-1)],
+        margins:{left:minX,top:minY,right:canvas.width-1-maxX,bottom:canvas.height-1-maxY},topicPixels};
+    },{base64:bytes.toString('base64'),topics:dom.topics});
+    const liveIconsAfter=await liveNoteIcons();
+    const result={...metadata,type:'ORIGINAL_XMIND_FULL_MAP',answer:key,theme,width,height,raster,
+      liveIconsBefore,liveIconsAfter,cloneAudit:dom.cloneAudit};
+    await writeFile(join(out,stem+'.pixels.json'),JSON.stringify(result,null,2)+'\n');
+    const audit=dom.cloneAudit;
+    assert.deepEqual(audit.clone,audit.source,'Cloned topic text and SVG paths must be unchanged');
+    assert.equal(audit.cloneElements,audit.sourceElements,'Clone must retain every original element');
+    assert.ok(audit.clone.text.length>0&&audit.clone.paths.length>0,'Keep real SDK text and SVG paths');
+    assert.deepEqual(audit.unexpectedHides,[],'Only export UI icons may become hidden');
+    assert.equal(audit.noteIcons.length,expected[key].filter(topic=>topic.note).length);
+    assert.ok(audit.noteIcons.every(icon=>icon.display==='none'&&icon.priority==='important'),
+      'Every cloned note icon must be hidden');
+    assert.ok(audit.sourceNoteIcons.every(icon=>icon.display!=='none'),'Offscreen original note icons remain');
+    assert.equal(liveIconsBefore.length,audit.noteIcons.length);
+    assert.equal(liveIconsAfter.length,liveIconsBefore.length,'Visible workbook retains its note icons');
+    assert.ok([...liveIconsBefore,...liveIconsAfter].every(icon=>
+      icon.display!=='none'&&icon.width>0&&icon.height>0),'Original visible note icons remain displayed');
+    assert.deepEqual(raster.background,theme==='dark'?[40,40,40,255]:[255,255,255,255]);
+    for(const corner of raster.corners)assert.deepEqual(corner,raster.background);
+    assert.ok(raster.painted>=1000&&raster.colors>=5,'Real multicolored XMind nodes/connectors');
+    assert.ok(Object.values(raster.margins).every(n=>n>=32),'Breathing room on every PNG edge');
+    // Snowbrush inserts U+200E around wrapped text runs; it is layout metadata,
+    // not fixture content. ZIP/Markdown remain exact byte/text comparisons.
+    const normalize=text=>text.replace(/[\s\u200e]+/g,'');
+    for(const record of expected[key]){
+      const matches=raster.topicPixels.filter(topic=>normalize(topic.text).includes(normalize(record.title)));
+      assert.equal(matches.length,1,'One original SDK rectangle for '+record.title);
+      const box=matches[0];
+      assert.ok(box.width>=2&&box.height>=2&&box.left>=32&&box.top>=32&&
+        box.right<=width-32&&box.bottom<=height-32,'Unclipped topic rectangle: '+record.title);
+      assert.ok(box.painted>=8,'Downloaded pixels inside each original topic: '+record.title);
     }
-    return {painted,colors:buckets.size,background:base,
-      margins:{left:minX,top:minY,right:canvas.width-1-maxX,
-        bottom:canvas.height-1-maxY}};
-  },pngBytes.toString('base64'));
-  assert.ok(raster.painted>=1000&&raster.colors>=5,
-    'Downloaded PNG must contain real multicolored XMind nodes and connectors');
-  assert.ok(Object.values(raster.margins).every(n=>n>=32),
-    'Downloaded PNG content must not touch any image boundary');
-  await writeFile(join(out,'chatgpt-mindmap-real-xmind-full.png'),pngBytes);
-  report.png={type:'ORIGINAL_XMIND_FULL_MAP',width:pngWidth,height:pngHeight,
-    bytes:pngBytes.length,filename:pngDownload.suggestedFilename(),
-    raster,
-    sha256:createHash('sha256').update(pngBytes).digest('hex')};
+    return result;
+  };
+  report.xmind=await auditXmind(1,'A');
+  assert.ok(report.xmind.topics>3&&report.xmind.records.some(item=>item.depth>=2));
+  report.checks.push('ACTUAL_XMIND_DOWNLOAD_ZIP_CRC_CONTENT_AND_REPLY_ISOLATION');
+  report.outline=await auditOutline(1,'A');
+  report.checks.push('ACTUAL_MARKDOWN_OUTLINE_DOWNLOAD_DEPTH_AND_REPLY_ISOLATION');
+  report.png=await auditPng(1,'A','dark','chatgpt-mindmap-real-xmind-full');
   report.checks.push('ORIGINAL_XMIND_FULL_MAP_PNG_DOWNLOADED_PIXEL_AUDITED');
-
-  // The other answer has the SAME title. Download both formats from B and
-  // parse actual downloaded bytes, proving filenames do not imply identity.
-  const xmindBPending=page.waitForEvent('download',{timeout:25000});
-  await viewer(2).locator('.odmm-export-toggle').click();
-  await viewer(2).locator('[data-export="xmind"]').click();
-  const xmindBDownload=await xmindBPending;
-  assert.equal(await xmindBDownload.failure(),null);
-  const xmindBBytes=await readFile(await xmindBDownload.path());
-  const bTopics=await page.evaluate(async base64=>{
-    const bytes=Uint8Array.from(atob(base64),char=>char.charCodeAt(0));
-    const zip=await window.JSZip.loadAsync(bytes,{checkCRC32:true});
-    const sheet=JSON.parse(await zip.file('content.json').async('string'))?.[0];
-    const titles=[];
-    function walk(topic){titles.push(topic.title);
-      for(const child of topic.children?.attached||[])walk(child);}
-    walk(sheet.rootTopic);return titles;
-  },xmindBBytes.toString('base64'));
-  assert.match(bTopics.join(' '),/独立缩放和滚动位置|独立折叠状态/);
-  assert.doesNotMatch(bTopics.join(' '),/安全与稳定性|缩放与画布适配/);
-  await writeFile(join(out,'chatgpt-mindmap-real-answer-B.xmind'),xmindBBytes);
-  report.xmindB={bytes:xmindBBytes.length,topics:bTopics.length,
-    sha256:createHash('sha256').update(xmindBBytes).digest('hex')};
-  const mdBPending=page.waitForEvent('download',{timeout:25000});
-  await viewer(2).locator('.odmm-export-toggle').click();
-  await viewer(2).locator('[data-export="outline"]').click();
-  const mdBDownload=await mdBPending;
-  assert.equal(await mdBDownload.failure(),null);
-  const mdB=await readFile(await mdBDownload.path(),'utf8');
-  assert.match(mdB,/独立折叠状态/);
-  assert.doesNotMatch(mdB,/安全与稳定性|缩放与画布适配/);
-  await writeFile(join(out,'chatgpt-mindmap-real-answer-B-outline.md'),mdB);
-  report.outlineB={bytes:Buffer.byteLength(mdB),
-    sha256:createHash('sha256').update(mdB).digest('hex')};
-  report.checks.push('TWO_SAME_TITLE_ANSWERS_REAL_ZIP_CRC_AND_MARKDOWN_DOWNLOAD_ISOLATION');
+  report.xmindB=await auditXmind(2,'B');
+  report.outlineB=await auditOutline(2,'B');
+  report.checks.push('TWO_SAME_TITLE_ANSWERS_REAL_ZIP_CRC_AND_MARKDOWN_DOWNLOAD_ISOLATION',
+    'A_B_COMPLETE_XMIND_TOPIC_TITLE_DEPTH_NOTE_AND_MARKDOWN_FIXED_FIXTURE_MATCH');
 
   // Query the *computed* CSS inside the real product ShadowRoot. A container
   // cannot style itself via @container; the containing .odmm-shell must own it.
@@ -404,6 +550,8 @@ try{
   report.checks.push('USER_LIGHT_TOGGLE_REPAINTS_BOTH_REAL_XMIND_WORKBOOKS');
   await capture('chatgpt-answer-A-light.png',{target:t(1),answer:'A'});
   await capture('chatgpt-answer-B-light.png',{target:t(2),answer:'B'});
+  report.pngLightA=await auditPng(1,'A','light','chatgpt-mindmap-real-answer-A-light');
+  report.checks.push('LIGHT_A_REAL_PNG_ALL_TOPIC_PIXELS_THEME_MARGIN_AND_CLONE_UI_ONLY');
   report.desktopA=await geometry(1);
   report.desktopB=await geometry(2);
   assert.ok(report.desktopA?.root.visibleWidth>=Math.min(90,report.desktopA.root.width*.5),
@@ -497,6 +645,9 @@ try{
     localStorage.getItem('opendesk.chatgpt-mindmap.viewer-theme.v1')),'dark');
   report.checks.push('USER_DARK_TOGGLE_REPAINTS_ORIGINAL_XMIND_WORKBOOK');
   await capture('chatgpt-answer-B-dark.png',{target:t(2),answer:'B'});
+  report.pngDarkB=await auditPng(2,'B','dark','chatgpt-mindmap-real-answer-B-dark');
+  report.checks.push('DARK_B_REAL_PNG_ALL_TOPIC_PIXELS_THEME_MARGIN_AND_CLONE_UI_ONLY',
+    'THREE_PNG_DOWNLOADS_HIDE_CLONED_NOTE_ICONS_RETAIN_LIVE_ICONS_TEXT_AND_SVG_PATHS');
   // C intentionally has no heading: retain the rendered paragraph, table,
   // code and quotation semantics through the *same* product renderer.
   await button(3).click();
@@ -512,12 +663,84 @@ try{
   await viewer(3).waitFor({state:'detached',timeout:15000});
   assert.equal(await t(3).locator('.markdown').evaluate(node=>node.innerHTML),originalC);
   report.checks.push('HEADINGLESS_TABLE_CODE_QUOTE_REAL_TOPICS_AND_LOSSLESS_RESTORE');
+  const resources=()=>page.evaluate(()=>({
+    ...window.__odmmDownloadResources,
+    offscreenStages:[...document.body.children].filter(el=>el.style?.left==='-100000px').length
+  }));
+  const assertRetired=(before,after)=>{
+    const anchors=after.anchors.slice(before.anchors.length);
+    const urls=after.urls.filter(item=>anchors.some(anchor=>anchor.url===item.url));
+    assert.equal(urls.length,anchors.length,'Every actual download URL is observable');
+    assert.ok(urls.every(item=>item.revoked!==null),'Closing must revoke every owned download URL');
+    const timers=after.timers.slice(before.timers.length);
+    assert.equal(timers.length,anchors.length,'Observe every real download cleanup timer');
+    assert.ok(timers.every(item=>item.state!=='pending'),'Closing must retire download cleanup timers');
+    assert.equal(after.offscreenStages,0,'No offscreen export workbooks after close');
+    return {anchors,urls,timers,offscreenStages:after.offscreenStages};
+  };
   // Repeated open/close cycles must not accumulate viewers or inject buttons.
   for(let i=0;i<20;i++){
     await button(1).click();
     await viewer(1).and(page.locator('[data-ready="true"]')).waitFor({timeout:25000});
-    await viewer(1).getByRole('button',{name:'返回完整原文'}).click();
+    let beforeDownloads;
+    if(i===0){
+      beforeDownloads=await resources();
+      const beforeEvents=report.downloadEvents.length;
+      report.consecutiveDownloads={exports:[
+        await auditXmind(1,'A','lifecycle-consecutive-1-A'),
+        await auditOutline(1,'A','lifecycle-consecutive-2-A-outline'),
+        await auditPng(1,'A','dark','lifecycle-consecutive-3-A-dark'),
+        await auditPng(1,'A','dark','lifecycle-consecutive-4-A-dark')
+      ]};
+      assert.equal(report.downloadEvents.length-beforeEvents,4,'One actual download per consecutive export');
+      report.checks.push('FOUR_CONSECUTIVE_REAL_DOWNLOADS_INCLUDING_REPEAT_PNG_CONTENT_VERIFIED');
+    }
+    if(i===1){
+      const before=await resources(),beforeEvents=report.downloadEvents.length;
+      report.closeDuringExport={status:'NOT_OBSERVED',before,beforeEvents,quietWindowMs:1200};
+      await viewer(1).locator('.odmm-export-toggle').click();
+      await viewer(1).locator('[data-export="png"]').click();
+      try{
+        const observation=await page.waitForFunction(()=>{
+          const host=document.querySelector('[data-testid="conversation-turn-1"] [data-opendesk-chatgpt-mindmap="viewer"]');
+          const stages=[...document.body.children].filter(el=>el.style?.left==='-100000px');
+          const status=host?.shadowRoot?.querySelector('.odmm-export-status')?.textContent;
+          const busy=host?.shadowRoot?.querySelector('.odmm-export-toggle')?.disabled;
+          if(!stages.length||!busy||!status?.startsWith('正在生成'))return false;
+          const observed={stageCount:stages.length,topics:stages.map(stage=>stage.querySelectorAll('.topic').length),
+            status,busy,time:performance.now(),anchorCount:window.__odmmDownloadResources.anchors.length,
+            trigger:'ORIGINAL_TOOLBAR_DOM_CLICK_WHILE_REAL_PNG_STAGE_CONNECTED'};
+          host.shadowRoot.querySelector('[data-action="original"]').click();
+          return observed;
+        },null,{timeout:10000});
+        report.closeDuringExport.observed=await observation.jsonValue();
+        await observation.dispose();
+        report.closeDuringExport.status='IN_FLIGHT_CLOSE_OBSERVED';
+      }catch(error){
+        if(error.name!=='TimeoutError')throw error;
+        report.closeDuringExport.reason='No in-flight stage observed before export completed; cancellation NOT_TESTED';
+        await viewer(1).getByRole('button',{name:'返回完整原文'}).click();
+      }
+      await viewer(1).waitFor({state:'detached',timeout:25000});
+      // Detachment follows the real renderer's queued operation retirement.
+      // Also observe a bounded quiet interval; do not claim an infinite-time proof.
+      await page.waitForTimeout(report.closeDuringExport.quietWindowMs);
+      const after=await resources();
+      report.closeDuringExport.after=after;
+      report.closeDuringExport.afterEvents=report.downloadEvents.length;
+      if(report.closeDuringExport.status==='IN_FLIGHT_CLOSE_OBSERVED'){
+        assert.equal(report.downloadEvents.length,beforeEvents,'No late Chromium download after in-flight close');
+        assert.equal(after.anchors.length,before.anchors.length,'No late download anchor after in-flight close');
+        report.closeDuringExport.cleanup=assertRetired(before,after);
+        report.checks.push('REAL_IN_FLIGHT_PNG_CLOSE_NO_LATE_DOWNLOAD_AND_RESOURCES_RETIRED');
+      }
+      await page.screenshot({path:join(out,'lifecycle-close-during-export.png')});
+    }else await viewer(1).getByRole('button',{name:'返回完整原文'}).click();
     await viewer(1).waitFor({state:'detached',timeout:20000});
+    if(i===0){
+      report.consecutiveDownloads.cleanup=assertRetired(beforeDownloads,await resources());
+      report.checks.push('CONSECUTIVE_DOWNLOAD_CLOSE_REVOKES_BLOB_URLS_AND_CLEARS_TIMERS');
+    }
     assert.equal(await page.locator('[data-opendesk-chatgpt-mindmap="button"]').count(),3);
     assert.equal(await t(1).locator('.markdown').evaluate(node=>node.innerHTML),originalA);
   }
@@ -806,15 +1029,26 @@ try{
   report.stop=await page.evaluate(()=>window.mindmapPreview);
   assert.equal(report.stop.remainingOwnNodes,0,'Program-owned nodes must be removed after Stop');
   report.checks.push('STOP_RETIRES_OWNED_UI');
+  report.resourcesAfterStop=await resources();
+  assertRetired({anchors:[],timers:[]},report.resourcesAfterStop);
+  report.checks.push('STOP_RETIRES_ALL_OBSERVED_DOWNLOAD_URLS_TIMERS_AND_OFFSCREEN_STAGES');
   report.styleIsolation=report.stop.styleIsolation;
   assert.equal(report.externalRequests.length,0,'No external requests from this fixture');
   assert.equal(report.errors.length,0,'No uncaught JavaScript errors');
+  report.sourcesAfter=await fingerprint();
+  assert.deepEqual(report.sourcesAfter,report.sourcesBefore,'Actual candidate/probe source must stay stable throughout run');
+  report.checks.push('ALL_PROJECT_JS_FIXTURE_CSS_AND_PROBE_SHA256_BOUND_AND_STABLE');
   success=true;
   console.log('CHATGPT_MINDMAP_REAL_ENGINE_PREVIEW_PASS '+JSON.stringify({
     checks:report.checks,topicsA:report.topicsA,topicsB:report.topicsB,
     styleIsolation:report.styleIsolation,narrowWidth:report.narrowWidth}));
+}catch(error){
+  report.failure={message:error.message,stack:error.stack};
+  throw error;
 }finally{
   report.success=success;
+  report.finishedAt=new Date().toISOString();
+  report.sourcesAfter=await fingerprint();
   await writeFile(join(out,'chatgpt-result.json'),JSON.stringify(report,null,2)+'\n');
   await writeFile(join(out,'screenshot-evidence.json'),JSON.stringify(screenshots,null,2)+'\n');
   await browser?.close().catch(()=>{});

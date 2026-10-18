@@ -172,10 +172,13 @@ export async function captureXmindPng({sdk,window,canvas,tree,skinMode='dark'}){
     if(width<100||height<100||width>MAX_EDGE||height>MAX_EDGE||
       width*height>MAX_PIXELS)throw failure('E_XMIND_PNG_DIMENSIONS');
     const clone=copyComputedStyles(window,stage,stage.cloneNode(true));
-    // Expand/collapse controls belong to the interactive editor, not the
-    // exported map. Their Snowbrush icon-font glyphs become tofu squares in
-    // Chromium's self-contained SVG image, so hide only these cloned controls.
-    for(const control of clone.querySelectorAll('.collapseextend [data-name="action-area"]'))
+    // Expand/collapse and note buttons belong to the interactive editor.
+    // Their Snowbrush icon fonts are unavailable in the self-contained SVG
+    // image on some Chromium platforms (CI produced boxed note glyphs).
+    // Hide only these cloned controls; keep topic text, paths and workbook
+    // notes intact, and never change the live editor.
+    for(const control of clone.querySelectorAll(
+      '.collapseextend [data-name="action-area"], .icon-information'))
       control.style.setProperty('display','none','important');
     clone.style.setProperty('position','relative','important');
     clone.style.setProperty('left','0','important');
