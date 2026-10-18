@@ -4,7 +4,7 @@ import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_LAUNCH_STORE} from '../framework/sdk/
 import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
-import {createSdkApproval, snapshotSdkApproval, sdkHttpLabPreset} from './sdk-approval.js';
+import {createSdkApproval, sdkApprovalPreview, sdkHttpLabPreset} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
@@ -468,9 +468,8 @@ function sdkError(error) { sdkDisplay('error', `${error.code || 'E_TARGET'}：${
 const sdkSelection = () => ({document:sdkDocuments.get(sdkDocument.value),
   capabilities:selectedCapabilities(), targetText:sdkTargets.value});
 function sdkUpdateButton() {
-  let valid = false;
-  try { sdkPreview.textContent = JSON.stringify(snapshotSdkApproval(sdkSelection()), null, 2); valid = true; }
-  catch (error) { sdkPreview.textContent = `${error.code || 'E_SCHEMA'}：${error.message}`; }
+  const {valid, text} = sdkApprovalPreview(sdkSelection());
+  sdkPreview.textContent = text;
   sdkInstall.disabled = sdkBusy || !valid;
   sdkInspect.disabled = sdkBusy || !sdkDocuments.has(sdkDocument.value);
   sdkRevoke.disabled = sdkBusy || !sdkApproval.currentGrant;

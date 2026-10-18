@@ -85,7 +85,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     react:"import {useState} from 'react';\n\nexport default function App(){\n  const [count,setCount]=useState(0);\n  return <button type=\"button\" onClick={()=>setCount(n=>n+1)}>已点击 {count} 次</button>;\n}",
     vue:"<script setup>\nimport {ref} from 'vue';\nconst count=ref(0);\n</script>\n<template>\n  <button type=\"button\" @click=\"count++\">已点击 {{ count }} 次</button>\n</template>\n<style scoped>\nbutton{padding:8px 14px;cursor:pointer}\n</style>"
   });
-  let componentMode='javascript',browserManagedPreview=null,browserEffectUnknown=false;
+  let componentMode='javascript',loadedPageSource=false,browserManagedPreview=null,browserEffectUnknown=false;
   let componentRemote,browserPreparing=false,browserPrepareGeneration=0;
   let browserUnknownTarget=null;
   function quarantineBrowserEffect(target){
@@ -117,6 +117,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const value=Object.fromEntries(Object.entries(draftFields).map(([key,id])=>[key,find(id).value]));
     value.source=programSource.source();
     value.componentMode=componentMode;
+    value.loadedPageSource=loadedPageSource;
     value.componentDrafts={...componentDrafts,[componentMode]:value.source};
     const programDraft=programSource.snapshot();
     if(programDraft)value.programDraft=programDraft;
@@ -154,7 +155,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
-  const programSource = createProgramSourceView({document:doc,listen,onChange:() => {dependencyResolver?.refresh();dependencyInstaller?.refresh();update();}});
+  const programSource = createProgramSourceView({document:doc,listen,onChange:() => {loadedPageSource=false;dependencyResolver?.refresh();dependencyInstaller?.refresh();update();}});
 
   // Controller Classic uses the existing native source-permission consent, not
   // a second grant registry. The read-only observation is primed on edit; only
@@ -229,7 +230,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (!scriptsRecovery || disposed) return;
     scriptsRecovery.hidden = false; scriptsRecovery.dataset.state = state;
     scriptsRecoveryStatus.textContent = message;
-    scriptsSettings.hidden = state === 'available';
+    scriptsSettings.hidden = state !== 'blocked';
   }
   function hideUserScriptsRecovery() {
     scriptsCheckSequence++; // Fence a late read-only probe from an earlier run.
@@ -245,6 +246,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       copyResult.disabled=true;
     }
     if (error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') showUserScriptsRecovery();
+    else if (error?.code === 'E_USER_SCRIPTS_NATIVE') showUserScriptsRecovery('error', help);
     if (error?.code === 'E_PAGE_CONTENT_TOO_LARGE' ||
         error?.code === 'E_VALUE_SERIALIZATION') setResultText(help);
   };
@@ -343,7 +345,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
     // Controller Save commits a Controller revision. Page ESM uses the
     // separate, preview-verified Page Candidate Save button.
-    let saveDisabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate());
+    let saveDisabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate())||
+      (loadedPageSource&&!isComponentDraft()&&!canSavePagePreview());
     find('script-load').disabled=editingBusy;
     const saveTitle=isComponentDraft()?'保存组件候选':
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?'保存已试运行的 Page import 候选':'保存 Controller 固定版本';
@@ -366,7 +369,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
-    if(isComponentDraft())runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
+    if(isComponentDraft()||loadedPageSource)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
     if(pageCandidateButton)pageCandidateButton.title='';
@@ -385,8 +388,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }else {
       runLabel=componentMode!=='javascript'
         ? '运行'+(componentMode==='react'?' React':' Vue')+' 组件'
-        : '运行草稿';
-      saveLabel=isComponentDraft()?'准备并保存网页脚本':'保存版本';
+        : loadedPageSource?'运行网页脚本':'运行草稿';
+      saveLabel=isComponentDraft()?'准备并保存网页脚本':loadedPageSource?'保存网页脚本版本':'保存版本';
     }
     find('script-library-tools').hidden=!!localProject?.active();
     find('page-preview-tools').hidden=!!localProject?.active();
@@ -614,6 +617,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     if (scriptId() !== id || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
+    // A saved Controller revision selects its execution world as well as its bytes.
+    componentDrafts[componentMode]=source;
+    loadedPageSource=false;componentMode='javascript';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
     programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm(); remember(row, {
       head: !revisionText || revisions.get(id) === row.revision,
       authorSourceUtf8:recorded ? null : row.sourceUtf8});
@@ -631,6 +637,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     if (scriptList.value !== id || scriptId() !== activeId || find('script-revision').value.trim() !== revisionText || programSource.source() !== source)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
+    componentDrafts[componentMode]=source;
+    loadedPageSource=false;componentMode='javascript';syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
     find('script-id').value = id; programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8); scheduleControllerClassicWarm();
     dependencyResolver.refresh();
     remember(row,{authorSourceUtf8:recorded ? null : row.sourceUtf8});
@@ -781,7 +789,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
-    if(isComponentDraft()){
+    if(isComponentDraft()||loadedPageSource){
       if(!projection?.slotAvailable)return;
       previewPage(event);return;
     }
@@ -986,6 +994,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
       if(result!==undefined)find('page-preview-result').textContent=result;
       display(state,message);
+      if(state==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) showUserScriptsRecovery();
+      else if(state==='error' && message.startsWith('E_USER_SCRIPTS_NATIVE')) showUserScriptsRecovery('error', message);
+      else if(state==='completed') hideUserScriptsRecovery();
       setResultText(state==='running'?'正在运行…':state==='error'?'本次网页试运行失败，未产生可显示的返回值':result??'undefined');
       setResultKind(state==='completed'?'网页试运行结果':state==='error'?'网页试运行失败':'等待网页返回值');
       copyResult.disabled=state!=='completed';
@@ -1007,7 +1018,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
           const framework=/^\/\/ @opendesk-lib (react|vue)\s*$/m.exec(pageSource.sourceUtf8)?.[1];
           if(!framework)throw {code:'E_PROGRAM_DRAFT',message:'固定组件缺少唯一框架身份'};
           frozenComponent={framework,source:pageSource.sourceUtf8,sourceHash:artifact.build.sourceHash,projectId:artifact.project.id};
-        }else if(!pageSource.sourceFormat&&inspectPageFrameSource(pageSource.sourceUtf8)?.resources.length){
+        }else if(loadedPageSource||!pageSource.sourceFormat&&inspectPageFrameSource(pageSource.sourceUtf8)?.resources.length){
+          // Explicitly loaded Page bytes keep their Page world and managed
+          // lifecycle; reopening a frozen Vue/React version needs no compiler.
           // Fixed child resources need the same host-owned lifecycle as a
           // component, but their verified JavaScript is never recompiled.
           fixedFrameSource={source:pageSource.sourceUtf8};
@@ -1258,6 +1271,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
     if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value)
       throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
+    componentDrafts[componentMode]=source;
+    loadedPageSource=true;componentMode='javascript';syncComponentInputs();
     programSource.replaceSource(saved.authorSourceUtf8??saved.sourceUtf8);find('script-id').value=row.programId;
     find('script-revision').value=String(row.revision);lastPagePreview=null;
     if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
@@ -1291,7 +1306,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function saveClick(event){
     if(!event?.isTrusted||disposed)return;
     Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():
-      isComponentDraft()?savePreparedComponent():
+      isComponentDraft()?savePreparedComponent():loadedPageSource?savePageCandidate():
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
   }
   listen(find('script-save'),'click',saveClick);
@@ -1364,6 +1379,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
       showUserScriptsRecovery(available ? 'available' : 'blocked', available
         ? '能力初步检测通过。请主动点击「运行草稿」；实际执行时仍会重新验证权限，不会自动重放此前任务。'
         : 'Chrome 仍未开放用户脚本能力。请在扩展详情启用「允许用户脚本」后重新检测。');
+      if (available) return currentPageTarget?.refresh();
+    }).catch(error => {
+      if (disposed || sequence !== scriptsCheckSequence) return;
+      showUserScriptsRecovery('error', `${error.code || 'E_USER_SCRIPTS_NATIVE'}：${error.message}`);
     }).finally(() => {
       if (!disposed && sequence === scriptsCheckSequence) scriptsCheck.disabled = false;
     });
@@ -1462,6 +1481,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const restored=saved.programDraft ? await programSource.importProject(saved.programDraft,unchanged) : unchanged();
       if(restored && !disposed){
         if(!saved.programDraft)programSource.replaceSource(saved.source);
+        loadedPageSource=saved.loadedPageSource===true&&programSource.kind()!=='controller';
         if(['javascript','react','vue'].includes(saved.componentMode)&&
           saved.componentDrafts&&typeof saved.componentDrafts==='object'&&!Array.isArray(saved.componentDrafts)){
           for(const modeName of ['javascript','react','vue']){
@@ -1484,7 +1504,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   refreshTabs().catch(fail); refreshScripts({silent: true}).catch(fail); update();
   function applyImported(sourceUtf8) {
     browserPreparer.cancel();browserPrepareGeneration++;
-    componentMode='javascript';syncComponentInputs();
+    loadedPageSource=false;componentMode='javascript';syncComponentInputs();
     currentRevision = undefined;
     find('script-id').value = `import-${Date.now()}`;
     find('script-revision').value = '';

@@ -65,13 +65,13 @@ function brokerHarness() {
 const contentSender = {tab: {id: 42}, frameId: 0, documentId: 'content-document',
   origin: CHATGPT_ORIGIN, url: CHATGPT_ORIGIN + '/c/test'};
 
-test('manifest limits automatic injection and exposes only the authenticated relay', async () => {
+test('manifest allows the nested sandbox document from ChatGPT without exposing scripts', async () => {
   const manifest = JSON.parse(await readFile(join(project, 'standalone/manifest.json')));
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.content_scripts, [{matches: ['https://chatgpt.com/*'], js: ['content.js'],
     run_at: 'document_idle', all_frames: false, match_about_blank: false, world: 'ISOLATED'}]);
   assert.deepEqual(manifest.web_accessible_resources,
-    [{resources: ['relay.html'], matches: ['https://chatgpt.com/*']}]);
+    [{resources: ['relay.html', 'sandbox.html'], matches: ['https://chatgpt.com/*']}]);
   assert.deepEqual(manifest.sandbox.pages, ['sandbox.html']);
   assert.equal(manifest.permissions, undefined);
   assert.equal(manifest.host_permissions, undefined);

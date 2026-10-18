@@ -21,6 +21,7 @@ const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
 let chrome,profile,socket,sequence=0,launchError,host,catalog,pkg,pkgHash,workerSession;
 const pending=new Map(),exceptions=[],remoteRequests=[],consoleErrors=[],resourceFailures=[],browserLog=[];
 const requests=new Map(),sessions=new Map();
+const lifecycleEvents=[];
 function cdp(method,params={},sessionId=null){
   if(!socket)throw Error('CDP not connected');
   return new Promise((resolve,reject)=>{
@@ -61,6 +62,8 @@ async function connect(){
       row.error?job.reject(Error(row.error.message)):job.resolve(row.result);
     }
     const p=row.params,session=row.sessionId;
+    if(row.method==='Runtime.bindingCalled'&&p.name==='__r19Lifecycle')
+      lifecycleEvents.push({session,...JSON.parse(p.payload)});
     if(row.method==='Runtime.exceptionThrown')
       exceptions.push({session,description:p.exceptionDetails?.exception?.description||p.exceptionDetails?.text});
     if(row.method==='Network.requestWillBeSent'){
@@ -102,14 +105,35 @@ async function evaluate(sessionId,code){
   return result.result?.value;
 }
 const q=selector=>'document.querySelector('+JSON.stringify(selector)+')';
-async function click(sessionId,selector){
+async function click(sessionId,selector,element=q(selector)){
   const point=await until(async()=>{
-    const p=await evaluate(sessionId,'(()=>{const e='+q(selector)+';if(!e||e.disabled||e.hidden)return null;e.scrollIntoView({block:"center"});const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;return {x,y,visible:r.width>0&&r.height>0&&x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&e.contains(document.elementFromPoint(x,y))};})()');
+    const p=await evaluate(sessionId,'(()=>{const e='+element+';if(!e||e.disabled||e.hidden)return null;e.scrollIntoView({block:"center"});const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;return {x,y,visible:r.width>0&&r.height>0&&x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&e.contains(e.getRootNode().elementFromPoint(x,y))};})()');
     return p?.visible?p:null;
   },'visible click '+selector);
   await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y},sessionId);
   for(const type of ['mousePressed','mouseReleased'])
     await cdp('Input.dispatchMouseEvent',{type,x:point.x,y:point.y,button:'left',clickCount:1},sessionId);
+}
+async function reloadFromChromeManager(){
+  const target=await cdp('Target.createTarget',{url:'chrome://extensions/'});
+  const session=await attach(target.targetId);
+  // Traverse the actual Chrome WebUI shadow DOM. No developerPrivate API,
+  // storage mutation, extension reinstallation or synthetic click is used.
+  const find='function find(root,id){for(const e of root.querySelectorAll("*")){if(e.id===id)return e;if(e.shadowRoot){const hit=find(e.shadowRoot,id);if(hit)return hit;}}}';
+  const expression=id=>'(()=>{'+find+'return find(document,'+JSON.stringify(id)+');})()';
+  const identity=await until(()=>evaluate(session,'(()=>{'+find+'const e=find(document,'+
+    JSON.stringify(result.extensionId)+');return e?.data?{path:e.data.path,state:e.data.state}:null;})()'),
+    'actual loaded extension in Chrome manager');
+  assert.equal(identity.path,extension,'reload only the exact tested extension path');
+  assert.equal(identity.state,'ENABLED');
+  if(!await evaluate(session,expression('devMode')+'.checked'))
+    await click(session,'Chrome developer mode',expression('devMode'));
+  const button='(()=>{'+find+'const item=find(document,'+JSON.stringify(result.extensionId)+');return item?.shadowRoot?find(item.shadowRoot,"dev-reload-button"):null;})()';
+  await until(()=>evaluate(session,'Boolean('+button+')'),'real Chrome reload button');
+  await evaluate(session,button+'.addEventListener("click",event=>{globalThis.__r19ReloadTrusted=event.isTrusted;},{once:true})');
+  await click(session,'Chrome reload button',button);
+  assert.equal(await evaluate(session,'globalThis.__r19ReloadTrusted'),true,'actual trusted Chrome reload input');
+  return {method:'chrome://extensions real Reload button',inputTrusted:true,...identity};
 }
 async function frameState(frame,expected){
   return until(async()=>{
@@ -202,6 +226,7 @@ async function zoom200(host,frame){
     const actual=Math.abs(factor-2)<0.03&&Math.abs(widthFactor-(originalZoom??1)/2)<0.04;
     if(actual){
       await tabToSwitch(frame);await key(frame,' ','Space',32);await frameState(frame,'已关闭');
+      await settledSwitch(frame,false);
       const shot=await cdp('Page.captureScreenshot',{format:'png'},host);
       await writeFile(join(output,'installed-zoom-200.png'),Buffer.from(shot.data,'base64'));
     }
@@ -324,18 +349,57 @@ try{
   assert.equal(createHash('sha256').update(serializeSidebarToolPackage(installed)).digest('hex'),pkgHash,'Installed package SHA identical');
   result.checks.push('REVIEW_AND_REAL_FILE_INSTALL','STORED_CANONICAL_PACKAGE_SHA');
   const opener='#extension-center-list button[data-extension-key="app:'+pkg.id+'"][data-extension-action="primary"]';
-  for(let cycle=1;cycle<=2;cycle++){
+  for(let cycle=1;cycle<=3;cycle++){
+    if(cycle===3){
+      const before={workerTarget:worker.targetId,nativeContext:result.native.context};
+      const ui=await reloadFromChromeManager();
+      await until(async()=>!(await cdp('Target.getTargets')).targetInfos.some(t=>t.targetId===before.workerTarget),
+        'old service worker destroyed by actual extension reload');
+      // MV3 workers may remain dormant after reload until a real extension
+      // document requests them. Open the product before waiting for its worker.
+      const reopened=await cdp('Target.createTarget',{url:'chrome-extension://'+result.extensionId+'/ui/tool.html'});
+      catalog=await attach(reopened.targetId);host=catalog;
+      result.catalogTarget=reopened.targetId;
+      await until(()=>evaluate(catalog,'document.readyState==="complete"&&!!document.querySelector("#tab-tools")'),
+        'catalog ready after extension reload');
+      const reloadedWorker=await until(async()=>{
+        const rows=(await cdp('Target.getTargets')).targetInfos;
+        return rows.find(t=>t.type==='service_worker'&&t.targetId!==before.workerTarget&&
+          t.url===worker.url);
+      },'new service worker after actual extension reload');
+      workerSession=await attach(reloadedWorker.targetId);
+      if(native)host=await nativeSidePanel(catalog);
+      await cdp('Page.enable',{},host);
+      await click(host,'#tab-tools');
+      await until(()=>evaluate(host,'!document.querySelector("#workbench-tools").hidden'),
+        'Extension tab visible after reload');
+      const persisted=await evaluate(host,'chrome.storage.local.get('+JSON.stringify(SIDEBAR_TOOL_STORE)+').then(r=>(r['+
+        JSON.stringify(SIDEBAR_TOOL_STORE)+']||[]).find(x=>x.id==='+JSON.stringify(pkg.id)+'))');
+      assert.equal(createHash('sha256').update(serializeSidebarToolPackage(persisted)).digest('hex'),pkgHash,
+        'extension reload preserves the same installed candidate');
+      if(native)assert.notEqual(result.native.context.documentId,before.nativeContext.documentId,
+        'reload must create a new native panel document');
+      result.reload={status:'PASS',ui,before,workerTarget:reloadedWorker.targetId,
+        nativeContext:result.native.context,installedSha256:pkgHash};
+      result.checks.push('ACTUAL_EXTENSION_RELOAD_AND_PERSISTED_PACKAGE');
+    }
+    const openedAt=performance.now();
     await click(host,opener);
     const frame=await toolFrame(host);
     const first=await frameState(frame.session,'已关闭');
     const offVisual=await settledSwitch(frame.session,false);
+    const openReadyMs=performance.now()-openedAt;
+    const initialHeap=await cdp('Runtime.getHeapUsage',{},frame.session);
+    const resources=await evaluate(frame.session,'performance.getEntriesByType("resource").map(r=>({url:r.name,initiatorType:r.initiatorType,duration:r.duration,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize}))');
     assert.equal(first.react,'19.2.0');
     assert.equal(first.aria,'function');
     assert.equal(first.sdk,'function');
     assert.equal(first.chromeRuntime,'undefined','sandbox cannot access privileged APIs');
+    const toggleAt=performance.now();
     await click(frame.session,'[data-slot="switch"]');
     await frameState(frame.session,'已开启');
     const onVisual=await settledSwitch(frame.session,true);
+    const toggleSettledMs=performance.now()-toggleAt;
     assert.notEqual(onVisual.background,offVisual.background,'selected Switch has distinct track color');
     await click(frame.session,'[data-slot="switch"]');
     await frameState(frame.session,'已关闭');
@@ -354,6 +418,12 @@ try{
     await writeFile(join(output,'installed-cycle-'+cycle+'.png'),Buffer.from(screenshot.data,'base64'));
     // The second close destroys the still-mounted business root.
     const disabled=cycle===1?await disabledProbe(frame.session):null;
+    if(cycle>1){
+      await cdp('Runtime.addBinding',{name:'__r19Lifecycle'},frame.session);
+      // Observe after the production bootstrap's pagehide listener. A genuine
+      // iframe close must synchronously unmount its root before this runs.
+      await evaluate(frame.session,'addEventListener("pagehide",event=>__r19Lifecycle(JSON.stringify({trusted:event.isTrusted,children:document.getElementById("tool-app").childElementCount})),{once:true})');
+    }
     await click(host,'#sidebar-tool-back');
     // Input changes participate in the existing unsaved-content guard.
     if(await evaluate(host,'!document.querySelector("#sidebar-tool-action-review").hidden'))
@@ -363,10 +433,17 @@ try{
       const targets=(await cdp('Target.getTargets')).targetInfos;
       return domCount===0&&!targets.some(t=>t.targetId===frame.target.targetId);
     },'real iframe destruction after close');
+    const rootRelease=cycle>1?await until(()=>lifecycleEvents.find(e=>e.session===frame.session),
+      'actual close pagehide after production Root release'):null;
+    if(rootRelease){
+      assert.equal(rootRelease.trusted,true,'Root release must follow real browser pagehide');
+      assert.equal(rootRelease.children,0,'production Root unmount clears its own container on close');
+    }
     await cdp('HeapProfiler.collectGarbage',{},host);
     const hostResources=await cdp('Memory.getDOMCounters',{},host);
+    const hostHeapAfterGc=await cdp('Runtime.getHeapUsage',{},host);
     result.checks.push('REAL_SANDBOX_CYCLE_'+cycle+'_OFF_ON_OFF_CLOSE');
-    result.cycles.push({cycle,frameTarget:frame.target.targetId,keyboard:{tabs,space:true,focus},accessibility:ax,checkedAccessibility:checkedAx,visual:{off:offVisual,on:onVisual},disabled,iframeDestroyed:true,hostResources});
+    result.cycles.push({cycle,frameTarget:frame.target.targetId,keyboard:{tabs,space:true,focus},accessibility:ax,checkedAccessibility:checkedAx,visual:{off:offVisual,on:onVisual},disabled,rootRelease,iframeDestroyed:true,hostResources,performance:{openReadyMs,toggleSettledMs,initialHeap,hostHeapAfterGc,resources,scope:'Three real user cycles; includes CDP round trips and animation settling. Heap is per observed isolate, not total browser memory or a long-term leak proof.'}});
   }
   assert.ok(result.cycles[1].hostResources.jsEventListeners<=result.cycles[0].hostResources.jsEventListeners,
     'reopening must not accumulate host event listeners after garbage collection');
@@ -392,7 +469,7 @@ try{
   }
   console.error('R18_REAL_EXTENSION_'+result.status+' '+error.message);
 }finally{
-  result.diagnostics={exceptions,consoleErrors,resourceFailures,remoteRequests,
+  result.diagnostics={exceptions,consoleErrors,resourceFailures,remoteRequests,lifecycleEvents,
     networkObservation:'Host observed before tool open; OOPIF observed after attachment. Startup no-CDN is also checked by the source-bound preview (Network enabled before navigation), package source and sandbox CSP.'};
   await writeFile(join(output,'installed-report.json'),JSON.stringify(result,null,2)+'\n');
   await writeFile(join(output,'chrome.log'),browserLog.join(''));

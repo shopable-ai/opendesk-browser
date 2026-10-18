@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Mindmap · Local Validation Only",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Local validation wrapper; XMind redistribution is not approved.",
   "background": {"service_worker": "broker.js"},
   "content_scripts": [{
@@ -13,7 +13,7 @@
     "world": "ISOLATED"
   }],
   "web_accessible_resources": [{
-    "resources": ["relay.html"],
+    "resources": ["relay.html", "sandbox.html"],
     "matches": ["https://chatgpt.com/*"]
   }],
   "sandbox": {"pages": ["sandbox.html"]},

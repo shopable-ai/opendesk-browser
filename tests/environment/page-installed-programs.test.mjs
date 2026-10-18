@@ -16,10 +16,12 @@ globalThis.crypto ||= webcrypto;
 // Transaction/native component doubles. These are not real Chrome evidence.
 function fixture(){
   let db=new Map(['frameworkKV','commandJournal','runs'].map(name=>[name,new Map()])),queue=Promise.resolve();
+  const writes=[];
   const host={tag:'host',namespace:'tool:test',registrationId:'host',hostDocumentId:'tool-document',hostUrl:'chrome-extension://test/ui/tool.html',
     hostInstanceId:'instance',browserSessionIncarnation:'session',active:true,revoked:false};
   db.get('commandJournal').set('host:host',structuredClone(host));
   const storage={transaction(stores,mode,work){
+    if(mode==='readwrite')writes.push([...stores]);
     const next=queue.then(async()=>{
       const copy=structuredClone(db),table=name=>{assert.ok(stores.includes(name));return copy.get(name);};
       const tx={get:async(name,key)=>structuredClone(table(name).get(key)),all:async name=>[...table(name).values()].map(v=>structuredClone(v)),
@@ -29,7 +31,7 @@ function fixture(){
     });queue=next.catch(()=>{});return next;
   }};
   const f={builtinSource:fakeBuiltinSource,granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,permissionRequests:[],marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
-    tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session'};
+    tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session',nativeReads:0,unregisterCalls:0};
   const sessions={},contexts=new Map();
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
   const target={tabId:1,frameId:0,documentId:'web-document',expectedUrl:'https://example.com/demo',expectedWindowId:1};
@@ -42,11 +44,11 @@ function fixture(){
       getFrame:async input=>{assert.deepEqual(input,{documentId:target.documentId});if(f.frameObservationError)throw Error('observation failed');
         return f.exactDocumentGone?null:{documentId:target.documentId,documentLifecycle:f.documentLifecycle};}},
     userScripts:{
-      getScripts:async filter=>{if(!f.access)throw Error('toggle disabled');return [...f.native.values()].filter(row=>!filter||filter.ids.includes(row.id)).map(v=>structuredClone(v));},
+      getScripts:async filter=>{f.nativeReads++;if(!f.access)throw Error('toggle disabled');return [...f.native.values()].filter(row=>!filter||filter.ids.includes(row.id)).map(v=>structuredClone(v));},
       configureWorld:async config=>f.worlds.push(config),
       getWorldConfigurations:async()=>f.worlds,resetWorldConfiguration:async id=>{f.worlds=f.worlds.filter(row=>row.worldId!==id);},
       register:async scripts=>{f.registerCalls++;scripts.forEach(row=>f.native.set(row.id,structuredClone(row)));},
-      unregister:async filter=>{if(!f.access)throw Error('toggle disabled');filter.ids.forEach(id=>f.native.delete(id));},
+      unregister:async filter=>{f.unregisterCalls++;if(!f.access)throw Error('toggle disabled');filter.ids.forEach(id=>f.native.delete(id));},
       execute:async input=>{
         if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
         const code=input.js.at(-1).code,probe=code.includes('__opendesk_probe_');
@@ -74,12 +76,15 @@ function fixture(){
     executeInstalled:executor.executeInstalled,
     executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
   const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
+  const nativeScripts=api.userScripts;
+  Object.defineProperty(api,'userScripts',{get:()=>f.access?nativeScripts:undefined});
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
     const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource}).executeInstalled};
     f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
+  f.snapshot=()=>structuredClone(db);f.writes=writes;
   f.installation=(programId='script')=>f.rows().find(row=>row.tag==='page-installed-v1'&&row.programId===programId);
   f.message=(programId='script')=>{const row=f.installation(programId);f.token=row.token;return {protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token};};
   f.navigate=documentId=>{target.documentId=documentId;sender.documentId=documentId;contexts.clear();f.tabReads=0;};
@@ -106,6 +111,73 @@ function fixture(){
   return f;
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
+
+for(const scenario of ['registered','unavailable','missing','unrelated registration','disabled','disabled unavailable'])
+test('R343 list readback is live and read-only: '+scenario,async()=>{
+  const f=fixture(),installed=await f.install();
+  if(scenario.startsWith('disabled'))await f.service.setInstalledPageEnabled({programId:'script',
+    manifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation,enabled:false},{});
+  if(scenario==='unavailable'||scenario==='disabled unavailable')f.access=false;
+  if(scenario==='missing'||scenario==='unrelated registration')f.native.delete(installed.nativeId);
+  if(scenario==='unrelated registration')f.native.set('another-program',{id:'another-program'});
+  const before={db:f.snapshot(),native:structuredClone(f.native),worlds:structuredClone(f.worlds),
+    writes:f.writes.length,register:f.registerCalls,unregister:f.unregisterCalls,execute:f.executeCalls,
+    preview:f.previewCalls,permissions:structuredClone(f.permissionRequests),candidates:f.storedCandidateReads};
+  const reads=f.nativeReads,result=await f.service.listPagePrograms({},{}),row=result.installed[0];
+  const blocked=['unavailable','missing','unrelated registration'].includes(scenario);
+  assert.equal(row.nativeState,scenario.startsWith('disabled')?'disabled':blocked?'blocked':'registered');
+  assert.equal(row.error?.code,scenario==='unavailable'?'E_USER_SCRIPTS_UNAVAILABLE':blocked?'E_PAGE_INSTALLATION':undefined);
+  assert.deepEqual(result.catalog[0].installed,row,'both library consumers must receive the same observed installation');
+  assert.equal(row.enabled,!scenario.startsWith('disabled'));
+  assert.deepEqual(row.authorization,f.installation().authorization,'observation must not restore or rotate a grant');
+  assert.equal(f.nativeReads,reads+(f.access?1:0),'list observes registrations once when Chrome exposes the API');
+  assert.deepEqual({db:f.snapshot(),native:f.native,worlds:f.worlds,writes:f.writes.length,
+    register:f.registerCalls,unregister:f.unregisterCalls,execute:f.executeCalls,preview:f.previewCalls,
+    permissions:f.permissionRequests,candidates:f.storedCandidateReads},before,
+  'list cannot persist, mutate native registration, execute, verify, request permission or update source/locks');
+});
+
+test('R343 native registration cannot promote a suspended installation during list readback',async()=>{
+  const f=fixture(),installed=await f.install(),native=structuredClone(f.native.get(installed.nativeId));
+  f.granted=false;await f.service.revokePermissions({origins:['https://example.com/*']});
+  f.granted=true;f.native.set(installed.nativeId,native);
+  const before=f.snapshot(),writes=f.writes.length,registrations=f.registerCalls;
+  const result=await f.service.listPagePrograms({},{});
+  assert.equal(result.installed[0].nativeState,'blocked');
+  assert.equal(result.installed[0].authorization.status,'suspended');
+  assert.equal(result.installed[0].error.code,'E_PERMISSION');
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.writes.length,writes);
+  assert.equal(f.registerCalls,registrations);assert.equal(f.executeCalls,0);
+  assert.deepEqual(f.permissionRequests,[]);
+});
+
+for(const change of ['disable','host revocation'])
+test('R343 list readback rechecks current authority after delayed native observation: '+change,{timeout:3000},async t=>{
+  const f=fixture(),installed=await f.install();let entered,release,held=false;
+  const arrived=new Promise(resolve=>entered=resolve),gate=new Promise(resolve=>release=resolve);
+  t.after(()=>release());
+  const getScripts=f.api.userScripts.getScripts;
+  f.api.userScripts.getScripts=async filter=>{
+    const rows=await getScripts(filter);
+    if(!held){held=true;entered();await gate;}
+    return rows;
+  };
+  const listing=f.service.listPagePrograms({},{});
+  await Promise.race([arrived,listing.then(()=>assert.fail('list returned without observing native registration'))]);
+  if(change==='disable')await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation,enabled:false},{});
+  else await f.storage.transaction(['commandJournal'],'readwrite',async tx=>{
+    const host=await tx.get('commandJournal','host:host');
+    await tx.put('commandJournal',{...host,revoked:true},'host:host');
+  });
+  const before=f.snapshot(),writes=f.writes.length;release();
+  if(change==='disable'){
+    const result=await listing;
+    assert.equal(result.installed[0].enabled,false);assert.equal(result.installed[0].nativeState,'disabled');
+  }else await assert.rejects(listing,{code:'E_OWNER'});
+  assert.deepEqual(f.snapshot(),before);assert.equal(f.writes.length,writes);
+  assert.equal(f.executeCalls,0);assert.deepEqual(f.permissionRequests,[]);
+});
 
 test('installed resources follow same-document history within the approved path',async()=>{
   const f=fixture();
@@ -612,4 +684,15 @@ test('uninstall fails closed and retains disabled recovery record until native u
   assert.equal(result.nativeState,'unregistered');
   assert.equal(f.native.size,0);
   assert.equal(f.installation(),undefined);
+});
+
+test('installed list reports unexpected native errors without inventing a disabled switch',async()=>{
+  const f=fixture();await f.install();
+  const before=structuredClone(f.rows());
+  f.api.userScripts.getScripts=async()=>{throw Object.assign(Error('native quota exceeded'),{code:'E_QUOTA'});};
+  const result=await f.service.listPagePrograms({},{});
+  assert.equal(result.installed[0].nativeState,'blocked');
+  assert.equal(result.installed[0].error.code,'E_QUOTA');
+  assert.equal(result.installed[0].error.message,'native quota exceeded');
+  assert.deepEqual(f.rows(),before);
 });

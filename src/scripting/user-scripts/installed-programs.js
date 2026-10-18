@@ -1,3 +1,4 @@
+import {readNativeUserScripts} from './native-access.js';
 import {validatePageInstallPackage} from './page-install-package.js';
 import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platform/protocol.js';
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
@@ -97,8 +98,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function nativeAPI(){
-    try{const native=api.userScripts;await native.getScripts();return native;}
-    catch{throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE','请开启扩展的「允许用户脚本」后重新核对安装状态');}
+    await readNativeUserScripts(api);return api.userScripts;
   }
   async function requireSiteGrant(row){
     if(await api.permissions.contains({origins:row.pageRules.matches})!==true)
@@ -263,8 +263,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(previous?.manifestHash===candidate.manifestHash){
         if(previous.nativeState==='registered'){
           let registered;
-          try{registered=await api.userScripts.getScripts({ids:[previous.nativeId]});}
-          catch{throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE','请开启扩展的「允许用户脚本」后重新核对安装状态');}
+          registered=await readNativeUserScripts(api,{ids:[previous.nativeId]});
           invariant(registered.length===1&&registered[0]?.id===previous.nativeId,
             'E_PAGE_INSTALLATION','原生注册不存在，请主动核对安装状态');
         }
@@ -497,8 +496,21 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   }
   async function listPagePrograms(request,sender){
     fields(request,[]);
+    // Observe Chrome outside the transaction; then read current Host/install
+    // authority so a concurrent disable cannot be replaced by an old snapshot.
+    let registered=new Set(),nativeError;
+    try{registered=new Set((await readNativeUserScripts(api)).map(row=>row.id));}
+    catch(error){nativeError={code:error.code,message:error.message};}
     return scoped(sender,'readonly',async tx=>{
-      const rows=await tx.all(PAGE_STORE),installed=rows.filter(r=>r?.tag===PAGE_INSTALL_TAG&&r.namespace===namespace);
+      const rows=await tx.all(PAGE_STORE),installed=rows.filter(r=>r?.tag===PAGE_INSTALL_TAG&&r.namespace===namespace).map(row=>{
+        // Readback only downgrades the public projection, never restores a
+        // blocked grant or repairs registrations, source, locks or stored state.
+        if(row.nativeState!=='registered')return row;
+        if(!row.enabled)return {...row,nativeState:'disabled',error:null};
+        const error=nativeError??(!registered.has(row.nativeId)
+          ?{code:'E_PAGE_INSTALLATION',message:'原生注册不存在，请主动核对安装状态'}:null);
+        return error?{...row,nativeState:'blocked',error}:row;
+      });
       const catalog=rows.filter(r=>r?.tag==='page-candidate-v1'&&r.namespace===namespace).map(row=>{
         const proof=rows.find(p=>p?.tag==='page-verification-v1'&&p.namespace===namespace&&p.candidateId===row.candidateId&&p.manifestHash===row.manifestHash);
         return {candidateId:row.candidateId,programId:row.manifest.programId,revision:row.manifest.revision,

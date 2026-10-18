@@ -40,6 +40,14 @@ export function snapshotSdkApproval({document: selected, capabilities, targetTex
     targetOrigins:scope.targetOrigins, allowedOrigins:scope.allowedOrigins});
 }
 
+// Ordinary draft Run does not opt a whole webpage into privileged services.
+export function sdkApprovalPreview(selection) {
+  if (!selection.capabilities?.length) return {valid:false,
+    text:'普通 JavaScript / React / Vue 运行无需网页 SDK 授权；仅在需要网页级服务时选择服务。'};
+  try { return {valid:true, text:JSON.stringify(snapshotSdkApproval(selection), null, 2)}; }
+  catch (error) { return {valid:false, text:`${error.code || 'E_SCHEMA'}：${error.message}`}; }
+}
+
 export function sdkNativePermissionRequest(snapshot, permissionPattern) {
   // Source permission is also needed for fixed SDK injection. Chrome host
   // patterns may cover more ports than the exact application-layer approval.

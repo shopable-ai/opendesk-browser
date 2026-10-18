@@ -21,7 +21,9 @@ const browser=process.env.CHROME_BIN||
 assert.ok(browser,'Real Chromium/Chrome required (CHROME_BIN or installed binary)');
 // Serve fixture endpoints BEFORE Vite's transform/fallback middleware.
  // This avoids a custom route appended after Vite's terminal 404 handler.
+const fixtureCache=await mkdtemp(join(tmpdir(),'opendesk-react-r3331-cache-'));
 const vite=await createServer({root:process.cwd(),configFile:false,appType:'custom',
+  cacheDir:fixtureCache,resolve:{dedupe:['react','react-dom']},
   logLevel:'error',
   // The fixture imports JSX from source. Browser ESM cannot directly import
   // React 19's CommonJS exports (e.g. react-dom.createPortal), so prebundle
@@ -326,6 +328,13 @@ try{
     'filter selection','menu click','row menu trusted click','row click','detail portal','empty state',
     'trusted cleanup callback','live status','developer target indicator','developer run status',
     'developer Run Save Stop trusted clicks','disabled Run state','code-type trusted radio','developer result text escape','unmount'],operations:recorded}));
+}catch(error){
+  let snapshot;
+  try{snapshot=await evaluate('({url:location.href,body:document.body.innerText.slice(0,4000),root:document.querySelector("#extension-center-react-root")?.outerHTML,searchCount:document.querySelectorAll("#extension-center-search").length})');}
+  catch(readError){snapshot={error:String(readError)};}
+  console.error(JSON.stringify({kind:'SOURCE_UI_SIMULATION_CHROMIUM',status:'FAIL',
+    error:String(error),exceptions,networkFailures,snapshot}));
+  throw error;
 }finally{
   try{socket?.close()}catch{}
   try{chrome?.kill('SIGTERM')}catch{}
@@ -333,4 +342,5 @@ try{
   await vite.close();
   await delay(150);
   await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+  await rm(fixtureCache,{recursive:true,force:true,maxRetries:5,retryDelay:100});
 }

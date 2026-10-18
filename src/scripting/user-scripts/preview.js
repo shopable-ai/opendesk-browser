@@ -1,3 +1,4 @@
+import {readNativeUserScripts} from './native-access.js';
 import {httpUrl, permissionPattern} from '../../environment.js';
 import {FoundationError, invariant} from '../../platform/protocol.js';
 import {JQUERY_371, sha256Utf8} from './page-program-package.js';
@@ -116,12 +117,10 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   let permissionRemovalEpoch=0;
   api.permissions.onRemoved?.addListener(()=>{permissionRemovalEpoch++;});
   async function nativeAPI(){
-    try{
-      const native=api.userScripts;
-      if(typeof native?.getScripts!=='function'||typeof native.execute!=='function')throw new Error();
-      await native.getScripts();return native;
-    }catch{throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE','请在 chrome://extensions 中打开此扩展的「允许用户脚本」开关');}
+    await readNativeUserScripts(api);
+    return api.userScripts;
   }
+
   async function verifyTarget(t,nonce,{requireActive=true,allowLoading=false}={}) {
     // Trusted browser observation, then documentIds injection; never fall back
     // to origin-only authorization or whichever tab happens to be active.

@@ -8,7 +8,6 @@ import vm from 'node:vm';
 import {LocalDevResolver} from '../../native-agent/local-dev/resolver.mjs';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
-
 // Component fixtures only: these events provide no Chrome/native gesture proof.
 class Element {
   value=''; textContent=''; dataset={}; checked=false; disabled=false;
@@ -57,12 +56,13 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
   find('script-source').value=manualSource;
   find('script-params').value='{}';find('script-target-mode').value='current';
   find('local-project-params').value='{}';
-  const opened=[],requests=[],effects=[],permissions=[],dispatches=[],manualRuns=[],stops=[],resolutions=[],trace=[];
+  const opened=[],requests=[],hostRequests=[],commits=[],effects=[],permissions=[],dispatches=[],manualRuns=[],stops=[],resolutions=[],trace=[];
   let nativeConnected=true,pageListener,runListener,localListener,loadGate,statusGate,allowed=true;
   const projection={slotAvailable,runs:[],results:[],downloads:[],resultDeliveryDenied:[]};
   const host={currentRun:null,controller:{
     snapshotControllerRun:async()=>projection,listControllerScripts:async()=>[],
-    getControllerScript:async()=>loadGate},
+    getControllerScript:async()=>loadGate,
+    commitControllerScript:async request=>{commits.push(request);assert.fail('local project must not commit a manual Controller revision');}},
     subscribe(callback){runListener=callback;return ()=>{};},
     completion:Promise.resolve({state:'completed'}),
     start:async request=>{manualRuns.push(request);throw new Error('manual draft fallback is forbidden');},
@@ -82,7 +82,7 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
     tabs:{query:async()=>[],create:async request=>opened.push(request),onRemoved:event()},
     webNavigation:{onCommitted:event()}};
   const client={ready:Promise.resolve(),
-    request:async()=>({programs:[]}),
+    request:async(method,params)=>{hostRequests.push({method,params});return {programs:[],catalog:[]};},
     requestLocalProject:async(method,params)=>{
       requests.push({method,params});
       if(method==='status'){
@@ -99,7 +99,12 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
       assert.fail('unexpected local-project request: '+method);
     },subscribeLocalProjects(callback){localListener=callback;return ()=>{};}};
   const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,hostFactory:()=>host});
-  t.after(()=>editor.dispose());
+  t.after(()=>{
+    editor.dispose();
+    assert.deepEqual(commits,[],'selection, inspection and review must not commit Controller source');
+    assert.ok(hostRequests.every(row=>['listPagePrograms','listTaskCatalog','inspectPageDependencies'].includes(row.method)),
+      'without confirmation only read-only catalogs and dependency inspection are allowed: '+JSON.stringify(hostRequests));
+  });
   editor.connectLocalProjects({handle:async request=>{
     effects.push(request.method);trace.push('adapter.'+request.method);dispatches.push(request);
     if(handle)return handle(request,{host,projection});
@@ -119,8 +124,8 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
   };
   await tick();
   if(local)await setLocal(true);
-  return {find,editor,host,target,projection,opened,requests,effects,permissions,dispatches,manualRuns,stops,resolutions,trace,setLocal,
-    click:async(trusted=true)=>{find('script-run').fire('click',{isTrusted:trusted});await tick();},
+  return {find,editor,host,target,api,client,projection,opened,requests,hostRequests,commits,effects,permissions,dispatches,manualRuns,stops,resolutions,trace,setLocal,
+    click:async(trusted=true)=>{const start=trace.length;find('script-run').fire('click',{isTrusted:trusted});await tick();return start;},
     refresh:async()=>{find('local-project-refresh').fire('click',{isTrusted:true});await tick();await tick();},
     setFiles(value){files=value;},setConnected(value){connected=value;nativeConnected=value;},
     setProjects(value){projects=value;},setResolver(value){resolveSource=value;},
@@ -134,6 +139,7 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
     async select(bindingId){find('local-project-select').value=bindingId;find('local-project-select').fire('change');await tick();},
     async save(){find('script-save').fire('click',{isTrusted:true});await tick();await tick();},
     async settle(){await until(()=>!find('script-run').disabled,'editor did not leave the local Run transaction');},
+    async settleInspection(){await until(()=>find('script-save').textContent!=='正在核对…','read-only installation inspection did not settle');await tick();},
     setTarget(value){target.snapshot=value;pageListener(value);},
     async setCurrentRun(value){host.currentRun=value;runListener({runId:value});await tick();},
     holdLoad(promise){loadGate=promise;},holdStatus(promise){statusGate=promise;}};
@@ -220,22 +226,29 @@ for(const runtimeKind of ['controller','page-userscript']){
     await f.select(p.bindings.B);await f.select(p.bindings.A);
     await f.poll();await f.save();
     assert.deepEqual(f.dispatches,[]);assert.deepEqual(f.manualRuns,[]);
-    assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,0);
+    await f.settleInspection();
+    assert.ok(f.requests.filter(row=>row.method==='project.resolve').every(row=>
+      [p.bindings.A,p.bindings.B].includes(row.params.bindingId)),'inspection must remain within explicitly selected authorized bindings');
+    assert.equal(f.find('local-install-confirm').disabled,true,'Save before a successful Run cannot authorize installation');
+    const readsBeforeUntrusted=f.requests.filter(row=>row.method==='project.resolve').length;
     await f.click(false);
     assert.deepEqual(f.effects,[]);assert.deepEqual(f.permissions,[]);
-    await f.click();
+    assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,readsBeforeUntrusted,'untrusted Run must not start source work');
+    const runTraceStart=await f.click();
     await until(()=>f.dispatches.length===1,'trusted Run did not reach the local adapter');
     await f.settle();
-    const first=f.resolutions[0];
+    const first=f.resolutions.find(row=>row.sourceHash===f.dispatches[0].params.sourceHash);
     assert.equal(first.bindingId,p.bindings.A);
     assertDispatch(f,p,first,0,runtimeKind);
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[0])),{project:'A',value:'A-v1'});
     assert.ok(first.files.some(row=>row.path==='src/main.js'));
     assert.ok(first.files.some(row=>row.path==='src/value.js'));
     assert.notEqual(first.sourceUtf8,await readFile(path.join(p.resolver.get(p.bindings.A).root,'src/main.js'),'utf8'));
-    assert.ok(f.trace.indexOf('target.capture')<f.trace.indexOf('project.resolve:'+p.bindings.A));
-    assert.ok(f.trace.indexOf('project.resolve:'+p.bindings.A)<f.trace.indexOf('target.revalidate'));
-    assert.ok(f.trace.indexOf('target.revalidate')<f.trace.indexOf('adapter.'+f.dispatches[0].method));
+    const runTrace=f.trace.slice(runTraceStart);
+    assert.ok(runTrace.indexOf('target.capture')>=0);
+    assert.ok(runTrace.indexOf('target.capture')<runTrace.indexOf('project.resolve:'+p.bindings.A));
+    assert.ok(runTrace.indexOf('project.resolve:'+p.bindings.A)<runTrace.indexOf('target.revalidate'));
+    assert.ok(runTrace.indexOf('target.revalidate')<runTrace.indexOf('adapter.'+f.dispatches[0].method));
     if(runtimeKind==='page-userscript'){
       assert.equal(f.find('script-result').textContent,'fixture page result');
       f.find('script-read').fire('click');await tick();await tick();
@@ -255,7 +268,9 @@ for(const runtimeKind of ['controller','page-userscript']){
     assert.notEqual(latest.sourceHash,first.sourceHash);
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[1])),{project:'A',value:'A-v2'});
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[0])),{project:'A',value:'A-v1'});
-    assert.ok(f.requests.filter(row=>row.method==='project.resolve').every(row=>row.params.bindingId===p.bindings.A));
+    assert.deepEqual(f.dispatches.map(row=>row.params.sourceHash),[first.sourceHash,latest.sourceHash],
+      'only the explicitly run A revisions may execute; prior B inspection is not execution');
+    assert.deepEqual(f.commits,[],'local Save must never commit the manual draft');
   });
 
   test(runtimeKind+' rejects stale Run transactions after capture and before adapter dispatch',async t=>{
@@ -284,19 +299,33 @@ for(const runtimeKind of ['controller','page-userscript']){
       }]
     ];
     for(const [name,change] of scenarios)await t.test(name,async t=>{
-      const gate=deferred();let resolved=false;
+      const gate=deferred();let resolved=false,holdRun=false;
       t.after(()=>gate.resolve());
       const f=await fixture(t,{files:[],projects:p.rows(),connected:true,resolveSource:async bindingId=>{
-        const source=await p.resolve(bindingId);resolved=true;await gate.promise;return source;
+        // reset() may inspect before Run enters its resolving state. Gate only
+        // the source read after the trusted Run has captured its target.
+        const clickedRun=holdRun&&f.find('script-status').dataset.state==='resolving';
+        if(clickedRun)holdRun=false;
+        const source=await p.resolve(bindingId);
+        if(clickedRun){resolved=true;await gate.promise;}
+        return source;
       }});
-      await f.select(p.bindings.A);await f.click();
+      await f.select(p.bindings.A);await f.settleInspection();
+      holdRun=true;const runTraceStart=await f.click();
       await until(()=>resolved,'Run did not capture and resolve A before the state change');
+      const capturedTrace=f.trace.slice(runTraceStart);
+      assert.equal(capturedTrace[0],'target.capture');
+      assert.ok(capturedTrace.includes('project.resolve:'+p.bindings.A));
+      assert.ok(!capturedTrace.includes('target.revalidate')&&!f.dispatches.length,
+        'the gate must block the clicked Run before revalidation or dispatch');
       await change(f);gate.resolve();
       await until(()=>f.dispatches.length>0||f.find('script-status').dataset.state==='error','Run transaction did not settle');
       await tick();await tick();
       assert.deepEqual(f.dispatches.map(row=>row.method),[],name+' must invalidate the captured Run');
       assert.deepEqual(f.manualRuns,[]);assert.deepEqual(f.opened,[]);
-      assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,1,'no automatic replay after invalidation');
+      assert.equal(f.trace.slice(runTraceStart).filter(row=>row==='target.capture').length,1,
+        'invalidation must not automatically capture a new Run');
+      assert.deepEqual(f.commits,[],'invalidation must not save or install source');
     });
   });
 
@@ -369,9 +398,9 @@ test('an existing directory selection follows only its unique executable binding
 
 test('local Run guards are enforced by the handler even if a disabled button receives a fixture click',async t=>{
   const p=await projectFixture(t);
-  for(const guard of ['target','slot','owner','source-error','permission'])await t.test(guard,async t=>{
+  for(const guard of ['target','slot','owner','source-error','permission','native'])await t.test(guard,async t=>{
     const f=await fixture(t,{files:[],projects:p.rows(),connected:true,resolveSource:p.resolve});
-    await f.select(p.bindings.A);
+    await f.select(p.bindings.A);await f.settleInspection();
     if(guard==='target')f.setTarget({status:'unavailable',reason:'E_TARGET'});
     if(guard==='slot'){f.projection.slotAvailable=false;f.find('script-read').fire('click');await tick();}
     if(guard==='owner')await f.setCurrentRun('other-run');
@@ -379,10 +408,15 @@ test('local Run guards are enforced by the handler even if a disabled button rec
       f.setProjects(p.rows().map(row=>({...row,preparation:{state:'source-error'}})));await f.poll();
     }
     if(guard==='permission')f.setPermission(false);
-    await f.click();
+    if(guard==='native'){f.setConnected(false);await f.poll();}
+    const runTraceStart=await f.click();
     if(guard==='permission')await until(()=>f.find('script-status').dataset.state==='error','missing website permission was ignored');
     assert.deepEqual(f.dispatches,[]);assert.deepEqual(f.manualRuns,[]);assert.deepEqual(f.opened,[]);
-    assert.equal(f.requests.filter(row=>row.method==='project.resolve').length,0);
+    const runTrace=f.trace.slice(runTraceStart);
+    assert.equal(runTrace.filter(row=>row==='target.capture').length,guard==='permission'?1:0,
+      'only the permission guard may reach target capture');
+    assert.ok(!runTrace.includes('target.revalidate'),'a rejected Run must not advance to dispatch validation');
+    assert.deepEqual(f.commits,[],'a rejected Run must not commit source');
   });
 });
 
@@ -420,7 +454,12 @@ test('local Page uses page.get for pending results and rejects mismatched previe
       assert.equal(f.find('script-status').dataset.state,'error');
       assert.match(f.find('script-status').textContent,corruption==='execution error'?/E_PAGE_SCRIPT_EXECUTION/:/E_DEV_HASH/);
       assert.equal(f.find('script-copy-result').disabled,true);
-      assert.equal(f.find('script-save').hidden,true);
+      assert.equal(f.find('script-save').hidden,false,'Save remains a review entry without granting install eligibility');
+      await f.settleInspection();await f.save();
+      assert.equal(f.find('local-install-confirm').disabled,true,'an invalid receipt cannot authorize installation');
+      f.find('local-install-confirm').fire('click',{isTrusted:true});await tick();await tick();
+      assert.deepEqual(f.dispatches.map(row=>row.method),['page.preview','page.get'],
+        'review and a disabled Confirm must not execute or install the rejected Page');
     }
   });
 });
@@ -483,7 +522,10 @@ for(const targetAvailable of [true,false])for(const slotAvailable of [true,false
     assert.equal(f.find('script-run').textContent,'运行本地项目');
     assert.equal(f.find('script-run').disabled,true);
     assert.match(f.find('local-project-status').textContent,/尚未发现可运行入口/);
-    assert.equal(f.find('script-save').hidden,true);
+    assert.equal(f.find('script-save').hidden,false,'file selections retain the review entry');
+    await f.save();
+    assert.equal(f.find('local-install-confirm').disabled,true,'a file-only selection cannot authorize installation');
+    f.find('local-install-confirm').fire('click',{isTrusted:true});await tick();await tick();
     f.find('local-project-params').value='invalid JSON';
     await f.click(false);assert.deepEqual(f.opened,[]);
     await f.click();
@@ -530,19 +572,30 @@ test('local Run preserves an in-flight editor load guard',async t=>{
 });
 
 test('runnable program keeps target, slot and Native revocation guards',async t=>{
-  const f=await fixture(t,{files:[],projects:[program],connected:true});
+  const p=await projectFixture(t);
+  const f=await fixture(t,{files:[],projects:p.rows(),connected:true,resolveSource:p.resolve});
+  await f.select(p.bindings.A);await f.settleInspection();
   assert.equal(f.find('script-run').textContent,'运行本地项目');
   assert.equal(f.find('script-run').disabled,false);
-  assert.equal(f.find('script-save').textContent,'待运行验证');
+  assert.equal(f.find('script-save').textContent,'保存为任务');
+  await f.save();
+  assert.equal(f.find('local-install-confirm').disabled,true,'read-only inspection is not successful Run proof');
+  f.find('local-install-confirm').fire('click',{isTrusted:true});await tick();
   f.setTarget({status:'unavailable',reason:'E_TARGET'});
   assert.equal(f.find('script-run').disabled,true);
+  await f.click();assert.deepEqual(f.dispatches,[]);
   f.setTarget(availableTarget);
   assert.equal(f.find('script-run').disabled,false);
   f.setConnected(false);await f.refresh();
   assert.equal(f.find('script-run').disabled,true);
+  await f.click();assert.deepEqual(f.dispatches,[]);
   assert.deepEqual(f.effects,[]);
-  const occupied=await fixture(t,{files:[],projects:[program],connected:true,slotAvailable:false});
+  const occupied=await fixture(t,{files:[],projects:p.rows(),connected:true,slotAvailable:false,resolveSource:p.resolve});
+  await occupied.select(p.bindings.A);
   assert.equal(occupied.find('script-run').disabled,true);
+  await occupied.click();
+  assert.deepEqual(occupied.dispatches,[]);assert.deepEqual(occupied.effects,[]);
+  assert.deepEqual(occupied.manualRuns,[]);assert.deepEqual(occupied.opened,[]);
 });
 
 test('local Run stays disabled during refresh and Native disconnect',async t=>{
@@ -560,6 +613,68 @@ test('local Run stays disabled during refresh and Native disconnect',async t=>{
   assert.deepEqual(f.effects,[]);
 });
 
+for(const bridge of ['legacy','react'])for(const framework of ['react','vue'])
+for(const control of ['script-load','script-list-load'])
+test(`R343 ${bridge} ${framework} ${control} restores Controller routing and retains framework drafts`,async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const source='async function main(){return "loaded-controller";}';
+  const row={scriptId:'manual',revision:1,sourceUtf8:source,contentHash:hash(source)};
+  f.holdLoad(row);
+  let actions,frameworkModel;
+  if(bridge==='react'){
+    f.editor.connectReactDeveloperActions(model=>{actions=model;});
+    f.editor.connectReactDeveloperFramework(model=>{frameworkModel=model;});
+  }
+  const select=async kind=>{
+    if(bridge==='react')frameworkModel.onSelect(kind,{isTrusted:true});
+    else{const input=f.find('page-component-'+kind);input.checked=true;input.fire('change');}
+    await tick();await tick();
+  };
+  const action=async kind=>{
+    if(bridge==='react')actions[kind==='run'?'onRun':'onSave']({isTrusted:true});
+    else f.find('script-'+kind).fire('click',{isTrusted:true});
+    await tick();await tick();
+  };
+  await select(framework);
+  const componentDraft=framework==='react'
+    ?'export default function MyDraft(){return null;}'
+    :'<template><p>retained Vue draft</p></template>';
+  f.find('script-source').value=componentDraft;f.find('script-source').fire('input');
+  await tick();await tick();
+  if(control==='script-list-load')f.find('script-list').value=row.scriptId;
+  f.find(control).fire('click',{isTrusted:true});
+  await until(()=>f.find('script-status').dataset.state==='loaded','Controller revision did not load');
+  assert.equal(f.find('script-source').value,source);
+  assert.equal(f.editor.executionSource(),source);
+  assert.equal(bridge==='react'?frameworkModel.mode:
+    f.find('page-component-javascript').checked?'javascript':framework,'javascript',
+  'loading a Controller revision must leave Page component mode');
+  assert.equal(bridge==='react'?actions.runLabel:f.find('script-run').textContent,'运行草稿');
+  assert.equal(bridge==='react'?actions.saveLabel:f.find('script-save').textContent,'保存版本');
+  const starts=[],commits=[];
+  f.host.start=async request=>{
+    starts.push(request);
+    return {runId:'r343-controller',sourceKind:'draft',revision:row,
+      target:request.target,state:'completed'};
+  };
+  f.host.controller.commitControllerScript=async request=>{
+    commits.push(request);return {...row,revision:2};
+  };
+  await action('run');
+  await until(()=>starts.length===1,'loaded Controller was routed to Page preview instead of RunHost');
+  await until(()=>bridge==='react'?!actions.runDisabled:!f.find('script-run').disabled,
+    'Controller Run did not settle');
+  assert.deepEqual(starts[0].source,{kind:'draft',sourceUtf8:source});
+  await action('save');
+  await until(()=>commits.length===1,'loaded Controller Save did not commit a Controller revision');
+  assert.equal(commits[0].sourceUtf8,source);
+  await select(framework);
+  assert.equal(f.find('script-source').value,componentDraft,'loading must retain the previous framework draft');
+  await select('javascript');
+  assert.equal(f.find('script-source').value,source,'framework roundtrip must retain the loaded Controller bytes');
+  assert.deepEqual(f.dispatches,[],'manual Controller operations must not dispatch local project actions');
+});
+
 test('current page availability visibly identifies the webpage in every editor mode',async t=>{
   for(const options of [
     {},{files:[],projects:[program],connected:true},{files:[]},
@@ -575,4 +690,66 @@ test('current page availability visibly identifies the webpage in every editor m
     assert.match(f.find('script-current-page-status').title,/目标网页/);
     assert.match(f.find('script-current-page-status').title,/网站授权.*文档身份/);
   }
+});
+
+test('user-scripts recovery refreshes the exact document without replaying the draft',async t=>{
+  const f=await fixture(t,{local:false});
+  let starts=0,refreshes=0;
+  f.host.start=async()=>{starts++;throw {code:'E_USER_SCRIPTS_UNAVAILABLE',message:'API unavailable'};};
+  await f.click();
+  assert.equal(f.find('script-user-scripts-recovery').hidden,false);
+  f.api.userScripts={getScripts:async()=>[],execute:()=>assert.fail('probe must not execute')};
+  f.target.refresh=async()=>{refreshes++;f.setTarget({...availableTarget,documentId:'fresh-doc'});};
+  f.find('script-user-scripts-check').fire('click',{isTrusted:true});await tick();await tick();
+  assert.equal(f.find('script-user-scripts-recovery').dataset.state,'available');
+  assert.equal(f.find('script-user-scripts-settings').hidden,true);
+  assert.equal(refreshes,1);assert.equal(starts,1);
+  assert.equal(f.target.capture().documentId,'fresh-doc');
+});
+
+test('unexpected user-scripts probe error shows the real cause without claiming a missing switch',async t=>{
+  const f=await fixture(t,{local:false});
+  f.host.start=async()=>{throw {code:'E_USER_SCRIPTS_UNAVAILABLE',message:'API unavailable'};};
+  await f.click();
+  f.api.userScripts={getScripts:async()=>{throw Error('Extension context invalidated.');},execute:()=>assert.fail('must not execute')};
+  f.find('script-user-scripts-check').fire('click',{isTrusted:true});await tick();await tick();
+  assert.equal(f.find('script-user-scripts-recovery').dataset.state,'error');
+  assert.match(f.find('script-user-scripts-recovery-status').textContent,/Extension context invalidated/);
+  assert.equal(f.find('script-user-scripts-settings').hidden,true);
+  assert.equal(f.find('script-user-scripts-check').disabled,false);
+});
+
+test('loaded Page Candidate uses ordinary Run; New Script restores Controller intent', async t => {
+  const f=await fixture(t),source='var __opendeskProjectModule;\nasync function main(){return document.title;}';
+  const row={programId:'loaded-page',revision:1,stage:'Candidate',pageRules:{matches:['https://a.example/*']},sourceHash:'a'.repeat(64)};
+  const previews=[];
+  await f.setLocal(false);
+  f.client.request=async(method,params)=>{
+    if(method==='listPagePrograms')return {catalog:[row],programs:[]};
+    if(method==='getPageCandidate')return {...row,sourceUtf8:source,manifest:{}};
+    if(method==='previewPageScript'){previews.push(params);throw {code:'E_TEST_PREVIEW',message:'Page route reached'};}
+    return {};
+  };
+  f.find('page-program-refresh').fire('click',{isTrusted:true});
+  await until(()=>f.find('page-program-list').children.some(row=>row.value==='loaded-page:1'),'Page catalog did not refresh');
+  await tick();await tick();
+  f.find('page-program-list').value='loaded-page:1';
+  f.find('page-program-list').fire('change');await tick();await tick();
+  await until(()=>!f.find('page-program-load').disabled,'Page source load stayed busy');
+  f.find('page-program-load').fire('click',{isTrusted:true});
+  await until(()=>{
+    assert.doesNotMatch(f.find('page-program-status').textContent,/^E_/);
+    return f.find('program-generated-source').textContent===source;
+  },'Page source did not load');
+  await f.click();
+  await until(()=>previews.length===1,'ordinary Run did not use Page Preview');
+  assert.equal(previews[0].target.documentId,'document-a');
+  assert.equal(previews[0].managedUI.enabled,true);
+  assert.equal(f.manualRuns.length,0);
+  await until(()=>!f.find('script-run').disabled,'Page preview did not settle');
+  assert.equal(f.find('program-new-script').hidden,false);
+  f.find('program-new-script').fire('click',{isTrusted:true});
+  await f.click();
+  await until(()=>f.manualRuns.length===1,'New Script retained the loaded Page execution intent');
+  assert.equal(previews.length,1);
 });

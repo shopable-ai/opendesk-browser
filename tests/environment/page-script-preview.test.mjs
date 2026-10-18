@@ -157,3 +157,10 @@ test('missing completion retains the shared fence; confirmed program error relea
  });
  assert.equal((await confirmed.preview.preview(request(),{})).state,'preview-evaluated');assert.equal(confirmed.calls.length,2);
 });
+
+test('native inspection failure keeps its real error and never dispatches',async()=>{
+  const f=fixture();
+  f.api.userScripts.getScripts=async()=>{throw Object.assign(Error('quota exceeded'),{code:'E_QUOTA'});};
+  await assert.rejects(f.preview.preview(request(),{}),{code:'E_QUOTA',message:'quota exceeded'});
+  assert.equal(f.calls.length,0);
+});

@@ -32,8 +32,9 @@ async function fixture(catalog=[candidate()]){
     if(method==='verifyPageCandidate'){row.stage='Verified';return{stage:'Verified'};}
     if(method==='makePageAvailable'){row.stage='Available';return{stage:'Available'};}
     if(method==='installPageProgram'){
-      row.installed={revision:row.revision,manifestHash:row.manifestHash,pageRules:row.pageRules,enabled:true,nativeState:'registered',
-        authorization:{installationId,status:'active',generation:(input.expectedGeneration??0)+1}};
+      const enabled=row.installed?.enabled!==false;
+      row.installed={revision:row.revision,manifestHash:row.manifestHash,pageRules:row.pageRules,enabled,nativeState:enabled?'registered':'disabled',
+        authorization:{installationId,status:enabled?'active':'disabled',generation:(input.expectedGeneration??0)+1}};
       return row.installed;
     }
     if(method==='setInstalledPageEnabled'){
@@ -168,4 +169,20 @@ test('Page uninstall needs explicit confirmation and passes installed identity i
     manifestHash:'1'.repeat(64),expectedGeneration:7});
   assert.equal(row.installed,null);
   assert.match(f.get('status').textContent,/请刷新已打开的网页/);
+});
+
+test('updating a disabled Page revision reports success without enabling or registering it',async t=>{
+  const row=candidate(2);
+  row.installed={...candidate(),enabled:false,nativeState:'disabled',
+    authorization:{installationId,generation:4,status:'disabled'}};
+  const f=await fixture([row]);t.after(()=>f.ui.dispose());
+  await f.click('install');
+  assert.match(f.get('status').textContent,/已更新.*保持停用/);
+  assert.doesNotMatch(f.get('status').textContent,/原生注册尚未确认/);
+  assert.equal(row.installed.revision,2);
+  assert.equal(row.installed.enabled,false);
+  assert.equal(row.installed.nativeState,'disabled');
+  assert.equal(f.calls.filter(call=>call.method==='setInstalledPageEnabled').length,0);
+  assert.equal(f.calls.find(call=>call.method==='installPageProgram').input.expectedGeneration,4);
+  assert.equal(f.requests.length,0);
 });

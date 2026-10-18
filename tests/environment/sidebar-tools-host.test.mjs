@@ -244,6 +244,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
+    'page-install-import-status','page-install-import-receipt','page-install-import-receipt-text',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
     'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
     'sidebar-tool-discover-toggle','sidebar-tool-search',
@@ -305,7 +306,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     await pause();await pause();
     assert.equal(elements['sidebar-tool-preview'].hidden,true,'invalid input never presents an approval button');
     assert.equal(elements['sidebar-tool-install'].disabled,true,'invalid input cannot install');
-    assert.match(elements['sidebar-tool-file-error'].textContent,/不是有效的工具包 JSON/,'invalid JSON error stays beside the file');
+    assert.equal(elements['sidebar-tool-file-error'].textContent,'文件不是有效的扩展安装包 JSON','invalid JSON error stays beside the file');
     assert.equal(elements['sidebar-tool-file-error'].hidden,false);
     elements['sidebar-tool-import-close'].emit('click');
     assert.equal(elements['sidebar-tool-import'].hidden,true,'Cancel collapses the import form');
@@ -445,6 +446,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
+    'page-install-import-status','page-install-import-receipt','page-install-import-receipt-text',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
     'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
     'sidebar-tool-discover-toggle','sidebar-tool-search',

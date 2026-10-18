@@ -14,6 +14,7 @@ export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false;
+  let startupFailed=false;
   let uiLocale='zh-CN';
   const localeListeners=new Set();
   const acceptedLocale=value=>typeof value==='string'&&value.length<=45&&/^[A-Za-z0-9-]+$/.test(value)?
@@ -37,6 +38,9 @@ export function initSidebarToolSandbox() {
   if(typeof ResizeObserver==='function')new ResizeObserver(scheduleSize).observe(root);
   window.addEventListener('resize',scheduleSize);
   const report=(state,message)=>{
+    // Classic scripts can report a runtime error and still fire their load event.
+    if(state==='error')startupFailed=true;
+    if(state==='ready'&&startupFailed)return;
     status.textContent=message || '';
     status.dataset.state=state;
     status.hidden=state==='ready';
