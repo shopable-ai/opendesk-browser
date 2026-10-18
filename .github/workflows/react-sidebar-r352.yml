@@ -9,6 +9,7 @@ on:
       - 'src/ui/task-workbench.js'
       - 'src/ui/react/**'
       - 'scripts/tests/react-sidebar-r352-browser.mjs'
+      - 'scripts/tests/react-sidebar-r352-installed-chrome.mjs'
       - 'tests/environment/react-sidebar-app-shell-r351.test.mjs'
       - '.github/workflows/react-sidebar-r352.yml'
   workflow_dispatch:
@@ -39,8 +40,18 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
+      - name: Verify actual installed MV3 App Shell and repeated opening
+        run: node scripts/tests/react-sidebar-r352-installed-chrome.mjs
+      - name: Upload installed Chrome diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-sidebar-r352-installed-chrome
+          path: artifacts/react-sidebar-r352-installed/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Declare evidence boundary
         if: always()
         run: |
           echo "SOURCE_UI_SIMULATION_CHROMIUM=R35.2 tests"
-          echo "INSTALLED_EXTENSION_CHROME=NOT_TESTED"
+          echo "INSTALLED_EXTENSION_CHROME_LINUX=R35.2 real MV3 smoke; read job outcome"\n          echo "NATIVE_MAC_SIDE_PANEL=NOT_TESTED"
