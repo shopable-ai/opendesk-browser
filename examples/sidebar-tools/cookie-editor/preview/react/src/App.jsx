@@ -1,5 +1,5 @@
 import React from 'react';
-import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows} from '../../../ui/CookieEditorView.jsx';
+import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows,CookieFormField as Field} from '../../../ui/CookieEditorView.jsx';
 
 // PREVIEW-ONLY: virtual fixture rows; no Chrome APIs, SDK, persistence, or network.
 const demoSite='shop.example.com';
@@ -66,7 +66,6 @@ function HostHeader({onAction}){
  </header>;
 }
 function Message({tone='neutral',children,id}){return <p id={id} className={'message '+tone} role={tone==='error'?'alert':'status'} aria-live="polite">{children}</p>}
-function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
 // Preview-only parser: skip ordinary invalid records, block unsafe scope and partition ambiguity.
 function parseInput(text){
  const s=text.trim();if(!s)return {error:'请先选择文件或粘贴 Cookie 内容。'};

@@ -29,6 +29,13 @@ function Action({name,label,disabled=false,onClick,pressed,tone='normal'}){
     disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}
     onClick={onClick}><CookieIcon name={name}/></button>;
 }
+// The approved Preview and the official native Controller render the same
+// label/control DOM. This component knows nothing about Cookie credentials.
+export function CookieFormField({label,children,className=''}) {
+  return <label className={('field '+className).trim()}>
+    <span>{label}</span>{children}
+  </label>;
+}
 // Pure presentation; this exact JSX is imported by preview and trusted pilot.
 export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,onRefresh}){
   return <header className="site-bar">

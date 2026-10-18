@@ -192,10 +192,10 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           clearDisabled={!snapshot.rows.length}
           newEditor={selected==='new'?<CookieInlineEditor key="new" target={target}
             disabled={locked} onSave={save} onDirty={setDirty}
-            onCancel={()=>guarded(()=>setSelected(null))}/>:null}
+            onCancel={()=>{setSelected(null);setDirty(false);}}/>:null}
           editor={row=><CookieInlineEditor key={row.id} row={row} target={target}
             disabled={locked} readValue={controller.readValue} onSave={save}
-            onDirty={setDirty} onCancel={()=>guarded(()=>setSelected(null))}
+            onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
             onDelete={remove}/>}/>
         {panel==='import'&&<CookieImport controller={controller} disabled={locked}
           onClose={result=>{

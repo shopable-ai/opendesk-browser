@@ -34,6 +34,25 @@ test('Value remains outside global React state and fixture source',async()=>{
   for(const source of [app,preview,editor,importer,offline])
     assert.doesNotMatch(source,/DEMO|fixture-session|secret_preview_never_real|sess_demo_only_C18/);
 });
+test('golden Preview and installed editor share form JSX while secrets stay in ephemeral DOM',async()=>{
+  const [preview,view,barrel,editor,official]=await Promise.all([
+    get('preview/react/src/App.jsx'),get('app/components/CookieEditorView.jsx'),
+    get('ui/CookieEditorView.jsx'),get('app/components/CookieInlineEditor.jsx'),
+    get('app/CookieEditorApp.jsx')
+  ]);
+  assert.match(view,/export function CookieFormField/);
+  assert.match(barrel,/CookieFormField/);
+  assert.match(preview,/CookieFormField as Field/);
+  assert.match(editor,/<CookieFormField label="名称">/);
+  assert.match(editor,/<CookieFormField label="值">/);
+  assert.match(editor,/revealGeneration\.current\+\+/);
+  assert.match(editor,/originalValueRef\.current=null/);
+  assert.match(editor,/clearValue/);
+  assert.match(editor,/discardConfirm/);
+  assert.doesNotMatch(editor,/setState\([^)]*value/);
+  assert.match(official,/onCancel=\{\(\)=>\{setSelected\(null\);setDirty\(false\);\}\}/);
+});
+
 test('formal native package unchanged until candidate passes all gates',async()=>{
   const [config,official,vite]=await Promise.all([
     get('tool.config.json').then(JSON.parse),
