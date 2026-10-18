@@ -107,12 +107,12 @@ async function exercise(kind,path,port){
   for(const width of [320,360,400,440]){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:800,deviceScaleFactor:1,mobile:false});
     await sleep(120);
-    const row=await evalJs('({width:innerWidth,scroll:document.documentElement.scrollWidth,notes:document.querySelectorAll(".note-list button").length})');
-    assert.ok(row.scroll<=row.width+2,'document overflow at '+width);
-    assert.equal(row.notes,1);
+    const row=await evalJs('(()=>{const w=innerWidth;return {width:w,scroll:document.documentElement.scrollWidth,notes:document.querySelectorAll(".note-list button").length,offenders:[...document.querySelectorAll("body *")].filter(e=>e.getBoundingClientRect().right>w+2).slice(0,8).map(e=>({tag:e.tagName,id:e.id,className:String(e.className||"").slice(0,70),right:Math.round(e.getBoundingClientRect().right),scroll:e.scrollWidth}))}})()');
     const shot=await cdp('Page.captureScreenshot',{format:'png'});
     await writeFile(join(out,kind+'-'+width+'.png'),Buffer.from(shot.data,'base64'));
     measurements.push(row);
+    assert.ok(row.scroll<=row.width+2,'document overflow at '+width+': '+JSON.stringify(row));
+    assert.equal(row.notes,1);
   }
   if(kind==='react'){
     assert.equal(await evalJs('globalThis.OpenDeskPageReact?.version'),'19.2.0');
