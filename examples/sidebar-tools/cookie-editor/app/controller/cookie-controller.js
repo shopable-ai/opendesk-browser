@@ -17,6 +17,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
     message='',messageType='info',importPlan=null,clearPlan=null,
     observing=null,observeCursor='0',observeEvents=[];
+  let importRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target,rows:rows.map(x=>({...x})),
     phase,message,messageType,observing:!!observing,
@@ -78,7 +79,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   // Explicitly release short-lived raw import bytes when the input or panel
   // changes; an old preflight must never remain actionable after dismissal.
-  function discardImport(){importPlan=null;}
+  function discardImport(){importPlan=null;importRevision++;}
   function discardClear(){clearPlan=null;}
   function getRow(id){return rows.find(row=>row.id===id)||null;}
   async function readValue(id){
@@ -236,12 +237,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
   async function previewImport(source,format='auto'){
     const guard=lock();if(!guard)return null;
     importPlan=null;
+    const revision=++importRevision;
     try{
       const plan=inspectImport(source,format,guard.at.hostname);
       const store=await adapter.getStore(guard.at);
-      if(!verifiedRead(guard))return null;
+      if(!verifiedRead(guard)||revision!==importRevision)return null;
       const partition=await adapter.getPartition(guard.at);
-      if(!verifiedRead(guard))return null;
+      if(!verifiedRead(guard)||revision!==importRevision)return null;
       if(typeof store?.storeId!=='string'||!store.storeId||
         !partition?.partitionKey?.topLevelSite)throw Error('E_COOKIE_SCOPE');
       for(const item of plan.records){
@@ -266,13 +268,14 @@ export function createCookieController({adapter,onChange=()=>{}}){
         const scope=JSON.stringify([route.href,r.partitionKey||null]);
         if(!seen.has(scope))
           seen.set(scope,await adapter.exactList(guard.at,r,()=>verifiedRead(guard)));
-        if(!verifiedRead(guard))return null;
+        if(!verifiedRead(guard)||revision!==importRevision)return null;
         const present=seen.get(scope);
         if(!Array.isArray(present))throw badReceipt();
         if(present.some(old=>key(old)===key(r)))replaced++;
         else created++;
       }
       const accepted=plan.records.filter(item=>item.status==='ready').map(item=>item.cookie);
+      if(revision!==importRevision)return null;
       importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
         total:plan.records.length,created,replaced};
       // Show only preflight status and fixed validation reasons. Never return

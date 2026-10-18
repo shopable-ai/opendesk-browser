@@ -149,3 +149,18 @@ test('import preflight publishes statuses and safe reasons only, never values',a
   assert.doesNotMatch(JSON.stringify(plan),/SENSITIVE_INPUT|OTHER_SENSITIVE/);
   f.controller.dispose();
 });
+
+test('editing import text during async preflight invalidates old plan without writes',async()=>{
+  const f=fixture();await f.controller.load();
+  const pending=deferred();
+  f.cookies.getCurrentStore=async()=>pending.promise;
+  const preview=f.controller.previewImport('before=STALE_SECRET');
+  await Promise.resolve();await Promise.resolve();
+  f.controller.discardImport();
+  pending.resolve({storeId:'0'});
+  assert.equal(await preview,null);
+  assert.equal(await f.controller.executeImport('before=STALE_SECRET'),false);
+  assert.equal(f.calls.some(([name])=>name==='set'),false);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/STALE_SECRET/);
+  f.controller.dispose();
+});

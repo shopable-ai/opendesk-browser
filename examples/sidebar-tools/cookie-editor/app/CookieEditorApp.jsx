@@ -219,7 +219,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           disabled={locked} onSave={save} onDirty={setDirty}
           onCancel={()=>guarded(()=>setSelected(null))}/>}
         {panel==='import'&&<CookieImport controller={controller} disabled={locked}
-          onClose={()=>guarded(()=>{setPanel(null);setDirty(false);})}
+          onClose={result=>{
+            // A verified import has already committed; it must not reopen the
+            // unsaved-change dialog using the render's stale dirty closure.
+            if(result?.committed===true){setPanel(null);setDirty(false);return;}
+            guarded(()=>{setPanel(null);setDirty(false);});
+          }}
           onDirty={setDirty}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onClose={()=>setPanel(null)}/>}

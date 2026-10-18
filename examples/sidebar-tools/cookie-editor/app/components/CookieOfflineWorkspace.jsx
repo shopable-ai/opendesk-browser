@@ -10,6 +10,7 @@ import {CookieEditorView} from './CookieEditorView.jsx';
 export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()=>{}}){
   const cookies=React.useRef([]),importPlan=React.useRef(null);
   const importText=React.useRef(null),fileInput=React.useRef(null);
+  const fileGeneration=React.useRef(0),mounted=React.useRef(false);
   const [siteInput,setSiteInput]=React.useState(initialTarget?.origin||'');
   const [site,setSite]=React.useState(initialTarget||null);
   const [rows,setRows]=React.useState([]);
@@ -36,11 +37,18 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
   const refreshRows=()=>{
     setRows(redactMetadata(cookies.current).map(row=>({...row,id:key(row)})));
   };
-  React.useEffect(()=>()=>{cookies.current.length=0;importPlan.current=null;
-    if(importText.current)importText.current.value='';},[]);
+  React.useEffect(()=>{
+    mounted.current=true;
+    return ()=>{
+      mounted.current=false;fileGeneration.current++;
+      cookies.current.length=0;importPlan.current=null;
+      if(importText.current)importText.current.value='';
+    };
+  },[]);
   const applySite=()=>{
     try{
       const next=parseTarget(siteInput.trim());
+      fileGeneration.current++;
       cookies.current.length=0;importPlan.current=null;setSelected(null);
       setPreview(null);setImporting(false);setSite(next);refreshRows();mark(false);
       setMessage('已切换离线网站范围，旧临时 Cookie 已清除。');
@@ -81,7 +89,7 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
       cookies.current=cookies.current.filter(x=>key(x)!==id);
       cookies.current.push(item.cookie);
     }
-    importPlan.current=null;setPreview(null);setImporting(false);
+    fileGeneration.current++;importPlan.current=null;setPreview(null);setImporting(false);
     if(importText.current)importText.current.value='';
     refreshRows();mark(false);setMessage('Cookie 仅导入了离线工作区；Chrome 未改变。');
   };
@@ -111,7 +119,7 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
     {site&&<CookieEditorView site={site.hostname} rows={rows} busy={busy}
       selected={selected} onSelect={id=>guarded(()=>setSelected(id))}
       onNew={()=>guarded(()=>setSelected('new'))}
-      onImport={()=>guarded(()=>setImporting(x=>!x))}
+      onImport={()=>guarded(()=>{fileGeneration.current++;setImporting(x=>!x);})}
       onExport={()=>void exportNow('download')}
       onClear={()=>setConfirmClear(true)}
       editor={row=><CookieInlineEditor key={row.id} row={row} target={site}
@@ -128,17 +136,30 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
         <option value="header">Cookie Header</option><option value="netscape">Netscape</option>
       </select></label>
       <label>选择文件 <input className="od-field" ref={fileInput} type="file" accept=".txt,.json,.cookies"
-        onChange={async e=>{const f=e.target.files?.[0];if(!f)return;
+        onChange={async e=>{
+          const f=e.target.files?.[0];if(!f)return;
+          const seq=++fileGeneration.current;
           if(f.size>8*1024*1024){setMessage('文件大于 8 MiB');return;}
-          const text=await f.text();if(importText.current)importText.current.value=text;
-          mark(true);importPlan.current=null;setPreview(null);}}/></label>
+          try{
+            const text=await f.text();
+            if(!mounted.current||seq!==fileGeneration.current||!importText.current)return;
+            importText.current.value=text;
+            mark(true);importPlan.current=null;setPreview(null);
+          }catch{
+            if(mounted.current&&seq===fileGeneration.current)
+              setMessage('读取离线文件失败；请重新选择或粘贴文本。');
+          }finally{
+            if(mounted.current&&seq===fileGeneration.current&&fileInput.current)
+              fileInput.current.value='';
+          }
+        }}/></label>
       <label>文本 <textarea className="od-field" ref={importText} data-cookie-secret-input="true"
         rows={5} autoComplete="off"
         onInput={()=>{mark(true);importPlan.current=null;setPreview(null);}}/></label>
       {preview&&<p role="status">总计 {preview.total}，可导入 {preview.accepted}，跳过 {preview.skipped}</p>}
       <div className="cookie-editor-actions">
         <Button type="button" onClick={()=>guarded(()=>{
-          setImporting(false);importPlan.current=null;
+          fileGeneration.current++;setImporting(false);importPlan.current=null;
         })}>取消</Button>
         <Button type="button" onClick={inspect}>预检</Button>
         <Button type="button" disabled={!preview?.accepted} onClick={applyImport}>导入内存</Button>
