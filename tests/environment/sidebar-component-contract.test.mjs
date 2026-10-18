@@ -229,8 +229,22 @@ test('All trusted static and dynamically rendered disclosures use one shared hea
   assert.match(read('src/ui/cloud-hosting.js'), /technical\.className='od-disclosure od-disclosure--flat'/);
   // AI settings deliberately hide their summary in the existing settings subview.
   const summaryRules = [...shell.matchAll(/(?:^|\n)([^{}\n]*(?:>summary|\s+summary)[^{}\n]*)\{([^{}]*)\}/g)];
-  assert.deepEqual(summaryRules.map(([,selector]) => selector.trim()), ['#workflow-provider-settings>summary']);
+  // The installed-task overflow menu owns its native summary marker; it
+  // intentionally does not replace the shared od-disclosure component.
+  assert.deepEqual(summaryRules.map(([,selector]) => selector.trim()), [
+    '#workflow-provider-settings>summary',
+    '.schedule-manager-menu>summary',
+    '.schedule-manager-menu>summary::-webkit-details-marker',
+    '.schedule-manager-menu>summary::marker'
+  ]);
   assert.equal(summaryRules[0][2], 'display:none');
+  assert.match(summaryRules[1][2], /cursor:pointer/);
+  for(const [,selector,body] of summaryRules.slice(1)){
+    assert.ok(selector.includes('.schedule-manager-menu>summary'),
+      'Only the reviewed task menu may style a native summary header');
+    assert.doesNotMatch(body,/display:none|position:fixed/i,
+      'Task menu summary must remain reachable by keyboard and touch');
+  }
   assert.doesNotMatch(read('src/ui/cloud-hosting.css'), />summary\s*\{/);
   assert.doesNotMatch(shell, /\.cloud-clients\{[^}]*display:grid/,
     'The native details element must retain collapsed content semantics');

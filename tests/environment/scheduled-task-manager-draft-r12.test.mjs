@@ -20,7 +20,7 @@ test('R1.2 the original Chrome manager tests the unsafe shortcut and retains sta
   assert.match(ui,/view==='form'&&prior==='manager'&&managerReturn==='form'\?formScrollTop:0/);
   assert.match(ui,/pendingCreateFromForm=activeView==='form'\|\|\(activeView==='manager'&&managerReturn==='form'\)/);
   assert.match(native,/report\.tests\.nativeManagerBlocksDraftOverwrite='PASS'/);
-  assert.match(native,/assert\(!managerActions\.includes\('设置定时'\)/);
+  assert.match(native,/assert\(!managerActions\.some\(label=>label\.includes\('设置定时'\)\)/);
   assert.match(native,/schedule-manager-toggle/);
   assert.match(native,/schedule-manager-uninstall/);
   assert.doesNotMatch(native,/#schedule-manager-list \.schedule-manager-card \.schedule-actions button:nth-child/);
