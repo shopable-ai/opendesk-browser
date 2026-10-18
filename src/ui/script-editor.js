@@ -340,7 +340,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(worldRow)worldRow.hidden=componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot();
     if(worldChoice){
       worldChoice.value=javascriptWorld;
-      worldChoice.disabled=editingBusy||running||stopping||previewBusy||browserPreparing||
+      worldChoice.disabled=editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||
         !!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown;
     }
     const paramsTools=find('manual-project-params-tools');
@@ -1383,7 +1383,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function chooseJavascriptWorld(next){
     if(next===javascriptWorld)return;
     if(!['controller','page'].includes(next)||disposed||componentMode!=='javascript'||
-      editingBusy||running||stopping||previewBusy||browserPreparing||componentRemote?.busy||
+      editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||componentRemote?.busy||
       browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
       componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
       update();return;
