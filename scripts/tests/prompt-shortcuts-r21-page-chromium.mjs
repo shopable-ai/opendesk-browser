@@ -318,8 +318,9 @@ try{
   })()`);
   await poll('document.querySelector("main#main") && '+
     'document.querySelector("[data-opendesk-prompts]")?.hidden===false && '+
-    'window.__railRoot?.querySelector(".item")?.isConnected',
-    'simulated ChatGPT fixed-site adapter mounted');
+    'window.__railRoot?.querySelector(".item")?.isConnected && '+
+    'document.querySelector("[data-opendesk-prompts]").style.left.endsWith("px")',
+    'simulated ChatGPT fixed-site adapter mounted and positioned');
   const beforeHistoryLeft=await evaluate('document.querySelector("[data-opendesk-prompts]").style.left');
   await evaluate(`(()=>{
     const old=document.querySelector('main#main');
@@ -338,7 +339,7 @@ try{
   await poll('document.querySelector("main#main textarea#prompt-textarea").value.includes("第二行")',
     'history conversation native insertion');
   assert.equal(await evaluate('document.querySelector("main#main textarea#prompt-textarea").value'),
-    '新历史会话草稿\\n'+body);
+    '新历史会话草稿\n'+body);
   assert.equal(await evaluate('document.querySelectorAll("[data-opendesk-prompts]").length'),1);
   scenes.push({step:'ChatGPT-origin simulated SPA history navigation',
     actualChromiumDOM:true,oldHostReused:true,newRegionAnchored:true,
