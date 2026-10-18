@@ -105,9 +105,14 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   },[hostRoot,controller]);
   React.useEffect(()=>{setState?.({busy,dirty});},[busy,dirty,setState]);
   React.useEffect(()=>{if(confirmation)cancelButton.current?.focus();},[confirmation]);
-  React.useEffect(()=>{if(snapshot.phase!=='ready'){
-    setSelected(null);setPanel(null);setDirty(false);setConfirmation(null);
-  }},[snapshot.epoch,snapshot.phase]);
+  React.useEffect(()=>{
+    // A live session invalidation must not discard an offline editor's
+    // independent dirty state when an unrelated browser event fires.
+    if(modeRef.current==='offline')return;
+    if(snapshot.phase!=='ready'){
+      setSelected(null);setPanel(null);setDirty(false);setConfirmation(null);
+    }
+  },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
   const openPanel=name=>guarded(()=>{
     setSelected(null);setPanel(name);setPage(1);setStatus('');
