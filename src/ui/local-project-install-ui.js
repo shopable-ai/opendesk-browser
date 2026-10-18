@@ -270,6 +270,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   async function reconcileUnknown(){
     if(!unknown||!unknownReview||reconciling||disposed)return;
     const pending=unknownReview;reconciling=true;
+    let confirmedResult=null;
     say('正在读取已安装版本；不会重新运行或安装…','pending');
     reveal();update();onState();
     try{
@@ -281,7 +282,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         rememberInstalled(installed,project());
         unknown=false;unknownReview=null;project()?.rememberInstallAttempt?.(null);hide();
         say('已从原持久安装记录确认确定版本，不会再次执行脚本或提交安装。','success');
-        onInstalled({kind:observed.kind,id:observed.id,version:observed.version,focus:true});
+        confirmedResult={kind:observed.kind,id:observed.id,version:observed.version,focus:true};
       }else{
         const stateText={
           'not-installed':'没有查到这个确定版本的安装记录',
@@ -294,6 +295,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     }catch(error){
       if(!disposed)say(message(error)+'；只读核对失败，尚未重试任何安装或验证。','unknown');
     }finally{reconciling=false;if(!disposed){update();onState();}}
+    // Completion observers see the settled Save state, not the transient
+    // "checking" label. No additional install or verification is dispatched.
+    if(confirmedResult&&!disposed)onInstalled(confirmedResult);
   }
   async function prepare(){
     if(disposed||preparing||installing||reconciling)return;
