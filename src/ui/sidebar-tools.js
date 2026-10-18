@@ -27,7 +27,7 @@ import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABI
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
 import {TIME_REVIEW_KEY} from '../time-review/model.js';
-import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
+import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';

@@ -4,7 +4,7 @@ import {createFoundationBroker} from './platform/host/broker.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
-import {installStayFocusService} from './stay-focus/service.js';
+import {installStayFocusService} from '../examples/sidebar-tools/stay-focus/trusted/service.js';
 import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/service.js';
 import {installAiAccessService} from './ai-smart-access/service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
