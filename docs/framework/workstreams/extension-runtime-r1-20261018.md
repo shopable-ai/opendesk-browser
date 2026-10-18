@@ -19,6 +19,9 @@
 7. `.agents/skills/opendesk-trusted-sidebar-feature/SKILL.md`
 8. 本记录。
 
+
+2026-10-18 文档试读后的最小范围补充：还需修正 `docs/api/sidebar-tools.zh-CN.md` 的 v1/v2/固定 Shared UI 字段说明、`docs/api/page-userscript.zh-CN.md` 的 JSX/SFC 编译方式、`docs/api/sidebar-local-projects.zh-CN.md` 的现行安装按钮与导航，以及 `.agents/skills/opendesk-program-publish/SKILL.md` 将 MCP 路径误作默认入口的描述。均为已链接材料中的事实冲突，不修改运行协议/代码，也不新增 Skill。
+
 公共运行协议、Schema、安装器、SDK、产品 JS/UI、Manifest、WXT 与正式工具包均只读。已存在的 API README 导航与扩展创建工作流保持其并行提交。Stay Focus R4、Time Review、Cookie Editor、AdBlock、Prompt Shortcuts 和扩展中心的业务改动由各自任务继续。
 
 ## 本轮要解决的问题
