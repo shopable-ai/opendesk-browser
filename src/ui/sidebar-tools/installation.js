@@ -87,7 +87,7 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
           // A previous STOP might have persisted the disabled flag before
           // a native DNR or proxy cleanup failed. Reconcile again on STOP.
           await stopInstalledToolOwnedServices(api,tool.id);
-          return {enabled:false,cleanupVerified:true};
+          return {enabled:false,cleanupAttempted:true};
         }
         return {enabled};
       }

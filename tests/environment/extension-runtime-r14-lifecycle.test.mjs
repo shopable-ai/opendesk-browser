@@ -54,7 +54,7 @@ test('R1.4 failed native STOP remains disabled and repeated STOP clears only own
   assert.equal(f.state.get(SIDEBAR_TOOL_ENABLE_STORE)[FOCUS_ID],false);
   assert.ok(f.rules.some(row=>row.id===focusRule.id));
   const result=await f.toggle(false);
-  assert.deepEqual(result,{enabled:false,cleanupVerified:true});
+  assert.deepEqual(result,{enabled:false,cleanupAttempted:true});
   assert.deepEqual(f.rules,[peerRule]);
   assert.equal(f.state.get(TOOL_REVOCATION_EPOCHS_STORE),undefined);
 });
