@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {SidebarNavigation} from './tabs/navigation.tsx';
 import {ExtensionCenterPage} from './tabs/tools.tsx';
+import {CloudConnectionPage} from './tabs/cloud.tsx';
 
 // Migration boundary: the navigation, content container, Tools page and
 // Extension Center are rendered in the ONE trusted React tree. Unmigrated
@@ -13,21 +14,30 @@ export function prepareSidebarAppShell(doc){
   const sidebar=doc.getElementById('sidebar-tools');
   const list=doc.getElementById('sidebar-tool-list-view');
   const center=doc.getElementById('extension-center');
+  const cloud=doc.getElementById('workbench-cloud');
+  const cloudPanel=cloud?.querySelector(':scope > .cloud-panel');
+  const cloudHeader=cloudPanel?.querySelector(':scope > .cloud-panel-head');
+  const cloudOverview=cloudPanel?.querySelector(':scope > .cloud-overview');
   const dock=doc.getElementById('workspace-dock');
   if(!nav||!main||!tools||!sidebar||!list||!center||!dock||
+    !cloud||!cloudPanel||!cloudHeader||!cloudOverview||
     doc.getElementById('opendesk-react-app')||
-    tools.parentElement!==main||sidebar.parentElement!==tools||
+    tools.parentElement!==main||cloud.parentElement!==main||
+    sidebar.parentElement!==tools||
     list.parentElement!==sidebar||center.parentElement!==list)
     throw new Error('E_REACT_APP_SHELL_STRUCTURE');
   const pages=Array.from(main.children);
   const toolIndex=pages.indexOf(tools);
-  if(toolIndex<0)throw new Error('E_REACT_APP_SHELL_PAGES');
+  if(toolIndex<0||pages.indexOf(cloud)<=toolIndex)
+    throw new Error('E_REACT_APP_SHELL_PAGES');
   const sidebarChildren=Array.from(sidebar.children);
   const listIndex=sidebarChildren.indexOf(list);
   if(listIndex<0)throw new Error('E_REACT_APP_SHELL_TOOL_LIST');
   const scaffold={
     beforeTools:pages.slice(0,toolIndex),
-    afterTools:pages.slice(toolIndex+1),
+    afterTools:pages.slice(toolIndex+1).filter(node=>node!==cloud),
+    cloudLegacySections:Array.from(cloudPanel.children)
+      .filter(node=>node!==cloudHeader&&node!==cloudOverview),
     beforeList:sidebarChildren.slice(0,listIndex),
     afterList:sidebarChildren.slice(listIndex+1),
     listRemainder:Array.from(list.children).filter(node=>node!==center),
@@ -44,7 +54,8 @@ export function prepareSidebarAppShell(doc){
 }
 
 export function SidebarAppShell({
-  scaffold,activeTab='tasks',debugEnabled=false,onNavigate=()=>{},extensionProps={}
+  scaffold,activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
+  extensionProps={},cloudModel={}
 }){
   const mountMain=React.useCallback(node=>{
     if(!node)return;
@@ -100,6 +111,9 @@ export function SidebarAppShell({
           </div>
         </section>
       </div>
+      <CloudConnectionPage model={cloudModel}
+        legacySections={scaffold.cloudLegacySections}
+        hidden={activeTab!=='cloud'}/>
     </main>
     <div className="opendesk-react-dock-host" ref={mountDock}/>
   </>;
