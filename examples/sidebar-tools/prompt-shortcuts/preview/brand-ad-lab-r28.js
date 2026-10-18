@@ -176,7 +176,7 @@
     const b=make('button','r28-shortcut','');b.type='button';
     b.addEventListener('click',()=>appendDraft(i));
     b.addEventListener('mouseenter',()=>{old.state.tipOpen=true;old.render();});
-    extraButtons.push(b);rail.insertBefore(b,originalShortcut.nextSibling);
+    extraButtons.push(b);rail.insertBefore(b,$('railSponsor'));
   }
   const separator=make('span','r28-rail-divider');separator.setAttribute('aria-hidden','true');rail.append(separator);
   const railAd=make('button','r28-rail-sponsor','✦');railAd.id='r28Sponsor';railAd.type='button';
@@ -193,6 +193,7 @@
   for(const [id,parent] of [['S01',$('listView')],['S02',$('listView')],['S04',$('editView')],['S05',$('editView')],['S06',$('emptyView')],['S07',$('settingsView')],['S08',document.querySelector('.panel-scroll')]]) {
     const target=make('div','r28-panel-slot');target.id='r28Slot'+id;target.dataset.spot=id;parent.append(target);slots[id]=target;
   }
+  slots.S08.addEventListener('click',e=>{if(e.target.closest('.r28-hint-card'))choose('S08');});
   slots.S03=make('span','r28-panel-footer-slot');slots.S03.id='r28SlotS03';slots.S03.dataset.spot='S03';
   document.querySelector('.panel-footer').append(slots.S03);
 
@@ -223,7 +224,7 @@
     railAd.dataset.r28Current=state.active&&['B03','B04','B05'].includes(state.id)?'true':'false';
     $('tip').hidden=state.active?!(old.state.tipOpen||['B06','B07','B08'].includes(state.id)):!old.state.tipOpen;
     if(state.active&&state.id==='B02')showPop('brand');
-    else if(state.active&&state.id==='B04'&&show)showPop('sponsor');
+    else if(state.active&&['B04','B05'].includes(state.id)&&show)showPop('sponsor');
     else if(state.pop)hidePop();
   }
   function adCard(index,unsold,asButton,layoutOverride) {
@@ -247,7 +248,7 @@
     const groupView=view==='edit'?'S04':view==='empty'?'S06':view==='settings'?'S07':'S02';
     const showCards=state.sold>0||state.mode==='sales';
     if(view==='list'){
-      const holder=slots.S02;
+      const holder=state.id==='S01'?slots.S01:slots.S02;
       if(showCards) {
         const row=make('div','r28-card-row');row.append(make('strong','',T('sold')+' '+state.sold+'/3'));
         const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{old.state.enabled=false;old.render();});
@@ -266,10 +267,11 @@
       }
       if(state.id==='S08'||state.group==='S'&&state.boundaries){
         slots.S08.append(make('div','r28-hint-card',name('S08')+' · '+T('clickZone')));
-        slots.S08.addEventListener('click',()=>choose('S08'),{once:true});
+
       }
     }else if(showCards){
-      const holder=slots[groupView];
+      const target=state.id==='S05'?'S05':groupView;
+      const holder=slots[target];
       holder.append(adCard(0,state.sold===0,true));
     }
     if(state.id==='S03'||(state.group==='S'&&state.boundaries)){
@@ -334,13 +336,14 @@
   }
   function renderTip() {
     tipExtra.replaceChildren();delete tipExtra.dataset.r28Current;delete document.querySelector('.tip-brand').dataset.r28Current;
-    if(!state.active||!old.state.enabled)return;
+    if(!state.active)return;
+    if(state.id==='B08')document.querySelector('.tip-brand').dataset.r28Current='true';
+    if(!old.state.enabled)return;
     if(state.id==='B06'||state.id==='B07'){
       tipExtra.dataset.r28Current='true';
       if(!old.state.long)tipExtra.append(adCard(0,state.layout==='recruit',false,state.id==='B06'?'text':state.layout));
       else tipExtra.append(make('span','r28-corner-note',old.state.lang==='zh'?'长正文优先 · 广告让位':old.state.lang==='ja'?'長文優先：広告を非表示':'Long prompt first · ad hidden'));
     }
-    if(state.id==='B08')document.querySelector('.tip-brand').dataset.r28Current='true';
   }
   const choose=(id,extra=null) => {
     state.active=true;state.id=id;state.group=id[0];state.extra=extra;state.preset='';
