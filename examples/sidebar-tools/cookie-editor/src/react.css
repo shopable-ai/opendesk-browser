@@ -1,102 +1,79 @@
 /* @opendesk-shared-design */
-/* Cookie-specific styling only. Global tokens and component primitives belong to Shared UI. */
-.cookie-editor-react{width:100%;min-width:0;margin:0 auto;padding:var(--space-3);max-width:860px;color:var(--od-ink);font-size:13px;line-height:1.5}
-.cookie-editor-react *, .cookie-editor-react *::before,.cookie-editor-react *::after{box-sizing:border-box}
-.cookie-editor-react button,.cookie-editor-react input,.cookie-editor-react select,.cookie-editor-react textarea{font:inherit}
-.cookie-editor-react button{cursor:pointer}
-.cookie-editor-react button:disabled{opacity:.45;cursor:default}
-.cookie-editor-react :is(input,textarea,select){max-width:100%;color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-control);padding:7px 9px}
-.cookie-editor-react :is(input,textarea,select):focus-visible,.cookie-editor-react button:focus-visible{outline:2px solid var(--od-focus,var(--od-brand));outline-offset:2px}
-.cookie-editor-react :is(textarea,input){min-width:0}
+/* Cookie-specific geometry; official shared primitives own controls, palette and focus. */
+.cookie-editor-react{width:100%;min-width:0;max-width:860px;margin:0 auto;padding:var(--space-3);color:var(--od-ink);font-size:var(--od-body-size);line-height:1.5}
+.cookie-editor-react input,.cookie-editor-react textarea,.cookie-editor-react select{max-width:100%}
+.cookie-editor-react input,.cookie-editor-react textarea{min-width:0}
 .cookie-editor-react textarea{width:100%;min-height:120px;resize:vertical}
+.cookie-editor-react button{cursor:pointer}
+.cookie-editor-react button:disabled{cursor:default}
 .cookie-main-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-3)}
 .cookie-main-head h2{font-size:15px;line-height:1.4;margin:0;font-weight:700}
-.cookie-main-head p{font-size:11px;color:var(--od-sub);margin:2px 0 0}
+.cookie-main-head p{font-size:var(--od-meta-size);margin:2px 0 0;color:var(--od-sub)}
 .cookie-mode-tabs{display:flex;gap:var(--space-1)}
-.cookie-mode-tabs button[aria-pressed=true]{background:var(--od-muted,var(--od-bg));border-color:var(--od-brand);color:var(--od-brand)}
 .cookie-site-select{display:flex;align-items:end;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-3)}
-.cookie-site-select>label{display:grid;gap:4px;flex:1 1 150px;min-width:0;font-size:11px;color:var(--od-sub)}
-.cookie-site-select input{width:100%;color:var(--od-ink);font-size:12px;min-height:36px}
+.cookie-site-select>label{display:grid;gap:var(--space-1);flex:1 1 150px;min-width:0;font-size:var(--od-note-size)}
+.cookie-site-select input{width:100%;min-height:36px}
 .cookie-site-select button{flex:none}
-.cookie-editor-react .od-shared-card{background:transparent;border:0;box-shadow:none}
-.cookie-editor-react .od-shared-card-content{padding:0}
-.cookie-editor-react .cookie-react-view{width:100%;max-width:none}
-.cookie-editor-react .cookie-inline-editor,.cookie-editor-react .cookie-panel{display:grid;gap:var(--space-3);padding:var(--space-3);background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);min-width:0}
+.cookie-editor-react .cookie-react-view{width:100%;min-width:0;max-width:none}
+.cookie-editor-react .cookie-inline-editor,.cookie-editor-react .cookie-panel{display:grid;gap:var(--space-3);min-width:0}
 .cookie-editor-react .cookie-panel{margin-top:var(--space-3)}
-.cookie-editor-react .cookie-inline-editor h3,.cookie-editor-react .cookie-panel h3{font-size:13px;margin:0}
-.cookie-editor-react .cookie-inline-editor{border-top:0;border-radius:0 0 var(--radius-surface) var(--radius-surface)}
+.cookie-editor-react .cookie-inline-editor h3,.cookie-editor-react .cookie-panel h3{font-size:var(--od-body-size);margin:0}
 .cookie-editor-react .cookie-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
-.cookie-editor-react .cookie-editor-grid>label,.cookie-editor-react .cookie-panel>label,.cookie-offline-site>label{display:grid;gap:4px;min-width:0;font-size:12px}
+.cookie-editor-react .cookie-editor-grid>label,.cookie-editor-react .cookie-panel>label,.cookie-offline-site>label{display:grid;gap:var(--space-1);min-width:0;font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-editor-grid>label input:not([type=checkbox]),.cookie-editor-react .cookie-editor-grid>label select,.cookie-editor-react .cookie-panel>label select{width:100%;min-width:0}
-.cookie-editor-react label:has(>input[type=checkbox]){display:flex;gap:7px;align-items:center}
+.cookie-editor-react label:has(>input[type=checkbox]){display:flex;gap:var(--space-2);align-items:center}
 .cookie-editor-react label input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--od-brand)}
 .cookie-editor-react .cookie-editor-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-width:0}
-.cookie-editor-react .cookie-editor-actions button,.cookie-editor-react .cookie-observe button,.cookie-editor-react .cookie-pages button,.cookie-editor-react .cookie-permission button,.cookie-editor-react .cookie-offline-site button{border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-ink);border-radius:var(--radius-control);padding:6px 10px;min-height:32px}
-.cookie-editor-react .cookie-editor-actions button.primary{background:var(--od-brand);border-color:var(--od-brand);color:white}
-.cookie-editor-react .cookie-editor-actions button.danger,.cookie-editor-react .cookie-confirm button.danger{color:var(--od-negative);border-color:var(--od-negative)}
+.cookie-editor-react .cookie-editor-actions button{flex-shrink:0}
 .cookie-editor-react .cookie-spacer{flex:1;min-width:6px}
-.cookie-editor-react .cookie-editor-details summary{cursor:pointer;color:var(--od-brand)}
 .cookie-editor-react .cookie-editor-details[open]>.cookie-editor-grid{margin-top:var(--space-2)}
-.cookie-editor-react .cookie-editor-scope{font-size:11px;overflow-wrap:anywhere;color:var(--od-sub);margin:6px 0}
-.cookie-editor-react .cookie-sensitive-output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;border:1px dashed var(--od-line);padding:8px;max-height:100px;overflow:auto;font-family:ui-monospace,monospace}
+.cookie-editor-react .cookie-editor-scope{font-size:var(--od-meta-size);overflow-wrap:anywhere;color:var(--od-sub);margin:var(--space-2) 0}
+.cookie-editor-react .cookie-sensitive-output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;border:1px dashed var(--od-line);padding:var(--space-2);max-height:100px;overflow:auto;font-family:ui-monospace,monospace}
 .cookie-editor-react .cookie-sensitive-output[hidden]{display:none}
-.cookie-editor-react .cookie-message{background:var(--od-bg);color:var(--od-ink);padding:8px 10px;margin:var(--space-2) 0;border-radius:var(--radius-control);overflow-wrap:anywhere}
-.cookie-editor-react .cookie-message.error{color:var(--od-negative)}
-.cookie-editor-react .cookie-message.warning{border:1px solid var(--od-negative)}
-.cookie-editor-react .cookie-message.success{color:var(--od-positive,#197347)}
-.cookie-editor-react .cookie-panel>p{margin:0;color:var(--od-sub)}
-.cookie-editor-react .cookie-permission,.cookie-editor-react .cookie-offline-banner{border:1px solid var(--od-line);background:var(--od-bg);border-radius:var(--radius-surface);padding:var(--space-3);margin-bottom:var(--space-3)}
-.cookie-editor-react .cookie-permission p,.cookie-editor-react .cookie-offline-banner p{margin:5px 0;font-size:12px}
+.cookie-editor-react .cookie-message{overflow-wrap:anywhere;margin:var(--space-2) 0}
+.cookie-editor-react .cookie-message.success{color:var(--od-positive)}
+.cookie-editor-react .cookie-panel>p{margin:0}
+.cookie-editor-react .cookie-permission,.cookie-editor-react .cookie-offline-banner{margin-bottom:var(--space-3)}
+.cookie-editor-react .cookie-permission p,.cookie-editor-react .cookie-offline-banner p{margin:var(--space-2) 0;font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-observe{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);margin-top:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-3)}
 .cookie-editor-react .cookie-observe>div{flex:1;display:grid;min-width:120px}
 .cookie-editor-react .cookie-observe small{color:var(--od-sub)}
 .cookie-editor-react .cookie-observe ul{flex-basis:100%;list-style:none;margin:0;padding:0;overflow-wrap:anywhere}
-.cookie-editor-react .cookie-observe li{border-top:1px solid var(--od-line);padding:6px 2px}
-.cookie-editor-react .cookie-confirm{position:relative;z-index:2;border:1px solid var(--od-negative);background:var(--od-paper);border-radius:var(--radius-surface);padding:var(--space-3);margin-top:var(--space-3)}
+.cookie-editor-react .cookie-observe li{border-top:1px solid var(--od-line);padding:var(--space-2) 2px}
+.cookie-editor-react .cookie-confirm{position:relative;z-index:2;margin-top:var(--space-3)}
 .cookie-editor-react .cookie-confirm p{margin:0 0 var(--space-2)}
 .cookie-editor-react .cookie-pages{display:flex;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-3)}
 .cookie-editor-react .cookie-offline-site{display:flex;align-items:end;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-3)}
 .cookie-editor-react .cookie-offline-site label{flex:1}
 .cookie-editor-react .cookie-offline-site input{width:100%}
 .cookie-editor-react .cookie-offline>div.cookie-editor-actions{padding:var(--space-3) 0}
-@media(max-width:400px){.cookie-editor-react .cookie-editor-grid{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .cookie-mode-tabs{width:100%}.cookie-editor-react .cookie-mode-tabs>button{flex:1}.cookie-editor-react .cookie-site-select{gap:var(--space-1)}.cookie-editor-react .cookie-editor-actions button{flex:1 1 auto}.cookie-editor-react .cookie-spacer{display:none}}
-
-/* Scoped, fixed trusted React pilot. No global resets or sandbox CSS injection. */
-.cookie-editor-react{width:min(100%,380px);min-width:0;margin:var(--space-3) auto;padding:0;color:var(--od-ink);font-size:var(--od-body-size,13px)}
-.cookie-editor-react .cookie-react-fixture{font-weight:650;margin:0 0 var(--space-2);overflow-wrap:anywhere}
-.cookie-editor-react .cookie-react-fixture-note{font-size:var(--od-note-size,12px);color:var(--od-sub);line-height:1.5;margin:var(--space-2) 0}
-.cookie-editor-react .cookie-react-view{min-width:0;max-width:380px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}
 .cookie-editor-react .site-bar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);border-bottom:1px solid var(--od-line)}
 .cookie-editor-react .site-symbol{display:grid;place-items:center;color:var(--od-sub);width:24px;height:24px;flex-shrink:0}
-.cookie-editor-react svg{width:17px;height:17px;flex-shrink:0}
+.cookie-editor-react .site-symbol svg{width:18px;height:18px}
 .cookie-editor-react .site-name{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
-.cookie-editor-react .site-name>span{font-size:11px;color:var(--od-sub)}
+.cookie-editor-react .site-name>span{font-size:var(--od-meta-size);color:var(--od-sub)}
 .cookie-editor-react .site-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3)}
 .cookie-editor-react .list-toolbar>strong{white-space:nowrap}
 .cookie-editor-react .toolbar-actions{display:flex;gap:var(--space-1);align-items:center}
 .cookie-editor-react .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
-.cookie-editor-react .cookie-react-icon{display:inline-grid;place-items:center;min-width:32px;width:32px;height:32px;flex-shrink:0}
+.cookie-editor-react .cookie-react-icon{flex:none}
 .cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-3) var(--space-2)}
-.cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control)}
-.cookie-editor-react .searchbox input{width:100%;height:34px;min-width:0;border:0;background:transparent;outline-offset:0;color:var(--od-ink)}
+.cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2)}
+.cookie-editor-react .searchbox input{width:100%;min-width:0;min-height:36px}
 .cookie-editor-react .filter-panel{padding:var(--space-2) var(--space-3);border-top:1px solid var(--od-line);border-bottom:1px solid var(--od-line)}
 .cookie-editor-react .filter-chips{display:flex;flex-wrap:wrap;gap:var(--space-1)}
-.cookie-editor-react .chip{border:1px solid var(--od-line);border-radius:999px;background:var(--od-paper);padding:4px 9px;color:var(--od-sub);font:inherit}
-.cookie-editor-react .chip.selected{border-color:var(--od-brand);color:var(--od-brand)}
 .cookie-editor-react .sort-field{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}
 .cookie-editor-react .sort-field select{max-width:68%;min-width:0}
 .cookie-editor-react .cookie-row{border-top:1px solid var(--od-line)}
-.cookie-editor-react .row-trigger{width:100%;border:0;background:transparent;display:flex;gap:var(--space-2);align-items:center;text-align:left;color:var(--od-ink);padding:var(--space-3);cursor:pointer}
-.cookie-editor-react .row-trigger:hover{background:var(--od-bg)}
+.cookie-editor-react .row-trigger{width:100%;display:flex;gap:var(--space-2);align-items:center;justify-content:flex-start}
 .cookie-editor-react .row-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
-.cookie-editor-react .row-text{min-width:0;flex:1;display:grid;gap:2px}
+.cookie-editor-react .row-text{min-width:0;flex:1;display:grid;gap:2px;text-align:left}
 .cookie-editor-react .row-text strong,.cookie-editor-react .row-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cookie-editor-react .row-text small{font-size:11px;color:var(--od-sub)}
+.cookie-editor-react .row-text small{font-size:var(--od-meta-size);color:var(--od-sub)}
 .cookie-editor-react .row-flags{display:flex;gap:3px;color:var(--od-sub)}
-.cookie-editor-react .row-flags abbr{border:0;text-decoration:none;font-size:10px}
+.cookie-editor-react .row-flags abbr{text-decoration:none;font-size:var(--od-meta-size)}
 .cookie-editor-react .cookie-react-detail{padding:var(--space-3);border-top:1px solid var(--od-line);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}
 .cookie-editor-react .empty-list{display:grid;gap:var(--space-1);padding:var(--space-4);text-align:center;color:var(--od-sub)}
 .cookie-editor-react .empty-list strong{color:var(--od-ink)}
-.cookie-editor-react :is(button,input,select):focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
-
+@media(max-width:400px){.cookie-editor-react .cookie-editor-grid{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .cookie-mode-tabs{width:100%}.cookie-editor-react .cookie-mode-tabs>button{flex:1}.cookie-editor-react .cookie-site-select{gap:var(--space-1)}.cookie-editor-react .cookie-editor-actions button{flex:1 1 auto}.cookie-editor-react .cookie-spacer{display:none}}
