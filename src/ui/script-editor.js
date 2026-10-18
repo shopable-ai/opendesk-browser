@@ -164,11 +164,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
-  // Trusted React owns the core controls without transient native listeners.
-  // Standalone editor consumers retain the existing native DOM fallback.
-  const listenNativeEditor=(element,event,handler)=>{
-    if(!reactDeveloperUI)listen(element,event,handler);
-  };
+  // Trusted React owns the core controls. Legacy listeners are installed
+  // only by standalone non-React editor consumers below.
   const requireReactDeveloperUI=()=>{
     if(!reactDeveloperUI)throw new Error('E_REACT_DEVELOPER_MODE');
   };
@@ -1280,7 +1277,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       isComponentDraft()?savePreparedComponent():loadedPageSource?savePageCandidate():
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
   }
-  listenNativeEditor(find('script-save'),'click',saveClick);
   listen(find('script-save-version'),'click',saveClick);
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(revisionView.remove)); on('script-list-refresh','click',revisionView.refresh);
@@ -1339,11 +1335,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     componentMessage('idle',next==='page'?'网页 JavaScript 使用当前网页 DOM；运行前仍须网站授权':'');
     update();
   }
-  for(const [next,input] of Object.entries(componentInputs))if(input)listenNativeEditor(input,'change',()=>{
-    if(input.checked)chooseComponentMode(next);
-  });
   const javascriptWorldSelect=find('script-javascript-world');
-  if(javascriptWorldSelect)listenNativeEditor(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
   function sourceInput(){
     browserPreparer.cancel();browserPrepareGeneration++;
     programSource.replaceSource(programSource.source());
@@ -1358,9 +1350,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();
     scheduleControllerClassicWarm();update();
   });
-  on('script-revision','input',update); if(!reactDeveloperUI)on('script-source','input',sourceInput);
+  on('script-revision','input',update);
   on('script-params','input',update);
-  listenNativeEditor(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
     if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
     const url = userScriptsSettingsURL(api);
@@ -1456,7 +1447,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
     try {await host.stop({runId:ownedDraftRunId,controller:true});}
     finally {stopping = false; update();}
   }
-  if(!reactDeveloperUI)on('script-stop','click',stop);
+  // The fallback registers its complete native control surface together.
+  // React mode never creates listeners only to transfer/remove them later.
+  if(!reactDeveloperUI){
+    listen(find('script-save'),'click',saveClick);
+    for(const [next,input] of Object.entries(componentInputs))if(input)
+      listen(input,'change',()=>{if(input.checked)chooseComponentMode(next);});
+    if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
+    on('script-source','input',sourceInput);
+    listen(find('script-run'),'click',start);
+    on('script-stop','click',stop);
+  }
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
   const unsubscribeRun = host.subscribe(next => {
     if (disposed) return;
