@@ -16,10 +16,16 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
     html.indexOf('id="workbench-discover"'));
   const legacy=['cloud-approval-section','cloud-clients','cloud-hosting']
     .map(x=>panel.indexOf('id="'+x+'"'));
-  const reactOrder=['cloud-overview-state','cloud-first-run','cloud-request-samples']
-    .map(x=>react.indexOf('id="'+x+'"'));
+  // Component definitions appear in source order unrelated to rendered DOM
+  // order. Check actual composition inside CloudConnectionPage instead.
+  const connection=react.slice(react.indexOf('export function CloudConnectionPage('),
+    react.indexOf('// R35.3: React owns Cloud request history'));
+  const reactOrder=['id="cloud-overview-state"','<CloudFirstRun','<CloudRequestHistory']
+    .map(x=>connection.indexOf(x));
   assert(legacy.every((x,i)=>x>=0&&(i===0||x>legacy[i-1])));
   assert(reactOrder.every((x,i)=>x>=0&&(i===0||x>reactOrder[i-1])));
+  assert.match(react,/id="cloud-first-run"/);
+  assert.match(react,/id="cloud-request-samples"/);
   assert.match(shell,/cloudLegacySections/);
   assert.match(react,/legacySections=\[\]/);
   assert.match(react,/legacySections\)/);
