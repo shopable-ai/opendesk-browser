@@ -393,6 +393,9 @@
       b.dataset.r28Current=String(selected);
       b.dataset.r29Dismissed=String(state.closedWeb.has(id)||!old.state.enabled);
       b.dataset.r28Hidden=String(!selected&&(!state.boundaries||state.group!==id[0]));
+      b.dataset.r29NarrowSuppressed='false';
+      // Zone wrappers persist across rerenders; remove stale close siblings before rebuilding.
+      for(const previous of b.querySelectorAll(':scope > .r29-spot-dismiss'))previous.remove();
       b.setAttribute('role','group');b.setAttribute('aria-label',id+' · '+name(id));
       const trigger=b.querySelector('.r29-zone-trigger');
       trigger.setAttribute('aria-label',id+' · '+name(id));trigger.setAttribute('aria-pressed',String(selected));
