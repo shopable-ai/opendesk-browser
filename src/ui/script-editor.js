@@ -151,7 +151,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const setResultText=value=>writeResultField('text',value);
   const setResultKind=value=>writeResultField('kind',value);
   let currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
-    selectionVersion = 0, authoringEpoch=0, running = false, disposed = false;
+    selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
@@ -1313,7 +1313,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       componentMessage('error','请先结束当前运行、保存或准备并停止受管组件，再切换代码类型');
       return;
     }
-    browserPreparer.cancel();browserPrepareGeneration++;authoringEpoch++;
+    browserPreparer.cancel();browserPrepareGeneration++;
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
     else componentDrafts[componentMode]=programSource.source();
     componentMode=next;
@@ -1331,7 +1331,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
       update();return;
     }
-    browserPreparer.cancel();browserPrepareGeneration++;authoringEpoch++;
+    browserPreparer.cancel();browserPrepareGeneration++;
     javascriptDrafts[javascriptWorld]=programSource.source();
     javascriptWorld=next;loadedPageSource=false;lastPagePreview=null;
     programSource.replaceSource(javascriptDrafts[next]);
@@ -1346,7 +1346,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const javascriptWorldSelect=find('script-javascript-world');
   if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
   function sourceInput(){
-    browserPreparer.cancel();browserPrepareGeneration++;authoringEpoch++;
+    browserPreparer.cancel();browserPrepareGeneration++;
     programSource.replaceSource(programSource.source());
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
     else componentDrafts[componentMode]=programSource.source();
@@ -1595,20 +1595,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'手工草稿已保留；请先切换到手工草稿模式再导入'};
     if (disposed || editingBusy || previewBusy || componentRemote?.busy || browserManagedPreview) throw {code:'E_BUSY',message:'请先停止当前受管组件，再导入或保存版本'};
     if (sourceUtf8 && typeof sourceUtf8 === 'object') {
-      const epoch=authoringEpoch,original=programSource.source();
+      const editorTicket=browserPrepareGeneration,original=programSource.source();
       editingBusy = true; update();
-      return programSource.importProject(sourceUtf8,()=>!disposed&&epoch===authoringEpoch&&original===programSource.source()).then(value => {
+      return programSource.importProject(sourceUtf8,()=>!disposed&&editorTicket===browserPrepareGeneration&&original===programSource.source()).then(value => {
         if (disposed) throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
         if(!value)throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
         applyImported(value.sourceUtf8);
       }).finally(() => {editingBusy=false;if(!disposed)update();});
     }
     if(typeof sourceUtf8==='string'&&sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)){
-      const epoch=authoringEpoch,original=programSource.source();
+      const editorTicket=browserPrepareGeneration,original=programSource.source();
       inspectPageSource(sourceUtf8,{plainLimit:100000});editingBusy=true;update();
       return validatePageSource(sourceUtf8,{plainLimit:100000}).then(()=>{
         if(disposed)throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
-        if(epoch!==authoringEpoch||original!==programSource.source())
+        if(editorTicket!==browserPrepareGeneration||original!==programSource.source())
           throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
         applyImported(sourceUtf8);
       }).finally(()=>{editingBusy=false;if(!disposed)update();});
