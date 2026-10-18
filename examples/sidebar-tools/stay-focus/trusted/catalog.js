@@ -25,6 +25,25 @@ export function focusCatalogMatch(host){
   if(typeof host!=='string')return null;
   return FOCUS_CATALOG.find(row=>hostnameMatches(host,row.host,true))||null;
 }
+// Package-owned, code-free website recommendations. These can change with a
+// JSON-only same-ID upgrade on an unchanged Browser build. Nothing is installed
+// in DNR or copied into a user's policy before an explicit confirmed site.put.
+export function focusCatalogForPackage(tool){
+  const rows=tool?.backgroundPolicy?.kind==='site-budget.v1'?tool.backgroundPolicy.suggestions:[];
+  if(!rows.length)return FOCUS_CATALOG;
+  const additions=new Map(rows.map(row=>[row.host,{
+    host:row.host,name:row.name,category:row.category,auto:false,quick:row.quick,
+    minutes:row.suggestLimit?FOCUS_DEFAULT_MINUTES:0
+  }]));
+  const base=FOCUS_CATALOG.map(row=>{
+    const candidate=additions.get(row.host);
+    if(!candidate)return row;
+    additions.delete(row.host);
+    return Object.freeze({...row,name:candidate.name,category:candidate.category,
+      quick:candidate.quick,minutes:candidate.minutes});
+  });
+  return Object.freeze([...base,...[...additions.values()].map(row=>Object.freeze(row))]);
+}
 export function focusDefaultSites(){
   return FOCUS_CATALOG.filter(row=>row.auto).map(row=>({
     host:row.host,subdomains:true,enabled:true,mode:'limit',

@@ -8,7 +8,7 @@ import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_S
   FOCUS_OPERATIONS,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
-import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultSites} from './catalog.js';
+import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultSites,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
@@ -327,7 +327,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(startGeneration===generation){
       revoked=false;settledGeneration=startGeneration;
     }
-    return {...focusSummary(state,at),permissions:fresh,ruleReceipt,tabs};
+    return {...focusSummary(state,at,focusCatalogForPackage(auth.tool)),permissions:fresh,ruleReceipt,tabs};
   }
   const tick=options=>lock(()=>reconcileLocked(options));
   // A read-only worker roundtrip before installation. This API can never modify

@@ -1,3 +1,4 @@
+import {normalizeSidebarToolBackgroundPolicy} from '../../../../src/ui/sidebar-tools/background-policy.js';
 // Product-owned identity, independent of Time Review and the public Browser SDK.
 export const FOCUS_ID='stay-focus';
 export const FOCUS_CAPABILITY='focus.control';
@@ -56,6 +57,10 @@ export function focusNextMidnight(at){
 }
 export async function focusPackageHash(tool){
   const fields=['format','id','version','title','description','capabilities','html','css','js'];
-  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(fields.map(key=>tool[key]))));
+  const signed=fields.map(key=>tool[key]);
+  // Legacy package hashes remain byte-for-byte stable; new data is signed after
+  // canonical normalization so Storage property order cannot bypass revocation.
+  if(tool.backgroundPolicy!==undefined)signed.push(normalizeSidebarToolBackgroundPolicy(tool.backgroundPolicy));
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(signed)));
   return Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
 }

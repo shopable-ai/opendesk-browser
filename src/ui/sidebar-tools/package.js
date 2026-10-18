@@ -1,4 +1,5 @@
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
+import {normalizeSidebarToolBackgroundPolicy} from './background-policy.js';
 // Sidebar tool UI package contract. This is NOT a Task v1 program or an authority grant.
 export const SIDEBAR_TOOL_FORMAT = 'opendesk.sidebar-tool.v1';
 export const SIDEBAR_TOOL_FORMAT_V2 = 'opendesk.sidebar-tool.v2';
@@ -15,7 +16,7 @@ const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
-const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime']);
+const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
@@ -46,6 +47,9 @@ export function validateSidebarToolPackage(value) {
     const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
     fail('工具能力声明超出当前支持范围：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+'。请核对工具包格式，并更新 OpenDesk Browser 扩展后重新导入。');
   }
+  const backgroundPolicy=normalizeSidebarToolBackgroundPolicy(value.backgroundPolicy);
+  if(backgroundPolicy&&!value.capabilities.includes('focus.control'))
+    fail('网站预算策略模板需要已支持的 focus.control 能力','E_TOOL_POLICY');
   if(v2){
     if(!plain(value.requires)||!fields(value.requires,['browserSdk'])||
        value.requires.browserSdk!=='1.0.0')fail('浏览器 SDK 版本不受支持');
@@ -103,7 +107,7 @@ export function validateSidebarToolPackage(value) {
     fail('界面代码须先构建为单个经典 JavaScript 文件');
   const utf8 = new TextEncoder().encode(JSON.stringify(value));
   if (utf8.byteLength>MAX_PACKAGE_BYTES) fail('工具包超过 320 KB','E_TOOL_LIMIT');
-  return structuredClone(value);
+  return backgroundPolicy?{...structuredClone(value),backgroundPolicy}:structuredClone(value);
 }
 
 // Stable schema order also allows an installed package whose object keys were

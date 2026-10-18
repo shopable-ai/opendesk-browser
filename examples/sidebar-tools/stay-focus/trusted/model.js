@@ -126,7 +126,7 @@ export function settleFocus(state,{at,session,current=null,boot=false}){
       pool:focusPool(current.site),at,day:today,offset,session};
   return {state,clockRollback:false};
 }
-export function focusSummary(state,at=Date.now()){
+export function focusSummary(state,at=Date.now(),catalog=FOCUS_CATALOG){
   const minutes=state.groups[FOCUS_DEFAULT_GROUP]??FOCUS_DEFAULT_MINUTES;
   const budgetMs=minutes*60000,usedMs=state.usage['g:'+FOCUS_DEFAULT_GROUP]||0;
   return {enabled:state.enabled,authorized:Boolean(state.authorizedHash),day:state.day,
@@ -135,7 +135,7 @@ export function focusSummary(state,at=Date.now()){
     dailyBudget:{id:FOCUS_DEFAULT_GROUP,minutes,budgetMs,usedMs,
       remainingMs:Math.max(0,budgetMs-usedMs),
       managedCount:state.sites.filter(site=>site.group===FOCUS_DEFAULT_GROUP&&site.enabled).length},
-    catalog:FOCUS_CATALOG.map(row=>({...row})),
+    catalog:catalog.map(row=>({...row})),
     sites:state.sites.map(site=>{const budget=focusBudget(state,site),used=state.usage[focusPool(site)]||0;
       return {...site,usedMs:used,budgetMs:budget,remainingMs:Math.max(0,budget-used),
         reason:focusReason(state,site,at)};}),

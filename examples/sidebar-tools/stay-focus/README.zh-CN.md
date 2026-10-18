@@ -4,7 +4,7 @@
 
 **源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 仅保留兼容转发。详见 [R2 源码提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
-**R4 后续目标（尚未实施）**：独立安装包不等于独立后台代码执行。已将多文件应用、后台运行世界、受管策略/SDK、安全隔离与业务独立升级的正式需求保存到 [Stay Focus R4 需求与架构边界](REQUIREMENTS.zh-CN.md)。本说明保留 R2 已有实现和使用方法，不把 R4 目标冒充现有能力。
+**R4.1 有界规则包源码已接线（原生验收未完成）**：从 1.0.2 起，工具 JSON 包允许携带经校验的 `backgroundPolicy: {kind:'site-budget.v1',suggestions:[...]}`。可信后台从已安装包解析网站建议；用户在 UI 点击加入、经可信 Host 确认并重新启用后，才能通过既有 `focus.site.put` / DNR 规则实现新站点额度。同一 OpenDesk Browser 构建可以安装 1.0.1 与 1.0.2 两个版本的工具 JSON 完成对照。版本更换使旧 `authorizedHash` 失效，旧 DNR 先清理，不自动拦截新增网站；原网站额度与使用记录保留。该字段**不是可执行后台 JS**。目前仍有初始默认清单/额度、时段等旧固定模型；将所有业务策略变成应用包可独立升级属于后续 R4.2/R4.3，不可宣称 R4 整体完成。完整需求见 [Stay Focus R4](REQUIREMENTS.zh-CN.md)。
 
 ## R2 · 独立业务源码（2026-10-18）
 
@@ -16,7 +16,7 @@
 
 ## 用户场景与安装
 
-当前正式工具包为 **1.0.1**。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「工具 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
+当前工具源码版本为 **1.0.2**；正式安装包仍须经过候选构建、受影响测试和显式晋升才能算正式交付。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「工具 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
 
 
 1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「工具」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
@@ -63,7 +63,7 @@ npm run build:dev
 npm run verify
 ```
 
-独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.1/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
+独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.2/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
 
 **原生验收不是单元测试**：在 Mac Chrome for Testing 里加载正式 `dist/production`，通过 Side Panel 的实际安装界面授权；用真实 HTTP(S) 服务和 `chrome.declarativeNetRequest.getDynamicRules()` 检查 730000–730199、真实导航至 `chrome-extension://…/stay-focus/blocked-quota.html`，再测试断开 SW、整个 Chrome 重启、撤权、停用、卸载后 `getDynamicRules` 返回空并可重新访问。完成时应保存浏览器/包 SHA、日志、截图和原始规则证据。
 
