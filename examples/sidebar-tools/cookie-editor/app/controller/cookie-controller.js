@@ -275,8 +275,16 @@ export function createCookieController({adapter,onChange=()=>{}}){
       const accepted=plan.records.filter(item=>item.status==='ready').map(item=>item.cookie);
       importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
         total:plan.records.length,created,replaced};
+      // Show only preflight status and fixed validation reasons. Never return
+      // source text, Cookie Values, or accepted raw cookies to React.
+      const issues=plan.records.filter(item=>item.status!=='ready');
       const result={total:plan.records.length,accepted:accepted.length,
-        skipped:plan.records.length-accepted.length,created,replaced};
+        skipped:issues.length,created,replaced,
+        issueCount:issues.length,
+        issues:issues.slice(0,30).map(item=>({
+          index:item.index,status:item.status,
+          reason:typeof item.reason==='string'?item.reason:'无效 Cookie 条目'
+        }))};
       report(accepted.length?'已生成导入预检；确认后写入真实 Chrome。':
         '没有可导入记录，请修正输入。',accepted.length?'info':'error');
       return result;

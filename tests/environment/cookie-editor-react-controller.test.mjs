@@ -119,6 +119,7 @@ test('bulk import preflight and native partial failure never replay writes',asyn
   const source='new1=A; new2=B';
   const plan=await f.controller.previewImport(source);
   assert.equal(plan.accepted,2);
+  assert.equal(plan.issueCount,0);
   assert.equal(await f.controller.executeImport(source),false);
   assert.equal(calls,1);
   assert.equal(f.controller.snapshot().messageType,'error');
@@ -134,5 +135,17 @@ test('discarded import preflight never writes a stale secret plan',async()=>{
   assert.equal(await f.controller.executeImport('temporary=SECRET_NOT_FOR_UI'),false);
   assert.equal(writes,0);
   assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_NOT_FOR_UI/);
+  f.controller.dispose();
+});
+
+test('import preflight publishes statuses and safe reasons only, never values',async()=>{
+  const f=fixture();await f.controller.load();
+  const source=JSON.stringify([{name:'bad',value:'SENSITIVE_INPUT',expirationDate:1,session:false},
+    {name:'valid',value:'OTHER_SENSITIVE',session:true}]);
+  const plan=await f.controller.previewImport(source,'json');
+  assert.equal(plan.accepted,1);
+  assert.equal(plan.issueCount,1);
+  assert.equal(plan.issues[0].status,'expired');
+  assert.doesNotMatch(JSON.stringify(plan),/SENSITIVE_INPUT|OTHER_SENSITIVE/);
   f.controller.dispose();
 });

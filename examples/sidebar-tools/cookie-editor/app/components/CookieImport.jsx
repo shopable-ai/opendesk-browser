@@ -50,7 +50,16 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       spellCheck={false} disabled={disabled||reading} placeholder="Cookie: name=value; theme=dark"
       data-cookie-secret-input="true"
       onInput={()=>{controller.discardImport();setPlan(null);onDirty?.(true);}}/></label>
-    {plan&&<p role="status" className="cookie-message">总计 {plan.total} · 可导入 {plan.accepted} · 新增 {plan.created} · 覆盖 {plan.replaced} · 跳过 {plan.skipped}</p>}
+    {plan&&<section aria-label="导入预检结果" role="status" className="cookie-message">
+      <p>总计 {plan.total} · 可导入 {plan.accepted} · 新增 {plan.created} · 覆盖 {plan.replaced} · 跳过 {plan.skipped}</p>
+      {plan.issues?.length>0&&<>
+        <strong>未通过的条目（最多显示前 30 条，不显示 Cookie Value）</strong>
+        <ul>{plan.issues.map(item=><li key={item.index}>
+          第 {item.index} 条 · {item.status==='expired'?'已过期':'未通过校验'} · {item.reason}
+        </li>)}</ul>
+        {plan.issueCount>30&&<p>另有 {plan.issueCount-30} 条未显示，请分批核查原文。</p>}
+      </>}
+    </section>}
     {message&&<p role="alert" className="cookie-message error">{message}</p>}
     <div className="cookie-editor-actions">
       <button type="button" disabled={disabled||reading} onClick={onClose}>关闭</button>
