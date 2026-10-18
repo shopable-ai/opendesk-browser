@@ -14,6 +14,9 @@ on:
       - 'tests/environment/cookie-editor-react-*.test.mjs'
       - 'tests/environment/cookie-editor-r50-trusted-pilot.test.mjs'
       - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/preview/shared-tool-design.mjs'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
       - 'src/ui/sidebar-tools/package.js'
   workflow_dispatch:
 permissions:
@@ -43,6 +46,7 @@ jobs:
             tests/environment/cookie-editor-react-domain.test.mjs \
             tests/environment/cookie-editor-react-controller.test.mjs \
             tests/environment/cookie-editor-react-source.test.mjs \
+            tests/environment/cookie-editor-react-design.test.mjs \
             tests/environment/cookie-editor-ui.test.mjs \
             tests/environment/cookie-editor-native-selection.test.mjs \
             tests/environment/cookie-editor-r50-trusted-pilot.test.mjs \
