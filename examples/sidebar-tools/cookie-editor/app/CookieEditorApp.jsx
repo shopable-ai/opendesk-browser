@@ -15,6 +15,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [view,setView]=React.useState(null);
   const [mode,setMode]=React.useState('browser');
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
+  const modeRef=React.useRef('browser');
   const [panel,setPanel]=React.useState(null);
   const [selected,setSelected]=React.useState(null);
   const [query,setQuery]=React.useState('');
@@ -75,6 +76,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     void controller.load(appliedSite.current);
   };
   const invalidate=(reason,siteChanged=false)=>{
+    // Permission/page events must not silently connect the isolated offline
+    // workspace to Chrome or destroy its independent local input.
+    if(modeRef.current==='offline'){
+      controller.invalidate(reason);
+      return;
+    }
     scrubSensitive();
     const wasBusy=controller.snapshot().busy;
     controller.invalidate(reason);
@@ -117,6 +124,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       // Reenter by explicitly rechecking the current or selected website.
       void controller.load(appliedSite.current);
     }
+    modeRef.current=next;
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
   const save=async(row,options)=>{
