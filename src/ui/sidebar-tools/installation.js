@@ -199,7 +199,8 @@ export async function cleanupUninstalledToolLocked(api,id){
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
-    await cleanupUninstalledStayFocus(api,id,removeVerifiedKey);
+    await cleanupUninstalledStayFocus(api,id,removeVerifiedKey,
+      key=>removeVerifiedStorageKey(api.storage.session,key,'卸载专注会话'));
     await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
     await cleanupUninstalledAiAccess(api,id,removeVerifiedKey);
     await stopManagedProxyForTool(api,id,{removeVerifiedKey});

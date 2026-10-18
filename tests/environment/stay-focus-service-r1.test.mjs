@@ -107,6 +107,9 @@ for(const operation of ['focus.disable','focus.clear','tool.disable','tool.unins
       if(operation==='tool.disable')return stopStayFocusForTool(f.api,'stay-focus');
       if(operation==='tool.uninstall')return cleanupUninstalledStayFocus(f.api,'stay-focus',async(api,key)=>{
         removed.push(key);await api.storage.local.remove(key);
+      },async key=>{
+        await f.api.storage.session.remove(key);
+        assert.equal((await f.api.storage.session.get(key))[key],undefined);
       });
       return f.focus.dispatch(await f.msg(operation,operation==='focus.clear'?{confirm:true}:{}),f.sender);
     };
