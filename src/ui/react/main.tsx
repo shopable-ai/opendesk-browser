@@ -2,7 +2,7 @@ import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {flushSync} from 'react-dom';
-import {ExtensionRows,ExtensionDetail,ExtensionToolbar,ExtensionEmpty,ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu} from './tabs/tools.tsx';
+import {ExtensionCenterPage,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
 import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
 import {DebugDiagnosticText} from './tabs/debug.tsx';
@@ -18,14 +18,18 @@ import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/s
 import bookmarkScopedCSS from '../../../examples/sidebar-tools/bookmark-manager/src/react/style.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
-// One trusted React root and three portals in the existing fixed Side Panel.
-// Portals preserve the installed DOM IDs, CSS and Host wiring; they never run
-// user tool packages, which stay in their opaque-origin sandbox iframe.
+// One trusted React root. Extension Center is a single React-owned subtree;
+// the other legacy views still use temporary portals until migrated.
 export function mountExtensionList(doc){
+  const section=doc.getElementById('extension-center');
+  if(!section||section.dataset.opendeskReactOwner)
+    throw new Error('E_REACT_EXTENSION_MOUNT');
+  const root=createRoot(section);
+  // Commit real React DOM before the existing Controller binds to IDs.
+  flushSync(()=>root.render(<ExtensionCenterPage/>));
   const container=doc.getElementById('extension-center-list');
   const detailContainer=doc.getElementById('extension-center-detail-body');
   const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
-  const section=doc.getElementById('extension-center');
   const cleanups=doc.getElementById('extension-center-cleanups');
   const empty=doc.getElementById('extension-center-empty');
   const count=doc.getElementById('extension-center-count');
@@ -142,17 +146,9 @@ export function mountExtensionList(doc){
   if(container.childElementCount||detailContainer.childElementCount)
     throw new Error('E_REACT_EXTENSION_NOT_EMPTY');
 
-  // The toolbar's static HTML remains the non-React fallback for legacy test
-  // harnesses. In the real shell it is replaced ONCE, before legacy handlers
-  // are registered, and React exclusively owns its children thereafter.
-  const host=doc.createElement('div');
-  host.id='extension-center-react-root';
-  host.hidden=true;
-  section.append(host);
-  toolbar.replaceChildren();
-  // One-time handoff removes the legacy empty placeholder from this React-
-  // owned region; the non-React fallback HTML remains intact for old hosts.
-  empty.replaceChildren();
+  // The old static Extension Center children are replaced by one React
+  // subtree: no Portal targets, duplicate listeners or native child writes.
+  section.dataset.opendeskReactOwner='extension-center';
   if(myTasksMounted){
     // TaskWorkbench may already have installed live cards and a params form.
     myRows.after(myWorkspace);
@@ -202,8 +198,9 @@ export function mountExtensionList(doc){
     node.replaceChildren();
     node.dataset.opendeskReactOwner='debug-'+key;
   }
-  const root=createRoot(host);
   let disposed=false,menuKey=null,detailModel=null;
+  const initialBack=()=>{};
+  let extensionView='list',onExtensionBack=initialBack;
   let rowMenuHost=null,rowMenuItems=[];
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
@@ -241,13 +238,11 @@ export function mountExtensionList(doc){
       {/* WXT fixed entry is JS-only. Scope audited pilot CSS into the
           existing React tree; never emit an unlisted tool-shell.css asset. */}
       <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
-      {createPortal(<ExtensionToolbar model={toolbarModel}/>,toolbar)}
-      {createPortal(<ExtensionRows {...model} menuKey={menuKey}/>,container)}
-      {createPortal(<ExtensionDetail model={detailModel} container={detailContainer}/>,detailContainer)}
-      {createPortal(<ExtensionRecoveries model={recoveryModel} container={cleanups}/>,cleanups)}
-      {createPortal(<ExtensionEmpty model={feedbackModel} container={empty}/>,empty)}
-      {createPortal(feedbackModel.countText,count)}
-      {createPortal(<ExtensionStatus model={statusModel} container={status}/>,status)}
+      <ExtensionCenterPage rowsModel={model} menuKey={menuKey}
+        toolbarModel={toolbarModel} detailModel={detailModel}
+        feedbackModel={feedbackModel} recoveryModel={recoveryModel}
+        statusModel={statusModel} view={extensionView} onBack={onExtensionBack}
+        detailContainer={detailContainer}/>
       {myTasksMounted&&createPortal(<MyTaskCount value={myCountText}/>,myCount)}
       {myTasksMounted&&createPortal(<MyTaskRows {...myRowsModel} workspace={myWorkspace}/>,myRows)}
       {myTasksMounted&&createPortal(<MyTaskDetail value={myDetailText}/>,myDetail)}
@@ -309,6 +304,16 @@ export function mountExtensionList(doc){
   paint();
   return Object.freeze({
     owner:'extension-list',
+    connectBack(handler){
+      if(disposed||typeof handler!=='function'||onExtensionBack!==initialBack)
+        throw new Error('E_REACT_EXTENSION_BACK_OWNER');
+      onExtensionBack=handler;paint();
+    },
+    renderView(view){
+      if(disposed||!['list','detail'].includes(view))
+        throw new Error('E_REACT_EXTENSION_VIEW');
+      extensionView=view;paint();
+    },
     debugMounted,
     myTasksMounted,cloudOverviewMounted,
     mountBookmarkPilot({container,sdk,onStateChange}={}){
@@ -543,6 +548,6 @@ export function mountExtensionList(doc){
       delete toolbar.dataset.opendeskReactOwner;
       delete detailContainer.dataset.opendeskReactOwner;
       delete container.dataset.opendeskReactOwner;
-      host.remove();}
+      delete section.dataset.opendeskReactOwner;}
   });
 }

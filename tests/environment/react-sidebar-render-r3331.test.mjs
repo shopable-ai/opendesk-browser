@@ -12,8 +12,27 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
     appType:'custom',server:{middlewareMode:true},logLevel:'error'});
   t.after(()=>vite.close());
   const {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty,
-    ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu}=
+    ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu,ExtensionCenterPage}=
     await vite.ssrLoadModule('/src/ui/react/tabs/tools.tsx');
+  // R35: the Extension Center is rendered once as one React-owned page,
+  // not split into toolbar/list/detail portals attached to static HTML.
+  const full=renderToStaticMarkup(React.createElement(ExtensionCenterPage,{
+    toolbarModel:{query:'x <script>bad()</script>',kind:'all',scope:'smart'},
+    rowsModel:{rows:[],busy:true,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
+    recoveryModel:{ids:[],busy:false},feedbackModel:{showEmpty:true,
+      emptyText:'没有匹配的扩展',countText:'0 个扩展'},
+    statusModel:{text:'读取失败',state:'error'},view:'detail'
+  }));
+  for(const id of ['extension-center-list-view','extension-center-list',
+    'extension-center-detail','extension-center-back','extension-center-status',
+    'extension-center-import-host','extension-center-search']){
+    assert.equal([...full.matchAll(new RegExp('id="'+id+'"','g'))].length,1,id);
+  }
+  assert.match(full,/<div id="extension-center-list-view" hidden=""/);
+  assert.match(full,/id="extension-center-list"[^>]*aria-busy="true"/);
+  assert.match(full,/id="extension-center-status"[^>]*data-state="error"/);
+  assert.match(full,/&lt;script&gt;bad\(\)&lt;\/script&gt;/);
+  assert.doesNotMatch(full,/<script\b/);
   const toolbar=renderToStaticMarkup(React.createElement(ExtensionToolbar,{model:{
     query:'文件 <img src=x onerror=alert(1)>',kind:'page',scope:'available',
     language:'en',menuOpen:true

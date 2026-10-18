@@ -213,7 +213,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const menuFocusKey=!rowMenu.hidden&&rowMenu.contains(active)?rowMenuKey:null;
     closeRowMenu();
     const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
-    list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
+    if(!extensionList)list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
     // React alone owns list children in the production Side Panel.
     // The DOM fallback is isolated to legacy test harnesses during migration.
     if(!extensionList)list.replaceChildren();
@@ -358,12 +358,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         revision:row.record?.installed?.revision,sourceHash:row.record?.installed?.sourceHash};
     focusKey=key;focusAction=returnAction;
     listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
-    closeMenu();listing.hidden=true;detail.hidden=false;
+    closeMenu();
+    if(extensionList)extensionList.renderView('detail');
+    else{listing.hidden=true;detail.hidden=false;}
     renderDetail();workspace?.scrollTo?.({top:0});
     get('extension-center-back')?.focus({preventScroll:true});
   }
   function back(){
-    selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;detail.hidden=true;listing.hidden=false;
+    selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;
+    if(extensionList)extensionList.renderView('list');
+    else{detail.hidden=true;listing.hidden=false;}
     workspace?.scrollTo?.({top:listScroll});
     if(!restoreRowFocus(focusKey,focusAction))search.focus({preventScroll:true});
   }
@@ -616,7 +620,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     });
     get('extension-center-market').addEventListener('click',()=>openMarket());
   }
-  get('extension-center-back').addEventListener('click',back);
+  if(extensionList)extensionList.connectBack(back);
+  else get('extension-center-back').addEventListener('click',back);
   function backIfNeeded(){if(selectedKey)back();}
   const clickOutside=event=>{
     if(!menu.hidden&&!get('extension-center-menu-wrap').contains(event.target))closeMenu();

@@ -99,13 +99,12 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
     }
   }});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
-// R4 reuses the same installer form and trusted Tool host, without cloning either.
+// Commit the React page before moving the pre-existing trusted installer
+// into the reserved imperative slot. No second installer or permission owner.
+extensionList=mountExtensionList(document);
 const importHost=document.getElementById('extension-center-import-host');
 const originalImport=document.getElementById('sidebar-tool-import');
 if(importHost&&originalImport)importHost.append(originalImport);
-// The installed extension list is the first React-owned region. Installer,
-// detail, dynamic tool sandbox and the other tabs keep their original owners.
-extensionList=mountExtensionList(document);
 /* Deliberately off in production and regular development. The opt-in URL must
  * already contain its canonical hostInstanceId; a redirect drops unknown
  * parameters. The candidate never replaces the installed Cookie iframe. */

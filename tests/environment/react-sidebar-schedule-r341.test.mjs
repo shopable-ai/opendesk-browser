@@ -17,7 +17,7 @@ test('R34.1 trusted scheduler and preview share one React schedule card',async()
       'schedulePlanNeedsNotice(presentation)','role="img"','event.nativeEvent?.isTrusted===true',
       'activeFire.runId===currentRunId'])assert.ok(ui.includes(snippet),snippet);
   assert.doesNotMatch(ui,/chrome\.|client\.request\(|host\.stop\(|createRoot\(/);
-  assert.match(root,/createRoot\(host\)/);
+  assert.match(root,/createRoot\(section\)/);
   assert.match(root,/createPortal\(\s*<SchedulePlanRows/);
   assert.match(root,/renderScheduledPlanRows\(next\)/);
   assert.match(root,/renderScheduledCurrentRun\(runId\)/);

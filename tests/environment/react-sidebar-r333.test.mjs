@@ -52,16 +52,17 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
     read('docs/architecture/react-ui-shared-components-r33.zh-CN.md')
   ]);
   assert.match(html,/id="extension-center-list" class="ec-list"/);
-  assert.match(main,/createRoot\(host\)/);
-  assert.match(main,/createPortal\(<ExtensionRows/);
+  assert.match(main,/createRoot\(section\)/);
+  assert.match(main,/<ExtensionCenterPage rowsModel=\{model\}/);
+  assert.doesNotMatch(main,/createPortal\(<ExtensionRows/);
   assert.match(main,/createPortal\(<ExtensionRowMenu/);
   assert.match(main,/attachRowMenu\(element\)/);
   assert.match(main,/renderRowMenu\(items\)/);
-  assert.match(main,/createPortal\(<ExtensionDetail/);
-  assert.match(main,/createPortal\(<ExtensionToolbar/);
-  assert.match(main,/createPortal\(<ExtensionRecoveries/);
-  assert.match(main,/createPortal\(<ExtensionEmpty/);
-  assert.match(main,/createPortal\(<ExtensionStatus/);
+  assert.doesNotMatch(main,/createPortal\(<ExtensionDetail/);
+  assert.doesNotMatch(main,/createPortal\(<ExtensionToolbar/);
+  assert.doesNotMatch(main,/createPortal\(<ExtensionRecoveries/);
+  assert.doesNotMatch(main,/createPortal\(<ExtensionEmpty/);
+  assert.doesNotMatch(main,/createPortal\(<ExtensionStatus/);
   assert.match(main,/createPortal\(\s*<DeveloperTargetText/);
   assert.match(main,/developerTargetMounted/);
   assert.match(main,/renderDeveloperTarget\(next\)/);
@@ -110,6 +111,9 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(center,/extensionList\.renderToolbar\(/);
   assert.match(center,/if\(!extensionList\)\{/);
   assert.match(center,/extensionList\.renderDetail\(/);
+  assert.match(center,/extensionList\.renderView\('detail'\)/);
+  assert.match(center,/extensionList\.connectBack\(back\)/);
+  assert.match(rows,/export function ExtensionCenterPage/);
   assert.match(rows,/export function ExtensionDetail/);
   assert.match(rows,/data-ec-detail-action/);
   assert.match(rows,/onClick=\{event=>onMore\(row\.key,event\.currentTarget\)\}/);

@@ -152,15 +152,12 @@ export function ExtensionToolbar({model}){
 // The trusted React shell alone owns these remaining Extension Center DOM
 // children and their hidden/status attributes. Host/permission/cleanup
 // decisions still belong to the existing Extension Center controller.
-export function ExtensionEmpty({model,container}){
-  const show=Boolean(model?.showEmpty);
-  React.useLayoutEffect(()=>{container.hidden=!show;},[container,show]);
+export function ExtensionEmpty({model}){
   return <p id="extension-center-empty-text">{model?.emptyText||''}</p>;
 }
 
-export function ExtensionRecoveries({model,container}){
+export function ExtensionRecoveries({model}){
   const ids=model?.ids||[];
-  React.useLayoutEffect(()=>{container.hidden=ids.length===0;},[container,ids.length]);
   if(!ids.length)return null;
   return <>
     <p>以下扩展已从安装记录移除，但清理仍待完成：</p>
@@ -172,9 +169,7 @@ export function ExtensionRecoveries({model,container}){
   </>;
 }
 
-export function ExtensionStatus({model,container}){
-  React.useLayoutEffect(()=>{container.dataset.state=model?.state||'info';},
-    [container,model?.state]);
+export function ExtensionStatus({model}){
   return model?.text||'';
 }
 
@@ -187,4 +182,48 @@ export function ExtensionRowMenu({items=[]}){
     className="ec-context-action" role="menuitem"
     data-ec-context-action={item.id}
     onClick={event=>item.onClick?.(event.nativeEvent)}>{item.label}</button>);
+}
+
+
+// React owns the complete Extension Center presentation within one subtree.
+// The pre-existing Installer is mounted into one explicit host-owned slot;
+// security decisions and dynamically installed UI are never executed here.
+export function ExtensionCenterPage({
+  rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
+  toolbarModel=null,detailModel=null,feedbackModel=null,recoveryModel=null,
+  statusModel=null,menuKey=null,view='list',onBack=()=>{},detailContainer=null
+}){
+  const detailVisible=view==='detail';
+  return <>
+    <div id="extension-center-list-view" hidden={detailVisible}>
+      <div className="ec-toolbar"><ExtensionToolbar model={toolbarModel}/></div>
+      <div id="extension-center-import-host"></div>
+      <span id="extension-center-count" className="visually-hidden" aria-live="polite">
+        {feedbackModel?.countText||'正在读取扩展…'}
+      </span>
+      <ul id="extension-center-list" className="ec-list" aria-label="扩展中心当前筛选列表"
+        aria-busy={Boolean(rowsModel.busy||rowsModel.pendingKey)}>
+        <ExtensionRows {...rowsModel} menuKey={menuKey}/>
+      </ul>
+      <div id="extension-center-cleanups" className="ec-empty" aria-live="polite"
+        hidden={!recoveryModel?.ids?.length}>
+        <ExtensionRecoveries model={recoveryModel}/>
+      </div>
+      <div id="extension-center-empty" className="ec-empty" hidden={!feedbackModel?.showEmpty}>
+        <ExtensionEmpty model={feedbackModel}/>
+      </div>
+    </div>
+    <section id="extension-center-detail" className="ec-detail" aria-label="扩展详情"
+      hidden={!detailVisible}>
+      <button id="extension-center-back" className="ec-detail-back" type="button"
+        onClick={onBack}>← 返回列表</button>
+      <div id="extension-center-detail-body">
+        <ExtensionDetail model={detailModel} container={detailContainer}/>
+      </div>
+    </section>
+    <p id="extension-center-status" className="ec-message" role="status"
+      aria-live="polite" data-state={statusModel?.state||'info'}>
+      <ExtensionStatus model={statusModel}/>
+    </p>
+  </>;
 }
