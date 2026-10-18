@@ -92,7 +92,7 @@ async function click(sessionId,selector){
     const x=await evaluate(sessionId,'(()=>{const e=document.querySelector('+JSON.stringify(selector)+');'+
       'if(!e||e.disabled||e.hidden)return null;e.scrollIntoView({block:"center"});'+
       'const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;'+
-      'return {x,y,valid:r.width>0&&r.height>0&&x>0&&y>0&&x<innerWidth&&y<innerHeight}})()');
+      'return {x,y,valid:r.width>0&&r.height>0&&x>0&&y>0&&x<innerWidth&&y<innerHeight&&e.contains(document.elementFromPoint(x,y))}})()');
     return x?.valid?x:null;
   },'click '+selector);
   await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:pt.x,y:pt.y},sessionId);
@@ -221,8 +221,9 @@ try{
   const page=await call('Target.createTarget',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
   host=await attach(page.targetId);
   await call('Page.enable',{},host);
-  await until(()=>evaluate(host,'document.readyState==="complete"&&!!document.querySelector("#tab-tools")'),
-    'real extension host loaded');
+  await until(()=>evaluate(host,
+    '(()=>{const t=document.querySelector("#tab-tools"),l=document.querySelector("#extension-center-list"),s=document.querySelector("#extension-center-status");return document.readyState==="complete"&&!!t&&l?.dataset.opendeskReactOwner==="extension-list"&&!!s?.textContent?.trim()})()'),
+    'real React extension center controller fully connected');
   await click(host,'#tab-tools');
   await until(()=>evaluate(host,'!document.querySelector("#workbench-tools")?.hidden'),
     'Extension Center visible');
@@ -277,5 +278,6 @@ try{
   }
   if(profile)await rm(profile,{recursive:true,force:true});
   console.log(JSON.stringify({status:result.status,checks:result.operations,
-    dataIsolation:result.dataIsolation,output:out,error:result.error},null,2));
+    dataIsolation:result.dataIsolation,output:out,error:result.error,
+    failureDocument:result.status==='FAIL'?result.failureDocument:undefined},null,2));
 }
