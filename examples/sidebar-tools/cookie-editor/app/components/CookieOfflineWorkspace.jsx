@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {Button} from '@opendesk/ui';
 import {parseTarget,normalizeCookie,redactMetadata,key,inspectImport,
   rejectImportDuplicates,exportText} from '../domain/cookie-model.js';
 import CookieInlineEditor from './CookieInlineEditor.jsx';
@@ -98,14 +99,14 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
     finally{setBusy(false);}
   };
   return <main className="cookie-offline" aria-label="离线 Cookie 工作区">
-    <div className="cookie-offline-banner" role="note">
+    <div className="cookie-offline-banner od-surface od-surface--padded" role="note">
       <strong>离线工作区</strong><p>仅在当前工具的临时内存中编辑，不代表 Chrome 实时 Cookie。</p>
     </div>
     <div className="cookie-offline-site">
       <label>模拟目标网站范围（不会连接网站）
-        <input type="url" value={siteInput} onChange={e=>setSiteInput(e.target.value)}
+        <input className="od-field" type="url" value={siteInput} onChange={e=>setSiteInput(e.target.value)}
           placeholder="https://example.com" disabled={busy||dirty}/></label>
-      <button type="button" disabled={busy||dirty} onClick={applySite}>应用范围</button>
+      <Button type="button" disabled={busy||dirty} onClick={applySite}>应用范围</Button>
     </div>
     {site&&<CookieEditorView site={site.hostname} rows={rows} busy={busy}
       selected={selected} onSelect={id=>guarded(()=>setSelected(id))}
@@ -119,60 +120,60 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
         onDelete={id=>setPendingDelete(id)}/>}/>}
     {site&&selected==='new'&&<CookieInlineEditor key="new" target={site} disabled={busy}
       onSave={save} onDirty={mark} onCancel={()=>guarded(()=>setSelected(null))}/>}
-    {importing&&<section className="cookie-panel" aria-label="离线导入">
+    {importing&&<section className="cookie-panel od-surface od-surface--padded" aria-label="离线导入">
       <h3>导入到离线工作区</h3>
-      <label>格式 <select value={format} onChange={e=>{setFormat(e.target.value);
+      <label>格式 <select className="od-field" value={format} onChange={e=>{setFormat(e.target.value);
         importPlan.current=null;setPreview(null);}}>
         <option value="auto">自动识别</option><option value="json">JSON</option>
         <option value="header">Cookie Header</option><option value="netscape">Netscape</option>
       </select></label>
-      <label>选择文件 <input ref={fileInput} type="file" accept=".txt,.json,.cookies"
+      <label>选择文件 <input className="od-field" ref={fileInput} type="file" accept=".txt,.json,.cookies"
         onChange={async e=>{const f=e.target.files?.[0];if(!f)return;
           if(f.size>8*1024*1024){setMessage('文件大于 8 MiB');return;}
           const text=await f.text();if(importText.current)importText.current.value=text;
           mark(true);importPlan.current=null;setPreview(null);}}/></label>
-      <label>文本 <textarea ref={importText} data-cookie-secret-input="true"
+      <label>文本 <textarea className="od-field" ref={importText} data-cookie-secret-input="true"
         rows={5} autoComplete="off"
         onInput={()=>{mark(true);importPlan.current=null;setPreview(null);}}/></label>
       {preview&&<p role="status">总计 {preview.total}，可导入 {preview.accepted}，跳过 {preview.skipped}</p>}
       <div className="cookie-editor-actions">
-        <button type="button" onClick={()=>guarded(()=>{
+        <Button type="button" onClick={()=>guarded(()=>{
           setImporting(false);importPlan.current=null;
-        })}>取消</button>
-        <button type="button" onClick={inspect}>预检</button>
-        <button type="button" disabled={!preview?.accepted} onClick={applyImport}>导入内存</button>
+        })}>取消</Button>
+        <Button type="button" onClick={inspect}>预检</Button>
+        <Button type="button" disabled={!preview?.accepted} onClick={applyImport}>导入内存</Button>
       </div>
     </section>}
     {rows.length>0&&<div className="cookie-editor-actions">
-      <label>导出格式 <select value={exportFormat} onChange={e=>setExportFormat(e.target.value)}>
+      <label>导出格式 <select className="od-field" value={exportFormat} onChange={e=>setExportFormat(e.target.value)}>
         <option value="json">JSON</option><option value="header">Cookie Header</option>
         <option value="netscape">Netscape</option>
       </select></label>
-      <button type="button" disabled={busy} onClick={()=>void exportNow('copy')}>复制离线数据</button>
-      <button type="button" disabled={busy} onClick={()=>void exportNow('download')}>保存离线文件</button>
+      <Button type="button" disabled={busy} onClick={()=>void exportNow('copy')}>复制离线数据</Button>
+      <Button type="button" disabled={busy} onClick={()=>void exportNow('download')}>保存离线文件</Button>
     </div>}
-    {discard&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
+    {discard&&<div className="cookie-confirm od-alert od-alert--warning" role="alertdialog" aria-modal="true"
       aria-label="未保存的离线编辑">
       <p>当前离线 Cookie 或导入内容尚未保存。要放弃这些修改吗？</p>
-      <button type="button" onClick={()=>resolveDiscard(false)}>继续编辑</button>
-      <button type="button" className="danger"
-        onClick={()=>resolveDiscard(true)}>放弃修改</button>
+      <Button type="button" onClick={()=>resolveDiscard(false)}>继续编辑</Button>
+      <Button type="button" className="od-button--danger"
+        onClick={()=>resolveDiscard(true)}>放弃修改</Button>
     </div>}
-    {pendingDelete&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
+    {pendingDelete&&<div className="cookie-confirm od-alert od-alert--warning" role="alertdialog" aria-modal="true"
       aria-label="删除离线 Cookie"><p>只删除离线内存中的这条 Cookie，不影响 Chrome。确定吗？</p>
-      <button type="button" onClick={()=>setPendingDelete(null)}>取消</button>
-      <button type="button" className="danger" onClick={()=>{
+      <Button type="button" onClick={()=>setPendingDelete(null)}>取消</Button>
+      <Button type="button" className="od-button--danger" onClick={()=>{
         cookies.current=cookies.current.filter(x=>key(x)!==pendingDelete);
         setPendingDelete(null);refreshRows();setSelected(null);mark(false);
         setMessage('已删除离线 Cookie，Chrome 未更改。');
-      }}>删除</button></div>}
-    {confirmClear&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
+      }}>删除</Button></div>}
+    {confirmClear&&<div className="cookie-confirm od-alert od-alert--warning" role="alertdialog" aria-modal="true"
       aria-label="清空离线工作区"><p>只清空当前临时内存，不影响 Chrome。确定吗？</p>
-      <button type="button" onClick={()=>setConfirmClear(false)}>取消</button>
-      <button type="button" className="danger" onClick={()=>{
+      <Button type="button" onClick={()=>setConfirmClear(false)}>取消</Button>
+      <Button type="button" className="od-button--danger" onClick={()=>{
         cookies.current.length=0;refreshRows();setSelected(null);
         setConfirmClear(false);mark(false);setMessage('离线内存已清空。');
-      }}>清空离线 Cookie</button></div>}
-    {message&&<p className="cookie-message" role="status">{message}</p>}
+      }}>清空离线 Cookie</Button></div>}
+    {message&&<p className="cookie-message od-alert" role="status">{message}</p>}
   </main>;
 }
