@@ -919,3 +919,23 @@ test('R36.4 React source and JavaScript world handoff removes legacy listeners w
   assert.deepEqual(f.manualRuns,[],'source/world changes do not trigger Controller Run');
   assert.deepEqual(f.dispatches,[],'source/world changes do not trigger Page Run');
 });
+
+test('R36.5 async project validation cannot replace a newer user edit',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const source='async function main(){return 77;}';
+  const project={format:'opendesk.program-draft.v1',
+    project:{id:'import-race',version:'1.0.0',entry:'main.js'},
+    runtimeKind:'controller',
+    build:{mode:'development',sourceHash:hash(source),byteLength:new TextEncoder().encode(source).length},
+    sourceUtf8:source,
+    authoring:{files:[{path:'main.js',sourceUtf8:source,sha256:hash(source)}]}};
+  const pending=f.editor.importDraft(project);
+  const typed='async function main(){return "NEWER_EDIT";}';
+  f.find('script-source').value=typed;
+  f.find('script-source').fire('input',{isTrusted:true});
+  await assert.rejects(pending,error=>error?.code==='E_SOURCE_CHANGED');
+  assert.equal(f.find('script-source').value,typed);
+  assert.equal(f.find('script-id').value,'manual');
+  assert.deepEqual(f.manualRuns,[]);
+  assert.deepEqual(f.dispatches,[]);
+});
