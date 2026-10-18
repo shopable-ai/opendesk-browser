@@ -763,3 +763,55 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
   await until(()=>f.manualRuns.length===1,'New Script retained the loaded Page execution intent');
   assert.equal(previews.length,1);
 });
+
+test('R36.2 JavaScript Controller/Page selection retains independent drafts without execution', async t => {
+  const f=await fixture(t,{local:false,files:[]});
+  const world=async name=>{
+    f.find('script-javascript-world').value=name;
+    f.find('script-javascript-world').fire('change');
+    await tick();
+  };
+  const framework=async name=>{
+    const input=f.find('page-component-'+name);
+    input.checked=true;input.fire('change');
+    await tick();
+  };
+  const pageSource='async function main(){return {title:document.title};}';
+  await world('page');
+  assert.match(f.find('script-source').value,/document\.title/);
+  assert.equal(f.find('script-run').textContent,'运行网页 JavaScript');
+  assert.equal(f.find('script-save').hidden,true,'primary Save must not confuse temporary Run with formal versioning');
+  assert.equal(f.find('script-library-tools').hidden,true);
+  assert.equal(f.find('page-preview-tools').hidden,false);
+  assert.equal(f.find('manual-project-params-tools').hidden,true);
+  f.find('script-source').value=pageSource;f.find('script-source').fire('input');
+  await framework('react');
+  f.find('script-source').value='export default function App(){return null;}';
+  f.find('script-source').fire('input');
+  await framework('javascript');
+  assert.equal(f.find('script-source').value,pageSource,'framework switching retains the Page draft');
+  await world('controller');
+  assert.equal(f.find('script-source').value,manualSource,'Controller keeps its original automation draft');
+  assert.equal(f.find('script-run').textContent,'运行草稿');
+  assert.equal(f.find('page-preview-tools').hidden,true);
+  assert.equal(f.find('script-save-version').hidden,false);
+  assert.equal(f.find('manual-project-params-tools').hidden,false);
+  await world('page');
+  assert.equal(f.find('script-source').value,pageSource);
+  assert.deepEqual(f.manualRuns,[],'choosing a world never starts a Controller run');
+  assert.deepEqual(f.dispatches,[],'choosing a world never starts a Native page preview');
+});
+
+test('R36.2 active/invalid world selection does not bypass managed execution ownership',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const input=f.find('script-javascript-world');
+  input.value='nonsense';input.fire('change');
+  assert.equal(input.value,'controller','invalid world must restore the original choice');
+  await f.setCurrentRun('busy-controller');
+  assert.equal(f.find('script-run').disabled,true);
+  assert.equal(input.disabled,false,'run ownership must be enforced by the Run button and RunHost');
+  input.value='page';input.fire('change');
+  assert.equal(input.value,'page','switching an idle editor buffer does not stop an unrelated RunHost owner');
+  assert.deepEqual(f.manualRuns,[]);
+  assert.deepEqual(f.dispatches,[]);
+});
