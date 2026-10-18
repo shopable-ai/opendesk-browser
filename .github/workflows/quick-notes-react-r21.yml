@@ -1,4 +1,4 @@
-name: Quick Notes React R2.1 two-package parity
+name: Quick Notes React R2.3 installed lifecycle
 on:
   push:
     branches: [main]
@@ -60,7 +60,11 @@ jobs:
       - name: Real Chrome installed OpenDesk Host SDK and two-tool data isolation
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node scripts/tests/quick-notes-react-r21-installed-chrome.mjs artifacts/sidebar-tools/quick-notes-react/installed-chrome
+        run: |
+          python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks > artifacts/sidebar-tools/quick-notes-react/demo-form-server.log 2>&1 &
+          qn_fixture_pid=$!
+          trap 'kill "$qn_fixture_pid" 2>/dev/null || true' EXIT
+          node scripts/tests/quick-notes-react-r21-installed-chrome.mjs artifacts/sidebar-tools/quick-notes-react/installed-chrome
       - name: Promote React package ONLY in tested ephemeral CI checkout
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json

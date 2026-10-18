@@ -17,7 +17,8 @@ export function recoverNotes(current,oldValue,makeId=newNoteId){
   const value=current.value;
   if(value!==null&&!Array.isArray(value))
     throw Error('数据格式无效，禁止覆盖');
-  if(Array.isArray(value)&&(value.length>MAX_NOTES||!value.every(validNote)))
+  if(Array.isArray(value)&&(value.length>MAX_NOTES||!value.every(validNote)||
+    new Set(value.map(note=>note.id)).size!==value.length))
     throw Error('数据格式无效，禁止覆盖');
   const legacyPending=typeof oldValue==='string'&&Boolean(oldValue);
   const upgrading=value===null&&legacyPending;
