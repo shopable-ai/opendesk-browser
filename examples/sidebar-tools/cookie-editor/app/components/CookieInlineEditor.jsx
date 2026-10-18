@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
+import {CookieIcon} from './CookieEditorView.jsx';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
@@ -9,17 +10,20 @@ const toLocal=seconds=>{
   const d=new Date(seconds*1000);
   if(Number.isNaN(d.getTime()))return '';
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+
-    'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+    'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
 };
 const fromLocal=input=>{
+  if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(input||''))return NaN;
   const ms=new Date(input).getTime();
-  return Number.isFinite(ms)?Math.floor(ms/1000):NaN;
+  const seconds=Math.floor(ms/1000);
+  return Number.isFinite(ms)&&toLocal(seconds).slice(0,input.length)===input?seconds:NaN;
 };
 export default function CookieInlineEditor({row=null,target,disabled=false,
   readValue,onSave,onCancel,onDelete,onDirty}){
   const valueRef=React.useRef(null),revealedRef=React.useRef(null);
   const revealTimer=React.useRef(null);
   const [valueEdited,setValueEdited]=React.useState(false);
+  const [newValueDirty,setNewValueDirty]=React.useState(false);
   const [showValue,setShowValue]=React.useState(false);
   const [revealing,setRevealing]=React.useState(false);
   const [message,setMessage]=React.useState('');
@@ -33,11 +37,19 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     storeId:row?.storeId,partitionKey:row?.partitionKey
   }));
   const edited=!!row;
+  const initial=React.useRef(draft);
+  const comparable=input=>JSON.stringify({...input,
+    expiration:input.session?null:Number.isFinite(fromLocal(input.expiration))
+      ?fromLocal(input.expiration):input.expiration});
+  const isDirty=()=>comparable(draft)!==comparable(initial.current)||
+    (edited?valueEdited:newValueDirty);
+  const dirty=isDirty();
+  React.useEffect(()=>{onDirty?.(dirty);},[dirty,onDirty]);
   React.useEffect(()=>()=>{if(valueRef.current)valueRef.current.value='';
     if(revealedRef.current)revealedRef.current.textContent='';
     if(revealTimer.current)clearTimeout(revealTimer.current);
   },[row?.id,target?.url]);
-  const update=(key,value)=>{setDraft(old=>({...old,[key]:value}));onDirty?.(true);};
+  const update=(key,value)=>{setDraft(old=>({...old,[key]:value}));setMessage('');};
   const dismissReveal=()=>{
     if(revealTimer.current)clearTimeout(revealTimer.current);
     revealTimer.current=null;
@@ -45,6 +57,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       revealedRef.current.textContent='';
       revealedRef.current.hidden=true;
     }
+    setShowValue(false);
   };
   const reveal=async()=>{
     if(!row||!readValue)return;
@@ -55,10 +68,21 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       if(typeof value==='string'&&revealedRef.current){
         revealedRef.current.textContent=value;
         revealedRef.current.hidden=false;
+        setShowValue(true);
         if(revealTimer.current)clearTimeout(revealTimer.current);
         revealTimer.current=setTimeout(dismissReveal,20000);
       }else setMessage('敏感值不可用；请检查授权或刷新。');
     }finally{setRevealing(false);}
+  };
+  const toggleValue=()=>{
+    if(revealedRef.current&&!revealedRef.current.hidden){dismissReveal();return;}
+    if(edited&&!valueEdited){void reveal();return;}
+    setShowValue(value=>!value);
+  };
+  const restoreValue=()=>{
+    if(valueRef.current)valueRef.current.value='';
+    setValueEdited(false);
+    dismissReveal();
   };
   const submit=event=>{
     event.preventDefault();dismissReveal();setMessage('');
@@ -73,22 +97,37 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
   };
   return <form className="cookie-inline-editor od-surface od-surface--padded" onSubmit={submit}
     aria-label={edited?'编辑 Cookie '+row.name:'新建 Cookie'}>
-    <div className="cookie-editor-grid">
+    <div className="cookie-editor-heading"><strong>{edited?'编辑 Cookie':'新建 Cookie'}</strong>
+      {dirty&&<span className="cookie-dirty-note">未保存</span>}</div>
+    <div className="cookie-editor-grid cookie-editor-primary">
       <label>名称 <input className="od-field" required maxLength={256} value={draft.name}
         disabled={disabled} onChange={e=>update('name',e.target.value)}/></label>
-      <label>Cookie Value <input className="od-field" ref={valueRef} data-cookie-secret-input="true"
-        type={showValue?'text':'password'}
-        autoComplete="off" maxLength={4096} disabled={disabled}
-        placeholder={edited?'不修改则保留原值（需额外授权）':'输入值，允许空字符串'}
-        onChange={()=>{setValueEdited(true);onDirty?.(true);}}/></label>
+      <div className="cookie-editor-value-field">
+        <label htmlFor="cookie-sensitive-edit">值</label>
+        <div className="cookie-value-inline">
+          <input id="cookie-sensitive-edit" className="od-field" ref={valueRef}
+            data-cookie-secret-input="true" type={showValue?'text':'password'}
+            autoComplete="off" maxLength={4096} disabled={disabled}
+            placeholder={edited?'留空保留旧值（可明确清空）':'允许输入空值'}
+            onChange={()=>{
+              setValueEdited(true);
+              if(!edited)setNewValueDirty(Boolean(valueRef.current?.value));
+            }}/>
+          <Button type="button" className="od-icon-button cookie-value-toggle"
+            disabled={disabled||revealing} aria-pressed={showValue}
+            title={showValue?'隐藏 Cookie 值':edited&&!valueEdited?'读取并显示原值（需授权）':'显示输入'}
+            aria-label={showValue?'隐藏 Cookie 值':edited&&!valueEdited?'读取并显示原值（需授权）':'显示输入'}
+            onClick={toggleValue}>
+            <CookieIcon name={showValue?'eyeoff':'eye'}/>
+          </Button>
+        </div>
+      </div>
     </div>
-    <div className="cookie-editor-actions">
-      <Button type="button" disabled={disabled}
-        onClick={()=>setShowValue(x=>!x)} aria-pressed={showValue}>
-        {showValue?'隐藏输入':'显示输入'}</Button>
-      {edited&&<Button type="button" disabled={disabled||revealing}
-        onClick={()=>void reveal()}>{revealing?'读取中…':'查看原值（需授权）'}</Button>}
-    </div>
+    {edited&&valueEdited&&<div className="cookie-value-restore">
+      <span>{valueRef.current?.value===''?'将明确写入空值':'将写入新值'}</span>
+      <Button type="button" variant="secondary" disabled={disabled}
+        onClick={restoreValue}>恢复保留旧值</Button>
+    </div>}
     <output ref={revealedRef} data-cookie-secret-output="true"
       className="cookie-sensitive-output" aria-label="临时敏感值"
       hidden/>
@@ -126,7 +165,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         disabled={disabled}>删除</Button>}
       <span className="cookie-spacer"/>
       <Button type="button" disabled={disabled} onClick={onCancel}>取消</Button>
-      <Button variant="primary" type="submit" disabled={disabled}>保存 Cookie</Button>
+      <Button variant="primary" type="submit" disabled={disabled||(edited&&!dirty)}>保存 Cookie</Button>
     </div>
   </form>;
 }

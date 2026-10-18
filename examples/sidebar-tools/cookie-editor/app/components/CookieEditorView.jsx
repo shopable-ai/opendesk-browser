@@ -14,7 +14,9 @@ const shapes={
   upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,
   plus:<path d="M12 5v14M5 12h14"/>,
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,
-  chevron:<path d="m7 10 5 5 5-5"/>
+  chevron:<path d="m7 10 5 5 5-5"/>,
+  eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
+  eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>
 };
 export function CookieIcon({name}){
   return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"

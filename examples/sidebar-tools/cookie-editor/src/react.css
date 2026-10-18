@@ -89,3 +89,17 @@
 .cookie-editor-react .cookie-export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
 .cookie-editor-react .cookie-export-actions button{min-width:0}
 @media(max-width:350px){.cookie-editor-react .cookie-export-format{flex-basis:100%}}
+
+/* Preview-aligned one-column form and inline Value eye; only layout, no new skins. */
+.cookie-editor-react .cookie-editor-heading{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)}
+.cookie-editor-react .cookie-dirty-note{font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-editor-primary{grid-template-columns:minmax(0,1fr)}
+.cookie-editor-react .cookie-editor-primary>label,.cookie-editor-react .cookie-editor-value-field{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-editor-value-field>label{min-width:0;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-value-inline{position:relative;display:flex;align-items:center;min-width:0}
+.cookie-editor-react .cookie-value-inline>input{width:100%;min-width:0;padding-right:40px}
+.cookie-editor-react .cookie-value-toggle{position:absolute;right:3px;top:50%;transform:translateY(-50%);display:grid;place-items:center;flex:none}
+.cookie-editor-react .cookie-value-toggle svg{width:17px;height:17px}
+.cookie-editor-react .cookie-value-restore{display:flex;align-items:center;gap:var(--space-2);margin-left:84px;flex-wrap:wrap;font-size:var(--od-meta-size)}
+.cookie-editor-react .cookie-sensitive-output{margin-left:84px}
+@media(max-width:350px){.cookie-editor-react .cookie-editor-primary>label,.cookie-editor-react .cookie-editor-value-field{grid-template-columns:56px minmax(0,1fr)}.cookie-editor-react .cookie-value-restore,.cookie-editor-react .cookie-sensitive-output{margin-left:64px}}
