@@ -110,3 +110,11 @@
 .cookie-editor-react .cookie-import-summary{display:grid;gap:var(--space-2)}
 .cookie-editor-react .cookie-import-summary ul{margin:0;padding-left:var(--space-4);max-height:130px;overflow:auto}
 .cookie-editor-react .cookie-import-overwrite{display:flex;align-items:flex-start;gap:var(--space-2)}
+
+/* Preview is the main surface: no duplicate Host heading or multi-layer Card padding. */
+.cookie-editor-react .cookie-utility-settings{margin-top:var(--space-3)}
+.cookie-editor-react .cookie-utility-settings summary,.cookie-editor-react .cookie-observe-fold summary{cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-utility-content{display:grid;gap:var(--space-3);padding:var(--space-3) 0}
+.cookie-editor-react .cookie-utility-content .cookie-site-select{margin-bottom:0}
+.cookie-editor-react .cookie-observe-fold{margin-top:var(--space-3)}
+.cookie-editor-react .cookie-observe-fold .cookie-observe{margin-top:var(--space-2)}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Button,Card,CardContent} from '@opendesk/ui';
+import {Button} from '@opendesk/ui';
 import {createCookieSdkAdapter} from './adapters/browser-sdk.js';
 import {createCookieController} from './controller/cookie-controller.js';
 import {CookieEditorView} from './components/CookieEditorView.jsx';
@@ -173,33 +173,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   };
   return <main className="cookie-editor-react od-page" onKeyDown={onKeyDown}>
-    <header className="cookie-main-head">
-      <div><h2>Cookie Editor</h2><p>独立 React 19 · 真实 Browser SDK</p></div>
-      <div className="cookie-mode-tabs" role="group" aria-label="工作模式">
-        <Button disabled={locked} aria-pressed={mode==='browser'}
-          onClick={()=>switchMode('browser')}>浏览器</Button>
-        <Button disabled={locked} aria-pressed={mode==='offline'}
-          onClick={()=>switchMode('offline')}>离线</Button>
-      </div>
-    </header>
     {mode==='offline'?<CookieOfflineWorkspace initialTarget={offlineInitialSite}
       adapter={adapter} onDirty={setDirty}/>:
     <>
-      <div className="cookie-site-select">
-        <label htmlFor="cookie-target-url">切换或选择网站
-          <input className="od-field" id="cookie-target-url" type="url" value={siteInput} disabled={locked}
-            placeholder="留空则跟随当前网页" onChange={e=>setSiteInput(e.target.value)}/></label>
-        <Button disabled={locked} onClick={()=>guarded(()=>{
-          appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
-          void controller.load(appliedSite.current);
-        })}>应用</Button>
-        <Button disabled={locked} onClick={()=>guarded(()=>{
-          appliedSite.current='';setSiteInput('');void controller.load();
-        })}>当前页</Button>
-      </div>
       <CookiePermissions phase={snapshot.phase} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}/>
-      {snapshot.phase==='ready'&&<Card className="od-surface"><CardContent className="od-surface--padded">
+      {snapshot.phase==='ready'&&<div className="od-surface">
         <CookieEditorView site={target?.hostname||''}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
@@ -211,13 +190,13 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onImport={()=>openPanel('import')} onExport={()=>openPanel('export')}
           onNew={()=>select('new')} onClear={()=>void clear()}
           clearDisabled={!snapshot.rows.length}
+          newEditor={selected==='new'?<CookieInlineEditor key="new" target={target}
+            disabled={locked} onSave={save} onDirty={setDirty}
+            onCancel={()=>guarded(()=>setSelected(null))}/>:null}
           editor={row=><CookieInlineEditor key={row.id} row={row} target={target}
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>guarded(()=>setSelected(null))}
             onDelete={remove}/>}/>
-        {selected==='new'&&<CookieInlineEditor key="new" target={target}
-          disabled={locked} onSave={save} onDirty={setDirty}
-          onCancel={()=>guarded(()=>setSelected(null))}/>}
         {panel==='import'&&<CookieImport controller={controller} disabled={locked}
           onClose={result=>{
             // A verified import has already committed; it must not reopen the
@@ -228,8 +207,10 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onDirty={setDirty}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onClose={()=>setPanel(null)}/>}
-      </CardContent></Card>}
-      {snapshot.phase==='ready'&&<section className="cookie-observe" aria-label="Cookie 变化观察">
+      </div>}
+      {snapshot.phase==='ready'&&<details className="cookie-observe-fold od-disclosure">
+        <summary>变化观察</summary>
+        <section className="cookie-observe" aria-label="Cookie 变化观察">
         <div><strong>变化观察</strong><small>最多 15 秒，只显示元数据。</small></div>
         {!snapshot.observing?<Button disabled={locked} onClick={()=>void controller.observe('start')}>
           开始观察</Button>:<>
@@ -240,8 +221,34 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           {snapshot.observeEvents.map((event,i)=><li key={i}>{
             event.removed?'已删除':'已变更'} · {event.name} · {event.domain}{event.path}</li>)}
         </ul>}
-      </section>}
+        </section>
+      </details>}
     </>}
+    <details className="cookie-utility-settings od-disclosure" open={mode==='offline'?true:undefined}>
+      <summary>更多 · 离线工作区与网站范围</summary>
+      <div className="cookie-utility-content">
+        <div className="cookie-mode-tabs" role="group" aria-label="工作模式">
+          <Button disabled={locked} aria-pressed={mode==='browser'}
+            onClick={()=>switchMode('browser')}>浏览器</Button>
+          <Button disabled={locked} aria-pressed={mode==='offline'}
+            onClick={()=>switchMode('offline')}>离线工作区</Button>
+        </div>
+        {mode==='browser'&&<div className="cookie-site-select">
+          <label htmlFor="cookie-target-url">切换或选择网站
+            <input className="od-field" id="cookie-target-url" type="url"
+              value={siteInput} disabled={locked}
+              placeholder="留空则跟随当前网页"
+              onChange={e=>setSiteInput(e.target.value)}/></label>
+          <Button disabled={locked} onClick={()=>guarded(()=>{
+            appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
+            void controller.load(appliedSite.current);
+          })}>应用</Button>
+          <Button disabled={locked} onClick={()=>guarded(()=>{
+            appliedSite.current='';setSiteInput('');void controller.load();
+          })}>当前页</Button>
+        </div>}
+      </div>
+    </details>
     {mode==='browser'&&snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
