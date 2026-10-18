@@ -628,7 +628,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       'buttonHitTag:hit?.tagName,buttonHitContains:!!b?.contains(hit),'+
       'message:document.querySelector("#schedule-message")?.textContent,'+
       'messageState:document.querySelector("#schedule-message")?.dataset?.state,'+
-      'activeView:document.querySelector("#schedule-list-view")?.hidden?'other':'list'}})()',
+      'activeView:document.querySelector("#schedule-list-view")?.hidden?"other":"list"}})()',
       sideSid).catch(failure=>({diagnosticError:String(failure)}));
     note('runner-open-diagnostics',{targets,tabs,ui,error:String(error?.message||error)});
     throw error;
