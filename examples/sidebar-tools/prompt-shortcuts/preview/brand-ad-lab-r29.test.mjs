@@ -43,7 +43,7 @@ test('exactly 17 unique formats and 35 map selectors exist',()=>{
 test('dismiss, restore, prompt-first states and zero-sold user guards',()=>{
  assert.match(base,/state\.closeRail=true/);
  assert.match(base,/state\.closedWeb\.add\(id\)/);
- assert.match(base,/state\.closedCards\.add\(i\)/);
+ assert.match(base,/state\.closedCards\.add\(state\.id\+':'\+i\)/);
  assert.match(base,/state\.sold>0\|\|state\.mode==='sales'/);
  assert.match(base,/hadDraftFocus/);
  assert.match(base,/setSelectionRange/);
@@ -161,6 +161,7 @@ test('REAL Chromium: six presets, 200% zoom, long conversation and R2.7 compatib
   assert.ok(await page.locator('.r28-chat-scroll .r28-answer').count()>=13);
   await page.locator('#zoom').selectOption('200');
   assert.equal(await page.locator('#r28Brand').isVisible(),true);
+  await page.locator('.r28-legacy summary').click();
   await page.locator('#placement').selectOption('A4');
   assert.equal(await page.evaluate(()=>window.OpenDeskR28.state.active),false);
   assert.deepEqual(errors,[]);
