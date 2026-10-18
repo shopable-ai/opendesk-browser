@@ -126,6 +126,22 @@ test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY
   assert.match(html,/&lt;img src=x onerror=evil\(\)&gt;/);
   assert.doesNotMatch(html,/<script\b|<img\b/i);
   assert.match(html,/id="cloud-open-console"/);
+  const requests=renderToStaticMarkup(React.createElement(CloudConnectionPage,{
+    model:{summary:'正在连接'},
+    requestsModel:{
+      rows:[{key:'r0',index:0,title:'<img src=x onerror=evil()>',summary:'状态未知'}],
+      canPrev:false,canNext:true,pageText:'第 1 条',
+      detail:{key:'r0',title:'<script>evil()</script>',state:'UNKNOWN',
+        canOpenRun:false}
+    }
+  }));
+  const $requests=load(requests);
+  assert.equal($requests('#cloud-request-samples li').length,1);
+  assert.equal($requests('#cloud-request-samples img').length,0);
+  assert.equal($requests('#cloud-request-detail script').length,0);
+  assert.equal($requests('#cloud-request-detail-title').text(),'<script>evil()</script>');
+  assert.equal($requests('#cloud-request-prev').is(':disabled'),true);
+  assert.equal($requests('#cloud-request-next').is(':disabled'),false);
   assert.match(html,/id="cloud-overview-refresh"/);
   assert.match(html,/id="cloud-request-samples"/);
   assert.doesNotMatch(await read('src/ui/react/tabs/cloud.tsx'),

@@ -78,13 +78,15 @@ export function CloudConnectionPage({model={},requestsModel={},legacySections=[]
 // checks. Only plain-text projections and trusted UI actions cross this seam.
 export function CloudRequestHistory({model={}}){
   const rows=Array.isArray(model.rows)?model.rows:[];
-  const detail=model.detail||null,focus=React.useRef(null);
+  const detail=model.detail||null,focus=React.useRef(null),lastOpener=React.useRef(null);
   const trusted=(event,callback,value)=>{
     if(event.nativeEvent?.isTrusted===true&&typeof callback==='function')
       callback(value);
   };
   React.useLayoutEffect(()=>{
     if(detail)focus.current?.focus?.({preventScroll:true});
+    else if(lastOpener.current?.isConnected)
+      lastOpener.current.focus?.({preventScroll:true});
   },[detail?.key]);
   return <section className="cloud-requests od-surface"
     aria-label="云请求历史和原始结果入口">
@@ -93,7 +95,10 @@ export function CloudRequestHistory({model={}}){
       {rows.length?rows.map(row=><li key={row.key}>
         <span>{row.title}</span><span>{row.summary}</span>
         <button type="button" className="od-button od-button--secondary"
-          onClick={event=>trusted(event,model.onDetail,row.index)}>查看详情</button>
+          onClick={event=>{
+            lastOpener.current=event.currentTarget;
+            trusted(event,model.onDetail,row.index);
+          }}>查看详情</button>
       </li>):<li>{model.emptyText||'暂无云请求'}</li>}
     </ol>
     <div className="cloud-request-pagination" aria-label="云请求历史翻页">

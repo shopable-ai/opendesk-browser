@@ -170,6 +170,53 @@ try{
   assert.match(await evaluate('document.getElementById("cloud-overview-state").textContent'),
     /<script>不应执行<\/script>/);
 
+  // R35.3: formal React Cloud request view. Physical CDP clicks must be
+  // trusted, cause exactly one Controller action and preserve disclosure focus.
+  await evaluate(`(()=>{const s=window.__r352;
+    s.cloudActions=[];
+    const model={
+      rows:[{key:'entry-0',index:0,title:'请求 <img src=x onerror=evil()>',
+        summary:'状态未知 · 未重新执行'}],
+      pageText:'第 1 条 / 2 条',canPrev:false,canNext:true,detail:null,
+      onPrev(){s.cloudActions.push('prev');},
+      onNext(){s.cloudActions.push('next');s.ui.renderCloudRequests({
+        ...model,pageText:'第 2 条 / 2 条',canNext:false,canPrev:true});},
+      onDetail(index){
+        s.cloudActions.push('detail:'+index);
+        s.ui.renderCloudRequests({...model,detail:{
+          key:'entry-'+index,title:'详情 <script>alert(1)</script>',
+          state:'状态未知',facts:'未收到回执',reason:'不能自动重试',
+          runId:'尚无可核对的原始 Run',canOpenRun:false,
+          note:'仅状态，没有正文'}});},
+      onClose(){s.cloudActions.push('close');s.ui.renderCloudRequests(model);},
+      onOpenResult(){s.cloudActions.push('unexpected-open');}
+    };
+    s.ui.renderCloudRequests(model);
+  })()`);
+  await mouseClick('#tab-cloud');
+  assert.equal(await evaluate('document.querySelectorAll("#cloud-request-samples").length'),1);
+  assert.equal(await evaluate('document.querySelector("#cloud-request-samples img")'),null);
+  assert.match(await evaluate('document.getElementById("cloud-request-samples").textContent'),
+    /<img src=x onerror=evil\(\)>/);
+  assert.equal(await evaluate('document.getElementById("cloud-request-prev").disabled'),true);
+  await mouseClick('#cloud-request-samples button');
+  await eventually('document.getElementById("cloud-request-detail").hidden===false');
+  assert.equal(await evaluate('document.activeElement.id'),'cloud-request-detail-title');
+  assert.equal(await evaluate('document.getElementById("cloud-request-detail-title").textContent'),
+    '详情 <script>alert(1)</script>');
+  assert.equal(await evaluate('document.querySelector("#cloud-request-detail script")'),null);
+  assert.equal(await evaluate('document.getElementById("cloud-request-open-result").disabled'),true);
+  await mouseClick('#cloud-request-close');
+  assert.equal(await evaluate('document.getElementById("cloud-request-detail").hidden'),true);
+  assert.equal(await evaluate('document.activeElement.textContent.trim()'),'查看详情',
+    'Close should restore focus to the same request action');
+  await mouseClick('#cloud-request-next');
+  assert.match(await evaluate('document.getElementById("cloud-request-page").textContent'),
+    /第 2 条/);
+  assert.equal(await evaluate('document.getElementById("cloud-request-next").disabled'),true);
+  assert.deepEqual(await evaluate('window.__r352.cloudActions'),
+    ['detail:0','close','next'],'One native gesture must invoke one action');
+
   // A veto through the same navigation interface must preserve selected tab
   // AND keyboard focus. A real mouse click checks the Chrome-trusted path.
   await mouseClick('#tab-tools');

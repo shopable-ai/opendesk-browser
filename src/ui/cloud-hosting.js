@@ -330,7 +330,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   function sampleView(samples,rawRows=[]){
     const serial=JSON.stringify([requestOffset,samples,rawRows.map(row=>row?.runId??null)]);
-    if(serial===lastSamples)return;lastSamples=serial;
+    if(serial===lastSamples){if(reactRequests)renderReactRequests();return;}
+    lastSamples=serial;
     if(reactRequests){
       requestRows=samples;requestRawRows=rawRows;
       const i=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
