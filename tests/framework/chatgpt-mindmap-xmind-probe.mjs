@@ -66,7 +66,21 @@ try{
  assert.ok(await viewer(1).locator('.topic').count()>1);assert.ok(await viewer(2).locator('.topic').count()>1);passed('A/B both render actual XMind topics');
  // The original SDK must produce these bytes, not a second renderer or a fake Blob.
 
- await control(1,'导出导图').click();
+ await viewer(1).locator('.odmm-export-toggle').click();
+ const desktopPopup=await viewer(1).evaluate(host=>{
+   const root=host.shadowRoot,trigger=root.querySelector('.odmm-export-toggle');
+   const popup=root.querySelector('.odmm-export-menu');
+   const anchor=root.querySelector('.odmm-export-wrap'),shell=root.querySelector('.odmm-shell');
+   const a=trigger.getBoundingClientRect(),p=popup.getBoundingClientRect(),s=shell.getBoundingClientRect();
+   return {parentIsAnchor:popup.parentElement===anchor,rightGap:Math.abs(p.right-a.right),
+     below:p.top-a.bottom,left:p.left-shell.getBoundingClientRect().left,
+     shellOverflow:p.right-s.right};
+ });
+ assert.equal(desktopPopup.parentIsAnchor,true);
+ assert.ok(desktopPopup.rightGap<=3&&desktopPopup.below>=2&&desktopPopup.below<=12,
+   'Export must open directly below the desktop download button');
+ assert.ok(desktopPopup.left>=0&&desktopPopup.shellOverflow<=1,
+   'Export must not extend beyond the viewer');
  const xmindEvent=page.waitForEvent('download',{timeout:30000});
  await viewer(1).locator('[data-export="xmind"]').click();
  const xmindDownload=await xmindEvent;
@@ -87,7 +101,7 @@ try{
  report.exportProof={xmindBytes:xmindBytes.length,xmindEntries:parsed.names.length,
    hasContentJson:true,scope:'A_ONLY_REAL_SDK_LOCAL_FIXTURE'};
  passed('Real XMind ZIP contains current-answer nodes without neighboring reply');
- await control(1,'导出导图').click();
+ await viewer(1).locator('.odmm-export-toggle').click();
  const outlineEvent=page.waitForEvent('download',{timeout:10000});
  await viewer(1).locator('[data-export="outline"]').click();
  const outlineDownload=await outlineEvent;

@@ -871,13 +871,28 @@ try{
     'Enter on Export in More must open the shared format menu');
   assert.equal(await more.getAttribute('aria-expanded'),'false',
     'More must close while the format menu is open');
-  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="xmind"]:focus').count(),1);
+  const mobilePopup=await viewer(2).evaluate(host=>{
+    const root=host.shadowRoot,trigger=root.querySelector('.odmm-more');
+    const popup=root.querySelector('.odmm-export-menu');
+    const anchor=root.querySelector('.odmm-menu-wrap'),shell=root.querySelector('.odmm-shell');
+    const a=trigger.getBoundingClientRect(),p=popup.getBoundingClientRect(),s=shell.getBoundingClientRect();
+    return {parentIsAnchor:popup.parentElement===anchor,rightGap:Math.abs(p.right-a.right),
+      below:p.top-a.bottom,left:p.left-s.left,shellOverflow:p.right-s.right,
+      labels:[...popup.querySelectorAll('[data-export]')].map(item=>item.textContent)};
+  });
+  assert.deepEqual(mobilePopup.labels,['PNG','XMind','Markdown']);
+  assert.equal(mobilePopup.parentIsAnchor,true);
+  assert.ok(mobilePopup.rightGap<=3&&mobilePopup.below>=2&&mobilePopup.below<=12,
+    'Export must open beneath More at narrow widths');
+  assert.ok(mobilePopup.left>=0&&mobilePopup.shellOverflow<=1,
+    'Mobile Export must remain inside the viewer');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="png"]:focus').count(),1);
   await page.keyboard.press('ArrowDown');
-  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="outline"]:focus').count(),1);
-  await page.keyboard.press('End');
-  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="svg"]:focus').count(),1);
-  await page.keyboard.press('Home');
   assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="xmind"]:focus').count(),1);
+  await page.keyboard.press('End');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="outline"]:focus').count(),1);
+  await page.keyboard.press('Home');
+  assert.equal(await viewer(2).locator('.odmm-export-menu button[data-export="png"]:focus').count(),1);
   await page.keyboard.press('Escape');
   assert.equal(await exportMenu.evaluate(el=>el.hidden),true);
   assert.equal(await more.evaluate(el=>el.matches(':focus')),true,
