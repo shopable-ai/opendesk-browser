@@ -5,7 +5,7 @@ import {createAnswerView} from '../src/view.js';
 
 // DOM call regression only; the parent's real Chromium probe verifies that
 // moveBefore actually retains the opaque iframe Document and MessagePort.
-async function setup({iframe=true,bodyMove=true,inlineMove=true,moveError}={}){
+async function setup({iframe=true,bodyMove=true,inlineMove=true,moveError,truncated=false}={}){
   const {document,window}=parseHTML('<html><body><article><p>Original answer</p><aside></aside></article></body></html>');
   const inline=document.querySelector('article'),next=document.querySelector('aside');
   const moves=[],insertions=[],reflows=[];
@@ -26,7 +26,7 @@ async function setup({iframe=true,bodyMove=true,inlineMove=true,moveError}={}){
     return ()=>target.removeEventListener(type,listener,options);
   }};
   let frame;
-  const view=createAnswerView({document,window,owner,css:'',tree:{title:'Root',children:[]},nodeCount:1,
+  const view=createAnswerView({document,window,owner,css:'',tree:{title:'Root',children:[]},nodeCount:1,truncated,
     onOriginal(){},onRefresh(){},onFullscreen(){},onError(error){throw error;},
     rendererFactory:({canvas})=>{
       if(iframe){frame=document.createElement('iframe');canvas.append(frame);}
@@ -110,5 +110,18 @@ test('the return control is a text-free back chevron with an accessible label',a
   assert.equal(back.textContent,'');
   assert.equal(back.getAttribute('aria-label'),'返回完整原文');
   assert.equal(back.querySelector('path')?.getAttribute('d'),'M15 18l-6-6 6-6');
+  await h.view.destroy();
+});
+
+test('truncated mind maps omit the unsolicited banner while keeping toolbar, canvas, and original action',async()=>{
+  const h=await setup({iframe:false,truncated:true});
+  const shadow=h.view.host.shadowRoot;
+  const shell=shadow.querySelector('.odmm-shell');
+  assert.equal(shell.firstElementChild.classList.contains('odmm-toolbar'),true);
+  assert.equal(shadow.querySelector('.odmm-warning'),null);
+  assert.equal(shadow.textContent.includes('内容超出导图上限'),false);
+  assert.ok(shadow.querySelector('.odmm-canvas'));
+  assert.equal(shadow.querySelector('[data-action="original"]').getAttribute('aria-label'),'返回完整原文');
+  assert.equal(h.view.host.dataset.ready,'true');
   await h.view.destroy();
 });

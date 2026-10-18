@@ -318,7 +318,6 @@ export function createAnswerView({document,window,owner,css,tree,nodeCount,trunc
   const canvas=el('div','odmm-canvas');canvas.tabIndex=0;
   canvas.setAttribute('aria-label','XMind 只读画布，可拖动和滚动浏览分支');
   const status=el('div','odmm-status','正在打开 XMind…');status.setAttribute('role','status');
-  if(truncated){const warning=el('div','odmm-warning','内容超出导图上限，原文保持完整。');shell.append(warning);}
   shell.append(toolbar,exportStatus,canvas,status);shadow.append(style,shell);
   async function start(){
     if(disposed)return;
