@@ -211,3 +211,30 @@ test('R3.2 frontend refuses absent, mismatched, untrusted, or unreachable backen
   await assert.rejects(probeStayFocusService({api}),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
   await assert.rejects(probeStayFocusService({api:{runtime:{}}}),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
 });
+
+// A live v1 worker may predate site-budget.v2. A successful probe alone must
+// never permit a package update whose rules the compiled worker cannot run.
+test('R4.5 package admission requires the live worker to advertise policy support',async()=>{
+  const modern={...tool,version:'1.0.4',backgroundPolicy:{kind:'site-budget.v2'}};
+  const supported={protocol:FOCUS_PROTOCOL,serviceVersion:1,serviceReady:true,
+    permissions:{idle:false,dnr:true,ready:false},
+    managedSiteRuntime:{contract:'opendesk.managed-site-runtime.v1',
+      policyKinds:['site-budget.v1','site-budget.v2'],privilegedJs:false}};
+  let response={ok:true,data:supported};
+  const api={runtime:{sendMessage:async()=>response}};
+  assert.deepEqual(await probeStayFocusService({api,tool:modern}),supported);
+  for(const invalid of [
+    {...supported,managedSiteRuntime:undefined},
+    {...supported,managedSiteRuntime:{...supported.managedSiteRuntime,policyKinds:['site-budget.v1']}},
+    {...supported,managedSiteRuntime:{...supported.managedSiteRuntime,privilegedJs:true}},
+    {...supported,managedSiteRuntime:{...supported.managedSiteRuntime,contract:'unknown'}}
+  ]){
+    response={ok:true,data:invalid};
+    await assert.rejects(probeStayFocusService({api,tool:modern}),
+      {code:'E_TOOL_RUNTIME_POLICY_UNSUPPORTED'});
+  }
+  // A legacy package without a background policy remains compatible with
+  // legacy workers. The new admission does not revoke unrelated UI-only tools.
+  response={ok:true,data:{...supported,managedSiteRuntime:undefined}};
+  assert.equal((await probeStayFocusService({api,tool})).serviceReady,true);
+});

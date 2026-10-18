@@ -114,8 +114,8 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
   'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'8787ff2f051f33adda98b9eb5a10b2b5d40db646',
-  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'2f4b071d66c0d41ab055d87300c87ed4efda1122'
+  'examples/sidebar-tools/stay-focus/trusted/service.js':'d6f26386d30cadb51709bbe296168561d1d0968b',
+  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'ee290971b9969a36031637d63c5e267684dc16d0'
 });
 // The shared lifecycle module is statically linked by other approved hosts
 // (including knowledge-host). Reuse AdBlock's exact fixed-output registry:

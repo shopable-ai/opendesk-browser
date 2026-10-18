@@ -2439,7 +2439,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       // A static adapter cannot substitute for a live MV3 worker protocol.
       // Missing optional idle/DNR grants do not block installation.
-      if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api});
+      if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api,tool:candidate});
       if(candidate.capabilities.includes(AI_CAPABILITY))await aiAccess.probe({api});
       if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,

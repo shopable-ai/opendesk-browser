@@ -357,6 +357,10 @@ test('R3.2 worker probe checks live sender and runtime without installing or gra
   assert.equal(result.protocol,FOCUS_PROTOCOL);
   assert.equal(result.serviceVersion,FOCUS_SERVICE_VERSION);
   assert.equal(result.serviceReady,true);
+  assert.deepEqual(result.managedSiteRuntime,{
+    contract:'opendesk.managed-site-runtime.v1',
+    policyKinds:['site-budget.v1','site-budget.v2'],privilegedJs:false
+  });
   assert.deepEqual(result.permissions,{idle:false,dnr:true,ready:false});
   assert.equal(f.rules.length,0);
   assert.equal(f.stored.has(FOCUS_STORE),false,'read-only probe may not create policy');

@@ -4,12 +4,13 @@ import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SER
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
+import {assertManagedSitePolicySupported} from '../../../../src/platform/host/managed-site-runtime-contract.js';
 
 const trustedOnly=['focus.enable','focus.disable','focus.clear'];
 const error=(message,code)=>Object.assign(new Error(message),{code});
 // Presence of a Side Panel adapter is not evidence of a running MV3 worker.
 // A live, versioned handshake fails closed without granting Chrome authority.
-export async function probeStayFocusService({api}){
+export async function probeStayFocusService({api,tool=null}){
   if(typeof api?.runtime?.sendMessage!=='function')
     throw error('当前扩展无法连接 Stay Focus 后台服务；请升级或重新加载扩展','E_TOOL_RUNTIME_UNAVAILABLE');
   let response;
@@ -23,6 +24,9 @@ export async function probeStayFocusService({api}){
      response.data?.serviceVersion!==FOCUS_SERVICE_VERSION||response.data?.serviceReady!==true)
     throw error('当前扩展未提供匹配的 Stay Focus 后台服务：'+
       String(response?.error?.code||'E_FOCUS_NO_SERVICE'),'E_TOOL_RUNTIME_UNAVAILABLE');
+  // A responding worker is not proof that it knows how to interpret the new
+  // version's installed, code-free background policy. Fail before installation.
+  assertManagedSitePolicySupported(tool,response.data);
   return response.data;
 }
 function requireFocusTool(tool){

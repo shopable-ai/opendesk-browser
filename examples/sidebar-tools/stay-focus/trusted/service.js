@@ -4,6 +4,9 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {readManagedSiteToolAuthority,assertManagedSiteToolLease}
   from '../../../../src/platform/host/managed-site-authority.js';
+import {MANAGED_SITE_RUNTIME_CONTRACT} from '../../../../src/platform/host/managed-site-runtime-contract.js';
+import {SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2}
+  from '../../../../src/ui/sidebar-tools/background-policy.js';
 import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
@@ -346,7 +349,11 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(await probeDocument(sender)!==documentId)
       throw focusError('应用市场文档已经变化','E_FOCUS_SENDER');
     return {protocol:FOCUS_PROTOCOL,serviceVersion:FOCUS_SERVICE_VERSION,
-      serviceReady:true,permissions};
+      serviceReady:true,permissions,managedSiteRuntime:{
+        contract:MANAGED_SITE_RUNTIME_CONTRACT,
+        policyKinds:[SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2],
+        privilegedJs:false
+      }};
   }
   async function dispatch(message,sender){
     if(message?.protocol!==FOCUS_PROTOCOL||message.toolId!==FOCUS_ID||
