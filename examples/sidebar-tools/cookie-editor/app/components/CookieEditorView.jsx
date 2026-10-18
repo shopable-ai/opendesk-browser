@@ -16,6 +16,7 @@ const shapes={
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,
   chevron:<path d="m7 10 5 5 5-5"/>,
   eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
+  copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
   eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>
 };
 export function CookieIcon({name}){
@@ -36,7 +37,49 @@ export function CookieFormField({label,children,className=''}) {
     <span>{label}</span>{children}
   </label>;
 }
-// Pure presentation; this exact JSX is imported by preview and trusted pilot.
+// Pure presentation of the approved Preview IO controls. Both simulated
+// and native adapters implement the callbacks; no credentials live here.
+export function CookieImportDropzone({dragging=false,fileName='',maxSize='150 KB',
+  disabled=false,onPick,onDragEnter,onDragOver,onDragLeave,onDrop}){
+  return <button type="button"
+    className={'import-dropzone cookie-import-dropzone od-button od-button--secondary'+
+      (dragging?' is-dragging':'')}
+    aria-label="选择或拖入 Cookie 文件" disabled={disabled} onClick={onPick}
+    onDragEnter={onDragEnter} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+    <span className="dropzone-symbol"><CookieIcon name="upload"/></span>
+    <span className="dropzone-copy">
+      <strong>{dragging?'松开即可读取文件':fileName?'拖入新文件替换，或点击选择':
+        '拖入 Cookie 文件，或点击选择'}</strong>
+      <small>JSON / TXT · 最大 {maxSize}</small>
+    </span>
+  </button>;
+}
+export function CookieExportFormatRow({format='json',onFormat,includeValues=true,
+  onIncludeValues,disabled=false}){
+  return <div className="export-format cookie-export-options">
+    <CookieFormField label="格式" className="cookie-export-format">
+      <select className="od-field" aria-label="导出格式" value={format}
+        disabled={disabled} onChange={e=>onFormat?.(e.target.value)}>
+        <option value="json">JSON · 推荐</option>
+        <option value="header">Cookie Header</option>
+        <option value="netscape">Netscape</option>
+      </select>
+    </CookieFormField>
+    {format==='json'&&<label className="export-inline-values cookie-export-values">
+      <input type="checkbox" checked={includeValues} disabled={disabled}
+        onChange={e=>onIncludeValues?.(e.target.checked)}/>包含值
+    </label>}
+  </div>;
+}
+export function CookieExportActions({onCopy,onDownload,disabled=false,downloadLabel='下载'}){
+  return <div className="export-actions cookie-export-actions">
+    <button type="button" className="text-btn od-button od-button--secondary"
+      disabled={disabled} onClick={onCopy}><CookieIcon name="copy"/>复制</button>
+    <button type="button" className="text-btn primary od-button od-button--primary"
+      disabled={disabled} onClick={onDownload}><CookieIcon name="download"/>{downloadLabel}</button>
+  </div>;
+}
+// Pure presentation shared by Preview and official React.
 export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,onRefresh}){
   return <header className="site-bar">
     <span className="site-symbol"><CookieIcon name="globe"/></span>
