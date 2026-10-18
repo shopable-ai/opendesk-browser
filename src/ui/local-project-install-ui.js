@@ -304,7 +304,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       reveal();return;
     }
     if(!canSave()){
-      if(project()?.selectedProject()?.fileOnly===true){
+      if(project()?.selectionKind?.()==='file-workspace'){
         // A file workspace has no executable source identity. Keep the Save
         // review accessible, but explain how to connect a real project instead
         // of suggesting a Run that this workspace is explicitly forbidden to do.
