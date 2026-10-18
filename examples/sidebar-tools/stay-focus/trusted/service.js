@@ -15,7 +15,7 @@ import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusM
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
 import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultsForPackage,focusDefaultMinutesForPackage,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
-import {observeManagedForeground} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
+import {observeManagedForeground,reconcileManagedSiteExecution,redirectManagedBlockedTabs} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
 import {subscribeManagedSiteActivity} from '../../../../src/platform/chrome/managed-site-lifecycle.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
@@ -171,21 +171,12 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return state;
   }
   async function updateBlockedTabs(state,at){
-    let moved=0,failed=0;
-    if(!state.enabled)return {moved,failed};
-    // Existing tabs are not automatically retroactively redirected by DNR.
-    // On any transition to a new block state, move them to a fixed internal page.
-    const all=await api.tabs.query({});
-    for(const tab of all){
-      if(!tab?.url||tab.incognito||!Number.isInteger(tab.id))continue;
-      const host=focusHost(tab.url),site=focusMatchingSite(state,host),reason=focusReason(state,site,at);
-      if(!reason)continue;
-      try{
-        await api.tabs.update(tab.id,{url:api.runtime.getURL('stay-focus/blocked-'+reason+'.html')});
-        moved++;
-      }catch{failed++;}
-    }
-    return {moved,failed};
+    if(!state.enabled)return {moved:0,failed:0};
+    return redirectManagedBlockedTabs(api,{redirectUrlForTab:tab=>{
+      const host=focusHost(tab.url),site=focusMatchingSite(state,host);
+      const reason=focusReason(state,site,at);
+      return reason?api.runtime.getURL('stay-focus/blocked-'+reason+'.html'):null;
+    }});
   }
   async function reconcileLocked({boot=false,operation='focus.status',payload={},auth=null,validateHost=null,removedOrigins=[]}={}){
     const at=now(),startGeneration=generation,wasRevoked=revoked;
@@ -291,16 +282,15 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     }
     // Durable policy is authoritative; DNR is a materialized, reconcilable view.
     const desired=state.enabled&&fresh.ready?wantedFocusRules(state,at):[];
-    // Required DNR availability does not enable this tool. Keep the readback
-    // guard for incompatible runtimes, and clear owned rules when idle is gone.
-    const ruleReceipt=fresh.dnr?await reconcileFocusRules(api,desired):
-      {changed:false,ruleIds:[],verified:false,reason:'native-permission-missing'};
-    if(state.enabled&&fresh.ready){
-      if(!await api.alarms.get(FOCUS_ALARM))await api.alarms.create(FOCUS_ALARM,{periodInMinutes:0.5});
-    }else await api.alarms.clear(FOCUS_ALARM);
-    // Avoid tab churn on every heartbeat: only act if the matching set changed.
-    let tabs={moved:0,failed:0};
-    if(ruleReceipt.changed&&desired.length)tabs=await updateBlockedTabs(state,at);
+    // The common audited runtime owns native DNR reconciliation ordering,
+    // alarm lifecycle and current-tab remediation. Stay Focus only supplies
+    // its validated policy, fixed DNR ownership adapter and block-page choice.
+    const {ruleReceipt,tabs}=await reconcileManagedSiteExecution(api,{
+      alarmName:FOCUS_ALARM,active:state.enabled&&fresh.ready,
+      dnrAvailable:fresh.dnr,wanted:desired,
+      reconcileRules:rules=>reconcileFocusRules(api,rules),
+      onRuleChange:()=>updateBlockedTabs(state,at)
+    });
     // A page is only a display target. At-most-once is committed with the
     // authoritative ledger BEFORE attempting delivery; an unreachable page
     // cannot create a duplicate alert after the worker or browser restarts.

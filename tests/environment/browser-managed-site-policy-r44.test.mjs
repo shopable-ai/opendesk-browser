@@ -111,3 +111,71 @@ test('shared MV3 managed-site activity hooks resume and invalidate without anoth
   api.tabs.onActivated.emit({tabId:3});
   assert.equal(runs.length,before,'disposed service cannot resurrect');
 });
+
+// The public Chrome execution path is shared; an app may only supply a
+// precompiled owned-rule adapter. No tool package JavaScript runs here.
+import {reconcileManagedSiteExecution,redirectManagedBlockedTabs}
+  from '../../src/platform/chrome/browser-managed-site-policy.js';
+test('managed-site execution coordinates verified DNR, alarm and tab remediation without touching other owners',async()=>{
+  const foreign={id:950001,priority:1,action:{type:'block'},condition:{resourceTypes:['main_frame']}};
+  const owned={id:730001,priority:1,action:{type:'block'},condition:{resourceTypes:['main_frame']}};
+  let native=[foreign],writes=0,remediations=0;
+  const alarms=new Map();
+  const api={declarativeNetRequest:{
+    getDynamicRules:async()=>structuredClone(native),
+    updateDynamicRules:async({removeRuleIds,addRules})=>{
+      writes++;native=[...native.filter(x=>!removeRuleIds.includes(x.id)),...structuredClone(addRules)];
+    }},alarms:{
+    get:async name=>alarms.get(name),
+    create:async(name,options)=>{alarms.set(name,options);},
+    clear:async name=>alarms.delete(name)
+  }};
+  const reconcileRules=wanted=>reconcileManagedDynamicRules(api,{wanted,
+    ownsRule:id=>Number.isInteger(id)&&id>=730000&&id<=730199,
+    signature:row=>JSON.stringify(row)});
+  const run=(wanted,active)=>reconcileManagedSiteExecution(api,{
+    alarmName:'managed.focus',active,dnrAvailable:true,wanted,reconcileRules,
+    onRuleChange:async()=>{remediations++;return {moved:1,failed:0};}
+  });
+  const started=await run([owned],true);
+  assert.equal(started.ruleReceipt.verified,true);
+  assert.deepEqual(started.tabs,{moved:1,failed:0});
+  assert.equal(remediations,1);
+  assert.deepEqual(alarms.get('managed.focus'),{periodInMinutes:0.5});
+  await run([owned],true);
+  assert.equal(writes,1,'same managed rules are not reinstalled');
+  assert.equal(remediations,1,'no repeat navigation on an unchanged DNR set');
+  await run([],false);
+  assert.equal(alarms.has('managed.focus'),false);
+  assert.deepEqual(native,[foreign],'foreign DNR rules survive independent app shutdown');
+  assert.equal(remediations,1,'clearing a policy never moves tabs');
+
+  let alarmStarted=false;
+  await assert.rejects(reconcileManagedSiteExecution({alarms:{
+    get:async()=>null,create:async()=>{alarmStarted=true;},clear:async()=>{}
+  }},{alarmName:'managed.focus',active:true,dnrAvailable:true,wanted:[owned],
+    reconcileRules:async()=>{throw Object.assign(new Error('readback mismatch'),
+      {code:'E_FOCUS_DNR_MISMATCH'});}}),{code:'E_FOCUS_DNR_MISMATCH'});
+  assert.equal(alarmStarted,false,'failed native readback cannot start new enforcement');
+});
+
+test('shared blocked-tab remediation permits only extension-owned fixed pages',async()=>{
+  const base='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
+  const moved=[];
+  const api={runtime:{getURL:path=>base+path},tabs:{
+    query:async()=>[
+      {id:1,url:'https://blocked.example/other'},
+      {id:2,url:'https://other.example/'},
+      {id:3,url:'https://blocked.example/private',incognito:true}
+    ],
+    update:async(id,options)=>moved.push({id,url:options.url})
+  }};
+  const target=base+'stay-focus/blocked-quota.html';
+  const result=await redirectManagedBlockedTabs(api,{redirectUrlForTab:tab=>
+    tab.url.includes('blocked.example')?target:null});
+  assert.deepEqual(result,{moved:1,failed:0});
+  assert.deepEqual(moved,[{id:1,url:target}]);
+  await assert.rejects(redirectManagedBlockedTabs(api,{redirectUrlForTab:()=> 
+    'https://external.example/redirect'}),{code:'E_MANAGED_REDIRECT_SCOPE'});
+  assert.equal(moved.length,1,'invalid destinations never reach tabs.update');
+});
