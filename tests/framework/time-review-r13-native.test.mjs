@@ -9,8 +9,8 @@ import {mkdtemp,mkdir,readFile,writeFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {reviewExport} from '../../src/time-review/model.js';
-import {TIME_REVIEW_ALARM,timeReviewPackageHash} from '../../src/time-review/policy.js';
+import {reviewExport} from '../../examples/sidebar-tools/time-review/trusted/model.js';
+import {TIME_REVIEW_ALARM,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
 import {setTimeout as sleep} from 'node:timers/promises';
 
 const KEY='opendesk.time-review.v1';

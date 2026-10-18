@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createTimeReviewService} from '../../src/time-review/service.js';
+import {createTimeReviewService} from '../../examples/sidebar-tools/time-review/trusted/service.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {timeReviewPackageHash,TIME_REVIEW_PROTOCOL,TIME_REVIEW_SESSION} from '../../src/time-review/policy.js';
+import {timeReviewPackageHash,TIME_REVIEW_PROTOCOL,TIME_REVIEW_SESSION} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {TIME_REVIEW_KEY,emptyReview} from '../../src/time-review/model.js';
+import {TIME_REVIEW_KEY,emptyReview} from '../../examples/sidebar-tools/time-review/trusted/model.js';
 
 function emitter(){
   const listeners=new Set();

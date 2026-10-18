@@ -77,6 +77,12 @@ Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆�
 
 iframe 依然是**未获可信 UI 静态准入的动态工具的安全边界**，不是另一个浏览器插件或新的 Host。普通用户编写、AI 生成、第三方导入（包括伪造 `time-review` ID、标题和能力的工具包）依旧在 `sidebar-tools/sandbox.html` 运行，不能访问特权页面 `chrome.*`。没有受信任安装来源和确切编译版本时，即使打开 Time Review 同名包也不直渲，而继续安全沙箱或拒绝。
 
-Time Review 1.6.0 的**唯一 UI 源码**仍是本目录的 `src/main.js`、`src/index.html` 和 `src/style.css`：官方扩展静态编译和受限安装包共享这些源文件，不维护第二套 UI。静态 HTML 不来自用户安装包；默认保留六分类、24h Canvas、数据管理、JSON/CSV 导出。受信任 UI 的所有读写仍经过原 `src/time-review/service.js` 和 `time.review/1.5.0` Host，网站/idle 单独授权，历史存储为 `opendesk.time-review.v1`，无新增 Host、安装器或权限库。
+Time Review 1.6.0 的**唯一 UI 源码**仍是本目录的 `src/main.js`、`src/index.html` 和 `src/style.css`：官方扩展静态编译和受限安装包共享这些源文件，不维护第二套 UI。静态 HTML 不来自用户安装包；默认保留六分类、24h Canvas、数据管理、JSON/CSV 导出。受信任 UI 的所有读写仍经过本工具的 `trusted/service.js` 和 `time.review/1.5.0` Host，网站/idle 单独授权，历史存储为 `opendesk.time-review.v1`，无新增 Host、安装器或权限库。
 
 **验收状态**：本节是 R1.6 源码与使用说明，不是 Chrome 实测通过证明。必须在同一提交、工具 SHA-256、WXT 生产/开发构建和原生 Chrome 证据下验证官方无 iframe、动态包有 iframe、320–600px/200% 缩放、计时、停止、撤权、重启、升级及卸载。历史 R1.5.2 的截图/CI 不自动升级。云同步仍为 `LOCAL_ONLY / NO_UPLOAD / BLOCKED`。
+
+## R1 · 业务源码归属与受信任执行边界（2026-10-19）
+
+Time Review 的计算模型、网站授权规则、后台结算、同步记录以及可信控制源码均归属本工具 `trusted/`，`src/time-review/` 旧实现已删除。OpenDesk 现有固定入口 `src/entrypoints/time-review-host.js` 继续将受信任服务打入浏览器构建，以确保 Chrome 权限和安装代次检查不被沙箱工具直接取得。
+
+可独立安装的 JSON 包仍只包含 `tool.config.json` 规定的无特权 UI 文件，不包含 `trusted/`。UI 和声明支持的普通配置可按现有机制升级；改变 `trusted/` 特权业务 JavaScript 仍须重建浏览器，**不能宣布已经实现任意后台 JS 的独立升级**。版本与用户数据键 `opendesk.time-review.v1`、授权条件和扩展输出 `time-review/time-review-host.js` 保持不变。

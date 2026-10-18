@@ -28,14 +28,14 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
-import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
-import {TIME_REVIEW_KEY} from '../time-review/model.js';
+import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
+import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
-import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
+import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
   trustedBookmarkProvenanceChanged} from './trusted-bookmark-admission.js';
 

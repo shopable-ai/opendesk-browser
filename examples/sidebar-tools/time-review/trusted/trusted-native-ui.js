@@ -1,8 +1,8 @@
 // Statically bundled first-party Time Review UI. HTML and logic have ONE
 // source shared with the ordinary, still-sandboxed package. Nothing is read
 // from the installed tool's html/css/js fields or imported at runtime.
-import html from '../../examples/sidebar-tools/time-review/src/index.html?raw';
-import '../../examples/sidebar-tools/time-review/src/main.js';
+import html from '../src/index.html?raw';
+import '../src/main.js';
 import {TRUSTED_TIME_REVIEW_VERSION} from './trusted-admission.js';
 
 export const trustedTimeReviewUI=Object.freeze({

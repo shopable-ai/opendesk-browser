@@ -1,9 +1,9 @@
 // Compile-time trust boundary for the ONLY first-party native Sidebar Tools pilot.
 // Names, capability flags and a user-provided package hash are never sufficient.
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY} from './policy.js';
-import {matchesOfficialRelease,officialPackagePath} from '../sidebar-tools/official-catalog.js';
-import {sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
-import {requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
+import {matchesOfficialRelease,officialPackagePath} from '../../../../src/sidebar-tools/official-catalog.js';
+import {sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
+import {requireToolEnableRecords} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 
 // A change to the packaged UI must ship as a new official release and a new
 // extension build. Old/unverified releases continue in the opaque sandbox.

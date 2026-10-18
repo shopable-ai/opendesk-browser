@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createTimeReviewPermissionControls} from '../../src/time-review/host-controls.js';
+import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {makeTimeReviewDOM} from './time-review-host-controls-fixture.mjs';
 
 const find=(root,id)=>{
