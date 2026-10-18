@@ -551,7 +551,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
         developerResultKind.dataset.opendeskReactOwner='developer-result-kind';
         developerResultActive=true;
       }
-      developerResultModel=next;paint();
+      developerResultModel={...developerResultModel,...next};paint();
     },
     renderDeveloperStatus(next){
       if(disposed||!developerStatusMounted)return;
