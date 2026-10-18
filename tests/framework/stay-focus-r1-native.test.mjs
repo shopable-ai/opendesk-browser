@@ -5,7 +5,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync} from 'node:child_process';
 import {createServer} from 'node:http';
-import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,readFile,writeFile,copyFile,rm} from 'node:fs/promises';
+import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {tmpdir} from 'node:os';
 import {lookup} from 'node:dns/promises';
 import path from 'node:path';
@@ -57,6 +59,17 @@ async function nativeFocusHeartbeat(c,session,active,phase){
     if(active)return alarm?.periodInMinutes===0.5?alarm:false;
     return alarm===null?{absent:true}:false;
   },'native Stay Focus heartbeat '+phase,20000);
+}
+// Native Chrome file selection is a real local JSON import: no DOM value
+// assignment, synthetic change dispatch, direct storage mutation or Host call.
+async function nativeSelectToolPackage(c,session,filename){
+  await c.send('DOM.enable',{},session);
+  const document=await c.send('DOM.getDocument',{depth:1},session);
+  const field=await c.send('DOM.querySelector',{
+    nodeId:document.root.nodeId,selector:'#sidebar-tool-file'
+  },session);
+  assert.ok(field.nodeId>0,'visible Browser import must own a real file input');
+  await c.send('DOM.setFileInputFiles',{files:[filename],nodeId:field.nodeId},session);
 }
 async function click(c,session,selector){
   const parent=inputParents.get(session);
@@ -172,7 +185,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     quota:'NATIVE_NOT_TESTED',zeroConfig:'NOT_TESTED',pageReminder:'NOT_TESTED',
     realSharedTwoHosts:'NOT_TESTED',quotaTrace:[],screenshots:[],
     background:'NOT_TESTED',closedSidePanel:'NOT_TESTED',workerRestart:'NOT_TESTED',
-    heartbeat:{},
+    heartbeat:{},packageUpgrade:'NOT_TESTED',
     permissionRevocation:'NOT_TESTED',otherTools:'NOT_TESTED',
     disabled:'NOT_TESTED',reenabled:'NOT_TESTED',restart:'NOT_TESTED',
     unregister:'NOT_TESTED',uninstall:'NOT_TESTED',steps:[]};
@@ -704,6 +717,120 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await client.send('Page.enable',{},sid);
   await click(client,sid,'#tab-tools');
   await click(client,sid,installed);
+
+  // R4.7 fixed-Browser upgrade: take the already installed OFFICIAL JSON
+  // (not an object fixture), then import an actual second JSON through the
+  // shipped Side Panel. The sole production packer builds the latter from a
+  // fresh temporary project with unchanged app UI sources.
+  const upgradedConfig=structuredClone(sourceConfig);
+  const [major,minor,patch]=upgradedConfig.version.split('.').map(Number);
+  assert.ok([major,minor,patch].every(Number.isSafeInteger));
+  upgradedConfig.version=[major,minor,patch+1].join('.');
+  upgradedConfig.backgroundPolicy.suggestions.push({
+    host:'archive.org',name:'Internet Archive',category:'学习',
+    suggestLimit:false,quick:false
+  });
+  const temporaryProject=await mkdtemp(path.join(tmpdir(),'opendesk-stay-focus-upgrade-'));
+  const upgradePackageFile=path.join(OUT,'stay-focus-upgrade-candidate.opendesk-tool.json');
+  try{
+    await mkdir(path.join(temporaryProject,'src'));
+    for(const name of ['index.html','style.css','main.js'])
+      await copyFile(path.resolve('examples/sidebar-tools/stay-focus/src',name),
+        path.join(temporaryProject,'src',name));
+    await writeFile(path.join(temporaryProject,'tool.config.json'),
+      JSON.stringify(upgradedConfig,null,2)+'\n');
+    await buildSidebarTool(temporaryProject,{out:upgradePackageFile});
+  }finally{
+    await rm(temporaryProject,{recursive:true,force:true});
+  }
+  const upgradeBytes=await readFile(upgradePackageFile),upgradePackage=JSON.parse(upgradeBytes);
+  assert.equal(upgradePackage.id,pkg.id);
+  assert.equal(upgradePackage.version,upgradedConfig.version);
+  assert.deepEqual(upgradePackage.capabilities,pkg.capabilities);
+  assert.ok(upgradePackage.backgroundPolicy.suggestions.some(x=>x.host==='archive.org'));
+  const beforeUpgrade=await evalRead(client,sid,'(async()=>{const saved=await chrome.storage.local.get(['+
+    JSON.stringify(store)+',"opendesk.sidebar-tools.revocation-epochs.v1"]);return {'+
+    'state:saved['+JSON.stringify(store)+'],'+
+    'epoch:saved["opendesk.sidebar-tools.revocation-epochs.v1"]?.["stay-focus"]??null};})()');
+  assert.equal(beforeUpgrade.state.enabled,true);
+  const oldPackageHash=await focusPackageHash(pkg);
+  const newPackageHash=await focusPackageHash(upgradePackage);
+  assert.notEqual(oldPackageHash,newPackageHash);
+  await click(client,sid,'#sidebar-tool-back');
+  await click(client,sid,'#sidebar-tool-import-trigger');
+  await nativeSelectToolPackage(client,sid,upgradePackageFile);
+  await until(()=>evalRead(client,sid,'(()=>{const box=document.querySelector("#sidebar-tool-preview"),'+
+    'version=document.querySelector("#sidebar-tool-preview-version"),'+
+    'update=document.querySelector("#sidebar-tool-update");return !box.hidden&&'+
+    'version.textContent.includes('+JSON.stringify(upgradedConfig.version)+')&&!update.hidden})()'),
+    'real same-ID JSON upgrade review',20000);
+  await click(client,sid,'#sidebar-tool-install');
+  const updated=await until(async()=>{
+    const result=await evalRead(client,sid,'(async()=>{const state=await chrome.storage.local.get(['+
+      JSON.stringify(store)+',"opendesk.sidebar-tools.installed.v1"]);'+
+      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {'+
+      'version:state["opendesk.sidebar-tools.installed.v1"]?.find(t=>t.id==="stay-focus")?.version,'+
+      'policy:state['+JSON.stringify(store)+'],'+
+      'rules:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
+    return result.version===upgradedConfig.version&&result.policy?.enabled===false&&
+      result.rules===0?result:false;
+  },'real installed package-only upgrade suspends previous DNR',20000);
+  assert.deepEqual(updated.policy.groups,beforeUpgrade.state.groups);
+  assert.deepEqual(updated.policy.whitelist,beforeUpgrade.state.whitelist);
+  assert.deepEqual(updated.policy.schedule,beforeUpgrade.state.schedule);
+  assert.deepEqual(updated.policy.sites,beforeUpgrade.state.sites);
+  assert.ok((updated.policy.usage['g:entertainment']||0)>=
+    (beforeUpgrade.state.usage['g:entertainment']||0),'prior real usage cannot be reset');
+  assert.ok(!updated.policy.sites.some(x=>x.host==='archive.org'),
+    'a new catalog recommendation cannot silently become an active DNR site');
+  report.heartbeat.afterPackageUpgrade=await nativeFocusHeartbeat(client,sid,false,'JSON upgrade');
+  const epoch=beforeUpgrade.epoch;
+  const readStatus=hash=>evalRead(client,sid,'chrome.runtime.sendMessage('+JSON.stringify({
+    protocol,toolId:'stay-focus',operation:'focus.status',payload:{},
+    packageHash:hash,installEpoch:epoch
+  })+')');
+  const expired=await readStatus(oldPackageHash);
+  assert.equal(expired?.ok,false,'old signed package must not access the new installation');
+  assert.equal(expired?.error?.code,'E_TOOL_CHANGED');
+  const upgradedStatus=await readStatus(newPackageHash);
+  assert.equal(upgradedStatus?.ok,true,
+    'unchanged, precompiled worker must consume the new installed package');
+  assert.equal(upgradedStatus.data.enabled,false,
+    'a signed JSON update does not silently restore DNR consent');
+  assert.ok(upgradedStatus.data.catalog.some(x=>x.host==='archive.org'),
+    'new code-free catalog must be consumed by the SAME Browser Host');
+  await click(client,sid,installed);
+  await click(client,sid,'#sidebar-tool-settings-open');
+  await click(client,sid,'#stay-focus-enable-native');
+  const reapproved=await until(async()=>{
+    const result=await evalRead(client,sid,'(async()=>{const state=await chrome.storage.local.get('+
+      JSON.stringify(store)+');const rules=await chrome.declarativeNetRequest.getDynamicRules();'+
+      'return {enabled:state['+JSON.stringify(store)+']?.enabled,'+
+      'rules:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
+    return result.enabled===true&&(reached?result.rules>=2:result.rules===0)?result:false;
+  },'real user reauthorizes updated Stay Focus package',20000);
+  report.heartbeat.afterPackageReapproval=await nativeFocusHeartbeat(client,sid,true,'new package reapproval');
+  const afterUpgradeNavigation=await client.send('Target.createTarget',{url:page});
+  await until(async()=>{
+    const target=(await client.send('Target.getTargets')).targetInfos.find(x=>
+      x.targetId===afterUpgradeNavigation.targetId);
+    return reached?target?.url?.includes('/stay-focus/blocked-quota.html'):target?.url===page;
+  },'real native DNR remains effective after package-only upgrade',15000);
+  const currentSwBytes=await readFile(path.join(ROOT,'sw.js'));
+  assert.equal(createHash('sha256').update(currentSwBytes).digest('hex'),report.swSHA256,
+    'the fixed Chrome Browser source must not be rebuilt for a package upgrade');
+  assert.equal(await evalRead(client,sid,'chrome.runtime.id'),id,
+    'the installed Chrome extension ID must remain unchanged');
+  report.packageUpgrade=reached?'PASS':'PASS_DATA_ONLY_QUOTA_NOT_TESTED';
+  report.upgradeEvidence={fromVersion:pkg.version,toVersion:upgradePackage.version,
+    beforePackageSha256:report.pkgSHA256,
+    afterPackageSha256:createHash('sha256').update(upgradeBytes).digest('hex'),
+    fixedBrowserSwSha256:report.swSHA256,extensionId:id,
+    oldLeaseRejected:expired.error.code,newRecommendation:'archive.org',
+    retainedSites:updated.policy.sites.length,retainedBudget:updated.policy.groups.entertainment,
+    retainedUsedMs:updated.policy.usage['g:entertainment']||0,
+    reapprovedRules:reapproved.rules};
+  note('real-same-browser-json-package-upgrade',report.upgradeEvidence);
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(async()=>{
