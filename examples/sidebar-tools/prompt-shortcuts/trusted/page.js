@@ -292,10 +292,23 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       return rect.width>=200&&rect.height>=90?{left:rect.left,top:rect.top,
         width:rect.width,height:rect.height}:null;
     }
-    const node=doc.querySelector('main#main')||doc.querySelector('main');
-    if(!node||!node.isConnected)return null;
-    const rect=node.getBoundingClientRect();
-    if(rect.width<200||rect.height<160)return null;
+    // ChatGPT may keep a hidden old main while mounting a new conversation.
+    // Prefer the live composer main and then the first visible main, not the
+    // first #main regardless of whether it belongs to the current SPA screen.
+    const candidates=[editor()?.closest?.('main'),...Array.from(doc.querySelectorAll?.('main')||[])];
+    const preferred=doc.querySelector('main#main')||doc.querySelector('main');
+    if(preferred&&!candidates.includes(preferred))candidates.push(preferred);
+    let node=null,rect=null;
+    for(const candidate of candidates){
+      if(!candidate?.isConnected||candidate.hidden||
+         candidate.closest?.('[hidden],[inert],[aria-hidden="true"]'))continue;
+      const box=candidate.getBoundingClientRect?.();
+      if(!box||box.width<200||box.height<160||
+         box.left+box.width<=0||box.top+box.height<=0||
+         box.left>=win.innerWidth||box.top>=win.innerHeight)continue;
+      node=candidate;rect=box;break;
+    }
+    if(!node)return null;
     const observe=element=>{
       if(resizeObserver&&!observedRegions.has(element)){
         observedRegions.add(element);resizeObserver.observe(element);
@@ -332,9 +345,21 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     return right-left>=200?{left,top:rect.top,width:right-left,height:rect.height}:null;
   };
   const layout=()=>{
-    layoutTimer=0;if(!host||paused||disposed)return;
-    if(href!==win.location.href){href=win.location.href;void refresh();return;}
+    layoutTimer=0;if(!host||!visible||paused||disposed)return;
+    if(href!==win.location.href){void refresh();return;}
+    // Route transitions detach previously measured nodes. Do not retain their
+    // ResizeObserver registrations across conversations indefinitely.
+    for(const old of observedRegions){
+      if(old.isConnected)continue;
+      resizeObserver?.unobserve?.(old);observedRegions.delete(old);
+    }
     const rect=mainRegion();if(!rect||(activeRule&&!checkedEditor())){host.hidden=true;return;}
+    // React/SPA DOM replacement can remove the extension-owned host. Keep
+    // its existing closed shadow root/listeners and attach it exactly once.
+    if(!host.isConnected){
+      doc.documentElement?.append(host);
+      if(!host.isConnected)return;
+    }
     host.hidden=false;
     const left=Math.max(4,Math.min(win.innerWidth-52,Math.round(rect.left+12)));
     const top=Math.max(28,Math.min(win.innerHeight-28,Math.round(rect.top+rect.height/2)));
@@ -555,7 +580,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(disposed||paused)return;
     closePicker();
     const token=++epoch,url=win.location.href;
-    if(href!==url)clearFeedback();
+    if(href!==url){
+      clearFeedback();hideTip();
+      // Never show controls for the previous conversation while checking the
+      // new route's installation, grant and library state.
+      if(host)host.hidden=true;
+    }
     href=url;
     try{
       const values=await api.storage.local.get(KEYS);
@@ -580,7 +610,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
           if(records.every(record=>record.target===host||host?.contains(record.target)))return;
           schedule();
         });
-        observer.observe(doc.body||doc.documentElement,{subtree:true,childList:true,attributes:true,
+        // Observe the document root: the site's body/main can be replaced by
+        // an SPA transition while this trusted controller stays alive.
+        observer.observe(doc.documentElement||doc.body,{subtree:true,childList:true,attributes:true,
           attributeFilter:['class','style','hidden','aria-hidden','inert']});
       }
     }catch{if(token===epoch)stop();}
@@ -600,7 +632,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     api.storage.onChanged.removeListener(onStorage);
     api.runtime?.onMessage?.removeListener(onPickerMessage);
     win.removeEventListener('pageshow',onPageShow);win.removeEventListener('pagehide',onPageHide);
-    win.removeEventListener('popstate',onNav);win.removeEventListener('resize',schedule);
+    win.removeEventListener('popstate',onNav);win.removeEventListener('hashchange',onNav);
+    win.navigation?.removeEventListener?.('navigatesuccess',onNav);
+    win.removeEventListener('resize',schedule);
     win.removeEventListener('scroll',schedule,true);
     doc.removeEventListener('transitionend',schedule,true);
     doc.removeEventListener('compositionstart',onCompositionStart,true);
@@ -648,12 +682,20 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   api.runtime?.onMessage?.addListener(onPickerMessage);
   api.storage.onChanged.addListener(onStorage);
   win.addEventListener('pageshow',onPageShow);win.addEventListener('pagehide',onPageHide);
-  win.addEventListener('popstate',onNav);win.addEventListener('resize',schedule);
+  win.addEventListener('popstate',onNav);win.addEventListener('hashchange',onNav);
+  win.navigation?.addEventListener?.('navigatesuccess',onNav);
+  win.addEventListener('resize',schedule);
   win.addEventListener('scroll',schedule,true);
   doc.addEventListener('transitionend',schedule,true);
   doc.addEventListener('compositionstart',onCompositionStart,true);
   doc.addEventListener('compositionend',onCompositionEnd,true);
-  locationTimer=win.setInterval(()=>{if(href!==win.location.href)void refresh();},1100);
+  // A low-frequency fallback also repairs missed DOM events (e.g. document
+  // root replacement). MutationObserver handles ordinary updates promptly.
+  locationTimer=win.setInterval(()=>{
+    if(disposed||paused)return;
+    if(href!==win.location.href)void refresh();
+    else if(visible)schedule();
+  },1100);
   const controller=Object.freeze({dispose,refresh,diagnostics:()=>({visible,items:items.length})});
   Object.defineProperty(win,SLOT,{value:controller,configurable:true});
   if(doc.body)void refresh();else doc.addEventListener('DOMContentLoaded',()=>void refresh(),{once:true});
