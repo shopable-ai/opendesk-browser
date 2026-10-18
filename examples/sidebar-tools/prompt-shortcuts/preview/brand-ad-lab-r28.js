@@ -250,7 +250,7 @@
     if(state.pop==='brand'&&!state.active)hidePop(true);
   }
   function adCard(index,unsold,asButton,layoutOverride) {
-    const unit=make(asButton?'button':'div','r28-demo-ad');
+    const unit=make(asButton?'button':'span','r28-demo-ad');
     if(asButton){unit.type='button';unit.addEventListener('click',()=>openDialog(unsold?'sponsor':index===-1?'brand':'sponsor'));}
     const layout=layoutOverride||state.layout;
     unit.dataset.layout=['icon','text','vertical','mini','brand-logo','brand-hover','brand-attribution','icon-text','hover-card','expand-card','event','directory','affiliate'].includes(layout)?layout:'landscape';
