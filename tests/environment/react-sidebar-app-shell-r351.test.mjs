@@ -22,6 +22,10 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.equal($('#sidebar-tools').parent().attr('id'),'workbench-tools');
   assert.equal($('#sidebar-tool-list-view').parent().attr('id'),'sidebar-tools');
   assert.equal($('#extension-center').parent().attr('id'),'sidebar-tool-list-view');
+  assert.equal($('#workbench-cloud > .cloud-panel > .cloud-overview').length,1);
+  assert.equal($('#cloud-approval-section').length,1);
+  assert.equal($('#cloud-request-samples').length,1);
+  assert.equal($('#cloud-hosting').length,1);
   assert.equal($('#workspace-dock').children('.dock-actions').length,3);
   const shell=await read('src/ui/react/app-shell.tsx');
   const [tool,task,root]=await Promise.all([
@@ -38,9 +42,13 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.match(shell,/export function prepareSidebarAppShell\(doc\)/);
   assert.match(shell,/export function SidebarAppShell\(/);
   assert.match(shell,/mount\.id='opendesk-react-app'/);
+  assert.match(shell,/cloudLegacySections:Array\.from\(cloudPanel\.children\)/);
+  assert.match(shell,/<CloudConnectionPage model=\{cloudModel\}/);
+  assert.match(root,/cloudOverviewMounted&&!shell/);
   assert.match(shell,/<ExtensionCenterPage \{\.\.\.extensionProps\}\/>/);
   assert.doesNotMatch(shell,/createRoot\(|createPortal\(|chrome\.|browser\.|client\.request\(/);
-  for(const path of ['src/ui/react/app-shell.tsx','src/ui/react/tabs/navigation.tsx']){
+  for(const path of ['src/ui/react/app-shell.tsx','src/ui/react/tabs/navigation.tsx',
+    'src/ui/react/tabs/cloud.tsx']){
     const parsed=await transformWithEsbuild(await read(path),path,{
       loader:'tsx',jsx:'transform',target:'es2022'
     });
@@ -78,6 +86,11 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   assert.equal($('#extension-center-import-host').length,1);
   assert.equal($('#extension-center-detail').length,1);
   assert.equal($('#extension-center-status').length,1);
+  assert.equal($('#workbench-cloud').length,1);
+  for(const id of ['cloud-overview-state','cloud-overview-provider',
+    'cloud-overview-connection','cloud-overview-host','cloud-overview-slot',
+    'cloud-overview-tasks','cloud-overview-requests','cloud-my-state'])
+    assert.equal($('#'+id).length,1,id);
   assert.equal($('#workspace-content #sidebar-tool-list-view #extension-center').length,1);
   assert.equal($('.opendesk-react-dock-host').length,1);
   const tasks=renderToStaticMarkup(React.createElement(SidebarAppShell,{
@@ -85,6 +98,30 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   }));
   const $tasks=load(tasks);
   assert.equal($tasks('#workbench-tools').attr('hidden'),'');
+  assert.equal($tasks('#workbench-cloud').attr('hidden'),'');
   assert.equal($tasks('#tab-debug').attr('hidden'),undefined);
   assert.equal($tasks('#tab-my-tasks').attr('aria-selected'),'true');
+});
+
+test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY)',async t=>{
+  const vite=await createServer({
+    configFile:false,root:process.cwd(),appType:'custom',
+    server:{middlewareMode:true},logLevel:'error'
+  });
+  t.after(()=>vite.close());
+  const {CloudConnectionPage}=await vite.ssrLoadModule('/src/ui/react/tabs/cloud.tsx');
+  const html=renderToStaticMarkup(React.createElement(CloudConnectionPage,{
+    hidden:false,model:{
+      summary:'异常 <script>alert(1)</script>',
+      connection:'断开 <img src=x onerror=evil()>',
+      tasks:'0'
+    }
+  }));
+  assert.match(html,/&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.match(html,/&lt;img src=x onerror=evil\(\)&gt;/);
+  assert.doesNotMatch(html,/<script\b|<img\b/i);
+  assert.match(html,/id="cloud-open-console"/);
+  assert.match(html,/id="cloud-overview-refresh"/);
+  assert.doesNotMatch(await read('src/ui/react/tabs/cloud.tsx'),
+    /(?:globalThis\.chrome|chrome\.runtime|client\.request|cloud\.approve|cloud\.pair|new Worker)/);
 });
