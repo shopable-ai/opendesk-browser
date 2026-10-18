@@ -403,6 +403,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   <p>交互预览 R2.6.1 · 统一工具栏 · 安全导入导出</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
+  <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab.html" title="打开独立广告布局实验室（仅 HTML 预览）">品牌 / 广告实验 ↗</a>
   <button id="size320" class="od-button od-button--small" type="button">320px</button>
   <button id="size360" class="od-button od-button--small" type="button">360px</button>
   <button id="size400" class="od-button od-button--small" type="button">400px</button>
@@ -1208,6 +1209,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('sitePreviewSelect').addEventListener('change',e=>{saveCurrentDraft();currentSite=e.target.value;sitePath=siteInfo().path;
    el('actionScenario').value='normal';clearPick();lastSiteClick=0;renderSiteFixture({preserve:false});notice('已切换到 '+siteInfo().name+' 模拟网站');});
  el('languagePreview').addEventListener('change',()=>renderSiteFixture());
+ el('brandAdLabLink').addEventListener('click',event=>{event.currentTarget.search='?lang='+encodeURIComponent(el('languagePreview').value);});
  el('sitePreviewPath').addEventListener('change',e=>{saveCurrentDraft();sitePath=e.target.value;renderSiteFixture({preserve:false});});
  el('spaRemount').addEventListener('click',()=>{renderSiteFixture();notice('模拟 SPA 已重新构造编辑器并重新定位，未重复挂载');});
  el('actionScenario').addEventListener('change',()=>renderSiteFixture());
