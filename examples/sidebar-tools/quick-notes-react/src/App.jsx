@@ -278,7 +278,8 @@ export default function App({request,setState,hostRoot,markUrl}){
           <div className="editor-actions">
             <label className="page-attach" htmlFor="attach-page">
               <input id="attach-page" type="checkbox" checked={view.attach}
-                disabled={locked} onChange={event=>patch({
+                disabled={locked||(!view.pageInfo&&!selected?.pageUrl)}
+                onChange={event=>patch({
                   attach:event.target.checked,dirty:true,
                   status:{text:'当前修改尚未保存。',type:'info'}})}/>
               关联当前网页
