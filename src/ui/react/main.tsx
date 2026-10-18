@@ -259,6 +259,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
   let cloudRequestsModel={rows:[],pageText:'正在读取请求记录…',canPrev:false,canNext:false};
   const cloudRequestsMounted=Boolean(shell);
+  const cloudSetupMounted=Boolean(shell);
+  let cloudSetupModel={visible:false,nextStep:'请先连接可信提供者。',onConfigure:null};
   function paint(){
     if(disposed)return;
     const pageProps={rowsModel:model,menuKey,toolbarModel,detailModel,
@@ -273,7 +275,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
         debugEnabled={debugEnabled} onNavigate={onNavigate}
         extensionProps={pageProps} cloudModel={cloudModel}
-        cloudRequestsModel={cloudRequestsModel}/>:<>
+        cloudRequestsModel={cloudRequestsModel}
+        cloudSetupModel={cloudSetupModel}/>:<>
         {navigationHost&&createPortal(<SidebarNavigation
           activeTab={navigationTab} debugEnabled={debugEnabled}
           onNavigate={onNavigate}/>,navigationHost)}
@@ -442,6 +445,14 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       const next=typeof runId==='string'?runId:'';
       if(scheduleRowsModel.currentRunId===next)return;
       scheduleRowsModel={...scheduleRowsModel,currentRunId:next};paint();
+    },
+    cloudSetupMounted,
+    renderCloudSetup(next){
+      if(disposed||!cloudSetupMounted)return;
+      if(!next||typeof next.visible!=='boolean'||
+        typeof next.nextStep!=='string'||typeof next.onConfigure!=='function')
+        throw new Error('E_REACT_CLOUD_SETUP_SNAPSHOT');
+      cloudSetupModel=next;paint();
     },
     cloudRequestsMounted,
     renderCloudRequests(next){

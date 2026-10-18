@@ -194,6 +194,16 @@ try{
     s.ui.renderCloudRequests(model);
   })()`);
   await mouseClick('#tab-cloud');
+  await evaluate('(()=>{const s=window.__r352;s.cloudSetupClicks=0;'+
+    's.ui.renderCloudSetup({visible:true,nextStep:"连接提供者",'+
+    'onConfigure:()=>{s.cloudSetupClicks++;}});})()');
+  assert.equal(await evaluate('document.getElementById("cloud-first-run").hidden'),false);
+  await mouseClick('#cloud-configure');
+  assert.equal(await evaluate('window.__r352.cloudSetupClicks'),1,
+    'React setup button forwards exactly one trusted callback');
+  await evaluate('window.__r352.ui.renderCloudSetup({visible:false,'+
+    'nextStep:"已连接",onConfigure:()=>{}})');
+  assert.equal(await evaluate('document.getElementById("cloud-first-run").hidden'),true);
   assert.equal(await evaluate('document.querySelectorAll("#cloud-request-samples").length'),1);
   assert.equal(await evaluate('document.querySelector("#cloud-request-samples img")'),null);
   assert.match(await evaluate('document.getElementById("cloud-request-samples").textContent'),

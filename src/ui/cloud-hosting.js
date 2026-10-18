@@ -38,6 +38,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let lastSamples='',lastFullRefresh=0,lastCatalogAt=0,lastCatalogStamp='';
   let requestOffset=0,requestNextOffset=null,selectedRequestIndex=null,selectedOriginalRunId=null;
   const reactRequests=reactUI?.cloudRequestsMounted===true;
+  const reactSetup=reactUI?.cloudSetupMounted===true;
   let requestRows=[],requestRawRows=[],requestPageText='正在读取请求记录…',requestError='';
   let taskChoices=[];const selections=new Map();
   let hostingEnabled=false;
@@ -412,9 +413,11 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const myStateText=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务'+
       (projected.pendingResources===true?' · 仍有待处理资源，等待停止、核对及资源释放':projected.pendingResources===false?'':' · 待处理资源状态待核对')+
       (latest?' · 最近请求：'+[latest.title,latest.state,latest.run,latest.result,latest.settlement,latest.receipt,latest.reason].filter(Boolean).join(' · '):'');
-    get('cloud-first-run').hidden=!!s.provider;
+    const nextStep='先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。';
+    if(reactSetup)reactUI.renderCloudSetup({visible:!s.provider,nextStep,
+      onConfigure:()=>void action(openCloudSettings)});
+    else{get('cloud-first-run').hidden=!!s.provider;put('cloud-next-step',nextStep);}
     get('cloud-approval-section').hidden=!s.provider;
-    put('cloud-next-step','先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。');
     renderOverview({myState:myStateText,summary,
       provider:projected.paired?'已配对':'未配对',
       connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
@@ -458,7 +461,10 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   const listeners=[];function click(id,fn){
     const readOnly=id==='cloud-refresh'||id==='cloud-overview-refresh';
     const handler=()=>void action(fn,readOnly);get(id).addEventListener('click',handler);listeners.push([id,handler]);}
-  click('cloud-configure',async()=>{get('cloud-hosting').open=true;get('cloud-url').focus?.();});
+  async function openCloudSettings(){
+    get('cloud-hosting').open=true;get('cloud-url').focus?.();
+  }
+  if(!reactSetup)click('cloud-configure',openCloudSettings);
   click('cloud-pair',()=>cloud.cloudPair({url:get('cloud-url').value,providerId:get('cloud-provider-id').value.trim(),pairingCode:get('cloud-pairing-code').value.trim(),allowLoopback:get('cloud-loopback').checked}).then(()=>{get('cloud-pairing-code').value='';}));
   const onChoiceChange=event=>{
     const input=event?.target,key=input?.dataset?.cloudTaskKey||input?.dataset?.cloudResultKey;

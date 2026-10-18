@@ -26,6 +26,7 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.equal($('#cloud-approval-section').length,1);
   // R35.3: request history is no longer supplied by static HTML.
   assert.equal($('#cloud-request-samples').length,0);
+  assert.equal($('#cloud-first-run').length,0);
   assert.equal($('#cloud-hosting').length,1);
   assert.equal($('#workspace-dock').children('.dock-actions').length,3);
   const shell=await read('src/ui/react/app-shell.tsx');
@@ -89,7 +90,8 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   assert.equal($('#extension-center-detail').length,1);
   assert.equal($('#extension-center-status').length,1);
   assert.equal($('#workbench-cloud').length,1);
-  for(const id of ['cloud-request-samples','cloud-request-prev','cloud-request-next',
+  for(const id of ['cloud-first-run','cloud-configure','cloud-next-step',
+    'cloud-request-samples','cloud-request-prev','cloud-request-next',
     'cloud-request-detail','cloud-request-open-result'])assert.equal($('#'+id).length,1,id);
   for(const id of ['cloud-overview-state','cloud-overview-provider',
     'cloud-overview-connection','cloud-overview-host','cloud-overview-slot',
@@ -141,6 +143,13 @@ test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY
   assert.equal($requests('#cloud-request-detail script').length,0);
   assert.equal($requests('#cloud-request-detail-title').text(),'<script>evil()</script>');
   assert.equal($requests('#cloud-request-prev').is(':disabled'),true);
+  const withSetup=renderToStaticMarkup(React.createElement(CloudConnectionPage,{
+    setupModel:{visible:true,nextStep:'连接 <script>阻止注入</script>',onConfigure:()=>{}}
+  }));
+  const $setup=load(withSetup);
+  assert.equal($setup('#cloud-first-run').is('[hidden]'),false);
+  assert.equal($setup('#cloud-next-step').text(),'连接 <script>阻止注入</script>');
+  assert.equal($setup('#cloud-next-step script').length,0);
   assert.equal($requests('#cloud-request-next').is(':disabled'),false);
   assert.match(html,/id="cloud-overview-refresh"/);
   assert.match(html,/id="cloud-request-samples"/);

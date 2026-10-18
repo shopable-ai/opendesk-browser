@@ -55,7 +55,7 @@ export function prepareSidebarAppShell(doc){
 
 export function SidebarAppShell({
   scaffold,activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
-  extensionProps={},cloudModel={},cloudRequestsModel={}
+  extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={}
 }){
   const mountMain=React.useCallback(node=>{
     if(!node)return;
@@ -112,6 +112,7 @@ export function SidebarAppShell({
         </section>
       </div>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}
+        setupModel={cloudSetupModel}
         legacySections={scaffold.cloudLegacySections}
         hidden={activeTab!=='cloud'}/>
     </main>

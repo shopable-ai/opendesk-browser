@@ -8,7 +8,20 @@ export function CloudOverviewText({value=''}) {return <>{String(value??'')}</>;}
 // remote requests and stop/revoke. Its mutable forms/lists are adopted intact
 // below the React-owned overview until their controllers expose action/snapshot
 // contracts. Do not import Host/SDK or run user code inside this component.
-export function CloudConnectionPage({model={},requestsModel={},legacySections=[],hidden=false}){
+
+// React owns the first-run connection prompt; the existing CloudHosting
+// controller opens its trusted pairing form. No provider secrets enter React.
+export function CloudFirstRun({model={}}){
+  return <div id="cloud-first-run" className="cloud-first-run od-surface"
+    hidden={!model.visible}>
+    <p id="cloud-next-step">{model.nextStep||'请先连接可信提供者。'}</p>
+    <button type="button" id="cloud-configure" className="od-button"
+      onClick={event=>{
+        if(event.nativeEvent?.isTrusted===true)model.onConfigure?.();
+      }}>连接提供者</button>
+  </div>;
+}
+export function CloudConnectionPage({model={},requestsModel={},setupModel={},legacySections=[],hidden=false}){
   const attachRest=React.useCallback(node=>{
     if(!node)return;
     for(const child of legacySections)
@@ -67,6 +80,7 @@ export function CloudConnectionPage({model={},requestsModel={},legacySections=[]
           </p>
         </details>
       </section>
+      <CloudFirstRun model={setupModel}/>
       <CloudRequestHistory model={requestsModel}/>
     </section>
   </div>;
