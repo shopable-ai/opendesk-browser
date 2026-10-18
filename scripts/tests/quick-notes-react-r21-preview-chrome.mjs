@@ -94,6 +94,68 @@ async function textInput(value){
   await evalJs('document.querySelector("#note-text").focus()');
   await cdp('Input.insertText',{text:value});
 }
+// Real React components call the PREVIEW_ONLY SDK adapter. These exercises
+// assert request ordering/failure recovery, never installed Host behavior.
+async function replaceText(value){
+  await evalJs('(()=>{const t=document.querySelector("#note-text");t.focus();t.select()})()');
+  await cdp('Input.insertText',{text:value});
+  await until('document.querySelector("#note-text")?.value',x=>x===value,'replace input');
+}
+const preview=expr=>evalJs('globalThis.__quickNotesPreviewHarness.'+expr);
+async function exerciseReactSDK(){
+  const sets=()=>preview('calls().filter(x=>x.op==="storage.set"&&x.arg.key==="notes").length');
+  const prior=await sets();
+  await replaceText('保存时文本 A');
+  await preview('holdWrite()');
+  await click('button[aria-label="保存笔记"]');
+  await until('globalThis.__quickNotesPreviewHarness.calls().filter(x=>x.op==="storage.set"&&x.arg.key==="notes").length',
+    n=>n===prior+1,'SDK storage.set in flight');
+  await replaceText('保存时继续输入 B');
+  await preview('releaseWrite()');
+  await until('document.querySelector(".note-status")?.textContent||""',
+    s=>s.includes('新修改仍未保存'),'in-flight typing preserved');
+  assert.equal((await preview('data()')).notes[0].text,'保存时文本 A');
+  assert.equal(await evalJs('document.querySelector("#note-text").value'),'保存时继续输入 B');
+  await click('button[aria-label="保存笔记"]');
+  await until('document.querySelector(".note-status")?.textContent||""',
+    s=>s==='已保存到本机。','follow-up save');
+  const original=(await preview('data()')).notes;
+  assert.equal(original[0].text,'保存时继续输入 B');
+  const successfulSets=(await preview('calls()')).filter(x=>x.op==='storage.set'&&x.arg.key==='notes');
+  assert.match(successfulSets.at(-1).arg.ifMatch,/^[0-9a-f]{64}$/,'each write has ETag');
+
+  await preview('failWrite("模拟删除失败")');
+  await click('button[aria-label="删除当前笔记"]');
+  await until('Boolean(document.querySelector("[role=alertdialog]"))',Boolean,'failure confirmation');
+  await click('.confirm-actions button:last-child');
+  await until('document.querySelector(".note-status")?.textContent||""',
+    s=>s.includes('删除失败'),'failed deletion feedback');
+  assert.equal((await preview('data()')).notes.length,1);
+  assert.equal(await evalJs('document.querySelectorAll(".note-list button").length'),1);
+
+  const external=structuredClone(original);
+  external[0].text='其他窗口写入';
+  await evalJs('globalThis.__quickNotesPreviewHarness.externalNotes('+JSON.stringify(external)+')');
+  await replaceText('本窗口草稿');
+  await click('button[aria-label="保存笔记"]');
+  await until('document.querySelector(".note-status")?.textContent||""',
+    s=>s.includes('其他窗口已更新'),'ETag conflict feedback');
+  assert.equal((await preview('data()')).notes[0].text,'其他窗口写入');
+  assert.equal(await evalJs('document.querySelector("#note-text").value'),'本窗口草稿');
+  // Reset ONLY preview adapter memory, then simulate a successful Host write
+  // whose acknowledgement disappears. The live editor must retain its draft.
+  await evalJs('globalThis.__quickNotesPreviewHarness.externalNotes('+JSON.stringify(original)+')');
+  await preview('failWrite("模拟回执丢失",true)');
+  await click('button[aria-label="保存笔记"]');
+  await until('document.querySelector(".note-status")?.textContent||""',
+    s=>s.includes('保存失败或结果未知'),'unknown outcome feedback');
+  assert.equal((await preview('data()')).notes[0].text,'本窗口草稿');
+  assert.equal(await evalJs('document.querySelector("#note-text").value'),'本窗口草稿');
+  return {status:'PREVIEW_ONLY_PASS',cases:['edit_during_save','SDK_ifMatch',
+    'delete_failure','ETag_conflict','unknown_write_result'],
+    noteWrites:await sets()};
+}
+
 async function exercise(kind,path,port){
   await cdp('Emulation.setDeviceMetricsOverride',{width:400,height:800,deviceScaleFactor:1,mobile:false});
   await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+path});
@@ -126,12 +188,14 @@ async function exercise(kind,path,port){
     assert.equal(row.notes,1);
   }
   if(kind==='react'){
+    const sdkSafety=await exerciseReactSDK();
     assert.equal(await evalJs('globalThis.OpenDeskPageReact?.version'),'19.2.0');
     assert.equal(await evalJs('document.querySelectorAll("[data-slot=card]").length'),1);
     await evalJs('dispatchEvent(new Event("pagehide"))');
     assert.equal(await evalJs('document.querySelector("#tool-app").childElementCount'),0);
   }
-  return {kind,status:'PREVIEW_PASS',measurements};
+  return {kind,status:'PREVIEW_PASS',measurements,
+    ...(kind==='react'?{sdkSafety}: {})};
 }
 try{
   await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
