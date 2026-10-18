@@ -85,7 +85,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     react:"import {useState} from 'react';\n\nexport default function App(){\n  const [count,setCount]=useState(0);\n  return <button type=\"button\" onClick={()=>setCount(n=>n+1)}>已点击 {count} 次</button>;\n}",
     vue:"<script setup>\nimport {ref} from 'vue';\nconst count=ref(0);\n</script>\n<template>\n  <button type=\"button\" @click=\"count++\">已点击 {{ count }} 次</button>\n</template>\n<style scoped>\nbutton{padding:8px 14px;cursor:pointer}\n</style>"
   });
-  let componentMode='javascript',loadedPageSource=false,browserManagedPreview=null,browserEffectUnknown=false;
+  let componentMode='javascript',javascriptWorld='controller',loadedPageSource=false,browserManagedPreview=null,browserEffectUnknown=false;
   let componentRemote,browserPreparing=false,browserPrepareGeneration=0;
   let browserUnknownTarget=null;
   function quarantineBrowserEffect(target){
@@ -103,6 +103,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     else for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
   };
   const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
+  // A choice of JavaScript world changes only the editor buffer. Execution
+  // remains under the original Controller/USER_SCRIPT authority and RunHost.
+  const javascriptDrafts={
+    controller:find('script-source').value,
+    page:'async function main() {\n  return {title: document.title, url: location.href};\n}'
+  };
   const browserPreparer=componentPreparerFactory({api});
   const staticESMPreparer=staticESMPreparerFactory({api});
   const browserBinding='browser-v1-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
@@ -117,6 +123,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const value=Object.fromEntries(Object.entries(draftFields).map(([key,id])=>[key,find(id).value]));
     value.source=programSource.source();
     value.componentMode=componentMode;
+    value.javascriptWorld=javascriptWorld;
+    value.javascriptDrafts={...javascriptDrafts,...(componentMode==='javascript'?{[javascriptWorld]:value.source}:{})};
     value.loadedPageSource=loadedPageSource;
     value.componentDrafts={...componentDrafts,[componentMode]:value.source};
     const programDraft=programSource.snapshot();
@@ -155,7 +163,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
-  const programSource = createProgramSourceView({document:doc,listen,onChange:() => {loadedPageSource=false;dependencyResolver?.refresh();dependencyInstaller?.refresh();update();}});
+  const programSource = createProgramSourceView({document:doc,listen,onChange:() => {loadedPageSource=false;javascriptWorld='controller';javascriptDrafts.controller=programSource.source();dependencyResolver?.refresh();dependencyInstaller?.refresh();componentRemote?.refresh();update();}});
 
   // Controller Classic uses the existing native source-permission consent, not
   // a second grant registry. The read-only observation is primed on edit; only
@@ -327,6 +335,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(localPageResult)copyResult.disabled=!localPageResultIsCurrent();
     persistDraft();
     renderRevisionState();
+    const pageExecution=isComponentDraft()||isPageDraft();
+    const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
+    if(worldRow)worldRow.hidden=componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot();
+    if(worldChoice){
+      worldChoice.value=javascriptWorld;
+      worldChoice.disabled=editingBusy||running||stopping||previewBusy||browserPreparing||
+        !!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown;
+    }
+    const paramsTools=find('manual-project-params-tools');
+    if(paramsTools)paramsTools.hidden=pageExecution||!!localProject?.active();
+    const versionIdentity=find('script-version-identity');
+    if(versionIdentity)versionIdentity.hidden=!!localProject?.active();
     // Describe the selected official source format instead of telling React /
     // Vue authors to write the legacy async function main() entry.
     const previewTitle=find('page-preview-mode-title');
@@ -340,7 +360,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
         '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。';
     if(modeHint)modeHint.textContent=componentMode==='javascript'?
-      (browserCompilerEnabled?'保存草稿不会运行网页':
+      (isPageDraft()?'Page JavaScript 使用当前网页 DOM；Controller 使用 page 自动化 API，二者执行协议不同。':browserCompilerEnabled?'保存草稿不会运行网页':
         '标准版支持直接运行 JavaScript。JSX/Vue SFC 请使用本地 opendesk browser dev . 或 Developer Edition。'):
       '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
     // Controller Save commits a Controller revision. Page ESM uses the
@@ -369,14 +389,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
       currentPageState?.status!=='available';
     find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
-    if(isComponentDraft()||loadedPageSource)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
+    if(pageExecution)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
     if(pageCandidateButton)pageCandidateButton.title='';
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
-    let saveHidden=false,saveLabel='保存版本',runLabel='运行草稿';
+    let saveHidden=true,saveLabel='保存版本',runLabel='运行草稿';
     if(localProject?.active()){
       for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
       saveHidden=false; // Visibility is navigation; Authority still gates install confirmation.
@@ -388,11 +408,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }else {
       runLabel=componentMode!=='javascript'
         ? '运行'+(componentMode==='react'?' React':' Vue')+' 组件'
-        : loadedPageSource?'运行网页脚本':'运行草稿';
-      saveLabel=isComponentDraft()?'准备并保存网页脚本':loadedPageSource?'保存网页脚本版本':'保存版本';
+        : isPageDraft()?'运行网页 JavaScript':'运行草稿';
+      saveLabel=isComponentDraft()?'准备并保存网页脚本':isPageDraft()?'保存网页脚本版本':'保存版本';
     }
-    find('script-library-tools').hidden=!!localProject?.active();
-    find('page-preview-tools').hidden=!!localProject?.active();
+    find('script-library-tools').hidden=!!localProject?.active()||pageExecution;
+    find('page-preview-tools').hidden=!!localProject?.active()||!pageExecution;
+    const saveVersion=find('script-save-version');
+    if(saveVersion){
+      saveVersion.hidden=pageExecution||!!localProject?.active();
+      saveVersion.disabled=saveDisabled||!programSource.source().trim();
+    }
     const actions={runDisabled,runLabel,saveDisabled,saveHidden,saveTitle,saveLabel,
       stopDisabled,stopLabel,stopHidden:!!localProject?.active()&&stopDisabled,onRun:start,onSave:saveClick,
       onStop:event=>{if(event?.isTrusted&&!disposed)Promise.resolve().then(stop).catch(fail);}};
@@ -789,7 +814,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
-    if(isComponentDraft()||loadedPageSource){
+    if(isComponentDraft()||isPageDraft()){
       if(!projection?.slotAvailable)return;
       previewPage(event);return;
     }
@@ -972,6 +997,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (previous.componentMode===undefined||componentMode===previous.componentMode);
   }
   function isComponentDraft(){return componentMode!=='javascript'||programSource.snapshot()?.project.entryMode==='component';}
+  function isPageDraft(){return componentMode==='javascript'&&
+    (javascriptWorld==='page'||loadedPageSource||programSource.kind()==='page-userscript');}
   function canPrepareComponentCandidate(){
     return isComponentDraft()&&!editingBusy&&!previewBusy&&!componentRemote?.busy&&!localProject?.active()&&
       !running&&!stopping&&!host.currentRun&&currentPageState?.status==='available'&&!!programSource.source().trim();
@@ -1310,6 +1337,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
   }
   listen(find('script-save'),'click',saveClick);
+  listen(find('script-save-version'),'click',saveClick);
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
@@ -1342,17 +1370,39 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     browserPreparer.cancel();browserPrepareGeneration++;
     componentDrafts[componentMode]=programSource.source();
+    if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
     componentMode=next;
     syncComponentInputs();
-    programSource.replaceSource(componentDrafts[next]??componentPresets[next]??'');
+    programSource.replaceSource(next==='javascript'
+      ?javascriptDrafts[javascriptWorld]??componentDrafts.javascript
+      :componentDrafts[next]??componentPresets[next]??'');
     dependencyResolver.refresh();dependencyInstaller?.refresh();lastPagePreview=null;componentRemote.refresh();
     componentMessage('idle',next==='javascript'?'':'官方组件源码 · 按需编译 · 明确点击运行');
+    update();
+  }
+  function chooseJavascriptWorld(next){
+    if(next===javascriptWorld)return;
+    if(!['controller','page'].includes(next)||disposed||componentMode!=='javascript'||
+      editingBusy||running||stopping||previewBusy||browserPreparing||componentRemote?.busy||
+      browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
+      componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
+      update();return;
+    }
+    browserPreparer.cancel();browserPrepareGeneration++;
+    javascriptDrafts[javascriptWorld]=programSource.source();
+    javascriptWorld=next;loadedPageSource=false;lastPagePreview=null;
+    programSource.replaceSource(javascriptDrafts[next]);
+    dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();
+    scheduleControllerClassicWarm();
+    componentMessage('idle',next==='page'?'网页 JavaScript 使用当前网页 DOM；运行前仍须网站授权':'');
     update();
   }
   for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
     if(input.checked)chooseComponentMode(next);
   });
-  on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();scheduleControllerClassicWarm();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());componentDrafts[componentMode]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();scheduleControllerClassicWarm();update();});
+  const javascriptWorldSelect=find('script-javascript-world');
+  if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
+  on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();scheduleControllerClassicWarm();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());componentDrafts[componentMode]=programSource.source();if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();scheduleControllerClassicWarm();update();});
   on('script-params','input',update);
   listen(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
