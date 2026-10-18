@@ -196,3 +196,7 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
 .r29-tip-ad{position:relative;padding-right:23px;min-width:0}
 .r29-tip-dismiss{position:absolute;top:3px;right:0;width:23px;height:23px;min-width:23px;padding:0;border-radius:7px;background:var(--surface);font-size:16px;color:var(--text)}
 .r29-tip-ad .r28-demo-ad{max-height:64px;overflow:hidden}
+
+.panel-footer #r28SlotS03{display:inline-flex;gap:2px;align-items:center;max-width:55%;min-width:0}
+.panel-footer #r28SlotS03 button{min-width:0;font-size:9px;white-space:normal;padding:3px 5px}
+.panel-footer #r28SlotS03 .r29-footer-dismiss{width:22px;min-width:22px;height:22px;font-size:14px;padding:0}
