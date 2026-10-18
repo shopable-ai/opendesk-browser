@@ -9,9 +9,13 @@ const deferred=()=>{
   return {promise,resolve,reject};
 };
 
-function setup({firstDestroy,firstTheme}={}){
+function setup({firstDestroy,firstTheme,searchIdentity}={}){
   const {document}=parseHTML('<html><body><article data-testid="conversation-turn-1"><div data-message-author-role="assistant" data-message-id="A"><div class="markdown"><h2>Answer</h2><p>Original answer body</p></div></div><div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div></article></body></html>');
   const content=document.querySelector('.markdown'),handlers=new Map(),observers=[],views=[];
+  if(searchIdentity){
+    content.parentElement.removeAttribute('data-message-id');
+    content.parentElement.setAttribute(searchIdentity,'answer-A');
+  }
   // Linkedom does not implement CSS priority; retain the browser style contract.
   const style=content.style,priorities=new Map();
   // Assigning methods to Linkedom's style Proxy creates CSS declarations.
@@ -44,11 +48,25 @@ function setup({firstDestroy,firstTheme}={}){
   const trigger=triggerHost.shadowRoot.querySelector('button');
   const matches=trigger.matches.bind(trigger);
   trigger.matches=selector=>selector===':focus-visible'?false:matches(selector);
-  return {registry,content,views,triggerHost,trigger,window:fakeWindow,
+  return {registry,content,views,triggerHost,trigger,window:fakeWindow,observers,
     error:triggerHost.shadowRoot.querySelector('[role="alert"]'),
     click:()=>handlers.get(trigger)(),
     theme:()=>observers.find(row=>row.options.attributeFilter?.includes('class')).listener()};
 }
+
+test('search message identity changes retire the previous reply view',async()=>{
+  for(const attribute of ['data-chatgpt-search-message-ids','data-content-search-unit-key']){
+    const h=setup({searchIdentity:attribute});await h.click();
+    assert.ok(h.observers.some(row=>row.options.attributeFilter?.includes(attribute)));
+    assert.ok(h.observers.some(row=>row.options.attributeFilter?.includes('data-talvt-turn-state')));
+    h.content.parentElement.setAttribute(attribute,'answer-B');h.registry.scan();
+    await Promise.resolve();
+    assert.equal(h.views[0].destroyCalls,1);
+    assert.equal(h.trigger.getAttribute('aria-pressed'),'false');
+    assert.notEqual(h.content.style.getPropertyValue('display'),'none');
+    await h.registry.destroy();
+  }
+});
 
 test('closing fullscreen retires directly and releases the next fullscreen owner',async()=>{
   const h=setup();

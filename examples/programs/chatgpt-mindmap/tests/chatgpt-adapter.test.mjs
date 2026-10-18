@@ -3,6 +3,49 @@ import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
 import {answerRootOf,discoverAnswers,inspectAnswer,isStreaming} from '../src/chatgpt-adapter.js';
 
+// Logged-in Mac Chrome, 2026-10-18: role is on a hidden heading, body uses
+// DIL components, and the turn also contains a different user action bar.
+const searchReply=id=>`<div data-talvt-turn-state="complete">
+  <div><div><p>user prompt</p><div class="turn-action-controls" id="user-${id}"><button>Edit</button></div></div>
+    <div><div data-content-search-unit-key="turn:${id}:assistant" id="${id}">
+      <h4 data-conversation-role="assistant">ChatGPT said:</h4>
+      <div><div><h2 data-d-component="title">中文主题 ${id}</h2><p>正文</p></div></div>
+    </div></div></div>
+  <div class="turn-action-controls" id="actions-${id}"><button>Copy</button><button>More</button></div>
+</div>`;
+
+test('logged-in DIL reply binds its own body and direct assistant footer',()=>{
+  const {document}=parseHTML(`<html><body>${searchReply('A')}${searchReply('B')}</body></html>`);
+  const roots=discoverAnswers(document);assert.equal(roots.length,2);
+  for(const root of roots){
+    const parts=inspectAnswer(root);assert.equal(parts.ok,true);
+    assert.equal(parts.bar.id,`actions-${root.id}`);
+    assert.equal(parts.content,root.children[1]);
+    assert.equal(answerRootOf(parts.content.querySelector('p')),root);
+    assert.equal(isStreaming(root),false);
+  }
+  roots[0].closest('[data-talvt-turn-state]').setAttribute('data-talvt-turn-state','streaming');
+  assert.equal(isStreaming(roots[0]),true);
+  assert.equal(isStreaming(roots[1]),false);
+  document.getElementById('actions-A').remove();
+  assert.equal(inspectAnswer(roots[0]).ok,false); // never use the user toolbar
+  assert.equal(inspectAnswer(roots[1]).ok,true);
+});
+
+test('DIL structure refuses missing role, duplicate bodies, footers or assistant roots',()=>{
+  for(const mutate of [
+    root=>root.querySelector('[data-conversation-role]').remove(),
+    root=>root.appendChild(root.children[1].cloneNode(true)),
+    root=>root.closest('[data-talvt-turn-state]').appendChild(documentBar(root)),
+    root=>root.parentElement.appendChild(root.cloneNode(true)),
+  ]){
+    const {document}=parseHTML(`<html><body>${searchReply('A')}</body></html>`);
+    const root=discoverAnswers(document)[0];mutate(root);
+    assert.equal(inspectAnswer(root).ok,false);
+  }
+  function documentBar(root){return root.closest('[data-talvt-turn-state]').lastElementChild.cloneNode(true);}
+});
+
 // Structural attributes observed on the real anonymous ChatGPT reply on Mac,
 // 2026-10-17. This regression is not a substitute for native website evidence.
 const reply=(id,complete='data-message-complete')=>`<li data-message-role="assistant" id="${id}" ${complete}>

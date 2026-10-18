@@ -1,13 +1,14 @@
 // DOM-only ChatGPT adapter. Selector candidates MUST be verified against a
 // logged-in current ChatGPT build before declaring native acceptance.
-const ANSWER='[data-message-author-role="assistant"],[data-message-role="assistant"]';
+const SEARCH_ANSWER='[data-content-search-unit-key$=":assistant"]';
+const ANSWER='[data-message-author-role="assistant"],[data-message-role="assistant"],'+SEARCH_ANSWER;
 const CONTENT=['.markdown','.prose','[data-testid="message-content"]',
   '[data-assistant-markdown-root]'];
 const ACTIONS='[data-assistant-message-actions][data-message-actions][role="group"]';
 const COPY=['button[data-testid="copy-turn-action-button"]',
   'button[data-copy-message]',
   'button[data-testid="copy-button"]'];
-const TURN='[data-testid^="conversation-turn-"], [data-testid="conversation-turn"], article, li[data-message-role="assistant"]';
+const TURN='[data-testid^="conversation-turn-"], [data-testid="conversation-turn"], article, li[data-message-role="assistant"], [data-talvt-turn-state]';
 const own=element=>element?.closest?.('[data-opendesk-chatgpt-mindmap]');
 
 export function answerRootOf(node) {
@@ -29,6 +30,12 @@ function turnFor(root) {
 }
 
 function actionBar(root,turn,content){
+  if(root.matches(SEARCH_ANSWER)){
+    // The logged-in DIL layout has a nested user toolbar too. Only the
+    // completed turn's direct footer belongs to this sole assistant reply.
+    const bars=[...turn.children].filter(el=>el.matches('.turn-action-controls')&&!own(el));
+    return bars.length===1&&!content.contains(bars[0])?bars[0]:null;
+  }
   // The official reply group is independent of copy labels and button markup.
   const groups=cleanCandidates(root,ACTIONS)
     .filter(group=>!content.contains(group)&&!group.contains(content));
@@ -62,7 +69,13 @@ export function inspectAnswer(root) {
   if(root.closest('[hidden],[aria-hidden="true"],[inert]'))return {ok:false,reason:'hidden-answer'};
   const turn=turnFor(root);
   if(!turn)return {ok:false,reason:'ambiguous-turn'};
-  const contentHits=CONTENT.flatMap(selector=>cleanCandidates(root,selector));
+  const searchLayout=root.matches(SEARCH_ANSWER);
+  if(searchLayout&&(root.querySelectorAll('[data-conversation-role="assistant"]').length!==1||
+    ![...root.children].some(el=>el.matches('[data-conversation-role="assistant"]'))))
+    return {ok:false,reason:'missing-assistant-marker'};
+  const contentHits=searchLayout
+    ?[...root.children].filter(el=>el.tagName==='DIV'&&!own(el)&&el.querySelector('[data-d-component]'))
+    :CONTENT.flatMap(selector=>cleanCandidates(root,selector));
   const unique=[...new Set(contentHits)];
   // Class overlap .markdown.prose refers to the *same* element. Nested
   // markdown regions or multiple versions need explicit DOM verification.
@@ -76,7 +89,8 @@ export function inspectAnswer(root) {
 }
 
 export function isStreaming(root){
-  return Boolean(root.matches('li[data-message-role="assistant"]:not([data-message-complete])')||
+  return Boolean((root.matches(SEARCH_ANSWER)&&root.closest('[data-talvt-turn-state]')?.getAttribute('data-talvt-turn-state')!=='complete')||
+    root.matches('li[data-message-role="assistant"]:not([data-message-complete])')||
     root.matches('[data-is-streaming="true"],[aria-busy="true"],.result-streaming')||
     root.querySelector('[data-is-streaming="true"],[aria-busy="true"],.result-streaming'));
 }

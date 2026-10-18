@@ -55,7 +55,9 @@ function makeButton(doc,css,owner,handleClick){
 function answerController({document,window,owner,css,parts,coordinator,createView,instanceId,themePreference}){
   let {root,content,bar}=parts;
   let hidden=null,view=null,disposed=false,revision=0,viewRevision=-1,lastChange=0,viewSession=0;
-  const readMessageId=()=>root.getAttribute('data-message-id')||root.id||null;
+  const readMessageId=()=>root.getAttribute('data-message-id')||
+    root.getAttribute('data-chatgpt-search-message-ids')||
+    root.getAttribute('data-content-search-unit-key')||root.id||null;
   let messageId=readMessageId();
   let busyTimer=null,buttonRef=null,openingAnchor=null;
   const handleClick=async()=>{
@@ -364,7 +366,8 @@ export function createAnswerRegistry({document,window,owner,css,createView=creat
     if(disposed)throw new Error('E_MINDMAP_DESTROYED');
     owner.observe(document.documentElement,mutations,
       {subtree:true,childList:true,characterData:true,attributes:true,
-        attributeFilter:['data-is-streaming','aria-busy','data-message-id','id','data-message-complete']});
+        attributeFilter:['data-is-streaming','aria-busy','data-message-id','id','data-message-complete',
+          'data-talvt-turn-state','data-chatgpt-search-message-ids','data-content-search-unit-key']});
     owner.on(window,'keydown',keydown);
     // A page-theme mutation updates the native trigger only; it never
     // overrides the user's separately saved workbook skin.

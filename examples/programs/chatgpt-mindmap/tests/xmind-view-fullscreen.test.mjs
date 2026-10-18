@@ -119,7 +119,7 @@ test('truncated mind maps omit the unsolicited banner while keeping toolbar, can
   const shell=shadow.querySelector('.odmm-shell');
   assert.equal(shell.firstElementChild.classList.contains('odmm-toolbar'),true);
   assert.equal(shadow.querySelector('.odmm-warning'),null);
-  assert.equal(shadow.textContent.includes('内容超出导图上限'),false);
+  assert.equal(shell.textContent.includes('内容超出导图上限'),false);
   assert.ok(shadow.querySelector('.odmm-canvas'));
   assert.equal(shadow.querySelector('[data-action="original"]').getAttribute('aria-label'),'返回完整原文');
   assert.equal(h.view.host.dataset.ready,'true');

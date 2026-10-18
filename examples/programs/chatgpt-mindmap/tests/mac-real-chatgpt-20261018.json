@@ -1,0 +1,157 @@
+{
+  "format": "opendesk.chatgpt-mindmap.real-page-evidence.v1",
+  "date": "2026-10-18",
+  "mode": "CONTINUOUS_DEVELOPMENT",
+  "validationBaseCommit": "70978dfb25197b97366185ca1f005abaf44938f7",
+  "programId": "opendesk.chatgpt-mindmap",
+  "version": "0.2.0",
+  "runtime": "USER_SCRIPT",
+  "chrome": "155.0.8059.84",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "extensionPath": "dist/development",
+  "developmentRevision": "b3a2a61d7b8ef6b4b48680c7916cb5361ced17ebbf1e22cd8284ae6b1db19ee3",
+  "sourceHash": "226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e",
+  "inputHash": "dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556",
+  "sourceFiles": {
+    "src/xmind-convert.js": "ab9866e43f400b28649a0b49d831e0fcec14b8021e6f44325117b5784af745b4",
+    "src/xmind-adapter.js": "0992b16b394fad2b94709034cd3ff9a43102eb8b613798f7f2cc4801122f0147",
+    "src/export.js": "9dcb147a2b4bc6e20c170bcdf1a2a46641d834ffc736e1c125eda2446fce1201",
+    "src/xmind-frame-protocol.js": "69a6624f648011b3ee279c07ce58863d2a93275cbf4a2350e16f2241b68f4052",
+    "src/xmind-png.js": "f2ca81404f9b3d16001eb6503059d51c572cd16fc79b26c865606be0a722a2c6",
+    "src/xmind-installed-frame.js": "9e5c24ae2528d9cbee6ecf649d5533e349e476d154f97f1159232088e94b0129",
+    "src/xmind-installed-child.js": "6e69394b776bcc3e175b2f9457164030bad7656f1450b54ad7a251e1f3682db3",
+    "src/main.js": "15911d0729b17c23ffb0734b9bc26e21ede5a3465e858ef3ef0b1d05baa346bf",
+    "src/extract.js": "ed0ae96bb7ac67bf40ca4c3b58e4bb2184ea4bea1aff93d791ebdd521cd1d832",
+    "src/xmind-frame-child.js": "796054477754ed6acb985de31751f4c2be509c863f63fba8b9113e955600aa1a",
+    "src/chatgpt-adapter.js": "03a95fd4226b7a0b0c91ac2ff7d1815c0fc167618497d2e652b3585f86556b7c",
+    "src/view.js": "ec72c43dcb058d978a4b1a0d8e3306c65ac260d0f4afb44d5dd58aea2d1babd7",
+    "src/xmind-frame.js": "7085aa3c1e2df7408b65aa7bc7e7550f29f2a365c7b3e98dcf3b7dcf46015486",
+    "src/answer-registry.js": "09ee22e1037ac415213975133fa571ae8499d719fe20fa088cb309af40d20ae1",
+    "assets/ui.css": "e9dc78e6695cece3abcacda2a7387a1dc06d05c96101a841a7a30292262923e2",
+    "tests/chatgpt-adapter.test.mjs": "8f1964317ec66dc6b0947f6d8f288a87ea060f6c250cb4197e398a286b71481b",
+    "tests/xmind-answer-registry-lifecycle.test.mjs": "0871efc5dd486a3b6ae46c752295290d7a8d4593e38d94f97a06396eed6bc834",
+    "tests/xmind-theme-toggle.test.mjs": "8d4b1214cc590f568ec66d7fad630c2e46c17b6b6fde57032cd756d1e87e1de6",
+    "tests/xmind-view-fullscreen.test.mjs": "8da20479289e934ee22d88c9949495273890f2e51aef1efea14790bbc5010227"
+  },
+  "status": {
+    "realChatGPTButtonAndXmind": "PASS",
+    "originalToolbar": "PASS",
+    "darkDefaultAndExplicitThemePersistence": "PASS",
+    "returnOriginalAndReopen": "PASS",
+    "currentSourceLocalRun": "PASS",
+    "png1xAB": "PASS",
+    "xmindAB": "PASS",
+    "markdownOutlineAB": "PASS",
+    "replyIsolation": "PASS",
+    "currentSourceFormalInstallUpgrade": "NOT_TESTED",
+    "trustedMarkdownOriginal": "BLOCKED",
+    "productionRedistributionLicense": "BLOCKED",
+    "openViewerSourceReplacementCleanup": "FAIL"
+  },
+  "nodeTests": {
+    "pass": 34,
+    "fail": 0,
+    "skip": 0
+  },
+  "downloads": [
+    {
+      "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/A-light-1x.png",
+      "bytes": 441208,
+      "sha256": "6cb9f81a39cf208f3712090843cae37e12f746bd202c2a49dab790a113df8c26"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/A-outline.md",
+      "bytes": 7148,
+      "sha256": "b93116b23969b9ac0daea0176be58a3f92cd72f0fcdfc60dbc839ab39745fdd7"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/A.xmind",
+      "bytes": 29618,
+      "sha256": "3e978e1612c1ec65994e6ad8aea7b61442b6b164cce6a956b1e632acb3928327"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/B-dark-1x.png",
+      "bytes": 368213,
+      "sha256": "2707e3e71fa59e7a050bd42d4c5a8541f7d0aa24f0432c35fe3d662085b4c20a"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/B-outline.md",
+      "bytes": 5486,
+      "sha256": "9f31a986f42138791eba22fc2858db888fd0404314a9d798a0ce9131977f9076"
+    },
+    {
+      "path": "artifacts/chatgpt-mindmap-real-page-20261018/downloads/B.xmind",
+      "bytes": 25053,
+      "sha256": "3bff29464c2dd9f2682ec5fd2c29edde999f86d73af9363f2a20e5c452a579f0"
+    }
+  ],
+  "downloadStructure": {
+    "A": {
+      "nodes": 36,
+      "notes": 14,
+      "zipCRC": "PASS",
+      "markdownTitlesAndNotes": "PASS",
+      "png": {
+        "size": [
+          2336,
+          1304
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "contentBounds": [
+          80,
+          87,
+          2255,
+          1225
+        ],
+        "colors": 1842,
+        "nonBackgroundPixels": 191086,
+        "crc": "PASS"
+      }
+    },
+    "B": {
+      "nodes": 32,
+      "notes": 12,
+      "zipCRC": "PASS",
+      "markdownTitlesAndNotes": "PASS",
+      "png": {
+        "size": [
+          2304,
+          1174
+        ],
+        "background": [
+          40,
+          40,
+          40
+        ],
+        "contentBounds": [
+          80,
+          87,
+          2223,
+          1094
+        ],
+        "colors": 1847,
+        "nonBackgroundPixels": 168481,
+        "crc": "PASS"
+      }
+    }
+  },
+  "screenshots": {
+    "A-original-final.png": "fd9dd1a7c95694ec4978ae84dc917d5eb45635b08d7b995f9b507c83bbf10782",
+    "A-light-reopened-final.png": "4cbdddae8ea09fa91c35f50698bd842074b5af539cb9d8961a445aea10ff00e9",
+    "A-dark-reopened-final.png": "2d0f7da0f0c342d24b28ca69b1c3e561aebf7c68fcd45105fa2629cbc7ced13e",
+    "A-visible-final.png": "2d0f7da0f0c342d24b28ca69b1c3e561aebf7c68fcd45105fa2629cbc7ced13e",
+    "B-xmind-dark.png": "4ffdda6791cbef16920843ebc2ef3f99519df67f72aae0175db804982aa3d871",
+    "B-entry-final.png": "8d6a0a3bb5637ce8abcbde4a233df4fb2cc81272ac73ce007f49b9fc606e0bd6"
+  },
+  "limitations": [
+    "Directory CLI local-run evidence; previous installed r2 fingerprint is different.",
+    "Reply A reaches the existing extraction limit; exports cover its current map, not its full original answer. Current main omits the redundant top banner and preserves export truncation status.",
+    "One open-view source replacement returned E_EFFECT_UNKNOWN cleanup timeout; old document was closed and the original panel reconnected before a successful new-document run. No unknown action replayed.",
+    "Screenshots, private dialogue text, original downloads and raw logs remain local and ignored; this index contains only fingerprints and counts.",
+    "After integrating compatible main changes, final A/B downloads were repeated on the new sourceHash. Earlier candidate evidence is preserved separately. Extension safe reload rejected one request as NOT_DISPATCHED; the original CLI was reattached after reload and new documents were used."
+  ]
+}
