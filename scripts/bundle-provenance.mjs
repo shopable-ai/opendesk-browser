@@ -160,7 +160,7 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted app-owned source must not be a symlink: '+path);
   const bytes=readFileSync(file);
-  const hash=createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledAppOwnedBackgroundInputs[path])
     throw Error('Trusted app-owned source changed; review and re-pin before fixed build: '+path);
   return hash;
