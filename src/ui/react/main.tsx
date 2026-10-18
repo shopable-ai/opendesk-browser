@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
+import {SidebarNavigation} from './tabs/navigation.tsx';
 import {flushSync} from 'react-dom';
 import {ExtensionCenterPage,ExtensionRowMenu} from './tabs/tools.tsx';
 import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStatus,DeveloperResultText} from './tabs/develop.tsx';
@@ -20,10 +21,15 @@ import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // One trusted React root. Extension Center is a single React-owned subtree;
 // the other legacy views still use temporary portals until migrated.
-export function mountExtensionList(doc){
+export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null}={}){
   const section=doc.getElementById('extension-center');
   if(!section||section.dataset.opendeskReactOwner)
     throw new Error('E_REACT_EXTENSION_MOUNT');
+  const navigationHost=typeof onNavigate==='function'
+    ?doc.querySelector('.workbench-nav'):null;
+  if(typeof onNavigate==='function'&&
+    (!navigationHost||navigationHost.dataset.opendeskReactOwner))
+    throw new Error('E_REACT_NAVIGATION_MOUNT');
   const root=createRoot(section);
   // Commit real React DOM before the existing Controller binds to IDs.
   flushSync(()=>root.render(<ExtensionCenterPage/>));
@@ -199,6 +205,14 @@ export function mountExtensionList(doc){
     node.dataset.opendeskReactOwner='debug-'+key;
   }
   let disposed=false,menuKey=null,detailModel=null;
+  let navigationTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
+  if(navigationHost){
+    // Replace the static tab button tree in one handoff. TaskWorkbench was
+    // constructed with a navigation sink, so it has no competing DOM listeners.
+    navigationHost.replaceChildren();
+    navigationHost.dataset.opendeskReactOwner='sidebar-navigation';
+    if(debugEnabled)navigationHost.dataset.debugEnabled='true';
+  }
   const initialBack=()=>{};
   let extensionView='list',onExtensionBack=initialBack;
   let rowMenuHost=null,rowMenuItems=[];
@@ -238,6 +252,9 @@ export function mountExtensionList(doc){
       {/* WXT fixed entry is JS-only. Scope audited pilot CSS into the
           existing React tree; never emit an unlisted tool-shell.css asset. */}
       <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
+      {navigationHost&&createPortal(<SidebarNavigation
+        activeTab={navigationTab} debugEnabled={debugEnabled}
+        onNavigate={onNavigate}/>,navigationHost)}
       <ExtensionCenterPage rowsModel={model} menuKey={menuKey}
         toolbarModel={toolbarModel} detailModel={detailModel}
         feedbackModel={feedbackModel} recoveryModel={recoveryModel}
@@ -304,6 +321,14 @@ export function mountExtensionList(doc){
   paint();
   return Object.freeze({
     owner:'extension-list',
+    navigationMounted:Boolean(navigationHost),
+    renderNavigation(view){
+      if(disposed||!navigationHost)return;
+      if(!['tasks','tools','workflow','develop','cloud','catalog','debug'].includes(view))
+        throw new Error('E_REACT_NAVIGATION_SNAPSHOT');
+      if(navigationTab===view)return;
+      navigationTab=view;paint();
+    },
     connectBack(handler){
       if(disposed||typeof handler!=='function'||onExtensionBack!==initialBack)
         throw new Error('E_REACT_EXTENSION_BACK_OWNER');
@@ -548,6 +573,7 @@ export function mountExtensionList(doc){
       delete toolbar.dataset.opendeskReactOwner;
       delete detailContainer.dataset.opendeskReactOwner;
       delete container.dataset.opendeskReactOwner;
-      delete section.dataset.opendeskReactOwner;}
+      delete section.dataset.opendeskReactOwner;
+      if(navigationHost)delete navigationHost.dataset.opendeskReactOwner;}
   });
 }
