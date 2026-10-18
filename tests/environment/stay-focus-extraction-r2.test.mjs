@@ -30,6 +30,10 @@ test('only reviewed UI files become an installable tool package, not privileged 
   assert.equal(config.id,'stay-focus');
   assert.deepEqual(config.files,{html:'src/index.html',css:'src/style.css',js:'src/main.js'});
   assert.deepEqual(config.assets,[]);
+  const ui=read(app+'src/main.js');
+  assert.match(ui,/globalThis\.OpenDeskTool/);
+  assert.doesNotMatch(ui,/(?:globalThis\.)?chrome\.(?:declarativeNetRequest|permissions|alarms|idle|tabs)\b/,
+    'independently installed UI must request browser capability through the sandbox host');
   for(const file of Object.values(config.files))assert.ok(read(app+file).length>0);
   const catalog=JSON.parse(read('official-tools/catalog.json'));
   assert.equal(catalog.tools.filter(x=>x.id==='stay-focus').length,1);
