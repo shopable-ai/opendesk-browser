@@ -279,7 +279,7 @@
           if(state.closedCards.has(i))continue;
           const item=make('div','r28-panel-slot');
           item.append(adCard(i,i>=state.sold,true,i>0&&state.layout==='hero'?'mini':state.layout));
-          if(true){const closeCard=make('button','', '×');closeCard.type='button';closeCard.className='r28-dismiss-card';closeCard.setAttribute('aria-label',T('dismiss')+' '+(i+1));closeCard.addEventListener('click',()=>{state.closedCards.add(i);sync();});item.append(closeCard);}
+          {const closeCard=make('button','', '×');closeCard.type='button';closeCard.className='r28-dismiss-card';closeCard.setAttribute('aria-label',T('dismiss')+' '+(i+1));closeCard.addEventListener('click',()=>{state.closedCards.add(i);sync();});item.append(closeCard);}
           list.append(item);
         }
         if(list.childElementCount)holder.append(list);else holder.replaceChildren();
@@ -301,12 +301,17 @@
     }
   }
   function zone(id,extraClass) {
-    const b=make('button','r28-zone'+(extraClass?' '+extraClass:''));b.type='button';b.dataset.spot=id;
-    b.addEventListener('click',()=>{if(state.id===id)openDialog('sponsor');else choose(id);});
-    return b;
+    // A wrapper owns two sibling buttons: the placement trigger and its independent dismissal.
+    // Never nest the close button inside a button; keyboard and touch need separate focus targets.
+    const wrap=make('div','r28-zone'+(extraClass?' '+extraClass:''));wrap.dataset.spot=id;
+    const trigger=make('button','r29-zone-trigger');trigger.type='button';
+    trigger.addEventListener('click',()=>{if(state.id===id)openDialog('sponsor');else choose(id);});
+    wrap.append(trigger);return wrap;
   }
   const abs=(id,cls) => zone(id,(cls||'')+' r28-abs');
   function createWeb(){
+    const draft=$('draft'),hadDraftFocus=document.activeElement===draft;
+    const selection=hadDraftFocus?[draft.selectionStart,draft.selectionEnd]:null;
     if(!state.active){site.dataset.r28Legacy='true';page.hidden=true;site.insertBefore(compose,$('bottomSponsor'));return;}
     site.dataset.r28Legacy='false';page.hidden=false;
     page.replaceChildren();
@@ -343,18 +348,27 @@
       const selected=state.id===id||state.extra===id;
       b.dataset.r28Current=String(selected);
       b.dataset.r28Hidden=String(!selected&&(!state.boundaries||state.group!==id[0]));
-      b.setAttribute('aria-label',id+' · '+name(id));
-      b.setAttribute('aria-pressed',String(selected));
+      b.setAttribute('role','group');b.setAttribute('aria-label',id+' · '+name(id));
+      const trigger=b.querySelector('.r29-zone-trigger');
+      trigger.setAttribute('aria-label',id+' · '+name(id));trigger.setAttribute('aria-pressed',String(selected));
       const marker=make('b','',id),label=make('span','',name(id));
-      b.append(marker,label);
-      if(selected&&old.state.enabled&&!state.closedWeb.has(id)){
+      trigger.append(marker,label);
+      const showAd=old.state.enabled&&!state.closedWeb.has(id)&&(state.sold>0||state.mode==='sales');
+      if(selected&&showAd){
         const art=make('span','r28-selected-art');
         if(site.clientWidth<720&&['N05','N08','N11'].includes(id)){
           art.append(make('span','r28-risk-banner',T('riskHint')));
-        }else art.append(adCard(0,state.layout==='recruit',false,state.layout));
-        b.append(art);
+        }else if(id==='C06')art.append(make('span','r28-risk-banner',T('blocked')+' · '+T('notRecommended')));
+        else art.append(adCard(0,state.sold===0,false,state.layout));
+        trigger.append(art);
+        const dismiss=make('button','r29-spot-dismiss','×');dismiss.type='button';
+        dismiss.setAttribute('aria-label',T('dismiss')+' · '+id);
+        dismiss.addEventListener('click',()=>{state.closedWeb.add(id);sync();$('r28Restore').focus();});
+        b.append(dismiss);
       }
     }
+    // Reusing the same textarea must not destroy an in-progress draft or caret.
+    if(hadDraftFocus){draft.focus();try{draft.setSelectionRange(...selection);}catch{/* no selection support */}}
   }
   function renderTip() {
     tipExtra.replaceChildren();delete tipExtra.dataset.r28Current;delete document.querySelector('.tip-brand').dataset.r28Current;
