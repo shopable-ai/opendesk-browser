@@ -159,6 +159,59 @@ test('managed-site execution coordinates verified DNR, alarm and tab remediation
   assert.equal(alarmStarted,false,'failed native readback cannot start new enforcement');
 });
 
+test('shared managed-site execution repairs stale persisted Chrome Alarm cadence',async()=>{
+  const alarms=new Map([['managed.focus',{periodInMinutes:30}],
+    ['other-app.alarm',{periodInMinutes:1}]]);
+  let created=0;
+  const api={alarms:{
+    get:async name=>alarms.get(name),
+    create:async(name,options)=>{created++;alarms.set(name,options);},
+    clear:async name=>{alarms.delete(name);}
+  }};
+  const run=active=>reconcileManagedSiteExecution(api,{
+    alarmName:'managed.focus',active,dnrAvailable:true,wanted:[],
+    reconcileRules:async()=>({changed:false,ruleIds:[],verified:true})
+  });
+  await run(true);
+  assert.equal(created,1,'a stale 30-minute alarm must not silently disable budget settlement');
+  assert.deepEqual(alarms.get('managed.focus'),{periodInMinutes:0.5});
+  await run(true);
+  assert.equal(created,1,'correct alarm survives periodic Worker reconciliation');
+  await run(false);
+  assert.equal(alarms.has('managed.focus'),false);
+  assert.deepEqual(alarms.get('other-app.alarm'),{periodInMinutes:1},
+    'stopping one app never clears another app alarm');
+});
+
+test('shared managed-site execution refuses unverified native alarm effects',async()=>{
+  const alarms=new Map();
+  let dropCreate=true,dropClear=false,remediation=0;
+  const api={alarms:{
+    get:async name=>alarms.get(name),
+    create:async(name,options)=>{if(!dropCreate)alarms.set(name,options);},
+    clear:async name=>{if(!dropClear)alarms.delete(name);}
+  }};
+  const run=active=>reconcileManagedSiteExecution(api,{
+    alarmName:'managed.focus',active,dnrAvailable:true,wanted:[],
+    reconcileRules:async()=>({changed:false,ruleIds:[],verified:true}),
+    onRuleChange:async()=>{remediation++;return {moved:1,failed:0};}
+  });
+  await assert.rejects(run(true),{code:'E_MANAGED_ALARM_UNVERIFIED'});
+  assert.equal(remediation,0,'unverified heartbeat cannot be reported as success');
+  dropCreate=false;
+  await run(true);
+  dropClear=true;
+  await assert.rejects(run(false),{code:'E_MANAGED_ALARM_UNVERIFIED'});
+  assert.ok(alarms.has('managed.focus'),'failure is observable and safe to retry');
+  dropClear=false;
+  await run(false);
+  assert.equal(alarms.has('managed.focus'),false);
+  await assert.rejects(reconcileManagedSiteExecution(api,{
+    alarmName:'managed.focus',active:false,dnrAvailable:true,
+    wanted:[{id:730000}],reconcileRules:async()=>{throw Error('must not reconcile');}
+  }),TypeError,'stopped apps must not publish stale blocking rules');
+});
+
 test('shared blocked-tab remediation permits only extension-owned fixed pages',async()=>{
   const base='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
   const moved=[];

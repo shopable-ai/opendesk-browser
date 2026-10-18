@@ -94,16 +94,31 @@ export async function reconcileManagedSiteExecution(api,{
   if(active&&!dnrAvailable)
     throw Object.assign(new Error('受管网站运行所需 DNR 权限不可用'),
       {code:'E_MANAGED_DNR_UNAVAILABLE'});
+  // A stopped application must never publish blocking rules, even if a
+  // trusted caller accidentally provides a stale desired-policy snapshot.
+  if(!active&&wanted.length)
+    throw new TypeError('Stopped managed-site execution cannot install DNR rules');
   const ruleReceipt=dnrAvailable?await reconcileRules(wanted):
     {changed:false,ruleIds:[],verified:false,reason:'native-permission-missing'};
   if(dnrAvailable&&ruleReceipt?.verified!==true)
     throw Object.assign(new Error('Chrome DNR 规则未通过原生回读'),
       {code:'E_MANAGED_DNR_UNVERIFIED'});
   // Do not start a new heartbeat after a failed/unknown native DNR effect.
+  // Chrome Alarms persist across Worker restarts and may have an obsolete
+  // cadence after a Browser update. A fulfilled create/clear call is not proof
+  // that the actual native alarm now matches the policy.
   if(active){
-    if(!await api.alarms.get(alarmName))
+    if((await api.alarms.get(alarmName))?.periodInMinutes!==0.5)
       await api.alarms.create(alarmName,{periodInMinutes:0.5});
-  }else await api.alarms.clear(alarmName);
+    if((await api.alarms.get(alarmName))?.periodInMinutes!==0.5)
+      throw Object.assign(new Error('Chrome 后台计时闹钟未通过原生回读'),
+        {code:'E_MANAGED_ALARM_UNVERIFIED'});
+  }else{
+    await api.alarms.clear(alarmName);
+    if(await api.alarms.get(alarmName))
+      throw Object.assign(new Error('Chrome 后台计时闹钟未确认清除'),
+        {code:'E_MANAGED_ALARM_UNVERIFIED'});
+  }
   let tabs={moved:0,failed:0};
   if(ruleReceipt.changed&&wanted.length&&onRuleChange)
     tabs=await onRuleChange();
