@@ -13,6 +13,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,as
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
+import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
@@ -2292,7 +2293,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       updateVersions.textContent='当前 v'+previous.version+' → 新 v'+candidate.version;
       updateCapabilities.textContent='新增能力：'+(added.map(readableCapability).join('、')||'无')+
         '；移除能力：'+(removed.map(readableCapability).join('、')||'无');
-      const risks=[...(change<0?['版本回退']:[]),
+      const policyReview=describeSidebarToolBackgroundPolicyChange(previous.backgroundPolicy,candidate.backgroundPolicy);
+      const risks=[...(policyReview?[policyReview]:[]),...(change<0?['版本回退']:[]),
         ...(added.length?['申请新增能力']:[]),
         ...(change===0&&!samePackage(candidate,previous)?['相同版本的内容发生变化']:[]),
         ...(!samePackage(candidate,previous)?['将替换同 ID 的已安装代码，请核对来源；现有工具数据保留']:[])];
