@@ -622,7 +622,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const observation=await evaluate(client,
       '(()=>{const root=document.documentElement,main=document.querySelector("#workspace-content"),nav=document.querySelector(".workbench-nav"),panel=document.querySelector("#scheduled-panel");'+
       'return {surface:root.dataset.opendeskSurface,navHidden:getComputedStyle(nav).display==="none",contentWidth:main.getBoundingClientRect().width,'+
-      'viewportWidth:innerWidth,scheduleVisible:!!panel&&!panel.hidden,title:document.querySelector("#schedule-panel-title")?.textContent,openRunnerLabel:document.querySelector("#schedule-open-runner")?.textContent}})()',
+      'viewportWidth:innerWidth,scheduleVisible:!!panel&&!panel.hidden,title:document.querySelector("#schedule-panel-title")?.textContent,openRunnerLabel:document.querySelector("#schedule-open-runner")?.getAttribute("aria-label")}})()',
       runnerSid);
     return observation.surface==='scheduled-runner'&&observation.scheduleVisible&&
       observation.title==='运行概览'?observation:null;
@@ -634,7 +634,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     'wide runner must use a bounded readable content column');
   assert.equal(runnerPresentation.title,'运行概览',
     'one human-readable heading identifies the real dedicated runner');
-  assert.match(runnerPresentation.openRunnerLabel,/再开运行页/);
+  assert.match(runnerPresentation.openRunnerLabel,/再打开一个独立运行页/);
   assert.equal(await evaluate(client,
     '!document.querySelector("#schedule-runner-view").hidden && document.querySelector("#schedule-list-view").hidden',runnerSid),
     true,'dedicated tab must open the operational overview instead of an enlarged Side Panel');
@@ -701,9 +701,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   // The first action is Pause/Resume; the second action edits the plan.
   // Verify the label before trusting a pointer click in this native test.
   await deadline(()=>evaluate(client,
-    'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child")?.textContent?.includes("暂停")',
+    'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("暂停")',
     runnerSid),'real first plan action is Pause, not Edit');
-  await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+  await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
   await deadline(async()=>{
     const state=await durable(client,runnerSid);
     return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
@@ -719,9 +719,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const oldState=await durable(client,runnerSid);
     const oldGeneration=oldState.plans[0]?.generation;
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child")?.textContent?.includes("恢复")',
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("恢复")',
       runnerSid),'real disabled plan presents Resume, not stale Pause');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const resumed=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan?.generation===oldGeneration+1&&plan.paused===false&&Number.isSafeInteger(plan.nextDueAt)?plan:null;
@@ -776,9 +776,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,'!!document.querySelector("#schedule-plan-list .schedule-card")',reopenedSid),
       'visible restored schedule card');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child")?.textContent?.includes("暂停")',
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("暂停")',
       reopenedSid),'reopened scheduler exposes Pause on active plan');
-    await click(client,reopenedSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,reopenedSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,reopenedSid);
       return state.plans.length===1&&state.plans[0].paused===true&&state.plans[0].nextDueAt===null;
@@ -791,7 +791,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
       'clean genuine page before task authorization change');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const before=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan&&!plan.paused&&Number.isSafeInteger(plan.nextDueAt)?{
@@ -802,7 +802,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-create');
     await click(client,runnerSid,'#schedule-manage-tasks');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.textContent==="停用"',
+      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.getAttribute("aria-label")?.startsWith("停用")',
       runnerSid),'real installed Task manager exposes Disable');
     await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
     const disabled=await deadline(async()=>{
@@ -835,7 +835,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-create');
     await click(client,runnerSid,'#schedule-manage-tasks');
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.textContent==="启用"',
+      'document.querySelector("#schedule-manager-list .schedule-manager-card .schedule-manager-toggle")?.getAttribute("aria-label")?.startsWith("启用")',
       runnerSid),'Task can be reenabled from real management interface');
     await click(client,runnerSid,'#schedule-manager-list .schedule-manager-card .schedule-manager-toggle');
     const restored=await deadline(async()=>{
@@ -877,7 +877,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,runnerSid,'#schedule-back');
     await click(client,runnerSid,'#schedule-cancel');
     await click(client,runnerSid,'#schedule-runner-manage');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,runnerSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
@@ -890,7 +890,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await deadline(()=>evaluate(client,
       'document.readyState==="complete"&&!document.querySelector("#done")',siteSid),
       'untouched page before real website permission revocation');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const resumed=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan&&!plan.paused&&plan.generation>=2&&Number.isSafeInteger(plan.nextDueAt)?plan:null;
@@ -938,7 +938,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       'permission restoration never replays old denied FireId');
     report.tests.actualChromePermissionRestored='PASS';
     note('real-chrome-site-access-restored',{restored,fireId:denied.fire.fireId});
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,runnerSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
@@ -949,9 +949,9 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     // Resume through real UI before shutting down Chrome, preserving the
     // original Fire / Run / Result and the authorized immutable installation.
     await deadline(()=>evaluate(client,
-      'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child")?.textContent?.includes("恢复")',
+      'document.querySelector("#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]")?.getAttribute("aria-label")?.startsWith("恢复")',
       runnerSid),'visible resume before full Chrome exit');
-    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     const before=await deadline(async()=>{
       const state=await durable(client,runnerSid),plan=state.plans[0];
       return plan?.generation>=2&&!plan.paused&&Number.isSafeInteger(plan.nextDueAt)?{plan,state}:null;
@@ -1122,7 +1122,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     report.screenshots.push(await screenshot(client,runnerAgainSid,'r2-restarted-visible-runner'));
     report.screenshots.push(await screenshot(client,freshSiteSid,'r2-restarted-real-web-effect'));
     await click(client,runnerAgainSid,'#schedule-runner-manage');
-    await click(client,runnerAgainSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button:first-child');
+    await click(client,runnerAgainSid,'#schedule-plan-list .schedule-card .schedule-plan-actions button[data-schedule-action=toggle]');
     await deadline(async()=>{
       const state=await durable(client,runnerAgainSid);
       return state.plans[0]?.paused===true&&state.plans[0]?.nextDueAt===null;
@@ -1201,10 +1201,10 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
       '!document.querySelector("#schedule-task-manager").hidden&&document.querySelector("#schedule-form").hidden',formSid),
       'real installed Chrome task manager is a separate subview during editing');
     const managerActions=await evaluate(client,
-      '[...document.querySelectorAll("#schedule-manager-list .schedule-actions button")].map(button=>button.textContent.trim())',formSid);
-    assert(!managerActions.includes('设置定时'),
+      '[...document.querySelectorAll("#schedule-manager-list .schedule-manager-actions button")].map(button=>button.getAttribute("aria-label")||"")',formSid);
+    assert(!managerActions.some(label=>label.includes('设置定时')),
       'a task manager reached from an unsaved form cannot replace the draft without review');
-    assert(managerActions.includes('停用'),'normal installed Task actions remain reachable');
+    assert(managerActions.some(label=>label.startsWith('停用')),'normal installed Task actions remain reachable');
     await click(client,formSid,'#schedule-back');
     assert.deepEqual(await readDraft(),unsaved,
       'returning from manager does not discard or rewrite any editor draft field');
