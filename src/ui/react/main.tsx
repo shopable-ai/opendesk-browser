@@ -176,7 +176,10 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   if(schedulePlansMounted)schedulePlanList.dataset.opendeskReactOwner='schedule-plan-rows';
   if(scheduleManagerMounted)scheduleManagerList.dataset.opendeskReactOwner='schedule-manager-rows';
   if(cloudOverviewMounted)for(const [key,node] of Object.entries(cloudNodes)){
-    node.replaceChildren();node.dataset.opendeskReactOwner='cloud-'+key;
+    // App Shell owns the Cloud overview content directly. Its React text must
+    // not be deleted by the old Portal handoff. Legacy fallback is unchanged.
+    if(!shell)node.replaceChildren();
+    node.dataset.opendeskReactOwner='cloud-'+key;
   }
   container.dataset.opendeskReactOwner='extension-list';
   detailContainer.dataset.opendeskReactOwner='extension-detail';
@@ -267,7 +270,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
       {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
         debugEnabled={debugEnabled} onNavigate={onNavigate}
-        extensionProps={pageProps}/>:<>
+        extensionProps={pageProps} cloudModel={cloudModel}/>:<>
         {navigationHost&&createPortal(<SidebarNavigation
           activeTab={navigationTab} debugEnabled={debugEnabled}
           onNavigate={onNavigate}/>,navigationHost)}
@@ -280,7 +283,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
         <SchedulePlanRows {...scheduleRowsModel}/>,schedulePlanList)}
       {scheduleManagerMounted&&scheduleManagerModel&&createPortal(
         <ScheduleManagerRows {...scheduleManagerModel}/>,scheduleManagerList)}
-      {cloudOverviewMounted&&Object.entries(cloudNodes).map(([key,node])=>
+      {cloudOverviewMounted&&!shell&&Object.entries(cloudNodes).map(([key,node])=>
         createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
       {cookiePilotHost&&createPortal(<CookieTrustedPilot/>,cookiePilotHost)}
