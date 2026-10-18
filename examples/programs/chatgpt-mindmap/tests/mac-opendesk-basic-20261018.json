@@ -1,0 +1,144 @@
+{
+  "format": "opendesk.chatgpt-mindmap.basic-verification.v1",
+  "date": "2026-10-18",
+  "status": "PASS",
+  "scope": [
+    "OpenDesk Page JSON import",
+    "local project temporary preview",
+    "installed Page basic open/restore/reopen"
+  ],
+  "excluded": [
+    "ChatGPT message submission",
+    "standalone Chrome MV3 development/install/acceptance",
+    "export",
+    "theme",
+    "fullscreen",
+    "zoom",
+    "size",
+    "stress",
+    "adversarial testing"
+  ],
+  "environment": {
+    "browser": "system Google Chrome",
+    "application": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "dist/development",
+    "edition": "Developer",
+    "mode": "npm run dev; development client connected",
+    "nativePairingChanged": false,
+    "otherWatchersStopped": false
+  },
+  "source": {
+    "programId": "opendesk.chatgpt-mindmap",
+    "version": "0.2.0",
+    "runtimeKind": "page-userscript",
+    "sourceHash": "226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e",
+    "inputHash": "dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556",
+    "sourceBytes": 4257970,
+    "sourceSnapshotFilesVerified": 12,
+    "businessSourceChanged": false
+  },
+  "standaloneIsolation": {
+    "pglaaaiaaladflhlnbkpgffbhdehfkbm": {
+      "version": "0.2.1",
+      "state": "DISABLED",
+      "observedToggle": "off"
+    },
+    "kagejdafejipmdciobcmapdobmiohopf": {
+      "state": "NOT_LISTED",
+      "observation": "Opening its normal Chrome details URL returned the extensions list; no enable/install/remove action performed."
+    },
+    "onlyOpenDeskAutomaticInjection": true
+  },
+  "jsonImport": {
+    "status": "PASS",
+    "route": "扩展 → 筛选和管理扩展（⋯）→ 导入本地工具包",
+    "file": "program.opendesk-draft.json",
+    "format": "opendesk.program-draft.v1",
+    "acceptedFormats": [
+      "opendesk.program-draft.v1",
+      "opendesk.program-draft.v2"
+    ],
+    "bytes": 4549462,
+    "sha256": "6c3d2ddd65f017b2cbc1f2e291b0638d9ccf1a2e838c89cff5e31958c262eecf",
+    "observed": "System file chooser accepted the existing draft; unsaved draft review was confirmed; existing Developer Page editor displayed the imported source and frame resources.",
+    "implementation": "Existing validateProgramDraft and taskWorkbench.receiveDraft; no new installer, runner or Authority.",
+    "installation": "Existing same-source r1 installation reused; import creates a draft, not an installed Page. New installation continues through existing preview/save/verify/install review."
+  },
+  "localProject": {
+    "status": "PASS",
+    "route": "开发 → 使用本地项目 → chatgpt-mindmap · 页面脚本 → 运行本地项目",
+    "cli": "opendesk browser dev --read-only /Users/shopme/Documents/workspace/opendesk-browser/examples/programs/chatgpt-mindmap",
+    "sourceAccess": "read-only",
+    "kind": "TEMPORARY_PREVIEW",
+    "nativeConnected": true,
+    "providerRegistered": true,
+    "sourceHashMatched": true,
+    "buttonsOnExistingReplies": true,
+    "realXmindDisplayed": true,
+    "toolbarCloseRestoredFullReply": true,
+    "normalizedReplyEqual": true,
+    "normalizedReplyCharacters": 14552,
+    "reopen": true,
+    "toggleClose": true,
+    "stopReceipt": "受管 UI 已清理；网页业务效果不会回滚。",
+    "remainingPreviewButtonsAfterStop": 0,
+    "providerExitedAfterVerification": true,
+    "installedByThisPreview": false
+  },
+  "installedPage": {
+    "status": "PASS",
+    "programId": "opendesk.chatgpt-mindmap",
+    "version": "0.2.0",
+    "revision": "r1",
+    "scope": [
+      "https://chatgpt.com/*"
+    ],
+    "world": "USER_SCRIPT",
+    "runAt": "document_idle",
+    "topFrameOnly": true,
+    "finalState": "ENABLED",
+    "installationEvidenceReused": {
+      "file": "tests/mac-install-standalone-20261018.json",
+      "sha256": "1d8c9ef3b7073a9305f069c1fa41fe52b9493f5ec4276df3eac9d2b9bed66f5d",
+      "reason": "Program ID, r1, source hash and current 12 source snapshots match. No duplicate installation or upgrade."
+    },
+    "providerExited": true,
+    "reloadedChatgpt": true,
+    "automaticButtonsOnExistingReplies": true,
+    "realXmindDisplayed": true,
+    "toolbarCloseRestoredFullReply": true,
+    "normalizedReplyEqual": true,
+    "normalizedReplyCharacters": 14539,
+    "reopen": true,
+    "toggleClose": true,
+    "nativeFullyDisconnected": "NOT_TESTED"
+  },
+  "interruptedDevelopmentAttempt": {
+    "status": "SUPERSEDED_BY_STABLE_HOST_VERIFICATION",
+    "errorCode": "E_DEV_RELOADING",
+    "backgroundStatus": "E_LIMIT",
+    "observation": "Existing local preview evaluated, but pending developer updates rejected new frame creation and Stop before execution. Read-only title transition observation captured E_DEV_RELOADING. No blind rerun or cleanup replay.",
+    "recovery": "Closed only the preview target document, ended this task Provider, normally reloaded the existing OpenDesk through Chrome management with same ID/path, then registered Provider and verified in a fresh document. Temporary diagnostic observer removed. No business/framework runtime repair was needed."
+  },
+  "validation": {
+    "importDraftAndWorkbench": {
+      "tests": 82,
+      "pass": 82,
+      "fail": 0
+    },
+    "extensionCenter": {
+      "tests": 39,
+      "pass": 38,
+      "fail": 1,
+      "unrelatedFailure": "R5.1 Cookie Editor prototype labels its real package version and isolated old-version update demo; unchanged prototype version 2.0.19 vs current package 2.0.23"
+    },
+    "syntax": "PASS",
+    "diffWhitespace": "PASS"
+  },
+  "publicEvidencePolicy": "No conversation URL, reply text, screenshot, download, raw log or credentials in this record. Raw material remains in ignored artifacts/chatgpt-mindmap-opendesk-basic-20261018/.",
+  "uiSourceHashes": {
+    "src/ui/sidebar-tools.js": "83078544842d3fd7b14e9ea718187e4e18f0cb6f472084a93b703da26212a154",
+    "src/ui/tool.html": "c1e3a77b9299ad4295b1037f63144a36b7c1c09ceee10f6b78dcd36f83fecd32"
+  }
+}

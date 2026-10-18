@@ -1,20 +1,33 @@
-# ChatGPT 思维导图 · 真实页面入口与免费导出
+# ChatGPT 思维导图 · OpenDesk 网页增强
 
-## 当前如何运行（2026-10-18 安装态续验）
+## 两种导入入口与日常使用（2026-10-18）
 
-**日常 Chrome 已安装当前修复源码，关闭本项目 `opendesk-dev` / `opendesk browser dev` 后可以继续使用。** 打开或刷新 `https://chatgpt.com/*`，已有助手回复底部原操作栏最右侧自动出现导图图标；无需进入开发页点击 Run。管理入口为 OpenDesk「扩展 → 网页增强 → opendesk.chatgpt-mindmap」。
+**本项目属于 Page USER_SCRIPT 网页增强。** 日常 Chrome 已安装 `opendesk.chatgpt-mindmap`，版本 `0.2.0`、Revision `r1`。在 `https://chatgpt.com/*` 已有助手回复底部点击导图按钮即可显示真实 XMind；再次点击该按钮，或点击导图工具栏「返回完整原文」，恢复完整正文，之后可以重新打开。已安装版本自动按原批准范围运行，无需每次进入「开发」点击 Run。
 
-| 方式 | 当前结果 | 所需程序与入口 |
+| 入口 | 文件或项目与必要步骤 | 本轮实际结果 |
 | --- | --- | --- |
-| 本地项目临时运行 | 历史真实页面 PASS；本次 Provider 已退出 | Chrome、OpenDesk 扩展、配对 Native、本项目 CLI；在开发页明确运行，仅属于预览 |
-| OpenDesk 已安装网页增强 | **PASS** | 保持原 OpenDesk 扩展启用，直接访问 ChatGPT；已验证不依赖本项目 CLI。本次 Native 后台仍连接，完全断开 Native 的运行 **NOT_TESTED** |
-| 独立 Chrome MV3 | 本机加载 PASS；真实回复闭环待登录验证；可分发包 **BLOCKED** | 已有仅供本机验证的加载目录。源码不调用 OpenDesk、Native 或本地 HTTP；厂商 runtime 生产再分发许可未获批准，未生成可分发 ZIP/CRX |
+| 扩展 → 筛选和管理扩展（⋯）→ 导入本地工具包 | 选择 `program.opendesk-draft.json`，格式为 `opendesk.program-draft.v1/v2`、`runtimeKind: page-userscript`。导入提示已说明同时支持网页增强草稿；之后转到现有「开发」流程，按预览、保存固定版本、验证、安装网页增强完成安装审阅；如有未保存草稿先确认替换。 | 真实系统 Chrome 已导入当前约 4.5 MB JSON，并进入 Page 草稿编辑器。安装成功证据复用同源码、同身份 r1，未重复创建安装或升级。 |
+| 开发 → 本地项目 | 在项目目录接入 Provider，开启「使用本地项目」，选择 `chatgpt-mindmap · 页面脚本`，以 ChatGPT 为目标点击「运行本地项目」。成功后可经原「安装网页增强」审阅流程持久安装。 | 已实际运行，显示真实导图、恢复完整正文、重新打开均通过；本次运行本身属于临时预览，结束后已停止，不等于另一次安装。 |
 
-当前日常安装通过原 Candidate → Verification → Available → Installed 链完成，程序为 `opendesk.chatgpt-mindmap`、源码版本 `0.2.0`、安装 Revision `r1`，已启用、已授权，Chrome 状态 `registered`。批准范围仅 `https://chatgpt.com/*`，顶层 `USER_SCRIPT`、`document_idle`。原扩展 ID 仍为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载目录仍为 `dist/development`，Chrome `155.0.8059.84`。本轮未替换日常扩展或停止其他会话的 `npm run dev` watcher。
+可导入文件位于本机忽略目录 `artifacts/chatgpt-mindmap-real-page-20261018/install-current/program.opendesk-draft.json`。`artifact.json` 是构建回执；`program.js` 不是该 JSON 导入文件；`.opendesk-tool.json` 属于 Sidebar 应用，不适用于本项目。重新生成草稿包使用项目既有构建器，具体参数见下文。
 
-安装源码 SHA-256：`226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e`；构建输入 SHA-256：`dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556`。结束临时受管 UI 并收到清理回执后刷新真实 ChatGPT，两条已有回复自动出现按钮；已完成 XMind 打开、浅色切换、返回原文、重开及主题保留。安装态 XMind 下载通过 ZIP CRC，含 30 个节点、8 条备注。未发送 ChatGPT 消息。详见 [`tests/mac-install-standalone-20261018.json`](tests/mac-install-standalone-20261018.json)；私人截图、原文、下载及原始回执仍仅保存在本机忽略目录。
+```sh
+opendesk browser dev --read-only /Users/shopme/Documents/workspace/opendesk-browser/examples/programs/chatgpt-mindmap
+```
 
-### 独立 MV3 本机验证入口
+本地预览需要 Chrome、OpenDesk Developer、已配对 Native 与该 CLI Provider 保持连接。**日常使用已安装版只需打开 Chrome、保持原 OpenDesk 启用并访问 ChatGPT；无需本项目 CLI、开发页或 VS Code。** 本轮退出 Provider 后继续验证自动注入；Native 后台仍连接，完全断开 Native 的场景未测试。
+
+本次保留日常扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载目录 `dist/development`，使用已连接的 `npm run dev`。思维导图源码与输入身份未变：
+
+- 源码 SHA-256：`226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e`
+- 构建输入 SHA-256：`dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556`
+- 安装范围：`https://chatgpt.com/*`、顶层 `USER_SCRIPT`、`document_idle`。
+
+证据见 [`tests/mac-opendesk-basic-20261018.json`](tests/mac-opendesk-basic-20261018.json)，原安装事实见 [`tests/mac-install-standalone-20261018.json`](tests/mac-install-standalone-20261018.json)。本轮不发送 ChatGPT 消息，不测试导出、主题、全屏、缩放或压力。开发更新期间的 `E_DEV_RELOADING` 原始记录单独保留，不混入稳定宿主下的通过结论。私人截图、正文及原日志仅留本机忽略目录。
+
+### 历史独立 MV3 记录（不属于当前交付入口）
+
+以下保留此前候选和失败证据。当前需求使用 OpenDesk 网页增强；不继续独立包装开发、安装或验收。
 
 新增薄包装复用 `src/answer-registry.js`、`src/view.js`、原 XMind 子帧协议及三格式导出。业务位于静态 `ISOLATED` content script；扩展 relay 只认证并转交私有 MessagePort；原绘图代码位于无扩展 API、无同源权限的 sandbox。四份原始资源仍先核对固定 SHA，输出记录唯一原有 timer guard 转换及产物 SHA；没有远程代码或开发服务器。
 

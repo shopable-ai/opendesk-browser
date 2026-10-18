@@ -6,6 +6,7 @@ import {readingTocHostText} from './reading-toc-settings-localization.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
 import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
+import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT,validateProgramDraft} from './program-source.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
@@ -129,7 +130,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
   const actionReview=get('sidebar-tool-action-review'),actionSummary=get('sidebar-tool-action-summary');
   const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');
-  let pendingAction=null;
+  let pendingAction=null,pageImportReview=null;
   const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');
   const tocLanguageRow=get('sidebar-tool-toc-language'),tocLanguageSelect=get('sidebar-tool-toc-language-select');
   const menuButton=get('sidebar-tool-context-menu');
@@ -402,6 +403,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function clearImport() {
     fileSelection++;resetReview();
+    if(pageImportReview!==null)cancelActionReview();
     fileInput.value='';setFileError();
   }
   function setImportOpen(open) {
@@ -2305,19 +2307,70 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }else{installButton.textContent='确认安装';installButton.disabled=false;}
     preview.hidden=false;
   }
+  async function receivePageDraft(draft,selection) {
+    if(disposed||selection!==fileSelection)return;
+    busy=true;fileInput.disabled=true;importClose.disabled=true;
+    try{
+      await taskWorkbench.receiveDraft(draft);
+      if(disposed||selection!==fileSelection)return;
+      setImportOpen(false);
+      notice('网页增强草稿已导入「开发」，请预览、保存、验证后安装。');
+    }catch(error){
+      if(!disposed&&selection===fileSelection)setFileError(String(error?.message||error));
+    }finally{
+      busy=false;
+      if(!disposed){fileInput.disabled=false;importClose.disabled=false;}
+    }
+  }
   async function chooseFile() {
+    if(disposed||busy)return;
     const selection=++fileSelection,file=fileInput.files?.[0];
+    if(pageImportReview!==null)cancelActionReview();
     // Preserve the browser's selected filename; clearing .value here lies to the user.
     resetReview();setFileError();notice('');
-    if(!file||disposed||busy)return;
+    if(!file)return;
     try{
-      if(file.size>320000)throw new Error('工具包超过 320 KB');
-      const candidate=validateSidebarToolPackage(JSON.parse(await file.text()));
+      if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限');
+      const text=await file.text();
       if(disposed||selection!==fileSelection)return;
+      const byteLength=new TextEncoder().encode(text).byteLength;
+      if(byteLength>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限');
+      const parsed=JSON.parse(text);
+      if([PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format)){
+        if(parsed.runtimeKind==='controller')throw new Error('Controller 草稿请到「我的」导入任务文件，或在「开发」编辑。');
+        if(parsed.runtimeKind!=='page-userscript')throw new Error('未知程序运行环境，仅支持网页增强草稿。');
+        const draft=await validateProgramDraft(parsed);
+        if(disposed||selection!==fileSelection)return;
+        if(typeof taskWorkbench?.receiveDraft!=='function')throw new Error('开发编辑器不可用，请在侧栏「开发」导入草稿。');
+        const source=get('script-source')?.value||'',revision=get('script-revision')?.value||'';
+        const scriptId=get('script-id')?.value||'';
+        if(source.trim()&&(!revision||get('script-version')?.dataset.dirty==='true')){
+          requestActionReview({
+            message:'「开发」有未保存草稿。导入网页增强会替换当前编辑内容；可以取消并先保存。',
+            button:'替换草稿并导入',
+            cancel:()=>{pageImportReview=null;},
+            run:()=>{
+              pageImportReview=null;
+              if(disposed||selection!==fileSelection)return;
+              if(get('script-source')?.value!==source||(get('script-revision')?.value||'')!==revision||
+                 (get('script-id')?.value||'')!==scriptId){
+                setFileError('开发草稿已变化，请重新选择文件并核对。');return;
+              }
+              return receivePageDraft(draft,selection);
+            }
+          });
+          pageImportReview=selection;
+          return;
+        }
+        await receivePageDraft(draft,selection);
+        return;
+      }
+      if(file.size>320000||byteLength>320000)throw new Error('工具包超过 320 KB');
+      const candidate=validateSidebarToolPackage(parsed);
       await reviewCandidate(candidate,'文件：'+(file.name||'本地 JSON'),null,selection);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
-      setFileError(error instanceof SyntaxError?'文件不是有效的工具包 JSON':String(error?.message||error));
+      setFileError(error instanceof SyntaxError?'文件不是有效的工具包 JSON 或网页增强草稿 JSON':String(error?.message||error));
     }
   }
   async function install() {
@@ -2483,6 +2536,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     setImportOpen(false);notice('');importTrigger.focus?.();
   });
   listen(fileInput,'change',()=>chooseFile().catch(error=>setFileError(String(error?.message||error))));
+  listen(fileInput,'cancel',()=>{if(!busy)clearImport();});
   listen(installButton,'click',action(install));
   listen(backButton,'click',()=>{
     if(busy)return;
