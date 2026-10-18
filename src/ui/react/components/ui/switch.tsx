@@ -1,6 +1,7 @@
 // Adapted from the official shadcn/ui React Aria Switch registry (MIT).
 // Accessible input, keyboard/focus and state behavior come from real
 // react-aria-components, never from a native checkbox imitation.
+import * as React from 'react';
 import {composeRenderProps,Switch as AriaSwitch} from 'react-aria-components';
 
 export function Switch({className='',size='default',children,...props}){

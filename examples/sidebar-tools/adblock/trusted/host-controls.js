@@ -2,6 +2,12 @@
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from './policy.js';
 import {adblockDnrCleanupPending} from './dnr-session.js';
 const SESSION_RESTART_COPY='全局保护：扩展过滤能力尚未就绪，过滤尚未开启。请先保存当前工作并重新加载 OpenDesk Browser 扩展；也可完整退出并重新打开 Chrome。完成后手动开启全局保护。';
+const SITE_STATUS_COPY={
+  navigating:['当前页面正在导航','页面加载完成后将自动更新当前网站。'],
+  incognito:['当前页面为隐身页面','隐身页面不可管理当前网站过滤，请切换到普通窗口。'],
+  unsupported:['当前页面不支持过滤','仅支持普通 HTTP(S) 网站，请切换后重试。'],
+  unavailable:['当前网站读取失败','无法读取面板所属窗口的当前网站，请切换或重新加载页面后重试。']
+};
 
 export async function prepareAdblockUninstallCleanup({api,event}){
   if(event?.isTrusted!==true)throw Object.assign(new Error('请在可信扩展页面恢复清理'),{code:'E_ADBLOCK_TRUSTED_CLICK'});
@@ -150,19 +156,25 @@ export function createAdblockPermissionControls({
   settingsBack.addEventListener('click',()=>navigate('overview',settingsControl));
   managementButton.addEventListener('click',()=>{if(visible)openToolManagement();});
 
+  function currentHost(){
+    if(state?.currentSite&&state.currentSite.status!=='ready')return null;
+    return typeof state?.currentHost==='string'&&state.currentHost?state.currentHost:null;
+  }
   function paint(){
     const permission=state?.permissions?.dnr===true;
     const verified=Boolean(enabled&&permission&&state?.rules?.verified===true);
     const on=Boolean(verified&&state.enabled===true&&!state.restartRequired);
     const exceptionsList=Array.isArray(state?.exceptions)?state.exceptions:[];
-    const host=typeof state?.currentHost==='string'&&state.currentHost?state.currentHost:null;
+    const host=currentHost();
+    const siteProblem=!host&&state?.currentSite?
+      SITE_STATUS_COPY[state.currentSite.status]||SITE_STATUS_COPY.unavailable:null;
     global.textContent=!enabled?'工具已停用':!state?'状态未确认':
       state.restartRequired?(permission?'需重新加载扩展':'需重启 Chrome'):on?'开启':'关闭';
     global.setAttribute('aria-checked',String(on));
-    global.disabled=!visible||!enabled||busy||!state||
+    global.disabled=!visible||suspended||!enabled||busy||!state||
       typeof state.permissions?.dnr!=='boolean'||Boolean(state.restartRequired);
     recover.hidden=!visible||!enabled||!state?.restartRequired||permission;
-    recover.disabled=busy||!state;
+    recover.disabled=suspended||busy||!state;
     statusLine.className='adblock-native-status'+(on?'':!state?' is-unknown':' is-off');
     statusText.textContent=!enabled?'工具已停用，请在工具管理中启用':
       readError?.code==='E_ADBLOCK_UPDATE_REQUIRED'?'广告拦截版本不匹配':
@@ -173,18 +185,20 @@ export function createAdblockPermissionControls({
       !permission?'需要批准 Chrome 广告过滤权限':
       !state.rules?.verified?'Chrome 规则尚未通过读回验证':
       on?'已开启保护':'保护已关闭';
-    siteHost.textContent=!state?'网站状态尚未取得':host||'当前页面不可用';
-    siteMeta.textContent=!state?'待广告拦截状态确认':host?'普通 HTTP(S) 网站 · '+host:'仅支持普通 HTTP(S) 网站';
+    siteHost.textContent=!state?'网站状态尚未取得':host||siteProblem?.[0]||'当前页面不可用';
+    siteMeta.textContent=!state?'待广告拦截状态确认':host?'普通 HTTP(S) 网站 · '+host:
+      siteProblem?.[1]||'仅支持普通 HTTP(S) 网站';
     avatar.textContent=host?host[0].toUpperCase():'—';
     const siteOn=Boolean(host&&on&&!exceptionsList.includes(host));
     site.setAttribute('aria-checked',String(siteOn));
     site.setAttribute('aria-label',host?'网站 '+host+' 的广告过滤':'当前网站不可用');
     site.textContent=!host?'不可用':!state?'状态未确认':siteOn?'开启':'关闭';
-    site.disabled=!visible||!enabled||busy||!on||!host;
-    siteHeading.textContent=!state?'网站过滤状态未确认':host?'在此网站拦截':'当前页面不支持过滤';
-    siteScope.textContent=!state?'待广告拦截状态确认':host?'仅影响当前域名':'请切换到普通 HTTP(S) 网站';
+    site.disabled=!visible||suspended||!enabled||busy||!on||!host;
+    siteHeading.textContent=!state?'网站过滤状态未确认':host?'在此网站拦截':siteProblem?.[0]||'当前页面不支持过滤';
+    siteScope.textContent=!state?'待广告拦截状态确认':host?'仅影响当前域名':
+      siteProblem?.[1]||'请切换到普通 HTTP(S) 网站';
     siteHelp.textContent=!state?'取得广告拦截状态后，可在这里管理当前网站的过滤。':
-      !host?'切换到普通 HTTP(S) 网站后，可在这里管理该网站的过滤。':
+      !host?siteProblem?.[1]||'切换到普通 HTTP(S) 网站后，可在这里管理该网站的过滤。':
       !on?'开启全局保护后，可单独管理当前网站的过滤。':
       siteOn?'网页显示异常时，可临时关闭当前网站过滤，再刷新网页。':
       '当前网站已停用过滤，重新开启后请刷新网页。';
@@ -216,15 +230,21 @@ export function createAdblockPermissionControls({
     if(area==='local'&&[ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE].some(key=>Object.hasOwn(changes,key)))void refresh();
   };
   const permissionsChanged=()=>{void refresh();};
+  const contextChanged=()=>{pendingFocus=null;void refresh();};
+  const tabUpdated=(_tabId,changeInfo)=>{
+    if(changeInfo&&(Object.hasOwn(changeInfo,'status')||Object.hasOwn(changeInfo,'url')))contextChanged();
+  };
   function listen(next){
     if(listening===next)return;
     listening=next;
     for(const [event,listener] of [[api.storage?.onChanged,storageChanged],
-      [api.permissions?.onAdded,permissionsChanged],[api.permissions?.onRemoved,permissionsChanged]])
+      [api.permissions?.onAdded,permissionsChanged],[api.permissions?.onRemoved,permissionsChanged],
+      [api.tabs?.onUpdated,tabUpdated],[api.tabs?.onActivated,contextChanged],
+      [api.tabs?.onRemoved,contextChanged],[api.windows?.onFocusChanged,contextChanged]])
       event?.[next?'addListener':'removeListener']?.(listener);
   }
   async function refresh(){
-    if(!visible||!enabled)return;
+    if(!visible||suspended||!enabled)return;
     const captured=++sequence;
     state=null;readError=null;paint();
     if(busy||reading){refreshPending=true;return;}
@@ -246,7 +266,7 @@ export function createAdblockPermissionControls({
   }
   function finish(){busy=false;paint();if(refreshPending||!state)void refresh();else restorePendingFocus();}
   async function operate(op,payload,event,focusAtDispatch=null){
-    if(event?.isTrusted!==true||busy||!visible||!enabled)return;
+    if(event?.isTrusted!==true||busy||!visible||suspended||!enabled)return;
     // Preserve native keyboard focus when the pending Chrome operation disables
     // the switch. Chrome may blur a focused <button> as soon as disabled=true.
     const focusTarget=focusAtDispatch===global||focusAtDispatch===site?focusAtDispatch:
@@ -287,7 +307,7 @@ export function createAdblockPermissionControls({
     report('广告过滤为扩展必选权限，无法单独授权。请保存工作并重新加载或启用 OpenDesk Browser 扩展；过滤保持关闭，之后需手动开启。',true);
   }
   global.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||busy||!visible||!enabled||!state||
+    if(event?.isTrusted!==true||busy||!visible||suspended||!enabled||!state||
       typeof state.permissions?.dnr!=='boolean')return;
     if(state.enabled){void operate('adblock.disable',{},event);return;}
     const focusAtDispatch=doc.activeElement===global?global:null;
@@ -298,42 +318,46 @@ export function createAdblockPermissionControls({
     reportMissingCapability();
   });
   recover.addEventListener('click',async event=>{
-    if(event?.isTrusted!==true||busy||!visible||!enabled||!state?.restartRequired||
+    if(event?.isTrusted!==true||busy||!visible||suspended||!enabled||!state?.restartRequired||
       state.permissions?.dnr!==false)return;
     // Recovery requests permission only to clear rules. It never enables filtering.
-    const captured=generation;
+    const captured=generation,capturedSequence=sequence;
     busy=true;paint();
     try{
       const granted=await api.permissions.contains({permissions:[ADBLOCK_PERMISSION]});
-      if(captured!==generation)return;
+      if(captured!==generation||capturedSequence!==sequence)return;
       busy=false;
       if(granted===true)await operate('adblock.disable',{},event);
       else reportMissingCapability();
     }catch(error){
-      if(captured===generation)report('清理状态读取失败：'+String(error.message||error),true);
+      if(captured===generation&&capturedSequence===sequence)report('清理状态读取失败：'+String(error.message||error),true);
     }finally{if(captured===generation)finish();}
   });
   site.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||!state?.currentHost||!state?.enabled)return;
-    const host=state.currentHost;
+    if(event?.isTrusted!==true||site.disabled)return;
+    const host=currentHost();
+    if(!host)return;
     void operate('adblock.site.set',{host,filtering:state.exceptions.includes(host)},event);
   });
   function render(tool,readOnly=false,toolEnabled=false,toolManagementOpen=false){
     const active=!readOnly&&tool?.id===ADBLOCK_ID&&tool.capabilities?.includes(ADBLOCK_CAPABILITY);
     const nextKey=active?tool.id+'@'+tool.version:'';
     const changed=nextKey!==toolKey||enabled!==Boolean(active&&toolEnabled);
-    if(changed){
+    const invalidated=changed||suspended!==Boolean(toolManagementOpen);
+    if(invalidated){
       listen(false);sequence++;generation++;refreshPending=false;busy=false;pendingFocus=null;state=null;readError=null;report('');
+    }
+    if(changed){
       view='overview';exceptionsReturnView='overview';exceptionsReturnControl=null;
     }
     toolKey=nextKey;visible=Boolean(active);enabled=Boolean(active&&toolEnabled);
     suspended=Boolean(toolManagementOpen);
-    listen(visible);
+    listen(visible&&!suspended);
     section.hidden=!visible||suspended;
     container.hidden=!visible||suspended;
     overview.hidden=view!=='overview';
     exceptions.hidden=view!=='exceptions';settings.hidden=view!=='settings';
-    if(changed){state=null;paint();if(enabled)void refresh();}
+    if(invalidated){state=null;paint();if(enabled)void refresh();}
     else paint();
   }
   return {render,refresh,view:()=>view,

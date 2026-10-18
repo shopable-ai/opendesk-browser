@@ -8,7 +8,7 @@ import {PACKAGE_ENTRIES, BUILD_POLICY, RESOURCE_LIMITS, entryByteBudget} from '.
 import {assertLibraryModuleBoundary} from './bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
-import {verifyPackage} from './verify-package.mjs';
+import {verifyPackage,FIXED_ASSETS} from './verify-package.mjs';
 
 export const FIXED_ENTRY_PATHS = Object.freeze(Object.keys(PACKAGE_ENTRIES).map(name => name + '.js').sort());
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -130,9 +130,14 @@ export function summarizePackageResources(receipt,measuredFiles) {
     // also checks these bytes, but preserve identity in the size oracle.
     if(privateCompiler&&(file.bytes!==privateCompiler.bytes||file.sha256!==privateCompiler.sha256))
       throw Error('Private browser compiler size/hash mismatch: '+file.path);
+    // The combined MIT/Apache notices are fixed data, not executable budget.
+    // Only exact reviewed license bytes may exceed the ordinary 8 KiB cap.
+    const fixedLicense=kind==='license'?FIXED_ASSETS[file.path]:null;
+    if(fixedLicense&&(file.bytes!==fixedLicense.bytes||file.sha256!==fixedLicense.sha256))
+      throw Error('Fixed license size/hash mismatch: '+file.path);
     const budget=generated?.budgetBytes??(privateCompiler?PAGE_BROWSER_COMPILER_RESOURCE_LIMIT:
       kind==='raw-vendor-js'?RESOURCE_LIMITS.vendorBytes:
-      kind==='raw-runtime-js'?(frameworkPaths.has(file.path)?PAGE_FRAMEWORK_RESOURCE_LIMIT:BUILD_POLICY.productionBytes):kind==='license'?RESOURCE_LIMITS.licenseBytes:
+      kind==='raw-runtime-js'?(frameworkPaths.has(file.path)?PAGE_FRAMEWORK_RESOURCE_LIMIT:BUILD_POLICY.productionBytes):kind==='license'?(fixedLicense?.bytes??RESOURCE_LIMITS.licenseBytes):
       ['libs/manifest.json','framework/sdk-resources.json'].includes(file.path)?RESOURCE_LIMITS.manifestBytes:null);
     if(budget!==null&&file.bytes>budget)throw Error('Package resource exceeds byte budget: '+file.path);
     const ratio=budget===null?null:file.bytes/budget;

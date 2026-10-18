@@ -28,16 +28,17 @@ function reviewedCompiledTimeReview(target,path,root){
 }
 
 // This is a deliberately fixed, build-reviewed extension source allowance, NOT
-// permission for arbitrary examples/ JS. All seven AdBlock privileged/business
+// permission for arbitrary examples/ JS. All eight AdBlock privileged/business
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
-  'examples/sidebar-tools/adblock/trusted/service.js':'c8cf789e3c73411e6588f03c1f558de39779de27',
-  'examples/sidebar-tools/adblock/trusted/policy.js':'6736074a6c4fe956f2ce62c6099df11f4daca6d4',
+  'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
+  'examples/sidebar-tools/adblock/trusted/service.js':'fe2a1a9e9c1e836ed2ab343c5e2458b8dbadec46',
+  'examples/sidebar-tools/adblock/trusted/policy.js':'0a4801d44af9232052eec86bd4e9a720743762e7',
   'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
-  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'f6789d278c59c8f4148ed0c0c4e55b29c68758d0',
+  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'1c750e4367a978a9a82e2d4709433ea77b93c505',
   'examples/sidebar-tools/adblock/trusted/tool-host.js':'e967e44ec44e3d4085e517a6c11bd45e546df1b6',
-  'examples/sidebar-tools/adblock/trusted/host-controls.js':'84c54339a5fe37f30ceaace9ed4ae29232873f33',
+  'examples/sidebar-tools/adblock/trusted/host-controls.js':'1a849fe2823ac1846b8ef081360f3846f2cd60f4',
   'examples/sidebar-tools/adblock/rules/domains.js':'e78bbaea99f39b52cd3bc57d4379af68b166c2f9'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);

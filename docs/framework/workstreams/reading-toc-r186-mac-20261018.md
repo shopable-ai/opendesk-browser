@@ -2,6 +2,8 @@
 
 状态：WAITING_PRODUCTION_GATE，最终验收未完成，不评分。负责人：Codex 当前会话 `01a14abf-4147-72d1-b8c5-393c1432d673`。
 
+用户后续明确优先核心功能与真实扩展界面，本轮转入持续开发恢复：现有 PID 94726 watcher 因本机缺少锁文件已声明的 `react-aria-components@1.22.1` 在共享 UI 编译中断，`dist/development/manifest.json` 与工具资源缺失。只用 npm 原安装器恢复现有锁定依赖，不新增依赖、不修改 manifest/lock、不停止他人 watcher；恢复开发界面后优先真实 TOC 浮层和标题点击。production 的独立门禁结果继续保留，不把开发结果宣称正式验收。
+
 ## 写入与资源
 
 - 本任务拥有本记录、`artifacts/reading-toc-r186-mac/`、`.runtime/reading-toc-r186-mac/`；只在证实 Reading TOC 缺陷后登记必要源码/测试文件。
@@ -60,3 +62,11 @@
 - 启动失败后仅对本任务采用 `chrome-testing-keychain` 隔离启动器，未读取凭据或更改系统钥匙串。保留测试进程 PID 4983、loopback 调试端口 43787 和启动器会话，方便同一真实对话续测；Profile 路径由启动报告记录。该实例目前没有加载 OpenDesk。
 - 独立源码快照与构建输出位于 `.runtime/reading-toc-r186-mac/source/`。因安全构建失败，输出不可安装、不可打包交付。
 - 下一执行条件：由 Adblock owner 完成其真实可信源码摘要审核并修复生产门禁后，冻结最新 main 候选，先 build/verify，再加载正式扩展到本任务独立 Profile，逐项执行上表 NOT_TESTED。不得为继续本任务改写 Adblock pin 或放宽门禁。
+
+## 核心界面恢复（用户优先级更新）
+
+- 现有 watcher PID 94726，路径 `dist/development`；保留唯一 writer，不停止或启动第二服务。恢复 lock 已声明但本机缺失的 react-aria-components，未改 package/lock 字节。
+- 恢复后复现公共构建缺陷：react-aria SSRProvider 导入 useContext，但 `opendesk-shared-ui-react` 仅导出四个符号，整个扩展 manifest 缺失。属于现有固定 React runtime 的通用构建桥缺口，工具自身无法修复。
+- 最小范围接续 `wxt.config.mjs`、`tests/environment/sidebar-shared-ui-r16.test.mjs` 的既有未提交补丁；此前 owner 记录 COMPLETE，文件在本次读取期间稳定。保留其零 imports/CSP/版本门禁设计，仅补齐固定 runtime 已有 React 导出，并用同一 runtime 验证，不改 SDK/权限/工具业务。当前会话为这两个路径的本次落盘负责人，提交时保留完整既有补丁来源。
+
+- 真实 ChatGPT 新版 guest `/uc/` 已复现：回答位于 `ol[data-conversation-transcript] > li[data-message-role="assistant"]`，内容为 `[data-assistant-markdown-root]`，旧 `.markdown` 与 `data-message-author-role` 均不存在。此次功能修复范围增加 `src/reading-toc/model.js` 和 `tests/environment/reading-toc-chatgpt-content-r182.test.mjs`，当前无他人 diff。仅增加这个已观察到的内容边界，保留旧布局与 fail-closed。

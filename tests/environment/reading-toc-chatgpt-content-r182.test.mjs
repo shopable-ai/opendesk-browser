@@ -15,6 +15,9 @@ class Node {
     for(let node=this;node;node=node.parentElement){
       if(selector==='[data-message-author-role="assistant"]'&&node.kind==='assistant')return node;
       if(selector==='.markdown'&&node.kind==='markdown')return node;
+      if(selector==='[data-message-role="assistant"]'&&node.kind==='assistant-new')return node;
+      if(selector==='[data-conversation-transcript]'&&node.kind==='transcript')return node;
+      if(selector==='[data-assistant-markdown-root]'&&node.kind==='markdown-new')return node;
       if(selector==='.AnswerItem'&&node.kind==='zhihu')return node;
       if(selector==='article'&&node.kind==='article')return node;
       if(selector==='main,[role="main"]'&&node.kind==='main')return node;
@@ -121,4 +124,22 @@ test('R1.8.2 ordinary article and Zhihu modes keep their existing heading extrac
   const zhihu=createReadingTocIndex(docFor(body,[topic],{host:'www.zhihu.com',zhihu:answer})).rebuild();
   assert.equal(zhihu.adapter,'zhihu');
   assert.deepEqual(zhihu.items.map(x=>x.label),['知乎回答标题']);
+});
+
+
+test('R1.8.6 live ChatGPT transcript layout keeps only assistant markdown and distinct answers',()=>{
+  const body=new Node('body','BODY'),transcript=new Node('transcript','OL',body);
+  const user=new Node('user','LI',transcript),a=new Node('assistant-new','LI',transcript),b=new Node('assistant-new','LI',transcript);
+  const aText=new Node('markdown-new','DIV',a),bText=new Node('markdown-new','DIV',b);
+  const orphan=new Node('assistant-new','LI',body);
+  const headings=[new Node('heading','H2',user,'用户标题'),new Node('heading','H4',a,'ChatGPT 说：'),
+    new Node('heading','H2',aText,'重复标题'),new Node('heading','H2',bText,'重复标题'),
+    new Node('heading','H2',orphan,'未知容器'),new Node('heading','H2',new Node('markdown-new','DIV',orphan),'未确认对话')];
+  const index=createReadingTocIndex(docFor(body,headings));
+  const snapshot=index.rebuild();
+  assert.deepEqual(snapshot.items.map(row=>row.label),['重复标题','重复标题']);
+  assert.equal(snapshot.sources.length,2);
+  assert.notEqual(snapshot.items[0].sourceId,snapshot.items[1].sourceId);
+  assert.notEqual(snapshot.items[0].id,snapshot.items[1].id);
+  assert.equal(index.resolve(snapshot.items[0].id,snapshot.items[1].sourceId),null);
 });

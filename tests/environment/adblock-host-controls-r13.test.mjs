@@ -25,8 +25,11 @@ function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{reso
   return {promise,resolve,reject};}
 function fixture(){
   const storage=event(),added=event(),removed=event();
+  const updated=event(),activated=event(),tabRemoved=event(),focusChanged=event();
   const api={storage:{onChanged:storage},permissions:{onAdded:added,onRemoved:removed,
-    request:()=>Promise.resolve(true)}};
+    request:()=>Promise.resolve(true)},
+    tabs:{onUpdated:updated,onActivated:activated,onRemoved:tabRemoved},
+    windows:{onFocusChanged:focusChanged}};
   const doc={body:new Node(),activeElement:null,createElement(){
     const node=new Node();node.ownerDocument=doc;return node;
   }};
@@ -47,7 +50,7 @@ function fixture(){
       action:label=>find(node=>node.attributes['aria-label']===label),
       find};
   }
-  return {api,doc,storage,added,removed,mount,
+  return {api,doc,storage,added,removed,updated,activated,tabRemoved,focusChanged,mount,
     change:()=>storage.emit({[ADBLOCK_STORE]:{newValue:{}}},'local')};
 }
 function switches(panel,on){
@@ -419,4 +422,146 @@ test('native pending operation never steals focus from a different user control 
   second.resolve(status(false));await tick();
   assert.equal(f.doc.activeElement,f.doc.body,'old pending operation cannot restore focus');
   switches(q,true);
+});
+
+const siteStatus=(host='next.example.com')=>({...status(),currentHost:host,currentSite:{status:'ready'}});
+const browserEvents=f=>[f.updated,f.activated,f.tabRemoved,f.focusChanged];
+const hostText=panel=>panel.find(node=>node.className==='adblock-native-host').textContent;
+
+test('browser context events invalidate an open panel before any old-site click',async t=>{
+  const cases=[
+    ['loading',f=>f.updated.emit(7,{status:'loading'},{id:7})],
+    ['complete',f=>f.updated.emit(7,{status:'complete'},{id:7})],
+    ['url',f=>f.updated.emit(7,{url:'https://event-only.example/'},{id:7})],
+    ['activation',f=>f.activated.emit({tabId:8,windowId:2})],
+    ['removal',f=>f.tabRemoved.emit(7,{windowId:2,isWindowClosing:false})],
+    ['window focus',f=>f.focusChanged.emit(-1)]
+  ];
+  for(const [name,emit] of cases)await t.test(name,async()=>{
+    const f=fixture(),latest=deferred(),mutations=[];let reads=0;
+    const panel=f.mount((op,payload)=>{
+      if(op==='adblock.status')return ++reads===1?Promise.resolve(status()):latest.promise;
+      mutations.push({op,payload});return Promise.resolve(siteStatus());
+    });
+    panel.controls.render(tool,false,true);await tick();switches(panel,true);
+    emit(f);unknown(panel);assert.notEqual(hostText(panel),'news.example.com');
+    panel.site.listeners.click({isTrusted:true});panel.global.listeners.click({isTrusted:true});
+    assert.deepEqual(mutations,[]);assert.equal(reads,2);
+    latest.resolve(siteStatus());await tick();assert.equal(hostText(panel),'next.example.com');
+    panel.site.listeners.click({isTrusted:true});await tick();
+    assert.deepEqual(mutations,[{op:'adblock.site.set',payload:{host:'next.example.com',filtering:false}}]);
+  });
+});
+
+test('non-context tab updates do not invalidate or poll the current site',async()=>{
+  const f=fixture();let reads=0;
+  const panel=f.mount(async()=>{reads++;return siteStatus();});
+  panel.controls.render(tool,false,true);await tick();
+  f.updated.emit(7,{title:'new title',favIconUrl:'https://example.com/icon.png'},{id:7});
+  f.updated.emit(7,{},{});await tick();
+  assert.equal(reads,1);switches(panel,true);
+});
+
+test('successive browser events coalesce reads and discard late status success or failure',async t=>{
+  for(const rejects of [false,true])await t.test(rejects?'failure':'success',async()=>{
+    const f=fixture(),stale=deferred(),latest=deferred();let reads=0;
+    const panel=f.mount(()=>++reads===1?Promise.resolve(status()):reads===2?stale.promise:latest.promise);
+    panel.controls.render(tool,false,true);await tick();
+    f.updated.emit(7,{status:'loading'},{});
+    f.activated.emit({tabId:8});f.focusChanged.emit(2);f.tabRemoved.emit(7,{});
+    assert.equal(reads,2);unknown(panel);
+    if(rejects)stale.reject(Error('obsolete page read'));else stale.resolve(status());
+    await tick();assert.equal(reads,3);unknown(panel);
+    assert.notEqual(hostText(panel),'news.example.com');assert.doesNotMatch(panel.info.textContent,/obsolete page read/);
+    latest.resolve(siteStatus());await tick();assert.equal(hostText(panel),'next.example.com');
+  });
+});
+
+test('context drift rejects late mutation results without replay or focus on a different site',async t=>{
+  for(const rejects of [false,true])await t.test(rejects?'failure':'success',async()=>{
+    const f=fixture(),mutation=deferred(),latest=deferred(),operations=[];let reads=0,focusCalls=0;
+    const panel=f.mount((op,payload)=>{
+      if(op==='adblock.status')return ++reads===1?Promise.resolve(status()):latest.promise;
+      operations.push({op,payload});return mutation.promise;
+    });
+    panel.controls.render(tool,false,true);await tick();f.doc.activeElement=panel.site;
+    panel.site.focus=()=>{focusCalls++;f.doc.activeElement=panel.site;};
+    panel.site.listeners.click({isTrusted:true,currentTarget:panel.site});f.doc.activeElement=f.doc.body;
+    f.activated.emit({tabId:8});f.updated.emit(8,{url:'https://next.example.com/'},{});
+    panel.site.listeners.click({isTrusted:true});unknown(panel);assert.equal(reads,1);
+    if(rejects)mutation.reject(Error('obsolete site mutation'));else mutation.resolve(status());
+    await tick();assert.equal(reads,2);unknown(panel);
+    assert.doesNotMatch(panel.info.textContent,/obsolete site mutation/);
+    latest.resolve(siteStatus());await tick();assert.equal(hostText(panel),'next.example.com');
+    assert.equal(focusCalls,0);assert.equal(f.doc.activeElement,f.doc.body);
+    assert.deepEqual(operations,[{op:'adblock.site.set',payload:{host:'news.example.com',filtering:false}}]);
+  });
+});
+
+test('context drift during recovery permission read cannot start a late cleanup mutation',async()=>{
+  const f=fixture(),permission=deferred(),operations=[];
+  f.api.permissions.contains=()=>permission.promise;
+  const panel=f.mount(async op=>{
+    operations.push(op);return {...status(false),permissions:{dnr:false},restartRequired:true,rules:{verified:false}};
+  });
+  panel.controls.render(tool,false,true);await tick();
+  panel.action('重新核对并清理残留广告规则').listeners.click({isTrusted:true});
+  f.focusChanged.emit(2);permission.resolve(true);await tick();
+  assert.deepEqual(operations,['adblock.status','adblock.status']);
+});
+
+test('currentSite diagnostics distinguish navigation, private pages, unsupported URLs and unavailable identity',async t=>{
+  const cases=[
+    ['navigating','navigation-pending',/导航|加载/,/HTTP\(S\)/],
+    ['incognito','private-tab',/隐身|私密/,/HTTP\(S\)/],
+    ['unsupported','unsupported-url',/HTTP\(S\)|特殊页面/,/读取失败/],
+    ['unavailable','window-unavailable',/读取失败|无法读取/,/HTTP\(S\)/],
+    ['unavailable','missing-url',/读取失败|无法读取/,/HTTP\(S\)/],
+    ['unavailable','tab-query-failed',/读取失败|无法读取/,/HTTP\(S\)/]
+  ];
+  for(const [kind,reason,expected,excluded] of cases)await t.test(kind+' '+reason,async()=>{
+    const f=fixture(),operations=[];
+    // A non-ready response must override even an accidentally retained host.
+    const panel=f.mount(async op=>{operations.push(op);return {...status(),currentSite:{status:kind,reason}};});
+    panel.controls.render(tool,false,true);await tick();
+    assert.equal(panel.global.disabled,false);assert.equal(panel.site.disabled,true);
+    assert.notEqual(hostText(panel),'news.example.com');
+    const text=['adblock-native-host','adblock-native-muted','adblock-native-heading','adblock-native-help'];
+    const all=node=>[node,...node.children.flatMap(all)];
+    const copy=all(panel.container).filter(node=>text.includes(node.className)).map(node=>node.textContent).join(' ');
+    assert.match(copy,expected);
+    assert.doesNotMatch(panel.find(node=>node.className==='adblock-native-help').textContent,excluded);
+    panel.site.listeners.click({isTrusted:true});await tick();assert.deepEqual(operations,['adblock.status']);
+  });
+});
+
+test('browser listeners release on management hiding, preview, uninstall and dispose without affecting other panels',async()=>{
+  const f=fixture();let reads=0;
+  const a=f.mount(async()=>{reads++;return siteStatus();}),b=f.mount(async()=>siteStatus());
+  a.controls.render(tool,false,true);b.controls.render(tool,false,true);await tick();
+  for(const e of browserEvents(f))assert.equal(e.listeners.size,2);
+  a.controls.render(tool,false,true,true);
+  for(const e of browserEvents(f))assert.equal(e.listeners.size,1);
+  f.activated.emit({tabId:8});await tick();assert.equal(reads,1);
+  a.site.listeners.click({isTrusted:true});assert.equal(reads,1);
+  a.controls.render(tool,false,true,false);await tick();assert.equal(reads,2);
+  for(const e of browserEvents(f))assert.equal(e.listeners.size,2);
+  a.controls.render(tool,true,true);
+  for(const e of browserEvents(f))assert.equal(e.listeners.size,1);
+  a.controls.render(tool,false,true);await tick();a.controls.render(null);
+  for(const e of browserEvents(f))assert.equal(e.listeners.size,1);
+  b.controls.dispose();
+  for(const e of browserEvents(f))assert.equal(e.listeners.size,0);
+});
+
+test('management hiding invalidates an in-flight site mutation and clears pending focus',async()=>{
+  const f=fixture(),mutation=deferred(),latest=deferred();let reads=0;
+  const panel=f.mount(op=>op==='adblock.status'?++reads===1?Promise.resolve(status()):latest.promise:mutation.promise);
+  panel.controls.render(tool,false,true);await tick();f.doc.activeElement=panel.site;
+  panel.site.listeners.click({isTrusted:true,currentTarget:panel.site});f.doc.activeElement=f.doc.body;
+  panel.controls.render(tool,false,true,true);mutation.resolve(status());await tick();
+  assert.equal(reads,1);assert.equal(f.doc.activeElement,f.doc.body);
+  panel.controls.render(tool,false,true,false);unknown(panel);
+  latest.resolve(siteStatus());await tick();assert.equal(hostText(panel),'next.example.com');
+  assert.equal(f.doc.activeElement,f.doc.body);
 });

@@ -1,4 +1,4 @@
-name: Shared UI R1.7 real JSX and sandbox release
+name: Shared UI R1.8 real JSX and sandbox release
 on:
   push:
     branches: [main]
@@ -13,6 +13,11 @@ on:
       - 'src/ui/sidebar-tools/package.js'
       - 'wxt.config.mjs'
       - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/bundle-provenance.mjs'
+      - 'scripts/audit-fixed-entries.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/environment/bundle-provenance.test.mjs'
+      - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'tests/environment/sidebar-shared-ui-r16.test.mjs'
@@ -29,6 +34,10 @@ jobs:
   real-shared-ui:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      OPENDESK_SHARED_UI_EXTENSION_DIR: dist/production
+      OPENDESK_SHARED_UI_TOOL_FILE: artifacts/sidebar-tools/shared-ui-demo/r17-candidate.opendesk-tool.json
+      OPENDESK_SHARED_UI_PREVIEW_FILE: examples/sidebar-tools/shared-ui-demo/preview/index.html
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,25 +48,34 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Compile and verify fixed browser assets
         run: npm run build:dev
+      - name: Compile production and verify both browser packages
+        run: |
+          npm run build
+          npm run verify
+          npm run check
       - name: Compile the unchanged author-facing JSX source with Vite
         run: npm run build --prefix examples/sidebar-tools/shared-ui-demo
       - name: Run source and mandatory built-output tests (no SKIP pass)
-        run: node --test tests/environment/sidebar-shared-ui-r16.test.mjs tests/environment/sidebar-shared-ui-r17.test.mjs
-      - name: Build, promote and verify a canonical signed-source tool package
+        run: node --test tests/environment/sidebar-shared-ui-r16.test.mjs tests/environment/sidebar-shared-ui-r17.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/environment/sidebar-tools.test.mjs
+      - name: Build and inspect the canonical candidate without promotion
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --out artifacts/sidebar-tools/shared-ui-demo/r17-candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --promote-from artifacts/sidebar-tools/shared-ui-demo/r17-candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --check-project
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --out "$OPENDESK_SHARED_UI_TOOL_FILE"
           node --input-type=module <<'NODE'
-          import {readFileSync,statSync} from 'node:fs';
+          import {readFileSync,writeFileSync} from 'node:fs';
           import {createHash} from 'node:crypto';
           const root='examples/sidebar-tools/shared-ui-demo/';
-          const names=[root+'shared-ui-demo.opendesk-tool.json',root+'dist/tool.js',root+'dist/tool.css','dist/development/sidebar-shared-ui.js','dist/development/libs/page-frameworks/react-19.2.0.js'];
+          const extension=process.env.OPENDESK_SHARED_UI_EXTENSION_DIR;
+          const staged=root+'.opendesk-preview/browser/';
+          const names=[process.env.OPENDESK_SHARED_UI_TOOL_FILE,root+'dist/tool.js',root+'dist/tool.css',extension+'/sidebar-shared-ui.js',extension+'/libs/page-frameworks/react-19.2.0.js',extension+'/licenses/shared-ui-third-party-notices.txt',process.env.OPENDESK_SHARED_UI_PREVIEW_FILE,extension+'/ui/design-tokens.css','dist/development/sidebar-shared-ui.js','dist/development/libs/page-frameworks/react-19.2.0.js','dist/development/ui/design-tokens.css',
+            ...['receipt.json','sidebar-shared-ui.js','libs/page-frameworks/react-19.2.0.js','ui/design-tokens.css','licenses/page-framework-react-MIT.txt','licenses/shared-ui-third-party-notices.txt'].map(path=>staged+path),
+            ...['src/App.jsx','src/main.jsx','src/style.css','src/root.html','tool.config.json','vite.config.mjs','package.json'].map(path=>root+path)];
           const rows=names.map(path=>{const body=readFileSync(path);return {path,bytes:body.byteLength,sha256:createHash('sha256').update(body).digest('hex')}});
           const pkg=JSON.parse(readFileSync(names[0],'utf8'));
           if(pkg.uiRuntime!=='opendesk.react-ui.v1'||pkg.capabilities.length)throw Error('Unsafe shared demo capabilities');
+          if(pkg.js!==readFileSync(names[1],'utf8')||pkg.css!==readFileSync(names[2],'utf8'))throw Error('Preview assets must match the candidate JS/CSS');
           if(/ReactCurrentDispatcher|react\.production\.js|ReactDOMRoot/.test(pkg.js))throw Error('React runtime copied inside demo');
           if(rows[4].bytes!==193163)throw Error('Pinned published React runtime drift');
+          writeFileSync('artifacts/sidebar-tools/shared-ui-demo/r17-candidate-assets.json',JSON.stringify(rows,null,2)+'\n');
           console.log('R17_REAL_BYTES '+JSON.stringify(rows));
           console.log('R17_PACKAGE_PAYLOAD_START');
           const encoded=readFileSync(names[0]).toString('base64');
@@ -72,23 +90,42 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/shared-ui-r17-preview-chrome.mjs artifacts/sidebar-tools/shared-ui-demo/chrome
-      - name: Install actual OpenDesk extension in headless Chrome and import reviewed JSON
+      - name: Install actual OpenDesk extension in headful Chrome Side Panel and import reviewed JSON
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node scripts/tests/shared-ui-r17-installed-chrome.mjs artifacts/sidebar-tools/shared-ui-demo/installed-chrome
+        run: xvfb-run -a node scripts/tests/shared-ui-r17-installed-chrome.mjs artifacts/sidebar-tools/shared-ui-demo/installed-chrome
+      - name: Promote only the unchanged candidate after all checks pass
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const rows=JSON.parse(readFileSync('artifacts/sidebar-tools/shared-ui-demo/r17-candidate-assets.json','utf8'));
+          for(const row of rows){
+            const body=readFileSync(row.path);
+            if(body.byteLength!==row.bytes||createHash('sha256').update(body).digest('hex')!==row.sha256)
+              throw Error('Tested candidate asset drift: '+row.path);
+          }
+          NODE
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --promote-from "$OPENDESK_SHARED_UI_TOOL_FILE"
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/shared-ui-demo --check-project
+          cmp "$OPENDESK_SHARED_UI_TOOL_FILE" examples/sidebar-tools/shared-ui-demo/shared-ui-demo.opendesk-tool.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: shared-ui-r17-built-${{ github.sha }}
           if-no-files-found: warn
           retention-days: 7
+          include-hidden-files: true
           path: |
             examples/sidebar-tools/shared-ui-demo/shared-ui-demo.opendesk-tool.json
             examples/sidebar-tools/shared-ui-demo/dist/
+            examples/sidebar-tools/shared-ui-demo/.opendesk-preview/
             artifacts/sidebar-tools/shared-ui-demo/
             dist/development/sidebar-shared-ui.js
             dist/development/libs/page-frameworks/react-19.2.0.js
             docs/framework/evidence/wxt/builds/build-development.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            dist/production/
             artifacts/sidebar-tools/shared-ui-demo/chrome/
             artifacts/sidebar-tools/shared-ui-demo/installed-chrome/
             artifacts/sidebar-tools/shared-ui-demo/standalone-baseline/size-report.json

@@ -84,10 +84,10 @@ export function createAdblockService({
       (!expected||row.documentId===expected)&&row.frameId===0&&!row.incognito&&
       (!sender.tab||row.tabId===sender.tab.id));
     if(matches.length!==1)fail('E_ADBLOCK_SENDER','工具宿主窗口或文档已切换');
-    return matches[0].documentId;
+    return matches[0];
   }
   async function probeDocument(sender){
-    if(isSidebarToolHostSender(api,sender,ADBLOCK_ID))return hostDocument(sender);
+    if(isSidebarToolHostSender(api,sender,ADBLOCK_ID))return (await hostDocument(sender)).documentId;
     try{
       const url=new URL(sender?.url),market=new URL(api.runtime.getURL('ui/marketplace.html'));
       if(sender?.id!==api.runtime.id||!sender.tab||sender.tab.incognito||
@@ -107,15 +107,28 @@ export function createAdblockService({
   const permission=async()=>api.permissions.contains({permissions:[ADBLOCK_PERMISSION]});
   // The installer and SW share the same first-grant/revocation fence.
   const dnrSessionReady=()=>adblockDnrSessionReady(api);
-  async function activeSite(){
+  async function activeSite(windowId){
+    const unavailable=(status,reason)=>({currentHost:null,currentSite:{status,reason}});
+    // A panel belongs to its verified Chrome context, not whichever window
+    // happens to have focus (including a detached DevTools window).
+    if(!Number.isInteger(windowId)||windowId<0)
+      return unavailable('unavailable','window-unavailable');
     let tabs;
-    try{tabs=await api.tabs.query({active:true,lastFocusedWindow:true});}catch{return null;}
-    const tab=tabs.length===1?tabs[0]:null;
-    return tab&&!tab.incognito&&!tab.pendingUrl&&typeof tab.url==='string'?
-      adblockHost(tab.url,{asUrl:true}):null;
+    try{tabs=await api.tabs.query({active:true,windowId});}
+    catch{return unavailable('unavailable','tab-query-failed');}
+    const tab=Array.isArray(tabs)&&tabs.length===1?tabs[0]:null;
+    if(!tab||!Number.isInteger(tab.id)||tab.active!==true||tab.windowId!==windowId)
+      return unavailable('unavailable','no-active-tab');
+    if(tab.incognito)return unavailable('incognito','private-tab');
+    if(tab.pendingUrl)return unavailable('navigating','navigation-pending');
+    if(typeof tab.url!=='string'||!tab.url)
+      return unavailable('unavailable','missing-url');
+    const host=adblockHost(tab.url,{asUrl:true});
+    return host?{currentHost:host,currentSite:{status:'ready'}}:
+      unavailable('unsupported','unsupported-url');
   }
   // Called only under the same per-tool Web Lock as the existing installer.
-  async function reconcileLocked({operation='adblock.status',payload={},validateHost=null,beforeWrite=async()=>{}}={}){
+  async function reconcileLocked({operation='adblock.status',payload={},windowId=null,validateHost=null,beforeWrite=async()=>{}}={}){
     const epoch=generation;
     const dnrReady=await dnrSessionReady();
     const auth=await authority({beforeWrite,dnrReady});
@@ -146,7 +159,7 @@ export function createAdblockService({
       }
       return {installed:validPackage,toolEnabled:validPackage&&auth.enabled,
         enabled:false,permissions:{dnr:hasPermission},exceptions:[],
-        currentHost:await activeSite(),rules:{verified:hasPermission&&dnrReady,ruleIds:[]},
+        ...await activeSite(windowId),rules:{verified:hasPermission&&dnrReady,ruleIds:[]},
         restartRequired:hasPermission!==dnrReady||!hasPermission&&cleanupPending,
         version:ADBLOCK_RULE_VERSION,domainCount:ADBLOCK_REQUEST_DOMAINS.length};
     }
@@ -168,7 +181,7 @@ export function createAdblockService({
         fail('E_OUTCOME_UNKNOWN','Chrome DNR 尚未完成会话初始化，无法确认规则变更');
       return {installed:true,toolEnabled:true,enabled:false,
         permissions:{dnr:true},exceptions:state.exceptions,
-        currentHost:await activeSite(),
+        ...await activeSite(windowId),
         rules:{verified:false,ruleIds:[],reason:'browser-restart-required'},
         restartRequired:true,version:ADBLOCK_RULE_VERSION,
         domainCount:ADBLOCK_REQUEST_DOMAINS.length};
@@ -192,7 +205,7 @@ export function createAdblockService({
          adblockHost(payload.host)!==payload.host)
         fail('E_ADBLOCK_HOST','当前网站域名无效');
       if(!state.enabled)fail('E_ADBLOCK_DISABLED','请先打开全局广告过滤');
-      if(await activeSite()!==payload.host)
+      if((await activeSite(windowId)).currentHost!==payload.host)
         fail('E_ADBLOCK_SITE_CHANGED','当前激活网站已改变，请重新核对网站');
       const set=new Set(state.exceptions);
       if(payload.filtering)set.delete(payload.host);else set.add(payload.host);
@@ -239,7 +252,7 @@ export function createAdblockService({
     if(generation===epoch)revoked=false;
     return {installed:true,toolEnabled:true,enabled:state.enabled&&fresh&&rules.verified,
       permissions:{dnr:fresh},exceptions:state.exceptions,
-      currentHost:await activeSite(),rules,restartRequired:!fresh&&(dnrReady||cleanupPending),version:ADBLOCK_RULE_VERSION,
+      ...await activeSite(windowId),rules,restartRequired:!fresh&&(dnrReady||cleanupPending),version:ADBLOCK_RULE_VERSION,
       domainCount:ADBLOCK_REQUEST_DOMAINS.length,refreshRequired:operation==='adblock.site.set'||
       operation==='adblock.site.restore'};
   }
@@ -274,11 +287,16 @@ export function createAdblockService({
        JSON.stringify(message).length>16000||message.payload===null||
        typeof message.payload!=='object'||Array.isArray(message.payload))
       fail('E_ADBLOCK_REQUEST','广告拦截操作或宿主身份无效');
-    const doc=await hostDocument(sender);
+    const context=await hostDocument(sender),doc=context.documentId,windowId=context.windowId;
     return lock(async()=>{
       let effectStarted=false;
       const validateHost=async()=>{
-        try{return await hostDocument(sender,doc);}
+        try{
+          const live=await hostDocument(sender,doc);
+          if(live.windowId!==windowId)
+            fail('E_ADBLOCK_SENDER','工具宿主所属窗口已改变');
+          return live.documentId;
+        }
         catch(error){
           if(effectStarted)fail('E_OUTCOME_UNKNOWN','工具文档在持久化或 Chrome 规则写入后已改变；请读取实际状态，不要盲目重试');
           throw error;
@@ -298,7 +316,7 @@ export function createAdblockService({
          message.operation==='adblock.site.restore'?['host']:[]))
         fail('E_ADBLOCK_REQUEST','不允许的广告操作参数');
       await validateHost();
-      const data=await reconcileLocked({operation:message.operation,payload:message.payload,
+      const data=await reconcileLocked({operation:message.operation,payload:message.payload,windowId,
         validateHost,beforeWrite});
       await validateHost();
       return data;

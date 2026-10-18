@@ -295,3 +295,18 @@ test('strict unary classic IIFE is accepted only for fixed tool-shell and remain
   assert.throws(()=>inspectScript('!function(){eval("alert(1)")}()','ui/tool-shell.js'),
     /Dynamic execution in ui\/tool-shell\.js: eval/);
 });
+
+
+test('combined Shared UI notices admit only their reviewed bytes without widening other licenses',()=>{
+  const f=packageFixture(),path='licenses/shared-ui-third-party-notices.txt';
+  const pinned={bytes:12986,sha256:'e4135b8c9ef1f90616ebf63e55708a91f020f5a726f2bc7c5484aac00bafdcb8'};
+  f.measured[path]={...pinned};f.receipt.report.files.push({path,...pinned});
+  const report=summarizePackageResources(f.receipt,f.measured);
+  assert.equal(report.resources.find(row=>row.path===path).budgetBytes,pinned.bytes);
+  f.measured[path].sha256='b'.repeat(64);
+  f.receipt.report.files.find(row=>row.path===path).sha256='b'.repeat(64);
+  assert.throws(()=>summarizePackageResources(f.receipt,f.measured),/Fixed license size\/hash mismatch/);
+  const other=packageFixture(),otherPath='licenses/unreviewed.txt',oversized={bytes:8193,sha256:digest};
+  other.measured[otherPath]=oversized;other.receipt.report.files.push({path:otherPath,...oversized});
+  assert.throws(()=>summarizePackageResources(other.receipt,other.measured),/exceeds byte budget/);
+});

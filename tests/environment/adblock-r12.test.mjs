@@ -77,11 +77,11 @@ async function fixture({permission:initialPermission=true,sessionFailure=null}={
   const api={
     runtime:{id:senderId,getURL:path=>'chrome-extension://'+senderId+'/'+path,
       getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:hostUrl,
-        documentId:'live-doc',frameId:0,incognito:false}]},
+        documentId:'live-doc',frameId:0,windowId:10,incognito:false}]},
     storage:{local:storage,session:sessionFailure==='missing'?undefined:sessionStorage,
       onChanged:storageChanged},
     permissions:{async contains(){return permission;},onRemoved:permissionRemoved,onAdded:permissionAdded},
-    tabs:{async query(){return [{id:1,url:current,active:true,incognito:false}];}},
+    tabs:{async query(){return [{id:1,windowId:10,url:current,active:true,incognito:false}];}},
     declarativeNetRequest:{
       async getSessionRules(){return structuredClone(sessionRules);},
       async getEnabledRulesets(){return [...enabledRulesets];},
@@ -317,6 +317,89 @@ test('forged sender, same-ID package digest and obsolete epoch are denied',async
   await assert.rejects(f.service.dispatch({...msg,installEpoch:'old'},sender),{code:'E_TOOL_CHANGED'});
   assert.deepEqual(f.rules.map(x=>x.id),[FOCUS_RULE_FIRST]);
 });
+test('current site is bound to the authenticated panel window rather than global focus',async()=>{
+  const f=await fixture(),queries=[];
+  f.api.tabs.query=async query=>{
+    queries.push(query);
+    return [{id:1,windowId:10,active:true,incognito:false,
+      url:query.windowId===10?'https://www.javbus.com/':'https://www.speedtest.net/'}];
+  };
+  const data=await f.service.dispatch(f.message('adblock.status'),sender);
+  assert.equal(data.currentHost,'www.javbus.com');
+  assert.equal(data.currentSite.status,'ready');
+  assert.deepEqual(queries,[{active:true,windowId:10}]);
+});
+
+test('pending navigation prevents site changes and automatically resolves after commit',async()=>{
+  const f=await fixture();
+  const tab={id:1,windowId:10,active:true,incognito:false,
+    url:'https://www.speedtest.net/',pendingUrl:'https://www.javbus.com/'};
+  f.api.tabs.query=async()=>[tab];
+  const pending=await f.service.dispatch(f.message('adblock.enable'),sender);
+  assert.equal(pending.enabled,true,'global DNR does not depend on a current website');
+  assert.equal(pending.currentHost,null);
+  assert.equal(pending.currentSite.status,'navigating');
+  await assert.rejects(f.service.dispatch(f.message('adblock.site.set',{
+    host:'www.speedtest.net',filtering:false}),sender),{code:'E_ADBLOCK_SITE_CHANGED'});
+  delete tab.pendingUrl;
+  tab.url='https://www.javbus.com/';
+  const committed=await f.service.dispatch(f.message('adblock.status'),sender);
+  assert.equal(committed.currentHost,'www.javbus.com');
+  assert.equal(committed.currentSite.status,'ready');
+});
+
+test('current site distinguishes private, unsupported, missing and failed page identity',async()=>{
+  const f=await fixture();
+  const base={id:1,windowId:10,active:true,incognito:false,url:'https://news.example.com/'};
+  for(const [change,status] of [
+    [{incognito:true},'incognito'],[{url:'chrome://extensions/'},'unsupported'],
+    [{url:'not a URL'},'unsupported'],[{url:undefined},'unavailable'],
+    [{windowId:20},'unavailable']]){
+    f.api.tabs.query=async()=>[{...base,...change}];
+    const data=await f.service.dispatch(f.message('adblock.status'),sender);
+    assert.equal(data.currentHost,null);
+    assert.equal(data.currentSite.status,status);
+  }
+  f.api.tabs.query=async()=>{throw Error('query failed');};
+  const failed=await f.service.dispatch(f.message('adblock.status'),sender);
+  assert.equal(failed.currentHost,null);
+  assert.equal(failed.currentSite.reason,'tab-query-failed');
+});
+
+test('missing panel window identity never falls back to a different focused window',async()=>{
+  const f=await fixture();
+  const contexts=f.api.runtime.getContexts;
+  f.api.runtime.getContexts=async()=> (await contexts()).map(row=>({...row,windowId:-1}));
+  f.api.tabs.query=async()=>{assert.fail('must not query a guessed window');};
+  const data=await f.service.dispatch(f.message('adblock.status'),sender);
+  assert.equal(data.currentHost,null);
+  assert.equal(data.currentSite.reason,'window-unavailable');
+});
+
+test('a hosted tool tab also resolves the active page only inside its verified window',async()=>{
+  const f=await fixture();
+  f.api.runtime.getContexts=async()=>[{contextType:'TAB',documentUrl:hostUrl,
+    documentId:'live-doc',frameId:0,tabId:3,windowId:10,incognito:false}];
+  f.api.tabs.query=async query=>{
+    assert.deepEqual(query,{active:true,windowId:10});
+    return [{id:1,windowId:10,active:true,incognito:false,url:'https://www.speedtest.net/'}];
+  };
+  const data=await f.service.dispatch(f.message('adblock.status'),{
+    ...sender,tab:{id:3,windowId:10,incognito:false}});
+  assert.equal(data.currentHost,'www.speedtest.net');
+});
+
+test('a host moved to another window cannot write with its old window binding',async()=>{
+  const f=await fixture(),contexts=f.api.runtime.getContexts;
+  let reads=0;
+  f.api.runtime.getContexts=async()=> (await contexts()).map(row=>({
+    ...row,windowId:++reads===1?10:20}));
+  await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),{
+    code:'E_ADBLOCK_SENDER'});
+  assert.equal(f.changes.length,0);
+  assert.equal(f.actions.length,0);
+});
+
 test('Chrome DNR enable/readback, pause, resume and owned-only cleanup',async()=>{
   const f=await fixture();
   const first=await f.service.dispatch(await f.message('adblock.enable'),sender);
@@ -424,7 +507,7 @@ test('Document loss is ordinary before writes and unknown after persistent or na
     await t.test(point,async()=>{
       const f=await fixture();let live=true;
       f.api.runtime.getContexts=async()=>live?[{contextType:'SIDE_PANEL',documentUrl:hostUrl,
-        documentId:'live-doc',frameId:0,incognito:false}]:[];
+        documentId:'live-doc',frameId:0,windowId:10,incognito:false}]:[];
       if(point==='revocation-write'){
         await f.service.dispatch(f.message('adblock.enable'),sender);f.setPermission(false);
       }

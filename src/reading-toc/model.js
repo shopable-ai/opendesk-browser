@@ -25,7 +25,13 @@ export function createReadingTocIndex(doc) {
       const markdown=heading.closest('.markdown');
       // Role labels and controls in an assistant turn are not Markdown answer content.
       // Unknown ChatGPT layouts fail closed instead of indexing arbitrary chrome.
-      return root&&markdown?.closest('[data-message-author-role="assistant"]')===root?root:null;
+      if(root&&markdown?.closest('[data-message-author-role="assistant"]')===root)return root;
+      // Observed ChatGPT transcript layout (2026-10): answer content still
+      // requires both an assistant turn and its explicit Markdown boundary.
+      const turn=heading.closest('[data-message-role="assistant"]');
+      const content=heading.closest('[data-assistant-markdown-root]');
+      return turn?.closest('[data-conversation-transcript]')&&
+        content?.closest('[data-message-role="assistant"]')===turn?turn:null;
     }
     if(kind==='zhihu')return heading.closest('.AnswerItem');
     return heading.closest('article')||heading.closest('main,[role="main"]')||doc.body;

@@ -1,0 +1,12 @@
+{
+  "format": "opendesk.sidebar-tool.v1",
+  "id": "shared-ui-demo",
+  "version": "1.0.0",
+  "title": "广告拦截演示",
+  "description": "仅模拟状态的 React Card/Switch 演示，不使用 DNR。",
+  "capabilities": [],
+  "html": "<div id=\"tool-app\"></div>\n",
+  "css": ".adblock-demo-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}\n",
+  "js": "(function(o,i,t,n){\"use strict\";function p(e){const r=Object.create(null,{[Symbol.toStringTag]:{value:\"Module\"}});if(e){for(const a in e)if(a!==\"default\"){const d=Object.getOwnPropertyDescriptor(e,a);Object.defineProperty(r,a,d.get?d:{enumerable:!0,get:()=>e[a]})}}return r.default=e,Object.freeze(r)}const f=p(o);function O(){const[e,r]=o.useState(!1);return t.jsx(n.Card,{children:t.jsxs(n.CardContent,{className:\"adblock-demo-row\",children:[t.jsxs(\"div\",{children:[t.jsx(\"strong\",{children:\"广告拦截演示\"}),t.jsx(\"div\",{\"aria-live\":\"polite\",children:e?\"已开启\":\"已关闭\"})]}),t.jsx(n.Switch,{isSelected:e,onChange:r,\"aria-label\":\"模拟广告拦截\"})]})})}const c=globalThis.OpenDeskTool?.root?.querySelector(\"#tool-app\");if(!c)throw Error(\"E_TOOL_SHARED_DEMO_ROOT\");const l=i.createRoot(c);l.render(f.createElement(O));let s=!1;const g=()=>{s||(s=!0,l.unmount())};globalThis.addEventListener(\"pagehide\",g,{once:!0})})(OpenDeskPageReact,OpenDeskPageReact,OpenDeskPageReact,OpenDeskSidebarUI);\n",
+  "uiRuntime": "opendesk.react-ui.v1"
+}

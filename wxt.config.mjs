@@ -156,12 +156,37 @@ export default defineConfig({
         }
       });
       config.build.lib.formats = ['iife'];
-      // Only opt-in sandbox UI externalizes the packaged React 19.2.0 runtime.
-      const sharedUI=target==='sidebar-shared-ui.js';
-      config.build.rollupOptions.external = sharedUI?['react','react-dom','react-dom/client','react/jsx-runtime']:[];
+      // Resolve the opt-in UI's pinned local runtime at compile time. Rollup
+      // externals retain chunk.imports even for IIFEs with globals configured.
+      if(target==='sidebar-shared-ui.js') {
+        // Match the immutable production React runtime in every browser mode.
+        config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
+        // ReactDOM's CommonJS require must receive that exact default object,
+        // without Rollup's constructor-bearing augmented namespace wrapper.
+        config.build.commonjsOptions={...config.build.commonjsOptions,requireReturnsDefault:'preferred'};
+        const sharedReact='\0opendesk-shared-ui-react';
+        config.plugins.push({
+          name:'opendesk-shared-ui-pinned-react',enforce:'pre',
+          resolveId(id){if(id==='react'||id==='react/jsx-runtime')return sharedReact;},
+          load(id){
+            if(id!==sharedReact)return;
+            return `const React=globalThis.OpenDeskPageReact;
+              if(React?.version!=='19.2.0')throw Error('E_TOOL_SHARED_REACT_VERSION');
+              export default React;
+              export const {Activity,Children,Component,Fragment,Profiler,PureComponent,
+                StrictMode,Suspense,cache,cacheSignal,cloneElement,createContext,
+                createElement,createRef,forwardRef,isValidElement,lazy,memo,
+                startTransition,use,useActionState,useCallback,useContext,
+                useDebugValue,useDeferredValue,useEffect,useEffectEvent,useId,
+                useImperativeHandle,useInsertionEffect,useLayoutEffect,useMemo,
+                useOptimistic,useReducer,useRef,useState,useSyncExternalStore,
+                useTransition,version,jsx,jsxs}=React;`;
+          }
+        });
+      }
+      config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife',
-        inlineDynamicImports: true,
-        ...(sharedUI?{globals:{react:'OpenDeskPageReact','react-dom':'OpenDeskPageReact','react-dom/client':'OpenDeskPageReact','react/jsx-runtime':'OpenDeskPageReact'}}:{})};
+        inlineDynamicImports: true};
       // lodash-es@4.18.1 has an unreachable Function('return this')()
       // fallback in its upstream _root module. It is forbidden by the strict
       // MV3 classic-IIFE verifier even when dead after minification. Replace

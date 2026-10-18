@@ -2,6 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
+import vm from 'node:vm';
+import {build} from 'vite';
+import config from '../../wxt.config.mjs';
+import {inspectScript} from '../../scripts/verify-package.mjs';
 import {validateSidebarToolPackage,serializeSidebarToolPackage,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../../src/ui/sidebar-tools/package.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
@@ -33,7 +37,7 @@ test('JSX imports map to fixed sandbox globals and opt-in resource path',async()
   assert.match(contract,/'sidebar-shared-ui':/);
   assert.deepEqual(tool.capabilities,[]);
   assert.equal(tool.uiRuntime,SIDEBAR_TOOL_SHARED_UI_RUNTIME);
-  assert.match(preview,/dist\/development\/sidebar-shared-ui\.js/);
+  assert.match(preview,/\.opendesk-preview\/browser\/sidebar-shared-ui\.js/);
   for(const source of [app,vite,entry,preview])
     assert.doesNotMatch(source,/https?:\/\/.*(?:cdn|jsdelivr|unpkg)/i);
 });
@@ -45,4 +49,51 @@ test('built bundle contains no React runtime bytes',async t=>{
   assert.equal(pkg.uiRuntime,SIDEBAR_TOOL_SHARED_UI_RUNTIME);
   assert.ok(Buffer.byteLength(pkg.js,'utf8')<50000);
   assert.doesNotMatch(pkg.js,/ReactDOMRoot|ReactCurrentDispatcher|react\.production\.js/);
+});
+
+test('fixed shared UI compiles against pinned React with zero module imports',async()=>{
+  const input='\0shared-ui-build-contract';
+  const entry=fileURLToPath(new URL('../../src/entrypoints/sidebar-shared-ui.js',import.meta.url));
+  const buildConfig={configFile:false,logLevel:'silent',mode:'development',
+    define:{'process.env.NODE_ENV':JSON.stringify('development')},plugins:[{
+    name:'shared-ui-build-contract',
+    resolveId(id){if(id===input)return input;},
+    load(id){if(id===input)return `export {default as entry} from ${JSON.stringify(entry)};
+      export {default as React} from 'react';
+      export {jsx,jsxs,Fragment} from 'react/jsx-runtime';`;}
+  }],build:{lib:{entry,name:'sharedUIContract'},rollupOptions:{input},terserOptions:{},
+    sourcemap:false,minify:false,write:false,emptyOutDir:false}};
+  config.hooks['vite:build:extendConfig']([{name:'sidebar-shared-ui',type:'unlisted-script'}],buildConfig);
+  const result=await build(buildConfig);
+  const output=(Array.isArray(result)?result:[result]).flatMap(row=>row.output);
+  assert.equal(output.length,1);
+  const chunk=output[0];
+  assert.equal(chunk.fileName,'sidebar-shared-ui.js');
+  assert.deepEqual(chunk.imports,[]);
+  assert.deepEqual(chunk.dynamicImports,[]);
+  assert.deepEqual(inspectScript(chunk.code,chunk.fileName),{approvedAsyncBodyConstructors:0});
+  assert.equal(Object.keys(chunk.modules).some(id=>/node_modules\/react(?:\/|$)/.test(id)),false);
+  assert.equal(Object.keys(chunk.modules).some(id=>/node_modules\/react-dom\/(?:client|cjs\/react-dom-client)/.test(id)),false,
+    'The shared UI must reuse the pinned client renderer');
+  const pinnedContext=vm.createContext({});
+  vm.runInContext(await read('src/libs/page-frameworks/react-19.2.0.js'),pinnedContext);
+  const runtime=pinnedContext.OpenDeskPageReact;
+  const styles=[];
+  const context=vm.createContext({OpenDeskPageReact:runtime});
+  vm.runInContext(chunk.code,context);
+  context.document={createElement:()=>({dataset:{}}),head:{append:style=>styles.push(style)}};
+  const compiled=context.sharedUIContract;
+  for(const name of ['jsx','jsxs','Fragment'])assert.equal(compiled[name],runtime[name]);
+  assert.equal(compiled.React,runtime);
+  compiled.entry.main();
+  assert.equal(typeof context.OpenDeskSidebarUI.Card,'function');
+  assert.equal(typeof context.OpenDeskSidebarUI.Switch,'function');
+  assert.equal(context.OpenDeskSidebarUI.Card({}).type,'div');
+  assert.equal(styles.length,1);
+  assert.throws(()=>compiled.entry.main(),/E_TOOL_SHARED_UI_COLLISION/);
+  for(const supplied of [undefined,{...runtime,version:'19.1.0'}])
+    assert.throws(()=>vm.runInNewContext(chunk.code,{OpenDeskPageReact:supplied}),/E_TOOL_SHARED_REACT_VERSION/);
+  const policy=buildConfig.plugins.find(plugin=>plugin.name==='opendesk-fixed-sidebar-shared-ui');
+  for(const change of [{imports:['react']},{dynamicImports:['remote.js']}])
+    await assert.rejects(policy.generateBundle({}, {[chunk.fileName]:{...chunk,...change}}),/Non-self-contained/);
 });
