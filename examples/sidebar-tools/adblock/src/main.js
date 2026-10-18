@@ -1,6 +1,6 @@
 /* Compiled from src/App.jsx + src/main.jsx. React 19 and @opendesk/ui are host-owned externals. */
 (function(React,UI){'use strict';
-const {_jsx,_jsxs,Fragment:_Fragment}=React;
+const {jsx:_jsx,jsxs:_jsxs,Fragment:_Fragment}=React;
 const {Card,CardContent,Switch,Button}=UI;
 const siteCopy = {
     navigating: '页面正在导航，加载完成后可管理本站。',
