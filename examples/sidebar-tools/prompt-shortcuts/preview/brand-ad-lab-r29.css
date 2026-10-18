@@ -80,3 +80,13 @@
  .r29-format-card{min-height:148px}
 }
 @media(prefers-reduced-motion:reduce){.r29-format-card,.r29-placement{transition:none!important}}
+
+.r29-jump{margin-left:auto;font-weight:650;color:var(--brand);border-color:var(--brand);background:var(--surface-soft)}
+.r29-jump:hover{background:var(--surface-soft)}
+.r29-sample-stack,.r29-sample-pair{margin-left:auto;display:flex;gap:3px;align-items:flex-end;flex:none}
+.r29-sample-stack i{width:13px;height:23px;border-radius:3px;background:#96a8db}
+.r29-sample-stack i+ i{height:16px}
+.r29-sample-pair i{width:17px;height:25px;background:#d5dffd;border:1px solid #95abd8;border-radius:4px}
+.r29-sample[data-format=hero] .r29-sample-mark{width:42px;height:36px}
+.r29-sample[data-format=hover-card]{box-shadow:0 5px 15px #0002}
+.r29-sample[data-format=expand-card] .r29-sample-extra{margin-left:auto;font-size:15px}
