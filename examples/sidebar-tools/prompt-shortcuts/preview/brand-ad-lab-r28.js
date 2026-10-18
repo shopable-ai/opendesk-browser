@@ -393,7 +393,7 @@
     else if(state.prompts!==0)old.state.view='list';
     old.state.format='logo';old.state.placement='A1';
     old.state.tipOpen=['B06','B07','B08'].includes(id);
-    if(['B03','B04','B05'].includes(id)&&state.mode==='user'&&state.sold===0)state.sold=1;
+    // Selecting a location must NEVER fabricate a sold sponsor. Zero sold stays zero.
     old.render();$('r28Announcement').textContent=id+' · '+name(id)+(state.group==='N'||state.group==='C'?' · '+T('riskHint'):'');
   };
   function preset(key) {
