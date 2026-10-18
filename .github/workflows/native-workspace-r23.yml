@@ -9,6 +9,7 @@ on:
       - 'src/native-agent/settings.*'
       - 'src/native-agent/workspace-chat-edit-ui.js'
       - 'tests/environment/workspace-i18n-r23.test.mjs'
+      - 'scripts/tests/native-workspace-r23-chrome.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -50,3 +51,16 @@ jobs:
       - run: npm run build:dev
       - name: Real package verification (not a substitute for Mac Native E2E)
         run: npm run verify
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real packaged Chrome locale interaction and offline safety (not Native disk E2E)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/native-workspace-r23-chrome.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-workspace-r23-ui-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: artifacts/native-workspace-r23/chrome/
