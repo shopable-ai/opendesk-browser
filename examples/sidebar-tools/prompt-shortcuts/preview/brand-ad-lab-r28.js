@@ -100,7 +100,7 @@
     en:[['P','Polish','Polish this text while preserving its meaning.'],['T','Translate','Translate this text while preserving structure and terms.'],['S','Summarize','Summarize this text into three key points.'],['W','Write','Draft a clear, natural paragraph from this idea.']],
     ja:[['推','推敲','意味を保ったまま自然な文章に推敲してください。'],['訳','翻訳','専門用語と形式を維持して翻訳してください。'],['要','要約','要点を三つに要約してください。'],['書','執筆','このアイデアから自然で明快な文章を書いてください。']]
   };
-  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closeRail:false,closedCards:new Set(),closedWeb:new Set(),pop:''};
+  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closeRail:false,closedCards:new Set(),closedWeb:new Set(),closedTip:new Set(),pop:''};
   const T = key => (words[old.state.lang] || words.zh)[key] || key;
   const idx = () => Math.max(0, LANGS.indexOf(old.state.lang));
   const name = id => positions[id].names[idx()];
@@ -380,8 +380,15 @@
     if(!old.state.enabled)return;
     if(state.id==='B06'||state.id==='B07'){
       tipExtra.dataset.r28Current='true';
-      if(!old.state.long)tipExtra.append(adCard(0,state.layout==='recruit',false,state.id==='B06'?'text':state.layout));
-      else tipExtra.append(make('span','r28-corner-note',old.state.lang==='zh'?'长正文优先 · 广告让位':old.state.lang==='ja'?'長文優先：広告を非表示':'Long prompt first · ad hidden'));
+      if(state.sold===0&&state.mode==='user')return;
+      if(state.closedTip.has(state.id))return;
+      if(!old.state.long){
+        const item=make('div','r29-tip-ad');item.append(adCard(0,state.sold===0,false,state.id==='B06'?'text':state.layout));
+        const close=make('button','r29-tip-dismiss','×');close.type='button';
+        close.setAttribute('aria-label',T('dismiss')+' · '+state.id);
+        close.addEventListener('click',()=>{state.closedTip.add(state.id);sync();$('r28Restore').focus();});
+        item.append(close);tipExtra.append(item);
+      }else tipExtra.append(make('span','r28-corner-note',old.state.lang==='zh'?'长正文优先 · 广告让位':old.state.lang==='ja'?'長文優先：広告を非表示':'Long prompt first · ad hidden'));
     }
   }
   const choose=(id,extra=null) => {
@@ -397,7 +404,7 @@
     old.render();$('r28Announcement').textContent=id+' · '+name(id)+(state.group==='N'||state.group==='C'?' · '+T('riskHint'):'');
   };
   function preset(key) {
-    state.preset=key;state.active=true;state.extra=null;state.closedCards.clear();state.closedWeb.clear();state.closeRail=false;old.state.enabled=true;old.state.long=false;
+    state.preset=key;state.active=true;state.extra=null;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closeRail=false;old.state.enabled=true;old.state.long=false;
     if(key==='brand')Object.assign(state,{id:'B01',group:'B',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4});
     if(key==='sponsor')Object.assign(state,{id:'B03',group:'B',scene:'new',mode:'user',sold:1,layout:'icon',prompts:4});
     if(key==='hover')Object.assign(state,{id:'B07',group:'B',scene:'short',mode:'user',sold:1,layout:'landscape',prompts:4});
@@ -490,11 +497,11 @@
   });
   $('r28Bounds').addEventListener('change',e=>{state.boundaries=e.target.checked;sync();});
   $('r28Dismiss').addEventListener('click',()=>{old.state.enabled=false;old.render();});
-  $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closeRail=false;old.render();});
+  $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closeRail=false;old.render();});
   for(const id of ['showEdit','addFirst'])$(id).addEventListener('click',()=>{
     state.formMode='new';if(state.group==='S'){state.id='S04';old.render();}
   });
-  $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closeRail=false;sync();});
+  $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closeRail=false;sync();});
   for(const el of [$('placement'),$('format'),...document.querySelectorAll('.preset')]){
     el.addEventListener(el.tagName==='SELECT'?'change':'click',()=>{state.active=false;state.preset='';hidePop();sync();});
   }
