@@ -100,7 +100,7 @@
     en:[['P','Polish','Polish this text while preserving its meaning.'],['T','Translate','Translate this text while preserving structure and terms.'],['S','Summarize','Summarize this text into three key points.'],['W','Write','Draft a clear, natural paragraph from this idea.']],
     ja:[['推','推敲','意味を保ったまま自然な文章に推敲してください。'],['訳','翻訳','専門用語と形式を維持して翻訳してください。'],['要','要約','要点を三つに要約してください。'],['書','執筆','このアイデアから自然で明快な文章を書いてください。']]
   };
-  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closeRail:false,closedCards:new Set(),closedWeb:new Set(),closedTip:new Set(),pop:''};
+  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closeRail:false,closedRail:new Set(),closedCards:new Set(),closedWeb:new Set(),closedTip:new Set(),pop:''};
   const T = key => (words[old.state.lang] || words.zh)[key] || key;
   const idx = () => Math.max(0, LANGS.indexOf(old.state.lang));
   const name = id => positions[id].names[idx()];
@@ -148,7 +148,7 @@
   const dialog=make('dialog');dialog.id='r28Dialog';dialog.setAttribute('aria-labelledby','r28DialogTitle');
   dialog.innerHTML='<h2 id="r28DialogTitle"></h2><p id="r28DialogCopy"></p><p id="r28DialogScope" class="r28-risk-banner"></p><div class="r28-modal-actions"><button id="r28DialogClose" type="button"></button></div>';
   document.body.append(dialog);
-  let focusBack=null;
+  let focusBack=null,suppressPopFocus=false;
   const openDialog = kind => {
     focusBack=document.activeElement;
     $('r28DialogTitle').textContent=kind==='brand'?'OpenDesk · Prompt Shortcuts':T('detailsTitle');
@@ -158,10 +158,18 @@
     if(!dialog.open && typeof dialog.showModal==='function')dialog.showModal();
   };
   $('r28DialogClose').addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('close',()=>{if(focusBack?.isConnected)focusBack.focus();});
+  dialog.addEventListener('close',()=>{(focusBack?.isConnected?focusBack:$('r28Restore')).focus();});
+  // Capture Escape before the preserved R2.7 tooltip listener.
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){state.pop='';hidePop();if(dialog.open){dialog.close();e.stopPropagation();}}
-  });
+    if(e.key!=='Escape')return;
+    if(dialog.open){dialog.close();e.stopImmediatePropagation();return;}
+    if(!pop.hidden){
+      const kind=state.pop,inside=pop.contains(document.activeElement);
+      hidePop(true);
+      if(inside){suppressPopFocus=true;(kind==='brand'?brand:railAd).focus();suppressPopFocus=false;}
+      e.stopImmediatePropagation();
+    }
+  },true);
 
   const site=document.querySelector('.sim-site'),siteBody=$('siteBody');
   const compose=document.querySelector('.sim-site > .site-compose');
@@ -169,7 +177,7 @@
   siteBody.append(page);
   const rail=$('rail'),originalShortcut=$('shortcut');
   const brand=make('button','r28-mark','OD');brand.id='r28Brand';brand.type='button';
-  brand.addEventListener('mouseenter',()=>showPop('brand'));brand.addEventListener('focus',()=>showPop('brand'));
+  brand.addEventListener('mouseenter',()=>showPop('brand'));brand.addEventListener('focus',()=>{if(!suppressPopFocus)showPop('brand');});
   brand.addEventListener('mouseleave',hidePop);brand.addEventListener('click',()=>openDialog('brand'));
   rail.insertBefore(brand,originalShortcut);
   const extraButtons=[];
@@ -181,13 +189,13 @@
   }
   const separator=make('span','r28-rail-divider');separator.setAttribute('aria-hidden','true');rail.append(separator);
   const railAd=make('button','r28-rail-sponsor','✦');railAd.id='r28Sponsor';railAd.type='button';
-  railAd.addEventListener('mouseenter',()=>showPop('sponsor'));railAd.addEventListener('focus',()=>showPop('sponsor'));
+  railAd.addEventListener('mouseenter',()=>showPop('sponsor'));railAd.addEventListener('focus',()=>{if(!suppressPopFocus)showPop('sponsor');});
   railAd.addEventListener('mouseleave',hidePop);
   railAd.addEventListener('click',()=>openDialog('sponsor'));
   rail.append(railAd);
   const railClose=make('button','r29-rail-close','×');railClose.type='button';
   railClose.setAttribute('aria-label',T('dismiss')+' · '+T('partner'));
-  railClose.addEventListener('click',()=>{state.closeRail=true;hidePop(true);sync();$('r28Restore').focus();});
+  railClose.addEventListener('click',()=>{state.closeRail=true;state.closedRail.add(state.id);hidePop(true);sync();$('r28Restore').focus();});
   rail.append(railClose);
   const pop=make('div','r28-rail-pop');pop.id='r28Pop';pop.hidden=true;pop.setAttribute('role','status');
   rail.append(pop);
@@ -232,15 +240,14 @@
     originalShortcut.textContent=prompts[0][0];originalShortcut.hidden=state.active&&state.prompts<1;
     extraButtons.forEach((b,i)=>{b.textContent=prompts[i+1][0];b.title=prompts[i+1][1];b.setAttribute('aria-label',prompts[i+1][1]);b.hidden=!state.active||state.prompts<i+2;});
     railAd.title=T('partner');railAd.setAttribute('aria-label',T('partner')+' · '+T('view'));
-    const show=state.active&&old.state.enabled&&!state.closeRail&&(state.sold>0||state.mode==='sales')&&state.preset!=='brand';
+    const show=state.active&&old.state.enabled&&!state.closedRail.has(state.id)&&(state.sold>0||state.mode==='sales')&&state.preset!=='brand';
     railAd.hidden=!show;separator.hidden=!show;railClose.hidden=!show;
     railClose.setAttribute('aria-label',T('dismiss')+' · '+T('partner'));
     brand.dataset.r28Current=state.active&&['B01','B02'].includes(state.id)?'true':'false';
     railAd.dataset.r28Current=state.active&&['B03','B04','B05'].includes(state.id)?'true':'false';
     $('tip').hidden=state.active?!(old.state.tipOpen||['B06','B07','B08'].includes(state.id)):!old.state.tipOpen;
-    if(state.active&&state.id==='B02')showPop('brand');
-    else if(state.active&&['B04','B05'].includes(state.id)&&show)showPop('sponsor');
-    else if(state.pop)hidePop();
+    if(state.pop==='sponsor'&&!show)hidePop(true);
+    if(state.pop==='brand'&&!state.active)hidePop(true);
   }
   function adCard(index,unsold,asButton,layoutOverride) {
     const unit=make(asButton?'button':'div','r28-demo-ad');
@@ -265,21 +272,21 @@
     formTitle.textContent=state.formMode==='new'?(['新建提示词','New prompt','新規プロンプト'][idx()]):(['编辑提示词','Edit prompt','プロンプトを編集'][idx()]);
     $('editView').dataset.r29Form=state.formMode;
     const groupView=view==='edit'?'S04':view==='empty'?'S06':view==='settings'?'S07':'S02';
-    const showCards=state.sold>0||state.mode==='sales';
+    const showCards=(state.sold>0||state.mode==='sales')&&!(state.layout==='recruit'&&state.mode==='user');
     if(view==='list'){
       const holder=state.id==='S01'?slots.S01:state.id==='S08'?slots.S08:slots.S02;
       if(showCards) {
         const row=make('div','r28-card-row');row.append(make('strong','',T('sold')+' '+state.sold+'/3'));
-        const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{for(let i=0;i<3;i++)state.closedCards.add(i);sync();$('r28Restore').focus();});
+        const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{for(let i=0;i<3;i++)state.closedCards.add(state.id+':'+i);sync();$('r28Restore').focus();});
         row.append(close);holder.append(row);
         const list=make('div','r28-inventory');list.dataset.layout=state.layout==='mini'?'mini':state.layout==='hero'?'hero':'standard';
         const max=['S01','S08'].includes(state.id)?1:3;
         for(let i=0;i<max;i++){
           if(i>=state.sold&&state.mode==='user')continue;
-          if(state.closedCards.has(i))continue;
+          if(state.closedCards.has(state.id+':'+i))continue;
           const item=make('div','r28-panel-slot');
           item.append(adCard(i,i>=state.sold,true,i>0&&state.layout==='hero'?'mini':state.layout));
-          {const closeCard=make('button','', '×');closeCard.type='button';closeCard.className='r28-dismiss-card';closeCard.setAttribute('aria-label',T('dismiss')+' '+(i+1));closeCard.addEventListener('click',()=>{state.closedCards.add(i);sync();});item.append(closeCard);}
+          {const closeCard=make('button','', '×');closeCard.type='button';closeCard.className='r28-dismiss-card';closeCard.setAttribute('aria-label',T('dismiss')+' '+(i+1));closeCard.addEventListener('click',()=>{state.closedCards.add(state.id+':'+i);sync();$('r28Restore').focus();});item.append(closeCard);}
           list.append(item);
         }
         if(list.childElementCount)holder.append(list);else holder.replaceChildren();
@@ -291,7 +298,18 @@
     }else if(showCards){
       const target=state.id==='S05'?'S05':groupView;
       const holder=slots[target];
-      if(!state.closedCards.has(0))holder.append(adCard(0,state.sold===0,true));
+      if(!state.closedCards.has(target)){
+        const cell=make('div','r29-solo-card');
+        cell.append(adCard(0,state.sold===0,true));
+        const close=make('button','r28-dismiss-card','×');close.type='button';
+        close.setAttribute('aria-label',T('dismiss')+' · '+target);
+        close.addEventListener('click',()=>{state.closedCards.add(target);sync();$('r28Restore').focus();});
+        cell.append(close);holder.append(cell);
+      }
+    }
+    if(state.group==='S'&&state.boundaries&&['S04','S05','S06','S07','S08'].includes(state.id)
+      &&!slots[state.id].childElementCount){
+      slots[state.id].append(make('span','r29-anchor-empty',state.id+' · '+T('clickZone')));
     }
     if(state.id==='S03'||(state.group==='S'&&state.boundaries)){
       const selected=state.id==='S03';
@@ -323,10 +341,13 @@
   function createWeb(){
     const draft=$('draft'),hadDraftFocus=document.activeElement===draft;
     const selection=hadDraftFocus?[draft.selectionStart,draft.selectionEnd]:null;
-    if(!state.active){site.dataset.r28Legacy='true';page.hidden=true;site.insertBefore(compose,$('bottomSponsor'));return;}
+    if(!state.active){site.dataset.r28Legacy='true';page.hidden=true;page.dataset.r28Scene='';site.insertBefore(compose,$('bottomSponsor'));return;}
     site.dataset.r28Legacy='false';page.hidden=false;
-    page.replaceChildren();
-    page.append(make('span','r28-mock-meta',T('mockSite')));
+    // Avoid tearing down a focused IME textarea and live chat scroll during ad redraws.
+    const sceneChanged=page.dataset.r28Scene!==state.scene||!page.contains(compose);
+    if(sceneChanged){
+      page.replaceChildren();
+      page.append(make('span','r28-mock-meta',T('mockSite')));
     if(state.scene==='new'){
       const center=make('section','r28-center');
       center.append(zone('N02','r28-inline-spot'));
@@ -354,6 +375,15 @@
       page.append(wrap,zone('C01','r28-convo-abs'),zone('C02','r28-convo-abs'),zone('C07','r28-convo-abs'));
       page.querySelectorAll('.r28-convo-abs').forEach(b=>b.classList.add('r28-zone'));
     }
+      page.dataset.r28Scene=state.scene;
+    }
+    const mockMeta=page.querySelector('.r28-mock-meta');
+    if(mockMeta)mockMeta.textContent=T('mockSite');
+    if(!sceneChanged){
+      const greeting=page.querySelector('.r28-center h2');if(greeting)greeting.textContent=T('newGreeting');
+      for(const p of page.querySelectorAll('.r28-human'))p.textContent=T('userMessage');
+      for(const p of page.querySelectorAll('.r28-answer'))p.textContent=T('assistantMessage')+(state.scene==='long'?'\n'+T('assistantMessage'):'');
+    }
     for(const b of page.querySelectorAll('[data-spot]')) {
       const id=b.dataset.spot;
       const selected=state.id===id||state.extra===id;
@@ -364,7 +394,7 @@
       const trigger=b.querySelector('.r29-zone-trigger');
       trigger.setAttribute('aria-label',id+' · '+name(id));trigger.setAttribute('aria-pressed',String(selected));
       const marker=make('b','',id),label=make('span','',name(id));
-      trigger.append(marker,label);
+      trigger.replaceChildren(marker,label);
       const showAd=old.state.enabled&&!state.closedWeb.has(id)&&(state.sold>0||state.mode==='sales');
       if(selected&&showAd){
         const art=make('span','r28-selected-art');
@@ -382,7 +412,7 @@
       }
     }
     // Reusing the same textarea must not destroy an in-progress draft or caret.
-    if(hadDraftFocus){draft.focus();try{draft.setSelectionRange(...selection);}catch{/* no selection support */}}
+    if(hadDraftFocus&&sceneChanged){draft.focus();try{draft.setSelectionRange(...selection);}catch{/* no selection support */}}
   }
   function renderTip() {
     tipExtra.replaceChildren();delete tipExtra.dataset.r28Current;delete document.querySelector('.tip-brand').dataset.r28Current;
@@ -394,7 +424,7 @@
       if(state.sold===0&&state.mode==='user')return;
       if(state.closedTip.has(state.id))return;
       if(!old.state.long){
-        const item=make('div','r29-tip-ad');item.append(adCard(0,state.sold===0,false,state.id==='B06'?'text':state.layout));
+        const item=make('div','r29-tip-ad');item.append(adCard(0,state.sold===0,true,state.id==='B06'?'text':state.layout));
         const close=make('button','r29-tip-dismiss','×');close.type='button';
         close.setAttribute('aria-label',T('dismiss')+' · '+state.id);
         close.addEventListener('click',()=>{state.closedTip.add(state.id);sync();$('r28Restore').focus();});
@@ -402,11 +432,27 @@
       }else tipExtra.append(make('span','r28-corner-note',old.state.lang==='zh'?'长正文优先 · 广告让位':old.state.lang==='ja'?'長文優先：広告を非表示':'Long prompt first · ad hidden'));
     }
   }
+  const mockSaved={body:$('editPrompt').value,name:fakePrompts[old.state.lang][0][1]};
+  function prepareForm(mode){
+    state.formMode=mode;
+    $('editPrompt').value=mode==='edit'?mockSaved.body:'';
+    $('editName').value=mode==='edit'?mockSaved.name:'';
+    $('editView').dataset.r29Form=mode;
+  }
+  $('saveEdit').addEventListener('click',e=>{
+    const body=$('editPrompt').value.trim();
+    if(!body){
+      e.preventDefault();e.stopImmediatePropagation();$('editPrompt').focus();
+      $('r28Announcement').textContent=(['请输入提示词正文','Enter prompt text','本文を入力してください'][idx()]);
+      return;
+    }
+    mockSaved.body=$('editPrompt').value;mockSaved.name=$('editName').value;
+  },true);
   const choose=(id,extra=null) => {
-    state.active=true;state.id=id;state.group=id[0];state.extra=extra;state.preset='';
+    state.active=true;hidePop(true);state.id=id;state.group=id[0];state.extra=extra;state.preset='';
     if(state.group==='N')state.scene='new';
     if(state.group==='C'&&state.scene==='new')state.scene='short';
-    if(state.group==='S'){if(id==='S04')state.formMode='new';if(id==='S05')state.formMode='edit';}
+    if(state.group==='S'){if(id==='S04')prepareForm('new');if(id==='S05')prepareForm('edit');}
     if(state.group==='S')old.state.view=id==='S04'||id==='S05'?'edit':id==='S06'?'empty':id==='S07'?'settings':'list';
     else if(state.prompts!==0)old.state.view='list';
     old.state.format='logo';old.state.placement='A1';
@@ -415,7 +461,7 @@
     old.render();$('r28Announcement').textContent=id+' · '+name(id)+(state.group==='N'||state.group==='C'?' · '+T('riskHint'):'');
   };
   function preset(key) {
-    state.preset=key;state.active=true;state.extra=null;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closeRail=false;old.state.enabled=true;old.state.long=false;
+    state.preset=key;state.active=true;state.extra=null;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;old.state.enabled=true;old.state.long=false;
     if(key==='brand')Object.assign(state,{id:'B01',group:'B',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4});
     if(key==='sponsor')Object.assign(state,{id:'B03',group:'B',scene:'new',mode:'user',sold:1,layout:'icon',prompts:4});
     if(key==='hover')Object.assign(state,{id:'B07',group:'B',scene:'short',mode:'user',sold:1,layout:'landscape',prompts:4});
@@ -508,11 +554,11 @@
   });
   $('r28Bounds').addEventListener('change',e=>{state.boundaries=e.target.checked;sync();});
   $('r28Dismiss').addEventListener('click',()=>{old.state.enabled=false;old.render();});
-  $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closeRail=false;old.render();});
+  $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;old.render();});
   for(const id of ['showEdit','addFirst'])$(id).addEventListener('click',()=>{
-    state.formMode='new';if(state.group==='S'){state.id='S04';old.render();}
+    prepareForm('new');if(state.group==='S'){state.id='S04';old.render();}
   });
-  $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closeRail=false;sync();});
+  $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;sync();});
   for(const el of [$('placement'),$('format'),...document.querySelectorAll('.preset')]){
     el.addEventListener(el.tagName==='SELECT'?'change':'click',()=>{state.active=false;state.preset='';hidePop();sync();});
   }
