@@ -694,7 +694,12 @@ test('R14 cross-window tool update invalidates review and clears the stale file 
   const update={...sample,version:'1.1.0'};
   input.value='C:\\fakepath\\update.opendesk-tool.json';
   input.files=[{name:'update.opendesk-tool.json',size:JSON.stringify(update).length,text:async()=>JSON.stringify(update)}];
-  input.emit('change');await pause();await pause();
+  input.emit('change');
+  // File hashing and package validation are async. Establish a completed,
+  // actionable review before testing that a cross-window update invalidates it.
+  // Do not relax the post-change identity, disabled-button or reset checks.
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&
+    !f.elements['sidebar-tool-install'].disabled);
   assert.equal(f.elements['sidebar-tool-install'].disabled,false);
   const concurrent={...sample,version:'1.0.1'};
   f.store.set(SIDEBAR_TOOL_STORE,[concurrent]);
