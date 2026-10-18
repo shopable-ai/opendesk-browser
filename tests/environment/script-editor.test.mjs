@@ -1145,7 +1145,9 @@ test('a failed evaluate surfaces Chrome settings and read-only recovery without 
   f.api.runtime.id=id;
   f.api.tabs.create=async request=>{urls.push(request.url);return {id:99};};
   let enabled=false,probes=0;
-  f.api.userScripts={getScripts:async()=>{probes++;if(!enabled)throw Error('disabled');return [];},execute:()=>assert.fail('UI check cannot execute scripts')};
+  // Match the actual Chrome 155 unavailable-API error. Unrelated native
+  // failures must not be mislabeled as a disabled userScripts setting.
+  f.api.userScripts={getScripts:async()=>{probes++;if(!enabled)throw Error("'userScripts.getScripts' is not available in this context.");return [];},execute:()=>assert.fail('UI check cannot execute scripts')};
   const revision={scriptId:'draft:unavailable',revision:1,sourceHash:'c'.repeat(64)};
   const run={runId:'run-unavailable',state:'failed',sourceKind:'draft',revision};
   const result={runId:run.runId,resultId:'result-unavailable',state:'failed',sourceKind:'draft',revision,
