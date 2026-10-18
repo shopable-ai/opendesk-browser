@@ -192,3 +192,7 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
 .r28-inline-spot[data-r29-dismissed=true][data-r28-current=true]{min-height:26px}
 .r28-zone[data-r29-dismissed=true][data-r28-current=true] .r29-zone-trigger{min-height:18px}
 .r28-zone[data-r29-dismissed=true] .r28-selected-art{display:none}
+
+.r29-tip-ad{position:relative;padding-right:23px;min-width:0}
+.r29-tip-dismiss{position:absolute;top:3px;right:0;width:23px;height:23px;min-width:23px;padding:0;border-radius:7px;background:var(--surface);font-size:16px;color:var(--text)}
+.r29-tip-ad .r28-demo-ad{max-height:64px;overflow:hidden}
