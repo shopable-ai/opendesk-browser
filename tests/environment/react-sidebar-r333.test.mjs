@@ -17,7 +17,8 @@ test('R33.3 pins one React 19 runtime and keeps existing fixed WXT entry',async(
   assert.equal(lock.packages['node_modules/scheduler'].version,'0.27.0');
   assert.match(await read('src/entrypoints/tool-shell.js'),/initToolShell/);
   const shell=await read('src/ui/tool-shell.js');
-  assert.match(shell,/mountExtensionList\\(document,\\{debugEnabled/);\n  assert.match(shell,/reactNavigationRequest\\?\\.\\(view\\)/);
+  assert.match(shell,/mountExtensionList\(document,\{debugEnabled/);
+  assert.match(shell,/reactNavigationRequest\?\.\(view\)/);
   assert.match(shell,/extensionCenter\.dispose\(\); extensionList\.dispose\(\)/);
   await assert.rejects(access('packages/opendesk-ui-react'));
 });
