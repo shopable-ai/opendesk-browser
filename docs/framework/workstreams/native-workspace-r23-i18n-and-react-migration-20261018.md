@@ -28,3 +28,22 @@
 ## 新增语言的最小改动
 
 在 `src/i18n/locales/<locale>.js` 提供与英文包相同的全部 Key 和占位符；在 `src/i18n/index.js` 注册 import、`SUPPORTED_LOCALES`、`LOCALE_NAMES`、`CATALOGS` 以及 `normalizeLocale` 对应区域回退。两个 HTML 页面的下拉选项会自动来自注册表，**无需修改页面组件**。运行定向测试与正式包验证，绝不复制一套新 i18n。
+
+## R23.1 · 实施 Phase B 的真实工程证据（2026-10-19）
+
+**状态：PARTIAL。React 全面接管尚未完成。** 本节仅追踪真正提交的 Native Domain / Store / Controller 接口，不将其视为 React Root 或 Mac Native 验收。
+
+- [5c1ccf2](https://github.com/shopable-ai/opendesk-browser/commit/5c1ccf239c91095c043c20146c8ba095ef4492b9)：新增 src/native-agent/workspace-domain.js，提取文件身份、内容验证、草稿冲突、ACK SHA 与写后读回校验；新增 workspace-store.js，支持 getSnapshot/subscribe 的只读观察；workspace.js 的真实 read/save/saveAs/reread 接入上述模块，同时提供受控 actions；原 Native Host、协议和 AI beforeSave 守卫保留。
+- 新增 tests/environment/workspace-domain-r231.test.mjs（5 项）及扩充 workspace-integration.test.mjs，行为验证只读快照、草稿、控制器保存与权限身份。
+- [d888199](https://github.com/shopable-ai/opendesk-browser/commit/d8881999bcff9de25d24b6d46acad957aeeb1db7)：更新 R23 旧测试，校验新 ACK 安全函数的真实拒绝行为而不是匹配旧源码字符串。
+- [Actions #39146525738](https://github.com/shopable-ai/opendesk-browser/actions/runs/39146525738)：Native Locale/Contract 定向测试 70/70 PASS；Workspace CSS 编译 PASS；npm run check PASS。整体验证 FAIL：npm run build 被并行 Prompt Shortcuts 固定来源审计阻断（Trusted page.js 与 scripts/bundle-provenance.mjs 锁定摘要不符）；build:dev、verify 和 Chrome 端到端未完成。
+
+### 阶段 C / D / E 仍必须实施
+
+1. workspace-chat-edit-ui.js 拆分为 DOM-free AI 状态与 Actions，保留对话绑定、lease/session、答复轮次、防重放和最终 beforeSave。
+2. 正式 workspace.html 仅保留必要根节点与资源；独立可信 React 19 Root 接管文件树、编辑器、预览、AI 审阅、授权与恢复 UI。旧 DOM Controller 不得与 React 长期共管。
+3. React 全部文案使用既有四语言语义 Key，订阅语言变更；复用既有 Shared UI 组件和设计 Token。
+4. 排除构建来源审计阻断（归属 Prompt Shortcuts 任务）、完成 WXT 正式/开发构建与安全包验证，再做打包 Chrome 宽度、语言、焦点与离线回归。
+5. 真 Mac Native 连接→读取→编辑→保存→读回→冲突→AI 审阅→采用草稿→主动保存，当前云端 **NOT_TESTED**。
+
+**验收边界：** 本阶段没有新增 React Root、没有移除静态主界面，也没有改写原 workspace-chat-edit-ui.js；任何完整 React 或 95+ 的结论均不成立。
