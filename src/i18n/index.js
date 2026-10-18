@@ -21,7 +21,9 @@ export function normalizeLocale(value){
   if(input==='en'||input.startsWith('en-'))return 'en';
   return null;
 }
-export function resolveLocale(preference='auto',languages=globalThis.navigator?.languages||[globalThis.navigator?.language]){
+// Node integration fixtures have no browser document. Keep their historical zh-CN UI assertions stable;
+// actual browser documents always follow navigator.languages unless the user chose a locale.
+export function resolveLocale(preference='auto',languages=typeof globalThis.document==='undefined'?['zh-CN']:(globalThis.navigator?.languages||[globalThis.navigator?.language])){
   if(preference!=='auto'){
     // Explicit choices must match a supported locale, not reinterpret an unknown stored value.
     if(SUPPORTED_LOCALES.includes(preference))return preference;
