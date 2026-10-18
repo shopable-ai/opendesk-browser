@@ -233,7 +233,7 @@ try{
   host=await attach(page.targetId);
   await call('Page.enable',{},host);
   await until(()=>evaluate(host,
-    '(()=>{const t=document.querySelector("#tab-tools"),l=document.querySelector("#extension-center-list"),s=document.querySelector("#extension-center-status");return document.readyState==="complete"&&!!t&&l?.dataset.opendeskReactOwner==="extension-list"&&!!s?.textContent?.trim()})()'),
+    '(()=>{const t=document.querySelector("#tab-tools"),l=document.querySelector("#extension-center-list"),s=document.querySelector("#extension-center-status"),i=document.querySelector("#extension-center-import"),m=document.querySelector("#extension-center-more");return document.readyState==="complete"&&!!t&&l?.isConnected&&l?.dataset.opendeskReactOwner==="extension-list"&&!!s&&!!i&&!!m})()'),
     'real React extension center controller fully connected');
   await click(host,'#tab-tools');
   await until(()=>evaluate(host,'!document.querySelector("#workbench-tools")?.hidden'),
