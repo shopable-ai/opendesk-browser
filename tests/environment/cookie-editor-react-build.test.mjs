@@ -47,5 +47,11 @@ test('canonical packer emits independent 2.0.24 candidate without touching forma
   assert.equal(output.id,'cookie-editor');
   assert.equal(output.version,'2.0.24');
   assert.equal(output.uiRuntime,'opendesk.react-ui.v1');
+  assert.match(output.css,/^\/\* opendesk\.shared-design\.v1 sha256=[0-9a-f]{64}/);
+  assert.match(output.css,/\.od-button\{/);
+  assert.match(output.css,/\.od-icon-button\{/);
+  assert.match(output.css,/:is\(input,select,textarea\)\.od-field\{/);
+  assert.equal(output.js,(await get('dist/tool.js')).toString('utf8'));
+  assert.doesNotMatch(output.js,/secret_preview_never_real|sess_demo_only_C18/);
   assert.ok(bytes.length>1000);
 });

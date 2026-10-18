@@ -47,6 +47,12 @@ jobs:
             tests/environment/cookie-editor-react-controller.test.mjs \
             tests/environment/cookie-editor-react-source.test.mjs \
             tests/environment/cookie-editor-react-design.test.mjs \
+            tests/environment/browser-sdk-r8-cookies.test.mjs \
+            tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
+            tests/environment/browser-sdk-r9-installed-host.test.mjs \
+            tests/environment/sidebar-tools-host.test.mjs \
+            tests/environment/sidebar-shared-ui-r17.test.mjs \
+            tests/environment/page-install-package.test.mjs \
             tests/environment/cookie-editor-ui.test.mjs \
             tests/environment/cookie-editor-native-selection.test.mjs \
             tests/environment/cookie-editor-r50-trusted-pilot.test.mjs \
