@@ -187,7 +187,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     <>
       <div className="cookie-site-select">
         <label htmlFor="cookie-target-url">切换或选择网站
-          <input id="cookie-target-url" type="url" value={siteInput} disabled={locked}
+          <input className="od-field" id="cookie-target-url" type="url" value={siteInput} disabled={locked}
             placeholder="留空则跟随当前网页" onChange={e=>setSiteInput(e.target.value)}/></label>
         <Button disabled={locked} onClick={()=>guarded(()=>{
           appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
@@ -199,7 +199,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       </div>
       <CookiePermissions phase={snapshot.phase} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}/>
-      {snapshot.phase==='ready'&&<Card><CardContent>
+      {snapshot.phase==='ready'&&<Card className="od-surface"><CardContent className="od-surface--padded">
         <CookieEditorView site={target?.hostname||''}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
@@ -226,10 +226,10 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       </CardContent></Card>}
       {snapshot.phase==='ready'&&<section className="cookie-observe" aria-label="Cookie 变化观察">
         <div><strong>变化观察</strong><small>最多 15 秒，只显示元数据。</small></div>
-        {!snapshot.observing?<button disabled={locked} onClick={()=>void controller.observe('start')}>
-          开始观察</button>:<>
-          <button disabled={locked} onClick={()=>void controller.observe('read')}>读取变化</button>
-          <button disabled={locked} onClick={()=>void controller.observe('stop')}>停止</button>
+        {!snapshot.observing?<Button disabled={locked} onClick={()=>void controller.observe('start')}>
+          开始观察</Button>:<>
+          <Button disabled={locked} onClick={()=>void controller.observe('read')}>读取变化</Button>
+          <Button disabled={locked} onClick={()=>void controller.observe('stop')}>停止</Button>
         </>}
         {snapshot.observeEvents.length>0&&<ul>
           {snapshot.observeEvents.map((event,i)=><li key={i}>{
@@ -237,16 +237,16 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         </ul>}
       </section>}
     </>}
-    {snapshot.message&&<p role="status" className={'cookie-message '+snapshot.messageType}>
+    {snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
       {snapshot.message}</p>}
-    {status&&<p role="alert" className="cookie-message error">{status}</p>}
-    {confirmation&&<div className="cookie-confirm" role="alertdialog" aria-modal="true"
+    {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
+    {confirmation&&<div className="cookie-confirm od-alert od-alert--warning" role="alertdialog" aria-modal="true"
       aria-label="确认 Cookie 操作">
       <p>{confirmation.text}</p>
       <div className="cookie-editor-actions">
-        <button ref={cancelButton} type="button" onClick={()=>endConfirm(false)}>取消</button>
-        <button type="button" className="danger"
-          onClick={()=>endConfirm(true)}>确认</button>
+        <Button ref={cancelButton} type="button" onClick={()=>endConfirm(false)}>取消</Button>
+        <Button type="button" className="od-button--danger"
+          onClick={()=>endConfirm(true)}>确认</Button>
       </div>
     </div>}
   </main>;

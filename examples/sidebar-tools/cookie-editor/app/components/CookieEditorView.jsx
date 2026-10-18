@@ -23,7 +23,7 @@ export function CookieIcon({name}){
 }
 function Action({name,label,disabled=false,onClick,pressed,tone='normal'}){
   return <button type="button" title={label} aria-label={label}
-    className={'cookie-react-icon icon-btn'+(tone==='danger'?' cookie-clear-action':'')}
+    className={'cookie-react-icon icon-btn od-icon-button'+(tone==='danger'?' cookie-clear-action od-icon-button--danger':'')}
     disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}
     onClick={onClick}><CookieIcon name={name}/></button>;
 }
@@ -62,7 +62,7 @@ export function CookieSearch({
   return <>
     <div className="searchbar">
       <div className="searchbox"><CookieIcon name="search"/>
-        <input value={query} type="search" onChange={e=>onQuery(e.target.value)}
+        <input className="od-field" value={query} type="search" onChange={e=>onQuery(e.target.value)}
           placeholder="搜索名称、域名或路径" aria-label="搜索 Cookie"/>
       </div>
       <Action name="filter" label="筛选与排序" pressed={expandedFilters}
@@ -72,11 +72,11 @@ export function CookieSearch({
       <div className="filter-chips">
         {[['all','全部'],['secure','Secure'],['httpOnly','HttpOnly'],
           ['session','会话'],['partitioned','分区']].map(([key,label])=>
-          <button key={key} type="button" className={'chip '+(filter===key?'selected':'')}
+          <button key={key} type="button" className={'chip od-button '+(filter===key?'selected':'od-button--secondary')}
             onClick={()=>onFilter(key)} aria-pressed={filter===key}>{label}</button>)}
       </div>
       <label className="sort-field">排序
-        <select value={sort} onChange={e=>onSort(e.target.value)}>
+        <select className="od-field" value={sort} onChange={e=>onSort(e.target.value)}>
           <option value="name">名称</option><option value="domain">域名</option>
           <option value="path">路径</option><option value="expiration">过期时间</option>
         </select>
@@ -93,7 +93,7 @@ export function CookieRows({
     {pinnedNote&&<p className="pinned-note">当前编辑项不符合筛选条件，暂时保留显示。</p>}
     {rows.map(row=><article key={row.id}
       className={'cookie-row '+(selected===row.id?'expanded':'')}>
-      <button className="row-trigger" data-row={row.id} type="button"
+      <button className="row-trigger od-button od-button--quiet" data-row={row.id} type="button"
         aria-expanded={selected===row.id} aria-controls={idPrefix+row.id}
         onClick={()=>onSelect(row.id)}>
         <span className="row-text"><strong>{row.name}</strong>
@@ -109,7 +109,7 @@ export function CookieRows({
         {renderEditor?renderEditor(row):
           <div className="cookie-react-detail" role="status">
             <span>仅展示虚构元数据，不读取 Cookie 值。</span>
-            <button type="button" onClick={()=>onSelect(null)}>收起</button>
+            <button type="button" className="od-button od-button--secondary" onClick={()=>onSelect(null)}>收起</button>
           </div>}
       </div>}
     </article>)}
@@ -153,10 +153,10 @@ export function CookieEditorView({
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>
     {pages>1&&<nav className="cookie-pages" aria-label="Cookie 分页">
-      <button type="button" disabled={safePage===1||busy}
+      <button type="button" className="od-button od-button--secondary" disabled={safePage===1||busy}
         onClick={()=>onPage(safePage-1)}>上一页</button>
       <span>{safePage} / {pages}</span>
-      <button type="button" disabled={safePage===pages||busy}
+      <button type="button" className="od-button od-button--secondary" disabled={safePage===pages||busy}
         onClick={()=>onPage(safePage+1)}>下一页</button>
     </nav>}
   </main>;

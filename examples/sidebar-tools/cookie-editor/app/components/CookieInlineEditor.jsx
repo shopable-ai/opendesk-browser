@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {Button} from '@opendesk/ui';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
@@ -70,35 +71,35 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       originalId:row?.id||null,valueEdited:!edited||valueEdited
     });
   };
-  return <form className="cookie-inline-editor" onSubmit={submit}
+  return <form className="cookie-inline-editor od-surface od-surface--padded" onSubmit={submit}
     aria-label={edited?'编辑 Cookie '+row.name:'新建 Cookie'}>
     <div className="cookie-editor-grid">
-      <label>名称 <input required maxLength={256} value={draft.name}
+      <label>名称 <input className="od-field" required maxLength={256} value={draft.name}
         disabled={disabled} onChange={e=>update('name',e.target.value)}/></label>
-      <label>Cookie Value <input ref={valueRef} data-cookie-secret-input="true"
+      <label>Cookie Value <input className="od-field" ref={valueRef} data-cookie-secret-input="true"
         type={showValue?'text':'password'}
         autoComplete="off" maxLength={4096} disabled={disabled}
         placeholder={edited?'不修改则保留原值（需额外授权）':'输入值，允许空字符串'}
         onChange={()=>{setValueEdited(true);onDirty?.(true);}}/></label>
     </div>
     <div className="cookie-editor-actions">
-      <button type="button" disabled={disabled}
+      <Button type="button" disabled={disabled}
         onClick={()=>setShowValue(x=>!x)} aria-pressed={showValue}>
-        {showValue?'隐藏输入':'显示输入'}</button>
-      {edited&&<button type="button" disabled={disabled||revealing}
-        onClick={()=>void reveal()}>{revealing?'读取中…':'查看原值（需授权）'}</button>}
+        {showValue?'隐藏输入':'显示输入'}</Button>
+      {edited&&<Button type="button" disabled={disabled||revealing}
+        onClick={()=>void reveal()}>{revealing?'读取中…':'查看原值（需授权）'}</Button>}
     </div>
     <output ref={revealedRef} data-cookie-secret-output="true"
       className="cookie-sensitive-output" aria-label="临时敏感值"
       hidden/>
-    <details className="cookie-editor-details">
+    <details className="cookie-editor-details od-disclosure">
       <summary>Cookie 属性与作用域</summary>
       <div className="cookie-editor-grid">
-        <label>Domain <input value={draft.domain} disabled={disabled||edited}
+        <label>Domain <input className="od-field" value={draft.domain} disabled={disabled||edited}
           onChange={e=>update('domain',e.target.value)}/></label>
-        <label>Path <input value={draft.path} disabled={disabled||edited}
+        <label>Path <input className="od-field" value={draft.path} disabled={disabled||edited}
           onChange={e=>update('path',e.target.value)}/></label>
-        <label>SameSite <select value={draft.sameSite} disabled={disabled}
+        <label>SameSite <select className="od-field" value={draft.sameSite} disabled={disabled}
           onChange={e=>update('sameSite',e.target.value)}>
           <option value="unspecified">Unspecified</option>
           <option value="lax">Lax</option><option value="strict">Strict</option>
@@ -112,20 +113,20 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         <label><input type="checkbox" checked={draft.session} disabled={disabled}
           onChange={e=>update('session',e.target.checked)}/> Session</label>
         {!draft.session&&<label>过期时间（本地）
-          <input type="datetime-local" value={draft.expiration} disabled={disabled}
+          <input className="od-field" type="datetime-local" value={draft.expiration} disabled={disabled}
             onChange={e=>update('expiration',e.target.value)}/></label>}
       </div>
       <p className="cookie-editor-scope">Store: {draft.storeId||'当前 Store'} · Partition: {
         draft.partitionKey?.topLevelSite||'普通 Cookie'}</p>
       {edited&&<p className="cookie-editor-scope">已存在 Cookie 的 Domain、Path、Host-only、Store 与 Partition 不能在原条目中改变。更名时先写入新 Cookie 再删除旧名称。</p>}
     </details>
-    {message&&<p role="alert" className="cookie-message error">{message}</p>}
+    {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
     <div className="cookie-editor-actions">
-      {edited&&<button type="button" className="danger" onClick={()=>onDelete?.(row.id)}
-        disabled={disabled}>删除</button>}
+      {edited&&<Button type="button" className="od-button--danger" onClick={()=>onDelete?.(row.id)}
+        disabled={disabled}>删除</Button>}
       <span className="cookie-spacer"/>
-      <button type="button" disabled={disabled} onClick={onCancel}>取消</button>
-      <button className="primary" type="submit" disabled={disabled}>保存 Cookie</button>
+      <Button type="button" disabled={disabled} onClick={onCancel}>取消</Button>
+      <Button variant="primary" type="submit" disabled={disabled}>保存 Cookie</Button>
     </div>
   </form>;
 }
