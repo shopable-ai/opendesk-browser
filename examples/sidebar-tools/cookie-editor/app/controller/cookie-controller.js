@@ -25,8 +25,9 @@ export function createCookieController({adapter,onChange=()=>{}}){
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
+    retireObservation();
     epoch++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
-    clearPlan=null;observing=null;observeEvents=[];
+    clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
   }
@@ -34,10 +35,19 @@ export function createCookieController({adapter,onChange=()=>{}}){
     busy=true;const at=target,ticket=epoch;notify();return {at,ticket};};
   const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
+  // Host observation sessions are owned by the old URL and may survive the UI.
+  // Retire them on every target/grant change, including in-flight read failures.
+  function retireObservation(){
+    const at=target,sessionRef=observing?.sessionRef;
+    observing=null;observeCursor='0';observeEvents=[];
+    if(at&&typeof sessionRef==='string')
+      void Promise.resolve().then(()=>adapter.observeStop(at,sessionRef)).catch(()=>{});
+  }
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
+    retireObservation();
     const ticket=++epoch;rows=[];target=null;phase='loading';importPlan=null;
-    clearPlan=null;observing=null;observeEvents=[];busy=true;
+    clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
     notify();
     let at=null;
@@ -334,16 +344,24 @@ export function createCookieController({adapter,onChange=()=>{}}){
     const guard=lock();if(!guard)return;
     try{
       if(action==='start'){
-        observing=await adapter.observeStart(guard.at);
-        if(!verifiedRead(guard))return;
-        observeCursor='0';observeEvents=[];
+        const started=await adapter.observeStart(guard.at);
+        if(!verifiedRead(guard)){
+          if(typeof started?.sessionRef==='string')
+            void Promise.resolve().then(()=>adapter.observeStop(guard.at,started.sessionRef)).catch(()=>{});
+          return;
+        }
+        if(typeof started?.sessionRef!=='string')throw badReceipt();
+        observing=started;observeCursor='0';observeEvents=[];
         report('已开始 15 秒元数据观察，无 Cookie Value。');
       }else if(observing){
         const sessionRef=observing.sessionRef;
         if(action==='stop'){
+          // Clear the local handle before awaiting the Host, so navigation
+          // cannot schedule a duplicate stop or revive a stale session.
+          observing=null;observeCursor='0';observeEvents=[];
           await adapter.observeStop(guard.at,sessionRef);
           if(!verifiedRead(guard))return;
-          observing=null;report('已停止观察。');
+          report('已停止观察。');
         }else if(action==='read'){
           const outcome=await adapter.observeRead(guard.at,sessionRef,observeCursor);
           if(!verifiedRead(guard))return;
@@ -356,16 +374,15 @@ export function createCookieController({adapter,onChange=()=>{}}){
         }
       }
     }catch(error){if(verifiedRead(guard)){
-      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED'].includes(error?.code))observing=null;
+      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED'].includes(error?.code))
+        retireObservation();
       report('变化观察中止'+formatCode(error,'E_COOKIE_OBSERVE')+'。','error');
     }}finally{unlock(guard);}
   }
   function dispose(){
-    const oldTarget=target,oldSession=observing?.sessionRef;
+    retireObservation();
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
-    clearPlan=null;observing=null;observeEvents=[];
-    if(oldTarget&&oldSession)
-      void adapter.observeStop(oldTarget,oldSession).catch(()=>{});
+    clearPlan=null;observeEvents=[];
   }
   notify();
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
