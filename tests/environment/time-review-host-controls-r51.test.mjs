@@ -98,10 +98,12 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
   assert(inlinePredicate,'trusted inline controls must remain identity-gated');
   for(const required of ['id===TIME_REVIEW_ID','id===FOCUS_ID','isCookieTool(active)'])
     assert(inlinePredicate[1].includes(required),'trusted-inline identity lost: '+required);
-  const frameVisibility=shell.match(/frameRoot\.hidden=([^;\n]+);/);
+  const frameVisibility=shell.match(/frameRoot\.hidden=([\s\S]*?);/);
   assert(frameVisibility,'trusted host must control iframe visibility');
   assert.match(frameVisibility[1],/\(show&&!trustedInline\)/);
   assert.match(frameVisibility[1],/!\(frame\|\|nativeUI\)/);
+  assert.match(frameVisibility[1],/\blegacyAdblock\b/,
+    'legacy AdBlock suppression remains scoped without hiding trusted tools');
   assert.match(shell,/display\.setAttribute\('data-trusted-tool-inline'/);
   assert.match(shell,/api\.permissions\.contains\(\{permissions:\['idle'\]\}\)/);
   assert.match(shell,/api\.storage\.local\.get\(TIME_REVIEW_KEY\)/);
