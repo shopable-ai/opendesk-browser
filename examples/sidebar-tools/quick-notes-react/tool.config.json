@@ -1,0 +1,14 @@
+{
+  "id": "quick-notes-react",
+  "version": "1.0.0",
+  "title": "网页笔记 · React",
+  "description": "React 19 + Shared UI 的独立网页笔记；与原生版本并存，数据互不影响。",
+  "capabilities": ["storage.local", "currentPage.read", "tasks.open"],
+  "uiRuntime": "opendesk.react-ui.v1",
+  "files": {
+    "html": "src/root.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
+  },
+  "assets": ["assets/mark.png"]
+}

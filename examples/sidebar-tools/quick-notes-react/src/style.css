@@ -1,0 +1,45 @@
+/* @opendesk-shared-design */
+/* Same information hierarchy and spacing as the native Quick Notes 1.1.9.
+   Canonical tokens, buttons, focus and palette belong to OpenDesk Shared UI. */
+.notes-app{width:100%;min-width:0;margin:0;padding:var(--space-3)}
+.page-context{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;padding-bottom:var(--space-3);border-bottom:1px solid var(--od-line)}
+.notes-mark{display:block;flex:none;width:24px;height:24px;object-fit:contain}
+.page-meta{flex:1;min-width:0}
+.page-summary{margin:0;overflow-wrap:anywhere}
+.page-url{margin:var(--space-1) 0 0;overflow-wrap:anywhere;word-break:break-word}
+.notes-editor.od-shared-card{display:block;background:transparent;border:0;border-radius:0;box-shadow:none}
+.notes-editor .od-shared-card-content{padding:0}
+.notes-heading{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin:var(--space-2) 0 var(--space-1)}
+.notes-heading label{margin:0}
+.note-count{white-space:nowrap}
+.notes-heading .icon-button{margin-left:auto}
+.note-list{display:flex;min-width:0;gap:var(--space-2);overflow-x:auto;padding:0 0 var(--space-2);scrollbar-width:thin}
+.note-list:empty{display:none}
+.note-chip{flex:none;max-width:140px;width:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-chip[data-selected="true"]{border-color:var(--od-focus);background:var(--od-muted);color:var(--od-accent-ink)}
+#note-text{display:block;width:100%;min-width:0;min-height:126px;max-height:480px;margin:0;resize:vertical;overflow-wrap:anywhere}
+.editor-actions{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin-top:var(--space-2)}
+.action-spacer{flex:1}
+.page-attach{display:inline-flex;align-items:center;gap:var(--space-2);margin:0;min-width:0;min-height:var(--od-icon-size);font-size:var(--od-note-size);color:var(--od-sub);cursor:pointer}
+.page-attach input{margin:0;accent-color:var(--od-brand)}
+.note-attachment{margin:var(--space-1) 0 0;overflow-wrap:anywhere}
+.note-status{margin:var(--space-1) 0 0;overflow-wrap:anywhere}
+.note-status[data-state="success"]{color:var(--od-positive)}
+.note-status[data-state="error"]{color:var(--od-negative)}
+.task-shortcut{margin-top:var(--space-4);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
+.task-row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2);min-width:0}
+.task-row input{flex:1;min-width:0}
+.note-confirm{margin-top:var(--space-3)}
+.note-confirm p{margin:0 0 var(--space-3)}
+.confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
+.confirm-actions button{flex:none;white-space:nowrap}
+@media(max-width:220px){
+ .editor-actions{display:grid;grid-template-columns:minmax(0,1fr) var(--od-icon-size) var(--od-icon-size);align-items:center}
+ .editor-actions .page-attach{grid-column:1/-1;justify-self:start;white-space:nowrap}
+ .editor-actions .action-spacer{display:none}
+ .editor-actions .icon-button:nth-last-child(2){grid-column:2}
+ .editor-actions .icon-button:last-child{grid-column:3}
+}
+@media(max-width:360px){.note-chip{max-width:108px}}
+@media(min-width:800px){.notes-app{max-width:760px;margin-inline:auto}}
+@media(max-width:175px){.confirm-actions button{flex:1 1 100%}}

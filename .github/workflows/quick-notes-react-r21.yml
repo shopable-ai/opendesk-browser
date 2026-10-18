@@ -1,0 +1,74 @@
+name: Quick Notes React R2.1 two-package parity
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/quick-notes-react-r21.yml'
+      - 'examples/sidebar-tools/quick-notes-react/**'
+      - 'examples/sidebar-tools/quick-notes/**'
+      - 'tests/environment/sidebar-quick-notes-react-*.test.mjs'
+      - 'scripts/tests/quick-notes-react-r21-preview-chrome.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'src/entrypoints/sidebar-shared-ui.js'
+      - 'src/ui/react/components/ui/**'
+      - 'src/ui/sidebar-tools/package.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quick-notes-react-r21-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  real-build-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Native baseline and pure React model unit tests
+        run: |
+          node --test tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-quick-notes-react-r21.test.mjs
+          node --check examples/sidebar-tools/quick-notes-react/src/model.js
+          node --check examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs
+      - name: Build the fixed shared runtime in the existing MV3 host
+        run: npm run build:dev
+      - name: Compile the real React JSX and stage both source-bound previews
+        env:
+          OPENDESK_SHARED_UI_EXTENSION_DIR: dist/development
+        run: |
+          npm run build --prefix examples/sidebar-tools/quick-notes-react
+          npm run stage:preview --prefix examples/sidebar-tools/quick-notes-react
+          node --test tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs
+      - name: Encode separate native and React installation candidates
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+          OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run compare --prefix examples/sidebar-tools/quick-notes-react > artifacts/quick-notes-implementation-comparison.json
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Chrome real UI preview tests (memory adapter, not installed extension)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/quick-notes-react-r21-preview-chrome.mjs artifacts/sidebar-tools/quick-notes-react/chrome
+      - name: Promote React package ONLY in tested ephemeral CI checkout
+        run: |
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --check-project
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quick-notes-r21-parity-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          include-hidden-files: true
+          path: |
+            examples/sidebar-tools/quick-notes-react/quick-notes-react.opendesk-tool.json
+            examples/sidebar-tools/quick-notes-react/dist/
+            examples/sidebar-tools/quick-notes-react/.opendesk-preview/
+            artifacts/sidebar-tools/quick-notes/
+            artifacts/sidebar-tools/quick-notes-react/
+            artifacts/quick-notes-implementation-comparison.json
