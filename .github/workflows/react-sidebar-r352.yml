@@ -54,4 +54,5 @@ jobs:
         if: always()
         run: |
           echo "SOURCE_UI_SIMULATION_CHROMIUM=R35.2 tests"
-          echo "INSTALLED_EXTENSION_CHROME_LINUX=R35.2 real MV3 smoke; read job outcome"\n          echo "NATIVE_MAC_SIDE_PANEL=NOT_TESTED"
+          echo "INSTALLED_EXTENSION_CHROME_LINUX=R35.2 real MV3 smoke; read job outcome"
+          echo "NATIVE_MAC_SIDE_PANEL=NOT_TESTED"
