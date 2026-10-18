@@ -69,6 +69,16 @@ const snapshotExpression=[
   'appContainsList:!!app?.contains(list),',
   'appContainsCloud:!!app?.contains(d.getElementById("workbench-cloud")),',
   'idCounts:ids.map(id=>[id,d.querySelectorAll("#"+id).length]),',
+  'developerOwners:[',
+  '["#script-source-react-host","developer-source"],',
+  '["#script-javascript-world-row","developer-world"],',
+  '["#page-component-framework .page-component-choices","developer-framework"],',
+  '["#develop-dock .dock-buttons","developer-actions"],',
+  '["#script-status","developer-run-status"],',
+  '["#script-result","developer-result"],',
+  '["#script-current-page-host","developer-target-host"]',
+  '].map(([selector,expected])=>({selector,expected,',
+  'actual:d.querySelector(selector)?.dataset.opendeskReactOwner||null})),',
   'view:d.documentElement.dataset.opendeskSurface||null,',
   'status:d.getElementById("extension-center-status")?.textContent||"",',
   'visibleText:d.body?.innerText?.slice(0,450)||""',
@@ -97,7 +107,10 @@ async function openInstalledPage(){
   assert.equal(state.tabCount,6);
   for(const [id,count] of state.idCounts)
     assert.equal(count,1,'One live DOM ID: '+id);
+  for(const {selector,expected,actual} of state.developerOwners)
+    assert.equal(actual,expected,'React must exclusively own mounted Developer slot: '+selector);
   report.steps.push({name:'real-extension-shell-mounted',view:state.view,
+    developerOwnerCount:state.developerOwners.length,
     tabCount:state.tabCount,loadedUrl:state.href});
   return state;
 }
