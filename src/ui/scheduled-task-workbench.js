@@ -1010,8 +1010,11 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     busy=true;get('schedule-save').disabled=true;
     try{
       const resolved=await client.request('resolveInstalledTask',{taskId:local.row.taskId});
+      // Re-authorizing a Task can increment Generation without changing
+      // Version or Installation ID. Never pin a different generation silently.
       if(resolved.version!==local.row.version||resolved.manifestHash!==local.row.manifestHash||
-        resolved.installationId!==local.row.installationId)
+        resolved.installationId!==local.row.installationId||
+        resolved.generation!==local.row.generation)
         throw Error('任务安装身份已变更，请重新选择已验证的固定版本');
       if(editing&&(editing.taskId!==resolved.taskId||editing.version!==resolved.version||
         editing.manifestHash!==resolved.manifestHash||editing.sourceHash!==resolved.contentHash||
@@ -1107,6 +1110,18 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         current.installationId!==row.installationId||current.generation!==row.generation)
         throw Error('任务固定版本或安装身份已变化，请刷新后重新复制');
       const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
+      if(existing.taskId!==row.taskId||existing.version!==row.version||
+        existing.manifestHash!==row.manifestHash||
+        typeof existing.package?.sourceUtf8!=='string')
+        throw Error('固定任务源码与当前安装不匹配，请刷新后再复制');
+      // The installed authorization may change while Host reads the candidate.
+      // Re-read authoritative Task Registry state before overwriting Developer.
+      // listTaskCatalog also supports disabled Tasks; resolveInstalledTask does not.
+      const checked=await client.request('listTaskCatalog',{});
+      const latest=(checked.installed||[]).find(value=>value.taskId===row.taskId);
+      if(!latest||latest.version!==row.version||latest.manifestHash!==row.manifestHash||
+        latest.installationId!==row.installationId||latest.generation!==row.generation)
+        throw Error('任务安装或授权在复制期间已变更；请重新打开任务管理核对');
       await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
       hidePanel(); // Leave manager only after the existing Developer accepts the draft.
     }catch(error){message('复制到开发失败：'+(error?.message||String(error)),true);}

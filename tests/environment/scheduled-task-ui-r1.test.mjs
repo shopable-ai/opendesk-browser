@@ -669,7 +669,7 @@ test('R3 index vs detail navigation and fixed schedule authorization boundaries'
 
 // Component-only DOM fixture. No Chrome permission, native input, Fire or Result
 // is fabricated as product evidence; genuine native coverage lives in R3.
-async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0,host={}}={}){
+async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0,host={},rpc={},receiveDraft=null}={}){
   const {document,window}=parseHTML(await load('src/ui/tool.html'));
   let focused=document.body;
   Object.defineProperty(document,'activeElement',{get:()=>focused});
@@ -702,6 +702,7 @@ async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0,hos
     history:i===0?history.slice(0,20):[]})),history,historyFailures,installed:[installed],catalog:[entry],calls:[]};
   const client={async request(method,input){
     state.calls.push({method,input});
+    if(typeof rpc[method]==='function')return rpc[method](input,state);
     if(method==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
     if(method==='listSchedules')return {schedules:structuredClone(state.plans)};
     if(method==='listScheduleHistory'){
@@ -712,11 +713,66 @@ async function scheduledDomFixture({count=1,historyCount=1,historyFailures=0,hos
     throw Error('Unexpected component RPC '+method);
   }};
   const ui=createScheduledTaskWorkbench({client,document,
-    host,taskWorkbench:{navigate(){}},api:{permissions:{contains:async()=>true}}});
+    host,taskWorkbench:{navigate(){},receiveDraft:receiveDraft||(()=>{throw Error('Unexpected Developer import');})},
+    api:{permissions:{contains:async()=>true}}});
   await ui.open();
   return {document,window,state,ui,get:id=>document.getElementById(id),
     flush:()=>new Promise(resolve=>setImmediate(resolve))};
 }
+
+test('R34.6 schedule save rejects a silent installed Task Generation shift',async()=>{
+  const source=await load('src/ui/scheduled-task-workbench.js');
+  const save=source.slice(source.indexOf('  async function save(event){'),
+    source.indexOf('  async function confirmSave(){'));
+  assert.match(save,/resolved\.generation!==local\.row\.generation/,
+    'the new plan must not bind a later authorization generation without review');
+});
+
+test('R34.6 Task source copy rejects a real Registry generation change after candidate read',async()=>{
+  const source='async function main(){return "verified fixture";}';
+  const imports=[];
+  const {ui,get,state,flush}=await scheduledDomFixture({
+    rpc:{getTaskCandidate:(_input,current)=>{
+      current.installed[0].generation+=1;
+      return {taskId:'sample.task',version:'1.0.0',manifestHash:'manifest',
+        package:{sourceUtf8:source}};
+    }},
+    receiveDraft:async value=>{imports.push(value);}
+  });
+  const plansBefore=structuredClone(state.plans);
+  get('schedule-open-manager').click();
+  get('schedule-manager-list').querySelector('.schedule-manager-copy').click();
+  assert.equal(get('schedule-copy-confirm').hidden,false);
+  get('schedule-copy-yes').click();
+  await flush();
+  assert.equal(imports.length,0,'a stale generation never overwrites the Developer draft');
+  assert.match(get('schedule-message').textContent,/安装或授权在复制期间已变更/);
+  assert.equal(get('scheduled-panel').hidden,false,'recovery remains visible');
+  assert.deepEqual(state.plans,plansBefore,'rejecting copy does not rebind scheduled plans');
+  assert.equal(state.calls.filter(call=>call.method==='listTaskCatalog').length,2,
+    'the fixed installation identity is fetched again after candidate read');
+  ui.dispose();
+});
+
+test('R34.6 unchanged fixed Task source still copies to Developer without scheduling it',async()=>{
+  const source='async function main(){return "unchanged";}';
+  const imports=[];
+  const {ui,get,state,flush}=await scheduledDomFixture({
+    rpc:{getTaskCandidate:()=>({taskId:'sample.task',version:'1.0.0',
+      manifestHash:'manifest',package:{sourceUtf8:source}})},
+    receiveDraft:async value=>{imports.push(value);}
+  });
+  const before=structuredClone(state.plans);
+  get('schedule-open-manager').click();
+  get('schedule-manager-list').querySelector('.schedule-manager-copy').click();
+  get('schedule-copy-yes').click();
+  await flush();
+  assert.deepEqual(imports,[source],'Developer receives the exact candidate source');
+  assert.equal(get('scheduled-panel').hidden,true,'manager closes only after import succeeds');
+  assert.deepEqual(state.plans,before,'copy never creates or modifies a schedule');
+  assert.equal(state.calls.some(call=>['saveSchedule','changeSchedule','uninstallTask'].includes(call.method)),false);
+  ui.dispose();
+});
 
 test('R5.1 schedule Back restores My opener focus and task surface without rebuilding the task list',async()=>{
   const {document,ui,get}=await scheduledDomFixture();
