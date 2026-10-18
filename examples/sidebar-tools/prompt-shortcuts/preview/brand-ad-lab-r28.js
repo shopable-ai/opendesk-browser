@@ -100,7 +100,7 @@
     en:[['P','Polish','Polish this text while preserving its meaning.'],['T','Translate','Translate this text while preserving structure and terms.'],['S','Summarize','Summarize this text into three key points.'],['W','Write','Draft a clear, natural paragraph from this idea.']],
     ja:[['推','推敲','意味を保ったまま自然な文章に推敲してください。'],['訳','翻訳','専門用語と形式を維持して翻訳してください。'],['要','要約','要点を三つに要約してください。'],['書','執筆','このアイデアから自然で明快な文章を書いてください。']]
   };
-  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,closeRail:false,closedCards:new Set(),closedWeb:new Set(),pop:''};
+  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closeRail:false,closedCards:new Set(),closedWeb:new Set(),pop:''};
   const T = key => (words[old.state.lang] || words.zh)[key] || key;
   const idx = () => Math.max(0, LANGS.indexOf(old.state.lang));
   const name = id => positions[id].names[idx()];
@@ -108,10 +108,11 @@
   const make = (tag,cls,txt) => {const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;};
   const entry = (key, text) => '<span data-r28-t="'+key+'">'+text+'</span>';
   const layoutOpts = [
-    ['icon',['小图标','Icon','小アイコン']],['text',['单行文字','Text line','一行テキスト']],
+    ['brand-logo',['常驻 OD Logo','Permanent OD mark','常設 OD ロゴ']],['brand-hover',['Logo 品牌介绍','Brand hover','ブランド紹介']],['brand-attribution',['极小品牌署名','Tiny attribution','小さな署名']],
+    ['icon',['单赞助图标','Sponsor icon','協賛アイコン']],['text',['单行文字赞助','Sponsor text','協賛テキスト']],['icon-text',['图标 + 文字','Icon + text','アイコン + 文字']],['hover-card',['Hover 合作卡','Hover card','ホバーカード']],['expand-card',['点击展开详情','Expandable details','詳細を展開']],
     ['landscape',['横向图文','Horizontal card','横型カード']],['vertical',['竖向品牌卡','Vertical brand','縦型ブランド']],
     ['mini',['双列迷你','Two-column mini','二列ミニ']],['hero',['大卡 + 两小卡','Hero + two mini','大1 + 小2']],
-    ['recruit',['空白招商','Recruitment','協賛募集中']],['self',['官方自推广','First-party promotion','自社紹介']]
+    ['recruit',['空白招商','Recruitment','協賛募集中']],['self',['官方自推广','First-party promotion','自社紹介']],['event',['活动横幅','Event banner','イベントバナー']],['directory',['工具目录推荐','Tool recommendation','ツール推薦']],['affiliate',['联盟模型说明','Affiliate explainer','アフィリエイト説明']]
   ];
   const root = make('section','r28-controls');root.id='r28Controls';root.setAttribute('aria-label','35 placements');
   root.innerHTML =
@@ -121,7 +122,7 @@
     '<label class="r28-field"><span data-r28-t="inventory"></span><select id="r28Sold"></select></label>'+
     '<label class="r28-field"><span data-r28-t="mode"></span><select id="r28Mode"></select></label>'+
     '<label class="r28-field"><span data-r28-t="layout"></span><select id="r28Layout"></select></label>'+
-    '<label class="r28-field narrow"><span data-r28-t="prompts"></span><select id="r28PromptCount"><option value="0">0</option><option value="4">4</option></select></label>'+
+    '<label class="r28-field narrow"><span data-r28-t="prompts"></span><select id="r28PromptCount"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>'+
     '<label class="r28-check"><input id="r28Bounds" type="checkbox" checked><span data-r28-t="boundaries"></span></label></div>'+
     '<div class="r28-presets" id="r28Presets"></div>'+
     '<div class="r28-summary"><strong id="r28Current"></strong><span id="r28Risk" class="r28-pill"></span><span id="r28Scope" class="r28-pill"></span>'+
@@ -184,6 +185,10 @@
   railAd.addEventListener('mouseleave',hidePop);
   railAd.addEventListener('click',()=>openDialog('sponsor'));
   rail.append(railAd);
+  const railClose=make('button','r29-rail-close','×');railClose.type='button';
+  railClose.setAttribute('aria-label',T('dismiss')+' · '+T('partner'));
+  railClose.addEventListener('click',()=>{state.closeRail=true;hidePop(true);sync();$('r28Restore').focus();});
+  rail.append(railClose);
   const pop=make('div','r28-rail-pop');pop.id='r28Pop';pop.hidden=true;pop.setAttribute('role','status');
   rail.append(pop);
 
@@ -197,7 +202,9 @@
   slots.S03=make('span','r28-panel-footer-slot');slots.S03.id='r28SlotS03';slots.S03.dataset.spot='S03';
   document.querySelector('.panel-footer').append(slots.S03);
 
+  let popTimer=null;
   function showPop(kind) {
+    clearTimeout(popTimer);
     if(!state.active)return;
     if(kind==='sponsor'&&railAd.hidden)return;
     state.pop=kind;
@@ -206,7 +213,14 @@
     const b=make('button','',T('view'));b.type='button';b.addEventListener('click',()=>openDialog(kind));pop.append(b);
     pop.hidden=false;pop.style.top=kind==='brand'?'0px':Math.max(0,railAd.offsetTop-18)+'px';
   }
-  function hidePop(){pop.hidden=true;state.pop='';}
+  function hidePop(immediate=false){
+    clearTimeout(popTimer);
+    if(immediate){pop.hidden=true;state.pop='';return;}
+    popTimer=setTimeout(()=>{if(!pop.matches(':hover')&&!pop.contains(document.activeElement)){pop.hidden=true;state.pop='';}},140);
+  }
+  pop.addEventListener('mouseenter',()=>clearTimeout(popTimer));
+  pop.addEventListener('mouseleave',()=>hidePop());
+  pop.addEventListener('focusout',()=>hidePop());
   function appendDraft(i) {
     const d=$('draft'),content=fakePrompts[old.state.lang][i][2];
     d.value+= (d.value && !d.value.endsWith('\n')?'\n':'') + content;
@@ -215,11 +229,12 @@
   function updateRail() {
     const prompts=fakePrompts[old.state.lang];
     brand.title=T('brandDetails');brand.setAttribute('aria-label','OpenDesk · '+T('brandDetails'));
-    originalShortcut.textContent=prompts[0][0];originalShortcut.hidden=state.active&&state.prompts===0;
-    extraButtons.forEach((b,i)=>{b.textContent=prompts[i+1][0];b.title=prompts[i+1][1];b.setAttribute('aria-label',prompts[i+1][1]);b.hidden=state.active&&state.prompts===0;});
+    originalShortcut.textContent=prompts[0][0];originalShortcut.hidden=state.active&&state.prompts<1;
+    extraButtons.forEach((b,i)=>{b.textContent=prompts[i+1][0];b.title=prompts[i+1][1];b.setAttribute('aria-label',prompts[i+1][1]);b.hidden=!state.active||state.prompts<i+2;});
     railAd.title=T('partner');railAd.setAttribute('aria-label',T('partner')+' · '+T('view'));
     const show=state.active&&old.state.enabled&&!state.closeRail&&(state.sold>0||state.mode==='sales')&&state.preset!=='brand';
-    railAd.hidden=!show;separator.hidden=!show;
+    railAd.hidden=!show;separator.hidden=!show;railClose.hidden=!show;
+    railClose.setAttribute('aria-label',T('dismiss')+' · '+T('partner'));
     brand.dataset.r28Current=state.active&&['B01','B02'].includes(state.id)?'true':'false';
     railAd.dataset.r28Current=state.active&&['B03','B04','B05'].includes(state.id)?'true':'false';
     $('tip').hidden=state.active?!(old.state.tipOpen||['B06','B07','B08'].includes(state.id)):!old.state.tipOpen;
@@ -231,12 +246,13 @@
     const unit=make(asButton?'button':'div','r28-demo-ad');
     if(asButton){unit.type='button';unit.addEventListener('click',()=>openDialog(unsold?'sponsor':index===-1?'brand':'sponsor'));}
     const layout=layoutOverride||state.layout;
-    unit.dataset.layout=['icon','text','vertical','mini'].includes(layout)?layout:'landscape';
+    unit.dataset.layout=['icon','text','vertical','mini','brand-logo','brand-hover','brand-attribution','icon-text','hover-card','expand-card','event','directory','affiliate'].includes(layout)?layout:'landscape';
     if(unsold)unit.dataset.unsold='true';
-    const icon=make('span','r28-ad-icon',unsold?'+':layout==='self'?'OD':'FN');
+    const firstParty=layout==='self'||layout.startsWith('brand-');
+    const icon=make('span','r28-ad-icon',unsold?'+':firstParty?'OD':layout==='event'?'EV':layout==='directory'?'DX':layout==='affiliate'?'↗':'FN');
     const copy=make('span','r28-ad-copy');
-    copy.append(make('strong','',unsold?T('recruit'):layout==='self'?T('official'):'FlowNest · '+T('fiction')));
-    copy.append(make('small','',unsold?'ID '+(index+1)+' · '+T('view'):T('partner')+' · '+T('demo')));
+    copy.append(make('strong','',unsold?T('recruit'):firstParty?layout==='brand-attribution'?'OpenDesk · Prompt Shortcuts':T('official'):layout==='event'?(['模拟效率活动','Demo productivity event','模擬イベント'][idx()]):layout==='directory'?(['工具精选 · 虚构示例','Tool picks · Fictional','ツール紹介 · 架空'][idx()]):layout==='affiliate'?(['联盟合作说明 · 不跟踪','Affiliate model · No tracking','アフィリエイト解説'][idx()]):'FlowNest · '+T('fiction')));
+    copy.append(make('small','',unsold?'ID '+(index+1)+' · '+T('view'):firstParty?T('brandSlot'):T('partner')+' · '+T('demo')));
     unit.append(icon,copy);
     if(layout==='text')unit.dataset.layout='text';
     return unit;
@@ -245,13 +261,16 @@
     for(const id of ['S01','S02','S04','S05','S06','S07','S08','S03']){slots[id].replaceChildren();delete slots[id].dataset.r28Current;}
     if(!state.active||!old.state.enabled)return;
     const view=old.state.view;
+    const formTitle=$('editView').querySelector('h2');
+    formTitle.textContent=state.formMode==='new'?(['新建提示词','New prompt','新規プロンプト'][idx()]):(['编辑提示词','Edit prompt','プロンプトを編集'][idx()]);
+    $('editView').dataset.r29Form=state.formMode;
     const groupView=view==='edit'?'S04':view==='empty'?'S06':view==='settings'?'S07':'S02';
     const showCards=state.sold>0||state.mode==='sales';
     if(view==='list'){
       const holder=state.id==='S01'?slots.S01:slots.S02;
       if(showCards) {
         const row=make('div','r28-card-row');row.append(make('strong','',T('sold')+' '+state.sold+'/3'));
-        const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{old.state.enabled=false;old.render();});
+        const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{for(let i=0;i<3;i++)state.closedCards.add(i);sync();$('r28Restore').focus();});
         row.append(close);holder.append(row);
         const list=make('div','r28-inventory');list.dataset.layout=state.layout==='mini'?'mini':state.layout==='hero'?'hero':'standard';
         const max=state.id==='S01' ? 1:3;
@@ -260,10 +279,10 @@
           if(state.closedCards.has(i))continue;
           const item=make('div','r28-panel-slot');
           item.append(adCard(i,i>=state.sold,true,i>0&&state.layout==='hero'?'mini':state.layout));
-          if(i<state.sold){const closeCard=make('button','', '×');closeCard.type='button';closeCard.className='r28-dismiss-card';closeCard.setAttribute('aria-label',T('dismiss')+' '+(i+1));closeCard.addEventListener('click',()=>{state.closedCards.add(i);sync();});item.append(closeCard);}
+          if(true){const closeCard=make('button','', '×');closeCard.type='button';closeCard.className='r28-dismiss-card';closeCard.setAttribute('aria-label',T('dismiss')+' '+(i+1));closeCard.addEventListener('click',()=>{state.closedCards.add(i);sync();});item.append(closeCard);}
           list.append(item);
         }
-        holder.append(list);
+        if(list.childElementCount)holder.append(list);else holder.replaceChildren();
       }
       if(state.id==='S08'||state.group==='S'&&state.boundaries){
         slots.S08.append(make('div','r28-hint-card',name('S08')+' · '+T('clickZone')));
@@ -272,7 +291,7 @@
     }else if(showCards){
       const target=state.id==='S05'?'S05':groupView;
       const holder=slots[target];
-      holder.append(adCard(0,state.sold===0,true));
+      if(!state.closedCards.has(0))holder.append(adCard(0,state.sold===0,true));
     }
     if(state.id==='S03'||(state.group==='S'&&state.boundaries)){
       const button=make('button','', 'S03 · '+T('partner'));button.type='button';button.addEventListener('click',()=>choose('S03'));slots.S03.append(button);
@@ -352,6 +371,7 @@
     state.active=true;state.id=id;state.group=id[0];state.extra=extra;state.preset='';
     if(state.group==='N')state.scene='new';
     if(state.group==='C'&&state.scene==='new')state.scene='short';
+    if(state.group==='S'){if(id==='S04')state.formMode='new';if(id==='S05')state.formMode='edit';}
     if(state.group==='S')old.state.view=id==='S04'||id==='S05'?'edit':id==='S06'?'empty':id==='S07'?'settings':'list';
     else if(state.prompts!==0)old.state.view='list';
     old.state.format='logo';old.state.placement='A1';
@@ -454,10 +474,13 @@
   $('r28Bounds').addEventListener('change',e=>{state.boundaries=e.target.checked;sync();});
   $('r28Dismiss').addEventListener('click',()=>{old.state.enabled=false;old.render();});
   $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closeRail=false;old.render();});
+  for(const id of ['showEdit','addFirst'])$(id).addEventListener('click',()=>{
+    state.formMode='new';if(state.group==='S'){state.id='S04';old.render();}
+  });
   $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closeRail=false;sync();});
   for(const el of [$('placement'),$('format'),...document.querySelectorAll('.preset')]){
     el.addEventListener(el.tagName==='SELECT'?'change':'click',()=>{state.active=false;state.preset='';hidePop();sync();});
   }
-  window.OpenDeskR28={sync,choose,preset,positions,state};
+  window.OpenDeskR28={sync,choose,preset,positions,state,layoutOpts};
   preset('brand');
 })();
