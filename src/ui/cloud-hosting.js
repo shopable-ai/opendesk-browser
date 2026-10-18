@@ -296,8 +296,10 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         selectedRequestIndex=requestOffset+index;renderReactRequests();
       },
       onClose:()=>closeRequestDetail(),
-      onPrev:()=>void action(pagePrev,true),
-      onNext:()=>void action(pageNext,true),
+      // Page changes are local state transitions, not read-only no-ops.
+      // action() invokes its callback only for non-readOnly operations.
+      onPrev:()=>void action(pagePrev),
+      onNext:()=>void action(pageNext),
       onOpenResult:()=>void action(openOriginalRun)
     });
   }
