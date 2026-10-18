@@ -47,7 +47,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       const seq=++revision.current,at=stamp();
       setChecking(true);setMessage('');
       try{
-        const result=await controller.previewImport(sourceRef.current?.value||'',format);
+        const result=await controller.previewImport(sourceRef.current?.value||'',format,overwrite);
         if(!isCurrent(seq,at))return;
         setPlan(result);
         if(!result)setMessage('预检未通过：请修正内容、授权或网站范围。');
@@ -58,7 +58,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       }
     },260);
     return ()=>clearTimeout(timer);
-  },[controller,format,sourceRevision]);
+  },[controller,format,overwrite,sourceRevision]);
   const readFile=async file=>{
     if(!file)return;
     invalidate();
@@ -86,12 +86,11 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
   const execute=async()=>{
     // Controller compares the raw text and exact target/epoch against the
     // reviewed preflight. Never replay if a Host write outcome is unknown.
-    if(!plan?.accepted||checking||reading||disabled||
-      (plan.replaced>0&&!overwrite))return;
+    if(!plan?.accepted||checking||reading||disabled)return;
     const seq=++revision.current,at=stamp();
     setReading(true);setMessage('');
     try{
-      const ok=await controller.executeImport(sourceRef.current?.value||'',format);
+      const ok=await controller.executeImport(sourceRef.current?.value||'',format,overwrite);
       if(!isCurrent(seq,at))return;
       if(ok){
         if(sourceRef.current)sourceRef.current.value='';
@@ -151,9 +150,9 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
         {plan.issueCount>30&&<p>还有 {plan.issueCount-30} 条未展开，请核对原文。</p>}
       </>}
       {plan.replaced>0&&<label className="cookie-import-overwrite">
-        <input type="checkbox" checked={overwrite} disabled={disabled||reading}
-          onChange={e=>setOverwrite(e.target.checked)}/>
-        确认覆盖 {plan.replaced} 条现有同身份 Cookie
+        <input type="checkbox" checked={overwrite} disabled={disabled||reading||checking}
+          onChange={e=>{const next=e.target.checked;invalidate();setOverwrite(next);}}/>
+        覆盖 {plan.replaced} 条现有同身份 Cookie（默认跳过）
       </label>}
     </section>}
     {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
@@ -161,8 +160,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       <Button type="button" disabled={disabled||reading} onClick={onClose}>取消</Button>
       <span className="cookie-spacer"/>
       <Button type="button" variant="primary"
-        disabled={disabled||reading||checking||!plan?.accepted||
-          (plan.replaced>0&&!overwrite)}
+        disabled={disabled||reading||checking||!plan?.accepted}
         onClick={()=>void execute()}>导入 Cookie</Button>
     </div>
   </section>;

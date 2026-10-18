@@ -126,6 +126,29 @@ test('bulk import preflight and native partial failure never replay writes',asyn
   f.controller.dispose();
 });
 
+test('import skips existing cookie slots by default, with a separately approved overwrite plan',async()=>{
+  const f=fixture();await f.controller.load();
+  const source='sid=REPLACEMENT; fresh=ADDED';
+  const safe=await f.controller.previewImport(source);
+  assert.equal(safe.created,1);
+  assert.equal(safe.replaced,1);
+  assert.equal(safe.accepted,1);
+  assert.equal(safe.skipped,1);
+  assert.equal(await f.controller.executeImport(source,'auto',true),false);
+  assert.equal(f.calls.some(([name])=>name==='set'),false);
+  const preview=await f.controller.previewImport(source);
+  assert.equal(preview.accepted,1);
+  assert.equal(await f.controller.executeImport(source),true);
+  assert.equal(f.calls.filter(([name])=>name==='set').length,1);
+  assert.equal(f.rows().find(row=>row.name==='sid').value,'SECRET_FIXTURE');
+  const approved=await f.controller.previewImport(source,'auto',true);
+  assert.equal(approved.replaced,2);
+  assert.equal(approved.accepted,2);
+  assert.equal(await f.controller.executeImport(source,'auto',true),true);
+  assert.equal(f.rows().find(row=>row.name==='sid').value,'REPLACEMENT');
+  f.controller.dispose();
+});
+
 test('discarded import preflight never writes a stale secret plan',async()=>{
   const f=fixture();await f.controller.load();
   const result=await f.controller.previewImport('temporary=SECRET_NOT_FOR_UI');

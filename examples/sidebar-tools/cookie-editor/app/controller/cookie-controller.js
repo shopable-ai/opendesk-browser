@@ -234,7 +234,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     }finally{plaintext='';unlock(guard);}
     return done;
   }
-  async function previewImport(source,format='auto'){
+  async function previewImport(source,format='auto',overwrite=false){
     const guard=lock();if(!guard)return null;
     importPlan=null;
     const revision=++importRevision;
@@ -271,18 +271,22 @@ export function createCookieController({adapter,onChange=()=>{}}){
         if(!verifiedRead(guard)||revision!==importRevision)return null;
         const present=seen.get(scope);
         if(!Array.isArray(present))throw badReceipt();
-        if(present.some(old=>key(old)===key(r)))replaced++;
-        else created++;
+        if(present.some(old=>key(old)===key(r))){
+          replaced++;
+          // An unapproved overwrite must never be included in the native plan.
+          // Other new cookies remain importable without replacing this slot.
+          if(!overwrite)item.status='existing';
+        }else created++;
       }
       const accepted=plan.records.filter(item=>item.status==='ready').map(item=>item.cookie);
       if(revision!==importRevision)return null;
       importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
-        total:plan.records.length,created,replaced};
+        total:plan.records.length,created,replaced,overwrite};
       // Show only preflight status and fixed validation reasons. Never return
       // source text, Cookie Values, or accepted raw cookies to React.
-      const issues=plan.records.filter(item=>item.status!=='ready');
+      const issues=plan.records.filter(item=>item.status!=='ready'&&item.status!=='existing');
       const result={total:plan.records.length,accepted:accepted.length,
-        skipped:issues.length,created,replaced,
+        skipped:plan.records.length-accepted.length,created,replaced,
         issueCount:issues.length,
         issues:issues.slice(0,30).map(item=>({
           index:item.index,status:item.status,
@@ -314,12 +318,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
     if(bucket.length)result.push(bucket);
     return result;
   }
-  async function executeImport(source,format='auto'){
+  async function executeImport(source,format='auto',overwrite=false){
     const plan=importPlan,guard=lock();if(!guard)return false;
     importPlan=null;let verified=0,complete=false;
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url||
-        plan.source!==source||plan.format!==format||!plan.accepted.length||
+        plan.source!==source||plan.format!==format||plan.overwrite!==overwrite||
+         !plan.accepted.length||
         plan.accepted.some(row=>!row.session&&row.expirationDate<=Date.now()/1000))
         throw Error('E_COOKIE_CONFLICT');
       const batchSupported=adapter.supportsWriteMany();
