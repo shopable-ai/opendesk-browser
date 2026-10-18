@@ -1,6 +1,7 @@
 import {createEditContext,parseEditProposal,parseStringEnvelope,validateEditProposal,createEditReceipt,EDIT_PROTOCOL} from './workspace-ai-proposal.js';
 import {isChatGPTURL,chatGPTConversationId,readChatGPTEdit,fillChatGPTComposer} from './workspace-chatgpt.js';
 import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL} from './workspace-chat-request.js';
+import {localizeLiteral} from '../i18n/index.js';
 
 export function initWorkspaceChatEdit({api,doc,demo,getRecord,getTarget,readCurrent,setDraft,run,isWritable,
   getAuthority=()=>null,assertAuthority=async()=>{},requestFile}){
@@ -8,7 +9,7 @@ export function initWorkspaceChatEdit({api,doc,demo,getRecord,getTarget,readCurr
   let context=null,contextBinding=null,proposal=null,prompt='',recordKey='',receipt='',binding=null,
     requestContext=null,resultPacket=null,revision=0,proposalTurn=null,promptPacket=null;
   const stages={recognized:'未处理',native:'未执行',fill:'未回填',sent:'未发送'};
-  const note=(message,error=false)=>{el('chat-edit-status').textContent=message;el('chat-edit-status').classList.toggle('error',error);};
+  const note=(message,error=false)=>{el('chat-edit-status').textContent=localizeLiteral(message);el('chat-edit-status').classList.toggle('error',error);};
   const fail=(code,message)=>{throw {code,message,outcome:'NOT_DISPATCHED'};};
   const key=record=>record?record.workspaceId+'\0'+record.path:'';
   const sameTarget=(a,b)=>!!a&&!!b&&['tabId','documentId','url'].every(k=>a[k]===b[k]);

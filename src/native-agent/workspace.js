@@ -10,6 +10,7 @@ import {createWorkspaceFileIcon,createWorkspaceTreeChevron} from './workspace-fi
 import {readToolSnapshot} from './tool-snapshot.js';
 import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
 import {initKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
+import {localizeLiteral,subscribeLocale,translate,formatFileSize} from '../i18n/index.js';
 
 export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document,client}={}){
   const root=doc.getElementById('file-workspace');if(!root)return;
@@ -64,10 +65,11 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       }
     }catch{ /* Display history is optional, never permission. */ }
   })();
-  const status=(text,error=false)=>{const el=byId('workspace-status');el.textContent=text;el.classList.toggle('error',error);};
+  let lastStatus='',lastStatusError=false;
+  const status=(text,error=false)=>{lastStatus=text;lastStatusError=error;const el=byId('workspace-status');el.textContent=localizeLiteral(text);el.classList.toggle('error',error);};
   const toolPreviewStatus=(message,error=false)=>{
     const node=byId('preview-sidebar-tool-status');
-    if(node){node.textContent=message;node.classList.toggle('error',error);}
+    if(node){node.textContent=localizeLiteral(message);node.classList.toggle('error',error);}
   };
   const failure=e=>status((e.code?e.code+' · ':'')+(e.message||String(e)),true);
   const dirty=record=>!!record&&record.content!==record.baseContent;
@@ -134,7 +136,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('show-page-preview').disabled=busy||!connected||!current||demo||!targets.has(Number(byId('target-picker').value));
     for(const id of ['open-sidebar','open-workbench','remove-page-preview'])byId(id).disabled=demo||busy||!targets.has(Number(byId('target-picker').value));
     const recordOnline=connected&&workspaceAccess.has(current?.workspaceId);
-    byId('draft-label').textContent=!current?'未打开文件':!recordOnline?'离线草稿 · 禁止磁盘操作':current.unknown?'保存结果待核对':!currentAuthority?'目录连接已变化 · 请重新读取':current.remote?'磁盘版本已变化':dirty(current)?'有未保存的修改':'已保存';
+    byId('draft-label').textContent=localizeLiteral(!current?'未打开文件':!recordOnline?'离线草稿 · 禁止磁盘操作':current.unknown?'保存结果待核对':!currentAuthority?'目录连接已变化 · 请重新读取':current.remote?'磁盘版本已变化':dirty(current)?'有未保存的修改':'已保存');
     byId('draft-label').classList.toggle('dirty',dirty(current)||!!current?.unknown);
     byId('conflict-panel').hidden=!current?.remote;
     if(current?.remote)byId('disk-version').textContent=current.remote.content;
@@ -143,10 +145,10 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       const owner=history.find(row=>row.workspaceId===current.workspaceId);
       const sameName=owner&&history.filter(row=>sourceName(row.name)===sourceName(owner.name)).length>1;
       const ownedBy=demo?'内存演示目录':owner?sourceLabel(owner,{duplicate:sameName}):'目录身份待连接核验';
-      byId('file-meta').textContent=ownedBy+' / '+current.path+' · '+count.toLocaleString()+' bytes · '+
+      byId('file-meta').textContent=ownedBy+' / '+current.path+' · '+formatFileSize(count)+' · '+
         (current.sha256?.slice(0,10)||'')+(recordOnline?' · 已核验目录':' · 离线草稿')+(!writable()?' · 只读':'');
     }else{
-      byId('file-meta').textContent='选择左侧文件，以查看预览或源码。';
+      byId('file-meta').textContent=translate('runtime.selectFile');
     }
     byId('open-sidebar').disabled=byId('open-sidebar').disabled||!connected||!workspaceAccess.has(workspaceId);
     byId('file-title').title=current?.path||'打开一个文件';
@@ -185,7 +187,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     toolPreviewStatus('本地工具来源离线；不能读取新的构建快照。',true);
     connected=false;workspaceAccess.clear();workspaceRows.clear();fileState={};chatEdit?.invalidate('本机连接或授权已失效，旧请求和提案已停用，草稿保留。');resetFileTree();
     populatePicker(history,{offline:true});
-    byId('connection-label').textContent='尚未连接本机';
+    byId('connection-label').textContent=translate('runtime.notConnected');
     byId('connection-label').classList.remove('ready');
     status(message);
     controls();
@@ -193,7 +195,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   function renderPreview(){
     clearTimeout(previewTimer);if(!current)return;
     byId('file-preview').srcdoc=previewDocument(current.path,current.content,doc);
-    byId('preview-kind').textContent=/\.(md|markdown)$/i.test(current.path)?'基础 Markdown':/\.html?$/i.test(current.path)?'静态 HTML · 无脚本':'源码文本 · 未执行';
+    byId('preview-kind').textContent=localizeLiteral(/\.(md|markdown)$/i.test(current.path)?'基础 Markdown':/\.html?$/i.test(current.path)?'静态 HTML · 无脚本':'源码文本 · 未执行');
   }
   function showRecord(record){
     current=record;byId('file-title').textContent=record.path.split('/').at(-1);byId('file-editor').value=record.content;
@@ -202,7 +204,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       node.classList.toggle('selected',selected);node.setAttribute('aria-selected',String(selected));
     }
     const parent=record.path.includes('/')?record.path.slice(0,record.path.lastIndexOf('/')):'';
-    byId('directory-name').textContent=parent?'/'+parent:'根目录';
+    byId('directory-name').textContent=parent?'/'+parent:translate('workspace.rootDirectory');
     byId('directory-name').title=parent?'当前路径：/'+parent:'当前路径：根目录';
     renderPreview();controls();
   }
@@ -246,7 +248,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   // folder does NOT navigate away or request its siblings again.
   function resetFileTree(){
     treeFolders=new Map();treeIdentity='';treeRevision++;
-    byId('file-list').replaceChildren();byId('directory-name').textContent='根目录';
+    byId('file-list').replaceChildren();byId('directory-name').textContent=translate('workspace.rootDirectory');
     byId('directory-name').title='当前路径：根目录';
     byId('tree-message').textContent='';
   }
@@ -263,7 +265,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   function renderFileTree(){
     const list=byId('file-list'),rootFolder=treeFolders.get('');
     if(!rootFolder){list.replaceChildren();byId('tree-message').textContent='';return;}
-    const rows=[{path:'',name:'根目录',kind:'directory',depth:0,pos:1,size:1}],warnings=[];
+    const rows=[{path:'',name:translate('workspace.rootDirectory'),kind:'directory',depth:0,pos:1,size:1}],warnings=[];
     function visit(path,depth){
       const folder=treeFolders.get(path);
       if(!folder?.expanded||!folder.entries)return;
@@ -299,8 +301,8 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       const name=doc.createElement('span');name.className='file-name';name.textContent=row.name;
       button.append(caret,icon,name);
       if(folder?.truncated){
-        const flag=doc.createElement('span');flag.className='tree-truncated';flag.textContent='部分';
-        flag.title='Native 目录列表被截断，并非全部文件';button.append(flag);
+        const flag=doc.createElement('span');flag.className='tree-truncated';flag.textContent=translate('runtime.partial');
+        flag.title=translate('runtime.nativeTruncated');button.append(flag);
       }
       button.addEventListener('click',()=>runTreeAction(row.path,()=>folder?toggleFileDirectory(row.path):openFile(row.path)));
       return button;
@@ -308,9 +310,9 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     list.replaceChildren(...nodes);
     for(const button of nodes)button.disabled=busy||!connected;
     const expanded=[...treeFolders.entries()].filter(([path,node])=>path&&node.expanded).length;
-    byId('tree-message').textContent=rootFolder.entries===null?'正在读取文件树…':
-      (rows.length===1?'当前目录暂无可显示的文件。':(rows.length-1)+' 项可见 · '+expanded+' 个子目录展开')+
-      (warnings.length?' · '+warnings.length+' 个目录仅显示部分条目':'');
+    byId('tree-message').textContent=rootFolder.entries===null?translate('runtime.loadingTree'):
+      (rows.length===1?translate('runtime.emptyFolder'):translate('runtime.treeVisible',{visible:rows.length-1,expanded}))+
+      (warnings.length?translate('runtime.treePartial',{count:warnings.length}):'');
   }
   async function loadFileFolder(path,authority,{force=false}={}){
     const folder=treeFolders.get(path);
@@ -428,7 +430,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     if(ticket!==refreshGeneration||closed)return;
     fileState=state;connected=!!state.connected;
     const label=byId('connection-label');
-    label.textContent=demo?'交互演示':connected?'Native 已连接':state.nativeConnected&&!state.supported?'需更新 OpenDesk':'尚未连接本机';
+    label.textContent=localizeLiteral(demo?'交互演示':connected?'Native 已连接':state.nativeConnected&&!state.supported?'需更新 OpenDesk':'尚未连接本机');
     label.classList.toggle('ready',connected&&!demo);
     if(!connected){
       offline(state.nativeConnected&&!state.supported?'本机 OpenDesk 不支持文件工作区，请更新。':'本机尚未连接；历史目录仅用于展示，不能执行文件操作。');
@@ -719,7 +721,8 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }});
   // Closing a browser tab does not show a JS-created beforeunload modal.
   // Explicit in-app switches still require the nonmodal draft choice above.
-  const unload=()=>{closed=true;finishActionReview(false);knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
+  const stopLocale=subscribeLocale(()=>{if(closed)return;controls();if(lastStatus)status(lastStatus,lastStatusError);renderFileTree();});
+  const unload=()=>{closed=true;stopLocale();finishActionReview(false);knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);
