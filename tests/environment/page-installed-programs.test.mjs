@@ -74,6 +74,7 @@ function fixture(){
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {builtinAbi:f.builtinSource.abi,builtinCatalogSha256:f.builtinSource.catalogSha256,builtinBundleSha256:f.builtinSource.sha256,state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
     executeInstalled:executor.executeInstalled,
+    get retireInstalled(){return f.retireHook||undefined;},
     executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
   const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
   const nativeScripts=api.userScripts;
@@ -652,11 +653,16 @@ test('installed Page rejects missing legacy identity and CORE byte/catalog/ABI u
 test('explicit Page uninstall fences stale native boots, CAS-deletes its installation and permits a fresh install',async()=>{
   const f=fixture(),installed=await f.install(),oldBoot=f.message();
   await fails(()=>f.service.uninstallPageProgram({programId:'script',
-    manifestHash:'0'.repeat(64),expectedGeneration:installed.authorization.generation},{}),'E_REVISION');
+    manifestHash:'0'.repeat(64),installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation},{}),'E_REVISION');
   assert.equal(f.native.size,1);
+  await fails(()=>f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:'different-installation',expectedGeneration:installed.authorization.generation},{}),'E_REVISION');
   const result=await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
     expectedGeneration:installed.authorization.generation},{});
   assert.deepEqual(result,{programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
     uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true});
   assert.equal(f.installation(),undefined);
   assert.equal(f.native.size,0);
@@ -671,6 +677,7 @@ test('uninstall fails closed and retains disabled recovery record until native u
   const f=fixture(),installed=await f.install(),oldBoot=f.message();
   f.access=false;
   await fails(()=>f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
     expectedGeneration:installed.authorization.generation},{}),'E_PAGE_UNINSTALL_PENDING');
   const suspended=f.installation();
   assert.equal(suspended.enabled,false);
@@ -680,9 +687,42 @@ test('uninstall fails closed and retains disabled recovery record until native u
   f.access=true;
   await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
   const result=await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,
     expectedGeneration:suspended.authorization.generation},{});
   assert.equal(result.nativeState,'unregistered');
   assert.equal(f.native.size,0);
+  assert.equal(f.installation(),undefined);
+});
+
+test('R5.5 uncertain managed UI cleanup keeps a disabled installed record and requires deliberate recovery',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await fails(()=>f.service.uninstallPageProgram({programId:'script',
+    manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation},{}),'E_PAGE_CLEANUP_PENDING');
+  const blocked=f.installation();
+  assert.equal(blocked.enabled,false);
+  assert.equal(blocked.authorization.status,'disabled');
+  assert.equal(blocked.managedCleanup.state,'unknown');
+  assert.equal(f.native.size,0,'native registration is already withdrawn');
+  const observed=await f.service.listPagePrograms({},{});
+  assert.equal(observed.installed.length,1,'do not hide a recoverable installation');
+  assert.equal(observed.installed[0].managedCleanup.state,'unknown');
+  await fails(()=>f.service.setInstalledPageEnabled({programId:'script',
+    manifestHash:blocked.manifestHash,expectedGeneration:blocked.authorization.generation,
+    enabled:true},{}),'E_PAGE_CLEANUP_PENDING');
+  const next=await f.prepare('document-idle',{revision:2});
+  await fails(()=>f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:next.manifestHash,expectedInstalledManifestHash:blocked.manifestHash,
+    expectedGeneration:blocked.authorization.generation},{}),'E_PAGE_CLEANUP_PENDING');
+  assert.equal(f.installation().manifestHash,blocked.manifestHash,
+    'upgrade cannot overwrite a pending recovery record');
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'retired',records:1});
+  const result=await f.service.uninstallPageProgram({programId:'script',
+    manifestHash:blocked.manifestHash,installationId:blocked.authorization.installationId,
+    expectedGeneration:blocked.authorization.generation},{});
+  assert.equal(result.uninstalled,true);
+  assert.equal(result.managedCleanup.state,'retired');
   assert.equal(f.installation(),undefined);
 });
 

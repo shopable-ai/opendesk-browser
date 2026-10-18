@@ -61,7 +61,12 @@ function fixture(t,catalog=[row()]){
   let allowed=true,writeHandler=async()=>({});
   const client={async request(name,args){
     requests.push({name,args:structuredClone(args)});
-    if(name==='listPagePrograms')return listResponses.length?await listResponses.shift():{catalog:structuredClone(catalog)};
+    if(name==='listPagePrograms'){
+      const response=listResponses.length?await listResponses.shift():{catalog:structuredClone(catalog)};
+      return {...response,installed:response.installed??(response.catalog||[])
+        .filter(row=>row.installed&&row.installed.manifestHash===row.manifestHash)
+        .map(row=>({...row.installed,programId:row.programId}))};
+    }
     assert.equal(name,'setInstalledPageEnabled','only existing list/toggle authorities are allowed');
     const result=await writeHandler(args);
     if(!result.error){
@@ -100,6 +105,16 @@ test('R25.1 DOM double renders installed title and filters out nonmatching autho
   assert.equal(f.action('page-b','toggle').getAttribute('aria-label'),'停用自动运行：page-b');
   assert.equal(f.technical('page-a').children[1].textContent,'源码 SHA-256：'+'b'.repeat(64));
   assert.deepEqual(f.requests.map(request=>request.name),['listPagePrograms']);
+});
+
+test('R5.5 installed Page remains manageable without a Candidate catalog entry',async t=>{
+  const f=fixture(t,[]);
+  const installed={...row('orphan').installed,programId:'orphan'};
+  f.enqueueList(Promise.resolve({catalog:[],installed:[installed]}));
+  await f.ui.refresh();
+  assert.equal(f.list.children.length,1);
+  assert.match(f.list.children[0].textContent,/已安装的原始名称/);
+  assert.equal(f.list.children[0].querySelectorAll('button').length,1);
 });
 
 test('R25.1 DOM double keeps long installed title and site rules as complete literal text',async t=>{

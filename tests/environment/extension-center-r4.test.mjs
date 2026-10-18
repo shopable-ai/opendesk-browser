@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {composeExtensionEntries,filterExtensionEntries} from '../../src/ui/extension-center-model.js';
 const tool={id:'shared',title:'阅读目录',description:'目录',version:'1.0.0'};
-const page={programId:'shared',manifestHash:'verified',installed:{manifestHash:'verified',
+const page={programId:'shared',manifestHash:'verified',installed:{programId:'shared',manifestHash:'verified',
   title:'网页增强',revision:2,enabled:true,pageRules:{matches:['https://example.com/*']}}};
 const official={id:'opendesk/shared',toolId:'shared',packageTitle:'阅读目录',description:'官方',version:'1.1.0'};
 test('R4 preserves distinct app and Page identities without duplicating official IDs',()=>{
@@ -66,6 +66,20 @@ test('R5.0 cleanup-pending uninstalled candidate is discoverable but never repor
 
 test('R4 discards Page records that do not match their installed manifest hash',()=>{
   assert.deepEqual(composeExtensionEntries({pages:[{...page,manifestHash:'different'}]}),[]);
+});
+
+test('R5.5 installed Page facts survive deleted/replaced candidates and never infer a draft',()=>{
+  const grant={programId:'still-installed',manifestHash:'fixed-hash',revision:4,
+    sourceHash:'f'.repeat(64),title:'正式安装版本',enabled:false,nativeState:'disabled',
+    authorization:{installationId:'independent-install',generation:8,status:'disabled'},
+    pageRules:{matches:['https://example.com/*'],excludeMatches:['https://example.com/private/*']}};
+  const entries=composeExtensionEntries({pages:[grant]});
+  assert.deepEqual(entries.map(row=>row.key),['page:still-installed']);
+  assert.equal(entries[0].record.installed,grant);
+  assert.equal(entries[0].enabled,false);
+  assert.equal(entries[0].title,'正式安装版本');
+  assert.deepEqual(composeExtensionEntries({pages:[]}),[]);
+  assert.deepEqual(composeExtensionEntries({pages:[{programId:'draft',revision:9}]}),[]);
 });
 
 import {readFile} from 'node:fs/promises';

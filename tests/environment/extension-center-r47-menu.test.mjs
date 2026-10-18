@@ -5,7 +5,7 @@ import {composeExtensionEntries,resolveExtensionPrimaryAction,resolveExtensionRo
 
 const installed={id:'notes',title:'Notes',description:'笔记',version:'1.0.0'};
 const program={programId:'reader',manifestHash:'fixed',installed:{
-  manifestHash:'fixed',title:'网页增强',enabled:true,revision:1,
+  programId:'reader',manifestHash:'fixed',title:'网页增强',enabled:true,revision:1,
   nativeState:'registered',authorization:{status:'suspended',generation:7},
   pageRules:{matches:['https://example.com/*']}
 }};
@@ -61,7 +61,7 @@ test('R4.7 installed Page still uses user gesture, grants, manifest and generati
     readFile('src/ui/installed-page-tools.js','utf8')
   ]);
   assert.match(center,/if\(!event\.isTrusted\|\|busy\|\|pendingKey\|\|row\.kind!=='page'\)return/);
-  assert.match(center,/if\(find\(row\.key\)\?\.record!==row\.record\)/);
+  assert.match(center,/if\(!samePageIdentity\(find\(row\.key\),pageIdentity\(row\)\)\)/);
   assert.match(center,/setInstalledPageProgramEnabled\(\{api,client,row:row\.record\}\)/);
   assert.match(page,/await requireChromePermissions\(\{api,request:\{origins:installed\.pageRules\.matches\}\}\)/);
   assert.match(page,/expectedGeneration:installed\.authorization\?\.generation\?\?null/);

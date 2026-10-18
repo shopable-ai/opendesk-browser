@@ -82,9 +82,10 @@ class ElementDouble {
 const app={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',title:'快速笔记',description:'记录内容',version:'1.0.0',
   capabilities:['storage.local'],html:'<main>Notes</main>',css:'',js:'void 0;'};
 const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
-  title:'阅读增强',revision:1,manifestHash:'a'.repeat(64),enabled:true,nativeState:'registered',
-  sourceHash:'b'.repeat(64),authorization:{status:'granted',generation:5},
-  pageRules:{matches:['https://example.com/*']}
+  programId:'reader',title:'阅读增强',revision:1,manifestHash:'a'.repeat(64),
+  enabled:true,nativeState:'registered',sourceHash:'b'.repeat(64),
+  authorization:{status:'active',generation:5,installationId:'original-installation'},
+  pageRules:{matches:['https://example.com/*'],excludeMatches:[]}
 }});
 
 function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null}={}){
@@ -125,7 +126,8 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
   if(cleanupRows)store.set(TOOL_CLEANUP_STORE,structuredClone(cleanupRows));
   let corrupt=readError,programs=[page()],failPages=false,allowed=true,pageAckOnly=false;
-  const writes=[],invocations=[],changes=new Set();
+  let pageCandidates=null,pageUninstallMode='success';
+  const writes=[],uninstalls=[],invocations=[],changes=new Set();
   const api={
     runtime:{getURL:path=>'chrome-extension://fixture/'+path},
     permissions:{async contains(){return allowed;},async request(){throw Error('no implicit Chrome grant');}},
@@ -141,7 +143,35 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   const client={async request(name,args){
     if(name==='listPagePrograms'){
       if(failPages)throw Error('Page authority disconnected');
-      return {catalog:programs};
+      return {catalog:pageCandidates??programs,
+        installed:programs.map(row=>({...row.installed,programId:row.programId}))};
+    }
+    if(name==='uninstallPageProgram'){
+      uninstalls.push(structuredClone(args));
+      const index=programs.findIndex(row=>row.programId===args.programId);
+      const program=programs[index];
+      if(!program||program.installed.manifestHash!==args.manifestHash||
+        program.installed.authorization.installationId!==args.installationId||
+        program.installed.authorization.generation!==args.expectedGeneration)
+        throw Object.assign(Error('stale Page receipt'),{code:'E_REVISION'});
+      const receipt={programId:args.programId,manifestHash:args.manifestHash,
+        installationId:args.installationId,uninstalled:true,nativeState:'unregistered',
+        livePagesNeedRefresh:true};
+      if(pageUninstallMode==='ack-only')return receipt;
+      if(pageUninstallMode==='native-fail'||pageUninstallMode==='cleanup-unknown'){
+        program.installed.enabled=false;
+        program.installed.authorization.generation++;
+        program.installed.authorization.status='disabled';
+        program.installed.nativeState=pageUninstallMode==='native-fail'?'blocked':'disabled';
+        if(pageUninstallMode==='cleanup-unknown')
+          program.installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
+        throw Object.assign(Error(pageUninstallMode),{code:pageUninstallMode==='native-fail'?
+          'E_PAGE_UNINSTALL_PENDING':'E_PAGE_CLEANUP_PENDING'});
+      }
+      programs.splice(index,1);
+      if(pageUninstallMode==='outcome-unknown')throw Object.assign(
+        Error('Host reply lost'),{code:'E_EFFECT_UNKNOWN'});
+      return receipt;
     }
     assert.equal(name,'setInstalledPageEnabled');
     writes.push(structuredClone(args));
@@ -177,8 +207,9 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   const button=(key,action)=>buttons(key).find(node=>node.dataset.extensionAction===action);
   const rowMenu=()=>doc.body.children.find(node=>node.id==='extension-center-row-menu');
   const menuItem=text=>rowMenu()?.children.find(node=>node.textContent.includes(text));
-  return {doc,nodes,ui,store,sidebarTools,invocations,writes,list,button,buttons,rowMenu,menuItem,programs,
+  return {doc,nodes,ui,store,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
+    setPageCatalog:value=>{pageCandidates=value;},setPageUninstallMode:value=>{pageUninstallMode=value;},
     setPageAckOnly:value=>{pageAckOnly=value;},
     setAllowed:value=>{allowed=value;},emitStorage:()=>{
       for(const cb of changes)cb({[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:null,newValue:{}}},'local');
@@ -222,6 +253,75 @@ test('R4.7 stopped app has no fake Settings main; overflow enable uses the sole 
   assert.deepEqual(f.invocations.filter(x=>x[0]==='toggle'),[['toggle','quick-notes']]);
   assert.equal(f.invocations.some(x=>x[0]==='open'),false,'enabling must never execute');
 });
+
+test('R5.5 installed Page survives loss or replacement of development candidates',async t=>{
+  const f=fixture(t);f.setPageCatalog([]);
+  await f.ui.refresh();
+  assert.ok(f.button('page:reader','main'),'Installed Page is independent of Candidate');
+  f.button('page:reader','main').dispatch('click');
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+  assert.match(f.nodes['extension-center-detail-body'].textContent,/来源未记录/);
+  assert.match(f.nodes['extension-center-detail-body'].textContent,/Chrome 注册/);
+  f.setPageCatalog([{programId:'reader',manifestHash:'replaced',revision:99}]);
+  await f.ui.refresh();
+  assert.equal(f.nodes['extension-center-detail'].hidden,false);
+});
+
+test('R5.5 Page uninstall confirmation cancels without writes then deletes only after verified readback',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  const action=id=>f.nodes['extension-center-detail-body']
+    .querySelector('[data-ec-detail-action="'+id+'"]');
+  assert.ok(action('uninstall'),'uninstall is in Extensions detail');
+  action('uninstall').dispatch('click');
+  assert.equal(f.uninstalls.length,0);
+  assert.ok(action('confirm-uninstall'));
+  action('cancel-uninstall').dispatch('click');
+  assert.equal(f.uninstalls.length,0,'cancel never calls Page authority');
+  assert.equal(f.programs.length,1);
+  action('uninstall').dispatch('click');
+  action('confirm-uninstall').dispatch('click');
+  await settle(()=>f.uninstalls.length===1);
+  assert.deepEqual(f.uninstalls[0],{programId:'reader',manifestHash:'a'.repeat(64),
+    installationId:'original-installation',expectedGeneration:5});
+  await settle(()=>f.nodes['extension-center-status'].textContent.includes('已从 Page Authority 回执'));
+  assert.equal(f.programs.length,0);
+  assert.equal(f.button('page:reader','main'),undefined);
+  assert.deepEqual(f.writes,[],'uninstall never toggles an unrelated grant');
+});
+
+test('R5.5 stale Page generation invalidates an old uninstall confirmation before a write',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  const action=id=>f.nodes['extension-center-detail-body']
+    .querySelector('[data-ec-detail-action="'+id+'"]');
+  action('uninstall').dispatch('click');
+  f.programs[0].installed.authorization.generation++;
+  await f.ui.refresh();
+  assert.equal(action('confirm-uninstall'),undefined);
+  assert.equal(f.uninstalls.length,0);
+  assert.match(f.nodes['extension-center-status'].textContent,/卸载确认已失效/);
+});
+
+for(const mode of ['native-fail','cleanup-unknown','ack-only','outcome-unknown'])
+  test('R5.5 Page uninstall '+mode+' never fabricates success or automatically retries',async t=>{
+    const f=fixture(t);f.setPageUninstallMode(mode);await f.ui.refresh();
+    f.button('page:reader','main').dispatch('click');
+    const action=id=>f.nodes['extension-center-detail-body']
+      .querySelector('[data-ec-detail-action="'+id+'"]');
+    action('uninstall').dispatch('click');action('confirm-uninstall').dispatch('click');
+    await settle(()=>f.uninstalls.length===1);
+    await settle(()=>f.nodes['extension-center-status'].dataset.state==='error'&&
+      !f.nodes['extension-center-status'].textContent.includes('卸载确认已失效'));
+    assert.equal(f.uninstalls.length,1,'no implicit retry of an unknown native operation');
+    assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/已从 Page Authority 回执/);
+    if(mode==='cleanup-unknown'){
+      assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
+      assert.ok(f.button('page:reader','main'),'unknown cleanup retains recovery path');
+    }else if(mode==='native-fail')assert.ok(f.button('page:reader','main'));
+    else if(mode==='ack-only')assert.equal(f.programs.length,1);
+    else assert.equal(f.programs.length,0);
+  });
 
 test('R4.7 installed Page menu is keyboard usable, invokes original generation-bound authority and returns focus',async t=>{
   const f=fixture(t);await f.ui.refresh();

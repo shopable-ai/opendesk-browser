@@ -3,7 +3,7 @@ import {sidebarToolPackageHash} from './sidebar-tools/package.js';
 
 export async function describeInstalledAppSource(tool,record){
   const sha256=await sidebarToolPackageHash(tool);
-  if(record===undefined)return {kind:'local',label:'本地工具包导入（无官方市场安装记录）',sha256};
+  if(record===undefined)return {kind:'unknown',label:'来源未记录',sha256};
   if(record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===sha256)
     return {kind:'market',label:'OpenDesk 官方市场 · '+record.marketId,sha256};
   return {kind:'unverified',label:'安装来源记录与当前固定包不一致',sha256};
@@ -28,15 +28,18 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],enabl
       release,update:!!release&&newer(release.version,tool.version),record:tool});
   }
   const pageIds=new Set();
+  // "pages" is the Authority's installed collection, not the development
+  // Catalog. Keep a small compatibility normalization for existing callers.
   for(const row of pages){
-    if(!row?.programId||pageIds.has(row.programId)||!row.installed||
-      row.installed.manifestHash!==row.manifestHash)continue;
-    pageIds.add(row.programId);
-    const p=row.installed;
-    entries.push({key:'page:'+row.programId,id:row.programId,kind:'page',title:p.title||row.programId,
+    const p=row?.installed??row;
+    if(!p?.programId||!p.manifestHash||pageIds.has(p.programId)||
+      (row?.installed&&(row.programId!==p.programId||row.manifestHash!==p.manifestHash)))continue;
+    pageIds.add(p.programId);
+    entries.push({key:'page:'+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
       description:(p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
       installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
-      release:null,update:false,record:row});
+      release:null,update:false,
+      record:{programId:p.programId,manifestHash:p.manifestHash,installed:p}});
   }
   for(const release of official){
     if(!release?.toolId||ids.has(release.toolId))continue;

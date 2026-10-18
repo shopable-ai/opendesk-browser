@@ -32,8 +32,10 @@ export function createInstalledPageTools({client,api,doc}){
     let rows;
     try{
       const response=await client.request('listPagePrograms',{});
-      rows=(response.catalog||[]).filter(row=>row.installed&&
-        row.installed.manifestHash===row.manifestHash);
+      if(!Array.isArray(response?.installed))throw Object.assign(
+        new Error('Page 已安装清单缺失'),{code:'E_PAGE_INSTALLATION'});
+      rows=response.installed.filter(row=>row?.programId&&row?.manifestHash)
+        .map(row=>({programId:row.programId,manifestHash:row.manifestHash,installed:row}));
     }catch(error){
       if(disposed||generation!==sequence)return;
       notice((error.code||'E_PAGE_INSTALLATION')+'：无法读取已安装网页脚本；不会影响原安装','error','catalog');
