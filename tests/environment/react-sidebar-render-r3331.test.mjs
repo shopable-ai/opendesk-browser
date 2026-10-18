@@ -133,3 +133,20 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(runStatus,/&lt;script&gt;/);
   assert.doesNotMatch(runStatus,/<script\b/i);
 });
+
+test('R35.1 React owns accessible five-tab navigation markup',async t=>{
+  const vite=await createServer({configFile:false,root:process.cwd(),
+    appType:'custom',server:{middlewareMode:true},logLevel:'error'});
+  t.after(()=>vite.close());
+  const {SidebarNavigation}=await vite.ssrLoadModule('/src/ui/react/tabs/navigation.tsx');
+  const html=renderToStaticMarkup(React.createElement(SidebarNavigation,{
+    activeTab:'develop',debugEnabled:false,onNavigate:()=>true
+  }));
+  for(const id of ['tab-my-tasks','tab-tools','tab-workflow','tab-develop','tab-cloud'])
+    assert.equal([...html.matchAll(new RegExp('id="'+id+'"','g'))].length,1,id);
+  assert.match(html,/id="tab-develop"[^>]*aria-selected="true"[^>]*tabindex="0"/);
+  assert.match(html,/id="tab-tools"[^>]*aria-selected="false"[^>]*tabindex="-1"/);
+  assert.match(html,/id="tab-debug"[^>]*hidden=""/);
+  assert.equal((html.match(/role="tab"/g)||[]).length,6);
+  assert.doesNotMatch(html,/onClick=|dangerouslySetInnerHTML/);
+});
