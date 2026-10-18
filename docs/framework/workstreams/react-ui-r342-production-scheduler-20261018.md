@@ -8,3 +8,5 @@
 - 环境边界：此对话无法读取用户 Mac 工作区 `git status`、真实 Chrome profile 或执行本地 `npm run build`；Mac Native 和本地检查一律 NOT_TESTED，不以 CI 离线 Chromium 冒充安装验收。
 - 并行范围：无分支/worktree/PR/强推；只在主干 HEAD 和 blob 确认未漂移时原子提交，不触碰旧 workstreams 或共享产物。
 - 当前状态：SOURCE_PATCHED；CI 结果以发布后的 workflow run 记录为准；Native 待本地 Codex。
+
+- R34.2 复测扩展：此前正式 CSS 的菜单 marker 选择器使用 `.schedule-manager-menu-trigger`，但共享 Native summary 契约要求 `.schedule-manager-menu>summary`。将三处原生 marker/焦点触达选择器限定到原菜单的直接子 summary，不改变 DOM、视觉变量或权限。本任务新增最小写入范围 `src/ui/tool-shell.css`，依赖现有 `tests/environment/sidebar-component-contract.test.mjs` 断言和预览构建；CI/原生状态按本次提交独立复核。
