@@ -475,7 +475,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
                 nextDueAt:p.paused?(p.previewNextDueAt??p.nextDueAt):null}:p));
               setFeedback('仅演示交互，未修改真实计划。');}}>
             {selected.paused?'恢复计划':'暂停计划'}</button>
-        </div>
+        </div>}
       {selected.needsAttention&&<>
         <p className="schedule-status-help">
           固定任务版本或网站权限需要处理。此处仅展示状态，不会自动换绑。</p>
