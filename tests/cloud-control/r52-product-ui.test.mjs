@@ -5,17 +5,29 @@ import {readFile} from 'node:fs/promises';
 import {createCloudHosting} from '../../src/ui/cloud-hosting.js';
 
 test('Cloud keeps task consent primary and endpoint settings secondary',async()=>{
-  const [html,css,js]=await Promise.all(['src/ui/tool.html','src/ui/tool-shell.css',
-    'src/ui/cloud-hosting.js'].map(x=>readFile(x,'utf8')));
+  const [html,css,js,react,shell]=await Promise.all([
+    'src/ui/tool.html','src/ui/tool-shell.css','src/ui/cloud-hosting.js',
+    'src/ui/react/tabs/cloud.tsx','src/ui/react/app-shell.tsx'
+  ].map(x=>readFile(x,'utf8')));
+  // React owns first-run, request history and overview. The original
+  // authorized form sections remain in the same real HTML and are adopted by
+  // the single React shell; do not require the removed duplicate HTML nodes.
   const panel=html.slice(html.indexOf('id="workbench-cloud"'),
-    html.indexOf('id="workbench-local-discover"'));
-  const ids=['cloud-overview-state','cloud-first-run','cloud-approval-section',
-    'cloud-request-samples','cloud-clients','cloud-hosting'].map(x=>panel.indexOf('id="'+x+'"'));
-  assert(ids.every((x,i)=>x>=0&&(i===0||x>ids[i-1])));
+    html.indexOf('id="workbench-discover"'));
+  const legacy=['cloud-approval-section','cloud-clients','cloud-hosting']
+    .map(x=>panel.indexOf('id="'+x+'"'));
+  const reactOrder=['cloud-overview-state','cloud-first-run','cloud-request-samples']
+    .map(x=>react.indexOf('id="'+x+'"'));
+  assert(legacy.every((x,i)=>x>=0&&(i===0||x>legacy[i-1])));
+  assert(reactOrder.every((x,i)=>x>=0&&(i===0||x>reactOrder[i-1])));
+  assert.match(shell,/cloudLegacySections/);
+  assert.match(react,/legacySections=\[\]/);
+  assert.match(react,/legacySections\)/);
   assert.match(panel,/网页数据和结果正文默认不回传/);
-  for(const id of ['cloud-approval-summary','cloud-overview-state','cloud-status'])
+  for(const id of ['cloud-approval-summary','cloud-status'])
     assert.match(panel,new RegExp('id="'+id+'"[^>]*role="status"'));
-  assert.match(panel,/id="cloud-configure"/);
+  assert.match(react,/id="cloud-overview-state" role="status"/);
+  assert.match(react,/id="cloud-configure"/);
   assert.match(panel,/id="cloud-stop"/);
   assert.match(panel,/id="cloud-unpair"/);
   assert.match(panel,/id="cloud-approval-review"[^>]*hidden/);
@@ -36,7 +48,7 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   assert.match(js,/task\.requiresReapproval/);
   assert.match(js,/先停止云控，再核对并重新批准/);
   for(const id of ['cloud-request-prev','cloud-request-next','cloud-request-detail',
-    'cloud-request-open-result'])assert.match(panel,new RegExp('id="'+id+'"'));
+    'cloud-request-open-result'])assert.match(react,new RegExp('id="'+id+'"'));
   assert.match(js,/script-read-run/);
   assert.match(css,/\.cloud-request-pagination/);
 });
