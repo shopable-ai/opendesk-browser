@@ -1,0 +1,64 @@
+name: OpenDesk R1.1 business ownership and fixed bundle
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/app-business-ownership-r11.yml'
+      - 'scripts/build-contract.mjs'
+      - 'scripts/bundle-provenance.mjs'
+      - 'scripts/check-source.mjs'
+      - 'scripts/build.mjs'
+      - 'src/entrypoints/time-review-host.js'
+      - 'src/entrypoints/sidebar-tool-host.js'
+      - 'src/sw.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/installation.js'
+      - 'src/page-clip/**'
+      - 'src/reading-toc/**'
+      - 'examples/sidebar-tools/stay-focus/trusted/**'
+      - 'examples/sidebar-tools/time-review/trusted/**'
+      - 'examples/sidebar-tools/ai-vip-share/trusted/**'
+      - 'examples/sidebar-tools/reading-toc/**'
+      - 'examples/sidebar-tools/web-markdown-clipper/**'
+      - 'tests/environment/app-business-ownership-r1.test.mjs'
+      - 'tests/environment/bundle-provenance.test.mjs'
+      - 'tests/environment/time-review-host-controls-r51.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-boundary-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies without execution scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check actual source and WXT fixed entries
+        run: npm run check
+      - name: Business ownership, hostile provenance and host visibility contracts
+        run: |
+          node --test tests/environment/app-business-ownership-r1.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/time-review-host-controls-r51.test.mjs
+      - name: Focus, Time Review, AI VIP and shared tool host regression suites
+        run: |
+          node --test tests/environment/stay-focus*.test.mjs tests/environment/time-review*.test.mjs tests/environment/ai-vip-share*.test.mjs tests/environment/sidebar-tools-host.test.mjs
+      - name: Verify both actual WXT package modes and source provenance
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Preserve actual build receipts on failure and success
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-ownership-r11-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            docs/framework/evidence/wxt/builds/
+            dist/production/framework/sdk-resources.json
+            dist/development/framework/sdk-resources.json
