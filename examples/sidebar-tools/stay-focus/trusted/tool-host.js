@@ -11,6 +11,9 @@ const error=(message,code)=>Object.assign(new Error(message),{code});
 // Presence of a Side Panel adapter is not evidence of a running MV3 worker.
 // A live, versioned handshake fails closed without granting Chrome authority.
 export async function probeStayFocusService({api,tool=null}){
+  // Do not let a different package pass installation by probing this fixed SW.
+  if(tool&&(tool.id!==FOCUS_ID||!tool.capabilities?.includes(FOCUS_CAPABILITY)))
+    throw error('当前工具没有对应的可信 Stay Focus 后台服务','E_TOOL_RUNTIME_UNAVAILABLE');
   if(typeof api?.runtime?.sendMessage!=='function')
     throw error('当前扩展无法连接 Stay Focus 后台服务；请升级或重新加载扩展','E_TOOL_RUNTIME_UNAVAILABLE');
   let response;
