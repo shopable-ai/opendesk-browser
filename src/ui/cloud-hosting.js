@@ -37,6 +37,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
   let lastSamples='',lastFullRefresh=0,lastCatalogAt=0,lastCatalogStamp='';
   let requestOffset=0,requestNextOffset=null,selectedRequestIndex=null,selectedOriginalRunId=null;
+  const reactRequests=reactUI?.cloudRequestsMounted===true;
+  let requestRows=[],requestRawRows=[],requestPageText='正在读取请求记录…',requestError='';
   let taskChoices=[];const selections=new Map();
   let hostingEnabled=false;
   const updateResultConsent=()=>{get('cloud-result-consent').disabled=busy||hostingEnabled;};
@@ -258,8 +260,50 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     get('cloud-client-more').hidden=clientNextOffset===null;
     put('cloud-clients-count',String(response.total)+' 个有效授权');
   }
+  // Only the Cloud Host provides the receipt and authorized original Run ID.
+  // Rendering history never claims, executes or retries any request.
+  function renderReactRequests(){
+    if(!reactRequests||disposed)return;
+    const index=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
+    const sample=index>=0?requestRows[index]:null;
+    const raw=index>=0?requestRawRows[index]:null;
+    selectedOriginalRunId=typeof raw?.runId==='string'&&
+      /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.runId)
+      ?raw.runId:null;
+    const detail=sample?{
+      key:String(selectedRequestIndex),title:sample.title,
+      state:[sample.state,sample.run].join(' · '),
+      facts:[sample.result,sample.settlement,sample.receipt].join(' · '),
+      reason:sample.reason||'暂无其他状态信息。',
+      runId:selectedOriginalRunId||'尚无可核对的原始 Run',
+      canOpenRun:Boolean(selectedOriginalRunId),
+      note:selectedOriginalRunId
+        ?'仅在本机可信「开发 → 运行记录」读取原始数据，仍受原网站和 Run 授权限制；不会重新执行，也不扩大外部结果权限。'
+        :'该请求尚未绑定可查询的原始 Run；状态未知时请勿重新执行。'
+    }:null;
+    reactUI.renderCloudRequests({
+      rows:requestRows.map((row,index)=>({
+        key:String(requestOffset+index),index,
+        title:[row.title,row.state,row.run].filter(Boolean).join(' · '),
+        summary:[row.result,row.settlement,row.receipt,row.reason]
+          .filter(Boolean).join(' · ')
+      })),
+      emptyText:requestError||'此页暂无请求记录',
+      pageText:requestPageText,canPrev:!requestError&&requestOffset>0,
+      canNext:!requestError&&requestNextOffset!==null,detail,
+      onDetail:index=>{
+        if(disposed||!Number.isInteger(index)||index<0||index>=requestRows.length)return;
+        selectedRequestIndex=requestOffset+index;renderReactRequests();
+      },
+      onClose:()=>closeRequestDetail(),
+      onPrev:()=>void action(pagePrev,true),
+      onNext:()=>void action(pageNext,true),
+      onOpenResult:()=>void action(openOriginalRun)
+    });
+  }
   function closeRequestDetail(){
     selectedRequestIndex=null;selectedOriginalRunId=null;
+    if(reactRequests){renderReactRequests();return;}
     get('cloud-request-detail').hidden=true;
     get('cloud-request-open-result').disabled=true;
     put('cloud-request-detail-run-id','');
@@ -270,6 +314,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     selectedOriginalRunId=typeof raw?.runId==='string'&&
       /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.runId)
       ?raw.runId:null;
+    if(reactRequests){renderReactRequests();return;}
     get('cloud-request-detail').hidden=false;
     put('cloud-request-detail-title',sample.title);
     put('cloud-request-detail-state',[sample.state,sample.run].join(' · '));
@@ -283,7 +328,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   function sampleView(samples,rawRows=[]){
     const serial=JSON.stringify([requestOffset,samples,rawRows.map(row=>row?.runId??null)]);
-    if(serial===lastSamples)return;lastSamples=serial;sampleList.replaceChildren();
+    if(serial===lastSamples)return;lastSamples=serial;
+    if(reactRequests){
+      requestRows=samples;requestRawRows=rawRows;
+      const i=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
+      if(i<0||i>=samples.length)selectedRequestIndex=null;
+      renderReactRequests();return;
+    }
+    sampleList.replaceChildren();
     if(!samples.length){const li=doc.createElement('li');li.textContent='此页暂无请求记录';sampleList.append(li);closeRequestDetail();return;}
     samples.forEach((s,i)=>{
       const li=doc.createElement('li'),state=doc.createElement('span'),
@@ -333,9 +385,16 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       tasks:'待核对',requests:'待核对'});
     get('cloud-pair').disabled=true;get('cloud-approve').disabled=true;
     get('cloud-refresh').disabled=false;get('cloud-overview-refresh').disabled=false;
-    lastSamples='';sampleList.replaceChildren();const li=doc.createElement('li');li.textContent='请求状态暂不可读取';sampleList.append(li);
-    closeRequestDetail();get('cloud-request-prev').disabled=true;get('cloud-request-next').disabled=true;
-    put('cloud-request-page','历史状态不可读取');
+    lastSamples='';
+    if(reactRequests){
+      requestError='请求状态暂不可读取';requestRows=[];requestRawRows=[];
+      requestPageText='历史状态不可读取';renderReactRequests();
+    }else{
+      sampleList.replaceChildren();const li=doc.createElement('li');
+      li.textContent='请求状态暂不可读取';sampleList.append(li);
+    }
+    closeRequestDetail();if(!reactRequests){get('cloud-request-prev').disabled=true;
+      get('cloud-request-next').disabled=true;put('cloud-request-page','历史状态不可读取');}
   };
   // Refresh is deliberately read-only. Cloud claim/dispatch belongs only to poll().
   async function refresh(){
@@ -361,11 +420,15 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       tasks:String(projected.approvedTasks),requests:String(projected.requests.total)});
     hostingEnabled=s.enabled===true;updateResultConsent();
     requestNextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
-    get('cloud-request-prev').disabled=requestOffset===0;
-    get('cloud-request-next').disabled=requestNextOffset===null;
+    if(!reactRequests){
+      get('cloud-request-prev').disabled=requestOffset===0;
+      get('cloud-request-next').disabled=requestNextOffset===null;
+    }
     const total=projected.requests.total,shown=samples.length;
-    put('cloud-request-page',total&&shown
-      ?'第 '+(requestOffset+1)+'–'+(requestOffset+shown)+' 条 / '+total+' 条':'暂无请求');
+    const pageText=total&&shown
+      ?'第 '+(requestOffset+1)+'–'+(requestOffset+shown)+' 条 / '+total+' 条':'暂无请求';
+    if(reactRequests){requestError='';requestPageText=pageText;}
+    else put('cloud-request-page',pageText);
     sampleView(samples,shown?s.requests.slice(-shown).reverse():[]);
     lastFullRefresh=Date.now();await refreshTaskChoices(s);
     updateClientTaskChoices(s);
@@ -467,22 +530,26 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   click('cloud-refresh',async()=>{});
   click('cloud-overview-refresh',async()=>{});
   // Paged reads do not claim, renew, replay or otherwise mutate a Cloud Job.
-  click('cloud-request-prev',async()=>{requestOffset=Math.max(0,requestOffset-5);closeRequestDetail();});
-  click('cloud-request-next',async()=>{
+  async function pagePrev(){requestOffset=Math.max(0,requestOffset-5);closeRequestDetail();}
+  async function pageNext(){
     if(requestNextOffset!==null){requestOffset=requestNextOffset;closeRequestDetail();}
-  });
-  click('cloud-request-close',async()=>{closeRequestDetail();});
-  click('cloud-request-open-result',async()=>{
+  }
+  async function openOriginalRun(){
     if(!selectedOriginalRunId)return;
     const tab=get('tab-develop'),field=get('script-run-id'),query=get('script-read-run');
     if(!tab?.click||!field||!query?.click)throw {code:'E_CLOUD_RESULT_VIEW'};
-    // Reuse the existing authenticated Controller snapshot route and its
-    // result-delivery permission checks. Never execute the Task again.
+    // Read the existing authenticated result. Do not execute or replay the Task.
     get('developer-results-panel').open=true;
     get('script-history-panel').open=true;
     field.value=selectedOriginalRunId;
     tab.click();query.click();
-  });
+  }
+  if(!reactRequests){
+    click('cloud-request-prev',pagePrev);
+    click('cloud-request-next',pageNext);
+    click('cloud-request-close',async()=>closeRequestDetail());
+    click('cloud-request-open-result',openOriginalRun);
+  }
   click('cloud-open-console',async()=>{await api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')});});
   // Preserve the two-second dispatch cadence without scanning cloud history
   // every time. Visibility changes observations, not execution ownership.

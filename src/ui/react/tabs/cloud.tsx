@@ -8,7 +8,7 @@ export function CloudOverviewText({value=''}) {return <>{String(value??'')}</>;}
 // remote requests and stop/revoke. Its mutable forms/lists are adopted intact
 // below the React-owned overview until their controllers expose action/snapshot
 // contracts. Do not import Host/SDK or run user code inside this component.
-export function CloudConnectionPage({model={},legacySections=[],hidden=false}){
+export function CloudConnectionPage({model={},requestsModel={},legacySections=[],hidden=false}){
   const attachRest=React.useCallback(node=>{
     if(!node)return;
     for(const child of legacySections)
@@ -67,6 +67,73 @@ export function CloudConnectionPage({model={},legacySections=[],hidden=false}){
           </p>
         </details>
       </section>
+      <CloudRequestHistory model={requestsModel}/>
     </section>
   </div>;
+}
+
+
+// R35.3: React owns Cloud request history, pagination, details and focus.
+// The existing CloudHosting/RunHost retain all read, identity and authority
+// checks. Only plain-text projections and trusted UI actions cross this seam.
+export function CloudRequestHistory({model={}}){
+  const rows=Array.isArray(model.rows)?model.rows:[];
+  const detail=model.detail||null,focus=React.useRef(null);
+  const trusted=(event,callback,value)=>{
+    if(event.nativeEvent?.isTrusted===true&&typeof callback==='function')
+      callback(value);
+  };
+  React.useLayoutEffect(()=>{
+    if(detail)focus.current?.focus?.({preventScroll:true});
+  },[detail?.key]);
+  return <section className="cloud-requests od-surface"
+    aria-label="云请求历史和原始结果入口">
+    <div className="cloud-section-title od-toolbar"><strong>请求记录</strong></div>
+    <ol id="cloud-request-samples" className="cloud-request-samples">
+      {rows.length?rows.map(row=><li key={row.key}>
+        <span>{row.title}</span><span>{row.summary}</span>
+        <button type="button" className="od-button od-button--secondary"
+          onClick={event=>trusted(event,model.onDetail,row.index)}>查看详情</button>
+      </li>):<li>{model.emptyText||'暂无云请求'}</li>}
+    </ol>
+    <div className="cloud-request-pagination" aria-label="云请求历史翻页">
+      <button id="cloud-request-prev" type="button"
+        className="od-button od-button--secondary" disabled={!model.canPrev}
+        onClick={event=>trusted(event,model.onPrev)}>上一页</button>
+      <span id="cloud-request-page" role="status" aria-live="polite" className="hint">
+        {model.pageText||'正在读取请求记录…'}
+      </span>
+      <button id="cloud-request-next" type="button"
+        className="od-button od-button--secondary" disabled={!model.canNext}
+        onClick={event=>trusted(event,model.onNext)}>下一页</button>
+    </div>
+    <section id="cloud-request-detail" className="cloud-request-detail"
+      aria-label="所选云请求详情" hidden={!detail}>
+      <div className="cloud-request-detail-head">
+        <strong id="cloud-request-detail-title" tabIndex={-1} ref={focus}>
+          {detail?.title||'请求详情'}
+        </strong>
+        <button id="cloud-request-close" type="button"
+          className="od-button od-button--secondary"
+          onClick={event=>trusted(event,model.onClose)}>关闭详情</button>
+      </div>
+      <p id="cloud-request-detail-state" className="cloud-request-detail-state">
+        {detail?.state||''}
+      </p>
+      <p id="cloud-request-detail-facts" className="hint">{detail?.facts||''}</p>
+      <p id="cloud-request-detail-reason" className="hint">{detail?.reason||''}</p>
+      <details className="cloud-request-technical od-disclosure od-disclosure--flat">
+        <summary>查看原始运行身份</summary>
+        <pre id="cloud-request-detail-run-id">{detail?.runId||''}</pre>
+      </details>
+      <button id="cloud-request-open-result" type="button"
+        className="od-button od-button--secondary" disabled={!detail?.canOpenRun}
+        onClick={event=>trusted(event,model.onOpenResult)}>
+        在「开发」查看原始 Run / Result
+      </button>
+      <p id="cloud-request-detail-note" role="status" className="hint">
+        {detail?.note||''}
+      </p>
+    </section>
+  </section>;
 }

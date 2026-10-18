@@ -24,7 +24,8 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.equal($('#extension-center').parent().attr('id'),'sidebar-tool-list-view');
   assert.equal($('#workbench-cloud > .cloud-panel > .cloud-overview').length,1);
   assert.equal($('#cloud-approval-section').length,1);
-  assert.equal($('#cloud-request-samples').length,1);
+  // R35.3: request history is no longer supplied by static HTML.
+  assert.equal($('#cloud-request-samples').length,0);
   assert.equal($('#cloud-hosting').length,1);
   assert.equal($('#workspace-dock').children('.dock-actions').length,3);
   const shell=await read('src/ui/react/app-shell.tsx');
@@ -88,6 +89,8 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   assert.equal($('#extension-center-detail').length,1);
   assert.equal($('#extension-center-status').length,1);
   assert.equal($('#workbench-cloud').length,1);
+  for(const id of ['cloud-request-samples','cloud-request-prev','cloud-request-next',
+    'cloud-request-detail','cloud-request-open-result'])assert.equal($('#'+id).length,1,id);
   for(const id of ['cloud-overview-state','cloud-overview-provider',
     'cloud-overview-connection','cloud-overview-host','cloud-overview-slot',
     'cloud-overview-tasks','cloud-overview-requests','cloud-my-state'])
@@ -124,6 +127,7 @@ test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY
   assert.doesNotMatch(html,/<script\b|<img\b/i);
   assert.match(html,/id="cloud-open-console"/);
   assert.match(html,/id="cloud-overview-refresh"/);
+  assert.match(html,/id="cloud-request-samples"/);
   assert.doesNotMatch(await read('src/ui/react/tabs/cloud.tsx'),
     /(?:globalThis\.chrome|chrome\.runtime|client\.request|cloud\.approve|cloud\.pair|new Worker)/);
 });

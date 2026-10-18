@@ -531,29 +531,6 @@
         <div class="cloud-action-row"><button id="cloud-approve" type="button" class="od-button">批准并启用</button>
           <button id="cloud-stop" type="button" class="od-button od-button--secondary">停止远程调用</button></div>
       </section>
-      <section class="cloud-requests od-surface" aria-label="云请求历史和原始结果入口">
-        <div class="cloud-section-title od-toolbar"><strong>请求记录</strong></div>
-        <ol id="cloud-request-samples" class="cloud-request-samples"><li>暂无云请求</li></ol>
-        <div class="cloud-request-pagination" aria-label="云请求历史翻页">
-          <button id="cloud-request-prev" type="button" class="od-button od-button--secondary" disabled>上一页</button>
-          <span id="cloud-request-page" role="status" aria-live="polite" class="hint">正在读取请求记录…</span>
-          <button id="cloud-request-next" type="button" class="od-button od-button--secondary" disabled>下一页</button>
-        </div>
-        <section id="cloud-request-detail" class="cloud-request-detail" aria-label="所选云请求详情" hidden>
-          <div class="cloud-request-detail-head">
-            <strong id="cloud-request-detail-title" tabindex="-1">请求详情</strong>
-            <button id="cloud-request-close" type="button" class="od-button od-button--secondary">关闭详情</button>
-          </div>
-          <p id="cloud-request-detail-state" class="cloud-request-detail-state"></p>
-          <p id="cloud-request-detail-facts" class="hint"></p>
-          <p id="cloud-request-detail-reason" class="hint"></p>
-          <details class="cloud-request-technical od-disclosure od-disclosure--flat"><summary>查看原始运行身份</summary>
-            <pre id="cloud-request-detail-run-id"></pre>
-          </details>
-          <button id="cloud-request-open-result" type="button" class="od-button od-button--secondary" disabled>在「开发」查看原始 Run / Result</button>
-          <p id="cloud-request-detail-note" role="status" class="hint"></p>
-        </section>
-      </section>
       <details id="cloud-clients" class="cloud-clients od-disclosure">
         <summary>外部应用授权 <span id="cloud-clients-count" class="hint">按需管理</span></summary>
         <p class="cloud-privacy-note">密钥只展示一次，不保存到扩展配置；请仅通过可信渠道交给应用。</p>

@@ -257,6 +257,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   let cookiePilotHost=null;
   let bookmarkPilot=null;
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
+  let cloudRequestsModel={rows:[],pageText:'正在读取请求记录…',canPrev:false,canNext:false};
+  const cloudRequestsMounted=Boolean(shell);
   function paint(){
     if(disposed)return;
     const pageProps={rowsModel:model,menuKey,toolbarModel,detailModel,
@@ -270,7 +272,8 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
       {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
         debugEnabled={debugEnabled} onNavigate={onNavigate}
-        extensionProps={pageProps} cloudModel={cloudModel}/>:<>
+        extensionProps={pageProps} cloudModel={cloudModel}
+        cloudRequestsModel={cloudRequestsModel}/>:<>
         {navigationHost&&createPortal(<SidebarNavigation
           activeTab={navigationTab} debugEnabled={debugEnabled}
           onNavigate={onNavigate}/>,navigationHost)}
@@ -439,6 +442,16 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       const next=typeof runId==='string'?runId:'';
       if(scheduleRowsModel.currentRunId===next)return;
       scheduleRowsModel={...scheduleRowsModel,currentRunId:next};paint();
+    },
+    cloudRequestsMounted,
+    renderCloudRequests(next){
+      if(disposed||!cloudRequestsMounted)return;
+      if(!next||!Array.isArray(next.rows)||typeof next.pageText!=='string'||
+        typeof next.canPrev!=='boolean'||typeof next.canNext!=='boolean'||
+        !['onPrev','onNext','onDetail','onClose','onOpenResult']
+          .every(key=>typeof next[key]==='function'))
+        throw new Error('E_REACT_CLOUD_REQUEST_SNAPSHOT');
+      cloudRequestsModel=next;paint();
     },
     renderCloudOverview(next){
       if(disposed||!cloudOverviewMounted)return;
