@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDesk · 品牌与广告布局实验室 R2.7（仅原型）</title>
+<meta name="description" content="OpenDesk Prompt Shortcuts 离线品牌、广告位置、截图及招商交互实验。无真实广告、无数据收集。">
+<style>
+:root {
+ --bg:#f5f7fb;--surface:#fff;--surface-soft:#f0f3f9;--text:#1b2c49;--muted:#52647f;
+ --line:#dce4f0;--brand:#365eda;--focus:#264dbd;--brand-on:#fff;--warning:#9c5a12;
+ --web:#fff;--web-soft:#f7f7f8;--web-ink:#252525;--web-line:#e5e5e6;
+ --shadow:0 15px 45px #1d2a4614;--radius:14px;--panel-width:360px;
+ color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+:root[data-theme="dark"] {
+ --bg:#101722;--surface:#182232;--surface-soft:#202e41;--text:#ecf2fb;--muted:#b4c3d9;
+ --line:#3d4c62;--brand:#6995ff;--focus:#b5ceff;--brand-on:#101b31;--warning:#ffcb7d;
+ --web:#202020;--web-soft:#303030;--web-ink:#f3f3f3;--web-line:#484848;
+ --shadow:0 15px 45px #0005;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}body{margin:0;color:var(--text);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select,input,textarea{font:inherit}button,select{cursor:pointer}
+:where(button,select,input,textarea,a):focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:var(--surface);color:var(--text)}
+button:hover{background:var(--surface-soft)}a{color:var(--brand)}
+[hidden]{display:none!important}
+.muted{color:var(--muted)}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.top{padding:20px max(14px,calc((100vw - 1540px)/2));display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.identity{display:flex;gap:12px;align-items:center;min-width:0}.od-mark{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:#365eda;color:white;font-size:13px;font-weight:800;letter-spacing:-.05em}
+.identity h1{font-size:19px;line-height:1.25;margin:0;letter-spacing:-.02em}.identity p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.top-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.small-note{border:1px solid var(--line);color:var(--muted);background:var(--surface);padding:6px 9px;border-radius:99px;font-size:11px}
+.control-panel,.analysis,.models{max-width:1540px;margin:0 auto 14px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.controls{display:flex;flex-wrap:wrap;align-items:end;gap:10px}
+.control{display:grid;gap:5px;min-width:125px;color:var(--muted);font-size:11px}
+.control.wide{min-width:235px;flex:1}.control select{height:36px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:0 9px;min-width:0;width:100%;color:var(--text)}
+.switch-control{display:flex;align-items:center;gap:7px;min-height:36px;font-size:12px;color:var(--text)}
+.switch-control input{accent-color:var(--brand);width:17px;height:17px}
+.width-controls{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.width-controls button{padding:6px 7px;font-size:11px;min-height:36px}
+button[aria-pressed="true"],.preset[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-on)}
+.scenarios{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.scenarios strong{font-size:12px}.scenarios button{font-size:11px}
+.summary{font-size:11px;color:var(--muted);margin:11px 0 0;line-height:1.5}
+.stage{max-width:1540px;margin:0 auto 14px;display:grid;grid-template-columns:minmax(0,1fr) var(--panel-width);align-items:stretch;gap:14px}
+.sim-site,.panel{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);min-width:0}
+.sim-site{display:flex;flex-direction:column;background:var(--web);color:var(--web-ink);min-height:615px}
+.fake-browser{height:41px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;background:var(--web-soft);border-bottom:1px solid var(--web-line);color:var(--muted);font-size:11px}
+.dots{display:flex;gap:5px}.dots i{width:8px;height:8px;background:#c2cad7;border-radius:50%}
+.address{padding:5px 13px;border-radius:99px;background:var(--web);color:var(--muted);max-width:70%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.site-head{padding:16px 19px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--web-line)}
+.site-head strong{font-size:15px}.site-head small{font-size:10px;color:var(--muted)}
+.site-body{flex:1;position:relative;min-height:350px;overflow:hidden}
+.chat-content{padding:38px 14px 20px;max-width:590px;width:calc(100% - 125px);margin:auto;color:var(--web-ink)}
+.chat-content h2{margin:0 0 19px;font-size:20px;line-height:1.3;letter-spacing:-.03em}
+.chat-content p{font-size:13px;line-height:1.85;margin:0 0 14px}
+.chat-content .user-message{border-radius:18px;background:var(--web-soft);padding:12px 14px;width:fit-content;max-width:100%;margin-left:auto}
+.quick-rail{position:absolute;left:11px;top:80px;z-index:3;display:grid;gap:7px;justify-items:center;width:44px}
+.quick-rail button{height:38px;width:38px;min-width:38px;padding:2px;display:grid;place-items:center;background:var(--web-soft);color:var(--web-ink);border:1px solid var(--web-line);font-size:12px;font-weight:750;border-radius:10px}
+.quick-rail button:hover{border-color:var(--brand)}.quick-rail .rail-ad{display:grid;gap:4px;place-items:center}
+.rail-ad button{font-size:11px;background:#e8edff;color:#244aaa;border-color:#b2c2f3}.rail-ad .ad-close{height:22px;width:30px;min-width:0;border:0;color:var(--muted);background:transparent}
+.tip{position:absolute;z-index:5;left:65px;top:60px;width:min(342px,calc(100% - 77px));max-height:345px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:13px;box-shadow:0 12px 35px #0003;display:flex;flex-direction:column;overflow:hidden}
+.tip-head{padding:13px 14px 8px;display:flex;align-items:start;justify-content:space-between;gap:8px;flex:none}
+.tip-head strong{font-size:13px;line-height:1.4}.tip-head button{padding:2px 8px;border:0;background:transparent;color:var(--muted)}
+.tip-content{padding:0 14px 12px;white-space:pre-wrap;overflow-wrap:anywhere;overflow-y:auto;min-height:0;max-height:160px;font-size:12px;line-height:1.7;margin:0;flex:1}
+.tip-ad{padding:0 12px 8px;min-height:0;overflow:auto;flex:none;max-height:125px}
+.tip-brand{padding:9px 12px;display:flex;align-items:center;gap:7px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);flex:none}
+.tip-brand a{font-size:10px;color:inherit;text-decoration:none}.tip-brand a:hover{text-decoration:underline}
+.tip-brand .od-mark{width:20px;height:20px;border-radius:6px;font-size:8px}
+.site-compose{margin:8px auto 18px;width:min(580px,calc(100% - 110px));background:var(--web-soft);border:1px solid var(--web-line);border-radius:20px;padding:11px 14px}
+.site-compose textarea{display:block;width:100%;height:68px;border:0;resize:vertical;outline-offset:4px;background:transparent;color:var(--web-ink);font-size:13px}
+.compose-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:10px}
+.compose-foot button{padding:5px 8px;font-size:11px}
+.edge-ad{position:absolute;right:9px;top:125px;width:147px;z-index:4}
+.bottom-ad{padding:0 16px 13px;margin:0 auto;width:100%;max-width:740px}
+.edge-ad .ad-unit{background:var(--surface)}.edge-ad .ad-detail{display:none}
+.panel{width:var(--panel-width);max-width:100%;min-height:615px;background:var(--surface);display:flex;flex-direction:column}
+.panel-top{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:10px 12px}
+.panel-top .od-mark{width:26px;height:26px;border-radius:7px;font-size:10px}.panel-top strong{font-size:12px}.panel-top small{display:block;color:var(--muted);font-size:10px}.panel-top .hint{margin-left:auto;color:var(--muted);font-size:10px}
+.panel-toolhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);min-height:48px}
+.panel-toolhead strong{font-size:13px}.panel-toolhead .tool-actions{display:flex;gap:5px}.tool-actions button{min-width:29px;padding:4px 7px;font-size:16px}
+.panel-scroll{flex:1;min-height:0;padding:14px 12px;overflow:auto}
+.panel-section h2{font-size:14px;margin:0 0 12px}.panel-section p{font-size:12px;line-height:1.55;color:var(--muted)}
+.shortcut-list{display:grid;gap:9px}.shortcut-card{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:9px}
+.shortcut-icon{width:36px;height:36px;flex:none;border-radius:9px;background:var(--surface-soft);display:grid;place-items:center;font-size:11px;font-weight:800}
+.shortcut-body{min-width:0;flex:1;text-align:left}.shortcut-body strong{font-size:12px;display:block}.shortcut-body span{font-size:11px;color:var(--muted);display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.shortcut-card button{padding:5px 8px;font-size:12px}
+.panel-bottom-ad{margin-top:16px}.panel-footer{margin-top:auto;padding:9px 12px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:10px;gap:8px}
+.form-group{display:grid;gap:6px;margin-bottom:11px}.form-group label{font-size:12px;font-weight:650}.form-group textarea,.form-group input{width:100%;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);padding:9px 10px}
+.form-group textarea{height:95px;resize:vertical}.form-actions{display:flex;gap:8px;justify-content:flex-end}
+.empty-illustration{background:var(--surface-soft);border:1px dashed var(--line);border-radius:12px;text-align:center;padding:20px 12px}
+.empty-illustration .od-mark{margin:auto}
+.ad-unit{border:1px solid var(--line);border-radius:10px;background:var(--surface-soft);padding:9px;color:var(--text);font-size:11px;min-width:0}
+.ad-top{display:flex;align-items:center;justify-content:space-between;gap:7px;color:var(--muted);font-size:10px}
+.ad-top span{display:inline-flex;align-items:center;gap:4px}.ad-top .ad-close{border:0;padding:0 4px;min-width:23px;background:transparent;color:var(--muted);font-size:16px}
+.ad-content{display:flex;align-items:center;gap:9px;margin-top:6px;min-width:0}
+.fake-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#a9b9fb,#6177d8);color:white;display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.ad-copy{flex:1;min-width:0}.ad-copy strong{display:block;font-size:11px}.ad-copy p{margin:2px 0;color:var(--muted);font-size:10px;line-height:1.4}
+.ad-unit .ad-cta{margin-top:7px;border:1px solid var(--line);background:var(--surface);padding:5px 8px;border-radius:7px;font-size:10px;color:var(--text)}
+.ad-unit.compact .ad-copy p{display:none}.ad-unit.compact .fake-logo{width:25px;height:25px;border-radius:6px}
+.ad-unit.compact .ad-cta{margin:0}
+.ad-unit.text-only .ad-content{margin-top:3px}.ad-unit.text-only .fake-logo,.ad-unit.text-only .ad-copy p{display:none}
+.ad-unit.text-only .ad-cta{margin-top:0}
+.ad-unit.text-only{padding:6px 9px}
+.why{margin-top:8px;border-left:3px solid var(--warning);padding:7px 10px;background:var(--surface-soft);border-radius:4px;font-size:11px;color:var(--muted)}
+.analysis h2,.models h2{font-size:15px;margin:0 0 9px}
+.analysis p,.models p{font-size:12px;color:var(--muted)}
+.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left;font-size:11px}
+th,td{padding:9px 10px;vertical-align:top;border-bottom:1px solid var(--line);min-width:75px}
+th{color:var(--muted);font-weight:700;white-space:nowrap}td:first-child,th:first-child{position:sticky;left:0;background:var(--surface);min-width:105px}
+tbody tr[data-selected="true"]{background:var(--surface-soft)}
+.models .model-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.model-grid article{border:1px solid var(--line);border-radius:9px;padding:10px}
+.model-grid strong{font-size:12px}.model-grid p{margin:5px 0 0;font-size:11px}
+.disclaimer{padding:4px 14px 26px;max-width:1540px;margin:auto;color:var(--muted);font-size:11px}
+dialog{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:14px;max-width:min(440px,calc(100vw - 26px));width:100%;padding:20px;box-shadow:0 20px 80px #0006}
+dialog::backdrop{background:#0c14299a}dialog h2{margin:0 0 12px;font-size:17px}dialog p{font-size:12px;line-height:1.6}dialog button{float:right}
+@media(max-width:1050px){.stage{grid-template-columns:minmax(0,1fr)}.panel{margin:auto}.sim-site{min-height:520px}.chat-content{width:calc(100% - 120px)}}
+@media(max-width:700px){.top,.control-panel,.analysis,.models,.stage{margin-left:9px;margin-right:9px}.top{padding:14px 9px}.top h1{font-size:16px}.sim-site{min-height:510px}.site-body{min-height:300px}.chat-content{padding:24px 10px;width:calc(100% - 75px);margin-left:60px}.chat-content h2{font-size:17px}.site-compose{width:calc(100% - 72px);margin-left:60px}.edge-ad{top:auto;bottom:8px;right:7px;width:135px}.panel{width:var(--panel-width)}.models .model-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.fake-browser{padding:8px}.chat-content h2{font-size:15px}.chat-content p{font-size:11px}.compose-foot{flex-wrap:wrap}.tip{left:57px;width:calc(100% - 68px)}.tip-head{padding:10px 10px 6px}.tip-content{padding:0 10px 9px}.tip-ad{padding:0 8px 7px}.tip-brand{padding:7px 9px}.control.wide{min-width:195px}.models .model-grid{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="identity"><span class="od-mark" aria-hidden="true">OD</span><div>
+  <h1 data-i18n="title">品牌 × 广告布局实验室</h1>
+  <p data-i18n="subtitle">Prompt Shortcuts · R2.7 · 离线 HTML 原型</p>
+ </div></div>
+ <div class="top-actions">
+  <span class="small-note" data-i18n="prototype">仅模拟 · 未投放 · 非正式合作</span>
+  <a href="./index.html" data-i18n="back">← 返回完整交互预览</a>
+ </div>
+</header>
+<section class="control-panel" aria-label="广告布局实验控制">
+ <div class="controls">
+  <label class="control wide"><span data-i18n="placement">广告位置（A1–A10）</span>
+   <select id="placement" aria-label="广告位置"></select>
+  </label>
+  <label class="control wide"><span data-i18n="format">广告形式</span>
+   <select id="format" aria-label="广告形式"></select>
+  </label>
+  <label class="control"><span data-i18n="language">界面语言</span>
+   <select id="language" aria-label="界面语言"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option></select>
+  </label>
+  <label class="control"><span data-i18n="theme">主题</span>
+   <select id="theme" aria-label="主题"><option value="light" data-i18n="light">浅色</option><option value="dark" data-i18n="dark">深色</option></select>
+  </label>
+  <label class="control"><span data-i18n="width">侧边栏宽度</span><span class="width-controls" id="widthChoices">
+   <button type="button" data-width="320" aria-pressed="false">320</button>
+   <button type="button" data-width="360" aria-pressed="true">360</button>
+   <button type="button" data-width="400" aria-pressed="false">400</button>
+   <button type="button" data-width="440" aria-pressed="false">440</button>
+  </span></label>
+  <label class="control"><span data-i18n="zoom">预览缩放</span><select id="zoom"><option value="100">100%</option><option value="200">200%</option></select></label>
+  <label class="switch-control"><input id="adsEnabled" type="checkbox" checked><span data-i18n="adsEnabled">允许演示广告（取消即全部关闭）</span></label>
+  <label class="switch-control"><input id="longPrompt" type="checkbox"><span data-i18n="longPrompt">长提示词压力场景</span></label>
+ </div>
+ <div class="scenarios" aria-label="截图场景">
+  <strong data-i18n="captures">截图场景</strong>
+  <button class="preset" type="button" data-preset="logo" data-i18n="shot1">① 悬浮窗 + Logo</button>
+  <button class="preset" type="button" data-preset="sponsor" data-i18n="shot2">② 悬浮赞助 + Logo</button>
+  <button class="preset" type="button" data-preset="edit" data-i18n="shot3">③ 编辑页 + 招商卡</button>
+  <button id="resetAds" type="button" data-i18n="reset">恢复关闭的广告位</button>
+ </div>
+ <p id="stateSummary" class="summary" role="status" aria-live="polite"></p>
+</section>
+<main class="stage" aria-label="品牌与广告原型模拟区域">
+ <section class="sim-site" aria-label="本地虚构聊天网页示意">
+  <div class="fake-browser"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+   <span class="address">example.invalid / local-page-mock</span>
+   <span data-i18n="fakePage">网页模拟</span>
+  </div>
+  <div class="site-head"><div><strong data-i18n="siteName">模拟聊天网页</strong> <small data-i18n="fakeSite">不是真实 ChatGPT 页面</small></div><small data-i18n="notInjected">未向任何网站注入广告</small></div>
+  <div class="site-body" id="siteBody">
+   <div class="quick-rail" id="rail">
+    <button id="shortcut" type="button" aria-haspopup="true" aria-controls="tip" aria-expanded="true" data-i18n-title="hoverHint" title="悬浮预览，点击插入模拟草稿">润</button>
+    <div id="railSponsor" class="rail-ad" hidden></div>
+   </div>
+   <div id="tip" class="tip" role="group" aria-label="提示词悬浮预览">
+    <div class="tip-head"><strong data-i18n="promptName">润色文字</strong><button id="closeTip" type="button" data-i18n-aria="closeTip" aria-label="关闭提示预览">×</button></div>
+    <p id="promptText" class="tip-content"></p>
+    <div id="tipSponsor" class="tip-ad" hidden></div>
+    <div class="tip-brand"><span class="od-mark" aria-hidden="true">OD</span><a href="https://github.com/shopable-ai/opendesk-browser" target="_blank" rel="noopener noreferrer">OpenDesk · Prompt Shortcuts ↗</a><span data-i18n="brandDemo">实验性品牌署名</span></div>
+   </div>
+   <div class="chat-content"><h2 data-i18n="siteHeading">一个更顺手的写作工作流</h2>
+    <p class="user-message" data-i18n="userMsg">你能帮我润色这段话吗？</p>
+    <p data-i18n="assistantMsg">把常用提示词保存成侧边快捷按钮，悬浮时阅读正文，点击后把文字加入草稿。</p>
+    <p data-i18n="siteMsg">这一页只是离线示意。广告不属于模拟网站，也不能替代提示词的核心功能。</p>
+   </div>
+   <div id="edgeSponsor" class="edge-ad" hidden></div>
+  </div>
+  <div class="site-compose"><textarea id="draft" data-i18n-placeholder="draftPlace" placeholder="这里是模拟草稿，不会自动发送" aria-label="模拟草稿输入框"></textarea>
+   <div class="compose-foot"><span data-i18n="draftNote">点击左侧快捷按钮只插入，不自动发送</span><button id="clearDraft" type="button" data-i18n="clear">清空</button></div>
+  </div>
+  <div id="bottomSponsor" class="bottom-ad" hidden></div>
+ </section>
+ <aside id="sidePanel" class="panel" aria-label="提示词扩展侧边栏模拟">
+  <div class="panel-top"><span class="od-mark" aria-hidden="true">OD</span><div><strong>OpenDesk Browser</strong><small>Prompt Shortcuts</small></div><span class="hint" data-i18n="panelDemo">侧边栏模拟</span></div>
+  <div class="panel-toolhead"><strong id="panelTitle" data-i18n="listTitle">我的提示词</strong><div class="tool-actions">
+   <button id="showList" type="button" data-i18n-title="listTitle" title="我的提示词" aria-label="我的提示词">≡</button>
+   <button id="showEdit" type="button" data-i18n-title="editTitle" title="新建/编辑提示词" aria-label="编辑提示词">＋</button>
+   <button id="showSettings" type="button" data-i18n-title="settings" title="工具设置" aria-label="设置">⚙</button>
+  </div></div>
+  <div class="panel-scroll">
+   <section id="listView" class="panel-section">
+    <h2 data-i18n="listTitle">我的提示词</h2>
+    <div class="shortcut-list">
+     <div class="shortcut-card"><span class="shortcut-icon">润</span><div class="shortcut-body"><strong data-i18n="promptName">润色文字</strong><span data-i18n="promptShort">润色并保留原意，给出改进建议…</span></div><button class="applyPrompt" type="button" data-i18n="use">使用</button></div>
+     <div class="shortcut-card"><span class="shortcut-icon">译</span><div class="shortcut-body"><strong data-i18n="translatePrompt">翻译</strong><span data-i18n="translateDesc">保留段落、语气和术语…</span></div><button class="applyPrompt" type="button" data-i18n="use">使用</button></div>
+     <div class="shortcut-card"><span class="shortcut-icon">总</span><div class="shortcut-body"><strong data-i18n="summaryPrompt">内容摘要</strong><span data-i18n="summaryDesc">梳理三条关键结论…</span></div><button class="applyPrompt" type="button" data-i18n="use">使用</button></div>
+    </div><div id="listSponsor" class="panel-bottom-ad" hidden></div>
+   </section>
+   <section id="editView" class="panel-section" hidden>
+    <h2 data-i18n="editTitle">编辑提示词</h2>
+    <div class="form-group"><label for="editPrompt" data-i18n="bodyLabel">提示词正文</label><textarea id="editPrompt"></textarea></div>
+    <div class="form-group"><label for="editName" data-i18n="nameLabel">显示名称（可选）</label><input id="editName" type="text"></div>
+    <div class="form-actions"><button id="cancelEdit" type="button" data-i18n="cancel">取消</button><button id="saveEdit" type="button" data-i18n="saveDemo">模拟保存</button></div>
+    <div id="editSponsor" class="panel-bottom-ad" hidden></div>
+   </section>
+   <section id="emptyView" class="panel-section" hidden>
+    <div class="empty-illustration"><span class="od-mark" aria-hidden="true">OD</span><h2 data-i18n="emptyTitle">还没有提示词</h2><p data-i18n="emptyDesc">开始添加第一个快捷按钮。下面的合作位置仅用于招商实验。</p><button id="addFirst" type="button" data-i18n="addFirst">新建提示词</button></div>
+    <div id="emptySponsor" class="panel-bottom-ad" hidden></div>
+   </section>
+   <section id="settingsView" class="panel-section" hidden>
+    <h2 data-i18n="settings">工具设置 / 介绍</h2><p data-i18n="settingsDesc">快捷按钮服务于内容插入。合作区域必须独立标注，可完整关闭。</p>
+    <div class="why" data-i18n="settingsPrivacy">这里不读取用户提示词、不收集行为，也不加载远程广告脚本。</div>
+    <div id="settingsSponsor" class="panel-bottom-ad" hidden></div>
+   </section>
+  </div>
+  <div class="panel-footer"><span>OpenDesk · Prompt Shortcuts</span><span data-i18n="panelFooter">原型内容 · 不联网</span></div>
+ </aside>
+</main>
+<section class="analysis">
+ <h2 data-i18n="matrixTitle">A1–A10 独立位置评估</h2>
+ <p data-i18n="matrixDesc">定性判断，不代表获批或真实转化结果。表格可横向滚动，当前选中项高亮。</p>
+ <div class="table-scroll"><table><thead><tr>
+  <th data-i18n="colPlace">位置</th><th data-i18n="colUx">UX 影响</th><th data-i18n="colBrand">截图价值</th>
+  <th data-i18n="colCost">开发成本</th><th data-i18n="colNarrow">窄屏</th><th data-i18n="colPolicy">商店风险</th>
+  <th data-i18n="colConfuse">原生广告混淆</th><th data-i18n="colPublish">发布可行性</th><th data-i18n="colOff">完全关闭</th>
+ </tr></thead><tbody id="matrixBody"></tbody></table></div>
+ <div id="placementReason" class="why"></div>
+</section>
+<section class="models">
+ <h2 data-i18n="modelTitle">商业模式比较 · 仅定性</h2>
+ <div class="model-grid" id="modelGrid"></div>
+ <p data-i18n="modelNoNumbers">未接入曝光量、点击、转化、支付、联盟链接或用户画像；不能推断收入。</p>
+</section>
+<footer class="disclaimer" data-i18n="disclaimer">这是独立 HTML 原型，所有合作品牌均为虚构示例。不会修改真实网页、正式扩展、权限或存储。</footer>
+<dialog id="partnerDialog" aria-labelledby="dialogTitle">
+ <h2 id="dialogTitle" data-i18n="dialogTitle">合作展示 · 本地示意</h2>
+ <p data-i18n="dialogIntro">FlowNest 是虚构演示品牌，未与 OpenDesk 建立合作。这个入口只展示可能的合作说明，不发起网络请求。</p>
+ <p data-i18n="dialogTerms">候选位置、展示周期、素材、审核、广告关闭机制与政策合规，均需要独立评审后才能决定。</p>
+ <button id="dialogClose" type="button" data-i18n="done">关闭</button>
+</dialog>
+<script>
+(function(){
+ "use strict";
+ const $=id=>document.getElementById(id);
+ const translations={
+  zh:{
+   title:"品牌 × 广告布局实验室",subtitle:"Prompt Shortcuts · R2.7 · 离线 HTML 原型",prototype:"仅模拟 · 未投放 · 非正式合作",back:"← 返回完整交互预览",
+   placement:"广告位置（A1–A10）",format:"广告形式",language:"界面语言",theme:"主题",light:"浅色",dark:"深色",width:"侧边栏宽度",zoom:"预览缩放",
+   adsEnabled:"允许演示广告（取消即全部关闭）",longPrompt:"长提示词压力场景",captures:"截图场景",shot1:"① 悬浮窗 + Logo",shot2:"② 悬浮赞助 + Logo",shot3:"③ 编辑页 + 招商卡",reset:"恢复关闭的广告位",
+   fakePage:"网页模拟",siteName:"模拟聊天网页",fakeSite:"不是真实 ChatGPT 页面",notInjected:"未向任何网站注入广告",hoverHint:"悬浮预览，点击插入模拟草稿",promptName:"润色文字",
+   closeTip:"关闭提示预览",brandDemo:"实验性品牌署名",siteHeading:"一个更顺手的写作工作流",userMsg:"你能帮我润色这段话吗？",assistantMsg:"把常用提示词保存成侧边快捷按钮，悬浮时阅读正文，点击后把文字加入草稿。",
+   siteMsg:"这一页只是离线示意。广告不属于模拟网站，也不能替代提示词的核心功能。",draftPlace:"这里是模拟草稿，不会自动发送",draftNote:"点击左侧快捷按钮只插入，不自动发送",clear:"清空",
+   panelDemo:"侧边栏模拟",listTitle:"我的提示词",editTitle:"编辑提示词",settings:"工具设置 / 介绍",promptShort:"润色并保留原意，给出改进建议…",translatePrompt:"翻译",translateDesc:"保留段落、语气和术语…",summaryPrompt:"内容摘要",summaryDesc:"梳理三条关键结论…",use:"使用",
+   bodyLabel:"提示词正文",nameLabel:"显示名称（可选）",cancel:"取消",saveDemo:"模拟保存",emptyTitle:"还没有提示词",emptyDesc:"开始添加第一个快捷按钮。下面的合作位置仅用于招商实验。",addFirst:"新建提示词",settingsDesc:"快捷按钮服务于内容插入。合作区域必须独立标注，可完整关闭。",
+   settingsPrivacy:"这里不读取用户提示词、不收集行为，也不加载远程广告脚本。",panelFooter:"原型内容 · 不联网",
+   matrixTitle:"A1–A10 独立位置评估",matrixDesc:"定性判断，不代表获批或真实转化结果。表格可横向滚动，当前选中项高亮。",
+   colPlace:"位置",colUx:"UX 影响",colBrand:"截图价值",colCost:"开发成本",colNarrow:"窄屏",colPolicy:"商店风险",colConfuse:"原生广告混淆",colPublish:"发布可行性",colOff:"完全关闭",
+   modelTitle:"商业模式比较 · 仅定性",modelNoNumbers:"未接入曝光量、点击、转化、支付、联盟链接或用户画像；不能推断收入。",
+   disclaimer:"这是独立 HTML 原型，所有合作品牌均为虚构示例。不会修改真实网页、正式扩展、权限或存储。",
+   dialogTitle:"合作展示 · 本地示意",dialogIntro:"FlowNest 是虚构演示品牌，未与 OpenDesk 建立合作。这个入口只展示可能的合作说明，不发起网络请求。",
+   dialogTerms:"候选位置、展示周期、素材、审核、广告关闭机制与政策合规，均需要独立评审后才能决定。",done:"关闭",
+   sponsor:"赞助 · 虚构演示",promotion:"推广 · 示例",adLabel:"广告 · 仅演示",closeAd:"关闭此广告",action:"查看合作说明",sponsorName:"FlowNest",sponsorHeadline:"让想法井然有序",sponsorDesc:"虚构的轻量工作效率工具，仅用于演示广告位。",join:"成为合作伙伴",selfHeadline:"探索 OpenDesk 扩展",selfDesc:"官方功能推荐的布局示意，不代表真实促销。",eventHeadline:"效率周 · 虚构活动",eventDesc:"没有截止时间或折扣承诺的活动样例。",directoryHeadline:"效率工具精选",directoryDesc:"仅模拟工具目录推荐，不包含真实商业排名。",affiliateHeadline:"联盟广告：只分析，不注入",affiliateDesc:"不生成链接、Cookie 或追踪参数。",
+   hiddenLong:"长提示词优先：赞助模块自动让位",onlyBrand:"A1 是品牌署名，不是广告位",adOff:"广告已完全关闭，品牌署名保留",closed:"该演示广告已关闭，切换位置或点击恢复可重新体验。",
+   summaryPrefix:"当前布局",statusReady:"仅在本地模拟，不影响提示词正文、复制或实际网页。",previewSaved:"原型保存成功：未写入真实扩展。",inserted:"已加入模拟草稿；没有发送。",cleared:"模拟草稿已清空。",
+   tradeLow:"低",tradeMid:"中",tradeHigh:"高",tradeGreat:"优",tradeOkay:"尚可",tradePoor:"差",tradeNone:"无",tradePossible:"审查后或许可行",tradeReview:"必须专项审查",tradeNo:"不建议",
+   modeFlat:"包月赞助",modeFlatDesc:"简单、可预期；需约定周期、位置和可关闭性。",modePlace:"固定位置",modePlaceDesc:"清楚易定价；避免以占用用户界面为导向。",modeCpm:"CPM",modeCpmDesc:"需可信曝光统计及隐私评估；本原型不计数。",modeCpc:"CPC",modeCpcDesc:"需点击归因与防作弊；可能增加跟踪风险。",modeCpa:"CPA",modeCpaDesc:"高度依赖归因与合作方流程；最不适合初期。",
+   disabledHint:"A8/A9 只在模拟网页渲染，正式注入被明确排除。",riskShared:"仅为布局评估；任何上线均需明确披露、用户可关闭和政策审核。"
+  },
+  en:{
+   title:"Brand & Ad Placement Lab",subtitle:"Prompt Shortcuts · R2.7 · Offline HTML Prototype",prototype:"Prototype only · No live sponsors",back:"← Back to full interactive preview",
+   placement:"Placement (A1–A10)",format:"Ad format",language:"Language",theme:"Theme",light:"Light",dark:"Dark",width:"Side panel width",zoom:"Preview zoom",
+   adsEnabled:"Show demo ads (uncheck to hide all)",longPrompt:"Long prompt stress test",captures:"Screenshot presets",shot1:"① Tooltip + Logo",shot2:"② Sponsor + Logo",shot3:"③ Edit form + Sponsor",reset:"Restore dismissed ads",
+   fakePage:"Mock page",siteName:"Simulated chat page",fakeSite:"Not real ChatGPT",notInjected:"No third-party injections",hoverHint:"Hover to preview, click to insert into demo draft",promptName:"Polish text",
+   closeTip:"Close tooltip",brandDemo:"Prototype attribution",siteHeading:"A smoother writing workflow",userMsg:"Could you polish this paragraph?",assistantMsg:"Save frequent prompts as side shortcuts. Hover to read, click to append to the draft.",
+   siteMsg:"This is only a local mock. Ads do not belong to the mock site or replace the core workflow.",draftPlace:"Demo draft — nothing is sent",draftNote:"Shortcut click only inserts text; never sends",clear:"Clear",
+   panelDemo:"Side panel mock",listTitle:"My prompts",editTitle:"Edit prompt",settings:"Settings / About",promptShort:"Polish while preserving meaning…",translatePrompt:"Translate",translateDesc:"Keep paragraphs and terminology…",summaryPrompt:"Summarize",summaryDesc:"Three key takeaways…",use:"Use",
+   bodyLabel:"Prompt body",nameLabel:"Display name (optional)",cancel:"Cancel",saveDemo:"Save in mock",emptyTitle:"No prompts yet",emptyDesc:"Create your first shortcut. The area below is only a sponsorship placeholder.",addFirst:"New prompt",settingsDesc:"Shortcuts serve text insertion. Sponsored content must be separate, labeled, and dismissible.",
+   settingsPrivacy:"No prompt reading, behavioral profiling or remote ad scripts.",panelFooter:"Offline prototype",
+   matrixTitle:"Independent A1–A10 placement evaluation",matrixDesc:"Qualitative analysis; not an approval or measured conversion. Scroll the table sideways.",
+   colPlace:"Placement",colUx:"UX impact",colBrand:"Screenshot value",colCost:"Dev effort",colNarrow:"Narrow screens",colPolicy:"Store risk",colConfuse:"Native-ad confusion",colPublish:"Release potential",colOff:"Can disable",
+   modelTitle:"Business models · Qualitative only",modelNoNumbers:"No impression, click, conversion, payment, affiliate or profiling tracking. Revenue cannot be estimated.",
+   disclaimer:"Standalone HTML prototype. Every sponsor is fictitious; no site, installed extension, permission or storage is changed.",
+   dialogTitle:"Partnership preview · Local only",dialogIntro:"FlowNest is fictitious and has no OpenDesk partnership. This explains the concept without any network request.",
+   dialogTerms:"Placement, duration, creative approval, user controls and policy compliance require separate review.",done:"Close",
+   sponsor:"Sponsored · Fictional",promotion:"Promotion · Mock",adLabel:"Ad · Demo only",closeAd:"Dismiss this ad",action:"Partnership details",sponsorName:"FlowNest",sponsorHeadline:"Organize your ideas",sponsorDesc:"A fictitious productivity tool used only for layout testing.",join:"Become a partner",selfHeadline:"Explore OpenDesk tools",selfDesc:"First-party recommendation mock; no live promotion.",eventHeadline:"Productivity week · Fictional",eventDesc:"A campaign mock without real deadline or offer.",directoryHeadline:"Productivity picks",directoryDesc:"Mock directory without real paid ranking.",affiliateHeadline:"Affiliate: analysis only",affiliateDesc:"No links, cookies or tracking parameters.",
+   hiddenLong:"Long prompt first: sponsorship hidden",onlyBrand:"A1 is attribution, not an ad",adOff:"Ads fully off; brand remains",closed:"This demo ad was dismissed. Switch placement or restore to view again.",
+   summaryPrefix:"Selected layout",statusReady:"Local-only mock. Does not modify prompt text, copying or a real website.",previewSaved:"Saved in mock only; extension unchanged.",inserted:"Appended to demo draft. Nothing sent.",cleared:"Demo draft cleared.",
+   tradeLow:"Low",tradeMid:"Medium",tradeHigh:"High",tradeGreat:"Good",tradeOkay:"Mixed",tradePoor:"Poor",tradeNone:"None",tradePossible:"Maybe after review",tradeReview:"Special review needed",tradeNo:"Not recommended",
+   modeFlat:"Monthly sponsorship",modeFlatDesc:"Predictable, with clear term, position and opt-out.",modePlace:"Fixed placement",modePlaceDesc:"Transparent inventory; must not dominate the UI.",modeCpm:"CPM",modeCpmDesc:"Needs trustworthy impressions and privacy review; none tracked.",modeCpc:"CPC",modeCpcDesc:"Needs click attribution and abuse controls; tracking risk.",modeCpa:"CPA",modeCpaDesc:"Depends on conversion attribution; poor initial fit.",
+   disabledHint:"A8/A9 render only in a fake page. Live injection is out of scope.",riskShared:"All launch candidates need disclosure, user controls and policy review."
+  },
+  ja:{
+   title:"ブランド・広告配置ラボ",subtitle:"Prompt Shortcuts · R2.7 · オフライン HTML 試作",prototype:"試作のみ · 実際のスポンサーなし",back:"← 既存プレビューへ戻る",
+   placement:"広告配置（A1–A10）",format:"広告の種類",language:"言語",theme:"テーマ",light:"ライト",dark:"ダーク",width:"サイドパネル幅",zoom:"プレビュー倍率",
+   adsEnabled:"広告の試作を表示（解除ですべて非表示）",longPrompt:"長いプロンプトを表示",captures:"スクリーンショット例",shot1:"① ポップアップ + Logo",shot2:"② スポンサー + Logo",shot3:"③ 編集画面 + 広告",reset:"閉じた広告を復元",
+   fakePage:"模擬ページ",siteName:"模擬チャット画面",fakeSite:"実際の ChatGPT ではありません",notInjected:"実サイトへの広告挿入なし",hoverHint:"ホバーで表示、クリックで模擬下書きに挿入",promptName:"文章を推敲",
+   closeTip:"プレビューを閉じる",brandDemo:"試作のブランド表記",siteHeading:"文章作成をもっとスムーズに",userMsg:"この文章を推敲できますか？",assistantMsg:"頻繁に使うプロンプトをボタンに保存。ホバーで確認し、クリックで下書きに挿入します。",
+   siteMsg:"これはローカルの模擬画面です。広告はサイトの一部ではなく、主機能を妨げません。",draftPlace:"模擬下書き：送信しません",draftNote:"ボタンは挿入のみ・自動送信なし",clear:"クリア",
+   panelDemo:"サイドパネル模擬",listTitle:"マイプロンプト",editTitle:"プロンプト編集",settings:"設定 / 紹介",promptShort:"意味を保って文章を推敲…",translatePrompt:"翻訳",translateDesc:"段落と用語を保持…",summaryPrompt:"要約",summaryDesc:"重要なポイントを3つ…",use:"使用",
+   bodyLabel:"プロンプト本文",nameLabel:"表示名（任意）",cancel:"キャンセル",saveDemo:"模擬保存",emptyTitle:"プロンプトはまだありません",emptyDesc:"最初のボタンを追加。下の協賛枠は表示例のみです。",addFirst:"新規作成",settingsDesc:"主機能はテキスト挿入。協賛は明示し、完全に非表示にできます。",
+   settingsPrivacy:"ユーザープロンプトの読取・行動追跡・外部広告スクリプトはありません。",panelFooter:"オフライン試作",
+   matrixTitle:"A1–A10 の配置別評価",matrixDesc:"定性的な検討であり、公開承認や実測結果ではありません。横スクロール可。",
+   colPlace:"配置",colUx:"UX影響",colBrand:"画面共有価値",colCost:"開発負荷",colNarrow:"狭い画面",colPolicy:"規約リスク",colConfuse:"サイト広告との混同",colPublish:"公開可能性",colOff:"完全非表示",
+   modelTitle:"収益モデル · 定性的比較",modelNoNumbers:"表示・クリック・成果・決済・アフィリエイト・行動追跡は実装しません。収益予測もありません。",
+   disclaimer:"独立した HTML 試作です。スポンサーはすべて架空で、実サイト・拡張機能・権限・保存領域は変更しません。",
+   dialogTitle:"協賛の説明 · ローカルのみ",dialogIntro:"FlowNest は架空のブランドで OpenDesk とは無関係です。ネットワーク接続は行いません。",
+   dialogTerms:"配置、期間、素材、審査、広告のオフ設定、規約は別途検討が必要です。",done:"閉じる",
+   sponsor:"スポンサー · 架空",promotion:"プロモーション · 試作",adLabel:"広告 · デモ",closeAd:"この広告を閉じる",action:"協賛について",sponsorName:"FlowNest",sponsorHeadline:"アイデアを整理",sponsorDesc:"配置テスト用の架空の生産性ツールです。",join:"パートナー募集",selfHeadline:"OpenDesk ツールを見る",selfDesc:"自社紹介の試作で、実際の販売促進ではありません。",eventHeadline:"効率化ウィーク · 架空",eventDesc:"期限や特典のないイベント例です。",directoryHeadline:"便利なツール",directoryDesc:"有料ランキングではない架空の紹介です。",affiliateHeadline:"成果報酬：分析のみ",affiliateDesc:"リンク・Cookie・追跡コードは生成しません。",
+   hiddenLong:"長文優先：広告を一時非表示",onlyBrand:"A1 はブランド表記であり広告ではありません",adOff:"広告はすべて非表示、ブランド表記のみ",closed:"このデモ広告は閉じました。配置変更または復元で再表示できます。",
+   summaryPrefix:"現在の配置",statusReady:"ローカル試作です。本文、コピーや実サイトは変更しません。",previewSaved:"模擬保存のみ。拡張機能は変更されません。",inserted:"模擬下書きに追加しました。送信なし。",cleared:"模擬下書きを消去しました。",
+   tradeLow:"低",tradeMid:"中",tradeHigh:"高",tradeGreat:"良好",tradeOkay:"普通",tradePoor:"不向き",tradeNone:"なし",tradePossible:"審査後に検討",tradeReview:"個別審査必須",tradeNo:"非推奨",
+   modeFlat:"月額スポンサー",modeFlatDesc:"期間・場所・非表示方法を明確に設定。",modePlace:"固定枠",modePlaceDesc:"わかりやすいが、UI を占有しないこと。",modeCpm:"CPM",modeCpmDesc:"計測の信頼性とプライバシー審査が必要。",modeCpc:"CPC",modeCpcDesc:"クリック計測と不正対策が必要。",modeCpa:"CPA",modeCpaDesc:"成果の追跡が難しく、初期段階に不向き。",
+   disabledHint:"A8/A9 は模擬ページのみ。実サイトへの挿入は対象外です。",riskShared:"正式公開には明確な表示・非表示設定・規約審査が必要です。"
+  }
+ };
+ const placementNames={
+  A1:["悬浮窗口 · Logo 署名","Tooltip · Brand signature","ポップアップ · ロゴ"],
+  A2:["悬浮内容下方 · 单行赞助","Tooltip · Text sponsor","ポップアップ · 文字広告"],
+  A3:["悬浮下半部分 · 图文卡","Tooltip · Sponsor card","ポップアップ · 画像カード"],
+  A4:["网页快捷栏下 · 赞助图标","Shortcut rail · Ad icon","ショートカット下 · 広告アイコン"],
+  A5:["侧边栏列表下 · 合作推荐","Panel list · Partner","一覧下 · パートナー"],
+  A6:["编辑表单下 · 横幅","Editor form · Banner","編集フォーム下 · バナー"],
+  A7:["空列表 · 招商入口","Empty state · Partner","空表示 · 協賛募集"],
+  A8:["网页边缘 · 风险实验","Page edge · High risk","サイト端 · 高リスク"],
+  A9:["网页底部 · 风险实验","Page bottom · High risk","サイト下 · 高リスク"],
+  A10:["设置介绍 · 合作信息","Settings · Partnership","設定画面 · 協賛案内"]
+ };
+ const formats={
+  none:["无广告","No ads","広告なし"],logo:["仅 Logo","Logo only","ロゴのみ"],text:["文字赞助","Text sponsor","テキスト広告"],
+  graphic:["图文广告","Graphic card","画像カード"],partner:["品牌合作","Brand partner","ブランド協賛"],
+  recruit:["招商空位","Partnership placeholder","協賛募集"],self:["官方自推广","First-party promotion","自社紹介"],
+  event:["限时活动（静态）","Campaign (static)","期間限定（静的）"],directory:["工具目录推荐","Tool directory","ツール紹介"],
+  affiliate:["联盟广告（仅分析）","Affiliate (analysis only)","成果報酬（分析のみ）"]
+ };
+ // Ratings: lower UX impact/risk/confusion/cost is better. This is qualitative expert judgment, not store approval.
+ const evaluations={
+  A1:["tradeLow","tradeGreat","tradeLow","tradeGreat","tradeLow","tradeNone","tradePossible","brand"],
+  A2:["tradeMid","tradeGreat","tradeLow","tradeGreat","tradeMid","tradeLow","tradeReview","tool"],
+  A3:["tradeHigh","tradeGreat","tradeMid","tradeOkay","tradeHigh","tradeMid","tradeReview","content"],
+  A4:["tradeMid","tradeOkay","tradeMid","tradeOkay","tradeHigh","tradeMid","tradeReview","attention"],
+  A5:["tradeLow","tradeOkay","tradeLow","tradeGreat","tradeMid","tradeLow","tradePossible","panel"],
+  A6:["tradeMid","tradeGreat","tradeLow","tradeOkay","tradeMid","tradeLow","tradePossible","editor"],
+  A7:["tradeLow","tradeOkay","tradeLow","tradeGreat","tradeMid","tradeLow","tradePossible","empty"],
+  A8:["tradeHigh","tradePoor","tradeHigh","tradePoor","tradeHigh","tradeHigh","tradeNo","intrusive"],
+  A9:["tradeHigh","tradePoor","tradeHigh","tradePoor","tradeHigh","tradeHigh","tradeNo","intrusive"],
+  A10:["tradeLow","tradeOkay","tradeLow","tradeGreat","tradeLow","tradeLow","tradePossible","settings"]
+ };
+ const reasonText={
+  zh:{brand:"截图可持续带出来源；不得伪造官方 Logo。",tool:"单行文字克制，但悬浮层仍应优先提示词正文。",content:"图文卡能直观招商，但易压缩正文及遮挡输入框。",attention:"快捷入口附近易误触，必须明显区分提示词按钮与广告。",panel:"仅在工具自己的列表内展示更安全，但曝光不应挤掉列表。",editor:"编辑任务最重要；表单底部不应影响保存按钮。",empty:"仅在空状态可见，价值有限但侵扰少。",intrusive:"第三方页面广告可能违背单一用途要求，也容易干扰网站；不建议上线。",settings:"用途透明且干扰低；适合合作介绍，但自然曝光有限。"},
+  en:{brand:"Screenshots retain attribution; this is not an official logo asset.",tool:"Single-line placement is restrained; prompt content must remain primary.",content:"Easy to demonstrate, but crowds the prompt and may obscure editing.",attention:"Too close to shortcuts; accidental taps and misleading affordances are possible.",panel:"Confined to the extension UI, but must not displace prompts.",editor:"Editing must remain primary; never hide Save behind a banner.",empty:"Low interruption, but only visible without content.",intrusive:"Third-party page ads may conflict with single-purpose rules and site function. Do not ship.",settings:"Transparent and low-impact, but naturally less visible."},
+  ja:{brand:"画面共有で出典を示せます。公式ロゴ素材ではありません。",tool:"控えめですが、本文の表示が常に優先です。",content:"協賛を伝えやすい一方、本文や入力欄を圧迫します。",attention:"ショートカットの誤操作や広告との混同に注意が必要です。",panel:"拡張機能内に限定できますが、一覧を邪魔しないこと。",editor:"編集と保存を最優先にし、バナーで妨げないこと。",empty:"影響は小さいですが空状態でしか露出しません。",intrusive:"単一用途やサイト機能と衝突する恐れがあるため公開非推奨です。",settings:"透明性が高く干渉は少ないですが、自然露出も少なめです。"}
+ };
+ const sample={
+  zh:"请在不改变原意的前提下润色以下文字。保持语气自然，先给出修改稿，再用三点说明主要改动。",
+  en:"Polish the following text while preserving its meaning. Keep a natural tone, provide the revision, then explain three key changes.",
+  ja:"元の意味を変えずに文章を推敲してください。自然なトーンを保ち、修正稿と変更点3つを示してください。"
+ };
+ const state={lang:"zh",placement:"A1",format:"logo",width:360,theme:"light",enabled:true,long:false,tipOpen:true,view:"list"};
+ const closed=new Set();
+ const L=key=>translations[state.lang][key]||key;
+ const label=arr=>arr[["zh","en","ja"].indexOf(state.lang)];
+ const setText=(id,text)=>{$(id).textContent=text;};
+ const placeSelect=$("placement"),formatSelect=$("format");
+ for(const id of Object.keys(placementNames)){const o=document.createElement("option");o.value=id;o.textContent=id+" · "+label(placementNames[id]);placeSelect.append(o);}
+ for(const id of Object.keys(formats)){const o=document.createElement("option");o.value=id;o.textContent=label(formats[id]);formatSelect.append(o);}
+ const notice=document.createElement("span");notice.className="sr-only";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");document.body.append(notice);
+ function announce(message){notice.textContent="";requestAnimationFrame(()=>notice.textContent=message);}
+ function applyLanguage(){
+  document.documentElement.lang=state.lang==="zh"?"zh-CN":state.lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=L(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{el.title=L(el.dataset.i18nTitle);el.setAttribute("aria-label",L(el.dataset.i18nTitle));});
+  document.querySelectorAll("[data-i18n-aria]").forEach(el=>el.setAttribute("aria-label",L(el.dataset.i18nAria)));
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=L(el.dataset.i18nPlaceholder));
+  for(const o of placeSelect.options)o.textContent=o.value+" · "+label(placementNames[o.value]);
+  for(const o of formatSelect.options)o.textContent=label(formats[o.value]);
+ }
+ function create(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+ function partnerDialog(){const dialog=$("partnerDialog");if(typeof dialog.showModal==="function" && !dialog.open)dialog.showModal();}
+ function canShow(){
+  if(!state.enabled||state.format==="none"||state.format==="logo"||state.format==="affiliate"||state.placement==="A1")return false;
+  if(closed.has(state.placement+"|"+state.format))return false;
+  if(state.long&&(state.placement==="A2"||state.placement==="A3"))return false;
+  return true;
+ }
+ function adData(){
+  const f=state.format;
+  return f==="recruit"?[L("join"),L("sponsorDesc"),"OD"]:
+         f==="self"?[L("selfHeadline"),L("selfDesc"),"OD"]:
+         f==="event"?[L("eventHeadline"),L("eventDesc"),"EV"]:
+         f==="directory"?[L("directoryHeadline"),L("directoryDesc"),"DX"]:
+         [L("sponsorHeadline"),L("sponsorDesc"),"FN"];
+ }
+ function ad(variant){
+  const f=state.format;
+  const root=create("div","ad-unit"+(variant==="compact"?" compact":"")+(variant==="text"?" text-only":""));
+  root.setAttribute("aria-label",L("adLabel"));
+  const top=create("div","ad-top");top.append(create("span","",f==="self"?L("promotion"):L("sponsor")));
+  const x=create("button","ad-close","×");x.type="button";x.setAttribute("aria-label",L("closeAd"));x.title=L("closeAd");
+  x.addEventListener("click",()=>{closed.add(state.placement+"|"+state.format);render();announce(L("closed"));});
+  top.append(x);root.append(top);
+  const content=create("div","ad-content"),[headline,description,monogram]=adData();
+  if(variant!=="text")content.append(create("span","fake-logo",monogram));
+  const copy=create("div","ad-copy");
+  copy.append(create("strong","",f==="recruit"?headline:(f==="self"?headline:L("sponsorName")+" · "+headline)));
+  copy.append(create("p","",description));content.append(copy);root.append(content);
+  const cta=create("button","ad-cta",L("action"));cta.type="button";
+  cta.addEventListener("click",partnerDialog);
+  if(variant==="text")content.append(cta);else root.append(cta);
+  return root;
+ }
+ function renderAd(){
+  const slots=["tipSponsor","railSponsor","listSponsor","editSponsor","emptySponsor","edgeSponsor","bottomSponsor","settingsSponsor"];
+  for(const id of slots){$(id).replaceChildren();$(id).hidden=true;}
+  if(!canShow())return;
+  const locations={A2:"tipSponsor",A3:"tipSponsor",A4:"railSponsor",A5:"listSponsor",A6:"editSponsor",A7:"emptySponsor",A8:"edgeSponsor",A9:"bottomSponsor",A10:"settingsSponsor"};
+  const id=locations[state.placement];if(!id)return;
+  const holder=$(id);holder.hidden=false;
+  if(id==="railSponsor"){
+   const button=create("button","","S");button.type="button";button.title=L("sponsor");button.setAttribute("aria-label",L("sponsor")+" · "+L("action"));button.addEventListener("click",partnerDialog);
+   const close=create("button","ad-close","×");close.type="button";close.setAttribute("aria-label",L("closeAd"));close.addEventListener("click",()=>{closed.add(state.placement+"|"+state.format);render();});
+   holder.append(button,close);
+  }else{
+   const variant=state.placement==="A2"||state.format==="text"?"text":state.placement==="A5"||state.placement==="A8"?"compact":"full";
+   holder.append(ad(variant));
+  }
+ }
+ function renderViews(){
+  for(const view of ["list","edit","empty","settings"])$(view+"View").hidden=state.view!==view;
+  setText("panelTitle",L(state.view==="edit"?"editTitle":state.view==="settings"?"settings":state.view==="empty"?"emptyTitle":"listTitle"));
+ }
+ function renderMatrix(){
+  const tbody=$("matrixBody");tbody.replaceChildren();
+  for(const id of Object.keys(placementNames)){
+   const d=evaluations[id],tr=document.createElement("tr");
+   if(id===state.placement)tr.dataset.selected="true";
+   const values=[id+" · "+label(placementNames[id]),...d.slice(0,7).map(L),id==="A1"?L("tradeNone"):L("tradeGreat")];
+   for(const v of values)tr.append(create("td","",v));
+   tbody.append(tr);
+  }
+  setText("placementReason",idWithReason());
+ }
+ function idWithReason(){
+  const d=evaluations[state.placement];return state.placement+": "+reasonText[state.lang][d[7]]+" "+(state.placement==="A8"||state.placement==="A9"?L("disabledHint"):L("riskShared"));
+ }
+ function renderModels(){
+  const grid=$("modelGrid");grid.replaceChildren();
+  for(const [name,desc] of [["modeFlat","modeFlatDesc"],["modePlace","modePlaceDesc"],["modeCpm","modeCpmDesc"],["modeCpc","modeCpcDesc"],["modeCpa","modeCpaDesc"]]){
+   const item=create("article");item.append(create("strong","",L(name)),create("p","",L(desc)));grid.append(item);
+  }
+ }
+ function render(){
+  document.documentElement.dataset.theme=state.theme;
+  document.documentElement.style.setProperty("--panel-width",state.width+"px");
+  document.body.style.zoom=$("zoom").value+"%";
+  $("language").value=state.lang;$("theme").value=state.theme;placeSelect.value=state.placement;formatSelect.value=state.format;
+  $("adsEnabled").checked=state.enabled;$("longPrompt").checked=state.long;
+  for(const b of document.querySelectorAll("[data-width]"))b.setAttribute("aria-pressed",String(Number(b.dataset.width)===state.width));
+  const disabled=state.placement==="A1"||state.format==="none"||state.format==="logo"||state.format==="affiliate";
+  const reason=!state.enabled?L("adOff"):state.placement==="A1"?L("onlyBrand"):state.long&&(state.placement==="A2"||state.placement==="A3")?L("hiddenLong"):closed.has(state.placement+"|"+state.format)?L("closed"):L("statusReady");
+  setText("stateSummary",L("summaryPrefix")+" · "+state.placement+" / "+label(formats[state.format])+" · "+reason+(state.placement==="A8"||state.placement==="A9"?" "+L("disabledHint"):""));
+  $("tip").hidden=!state.tipOpen;
+  $("shortcut").setAttribute("aria-expanded",String(state.tipOpen));
+  setText("promptText",sample[state.lang]+(state.long?"\n\n"+Array(12).fill(sample[state.lang]).join("\n\n"):""));
+  renderViews();renderAd();renderMatrix();renderModels();
+  for(const preset of document.querySelectorAll("[data-preset]")){
+   const key=preset.dataset.preset;const yes=key==="logo"&&state.placement==="A1"||key==="sponsor"&&state.placement==="A3"||key==="edit"&&state.placement==="A6";
+   preset.setAttribute("aria-pressed",String(yes));
+  }
+ }
+ function setPlacement(id){
+  state.placement=id;state.tipOpen=true;
+  state.view=id==="A6"?"edit":id==="A7"?"empty":id==="A10"?"settings":"list";
+  if(id==="A1")state.format="logo";
+  else if(state.format==="logo"||state.format==="none")state.format=id==="A2"?"text":id==="A7"||id==="A10"?"recruit":"graphic";
+  render();
+ }
+ let tipHideTimer=null;
+ function cancelTipHide(){if(tipHideTimer!==null){clearTimeout(tipHideTimer);tipHideTimer=null;}}
+ function scheduleTipHide(){cancelTipHide();tipHideTimer=setTimeout(()=>{
+  const focused=document.activeElement;
+  if($("tip").matches(":hover")||$("shortcut").matches(":hover")||$("tip").contains(focused)||focused===$("shortcut"))return;
+  state.tipOpen=false;render();
+ },170);}
+ function showTip(){cancelTipHide();state.tipOpen=true;render();}
+ $("shortcut").addEventListener("mouseenter",showTip);
+ $("shortcut").addEventListener("mouseleave",scheduleTipHide);
+ $("shortcut").addEventListener("focus",showTip);
+ $("shortcut").addEventListener("blur",scheduleTipHide);
+ $("tip").addEventListener("mouseenter",cancelTipHide);
+ $("tip").addEventListener("mouseleave",scheduleTipHide);
+ $("tip").addEventListener("focusout",scheduleTipHide);
+ $("closeTip").addEventListener("click",()=>{state.tipOpen=false;render();$("shortcut").focus();});
+ function insertDraft(){
+  const draft=$("draft"),body=sample[state.lang],before=draft.value;
+  draft.value=before+(before&&!before.endsWith("\n")?"\n":"")+body;
+  draft.dispatchEvent(new Event("input",{bubbles:true}));draft.focus();announce(L("inserted"));
+ }
+ $("shortcut").addEventListener("click",insertDraft);
+ document.querySelectorAll(".applyPrompt").forEach(b=>b.addEventListener("click",insertDraft));
+ $("clearDraft").addEventListener("click",()=>{$("draft").value="";announce(L("cleared"));});
+ function view(name){state.view=name;render();}
+ $("showList").addEventListener("click",()=>view("list"));
+ $("showEdit").addEventListener("click",()=>view("edit"));
+ $("showSettings").addEventListener("click",()=>view("settings"));
+ $("addFirst").addEventListener("click",()=>view("edit"));
+ $("cancelEdit").addEventListener("click",()=>view("list"));
+ $("saveEdit").addEventListener("click",()=>{view("list");announce(L("previewSaved"));});
+ $("dialogClose").addEventListener("click",()=>$("partnerDialog").close());
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("partnerDialog").open&&state.tipOpen){state.tipOpen=false;render();$("shortcut").focus();}});
+ $("placement").addEventListener("change",e=>setPlacement(e.target.value));
+ $("format").addEventListener("change",e=>{state.format=e.target.value;render();});
+ $("language").addEventListener("change",e=>{state.lang=e.target.value;applyLanguage();render();});
+ $("theme").addEventListener("change",e=>{state.theme=e.target.value;render();});
+ $("zoom").addEventListener("change",render);
+ $("adsEnabled").addEventListener("change",e=>{state.enabled=e.target.checked;render();});
+ $("longPrompt").addEventListener("change",e=>{state.long=e.target.checked;render();});
+ document.querySelectorAll("[data-width]").forEach(button=>button.addEventListener("click",()=>{state.width=Number(button.dataset.width);render();}));
+ $("resetAds").addEventListener("click",()=>{closed.clear();state.enabled=true;render();});
+ document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+  const p=b.dataset.preset;state.long=false;state.enabled=true;state.tipOpen=true;closed.clear();
+  state.placement=p==="logo"?"A1":p==="sponsor"?"A3":"A6";
+  state.format=p==="logo"?"logo":p==="sponsor"?"graphic":"recruit";
+  state.view=p==="edit"?"edit":"list";render();
+ }));
+ $("editPrompt").value=sample.zh;
+ applyLanguage();render();
+})();
+</script>
+</body>
+</html>
