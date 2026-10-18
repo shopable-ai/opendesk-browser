@@ -32,7 +32,10 @@ const TRUSTED_STATIC_IDS=[
   'time-review-site-all-confirm','time-review-site-grants-status','time-review-site-grants-list',
   'time-review-inline-clear-review','time-review-minute-delete-review',
   'sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary',
-  'sidebar-tool-generic-site-advanced'
+  'sidebar-tool-generic-site-advanced',
+  // These three nodes exist in the shipped tool.html import review; fake Host
+  // fixtures must model them too, rather than loosening product resetReview().
+  'page-install-import-status','page-install-import-receipt','page-install-import-receipt-text'
 ];
 
 

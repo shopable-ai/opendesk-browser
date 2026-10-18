@@ -227,6 +227,8 @@ for(const runtimeKind of ['controller','page-userscript']){
     await f.poll();await f.save();
     assert.deepEqual(f.dispatches,[]);assert.deepEqual(f.manualRuns,[]);
     await f.settleInspection();
+    // Passive inspection may read authorized source, but must never capture or run it.
+    assert.equal(f.effects.filter(effect=>effect==='capture').length,0);
     assert.ok(f.requests.filter(row=>row.method==='project.resolve').every(row=>
       [p.bindings.A,p.bindings.B].includes(row.params.bindingId)),'inspection must remain within explicitly selected authorized bindings');
     assert.equal(f.find('local-install-confirm').disabled,true,'Save before a successful Run cannot authorize installation');
@@ -270,6 +272,8 @@ for(const runtimeKind of ['controller','page-userscript']){
     assert.deepEqual(await evaluateBundle(dispatchedSource(f.dispatches[0])),{project:'A',value:'A-v1'});
     assert.deepEqual(f.dispatches.map(row=>row.params.sourceHash),[first.sourceHash,latest.sourceHash],
       'only the explicitly run A revisions may execute; prior B inspection is not execution');
+    assert.ok(f.requests.some(row=>row.method==='project.resolve'&&row.params.bindingId===p.bindings.A),
+      'Run resolves selected A; prior read-only install reconciliation may inspect B');
     assert.deepEqual(f.commits,[],'local Save must never commit the manual draft');
   });
 
@@ -443,7 +447,7 @@ test('local Page uses page.get for pending results and rejects mismatched previe
     await until(()=>f.dispatches.length===2,'pending Page preview did not use page.get');
     await f.settle();
     assert.deepEqual(f.dispatches.map(row=>row.method),['page.preview','page.get']);
-    assertDispatch(f,p,f.resolutions[0],0,'page-userscript');
+    assertDispatch(f,p,await p.resolve(p.bindings.A),0,'page-userscript');
     if(corruption==='none'){
       assert.equal(f.find('script-result').textContent,'current Page result');
       assert.equal(f.find('script-copy-result').disabled,false);

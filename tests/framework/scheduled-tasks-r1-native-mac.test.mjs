@@ -85,6 +85,10 @@ async function click(client,session,selector){
 // Scrolling a hidden hover action into view does not activate CSS :hover.
 // Do not synthesize DOM events, mutate styles, or replay after mousePressed.
 async function clickFloatingPlanAction(client,session,selector){
+  // Mutation acknowledgement and the subsequent React list paint are
+  // asynchronous. Wait for the actual visible control BEFORE asking CDP for
+  // its layout; no user input or DOM mutation occurs during this wait.
+  await deadline(()=>visible(client,session,selector),'visible hover plan action '+selector);
   const target=await client.send('Runtime.evaluate',{
     expression:expr(selector),returnByValue:false
   },session);
@@ -1277,21 +1281,23 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert.equal((await durable(client,formSid)).plans.length,1,'Discarded draft never creates a schedule');
     report.tests.nativeUnsavedDraftConfirmation='PASS';
     for(const [kind,index] of [['daily',1],['weekly',2],['interval',3]]){
-      await clickFloatingPlanAction(client,formSid,card+' .schedule-plan-actions button:nth-child(2)');
+      await clickFloatingPlanAction(client,formSid,card+' [data-schedule-action="edit"]');
       assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
         'Editing preserves the previously pinned timezone');
       assert.equal(await evaluate(client,expr('#schedule-task-select')+'.disabled',formSid),true,
         'Existing plan cannot silently select another fixed Task');
       await select(client,formSid,'#schedule-kind',index);
       if(kind==='daily'){
-        await click(client,formSid,'#schedule-timezone-edit');
-        await type(client,formSid,'#schedule-timezone-search','America/New_York');
-        assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),zone,
-          'Timezone search never changes the pinned selection');
-        const index=await evaluate(client,
-          '[...document.querySelector("#schedule-timezone").options].findIndex(option=>option.value==="America/New_York")',formSid);
-        await select(client,formSid,'#schedule-timezone',index);
-        await click(client,formSid,'#schedule-timezone-done');zone='America/New_York';
+        // The shipped form has one native IANA <select>. Drive the genuine
+        // Chrome/AppKit picker; the former search/done popover no longer exists.
+        const nextZone='America/New_York';
+        const zoneIndex=await evaluate(client,
+          '[...document.querySelector("#schedule-timezone").options].findIndex(option=>option.value==='+JSON.stringify(nextZone)+')',formSid);
+        assert(zoneIndex>=0,'The real timezone picker offers '+nextZone);
+        await select(client,formSid,'#schedule-timezone',zoneIndex);
+        assert.equal(await evaluate(client,expr('#schedule-timezone')+'.value',formSid),nextZone,
+          'The native picker changes only the selected IANA timezone');
+        zone=nextZone;
       }
       if(kind==='weekly'){
         for(const day of [3,5])await click(client,formSid,'#schedule-weekdays-field input[value="'+day+'"]');
