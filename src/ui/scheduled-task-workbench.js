@@ -1011,6 +1011,38 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
     text(get('task-dev-status'),'请先真实运行并验证源码、安装固定版本；安装后返回定时计划。');
   }
+
+  async function toggleManagedTask(row,originList){
+    if(busy)return;busy=true;
+    try{
+      if(!row.enabled)await requireChromePermissions({api,request:{origins:originList
+        .map(origin=>permissionPattern(origin))}});
+      await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,
+        enabled:!row.enabled,expectedGeneration:row.generation??null,
+        expectedInstallationId:row.installationId??null});
+      await refresh();message('任务安装状态已更新');
+    }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
+  }
+  async function copyManagedTask(row){
+    try{
+      const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
+      hidePanel();await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
+    }catch(error){message(error?.message||String(error),true);}
+  }
+  function createPlanFromManagedTask(row,title){
+    managerReturn='list';formReturnView='manager';show('form');
+    reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
+    showTaskVersion();get('schedule-title').value=title+' 定时';
+  }
+  function confirmManagedTaskUninstall(row,title,trigger){
+    uninstallReturnFocus=trigger;confirmUninstall=row;
+    const review=get('schedule-uninstall-confirm');
+    review.hidden=false;
+    text(get('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
+      '？后续计划可能无法运行，但已有 Run/Result 历史不会自动清除。');
+    review.scrollIntoView?.({block:'nearest'});
+    get('schedule-uninstall-yes').focus({preventScroll:true});
+  }
   function renderManager(){
     const parent=get('schedule-manager-list');
     const focused=doc.activeElement?.closest?.('.schedule-manager-card');
@@ -1018,13 +1050,37 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const focusedAction=doc.activeElement?.dataset?.managerAction;
     const menuOpenTask=parent.querySelector('.schedule-manager-menu[open]')
       ?.closest('.schedule-manager-card')?.dataset.managerTaskId;
-    parent.replaceChildren();
+    const reactOwned=Boolean(reactUI?.scheduleManagerMounted);
+    if(!reactOwned)parent.replaceChildren();
     const filter=get('schedule-manager-filter').value;
     const q=get('schedule-manager-search').value.trim().toLowerCase();
     const rows=installed.filter(row=>(filter==='all'||row.enabled===(filter==='enabled'))&&
       [row.taskId,candidate(row)?.manifest?.title||''].some(value=>value.toLowerCase().includes(q)));
     const total=get('schedule-manager-count');
     if(total)text(total,'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
+    if(reactOwned){
+      const projection=rows.map(row=>{
+        const entry=candidate(row),title=entry?.manifest?.title||row.taskId;
+        return {...row,title,description:entry?.manifest?.description||'',
+          siteOrigins:entry?.manifest?.siteOrigins||[],
+          linked:allPlans.filter(plan=>plan.taskId===row.taskId).length};
+      });
+      reactUI.renderScheduledManagerRows({
+        rows:projection,canCreatePlan:canStartScheduleFromManager(managerReturn),
+        emptyText:installed.length?'没有符合条件的任务，可更改搜索或筛选。':
+          '暂无已安装任务，请先到开发页创建并安装。',
+        onToggle:row=>void toggleManagedTask(row,row.siteOrigins),
+        onCopy:row=>void copyManagedTask(row),
+        onCreatePlan:row=>createPlanFromManagedTask(row,row.title),
+        onUninstall:(row,trigger)=>confirmManagedTaskUninstall(row,row.title,trigger)
+      });
+      if(focusedTask&&focusedAction){
+        const restored=[...parent.querySelectorAll('.schedule-manager-card')]
+          .find(card=>card.dataset.managerTaskId===focusedTask);
+        restored?.querySelector('[data-manager-action="'+focusedAction+'"]')?.focus({preventScroll:true});
+      }
+      return;
+    }
     if(!rows.length){
       parent.append(element(doc,'p','task-search-empty',
         installed.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。'));
@@ -1066,25 +1122,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       controls.setAttribute('role','group');
       controls.setAttribute('aria-label','管理「'+title+'」');
       const toggle=iconAction((row.enabled?'停用':'启用')+'「'+title+'」',
-        row.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z',async()=>{
-          if(busy)return;busy=true;
-          try{
-            if(!row.enabled)await requireChromePermissions({api,request:{origins:originList
-              .map(origin=>permissionPattern(origin))}});
-            await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,
-              enabled:!row.enabled,expectedGeneration:row.generation??null,
-              expectedInstallationId:row.installationId??null});
-            await refresh();message('任务安装状态已更新');
-          }catch(error){message(error?.message||String(error),true);}finally{busy=false;}
-        },'schedule-manager-toggle');
+        row.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z',
+        ()=>void toggleManagedTask(row,originList),'schedule-manager-toggle');
       toggle.dataset.managerAction='toggle';controls.append(toggle);
       const copy=iconAction('复制「'+title+'」到开发',
-        'M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3',async()=>{
-          try{
-            const existing=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
-            hidePanel();await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
-          }catch(error){message(error?.message||String(error),true);}
-        },'schedule-manager-copy');
+        'M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3',
+        ()=>void copyManagedTask(row),'schedule-manager-copy');
       copy.dataset.managerAction='copy';controls.append(copy);
       const disclosure=element(doc,'details','schedule-manager-menu');
       disclosure.open=menuOpenTask===row.taskId;
@@ -1097,21 +1140,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(canStartScheduleFromManager(managerReturn)){
         popover.append(iconAction('为此任务设置定时',
           'M7 3v4m10-4v4M4 9h16M5 5h14v15H5zM12 12v4l3 2',()=>{
-            disclosure.open=false;
-            managerReturn='list';formReturnView='manager';show('form');
-            reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
-            showTaskVersion();get('schedule-title').value=title+' 定时';
+            disclosure.open=false;createPlanFromManagedTask(row,title);
           },'schedule-manager-menu-item'));
       }
       popover.append(iconAction('卸载固定版本「'+title+'」',
         'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',()=>{
-          uninstallReturnFocus=trigger;confirmUninstall=row;disclosure.open=false;
-          const review=get('schedule-uninstall-confirm');
-          review.hidden=false;
-          text(get('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
-            '？后续计划可能无法运行，但已有 Run/Result 历史不会自动清除。');
-          review.scrollIntoView?.({block:'nearest'});
-          get('schedule-uninstall-yes').focus({preventScroll:true});
+          disclosure.open=false;confirmManagedTaskUninstall(row,title,trigger);
         },'schedule-manager-menu-item schedule-manager-uninstall'));
       const metadata=element(doc,'details','schedule-manager-more od-disclosure od-disclosure--flat');
       metadata.append(element(doc,'summary',null,'固定版本与网站范围'),

@@ -74,3 +74,87 @@ export function SchedulePlanRows({plans=[],currentRunId='',canStop,onOpen,onTogg
     </article>;
   });
 }
+
+
+// Manager cards are presentation only. Operations always return to the trusted
+// TaskWorkbench/Scheduler adapter; no Registry or Chrome capability crosses in.
+export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
+  onToggle,onCopy,onCreatePlan,onUninstall}){
+  if(!rows.length)return <p className="task-search-empty" role="status">{emptyText}</p>;
+  const trusted=(event,callback)=>{
+    if(event.nativeEvent?.isTrusted===true)callback?.(event.nativeEvent);
+  };
+  return rows.map(row=>{
+    const title=row.title||row.taskId,enabled=Boolean(row.enabled);
+    const version=row.version||'1.0.0';
+    const sites=Array.isArray(row.siteOrigins)?row.siteOrigins:[];
+    return <article key={row.taskId} className="schedule-manager-card od-surface"
+      data-manager-task-id={row.taskId}>
+      <div className="schedule-manager-card-head">
+        <div className="schedule-manager-identity">
+          <div className="schedule-manager-title-line">
+            <strong>{title}</strong>
+            <span className="schedule-manager-state schedule-state-icon"
+              data-state={enabled?'enabled':'disabled'} role="img"
+              title={enabled?'已启用':'已停用'} aria-label={enabled?'已启用':'已停用'}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d={enabled?'M4 12l5 5L20 6':'M8 5v14M16 5v14'}/>
+              </svg>
+            </span>
+          </div>
+          <p className="hint">v{version} · {row.linked||0} 个关联计划</p>
+        </div>
+      </div>
+      <div className="schedule-manager-actions od-toolbar" role="group"
+        aria-label={'管理「'+title+'」'}>
+        <IconButton className="schedule-manager-action schedule-manager-toggle"
+          data-manager-action="toggle" label={(enabled?'停用':'启用')+'「'+title+'」'}
+          onClick={event=>trusted(event,()=>onToggle?.(row))}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d={enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z'}/>
+          </svg>
+        </IconButton>
+        <IconButton className="schedule-manager-action schedule-manager-copy"
+          data-manager-action="copy" label={'复制「'+title+'」到开发'}
+          onClick={event=>trusted(event,()=>onCopy?.(row))}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </IconButton>
+        <details className="schedule-manager-menu">
+          <summary className="od-icon-button schedule-manager-action schedule-manager-menu-trigger"
+            data-manager-action="more" data-manager-more={row.taskId}
+            title={'更多操作：'+title} aria-label={'更多操作：'+title}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/>
+              <circle cx="19" cy="12" r="1.5"/>
+            </svg>
+          </summary>
+          <div className="schedule-manager-menu-panel od-surface" role="group"
+            aria-label={'其他操作：'+title}>
+            {canCreatePlan&&<button type="button"
+              className="od-button od-button--quiet schedule-manager-action schedule-manager-menu-item"
+              onClick={event=>trusted(event,()=>{
+                event.currentTarget.closest('details').open=false;
+                onCreatePlan?.(row);
+              })}>为此任务设置定时</button>}
+            <button type="button" className="od-button od-button--quiet schedule-manager-uninstall schedule-manager-action schedule-manager-menu-item"
+              data-manager-uninstall={row.taskId} aria-label={'卸载固定版本「'+title+'」'}
+              onClick={event=>trusted(event,()=>{
+                const trigger=event.currentTarget.closest('details')?.querySelector('summary');
+                event.currentTarget.closest('details').open=false;
+                onUninstall?.(row,trigger);
+              })}>卸载固定版本</button>
+            <details className="schedule-manager-more od-disclosure od-disclosure--flat">
+              <summary>固定版本与网站范围</summary>
+              {row.description&&<p className="hint">用途：{row.description}</p>}
+              <p className="hint">任务 ID：{row.taskId}</p>
+              <p className="hint">固定版本：v{version}</p>
+              <p className="hint">适用网站：{sites.join('，')||'未指定'}</p>
+            </details>
+          </div>
+        </details>
+      </div>
+    </article>;
+  });
+}

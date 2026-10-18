@@ -7,7 +7,7 @@ import {DeveloperActions,DeveloperFramework,DeveloperTargetText,DeveloperRunStat
 import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowSettingsSheet,WorkflowTranscript,WorkflowResultText} from './tabs/workflow.tsx';
 import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
-import {SchedulePlanRows} from './tabs/schedule.tsx';
+import {SchedulePlanRows,ScheduleManagerRows} from './tabs/schedule.tsx';
 import {CloudOverviewText} from './tabs/cloud.tsx';
 import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
 import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
@@ -38,6 +38,11 @@ export function mountExtensionList(doc){
   const myNodes=[myCount,myRows,myWorkspace,myDetail],myTasksMounted=myNodes.every(Boolean);
   const schedulePlanList=doc.getElementById('schedule-plan-list');
   const schedulePlansMounted=Boolean(schedulePlanList);
+  const scheduleManagerList=doc.getElementById('schedule-manager-list');
+  const scheduleManagerMounted=Boolean(scheduleManagerList);
+  if(scheduleManagerMounted&&
+    (scheduleManagerList.dataset.opendeskReactOwner||scheduleManagerList.childElementCount))
+    throw new Error('E_REACT_SCHEDULE_MANAGER_ALREADY_OWNED');
   if(schedulePlansMounted&&
     (schedulePlanList.dataset.opendeskReactOwner||schedulePlanList.childElementCount))
     throw new Error('E_REACT_SCHEDULE_ALREADY_OWNED');
@@ -157,6 +162,7 @@ export function mountExtensionList(doc){
     myDetail.dataset.opendeskReactOwner='my-task-detail';
   }
   if(schedulePlansMounted)schedulePlanList.dataset.opendeskReactOwner='schedule-plan-rows';
+  if(scheduleManagerMounted)scheduleManagerList.dataset.opendeskReactOwner='schedule-manager-rows';
   if(cloudOverviewMounted)for(const [key,node] of Object.entries(cloudNodes)){
     node.replaceChildren();node.dataset.opendeskReactOwner='cloud-'+key;
   }
@@ -223,7 +229,7 @@ export function mountExtensionList(doc){
     state:'resolving',statusTitle:'',title:'正在识别…',url:''};
   let debugModel=debugInitial;
   let myRowsModel={rows:[],selectedId:'',emptyText:'',onSelect:()=>{}};
-  let scheduleRowsModel=null;
+  let scheduleRowsModel=null,scheduleManagerModel=null;
   let cookiePilotHost=null;
   let bookmarkPilot=null;
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
@@ -247,6 +253,8 @@ export function mountExtensionList(doc){
       {myTasksMounted&&createPortal(<MyTaskDetail value={myDetailText}/>,myDetail)}
       {schedulePlansMounted&&scheduleRowsModel&&createPortal(
         <SchedulePlanRows {...scheduleRowsModel}/>,schedulePlanList)}
+      {scheduleManagerMounted&&scheduleManagerModel&&createPortal(
+        <ScheduleManagerRows {...scheduleManagerModel}/>,scheduleManagerList)}
       {cloudOverviewMounted&&Object.entries(cloudNodes).map(([key,node])=>
         createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
@@ -364,7 +372,14 @@ export function mountExtensionList(doc){
         throw new Error('E_REACT_MY_SNAPSHOT');
       myRowsModel=next;paint();
     },
-    schedulePlansMounted,
+    schedulePlansMounted,scheduleManagerMounted,
+    renderScheduledManagerRows(next){
+      if(disposed||!scheduleManagerMounted)throw new Error('E_REACT_SCHEDULE_MANAGER_OWNER');
+      if(!next||!Array.isArray(next.rows)||
+        !['onToggle','onCopy','onCreatePlan','onUninstall'].every(key=>typeof next[key]==='function'))
+        throw new Error('E_REACT_SCHEDULE_MANAGER_SNAPSHOT');
+      scheduleManagerModel=next;paint();
+    },
     renderScheduledPlanRows(next){
       if(disposed||!schedulePlansMounted)throw new Error('E_REACT_SCHEDULE_OWNER');
       if(!next||!Array.isArray(next.plans)||
@@ -501,6 +516,7 @@ export function mountExtensionList(doc){
         for(const node of [myRows,myCount,myDetail])delete node.dataset.opendeskReactOwner;
       }
       if(schedulePlansMounted)delete schedulePlanList.dataset.opendeskReactOwner;
+      if(scheduleManagerMounted)delete scheduleManagerList.dataset.opendeskReactOwner;
       if(cloudOverviewMounted)for(const node of cloudValues)
         delete node.dataset.opendeskReactOwner;
       if(workflowMounted){

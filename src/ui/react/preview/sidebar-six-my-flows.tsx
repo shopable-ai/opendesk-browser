@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {presentSchedulePlan,scheduleFireLabel,formatScheduleTime} from '../../schedule-plan-presentation.js';
-import {SchedulePlanRows} from '../tabs/schedule.tsx';
+import {SchedulePlanRows,ScheduleManagerRows} from '../tabs/schedule.tsx';
 
 // Offline-only UI state. The installed TaskWorkbench and scheduler remain
 // the only authorities for task identity, drafts, installation and execution.
@@ -490,74 +490,30 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
         </div>
       </div>}
     </div>,detail)}
-    {createPortal(<>
-      {managerRows.length===0?<p className="task-search-empty" role="status">
-        {rows.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。'}
-      </p>:managerRows.map(p=><article key={p.taskId}
-        className="schedule-manager-card od-surface" data-manager-task-id={p.taskId}>
-        <div className="schedule-manager-card-head">
-          <div className="schedule-manager-identity">
-            <div className="schedule-manager-title-line">
-              <strong>{p.title}</strong>
-              <span className="schedule-manager-state schedule-state-icon"
-                data-state={p.enabled?'enabled':'disabled'} role="img"
-                title={p.enabled?'已启用':'已停用'} aria-label={p.enabled?'已启用':'已停用'}>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path
-                  d={p.enabled?'M4 12l5 5L20 6':'M8 5v14M16 5v14'}/></svg>
-              </span>
-            </div>
-            <p className="hint">v{p.version||'1.0.0'} · {plans.filter(plan=>plan.taskId===p.taskId).length} 个关联计划</p>
-          </div>
-        </div>
-        <div className="schedule-manager-actions od-toolbar" role="group" aria-label={'管理「'+p.title+'」'}>
-          <button type="button" className="od-icon-button schedule-manager-action schedule-manager-toggle"
-            title={p.enabled?'停用任务（仅预览）':'启用任务（仅预览）'}
-            aria-label={(p.enabled?'停用':'启用')+'「'+p.title+'」'}
-            onClick={()=>{onTaskAction('toggle',p.taskId);
-              setFeedback('仅预览：已切换任务状态，未请求真实权限或 Registry 修改。');}}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path
-              d={p.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z'}/></svg>
-          </button>
-          <button type="button" className="od-icon-button schedule-manager-action schedule-manager-copy"
-            title="复制到开发（仅预览）" aria-label={'复制「'+p.title+'」到开发'}
-            onClick={()=>{onTaskAction('fork',p.taskId);
-              setFeedback('仅预览：没有真实任务源码，不会创建开发草稿。');}}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-          </button>
-          <details className="schedule-manager-menu">
-            <summary className="od-icon-button schedule-manager-action schedule-manager-menu-trigger"
-              data-manager-more={p.taskId} title="更多操作" aria-label={'更多操作：'+p.title}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-              </svg>
-            </summary>
-            <div className="schedule-manager-menu-panel od-surface" role="group" aria-label={'其他操作：'+p.title}>
-              {managerOrigin!=='form'&&<button type="button" className="od-button od-button--quiet"
-                onClick={event=>{
-                  event.currentTarget.closest('details').open=false;
-                  showForm(null);
-                  const target=get('schedule-task-select');
-                  if(![...target.options].some(option=>option.value===p.taskId))
-                    target.add(new Option(p.title,p.taskId));
-                  target.value=p.enabled?p.taskId:'';
-                  get('schedule-title').value=p.title+' 定时';
-                  setFeedback('已载入演示定时计划草稿，未创建或执行任何计划。');
-                }}>为此任务设置定时</button>}
-              <button type="button" className="od-button od-button--quiet schedule-manager-uninstall"
-                data-manager-uninstall={p.taskId} aria-label={'卸载固定版本「'+p.title+'」'}
-                onClick={event=>{event.currentTarget.closest('details').open=false;
-                  setManagerRemoving(p.taskId);}}>卸载固定版本</button>
-              <details className="schedule-manager-more od-disclosure od-disclosure--flat">
-                <summary>固定版本与网站范围</summary>
-                <p className="hint">用途：{p.description}</p>
-                <p className="hint">任务 ID：{p.taskId}</p>
-                <p className="hint">固定演示版本：v{p.version||'1.0.0'}</p>
-                <p className="hint">适用网站：{(p.siteOrigins||[]).join('，')||'未指定'}</p>
-              </details>
-            </div>
-          </details>
-        </div>
-      </article>)}
-    </>,manager)}
+    {createPortal(<ScheduleManagerRows
+      rows={managerRows.map(row=>({...row,
+        linked:plans.filter(plan=>plan.taskId===row.taskId).length}))}
+      emptyText={rows.length?'没有符合条件的任务，可更改搜索或筛选。':
+        '暂无已安装任务，请先到开发页创建并安装。'}
+      canCreatePlan={managerOrigin!=='form'}
+      onToggle={row=>{
+        onTaskAction('toggle',row.taskId);
+        setFeedback('仅预览：已切换任务状态，未请求真实权限或 Registry 修改。');
+      }}
+      onCopy={row=>{
+        onTaskAction('fork',row.taskId);
+        setFeedback('仅预览：没有真实任务源码，不会创建开发草稿。');
+      }}
+      onCreatePlan={row=>{
+        showForm(null);
+        const target=get('schedule-task-select');
+        if(![...target.options].some(option=>option.value===row.taskId))
+          target.add(new Option(row.title,row.taskId));
+        target.value=row.enabled?row.taskId:'';
+        get('schedule-title').value=row.title+' 定时';
+        setFeedback('已载入演示定时计划草稿，未创建或执行任何计划。');
+      }}
+      onUninstall={row=>setManagerRemoving(row.taskId)}
+    />,manager)}
   </>;
 }

@@ -112,7 +112,8 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   assert.equal($('#schedule-task-manager .schedule-manager-controls').length,1);
   assert.match(css,/\.schedule-manager-controls\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css,/\.schedule-manager-card\{width:100%/);
-  assert.match(flows,/createPortal\(<[\s\S]*?schedule-manager-card od-surface/);
+  assert.match(flows,/createPortal\(<ScheduleManagerRows/);
+  assert.match(await read('src/ui/react/tabs/schedule.tsx'),/schedule-manager-card od-surface/);
   assert.match(flows,/setManagerRemoving\(p\.taskId\)/);
   assert.match(flows,/schedulePlanIconPath\(present\)/);
   assert.match(flows,/schedulePlanStatusLabel\(present\)/);

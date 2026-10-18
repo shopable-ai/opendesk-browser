@@ -27,6 +27,11 @@ test('R34.1 trusted scheduler and preview share one React schedule card',async()
   assert.match(owner,/if\(reactOwned\)publishReactRows\(\)/);
   assert.match(shell,/reactUI:extensionList/);
   assert.match(preview,/createPortal\(<SchedulePlanRows/);
+  assert.match(preview,/createPortal\(<ScheduleManagerRows/);
+  assert.match(ui,/export function ScheduleManagerRows/);
+  assert.match(root,/createPortal\(\s*<ScheduleManagerRows/);
+  assert.match(root,/renderScheduledManagerRows\(next\)/);
+  assert.match(owner,/reactUI\.renderScheduledManagerRows\(/);
   assert.doesNotMatch(preview,/return <article key=\{p\.id\} className="schedule-card/);
   assert.match(builder,/src\/ui\/react\/tabs\/schedule\.tsx/);
   // The installed shell verifier consumes strict non-self-closing HTML tags.
