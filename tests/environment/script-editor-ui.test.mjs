@@ -881,3 +881,41 @@ test('R36.3 Page Candidate load refuses a late response after a React source swi
   assert.equal(f.find('script-id').value,'manual');
   assert.deepEqual(f.dispatches,[]);
 });
+
+test('R36.4 React source and JavaScript world handoff removes legacy listeners without losing drafts',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const source=f.find('script-source'),world=f.find('script-javascript-world');
+  assert.equal(source.listeners.get('input')?.size,1);
+  assert.equal(world.listeners.get('change')?.size,1);
+  let editorModel,worldModel,renders=0;
+  // Fake only the React DOM commit. Never emulate an actual Chrome gesture.
+  f.editor.connectReactDeveloperSource(model=>{
+    editorModel=model;renders++;
+    source.value=model.source;source.readOnly=model.readOnly;source.hidden=model.hidden;
+  });
+  f.editor.connectReactDeveloperWorld(model=>{
+    worldModel=model;world.value=model.value;world.disabled=model.disabled;
+  });
+  assert.equal(source.listeners.get('input')?.size,0,'legacy input listener was not detached');
+  assert.equal(world.listeners.get('change')?.size,0,'legacy world listener was not detached');
+  assert.equal(editorModel.source,manualSource);
+  const typed='async function main(){return "REACT_TEXT_PRESERVED";}';
+  source.value=typed;editorModel.onInput({isTrusted:true});
+  const afterInput=renders;
+  f.find('script-params').fire('input');
+  assert.equal(source.value,typed,'ordinary updates cannot reset the source textarea');
+  assert.equal(renders,afterInput,'native input must not have a second React draft projection');
+  worldModel.onSelect('page',{isTrusted:false});
+  assert.equal(worldModel.value,'controller','untrusted changes cannot switch worlds');
+  worldModel.onSelect('page',{isTrusted:true});
+  assert.equal(worldModel.value,'page');
+  assert.match(source.value,/document\.title/);
+  const pageDraft='async function main(){return document.URL;}';
+  source.value=pageDraft;editorModel.onInput({isTrusted:true});
+  worldModel.onSelect('controller',{isTrusted:true});
+  assert.equal(source.value,typed,'Controller source must survive Page edits');
+  worldModel.onSelect('page',{isTrusted:true});
+  assert.equal(source.value,pageDraft,'Page source must survive Controller edits');
+  assert.deepEqual(f.manualRuns,[],'source/world changes do not trigger Controller Run');
+  assert.deepEqual(f.dispatches,[],'source/world changes do not trigger Page Run');
+});
