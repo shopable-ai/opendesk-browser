@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
+import {CookieImportDropzone,CookieFormField} from './CookieEditorView.jsx';
 
 const MAX_FILE=8*1024*1024;
 
@@ -18,6 +19,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
   const [plan,setPlan]=React.useState(null);
   const [sourceRevision,setSourceRevision]=React.useState(0);
   const [dragging,setDragging]=React.useState(false);
+  const [fileName,setFileName]=React.useState('');
   const [overwrite,setOverwrite]=React.useState(false);
   const [checking,setChecking]=React.useState(false);
   const [reading,setReading]=React.useState(false);
@@ -36,7 +38,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
     setPlan(null);setOverwrite(false);setMessage('');
   };
   const edited=()=>{
-    invalidate();
+    invalidate();setFileName('');
     onDirty?.(Boolean(sourceRef.current?.value));
     setSourceRevision(x=>x+1);
   };
@@ -73,6 +75,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       const text=await file.text();
       if(!isCurrent(seq,at))return;
       if(sourceRef.current){sourceRef.current.value=text;onDirty?.(Boolean(text));}
+      setFileName(file.name||'Cookie 文件');
       setSourceRevision(x=>x+1);
     }catch{
       if(isCurrent(seq,at))setMessage('读取本地文件失败，请粘贴原文重试。');
@@ -112,17 +115,28 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
     <input ref={fileRef} type="file" accept=".json,.txt,.cookies,text/plain,application/json"
       hidden disabled={disabled||reading}
       onChange={e=>void readFile(e.target.files?.[0])}/>
-    <div className="cookie-import-dropzone" role="group" aria-label="Cookie 文件选择和拖入"
-      onDragOver={e=>{if(disabled||reading)return;e.preventDefault();setDragging(true);}}
-      onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget))setDragging(false);}}
-      onDrop={e=>{
-        if(disabled||reading)return;
-        e.preventDefault();setDragging(false);
-        void readFile(e.dataTransfer?.files?.[0]);
-      }}>
-      <Button type="button" variant="secondary" disabled={disabled||reading}
-        onClick={()=>fileRef.current?.click()}>选择文件</Button>
-      <span>{dragging?'松开以载入文件':'也可拖入文件，或在下方直接粘贴'}</span>
+    <div className="import-source">
+      <CookieImportDropzone dragging={dragging} fileName={fileName}
+        disabled={disabled||reading} maxSize="8 MiB"
+        onPick={()=>fileRef.current?.click()}
+        onDragEnter={e=>{if(disabled||reading)return;e.preventDefault();setDragging(true);}}
+        onDragOver={e=>{if(disabled||reading)return;e.preventDefault();setDragging(true);}}
+        onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget))setDragging(false);}}
+        onDrop={e=>{
+          if(disabled||reading)return;
+          e.preventDefault();setDragging(false);
+          void readFile(e.dataTransfer?.files?.[0]);
+        }}/>
+      {(fileName||Boolean(sourceRef.current?.value))&&<div className="import-source-meta">
+        <span className="selected-file" title={fileName||undefined}>
+          {fileName||'已输入 Cookie 内容'}</span>
+        <Button type="button" variant="secondary" className="clear-source"
+          disabled={disabled||reading} onClick={()=>{
+            invalidate();setFileName('');
+            if(sourceRef.current)sourceRef.current.value='';
+            onDirty?.(false);setSourceRevision(x=>x+1);
+          }}>清空</Button>
+      </div>}
     </div>
     <label>格式
       <select className="od-field" disabled={disabled||reading} value={format}
@@ -132,12 +146,12 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
         <option value="netscape">Netscape</option>
       </select>
     </label>
-    <label>Cookie 内容
+    <CookieFormField label="或粘贴 Cookie 内容" className="cookie-import-field">
       <textarea className="od-field" ref={sourceRef} rows={5} autoComplete="off"
         spellCheck={false} disabled={disabled||reading}
         placeholder="粘贴 JSON、Cookie Header 或 Netscape 文本"
         data-cookie-secret-input="true" onInput={edited}/>
-    </label>
+    </CookieFormField>
     {checking&&<p role="status" className="cookie-message">正在安全预检…</p>}
     {plan&&<section aria-label="导入预检结果" role="status"
       className="cookie-message od-alert cookie-import-summary">

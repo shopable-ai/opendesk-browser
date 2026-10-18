@@ -46,8 +46,8 @@ test('approved Preview and independent product own toolbar, not browser SRC',asy
   assert.match(view,/<Action name="download" label="导出 Cookie"/);
   assert.match(view,/<Action name="trash" label="安全清理本站 Cookie"/);
   assert.match(view,/onClear\} disabled=\{busy\|\|readonly\|\|clearDisabled/);
-  assert.match(preview,/dropzone-symbol"><Icon name="upload"\/>/);
-  assert.match(preview,/runExport\('download'\)\}><Icon name="download"\/>下载/);
+  assert.match(preview,/<CookieImportDropzone /);
+  assert.match(preview,/<CookieExportActions /);
   assert.match(preview,/type:'clear',keys:clearKeys\(\),count:clearCandidates.length/);
   assert.match(preview,/Host-only Cookie/);
   assert.doesNotMatch(preview,/更多 · 清理与变化观察/);

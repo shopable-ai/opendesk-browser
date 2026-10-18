@@ -121,6 +121,25 @@
 .cookie-editor-react .cookie-import-summary ul{margin:0;padding-left:var(--space-4);max-height:130px;overflow:auto}
 .cookie-editor-react .cookie-import-overwrite{display:flex;align-items:flex-start;gap:var(--space-2)}
 
+/* Shared Preview IO JSX, with Host-owned design tokens and no duplicated skins. */
+.cookie-editor-react .import-source{display:grid;gap:var(--space-1);min-width:0}
+.cookie-editor-react .import-dropzone{display:flex;align-items:center;text-align:left;width:100%;min-width:0;min-height:62px;gap:var(--space-2);padding:var(--space-3)}
+.cookie-editor-react .dropzone-symbol{display:grid;place-items:center;flex:none;width:30px;height:30px}
+.cookie-editor-react .dropzone-symbol svg{width:17px;height:17px}
+.cookie-editor-react .dropzone-copy{display:grid;gap:var(--space-1);min-width:0}
+.cookie-editor-react .dropzone-copy strong,.cookie-editor-react .dropzone-copy small{overflow-wrap:anywhere}
+.cookie-editor-react .import-source-meta{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+.cookie-editor-react .selected-file{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-import-field{display:grid;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-import-field textarea{width:100%;min-width:0}
+.cookie-editor-react .export-format{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
+.cookie-editor-react .export-format .field{display:flex;align-items:center;gap:var(--space-2);flex:1 1 155px;min-width:0}
+.cookie-editor-react .export-format .field>span{flex:none}
+.cookie-editor-react .export-format .field>select{flex:1;min-width:0}
+.cookie-editor-react .export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2);min-width:0}
+.cookie-editor-react .export-actions>button{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-width:0}
+.cookie-editor-react .export-actions svg{width:16px;height:16px;flex:none}
+
 /* Preview is the main surface: no duplicate Host heading or multi-layer Card padding. */
 .cookie-editor-react .cookie-utility-settings{margin-top:var(--space-3)}
 .cookie-editor-react .cookie-utility-settings summary,.cookie-editor-react .cookie-observe-fold summary{cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}

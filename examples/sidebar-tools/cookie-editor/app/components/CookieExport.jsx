@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
+import {CookieExportFormatRow,CookieExportActions} from './CookieEditorView.jsx';
 
 // Identical export choices to the approved React preview. Only the existing
 // Controller/SDK may read values or write clipboard/download bytes.
@@ -37,21 +38,9 @@ export default function CookieExport({controller,disabled=false,onClose}){
       <Button type="button" className="od-button--quiet" disabled={busy}
         onClick={onClose} aria-label="关闭导出">关闭</Button>
     </div>
-    <div className="cookie-export-options">
-      <label className="cookie-export-format">格式
-        <select className="od-field" disabled={busy} value={format}
-          aria-label="导出格式" onChange={e=>{setFormat(e.target.value);setConfirmation(null);}}>
-          <option value="json">JSON</option>
-          <option value="header">Cookie Header</option>
-          <option value="netscape">Netscape</option>
-        </select>
-      </label>
-      {format==='json'&&<label className="cookie-export-values">
-        <input type="checkbox" checked={includeValues} disabled={busy}
-          onChange={e=>{setIncludeValues(e.target.checked);setConfirmation(null);}}/>
-        包含 Cookie 值
-      </label>}
-    </div>
+    <CookieExportFormatRow format={format} includeValues={includeValues} disabled={busy}
+      onFormat={next=>{setFormat(next);setConfirmation(null);}}
+      onIncludeValues={next=>{setIncludeValues(next);setConfirmation(null);}}/>
     <p className="cookie-message" role="note">{metadata
       ?'仅导出元数据，不能用来恢复 Cookie。'
       :format==='json'
@@ -70,10 +59,7 @@ export default function CookieExport({controller,disabled=false,onClose}){
           onClick={()=>void deliver(confirmation)}>确认导出</Button>
       </div>
     </div>}
-    <div className="cookie-export-actions">
-      <Button type="button" disabled={busy||lossy} onClick={()=>choose('copy')}>复制</Button>
-      <Button type="button" variant="primary" disabled={busy||lossy}
-        onClick={()=>choose('download')}>保存文件</Button>
-    </div>
+    <CookieExportActions disabled={busy||lossy} onCopy={()=>choose('copy')}
+      onDownload={()=>choose('download')}/>
   </section>;
 }

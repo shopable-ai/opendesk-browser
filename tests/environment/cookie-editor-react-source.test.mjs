@@ -53,6 +53,26 @@ test('golden Preview and installed editor share form JSX while secrets stay in e
   assert.match(official,/onCancel=\{\(\)=>\{setSelected\(null\);setDirty\(false\);\}\}/);
 });
 
+test('Preview IO presentation is shared without moving native Cookie operations into React',async()=>{
+  const [preview,view,importer,exporter,adapter]=await Promise.all([
+    get('preview/react/src/App.jsx'),get('app/components/CookieEditorView.jsx'),
+    get('app/components/CookieImport.jsx'),get('app/components/CookieExport.jsx'),
+    get('app/adapters/browser-sdk.js')
+  ]);
+  for(const tag of ['CookieImportDropzone','CookieExportFormatRow','CookieExportActions']){
+    assert.ok(view.includes('export function '+tag),tag+' JSX must have one owner');
+    assert.ok(preview.includes('<'+tag),tag+' must appear in Preview');
+  }
+  assert.match(importer,/<CookieImportDropzone /);
+  assert.match(exporter,/<CookieExportFormatRow /);
+  assert.match(exporter,/<CookieExportActions /);
+  assert.match(importer,/controller\.previewImport/);
+  assert.match(importer,/controller\.executeImport/);
+  assert.match(exporter,/controller\.exportTo/);
+  assert.match(adapter,/browser\(\)\.downloads\.text/);
+  assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);
+});
+
 test('formal native package unchanged until candidate passes all gates',async()=>{
   const [config,official,vite]=await Promise.all([
     get('tool.config.json').then(JSON.parse),
