@@ -239,12 +239,20 @@ test('All trusted static and dynamically rendered disclosures use one shared hea
   ]);
   assert.equal(summaryRules[0][2], 'display:none');
   assert.match(summaryRules[1][2], /cursor:pointer/);
-  for(const [,selector,body] of summaryRules.slice(1)){
+  for(const [index,[,selector,body]] of summaryRules.slice(1).entries()){
     assert.ok(selector.includes('.schedule-manager-menu>summary'),
       'Only the reviewed task menu may style a native summary header');
-    assert.doesNotMatch(body,/display:none|position:fixed/i,
-      'Task menu summary must remain reachable by keyboard and touch');
+    assert.doesNotMatch(body,/position:fixed/i,
+      'Task menu summary/marker must remain in the native disclosure flow');
+    if(index===0)assert.doesNotMatch(body,/display:none/i,
+      'The actual task menu summary must remain reachable by keyboard and touch');
   }
+  // Only pseudo-elements suppress the browser's default triangle. Hiding a
+  // native marker does not hide the summary or make it unfocusable.
+  assert.match(summaryRules[2][2],/display:none/,
+    'WebKit marker is hidden, never the focusable summary');
+  assert.match(summaryRules[3][2],/content:""/,
+    'Other native markers are suppressed without hiding the summary');
   assert.doesNotMatch(read('src/ui/cloud-hosting.css'), />summary\s*\{/);
   assert.doesNotMatch(shell, /\.cloud-clients\{[^}]*display:grid/,
     'The native details element must retain collapsed content semantics');

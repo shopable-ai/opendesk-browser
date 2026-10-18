@@ -1112,6 +1112,7 @@
 .schedule-manager-actions .schedule-manager-action svg{width:16px;height:16px}
 .schedule-manager-menu{position:relative;flex:none;min-width:0}
 .schedule-manager-menu>summary{list-style:none;cursor:pointer}
+/* Hide only the UA marker: the summary stays visible, focusable and touchable. */
 .schedule-manager-menu>summary::-webkit-details-marker{display:none}
 .schedule-manager-menu>summary::marker{content:""}
 .schedule-manager-menu[open]>.schedule-manager-menu-trigger{background:var(--od-muted)}

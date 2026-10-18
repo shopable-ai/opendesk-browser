@@ -10,3 +10,5 @@
 - 当前状态：SOURCE_PATCHED；CI 结果以发布后的 workflow run 记录为准；Native 待本地 Codex。
 
 - R34.2 复测扩展：此前正式 CSS 的菜单 marker 选择器使用 `.schedule-manager-menu-trigger`，但共享 Native summary 契约要求 `.schedule-manager-menu>summary`。将三处原生 marker/焦点触达选择器限定到原菜单的直接子 summary，不改变 DOM、视觉变量或权限。本任务新增最小写入范围 `src/ui/tool-shell.css`，依赖现有 `tests/environment/sidebar-component-contract.test.mjs` 断言和预览构建；CI/原生状态按本次提交独立复核。
+
+- CI 菜单契约修正（基于主干 `a111519b1a6ba722bfa2991ceeb54fbe1cb91534`）：原共享测试错误地把原生 `::webkit-details-marker` 的 `display:none` 当作整个可聚焦 `summary` 隐藏。继续断言 summary 本身不可隐藏、必须 `cursor:pointer`，并明确校验只有伪元素被隐藏；正式 CSS 同步标明只隐藏 UA marker。无需改变任何实际菜单行为或放宽安全约束。
