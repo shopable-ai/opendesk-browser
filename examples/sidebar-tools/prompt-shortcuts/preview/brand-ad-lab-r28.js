@@ -312,6 +312,7 @@
       }
       scroll.append(zone('C05','r28-in-chat'));
       wrap.append(scroll);
+      if(state.scene==='long'&&state.id==='C05')scroll.scrollTop=scroll.scrollHeight;
       const foot=make('div','r28-convo-foot');
       foot.append(zone('C03','r28-inline-spot'),compose,zone('C04','r28-inline-spot'));
       wrap.append(foot);
@@ -329,7 +330,9 @@
       b.append(marker,label);
       if(selected&&old.state.enabled&&!state.closedWeb.has(id)){
         const art=make('span','r28-selected-art');
-        art.append(adCard(0,state.layout==='recruit',false,state.layout));
+        if(site.clientWidth<720&&['N05','N08','N11'].includes(id)){
+          art.append(make('span','r28-risk-banner',T('riskHint')));
+        }else art.append(adCard(0,state.layout==='recruit',false,state.layout));
         b.append(art);
       }
     }
@@ -412,7 +415,7 @@
       T({low:'riskLow',mid:'riskMid',high:'riskHigh',critical:'riskCritical'}[p.risk]),
       T(third?'no':'yes'),
       T(third?'notRecommended':'recommended'),
-      p.brand?T('yes'):T('conditional')];
+      p.brand?T('brandSlot'):T('yes')];
   }
   function renderTable(){
     const keys=['selected','impact','share','effort','narrow','confusion','policy','ownUI','review','close'];
