@@ -81,7 +81,7 @@ test('Focus stop clears only owned DNR, keeps budget and invalidates the old ins
 });
 test('Focus cleanup failure leaves tool stopped and does not acknowledge an unverified rule removal',async()=>{
   const f=fixture();f.mismatch(true);
-  await assert.rejects(setInstalledSidebarToolEnabled({...f,tool,enabled:false}),{code:'E_MANAGED_DNR_MISMATCH'});
+  await assert.rejects(setInstalledSidebarToolEnabled({...f,tool,enabled:false}),{code:'E_FOCUS_DNR_MISMATCH'});
   assert.equal(f.data.get(SIDEBAR_TOOL_ENABLE_STORE)[tool.id],false);
   assert.equal(f.data.get(TOOL_REVOCATION_EPOCHS_STORE)[tool.id],'epoch-before');
   assert.deepEqual(f.rules,[{id:FOCUS_RULE_FIRST},{id:12}]);
