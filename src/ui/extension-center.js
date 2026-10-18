@@ -2,7 +2,7 @@ import {SIDEBAR_TOOL_STORE} from './sidebar-tools/package.js';
 import {requireCompleteInstalledSidebarTools,requirePendingToolCleanups,MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE,sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
-import {setInstalledPageProgramEnabled} from './installed-page-tools.js';
+import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
 import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
 import readingTocCatalog from '../reading-toc/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
@@ -192,7 +192,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         add('设置、权限与卸载…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
       if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
     }else if(row.kind==='page'){
-      if(row.stateKnown!==false)add(row.enabled?'停用自动运行':'启用自动运行',
+      if(row.stateKnown!==false)add(installedPageEnableAction(row.record.installed).label,
         event=>{void togglePage(row,event);},'toggle');
       add('更新 / 导入新版…',()=>{backIfNeeded();sidebarTools.openImport();},'update');
       add('卸载网页增强…',event=>{openDetail(key,'more');openUninstallReview(find(key),event);},'uninstall');
@@ -437,7 +437,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }
       }else if(row.installed&&!pendingReview){
         if(row.stateKnown!==false)
-          add(row.enabled?'停用自动运行':'启用自动运行','toggle',
+          add(installedPageEnableAction(row.record.installed).label,'toggle',
             event=>{void togglePage(row,event);});
         add('更新 / 导入新版…','update',()=>{backIfNeeded();sidebarTools.openImport();});
         add('卸载网页增强…','uninstall',event=>openUninstallReview(row,event));
@@ -498,7 +498,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       }
     }else if(row.installed){
       if(row.stateKnown!==false&&!pendingReview)
-        actions.append(detailButton(row.enabled?'停用自动运行':'启用自动运行',
+        actions.append(detailButton(installedPageEnableAction(row.record.installed).label,
           event=>togglePage(row,event),'toggle'));
       if(!pendingReview){
         actions.append(detailButton('更新 / 导入新版…',()=>{backIfNeeded();sidebarTools.openImport();},'update'));
@@ -618,6 +618,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(!samePageIdentity(find(row.key),pageIdentity(row))){
       message('网页增强状态已变化，请刷新后重试。','error');void refresh();return;
     }
+    const targetEnabled=installedPageEnableAction(row.record.installed).enabled;
     const inDetail=selectedKey===row.key;
     detailFocusAction=inDetail?'toggle':null;
     busy=true;pendingKey=row.key;draw();if(inDetail)renderDetail();
@@ -635,9 +636,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(operationError)
         message((operationError.code||'E_PAGE_INSTALLATION')+'：'+String(operationError.message||operationError),'error');
       else if(result===false||result==null||!readback||!pageStatusKnown||
-        current?.record?.manifestHash!==row.record.manifestHash||current.enabled!==!row.enabled)
+        current?.record?.manifestHash!==row.record.manifestHash||current.enabled!==targetEnabled)
         message('网页增强操作尚未由 Page Authority 读回确认；请刷新后检查注册状态。','error');
-      else if(current.enabled&&current.record.installed.nativeState!=='registered')
+      else if(targetEnabled&&(current.record.installed.nativeState!=='registered'||
+        current.record.installed.authorization?.status!=='active'))
         message('已确认启用设置，但 Chrome 原生注册状态仍待核对。','info');
       else message('已从 Page Authority 确认自动运行状态。','success');
     }finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();

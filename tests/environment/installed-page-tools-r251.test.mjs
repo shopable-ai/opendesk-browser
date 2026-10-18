@@ -136,6 +136,7 @@ test('R25.1 DOM double distinguishes disabled, suspended, registered and pending
     ['registered','已安装 · 自动运行'],['pending','注册待核对']])
     assert.ok(f.card(id).children[1].textContent.endsWith('\n'+label),id);
   assert.equal(f.action('disabled','toggle').textContent,'启用自动运行');
+  assert.equal(f.action('suspended','toggle').textContent,'恢复自动运行');
 });
 
 test('R25.1 DOM double restores toggle focus and per-program details state after reordered refresh',async t=>{
@@ -206,6 +207,38 @@ test('R25.1 DOM double enable checks granted origins and never requests a new pe
   assert.equal(f.status.dataset.state,'success');
   assert.equal(f.status.textContent,'已确认启用固定网页脚本；不会重新运行当前网页。');
   assert.equal(f.doc.activeElement,f.action('page-a','toggle'));
+});
+
+
+test('R5.6 suspended Page explicitly restores the same approved scope instead of disabling it',async t=>{
+  const suspended=row('revoked',{authorization:{status:'suspended',generation:7}});
+  const f=fixture(t,[suspended]);await f.ui.refresh();
+  const toggle=f.action('revoked','toggle');
+  assert.equal(toggle.textContent,'恢复自动运行');
+  toggle.clickDouble(false);assert.equal(f.writes().length,0);
+  f.setWriteHandler(async()=>{
+    suspended.installed.authorization.status='active';
+    return {enabled:true,nativeState:'registered'};
+  });
+  toggle.clickDouble();
+  await settle(()=>f.action('revoked','toggle')!==toggle);
+  assert.deepEqual(f.permissionChecks,[{origins:['https://example.com/*']}]);
+  assert.deepEqual(f.permissionRequests,[],'no implicit Chrome permission prompt');
+  assert.deepEqual(f.writes()[0].args,{
+    programId:'revoked',manifestHash:'a'.repeat(64),enabled:true,expectedGeneration:7
+  });
+  assert.equal(f.action('revoked','toggle').textContent,'停用自动运行');
+  assert.equal(f.status.dataset.state,'success');
+});
+
+test('R5.6 suspended Page with revoked Chrome access never mutates the Authority',async t=>{
+  const f=fixture(t,[row('revoked',{authorization:{status:'suspended',generation:7}})]);
+  await f.ui.refresh();f.setAllowed(false);
+  f.action('revoked','toggle').clickDouble();
+  await settle(()=>f.status.dataset.state==='error');
+  assert.equal(f.writes().length,0);assert.deepEqual(f.permissionRequests,[]);
+  assert.match(f.status.textContent,/E_PERMISSION/);
+  assert.equal(f.action('revoked','toggle').textContent,'恢复自动运行');
 });
 
 test('R25.1 DOM double denied enable has zero writes and preserves semantic error through refresh',async t=>{

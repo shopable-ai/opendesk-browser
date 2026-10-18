@@ -362,6 +362,35 @@ test('R33.3.4 extension menu arrows stay scoped and Tab restores focus',async t=
   assert.equal(f.doc.activeElement,more,'Focus returns to live trigger before native Tab');
 });
 
+
+test('R5.6 suspended Page offers direct restoration but cannot claim native success before readback',async t=>{
+  const f=fixture(t);f.programs[0].installed.authorization.status='suspended';
+  f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
+  f.button('page:reader','more').dispatch('click');
+  const restore=f.menuItem('恢复自动运行');
+  assert.ok(restore,'suspended installed Page must offer Restore, not Disable');
+  restore.dispatch('click');
+  await settle(()=>f.writes.length===1);
+  await settle(()=>f.button('page:reader','more')?.disabled===false);
+  assert.deepEqual(f.writes[0],{
+    programId:'reader',manifestHash:'a'.repeat(64),enabled:true,expectedGeneration:5
+  });
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'info',
+    'a still-blocked native registration must not be called a successful restore');
+  assert.match(f.nodes['extension-center-status'].textContent,/原生注册状态仍待核对/);
+});
+
+test('R5.6 suspended Page with missing Chrome permission cannot change the installed generation',async t=>{
+  const f=fixture(t);f.programs[0].installed.authorization.status='suspended';
+  await f.ui.refresh();f.setAllowed(false);
+  f.button('page:reader','more').dispatch('click');
+  const restore=f.menuItem('恢复自动运行');assert.ok(restore);
+  restore.dispatch('click');
+  await settle(()=>f.nodes['extension-center-status'].textContent.includes('E_PERMISSION'));
+  assert.equal(f.writes.length,0);
+  assert.equal(f.programs[0].installed.authorization.generation,5);
+});
+
 test('R4.7 missing Page grant forbids enable; unreadable app status never fabricates primary or toggle',async t=>{
   const f=fixture(t);await f.ui.refresh();
   // First turn Page off through its installed authority.
