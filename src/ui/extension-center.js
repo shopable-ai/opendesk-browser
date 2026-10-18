@@ -648,11 +648,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       TOOL_CLEANUP_STORE in changes||
       Object.keys(changes).some(key=>key.startsWith('opendesk.page'))))void refresh();
   };
+  const pageInstallationChanged=()=>{void refresh();};
+  doc.addEventListener('opendesk:page-installation-changed',pageInstallationChanged);
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readOfficial();void refresh();
   return {refresh,dispose(){disposed=true;sequence++;officialSequence++;closeRowMenu();rowMenu.remove();
+    doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);
     doc.removeEventListener('click',clickOutside);
     doc.removeEventListener('keydown',keyDown);doc.removeEventListener('scroll',onScroll,true);
     api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();}};

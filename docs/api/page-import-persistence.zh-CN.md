@@ -1,4 +1,20 @@
-# 普通 Page 静态 import 的保存合同
+# Page 安装包与开发源码的持久化合同
+
+## 扩展导入正式 Page 安装包
+
+普通安装路径是「扩展 → 导入 → 选择 `.opendesk-page.json` → 查看名称、身份、版本、网站范围和权限 → 确认安装」。安装完成后留在扩展流程；按已批准网站范围自动运行，无需到开发页预览、保存 Revision、验证源码或再次通用启用。用户主动停用的原安装不因重新导入而恢复。
+
+`opendesk.page-install.v1` 是可移植离线安装包，不是 `opendesk.program-draft.v1/v2` 的别名。包中固定 `programId`、`version`、`title`、`revision`、`entryFormat`、`sourceUtf8`、`sourceHash`、`pageRules`，以及前述字段规范化摘要 `packageHash`。只接受已闭合的顶层 `USER_SCRIPT / document_idle` 源码、固定 Page bundle 和内嵌子帧资源；不导入外部依赖锁、权限、验证回执、目标文档或安装授权。包摘要证明字节完整性，不代表发布者签名或网站功能已验收。
+
+`scripts/build-page-install-package.mjs` 从现有编译器生成并校验过的 Page 草稿中提取同一份源码，不重编译、不改源码字节。实际安装通过原 Host 的 `importPageInstallPackage`，复用 Candidate、固定 manifest、Verification、Available、Installed、安装 Authority 和 Chrome `userScripts` 注册机制。系统核验源码、资源、内置运行时及网站范围，并准备原注册描述符；本机生成的 `package-validated` 仅证明固定离线内容与注册材料校验，不冒充 `preview-evaluated` 的真实网站执行证据。Service Worker 不为安装校验执行用户源码。
+
+确认按钮复用原 Chrome 权限手势。安装仍核对 `expectedInstalledManifestHash`、`expectedGeneration`，升级沿既有固定 Revision 和权限范围规则执行。相同已安装 manifest 返回原安装和当前 Chrome 注册状态，保留 installationId、token、generation、enabled，不重新执行或创建身份；主动停用、撤权或缺失注册不会显示为可自动使用的成功。成功界面要求原安装授权 active、enabled、Chrome registered 的回执，详情可查看安装 ID 和 manifest 摘要。请求结果未知时先查询 `listPagePrograms`，不自动重放写操作。
+
+草稿 JSON 继续用于「开发」的源码导入与本地项目调试；扩展安装入口明确拒绝将草稿当安装包，不自动导航或覆盖编辑器。临时运行不等于持久安装。Sidebar 应用 `.opendesk-tool.json` 保持原独立沙箱安装流程。
+
+## 开发中的静态 import 保存
+
+以下描述作者源码与编译产物的持久化；依赖使用体验以现行[依赖使用场景合同](../framework/universal-dependency-runtime-usage-contract.zh-CN.md)为准，不增加安装用户的人工依赖审核步骤。
 
 Side Panel「开发」中的普通 Page 草稿可以保留静态 HTTPS import。作者使用 `async function main()` 和 `document`；下载准备、查看固定原文、明确批准后，扩展使用批准的缓存与固定编译器离线编译，在 USER_SCRIPT 世界执行。运行时不访问模块 CDN。
 

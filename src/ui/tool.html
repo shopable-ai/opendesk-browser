@@ -328,10 +328,10 @@
             <strong>导入扩展</strong>
             <button type="button" id="sidebar-tool-import-close" class="sidebar-tool-icon-action od-icon-button" title="取消导入" aria-label="取消导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button>
           </div>
-          <label for="sidebar-tool-file">选择应用包或网页增强草稿 JSON</label>
+          <label for="sidebar-tool-file">选择应用包或网页增强安装包 JSON</label>
           <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">
           <p id="sidebar-tool-file-error" class="sidebar-tool-file-error" role="alert" hidden></p>
-          <p class="sidebar-tool-import-hint">支持 .opendesk-tool.json 应用包或网页增强程序草稿 JSON。应用不会因选择文件而运行，安装后点击“打开”启动；网页增强草稿将进入「开发」，预览、保存、验证后安装。</p>
+          <p class="sidebar-tool-import-hint">支持 .opendesk-tool.json 应用包或 .opendesk-page.json 网页增强安装包。选择文件后查看身份、版本和权限，再确认安装。网页增强安装后在批准的网站自动运行。开发草稿请到「开发」导入。</p>
           <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>
             <div class="sidebar-tool-preview-heading">
               <strong id="sidebar-tool-preview-title"></strong>
@@ -348,6 +348,8 @@
               <p id="sidebar-tool-update-warning" class="sidebar-tool-update-warning" hidden></p>
             </div>
             <button type="button" id="sidebar-tool-install" class="od-button" disabled>确认安装</button>
+            <p id="page-install-import-status" role="status" aria-live="polite" hidden></p>
+            <details id="page-install-import-receipt" class="od-disclosure" hidden><summary>安装回执</summary><p id="page-install-import-receipt-text"></p></details>
           </div>
         </div>
         <section id="sidebar-tool-my-panel" aria-label="已安装工具列表">

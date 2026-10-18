@@ -4,9 +4,10 @@ import readingTocCatalog from '../reading-toc/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
 import {readingTocHostText} from './reading-toc-settings-localization.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
-import {createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
+import {createChromePermissionConsent,createToolPermissionConsent} from '../platform/chrome/permission-gate.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
-import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT,validateProgramDraft} from './program-source.js';
+import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
+import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
@@ -130,7 +131,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
   const actionReview=get('sidebar-tool-action-review'),actionSummary=get('sidebar-tool-action-summary');
   const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');
-  let pendingAction=null,pageImportReview=null;
+  let pendingAction=null,pendingPage=null;
+  const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
+  const pageInstallStatus=get('page-install-import-status');
+  const pageInstallReceipt=get('page-install-import-receipt');
+  const pageInstallReceiptText=get('page-install-import-receipt-text');
   const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');
   const tocLanguageRow=get('sidebar-tool-toc-language'),tocLanguageSelect=get('sidebar-tool-toc-language-select');
   const menuButton=get('sidebar-tool-context-menu');
@@ -394,7 +399,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
   function resetReview() {
-    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;
+    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;
+    pageInstallStatus.textContent='';pageInstallStatus.hidden=true;
+    delete pageInstallStatus.dataset.installationId;delete pageInstallStatus.dataset.manifestHash;
+    pageInstallReceipt.hidden=true;pageInstallReceipt.open=false;pageInstallReceiptText.textContent='';
     preview.hidden=true;updatePanel.hidden=true;installButton.disabled=true;
   }
   function setFileError(message='') {
@@ -403,7 +411,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function clearImport() {
     fileSelection++;resetReview();
-    if(pageImportReview!==null)cancelActionReview();
     fileInput.value='';setFileError();
   }
   function setImportOpen(open) {
@@ -2307,16 +2314,87 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }else{installButton.textContent='确认安装';installButton.disabled=false;}
     preview.hidden=false;
   }
-  async function receivePageDraft(draft,selection) {
+  async function reviewPagePackage(value,file,selection) {
+    const pkg=await validatePageInstallPackage(value);
     if(disposed||selection!==fileSelection)return;
-    busy=true;fileInput.disabled=true;importClose.disabled=true;
+    if(!foundationClient?.request||!pageConsent)throw new Error('网页增强安装服务未连接，请重新打开 OpenDesk。');
+    const [response,access]=await Promise.all([
+      foundationClient.request('listPagePrograms',{}),pageConsent.prepare({origins:pkg.pageRules.matches})
+    ]);
+    if(disposed||selection!==fileSelection)return;
+    if(!Array.isArray(response?.catalog)||!Array.isArray(response?.installed)||!access)
+      throw new Error('未能核对网页增强安装状态，请重新选择文件。');
+    const installed=response.installed.find(row=>row.programId===pkg.programId)||null;
+    pendingPage={pkg,installed};
+    previewTitle.textContent=pkg.title;
+    previewVersion.textContent='v'+pkg.version+' · r'+pkg.revision;
+    previewDescription.textContent='网页增强 · 安装后在批准的网站自动运行。';
+    previewCapabilities.textContent='读取和修改以下网站的网页内容：'+pkg.pageRules.matches.join('、')+
+      (pkg.pageRules.excludeMatches.length?'；排除：'+pkg.pageRules.excludeMatches.join('、'):'')+
+      '。仅在顶层网页运行，不获得侧栏或 Native 权限。';
+    previewFile.textContent='身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON');
+    if(installed){
+      previewDescription.textContent=installed.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash
+        ?'此版本已经安装；确认后核对原安装与注册状态。'
+        :'已安装 r'+installed.revision+'；确认后按原版本规则安装此固定版本。';
+      if(installed.enabled===false)previewDescription.textContent+=' 原安装已被主动停用，将保留停用状态。';
+    }
+    installButton.textContent=installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':'确认安装';
+    installButton.disabled=false;preview.hidden=false;
+  }
+  function showPageInstallReceipt(pkg,result) {
+    if(result?.programId!==pkg.programId||result.revision!==pkg.revision||result.sourceHash!==pkg.sourceHash||
+       !result.authorization?.installationId||result.nativeState!=='registered'||result.enabled!==true||
+       result.authorization.status!=='active'||result.error||
+       JSON.stringify(result.pageRules)!==JSON.stringify(pkg.pageRules))
+      throw Object.assign(new Error(result?.enabled===false?'原安装仍处于停用状态，可在扩展详情主动恢复。':
+        result?.error?.message||'安装尚未获得有效注册回执，请核对扩展详情。'),{code:'E_PAGE_INSTALL_PENDING'});
+    pageInstallStatus.dataset.state='installed';
+    pageInstallStatus.dataset.installationId=result.authorization.installationId;
+    pageInstallStatus.dataset.manifestHash=result.manifestHash;
+    pageInstallStatus.textContent='安装完成 · '+pkg.title+' v'+pkg.version+'（r'+pkg.revision+'）。打开或刷新批准的网站即可使用。';
+    pageInstallStatus.hidden=false;
+    pageInstallReceiptText.textContent='安装 ID：'+result.authorization.installationId+
+      '；注册：'+result.nativeState+'；固定清单 SHA-256：'+result.manifestHash;
+    pageInstallReceipt.hidden=false;
+    installButton.textContent='已安装';
+    doc.dispatchEvent(new doc.defaultView.Event('opendesk:page-installation-changed'));
+  }
+  async function installPagePackage(event) {
+    if(!pendingPage||busy||disposed||installButton.disabled)return;
+    const reviewed=pendingPage,selection=fileSelection,{pkg,installed}=reviewed;
+    // Request missing Chrome permissions synchronously from the real Install click.
+    const permission=pageConsent.confirm(event,{origins:pkg.pageRules.matches});
+    busy=true;installButton.disabled=true;fileInput.disabled=true;importClose.disabled=true;
+    pageInstallStatus.textContent='正在安装并核对注册状态…';pageInstallStatus.hidden=false;
+    pageInstallStatus.dataset.state='pending';
+    let installationRequested=false;
     try{
-      await taskWorkbench.receiveDraft(draft);
+      await permission;
       if(disposed||selection!==fileSelection)return;
-      setImportOpen(false);
-      notice('网页增强草稿已导入「开发」，请预览、保存、验证后安装。');
+      installationRequested=true;
+      const result=await foundationClient.request('importPageInstallPackage',{package:pkg,
+        expectedInstalledManifestHash:installed?.manifestHash??null,
+        expectedGeneration:installed?.authorization?.generation??null});
+      if(disposed||selection!==fileSelection)return;
+      showPageInstallReceipt(pkg,result);
     }catch(error){
-      if(!disposed&&selection===fileSelection)setFileError(String(error?.message||error));
+      if(disposed||selection!==fileSelection)return;
+      // A stored readback alone cannot prove that this request registered in Chrome.
+      // Query the original receipt, keep an explicit pending state, and never replay.
+      let readback='';
+      try{
+        if(!installationRequested)throw error;
+        const response=await foundationClient.request('listPagePrograms',{});
+        if(disposed||selection!==fileSelection)return;
+        const result=response.installed?.find(row=>row.programId===pkg.programId);
+        if(result&&result.revision===pkg.revision&&result.sourceHash===pkg.sourceHash)
+          readback=' 已查询到原安装 r'+result.revision+'（'+result.nativeState+'）；仍需核对本次安装结果。';
+      }catch{/* Preserve the original failure; no mutation replay. */}
+      pageInstallStatus.dataset.state='pending-review';
+      pageInstallStatus.textContent=(error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
+        readback+' 请核对扩展中的安装状态；未自动重试安装。';
+      installButton.textContent='需要核对';
     }finally{
       busy=false;
       if(!disposed){fileInput.disabled=false;importClose.disabled=false;}
@@ -2325,7 +2403,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   async function chooseFile() {
     if(disposed||busy)return;
     const selection=++fileSelection,file=fileInput.files?.[0];
-    if(pageImportReview!==null)cancelActionReview();
     // Preserve the browser's selected filename; clearing .value here lies to the user.
     resetReview();setFileError();notice('');
     if(!file)return;
@@ -2336,41 +2413,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const byteLength=new TextEncoder().encode(text).byteLength;
       if(byteLength>PROGRAM_DRAFT_INPUT_LIMIT)throw new Error('文件超过程序草稿包大小上限');
       const parsed=JSON.parse(text);
+      if(parsed?.format===PAGE_INSTALL_FORMAT){
+        await reviewPagePackage(parsed,file,selection);return;
+      }
       if([PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format)){
-        if(parsed.runtimeKind==='controller')throw new Error('Controller 草稿请到「我的」导入任务文件，或在「开发」编辑。');
-        if(parsed.runtimeKind!=='page-userscript')throw new Error('未知程序运行环境，仅支持网页增强草稿。');
-        const draft=await validateProgramDraft(parsed);
-        if(disposed||selection!==fileSelection)return;
-        if(typeof taskWorkbench?.receiveDraft!=='function')throw new Error('开发编辑器不可用，请在侧栏「开发」导入草稿。');
-        const source=get('script-source')?.value||'',revision=get('script-revision')?.value||'';
-        const scriptId=get('script-id')?.value||'';
-        if(source.trim()&&(!revision||get('script-version')?.dataset.dirty==='true')){
-          requestActionReview({
-            message:'「开发」有未保存草稿。导入网页增强会替换当前编辑内容；可以取消并先保存。',
-            button:'替换草稿并导入',
-            cancel:()=>{pageImportReview=null;},
-            run:()=>{
-              pageImportReview=null;
-              if(disposed||selection!==fileSelection)return;
-              if(get('script-source')?.value!==source||(get('script-revision')?.value||'')!==revision||
-                 (get('script-id')?.value||'')!==scriptId){
-                setFileError('开发草稿已变化，请重新选择文件并核对。');return;
-              }
-              return receivePageDraft(draft,selection);
-            }
-          });
-          pageImportReview=selection;
-          return;
-        }
-        await receivePageDraft(draft,selection);
-        return;
+        throw new Error('这是开发草稿，不是网页增强安装包。编辑源码请到「开发」导入草稿；安装请选择 .opendesk-page.json 安装包。');
       }
       if(file.size>320000||byteLength>320000)throw new Error('工具包超过 320 KB');
       const candidate=validateSidebarToolPackage(parsed);
       await reviewCandidate(candidate,'文件：'+(file.name||'本地 JSON'),null,selection);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
-      setFileError(error instanceof SyntaxError?'文件不是有效的工具包 JSON 或网页增强草稿 JSON':String(error?.message||error));
+      setFileError(error instanceof SyntaxError?'文件不是有效的扩展安装包 JSON':String(error?.message||error));
     }
   }
   async function install() {
@@ -2537,7 +2591,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   listen(fileInput,'change',()=>chooseFile().catch(error=>setFileError(String(error?.message||error))));
   listen(fileInput,'cancel',()=>{if(!busy)clearImport();});
-  listen(installButton,'click',action(install));
+  listen(installButton,'click',event=>{
+    if(pendingPage){void installPagePackage(event);return;}
+    void action(install)();
+  });
   listen(backButton,'click',()=>{
     if(busy)return;
     if(tocSettingsOpen){closePromptSettings();settingsButton.focus?.({preventScroll:true});return;}
@@ -2833,7 +2890,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   render();
   return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
-    cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;
+    cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     adblockControls?.dispose?.();
     for(const release of listeners.splice(0))release();
     queued.clear();

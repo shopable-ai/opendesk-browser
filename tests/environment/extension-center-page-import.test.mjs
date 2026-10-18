@@ -7,7 +7,7 @@ import {createExtensionCenter} from '../../src/ui/extension-center.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from '../../src/ui/program-source.js';
 import {createPageBundle} from '../../src/scripting/user-scripts/page-bundle.js';
-import {digestUtf8} from '../../src/platform/protocol.js';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function settle(check){
@@ -38,9 +38,9 @@ async function pageDraft({v2=false}={}){
     authoring:{files:[file],...(v2?{remoteLock}:{})}};
 }
 
-async function fixture(t,{receiveDraft}={}){
+async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
   const {document:doc,window}=parseHTML(await readFile(new URL('../../src/ui/tool.html',import.meta.url),'utf8'));
-  const get=id=>doc.getElementById(id),store=new Map(),writes=[],received=[];
+  const get=id=>doc.getElementById(id),store=new Map(),writes=[],received=[],requests=[];
   const oldWindow=globalThis.window,oldFetch=globalThis.fetch;
   const offline=async()=>{throw new Error('Offline DOM fixture');};
   let host,center;
@@ -56,7 +56,7 @@ async function fixture(t,{receiveDraft}={}){
   const lockManager={request(name,work){
     const next=(queues.get(name)||Promise.resolve()).catch(()=>{}).then(work);queues.set(name,next);return next;
   }};
-  const api={runtime:{getURL:path=>'chrome-extension://test/'+path},storage:{
+  const api={permissions:{contains:async()=>true,request:async()=>{assert.fail('existing permissions must not prompt');}},runtime:{getURL:path=>'chrome-extension://test/'+path},storage:{
     onChanged:{addListener:fn=>changed.add(fn),removeListener:fn=>changed.delete(fn)},
     session:{async get(){return {};},async remove(){}},
     local:{async get(keys){
@@ -77,12 +77,19 @@ async function fixture(t,{receiveDraft}={}){
     get('script-source').value=draft.sourceUtf8;
     doc.documentElement.dataset.opendeskTab='develop';
   }};
-  host=createSidebarTools({api,doc,taskWorkbench,lockManager,fetcher:offline});
+  const client={async request(operation,payload){
+    requests.push({operation,payload});
+    if(requestPage){const result=await requestPage(operation,payload);if(result!==undefined)return result;}
+    if(operation==='listPagePrograms')return {catalog:[],installed};
+    assert.fail('unexpected '+operation);
+  }};
+  host=createSidebarTools({api,doc,taskWorkbench,foundationClient:client,lockManager,fetcher:offline});
   await host.ready;host.setVisible(true);
   center=createExtensionCenter({api,doc,sidebarTools:host,taskWorkbench,
-    client:{async request(operation){assert.equal(operation,'listPagePrograms');return {programs:[]};}}});
+    client});
   await center.refresh();await tick();writes.length=0;
-  const event=(id,type)=>get(id).dispatchEvent(new window.Event(type,{bubbles:true}));
+  const event=(id,type,{trusted=false}={})=>{const e=new window.Event(type,{bubbles:true});
+    Object.defineProperty(e,'isTrusted',{value:trusted});return get(id).dispatchEvent(e);};
   event('extension-center-more','click');event('extension-center-import','click');
   assert.equal(get('sidebar-tool-import').hidden,false);
   function select(value,{name='draft.json',size,text}={}){
@@ -91,7 +98,7 @@ async function fixture(t,{receiveDraft}={}){
     Object.defineProperty(get('sidebar-tool-file'),'files',{configurable:true,value:[file]});
     event('sidebar-tool-file','change');return file;
   }
-  return {doc,get,event,select,host,store,writes,received};
+  return {doc,get,event,select,host,store,writes,received,requests};
 }
 function unchanged(f){
   assert.equal(f.received.length,0);assert.equal(f.writes.length,0);
@@ -100,15 +107,90 @@ function unchanged(f){
   assert.equal(f.get('sidebar-tool-frame').childElementCount,0);
 }
 
-for(const v2 of [false,true])test(`extension center imports verified Page v${v2?2:1} through the developer handoff`,async t=>{
+for(const v2 of [false,true])test(`extension center distinguishes developer Page v${v2?2:1} from an installation package`,async t=>{
   const draft=await pageDraft({v2}),f=await fixture(t);
-  if(v2)assert.ok(Buffer.byteLength(JSON.stringify(draft))>320000,'Page uses its own input budget');
-  f.select(draft);await settle(()=>f.received.length===1&&f.get('sidebar-tool-import').hidden);
-  assert.deepEqual(f.received[0],draft);assert.ok(Object.isFrozen(f.received[0]));
-  assert.equal(f.doc.documentElement.dataset.opendeskTab,'develop');
-  assert.equal(f.get('script-source').value,draft.sourceUtf8);
-  assert.equal(f.get('sidebar-tool-preview').hidden,true);assert.equal(f.writes.length,0);
-  assert.equal(f.get('sidebar-tool-frame').childElementCount,0);
+  f.doc.documentElement.dataset.opendeskTab='tools';
+  f.select(draft);await settle(()=>!f.get('sidebar-tool-file-error').hidden);
+  assert.match(f.get('sidebar-tool-file-error').textContent,/开发草稿.*不是网页增强安装包/);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchanged(f);
+});
+
+async function installPackage(){
+  const sourceUtf8='async function main(){document.title="Installed Page";}';
+  const pkg={format:'opendesk.page-install.v1',programId:'local.page',title:'本地网页增强',version:'1.0.0',revision:1,
+    entryFormat:'async-main',sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),
+    pageRules:{matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  return {...pkg,packageHash:await digest(pkg)};
+}
+function receipt(pkg,overrides={}){return {programId:pkg.programId,revision:pkg.revision,sourceHash:pkg.sourceHash,
+  manifestHash:'a'.repeat(64),pageRules:pkg.pageRules,enabled:true,nativeState:'registered',error:null,
+  authorization:{installationId:'existing-installation',generation:3,status:'active'},...overrides};}
+
+test('Page install reviews permissions and calls the existing Authority only after a trusted confirmation',async t=>{
+  const pkg=await installPackage();let calls=0;
+  const f=await fixture(t,{requestPage(operation,payload){if(operation==='importPageInstallPackage'){
+    calls++;assert.deepEqual(payload,{package:pkg,expectedInstalledManifestHash:null,expectedGeneration:null});
+    return receipt(pkg);
+  }}});
+  f.doc.documentElement.dataset.opendeskTab='tools';f.select(pkg,{name:'local.opendesk-page.json'});
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(calls,0);unchangedAuthoring(f);
+  assert.match(f.get('sidebar-tool-preview-capabilities').textContent,/读取和修改.*https:\/\/example.com\/\*/);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').dataset.state==='installed');
+  assert.equal(calls,1);assert.equal(f.get('sidebar-tool-import').hidden,false);
+  assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchangedAuthoring(f);
+  assert.match(f.get('page-install-import-status').textContent,/安装完成.*打开或刷新/);
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+});
+function unchangedAuthoring(f){assert.equal(f.received.length,0);assert.equal(f.writes.length,0);
+  assert.equal(f.get('script-source').value,'');assert.equal(f.get('sidebar-tool-frame').childElementCount,0);}
+
+test('same identity review carries the existing installation CAS and keeps the original receipt',async t=>{
+  const pkg=await installPackage(),original=receipt(pkg);
+  const f=await fixture(t,{installed:[original],requestPage(operation,payload){if(operation==='importPageInstallPackage'){
+    assert.equal(payload.expectedInstalledManifestHash,original.manifestHash);
+    assert.equal(payload.expectedGeneration,3);return original;
+  }}});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.match(f.get('sidebar-tool-preview-description').textContent,/已经安装/);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').dataset.state==='installed');
+  assert.equal(f.get('page-install-import-status').dataset.installationId,'existing-installation');
+});
+
+for(const recover of [true,false])test(`lost Page install response is queried once without replay (recovered=${recover})`,async t=>{
+  const pkg=await installPackage();let sent=0;
+  const f=await fixture(t,{requestPage(operation){
+    if(operation==='importPageInstallPackage'){sent++;throw new Error('response lost');}
+    if(sent&&operation==='listPagePrograms')return {catalog:[],installed:recover?[receipt(pkg)]:[]};
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
+  if(recover)assert.match(f.get('page-install-import-status').textContent,/已查询到原安装/);
+  assert.equal(sent,1);assert.equal(f.get('sidebar-tool-install').disabled,true);unchangedAuthoring(f);
+});
+
+for(const alreadyInstalled of [false,true])test(`untrusted click cannot install or claim success (alreadyInstalled=${alreadyInstalled})`,async t=>{
+  const pkg=await installPackage(),f=await fixture(t,{installed:alreadyInstalled?[receipt(pkg)]:[]});f.select(pkg);
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  const readsBeforeClick=f.requests.filter(r=>r.operation==='listPagePrograms').length;
+  f.event('sidebar-tool-install','click');
+  await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
+  assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,0);
+  assert.equal(f.requests.filter(r=>r.operation==='listPagePrograms').length,readsBeforeClick);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+});
+
+test('disabled existing installation cannot be presented as automatic-use success',async t=>{
+  const pkg=await installPackage(),disabled=receipt(pkg,{enabled:false,nativeState:'disabled'});
+  const f=await fixture(t,{installed:[disabled],requestPage(operation){if(operation==='importPageInstallPackage')return disabled;}});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
+  assert.match(f.get('page-install-import-status').textContent,/原安装仍处于停用状态/);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
 });
 
 for(const format of [SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2])test(`${format} retains review and explicit installation without execution`,async t=>{
@@ -128,13 +210,13 @@ for(const format of [SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2])test(`${format}
 test('malformed JSON, wrong kinds, hashes and budgets never reach either importer',async t=>{
   const draft=await pageDraft();
   const cases=[
-    ['bad JSON','{invalid',{},/有效的工具包 JSON/],
+    ['bad JSON','{invalid',{},/有效的扩展安装包 JSON/],
     ['unknown format',{...draft,format:'unknown'}, {},/工具/],
-    ['unknown runtime',{...draft,runtimeKind:'main-world'}, {},/未知程序运行环境/],
-    ['Controller',{...draft,runtimeKind:'controller'}, {},/「我的」.*「开发」/],
-    ['bad build hash',{...draft,build:{...draft.build,sourceHash:'0'.repeat(64)}}, {},/SHA-256/],
-    ['bad source hash',{...draft,authoring:{files:[{...draft.authoring.files[0],sha256:'0'.repeat(64)}]}}, {},/SHA-256/],
-    ['unknown field',{...draft,extra:true}, {},/字段/],
+    ['unknown runtime',{...draft,runtimeKind:'main-world'}, {},/开发草稿/],
+    ['Controller',{...draft,runtimeKind:'controller'}, {},/开发草稿/],
+    ['bad build hash',{...draft,build:{...draft.build,sourceHash:'0'.repeat(64)}}, {},/开发草稿/],
+    ['bad source hash',{...draft,authoring:{files:[{...draft.authoring.files[0],sha256:'0'.repeat(64)}]}}, {},/开发草稿/],
+    ['unknown field',{...draft,extra:true}, {},/开发草稿/],
     ['oversize app',app,{size:320001},/320 KB/],
     ['oversize Page',draft,{size:PROGRAM_DRAFT_INPUT_LIMIT+1,text:()=>{assert.fail('oversize file must not be read');}},/大小上限/],
     ['oversize UTF-8 app',{...app,html:'中'.repeat(110000)}, {},/320 KB/],
@@ -175,51 +257,8 @@ test('cancellation during asynchronous Page hash validation prevents the handoff
   f.event('sidebar-tool-import-close','click');await tick();await tick();unchanged(f);
 });
 
-test('unsaved developer content reuses the action review and imports only on confirmation',async t=>{
-  const draft=await pageDraft(),f=await fixture(t),source=f.get('script-source');
-  source.value='document.title="Unsaved";';
-  f.select(draft);await settle(()=>!f.get('sidebar-tool-action-review').hidden);
-  unchanged(f);assert.equal(source.value,'document.title="Unsaved";');
-  f.event('sidebar-tool-action-cancel','click');assert.equal(source.value,'document.title="Unsaved";');
-  f.select(draft);await settle(()=>!f.get('sidebar-tool-action-review').hidden);
-  f.event('sidebar-tool-action-continue','click');await settle(()=>f.received.length===1);
-  assert.equal(source.value,draft.sourceUtf8);assert.equal(f.writes.length,0);
-});
 
-test('saved but edited revisions are protected and changed review snapshots cannot overwrite them',async t=>{
-  const draft=await pageDraft(),f=await fixture(t),source=f.get('script-source');
-  source.value='unsaved revision';f.get('script-revision').value='2';f.get('script-version').dataset.dirty='true';
-  f.select(draft);await settle(()=>!f.get('sidebar-tool-action-review').hidden);
-  source.value='newer edit';f.event('sidebar-tool-action-continue','click');
-  await settle(()=>!f.get('sidebar-tool-file-error').hidden);
-  assert.match(f.get('sidebar-tool-file-error').textContent,/草稿已变化/);
-  assert.equal(source.value,'newer edit');unchanged(f);
-});
-
-test('closing import or selecting an App invalidates a pending developer overwrite review',async t=>{
-  const draft=await pageDraft(),f=await fixture(t);f.get('script-source').value='unsaved';
-  f.select(draft);await settle(()=>!f.get('sidebar-tool-action-review').hidden);
-  f.event('sidebar-tool-import-close','click');f.event('sidebar-tool-action-continue','click');unchanged(f);
-  f.host.openImport();f.select(draft);await settle(()=>!f.get('sidebar-tool-action-review').hidden);
-  f.select(app);await settle(()=>!f.get('sidebar-tool-preview').hidden);
-  f.event('sidebar-tool-action-continue','click');assert.equal(f.received.length,0);assert.equal(f.writes.length,0);
-});
-
-test('developer handoff failure preserves the import UI and reports the existing editor error',async t=>{
-  const f=await fixture(t,{receiveDraft(){throw new Error('请先停止当前受管组件');}});
-  f.select(await pageDraft());await settle(()=>!f.get('sidebar-tool-file-error').hidden);
-  assert.match(f.get('sidebar-tool-file-error').textContent,/请先停止/);
-  assert.equal(f.get('sidebar-tool-import').hidden,false);assert.equal(f.get('sidebar-tool-file').disabled,false);
-  assert.equal(f.writes.length,0);assert.equal(f.get('script-source').value,'');
-});
-
-test('the existing developer handoff completes once while further file changes are locked',async t=>{
-  const gate=deferred(),draft=await pageDraft(),f=await fixture(t,{receiveDraft:()=>gate.promise});
-  f.select(draft);await settle(()=>f.received.length===1);
-  assert.equal(f.get('sidebar-tool-file').disabled,true);
-  assert.equal(f.get('sidebar-tool-import-close').disabled,true);
-  f.select(app);assert.equal(f.get('sidebar-tool-preview').hidden,true);
-  gate.resolve();await settle(()=>f.get('sidebar-tool-import').hidden);
-  assert.equal(f.get('script-source').value,draft.sourceUtf8);
-  assert.equal(f.get('sidebar-tool-file').disabled,false);assert.equal(f.writes.length,0);
+test('broken installation package never reaches review or either importer',async t=>{
+  const pkg=await installPackage(),f=await fixture(t);f.select({...pkg,sourceHash:'0'.repeat(64)});
+  await settle(()=>!f.get('sidebar-tool-file-error').hidden);unchanged(f);
 });

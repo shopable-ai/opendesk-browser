@@ -1,0 +1,199 @@
+{
+  "schema": "opendesk.chatgpt-mindmap.evidence.v1",
+  "recordedAt": "2026-10-18T12:09:59.367540+00:00",
+  "status": "PASS",
+  "scope": "本机持续开发环境：扩展导入正式 Page 包、审阅、确认并读取同身份 r1 的有效安装/注册回执；无项目 Provider 的 ChatGPT 自动运行、绘图、完整正文恢复及重开。不是全新安装、公开发布或 production 最终验收。",
+  "correction": {
+    "originalEvidence": "mac-opendesk-basic-20261018.json",
+    "originalEvidenceSha256": "023768bdb7d5baf610066bc3d5a01bf5f467a94d3ce285a5a4fd5666093f31a1",
+    "originalRetainedUnmodified": true,
+    "previouslyProven": [
+      "扩展读取开发草稿并跳转开发编辑器",
+      "既有同源码 r1 自动注入及绘图",
+      "本地项目临时运行"
+    ],
+    "previouslyNotProven": "从扩展导入正式 Page 安装包并完成安装；旧草稿导入成功不能作为该链路的成功证据"
+  },
+  "candidate": {
+    "baseHead": "d65aa2b9696b6389031d2c263b5b341e5efa8d64",
+    "branch": "main",
+    "developmentRevision": "6febc487ff1e53c3560bab4a87f74d69224669435be5dafc85eae0a0662ba72a",
+    "nativeWorkingTreeFilesSha256": {
+      "src/ui/sidebar-tools.js": "be0c17813d8136943d1249589fdfad9d75d0210a5c13f9e289c470241276776b",
+      "src/ui/extension-center.js": "dac732590c7f18ed35bd99014af5115b189a35207ec94af00f61947846e0825e",
+      "src/ui/tool.html": "7501bd8da92e6498d185a683ce5bf164c13ebe14eadb056be3d4d0bc2252d984",
+      "src/platform/host/broker.js": "f4a657e01d16a31d60371f09a2d9de17a2f3dfb4659f420baf5d11e9ecd2a7b4",
+      "src/scripting/user-scripts/installed-programs.js": "545d9294a1f6938a65240b28568fe1fd21e977a04c9ea3e9479f79e1e80b63a9",
+      "src/scripting/user-scripts/page-install-package.js": "ba5c800b9329eabc5ad192ef9f78eb69bdc43bde3b65bd142cef91266cff872f"
+    },
+    "stagedFilesSha256": {
+      "src/ui/sidebar-tools.js": "be0c17813d8136943d1249589fdfad9d75d0210a5c13f9e289c470241276776b",
+      "src/ui/extension-center.js": "dac732590c7f18ed35bd99014af5115b189a35207ec94af00f61947846e0825e",
+      "src/ui/tool.html": "7501bd8da92e6498d185a683ce5bf164c13ebe14eadb056be3d4d0bc2252d984",
+      "src/platform/host/broker.js": "f4a657e01d16a31d60371f09a2d9de17a2f3dfb4659f420baf5d11e9ecd2a7b4",
+      "src/scripting/user-scripts/installed-programs.js": "c1b25fdf2e9d69b3faf34694f438b2fc6a07a2dc2cbd7a27e67afd5b662b786b",
+      "src/scripting/user-scripts/page-install-package.js": "ba5c800b9329eabc5ad192ef9f78eb69bdc43bde3b65bd142cef91266cff872f"
+    },
+    "parallelDiffExcluded": "任务开始前已有 listPagePrograms 只读状态投影保留于工作目录，未暂存。本次幂等安装独立查询 Chrome 注册；暂存版本核心测试单独通过，不依赖该并行差异。",
+    "integratedRemoteHead": "f7bf79aba4e1810d64716f486e394855ddc718a6"
+  },
+  "environment": {
+    "browser": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "持续开发",
+    "developmentService": "已连接，原 npm run dev watcher 继续运行",
+    "projectCliProviderRunning": false,
+    "nativeConnected": true,
+    "doctorExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "nativeAllowedOrigins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ],
+    "standalone021": {
+      "id": "pglaaaiaaladflhlnbkpgffbhdehfkbm",
+      "version": "0.2.1",
+      "enabled": false
+    },
+    "standalone020": {
+      "id": "kagejdafejipmdciobcmapdobmiohopf",
+      "listed": false
+    },
+    "chatgptMessagesSent": 0
+  },
+  "package": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-mindmap-page-install-20261018/chatgpt-mindmap.opendesk-page.json",
+    "format": "opendesk.page-install.v1",
+    "programId": "opendesk.chatgpt-mindmap",
+    "version": "0.2.0",
+    "revision": 1,
+    "entryFormat": "async-main",
+    "sourceHash": "226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e",
+    "packageHash": "ff87c392faebb50eb234c9382b55e0e7989b57036a5f8d9bdaa7eebec003e6a8",
+    "fileSha256": "efdefb65b0b5dab15a687fec9fa4f7fe35301af9edebbb9827d43bbad7787ce8",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  },
+  "nativeInstallation": {
+    "status": "PASS",
+    "path": "扩展 → 筛选和管理扩展 → 导入本地工具包 → 选择正式 Page JSON → 审阅 → 确认安装并核对 → 安装完成 → 展开安装回执",
+    "stayedInExtension": true,
+    "developerNavigation": false,
+    "manualPreviewOrRevisionSaveRequired": false,
+    "receipt": {
+      "installationId": "1155ce2d-5ebb-47ee-a66f-2a6849f56761",
+      "nativeState": "registered",
+      "manifestHash": "bfbaaff1d23340c7f4b1fdbff3ffe8e0d567e8da99dcd76a5a5a7a9da41d664f"
+    },
+    "visibleSuccess": "安装完成 · ChatGPT 思维导图 v0.2.0（r1）。打开或刷新批准的网站即可使用。",
+    "existingR1Reused": true,
+    "newIdentityOrUpgradeCreated": false,
+    "priorInstallationUuidWasNotExposed": true,
+    "note": "真实 Chrome 验证正常导入及原 r1 幂等回执；全新安装和升级只做 Node 定向验证，未通过删装或无意义升级制造原生证据。",
+    "finalSourceReadbackRechecked": true,
+    "finalReadbackSameInstallationId": true,
+    "finalReadbackSameManifestHash": true
+  },
+  "nativeUse": {
+    "status": "PASS",
+    "automaticButtonAfterRefresh": true,
+    "realXmindRendered": true,
+    "toolbarRestore": true,
+    "reopenedAfterClose": true,
+    "secondToggleRestore": true,
+    "bodyComparison": {
+      "status": "PASS",
+      "normalization": "AX 文本/标题节点去除动态数字 ID；排除已关闭安装侧栏的14个残留节点；不修改正文",
+      "textNodes": 1022,
+      "textLength": 34956,
+      "textSha256": "7406c70c271091bc1844e55faa37cea40623c6be7558fa063030018f77a14514",
+      "toolbarRestoreEqual": true,
+      "toggleRestoreEqual": true,
+      "excludedInstallPanelNodes": 14
+    },
+    "sameSourceHistoricalEvidence": "mac-opendesk-basic-20261018.json"
+  },
+  "verification": {
+    "node": {
+      "status": "PASS",
+      "tests": 121,
+      "passed": 121,
+      "failed": 0,
+      "files": [
+        "tests/environment/extension-center-page-import.test.mjs",
+        "tests/environment/page-install-package.test.mjs",
+        "tests/environment/page-installed-programs.test.mjs",
+        "tests/environment/extension-center-r47-interaction.test.mjs",
+        "tests/environment/sidebar-component-contract.test.mjs"
+      ],
+      "rawLog": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-mindmap-page-install-20261018/targeted-tests-final.log"
+    },
+    "syntax": "PASS",
+    "diffCheck": "PASS",
+    "freshNativeInstall": "NOT_TESTED",
+    "nativeUpgrade": "NOT_TESTED",
+    "nativeFullyDisconnected": "NOT_TESTED",
+    "productionCandidate": "NOT_TESTED",
+    "publicRedistribution": "BLOCKED_BY_EXISTING_LICENSE_REVIEW",
+    "stagedCore": {
+      "status": "PASS",
+      "tests": 41,
+      "passed": 41,
+      "failed": 0,
+      "files": [
+        "tests/environment/page-install-package.test.mjs",
+        "tests/environment/extension-center-page-import.test.mjs"
+      ],
+      "note": "installed-programs.js 由 Git 索引加载，排除他人未暂存 listPagePrograms 改动。",
+      "rawLog": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-mindmap-page-install-20261018/staged-core-tests.log"
+    }
+  },
+  "privateArtifacts": {
+    "directory": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/chatgpt-mindmap-page-install-20261018",
+    "committed": false,
+    "files": [
+      "before-body.ax.txt",
+      "restored-body.ax.txt",
+      "restored-again.ax.txt",
+      "xmind-open.png",
+      "xmind-reopen.png",
+      "doctor.json",
+      "body-comparison.json",
+      "targeted-tests-final.log",
+      "install-receipt-final.ax.txt",
+      "install-complete.png",
+      "development-final.ax.txt",
+      "staged-core-tests.log"
+    ],
+    "sha256": {
+      "before-body.ax.txt": "3145c086ecd670d4a49feb7250fdf515491e6599c06499c14e2f5fabdd4918c2",
+      "restored-body.ax.txt": "f88efaab0124ba8bdf051e11c1877d1315074e2a6f2ed332e1fcfe7ae4e9abef",
+      "restored-again.ax.txt": "3e9ce9d82b600f876e04350d44eaafe3e26f901b1218b2343a6d780005d45201",
+      "xmind-open.png": "f3a6adb30660cad2adefe6f73664b839794b99249f25e1f7b51c41c107463a84",
+      "xmind-reopen.png": "7a56e8c4f121b38d237a5a75690a2ace4578bc3c1f51dbe7b7a2a25bcaa9ad28",
+      "doctor.json": "afbb7f1d0b9cdfba12ef155a89698fe8e6c16d0d011a77e97d2a95c5f94de6a7",
+      "body-comparison.json": "170a89b021e8639d3f675a1a40d0ed647ca66cbfc1df0c68a9ac21abf746ffbb",
+      "targeted-tests-final.log": "98c7c823cd7b44d3940fa8c66af5b27326e4765530e7b657c421c39d4ecd97d0",
+      "install-receipt-final.ax.txt": "0f3d749b704cc9364a66f4901571a4d79e26cf2925db03156fe98d3b07c05f7f",
+      "install-complete.png": "1d4969fba817afb6f67f638445a65e6a0a63c3bd9d42e3da4e3c4e6df37695bb",
+      "development-final.ax.txt": "7df51110c4ceea4409b8d03f2808185527f955ba74b5a069b802db62398a5dd7",
+      "staged-core-tests.log": "bd2f241fa962925875a8e5ad596ecc2c3a796f601840977e78697738e99a5e5a"
+    }
+  },
+  "outOfScope": [
+    "导出",
+    "主题",
+    "全屏",
+    "缩放",
+    "尺寸专项",
+    "压力",
+    "对抗",
+    "独立 Chrome MV3 包装"
+  ]
+}

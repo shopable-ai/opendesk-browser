@@ -1,29 +1,41 @@
 # ChatGPT 思维导图 · OpenDesk 网页增强
 
-## 两种导入入口与日常使用（2026-10-18）
+## 安装与日常使用（2026-10-18 修正）
 
-**本项目属于 Page USER_SCRIPT 网页增强。** 日常 Chrome 已安装 `opendesk.chatgpt-mindmap`，版本 `0.2.0`、Revision `r1`。在 `https://chatgpt.com/*` 已有助手回复底部点击导图按钮即可显示真实 XMind；再次点击该按钮，或点击导图工具栏「返回完整原文」，恢复完整正文，之后可以重新打开。已安装版本自动按原批准范围运行，无需每次进入「开发」点击 Run。
+**本项目是 Page USER_SCRIPT 网页增强。** 正式 Page 安装包的格式为 `opendesk.page-install.v1`，本机文件为 `artifacts/chatgpt-mindmap-page-install-20261018/chatgpt-mindmap.opendesk-page.json`。在 OpenDesk「扩展 → 导入」选择它，查看名称、身份 `opendesk.chatgpt-mindmap`、版本 `0.2.0 / r1`、网站 `https://chatgpt.com/*` 及读取和修改网页的权限，然后确认安装。只有返回有效安装授权和 Chrome 注册回执才显示安装完成；无需进入「开发」，也无需安装后再次通用启用。用户主动停用的版本仍保持停用。
 
-| 入口 | 文件或项目与必要步骤 | 本轮实际结果 |
+安装完成后，打开或刷新 ChatGPT，在已有助手回复底部点击导图按钮显示真实 XMind。再次点击导图按钮，或点击「返回完整原文」，恢复完整正文；关闭后可以重新打开。**日常只需 Chrome、原 OpenDesk 扩展和 ChatGPT，无需本项目 CLI、Provider、VS Code 或到开发页 Run。** 本机当前使用仓库原 `dist/development` 和已有 `npm run dev` watcher；持续开发连接属于本机开发环境，不是 Page 安装包的一部分。
+
+| 用途 | 文件 / 入口 | 持久安装 |
 | --- | --- | --- |
-| 扩展 → 筛选和管理扩展（⋯）→ 导入本地工具包 | 选择 `program.opendesk-draft.json`，格式为 `opendesk.program-draft.v1/v2`、`runtimeKind: page-userscript`。导入提示已说明同时支持网页增强草稿；之后转到现有「开发」流程，按预览、保存固定版本、验证、安装网页增强完成安装审阅；如有未保存草稿先确认替换。 | 真实系统 Chrome 已导入当前约 4.5 MB JSON，并进入 Page 草稿编辑器。安装成功证据复用同源码、同身份 r1，未重复创建安装或升级。 |
-| 开发 → 本地项目 | 在项目目录接入 Provider，开启「使用本地项目」，选择 `chatgpt-mindmap · 页面脚本`，以 ChatGPT 为目标点击「运行本地项目」。成功后可经原「安装网页增强」审阅流程持久安装。 | 已实际运行，显示真实导图、恢复完整正文、重新打开均通过；本次运行本身属于临时预览，结束后已停止，不等于另一次安装。 |
+| 普通安装 | `.opendesk-page.json`，从「扩展 → 导入」审阅并确认 | 复用原 Page Authority，按批准网站自动运行 |
+| 源码编辑 | `opendesk.program-draft.v1/v2`，在「开发」导入 | 导入草稿不安装；可通过明确安装动作进入原机制 |
+| 本地调试 | 「开发 → 本地项目」，连接项目 Provider 后运行 | 临时预览，不自动等于持久安装 |
 
-可导入文件位于本机忽略目录 `artifacts/chatgpt-mindmap-real-page-20261018/install-current/program.opendesk-draft.json`。`artifact.json` 是构建回执；`program.js` 不是该 JSON 导入文件；`.opendesk-tool.json` 属于 Sidebar 应用，不适用于本项目。重新生成草稿包使用项目既有构建器，具体参数见下文。
+`program.opendesk-draft.json` 是开发草稿，`artifact.json` 是构建回执，`program.js` 是源码；三者都不是供扩展直接安装的 Page 包。`.opendesk-tool.json` 属于 Sidebar 应用，不适用于本项目。安装包不包含 Provider 或 Native 授权。
+
+从已验证的同一份编译草稿生成离线安装包：
+
+```sh
+node scripts/build-page-install-package.mjs \
+  --input artifacts/chatgpt-mindmap-real-page-20261018/install-current/program.opendesk-draft.json \
+  --out artifacts/chatgpt-mindmap-page-install-20261018/chatgpt-mindmap.opendesk-page.json \
+  --revision 1 --title 'ChatGPT 思维导图'
+```
+
+本机包保持原 r1 源码 SHA-256 `226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e`，不重新生成身份或制造升级；范围仍为 ChatGPT 顶层 `USER_SCRIPT / document_idle`。资源仅用于本机验证，生产再分发许可限制见下方历史记录，不把本机可安装等同于公开发布。
+
+本地项目预览需要已配对 Native 和该项目 CLI Provider：
 
 ```sh
 opendesk browser dev --read-only /Users/shopme/Documents/workspace/opendesk-browser/examples/programs/chatgpt-mindmap
 ```
 
-本地预览需要 Chrome、OpenDesk Developer、已配对 Native 与该 CLI Provider 保持连接。**日常使用已安装版只需打开 Chrome、保持原 OpenDesk 启用并访问 ChatGPT；无需本项目 CLI、开发页或 VS Code。** 本轮退出 Provider 后继续验证自动注入；Native 后台仍连接，完全断开 Native 的场景未测试。
+### 上一轮证据结论更正
 
-本次保留日常扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载目录 `dist/development`，使用已连接的 `npm run dev`。思维导图源码与输入身份未变：
+原始 [`tests/mac-opendesk-basic-20261018.json`](tests/mac-opendesk-basic-20261018.json) 保持不变。它证明的是扩展读取开发草稿并跳转编辑器、既有 r1 自动注入，以及本地项目临时预览；**没有证明从扩展导入正式 Page 包并完成安装**。本节替代此前将草稿入口与安装体验混写的说明。原安装证据仍为 [`tests/mac-install-standalone-20261018.json`](tests/mac-install-standalone-20261018.json)。本轮新增安装链路和复用绘图证据的范围，分别记录于 [`tests/mac-page-package-install-20261018.json`](tests/mac-page-package-install-20261018.json)，不修改原始证据。
 
-- 源码 SHA-256：`226be2ccdc53a1990f3838e59766e69a06a98146bf0d41efebd05db50162e59e`
-- 构建输入 SHA-256：`dc6c6a39e906084c51090501ed25875a6807e1fdc9647cf143b1708bb7ab7556`
-- 安装范围：`https://chatgpt.com/*`、顶层 `USER_SCRIPT`、`document_idle`。
-
-证据见 [`tests/mac-opendesk-basic-20261018.json`](tests/mac-opendesk-basic-20261018.json)，原安装事实见 [`tests/mac-install-standalone-20261018.json`](tests/mac-install-standalone-20261018.json)。本轮不发送 ChatGPT 消息，不测试导出、主题、全屏、缩放或压力。开发更新期间的 `E_DEV_RELOADING` 原始记录单独保留，不混入稳定宿主下的通过结论。私人截图、正文及原日志仅留本机忽略目录。
+私人截图、回复正文和原日志只留本机忽略目录；不发送 ChatGPT 消息。本轮不测试导出、主题、全屏、缩放、尺寸、压力或对抗。Native 完全断开及 production 包不在本轮验证范围，标记 `NOT_TESTED`。
 
 ### 历史独立 MV3 记录（不属于当前交付入口）
 

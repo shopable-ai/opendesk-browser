@@ -1,3 +1,4 @@
+import {validatePageInstallPackage} from './page-install-package.js';
 import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platform/protocol.js';
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {preparePageProgramRegistration} from './page-program-package.js';
@@ -117,12 +118,34 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const proof=await read(tx=>tx.get(PAGE_STORE,key('verification',namespace,candidate.manifest.programId,candidate.manifest.revision)));
     invariant(proof?.tag==='page-verification-v1'&&['Verified','Available'].includes(proof.status)&&
       identityFields.every(k=>equal(proof[k],identity(candidate)[k]))&&
-      proof.receipt?.state==='preview-evaluated'&&proof.receipt.world==='USER_SCRIPT'&&
-      proof.receipt.sourceHash===candidate.manifest.sourceHash&&typeof proof.receipt.documentId==='string'&&
-      proof.receiptHash===await digest(proof.receipt),'E_PAGE_VERIFICATION','缺少此固定 Page 版本的真实验证回执');
+      ((proof.receipt?.state==='preview-evaluated'&&typeof proof.receipt.documentId==='string')||
+        (proof.receipt?.state==='package-validated'&&proof.receipt.manifestHash===candidate.manifestHash&&
+          /^[a-f0-9]{64}$/.test(proof.receipt.packageHash)))&&proof.receipt.world==='USER_SCRIPT'&&
+      proof.receipt.sourceHash===candidate.manifest.sourceHash&&
+      proof.receiptHash===await digest(proof.receipt),'E_PAGE_VERIFICATION','缺少此 Page 程序的固定版本校验回执');
     await verifiedEnvironment(candidate,proof.receipt);
     invariant(!available||proof.status==='Available','E_NOT_AVAILABLE','请先将验证版本设为本机可安装');
     return proof;
+  }
+  async function registration(candidate,resolution,proof){
+    const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
+      ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
+    const selected=pageSelectedPackagedLibraries(candidate.sourceUtf8);
+    const ids=selected.map(pageOptionalLibraryId).filter(Boolean);
+    const frameworkId=selected.find(id=>id==='react'||id==='vue');
+    const frameworkSource=frameworkId?await loadPackagedPageFramework(frameworkId,{runtime:api.runtime}):undefined;
+    const optionalSources=ids.length?await loadPackagedOptionalPageLibraries(ids,{runtime:api.runtime}):[];
+    for(let i=0;proof&&i<optionalSources.length;i++){
+      const asset=optionalSources[i],record=proof.receipt.packagedOptionals?.[i];
+      invariant(record?record.id===asset.id&&record.sha256===asset.sha256:
+        optionalSources.length===1&&proof.receipt.packagedOptionalId===asset.id&&
+          proof.receipt.packagedOptionalSha256===asset.sha256,'E_PAGE_ENVIRONMENT');
+    }
+    const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
+      dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSources,authority:{assertAvailable:async()=>({...identity(candidate),status:'Available',...proof,installationEnabled:true})}});
+    invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
+    invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
+    return {compiled,optionalSources,frameworkSource,jqueryCode};
   }
   async function descriptor(row,{legacy=false}={}){
     const {candidate,resolution}=await material(row.programId,row.revision),proof=await proofFor(candidate,{available:true});
@@ -131,23 +154,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       row.sourceHash===candidate.manifest.sourceHash&&equal(row.pageRules,candidate.manifest.pageRules)&&/^[a-f0-9]{32}$/.test(row.token),
       'E_PAGE_INSTALLATION','安装记录不属于此固定版本');
     if(!legacy)assertPageInstallAuthorization(row);
-    const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
-      ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
-    const selected=pageSelectedPackagedLibraries(candidate.sourceUtf8);
-    const ids=selected.map(pageOptionalLibraryId).filter(Boolean);
-    const frameworkId=selected.find(id=>id==='react'||id==='vue');
-    const frameworkSource=frameworkId?await loadPackagedPageFramework(frameworkId,{runtime:api.runtime}):undefined;
-    const optionalSources=ids.length?await loadPackagedOptionalPageLibraries(ids,{runtime:api.runtime}):[];
-    for(let i=0;i<optionalSources.length;i++){
-      const asset=optionalSources[i],record=proof.receipt.packagedOptionals?.[i];
-      invariant(record?record.id===asset.id&&record.sha256===asset.sha256:
-        optionalSources.length===1&&proof.receipt.packagedOptionalId===asset.id&&
-          proof.receipt.packagedOptionalSha256===asset.sha256,'E_PAGE_ENVIRONMENT');
-    }
-    const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
-      dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSources,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
-    invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
-    invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
+    const {compiled}=await registration(candidate,resolution,proof);
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);
     invariant(row.nativeId===nativeId,'E_PAGE_INSTALLATION','安装的原生注册身份已改变');
     const marker='__opendesk_page_boot_'+row.token;
@@ -156,6 +163,46 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       runAt:compiled.runAt,allFrames:false,world:'USER_SCRIPT',worldId:PAGE_BOOT_WORLD,
       js:[{code:'const '+marker+' = '+JSON.stringify(row.token)+';\n'+
         'chrome.runtime.sendMessage('+JSON.stringify(message)+').catch(error=>console.error("[OpenDesk Page bootstrap]",error));'}]}};
+  }
+  async function importPageInstallPackage(request,sender){
+    fields(request,['package','expectedInstalledManifestHash','expectedGeneration']);
+    request=structuredClone(request);
+    await scoped(sender,'readonly',()=>{});
+    const pkg=await validatePageInstallPackage(request.package);
+    const previous=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,pkg.programId)));
+    invariant((previous?.manifestHash??null)===request.expectedInstalledManifestHash&&
+      (previous?previous.authorization?.generation===request.expectedGeneration:request.expectedGeneration===null),
+      PAGE_REVISION_ERROR,'安装授权在确认期间改变；请刷新后核对');
+    const saved=await dependencies.importPageCandidate({programId:pkg.programId,revision:pkg.revision,
+      sourceUtf8:pkg.sourceUtf8,entryFormat:pkg.entryFormat,importSourceUrl:null,lockId:null,pageRules:pkg.pageRules},sender);
+    const {candidate,resolution}=await material(pkg.programId,pkg.revision);
+    invariant(saved.manifestHash===candidate.manifestHash,
+      PAGE_REVISION_ERROR,'固定安装身份已改变');
+    const proofKey=key('verification',namespace,pkg.programId,pkg.revision);
+    const existing=await read(tx=>tx.get(PAGE_STORE,proofKey));
+    if(!existing){
+      const builtin=await loadBuiltin({runtime:api.runtime});
+      assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(builtin));
+      const {optionalSources,frameworkSource,jqueryCode}=await registration(candidate,resolution);
+      const receipt={state:'package-validated',world:'USER_SCRIPT',sourceHash:pkg.sourceHash,
+        manifestHash:candidate.manifestHash,packageHash:pkg.packageHash,
+        builtinAbi:builtin.abi,builtinCatalogSha256:builtin.catalogSha256,builtinBundleSha256:builtin.sha256,
+        ...(jqueryCode?{packagedJquerySha256:JQUERY_371.sha256}:{}),
+        ...(frameworkSource?{packagedFrameworkId:frameworkSource.id,packagedFrameworkSha256:frameworkSource.sha256}:{}),
+        ...(optionalSources.length?{packagedOptionals:optionalSources.map(({id,sha256})=>({id,sha256}))}:{})};
+      await verifiedEnvironment(candidate,receipt);
+      const proof={tag:'page-verification-v1',...identity(candidate),status:'Verified',
+        receipt,receiptHash:await digest(receipt),verifiedAt:clock.now()};
+      await scoped(sender,PAGE_WRITE,async tx=>{
+        const old=await tx.get(PAGE_STORE,proofKey);
+        if(old)invariant(identityFields.every(k=>equal(old[k],proof[k])),PAGE_REVISION_ERROR,'验证身份已改变');
+        else await tx.put(PAGE_STORE,proof,proofKey);
+      });
+    }
+    const proof=await proofFor(candidate);
+    if(proof.status!=='Available')await makePageAvailable({programId:pkg.programId,revision:pkg.revision,manifestHash:candidate.manifestHash},sender);
+    return installPageProgram({programId:pkg.programId,revision:pkg.revision,manifestHash:candidate.manifestHash,
+      expectedInstalledManifestHash:request.expectedInstalledManifestHash,expectedGeneration:request.expectedGeneration,title:pkg.title},sender);
   }
   async function verifyPageCandidate(request,sender){
     fields(request,['programId','revision','target']);
@@ -213,6 +260,22 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         (!previous||request.expectedGeneration===(previous.authorization?.generation??null)),
         PAGE_REVISION_ERROR,'安装授权在确认期间改变；请刷新后核对');
       if(previous?.authorization)assertPageInstallAuthorization(previous);
+      if(previous?.manifestHash===candidate.manifestHash){
+        if(previous.nativeState==='registered'){
+          let registered;
+          try{registered=await api.userScripts.getScripts({ids:[previous.nativeId]});}
+          catch{throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE','请开启扩展的「允许用户脚本」后重新核对安装状态');}
+          invariant(registered.length===1&&registered[0]?.id===previous.nativeId,
+            'E_PAGE_INSTALLATION','原生注册不存在，请主动核对安装状态');
+        }
+        await scoped(sender,'readonly',async tx=>{
+          const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,request.programId));
+          invariant(current?.token===previous.token&&current.authorization?.generation===request.expectedGeneration,
+            PAGE_REVISION_ERROR,'安装授权在确认期间改变');
+        });
+        // Re-import never revives a disabled or suspended installation.
+        return publicInstall(previous);
+      }
       const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
         title:request.title?.trim()??previous?.title??request.programId,
@@ -640,6 +703,6 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       throw error;
     });executions=next.catch(()=>{});return next;
   }
-  return Object.freeze({verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
+  return Object.freeze({importPageInstallPackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
     listPagePrograms,recoverExecutions,reconcile,revokePermissions,handleBoot});
 }
