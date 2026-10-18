@@ -2,6 +2,9 @@ import * as React from 'react';
 import {Button} from '@opendesk/ui';
 
 const MAX_FILE=8*1024*1024;
+
+// One explicit submit. The preflight runs in place against the real Controller
+// after source/format edits; no Preview parser or mock transport is installed.
 export default function CookieImport({controller,disabled=false,onClose,onDirty}){
   const sourceRef=React.useRef(null),fileRef=React.useRef(null);
   const active=React.useRef(false),revision=React.useRef(0);
@@ -13,6 +16,10 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
   };
   const [format,setFormat]=React.useState('auto');
   const [plan,setPlan]=React.useState(null);
+  const [sourceRevision,setSourceRevision]=React.useState(0);
+  const [dragging,setDragging]=React.useState(false);
+  const [overwrite,setOverwrite]=React.useState(false);
+  const [checking,setChecking]=React.useState(false);
   const [reading,setReading]=React.useState(false);
   const [message,setMessage]=React.useState('');
   React.useEffect(()=>{
@@ -23,25 +30,52 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       if(sourceRef.current)sourceRef.current.value='';
     };
   },[controller]);
-  const chooseFile=async event=>{
-    const file=event.target.files?.[0];
+  const invalidate=()=>{
+    revision.current++;
+    controller.discardImport();
+    setPlan(null);setOverwrite(false);setMessage('');
+  };
+  const edited=()=>{
+    invalidate();
+    onDirty?.(Boolean(sourceRef.current?.value));
+    setSourceRevision(x=>x+1);
+  };
+  // DOM ref holds the raw credentials. State only carries a numeric generation.
+  React.useEffect(()=>{
+    if(!sourceRef.current?.value.trim()){setChecking(false);return;}
+    const timer=setTimeout(async()=>{
+      const seq=++revision.current,at=stamp();
+      setChecking(true);setMessage('');
+      try{
+        const result=await controller.previewImport(sourceRef.current?.value||'',format);
+        if(!isCurrent(seq,at))return;
+        setPlan(result);
+        if(!result)setMessage('预检未通过：请修正内容、授权或网站范围。');
+      }catch{
+        if(isCurrent(seq,at))setMessage('预检失败：请核对格式及网站授权。');
+      }finally{
+        if(isCurrent(seq,at))setChecking(false);
+      }
+    },260);
+    return ()=>clearTimeout(timer);
+  },[controller,format,sourceRevision]);
+  const readFile=async file=>{
     if(!file)return;
-    const seq=++revision.current,at=stamp();
-    controller.discardImport();setPlan(null);
+    invalidate();
+    const seq=revision.current,at=stamp();
     if(file.size>MAX_FILE){
-      setMessage('文件超过 8 MiB 限制');
+      setMessage('文件超过 8 MiB 限制，请分批导入。');
       if(fileRef.current)fileRef.current.value='';
       return;
     }
-    setReading(true);setMessage('');
+    setReading(true);
     try{
       const text=await file.text();
-      // Permission, target or mode may have changed while File.text() ran.
-      // Never restore previous site's secrets after synchronous redaction.
       if(!isCurrent(seq,at))return;
-      if(sourceRef.current){sourceRef.current.value=text;onDirty?.(true);}
+      if(sourceRef.current){sourceRef.current.value=text;onDirty?.(Boolean(text));}
+      setSourceRevision(x=>x+1);
     }catch{
-      if(isCurrent(seq,at))setMessage('读取本地文件失败，请改用粘贴内容。');
+      if(isCurrent(seq,at))setMessage('读取本地文件失败，请粘贴原文重试。');
     }finally{
       if(isCurrent(seq,at)){
         setReading(false);
@@ -49,18 +83,13 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
       }
     }
   };
-  const inspect=async()=>{
-    const seq=++revision.current,at=stamp();
-    setMessage('');setPlan(null);
-    const result=await controller.previewImport(sourceRef.current?.value||'',format);
-    if(!isCurrent(seq,at))return;
-    setPlan(result);
-    if(!result)setMessage('预检未通过，请检查格式、Host 授权及作用域。');
-  };
   const execute=async()=>{
-    if(!plan?.accepted)return;
+    // Controller compares the raw text and exact target/epoch against the
+    // reviewed preflight. Never replay if a Host write outcome is unknown.
+    if(!plan?.accepted||checking||reading||disabled||
+      (plan.replaced>0&&!overwrite))return;
     const seq=++revision.current,at=stamp();
-    setReading(true);
+    setReading(true);setMessage('');
     try{
       const ok=await controller.executeImport(sourceRef.current?.value||'',format);
       if(!isCurrent(seq,at))return;
@@ -70,45 +99,71 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
         onClose({committed:true});
       }else{
         setPlan(null);
-        setMessage('导入结果可能部分生效。请先刷新 Chrome 核对，不要重复提交。');
+        setMessage('导入可能部分生效；请刷新 Chrome 核对，禁止直接重复提交。');
       }
     }finally{
       if(isCurrent(seq,at))setReading(false);
     }
   };
-  return <section className="cookie-panel od-surface od-surface--padded" aria-label="导入 Cookie">
-    <h3>导入 Cookie</h3>
-    <p>先预检，确认后才通过公开 Browser SDK 写入。重复身份、过期数据和跨站 Store/Partition 不会自动覆盖。</p>
-    <label>来源格式 <select className="od-field" disabled={disabled||reading} value={format}
-      onChange={e=>{revision.current++;controller.discardImport();setFormat(e.target.value);setPlan(null);}}>
-      <option value="auto">自动识别</option><option value="json">JSON</option>
-      <option value="header">Cookie Header</option><option value="netscape">Netscape</option>
-    </select></label>
-    <label>选择本地文件（最大 8 MiB）
-      <input className="od-field" ref={fileRef} type="file" accept=".json,.txt,.cookies,text/plain,application/json"
-        disabled={disabled||reading} onChange={e=>void chooseFile(e)}/></label>
-    <label>待导入文本 <textarea className="od-field" ref={sourceRef} rows={6} autoComplete="off"
-      spellCheck={false} disabled={disabled||reading} placeholder="Cookie: name=value; theme=dark"
-      data-cookie-secret-input="true"
-      onInput={()=>{revision.current++;controller.discardImport();setPlan(null);onDirty?.(true);}}/></label>
-    {plan&&<section aria-label="导入预检结果" role="status" className="cookie-message od-alert">
-      <p>总计 {plan.total} · 可导入 {plan.accepted} · 新增 {plan.created} · 覆盖 {plan.replaced} · 跳过 {plan.skipped}</p>
+  return <section className="cookie-panel cookie-import-panel od-surface od-surface--padded"
+    aria-label="导入 Cookie">
+    <div className="cookie-panel-heading"><h3>导入 Cookie</h3>
+      <Button type="button" className="od-button--quiet" disabled={disabled||reading}
+        onClick={onClose}>关闭</Button></div>
+    <input ref={fileRef} type="file" accept=".json,.txt,.cookies,text/plain,application/json"
+      hidden disabled={disabled||reading}
+      onChange={e=>void readFile(e.target.files?.[0])}/>
+    <div className="cookie-import-dropzone" role="group" aria-label="Cookie 文件选择和拖入"
+      onDragOver={e=>{if(disabled||reading)return;e.preventDefault();setDragging(true);}}
+      onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget))setDragging(false);}}
+      onDrop={e=>{
+        if(disabled||reading)return;
+        e.preventDefault();setDragging(false);
+        void readFile(e.dataTransfer?.files?.[0]);
+      }}>
+      <Button type="button" variant="secondary" disabled={disabled||reading}
+        onClick={()=>fileRef.current?.click()}>选择文件</Button>
+      <span>{dragging?'松开以载入文件':'也可拖入文件，或在下方直接粘贴'}</span>
+    </div>
+    <label>格式
+      <select className="od-field" disabled={disabled||reading} value={format}
+        onChange={e=>{invalidate();setFormat(e.target.value);}}>
+        <option value="auto">自动识别</option><option value="json">JSON</option>
+        <option value="header">Cookie Header</option>
+        <option value="netscape">Netscape</option>
+      </select>
+    </label>
+    <label>Cookie 内容
+      <textarea className="od-field" ref={sourceRef} rows={5} autoComplete="off"
+        spellCheck={false} disabled={disabled||reading}
+        placeholder="粘贴 JSON、Cookie Header 或 Netscape 文本"
+        data-cookie-secret-input="true" onInput={edited}/>
+    </label>
+    {checking&&<p role="status" className="cookie-message">正在安全预检…</p>}
+    {plan&&<section aria-label="导入预检结果" role="status"
+      className="cookie-message od-alert cookie-import-summary">
+      <strong>新增 {plan.created} · 覆盖 {plan.replaced} · 跳过 {plan.skipped} · 可导入 {plan.accepted}</strong>
       {plan.issues?.length>0&&<>
-        <strong>未通过的条目（最多显示前 30 条，不显示 Cookie Value）</strong>
+        <span>以下条目未通过校验，不会导入：</span>
         <ul>{plan.issues.map(item=><li key={item.index}>
-          第 {item.index} 条 · {item.status==='expired'?'已过期':'未通过校验'} · {item.reason}
+          第 {item.index} 条 · {item.status==='expired'?'已过期':'无效'} · {item.reason}
         </li>)}</ul>
-        {plan.issueCount>30&&<p>另有 {plan.issueCount-30} 条未显示，请分批核查原文。</p>}
+        {plan.issueCount>30&&<p>还有 {plan.issueCount-30} 条未展开，请核对原文。</p>}
       </>}
+      {plan.replaced>0&&<label className="cookie-import-overwrite">
+        <input type="checkbox" checked={overwrite} disabled={disabled||reading}
+          onChange={e=>setOverwrite(e.target.checked)}/>
+        确认覆盖 {plan.replaced} 条现有同身份 Cookie
+      </label>}
     </section>}
     {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
     <div className="cookie-editor-actions">
-      <Button type="button" disabled={disabled||reading} onClick={onClose}>关闭</Button>
+      <Button type="button" disabled={disabled||reading} onClick={onClose}>取消</Button>
       <span className="cookie-spacer"/>
-      <Button type="button" disabled={disabled||reading} onClick={()=>void inspect()}>预检</Button>
       <Button type="button" variant="primary"
-        disabled={disabled||reading||!plan?.accepted}
-        onClick={()=>void execute()}>确认导入</Button>
+        disabled={disabled||reading||checking||!plan?.accepted||
+          (plan.replaced>0&&!overwrite)}
+        onClick={()=>void execute()}>导入 Cookie</Button>
     </div>
   </section>;
 }
