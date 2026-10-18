@@ -13,6 +13,8 @@ on:
       - 'scripts/tests/react-sidebar-r352-browser.mjs'
       - 'scripts/tests/react-sidebar-r352-installed-chrome.mjs'
       - 'tests/environment/react-sidebar-app-shell-r351.test.mjs'
+      - 'tests/environment/sidebar-quick-notes-react-r21.test.mjs'
+      - 'scripts/check-source.mjs'
       - '.github/workflows/react-sidebar-r352.yml'
   workflow_dispatch:
 permissions:
@@ -42,6 +44,28 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
+      - name: Declare evidence boundary
+        if: always()
+        run: |
+          echo "SOURCE_UI_SIMULATION_CHROMIUM=R35.2 tests"
+          echo "INSTALLED_EXTENSION_CHROME_LINUX=R35.2 real MV3 smoke; read job outcome"
+          echo "NATIVE_MAC_SIDE_PANEL=NOT_TESTED"
+
+  installed-mv3-chrome:
+    # Separate evidence grade: a global source-check failure caused by concurrent
+    # work must not hide whether the actual installed candidate can start.
+    # Both jobs must pass to claim the R35.2 installed/build gate is green.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build the real development MV3 candidate
+        run: npm run build:dev
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Verify actual installed MV3 App Shell and repeated opening
@@ -56,9 +80,6 @@ jobs:
           path: artifacts/react-sidebar-r352-installed/
           if-no-files-found: warn
           retention-days: 14
-      - name: Declare evidence boundary
+      - name: State native Mac evidence boundary
         if: always()
-        run: |
-          echo "SOURCE_UI_SIMULATION_CHROMIUM=R35.2 tests"
-          echo "INSTALLED_EXTENSION_CHROME_LINUX=R35.2 real MV3 smoke; read job outcome"
-          echo "NATIVE_MAC_SIDE_PANEL=NOT_TESTED"
+        run: echo "NATIVE_MAC_SIDE_PANEL=NOT_TESTED"
