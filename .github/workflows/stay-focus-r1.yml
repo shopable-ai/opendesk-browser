@@ -78,6 +78,15 @@ jobs:
           sha256sum dist/production/sw.js
           wc -c dist/production/sw.js
           sha256sum dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
+      - name: Promote only fully tested Stay Focus candidate and verify sole formal release
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
+          candidate="artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --promote-from "$candidate"
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --check-project
+          cmp "$candidate" examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
+          test "$(find examples/sidebar-tools/stay-focus -maxdepth 1 -name '*.opendesk-tool.json' | wc -l)" -eq 1
+          sha256sum examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
       - name: Preserve exact candidate for native Mac (not acceptance yet)
         uses: actions/upload-artifact@v4
         with:
@@ -87,6 +96,7 @@ jobs:
           path: |
             dist/production/
             artifacts/sidebar-tools/stay-focus/
+            examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
       - name: Preserve source/build failure diagnostics
