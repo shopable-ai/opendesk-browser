@@ -19,6 +19,17 @@ const paths=[
 const out=resolve(process.argv[2]||'artifacts/sidebar-tools/quick-notes-react/installed-chrome');
 await mkdir(out,{recursive:true});
 const delay=ms=>new Promise(ok=>setTimeout(ok,ms));
+async function waitForChromeExit(child){
+  if(!child||child.exitCode!==null||child.signalCode!==null)return;
+  const exited=new Promise(resolve=>child.once('close',()=>resolve(true)));
+  child.kill();
+  if(!await Promise.race([exited,delay(2500).then(()=>false)])&&
+      child.exitCode===null&&child.signalCode===null){
+    child.kill('SIGKILL');
+    await Promise.race([exited,delay(2500)]);
+  }
+}
+
 let processChrome,profile,socket,sequence=0,launchError,host,extensionId;
 const outstanding=new Map(),attached=new Map(),browserErrors=[],networkFailures=[],browserLog=[];
 const result={scope:'REAL_OPEN_DESK_EXTENSION_HOST_CHROME_CATALOG',macNativeSidePanel:'NOT_TESTED',
@@ -271,12 +282,16 @@ try{
   await writeFile(join(out,'result.json'),JSON.stringify(result,null,2)+'\n');
   await writeFile(join(out,'chrome.log'),browserLog.join(''));
   try{socket?.close();}catch{}
-  if(processChrome&&processChrome.exitCode===null){
-    const done=new Promise(ok=>processChrome.once('close',ok));
-    processChrome.kill();await Promise.race([done,delay(2000)]);
-    if(processChrome.exitCode===null)processChrome.kill('SIGKILL');
+  try{
+    await waitForChromeExit(processChrome);
+    if(profile)await rm(profile,{recursive:true,force:true,maxRetries:12,retryDelay:200});
+  }catch(error){
+    result.cleanupError=String(error.stack||error);
+    if(result.status!=='FAIL'){
+      result.status='FAIL';result.error='CHROME_CLEANUP_FAILED '+result.cleanupError;
+      process.exitCode=1;
+    }
   }
-  if(profile)await rm(profile,{recursive:true,force:true});
   console.log(JSON.stringify({status:result.status,checks:result.operations,
     dataIsolation:result.dataIsolation,output:out,error:result.error,
     failureDocument:result.status==='FAIL'?result.failureDocument:undefined},null,2));

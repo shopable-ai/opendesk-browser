@@ -10,6 +10,17 @@ const repo=resolve(import.meta.dirname,'../..');
 const out=resolve(process.argv[2]||'artifacts/quick-notes-react-r21/chrome');
 await mkdir(out,{recursive:true});
 const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
+async function waitForChromeExit(child){
+  if(!child||child.exitCode!==null||child.signalCode!==null)return;
+  const exited=new Promise(resolve=>child.once('close',()=>resolve(true)));
+  child.kill();
+  if(!await Promise.race([exited,sleep(2500).then(()=>false)])&&
+      child.exitCode===null&&child.signalCode===null){
+    child.kill('SIGKILL');
+    await Promise.race([exited,sleep(2500)]);
+  }
+}
+
 const types={'.html':'text/html','.css':'text/css','.js':'text/javascript','.png':'image/png'};
 const server=createServer(async(req,res)=>{
   try{
@@ -144,9 +155,18 @@ try{
 }catch(error){result.status='FAIL';result.error=String(error.stack||error);process.exitCode=1;}
 finally{
   result.remote=remote;result.badAssets=badAssets;result.exceptions=exceptions;
+  socket?.close();
+  try{
+    await waitForChromeExit(browser);
+    if(profile)await rm(profile,{recursive:true,force:true,maxRetries:12,retryDelay:200});
+  }catch(error){
+    result.cleanupError=String(error.stack||error);
+    if(result.status!=='FAIL'){
+      result.status='FAIL';result.error='CHROME_CLEANUP_FAILED '+result.cleanupError;
+      process.exitCode=1;
+    }
+  }
   await writeFile(join(out,'result.json'),JSON.stringify(result,null,2)+'\n');
-  socket?.close();browser?.kill();
-  if(profile)await rm(profile,{recursive:true,force:true});
   await new Promise(ok=>server.close(ok));
   console.log(JSON.stringify({status:result.status,output:out,error:result.error},null,2));
 }
