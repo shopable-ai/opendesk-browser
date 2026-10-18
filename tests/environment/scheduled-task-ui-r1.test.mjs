@@ -5,13 +5,45 @@ import {canonicalToolHostUrl} from '../../src/ui/sidebar-tools/navigation.js';
 import {toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {isToolSender} from '../../src/environment.js';
 import {parseHTML} from 'linkedom';
-import {createScheduledTaskWorkbench,mergeScheduleHistoryView,commitScheduledMutation} from '../../src/ui/scheduled-task-workbench.js';
+import {createScheduledTaskWorkbench,mergeScheduleHistoryView,commitScheduledMutation,describeScheduleMutationFailure} from '../../src/ui/scheduled-task-workbench.js';
 import {formatScheduleRule,presentSchedulePlan} from '../../src/ui/schedule-plan-presentation.js';
 
 const load=path=>readFile(path,'utf8');
 const extension='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
 const base=extension+'ui/tool.html';
 const host='12345678-1234-4123-8123-123456789abc';
+
+test('R34.3 Host timeout and post-commit error never invite a duplicate schedule/task mutation',async()=>{
+  const timedOut=Object.assign(new Error('Worker response deadline exceeded; request was not replayed'),
+    {code:'E_EFFECT_UNKNOWN'});
+  for(const action of ['保存计划','删除计划','卸载任务','启用任务']){
+    const failure=describeScheduleMutationFailure(timedOut,action);
+    assert.equal(failure.uncertain,true);
+    assert.match(failure.message,new RegExp(action+'结果未知'));
+    assert.match(failure.message,/重新读取真实状态核对，确认前不要重复操作/);
+  }
+  const alarmFailed=describeScheduleMutationFailure(new Error('Chrome alarms reconciliation failed'),'保存计划');
+  assert.equal(alarmFailed.uncertain,true,
+    'saveSchedule commits before reconcile; an untyped Host error cannot prove rollback');
+  const rejected=describeScheduleMutationFailure(Object.assign(new Error('stale generation'),
+    {code:'E_REVISION'}),'删除计划');
+  assert.equal(rejected.uncertain,false);
+  assert.match(rejected.message,/删除计划未完成/);
+  assert.doesNotMatch(rejected.message,/结果未知/);
+  const [client,ui]=await Promise.all([
+    load('src/platform/host/client.js'),load('src/ui/scheduled-task-workbench.js')
+  ]);
+  assert.match(client,/new FoundationError\('E_EFFECT_UNKNOWN'/);
+  const save=ui.slice(ui.indexOf('  async function confirmSave(){'),ui.indexOf('  function enterDeveloper(){'));
+  const remove=ui.slice(ui.indexOf('  async function uninstall(){'),ui.indexOf('  async function open(view='));
+  const change=ui.slice(ui.indexOf('  async function change(plan,operation){'),ui.indexOf('  function switchKind(){'));
+  const toggle=ui.slice(ui.indexOf('  async function toggleManagedTask(row,originList){'),
+    ui.indexOf('  async function copyManagedTask(row){'));
+  assert.match(save,/if\(failure\.uncertain\)\{[\s\S]*?clearConfirmation\(\);formDirty=true/);
+  assert.match(remove,/confirmUninstall=null;get\('schedule-uninstall-confirm'\)\.hidden=true/);
+  assert.match(change,/if\(failure\.uncertain&&operation==='delete'\)/);
+  assert.match(toggle,/rpcStarted=true;[\s\S]*?commitScheduledMutation\(/);
+});
 
 test('R1.2 acknowledged schedule mutations remain successful when the next list read fails',async()=>{
   const phases=[],saved={scheduleId:'schedule-real',generation:4};
