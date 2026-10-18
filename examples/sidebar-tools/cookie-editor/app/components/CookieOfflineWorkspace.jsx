@@ -122,7 +122,8 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
           if(f.size>8*1024*1024){setMessage('文件大于 8 MiB');return;}
           const text=await f.text();if(importText.current)importText.current.value=text;
           mark(true);importPlan.current=null;setPreview(null);}}/></label>
-      <label>文本 <textarea ref={importText} rows={5} autoComplete="off"
+      <label>文本 <textarea ref={importText} data-cookie-secret-input="true"
+        rows={5} autoComplete="off"
         onInput={()=>{mark(true);importPlan.current=null;setPreview(null);}}/></label>
       {preview&&<p role="status">总计 {preview.total}，可导入 {preview.accepted}，跳过 {preview.skipped}</p>}
       <div className="cookie-editor-actions">

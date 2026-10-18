@@ -124,3 +124,15 @@ test('bulk import preflight and native partial failure never replay writes',asyn
   assert.equal(f.controller.snapshot().messageType,'error');
   f.controller.dispose();
 });
+
+test('discarded import preflight never writes a stale secret plan',async()=>{
+  const f=fixture();await f.controller.load();
+  const result=await f.controller.previewImport('temporary=SECRET_NOT_FOR_UI');
+  assert.equal(result.accepted,1);
+  f.controller.discardImport();
+  let writes=0;f.cookies.set=async()=>{writes++;return {saved:true,verified:true};};
+  assert.equal(await f.controller.executeImport('temporary=SECRET_NOT_FOR_UI'),false);
+  assert.equal(writes,0);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_NOT_FOR_UI/);
+  f.controller.dispose();
+});

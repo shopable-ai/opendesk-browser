@@ -76,6 +76,10 @@ export function createCookieController({adapter,onChange=()=>{}}){
       }
     }finally{if(ticket===epoch&&!closed){busy=false;notify();}}
   }
+  // Explicitly release short-lived raw import bytes when the input or panel
+  // changes; an old preflight must never remain actionable after dismissal.
+  function discardImport(){importPlan=null;}
+  function discardClear(){clearPlan=null;}
   function getRow(id){return rows.find(row=>row.id===id)||null;}
   async function readValue(id){
     const row=getRow(id),at=target,ticket=epoch;
@@ -386,5 +390,6 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   notify();
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
-    previewClear,executeClear,previewImport,executeImport,exportTo,observe,dispose};
+    previewClear,executeClear,discardClear,previewImport,executeImport,
+    discardImport,exportTo,observe,dispose};
 }

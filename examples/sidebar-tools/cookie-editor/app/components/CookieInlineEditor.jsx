@@ -65,7 +65,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     <div className="cookie-editor-grid">
       <label>名称 <input required maxLength={256} value={draft.name}
         disabled={disabled} onChange={e=>update('name',e.target.value)}/></label>
-      <label>Cookie Value <input ref={valueRef} type={showValue?'text':'password'}
+      <label>Cookie Value <input ref={valueRef} data-cookie-secret-input="true"
+        type={showValue?'text':'password'}
         autoComplete="off" maxLength={4096} disabled={disabled}
         placeholder={edited?'不修改则保留原值（需额外授权）':'输入值，允许空字符串'}
         onChange={()=>{setValueEdited(true);onDirty?.(true);}}/></label>
@@ -77,7 +78,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       {edited&&<button type="button" disabled={disabled||revealing}
         onClick={()=>void reveal()}>{revealing?'读取中…':'查看原值（需授权）'}</button>}
     </div>
-    <output ref={revealedRef} className="cookie-sensitive-output" aria-label="临时敏感值"
+    <output ref={revealedRef} data-cookie-secret-output="true"
+      className="cookie-sensitive-output" aria-label="临时敏感值"
       hidden/>
     <details className="cookie-editor-details">
       <summary>Cookie 属性与作用域</summary>

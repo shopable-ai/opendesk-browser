@@ -41,11 +41,20 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const snapshot=view||controller.snapshot();
   const busy=Boolean(snapshot.busy||working);
   const locked=busy||Boolean(confirmation);
+  const scrubSensitive=()=>{
+    // Invalidate DOM secrets synchronously on permission changes and navigation,
+    // even before React commits the render that removes the editor.
+    for(const node of hostRoot.querySelectorAll('[data-cookie-secret-input]'))
+      node.value='';
+    for(const node of hostRoot.querySelectorAll('[data-cookie-secret-output]')){
+      node.textContent='';node.hidden=true;
+    }
+  };
   const cleanEditor=()=>{
     setPanel(null);setSelected(null);setDirty(false);setStatus('');
   };
-  const ask=(text,action)=>{
-    setConfirmation({text,action});
+  const ask=(text,action,onCancel)=>{
+    setConfirmation({text,action,onCancel});
   };
   const guarded=(action)=>{
     if(locked)return;
@@ -57,6 +66,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     const decision=confirmation;
     setConfirmation(null);
     if(accept&&decision?.action)decision.action();
+    if(!accept&&decision?.onCancel)decision.onCancel();
   };
   const refresh=()=>{
     if(busy)return;
@@ -64,6 +74,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     void controller.load(appliedSite.current);
   };
   const invalidate=(reason,siteChanged=false)=>{
+    scrubSensitive();
     const wasBusy=controller.snapshot().busy;
     controller.invalidate(reason);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
@@ -80,6 +91,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     return ()=>{
       hostRoot.removeEventListener('opendesk-cookie-grants-changed',grant);
       hostRoot.removeEventListener('opendesk-page-changed',page);
+      scrubSensitive();
       controller.dispose();
     };
   },[hostRoot,controller]);
@@ -93,6 +105,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     setSelected(null);setPanel(name);setPage(1);setStatus('');
   });
   const switchMode=next=>guarded(()=>{
+    scrubSensitive();
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
   const save=async(row,options)=>{
@@ -117,7 +130,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     ask('Chrome 将仅清理 '+result.hostname+' 的 '+result.count+
       ' 条精确 Host-only Cookie；Domain Cookie 和其他网站不在范围内。确定执行？',
       async()=>{setWorking(true);try{await controller.executeClear();}
-        finally{setWorking(false);}});
+        finally{setWorking(false);}},
+      ()=>controller.discardClear());
   };
   const select=id=>guarded(()=>{setPanel(null);setSelected(id);setStatus('');});
   const onKeyDown=e=>{

@@ -7,10 +7,12 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
   const [plan,setPlan]=React.useState(null);
   const [reading,setReading]=React.useState(false);
   const [message,setMessage]=React.useState('');
+  React.useEffect(()=>()=>controller.discardImport(),[controller]);
   const chooseFile=async event=>{
     const file=event.target.files?.[0];
     if(!file)return;
     if(file.size>MAX_FILE){setMessage('文件超过 8 MiB 限制');return;}
+    controller.discardImport();
     setReading(true);setMessage('');
     try{
       const text=await file.text();
@@ -37,7 +39,7 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
     <h3>导入 Cookie</h3>
     <p>先预检，确认后才通过公开 Browser SDK 写入。重复身份、过期数据和跨站 Store/Partition 不会自动覆盖。</p>
     <label>来源格式 <select disabled={disabled||reading} value={format}
-      onChange={e=>{setFormat(e.target.value);setPlan(null);}}>
+      onChange={e=>{controller.discardImport();setFormat(e.target.value);setPlan(null);}}>
       <option value="auto">自动识别</option><option value="json">JSON</option>
       <option value="header">Cookie Header</option><option value="netscape">Netscape</option>
     </select></label>
@@ -46,7 +48,8 @@ export default function CookieImport({controller,disabled=false,onClose,onDirty}
         disabled={disabled||reading} onChange={e=>void chooseFile(e)}/></label>
     <label>待导入文本 <textarea ref={sourceRef} rows={6} autoComplete="off"
       spellCheck={false} disabled={disabled||reading} placeholder="Cookie: name=value; theme=dark"
-      onInput={()=>{setPlan(null);onDirty?.(true);}}/></label>
+      data-cookie-secret-input="true"
+      onInput={()=>{controller.discardImport();setPlan(null);onDirty?.(true);}}/></label>
     {plan&&<p role="status" className="cookie-message">总计 {plan.total} · 可导入 {plan.accepted} · 新增 {plan.created} · 覆盖 {plan.replaced} · 跳过 {plan.skipped}</p>}
     {message&&<p role="alert" className="cookie-message error">{message}</p>}
     <div className="cookie-editor-actions">
