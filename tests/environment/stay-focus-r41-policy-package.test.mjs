@@ -5,6 +5,7 @@ import {validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackag
 import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../src/stay-focus/policy.js';
 import {focusCatalogForPackage,FOCUS_CATALOG} from '../../src/stay-focus/catalog.js';
 import {createStayFocusService} from '../../src/stay-focus/service.js';
+import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
 import {requestStayFocusOperation} from '../../src/stay-focus/tool-host.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -113,7 +114,11 @@ test('same Host SHA / only app package changes: no silent rules, trusted approva
   await f.focus.dispatch(await f.msg(base,'focus.group.put',{id:'custom',minutes:37}),f.sender);
   await f.focus.dispatch(await f.msg(base,'focus.enable'),f.sender);
   assert.equal(f.rules.length,1);
-  f.stored.set(SIDEBAR_TOOL_STORE,[modern]);
+  const install=await installReviewedSidebarTool({api:f.api,
+    lockManager:{request:async(_key,run)=>run()},candidate:modern,baseline:base,
+    reviewApproved:true,approveUpdate:async()=>true});
+  assert.equal(install.state,'installed','real installer performs same-ID package-only upgrade');
+  assert.equal(f.stored.get(SIDEBAR_TOOL_STORE)[0].version,'1.0.2');
   f.focus.invalidate({revoke:true});
   const upgraded=await f.focus.tick({boot:true});
   assert.equal(upgraded.enabled,false);
