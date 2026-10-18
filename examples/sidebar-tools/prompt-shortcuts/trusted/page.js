@@ -39,9 +39,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
-  let items=[],observer=null,resizeObserver=null,layoutTimer=0;
+  let items=[],observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
-  let locationTimer=0,composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
+  let locationTimer=0,retryTimer=0,readFailures=0;
+  let composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
     'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
@@ -70,9 +71,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const stop=()=>{
     visible=false;items=[];activeRule=null;closePicker();clearFeedback();
-    observer?.disconnect();observer=null;
+    observer?.disconnect();observer=null;observedRoot=null;
     resizeObserver?.disconnect();resizeObserver=null;observedRegions.clear();
     win.clearTimeout(layoutTimer);layoutTimer=0;win.clearTimeout(hideTipTimer);hideTipTimer=0;
+    win.clearTimeout(retryTimer);retryTimer=0;
     host?.remove();host=null;rail=null;shadow=null;tip=null;tipOwner=null;
     feedback=null;announcer=null;
   };
@@ -302,6 +304,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     for(const candidate of candidates){
       if(!candidate?.isConnected||candidate.hidden||
          candidate.closest?.('[hidden],[inert],[aria-hidden="true"]'))continue;
+      const css=win.getComputedStyle?.(candidate);
+      if(css&&(css.display==='none'||['hidden','collapse'].includes(css.visibility)||
+         css.opacity==='0'))continue;
       const box=candidate.getBoundingClientRect?.();
       if(!box||box.width<200||box.height<160||
          box.left+box.width<=0||box.top+box.height<=0||
@@ -344,9 +349,21 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     if(content)return content;
     return right-left>=200?{left,top:rect.top,width:right-left,height:rect.height}:null;
   };
+  const observeRoot=()=>{
+    // React can replace body/html without changing the URL. Rebind the existing
+    // observer instead of allocating a second controller or a second observer.
+    if(!observer)return;
+    const root=doc.documentElement||doc.body;
+    if(!root||root===observedRoot)return;
+    observer.disconnect();
+    observer.observe(root,{subtree:true,childList:true,attributes:true,
+      attributeFilter:['class','style','hidden','aria-hidden','inert']});
+    observedRoot=root;
+  };
   const layout=()=>{
     layoutTimer=0;if(!host||!visible||paused||disposed)return;
     if(href!==win.location.href){void refresh();return;}
+    observeRoot();
     // Route transitions detach previously measured nodes. Do not retain their
     // ResizeObserver registrations across conversations indefinitely.
     for(const old of observedRegions){
@@ -362,7 +379,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     }
     host.hidden=false;
     const left=Math.max(4,Math.min(win.innerWidth-52,Math.round(rect.left+12)));
-    const top=Math.max(28,Math.min(win.innerHeight-28,Math.round(rect.top+rect.height/2)));
+    // A long history can extend far beyond the viewport. Center within the
+    // visible conversation slice, not the entire scrolling document height.
+    const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
+    const top=Math.max(28,Math.min(win.innerHeight-28,Math.round((visibleTop+visibleBottom)/2)));
     if(host.style.left!==left+'px')host.style.left=left+'px';
     if(host.style.top!==top+'px')host.style.top=top+'px';
     host.style.transform='translateY(-50%)';
@@ -462,13 +482,14 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const normalizeDraft=text=>text.replace(/\r\n?/gu,'\n').replace(/\u00a0/gu,' ');
   async function insert(row,event){
-    if(event?.isTrusted!==true||!visible||disposed||paused||inserting||composing)return;
+    if(event?.isTrusted!==true||!visible||disposed||paused||inserting||composing||
+       !host?.isConnected||host.hidden)return;
     // A second click after the first async operation completes must not
     // turn one rapid double-click into two edits with ambiguous side effects.
     const now=Date.now();
     if(lastAttemptId===row.id&&now-lastAttempt<700)return;
     lastAttemptId=row.id;lastAttempt=now;inserting=true;
-    const location=win.location.href,token=epoch;
+    const location=win.location.href,token=epoch,editorAtClick=editor();
     try{
       // Recheck installation, exact origin, grant, enable and data before effect.
       const data=await api.storage.local.get(KEYS);
@@ -482,6 +503,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         !library.items.some(item=>item.id===row.id&&item.body===row.body&&item.enabled))throw Error('提示词已变化或停用');
       if(token!==epoch||location!==win.location.href)throw Error('页面已切换');
       const target=editor();
+      // A same-URL React reconciliation can replace the composer during the
+      // asynchronous permission read. Never insert into a different draft.
+      if(target!==editorAtClick)
+        throw Object.assign(Error('输入框在点击后被替换，未执行写入'),{code:'E_EDITOR_CHANGED'});
       if(!target)throw Error('找不到唯一且受支持的网页草稿编辑器，请重新验证网站选择器');
       // Composition may have started while the async grant read was pending.
       // Return without focusing the editor or a fallback textarea.
@@ -531,8 +556,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       // The edit is its own visible confirmation; announce silently for screen readers.
       if(announcer&&host?.isConnected)announcer.textContent='提示词已插入草稿，未发送';
     }catch(error){
-      if(!disposed&&!paused&&visible&&!composing&&token===epoch&&location===win.location.href&&host?.isConnected)
-        await fallbackCopy(row.body,error.message);
+      if(!disposed&&!paused&&visible&&!composing&&token===epoch&&location===win.location.href&&
+         host?.isConnected&&!host.hidden){
+        if(error?.code==='E_EDITOR_CHANGED')showFeedback('输入框已切换，请重新点击快捷按钮','error');
+        else await fallbackCopy(row.body,error.message);
+      }
     }
     finally{inserting=false;}
   }
@@ -603,6 +631,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       if(!library.settings.webButtons){stop();return;}
       const rows=library.items.filter(item=>item.enabled);
       if(!rows.length){stop();return;}
+      readFailures=0;
+      win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
       items=rows;visible=true;render();
       if(!observer){
@@ -610,12 +640,20 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
           if(records.every(record=>record.target===host||host?.contains(record.target)))return;
           schedule();
         });
-        // Observe the document root: the site's body/main can be replaced by
-        // an SPA transition while this trusted controller stays alive.
-        observer.observe(doc.documentElement||doc.body,{subtree:true,childList:true,attributes:true,
-          attributeFilter:['class','style','hidden','aria-hidden','inert']});
       }
-    }catch{if(token===epoch)stop();}
+      observeRoot();
+    }catch{
+      if(token!==epoch||disposed||paused)return;
+      // A transient storage/DOM readiness failure must not permanently erase
+      // the buttons until reload. Fail closed, then retry with bounded backoff.
+      // An explicit disable/revocation above is definitive and does not retry.
+      const retryAfter=Math.min(800*2**Math.min(readFailures++,4),12800);
+      stop();
+      retryTimer=win.setTimeout(()=>{
+        retryTimer=0;
+        if(!disposed&&!paused)void refresh();
+      },retryAfter);
+    }
   }
   const onStorage=(changes,area)=>{
     if(area!=='local'||!KEYS.some(key=>Object.hasOwn(changes,key)))return;
