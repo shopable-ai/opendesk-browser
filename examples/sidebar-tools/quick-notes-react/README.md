@@ -49,4 +49,16 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --c
 
 ## 实际扩展 Host SDK 交叉验收
 
-新增 `scripts/tests/quick-notes-react-r21-installed-chrome.mjs`：在**隔离临时 Chrome Profile** 中加载真正的 OpenDesk MV3 扩展，从扩展中心经真实审核安装 React 工具（原生 Quick Notes 若已预装则验证原版包 SHA），两边通过宿主 `OpenDeskTool.request` 保存不同文本，关闭/重开并校验数据命名空间互不影响。此测试没有模拟 SDK，CI 中运行的是 Linux Chrome 的扩展目录页面，**不是 Mac 原生 Side Panel，也不能替代 Mac 本地生命周期、200% 缩放及性能测试**。测试失败或缺少证据时不得视为通过。
+沿用 `scripts/tests/quick-notes-react-r21-installed-chrome.mjs`：在**隔离临时 Chrome Profile** 中加载真正的 OpenDesk MV3 扩展，核验 Chrome 返回的 `SIDE_PANEL` 上下文和最终 `hostInstanceId` URL，从扩展中心经真实审阅安装 React 工具（原生 Quick Notes 若已预装则验证原版包 SHA）。普通 `tool.html` 标签页只显示任务目录，不能替代真实 Side Panel。
+
+测试通过真实 SDK 验证隔离读写、浏览器完整重启、ETag、8 KiB/16 条上限、未知结果草稿保护、关联网页、Chrome 收回站点访问后的离线保存、更新拒绝、停用撤销已打开 iframe、恢复、卸载确认及重装。Chrome 设置里的 Site Access 选择由实际 WebUI 处理，并以 `permissions.contains` 独立核对；没有模拟 SDK。缩放与不同宽度不属于本轮要求，默认跳过；保留的历史诊断仅在显式设置 `OPENDESK_QN_LAYOUT_CHECKS=1` 时执行。
+
+先在独立终端启动标准页面；`CHROME_BIN` 指向用于验收的 Chrome/CFT。Mac 有界面模式使用 `OPENDESK_QN_HEADFUL=1`，Linux CI 与 Mac 结果分别记录。若共享构建正被其他会话更新，应使用已校验的只读 Host 产物快照设置 `OPENDESK_SHARED_UI_EXTENSION_DIR`，不能覆盖日常 watcher 输出。
+
+```sh
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+# 另一个终端；先完成上方构建与候选包门禁。
+OPENDESK_QN_HEADFUL=1 node scripts/tests/quick-notes-react-r21-installed-chrome.mjs
+```
+
+Mac 自动化 PASS 不代表 Linux CI、VoiceOver 人工体验或性能测试 PASS。当前发布状态和必要的未测项见 `RELEASE-STATUS.zh-CN.md`。

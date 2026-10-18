@@ -53,6 +53,16 @@ test('corrupt stored data fails closed before any mutation',()=>{
   assert.equal(ok.notes[0].updatedAt,0);
   assert.equal(validNote({id:'x',text:'中文'}),true);
 });
+test('duplicate stored note ids fail closed before editing or deleting multiple notes',()=>{
+  const first={id:'duplicate',text:'第一条'};
+  const last={id:'duplicate',text:'另一条'};
+  for(const value of [[first,last],[first,{id:'unique',text:'中间条目'},last]]){
+    const original=structuredClone(value);
+    assert.throws(()=>recoverNotes({etag:ETAG,value},null),
+      {message:'数据格式无效，禁止覆盖'});
+    assert.deepEqual(value,original);
+  }
+});
 test('all writes are proposed with the original 8 KiB whole-item and 16-note contract',()=>{
   const {id,next}=create();
   assert.equal(STORAGE_KEY,'notes');
@@ -68,8 +78,32 @@ test('all writes are proposed with the original 8 KiB whole-item and 16-note con
   assert.deepEqual(proposedDelete(edit.next,id),[]);
   assert.throws(()=>create({text:'  '}),/请输入/);
   assert.throws(()=>create({text:'中'.repeat(3200)}),/8 KiB/);
-  assert.throws(()=>create({notes:Array(16).fill({id:'x',text:'y'})}),/最多保存/);
   assert.ok(itemBytes(next)<8192);
+});
+test('the shared UTF-8 storage item accepts exactly 8 KiB and rejects one byte more',()=>{
+  const notes=create().next;
+  const options={notes,selectedId:null,text:'界',at:124,makeId:()=> 'id-2'};
+  const padding=8192-itemBytes(proposedSave(options).next);
+  const text='界'+'a'.repeat(padding);
+  const exact=proposedSave({...options,text});
+  assert.equal(exact.next.length,2);
+  assert.equal(itemBytes(exact.next),8192);
+  assert.equal(itemBytes([{...exact.next[0],text:text+'a'},notes[0]]),8193);
+  assert.throws(()=>proposedSave({...options,text:text+'a'}),/8 KiB/);
+  assert.equal(notes[0].text,'中文笔记');
+});
+test('all 16 valid notes recover and allow editing or deleting only the selected note',()=>{
+  const value=Array.from({length:MAX_NOTES},(_,index)=>({id:'id-'+index,text:'笔记 '+index}));
+  const {notes}=recoverNotes({etag:ETAG,value},null);
+  assert.equal(notes.length,MAX_NOTES);
+  const selectedId=notes[7].id;
+  const edit=proposedSave({notes,selectedId,text:'已更新',at:124});
+  const expected=notes.map((note,index)=>index===7?{...note,text:'已更新',updatedAt:124}:note);
+  assert.deepEqual(edit.next,expected);
+  assert.equal(edit.id,selectedId);
+  assert.equal(notes[7].text,'笔记 7');
+  assert.deepEqual(proposedDelete(edit.next,selectedId),notes.filter(note=>note.id!==selectedId));
+  assert.throws(()=>create({notes,makeId:()=> 'id-16'}),/最多保存/);
 });
 test('page attachment opt-in, offline preservation and URL classification',()=>{
   assert.equal(pageInfoFrom({status:'available',url:'chrome://extensions'}),null);

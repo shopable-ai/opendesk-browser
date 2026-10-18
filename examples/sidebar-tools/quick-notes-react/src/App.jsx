@@ -31,6 +31,7 @@ export default function App({request,setState,hostRoot,markUrl}){
   const inFlight=useRef(false);
   const pageEpoch=useRef(0);
   const previouslyFocused=useRef(null);
+  const pendingFocus=useRef(null);
   const cancelButton=useRef(null);
   const acceptButton=useRef(null);
   const editor=useRef(null);
@@ -97,6 +98,12 @@ export default function App({request,setState,hostRoot,markUrl}){
   useEffect(()=>{
     if(view.confirmation)cancelButton.current?.focus();
   },[view.confirmation]);
+  useEffect(()=>{
+    if(view.confirmation||view.deleting||!pendingFocus.current)return;
+    const target=pendingFocus.current;
+    pendingFocus.current=null;
+    (target.isConnected?target:editor.current)?.focus();
+  },[view]);
 
   function selectNow(id){
     const current=live.current;
@@ -105,8 +112,8 @@ export default function App({request,setState,hostRoot,markUrl}){
       dirty:false,status:null});
   }
   function newNow(){
+    pendingFocus.current=editor.current;
     patch({selectedId:null,text:'',attach:false,dirty:false,status:null});
-    editor.current?.focus();
   }
   function ask(message,action){
     if(live.current.confirmation)return;
@@ -127,12 +134,9 @@ export default function App({request,setState,hostRoot,markUrl}){
   function closeConfirmation(accepted){
     const choice=live.current.confirmation;
     if(!choice)return;
+    pendingFocus.current=accepted?editor.current:(previouslyFocused.current||editor.current);
     patch({confirmation:null});
     if(accepted)runAction(choice.action);
-    else{
-      const previous=previouslyFocused.current;
-      (previous?.isConnected?previous:editor.current)?.focus();
-    }
   }
   function selectNote(id){
     if(id===live.current.selectedId)return;
@@ -241,7 +245,7 @@ export default function App({request,setState,hostRoot,markUrl}){
   const locked=!view.ready||view.busy||Boolean(view.confirmation);
   const attached=selected?.pageTitle||'';
   return <main className="notes-app od-page" onKeyDown={onKeyDown}>
-    <div className="page-context">
+    <div className="page-context" inert={Boolean(view.confirmation)}>
       <img className="notes-mark" src={markUrl} width="24" height="24" alt=""/>
       <div className="page-meta">
         <p className="page-summary od-title">{view.pageSummary}</p>
@@ -250,7 +254,7 @@ export default function App({request,setState,hostRoot,markUrl}){
       <IconButton label="更新网页信息" className="icon-button" onClick={()=>void refreshPage()}
         disabled={view.pageBusy}><Glyph kind="refresh"/></IconButton>
     </div>
-    <Card className="notes-editor">
+    <Card className="notes-editor" inert={Boolean(view.confirmation)}>
       <CardContent>
         <section className="editor" aria-label="离线笔记编辑器">
           <div className="notes-heading od-page-head">
@@ -308,7 +312,7 @@ export default function App({request,setState,hostRoot,markUrl}){
           onClick={()=>closeConfirmation(true)}>确定</Button>
       </div>
     </section>:null}
-    <details className="task-shortcut od-disclosure od-disclosure--flat">
+    <details className="task-shortcut od-disclosure od-disclosure--flat" inert={Boolean(view.confirmation)}>
       <summary>打开已安装的自动化任务</summary>
       <div className="task-row">
         <label className="visually-hidden" htmlFor="task-name">任务 ID</label>
