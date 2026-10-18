@@ -92,22 +92,30 @@ function App(){
   React.useEffect(()=>{
     alive.current=true;
     const onVisible=()=>{if(!document.hidden)void refresh(true);};
+    const onPageChanged=()=>{
+      // The sandbox bridge dispatches this event on OpenDeskTool.root, not
+      // window. Immediately discard the previous tab's host before its read.
+      current.current=null;setState(null);setLoading(true);
+      void refresh();
+    };
     const onMessage=event=>{
       if(event.source!==globalThis.parent)return;
-      if(event.data?.kind==='page-changed'&&event.data?.protocol==='opendesk.sidebar-tool.bridge.v1')
-        void refresh(true);
       if(event.data?.protocol==='opendesk.adblock.ui.v1'&&event.data?.kind==='settings')
         setView('settings');
     };
     document.addEventListener('visibilitychange',onVisible);
     globalThis.addEventListener('focus',onVisible);
     globalThis.addEventListener('message',onMessage);
+    api?.root?.addEventListener?.('opendesk-page-changed',onPageChanged);
+    api?.root?.addEventListener?.('opendesk-tool-state-changed',onPageChanged);
     const interval=setInterval(()=>{if(!document.hidden)void refresh(true);},12000);
     void refresh();
     return ()=>{alive.current=false;reading.current++;clearInterval(interval);
       document.removeEventListener('visibilitychange',onVisible);
       globalThis.removeEventListener('focus',onVisible);
-      globalThis.removeEventListener('message',onMessage);};
+      globalThis.removeEventListener('message',onMessage);
+      api?.root?.removeEventListener?.('opendesk-page-changed',onPageChanged);
+      api?.root?.removeEventListener?.('opendesk-tool-state-changed',onPageChanged);};
   },[refresh]);
   const ready=Boolean(verified(state)&&state.toolEnabled!==false&&!state.restartRequired);
   const on=Boolean(ready&&state.enabled);
