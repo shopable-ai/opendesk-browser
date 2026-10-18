@@ -17,6 +17,7 @@ const fromLocal=input=>{
 export default function CookieInlineEditor({row=null,target,disabled=false,
   readValue,onSave,onCancel,onDelete,onDirty}){
   const valueRef=React.useRef(null),revealedRef=React.useRef(null);
+  const revealTimer=React.useRef(null);
   const [valueEdited,setValueEdited]=React.useState(false);
   const [showValue,setShowValue]=React.useState(false);
   const [revealing,setRevealing]=React.useState(false);
@@ -33,10 +34,17 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
   const edited=!!row;
   React.useEffect(()=>()=>{if(valueRef.current)valueRef.current.value='';
     if(revealedRef.current)revealedRef.current.textContent='';
+    if(revealTimer.current)clearTimeout(revealTimer.current);
   },[row?.id,target?.url]);
   const update=(key,value)=>{setDraft(old=>({...old,[key]:value}));onDirty?.(true);};
-  const dismissReveal=()=>{if(revealedRef.current)revealedRef.current.textContent='';
-    if(revealedRef.current)revealedRef.current.hidden=true;};
+  const dismissReveal=()=>{
+    if(revealTimer.current)clearTimeout(revealTimer.current);
+    revealTimer.current=null;
+    if(revealedRef.current){
+      revealedRef.current.textContent='';
+      revealedRef.current.hidden=true;
+    }
+  };
   const reveal=async()=>{
     if(!row||!readValue)return;
     if(revealedRef.current&&!revealedRef.current.hidden){dismissReveal();return;}
@@ -46,6 +54,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       if(typeof value==='string'&&revealedRef.current){
         revealedRef.current.textContent=value;
         revealedRef.current.hidden=false;
+        if(revealTimer.current)clearTimeout(revealTimer.current);
+        revealTimer.current=setTimeout(dismissReveal,20000);
       }else setMessage('敏感值不可用；请检查授权或刷新。');
     }finally{setRevealing(false);}
   };

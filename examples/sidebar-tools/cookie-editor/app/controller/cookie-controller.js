@@ -388,7 +388,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
     clearPlan=null;observeEvents=[];
   }
-  notify();
+  // Initial state is available synchronously through snapshot(). Do not
+  // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
     discardImport,exportTo,observe,dispose};
