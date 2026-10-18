@@ -162,7 +162,8 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   const bytes=readFileSync(file);
   const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledAppOwnedBackgroundInputs[path])
-    throw Error('Trusted app-owned source changed; review and re-pin before fixed build: '+path);
+    throw Error('Trusted app-owned source changed; review and re-pin before fixed build: '+path+
+      ' (pinned='+compiledAppOwnedBackgroundInputs[path]+' actual='+hash+')');
   return hash;
 }
 
