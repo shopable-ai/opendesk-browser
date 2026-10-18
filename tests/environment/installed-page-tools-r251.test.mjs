@@ -113,8 +113,9 @@ test('R5.5 installed Page remains manageable without a Candidate catalog entry',
   f.enqueueList(Promise.resolve({catalog:[],installed:[installed]}));
   await f.ui.refresh();
   assert.equal(f.list.children.length,1);
-  assert.match(f.list.children[0].textContent,/已安装的原始名称/);
-  assert.equal(f.list.children[0].querySelectorAll('button').length,1);
+  assert.equal(f.list.children[0].children[0].textContent,'已安装的原始名称 · r3');
+  assert.equal(f.action('orphan','toggle').getAttribute('aria-label'),
+    '停用自动运行：已安装的原始名称');
 });
 
 test('R25.1 DOM double keeps long installed title and site rules as complete literal text',async t=>{

@@ -298,7 +298,7 @@ test('R5.5 stale Page generation invalidates an old uninstall confirmation befor
   action('uninstall').dispatch('click');
   f.programs[0].installed.authorization.generation++;
   await f.ui.refresh();
-  assert.equal(action('confirm-uninstall'),undefined);
+  assert.equal(action('confirm-uninstall'),null,'stale confirmation is no longer rendered');
   assert.equal(f.uninstalls.length,0);
   assert.match(f.nodes['extension-center-status'].textContent,/卸载确认已失效/);
 });
