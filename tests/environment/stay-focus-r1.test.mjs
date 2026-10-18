@@ -540,3 +540,31 @@ test('R1.6 settings save through button clicks when sandbox denies form submissi
   }
   assert.doesNotMatch(script,/addEventListener\('submit'/);
 });
+
+test('R4.3 editing a paused site retains the pause and never renames implicitly',()=>{
+  const source=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+  const start=source.indexOf("$('site-save').addEventListener");
+  const end=source.indexOf('\n  });',start)+7;
+  assert.ok(start>=0&&end>start);
+  const values={'site-host':'example.com','site-minutes':'9','site-mode':'limit',
+    'site-group':'entertainment'};
+  const nodes=new Map(),requests=[],messages=[];
+  const $=id=>{
+    if(!nodes.has(id))nodes.set(id,{value:values[id]??'',checked:true,
+      listeners:{},addEventListener(type,listener){this.listeners[type]=listener;}});
+    return nodes.get(id);
+  };
+  runInNewContext(source.slice(start,end),{$,editingSite:'example.com',
+    state:{sites:[{host:'example.com',enabled:false}]},
+    call:(operation,payload)=>{requests.push({operation,payload});return Promise.resolve(false);},
+    message:(value)=>messages.push(value),escapeHost:focusHost});
+  $('site-save').listeners.click({preventDefault(){}});
+  assert.deepEqual(JSON.parse(JSON.stringify(requests)),[
+    {operation:'focus.site.put',payload:{site:{host:'example.com',minutes:9,
+      subdomains:true,enabled:false,mode:'limit',group:'entertainment'}}}
+  ]);
+  $('site-host').value='different.example';
+  $('site-save').listeners.click({preventDefault(){}});
+  assert.equal(requests.length,1,'a domain change must not create a second site');
+  assert.ok(messages.some(message=>message.includes('不能直接更改已管理网站的域名')));
+});
