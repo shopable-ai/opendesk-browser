@@ -88,252 +88,253 @@ async function poll(fn,label){
   }
   throw Error('UI did not reach '+label+(last?': '+last:''));
 }
-async function open(scenario,width=360){
+// The iframe always mounts the actual Vite-compiled App.jsx; the outer shell
+// supplies only inert confirmation prompts. No deprecated native/restore DOM.
+async function open(scenario,width=360,theme='light'){
   const built=await buildPreview({tool:'adblock',surface:'side-panel',
-    scenario,theme:'light',width,height:760});
+    scenario,theme,width,height:760});
   contexts.clear();errors.length=0;network.length=0;
   await cdp('Emulation.setDeviceMetricsOverride',{
-    width:670,height:1000,deviceScaleFactor:1,mobile:false
+    width:760,height:1050,deviceScaleFactor:1,mobile:false
   });
   await cdp('Page.navigate',{url:pathToFileURL(built.output).href});
   const ctx=await poll(async()=>{
-    for(const x of contexts.values()){
+    for(const row of contexts.values()){
       try{
-        if(await evaluate("Boolean(globalThis.OpenDeskTool&&document.getElementById('exception-count'))",x))
-          return x;
+        if(await evaluate('Boolean(globalThis.OpenDeskTool&&document.querySelector(".adblock-app [data-slot=switch]"))',row))
+          return row;
       }catch{}
     }
     return null;
-  },scenario+' sandbox package');
-  await poll(()=>evaluate("document.querySelectorAll('#od-preview-adblock-host button[role=switch]').length===2"),
-    'trusted AdBlock host controls');
+  },scenario+' compiled React iframe');
+  await poll(async()=>(await child(ctx)).switches.length===2,
+    'React global and website switches');
   return {built,ctx};
 }
 async function parent(){
   return evaluate('('+function(){
-    const host=document.getElementById('od-preview-adblock-host');
     const frame=document.getElementById('opendesk-preview-frame');
-    const switches=[...host.querySelectorAll('button[role=switch]')];
-    const header=document.querySelector('.sidebar-tool-view-head');
-    const settings=header?.querySelector('#sidebar-tool-settings-open');
-    const remove=header?.querySelector('#sidebar-tool-remove');
-    const title=header?.querySelector('#sidebar-tool-title');
-    const back=header?.querySelector('#sidebar-tool-back');
-    const sr=settings?.getBoundingClientRect(),rr=remove?.getBoundingClientRect();
-    const tr=title?.getBoundingClientRect(),br=back?.getBoundingClientRect();
-    return {duplicateBrand:!!host.querySelector('.adblock-native-head,.adblock-native-icon,.adblock-native-logo,.adblock-native-identity,.adblock-native-title,.adblock-native-subtitle')||
-        host.textContent.includes('广告拦截 · 安静浏览'),
-      titleVisible:!!(title&&!title.hidden&&title.textContent.trim()==='广告拦截'),
-      titleLeftGap:tr&&br?tr.left-br.right:-1,
-      settingsRightAligned:!!(sr&&rr&&!settings.hidden&&
-        sr.right<=rr.left&&rr.left-sr.right<=12&&
-        Math.abs((sr.top+sr.bottom)-(rr.top+rr.bottom))<=3),
-      switches:switches.map(s=>({checked:s.getAttribute('aria-checked')==='true',
-      disabled:s.disabled,text:s.textContent,width:s.getBoundingClientRect().width})),
-      hostText:host.textContent,
-      dialog:document.getElementById('od-preview-adblock-restore-dialog').open,
-      note:document.getElementById('od-preview-adblock-feedback').textContent,
-      frameHeight:frame.getBoundingClientRect().height,
-      sandbox:frame.getAttribute('sandbox'),
-      overflow:document.documentElement.scrollWidth>innerWidth+1};
+    const title=document.getElementById('sidebar-tool-title');
+    const dialog=document.getElementById('od-preview-adblock-restore-dialog');
+    return {
+      frame:!!frame,frameHeight:frame?.getBoundingClientRect().height||0,
+      sandbox:frame?.getAttribute('sandbox'),title:title?.textContent.trim(),
+      dialog:dialog?.open||false,
+      dialogText:dialog?.textContent||'',
+      feedback:document.getElementById('od-preview-adblock-feedback')?.textContent||'',
+      overflow:document.documentElement.scrollWidth>innerWidth+1,
+      duplicateLegacyHost:!!document.querySelector('#od-preview-adblock-host .adblock-native-head')
+    };
   }.toString()+')()');
 }
 async function child(ctx){
   return evaluate('('+function(){
-    return {count:document.getElementById('exception-count').textContent,
-      domains:[...document.querySelectorAll('.adblock-domain')].map(n=>n.textContent),
-      buttons:document.querySelectorAll('.adblock-restore').length,
-      message:document.getElementById('adblock-message').textContent,
-      image:!!document.querySelector('img[src="x"]'),
-      overflow:document.documentElement.scrollWidth>innerWidth+1};
+    const app=document.querySelector('.adblock-app');
+    const switches=[...document.querySelectorAll('.adblock-app [data-slot=switch]')]
+      .map(row=>({
+        label:row.getAttribute('aria-label'),
+        selected:row.hasAttribute('data-selected'),
+        disabled:row.hasAttribute('data-disabled'),
+        width:row.getBoundingClientRect().width
+      }));
+    return {
+      mounted:!!app,
+      switches,
+      status:app?.querySelector('.adblock-state')?.textContent.trim()||'',
+      notice:app?.querySelector('.adblock-notice')?.textContent.trim()||'',
+      noticeError:app?.querySelector('.adblock-notice')?.getAttribute('data-error')||'',
+      exceptions:[...document.querySelectorAll('.adblock-exception strong')]
+        .map(row=>row.textContent),
+      restoreDisabled:[...document.querySelectorAll('.adblock-exception button')]
+        .map(row=>row.disabled),
+      empty:!!document.querySelector('.adblock-empty'),
+      nav:app?.querySelector('.adblock-link')?.textContent.trim()||'',
+      headings:[...document.querySelectorAll('.adblock-page-head strong')]
+        .map(row=>row.textContent),
+      hasUnsafeImage:!!app?.querySelector('img[src="x"]'),
+      text:app?.textContent||'',
+      overflow:document.documentElement.scrollWidth>innerWidth+1
+    };
   }.toString()+')()',ctx);
 }
-async function click(selector,ctx=null){
-  if(ctx){
-    // This exercises source-bound UI and iframe postMessage semantics in Chrome,
-    // but .click() is SCRIPT-DRIVEN and must never be reported as user gesture.
-    const focus=await evaluate('('+function(sel){
-      const button=document.querySelector(sel);
-      if(!button||button.disabled)throw Error('Missing enabled target '+sel);
-      button.focus();
-      const result={focused:document.activeElement===button,
-        active:document.activeElement?.outerHTML?.slice(0,200)||null,
-        documentHasFocus:document.hasFocus(),tabIndex:button.tabIndex,
-        rect:button.getBoundingClientRect().toJSON(),
-        visibility:getComputedStyle(button).visibility,
-        display:getComputedStyle(button).display};
-      button.click();
-      return result;
-    }.toString()+')('+JSON.stringify(selector)+')',ctx);
-    assert.equal(focus.focused,true,'sandbox button receives focus: '+JSON.stringify(focus));
-    console.log('ADBLOCK_CHROME_DOM_SIMULATION_NOT_TRUSTED '+selector);
-    return;
-  }
-  const rect=await evaluate('('+function(sel){
-    const target=document.querySelector(sel);
-    if(!target)throw Error('Missing control '+sel);
-    target.scrollIntoView({block:'nearest',inline:'nearest'});
-    const r=target.getBoundingClientRect();
-    return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};
+function selected(state,label){
+  const row=state.switches.find(s=>s.label===label);
+  assert.ok(row,'React switch has accessible label: '+label+' '+JSON.stringify(state.switches));
+  return row;
+}
+async function pointer(x,y){
+  assert.ok(Number.isFinite(x)&&Number.isFinite(y)&&x>=0&&y>=0,'CDP click coordinates');
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x,y});
+  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',clickCount:1});
+  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',clickCount:1});
+}
+async function clickOuter(selector){
+  const position=await evaluate('('+function(sel){
+    const item=document.querySelector(sel);
+    if(!item)throw Error('Missing outer control '+sel);
+    item.scrollIntoView({block:'nearest',inline:'nearest'});
+    const r=item.getBoundingClientRect();
+    if(r.width<4||r.height<4)throw Error('Hidden outer control '+sel);
+    return {x:r.left+r.width/2,y:r.top+r.height/2};
   }.toString()+')('+JSON.stringify(selector)+')');
-  assert.ok(rect.w>0&&rect.h>0,'visible pointer target '+selector);
-  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y});
-  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,
-    button:'left',clickCount:1});
-  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:rect.x,y:rect.y,
-    button:'left',clickCount:1});
+  await pointer(position.x,position.y);
+}
+async function clickReact(selector,ctx){
+  await evaluate('('+function(sel){
+    const item=document.querySelector(sel);
+    if(!item)throw Error('Missing compiled React control '+sel);
+    item.scrollIntoView({block:'nearest',inline:'nearest'});
+    if(item.hasAttribute('data-disabled')||item.disabled)
+      throw Error('Disabled React target '+sel);
+    return true;
+  }.toString()+')('+JSON.stringify(selector)+')',ctx);
+  await evaluate('document.getElementById("opendesk-preview-frame").scrollIntoView({block:"nearest"})');
+  const [frame,inside]=await Promise.all([
+    evaluate('('+function(){
+      const r=document.getElementById('opendesk-preview-frame').getBoundingClientRect();
+      return {x:r.left,y:r.top,width:r.width,height:r.height};
+    }.toString()+')()'),
+    evaluate('('+function(sel){
+      const r=document.querySelector(sel).getBoundingClientRect();
+      return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};
+    }.toString()+')('+JSON.stringify(selector)+')',ctx)
+  ]);
+  assert.ok(inside.width>=4&&inside.height>=4,'visible compiled React target: '+selector);
+  assert.ok(inside.x>=0&&inside.x<frame.width&&inside.y>=0&&inside.y<frame.height,
+    'target must be inside the real iframe viewport: '+selector);
+  await pointer(frame.x+inside.x,frame.y+inside.y);
 }
 async function screenshot(name){
   const shot=await cdp('Page.captureScreenshot',{format:'png'});
-  await writeFile(join(output,'adblock-'+name+'.png'),Buffer.from(shot.data,'base64'));
+  await writeFile(join(output,'adblock-react-'+name+'.png'),Buffer.from(shot.data,'base64'));
 }
-function clean(){
-  assert.deepEqual(network,[],'offline preview cannot request HTTP(S)');
-  assert.deepEqual(errors,[],'headless Chrome must report no uncaught errors');
+function offlineSafety(){
+  assert.deepEqual(network,[],'offline preview must not make HTTP(S) requests');
+  assert.deepEqual(errors,[],'Chrome must not report uncaught iframe/script exceptions');
 }
+const GLOBAL='[data-slot="switch"][aria-label="全局广告拦截"]';
+const SITE='[data-slot="switch"][aria-label="当前网站广告过滤"]';
 try{
   await connect();
   const report=[];
   {
-    const {built,ctx}=await open('success');
-    await poll(async()=>(await child(ctx)).count==='1 个例外网站','initial exception');
-    const host=await parent(),list=await child(ctx);
-    assert.equal(host.duplicateBrand,false,'content area must not repeat the tool identity');
-    assert.equal(host.settingsRightAligned,true,'settings icon and Uninstall belong on the same toolbar row');
-    assert.equal(host.titleVisible,true,'the trusted toolbar owns the one visible tool title');
-    assert.ok(host.titleLeftGap>=7&&host.titleLeftGap<=10,
-      'title must have an 8px gap after the Back icon, actual '+host.titleLeftGap);
-    assert.deepEqual(host.switches.map(x=>x.checked),[true,false]);
-    assert.deepEqual(host.switches.map(x=>Math.round(x.width)),[46,46]);
-    assert.equal(host.sandbox,'allow-scripts');
-    assert.equal(host.overflow,false);
-    assert.equal(list.overflow,false);
-    assert.deepEqual(list.domains,['news.example.com']);
-    assert.equal(list.buttons,1);
-    await screenshot('success');
-    // The sandbox list is a separate product page; the overview never shows it.
-    assert.equal(host.frameHeight,0,'overview must not show the exception iframe');
-    await click('#od-preview-adblock-host [data-adblock-nav="exceptions"]');
-    await poll(async()=>(await parent()).frameHeight>0,'exceptions page sandbox visibility');
+    const {ctx,built}=await open('success');
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
+      'initial verified global state');
+    const initial=await child(ctx),shell=await parent();
+    assert.equal(shell.title,'广告拦截');
+    assert.equal(shell.sandbox,'allow-scripts');
+    assert.equal(shell.duplicateLegacyHost,false);
+    assert.equal(shell.overflow,false);
+    assert.equal(initial.overflow,false);
+    assert.equal(selected(initial,'当前网站广告过滤').selected,false);
+    assert.match(initial.nav,/已停用的网站\s*1/);
+    await screenshot('overview');
+    await clickReact('.adblock-link',ctx);
+    await poll(async()=>(await child(ctx)).exceptions.length===1,'React exception page');
+    assert.deepEqual((await child(ctx)).exceptions,['news.example.com']);
     await screenshot('exceptions');
-    // A forged child receipt cannot bypass the genuine restore dialog.
-    await evaluate("window.parent.postMessage({type:'opendesk.preview.adblock.exceptions',requestId:888,exceptions:[]},'*')",ctx);
-    await delay(90);
-    assert.equal((await parent()).switches[1].checked,false);
-    await evaluate("window.__adblockMessages=[];window.addEventListener('message',e=>{if(e.data?.type?.startsWith('opendesk.preview.adblock.'))window.__adblockMessages.push({type:e.data.type,origin:e.origin,validSource:e.source===document.getElementById('opendesk-preview-frame').contentWindow})})");
-    await evaluate("window.__adblockClicks=[];document.addEventListener('click',e=>window.__adblockClicks.push({html:e.target.outerHTML.slice(0,180),trusted:e.isTrusted}),true)",ctx);
-    await click('#exceptions .adblock-restore',ctx);
-    await poll(async()=>(await parent()).dialog,'restore confirmation').catch(async e=>{
-      throw Error(e.message+'; diagnostics='+JSON.stringify({
-        parent:await parent(),child:await child(ctx),
-        messages:await evaluate('window.__adblockMessages'),
-        childClicks:await evaluate('window.__adblockClicks',ctx),
-        activeChild:await evaluate('document.activeElement?.outerHTML?.slice(0,200)',ctx)}));
-    });
-    await screenshot('confirmation');
-    await click('#od-preview-adblock-restore-cancel');
-    await poll(async()=>!(await parent()).dialog,'restore cancel');
-    assert.equal((await child(ctx)).count,'1 个例外网站');
-    await click('#exceptions .adblock-restore',ctx);
-    await poll(async()=>(await parent()).dialog,'restore repeat');
-    await click('#od-preview-adblock-restore-accept');
-    await poll(async()=>(await child(ctx)).count==='0 个例外网站','sandbox restore readback');
-    await poll(async()=>(await parent()).switches[1].checked,'host exception readback');
+    // Confirmations run in the trusted-preview OUTER document only.
+    await clickReact('.adblock-exception button',ctx);
+    await poll(async()=>(await parent()).dialog,'restore confirm');
+    assert.deepEqual((await child(ctx)).restoreDisabled,[true],
+      'the pending React operation must suppress duplicate submissions');
+    // An unmatched forged message must never replace the real approval.
+    await evaluate("window.parent.postMessage({type:'opendesk.preview.adblock.review-decision',requestId:999,accepted:true},'*')",ctx);
+    assert.equal((await parent()).dialog,true);
+    await screenshot('restore-confirmation');
+    await clickOuter('#od-preview-adblock-restore-cancel');
+    await poll(async()=>!(await parent()).dialog,'restore cancellation');
+    await poll(async()=>((await child(ctx)).restoreDisabled[0]===false),
+      'cancelled operation unlocked');
+    assert.deepEqual((await child(ctx)).exceptions,['news.example.com'],
+      'cancelling does not alter saved mock state');
+    await clickReact('.adblock-exception button',ctx);
+    await poll(async()=>(await parent()).dialog,'restore second confirmation');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>(await child(ctx)).empty,'React restore readback');
     await screenshot('restored');
-    await click('#od-preview-adblock-host button[aria-label="从已停用的网站返回概览"]');
-    await poll(async()=>(await parent()).frameHeight===0,'return to overview');
-    await click('#sidebar-tool-settings-open');
-    await poll(async()=>(await parent()).hostText.includes('Chrome 权限与重启'),'product settings');
+    await clickReact('.adblock-back',ctx);
+    await poll(async()=>selected(await child(ctx),'当前网站广告过滤').selected,
+      'website filter restored');
+    // Actual CDP pointer events exercise both global and site React Aria switches.
+    await clickReact(SITE,ctx);
+    await poll(async()=>(await parent()).dialog,'site exception confirm');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>!selected(await child(ctx),'当前网站广告过滤').selected,
+      'site exception readback');
+    assert.match((await child(ctx)).nav,/已停用的网站\s*1/);
+    await clickReact(GLOBAL,ctx);
+    await poll(async()=>(await parent()).dialog,'global disable confirm');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>!selected(await child(ctx),'全局广告拦截').selected,
+      'global disable readback');
+    await clickReact(GLOBAL,ctx);
+    await poll(async()=>(await parent()).dialog,'global enable confirm');
+    await clickOuter('#od-preview-adblock-restore-accept');
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
+      'global enable readback');
+    await clickOuter('#sidebar-tool-settings-open');
+    await poll(async()=>(await child(ctx)).headings.includes('设置说明'),
+      'React settings navigation from toolbar');
     await screenshot('settings');
-    await click('#od-preview-adblock-host button[aria-label="从 AdBlock 设置返回概览"]');
-    assert.equal(await evaluate('document.activeElement?.id'),
-      'sidebar-tool-settings-open','return from product settings restores toolbar focus');
-    clean();
+    await clickReact('.adblock-back',ctx);
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
+      'React settings back to overview');
+    offlineSafety();
     report.push({scenario:'success',sourceCommit:built.sourceCommit,
-      uiSha256:built.uiSha256,checks:['source-dom','source-css-switch',
-      'sandbox-opaque','DOM-simulated-confirm-not-user-gesture','cancel-preserves-state',
-      'accepted-matching-receipt','forged-message-rejected','no-network']});
+      uiSha256:built.uiSha256,checks:[
+        'compiled-react-mounted','real-CDP-pointer-React-Aria-controls',
+        'restore-accept','restore-cancel','pending-duplicate-locked',
+        'global-disable-enable','site-exception','settings-back',
+        'opaque-sandbox','offline-no-network','forged-review-ignored']});
   }
-  // Real Chromium responsive matrix: source-generated tool, not screenshots
-  // captured from a manually redrawn shell or scaled bitmap.
-  for(const width of [320,400,480]){
-    const {ctx,built}=await open('success',width);
-    await poll(async()=>(await child(ctx)).count==='1 个例外网站',
-      'responsive sandbox '+width);
-    const host=await parent(),list=await child(ctx);
-    assert.equal(host.duplicateBrand,false,'no duplicate product header at '+width);
-    assert.equal(host.settingsRightAligned,true,'settings icon shares the Uninstall row at '+width);
-    assert.equal(host.titleVisible,true,'tool title stays visible at '+width);
-    assert.ok(host.titleLeftGap>=7&&host.titleLeftGap<=10,
-      '8px Back-to-title gap at '+width+', actual '+host.titleLeftGap);
-    assert.equal(host.overflow,false,'host horizontal overflow at '+width);
-    assert.equal(list.overflow,false,'opaque sandbox horizontal overflow at '+width);
-    assert.equal(host.frameHeight,0,'overview may not show exceptions iframe at '+width);
-    await screenshot('success-'+width);
-    clean();
-    report.push({scenario:'success',width,sourceCommit:built.sourceCommit,
-      uiSha256:built.uiSha256,checks:['real-chrome-responsive',
-        'no-horizontal-overflow','opaque-sandbox','overview-no-exceptions']});
-  }
-  {
-    const {ctx}=await open('empty');
-    await poll(async()=>(await child(ctx)).count==='0 个例外网站','empty exception list');
-    assert.equal((await parent()).switches[0].checked,false);
-    await screenshot('permission-before');
-    await click('#od-preview-adblock-host button[role=switch]');
-    await poll(async()=>(await parent()).hostText.includes('需重启 Chrome'),
-      'restart-required snapshot');
-    const host=await parent();
-    assert.equal(host.switches[0].checked,false);
-    assert.equal(host.switches[0].disabled,true);
-    assert.match(host.note,/重启 Chrome/);
-    await screenshot('restart-required');
-    clean();report.push({scenario:'empty',checks:['empty-list',
-      'real-click-grant','restart-required','no-fake-enabled-state']});
+  for(const width of [320,360,400,440])for(const theme of ['light','dark']){
+    const {ctx,built}=await open('success',width,theme);
+    await poll(async()=>selected(await child(ctx),'全局广告拦截').selected,
+      'responsive React initial state');
+    assert.equal((await child(ctx)).overflow,false,'React horizontal overflow '+width+'/'+theme);
+    assert.equal((await parent()).overflow,false,'preview shell overflow '+width+'/'+theme);
+    await screenshot('responsive-'+width+'-'+theme);
+    offlineSafety();
+    report.push({scenario:'responsive',width,theme,uiSha256:built.uiSha256,
+      checks:['real-chrome-react','no-horizontal-overflow','offline-no-network']});
   }
   {
     const {ctx}=await open('untrusted');
-    await poll(async()=>(await child(ctx)).domains.length===1,'malicious domain text');
-    const list=await child(ctx);
-    assert.match(list.domains[0],/<img src=x onerror=alert\(1\)>/);
-    assert.equal(list.image,false);
-    await screenshot('untrusted');clean();
-    report.push({scenario:'untrusted',checks:['text-only-untrusted-domain']});
+    await clickReact('.adblock-link',ctx);
+    await poll(async()=>(await child(ctx)).exceptions.length===1,'malicious text');
+    const state=await child(ctx);
+    assert.match(state.exceptions[0],/<img src=x onerror=alert\(1\)>/);
+    assert.equal(state.hasUnsafeImage,false,'untrusted domain must remain text only');
+    await screenshot('untrusted');
+    offlineSafety();report.push({scenario:'untrusted',checks:['inert-text','no-xss']});
   }
-  for(const scenario of ['error','loading']){
-    await open(scenario);
-    const host=await parent();
-    assert.equal(host.switches[0].disabled,true,'unknown state fails closed: '+scenario);
-    assert.equal(host.switches[1].disabled,true,'site cannot mutate unknown state');
-    await screenshot(scenario);clean();
-    report.push({scenario,checks:['disabled-unsafe-controls']});
-  }
-  {
-    await open('permission-denied');
-    const before=await parent();
-    assert.equal(before.switches[0].disabled,false,
-      'trusted host must allow a user to request missing Chrome DNR permission');
-    assert.equal(before.switches[0].checked,false);
-    assert.equal(before.switches[1].disabled,true);
-    await click('#od-preview-adblock-host button[role=switch]');
-    const denied=await parent();
-    assert.match(denied.note,/拒绝 Chrome DNR 授权/);
-    assert.equal(denied.switches[0].checked,false,'denial cannot enable DNR');
-    assert.equal(denied.switches[0].disabled,false,'retry remains user initiated');
-    assert.equal(denied.switches[1].disabled,true);
-    await screenshot('permission-denied');clean();
-    report.push({scenario:'permission-denied',checks:[
-      'real-click-denied','no-fake-grant','retry-available','site-disabled']});
+  for(const scenario of ['empty','error','loading','permission-denied']){
+    const {ctx}=await open(scenario);
+    await poll(async()=>{
+      const x=await child(ctx);
+      return scenario==='loading'?x.status.includes('正在核对 Chrome'):
+        scenario==='error'?x.notice.includes('离线状态读取错误'):
+        x.status.includes('过滤权限不可用');
+    },scenario+' state');
+    const view=await child(ctx);
+    assert.equal(selected(view,'全局广告拦截').disabled,true,
+      'unknown/missing permission cannot enable without trusted Host: '+scenario);
+    assert.equal(selected(view,'当前网站广告过滤').disabled,true);
+    await screenshot(scenario);
+    offlineSafety();
+    report.push({scenario,checks:['honest-disabled-state','no-fake-DNR-authority']});
   }
   await writeFile(join(output,'adblock-preview-chrome.json'),
-    JSON.stringify({status:'PREVIEW_BROWSER_DOM_SIMULATION_PASS_NOT_INSTALLED',
-      installed:false,chromeDnr:false,realSandboxUserGesture:false,scenarios:report},null,2)+'\n');
-  console.log('ADBLOCK_PREVIEW_CHROME_DOM_SIMULATION_PASS_NOT_INSTALLED '+report.length+' scenarios');
+    JSON.stringify({status:'OFFLINE_REACT_CHROME_DOM_PASS_NOT_NATIVE_DNR',
+      source:'compiled App.jsx via Vite',checks:report},null,2)+'\n');
+  console.log('ADBLOCK_PREVIEW_CHROME_PASS_REAL_REACT_DOM_NOT_NATIVE '+report.length);
 }catch(e){
   console.error('ADBLOCK_PREVIEW_CHROME_FAIL '+(e?.stack||e));
   process.exitCode=1;
 }finally{
-  if(socket)socket.close();
-  chrome.kill('SIGTERM');
-  await rm(profile,{recursive:true,force:true,maxRetries:3,retryDelay:200});
+  try{socket?.close();}catch{}
+  chrome.kill();
+  await rm(profile,{recursive:true,force:true});
 }
