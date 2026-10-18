@@ -15,7 +15,8 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled}) {
+  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled,
+  reactNavigation=null}) {
   const get=id=>doc.getElementById(id);
   if(debugEnabled){
     get('tab-debug').hidden=false;
@@ -123,7 +124,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     for(const [element,view] of [
       ['tasks','tasks'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
+    // React owns the tab buttons in the installed Side Panel. The legacy
+    // writer survives only in isolated controller tests without a React shell.
+    if(reactNavigation?.select)reactNavigation.select(name);
+    else for(const [view,id] of [['tasks','tab-my-tasks'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
       const tab=get(id);
       tab.setAttribute('aria-selected',String(name===view));
       tab.tabIndex=name===view?0:-1;
@@ -133,7 +137,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(name==='tasks')renderInstalledCards();
     if(name==='debug')onNavigate?.('debug');
     if(name==='cloud')onNavigate?.('cloud');
-    doc.querySelector?.('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
+    if(!reactNavigation?.select)
+      doc.querySelector?.('.workbench-nav button[aria-selected="true"]')?.scrollIntoView?.({block:'nearest',inline:'nearest'});
     // Only an accepted top-level navigation may update the Sidebar preference.
     onTabSelected?.(name,{initial});
   }
@@ -915,11 +920,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const tabOrder=[['tasks','tab-my-tasks'],['tools','tab-tools'],['workflow','tab-workflow'],['develop','tab-develop'],['cloud','tab-cloud']];
   if(debugEnabled)tabOrder.push(['debug','tab-debug']);
   const visibleTabs=()=>tabOrder;
-  for(const [tab,id] of tabOrder){
-    listen(get(id),'click',()=>{
-      if(navigate(tab)===false)return;
-      if(tab==='tasks')refresh(undefined,{skipUnchanged:true}).catch(fail);
-    });
+  const selectTabFromUi=tab=>{
+    if(navigate(tab)===false)return false;
+    if(tab==='tasks')refresh(undefined,{skipUnchanged:true}).catch(fail);
+    return true;
+  };
+  if(reactNavigation?.connect)reactNavigation.connect(selectTabFromUi);
+  else for(const [tab,id] of tabOrder){
+    listen(get(id),'click',()=>selectTabFromUi(tab));
     listen(get(id),'keydown',event=>{
       const available=visibleTabs(),index=available.findIndex(([view])=>view===tab);
       if(index<0)return;
