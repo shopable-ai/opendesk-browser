@@ -313,7 +313,8 @@ try{
         /已停用的网站\s*1/.test(view.nav);
     },'old page write must not cross into new site');
     const switched=await child(ctx);
-    assert.equal(switched.noticeError,'false','re-read current Chrome-like state, never fake old approval');
+    assert.doesNotMatch(switched.notice,/Chrome 已确认|设置已由 Chrome 确认/,
+      'a late confirmation must never appear as old-site success');
     assert.match(switched.text,/video\.example\.com/);
     offlineSafety();
     report.push({scenario:'delayed-page-switch',checks:[
