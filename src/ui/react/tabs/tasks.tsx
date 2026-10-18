@@ -18,6 +18,16 @@ export function MyTaskRows({rows=[],selectedId='',workspace=null,emptyText='',on
   const [expandedTaskId,setExpandedTaskId]=React.useState(selectedId);
   const previousSelection=React.useRef(selectedId);
   const selectedGroup=React.useRef(null),fallback=React.useRef(null);
+  // The selected card can be removed by uninstall or filtering. React detaches
+  // its ref before deleting the row: rescue the SAME live DOM-owned form first,
+  // so TaskWorkbench listeners, drafts and history are never destroyed.
+  const protectWorkspace=React.useCallback(node=>{
+    if(node){selectedGroup.current=node;return;}
+    const previous=selectedGroup.current;
+    if(previous&&workspace?.parentNode===previous&&fallback.current)
+      fallback.current.append(workspace);
+    selectedGroup.current=null;
+  },[workspace]);
   // An external TaskWorkbench selection opens the details. Re-clicking an
   // already selected row only changes UI state; it cannot reset RunHost data.
   React.useLayoutEffect(()=>{
@@ -43,7 +53,7 @@ export function MyTaskRows({rows=[],selectedId='',workspace=null,emptyText='',on
     {rows.map(row=><div key={row.taskId}
       className={'task-card-group'+(row.taskId===selectedId?' selected':'')}
       data-management={manageMode?'true':undefined}
-      ref={row.taskId===expanded?selectedGroup:null}>
+      ref={row.taskId===expanded?protectWorkspace:null}>
       <button type="button" className="task-card" data-task-id={row.taskId}
         aria-pressed={row.taskId===selectedId} aria-expanded={row.taskId===expanded}
         aria-controls="task-selected-workspace"

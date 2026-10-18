@@ -245,7 +245,7 @@ try{
   assert.equal(await evaluate('window.__sidebarPreviewInfo.realHost'),false);
   // Resize through the real preview select's change event, then read computed
   // geometry from Chromium. No extra HTML page or fake workflow engine.
-  for(const targetWidth of [320,360,400,420,520]){
+  for(const targetWidth of [320,360,400,420,440,520]){
     await evaluate('(()=>{const select=document.querySelector("[data-preview-width]");'+
       'Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set.call(select,'+
       JSON.stringify(String(targetWidth))+');'+
@@ -372,6 +372,29 @@ try{
   assert((await evaluate('document.getElementById("od-sidebar-preview-controls").textContent')).includes('仅预览'),
     'Memory-only uninstall must retain preview-only notice');
   await screenshot('extension-uninstalled-360');
+  // Regression R24.1: uninstall the selected final row. React must rescue the
+  // real DOM-owned detail form before deleting its enclosing React card.
+  await click('#tab-my-tasks');
+  await until('!document.getElementById("workbench-tasks").hidden');
+  await click('#task-manage-toggle');
+  await until('document.getElementById("task-manage-toggle").getAttribute("aria-pressed")==="true"');
+  await click('#task-uninstall');
+  await until('!document.getElementById("task-uninstall-confirm").hidden');
+  await click('#task-uninstall-yes');
+  await until('document.querySelectorAll("#task-installed-cards .task-card").length===0');
+  assert.equal(await evaluate('!!document.getElementById("task-selected-workspace")'),true,
+    'Selected row removal must preserve the single trusted task workspace');
+  assert.equal(await evaluate('!!document.getElementById("task-tools")'),true,
+    'Selected uninstall cannot destroy More actions or unmount React');
+  await screenshot('my-task-uninstalled-360');
+  await click('#task-open-catalog');
+  await until('!document.getElementById("task-add-menu").hidden');
+  await click('#task-add-catalog');
+  await until('!document.getElementById("workbench-discover").hidden');
+  await click('#task-catalog-back');
+  await until('!document.querySelector("#workbench-tasks .tasks-surface").hidden');
+  assert.equal(await evaluate('document.querySelectorAll("#task-installed-cards .task-card").length'),0,
+    'Returning from catalog must keep an emptied installed list without remounting');
   assert.deepEqual(exceptions,[],'Browser errors');
   console.log(JSON.stringify({kind:'SOURCE_BOUND_UI_PREVIEW_CHROMIUM',status:'PASS',
     checks:['real clicks: task collapse/reopen/switch','search','catalog','schedule form',

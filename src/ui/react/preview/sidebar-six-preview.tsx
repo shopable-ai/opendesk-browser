@@ -104,7 +104,7 @@ function Preview(){
   const initial=new URLSearchParams(window.location.search).get('tab');
   const [tab,setTab]=React.useState(names.includes(initial)?initial:'tasks');
   const initialWidth=Number(new URLSearchParams(window.location.search).get('width'));
-  const [width,setWidth]=React.useState([320,360,400,420,520].includes(initialWidth)?initialWidth:420);
+  const [width,setWidth]=React.useState([320,360,400,420,440,520].includes(initialWidth)?initialWidth:420);
   const [scene,setScene]=React.useState('normal');
   const [cloudScenario,setCloudScenario]=React.useState('unpaired');
   const [cloudFeedback,setCloudFeedback]=React.useState('');
@@ -649,7 +649,7 @@ function Preview(){
       <label>宽度 <select data-preview-width value={width}
         onChange={event=>setWidth(Number(event.target.value))}>
         <option value={320}>320px</option><option value={360}>360px</option><option value={400}>400px</option><option value={420}>420px</option>
-        <option value={520}>520px</option>
+        <option value={440}>440px</option><option value={520}>520px</option>
       </select></label>
       {!(tab==='tasks'&&taskMode==='schedule')&&<span className="od-sidebar-preview-label" role="status">
         {tab==='cloud'?cloudPreview.brief+' · 仅预览':labels[scene]} · {tab==='debug'?'调试仅开发构建':tab==='tasks'?
