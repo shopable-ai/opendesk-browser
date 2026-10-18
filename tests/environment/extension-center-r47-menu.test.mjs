@@ -52,7 +52,11 @@ test('R4.7 one trusted app toggle from both settings and row overflow',async()=>
     'uninstall recovery stays on the original gesture-guarded Host');
   assert.match(installer,/sameSidebarToolPackage\(current,tool\)/);
   assert.match(installer,/TOOL_REVOCATION_EPOCHS_STORE/);
-  assert.match(installer,/stopAdblockForTool\(api,tool\.id\)/);
+  // Native service stops now share a single ordered helper; assert both the
+  // AdBlock adapter and the actual enabled/disabled transition use it.
+  assert.match(installer,/async function stopInstalledToolOwnedServices\(api,toolId\)/);
+  assert.match(installer,/await stopAdblockForTool\(api,toolId\)/);
+  assert.match(installer,/await stopInstalledToolOwnedServices\(api,tool\.id\)/);
 });
 
 test('R4.7 installed Page still uses user gesture, grants, manifest and generation',async()=>{
