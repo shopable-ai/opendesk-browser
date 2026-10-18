@@ -1,4 +1,4 @@
-name: Cookie Editor R5.0 trusted React pilot targeted
+name: Cookie Editor R5.12 sandbox isolation and SRC cleanup
 on:
   push:
     branches: [main]
@@ -27,7 +27,7 @@ jobs:
           cache: npm
       - name: Install existing pinned dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Cookie gate, formal package and shared JSX regression
+      - name: Sandbox isolation, formal legacy package and shared JSX regression
         run: node --test tests/environment/cookie-editor-r50-trusted-pilot.test.mjs tests/environment/cookie-editor-ui.test.mjs tests/environment/cookie-editor-r43-parity.test.mjs
       - name: Build the existing fixed WXT production entry
         run: npm run build

@@ -11,8 +11,6 @@ import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from './tabs/tasks.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './tabs/schedule.tsx';
 import {CloudOverviewText} from './tabs/cloud.tsx';
-import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
-import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
 // Fixed, reviewed Bookmark Manager sources only; no installed package scripts.
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
@@ -39,7 +37,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   // The installed path commits the complete React App Shell first; legacy
   // Controller nodes are reparented intact before any subsequent binding.
   flushSync(()=>root.render(shell?<><style data-opendesk-trusted-react-css="">
-    {cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
+    {bookmarkPilotLayoutCSS}</style>
     <SidebarAppShell scaffold={shell.scaffold} activeTab={initialTab}
       debugEnabled={debugEnabled} onNavigate={onNavigate}/></>:<ExtensionCenterPage/>));
   if(shell)section=doc.getElementById('extension-center');
@@ -270,7 +268,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   let debugModel=debugInitial;
   let myRowsModel={rows:[],selectedId:'',emptyText:'',onSelect:()=>{}};
   let scheduleRowsModel=null,scheduleManagerModel=null;
-  let cookiePilotHost=null;
   let bookmarkPilot=null;
   let myCountText=myInitialCount,myDetailText=myInitialDetail,cloudModel=cloudInitial;
   let cloudRequestsModel={rows:[],pageText:'正在读取请求记录…',canPrev:false,canNext:false};
@@ -287,7 +284,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     flushSync(()=>root.render(<>
       {/* WXT fixed entry is JS-only. Scope audited pilot CSS into the
           existing React tree; never emit an unlisted tool-shell.css asset. */}
-      <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
+      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS}</style>
       {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
         debugEnabled={debugEnabled} onNavigate={onNavigate}
         extensionProps={pageProps} cloudModel={cloudModel}
@@ -308,7 +305,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       {cloudOverviewMounted&&!shell&&Object.entries(cloudNodes).map(([key,node])=>
         createPortal(<CloudOverviewText value={cloudModel[key]}/>,node,'cloud-'+key))}
       {rowMenuHost&&createPortal(<ExtensionRowMenu items={rowMenuItems}/>,rowMenuHost)}
-      {cookiePilotHost&&createPortal(<CookieTrustedPilot/>,cookiePilotHost)}
       {bookmarkPilot&&createPortal(<>
         <style data-bookmark-trusted-style="">{bookmarkScopedCSS}</style>
         <BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime}
@@ -407,26 +403,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
         if(released)return;released=true;
         if(bookmarkPilot?.container===container){
           bookmarkPilot=null;
-          if(!disposed)paint();
-          delete container.dataset.opendeskReactOwner;
-        }
-      };
-    },
-    mountCookieEditorPilot(container){
-      // An opt-in, development-only *data-free* demo. No package JS is read
-      // and the real Cookie Tool keeps its original iframe and SDK Host.
-      if(disposed||cookiePilotHost||!debugMounted||!container||
-        container.ownerDocument!==doc||container.childNodes.length||
-        container.dataset.opendeskReactOwner)
-        throw new Error('E_COOKIE_TRUSTED_PILOT_MOUNT');
-      cookiePilotHost=container;
-      container.dataset.opendeskReactOwner='cookie-react-pilot';
-      paint();
-      let released=false;
-      return ()=>{
-        if(released)return;released=true;
-        if(cookiePilotHost===container){
-          cookiePilotHost=null;
           if(!disposed)paint();
           delete container.dataset.opendeskReactOwner;
         }
@@ -630,7 +606,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     renderDeveloperTarget(next){if(disposed||!developerTargetMounted)return;
       developerTargetModel=next;paint();},
     dispose(){if(disposed)return;disposed=true;root.unmount();
-      if(cookiePilotHost){delete cookiePilotHost.dataset.opendeskReactOwner;cookiePilotHost=null;}
       if(bookmarkPilot){delete bookmarkPilot.container.dataset.opendeskReactOwner;bookmarkPilot=null;}
       if(myTasksMounted){
         myRows.after(myWorkspace);
