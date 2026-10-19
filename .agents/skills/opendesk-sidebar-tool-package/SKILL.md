@@ -97,3 +97,9 @@ npm run verify
 - 不在动态工具包中注入可信 Host、Background、Content Script、`chrome.*` 或任意第三方脚本；新增正式 Capability 必须复用已审批 SDK / Dispatcher / 权限与安全审查流程。
 - 不自动安装、自动更新、扩大权限或访问用户私人 Cookie；本地与网页预览都不能冒充正式安装。
 - 不删除或覆盖其他工具、构建产物、正在使用的 Chrome Profile、并行提交或原验收证据。
+
+
+## R5.6 · React 构建产物防漂移
+
+选择 Shared UI React Runtime 的 Sidebar Tool 仍通过**同一个** `scripts/build-sidebar-tool.mjs` 生成安装包。参考 `examples/sidebar-tools/adblock/vite.config.mjs` 中的 Vite IIFE 外置依赖与 `dist/build-ready.json`，并参考 `scripts/build-adblock-react.mjs` 的完整源码哈希校验。只有实际构建成功且 `tool.config.json.files` 确实指向 `dist/` 时，才能写入可验证的 build-ready 收据；不得编造旧源码的 SHA/Build ID，也不能简单复用别人生成的 `dist/`。Classic JS 直接消费共享 Runtime 时不伪称已经完成 Vite 编译。React 源码、HTML、静态 CSS、Build Ready、正式 JSON 通过现有候选→测试→`--promote-from`→`--check-project` 流程保持一致，不增加 Installer/Host/运行时。
+
