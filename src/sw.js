@@ -8,7 +8,7 @@ import {installStayFocusService} from '../examples/sidebar-tools/stay-focus/trus
 import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/service.js';
 import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/trusted/service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
-import {CLOUD_RUNNER_DOCUMENT_PATH} from './tool-document-url.js';
+import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -36,21 +36,10 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
-// An offscreen document supplies only the DOM/Worker needed by the SAME RunHost.
-let runnerCreating=null;
-async function ensureCloudRunner(broker){
-  if(runnerCreating)return runnerCreating;
-  runnerCreating=(async()=>{
-    if((await broker.authority.cloud?.read())?.enabled!==true)return false;
-    const url=chrome.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
-    const contexts=await chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT'],documentUrls:[url]});
-    if(contexts.length)return true;
-    await chrome.offscreen.createDocument({url:CLOUD_RUNNER_DOCUMENT_PATH,
-      reasons:['WORKERS'],justification:'Execute already-approved Controller Tasks after closing the Side Panel'});
-    return true;
-  })();
-  try{return await runnerCreating;}finally{runnerCreating=null;}
-}
+// Lifecycle only: this adapter never claims Tasks or runs a second Controller.
+// Keep the original RunHost alive while any durable @slot retirement is pending.
+const cloudRunnerLifecycle=createCloudRunnerLifecycle({api:chrome});
+const ensureCloudRunner=broker=>cloudRunnerLifecycle.reconcile(broker);
 // Fixed Browser Host sidecar reuses the sole foundation Scheduler instance.
 // No user code executes in this worker or can replace this trusted closure.
 globalThis.__opendeskBrowserSchedule=async(operation,args,owner,intent)=>{
@@ -164,6 +153,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   foundation.then(async broker=>{
     const data=await broker.handle(message,sender);
     if(message.type==='cloudApprove')await ensureCloudRunner(broker);
+    if(message.type==='cloudStop'||message.type==='cloudUnpair'){
+      // Stop is already durable. A cleanup failure must not misreport the
+      // completed revocation; the existing Cloud wake alarm retries cleanup.
+      try{await ensureCloudRunner(broker);}
+      catch(error){console.warn('[cloud runner cleanup]',error?.code||error?.message);}
+    }
     return data;
   }).then(
     data=>sendResponse({ok:true,data}),
