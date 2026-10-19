@@ -195,6 +195,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     if(modeRef.current!=='browser'||controller.snapshot().phase!=='ready')return false;
     const plan=await controller.previewImport(text,'auto',true);
     if(!plan){
+      controller.dismissImportReport();
       noteImport('无法导入：Cookie 格式不正确或网站授权不可用。');
       return false;
     }
@@ -204,7 +205,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         ?'Cookie 不属于当前已授权网站。'
         :/过期|expirationDate/.test(first)
           ?'Cookie 已过期。':'内容不符合 Cookie 格式或权限要求。';
-      controller.discardImport();
+      controller.discardImport();controller.dismissImportReport();
       noteImport('未导入 '+plan.total+' 条：'+reason);
       return false;
     }
