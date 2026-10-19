@@ -12,6 +12,13 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/tool.html'
+      # Native installation follows the trusted React Extension Center, not retired HTML controls.
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/extension-center.js'
+      - 'src/ui/extension-center-model.js'
+      - 'src/ui/sidebar-tools-view.js'
+      - 'src/ui/sidebar-tools-fields.js'
+      - 'src/ui/react/**'
       - 'src/sw.js'
       - 'src/platform/chrome/browser-managed-site-policy.js'
       - 'src/platform/chrome/managed-site-lifecycle.js'
