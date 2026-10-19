@@ -192,8 +192,13 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const importFromText=async text=>{
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
-    if(modeRef.current!=='browser'||controller.snapshot().phase!=='ready')return false;
+    const initial=controller.snapshot();
+    if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
     const plan=await controller.previewImport(text,'auto',true);
+    // Never report a stale success/error against a newly selected site.
+    const currentSite=controller.snapshot();
+    if(initial.epoch!==currentSite.epoch||
+      initial.target?.url!==currentSite.target?.url)return false;
     if(!plan){
       controller.dismissImportReport();
       noteImport('无法导入：Cookie 格式不正确或网站授权不可用。');
