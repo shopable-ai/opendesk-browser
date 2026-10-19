@@ -50,7 +50,8 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
         onClose?.({committed:true});
       }
     }catch{
-      onNotice?.('导入失败，请核对文件格式或网站授权。','error');
+      setUncertain(true);
+      onNotice?.('导入结果未知，请先核对 Chrome，不要直接重试。','error');
     }finally{
       running.current=false;
       if(active.current)setBusy(false);
