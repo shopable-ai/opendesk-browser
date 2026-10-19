@@ -226,8 +226,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
           (metadata?'-cookie-metadata.json':'-chrome-cookies.'+suffix));
       else throw Error('E_COOKIE_EXPORT');
       if(!verifiedRead(guard))return false;
-      done=true;report(metadata?'已导出不含值的元数据；不能恢复 Cookie。':
-        'Cookie 已导出，可能包含登录凭据，请妥善保管。','success');
+      done=true;report(metadata?'已导出 Cookie 元数据（不含值）。':
+        method==='copy'?'已复制 Cookie。':'Cookie 文件下载已发起。','success');
     }catch(error){if(verifiedRead(guard))
       report('导出失败或被拒绝'+formatCode(error,'E_COOKIE_EXPORT')+
         '；检查授权或选择其他格式。','error');
