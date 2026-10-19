@@ -177,7 +177,12 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
           const originalRunId=run?.tag==='controller-run'&&run.namespace===host.namespace&&
             run.runId===r.runId&&run.cloudRequestId===r.requestId&&
             (!run.cloudRequestKey||run.cloudRequestKey===rowKey(r))?run.runId:null;
-          projected.push({taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
+          projected.push({requestId:r.requestId,requestKey:rowKey(r),jobId:r.identity?.jobId??r.assignment?.jobId??null,
+            canStopThis:!!c?.enabled&&!c.unpairing&&r.grantId===c.grantId&&samePairing(r,c)&&
+              !r.receipt&&!['finished','OUTCOME_UNKNOWN'].includes(r.state)&&
+              !(r.state==='cancelled'&&r.remoteCancelConfirmed)&&
+              !['completed','failed','stopped','interrupted','paused_unknown'].includes(run?.state),
+            taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
             receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released',
             ...(originalRunId?{runId:originalRunId}:{})});
         }
@@ -189,7 +194,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
         slotAvailable:nativeSlot.slotState==='available',...nativeSlot,
         siteAuthorization:canonical(c??null)===canonical(permissionConfig??null)?sites:'unknown',
         tasks:c?.tasks?.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,
-          sourceHash:t.contentHash,siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed}))||[],
+          sourceHash:t.contentHash,installationId:t.installationId,generation:t.generation,
+          siteOrigins:t.manifest.siteOrigins,resultAllowed:t.resultAllowed}))||[],
         requestTotal:total,requestPage:{offset,limit,nextOffset},requests:projected,
         historyIndexStatus:historyMigrationBlocked?'migration-blocked':historyReady?'indexed':'legacy'};
     });
@@ -310,6 +316,58 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     },'readwrite');
     abortDeliveries(requestIds);wake();
     return revoked;
+  }
+  async function cloudCancelRequest(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===2&&typeof request.requestId==='string'&&
+      request.requestId.startsWith('cloud:')&&typeof request.requestKey==='string'&&
+      request.requestKey.startsWith(PREFIX),'E_SCHEMA');
+    const pinned=await scoped(sender,async(tx,host)=>{
+      const c=await tx.get(KV,CONFIG);
+      invariant(c?.enabled&&!c.unpairing&&c.namespace===host.namespace,'E_CLOUD_REVOKED');
+      const r=await tx.get(KV,request.requestKey);
+      invariant(r?.tag==='cloud-request-v1'&&r.namespace===host.namespace&&
+        r.requestId===request.requestId&&rowKey(r)===request.requestKey&&
+        r.grantId===c.grantId&&samePairing(r,c),'E_CLOUD_FENCED');
+      const run=r.runId?await tx.get('runs',r.runId):null;
+      if(run)invariant(run.tag==='controller-run'&&run.namespace===host.namespace&&
+        run.cloudRequestId===r.requestId&&run.runId===r.runId&&
+        (!run.cloudRequestKey||run.cloudRequestKey===rowKey(r)),'E_CLOUD_FENCED');
+      const result=run?.resultId?await tx.get('results',run.resultId):null;
+      const savedResult=result?.tag==='controller-result'&&result.runId===run?.runId&&
+        result.resultId===run?.resultId&&result.namespace===host.namespace;
+      if(r.state==='finished'||r.receipt||savedResult&&
+        ['completed','failed','stopped','interrupted'].includes(run.state))
+        return {alreadyFinished:true,requestId:r.requestId,runId:r.runId??null,
+          state:run?.state??r.state};
+      if(r.state==='OUTCOME_UNKNOWN'||run?.state==='paused_unknown')
+        return {outcomeUnknown:true,requestId:r.requestId,runId:r.runId??null,
+          state:'OUTCOME_UNKNOWN'};
+      if(!r.cancelRequestedAt){r.cancelRequestedAt=clock.now();await history.put(tx,r);}
+      return {row:r,config:c};
+    },'readwrite');
+    if(pinned.alreadyFinished)return {...pinned,stopRequested:false,providerConfirmed:false};
+    if(pinned.outcomeUnknown)return {...pinned,stopRequested:false,providerConfirmed:false};
+    // Fence the exact durable request/Run first. The existing registered
+    // RunHost receives controller-fenced; no draft stop authority is widened.
+    await fence(pinned.row,'E_CLOUD_CANCELLED');
+    let providerConfirmed=false;
+    try{
+      const ack=await post(pinned.config,'cancel',{
+        assignmentId:pinned.row.assignment.assignmentId,...requestBinding(pinned.row)});
+      providerConfirmed=ack.cancelled===true||ack.alreadyFinished===true;
+    }catch{/* Persisted intent is retried through normal reconciliation. */}
+    return scoped(sender,async tx=>{
+      const row=await tx.get(KV,rowKey(pinned.row));
+      if(providerConfirmed&&row?.cancelRequestedAt&&!row.remoteCancelConfirmed){
+        row.remoteCancelConfirmed=true;await history.put(tx,row);
+      }
+      const run=row?.runId?await tx.get('runs',row.runId):null;
+      return {requestId:pinned.row.requestId,runId:row?.runId??null,
+        state:row?.state??'OUTCOME_UNKNOWN',runState:run?.state??null,
+        stopRequested:true,providerConfirmed:row?.remoteCancelConfirmed===true,
+        outcomeUnknown:row?.state==='OUTCOME_UNKNOWN',alreadyFinished:false};
+    },'readwrite');
   }
   async function fence(request,reason){
     const result=await transaction('readwrite',async tx=>{const r=await tx.get(KV,rowKey(request));if(!r)return;const run=r.runId&&await tx.get('runs',r.runId);
@@ -556,7 +614,8 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     const pending=await pendingRequest(sender,host,c,{isCurrent:current});
     invariant(current(),'E_CLOUD_FENCED');if(pending)return pending;
     const claim=await scoped(sender,async tx=>{const slot=await tx.get('runs','@slot');if(slot?.currentRunId||slot?.preview)return null;const config=await tx.get(KV,CONFIG);if(!current()||!config?.enabled||config.unpairing||config.grantId!==c.grantId||config.pendingRequestId||canonical(pairingIdentity(config))!==canonical(pairingIdentity(c)))return null;
-      config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
+      config.claimId??=newId();await tx.put(KV,config,CONFIG);return {claimId:config.claimId,grantId:config.grantId,
+        tasks:c.tasks.map(t=>({taskId:t.taskId,manifestHash:t.manifestHash,sourceHash:t.contentHash}))};},'readwrite');if(!claim)return null;
     const answer=await post(c,'claim',claim,{isCurrent:current});
     return scoped(sender,async tx=>{const config=await tx.get(KV,CONFIG);invariant(current(),'E_CLOUD_FENCED');invariant(config?.enabled&&!config.unpairing&&config.grantId===c.grantId&&canonical(pairingIdentity(config))===canonical(pairingIdentity(c))&&config.claimId===claim.claimId,'E_CLOUD_REVOKED');
       if(answer.assignment){const a=answer.assignment,identity=assignmentIdentity(c,a);invariant(!knownRemoteRuns.has(a.assignmentId),'E_RUN_REF','Query the original remote Run instead of creating another');invariant(a.executorId===c.executorId&&a.claimId===claim.claimId&&a.leaseUntil>clock.now(),'E_ASSIGNMENT');const t=config.tasks.find(t=>t.taskId===a.task.taskId&&t.version===a.task.version&&t.manifestHash===a.task.manifestHash&&t.contentHash===a.task.sourceHash);invariant(t&&acceptedCloudTarget(a.target,t.manifest.siteOrigins),'E_TASK');
@@ -602,6 +661,20 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     for(const r of await rows()){
       if(!current())return;if(r.grantId!==c.grantId||!samePairing(r,c))continue;
       const run=r.runId?await transaction('readonly',tx=>tx.get('runs',r.runId)):null;
+      if(r.cancelRequestedAt&&!r.remoteCancelConfirmed){
+        try{
+          const ack=await post(c,'cancel',{assignmentId:r.assignment.assignmentId,
+            ...requestBinding(r)},{isCurrent:current});
+          if(ack.cancelled===true||ack.alreadyFinished===true)
+            await transaction('readwrite',async tx=>{
+              const row=await tx.get(KV,rowKey(r)),config=await tx.get(KV,CONFIG);
+              if(current()&&row?.cancelRequestedAt&&config?.enabled&&
+                row.grantId===config.grantId&&samePairing(row,config)){
+                row.remoteCancelConfirmed=true;await history.put(tx,row);
+              }
+            });
+        }catch{/* Leave the original cancellation intent for the next reconnect. */}
+      }
       // Unknown native effects outrank a saved interruption Result or receipt.
       if(await transaction('readonly',tx=>unknownOutcome(tx,run))){
         await transaction('readwrite',async tx=>{if(!current())return;const row=await tx.get(KV,rowKey(r));row.state='OUTCOME_UNKNOWN';row.reason??='E_OUTCOME_UNKNOWN';await history.put(tx,row);});continue;
@@ -677,7 +750,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudProgramInbox,cloudProgramFetch,cloudProgramReceived,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudCancelRequest,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudProgramInbox,cloudProgramFetch,cloudProgramReceived,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
     captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
     attachConnection({start,stop}){wake=start;close=stop;},connection(state){if(state!=='authenticated')connectionEpoch++;connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }

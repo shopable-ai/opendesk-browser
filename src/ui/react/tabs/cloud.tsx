@@ -62,6 +62,7 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
             <div>提供者 <strong id="cloud-overview-provider">
               <CloudOverviewText value={model.provider??'检测中'}/>
             </strong></div>
+            <div>执行端 <strong id="cloud-overview-executor"><CloudOverviewText value={model.executor??'未配对'}/></strong></div>
             <div>执行宿主 <strong id="cloud-overview-host">
               <CloudOverviewText value={model.host??'检测中'}/>
             </strong></div>
@@ -267,9 +268,16 @@ export function CloudRequestHistory({model={}}){
       <p id="cloud-request-detail-facts" className="hint">{detail?.facts||''}</p>
       <p id="cloud-request-detail-reason" className="hint">{detail?.reason||''}</p>
       <details className="cloud-request-technical od-disclosure od-disclosure--flat">
-        <summary>查看原始运行身份</summary>
-        <pre id="cloud-request-detail-run-id">{detail?.runId||''}</pre>
+        <summary>查看原始请求 / Job / Run 身份</summary>
+        <div className="hint">云请求</div><pre id="cloud-request-detail-request-id">{detail?.requestId||''}</pre>
+        <div className="hint">Provider Job</div><pre id="cloud-request-detail-job-id">{detail?.jobId||''}</pre>
+        <div className="hint">本地 Run</div><pre id="cloud-request-detail-run-id">{detail?.runId||''}</pre>
       </details>
+      <button id="cloud-request-stop-this" type="button"
+        className="od-button od-button--secondary" disabled={!detail?.canStopThis}
+        onClick={event=>trusted(event,model.onStopThis)}>
+        只停止本次云请求
+      </button>
       <button id="cloud-request-open-result" type="button"
         className="od-button od-button--secondary" disabled={!detail?.canOpenRun}
         onClick={event=>trusted(event,model.onOpenResult)}>

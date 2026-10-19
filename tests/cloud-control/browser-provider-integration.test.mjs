@@ -285,6 +285,49 @@ test('modern Provider claim binds a fresh Browser run and permit with full pairi
   assert.deepEqual(permitted.permit.runRef,permitted.runRef);
 });
 
+test('fixed-Task single cancellation fences only the original Run, not hosting or next Job',async t=>{
+  const f=await modernProviderFixture(t);await connectProvider(t,f.provider,f.credential);
+  const {service,storage,sender,grantId}=await configureModernService(f);
+  await providerPost(f.provider,'/v1/capabilities',{grantId,tasks:[{
+    taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}]},f.credential);
+  await seedModernJob(f,'stop-original');await seedModernJob(f,'keep-next');
+  const next=await service.cloudNext({},sender),row=(await storage.all(KV))
+    .find(value=>value?.tag==='cloud-request-v1'&&value.requestId===next.requestId);
+  assert.ok(row?.storageKey);
+  const run={...runFor({...row,runRef:{runId:randomUUID(),resultId:randomUUID()}}),
+    paramsWire:encodeValue(row.params)};
+  // Bind the actual persisted Cloud request to the original Run and host.
+  await storage.transaction([KV,'runs','commandJournal','results'],'readwrite',async tx=>{
+    await service.bind(tx,run,{cloudRequestId:row.requestId},host);
+    await tx.put('runs',run,run.runId);
+  });
+  const current=await storage.get(KV,row.storageKey);
+  await assert.rejects(service.cloudCancelRequest({requestId:row.requestId,
+    requestKey:row.storageKey+':not-original'},sender),errorCode('E_CLOUD_FENCED'));
+  const stopped=await service.cloudCancelRequest({
+    requestId:row.requestId,requestKey:row.storageKey},sender);
+  assert.equal(stopped.runId,run.runId);
+  assert.equal(stopped.stopRequested,true);
+  assert.equal(stopped.providerConfirmed,true);
+  assert.equal((await storage.get('runs',run.runId)).state,'stopping');
+  assert.equal((await storage.get('runs',run.runId)).cancelSeq,1);
+  assert.equal((await service.cloudStatus({includeRequests:false},sender)).enabled,true);
+  const firstCancellation=await providerPost(f.provider,'/v1/cancellation',{
+    assignmentId:row.assignment.assignmentId},f.credential);
+  assert.equal(firstCancellation.cancelled,true);
+  const repeat=await service.cloudCancelRequest({
+    requestId:row.requestId,requestKey:row.storageKey},sender);
+  assert.equal(repeat.runId,run.runId);
+  assert.equal((await storage.get('runs',run.runId)).cancelSeq,1,'repeat stop is idempotent');
+  const second=await service.cloudNext({},sender);
+  assert.notEqual(second.requestId,row.requestId);
+  const secondRow=(await storage.all(KV)).find(value=>value?.tag==='cloud-request-v1'&&
+    value.requestId===second.requestId);
+  assert.notEqual(secondRow.assignment.jobId,current.assignment.jobId);
+  assert.equal((await providerPost(f.provider,'/v1/cancellation',{
+    assignmentId:secondRow.assignment.assignmentId},f.credential)).cancelled,false);
+});
+
 test('remote runRef without local row blocks cached claim replay instead of creating a second Browser row',async t=>{
   const f=await modernProviderFixture(t);await connectProvider(t,f.provider,f.credential);await seedModernJob(f,'remote-runref');
   const claimId='remote-claim',tasks=[{taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}];

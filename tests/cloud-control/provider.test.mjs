@@ -175,6 +175,48 @@ test('renew commits assignment/current permit together while admission keeps the
   await h.post('/v1/receipt',{assignmentId:a.assignmentId,receiptKey:ref.resultId,runRef:ref,result:{state:'completed',retirementState:'released'}});
 });
 
+test('Provider cancels exactly one assignment and preserves next authorized Job',async t=>{
+  const h=await fixture(t);await h.pair();await h.connect();
+  const first=await h.assignment('single-stop-first');
+  const second=await h.assignment('single-stop-second');
+  const ref=runRefFor(first);
+  const permit=await h.post('/v1/admission',{assignmentId:first.assignmentId,runRef:ref});
+  const cancel={assignmentId:first.assignmentId,binding:bindingFor(first)};
+  assert.deepEqual(await h.post('/v1/cancel',cancel),{cancelled:true,alreadyFinished:false});
+  assert.deepEqual(await h.post('/v1/cancel',cancel),{cancelled:true,alreadyFinished:false});
+  assert.equal((await h.post('/v1/cancellation',{assignmentId:first.assignmentId})).cancelled,true);
+  assert.equal((await h.post('/v1/cancellation',{assignmentId:second.assignmentId})).cancelled,false);
+  await assert.rejects(h.post('/v1/renew',{assignmentId:first.assignmentId,
+    permitId:permit.permitId}),{code:'E_LEASE'});
+  const another=await h.post('/v1/admission',{assignmentId:second.assignmentId,
+    runRef:runRefFor(second)});
+  assert.equal(another.assignmentId,second.assignmentId);
+  await assert.rejects(h.post('/v1/cancel',{...cancel,binding:{...bindingFor(first),jobId:second.jobId}}),
+    {code:'E_BINDING'});
+  await h.restart();
+  assert.equal((await h.disk()).jobs[first.jobId].cancelled,true);
+  assert.equal((await h.disk()).jobs[second.jobId].cancelled,undefined);
+});
+
+test('new grantId claim reuses only the matching historical grantless cached answer',async t=>{
+  const h=await fixture(t),paired=await h.pair();await h.connect();
+  const grantId=randomUUID();
+  await h.post('/v1/capabilities',{grantId,tasks});
+  await h.seed('cached-old-empty');
+  const old={claimId:'historic-empty',tasks};
+  assert.deepEqual(await h.post('/v1/claim',old),{assignment:null},
+    'Grantless historical claim cannot seize newly grant-bound work');
+  assert.deepEqual(await h.post('/v1/claim',{...old,grantId}),{assignment:null},
+    'Retry with a new contract field must preserve the original durable answer');
+  await assert.rejects(h.post('/v1/claim',{...old,grantId,tasks:[]}),{code:'E_REQUEST_CONFLICT'});
+  const fresh=(await h.post('/v1/claim',{claimId:'new-request',tasks,grantId})).assignment;
+  assert.ok(fresh?.assignmentId);assert.equal(fresh.executorId,paired.executorId);
+  await h.restart();
+  assert.deepEqual(await h.post('/v1/claim',{...old,grantId}),{assignment:null});
+  assert.equal((await h.post('/v1/claim',{claimId:'new-request',tasks,grantId})).assignment.assignmentId,
+    fresh.assignmentId);
+});
+
 test('revoke is durable before ticket/socket retirement, retryable only by the same token/revocation',async t=>{
   const h=await fixture(t),pair=await h.pair(),{ws}=await h.connect(),a=await h.assignment(),ref=runRefFor(a);
   const permit=await h.post('/v1/admission',{assignmentId:a.assignmentId,runRef:ref}),unused=await h.post('/v1/auth');
