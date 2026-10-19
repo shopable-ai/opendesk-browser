@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync,readdirSync} from 'node:fs';
 import {resolve,dirname,relative} from 'node:path';
+import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 
 const file=path=>new URL('../../'+path,import.meta.url);
 const read=path=>readFileSync(file(path),'utf8');
@@ -23,6 +24,28 @@ test('R1 app-owned trusted business has one implementation and no src re-export 
     assert.deepEqual(Object.keys(config.files).sort(),['css','html','js']);
     assert.doesNotMatch(JSON.stringify(config.files),/trusted/,'privileged modules must not ship as sandbox UI files');
   }
+});
+
+test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome entrypoints',()=>{
+  const approved=[
+    ['examples/sidebar-tools/web-markdown-clipper/trusted/page.js','agents/page-relay.js'],
+    ['examples/sidebar-tools/web-markdown-clipper/trusted/convert.js','agents/page-relay.js'],
+    ['examples/sidebar-tools/web-markdown-clipper/trusted/policy.js','ui/marketplace.js'],
+    ['examples/sidebar-tools/reading-toc/trusted/page.js','agents/page-relay.js'],
+    ['examples/sidebar-tools/reading-toc/trusted/view.js','agents/page-relay.js'],
+    ['examples/sidebar-tools/reading-toc/trusted/policy.js','ui/marketplace.js'],
+    ['examples/sidebar-tools/reading-toc/trusted/locales.generated.js','ui/tool-shell.js']
+  ];
+  const check=(name,target)=>describeBundle({chunk:{fileName:target,modules:{
+    [resolve(process.cwd(),name)]:{renderedLength:1,originalLength:1}
+  }},root:process.cwd(),lock:{packages:{}}});
+  for(const [name,target] of approved){
+    assert.match(check(name,target).modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+    assert.throws(()=>check(name,'scripting/packaged/page-session.js'),
+      /Historical\/user\/vendor/,name+' cannot enter an unreviewed executable world');
+  }
+  assert.throws(()=>check('examples/sidebar-tools/reading-toc/src/main.js','agents/page-relay.js'),
+    /Historical\/user\/vendor/,'arbitrary packaged plugin JavaScript cannot be compiled as trusted');
 });
 
 test('R1 approved fixed runtime entrypoints use app-owned sources and existing Host',()=>{

@@ -173,13 +173,19 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   return hash;
 }
 
-// Fixed Chrome Page Relay may import exactly this byte-reviewed first-party
-// Web Markdown Clipper conversion module. Never allow a whole examples/ prefix.
+// Only byte-reviewed first-party Clipper sources compile into existing
+// fixed Chrome entries. Content reader/converter stay in Page Relay; the
+// policy may also be read by the fixed installer/marketplace/sidebar host.
+// Never admit arbitrary installed or user-provided plugin code here.
 const compiledWebClipperInputs=Object.freeze({
-  'examples/sidebar-tools/web-markdown-clipper/trusted/convert.js':'b53147ff3bd888f1291e81daf8a90d06b5a1a114'
+  'examples/sidebar-tools/web-markdown-clipper/trusted/convert.js':'b53147ff3bd888f1291e81daf8a90d06b5a1a114',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'ec249bb7e637d0c86cfa23073f7b6b3316529852',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'6240ef2d75f251c0b4d980690081d3540bba275f'
 });
 function reviewedCompiledWebClipper(target,path,root){
-  if(target!=='agents/page-relay.js'||!Object.hasOwn(compiledWebClipperInputs,path))return null;
+  if(!Object.hasOwn(compiledWebClipperInputs,path)||
+    (path.endsWith('/policy.js')?(!preapprovedFixedTargets.has(target)||
+      target.startsWith('scripting/')||target.startsWith('libs/')):target!=='agents/page-relay.js'))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Web Clipper source must not be a symlink: '+path);
   const bytes=readFileSync(file);
@@ -189,16 +195,24 @@ function reviewedCompiledWebClipper(target,path,root){
   return hash;
 }
 
-// Reading TOC: only these exact reviewed first-party page algorithms may
-// enter the existing fixed Page Relay. Installed or arbitrary examples/ code
-// never receives implicit Chrome authority.
+// Reading TOC has one trusted business source. All these exact Git blobs
+// compile into EXISTING reviewed fixed outputs, never arbitrary JS, remote
+// packages or another privileged Host. Page algorithms/renderers are limited
+// to Page Relay; the policy and generated locale are fixed-host shared.
 const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'examples/sidebar-tools/reading-toc/trusted/model.js':'335e23442b372e690e5757678298f04401430c2b',
-  'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0'
+  'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
+  'examples/sidebar-tools/reading-toc/trusted/page.js':'8c9c3faa71c26a84e3388c41c31dffcac947d76e',
+  'examples/sidebar-tools/reading-toc/trusted/view.js':'71f6d57ad101936c963c41c118c8e78ef74bbf3b',
+  'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
+  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295'
 });
 function reviewedCompiledReadingToc(target,path,root){
-  if(target!=='agents/page-relay.js'||!Object.hasOwn(compiledReadingTocInputs,path))return null;
+  if(!Object.hasOwn(compiledReadingTocInputs,path)||
+    (path.endsWith('/policy.js')||path.endsWith('/locales.generated.js')
+      ? (!preapprovedFixedTargets.has(target)||target.startsWith('scripting/')||target.startsWith('libs/'))
+      : target!=='agents/page-relay.js'))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Reading TOC source must not be a symlink: '+path);
   const bytes=readFileSync(file);

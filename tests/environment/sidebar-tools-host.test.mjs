@@ -19,9 +19,9 @@ import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-rea
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
-import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
+import {CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
-import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {TIME_CONTROL_IDS} from './time-review-host-controls-fixture.mjs';
 
 // The real React ToolHost owns these audited nodes. Legacy controller fixtures
