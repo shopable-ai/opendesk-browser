@@ -55,12 +55,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const cleanEditor=()=>{
     setPanel(null);setSelected(null);setDirty(false);setStatus('');
   };
-  const ask=(text,action,onCancel)=>{
-    setConfirmation({text,action,onCancel});
+  const ask=(text,action,onCancel,kind='discard')=>{
+    setConfirmation({text,action,onCancel,kind});
   };
   const guarded=(action)=>{
     if(locked)return;
-    if(dirty){ask('当前有尚未保存的 Cookie 或导入文本，确认放弃修改？',()=>{
+    if(dirty){ask('放弃未保存修改？',()=>{
       setDirty(false);action();});return;}
     action();
   };
@@ -104,7 +104,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     };
   },[hostRoot,controller]);
   React.useEffect(()=>{setState?.({busy,dirty});},[busy,dirty,setState]);
-  React.useEffect(()=>{if(confirmation)cancelButton.current?.focus();},[confirmation]);
+  React.useEffect(()=>{
+    if(confirmation?.kind==='clear')cancelButton.current?.focus();
+  },[confirmation]);
   React.useEffect(()=>{
     // A live session invalidation must not discard an offline editor's
     // independent dirty state when an unrelated browser event fires.
@@ -153,11 +155,10 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     try{result=await controller.previewClear();}
     finally{setWorking(false);}
     if(!result)return;
-    ask('Chrome 将仅清理 '+result.hostname+' 的 '+result.count+
-      ' 条精确 Host-only Cookie；Domain Cookie 和其他网站不在范围内。确定执行？',
+    ask('清理 '+result.hostname+' 的 '+result.count+' 条 Host-only Cookie？',
       async()=>{setWorking(true);try{await controller.executeClear();}
         finally{setWorking(false);}},
-      ()=>controller.discardClear());
+      ()=>controller.discardClear(),'clear');
   };
   const select=id=>guarded(()=>{setPanel(null);setSelected(id);setStatus('');});
   const onKeyDown=e=>{
@@ -168,7 +169,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
     if(!confirmation)return;
     if(e.key==='Escape'){e.preventDefault();endConfirm(false);}
-    if(e.key==='Tab'){
+    if(e.key==='Tab'&&confirmation.kind==='clear'){
       const buttons=e.currentTarget.querySelectorAll('.cookie-confirm button');
       if(buttons.length===2){e.preventDefault();
         (e.currentTarget.ownerDocument.activeElement===buttons[0]?buttons[1]:buttons[0]).focus();}
@@ -254,14 +255,19 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     {mode==='browser'&&snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
-    {confirmation&&<div className="cookie-confirm od-alert od-alert--warning" role="alertdialog" aria-modal="true"
-      aria-label="确认 Cookie 操作">
+    {confirmation?.kind==='clear'&&<div className="cookie-confirm od-alert od-alert--warning"
+      role="alertdialog" aria-modal="true" aria-label="确认安全清理">
       <p>{confirmation.text}</p>
       <div className="cookie-editor-actions">
         <Button ref={cancelButton} type="button" onClick={()=>endConfirm(false)}>取消</Button>
         <Button type="button" className="od-button--danger"
-          onClick={()=>endConfirm(true)}>确认</Button>
+          onClick={()=>endConfirm(true)}>确认清理</Button>
       </div>
+    </div>}
+    {confirmation?.kind==='discard'&&<div className="discard-row" role="status">
+      <span>{confirmation.text}</span>
+      <Button type="button" variant="secondary" onClick={()=>endConfirm(false)}>继续编辑</Button>
+      <Button type="button" variant="secondary" onClick={()=>endConfirm(true)}>放弃</Button>
     </div>}
   </main>;
 }
