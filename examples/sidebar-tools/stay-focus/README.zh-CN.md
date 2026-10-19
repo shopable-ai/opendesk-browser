@@ -6,6 +6,14 @@
 
 **R4.1 有界规则包源码已接线（原生验收未完成）**：从 1.0.2 起，工具 JSON 包允许携带经校验的 `backgroundPolicy: {kind:'site-budget.v1',suggestions:[...]}`。可信后台从已安装包解析网站建议；用户在 UI 点击加入、经可信 Host 确认并重新启用后，才能通过既有 `focus.site.put` / DNR 规则实现新站点额度。同一 OpenDesk Browser 构建可以安装 1.0.1 与 1.0.2 两个版本的工具 JSON 完成对照。版本更换使旧 `authorizedHash` 失效，旧 DNR 先清理，不自动拦截新增网站；原网站额度与使用记录保留。该字段**不是可执行后台 JS**。目前仍有初始默认清单/额度、时段等旧固定模型；将所有业务策略变成应用包可独立升级属于后续 R4.2/R4.3，不可宣称 R4 整体完成。完整需求见 [Stay Focus R4](REQUIREMENTS.zh-CN.md)。
 
+## R5.6 · React Shared UI 迁移状态（2026-10-20）
+
+- **正式源码已改为 React**：`src/main.js` 当前使用固定 `OpenDeskPageReact` 的单 Root，复用 `OpenDeskSidebarUI` 公开的 Button/IconButton/Card/CardContent/Switch；`tool.config.json` 版本 1.0.6，显式 `uiRuntime: "opendesk.react-ui.v1"`。此阶段使用直接可打包的 Classic IIFE React 源码，而**非已经验证过的 Vite/JSX dist 输出**。不应伪称已完成 Vite 编译或已有 Build Ready 回执。
+- **用户界面**：每日额度只保留输入与修改后的保存；当前网页点击加入前核对两次真实 URL，并只从可信目录归一化已知子域名；网站管理采用编辑和更多 IconButton，更多菜单提供暂停/恢复/移除；工作时段、白名单、共享组放入默认折叠的「更多设置」；后台仍为唯一计时与 DNR 真相来源。
+- **安全边界**：原 `trusted/tool-host.js` 对 `focus.site.put` 仍要求可信 Side Panel 中再点击一次确认，因此当前是“**工具内一个加入按钮 + Host 受信确认**”，不是完全单次点击写入。不能让沙箱按钮伪装成受信真实点击。用户未原生授权时保存配置不等于真正生效。
+- **可交互离线预览**：`preview/index.html` 使用同源 `src/` HTML/CSS/JS 和仓库锁定的 React 19.2.0；`preview/ui-adapter.js` 是只在预览里使用的 Shared UI 兼容层（Switch 不是正式 React Aria）。预览支持业务请求 Mock，不能据此声称正式共享组件/Chrome/计时已经通过。重新生成/同源核对使用现有 `preview/build.mjs`；不添加第二个正式工具 Runtime。
+- **证据**：模拟 React 组件操作可通过 `tests/helpers/stay-focus-react-fixture.mjs` 和 `stay-focus-r1.test.mjs` 测试，运行结果必须附原始输出。此 GitHub 环境未取得最新提交绑定的 Node CI、正式包晋升、Mac Chrome 安装和原生 DNR 实测记录，以上阶段均为 `NOT_TESTED`，不宣称 UX 95 分通过。
+
 ## R2 · 独立业务源码（2026-10-18）
 
 - **单一业务源码**：本应用目录的 `src/` 负责独立发行的沙箱 UI，`trusted/` 负责只在可信构建期加载的计时、网站策略、DNR、授权、安装清理、提醒和限制页。原宿主 `src/stay-focus/*.js` 兼容转发层已删除，不再维护第二套业务代码。
@@ -16,12 +24,12 @@
 
 ## 用户场景与安装
 
-当前工具源码配置版本为 **1.0.4**；正式安装包仍须经过候选构建、受影响测试和显式晋升才能算正式交付。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「工具 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
+当前工具源码配置版本为 **1.0.6**；正式安装包仍须经过候选构建、受影响测试和显式晋升才能算正式交付。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「扩展 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
 
 
-1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「工具」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
-2. 首屏的「快速开始」会在本机按当前网页**域名优先、标题辅助**推荐网站类型与每日额度；也可直接点击 YouTube / 哔哩哔哩 / TikTok / Instagram 的推荐按钮。已识别的娱乐网站默认共享每日 30 分钟额度，用户可以根据需要调整。只需要点一次推荐按钮并确认，手动域名、子域名、共享额度等设置默认折叠。
-3. 点击外层工具详情「设置」→ **授权并开启网站限制**。浏览器必须明确同意 `idle` 与 `declarativeNetRequestWithHostAccess` 原生权限；之前安装的 Time Review 授权不能代替这里的申请。安装本身**不自动启动限制**。
+1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「扩展」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
+2. React 首屏显示共享每日额度、当前网页和网站列表。切换到普通 HTTP(S) 网页后，在「当前网页」旁点击「加入」；仅使用 Host 返回的 URL 与可信目录识别域名，之后由可信 Host 进行本次规则修改确认。编辑及更多操作为 IconButton；工作时段、白名单和其他共享组默认收起。
+3. 点击外层工具详情「设置」→ **授权并开启网站限制**。浏览器必须对可选 `idle` 权限作出明确授权；`declarativeNetRequestWithHostAccess` 是扩展 Manifest 的必需权限；之前安装的 Time Review 授权不能代替这里的申请。安装本身**不自动启动限制**。
 4. 在真实浏览器的前台正常使用被限制的网站。只有聚焦 Chrome 的有效标签页且用户不是 idle/locked 时才按检查点结算，多个标签页同一刻只用一份额度。退出 Side Panel 不影响 SW + Alarm 的后台策略。
 5. 当当天限额耗尽，Chrome 的 DNR 动态规则将符合精确域名的主框架导航重定向到扩展内部说明页。已经打开的相关标签页由可信 Host 尽力迁移到说明页；主页不读取或回显原 URL 查询参数。工作时段、专注模式高于额度规则。
 6. 暂停某一网站在网站卡片中操作；全局停止、原生权限和清空请在工具外层可信「设置」中操作。停用或卸载会清理本工具占用的 DNR ID 与数据；卸载的工具 ID 是 `stay-focus`。
@@ -71,7 +79,7 @@ npm run build:dev
 npm run verify
 ```
 
-独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.4/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
+临时候选应以 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/stay-focus --out artifacts/sidebar-tools/stay-focus/candidate.opendesk-tool.json` 生成，通过定向测试后再执行 `--promote-from` 和 `--check-project` 显式晋升唯一正式包；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
 
 **原生验收不是单元测试**：在 Mac Chrome for Testing 里加载正式 `dist/production`，通过 Side Panel 的实际安装界面授权；用真实 HTTP(S) 服务和 `chrome.declarativeNetRequest.getDynamicRules()` 检查 730000–730199、真实导航至 `chrome-extension://…/stay-focus/blocked-quota.html`，再测试断开 SW、整个 Chrome 重启、撤权、停用、卸载后 `getDynamicRules` 返回空并可重新访问。完成时应保存浏览器/包 SHA、日志、截图和原始规则证据。
 
@@ -80,7 +88,7 @@ npm run verify
 ## P1/P2 继续改进
 
 1. 提升 SPA、已打开网站在 DNR 同步失败时的可解释性，保留失败操作诊断和显式重试。
-2. 把网站限制、分组与工作日的编辑改成更清晰的自适应移动密度布局，验证 320/360/400px、缩放和焦点行为。
+2. 在真实 Chrome/React Aria 环境验证已完成的 IconButton、网站编辑、更多菜单、工作时段以及 320/360/400/440px、缩放与焦点恢复；依据实际问题修正。
 3. 补齐真实 Chrome 的多窗口、系统休眠、跨日/DST、权限撤销、安装/升级/卸载回归，并将证据与最终提交 SHA 绑定。
 
 
