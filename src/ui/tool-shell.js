@@ -3,6 +3,7 @@ import {createDebugWorkbench} from './debug-workbench.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_LAUNCH_STORE} from '../framework/sdk/browser-contract.js';
 import {createHostClient} from '../platform/host/client.js';
 import {createScriptEditor} from './script-editor.js';
+import {createRunHost} from '../run-host.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
@@ -67,7 +68,8 @@ window.addEventListener('pagehide',()=>{historyClosed=true;trustedHistoryWorkben
 const developerView=createDeveloperView();
 const myView=createMyWorkbenchView();
   const toolView=createSidebarToolsView();
-const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,
+const sharedRunHost=createRunHost({api:chrome,client:foundationClient,document,templateModuleFactory:null});
+const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,sharedRunHost,
   development:Boolean(installDevelopment),view:developerView});
 let debugWorkbench=null;
 let extensionList=null,reactNavigationRequest=null,pendingReactTab='tasks';
@@ -319,7 +321,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   scheduleHost?.dispose();scheduleUI?.dispose();
-  tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }
