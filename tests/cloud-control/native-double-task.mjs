@@ -10,11 +10,17 @@ import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {connect,evaluate} from '../framework/sidebar-native-session.mjs';
+import {createNativeContextReader} from './native-context-reader.mjs';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
 
 const FIXTURE_URL='http://127.0.0.1:43111/demo-form.html';
-const OUT=path.resolve(process.env.OPENDESK_CLOUD_NATIVE_EVIDENCE||'artifacts/cloud-double-task-e2e');
+const DEFAULT_NATIVE_PHASE={'--smoke-preflight':'01-single-preflight','--smoke':'02-single-smoke',
+  '--preflight':'03-double-preflight'}[process.argv[2]]||'04-double-e2e';
+const OUT=path.resolve(process.env.OPENDESK_CLOUD_NATIVE_EVIDENCE||
+  path.join('artifacts/cloud-double-task-e2e',DEFAULT_NATIVE_PHASE,
+    new Date().toISOString().replace(/[:.]/g,'-')+'-'+randomUUID().slice(0,8)));
+const readNativeContexts=createNativeContextReader(evaluate);
 async function until(fn,what,ms=90000){
   const end=Date.now()+ms;
   while(Date.now()<end){const value=await fn();if(value)return value;await sleep(250);}
@@ -82,20 +88,15 @@ async function snapshot(c,jobIds=[],assets=[]){
     /^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(t.url));
   assert(runners.length<=1&&workers.length<=1&&runners.length+workers.length>0,
     'Cannot uniquely identify an actual OpenDesk Offscreen/Service Worker context');
-  // The actual Offscreen runtime does NOT expose runtime.getContexts().
-  // Inspect the original extension Service Worker, which has this API and
-  // reads the same original IndexedDB without creating another RunHost.
-  const extensionId=new URL((runners[0]||workers[0]).url).host;
+  // Read the original DB and build bytes from the living Offscreen document,
+  // even when MV3 allows the Service Worker to sleep. The real Side Panel
+  // separately attests runtime context identities before it is closed.
+  const inspected=runners[0]||workers[0];
+  const extensionId=new URL(inspected.url).host;
   assert([...runners,...workers].every(t=>new URL(t.url).host===extensionId),
     'Multiple extension identities found; refusing cross-extension inspection');
-  const inspected=workers[0]||await until(async()=>{
-    const live=(await c.send('Target.getTargets')).targetInfos.filter(t=>
-      t.type==='service_worker'&&
-      t.url==='chrome-extension://'+extensionId+'/sw.js');
-    assert(live.length<=1,'Multiple original Service Worker targets');
-    return live[0]||null;
-  },'Original Service Worker context for native Chrome identity',10000);
   const {sessionId}=await c.send('Target.attachToTarget',{targetId:inspected.targetId,flatten:true});
+  let inspectedRows;
   try{
     await c.send('Runtime.enable',{},sessionId);
     // Chrome's original IndexedDB, native readonly transactions. Filter
@@ -113,7 +114,6 @@ async function snapshot(c,jobIds=[],assets=[]){
       'const runIds=rows.map(x=>x.runId);'+
       'const runs=allRuns.filter(x=>x?.tag==="controller-run"&&runIds.includes(x.runId));'+
       'return {assets:buildAssets,'+
-      'contexts:(await chrome.runtime.getContexts({})).map(x=>({type:x.contextType,url:x.documentUrl,documentId:x.documentId})),'+
       'cloud:{providerId:config?.providerId,executorId:config?.executorId,grantId:config?.grantId,'+
         'enabled:config?.enabled===true,approved:(config?.tasks||[]).map(x=>({taskId:x.taskId,'+
         'version:x.version,manifestHash:x.manifestHash,sourceHash:x.contentHash,resultAllowed:x.resultAllowed,'+
@@ -139,8 +139,11 @@ async function snapshot(c,jobIds=[],assets=[]){
       'native:journal.filter(x=>x?.tag==="controller-operation"&&runIds.includes(x.runId)).map(x=>({'+
         'runId:x.runId,receipts:(x.nativeReceipts||[]).filter(y=>y.stage==="result").length}))};'+
       '}finally{db.close()}})()';
-    return {extensionId,...await evaluate(c,expression,sessionId)};
+    inspectedRows=await evaluate(c,expression,sessionId);
   }finally{await c.send('Target.detachFromTarget',{sessionId}).catch(()=>{});}
+  const contextEvidence=await readNativeContexts(c,targets,extensionId);
+  return {extensionId,...inspectedRows,contexts:contextEvidence.contexts,
+    contextProof:contextEvidence.proof};
 }
 function nativeContexts(info){
   const origin='chrome-extension://'+info.extensionId+'/';
@@ -239,8 +242,10 @@ async function main(){
   assert(mode===null||preflightOnly||smokeOnly,
     'Only --preflight, --smoke-preflight and --smoke are supported');
   const report={status:'RUNNING',stage:'config',startedAt:new Date().toISOString(),
-    gitSha:process.env.GITHUB_SHA||null,steps:[]},effects=[];
-  let c,server;
+    gitSha:process.env.GITHUB_SHA||null,evidenceDirectory:OUT,
+    mode:DEFAULT_NATIVE_PHASE,steps:[]},effects=[];
+  let c,server,evidenceWritable=true;
+  const reportFile=path.join(OUT,'native-double-task-report.json');
   // Hard wall-clock stop for this owned Node verifier only. No Chrome,
   // Provider, profile, or unrelated process is terminated by this watchdog.
   const wallClockMs=preflightOnly?60000:smokeOnly?300000:540000;
@@ -251,11 +256,18 @@ async function main(){
     report.completedAt=new Date().toISOString();
     report.nativeEvidence=effects;
     console.error('NATIVE_VERIFIER_TIMEOUT '+JSON.stringify(report.error));
-    void writeFile(path.join(OUT,'native-double-task-report.json'),
-      JSON.stringify(report,null,2)+'\n').finally(()=>process.exit(124));
+    void writeFile(reportFile,JSON.stringify(report,null,2)+'\n',
+      {flag:'wx'}).finally(()=>process.exit(124));
   },wallClockMs);
   await mkdir(OUT,{recursive:true});
   try{
+    // Reusing an evidence directory must fail BEFORE any external submission.
+    try{
+      await stat(reportFile);
+      evidenceWritable=false;
+      throw Object.assign(Error('Evidence report exists; use a fresh phase directory: '+reportFile),
+        {code:'E_EVIDENCE_EXISTS'});
+    }catch(error){if(error.code!=='ENOENT')throw error;}
     const [nodeMajor,nodeMinor]=process.versions.node.split('.').map(Number);
     assert(nodeMajor>22||(nodeMajor===22&&nodeMinor>=12),
       'Node >=22.12.0 is required before native verification');
@@ -371,7 +383,8 @@ async function main(){
       providerRegistered:tasks.length,clientTaskPins:tasks.length,
       clientResultConsent:true,providerConnected:true,
       sitePermissionGranted:true,userScriptsAvailable:true,verifiedChromeAssets:assetNames,
-      sidePanelOpen:true,offscreenPresent:true,originalHostRegistered:true});
+      sidePanelOpen:true,offscreenPresent:true,originalHostRegistered:true,
+      contextProof:before.contextProof});
     if(preflightOnly){
       const ready=smokeOnly?'READY_FOR_SMOKE':'READY_FOR_NATIVE_TEST';
       report.status=ready;
@@ -430,7 +443,7 @@ async function main(){
     }
     before=await closePanel(c,await snapshot(c,jobIds));
     report.steps.push({stage:'closed-side-panel',offscreenPresent:nativeContexts(before).offscreen.length===1,
-      sidePanelOpen:false});
+      sidePanelOpen:false,contextProof:before.contextProof});
     const keyword='NativeSearch-'+randomUUID().slice(0,10);
     const b=await execute(tasks[1],{keyword},'search',keyword);
     for(const property of ['taskId','jobId','requestId','runId','resultId','receiptId'])
@@ -453,8 +466,10 @@ async function main(){
     report.completedAt=new Date().toISOString();
     report.nativeEvidence=effects;
     c?.close();if(server)await server.close();
-    await writeFile(path.join(OUT,'native-double-task-report.json'),JSON.stringify(report,null,2)+'\n');
-    clearTimeout(watchdog);
+    try{
+      if(evidenceWritable)await writeFile(reportFile,JSON.stringify(report,null,2)+'\n',
+        {flag:'wx'});
+    }finally{clearTimeout(watchdog);}
   }
 }
 await main();
