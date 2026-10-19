@@ -192,3 +192,33 @@ test('AdBlock session fence is a fixed audited source and rejects byte drift',as
   assert.throws(()=>describeBundle({chunk:chunkFor(file),root:project,lock:{packages:{}}}),
     /Trusted AdBlock source changed/);
 });
+
+
+test('R1.3 app-owned trusted background inputs require an exact reviewed Git blob',async t=>{
+  const approved=[
+    ['examples/sidebar-tools/ai-vip-share/trusted/provider-config.js','sw.js',
+      'd09c57ef4bbc96f406bb2092feb9ff9b2465cf43'],
+    ['examples/sidebar-tools/time-review/trusted/service.js','time-review/time-review-host.js',
+      '1b4dfe90936c70ef89e90dd87307b308ef30be68']
+  ];
+  const make=(target,file,project=process.cwd())=>describeBundle({
+    chunk:{fileName:target,modules:{[file]:{renderedLength:1,originalLength:1}}},
+    root:project,lock:{packages:{}}
+  });
+  const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-app-owned-pin-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  for(const [source,target,pin] of approved){
+    const row=make(target,resolve(source));
+    assert.equal(row.modules[0].reviewedFirstPartyBlob,pin);
+    assert.throws(()=>make('scripting/sandbox/worker-runtime.js',resolve(source)),/cannot enter/);
+    const changed=join(project,source);
+    await mkdir(join(changed,'..'),{recursive:true});
+    await writeFile(changed,(await readFile(resolve(source),'utf8'))+'\\n// unsigned drift\\n');
+    assert.throws(()=>make(target,changed,project),/Trusted app-owned source changed/);
+  }
+  for(const unknown of [
+    'examples/sidebar-tools/ai-vip-share/trusted/remote-supplied.js',
+    'examples/sidebar-tools/time-review/trusted/unsafe-background.js',
+    'examples/programs/local-controller/src/main.js'
+  ])assert.throws(()=>make('sw.js',resolve(unknown)),/cannot enter/);
+});

@@ -1,7 +1,12 @@
 // Trusted MV3 worker service. No sandbox may call Chrome DNR, idle or tabs.
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
+import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {readManagedSiteToolAuthority,assertManagedSiteToolLease}
+  from '../../../../src/platform/host/managed-site-authority.js';
+import {MANAGED_SITE_RUNTIME_CONTRACT} from '../../../../src/platform/host/managed-site-runtime-contract.js';
+import {SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2}
+  from '../../../../src/ui/sidebar-tools/background-policy.js';
 import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
@@ -10,6 +15,8 @@ import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusM
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
 import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultsForPackage,focusDefaultMinutesForPackage,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
+import {observeManagedForeground,reconcileManagedSiteExecution,redirectManagedBlockedTabs} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
+import {subscribeManagedSiteActivity} from '../../../../src/platform/chrome/managed-site-lifecycle.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
   Object.keys(payload).sort().join(',')===names.slice().sort().join(',');
@@ -40,14 +47,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return session;
   }
   async function authority(){
-    const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,
-      TOOL_REVOCATION_EPOCHS_STORE,FOCUS_STORE]);
-    const rows=saved[SIDEBAR_TOOL_STORE],matches=Array.isArray(rows)?rows.filter(row=>row?.id===FOCUS_ID):[];
-    let tool=null;
-    if(matches.length===1){try{tool=validateSidebarToolPackage(matches[0]);}catch{}}
-    if(!tool?.capabilities.includes(FOCUS_CAPABILITY))tool=null;
-    return {tool,saved,enabled:sidebarToolEnabled(saved[SIDEBAR_TOOL_ENABLE_STORE],FOCUS_ID),
-      epoch:saved[TOOL_REVOCATION_EPOCHS_STORE]?.[FOCUS_ID]??null};
+    return readManagedSiteToolAuthority(api,{toolId:FOCUS_ID,capability:FOCUS_CAPABILITY,
+      extraStoreKeys:[FOCUS_STORE]});
   }
   async function hostDocument(sender,expectedDocumentId=sender?.documentId){
     if(!isSidebarToolHostSender(api,sender,FOCUS_ID)||sender.tab?.incognito||
@@ -96,17 +97,8 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return {idle,dnr,ready:Boolean(idle&&dnr)};
   }
   async function observe(state,permissions){
-    if(!permissions.ready)return null;
-    if(await api.idle.queryState(60)!=='active')return null;
-    const win=await api.windows.getLastFocused();
-    if(!win?.focused||win.incognito||win.type!=='normal')return null;
-    const tabs=await api.tabs.query({active:true,windowId:win.id}),tab=tabs.length===1?tabs[0]:null;
-    if(!tab?.url||tab.incognito||tab.pendingUrl)return null;
-    const host=focusHost(tab.url),site=focusMatchingSite(state,host);
-    if(!site)return null;
-    const address=new URL(tab.url),originPattern=address.protocol+'//'+address.hostname+'/*';
-    if(!await api.permissions.contains({origins:[originPattern]}))return null;
-    return {host,site,tabId:tab.id,windowId:win.id};
+    return observeManagedForeground(api,{ready:permissions.ready,hostFromUrl:focusHost,
+      siteForHost:host=>focusMatchingSite(state,host)});
   }
   function mutate(state,operation,payload,at,defaultMinutes=FOCUS_DEFAULT_MINUTES){
     if(operation==='focus.enable'){
@@ -179,21 +171,12 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     return state;
   }
   async function updateBlockedTabs(state,at){
-    let moved=0,failed=0;
-    if(!state.enabled)return {moved,failed};
-    // Existing tabs are not automatically retroactively redirected by DNR.
-    // On any transition to a new block state, move them to a fixed internal page.
-    const all=await api.tabs.query({});
-    for(const tab of all){
-      if(!tab?.url||tab.incognito||!Number.isInteger(tab.id))continue;
-      const host=focusHost(tab.url),site=focusMatchingSite(state,host),reason=focusReason(state,site,at);
-      if(!reason)continue;
-      try{
-        await api.tabs.update(tab.id,{url:api.runtime.getURL('stay-focus/blocked-'+reason+'.html')});
-        moved++;
-      }catch{failed++;}
-    }
-    return {moved,failed};
+    if(!state.enabled)return {moved:0,failed:0};
+    return redirectManagedBlockedTabs(api,{redirectUrlForTab:tab=>{
+      const host=focusHost(tab.url),site=focusMatchingSite(state,host);
+      const reason=focusReason(state,site,at);
+      return reason?api.runtime.getURL('stay-focus/blocked-'+reason+'.html'):null;
+    }});
   }
   async function reconcileLocked({boot=false,operation='focus.status',payload={},auth=null,validateHost=null,removedOrigins=[]}={}){
     const at=now(),startGeneration=generation,wasRevoked=revoked;
@@ -299,16 +282,15 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     }
     // Durable policy is authoritative; DNR is a materialized, reconcilable view.
     const desired=state.enabled&&fresh.ready?wantedFocusRules(state,at):[];
-    // Required DNR availability does not enable this tool. Keep the readback
-    // guard for incompatible runtimes, and clear owned rules when idle is gone.
-    const ruleReceipt=fresh.dnr?await reconcileFocusRules(api,desired):
-      {changed:false,ruleIds:[],verified:false,reason:'native-permission-missing'};
-    if(state.enabled&&fresh.ready){
-      if(!await api.alarms.get(FOCUS_ALARM))await api.alarms.create(FOCUS_ALARM,{periodInMinutes:0.5});
-    }else await api.alarms.clear(FOCUS_ALARM);
-    // Avoid tab churn on every heartbeat: only act if the matching set changed.
-    let tabs={moved:0,failed:0};
-    if(ruleReceipt.changed&&desired.length)tabs=await updateBlockedTabs(state,at);
+    // The common audited runtime owns native DNR reconciliation ordering,
+    // alarm lifecycle and current-tab remediation. Stay Focus only supplies
+    // its validated policy, fixed DNR ownership adapter and block-page choice.
+    const {ruleReceipt,tabs}=await reconcileManagedSiteExecution(api,{
+      alarmName:FOCUS_ALARM,active:state.enabled&&fresh.ready,
+      dnrAvailable:fresh.dnr,wanted:desired,
+      reconcileRules:rules=>reconcileFocusRules(api,rules),
+      onRuleChange:()=>updateBlockedTabs(state,at)
+    });
     // A page is only a display target. At-most-once is committed with the
     // authoritative ledger BEFORE attempting delivery; an unreachable page
     // cannot create a duplicate alert after the worker or browser restarts.
@@ -357,7 +339,11 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
     if(await probeDocument(sender)!==documentId)
       throw focusError('应用市场文档已经变化','E_FOCUS_SENDER');
     return {protocol:FOCUS_PROTOCOL,serviceVersion:FOCUS_SERVICE_VERSION,
-      serviceReady:true,permissions};
+      serviceReady:true,permissions,managedSiteRuntime:{
+        contract:MANAGED_SITE_RUNTIME_CONTRACT,
+        policyKinds:[SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2],
+        privilegedJs:false
+      }};
   }
   async function dispatch(message,sender){
     if(message?.protocol!==FOCUS_PROTOCOL||message.toolId!==FOCUS_ID||
@@ -367,9 +353,10 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       throw focusError('Stay Focus 请求格式无效','E_FOCUS_REQUEST');
     const documentId=await hostDocument(sender);
     return lock(async()=>{
-      const auth=await authority();
-      if(!auth.tool||!auth.enabled||await focusPackageHash(auth.tool)!==message.packageHash||
-         auth.epoch!==(message.installEpoch??null))throw focusError('工具已经更新、撤权、停用或卸载','E_TOOL_CHANGED');
+      const auth=await assertManagedSiteToolLease(api,{
+        toolId:FOCUS_ID,capability:FOCUS_CAPABILITY,packageHash:message.packageHash,
+        installEpoch:message.installEpoch,hashPackage:focusPackageHash,extraStoreKeys:[FOCUS_STORE]
+      });
       await hostDocument(sender,documentId);
       const result=await reconcileLocked({operation:message.operation,payload:message.payload,auth,
         validateHost:()=>hostDocument(sender,documentId)});
@@ -393,23 +380,16 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
       error=>reply({ok:false,error:{code:error?.code||'E_FOCUS',message:String(error?.message||error).slice(0,240)}}));
     return true;
   });
-  listen(api.alarms.onAlarm,alarm=>{if(alarm.name===FOCUS_ALARM)run();});
-  const activity=()=>{service.invalidate();run();};
-  listen(api.tabs.onActivated,activity);
-  listen(api.tabs.onUpdated,(_id,change)=>{if(change.url||change.status==='complete')activity();});
-  listen(api.tabs.onRemoved,activity);
-  listen(api.windows.onFocusChanged,activity);
-  listen(api.idle?.onStateChanged,activity);
-  listen(api.permissions.onRemoved,removed=>{
+  const disposeActivity=subscribeManagedSiteActivity(api,{
+    alarmName:FOCUS_ALARM,run,invalidate:()=>service.invalidate(),
+    onPermissionRemoved:removed=>{
     const nativeRevoked=Boolean(removed?.permissions?.some(name=>
       ['idle','declarativeNetRequestWithHostAccess'].includes(name)));
     const removedOrigins=Array.isArray(removed?.origins)?removed.origins.slice(0,128):[];
     service.invalidate({revoke:nativeRevoked});
     run({removedOrigins});
-  });
-  listen(api.permissions.onAdded,activity);
-  listen(api.runtime.onStartup,()=>run({boot:true}));
-  listen(api.storage.onChanged,(changes,area)=>{
+    },
+    onStorageChanged:(changes,area)=>{
     // A tool uninstall may remove its entire business record before reconcile
     // observes it. Clear the short-lived page notice from that event directly.
     if(area==='local'&&changes[SIDEBAR_TOOL_STORE]){
@@ -421,7 +401,7 @@ export function installStayFocusService({api=globalThis.chrome,...options}={}){
     }
     if(area==='local'&&[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]
       .some(key=>Object.hasOwn(changes,key))){service.invalidate({revoke:true});run({boot:true});}
+    }
   });
-  run({boot:true});
-  return {service,dispose(){for(const remove of removers)remove();}};
+  return {service,dispose(){disposeActivity();for(const remove of removers)remove();}};
 }

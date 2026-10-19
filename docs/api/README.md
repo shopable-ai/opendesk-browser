@@ -6,7 +6,7 @@
 
 OpenDesk 可以运行你保存在本机的 JavaScript：读取网页、执行自动化，或者给网页添加按钮和样式。修改源码后明确再运行，便会读取新版本；已经完成的 Controller 结果保留原版本。第一次使用从[快速入门](quickstart.zh-CN.md)开始。
 
-**想开发一个扩展，先不必懂 Worker、Background 或 React 构建。** 请先按 [四类开发需求与一个项目多个 JS 的选择指南](extension-development-selection.zh-CN.md) 判断：网页自动化、网页增强、侧边栏应用，或组合式扩展（不是第四种 JS World）。
+**想开发一个扩展，先不必懂 Worker 或 React 构建。** 先按 [五种使用场景与一个项目多个 JS 的选择指南](extension-development-selection.zh-CN.md) 判断：网页自动化、网页增强、应用界面、后台服务或组合式应用。后台是独立场景但目前仅有固定可信能力；组合式是第五种场景，不是第五套 Runtime，也不是已有的统一安装包。
 
 ## 各组件做什么
 
@@ -38,7 +38,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 
 | 我想做什么 | 教程 / 参考 | 示例 |
 | --- | --- | --- |
-| 先判断要开发哪种扩展、多个 JS 放哪里 | **[四类需求与多运行环境选择指南](extension-development-selection.zh-CN.md)** | [Stay Focus 多 JS 实例](../../examples/sidebar-tools/stay-focus/README.zh-CN.md) |
+| 先判断要开发哪种扩展、多个 JS 放哪里 | **[五种场景与多运行环境选择指南](extension-development-selection.zh-CN.md)** | [Stay Focus 多 JS 实例](../../examples/sidebar-tools/stay-focus/README.zh-CN.md) |
 | 尽快跑通一次并读结果 | [快速入门](quickstart.zh-CN.md) | [单文件标题](../../examples/programs/single-file/title.js) |
 | 创建或修改 JS / 多文件项目 | [项目格式与授权](local-projects.zh-CN.md) | [相对 ESM Controller](../../examples/programs/local-controller/README.md) |
 | 使用网络 JavaScript：在哪里声明、首次审核准备、运行与失败处理 | [四种入口的完整步骤](network-javascript.zh-CN.md) | [可运行示例与命令](../../examples/network-javascript/README.zh-CN.md) |

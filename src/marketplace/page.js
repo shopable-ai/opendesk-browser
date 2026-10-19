@@ -7,8 +7,8 @@ import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
-import {FOCUS_ID,FOCUS_CAPABILITY} from '../stay-focus/policy.js';
-import {probeStayFocusService} from '../stay-focus/tool-host.js';
+import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 import {MARKET_INTENTS_STORE,loadReviewIntent,marketSubjectRoute,consumeReviewIntent,settleReviewIntent,closeUnjournaledReview} from './intent.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
   reconcileQueuedAfterInterruption,withMarketBatchLock} from './batch.js';
@@ -46,7 +46,7 @@ const fail=(message,code='E_MARKET')=>Object.assign(new Error(message),{code});
 export async function verifyMarketplaceToolRuntime({api,tool}){
   if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return null;
   if(tool.id!==FOCUS_ID)throw fail('该工具未获 Stay Focus 可信运行能力','E_TOOL_RUNTIME_UNAVAILABLE');
-  return probeStayFocusService({api});
+  return probeStayFocusService({api,tool});
 }
 const copy=async value=>{
   if(!navigator.clipboard?.writeText)throw fail('当前浏览器不支持写入剪贴板');

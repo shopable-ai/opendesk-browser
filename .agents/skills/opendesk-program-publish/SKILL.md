@@ -44,7 +44,7 @@ description: Freeze, verify, install, upgrade or publish Controller Tasks and Pa
 
 ## 默认开发闭环
 
-普通单文件优先在「开发」直接编辑并明确 Run，不需要 MCP 或本地服务；多文件优先沿 [本地项目与目录 CLI](../../../docs/api/sidebar-local-projects.zh-CN.md) 接入现有 Native 授权，再从 Sidebar 明确运行。成功后保存固定版本、验证并确认安装；Page 归「扩展 → 网页增强」，Task 归「我的」。具体程序选择见 [四类需求指南](../../../docs/api/extension-development-selection.zh-CN.md)。保存/安装不会隐含执行权限，Page 正式验证可能再次执行同一源码。
+普通单文件优先在「开发」直接编辑并明确 Run，不需要 MCP 或本地服务；多文件优先沿 [本地项目与目录 CLI](../../../docs/api/sidebar-local-projects.zh-CN.md) 接入现有 Native 授权，再从 Sidebar 明确运行。成功后保存固定版本、验证并确认安装；Page 归「扩展 → 网页增强」，Task 归「我的」。具体程序选择见 [五种使用场景指南](../../../docs/api/extension-development-selection.zh-CN.md)。保存/安装不会隐含执行权限，Page 正式验证可能再次执行同一源码。
 
 ### 按需使用 MCP 的高级闭环
 

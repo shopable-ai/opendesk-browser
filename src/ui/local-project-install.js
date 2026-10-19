@@ -73,9 +73,9 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   const catalog=page?await client.request('listPagePrograms',{}):await client.request('listTaskCatalog',{});
   const rows=page?(catalog?.catalog||[]):taskRows(catalog).catalog;
   const siblings=rows.filter(row=>identity(row)===id);
-  const previous=page?siblings.find(row=>row.installed)?.installed:
+  const previous=page?(catalog?.installed||[]).find(row=>row.programId===id):
     taskRows(catalog).installed.find(row=>row.taskId===id);
-  const version=page?String(1+Math.max(0,...siblings.map(row=>row.revision||0))):
+  const version=page?String(1+Math.max(0,previous?.revision||0,...siblings.map(row=>row.revision||0))):
     taskVersion(siblings.map(row=>row.version));
   const rules=page?pageCandidate(source,target,id,Number(version)).request.pageRules:null;
   if(page&&!rules)throw fail('E_PAGE_MATCH','未取得可信的 Page 自动运行网站范围');
@@ -116,8 +116,8 @@ export function assertLocalInstallVersion(review,source,binding){
 }
 export async function getInstalledLocalProject({client,review}){
   if(review.kind==='page-userscript'){
-    const rows=(await client.request('listPagePrograms',{})).catalog||[];
-    return rows.find(row=>row.programId===review.id&&row.installed)?.installed||null;
+    const installed=(await client.request('listPagePrograms',{})).installed||[];
+    return installed.find(row=>row.programId===review.id)||null;
   }
   const result=taskRows(await client.request('listTaskCatalog',{}));
   return result.installed.find(row=>row.taskId===review.id)||null;
@@ -201,8 +201,7 @@ export async function readLocalInstallOutcome({client,review,version}){
     throw fail('E_SCHEMA','安装恢复缺少固定项目或版本身份');
   if(review.kind==='page-userscript'){
     const state=await client.request('listPagePrograms',{});
-    const installed=(state.installed||[]).find(row=>row.programId===review.id)||
-      (state.catalog||[]).find(row=>row.programId===review.id&&row.installed)?.installed;
+    const installed=(state.installed||[]).find(row=>row.programId===review.id);
     if(!installed)return {state:'not-installed'};
     if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
     const candidate=(state.catalog||[]).find(row=>row.programId===review.id&&

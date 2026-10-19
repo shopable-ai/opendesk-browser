@@ -10,7 +10,7 @@
 
 **目标：** 用户用一句话描述“想做什么”，AI 先读取真实产品、源码与相关历史，推理用户场景并生成可追溯的需求/功能树；通过需求关卡后，才生成可操作 HTML、正式代码、测试并安全交付。**不能从一句话直接跳到界面或编码**。这不是第二套 SDK、Runner、Host、Agent Skill、Chrome Extension 或发布系统。
 
-现有规范：[AGENTS.md](../../AGENTS.md) · **[四类用户需求与多 JS 执行位置的唯一选型指南](../../docs/api/extension-development-selection.zh-CN.md)** · [八个 Skill 路由](../skills/README.md) · [Sidebar Tool 开发](../../docs/api/sidebar-tool-development.zh-CN.md) · [预览合同](../../docs/api/sidebar-preview-kit.zh-CN.md) · [测试证据](../../docs/framework/testing-guide.md)。本工作流编排已有能力，不复制技术权威；有冲突时，以当前源码与对应正式安全合同为准。
+现有规范：[AGENTS.md](../../AGENTS.md) · **[五种场景与多 JS 执行位置的唯一选型指南](../../docs/api/extension-development-selection.zh-CN.md)** · [八个 Skill 路由](../skills/README.md) · [Sidebar Tool 开发](../../docs/api/sidebar-tool-development.zh-CN.md) · [预览合同](../../docs/api/sidebar-preview-kit.zh-CN.md) · [测试证据](../../docs/framework/testing-guide.md)。本工作流编排已有能力，不复制技术权威；有冲突时，以当前源码与对应正式安全合同为准。
 
 ## 一、普通用户只做三件事
 
@@ -47,7 +47,7 @@
 
 ## 二-A、Extension Type & Ownership Gate（编码前强制）
 
-Phase 0–3 / Gate A 中先按[四类用户目标](../../docs/api/extension-development-selection.zh-CN.md#1-先选需求普通开发者只需要理解四类)判断需求：Controller 自动化、Page 网页增强、Sidebar Tool 应用、或多个既有运行世界协作的组合式扩展；**第四类不是新的 JS World 或可以动态加载任意 Background 的安装包**。随后确定每个模块实际运行类型和源码所有权再编码。AI 输出一个**简短的架构确认摘要**，用户已有明确需求不重复征求分类确认，也不要求用户填技术表单。默认只读公开 [Sidebar Tool 规范](../../docs/api/sidebar-tool-development.zh-CN.md)、[Sidebar Tool API](../../docs/api/sidebar-tools.zh-CN.md)、[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)、示例和当前项目；第三方开发不依赖宿主内部 `src/`。
+Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-development-selection.zh-CN.md#1-先选需求五种使用场景)判断需求：Controller 网页自动化、Page 网页增强、Sidebar Tool 应用界面、固定可信 Background Service，或多职责 Combined Application。**后台是独立使用场景，但不代表已提供任意后台 JS 安装器；组合式作为第五种场景，不新增第五套运行器或绕过各模块授权。**随后确定每个模块实际运行类型和源码所有权再编码。AI 输出一个**简短的架构确认摘要**，用户已有明确需求不重复征求分类确认，也不要求用户填技术表单。默认只读公开 [Sidebar Tool 规范](../../docs/api/sidebar-tool-development.zh-CN.md)、[Sidebar Tool API](../../docs/api/sidebar-tools.zh-CN.md)、[Page USER_SCRIPT](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)、示例和当前项目；第三方开发不依赖宿主内部 `src/`。
 
 | 类型 | 业务目录 | 执行世界 / 开发主 Skill | 正式交付 |
 | --- | --- | --- | --- |

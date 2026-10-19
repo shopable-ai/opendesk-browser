@@ -2,10 +2,14 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
 import {browserOperation} from '../framework/sdk/browser-contract.js';
-// The sandbox waits for a separate real Side Panel click; ordinary tool RPCs
-// remain 8 seconds. This duration is UX only, never an authorization or grant.
+// AdBlock confirmation is an actual separate Side Panel click. The trusted host
+// closes unconfirmed reviews after 90 seconds; ordinary tool RPCs stay short.
+// Waiting is never an authorization grant or a DNR deadline.
+export const ADBLOCK_CONFIRM_OPERATIONS=Object.freeze([
+  'adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore'
+]);
 export function sidebarToolRequestTimeout(operation,toolId){
- return (toolId==='adblock'&&operation==='adblock.site.restore')||
+ return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||
    (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
    (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
    browserOperation(operation)?.requiresUserGesture===true?120000:8000;
@@ -66,7 +70,17 @@ export function initSidebarToolSandbox() {
       // Time Review start/clear await a real trusted-host confirmation dialog.
       // Keep ordinary reads/writes short while allowing time to read that dialog.
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
-      const timeout=setTimeout(()=>{waiting.delete(requestId);reject(new Error('工具请求超时'));},timeoutMs);
+      const timeout=setTimeout(()=>{
+        waiting.delete(requestId);
+        // The host may already have committed a write. Do not interpret loss
+        // of transport acknowledgement as cancellation or reissue the write.
+        const uncertain=toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
+          toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status';
+        const error=new Error(uncertain?
+          '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时');
+        error.code=uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT';
+        reject(error);
+      },timeoutMs);
       waiting.set(requestId,{resolve,reject,timeout});
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload},'*');
     });

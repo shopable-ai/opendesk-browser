@@ -9,7 +9,7 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 当用户说「在**扩展**里开发、安装、打开或管理一个**小应用**」或要求 AI/Codex 创建、修改、打包、预览、安装和验收 Side Panel 可安装应用时使用。**「扩展」是一级 Tab，「应用」是行级类型标签**，不是单独 Tab。本 Skill 不负责 Controller Task、Page USER_SCRIPT「网页增强」或第一方可信功能。
 
-先用 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 判断：侧栏管理 UI 选本 Skill；自动化、网页增强各走原脚本合同；组合式应用按职责协作，不能声明一个 JSON 就取得任意后台 JS。再读 [R4 现行产品导航与术语](../../../docs/product/sidebar-ui-spec.zh-CN.md)。保留技术模型 `examples/sidebar-tools/<id>/`、`opendesk.sidebar-tool.v1/v2`、opaque-origin iframe、`OpenDeskTool.request`、打包器、Host 和安装协议，**不因产品叫扩展而改变技术身份**。
+先用 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 判断：侧栏管理 UI 选本 Skill；自动化、网页增强各走原脚本合同；后台服务先核查受审固定能力；组合式应用按职责协作，不能声明一个 JSON 就取得任意后台 JS 或创建第五套 Runtime。再读 [R4 现行产品导航与术语](../../../docs/product/sidebar-ui-spec.zh-CN.md)。保留技术模型 `examples/sidebar-tools/<id>/`、`opendesk.sidebar-tool.v1/v2`、opaque-origin iframe、`OpenDeskTool.request`、打包器、Host 和安装协议，**不因产品叫扩展而改变技术身份**。
 
 **零技术输入的前置关卡**：一句话新建工具且需求尚未明确时，按[自然语言扩展开发工作流 R2](../../workflows/extension-creation.md) 的 Phase 0–3 恢复/明确产品场景、F/S/A 与 P0/P1，通过 Gate A 再实施。已有工具的明确修复先恢复已批准需求、原型和最新源码，不因新一句短话重新做整套需求/设计关卡；权限、隐私和不可逆行为仍保留原批准门禁。后续只进入当前任务需要的开发、预览或打包阶段，不建立新路由器；当前自动化执行入口仍为 `NOT_IMPLEMENTED`。
 

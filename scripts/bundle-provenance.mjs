@@ -108,14 +108,14 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
   'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'5f22f27e452b675f3df48a044457fb7bfe2f76c5',
-  'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'2f5de0ad7751c36ae210d7f8f5297bddb450287f',
-  'examples/sidebar-tools/stay-focus/trusted/model.js':'6bfae7b11920ad26ec1871fb0a99023482f34979',
+  'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
+  'examples/sidebar-tools/stay-focus/trusted/model.js':'e160e2636a31a91815a7a8fb4e4e79437b83d137',
   'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
   'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
-  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'c500b8b94ae5b723f0e1d6a3014c0519676ac852',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'20c196d7a931f655baad066335643fd1f08206bb',
-  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'c971af818fd17a8964f0e0e9584efc281931b371'
+  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
+  'examples/sidebar-tools/stay-focus/trusted/service.js':'57515710f0ef1529e0ef735d3ec8db7dcd26bf59',
+  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'959d53eaabbc069da91b339d9ae99ccf76057bca'
 });
 // The shared lifecycle module is statically linked by other approved hosts
 // (including knowledge-host). Reuse AdBlock's exact fixed-output registry:
@@ -130,6 +130,46 @@ function reviewedCompiledStayFocus(target,path,root){
   const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledStayFocusInputs[path])
     throw Error('Trusted Stay Focus source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
+// R1.3: The official first-party AI Access and Time Review applications own
+// trusted business modules under examples/, while their privileged handlers
+// still compile into the pre-existing fixed Browser entries. Only these exact
+// reviewed Git blobs may be included; installed/user JSON, unsigned updates,
+// symlinks and arbitrary examples/ files remain explicitly prohibited.
+// Updating application source requires a new source review and pin revision.
+const compiledAppOwnedBackgroundInputs=Object.freeze({
+  'examples/sidebar-tools/ai-vip-share/trusted/host-controls.js':'30a86232a207262bf5e2bbc96fd06ad2a725e551',
+  'examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js':'340de54ab4aabec78b3e0c05145a7a752b74e506',
+  'examples/sidebar-tools/ai-vip-share/trusted/policy.js':'949ae514645f5691244f185b07e835e7e132cb5d',
+  'examples/sidebar-tools/ai-vip-share/trusted/provider-config.js':'d09c57ef4bbc96f406bb2092feb9ff9b2465cf43',
+  'examples/sidebar-tools/ai-vip-share/trusted/service.js':'861861cfea1a02ccf4e7c3535372c4aba389a30c',
+  'examples/sidebar-tools/ai-vip-share/trusted/tool-host.js':'5fe63cd1351f29e59c77da914e9cd5ef87a2ae4e',
+  'examples/sidebar-tools/time-review/trusted/host-controls.js':'41c78beecd5f3b28e291394714c75435d6b91d12',
+  'examples/sidebar-tools/time-review/trusted/model.js':'eeac13501cad3717a53f8ad9a2b90a70d97e6e19',
+  'examples/sidebar-tools/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
+  'examples/sidebar-tools/time-review/trusted/service.js':'1b4dfe90936c70ef89e90dd87307b308ef30be68',
+  'examples/sidebar-tools/time-review/trusted/sync-outbox.js':'d00c7d7c4d3507b6fda21347a4c87d900979e3a2',
+  'examples/sidebar-tools/time-review/trusted/sync-transport.js':'b09f943f2b176b2da2162df1174cd0758f593c56',
+  'examples/sidebar-tools/time-review/trusted/trusted-admission.js':'23ae6cb70c60dc45776c3fe199c4a6af646b790c',
+  'examples/sidebar-tools/time-review/trusted/trusted-native-ui.js':'d9aae298be73fac262490cd943c531414bf8d3d4'
+});
+function reviewedCompiledAppOwnedBackground(target,path,root){
+  // App-owned privileged services are not sandbox, third-party library or
+  // dynamically installed script inputs. A reviewed blob is necessary but
+  // must never expand an untrusted execution world's output admission.
+  // Keep the audited fixed Host targets; block the two extensible worlds.
+  if(!preapprovedFixedTargets.has(target)||
+     target.startsWith('scripting/')||target.startsWith('libs/')||
+     !Object.hasOwn(compiledAppOwnedBackgroundInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted app-owned source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledAppOwnedBackgroundInputs[path])
+    throw Error('Trusted app-owned source changed; review and re-pin before fixed build: '+path+
+      ' (pinned='+compiledAppOwnedBackgroundInputs[path]+' actual='+hash+')');
   return hash;
 }
 
@@ -167,7 +207,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledAdblock(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
       reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
-      reviewedCompiledStayFocus(chunk.fileName,path,root);
+      reviewedCompiledStayFocus(chunk.fileName,path,root)||
+      reviewedCompiledAppOwnedBackground(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,

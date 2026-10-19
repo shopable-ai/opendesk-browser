@@ -1,0 +1,88 @@
+name: Cookie Editor R5.6 React candidate (no native promotion)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cookie-editor-r56-react-candidate.yml'
+      - 'examples/sidebar-tools/cookie-editor/app/**'
+      - 'examples/sidebar-tools/cookie-editor/src/react.css'
+      - 'examples/sidebar-tools/cookie-editor/src/root.html'
+      - 'examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx'
+      - 'examples/sidebar-tools/cookie-editor/package.json'
+      - 'examples/sidebar-tools/cookie-editor/vite.config.mjs'
+      - 'examples/sidebar-tools/cookie-editor/scripts/**'
+      - 'tests/environment/cookie-editor-react-*.test.mjs'
+      - 'tests/environment/page-install-package.test.mjs'
+      - 'tests/environment/sidebar-shared-ui-r17.test.mjs'
+      - 'examples/sidebar-tools/shared-ui-demo/**'
+      - 'tests/environment/cookie-editor-r50-trusted-pilot.test.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/preview/shared-tool-design.mjs'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
+      - 'src/ui/sidebar-tools/package.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cookie-editor-r56-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore pinned project dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build real WXT and Shared UI Demo prerequisites for build-bound tests
+        run: |
+          npm run build:dev
+          npm run build --prefix examples/sidebar-tools/shared-ui-demo
+      - name: Domain, controller, SDK and exact legacy release regressions
+        run: |
+          node --check examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js
+          node --check examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js
+          node --check examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js
+          node --check examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs
+          node --test \
+            tests/environment/cookie-editor-react-domain.test.mjs \
+            tests/environment/cookie-editor-react-controller.test.mjs \
+            tests/environment/cookie-editor-react-source.test.mjs \
+            tests/environment/cookie-editor-react-design.test.mjs \
+            tests/environment/browser-sdk-r8-cookies.test.mjs \
+            tests/environment/browser-sdk-r9-installed-cookies.test.mjs \
+            tests/environment/browser-sdk-r9-installed-host.test.mjs \
+            tests/environment/sidebar-tools-host.test.mjs \
+            tests/environment/sidebar-shared-ui-r17.test.mjs \
+            tests/environment/page-install-package.test.mjs \
+            tests/environment/cookie-editor-ui.test.mjs \
+            tests/environment/cookie-editor-native-selection.test.mjs \
+            tests/environment/cookie-editor-r50-trusted-pilot.test.mjs \
+            tests/environment/sidebar-tools.test.mjs
+      - name: Build independent React 19 tool using pinned externals
+        run: npm run build --prefix examples/sidebar-tools/cookie-editor
+      - name: Stage React candidate via canonical installed-package packer
+        run: npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
+      - name: Verify real Vite bytes and staged official packer artifact
+        run: node --test tests/environment/cookie-editor-react-build.test.mjs
+      - name: Assert no mutations to official release sources
+        run: |
+          git diff --exit-code -- \
+            examples/sidebar-tools/cookie-editor/tool.config.json \
+            examples/sidebar-tools/cookie-editor/src/main.js \
+            examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json
+          git status --short
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cookie-editor-r56-candidate-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            examples/sidebar-tools/cookie-editor/dist/
+            artifacts/sidebar-tools/cookie-editor/

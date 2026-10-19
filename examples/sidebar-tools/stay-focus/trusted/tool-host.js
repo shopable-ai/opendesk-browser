@@ -4,12 +4,16 @@ import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SER
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
+import {assertManagedSitePolicySupported} from '../../../../src/platform/host/managed-site-runtime-contract.js';
 
 const trustedOnly=['focus.enable','focus.disable','focus.clear'];
 const error=(message,code)=>Object.assign(new Error(message),{code});
 // Presence of a Side Panel adapter is not evidence of a running MV3 worker.
 // A live, versioned handshake fails closed without granting Chrome authority.
-export async function probeStayFocusService({api}){
+export async function probeStayFocusService({api,tool=null}){
+  // Do not let a different package pass installation by probing this fixed SW.
+  if(tool&&(tool.id!==FOCUS_ID||!tool.capabilities?.includes(FOCUS_CAPABILITY)))
+    throw error('当前工具没有对应的可信 Stay Focus 后台服务','E_TOOL_RUNTIME_UNAVAILABLE');
   if(typeof api?.runtime?.sendMessage!=='function')
     throw error('当前扩展无法连接 Stay Focus 后台服务；请升级或重新加载扩展','E_TOOL_RUNTIME_UNAVAILABLE');
   let response;
@@ -23,6 +27,9 @@ export async function probeStayFocusService({api}){
      response.data?.serviceVersion!==FOCUS_SERVICE_VERSION||response.data?.serviceReady!==true)
     throw error('当前扩展未提供匹配的 Stay Focus 后台服务：'+
       String(response?.error?.code||'E_FOCUS_NO_SERVICE'),'E_TOOL_RUNTIME_UNAVAILABLE');
+  // A responding worker is not proof that it knows how to interpret the new
+  // version's installed, code-free background policy. Fail before installation.
+  assertManagedSitePolicySupported(tool,response.data);
   return response.data;
 }
 function requireFocusTool(tool){
@@ -42,8 +49,10 @@ export async function runTrustedStayFocusOperation({api,tool,operation,payload,e
   const installEpoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
   const packageHash=await focusPackageHash(tool);
   assertCurrent('before-send');
-  const result=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,
-    toolId:tool.id,operation,payload,packageHash,installEpoch});
+  let result;
+  try{result=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,
+    toolId:tool.id,operation,payload,packageHash,installEpoch});}
+  catch{throw error('后台连接中断，执行结果未知；请重新读取 Chrome 规则','E_OUTCOME_UNKNOWN');}
   if(!result?.ok)throw error(result?.error?.message||'专注 Host 未确认',result?.error?.code||'E_FOCUS');
   try{assertCurrent('after-send');}catch{
     throw error('宿主已改变，请核查 Chrome 规则状态','E_OUTCOME_UNKNOWN');
@@ -68,10 +77,18 @@ export async function requestStayFocusOperation({api,tool,operation,payload,revo
       throw error('工具身份或授权版本已变化','E_TOOL_CHANGED');
     const packageHash=await focusPackageHash(tool);
     assertCurrent();
-    const response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:tool.id,
-      operation,payload,packageHash,installEpoch:revocationEpoch});
+    let response;
+    try{response=await api.runtime.sendMessage({protocol:FOCUS_PROTOCOL,toolId:tool.id,
+      operation,payload,packageHash,installEpoch:revocationEpoch});}
+    catch{
+      throw error(operation==='focus.status'?'后台状态读取失败':'后台连接中断，执行结果未知；请先读取状态，不要重复提交',
+        operation==='focus.status'?'E_FOCUS_STATUS':'E_OUTCOME_UNKNOWN');
+    }
     if(!response?.ok)throw error(response?.error?.message||'专注操作未确认',response?.error?.code||'E_FOCUS');
-    assertCurrent();return response.data;
+    try{assertCurrent();}catch{
+      throw error('宿主已改变，执行结果未知；请核查网站状态与 Chrome 规则','E_OUTCOME_UNKNOWN');
+    }
+    return response.data;
   };
   if(operation==='focus.status')return send();
   const target=operation==='focus.site.put'?'保存「'+String(payload?.site?.host||'').slice(0,80)+'」的网站限制':

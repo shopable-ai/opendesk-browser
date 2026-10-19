@@ -13,6 +13,18 @@ on:
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/tool.html'
       - 'src/sw.js'
+      - 'src/platform/chrome/browser-managed-site-policy.js'
+      - 'src/platform/chrome/managed-site-lifecycle.js'
+      - 'src/platform/host/managed-site-authority.js'
+      - 'tests/environment/managed-site-authority-r44.test.mjs'
+      - 'tests/environment/managed-site-runtime-contract-r45.test.mjs'
+      - 'src/platform/host/managed-site-runtime-contract.js'
+      - 'src/marketplace/page.js'
+      - 'tests/environment/stay-focus-r45-marketplace-admission.test.mjs'
+      - 'tests/environment/browser-managed-site-policy-r44.test.mjs'
+      - 'tests/environment/stay-focus-r44-transport.test.mjs'
+      - 'tests/environment/stay-focus-r44-policy-review.test.mjs'
+      - 'src/sidebar-tools/bridge.js'
       - 'src/sidebar-tools/bridge.js'
       - 'scripts/prepare-public.mjs'
       - 'scripts/build-contract.mjs'
@@ -23,7 +35,9 @@ on:
       - 'tests/environment/stay-focus-extraction-r2.test.mjs'
       - 'tests/environment/stay-focus-r41-policy-package.test.mjs'
       - 'tests/environment/stay-focus-r1.test.mjs'
+      - 'tests/environment/extension-runtime-r14-lifecycle.test.mjs'
       - 'tests/environment/stay-focus-service-r1.test.mjs'
+      - 'tests/environment/stay-focus-boundary-r1.test.mjs'
       - 'tests/environment/fixed-entries-audit.test.mjs'
       - 'tests/framework/stay-focus-r1-native.test.mjs'
       - '.github/workflows/stay-focus-r1.yml'
@@ -53,7 +67,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Strict policy, time, DNR and component assertions
         run: |
-          node --test tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/stay-focus-extraction-r2.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs
+          node --test tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r45-marketplace-admission.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/stay-focus-r44-transport.test.mjs tests/environment/stay-focus-r44-policy-review.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/stay-focus-extraction-r2.test.mjs
           node --check tests/framework/stay-focus-r1-native.test.mjs
       - name: Build independent user-installable Stay Focus release
         run: |
@@ -70,6 +84,15 @@ jobs:
           sha256sum dist/production/sw.js
           wc -c dist/production/sw.js
           sha256sum dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
+      - name: Prepare tested Stay Focus candidate for native verification (not final release)
+        run: |
+          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
+          candidate="artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --promote-from "$candidate"
+          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --check-project
+          cmp "$candidate" examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
+          test "$(find examples/sidebar-tools/stay-focus -maxdepth 1 -name '*.opendesk-tool.json' | wc -l)" -eq 1
+          sha256sum examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
       - name: Preserve exact candidate for native Mac (not acceptance yet)
         uses: actions/upload-artifact@v4
         with:
@@ -79,6 +102,7 @@ jobs:
           path: |
             dist/production/
             artifacts/sidebar-tools/stay-focus/
+            examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
       - name: Preserve source/build failure diagnostics
@@ -91,6 +115,22 @@ jobs:
           path: |
             artifacts/sidebar-tools/stay-focus/
             docs/framework/evidence/wxt/builds/
+  cross-app-release-gate:
+    # A stale AdBlock/official-catalog release MUST still fail this workflow,
+    # but must not prevent independent Stay Focus source and native evidence.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned packages
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit all official tools and fixed-entry ownership (release blocker)
+        run: |
+          node --test tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs
   native-mac-chrome:
     needs: source-and-build
     runs-on: macos-15

@@ -9,10 +9,10 @@ import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
-import {TIME_REVIEW_KEY} from '../../time-review/model.js';
+import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
-import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../ai-smart-access/lifecycle.js';
+import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
@@ -64,6 +64,14 @@ export async function getInstalledSidebarTools(api) {
   return requireCompleteInstalledSidebarTools(
     (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
 }
+// Fixed product adapters only; never execute package JS or clear a peer rule range.
+async function stopInstalledToolOwnedServices(api,toolId){
+  await stopStayFocusForTool(api,toolId);
+  await stopAdblockForTool(api,toolId);
+  await stopAiAccessForTool(api,toolId);
+  await stopManagedProxyForTool(api,toolId);
+}
+
 export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled}){
   if(typeof enabled!=='boolean')throw error('工具启停状态无效','E_TOOL_SCHEMA');
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
@@ -73,7 +81,16 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       if(!sameSidebarToolPackage(current,tool))throw error('工具已更新或卸载，请重新打开详情','E_TOOL_CHANGED');
       const raw=(await api.storage.local.get(SIDEBAR_TOOL_ENABLE_STORE))[SIDEBAR_TOOL_ENABLE_STORE];
       const previous=requireToolEnableRecords(raw);
-      if((previous[tool.id]!==false)===enabled)return {enabled};
+      const currentlyEnabled=previous[tool.id]!==false;
+      if(currentlyEnabled===enabled){
+        if(!enabled){
+          // A previous STOP might have persisted the disabled flag before
+          // a native DNR or proxy cleanup failed. Reconcile again on STOP.
+          await stopInstalledToolOwnedServices(api,tool.id);
+          return {enabled:false,cleanupAttempted:true};
+        }
+        return {enabled};
+      }
       const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
       const epochs=requireToolRevocationEpochs(rawEpochs);
       const rawGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
@@ -88,10 +105,12 @@ export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabl
       if(!enabled){
         await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
           {...previous,[tool.id]:false},raw,'工具启停');
-        await stopStayFocusForTool(api,tool.id);
-        await stopAdblockForTool(api,tool.id);
-        await stopAiAccessForTool(api,tool.id);
-        await stopManagedProxyForTool(api,tool.id);
+        await stopInstalledToolOwnedServices(api,tool.id);
+      }
+      if(enabled){
+        // Resume cannot bless an interrupted STOP with stale native effects.
+        // Cleanup happens before the new epoch and enabled=true become visible.
+        await stopInstalledToolOwnedServices(api,tool.id);
       }
       await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
         {...epochs,[tool.id]:nextEpoch},rawEpochs,'工具实例撤销');
@@ -180,7 +199,8 @@ export async function cleanupUninstalledToolLocked(api,id){
     // Delete private bookmark ownership IDs but do not silently remove user bookmarks.
     await removeVerifiedKey(api,BOOKMARK_OWNED_STORE_PREFIX+id);
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
-    await cleanupUninstalledStayFocus(api,id,removeVerifiedKey);
+    await cleanupUninstalledStayFocus(api,id,removeVerifiedKey,
+      key=>removeVerifiedStorageKey(api.storage.session,key,'卸载专注会话'));
     await cleanupUninstalledAdblock(api,id,removeVerifiedKey);
     await cleanupUninstalledAiAccess(api,id,removeVerifiedKey);
     await stopManagedProxyForTool(api,id,{removeVerifiedKey});

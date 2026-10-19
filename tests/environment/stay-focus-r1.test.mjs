@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS,FOCUS_PAGE_NOTICE_PROTOCOL} from '../../src/stay-focus/policy.js';
-import {installFocusPageNotice} from '../../src/stay-focus/page-notice.js';
+import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS,FOCUS_PAGE_NOTICE_PROTOCOL} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {installFocusPageNotice} from '../../examples/sidebar-tools/stay-focus/trusted/page-notice.js';
 import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
-  focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../src/stay-focus/model.js';
-import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../src/stay-focus/catalog.js';
-import {installStayFocusBlockedPage} from '../../src/stay-focus/blocked.js';
-import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
+  focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
+import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../examples/sidebar-tools/stay-focus/trusted/catalog.js';
+import {installStayFocusBlockedPage} from '../../examples/sidebar-tools/stay-focus/trusted/blocked.js';
+import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
-  from '../../src/stay-focus/rule-host.js';
+  from '../../examples/sidebar-tools/stay-focus/trusted/rule-host.js';
 
 const at=new Date(2026,9,13,12,0,0).getTime();
 const mkSite=(host,overrides={})=>({host,subdomains:true,enabled:true,mode:'limit',minutes:15,group:'',...overrides});
@@ -289,10 +289,10 @@ test('DNR write failure and readback corruption are not called successful',async
   await assert.rejects(reconcileFocusRules(noPersist,wanted),error=>error.code==='E_FOCUS_DNR_MISMATCH');
 });
 test('independent Time Review never imported as model state or authority',async()=>{
-  const {FOCUS_STORE}=await import('../../src/stay-focus/policy.js');
-  const {TIME_REVIEW_KEY}=await import('../../src/time-review/model.js');
+  const {FOCUS_STORE}=await import('../../examples/sidebar-tools/stay-focus/trusted/policy.js');
+  const {TIME_REVIEW_KEY}=await import('../../examples/sidebar-tools/time-review/trusted/model.js');
   assert.notEqual(FOCUS_STORE,TIME_REVIEW_KEY);
-  const {FOCUS_ID}=await import('../../src/stay-focus/policy.js');
+  const {FOCUS_ID}=await import('../../examples/sidebar-tools/stay-focus/trusted/policy.js');
   assert.equal(FOCUS_ID,'stay-focus');
 });
 

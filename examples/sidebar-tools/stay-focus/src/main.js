@@ -56,6 +56,20 @@
       apply.hidden=site.minutes===0||exists;
       apply.textContent=site.source==='unknown'?'将此网站加入娱乐总额度':'加入每日娱乐总额度';
     }
+    const review=$('policy-review'),reviewSites=$('policy-review-sites');
+    // Suggestions from the installed signed package are never executed as
+    // rules. Keep previously paused sites out of this invitation, and require
+    // the ordinary trusted Host approval separately for every newly chosen site.
+    const recommendations=knownSites().filter(row=>row.auto&&
+      !state?.sites?.some(site=>site.host===row.host));
+    review.hidden=!state?.sites?.length||!recommendations.length;
+    reviewSites.replaceChildren();
+    if(!review.hidden)for(const suggestion of recommendations){
+      const add=create('button','sf-secondary',suggestion.name+' · 审阅并添加');
+      add.type='button';add.setAttribute('aria-label','审阅并添加 '+suggestion.host);
+      add.addEventListener('click',()=>call('focus.site.put',{site:siteRule(suggestion)}));
+      reviewSites.append(add);
+    }
     const presets=$('quick-presets');
     presets.replaceChildren();
     // Show only unconfigured popular sites; adding one recommendation must

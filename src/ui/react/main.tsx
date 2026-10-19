@@ -6,8 +6,6 @@ import {ExtensionCenterPage} from './tabs/tools.tsx';
 import {DebugDiagnosticText} from './tabs/debug.tsx';
 import {createDeveloperView} from '../develop-view.js';
 import {createMyWorkbenchView} from '../my-workbench-view.js';
-import {CookieTrustedPilot} from './tabs/cookie-pilot.tsx';
-import cookiePilotScopedCSS from './tabs/cookie-pilot.css?raw';
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';
 import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
@@ -31,7 +29,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
-  let rowMenuModel=null,cookiePilotHost=null,bookmarkPilot=null;
+  let rowMenuModel=null,bookmarkPilot=null;
   const debugIds={summary:'debug-cloud-summary',pairing:'debug-pairing',connection:'debug-connection',
     reconcile:'debug-reconcile',slot:'debug-slot',taskCount:'debug-task-count',requestCount:'debug-request-count',
     snapshot:'debug-snapshot',feedback:'debug-feedback'};
@@ -46,14 +44,13 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{cookiePilotScopedCSS+'\n'+bookmarkPilotLayoutCSS}</style>
+      <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS}</style>
       {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
         debugEnabled={debugEnabled} onNavigate={onNavigate} extensionProps={extensionProps}
         developerView={developerView} myView={myView} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
         :<ExtensionCenterPage {...extensionProps}/>}
-      {cookiePilotHost&&createPortal(<CookieTrustedPilot/>,cookiePilotHost)}
       {bookmarkPilot&&createPortal(<><style>{bookmarkScopedCSS}</style>
         <BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime} onStateChange={bookmarkPilot.onStateChange}/>
         </>,bookmarkPilot.container)}
@@ -121,27 +118,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
         }
       };
     },
-    mountCookieEditorPilot(container){
-      // An opt-in, development-only *data-free* demo. No package JS is read
-      // and the real Cookie Tool keeps its original iframe and SDK Host.
-      if(disposed||cookiePilotHost||!debugMounted||!container||
-        container.ownerDocument!==doc||container.childNodes.length||
-        container.dataset.opendeskReactOwner)
-        throw new Error('E_COOKIE_TRUSTED_PILOT_MOUNT');
-      cookiePilotHost=container;
-      container.dataset.opendeskReactOwner='cookie-react-pilot';
-      paint();
-      let released=false;
-      return ()=>{
-        if(released)return;released=true;
-        if(cookiePilotHost===container){
-          cookiePilotHost=null;
-          if(!disposed)paint();
-          delete container.dataset.opendeskReactOwner;
-        }
-      };
-    },
-
     renderCloudPage(next){
       if(disposed||!shell)return;
       if(!next?.overview||!next.authorization||!next.pairing||!next.clients||!next.requests)
@@ -166,7 +142,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     renderStatus(next){if(disposed)return;statusModel=next;paint();},
     dispose(){
       if(disposed)return;disposed=true;cloudPageModel.onHide?.();root.unmount();
-      if(cookiePilotHost)delete cookiePilotHost.dataset.opendeskReactOwner;
       if(bookmarkPilot)delete bookmarkPilot.container.dataset.opendeskReactOwner;
       for(const node of Object.values(debugNodes))if(node)delete node.dataset.opendeskReactOwner;
       for(const id of Object.keys(owners)){const node=doc.getElementById(id);if(node)delete node.dataset.opendeskReactOwner;}

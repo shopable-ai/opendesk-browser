@@ -6,7 +6,7 @@ import {
   REVIEW_SYNC_PROTOCOL,MAX_REVIEW_SYNC_RECORDS,beginReviewSync,stageReviewSync,reviewSyncStatus,
   pendingReviewSync,acknowledgeReviewSync,failReviewSyncAttempt,stopReviewSync,
   validateReviewSync,dailyReviewUpsertPayload
-} from '../../src/time-review/sync-outbox.js';
+} from '../../examples/sidebar-tools/time-review/trusted/sync-outbox.js';
 
 const NOW=new Date('2026-10-13T12:00:00').getTime();
 const SCOPE='a'.repeat(64),SEED='11111111-2222-4333-8444-555555555555';
@@ -116,7 +116,7 @@ test('capacity overflow never evicts old pending records, remains visible as BLO
   assert.equal(reviewSyncStatus(s).overflow,true);
 });
 
-const {putReviewSyncRecord,verifiedReviewSyncOrigin}=await import('../../src/time-review/sync-transport.js');
+const {putReviewSyncRecord,verifiedReviewSyncOrigin}=await import('../../examples/sidebar-tools/time-review/trusted/sync-transport.js');
 test('outbound adapter requires exact HTTPS allowlist and separate Chrome host grant',async()=>{
   const s=state();prepare(s);s.days['2026-10-13']['example.com']=20000;await stageReviewSync(s);
   const record=pendingReviewSync(s,NOW)[0],origin='https://sync.example';

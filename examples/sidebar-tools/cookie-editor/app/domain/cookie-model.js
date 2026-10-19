@@ -121,6 +121,7 @@ function exportText(format,rows){
   if(!Array.isArray(rows)||!rows.length)throw new Error('当前没有可导出的 Cookie');
   if(format==='json')return JSON.stringify(rows,null,2)+'\n';
   if(format==='header'){
+    if(rows.some(row=>row.partitionKey))throw new Error('Cookie Header 不支持分区 Cookie，请使用 JSON 保留完整字段');
     if(rows.some(row=>/[;\r\n\x00]/.test(row.name)||/[;\r\n\x00]/.test(row.value)))
       throw new Error('Cookie Header 无法无损表达该名称或值，请选择 JSON');
     return rows.map(row=>row.name+'='+row.value).join('; ')+'\n';

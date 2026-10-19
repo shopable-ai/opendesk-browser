@@ -5,6 +5,8 @@ import {load} from 'cheerio';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer,transformWithEsbuild} from 'vite';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {createMyWorkbenchView} from '../../src/ui/my-workbench-view.js';
 
 const read=path=>readFile(path,'utf8');
 
@@ -29,6 +31,7 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.equal($('#workbench-cloud').length,0);
   assert.equal($('#cloud-approval-section').length,0);
   assert.equal($('#cloud-request-samples').length,0);
+  assert.equal($('#cloud-first-run').length,0);
   assert.equal($('#cloud-hosting').length,0);
   assert.equal($('#workspace-dock').children('.dock-actions').length,2);
   const shell=await read('src/ui/react/app-shell.tsx');
@@ -70,8 +73,9 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   const {SidebarAppShell}=await vite.ssrLoadModule('/src/ui/react/app-shell.tsx');
   const scaffold={beforeTools:[],afterTools:[],beforeList:[],afterList:[],
     listRemainder:[],dock:{}};
+  const views={developerView:createDeveloperView(),myView:createMyWorkbenchView()};
   const html=renderToStaticMarkup(React.createElement(SidebarAppShell,{
-    scaffold,activeTab:'tools',debugEnabled:false,onNavigate:()=>true
+    scaffold,...views,activeTab:'tools',debugEnabled:false,onNavigate:()=>true
   }));
   const $=load(html);
   assert.equal($('.workbench-nav[role=tablist]').length,1);
@@ -92,16 +96,18 @@ test('R35.1 SSR renders one app shell with accessible navigation (SOURCE_ONLY)',
   assert.equal($('#extension-center-detail').length,1);
   assert.equal($('#extension-center-status').length,1);
   assert.equal($('#workbench-cloud').length,1);
-  for(const id of ['cloud-request-samples','cloud-request-prev','cloud-request-next',
+  for(const id of ['cloud-first-run','cloud-configure','cloud-next-step',
+    'cloud-request-samples','cloud-request-prev','cloud-request-next',
     'cloud-request-detail','cloud-request-open-result'])assert.equal($('#'+id).length,1,id);
   for(const id of ['cloud-overview-state','cloud-overview-provider',
     'cloud-overview-connection','cloud-overview-host','cloud-overview-slot',
     'cloud-overview-tasks','cloud-overview-requests','cloud-my-state'])
     assert.equal($('#'+id).length,1,id);
   assert.equal($('#workspace-content #sidebar-tool-list-view #extension-center').length,1);
-  assert.equal($('.opendesk-react-dock-host').length,1);
+  assert.equal($('#workspace-dock > #task-dock').length,1);
+  assert.equal($('#workspace-dock > #develop-dock').length,1);
   const tasks=renderToStaticMarkup(React.createElement(SidebarAppShell,{
-    scaffold,activeTab:'tasks',debugEnabled:true
+    scaffold,...views,activeTab:'tasks',debugEnabled:true
   }));
   const $tasks=load(tasks);
   assert.equal($tasks('#workbench-tools').is('[hidden]'),true);
@@ -129,6 +135,29 @@ test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY
   assert.match(html,/&lt;img src=x onerror=evil\(\)&gt;/);
   assert.doesNotMatch(html,/<script\b|<img\b/i);
   assert.match(html,/id="cloud-open-console"/);
+  const requests=renderToStaticMarkup(React.createElement(CloudConnectionPage,{
+    model:{summary:'正在连接'},
+    requestsModel:{
+      rows:[{key:'r0',index:0,title:'<img src=x onerror=evil()>',summary:'状态未知'}],
+      canPrev:false,canNext:true,pageText:'第 1 条',
+      detail:{key:'r0',title:'<script>evil()</script>',state:'UNKNOWN',
+        canOpenRun:false}
+    }
+  }));
+  const $requests=load(requests);
+  assert.equal($requests('#cloud-request-samples li').length,1);
+  assert.equal($requests('#cloud-request-samples img').length,0);
+  assert.equal($requests('#cloud-request-detail script').length,0);
+  assert.equal($requests('#cloud-request-detail-title').text(),'<script>evil()</script>');
+  assert.equal($requests('#cloud-request-prev').is(':disabled'),true);
+  const withSetup=renderToStaticMarkup(React.createElement(CloudConnectionPage,{
+    setupModel:{visible:true,nextStep:'连接 <script>阻止注入</script>',onConfigure:()=>{}}
+  }));
+  const $setup=load(withSetup);
+  assert.equal($setup('#cloud-first-run').is('[hidden]'),false);
+  assert.equal($setup('#cloud-next-step').text(),'连接 <script>阻止注入</script>');
+  assert.equal($setup('#cloud-next-step script').length,0);
+  assert.equal($requests('#cloud-request-next').is(':disabled'),false);
   assert.match(html,/id="cloud-overview-refresh"/);
   assert.match(html,/id="cloud-request-samples"/);
   assert.doesNotMatch(await read('src/ui/react/tabs/cloud.tsx'),

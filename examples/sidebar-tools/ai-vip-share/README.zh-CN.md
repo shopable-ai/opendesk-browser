@@ -44,7 +44,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-vip-share --check-
 ## 历史过渡架构与阻塞（R2，已被公共 SDK 迁移取代）
 
 新目录目前承载 UI 和声明式包配置；Chrome 全局代理控制仍由旧的宿主
-`src/ai-smart-access/` 的 R1 可信模块提供。`aiAccess.*` 只是内部过渡协议，
+原 `src/ai-smart-access/` 的 R1 可信模块已迁入本工具 `trusted/`（仅编译期可信适配，不随 JSON 动态加载）。`aiAccess.*` 只是内部过渡协议，
 **不属于已正式批准的公共 SDK Managed Proxy Capability**。
 后续须把域名、激活、服务商配置等业务迁入此工具，复用 SDK R11 审核通过的公共代理框架，并删除专用 Host/Service。
 不得借更名重复开发 SDK 或授予沙箱 `chrome.proxy` 权限。
@@ -76,7 +76,7 @@ R2.1 核查（2026-10-15）：R11 的批准 Registry 没有 Managed Proxy，发�
 
 「查看更多商品」优先外部 HTTPS 新标签页，`PRODUCT_CATALOG_URL` 仍为空。配置经过审核的无长凭据 URL 后升级 v2 `browser.tabs` 能力，并经既有 `browser.tabs.create` 与受信点击批准。短效激活 ticket、官方安装/回跳仍被正式服务与可信安装合同阻塞，不读取任意网页 URL 来冒充安装/会员授权。
 
-可信代理卡在启用请求尚未返回时允许用户发起停用；只由原可信 Host/Worker 串行处理，晚到启用应答不可覆盖新 STOP 状态。仍保留旧 `src/ai-smart-access/` 模块及所有 Owner/撤权保护；公共 Managed Proxy SDK 未正式批准，`SDK_BLOCKED`。真实启用还依赖旧代理技术 Provider 的已批准租约服务；无该服务时不能声称代理可连通。
+可信代理卡在启用请求尚未返回时允许用户发起停用；只由原可信 Host/Worker 串行处理，晚到启用应答不可覆盖新 STOP 状态。仍保留旧 `aiAccess.*` 协议兼容及所有 Owner/撤权保护，旧 `src/ai-smart-access/` 重复业务目录已删除；公共 Managed Proxy SDK 未正式批准，`SDK_BLOCKED`。真实启用还依赖旧代理技术 Provider 的已批准租约服务；无该服务时不能声称代理可连通。
 
 定向验证与 GitHub 同候选证据详见 [R5.1 工作流](../../../docs/framework/workstreams/ai-vip-share-r51-source-first-20261015.md)。真实 Mac Chrome 安装与原生停止/重启：`NOT_TESTED`。
 
@@ -129,3 +129,7 @@ src/main.js 保留原有 Browser SDK、可信服务端会员数据、存储 CAS 
 沿用 R5.9.2 正式结构及公共 Design Tokens：预检成功后聚焦「确认兑换」，可信 Escape 与取消按钮共用不提交的取消路径，并恢复兑换输入框焦点；收敛「兑换记录」重复标题及会员未配置时的技术重复文案，优化折叠说明点击高度。原兑换 journal 仍支持 1.2.0/1.3.0/1.3.1/1.3.2/1.3.3/1.3.4。STOP、SDK 权限和未配置商业服务均保持不变。
 
 **证据分级：** 正式源码、同源包及 VM/打包 Chromium 的通过记录不能证明 1.3.4 已在 Mac 日常 Chrome 真实 Side Panel 安装。缺少实际安装、沙箱截图、宿主存储回读之前记录 `INSTALLED_NOT_TESTED`；商业 Provider 与可信代理仍 `PROVIDER_BLOCKED` / `REAL_PROXY_BLOCKED`，不可复用 1.3.1 证据冒充本版本。
+
+## R1 业务源码清理（2026-10-19）
+
+原 R1 `ai-smart-access` 六个可信模块已统一归属本工具 `trusted/`；主扩展 Service Worker / Side Panel 可信入口仍会静态编译这些受限旧协议适配器，不通过安装包授予网页沙箱 Chrome 代理权限。当前正式工具优先使用既有公共 `browser.proxy.managed` SDK。旧数据身份、停用与卸载清理仍须保留；业务 JS 不能只靠更新可安装 JSON 热替换。未经真正测试的旧与新代理链隔离不标记 PASS。

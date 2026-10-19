@@ -124,12 +124,12 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
     assert.fail('unexpected execution: '+request.method);
   }});
   const setLocal=async value=>{
-    find('local-project-mode').checked=value;find('local-project-mode').fire('change');
+    find('local-project-mode').checked=value;find('local-project-mode').fire('change',{isTrusted:true});
     await tick();await tick();
   };
   await tick();
   if(local)await setLocal(true);
-  return {find,editor,host,target,api,client,projection,opened,requests,hostRequests,commits,effects,permissions,dispatches,manualRuns,stops,resolutions,trace,setLocal,
+  return {find,nativeFind:legacyFind,editor,host,target,api,client,projection,opened,requests,hostRequests,commits,effects,permissions,dispatches,manualRuns,stops,resolutions,trace,setLocal,
     click:async(trusted=true)=>{const start=trace.length;find('script-run').fire('click',{isTrusted:trusted});await tick();return start;},
     refresh:async()=>{find('local-project-refresh').fire('click',{isTrusted:true});await tick();await tick();},
     setFiles(value){files=value;},setConnected(value){connected=value;nativeConnected=value;},
@@ -141,7 +141,7 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
       if(connected)await until(()=>requests.filter(row=>row.method==='projects.list').length>before,'metadata poll did not read the project catalog');
       await tick();await tick();
     },
-    async select(bindingId){find('local-project-select').value=bindingId;find('local-project-select').fire('change');await tick();},
+    async select(bindingId){find('local-project-select').value=bindingId;find('local-project-select').fire('change',{isTrusted:true});await tick();},
     async save(){find('script-save').fire('click',{isTrusted:true});await tick();await tick();},
     async settle(){await until(()=>!find('script-run').disabled,'editor did not leave the local Run transaction');},
     async settleInspection(){await until(()=>find('script-save').textContent!=='正在核对…','read-only installation inspection did not settle');await tick();},
@@ -636,7 +636,7 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   const row={scriptId:'manual',revision:1,sourceUtf8:source,contentHash:hash(source)};
   f.holdLoad(row);
   const select=async kind=>{
-    const input=f.find('page-component-'+kind);input.checked=true;input.fire('change');
+    const input=f.find('page-component-'+kind);input.checked=true;input.fire('change',{isTrusted:true});
     await tick();await tick();
   };
   const action=async kind=>{
@@ -648,7 +648,8 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   const componentDraft=framework==='react'
     ?'export default function MyDraft(){return null;}'
     :'<template><p>retained Vue draft</p></template>';
-  f.find('script-source').value=componentDraft;f.find('script-source').fire('input');
+  f.find('script-source').value=componentDraft;
+  f.find('script-source').fire('input');
   await tick();await tick();
   if(control==='script-list-load')f.find('script-list').value=row.scriptId;
   f.find(control).fire('click',{isTrusted:true});
@@ -691,7 +692,7 @@ test('current page availability visibly identifies the webpage in every editor m
     const f=await fixture(t,options);
     if(options.framework){
       const input=f.find('page-component-'+options.framework);
-      input.checked=true;input.fire('change');
+      input.checked=true;input.fire('change',{isTrusted:true});
     }
     f.setTarget({...availableTarget});
     assert.equal(f.find('script-current-page-status').textContent,'网页可运行');
@@ -742,7 +743,7 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
   await until(()=>f.find('page-program-list').children.some(row=>row.value==='loaded-page:1'),'Page catalog did not refresh');
   await tick();await tick();
   f.find('page-program-list').value='loaded-page:1';
-  f.find('page-program-list').fire('change');await tick();await tick();
+  f.find('page-program-list').fire('change',{isTrusted:true});await tick();await tick();
   await until(()=>!f.find('page-program-load').disabled,'Page source load stayed busy');
   f.find('page-program-load').fire('click',{isTrusted:true});
   await until(()=>{
@@ -768,12 +769,12 @@ test('R36.2 JavaScript Controller/Page selection retains independent drafts with
   const f=await fixture(t,{local:false,files:[]});
   const world=async name=>{
     f.find('script-javascript-world').value=name;
-    f.find('script-javascript-world').fire('change');
+    f.find('script-javascript-world').fire('change',{isTrusted:true});
     await tick();
   };
   const framework=async name=>{
     const input=f.find('page-component-'+name);
-    input.checked=true;input.fire('change');
+    input.checked=true;input.fire('change',{isTrusted:true});
     await tick();
   };
   const pageSource='async function main(){return {title:document.title};}';
@@ -805,13 +806,146 @@ test('R36.2 JavaScript Controller/Page selection retains independent drafts with
 test('R36.2 active/invalid world selection does not bypass managed execution ownership',async t=>{
   const f=await fixture(t,{local:false,files:[]});
   const input=f.find('script-javascript-world');
-  input.value='nonsense';input.fire('change');
+  input.value='nonsense';input.fire('change',{isTrusted:true});
   assert.equal(input.value,'controller','invalid world must restore the original choice');
   await f.setCurrentRun('busy-controller');
   assert.equal(f.find('script-run').disabled,true);
   assert.equal(input.disabled,true,'running Controller owns the execution state');
-  input.value='page';input.fire('change');
+  input.value='page';input.fire('change',{isTrusted:true});
   assert.equal(input.value,'controller','running Controller cannot lose its editor execution world');
+  assert.deepEqual(f.manualRuns,[]);
+  assert.deepEqual(f.dispatches,[]);
+});
+
+test('R36.2 manual Page JavaScript Run retains exact USER_SCRIPT preview transport',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const previews=[];
+  f.client.request=async(method,params)=>{
+    if(method==='previewPageScript'){
+      previews.push(params);
+      throw {code:'E_TEST_PAGE_WORLD',message:'existing preview transport reached'};
+    }
+    if(method==='listPagePrograms')return {catalog:[],programs:[]};
+    return {catalog:[],programs:[]};
+  };
+  const select=f.find('script-javascript-world');
+  select.value='page';select.fire('change',{isTrusted:true});
+  await tick();await tick();
+  assert.equal(f.find('script-run').disabled,false,'page source should become runnable after target checks');
+  await f.click();
+  await until(()=>previews.length===1,'Page Run did not dispatch its original preview protocol');
+  assert.equal(previews[0].target.documentId,'document-a');
+  assert.equal(previews[0].target.tabId,11);
+  assert.equal(previews[0].target.expectedUrl,'https://a.example/');
+  assert.equal(typeof previews[0].sourceUtf8,'string');
+  assert.deepEqual(f.manualRuns,[],'Page JavaScript must never route through Controller RunHost');
+  assert.deepEqual(f.dispatches,[],'manual Page JavaScript must not invoke Native local projects');
+});
+
+test('R36.3 React framework cannot replace the editor during an owned Controller run',async t=>{
+  const f=await fixture(t,{local:false,files:[],react:true});
+  await f.setCurrentRun('active-controller');
+  assert.equal(f.find('page-component-framework').disabled,true);
+  assert.equal(f.find('script-javascript-world').disabled,true);
+  const react=f.find('page-component-react');react.checked=true;react.fire('change',{isTrusted:true});
+  assert.equal(f.find('page-component-javascript').checked,true);
+  assert.equal(react.checked,false);
+  assert.equal(f.find('script-source').value,manualSource);
+  assert.equal(f.find('script-javascript-world').value,'controller');
+  assert.deepEqual(f.manualRuns,[]);
+  assert.deepEqual(f.dispatches,[]);
+});
+
+test('R36.3 Page Candidate load refuses a late response after a React source switch',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const row={programId:'race-page',revision:1,stage:'Candidate',pageRules:{matches:['https://a.example/*']},sourceHash:'a'.repeat(64)};
+  const gate=deferred();let requested=false;
+  f.client.request=async method=>{
+    if(method==='listPagePrograms')return {catalog:[row],programs:[]};
+    if(method==='getPageCandidate'){requested=true;return gate.promise;}
+    return {catalog:[],programs:[]};
+  };
+  f.find('page-program-refresh').fire('click',{isTrusted:true});
+  await until(()=>f.find('page-program-list').children.some(option=>option.value==='race-page:1'),'Page catalog unavailable');
+  f.find('page-program-list').value='race-page:1';f.find('page-program-list').fire('change',{isTrusted:true});
+  await until(()=>!f.find('page-program-load').disabled,'Page candidate could not be selected');
+  f.find('page-program-load').fire('click',{isTrusted:true});
+  await until(()=>requested,'Page candidate read did not begin');
+  const react=f.find('page-component-react');react.checked=true;react.fire('change',{isTrusted:true});
+  const latest='export default function App(){return <p>latest</p>;}';
+  f.find('script-source').value=latest;f.find('script-source').fire('input');
+  gate.resolve({...row,sourceUtf8:'async function main(){return document.title;}',manifest:{}});
+  await until(()=>/E_REVISION/.test(f.find('page-program-status').textContent),'Late Page candidate was not rejected');
+  assert.equal(f.find('script-source').value,latest);
+  assert.equal(f.find('page-component-react').checked,true);
+  assert.equal(f.find('script-id').value,'manual');
+  assert.deepEqual(f.dispatches,[]);
+});
+
+test('R36.6 React source and JavaScript world own controls without transient native listeners',async t=>{
+  const f=await fixture(t,{local:false,files:[],react:true});
+  const source=f.find('script-source'),world=f.find('script-javascript-world');
+  assert.equal(f.nativeFind('script-source').listeners.get('input')?.size??0,0);
+  assert.equal(f.nativeFind('script-javascript-world').listeners.get('change')?.size??0,0);
+  assert.equal(source.value,manualSource);
+  const typed='async function main(){return "REACT_TEXT_PRESERVED";}';
+  source.value=typed;source.fire('input',{isTrusted:true});
+  const afterInput=f.editor.model.getSnapshot().fields['script-source'];
+  f.find('script-params').fire('input');
+  assert.equal(source.value,typed,'ordinary updates cannot reset the source textarea');
+  assert.equal(f.editor.model.getSnapshot().fields['script-source'],afterInput,
+    'ordinary updates must retain the source field projection');
+  world.value='page';world.fire('change',{isTrusted:false});
+  assert.equal(world.value,'controller','untrusted changes cannot switch worlds');
+  world.value='page';world.fire('change',{isTrusted:true});
+  assert.equal(world.value,'page');
+  assert.match(source.value,/document\.title/);
+  const pageDraft='async function main(){return document.URL;}';
+  source.value=pageDraft;source.fire('input',{isTrusted:true});
+  world.value='controller';world.fire('change',{isTrusted:true});
+  assert.equal(source.value,typed,'Controller source must survive Page edits');
+  world.value='page';world.fire('change',{isTrusted:true});
+  assert.equal(source.value,pageDraft,'Page source must survive Controller edits');
+  assert.deepEqual(f.manualRuns,[],'source/world changes do not trigger Controller Run');
+  assert.deepEqual(f.dispatches,[],'source/world changes do not trigger Page Run');
+});
+
+test('R36.6 trusted React Developer controls have no parallel native listeners',async t=>{
+  const f=await fixture(t,{local:false,files:[],react:true});
+  const controls=[['script-source','input'],['script-javascript-world','change'],
+    ...['javascript','react','vue'].map(kind=>['page-component-'+kind,'change']),
+    ...['script-run','script-save','script-stop'].map(id=>[id,'click'])];
+  for(const [id,event] of controls)
+    assert.equal(f.nativeFind(id).listeners.get(event)?.size??0,0,id+' must be React-only');
+  const runs=[];
+  f.host.start=async request=>{
+    runs.push(request);return {runId:'r366',sourceKind:'draft',target:request.target,state:'completed'};
+  };
+  f.nativeFind('script-run').fire('click',{isTrusted:true});await tick();
+  assert.equal(runs.length,0,'native Run may not dispatch without a listener');
+  f.find('script-run').fire('click',{isTrusted:false});await tick();
+  assert.equal(runs.length,0,'untrusted React Run may not dispatch');
+  f.find('script-run').fire('click',{isTrusted:true});
+  await until(()=>runs.length===1,'trusted React Run did not reach RunHost');
+  assert.equal(runs.length,1,'one trusted React Run must dispatch once');
+});
+
+test('R36.5 async project validation cannot replace a newer user edit',async t=>{
+  const f=await fixture(t,{local:false,files:[]});
+  const source='async function main(){return 77;}';
+  const project={format:'opendesk.program-draft.v1',
+    project:{id:'import-race',version:'1.0.0',entry:'main.js'},
+    runtimeKind:'controller',
+    build:{mode:'development',sourceHash:hash(source),byteLength:new TextEncoder().encode(source).length},
+    sourceUtf8:source,
+    authoring:{files:[{path:'main.js',sourceUtf8:source,sha256:hash(source)}]}};
+  const pending=f.editor.importDraft(project);
+  const typed='async function main(){return "NEWER_EDIT";}';
+  f.find('script-source').value=typed;
+  f.find('script-source').fire('input',{isTrusted:true});
+  await assert.rejects(pending,error=>error?.code==='E_SOURCE_CHANGED');
+  assert.equal(f.find('script-source').value,typed);
+  assert.equal(f.find('script-id').value,'manual');
   assert.deepEqual(f.manualRuns,[]);
   assert.deepEqual(f.dispatches,[]);
 });

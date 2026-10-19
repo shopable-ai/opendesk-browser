@@ -5,15 +5,23 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 // Sole owner of extension-center-list children. All actions delegate to the
 // trusted existing Extension Center; user packages stay in their sandbox.
 export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
+  // Distinct package IDs remain visible to people and assistive technologies
+  // when two independently installed tools intentionally reuse a title.
+  const titles=new Map();
+  for(const row of rows)if(row.installed)
+    titles.set(row.title,(titles.get(row.title)||0)+1);
   return rows.map(row=>{
     const label=row.primaryAction||'查看详情';
+    const identity=row.installed&&titles.get(row.title)>1&&row.key.startsWith('app:')
+      ?row.key.slice(4):null;
+    const accessible=label+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'');
     return <li key={row.key} data-extension-id={row.key}
       className={['ec-row',row.primaryAction?'ec-row--has-primary':'',
         !row.primaryAction&&!row.installed?'ec-row--no-actions':''].filter(Boolean).join(' ')}
       aria-busy={busy||pendingKey===row.key?'true':undefined}>
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}
-        aria-label={label+'「'+row.title+'」'} title={label+'「'+row.title+'」'}
+        aria-label={accessible} title={accessible}
         onClick={event=>onOpenRow(row.key,event.nativeEvent)}>
         <span className="ec-glyph" aria-hidden="true">{row.kind==='page'?'◇':'▦'}</span>
         <span className="ec-copy">
@@ -24,16 +32,17 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
             <span className="ec-type">{row.type}</span>
           </span>
           <span className="ec-description" title={row.description}>{row.description}</span>
+          {identity&&<span className="ec-description ec-identity">安装 ID：{identity}</span>}
         </span>
       </button>
       <span className="ec-row-actions">
         {row.primaryAction&&<Button className="ec-action" disabled={busy}
           data-extension-key={row.key} data-extension-action="primary"
-          aria-label={row.primaryAction+'「'+row.title+'」'}
-          title={row.primaryAction+'「'+row.title+'」'}
+          aria-label={row.primaryAction+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
+          title={row.primaryAction+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
           onClick={event=>onOpenRow(row.key,event.nativeEvent)}>{row.primaryAction}</Button>}
         {row.installed&&<IconButton className="ec-row-more" disabled={busy}
-          label={'管理「'+row.title+'」'} data-extension-key={row.key}
+          label={'管理「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')} data-extension-key={row.key}
           data-extension-action="more" aria-haspopup="menu"
           aria-expanded={menuKey===row.key} aria-controls="extension-center-row-menu"
           onClick={event=>onMore(row.key,event.currentTarget,event.nativeEvent)}>⋮</IconButton>}
@@ -66,6 +75,17 @@ export function ExtensionDetail({model,container}){
         data-ec-detail-action={action.id}
         onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>)}
     </div>
+    {model.confirmation&&<section className="ec-detail-card" role="group"
+      aria-label="确认卸载网页增强">
+      <h3>确认卸载网页增强</h3>
+      <p>{model.confirmation.text}</p>
+      <div className="ec-detail-actions">
+        <Button disabled={model.busy} data-ec-detail-action="cancel-uninstall"
+          onClick={event=>model.confirmation.onCancel(event.nativeEvent)}>取消</Button>
+        <Button disabled={model.busy} data-ec-detail-action="confirm-uninstall"
+          onClick={event=>model.confirmation.onConfirm(event.nativeEvent)}>确认卸载</Button>
+      </div>
+    </section>}
     <section className="ec-detail-card">
       <h3>安装与来源</h3>
       <p>{model.installationText}</p>
@@ -73,7 +93,8 @@ export function ExtensionDetail({model,container}){
       {model.kind==='app'&&<>
         {model.installed?<><p>来源：{model.source?.label||'暂未读取安装来源'}</p>
           {model.source?.sha256&&<p>固定包 SHA-256：{model.source.sha256}</p>}
-          <p>{model.usageText||'应用已安装，可按需打开界面。'}</p></>:<p>{model.cleanupPending?
+          <p>{model.usageText||'应用已安装，可按需打开界面。'}</p>
+          <p>{model.appDataText}</p></>:<p>{model.cleanupPending?
             '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
             '正式安装必须在现有应用市场审阅固定包和能力清单。'}</p>}
       </>}
@@ -84,6 +105,21 @@ export function ExtensionDetail({model,container}){
       <p>{model.suspended?
         '网站访问受限；需要按照原授权规则重新授权。':
         '仅在原安装批准的网站范围内运行，不因扩展本身具备网站访问权限而扩大程序授权。'}</p>
+      <p>排除网站：{model.pageInfo?.excluded?.join('、')||'无'}</p>
+      <p>授权能力：{model.pageInfo?.capabilities?.join('、')||'未记录'}</p>
+      <p>网络来源：{model.pageInfo?.networkOrigins?.join('、')||'未记录'}</p>
+    </section>}
+    {model.kind==='page'&&<section className="ec-detail-card">
+      <h3>Chrome 注册与数据</h3>
+      <p>来源：{model.pageInfo?.source||'来源未记录'}</p>
+      <p>安装身份：{model.pageInfo?.installationId||'待核对'}</p>
+      <p>授权状态：{model.pageInfo?.authorization||'未知'}</p>
+      <p>Chrome 注册：{model.pageInfo?.nativeState||'未知'}</p>
+      {model.pageInfo?.nativeId&&<p>注册 ID：{model.pageInfo.nativeId}</p>}
+      {model.pageInfo?.sourceHash&&<p>固定源码 SHA-256：{model.pageInfo.sourceHash}</p>}
+      {model.pageInfo?.cleanupState&&<p>受管界面清理：{model.pageInfo.cleanupState}</p>}
+      {model.pageInfo?.error&&<p role="status">注册错误：{model.pageInfo.error}</p>}
+      <p>数据规则：{model.pageInfo?.dataRule}</p>
     </section>}
   </>;
 }

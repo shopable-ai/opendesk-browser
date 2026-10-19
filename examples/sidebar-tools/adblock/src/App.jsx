@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Card,CardContent,Switch,Button} from '@opendesk/ui';
+import {valid,verified,confirmed,siteHost} from './model.js';
 
 const siteCopy={
   navigating:'页面正在导航，加载完成后可管理本站。',
@@ -8,23 +9,8 @@ const siteCopy={
   unavailable:'当前网站身份暂不可用，请切换标签页后重试。'
 };
 const errorText=error=>String(error?.message||error||'操作失败').slice(0,220);
-const verified=value=>value&&value.rules?.verified===true&&value.permissions?.dnr===true;
-const valid=value=>value&&typeof value.enabled==='boolean'&&
-  Array.isArray(value.exceptions)&&typeof value.permissions?.dnr==='boolean'&&
-  typeof value.rules?.verified==='boolean';
-function confirmed(result,checked,operation,payload){
-  if(!valid(result)||!valid(checked)||!verified(result)||!verified(checked)||
-     result.enabled!==checked.enabled||
-     JSON.stringify(result.exceptions)!==JSON.stringify(checked.exceptions))return false;
-  if(operation==='adblock.enable')return checked.enabled===true;
-  if(operation==='adblock.disable')return checked.enabled===false;
-  if(operation==='adblock.site.set')return checked.enabled===true&&
-    checked.exceptions.includes(payload.host)===!payload.filtering;
-  if(operation==='adblock.site.restore')return !checked.exceptions.includes(payload.host);
-  return false;
-}
 function Status({state,loading}){
-  const known=verified(state)&&state.toolEnabled!==false&&!state.restartRequired;
+  const known=verified(state)&&state.toolEnabled===true&&!state.restartRequired;
   const active=Boolean(known&&state.enabled);
   const label=loading?'正在核对 Chrome…':!state?'Chrome 状态未知':
     state.toolEnabled===false?'工具已停用':state.restartRequired?'需要重载扩展':
@@ -43,6 +29,7 @@ function App(){
   const [view,setView]=React.useState('overview');
   const alive=React.useRef(true),reading=React.useRef(0),locked=React.useRef(false);
   const queued=React.useRef(false),current=React.useRef(null);
+  const contextRevision=React.useRef(0);
   const api=globalThis.OpenDeskTool;
   const refresh=React.useCallback(async(silent=false)=>{
     if(locked.current){queued.current=true;return;}
@@ -62,11 +49,21 @@ function App(){
   },[api]);
   const operate=React.useCallback(async(operation,payload={})=>{
     if(locked.current||!current.current)return;
+    let needsReadback=false;
     locked.current=true;reading.current++;
+    const operationContext=contextRevision.current;
     setBusy(true);setProblem(false);setNotice('请在可信宿主中确认此次操作…');
     try{
       const result=await api.request(operation,payload);
       const checked=await api.request('adblock.status',{});
+      if(operationContext!==contextRevision.current){
+        needsReadback=true;
+        if(alive.current){
+          current.current=null;setState(null);setProblem(true);
+          setNotice('页面或工具在确认期间已切换，旧操作结果不用于当前网页；正在重新读取 Chrome 状态。');
+        }
+        return;
+      }
       if(!confirmed(result,checked,operation,payload))throw Error('Chrome DNR 规则回读不一致');
       if(!alive.current)return;
       current.current=checked;setState(checked);
@@ -75,41 +72,58 @@ function App(){
         :checked.enabled?'Chrome 已确认开启过滤。':'Chrome 已确认关闭过滤。');
     }catch(error){
       if(!alive.current)return;
+      if(operationContext!==contextRevision.current){
+        needsReadback=true;current.current=null;setState(null);setProblem(true);
+        setNotice('页面或工具已切换，之前的操作结果不确定；正在读取当前 Chrome 状态。');
+        return;
+      }
       const cancelled=error?.code==='E_CANCELLED'||/cancel|取消/i.test(errorText(error));
       if(cancelled)setNotice('已取消，未提交这次更改。');
       else{
         current.current=null;setState(null);setProblem(true);
-        setNotice('结果未确认（'+String(error?.code||'E_ADBLOCK')+'）：'+errorText(error)+'。请重新读取状态。');
+        needsReadback=true;
+        setNotice('结果未确认（'+String(error?.code||'E_ADBLOCK')+'）：'+errorText(error)+'。正在重新读取 Chrome 状态，不会自动重试写入。');
       }
     }finally{
       locked.current=false;
       if(alive.current){setBusy(false);setLoading(false);
-        if(queued.current){queued.current=false;void refresh(true);}}
+        if(queued.current||needsReadback){queued.current=false;void refresh(true);}}
     }
   },[api,refresh]);
   React.useEffect(()=>{
     alive.current=true;
     const onVisible=()=>{if(!document.hidden)void refresh(true);};
+    const onPageChanged=()=>{
+      // Invalidate both pending status reads and any already-confirmed write
+      // whose result belongs to a previous tab, page or tool generation.
+      contextRevision.current++;
+      reading.current++;
+      current.current=null;setState(null);setLoading(true);
+      if(locked.current)queued.current=true;
+      void refresh();
+    };
     const onMessage=event=>{
       if(event.source!==globalThis.parent)return;
-      if(event.data?.kind==='page-changed'&&event.data?.protocol==='opendesk.sidebar-tool.bridge.v1')
-        void refresh(true);
       if(event.data?.protocol==='opendesk.adblock.ui.v1'&&event.data?.kind==='settings')
         setView('settings');
     };
     document.addEventListener('visibilitychange',onVisible);
     globalThis.addEventListener('focus',onVisible);
     globalThis.addEventListener('message',onMessage);
+    api?.root?.addEventListener?.('opendesk-page-changed',onPageChanged);
+    api?.root?.addEventListener?.('opendesk-tool-state-changed',onPageChanged);
     const interval=setInterval(()=>{if(!document.hidden)void refresh(true);},12000);
     void refresh();
     return ()=>{alive.current=false;reading.current++;clearInterval(interval);
       document.removeEventListener('visibilitychange',onVisible);
       globalThis.removeEventListener('focus',onVisible);
-      globalThis.removeEventListener('message',onMessage);};
+      globalThis.removeEventListener('message',onMessage);
+      api?.root?.removeEventListener?.('opendesk-page-changed',onPageChanged);
+      api?.root?.removeEventListener?.('opendesk-tool-state-changed',onPageChanged);};
   },[refresh]);
-  const ready=Boolean(verified(state)&&state.toolEnabled!==false&&!state.restartRequired);
+  const ready=Boolean(verified(state)&&state.toolEnabled===true&&!state.restartRequired);
   const on=Boolean(ready&&state.enabled);
-  const host=state?.currentSite?.status==='ready'?state.currentHost:null;
+  const host=siteHost(state);
   const exceptions=Array.isArray(state?.exceptions)?state.exceptions:[];
   const siteOn=Boolean(on&&host&&!exceptions.includes(host));
   const switchLocked=loading||busy||!ready;

@@ -17,6 +17,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
     message='',messageType='info',importPlan=null,clearPlan=null,
     observing=null,observeCursor='0',observeEvents=[];
+  let importRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target,rows:rows.map(x=>({...x})),
     phase,message,messageType,observing:!!observing,
@@ -25,8 +26,9 @@ export function createCookieController({adapter,onChange=()=>{}}){
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
+    retireObservation();
     epoch++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
-    clearPlan=null;observing=null;observeEvents=[];
+    clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
   }
@@ -34,10 +36,19 @@ export function createCookieController({adapter,onChange=()=>{}}){
     busy=true;const at=target,ticket=epoch;notify();return {at,ticket};};
   const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
+  // Host observation sessions are owned by the old URL and may survive the UI.
+  // Retire them on every target/grant change, including in-flight read failures.
+  function retireObservation(){
+    const at=target,sessionRef=observing?.sessionRef;
+    observing=null;observeCursor='0';observeEvents=[];
+    if(at&&typeof sessionRef==='string')
+      void Promise.resolve().then(()=>adapter.observeStop(at,sessionRef)).catch(()=>{});
+  }
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
+    retireObservation();
     const ticket=++epoch;rows=[];target=null;phase='loading';importPlan=null;
-    clearPlan=null;observing=null;observeEvents=[];busy=true;
+    clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
     notify();
     let at=null;
@@ -66,6 +77,10 @@ export function createCookieController({adapter,onChange=()=>{}}){
       }
     }finally{if(ticket===epoch&&!closed){busy=false;notify();}}
   }
+  // Explicitly release short-lived raw import bytes when the input or panel
+  // changes; an old preflight must never remain actionable after dismissal.
+  function discardImport(){importPlan=null;importRevision++;}
+  function discardClear(){clearPlan=null;}
   function getRow(id){return rows.find(row=>row.id===id)||null;}
   async function readValue(id){
     const row=getRow(id),at=target,ticket=epoch;
@@ -219,15 +234,16 @@ export function createCookieController({adapter,onChange=()=>{}}){
     }finally{plaintext='';unlock(guard);}
     return done;
   }
-  async function previewImport(source,format='auto'){
+  async function previewImport(source,format='auto',overwrite=false){
     const guard=lock();if(!guard)return null;
     importPlan=null;
+    const revision=++importRevision;
     try{
       const plan=inspectImport(source,format,guard.at.hostname);
       const store=await adapter.getStore(guard.at);
-      if(!verifiedRead(guard))return null;
+      if(!verifiedRead(guard)||revision!==importRevision)return null;
       const partition=await adapter.getPartition(guard.at);
-      if(!verifiedRead(guard))return null;
+      if(!verifiedRead(guard)||revision!==importRevision)return null;
       if(typeof store?.storeId!=='string'||!store.storeId||
         !partition?.partitionKey?.topLevelSite)throw Error('E_COOKIE_SCOPE');
       for(const item of plan.records){
@@ -252,17 +268,30 @@ export function createCookieController({adapter,onChange=()=>{}}){
         const scope=JSON.stringify([route.href,r.partitionKey||null]);
         if(!seen.has(scope))
           seen.set(scope,await adapter.exactList(guard.at,r,()=>verifiedRead(guard)));
-        if(!verifiedRead(guard))return null;
+        if(!verifiedRead(guard)||revision!==importRevision)return null;
         const present=seen.get(scope);
         if(!Array.isArray(present))throw badReceipt();
-        if(present.some(old=>key(old)===key(r)))replaced++;
-        else created++;
+        if(present.some(old=>key(old)===key(r))){
+          replaced++;
+          // An unapproved overwrite must never be included in the native plan.
+          // Other new cookies remain importable without replacing this slot.
+          if(!overwrite)item.status='existing';
+        }else created++;
       }
       const accepted=plan.records.filter(item=>item.status==='ready').map(item=>item.cookie);
+      if(revision!==importRevision)return null;
       importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
-        total:plan.records.length,created,replaced};
+        total:plan.records.length,created,replaced,overwrite};
+      // Show only preflight status and fixed validation reasons. Never return
+      // source text, Cookie Values, or accepted raw cookies to React.
+      const issues=plan.records.filter(item=>item.status!=='ready'&&item.status!=='existing');
       const result={total:plan.records.length,accepted:accepted.length,
-        skipped:plan.records.length-accepted.length,created,replaced};
+        skipped:plan.records.length-accepted.length,created,replaced,
+        issueCount:issues.length,
+        issues:issues.slice(0,30).map(item=>({
+          index:item.index,status:item.status,
+          reason:typeof item.reason==='string'?item.reason:'无效 Cookie 条目'
+        }))};
       report(accepted.length?'已生成导入预检；确认后写入真实 Chrome。':
         '没有可导入记录，请修正输入。',accepted.length?'info':'error');
       return result;
@@ -289,12 +318,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
     if(bucket.length)result.push(bucket);
     return result;
   }
-  async function executeImport(source,format='auto'){
+  async function executeImport(source,format='auto',overwrite=false){
     const plan=importPlan,guard=lock();if(!guard)return false;
     importPlan=null;let verified=0,complete=false;
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url||
-        plan.source!==source||plan.format!==format||!plan.accepted.length||
+        plan.source!==source||plan.format!==format||plan.overwrite!==overwrite||
+         !plan.accepted.length||
         plan.accepted.some(row=>!row.session&&row.expirationDate<=Date.now()/1000))
         throw Error('E_COOKIE_CONFLICT');
       const batchSupported=adapter.supportsWriteMany();
@@ -334,16 +364,24 @@ export function createCookieController({adapter,onChange=()=>{}}){
     const guard=lock();if(!guard)return;
     try{
       if(action==='start'){
-        observing=await adapter.observeStart(guard.at);
-        if(!verifiedRead(guard))return;
-        observeCursor='0';observeEvents=[];
+        const started=await adapter.observeStart(guard.at);
+        if(!verifiedRead(guard)){
+          if(typeof started?.sessionRef==='string')
+            void Promise.resolve().then(()=>adapter.observeStop(guard.at,started.sessionRef)).catch(()=>{});
+          return;
+        }
+        if(typeof started?.sessionRef!=='string')throw badReceipt();
+        observing=started;observeCursor='0';observeEvents=[];
         report('已开始 15 秒元数据观察，无 Cookie Value。');
       }else if(observing){
         const sessionRef=observing.sessionRef;
         if(action==='stop'){
+          // Clear the local handle before awaiting the Host, so navigation
+          // cannot schedule a duplicate stop or revive a stale session.
+          observing=null;observeCursor='0';observeEvents=[];
           await adapter.observeStop(guard.at,sessionRef);
           if(!verifiedRead(guard))return;
-          observing=null;report('已停止观察。');
+          report('已停止观察。');
         }else if(action==='read'){
           const outcome=await adapter.observeRead(guard.at,sessionRef,observeCursor);
           if(!verifiedRead(guard))return;
@@ -356,18 +394,19 @@ export function createCookieController({adapter,onChange=()=>{}}){
         }
       }
     }catch(error){if(verifiedRead(guard)){
-      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED'].includes(error?.code))observing=null;
+      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED'].includes(error?.code))
+        retireObservation();
       report('变化观察中止'+formatCode(error,'E_COOKIE_OBSERVE')+'。','error');
     }}finally{unlock(guard);}
   }
   function dispose(){
-    const oldTarget=target,oldSession=observing?.sessionRef;
+    retireObservation();
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
-    clearPlan=null;observing=null;observeEvents=[];
-    if(oldTarget&&oldSession)
-      void adapter.observeStop(oldTarget,oldSession).catch(()=>{});
+    clearPlan=null;observeEvents=[];
   }
-  notify();
+  // Initial state is available synchronously through snapshot(). Do not
+  // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
-    previewClear,executeClear,previewImport,executeImport,exportTo,observe,dispose};
+    previewClear,executeClear,discardClear,previewImport,executeImport,
+    discardImport,exportTo,observe,dispose};
 }

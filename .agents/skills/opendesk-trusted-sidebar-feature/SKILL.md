@@ -19,7 +19,7 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 ## 先解释产品选择与独立升级边界
 
-普通开发者先读 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md)：Controller、Page、Sidebar Tool 各有现成合同；组合式应用是职责组合。源码归产品、入口决定运行环境、权限由 Authority 核验；文件名、目录和 React/Vue 不决定信任。独立工具 UI 可以在自己的沙箱文档创建 React Root，不应因组件复杂就把业务放入主工作台。
+普通开发者先读 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md)：Controller、Page、Sidebar Tool 各有现成合同；后台服务是独立使用场景，但没有任意第三方特权后台 JS 安装器；组合式应用是职责组合，不新增 Runtime。源码归产品、入口决定运行环境、权限由 Authority 核验；文件名、目录和 React/Vue 不决定信任。独立工具 UI 可以在自己的沙箱文档创建 React Root，不应因组件复杂就把业务放入主工作台。
 
 独立源码、独立 UI 安装、关闭 UI 后继续运行、独立后台升级是四个不同目标。Stay Focus R2 已完成源码提取，已有 focus.* 支持参数变化；JSON 不替换固定计时/DNR/提醒代码。后续沿 [Stay Focus R4 唯一需求](../../../examples/sidebar-tools/stay-focus/REQUIREMENTS.zh-CN.md) 评估最小声明式公共能力，不能把未实现需求写成 API，不重开迁移或后台运行器。
 

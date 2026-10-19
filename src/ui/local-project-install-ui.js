@@ -127,7 +127,16 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
               // Unknown preparation state is not evidence of an upgrade.
             }
           }
-          installed={...ref,version:String(existing.version??existing.revision??''),
+          const version=String(existing.version??existing.revision??'');
+          // A confirmed durable install receipt outranks a concurrent passive
+          // Provider/catalog lookup when both describe the same fixed install.
+          // A genuinely different version/source is still allowed to replace it.
+          const sameConfirmed=installed?.exact===true&&installed.kind===ref.kind&&
+            installed.id===ref.id&&installed.version===version&&
+            (!installed.manifestHash||installed.manifestHash===existing.manifestHash)&&
+            (!source||installed.sourceHash===source.sourceHash&&
+              installed.inputHash===source.inputHash);
+          if(!sameConfirmed)installed={...ref,version,
             sourceHash:installedHash,exact:false,
             changed:!!source&&(pageVersionChanged===true||
               !!installedHash&&installedHash!==source.sourceHash)};
@@ -204,7 +213,13 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
       // available; do not replace it with an intermediate "checking" state.
       lookupKey=key;++lookupToken;checking=false;return;
     }
-    lookupKey=key;const token=++lookupToken;installed=null;checking=!!local;
+    lookupKey=key;const token=++lookupToken;
+    // A receipt-confirmed installation remains manageable while an unrelated
+    // passive project lookup resolves. That lookup can later correct the state,
+    // but it is never stronger than the original durable receipt mid-flight.
+    const haveConfirmedInstalled=Boolean(installed?.exact&&!unknown&&!unknownReview);
+    if(!haveConfirmedInstalled)installed=null;
+    checking=Boolean(local)&&!haveConfirmedInstalled;
     if(!installing&&!reconciling){
       const pending=pendingFor(local);
       if(pending){unknownReview=pending;unknown=true;}
@@ -271,6 +286,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
   async function reconcileUnknown(){
     if(!unknown||!unknownReview||reconciling||disposed)return;
     const pending=unknownReview;reconciling=true;
+    let confirmedResult=null;
     say('正在读取已安装版本；不会重新运行或安装…','pending');
     reveal();update();onState();
     try{
@@ -280,9 +296,12 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
       if(observed.state==='confirmed'){
         installed={...observed,sourceHash:pending.sourceHash,inputHash:pending.inputHash,exact:true};
         rememberInstalled(installed,project());
-        unknown=false;unknownReview=null;project()?.rememberInstallAttempt?.(null);hide();
+        unknown=false;unknownReview=null;project()?.rememberInstallAttempt?.(null);
+        // Invalidate passive reads started before durable reconciliation. Their
+        // delayed completion must not relabel or downgrade this confirmed install.
+        ++lookupToken;lookupKey='';checking=false;hide();
         say('已从原持久安装记录确认确定版本，不会再次执行脚本或提交安装。','success');
-        onInstalled({kind:observed.kind,id:observed.id,version:observed.version,focus:true});
+        confirmedResult={kind:observed.kind,id:observed.id,version:observed.version,focus:true};
       }else{
         const stateText={
           'not-installed':'没有查到这个确定版本的安装记录',
@@ -295,6 +314,9 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     }catch(error){
       if(!disposed)say(message(error)+'；只读核对失败，尚未重试任何安装或验证。','unknown');
     }finally{reconciling=false;if(!disposed){update();onState();}}
+    // Completion observers see the settled Save state, not the transient
+    // "checking" label. No additional install or verification is dispatched.
+    if(confirmedResult&&!disposed)onInstalled(confirmedResult);
   }
   async function prepare(){
     if(disposed||preparing||installing||reconciling)return;
@@ -465,8 +487,9 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
   const removeConfirm=developerAction(view,confirmButton,'click',onConfirm);
   const removeCancel=developerAction(view,cancelButton,'click',onCancel);
   return Object.freeze({canSave,hasSelection:isSelected,saveLabel:()=>reconciling?'正在核对…':installing?'正在安装…':
-    preparing?'正在准备安装…':unknown?'核对安装状态':checking?'正在核对…':
-    installed&&(sameInstalled()||!current()&&!installed.changed)?'管理已安装':
+    preparing?'正在准备安装…':unknown?'核对安装状态':
+    installed&&sameInstalled()?'管理已安装':checking?'正在核对…':
+    installed&&!current()&&!installed.changed?'管理已安装':
     installed?'更新':review?'继续确认安装':
     (verified?.source.runtimeKind==='page-userscript'||project()?.selectedProject()?.runtimeKind==='page-userscript')
       ?'安装网页增强':'保存为任务',

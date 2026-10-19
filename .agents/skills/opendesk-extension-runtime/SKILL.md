@@ -15,7 +15,7 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 ## 用户先选需求，再调查运行环境
 
-先用 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 解释：网页自动化用 Controller，网页增强用 Page USER_SCRIPT，独立管理 UI 用 Sidebar Tool，多职责产品组合已有能力。不要用 Background/Worker 作为普通用户第一轮选项；产品类型、运行环境、源码模块、文件入口、语言/框架、触发时机分开。普通作者沿公开 API 与示例开发，不要求先读框架源码。
+先用 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 解释：网页自动化用 Controller，网页增强用 Page USER_SCRIPT，界面用 Sidebar Tool，后台服务先核查固定可信能力，组合式应用跨现有职责协作。后台是独立产品场景，但不意味着普通作者可安装任意特权后台 JS；组合式应用不新增第五套 Runtime。触发源与 JS/React/Vue 技术分别选择。普通作者沿公开 API 与示例开发，不要求先读框架源码。
 
 ## 按当前任务取用权威事实
 
@@ -57,7 +57,7 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 | 正式安装的 Page Program | 固定 Page Candidate/验证、批准的 `pageRules`、用户确认安装 | `src/scripting/user-scripts/installed-programs.js` 先 register 固定 bootstrap，命中后经安装/文档/代际核验再 execute 固定源码；当前正式自动入口为顶层文档、document_idle；`pageFrames` 是另一受管资源合同 |
 | OpenDesk Background / 固定 Content | `wxt.config.mjs`、`manifest.json` 及 `src/entrypoints/` 静态构建入口 | `src/entrypoints/background.js` → `src/sw.js`；`page-relay.js` 对应 ISOLATED；独立的 MAIN SDK 由 Manifest 指定；同一个项目的多个文件由静态 `import` 链接 |
 | Sidebar Tool | `tool.config.json` + 统一工具打包器 + 原安装器 | `tool.config.json.files` 选择 UI 及允许依赖进入 opaque iframe；目录名不授予权限，选入的纯模块仍在沙箱；固定可信后台不能由 JSON 替换 |
-| 第一方多世界应用 | 各自唯一业务目录 + 经审查的固定扩展入口 | Stay Focus R2：`examples/sidebar-tools/stay-focus/trusted/` 是唯一可信业务源，`src/stay-focus/*.js` 仅兼容转发；AdBlock 的 `trusted/` 亦由固定入口接入；Time Review 仍由 `src/time-review/` 维护可信后台，UI 源在其安装式项目 |
+| 第一方多世界应用 | 各自唯一业务目录 + 经审查的固定扩展入口 | Stay Focus R2：`examples/sidebar-tools/stay-focus/trusted/` 是唯一可信业务源，旧 `src/stay-focus/` 包装文件已删除；AdBlock 的 `trusted/` 亦由固定入口接入；Time Review 仍由 `src/time-review/` 维护可信后台，UI 源在其安装式项目 |
 
 诊断时必须**反向追踪 import/注册/事件监听**，并核对 Manifest 生成产物、工具配置所选文件、受信任入口的实际消费者。`src/` 不必然是平台业务，`examples/` 不必然是沙箱代码；最终权限取决于是否进入已审计的固定构建闭包及运行时 Authority。普通导入的 `.opendesk-tool.json` 不得附带任意可执行 Background/Content 模块；需要新跨环境能力时先找公开 SDK，证实缺口后才最小扩充平台。
 

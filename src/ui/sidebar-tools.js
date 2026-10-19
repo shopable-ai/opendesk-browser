@@ -14,6 +14,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,as
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
+import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
@@ -28,14 +29,14 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
-import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
-import {TIME_REVIEW_KEY} from '../time-review/model.js';
+import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
+import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
-import {AI_ID,AI_CAPABILITY} from '../ai-smart-access/policy.js';
+import {AI_ID,AI_CAPABILITY} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
 import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
-import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../time-review/trusted-admission.js';
+import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
   trustedBookmarkProvenanceChanged} from './trusted-bookmark-admission.js';
 
@@ -95,8 +96,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         adblock.capability!==ADBLOCK_CAPABILITY||
         !adblock.operations?.includes('adblock.status')||
         typeof adblock.probe!=='function'||typeof adblock.request!=='function'||
-        typeof adblock.runTrustedOperation!=='function'||
-        typeof adblock.createPermissionControls!=='function'))
+        typeof adblock.runTrustedOperation!=='function'))
       throw Object.assign(new Error('当前浏览器缺少可信 AdBlock DNR 服务，请更新扩展。'),
         {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
     if(!tool?.capabilities?.includes(FOCUS_CAPABILITY))return;
@@ -386,25 +386,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
       }});
     }}):null;
+  // The React sandbox owns the only active AdBlock product UI.
+  // Legacy installs see an inert update notice; trusted DNR cleanup remains.
   const adblockContainer=view ? view.runtime.adblock : get('sidebar-tool-adblock-native');
-  const adblockControls=adblockContainer&&adblock?.createPermissionControls?
-    adblock.createPermissionControls({api,doc,container:adblockContainer,notice,
-      settingsControl:view?view.runtime.settingsControl:settingsButton,
-      onViewChange:()=>renderTocSettings(),
-      openToolManagement:()=>{
-        if(active?.id!==ADBLOCK_ID||readOnlyPreview)return;
-        tocSettingsOpen=true;renderTocSettings();
-        requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});
-      },
-      runOperation:(operation,payload,event)=>{
-        const tool=active;
-        return adblock.runTrustedOperation({api,tool,operation,payload,event,
-          revocationEpoch:frameRevocationEpoch,assertCurrent:phase=>{
-            if(disposed||!tool||!samePackage(active,tool)||
-               phase==='initial'&&busy||phase!=='after-send'&&readOnlyPreview)
-              throw Object.assign(new Error('当前工具已变更或关闭'),{code:'E_TOOL_CHANGED'});
-          }});
-      }}):null;
+  if(adblockContainer)adblockContainer.textContent=
+    '此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；' +
+    '你仍可停用或卸载，可信服务负责清理该工具自有规则。';
   const aiPermissions=aiAccess?.createPermissionControls
     ?aiAccess.createPermissionControls({api,doc,container:aiProxyContainer,notice,
       runOperation:(operation,payload,event)=>{
@@ -479,10 +466,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const cancel=()=>settle(false,Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'}));
       requestActionReview({message,button,toolId,cancel,run:event=>{
         if(!event?.isTrusted){cancel();return;}
+        // Expiration only applies while approval has not been clicked. Once
+        // submitted, a slow Chrome write must resolve from its real receipt.
+        if(toolId===ADBLOCK_ID)clearTimeout(timer);
         try{Promise.resolve(run(event)).then(v=>settle(true,v),e=>settle(false,e));}
         catch(e){settle(false,e);}
       }});
-      timer=setTimeout(()=>{if(pendingAction?.cancel===cancel)cancelActionReview();},90000);
+      timer=setTimeout(()=>{
+        if(pendingAction?.cancel!==cancel)return;
+        if(toolId===ADBLOCK_ID){
+          pendingAction=null;patchToolField(view, actionReview, {hidden: true});
+          settle(false,Object.assign(new Error('可信确认等待超时，操作尚未提交'),{
+            code:'E_ADBLOCK_CONFIRM_TIMEOUT'}));
+        }else cancelActionReview();
+      },90000);
     });
   }
   // chrome.storage may reorder object properties; compare the validated schema values.
@@ -803,10 +800,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
-    // React AdBlock owns its complete UI; retire the legacy fixed host view
-    // only for packages opting into the real shared-UI runtime.
-    adblockControls?.render(managed&&id===ADBLOCK_ID&&active.uiRuntime==='opendesk.react-ui.v1'?null:active,
-      readOnlyPreview,enabled,tocSettingsOpen);
+    // Never revive the abandoned native controller for historical installs.
+    const legacyAdblock=managed&&id===ADBLOCK_ID&&active?.uiRuntime!=='opendesk.react-ui.v1';
+    if(adblockContainer)adblockContainer.hidden=!legacyAdblock||tocSettingsOpen;
     aiPermissions?.render(active,readOnlyPreview,enabled);
     // Only legacy ai.access installations use the separately hosted control card.
     // v2 browser.proxy.managed tools own their visible UI via the audited SDK.
@@ -845,12 +841,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!managed)tocSettingsOpen=false;
     const show=managed&&tocSettingsOpen;
     // Exactly one tool title and one settings icon in the shared toolbar.
-    // AdBlock product pages are owned by its trusted control factory.
+    // AdBlock product pages belong solely to the installed React sandbox.
     if(title)patchToolField(view, title, {hidden: false});
     patchToolField(view, settingsButton, {hidden: !managed});
     patchToolField(view, settingsButton, {disabled: busy||sitePending});
-    setToolFieldAttribute(view, settingsButton, 'aria-expanded', String(show||
-      (managed&&id===ADBLOCK_ID&&adblockControls?.view?.()==='settings')));
+    setToolFieldAttribute(view, settingsButton, 'aria-expanded', String(show));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
     const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active)||isFullBookmarkTool(active));
@@ -878,8 +873,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
     frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||
-      (managed&&id===ADBLOCK_ID&&active?.uiRuntime!=='opendesk.react-ui.v1'&&
-         adblockControls?.view?.()!=='exceptions');
+      legacyAdblock;
     renderCookieSettings(show);
     patchToolField(view,fullBookmarkSettings,{hidden:!(show&&managed&&isFullBookmarkTool(active))});
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
@@ -1622,11 +1616,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       openSettings:()=>{tocSettingsOpen=true;render();}
     });
     if(adblock?.operations?.includes(operation)){
-      const result=await adblock.request({api,tool,operation,payload,revocationEpoch,
+      return adblock.request({api,tool,operation,payload,revocationEpoch,
         assertCurrent:()=>assertSession(source,token),requestBrowserClick,
         openSettings:()=>{tocSettingsOpen=true;render();}});
-      if(operation==='adblock.site.restore')void adblockControls?.refresh?.();
-      return result;
     }
     if(aiAccess?.operations?.includes(operation))return aiAccess.request({
       api,tool,operation,payload,revocationEpoch,
@@ -2332,7 +2324,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, updateVersions, {textContent: '当前 v'+previous.version+' → 新 v'+candidate.version});
       patchToolField(view, updateCapabilities, {textContent: '新增能力：'+(added.map(readableCapability).join('、')||'无')+
         '；移除能力：'+(removed.map(readableCapability).join('、')||'无')});
-      const risks=[...(change<0?['版本回退']:[]),
+      const policyReview=describeSidebarToolBackgroundPolicyChange(previous.backgroundPolicy,candidate.backgroundPolicy);
+      const risks=[...(policyReview?[policyReview]:[]),...(change<0?['版本回退']:[]),
         ...(added.length?['申请新增能力']:[]),
         ...(change===0&&!samePackage(candidate,previous)?['相同版本的内容发生变化']:[]),
         ...(!samePackage(candidate,previous)?['将替换同 ID 的已安装代码，请核对来源；现有工具数据保留']:[])];
@@ -2477,7 +2470,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       // A static adapter cannot substitute for a live MV3 worker protocol.
       // Missing optional idle/DNR grants do not block installation.
-      if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api});
+      if(candidate.capabilities.includes(FOCUS_CAPABILITY))await focus.probe({api,tool:candidate});
       if(candidate.capabilities.includes(AI_CAPABILITY))await aiAccess.probe({api});
       if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
@@ -2777,7 +2770,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // The tool owns the Settings page and remains inside its opaque iframe.
         frame?.contentWindow?.postMessage({protocol:'opendesk.adblock.ui.v1',
           kind:'settings',toolId:ADBLOCK_ID,instance},'*');
-      }else adblockControls?.toggleProductSettings?.();
+      }else{tocSettingsOpen=true;render();}
       return;
     }
     if(active.id===PROMPT_ID){
@@ -2901,8 +2894,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const nextPage=pageKey();
       if(nextPage===previousPage)return;
       previousPage=nextPage;
-      // Refresh trusted AdBlock current hostname after real tab navigation.
-      if(active?.id===ADBLOCK_ID)void adblockControls?.refresh?.();
+      // The React sandbox independently re-reads its current site after navigation.
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
       },'*');
@@ -2933,7 +2925,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
-    adblockControls?.dispose?.();
     for(const release of listeners.splice(0))release();
     queued.clear();
   }});

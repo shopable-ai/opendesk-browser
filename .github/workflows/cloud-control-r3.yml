@@ -23,6 +23,10 @@ on:
       - 'src/ui/sidebar-tab-memory.js'
       - 'src/entrypoints/cloud-console.js'
       - 'scripts/build-contract.mjs'
+      - 'scripts/bundle-provenance.mjs'
+      - 'tests/environment/bundle-provenance.test.mjs'
+      - 'examples/sidebar-tools/time-review/trusted/**'
+      - 'examples/sidebar-tools/ai-vip-share/trusted/**'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/cloud-control/**'
@@ -53,6 +57,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Privileged bundle source pins and no unreviewed apps
+        run: node --test tests/environment/bundle-provenance.test.mjs
       - name: Cloud six/seven tabs and Observer sender isolation
         run: |
           node --test tests/environment/cloud-control-sidebar-r28.test.mjs

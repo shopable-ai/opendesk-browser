@@ -1,3 +1,3 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
-import {installTimeReviewService} from '../time-review/service.js';
+import {installTimeReviewService} from '../../examples/sidebar-tools/time-review/trusted/service.js';
 export default defineUnlistedScript(()=>installTimeReviewService());

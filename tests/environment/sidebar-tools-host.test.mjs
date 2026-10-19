@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSidebarTools,checkSidebarToolRequestBudget} from '../../src/ui/sidebar-tools.js';
-import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../src/stay-focus/tool-host.js';
-import {createStayFocusPermissionControls} from '../../src/stay-focus/host-controls.js';
-import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../src/stay-focus/policy.js';
-import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../src/ai-smart-access/policy.js';
+import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
+import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
@@ -694,7 +694,12 @@ test('R14 cross-window tool update invalidates review and clears the stale file 
   const update={...sample,version:'1.1.0'};
   input.value='C:\\fakepath\\update.opendesk-tool.json';
   input.files=[{name:'update.opendesk-tool.json',size:JSON.stringify(update).length,text:async()=>JSON.stringify(update)}];
-  input.emit('change');await pause();await pause();
+  input.emit('change');
+  // File hashing and package validation are async. Establish a completed,
+  // actionable review before testing that a cross-window update invalidates it.
+  // Do not relax the post-change identity, disabled-button or reset checks.
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&
+    !f.elements['sidebar-tool-install'].disabled);
   assert.equal(f.elements['sidebar-tool-install'].disabled,false);
   const concurrent={...sample,version:'1.0.1'};
   f.store.set(SIDEBAR_TOOL_STORE,[concurrent]);

@@ -277,6 +277,34 @@ test('R25.1 unknown install receipt is recovered by reading original Task regist
   assert.equal(f.ui.saveLabel(),'管理已安装');
   assert.equal(f.installedNotices[0].focus,true);
 });
+test('R5.7 confirmed durable install remains manageable across a delayed passive lookup',async t=>{
+  const f=await fixture({lostInstallAck:true});t.after(()=>f.dispose());
+  f.ui.setOnInstalled(result=>f.installedNotices.push(result));
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  f.ui.confirm({isTrusted:true});
+  await settle(()=>/禁止盲目重试/.test(f.get('local-install-status').textContent));
+  assert.equal(f.installs,1);
+  const releases=[];
+  f.project.resolve=()=>new Promise(resolve=>releases.push(()=>resolve(f.source)));
+  // A passive target refresh may overlap the read-only recovery. Neither a
+  // slow Provider nor a historical lookup can downgrade the durable receipt.
+  f.setPage({status:'resolving',windowId:f.target.windowId});
+  f.ui.update();
+  assert.equal(f.ui.saveLabel(),'核对安装状态');
+  await f.ui.prepare();
+  await settle(()=>f.installedNotices.length===1);
+  assert.equal(f.ui.saveLabel(),'管理已安装');
+  assert.equal(f.installs,1,'recovery must not dispatch another installation');
+  for(const release of releases)release();
+  await tick();
+  await tick();
+  assert.equal(f.ui.saveLabel(),'管理已安装',
+    'late passive lookup must not override an already-confirmed installed version');
+  f.setPage({...f.target});f.ui.update();
+  assert.equal(f.ui.saveLabel(),'管理已安装');
+});
+
 test('R25.1 confirmation freezes version and title before any async permission check',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   f.ui.setOnInstalled(result=>f.installedNotices.push(result));

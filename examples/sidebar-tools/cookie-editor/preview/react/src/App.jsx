@@ -1,5 +1,5 @@
 import React from 'react';
-import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows} from '../../../ui/CookieEditorView.jsx';
+import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows,CookieFormField as Field,CookieAdvancedFields,CookieImportDropzone,CookieExportFormatRow,CookieExportActions} from '../../../ui/CookieEditorView.jsx';
 
 // PREVIEW-ONLY: virtual fixture rows; no Chrome APIs, SDK, persistence, or network.
 const demoSite='shop.example.com';
@@ -66,7 +66,6 @@ function HostHeader({onAction}){
  </header>;
 }
 function Message({tone='neutral',children,id}){return <p id={id} className={'message '+tone} role={tone==='error'?'alert':'status'} aria-live="polite">{children}</p>}
-function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
 // Preview-only parser: skip ordinary invalid records, block unsafe scope and partition ambiguity.
 function parseInput(text){
  const s=text.trim();if(!s)return {error:'请先选择文件或粘贴 Cookie 内容。'};
@@ -414,21 +413,10 @@ export default function App(){
           const f=e.target.files?.[0];e.target.value='';if(f)void readImportFile(f);
          }}/>
          <div className="import-source">
-          <button type="button"
-            className={'import-dropzone'+(fileDragging?' is-dragging':'')}
-            aria-label="选择或拖入 Cookie 文件"
-            disabled={saving}
-            onClick={()=>fileRef.current?.click()}
-            onDragEnter={handleImportDragEnter}
-            onDragOver={handleImportDragOver}
-            onDragLeave={handleImportDragLeave}
-            onDrop={handleImportDrop}>
-            <span className="dropzone-symbol"><Icon name="upload"/></span>
-            <span className="dropzone-copy">
-              <strong>{fileDragging?'松开即可读取文件':fileName?'拖入新文件替换，或点击选择':'拖入 Cookie 文件，或点击选择'}</strong>
-              <small>JSON / TXT · 最大 150 KB</small>
-            </span>
-          </button>
+          <CookieImportDropzone dragging={fileDragging} fileName={fileName} disabled={saving}
+            onPick={()=>fileRef.current?.click()} onDragEnter={handleImportDragEnter}
+            onDragOver={handleImportDragOver} onDragLeave={handleImportDragLeave}
+            onDrop={handleImportDrop}/>
           {!!importText&&<div className="import-source-meta">
             {fileName?<span className="selected-file" title={fileName}>{fileName}</span>:<span className="selected-file">已输入 Cookie 内容</span>}
             <button type="button" className="clear-source" disabled={saving} onClick={()=>{fileReadRef.current++;setFileName('');setImportText('');setOverwrite(false);setError('');resetFileDrag();}}>清空</button>
@@ -445,12 +433,15 @@ export default function App(){
          <div className="panel-actions"><button className="text-btn" type="button" disabled={saving} onClick={closeImport}>取消</button><button className="text-btn primary" type="button" disabled={!importCount||saving||needsVerify||!canWrite} onClick={runImport}>{saving?'导入中…':'导入 '+importCount+' 条'}</button></div>
        </section>}
        {io==='export'&&<section className="io-panel" aria-label="导出 Cookie"><div className="panel-heading"><strong>导出 Cookie</strong><IconButton name="close" label="关闭导出" onClick={()=>{setIo(null);setConfirm(null);setError('')}} disabled={saving}/></div>
-         <div className="export-format"><Field label="格式"><select aria-label="导出格式" value={format} disabled={saving} onChange={e=>{setFormat(e.target.value);setConfirm(null);setSkipPartition(false);setError('')}}><option value="json">JSON · 推荐</option><option value="header">Cookie Header</option><option value="netscape">Netscape</option></select></Field>{format==='json'&&<label className="export-inline-values"><input type="checkbox" checked={includeValues} disabled={saving} onChange={e=>{setIncludeValues(e.target.checked);setError('')}}/>包含值</label>}</div>
+         <CookieExportFormatRow format={format} includeValues={includeValues}
+           disabled={saving} onFormat={value=>{setFormat(value);setConfirm(null);setSkipPartition(false);setError('')}}
+           onIncludeValues={value=>{setIncludeValues(value);setError('')}}/>
          <p className="export-brief" role="status"><Icon name="check"/>{format==='json'&&!includeValues?'仅导出属性，不能用于恢复 Cookie 内容':`包含 Cookie 值 · ${format==='json'?'保留可导出属性':format==='header'?'仅名称与值':'兼容旧格式'}`}</p>
          {format!=='json'&&<p className="quiet-note">{format==='header'?'Cookie Header 不保留域名、路径等属性；不适合完整备份。':'Netscape 不保留 SameSite、Store、PartitionKey。'} 如需完整备份请选择 JSON。</p>}
          {format!=='json'&&rows.some(c=>c.partitionKey)&&<label className="partition-option"><input type="checkbox" checked={skipPartition} onChange={e=>{setSkipPartition(e.target.checked);setConfirm(null);setError('')}}/> 跳过 {rows.filter(c=>c.partitionKey).length} 条不支持的分区 Cookie</label>}
          {format==='json'&&!includeValues&&<p className="quiet-note">仅导出属性，不能恢复 Cookie 值。</p>}
-         <div className="export-actions"><button className="text-btn" disabled={saving} onClick={()=>runExport('copy')}><Icon name="copy"/>复制</button><button className="text-btn primary" disabled={saving} onClick={()=>runExport('download')}><Icon name="download"/>下载</button></div>
+         <CookieExportActions disabled={saving} onCopy={()=>runExport('copy')}
+           onDownload={()=>runExport('download')}/>
        </section>}
        {io&&error&&<Message tone="error">{error}</Message>}
        <CookieRows rows={shown} totalCount={rows.length}
@@ -471,7 +462,9 @@ export default function App(){
       {<IconButton small name={reveal?'eyeoff':'eye'} label={reveal?'隐藏 Cookie 值':'读取并显示 Cookie 值'} onClick={()=>{if(!canValues){setError('尚未授权敏感值读取，请在工具设置中单独授权。');return;}setError('');setReveal(a=>!a)}}/>}</div></Field>
     
     {current&&<div className="value-controls">{draft.valueTouched?<><span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span><button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}>恢复原值</button></>:<button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:true}))}>清空值</button>}</div>}
-    <details className="advanced" open={advancedOpen} onToggle={e=>setAdvancedOpen(e.currentTarget.open)}><summary>属性与高级设置</summary><div className="advanced-body"><div className="pair"><Field label="Domain"><input value={draft.domain} onChange={e=>update('domain',e.target.value)} readOnly={selected!=='new'}/></Field><Field label="Path"><input value={draft.path} onChange={e=>update('path',e.target.value)} readOnly={selected!=='new'}/></Field></div><div className="toggles-row"><span className="toggles-label">Host-only</span><div className="toggles"><label><input type="checkbox" checked={draft.hostOnly} disabled={selected!=='new'||!canWrite||saving} onChange={e=>update('hostOnly',e.target.checked)}/> {draft.hostOnly?'仅当前主机':'Domain Cookie'}</label></div></div><Field label="SameSite"><select value={draft.sameSite} onChange={e=>update('sameSite',e.target.value)} disabled={!canWrite||saving}><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></Field><div className="toggles-row"><span className="toggles-label">选项</span><div className="toggles"><label><input type="checkbox" checked={draft.secure} onChange={e=>update('secure',e.target.checked)} disabled={!canWrite||saving}/> Secure</label><label><input type="checkbox" checked={draft.httpOnly} onChange={e=>update('httpOnly',e.target.checked)} disabled={!canWrite||saving}/> HttpOnly</label><label><input type="checkbox" checked={draft.session} onChange={e=>update('session',e.target.checked)} disabled={!canWrite||saving}/> Session</label></div></div>{!draft.session&&<Field label="过期时间"><input aria-label="过期时间（本地时间）" aria-invalid={error.startsWith('请选择有效的未来')||undefined} aria-describedby={error.startsWith('请选择有效的未来')?'cookie-editor-error':undefined} type="datetime-local" step="1" value={draft.expiration} onChange={e=>update('expiration',e.target.value)} disabled={!canWrite||saving}/></Field>}{!draft.session&&<p className="editor-timezone">设备本地时间；保存时转换为 Unix 秒，不按 UTC 直接解释输入。</p>}<div className="editor-identity"><div><span>Store ID</span><code>{draft.storeId}</code></div><div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'无（非分区）'}</code></div></div><p className="editor-hint">Domain、Path、Host-only、Store、Partition 为既有 Cookie 的只读身份；HttpOnly 无法由普通网页 JS 直接读取。</p></div></details>
+    <CookieAdvancedFields draft={draft} existing={selected!=='new'}
+      disabled={!canWrite||saving} onChange={update} advancedOpen={advancedOpen}
+      onAdvancedToggle={e=>setAdvancedOpen(e.currentTarget.open)} error={error}/>
     {current&&draft.name!==current.name&&<p className="editor-hint">名称变更不是原地覆盖：正式版先创建并核实新 Cookie，再删除旧名称；失败可能两条并存。</p>}
     {error&&<Message id="cookie-editor-error" tone="error">{error}</Message>}
     {pending!==null&&<div className="discard-row" role="status"><span>放弃当前未保存修改？</span><button type="button" className="text-btn" onClick={()=>setPending(null)}>继续编辑</button><button type="button" className="text-btn" onClick={discard}>放弃</button></div>}

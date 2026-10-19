@@ -1,21 +1,32 @@
-# 扩展开发怎么选：四类用户需求与一个项目多个 JS
+# 扩展开发怎么选：五种使用场景与一个项目多个 JS
 
-> **普通开发者的第一入口**（2026-10-18；代码事实以最新 `main` 为准）。先问“要让用户完成什么”，再选项目和运行方式。本页解释产品选择、文件分工与生命周期；完整配置和授权合同沿用所链接的 API 文档与 Skills。
+> **普通开发者的第一入口**（2026-10-19；代码事实以最新 `main` 为准）。先问“要让用户完成什么”，再选项目和运行方式。本页解释产品选择、文件分工与生命周期；完整配置和授权合同沿用所链接的 API 文档与 Skills。
 
-## 1. 先选需求：普通开发者只需要理解四类
+## 1. 先选需求：五种使用场景
 
 | 我想做什么 | 默认选择 | 典型使用 | 从哪里开发 / 独立安装 |
 | --- | --- | --- | --- |
 | **1. 控制网页完成一系列操作** | **网页自动化（Controller）** | 自动填表、点击、等待元素、提取结果 | “开发”运行草稿；本地 `controller` 项目；正式任务由“我的”管理 |
 | **2. 给网页直接增加功能** | **网页增强（Page USER_SCRIPT）** | 页面悬浮按钮、DOM 修改、思维导图、React/Vue 页面组件 | “开发”在当前网页试运行；本地 `page-userscript` 项目；正式安装后在“扩展→网页增强”管理 |
 | **3. 做一个独立侧边栏管理工具** | **侧边栏应用（Sidebar Tool）** | 笔记、Cookie Editor、书签管理、配置表单 | 独立 `tool.config.json` 项目，按原打包流程生成可审阅 JSON，安装到“扩展→应用” |
-| **4. 做一个有 UI、网页功能和后台能力的完整应用** | **组合式扩展应用** | Stay Focus、Time Review、Prompt Shortcuts、AdBlock 的不同组合 | 先拆清 UI、网页效果和必要的后台职责，再按各部分现有安装/授权合同交付 |
+| **4. 关闭界面后仍要监听事件或处理持久规则** | **后台服务（Background Service）** | Chrome 事件与 Alarm、云端任务通知、获批持久规则 | 当前复用已受审、固定编译的后台能力；**普通作者尚不能独立安装任意特权后台 JS** |
+| **5. 在一个产品内组合上述职责** | **组合式应用（Combined Application）** | Stay Focus、Time Review、Prompt Shortcuts、AdBlock 的不同组合 | 明确 UI、网页、Controller 与后台入口，按各自现有授权与安装合同交付；**尚无跨职责原子组合安装包** |
 
 文中的“扩展→应用 / 网页增强”表示在“扩展”列表定位对应类型；**应用、网页增强是类型标签/筛选，不是新增 Tab**。
 
-Controller/Page/Sidebar Tool 有各自的执行和安装合同；**组合式扩展是一个产品包含多个职责，不是第四种 JS World，也不是新增的动态后台包格式。** JavaScript 是语言，React/Vue 是 UI 编写方式，都不能决定代码在哪里运行。
+Controller、Page、Sidebar Tool 各有执行和安装合同；后台服务有固定 Chrome SW 事件与受审能力，但目前**没有任意第三方后台 JS 安装器**。组合式应用是第五种用户场景，**不是第五套 JavaScript Runtime**。JavaScript、React、Vue 是编写技术，不决定代码的运行位置或权限。
 
 已安装的成熟工具先保护其原类型与身份。例如 Prompt Shortcuts 是 Sidebar Tool v2 + 已审核网页适配器，不能仅凭“网页有按钮”就改成 Page Program。新建纯网页按钮通常优先考虑 Page。
+
+### 场景、触发来源、开发技术分开
+
+| 维度 | 可以是什么 | 边界 |
+| --- | --- | --- |
+| 使用场景 | 网页自动化、网页增强、应用界面、后台服务、组合式应用 | 五个产品场景，不是五套 Worker |
+| 触发来源 | 手动、网页匹配、浏览器事件、定时、获批云端通知 | 同一 Controller 可以有多种触发方式，不改变执行授权 |
+| 开发技术 | JavaScript、React JSX、Vue SFC；单文件或多文件 | 只影响源码与构建，不授予 DOM、Chrome 或特权后台权限 |
+
+例如，云端通知可触发**已安装且获批的 Controller Task**，但不能携带新的 JS 直接在特权 Service Worker 执行。
 
 ### 每一类什么时候开始、什么时候停止？
 
@@ -24,13 +35,16 @@ Controller/Page/Sidebar Tool 有各自的执行和安装合同；**组合式扩�
 | Controller | 用户明确 Run，或经批准的已安装任务/计划触发；只能操作获准目标，`page.automation` 等程序能力和网站授权分别核验 | 运行期间保持承载任务的运行页面打开；不把它作为关 UI 后持续工作的后台服务。Stop、任务取消或实际运行页面销毁时终止；切换 Tab/隐藏界面不等于销毁。已点击、提交、发送的结果不自动回滚，SW 不自动重放 |
 | Page USER_SCRIPT | 当前文档试运行须用户脚本许可和目标网站授权；安装版还需验证、确认、启用及匹配 `pageRules` | 当前文档结束后，该文档运行结束；刷新/新导航只会按已安装且启用的规则重新启动，临时预览不会因此自动安装。停用/卸载撤销后续启动，并请求受管 UI 清理；清理回执未知时按状态提示处理，有未知清理栅栏则关闭原标签页后重新打开。任意脚本遗留的 DOM、监听器、定时器或请求不保证全部回滚，可能需要刷新；BFCache 恢复也需作者清理逻辑 |
 | Sidebar Tool | 审阅安装包和能力后，用户打开工具才挂载 UI；`OpenDeskTool` / v2 `OpenDeskSDK` 的具体操作仍由宿主授权 | UI 文档卸载时，其 React Root、监听和计时器结束；重开创建新实例，从获准存储恢复。关闭 UI 不撤销已经提交的 Cookie 修改或后台规则；停用、更新、卸载由安装器和对应生命周期处理 |
-| 组合式扩展 | 分别满足 UI、网页、后台的权限与启动条件；安装管理界面不等于已启用后台策略 | 后台可以在 UI 关闭后按已批准状态工作，但 MV3 Service Worker 会休眠，以持久状态和 Chrome 事件恢复；停用/卸载须由产品自己的可信清理逻辑处理自有状态与规则 |
+| 后台服务 | 由 WXT/SW 的已审核固定入口注册 Chrome 事件与 Alarm，复用现有授权和持久状态；不是安装动态 `background.js` | 关闭 UI 不停用既有规则；SW 事件驱动、可休眠，业务需要恢复与明确撤权清理 |
+| 组合式应用 | UI、Page、Controller 和固定后台分别遵守自己的入口与权限；共享模块只在实际消费者环境运行 | 关闭 UI、停止 Run、停用 Page、撤销后台、整体卸载是不同生命周期；不能用单份 UI JSON 假装统一安装和清理 |
 
 ### 第一个项目怎样开始？
 
 - **网页自动化**：在“开发”直接编辑 Controller JS，明确点击“运行草稿”，核对真实结果；需要重复使用时再沿原任务流程保存、验证和安装。多文件时开启“本地项目”并选择已授权目录，源码里用 import 分工。运行期间保持运行页面打开。
 - **网页增强**：在“开发”选择 Page JS 或相应组件，在当前网页明确试运行；满意后保存固定候选，验证同一版本，再确认安装。已选择的本地 Page 项目入口为“安装网页增强”→审阅→“确认安装固定版本”；安装后到“扩展→网页增强”启停和管理。正式验证可能再次执行源码，不能把预览回执直接当安装成功。详见 [操作步骤](sidebar-local-projects.zh-CN.md)。
 - **侧边栏应用**：开发者维护 tool.config.json 与自己的 UI 文件，按唯一打包流程生成正式 JSON；使用者在“扩展”审阅并确认安装，打开后使用。已有官方应用也可从原目录入口安装，不要求使用者有 Node 或项目源码。需要持久后台的组合产品再核查固定服务是否已支持。
+- **后台服务**：先检查已有 Cloud Control、Task 调度、Chrome Alarms 和固定可信规则。确需额外后台能力时由维护者设计可授权、可撤销的最小公共接口；当前不能上传一个动态 `background.js` 取得 SW 特权。
+- **组合式应用**：先分别列出每个入口、文件、执行世界、权限、跨环境消息、Stop owner；各职责单独跑通后，再沿现有 Sidebar Tool、Page、Task 安装通路交付。暂不宣称统一组合式安装包已经实现。
 - **开发前提**：直接编辑不需要本地开发服务；多文件本地项目按已有目录 CLI / Native 授权接入，MCP 是可选高级入口。新增 JSX/SFC 使用 Developer 编译入口，Standard 选择 Direct JS 或本地预构建。不要把这些不同路径的前提叠加给每位用户。
 
 完整合同：[Controller](controller.zh-CN.md) · [Page USER_SCRIPT](page-userscript.zh-CN.md) · [Sidebar Tool](sidebar-tool-development.zh-CN.md)。
@@ -118,7 +132,7 @@ flowchart TD
 | `trusted/rule-host.js`、`blocked-*` | 自有 DNR 规则、规则回读与固定阻止页 | 固定后台依赖 / 扩展阻止页入口 |
 | `tool.config.json` | 当前选择 `src/index.html`、`src/style.css`、`src/main.js` | 工具打包器；当前 Stay Focus 清单没有选择 `trusted/service.js` |
 
-R2 已把唯一业务源移到 `examples/sidebar-tools/stay-focus/trusted/`；旧 `src/stay-focus/*.js` 是兼容转发。**源码归属独立已经完成，不再迁一次。** [R2 记录](../framework/workstreams/stay-focus-extraction-r2-20261018.md) 与 [产品说明](../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 是既有入口。
+Stay Focus 的业务源位于 `examples/sidebar-tools/stay-focus/trusted/`；最新 main 已不再保留旧 `src/stay-focus/` 包装目录。固定 SW 仍静态编译可信后台代码，**源码归属独立不等于工具 JSON 可独立更新后台算法**。 [R2 记录](../framework/workstreams/stay-focus-extraction-r2-20261018.md) 与 [产品说明](../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 是既有入口。
 
 | 用户操作 | 当前代码的结果 / 限制 |
 | --- | --- |
@@ -128,7 +142,7 @@ R2 已把唯一业务源移到 `examples/sidebar-tools/stay-focus/trusted/`；�
 | 网页切换、提醒或限制 | 用获准的活动网站和 idle 状态结算；提醒走固定网页模块，限制由 Chrome DNR 执行。新规则不会自动抹去已加载页面，服务另有尝试导航到阻止页的路径 |
 | “停止本次专注” | `focus.session.stop` 结束当前专注时段；每日额度等其他已启用限制仍可能生效 |
 | 停止全部限制 / 停用工具 | `focus.disable` 或安装器停用使业务停止并清理自有规则、Alarm、提醒；保留设置和使用数据供重开。关闭 UI 本身不等于这一步 |
-| 卸载工具 | 先撤销安装身份，再由产品生命周期清理自有 DNR 并回读、删除业务 `FOCUS_STORE`；不撤销其他工具共用的 Chrome 扩展权限。不要承诺所有临时键都已删除：当前 `FOCUS_SESSION` 未见显式删除 |
+| 卸载工具 | 先撤销安装身份，再由产品生命周期清理自有 DNR 并回读、删除业务 `FOCUS_STORE`；不撤销其他工具共用的 Chrome 扩展权限。卸载恢复事务还会核验删除自有 `FOCUS_SESSION` 会话键；失败保留卸载清理日志以便重试 |
 | 更新、重开与浏览器恢复 | 新包 hash/epoch 使旧授权失效，按当前身份重新核验；恢复不重放不明副作用。安装升级、退出重开、后台恢复的本轮真实 Chrome 证据均为 `NOT_TESTED` |
 
 **独立更新的准确边界：** 更新 UI 包能改变界面及其对已有批准操作的调用；用户也能通过这些操作修改服务已支持的参数。但 JSON 不能替换固定编译的计时算法、网页提醒、DNR 实现、权限适配器或阻止页 JS。修改这些代码仍需审核并更新 OpenDesk Browser 扩展。
@@ -173,6 +187,18 @@ import './model.js';
 
 **React Root 的归属是文档边界：** 主工作台的单 Root 约束不禁止独立沙箱文档创建自己的 Root。不要把工具 App、算法或数据模型导入主工作台来完成 UI 升级。
 
+### R1.3：云控 Task 怎样真正进入现有 Controller
+
+1. 用户在「我的」审核并安装固定 Controller Task，再在「云控」批准具体版本、网站与结果回传范围。
+2. [Cloud Connection](../../src/cloud-control/connection.js) 在 MV3 SW 完成认证及任务能力登记后通过 WebSocket 接收 `notify`，仅触发已授权任务的**对账与领取意向**；通知不携带可执行 JS。
+3. [Cloud Service](../../src/cloud-control/service.js) 校验 Provider、Task 安装代际、来源和站点并持久记录。
+4. **可见的 Side Panel** 才由 [cloud-hosting](../../src/ui/cloud-hosting.js) 执行 `cloudNext → cloudResolve → host.start`，交给原始 [RunHost](../../src/run-host.js) 的受控 Controller Worker。
+5. 执行状态写入原有 Run/Result，恢复时先检查未知副作用和撤权，再按用户批准的范围回传状态或结果正文。
+
+**不能误报的限制：** 关闭 Side Panel 后，后台 WebSocket 可能仍在线，但没有因此自动获得可执行 Controller 的可见 Host。`src/cloud-control/host-owner-lease.js` 目前未接线，只是未来可见 Runner 的租约基础。Playwright 风格 Locator 也不是原版完整 Playwright 浏览器远控协议。
+
+**本轮已修的实际时序缺陷：** 云端通知在批准能力登记完成前不会触发首次对账；对账进行中收到多个通知，会安全合并成一次串行后续核对。Stop/换代后的旧工作不执行。对应 [代码](../../src/cloud-control/connection.js) 与 [回归测试](../../tests/cloud-control/connection.test.mjs) 已修改；原生 Chrome 与完整闭环仍须同候选实测。
+
 ## 4. 怎样判断独立源码与框架耦合？
 
 **正常的可信接入：** 工具自己的业务源码，由明确、受审的 Background / Content / 可信页面固定入口加载；通用 Host 只处理安装身份、授权、通信、挂载和生命周期。这是执行权限的接入，不等于业务必须归框架维护。
@@ -187,7 +213,7 @@ import './model.js';
 
 先只回答以下顺序，不要先推理底层世界：
 
-1. **用户要完成什么？** 从四类需求选择；已有工具保留身份。
+1. **用户要完成什么？** 从五种使用场景选择；已有工具保留身份。
 2. **用户在哪里操作，关 UI 后还要做什么？** 决定是否确需后台。
 3. **每个文件由谁加载、负责什么？** 入口、业务模块、语言与触发时机分开。
 4. **已有公开能力够不够？** 普通作者先读 API 和相应示例；仅由维护者调查已证明的公共缺口。
@@ -211,4 +237,4 @@ import './model.js';
 
 AI/Codex 路由：[唯一创建工作流](../../.agents/workflows/extension-creation.md) · [Skill 路由](../../.agents/skills/README.md) · [脚本创作](../../.agents/skills/opendesk-script-authoring/SKILL.md) · [Sidebar Tool](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) · [第一方可信功能](../../.agents/skills/opendesk-trusted-sidebar-feature/SKILL.md) · [扩展运行时](../../.agents/skills/opendesk-extension-runtime/SKILL.md)。
 
-> **证据边界：** 本页的 `SOURCE_CONFIRMED` 只指源码接线与合同核查；`BUILD_PASS`、`CHROME_PASS`、安装/升级、Native、后台恢复必须分别取得当前候选的真实证据。本轮只改文档/Skill，以上运行验收均为 `NOT_TESTED`，不把方案自评冒充产品 95+ 或外部专家评审。
+> **证据边界：** R1.3 已修云控连接运行代码并补测试；源码核对不等于 Chrome 实测。五种场景完整实际安装、后台独立升级、Side Panel 关闭后的派发、跨职责组合安装与 Mac 原生验收未完成时必须标 `NOT_TESTED` 或 `NOT_IMPLEMENTED`，不能宣称 95+ 产品通过。

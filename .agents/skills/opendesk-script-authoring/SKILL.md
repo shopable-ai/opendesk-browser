@@ -17,7 +17,7 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 
 ## 先按用户需求分流
 
-用 [四类需求选择指南](../../../docs/api/extension-development-selection.zh-CN.md) 先区分网页自动化、网页增强、侧边栏应用和组合式扩展。JS/React/Vue 是编写方式；多个源文件不等于多个运行环境。纯网页增强默认沿 Page 路径，已有 Prompt Shortcuts 等复合工具保留其安装身份；需要关 UI 后继续工作的业务先核对已有受审能力，不能把 Controller Worker 当持久后台。
+用 [五种使用场景选择指南](../../../docs/api/extension-development-selection.zh-CN.md) 先区分网页自动化、网页增强、应用界面、后台服务和组合式应用。JS/React/Vue 是编写方式；多个源文件不等于多个运行环境。纯网页增强默认沿 Page 路径，已有 Prompt Shortcuts 等复合工具保留其安装身份；需要关 UI 后继续工作的业务先核对已有受审能力，不能把 Controller Worker 当持久后台。
 
 ## 先读当前仓库，而不是复述过时教程
 

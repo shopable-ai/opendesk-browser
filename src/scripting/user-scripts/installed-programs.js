@@ -275,6 +275,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         // Re-import never revives a disabled or suspended installation.
         return publicInstall(previous);
       }
+      invariant(!previous?.managedCleanup||previous.managedCleanup.state==='retired',
+        'E_PAGE_CLEANUP_PENDING','旧安装的受管界面清理尚未确认；请核对原网页后主动完成清理，不能覆盖恢复记录');
       const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
         title:request.title?.trim()??previous?.title??request.programId,
@@ -312,6 +314,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // restore a suspended installation or execute an old document.
       const epoch=permissionEpoch(previous);
       if(request.enabled){
+        invariant(!previous?.managedCleanup||previous.managedCleanup.state==='retired',
+          'E_PAGE_CLEANUP_PENDING','旧安装受管界面清理待确认，不能直接恢复执行');
         await descriptor(previous);
         invariant(await api.permissions.contains({origins:previous.pageRules.matches}),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
       }
@@ -336,13 +340,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   // apparent successful uninstall. This does not undo effects in live pages.
   async function uninstallPageProgram(request,sender){
     request=structuredClone(request);
-    fields(request,['programId','manifestHash','expectedGeneration']);
+    fields(request,['programId','manifestHash','installationId','expectedGeneration']);
     return ordered(async()=>{
       const installKey=key(INSTALL_KEY_KIND,namespace,request.programId);
       const previous=await read(tx=>tx.get(PAGE_STORE,installKey));
       invariant(previous?.tag===PAGE_INSTALL_TAG&&previous.manifestHash===request.manifestHash&&
+        previous.authorization?.installationId===request.installationId&&
         (previous.authorization?.generation??null)===request.expectedGeneration,
-        PAGE_REVISION_ERROR,'卸载必须针对当前真实安装版本和授权代数');
+        PAGE_REVISION_ERROR,'卸载必须针对当前真实安装版本、安装身份和授权代数');
       const authorization=assertPageInstallAuthorization(previous);
       const row={...previous,enabled:false,token:crypto.randomUUID().replaceAll('-',''),
         nativeState:'pending',error:null,authorization:{...authorization,
@@ -351,27 +356,39 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         const current=await tx.get(PAGE_STORE,installKey);
         invariant(current?.tag===PAGE_INSTALL_TAG&&current.token===previous.token&&
           current.manifestHash===previous.manifestHash&&
+          current.authorization?.installationId===request.installationId&&
           current.authorization?.generation===request.expectedGeneration,
           PAGE_REVISION_ERROR,'卸载期间安装身份已改变');
         await tx.put(PAGE_STORE,row,installKey);
       });
       await reconcileOne(row);
       const after=await read(tx=>tx.get(PAGE_STORE,installKey));
-      invariant(after?.token===row.token&&after.authorization?.generation===row.authorization.generation,
+      invariant(after?.token===row.token&&
+        after.authorization?.installationId===request.installationId&&
+        after.authorization?.generation===row.authorization.generation,
         PAGE_REVISION_ERROR,'原生撤销后的安装身份已改变');
       invariant(after.nativeState==='disabled','E_PAGE_UNINSTALL_PENDING',
         '自动运行已停用，但原生注销尚未确认；修复 Chrome 用户脚本访问后重试卸载');
       const native=await nativeAPI();
       invariant((await native.getScripts({ids:[row.nativeId]})).length===0,
         'E_PAGE_UNINSTALL_PENDING','原生注册仍存在，不能标记已卸载');
+      // Managed UI retirement has a separate outcome: UNKNOWN is not
+      // success. Preserve the disabled installation until the original
+      // document is gone or the existing cleanup broker confirms retirement.
+      invariant(!after.managedCleanup||after.managedCleanup.state==='retired',
+        'E_PAGE_CLEANUP_PENDING','受管网页界面清理未确认；安装已停用，请刷新原网页后重新核对并主动卸载');
       await scoped(sender,PAGE_WRITE,async tx=>{
         const current=await tx.get(PAGE_STORE,installKey);
         invariant(current?.token===row.token&&current.nativeState==='disabled'&&
+          current.authorization?.installationId===request.installationId&&
           current.authorization?.generation===row.authorization.generation,
           PAGE_REVISION_ERROR,'最终卸载时安装身份已改变');
         await tx.delete(PAGE_STORE,installKey);
       });
+      invariant(!await read(tx=>tx.get(PAGE_STORE,installKey)),
+        'E_PAGE_UNINSTALL_PENDING','安装记录删除后读回未确认，请重新核对');
       return {programId:row.programId,manifestHash:row.manifestHash,
+        installationId:request.installationId,
         uninstalled:true,nativeState:'unregistered',livePagesNeedRefresh:true,
         ...(after.managedCleanup?{managedCleanup:after.managedCleanup}:{})};
     });

@@ -48,7 +48,7 @@ function fixture(){
       unregister:async({ids})=>ids.forEach(id=>f.native.delete(id)),execute:async()=>{f.executes++;throw Error('must not execute');}}};
   const dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
   const preview={preview:async()=>{f.previews++;throw Error('must not preview');},
-    retireInstalled:async()=>{f.cleanups++;return {state:'unknown',scope:'managed-ui-only'};}};
+    retireInstalled:async()=>{f.cleanups++;return {state:f.cleanupUncertain?'unknown':'retired',scope:'managed-ui-only'};}};
   const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission:{},session:'session',loadBuiltin:async()=>fakeBuiltinSource});
   f.service=make();f.restart=()=>{f.service=make();};f.rows=()=>[...db.get('frameworkKV').values()];
   f.installation=()=>f.rows().find(r=>r.tag==='page-installed-v1');f.storage=storage;
@@ -150,6 +150,29 @@ test('package upgrades reuse original installer CAS, scope approval and disabled
   }
 });
 
+test('pending managed UI cleanup cannot be overwritten by an upgrade',async()=>{
+  const f=fixture(),pkg=await packageFor(),first=await f.import(pkg);
+  f.cleanupUncertain=true;
+  const disabled=await f.service.setInstalledPageEnabled({
+    programId:pkg.programId,manifestHash:first.manifestHash,
+    expectedGeneration:first.authorization.generation,enabled:false
+  },{id:'test'});
+  assert.equal(f.installation().managedCleanup?.state,'unknown');
+  const altered=source+'\n// new content';
+  const next=await packageFor({revision:2,version:'1.1.0',
+    sourceUtf8:altered,sourceHash:await digestUtf8(altered)});
+  const before=structuredClone(f.installation()),registers=f.registers;
+  const nativeBefore=structuredClone([...f.native.entries()]);
+  await assert.rejects(f.import(next,disabled),{code:'E_PAGE_CLEANUP_PENDING'});
+  // Preparing a new candidate/proof may persist those independent records.
+  // The installed version, authorization, native registration and execution
+  // MUST remain untouched after the cleanup-pending rejection.
+  assert.deepEqual(f.installation(),before);
+  assert.deepEqual([...f.native.entries()],nativeBefore);
+  assert.equal(f.registers,registers);
+  assert.equal(f.previews,0);assert.equal(f.executes,0);
+});
+
 test('native unknown readback is queryable and re-import never replays registration',async()=>{
   const f=fixture();f.dropNativeReadback=true;
   const pkg=await packageFor(),unknown=await f.import(pkg);
@@ -174,8 +197,12 @@ test('same-version import rejects missing or unrelated native registration witho
 test('same-version import rejects failed native readback without returning stored registered receipt',async()=>{
   const f=fixture(),pkg=await packageFor(),installed=await f.import(pkg),snapshot=structuredClone(f.rows());
   const cleanups=f.cleanups;
-  f.nativeReadError=Error('userScripts unavailable');
+  // Reproduce Chrome's exact disabled-userScripts guard and verify generic
+  // native errors retain a separate, actionable error classification.
+  f.nativeReadError=Error("'userScripts.getScripts' is not available in this context.");
   await assert.rejects(f.import(pkg,installed),{code:'E_USER_SCRIPTS_UNAVAILABLE'});
+  f.nativeReadError=Error('userScripts unavailable');
+  await assert.rejects(f.import(pkg,installed),{code:'E_USER_SCRIPTS_NATIVE'});
   assert.deepEqual(f.rows(),snapshot);assert.equal(f.registers,1);assert.equal(f.executes,0);
   assert.equal(f.previews,0);assert.equal(f.cleanups,cleanups);
 });

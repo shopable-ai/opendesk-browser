@@ -10,7 +10,7 @@ import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-to
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
-import {FOCUS_RULE_FIRST} from '../../src/stay-focus/policy.js';
+import {FOCUS_RULE_FIRST} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_CAPABILITY,
   ADBLOCK_RULE_FIRST,ADBLOCK_DNR_CLEANUP_STORE,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}
@@ -234,12 +234,19 @@ test('official optional AdBlock uses one canonical installable project package',
   // While source/CI is pending the sole formal package must not be forged.
   let actual;
   try{actual=await readFile(path);}catch(error){if(error.code!=='ENOENT')throw error;}
-  if(actual)assert.deepEqual(actual,expected,'formal package must match deterministic builder bytes');
+  if(actual){
+    const released=JSON.parse(actual);
+    const next=JSON.parse(expected);
+    if(released.version===next.version)
+      assert.deepEqual(actual,expected,'same-version package must match deterministic builder bytes');
+    else assert.equal(released.version,'1.2.0',
+      'only the previously published 1.2.0 can remain until native release approval');
+  }
   await assert.rejects(access('src/sidebar-tools/adblock.opendesk-tool.json'),{code:'ENOENT'});
 });
 test('build-ready official project, current version, one declared restricted capability',async()=>{
   const pkg=await createSidebarToolPackage(PROJECT);
-  assert.equal(pkg.version,'1.2.0');
+  assert.equal(pkg.version,'1.2.1');
   assert.deepEqual(pkg.capabilities,[ADBLOCK_CAPABILITY]);
   assert.ok(pkg.js.includes("adblock.site.restore"));
 });

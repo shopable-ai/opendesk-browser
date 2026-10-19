@@ -15,7 +15,9 @@ export const PREVIEW_FORMAT='opendesk.ui-preview.v1';
 export const PREVIEW_CONTEXT_FORMAT='opendesk.ui-preview-context.v1';
 export const PREVIEW_SCENARIOS=Object.freeze(['success','empty','error','loading','permission-denied','untrusted']);
 export const PREVIEW_MOCK_OPERATIONS=Object.freeze(['storage.get','storage.set','currentPage.info','tasks.open']);
-export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze(['adblock.status','adblock.site.restore']);
+export const PREVIEW_ADBLOCK_OPERATIONS=Object.freeze([
+  'adblock.status','adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore'
+]);
 export const PREVIEW_TOC_OPERATIONS=Object.freeze(['toc.snapshot','toc.navigate']);
 export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
   'getTree','get','search','create','update','move','remove','prepareRemoveTree','removeTree',
@@ -45,7 +47,7 @@ export async function generatePreview({
     !Number.isInteger(height)||height<320||height>2400)fail('invalid CSS viewport');
   const project=join(repoRoot,'examples/sidebar-tools',tool);
   const pkg=await createSidebarToolPackage(project);
-  if(tool!=='reading-toc'&&!pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
+  if(tool!=='reading-toc'&&tool!=='adblock'&&!pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
     fail('official design CSS is missing from the validated tool package');
   let mock,operations;
   if(tool==='quick-notes'){
@@ -61,11 +63,12 @@ export async function generatePreview({
     mock=await readFile(new URL('./reading-toc-mock.js',import.meta.url));
     operations=PREVIEW_TOC_OPERATIONS;
   }else if(tool==='adblock'){
-    // One approved operation may be called more than once for post-write readback.
-    const invoked=[...new Set([...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]))];
-    if(invoked.length!==2||invoked.some(op=>!PREVIEW_ADBLOCK_OPERATIONS.includes(op))||
-       PREVIEW_ADBLOCK_OPERATIONS.some(op=>!invoked.includes(op)))
-      fail('AdBlock mock and real sandbox request operations do not match');
+    // The production React component owns the UI; static JSX constants are
+    // preserved in the real compiled bundle, even when dispatch uses a variable.
+    if(pkg.uiRuntime!=='opendesk.react-ui.v1'||
+      PREVIEW_ADBLOCK_OPERATIONS.some(op=>!pkg.js.includes(op))||
+      !pkg.html.includes('id="tool-app"'))
+      fail('AdBlock preview requires the compiled production React/Host contract');
     mock=await readFile(new URL('./adblock-mock.js',import.meta.url));
     operations=PREVIEW_ADBLOCK_OPERATIONS;
   }else{
@@ -80,6 +83,13 @@ export async function generatePreview({
   const shell=await sidebarPreviewShellSource();
   const tocOverlay=tool==='reading-toc'?await readingTocOverlayPreview({scenario}):null;
   const adblock=tool==='adblock'?await canonicalAdblockPreviewHost():null;
+  // The offline preview runs the SAME fixed, host-owned React 19 + Shared UI
+  // scripts as Chrome. WXT must build the reviewed shared entry beforehand.
+  // Neither runtime is bundled into the independent AdBlock package.
+  const adblockSharedScripts=tool==='adblock'?await Promise.all([
+    readFile(new URL('../../src/libs/page-frameworks/react-19.2.0.js',import.meta.url)),
+    readFile(new URL('../../dist/production/sidebar-shared-ui.js',import.meta.url))
+  ]).catch(error=>fail('build production Shared UI before React AdBlock preview: '+error.message)):[];
   const shellTemplate=await readFile(new URL('../templates/sidebar-tool-preview-shell.html',import.meta.url),'utf8');
   const lightShellOverride=await canonicalThemeOverride('light');
   let commit;
@@ -97,6 +107,7 @@ export async function generatePreview({
     '</head><body><div id="tool-root">'+pkg.html+'</div>',
     '<script>Object.defineProperty(globalThis,"__opendeskPreviewScenario",{value:'+JSON.stringify(scenario)+'});</script>',
     '<script src="'+dataUrl('text/javascript',mock)+'"></script>',
+    ...adblockSharedScripts.map(bytes=>'<script src="'+dataUrl('text/javascript',bytes)+'"></script>'),
     // The v2 package runs its pinned Classic dependencies before its entrypoint.
     // Omitting these produced a plausible HTML shell but a nonfunctional bookmark UI.
     ...(pkg.scripts||[]).map(script=>'<script src="'+dataUrl('text/javascript',script.code)+'"></script>'),
@@ -151,14 +162,14 @@ export async function generatePreview({
   const hostKey=scenario==='success'?'on-site-off':scenario==='empty'||
     scenario==='permission-denied'?'no-permission':
     scenario==='untrusted'?'on-site-on':scenario;
-  const hostMarkup=adblock?adblock.snapshots[hostKey]:'';
+  const hostMarkup=adblock?'':'';
   const adblockDialog=adblock?[
     '<dialog class="preview-confirm od-surface" id="od-preview-adblock-restore-dialog" aria-labelledby="od-preview-adblock-restore-title" aria-describedby="od-preview-adblock-restore-description">',
-    '<h2 id="od-preview-adblock-restore-title">模拟恢复网站过滤？</h2>',
+    '<h2 id="od-preview-adblock-restore-title">模拟确认 AdBlock 操作？</h2>',
     '<p id="od-preview-adblock-restore-description"></p>',
     '<div class="preview-confirm-actions">',
     '<button id="od-preview-adblock-restore-cancel" class="od-button od-button--secondary" type="button">取消</button>',
-    '<button id="od-preview-adblock-restore-accept" class="od-button" type="button">确认恢复</button>',
+    '<button id="od-preview-adblock-restore-accept" class="od-button" type="button">确认模拟</button>',
     '</div></dialog>'
   ].join(''):'';
   const values=Object.freeze({
@@ -169,10 +180,10 @@ export async function generatePreview({
     ADBLOCK_HOST_CSS:adblock?.css||'',
     ADBLOCK_HOST:hostMarkup,
     ADBLOCK_RESTORE_DIALOG:adblockDialog,
-    ADBLOCK_SNAPSHOTS_JSON:safeJS(adblock?{scenario,snapshots:adblock.snapshots}:{}),
+    ADBLOCK_SNAPSHOTS_JSON:safeJS(adblock?{scenario,source:'compiled-react'}:{}),
     ADBLOCK_PREVIEW_SCRIPT:adblockScript,
     LIGHT_CSS:lightShellOverride,WIDTH:String(width),
-    HEIGHT:String(tool==='adblock'?220:height),
+    HEIGHT:String(height),
     NAV:shell.nav,HEADER:shell.head,
     SOURCE_COMMIT:commit,DESIGN_SHA:digest,SHELL_SHA:shell.digest,UI_SHA:uiDigest,
     MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameForDisplay)
@@ -229,7 +240,7 @@ export function previewReviewContext(preview){
     view:'extension-tool-detail',activeTab:'扩展',
     // Tool interactions remain owned by the real packaged HTML/JS, not a summary registry.
     hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认',
-      ...(manifest.tool==='adblock'?['可信宿主全局与当前网站开关（离线模拟）','网站例外恢复确认（离线模拟）']:[]),
+      ...(manifest.tool==='adblock'?['正式 React 全局与本站开关（离线模拟）','全部四种可信写操作的确认与取消（离线模拟）']:[]),
       ...(manifest.tool==='bookmark-manager'?['外层预览测试控制（不属于正式工具）']:[]),
       ...(manifest.tool==='reading-toc'?['简体中文/English 原位切换（离线模拟）','Side Panel / 可信网页悬浮源代码切换','章节/空态/加载/错误模拟']:[])],
     scenario:manifest.scenario,viewportCssPx:manifest.viewport,

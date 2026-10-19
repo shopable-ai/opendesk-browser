@@ -1,81 +1,93 @@
-/* OPAQUE OFFLINE PREVIEW: only the real adblock.status/site.restore UI protocol.
- * Never talks to Chrome, permissions, storage, network, DNR or the real tool host. */
-(() => {
+/* OFFLINE ONLY: no DNR, Chrome, network, storage, or privileged permission APIs.
+ * Executes the REAL compiled React package against an inert five-operation Host. */
+(()=>{
   'use strict';
-  const root=document.getElementById('tool-root');
-  const scenario=globalThis.__opendeskPreviewScenario;
-  const scenarios=new Set(['success','empty','error','loading','permission-denied','untrusted']);
-  if(!root||!scenarios.has(scenario))throw Error('E_ADBLOCK_PREVIEW: bad scenario');
-  const ordinary=['news.example.com','video.example.com','shop.example.com'];
-  const hostile='<img src=x onerror=alert(1)>';
-  const state={
-    toolEnabled:true,
-    enabled:scenario==='success'||scenario==='untrusted',
-    exceptions:scenario==='success'?['news.example.com']:
-      scenario==='untrusted'?[hostile]:[],
-    currentHost:'news.example.com',
-    permissions:{dnr:scenario!=='empty'&&scenario!=='permission-denied'},
-    rules:{verified:scenario!=='empty'&&scenario!=='permission-denied'}
-  };
+  const root=document.getElementById('tool-root'),scenario=globalThis.__opendeskPreviewScenario;
+  if(!root||!['success','empty','error','loading','permission-denied','untrusted'].includes(scenario))
+    throw Error('E_ADBLOCK_PREVIEW_SCENARIO');
+  const allowed=new Set(['news.example.com','video.example.com','shop.example.com']);
+  const writes=new Set(['adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore']);
+  const state={installed:true,toolEnabled:true,enabled:scenario==='success'||scenario==='untrusted',
+    restartRequired:false,exceptions:scenario==='success'?['news.example.com']:
+      scenario==='untrusted'?['<img src=x onerror=alert(1)>']:[],
+    currentHost:'news.example.com',currentSite:{status:'ready'},domainCount:67,
+    permissions:{dnr:!['empty','permission-denied'].includes(scenario)},
+    rules:{verified:!['empty','permission-denied'].includes(scenario),ruleIds:[]}};
   const clone=value=>JSON.parse(JSON.stringify(value));
-  const pending=new Map();
-  let seq=0;
-  const fault=message=>{throw Error('[离线模拟] '+message);};
-  const announce=requestId=>window.parent.postMessage({
-    type:'opendesk.preview.adblock.exceptions',requestId,exceptions:[...state.exceptions]},'*');
-  async function request(operation,payload={}){
-    if(operation!=='adblock.status'&&operation!=='adblock.site.restore')
-      return fault('未批准的 API 操作');
+  const pending=new Map();let sequence=0;
+  const error=(code,message)=>Object.assign(Error('[离线模拟] '+message),{code});
+  function validate(op,payload){
+    const keys=Object.keys(payload).sort().join(',');
+    if(op==='adblock.enable'&&keys===''&&!state.enabled)return;
+    if(op==='adblock.disable'&&keys===''&&state.enabled)return;
+    if(op==='adblock.site.set'&&keys==='filtering,host'&&state.enabled&&
+       payload.host===state.currentHost&&allowed.has(payload.host)&&
+       typeof payload.filtering==='boolean'&&
+       state.exceptions.includes(payload.host)===payload.filtering)return;
+    if(op==='adblock.site.restore'&&keys==='host'&&allowed.has(payload.host)&&
+       state.exceptions.includes(payload.host))return;
+    throw error('E_ADBLOCK_STATE_CHANGED','所请求的操作或当前网站状态已变化');
+  }
+  function apply(op,payload){
+    if(op==='adblock.enable')state.enabled=true;
+    else if(op==='adblock.disable')state.enabled=false;
+    else if(op==='adblock.site.set'){
+      if(payload.filtering)state.exceptions=state.exceptions.filter(x=>x!==payload.host);
+      else state.exceptions.push(payload.host);
+    }else state.exceptions=state.exceptions.filter(x=>x!==payload.host);
+  }
+  function request(operation,payload={}){
+    if(operation!=='adblock.status'&&!writes.has(operation))
+      return Promise.reject(error('E_ADBLOCK_OPERATION','未批准的操作'));
     if(scenario==='loading')return new Promise(()=>{});
-    if(scenario==='error')return fault('无法读取模拟 DNR 状态');
-    if(scenario==='permission-denied')return fault('尚未授权 Chrome DNR（模拟）');
-    if(operation==='adblock.status')return clone(state);
-    const host=payload?.host;
-    if(!payload||Object.keys(payload).join(',')!=='host'||
-       typeof host!=='string'||!state.exceptions.includes(host))
-      return fault('例外已变化，请重新读取');
-    if(!ordinary.includes(host))return fault('无法恢复不可信演示域名');
-    const requestId=++seq;
+    if(scenario==='error')return Promise.reject(error('E_ADBLOCK_READ','离线状态读取错误'));
+    if(operation==='adblock.status')return Promise.resolve(clone(state));
+    if(!state.permissions.dnr||!state.rules.verified||!state.toolEnabled)
+      return Promise.reject(error('E_ADBLOCK_PERMISSION','过滤权限不可用'));
+    try{validate(operation,payload);}catch(cause){return Promise.reject(cause);}
+    const requestId=++sequence;
     return new Promise((resolve,reject)=>{
-      pending.set(requestId,{host,resolve,reject});
-      window.parent.postMessage({type:'opendesk.preview.adblock.restore-request',
-        requestId,host},'*');
+      pending.set(requestId,{operation,payload:clone(payload),resolve,reject});
+      window.parent.postMessage({type:'opendesk.preview.adblock.review-request',
+        requestId,operation,payload:clone(payload)},'*');
     });
   }
   window.addEventListener('message',event=>{
     if(event.source!==window.parent||!event.data||typeof event.data!=='object')return;
-    const data=event.data;
-    if(data.type==='opendesk.preview.adblock.restore-decision'){
-      const pendingRequest=pending.get(data.requestId);
-      if(!pendingRequest)return;
-      pending.delete(data.requestId);
-      if(data.accepted!==true){
-        pendingRequest.reject(Error('[离线模拟] 已取消恢复'));
-        return;
-      }
-      state.exceptions=state.exceptions.filter(host=>host!==pendingRequest.host);
-      pendingRequest.resolve(clone({...state,rules:{verified:true},refreshRequired:true}));
-      announce(data.requestId);
-    }else if(data.type==='opendesk.preview.adblock.state'){
-      if(scenario!=='success'&&scenario!=='empty'&&scenario!=='untrusted')return;
-      if(typeof data.enabled!=='boolean'||typeof data.granted!=='boolean'||typeof data.restartRequired!=='boolean'||!Array.isArray(data.exceptions)||
-         data.exceptions.length>3||
-         data.exceptions.some(host=>!ordinary.includes(host)))return;
-      state.enabled=data.enabled&&!data.restartRequired;
-      state.restartRequired=data.restartRequired;
-      state.permissions.dnr=data.granted;
-      state.rules.verified=data.granted&&!data.restartRequired;
-      state.exceptions=[...new Set(data.exceptions)];
-      window.dispatchEvent(new Event('focus'));
+    const msg=event.data;
+    if(msg.type==='opendesk.preview.adblock.review-decision'){
+      const item=pending.get(msg.requestId);if(!item)return;
+      pending.delete(msg.requestId);
+      if(msg.accepted!==true){item.reject(error('E_CANCELLED','用户取消了本次模拟操作'));return;}
+      try{
+        // A real Host rechecks authority after approval, not only at request time.
+        // Preview must reject a permission revocation while the dialog is open.
+        if(!state.permissions.dnr||!state.rules.verified||!state.toolEnabled)
+          throw error('E_ADBLOCK_PERMISSION','确认期间过滤权限已撤销');
+        validate(item.operation,item.payload);apply(item.operation,item.payload);
+        item.resolve(clone(state));
+        window.parent.postMessage({type:'opendesk.preview.adblock.review-receipt',
+          requestId:msg.requestId,enabled:state.enabled,exceptions:[...state.exceptions]},'*');
+      }catch(cause){item.reject(cause);}
+    }else if(msg.type==='opendesk.preview.adblock.state'){
+      if(!['success','empty','untrusted'].includes(scenario))return;
+      if(typeof msg.enabled!=='boolean'||typeof msg.granted!=='boolean'||
+         !Array.isArray(msg.exceptions)||msg.exceptions.some(x=>!allowed.has(x)))return;
+      const nextHost=msg.currentHost??state.currentHost;
+      if(typeof nextHost!=='string'||!allowed.has(nextHost))return;
+      const pageChanged=nextHost!==state.currentHost;
+      state.currentHost=nextHost;
+      state.enabled=msg.enabled;state.permissions.dnr=msg.granted;
+      state.rules.verified=msg.granted;state.exceptions=[...new Set(msg.exceptions)];
+      root.dispatchEvent(new Event(pageChanged?'opendesk-page-changed':'opendesk-tool-state-changed'));
     }
   });
-  // Production dynamically sizes the sandbox. Report only its own document height.
   if(typeof ResizeObserver==='function'){
     const report=()=>window.parent.postMessage({type:'opendesk.preview.adblock.height',
       height:Math.ceil(document.documentElement.scrollHeight)},'*');
     new ResizeObserver(report).observe(document.body);
     window.addEventListener('load',report,{once:true});
   }
-  Object.defineProperty(globalThis,'OpenDeskTool',{configurable:false,
-    writable:false,enumerable:false,value:Object.freeze({root,request})});
+  Object.defineProperty(globalThis,'OpenDeskTool',{configurable:false,writable:false,
+    value:Object.freeze({root,request})});
 })();

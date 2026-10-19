@@ -61,6 +61,14 @@ jobs:
           node scripts/preview/check-preview-contract.mjs --update-lock
           git diff --exit-code -- contracts/ui-preview/quick-notes.lock.json
           node scripts/preview/check-preview-contract.mjs
+      - name: Build production Shared UI before any source-bound AdBlock preview tests
+        run: |
+          node scripts/build-adblock-react.mjs
+          # The released 1.2.0 assets intentionally remain tracked until native approval.
+          # Preview uses the freshly compiled 1.2.1 candidate; it never promotes releases.
+          git status --short -- examples/sidebar-tools/adblock/src/main.js examples/sidebar-tools/adblock/src/style.css
+          npm run build
+          test -s dist/production/sidebar-shared-ui.js
       - name: Verify package identity, mock safety and negative guards
         run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs tests/environment/adblock-preview-contract.test.mjs
       - name: Build official tool and offline preview matrix

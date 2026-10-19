@@ -11,10 +11,14 @@ const target={tabId:5,frameId:0,windowId:2,documentId:'doc-a',
 test('R25.1 upgrades retain the original user title for Page and Task review',async()=>{
   for(const kind of ['controller','page-userscript']){
     const source=await makeSource(kind);let catalog=[],installed=[];
-    const client={request:async()=>kind==='page-userscript'?{catalog}:{catalog,installed}};
+    const client={request:async()=>({catalog,installed})};
     const first=await prepareLocalProjectInstallation({client,source,binding,project,target,runId:'run-title'});
-    if(kind==='page-userscript')catalog=[{programId:first.id,revision:1,manifestHash:'d'.repeat(64),
-      installed:{title:'自定义表单助手',revision:1,manifestHash:'d'.repeat(64),sourceHash:'0'.repeat(64),pageRules:first.pageRules}}];
+    if(kind==='page-userscript'){
+      const grant={programId:first.id,title:'自定义表单助手',revision:1,
+        manifestHash:'d'.repeat(64),sourceHash:'0'.repeat(64),pageRules:first.pageRules};
+      catalog=[{programId:first.id,revision:1,manifestHash:grant.manifestHash,installed:grant}];
+      installed=[grant];
+    }
     else {catalog=[{taskId:first.id,version:'1.0.0',manifestHash:'d'.repeat(64),
       manifest:{title:'自定义表单助手',siteOrigins:first.siteOrigins,program:{sourceHash:'0'.repeat(64)}}}];
       installed=[{taskId:first.id,version:'1.0.0',manifestHash:'d'.repeat(64)}];}
@@ -166,7 +170,8 @@ test('read-only Save recognizes an exact installed Page and Task without allocat
     pageRules,enabled:false,nativeState:'disabled'};
   const pageClient={request:async()=>({catalog:[{programId:firstPage.id,revision:1,
     entryFormat:page.entryFormat,sourceProfile:{importSourceUrl:null},dependencyLockId:null,
-    manifestHash:installedPage.manifestHash,pageRules,installed:installedPage}]})};
+    manifestHash:installedPage.manifestHash,pageRules,installed:installedPage}],
+    installed:[{...installedPage,programId:firstPage.id}]})};
   const samePage=await prepareLocalProjectInstallation({client:pageClient,source:page,binding,project,target});
   assert.equal(samePage.alreadyInstalled,true);
   assert.equal(samePage.installedVersion,1);
@@ -196,6 +201,22 @@ test('read-only Save recognizes an exact installed Page and Task without allocat
     source:{...controller,paramsSchema:{...schema,properties:{label:{type:'string',title:'Label'}}}},
     binding,project,target,runId:'real-run-z'});
   assert.equal(changedSchema.alreadyInstalled,false,'parameter contract changes require a new version');
+});
+
+test('R5.5 local Page review recognizes installed revision after development Candidate is gone',async()=>{
+  const source=await makeSource('page-userscript');
+  const baseline=await prepareLocalProjectInstallation({
+    client:{request:async()=>({catalog:[],installed:[]})},
+    source,binding,project,target});
+  const old={programId:baseline.id,revision:7,manifestHash:'e'.repeat(64),
+    title:'原已安装脚本',enabled:false,sourceHash:source.sourceHash,
+    pageRules:baseline.pageRules};
+  const client={request:async()=>({catalog:[],installed:[old]})};
+  const review=await prepareLocalProjectInstallation({client,source,binding,project,target});
+  assert.equal(review.installedHash,old.manifestHash);
+  assert.equal(review.installedVersion,7);
+  assert.equal(review.version,'8','revision must not reset when Candidate is removed');
+  assert.equal(review.defaultTitle,old.title);
 });
 
 test('read-only unknown receipt reconciliation confirms Page only with exact Available native state',async()=>{

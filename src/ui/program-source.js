@@ -112,8 +112,9 @@ export function createProgramSourceView({document:doc,view=null,listen,onChange}
     const project = value?.project;
     patchDeveloperField(view,get('program-source-info'),{hidden:!value});
     patchDeveloperField(view,get('program-source-toolbar'),{hidden:!value});
-    patchDeveloperField(view,editor,{readOnly:Boolean(value)});
-    patchDeveloperField(view,editor,{hidden:Boolean(value && !project)});
+    const readOnly=Boolean(value),hidden=Boolean(value&&!project);
+    if(editor.readOnly!==readOnly||editor.hidden!==hidden)
+      patchDeveloperField(view,editor,{readOnly,hidden});
     patchDeveloperField(view,get('program-source-files'),{hidden:!project});
     patchDeveloperField(view,get('program-new-script'),{hidden:!value});
     patchDeveloperField(view,get('program-generated'),{hidden:!value});
@@ -138,7 +139,7 @@ export function createProgramSourceView({document:doc,view=null,listen,onChange}
   function replaceSource(sourceUtf8) {
     if (artifact?.project && artifact.sourceUtf8 === sourceUtf8) return;
     show(compiled(sourceUtf8) ? {sourceUtf8} : null);
-    if (!artifact) patchDeveloperField(view,editor,{value:sourceUtf8});
+    if (!artifact&&editor.value!==sourceUtf8) patchDeveloperField(view,editor,{value:sourceUtf8});
   }
   listen(get('program-source-files'),'change',() => {
     if (artifact?.project && get('program-source-files').value === '') {patchDeveloperField(view,editor,{value:artifact.sourceUtf8});return;}

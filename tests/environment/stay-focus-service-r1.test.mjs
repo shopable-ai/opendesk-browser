@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createStayFocusService} from '../../src/stay-focus/service.js';
-import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../src/stay-focus/lifecycle.js';
-import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../src/stay-focus/policy.js';
+import {createStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/service.js';
+import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
+import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -107,6 +107,9 @@ for(const operation of ['focus.disable','focus.clear','tool.disable','tool.unins
       if(operation==='tool.disable')return stopStayFocusForTool(f.api,'stay-focus');
       if(operation==='tool.uninstall')return cleanupUninstalledStayFocus(f.api,'stay-focus',async(api,key)=>{
         removed.push(key);await api.storage.local.remove(key);
+      },async key=>{
+        await f.api.storage.session.remove(key);
+        assert.equal((await f.api.storage.session.get(key))[key],undefined);
       });
       return f.focus.dispatch(await f.msg(operation,operation==='focus.clear'?{confirm:true}:{}),f.sender);
     };
@@ -357,6 +360,10 @@ test('R3.2 worker probe checks live sender and runtime without installing or gra
   assert.equal(result.protocol,FOCUS_PROTOCOL);
   assert.equal(result.serviceVersion,FOCUS_SERVICE_VERSION);
   assert.equal(result.serviceReady,true);
+  assert.deepEqual(result.managedSiteRuntime,{
+    contract:'opendesk.managed-site-runtime.v1',
+    policyKinds:['site-budget.v1','site-budget.v2'],privilegedJs:false
+  });
   assert.deepEqual(result.permissions,{idle:false,dnr:true,ready:false});
   assert.equal(f.rules.length,0);
   assert.equal(f.stored.has(FOCUS_STORE),false,'read-only probe may not create policy');

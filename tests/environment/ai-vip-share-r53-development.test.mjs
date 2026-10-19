@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {validEndpoint,desiredAiProxy} from '../../src/ai-smart-access/policy.js';
-import {AI_PROVIDER,AI_LOCAL_TEST_ENABLED} from '../../src/ai-smart-access/provider-config.js';
+import {validEndpoint,desiredAiProxy} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
+import {AI_PROVIDER,AI_LOCAL_TEST_ENABLED} from '../../examples/sidebar-tools/ai-vip-share/trusted/provider-config.js';
 
 test('R5.3 default runtime preserves production endpoint and Provider restrictions',()=>{
   assert.equal(AI_LOCAL_TEST_ENABLED,false);
@@ -19,8 +19,8 @@ test('R5.3 explicit compiled development adapter accepts only the fixed HTTP loo
     import assert from 'node:assert/strict';
     globalThis.__OPENDESK_AI_LOCAL_TEST__=true;
     globalThis.__OPENDESK_AI_LOCAL_PACKAGE_HASH__='a'.repeat(64);
-    const {validEndpoint,desiredAiProxy}=await import('./src/ai-smart-access/policy.js');
-    const {AI_RUNTIME_PROVIDER,AI_LOCAL_PACKAGE_HASH}=await import('./src/ai-smart-access/provider-config.js');
+    const {validEndpoint,desiredAiProxy}=await import('./examples/sidebar-tools/ai-vip-share/trusted/policy.js');
+    const {AI_RUNTIME_PROVIDER,AI_LOCAL_PACKAGE_HASH}=await import('./examples/sidebar-tools/ai-vip-share/trusted/provider-config.js');
     const endpoint={scheme:'http',host:'127.0.0.1',port:7897};
     assert.deepEqual(validEndpoint(endpoint),endpoint);
     assert.equal(AI_LOCAL_PACKAGE_HASH,'a'.repeat(64));

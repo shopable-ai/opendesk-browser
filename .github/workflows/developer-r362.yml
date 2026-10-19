@@ -4,11 +4,16 @@ on:
     branches: [main]
     paths:
       - 'src/ui/script-editor.js'
+      - 'src/ui/controller-revision-view.js'
+      - 'src/ui/react/tabs/develop.tsx'
+      - 'src/ui/react/main.tsx'
+      - 'src/ui/tool-shell.js'
       - 'src/ui/tool.html'
       - 'src/ui/program-source.js'
       - 'src/ui/task-workbench.js'
       - 'src/ui/page-program-library.js'
       - 'tests/environment/script-editor-ui.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
       - 'tests/environment/developer-layout.test.mjs'
       - '.github/workflows/developer-r362.yml'
   workflow_dispatch:
@@ -28,8 +33,13 @@ jobs:
       - name: Syntax of real Editor and Program Source
         run: |
           node --check src/ui/script-editor.js
+          node --check src/ui/controller-revision-view.js
+          node --check src/ui/tool-shell.js
           node --check src/ui/program-source.js
           node --check src/ui/task-workbench.js
+      - name: Parse trusted React Developer TSX
+        run: |
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; import {transformSync} from 'esbuild'; for(const file of ['src/ui/react/tabs/develop.tsx','src/ui/react/main.tsx']) transformSync(readFileSync(file,'utf8'),{loader:'tsx',format:'esm',jsx:'automatic'});"
       - name: Controller, Page, React/Vue state, Task and Program regressions
         run: |
           node --test \
@@ -43,5 +53,44 @@ jobs:
         if: always()
         run: |
           echo "NODE_SOURCE_TESTS_ONLY: no installed Chrome extension"
+          echo "MAC_CHROME_NOT_TESTED"
+          echo "MAC_NATIVE_NOT_TESTED"
+
+  # Independent of Node fixtures: a passing source test is not a built MV3
+  # extension, and an installed MV3 shell is not proof of five execution worlds.
+  developer-release-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source and Developer Edition build
+        run: |
+          npm run check
+          npm run build:developer
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real installed MV3 React shell smoke (not script execution evidence)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_EXTENSION_DIR: dist/production-developer
+        run: node scripts/tests/react-sidebar-r352-installed-chrome.mjs artifacts/developer-r365-installed
+      - name: Preserve Chrome result and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: developer-r365-installed-mv3
+          path: artifacts/developer-r365-installed/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Explicit native boundary
+        if: always()
+        run: |
+          echo "LINUX_INSTALLED_MV3_SHELL_ONLY: see real Chrome step"
+          echo "FIVE_EXECUTION_WORLDS_CHROME=NOT_TESTED"
           echo "MAC_CHROME_NOT_TESTED"
           echo "MAC_NATIVE_NOT_TESTED"

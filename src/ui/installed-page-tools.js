@@ -1,14 +1,26 @@
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
+// Reuse the existing Page Authority restore operation for a suspended grant.
+// A suspended but enabled installation needs enabled:true, not another disable.
+// This only reuses the original approved site scope; it never expands it.
+export function installedPageEnableAction(installed){
+  if(installed?.authorization?.status==='suspended')
+    return {enabled:true,label:'恢复自动运行'};
+  return installed?.enabled===true
+    ? {enabled:false,label:'停用自动运行'}
+    : {enabled:true,label:'启用自动运行'};
+}
+
 // One trusted enable operation for both legacy detail and R4 unified projection.
 // It does not install, convert, or enlarge a Page program's website rules.
 export async function setInstalledPageProgramEnabled({api,client,row}){
   const installed=row?.installed;
   if(!installed||installed.manifestHash!==row.manifestHash)
     throw Object.assign(new Error('已安装网页程序身份已变化，请刷新列表'),{code:'E_PAGE_CHANGED'});
-  if(!installed.enabled)await requireChromePermissions({api,request:{origins:installed.pageRules.matches}});
+  const action=installedPageEnableAction(installed);
+  if(action.enabled)await requireChromePermissions({api,request:{origins:installed.pageRules.matches}});
   const result=await client.request('setInstalledPageEnabled',{
-    programId:row.programId,manifestHash:installed.manifestHash,enabled:!installed.enabled,
+    programId:row.programId,manifestHash:installed.manifestHash,enabled:action.enabled,
     expectedGeneration:installed.authorization?.generation??null});
   if(result.error)throw result.error;
   return result;
@@ -32,8 +44,10 @@ export function createInstalledPageTools({client,api,doc}){
     let rows;
     try{
       const response=await client.request('listPagePrograms',{});
-      rows=(response.catalog||[]).filter(row=>row.installed&&
-        row.installed.manifestHash===row.manifestHash);
+      if(!Array.isArray(response?.installed))throw Object.assign(
+        new Error('Page 已安装清单缺失'),{code:'E_PAGE_INSTALLATION'});
+      rows=response.installed.filter(row=>row?.programId&&row?.manifestHash)
+        .map(row=>({programId:row.programId,manifestHash:row.manifestHash,installed:row}));
     }catch(error){
       if(disposed||generation!==sequence)return;
       notice((error.code||'E_PAGE_INSTALLATION')+'：无法读取已安装网页脚本；不会影响原安装','error','catalog');
@@ -64,7 +78,8 @@ export function createInstalledPageTools({client,api,doc}){
       fingerprint.textContent='源码 SHA-256：'+installed.sourceHash;
       technical.append(technicalTitle,fingerprint);
       const toggle=doc.createElement('button');toggle.type='button';
-      toggle.textContent=installed.enabled?'停用自动运行':'启用自动运行';
+      const action=installedPageEnableAction(installed);
+      toggle.textContent=action.label;
       toggle.dataset.pageToolId=row.programId;
       toggle.dataset.pageToolAction='toggle';
       toggle.setAttribute('aria-label',toggle.textContent+'：'+(installed.title||row.programId));
@@ -75,7 +90,7 @@ export function createInstalledPageTools({client,api,doc}){
         busy=true;toggle.disabled=true;
         void (async()=>{
           await setInstalledPageProgramEnabled({api,client,row});
-          notice('已确认'+(installed.enabled?'停用':'启用')+'固定网页脚本；不会重新运行当前网页。','success');
+          notice('已确认'+(action.enabled?'启用':'停用')+'固定网页脚本；不会重新运行当前网页。','success');
         })().catch(error=>notice((error.code||'E_PAGE_INSTALLATION')+'：'+(error.message||error),'error'))
           .finally(()=>{busy=false;if(!disposed)void refresh();});
       });

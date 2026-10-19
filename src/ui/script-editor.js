@@ -13,9 +13,8 @@ import {parseControllerClassicDependencies} from '../scripting/user-scripts/cont
 import {createProgramSourceView,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {createPageComponentRemote} from './page-component-remote.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
-import {createControllerESMSavedSource,readControllerESMAuthorSource,
-  verifiedControllerESMAuthorSource,createControllerClassicSavedSource,
-  readControllerClassicAuthorSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
+import {createControllerESMSavedSource,readControllerESMAuthorSource,verifiedControllerESMAuthorSource,
+  createControllerClassicSavedSource,readControllerClassicAuthorSource,verifiedControllerClassicAuthorSource} from './controller-esm-source.js';
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from '../scripting/user-scripts/page-bundle.js';
 import {inspectPageFrameSource} from '../scripting/user-scripts/page-frame-resources.js';
 import {PAGE_PREVIEW_RECEIPT_FORMAT} from '../scripting/user-scripts/execution-source.js';
@@ -102,7 +101,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const syncComponentInputs=()=>{
     for(const [mode,node] of Object.entries(componentInputs))if(node)patchDeveloperField(view,node,{checked:mode===componentMode});
   };
-  const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
+  const componentDrafts={react:componentPresets.react,vue:componentPresets.vue};
   // A choice of JavaScript world changes only the editor buffer. Execution
   // remains under the original Controller/USER_SCRIPT authority and RunHost.
   const javascriptDrafts={
@@ -126,7 +125,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     value.javascriptWorld=javascriptWorld;
     value.javascriptDrafts={...javascriptDrafts,...(componentMode==='javascript'?{[javascriptWorld]:value.source}:{})};
     value.loadedPageSource=loadedPageSource;
-    value.componentDrafts={...componentDrafts,[componentMode]:value.source};
+    value.componentDrafts={...componentDrafts,...(componentMode==='javascript'?{}:{[componentMode]:value.source})};
     const programDraft=programSource.snapshot();
     if(programDraft)value.programDraft=programDraft;
     return value;
@@ -156,6 +155,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
   let browserListenersAttached = false;
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
+  // Both field renderers share the original execution-ownership gate.
+  const frameworkBusy=()=>editingBusy||running||stopping||previewBusy||browserPreparing||
+    !!host.currentRun||!!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown||
+    !!localProject?.active()||!!programSource.snapshot();
   const localInstaller=createLocalInstallUI({client,api,doc,view,currentPageTarget,getProject:()=>localProject,readControllerRun:options=>host.controller.snapshotControllerRun(options),
     isBusy:()=>running||previewBusy||stopping,retireManagedPreview:retireLocalPreviewForInstall,onState:()=>update()});
   const listen = (element, event, listener) => {
@@ -337,8 +340,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(worldRow)patchDeveloperField(view,worldRow,{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
     if(worldChoice){
       patchDeveloperField(view,worldChoice,{value:javascriptWorld});
-      patchDeveloperField(view,worldChoice,{disabled:editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||
-        !!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown});
+      patchDeveloperField(view,worldChoice,{disabled:frameworkBusy()});
     }
     const paramsTools=find('manual-project-params-tools');
     if(paramsTools)patchDeveloperField(view,paramsTools,{hidden:pageExecution||!!localProject?.active()});
@@ -378,7 +380,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       mode.value === 'current' && currentPageState?.status !== 'available';
     const stopDisabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
     const stopLabel=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
-    if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot()});
+    if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:frameworkBusy()});
     if(componentStatus)patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!componentStatus.textContent});
     patchDeveloperField(view,find('page-preview-run'),{disabled:stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
       (componentMode==='javascript'&&(dependencyResolver?.busy||
@@ -632,7 +634,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function loadControllerVersion(fromList=false){
     const id=fromList?scriptList.value:scriptId(),activeId=scriptId(),
       revisionText=find('script-revision').value.trim(),source=programSource.source(),
-      selectedHead=revisions.get(id);
+      selectedHead=revisions.get(id),editorTicket=browserPrepareGeneration,
+      originalMode=componentMode,originalWorld=javascriptWorld;
     if(fromList&&!id)throw {code:'E_REVISION',message:'请选择已保存脚本'};
     const row=await host.controller.getControllerScript({scriptId:id,
       ...(!fromList&&revisionText?{revision:Number(revisionText)}:{})});
@@ -640,10 +643,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
       await verifiedControllerClassicAuthorSource(row.sourceUtf8);
     if(disposed)return;
     if(scriptId()!==activeId||(fromList?scriptList.value!==id:scriptId()!==id)||
-      find('script-revision').value.trim()!==revisionText||programSource.source()!==source)
+      find('script-revision').value.trim()!==revisionText||programSource.source()!==source||
+      editorTicket!==browserPrepareGeneration||componentMode!==originalMode||javascriptWorld!==originalWorld)
       throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
-    componentDrafts[componentMode]=source;
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=source;
+    else componentDrafts[componentMode]=source;
     // The saved Controller revision selects the execution world, but not
     // ownership of the user's prior Page/JSX/Vue authoring buffers.
     loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';
@@ -664,7 +668,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const id = scriptId(), expectedRevision = revisions.get(id);
     if (!expectedRevision) throw {code:'E_REVISION',message:'请先加载最新持久版本'};
     await host.controller.tombstoneControllerScript({scriptId:id,expectedRevision});
-    revisions.delete(id); if (currentRevision?.scriptId === id) currentRevision = undefined;
+    if(disposed)return;
+    revisions.delete(id); if (currentRevision?.scriptId === id) {currentRevision = undefined;currentRevisionAuthorSource = undefined;}
     patchDeveloperField(view,find('script-version'),{textContent:'脚本已删除'}); update();
     await refreshScripts({silent: true});
     display('deleted','脚本已删除；已运行版本的源码保留至任务退休');
@@ -1296,18 +1301,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
       browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot();
     if(loadBlocked())throw {code:'E_BUSY',message:'请先停止当前运行并切换为手工草稿'};
     const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value,
-      previousMode=componentMode,previousWorld=javascriptWorld;
+      editorTicket=browserPrepareGeneration,previousMode=componentMode,previousWorld=javascriptWorld;
     const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
+    const changed=()=>disposed||loadBlocked()||editorTicket!==browserPrepareGeneration||
+      source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value||
+      previousMode!==componentMode||previousWorld!==javascriptWorld;
+    if(changed())throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
     const authoring=await validatePageCandidateAuthoring(saved);
-    if(disposed||loadBlocked()||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value||
-      previousMode!==componentMode||previousWorld!==javascriptWorld)
-      throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
-    componentDrafts[componentMode]=source;
+    if(changed())throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=source;
+    else componentDrafts[componentMode]=source;
     loadedPageSource=true;componentMode=authoring?.framework??'javascript';javascriptWorld='page';syncComponentInputs();
     programSource.replaceSource(authoring?.sourceUtf8??saved.authorSourceUtf8??saved.sourceUtf8);
-    componentDrafts[componentMode]=programSource.source();
     if(componentMode==='javascript')javascriptDrafts.page=programSource.source();
+    else componentDrafts[componentMode]=programSource.source();
     patchDeveloperField(view,find('script-id'),{value:row.programId});
     patchDeveloperField(view,find('script-revision'),{value:String(row.revision)});lastPagePreview=null;
     if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
@@ -1346,7 +1353,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       isComponentDraft()?savePreparedComponent():loadedPageSource?savePageCandidate():
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
   }
-  listen(find('script-save'),'click',saveClick);
   listen(find('script-save-version'),'click',saveClick);
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
@@ -1373,18 +1379,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function chooseComponentMode(next){
     if(next===componentMode)return;
     if(next!=='javascript'&&!browserCompilerEnabled){syncComponentInputs();return;}
-    if(previewBusy||browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
+    if(frameworkBusy()){
       syncComponentInputs();
-      componentMessage('error','请先停止旧组件或打开新网页，再切换框架');
+      componentMessage('error','请先结束当前运行、保存或准备并停止受管组件，再切换代码类型');
       return;
     }
     browserPreparer.cancel();browserPrepareGeneration++;
-    componentDrafts[componentMode]=programSource.source();
     if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
+    else componentDrafts[componentMode]=programSource.source();
     componentMode=next;
     syncComponentInputs();
     programSource.replaceSource(next==='javascript'
-      ?javascriptDrafts[javascriptWorld]??componentDrafts.javascript
+      ?javascriptDrafts[javascriptWorld]
       :componentDrafts[next]??componentPresets[next]??'');
     dependencyResolver.refresh();dependencyInstaller?.refresh();lastPagePreview=null;componentRemote.refresh();
     componentMessage('idle',next==='javascript'?'':'官方组件源码 · 按需编译 · 明确点击运行');
@@ -1392,9 +1398,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   function chooseJavascriptWorld(next){
     if(next===javascriptWorld)return;
-    if(!['controller','page'].includes(next)||disposed||componentMode!=='javascript'||
-      editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||componentRemote?.busy||
-      browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot()){
+    if(!['controller','page'].includes(next)||disposed||componentMode!=='javascript'||frameworkBusy()){
       componentMessage('error','请先结束当前执行或退出已导入的固定源码视图，再切换执行环境');
       update();return;
     }
@@ -1407,14 +1411,23 @@ export function createScriptEditor({client, currentPageTarget, development=false
     componentMessage('idle',next==='page'?'网页 JavaScript 使用当前网页 DOM；运行前仍须网站授权':'');
     update();
   }
-  for(const [next,input] of Object.entries(componentInputs))if(input)listen(input,'change',()=>{
-    if(input.checked)chooseComponentMode(next);
-  });
   const javascriptWorldSelect=find('script-javascript-world');
-  if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',()=>chooseJavascriptWorld(javascriptWorldSelect.value));
-  on('script-target-mode','change',update); on('script-id','input',()=>{dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();scheduleControllerClassicWarm();update();}); on('script-revision','input',update); on('script-source','input',() => {browserPreparer.cancel();browserPrepareGeneration++;programSource.replaceSource(programSource.source());componentDrafts[componentMode]=programSource.source();if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();scheduleControllerClassicWarm();update();});
+  function sourceInput(){
+    browserPreparer.cancel();browserPrepareGeneration++;
+    programSource.replaceSource(programSource.source());
+    if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
+    else componentDrafts[componentMode]=programSource.source();
+    dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();
+    scheduleControllerClassicWarm();update();
+  }
+  on('script-target-mode','change',update);
+  on('script-id','input',()=>{
+    dependencyResolver.refresh();dependencyInstaller.refresh();lastPagePreview=null;
+    if(hasUnbuiltESM(programSource.source()))componentRemote.refresh();
+    scheduleControllerClassicWarm();update();
+  });
+  on('script-revision','input',update);
   on('script-params','input',update);
-  listen(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
     if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
     const url = userScriptsSettingsURL(api);
@@ -1515,7 +1528,22 @@ export function createScriptEditor({client, currentPageTarget, development=false
     try {await host.stop({runId:ownedDraftRunId,controller:true});}
     finally {stopping = false; update();}
   }
-  on('script-stop','click',stop);
+  // View actions and standalone DOM consumers share these control handlers.
+  {
+    listen(find('script-save'),'click',saveClick);
+    for(const [next,input] of Object.entries(componentInputs))if(input)
+      listen(input,'change',event=>{
+        if(view&&!event?.isTrusted){syncComponentInputs();return;}
+        if(input.checked)chooseComponentMode(next);
+      });
+    if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',event=>{
+      if(view&&!event?.isTrusted){update();return;}
+      chooseJavascriptWorld(javascriptWorldSelect.value);
+    });
+    on('script-source','input',sourceInput);
+    listen(find('script-run'),'click',start);
+    on('script-stop','click',stop);
+  }
   api.webNavigation.onCommitted.addListener(onNavigation); api.tabs.onRemoved.addListener(onRemoved);
   browserListenersAttached = true;
   const unsubscribeRun = host.subscribe(next => {
@@ -1551,12 +1579,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
           saved.componentDrafts&&typeof saved.componentDrafts==='object'&&!Array.isArray(saved.componentDrafts)){
           for(const modeName of ['javascript','react','vue']){
             const item=saved.componentDrafts[modeName];
-            if(typeof item==='string'&&new TextEncoder().encode(item).length<=128*1024)
-              componentDrafts[modeName]=item;
+            if(typeof item==='string'&&new TextEncoder().encode(item).length<=128*1024){
+              if(modeName==='javascript'&&!saved.javascriptDrafts)
+                javascriptDrafts[saved.loadedPageSource?'page':'controller']=item;
+              else if(modeName!=='javascript')componentDrafts[modeName]=item;
+            }
           }
           if(!browserCompilerEnabled&&saved.componentMode!=='javascript'){
             componentMode='javascript';
-            programSource.replaceSource(componentDrafts.javascript||javascriptDrafts.controller);
+            programSource.replaceSource(javascriptDrafts.controller);
           }else componentMode=saved.componentMode;
           syncComponentInputs();
         }
@@ -1584,7 +1615,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const pageImport=programSource.kind()==='page-userscript'||sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX);
     loadedPageSource=pageImport;componentMode='javascript';javascriptWorld=pageImport?'page':'controller';syncComponentInputs();
     javascriptDrafts[javascriptWorld]=sourceUtf8;
-    currentRevision = undefined;
+    currentRevision = undefined;currentRevisionAuthorSource = undefined;
     patchDeveloperField(view,find('script-id'),{value:`import-${Date.now()}`});
     patchDeveloperField(view,find('script-revision'),{value:''});
     programSource.replaceSource(sourceUtf8);
@@ -1614,9 +1645,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     localProject=createLocalProjectView({client,api,document:doc,view,onChange:update});update();
   },executionSource:()=>{
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'本地开发项目请通过正式打包流程创建已安装任务'};
+    // Task candidates still compare the exact persisted executable and revision.
     const source=programSource.source();
-    // Task candidates use the exact saved executable; author edits still fail
-    // the workbench's saved-source comparison instead of reusing stale code.
     if(currentRevision?.scriptId===scriptId()&&
       currentRevision.revision===Number(find('script-revision').value)&&
       currentRevisionAuthorSource===source)return currentRevision.sourceUtf8;
@@ -1625,16 +1655,22 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'手工草稿已保留；请先切换到手工草稿模式再导入'};
     if (disposed || editingBusy || previewBusy || componentRemote?.busy || browserManagedPreview) throw {code:'E_BUSY',message:'请先停止当前受管组件，再导入或保存版本'};
     if (sourceUtf8 && typeof sourceUtf8 === 'object') {
+      const editorTicket=browserPrepareGeneration,original=programSource.source();
       editingBusy = true; update();
-      return programSource.importProject(sourceUtf8).then(value => {
+      return programSource.importProject(sourceUtf8,()=>!disposed&&editorTicket===browserPrepareGeneration&&original===programSource.source()).then(value => {
         if (disposed) throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
+        if(!value)throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
         applyImported(value.sourceUtf8);
       }).finally(() => {editingBusy=false;if(!disposed)update();});
     }
     if(typeof sourceUtf8==='string'&&sourceUtf8.startsWith(PAGE_BUNDLE_PREFIX)){
+      const editorTicket=browserPrepareGeneration,original=programSource.source();
       inspectPageSource(sourceUtf8,{plainLimit:100000});editingBusy=true;update();
       return validatePageSource(sourceUtf8,{plainLimit:100000}).then(()=>{
-        if(disposed)throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};applyImported(sourceUtf8);
+        if(disposed)throw {code:'E_HOST_CLOSED',message:'编辑器已关闭'};
+        if(editorTicket!==browserPrepareGeneration||original!==programSource.source())
+          throw {code:'E_SOURCE_CHANGED',message:'校验期间草稿已变化；不会覆盖最新编辑'};
+        applyImported(sourceUtf8);
       }).finally(()=>{editingBusy=false;if(!disposed)update();});
     }
     if (typeof sourceUtf8 !== 'string' || !sourceUtf8.trim() || new TextEncoder().encode(sourceUtf8).length > 100000)
