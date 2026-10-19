@@ -110,6 +110,36 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     };
   },[hostRoot,controller]);
   React.useEffect(()=>{setState?.({busy,dirty});},[busy,dirty,setState]);
+  // Auto-sync metadata only while the live list is idle and visible. An open
+  // editor or import never loses its draft to an external website update.
+  const lastAutoCheck=React.useRef(0);
+  React.useEffect(()=>{
+    if(snapshot.phase==='ready')lastAutoCheck.current=Date.now();
+  },[snapshot.epoch,snapshot.phase]);
+  React.useEffect(()=>{
+    if(mode!=='browser'||snapshot.phase!=='ready'||selected!==null||
+      panel!==null||busy||dirty||confirmation)return;
+    let active=true;
+    const sync=()=>{
+      if(!active||document.visibilityState==='hidden')return;
+      const period=controller.snapshot().syncStale?60000:15000;
+      const now=Date.now();
+      if(now-lastAutoCheck.current<period)return;
+      lastAutoCheck.current=now;
+      void controller.syncMetadata({canApply:()=>active&&
+        modeRef.current==='browser'&&!dirtyRef.current&&
+        document.visibilityState!=='hidden'});
+    };
+    sync();
+    const timer=window.setInterval(sync,5000);
+    window.addEventListener('focus',sync);
+    document.addEventListener('visibilitychange',sync);
+    return ()=>{
+      active=false;window.clearInterval(timer);
+      window.removeEventListener('focus',sync);
+      document.removeEventListener('visibilitychange',sync);
+    };
+  },[mode,snapshot.phase,snapshot.epoch,selected,panel,busy,dirty,confirmation,controller]);
   React.useEffect(()=>{
     // A live session invalidation must not discard an offline editor's
     // independent dirty state when an unrelated browser event fires.
@@ -191,7 +221,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       <CookiePermissions phase={snapshot.phase} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}/>
       {snapshot.phase==='ready'&&<div className="od-surface">
-        <CookieEditorView site={target?.hostname||''}
+        <CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}
@@ -220,15 +250,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onClose={()=>setPanel(null)}/>}
       </div>}
-      {snapshot.phase==='ready'&&<details className="cookie-observe-fold od-disclosure">
-        <summary>变化观察</summary>
-        <section className="cookie-observe" aria-label="Cookie 变化观察">
-        <div><strong>变化观察</strong><small>最多 15 秒，只显示元数据。</small></div>
-        {!snapshot.observing?<Button disabled={locked} onClick={()=>void controller.observe('start')}>
-          开始观察</Button>:<>
-          <Button disabled={locked} onClick={()=>void controller.observe('read')}>读取变化</Button>
-          <Button disabled={locked} onClick={()=>void controller.observe('stop')}>停止</Button>
-        </>}
+    </>}
         {snapshot.observeEvents.length>0&&<ul>
           {snapshot.observeEvents.map((event,i)=><li key={i}>{
             event.removed?'已删除':'已变更'} · {event.name} · {event.domain}{event.path}</li>)}
