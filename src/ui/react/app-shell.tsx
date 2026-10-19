@@ -17,7 +17,7 @@ export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,toolView=null,workflowController=null,debugModel={},debugActions={},development=null,
-  browserHistoryModel=null,browserHistoryActions={}
+  browserHistoryModel=null,browserHistoryActions=null
 }){
   React.useSyncExternalStore(myView.subscribe,myView.getSnapshot,myView.getSnapshot);
   const developerSnapshot=React.useSyncExternalStore(developerView.subscribe,developerView.getSnapshot,developerView.getSnapshot);

@@ -91,7 +91,10 @@
         break;
       }
       case 'focus.site.remove':model.sites=model.sites.filter(site=>site.host!==payload.host);break;
-      case 'focus.group.put':model.groups[payload.id]=payload.minutes;break;
+      case 'focus.group.put':
+        if(payload.id==='entertainment'&&!model.configured&&model.sites.length===0)
+          model.sites=defaults();
+        model.groups[payload.id]=payload.minutes;break;
       case 'focus.group.remove':delete model.groups[payload.id];break;
       case 'focus.schedule.set':model.schedule=structuredClone(payload.schedule);break;
       case 'focus.whitelist.set':model.whitelist=[...payload.hosts];break;

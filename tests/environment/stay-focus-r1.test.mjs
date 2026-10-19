@@ -322,45 +322,50 @@ test('internal block page uses a real window ID and never defers sidePanel.open 
 });
 
 
-test('quick website recommendations use existing trusted save and never auto-install rules',async()=>{
-  const {runInNewContext}=await import('node:vm');
+test('R5.4 quick-add uses the existing Host catalog, shared budget and user clicks only',async()=>{
   const script=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
   function mount(page){
     const dom=new Map(),writes=[];
     class Node{
       constructor(){this.handlers={};this.children=[];this.dataset={};this.style={};
-        this.hidden=false;this.value='';this.textContent='';this.checked=false;}
+        this.hidden=false;this.disabled=false;this.value='';this.textContent='';
+        this.checked=false;this.attributes={};}
       addEventListener(name,handler){this.handlers[name]=handler;}
+      setAttribute(name,value){this.attributes[name]=String(value);}
+      getAttribute(name){return this.attributes[name]??null;}
       replaceChildren(...nodes){this.children=nodes;}
       append(...nodes){this.children.push(...nodes);}
-      setAttribute(){}
-      focus(){}
       querySelectorAll(){return [];}
+      focus(){}
+      scrollIntoView(){}
+      closest(){return null;}
     }
     const root={querySelector:selector=>{
       if(!dom.has(selector))dom.set(selector,new Node());
       return dom.get(selector);
-    },querySelectorAll:()=>[]};
-    const empty={enabled:false,day:'2026-10-13',permissions:{ready:false},sites:[],
-      catalog:FOCUS_CATALOG,dailyBudget:{minutes:30,budgetMs:1800000,usedMs:0,remainingMs:1800000,managedCount:0},
-      groups:{},schedule:{enabled:false,days:[],startMinute:540,endMinute:1020},
+    },querySelectorAll:()=>[],addEventListener:()=>{}};
+    const empty={enabled:false,day:'2026-10-19',permissions:{ready:false},sites:[],
+      catalog:FOCUS_CATALOG,dailyBudget:{minutes:30,budgetMs:1800000,usedMs:0,
+        remainingMs:1800000,managedCount:0},groups:{},
+      schedule:{enabled:false,days:[],startMinute:540,endMinute:1020},
       focusUntil:null,ruleReceipt:{verified:false}};
     let state=empty;
     const request=async(op,data)=>{
       if(op==='focus.status')return state;
       if(op==='currentPage.info')return page;
-      if(op==='focus.disable')
-        throw Object.assign(new Error('仅受信任的设置可停用'),{code:'E_FOCUS_TRUSTED_CLICK'});
       if(op==='focus.site.put'){
         writes.push(data.site);
-        state={...state,sites:[{...data.site,usedMs:0,remainingMs:data.site.minutes*60000,
-          budgetMs:data.site.minutes*60000,reason:null}]};
+        state={...state,sites:[{...data.site,usedMs:0,
+          remainingMs:data.site.minutes*60000,budgetMs:data.site.minutes*60000,reason:null}]};
         return state;
       }
+      if(op==='focus.disable')
+        throw Object.assign(Error('请使用外层可信设置'),{code:'E_FOCUS_TRUSTED_CLICK'});
       throw Error('unexpected operation: '+op);
     };
     runInNewContext(script,{globalThis:{OpenDeskTool:{root,request}},
-      document:{createElement:()=>new Node()},URL,
+      document:{createElement:()=>new Node(),createElementNS:()=>new Node(),
+        addEventListener:()=>{},visibilityState:'visible'},URL,
       Option:class{constructor(label,value){this.label=label;this.value=value;}},
       setInterval:()=>0});
     return {get:id=>root.querySelector('#'+id),writes};
@@ -368,41 +373,39 @@ test('quick website recommendations use existing trusted save and never auto-ins
   const youtube=mount({status:'available',url:'https://m.youtube.com/watch?v=sample',
     title:'Python tutorials on YouTube'});
   await new Promise(resolve=>setImmediate(resolve));
-  assert.match(youtube.get('quick-site').textContent,/youtube.com/);
-  assert.match(youtube.get('quick-explanation').textContent,/共享 30 分钟/);
-  assert.equal(youtube.writes.length,0,'recognition must not silently apply DNR limits');
-  youtube.get('focus-pause').handlers.click();
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.match(youtube.get('message').textContent,/打开外层可信设置.*停止所有 Stay Focus 限制/);
-  assert.equal(youtube.get('message').dataset.error,'false',
-    'a native-settings redirect cannot report that restrictions were stopped');
+  assert.match(youtube.get('quick-add').textContent,/youtube.com/);
+  assert.equal(youtube.get('quick-add').disabled,false);
+  assert.equal(youtube.writes.length,0,'recognition must not install anything');
   youtube.get('quick-add').handlers.click();
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(JSON.parse(JSON.stringify(youtube.writes)),[{
-    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:30,group:'entertainment'
-  }],'one click must request the existing Host operation for the ONE shared pool');
+    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',
+    minutes:30,group:'entertainment'
+  }],'a user click must request one shared-pool site through the existing Host');
   const forged=mount({status:'available',url:'https://youtube.com.attacker.test/',
     title:'Video portal featuring YouTube'});
   await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(forged.get('quick-site').textContent,'youtube.com.attacker.test',
-    'site title cannot impersonate an official root domain');
-  assert.equal(forged.writes.length,0);
+  assert.match(forged.get('quick-add').textContent,/youtube\.com\.attacker\.test/);
+  assert.equal(forged.writes.length,0,
+    'website title alone must not silently authorize or install a rule');
   const work=mount({status:'available',url:'https://github.com/shopable-ai/opendesk-browser',
     title:'My development work'});
   await new Promise(resolve=>setImmediate(resolve));
-  assert.match(work.get('quick-explanation').textContent,/默认不限制/);
-  assert.equal(work.get('quick-add').hidden,true);
+  const candidates=work.get('quick-presets').children.map(child=>child.textContent);
+  assert.ok(!candidates.some(text=>/GitHub|Docs|Coursera/.test(text)),
+    'work/study categories must not be suggested as entertainment defaults');
+  assert.equal(work.writes.length,0);
 });
 
 test('isolated Stay Focus UI retains narrow-layout, dark-mode, keyboard and status contracts',()=>{
   const css=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/style.css',import.meta.url),'utf8');
   const main=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
-  assert.match(css,/@media\(max-width:360px\)/);
-  assert.match(css,/@media\(max-width:320px\)/);
+  assert.match(css,/@media\(max-width:355px\)/);
+  assert.match(css,/\.sf-budget-form\{display:flex;align-items:center;flex-wrap:nowrap/);
   assert.match(css,/@media\(prefers-color-scheme:dark\)/);
   assert.match(css,/:focus-visible/);
-  assert.match(main,/浏览器权限未授权/);
-  assert.match(main,/规则未核对/);
+  assert.match(main,/未授权/);
+  assert.match(main,/规则待核对/);
   assert.match(main,/已暂停/);
 });
 
@@ -498,7 +501,7 @@ test('R1.4 official budget UI has no required single-site setup wizard',()=>{
   const manual=html.indexOf('<details class="sf-settings sf-manual"');
   const current=html.indexOf('id="total-used"');
   assert.ok(manual>current,'advanced manual setup cannot precede the daily total');
-  assert.match(html,/<option value="entertainment">娱乐总额度/);
+  assert.match(html,/<option value="entertainment">娱乐共享额度/);
 });
 
 test('R1.6 settings save through button clicks when sandbox denies form submission',()=>{
@@ -507,7 +510,7 @@ test('R1.6 settings save through button clicks when sandbox denies form submissi
   const cases=[
     ['daily-budget','focus.group.put',{'daily-budget-minutes':'2'}, {id:'entertainment',minutes:2}],
     ['site','focus.site.put',{'site-host':'localhost','site-minutes':'2','site-mode':'limit',
-      'site-group':'entertainment'}, {site:{host:'localhost',minutes:2,subdomains:true,
+      'site-group':'entertainment'}, {site:{host:'localhost',minutes:30,subdomains:true,
         enabled:true,mode:'limit',group:'entertainment'}}],
     ['group','focus.group.put',{'group-name':'study','group-minutes':'5'}, {id:'study',minutes:5}],
     ['schedule','focus.schedule.set',{'schedule-from':'09:00','schedule-to':'17:00'},
@@ -553,7 +556,7 @@ test('R4.3 editing a paused site retains the pause and never renames implicitly'
     return nodes.get(id);
   };
   runInNewContext(source.slice(start,end),{$,editingSite:'example.com',
-    state:{sites:[{host:'example.com',enabled:false}]},
+    state:{sites:[{host:'example.com',enabled:false,minutes:9}]},
     call:(operation,payload)=>{requests.push({operation,payload});return Promise.resolve(false);},
     message:(value)=>messages.push(value),escapeHost:focusHost});
   $('site-save').listeners.click({preventDefault(){}});
@@ -564,7 +567,7 @@ test('R4.3 editing a paused site retains the pause and never renames implicitly'
   $('site-host').value='different.example';
   $('site-save').listeners.click({preventDefault(){}});
   assert.equal(requests.length,1,'a domain change must not create a second site');
-  assert.ok(messages.some(message=>message.includes('不能直接更改已管理网站的域名')));
+  assert.ok(messages.some(message=>message.includes('编辑时不能更改域名')));
 });
 
 

@@ -214,6 +214,14 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       state.groups[FOCUS_DEFAULT_GROUP]=defaults.minutes;
       state.sites=defaults.sites;
       if(defaults.schedule)state.schedule=defaults.schedule;
+    }else if(operation==='focus.group.put'&&payload?.id===FOCUS_DEFAULT_GROUP&&raw===undefined){
+      // The initial budget may be prepared before Chrome authorization.
+      // Seed the reviewed defaults once; a later enable must not reset the
+      // chosen minutes or silently leave a first-time user without sites.
+      // Already configured or deliberately emptied policies are untouched.
+      const defaults=focusDefaultsForPackage(auth.tool);
+      state.sites=defaults.sites;
+      if(defaults.schedule)state.schedule=defaults.schedule;
     }
     // A Chrome site-access revocation applies only to intersecting restrictions.
     // Keep other sites and Time Review completely independent. Regranting Chrome

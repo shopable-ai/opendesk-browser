@@ -401,3 +401,24 @@ test('R3.2 Marketplace has read-only live worker admission, never Focus mutation
   assert.equal(f.alarms.size,0);
   assert.equal(f.stored.has(FOCUS_STORE),false);
 });
+
+test('R5.4: first-use budget may be saved before Chrome authorization without losing defaults',async()=>{
+  const f=fixture();
+  const prepared=await f.focus.dispatch(await f.msg('focus.group.put',
+    {id:'entertainment',minutes:45}),f.sender);
+  assert.equal(prepared.enabled,false);
+  assert.equal(prepared.dailyBudget.minutes,45);
+  assert.ok(prepared.sites.some(site=>site.host==='youtube.com'&&site.group==='entertainment'));
+  assert.equal(f.rules.length,0,'preparing a budget must never claim Chrome rules are active');
+  const reopened=await f.focus.tick({boot:true});
+  assert.equal(reopened.dailyBudget.minutes,45);
+  const enabled=await f.focus.dispatch(await f.msg('focus.enable',{}),f.sender);
+  assert.equal(enabled.enabled,true);
+  assert.equal(enabled.dailyBudget.minutes,45,'authorization must preserve preselected minutes');
+  assert.ok(enabled.sites.some(site=>site.host==='youtube.com'));
+  await f.focus.dispatch(await f.msg('focus.site.remove',{host:'youtube.com'}),f.sender);
+  const revised=await f.focus.dispatch(await f.msg('focus.group.put',
+    {id:'entertainment',minutes:60}),f.sender);
+  assert.equal(revised.sites.some(site=>site.host==='youtube.com'),false,
+    'an existing custom policy must not be silently re-enrolled');
+});
