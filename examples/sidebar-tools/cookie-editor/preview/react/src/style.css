@@ -144,9 +144,9 @@
 .inline-editor .value-controls{display:flex;align-items:center;gap:8px;margin-left:84px;min-width:0;flex-wrap:wrap;font-size:11px;color:var(--od-sub)}
 .inline-editor .value-controls .inline-link{margin:0;max-width:100%}
 .editor-timezone,.editor-hint{margin:0 0 0 84px;font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
-.editor-identity{display:grid;gap:5px;margin-top:3px;border-top:1px solid var(--od-line);padding-top:9px;min-width:0}
-.editor-identity>div{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;align-items:start;min-width:0;font-size:11px}
-.editor-identity>div>span{color:var(--od-sub)}
+.editor-identity{margin-top:3px;border-top:1px solid var(--od-line);padding-top:9px;min-width:0}.editor-identity>summary{cursor:pointer;font-size:11px;color:var(--od-sub)}.editor-identity-fields{display:grid;gap:5px;padding-top:8px}
+.editor-identity-fields>div{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;align-items:start;min-width:0;font-size:11px}
+.editor-identity-fields>div>span{color:var(--od-sub)}
 .editor-identity code{font:11px/1.55 ui-monospace,monospace;white-space:normal;word-break:break-all;color:var(--od-ink)}
 .export-format{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .export-format .field{flex:1 1 155px;display:flex;align-items:center;gap:7px;min-width:0}
@@ -155,11 +155,11 @@
 .export-inline-values{display:inline-flex;align-items:center;gap:5px;flex:none;font-size:11px;white-space:nowrap}
 .export-inline-values input{accent-color:var(--od-brand)}
 @media(max-width:350px){
- .inline-editor .advanced-body .field,.editor-identity>div{grid-template-columns:56px minmax(0,1fr)}
+ .inline-editor .advanced-body .field,.editor-identity-fields>div{grid-template-columns:56px minmax(0,1fr)}
  .inline-editor .value-controls,.editor-timezone,.editor-hint{margin-left:64px}
 }
 @media(max-width:260px){
- .inline-editor .advanced-body .field,.editor-identity>div{grid-template-columns:minmax(0,1fr);gap:4px}
+ .inline-editor .advanced-body .field,.editor-identity-fields>div{grid-template-columns:minmax(0,1fr);gap:4px}
  .inline-editor .advanced-body .field>input,.inline-editor .advanced-body .field>select{grid-column:1}
  .inline-editor .value-controls,.editor-timezone,.editor-hint{margin-left:0}
 }
@@ -203,7 +203,7 @@
   .cookie-app .export-actions>.text-btn{width:100%;white-space:normal;overflow-wrap:anywhere}
   .export-format .field{flex-wrap:wrap}
   .inline-editor .field,.inline-editor .advanced-body .field,
-  .editor-identity>div,.inline-editor .toggles-row{
+  .editor-identity-fields>div,.inline-editor .toggles-row{
     grid-template-columns:minmax(0,1fr);gap:4px
   }
   .inline-editor .field>input,.inline-editor .field>select,
