@@ -197,6 +197,19 @@ async function main(){
   const report={status:'RUNNING',stage:'config',startedAt:new Date().toISOString(),
     gitSha:process.env.GITHUB_SHA||null,steps:[]},effects=[];
   let c,server;
+  // Hard wall-clock stop for this owned Node verifier only. No Chrome,
+  // Provider, profile, or unrelated process is terminated by this watchdog.
+  const wallClockMs=preflightOnly?60000:540000;
+  const watchdog=setTimeout(()=>{
+    report.status='BLOCKED';
+    report.error={code:'E_NATIVE_WALL_CLOCK',stage:report.stage,
+      message:'Native verifier exceeded its wall-clock budget without proven completion'};
+    report.completedAt=new Date().toISOString();
+    report.nativeEvidence=effects;
+    console.error('NATIVE_VERIFIER_TIMEOUT '+JSON.stringify(report.error));
+    void writeFile(path.join(OUT,'native-double-task-report.json'),
+      JSON.stringify(report,null,2)+'\n').finally(()=>process.exit(124));
+  },wallClockMs);
   await mkdir(OUT,{recursive:true});
   try{
     const cdp=new URL(process.env.OPENDESK_CLOUD_NATIVE_CDP);
@@ -357,6 +370,7 @@ async function main(){
     console.error((preflightOnly?'NATIVE_READINESS_BLOCKED ':'CLOUD_DOUBLE_TASK_E2E_BLOCKED ')+
       JSON.stringify(report.error));
   }finally{
+    clearTimeout(watchdog);
     report.completedAt=new Date().toISOString();
     report.nativeEvidence=effects;
     c?.close();if(server)await server.close();
