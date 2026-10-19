@@ -112,6 +112,23 @@ async function click(c,session,selector){
     {type,x:point.x,y:point.y,button:'left',clickCount:1},Boolean(parent)?parent:session);
 
 }
+// Read-only UI observation plus native mouse input. The shipped React Host
+// auto-expands the trusted first-use card; avoid closing it by accident.
+async function ensureToolSettings(c,session,expanded){
+  const selector='#sidebar-tool-settings-open';
+  const state=()=>evalRead(c,session,
+    'document.querySelector("#sidebar-tool-settings-open")?.getAttribute("aria-expanded")');
+  const before=await until(async()=>{
+    const value=await state();return value==='true'||value==='false'?value:false;
+  },'trusted React tool settings toggle');
+  if((before==='true')!==expanded)await click(c,session,selector);
+  await until(async()=>{
+    const value=await state();if((value==='true')!==expanded)return false;
+    if(!expanded)return true;
+    return evalRead(c,session,'(()=>{const b=document.querySelector("#stay-focus-enable-native");'+
+      'return !!b&&!b.disabled&&b.getClientRects().length>0})()');
+  },expanded?'visible native Stay Focus authorization':'closed native tool settings');
+}
 async function fill(c,session,selector,value){
   await focusField(c,session,selector);
   await c.send('Input.insertText',{text:value},inputParents.get(session)||session);
@@ -312,8 +329,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
   report.toolGeometry=dimensions;
   report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
-  // R1.4: approve a clean tool with no site rules using a REAL trusted click.
-  await click(client,sid,'#sidebar-tool-settings-open');
+  // The current React product opens trusted first-use settings automatically.
+  // Never click an already-expanded toggle closed before native approval.
+  await ensureToolSettings(client,sid,true);
   report.nativePermissionBefore=await evalRead(client,sid,
     'chrome.permissions.contains({permissions:["idle","declarativeNetRequestWithHostAccess"]})');
   assert.equal(report.nativePermissionBefore,false,'clean profile must not pre-grant native enforcement');
@@ -349,9 +367,8 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.ok(!defaultPool.sites.some(site=>site.host==='github.com'),'work sites excluded by default');
   note('native-zero-config',defaultPool);
   report.screenshots.push(await screenshot(client,sid,'zero-config-30-minute-pool'));
-  // Settings deliberately hides the sandbox. Return via the shipped toggle
-  // before editing the tool rather than clicking an invisible iframe control.
-  await click(client,sid,'#sidebar-tool-settings-open');
+  // Return to the editor using real input only when settings are expanded.
+  await ensureToolSettings(client,sid,false);
   // The native acceptance uses two minutes of real Chrome browsing, never
   // edits storage usage or creates a fake DNR rule. That also crosses the
   // last-one-minute page reminder with no 30-minute stress run.
@@ -843,7 +860,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.ok(upgradedStatus.data.catalog.some(x=>x.host==='archive.org'),
     'new code-free catalog must be consumed by the SAME Browser Host');
   await click(client,sid,installed);
-  await click(client,sid,'#sidebar-tool-settings-open');
+  await ensureToolSettings(client,sid,true);
   await click(client,sid,'#stay-focus-enable-native');
   const reapproved=await until(async()=>{
     const result=await evalRead(client,sid,'(async()=>{const state=await chrome.storage.local.get('+
