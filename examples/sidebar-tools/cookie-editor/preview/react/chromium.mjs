@@ -15,7 +15,7 @@ const pass=[];
 const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name)};
 try{
  await page.goto(url,{waitUntil:'load'});
- assert.equal(await page.title(),'Cookie Editor R5.16 · 380px 交互预览','React build must contain the R5.16 preview');
+ assert.equal(await page.title(),'Cookie Editor R5.18 · 380px 交互预览','React build must contain the R5.16 preview');
  await test('380px native-width panel when standalone HTML is opened on desktop',async()=>{
    await page.setViewportSize({width:1280,height:880});
    await page.locator('.cookie-app').waitFor();
@@ -152,7 +152,7 @@ try{
  await test('single Cookie deletion happens on click without a second confirmation',async()=>{
    await page.locator('[data-row="a"]').click();
    const before=await page.locator('.cookie-row').count();
-   await page.getByRole('button',{name:'删除',exact:true}).click();
+   await page.getByRole('button',{name:'删除 Cookie',exact:true}).click();
    await page.getByText('已删除 Cookie').waitFor();
    assert.equal(await page.locator('.cookie-row').count(),before-1);
    assert.equal(await page.getByRole('alertdialog',{name:'确认操作'}).count(),0);
@@ -431,21 +431,47 @@ try{
    await page.getByRole('button',{name:'复制',exact:true}).click();
    assert.equal(await page.getByRole('button',{name:'确认复制'}).count(),0);
  });
- await test('R5.15 Cookie Value occupies full row without redundant icon',async()=>{
+ await test('R5.18 Value inset clear, restoration and empty persistence',async()=>{
    await page.getByRole('button',{name:'导出 Cookie'}).click();
    await page.locator('[data-row="b"]').click();
+   const value=page.getByLabel('Cookie 值',{exact:true});
+   const clear=page.locator('.value-input').getByRole('button',{name:'清空值'});
+   assert.equal(await clear.count(),1,'inset x exists inside the input wrapper');
+   assert.equal(await clear.getAttribute('type'),'button','x never submits');
+   assert.equal(await page.locator('.value-controls button').count(),0,'no restore before editing');
    for(const width of [320,380,384,520]){
      await page.setViewportSize({width,height:880});
-     const input=await page.locator('.value-input input').boundingBox();
+     const input=await value.boundingBox();
      const holder=await page.locator('.value-input').boundingBox();
-     assert.ok(input&&holder,'Cookie Value input visible');
-     assert.ok(input.width>=holder.width-4,`Value input should fill row ${width}`);
-     assert.equal(await page.locator('.value-input button').count(),0);
+     const icon=await clear.boundingBox();
+     assert.ok(input&&holder&&icon,'Value and clear are visible');
+     assert.ok(input.width>=holder.width-4,`Value must fill input row ${width}`);
+     assert.ok(icon.x>=input.x&&icon.x+icon.width<=input.x+input.width+1,
+       `clear icon must remain inside input bounds ${width}`);
+     assert.ok(await value.evaluate(el=>parseFloat(getComputedStyle(el).paddingRight))>=40);
      assert.equal(await page.locator('input[type=password]').count(),0);
    }
+   await page.setViewportSize({width:380,height:880});
+   await page.screenshot({path:join(output,'380-edit-light.png'),fullPage:true});
+   await page.getByRole('button',{name:'深色'}).click();
+   await page.screenshot({path:join(output,'380-edit-dark.png'),fullPage:true});
+   await page.getByRole('button',{name:'浅色'}).click();
+   await clear.click();
+   assert.equal(await value.inputValue(),'','clears draft only');
+   assert.equal(await clear.count(),0,'x hidden for empty input');
+   await page.getByRole('button',{name:'恢复原值'}).click();
+   assert.equal(await value.inputValue(),'light');
+   assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+   await clear.click();
+   await page.getByRole('button',{name:'保存',exact:true}).click();
+   await page.getByText('已保存 Cookie').waitFor();
+   await page.locator('[data-row="b"]').click();
+   assert.equal(await value.inputValue(),'','empty string persisted');
+   assert.equal(await clear.count(),0);
    await page.getByRole('button',{name:'取消',exact:true}).click();
+   await page.getByRole('button',{name:'重置',exact:true}).click();
  });
- await test('viewport + zoom + dark',async()=>{
+  await test('viewport + zoom + dark',async()=>{
   // Do not rely on another test leaving Export open.
   await page.getByRole('button',{name:'导出 Cookie'}).click();
   await page.getByRole('button',{name:'关闭导出'}).waitFor();

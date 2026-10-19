@@ -45,7 +45,7 @@ const svgPaths={
   plus:<path d="M12 5v14M5 12h14"/>,download:<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>,upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,
   refresh:<><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></>,
   search:<><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></>,filter:<path d="M4 6h16M7 12h10m-7 6h4"/>,
-  chevron:<path d="m7 10 5 5 5-5"/>,close:<path d="M6 6l12 12M18 6 6 18"/>,eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
+  chevron:<path d="m7 10 5 5 5-5"/>,undo:<><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></>,close:<path d="M6 6l12 12M18 6 6 18"/>,eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>,
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
   check:<path d="m5 12 5 5L20 7"/>,alert:<><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v5M12 18h.01"/></>,copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
@@ -53,7 +53,7 @@ const svgPaths={
   more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,back:<path d="m14 6-6 6 6 6"/>,external:<path d="M6 18 19 5m-9 0h9v9"/>,settings:<><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></>
 };
 function Icon({name}){return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{svgPaths[name]}</svg>}
-function IconButton({name,label,onClick,disabled=false,pressed,small=false}){return <button type="button" className={'icon-btn'+(small?' small':'')} onClick={onClick} aria-label={label} title={label} disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}><Icon name={name}/></button>}
+function IconButton({name,label,onClick,disabled=false,pressed,small=false,className=''}){return <button type="button" className={'icon-btn'+(small?' small':'')+(className?' '+className:'')} onClick={onClick} aria-label={label} title={label} disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}><Icon name={name}/></button>}
 // The real OpenDesk Host owns these controls; this preview never invokes Host actions.
 function HostHeader({onAction}){
  return <header className="preview-host-header" aria-label="OpenDesk 宿主工具栏">
@@ -461,15 +461,22 @@ export default function App(){
        describedBy={error.startsWith('Cookie 值')?'cookie-editor-error':undefined}
        disabled={!canWrite||saving} onChange={e=>setDraft(d=>({...d,
          valueInput:e.target.value,valueTouched:true}))}
+       showClear={Boolean(draft.valueTouched?draft.valueInput:(canValues?current?.value||'':''))}
+       onClear={()=>{setDraft(d=>({...d,valueInput:'',valueTouched:true}));setError('');
+         document.getElementById('opendesk-cookie-attribute-data')?.focus();}}
        placeholder={selected==='new'?'输入 Cookie 值（可为空）':
          canValues?'可直接编辑 Cookie 原值':'原值未授权 · 输入新值或保留原值'}/>
-     {current&&<div className="value-controls">{draft.valueTouched?<><span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span><button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}>恢复原值</button></>:<button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:true}))}>清空值</button>}</div>}
+     {current&&draft.valueTouched&&<div className="value-controls">
+       <span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span>
+       {canValues&&<IconButton name="undo" label="恢复原值" className="cookie-value-undo"
+         disabled={!canWrite||saving} onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}/>}
+     </div>}
     <CookieAdvancedFields draft={draft} existing={selected!=='new'}
       disabled={!canWrite||saving} onChange={update} advancedOpen={advancedOpen}
       onAdvancedToggle={e=>setAdvancedOpen(e.currentTarget.open)} error={error}/>
     {current&&draft.name!==current.name&&<p className="editor-hint">更名将先新建并核实，再删除旧名称；失败时请刷新核对。</p>}
     {error&&<Message id="cookie-editor-error" tone="error">{error}</Message>}
     {pending!==null&&<div className="discard-row" role="status"><span>放弃当前未保存修改？</span><button type="button" className="text-btn" onClick={()=>setPending(null)}>继续编辑</button><button type="button" className="text-btn" onClick={discard}>放弃</button></div>}
-    <div className="editor-actions">{selected!=='new'&&<button className="delete-btn" type="button" onClick={remove} disabled={saving||needsVerify||!canWrite}><Icon name="trash"/>删除</button>}<span className="spacer"/><button className="text-btn" type="button" onClick={requestClose} disabled={saving}>取消</button><button className="text-btn primary" type="button" onClick={save} disabled={!canWrite||saving||needsVerify}>{saving?'保存中…':'保存'}</button></div>
+    <div className="editor-actions">{selected!=='new'&&<IconButton name="trash" label="删除 Cookie" className="cookie-editor-icon-action cookie-editor-delete" onClick={remove} disabled={saving||needsVerify||!canWrite}/>}<span className="spacer"/><button className="text-btn" type="button" onClick={requestClose} disabled={saving}>取消</button><button className="text-btn primary cookie-editor-save" type="button" onClick={save} disabled={!canWrite||saving||needsVerify}><Icon name="check"/>{saving?'保存中…':'保存'}</button></div>
   </section>}
 }

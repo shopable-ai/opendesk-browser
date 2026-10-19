@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import {CookieFormField,CookieValueField,CookieAdvancedFields} from './CookieEditorView.jsx';
+import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
@@ -27,6 +27,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
   const readTimer=React.useRef(null),readValueRef=React.useRef(readValue);
   readValueRef.current=readValue;
   const [valueEdited,setValueEdited]=React.useState(false);
+  // Only a presence flag is React state; the raw value remains in DOM/refs.
+  const [valuePresent,setValuePresent]=React.useState(false);
   const [newValueDirty,setNewValueDirty]=React.useState(false);
   const [readStatus,setReadStatus]=React.useState(row?'loading':'new');
   const [message,setMessage]=React.useState('');
@@ -62,13 +64,16 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       if(typeof value!=='string'){setReadStatus('unavailable');return;}
       originalValueRef.current=value;
       valueRef.current.value=value;
+      setValuePresent(value.length>0);
       setReadStatus('available');
       if(readTimer.current)clearTimeout(readTimer.current);
       readTimer.current=setTimeout(()=>{
         if(!alive)return;
         // Expire the original, never an unsaved user-entered value.
         originalValueRef.current=null;
-        if(!valueEditedRef.current&&valueRef.current)valueRef.current.value='';
+        if(!valueEditedRef.current&&valueRef.current){
+          valueRef.current.value='';setValuePresent(false);
+        }
         setReadStatus('expired');
       },20000);
     }).catch(()=>{
@@ -90,6 +95,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     inputRevision.current++;
     readGeneration.current++;
     const input=valueRef.current?.value??'';
+    setValuePresent(input.length>0);
     if(edited){
       const changed=originalValueRef.current===null||input!==originalValueRef.current;
       valueEditedRef.current=changed;setValueEdited(changed);
@@ -97,16 +103,27 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     setMessage('');
   };
   const restoreValue=()=>{
+    // Unknown or expired original value is not an empty original.
+    if(originalValueRef.current===null)return;
     inputRevision.current++;readGeneration.current++;
     valueEditedRef.current=false;setValueEdited(false);
-    if(valueRef.current)valueRef.current.value=originalValueRef.current??'';
+    if(valueRef.current)valueRef.current.value=originalValueRef.current;
+    setValuePresent(originalValueRef.current.length>0);
     setMessage('');
+    valueRef.current?.focus();
   };
   const clearValue=()=>{
+    if(disabled||!valueRef.current?.value)return;
+    // Clicking x changes the draft only; nothing is written until Save.
     inputRevision.current++;readGeneration.current++;
-    if(valueRef.current)valueRef.current.value='';
-    valueEditedRef.current=true;setValueEdited(true);
+    valueRef.current.value='';
+    setValuePresent(false);
+    if(edited){
+      const changed=originalValueRef.current===null||originalValueRef.current!=='';
+      valueEditedRef.current=changed;setValueEdited(changed);
+    }else setNewValueDirty(false);
     setMessage('');
+    valueRef.current.focus();
   };
   const requestClose=()=>{
     if(disabled)return;
@@ -150,18 +167,19 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
           onChange={e=>update('name',e.target.value)}/>
       </CookieFormField>
       <CookieValueField inputRef={valueRef} disabled={disabled} onChange={setInputEdited}
+        showClear={valuePresent} onClear={clearValue}
         placeholder={edited?(readStatus==='loading'?'正在读取原值…':
           readStatus==='expired'?'原值已自动隐藏 · 保存时重新读取':
           '未读取原值 · 可输入新值'):'输入 Cookie 值（可为空）'}/>
     </div>
-    {edited&&<div className="cookie-value-restore value-controls">
-      {valueEdited?<span>{valueRef.current?.value===''?'将写入空值':'将写入新值'}</span>:
-        readStatus==='unavailable'?<span>原值未读取，留空代表保留</span>:null}
-      <Button type="button" variant="secondary" className="inline-link"
-        disabled={disabled} onClick={valueEdited?restoreValue:clearValue}>
-        {valueEdited?'恢复原值':'清空值'}
-      </Button>
-    </div>}
+    {edited&&(valueEdited||readStatus==='unavailable')&&
+      <div className="cookie-value-restore value-controls">
+        {valueEdited?<span>{valueRef.current?.value===''?'将写入空值':'将写入新值'}</span>:
+          <span>原值未读取，留空代表保留</span>}
+        {valueEdited&&originalValueRef.current!==null&&
+          <CookieIconButton name="undo" label="恢复原值" className="cookie-value-undo"
+            disabled={disabled} onClick={restoreValue}/>}
+      </div>}
     <CookieAdvancedFields draft={draft} existing={edited} disabled={disabled}
       onChange={update} error={message}/>
     {edited&&draft.name!==row.name&&<p className="editor-hint">
@@ -174,11 +192,15 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       <Button type="button" variant="secondary" onClick={()=>onCancel?.()}>放弃</Button>
     </div>}
     <div className="cookie-editor-actions">
-      {edited&&<Button type="button" className="od-button--danger" onClick={()=>onDelete?.(row.id)}
-        disabled={disabled}>删除</Button>}
+      {edited&&<CookieIconButton name="trash" label="删除 Cookie" tone="danger"
+        className="cookie-editor-icon-action" onClick={()=>onDelete?.(row.id)}
+        disabled={disabled}/>}
       <span className="cookie-spacer"/>
       <Button type="button" disabled={disabled} onClick={requestClose}>取消</Button>
-      <Button variant="primary" type="button" onClick={submit} disabled={disabled||(edited&&!dirty)}>保存 Cookie</Button>
+      <Button variant="primary" type="button" onClick={submit}
+        className="cookie-editor-save" disabled={disabled||(edited&&!dirty)}>
+        <CookieIcon name="check"/>保存
+      </Button>
     </div>
   </section>;
 }

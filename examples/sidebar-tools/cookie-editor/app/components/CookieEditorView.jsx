@@ -14,6 +14,9 @@ const shapes={
   upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,
   plus:<path d="M12 5v14M5 12h14"/>,
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,
+  close:<path d="M6 6l12 12M18 6 6 18"/>,
+  undo:<><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></>,
+  check:<path d="m5 12 5 5L20 7"/>,
   chevron:<path d="m7 10 5 5 5-5"/>,
   eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
@@ -24,12 +27,13 @@ export function CookieIcon({name}){
     fill="none" stroke="currentColor" strokeWidth="1.7"
     strokeLinecap="round" strokeLinejoin="round">{shapes[name]||null}</svg>;
 }
-function Action({name,label,disabled=false,onClick,pressed,tone='normal'}){
+function Action({name,label,disabled=false,onClick,pressed,tone='normal',className=''}){
   return <button type="button" title={label} aria-label={label}
-    className={'cookie-react-icon icon-btn od-icon-button'+(tone==='danger'?' cookie-clear-action od-icon-button--danger':'')}
+    className={'cookie-react-icon icon-btn od-icon-button'+(tone==='danger'?' cookie-clear-action od-icon-button--danger':'')+(className?' '+className:'')}
     disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}
     onClick={onClick}><CookieIcon name={name}/></button>;
 }
+export {Action as CookieIconButton};
 // The approved Preview and the official native Controller render the same
 // label/control DOM. This component knows nothing about Cookie credentials.
 export function CookieFormField({label,children,className=''}) {
@@ -40,8 +44,11 @@ export function CookieFormField({label,children,className=''}) {
 // Neutral attribute naming prevents the browser from interpreting a Cookie
 // value editor as a username/password form. Never use a password-type input here.
 export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
-  placeholder='',maxLength=4096,invalid=false,describedBy}){
-  return <CookieFormField label="值">
+  placeholder='',maxLength=4096,invalid=false,describedBy,showClear=false,onClear}){
+  // Input label cannot wrap both a text box and a clear button.
+  // Raw Cookie values never enter presentation state.
+  return <div className="field cookie-editor-value-field">
+    <label className="cookie-value-label" htmlFor="opendesk-cookie-attribute-data">值</label>
     <div className="cookie-value-inline value-input">
       <input id="opendesk-cookie-attribute-data" name="opendesk-cookie-attribute-data"
         aria-label="Cookie 值" aria-invalid={invalid||undefined}
@@ -51,8 +58,10 @@ export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
         data-cookie-secret-input="true" maxLength={maxLength}
         disabled={disabled} placeholder={placeholder} onChange={onChange}
         {...(inputValue===undefined?{}:{value:inputValue})}/>
+      {showClear&&!disabled&&typeof onClear==='function'&&
+        <Action name="close" label="清空值" className="cookie-value-clear" onClick={onClear}/>}
     </div>
-  </CookieFormField>;
+  </div>;
 }
 // Pure presentation of the approved Preview IO controls. Both simulated
 // and native adapters implement the callbacks; no credentials live here.

@@ -214,3 +214,15 @@
   .cookie-app .row-flags{flex-wrap:wrap;justify-content:flex-end}
   .demo-lab .lab-label{display:none}
 }
+
+/* R5.18: inset clear icon and one contextual restore action. */
+.inline-editor .field>.cookie-value-label{font-size:12px;color:var(--od-sub);font-weight:550;overflow-wrap:anywhere}
+.inline-editor .cookie-value-inline{position:relative;width:100%;min-width:0}
+.inline-editor .cookie-value-inline>input{width:100%;min-width:0;padding-inline-end:42px}
+.inline-editor .cookie-value-inline>.cookie-value-clear{position:absolute;inset-inline-end:3px;top:50%;transform:translateY(-50%);width:30px;height:30px;padding:0;border:0;background:transparent;color:var(--od-sub);border-radius:7px}
+.inline-editor .cookie-value-inline>.cookie-value-clear:hover:not(:disabled){background:var(--od-bg);color:var(--od-ink)}
+.inline-editor .cookie-value-inline>.cookie-value-clear:focus-visible{outline:2px solid var(--od-brand);outline-offset:1px}
+.inline-editor .value-controls .cookie-value-undo{width:28px;height:28px;border-radius:7px;flex:none}
+.cookie-app .editor-actions .cookie-editor-icon-action{flex:0 0 34px;width:34px;height:34px;padding:0}
+.cookie-app .editor-actions .cookie-editor-delete{color:var(--od-negative)}
+.cookie-app .editor-actions .cookie-editor-save svg{width:16px;height:16px;flex:none}
