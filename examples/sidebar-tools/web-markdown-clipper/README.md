@@ -1,5 +1,17 @@
 # 网页剪藏 v1.0.2
 
+## 正式 UI 交互预览（不构成 Chrome 验收）
+
+在仓库根目录执行：
+
+```bash
+open examples/sidebar-tools/web-markdown-clipper/preview/index.html
+```
+
+预览采用与正式工具一致的 `src/index.html` 标记，并直接加载正式 `src/style.css` 和 `src/main.js`；只有 OpenDeskTool.request、SDK 剪贴板和下载调用被替换为明确标记的演示响应。支持 320/360/400/440px、浅色/深色及 200% 缩放。
+
+**预览不会读取真实网站、写入系统剪贴板、下载文件或授予网站权限。** 这些结果必须使用已构建的生产扩展在 Mac Chrome 中另行验证。
+
 网页内容读取由 OpenDesk 可信 Content Script 完成；当前工具只是无 Chrome 权限的隔离 UI。
 
 ## 使用
