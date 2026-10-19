@@ -27,6 +27,7 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
         <strong className="od-page-title">云控</strong>
         <div className="cloud-panel-actions od-action-group">
           <button type="button" id="cloud-open-console" className="od-icon-button"
+            disabled={typeof pageModel.onOpenConsole!=='function'}
             onClick={event=>trusted(event,pageModel.onOpenConsole)}
             title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -34,6 +35,7 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
             </svg>
           </button>
           <button type="button" id="cloud-overview-refresh" className="od-icon-button"
+            disabled={typeof pageModel.onRefresh!=='function'}
             onClick={event=>trusted(event,pageModel.onRefresh)}
             title="刷新云控状态" aria-label="刷新云控状态">
             <svg viewBox="0 0 24 24" aria-hidden="true">

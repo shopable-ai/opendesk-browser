@@ -71,3 +71,43 @@ test('Cloud console opens a fixed extension tab and cannot register a second exe
   assert.deepEqual(calls.filter(x=>x.type==='claim'),[]);
   control.dispose();
 });
+
+
+test('React Cloud header has one gesture path, read-only refresh and no action after dispose',async()=>{
+  const {document,nodes}=surface(),calls=[],opened=[];
+  let actions;
+  const client={cloud:{
+    cloudStatus:async query=>{calls.push({type:'status',query});return {
+      provider:null,enabled:false,online:false,reconciled:false,connection:'offline',
+      tasks:[],hostReady:true,slotAvailable:true,requestTotal:0,requests:[]
+    };},
+    cloudNext:async()=>{calls.push({type:'claim'});throw Error('read-only must not claim');}
+  }};
+  const api={runtime:{getURL:path=>'chrome-extension://trusted/'+path},
+    tabs:{create:async options=>opened.push(options)}};
+  const reactUI={cloudPageMounted:true,renderCloudPage(next){actions=next;}};
+  const control=createCloudHosting({client,host:{executionPending:false},document,api,reactUI});
+  await flush();await flush();
+  assert.equal(typeof actions?.onRefresh,'function');
+  assert.equal(typeof actions?.onOpenConsole,'function');
+  // Native listeners must never compete with the React onClick owner.
+  for(const id of ['cloud-overview-refresh','cloud-open-console'])
+    assert.equal(nodes.get(id)?.events.size||0,0,id);
+  assert.equal(nodes.get('cloud-refresh')?.events.size||0,0,
+    'React also owns the migrated settings controls');
+  const before=calls.filter(x=>x.type==='status').length;
+  actions.onRefresh();
+  await flush();await flush();
+  assert.equal(calls.filter(x=>x.type==='status').length,before+1);
+  assert.equal(calls.filter(x=>x.type==='claim').length,0);
+  actions.onOpenConsole();
+  await flush();await flush();
+  assert.deepEqual(opened,[{url:'chrome-extension://trusted/ui/cloud-control.html'}]);
+  assert.equal(calls.filter(x=>x.type==='claim').length,0);
+  const finished=calls.length;
+  control.dispose();
+  actions.onRefresh();actions.onOpenConsole();
+  await flush();await flush();
+  assert.equal(calls.length,finished,'a stale React callback cannot operate after pagehide');
+  assert.equal(opened.length,1);
+});
