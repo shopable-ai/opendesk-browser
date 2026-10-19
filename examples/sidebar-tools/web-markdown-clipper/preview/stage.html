@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN" data-demo-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>网页剪藏 · 正式 UI 演示舞台</title>
+<link rel="stylesheet" href="../src/style.css">
+<style>
+html[data-demo-theme=dark] body{color:#e1e6f2}
+html[data-demo-theme=dark] .clip{--edge:#39435b;--sub:#a0adc3;--paper:#202633;--layer:#171e29}
+html[data-demo-theme=dark] .clip button.primary{background:#4568d4;border-color:#4568d4}
+html[data-demo-theme=dark] .clip-actions button[aria-pressed=true]{background:#314269;border-color:#5368a3;color:#d8e3ff}
+html[data-demo-theme=dark] .clip-preview pre{background:#2a3547}
+html[data-demo-theme=dark] .clip-preview a{color:#9bbaff}
+html[data-demo-theme=light] body{color:#233047}
+html[data-demo-theme=light] .clip{--edge:#dde5f1;--sub:#69788f;--paper:#fff;--layer:#f7f9fd}
+html[data-demo-theme=light] .clip button.primary{background:#335bd0;border-color:#335bd0}
+html[data-demo-theme=light] .clip-actions button[aria-pressed=true]{background:#eaf1ff;border-color:#b9c9f2;color:#2c56b7}
+html[data-demo-theme=light] .clip-preview pre{background:#e9eff8}
+html[data-demo-theme=light] .clip-preview a{color:#3159b9}
+</style>
+</head>
+<body>
+<main class="clip" aria-label="网页剪藏">
+<header class="clip-head"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></header>
+<div class="clip-modes" role="group" aria-label="剪藏范围">
+<button type="button" data-clip-mode="article" aria-pressed="true" title="提取网页文章">文章</button>
+<button type="button" data-clip-mode="selection" aria-pressed="false" title="提取网页选区">选区</button>
+<button type="button" data-clip-mode="quote" aria-pressed="false" title="生成带来源的引用">引用</button>
+<button type="button" data-clip-mode="link" aria-pressed="false" title="生成 Markdown 链接">链接</button>
+</div>
+<div class="clip-row">
+<label for="clip-meta">来源</label><select id="clip-meta" aria-label="来源信息格式">
+<option value="footer">文末链接</option><option value="yaml">YAML Front Matter</option><option value="none">不添加</option>
+</select>
+<button type="button" id="clip-fetch" class="primary" title="重新获取当前网页" aria-label="开始剪藏">剪藏</button>
+</div>
+<div class="clip-actions" role="toolbar" aria-label="Markdown 操作">
+<button type="button" id="clip-show-source" aria-pressed="true">源码</button>
+<button type="button" id="clip-show-preview" aria-pressed="false">预览</button>
+<span class="clip-spacer"></span>
+<button type="button" id="clip-copy" aria-label="复制 Markdown" title="复制 Markdown">复制</button>
+<button type="button" id="clip-download" title="下载 .md" aria-label="下载 Markdown">下载 .md</button>
+</div>
+<textarea id="clip-source" spellcheck="false" readonly aria-label="剪藏的 Markdown 源码" placeholder="在工具列表授权此网站，然后点击「剪藏」。"></textarea>
+<div id="clip-preview" class="clip-preview" role="document" aria-label="Markdown 只读预览" hidden></div>
+<p id="clip-status" class="clip-status" role="status" aria-live="polite">请先在工具列表允许当前网站剪藏。</p>
+</main>
+
+<script>
+(function(){
+ 'use strict';
+ const fence=String.fromCharCode(96).repeat(3);
+ const sample=[
+ '# 网页剪藏示例：一篇技术文章','',
+ '这是演示数据，包含 **重点内容**、[参考链接](https://example.com/docs) 和简单的段落。','',
+ '## 使用要点','',
+ '- 保留标题、段落和来源','- 支持列表、引用与代码','- 不包含 CSS 隐藏文字','',
+ '## 代码片段','',fence+'js','const value = 42;','console.log(value);',fence,'',
+ '| 功能 | 状态 |','| --- | --- |','| 文章剪藏 | 演示 |','| Markdown 预览 | 演示 |','',
+ '> 此内容由预览环境提供，并非读取真实网页。'
+ ].join('\n')+'\n';
+ const selection='在网页中选中的 **示例文字**，包含 [链接](https://example.com/selection)。\n';
+ const source='https://example.com/articles/markdown-clipper';
+ const send=(name,bytes)=>parent.postMessage({kind:'clipper-demo',name,bytes},'*');
+ globalThis.OpenDeskTool={
+  root:document.querySelector('.clip'),
+  async request(operation){
+   await new Promise(done=>setTimeout(done,180));
+   if(!['clip.article','clip.selection','clip.link'].includes(operation))throw Error('预览中不支持此操作');
+   const markdown=operation==='clip.article'?sample:operation==='clip.selection'?selection:'[网页剪藏示例](https://example.com/articles/markdown-clipper)\n';
+   send('读取模拟内容',new TextEncoder().encode(markdown).length);
+   return {markdown,title:'网页剪藏示例',site:'example.com',source,capturedAt:'2026-10-20T00:00:00.000Z'};
+  }
+ };
+ globalThis.OpenDeskSDK={browser:{
+  clipboard:{async writeText(text){send('模拟复制（未写入系统剪贴板）',new TextEncoder().encode(text).length);return {copied:true};}},
+  downloads:{async text({text}){send('模拟下载（未创建磁盘文件）',new TextEncoder().encode(text).length);return {started:true};}}
+ }};
+ window.addEventListener('message',({data})=>{
+  if(data?.kind!=='clipper-demo-control')return;
+  if(data.theme==='dark'||data.theme==='light')document.documentElement.dataset.demoTheme=data.theme;
+  if(data.zoom===1||data.zoom===2)document.body.style.zoom=String(data.zoom);
+  if(data.reset===true)document.querySelector('.clip').dispatchEvent(new Event('opendesk-page-changed'));
+ });
+})();
+</script>
+<script src="../src/main.js"></script>
+</body></html>
