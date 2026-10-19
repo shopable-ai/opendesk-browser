@@ -127,3 +127,19 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 ## 渐进式 UI 本地化
 
 正常创建 Sidebar Tool 时**只写一种源语言**；用户明确要求某种目标语言时，在原 ID 的同一工程加入 `locales.json` 与构建配置 `locales`，使用现有 `scripts/build-sidebar-tool.mjs` 对翻译的源文案、占位符、纯文字约束与离线嵌入执行校验。运行时使用框架提供的只读 `OpenDeskTool.locale` 与 `onLocaleChange` 更新显示，严格禁止通过 `chrome.i18n`、Browser SDK `i18n` 或存储直接改全局语言。交付仍按现有工具打包、同 ID 升级与同源预览规则执行；宿主权限译文不可由用户包覆盖。详情：[正式本地化合同](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
+
+
+## R5.6 · React Shared UI 开发规范（2026-10-20）
+
+**UI 框架按真实需求选用。** 小型、没有复杂组件状态的工具可以保留 HTML/原生 JS；当用户明确要求 React，或工具已有多处表单、菜单、异步读写和嵌套视图时，优先复用仓库已有 React Shared UI，不应机械回退到 `document.createElement()`/DOM 重新拼接。只改工具本身，不迁移其他 HTML/Vue 应用。
+
+**先核对唯一公开合同**：`src/entrypoints/sidebar-shared-ui.js` 在选择 `uiRuntime: "opendesk.react-ui.v1"` 后向 opaque-origin 工具提供 `OpenDeskPageReact`、`OpenDeskSidebarUI`；当前实际公开的组件只有 `Button`、`IconButton`、`Card`、`CardContent`、`Switch`。实现分别在 `src/ui/react/components/ui/button.tsx`、`card.tsx`、`switch.tsx`，视觉来自现有 Design Tokens。不能把可信 Side Panel `src/ui/react/` 任意组件当成沙箱已公开 API；也不能为了一个工具复制另一套组件库。React 只拥有自身 `#tool-app`，不能使用可信 Side Panel Root 或调用 `chrome.*`。
+
+**参考真实消费者**：`examples/sidebar-tools/adblock/src/App.jsx`、`src/main.jsx`、`vite.config.mjs` 与 `scripts/build-adblock-react.mjs`；`examples/sidebar-tools/shared-ui-demo/` 展示外置 React 的组件使用。JSX 构建走既有 Vite + IIFE + 本地 CSS，`react`/`react-dom/client`/`react/jsx-runtime`/`@opendesk/ui` 通过既有浏览器受控 Runtime 外置；单 Root，`pagehide` 时 `root.unmount()`，Effect 释放轮询和事件监听。Classic JS 直接通过现有运行时创建 React 元素也是合法的过渡源码，但**未经实际 Vite 编译不能声称已交付 JSX/Vite 产物**。
+
+**交互规范**：编辑/添加/关闭/更多操作首选共享 `IconButton`，必须有明确 `label`/触控热区/键盘焦点；不把所有动作都变成无文字图标。保存、危险移除和可信授权保留可理解的语义。复杂菜单优先沿用已有 React Aria 能力；若组件尚未公开，使用可检查的轻量菜单并完成 Escape、外部点击、焦点恢复与触控测试，不另建全局菜单库。宽度 320/360/400/440px，浅深色及缩放分别实测。
+
+**异步与所有权**：仅通过现有 `OpenDeskTool.request` 读写；后台/可信 Host 仍是计时、DNR、授权和规则真相来源。写入用单次锁和可核实回执，状态读用请求代次防止旧响应覆盖新状态；静默轮询不能覆盖未保存的 React draft。Host 结果未知不能自动重试风险写入，正在导航时必须再次核对当前网页身份，不把 iframe 点击冒充可信真实点击。若 Host 仍要求二次受信确认，如实标注产品阻断，不在沙箱绕过。
+
+**源码与打包证据**：`tool.config.json.files` 只能指向真实存在的 HTML/CSS/JS。若引用 `dist/tool.js`、`dist/tool.css`，必须先真实构建并产生与源码绑定的 `dist/build-ready.json`；源码一改，旧回执作废。工具正式包经唯一 `scripts/build-sidebar-tool.mjs` 构建、回归、`--promote-from`、`--check-project` 晋升，禁止手改安装包。预览必须用本次已构建的确切 JS/CSS/同版本共享运行时，Mock 只在工具 iframe 外；不要让预览使用旧原生界面而包使用 React。证据明确区分 `SOURCE_WIRED`、`BUILD_PASS`、`PACKAGE_PASS`、`NATIVE_CHROME=NOT_TESTED`，不得以原型截图证明 Chrome 限制生效。
+
