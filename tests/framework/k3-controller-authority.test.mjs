@@ -2013,6 +2013,13 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
     const seed=await post('/admin/seed',{requestKey:'fixed-local-task',...pin,
       targetExecutorId:executorId,params,target},admin.adminToken);
     await waitForReconciliation(beforeNotify+1);
+    // WebSocket notification cannot dispatch a privileged Worker by itself.
+    // The Side Panel's trusted cloudNext/RunHost path remains the sole owner.
+    const beforeHost=await post('/admin/state',{},admin.adminToken);
+    assert.equal(beforeHost.jobs[seed.jobId].state,'queued',
+      'A background notify must not claim or execute work without a trusted visible Host');
+    assert.equal((await f.rows('runs')).filter(row=>row.cloudRequestId).length,0,
+      'Background reconciliation must not create a Controller Run');
     // The Provider notification, not a test-forced reconcile(), must wake the
     // locally approved browser-side request before Side Panel dispatch.
     const waiting=await cloud.cloudNext({},f.sender);
