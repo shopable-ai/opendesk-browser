@@ -17,7 +17,22 @@
       return parsed.hostname.toLowerCase().replace(/\.$/,'');
     }catch{return '';}
   };
-  const siteLabel=reason=>({session:'专注中',schedule:'工作时段',always:'始终限制',quota:'额度已用完'})[reason]||'允许访问';
+  const siteLabel=reason=>({session:'专注中',schedule:'工作时段',always:'始终限制',quota:'额度已用完'})[reason]||'正常';
+  // Use icons only with real accessible labels. No external icon library or
+  // privileged Host dependency is added to the independently installed UI.
+  const siteAction=(name,label,icon)=>{
+    const button=create('button','sf-site-icon');
+    button.type='button';button.title=label;button.setAttribute('aria-label',label);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+    const paths={edit:['M12 20h9','M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z'],
+      pause:['M9 5v14','M15 5v14'],play:['m8 5 11 7-11 7V5'],remove:['M3 6h18','M8 6V4h8v2','M19 6l-1 14H6L5 6','M10 10v6','M14 10v6']};
+    for(const d of paths[icon]||[]){
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',d);svg.append(path);
+    }
+    button.append(svg);return button;
+  };
   // Local, transparent recommendations. Exact registered domains (including
   // subdomains) take precedence over untrusted website titles. No URL history,
   // page body, third-party lookup or permission changes are used here.
@@ -98,14 +113,14 @@
     busy=true;
     const buttons=[...root.querySelectorAll('button')];buttons.forEach(x=>x.disabled=true);
     try{
-      message(op==='focus.status'?'正在读取本机状态…':'请在外层可信工具宿主确认本次修改…');
+      message(op==='focus.status'?'正在读取本机状态…':'正在等待可信宿主确认…');
       const result=await request(op,payload);
       state=result;render();
       if(op==='focus.status')message('');
-      else if(!result?.enabled)message('规则已保存，但 Stay Focus 尚未开启；需在工具外层详情中授权并启动。');
+      else if(!result?.enabled)message('已保存。限制尚未开启，请在扩展详情中授权启动。');
       else if(result?.ruleReceipt?.verified!==true)message('设置已存入本机，但尚未验证 Chrome DNR 生效。请检查原生拦截权限。',true);
       else if(result?.tabs?.failed>0)message('Chrome 拦截规则已核对，但有 '+result.tabs.failed+' 个已打开页面无法自动切换，请手动重新导航。',true);
-      else message('规则已保存，并完成 Chrome DNR 规则读回核对。');
+      else message('已保存 · Chrome 规则已核对');
       return true;
     }catch(error){
       if(op==='focus.disable'&&error?.code==='E_FOCUS_TRUSTED_CLICK')
@@ -125,33 +140,36 @@
     editingSite=null;
     $('site-host').readOnly=false;
     $('site-host').value='';
-    $('site-save').textContent='保存网站规则';
+    $('site-save').textContent='保存网站';
     $('site-new').hidden=true;
   }
   const badgeSite=(site)=>{
     const row=create('article','sf-site');row.dataset.blocked=String(Boolean(site.reason));
+    row.dataset.paused=String(!site.enabled);
     const left=create('div','sf-site-main');
     left.append(create('strong','',site.host),create('small','',
       (!site.enabled?'已暂停 · ':site.reason?siteLabel(site.reason)+' · ':'')+
-      (site.mode==='always'?'不计额度':minutes(site.remainingMs)+' 剩余 / '+minutes(site.budgetMs))+
-      (site.group?' · '+site.group:'')+(site.subdomains?' · 含子域名':'')));
+      (site.mode==='always'?'始终限制':minutes(site.remainingMs)+' 剩余')+
+      (site.group&&site.group!=='entertainment'?' · '+site.group:'')+
+      (site.subdomains?' · 含子域名':'')));
     const actions=create('div','sf-site-actions');
-    const edit=create('button','','编辑');edit.type='button';edit.setAttribute('aria-label','编辑 '+site.host);
+    const edit=siteAction('edit','编辑 '+site.host,'edit');
     edit.addEventListener('click',()=>{
       $('manual-site').open=true;
       editingSite=site.host;
       $('site-host').value=site.host;$('site-host').readOnly=true;
-      $('site-save').textContent='保存网站修改';$('site-new').hidden=false;
+      $('site-save').textContent='保存修改';$('site-new').hidden=false;
       $('site-minutes').value=site.minutes;
       $('site-mode').value=site.mode;$('site-subdomains').checked=site.subdomains;
-      $('site-group').value=site.group;$('site-host').focus();
+      $('site-group').value=site.group;$('manual-site').scrollIntoView?.({block:'nearest'});
+      $('site-host').focus();
     });
-    const toggle=create('button','',site.enabled?'暂停':'恢复');toggle.type='button';
-    toggle.setAttribute('aria-label',(site.enabled?'暂停':'恢复')+' '+site.host);
+    const toggle=siteAction('toggle',(site.enabled?'暂停':'恢复')+' '+site.host,
+      site.enabled?'pause':'play');
     toggle.addEventListener('click',()=>call('focus.site.put',{site:{
       host:site.host,subdomains:site.subdomains,enabled:!site.enabled,
       mode:site.mode,minutes:site.minutes,group:site.group}}));
-    const remove=create('button','','移除');remove.type='button';remove.setAttribute('aria-label','移除 '+site.host);
+    const remove=siteAction('remove','移除 '+site.host,'remove');remove.classList.add('sf-site-remove');
     remove.addEventListener('click',()=>call('focus.site.remove',{host:site.host}));
     actions.append(edit,toggle,remove);row.append(left,actions);return row;
   };
@@ -175,6 +193,8 @@
     const input=$('daily-budget-minutes');
     if(document.activeElement!==input)input.value=String(pool.minutes);
     input.disabled=!state.enabled;
+    $('daily-budget-save').disabled=!state.enabled;
+    $('budget-lock-hint').hidden=state.enabled;
     $('focus-pause').hidden=!state.enabled;
     const unmanaged=state.sites.filter(site=>site.mode==='limit'&&site.group!=='entertainment').length;
     $('total-caption').textContent=!permissionReady?
@@ -195,9 +215,10 @@
     const managed=state.sites.filter(site=>site.group==='entertainment');
     const examples=(managed.length?managed.map(site=>site.host):
       state.catalog.filter(row=>row.auto).map(row=>row.name)).slice(0,4);
-    $('managed-preview').textContent=examples.join(' · ')+
-      (Math.max(0,(managed.length||state.catalog.filter(row=>row.auto).length)-4)?' 等':'')+
-      ' · 可逐站暂停或排除';
+    const enabledSites=state.sites.filter(site=>site.enabled).length;
+    $('managed-preview').textContent=state.sites.length?
+      enabledSites+' 个启用 · '+(state.sites.length-enabledSites)+' 个暂停 · 点击图标即可管理':
+      '开启后自动纳入默认娱乐网站；也可以手动添加。';
     const list=$('sites');list.replaceChildren();
     for(const site of state.sites)list.append(badgeSite(site));
     if(!state.sites.length)list.append(create('p','sf-empty',
@@ -227,6 +248,11 @@
       $('whitelist').value=state.whitelist.join('\n');
     }
   }
+  $('open-add-site').addEventListener('click',()=>{
+    resetSiteEditor();$('manual-site').open=true;
+    $('manual-site').scrollIntoView?.({block:'nearest'});
+    $('site-host').focus();
+  });
   $('daily-budget-save').addEventListener('click',event=>{
     event.preventDefault();
     if(!state?.enabled){message('请先在工具详情中授权并开启，再修改每日额度。',true);return;}

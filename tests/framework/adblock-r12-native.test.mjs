@@ -103,16 +103,18 @@ async function attachActualReact(c,side){
   const session=await attach(c,target.targetId);
   await until(()=>evaluate(c,session,
     '!!document.querySelector(".adblock-app")&&'+
-    '!!document.querySelector("[role=switch][aria-label=\\"全局广告拦截\\"]")'),
+    '!!document.querySelector("[data-slot=\\"switch\\"][aria-label=\\"全局广告拦截\\"]")'),
     'installed React App and React Aria switch mounted',25000);
   return session;
 }
 async function reactSwitch(c,session,label){
+  // The real shared React Aria Switch puts its selected and disabled state
+  // on the labeled data-slot=switch element (the input may be visually hidden).
+  const selector='[data-slot="switch"][aria-label="'+label+'"]';
   return evaluate(c,session,
-    '(()=>{const input=document.querySelector("[role=switch][aria-label="+'+
-    JSON.stringify(label)+
-    '+"]");return input?{on:input.checked===true||input.getAttribute("aria-checked")==="true",'+
-    'disabled:input.disabled===true||input.getAttribute("aria-disabled")==="true"}:null;})()');
+    '(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+    'return n?{on:n.hasAttribute("data-selected"),'+
+    'disabled:n.hasAttribute("data-disabled")}:null;})()');
 }
 async function requestReactReview(c,side,react,selector,expectedCopy){
   await clickSandbox(c,side,react,selector);
@@ -603,8 +605,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   note('react-installed-settings-navigation',{opened:true,returned:true});
 
   const globalLabel='全局广告拦截';
-  const globalSelector='label.od-shared-switch:has([role="switch"][aria-label="全局广告拦截"])';
-  const currentSelector='label.od-shared-switch:has([role="switch"][aria-label="当前网站广告过滤"])';
+  const globalSelector='[data-slot="switch"][aria-label="全局广告拦截"]';
+  const currentSelector='[data-slot="switch"][aria-label="当前网站广告过滤"]';
   await until(async()=>{
     const x=await reactSwitch(client,react,globalLabel);return x&&!x.disabled&&!x.on;
   },'installed React starts with global protection OFF');
@@ -743,7 +745,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   let focused=false;
   for(let i=0;i<60;i++){
     if(await evaluate(client,react,
-      'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"')){focused=true;break;}
+      'document.activeElement?.closest('+JSON.stringify(globalSelector)+')!==null')){focused=true;break;}
     for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
       {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
   }
@@ -758,14 +760,15 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return r.state?.enabled===false&&r.owned.length===0;},'Space OFF removes real rules');
   assert.equal((await probe(client,site,adUrl())).success,true);
   await until(()=>evaluate(client,react,
-    'document.querySelector("[role=switch][aria-label=\\"全局广告拦截\\"]")?.disabled===false'),
+    '(()=>{const n=document.querySelector("[data-slot=\\"switch\\"][aria-label=\\"全局广告拦截\\"]");'+
+    'return !!n&&!n.hasAttribute("data-disabled");})()'),
     'React switch action completes');
   // One more physical Tab/Space cycle may be needed because trusted review
   // moves focus back to the Side Panel; never force focus from JavaScript.
   focused=false;
   for(let i=0;i<60;i++){
     if(await evaluate(client,react,
-      'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"')){focused=true;break;}
+      'document.activeElement?.closest('+JSON.stringify(globalSelector)+')!==null')){focused=true;break;}
     for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
       {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
   }
@@ -861,76 +864,105 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal((await probe(client,pageAgain,adUrl())).success,false,'real filtering survives browser restart');
   report.browserRestart='PASS';note('actual-chrome-restart',{sameExtensionId:idAgain,owned:persisted.owned.length});
 
-  // Simulates user revoking an optional permission through Chrome's API.
-  // The native permission is removed, not merely a mocked storage flag.
-  const revoked=await evaluate(client,again,
-    'chrome.permissions.remove({permissions:["declarativeNetRequestWithHostAccess"]})');
-  assert.equal(revoked,true,'actual Chrome optional permission must be removable');
-  await until(async()=>{
-    const state=await evaluate(client,again,'chrome.storage.local.get('+JSON.stringify(STORE)+')');
-    return state?.[STORE]?.enabled===false?state:null;
-  },'worker handles native permission removal');
-  report.revocation='PASS_STATE_AND_NATIVE_PERMISSION';
-  note('native-permission-revoked',{adblockIntent:false});
-  const revokedStatus=await evaluate(client,again,
-    'chrome.runtime.sendMessage('+JSON.stringify(statusMessage)+')');
-  assert.equal(revokedStatus?.ok,true);
-  assert.equal(revokedStatus.data.permissions.dnr,false);
-  assert.equal(revokedStatus.data.rules.verified,false);
-  assert.equal(revokedStatus.data.restartRequired,true,
-    'lost DNR access must expose unconfirmed matcher cleanup until browser restart');
-  report.revocationStatus=revokedStatus;
+  // REQUIRED manifest DNR is not a user-removable optional permission.
+  // Exercise the actual product lifecycle from Extension Center UI instead.
+  assert.equal(await evaluate(client,again,
+    'chrome.permissions.contains({permissions:["declarativeNetRequestWithHostAccess"]})'),true);
+  report.revocation='NOT_APPLICABLE_MANDATORY_DNR';
+  report.revocationMigration={
+    requiredPermission:'declarativeNetRequestWithHostAccess',
+    replacement:'toolDisable + toolRestore + staleIframe + uninstall',
+    commonVerifier:'R1.0 must replace optional-DNR revocation acceptance',
+    status:'PENDING_COMMON_VERIFIER_MIGRATION'};
   await click(client,again,'#catalog-open-dev-sidebar');
-  const revokedContext=await until(()=>evaluate(client,again,
-    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/sidepanel.html")))'),
-    'Side Panel after native revocation');
-  const revokedPanel=await until(async()=>(await client.send('Target.getTargets')).targetInfos
-    .find(x=>x.url===revokedContext.documentUrl),'revoked Side Panel target');
-  sid=await attach(client,revokedPanel.targetId);
-  await click(client,sid,'#tab-tools');await openInstalled(sid);
-  const warning=await until(()=>evaluate(client,sid,
-    '(()=>{const n=document.querySelector("#sidebar-tool-adblock-native");'+
-    'return n?.textContent.includes("权限已撤销")&&n.textContent.includes("停止过滤尚未确认")?n.textContent:null;})()'),
-    'actual trusted UI warns that revocation has not confirmed network cleanup');
-  report.revocationWarning=warning;
-  report.screenshots.push(await screenshot(client,sid,'native-permission-revoked-restart-warning'));
-  const revocationSamples=[];
-  const revokedRequest=await until(async()=>{
-    const request=await probe(client,pageAgain,adUrl());
-    revocationSamples.push({at:new Date().toISOString(),...request});
-    report.revocationSamples=revocationSamples;
-    return request.success?request:null;
-  },'native permission removal propagates to actual network requests',12000);
-  assert.equal(revokedRequest.success,true,'native permission revocation must actually restore network');
-  report.revocation='PASS';
-  note('revoked-network-restored',{request:revokedRequest,adServerHits:counts.ad});
-  // Native revocation may make DNR API inaccessible; do not infer removal
-  // of persisted rule bytes without native network and re-grant evidence.
-
-  // Existing installed tools must uninstall through shipped UI, not by writing
-  // directly into storage or mocking onRemoved.
-  await click(client,again,'#catalog-open-dev-sidebar');
-  const ctx=await until(async()=>{
-    const contexts=await evaluate(client,again,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return contexts.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId);
-  },'reopened Side Panel for uninstallation');
-  const target=await until(async()=>{const all=(await client.send('Target.getTargets')).targetInfos;
-    return all.find(x=>x.url===ctx.documentUrl)||null;},'reopened Side Panel target');
-  sid=await attach(client,target.targetId);
+  const resumedContext=await until(()=>evaluate(client,again,
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>'+
+    'c.documentUrl?.includes("/ui/tool.html")&&c.documentId))'),
+    'real Side Panel exists after Chrome restart');
+  const resumedPanel=await attachActualPanel(client,resumedContext,[uiAgain.targetId]);
+  sid=resumedPanel.session;
   await click(client,sid,'#tab-tools');
   await openInstalled(sid);
+  const resumedReact=await attachActualReact(client,sid);
+  await until(async()=>{
+    const current=await reactSwitch(client,resumedReact,'全局广告拦截');
+    return current?.on&&!current.disabled;
+  },'installed React and DNR ON after actual Chrome restart');
+  report.screenshots.push(await screenshot(client,sid,'react-after-real-chrome-restart'));
+
+  // The installed row menu calls the unchanged trusted Host using a real
+  // React event.nativeEvent. No scripting/storage mutation stands in for this.
+  const rowMore='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="more"]';
+  const rowToggle='#extension-center-row-menu button[data-ec-context-action="toggle"]';
+  const toggleInstalled=async expectedText=>{
+    await until(()=>evaluate(client,sid,
+      '(()=>{const row=document.querySelector('+JSON.stringify(rowMore)+');'+
+      'return row&&!row.disabled&&row.getBoundingClientRect().height>0})()'),
+      'installed row management is actionable');
+    await click(client,sid,rowMore);
+    await until(()=>evaluate(client,sid,
+      'document.querySelector('+JSON.stringify(rowToggle)+')?.textContent.includes('+JSON.stringify(expectedText)+')'),
+      'real installed row toggle says '+expectedText);
+    await click(client,sid,rowToggle);
+  };
+  await click(client,sid,'#sidebar-tool-back');
+  await toggleInstalled('停用');
+  const disabledState=await until(async()=>{
+    const current=await getOwned(client,again);
+    return current.owned.length===0?current:null;
+  },'trusted Host disables AdBlock and removes only its DNR rules');
+  const unblockedAfterDisable=await probe(client,pageAgain,adUrl());
+  assert.equal(unblockedAfterDisable.success,true,
+    'disabled AdBlock tool must release matching third-party ad requests');
+  const focusBefore=beforeWorker.focus;
+  assert.deepEqual(disabledState.focus,focusBefore,
+    'stopping AdBlock cannot mutate Stay Focus owned DNR');
+  await until(()=>evaluate(client,sid,
+    '(()=>{const f=document.querySelector("#sidebar-tool-frame");'+
+    'return !f||f.hidden||!f.querySelector("iframe")})()'),
+    'old installed React iframe is detached after disable');
+  report.toolDisable='PASS';report.toolRevocation='PASS';
+  note('real-installed-tool-disabled',{rules:disabledState.owned.length,
+    ad:unblockedAfterDisable,focusPreserved:true});
+  await toggleInstalled('启用');
+  await until(async()=>{
+    const current=await getOwned(client,again);
+    return current.owned.length===0?current:null;
+  },'tool restore does not auto-create adblock rules');
+  await openInstalled(sid);
+  const restoredReact=await attachActualReact(client,sid);
+  await until(async()=>{
+    const current=await reactSwitch(client,restoredReact,'全局广告拦截');
+    return current&&!current.disabled&&!current.on;
+  },'re-enabled tool shows actual React filtering OFF until deliberate opt-in');
+  report.toolRestore='PASS';
+  assert.equal((await probe(client,pageAgain,adUrl())).success,true,
+    're-enabling the tool must not implicitly start ad filtering');
+  note('real-tool-reenabled-no-automatic-filtering',{requiresNewReactConsent:true});
+
+  // Uninstall from the same installed Host controls. Never bypass ownership,
+  // write the Chrome storage registry, or edit DNR rules from test code.
   await click(client,sid,'#sidebar-tool-remove');
+  await until(()=>evaluate(client,sid,
+    'document.querySelector("#sidebar-tool-inline-remove-confirm")?.hidden===false'),
+    'real uninstall approval control is visible');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(()=>evaluate(client,again,
     '(async()=>{const all=await chrome.storage.local.get(["opendesk.sidebar-tools.installed.v1",'+
     JSON.stringify(STORE)+']);return !all["opendesk.sidebar-tools.installed.v1"]?.some(x=>x.id==="adblock")&&'+
-    '!Object.hasOwn(all,'+JSON.stringify(STORE)+');})()'), 'actual uninstall and data cleared');
-  assert.equal((await probe(client,pageAgain,adUrl())).success,true,
-    'after native permission removal and uninstall real requests must load');
+    '!Object.hasOwn(all,'+JSON.stringify(STORE)+');})()'),
+    'installed tool registry and AdBlock data erased after Host uninstall');
+  const afterUninstall=await getOwned(client,again);
+  assert.equal(afterUninstall.owned.length,0,'uninstall must clear owned Chrome DNR');
+  assert.deepEqual(afterUninstall.focus,focusBefore,'uninstall must preserve Stay Focus rules');
+  const uninstalledNetwork=await probe(client,pageAgain,adUrl());
+  assert.equal(uninstalledNetwork.success,true,'uninstalled AdBlock cannot continue filtering network');
   report.uninstall='PASS';
+  note('real-installed-react-uninstalled',{ad:uninstalledNetwork,ownedRules:0});
+  report.screenshots.push(await screenshot(client,sid,'react-after-uninstall'));
   assert.equal((await packageFingerprint(ROOT)).packageHash,report.artifactPackageHash,
-    'loaded artifact bytes must remain stable through Native acceptance');
+    'loaded artifact bytes must remain stable through actual Native test');
+  // Product phases ran. The separate common release gate remains fail-closed
+  // until it migrates "revocation" away from an OPTIONAL DNR model.
   passed=true;
-  note('uninstall-clears-product-data',{stillInstalled:false,realNetworkRestored:true});
-  report.screenshots.push(await screenshot(client,sid,'adblock-final-uninstalled'));
 });
