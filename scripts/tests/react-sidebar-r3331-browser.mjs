@@ -22,7 +22,13 @@ assert.ok(browser,'Real Chromium/Chrome required (CHROME_BIN or installed binary
 // Serve fixture endpoints BEFORE Vite's transform/fallback middleware.
  // This avoids a custom route appended after Vite's terminal 404 handler.
 const fixtureCache=await mkdtemp(join(tmpdir(),'opendesk-react-r3331-cache-'));
+const fixtureId='\0opendesk-react-fixture';
 const vite=await createServer({root:process.cwd(),configFile:false,appType:'custom',
+  // Serve the fixture through Vite import analysis, not as raw ESM. Raw
+  // responses leave bare "react" imports unresolved in genuine Chromium.
+  plugins:[{name:'opendesk-react-fixture',
+    resolveId(id){return id==='/__react_fixture.js'?fixtureId:null;},
+    load(id){return id===fixtureId?fixtureJS:null;}}],
   cacheDir:fixtureCache,resolve:{dedupe:['react','react-dom']},
   logLevel:'error',
   // The fixture imports JSX from source. Browser ESM cannot directly import
@@ -33,11 +39,12 @@ const vite=await createServer({root:process.cwd(),configFile:false,appType:'cust
   server:{middlewareMode:true}});
 const http=createHttpServer((req,res)=>{
   const path=new URL(req.url||'/','http://localhost').pathname;
-  if(path==='/'||path==='/__react_fixture.js'){
-    res.writeHead(200,{'Content-Type':path==='/'?'text/html; charset=utf-8':'text/javascript'});
-    res.end(path==='/'?fixtureHtml:fixtureJS);
+  if(path==='/'){
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
+    res.end(fixtureHtml);
     return;
   }
+  // Vite transforms the virtual fixture and rewrites its React dependencies.
   vite.middlewares(req,res);
 });
 const profile=await mkdtemp(join(tmpdir(),'opendesk-react-r3331-'));
