@@ -128,3 +128,59 @@
 .sf[data-preview-theme="dark"] .sf-brand-symbol{background:#273a5e}
 .sf[data-preview-theme="dark"] .sf-state{background:#283347;color:#e6ecf5}
 @media(prefers-reduced-motion:reduce){.sf *{transition:none!important}}
+
+/* R5.4: the shared entertainment pool is the single primary editor. */
+.sf-hero{padding:15px 15px 13px}
+.sf-hero .sf-balance{margin-top:8px}
+.sf-hero .sf-balance strong{font-size:34px;line-height:1.25}
+.sf-hero .sf-progress{margin:12px 0 9px}
+.sf .sf-budget-controls{margin-top:13px;border-top:1px solid var(--sf-line);padding-top:11px}
+.sf .sf-budget-form{display:flex;align-items:center;flex-wrap:nowrap;gap:7px;min-width:0;margin:0}
+.sf .sf-budget-form label{display:inline-flex;align-items:center;flex:none;white-space:nowrap;font-size:11px;color:var(--sf-muted);font-weight:650;margin:0}
+.sf .sf-budget-form input:not([type=checkbox]){flex:0 1 65px;width:65px!important;min-width:50px;min-height:34px;height:34px;margin:0!important;padding:5px!important;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+.sf .sf-budget-form .sf-budget-unit{font-size:11px;color:var(--sf-muted);white-space:nowrap}
+.sf .sf-budget-form button{min-height:34px;padding:5px 10px;margin-left:auto;white-space:nowrap}
+.sf .sf-budget-presets{display:flex;align-items:center;gap:6px;margin-top:9px}
+.sf .sf-budget-presets button{min-height:30px;flex:1;min-width:0;padding:5px;font-size:11px;border-color:var(--sf-line);background:transparent;color:var(--sf-muted)}
+.sf .sf-budget-presets button[aria-pressed=true]{color:var(--sf-brand);background:var(--sf-soft);border-color:var(--sf-input)}
+.sf .sf-caption{margin-top:9px!important;padding-top:0;border:0}
+.sf .sf-caption:empty{display:none}
+.sf .sf-session{margin-top:9px;padding:10px 12px}
+.sf .sf-session p{margin-top:1px}
+.sf .sf-section{margin-top:16px}
+.sf .sf-section-head{margin-bottom:10px}
+.sf .sf-site{position:relative;padding:9px 8px 9px 11px}
+.sf .sf-site-main small{margin-top:2px}
+.sf .sf-site-actions{gap:1px}
+.sf .sf-site-actions .sf-site-icon{width:33px;height:33px;min-height:33px!important}
+.sf .sf-site-menu-wrap{position:relative;display:flex;align-items:center}
+.sf .sf-site-popup{position:absolute;right:0;top:calc(100% + 3px);z-index:20;width:140px;padding:5px;border:1px solid var(--sf-line);border-radius:10px;background:var(--sf-card);box-shadow:0 7px 20px rgba(24,38,66,.17)}
+.sf .sf-site-popup button{display:block;width:100%;height:auto;min-height:34px;text-align:left;justify-content:flex-start;font-weight:550;padding:8px 10px;white-space:nowrap;border:0;background:transparent}
+.sf .sf-site-popup button:hover{background:var(--sf-soft)}
+.sf .sf-site-popup button.sf-danger{color:var(--od-negative,#ad4654)}
+.sf .sf-quick-add{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px}
+.sf .sf-current-button{min-height:32px;font-size:11px;padding:6px 9px;color:var(--sf-brand);background:var(--sf-card);border-color:var(--sf-input)}
+.sf .sf-quick-presets{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.sf .sf-quick-presets button{min-height:32px;padding:5px 9px;border-color:var(--sf-line);color:var(--sf-ink);font-weight:600;background:var(--sf-card)}
+.sf .sf-more-recommendations{width:100%;padding:2px 0 0}
+.sf .sf-more-recommendations>summary{cursor:pointer;font-size:11px;color:var(--sf-brand);font-weight:620;list-style:none;width:fit-content}
+.sf .sf-more-recommendations>summary::-webkit-details-marker{display:none}
+.sf .sf-more-recommendations .sf-quick-presets{padding-top:8px}
+.sf .sf-manual{margin-top:10px}
+.sf .sf-site-form{padding-top:10px;display:grid;gap:3px}
+.sf .sf-site-form>input{margin:2px 0 8px}
+.sf .sf-site-form .sf-check{margin:3px 0}
+.sf .sf-site-form .sf-actions{margin-top:6px}
+.sf .sf-site-minutes{margin-top:5px}
+.sf .sf-site-minutes[hidden]{display:none!important}
+.sf .sf-add-trigger{min-width:33px!important;width:33px;height:33px;min-height:33px!important}
+.sf .sf-empty{padding:13px 10px}
+@media(max-width:355px){
+  .sf .sf-budget-form{display:flex;gap:6px}
+  .sf .sf-budget-form label{font-size:10px}
+  .sf .sf-budget-form input:not([type=checkbox]){flex-basis:56px;width:56px!important}
+  .sf .sf-budget-form button{padding:5px 8px}
+  .sf .sf-site-form .sf-two{grid-template-columns:1fr 1fr;gap:7px}
+  .sf .sf-site-form .sf-actions button{flex:none}
+}
+@media(prefers-reduced-motion:reduce){.sf .sf-progress i{transition:none}}
