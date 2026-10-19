@@ -19,11 +19,13 @@ const ENABLED=process.env.OPENDESK_STAY_FOCUS_NATIVE==='1';
 const LIFECYCLE_ONLY=process.env.OPENDESK_FOCUS_NATIVE_LIFECYCLE_ONLY==='1';
 const protocol='opendesk.stay-focus.v1',store='opendesk.stay-focus.state.v1';
 const inputParents=new Map();
-function connect(url){
+function connect(url,onEvent=()=>{}){
   const socket=new WebSocket(url),waiting=new Map();let serial=0;
   const ready=new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
   socket.onmessage=event=>{
-    const msg=JSON.parse(event.data),p=waiting.get(msg.id);if(!p)return;
+    const msg=JSON.parse(event.data);
+    if(!msg.id){onEvent(msg);return;}
+    const p=waiting.get(msg.id);if(!p)return;
     waiting.delete(msg.id);clearTimeout(p.timer);
     msg.error?p.reject(Error(JSON.stringify(msg.error))):p.resolve(msg.result);
   };
@@ -138,6 +140,23 @@ async function press(c,session,key,code,virtualKey){
   await c.send('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:virtualKey},inputParents.get(session)||session);
   await c.send('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:virtualKey},inputParents.get(session)||session);
 }
+// The React Extension Center is the only shipped discovery surface. Its
+// controls are clicked with native Chrome input, never storage writes.
+async function chooseExtensionScope(c,session,scope){
+  assert.ok(['smart','available'].includes(scope));
+  await click(c,session,'#extension-center-more');
+  const option='#extension-center-menu [data-ec-scope="'+scope+'"]';
+  await click(c,session,option);
+  await until(()=>evalRead(c,session,'document.querySelector('+JSON.stringify(option)+')?.getAttribute("aria-pressed")==="true"'),
+    'React Extension Center scope '+scope);
+  await click(c,session,'#extension-center-more');
+}
+async function openVisiblePackageImport(c,session){
+  await click(c,session,'#extension-center-more');
+  await click(c,session,'#extension-center-import');
+  await until(()=>evalRead(c,session,'!document.querySelector("#sidebar-tool-import")?.hidden'),
+    'visible React Extension Center import panel');
+}
 test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:!ENABLED,timeout:720000},async t=>{
   assert.equal(process.platform,'darwin','Native CI must be macOS');
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
@@ -175,6 +194,15 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const launchChrome=()=>spawn(BIN,chromeArgs,{stdio:['ignore','ignore','pipe']});
   let chrome=launchChrome();
   let errors='',client=null,passed=false,diagnosticSessions=[];
+  const consoleErrors=[];
+  const onChromeEvent=message=>{
+    if(message.method==='Runtime.exceptionThrown')consoleErrors.push({type:'exception',
+      session:message.sessionId||null,description:String(message.params?.exceptionDetails?.text||'').slice(0,350)});
+    if(message.method==='Runtime.consoleAPICalled'&&['error','warning'].includes(message.params?.type))
+      consoleErrors.push({type:message.params.type,session:message.sessionId||null,
+        args:message.params.args?.map(x=>String(x.value??x.description??'').slice(0,350)).slice(0,4)});
+    if(consoleErrors.length>40)consoleErrors.shift();
+  };
   const swBytes=await readFile(path.join(ROOT,'sw.js'));
   const report={candidate:process.env.GITHUB_SHA||null,loadedRoot:ROOT,
     profileDir:profile,localhostAddresses:await lookup('localhost',{all:true}),
@@ -199,7 +227,12 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       report.failureUI=[];
       for(const {name,session} of diagnosticSessions){
         try{report.failureUI.push({name,...await evalRead(client,session,
-          '(()=>({text:document.body.innerText,fields:[...document.querySelectorAll("input")].map(x=>({id:x.id,value:x.value,valid:x.checkValidity()}))}))()')});
+          '(()=>({surface:document.documentElement.dataset.opendeskSurface,tab:document.documentElement.dataset.opendeskTab,'+
+           'text:document.body.innerText.slice(0,4000),controls:[...document.querySelectorAll("button,input,[data-extension-key]")].'+
+           'filter(n=>n.id||n.dataset.extensionKey).slice(0,100).map(n=>{const r=n.getBoundingClientRect();'+
+           'return {id:n.id||null,key:n.dataset.extensionKey||null,text:n.textContent?.trim().slice(0,70),'+
+           'hidden:n.hidden,disabled:n.disabled,rect:{x:r.x,y:r.y,w:r.width,h:r.height},'+
+           'hit:!!r.width&&!!r.height&&n.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}})}))()')});
           report.screenshots.push(await screenshot(client,session,'failure-'+name));}catch{}
       }
     }
@@ -214,6 +247,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     await rm(profile,{recursive:true,force:true,maxRetries:4,retryDelay:200});
     if(report.quota==='IN_PROGRESS')report.quota='FAIL';
     report.passed=passed;report.chromeErrorTail=errors.slice(-900);
+    report.chromeConsoleErrors=consoleErrors;
     await writeFile(path.join(OUT,'native-report.json'),JSON.stringify(report,null,2)+'\n');
   });
   const remote=await until(async()=>{
@@ -222,7 +256,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   },'isolated Chrome debugging port',30000);
   const version=await(await fetch('http://127.0.0.1:'+remote+'/json/version')).json();
   report.debugPort=remote;
-  client=connect(version.webSocketDebuggerUrl);await client.ready;
+  client=connect(version.webSocketDebuggerUrl,onChromeEvent);await client.ready;
   report.nativeChrome=version.Browser;
   const id=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -232,7 +266,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const ui=await client.send('Target.createTarget',{url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
   const uid=(await client.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},uid);await client.send('Page.enable',{},uid);
-  await until(()=>evalRead(client,uid,'!!document.querySelector("#sidebar-tool-official-stay-focus-install")'),'official release in catalogue');
+  diagnosticSessions=[{name:'catalog-page',session:uid}];
+  await until(()=>evalRead(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")?.getClientRects().length'),
+    'visible catalog launch button in React full-page UI');
   // Use the actual shipped catalog launcher, not a CDP-injected test button.
   // It checks isTrusted and invokes sidePanel.open in the real user gesture.
   await click(client,uid,'#catalog-open-dev-sidebar');
@@ -247,12 +283,19 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return (await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
   },'Side Panel CDP');
   await client.send('Runtime.enable',{},sid);await client.send('Page.enable',{},sid);
+  diagnosticSessions=[{name:'catalog-page',session:uid},{name:'side-panel',session:sid}];
   await click(client,sid,'#tab-tools');
-  await click(client,sid,'#sidebar-tool-discover-toggle');
-  await click(client,sid,'#sidebar-tool-official-stay-focus-install');
+  await chooseExtensionScope(client,sid,'available');
+  // Never seed storage to simulate installing an app.
+  const available='[data-extension-key="app:stay-focus"][data-extension-action="main"]';
+  await until(()=>evalRead(client,sid,'!!document.querySelector('+JSON.stringify(available)+')'),
+    'Stay Focus available in official React Extension Center');
+  await click(client,sid,available);
+  await click(client,sid,'[data-ec-detail-action="install"]');
   await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-preview").hidden'),'official review');
   await click(client,sid,'#sidebar-tool-install');
-  const installed='[data-sidebar-tool-action=open][data-sidebar-tool-id=stay-focus]';
+  await chooseExtensionScope(client,sid,'smart');
+  const installed='[data-extension-key="app:stay-focus"][data-extension-action="primary"]';
   await until(()=>evalRead(client,sid,'!!document.querySelector('+JSON.stringify(installed)+')'),'real tool installed');
   await click(client,sid,installed);
   let frame=await until(async()=>{
@@ -667,7 +710,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     try{const response=await fetch('http://127.0.0.1:'+port+'/json/version');
       return response.ok?await response.json():null;}catch{return null;}
   },'restarted Chrome CDP with the same profile',30000);
-  client=connect(reopenedVersion.webSocketDebuggerUrl);await client.ready;
+  client=connect(reopenedVersion.webSocketDebuggerUrl,onChromeEvent);await client.ready;
   const restoredId=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
     return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
@@ -757,7 +800,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const newPackageHash=await focusPackageHash(upgradePackage);
   assert.notEqual(oldPackageHash,newPackageHash);
   await click(client,sid,'#sidebar-tool-back');
-  await click(client,sid,'#sidebar-tool-import-trigger');
+  await openVisiblePackageImport(client,sid);
   await nativeSelectToolPackage(client,sid,upgradePackageFile);
   await until(()=>evalRead(client,sid,'(()=>{const box=document.querySelector("#sidebar-tool-preview"),'+
     'version=document.querySelector("#sidebar-tool-preview-version"),'+
