@@ -47,6 +47,8 @@ jobs:
             jsBudget:220000,jsFitsProductionTool:js.length<=220000,
             htmlBytes:(await stat('index.html')).size}));
           NODE
+      - name: Cookie React controller and source regression (Node)
+        run: node --test tests/environment/cookie-editor-react-controller.test.mjs tests/environment/cookie-editor-react-source.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Ensure CJK glyphs in screenshot evidence

@@ -223,6 +223,11 @@ try{
   await page.getByRole('button',{name:'放弃',exact:true}).click();
  });
  await test('R4.11 automatically analyzes import, safe skip, overwrite on opt-in',async()=>{
+   // Isolate this preflight fixture: prior deletion tests intentionally reset rows.
+   await page.getByRole('button',{name:'新建 Cookie'}).click();
+   await page.locator('#cookie-name').fill('created');
+   await page.getByRole('button',{name:'保存',exact:true}).click();
+   await page.getByText('已保存 Cookie').waitFor();
    await page.getByRole('button',{name:'导入 Cookie'}).click();
    const input=page.getByRole('textbox',{name:'Cookie 内容'});
    await input.fill('[{"name":"created","value":"new"},{"name":"imported","value":"ok"}]');
