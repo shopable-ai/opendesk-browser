@@ -226,3 +226,7 @@
 .cookie-app .editor-actions .cookie-editor-icon-action{flex:0 0 34px;width:34px;height:34px;padding:0}
 .cookie-app .editor-actions .cookie-editor-delete{color:var(--od-negative)}
 .cookie-app .editor-actions .cookie-editor-save svg{width:16px;height:16px;flex:none}
+
+/* R5.20 shared site header adopts the compact official hostname. */
+.cookie-app .site-bar{min-height:43px;gap:7px;padding:7px 9px}
+.cookie-app .site-hostname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:650}
