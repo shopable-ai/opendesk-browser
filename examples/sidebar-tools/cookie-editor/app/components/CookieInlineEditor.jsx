@@ -20,7 +20,7 @@ const fromLocal=input=>{
 };
 export default function CookieInlineEditor({row=null,target,disabled=false,
   readValue,onSave,onCancel,onDelete,onDirty}){
-  const valueRef=React.useRef(null);
+  const valueRef=React.useRef(null),nameRef=React.useRef(null);
   // Raw Cookie values never enter React state, props or snapshots.
   const originalValueRef=React.useRef(null),valueEditedRef=React.useRef(false);
   const readGeneration=React.useRef(0),inputRevision=React.useRef(0);
@@ -114,7 +114,12 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     onCancel?.();
   };
   const submit=event=>{
-    event.preventDefault();setMessage('');
+    event?.preventDefault?.();
+    if(disabled)return;
+    if(!draft.name.trim()){
+      setMessage('请输入 Cookie 名称。');nameRef.current?.focus();return;
+    }
+    setMessage('');
     const expiry=draft.session?undefined:fromLocal(draft.expiration);
     if(!draft.session&&(!Number.isFinite(expiry)||expiry<=Date.now()/1000)){
       setMessage('请填写未来的有效过期时间。');return;
@@ -124,8 +129,14 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       originalId:row?.id||null,valueEdited:!edited||valueEdited
     });
   };
-  return <form autoComplete="off" className="cookie-inline-editor inline-editor od-surface od-surface--padded" onSubmit={submit}
-    aria-label={edited?'编辑 Cookie '+row.name:'新建 Cookie'}>
+  // Cookie attributes are not login credentials: remove the native form-submit
+  // signal while retaining keyboard Enter-to-save for ordinary text inputs.
+  return <section className="cookie-inline-editor inline-editor od-surface od-surface--padded"
+    role="group" aria-label={edited?'编辑 Cookie '+row.name:'新建 Cookie'}
+    onKeyDown={event=>{
+      if(event.key==='Enter'&&!event.nativeEvent?.isComposing&&
+        event.target.matches?.('input[type="text"]'))submit(event);
+    }}>
     <div className="cookie-editor-heading editor-top">
       <strong>{edited?'编辑 Cookie':'新建 Cookie'}</strong>
       <span className="editor-top-right">
@@ -134,7 +145,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     </div>
     <div className="cookie-editor-grid cookie-editor-primary">
       <CookieFormField label="名称">
-        <input id="opendesk-cookie-attribute-key" name="opendesk-cookie-attribute-key" type="text" autoComplete="off" autoCapitalize="off" spellCheck={false} className="od-field" aria-label="名称" required maxLength={256}
+        <input ref={nameRef} id="opendesk-cookie-attribute-key" name="opendesk-cookie-attribute-key" type="text" autoComplete="off" autoCapitalize="off" spellCheck={false} className="od-field" aria-label="名称" aria-invalid={message.startsWith('请输入 Cookie 名称')||undefined} required maxLength={256}
           value={draft.name} disabled={disabled}
           onChange={e=>update('name',e.target.value)}/>
       </CookieFormField>
@@ -167,7 +178,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         disabled={disabled}>删除</Button>}
       <span className="cookie-spacer"/>
       <Button type="button" disabled={disabled} onClick={requestClose}>取消</Button>
-      <Button variant="primary" type="submit" disabled={disabled||(edited&&!dirty)}>保存 Cookie</Button>
+      <Button variant="primary" type="button" onClick={submit} disabled={disabled||(edited&&!dirty)}>保存 Cookie</Button>
     </div>
-  </form>;
+  </section>;
 }

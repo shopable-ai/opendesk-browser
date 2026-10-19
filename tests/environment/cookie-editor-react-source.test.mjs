@@ -101,7 +101,7 @@ test('formal native package unchanged until candidate passes all gates',async()=
   assert.match(vite,/react:'OpenDeskPageReact'/);
 });
 
-test('R5.15 Cookie fields never impersonate a username/password form',async()=>{
+test('R5.16 Cookie fields never impersonate a username/password form',async()=>{
   const [preview,editor,view,barrel]=await Promise.all([
     get('preview/react/src/App.jsx'),get('app/components/CookieInlineEditor.jsx'),
     get('app/components/CookieEditorView.jsx'),get('ui/CookieEditorView.jsx')]);
@@ -112,7 +112,10 @@ test('R5.15 Cookie fields never impersonate a username/password form',async()=>{
   assert.match(view,/id="opendesk-cookie-attribute-data"/);
   assert.match(view,/name="opendesk-cookie-attribute-data"/);
   assert.match(view,/type="text" autoComplete="off"/);
-  assert.match(editor,/autoComplete="off" className="cookie-inline-editor/);
+  assert.match(editor,/className="cookie-inline-editor inline-editor/);
+  assert.match(editor,/role="group"/);
+  assert.doesNotMatch(editor,/<form\b/,'formal editor must not submit a login-like HTML form');
+  assert.match(editor,/type="button" onClick=\{submit\}/);
   for(const source of [preview,editor,view]){
     assert.doesNotMatch(source,/type=["']password["']/);
     assert.doesNotMatch(source,/cookie-value-toggle|<CookieIcon name=\{showValue/);

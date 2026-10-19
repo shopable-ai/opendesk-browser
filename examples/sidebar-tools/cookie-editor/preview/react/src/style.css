@@ -183,3 +183,11 @@
 .cookie-clear-dialog-actions>.danger:hover:not(:disabled){background:#952a40;color:#fff}
 .cookie-clear-dialog-actions>button:focus-visible{outline:2px solid var(--od-brand,#365eda);outline-offset:3px}
 @media(max-width:350px){.cookie-clear-dialog-body{padding:14px}.cookie-clear-dialog-actions>button{flex:1 1 0;min-width:0}}
+
+/* R5.16: hide fixture switches until the reviewer explicitly opens them. */
+.demo-lab > summary{cursor:pointer;list-style:none;border-radius:7px;min-height:30px;align-items:center}
+.demo-lab > summary::-webkit-details-marker{display:none}
+.demo-lab > summary::before{content:'▸';font-size:15px;color:var(--od-sub,#53647e);margin-right:2px;transition:transform .12s}
+.demo-lab[open] > summary::before{transform:rotate(90deg)}
+.demo-lab > summary:focus-visible{outline:2px solid #365eda;outline-offset:2px}
+.demo-lab .lab-controllers{padding-top:6px}

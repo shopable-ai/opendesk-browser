@@ -26,6 +26,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [expanded,setExpanded]=React.useState(false);
   const [siteInput,setSiteInput]=React.useState('');
   const [dirty,setDirty]=React.useState(false);
+  const dirtyRef=React.useRef(false);
+  dirtyRef.current=dirty;
   const [confirmation,setConfirmation]=React.useState(null);
   const [status,setStatus]=React.useState('');
   const [working,setWorking]=React.useState(false);
@@ -84,11 +86,15 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
     scrubSensitive();
     const wasBusy=controller.snapshot().busy;
+    const hadDirty=dirtyRef.current;
     controller.invalidate(reason);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
     if(siteChanged){appliedSite.current='';setSiteInput('');}
     if(wasBusy)setStatus('网站或权限在操作期间改变，写入结果可能未知。请核对 Chrome，禁止自动重试。');
-    else void controller.load(appliedSite.current);
+    else{
+      if(hadDirty)setStatus('网站或授权已改变，未保存的 Cookie 草稿已清除；请重新编辑。');
+      void controller.load(appliedSite.current);
+    }
   };
   React.useEffect(()=>{
     const grant=()=>invalidate('授权已改变，敏感值和旧列表已清除。');

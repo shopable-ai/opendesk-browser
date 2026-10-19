@@ -15,7 +15,7 @@ const pass=[];
 const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name)};
 try{
  await page.goto(url,{waitUntil:'load'});
- assert.equal(await page.title(),'Cookie Editor R5.15 · 380px 交互预览','React build must have the R4.11 preview title');
+ assert.equal(await page.title(),'Cookie Editor R5.16 · 380px 交互预览','React build must contain the R5.16 preview');
  await test('380px native-width panel when standalone HTML is opened on desktop',async()=>{
    await page.setViewportSize({width:1280,height:880});
    await page.locator('.cookie-app').waitFor();
@@ -29,6 +29,13 @@ try{
  });
  await test('React 19 render eight cookies',async()=>{await page.locator('.cookie-row').first().waitFor();assert.equal(await page.locator('.cookie-row').count(),8);});
  await page.screenshot({path:join(output,'384-initial.png'),fullPage:true});
+ await test('R5.16 preview controls are collapsed by default',async()=>{
+   const lab=page.locator('.demo-lab');
+   assert.equal(await lab.getAttribute('open'),null,'Cookie UI should appear first');
+   assert.equal(await page.locator('[data-testid="scenario"]').isVisible(),false);
+   await lab.locator('summary').click();
+   assert.equal(await page.locator('[data-testid="scenario"]').isVisible(),true);
+ });
  await test('import/export icons convey data flow, download icon still means file download',async()=>{
    const path=async(label)=>page.getByRole('button',{name:label,exact:true}).locator('svg path').first().getAttribute('d');
    assert.equal(await path('导入 Cookie'),'M12 21V9m-4 4 4-4 4 4M4 3v4h16V3');
@@ -78,6 +85,18 @@ try{
    assert.equal(await page.locator('.cookie-row').count(),2,'domain and partition rows are excluded');
    await page.locator('[data-testid="scenario"]').selectOption('ready');
    assert.equal(await page.locator('.cookie-row').count(),8);
+ });
+ await test('R5.16 unsaved import blocks a site clear without losing the draft',async()=>{
+   await page.getByRole('button',{name:'导入 Cookie'}).click();
+   const input=page.getByRole('textbox',{name:'Cookie 内容'});
+   const draft='[{"name":"not_saved","value":"fixture_only"}]';
+   await input.fill(draft);
+   await page.getByRole('button',{name:'安全清理本站 Cookie'}).click();
+   assert.equal(await page.locator('dialog:modal').count(),0);
+   await page.getByText('请先保存、导入或取消当前未完成的修改，再清理本站 Cookie。').waitFor();
+   assert.equal(await input.inputValue(),draft);
+   await page.getByRole('button',{name:'关闭导入'}).click();
+   await page.getByRole('button',{name:'重置',exact:true}).click();
  });
  await test('inline dirty restore and save',async()=>{
    await page.locator('[data-row="b"]').click();await page.locator('#opendesk-cookie-attribute-key').fill('renamed');assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
@@ -427,12 +446,25 @@ try{
    await page.getByRole('button',{name:'取消',exact:true}).click();
  });
  await test('viewport + zoom + dark',async()=>{
+  // Do not rely on another test leaving Export open.
+  await page.getByRole('button',{name:'导出 Cookie'}).click();
+  await page.getByRole('button',{name:'关闭导出'}).waitFor();
   for(const width of [320,360,380,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}@${zoom}`);}await page.evaluate('document.body.style.zoom=""');}
   await page.getByRole('button',{name:'关闭导出'}).click();
   await page.setViewportSize({width:380,height:850});
   await page.screenshot({path:join(output,'380-list.png'),fullPage:true});
   await page.getByRole('button',{name:'深色'}).click();
   await page.screenshot({path:join(output,'380-dark.png'),fullPage:true});
+  for(const width of [320,380,520]){
+    await page.setViewportSize({width,height:850});
+    assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,
+      `dark mode overflow ${width}`);
+    await page.screenshot({path:join(output,`${width}-dark.png`),fullPage:true});
+  }
+  await page.setViewportSize({width:380,height:850});
+  await page.getByRole('button',{name:'安全清理本站 Cookie'}).click();
+  await page.screenshot({path:join(output,'380-clear-dialog-dark.png'),fullPage:true});
+  await page.getByRole('dialog',{name:'清理本站 Cookie'}).getByRole('button',{name:'取消',exact:true}).click();
  });
  await test('first authorization denial, recovery, auto-hide and revocation',async()=>{
    await page.locator('[data-testid="scenario"]').selectOption('first');

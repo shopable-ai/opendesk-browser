@@ -340,7 +340,9 @@ export default function App(){
  };
  const requestClear=()=>{
   if(!canWrite||busy||needsVerify)return;
-  if(dirty){setError('请先保存或取消当前 Cookie 修改，再清理本站。');return;}
+  if(dirty||(io==='import'&&importText.trim().length>0)){
+   setError('请先保存、导入或取消当前未完成的修改，再清理本站 Cookie。');return;
+  }
   if(clearCandidates.length>50){setError('当前可清理 Cookie 超过 50 条，需缩小范围，不会自动分批删除。');return;}
   if(!clearCandidates.length){notify('当前范围没有可安全清理的 Host-only Cookie。','neutral');return;}
   setIo(null);setError('');setFlash(null);
@@ -372,11 +374,11 @@ export default function App(){
  // Escape closes panels, except while an IME owns Escape for candidate selection.
  const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
-   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R5.15</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
+   <details className="demo-lab" aria-label="预览场景切换器"><summary className="lab-title"><span>Cookie Editor R5.16</span><span className="lab-label">预览控制 · 虚构数据</span></summary><div className="lab-controllers">
       <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}><option value="ready">已授权</option><option value="first">未授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option></select></label>
       <label>下次操作 <select data-testid="failure" value={failNext} onChange={e=>setFailNext(e.target.value)}><option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option><option value="grantDenied">授权被拒绝</option><option value="grantError">授权请求失败</option></select></label>
       <button className="lab-button" type="button" onClick={()=>setDark(a=>!a)}>{dark?'浅色':'深色'}</button><button className="lab-button" type="button" onClick={resetAll}>重置</button>
-   </div></section>
+   </div></details>
    <main className="cookie-app" onKeyDown={appKeydown} aria-label="Cookie Editor">
       <HostHeader onAction={action=>notify(action+" 由 OpenDesk 宿主管理，本预览不执行真实操作。","neutral")}/>
       <CookieSiteBar site={demoSite} loading={loading}
