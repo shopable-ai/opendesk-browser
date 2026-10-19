@@ -9,7 +9,7 @@
   "scripts": {
     "build": "vite build && node build-preview.mjs",
     "check": "node build-preview.mjs --check",
-    "test:chromium": "node chromium.mjs"
+    "test:chromium": "npm run build && node chromium.mjs"
   },
   "dependencies": {
     "react": "19.2.0",
