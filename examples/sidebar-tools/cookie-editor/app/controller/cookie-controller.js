@@ -16,19 +16,17 @@ export function createCookieController({adapter,onChange=()=>{}}){
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
     message='',messageType='info',importPlan=null,clearPlan=null,
-    observing=null,observeCursor='0',observeEvents=[];
+    syncStale=false,syncPending=null;
   let importRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target,rows:rows.map(x=>({...x})),
-    phase,message,messageType,observing:!!observing,
-    observeEvents:observeEvents.map(x=>({...x}))});
+    phase,message,messageType,syncStale});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
-    retireObservation();
     epoch++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
-    clearPlan=null;
+    clearPlan=null;syncStale=false;syncPending=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
   }
@@ -36,19 +34,10 @@ export function createCookieController({adapter,onChange=()=>{}}){
     busy=true;const at=target,ticket=epoch;notify();return {at,ticket};};
   const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
-  // Host observation sessions are owned by the old URL and may survive the UI.
-  // Retire them on every target/grant change, including in-flight read failures.
-  function retireObservation(){
-    const at=target,sessionRef=observing?.sessionRef;
-    observing=null;observeCursor='0';observeEvents=[];
-    if(at&&typeof sessionRef==='string')
-      void Promise.resolve().then(()=>adapter.observeStop(at,sessionRef)).catch(()=>{});
-  }
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
-    retireObservation();
     const ticket=++epoch;rows=[];target=null;phase='loading';importPlan=null;
-    clearPlan=null;busy=true;
+    clearPlan=null;busy=true;syncStale=false;syncPending=null;
     if(!preserveMessage){message='';messageType='info';}
     notify();
     let at=null;
@@ -364,53 +353,38 @@ export function createCookieController({adapter,onChange=()=>{}}){
       await load(guard.at.url,{preserveMessage:true});
     return complete;
   }
-  async function observe(action){
-    const guard=lock();if(!guard)return;
+  // Passive list refresh uses the public SDK and returns metadata only. It must
+  // never erase a live editor, re-read Cookie values or trigger a write.
+  async function syncMetadata({canApply=()=>true}={}){
+    if(closed||busy||phase!=='ready'||!target||!canApply()||
+      syncPending?.ticket===epoch)return false;
+    const at=target,ticket=epoch,token={ticket};
+    syncPending=token;
+    const safe=()=>current(ticket,at)&&!busy&&canApply();
     try{
-      if(action==='start'){
-        const started=await adapter.observeStart(guard.at);
-        if(!verifiedRead(guard)){
-          if(typeof started?.sessionRef==='string')
-            void Promise.resolve().then(()=>adapter.observeStop(guard.at,started.sessionRef)).catch(()=>{});
-          return;
-        }
-        if(typeof started?.sessionRef!=='string')throw badReceipt();
-        observing=started;observeCursor='0';observeEvents=[];
-        report('已开始 15 秒元数据观察，无 Cookie Value。');
-      }else if(observing){
-        const sessionRef=observing.sessionRef;
-        if(action==='stop'){
-          // Clear the local handle before awaiting the Host, so navigation
-          // cannot schedule a duplicate stop or revive a stale session.
-          observing=null;observeCursor='0';observeEvents=[];
-          await adapter.observeStop(guard.at,sessionRef);
-          if(!verifiedRead(guard))return;
-          report('已停止观察。');
-        }else if(action==='read'){
-          const outcome=await adapter.observeRead(guard.at,sessionRef,observeCursor);
-          if(!verifiedRead(guard))return;
-          observeCursor=outcome.nextCursor;
-          observeEvents=(outcome.events||[]).slice(-40).map(item=>({
-            name:String(item.name||''),domain:String(item.domain||''),
-            path:String(item.path||''),removed:item.removed===true
-          }));
-          report('本次读取 '+observeEvents.length+' 条变化（不含 Cookie 值）。');
-        }
-      }
-    }catch(error){if(verifiedRead(guard)){
-      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED'].includes(error?.code))
-        retireObservation();
-      report('变化观察中止'+formatCode(error,'E_COOKIE_OBSERVE')+'。','error');
-    }}finally{unlock(guard);}
+      const found=await adapter.list(at,{isCurrent:safe});
+      if(found===null||!safe())return false;
+      const next=found.map(row=>({...row,id:key(row)}));
+      const previous=new Map(rows.map(row=>[row.id,row]));
+      const changed=next.length!==rows.length||next.some(row=>
+        JSON.stringify(previous.get(row.id))!==JSON.stringify(row));
+      if(changed)rows=next;
+      if(changed||syncStale){syncStale=false;notify();}
+      return true;
+    }catch{
+      // Keep the last known metadata visible but identify it as stale. Native
+      // permissions and write receipts remain the only authority for mutations.
+      if(safe()&&!syncStale){syncStale=true;notify();}
+      return false;
+    }finally{if(syncPending===token)syncPending=null;}
   }
   function dispose(){
-    retireObservation();
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
-    clearPlan=null;observeEvents=[];
+    clearPlan=null;syncStale=false;syncPending=null;
   }
   // Initial state is available synchronously through snapshot(). Do not
   // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
-    discardImport,exportTo,observe,dispose};
+    discardImport,exportTo,syncMetadata,dispose};
 }
