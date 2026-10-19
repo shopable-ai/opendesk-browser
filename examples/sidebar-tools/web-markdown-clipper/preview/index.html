@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>网页剪藏 · 1.0.2 正式 UI 交互预览</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
+*{box-sizing:border-box}body{margin:0;min-width:280px}
+.preview-shell{padding:20px 14px 32px;max-width:1020px;margin:auto}
+.preview-head{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:16px;margin:0 0 3px;line-height:1.35}
+p{margin:0}.subtitle{color:#66758c;font-size:12px;line-height:1.5}
+.notice{padding:8px 10px;background:#fff8e8;border:1px solid #e8d9b2;border-radius:9px;color:#746341;font-size:12px;line-height:1.5;margin:0 0 12px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:13px}
+.group{display:flex;align-items:center;gap:3px;padding:3px;background:#e9eef7;border:1px solid #d9e1ed;border-radius:10px}
+button{border:0;background:transparent;border-radius:7px;color:#53627a;min-height:32px;padding:6px 10px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{background:white;color:#2454bd;box-shadow:0 1px 3px #1b35531a;font-weight:700}
+.extra{border:1px solid #d9e1ed;background:white;color:#243653}
+button:focus-visible{outline:2px solid #3a62d8;outline-offset:2px}
+.canvas{overflow:auto;padding:18px;min-height:440px;border:1px dashed #c5d0e1;border-radius:14px;background:radial-gradient(circle at 10% 15%,#f1f5fd,#e9eef8)}
+.canvas.dark{background:radial-gradient(circle at 10% 15%,#293246,#181e2b);border-color:#44506c}
+.device{margin:0 auto;transition:width .18s ease;width:400px;max-width:none;box-shadow:0 12px 32px #20395a1b;border-radius:13px;overflow:hidden;background:#fff}
+.canvas.dark .device{background:#202633;box-shadow:0 12px 32px #0004}
+iframe{border:0;display:block;width:100%;height:630px;background:transparent}
+.log{margin-top:10px;min-height:21px;font-size:12px;color:#61728c;overflow-wrap:anywhere}
+@media(max-width:510px){.preview-shell{padding:12px 8px}.canvas{padding:8px}.controls{gap:6px}.group button{padding:5px 8px}.preview-head{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.device{transition:none}}
+</style>
+</head>
+<body>
+<div class="preview-shell">
+ <header class="preview-head">
+  <div><h1>网页剪藏 · 正式 UI 预览</h1><p class="subtitle">复用 src/index.html、src/style.css、src/main.js · 版本 1.0.2</p></div>
+  <span class="subtitle">官方 UI + 演示 Host</span>
+ </header>
+ <p class="notice" role="note">演示模式：文章、选区、引用和链接均使用固定样例。授权、复制、下载不访问真实 Chrome / 系统剪贴板 / 磁盘；交互不代表发布验收通过。</p>
+ <div class="controls">
+  <div class="group" role="group" aria-label="模拟侧栏宽度">
+   <button type="button" data-width="320" aria-pressed="false">320</button>
+   <button type="button" data-width="360" aria-pressed="false">360</button>
+   <button type="button" data-width="400" aria-pressed="true">400</button>
+   <button type="button" data-width="440" aria-pressed="false">440</button>
+  </div>
+  <div class="group" role="group" aria-label="主题">
+   <button type="button" data-theme="light" aria-pressed="true">浅色</button>
+   <button type="button" data-theme="dark" aria-pressed="false">深色</button>
+  </div>
+  <button type="button" class="extra" id="zoom" aria-pressed="false">200% 缩放</button>
+  <button type="button" class="extra" id="reset">模拟网页变化</button>
+ </div>
+ <div class="canvas" id="canvas">
+  <div class="device" id="device">
+   <iframe id="stage" src="stage.html" title="官方网页剪藏工具交互预览" loading="eager"></iframe>
+  </div>
+ </div>
+ <p class="log" id="log" role="status" aria-live="polite">演示就绪：在内部点击「剪藏」获取模拟 Markdown。</p>
+</div>
+<script>
+(function(){
+ 'use strict';
+ const stage=document.querySelector('#stage'),device=document.querySelector('#device');
+ const canvas=document.querySelector('#canvas'),log=document.querySelector('#log');
+ let width=400,theme='light',zoom=1;
+ const sync=()=>{device.style.width=width+'px';canvas.classList.toggle('dark',theme==='dark');
+   stage.contentWindow?.postMessage({kind:'clipper-demo-control',theme,zoom},'*');
+ };
+ for(const button of document.querySelectorAll('[data-width]')){
+  button.addEventListener('click',()=>{width=Number(button.dataset.width);
+   for(const other of document.querySelectorAll('[data-width]'))
+    other.setAttribute('aria-pressed',String(other===button));
+   sync();
+  });
+ }
+ for(const button of document.querySelectorAll('[data-theme]')){
+  button.addEventListener('click',()=>{theme=button.dataset.theme;
+   for(const other of document.querySelectorAll('[data-theme]'))
+    other.setAttribute('aria-pressed',String(other===button));
+   sync();
+  });
+ }
+ document.querySelector('#zoom').addEventListener('click',event=>{
+  zoom=zoom===1?2:1;event.currentTarget.setAttribute('aria-pressed',String(zoom===2));sync();
+ });
+ document.querySelector('#reset').addEventListener('click',()=>{
+  stage.contentWindow?.postMessage({kind:'clipper-demo-control',reset:true},'*');
+  log.textContent='模拟网页发生变化：官方 UI 应清空旧 Markdown。';
+ });
+ window.addEventListener('message',event=>{
+  if(event.source!==stage.contentWindow||event.data?.kind!=='clipper-demo')return;
+  log.textContent='演示操作：'+event.data.name+' · '+event.data.bytes+' UTF-8 字节（非真实设备结果）';
+ });
+ stage.addEventListener('load',sync);
+ sync();
+})();
+</script>
+</body>
+</html>
