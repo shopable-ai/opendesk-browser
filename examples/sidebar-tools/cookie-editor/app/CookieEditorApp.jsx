@@ -189,18 +189,29 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     modeRef.current=next;
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
+  const activeImportRef=React.useRef(null);
+  const finishImportIntent=ref=>{
+    if(!Number.isSafeInteger(ref)||ref<1)return;
+    if(activeImportRef.current===ref)activeImportRef.current=null;
+    void adapter.finishImportIntent(ref).catch(()=>{});
+  };
   const beginImportIntent=async()=>{
     const state=controller.snapshot();
     if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target)
       return false;
+    activeImportRef.current=null;
     const receipt=await adapter.beginImportIntent(state.target);
-    return receipt?.authorized===true;
+    if(receipt?.authorized!==true||!Number.isSafeInteger(receipt.ref)||receipt.ref<1)
+      return false;
+    activeImportRef.current=receipt.ref;
+    return true;
   };
   const importFromText=async text=>{
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
     const initial=controller.snapshot();
     if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
+    const sessionRef=activeImportRef.current;
     try{
     const plan=await controller.previewImport(text,'auto',true);
     // Never report a stale success/error against a newly selected site.
@@ -233,7 +244,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       '导入结果未完全确认，请先核对 Chrome，勿直接重复提交。');
     return 'unknown';
     }finally{
-      void adapter.finishImportIntent().catch(()=>{});
+      finishImportIntent(sessionRef);
     }
   };
   const save=async(row,options)=>{
@@ -343,7 +354,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         {panel==='import'&&<CookieImport disabled={locked}
           notice={importNotice} onImportText={importFromText} onNotice={noteImport}
           onBeginImport={beginImportIntent}
-          onClose={()=>{controller.discardImport();void adapter.finishImportIntent().catch(()=>{});setPanel(null);}}/>}
+          onClose={()=>{controller.discardImport();finishImportIntent(activeImportRef.current);setPanel(null);}}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onDelivered={method=>{setPanel(null);noteImport(method==='copy'?'已复制 Cookie':'已导出 Cookie','success');}}
           onClose={()=>setPanel(null)}/>}
