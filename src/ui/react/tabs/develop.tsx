@@ -689,32 +689,6 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
                 {"如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。"}
               </p>
             </DevelopField>
-            <p className="hint">
-              {"默认使用当前网页；手动目标仅用于高级操作。"}
-            </p>
-            <div className="row">
-              <label htmlFor="script-target-mode" className="od-field-label">
-                {"目标方式"}
-              </label>
-              <DevelopField as="select" id="script-target-mode" className="od-field"/>
-            </div>
-            <label htmlFor="script-owned-url" className="od-field-label">
-              {"隔离网页地址"}
-            </label>
-            <DevelopField as="input" id="script-owned-url" type="url" placeholder="https://example.com/" className="od-field"/>
-            <div className="row">
-              <label htmlFor="script-tab" className="od-field-label">
-                {"现有网页"}
-              </label>
-              <DevelopField as="select" id="script-tab" className="od-field"/>
-              <DevelopField as="button" id="script-refresh" className="od-button od-button--secondary">
-                {"刷新网页列表"}
-              </DevelopField>
-            </div>
-            <label htmlFor="script-document" className="od-field-label">
-              {"精确文档"}
-            </label>
-            <DevelopField as="select" id="script-document" className="od-field"/>
             <p>
               <label>
                 <DevelopField as="input" id="script-allow-cookies" type="checkbox"/>

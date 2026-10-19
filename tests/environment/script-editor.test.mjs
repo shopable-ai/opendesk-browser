@@ -51,7 +51,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   const view=new Element(), legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
   const projection=createDeveloperView();
   const find=developerTestFields(projection);
-  find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
+  find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
   const tabDocuments=new Map([[11,'doc-11'],[12,'doc-12']]);
@@ -1946,14 +1946,13 @@ for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entr
   if(world==='esm-controller'){assert.equal(f.starts.length,1);await f.finish(7);}
   else assert.equal(f.previews.length,1);
 });
-for(const change of ['source','document','target-mode'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
+for(const change of ['source','document'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
   const gate=deferred(),f=await staticESMFixture(t,{compileGate:gate});
   await f.page();
   await f.click('script-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
   assert.equal(f.compiled.length,1);
   if(change==='source'){f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input',{isTrusted:true});}
   else if(change==='document')await f.navigateTab();
-  else {f.find('script-target-mode').value='borrowed';f.find('script-target-mode').fire('change',{isTrusted:true});await tick();}
   gate.resolve();await f.settle();
   assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
   assert.equal(f.find('page-preview-status').dataset.state,'error');

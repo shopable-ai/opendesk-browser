@@ -57,10 +57,12 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
   const legacyFind=id=>nodes.get(id),view=new Element();
   const legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
   const reactView=createDeveloperView();
+  for(const obsolete of ['script-target-mode','script-owned-url','script-tab','script-document','script-refresh'])
+    assert.equal(Object.hasOwn(reactView.fields,obsolete),false,'普通运行器不得保留旧目标选择状态：'+obsolete);
   const find=developerTestFields(reactView);
   find('script-id').value='manual';find('script-revision').value='1';
   find('script-source').value=manualSource;
-  find('script-params').value='{}';find('script-target-mode').value='current';
+  find('script-params').value='{}';
   find('local-project-params').value='{}';
   const opened=[],requests=[],hostRequests=[],commits=[],effects=[],permissions=[],dispatches=[],manualRuns=[],stops=[],resolutions=[],trace=[];
   let nativeConnected=true,pageListener,runListener,localListener,loadGate,statusGate,allowed=true;
