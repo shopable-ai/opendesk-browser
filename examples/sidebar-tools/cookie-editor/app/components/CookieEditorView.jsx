@@ -4,7 +4,7 @@ import * as React from 'react';
 
 // The same statically compiled presentation contract can be consumed by a
 // preview adapter and a reviewed trusted adapter. Never read Cookie values,
-// installed package HTML/JS, Chrome APIs or OpenDeskSDK in this module.
+// installed package HTML/JS or privileged browser transport in this module.
 const shapes={
   globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
   refresh:<><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></>,
