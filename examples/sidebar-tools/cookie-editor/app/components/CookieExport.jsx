@@ -7,17 +7,13 @@ import {CookieExportFormatRow,CookieExportActions} from './CookieEditorView.jsx'
 export default function CookieExport({controller,disabled=false,onClose}){
   const [format,setFormat]=React.useState('json');
   const [includeValues,setIncludeValues]=React.useState(true);
-  const [confirmation,setConfirmation]=React.useState(null);
   const [working,setWorking]=React.useState(false);
-  const cancelRef=React.useRef(null);
   const metadata=format==='json'&&!includeValues;
   const rows=controller.snapshot().rows;
   const partitioned=rows.some(row=>Boolean(row.partitionKey));
   const lossy=partitioned&&format!=='json';
   const busy=disabled||working;
-  React.useEffect(()=>{if(confirmation)cancelRef.current?.focus();},[confirmation]);
   const deliver=async method=>{
-    setConfirmation(null);
     setWorking(true);
     try{
       // A false/unknown result must never become a success toast or automatic retry.
@@ -26,10 +22,9 @@ export default function CookieExport({controller,disabled=false,onClose}){
   };
   const choose=method=>{
     if(busy||lossy)return;
-    if(metadata){void deliver(method);return;}
-    // A default checked "include values" is only a preference; it never grants
-    // cookie.values permission or waives explicit exfiltration confirmation.
-    setConfirmation(method);
+    // A user click is the only export trigger. Host independently checks the
+    // Cookie Value and clipboard/download grants; React adds no second dialog.
+    void deliver(method);
   };
   return <section className="cookie-panel cookie-export-panel od-surface od-surface--padded"
     aria-label="导出 Cookie">
@@ -39,8 +34,7 @@ export default function CookieExport({controller,disabled=false,onClose}){
         onClick={onClose} aria-label="关闭导出">关闭</Button>
     </div>
     <CookieExportFormatRow format={format} includeValues={includeValues} disabled={busy}
-      onFormat={next=>{setFormat(next);setConfirmation(null);}}
-      onIncludeValues={next=>{setIncludeValues(next);setConfirmation(null);}}/>
+      onFormat={setFormat} onIncludeValues={setIncludeValues}/>
     <p className="cookie-message" role="note">{metadata
       ?'仅导出元数据，不能用来恢复 Cookie。'
       :format==='json'
@@ -49,16 +43,6 @@ export default function CookieExport({controller,disabled=false,onClose}){
     {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
       本站含分区 Cookie。此格式无法无损保存 Partition，已禁止导出；请选择 JSON。
     </p>}
-    {confirmation&&<div className="cookie-export-confirm od-alert od-alert--warning"
-      role="group" aria-label="确认导出敏感 Cookie">
-      <p>导出内容可能包含登录凭据。确认{confirmation==='copy'?'复制到剪贴板':'下载到本机'}？
-        授权仍由 OpenDesk Host 单独核验。</p>
-      <div className="cookie-editor-actions">
-        <Button ref={cancelRef} type="button" onClick={()=>setConfirmation(null)}>取消</Button>
-        <Button type="button" variant="primary" disabled={busy}
-          onClick={()=>void deliver(confirmation)}>确认导出</Button>
-      </div>
-    </div>}
     <CookieExportActions disabled={busy||lossy} onCopy={()=>choose('copy')}
       onDownload={()=>choose('download')}/>
   </section>;
