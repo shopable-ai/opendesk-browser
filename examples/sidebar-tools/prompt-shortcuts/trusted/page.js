@@ -396,14 +396,19 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       resizeObserver?.unobserve?.(old);observedRegions.delete(old);
     }
     const rect=mainRegion(),target=editor();
-    if(!rect||!target||(activeRule&&!checkedEditor())){host.hidden=true;return;}
+    if(!rect||(activeRule&&!checkedEditor())){host.hidden=true;return;}
     if(!host.isConnected){
       doc.documentElement?.append(host);
       if(!host.isConnected)return;
     }
     host.classList.toggle('dark',!!darkTheme());
-    const targetRect=target.getBoundingClientRect?.();
-    if(!targetRect||targetRect.left>=win.innerWidth||targetRect.top>=win.innerHeight){host.hidden=true;return;}
+    // A temporarily absent ChatGPT editor must not break the existing
+    // no-editor -> copy fallback; never guess a writable field.
+    const targetRect=target?.getBoundingClientRect?.()||{
+      left:rect.left+Math.min(140,rect.width*0.2),top:rect.top+rect.height/2,
+      width:Math.max(200,rect.width*0.6),height:48
+    };
+    if(targetRect.left>=win.innerWidth||targetRect.top>=win.innerHeight){host.hidden=true;return;}
     // The live editor and measured navigation edge determine the LEFT gutter.
     const verticalWidth=rail.scrollWidth||52;
     const safeLeft=rect.safeLeft??rect.left;
