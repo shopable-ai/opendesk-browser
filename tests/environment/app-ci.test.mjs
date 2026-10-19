@@ -40,7 +40,17 @@ test('a new ordinary App needs no YAML, Host hardcoding or catalog registration'
       join(ROOT,'artifacts/app-ci',x.name,'candidate-receipt.json'),'utf8'));
     assert.equal(receipt.status,'BUILT_NOT_TESTED_NOT_RELEASED');
     assert.equal(receipt.version,'1.0.0');
-    assert.equal(cli(['node',x.name]).status,0,'ordinary App must pass common lifecycle gates');
+    // Adding App-owned tests does not require editing YAML, shared code, or a profile.
+    await mkdir(join(x.project,'tests'));
+    const local=join(x.project,'tests','automatic.test.mjs');
+    await writeFile(local,"import test from 'node:test'; test('auto',()=>{});");
+    assert.equal(cli(['node',x.name]).status,0,'ordinary App and new owned test must pass');
+    await writeFile(local,"import test from 'node:test'; test('fail-fast',()=>{throw Error('CI_DISCOVERY_PROOF');});");
+    const caught=cli(['node',x.name]);
+    assert.notEqual(caught.status,0,'a newly failing owned test must block publication');
+    assert.match(caught.stdout+caught.stderr,/CI_DISCOVERY_PROOF/);
+    await rm(local);
+
     assert.equal(cli(['inspect',x.name]).status,0,'no per-App workflow needed');
     // The fixture is absent from official catalog; its package still builds.
     const catalog=JSON.parse(await readFile(join(ROOT,'official-tools/catalog.json'),'utf8'));

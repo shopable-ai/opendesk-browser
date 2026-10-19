@@ -12,6 +12,7 @@
     "tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs"
   ],
   "browser": [
-    "scripts/tests/quick-notes-react-r21-preview-chrome.mjs"
+    "scripts/tests/quick-notes-react-r21-preview-chrome.mjs",
+    "examples/sidebar-tools/quick-notes-react/scripts/ci-installed-chrome.mjs"
   ]
 }

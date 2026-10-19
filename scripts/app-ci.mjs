@@ -41,6 +41,33 @@ async function sourcePath(name,where){
     fail('symlink or missing '+where+' file '+name);
   return target;
 }
+// App-owned tests are discovered by directory, not listed in a shared YAML.
+// A newly added *.test.mjs in an App's own tests/ cannot be silently skipped.
+async function ownedTests(name,dir){
+  const root=join(dir,'tests'),found=[];
+  const rootInfo=await stat(root).catch(()=>null);
+  if(!rootInfo)return found;
+  if(!rootInfo.isDirectory()||(await realpath(root))!==root)
+    fail('invalid App tests directory '+name);
+  async function visit(folder,depth){
+    if(depth>5)fail('App test nesting exceeds safety limit: '+name);
+    for(const item of await readdir(folder,{withFileTypes:true})){
+      const file=join(folder,item.name);
+      if(item.isSymbolicLink())fail('symlink forbidden in App tests');
+      if(item.isDirectory())await visit(file,depth+1);
+      else if(item.isFile()&&item.name.endsWith('.test.mjs')){
+        if(found.length>=100)fail('App test budget exceeded');
+        const relativeName='examples/sidebar-tools/'+name+'/tests/'+
+          file.slice(root.length+1).split(sep).join('/');
+        await sourcePath(relativeName,'App test');
+        found.push(relativeName);
+      }
+    }
+  }
+  await visit(root,0);
+  return found.sort();
+}
+
 async function projects(){
   const found=[];
   for(const row of await readdir(APPS,{withFileTypes:true})){
@@ -68,6 +95,9 @@ async function load(name){
      Object.keys(profile).some(k=>!['schema','kind','build','afterBuild','node','browser','native','host','extraCandidate'].includes(k)))
     fail('invalid App CI profile '+name);
   const node=arr(profile.node||[],name+'.node');
+  for(const discovered of await ownedTests(name,dir))
+    if(!node.includes(discovered))node.push(discovered);
+  profile.node=node;
   const browser=arr(profile.browser||[],name+'.browser');
   const native=profile.native||null;
   if(profile.host!==undefined&&!['production','development'].includes(profile.host))
