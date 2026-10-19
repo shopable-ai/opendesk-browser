@@ -202,3 +202,52 @@
 .cookie-editor-react .cookie-offline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line)}
 .cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
 @media(max-width:260px){.cookie-editor-react .cookie-utility-actions>button{min-width:0}}
+
+
+/* Import uses the native top layer: never reflow the Cookie list or inline a preview. */
+.cookie-editor-react .cookie-import-dialog{
+  box-sizing:border-box;width:min(430px,calc(100vw - 24px));
+  max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);
+  margin:auto;padding:0;overflow:auto;
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  color:var(--od-ink);background:var(--od-paper);
+}
+.cookie-editor-react .cookie-import-dialog::backdrop{
+  background:rgba(15,23,42,.45);
+}
+.cookie-editor-react .cookie-import-body{
+  display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3);
+}
+.cookie-editor-react .cookie-import-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
+}
+.cookie-editor-react .cookie-import-heading h2{
+  font-size:16px;line-height:1.45;font-weight:650;margin:0;
+}
+.cookie-editor-react .cookie-import-paste{
+  display:grid;gap:var(--space-2);min-width:0;
+  font-size:var(--od-note-size);color:var(--od-sub);
+}
+.cookie-editor-react .cookie-import-paste textarea{
+  min-height:110px;max-height:30dvh;resize:vertical;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+  font-size:12px;color:var(--od-ink);
+}
+.cookie-editor-react .cookie-import-actions{
+  display:flex;justify-content:flex-end;gap:var(--space-2);
+}
+.cookie-editor-react .cookie-import-actions button{min-width:80px}
+.cookie-editor-react .cookie-import-toast{
+  position:fixed;inset-inline:12px;bottom:16px;
+  z-index:100;box-sizing:border-box;margin-inline:auto;
+  max-width:min(420px,calc(100% - 24px));width:max-content;
+  padding:var(--space-2) var(--space-3);overflow-wrap:anywhere;
+  font-size:var(--od-note-size);line-height:1.5;
+  color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);
+  border-radius:var(--radius-control);box-shadow:0 6px 18px rgba(10,20,35,.16);
+}
+.cookie-editor-react .cookie-import-toast--error{border-color:var(--od-danger,var(--od-line))}
+@media(max-width:350px){
+  .cookie-editor-react .cookie-import-body{padding:var(--space-2)}
+  .cookie-editor-react .cookie-import-actions button{flex:1 1 0;min-width:0}
+}
