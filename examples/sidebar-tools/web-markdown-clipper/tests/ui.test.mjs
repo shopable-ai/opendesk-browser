@@ -6,7 +6,7 @@ import {runInNewContext} from 'node:vm';
 const source=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 class Node {
-  constructor(id=''){this.id=id;this.value='';this.textContent='';this.disabled=false;this.hidden=false;this.dataset={};this.events={};this.children=[];}
+  constructor(id=''){this.id=id;this.tagName=String(id).toUpperCase();this.value='';this.textContent='';this.disabled=false;this.hidden=false;this.dataset={};this.events={};this.children=[];}
   addEventListener(name,fn){(this.events[name]??=[]).push(fn);}
   async fire(name){await Promise.all((this.events[name]||[]).map(fn=>fn()));}
   setAttribute(key,value){this[key]=value;}
@@ -25,7 +25,7 @@ function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),downl
     addEventListener(name,fn){this.events[name]=fn;}};
   const document={createElement:tag=>new Node(tag),createDocumentFragment:()=>new Node('fragment')};
   runInNewContext(source,{globalThis:{OpenDeskTool:{root,request},OpenDeskSDK:{browser:{
-    clipboard:{writeText:clipboard},downloads:{text:download}}}},document});
+    clipboard:{writeText:clipboard},downloads:{text:download}}}},document,URL});
   return {nodes,modes,root};
 }
 test('switching modes invalidates stale extraction without unlocking a newer request',async()=>{
@@ -178,4 +178,47 @@ test('cancelled and uncertain exports never pretend to have succeeded or failed 
  assert.match(nodes['clip-status'].textContent,/下载结果未知/);
  copyCode='E_DENIED';await nodes['clip-copy'].fire('click');
  assert.equal(nodes['clip-source'].selected,true,'known copy failure retains manual fallback');
+});
+
+function previewTags(node,found=[]){
+ if(node?.tagName)found.push(node);
+ for(const child of node?.children||[])previewTags(child,found);
+ return found;
+}
+test('formal read-only preview renders Markdown structure without injecting webpage HTML',async()=>{
+ const fence=String.fromCharCode(96).repeat(3);
+ const sample=[
+  '# 中文标题','','含 **粗体** 与 [安全链接](https://example.com/a)',
+  '', '- 第一项','- 第二项','',fence+'js',
+  'const value = 42;',fence,
+  '', '| 名称 | 值 |','| --- | --- |','| 甲 | 乙 |',
+  '', '> 引用文本','','<script>window.pwned = true</script>',
+  '', '[不安全链接](javascript:alert)'
+ ].join('\n');
+ const {nodes}=mounted({request:async()=>({markdown:sample,source:'https://example.com/a',title:'中文标题',site:'example.com'})});
+ await nodes['clip-fetch'].fire('click');
+ await nodes['clip-show-preview'].fire('click');
+ assert.equal(nodes['clip-preview'].hidden,false);
+ const all=previewTags(nodes['clip-preview']);
+ const tag=name=>all.filter(node=>node.tagName===name);
+ for(const name of ['H1','STRONG','A','UL','LI','PRE','CODE','TABLE','THEAD','TBODY','BLOCKQUOTE']){
+  assert.ok(tag(name).length,name+' should render as its semantic element');
+ }
+ assert.equal(tag('A').length,1,'javascript: links must not be actionable');
+ assert.equal(tag('SCRIPT').length,0,'untrusted text must not become executable HTML');
+ assert.equal(tag('IMG').length,0,'preview must not fetch external images');
+ assert.equal(tag('A')[0].href,'https://example.com/a');
+ assert.equal(tag('A')[0].rel,'noopener noreferrer');
+});
+test('YAML source metadata stays text and cannot become DOM injection',async()=>{
+ const {nodes}=mounted({request:async()=>({
+  markdown:'# 正文\n',source:'https://example.com/a',
+  title:'"<script>alert(1)</script>"',site:'example.com',capturedAt:'2026-10-20T00:00:00Z'
+ })});
+ nodes['clip-meta'].value='yaml';
+ await nodes['clip-fetch'].fire('click');
+ const elements=previewTags(nodes['clip-preview']);
+ assert.ok(elements.some(e=>e.tagName==='PRE'));
+ assert.equal(elements.filter(e=>e.tagName==='SCRIPT').length,0);
+ assert.match(nodes['clip-source'].value,/^---\ntitle:/);
 });
