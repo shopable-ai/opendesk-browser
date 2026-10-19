@@ -481,6 +481,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await until(()=>evalRead(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.length===0)'),
     'Side Panel document really closed');
   report.heartbeat.closedSidePanel=await nativeFocusHeartbeat(client,uid,true,'side-panel closed');
+  // A closed native Side Panel plus a live Chrome-owned heartbeat is actual
+  // background evidence; record this stage separately from the test exit code.
+  report.closedSidePanel='PASS';
   diagnosticSessions=[{name:'catalog',session:uid}];
   await client.send('Target.activateTarget',{targetId:live.targetId});
   await evalRead(client,uid,'(async()=>{const rows=await chrome.tabs.query({url:'+JSON.stringify(page)+'});'+
