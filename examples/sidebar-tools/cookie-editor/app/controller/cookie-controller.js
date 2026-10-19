@@ -328,8 +328,11 @@ export function createCookieController({adapter,onChange=()=>{}}){
         plan.accepted.some(row=>!row.session&&row.expirationDate<=Date.now()/1000))
         throw Error('E_COOKIE_CONFLICT');
       const batchSupported=adapter.supportsWriteMany();
+      // The single-write adapter accepts normalized Cookie records, NOT the
+      // already-serialized SDK payload produced by batches(). Re-serializing
+      // a host-only payload loses its implicit Domain and breaks imports.
       const chunks=batchSupported?batches(guard.at,plan.accepted):
-        batches(guard.at,plan.accepted).flat().map(item=>[item]);
+        plan.accepted.map(item=>[item]);
       for(const chunk of chunks){
         if(!verifiedRead(guard))return false;
         if(batchSupported){
@@ -343,7 +346,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
             verified++;
           }
         }else{
-          const receipt=await adapter.write(guard.at,chunk[0]);
+          const receipt=await adapter.write(guard.at,chunk[0],
+            {ifAbsent:!plan.overwrite});
           if(!verifiedRead(guard))return false;
           if(!isVerified(receipt))throw badReceipt();
           verified++;
