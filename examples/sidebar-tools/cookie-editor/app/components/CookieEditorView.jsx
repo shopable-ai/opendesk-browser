@@ -129,7 +129,7 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
         <select className="od-field" aria-label="SameSite"
           value={draft.sameSite||'unspecified'} disabled={disabled}
           onChange={e=>onChange('sameSite',e.target.value)}>
-          <option value="unspecified">默认</option>
+          <option value="unspecified">未指定</option>
           <option value="lax">Lax</option><option value="strict">Strict</option>
           <option value="no_restriction">None</option>
         </select>
