@@ -231,7 +231,7 @@ test('Result copy keeps its icon and reports clipboard success, failure and rese
 for(const framework of ['react','vue'])test(framework+' primary Run compiles a managed Page preview and shows its result',async t=>{
   const f=await componentFixture(t,framework);
   assert.equal(f.find('script-run').disabled,false);
-  assert.match(f.find('script-run').textContent,new RegExp(framework==='react'?'React':'Vue'));
+  assert.equal(f.find('script-run').textContent,'运行');
   f.find('script-run').fire('click',{isTrusted:false});await tick();
   assert.equal(f.compiled.length,0);assert.equal(f.previews.length,0);
   const source=f.find('script-source').value,pending=deferred();f.setPermission(pending.promise);
@@ -633,65 +633,78 @@ test('local Page Stop receipt cannot become current after navigation while clean
   await f.click('script-read');assert.equal(f.find('script-copy-result').disabled,true);
 });
 
-test('reopening the editor restores window-scoped source and params without starting or saving',async t=>{
-  const values={};
-  const storage={get:async key=>({[key]:structuredClone(values[key])}),set:async next=>Object.assign(values,structuredClone(next))};
+test('reopening starts fresh and never reads or writes legacy Session drafts',async t=>{
+  const legacy={source:'old stored source',params:'{}',id:'old',revision:''};
+  const values={'opendesk.sidebar.editor-draft.v1:7':structuredClone(legacy)};
+  let reads=0,writes=0;
+  const storage={get:async key=>{reads++;return {[key]:values[key]};},
+    set:async next=>{writes++;Object.assign(values,structuredClone(next));}};
   const first=await fixture(undefined,storage);
-  first.find('script-source').value='async function main() { return "unsaved reopen"; }';
+  first.find('script-source').value='async function main(){return "not retained";}';
   first.find('script-source').fire('input');
   first.find('script-params').value='{"value":42}';first.find('script-params').fire('input');
-  await tick();first.dispose();
+  await tick();
+  assert.equal(await first.editor.prepareDevelopmentReload(),true,'idle reload must remain allowed');
+  first.dispose();
   const second=await fixture(undefined,storage);t.after(()=>second.dispose());
-  assert.equal(second.find('script-source').value,'async function main() { return "unsaved reopen"; }');
-  assert.equal(second.find('script-params').value,'{"value":42}');
-  assert.equal(second.permissions.length,0);assert.equal(second.starts.length,0);assert.equal(second.commits.length,0);
-  assert.equal(second.editor.host.currentRun,null);
+  assert.equal(second.find('script-source').value,'return params.value;');
+  assert.equal(second.find('script-params').value,'{"value":1}');
+  assert.deepEqual({reads,writes},{reads:0,writes:0},'old keys must not be read or written');
+  assert.deepEqual(values['opendesk.sidebar.editor-draft.v1:7'],legacy,'historical data is not deleted');
+  assert.equal(second.permissions.length,0);assert.equal(second.starts.length,0);
 });
 
-test('another window draft and the catalog editor never replace the Sidebar draft',async t=>{
-  const other={source:'other window source',params:'{}',id:'other',revision:''};
-  const values={'opendesk.sidebar.editor-draft.v1:8':other};let reads=0,writes=0;
-  const storage={get:async key=>{reads++;return {[key]:structuredClone(values[key])};},
-    set:async next=>{writes++;Object.assign(values,structuredClone(next));}};
+test('catalog and Sidebar editors do not share or store any hidden source',async t=>{
+  let reads=0,writes=0;
+  const storage={get:async()=>{reads++;return {};},set:async()=>{writes++;}};
   const sidebar=await fixture(undefined,storage);t.after(()=>sidebar.dispose());
-  assert.equal(sidebar.find('script-source').value,'return params.value;');
-  assert.deepEqual(values['opendesk.sidebar.editor-draft.v1:8'],other);
-  const before={reads,writes};
   const catalog=await fixture(undefined,storage,{contextTabId:99});t.after(()=>catalog.dispose());
-  catalog.editor.importDraft('async function main() { return "catalog"; }');await tick();
-  assert.deepEqual({reads,writes},before,'catalog never reads or writes the Sidebar draft key');
+  catalog.editor.importDraft('async function main(){return 5;}');
+  sidebar.find('script-source').value='return 6;';sidebar.find('script-source').fire('input');
+  await tick();
+  assert.deepEqual({reads,writes},{reads:0,writes:0});
+  assert.equal(catalog.find('script-source').value,'async function main(){return 5;}');
+  assert.equal(sidebar.find('script-source').value,'return 6;');
 });
 
-test('reopening a project draft preserves the source view and compiled execution bytes',async t=>{
+test('program-draft package import is preserved but does not auto-reopen',async t=>{
   const {programDraft}=await import('../fixtures/program-draft.mjs');
-  const draft=await programDraft(),values={};
-  const storage={get:async key=>({[key]:structuredClone(values[key])}),
-    set:async next=>Object.assign(values,structuredClone(next))};
+  const draft=await programDraft();
+  const storage={get:async()=>assert.fail('Session restore must be removed'),
+    set:async()=>assert.fail('Session autosave must be removed')};
   const first=await fixture(undefined,storage);
-  await first.editor.importDraft(draft);
-  first.find('script-params').value='{"value":42}';first.find('script-params').fire('input');
-  await tick();first.dispose();
+  await first.editor.importDraft(draft);await tick();
+  assert.equal(first.find('script-source').readOnly,true);
+  assert.equal(first.editor.executionSource(),draft.sourceUtf8);
+  first.dispose();
   const second=await fixture(undefined,storage);t.after(()=>second.dispose());
-  for(let i=0;i<50&&!second.find('script-source').readOnly;i++)await tick();
+  assert.equal(second.find('script-source').readOnly,false);
+  assert.equal(second.find('script-source').value,'return params.value;');
+  await second.editor.importDraft(draft);
   assert.equal(second.find('script-source').readOnly,true);
-  assert.equal(second.find('script-source').value,draft.sourceUtf8);
   assert.equal(second.editor.executionSource(),draft.sourceUtf8);
-  assert.equal(second.find('script-params').value,'{"value":42}');
-  assert.equal(second.starts.length,0);assert.equal(second.permissions.length,0);
   await second.click('script-save');
   assert.equal(second.persisted.scripts[0].sourceUtf8,draft.sourceUtf8);
-  assert.equal(second.persisted.scripts[0].contentHash,draft.build.sourceHash);
 });
 
-test('a delayed draft restore never overwrites newly imported source',async t=>{
-  const gate=deferred(),values={};
-  const storage={get:async key=>{await gate.promise;return {[key]:{source:'old stored source',params:'{}',id:'old',revision:''}};},
-    set:async next=>Object.assign(values,structuredClone(next))};
+test('stale Session data never overwrites an explicit JS import',async t=>{
+  let reads=0;
+  const storage={get:async()=>{reads++;return {source:'stale'};},
+    set:async()=>assert.fail('should not save input')};
   const f=await fixture(undefined,storage);t.after(()=>f.dispose());
-  f.editor.importDraft('async function main() { return "new import"; }');gate.resolve();await tick();await tick();
-  assert.equal(f.find('script-source').value,'async function main() { return "new import"; }');
-  assert.equal(Object.values(values)[0].source,f.find('script-source').value);
-  assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
+  f.editor.importDraft('async function main(){return "new";}');
+  await tick();await tick();
+  assert.equal(f.find('script-source').value,'async function main(){return "new";}');
+  assert.equal(reads,0);assert.equal(f.starts.length,0);
+});
+
+test('development reload stays blocked by active execution without persisting input',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  assert.equal(await f.editor.prepareDevelopmentReload(),true);
+  await f.click('script-run');
+  assert.equal(await f.editor.prepareDevelopmentReload(),false);
+  await f.finish(42);
+  assert.equal(await f.editor.prepareDevelopmentReload(),true);
 });
 
 test('importing a JS draft leaves saved versions and running source independent',async t=>{
@@ -910,7 +923,7 @@ test('R24.3 browser component help follows official syntax, never demands main()
     choice.checked=true;choice.fire('change');await tick();
     assert.match(f.find('page-preview-mode-title').textContent,expected);
     assert.match(f.find('page-preview-mode-hint').textContent,/无需 main\(\)/);
-    assert.match(f.find('page-component-hint').textContent,/不会自动运行|明确点击运行才操作网页/);
+    assert.match(f.find('page-component-hint').textContent,/不会自动执行|点击「运行」才执行/);
   }
   const choice=f.find('page-component-javascript');
   choice.checked=true;choice.fire('change');await tick();
@@ -1212,36 +1225,28 @@ test('R17 accepts 32 scoped sources with same-name directories but rejects an un
   assert.equal(select.children.length,1,'invalid list must not retain stale online projects');
 });
 
-test('R24.3 React and Vue modes keep independent official source drafts without Native',async t=>{
+test('R37.1 JavaScript, React and Vue share one visible source without hidden buffers',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
-  const group=f.find('page-component-framework');
-  const react=f.find('page-component-react');
-  const vue=f.find('page-component-vue');
-  const javascriptRadio=f.find('page-component-javascript');
-  const editor=f.find('script-source');
-  const javascript=editor.value;
-  assert.equal(group.disabled,false);
+  const react=f.find('page-component-react'),vue=f.find('page-component-vue'),
+    javascript=f.find('page-component-javascript'),editor=f.find('script-source');
+  const original=editor.value;
   react.checked=true;react.fire('change');await tick();
   assert.equal(react.checked,true);
-  assert.equal(javascriptRadio.checked,false);
-  assert.match(editor.value,/from 'react'/);
-  assert.match(editor.value,/export default function App/);
-  assert.match(f.find('page-component-status').textContent,/官方组件源码/);
-  const reactDraft=editor.value+'\n// unsaved react';
-  editor.value=reactDraft;editor.fire('input');await tick();
+  assert.equal(editor.value,original,'React selection must not insert its template');
+  assert.match(f.find('page-component-status').textContent,/源码保持不变/);
+  editor.value='export default function App(){return <p>one source</p>}';
+  editor.fire('input');await tick();
+  const current=editor.value;
   vue.checked=true;vue.fire('change');await tick();
-  assert.equal(vue.checked,true);
-  assert.equal(react.checked,false);
-  assert.match(editor.value,/<script setup>/);
-  assert.match(editor.value,/<style scoped>/);
-  javascriptRadio.checked=true;javascriptRadio.fire('change');await tick();
-  assert.equal(editor.value,javascript,'Legacy JavaScript must not be overwritten by components');
+  assert.equal(editor.value,current,'Vue must show current JSX, not a hidden SFC');
+  javascript.checked=true;javascript.fire('change');await tick();
+  assert.equal(editor.value,current,'JavaScript must not restore an old Controller buffer');
   react.checked=true;react.fire('change');await tick();
-  assert.equal(editor.value,reactDraft,'Switch must recover exact unsaved React source');
-  assert.equal(f.find('script-save').disabled,false,'Components can prepare and save a frozen Page Candidate without running');
-  assert.equal(f.find('script-run').textContent,'运行 React 组件');
-  f.click('script-run');await tick();
-  assert.equal(f.starts.length,0,'Component source cannot enter Controller RunHost');
+  assert.equal(editor.value,current,'React must not restore an older JSX buffer');
+  assert.equal(f.find('script-run').textContent,'运行');
+  assert.equal(f.find('script-save').disabled,false);
+  await f.click('script-run');
+  assert.equal(f.starts.length,0,'component cannot enter Controller RunHost');
 });
 
 async function waitForComponentUI(check,label){
@@ -1262,7 +1267,7 @@ async function selectBrowserReact(f){
   const input=f.find('page-component-react');
   input.checked=true;input.fire('change');await tick();
   assert.equal(input.checked,true);
-  assert.equal(f.find('script-run').textContent,'运行 React 组件');
+  assert.equal(f.find('script-run').textContent,'运行');
 }
 test('R24.3 an outcome-unknown browser component blocks the SAME document, but a genuinely new document permits explicit Run',async t=>{
   const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
@@ -1556,7 +1561,7 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
   await waitForComponentUI(()=>f.find('script-source').value===author,'reopen lost author source');
   assert.equal(f.find('page-component-'+framework).checked,true,'reopen lost author type');
   assert.equal(f.find('page-component-javascript').checked,false);
-  assert.equal(f.find('script-run').textContent,'运行'+(framework==='react'?' React':' Vue')+' 组件');
+  assert.equal(f.find('script-run').textContent,'运行');
   await choose('javascript');await choose(framework);
   assert.equal(f.find('script-source').value,author,'switching away and back lost reopened source');
   assert.equal(saved.sourceUtf8,executable,'loading must not rewrite fixed execution bytes');
@@ -1662,18 +1667,22 @@ test('effect unknown reads one original completion, restores only Stop ownership
   }
 });
 
-test('reopening a large v2 component draft revalidates the envelope and restores exact frozen bytes without execution',async t=>{
-  const saved=new Map(),storage={get:async key=>({[key]:structuredClone(saved.get(key))}),
-    set:async values=>{for(const [key,value] of Object.entries(values))saved.set(key,structuredClone(value));}};
+test('large v2 component package stays importable but never auto-restores on reopen',async t=>{
+  const storage={get:async()=>assert.fail('must not read legacy drafts'),
+    set:async()=>assert.fail('must not persist drafts')};
   const first=await fixture(undefined,storage),draft=await frozenComponentDraft(true);
-  await first.editor.importDraft(draft);await tick();await tick();
-  assert.ok(Buffer.byteLength(draft.sourceUtf8)>100000);first.dispose();
+  await first.editor.importDraft(draft);await tick();
+  assert.ok(Buffer.byteLength(draft.sourceUtf8)>100000);
+  assert.equal(first.editor.executionSource(),draft.sourceUtf8);
+  first.dispose();
   const second=await fixture(undefined,storage);t.after(()=>second.dispose());
-  await waitForComponentUI(()=>second.find('script-source').value===draft.sourceUtf8,'v2 frozen source should restore from its validated snapshot');
+  assert.equal(second.find('script-source').readOnly,false);
+  assert.equal(second.find('script-source').value,'return params.value;');
+  await second.editor.importDraft(draft);
   assert.equal(second.find('script-source').readOnly,true);
   assert.equal(second.editor.executionSource(),draft.sourceUtf8);
   assert.match(second.find('program-source-info').textContent,new RegExp(draft.build.sourceHash));
-  assert.equal(second.starts.length,0);assert.equal(second.previews.length,0);assert.equal(second.commits.length,0);
+  assert.equal(second.starts.length,0);assert.equal(second.previews.length,0);
 });
 
 async function staticESMFixture(t,{sourceUtf8='import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',compileGate,approved=true,badReceipt=false,permissionGranted=true,persisted}={}) {

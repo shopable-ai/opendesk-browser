@@ -124,7 +124,7 @@ export function createProgramSourceView({document:doc,view=null,listen,onChange}
       developerOptions(view,get('program-source-files'),[{label:'program.js · 实际执行代码',value:''},...value.authoring.files.map(file => ({label:`${file.path} · 源码快照`,value:file.path}))]);
       patchDeveloperField(view,get('program-source-files'),{value:''});
       patchDeveloperField(view,editor,{value:value.sourceUtf8});
-      const runtime = value.runtimeKind === 'controller' ? 'Controller · 运行草稿' : 'Page · DOM 试运行';
+      const runtime = value.runtimeKind === 'controller' ? 'Controller · 运行' : 'Page · DOM 试运行';
       patchDeveloperField(view,get('program-source-info'),{textContent:`${project.id} v${project.version} · ${runtime} · ${project.entry}\n` +
         `${value.build.mode} · 本地构建，浏览器未验证 · ${value.build.byteLength} 字节\nSHA-256：${value.build.sourceHash}\n` +
         '运行使用固定 program.js，请先检查实际执行代码。源码快照只读、仅供参考；SHA-256 校验字节，不证明快照生成了执行代码。修改后请在本地重新构建、导入。'});

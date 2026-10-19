@@ -630,7 +630,7 @@ test('local Run stays disabled during refresh and Native disconnect',async t=>{
 
 for(const bridge of ['legacy','react'])for(const framework of ['react','vue'])
 for(const control of ['script-load','script-list-load'])
-test(`R343 ${bridge} ${framework} ${control} restores Controller routing and retains framework drafts`,async t=>{
+test(`R343 ${bridge} ${framework} ${control} restores Controller routing without hidden framework drafts`,async t=>{
   const f=await fixture(t,{local:false,files:[],react:bridge==='react'});
   const source='async function main(){return "loaded-controller";}';
   const row={scriptId:'manual',revision:1,sourceUtf8:source,contentHash:hash(source)};
@@ -658,7 +658,7 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   assert.equal(f.editor.executionSource(),source);
   assert.equal(f.find('page-component-javascript').checked?'javascript':framework,'javascript',
   'loading a Controller revision must leave Page component mode');
-  assert.equal(f.find('script-run').textContent,'运行草稿');
+  assert.equal(f.find('script-run').textContent,'运行');
   assert.equal(f.find('script-save').textContent,'保存版本');
   const starts=[],commits=[];
   f.host.start=async request=>{
@@ -678,9 +678,9 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   await until(()=>commits.length===1,'loaded Controller Save did not commit a Controller revision');
   assert.equal(commits[0].sourceUtf8,source);
   await select(framework);
-  assert.equal(f.find('script-source').value,componentDraft,'loading must retain the previous framework draft');
+  assert.equal(f.find('script-source').value,source,'switching modes must retain the loaded Controller source');
   await select('javascript');
-  assert.equal(f.find('script-source').value,source,'framework roundtrip must retain the loaded Controller bytes');
+  assert.equal(f.find('script-source').value,source,'old JSX/SFC source must not be resurrected');
   assert.deepEqual(f.dispatches,[],'manual Controller operations must not dispatch local project actions');
 });
 
@@ -765,42 +765,38 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
   assert.equal(f.find('developer-run-technical').hidden,false);
 });
 
-test('R36.2 JavaScript Controller/Page selection retains independent drafts without execution', async t => {
+test('R37.1 JavaScript Controller/Page and JSX modes preserve one visible source',async t=>{
   const f=await fixture(t,{local:false,files:[]});
   const world=async name=>{
     f.find('script-javascript-world').value=name;
-    f.find('script-javascript-world').fire('change',{isTrusted:true});
-    await tick();
+    f.find('script-javascript-world').fire('change',{isTrusted:true});await tick();
   };
   const framework=async name=>{
     const input=f.find('page-component-'+name);
-    input.checked=true;input.fire('change',{isTrusted:true});
-    await tick();
+    input.checked=true;input.fire('change',{isTrusted:true});await tick();
   };
-  const pageSource='async function main(){return {title:document.title};}';
+  const editor=f.find('script-source'),original=editor.value;
   await world('page');
-  assert.match(f.find('script-source').value,/document\.title/);
-  assert.equal(f.find('script-run').textContent,'运行网页 JavaScript');
-  assert.equal(f.find('script-save').hidden,true,'primary Save must not confuse temporary Run with formal versioning');
+  assert.equal(editor.value,original,'world switch must not insert a Page template');
+  assert.equal(f.find('script-run').textContent,'运行');
   assert.equal(f.find('script-library-tools').hidden,true);
   assert.equal(f.find('page-preview-tools').hidden,false);
   assert.equal(f.find('manual-project-params-tools').hidden,true);
-  f.find('script-source').value=pageSource;f.find('script-source').fire('input');
+  editor.value='async function main(){return document.title;}';editor.fire('input');
   await framework('react');
-  f.find('script-source').value='export default function App(){return null;}';
-  f.find('script-source').fire('input');
+  assert.equal(editor.value,'async function main(){return document.title;}');
+  editor.value='export default function App(){return null;}';editor.fire('input');
   await framework('javascript');
-  assert.equal(f.find('script-source').value,pageSource,'framework switching retains the Page draft');
+  assert.equal(editor.value,'export default function App(){return null;}');
   await world('controller');
-  assert.equal(f.find('script-source').value,manualSource,'Controller keeps its original automation draft');
-  assert.equal(f.find('script-run').textContent,'运行草稿');
+  assert.equal(editor.value,'export default function App(){return null;}','Controller must not resurrect old source');
+  assert.equal(f.find('script-run').textContent,'运行');
   assert.equal(f.find('page-preview-tools').hidden,true);
   assert.equal(f.find('script-save-version').hidden,false);
-  assert.equal(f.find('manual-project-params-tools').hidden,false);
   await world('page');
-  assert.equal(f.find('script-source').value,pageSource);
-  assert.deepEqual(f.manualRuns,[],'choosing a world never starts a Controller run');
-  assert.deepEqual(f.dispatches,[],'choosing a world never starts a Native page preview');
+  assert.equal(editor.value,'export default function App(){return null;}','Page must not restore another source');
+  assert.deepEqual(f.manualRuns,[],'switching cannot start Controller');
+  assert.deepEqual(f.dispatches,[],'switching cannot start Page or Native');
 });
 
 test('R36.2 active/invalid world selection does not bypass managed execution ownership',async t=>{
@@ -899,13 +895,13 @@ test('R36.6 React source and JavaScript world own controls without transient nat
   assert.equal(world.value,'controller','untrusted changes cannot switch worlds');
   world.value='page';world.fire('change',{isTrusted:true});
   assert.equal(world.value,'page');
-  assert.match(source.value,/document\.title/);
+  assert.equal(source.value,typed,'world switch must preserve current text');
   const pageDraft='async function main(){return document.URL;}';
   source.value=pageDraft;source.fire('input',{isTrusted:true});
   world.value='controller';world.fire('change',{isTrusted:true});
-  assert.equal(source.value,typed,'Controller source must survive Page edits');
+  assert.equal(source.value,pageDraft,'Controller uses current source, not a hidden buffer');
   world.value='page';world.fire('change',{isTrusted:true});
-  assert.equal(source.value,pageDraft,'Page source must survive Controller edits');
+  assert.equal(source.value,pageDraft,'Page never restores old source');
   assert.deepEqual(f.manualRuns,[],'source/world changes do not trigger Controller Run');
   assert.deepEqual(f.dispatches,[],'source/world changes do not trigger Page Run');
 });

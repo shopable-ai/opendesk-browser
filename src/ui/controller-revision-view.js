@@ -15,12 +15,12 @@ export function createControllerRevisionView({host,document:doc,view=null,getScr
     const node = find('script-version');
     if (!current || current.scriptId !== scriptId()) {
       patchDeveloperField(view,node,{data:{...(node.data||node.dataset),dirty:'false'}});
-      patchDeveloperField(view,node,{textContent:current ? '当前脚本 ID 尚未加载持久版本；仍可直接运行草稿' : '未保存草稿可直接运行；只有点击保存才创建正式版本'});
+      patchDeveloperField(view,node,{textContent:current ? '当前脚本 ID 尚未加载持久版本；仍可直接运行' : '当前源码可直接运行；只有点击保存才创建正式版本'});
       return;
     }
     if (current.revision !== Number(find('script-revision').value)) {
       patchDeveloperField(view,node,{data:{...(node.data||node.dataset),dirty:'false'}});
-      patchDeveloperField(view,node,{textContent:`已加载 r${current.revision}；本次运行始终使用编辑器当前草稿`});
+      patchDeveloperField(view,node,{textContent:`已加载 r${current.revision}；运行使用输入框当前源码`});
       return;
     }
     let savedSource=current.sourceUtf8;
@@ -30,8 +30,8 @@ export function createControllerRevisionView({host,document:doc,view=null,getScr
     const dirty = getSource() !== savedSource;
     patchDeveloperField(view,node,{data:{...(node.data||node.dataset),dirty:String(dirty)}});
     patchDeveloperField(view,node,{textContent:dirty
-      ? `已保存 r${current.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
-      : `已保存 r${current.revision} · 可运行草稿；不自动创建新 revision`});
+      ? `已保存 r${current.revision} · 存在未保存修改 · 运行不会覆盖已保存版本`
+      : `已保存 r${current.revision} · 可直接运行；不自动创建新 revision`});
   }
   function remember(row,{head:asHead=true,authorSourceUtf8=row.sourceUtf8}={}){
     if(asHead)heads.set(row.scriptId,row.revision);

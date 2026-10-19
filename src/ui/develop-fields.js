@@ -164,7 +164,7 @@ export const DEVELOPER_FIELDS = {
     "value": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
   },
   "page-component-hint": {
-    "textContent": "保存草稿不会运行网页"
+    "textContent": "编辑源码不会自动执行，点击运行才会执行"
   },
   "page-dependency-panel": {
     "className": "od-stack od-disclosure od-disclosure--flat",
@@ -668,7 +668,7 @@ export const DEVELOPER_FIELDS = {
   },
   "script-run": {
     "disabled": true,
-    "textContent": "运行草稿"
+    "textContent": "运行"
   },
   "script-save": {
     "textContent": "保存版本"

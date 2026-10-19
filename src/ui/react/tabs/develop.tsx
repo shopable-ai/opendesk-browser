@@ -14,7 +14,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
               {"直接编辑"}
             </DevelopField>
             <div className="od-page-actions" role="group" aria-label="开发页操作">
-              <DevelopField as="button" type="button" id="program-new-script" title="新建 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" className="od-icon-button">
+              <DevelopField as="button" type="button" id="program-new-script" title="新建 JavaScript（退出当前只读源码视图）" aria-label="新建 JavaScript" className="od-icon-button">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 5v14M5 12h14">
                   </path>
@@ -216,7 +216,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
           </DevelopField>
           <DevelopField as="textarea" id="script-source" rows="6" wrap="off" spellCheck={false} autoCapitalize="off" className="od-field"/>
           <DevelopField as="p" id="page-component-hint" className="hint">
-            {"保存草稿不会运行网页"}
+            {"编辑源码不会自动执行，点击运行才会执行"}
           </DevelopField>
           <DevelopDependencies view={view} actions={actions}/>
           <DevelopField as="section" id="page-component-remote" className="od-stack" aria-label="组件 HTTPS 依赖准备">
@@ -743,7 +743,7 @@ export function DeveloperDock({model,view=model,actions=view.actions,hidden=fals
     <div id="develop-dock" className="dock-actions" hidden={hidden}>
       <div className="dock-buttons od-toolbar">
         <DevelopField as="button" className="od-button" id="script-run">
-          {"运行草稿"}
+          {"运行"}
         </DevelopField>
         <DevelopField as="button" className="od-button od-button--secondary" id="script-save">
           {"保存版本"}

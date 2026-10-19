@@ -46,7 +46,7 @@ test('project file selection only changes the read-only viewer; execution uses e
     assert.equal(get('program-source-toolbar').hidden,false,'imported project shows one source toolbar');
     assert.equal(get('program-source-files').hidden,false);
     assert.equal(get('program-new-script').hidden,false);
-    assert.match(get('program-source-info').textContent,/Controller · 运行草稿/);
+    assert.match(get('program-source-info').textContent,/Controller · 运行/);
     assert.match(get('program-source-info').textContent,/仅供参考.*不证明快照生成了执行代码/);
     assert.equal(get('program-generated').open,false);
     get('program-source-files').value='src/answer.js';callbacks.get(get('program-source-files'))();
