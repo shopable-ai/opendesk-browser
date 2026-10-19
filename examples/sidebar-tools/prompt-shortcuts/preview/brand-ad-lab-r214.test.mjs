@@ -15,7 +15,7 @@ test('R2.14 inline JavaScript parses; one self-contained preview',()=>{
   assert.ok(script,'Expected inline preview script');
   new vm.Script(script,{filename:'brand-ad-lab-r214 inline'});
   assert.match(html,/<nav class="rail variant-b" id="rail"/);
-  assert.match(html,/class="rail-btn od"/.source ? /className='rail-btn od'/ : /className='rail-btn od'/);
+  assert.match(script,/className='rail-btn od'/);
   assert.match(html,/aria-live="polite"/);
 });
 test('R2.14 remains offline; approved rail and four scenes are source-bound',()=>{
