@@ -1734,7 +1734,14 @@ async function staticESMFixture(t,{sourceUtf8='import value from "https://librar
   f.find('script-source').value=sourceUtf8;f.find('script-source').fire('input');
   for(let n=0;n<8;n++)await tick();
   return {...f,compiled,staticRequests,componentRequests,sourceUtf8,pageLockId,componentLockId,
-    async world(value){f.find('script-javascript-world').value=value==='esm-controller'?'controller':'page';f.find('script-javascript-world').fire('change');for(let n=0;n<8;n++)await tick();await new Promise(resolve=>setTimeout(resolve,220));},
+    async world(value){f.find('script-javascript-world').value=value==='esm-controller'?'controller':'page';f.find('script-javascript-world').fire('change',{isTrusted:true});for(let n=0;n<8;n++)await tick();await new Promise(resolve=>setTimeout(resolve,220));},
+    async page(){ // Explicitly select Page before entering a Page ESM source.
+      await this.world('esm-page');
+      f.find('script-source').value=sourceUtf8;
+      f.find('script-source').fire('input',{isTrusted:true});
+      for(let n=0;n<10;n++)await tick();
+      assert.equal(f.find('script-javascript-world').value,'page');
+    },
     async settle(){for(let n=0;n<100&&f.find('script-status').dataset.state==='running';n++)await tick();}
   };
 }
@@ -1878,7 +1885,8 @@ test('loading a saved Page import restores author bytes and Page lock without ru
 test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or explicit world switch',async t=>{
   const f=await staticESMFixture(t);
   await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
-  assert.equal(f.find('script-javascript-world').value,'page','Page preview selector remains a Page intent');
+  assert.equal(f.find('script-javascript-world').value,'controller',
+    'Controller is the explicit default; this Run must not silently enter the Page world');
   await f.click('script-run');for(let n=0;n<20&&!f.executions.length;n++)await tick();
   assert.equal(f.starts.length,1);assert.equal(f.previews.length,0);
   assert.deepEqual(f.starts[0].source,{kind:'draft',sourceUtf8:f.executions[0].source});
@@ -1907,17 +1915,45 @@ for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entr
   if(world==='esm-controller'){assert.equal(f.starts.length,1);await f.finish(7);}
   else assert.equal(f.previews.length,1);
 });
-for(const change of ['source','world','document','target-mode'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
+for(const change of ['source','document','target-mode'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
   const gate=deferred(),f=await staticESMFixture(t,{compileGate:gate});
+  await f.page();
   await f.click('script-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
   assert.equal(f.compiled.length,1);
-  if(change==='source'){f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input');}
-  else if(change==='world')await f.world('esm-controller');
+  if(change==='source'){f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input',{isTrusted:true});}
   else if(change==='document')await f.navigateTab();
-  else {f.find('script-target-mode').value='borrowed';f.find('script-target-mode').fire('change');await tick();}
+  else {f.find('script-target-mode').value='borrowed';f.find('script-target-mode').fire('change',{isTrusted:true});await tick();}
   gate.resolve();await f.settle();
   assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
   assert.equal(f.find('page-preview-status').dataset.state,'error');
+});
+
+test('Page world is locked during compilation: rejected switch keeps original Page Run and never starts Controller',async t=>{
+  const gate=deferred(),f=await staticESMFixture(t,{compileGate:gate});
+  await f.page();
+  await f.click('script-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
+  assert.equal(f.compiled.length,1);
+  assert.equal(f.find('script-javascript-world').disabled,true,'a pending compilation disables world changes');
+  await f.world('esm-controller');
+  assert.equal(f.find('script-javascript-world').value,'page','rejected change restores authoritative Page world');
+  gate.resolve();await f.settle();
+  assert.equal(f.previews.length,1,'the original user-approved Page run may settle');
+  assert.equal(f.starts.length,0,'a disabled-world change must never create a Controller Run');
+});
+
+test('Page selection routes the primary Run button through Page Host, never Controller RunHost',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const world=f.find('script-javascript-world'),source=f.find('script-source');
+  world.value='page';world.fire('change',{isTrusted:true});
+  source.value='async function main(){return document.title;}';
+  source.fire('input',{isTrusted:true});
+  for(let n=0;n<10;n++)await tick();
+  assert.equal(world.value,'page');
+  await f.click('script-run');
+  for(let n=0;n<40&&!f.previews.length;n++)await tick();
+  assert.equal(f.previews.length,1,'Page runs use the existing browser preview request');
+  assert.equal(f.starts.length,0,'Page must not admit a Controller Run');
+  assert.equal(f.previews[0].target.documentId,'doc-11','Page binds the exact active document');
 });
 test('Page ESM result must carry the actual compiled source hash',async t=>{
   const f=await staticESMFixture(t,{badReceipt:true});
