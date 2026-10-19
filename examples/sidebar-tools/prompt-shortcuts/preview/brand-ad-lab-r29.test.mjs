@@ -41,7 +41,7 @@ test('exactly 17 unique formats and 35 map selectors exist',()=>{
  }
 });
 test('dismiss, restore, prompt-first states and zero-sold user guards',()=>{
- assert.match(base,/state\.closeRail=true/);
+ assert.doesNotMatch(base,/\bcloseRail\b/);
  assert.match(base,/state\.closedWeb\.add\(id\)/);
  assert.match(base,/state\.closedCards\.add\(state\.id\+':'\+i\)/);
  assert.match(base,/state\.sold>0\|\|state\.mode==='sales'/);
