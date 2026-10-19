@@ -483,3 +483,18 @@ test('native HTML stream honors site access revoked between automatic chunks',as
   assert.equal(f.state.native.filter(row=>row.stage==='tabs.sendMessage' &&
     row.args[1].envelope?.operation?.method==='contentRead').length,0);
 });
+
+test('Locator timeout:0 disables local expiry while respecting the Controller run deadline', async t => {
+  const f = fixture();
+  t.after(f.dispose);
+  // The missing element is already hidden. With timeout:0 this read must
+  // perform a real page probe; an immediate timeout is a protocol mismatch.
+  assert.equal(await f.result('locatorWait', [
+    {kind:'css',value:'#not-there'}, {action:'waitFor',state:'hidden',timeout:0}
+  ]), undefined);
+
+  // Explicit no Locator timeout must never cancel the outer Controller fence.
+  await assert.rejects(f.driver.execute(f.envelope('locatorWait', [
+    {kind:'css',value:'#not-there'}, {action:'waitFor',state:'visible',timeout:0}
+  ]), {deadlineAt:Date.now()+80}), {code:'E_TIMEOUT'});
+});

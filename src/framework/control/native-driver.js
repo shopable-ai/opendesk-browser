@@ -588,11 +588,17 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     requireValue(!run.requests.has(envelope.requestId), 'E_OPERATION_REPLAY'); run.requests.add(envelope.requestId);
     const controller = new AbortController(), state = {envelope, args, descriptor, run, controller, deadlineAt, recordReceipt, cleanups: []};
     if (kind === 'packaged' && (method === 'locatorAction' || method === 'locatorWait')) {
-      state.locatorExpiryAt = Math.min(deadlineAt ?? Infinity, clock.now() + (args[1].timeout ?? 30000));
+      // Playwright's explicit timeout: 0 disables the Locator-local deadline.
+      // The Controller run deadline (when present) still fences the operation.
+      const locatorTimeout = args[1].timeout ?? 30000;
+      state.locatorExpiryAt = Math.min(deadlineAt ?? Infinity,
+        locatorTimeout === 0 ? Infinity : clock.now() + locatorTimeout);
       state.locatorAbort = new AbortController();
       controller.signal.addEventListener('abort', () => state.locatorAbort?.abort(controller.signal.reason), {once:true});
-      state.locatorTimer = setTimeout(() => state.locatorAbort?.abort(error('E_TIMEOUT')),
-        Math.max(0, state.locatorExpiryAt - clock.now()));
+      // Never give setTimeout(Infinity) to the host: it may clamp to 1ms.
+      if (Number.isFinite(state.locatorExpiryAt))
+        state.locatorTimer = setTimeout(() => state.locatorAbort?.abort(error('E_TIMEOUT')),
+          Math.max(0, state.locatorExpiryAt - clock.now()));
     }
     const abort = () => controller.abort(signal.reason?.code ? signal.reason : error('E_CANCELLED'));
     let timer;
