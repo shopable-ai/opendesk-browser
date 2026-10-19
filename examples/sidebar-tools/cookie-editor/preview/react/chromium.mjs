@@ -94,6 +94,15 @@ try{
   await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'');await page.getByRole('button',{name:'取消',exact:true}).click();
  });
 
+ await test('single Cookie deletion happens on click without a second confirmation',async()=>{
+   await page.locator('[data-row="a"]').click();
+   const before=await page.locator('.cookie-row').count();
+   await page.getByRole('button',{name:'删除',exact:true}).click();
+   await page.getByText('已删除 Cookie').waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),before-1);
+   assert.equal(await page.getByRole('alertdialog',{name:'确认操作'}).count(),0);
+   await page.getByRole('button',{name:'重置',exact:true}).click();
+ });
  await test('R5.2 Host and Cookie destruction buttons belong to distinct toolbars',async()=>{
    assert.equal(await page.locator('.preview-host-header').getByRole('button',{name:'卸载工具'}).count(),1);
    assert.equal(await page.locator('.list-toolbar').getByRole('button',{name:'安全清理本站 Cookie'}).count(),1);
