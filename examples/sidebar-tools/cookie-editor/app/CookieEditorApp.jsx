@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Button} from '@opendesk/ui';
 import {createCookieSdkAdapter} from './adapters/browser-sdk.js';
 import {createCookieController} from './controller/cookie-controller.js';
-import {CookieEditorView} from './components/CookieEditorView.jsx';
+import {CookieEditorView,CookieIcon,CookieIconButton} from './components/CookieEditorView.jsx';
 import CookieInlineEditor from './components/CookieInlineEditor.jsx';
 import CookieClearDialog from './components/CookieClearDialog.jsx';
 import CookieImport from './components/CookieImport.jsx';
@@ -127,7 +127,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     };
     const sync=()=>{
       if(!active||!visible())return;
-      const period=controller.snapshot().syncStale?60000:15000;
+      const period=controller.snapshot().syncStale?30000:2000;
       const now=Date.now();
       if(now-lastAutoCheck.current<period)return;
       lastAutoCheck.current=now;
@@ -135,13 +135,14 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         modeRef.current==='browser'&&!dirtyRef.current&&visible()});
     };
     sync();
-    const timer=window.setInterval(sync,5000);
-    window.addEventListener('focus',sync);
-    document.addEventListener('visibilitychange',sync);
+    const immediate=()=>{if(!visible())return;lastAutoCheck.current=0;sync();};
+    const timer=window.setInterval(sync,1000);
+    window.addEventListener('focus',immediate);
+    document.addEventListener('visibilitychange',immediate);
     return ()=>{
       active=false;window.clearInterval(timer);
-      window.removeEventListener('focus',sync);
-      document.removeEventListener('visibilitychange',sync);
+      window.removeEventListener('focus',immediate);
+      document.removeEventListener('visibilitychange',immediate);
     };
   },[mode,snapshot.phase,snapshot.epoch,selected,panel,busy,dirty,confirmation,controller,hostRoot]);
   React.useEffect(()=>{
@@ -160,8 +161,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     if(next===mode)return;
     scrubSensitive();
     if(next==='offline'){
-      // Closing the live mode must retire observe sessions, wipe live Cookie
-      // identities and prevent an outstanding native read from resurfacing.
+      // Leaving the live mode invalidates pending reads and any stale Cookie identities.
       setOfflineInitialSite(controller.snapshot().target);
       controller.invalidate('已退出实时 Cookie 模式；重新进入后需重新授权读取。');
     }else{
@@ -219,13 +219,45 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   };
   return <main className="cookie-editor-react od-page" onKeyDown={onKeyDown}>
-    {mode==='offline'?<CookieOfflineWorkspace initialTarget={offlineInitialSite}
-      adapter={adapter} onDirty={setDirty}/>:
+    {mode==='offline'?<>
+      <header className="cookie-offline-toolbar" aria-label="离线文件">
+        <strong>离线文件</strong>
+        <CookieIconButton name="globe" label="返回浏览器" disabled={locked}
+          onClick={()=>switchMode('browser')}/>
+      </header>
+      <CookieOfflineWorkspace initialTarget={offlineInitialSite}
+        adapter={adapter} onDirty={setDirty}/>
+    </>:
     <>
       <CookiePermissions phase={snapshot.phase} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}/>
       {snapshot.phase==='ready'&&<div className="od-surface">
         <CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
+          utilities={<details className="cookie-utility-settings od-disclosure">
+            <summary title="更多工具" aria-label="更多工具"><CookieIcon name="more"/></summary>
+            <div className="cookie-utility-content">
+              <label htmlFor="cookie-target-url" className="cookie-target-label">网站 URL
+                <input className="od-field" id="cookie-target-url" type="url"
+                  value={siteInput} disabled={locked} placeholder="https://example.com/"
+                  onChange={e=>setSiteInput(e.target.value)}/>
+              </label>
+              <div className="cookie-utility-actions">
+                <CookieIconButton name="check" label="切换网站"
+                  disabled={locked||!siteInput.trim()}
+                  onClick={()=>guarded(()=>{
+                    appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
+                    void controller.load(appliedSite.current);
+                  })}/>
+                <CookieIconButton name="globe" label="跟随当前页" disabled={locked}
+                  onClick={()=>guarded(()=>{
+                    appliedSite.current='';setSiteInput('');void controller.load();
+                  })}/>
+                <span className="cookie-utility-spacer"/>
+                <Button variant="secondary" disabled={locked}
+                  onClick={()=>switchMode('offline')}>离线文件</Button>
+              </div>
+            </div>
+          </details>}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}
@@ -255,39 +287,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onClose={()=>setPanel(null)}/>}
       </div>}
     </>}
-        {snapshot.observeEvents.length>0&&<ul>
-          {snapshot.observeEvents.map((event,i)=><li key={i}>{
-            event.removed?'已删除':'已变更'} · {event.name} · {event.domain}{event.path}</li>)}
-        </ul>}
-        </section>
-      </details>}
-    </>}
-    <details className="cookie-utility-settings od-disclosure" open={mode==='offline'?true:undefined}>
-      <summary>更多 · 离线工作区与网站范围</summary>
-      <div className="cookie-utility-content">
-        <div className="cookie-mode-tabs" role="group" aria-label="工作模式">
-          <Button disabled={locked} aria-pressed={mode==='browser'}
-            onClick={()=>switchMode('browser')}>浏览器</Button>
-          <Button disabled={locked} aria-pressed={mode==='offline'}
-            onClick={()=>switchMode('offline')}>离线工作区</Button>
-        </div>
-        {mode==='browser'&&<div className="cookie-site-select">
-          <label htmlFor="cookie-target-url">切换或选择网站
-            <input className="od-field" id="cookie-target-url" type="url"
-              value={siteInput} disabled={locked}
-              placeholder="留空则跟随当前网页"
-              onChange={e=>setSiteInput(e.target.value)}/></label>
-          <Button disabled={locked} onClick={()=>guarded(()=>{
-            appliedSite.current=siteInput.trim();setSelected(null);setPanel(null);
-            void controller.load(appliedSite.current);
-          })}>应用</Button>
-          <Button disabled={locked} onClick={()=>guarded(()=>{
-            appliedSite.current='';setSiteInput('');void controller.load();
-          })}>当前页</Button>
-        </div>}
-      </div>
-    </details>
-    {mode==='browser'&&snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
+    {mode==='browser'&&snapshot.message&&['error','warning'].includes(snapshot.messageType)&&
+      <p role={snapshot.messageType==='error'?'alert':'status'}
+        className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':'od-alert--warning')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
     {confirmation?.kind==='clear'&&<CookieClearDialog
