@@ -49,6 +49,8 @@ test('Developer Debug page keeps history available behind its deliberate entry',
   const history=doc.getElementById('trusted-history-panel');
   assert.equal(history?.tagName,'DETAILS');
   assert.equal(visible(history),true);
+  assert.equal(doc.getElementById('trusted-history-search').disabled,true,
+    'source-only fixtures must not imply that a real Chrome query is available');
   assert.equal(doc.querySelectorAll('#trusted-history-panel').length,1);
   const other=await fixture({activeTab:'tasks'});
   assert.equal(visible(other.getElementById('trusted-history-panel')),false);
