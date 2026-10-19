@@ -75,11 +75,17 @@ async function fixture(effects){
 }
 async function snapshot(c,jobIds=[]){
   const targets=(await c.send('Target.getTargets')).targetInfos;
+  const runners=targets.filter(t=>['page','other'].includes(t.type)&&
+    /^chrome-extension:\/\/[a-p]{32}\/cloud-control\/runner\.html$/.test(t.url));
   const workers=targets.filter(t=>t.type==='service_worker'&&
     /^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(t.url));
-  assert.equal(workers.length,1,'Exactly one actual OpenDesk Chrome Service Worker required');
-  const extensionId=new URL(workers[0].url).host;
-  const {sessionId}=await c.send('Target.attachToTarget',{targetId:workers[0].targetId,flatten:true});
+  assert(runners.length<=1&&workers.length<=1&&runners.length+workers.length>0,
+    'Cannot uniquely identify an actual OpenDesk Offscreen/Service Worker context');
+  // Prefer the living Offscreen document itself: SW is allowed to sleep.
+  // The fallback reads the SAME extension IndexedDB and native contexts.
+  const inspected=runners[0]||workers[0];
+  const extensionId=new URL(inspected.url).host;
+  const {sessionId}=await c.send('Target.attachToTarget',{targetId:inspected.targetId,flatten:true});
   try{
     await c.send('Runtime.enable',{},sessionId);
     // Chrome's original IndexedDB, native readonly transactions. Filter
@@ -132,6 +138,7 @@ async function closePanel(c,initial){
   },'Side Panel closed, Offscreen still alive',10000);
 }
 function matchEvidence(native,job,status,pin,kind,expected,effects){
+  assert.deepEqual(job.task,pin,'Provider immutable Task pin differs from installed source');
   const ref=job.runRef;
   assert(ref&&ref.requestId==='cloud:'+job.assignment?.assignmentId,'Actual Provider RunRef missing');
   const request=native.requests.find(x=>x.jobId===job.jobId);
@@ -202,7 +209,10 @@ async function main(){
     report.fixture={url:FIXTURE_URL,sha256:server.sha256,observer:'passive and read-only, native sendBeacon'};
     c=await connect(cdp.href);
     report.chrome=await c.send('Browser.getVersion');
-    let before=await snapshot(c);
+    let before=await until(async()=>{
+      const native=await snapshot(c);
+      return nativeContexts(native).offscreen.length===1?native:null;
+    },'Native Offscreen startup',15000);
     report.extensionId=before.extensionId;
     assert.equal(before.cloud.enabled,true,'Cloud not approved/enabled');
     assert.equal(nativeContexts(before).offscreen.length,1,'Offscreen not present');
