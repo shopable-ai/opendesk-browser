@@ -22,6 +22,8 @@ export function TaskCatalogPage({view,hidden=false}){
               className="od-button od-button--secondary">打开 OpenDesk 侧栏</button>}
         </div>
       </header>
+      {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog-page'&&
+        <p id="catalog-dev-sidebar-status" className="hint" role="status" aria-live="polite"/>}
 
       <div>
         <label htmlFor="task-search" className="visually-hidden">搜索本地任务</label>
