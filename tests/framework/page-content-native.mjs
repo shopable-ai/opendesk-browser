@@ -75,7 +75,7 @@ async function connect(url){
   const socket=new WebSocket(url),pending=new Map(),events=[];let serial=0;
   await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
   socket.addEventListener('message',({data})=>{
-    const reply=JSON.parse(data),wait=pending.get(reply.id);if(!wait){if(events.length<40 && /^(Runtime\.exceptionThrown|Runtime\.consoleAPICalled|Log\.entryAdded|Page\.frameNavigated|Inspector\.targetCrashed)$/.test(reply.method||''))events.push(reply);return;}
+    const reply=JSON.parse(data),wait=pending.get(reply.id);if(!wait){if(events.length<40 && /^(Runtime\.exceptionThrown|Runtime\.consoleAPICalled|Log\.entryAdded|Network\.loadingFailed|Page\.frameNavigated|Inspector\.targetCrashed)$/.test(reply.method||''))events.push(reply);return;}
     pending.delete(reply.id);clearTimeout(wait.timer);
     if(reply.error)wait.reject(new Error(JSON.stringify(reply.error)));else wait.resolve(reply.result);
   });
@@ -127,7 +127,7 @@ try{
   await writeFile(path.join(extension,'ui/fixture-config.js'),
     'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';globalThis.__pageContentPageProof='+JSON.stringify(pageProof)+';globalThis.__pageContentExamples='+JSON.stringify(examples)+';');
   await writeFile(path.join(extension,'sidepanel.html'),
-    '<!doctype html><meta charset="utf-8"><script src="fixture-config.js"></script><script src="tool-shell.js"></script>');
+    '<!doctype html><meta charset="utf-8"><script src="ui/fixture-config.js"></script><script src="ui/tool-shell.js"></script>');
   for(const file of ['ui/target-bootstrap.html','scripting/sandbox/sandbox.html'])
     await copyFile(path.join(root,'src',file),path.join(extension,file));
   const require=createRequire(import.meta.url),config=require('../../webpack.config.cjs')('development');
@@ -159,6 +159,12 @@ try{
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
+  // Fail before launching Chrome if HTML and the actual Webpack output disagree.
+  // This is a packaging check, never a replacement for the native browser run.
+  for(const asset of ['ui/fixture-config.js','ui/tool-shell.js']){
+    if(!(await readFile(path.join(extension,asset),'utf8')).length)
+      throw new Error('Native fixture script is missing or empty: '+asset);
+  }
   // Build this fixture's manifest from its ACTUAL Webpack output bytes, not
   // from a previous WXT dist, synthetic hash, or privileged mock. The same
   // strict loader/ABI/hash check used by normal runs remains unchanged.
@@ -283,12 +289,14 @@ try{
   const {sessionId}=await client.send('Target.attachToTarget',{targetId,flatten:true});
   await client.send('Runtime.enable',{},sessionId);
   await client.send('Page.enable',{},sessionId);
+  await client.send('Network.enable',{},sessionId);
+  await client.send('Log.enable',{},sessionId);
   const extensionURL='chrome-extension://'+extensionId+'/sidepanel.html';
   const navigation=await client.send('Page.navigate',{url:extensionURL},sessionId);
   console.log(JSON.stringify({stage:'navigate',extensionURL,navigation}));
   if(navigation.errorText)throw new Error('Extension navigation failed: '+navigation.errorText);
   await sleep(1200);
-  const initial=await client.send('Runtime.evaluate',{expression:"({url:location.href,ready:document.readyState,hasChrome:typeof chrome,report:globalThis.__pageContentNativeReport||null})",returnByValue:true},sessionId);
+  const initial=await client.send('Runtime.evaluate',{expression:"({url:location.href,ready:document.readyState,hasChrome:typeof chrome,scripts:[...document.scripts].map(s=>s.src),report:globalThis.__pageContentNativeReport||null})",returnByValue:true},sessionId);
   console.log(JSON.stringify({stage:'extension-load',initial,errorEvents:client.events.slice(0,8)}));
   // The suite now includes extra genuine Page libraries and two real reloads.
   // Extend only the CFT harness observation window. Product limits and
