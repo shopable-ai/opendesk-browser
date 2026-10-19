@@ -10,7 +10,7 @@ const copy=value=>structuredClone(value);
 const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);return {resolve,promise};};
 function fixture(){
   let rows=[copy(base)],allow=true;
-  const calls=[],stopCalls=[];
+  const calls=[];
   const cookies={
     getAll:async opts=>{
       calls.push(['getAll',copy(opts)]);
@@ -32,11 +32,6 @@ function fixture(){
     },
     clearSite:async opts=>opts.preview?{matched:rows.length,previewRef:'12345678-1234-1234-1234-123456789abc'}:
       {preview:false,scope:'EXACT_HOST_HOST_ONLY',matched:1,removed:1,remaining:0},
-    observe:{
-      start:async()=>({sessionRef:'session-ref'}),
-      read:async()=>({events:[],nextCursor:'0'}),
-      stop:async opts=>{stopCalls.push(copy(opts));return {stopped:true};}
-    }
   };
   const browser={cookies,capabilities:{getStatus:async()=>({callableNow:allow,
     reasonCode:allow?undefined:'E_SITE_GRANT_REQUIRED'})},
@@ -46,8 +41,9 @@ function fixture(){
     request:async()=>({status:'available',url:site})});
   const snapshots=[];
   const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
-  return {browser,cookies,adapter,controller,calls,stopCalls,snapshots,
-    rows:()=>copy(rows),grant:value=>{allow=value}};
+  return {browser,cookies,adapter,controller,calls,snapshots,
+    rows:()=>copy(rows),replaceRows:value=>{rows=copy(value)},
+    grant:value=>{allow=value}};
 }
 test('real public SDK adapter/controller load redacts sensitive values',async()=>{
   const f=fixture();await f.controller.load();
@@ -55,6 +51,49 @@ test('real public SDK adapter/controller load redacts sensitive values',async()=
   assert.equal(f.controller.snapshot().rows[0].value,undefined);
   assert.equal(JSON.stringify(f.snapshots).includes('SECRET_FIXTURE'),false);
   assert.equal(f.controller.snapshot().rows[0].valueRedacted,true);
+  f.controller.dispose();
+});
+test('passive metadata sync updates Cookie list without values or writes',async()=>{
+  const f=fixture();await f.controller.load();
+  f.replaceRows([base,{...base,name:'theme',value:'SENSITIVE_LIVE'}]);
+  assert.equal(await f.controller.syncMetadata(),true);
+  assert.deepEqual(f.controller.snapshot().rows.map(x=>x.name),['sid','theme']);
+  assert.equal(f.controller.snapshot().syncStale,false);
+  assert.equal(f.calls.some(([name])=>['set','remove','get'].includes(name)),false);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_FIXTURE|SENSITIVE_LIVE/);
+  f.controller.dispose();
+});
+test('passive sync never overwrites an open draft or a navigation generation',async()=>{
+  const f=fixture();await f.controller.load();
+  const pending=deferred();
+  f.cookies.getAll=async args=>args.partitionKey?[]:pending.promise;
+  let mayApply=true;
+  const read=f.controller.syncMetadata({canApply:()=>mayApply});
+  await Promise.resolve();
+  mayApply=false;
+  pending.resolve([{...base,name:'external',value:'PRIVATE_NEW_VALUE'}]);
+  assert.equal(await read,false);
+  assert.deepEqual(f.controller.snapshot().rows.map(row=>row.name),['sid']);
+  const next=deferred();
+  f.cookies.getAll=async args=>args.partitionKey?[]:next.promise;
+  const stale=f.controller.syncMetadata();
+  f.controller.invalidate('网站已切换');
+  next.resolve([{...base,name:'stale'}]);
+  assert.equal(await stale,false);
+  assert.equal(f.controller.snapshot().rows.length,0);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_NEW_VALUE/);
+  f.controller.dispose();
+});
+test('passive sync failure reports stale status and recovers without a dialog',async()=>{
+  const f=fixture();await f.controller.load();
+  const original=f.cookies.getAll;let failures=1;
+  f.cookies.getAll=async args=>{if(failures-- >0)throw Error('network error');
+    return original(args);};
+  assert.equal(await f.controller.syncMetadata(),false);
+  assert.equal(f.controller.snapshot().syncStale,true);
+  assert.equal(await f.controller.syncMetadata(),true);
+  assert.equal(f.controller.snapshot().syncStale,false);
+  assert.equal(f.calls.some(([name])=>name==='set'||name==='remove'),false);
   f.controller.dispose();
 });
 test('save verifies receipt and rename writes before deleting old identity',async()=>{
@@ -86,13 +125,11 @@ test('unknown native write must never automatically retry',async()=>{
   assert.match(f.controller.snapshot().message,/不要自动重试/);
   f.controller.dispose();
 });
-test('navigation invalidates stale async reads and retires observation',async()=>{
+test('navigation invalidates stale async reads',async()=>{
   const f=fixture();await f.controller.load();
-  await f.controller.observe('start');
   f.controller.invalidate('目标已变');
   await Promise.resolve();await Promise.resolve();
   assert.equal(f.controller.snapshot().rows.length,0);
-  assert.equal(f.stopCalls.length,1);
   await f.controller.load();
   const pending=deferred();f.cookies.getAll=async()=>pending.promise;
   const read=f.controller.load();await Promise.resolve();await Promise.resolve();
