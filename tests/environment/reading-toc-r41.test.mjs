@@ -6,10 +6,10 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
 import {websiteOrigin,changeTocGrant,tocGrantAllowed,changeTocSiteAllowed,tocSiteAllowed,blockedTocOrigins,READING_TOC_SITE_STORE,
-  READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../src/reading-toc/policy.js';
+  READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
-import {changeClipGrant,clipGrantAllowed} from '../../src/page-clip/policy.js';
+import {changeClipGrant,clipGrantAllowed} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
 
 const pack={format:'opendesk.sidebar-tool.v1',id:'reading-toc',version:'1.0.0',
   title:'阅读目录',description:'Trusted host only',capabilities:['page.toc'],

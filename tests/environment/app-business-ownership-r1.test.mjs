@@ -8,13 +8,15 @@ const read=path=>readFileSync(file(path),'utf8');
 const business={
   'stay-focus':['blocked.js','catalog.js','host-controls.js','lifecycle.js','model.js','page-notice.js','policy.js','rule-host.js','rule-ownership.js','service.js','tool-host.js'],
   'time-review':['host-controls.js','model.js','policy.js','service.js','sync-outbox.js','sync-transport.js','trusted-admission.js','trusted-native-ui.js'],
-  'ai-smart-access':['host-controls.js','lifecycle.js','policy.js','provider-config.js','service.js','tool-host.js']
+  'ai-smart-access':['host-controls.js','lifecycle.js','policy.js','provider-config.js','service.js','tool-host.js'],
+  'page-clip':['convert.js','page.js','policy.js'],
+  'reading-toc':['model.js','overview.js','placement.js','page.js','view.js','policy.js','locales.generated.js']
 };
 
 test('R1 app-owned trusted business has one implementation and no src re-export layer',()=>{
   for(const [id,files] of Object.entries(business)){
     assert.equal(existsSync(file('src/'+id)),false,'obsolete src folder must be absent: '+id);
-    const app=id==='ai-smart-access'?'ai-vip-share':id;
+    const app=id==='ai-smart-access'?'ai-vip-share':id==='page-clip'?'web-markdown-clipper':id;
     for(const name of files)assert.ok(read('examples/sidebar-tools/'+app+'/trusted/'+name).length>80,id+'/'+name);
     const config=JSON.parse(read('examples/sidebar-tools/'+app+'/tool.config.json'));
     assert.equal(config.id,app);
@@ -36,6 +38,18 @@ test('R1 approved fixed runtime entrypoints use app-owned sources and existing H
   assert.ok(sidebarHost.includes('examples/sidebar-tools/ai-vip-share/trusted/tool-host.js'));
 });
 
+test('R1.3 page clip plugin owns trusted page, policy and converter, with shared browser site grants',()=>{
+  assert.equal(existsSync(file('src/page-clip')),false);
+  assert.equal(existsSync(file('src/reading-toc')),false);
+  const entry=read('src/entrypoints/page-relay.js');
+  assert.match(entry,/reading-toc\/trusted\/page\.js/);
+  assert.match(entry,/web-markdown-clipper\/trusted\/page\.js/);
+  const policy=read('examples/sidebar-tools/web-markdown-clipper/trusted/policy.js');
+  assert.doesNotMatch(policy,/reading-toc/);
+  assert.match(policy,/site-grants\.js/);
+  assert.equal(read('src/ui/sidebar-tools/site-grants.js').includes('changeSiteGrant'),true);
+});
+
 test('R1.1 fixed Time Review executable WXT entry is the actual package contract',()=>{
   const contract=read('scripts/build-contract.mjs');
   assert.match(contract,/'time-review\/time-review-host': '\.\/src\/entrypoints\/time-review-host\.js'/);
@@ -46,7 +60,7 @@ test('R1.1 fixed Time Review executable WXT entry is the actual package contract
 });
 
 test('R1.1 source modules no longer import removed application-owned src directories',()=>{
-  const dead=new Set(['src/stay-focus','src/time-review','src/ai-smart-access']);
+  const dead=new Set(['src/stay-focus','src/time-review','src/ai-smart-access','src/page-clip','src/reading-toc']);
   const roots=['src','scripts'];
   function walk(folder){
     for(const item of readdirSync(folder,{withFileTypes:true})){

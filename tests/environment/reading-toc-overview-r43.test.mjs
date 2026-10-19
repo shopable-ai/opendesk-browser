@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {selectReadingTocOverview,TOC_OVERVIEW_TARGET,TOC_OVERVIEW_LIMIT}
   from '../../examples/sidebar-tools/reading-toc/trusted/overview.js';
 import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
-import {readingTocDisplayMode} from '../../src/reading-toc/view.js';
+import {readingTocDisplayMode} from '../../examples/sidebar-tools/reading-toc/trusted/view.js';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
 import {compileToolLocaleCatalog} from '../../src/ui/app-localization.js';
 

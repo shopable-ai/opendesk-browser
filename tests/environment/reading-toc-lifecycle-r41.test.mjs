@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initReadingToc} from '../../src/reading-toc/page.js';
+import {initReadingToc} from '../../examples/sidebar-tools/reading-toc/trusted/page.js';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE,READING_TOC_CHROME_ACCESS_PROTOCOL}
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,READING_TOC_VISIBILITY_STORE,
-  changeTocPageAllowed,changeTocSiteAllowed,changeReadingTocVisibility} from '../../src/reading-toc/policy.js';
+  changeTocPageAllowed,changeTocSiteAllowed,changeReadingTocVisibility} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 

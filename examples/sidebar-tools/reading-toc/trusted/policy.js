@@ -1,6 +1,8 @@
-import {sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../ui/sidebar-tools/package.js';
-import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
+import {sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {websiteOrigin,grantedOrigins,changeSiteGrant as changeTocGrant} from '../../../../src/ui/sidebar-tools/site-grants.js';
+export {websiteOrigin,grantedOrigins,changeTocGrant};
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
+import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE} from '../../../../src/sidebar-tools/official-reading-toc.js';
 
 export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
 // A distinct storage key per HTTP(S) origin prevents unrelated sites from
@@ -10,12 +12,7 @@ export const READING_TOC_TOOL_ID='reading-toc';
 export const READING_TOC_PROTOCOL='opendesk.reading-toc.v1';
 export const TOC_CAPABILITY='page.toc';
 
-export function websiteOrigin(value) {
-  try {
-    const url=new URL(value);
-    return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.origin:null;
-  }catch{return null;}
-}
+
 export function readingTocPlacementKey(url) {
   const origin=websiteOrigin(url);
   return origin?READING_TOC_PLACEMENT_PREFIX+encodeURIComponent(origin):null;
@@ -31,12 +28,7 @@ export function admittedTocTool(rows,id) {
   }
   return null;
 }
-export function grantedOrigins(settings,id) {
-  if(!settings || typeof settings!=='object' || Array.isArray(settings) ||
-     !Array.isArray(settings[id]))return [];
-  return [...new Set(settings[id].filter(value=>
-    typeof value==='string'&&value.length<300&&websiteOrigin(value)===value))].slice(0,64);
-}
+
 // Only trusted extension code may compute this flag from the stored bytes and
 // verified provenance. A page message, ID or capability can never supply it.
 export async function verifyOfficialReadingToc(installed,provenance) {
@@ -91,18 +83,7 @@ export function changeTocSiteAllowed(settings,id,url,allow) {
   if(blocked.length)next[id]={mode:'all-except',blockedOrigins:blocked};else delete next[id];
   return next;
 }
-// Shared by clip/capture services; keep their positive-only grant contract.
-export function changeTocGrant(settings,id,url,allow) {
-  const origin=websiteOrigin(url);
-  if(!origin || !/^[a-z][a-z0-9-]{1,39}$/.test(id))throw Error('无效的网站或工具 ID');
-  const prior=settings&&typeof settings==='object'&&!Array.isArray(settings)?settings:{};
-  const next={...prior};
-  const previous=grantedOrigins(prior,id);
-  const sites=allow?[...new Set([...previous,origin])]:previous.filter(value=>value!==origin);
-  if(sites.length>64)throw Error('单工具最多授权 64 个网站');
-  if(sites.length)next[id]=sites;else delete next[id];
-  return next;
-}
+
 
 // Per-page "unavailable" is a runtime denial, not an overlay preference.
 // It prevents the trusted observer and the Side Panel from reading this page.

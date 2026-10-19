@@ -1,8 +1,8 @@
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
-import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
-import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
+import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,clipGrantAllowed} from './policy.js';
-import {chooseArticle,domToMarkdown,safeClipSource} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
+import {chooseArticle,domToMarkdown,safeClipSource} from './convert.js';
 
 export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!api?.runtime?.onMessage||!api?.storage?.local||!doc||!win||win.top!==win)return null;

@@ -1,12 +1,12 @@
 // Trusted deterministic mirror of ONE author-maintained tool locale resource.
-// Never import examples/sidebar-tools/** into a privileged fixed extension bundle.
+// Audited app-owned trusted locales are compiled into the existing fixed extension bundle.
 import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
 export const READING_TOC_LOCALE_SOURCE='examples/sidebar-tools/reading-toc/locales.json';
-export const READING_TOC_LOCALE_MIRROR='src/reading-toc/locales.generated.js';
+export const READING_TOC_LOCALE_MIRROR='examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 const sourcePath=resolve(READING_TOC_LOCALE_SOURCE),outPath=resolve(READING_TOC_LOCALE_MIRROR);
 const blobHash=raw=>createHash('sha1').update('blob '+Buffer.byteLength(raw)+'\0')
   .update(raw).digest('hex');

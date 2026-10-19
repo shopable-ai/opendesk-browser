@@ -9,15 +9,15 @@ const dataUrl=source=>'data:text/javascript;base64,'+Buffer.from(source,'utf8').
 
 export async function readingTocOverlayPreview({scenario='success',locale='zh-CN'}={}){
   const [view,placement,uiLocale,catalog]=await Promise.all([
-    read(new URL('../../src/reading-toc/view.js',import.meta.url)),
-    read(new URL('../../src/reading-toc/placement.js',import.meta.url)),
+    read(new URL('../../examples/sidebar-tools/reading-toc/trusted/view.js',import.meta.url)),
+    read(new URL('../../examples/sidebar-tools/reading-toc/trusted/placement.js',import.meta.url)),
     read(new URL('../../src/ui/app-localization.js',import.meta.url)),
     read(new URL('../../examples/sidebar-tools/reading-toc/locales.json',import.meta.url))
   ]);
   const imports=[
     "import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';",
     "import readingTocCatalog from './locales.generated.js';",
-    "import {uiMessage,resolveUiLocale} from '../ui/app-localization.js';"
+    "import {uiMessage,resolveUiLocale} from '../../../../src/ui/app-localization.js';"
   ];
   if(!imports.every(item=>view.includes(item)))throw Error('E_TOC_PREVIEW_SOURCE_IMPORTS');
   let viewCode=view;

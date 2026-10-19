@@ -6,7 +6,7 @@ import {createOfficialToolResources} from '../../scripts/build-official-tools.mj
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc,MARKET_PROVENANCE_STORE}
   from '../../src/sidebar-tools/official-reading-toc.js';
-import {tocGrantAllowed,verifyOfficialReadingToc} from '../../src/reading-toc/policy.js';
+import {tocGrantAllowed,verifyOfficialReadingToc} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
 

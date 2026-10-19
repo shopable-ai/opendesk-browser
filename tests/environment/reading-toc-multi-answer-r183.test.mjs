@@ -7,7 +7,7 @@ import {generatePreview} from '../../scripts/preview/build-preview.mjs';
 // Evaluate the REAL two renderers' visibility expressions. A CSS-only fix
 // cannot pass: with three sources the full mode must return all eight items.
 const sidebarPath='examples/sidebar-tools/reading-toc/src/main.js';
-const overlayPath='src/reading-toc/view.js';
+const overlayPath='examples/sidebar-tools/reading-toc/trusted/view.js';
 const data=[
  {id:'h-20',sourceId:'s-1',label:'回答一 H1',depth:0},
  {id:'h-21',sourceId:'s-1',label:'重复标题',depth:1},

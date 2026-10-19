@@ -17,7 +17,7 @@ test('R1.2 trusted locale resource is an exact, audited generated snapshot',asyn
   const result=await verifyReadingTocTrustedLocales();
   assert.equal(result.state,'MATCHED');
   const input=await readFile('examples/sidebar-tools/reading-toc/locales.json','utf8');
-  const output=await readFile('src/reading-toc/locales.generated.js','utf8');
+  const output=await readFile('examples/sidebar-tools/reading-toc/trusted/locales.generated.js','utf8');
   assert.equal(output,renderReadingTocTrustedLocales(input));
   assert.match(output,/do not edit/);
   assert(!output.includes('import '));
@@ -52,7 +52,7 @@ test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline s
 
 test('R1.2 source-backed webpage overlay uses actual trusted view+placement and zero privileges',async()=>{
   const original=await Promise.all([
-    readFile('src/reading-toc/view.js','utf8'),
+    readFile('examples/sidebar-tools/reading-toc/trusted/view.js','utf8'),
     readFile('examples/sidebar-tools/reading-toc/trusted/placement.js','utf8'),
     readFile('src/ui/app-localization.js','utf8'),
     readFile('examples/sidebar-tools/reading-toc/locales.json','utf8')
@@ -123,7 +123,7 @@ test('R1.4 checked-in interactive previews are byte-reproducible from the curren
   packageData.id,packageData.version,packageData.html,packageData.css,packageData.js
  ])).digest('hex');
  const sourceFiles=await Promise.all([
-  readFile('src/reading-toc/view.js','utf8'),
+  readFile('examples/sidebar-tools/reading-toc/trusted/view.js','utf8'),
   readFile('examples/sidebar-tools/reading-toc/trusted/placement.js','utf8'),
   readFile('src/ui/app-localization.js','utf8'),
   readFile('examples/sidebar-tools/reading-toc/locales.json','utf8')

@@ -1,6 +1,6 @@
-import {sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
-import {validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
-import {websiteOrigin,grantedOrigins,changeTocGrant} from '../reading-toc/policy.js';
+import {sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {validateSidebarToolPackage} from '../../../../src/ui/sidebar-tools/package.js';
+import {websiteOrigin,grantedOrigins,changeSiteGrant} from '../../../../src/ui/sidebar-tools/site-grants.js';
 
 // TOC site grants never implicitly grant article/selection body access.
 export const CLIP_SITE_STORE='opendesk.sidebar-tools.clip-sites.v1';
@@ -18,4 +18,4 @@ export function clipGrantAllowed(installed,settings,id,url,enableRecords){
   }catch{return false;}
 }
 export {websiteOrigin,grantedOrigins};
-export const changeClipGrant=changeTocGrant;
+export const changeClipGrant=changeSiteGrant;

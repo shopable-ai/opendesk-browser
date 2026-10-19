@@ -8,7 +8,7 @@ import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE}
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {READING_TOC_SITE_STORE,changeTocSiteAllowed}
-  from '../../src/reading-toc/policy.js';
+  from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 const pin=OFFICIAL_READING_TOC_RELEASE;
 function fixture(pkg,provenance=true){
  const state=new Map([[SIDEBAR_TOOL_STORE,[pkg]],...(provenance?

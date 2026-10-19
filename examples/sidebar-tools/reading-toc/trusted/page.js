@@ -1,13 +1,13 @@
-import {isSidebarToolHostSender} from '../sidebar-tools/sender.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
-import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
+import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
   websiteOrigin,tocGrantAllowed,verifyOfficialReadingToc,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
   readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
-import {MARKET_PROVENANCE_STORE,READING_TOC_CHROME_ACCESS_PROTOCOL} from '../sidebar-tools/official-reading-toc.js';
-import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
+import {MARKET_PROVENANCE_STORE,READING_TOC_CHROME_ACCESS_PROTOCOL} from '../../../../src/sidebar-tools/official-reading-toc.js';
+import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
-import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../ui/app-localization.js';
+import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../../../../src/ui/app-localization.js';
 
 // Verify the actual extension host document, not the raw URL string:
 // tool.html deliberately adds a hostInstanceId query on its first navigation.
