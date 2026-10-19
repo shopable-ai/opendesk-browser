@@ -1,0 +1,37 @@
+{
+  "observedAt": "2026-10-19T16:29:53.400Z",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "developmentOnly": true,
+  "observed": {
+    "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/runner.html",
+    "runtimeKeys": [
+      "dynamicId",
+      "id",
+      "onMessageExternal",
+      "onMessage",
+      "onConnectExternal",
+      "onConnect",
+      "connect",
+      "getURL",
+      "sendMessage",
+      "ContextType",
+      "OnInstalledReason",
+      "OnRestartRequiredReason",
+      "PlatformArch",
+      "PlatformNaclArch",
+      "PlatformOs",
+      "RequestUpdateCheckStatus"
+    ],
+    "getContexts": "undefined",
+    "scripts": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js"
+    ]
+  },
+  "loaded": [
+    {
+      "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js",
+      "sha256": "f47e0e6ae4f15375363248b66bcba52b189d2a38c011422394ce8f26401b2e48",
+      "file": "loaded-cloud-runner-f47e0e6ae4f15375363248b66bcba52b189d2a38c011422394ce8f26401b2e48.js"
+    }
+  ]
+}

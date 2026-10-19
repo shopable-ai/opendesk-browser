@@ -1,0 +1,10 @@
+✔ real offscreen runtime surface without getContexts starts the original Host and runner (1.204666ms)
+✔ a noncanonical URL cannot bootstrap the fixed runner document (1.084667ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.550125

@@ -1,0 +1,136 @@
+{
+  "initialLauncher": {
+    "pid": 22742,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh/chrome.log"
+  },
+  "initialLauncherCleanup": {
+    "event": "adapter-cleanup",
+    "launcherPid": 22741,
+    "status": "FAIL",
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+    "profileIdentity": [
+      16777234,
+      34900073
+    ],
+    "profileStatus": "removed",
+    "children": [
+      {
+        "pid": 22742,
+        "state": "exited",
+        "returncode": 0
+      }
+    ],
+    "residual": [],
+    "errors": [
+      {
+        "kind": "original",
+        "stage": "lifetime-wait",
+        "type": "TimeoutExpired",
+        "message": "Command '['/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing', '--use-mock-keychain', '--password-store=basic', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--remote-debugging-address=127.0.0.1', '--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh', '--remote-debugging-port=0', '--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development', '--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development', 'about:blank']' timed out after 20 seconds",
+        "inspectionReads": []
+      },
+      {
+        "kind": "original",
+        "stage": "global-launcher",
+        "type": "TimeoutExpired",
+        "message": "Command '['/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing', '--use-mock-keychain', '--password-store=basic', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--remote-debugging-address=127.0.0.1', '--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh', '--remote-debugging-port=0', '--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development', '--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development', 'about:blank']' timed out after 20 seconds",
+        "inspectionReads": []
+      }
+    ],
+    "events": [
+      {
+        "event": "started",
+        "at": 1792425787.654177,
+        "generation": 1,
+        "pid": 22742,
+        "launcherPid": 22741,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+        "profileDevice": 16777234,
+        "profileInode": 34900073,
+        "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+        "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+      }
+    ],
+    "attempts": 3,
+    "inspectionExitObservations": [],
+    "profileRemovalAttempts": [
+      {
+        "at": 1792426253.9869041,
+        "attempt": 1,
+        "profileDevice": 16777234,
+        "profileInode": 34900073,
+        "profileMode": 448,
+        "children": [
+          {
+            "pid": 22742,
+            "state": "exited",
+            "returncode": 0
+          }
+        ],
+        "state": "removed",
+        "finishedAt": 1792426254.019099
+      }
+    ]
+  },
+  "recoveredBeforeRestart": {
+    "pid": 23653,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "endpoint": "ws://127.0.0.1:50407/devtools/browser/a5435312-cafc-4f39-ba70-39eb6259de1c",
+    "reason": "Owned same-profile restart after launcher timeout; original process confirmed exited"
+  },
+  "recoveredAfterRestart": {
+    "pid": 26773,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "endpoint": "ws://127.0.0.1:52777/devtools/browser/7a8da8c6-143a-43dc-9bde-1dad0859afd0",
+    "reason": "Owned same-profile restart after launcher timeout; original process confirmed exited"
+  },
+  "profileInodeBeforeControlledRestart": 34901903,
+  "profileInodeAfterControlledRestart": 34901903,
+  "warning": "The original launcher removed inode 34900073 after timeout. Recovery at the same path created inode 34901903; pairing and installation were repeated through UI. The subsequent controlled Browser.close/relaunch retained inode 34901903."
+}

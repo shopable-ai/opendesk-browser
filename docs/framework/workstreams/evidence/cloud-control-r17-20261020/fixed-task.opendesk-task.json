@@ -1,0 +1,40 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "cloud-r17-fixed-1792424831759",
+    "version": "1.0.3",
+    "title": "Cloud R17 fixed Task v103",
+    "description": "Server-delivered Controller Task reviewed locally",
+    "author": "Cloud Operator",
+    "source": "cloud-operator",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "本次演示姓名"
+        },
+        "delayMs": {
+          "type": "number",
+          "title": "生命周期观察等待毫秒"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+  "sourceUtf8": "async function main() {\n  await page.goto('http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form');\n  await page.locator('#name').fill(params.name || 'Cloud R17 fixed 1792424831759');\n  if (params.delayMs) await new Promise(resolve => setTimeout(resolve, params.delayMs));\n  return {receipt: await page.locator('#name').inputValue()};\n}\n"
+}

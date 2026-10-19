@@ -1,0 +1,1415 @@
+{
+  "denial-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792426637998-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "closed-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792426704981-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "stop-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792426828968-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "disconnected-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792426855315-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "running",
+        "workerRetired": false,
+        "retirementState": "not-started"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "disconnect-completed-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792426871761-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "running",
+        "workerRetired": false,
+        "retirementState": "not-started"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "revoked-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792426956107-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_REVOKED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 disconnect"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "restarted-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792427055183-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "workerRetired": true,
+        "retirementState": "fenced"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_HOST_CLOSED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_REVOKED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 disconnect"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "restart-after-ui-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792427087031-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "workerRetired": true,
+        "retirementState": "fenced"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_HOST_CLOSED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_REVOKED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 disconnect"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "after-new-program-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792427536014-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "workerRetired": true,
+        "retirementState": "fenced"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_HOST_CLOSED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_REVOKED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 disconnect"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  },
+  "final-db": {
+    "path": "docs/framework/workstreams/evidence/cloud-control-r1/native-1792425787510/1792427401765-database.json",
+    "runs": [
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "workerRetired": true,
+        "retirementState": "fenced"
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "workerRetired": true,
+        "retirementState": "released"
+      }
+    ],
+    "results": [
+      {
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "state": "interrupted",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_HOST_CLOSED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "9c29bee8-5c88-4aaf-82dd-868bc0033606",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 midrun close"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "beb7ec5c-391b-4bee-b8e0-6edc07f18278",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_REVOKED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      },
+      {
+        "runId": "1bc693e4-bd99-44c9-94f2-1b6684234131",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "Cloud R17 fixed 1792424831759"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "7b4d3ca4-c9c3-4698-b4e8-fefb4ec2da04",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 disconnect"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "32c54889-7f99-47e6-b0d0-f8503797e782",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 server core recovered"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "e49bb231-979f-4b41-bc80-3e871c034260",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "receipt",
+                {
+                  "type": "string",
+                  "value": "R17 panel closed"
+                }
+              ]
+            ]
+          }
+        }
+      },
+      {
+        "runId": "b3e36bd4-08b4-4b42-83bb-219623722f08",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CLOUD_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        }
+      }
+    ]
+  }
+}

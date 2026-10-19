@@ -1,0 +1,18 @@
+✔ Runner sender must be a live Chrome OFFSCREEN_DOCUMENT, never a tab (1.035292ms)
+✔ missing offscreen documentId is recovered from one actual native context (0.654333ms)
+✔ enabled cloud creates only its fixed original Offscreen document (0.997292ms)
+✔ STOP retains Offscreen while durable Run still owns @slot, then retires after release (0.613375ms)
+✔ STOP retains Offscreen if the shared native preview slot is busy (0.106375ms)
+✔ do not close if approval is restored during the durable slot check (0.105084ms)
+✔ serialized STOP and subsequent APPROVE do not lose the newer desired state (0.150875ms)
+✔ reject a mismatching native Offscreen context instead of closing another owner (0.242083ms)
+✔ real offscreen runtime surface without getContexts starts the original Host and runner (1.295916ms)
+✔ a tab or query variant cannot bootstrap the fixed runner document (1.181292ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.123792

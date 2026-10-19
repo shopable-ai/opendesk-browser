@@ -1,0 +1,100 @@
+{
+  "observedAt": "2026-10-19T16:33:41.787Z",
+  "overall": "BLOCKED",
+  "sourceCommit": "4d6cc72a5ec9afdf015f1618415a9451bbdd8d46",
+  "inheritedAnchor": "701cace144b30829e9ceced3af514edbc379dfb4",
+  "branch": "main",
+  "mode": "Continuous development via existing watcher, dist/development; actual WXT connection observed. Independent production build failed before a valid candidate existed.",
+  "nativeCandidate": "Moving development output; individual runs are not a frozen production candidate. Current loaded runner bytes and fingerprint are separately preserved.",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "provider": {
+    "address": "http://127.0.0.1:43112",
+    "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+    "executorId": "d0cf716e-8d24-4530-b738-4e7e39ed7bc5",
+    "remoteLAN": "NOT_TESTED; historical SSH host timed out; ownership/service/Provider identity unconfirmed"
+  },
+  "task": {
+    "taskId": "cloud-r17-fixed-1792424831759",
+    "version": "1.0.3",
+    "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+    "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf"
+  },
+  "goals": [
+    {
+      "name": "Server execution of authorized fixed Task",
+      "status": "BLOCKED",
+      "developmentObservation": "Local real Provider and CFT completed core Job 52d63f94-fff4-4720-888c-690219e1236c; duplicate returned same Job/Assignment/Run/Receipt; exact page input value observed once.",
+      "gap": "LAN backend could not be established; final production candidate unavailable."
+    },
+    {
+      "name": "Background lifecycle",
+      "status": "BLOCKED",
+      "developmentScenarios": {
+        "sidePanelOpen": "PASS",
+        "sidePanelClosedNewJob": "PASS",
+        "midRunCloseAndReopen": "PASS",
+        "remoteStop": "PASS; stopped E_CLOUD_CANCELLED with Receipt",
+        "providerDisconnectReconnect": "PASS; same Run completed with Receipt",
+        "grantRevocation": "Local stopped E_CLOUD_REVOKED; new remote request E_CLOUD_STOPPED; revoked request receipt unconfirmed",
+        "unpair": "Provider revocation confirmed",
+        "browserRestart": "BLOCKED; original Run interrupted E_HOST_CLOSED, workerRetired true, target retirement fenced, slot held, no receipt, no replay"
+      },
+      "gap": "Existing cross-session target ownership cannot be proven; no supported safe UI recovery. Do not delete target or release slot by old numeric tabId. Unknown side-effect scenario NOT_TESTED; this interrupted run has durable page operation receipts."
+    },
+    {
+      "name": "Remote JS review/trial/install/authorization isolation",
+      "status": "BLOCKED",
+      "developmentObservation": "Fixed Task was reviewed, tried, verified and installed with identical sourceHash. Before separate cloud approval, actual seed returned E_GRANT and no Run/effect. The first Task was later explicitly approved for goal one.",
+      "newProgram": {
+        "taskId": "cloud-r17-new-controller-1792426584969",
+        "version": "1.0.0",
+        "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+        "manifestHash": "9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0",
+        "state": "Delivered and reviewed through React UI. Trial failed before Run creation while original slot remained frozen. Not installed; no cloud authorization."
+      },
+      "gap": "Separate new program could not complete trial/install because restart resources are fenced; production acceptance NOT_TESTED."
+    }
+  ],
+  "checks": {
+    "check": "PASS; 906 source/test/build files",
+    "cloudTests": "PASS;108/108 after correcting two fixture grants",
+    "offscreenAndIdentityLifecycleTests": "PASS;10/10",
+    "productionBuild": "FAIL; opendesk-fixed-sw trusted AdBlock source hash mismatch at examples/sidebar-tools/adblock/trusted/service.js"
+  },
+  "firstActualFailure": {
+    "node": "Offscreen bootstrap",
+    "message": "TypeError: chrome.runtime.getContexts is not a function",
+    "fix": "Offscreen uses only its available messaging APIs. Existing SW broker retains live OFFSCREEN_DOCUMENT identity authentication."
+  },
+  "duplicateEvidence": {
+    "requestKey": "cloud-r17-core-recovery-1792426584969",
+    "jobId": "52d63f94-fff4-4720-888c-690219e1236c",
+    "pageInputCount": 1
+  },
+  "safety": {
+    "idbWrites": false,
+    "constructedReceipts": false,
+    "extraExecutionEngine": false,
+    "authorityBypass": false,
+    "oldUnknownsReplayed": false,
+    "sharedWatcherReplaced": false,
+    "dailyChromeClosed": false
+  },
+  "retainedEnvironment": {
+    "ownedChromePid": 26773,
+    "ownedChromeProfile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kg9hdzwh",
+    "providerPid": 26261,
+    "demoAddress": "http://127.0.0.1:43111/demo-form.html",
+    "reason": "Preserve fenced restart scene and program review for follow-up. Do not clear state to make a test pass."
+  },
+  "officialReference": "https://developer.chrome.com/docs/extensions/reference/api/offscreen",
+  "sourceContractReferences": [
+    "src/platform/host/controller-methods.js:835",
+    "src/platform/target/index.js:373",
+    "tests/foundation/target-service.test.mjs:104",
+    "src/cloud-control/service.js:51",
+    "src/cloud-control/service.js:65",
+    "src/cloud-control/service.js:713"
+  ],
+  "ci": "Recorded separately after push; queued/running is not PASS"
+}

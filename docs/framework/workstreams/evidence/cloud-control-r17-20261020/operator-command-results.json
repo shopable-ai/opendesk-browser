@@ -1,0 +1,68 @@
+{
+  "job-core-submit": {
+    "jobId": "9632ebf9-4919-4354-86f9-9498bd643f76"
+  },
+  "abandoned-profile-job-cancel": {
+    "cancelled": true
+  },
+  "recovery-seed": {
+    "jobId": "52d63f94-fff4-4720-888c-690219e1236c"
+  },
+  "duplicate-seed": {
+    "jobId": "52d63f94-fff4-4720-888c-690219e1236c"
+  },
+  "closed-seed": {
+    "jobId": "ee3ea69c-454d-4763-ab0f-86e0bb217d01"
+  },
+  "midrun-seed": {
+    "jobId": "c00718f4-b1ed-4212-9f10-6fff3c074e30"
+  },
+  "stop-seed": {
+    "jobId": "c41f6485-b878-40db-a2fc-6451c70cfd7b"
+  },
+  "remote-cancel": {
+    "cancelled": true
+  },
+  "disconnect-seed": {
+    "jobId": "acdf3074-89d3-49e5-9329-06f5abf7fc08"
+  },
+  "revoke-seed": {
+    "jobId": "852ce95c-1247-48fc-a58c-85fb32d9472d"
+  },
+  "revoked-denial": {
+    "error": {
+      "code": "E_CLOUD_STOPPED",
+      "message": "E_CLOUD_STOPPED"
+    }
+  },
+  "restart-seed": {
+    "jobId": "3bfd25a7-399d-4fb4-a152-2314e40dde24"
+  },
+  "restart-duplicate": {
+    "jobId": "3bfd25a7-399d-4fb4-a152-2314e40dde24"
+  },
+  "unapproved-denial": {
+    "error": {
+      "code": "E_GRANT",
+      "message": "Target Executor has not approved this Task"
+    }
+  },
+  "recovery-delivery": {
+    "deliveryId": "6b09fbf7-59b1-4a4a-8f1c-7ba005c1dd68",
+    "task": {
+      "taskId": "cloud-r17-fixed-1792424831759",
+      "version": "1.0.3",
+      "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+      "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26"
+    }
+  },
+  "new-program-delivery": {
+    "deliveryId": "6c5d4283-ed35-4374-9870-1795d64c51d4",
+    "task": {
+      "taskId": "cloud-r17-new-controller-1792426584969",
+      "version": "1.0.0",
+      "manifestHash": "9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0",
+      "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925"
+    }
+  }
+}

@@ -1,0 +1,2148 @@
+{
+  "recovery-review": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n已配对，托管已关闭。未启用任务授权，不会领取新任务。 尚无已批准网站范围。\n\n连接\n未连接\n已授权任务\n0\n运行环境与历史统计\n待审核程序\n刷新\n\n源码已读取并校验固定版本。核对后可接收为待验证任务；此操作不会执行或安装。\n\nCloud R17 fixed Task v103\ncloud-r17-fixed-1792424831759 · v1.0.3 · http://127.0.0.1:43111\nSHA-256 064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26\n重新核对源码\n接收为待验证任务\n\n程序说明：Server-delivered Controller Task reviewed locally\n\n来源：cloud-operator · Cloud Operator\n\n网站：http://127.0.0.1:43111\n\n权限：page.automation\n\n依赖：此 Task Package v1 不声明外部 JS 依赖；源码使用浏览器已有的 Controller 能力。\n\n程序 SHA-256 064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26\n\n清单 SHA-256 148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf\n\n查看参数约束\n完整 JS 源码（只读）\nasync function main() {\n  await page.goto('http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form');\n  await page.locator('#name').fill(params.name || 'Cloud R17 fixed 1792424831759');\n  if (params.delayMs) await new Promise(resolve => setTimeout(resolve, params.delayMs));\n  return {receipt: await page.locator('#name').inputValue()};\n}\n\n\n本机尚无此 Task 的已安装版本。\n\n试运行参数（JSON）\n在当前授权网页单次试运行\n\n本次执行使用原有 Controller Worker；只允许清单指定的网站。试运行不自动安装，也不授予云控长期权限。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\n\n暂无已安装任务。请先在「我的」验证并安装 Controller Task。\n\n前往「我的」安装任务\n\n0 项已选 · 0 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\n此页暂无请求记录\n上一页\n此页暂无请求 / 共 0 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对\n\n当前状态：已关闭\n\n可信提供者 HTTPS 地址\n提供者身份\n一次性配对码\n 使用本机演示连接（固定 127.0.0.1:43112）\n\n本机 Provider 为 HTTP/WS 演示。实际远程连接必须使用可信 HTTPS/WSS。\n\n完成配对\n解除配对并撤销凭据\n核对状态\n\n停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。\n\n已配对，托管已关闭。未启用任务授权，不会领取新任务。 尚无已批准网站范围。\n已批准任务 0 项 · 历史云请求 0 条 · 已确认回执 0 条（最近 0 条统计）\n\n云控沿用「我的」任务权限与原 RunHost；关闭 Side Panel 后不保证任务继续运行。",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": 234.53125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": 296.53125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "重新核对源码",
+        "value": "",
+        "disabled": false,
+        "y": 483.7265625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "接收为待验证任务",
+        "value": "",
+        "disabled": false,
+        "y": 483.7265625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 742.3984375
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "cloud-program-params",
+        "text": "",
+        "value": "{}",
+        "disabled": false,
+        "y": 1015.25
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "在当前授权网页单次试运行",
+        "value": "",
+        "disabled": false,
+        "y": 1089.25
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "前往「我的」安装任务",
+        "value": "",
+        "disabled": false,
+        "y": 1352.4296875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1451.4296875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1490.4296875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 1518.4296875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": true,
+        "y": 1518.4296875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 1658.7734375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": true,
+        "y": 1658.7734375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 1716.7734375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 1774.7734375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "http://127.0.0.1:43112",
+        "disabled": false,
+        "y": 1873.6171875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+        "disabled": false,
+        "y": 1939.859375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 2006.1015625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 2053.9453125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "完成配对",
+        "value": "",
+        "disabled": true,
+        "y": 2122.140625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "解除配对并撤销凭据",
+        "value": "",
+        "disabled": false,
+        "y": 2166.140625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "核对状态",
+        "value": "",
+        "disabled": false,
+        "y": 2166.140625
+      }
+    ]
+  },
+  "recovery-installed-ui": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n已配对，托管已关闭。未启用任务授权，不会领取新任务。 尚无已批准网站范围。\n\n连接\n未连接\n已授权任务\n0\n运行环境与历史统计\n待审核程序\n刷新\n\n已导入待验证任务 Cloud R17 fixed Task v103；请到「我的」使用原有试运行、验证与安装流程。\n\n最近试运行 · Cloud R17 fixed Task v103 v1.0.3\n\n已正式安装此固定版本；云控仍须另行批准，不会自动授予远程执行权限。\n\nRun：1bc693e4-bd99-44c9-94f2-1b6684234131 · 状态：completed\n\nSHA-256 064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26\n\n停止本次 Run\n查看原始 Run / Result\n验证页面回执并发布本地版本\n正式安装此版本\n\n安装后若希望服务器调用，须另外批准此精确 Task 安装版本。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\nCloud R17 fixed Task v103 · v1.0.3\nServer-delivered Controller Task reviewed locally\n\n允许访问：http://127.0.0.1:43111\n\n参数许可（固定 Schema）：name (string，可选)；delayMs (number，可选)\n\n允许回传结果正文（网页数据、返回值与错误详情） · 默认关闭\n查看参数约束\n查看授权状态与固定版本详情\n\n0 项已选 · 0 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\n此页暂无请求记录\n上一页\n此页暂无请求 / 共 0 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对\n\n当前状态：已关闭\n\n可信提供者 HTTPS 地址\n提供者身份\n一次性配对码\n 使用本机演示连接（固定 127.0.0.1:43112）\n\n本机 Provider 为 HTTP/WS 演示。实际远程连接必须使用可信 HTTPS/WSS。\n\n完成配对\n解除配对并撤销凭据\n核对状态\n\n停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。\n\n已配对，托管已关闭。未启用任务授权，不会领取新任务。 尚无已批准网站范围。\n已批准任务 0 项 · 历史云请求 0 条 · 已确认回执 0 条（最近 0 条统计）\n\n云控沿用「我的」任务权限与原 RunHost；关闭 Side Panel 后不保证任务继续运行。",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": -363
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": -363
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": -179.46875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": -117.46875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "停止本次 Run",
+        "value": "",
+        "disabled": true,
+        "y": 124.5234375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看原始 Run / Result",
+        "value": "",
+        "disabled": false,
+        "y": 124.5234375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "验证页面回执并发布本地版本",
+        "value": "",
+        "disabled": true,
+        "y": 168.5234375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "正式安装此版本",
+        "value": "",
+        "disabled": true,
+        "y": 168.5234375
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 420.90625
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 556.40625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 601.40625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看授权状态与固定版本详情",
+        "y": 645.40625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 756.40625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 795.40625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 823.40625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": true,
+        "y": 823.40625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 963.75
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": true,
+        "y": 963.75
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 1021.75
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 1079.75
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "http://127.0.0.1:43112",
+        "disabled": false,
+        "y": 1178.59375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+        "disabled": false,
+        "y": 1244.8359375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 1311.078125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1358.921875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "完成配对",
+        "value": "",
+        "disabled": true,
+        "y": 1427.1171875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "解除配对并撤销凭据",
+        "value": "",
+        "disabled": false,
+        "y": 1471.1171875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "核对状态",
+        "value": "",
+        "disabled": false,
+        "y": 1471.1171875
+      }
+    ]
+  },
+  "disconnected-ui": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n托管已启用，但提供者尚未连接。请检查网络和连接状态。 目标网站已授权。\n\n连接\n重连中\n已授权任务\n1\n运行环境与历史统计\n待审核程序\n刷新\n\n点击刷新，检查服务器交付的待审核程序。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\nCloud R17 fixed Task v103 · v1.0.3 · 当前已批准\nServer-delivered Controller Task reviewed locally\n\n允许访问：http://127.0.0.1:43111\n\n参数许可（固定 Schema）：name (string，可选)；delayMs (number，可选)\n\n允许回传结果正文（网页数据、返回值与错误详情） · 当前已授权\n查看参数约束\n查看授权状态与固定版本详情\n\n1 项已选 · 1 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n批准前核对\nCloud R17 fixed Task v103 · v1.0.3 · 网站：http://127.0.0.1:43111 · 参数：name（可选）、delayMs（可选） · 结果正文：允许\n\n以下版本、网站与结果许可一旦改变，需要重新确认。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\nCloud R17 fixed Task v103 · 已取得许可 · 运行中\n结果保存未确认 · 资源尚未释放 · 回执未确认 · 任务正在执行\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执已确认 · 执行已停止；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\n上一页\n第 1–5 条 / 共 5 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": 234.53125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": 296.53125
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 502.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 657.515625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 702.515625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看授权状态与固定版本详情",
+        "y": 746.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 997.1953125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 1036.1953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 1064.1953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": false,
+        "y": 1064.1953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1196.5390625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1269.484375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1342.4296875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1415.375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1488.3203125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 1536.3203125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": true,
+        "y": 1536.3203125
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 1594.3203125
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 1652.3203125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1751.1640625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1817.40625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 1883.6484375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1931.4921875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "",
+        "value": "",
+        "disabled": true,
+        "y": 1999.6875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2043.6875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2043.6875
+      }
+    ]
+  },
+  "revoked-ui": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n已配对，托管已关闭。未启用任务授权，不会领取新任务。 目标网站已授权。\n\n连接\n未连接\n已授权任务\n1\n运行环境与历史统计\n待审核程序\n刷新\n\n点击刷新，检查服务器交付的待审核程序。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\nCloud R17 fixed Task v103 · v1.0.3 · 当前已批准\nServer-delivered Controller Task reviewed locally\n\n允许访问：http://127.0.0.1:43111\n\n参数许可（固定 Schema）：name (string，可选)；delayMs (number，可选)\n\n允许回传结果正文（网页数据、返回值与错误详情） · 当前已授权\n查看参数约束\n查看授权状态与固定版本详情\n\n0 项已选 · 0 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\nCloud R17 fixed Task v103 · 取消处理中 · 已停止\n结果已保存 · 资源已释放 · 回执未确认 · 等待提供者确认回执；本机托管授权已撤销\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执已确认 · 执行已停止；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\n上一页\n第 1–5 条 / 共 6 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": -349
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": -349
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": -165.46875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": -103.46875
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 102.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 257.515625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 302.515625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看授权状态与固定版本详情",
+        "y": 346.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 457.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 496.515625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 524.515625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": true,
+        "y": 524.515625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 656.859375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 729.8046875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 802.75
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 875.6953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 948.640625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 996.640625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": false,
+        "y": 996.640625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 1054.640625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 1112.640625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1211.484375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1277.7265625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 1343.96875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1391.8125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "",
+        "value": "",
+        "disabled": true,
+        "y": 1460.0078125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1504.0078125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1504.0078125
+      }
+    ]
+  },
+  "unpaired-ui": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n本机已停止；服务端撤销已确认。可重新配对提供者。 尚无已批准网站范围。\n\n连接\n未连接\n已授权任务\n0\n运行环境与历史统计\n\n先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。\n\n连接提供者\n请求记录\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执未确认 · 等待提供者确认回执；本机托管授权已撤销\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执已确认 · 执行已停止；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\n上一页\n第 1–5 条 / 共 6 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对\n\n当前状态：撤销已确认\n\n可信提供者 HTTPS 地址\n提供者身份\n一次性配对码\n 使用本机演示连接（固定 127.0.0.1:43112）\n\n本机 Provider 为 HTTP/WS 演示。实际远程连接必须使用可信 HTTPS/WSS。\n\n完成配对\n解除配对并撤销凭据\n核对状态\n\n停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。\n\n本机已停止；服务端撤销已确认。可重新配对提供者。 尚无已批准网站范围。\n已批准任务 0 项 · 历史云请求 6 条 · 已确认回执 4 条（最近 5 条统计）\n\n云控沿用「我的」任务权限与原 RunHost；关闭 Side Panel 后不保证任务继续运行。",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": -532.5
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": -532.5
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": -348.96875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-configure",
+        "text": "连接提供者",
+        "value": "",
+        "disabled": false,
+        "y": -227.96875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": -95.625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": -22.6796875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 50.265625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 123.2109375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 196.15625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 244.15625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": false,
+        "y": 244.15625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 302.15625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 360.15625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 459
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 525.2421875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 591.484375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 639.328125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "完成配对",
+        "value": "",
+        "disabled": false,
+        "y": 707.5234375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "解除配对并撤销凭据",
+        "value": "",
+        "disabled": true,
+        "y": 751.5234375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "核对状态",
+        "value": "",
+        "disabled": false,
+        "y": 751.5234375
+      }
+    ]
+  },
+  "restart-ui": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n连接与对账已完成；等待原任务资源释放。 目标网站已授权。 仍有待处理资源，等待停止、核对及资源释放。\n\n连接\n已连接\n已授权任务\n1\n运行环境与历史统计\n待审核程序\n刷新\n\n点击刷新，检查服务器交付的待审核程序。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\nCloud R17 fixed Task v103 · v1.0.3 · 当前已批准\nServer-delivered Controller Task reviewed locally\n\n允许访问：http://127.0.0.1:43111\n\n参数许可（固定 Schema）：name (string，可选)；delayMs (number，可选)\n\n允许回传结果正文（网页数据、返回值与错误详情） · 当前已授权\n查看参数约束\n查看授权状态与固定版本详情\n\n1 项已选 · 1 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n批准前核对\nCloud R17 fixed Task v103 · v1.0.3 · 网站：http://127.0.0.1:43111 · 参数：name（可选）、delayMs（可选） · 结果正文：允许\n\n以下版本、网站与结果许可一旦改变，需要重新确认。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\nCloud R17 fixed Task v103 · 已取得许可 · 已中断\n结果已保存 · 资源释放中 · 回执未确认 · 结果已保存，等待资源释放\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执未确认 · 等待提供者确认回执；本机托管授权已撤销\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执已确认 · 执行已停止；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\n上一页\n第 1–5 条 / 共 7 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": 234.53125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": 296.53125
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 502.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 657.515625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 702.515625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看授权状态与固定版本详情",
+        "y": 746.515625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 997.1953125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 1036.1953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 1064.1953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": false,
+        "y": 1064.1953125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1196.5390625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1269.484375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1342.4296875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1415.375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 1488.3203125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 1536.3203125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": false,
+        "y": 1536.3203125
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 1594.3203125
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 1652.3203125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1751.1640625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 1817.40625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 1883.6484375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1931.4921875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "",
+        "value": "",
+        "disabled": true,
+        "y": 1999.6875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2043.6875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2043.6875
+      }
+    ]
+  },
+  "new-program-review": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n连接与对账已完成；等待原任务资源释放。 目标网站已授权。 仍有待处理资源，等待停止、核对及资源释放。\n\n连接\n已连接\n已授权任务\n1\n运行环境与历史统计\n待审核程序\n刷新\n\n源码已读取并校验固定版本。核对后可接收为待验证任务；此操作不会执行或安装。\n\nCloud R17 newly delivered Controller\ncloud-r17-new-controller-1792426584969 · v1.0.0 · http://127.0.0.1:43111\nSHA-256 61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925\n重新核对源码\n接收为待验证任务\n\n程序说明：Server-delivered Controller Task reviewed locally\n\n来源：cloud-operator · Cloud Operator\n\n网站：http://127.0.0.1:43111\n\n权限：page.automation\n\n依赖：此 Task Package v1 不声明外部 JS 依赖；源码使用浏览器已有的 Controller 能力。\n\n程序 SHA-256 61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925\n\n清单 SHA-256 9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0\n\n查看参数约束\n完整 JS 源码（只读）\nasync function main() {\n  await page.goto('http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form');\n  await page.locator('#name').fill('Cloud R17 newly delivered Controller');\n  return {receipt: await page.locator('#name').inputValue()};\n}\n\n\n本机尚无此 Task 的已安装版本。\n\n试运行参数（JSON）\n在当前授权网页单次试运行\n\n本次执行使用原有 Controller Worker；只允许清单指定的网站。试运行不自动安装，也不授予云控长期权限。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\nCloud R17 fixed Task v103 · v1.0.3 · 当前已批准\nServer-delivered Controller Task reviewed locally\n\n允许访问：http://127.0.0.1:43111\n\n参数许可（固定 Schema）：name (string，可选)；delayMs (number，可选)\n\n允许回传结果正文（网页数据、返回值与错误详情） · 当前已授权\n查看参数约束\n查看授权状态与固定版本详情\n\n1 项已选 · 1 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n批准前核对\nCloud R17 fixed Task v103 · v1.0.3 · 网站：http://127.0.0.1:43111 · 参数：name（可选）、delayMs（可选） · 结果正文：允许\n\n以下版本、网站与结果许可一旦改变，需要重新确认。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\nCloud R17 fixed Task v103 · 取消处理中 · 已中断\n结果已保存 · 资源释放中 · 回执未确认 · 结果已保存，等待资源释放；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执未确认 · 等待提供者确认回执；本机托管授权已撤销\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执已确认 · 执行已停止；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\n上一页\n第 1–5 条 / 共 7 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": 51
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": 234.53125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": 296.53125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "重新核对源码",
+        "value": "",
+        "disabled": false,
+        "y": 498.2265625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "接收为待验证任务",
+        "value": "",
+        "disabled": false,
+        "y": 498.2265625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 756.8984375
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "cloud-program-params",
+        "text": "",
+        "value": "{}",
+        "disabled": false,
+        "y": 1012.15625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "在当前授权网页单次试运行",
+        "value": "",
+        "disabled": false,
+        "y": 1086.15625
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 1322.5390625
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1477.5390625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": 1522.5390625
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看授权状态与固定版本详情",
+        "y": 1566.5390625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 1817.21875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 1856.21875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 1884.21875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": false,
+        "y": 1884.21875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 2016.5625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 2089.5078125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 2162.453125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 2235.3984375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 2308.34375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 2356.34375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": false,
+        "y": 2356.34375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 2414.34375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 2472.34375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2571.1875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2637.4296875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 2703.671875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 2751.515625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "",
+        "value": "",
+        "disabled": true,
+        "y": 2819.7109375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2863.7109375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 2863.7109375
+      }
+    ]
+  },
+  "new-program-trial-blocked": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n云控\n\n连接与对账已完成；等待原任务资源释放。 目标网站已授权。 仍有待处理资源，等待停止、核对及资源释放。\n\n连接\n已连接\n已授权任务\n1\n运行环境与历史统计\n待审核程序\n刷新\n\n源码已读取并校验固定版本。核对后可接收为待验证任务；此操作不会执行或安装。\n\nCloud R17 newly delivered Controller\ncloud-r17-new-controller-1792426584969 · v1.0.0 · http://127.0.0.1:43111\nSHA-256 61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925\n重新核对源码\n接收为待验证任务\n\n程序说明：Server-delivered Controller Task reviewed locally\n\n来源：cloud-operator · Cloud Operator\n\n网站：http://127.0.0.1:43111\n\n权限：page.automation\n\n依赖：此 Task Package v1 不声明外部 JS 依赖；源码使用浏览器已有的 Controller 能力。\n\n程序 SHA-256 61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925\n\n清单 SHA-256 9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0\n\n查看参数约束\n完整 JS 源码（只读）\nasync function main() {\n  await page.goto('http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form');\n  await page.locator('#name').fill('Cloud R17 newly delivered Controller');\n  return {receipt: await page.locator('#name').inputValue()};\n}\n\n\n本机尚无此 Task 的已安装版本。\n\n试运行参数（JSON）\n在当前授权网页单次试运行\n\n本次执行使用原有 Controller Worker；只允许清单指定的网站。试运行不自动安装，也不授予云控长期权限。\n\n最近试运行 · Cloud R17 newly delivered Controller v1.0.0\n\n启动或授权未完成；若原始状态未知，请核对运行记录后决定下一步。\n\nRun：尚未创建 · 状态：failed\n\nSHA-256 61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925\n\n停止本次 Run\n查看原始 Run / Result\n验证页面回执并发布本地版本\n正式安装此版本\n\n先在上方点击「接收为待验证任务」，再验证本次 Run。\n\n允许远程调用的任务\n\n执行完成或失败的最小状态会回传；网页数据和结果正文默认不回传。\n\n选择任务，最多 32 项\nCloud R17 fixed Task v103 · v1.0.3 · 当前已批准\nServer-delivered Controller Task reviewed locally\n\n允许访问：http://127.0.0.1:43111\n\n参数许可（固定 Schema）：name (string，可选)；delayMs (number，可选)\n\n允许回传结果正文（网页数据、返回值与错误详情） · 当前已授权\n查看参数约束\n查看授权状态与固定版本详情\n\n1 项已选 · 1 项允许回传结果正文；未勾选的任务仅回传最小执行状态。\n\n批准前核对\nCloud R17 fixed Task v103 · v1.0.3 · 网站：http://127.0.0.1:43111 · 参数：name（可选）、delayMs（可选） · 结果正文：允许\n\n以下版本、网站与结果许可一旦改变，需要重新确认。\n\n我已核对所选任务的网站和固定安装版本\n我另外同意所勾选任务向 Provider 回传结果正文\n批准并启用\n停止远程调用\n请求记录\nCloud R17 fixed Task v103 · 取消处理中 · 已中断\n结果已保存 · 资源释放中 · 回执未确认 · 结果已保存，等待资源释放；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执未确认 · 等待提供者确认回执；本机托管授权已撤销\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\nCloud R17 fixed Task v103 · 请求已结束 · 已停止\n结果已保存 · 资源已释放 · 回执已确认 · 执行已停止；云请求已取消或租约已到期\n查看详情\nCloud R17 fixed Task v103 · 已完成 · 已完成\n结果已保存 · 资源已释放 · 回执已确认\n查看详情\n上一页\n第 1–5 条 / 共 7 条\n下一页\n外部应用授权\n按需管理\n连接设置与解除配对\n\n当前状态：等待资源释放\n\n可信提供者 HTTPS 地址\n提供者身份\n一次性配对码\n 使用本机演示连接（固定 127.0.0.1:43112）\n\n本机 Provider 为 HTTP/WS 演示。实际远程连接必须使用可信 HTTPS/WSS。\n\n完成配对\n解除配对并撤销凭据\n核对状态\n\n停止仅暂停云控并保留配对；解除配对还会请求 Provider 撤销本机凭据。连接中断时先停止，待 Provider 可达后再解除配对。\n\n连接与对账已完成；等待原任务资源释放。 目标网站已授权。 仍有待处理资源，等待停止、核对及资源释放。\n已批准任务 1 项 · 历史云请求 7 条 · 已确认回执 3 条（最近 5 条统计）\n操作未完成，请检查连接与授权（E_CLOUD）\n\n云控沿用「我的」任务权限与原 RunHost；关闭 Side Panel 后不保证任务继续运行。",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-tools",
+        "text": "扩展",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-cloud",
+        "text": "云控",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "tab-debug",
+        "text": "调试",
+        "value": "",
+        "disabled": false,
+        "y": 0
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-open-console",
+        "text": "在新标签页打开只读云控控制台",
+        "value": "",
+        "disabled": false,
+        "y": -1949
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-overview-refresh",
+        "text": "刷新云控状态",
+        "value": "",
+        "disabled": false,
+        "y": -1949
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "运行环境与历史统计",
+        "y": -1765.46875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "刷新",
+        "value": "",
+        "disabled": false,
+        "y": -1703.46875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "重新核对源码",
+        "value": "",
+        "disabled": false,
+        "y": -1501.7734375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "接收为待验证任务",
+        "value": "",
+        "disabled": false,
+        "y": -1501.7734375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": -1243.1015625
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "cloud-program-params",
+        "text": "",
+        "value": "{}",
+        "disabled": false,
+        "y": -987.84375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "在当前授权网页单次试运行",
+        "value": "",
+        "disabled": false,
+        "y": -913.84375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "停止本次 Run",
+        "value": "",
+        "disabled": true,
+        "y": -668.25
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看原始 Run / Result",
+        "value": "",
+        "disabled": true,
+        "y": -668.25
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "验证页面回执并发布本地版本",
+        "value": "",
+        "disabled": true,
+        "y": -624.25
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "正式安装此版本",
+        "value": "",
+        "disabled": true,
+        "y": -624.25
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": -371.8671875
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": -216.8671875
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看参数约束",
+        "y": -171.8671875
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "查看授权状态与固定版本详情",
+        "y": -127.8671875
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 122.8125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-result-consent",
+        "text": "",
+        "value": "on",
+        "disabled": true,
+        "y": 161.8125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-approve",
+        "text": "批准并启用",
+        "value": "",
+        "disabled": true,
+        "y": 189.8125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-stop",
+        "text": "停止远程调用",
+        "value": "",
+        "disabled": false,
+        "y": 189.8125
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 322.15625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 395.1015625
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 468.046875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 540.9921875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "查看详情",
+        "value": "",
+        "disabled": false,
+        "y": 613.9375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-prev",
+        "text": "上一页",
+        "value": "",
+        "disabled": true,
+        "y": 661.9375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-request-next",
+        "text": "下一页",
+        "value": "",
+        "disabled": false,
+        "y": 661.9375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "外部应用授权\n按需管理",
+        "y": 719.9375
+      },
+      {
+        "tag": "SUMMARY",
+        "id": "",
+        "text": "连接设置与解除配对",
+        "y": 777.9375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-url",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 876.78125
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-provider-id",
+        "text": "",
+        "value": "",
+        "disabled": false,
+        "y": 943.0234375
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-pairing-code",
+        "text": "",
+        "disabled": false,
+        "y": 1009.265625
+      },
+      {
+        "tag": "INPUT",
+        "id": "cloud-loopback",
+        "text": "",
+        "value": "on",
+        "disabled": false,
+        "y": 1057.109375
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-pair",
+        "text": "完成配对",
+        "value": "",
+        "disabled": true,
+        "y": 1125.3046875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-unpair",
+        "text": "解除配对并撤销凭据",
+        "value": "",
+        "disabled": false,
+        "y": 1169.3046875
+      },
+      {
+        "tag": "BUTTON",
+        "id": "cloud-refresh",
+        "text": "核对状态",
+        "value": "",
+        "disabled": false,
+        "y": 1169.3046875
+      }
+    ]
+  }
+}

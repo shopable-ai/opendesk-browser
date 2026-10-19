@@ -1,0 +1,127 @@
+[
+  {
+    "file": "check.log",
+    "bytes": 208,
+    "sha256": "0da2f3473a95dea33923317cb3db7454a78b9c0c05ff2337dc4c9b1902ce7ce6"
+  },
+  {
+    "file": "cloud-tests-initial-failure.log",
+    "bytes": 13752,
+    "sha256": "de7960cc5a7dffb6512cec3056e63ce71863cfa3f48d9c6c1f0d9e06b0bf7fb4"
+  },
+  {
+    "file": "cloud-tests.log",
+    "bytes": 11060,
+    "sha256": "c9232e73daa8b3caf1c84534e67f65e4871618996606f43b2a02d2c126e181c3"
+  },
+  {
+    "file": "database-observations.json",
+    "bytes": 35666,
+    "sha256": "ba0156e8986b70818fb111b2cb22b6838193a2e6a677d54b03c383673271a670"
+  },
+  {
+    "file": "development-fingerprint.json",
+    "bytes": 26171,
+    "sha256": "04912d65b6b96807be375b09901ee4b4e7152dfc591e40183b7df013cb6ce554"
+  },
+  {
+    "file": "development-update.json",
+    "bytes": 11763,
+    "sha256": "b9f80d9f0865b34d9caa2a7478396eefee29ce4036ac68456779ad4beed8a445"
+  },
+  {
+    "file": "fixed-task.opendesk-task.json",
+    "bytes": 1431,
+    "sha256": "cdc6e00952cdcdb0152eb54628b5b8ea4b96708776e5bdbfbd89f0f2a2694ac8"
+  },
+  {
+    "file": "loaded-cloud-runner-f47e0e6ae4f15375363248b66bcba52b189d2a38c011422394ce8f26401b2e48.js",
+    "bytes": 69978,
+    "sha256": "f47e0e6ae4f15375363248b66bcba52b189d2a38c011422394ce8f26401b2e48"
+  },
+  {
+    "file": "loaded-runtime.json",
+    "bytes": 1088,
+    "sha256": "f7cbc0c9871fc1e3c334e51585c1f86370db382e01d078a431f02a081f4f0044"
+  },
+  {
+    "file": "native-database-final.json",
+    "bytes": 319228,
+    "sha256": "76cff94b4e0a58dc70ad23055c4ec42a4d8be5670cbb330f3d55fd82a6bd0452"
+  },
+  {
+    "file": "native-database-installed-unapproved.json",
+    "bytes": 39869,
+    "sha256": "a4cf7954474e08e154d0ffbe2631d4a22dde83a262befaed584f741f9450f5bb"
+  },
+  {
+    "file": "new-controller.js",
+    "bytes": 260,
+    "sha256": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925"
+  },
+  {
+    "file": "new-program-trial-failed.png",
+    "bytes": 221808,
+    "sha256": "2fbd5f014236fbade8a5cdd652730667301e83f4082b66935f58e500a623fc55"
+  },
+  {
+    "file": "offscreen-final.log",
+    "bytes": 297,
+    "sha256": "6e0c2903a4c089ddd781a36dc8f98b6457768b4560be7f35e91d64658796cad1"
+  },
+  {
+    "file": "offscreen-startup-failure.json",
+    "bytes": 3843,
+    "sha256": "51149c2baa89d7e09380f1bd40f7b13fee3737bc2fedcb63339bbba9edee6044"
+  },
+  {
+    "file": "offscreen-targeted.log",
+    "bytes": 1017,
+    "sha256": "aa40855dd7076be55766e5a5869f96cbc849d3e03fa02c00036e1cb83ef6b7c8"
+  },
+  {
+    "file": "operator-command-results.json",
+    "bytes": 1878,
+    "sha256": "bb47e62abca8d87acafd7917464e92a1465776dc0de597b7c2aab495b4c0e04a"
+  },
+  {
+    "file": "page-effects.jsonl",
+    "bytes": 1464,
+    "sha256": "254d671a0b71e143aeb7be737a4937536af799c67b8459f6cf3967db257fac84"
+  },
+  {
+    "file": "production-build.log",
+    "bytes": 5443,
+    "sha256": "3567995f56fce196be929ce46d9a8d7462e9349b88e79e36b0a90879d7e0e357"
+  },
+  {
+    "file": "profile-lifecycle.json",
+    "bytes": 7342,
+    "sha256": "bb891a8565d98f86d4bdab0da6da94f8fb68b2b7c7c30b281ca3594ff177eb6d"
+  },
+  {
+    "file": "provider-job-identity-ledger.json",
+    "bytes": 30985,
+    "sha256": "3fc19c179a0f56b395f1e27c6adb018a269d4f239b15c985acc12e2eeda74bb3"
+  },
+  {
+    "file": "react-ui-observations.json",
+    "bytes": 68511,
+    "sha256": "07a416b87462ae6bae488bf3edbe66388da55a0f3bd97002d91daa9bcab5d954"
+  },
+  {
+    "file": "report.json",
+    "bytes": 5405,
+    "sha256": "f1ae12f28b42e268132d6dcb8353df919a1373d3536539061bb8eff5ce3a2cbd"
+  },
+  {
+    "file": "restart-retirement-pending.png",
+    "bytes": 175598,
+    "sha256": "125e05d4a9542a4303cbc86628d62680a55900e1985bc526dc43779e118e7575"
+  },
+  {
+    "file": "ssh-probe.log",
+    "bytes": 66,
+    "sha256": "1b06cee455a4f2c5a8789cf6d6e83c42a1477ba61a02ddf74271b9c4589e9cc0"
+  }
+]

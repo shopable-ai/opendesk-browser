@@ -1,0 +1,114 @@
+[
+  {
+    "method": "Runtime.consoleAPICalled",
+    "params": {
+      "type": "debug",
+      "args": [
+        {
+          "type": "string",
+          "value": "[wxt] Connecting to dev server @"
+        },
+        {
+          "type": "string",
+          "value": "ws://localhost:43119"
+        }
+      ],
+      "executionContextId": 1,
+      "timestamp": 1792425788350.328,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ch",
+            "scriptId": "3",
+            "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+            "lineNumber": 2466,
+            "columnNumber": 42
+          }
+        ]
+      }
+    },
+    "sessionId": "A1DCF1CB25F6711C3B48440499F460E5"
+  },
+  {
+    "method": "Runtime.consoleAPICalled",
+    "params": {
+      "type": "debug",
+      "args": [
+        {
+          "type": "string",
+          "value": "[wxt] Connected to dev server"
+        }
+      ],
+      "executionContextId": 1,
+      "timestamp": 1792425788401.816,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ch",
+            "scriptId": "3",
+            "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sw.js",
+            "lineNumber": 2466,
+            "columnNumber": 42
+          }
+        ]
+      }
+    },
+    "sessionId": "A1DCF1CB25F6711C3B48440499F460E5"
+  },
+  {
+    "method": "Runtime.consoleAPICalled",
+    "params": {
+      "type": "error",
+      "args": [
+        {
+          "type": "string",
+          "value": "[wxt] The unlisted script \"cloud-runner\" crashed on startup!"
+        },
+        {
+          "type": "object",
+          "subtype": "error",
+          "className": "TypeError",
+          "description": "TypeError: chrome.runtime.getContexts is not a function\n    at Ve (chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:67986)\n    at chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:69597\n    at chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:69805\n    at chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:69808",
+          "objectId": "-6088891609776175061.5.1"
+        }
+      ],
+      "executionContextId": 5,
+      "timestamp": 1792425961632.146,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "",
+            "scriptId": "40",
+            "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js",
+            "lineNumber": 0,
+            "columnNumber": 69506
+          }
+        ]
+      }
+    },
+    "sessionId": "EE4BA4D9BDC8CC9BBC96871D79B82D41"
+  },
+  {
+    "method": "Runtime.exceptionThrown",
+    "params": {
+      "timestamp": 1792425961632.443,
+      "exceptionDetails": {
+        "exceptionId": 1,
+        "text": "Uncaught (in promise)",
+        "lineNumber": 0,
+        "columnNumber": 67985,
+        "scriptId": "40",
+        "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js",
+        "exception": {
+          "type": "object",
+          "subtype": "error",
+          "className": "TypeError",
+          "description": "TypeError: chrome.runtime.getContexts is not a function\n    at Ve (chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:67986)\n    at chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:69597\n    at chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:69805\n    at chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/cloud-control/cloud-runner.js:1:69808",
+          "objectId": "-6088891609776175061.5.2"
+        },
+        "executionContextId": 5
+      }
+    },
+    "sessionId": "EE4BA4D9BDC8CC9BBC96871D79B82D41"
+  }
+]
