@@ -1,4 +1,4 @@
-import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
+import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from '../../examples/sidebar-tools/reading-toc/trusted/placement.js';
 import readingTocCatalog from './locales.generated.js';
 import {uiMessage,resolveUiLocale} from '../ui/app-localization.js';
 

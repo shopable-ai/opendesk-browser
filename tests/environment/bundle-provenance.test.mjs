@@ -241,3 +241,23 @@ test('R1.3 pinned Web Clipper conversion module can only enter the existing Page
   assert.throws(()=>make('agents/page-relay.js',root),/Trusted Web Clipper source changed/);
   assert.throws(()=>make('sw.js',root),/cannot enter a privileged fixed bundle/);
 });
+
+
+test('R1.3 Reading TOC model, overview and placement require audited Page Relay pins',async ctx=>{
+  const names=['overview.js','model.js','placement.js'];
+  const prefix='examples/sidebar-tools/reading-toc/trusted/';
+  const make=(target,root=process.cwd(),list=names)=>describeBundle({chunk:{fileName:target,
+    modules:Object.fromEntries(list.map(name=>[resolve(root,prefix+name),
+      {renderedLength:20,originalLength:100}]))},root,lock:{packages:{}}});
+  const row=make('agents/page-relay.js');
+  assert.equal(row.modules.length,3);
+  for(const item of row.modules)assert.match(item.reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
+  for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  const tmp=await realpath(await mkdtemp(join(tmpdir(),'reading-toc-source-pin-')));
+  ctx.after(()=>rm(tmp,{recursive:true,force:true}));
+  await mkdir(join(tmp,prefix),{recursive:true});
+  await writeFile(join(tmp,prefix,'model.js'),(await readFile(resolve(prefix,'model.js'),'utf8'))+'\n// unsigned edit\n');
+  assert.throws(()=>make('agents/page-relay.js',tmp,['model.js']),
+    /Trusted Reading TOC source changed/);
+});

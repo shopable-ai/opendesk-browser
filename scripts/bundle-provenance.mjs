@@ -189,6 +189,25 @@ function reviewedCompiledWebClipper(target,path,root){
   return hash;
 }
 
+// Reading TOC: only these exact reviewed first-party page algorithms may
+// enter the existing fixed Page Relay. Installed or arbitrary examples/ code
+// never receives implicit Chrome authority.
+const compiledReadingTocInputs=Object.freeze({
+  'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
+  'examples/sidebar-tools/reading-toc/trusted/model.js':'335e23442b372e690e5757678298f04401430c2b',
+  'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0'
+});
+function reviewedCompiledReadingToc(target,path,root){
+  if(target!=='agents/page-relay.js'||!Object.hasOwn(compiledReadingTocInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted Reading TOC source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledReadingTocInputs[path])
+    throw Error('Trusted Reading TOC source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
 export function assertLibraryModuleBoundary(target,path,npmName) {
@@ -225,7 +244,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
       reviewedCompiledStayFocus(chunk.fileName,path,root)||
       reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
-      reviewedCompiledWebClipper(chunk.fileName,path,root);
+      reviewedCompiledWebClipper(chunk.fileName,path,root)||
+      reviewedCompiledReadingToc(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,

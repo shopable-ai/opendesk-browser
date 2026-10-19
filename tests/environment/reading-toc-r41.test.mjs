@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {createReadingTocIndex} from '../../src/reading-toc/model.js';
+import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
 import {websiteOrigin,changeTocGrant,tocGrantAllowed,changeTocSiteAllowed,tocSiteAllowed,blockedTocOrigins,READING_TOC_SITE_STORE,
   READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../src/reading-toc/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';

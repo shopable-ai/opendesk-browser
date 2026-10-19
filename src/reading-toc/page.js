@@ -5,7 +5,7 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
   websiteOrigin,tocGrantAllowed,verifyOfficialReadingToc,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
   readingTocDisplayState,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed} from './policy.js';
 import {MARKET_PROVENANCE_STORE,READING_TOC_CHROME_ACCESS_PROTOCOL} from '../sidebar-tools/official-reading-toc.js';
-import {createReadingTocIndex} from './model.js';
+import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
 import {createReadingTocView} from './view.js';
 import {UI_LOCALE_STORE,canonicalUiLocale,UI_LOCALE_DEFAULT} from '../ui/app-localization.js';
 

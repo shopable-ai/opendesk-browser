@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {selectReadingTocOverview,TOC_OVERVIEW_TARGET,TOC_OVERVIEW_LIMIT}
-  from '../../src/reading-toc/overview.js';
-import {createReadingTocIndex} from '../../src/reading-toc/model.js';
+  from '../../examples/sidebar-tools/reading-toc/trusted/overview.js';
+import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
 import {readingTocDisplayMode} from '../../src/reading-toc/view.js';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
 import {compileToolLocaleCatalog} from '../../src/ui/app-localization.js';

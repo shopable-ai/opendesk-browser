@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readTocPlacement,tocViewport,tocBounds,tocClampPoint,
-  tocPlacementFromPoint,tocPlacementPoint} from '../../src/reading-toc/placement.js';
+  tocPlacementFromPoint,tocPlacementPoint} from '../../examples/sidebar-tools/reading-toc/trusted/placement.js';
 import {readingTocPlacementKey,READING_TOC_PLACEMENT_PREFIX} from '../../src/reading-toc/policy.js';
 import {createReadingTocView} from '../../src/reading-toc/view.js';
 
