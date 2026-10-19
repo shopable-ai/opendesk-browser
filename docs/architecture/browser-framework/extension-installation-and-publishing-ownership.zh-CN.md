@@ -200,3 +200,26 @@ Page 离线安装包的十个键来自 page-install-package.js：
 - R6.1 优先做 **read-only 产品关联试点 + 资源所有权/失败恢复证明**。若试点涉及真实跨 Authority 安装，必须先在原 Page Authority 增加经严格测试的“不可执行准备/提交”语义和取消/撤权栅栏，**否则阻止启用聚合安装动作**。禁止另造沙箱、SW 或并行 Installed Authority。
 - 十个否证：Reading TOC 固定可信逻辑；Prompt Shortcuts 格式保留；纯 Page 无 Sidebar；未审阅 SW JS 注入被拒；部分安装与回执丢失；共享/他人数据不被清理；Provider 删除仍执行已安装固定源码；同 ID 跨发布者接管被拒；无第二 Installer/Registry/Host；统一 UI 不误授权。
 - 实证区分 `SOURCE_VERIFIED`、`DESIGN_PROPOSED`、`NOT_IMPLEMENTED`、`NODE_PASS`、`BUILD_PASS`、`CHROME_NATIVE_PASS`、`MAC_CHROME_NOT_TESTED`。不基于架构文档、虚构分数或 Mock 宣称生产 95+。
+
+### 9.6 开发、构建与单文件安装：R6.0 用户反馈后的交付约束（2026-10-19）
+
+> **PRODUCT_REQUIREMENT + SOURCE_VERIFIED + DESIGN_PROPOSED（分开）**：前面的多目录是高级作者的**源码工作区示例**，绝不是用户安装后必须保留的文件结构。此前 R6.0/B 只论证了多 Authority 产品聚合，**未闭环证明一个编辑器、一个 JSON 导入的组合产品体验**；上一轮的高设计评分不可作为这部分验收依据。
+
+**用户必须能理解的三个不同对象：**
+
+| 层 | 普通用户看到的操作 | 现有代码事实与缺口 |
+| --- | --- | --- |
+| 开发 | 「开发」默认**一个代码输入框**；按需要选择当前代码的 Controller/Page 入口。只有组合项目才按需切换组件/文件，仍可复用**同一个编辑器实例**，不能强迫普通用户管理目录、多个同时打开的编辑框或本地 Provider | `src/ui/develop-fields.js` 定义唯一主要 `script-source`，`src/ui/script-editor.js` 区分 Controller/Page 缓冲区；`src/ui/local-project.js` 支持单独连接已授权目录项目。**当前直接输入框不等于已支持创建 Sidebar + Page 组合**；Sidebar 的 HTML/CSS/JS 仍由独立项目与原工具打包器提供 |
+| 构建 | 点击构建固定版本后，系统对每个**执行入口**分别闭合依赖并生成固定、可验证代码；编译中允许临时目录，但不要求用户保留或导入它 | `scripts/build-sidebar-tool.mjs` 将 HTML/CSS/JS 与可选固定脚本资产写入**一个 Sidebar JSON**；`scripts/build-program-project.mjs` 将单个 Page/Controller 项目的多文件模块闭合到相应执行产物；`scripts/build-page-install-package.mjs` 将闭合 Page 源码写入**一个 Page JSON** |
+| 发行/安装 | 普通单类型插件继续导入**一个原 JSON**；用户希望组合产品同样是**一次选择、一个可携带文件、一次产品审阅、一个插件卡片**，而非手动装两个互不相关的 JSON | **现有单类型方案已支持各自单 JSON。当前 Sidebar v1/v2 / Page v1 / Task v1 都是严格 Schema，无法直接把另一个类型的安装包塞进未知字段。第三方动态组合的单文件发行与整体安装仍 NOT_IMPLEMENTED** |
+
+**一个编辑框 ≠ 只能存在一个源文件，也 ≠ 一个 JS 文件可在所有权限世界自动运行。** 推荐的用户 UI：简单模式直接编辑一个明确类型的 JS/JSX；确有多个执行入口时，在**相同编辑器**中切换「侧栏界面 / 网页增强 / 可选自动化」组件的源码，或者关联本地项目；文件选择是按需高级能力，而非新增多个并排编辑器。运行类型必须显式固定于构建配置，不能从代码关键字臆测权限。缺省直接编辑仅能按当前源码已支持的类型工作，不虚报组合一键构建已经上线。
+
+**组合产品的“一个 JSON”怎样演进？** 首先用真实试点验证两种最小发行运输路径：
+1. **候选 B1：单个 JSON 外层运输封装**，仅装载完整且逐一验证的既有 Sidebar/Page/Task 固定子包与最小产品发行元数据；解包校验和审阅后仍调用**原类型 Authority**。不允许外层授权或执行 SW JS。它**需要一个新的最小运输 Schema**，但不改动子包 Schema；在证明必要性前只属于设计候选，不创造正式文件名、后缀、安装器或发布成功状态。
+2. **候选 B2：发布目录引用多个子包**，保留现有格式且改动少，但要求多个文件或者在线可靠取回，不符合“本机离线一个 JSON 文件即可导入”的用户体验；只可作为内部构建/中间制品或兼容路径，不能冒充最终产品体验。
+
+如坚持“不增加任何新的 Schema”又要求“动态 Sidebar + Page + Task + 一个 JSON 可移植安装”，按现有三个严格校验器**不可同时满足**。必须透明权衡最小外层 Schema、在某个既有格式上推出新版本、或保留多文件；不能用旧 Sidebar `scripts[]` 冒充动态 Page 或借用第一方固定 SW 功能掩盖缺口。
+
+**R6.1 顺序修正**：先证明「一个主要编辑器 → 两个真实运行入口的固定构建 → 一份离线 JSON（设计并严格校验候选）→ 原 Authority 安装与恢复 → 扩展中心一张卡片」的产品闭环，再把跨 Authority 安装能力标记为已实现；若安全的 Page 不可执行准备/回滚、组件所有权和已安装资源持久引用仍未闭环，**不得开放最终一键安装**。纯 Sidebar/Page/Task 原 JSON、原 UI 流程不迁移。此处为目标与缺口说明，不代表 Browser/Native/真实 Chrome 测试通过。
+
