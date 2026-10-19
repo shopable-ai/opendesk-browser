@@ -74,6 +74,14 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
     const before=readOnly?null:structuredClone(state);
     try{return await fn();}catch(error){if(!readOnly)state=before;throw error;}
   });tail=next.catch(()=>{});return next;};
+  function purgePairingPrograms(executorId,pairingId){
+    // Revocation retires unreviewed executable bytes, not the audit receipt.
+    for(const row of Object.values(state.programDeliveries))
+      if(row.targetExecutorId===executorId&&row.pairingId===pairingId){
+        row.receivedAt??=clock()||1;
+        delete row.package;
+      }
+  }
   function once(scope,key,body,fn){if(typeof key!=='string'||key.length>150)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
   // The trusted local admin and the paired Browser share one immutable pin check.
   function pinnedClientTasks(row,tasks){
@@ -151,15 +159,17 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             // Explicit revoke/unpair is required before issuing a new pairing generation.
             if(old&&!old.revokedAt&&!old.revocation)fail('E_PAIR_ACTIVE');
             if(old&&(!Number.isSafeInteger(old.pairingGeneration)||old.pairingGeneration<1||old.pairingGeneration>=Number.MAX_SAFE_INTEGER))fail('E_PAIRING');
+            if(old)purgePairingPrograms(b.executorId,old.pairingId);
             const row={...old,credential:token(),pairedAt:clock(),pairingId:randomUUID(),pairingGeneration:(old?.pairingGeneration??0)+1,revokedAt:null};delete row.revocation;delete row.suspendedAt;state.executors[b.executorId]=row;
             out={...pairing(b.executorId),credential:row.credential};afterCommit=()=>retire(b.executorId);break;}
           case '/v1/revoke':{
  exact(b,['revocationId'],['pairingId','pairingGeneration']);if(!nonempty(b.revocationId)||b.revocationId.length>150)fail('E_SCHEMA');
  const e=state.executors[executorId],pair=pairing(executorId);for(const k of ['pairingId','pairingGeneration'])if(Object.hasOwn(b,k)&&b[k]!==pair[k])fail('E_PAIRING');
- out=e.revocation??{providerId:pair.providerId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,revocationId:b.revocationId,revoked:true};e.revocation=out;afterCommit=()=>retire(executorId);break;}
+ out=e.revocation??{providerId:pair.providerId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,revocationId:b.revocationId,revoked:true};e.revocation=out;purgePairingPrograms(executorId,pair.pairingId);afterCommit=()=>retire(executorId);break;}
  case '/v1/unpair':{
             exact(b,[]);const row=state.executors[executorId];
             row.revokedAt=clock()||1;row.credential=token();delete row.capabilities;delete row.grantId;
+            purgePairingPrograms(executorId,row.pairingId);
             // Never erase historical Run, Result or receipt. Quarantine unclaimed old work.
             for(const j of Object.values(state.jobs))
               if(j.targetExecutorId===executorId&&j.targetPairingId===row.pairingId&&j.state==='queued')j.cancelled=true;
