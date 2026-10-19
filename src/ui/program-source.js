@@ -146,7 +146,7 @@ export function createProgramSourceView({document:doc,view=null,listen,onChange}
     const file = artifact?.authoring?.files.find(row => row.path === get('program-source-files').value);
     if (file) patchDeveloperField(view,editor,{value:file.sourceUtf8});
   });
-  listen(get('program-new-script'),'click',() => {show(null);patchDeveloperField(view,editor,{value:'async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}'});onChange();});
+  listen(get('program-new-script'),'click',() => {show(null);patchDeveloperField(view,editor,{value:''});onChange();});
   return {source,replaceSource,kind:() => artifact?.runtimeKind,snapshot:() => artifact?.project ? artifact : null,
     async importProject(input,shouldApply=() => true) {
       const value = await validateProgramDraft(input);

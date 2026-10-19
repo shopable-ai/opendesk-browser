@@ -195,6 +195,10 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       trustedHistoryWorkbench=historyUI?.create({api:chrome,hostInstanceId,reactUI:extensionList})??null;
     }
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList,
+      currentPageTarget,onTaskInstalled:taskId=>{
+        void taskWorkbench.refresh().catch(error=>console.warn('Task catalog refresh after Cloud installation',error));
+        void scheduleUI?.onInstalled(taskId);
+      },
       onManageTasks:()=>taskWorkbench.navigate('tasks'),
       onOpenRun:async runId=>{
         if(taskWorkbench.navigate('develop')===false)return;

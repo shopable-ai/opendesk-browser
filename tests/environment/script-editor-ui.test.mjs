@@ -57,10 +57,12 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
   const legacyFind=id=>nodes.get(id),view=new Element();
   const legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
   const reactView=createDeveloperView();
+  for(const obsolete of ['script-target-mode','script-owned-url','script-tab','script-document','script-refresh'])
+    assert.equal(Object.hasOwn(reactView.fields,obsolete),false,'普通运行器不得保留旧目标选择状态：'+obsolete);
   const find=developerTestFields(reactView);
   find('script-id').value='manual';find('script-revision').value='1';
   find('script-source').value=manualSource;
-  find('script-params').value='{}';find('script-target-mode').value='current';
+  find('script-params').value='{}';
   find('local-project-params').value='{}';
   const opened=[],requests=[],hostRequests=[],commits=[],effects=[],permissions=[],dispatches=[],manualRuns=[],stops=[],resolutions=[],trace=[];
   let nativeConnected=true,pageListener,runListener,localListener,loadGate,statusGate,allowed=true;
@@ -660,7 +662,7 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing without
   assert.equal(f.find('page-component-javascript').checked?'javascript':framework,'javascript',
   'loading a Controller revision must leave Page component mode');
   assert.equal(f.find('script-run').textContent,'运行');
-  assert.equal(f.find('script-save').textContent,'保存版本');
+  assert.equal(f.find('script-save-version').textContent,'保存 Controller 固定版本');
   const starts=[],commits=[];
   f.host.start=async request=>{
     starts.push(request);
@@ -760,6 +762,10 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
   await until(()=>!f.find('script-run').disabled,'Page preview did not settle');
   assert.equal(f.find('program-new-script').hidden,false);
   f.find('program-new-script').fire('click',{isTrusted:true});
+  assert.equal(f.find('script-source').value,'','新建源码必须为空，不得隐式插入执行模板');
+  f.find('script-source').value='return 1;';
+  f.find('script-source').fire('input',{isTrusted:true});
+  await tick();
   await f.click();
   await until(()=>f.manualRuns.length===1,'New Script retained the loaded Page execution intent');
   assert.equal(previews.length,1);

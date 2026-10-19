@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {repairReadingTocOpenTabs,chromeSitePattern,READING_TOC_REPAIR_SCRIPT}
-  from '../../src/sidebar-tools/reading-toc-existing-tabs.js';
+  from '../../examples/sidebar-tools/reading-toc/trusted/existing-tabs.js';
 import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE}
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';

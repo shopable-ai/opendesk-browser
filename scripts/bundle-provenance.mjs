@@ -173,13 +173,23 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   return hash;
 }
 
-// Only byte-reviewed first-party Clipper sources compile into existing
-// fixed Chrome entries. Content reader/converter stay in Page Relay; the
-// policy may also be read by the fixed installer/marketplace/sidebar host.
-// Never admit arbitrary installed or user-provided plugin code here.
+// One immutable Markdown domain converter is shared by Clipper and Knowledge
+// Inbox. Its byte-reviewed source may enter only the existing Page Relay.
+const sharedMarkdownInput='examples/shared/markdown/convert.js';
+const sharedMarkdownBlob='b53147ff3bd888f1291e81daf8a90d06b5a1a114';
+function reviewedCompiledSharedMarkdown(target,path,root){
+  if(path!==sharedMarkdownInput||target!=='agents/page-relay.js')return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Shared Markdown source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==sharedMarkdownBlob)throw Error('Shared Markdown source changed; review and re-pin: '+path);
+  return hash;
+}
+// Only byte-reviewed first-party Clipper page/policy sources enter fixed
+// Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  'examples/sidebar-tools/web-markdown-clipper/trusted/convert.js':'b53147ff3bd888f1291e81daf8a90d06b5a1a114',
-  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'ec249bb7e637d0c86cfa23073f7b6b3316529852',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'ab547dcff0fd4772eccb26bfd74515f4cade3668',
   'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'6240ef2d75f251c0b4d980690081d3540bba275f'
 });
 function reviewedCompiledWebClipper(target,path,root){
@@ -206,13 +216,19 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/page.js':'8c9c3faa71c26a84e3388c41c31dffcac947d76e',
   'examples/sidebar-tools/reading-toc/trusted/view.js':'71f6d57ad101936c963c41c118c8e78ef74bbf3b',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
-  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295'
+  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',
+  'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
 });
 function reviewedCompiledReadingToc(target,path,root){
-  if(!Object.hasOwn(compiledReadingTocInputs,path)||
-    (path.endsWith('/policy.js')||path.endsWith('/locales.generated.js')
-      ? (!preapprovedFixedTargets.has(target)||target.startsWith('scripting/')||target.startsWith('libs/'))
-      : target!=='agents/page-relay.js'))return null;
+  if(!Object.hasOwn(compiledReadingTocInputs,path))return null;
+  // Existing-tabs repair is a reviewed App-specific adapter within the existing
+  // fixed preinstall worker; it cannot run from sandbox or user package bytes.
+  const approved=path.endsWith('/existing-tabs.js')
+    ? target==='sidebar-tools/preinstall-intent.js'
+    : path.endsWith('/policy.js')||path.endsWith('/locales.generated.js')
+      ? preapprovedFixedTargets.has(target)&&!target.startsWith('scripting/')&&!target.startsWith('libs/')
+      : target==='agents/page-relay.js';
+  if(!approved)return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Reading TOC source must not be a symlink: '+path);
   const bytes=readFileSync(file);
@@ -258,6 +274,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
       reviewedCompiledStayFocus(chunk.fileName,path,root)||
       reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
+      reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))

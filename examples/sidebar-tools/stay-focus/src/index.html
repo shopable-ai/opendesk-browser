@@ -24,7 +24,7 @@
   </section>
 
   <section class="sf-session" id="focus-session-controls" aria-label="临时专注">
-    <div><strong>临时专注</strong><p>需要集中注意力时，暂停受管网站 25 分钟。</p></div>
+    <div><strong>临时专注</strong><p>需要集中注意力时，临时限制受管网站 25 分钟。</p></div>
     <div class="sf-session-action"><button type="button" id="focus-start" class="sf-secondary">开始专注</button><button type="button" id="focus-stop" class="sf-secondary" hidden>结束专注</button></div>
   </section>
 
@@ -66,7 +66,7 @@
         <label>网站域名 <input id="site-host" type="text" maxlength="253" required placeholder="例如 youtube.com" autocomplete="off"></label>
         <div class="sf-two"><label>每天最多（分钟）<input id="site-minutes" type="number" min="1" max="1440" value="15" required></label>
           <label>限制方式<select id="site-mode"><option value="limit">每日限额</option><option value="always">始终限制</option></select></label></div>
-        <div class="sf-two"><label>共享额度组<select id="site-group"><option value="">独立额度</option><option value="entertainment">娱乐共享额度</option></select></label>
+        <div class="sf-two"><label>共享额度组<select id="site-group"><option value="">独立额度</option><option value="entertainment">娱乐总额度（共享）</option></select></label>
           <label class="sf-check"><input type="checkbox" id="site-subdomains" checked>包含子域名</label></div>
         <div class="sf-actions"><button class="sf-primary" id="site-save" type="button">保存网站</button><button class="sf-secondary" type="button" id="add-current">使用当前网站</button><button class="sf-secondary" type="button" id="site-new" hidden>取消编辑</button></div>
       </form>

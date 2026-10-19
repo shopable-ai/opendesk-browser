@@ -195,6 +195,34 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  assert.match(extracted,/重复章节/);
  assert.match(extracted,/\| 列一 \| 列二 \|/);
  assert.doesNotMatch(extracted,/导航和广告不应剪藏/);
+ // Exercise actual Chrome DOM selection, quote and link through the installed trusted relay.
+ const selected=await evalIn(article,"(()=>{const text=document.querySelector('article p').firstChild;"+
+   "const range=document.createRange();range.setStart(text,0);range.setEnd(text,6);"+
+   "const selection=getSelection();selection.removeAllRanges();selection.addRange(range);"+
+   "return selection.toString()})()");
+ assert.match(selected,/中文测试/);
+ await click(clip,'[data-clip-mode=selection]');
+ await click(clip,'#clip-fetch');
+ const selectedMarkdown=await until(async()=>{
+   const text=await evalIn(clip,'document.querySelector("#clip-source").value');
+   return text?.includes('中文测试')?text:null;
+ },'trusted selected DOM Markdown');
+ assert.doesNotMatch(selectedMarkdown,/重复章节|const value/);
+ await click(clip,'[data-clip-mode=quote]');
+ await click(clip,'#clip-fetch');
+ const quoted=await until(async()=>{
+   const text=await evalIn(clip,'document.querySelector("#clip-source").value');
+   return text?.includes('来源：[')?text:null;
+ },'selected Markdown quote with source');
+ assert.match(quoted,/> 中文测试/);
+ await click(clip,'[data-clip-mode=link]');
+ await click(clip,'#clip-fetch');
+ const linked=await until(async()=>{
+   const text=await evalIn(clip,'document.querySelector("#clip-source").value');
+   return text?.startsWith('[页面测试')?text:null;
+ },'linked page without article body');
+ assert.match(linked,/\]\(http:\/\/127\.0\.0\.1:/);
+ assert.doesNotMatch(linked,/重复章节|const value/);
  await click(side,'#sidebar-tool-back'); // detail → My Tools
  await click(side,openClipper);
  await click(side,'#sidebar-tool-settings-open');
@@ -243,7 +271,8 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const shot=await side.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
  await writeFile(join(screenshots,'r22-workbench-sidepanel.png'),Buffer.from(shot.data,'base64'));
  console.log(JSON.stringify({result:'NATIVE_FIXTURE_PASS',installed:['web-markdown-clipper','markdown-workbench'],
-  consentDialogs:dialogs,articleBytes:Buffer.byteLength(extracted),markdownImport:true,safePreview:true,
+  consentDialogs:dialogs,articleBytes:Buffer.byteLength(extracted),
+   modes:['article','selection','quote','link'],markdownImport:true,safePreview:true,
   screenshot:'artifacts/markdown-tools-r22/r22-workbench-sidepanel.png',
   publicWebsite:'NOT_TESTED',clipboardSystem:'NOT_TESTED',downloadSave:'NOT_TESTED'}));
 });

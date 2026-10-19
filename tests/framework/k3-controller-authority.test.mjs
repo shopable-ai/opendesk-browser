@@ -46,6 +46,7 @@ function serialStore() {
 }
 const event = () => ({addListener() {}, removeListener() {}});
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const realLocalProviderTransport = globalThis.fetch;
 const code = expected => error => error.code === expected;
 async function fixture() {
   const storage = serialStore(), calls = [], frames = new Map([[2, [{frameId:0, documentId:'doc-top', documentLifecycle:'active', errorOccurred:false, url:'https://a.example/page'},
@@ -1778,7 +1779,17 @@ test('cloud stop before permit commit and changed installation generation preven
 
 async function admittedCloud(t){
   const f=await cloudTaskFixture();
-  const responder=async(url,options)=>{const b=JSON.parse(options.body);if(url.endsWith('/admission'))return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));throw Error('Unexpected '+url);};
+  const responder=async(url,options)=>{
+    // The live Provider integration in this suite must not be intercepted by
+    // an admission-only test double left active by a concurrent test.
+    if(/^http:\/\/127\.0\.0\.1:\d+\//.test(String(url)))
+      return realLocalProviderTransport(url,options);
+    const b=JSON.parse(options.body);
+    if(String(url).endsWith('/admission'))return new Response(JSON.stringify({
+      permitId:'permit',providerId:'provider',assignmentId:'assignment',
+      runRef:b.runRef,leaseUntil:Date.now()+90000}));
+    throw Error('Unexpected '+url);
+  };
   t.mock.method(globalThis,'fetch',responder);const run=await f.authority.startControllerRun(f.request,f.sender);
   return {...f,run};
 }

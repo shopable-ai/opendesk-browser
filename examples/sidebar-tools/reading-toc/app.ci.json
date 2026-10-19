@@ -9,7 +9,14 @@
     "tests/environment/reading-toc-recovery-r48.test.mjs",
     "tests/environment/reading-toc-localization-preview-r12.test.mjs",
     "tests/environment/reading-toc-auth-r41.test.mjs",
-    "tests/environment/reading-toc-lifecycle-r41.test.mjs"
+    "tests/environment/reading-toc-lifecycle-r41.test.mjs",
+    "tests/environment/reading-toc-chatgpt-content-r182.test.mjs",
+    "tests/environment/reading-toc-existing-tabs-r11.test.mjs",
+    "tests/environment/reading-toc-multi-answer-r183.test.mjs",
+    "tests/environment/reading-toc-official-identity-r11.test.mjs",
+    "tests/environment/reading-toc-overview-r43.test.mjs",
+    "tests/environment/reading-toc-visibility-r46.test.mjs",
+    "tests/environment/reading-toc-worker-access-r11.test.mjs"
   ],
   "browser": [
     "tests/framework/reading-toc-preview-r14-native.test.mjs"

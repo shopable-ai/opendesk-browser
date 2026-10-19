@@ -95,7 +95,8 @@ test('production Cloud tab is visible in Side Panel while Debug remains hidden',
  assert.equal(dev('#workbench-debug[hidden]').length,1);
  assert.equal($('#tab-cloud').text(),'云控');
  assert.equal($('#workbench-cloud[hidden]').length,0);
- assert.ok(html.indexOf('id="workbench-tools"')<html.indexOf('id="workbench-cloud"'));
+ assert.ok($('#tab-tools').index()<$('#tab-cloud').index(),
+   'Cloud navigation must follow tools in the real React tab row');
  assert.ok(html.indexOf('id="workbench-cloud"')<html.indexOf('id="cloud-pair"'));
  assert.equal($('#workbench-cloud #cloud-pair').length,1,
    'Cloud controls must remain in the one production Cloud tab');
@@ -112,9 +113,12 @@ test('production Cloud tab is visible in Side Panel while Debug remains hidden',
 test('cloud status refresh is read-only and full tool/catalog tabs cannot claim cloud tasks',async()=>{
  const [hosting,shell]=await Promise.all([read('src/ui/cloud-hosting.js'),read('src/ui/tool-shell.js')]);
  assert.match(hosting,/async function refresh\(\)\{/);
- const start=hosting.indexOf('async function refresh()'),end=hosting.indexOf('async function dispatchNext(');
+ const start=hosting.indexOf('async function refresh()'),
+   end=hosting.indexOf('async function refreshPrograms()',start);
  assert.ok(start>=0&&end>start);
- assert.doesNotMatch(hosting.slice(start,end),/cloudNext|cloudResolve|host\.start/);
+ assert.doesNotMatch(hosting.slice(start,end),/cloudNext|cloudResolve|host\.start/,
+   'Cloud status refresh is read-only even when a separate trusted trial handler exists');
+ assert.match(hosting,/async function trialProgram\(deliveryId,paramsText,event\)\{/);
  assert.equal((hosting.match(/onRefresh:\(\)=>action\(\(\)=>\{\},true\)/g)||[]).length,2);
  assert.match(hosting,/if\(!busy&&!disposed\)try\{await dispatchNext\(s\)/);
  assert.match(shell,/let cloudHosting=null;/);

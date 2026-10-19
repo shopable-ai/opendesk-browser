@@ -68,6 +68,7 @@
 .sf-site-actions .sf-site-icon:hover{background:var(--sf-soft);color:var(--sf-ink)}
 .sf-site-icon svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sf-site-actions .sf-site-remove:hover{color:var(--od-negative,#af4350)}
+.sf-more-sites{width:100%;border:1px dashed var(--sf-line)!important;background:var(--sf-card)!important;color:var(--sf-brand)!important}
 .sf-empty{border:1px dashed var(--sf-line);border-radius:11px;background:var(--sf-card);padding:17px 12px;color:var(--sf-muted);text-align:center;font-size:11px}
 .sf-settings{margin-top:10px;border:1px solid var(--sf-line);background:var(--sf-card);border-radius:12px;padding:12px 13px}
 .sf-settings>summary{position:relative;padding-right:16px;cursor:pointer;font-size:12px;font-weight:725;list-style:none;line-height:1.4}

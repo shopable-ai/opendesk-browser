@@ -56,6 +56,7 @@ test('project file selection only changes the read-only viewer; execution uses e
     get('program-source-files').value='';callbacks.get(get('program-source-files'))();
     assert.equal(get('script-source').value,draft.sourceUtf8);
     callbacks.get(get('program-new-script'))();
+    assert.equal(get('script-source').value,'','显式新建源码不能插入隐式模板');
     assert.equal(get('program-source-toolbar').hidden,true,'plain draft does not leave an empty toolbar');
     assert.equal(get('script-source').readOnly,false);assert.equal(view.kind(),undefined);
     view.replaceSource(draft.sourceUtf8);assert.equal(get('script-source').hidden,true);

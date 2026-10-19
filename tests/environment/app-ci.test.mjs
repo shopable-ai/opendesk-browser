@@ -60,6 +60,18 @@ test('a new ordinary App needs no YAML, Host hardcoding or catalog registration'
     await rm(join(ROOT,'artifacts/app-ci',x.name),{recursive:true,force:true});
   }
 });
+test('page.clip cannot silently inherit UI-only CI and skip real Chrome',async()=>{
+  const x=await fixture(['page.clip']);
+  try{
+    const result=cli(['plan'],{APP_CI_SELECTED:x.name,GITHUB_EVENT_NAME:'workflow_dispatch'});
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/page clip requires explicit page profile/);
+    await assert.rejects(access(join(ROOT,'artifacts/app-ci',x.name,'candidate-receipt.json')));
+  }finally{
+    await rm(x.project,{recursive:true,force:true});
+    await rm(join(ROOT,'artifacts/app-ci',x.name),{recursive:true,force:true});
+  }
+});
 test('an unprofiled Chrome-privileged App fails closed rather than silently skipping native validation',async()=>{
   const x=await fixture(['adblock.control']);
   try{

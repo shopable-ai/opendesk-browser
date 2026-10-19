@@ -51,7 +51,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   const view=new Element(), legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
   const projection=createDeveloperView();
   const find=developerTestFields(projection);
-  find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
+  find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
   const tabDocuments=new Map([[11,'doc-11'],[12,'doc-12']]);
@@ -150,7 +150,7 @@ test('Developer shows one terminal status line and hides it for unrelated feedba
   assert.equal(f.find('script-status').textContent,'任务状态：');
   assert.equal(f.find('script-task-status').textContent,'已完成 · 资源已释放');
   assert.equal(f.find('script-task-status').hidden,false);
-  await f.click('script-save');
+  await f.click('script-save-version');
   assert.match(f.find('script-status').textContent,/已持久保存/);
   assert.equal(f.find('script-task-status').hidden,true);
 });
@@ -257,7 +257,8 @@ for(const framework of ['react','vue'])test(framework+' Stop projects the actual
   assert.equal(f.find('script-stop').disabled,true);
   assert.match(f.find('page-preview-status').textContent,/已停止/);
   assert.equal(f.find('page-preview-status').dataset.state,'completed');
-  assert.deepEqual(JSON.parse(f.find('page-preview-result').textContent),receipt);
+  assert.deepEqual(JSON.parse(f.find('page-preview-technical').textContent).stop,receipt);
+   assert.equal(f.find('script-result').textContent,'component mounted','停止不能把技术回执写进用户结果');
 });
 test('unconfirmed component Stop projects an error without a fabricated cleanup receipt or retry',async t=>{
   const f=await componentFixture(t,'react');await f.click('script-run');await f.settle();
@@ -266,7 +267,7 @@ test('unconfirmed component Stop projects an error without a fabricated cleanup 
   await f.click('script-stop');
   assert.equal(f.find('page-preview-status').dataset.state,'error');
   assert.match(f.find('page-preview-status').textContent,/无法确认/);
-  assert.deepEqual(JSON.parse(f.find('page-preview-result').textContent),{error:{code:'E_OUTCOME_UNKNOWN',message:'transport lost'}});
+  assert.deepEqual(JSON.parse(f.find('page-preview-technical').textContent),{error:{code:'E_OUTCOME_UNKNOWN',message:'transport lost'}});
   assert.equal(f.find('script-stop').disabled,true);await f.click('script-stop');assert.equal(stops,1);
 });
 
@@ -701,7 +702,7 @@ test('program-draft package import is preserved but does not auto-reopen',async 
   await second.editor.importDraft(draft);
   assert.equal(second.find('script-source').readOnly,true);
   assert.equal(second.editor.executionSource(),draft.sourceUtf8);
-  await second.click('script-save');
+  await second.click('script-save-version');
   assert.equal(second.persisted.scripts[0].sourceUtf8,draft.sourceUtf8);
 });
 
@@ -727,7 +728,7 @@ test('development reload stays blocked by active execution without persisting in
 
 test('importing a JS draft leaves saved versions and running source independent',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
-  await f.click('script-save');
+  await f.click('script-save-version');
   const source='async function main() { return "imported B"; }';
   f.editor.importDraft(source);
   assert.match(f.find('script-id').value,/^import-/);
@@ -747,7 +748,7 @@ test('draft import rejects empty/oversized sources and active saves without over
   const f=await fixture();t.after(()=>f.dispose());const before=f.find('script-source').value;
   for(const value of ['',null,'中'.repeat(33334)])assert.throws(()=>f.editor.importDraft(value),error=>error.code==='E_LIMIT');
   assert.equal(f.find('script-source').value,before);
-  const gate=deferred();f.setSaveGate(gate);await f.click('script-save');
+  const gate=deferred();f.setSaveGate(gate);await f.click('script-save-version');
   assert.throws(()=>f.editor.importDraft('async function main() {}'),error=>error.code==='E_BUSY');
   assert.equal(f.find('script-source').value,before);gate.resolve();await tick();
 });
@@ -772,7 +773,7 @@ test('imported Classic @require inspects before Run and never dispatches without
 });
 
 test('Save persists revision/hash without requesting permission, creating a Run, or executing code',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');
+  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save-version');
   assert.equal(f.persisted.scripts[0].revision,1);assert.match(f.persisted.scripts[0].contentHash,/^[a-f0-9]{64}$/);
   assert.equal(f.find('script-list').options.some(row=>row.value==='my-script'),true);
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);
@@ -797,7 +798,7 @@ test('loading a historical revision does not turn it into the latest Save CAS he
   const f=await fixture({scripts:[r1,r2],runs:[],results:[]});t.after(()=>f.dispose());await tick();
   f.find('script-revision').value='1';await f.click('script-load');
   assert.equal(f.find('script-source').value,'return 1;');
-  f.find('script-source').value='return 3;';f.find('script-source').fire('input');await f.click('script-save');
+  f.find('script-source').value='return 3;';f.find('script-source').fire('input');await f.click('script-save-version');
   assert.equal(f.commits.at(-1).expectedRevision,2);
   assert.equal(f.persisted.scripts.at(-1).revision,3);
 });
@@ -811,7 +812,7 @@ test('Delete tombstones the latest head and refreshes the saved-script selector'
 });
 
 test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');const r1=f.persisted.scripts[0];
+  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save-version');const r1=f.persisted.scripts[0];
   const b='return {draft:"B"};', c='return {draft:"C"};';
   const bHash=createHash('sha256').update(b).digest('hex');
   f.find('script-source').value=b;f.find('script-source').fire('input');await f.click('script-run');
@@ -822,7 +823,7 @@ test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C an
   assert.deepEqual(f.executions,[{source:b,params:{value:1}}]);
   await f.switchTab();assert.equal(f.find('script-current-page-title').textContent,'B');assert.match(f.find('script-running-target').textContent,/a\.example/);
   f.find('script-source').value=c;f.find('script-source').fire('input');
-  await f.click('script-save');assert.equal(f.persisted.scripts.length,2);assert.equal(f.persisted.scripts[1].revision,2);
+  await f.click('script-save-version');assert.equal(f.persisted.scripts.length,2);assert.equal(f.persisted.scripts[1].revision,2);
   assert.equal(f.persisted.scripts[0].sourceUtf8,r1.sourceUtf8);assert.equal(f.persisted.scripts[1].sourceUtf8,c);
   assert.match(f.find('script-task-version').textContent,/草稿快照/);
   f.find('script-id').value='another-script';f.find('script-params').value='{"value":777}';f.find('script-run-id').value='run-decoy';
@@ -851,7 +852,7 @@ test('a brand-new unsaved draft runs with an empty script ID and never creates a
 
 test('permission preparation rejects a switched page; closing the editor during permission never admits a run',async t=>{
   for(const close of [false,true]) {
-    const f=await fixture();t.after(()=>f.dispose());const permission=deferred();f.setPermission(permission.promise);await f.click('script-save');await f.click('script-run');
+    const f=await fixture();t.after(()=>f.dispose());const permission=deferred();f.setPermission(permission.promise);await f.click('script-save-version');await f.click('script-run');
     if(close)f.dispose();else await f.switchTab();permission.resolve(true);await tick();await tick();
     assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);if(!close)assert.match(f.find('script-status').textContent,/E_DOCUMENT_STALE/);
   }
@@ -875,7 +876,7 @@ test('shared RunHost completion or Stop restores the draft Run button after anot
 });
 
 test('Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');await f.click('script-run');
+  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save-version');await f.click('script-run');
   f.find('script-run-id').value='run-decoy';await f.click('script-stop');await f.editor.host.completion;await tick();
   assert.equal(f.persisted.results[0].state,'stopped');assert.equal(f.persisted.runs[0].retirementState,'released');
   assert(f.traces.indexOf('local-stop')<f.traces.findIndex(row=>Array.isArray(row)&&row[0]==='durable-stop'));
@@ -883,7 +884,7 @@ test('Stop uses the formal RunHost abort/retirement path and persists stopped wi
 });
 
 test('pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result',async t=>{
-  const f=await fixture();await f.click('script-save');await f.click('script-run');f.view.fire('pagehide');f.dispose();await f.editor.host.completion;
+  const f=await fixture();await f.click('script-save-version');await f.click('script-run');f.view.fire('pagehide');f.dispose();await f.editor.host.completion;
   assert(f.traces.includes('local-close'));assert(f.traces.some(row=>Array.isArray(row)&&row[1]==='E_HOST_CLOSED'));
   assert.equal(f.persisted.results[0].state,'interrupted');assert.equal(f.persisted.runs[0].retirementState,'released');
   const reopened=await fixture(f.persisted);t.after(()=>reopened.dispose());assert.equal(reopened.starts.length,0);assert.equal(reopened.executions.length,0);
@@ -891,7 +892,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
 });
 
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());const save=deferred();f.setSaveGate(save);await f.click('script-save');
+  const f=await fixture();t.after(()=>f.dispose());const save=deferred();f.setSaveGate(save);await f.click('script-save-version');
   f.find('script-id').value='another-script';f.find('script-id').fire('input');save.resolve();await tick();
   assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/当前源码可直接运行/);
   f.find('script-id').value='my-script';const load=deferred();f.setLoadGate(load);await f.click('script-load');
@@ -911,7 +912,7 @@ test('late saved-script selector load cannot overwrite edits made during loading
 });
 
 test('an older snapshot reply cannot disable Run after a newer durable observation',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');const old=deferred();
+  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save-version');const old=deferred();
   const snapshot=f.editor.host.controller.snapshotControllerRun;let first=true;
   f.editor.host.controller.snapshotControllerRun=async request=>{if(first){first=false;return old.promise;}return snapshot(request);};
   await f.click('script-read-run');await f.click('script-read');
@@ -920,7 +921,7 @@ test('an older snapshot reply cannot disable Run after a newer durable observati
 });
 
 test('an older snapshot error cannot overwrite a newer successful durable view',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');const old=deferred();
+  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save-version');const old=deferred();
   const snapshot=f.editor.host.controller.snapshotControllerRun;let first=true;
   f.editor.host.controller.snapshotControllerRun=async request=>{if(first){first=false;await old.promise;throw {code:'E_TRANSPORT',message:'old reply'};}return snapshot(request);};
   await f.click('script-read-run');await f.click('script-read');old.resolve();await tick();
@@ -928,7 +929,7 @@ test('an older snapshot error cannot overwrite a newer successful durable view',
 });
 
 test('Run silently checks Chrome permission; denied permission and invalid params never request or execute',async t=>{
-  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');const permission=deferred();f.setPermission(permission.promise);
+  const f=await fixture();t.after(()=>f.dispose());await f.click('script-save-version');const permission=deferred();f.setPermission(permission.promise);
   f.find('script-run').fire('click',{isTrusted:true});assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
   permission.resolve(false);await tick();await tick();assert.match(f.find('script-status').textContent,/E_PERMISSION/);assert.equal(f.starts.length,0);
   f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,0);assert.equal(f.executions.length,0);
@@ -1064,7 +1065,7 @@ test('project import displays source while Save and Run freeze compiled bytes an
   assert.equal(f.find('script-source').readOnly,true);
   assert.equal(f.find('script-source').value,draft.sourceUtf8);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
-  await f.click('script-save');
+  await f.click('script-save-version');
   assert.equal(f.persisted.scripts[0].sourceUtf8,draft.sourceUtf8);
   assert.equal(f.persisted.scripts[0].contentHash,draft.build.sourceHash);
   await f.click('script-run');
@@ -1263,7 +1264,7 @@ test('R37.1 JavaScript, React and Vue share one visible source without hidden bu
   react.checked=true;react.fire('change');await tick();
   assert.equal(editor.value,current,'React must not restore an older JSX buffer');
   assert.equal(f.find('script-run').textContent,'运行');
-  assert.equal(f.find('script-save').disabled,false);
+  assert.equal(f.find('page-candidate-save').disabled,false);
   await f.click('script-run');
   assert.equal(f.starts.length,0,'component cannot enter Controller RunHost');
 });
@@ -1566,7 +1567,7 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
     }
     return original(method,payload);
   };
-  await f.click('script-save');
+  await f.click('page-candidate-save');
   await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','author Candidate was not saved');
   assert.deepEqual(saved.authoring,{framework,sourceUtf8:author});
   assert.notEqual(saved.sourceUtf8,author,'execution bytes stay separate from editable source');
@@ -1587,8 +1588,8 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
   assert.equal(f.starts.length,0);assert.equal(f.previews.length,0,'save/load does not execute');
   compilerFails=true;
   f.find('script-source').value=author+'\n/* invalid edit';f.find('script-source').fire('input');
-  await f.click('script-save');
-  await waitForComponentUI(()=>f.find('script-status').textContent.includes('E_PAGE_COMPILER'),'failed edit was not rejected');
+  await f.click('page-candidate-save');
+  await waitForComponentUI(()=>f.find('page-candidate-status').textContent.includes('E_PAGE_COMPILER'),'failed edit was not rejected');
   assert.equal(imports,1,'compiler failure must not save previous execution bytes');
   assert.equal(f.previews.length,0,'compiler failure must not execute previous output');
 });
@@ -1617,7 +1618,7 @@ async function frozenComponentDraft(v2=false){
 test('browser component Save prepares a frozen Candidate with zero Page execution, installation or Controller commit',async t=>{
   const f=await fixture(undefined,undefined,{componentPreparerFactory:honestComponentFixture});t.after(()=>f.dispose());
   const requests=browserPageResponses(f);await selectBrowserReact(f);const source=f.find('script-source').value;
-  await f.click('script-save');
+  await f.click('page-candidate-save');
   await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','prepared component Candidate should save');
   assert.deepEqual(requests.map(row=>row.method),['importPageCandidate']);
   assert.match(requests[0].payload.sourceUtf8,/async function main/);
@@ -1639,7 +1640,7 @@ test('frozen v1 and versioned v2 JSON components Save and Run exact verified byt
     const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({inspect:async input=>componentInspectResult(input),prepare:async()=>{compiled++;throw Error('frozen code must not compile');},cancel(){},dispose(){}})});
     t.after(()=>f.dispose());const requests=browserPageResponses(f),draft=await frozenComponentDraft(v2);
     await f.editor.importDraft(draft);assert.equal(requests.length,0);assert.equal(f.find('script-source').readOnly,true);
-    await f.click('script-save');await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','frozen JSON should save directly');
+    await f.click('page-candidate-save');await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','frozen JSON should save directly');
     assert.equal(requests[0].method,'importPageCandidate');assert.equal(requests[0].payload.sourceUtf8,draft.sourceUtf8);
     await f.click('script-run');await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','frozen JSON managed preview should complete');
     const preview=requests.find(row=>row.method==='previewPageScript');
@@ -1778,7 +1779,7 @@ async function staticESMFixture(t,{sourceUtf8='import value from "https://librar
 
 test('Controller ESM Save trusts only this session row and Run dispatches full saved bytes',async t=>{
   const f=await staticESMFixture(t);
-  await f.click('script-save');
+  await f.click('script-save-version');
   await waitForComponentUI(()=>f.commits.length===1,'Controller ESM save should commit frozen bytes; status='+f.find('script-status').textContent);
   const saved=f.commits[0].sourceUtf8;
   assert.match(saved,/opendesk\.controller-esm-authoring\.v1/);
@@ -1803,7 +1804,7 @@ test('Controller ESM Save trusts only this session row and Run dispatches full s
 for(const control of ['script-load','script-list-load'])
 test('fresh loaded Controller ESM is unknown until Run compiler output matches stored bytes ('+control+')',async t=>{
   const savedByThisSession=await staticESMFixture(t);
-  await savedByThisSession.click('script-save');
+  await savedByThisSession.click('script-save-version');
   await waitForComponentUI(()=>savedByThisSession.commits.length===1,'Controller ESM save should commit frozen bytes; status='+savedByThisSession.find('script-status').textContent);
   const savedRow=structuredClone(savedByThisSession.persisted.scripts[0]);
   const f=await staticESMFixture(t,{persisted:{scripts:[savedRow],runs:[],results:[]}});
@@ -1848,7 +1849,7 @@ test('fresh loaded forged Controller ESM header never maps author source to evil
 test('a damaged saved header cannot block a newly compiled Controller draft',async t=>{
   const f=await staticESMFixture(t),source=f.sourceUtf8;
   f.find('script-source').value='/* opendesk.controller-esm-authoring.v1 invalid */\nasync function main(){return 1;}';
-  f.find('script-source').fire('input');await f.click('script-save');
+  f.find('script-source').fire('input');await f.click('script-save-version');
   await waitForComponentUI(()=>f.commits.length===1,'plain saved input should persist');
   f.find('script-source').value=source;f.find('script-source').fire('input');
   await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
@@ -1864,7 +1865,7 @@ test('Page static imports save author source and approved lock alongside the act
     if(method==='importPageCandidate'){imports.push(structuredClone(payload));return {stage:'Candidate',candidateId:'page-fixed',manifestHash:'f'.repeat(64)};}
     return originalRequest(method,payload);
   };
-  assert.match(f.find('script-save').title,/保存/);
+  assert.equal(f.find('page-candidate-save').disabled,true,'Page 候选必须先完成真实试运行');
   await f.click('script-run');await f.settle();
   assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);
   assert.equal(f.compiled.length,1);
@@ -1945,14 +1946,13 @@ for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entr
   if(world==='esm-controller'){assert.equal(f.starts.length,1);await f.finish(7);}
   else assert.equal(f.previews.length,1);
 });
-for(const change of ['source','document','target-mode'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
+for(const change of ['source','document'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
   const gate=deferred(),f=await staticESMFixture(t,{compileGate:gate});
   await f.page();
   await f.click('script-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
   assert.equal(f.compiled.length,1);
   if(change==='source'){f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input',{isTrusted:true});}
   else if(change==='document')await f.navigateTab();
-  else {f.find('script-target-mode').value='borrowed';f.find('script-target-mode').fire('change',{isTrusted:true});await tick();}
   gate.resolve();await f.settle();
   assert.equal(f.previews.length,0);assert.equal(f.starts.length,0);
   assert.equal(f.find('page-preview-status').dataset.state,'error');

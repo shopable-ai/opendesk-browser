@@ -362,7 +362,13 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'true first-activation default 30-minute shared pool',15000);
   report.zeroConfig='PASS';report.approval='PASS';
   report.heartbeat.enabled=await nativeFocusHeartbeat(client,sid,true,'enabled');
-  assert.equal(defaultPool.managed,11);
+  const expectedDefaultHosts=[...sourceConfig.backgroundPolicy.defaultSites].sort();
+  // The signed policy, not a stale hardcoded site count, is the only
+  // first-install authority. Assert EXACT membership to catch silent changes.
+  assert.equal(defaultPool.managed,expectedDefaultHosts.length,
+    'first activation must enroll each approved package default site exactly once');
+  assert.deepEqual(defaultPool.sites.map(site=>site.host).sort(),expectedDefaultHosts,
+    'first activation must neither omit approved defaults nor add extra websites');
   assert.ok(defaultPool.sites.every(site=>site.enabled&&site.mode==='limit'&&site.group==='entertainment'));
   assert.ok(!defaultPool.sites.some(site=>site.host==='github.com'),'work sites excluded by default');
   note('native-zero-config',defaultPool);

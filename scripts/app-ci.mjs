@@ -127,6 +127,8 @@ async function load(name){
     fail('DNR capability requires real Chrome, native receipt verifier and DNR suite');
   if(caps.includes('page.toc')&&(profile.kind!=='page'||!native))
     fail('page TOC requires page/installed Chrome suite');
+  if(caps.includes('page.clip')&&(!declared||profile.kind!=='page'||!browser.length||!native))
+    fail('page clip requires explicit page profile, real Chrome browser tests and installed native suite');
   if(caps.some(x=>/^browser\.cookies\./.test(x))&&!declared)
     fail('cookie privileges require an explicit test profile');
   if(meta.uiRuntime==='opendesk.react-ui.v1'&&!declared)

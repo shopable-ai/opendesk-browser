@@ -6,7 +6,7 @@
     const el=document.createElement(tag);if(klass)el.className=klass;
     if(text!==undefined)el.textContent=text;return el;
   };
-  let state=null,busy=false,firstSettings=true,currentSuggestion=null,editingSite=null;
+  let state=null,busy=false,firstSettings=true,currentSuggestion=null,editingSite=null,expandedSites=false;
   const message=(text,error=false)=>{$('message').textContent=text;$('message').dataset.error=String(error);};
   const minutes=ms=>ms>=3600000?Math.floor(ms/3600000)+' 小时 '+Math.floor(ms%3600000/60000)+' 分钟':Math.max(0,Math.ceil(ms/60000))+' 分钟';
   const escapeHost=value=>{
@@ -133,7 +133,10 @@
       return false;
     }finally{
       busy=false;buttons.forEach(x=>x.disabled=false);
-      if(state)$('focus-start').disabled=!state.enabled;
+      if(state){
+        $('focus-start').disabled=!state.enabled;
+        $('daily-budget-save').disabled=!state.enabled;
+      }
     }
   };
   function resetSiteEditor(){
@@ -212,18 +215,22 @@
     $('focus-stop').hidden=!focused;
     if(focused&&!ruleUnverified)$('total-caption').textContent='专注模式进行中，预计 '+new Date(state.focusUntil).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+' 结束。';
     $('site-count').textContent=state.sites.length+' 个网站';
-    const managed=state.sites.filter(site=>site.group==='entertainment');
-    const examples=(managed.length?managed.map(site=>site.host):
-      state.catalog.filter(row=>row.auto).map(row=>row.name)).slice(0,4);
     const enabledSites=state.sites.filter(site=>site.enabled).length;
     $('managed-preview').textContent=state.sites.length?
       enabledSites+' 个启用 · '+(state.sites.length-enabledSites)+' 个暂停 · 点击图标即可管理':
       '开启后自动纳入默认娱乐网站；也可以手动添加。';
     const list=$('sites');list.replaceChildren();
-    for(const site of state.sites)list.append(badgeSite(site));
+    for(const site of (expandedSites?state.sites:state.sites.slice(0,4)))
+      list.append(badgeSite(site));
+    if(state.sites.length>4){
+      const more=create('button','sf-more-sites',
+        expandedSites?'收起列表':'查看全部 '+state.sites.length+' 个网站');
+      more.type='button';more.addEventListener('click',()=>{
+        expandedSites=!expandedSites;render();
+      });list.append(more);
+    }
     if(!state.sites.length)list.append(create('p','sf-empty',
-      !state.enabled?'首次开启后，自动管理 '+state.catalog.filter(row=>row.auto).map(row=>row.name).join('、')+'；也可主动排除。':
-        '尚未管理网站；可以从快速识别中添加到共享额度。'));
+      '还没有管理的网站。授权开启后会按已审阅的默认清单添加，也可以手动新增。'));
     const groupSelect=$('site-group'),selected=groupSelect.value;
     groupSelect.replaceChildren(new Option('不共享',''),new Option('娱乐总额度（共享）','entertainment'));
     for(const id of Object.keys(state.groups).sort())if(id!=='entertainment')

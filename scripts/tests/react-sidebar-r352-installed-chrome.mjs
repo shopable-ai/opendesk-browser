@@ -89,6 +89,16 @@ const snapshotExpression=`(async()=>{
     debugPage:!!d.getElementById('workbench-debug'),
     idCounts:ids.map(id=>[id,d.querySelectorAll('#'+id).length]),
     ownedIds:ids.filter(id=>id!=='opendesk-react-app').map(id=>[id,!!app?.contains(d.getElementById(id))]),
+    developerOwners:[
+      ['#script-source','developer-source'],
+      ['#script-javascript-world-row','developer-world'],
+      ['#page-component-framework .page-component-choices','developer-framework'],
+      ['#develop-dock .dock-buttons','developer-actions'],
+      ['#script-status','developer-run-status'],
+      ['#script-result','developer-result'],
+      ['#script-current-page-host','developer-target-host']
+    ].map(([selector,expected])=>({selector,expected,
+      actual:d.querySelector(selector)?.dataset.opendeskReactOwner||null})),
     portalCount:d.querySelectorAll('[data-opendesk-diagnostic-portal],#debug-diagnostic-portal').length,
     surface:d.documentElement.dataset.opendeskSurface||null,
     catalogVisible:!!d.getElementById('workbench-discover')&&!d.getElementById('workbench-discover').hidden,
@@ -124,6 +134,8 @@ async function openInstalledPage(){
   assert.equal(state.debugPage,buildMode==='development');
   for(const [id,count] of state.idCounts)assert.equal(count,1,'One live DOM ID: '+id);
   for(const [id,owned] of state.ownedIds)assert.equal(owned,true,'Single React root contains '+id);
+  for(const row of state.developerOwners)
+    assert.equal(row.actual,row.expected,'React must exclusively own mounted Developer slot: '+row.selector);
   assert.equal(state.portalCount,0,'No diagnostic portal');
   if(expectedSurface==='catalog'){
     assert.equal(state.catalogVisible,true,'Default extension tab opens actual catalog');

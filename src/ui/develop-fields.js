@@ -161,7 +161,7 @@ export const DEVELOPER_FIELDS = {
     "textContent": "JavaScript、React JSX 或 Vue SFC 源码编辑器"
   },
   "script-source": {
-    "value": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
+    "value": ""
   },
   "page-component-hint": {
     "textContent": "编辑源码不会自动执行，点击运行才会执行"
@@ -476,10 +476,6 @@ export const DEVELOPER_FIELDS = {
     "hidden": true,
     "textContent": "请先确认当前网页可用；试运行不会保存版本或安装任务。"
   },
-  "page-preview-result": {
-    "hidden": true,
-    "textContent": "尚未运行"
-  },
   "page-preview-technical-panel": {
     "hidden": true,
     "className": "od-disclosure od-disclosure--flat"
@@ -609,48 +605,6 @@ export const DEVELOPER_FIELDS = {
   },
   "site-access-refresh": {
     "textContent": "刷新授权状态"
-  },
-  "script-target-mode": {
-    "options": [
-      [
-        "当前网页（默认）",
-        "current"
-      ],
-      [
-        "创建隔离网页（高级）",
-        "owned"
-      ],
-      [
-        "手动选择精确文档（高级）",
-        "borrowed"
-      ]
-    ],
-    "value": "current"
-  },
-  "script-owned-url": {
-    "disabled": true,
-    "className": "od-field"
-  },
-  "script-tab": {
-    "options": [
-      [
-        "请选择具体网页",
-        ""
-      ]
-    ],
-    "value": ""
-  },
-  "script-refresh": {
-    "textContent": "刷新网页列表"
-  },
-  "script-document": {
-    "options": [
-      [
-        "请选择当前精确文档",
-        ""
-      ]
-    ],
-    "value": ""
   },
   "script-allow-cookies": {
     "type": "checkbox"

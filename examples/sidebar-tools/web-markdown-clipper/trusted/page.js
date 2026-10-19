@@ -2,7 +2,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecy
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,clipGrantAllowed} from './policy.js';
-import {chooseArticle,domToMarkdown,safeClipSource} from './convert.js';
+import {chooseArticle,domToMarkdown,safeClipSource} from '../../../shared/markdown/convert.js';
 
 export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!api?.runtime?.onMessage||!api?.storage?.local||!doc||!win||win.top!==win)return null;
@@ -26,8 +26,11 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
     if(!canonical)return {ok:false,error:'当前网页地址不支持剪藏'};
     let markdown;
     try{
-      if(message.operation==='clip.link')
-        markdown='['+title.replace(/[\[\]\\]/g,'\\$&')+']('+canonical+')\n';
+      if(message.operation==='clip.link'){
+        const label=title.replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim()||'网页链接';
+        markdown='['+label.replace(/[\[\]\\]/g,'\\      if(message.operation==='clip.link')
+        markdown='['+title.replace(/[\[\]\\]/g,'\\$&')+']('+canonical+')\n';')+']('+canonical+')\n';
+      }
       else if(message.operation==='clip.selection'){
         const selection=win.getSelection();
         if(!selection||selection.isCollapsed||!selection.rangeCount||
