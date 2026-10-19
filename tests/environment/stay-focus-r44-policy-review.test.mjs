@@ -46,9 +46,11 @@ test('installed Stay Focus offers explicit per-site review, without a sandbox Ch
   const app=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
   const host=readFileSync(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
-  assert.match(app,/recommendations=knownSites\(\)\.filter/);
+  assert.match(app,/candidates=knownSites\(\)\.filter/);
   assert.match(app,/call\('focus\.site\.put'/);
-  assert.match(html,/id="policy-review"/);
+  assert.match(html,/id="site-discovery"/);
+  assert.match(html,/id="more-presets"/);
+  assert.match(app,/!configured\(row\)/);
   assert.match(host,/describeSidebarToolBackgroundPolicyChange\(/);
   assert.doesNotMatch(app,/chrome\.(?:declarativeNetRequest|alarms|idle)\./);
 });
