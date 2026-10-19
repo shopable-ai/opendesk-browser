@@ -36,7 +36,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
                 <span className="developer-page-label">
                   {"当前网页"}
                 </span>
-                <DevelopField as="span" id="script-current-page-host" title="当前活动网页">
+                <DevelopField as="span" id="script-current-page-host" title="当前活动网页" data-opendesk-react-owner="developer-target-host">
                   {"正在识别…"}
                 </DevelopField>
                 <DevelopField as="span" id="script-current-page-status" role="status" aria-live="polite" data-state="resolving">
@@ -70,6 +70,9 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
             </DevelopField>
           </div>
           <DevelopField as="p" id="local-project-status" role="status" aria-live="polite">
+          </DevelopField>
+          <DevelopField as="button" id="script-save" type="button" className="od-button od-button--secondary">
+            {"检查并保存本地项目"}
           </DevelopField>
           <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
             <strong>
@@ -183,7 +186,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
               <span className="page-component-label" aria-hidden="true">
                 {"代码类型"}
               </span>
-              <div className="page-component-choices od-segmented">
+              <div className="page-component-choices od-segmented" data-opendesk-react-owner="developer-framework">
                 <label htmlFor="page-component-javascript" title="JavaScript">
                   <DevelopField as="input" id="page-component-javascript" type="radio" name="page-component-choice" aria-label="JavaScript"/>
                   <span>
@@ -205,7 +208,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
               </div>
             </DevelopField>
           </DevelopField>
-          <DevelopField as="div" id="script-javascript-world-row" className="od-toolbar" role="group" aria-label="JavaScript 执行环境">
+          <DevelopField as="div" id="script-javascript-world-row" data-opendesk-react-owner="developer-world" className="od-toolbar" role="group" aria-label="JavaScript 执行环境">
             <label htmlFor="script-javascript-world" className="od-field-label">
               {"运行环境"}
             </label>
@@ -214,7 +217,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
           <DevelopField as="label" htmlFor="script-source" className="visually-hidden" id="developer-source-label">
             {"JavaScript、React JSX 或 Vue SFC 源码编辑器"}
           </DevelopField>
-          <DevelopField as="textarea" id="script-source" rows="6" wrap="off" spellCheck={false} autoCapitalize="off" className="od-field"/>
+          <DevelopField as="textarea" id="script-source" data-opendesk-react-owner="developer-source" rows="6" wrap="off" spellCheck={false} autoCapitalize="off" className="od-field"/>
           <DevelopField as="p" id="page-component-hint" className="hint">
             {"编辑源码不会自动执行，点击运行才会执行"}
           </DevelopField>
@@ -384,7 +387,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
         </DevelopField>
         <div className="developer-run-area od-stack">
           <DevelopField as="p" id="developer-run-feedback" className="developer-run-feedback" role="status" aria-live="polite">
-            <DevelopField as="span" id="script-status" data-state="loading">
+            <DevelopField as="span" id="script-status" data-opendesk-react-owner="developer-run-status" data-state="loading">
               {"正在连接公共运行入口…"}
             </DevelopField>
             <DevelopField as="span" id="script-task-status" className="developer-task-status">
@@ -422,7 +425,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
                   </svg>
                 </DevelopField>
               </div>
-              <DevelopField as="pre" id="script-result" aria-label="脚本返回值" className="od-result">
+              <DevelopField as="pre" id="script-result" data-opendesk-react-owner="developer-result" aria-label="脚本返回值" className="od-result">
                 {"尚无结果"}
               </DevelopField>
               <DevelopField as="details" id="script-history-panel" className="result-history od-disclosure od-disclosure--flat">
@@ -544,9 +547,6 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
             </DevelopField>
             <DevelopField as="p" id="page-preview-status" role="status">
               {"请先确认当前网页可用；试运行不会保存版本或安装任务。"}
-            </DevelopField>
-            <DevelopField as="pre" id="page-preview-result" aria-label="网页 JavaScript 试运行结果" className="od-result">
-              {"尚未运行"}
             </DevelopField>
             <DevelopField as="details" id="page-preview-technical-panel" className="od-disclosure od-disclosure--flat">
               <summary>
@@ -741,12 +741,9 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
 export function DeveloperDock({model,view=model,actions=view.actions,hidden=false}){
   return <DevelopProvider view={view} actions={actions}>
     <div id="develop-dock" className="dock-actions" hidden={hidden}>
-      <div className="dock-buttons od-toolbar">
+      <div className="dock-buttons od-toolbar" data-opendesk-react-owner="developer-actions">
         <DevelopField as="button" className="od-button" id="script-run">
           {"运行"}
-        </DevelopField>
-        <DevelopField as="button" className="od-button od-button--secondary" id="script-save">
-          {"保存版本"}
         </DevelopField>
         <DevelopField as="button" id="script-stop" className="od-button od-button--secondary">
           {"停止"}

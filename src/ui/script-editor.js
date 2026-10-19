@@ -106,22 +106,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
     patchDeveloperField(view,componentStatus,{data:{...componentStatus.data,state:state}});
     patchDeveloperField(view,componentStatus,{textContent:message||''});
   }
-  function projectPagePreviewStatus(state,message,result){
+  function projectPagePreviewStatus(state,message){
     if(disposed)return;
     const node=find('page-preview-status');
     patchDeveloperField(view,node,{data:{...node.data,state},textContent:message});
-    if(result!==undefined)patchDeveloperField(view,find('page-preview-result'),{textContent:result});
   }
   let ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  // The original Script Editor exclusively owns authorized result values.
-  // React renders the editor fields without taking ownership of results.
-  const resultProjection={text:output.textContent||'',kind:resultKind.textContent||''};
-  function writeResultField(key,value){
-    resultProjection[key]=value??'';
-    patchDeveloperField(view,key==='text'?output:resultKind,{textContent:resultProjection[key]});
-  }
-  const setResultText=value=>writeResultField('text',value);
-  const setResultKind=value=>writeResultField('kind',value);
+  // The React view is the single presentation state. No duplicate result buffer.
+  const setResultText=value=>patchDeveloperField(view,output,{textContent:value??''});
+  const setResultKind=value=>patchDeveloperField(view,resultKind,{textContent:value??''});
   let currentPageState = currentPageTarget?.snapshot ?? {status:'unavailable',reason:'E_TARGET',message:'当前网页服务不可用'},
     selectionVersion = 0, running = false, disposed = false;
   const listeners = [];
@@ -326,8 +319,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     let saveDisabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate())||
       (loadedPageSource&&!isComponentDraft()&&!canSavePagePreview());
     patchDeveloperField(view,find('script-load'),{disabled:editingBusy});
-    const saveTitle=isComponentDraft()?'保存组件候选':
-      lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?'保存已试运行的 Page import 候选':'保存 Controller 固定版本';
     patchDeveloperField(view,find('script-list-refresh'),{disabled:editingBusy}); patchDeveloperField(view,find('script-list-load'),{disabled:editingBusy || !scriptList.value});
     patchDeveloperField(view,find('script-delete'),{disabled:editingBusy || !controllerRevisions.has(scriptId())});
     let runDisabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
@@ -353,18 +344,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     patchDeveloperField(view,find('script-owned-url'),{disabled:mode.value !== 'owned'});
     patchDeveloperField(view,tab,{disabled:mode.value !== 'borrowed'}); patchDeveloperField(view,frame,{disabled:mode.value !== 'borrowed' || !documents.size});
     resultDownloads.update();
-    let saveHidden=true,saveLabel='保存版本',runLabel='运行';
+    let runLabel='运行';
     if(localProject?.active()){
       for(const id of ['script-load','script-list-load','script-delete','task-create-candidate'])if(find(id))patchDeveloperField(view,find(id),{disabled:true});
-      saveHidden=false; // Visibility is navigation; Authority still gates install confirmation.
-      saveDisabled=editingBusy||running||stopping||previewBusy||!localInstaller.hasSelection();
-      saveLabel=localInstaller.saveLabel();
       runLabel='运行本地项目';
       runDisabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
       patchDeveloperField(view,find('script-version'),{textContent:'本地项目模式 · 直接编辑内容保持不变；运行所选项目准备完成的代码'});
-    }else {
-      runLabel='运行';
-      saveLabel=isComponentDraft()?'准备并保存网页脚本':isPageDraft()?'保存网页脚本版本':'保存版本';
     }
     patchDeveloperField(view,find('script-library-tools'),{hidden:!!localProject?.active()||pageExecution});
     patchDeveloperField(view,find('page-preview-tools'),{hidden:!!localProject?.active()||!pageExecution});
@@ -374,10 +359,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
       patchDeveloperField(view,saveVersion,{disabled:saveDisabled||!programSource.source().trim()});
     }
     {
-      const runButton=find('script-run'),saveButton=find('script-save'),stopButton=find('script-stop');
+      const runButton=find('script-run'),stopButton=find('script-stop');
       patchDeveloperField(view,runButton,{disabled:runDisabled});patchDeveloperField(view,runButton,{textContent:runLabel});
-      patchDeveloperField(view,saveButton,{disabled:saveDisabled});patchDeveloperField(view,saveButton,{hidden:saveHidden});
-      patchDeveloperField(view,saveButton,{title:saveTitle});patchDeveloperField(view,saveButton,{textContent:saveLabel});
+      patchDeveloperField(view,find('script-save'),{
+        disabled:!localProject?.active()||editingBusy||running||stopping||previewBusy||!localInstaller.hasSelection(),
+        textContent:localProject?.active()?localInstaller.saveLabel():'检查并保存本地项目'});
       patchDeveloperField(view,stopButton,{disabled:stopDisabled});patchDeveloperField(view,stopButton,{hidden:!!localProject?.active()&&stopDisabled});
       patchDeveloperField(view,stopButton,{textContent:stopLabel});
     }
@@ -781,7 +767,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
         localInstaller.succeeded({source,binding,target:captured,previewId:claim.previewId});
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
         const valueText=result.result?.resultText ?? 'undefined';
-        patchDeveloperField(view,find('page-preview-result'),{textContent:valueText});
         setResultText(valueText);setResultKind('本地 Page · 本次结果');
         patchDeveloperField(view,copyResult,{disabled:false});patchDeveloperField(view,find('developer-results-panel'),{open:true});
         patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
@@ -845,7 +830,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const runMode=mode.value,runKind=programSource.kind(),version=selectionVersion;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
-      projectPagePreviewStatus(state,message,result);
+      projectPagePreviewStatus(state,message);
       display(state,message);
       if(state==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) showUserScriptsRecovery();
       else if(state==='error' && message.startsWith('E_USER_SCRIPTS_NATIVE')) showUserScriptsRecovery('error', message);
@@ -1169,13 +1154,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     editingBusy = true; update();
     try {await operation();} finally {editingBusy = false; update();}
   };
-  function saveClick(event){
-    if(!event?.isTrusted||disposed)return;
-    Promise.resolve().then(()=>localProject?.active()?localInstaller.prepare():
-      isComponentDraft()?savePreparedComponent():loadedPageSource?savePageCandidate():
-      lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?savePageCandidate():edit(save)()).catch(fail);
-  }
-  listen(find('script-save-version'),'click',saveClick);
+  listen(find('script-save-version'),'click',event=>{
+    if(!event?.isTrusted||disposed||localProject?.active()||isPageDraft()||isComponentDraft())return;
+    edit(save)().catch(fail);
+  });
+  listen(find('script-save'),'click',event=>{
+    if(!event?.isTrusted||disposed||!localProject?.active())return;
+    Promise.resolve().then(()=>localInstaller.prepare()).catch(fail);
+  });
   on('script-load','click',edit(load)); on('script-list-load','click',edit(loadLatestFromList));
   on('script-read','click',()=>read('')); on('script-delete','click',edit(()=>controllerRevisions.remove())); on('script-list-refresh','click',()=>controllerRevisions.refresh().catch(fail));
   on('script-read-run','click',()=>read());
@@ -1233,7 +1219,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const javascriptWorldSelect=find('script-javascript-world');
   function sourceInput(){
     browserPreparer.cancel();browserPrepareGeneration++;
-    programSource.replaceSource(programSource.source());
     dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();
     scheduleControllerClassicWarm();update();
   }
@@ -1300,7 +1285,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_UI_CLEANUP_FAILED',message:'没有收到可信的组件停止回执'};
         if(browserManagedPreview===owned)browserManagedPreview=null;
         componentMessage('completed','已停止 · 受管组件和样式已清理');
-        projectPagePreviewStatus('completed','已停止 · 受管组件和样式已清理',JSON.stringify(result,null,2));
+        projectPagePreviewStatus('completed','已停止 · 受管组件和样式已清理');
         patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
         patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({stop:result,framework:owned.framework},null,2)});
         display('completed','受管组件已清理；网页业务效果不会回滚。');
@@ -1313,8 +1298,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
         quarantineBrowserEffect(owned.target); // Uncertain Stop is document-bound; never blindly retry.
         componentMessage('error',(error.code||'E_UI_CLEANUP')+'：'+error.message+
           '；无法确认组件已清理，请重新加载目标网页');
-        projectPagePreviewStatus('error','无法确认组件已清理，请重新加载目标网页',JSON.stringify({error:{
-          code:error.code||'E_UI_CLEANUP',message:error.message||String(error)}},null,2));
+        projectPagePreviewStatus('error','无法确认组件已清理，请重新加载目标网页');
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false,open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({error:{
+          code:error.code||'E_UI_CLEANUP',message:error.message||String(error)}},null,2)});
         throw error;
       }
       finally{stopping=false;update();}
@@ -1349,7 +1336,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   // View actions and standalone DOM consumers share these control handlers.
   {
-    listen(find('script-save'),'click',saveClick);
     for(const [next,input] of Object.entries(componentInputs))if(input)
       listen(input,'change',event=>{
         if(!event?.isTrusted){syncComponentInputs();return;}

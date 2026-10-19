@@ -660,7 +660,7 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing without
   assert.equal(f.find('page-component-javascript').checked?'javascript':framework,'javascript',
   'loading a Controller revision must leave Page component mode');
   assert.equal(f.find('script-run').textContent,'运行');
-  assert.equal(f.find('script-save').textContent,'保存版本');
+  assert.equal(f.find('script-save-version').textContent,'保存 Controller 固定版本');
   const starts=[],commits=[];
   f.host.start=async request=>{
     starts.push(request);

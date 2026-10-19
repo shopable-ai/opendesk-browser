@@ -161,7 +161,7 @@ export const DEVELOPER_FIELDS = {
     "textContent": "JavaScript、React JSX 或 Vue SFC 源码编辑器"
   },
   "script-source": {
-    "value": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
+    "value": ""
   },
   "page-component-hint": {
     "textContent": "编辑源码不会自动执行，点击运行才会执行"
@@ -475,10 +475,6 @@ export const DEVELOPER_FIELDS = {
   "page-preview-status": {
     "hidden": true,
     "textContent": "请先确认当前网页可用；试运行不会保存版本或安装任务。"
-  },
-  "page-preview-result": {
-    "hidden": true,
-    "textContent": "尚未运行"
   },
   "page-preview-technical-panel": {
     "hidden": true,
