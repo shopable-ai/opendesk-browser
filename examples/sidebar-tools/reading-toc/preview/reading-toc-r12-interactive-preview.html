@@ -314,7 +314,7 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 <aside class="preview-meta" aria-label="预览来源和安全范围">
   <p class="preview-notice">模拟预览 · 非真实安装、权限或网络执行</p>
   <p class="preview-provenance">工具：阅读目录 · 场景：success · 工具主题：light · 预览外壳：浅色</p>
-  <p class="preview-provenance">Source: ba5f74ac78b9df6df1a277961c47407ee9e40660 · Design SHA-256: f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717 · Shell SHA-256: 743c50b7800e1a5463bfb0d66b01c2217a696a31b31fab3a63aa0f6b02ffa7c7 · UI SHA-256: 28fcce107a002811a4e1c363dc0cbf4bcd939d3889150b9731afdb01b631162b</p>
+  <p class="preview-provenance">Source: 27f9028ad3e2f705645d581bcca2175323382089 · Design SHA-256: f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717 · Shell SHA-256: 45328c69ba2fffcee62d9394dc4cb394b2447631f64d71519d7fb465c0aacfa3 · UI SHA-256: 28fcce107a002811a4e1c363dc0cbf4bcd939d3889150b9731afdb01b631162b</p>
 
 <style>
 #od-toc-controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap;max-width:880px}
@@ -354,14 +354,71 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
     <main class="preview-body">
       <section id="od-preview-extension-detail" role="tabpanel" tabindex="-1" aria-label="当前扩展工具">
         <div class="sidebar-tool-view-head od-toolbar od-page-head">
-          <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
-          <strong id="sidebar-tool-title" class="od-page-title"></strong>
-          <button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
-          <button type="button" id="sidebar-tool-settings-open" class="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z"></path></svg></button>
-          <button type="button" id="sidebar-tool-visibility" class="sidebar-tool-icon-action od-icon-button" title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-          <button type="button" id="sidebar-tool-context-menu" class="sidebar-tool-icon-action od-icon-button" title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16M9 3v4M15 10v4M11 17v4"></path></svg></button>
-          <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
-        </div>
+<button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="m14 5-7 7 7 7M7 12h14">
+
+</path>
+
+</svg>
+
+</button>
+<strong id="sidebar-tool-title" class="od-page-title">
+
+</strong>
+<button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled>
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6">
+
+</path>
+
+</svg>
+
+</button>
+<button type="button" id="sidebar-tool-settings-open" class="sidebar-tool-icon-action od-icon-button" title="工具设置" aria-label="工具设置" aria-controls="sidebar-tool-settings-view" aria-expanded="false" hidden>
+<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="12" cy="12" r="3">
+
+</circle>
+<path d="M10 2h4l.5 2.5 2 1 2.4-1 2.3 3-1.7 2v3l1.7 2-2.3 3-2.4-1-2 1L14 21h-4l-.5-2.5-2-1-2.4 1-2.3-3 1.7-2v-3l-1.7-2 2.3-3 2.4 1 2-1Z">
+
+</path>
+
+</svg>
+
+</button>
+<button type="button" id="sidebar-tool-visibility" class="sidebar-tool-icon-action od-icon-button" title="显示或隐藏此网站的悬浮目录" aria-label="显示或隐藏此网站的悬浮目录" aria-pressed="true" hidden>
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z">
+
+</path>
+<circle cx="12" cy="12" r="3">
+
+</circle>
+
+</svg>
+
+</button>
+<button type="button" id="sidebar-tool-context-menu" class="sidebar-tool-icon-action od-icon-button" title="为当前网站启用右键菜单" aria-label="为当前网站启用右键菜单" aria-pressed="false" hidden>
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 5h16M4 12h16M4 19h16M9 3v4M15 10v4M11 17v4">
+
+</path>
+
+</svg>
+
+</button>
+<button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled>
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5">
+
+</path>
+
+</svg>
+
+</button>
+
+</div>
         <div id="od-preview-adblock-host"></div>
         <p id="od-preview-adblock-feedback" class="od-note" role="status" aria-live="polite"></p>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame">
@@ -397,7 +454,7 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 </dialog>
 
 <script type="application/json" id="opendesk-preview-adblock-snapshots">{}</script>
-<script type="application/json" id="opendesk-preview-manifest">{"format":"opendesk.ui-preview.v1","tool":"reading-toc","toolVersion":"1.0.9","surface":"side-panel","scenario":"success","theme":"light","viewport":{"width":360,"height":760},"sourceCommit":"ba5f74ac78b9df6df1a277961c47407ee9e40660","designSha256":"f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717","uiSha256":"28fcce107a002811a4e1c363dc0cbf4bcd939d3889150b9731afdb01b631162b","shellSha256":"743c50b7800e1a5463bfb0d66b01c2217a696a31b31fab3a63aa0f6b02ffa7c7","shellTheme":"light","previewBuild":"R1.2-reading-toc","trustedOverlaySourceSha256":"8239f1fae317894b9742d45f725a4c7220926288e1be74828b9490e5fdb7de34","trustedOverlayModuleSha256":"a5026095d2b4f2ddd8b0a425ae8da5131d5912bd956eb2ba24e1387c587ae67b","mock":true,"installed":false,"permissionsGranted":false,"operations":["toc.snapshot","toc.navigate"]}</script>
+<script type="application/json" id="opendesk-preview-manifest">{"format":"opendesk.ui-preview.v1","tool":"reading-toc","toolVersion":"1.0.9","surface":"side-panel","scenario":"success","theme":"light","viewport":{"width":360,"height":760},"sourceCommit":"27f9028ad3e2f705645d581bcca2175323382089","designSha256":"f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717","uiSha256":"28fcce107a002811a4e1c363dc0cbf4bcd939d3889150b9731afdb01b631162b","shellSha256":"45328c69ba2fffcee62d9394dc4cb394b2447631f64d71519d7fb465c0aacfa3","shellTheme":"light","previewBuild":"R1.2-reading-toc","trustedOverlaySourceSha256":"f705c934263ec900adb3791642c1fe3afe88ebd46210e2fca20e3d1fec42ef8a","trustedOverlayModuleSha256":"a5026095d2b4f2ddd8b0a425ae8da5131d5912bd956eb2ba24e1387c587ae67b","mock":true,"installed":false,"permissionsGranted":false,"operations":["toc.snapshot","toc.navigate"]}</script>
 <script>
 (()=>{
   'use strict';
