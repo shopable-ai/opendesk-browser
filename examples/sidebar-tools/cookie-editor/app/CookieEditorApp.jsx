@@ -345,6 +345,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onBeginImport={beginImportIntent}
           onClose={()=>{controller.discardImport();void adapter.finishImportIntent().catch(()=>{});setPanel(null);}}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
+          onDelivered={method=>{setPanel(null);noteImport(method==='copy'?'已复制 Cookie':'已导出 Cookie','success');}}
           onClose={()=>setPanel(null)}/>}
       </div>}
     </>}
