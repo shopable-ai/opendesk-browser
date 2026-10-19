@@ -4,7 +4,7 @@
 
 The daily extension uses `dist/development`, extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`, and the existing `npm run dev` watcher. The installed React 2.0.25 candidate previously completed disposable localhost Cookie create/read/edit/clear-value/restore/save/reopen/delete operations through the real SDK. Its evidence remains in `artifacts/cookie-editor-r520/development-delivery.json`; it does not prove the merged candidate.
 
-The merged development candidate is **2.0.27**, built with the original packer into `artifacts/sidebar-tools/cookie-editor/r56-react-2.0.27-candidate.opendesk-tool.json`. The formal native config and unique installation JSON remain **2.0.23**. No promotion or production extension build is part of this task. Current candidate installation and native results must be read from the matching development delivery receipt.
+The current development candidate is **2.0.28**, built with the original packer into `artifacts/sidebar-tools/cookie-editor/r56-react-2.0.28-candidate.opendesk-tool.json`. The formal native config and unique installation JSON remain **2.0.23**. No promotion or production extension build is part of this task. Current candidate installation and native results must be read from the matching development delivery receipt.
 
 `official.jsx` → `CookieEditorApp` → Controller / SDK adapter → `OpenDeskSDK.browser` → existing Host / Authority → Chrome Cookies API is the only native path. The preview imports the same App. `src/mock-sdk.js` provides fictional responses and scene controls only; it is excluded from the native candidate.
 
@@ -24,6 +24,10 @@ npm run check
 npm test
 CHROME_BIN='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm run test:chromium
 ```
+
+Latest **2.0.28** development evidence: the existing daily Chrome update review matched SHA-256 `b60b1248ae24570dddc8d65549f00ab613f58b69b1677b22fd7b7a5c59accf62`, with no added or removed capabilities. Invalid paste input produced one concise error; cancelling retained the original two Cookies. Opening the standalone tool reproduced site-change interruption, and the explicit **重新读取 Cookie** action restored the real localhost list without replaying the pending write. A disposable localhost Cookie was then imported through Host confirmation, its value read back correctly, and individually deleted. No original Cookie was written or deleted. The private unsaved draft is protected by its existing 0600 backup; its final restoration is recorded only as booleans in the local receipt.
+
+The integrated Controller/domain/source checks, fictional transport checks, 7 package/design checks and 17 offline Chromium cases passed. Native file-picker completion remains **NOT_TESTED**: the system path popup did not complete reliably during automation, so it was cancelled; the successful native import used paste. The interrupted read regression uses the actual shared App. Latest local evidence: `artifacts/cookie-editor-r520/recovery-development-delivery.json`, `recovery-*.log`, and `native/recovery-*.png`. The current offline HTML SHA-256 is `a7a8b3b1b3be37e602e9a40294fd78915470fd615f32f0b724de8350cd63f395`; its source check still passed after the unrelated main integration without rebuilding. Historical evidence below remains bound to its original candidate.
 
 The merged **2.0.27** candidate was installed in the daily Chrome Profile through the existing update review, with no added capabilities. The localhost website grant was reconfirmed after update. The new import dialog submitted one disposable localhost Cookie through the existing Controller and Host confirmation; its value was read back and single deletion was checked. The original two Cookies were retained. Earlier **2.0.26** evidence also covers create/edit/explicit-empty-save/reopen/delete with the unchanged Controller and inline editor. It remains labeled with that version.
 
