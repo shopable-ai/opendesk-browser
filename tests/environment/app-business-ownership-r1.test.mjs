@@ -10,7 +10,7 @@ const business={
   'stay-focus':['blocked.js','catalog.js','host-controls.js','lifecycle.js','model.js','page-notice.js','policy.js','rule-host.js','rule-ownership.js','service.js','tool-host.js'],
   'time-review':['host-controls.js','model.js','policy.js','service.js','sync-outbox.js','sync-transport.js','trusted-admission.js','trusted-native-ui.js'],
   'ai-smart-access':['host-controls.js','lifecycle.js','policy.js','provider-config.js','service.js','tool-host.js'],
-  'page-clip':['convert.js','page.js','policy.js'],
+  'page-clip':['page.js','policy.js'],
   'reading-toc':['model.js','overview.js','placement.js','page.js','view.js','policy.js','locales.generated.js','existing-tabs.js']
 };
 
@@ -29,7 +29,7 @@ test('R1 app-owned trusted business has one implementation and no src re-export 
 test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome entrypoints',()=>{
   const approved=[
     ['examples/sidebar-tools/web-markdown-clipper/trusted/page.js','agents/page-relay.js'],
-    ['examples/sidebar-tools/web-markdown-clipper/trusted/convert.js','agents/page-relay.js'],
+    ['examples/shared/markdown/convert.js','agents/page-relay.js'],
     ['examples/sidebar-tools/web-markdown-clipper/trusted/policy.js','ui/marketplace.js'],
     ['examples/sidebar-tools/reading-toc/trusted/page.js','agents/page-relay.js'],
     ['examples/sidebar-tools/reading-toc/trusted/view.js','agents/page-relay.js'],
@@ -64,6 +64,11 @@ test('R1 approved fixed runtime entrypoints use app-owned sources and existing H
 
 test('R1.3 page clip plugin owns trusted page, policy and converter, with shared browser site grants',()=>{
   assert.equal(existsSync(file('src/page-clip')),false);
+  assert.equal(existsSync(file('examples/sidebar-tools/web-markdown-clipper/trusted/convert.js')),false,
+    'shared Markdown converter must not remain owned by Clipper');
+  assert.ok(existsSync(file('examples/shared/markdown/convert.js')));
+  assert.match(read('src/knowledge/page.js'),/examples\/shared\/markdown\/convert\.js/);
+  assert.match(read('examples/sidebar-tools/web-markdown-clipper/trusted/page.js'),/shared\/markdown\/convert\.js/);
   assert.equal(existsSync(file('src/reading-toc')),false);
   assert.equal(existsSync(file('src/sidebar-tools/reading-toc-existing-tabs.js')),false,'TOC worker repair must be App-owned');
   assert.match(read('src/entrypoints/preinstall-intent.js'),/reading-toc\/trusted\/existing-tabs\.js/);

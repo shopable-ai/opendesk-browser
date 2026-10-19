@@ -31,7 +31,7 @@ function refresh(){
  }
  display.replaceChildren(target);
 }
-function reset(text){version++;record=null;refresh();if(text)say(text);}
+function reset(text){version++;record=null;q('clip-fetch').disabled=false;refresh();if(text)say(text);}
 modes.forEach(b=>b.addEventListener('click',()=>{
  mode=b.dataset.clipMode;modes.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
  reset(mode==='selection'||mode==='quote'?'请先在网页中选中文字':'点击剪藏获取内容');
@@ -50,7 +50,7 @@ q('clip-fetch').addEventListener('click',async()=>{
   record=result;q('clip-site').textContent=clean(result.site);refresh();
   say('已获取内容，请检查 Markdown');
  }catch(e){if(token===version){record=null;refresh();say(e.message||'剪藏失败',true);}}
- finally{b.disabled=false;}
+ finally{if(token===version)b.disabled=false;}
 });
 q('clip-show-source').addEventListener('click',()=>{
  input.hidden=false;display.hidden=true;
@@ -70,7 +70,7 @@ q('clip-copy').addEventListener('click',async()=>{
 });
 q('clip-download').addEventListener('click',async()=>{
  if(!markdown)return say('请先剪藏',true);
- const filename=(clean(record?.title).replace(/[\/\\:*?"<>|]/g,'-').slice(0,60)||'web-clip')+'.md';
+ const filename=(clean(record?.title).replace(/[\/\\:*?"<>|]/g,'-').replace(/^\.+/,'').trim().slice(0,60)||'web-clip')+'.md';
  try{const done=await globalThis.OpenDeskSDK.browser.downloads.text({text:markdown,filename});
   if(done?.started!==true)throw Error('下载未确认');
   say('已请求下载，请在 Chrome 确认保存');

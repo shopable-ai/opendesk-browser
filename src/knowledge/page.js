@@ -1,7 +1,7 @@
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
-// Pure converter stays single-source and pinned in the existing fixed Page Relay.
-import {domToMarkdown} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
+// One audited Markdown domain converter serves both apps in the fixed Page Relay.
+import {domToMarkdown} from '../../examples/shared/markdown/convert.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,CAPTURE_SITE_STORE,captureAllowed,
   installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin} from './policy.js';
 

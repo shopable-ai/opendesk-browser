@@ -1,0 +1,20 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "page",
+  "host": "production",
+  "node": [
+    "tests/environment/markdown-tools-r22.test.mjs",
+    "tests/environment/sidebar-tool-enable-r26.test.mjs",
+    "tests/environment/app-business-ownership-r1.test.mjs",
+    "tests/environment/knowledge-inbox-r1.test.mjs",
+    "tests/environment/app-ci.test.mjs"
+  ],
+  "browser": [
+    "tests/framework/markdown-tools-native-r22.test.mjs"
+  ],
+  "native": {
+    "tests": [
+      "tests/framework/markdown-tools-native-r22.test.mjs"
+    ]
+  }
+}
