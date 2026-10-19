@@ -1,82 +1,94 @@
 <main class="sf" aria-label="Stay Focus 保持专注">
-  <header class="sf-heading"><div><p class="sf-eyebrow">STAY FOCUS</p><h2>为重要的事留时间</h2><p class="sf-sub">轻量的网站限额与专注限制 · 本机运行</p></div>
-  <span id="native-state" class="sf-state">未开启</span></header>
+  <header class="sf-heading">
+    <div class="sf-brand"><span class="sf-brand-symbol" aria-hidden="true">◷</span><div><h2>Stay Focus</h2><p class="sf-sub">把时间留给重要的事</p></div></div>
+    <span id="native-state" class="sf-state">未开启</span>
+  </header>
+
   <section class="sf-hero" aria-label="今日娱乐共享额度">
-    <div class="sf-headrow"><span>每日娱乐总额度</span><span id="date-label">—</span></div>
-    <div class="sf-budget-total"><strong id="budget-total">30 分钟</strong><span>所有受管理娱乐网站共享</span></div>
-    <div class="sf-stats"><div><span>今日已使用</span><strong id="total-used">0 分钟</strong></div>
-      <div><span>今天还剩</span><strong id="total-remaining">30 分钟</strong></div></div>
+    <div class="sf-headrow"><span>今日娱乐共享额度</span><time id="date-label">—</time></div>
+    <div class="sf-balance"><span>今天还可以使用</span><strong id="total-remaining">30 分钟</strong></div>
     <div class="sf-progress" aria-hidden="true"><i id="total-progress"></i></div>
-    <p id="total-caption">首次在工具详情中授权并开启后，自动管理常见娱乐网站。</p>
-    <form id="daily-budget-form" class="sf-budget-form">
-      <label for="daily-budget-minutes">修改每日共享额度（分钟）</label>
-      <input id="daily-budget-minutes" type="number" value="30" min="1" max="1440" step="1" required>
-      <button id="daily-budget-save" type="button" class="sf-secondary">保存额度</button>
-    </form>
-    <div class="sf-actions"><button type="button" id="focus-pause" class="sf-secondary" hidden>前往设置停用限制</button></div>
-  </section>
-  <details class="sf-settings" id="focus-session-controls"><summary>临时专注模式 <span>高级功能 · 25 分钟专注</span></summary>
-    <div class="sf-actions"><button type="button" id="focus-start" class="sf-primary">开始 25 分钟专注</button>
-      <button type="button" id="focus-stop" class="sf-secondary" hidden>结束专注</button></div>
-  </details>
-  <div id="message" class="sf-message" role="status" aria-live="polite"></div>
-  <section class="sf-section sf-quick" aria-label="识别当前网站">
-    <div class="sf-headrow"><h3>自动识别与推荐</h3><span class="sf-hint">离线域名分类</span></div>
-    <div id="quick-current" class="sf-quick-current" hidden>
-      <strong id="quick-site"></strong>
-      <p id="quick-explanation" class="sf-hint"></p>
-      <div class="sf-actions"><button type="button" id="quick-add" class="sf-primary">添加推荐限额</button>
-        <button type="button" id="quick-refresh" class="sf-secondary">重新识别</button></div>
+    <div class="sf-usage">
+      <span>已使用 <strong id="total-used">0 分钟</strong></span>
+      <span>每日限额 <strong id="budget-total">30 分钟</strong></span>
     </div>
-    <p id="quick-empty" class="sf-hint">正在识别当前网站。已知娱乐网站会在首次开启时自动纳入共享额度。</p>
-    <div id="quick-presets" class="sf-quick-presets" aria-label="常用娱乐网站推荐"></div>
+    <p id="total-caption" class="sf-caption">首次在扩展详情中授权并开启后生效。</p>
+    <details class="sf-budget-controls" id="budget-controls">
+      <summary>调整每日限额 <span aria-hidden="true">⌄</span></summary>
+      <form id="daily-budget-form" class="sf-budget-form">
+        <label for="daily-budget-minutes">每天可用（分钟）</label>
+        <div class="sf-budget-edit"><input id="daily-budget-minutes" type="number" value="30" min="1" max="1440" step="1" required><button id="daily-budget-save" type="button" class="sf-secondary">保存</button></div>
+      </form>
+      <p id="budget-lock-hint" class="sf-hint">先从外层扩展详情授权并开启，才能修改额度。</p>
+    </details>
   </section>
-  <section class="sf-section" id="policy-review" hidden aria-label="新版网站建议审阅">
-    <div class="sf-headrow"><h3>待审阅的网站建议</h3><span class="sf-hint">不会自动加入</span></div>
-    <p class="sf-hint">当前安装包建议管理以下尚未配置的网站。原有额度、工作时段、白名单和暂停状态不变；逐站点击并在可信宿主确认后，才会添加限制。</p>
-    <div id="policy-review-sites" class="sf-quick-presets"></div>
+
+  <section class="sf-session" id="focus-session-controls" aria-label="临时专注">
+    <div><strong>临时专注</strong><p>需要集中注意力时，暂停受管网站 25 分钟。</p></div>
+    <div class="sf-session-action"><button type="button" id="focus-start" class="sf-secondary">开始专注</button><button type="button" id="focus-stop" class="sf-secondary" hidden>结束专注</button></div>
   </section>
-  <section class="sf-section">
-    <div class="sf-headrow"><h3>管理的网站</h3><span id="site-count" class="sf-hint">0 个网站</span></div>
+
+  <div id="message" class="sf-message" role="status" aria-live="polite"></div>
+
+  <section class="sf-section sf-managed" aria-label="网站管理">
+    <div class="sf-headrow sf-section-head"><h3>管理的网站</h3><div class="sf-section-actions"><span id="site-count" class="sf-hint">0 个网站</span><button type="button" class="sf-icon-button sf-add-trigger" id="open-add-site" aria-label="添加网站" title="添加网站">＋</button></div></div>
     <p id="managed-preview" class="sf-hint"></p>
-    <details id="managed-site-details" class="sf-managed-details"><summary>查看网站与一键排除</summary>
+    <details id="managed-site-details" class="sf-managed-details" open>
+      <summary>网站列表 <span class="sf-disclosure-hint">可编辑、暂停或移除</span></summary>
       <div id="sites" class="sf-list" aria-live="polite"><p class="sf-empty">尚未管理网站</p></div>
     </details>
   </section>
-  <details class="sf-settings sf-manual" id="manual-site"><summary>高级：手动添加网站 <span>域名范围 · 独立规则 · 限制方式</span></summary>
-  <section class="sf-section sf-add">
-    <form id="site-form">
-      <label>网站域名 <input id="site-host" type="text" maxlength="253" required placeholder="例如 youtube.com" autocomplete="off"></label>
-      <div class="sf-two"><label>每天最多（分钟）<input id="site-minutes" type="number" min="1" max="1440" value="15" required></label>
-        <label>限制方式<select id="site-mode"><option value="limit">每日限额</option><option value="always">始终封锁</option></select></label></div>
-      <div class="sf-two"><label>共享额度组<select id="site-group"><option value="">不共享</option><option value="entertainment">娱乐总额度（共享）</option></select></label>
-        <label class="sf-check"><input type="checkbox" id="site-subdomains" checked>包含子域名</label></div>
-      <div class="sf-actions"><button class="sf-primary" id="site-save" type="button">保存网站规则</button>
-        <button class="sf-secondary" type="button" id="add-current">使用当前网站</button>
-        <button class="sf-secondary" type="button" id="site-new" hidden>取消编辑</button></div>
-    </form>
-  </section>
-  </details>
-  <details class="sf-settings" id="advanced"><summary>高级设置 <span>自定义共享组 · 工作时段 · 白名单</span></summary>
-    <section class="sf-panel"><h3>其他共享额度组</h3>
-      <p class="sf-hint">普通娱乐总额度请在顶部修改。这里仅为高级独立规则建立其他共享组。</p>
-      <form id="group-form" class="sf-inline"><input aria-label="额度组名称" id="group-name" placeholder="例如 social" maxlength="24" required>
-        <input aria-label="每天分钟数" id="group-minutes" type="number" min="1" max="1440" value="30" required>
-        <button id="group-save" type="button" class="sf-secondary">保存组</button></form>
-      <div id="groups" class="sf-groups"></div>
+
+  <details class="sf-settings sf-discovery" id="site-discovery">
+    <summary>识别与推荐网站 <span>当前网站 · 常用娱乐网站</span></summary>
+    <section class="sf-quick" aria-label="识别当前网站">
+      <div class="sf-headrow"><span>当前标签页</span><span class="sf-hint">仅本机识别域名</span></div>
+      <div id="quick-current" class="sf-quick-current" hidden>
+        <strong id="quick-site"></strong>
+        <p id="quick-explanation" class="sf-hint"></p>
+        <div class="sf-actions"><button type="button" id="quick-add" class="sf-primary">加入共享额度</button><button type="button" id="quick-refresh" class="sf-secondary">重新识别</button></div>
+      </div>
+      <p id="quick-empty" class="sf-hint">暂未识别当前网页。</p>
+      <div id="quick-presets" class="sf-quick-presets" aria-label="常用娱乐网站推荐"></div>
     </section>
-    <section class="sf-panel"><h3>工作时段限制</h3>
-      <form id="schedule-form"><label class="sf-check"><input id="schedule-enabled" type="checkbox">在以下时间阻止清单中的网站</label>
+  </details>
+
+  <section class="sf-section sf-policy-review" id="policy-review" hidden aria-label="新版网站建议审阅">
+    <div class="sf-headrow"><h3>新的网站建议</h3><span class="sf-hint">不会自动启用</span></div>
+    <p class="sf-hint">升级仅推荐新网站。选择后仍需在可信宿主中确认，不会修改已有额度或暂停状态。</p>
+    <div id="policy-review-sites" class="sf-quick-presets"></div>
+  </section>
+
+  <details class="sf-settings sf-manual" id="manual-site">
+    <summary>添加或编辑网站 <span>自定义域名与规则</span></summary>
+    <section class="sf-section sf-add">
+      <form id="site-form">
+        <label>网站域名 <input id="site-host" type="text" maxlength="253" required placeholder="例如 youtube.com" autocomplete="off"></label>
+        <div class="sf-two"><label>每天最多（分钟）<input id="site-minutes" type="number" min="1" max="1440" value="15" required></label>
+          <label>限制方式<select id="site-mode"><option value="limit">每日限额</option><option value="always">始终限制</option></select></label></div>
+        <div class="sf-two"><label>共享额度组<select id="site-group"><option value="">独立额度</option><option value="entertainment">娱乐共享额度</option></select></label>
+          <label class="sf-check"><input type="checkbox" id="site-subdomains" checked>包含子域名</label></div>
+        <div class="sf-actions"><button class="sf-primary" id="site-save" type="button">保存网站</button><button class="sf-secondary" type="button" id="add-current">使用当前网站</button><button class="sf-secondary" type="button" id="site-new" hidden>取消编辑</button></div>
+      </form>
+    </section>
+  </details>
+
+  <details class="sf-settings" id="advanced">
+    <summary>更多设置 <span>工作时段 · 白名单 · 自定义额度</span></summary>
+    <section class="sf-panel"><h3>工作时段</h3>
+      <form id="schedule-form"><label class="sf-check"><input id="schedule-enabled" type="checkbox">在以下时间限制管理的网站</label>
         <div class="sf-weekdays" id="weekdays"><label><input type="checkbox" value="1">一</label><label><input type="checkbox" value="2">二</label><label><input type="checkbox" value="3">三</label><label><input type="checkbox" value="4">四</label><label><input type="checkbox" value="5">五</label><label><input type="checkbox" value="6">六</label><label><input type="checkbox" value="0">日</label></div>
-        <div class="sf-two"><label>开始时间<input id="schedule-from" type="time" value="09:00" required></label>
-          <label>结束时间<input id="schedule-to" type="time" value="17:00" required></label></div>
+        <div class="sf-two"><label>开始时间<input id="schedule-from" type="time" value="09:00" required></label><label>结束时间<input id="schedule-to" type="time" value="17:00" required></label></div>
         <button class="sf-secondary" id="schedule-save" type="button">保存时段</button></form>
     </section>
-    <section class="sf-panel"><h3>允许访问的域名</h3>
-      <p class="sf-hint">白名单优先于所有阻止规则。每行一个域名，不收集完整 URL。</p>
-      <form id="whitelist-form"><label class="sf-visually-hidden" for="whitelist">白名单域名，每行一个</label>
-        <textarea id="whitelist" rows="3" placeholder="docs.example.com"></textarea>
-        <button id="whitelist-save" type="button" class="sf-secondary">保存白名单</button></form></section>
-    <p class="sf-disclaimer">拦截权限与停用、清空操作请从工具外层「详情设置」管理。关闭此界面不会停止已经授权的后台限制。</p>
+    <section class="sf-panel"><h3>始终允许访问</h3><p class="sf-hint">白名单域名优先于所有限制。每行填写一个域名。</p>
+      <form id="whitelist-form"><label class="sf-visually-hidden" for="whitelist">白名单域名，每行一个</label><textarea id="whitelist" rows="3" placeholder="docs.example.com"></textarea><button id="whitelist-save" type="button" class="sf-secondary">保存白名单</button></form>
+    </section>
+    <section class="sf-panel"><h3>其他共享额度组</h3><p class="sf-hint">只用于需要独立共享限额的网站；娱乐总额度在首页修改。</p>
+      <form id="group-form" class="sf-inline"><input aria-label="额度组名称" id="group-name" placeholder="例如 social" maxlength="24" required><input aria-label="每天分钟数" id="group-minutes" type="number" min="1" max="1440" value="30" required><button id="group-save" type="button" class="sf-secondary">保存组</button></form>
+      <div id="groups" class="sf-groups"></div>
+    </section>
+    <div class="sf-actions sf-native-actions"><button type="button" id="focus-pause" class="sf-secondary" hidden>在扩展详情中停止限制</button></div>
+    <p class="sf-disclaimer">Chrome 权限、全局停止和清空数据由外层可信扩展详情管理。关闭面板不会停止已开启的后台限制。</p>
   </details>
 </main>
