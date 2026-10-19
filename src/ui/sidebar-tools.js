@@ -1342,7 +1342,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           await admittedOfficialCookieImport(tool,revocationEpoch)){
           assertSession(source,token);
           const owner=cookieImportOwner(tool,token,revocationEpoch);
-          if(cookieImportGate.acquire({owner,origin,count:payload.cookies.length})){
+          if(!cookieImportGate.acquire({owner,origin,count:payload.cookies.length}))
+            throw Object.assign(new Error('一键导入操作未授权或已结束'),
+              {code:'E_USER_GESTURE_REQUIRED'});
+          {
             importBatchOwner=owner;
             try{
               if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
