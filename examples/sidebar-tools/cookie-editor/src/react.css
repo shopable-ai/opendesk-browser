@@ -184,3 +184,20 @@
 .cookie-editor-react .cookie-editor-actions .cookie-editor-icon-action{flex:0 0 36px;width:36px;height:36px;min-width:36px;padding:0;display:grid;place-items:center}
 .cookie-editor-react .cookie-editor-actions .cookie-editor-save{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2)}
 .cookie-editor-react .cookie-editor-actions .cookie-editor-save svg{width:16px;height:16px;flex:none}
+
+/* R5.20: retain only the scoped hostname, with a compact tools popover. */
+.cookie-editor-react .site-bar{position:relative;z-index:2;min-height:44px;padding:var(--space-2) var(--space-3)}
+.cookie-editor-react .site-hostname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--od-note-size);font-weight:650}
+.cookie-editor-react .cookie-utility-settings{position:static;margin:0;flex:none}
+.cookie-editor-react .cookie-utility-settings>summary{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:var(--radius-control);list-style:none;cursor:pointer;color:var(--od-sub)}
+.cookie-editor-react .cookie-utility-settings>summary::-webkit-details-marker{display:none}
+.cookie-editor-react .cookie-utility-settings>summary svg{width:17px;height:17px}
+.cookie-editor-react .cookie-utility-settings>summary:hover{background:var(--od-bg)}
+.cookie-editor-react .cookie-utility-content{position:absolute;left:var(--space-2);right:var(--space-2);top:calc(100% + 2px);z-index:10;display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);box-shadow:0 8px 22px rgba(20,30,48,.13)}
+.cookie-editor-react .cookie-target-label{display:grid;gap:var(--space-1);min-width:0;font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-target-label input{min-width:0;width:100%}
+.cookie-editor-react .cookie-utility-actions{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.cookie-editor-react .cookie-utility-spacer{flex:1;min-width:4px}
+.cookie-editor-react .cookie-offline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
+@media(max-width:260px){.cookie-editor-react .cookie-utility-actions>button{min-width:0}}
