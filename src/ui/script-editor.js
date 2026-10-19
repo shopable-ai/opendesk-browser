@@ -1,10 +1,10 @@
 import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {createControllerRevisionView} from './controller-revision-view.js';
+import {createRunArtifactDownload} from './run-artifact-download.js';
 import {createRunHost} from '../run-host.js';
 import {permissionPattern} from '../environment.js';
-import {base64ToBytes, decodeValue} from '../platform/page-port/codec.js';
-import {hashArtifactBytes} from '../platform/downloads/blob-lifecycle.js';
-import {BUDGETS, invariant, digestUtf8} from '../platform/protocol.js';
+import {decodeValue} from '../platform/page-port/codec.js';
+import {invariant, digestUtf8} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
 import {createPageDependencyReview} from './page-dependency-review.js';
 import {createPageDependencyInstaller} from './page-dependency-install.js';
@@ -64,9 +64,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const currentPageStatus = find('script-current-page-status'), currentPageHost = find('script-current-page-host'),
     currentPageDebug = find('script-current-page-debug'), runningTargetStatus = find('script-running-target');
   const documents = new Map();
-  const downloadable = new Map(), downloads = new Map(), preparations = new Map();
-  const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
-  let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
+  const scriptList = find('script-list');
+  let projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
   const componentSelector=find('page-component-framework'),componentStatus=find('page-component-status');
   const componentInputs=Object.freeze(Object.fromEntries(
     ['javascript','react','vue'].map(mode=>[mode,find('page-component-'+mode)])));
@@ -168,6 +167,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const programSource = createProgramSourceView({document:doc,view,listen,onChange:() => {loadedPageSource=false;javascriptWorld='controller';javascriptDrafts.controller=programSource.source();dependencyResolver?.refresh();dependencyInstaller?.refresh();componentRemote?.refresh();update();}});
   const controllerRevisions=createControllerRevisionView({host,document:doc,view,
     getScriptId:()=>scriptId(),getSource:()=>programSource.source(),onUpdate:update,onStatus:display});
+  const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
 
   // Controller Classic uses the existing native source-permission consent, not
   // a second grant registry. The read-only observation is primed on edit; only
@@ -376,7 +376,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{title:''});
     patchDeveloperField(view,find('script-owned-url'),{disabled:mode.value !== 'owned'});
     patchDeveloperField(view,tab,{disabled:mode.value !== 'borrowed'}); patchDeveloperField(view,frame,{disabled:mode.value !== 'borrowed' || !documents.size});
-    patchDeveloperField(view,find('script-download'),{disabled:downloading || !downloadable.has(resultSelect.value)});
+    resultDownloads.update();
     let saveHidden=true,saveLabel='保存版本',runLabel='运行草稿';
     if(localProject?.active()){
       for(const id of ['script-load','script-list-load','script-delete','task-create-candidate'])if(find(id))patchDeveloperField(view,find(id),{disabled:true});
@@ -610,22 +610,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
     projection = snapshot;
     // Controller history must not overwrite the current local Page result.
     if(localPageResultIsCurrent({allowResolving:true})){update();return;}
-    const previous = resultSelect.value;
-    downloadable.clear(); developerOptions(view,resultSelect,[{label:'请选择要下载的结果',value:''}]);
     // Defense in depth: even a malformed/stale host projection cannot put a
     // revoked result in the visible text, history payload or download selector.
     const deniedRuns = new Set(snapshot.resultDeliveryDenied || []);
     const values = snapshot.results.filter(row => !deniedRuns.has(row.runId)).map(row => {
-      if (row.state === 'completed' && row.outcome?.ok === true) {
-        downloadable.set(row.resultId,row);
-        appendDeveloperOptions(view,resultSelect,[{label:`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + row.revision.revision}`,value:row.resultId}]);
-      }
       return {tag:row.tag,runId:row.runId,resultId:row.resultId,state:row.state,sourceKind:row.sourceKind || 'saved',
         revision:row.revision && {scriptId:row.revision.scriptId,revision:row.revision.revision,sourceHash:row.revision.sourceHash},
         sourceHash:row.revision?.sourceHash,
         ...(row.outcome?.ok === true ? {value:decodeValue(row.outcome.valueWire)} : {error:row.outcome?.error})};
     });
-    if (downloadable.has(previous)) patchDeveloperField(view,resultSelect,{value:previous});
+    resultDownloads.showResults(snapshot.results,deniedRuns);
     const task = currentTask && snapshot.runs.find(row=>row.runId === currentTask.runId);
     if (task) renderTask(task);
     else if (!running && !host.currentRun && snapshot.run) renderTask(snapshot.run);
@@ -673,74 +667,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
         }
       }
     } catch (error) {if (!disposed && token === snapshotSequence) throw error;}
-  }
-  async function observeDownload(attemptId) {
-    const entry = downloads.get(attemptId);
-    if (!entry || disposed) return;
-    entry.timer=null;
-    try {
-      const view = await client.request('reconcileDownload',{attemptId});
-      if (disposed) return;
-      entry.attempt = view.attempt;
-      patchDeveloperField(view,downloadStatus,{textContent:`下载 ${view.attempt.state} · ${entry.sha256}`});
-      entry.localRevoked ||= host.artifactResources.release(view.attempt);
-      if (entry.localRevoked) {
-        await client.request('recordResourceRelease',{attemptId}); downloads.delete(attemptId);
-        patchDeveloperField(view,downloadStatus,{textContent:view.receipt?.browserDownloadComplete === true
-          ? `浏览器已完成下载 · 产物 SHA-256 ${entry.sha256}（磁盘文件待核对）` : `下载 ${view.attempt.state}，资源已释放 · ${entry.sha256}`});
-      } else entry.timer = setTimeout(() => observeDownload(attemptId),1000);
-    } catch (error) {
-      patchDeveloperField(view,downloadStatus,{textContent:`${error.code || 'E_EFFECT_UNKNOWN'}：${error.message}；${entry.localRevoked ? '本地 Blob 已释放，等待后台确认' : '保留资源与原尝试'}`});
-      if (!disposed) entry.timer = setTimeout(() => observeDownload(attemptId),1000);
-    }
-  }
-  async function retirePreparation(entry) {
-    entry.timer=null;
-    try {
-      const retired=await client.request('retirePreparedArtifact',{artifactId:entry.artifactId});
-      for(const attemptId of retired.attemptIds) await client.request('recordResourceRelease',{attemptId});
-      preparations.delete(entry.artifactId);
-      patchDeveloperField(view,downloadStatus,{textContent:'未提交的下载已取消，本地资源与后台记录已收尾'});
-    } catch(error) {
-      patchDeveloperField(view,downloadStatus,{textContent:`${error.code || 'E_EFFECT_UNKNOWN'}：未提交的 Blob 已在本地释放，等待后台取消确认`});
-      if(!disposed) entry.timer=setTimeout(()=>retirePreparation(entry),1000);
-    }
-  }
-  async function downloadResult() {
-    if (downloading) return;
-    const row = downloadable.get(resultSelect.value);
-    if (!row) throw {code:'E_RESULT',message:'请选择已完成的持久结果'};
-    downloading = true; update(); patchDeveloperField(view,downloadStatus,{textContent:'正在准备持久结果文件…'});
-    try {
-      const prepared = await client.request('prepareArtifact',{requestId:crypto.randomUUID(),runId:row.runId,
-        resultId:row.resultId,filename:`result-${row.runId}.json`,format:'typed-json'});
-      const {artifact,blocks} = await client.request('readArtifact',{artifactId:prepared.artifactId});
-      invariant(artifact.artifactId === prepared.artifactId && Array.isArray(blocks) && blocks.length > 0 && blocks.length <= 64,
-        'E_SCHEMA','Invalid artifact blocks');
-      const parts = blocks.map(block => base64ToBytes(block));
-      const size = parts.reduce((sum,part) => sum + part.length,0);
-      invariant(size <= BUDGETS.maxArtifactBytes && size === artifact.bytes,'E_LIMIT','Artifact byte count differs');
-      const bytes = new Uint8Array(size); let offset = 0;
-      for (const part of parts) {bytes.set(part,offset); offset += part.length;}
-      invariant(await hashArtifactBytes(bytes) === artifact.sha256,'E_HASH','Artifact hash differs');
-      const blobUrl = host.artifactResources.create(bytes,artifact.mime);
-      const preparation={requestId:crypto.randomUUID(),artifactId:artifact.artifactId,blobUrl};
-      preparations.set(artifact.artifactId,preparation);
-      let attempt;
-      try { attempt = await client.request('prepareAttempt',preparation); }
-      catch(error) {
-        host.artifactResources.releaseUnsubmitted(blobUrl);
-        retirePreparation(preparation); throw error;
-      }
-      preparations.delete(artifact.artifactId);
-      downloads.set(attempt.attemptId,{attempt,sha256:artifact.sha256});
-      // Accepted dispatch is distinct from browser download completion.
-      try {
-        await client.request('dispatchDownload',{attemptId:attempt.attemptId});
-        patchDeveloperField(view,downloadStatus,{textContent:`已提交下载，等待浏览器完成 · ${artifact.sha256}`});
-      } finally {observeDownload(attempt.attemptId);}
-    } catch (error) {patchDeveloperField(view,downloadStatus,{textContent:`${error.code || 'E_EFFECT_UNKNOWN'}：${error.message || error}`});}
-    finally {downloading = false; update();}
   }
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
@@ -1302,7 +1228,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       patchDeveloperField(view,copyResult,{title:'请选中返回值后手动复制'});
     }
   });
-  on('script-download','click',downloadResult); on('script-download-result','change',update);
+  on('script-download','click',resultDownloads.downloadResult); on('script-download-result','change',resultDownloads.update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
   // Native radio input events work with genuine pointer, Tab and arrow-key
   // interaction on macOS; no scripted change or OS-native popup is needed.
@@ -1559,7 +1485,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     await read(runId,{reveal:true});
   },async prepareDevelopmentReload(){
     const idle=()=>!disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&!ownedManagedPreview&&!browserManagedPreview&&
-      !host.executionPending&&!host.currentRun&&!downloading&&!preparations.size&&!client.resourceSnapshot?.().pending;
+      !host.executionPending&&!host.currentRun&&!resultDownloads.busy()&&!client.resourceSnapshot?.().pending;
     if(!idle()||!draftKey)return false;
     await draftWrites;
     if(!idle())return false;
@@ -1604,14 +1530,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
       throw {code:'E_LIMIT',message:'导入草稿必须为非空 JavaScript，且不超过 100000 字节'};
     applyImported(sourceUtf8);
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
-    timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
-    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; controllerRevisions.dispose();controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    timers:resultDownloads.resourceSnapshot().timers+Number(localPollTimer!=null),
+    pending:resultDownloads.resourceSnapshot().pending, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
+    if (disposed) return; disposed = true; controllerRevisions.dispose();resultDownloads.dispose();controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); if(!sharedRunHost)host.dispose();
     browserListenersAttached = false;
     for (const entry of listeners) entry.remove();
     listeners.length = 0;
-    for (const entry of downloads.values()) { clearTimeout(entry.timer); entry.timer = null; }
-    for (const entry of preparations.values()) { clearTimeout(entry.timer); entry.timer = null; }
   }};
 }
