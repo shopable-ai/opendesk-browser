@@ -1,4 +1,5 @@
 import {createCloudService} from '../../src/cloud-control/service.js';
+import {createCloudConnection} from '../../src/cloud-control/connection.js';
 import {loadFakeBuiltin,fakeBuiltinSource} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -1953,7 +1954,7 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
   const f=await installedTaskFixture(),source='async function main(){return await page.title();}',
     pkg=await createTaskPackage(f.manifest,source);
   const directory=await mkdtemp(join(tmpdir(),'od-cloud-installed-runhost-'));
-  let provider;
+  let provider,connection;
   try{
     provider=await openProvider({directory,port:0});
     const base='http://127.0.0.1:'+provider.port,
@@ -1973,20 +1974,9 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
       grantId=crypto.randomUUID();
     assert.equal(pkg.manifestHash,pin.manifestHash);
     await post('/admin/register',{manifest:pkg.manifest,manifestHash:pkg.manifestHash},admin.adminToken);
-    const auth=await post('/v1/auth',{},paired.credential);
-    const socket=new WebSocket(base.replace(/^http/,'ws')+'/v1/events');
-    t.after(()=>socket.terminate());
-    await new Promise((resolve,reject)=>{
-      socket.once('error',reject);
-      socket.once('open',()=>socket.send(JSON.stringify({type:'authenticate',ticket:auth.ticket})));
-      socket.once('message',data=>{
-        try{assert.equal(JSON.parse(String(data)).type,'authenticated');resolve();}
-        catch(error){reject(error);}
-      });
-    });
-    await post('/v1/capabilities',{grantId,tasks:[{
-      taskId:pin.taskId,manifestHash:pin.manifestHash,sourceHash:pin.sourceHash
-    }]},paired.credential);
+    // The actual CloudConnection below must authenticate, advertise capability
+    // pins and receive the Provider WebSocket notify. No manually promoted
+    // online/reconciled state or scripted Provider push may bypass the network.
     const namespace='tool:'+f.api.runtime.id;
     await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
       url:base,providerId:provider.providerId,credential:paired.credential,
@@ -1995,7 +1985,26 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
       grantId,claimId:null,pendingRequestId:null
     },'cloud:config'));
     const cloud=f.authority.cloud;
-    cloud.connection('authenticated');cloud.setReconciled(true);
+    let reconciliations=0;
+    // Retain the real service's claim/resolve/permit/receipt owner; only count
+    // completed network-triggered reconciliation passes for this assertion.
+    const networkService={...cloud,reconcile:async(...args)=>{
+      await cloud.reconcile(...args);reconciliations++;
+    }};
+    connection=createCloudConnection({service:networkService,api:f.api,Socket:WebSocket,
+      random:()=>0.5});
+    const waitForReconciliation=async expected=>{
+      for(let attempt=0;attempt<200;attempt++){
+        if(reconciliations>=expected)return;
+        await pause(25);
+      }
+      assert.fail('The real Provider WebSocket did not drive Cloud reconciliation');
+    };
+    await waitForReconciliation(1);
+    const online=await cloud.cloudStatus({includeRequests:false},f.sender);
+    assert.equal(online.online,true,'Provider authentication must be real');
+    assert.equal(online.reconciled,true,'Initial Cloud reconciliation must complete');
+    const beforeNotify=reconciliations;
     const target={mode:'owned',url:'https://a.example/page'},params={no:false,zero:0};
     await assert.rejects(post('/admin/seed',{requestKey:'bad-remote-source',...pin,
       targetExecutorId:executorId,params,target,sourceUtf8:'async function main(){throw Error("REMOTE")}'},
@@ -2003,7 +2012,9 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
       'Provider must not ingest a remote executable payload');
     const seed=await post('/admin/seed',{requestKey:'fixed-local-task',...pin,
       targetExecutorId:executorId,params,target},admin.adminToken);
-    await cloud.reconcile();
+    await waitForReconciliation(beforeNotify+1);
+    // The Provider notification, not a test-forced reconcile(), must wake the
+    // locally approved browser-side request before Side Panel dispatch.
     const waiting=await cloud.cloudNext({},f.sender);
     assert.match(waiting.requestId,/^cloud:/);
     const runnable=await cloud.cloudResolve(waiting,f.sender);
@@ -2064,6 +2075,7 @@ test('remote fixed Task request runs locally installed JS via the original RunHo
     assert.equal(await cloud.cloudNext({},f.sender),null,'Receipt reconciliation does not replay the completed Worker');
     assert.equal(executions,1);
   }finally{
+    connection?.stop();
     await provider?.close();
     await rm(directory,{recursive:true,force:true});
   }
