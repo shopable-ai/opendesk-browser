@@ -8,7 +8,7 @@ The merged development candidate is **2.0.26**, built with the original packer i
 
 `official.jsx` → `CookieEditorApp` → Controller / SDK adapter → `OpenDeskSDK.browser` → existing Host / Authority → Chrome Cookies API is the only native path. The preview imports the same App. `src/mock-sdk.js` provides fictional responses and scene controls only; it is excluded from the native candidate.
 
-The merged App keeps the compact native controls, inline ×, restore-original action, icon-only cancel/delete, and an inline more-tools menu. Metadata checks run only while the browser list is visible and idle, normally every 2 seconds, with a 30-second delay after read failures. They neither read Cookie values nor write Cookies. Editing, dirty drafts, open panels/confirmations, hidden or disconnected surfaces block refresh application. Unknown writes never retry automatically. Existing Controller observation capabilities remain available without a separate product observation panel.
+The merged App keeps the compact native controls, inline ×, restore-original action, icon-only cancel/delete, and an inline more-tools menu. Metadata checks run only while the browser list is visible and idle, normally every 2 seconds, with a 30-second delay after read failures. They neither read Cookie values nor write Cookies. Editing, dirty drafts, open panels/confirmations, hidden or disconnected surfaces block refresh application. Unknown writes never retry automatically. The merged Controller uses guarded metadata synchronization; there is no separate observation panel or observation method.
 
 ## Local preview
 
@@ -25,7 +25,12 @@ npm test
 CHROME_BIN='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm run test:chromium
 ```
 
-For this conflict-only merge, no preview build, browser run, installation, or native validation was performed. The existing HTML, screenshots, and earlier pass counts remain historical evidence until checked against the merged sources.
+The merged **2.0.26** candidate was installed in the daily Chrome Profile through the existing update review, with no added capabilities. The localhost website grant was reconfirmed after update. Disposable Cookie creation, value readback, editing, explicit empty-value save/reopen, and single deletion completed through the real SDK; the original two Cookies remained. The development diagnostics showed a connected client with build fingerprint `913b362a674b`.
+
+Current validation: 61 Controller/domain/source checks, 7 package/design checks (including rejection of source drift before candidate output), 14 fictional transport checks, and 15 offline Chromium UI checks passed. The packer receives the successful source-bound React build receipt. Copy checks use completion/error state and transport unit coverage because the compact UI omits success banners. Evidence is in `artifacts/cookie-editor-r520/merged-development-delivery.json` and the `merged-*.log` files.
+
+Candidate SHA256: `362a37d415b1276a399c027d4a93b7889cadcd9815e2f842baf9cf6a9f262352`.
+Offline HTML SHA256: `b21785a21e6dd0f1ce537fcb7930326383cc2c77a9699d703b2f69358eaf09d0`.
 
 The existing Vite plus `build-preview.mjs` wrapper binds the document to source input hashes. `check` detects stale HTML; the Chromium command checks the current build without rebuilding it. Artifacts and screenshots are local evidence under `artifacts/cookie-editor-r520/`, not extra committed snapshot matrices.
 

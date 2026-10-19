@@ -136,7 +136,7 @@ try{
  await test('JSON copy/download use actual export UI; partition loss and denied values are blocked',async()=>{
   await button('导出 Cookie').click();
   assert.equal(await page.getByRole('checkbox',{name:/包含/}).isChecked(),true);
-  await button('复制').click();await page.getByText(/已复制/).waitFor();
+  await button('复制').click();await page.waitForFunction(()=>[...document.querySelectorAll('.cookie-export-panel button')].some(button=>button.textContent.trim()==='复制'&&!button.disabled));assert.equal(await page.getByRole('alert').count(),0);
   const downloadEvent=page.waitForEvent('download');await button('下载').click();
   const download=await downloadEvent;await download.saveAs(join(output,'fictional-cookies.json'));
   assert.equal(JSON.parse(await readFile(join(output,'fictional-cookies.json'),'utf8')).length,8);
@@ -147,7 +147,7 @@ try{
  });
  await test('one-shot export failure reports error; retry succeeds without remount',async()=>{
   await page.getByTestId('failure').selectOption('copy');await button('导出 Cookie').click();await button('复制').click();
-  await page.getByText(/E_CLIPBOARD/).waitFor();await button('复制').click();await page.getByText(/已复制/).waitFor();await button('关闭导出').click();
+  await page.getByText(/E_CLIPBOARD/).waitFor();await button('复制').click();await page.waitForFunction(()=>[...document.querySelectorAll('.cookie-export-panel button')].some(button=>button.textContent.trim()==='复制'&&!button.disabled));assert.equal(await page.getByRole('alert').count(),0);await button('关闭导出').click();
  });
  await test('grant event synchronously scrubs the secret DOM and discards the invalidated editor',async()=>{
   await row('session_id').click();

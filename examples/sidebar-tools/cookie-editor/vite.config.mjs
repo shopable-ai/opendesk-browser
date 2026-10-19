@@ -5,8 +5,22 @@ import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('.',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+export const COOKIE_REACT_SOURCE_FILES=[
+  'app/entries/official.jsx','app/CookieEditorApp.jsx',
+  'app/adapters/browser-sdk.js','app/controller/cookie-controller.js',
+  'app/domain/cookie-model.js','app/components/CookieEditorView.jsx',
+  'app/components/CookieInlineEditor.jsx','app/components/CookieClearDialog.jsx',
+  'app/components/CookieImport.jsx','app/components/CookieExport.jsx',
+  'app/components/CookiePermissions.jsx','app/components/CookieOfflineWorkspace.jsx',
+  'src/react.css','src/root.html','vite.config.mjs','package.json'
+];
+const fingerprint=bytes=>({bytes:bytes.length,sha256:hash(bytes)});
+const sourceFingerprints=async()=>Object.fromEntries(await Promise.all(
+  COOKIE_REACT_SOURCE_FILES.map(async name=>[name,fingerprint(await readFile(join(root,name)))])));
 function receiptPlugin(){
+  let builtSources;
   return {name:'cookie-editor-react-release-receipt',apply:'build',
+    async buildStart(){builtSources=await sourceFingerprints();},
     generateBundle(_,bundle){
       const allowed=new Set(['react','react-dom/client','react/jsx-runtime','@opendesk/ui']);
       const chunks=Object.values(bundle).filter(item=>item.type==='chunk');
@@ -30,8 +44,10 @@ function receiptPlugin(){
       }
       const output=join(root,'dist/build-ready.json');
       const tmp=output+'.'+randomUUID()+'.new';
+      if(JSON.stringify(await sourceFingerprints())!==JSON.stringify(builtSources))
+        throw Error('Cookie React source changed during build');
       await writeFile(tmp,JSON.stringify({format:'opendesk.ui-build-ready.v1',
-        buildId:randomUUID(),files},null,2)+'\n',{flag:'wx'});
+        buildId:randomUUID(),files,sources:builtSources},null,2)+'\n',{flag:'wx'});
       await rename(tmp,output);
     }
   };

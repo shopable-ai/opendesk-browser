@@ -148,11 +148,14 @@ test('denied values never reach mock clipboard',async()=>{
  }finally{denied.close();}
 });
 
-test('scene disposal retires mock observation and releases pending reads',async()=>{
- const f=fixture();await f.controller.load();await f.controller.observe('start');
- assert.equal(f.mock.inspect().observations.length,1);
- f.controller.dispose();await new Promise(resolve=>setImmediate(resolve));
- assert.equal(f.mock.inspect().observations.length,0);f.mock.dispose();
+test('scene disposal retires metadata sync and releases pending reads',async()=>{
+ const f=fixture();await f.controller.load();
+ const list=f.adapter.list;let release;
+ f.adapter.list=async(...args)=>{await new Promise(resolve=>{release=resolve;});return list(...args);};
+ const syncing=f.controller.syncMetadata();
+ f.controller.dispose();release();
+ assert.equal(await syncing,false);
+ assert.equal(f.controller.snapshot().rows.length,0);f.mock.dispose();
  const loading=fixture('loading');const pending=loading.controller.load();
  await new Promise(resolve=>setImmediate(resolve));loading.close();await pending;
  assert.equal(loading.controller.snapshot().rows.length,0);

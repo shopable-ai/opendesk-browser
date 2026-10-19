@@ -1,14 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,cp,mkdtemp,appendFile,rm,access} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
+import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 
 const repo=resolve('.');
 const root=resolve(repo,'examples/sidebar-tools/cookie-editor');
 const candidate=resolve(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-2.0.26-candidate.opendesk-tool.json');
 const get=(path)=>readFile(resolve(root,path));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+
+test('canonical packer rejects Cookie source drift before writing a candidate',async()=>{
+  const scratch=await mkdtemp(resolve(tmpdir(),'cookie-react-receipt-'));
+  const project=resolve(scratch,'project'),out=resolve(scratch,'candidate.json');
+  try{
+    await cp(resolve(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-project'),project,{recursive:true});
+    await appendFile(resolve(project,'app/controller/cookie-controller.js'),'\n// changed after compilation\n');
+    await assert.rejects(buildSidebarTool(project,{out}),/compiled UI source changed since the successful build/);
+    await assert.rejects(access(out),{code:'ENOENT'});
+  }finally{await rm(scratch,{recursive:true,force:true});}
+});
 
 test('built React JSX uses one classic chunk and pinned runtime, not bundled React',async()=>{
   const [js,css,ready]=await Promise.all([
