@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync,mkdirSync} from 'node:fs';
 import {dirname,join} from 'node:path';
-import {fileURLToPath,pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
 
 const root=dirname(fileURLToPath(import.meta.url));
@@ -46,7 +46,7 @@ const browserTest=(title,check)=>test(title,{skip:chromium?false:unavailable},as
     const page=await browser.newPage({viewport:{width:1500,height:1000}});
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
-    await page.goto(pathToFileURL(file).href);
+    await page.setContent(html,{waitUntil:'load'});
     await page.locator('#rail .od').waitFor();
     await check(page);
     assert.deepEqual(errors,[],'Unexpected preview JS exception');
