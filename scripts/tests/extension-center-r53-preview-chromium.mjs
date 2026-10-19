@@ -132,6 +132,11 @@ try{
   await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
   assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
     'app:demo-import','Available filter should show demo candidate');
+  await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',
+    windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+  await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
+    windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+  await waitUntil('document.getElementById("extension-center-menu").hidden');
   await click('[data-extension-key="app:demo-import"][data-extension-action="main"]');
   await waitUntil('!document.getElementById("extension-center-detail").hidden');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-detail [data-ec-detail-action]").length'),

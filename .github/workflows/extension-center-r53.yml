@@ -64,6 +64,12 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
+      - name: Verify the real installed production MV3 candidate opens in Chrome
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_EXTENSION_DIR: dist/production
+          OPENDESK_BUILD_MODE: production
+        run: node scripts/tests/react-sidebar-r352-installed-chrome.mjs artifacts/extension-center-r53/installed-production
       - name: Sync generated React HTML only if remote main still matches this commit
         shell: bash
         run: |
@@ -97,5 +103,7 @@ jobs:
           path: |
             prototypes/sidebar/react-preview/index.html
             artifacts/extension-center-r53/*.png
+            artifacts/extension-center-r53/installed-production/report.json
+            artifacts/extension-center-r53/installed-production/failure.png
           if-no-files-found: warn
           retention-days: 14
