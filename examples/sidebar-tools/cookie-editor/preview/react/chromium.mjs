@@ -122,15 +122,15 @@ try{
   await page.getByText(/E_OUTCOME_UNKNOWN/).waitFor();assert.equal(await nameInput().inputValue(),'unknown_sid');
   assert.equal(await row('unknown_sid').count(),0);await reset();
  });
- await test('automatic import preview, invalid records, conflict default and successful commit',async()=>{
+ await test('focused import dialog validates input and commits through the shared Controller',async()=>{
   await button('导入 Cookie').click();
-  const input=page.getByRole('textbox',{name:'或粘贴 Cookie 内容',exact:true});
-  await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},{name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},{name:'theme',value:'skip existing'}]));
-  const summary=page.getByRole('status',{name:'导入预检结果'});await summary.waitFor();
-  assert.match(await summary.innerText(),/新增 2/);assert.match(await summary.innerText(),/跳过 2/);
-  assert.equal(await page.locator('.cookie-row').count(),8);
-  await page.locator('.cookie-import-panel').getByRole('button',{name:'导入 Cookie',exact:true}).click();
-  await row('import_a').waitFor();assert.equal(await page.locator('.cookie-import-panel').count(),0);
+  const dialog=page.getByRole('dialog',{name:'导入 Cookie'});
+  const input=dialog.getByRole('textbox',{name:'粘贴 Cookie 内容',exact:true});
+  await input.fill('not a cookie');await dialog.getByRole('button',{name:'导入',exact:true}).click();
+  await dialog.getByRole('alert').waitFor();assert.equal(await page.locator('.cookie-row').count(),8);
+  await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},{name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},{name:'theme',value:'replace existing'}]));
+  await dialog.getByRole('button',{name:'导入',exact:true}).click();
+  await row('import_a').waitFor();assert.equal(await dialog.count(),0);
   assert.equal(await page.locator('.cookie-row').count(),10);await reset();
  });
  await test('JSON copy/download use actual export UI; partition loss and denied values are blocked',async()=>{

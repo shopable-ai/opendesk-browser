@@ -4,7 +4,7 @@
 
 The daily extension uses `dist/development`, extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`, and the existing `npm run dev` watcher. The installed React 2.0.25 candidate previously completed disposable localhost Cookie create/read/edit/clear-value/restore/save/reopen/delete operations through the real SDK. Its evidence remains in `artifacts/cookie-editor-r520/development-delivery.json`; it does not prove the merged candidate.
 
-The merged development candidate is **2.0.26**, built with the original packer into `artifacts/sidebar-tools/cookie-editor/r56-react-2.0.26-candidate.opendesk-tool.json`. The formal native config and unique installation JSON remain **2.0.23**. No promotion or production extension build is part of this task. Current candidate installation and native results must be read from the matching development delivery receipt.
+The merged development candidate is **2.0.27**, built with the original packer into `artifacts/sidebar-tools/cookie-editor/r56-react-2.0.27-candidate.opendesk-tool.json`. The formal native config and unique installation JSON remain **2.0.23**. No promotion or production extension build is part of this task. Current candidate installation and native results must be read from the matching development delivery receipt.
 
 `official.jsx` → `CookieEditorApp` → Controller / SDK adapter → `OpenDeskSDK.browser` → existing Host / Authority → Chrome Cookies API is the only native path. The preview imports the same App. `src/mock-sdk.js` provides fictional responses and scene controls only; it is excluded from the native candidate.
 
@@ -25,12 +25,12 @@ npm test
 CHROME_BIN='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm run test:chromium
 ```
 
-The merged **2.0.26** candidate was installed in the daily Chrome Profile through the existing update review, with no added capabilities. The localhost website grant was reconfirmed after update. Disposable Cookie creation, value readback, editing, explicit empty-value save/reopen, and single deletion completed through the real SDK; the original two Cookies remained. The development diagnostics showed a connected client with build fingerprint `913b362a674b`.
+The merged **2.0.27** candidate was installed in the daily Chrome Profile through the existing update review, with no added capabilities. The localhost website grant was reconfirmed after update. The new import dialog submitted one disposable localhost Cookie through the existing Controller and Host confirmation; its value was read back and single deletion was checked. The original two Cookies were retained. Earlier **2.0.26** evidence also covers create/edit/explicit-empty-save/reopen/delete with the unchanged Controller and inline editor. It remains labeled with that version.
 
-Current validation: 61 Controller/domain/source checks, 7 package/design checks (including rejection of source drift before candidate output), 14 fictional transport checks, and 15 offline Chromium UI checks passed. The packer receives the successful source-bound React build receipt. Copy checks use completion/error state and transport unit coverage because the compact UI omits success banners. Evidence is in `artifacts/cookie-editor-r520/merged-development-delivery.json` and the `merged-*.log` files.
+Fresh validation after the import merge: 8 source checks, 7 package/design checks (including rejection of source drift before candidate output), 14 fictional transport checks, and 15 offline Chromium UI checks passed. The 53 Controller/domain checks passed before this import-only merge; those implementation inputs are unchanged. The packer receives the successful source-bound React build receipt. Copy checks use completion/error state and transport unit coverage because the compact UI omits success banners. Evidence is in `artifacts/cookie-editor-r520/merged-development-delivery.json`, `merged-*.log` and `latest-*.log`.
 
-Candidate SHA256: `362a37d415b1276a399c027d4a93b7889cadcd9815e2f842baf9cf6a9f262352`.
-Offline HTML SHA256: `b21785a21e6dd0f1ce537fcb7930326383cc2c77a9699d703b2f69358eaf09d0`.
+Candidate SHA256: `da3f49a30c7cc7ee3daf34c0330de0b81ca8aed24214d090864cd08c8abea0b0`.
+Offline HTML SHA256: `92701da6b39cdd300119978bc01937f69ab67c51ea790eb5705915b28c3115bc`.
 
 The existing Vite plus `build-preview.mjs` wrapper binds the document to source input hashes. `check` detects stale HTML; the Chromium command checks the current build without rebuilding it. Artifacts and screenshots are local evidence under `artifacts/cookie-editor-r520/`, not extra committed snapshot matrices.
 

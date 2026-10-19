@@ -78,8 +78,9 @@ test('Preview IO presentation is shared without moving native Cookie operations 
   assert.match(importer,/<CookieImportDropzone /);
   assert.match(exporter,/<CookieExportFormatRow /);
   assert.match(exporter,/<CookieExportActions /);
-  assert.match(importer,/controller\.previewImport/);
-  assert.match(importer,/controller\.executeImport/);
+  assert.match(importer,/onImportText\?\.\(text\)/);
+  assert.match(official,/controller\.previewImport/);
+  assert.match(official,/controller\.executeImport/);
   assert.match(exporter,/controller\.exportTo/);
   assert.match(adapter,/browser\(\)\.downloads\.text/);
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);

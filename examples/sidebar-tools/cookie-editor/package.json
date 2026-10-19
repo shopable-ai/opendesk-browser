@@ -1,7 +1,7 @@
 {
   "name": "opendesk-cookie-editor-react",
   "private": true,
-  "version": "2.0.26",
+  "version": "2.0.27",
   "type": "module",
   "engines": {"node": ">=22.12.0"},
   "scripts": {

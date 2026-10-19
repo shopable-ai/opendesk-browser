@@ -213,7 +213,7 @@
   color:var(--od-ink);background:var(--od-paper);
 }
 .cookie-editor-react .cookie-import-dialog::backdrop{
-  background:rgba(15,23,42,.45);
+  background:color-mix(in srgb,var(--od-ink) 45%,transparent);
 }
 .cookie-editor-react .cookie-import-body{
   display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3);
@@ -244,7 +244,7 @@
   padding:var(--space-2) var(--space-3);overflow-wrap:anywhere;
   font-size:var(--od-note-size);line-height:1.5;
   color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);
-  border-radius:var(--radius-control);box-shadow:0 6px 18px rgba(10,20,35,.16);
+  border-radius:var(--radius-control);box-shadow:0 6px 18px color-mix(in srgb,var(--od-ink) 16%,transparent);
 }
 .cookie-editor-react .cookie-import-toast--error{border-color:var(--od-danger,var(--od-line))}
 @media(max-width:350px){
