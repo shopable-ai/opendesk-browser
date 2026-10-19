@@ -3,9 +3,15 @@ import {Button} from '@opendesk/ui';
 // Consent is always granted by the trusted Host. A sandbox cannot self-grant.
 export default function CookiePermissions({phase,target,disabled,onRetry}){
   if(phase==='ready')return null;
-  if(phase==='loading'||phase==='idle')
+  if(phase==='loading')
     return <section className="cookie-permission" role="status" aria-live="polite">
       正在读取 Cookie…
+    </section>;
+  if(phase==='idle')
+    return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
+      <strong>网站或授权已改变</strong>
+      <p>重新读取当前网站，仅核对 Cookie，不会重试上次写入。</p>
+      <Button type="button" disabled={disabled} onClick={onRetry}>重新读取 Cookie</Button>
     </section>;
   return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
     <strong>{phase==='blocked'?'本站 Cookie 尚未就绪':'读取 Cookie 失败'}</strong>

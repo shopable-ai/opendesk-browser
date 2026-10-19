@@ -45,6 +45,19 @@ try{
   assert.ok((await page.locator('.searchbox > svg').boundingBox()).width<=20,'search icon must stay compact');
   await page.screenshot({path:join(output,'380-light.png'),fullPage:true});
  });
+ await test('site change during a read exposes explicit read-only recovery',async()=>{
+  await page.evaluate(()=>{
+   document.querySelector('[aria-label="刷新 Cookie"]').click();
+   document.querySelector('.cookie-app').dispatchEvent(new Event('opendesk-page-changed'));
+  });
+  await button('重新读取 Cookie').waitFor();
+  assert.equal(await page.locator('.cookie-row').count(),0);
+  assert.equal(await page.getByText('正在读取 Cookie…',{exact:true}).count(),0);
+  await page.getByText(/结果可能未知；请手动核对/).waitFor();
+  await button('重新读取 Cookie').click();
+  await ready();
+  assert.equal(await button('重新读取 Cookie').count(),0);
+ });
  await test('toolbar uses approved icons and a real scoped clear modal with inert cancel',async()=>{
   for(const name of ['导入 Cookie','导出 Cookie','新建 Cookie','安全清理本站 Cookie'])assert.equal(await button(name).count(),1);
   await button('安全清理本站 Cookie').click();

@@ -8,7 +8,7 @@ import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 
 const repo=resolve('.');
 const root=resolve(repo,'examples/sidebar-tools/cookie-editor');
-const candidate=resolve(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-2.0.27-candidate.opendesk-tool.json');
+const candidate=resolve(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-2.0.28-candidate.opendesk-tool.json');
 const get=(path)=>readFile(resolve(root,path));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 
@@ -43,7 +43,7 @@ test('built React JSX uses one classic chunk and pinned runtime, not bundled Rea
   assert.match(css.toString('utf8'),/^\/\* @opendesk-shared-design \*\//);
 });
 
-test('canonical packer emits independent 2.0.27 candidate without touching formal native',async()=>{
+test('canonical packer emits independent 2.0.28 candidate without touching formal native',async()=>{
   const [official,config,staged,bytes]=await Promise.all([
     get('cookie-editor.opendesk-tool.json').then(bytes=>JSON.parse(bytes.toString('utf8'))),
     get('tool.config.json').then(bytes=>JSON.parse(bytes.toString('utf8'))),
@@ -54,11 +54,11 @@ test('canonical packer emits independent 2.0.27 candidate without touching forma
   assert.equal(config.version,'2.0.23');
   assert.equal(official.version,'2.0.23');
   assert.equal(staged.id,'cookie-editor');
-  assert.equal(staged.version,'2.0.27');
+  assert.equal(staged.version,'2.0.28');
   assert.equal(staged.uiRuntime,'opendesk.react-ui.v1');
   assert.equal(staged.files.js,'dist/tool.js');
   assert.equal(output.id,'cookie-editor');
-  assert.equal(output.version,'2.0.27');
+  assert.equal(output.version,'2.0.28');
   assert.equal(output.uiRuntime,'opendesk.react-ui.v1');
   assert.match(output.css,/^\/\* opendesk\.shared-design\.v1 sha256=[0-9a-f]{64}/);
   assert.match(output.css,/\.od-button\{/);
