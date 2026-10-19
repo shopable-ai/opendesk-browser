@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   parseTarget,normalizeCookie,key,redactMetadata,
   nativeInput,inspectImport,rejectImportDuplicates,exportText,
-  scopedLiveCookies
+  scopedLiveCookies,readAllCookies
 } from '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js';
 import {createCookieSdkAdapter,safeCode} from '../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js';
 
@@ -12,6 +12,52 @@ const row=(patch={})=>({
   name:'session',value:'s3cr3t',domain:'shop.example.com',path:'/',
   hostOnly:true,secure:true,httpOnly:true,sameSite:'lax',session:true,
   ...patch
+});
+
+test('R5.20 withheld JSON values are invalid while explicit empty values remain importable',()=>{
+  const plan=inspectImport(JSON.stringify([
+    row({value:'',valueRedacted:true}),row({name:'empty',value:'',valueRedacted:false})
+  ]),'json',site.hostname);
+  assert.deepEqual(plan.records.map(item=>item.status),['invalid','ready']);
+  assert.equal(plan.records[1].cookie.value,'');
+});
+
+test('R5.20 import duplicates include native slots with different host-only metadata',()=>{
+  const plan=inspectImport(JSON.stringify([
+    row(),row({domain:'.shop.example.com',hostOnly:false})
+  ]),'json',site.hostname);
+  rejectImportDuplicates(plan.records);
+  assert.deepEqual(plan.records.map(item=>item.status),['invalid','invalid']);
+});
+
+test('R5.20 stale reads stop before transport and after unpaged replies',async()=>{
+  let active=false,calls=0;
+  const sdk={cookies:{getAll:async()=>{calls++;active=false;return [row()];}}};
+  assert.equal(await readAllCookies(sdk,{url:site.url},()=>active),null);
+  assert.equal(calls,0);
+  active=true;
+  assert.equal(await readAllCookies(sdk,{url:site.url},()=>active),null);
+  assert.equal(calls,1);
+});
+
+test('R5.20 sensitive value receipts must retain metadata as well as identity',async()=>{
+  const browser={capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[],getPartitionKey:async()=>({partitionKey:{topLevelSite:site.origin}}),
+    get:async()=>({cookie:{...row(),httpOnly:false,valueRedacted:false}})
+  }};
+  const adapter=createCookieSdkAdapter({getBrowser:()=>browser,request:async()=>({})});
+  await assert.rejects(adapter.readValue(site,row()),{code:'E_COOKIE_CONFLICT'});
+});
+
+test('R5.20 value metadata comparison uses the same defaults as list metadata',async()=>{
+  const cookie={name:'sid',domain:site.hostname,path:'/',value:'',valueRedacted:false};
+  const browser={capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>[cookie],getPartitionKey:async()=>({partitionKey:{topLevelSite:site.origin}}),
+    get:async()=>({cookie})
+  }};
+  const adapter=createCookieSdkAdapter({getBrowser:()=>browser,request:async()=>({})});
+  const [metadata]=redactMetadata([cookie]);
+  assert.equal(await adapter.readValue(site,metadata),'');
 });
 test('native normalization preserves identity and validates cookie prefixes',()=>{
   assert.equal(site.url,'https://shop.example.com/cart');

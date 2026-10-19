@@ -7,7 +7,6 @@ on:
       - 'examples/sidebar-tools/cookie-editor/app/**'
       - 'examples/sidebar-tools/cookie-editor/src/react.css'
       - 'examples/sidebar-tools/cookie-editor/src/root.html'
-      - 'examples/sidebar-tools/cookie-editor/ui/CookieEditorView.jsx'
       - 'examples/sidebar-tools/cookie-editor/package.json'
       - 'examples/sidebar-tools/cookie-editor/vite.config.mjs'
       - 'examples/sidebar-tools/cookie-editor/scripts/**'

@@ -9,6 +9,9 @@ const isVerified=receipt=>receipt?.saved===true&&receipt.verified===true;
 const isRemoved=receipt=>receipt?.removed===true&&receipt.verified===true;
 const formatCode=(error,fallback)=>'（'+safeCode(error,fallback)+'）';
 const bounded=(text,limit)=>new Blob([text]).size<=limit;
+const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
+  'E_SITE_PERMISSION_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED',
+  'E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED']);
 
 // Only public, redacted metadata is published to React. Values, pending import
 // batches, value-preservation reads and previewRefs never enter React state.
@@ -16,38 +19,45 @@ export function createCookieController({adapter,onChange=()=>{}}){
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
     message='',messageType='info',importPlan=null,clearPlan=null,
-    observing=null,observeCursor='0',observeEvents=[];
-  let importRevision=0;
+    observing=null,observeCursor='0',observeEvents=[],observeStats=null;
+  let importRevision=0,clearRevision=0,valueRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
-  const snapshot=()=>({epoch,busy,target,rows:rows.map(x=>({...x})),
+  const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
     phase,message,messageType,observing:!!observing,
-    observeEvents:observeEvents.map(x=>({...x}))});
+    observeEvents:observeEvents.map(x=>({...x})),
+    observeStats:observeStats?{...observeStats}:null});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
     retireObservation();
-    epoch++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
+    epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
     clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
   }
+  // SDK revocation is authoritative even before the bridge/UI event arrives.
+  function rejectLostAccess(error){
+    if(!accessLossCodes.has(error?.code))return false;
+    invalidate('网站授权或安装身份已失效，请刷新后重新预检。');
+    return true;
+  }
   const lock=()=>{if(closed||busy||!target||phase!=='ready')return null;
-    busy=true;const at=target,ticket=epoch;notify();return {at,ticket};};
+    busy=true;valueRevision++;const at=target,ticket=epoch;notify();return {at,ticket};};
   const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
   // Host observation sessions are owned by the old URL and may survive the UI.
   // Retire them on every target/grant change, including in-flight read failures.
   function retireObservation(){
     const at=target,sessionRef=observing?.sessionRef;
-    observing=null;observeCursor='0';observeEvents=[];
+    observing=null;observeCursor='0';observeEvents=[];observeStats=null;
     if(at&&typeof sessionRef==='string')
       void Promise.resolve().then(()=>adapter.observeStop(at,sessionRef)).catch(()=>{});
   }
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
     retireObservation();
-    const ticket=++epoch;rows=[];target=null;phase='loading';importPlan=null;
+    const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;
     clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
     notify();
@@ -72,6 +82,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       notify();
     }catch(error){
       if(ticket===epoch&&!closed){
+        if(rejectLostAccess(error))return;
         phase='error';rows=[];report('读取未确认'+formatCode(error,'E_COOKIE_READ')+
           '；检查权限与 Store/Partition 后手动刷新。','error');
       }
@@ -80,19 +91,23 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // Explicitly release short-lived raw import bytes when the input or panel
   // changes; an old preflight must never remain actionable after dismissal.
   function discardImport(){importPlan=null;importRevision++;}
-  function discardClear(){clearPlan=null;}
-  function getRow(id){return rows.find(row=>row.id===id)||null;}
+  function discardClear(){clearPlan=null;clearRevision++;}
+  function getRow(id){const row=rows.find(row=>row.id===id);return row?structuredClone(row):null;}
   async function readValue(id){
     const row=getRow(id),at=target,ticket=epoch;
     if(closed||busy||phase!=='ready'||!row||!at)return null;
+    const revision=++valueRevision;
     try{
       const value=await adapter.readValue(at,row);
-      if(!current(ticket,at)||!getRow(id))return null;
+      if(!current(ticket,at)||busy||revision!==valueRevision||!getRow(id))return null;
       return value; // Caller may show it only in an ephemeral DOM node.
     }catch(error){
-      if(current(ticket,at))
-        report('读取敏感值被拒绝'+formatCode(error,'E_COOKIE_VALUES')+
-          '；请检查独立的 Cookie Value 授权。','error');
+      if(current(ticket,at)){
+        if(rejectLostAccess(error))return null;
+        if(!busy&&revision===valueRevision)
+          report('读取敏感值被拒绝'+formatCode(error,'E_COOKIE_VALUES')+
+            '；请检查独立的 Cookie Value 授权。','error');
+      }
       return null;
     }
   }
@@ -103,7 +118,10 @@ export function createCookieController({adapter,onChange=()=>{}}){
     let saved=false,newNameSaved=false,renamed=false;
     try{
       if(originalId&&!old)throw Error('E_COOKIE_CONFLICT');
-      let updated=normalizeCookie(input,at.hostname);
+      // A withheld input is not an explicit empty value. Validate attributes
+      // first, then retrieve and validate the retained value under its grant.
+      let updated=normalizeCookie({...input,valueRedacted:false,
+        ...(old&&!valueEdited?{value:''}:{})},at.hostname);
       if(old&&!sameCookieScope(old,updated))
         throw Error('E_COOKIE_SCOPE');
       renamed=Boolean(old&&old.name!==updated.name);
@@ -119,7 +137,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
           // Retain the old value only with the separate values capability.
           const preserved=await adapter.readValue(at,old);
           if(!verifiedRead(guard))return false;
-          updated={...updated,value:preserved};
+          updated=normalizeCookie({...updated,value:preserved},at.hostname);
         }
       }
       if(!verifiedRead(guard))return false;
@@ -136,6 +154,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       report(renamed?'新 Cookie 已写入并核实旧名称删除。':'Chrome 已确认保存。','success');
     }catch(error){
       if(verifiedRead(guard)){
+        if(rejectLostAccess(error))return false;
         const part=newNameSaved?'新名称已写入，但旧名称删除未确认；两条可能并存。':
           '保存未确认或身份已改变。';
         report(part+formatCode(error,'E_COOKIE_SET')+' 请手动核对，不要自动重试。','error');
@@ -153,9 +172,11 @@ export function createCookieController({adapter,onChange=()=>{}}){
       if(!verifiedRead(guard))return false;
       if(!isRemoved(receipt))throw badReceipt();
       removed=true;report('Chrome 已确认删除「'+row.name+'」。','success');
-    }catch(error){if(verifiedRead(guard))
+    }catch(error){if(verifiedRead(guard)){
+      if(rejectLostAccess(error))return false;
       report('删除结果未确认'+formatCode(error,'E_COOKIE_REMOVE')+
         '；请核对实际 Cookie，勿重复删除。','error');
+    }
     }finally{unlock(guard);}
     if(removed&&current(guard.ticket,guard.at))
       await load(guard.at.url,{preserveMessage:true});
@@ -164,17 +185,21 @@ export function createCookieController({adapter,onChange=()=>{}}){
   async function previewClear(){
     const guard=lock();if(!guard)return null;
     clearPlan=null;
+    const revision=++clearRevision;
     try{
       const p=await adapter.clearPreview(guard.at);
-      if(!verifiedRead(guard))return null;
+      if(!verifiedRead(guard)||revision!==clearRevision)return null;
       if(!Number.isSafeInteger(p?.matched)||p.matched<0||p.matched>50||
         typeof p.previewRef!=='string'||!/^[0-9a-f-]{36}$/i.test(p.previewRef))
         throw badReceipt();
       clearPlan={epoch:guard.ticket,url:guard.at.url,
         previewRef:p.previewRef,count:p.matched};
       return {count:p.matched,hostname:guard.at.hostname};
-    }catch(error){if(verifiedRead(guard))
-      report('清理预览被拒绝'+formatCode(error,'E_COOKIE_CLEAR')+'。','error');
+    }catch(error){if(verifiedRead(guard)){
+      if(rejectLostAccess(error))return null;
+      if(revision===clearRevision)
+        report('清理预览被拒绝'+formatCode(error,'E_COOKIE_CLEAR')+'。','error');
+    }
       return null;
     }finally{unlock(guard);}
   }
@@ -191,9 +216,11 @@ export function createCookieController({adapter,onChange=()=>{}}){
         !Number.isSafeInteger(p.remaining)||p.removed<0||p.removed>plan.count||
         p.remaining<0||p.remaining>50)throw badReceipt();
       verified=true;report('Chrome 清理 '+p.removed+' 条，剩余 '+p.remaining+' 条。','success');
-    }catch(error){if(verifiedRead(guard))
+    }catch(error){if(verifiedRead(guard)){
+      if(rejectLostAccess(error))return false;
       report('清理可能部分生效'+formatCode(error,'E_COOKIE_CLEAR')+
         '；重新预览前请先核对，勿自动重试。','error');
+    }
     }finally{unlock(guard);}
     if(verified&&current(guard.ticket,guard.at))
       await load(guard.at.url,{preserveMessage:true});
@@ -228,9 +255,11 @@ export function createCookieController({adapter,onChange=()=>{}}){
       if(!verifiedRead(guard))return false;
       done=true;report(metadata?'已导出 Cookie 元数据（不含值）。':
         method==='copy'?'已复制 Cookie。':'Cookie 文件下载已发起。','success');
-    }catch(error){if(verifiedRead(guard))
+    }catch(error){if(verifiedRead(guard)){
+      if(rejectLostAccess(error))return false;
       report('导出失败或被拒绝'+formatCode(error,'E_COOKIE_EXPORT')+
         '；检查授权或选择其他格式。','error');
+    }
     }finally{plaintext='';unlock(guard);}
     return done;
   }
@@ -271,7 +300,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
         if(!verifiedRead(guard)||revision!==importRevision)return null;
         const present=seen.get(scope);
         if(!Array.isArray(present))throw badReceipt();
-        if(present.some(old=>key(old)===key(r))){
+        if(present.some(old=>sameNativeSlot(old,r))){
           replaced++;
           // An unapproved overwrite must never be included in the native plan.
           // Other new cookies remain importable without replacing this slot.
@@ -295,16 +324,20 @@ export function createCookieController({adapter,onChange=()=>{}}){
       report(accepted.length?'已生成导入预检；确认后写入真实 Chrome。':
         '没有可导入记录，请修正输入。',accepted.length?'info':'error');
       return result;
-    }catch(error){if(verifiedRead(guard))
-      report('导入预检失败'+formatCode(error,'E_COOKIE_IMPORT')+
-        '；原文保留，可修正后重新预览。','error');
+    }catch(error){if(verifiedRead(guard)){
+      if(rejectLostAccess(error))return null;
+      if(revision===importRevision)
+        report('导入预检失败'+formatCode(error,'E_COOKIE_IMPORT')+
+          '；原文保留，可修正后重新预览。','error');
+    }
       return null;
     }finally{unlock(guard);}
   }
-  function batches(target,accepted){
+  function batches(target,accepted,overwrite){
     const result=[];let bucket=[],lastScope='';
     for(const row of accepted){
       const option={...nativeInput(row,target)};delete option.url;
+      if(!overwrite)option.ifAbsent=true;
       const scope=JSON.stringify([option.storeId??null,
         option.partitionKey?.topLevelSite??null,
         Boolean(option.partitionKey?.hasCrossSiteAncestor)]);
@@ -331,7 +364,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       // The single-write adapter accepts normalized Cookie records, NOT the
       // already-serialized SDK payload produced by batches(). Re-serializing
       // a host-only payload loses its implicit Domain and breaks imports.
-      const chunks=batchSupported?batches(guard.at,plan.accepted):
+      const chunks=batchSupported?batches(guard.at,plan.accepted,plan.overwrite):
         plan.accepted.map(item=>[item]);
       for(const chunk of chunks){
         if(!verifiedRead(guard))return false;
@@ -341,8 +374,9 @@ export function createCookieController({adapter,onChange=()=>{}}){
           if(!Array.isArray(receipt?.results)||receipt.results.length!==chunk.length)
             throw badReceipt();
           for(let i=0;i<chunk.length;i++){
-            if(receipt.results[i]?.index!==i||!isVerified(receipt.results[i]))
-              throw badReceipt();
+            if(receipt.results[i]?.index!==i)throw badReceipt();
+            if(!isVerified(receipt.results[i]))
+              throw Object.assign(badReceipt(),{code:safeCode(receipt.results[i],'E_OUTCOME_UNKNOWN')});
             verified++;
           }
         }else{
@@ -355,10 +389,12 @@ export function createCookieController({adapter,onChange=()=>{}}){
       }
       complete=true;report('Chrome 回读确认导入 '+verified+' 条，跳过 '+
         (plan.total-plan.accepted.length)+' 条。','success');
-    }catch(error){if(verifiedRead(guard))
+    }catch(error){if(verifiedRead(guard)){
+      if(rejectLostAccess(error))return false;
       report('已确认 '+verified+'/'+(plan?.accepted.length||0)+
         ' 条；其余写入结果未知'+formatCode(error,'E_COOKIE_IMPORT')+
         '。先核对 Chrome，不能盲目重试。','error');
+    }
     }finally{unlock(guard);}
     if(complete&&current(guard.ticket,guard.at))
       await load(guard.at.url,{preserveMessage:true});
@@ -375,14 +411,14 @@ export function createCookieController({adapter,onChange=()=>{}}){
           return;
         }
         if(typeof started?.sessionRef!=='string')throw badReceipt();
-        observing=started;observeCursor='0';observeEvents=[];
+        observing=started;observeCursor='0';observeEvents=[];observeStats=null;
         report('已开始 15 秒元数据观察，无 Cookie Value。');
       }else if(observing){
         const sessionRef=observing.sessionRef;
         if(action==='stop'){
           // Clear the local handle before awaiting the Host, so navigation
           // cannot schedule a duplicate stop or revive a stale session.
-          observing=null;observeCursor='0';observeEvents=[];
+          observing=null;observeCursor='0';observeEvents=[];observeStats=null;
           await adapter.observeStop(guard.at,sessionRef);
           if(!verifiedRead(guard))return;
           report('已停止观察。');
@@ -394,11 +430,19 @@ export function createCookieController({adapter,onChange=()=>{}}){
             name:String(item.name||''),domain:String(item.domain||''),
             path:String(item.path||''),removed:item.removed===true
           }));
-          report('本次读取 '+observeEvents.length+' 条变化（不含 Cookie 值）。');
+          // Only bounded numeric facts leave the private SDK receipt. Missing
+          // or invalid counters are unknown, never a confirmed zero loss.
+          const count=value=>Number.isSafeInteger(value)&&value>=0?value:null;
+          observeStats={eventCount:outcome.events?.length??0,
+            gapCount:count(outcome.gapCount),droppedCount:count(outcome.droppedCount)};
+          report('本次读取 '+observeStats.eventCount+' 个变化，缺口 '+
+            (observeStats.gapCount??'未提供')+'，缓冲丢弃 '+
+            (observeStats.droppedCount??'未提供')+'；无 Cookie 值。');
         }
       }
     }catch(error){if(verifiedRead(guard)){
-      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED'].includes(error?.code))
+      if(rejectLostAccess(error))return;
+      if(error?.code==='E_SESSION_EXPIRED')
         retireObservation();
       report('变化观察中止'+formatCode(error,'E_COOKIE_OBSERVE')+'。','error');
     }}finally{unlock(guard);}

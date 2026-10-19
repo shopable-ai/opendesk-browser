@@ -50,14 +50,14 @@ const sameCookieMetadata=(a,b)=>sameCookieScope(a,b)&&
   a.secure===b.secure&&a.httpOnly===b.httpOnly&&a.session===b.session&&
   a.sameSite===b.sameSite&&
   (a.expirationDate??null)===(b.expirationDate??null);
-const sameNativeSlot=(a,b)=>a.name===b.name&&a.path===b.path&&
-  a.domain.replace(/^\./,'').toLowerCase()===b.domain.replace(/^\./,'').toLowerCase()&&
-  (a.storeId??null)===(b.storeId??null)&&
-  (a.partitionKey?.topLevelSite??null)===(b.partitionKey?.topLevelSite??null)&&
-  Boolean(a.partitionKey?.hasCrossSiteAncestor)===Boolean(b.partitionKey?.hasCrossSiteAncestor);
+const nativeSlotKey=row=>JSON.stringify([row.name,
+  row.domain.replace(/^\./,'').toLowerCase(),row.path,row.storeId??null,
+  row.partitionKey?.topLevelSite??null,Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
+const sameNativeSlot=(a,b)=>nativeSlotKey(a)===nativeSlotKey(b);
 
 function normalizeCookie(raw,hostname,allowExpired=false){
   if(!hostname||!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('Cookie 记录无效');
+  if(raw.valueRedacted===true)throw new Error('Cookie 值未提供，不能当作空值导入或写入');
   const name=raw.name,value=raw.value;
   const domain=String(raw.domain||hostname).trim().toLowerCase();
   const host=domain.replace(/^\./,'');
@@ -198,7 +198,7 @@ function rejectImportDuplicates(records){
   const seen=new Map();
   for(const entry of records){
     if(entry.status!=='ready')continue;
-    const identity=key(entry.cookie),previous=seen.get(identity);
+    const identity=nativeSlotKey(entry.cookie),previous=seen.get(identity);
     if(previous){
       previous.status=entry.status='invalid';
       previous.reason=entry.reason='重复 Cookie 身份，请合并后重新预览（不自动选择覆盖顺序）';
@@ -207,7 +207,11 @@ function rejectImportDuplicates(records){
 }
 
 async function readAllCookies(sdk,args,isCurrent=()=>true){
-  if(typeof sdk.cookies.getAllPage!=='function')return sdk.cookies.getAll(args);
+  if(!isCurrent())return null;
+  if(typeof sdk.cookies.getAllPage!=='function'){
+    const rows=await sdk.cookies.getAll(args);
+    return isCurrent()?rows:null;
+  }
   const rows=[],seen=new Set();let cursor;
   do{
     const page=await sdk.cookies.getAllPage({...args,...(cursor?{cursor}:{})});

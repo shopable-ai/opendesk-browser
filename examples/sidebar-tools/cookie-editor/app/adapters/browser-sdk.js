@@ -1,10 +1,10 @@
-import {parseTarget,redactMetadata,key,readAllCookies,scopedLiveCookies,nativeInput} from '../domain/cookie-model.js';
+import {parseTarget,redactMetadata,key,sameCookieMetadata,readAllCookies,scopedLiveCookies,nativeInput} from '../domain/cookie-model.js';
 
 // This adapter is the ONLY Cookie transport used by the independent React
 // candidate. Host permission checks and native receipts remain authoritative.
 const safeCodes=new Set([
   'E_CANCELLED','E_COOKIE_CONFLICT','E_OUTCOME_UNKNOWN','E_PERMISSION_REQUIRED',
-  'E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SESSION_EXPIRED','E_COOKIE_VALUES',
+  'E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED','E_SESSION_EXPIRED','E_COOKIE_VALUES',
   'E_COOKIE_READ','E_COOKIE_SET','E_COOKIE_REMOVE','E_COOKIE_CLEAR',
   'E_COOKIE_OBSERVE','E_COOKIE_IMPORT','E_COOKIE_EXPORT','E_CLIPBOARD',
   'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION','E_COOKIE_SCOPE',
@@ -73,6 +73,8 @@ export function createCookieSdkAdapter({getBrowser,request}){
     if(receipt?.cookie?.valueRedacted!==false||
       typeof receipt.cookie.value!=='string'||key(receipt.cookie)!==key(row))
       throw Object.assign(Error('E_COOKIE_VALUES'),{code:'E_COOKIE_VALUES'});
+    if(!sameCookieMetadata(redactMetadata([receipt.cookie])[0],row))
+      throw Object.assign(Error('E_COOKIE_CONFLICT'),{code:'E_COOKIE_CONFLICT'});
     return receipt.cookie.value;
   }
   return {

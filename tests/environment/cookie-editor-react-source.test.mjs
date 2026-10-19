@@ -4,6 +4,11 @@ import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 const root=resolve('examples/sidebar-tools/cookie-editor');
 const get=name=>readFile(resolve(root,name),'utf8');
+function assertSharedApp(preview){
+  assert.match(preview,/import CookieEditorApp from ['"]\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx/);
+  assert.match(preview,/<CookieEditorApp\b/);
+  assert.doesNotMatch(preview,/ui\/CookieEditorView|createCookieController|createCookieSdkAdapter|function (?:Editor|ImportPanel|ExportPanel)|controller\.(?:save|remove|previewImport|exportTo)/);
+}
 test('Cookie React candidate has isolated root and single public SDK pathway',async()=>{
   const [entry,app,adapter,controller]=await Promise.all([
     get('app/entries/official.jsx'),get('app/CookieEditorApp.jsx'),
@@ -34,15 +39,15 @@ test('Value remains outside global React state and fixture source',async()=>{
   for(const source of [app,preview,editor,importer,offline])
     assert.doesNotMatch(source,/DEMO|fixture-session|secret_preview_never_real|sess_demo_only_C18/);
 });
-test('golden Preview and installed editor share form JSX while secrets stay in ephemeral DOM',async()=>{
-  const [preview,view,barrel,editor,official]=await Promise.all([
+test('Preview mounts the installed App while shared editor secrets stay in ephemeral DOM',async()=>{
+  const [preview,view,editor,official]=await Promise.all([
     get('preview/react/src/App.jsx'),get('app/components/CookieEditorView.jsx'),
-    get('ui/CookieEditorView.jsx'),get('app/components/CookieInlineEditor.jsx'),
+    get('app/components/CookieInlineEditor.jsx'),
     get('app/CookieEditorApp.jsx')
   ]);
   assert.match(view,/export function CookieFormField/);
-  assert.match(barrel,/CookieFormField/);
-  assert.match(preview,/CookieFormField as Field/);
+  assertSharedApp(preview);
+  assert.match(official,/import CookieInlineEditor from '\.\/components\/CookieInlineEditor\.jsx'/);
   assert.match(editor,/<CookieFormField label="名称">/);
   assert.match(editor,/<CookieValueField inputRef=\{valueRef\}/);
   assert.match(editor,/readGeneration\.current\+\+/);
@@ -54,15 +59,17 @@ test('golden Preview and installed editor share form JSX while secrets stay in e
 });
 
 test('Preview IO presentation is shared without moving native Cookie operations into React',async()=>{
-  const [preview,view,importer,exporter,adapter]=await Promise.all([
+  const [preview,view,importer,exporter,adapter,official]=await Promise.all([
     get('preview/react/src/App.jsx'),get('app/components/CookieEditorView.jsx'),
     get('app/components/CookieImport.jsx'),get('app/components/CookieExport.jsx'),
-    get('app/adapters/browser-sdk.js')
+    get('app/adapters/browser-sdk.js'),get('app/CookieEditorApp.jsx')
   ]);
   for(const tag of ['CookieImportDropzone','CookieExportFormatRow','CookieExportActions']){
     assert.ok(view.includes('export function '+tag),tag+' JSX must have one owner');
-    assert.ok(preview.includes('<'+tag),tag+' must appear in Preview');
   }
+  assertSharedApp(preview);
+  assert.match(official,/import CookieImport from '\.\/components\/CookieImport\.jsx'/);
+  assert.match(official,/import CookieExport from '\.\/components\/CookieExport\.jsx'/);
   assert.match(importer,/<CookieImportDropzone /);
   assert.match(exporter,/<CookieExportFormatRow /);
   assert.match(exporter,/<CookieExportActions /);
@@ -73,7 +80,7 @@ test('Preview IO presentation is shared without moving native Cookie operations 
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);
 });
 
-test('advanced Cookie identities are Preview-owned JSX and formal read-only fields',async()=>{
+test('advanced Cookie identities use shared-App JSX and remain read-only for existing records',async()=>{
   const [view,preview,editor]=await Promise.all([
     get('app/components/CookieEditorView.jsx'),
     get('preview/react/src/App.jsx'),
@@ -84,7 +91,7 @@ test('advanced Cookie identities are Preview-owned JSX and formal read-only fiel
   assert.match(view,/Store ID/);
   assert.match(view,/PartitionKey/);
   assert.match(view,/属性与高级设置/);
-  assert.match(preview,/<CookieAdvancedFields draft=\{draft\}/);
+  assertSharedApp(preview);
   assert.match(editor,/<CookieAdvancedFields draft=\{draft\}/);
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|localStorage/);
 });
@@ -102,13 +109,12 @@ test('formal native package unchanged until candidate passes all gates',async()=
 });
 
 test('R5.16 Cookie fields never impersonate a username/password form',async()=>{
-  const [preview,editor,view,barrel]=await Promise.all([
+  const [preview,editor,view]=await Promise.all([
     get('preview/react/src/App.jsx'),get('app/components/CookieInlineEditor.jsx'),
-    get('app/components/CookieEditorView.jsx'),get('ui/CookieEditorView.jsx')]);
+    get('app/components/CookieEditorView.jsx')]);
   assert.match(view,/export function CookieValueField/);
-  assert.match(preview,/<CookieValueField/);
+  assertSharedApp(preview);
   assert.match(editor,/<CookieValueField/);
-  assert.match(barrel,/CookieValueField/);
   assert.match(view,/id="opendesk-cookie-attribute-data"/);
   assert.match(view,/name="opendesk-cookie-attribute-data"/);
   assert.match(view,/type="text" autoComplete="off"/);
@@ -136,7 +142,7 @@ test('R5.15 clear Dialog is shared and is a real native modal',async()=>{
   assert.match(dialog,/\.showModal\(\)/);
   assert.match(dialog,/\.focus\(\)/);
   assert.match(dialog,/onCancel=/);
-  assert.match(preview,/<CookieClearDialog /);
+  assertSharedApp(preview);
   assert.match(official,/<CookieClearDialog/);
   assert.doesNotMatch(preview,/className="clear-confirm"/);
   assert.doesNotMatch(official,/className="cookie-confirm/);

@@ -17,39 +17,59 @@ test('R5 legacy Cookie release remains installed through the ordinary isolated s
 });
 
 test('R5.12 removes obsolete privileged Cookie pilot, preserving the independent single root',async()=>{
-  const [main,shell,independent,barrel,entry]=await Promise.all([
+  const [main,shell,independent,entry,app,preview]=await Promise.all([
     'src/ui/react/main.tsx','src/ui/tool-shell.js',
     base+'/app/components/CookieEditorView.jsx',
-    base+'/ui/CookieEditorView.jsx',base+'/app/entries/official.jsx'
+    base+'/app/entries/official.jsx',base+'/app/CookieEditorApp.jsx',
+    base+'/preview/react/src/App.jsx'
   ].map(path=>readFile(path,'utf8')));
   assert.equal((main.match(/createRoot\(/g)||[]).length,1);
   assert.match(main,/root\.unmount\(\)/);
   assert.doesNotMatch(main,/CookieTrustedPilot|cookiePilotHost|cookiePilotScopedCSS|mountCookieEditorPilot/);
   assert.doesNotMatch(shell,/cookieReactPilot|admitsTrustedCookieEditor|TRUSTED_COOKIE_EDITOR_VERSION/);
   assert.match(independent,/export function CookieEditorView/);
-  assert.match(barrel,/app\/components\/CookieEditorView\.jsx/);
+  assert.match(app,/import \{CookieEditorView\} from '\.\/components\/CookieEditorView\.jsx'/);
+  assert.match(app,/createCookieController/);
+  assert.match(preview,/import CookieEditorApp from '\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx'/);
+  assert.match(preview,/<CookieEditorApp\b/);
+  assert.doesNotMatch(independent,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);
   assert.match(entry,/createRoot\(target\)/);
   assert.match(entry,/root\.unmount\(\)/);
   for(const path of [
+    base+'/ui/CookieEditorView.jsx',
     'src/ui/react/tabs/cookie-pilot.tsx','src/ui/react/tabs/cookie-pilot.css',
     'src/ui/react/cookie-editor/CookieEditorView.jsx','src/ui/trusted-cookie-admission.js'
   ])await assert.rejects(readFile(path,'utf8'),{code:'ENOENT'});
 });
 
-test('approved Preview and independent product own toolbar, not browser SRC',async()=>{
-  const [view,preview,styles]=await Promise.all([
-    readFile(base+'/app/components/CookieEditorView.jsx','utf8'),
-    readFile(base+'/preview/react/src/App.jsx','utf8'),
-    readFile(base+'/preview/react/src/style.css','utf8')
-  ]);
+test('approved Preview shares the App toolbar and Controller clear preflight without browser SRC ownership',async()=>{
+  const [view,preview,app,controller,adapter,dialog,importer,exporter]=await Promise.all([
+    'app/components/CookieEditorView.jsx','preview/react/src/App.jsx',
+    'app/CookieEditorApp.jsx','app/controller/cookie-controller.js',
+    'app/adapters/browser-sdk.js','app/components/CookieClearDialog.jsx',
+    'app/components/CookieImport.jsx','app/components/CookieExport.jsx'
+  ].map(path=>readFile(base+'/'+path,'utf8')));
   assert.match(view,/<Action name="upload" label="导入 Cookie"/);
   assert.match(view,/<Action name="download" label="导出 Cookie"/);
   assert.match(view,/<Action name="trash" label="安全清理本站 Cookie"/);
-  assert.match(view,/onClear\} disabled=\{busy\|\|readonly\|\|clearDisabled/);
-  assert.match(preview,/<CookieImportDropzone /);
-  assert.match(preview,/<CookieExportActions /);
-  assert.match(preview,/type:'clear',keys:clearKeys\(\),count:clearCandidates.length/);
-  assert.match(preview,/Host-only Cookie/);
-  assert.doesNotMatch(preview,/更多 · 清理与变化观察/);
-  assert.match(styles,/\.cookie-app \.toolbar-actions \.cookie-clear-action/);
+  assert.match(view,/onClick=\{onClear\} disabled=\{busy\|\|readonly\|\|clearDisabled\|\|typeof onClear!=='function'\}/);
+  assert.match(preview,/<CookieEditorApp\b/);
+  assert.doesNotMatch(preview,/ui\/CookieEditorView|<CookieImportDropzone|<CookieExportActions|clearKeys|clearCandidates/);
+  assert.match(importer,/<CookieImportDropzone /);
+  assert.match(exporter,/<CookieExportActions /);
+  assert.match(app,/controller\.previewClear\(\)/);
+  assert.match(app,/controller\.executeClear\(\)/);
+  assert.match(app,/controller\.discardClear\(\)/);
+  assert.match(app,/if\(dirty\)/);
+  assert.match(app,/<CookieClearDialog/);
+  assert.match(app,/hostname:result\.hostname,count:result\.count/);
+  assert.match(controller,/adapter\.clearPreview\(guard\.at\)/);
+  assert.match(controller,/previewRef:p\.previewRef,count:p\.matched/);
+  assert.match(controller,/adapter\.clearExecute\(guard\.at,plan\.previewRef,plan\.count\)/);
+  assert.match(adapter,/browser\(\)\.cookies\.clearSite/);
+  assert.match(adapter,/preview:true,maxCookies:50/);
+  assert.match(adapter,/previewRef,expectedCount,maxCookies:50/);
+  assert.match(dialog,/\.showModal\(\)/);
+  for(const source of [view,dialog])assert.doesNotMatch(source,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);
+  assert.doesNotMatch(preview,/更多 · (?:清理与变化观察|观察与清理)/);
 });

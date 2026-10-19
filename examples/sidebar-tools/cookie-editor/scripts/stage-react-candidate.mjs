@@ -8,7 +8,7 @@ import {buildSidebarTool} from '../../../../scripts/build-sidebar-tool.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const repo=resolve(root,'../../..');
 const stage=join(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-project');
-const candidate=join(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-2.0.24-candidate.opendesk-tool.json');
+const candidate=join(repo,'artifacts/sidebar-tools/cookie-editor/r56-react-2.0.25-candidate.opendesk-tool.json');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const original=JSON.parse(await readFile(join(root,'tool.config.json'),'utf8'));
 if(original.id!=='cookie-editor'||original.version!=='2.0.23'||
@@ -25,7 +25,7 @@ for(const name of ['tool.js','tool.css']){
     ready.files['dist/'+name].bytes!==bytes.length)
     throw Error('React release bytes no longer match their receipt');
 }
-const config={...original,version:'2.0.24',uiRuntime:'opendesk.react-ui.v1',
+const config={...original,version:'2.0.25',uiRuntime:'opendesk.react-ui.v1',
   files:{html:'src/root.html',css:'dist/tool.css',js:'dist/tool.js'},assets:[]};
 await rm(stage,{recursive:true,force:true});
 await mkdir(join(stage,'src'),{recursive:true});
