@@ -93,15 +93,6 @@ export function createCookieSdkAdapter({getBrowser,request}){
     clearExecute:(target,previewRef,expectedCount)=>browser().cookies.clearSite({
       url:target.url,previewRef,expectedCount,maxCookies:50
     }),
-    observeStart:(target)=>browser().cookies.observe.start({
-      url:target.url,durationMs:15000,maxEvents:40
-    }),
-    observeRead:(target,sessionRef,cursor)=>browser().cookies.observe.read({
-      url:target.url,sessionRef,cursor,limit:40
-    }),
-    observeStop:(target,sessionRef)=>browser().cookies.observe.stop({
-      url:target.url,sessionRef
-    }),
     copy:text=>browser().clipboard.writeText(text),
     download:(text,filename)=>browser().downloads.text({text,filename})
   };
