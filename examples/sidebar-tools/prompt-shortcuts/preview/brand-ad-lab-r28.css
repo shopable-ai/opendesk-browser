@@ -237,3 +237,27 @@ button.r28-demo-ad:hover{border-color:var(--brand)}
 .r28-demo-ad[data-layout=recruit]{border-style:dashed}
 .r28-demo-ad[data-layout=affiliate]{cursor:help}
 @media(max-width:440px){.r29-inline-hover{max-height:80px;overflow:auto}}
+
+
+/* R2.11: preserve distinct semantic shapes in the rendered advertisement, not only in the gallery. */
+.r28-demo-ad[data-layout=brand-hover]{max-width:170px;box-shadow:0 6px 16px #0002;border-color:var(--brand)}
+.r28-demo-ad[data-layout=icon-text] .r28-ad-copy small{font-size:9px}
+.r28-demo-ad[data-layout=hero]{min-height:84px;padding:14px 10px;border:2px solid var(--brand)}
+.r28-demo-ad[data-layout=hero] .r28-ad-icon{width:44px;height:44px}
+.r28-demo-ad[data-layout=vertical]{min-height:105px;max-width:180px;align-items:flex-start}
+.r28-demo-ad[data-layout=recruit]{border-style:dashed;background:transparent}
+.r28-demo-ad[data-layout=recruit] .r28-ad-icon{border:1px dashed var(--line);background:transparent;color:var(--muted)}
+.r28-demo-ad[data-layout=self]{background:color-mix(in srgb,var(--brand) 7%,var(--surface))}
+.r28-demo-ad[data-layout=event]{background:color-mix(in srgb,var(--brand) 9%,var(--surface));border-radius:5px}
+.r28-demo-ad[data-layout=directory]{border-bottom:3px solid var(--brand)}
+.r28-demo-ad[data-layout=affiliate]{background:transparent;border:1px dotted var(--warning);cursor:help}
+.r28-demo-ad[data-layout=brand-attribution]{border:none;background:transparent}
+.r28-demo-ad[data-layout=brand-logo]{border:none;background:transparent}
+.r28-inventory[data-layout=mini]>.r28-panel-slot{min-width:0}
+@media(max-width:440px){
+  .r28-inventory[data-layout=mini],.r28-inventory[data-layout=hero]{grid-template-columns:minmax(0,1fr)}
+  .r28-inventory[data-layout=hero]>:first-child{grid-column:auto}
+  .r28-demo-ad[data-layout=vertical]{flex-direction:row;min-height:42px;max-width:none}
+  .r28-demo-ad[data-layout=hero]{min-height:54px}
+}
+@media(prefers-reduced-motion:reduce){.r28-demo-ad{transition:none!important}}
