@@ -78,6 +78,7 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
         </details>
       </section>
       <CloudFirstRun model={{...setupModel,onConfigure:()=>setPairingOpen(true)}}/>
+      <CloudProgramInbox model={pageModel.programs}/>
       <div hidden={!pageModel.visibleApproval}>
         <CloudTaskAuthorization model={pageModel.authorization}/>
       </div>
@@ -89,6 +90,35 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
   </div>;
 }
 
+
+// Program source never renders in markup. Only a trusted click asks the
+// existing Cloud Host to fetch and import a hash-pinned Candidate.
+export function CloudProgramInbox({model={}}){
+  const rows=Array.isArray(model.rows)?model.rows:[];
+  return <section className="cloud-programs od-surface" aria-label="云端交付的待审核程序">
+    <div className="cloud-section-title od-toolbar">
+      <strong>待审核程序</strong>
+      <button type="button" className="od-button od-button--secondary"
+        disabled={!model.canRefresh}
+        onClick={event=>{if(event.nativeEvent?.isTrusted===true)model.onRefresh?.();}}>
+        刷新
+      </button>
+    </div>
+    <p role="status" className="hint">{model.status||'云端交付的源码不会自动执行或安装。'}</p>
+    {rows.length>0&&<ul className="cloud-request-samples">
+      {rows.map(row=><li key={row.deliveryId}>
+        <strong>{row.title||row.taskId}</strong>
+        <span>{row.taskId} · {row.version} · {row.siteOrigins?.[0]||''}</span>
+        <span>SHA-256 {row.sourceHash}</span>
+        <button type="button" className="od-button od-button--secondary"
+          disabled={Boolean(model.busy)}
+          onClick={event=>{if(event.nativeEvent?.isTrusted===true)model.onImport?.(row.deliveryId);}}>
+          接收为待验证任务
+        </button>
+      </li>)}
+    </ul>}
+  </section>;
+}
 
 // R35.3: React owns Cloud request history, pagination, details and focus.
 // The existing CloudHosting/RunHost retain all read, identity and authority
