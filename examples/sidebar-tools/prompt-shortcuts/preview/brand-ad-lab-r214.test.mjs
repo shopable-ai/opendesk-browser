@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync,mkdirSync} from 'node:fs';
 import {dirname,join} from 'node:path';
-import {fileURLToPath,pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
 
 const root=dirname(fileURLToPath(import.meta.url));
@@ -43,7 +43,7 @@ const browserTest=(title,check)=>test(title,{skip:chromium?false:unavailable},as
     const page=await browser.newPage({viewport:{width:1500,height:1000}});
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
-    await page.goto(pathToFileURL(file).href);
+    await page.setContent(html,{waitUntil:'load'});
     await page.locator('#rail .od').waitFor();
     await check(page);
     assert.deepEqual(errors,[],'Unexpected preview JS exception');
@@ -66,6 +66,7 @@ browserTest('Four states, three variants, zero to four buttons and composer inte
     await page.locator('#rail').evaluate(el=>el.offsetHeight);
     assert.match(await page.locator('#rail').getAttribute('class'),new RegExp('variant-'+variant));
   }
+  await page.locator('#settings summary').click();
   for(let count=0;count<=4;count++){
     await page.locator('#count').selectOption(String(count));
     assert.equal(await page.locator('#rail .prompt').count(),count);
@@ -98,6 +99,7 @@ browserTest('Tooltip Escape and separately dismissible sponsor retain keyboard f
   assert.equal(await page.locator('#tip').isVisible(),true);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#tip').isHidden(),true);
+  await page.locator('#settings summary').click();
   await page.locator('#sponsor').check();
   await page.locator('#rail .ad').focus();
   assert.equal(await page.locator('#tip').isVisible(),true);
@@ -111,6 +113,7 @@ browserTest('Tooltip Escape and separately dismissible sponsor retain keyboard f
 });
 
 browserTest('Compact viewport, dark theme, English and Japanese; avoid composer overlap',async page=>{
+  await page.locator('#settings summary').click();
   for(const size of ['1440','1024','390']){
     await page.locator('#size').selectOption(size);
     await page.waitForTimeout(120);
