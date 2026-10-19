@@ -77,6 +77,7 @@ export function mountStayFocusReact({url='https://m.youtube.com/',title='YouTube
   };
   const globals={OpenDeskTool:{root,request},OpenDeskSidebarUI:UI,
     OpenDeskPageReact:React,addEventListener:(key,fn)=>listeners.set('global:'+key,fn),
+    removeEventListener:(key,fn)=>{if(listeners.get('global:'+key)===fn)listeners.delete('global:'+key);},
     setInterval:()=>1,clearInterval(){}};
   const document={hidden:false,addEventListener:(key,fn)=>listeners.set('document:'+key,fn),
     removeEventListener:(key,fn)=>{if(listeners.get('document:'+key)===fn)listeners.delete('document:'+key);}};
