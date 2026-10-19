@@ -46,15 +46,15 @@ node scripts/cloud-control/cli.mjs client:grant --directory .local/cloud-control
 
 ## R1.5 关键阻断修复与证据边界
 
-- 原生预检不得在 Offscreen 调用 \`chrome.runtime.getContexts\`：该上下文真实不可用。R1.5 改为在用户真实打开的 Side Panel 内只读枚举原生上下文；关闭面板后仅在 **相同 CDP Offscreen targetId** 仍然存在时沿用已验证的 documentId，不唤醒 Service Worker，也不从同 URL 伪造新身份。
+- 原生预检不得在 Offscreen 调用 `chrome.runtime.getContexts`：该上下文真实不可用。R1.5 改为在用户真实打开的 Side Panel 内只读枚举原生上下文；关闭面板后仅在 **相同 CDP Offscreen targetId** 仍然存在时沿用已验证的 documentId，不唤醒 Service Worker，也不从同 URL 伪造新身份。
 - 本轮远端编辑环境无法访问用户的 Mac Chrome / Provider / 授权凭据。隔离 Node 环境的 helper 三条测试通过不等于当前 GitHub HEAD 的全仓组件测试，更不等于 Chrome 原生 PASS。
-- 四阶段证据目录各自独立。默认路径自动包含阶段与唯一运行 ID；若主动传入 \`OPENDESK_CLOUD_NATIVE_EVIDENCE\`，禁止复用已有报告目录。已存在 \`native-double-task-report.json\` 将在提交 Job 前以 \`E_EVIDENCE_EXISTS\` 失败，原文件不覆盖。
+- 四阶段证据目录各自独立。默认路径自动包含阶段与唯一运行 ID；若主动传入 `OPENDESK_CLOUD_NATIVE_EVIDENCE`，禁止复用已有报告目录。已存在 `native-double-task-report.json` 将在提交 Job 前以 `E_EVIDENCE_EXISTS` 失败，原文件不覆盖。
 - Cloud R3/R5.2 CI 的状态要按对应 commit 和 GitHub Actions 原始结论核查；queued 不是 PASS。历史开发环境单 Task / 关闭面板场景不替代本轮冻结生产构建的双 Task 证据。
 - 首先修确实失败的 Gate；不清空旧 Profile/Provider/IDB，不编辑其他 Agent 的工作，不用超时等待替代判断。
 
 Mac Codex 最短执行入口（由实际环境填写，不接受示例 ID 当真）：
 
-\`\`\`sh
+```sh
 cd /Users/shopme/Documents/workspace/opendesk-browser
 # 先确保 main 安全快进，无他人未提交改动；Node 与依赖真实可用
 node --check tests/cloud-control/native-double-task.mjs
@@ -94,9 +94,9 @@ require_status READY_FOR_NATIVE_TEST
 export OPENDESK_CLOUD_NATIVE_EVIDENCE="$EVIDENCE_ROOT/04-double-e2e"
 node tests/cloud-control/native-double-task.mjs
 require_status CLOUD_DOUBLE_TASK_E2E_PASS
-\`\`\`
+```
 
-四个报告分别为 \`$EVIDENCE_ROOT/01-single-preflight/native-double-task-report.json\`、\`02-single-smoke/...\`、\`03-double-preflight/...\`、\`04-double-e2e/...\`。每次新验收使用新的 \`EVIDENCE_ROOT\`；不要删除旧日志或覆盖历史证据。真实 Provider/SSL/Chrome CDP/手动授权不足时立即报告 \`BLOCKED_ENV\` 或 \`HUMAN_ACTION_REQUIRED\`，不得直接提交第一个 Task。
+四个报告分别为 `$EVIDENCE_ROOT/01-single-preflight/native-double-task-report.json`、`02-single-smoke/...`、`03-double-preflight/...`、`04-double-e2e/...`。每次新验收使用新的 `EVIDENCE_ROOT`；不要删除旧日志或覆盖历史证据。真实 Provider/SSL/Chrome CDP/手动授权不足时立即报告 `BLOCKED_ENV` 或 `HUMAN_ACTION_REQUIRED`，不得直接提交第一个 Task。
 
 ## 结果和止损
 
