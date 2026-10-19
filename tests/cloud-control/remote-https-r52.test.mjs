@@ -80,6 +80,19 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       {executorId,tasks:[pin],allowResult:false},admin.adminToken);
     const permittedResultClient=await local('/admin/client-grant',
       {executorId,tasks:[pin],allowResult:true},admin.adminToken);
+    // Read-only preflight must prove the exact pinned scope of the external
+    // token BEFORE any /v1/submit creates a Job or browser side effect.
+    const fullScope=await p('/v1/client-scope',{},permittedResultClient.credential);
+    assert.deepEqual(fullScope,{clientId:permittedResultClient.clientId,
+      providerId:executor.providerId,executorId,grantId,
+      tasks:[pin],allowResult:true});
+    assert.equal(JSON.stringify(fullScope).includes(permittedResultClient.credential),false);
+    assert.deepEqual(await p('/v1/client-scope',{},grant.credential),
+      {...fullScope,clientId:grant.clientId,allowResult:false});
+    await assert.rejects(p('/v1/client-scope',{},executor.credential),{code:'E_AUTH'});
+    await assert.rejects(p('/v1/client-scope',{},admin.adminToken),{code:'E_AUTH'});
+    await assert.rejects(p('/v1/client-scope',{jobId:'unrequested'},grant.credential),
+      {code:'E_SCHEMA'});
     // A normal Chrome user can issue and revoke a fixed Task client without
     // ever receiving the Provider's local Admin credential.
     const self=await p('/v1/client-grant',{grantId,tasks:[searchPin],
