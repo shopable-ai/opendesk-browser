@@ -90,7 +90,7 @@
   box-shadow:0 9px 26px #1d31502b}
 .sf-popup button{display:flex;align-items:center;gap:8px;min-height:37px;width:100%;
   border:0;border-radius:8px;background:transparent;color:var(--sf-ink);
-  font:600 12px/1.3 inherit;text-align:left;padding:7px 9px;cursor:pointer}
+  font:inherit;font-size:12px;font-weight:600;line-height:1.3;text-align:left;padding:7px 9px;cursor:pointer}
 .sf-popup button:hover,.sf-popup button:focus-visible{background:var(--sf-soft)}
 .sf-popup button.sf-danger{color:var(--od-negative,#b14453)}
 .sf-empty{font-size:12px;text-align:center;color:var(--sf-muted);border:1px dashed var(--sf-line);
@@ -140,3 +140,9 @@
 }
 @media(prefers-reduced-motion:reduce){.sf *{transition:none!important}}
 
+
+/* Preview-only attribute is set by the outer review shell; production follows OS. */
+.sf[data-preview-theme="dark"]{--sf-bg:#101722;--sf-paper:#192232;--sf-ink:#edf2fa;
+  --sf-muted:#b1bed0;--sf-line:#354359;--sf-brand:#86a8ff;--sf-input:#52617a;--sf-soft:#253146}
+.sf[data-preview-theme="light"]{--sf-bg:#f6f8fb;--sf-paper:#fff;--sf-ink:#1c2a3a;
+  --sf-muted:#657286;--sf-line:#e4e9f0;--sf-brand:#3864c4;--sf-input:#cbd4df;--sf-soft:#eff3fa}
