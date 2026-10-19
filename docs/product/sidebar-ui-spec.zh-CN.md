@@ -2,6 +2,8 @@
 
 > **唯一现行一级导航与产品术语说明**：以 `src/ui/tool.html`、`src/ui/extension-center.js`、`src/ui/extension-center-model.js` 和任务工作台为准。下方 R21/R5/R6 为历史存档。R27/R28/R30 负责视觉和子视图方法。本文本不构成实际 Chrome 验收证据。
 
+> 跨「开发 → 安装 → 扩展管理 → 发布」的所有权、Sidebar/Page/Task 真实包格式及公开上架状态，以[安装与发布所有权合同](../architecture/browser-framework/extension-installation-and-publishing-ownership.zh-CN.md)为准；本规范不将在线发布标为已实现。
+
 ## 正式五个一级 Tab
 
 | 一级 Tab | 当前职责 | 旧入口关系 |
