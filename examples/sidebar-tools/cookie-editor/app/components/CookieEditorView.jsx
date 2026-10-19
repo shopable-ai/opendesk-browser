@@ -17,6 +17,7 @@ const shapes={
   close:<path d="M6 6l12 12M18 6 6 18"/>,
   undo:<><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></>,
   check:<path d="m5 12 5 5L20 7"/>,
+  more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
   chevron:<path d="m7 10 5 5 5-5"/>,
   eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
@@ -165,13 +166,13 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
   </details>;
 }
 // Pure presentation shared by Preview and official React.
-export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh}){
+export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh,utilities}){
   return <header className="site-bar">
-    <span className="site-symbol"><CookieIcon name="globe"/></span>
-    <div className="site-name"><span>当前网站</span><strong title={site}>{site}</strong></div>
+    <strong className="site-hostname" title={site} aria-label={'网站 '+site}>{site}</strong>
     {loading&&<span className="site-status muted">读取中</span>}
-    {readonly&&<span className="site-status limited">仅查看</span>}
-    {syncStale&&<span className="site-status limited" title="自动更新失败，可点击刷新">未同步</span>}
+    {readonly&&<span className="site-status limited">只读</span>}
+    {syncStale&&<span className="site-status limited" title="自动同步暂不可用">未同步</span>}
+    {utilities}
     <Action name="refresh" label="刷新 Cookie" onClick={onRefresh}
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
@@ -258,7 +259,7 @@ export function CookieRows({
   </section>;
 }
 export function CookieEditorView({
-  site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,
+  site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,utilities=null,
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,
@@ -280,7 +281,7 @@ export function CookieEditorView({
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
   return <main className="cookie-react-view" aria-label="Cookie Editor">
-    <CookieSiteBar site={site} readonly={readonly} busy={busy}
+    <CookieSiteBar site={site} readonly={readonly} busy={busy} utilities={utilities}
       syncStale={syncStale} onRefresh={onRefresh}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
