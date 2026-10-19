@@ -137,6 +137,7 @@ export function CloudProgramInbox({model={}}){
             <p><strong>来源：</strong>{review.sourceOrigin} · {review.author}</p>
             <p><strong>网站：</strong>{review.siteOrigins?.join('、')}</p>
             <p><strong>权限：</strong>{review.permissions?.join('、')}</p>
+            <p><strong>依赖：</strong>此 Task Package v1 不声明外部 JS 依赖；源码使用浏览器已有的 Controller 能力。</p>
             <p className="cloud-program-hash">程序 SHA-256 {review.sourceHash}</p>
             <p className="cloud-program-hash">清单 SHA-256 {review.manifestHash}</p>
             <details className="od-disclosure od-disclosure--flat">
