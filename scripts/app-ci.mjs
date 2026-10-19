@@ -176,7 +176,14 @@ async function build(name){
   if(x.profile.build?.startsWith('node:'))run(process.execPath,[x.profile.build.slice(5)]);
   else if(await has(join(x.dir,'package.json'))){
     const pkg=JSON.parse(await readFile(join(x.dir,'package.json'),'utf8'));
-    if(pkg.scripts?.build)run('npm',['run','build','--prefix','examples/sidebar-tools/'+name]);
+    if(pkg.scripts?.build){
+      // Locked project-local Vue/React dependencies may not exist in root npm ci.
+      // Installation hooks are disabled; builds run only in read-only CI jobs.
+      if(await has(join(x.dir,'package-lock.json')))
+        run('npm',['ci','--prefix','examples/sidebar-tools/'+name,
+          '--ignore-scripts','--no-audit','--no-fund']);
+      run('npm',['run','build','--prefix','examples/sidebar-tools/'+name]);
+    }
     else if(x.meta.uiRuntime==='opendesk.react-ui.v1')fail('missing React compiler');
   }
   for(const script of x.profile.afterBuild||[])run(process.execPath,[script]);

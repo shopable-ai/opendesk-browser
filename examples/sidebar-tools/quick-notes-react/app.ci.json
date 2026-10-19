@@ -3,7 +3,8 @@
   "kind": "react",
   "host": "development",
   "afterBuild": [
-    "examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs"
+    "examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs",
+    "examples/sidebar-tools/quick-notes-react/scripts/ci-compare.mjs"
   ],
   "node": [
     "tests/environment/sidebar-quick-notes-react-r21.test.mjs",

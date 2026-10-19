@@ -56,13 +56,36 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           const r=JSON.parse(readFileSync(process.env.RUN_RECORD));
-          assert.equal(r.conclusion,'success','all required Linux, Chromium and native checks must pass');
+          assert.equal(r.status,'completed','the source run must finish');
           assert.equal(r.head_branch,'main');
           assert.ok(r.path?.startsWith('.github/workflows/app-ci.yml'),
             'the validated run must belong to the generic App CI');
           assert.equal(r.repository.full_name,process.env.GITHUB_REPOSITORY);
           assert.match(r.head_sha,/^[a-f0-9]{40}$/,'valid reviewed main commit');
           console.log('REVIEWED_APP_CI',r.id,r.head_sha,r.conclusion);
+          NODE
+          # A different App can fail in the same matrix. Inspect the selected
+          # App's own Linux/Chromium and native results, never trust run summary alone.
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/jobs?per_page=100" \
+            --jq '.jobs[] | [.name, .conclusion] | @tsv' > "$RUNNER_TEMP/app-jobs.tsv"
+          RUN_JOBS="$RUNNER_TEMP/app-jobs.tsv" node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync,existsSync} from 'node:fs';
+          const app=process.env.APP;
+          const rows=readFileSync(process.env.RUN_JOBS,'utf8').trim().split('\n')
+            .filter(Boolean).map(line=>line.split('\t'));
+          function passed(name){
+            const matches=rows.filter(row=>row[0]===name);
+            assert.equal(matches.length,1,'required CI job missing/duplicated: '+name);
+            assert.equal(matches[0][1],'success','required CI job not successful: '+name);
+          }
+          passed('discover');
+          passed('ci-contract');
+          passed('app-validate ('+app+')');
+          const profilePath='examples/sidebar-tools/'+app+'/app.ci.json';
+          const profile=existsSync(profilePath)?JSON.parse(readFileSync(profilePath,'utf8')):{};
+          if(profile.native)passed('native-macos-chrome ('+app+')');
+          console.log('REQUIRED_APP_GATES_PASS',app,profile.native?'real-macos-chrome':'standard');
           NODE
       - name: Fetch candidate and prove package identity; never execute third-party code
         shell: bash
