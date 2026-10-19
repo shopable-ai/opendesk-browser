@@ -103,7 +103,7 @@ async function snapshot(c,jobIds=[],assets=[]){
       'const rows=kv.filter(x=>x?.tag==="cloud-request-v1"&&wanted.includes(x.assignment?.jobId));'+
       'const runIds=rows.map(x=>x.runId);'+
       'const runs=allRuns.filter(x=>x?.tag==="controller-run"&&runIds.includes(x.runId));'+
-      'return {assets:buildAssets,sitePermissionGranted:await chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]}),'+
+      'return {assets:buildAssets,'+
       'contexts:(await chrome.runtime.getContexts({})).map(x=>({type:x.contextType,url:x.documentUrl,documentId:x.documentId})),'+
       'cloud:{providerId:config?.providerId,executorId:config?.executorId,grantId:config?.grantId,'+
         'enabled:config?.enabled===true,approved:(config?.tasks||[]).map(x=>({taskId:x.taskId,'+
@@ -134,6 +134,33 @@ function nativeContexts(info){
   const origin='chrome-extension://'+info.extensionId+'/';
   return {offscreen:info.contexts.filter(x=>x.type==='OFFSCREEN_DOCUMENT'&&x.url===origin+'cloud-control/runner.html'),
     panel:info.contexts.filter(x=>x.type==='SIDE_PANEL'&&x.url?.startsWith(origin+'sidepanel.html'))};
+}
+async function panelReadiness(c,info){
+  const panels=nativeContexts(info).panel;
+  assert.equal(panels.length,1,'Side Panel must be open for a read-only permission check');
+  const targets=(await c.send('Target.getTargets')).targetInfos.filter(t=>
+    ['page','other'].includes(t.type)&&panels.some(p=>p.url===t.url));
+  assert.equal(targets.length,1,'Real Side Panel CDP context missing for permission inspection');
+  const {sessionId}=await c.send('Target.attachToTarget',
+    {targetId:targets[0].targetId,flatten:true});
+  try{
+    await c.send('Runtime.enable',{},sessionId);
+    // chrome.permissions and chrome.userScripts are unavailable in Offscreen
+    // documents (which support chrome.runtime only). Inspect the existing,
+    // user-opened Side Panel, with no preference changes or Task execution.
+    return await evaluate(c,`(async()=>{
+      const sitePermissionGranted=await chrome.permissions.contains({
+        origins:["http://127.0.0.1:43111/*"]});
+      let userScriptsAvailable=false;
+      try{
+        if(typeof chrome.userScripts?.getScripts==="function"){
+          await chrome.userScripts.getScripts();
+          userScriptsAvailable=true;
+        }
+      }catch{}
+      return {sitePermissionGranted,userScriptsAvailable};
+    })()`,sessionId);
+  }finally{await c.send('Target.detachFromTarget',{sessionId}).catch(()=>{});}
 }
 async function closePanel(c,initial){
   const before=nativeContexts(initial);
@@ -261,8 +288,12 @@ async function main(){
       const localHash=createHash('sha256').update(await readFile(path.join(buildDir,asset.path))).digest('hex');
       assert.equal(asset.sha256,localHash,'Loaded Chrome asset differs from verified build: '+asset.path);
     }
-    if(before.sitePermissionGranted!==true)throw Object.assign(
+    const permissions=await panelReadiness(c,before);
+    if(permissions.sitePermissionGranted!==true)throw Object.assign(
       Error('Chrome site permission is not granted for the 43111 test origin'),
+      {code:'HUMAN_ACTION_REQUIRED'});
+    if(permissions.userScriptsAvailable!==true)throw Object.assign(
+      Error('Chrome Allow User Scripts is not enabled on the extension details page'),
       {code:'HUMAN_ACTION_REQUIRED'});
     report.stage='provider';
     const [registered,providerState,clientScope]=await Promise.all([
@@ -317,7 +348,8 @@ async function main(){
     report.steps.push({stage:'preflight',installed:tasks.length,cloudApproved:tasks.length,
       providerRegistered:tasks.length,clientTaskPins:tasks.length,
       clientResultConsent:true,providerConnected:true,
-      sitePermissionGranted:true,verifiedChromeAssets:assetNames,sidePanelOpen:true,offscreenPresent:true});
+      sitePermissionGranted:true,userScriptsAvailable:true,verifiedChromeAssets:assetNames,
+      sidePanelOpen:true,offscreenPresent:true});
     if(preflightOnly){
       const ready=smokeOnly?'READY_FOR_SMOKE':'READY_FOR_NATIVE_TEST';
       report.status=ready;
