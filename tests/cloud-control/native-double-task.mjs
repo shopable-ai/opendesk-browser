@@ -1,5 +1,6 @@
-// Actual Chrome/Provider acceptance. Requires two independently verified,
-// installed and Cloud-approved immutable Tasks; never forges a Host or Run.
+// Actual Chrome/Provider acceptance. Smoke requires one independently verified,
+// installed and Cloud-approved immutable Task; full E2E requires two.
+// Neither mode forges a Host or Run.
 // Chrome changes the original webpage; a passive observer records its DOM
 // before the existing Controller closes the owned tab during retirement.
 import assert from 'node:assert/strict';
@@ -192,14 +193,17 @@ function matchEvidence(native,job,status,pin,kind,expected,effects){
     pageEffect:kind,originalResultConfirmed:true};
 }
 async function main(){
-  const preflightOnly=process.argv[2]==='--preflight';
-  assert(!process.argv[2]||preflightOnly,'Only --preflight is supported');
+  const mode=process.argv[2]??null;
+  const preflightOnly=mode==='--preflight'||mode==='--smoke-preflight';
+  const smokeOnly=mode==='--smoke'||mode==='--smoke-preflight';
+  assert(mode===null||preflightOnly||smokeOnly,
+    'Only --preflight, --smoke-preflight and --smoke are supported');
   const report={status:'RUNNING',stage:'config',startedAt:new Date().toISOString(),
     gitSha:process.env.GITHUB_SHA||null,steps:[]},effects=[];
   let c,server;
   // Hard wall-clock stop for this owned Node verifier only. No Chrome,
   // Provider, profile, or unrelated process is terminated by this watchdog.
-  const wallClockMs=preflightOnly?60000:540000;
+  const wallClockMs=preflightOnly?60000:smokeOnly?300000:540000;
   const watchdog=setTimeout(()=>{
     report.status='BLOCKED';
     report.error={code:'E_NATIVE_WALL_CLOCK',stage:report.stage,
@@ -228,11 +232,11 @@ async function main(){
     const adminPort=Number(process.env.OPENDESK_CLOUD_NATIVE_ADMIN_PORT||43112);
     assert(Number.isInteger(adminPort)&&adminPort>0&&adminPort<=65535);
     const adminURL='http://127.0.0.1:'+adminPort+'/';
-    const tasks=[
-      await task('examples/tasks/form-fill.v1.opendesk-task.json'),
-      await task('examples/tasks/modern-search.v1.opendesk-task.json')
-    ];
-    assert.notEqual(tasks[0].taskId,tasks[1].taskId);
+    const tasks=[await task('examples/tasks/form-fill.v1.opendesk-task.json')];
+    if(!smokeOnly){
+      tasks.push(await task('examples/tasks/modern-search.v1.opendesk-task.json'));
+      assert.notEqual(tasks[0].taskId,tasks[1].taskId);
+    }
     // All reads below are side-effect free: never submit a Provider Job,
     // claim a Task, alter Chrome preferences, or create an Offscreen document.
     report.stage='chrome';
@@ -271,9 +275,15 @@ async function main(){
     assert.equal(clientScope.executorId,before.cloud.executorId,'External token belongs to another Executor');
     assert.equal(clientScope.grantId,before.cloud.grantId,'External token belongs to an older Cloud grant');
     assert.equal(clientScope.allowResult,true,'External client has no full result read consent');
-    assert.deepEqual([...clientScope.tasks].sort((a,b)=>a.taskId.localeCompare(b.taskId)),
-      [...tasks].sort((a,b)=>a.taskId.localeCompare(b.taskId)),
-      'External client lacks the two exact immutable Task pins');
+    if(smokeOnly){
+      assert(clientScope.tasks.some(candidate=>Object.entries(tasks[0]).every(
+        ([key,value])=>candidate[key]===value)),
+      'External client lacks the fixed Smoke Task pin');
+    }else{
+      assert.deepEqual([...clientScope.tasks].sort((a,b)=>a.taskId.localeCompare(b.taskId)),
+        [...tasks].sort((a,b)=>a.taskId.localeCompare(b.taskId)),
+        'External client lacks the two exact immutable Task pins');
+    }
     const executor=providerState.executors[clientScope.executorId];
     assert.equal(executor?.connected,true,'Provider has no connected browser Executor');
     for(const pin of tasks){
@@ -304,12 +314,14 @@ async function main(){
     try{
       await new Promise((ok,no)=>{probe.once('error',no);probe.listen(43111,'127.0.0.1',ok);});
     }finally{if(probe.listening)await new Promise(ok=>probe.close(ok));}
-    report.steps.push({stage:'preflight',installed:2,cloudApproved:2,providerRegistered:2,
-      clientTaskPins:2,clientResultConsent:true,providerConnected:true,
+    report.steps.push({stage:'preflight',installed:tasks.length,cloudApproved:tasks.length,
+      providerRegistered:tasks.length,clientTaskPins:tasks.length,
+      clientResultConsent:true,providerConnected:true,
       sitePermissionGranted:true,verifiedChromeAssets:assetNames,sidePanelOpen:true,offscreenPresent:true});
     if(preflightOnly){
-      report.status='READY_FOR_NATIVE_TEST';
-      console.log('READY_FOR_NATIVE_TEST '+JSON.stringify({extensionId:before.extensionId,
+      const ready=smokeOnly?'READY_FOR_SMOKE':'READY_FOR_NATIVE_TEST';
+      report.status=ready;
+      console.log(ready+' '+JSON.stringify({extensionId:before.extensionId,
         taskIds:tasks.map(x=>x.taskId),browser:report.chrome.product,
         buildAssetsVerified:assetNames.length,fixturePortAvailable:true}));
       return;
@@ -352,6 +364,16 @@ async function main(){
     }
     const form='NativeForm-'+randomUUID().slice(0,10);
     const a=await execute(tasks[0],{name:form},'form',form);
+    // Gate C checks one original Run/Result, Provider receipt and independent
+    // DOM effect. Never close the panel or submit the second Job before it passes.
+    if(smokeOnly){
+      report.stage='complete';report.status='CLOUD_SINGLE_TASK_SMOKE_PASS';
+      console.log('CLOUD_SINGLE_TASK_SMOKE_PASS '+JSON.stringify({
+        chrome:report.chrome.product,extensionId:report.extensionId,
+        taskId:a.taskId,jobId:a.jobId,runId:a.runId,resultId:a.resultId,
+        receiptId:a.receiptId,pageEffect:a.pageEffect}));
+      return;
+    }
     before=await closePanel(c,await snapshot(c,jobIds));
     report.steps.push({stage:'closed-side-panel',offscreenPresent:nativeContexts(before).offscreen.length===1,
       sidePanelOpen:false});
