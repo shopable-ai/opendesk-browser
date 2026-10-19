@@ -16,7 +16,8 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOO
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
-import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
+import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
+import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
@@ -130,6 +131,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
   const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
   let pendingAction=null,pendingPage=null;
+  const cookieImportGate=createCookieImportIntentGate();
   const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
   const pageInstallStatus=view.fields["page-install-import-status"];
   const pageInstallReceipt=view.fields["page-install-import-receipt"];
@@ -386,6 +388,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
      (source===trustedBookmarkSource&&active.id===TRUSTED_BOOKMARK_ID&&
       (nativePending||nativeUI?.kind==='bookmark')));
   const toolById=id=>installed.find(row=>row.id===id);
+  // A matching ID or user-supplied hash alone NEVER grants silent writes.
+  // Bind to the installed, enabled, signed-off official release and epoch.
+  async function admittedOfficialCookieImport(tool,expectedEpoch){
+    if(tool?.id!=='cookie-editor'||!tool.capabilities?.includes('browser.cookies.write'))
+      return false;
+    const release=officialReleases.find(row=>row.toolId==='cookie-editor');
+    if(!release||release.version!==tool.version)return false;
+    const state=await api.storage.local.get([
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+    const current=requireCompleteInstalledSidebarTools(state[SIDEBAR_TOOL_STORE]);
+    const installed=current.some(row=>sameSidebarToolPackage(row,tool));
+    const grant=state[MARKET_PROVENANCE_STORE]?.[tool.id];
+    const enabled=sidebarToolEnabled(state[SIDEBAR_TOOL_ENABLE_STORE],tool.id);
+    const epoch=state[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
+    return installed&&enabled&&epoch===expectedEpoch&&
+      grant?.marketId===release.id&&grant?.version===release.version&&
+      grant?.sha256===release.sha256&&await matchesOfficialRelease(release,tool);
+  }
+  const cookieImportOwner=(tool,token,epoch)=>JSON.stringify([tool.id,tool.version,token,epoch]);
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
   function cancelActionReview(){
@@ -848,7 +869,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
-  function suspendTool() {cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {cookieImportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
@@ -1065,7 +1086,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false) {
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
@@ -1078,6 +1099,35 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read'))
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
+    }
+    // The trusted parent samples browser userActivation synchronously on the
+    // original sandbox message. No untrusted argument can claim a gesture.
+    if(operation==='cookieEditor.import.begin'){
+      if(!verifiedGesture)
+        throw Object.assign(new Error('请通过导入按钮重新选择文件或提交文本'),
+          {code:'E_USER_GESTURE_REQUIRED'});
+      if(!payload||Object.keys(payload).join(',')!=='url'||
+         typeof payload.url!=='string'||!tool.capabilities.includes('browser.cookies.write'))
+        throw Object.assign(new Error('无效的 Cookie 导入操作'),{code:'E_SCHEMA'});
+      const origin=websiteOrigin(payload.url);
+      if(!origin||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
+         cookieSiteRecord(tool,origin)?.write!==true)
+        throw Object.assign(new Error('请先在当前网站授权 Cookie 写入'),
+          {code:'E_SITE_GRANT_REQUIRED'});
+      if(!await admittedOfficialCookieImport(tool,revocationEpoch))
+        throw Object.assign(new Error('仅正式 Cookie Editor 可使用一键导入'),
+          {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+      assertSession(source,token);
+      if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
+         cookieSiteRecord(tool,origin)?.write!==true)
+        throw Object.assign(new Error('网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
+      return cookieImportGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
+        origin,verifiedUserActivation:verifiedGesture});
+    }
+    if(operation==='cookieEditor.import.finish'){
+      if(payload&&Object.keys(payload).length)
+        throw Object.assign(new Error('无效的结束操作'),{code:'E_SCHEMA'});
+      return cookieImportGate.close(cookieImportOwner(tool,token,revocationEpoch));
     }
     // Browser SDK requests use the same sandbox instance and installation
     // check, but cross the trusted Chrome host without acquiring a UI lock
@@ -1098,6 +1148,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
       const packageHash=await sidebarToolPackageHash(tool);
       assertSession(source,token);
+      let importBatchOwner=null;
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
@@ -1284,31 +1335,72 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             '请通过上方可信 Cookie 网站权限区授权 '+requiredCookieGrant+'；未保存草稿可保留'),
           {code:'E_SITE_GRANT_REQUIRED'});
         }
-        const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
-          operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
-          operation==='browser.cookies.remove'?'删除指定 Cookie':
-          operation==='browser.cookies.setMany'?'批量写入 '+payload.cookies.length+' 条 Cookie':'写入指定 Cookie';
-        const ref=await requestBrowserClick({toolId:tool.id,
-          message:'「'+tool.title+'」请求在 '+origin+' '+kind+
-            '。将仅使用当前已授权的 Cookie Store/Partition。本次操作不可自动重试。',
-          button:'确认本次 Cookie 操作',run:async event=>{
-            if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
-            assertSession(source,token);
-            const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
-              operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
-              installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
-              targetOperation:operation,targetArgs:payload||{}});
-            if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Cookie intent denied'),{
-              code:approval?.error?.code||'E_BROWSER'});
-            return approval.data.approvalRef;
-          }});
-        assertSession(source,token);
-        envelope.approvalRef=ref;
+        // Only the official Cookie Editor may consume a trusted one-click
+        // import intent; all other callers still see the original Host review.
+        // This trusted branch mints an EXACT one-shot Host approval per chunk.
+        if(operation==='browser.cookies.setMany'&&tool.id==='cookie-editor'&&
+          await admittedOfficialCookieImport(tool,revocationEpoch)){
+          assertSession(source,token);
+          const owner=cookieImportOwner(tool,token,revocationEpoch);
+          if(cookieImportGate.acquire({owner,origin,count:payload.cookies.length})){
+            importBatchOwner=owner;
+            try{
+              if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
+                 cookieSiteRecord(tool,origin)?.write!==true)
+                throw Object.assign(new Error('网站或写入授权已改变'),
+                  {code:'E_DOCUMENT_CHANGED'});
+              const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+                operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+                installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
+                targetOperation:operation,targetArgs:payload||{}});
+              if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
+                throw Object.assign(new Error(approval?.error?.message||'可信 Host 拒绝本次写入'),
+                  {code:approval?.error?.code||'E_BROWSER'});
+              assertSession(source,token);
+              envelope.approvalRef=approval.data.approvalRef;
+            }catch(error){cookieImportGate.revoke();throw error;}
+          }
+        }
+        if(!importBatchOwner){
+          const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
+            operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
+            operation==='browser.cookies.remove'?'删除指定 Cookie':
+            operation==='browser.cookies.setMany'?'批量写入 '+payload.cookies.length+' 条 Cookie':'写入指定 Cookie';
+          const ref=await requestBrowserClick({toolId:tool.id,
+            message:'「'+tool.title+'」请求在 '+origin+' '+kind+
+              '。将仅使用当前已授权的 Cookie Store/Partition。本次操作不可自动重试。',
+            button:'确认本次 Cookie 操作',run:async event=>{
+              if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
+              assertSession(source,token);
+              const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+                operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+                installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
+                targetOperation:operation,targetArgs:payload||{}});
+              if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Cookie intent denied'),{
+                code:approval?.error?.code||'E_BROWSER'});
+              return approval.data.approvalRef;
+            }});
+          assertSession(source,token);
+          envelope.approvalRef=ref;
+        }
       }
-      const reply=await api.runtime.sendMessage(envelope);
-      assertSession(source,token);
-      if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
-        code:reply?.error?.code||'E_BROWSER'});
+      let reply;
+      try{
+        reply=await api.runtime.sendMessage(envelope);
+        assertSession(source,token);
+        if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
+          code:reply?.error?.code||'E_BROWSER'});
+        if(importBatchOwner){
+          const receipts=reply.data?.results;
+          const complete=Array.isArray(receipts)&&receipts.length===payload.cookies.length&&
+            receipts.every((row,index)=>row?.index===index&&row.saved===true&&row.verified===true);
+          cookieImportGate.settle({owner:importBatchOwner,
+            count:payload.cookies.length,confirmed:complete});
+        }
+      }catch(error){
+        if(importBatchOwner)cookieImportGate.revoke();
+        throw error;
+      }
       if(browserExport){
         if(reply.data?.authorized!==true)
           throw Object.assign(new Error('Browser Host did not authorize this exact export'),{code:'E_OWNER'});
@@ -1713,6 +1805,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
+    const verifiedGesture=message.operation==='cookieEditor.import.begin'&&
+      globalThis.navigator?.userActivation?.isActive===true;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
@@ -1727,13 +1821,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.operation==='knowledge.editorState'){
       // Set the guard immediately; do not queue it behind content operations.
-      void dispatch(message.operation,message.payload,tool,source,token,revocationEpoch).then(result=>reply(true,result),error=>reply(false,null,error));
+      void dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture).then(result=>reply(true,result),error=>reply(false,null,error));
       return;
     }
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
-    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token,revocationEpoch));
+    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture));
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
       if(!readOnlyPreview){
@@ -1756,6 +1850,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // SW may record a genuine install intent while the first-party UI is open.
     if(changes?.[DEFAULT_PREINSTALL_STORE]?.newValue?.state==='pending')
       void runDefaultPreinstall();
+    if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,
+      MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes||{},key)))
+      cookieImportGate.revoke();
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
       if(pendingAction?.cancel)cancelActionReview();
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
@@ -2722,7 +2819,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   render();
   return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
-    cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
+    cookieImportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();
     for(const release of listeners.splice(0))release();
     queued.clear();

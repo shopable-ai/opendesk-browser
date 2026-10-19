@@ -2,28 +2,51 @@ import './model.js';
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
+import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
-:host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif}
+:host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif;
+ --od-rail-bg:#fff;--od-rail-border:#e9e9eb;--od-rail-shadow:0 6px 24px #18243b15;
+ --od-button-bg:#f4f5f7;--od-button-fg:#303642;--od-button-hover:#e9edf7;--od-focus:#3b6ff5;
+ --od-pop-bg:#fff;--od-pop-fg:#263347;--od-pop-border:#d9dbe2}
+:host(.dark){color-scheme:dark;--od-rail-bg:#303239;--od-rail-border:#383838;--od-rail-shadow:0 8px 26px #0005;
+ --od-button-bg:#444851;--od-button-fg:#f4f5f8;--od-button-hover:#525866;--od-focus:#91b0ff;
+ --od-pop-bg:#20242b;--od-pop-fg:#ebedf1;--od-pop-border:#373c45}
 :host([hidden]){display:none!important}
-.rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:8px;max-height:min(248px,calc(100vh - 24px));overflow-y:auto;overflow-x:hidden;width:48px;padding:4px;border-radius:12px;background:transparent;scrollbar-width:thin;overscroll-behavior:contain}
-button{font:inherit;cursor:pointer;color:#293549;background:#fff;border:1px solid #d9dbe2;border-radius:10px;outline-offset:2px;box-sizing:border-box;box-shadow:0 2px 7px #00000011}
-button:focus-visible{outline:2px solid #365eda}
-button:hover{background:#eef2ff;border-color:#365eda}
-.item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:38px;height:38px;min-height:38px;padding:3px;font-weight:650;font-size:12px;line-height:1.05}
-/* Narrow screens retain the same buttons; overflow is scrollable within the rail. */
-.tip{pointer-events:auto;position:absolute;left:60px;top:0;width:360px;max-width:calc(100vw - 80px);max-height:min(340px,calc(100vh - 24px));overflow:auto;overscroll-behavior:contain;background:#fff;color:#263347;border:1px solid #ccd2df;border-radius:12px;box-shadow:0 10px 32px #00000028;padding:13px 15px;overflow-wrap:anywhere}
+.rail{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:5px;
+ max-height:min(248px,calc(100vh - 16px));overflow-y:auto;overflow-x:hidden;
+ width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
+ background:var(--od-rail-bg);border:1px solid var(--od-rail-border);
+ box-shadow:var(--od-rail-shadow);scrollbar-width:thin;overscroll-behavior:contain;box-sizing:border-box}
+.rail.horizontal{flex-direction:row;max-height:none;overflow-x:auto;overflow-y:hidden}
+button{font:inherit;cursor:pointer;color:var(--od-button-fg);background:var(--od-button-bg);
+ border:1px solid transparent;border-radius:11px;outline-offset:2px;box-sizing:border-box;
+ box-shadow:none;user-select:none}
+button:focus-visible{outline:2px solid var(--od-focus)}
+button:hover{background:var(--od-button-hover);border-color:#a4b9ef66}
+button:active{transform:scale(.95)}
+.item,.brand{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;
+ gap:2px;width:38px;height:38px;min-width:38px;min-height:38px;padding:3px;
+ font-weight:700;font-size:13px;line-height:1.05}
+.brand{background:#336bf4;border-color:#2c60dc;color:#fff;font-size:12px;
+ font-weight:850;letter-spacing:-.8px}
+.brand:hover{background:#245de8;border-color:#245de8}
+.tip{pointer-events:auto;position:absolute;left:64px;top:0;width:248px;
+ max-width:calc(100vw - 24px);max-height:min(240px,calc(100vh - 24px));
+ overflow:auto;overscroll-behavior:contain;background:var(--od-pop-bg);color:var(--od-pop-fg);
+ border:1px solid var(--od-pop-border);border-radius:13px;box-shadow:0 10px 32px #00000028;
+ padding:13px 15px;overflow-wrap:anywhere}
 .tip strong{display:block;margin-bottom:8px;font-size:13px}
 .tip pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0;font:12px/1.7 system-ui,sans-serif}
-/* No blocking fallback dialog: status is announced without changing focus. */
-.feedback{pointer-events:none;position:absolute;left:60px;top:0;width:min(300px,calc(100vw - 84px));
- background:#fff;color:#263347;border:1px solid #d9dbe2;border-radius:10px;box-shadow:0 7px 20px #0000001b;
+.feedback{pointer-events:none;position:absolute;left:64px;top:0;width:min(300px,calc(100vw - 24px));
+ background:var(--od-pop-bg);color:var(--od-pop-fg);border:1px solid var(--od-pop-border);
+ border-radius:10px;box-shadow:0 7px 20px #0000001b;
  padding:10px 38px 10px 12px;font:12px/1.55 system-ui,sans-serif;overflow-wrap:anywhere}
 .feedback button{pointer-events:auto;position:absolute;right:4px;top:4px;width:28px;height:28px;
  min-height:28px;display:grid;place-items:center;padding:0;background:transparent;color:inherit;
  border:0;border-radius:6px;box-shadow:none;font:20px/1 system-ui,sans-serif}
-.feedback[data-kind="error"]{color:#992f42;border-color:#d79ba6}
+.feedback[data-kind="error"]{color:#b94b5c;border-color:#d79ba6}
 .feedback[data-kind="success"]{color:#157255;border-color:#9accbc}
 .feedback[hidden]{display:none!important}
 .announcer{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;
@@ -345,8 +368,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         content={left:box.left,top:box.top,width:box.width,height:box.height};
       }
     }
-    if(content)return content;
-    return right-left>=200?{left,top:rect.top,width:right-left,height:rect.height}:null;
+    if(content)return {...content,safeLeft:left};
+    return right-left>=200?{left,top:rect.top,width:right-left,height:rect.height,safeLeft:left}:null;
   };
   const observeRoot=()=>{
     // React can replace body/html without changing the URL. Rebind the existing
@@ -359,34 +382,53 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       attributeFilter:['class','style','hidden','aria-hidden','inert']});
     observedRoot=root;
   };
+  const darkTheme=()=>{
+    const root=doc.documentElement;
+    return root?.classList?.contains?.('dark')||root?.getAttribute?.('data-theme')==='dark'||
+      win.getComputedStyle?.(root)?.colorScheme==='dark';
+  };
   const layout=()=>{
     layoutTimer=0;if(!host||!visible||paused||disposed)return;
     if(href!==win.location.href){void refresh();return;}
     observeRoot();
-    // Route transitions detach previously measured nodes. Do not retain their
-    // ResizeObserver registrations across conversations indefinitely.
     for(const old of observedRegions){
       if(old.isConnected)continue;
       resizeObserver?.unobserve?.(old);observedRegions.delete(old);
     }
-    const rect=mainRegion();if(!rect||(activeRule&&!checkedEditor())){host.hidden=true;return;}
-    // React/SPA DOM replacement can remove the extension-owned host. Keep
-    // its existing closed shadow root/listeners and attach it exactly once.
+    const rect=mainRegion(),target=editor();
+    if(!rect||!target||(activeRule&&!checkedEditor())){host.hidden=true;return;}
     if(!host.isConnected){
       doc.documentElement?.append(host);
       if(!host.isConnected)return;
     }
-    host.hidden=false;
-    const left=Math.max(4,Math.min(win.innerWidth-52,Math.round(rect.left+12)));
-    // A long history can extend far beyond the viewport. Center within the
-    // visible conversation slice, not the entire scrolling document height.
-    const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
-    const top=Math.max(28,Math.min(win.innerHeight-28,Math.round((visibleTop+visibleBottom)/2)));
-    if(host.style.left!==left+'px')host.style.left=left+'px';
-    if(host.style.top!==top+'px')host.style.top=top+'px';
-    host.style.transform='translateY(-50%)';
-    // Do not introduce a new expand/collapse control on narrow pages.
+    host.classList.toggle('dark',!!darkTheme());
+    const targetRect=target.getBoundingClientRect?.();
+    if(!targetRect||targetRect.left>=win.innerWidth||targetRect.top>=win.innerHeight){host.hidden=true;return;}
+    // The live editor and measured navigation edge determine the LEFT gutter.
+    const verticalWidth=rail.scrollWidth||52;
+    const safeLeft=rect.safeLeft??rect.left;
+    const left=targetRect.left-verticalWidth-12;
+    const vertical=win.innerWidth>=600&&left>=Math.max(8,safeLeft+8)&&
+      left+verticalWidth+10<=targetRect.left&&targetRect.width>=200;
+    rail.classList.toggle('horizontal',!vertical);
     rail.classList.toggle('narrow',rect.width<680);
+    if(vertical){
+      const visibleTop=Math.max(0,rect.top),visibleBottom=Math.min(win.innerHeight,rect.top+rect.height);
+      const railHeight=Math.min(rail.scrollHeight||222,win.innerHeight-16);
+      const center=(visibleTop+visibleBottom)/2;
+      const top=Math.max(8+railHeight/2,Math.min(win.innerHeight-8-railHeight/2,center));
+      host.style.left=Math.round(left)+'px';host.style.top=Math.round(top)+'px';
+      host.style.transform='translateY(-50%)';host.hidden=false;
+    }else{
+      // At small widths, LEFT align above the composer; never jump to the right.
+      const width=rail.scrollWidth||Math.min(250,52+items.length*43);
+      const height=rail.offsetHeight||52;
+      const top=targetRect.top-height-18;
+      if(top<8||width>win.innerWidth-16){host.hidden=true;hideTip();return;}
+      const alignedLeft=Math.max(8,Math.min(targetRect.left,win.innerWidth-width-8));
+      host.style.left=Math.round(alignedLeft)+'px';host.style.top=Math.round(top)+'px';
+      host.style.transform='none';host.hidden=false;
+    }
     positionTip();
   };
   const schedule=()=>{if(!layoutTimer)layoutTimer=win.setTimeout(layout,120);};
@@ -404,16 +446,23 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     },150);
   };
   const positionTip=()=>{
-    if(!tip||tip.hidden||!tipOwner||!host?.isConnected)return;
+    if(!tip||tip.hidden||!tipOwner||!host?.isConnected||host.hidden)return;
     if(!tipOwner.isConnected){hideTip();return;}
     const hostRect=host.getBoundingClientRect(),buttonRect=tipOwner.getBoundingClientRect();
-    const tipHeight=tip.getBoundingClientRect().height||240;
+    const tipRect=tip.getBoundingClientRect(),tipHeight=tipRect.height||220;
+    if(rail.classList.contains?.('horizontal')){
+      const freeAbove=buttonRect.top-tipHeight-8;
+      tip.style.top=Math.round((freeAbove>=8?freeAbove:buttonRect.bottom+8)-hostRect.top)+'px';
+      tip.style.left=Math.round(Math.max(8-hostRect.left,
+        Math.min(buttonRect.left-hostRect.left,win.innerWidth-hostRect.left-(tipRect.width||248)-8)))+'px';
+      tip.style.right='auto';return;
+    }
     const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
     const minTop=12-hostRect.top;
     tip.style.top=Math.round(Math.max(minTop,Math.min(buttonRect.top-hostRect.top-12,maxTop)))+'px';
-    const freeRight=win.innerWidth-hostRect.left-60;
-    tip.style.left=freeRight<260?'auto':'60px';
-    tip.style.right=freeRight<260?'55px':'auto';
+    const freeRight=win.innerWidth-hostRect.left-64;
+    tip.style.left=freeRight<260?'auto':'64px';
+    tip.style.right=freeRight<260?'59px':'auto';
   };
   const showTip=(row,button)=>{
     if(!tip||!host||!host.isConnected)return;
@@ -562,6 +611,28 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     }
     finally{inserting=false;}
   }
+  const openSidebar=event=>{
+    if(event?.isTrusted!==true||disposed||paused||!visible||!host?.isConnected||
+      host.hidden||!supportedOrigin(win.location.href))return;
+    hideTip();
+    if(typeof api.runtime?.sendMessage!=='function'){
+      showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');return;
+    }
+    try{
+      // User activation must cross to the existing worker without async preflight.
+      Promise.resolve(api.runtime.sendMessage({
+        protocol:PROMPT_RAIL_OPEN_PROTOCOL,expectedUrl:win.location.href
+      })).then(reply=>{
+        if(!disposed&&!paused&&visible&&host?.isConnected&&!host.hidden&&
+          reply?.ok!==true)showFeedback('未能打开侧边栏，请点击浏览器工具栏的 OpenDesk 图标','error');
+      },()=>{
+        if(!disposed&&!paused&&host?.isConnected&&!host.hidden)
+          showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');
+      });
+    }catch{
+      showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');
+    }
+  };
   function render(){
     if(!visible)return;
     if(!host){
@@ -585,6 +656,12 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
     rail.replaceChildren();
+    if(supportedOrigin(win.location.href)){
+      const brand=doc.createElement('button');brand.type='button';brand.className='brand';
+      brand.textContent='OD';brand.title='打开 OpenDesk 侧边栏';
+      brand.setAttribute('aria-label','打开 OpenDesk 侧边栏');
+      brand.addEventListener('click',openSidebar);rail.append(brand);
+    }
     for(const row of items){
       const button=doc.createElement('button');button.type='button';
       button.className='item';
@@ -628,11 +705,11 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       const library=model.load(values[PROMPT_DATA_STORE]?.library);
       if(!library.settings.webButtons){stop();return;}
       const rows=library.items.filter(item=>item.enabled);
-      if(!rows.length){stop();return;}
+      if(!rows.length&&!supportedOrigin(url)){stop();return;}
       readFailures=0;
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
-      items=rows;visible=true;render();
+      items=rows.slice(0,4);visible=true;render();
       if(!observer){
         observer=new win.MutationObserver(records=>{
           if(records.every(record=>record.target===host||host?.contains(record.target)))return;
