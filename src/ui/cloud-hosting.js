@@ -169,7 +169,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         emptyText:requestError||'此页暂无请求记录',pageText,
         canPrev:!busy&&!requestError&&requestOffset>0,canNext:!busy&&!requestError&&nextOffset!==null,
         detail:sample?{key:requestDisplayKey(selected),title:sample.title,state:[sample.state,sample.run].join(' · '),
-          requestId:selected?.requestId||'',jobId:selected?.jobId||'',canStopThis:!busy&&selected?.canStopThis===true&&!!selected.requestKey,
+          requestId:selected?.requestId||'',jobId:selected?.jobId||'',resultId:selected?.resultId||'',canStopThis:!busy&&selected?.canStopThis===true&&!!selected.requestKey,
           facts:[sample.result,sample.settlement,sample.receipt].join(' · '),reason:sample.reason||'暂无其他状态信息。',
           runId:runId||'尚无可核对的原始 Run',canOpenRun:!!runId,
           note:requestActionFeedback||(runId?'仅在本机可信「开发 → 运行记录」读取原始数据，不会重新执行。':'请求尚未绑定原始 Run；状态未知时请勿重新执行。')}:null,
@@ -187,7 +187,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
           const row=selectedRow();
           if(!row?.requestKey||row.canStopThis!==true)throw {code:'E_CLOUD_FENCED'};
           const stopped=await cloud.cloudCancelRequest({requestId:row.requestId,requestKey:row.requestKey});
-          requestActionFeedback=stopped.alreadyFinished?'原请求已结束，未执行取消。':
+          requestActionFeedback=stopped.alreadyFinished?(stopped.stopRequested?
+            'Provider 已保存原回执；本地停止请求不代表结果或网页效果被撤回。':
+            '原请求已结束，未执行取消。'):
             stopped.outcomeUnknown?'原 Run 的网页效果待核对，不能重放，也不能宣称已撤回。':
             stopped.providerConfirmed?'已请求停止原 Run，Provider 已确认；最终以原运行状态为准。':
               '已请求停止原 Run，Provider 取消待确认；不会重新执行任务。';

@@ -188,9 +188,15 @@ test('Provider cancels exactly one assignment and preserves next authorized Job'
   assert.equal((await h.post('/v1/cancellation',{assignmentId:second.assignmentId})).cancelled,false);
   await assert.rejects(h.post('/v1/renew',{assignmentId:first.assignmentId,
     permitId:permit.permitId}),{code:'E_LEASE'});
+  const secondRef=runRefFor(second);
   const another=await h.post('/v1/admission',{assignmentId:second.assignmentId,
-    runRef:runRefFor(second)});
+    runRef:secondRef});
   assert.equal(another.assignmentId,second.assignmentId);
+  await h.post('/v1/receipt',{assignmentId:second.assignmentId,
+    receiptKey:secondRef.resultId,runRef:secondRef,
+    result:{visibility:'status-only',state:'completed',retirementState:'released'}});
+  assert.deepEqual(await h.post('/v1/cancel',{assignmentId:second.assignmentId}),
+    {cancelled:false,alreadyFinished:true},'A completed Job cannot be cancelled');
   await assert.rejects(h.post('/v1/cancel',{...cancel,binding:{...bindingFor(first),jobId:second.jobId}}),
     {code:'E_BINDING'});
   await h.restart();

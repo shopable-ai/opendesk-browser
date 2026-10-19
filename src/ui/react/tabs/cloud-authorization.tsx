@@ -82,7 +82,9 @@ export function CloudTaskAuthorization({model={}}){
                   ?'旧云控批准不再匹配当前安装身份。请停止当前托管，重新检查任务的网站和参数后批准。'
                   :task.eligible?'该任务可供选择，但尚未批准远程执行。'
                     :'该任务尚不可批准，请先在「我的」启用并完成版本验证。'}</p>
-              <pre>{JSON.stringify({key:task.key,version:task.version},null,2)}</pre>
+              <pre>{JSON.stringify({taskId:task.taskId,version:task.version,
+                installationId:task.installationId,generation:task.generation,
+                manifestHash:task.manifestHash,sourceHash:task.sourceHash},null,2)}</pre>
             </details>
           </section>;
         }):busy?<p className="hint">正在读取已安装任务…</p>:<>

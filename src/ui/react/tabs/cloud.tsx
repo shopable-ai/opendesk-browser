@@ -272,6 +272,7 @@ export function CloudRequestHistory({model={}}){
         <div className="hint">云请求</div><pre id="cloud-request-detail-request-id">{detail?.requestId||''}</pre>
         <div className="hint">Provider Job</div><pre id="cloud-request-detail-job-id">{detail?.jobId||''}</pre>
         <div className="hint">本地 Run</div><pre id="cloud-request-detail-run-id">{detail?.runId||''}</pre>
+        <div className="hint">本地 Result（编号不代表已保存）</div><pre id="cloud-request-detail-result-id">{detail?.resultId||''}</pre>
       </details>
       <button id="cloud-request-stop-this" type="button"
         className="od-button od-button--secondary" disabled={!detail?.canStopThis}

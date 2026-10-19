@@ -326,6 +326,23 @@ test('fixed-Task single cancellation fences only the original Run, not hosting o
   assert.notEqual(secondRow.assignment.jobId,current.assignment.jobId);
   assert.equal((await providerPost(f.provider,'/v1/cancellation',{
     assignmentId:secondRow.assignment.assignmentId},f.credential)).cancelled,false);
+  const settledRun={...runFor({...secondRow,
+    runRef:{runId:randomUUID(),resultId:randomUUID()}}),
+    paramsWire:encodeValue(secondRow.params)};
+  await storage.transaction([KV,'runs','commandJournal','results'],'readwrite',async tx=>{
+    await service.bind(tx,settledRun,{cloudRequestId:secondRow.requestId},host);
+    settledRun.state='completed';settledRun.retirementState='released';
+    await tx.put('runs',settledRun,settledRun.runId);
+    await tx.put('results',{tag:'controller-result',runId:settledRun.runId,
+      resultId:settledRun.resultId,namespace,state:'completed',
+      outcome:{ok:true}},settledRun.resultId);
+  });
+  const alreadyFinished=await service.cloudCancelRequest({
+    requestId:secondRow.requestId,requestKey:secondRow.storageKey},sender);
+  assert.equal(alreadyFinished.alreadyFinished,true);
+  assert.equal(alreadyFinished.stopRequested,false,'Original durable Result wins over late Stop');
+  assert.equal((await providerPost(f.provider,'/v1/cancellation',{
+    assignmentId:secondRow.assignment.assignmentId},f.credential)).cancelled,false);
 });
 
 test('remote runRef without local row blocks cached claim replay instead of creating a second Browser row',async t=>{

@@ -184,7 +184,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
               !['completed','failed','stopped','interrupted','paused_unknown'].includes(run?.state),
             taskTitle:title,state:r.state,runState:run?.state??null,retirementState:run?.retirementState??null,reason:r.reason??null,outcomeUnknown:await unknownOutcome(tx,run,operations),
             receipt:r.receipt?true:null,targetReady:!!run?.target&&run.retirementState!=='released',
-            ...(originalRunId?{runId:originalRunId}:{})});
+            ...(originalRunId?{runId:originalRunId,resultId:run?.resultId??null}:{})});
         }
         projected.reverse(); // Existing Side Panel shows the newest sample first.
       }
@@ -351,11 +351,12 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     // Fence the exact durable request/Run first. The existing registered
     // RunHost receives controller-fenced; no draft stop authority is widened.
     await fence(pinned.row,'E_CLOUD_CANCELLED');
-    let providerConfirmed=false;
+    let providerConfirmed=false,remoteAlreadyFinished=false;
     try{
       const ack=await post(pinned.config,'cancel',{
         assignmentId:pinned.row.assignment.assignmentId,...requestBinding(pinned.row)});
-      providerConfirmed=ack.cancelled===true||ack.alreadyFinished===true;
+      remoteAlreadyFinished=ack.alreadyFinished===true;
+      providerConfirmed=ack.cancelled===true||remoteAlreadyFinished;
     }catch{/* Persisted intent is retried through normal reconciliation. */}
     return scoped(sender,async tx=>{
       const row=await tx.get(KV,rowKey(pinned.row));
@@ -366,7 +367,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       return {requestId:pinned.row.requestId,runId:row?.runId??null,
         state:row?.state??'OUTCOME_UNKNOWN',runState:run?.state??null,
         stopRequested:true,providerConfirmed:row?.remoteCancelConfirmed===true,
-        outcomeUnknown:row?.state==='OUTCOME_UNKNOWN',alreadyFinished:false};
+        outcomeUnknown:row?.state==='OUTCOME_UNKNOWN',alreadyFinished:remoteAlreadyFinished};
     },'readwrite');
   }
   async function fence(request,reason){
