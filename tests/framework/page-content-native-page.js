@@ -447,6 +447,52 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?30:14)&&cases.every(row=>row.ok)};
+  // Gate native acceptance by named scenarios, not a stale magic count.
+  // This catches omissions, duplicates and accidental no-op fixtures in addition to individual failures.
+  const requiredBaseCases=[
+    "playwright-standard-content",
+    "playwright-user-code-can-process-large-content",
+    "complete-HTML-is-ordinary-return-value-when-under-result-budget",
+    "oversized-business-result-fails-clearly-not-as-unknown",
+    "r13-real-chrome-staged-locator-form",
+    "r13-real-chrome-duplicate-refusal",
+    "reject-nonstandard-page-content-options",
+    "controller-default-builtins-without-import",
+    "controller-user-example-controllerSingle-native",
+    "controller-user-example-controllerESM-native",
+    "controller-denies-undeclared-cross-origin",
+    "controller-authorized-axiosx-real-cross-origin-get",
+    "controller-authorized-axiosx-real-cross-origin-post",
+    "controller-real-axios-zero-arg-broker-get-and-interceptors",
+    "controller-real-axios-denies-undeclared-origin",
+    "controller-real-axios-http-error-and-validate-status",
+    "controller-cross-origin-429-500-preserve-real-HTTP-cause",
+  ];
+  const requiredPageCases=[
+    "page-user-script-native-builtins-and-main-isolation",
+    "page-user-example-pageSingle-native",
+    "page-user-example-pageESM-native",
+    "page-user-script-crypto-js-sha256-upstream",
+    "page-user-script-js-cookie-available-on-opt-in",
+    "page-user-script-query-string-true-upstream-parse",
+    "page-user-script-real-axios-instance-and-interceptors",
+    "page-user-script-real-multi-axios-query-string-GET-and-main-isolation",
+    "page-user-script-real-store-persistence-and-owner-prefix",
+    "page-user-script-real-cheerio-slim-html-parsing",
+    "page-user-script-fingerprintjs-opt-in-no-automatic-get-or-monitoring",
+    "page-user-script-papaparse-csv-roundtrip-and-main-isolation",
+    "page-user-script-file-saver-blob-only-and-main-isolation",
+  ];
+  const expectedNames=pageProof?[...requiredBaseCases,...requiredPageCases]:requiredBaseCases;
+  const observedNames=cases.map(row=>row.name);
+  const coverage={
+    expected:expectedNames.length,observed:observedNames.length,
+    missing:expectedNames.filter(name=>!observedNames.includes(name)),
+    unexpected:observedNames.filter(name=>!expectedNames.includes(name)),
+    duplicate:observedNames.filter((name,index)=>observedNames.indexOf(name)!==index)
+  };
+  const passed=coverage.expected===coverage.observed&&coverage.missing.length===0&&
+    coverage.unexpected.length===0&&coverage.duplicate.length===0&&cases.every(row=>row.ok===true);
+  globalThis.__pageContentNativeReport={state:'finished',cases,coverage,passed};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});
