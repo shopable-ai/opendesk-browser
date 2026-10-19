@@ -1,27 +1,20 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPageProgramLibrary} from '../../src/ui/page-program-library.js';
 
 // UI component boundary only. Native permission prompts have separate evidence.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-class Element{
-  value='';textContent='';disabled=false;hidden=false;children=[];listeners=new Map();
-  addEventListener(name,fn){const list=this.listeners.get(name)||new Set();list.add(fn);this.listeners.set(name,list);}
-  removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,event={}){for(const fn of this.listeners.get(name)||[])fn(event);}
-  replaceChildren(){this.children=[];this.value='';}
-  append(child){this.children.push(child);if(this.children.length===1)this.value=child.value;}
-}
 const events=()=>{const listeners=new Set();return{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),emit:value=>{for(const fn of listeners)fn(value);}};};
 const installationId='11111111-1111-4111-8111-111111111111';
 const rules=site=>({matches:[site],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 const candidate=(revision=1,site='https://a.example/*')=>({programId:'page-a',revision,manifestHash:String(revision).repeat(64),sourceHash:'a'.repeat(64),
   stage:'Verified',pageRules:rules(site),installed:null,authorizationChange:{requiresConfirmation:false,addedSites:[],removedExclusions:[],changedExecution:false}});
 async function fixture(catalog=[candidate()]){
-  const nodes=new Map(['list','status','detail','load','verify','install','toggle','uninstall','refresh','restore'].map(id=>[id,new Element()]));
+  const view=createDeveloperView(),find=developerTestFields(view);
   let confirmation=true;
-  const doc={getElementById:id=>nodes.get(id.replace('page-program-','')),
-    createElement:()=>new Element(),defaultView:{confirm:()=>confirmation}};
+  const doc={defaultView:{confirm:()=>confirmation}};
   const grants=new Set(['https://a.example/*']),requests=[],calls=[];
   const api={permissions:{onAdded:events(),onRemoved:events(),contains:async request=>(request.origins||[]).every(value=>grants.has(value)),
     request:request=>{requests.push(structuredClone(request));for(const origin of request.origins||[])grants.add(origin);return Promise.resolve(true);}}};
@@ -49,11 +42,11 @@ async function fixture(catalog=[candidate()]){
     throw Error('Unexpected '+method);
   }};
   const target={capture:()=>({tabId:1,documentId:'document-a',url:'https://a.example/',windowId:1}),revalidate:async()=>true};
-  const ui=createPageProgramLibrary({client,currentPageTarget:target,api,document:doc,onLoad:async()=>{}});
+  const ui=createPageProgramLibrary({client,currentPageTarget:target,api,document:doc,view,onLoad:async()=>{}});
   await tick();await tick();
   return{ui,api,client,target,catalog,grants,requests,calls,
-    setConfirmation:value=>{confirmation=value;},get:id=>nodes.get(id),
-    click:async id=>{nodes.get(id).fire('click',{isTrusted:true});await tick();await tick();}};
+    setConfirmation:value=>{confirmation=value;},get:id=>find('page-program-'+id),
+    click:async id=>{find('page-program-'+id).fire('click',{isTrusted:true});await tick();await tick();}};
 }
 
 test('Native installation error cannot be presented as successful permission authorization',async t=>{
@@ -166,9 +159,19 @@ test('Page uninstall needs explicit confirmation and passes installed identity i
   const requests=f.calls.filter(x=>x.method==='uninstallPageProgram');
   assert.equal(requests.length,1);
   assert.deepEqual(requests[0].input,{programId:'page-a',
-    manifestHash:'1'.repeat(64),expectedGeneration:7});
+    manifestHash:'1'.repeat(64),installationId,expectedGeneration:7});
   assert.equal(row.installed,null);
   assert.match(f.get('status').textContent,/请刷新已打开的网页/);
+});
+
+test('Page uninstall refuses an incomplete installation identity before sending a request',async t=>{
+  const row=candidate();row.installed={...candidate(),enabled:true,
+    authorization:{generation:3,status:'active'}};
+  const f=await fixture([row]);t.after(()=>f.ui.dispose());
+  await f.click('uninstall');
+  assert.equal(f.calls.filter(x=>x.method==='uninstallPageProgram').length,0);
+  assert.notEqual(row.installed,null);
+  assert.match(f.get('status').textContent,/安装身份不完整/);
 });
 
 test('updating a disabled Page revision reports success without enabling or registering it',async t=>{

@@ -381,14 +381,14 @@ async function main() {
       await until(() => settings.session.read('(' + toggle + ').checked===true'), 'Real userScripts opt-in');
       const siteTab = await createTab(report.websiteURL); website = siteTab.session; report.websiteTarget = siteTab.info;
       await until(() => website.read('document.readyState==="complete"'), 'Actual demo-form page ready');
-      const catalog = await createTab('chrome-extension://' + report.extensionId + '/ui/tool.html');
+      const catalog = await createTab('chrome-extension://' + report.extensionId + '/sidepanel.html');
       report.catalogTarget = catalog.info;
       await until(() => catalog.session.read('(()=>{const e='+node('#catalog-open-dev-sidebar')+';const r=e?.getBoundingClientRect();return !!r?.width&&!!r?.height&&!e.disabled})()'), 'Initialized visible full-catalog entry');
       await browser.call('Target.activateTarget', {targetId:catalog.info.id});
       await clickReal(catalog.session, node('#catalog-open-dev-sidebar'));
       await until(() => catalog.session.read(text('#catalog-dev-sidebar-status') + '?.includes("已打开侧栏")'), 'Real Side Panel opening acknowledgment');
       const panel = await until(async () => (await list()).find(target =>
-        target.id !== catalog.info.id && target.url?.startsWith('chrome-extension://' + report.extensionId + '/ui/tool.html') && target.webSocketDebuggerUrl),
+        target.id !== catalog.info.id && target.url?.startsWith('chrome-extension://' + report.extensionId + '/sidepanel.html') && target.webSocketDebuggerUrl),
       'Actual Chrome Side Panel target');
       report.sidebarTarget = panel; sidebar = await attach(panel); await observeNetwork(sidebar, panel.id);
       await until(() => sidebar.read(node('#tab-develop') + '!=null'), 'Side Panel developer tab');

@@ -30,7 +30,7 @@ test('workflow React browser: edit, save/reopen, run/error/Stop, Tab return, foc
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
   const browser=await chromium.launch({headless:true,...(process.env.OPENDESK_CHROMIUM_EXECUTABLE?{executablePath:process.env.OPENDESK_CHROMIUM_EXECUTABLE}:{}),args:['--no-sandbox']});
-  t.after(()=>browser.close());const page=await browser.newPage();
+  t.after(()=>browser.close());const page=await browser.newPage();page.setDefaultTimeout(5000);page.setDefaultNavigationTimeout(10000);
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.locator('#workflow-run:not([disabled])').waitFor();
@@ -73,8 +73,11 @@ test('workflow React browser: edit, save/reopen, run/error/Stop, Tab return, foc
   assert.equal(await page.locator('[role="dialog"]').isVisible(),true);
   await page.locator('#workflow-source-https').click();
   await page.evaluate(()=>{window.selectEvents=[];document.getElementById('workflow-https-protocol').addEventListener('change',e=>window.selectEvents.push({trusted:e.isTrusted,value:e.target.value}));});
-  await page.locator('#workflow-https-protocol').click();await page.keyboard.press('End');await page.keyboard.press('Enter');
-  console.log('select probe',await page.evaluate(()=>({events:window.selectEvents,active:document.activeElement?.id,provider:window.fixture.view.getSnapshot().controls['workflow-ai-provider'],focus:window.fixture.view.getSnapshot().focusRequest})));
+  await page.locator('#workflow-https-protocol').focus();
+  // Native typeahead works in Mac CFT's closed select; End/arrow popup navigation does not commit a selection there.
+  await page.keyboard.press('r');await page.keyboard.press('Enter');
+  await page.waitForFunction(()=>window.fixture.view.getSnapshot().controls['workflow-ai-provider'].value==='cloud_responses');
+  assert.deepEqual(await page.evaluate(()=>window.selectEvents),[{trusted:true,value:'cloud_responses'}]);
   await page.locator('#workflow-ai-model').fill('model-test');
   await page.locator('#workflow-ai-key').fill('browser-memory-only-secret');
   await page.locator('#workflow-source-local').click();await page.locator('#workflow-source-https').click();

@@ -133,7 +133,7 @@ test('actual installed Chrome runner zooms at 125%, 150%, 200% with keyboard and
   assert(/^[a-p]{32}$/.test(extensionId));
   report.extensionId=extensionId;
   const page=await client.send('Target.createTarget',{
-    url:'chrome-extension://'+extensionId+'/ui/tool.html?scheduledRunner=1'});
+    url:'chrome-extension://'+extensionId+'/sidepanel.html?scheduledRunner=1'});
   const session=(await client.send('Target.attachToTarget',{targetId:page.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},session);await client.send('Page.enable',{},session);
   const runner=await until(async()=>{

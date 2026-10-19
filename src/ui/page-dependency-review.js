@@ -5,8 +5,8 @@ import {hasUnbuiltESM} from './esm-source-detector.js';
 
 // Source-attached state/actions only. Durable bytes and approvals stay in the manager.
 export function createPageDependencyReview({client,resolver,getSource,isAvailable=()=>true,
-  api=globalThis.chrome,document:doc=globalThis.document,view,onState=()=>{}}) {
-  if(!view&&!doc?.getElementById('manual-source-editor'))
+  api=globalThis.chrome,view,onState=()=>{}}) {
+  if(!view)
     return {update(){},get readyForRun(){return true;},confirmRun(){return Promise.resolve(true);},dispose(){}};
   let disposed=false,working=false,review=null,captured=null,sourceIdentity=null,availableIdentity=null,
     generation=0,permissionIdentity=null,permissionReady=false,approved=false,notice='',accepted=false,projection;
@@ -25,8 +25,7 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
       reviewId:review.reviewId,accepted,approved,
       entries:review.entries.map(entry=>({...entry,code:codes.get(entry.order)}))
     }:null};
-    if(view)view.patchDependencies('network',projection);
-    else legacy.render(projection);
+    view.patchDependencies('network',projection);
   }
   function update() {
     if(disposed)return;
@@ -139,64 +138,13 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
       if(disposed||working||!['esm-page','esm-controller'].includes(value))return;
       resolver.refresh({sourceFormat:value});update();onState();
     }});
-  const legacy=view?null:mountLegacyReview(doc,actions);
-  if(view)view.actions.pageDependencyReview=actions;
+  view.actions.pageDependencyReview=actions;
   update();
   return {update,confirmRun,get readyForRun(){return readyForRun();},get busy(){return working;},
     dispose(){
-      if(disposed)return;disposed=true;generation++;consent.dispose();legacy?.dispose();
-      if(view&&view.actions.pageDependencyReview===actions){
+      if(disposed)return;disposed=true;generation++;consent.dispose();
+      if(view.actions.pageDependencyReview===actions){
         delete view.actions.pageDependencyReview;view.patchDependencies('network',null);
       }
     }};
-}
-
-// Isolated legacy controller fixtures only; view mode never calls this DOM owner.
-function mountLegacyReview(doc,actions){
-  const node=(tag,id,text)=>{const el=doc.createElement(tag);if(id)el.id=id;if(text)el.textContent=text;return el;};
-  const root=node('details','network-js-review');root.className='od-stack';root.hidden=true;
-  const state=node('p','network-js-status');state.setAttribute('role','status');state.setAttribute('aria-live','polite');
-  const prepare=node('button','network-js-prepare');prepare.type='button';
-  const worldLabel=node('label'),world=node('select','network-js-world');
-  worldLabel.append(node('span',null,'依赖用途'),world);
-  for(const [value,text] of [['esm-page','用于网页 Page'],['esm-controller','用于 Controller']]){
-    const option=node('option',null,text);option.value=value;world.append(option);
-  }
-  world.setAttribute('aria-label','静态 import 的运行世界');
-  const metadata=node('textarea','network-js-metadata');metadata.readOnly=true;metadata.rows=5;
-  metadata.setAttribute('aria-label','待审核的依赖来源、哈希、许可证和风险');
-  const sources=node('div','network-js-sources');sources.className='od-stack';
-  const label=node('label'),accept=node('input','network-js-consent');accept.type='checkbox';
-  label.append(accept,node('span',null,'我已审核来源、源码、SHA-256 和许可证信息'));
-  const approve=node('button','network-js-approve','批准这些固定字节');approve.type='button';
-  root.append(node('summary',null,'网络 JS：下载准备与审核'),state,worldLabel,prepare,metadata,sources,label,approve);
-  doc.getElementById('manual-source-editor').append(root);
-  const listeners=[],rows=new Map();let reviewId=null;
-  const listen=(el,event,fn)=>{el.addEventListener(event,fn);listeners.push(()=>el.removeEventListener(event,fn));};
-  listen(prepare,'click',actions.prepare);listen(approve,'click',actions.approve);
-  listen(accept,'change',()=>actions.accept(accept.checked,reviewId));
-  listen(world,'change',()=>actions.chooseWorld(world.value));
-  function clearRows(){for(const {button,handler} of rows.values())button.removeEventListener('click',handler);rows.clear();sources.replaceChildren();}
-  return {render(model){
-    root.hidden=!model.visible;state.textContent=model.status;
-    worldLabel.hidden=!model.isESM;world.value=model.world;world.disabled=model.worldDisabled;
-    prepare.disabled=model.prepareDisabled;prepare.textContent=model.prepareLabel;approve.disabled=model.approveDisabled;
-    metadata.hidden=label.hidden=approve.hidden=!model.review;accept.checked=!!model.review?.accepted;
-    const nextId=model.review?.reviewId||null;
-    if(nextId!==reviewId){clearRows();reviewId=nextId;
-      for(const entry of model.review?.entries||[]){
-        const order=entry.order,id=reviewId,button=node('button',null,'查看缓存源码 '+(order+1));
-        button.type='button';const code=node('textarea');code.readOnly=true;code.rows=8;
-        code.setAttribute('aria-label','依赖 '+(order+1)+' 的完整缓存源码');
-        const handler=event=>actions.readSource(event,order,id);button.addEventListener('click',handler);
-        rows.set(order,{button,code,handler});sources.append(button,code);
-      }
-    }
-    metadata.value=(model.review?.entries||[]).map(row=>(row.order+1)+'. '+row.url+'\n实际来源：'+row.resolvedUrl+
-      '\nSHA-256：'+row.sha256+'\n大小：'+row.byteLength+' B；许可证：'+(row.license?.name||'未知，需要自行审阅')+'\n'+row.risk).join('\n\n');
-    for(const entry of model.review?.entries||[]){
-      const row=rows.get(entry.order);row.button.disabled=model.busy;
-      row.code.hidden=entry.code===undefined;row.code.value=entry.code||'';
-    }
-  },dispose(){listeners.forEach(remove=>remove());clearRows();root.remove?.();}};
 }

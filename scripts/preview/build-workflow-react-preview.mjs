@@ -9,11 +9,12 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {load} from 'cheerio';
 import {build} from 'vite';
+import {renderSidebarReact} from './react-sidebar-ssr.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=join(root,'prototypes/sidebar/workflow/react-preview/index.html');
 const inputs=[
-  'src/ui/tool.html',
+  'src/ui/sidepanel.html',
   'src/ui/design-tokens.css',
   'src/ui/design-system.css',
   'src/ui/tool-shell.css',
@@ -31,7 +32,7 @@ export async function generateWorkflowReactPreview(){
   const bytes=await Promise.all(inputs.map(path=>readFile(join(root,path))));
   const sourceSha=sha(Buffer.concat(bytes.flatMap((value,i)=>[
     Buffer.from(inputs[i]+'\u0000'),value,Buffer.from('\u0000')])));
-  const $=load(bytes[0].toString('utf8'),{decodeEntities:false});
+  const $=load(await renderSidebarReact({activeTab:'workflow',debugEnabled:true}),{decodeEntities:false});
   const nav=$('nav.workbench-nav').first();
   const workflow=$('#workbench-workflow');
   must(nav.length===1&&workflow.length===1,'installed Side Panel navigation/Workflow DOM not found');

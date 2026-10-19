@@ -65,5 +65,3 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
     </div>
   </div>;
 }
-
-export {MyTasksPage,MyTasksDock} from './my-page.tsx';

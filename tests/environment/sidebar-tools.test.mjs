@@ -1,5 +1,7 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {parseHTML} from 'linkedom';
 import {mkdtemp,readFile,rm,writeFile,symlink,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -110,13 +112,13 @@ test('portable Sidebar Tool builds to candidate first and only explicit verified
 test('new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol',async()=>{
   const [manifest,runner,host,toolHtml,buildContract,verify,taskHost]=await Promise.all([
     readFile('manifest.json','utf8').then(JSON.parse),readFile('src/sidebar-tools/bridge.js','utf8'),
-    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/tool.html','utf8'),
+    readFile('src/ui/sidebar-tools.js','utf8'),renderSidebarFixture(),
     readFile('scripts/build-contract.mjs','utf8'),readFile('scripts/verify-package.mjs','utf8'),
     readFile('src/ui/task-workbench.js','utf8')
   ]);
   assert.deepEqual(manifest.sandbox.pages,['scripting/sandbox/sandbox.html','sidebar-tools/sandbox.html']);
-  assert.equal(manifest.side_panel.default_path,'ui/tool.html');
-  assert.match(toolHtml,/id="sidebar-tool-list"/);
+  assert.equal(manifest.side_panel.default_path,'sidepanel.html');
+  assert.doesNotMatch(toolHtml,/id="sidebar-tool-list"/,'the React extension list is the only list owner');
   assert.match(toolHtml,/id="tab-tools"/);
   assert.match(toolHtml,/id="sidebar-tool-frame"/);
   assert.match(toolHtml,/id="tab-my-tasks"/);
@@ -133,39 +135,34 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
 
 
 test('R14 Sidebar tool intake requires separate review, install and explicit launch',async()=>{
-  const [html,css,host,work,design]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
-    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8'),
+  const [html,css,host,design]=await Promise.all([
+    renderSidebarFixture(),readFile('src/ui/tool-shell.css','utf8'),
+    readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('src/ui/design-system.css','utf8')
   ]);
-  assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden/);
-  assert.match(html,/id="sidebar-tool-preview" class="sidebar-tool-preview" hidden/);
-  assert.match(html,/id="sidebar-tool-import-trigger" class="od-icon-button" aria-label="导入工具文件"[^>]*aria-expanded="false" aria-controls="sidebar-tool-import"/);
-  assert.match(html,/id="sidebar-tool-list"/);
+  const {document}=parseHTML(html);
+  assert.equal(document.getElementById('sidebar-tool-import').hidden,true);
+  assert.equal(document.getElementById('sidebar-tool-preview').hidden,true);
+  assert.ok(document.getElementById('extension-center-import'),'the React extension center owns the import trigger');
+  assert.equal(document.getElementById('sidebar-tool-list'),null);
   assert.match(html,/id="sidebar-tool-back"/);
   assert.match(html,/id="workbench-tools" role="tabpanel"/);
   assert.doesNotMatch(html,/id="sidebar-tool-tabs"/);
   assert.match(html,/id="task-open-catalog"/);
   assert.match(css,/\.sidebar-tools-head\{margin:0 0 8px\}/,'Tools header uses the same 8px vertical rhythm as My');
   assert.match(css,/\.sidebar-tool-import\{min-width:0;margin:0 0 8px;padding:10px;/,'import panel stays compact below the header');
-  assert.match(css,/\.sidebar-tool-list\{display:grid;gap:var\(--space-2\);margin:0\}/,'installed tools use the shared 8px spacing token');
-  assert.match(css,/\.sidebar-tool-list:empty\{display:none\}/,'an empty grid cannot add phantom top spacing');
-  assert.match(css,/\.sidebar-tool-empty\{margin:0;padding:16px 12px;/,'empty state is not separated by stacked margins');
   assert.match(css,/\.sidebar-tool-view-head\{[^}]*min-height:34px;margin-bottom:8px;/,'opened tool header matches the compact toolbar rhythm');
   assert.match(css,/\.task-section-head\{margin:0 0 8px/);
-  assert.match(host,/empty\.hidden=installed\.length!==0/);
   assert.match(host,/setVisible\(next(?:,destination=null)?\)/);
-  assert.match(host,/className='sidebar-tool-row'/,'each tool owns one detail entry');
-  assert.doesNotMatch(host.slice(host.indexOf('function renderInstalledTools'),host.indexOf('function siteCapability')),/sidebar-tool-list-remove|sidebar-tool-list-tab|sidebar-tool-site-manage/,'list contains no management controls');
-  assert.match(html,/<div class="sidebar-tools-head od-toolbar od-page-head">[\s\S]*<strong class="od-page-title">已安装工具<\/strong>[\s\S]*<div class="sidebar-tools-actions od-toolbar od-page-actions" role="group" aria-label="添加和管理工具">/);
+  assert.doesNotMatch(host,/function render(?:Installed|Official)Tools|className='sidebar-tool-row'/,'the Host cannot render a second extension list');
+  assert.match(host,/view\.bind\(field\.key,type,fn\)/,'presentation events use the View action interface');
   assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\)/,'the three compact actions reuse the shared 34px icon size');
   assert.doesNotMatch(css,/\.sidebar-tools-actions \.od-icon-button\{/,'tool CSS must not restyle shared icon buttons');
   assert.match(html,/id="sidebar-tool-file-error"/);
   assert.match(html,/id="sidebar-tool-update-versions"/);
-  assert.match(host,/preview\.hidden=false/);
-  assert.match(host,/installButton\.disabled=identical/);
+  assert.match(host,/patchToolField\(view, preview, \{hidden: false\}\)/);
+  assert.match(host,/patchToolField\(view, installButton, \{disabled: identical\}\)/);
   assert.match(host,/if\(!visible\)\{suspendTool\(\);return;\}/,
     'Leaving Tools closes the trusted Bookmark Manager and retires the installed sandbox');
   assert.doesNotMatch(host,/if\(!active && !listRequested/,'Tools tab may not auto-start a saved mini-app');
-  assert.match(work,/listen\(get\('task-open-catalog'\),'click'/);
 });

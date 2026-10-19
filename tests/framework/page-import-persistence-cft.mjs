@@ -335,13 +335,13 @@ async function createTab(base, attach, url, label) {
 async function openDevSidebar(browser, base, extensionId, attach, websiteUrl) {
   const site = await createTab(base, attach, websiteUrl, 'website');
   await until(() => site.session.read('document.readyState==="complete"'), 'demo-form loaded');
-  const catalog = await createTab(base, attach, 'chrome-extension://' + extensionId + '/ui/tool.html', 'catalog');
+  const catalog = await createTab(base, attach, 'chrome-extension://' + extensionId + '/sidepanel.html', 'catalog');
   await until(() => catalog.session.read('(()=>{const e=' + node('#catalog-open-dev-sidebar') + ';const r=e?.getBoundingClientRect();return !!r?.width&&!!r?.height&&!e.disabled})()'), 'Catalog develop sidebar button');
   await browser.call('Target.activateTarget', {targetId: catalog.info.id});
   await clickReal(catalog.session, node('#catalog-open-dev-sidebar'));
   const panel = await until(async () => {
     const list = await (await fetch(base + '/json/list')).json();
-    return list.find(target => target.id !== catalog.info.id && target.url?.startsWith('chrome-extension://' + extensionId + '/ui/tool.html') && target.webSocketDebuggerUrl);
+    return list.find(target => target.id !== catalog.info.id && target.url?.startsWith('chrome-extension://' + extensionId + '/sidepanel.html') && target.webSocketDebuggerUrl);
   }, 'Side Panel target opened');
   const sidebar = await attach(panel, 'sidebar');
   await sidebar.call('Runtime.enable');

@@ -34,7 +34,7 @@ const identity = {
 const sender = {
   id: 'cookie-contract-ext', frameId: 0, documentId: 'host-document',
   documentLifecycle: 'active',
-  url: 'chrome-extension://cookie-contract-ext/ui/tool.html?hostInstanceId=' + instance
+  url: 'chrome-extension://cookie-contract-ext/sidepanel.html?hostInstanceId=' + instance
 };
 
 function fixture() {

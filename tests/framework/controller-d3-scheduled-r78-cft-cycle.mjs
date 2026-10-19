@@ -137,7 +137,7 @@ async function connectCatalogSession({browser, until, report}, extensionOrigin, 
   return until(async () => {
     const rootTargets = (await browser.call('Target.getTargets')).targetInfos || [];
     const rootTarget = rootTargets.find(row => row.type === 'page' && row.url?.startsWith(extensionOrigin) &&
-      row.url.includes('/ui/tool.html') && !seenTargetIds.has(row.targetId));
+      row.url.includes('/sidepanel.html') && !seenTargetIds.has(row.targetId));
     if (!rootTarget) return null;
     const list = await (await fetch(base + '/json/list')).json();
     const inspectable = list.find(row => row.id === rootTarget.targetId && row.webSocketDebuggerUrl);

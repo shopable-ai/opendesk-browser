@@ -25,7 +25,7 @@ async function makeFixture(){
   });
   const sender={
     id:'abcdefghijklmnopabcdefghijklmnop',
-    url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',
+    url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',
     documentId:'doc-live',frameId:0,documentLifecycle:'active',tab:{id:99,incognito:false}
   };
   let contexts=[{contextType:'TAB',documentUrl:sender.url,documentId:sender.documentId,tabId:99,frameId:0,incognito:false}];

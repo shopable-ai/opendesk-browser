@@ -1,3 +1,4 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 // R2.6 read-only local install discovery and Controller proof recovery.
 // Simulated DOM/RPC ledgers are unit tests, not Native/Chrome E2E.
 import test from 'node:test';
@@ -8,21 +9,9 @@ import {createLocalInstallUI} from '../../src/ui/local-project-install-ui.js';
 import {sourceContract,localProjectInstallId} from '../../src/ui/local-project-install.js';
 globalThis.crypto ||= webcrypto;
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-class Node {
-  constructor(){this.hidden=true;this.disabled=false;this.readOnly=false;
-    this.textContent='';this.value='';this.dataset={};this.listeners=new Map();}
-  addEventListener(k,fn){this.listeners.set(k,fn);}
-  removeEventListener(k){this.listeners.delete(k);}
-  focus(){}
-  scrollIntoView(){}
-}
-const ids=['local-install-review','local-install-summary','local-install-title',
-  'local-install-version','local-install-warning','local-install-status',
-  'local-install-confirm','local-install-cancel'];
 async function fixture({kind='controller',offline=false,withProof=false,installed=false,withPending=false,
     revoked=false}={}){
-  const nodes=Object.fromEntries(ids.map(id=>[id,new Node()]));
-  const doc={getElementById:id=>nodes[id]};
+  const view=createDeveloperView(),nodes=view.fields;
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
   const projectSourceId='provider-source-A';
   const target={status:'available',tabId:11,windowId:3,frameId:0,
@@ -80,7 +69,7 @@ async function fixture({kind='controller',offline=false,withProof=false,installe
     revalidate:async saved=>{if(saved.documentId!==currentTarget.documentId)
       throw Object.assign(new Error('stale document'),{code:'E_DOCUMENT_STALE'});}};
   const installedNotices=[];
-  const ui=createLocalInstallUI({client,api,doc,currentPageTarget:targetService,
+  const ui=createLocalInstallUI({client,api,view,currentPageTarget:targetService,
     getProject:()=>project,readControllerRun:async({runId:requested})=>{
       seenRuns++;
       assert.equal(requested,runId);

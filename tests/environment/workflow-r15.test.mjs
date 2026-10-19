@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow,validateWorkflow,normalizeAiProposal,validateWorkflowParams} from '../../src/framework/workflow/contract.js';
@@ -89,7 +90,7 @@ test('malicious AI output never changes site, adds authority or injects JavaScri
 test('R15 navigation and executor wiring is real source, not simulated preview',async()=>{
   const {readFile}=await import('node:fs/promises');
   const [html,css,shell,task,view]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
+    renderSidebarFixture(),readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/tool-shell.js','utf8'),readFile('src/ui/task-workbench.js','utf8'),
     readFile('src/ui/workflow/workflow-view.js','utf8')]);
   for (const id of ['tab-workflow','workbench-workflow','workflow-steps','workflow-params',

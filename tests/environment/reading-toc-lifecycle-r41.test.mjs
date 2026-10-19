@@ -288,7 +288,7 @@ function pageFixture(){
     disconnect(){disconnects++;Observer.active--;}
   }
   Observer.active=0;
-  const send=(message,sender={id:'self-extension',url:api.runtime.getURL('ui/tool.html')+'?hostInstanceId=123e4567-e89b-42d3-a456-426614174000'})=>
+  const send=(message,sender={id:'self-extension',url:api.runtime.getURL('sidepanel.html')+'?hostInstanceId=123e4567-e89b-42d3-a456-426614174000'})=>
     new Promise(resolve=>{
       let delivered=false;
       for(const handler of messages.handlers){
@@ -343,7 +343,7 @@ test('R4.1 trusted content service verifies sender, site and source, then revoke
     controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
     await tick();await tick();
     assert.equal(f.Observer.active,1,'granted site starts one trusted observer without a Sidebar iframe');
-    const forged=await f.send({}, {id:'evil-extension',url:'chrome-extension://evil/ui/tool.html'});
+    const forged=await f.send({}, {id:'evil-extension',url:'chrome-extension://evil/sidepanel.html'});
     assert.equal(forged.ok,false);
     const wrongUrl=await f.send({expectedUrl:'https://example.com/old'});
     assert.equal(wrongUrl.ok,false);

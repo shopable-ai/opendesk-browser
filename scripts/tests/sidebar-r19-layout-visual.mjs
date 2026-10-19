@@ -841,7 +841,7 @@ try{
   await mkdir(out,{recursive:true});
   const officialReleases=(await createOfficialToolResources()).catalog.apps;
   const [source,tokens,design,style,hostingStyle,timeReviewStyle]=await Promise.all([
-    readFile(join(root,'src/ui/tool.html'),'utf8'),
+    readFile(join(root,'src/ui/sidepanel.html'),'utf8'),
     readFile(join(root,'src/ui/design-tokens.css'),'utf8'),
     readFile(join(root,'src/ui/design-system.css'),'utf8'),
     readFile(join(root,'src/ui/tool-shell.css'),'utf8'),
@@ -849,7 +849,7 @@ try{
     // scripts/prepare-public.mjs copies this first-party source to ui/time-review.css.
     readFile(join(root,'examples/sidebar-tools/time-review/src/style.css'),'utf8')
   ]);
-  const sourceInputs=['src/ui/tool.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/cloud-hosting.css','examples/sidebar-tools/time-review/src/style.css'];
+  const sourceInputs=['src/ui/sidepanel.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/tool-shell.css','src/ui/cloud-hosting.css','examples/sidebar-tools/time-review/src/style.css'];
   const sha=value=>createHash('sha256').update(value).digest('hex');
   const sourceBinding=[source,tokens,design,style,hostingStyle,timeReviewStyle].map((contents,index)=>({path:sourceInputs[index],sha256:sha(contents)}));
   const sourceModules=new Map();
@@ -873,7 +873,7 @@ try{
   if(html===source)throw Error('Expected script marker missing: refusing native JS execution in static fixture');
   server=createServer((req,res)=>{
     const name=req.url?.split('?')[0];
-    if(name==='/ui/tool.html')res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end(html);
+    if(name==='/sidepanel.html')res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end(html);
     else if(name==='/ui/design-tokens.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(tokens);
     else if(name==='/ui/design-system.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(design);
     else if(name==='/ui/tool-shell.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(style);
@@ -892,7 +892,7 @@ try{
     '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
   ],{stdio:'ignore'});
   await connect();
-  const nav=await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/ui/tool.html'});
+  const nav=await cdp('Page.navigate',{url:'http://127.0.0.1:'+port+'/sidepanel.html'});
   if(nav.errorText)throw Error('Static navigation failed '+nav.errorText);
   let ready=false;
   for(let i=0;i<100;i++){

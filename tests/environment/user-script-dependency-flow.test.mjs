@@ -24,7 +24,7 @@ const errorCode=code=>error=>error.code===code;
 // worlds; they are not Chrome, permission UI, or native isolation receipts.
 function fixture({occupiedWorlds=0,silentNativeExceptions=false}={}) {
   const host={tag:'host',active:true,namespace:'tool:flow',registrationId:'host-1',hostDocumentId:'tool-document-1',
-    hostInstanceId:'tool-instance-1',browserSessionIncarnation:'browser-session-1',hostUrl:'chrome-extension://flow/ui/tool.html'};
+    hostInstanceId:'tool-instance-1',browserSessionIncarnation:'browser-session-1',hostUrl:'chrome-extension://flow/sidepanel.html'};
   let database=new Map([['frameworkKV',new Map()],['runs',new Map()],['commandJournal',new Map([['host:host-1',host]])]]),queue=Promise.resolve();
   const storage={transaction(stores,mode,work){
     const result=queue.then(async()=>{

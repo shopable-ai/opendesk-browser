@@ -8,7 +8,7 @@ import { createStorageMethods } from '../../src/platform/storage/repository.js';
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 const extensionId = 'abcdefghijklmnopabcdefghijklmnop';
 const auth = { registrationId: 'reg-A', hostInstanceId: 'host-A', hostDocumentId: 'doc-A', browserSessionIncarnation: 'session-A' };
-const sender = { url: `chrome-extension://${extensionId}/tool.html`, documentId: 'doc-A' };
+const sender = { url: `chrome-extension://${extensionId}/sidepanel.html`, documentId: 'doc-A' };
 const baseTime = Date.parse('2026-10-01T18:00:00Z');
 const bytes = text => new TextEncoder().encode(text);
 const clone = value => structuredClone(value);

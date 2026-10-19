@@ -1,33 +1,17 @@
 // Included only by WXT serve, never by a standalone development/production build.
-export function installDevelopmentPage({api,prepareReload,document:doc=globalThis.document,location:loc=globalThis.location}) {
-  const status=doc.createElement('output');status.id='opendesk-development-status';
-  // Build/reload diagnostics belong to the developer-only Debug tab, not above
-  // every normal Side Panel page. Keep the fallback non-visual for isolated hosts.
-  const debugPanel=doc.getElementById?.('workbench-debug');
-  let statusHost=status;
-  if(debugPanel){
-    const details=doc.createElement('details');
-    details.className='debug-detail od-surface';
-    const summary=doc.createElement('summary');
-    summary.textContent='本地开发服务';
-    status.className='hint';
-    details.append(summary,status);
-    (debugPanel.querySelector?.('.debug-workbench')||debugPanel).append(details);
-    statusHost=details;
-  }else{
-    status.hidden=true;
-    doc.body.prepend(status);
-  }
+export function installDevelopmentPage({api,prepareReload,document:doc=globalThis.document,location:loc=globalThis.location,onStatus=()=>{}}) {
+  let presentation={text:'',title:''};
+  const report=values=>{presentation={...presentation,...values};onStatus(presentation);};
   let disposed=false,port,reconnectTimer,activeToken,preparations=Promise.resolve(),attempt=0;
   const showRevision=revision=>{
     const valid=typeof revision==='string'&&/^[a-f0-9]{64}$/.test(revision);
-    status.textContent='开发服务已连接 · 构建指纹 '+(valid?revision.slice(0,12):'未就绪')+'；保存源码后自动安全更新。';
-    status.title='扩展 ID：'+(api.runtime.id||'未知')+'；构建 revision：'+(valid?revision:'未知')+'。这不证明已打开的网页重新注入了 SDK。';
+    report({text:'开发服务已连接 · 构建指纹 '+(valid?revision.slice(0,12):'未就绪')+'；保存源码后自动安全更新。'});
+    report({title:'扩展 ID：'+(api.runtime.id||'未知')+'；构建 revision：'+(valid?revision:'未知')+'。这不证明已打开的网页重新注入了 SDK。'});
   };
   function invalidate(){activeToken=null;doc.body.inert=false;}
   function connect(){
     if(disposed)return;
-    status.textContent='正在连接开发服务…';
+    report({text:'正在连接开发服务…'});
     const current=port=api.runtime.connect({name:'opendesk.development.v1'});
     const listener=message=>{
       if(disposed||port!==current)return;
@@ -51,23 +35,23 @@ export function installDevelopmentPage({api,prepareReload,document:doc=globalThi
           if(disposed||port!==current||activeToken!==token)return;
           current.postMessage({type:'ready',token,ready});
           if(!ready)invalidate();
-          status.textContent=ready?'正在应用源码更新…':'源码已编译；等待任务结束、资源释放和草稿保存后刷新。';
+          report({text:ready?'正在应用源码更新…':'源码已编译；等待任务结束、资源释放和草稿保存后刷新。'});
         }).catch(error=>console.warn('[OpenDesk dev] Preparation failed',error));
       } else if(message.type==='abort'&&activeToken===message.token) {
         invalidate();
       } else if(message.type==='reload-page'&&activeToken===message.token) {
         // New document => new host identity; no old owner is resurrected.
         const url=new URL(loc.href);url.searchParams.delete('hostInstanceId');loc.replace(url.href);
-      } else if(message.type==='waiting')status.textContent=message.reason;
+      } else if(message.type==='waiting')report({text:message.reason});
     };
     current.onMessage.addListener(listener);
     current.onDisconnect.addListener(()=>{
       current.onMessage.removeListener(listener);
       if(disposed||port!==current)return;
-      invalidate();port=null;status.textContent='开发服务连接已关闭；正在重连，任务不会重放。';
+      invalidate();port=null;report({text:'开发服务连接已关闭；正在重连，任务不会重放。'});
       reconnectTimer=setTimeout(connect,Math.min(5000,250*2**Math.min(attempt++,5)));
     });
   }
   connect();
-  return ()=>{disposed=true;clearTimeout(reconnectTimer);invalidate();port?.disconnect();statusHost.remove();};
+  return ()=>{disposed=true;clearTimeout(reconnectTimer);invalidate();port?.disconnect();onStatus(null);};
 }

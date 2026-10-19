@@ -167,7 +167,7 @@ async function runNative({extension, label, expectedHash, executionSlot, permiss
     report.evidence.originalWorker = worker;
     const targetURL = `${origin}/target?token=${token}`, pageId = (await browser.send('Target.createTarget', {url: targetURL})).targetId;
     const page = await attach(pageId); await until(() => evaluate(page, 'document.readyState==="complete"'), 'native target loaded');
-    const toolId = (await browser.send('Target.createTarget', {url: `chrome-extension://${extensionId}/ui/tool.html`})).targetId;
+    const toolId = (await browser.send('Target.createTarget', {url: `chrome-extension://${extensionId}/sidepanel.html`})).targetId;
     const tool = await attach(toolId); await until(() => evaluate(tool, '!!document.querySelector("#sdk-install")'), 'actual tool SDK entry');
     await tool.send('ServiceWorker.enable');
     async function click(selector) {

@@ -4,7 +4,7 @@ import {BROWSER_OPERATIONS} from '../../framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../ui/sidebar-tools/lifecycle.js';
 import {createScheduleRepository} from './schedule-repository.js';
-import {toolDocumentIdentity} from '../../tool-document-url.js';
+import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
 import {SCHEDULE_ALARM_PREFIX,scheduleKey,scheduleIdFromRef,validateInstalledToolScheduleRequest,validateScheduleOwner,validateTrustedScheduleIntent} from './schedule-contract.js';
 
 // Only document contexts that actually run createScheduledTaskHost may
@@ -13,7 +13,7 @@ import {SCHEDULE_ALARM_PREFIX,scheduleKey,scheduleIdFromRef,validateInstalledToo
 export async function scheduledHostDocumentIds(api){
   if(typeof api?.runtime?.getContexts!=='function')return null; // legacy deterministic test shim
   const contexts=await api.runtime.getContexts({}).catch(()=>[]);
-  const base=api.runtime.getURL('ui/tool.html'),ids=new Set();
+  const base=api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),ids=new Set();
   for(const row of contexts||[]){
     if(typeof row.documentId!=='string'||!row.documentId||typeof row.documentUrl!=='string')continue;
     if(row.documentLifecycle&&row.documentLifecycle!=='active')continue;

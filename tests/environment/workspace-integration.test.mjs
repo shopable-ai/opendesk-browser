@@ -160,6 +160,14 @@ test('Workspace selection A is carried to the file sidebar by verified ID, and s
   await h.openFile();assert.equal(h.snapshot().file.content,originalB);
 });
 
+test('R37 Workspace restores the root workbench through the same synchronous trusted gesture',async t=>{
+  const h=await fixture(t);
+  h.actions.openWorkbench({isTrusted:false});assert.deepEqual(h.panels,[]);
+  const opening=h.actions.openWorkbench({isTrusted:true});
+  assert.deepEqual(h.panels,[{tabId:8,path:'sidepanel.html',enabled:true},{tabId:8}]);
+  await opening;
+});
+
 test('A to no online directories to B preserves A identity, label and draft until explicit selection',async t=>{
   const h=await fixture(t);h.edit('unsaved A');h.rows=[];await h.actions.refresh();
   assert.equal(h.snapshot().workspaceId,A);assert.equal(h.snapshot().file.content,'unsaved A');

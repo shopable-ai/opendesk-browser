@@ -32,7 +32,7 @@ test('final package cannot omit a referenced local asset', async () => {
 });
 test('remote script and unexpected lazy chunk fail final package verification', async () => {
   await mutatedPackage(async root => {
-    const file = `${root}/ui/tool.html`; await writeFile(file, (await readFile(file, 'utf8')).replace('src="tool-shell.js"', 'src="https://example.com/runtime.js"'));
+    const file = `${root}/sidepanel.html`; await writeFile(file, (await readFile(file, 'utf8')).replace('src="tool-shell.js"', 'src="https://example.com/runtime.js"'));
   }, /Unsafe HTML/);
   await mutatedPackage(root => writeFile(`${root}/chunk.js`, 'void 0;'), /Unexpected JS/);
 });
@@ -61,7 +61,7 @@ test('R23 rejects unsafe stylesheet content in every added trusted CSS resource'
 });
 
 test('final package requires tool HTML/CSS and manifest worker references', async () => {
-  await mutatedPackage(root=>rm(`${root}/ui/tool.html`),/Missing|required|ENOENT/);
+  await mutatedPackage(root=>rm(`${root}/sidepanel.html`),/Missing|required|ENOENT/);
   await mutatedPackage(async root=>{const p=`${root}/manifest.json`;const manifest=JSON.parse(await readFile(p,'utf8'));manifest.background.service_worker='missing-worker.js';await writeFile(p,JSON.stringify(manifest));},/worker|entry|Missing/);
 });
 

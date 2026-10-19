@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
-import {makeTimeReviewDOM} from './time-review-host-controls-fixture.mjs';
+import {makeTimeReviewReact} from './time-review-host-controls-fixture.mjs';
 
 const find=(root,id)=>{
   if(root.id===id)return root;
@@ -11,55 +11,55 @@ const find=(root,id)=>{
 };
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 
-test('R5.1 Time Review requires a trusted host click, not a sandbox modal',async()=>{
-  const {root,doc}=makeTimeReviewDOM(),notices=[],actions=[],permissions=[];
+test('R5.1 Time Review requires a trusted host click, not a sandbox modal',async t=>{
+  const {root,doc,ui,invoke}=makeTimeReviewReact(t),notices=[],actions=[],permissions=[];
   const api={permissions:{
     request:({permissions:items})=>{permissions.push(items);return Promise.resolve(true);},
     remove:({permissions:items})=>{permissions.push(['remove',...items]);return Promise.resolve(true);}
   }};
-  const controls=createTimeReviewPermissionControls({api,doc,
+  const controls=createTimeReviewPermissionControls({api,ui,
     container:root,notice:(message,error)=>notices.push({message,error}),
     runOperation:async(operation,payload)=>{actions.push({operation,payload});return {ok:true};}});
   controls.render({id:'time-review',capabilities:['time.review']});
   const start=find(root,'time-review-trusted-start'),clear=find(root,'time-review-clear-open');
   const confirm=find(root,'time-review-clear-approve'),cancel=find(root,'time-review-clear-cancel');
   assert(start&&clear&&confirm&&cancel);
-  start.emit('click',false);await settle();
+  invoke(start.id,{isTrusted:false});await settle();
   assert.equal(actions.length,0,'programmatically forged input cannot authorize background monitoring');
-  start.emit('click',true);await settle();
+  invoke(start.id,{isTrusted:true});await settle();
   assert.deepEqual(actions,[{operation:'time.start',payload:{}}]);
   assert.equal(permissions.length,0,'starting must not silently request Chrome permissions');
-  clear.emit('click',true);
+  invoke(clear.id,{isTrusted:true});
   assert.equal(find(root,'time-review-inline-clear-review').hidden,false);
   assert.equal(actions.length,1,'opening an inline review does not clear data');
-  cancel.emit('click',true);
+  invoke(cancel.id,{isTrusted:true});
   assert.equal(find(root,'time-review-inline-clear-review').hidden,true);
   assert.equal(actions.length,1,'cancel retains data');
-  clear.emit('click',true);confirm.emit('click',false);await settle();
+  invoke(clear.id,{isTrusted:true});invoke(confirm.id,{isTrusted:false});await settle();
   assert.equal(actions.length,1,'synthetic clear confirmation is ignored');
-  confirm.emit('click',true);await settle();
+  invoke(confirm.id,{isTrusted:true});await settle();
   assert.deepEqual(actions[1],{operation:'time.clear',payload:{confirm:true}});
   controls.render({id:'another-tool',capabilities:['time.review']});
   assert.equal(root.children[0].hidden,true,'controls are hidden outside the correct tool identity');
   assert.equal(notices.filter(row=>row.error).length,1,'only the forbidden synthetic start is reported');
 });
 
-test('R5.1 idle permission requests originate only from a real trusted host click',async()=>{
-  const {root,doc}=makeTimeReviewDOM(),calls=[];
+test('R5.1 idle permission requests originate only from a real trusted host click',async t=>{
+  const {root,doc,ui,invoke}=makeTimeReviewReact(t),calls=[];
   const controls=createTimeReviewPermissionControls({api:{permissions:{
     request:()=>{calls.push('request');return Promise.resolve(true);},
     remove:()=>{calls.push('remove');return Promise.resolve(true);}
-  }},doc,container:root,
+  }},ui,
     notice:()=>{},runOperation:async()=>{}});
   controls.render({id:'time-review',capabilities:['time.review']});
   const grant=find(root,'time-review-grant-idle');
-  grant.emit('click',false);await settle();
+  invoke(grant.id,{isTrusted:false});await settle();
   assert.deepEqual(calls,[]);
-  grant.emit('click',true);await settle();
+  invoke(grant.id,{isTrusted:true});await settle();
   assert.deepEqual(calls,['request']);
 });
 
-test('R5.1 sandbox cannot directly start background tracking or delete history',async()=>{
+test('R5.1 sandbox cannot directly start background tracking or delete history',async t=>{
   const source=await readFile('src/ui/sidebar-tools.js','utf8');
   const from=source.indexOf('if(TIME_REVIEW_OPERATIONS.includes(operation)){');
   const to=source.indexOf("if(operation==='knowledge.editorState')",from);
@@ -71,7 +71,7 @@ test('R5.1 sandbox cannot directly start background tracking or delete history',
   assert.match(source,/runTrustedTimeReviewOperation/);
 });
 
-test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation',async()=>{
+test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation',async t=>{
   const source=await readFile('src/ui/sidebar-tools.js','utf8');
   const start=source.indexOf('if(TIME_REVIEW_OPERATIONS.includes(operation)){');
   const end=source.indexOf("if(operation==='knowledge.editorState')",start);
@@ -90,7 +90,7 @@ test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation'
   assert.doesNotMatch(index,/<span class="eyebrow">时间回顾<\/span>/);
 });
 
-test('R1.5.1 Time Review consent preserves shared trusted inline card without replacing the iframe',async()=>{
+test('R1.5.1 Time Review consent preserves shared trusted inline card without replacing the iframe',async t=>{
   const shell=await readFile('src/ui/sidebar-tools.js','utf8');
   // Keep the original trusted Time Review, Focus and Cookie identities gated.
   // Additional audited tools must not make the prior regression test obsolete.
@@ -115,15 +115,13 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
   const css=await readFile('src/ui/tool-shell.css','utf8');
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]/);
   assert.match(css,/#sidebar-tool-settings-view\{order:1/);
-  const react=await readFile('src/ui/react/tabs/tool-host.tsx','utf8');
-  assert.match(react,/const TrustedSettingsIsland = React\.memo/);
-  assert.match(react,/<TrustedSettingsIsland nodeRef=\{runtimeRefs\.trustedSettings\}/);
-  assert.match(react,/view\.attachRuntime\(\{\.\.\.nodes\.current\}\)/);
+  const react=await readFile('src/ui/react/tabs/trusted-settings.tsx','utf8');
+  assert.match(react,/export function TimeReviewSettings/);
   for(const id of ['time-review-site-current-approve','time-review-site-all-approve','time-review-grant-idle'])
     assert.match(react,new RegExp('id="'+id+'"'));
 });
 
-test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identical',async()=>{
+test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identical',async t=>{
   const shell=await readFile('src/ui/sidebar-tools.js','utf8');
   assert.match(shell,/frameRoot\.before\?\.\(settingsView\)/);
   assert.match(shell,/retiredDraft\.after\?\.\(settingsView\)/);
@@ -131,7 +129,7 @@ test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identic
   assert.match(shell,/settingsView\.previousElementSibling!==retiredDraft/);
 });
 
-test('trusted Time Review updates refresh only the identity-bound sandbox UI',async()=>{
+test('trusted Time Review updates refresh only the identity-bound sandbox UI',async t=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   const bridge=await readFile('src/sidebar-tools/bridge.js','utf8');
   const script=await readFile('examples/sidebar-tools/time-review/src/main.js','utf8');

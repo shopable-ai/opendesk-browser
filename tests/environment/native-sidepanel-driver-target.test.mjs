@@ -10,8 +10,8 @@ const select=(targets,contexts)=>{
   assert(definition,'Actual Side Panel target selector must exist');
   return runInNewContext('('+definition+')(targets,contexts)',{assert,targets,contexts});
 };
-const panel={targetId:'actual-panel',type:'other',url:'chrome-extension://example/ui/tool.html?hostInstanceId=panel'};
-const catalog={targetId:'catalog',type:'page',url:'chrome-extension://example/ui/tool.html?hostInstanceId=catalog'};
+const panel={targetId:'actual-panel',type:'other',url:'chrome-extension://example/sidepanel.html?hostInstanceId=panel'};
+const catalog={targetId:'catalog',type:'page',url:'chrome-extension://example/sidepanel.html?hostInstanceId=catalog'};
 
 test('native observer selects the actual Side Panel when the full catalog appears first',()=>{
   assert.equal(select([catalog,panel],[{documentUrl:panel.url}]),panel);

@@ -32,7 +32,7 @@ for (const mode of ['production', 'development']) {
     assert.equal(report.classicEntries.length, Object.keys(PACKAGE_ENTRIES).length + vendors.length);
     assert.deepEqual(report.classicEntries.filter(file => file.startsWith('vendor/')), vendors.map(row => row.output));
     assert.ok(report.classicEntries.includes('scripting/packaged/page-session.js'));
-    assert.deepEqual(report.htmlChecked, ['ui/tool.html', 'native-agent/settings.html', 'ui/target-bootstrap.html', SANDBOX_HTML, TOOL_SANDBOX_HTML]);
+    assert.deepEqual(report.htmlChecked, ['sidepanel.html', 'native-agent/settings.html', 'ui/target-bootstrap.html', SANDBOX_HTML, TOOL_SANDBOX_HTML]);
     assert.equal(report.privilegedDynamicExecutionFound, false);
     assert.equal(report.approvedDynamicExecution.length, 1);
     assert.equal(report.approvedDynamicExecution[0].file, CONTROL_WORKER);
@@ -63,7 +63,7 @@ test('K5 privileged and opaque CSP mutations cannot broaden execution', async ()
     m => { m.content_security_policy.extension_pages += "; script-src 'unsafe-eval'"; },
     m => { m.content_security_policy.sandbox += '; connect-src *'; },
     m => { m.content_security_policy.sandbox = m.content_security_policy.sandbox.replace('sandbox allow-scripts', 'sandbox allow-scripts allow-same-origin'); },
-    m => { m.sandbox.pages.push('ui/tool.html'); },
+    m => { m.sandbox.pages.push('sidepanel.html'); },
     m => { m.optional_host_permissions = ['<all_urls>']; }
   ]) await mutate(root => manifest(root, update), /CSP|sandbox boundary|broad exposure|host permissions|optional host or page exposure/);
 });
@@ -80,12 +80,12 @@ test('K5 manifest exposes only SDK MAIN as an exact web accessible resource', as
   ]) await mutate(root => manifest(root, update), /web accessible resources/);
 });
 test('K5 every HTML is scanned and Worker cannot become a privileged script entry', async () => {
-  for (const file of ['ui/tool.html', 'ui/target-bootstrap.html', SANDBOX_HTML]) {
+  for (const file of ['sidepanel.html', 'ui/target-bootstrap.html', SANDBOX_HTML]) {
     await mutate(root => append(root, file, '<script src="https://example.com/runtime.js"></script>'), /Unsafe HTML/);
     await mutate(root => append(root, file, '<script>eval("1")</script>'), /Unsafe HTML/);
     await mutate(root => append(root, file, '<button onclick="run()">run</button>'), /Unsafe HTML/);
   }
-  await mutate(root => append(root, 'ui/tool.html', `<script src="../${CONTROL_WORKER}"></script>`), /Unapproved HTML resource/);
+  await mutate(root => append(root, 'sidepanel.html', `<script src="../${CONTROL_WORKER}"></script>`), /Unapproved HTML resource/);
   await mutate(async root => {const file = join(root, SANDBOX_HTML); await writeFile(file, (await readFile(file, 'utf8')).replace("connect-src 'none'", 'connect-src *'));}, /HTML CSP/);
   await mutate(root => append(root, SANDBOX_HTML, '<script src=sandbox.js></script>'), /Unsafe HTML/);
 });
@@ -114,6 +114,6 @@ test('K5 WXT shell regressions still reject ESM and lazy chunk loading', () => {
 
 test('K5 additional manifest resources, CSS script consumers and remote maps are rejected', async () => {
   await mutate(root => manifest(root, m => { m.icons = {'128': 'missing.png'}; }), /manifest entry/);
-  await mutate(async root => {const file = join(root, 'ui/tool.html'); await writeFile(file, (await readFile(file, 'utf8')).replace('<link rel="stylesheet" href="tool-shell.css">', '<script src="tool-shell.css"></script>'));}, /Unsafe HTML script/);
+  await mutate(async root => {const file = join(root, 'sidepanel.html'); await writeFile(file, (await readFile(file, 'utf8')).replace('<link rel="stylesheet" href="tool-shell.css">', '<script src="tool-shell.css"></script>'));}, /Unsafe HTML script/);
   await mutate(async root => {const file = join(root, 'sw.js'); await writeFile(file, (await readFile(file, 'utf8')).replace('sourceMappingURL=sw.js.map', 'sourceMappingURL=https://example.com/sw.js.map'));}, /source map/, 'development');
 });

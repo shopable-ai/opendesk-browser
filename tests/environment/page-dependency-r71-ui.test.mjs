@@ -2,26 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPageDependencyResolver} from '../../src/ui/page-dependencies.js';
 import {createPageDependencyInstaller} from '../../src/ui/page-dependency-install.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function settle(){for(let i=0;i<6;i++)await tick();}
-class Node {
-  constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.handlers=new Map();
-    this.hidden=false;this.disabled=false;this.checked=false;this.value='';this.textContent='';this.className='';}
-  append(...items){this.children.push(...items);}
-  replaceChildren(...items){this.children=[...items];}
-  setAttribute(){}
-  addEventListener(name,listener){const handlers=this.handlers.get(name)||[];handlers.push(listener);this.handlers.set(name,handlers);}
-  removeEventListener(name,listener){this.handlers.set(name,(this.handlers.get(name)||[]).filter(fn=>fn!==listener));}
-  emit(name,{target=this,isTrusted=true}={}){for(const fn of this.handlers.get(name)||[])fn({type:name,target,isTrusted});}
-  descendants(){return [this,...this.children.flatMap(node=>node instanceof Node?node.descendants():[])];}
-}
-const elementIds=['page-dependency-panel','page-dependency-status','page-dependency-list','page-dependency-prepare',
-  'page-dependency-review','page-dependency-review-list','page-dependency-approve','page-dependency-lock'];
 function fixture({onState=()=>{}}={}){
-  const nodes=new Map(elementIds.map(id=>[id,new Node(id.includes('approve')||id.includes('prepare')?'button':'div')]));
-  const doc={getElementById:id=>nodes.get(id),createElement:tag=>new Node(tag),
-    createTextNode:text=>({textContent:text,nodeType:3})};
+  const view=createDeveloperView();
   const url='https://libraries.example.org/fresh-classic.js',sha='f'.repeat(64),digest='c'.repeat(64);
   const source='// ==UserScript==\n// @require '+url+'\n// ==/UserScript==\nasync function main(){return FreshLibrary.call(42);}\n';
   let programId='alpha',granted=false,inClick=false,requests=0,fetches=0,prepared=[],approvals=[],installer;
@@ -64,14 +50,15 @@ function fixture({onState=()=>{}}={}){
   },onAdded:{addListener(){},removeListener(){}},onRemoved:{addListener(){},removeListener(){}}}};
   const resolver=createPageDependencyResolver({client,getSource:()=>source,getProgramId:()=>programId,
     onState:()=>installer?.update()});
-  installer=createPageDependencyInstaller({client,api,document:doc,resolver,getSource:()=>source,
+  installer=createPageDependencyInstaller({client,api,view,resolver,getSource:()=>source,
     getProgramId:()=>programId,onState});
-  const click=id=>{inClick=true;nodes.get(id).emit('click');inClick=false;};
-  return {nodes,resolver,installer,click,sha,locks,prepared,approvals,inspected,
+  const state=()=>view.getSnapshot().dependencies.classic,actions=view.actions.pageDependencies;
+  const invoke=name=>{inClick=true;try{return actions[name]({isTrusted:true});}finally{inClick=false;}};
+  return {state,actions,resolver,installer,invoke,sha,locks,prepared,approvals,inspected,
     runClick:()=>{inClick=true;const p=installer.confirmRun({isTrusted:true});inClick=false;return p;},
     get requests(){return requests;},get fetches(){return fetches;},
     setProgram:id=>{programId=id;resolver.refresh();installer.refresh();},
-    dispose:()=>{installer.dispose();resolver.dispose();}};
+    dispose:()=>{installer.dispose();resolver.dispose();view.dispose();}};
 }
 
 test('Classic source permission inspection notifies the editor when Run becomes ready',async t=>{
@@ -90,22 +77,21 @@ test('R7.1 UI keeps download, byte approval and execution separate and preserves
   const f=fixture();t.after(f.dispose);await settle();
   assert.equal(f.requests,0,'inspection cannot request permissions');
   assert.equal(f.prepared.length,0,'inspection cannot download');
-  assert.equal(f.nodes.get('page-dependency-panel').hidden,false);
-  f.nodes.get('page-dependency-prepare').emit('click',{isTrusted:false});
+  assert.equal(!f.state().visible,false);
+  f.actions.prepare({isTrusted:false});
   assert.equal(f.requests,0,'synthetic click must not invoke Chrome');
-  f.click('page-dependency-prepare');
+  f.invoke('prepare');
   assert.equal(f.requests,1,'permission was synchronously requested from the trusted click');
   await settle();
   assert.equal(f.prepared.length,1);
   assert.equal(f.approvals.length,0,'successful fetch is not approval');
-  assert.equal(f.nodes.get('page-dependency-review').hidden,false);
-  assert.equal(f.nodes.get('page-dependency-approve').disabled,true);
-  f.click('page-dependency-approve');assert.equal(f.approvals.length,0);
-  const checks=f.nodes.get('page-dependency-review-list').descendants().filter(n=>n.type==='checkbox');
-  assert.equal(checks.length,1);checks[0].checked=true;
-  f.nodes.get('page-dependency-review-list').emit('change');
-  assert.equal(f.nodes.get('page-dependency-approve').disabled,false);
-  f.click('page-dependency-approve');await settle();
+  assert.equal(f.state().review===null,false);
+  assert.equal(f.state().approveDisabled,true);
+  f.invoke('approve');assert.equal(f.approvals.length,0);
+  const entries=f.state().review.entries;
+  assert.equal(entries.length,1);f.actions.checkReview(entries[0].order,true,f.state().review.reviewId);
+  assert.equal(f.state().approveDisabled,false);
+  f.invoke('approve');await settle();
   assert.equal(f.approvals.length,1);
   assert.equal(f.approvals[0].programId,'alpha');
   assert.equal(f.resolver.capture().lockId,f.locks.get('alpha'));
@@ -114,26 +100,23 @@ test('R7.1 UI keeps download, byte approval and execution separate and preserves
 
 test('R7.1 second program visibly chooses shared SHA, reviews independently, and never fetches again',async t=>{
   const f=fixture();t.after(f.dispose);await settle();
-  f.click('page-dependency-prepare');await settle();
-  for(const c of f.nodes.get('page-dependency-review-list').descendants().filter(n=>n.type==='checkbox'))c.checked=true;
-  f.nodes.get('page-dependency-review-list').emit('change');
-  f.click('page-dependency-approve');await settle();
+  f.invoke('prepare');await settle();
+  for(const entry of f.state().review.entries)f.actions.checkReview(entry.order,true,f.state().review.reviewId);
+  f.invoke('approve');await settle();
   f.setProgram('beta');await settle();
   assert.equal(f.resolver.inspection.locks.length,0);
   assert.equal(f.resolver.inspection.requires[0].sharedCacheChoices.length,1);
-  const picker=f.nodes.get('page-dependency-list').descendants().find(n=>n.tagName==='SELECT');
-  assert.ok(picker,'shared selection exists');
-  picker.value='shared:'+f.sha;
-  f.nodes.get('page-dependency-list').emit('change',{target:picker});
+  const choice=f.state().entries[0].options.find(row=>row.value==='shared:'+f.sha);
+  assert.ok(choice,'shared selection exists');
+  f.actions.chooseAcquisition(0,choice.value);
   await settle();
-  f.click('page-dependency-prepare');await settle();
+  f.invoke('prepare');await settle();
   assert.deepEqual(f.prepared.at(-1).selections,[{order:0,sharedAssetSha256:f.sha}]);
   assert.equal(f.fetches,1,'second program reuses bytes without network');
   assert.equal(f.requests,1,'shared bytes need no new download-origin permission');
   assert.equal(f.approvals.length,1,'second program still awaiting its own review');
-  for(const c of f.nodes.get('page-dependency-review-list').descendants().filter(n=>n.type==='checkbox'))c.checked=true;
-  f.nodes.get('page-dependency-review-list').emit('change');
-  f.click('page-dependency-approve');await settle();
+  for(const entry of f.state().review.entries)f.actions.checkReview(entry.order,true,f.state().review.reviewId);
+  f.invoke('approve');await settle();
   assert.equal(f.approvals.at(-1).programId,'beta');
   assert.notEqual(f.locks.get('alpha'),f.locks.get('beta'));
   assert.equal(f.resolver.capture().lockId,f.locks.get('beta'));
@@ -150,20 +133,18 @@ test('R7.2 direct Run uses the real synchronous Chrome source-permission gesture
 });
 
 test('R7.2 zero-dependency Page and frozen UI builds bypass only the library preflight',async t=>{
-  const nodes=new Map(elementIds.map(id=>[id,new Node()]));
-  const doc={getElementById:id=>nodes.get(id),createElement:tag=>new Node(tag),
-    createTextNode:text=>({nodeType:3,textContent:text})};
+  const view=createDeveloperView();
   let chromeRequests=0,brokerRequests=0;
   const api={permissions:{request(){chromeRequests++;return Promise.resolve(true);},
     contains:async()=>false,onAdded:{addListener(){},removeListener(){}},
     onRemoved:{addListener(){},removeListener(){}}}};
   const installer=createPageDependencyInstaller({
     client:{request(){brokerRequests++;throw Error('No broker inspection needed');}},
-    api,document:doc,resolver:{inspection:null},getSource:()=>
+    api,view,resolver:{inspection:null},getSource:()=>
       '// @opendesk-lib react\nasync function main(){return "<div>fixed</div>";}',
     getProgramId:()=> 'no-deps'});
-  t.after(()=>installer.dispose());
-  assert.equal(nodes.get('page-dependency-panel').hidden,true);
+  t.after(()=>{installer.dispose();view.dispose();});
+  assert.equal(!view.getSnapshot().dependencies.classic.visible,true);
   assert.equal(installer.readyForRun,true);
   assert.equal(await installer.confirmRun({isTrusted:true}),true);
   assert.equal(chromeRequests,0,'library gate cannot request an origin without a declared source');

@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isActualSidePanelContext} from '../../src/ui/sidepanel-context.js';
 
-const href='chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=owner-123';
+const href='chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=owner-123';
 function fixture(contexts){
-  return {runtime:{getContexts:async options=>{
+  return {runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path,getContexts:async options=>{
     assert.deepEqual(options,{contextTypes:['SIDE_PANEL'],documentUrls:[href]});
     return contexts;
   }}};

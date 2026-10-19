@@ -195,7 +195,7 @@ test('completed Controller Run is not displayed SUCCESS before resource release'
 
 test('only actual Side Panel and explicit visible scheduled-runner TAB are scheduler hosts',async()=>{
   const ext='chrome-extension://abcdefghijklmnopabcdefghijklmnop';
-  const base=ext+'/ui/tool.html',host='12345678-1234-4123-8123-123456789abc';
+  const base=ext+'/sidepanel.html',host='12345678-1234-4123-8123-123456789abc';
   const contexts=[
     {contextType:'TAB',documentId:'catalog',documentUrl:base+'?hostInstanceId='+host},
     {contextType:'TAB',documentId:'ordinary-tool',documentUrl:base+'?hostInstanceId='+host+'&toolId=quick-notes'},
@@ -211,7 +211,7 @@ test('only actual Side Panel and explicit visible scheduled-runner TAB are sched
 });
 test('registered catalog alone cannot claim Host presence; live runner restores READY without replay',async()=>{
   const f=await fixture(),plan=await f.repo.save(f.input);
-  const base='chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html';
+  const base='chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html';
   const host='12345678-1234-4123-8123-123456789abc';
   await f.db.transaction(['commandJournal'],'readwrite',async tx=>{
     const row=await tx.get('commandJournal','host:test');
@@ -328,7 +328,7 @@ test('R2 website grant revocation is visible without re-requesting permission',a
   const f=await fixture(),plan=await f.repo.save(f.input);
   let granted=true,permissionRequests=0;
   const api={runtime:{id:'schedule-test',getURL:()=>
-    'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html',
+    'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html',
     getContexts:async()=>[]},alarms:{getAll:async()=>[],create:async()=>{},clear:async()=>{}},
     permissions:{contains:async()=>granted,request:async()=>{permissionRequests++;return true;}}};
   const service=createScheduleService({storage:f.db,api,clock:{now:f.getTime},
@@ -347,7 +347,7 @@ test('R2 website grant revocation is visible without re-requesting permission',a
 test('R2 rebuilt service restores only schedule-prefixed Chrome Alarms without duplication',async()=>{
   const f=await fixture(),plan=await f.repo.save(f.input);
   const alarms=new Map([['unrelated.cloud',{name:'unrelated.cloud',scheduledTime:42}]]);
-  const api={runtime:{id:'schedule-test',getURL:()=> 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html',
+  const api={runtime:{id:'schedule-test',getURL:()=> 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html',
     getContexts:async()=>[]},
     alarms:{getAll:async()=>[...alarms.values()],
       create:async(name,{when})=>{alarms.set(name,{name,scheduledTime:when});},

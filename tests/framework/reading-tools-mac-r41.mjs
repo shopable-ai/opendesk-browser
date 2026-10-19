@@ -248,7 +248,7 @@ async function closeTool(t) {
 }
 
 async function openPanel(newWindow = false) {
-    const host = await tab("chrome-extension://" + extensionId + "/ui/tool.html?hostInstanceId=" + randomUUID(), newWindow);
+    const host = await tab("chrome-extension://" + extensionId + "/sidepanel.html?hostInstanceId=" + randomUUID(), newWindow);
     await front(host);
     await until((() => inspect(host, '!!document.querySelector("#tab-tools")')), "tool host");
     const windowId = await inspect(host, "chrome.windows.getCurrent().then(w=>w.id)");

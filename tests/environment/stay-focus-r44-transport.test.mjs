@@ -47,6 +47,6 @@ test('lost mutation transport and retired Host after successful write are UNKNOW
 test('trusted enable after transport disconnect is UNKNOWN, not a false permission rejection',async()=>{
   const {api,tool}=await requestFixture({networkFails:true});
   await assert.rejects(runTrustedStayFocusOperation({api,tool,
-    operation:'focus.enable',payload:{},event:{isTrusted:true},assertCurrent:()=>{}}),
+    operation:'focus.enable',payload:{},event:{isTrusted:true},revocationEpoch:'epoch-r44',assertCurrent:()=>{}}),
     {code:'E_OUTCOME_UNKNOWN'});
 });

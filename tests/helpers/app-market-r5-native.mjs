@@ -321,7 +321,7 @@ export async function runMarketR5Acceptance(d){
   await until(()=>evaluate(first.review,'!!document.querySelector("[data-market-action=open-installed]")'),'explicit open after install');
   await screenshot(first.review,'r5-installed-trusted-state.png');
   await click(first.review,'[data-market-action="open-installed"]');
-  const trustedOpen=await until(async()=>(await targets()).find(row=>row.type==='page'&&row.url.startsWith('chrome-extension://'+id+'/ui/tool.html?')&&
+  const trustedOpen=await until(async()=>(await targets()).find(row=>row.type==='page'&&row.url.startsWith('chrome-extension://'+id+'/sidepanel.html?')&&
     new URL(row.url).searchParams.get('toolId')==='markdown-workbench'),'trusted installed action opens actual fixed tool');
   await d.iframeWith('markdown-workbench');
   const openedToolPage=await attach(trustedOpen.targetId);

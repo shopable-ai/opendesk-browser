@@ -1,3 +1,4 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
@@ -14,7 +15,7 @@ test('React shell can start, refresh and navigate without retired task catalog D
   }};
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path},
     permissions:{onAdded:{addListener(){},removeListener(){}},onRemoved:{addListener(){},removeListener(){}}}};
-  const workbench=createTaskWorkbench({client,host,document,api,myView:view,
+  const workbench=createTaskWorkbench({developerView:createDeveloperView(),client,host,document,api,myView:view,
     reactNavigation:{ownsPages:true,connect(fn){navigate=fn;},select(tab){selected.push(tab);}}});
   try{
     await workbench.refresh();
@@ -55,7 +56,7 @@ test('My file import presents the pending task without retired catalog nodes; so
   }};
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path},permissions:{contains:async()=>true,
     onAdded:{addListener(){},removeListener(){}},onRemoved:{addListener(){},removeListener(){}}}};
-  const workbench=createTaskWorkbench({client,host,document,api,myView:view,
+  const workbench=createTaskWorkbench({developerView:createDeveloperView(),client,host,document,api,myView:view,
     reactNavigation:{ownsPages:true,connect(){},select(){}}});
   try{
     await workbench.refresh();

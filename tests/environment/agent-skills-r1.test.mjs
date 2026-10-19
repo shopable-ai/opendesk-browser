@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir,access} from 'node:fs/promises';
@@ -110,7 +111,7 @@ test('Every local Markdown link in newly authored Skill docs resolves inside the
 });
 
 test('R4 actual HTML has five visible tabs and historical tabs stay historical',async()=>{
-  const [html,spec,ui]=await Promise.all([read('src/ui/tool.html'),read('docs/product/sidebar-ui-spec.zh-CN.md'),read('.agents/skills/opendesk-extension-ui/SKILL.md')]);
+  const [html,spec,ui]=await Promise.all([renderSidebarFixture(),read('docs/product/sidebar-ui-spec.zh-CN.md'),read('.agents/skills/opendesk-extension-ui/SKILL.md')]);
   const tabs=[...html.split('</nav>')[0].matchAll(/<button\b[^>]*\brole="tab"[^>]*>([^<]+)<\/button>/g)];
   assert.deepEqual(tabs.filter(x=>!/\shidden(?:\s|>)/.test(x[0])).map(x=>x[1]),['我的','扩展','工作流','开发','云控']);
   assert.ok(tabs.some(x=>x[1]==='调试'&&/\shidden/.test(x[0])));
@@ -158,7 +159,7 @@ test('R4 ambiguous requests retain one documented principal owner, not simulated
 
 test('R4 hides historical Tools-only UI while preserving the original Host nodes',async()=>{
   const [html,css]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/extension-center.css')
+    renderSidebarFixture(),read('src/ui/extension-center.css')
   ]);
   assert.match(html,/id="extension-center"/);
   for(const selector of [
@@ -182,7 +183,7 @@ test('R4 source-of-truth and Skill routing changes trigger governance CI',async(
     'docs/api/sidebar-tools.zh-CN.md',
     'docs/api/sidebar-tool-development.zh-CN.md',
     'examples/sidebar-tools/README.zh-CN.md',
-    'src/ui/tool.html','src/ui/extension-center.js',
+    'src/ui/sidepanel.html','src/ui/extension-center.js',
     'src/ui/extension-center-model.js','src/ui/extension-center.css'
   ])assert.ok(workflow.includes("      - '"+name+"'"),'governance path filter misses '+name);
   assert.match(workflow,/node --test tests\/environment\/agent-skills-r1\.test\.mjs/);

@@ -24,7 +24,7 @@ const failCode=code=>error=>error.code===code;
 // Transactional storage and Fetch component doubles, not native Chrome receipts.
 function fixture() {
   const host={tag:'host',active:true,registrationId:'host-1',hostDocumentId:'document-1',hostInstanceId:'instance-1',
-    browserSessionIncarnation:'session-1',hostUrl:'chrome-extension://fixture/ui/tool.html'};
+    browserSessionIncarnation:'session-1',hostUrl:'chrome-extension://fixture/sidepanel.html'};
   let database=new Map([['frameworkKV',new Map()],['commandJournal',new Map([['host:host-1',structuredClone(host)]])]]),queue=Promise.resolve();
   const f={calls:[],routes:new Map([[firstUrl,{bytes:first}],[secondUrl,{bytes:second}]]),granted:true,authCount:0,
     beforeTransaction:null,afterAuth:null,afterFetch:null,throwOnPut:null,offline:false,elapsed:0};

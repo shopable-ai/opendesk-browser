@@ -1,4 +1,5 @@
 import {isToolSender,resolveToolSender,permissionPattern} from '../../environment.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
 import {createBrowserTabHost} from './browser-tabs.js';
 import {createCurrentPageReferences} from './current-page-refs.js';
 import {createNetworkService} from './network.js';
@@ -102,7 +103,7 @@ async function checkedSender(api,sender){
   if(!isToolSender(api,sender))throw failure('E_OWNER','Untrusted Browser SDK sender');
   if(sender?.id!==api.runtime?.id||(sender?.frameId!==undefined&&sender.frameId!==0)||sender?.tab?.incognito)
     throw failure('E_OWNER','Only the trusted top-level OpenDesk UI may call Browser host');
-  const expected=new URL(api.runtime.getURL('ui/tool.html'));
+  const expected=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
   let url;
   try{url=new URL(sender.url);}catch{throw failure('E_OWNER','Untrusted browser sender');}
   if(url.protocol!==expected.protocol||url.host!==expected.host||url.pathname!==expected.pathname||

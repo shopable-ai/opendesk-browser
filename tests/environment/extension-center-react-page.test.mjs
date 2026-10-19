@@ -45,7 +45,7 @@ async function fixture(){
       onChanged:{addListener:fn=>changes.add(fn),removeListener:fn=>changes.delete(fn)}}};
   const client={subscribeConnection(fn){connections.add(fn);return ()=>connections.delete(fn);},
     async request(method,args){
-      if(method==='listPagePrograms')return {catalog:structuredClone([page])};
+      if(method==='listPagePrograms')return {installed:structuredClone([{programId:page.programId,...page.installed}])};
       if(method!=='setInstalledPageEnabled')throw Error(method);
       calls.push({action:'page-toggle',args});
       if(!ackOnly){page.installed.enabled=args.enabled;page.installed.authorization.generation++;}
@@ -94,13 +94,15 @@ async function browserFixture(t){
       '<!doctype html><html><head><link rel="stylesheet" href="/style.css"></head><body><div id="workspace-content"><div id="root"></div></div><script type="module" src="/app.js"></script></body></html>');
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  t.after(()=>{server.closeAllConnections();return new Promise(resolve=>server.close(resolve));});
   const browser=await chromium.launch({headless:true,args:['--no-sandbox'],
     ...(process.env.OPENDESK_CHROMIUM_EXECUTABLE?{executablePath:process.env.OPENDESK_CHROMIUM_EXECUTABLE}:{})});
-  t.after(()=>browser.close());const page=await browser.newPage();
+  t.after(()=>browser.close());const page=await browser.newPage();page.setDefaultTimeout(5000);
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
-  await page.locator('[data-extension-id="page:reader"]').waitFor();
+  await page.locator('[data-extension-id="page:reader"]').waitFor().catch(async error=>{
+    throw Error(String(error)+'\nFIXTURE_DIAGNOSTICS '+JSON.stringify({errors,state:await page.evaluate(()=>({text:document.body.innerText,fixture:typeof window.fixture}))}));
+  });
   t.after(()=>assert.deepEqual(errors,[]));return page;
 }
 const options={skip:modulePath?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE to an existing Playwright installation'};
@@ -114,8 +116,16 @@ test('React page preserves list, search/filter, detail identity and native Page 
   await page.locator('[data-extension-key="page:reader"][data-extension-action="main"]').click();
   assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
   assert.match(await page.locator('.ec-sites').innerText(),/https:\/\/example.com\/\*/);
+  await page.locator('#extension-center-back').click();
+  await page.locator('[data-extension-key="page:reader"][data-extension-action="more"]').click();
+  await page.locator('#extension-center-row-menu').getByRole('menuitem',{name:'查看详情',exact:true}).click();
+  assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
   await page.locator('[data-ec-detail-action="toggle"]').click();
-  await page.waitForFunction(()=>fixture.page.installed.enabled===false&&fixture.state.detailModel?.busy===false);
+  await page.waitForFunction(()=>fixture.page.installed.enabled===false&&fixture.state.detailModel?.busy===false)
+    .catch(async error=>{throw new Error(String(error)+'\nTOGGLE_READBACK '+JSON.stringify(await page.evaluate(()=>({
+      installed:fixture.page.installed,calls:fixture.calls,detail:fixture.state.detailModel,
+      status:fixture.state.statusModel,text:document.body.innerText
+    }))));});
   assert.equal(await page.locator('[data-ec-detail-action="toggle"]').evaluate(node=>node===document.activeElement),true);
   assert.equal(await page.evaluate(()=>fixture.calls.find(x=>x.action==='page-toggle').args.expectedGeneration),5);
   await page.evaluate(()=>{fixture.setAckOnly(true);});

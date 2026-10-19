@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {Button,IconButton} from '../components/ui/button.tsx';
 
 // A controlled React field. Callbacks are explicitly supplied by each page;
 // there is no event registry or simulated DOM attached to the view model.
@@ -36,5 +37,13 @@ export function MyControl({view,as:Tag='div',id,children,onInput,onChange,onTogg
     ?<optgroup key={item.label+'-'+index} label={item.label}>{item.options.map(option=>
       <option key={option.value} value={option.value} disabled={option.disabled} title={option.title}>{option.label}</option>)}</optgroup>
     :<option key={item.value} value={item.value} disabled={item.disabled}>{item.label}</option>);
+  if(Tag==='button'){
+    const classes=(attributes.className||'').split(/\s+/);
+    const icon=classes.includes('od-icon-button');
+    attributes.className=classes.filter(name=>name!==(icon?'od-icon-button':'od-button')).join(' ');
+    return icon
+      ?<IconButton {...attributes} label={attributes['aria-label']||attributes.title}>{content}</IconButton>
+      :<Button {...attributes} variant="plain">{content}</Button>;
+  }
   return <Tag {...attributes}>{Tag==='input'||Tag==='textarea'?undefined:content}</Tag>;
 }

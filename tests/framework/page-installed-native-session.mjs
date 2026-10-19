@@ -68,7 +68,7 @@ async function observe(label){
             inputs:globalThis.__pageLifecycleNativeInputs,controls:[...document.querySelectorAll('[id],button')].filter(visible).map(n=>({id:n.id,
               text:n.textContent?.slice(0,3000),value:n.value,disabled:n.disabled,state:n.dataset.state})),width:innerWidth,height:innerHeight};})()`,id);
         observations.push({target,state});
-        if(target.url.includes('/ui/tool.html')||target.url.includes('/demo-form.html')){
+        if(target.url.includes('/sidepanel.html')||target.url.includes('/demo-form.html')){
           const shot=await c.send('Page.captureScreenshot',{format:'png'},id);await writeFile(path.join(directory,label+'-'+target.targetId+'.png'),Buffer.from(shot.data,'base64'));
         }
       }catch(error){observations.push({target,error:String(error)});}
@@ -80,7 +80,7 @@ async function observe(label){
 }
 async function arm(){
   const s=JSON.parse(await readFile(sessionFile,'utf8')),c=await connect(s.endpoint);
-  try{const targets=(await c.send('Target.getTargets')).targetInfos,target=targets.find(t=>t.url.includes('/ui/tool.html?hostInstanceId='));
+  try{const targets=(await c.send('Target.getTargets')).targetInfos,target=targets.find(t=>t.url.includes('/sidepanel.html?hostInstanceId='));
     if(!target)throw Error('Live Sidebar required');const id=(await c.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
     await evaluate(c,`(()=>{if(globalThis.__pageLifecycleNativeInputs)return;globalThis.__pageLifecycleNativeInputs=[];
       for(const type of ['input','change','click'])document.addEventListener(type,e=>{

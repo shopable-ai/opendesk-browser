@@ -182,7 +182,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     version,manifest:JSON.parse(await readFile(join(extension,'manifest.json'),'utf8')),
     headed:process.env.OPENDESK_NATIVE_HEADED==='1'
   },null,2)+'\n');
-  const ownUrl='chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID();
+  const ownUrl='chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID();
   const panel=await openTab(ownUrl);host=panel.cdp;
   try {
     await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#tab-tools")'),
@@ -207,7 +207,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
       'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
       'An uninstalled TOC must not inject a webpage overlay');
   }
-  console.log('TOC_NATIVE_STAGE: extension tool.html loaded');
+  console.log('TOC_NATIVE_STAGE: extension sidepanel.html loaded');
   // Test the actual official installer HTML event path and bundled JSON, not a
   // synthetic package installed directly into chrome.storage.
   // Native Side Panel + local file import: the earlier host tab only tested
@@ -238,7 +238,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   console.log('TOC_NATIVE_STAGE: native Side Panel opened via real user gesture');
   const sideContext=await eventually(async()=>{
     const contexts=await evaluate(host,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return contexts.find(x=>x.documentUrl?.includes('/ui/tool.html?hostInstanceId='));
+    return contexts.find(x=>x.documentUrl?.includes('/sidepanel.html?hostInstanceId='));
   },'Chrome did not register the actual SIDE_PANEL document');
   const sideTarget=await eventually(async()=>{
     const {targetInfos}=await browser.send('Target.getTargets');

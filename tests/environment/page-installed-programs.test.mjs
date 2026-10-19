@@ -17,7 +17,7 @@ globalThis.crypto ||= webcrypto;
 function fixture(){
   let db=new Map(['frameworkKV','commandJournal','runs'].map(name=>[name,new Map()])),queue=Promise.resolve();
   const writes=[];
-  const host={tag:'host',namespace:'tool:test',registrationId:'host',hostDocumentId:'tool-document',hostUrl:'chrome-extension://test/ui/tool.html',
+  const host={tag:'host',namespace:'tool:test',registrationId:'host',hostDocumentId:'tool-document',hostUrl:'chrome-extension://test/sidepanel.html',
     hostInstanceId:'instance',browserSessionIncarnation:'session',active:true,revoked:false};
   db.get('commandJournal').set('host:host',structuredClone(host));
   const storage={transaction(stores,mode,work){

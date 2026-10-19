@@ -43,7 +43,7 @@ function packageFixture(){
   const f=fixture();
   for(const path of [BUILTIN_CATALOG.bootstrap,...Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor').map(row=>row.output),
     ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
-    'ui/tool.html','ui/tool-shell.css','ui/cloud-hosting.css','native-agent/workspace.html','native-agent/workspace.css']){
+    'sidepanel.html','ui/tool-shell.css','ui/cloud-hosting.css','native-agent/workspace.html','native-agent/workspace.css']){
     f.measured[path]={bytes:1000,sha256:digest};f.receipt.report.files.push({path,...f.measured[path]});
   }
   // Independent private browser compiler inputs are never ordinary 512 KiB
@@ -55,10 +55,19 @@ function packageFixture(){
   }
   return f;
 }
+test('Sidebar loading group rejects an obsolete HTML path instead of treating it as an alias',()=>{
+  const f=packageFixture(),path='sidepanel.html';
+  f.measured['ui/tool.html']=f.measured[path];delete f.measured[path];
+  f.receipt.report.files.find(row=>row.path===path).path='ui/tool.html';
+  assert.throws(()=>summarizePackageResources(f.receipt,f.measured),
+    /Missing loading-group resource: sidepanel\.html/);
+});
 test('full inventory includes raw and static assets and sums the actual runtime resource sets',()=>{
   const f=packageFixture(),report=summarizePackageResources(f.receipt,f.measured);
   assert.equal(report.resources.length,Object.keys(f.measured).length);
   const sum=paths=>paths.reduce((n,path)=>n+f.measured[path].bytes,0);
+  assert.deepEqual(report.loadingGroups.find(row=>row.id==='sidebar-shell').resources.map(row=>row.path),
+    ['sidepanel.html','ui/tool-shell.css','ui/cloud-hosting.css','ui/tool-shell.js']);
   assert.equal(report.loadingGroups.find(row=>row.id==='background-startup').bytes,sum(['sw.js','sidebar-tools/preinstall-intent.js','agents/health-host.js','native-agent/transport.js','knowledge/knowledge-host.js','cloud-control/cloud-host.js','time-review/time-review-host.js','platform/context-menus.js']));
   const controller=report.loadingGroups.find(row=>row.id==='controller-default-libraries');
   assert.equal(controller.resources.length,5);
@@ -139,9 +148,9 @@ test('full inventory catches oversize raw code and missing or mismatched resourc
   tamperedCompiler.receipt.report.files.find(row=>row.path===pinned.output).sha256='b'.repeat(64);
   assert.throws(()=>summarizePackageResources(tamperedCompiler.receipt,tamperedCompiler.measured),
     /Private browser compiler size\/hash mismatch/);
-  const missing=packageFixture();delete missing.measured['ui/tool.html'];
+  const missing=packageFixture();delete missing.measured['sidepanel.html'];
   assert.throws(()=>summarizePackageResources(missing.receipt,missing.measured),/physically measured/);
-  const mismatch=packageFixture();mismatch.measured['ui/tool.html'].sha256='b'.repeat(64);
+  const mismatch=packageFixture();mismatch.measured['sidepanel.html'].sha256='b'.repeat(64);
   assert.throws(()=>summarizePackageResources(mismatch.receipt,mismatch.measured),/size\/hash mismatch/);
 });
 test('SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte',()=>{

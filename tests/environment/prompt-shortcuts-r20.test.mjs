@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 // R2 independent site rule semantics: Node fixtures, NOT live website acceptance.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -54,7 +55,7 @@ test('R2.5 formal UI keeps six square icons and delegated Host switch ownership'
   const [html,css,hostHtml,hostCss,hostSource]=await Promise.all([
     readFile(root+'/src/index.html','utf8'),
     readFile(root+'/src/style.css','utf8'),
-    readFile('src/ui/tool.html','utf8'),
+    renderSidebarFixture(),
     readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8')
   ]);

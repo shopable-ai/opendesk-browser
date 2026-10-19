@@ -1,4 +1,4 @@
-import {toolDocumentIdentity} from './tool-document-url.js';
+import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from './tool-document-url.js';
 export const PROTOCOL = 'opendesk.environment.v1';
 export const HEALTH_FILE = 'agents/health.js';
 export const SELECTION_FILE = 'agents/selection-entry.js';
@@ -22,7 +22,7 @@ export function isToolSender(api, sender) {
   // sender.tab and sender.frameId. If a tab is present, require its top frame;
   // otherwise accept only the packaged top-level extension document.
   const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
-  const route=toolDocumentIdentity(api.runtime.getURL('ui/tool.html'),sender?.url);
+  const route=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
   return sender?.id === api.runtime.id && Boolean(route) &&
     (!route.hasLocator||Number.isSafeInteger(sender.tab?.id)&&sender.tab.id>=0) &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
@@ -32,7 +32,7 @@ export function isToolSender(api, sender) {
 // a unique native context for this packaged host instance, never from payload.
 export async function resolveToolSender(api, sender) {
   if (isToolSender(api, sender)) return sender;
-  const route=toolDocumentIdentity(api.runtime.getURL('ui/tool.html'),sender?.url);
+  const route=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
   if (sender?.documentId || sender?.id !== api.runtime.id || sender.tab ||
       sender.frameId !== undefined && sender.frameId !== 0 ||
       !route||route.hasLocator||!route.hostInstanceId)

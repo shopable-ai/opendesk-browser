@@ -1,15 +1,42 @@
+import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {load} from 'cheerio';
-import {createServer,transformWithEsbuild} from 'vite';
+import {transform} from 'esbuild';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 
 const read=path=>readFile(path,'utf8');
-test('R33.3.6 six official panels (development Debug only) are source-bound',async()=>{
+
+test('R37 offline preview generates from the empty official root with working production ownership',async()=>{
+  const {generateSidebarSixReactPreview}=await import('../../scripts/preview/build-sidebar-six-react-preview.mjs');
+  const result=await generateSidebarSixReactPreview();
+  const $=load(result.html);
+  assert.equal($('#opendesk-react-app').length,1);
+  assert.equal($('#opendesk-react-app').contents().length,0,'React receives an empty root, never an SSR template');
+  assert.equal($('#opendesk-react-app').attr('class'),load(await read('src/ui/sidepanel.html'))('#opendesk-react-app').attr('class'));
+  assert.equal($('nav.workbench-nav').length,0,'navigation is mounted by the production shell');
+  assert.equal($('meta[name="od-preview-proof"]').attr('content'),'UI_PREVIEW_ONLY');
+  assert.equal($('meta[name="od-source-input-sha256"]').attr('content'),result.inputSha256);
+  assert.equal($('iframe').length,0,'offline shell must not launch a dynamic tool');
+  assert.equal($('script[src^="http"]').length,0);
+  const scripts=$('script[src]').map((_,n)=>$(n).attr('src')).get();
+  assert.equal(scripts.length,1,'one existing app root owns the preview');
+  const compiled=Buffer.from(scripts[0].split(',')[1],'base64').toString();
+  assert.match(compiled,/E_REACT_APP_SHELL_NAVIGATION/);
+  assert.match(compiled,/UI_PREVIEW_ONLY/);
+  const paths=result.sourceInputs.map(input=>input.path);
+  assert.ok(paths.includes('src/ui/react/main.tsx'));
+  assert.ok(paths.includes('src/ui/react/app-shell.tsx'));
+  assert.ok(!paths.includes('src/ui/react/preview/sidebar-six-preview.tsx'),'retired Portal adapter is not a consumer');
+  assert.match(await read('scripts/preview/build-sidebar-six-react-preview.mjs'),/app=mountSidebarApp\(document,\{debugEnabled:true,onNavigate/);
+});
+// Legacy design fixtures remain checked for historical layout regressions;
+// the R37 generation and Chromium evidence above/below prove the active consumer.
+test('R33.3.6 official panels and historical design fixtures retain their contracts',async()=>{
   const [installed,builder,adapter]=await Promise.all([
-    read('src/ui/tool.html'),
+    renderSidebarFixture(),
     read('scripts/preview/build-sidebar-six-react-preview.mjs'),
     read('src/ui/react/preview/sidebar-six-preview.tsx')
   ]);
@@ -23,7 +50,9 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
     assert.equal($('#workbench-'+key).attr('role'),'tabpanel');
     assert.match(builder,new RegExp("'"+key+"'"));
   }
-  assert.ok($('#tab-debug').is('[hidden]'),'Debug stays hidden in official production DOM');
+  const production=load(await renderSidebarFixture({debugEnabled:false}));
+  assert.ok(production('#tab-debug').is('[hidden]'),'Debug stays hidden in production navigation');
+  assert.equal(production('#workbench-debug').length,0,'production does not mount diagnostics');
   // The run overview remains available but secondary to header management.
   const runner=$('#schedule-open-runner');
   assert.equal(runner.length,1,'one authoritative runner launch entry');
@@ -38,7 +67,7 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
   assert.match(builder,/--check/);
   assert.match(builder,/inputSha256/);
   assert.match(builder,/connect-src/);
-  for(const path of ['src/ui/tool.html','src/ui/react/main.tsx',
+  for(const path of ['src/ui/sidepanel.html','src/ui/react/main.tsx',
     'src/ui/react/tabs/tools.tsx','src/ui/react/tabs/develop.tsx',
     'src/ui/react/tabs/debug.tsx','src/ui/react/tabs/workflow.tsx','src/ui/design-tokens.css',
     'src/ui/react/tabs/tasks.tsx','src/ui/react/tabs/cloud.tsx',
@@ -64,7 +93,7 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
   const withoutComments=adapter.replace(/^\s*\/\/[^\n]*$/gm,'');
   assert.doesNotMatch(withoutComments,/chrome\.|fetch\(|localStorage|sessionStorage|\bRunHost\s*\(|new Worker\(/);
   assert.doesNotMatch(withoutComments,/from ['"][^'"]*(?:platform\/host|framework\/sdk|sandbox|installer)/);
-  const compiled=await transformWithEsbuild(adapter,'sidebar-six-preview.tsx',
+  const compiled=await transform(adapter,
     {loader:'tsx',jsx:'transform',target:'es2022'});
   assert.ok(compiled.code.length>2500);
 });
@@ -73,15 +102,15 @@ test('R33.3.6 planned preview guards missing/stale bundled inputs',async()=>{
   assert.match(src,/current===result\.html/);
   assert.match(src,/stylePaths/);
   assert.match(src,/generated index\.html missing or stale/);
-  assert.match(src,/iframe/);
-  assert.match(src,/srcdoc/);
+  assert.match(src,/frame-src/);
+  assert.match(src,/form-action/);
   assert.match(src,/default-src/);
   assert.doesNotMatch(src,/force.*git|git\s+push/);
 });
 
 test('R23.14 six-tab Workflow shares compact disconnected controls and production-facing copy',async()=>{
   const [adapter,html]=await Promise.all([
-    read('src/ui/react/preview/sidebar-six-preview.tsx'),read('src/ui/tool.html')
+    read('src/ui/react/preview/sidebar-six-preview.tsx'),renderSidebarFixture()
   ]);
   assert.match(adapter,/get\('workflow-local-status'\)\.textContent='未连接'/);
   assert.match(adapter,/get\('workflow-local-connect'\)\.disabled=true/);
@@ -93,7 +122,7 @@ test('R23.14 six-tab Workflow shares compact disconnected controls and productio
 
 test('R33.3.16 source-owned task manager and dual workflow examples are not a parallel preview',async()=>{
   const [html,css,owner,preview,flows,prototype,presentation]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),
+    renderSidebarFixture(),read('src/ui/tool-shell.css'),
     read('src/ui/workflow/workflow-view.js'),
     read('src/ui/react/preview/sidebar-six-preview.tsx'),
     read('src/ui/react/preview/sidebar-six-my-flows.tsx'),
@@ -131,37 +160,38 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   assert.match(preview,/setInstalledTaskIds\(old=>old\.filter\(/);
   assert.match(preview,/\[320,360,400,420,440,520\]/);
   const exampleButtons=$('#workflow-intro-suggestions button');
-  assert.equal(exampleButtons.length,4);
-  assert.equal(exampleButtons.filter('[data-example-mode="new-chat"]').length,2);
-  assert.equal(exampleButtons.filter('[data-example-mode="new-workflow"]').length,2);
+  assert.deepEqual(exampleButtons.map((_,node)=>$(node).attr('data-workflow-example')).get(),['fill','read']);
+  const {createWorkflowUIState}=await loadSidebarReact();
+  const ui=createWorkflowUIState();
+  const model={...ui.getSnapshot(),entryMode:'new-chat'};
+  const chat=load(await renderSidebarFixture({workflowController:{getSnapshot:()=>model,subscribe:()=>()=>{},actions:{}}}));
+  assert.deepEqual(chat('#workflow-intro-suggestions button').map((_,node)=>chat(node).attr('data-workflow-example')).get(),['continue','check']);
+  ui.dispose();
   assert.match(css,/\.workflow-intro-suggestions\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css,/\.workflow-intro-suggestions button\{display:block;width:100%/);
   assert.match(prototype,/\.r2310-suggestions\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
-  assert.match(owner,/get\('workflow-intro-suggestions'\)/);
-  assert.match(owner,/draft\.value=requestText/);
-  const examplesStart=owner.lastIndexOf('  for(const button of get(\'workflow-intro-suggestions\')');
-  assert(examplesStart>=0,'trusted suggestion handler must be present');
-  assert.doesNotMatch(owner.slice(examplesStart,
-    owner.indexOf('  const onResumeSessionClick',examplesStart)), /client\.request|startPlanning|runWorkflow/,
+  const examplesStart=owner.indexOf('const chooseExample=');
+  const examplesEnd=owner.indexOf('const onResumeSessionClick',examplesStart);
+  assert(examplesStart>=0&&examplesEnd>examplesStart,'trusted suggestion action must be present');
+  const exampleAction=owner.slice(examplesStart,examplesEnd);
+  assert.match(exampleAction,/event\.isTrusted/);
+  assert.match(exampleAction,/control\('workflow-ai-request'\)\.value=exampleRequests\[key\]/);
+  assert.doesNotMatch(exampleAction,/client\.request|startPlanning|runWorkflow/,
     'suggestions can only fill the existing composer');
   assert.match(preview,/setWorkflowEntry\('new-chat'\)/);
   assert.match(preview,/setWorkflowEntry\('new-workflow'\)/);
   assert.match(flows,/setManagerOrigin\('detail'\)/);
   assert.match(flows,/setView\(managerOrigin\)/);
-  assert.ok(owner.includes("get('workflow-chat-intro').hidden=hasMessages || phase==='planning' || (hasSteps && entryMode!=='new-chat');"),
+  assert.ok(owner.includes("control('workflow-chat-intro').hidden=hasMessages || phase==='planning' || (hasSteps && entryMode!=='new-chat');"),
     'new conversation suggestions should remain visible over an existing workflow draft');
   assert.match(presentation,/RUNNING:'positive',ADMITTED:'info'/);
-  await transformWithEsbuild(flows,'sidebar-six-my-flows.tsx',
+  await transform(flows,
     {loader:'tsx',jsx:'transform',target:'es2022'});
 });
 
 
 test('developer preview uses the complete page and dock with isolated local-project state',async t=>{
-  const vite=await createServer({configFile:false,root:process.cwd(),
-    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
-  t.after(()=>vite.close());
-  const {DeveloperPage,DeveloperDock}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
-  const {createDeveloperPreviewView}=await vite.ssrLoadModule('/src/ui/react/preview/developer-preview.js');
+  const {DeveloperPage,DeveloperDock,createDeveloperPreviewView}=await loadSidebarReact();
   const view=createDeveloperPreviewView();
   t.after(()=>view.dispose());
   const render=()=>load(renderToStaticMarkup(React.createElement(React.Fragment,null,

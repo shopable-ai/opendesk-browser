@@ -94,7 +94,7 @@ boot=[
   'window.__send=(operation,extra={})=>new Promise(resolve=>{const listener=[...messages][0];',
   ' listener({protocol:"opendesk.prompt-shortcuts.picker.v1",toolId:"prompt-shortcuts",',
   ' operation,expectedUrl:location.href,...extra},',
-  ' {id:"fixture-extension",url:"chrome-extension://fixture-extension/tool.html"},resolve);});',
+  ' {id:"fixture-extension",url:"chrome-extension://fixture-extension/sidepanel.html"},resolve);});',
   'window.__setRule=next=>{values[DATA].sites={schema:1,rules:next?[next]:[]};',
   ' localStorage.setItem("ps-r21-fixture",JSON.stringify(values));',
   ' for(const fn of changes)fn({[DATA]:{newValue:values[DATA]}},"local");};',

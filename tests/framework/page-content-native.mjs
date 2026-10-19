@@ -126,7 +126,7 @@ try{
   }).map(([id,code])=>[id,{code,sha256:createHash('sha256').update(code).digest('hex')}]));
   await writeFile(path.join(extension,'ui/fixture-config.js'),
     'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';globalThis.__pageContentPageProof='+JSON.stringify(pageProof)+';globalThis.__pageContentExamples='+JSON.stringify(examples)+';');
-  await writeFile(path.join(extension,'ui/tool.html'),
+  await writeFile(path.join(extension,'sidepanel.html'),
     '<!doctype html><meta charset="utf-8"><script src="fixture-config.js"></script><script src="tool-shell.js"></script>');
   for(const file of ['ui/target-bootstrap.html','scripting/sandbox/sandbox.html'])
     await copyFile(path.join(root,'src',file),path.join(extension,file));
@@ -283,7 +283,7 @@ try{
   const {sessionId}=await client.send('Target.attachToTarget',{targetId,flatten:true});
   await client.send('Runtime.enable',{},sessionId);
   await client.send('Page.enable',{},sessionId);
-  const extensionURL='chrome-extension://'+extensionId+'/ui/tool.html';
+  const extensionURL='chrome-extension://'+extensionId+'/sidepanel.html';
   const navigation=await client.send('Page.navigate',{url:extensionURL},sessionId);
   console.log(JSON.stringify({stage:'navigate',extensionURL,navigation}));
   if(navigation.errorText)throw new Error('Extension navigation failed: '+navigation.errorText);

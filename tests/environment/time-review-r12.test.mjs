@@ -20,7 +20,7 @@ async function fixture(){
   const local={[SIDEBAR_TOOL_STORE]:[structuredClone(tool)],
     [TIME_REVIEW_KEY]:{...emptyReview(),siteGrants:{allSites:true,origins:[]}}},session={},downloads=[],alarms=new Map();
   const area=data=>({async get(keys){return structuredClone(keys===null?data:Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(key=>[key,data[key]])));},async set(rows){Object.assign(data,structuredClone(rows));},async remove(keys){for(const key of Array.isArray(keys)?keys:[keys])delete data[key];}});
-  const sender={id:'abcdefghijklmnopabcdefghijklmnop',url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',documentId:'doc-1',frameId:0,documentLifecycle:'active',tab:{id:99,incognito:false}};
+  const sender={id:'abcdefghijklmnopabcdefghijklmnop',url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=11111111-1111-4111-8111-111111111111&toolId=time-review',documentId:'doc-1',frameId:0,documentLifecycle:'active',tab:{id:99,incognito:false}};
   let contexts=[{contextType:'TAB',documentUrl:sender.url,documentId:sender.documentId,tabId:99,frameId:0,incognito:false}];
   const api={runtime:{id:sender.id,getURL:path=>'chrome-extension://'+sender.id+'/'+path,onMessage:event(),onStartup:event(),async getContexts(){return contexts;}},storage:{local:area(local),session:area(session),onChanged:event()},
     idle:{queryState:async()=>idle,setDetectionInterval:()=>{},onStateChanged:event()},

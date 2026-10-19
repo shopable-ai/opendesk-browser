@@ -544,14 +544,14 @@ try{
     return {version,extensionId:report.extensionId,pid:report.launch.pid,profile:report.launch.profile};
   });
   await step('product-side-panel',async()=>{
-    const target=await client.send('Target.createTarget',{url:'chrome-extension://'+report.extensionId+'/ui/tool.html?hostInstanceId='+randomUUID()});
+    const target=await client.send('Target.createTarget',{url:'chrome-extension://'+report.extensionId+'/sidepanel.html?hostInstanceId='+randomUUID()});
     control=await attach(target);
     await until(()=>read(control,'document.documentElement.dataset.opendeskSurface==="catalog"'),
       'Catalog controller initialized before trusted open',20000);
     await click(control,'#catalog-open-dev-sidebar');
     report.catalogOpenStatus=await read(control,'document.querySelector("#catalog-dev-sidebar-status")?.textContent');
     const context=await until(async()=> (await read(control,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})"))
-      .find(c=>c.documentId&&c.documentUrl.startsWith('chrome-extension://'+report.extensionId+'/ui/tool.html')),'Actual SIDE_PANEL context');
+      .find(c=>c.documentId&&c.documentUrl.startsWith('chrome-extension://'+report.extensionId+'/sidepanel.html')),'Actual SIDE_PANEL context');
     const targetInfo=await until(async()=> (await client.send('Target.getTargets')).targetInfos.find(t=>t.url===context.documentUrl),'Actual Side Panel CDP target');
     sideTargetId=targetInfo.targetId;
     side=await attach(targetInfo);report.sidePanelContext=context;

@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../../src/ui/',import.meta.url);
 const [html,css,components,editor]=await Promise.all([
-  readFile(new URL('tool.html',root),'utf8'),
+  readFile(new URL('sidepanel.html',root),'utf8'),
   readFile(new URL('tool-shell.css',root),'utf8'),
   readFile(new URL('design-system.css',root),'utf8'),
   readFile(new URL('script-editor.js',root),'utf8'),

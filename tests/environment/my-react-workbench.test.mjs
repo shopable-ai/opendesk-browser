@@ -1,3 +1,4 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,rm} from 'node:fs/promises';
@@ -18,7 +19,7 @@ const artifacts=new URL('../../artifacts/my-react-workbench-tests/',import.meta.
 let MyTasksPage,createRoot;
 test.before(async()=>{
   await mkdir(artifacts,{recursive:true});
-  await build({stdin:{contents:'export {MyTasksPage} from "./src/ui/react/tabs/tasks.tsx";',resolveDir:process.cwd()},
+  await build({stdin:{contents:'export {MyTasksPage} from "./src/ui/react/tabs/my-page.tsx";',resolveDir:process.cwd()},
     bundle:true,packages:'external',platform:'node',format:'esm',outfile:new URL('page.mjs',artifacts).pathname,logLevel:'silent'});
   ({MyTasksPage}=await import(new URL('page.mjs',artifacts)));
 });
@@ -107,8 +108,8 @@ async function fixture({twoTasks=false}={}){
     onRemoved:{addListener:fn=>permissionRemoved.add(fn),removeListener:fn=>permissionRemoved.delete(fn)}},
     runtime:{getURL:path=>'chrome-extension://test/'+path},tabs:{create:async()=>({id:4})}};
   const view=createMyWorkbenchView({document:doc});
-  const workbench=createTaskWorkbench({client,host,currentPageTarget,api,document:doc,myView:view,
-    reactNavigation:{ownsPages:true,select:()=>{}},importDraft:()=>{}});
+  const workbench=createTaskWorkbench({developerView:createDeveloperView(),client,host,currentPageTarget,api,document:doc,myView:view,
+    reactNavigation:{ownsPages:true,connect:()=>{},select:()=>{}},importDraft:()=>{}});
   const scheduler=createScheduledTaskWorkbench({client,host,taskWorkbench:workbench,api,document:doc,myView:view});
   await tick();await tick();
   const dispatch=async(id,event='click')=>{await React.act(async()=>{await view.actions[id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1)]?.(native());await tick();});};
@@ -124,7 +125,7 @@ async function fixture({twoTasks=false}={}){
 }
 
 async function fillPlan(f,title='每天任务'){
-  await f.scheduler.open();await f.dispatch('schedule-create');
+  await React.act(async()=>f.scheduler.open());await f.dispatch('schedule-create');
   await f.input('schedule-title',title);await f.input('schedule-task-select','test.task','change');
   await f.input('schedule-target','https://example.com/form');await f.input('schedule-kind','daily','change');
   await f.input('schedule-clock','09:00','change');
@@ -161,7 +162,7 @@ test('manual task passes typed params and fixed identity, stops the owning run, 
     assert.deepEqual(f.state.starts[0].params,{name:'张三',count:3,accept:true,mode:'a'});
     assert.equal(f.state.starts[0].expectedTaskInstallationId,'11111111-1111-4111-8111-111111111111');
     assert.equal(f.state.starts[0].expectedTaskGeneration,1);
-    f.workbench.navigate('cloud');assert.equal(f.doc.getElementById('task-stop').disabled,false);
+    f.workbench.navigate('cloud');assert.equal(f.view.field('task-stop').disabled,false);
     await f.dispatch('task-stop');await tick();assert.deepEqual(f.state.stops,[{runId:'run-1',controller:true}]);
     f.workbench.navigate('tasks');await f.input('task-param-name','再次运行');await f.dispatch('task-run');await tick();
     assert.equal(f.state.starts.length,2);f.host.finish({failed:true});await tick();await tick();

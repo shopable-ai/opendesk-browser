@@ -24,7 +24,7 @@ function inspect(names,modern,{ids=names.map((_,i)=>'tool-'+i),duplicateOpen=fal
 }
 
 test('native tool navigation uniquely identifies an open action among nested rows and remove buttons',()=>{
-  const html=readFileSync(new URL('../../src/ui/tool.html',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../../src/ui/sidepanel.html',import.meta.url),'utf8');
   const product=readFileSync(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
   assert.match(html,/id="sidebar-tool-list"/);assert.match(html,/id="sidebar-tool-back"/);
   // Execute the actual row producer with a small component DOM. A source shape

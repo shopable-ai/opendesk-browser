@@ -15,7 +15,7 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 ## 唯一现行规范（禁止复制成第二套设计系统）
 
-**最新五 Tab/类型标签的权威**为 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md) 与 `src/ui/tool.html`。遗留 `tab-tools`/`workbench-tools` DOM ID 不是仍存在「工具」一级 Tab 的证据。
+**最新五 Tab/类型标签的权威**为 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md) 与 `src/ui/react/app-shell.tsx`。R37 正式 HTML 为根目录 `sidepanel.html`，源码 `src/ui/sidepanel.html` 只含空挂载节点；旧 `tool.html` 已退役。遗留 `tab-tools`/`workbench-tools` DOM ID 不是仍存在「工具」一级 Tab 的证据。
 
 先恢复 `AGENTS.md` 的当前阶段、用户最新优先级及目标文件 diff；以下按任务选择相关章节，不是每次依次读完的清单：
 
@@ -47,7 +47,7 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
      ├─ Detail：单计划状态 / 历史 / 次要操作（需要时）
      ├─ Form：创建或编辑同一计划
      └─ Management：已安装任务选择/管理
-独立运行页：使用既有 tool.html 的受信任运行 Host，不新增 SW/RunHost
+独立运行页：使用同一 sidepanel.html React 应用及既有受信任运行 Host，不新增 SW/RunHost
 ```
 
 ## 所有内置页面统一的视觉硬约束

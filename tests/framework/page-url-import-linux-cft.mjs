@@ -628,7 +628,7 @@ async function main(){
     report.browserSourceNetwork={requests:sourceRequests,responses:sourceResponses,
       transport:'raw CONNECT to real raw.githubusercontent.com:443, browser-verified end-to-end HTTPS'};
   }
-  const catalog=await newTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+crypto.randomUUID(),'catalog');
+  const catalog=await newTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+crypto.randomUUID(),'catalog');
   await until(()=>catalog.session.read('!!document.querySelector("#catalog-open-dev-sidebar")'),'Original catalog UI');
   report.tests.push({name:'actual-verified-extension-package-loaded',status:'PASS',
     extensionId,packageHash:report.packageHash});
@@ -685,11 +685,11 @@ async function main(){
     'Original Sidebar open acknowledgement');
   const panelInfo=await until(async()=>{
     const list=await(await fetch(base+'/json/list')).json();
-    return list.find(t=>t.url?.startsWith('chrome-extension://'+extensionId+'/ui/tool.html')&&t.id!==catalog.id&&t.webSocketDebuggerUrl);
+    return list.find(t=>t.url?.startsWith('chrome-extension://'+extensionId+'/sidepanel.html')&&t.id!==catalog.id&&t.webSocketDebuggerUrl);
   },'Real Side Panel target');
   const sidebar=await cdp(panelInfo.webSocketDebuggerUrl,'sidebar');sessions.push(sidebar);
   await sidebar.call('Page.enable');
-  // The manifest opens bare tool.html once; its original bootstrap then commits
+  // The manifest opens bare sidepanel.html once; its original bootstrap then commits
   // a new canonical hostInstanceId document. Do not click the first HTML's tabs
   // before that navigation and the existing workbench listeners are complete.
   const panelReady=await until(()=>sidebar.read('(async()=>{const href=location.href,url=new URL(href);'+
@@ -702,7 +702,7 @@ async function main(){
     'return context&&location.href===href?{context,href,selected,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}:null})()'),
     'Canonical initialized actual Side Panel document');
   const {toolDocumentIdentity}=await import(pathToFileURL(path.join(repo,'src/tool-document-url.js')));
-  const panelIdentity=toolDocumentIdentity('chrome-extension://'+extensionId+'/ui/tool.html',panelReady.href);
+  const panelIdentity=toolDocumentIdentity('chrome-extension://'+extensionId+'/sidepanel.html',panelReady.href);
   assert(panelIdentity?.hostInstanceId&&!panelIdentity.hasLocator,'Original canonical Sidebar sender identity');
   report.sidePanelContext=panelReady.context;report.sidePanelReady=panelReady;
   record('canonical-sidebar-ready',panelReady);

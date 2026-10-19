@@ -69,7 +69,7 @@ export async function runR78D3RestartCycle({chrome, browser, cdp, until, clickRe
     };
     const demo='http://127.0.0.1:43111/demo-form.html',website=await createTab(demo);
     await until(()=>website.session.read('document.readyState==="complete"&&!!document.querySelector("#search-form")'),'leader-owned 43111 demo');
-    const catalog=await createTab('chrome-extension://'+extensionId+'/ui/tool.html');
+    const catalog=await createTab('chrome-extension://'+extensionId+'/sidepanel.html');
     await until(()=>catalog.session.read('document.readyState==="complete"&&document.documentElement.dataset.opendeskSurface==="catalog"&&'+
       '(()=>{const e=document.querySelector("#catalog-open-dev-sidebar");const r=e?.getBoundingClientRect();return !!r?.width&&!!r?.height&&!e.disabled})()'),
       'real catalog Sidebar control ready',20000);
@@ -77,7 +77,7 @@ export async function runR78D3RestartCycle({chrome, browser, cdp, until, clickRe
     await clickReal(catalog.session,'document.querySelector("#catalog-open-dev-sidebar")');
     await until(()=>catalog.session.read('document.querySelector("#catalog-dev-sidebar-status").textContent.includes("已打开侧栏")'),'real Sidebar open acknowledgement');
     const panelTarget=await until(async()=>(await targets()).find(t=>t.id!==catalog.info.id&&t.webSocketDebuggerUrl&&
-      t.url?.startsWith('chrome-extension://'+extensionId+'/ui/tool.html')&&t.url.includes('hostInstanceId=')),'real Chrome Side Panel');
+      t.url?.startsWith('chrome-extension://'+extensionId+'/sidepanel.html')&&t.url.includes('hostInstanceId=')),'real Chrome Side Panel');
     const sidebar=await connect(panelTarget.webSocketDebuggerUrl);proof.sidebarTarget=panelTarget;
     await offline(sidebar,'sidebar');
     const read=expression=>sidebar.read(expression);

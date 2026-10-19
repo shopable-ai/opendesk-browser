@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -677,7 +678,7 @@ test('R4.9 rejected Page grant remains visible after unrelated refresh',async t=
 
 test('R4.8 historical reference preserves the production toolbar action contract and shell styles',async()=>{
   const [html,preview]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),
+    renderSidebarFixture(),
     readFile('prototypes/sidebar/extension-center-r47-frequency-first-preview.html','utf8')
   ]);
   const toolbar=(source,endMarker)=>{

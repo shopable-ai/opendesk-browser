@@ -15,7 +15,7 @@ test('preview stores only an expiring validated local UI package and never insta
   }},tabs:{async create(row){opened.push(row);}}};
   const result=await openPreviewSession({api,workspaceId,sourceId,snapshot,now,id});
   assert.equal(result.readOnly,true);assert.equal(result.installed,false);
-  assert.equal(opened[0].url,'chrome-extension://test/ui/tool.html?previewId='+id);
+  assert.equal(opened[0].url,'chrome-extension://test/sidepanel.html?previewId='+id);
   const row=stored.get(previewStorageKey(id));
   assert.equal(row.format,PREVIEW_SESSION_FORMAT);
   assert.equal(validatePreviewSession(row,id,now+2000).tool.id,tool.id);

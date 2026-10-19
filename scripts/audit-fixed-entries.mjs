@@ -4,7 +4,7 @@ import {readFile, mkdir, writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {basename, dirname, join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {PACKAGE_ENTRIES, BUILD_POLICY, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';
+import {PACKAGE_ENTRIES, BUILD_POLICY, RESOURCE_LIMITS, entryByteBudget, SIDEPANEL_DOCUMENT_PATH} from './build-contract.mjs';
 import {assertLibraryModuleBoundary} from './bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
@@ -179,7 +179,7 @@ export function summarizePackageResources(receipt,measuredFiles) {
     group('page-default-libraries',libraryPaths('USER_SCRIPT'),{assembled:true}),
     group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output],{assembled:true}),
     group('automatic-page-injection',['agents/page-relay.js','framework/sdk-main.js']),
-    group('sidebar-shell',['ui/tool.html','ui/tool-shell.css','ui/cloud-hosting.css','ui/tool-shell.js']),
+    group('sidebar-shell',[SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.css','ui/cloud-hosting.css','ui/tool-shell.js']),
     ...(receipt.report.edition==='developer'?[
       group('browser-react-compiler-on-demand',PAGE_BROWSER_PRIVATE_FILES.filter(row=>
         !['page-vue-sfc-transform','page-vue-sfc-compiler'].includes(row.id)).map(row=>row.output)),

@@ -1,3 +1,5 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
@@ -8,20 +10,9 @@ globalThis.crypto ||= webcrypto;
 // Component DOM/RPC fakes only. This is NOT a Chrome permission prompt or native
 // effect receipt. Existing Page/Task services must still verify those authorities.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-class Node{
-  constructor(){this.value='';this.textContent='';this.hidden=true;this.disabled=false;this.readOnly=false;this.listeners=new Map();this.dataset={};}
-  addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
-  removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,event={}){for(const fn of this.listeners.get(name)||[])fn(event);}
-  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
-}
-const ids=['script-save','local-project-select','local-install-review','local-install-summary','local-install-title',
-  'local-install-version','local-install-warning','local-install-status',
-  'local-install-confirm','local-install-cancel'];
 async function fixture({permission=true,kind='controller',lostInstallAck=false,pageMatches=null,managedUI=false,retireManagedPreview}={}){
-  const nodes=new Map(ids.map(id=>[id,new Node()]));
-  const doc={getElementById:id=>nodes.get(id),activeElement:null};
-  for(const node of nodes.values())node.ownerDocument=doc;
+  const view=createDeveloperView();
+  const get=developerTestFields(view);
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
   const target={status:'available',url:'https://example.com/form',origin:'https://example.com',
     tabId:11,windowId:3,frameId:0,documentId:'doc-one'};
@@ -117,10 +108,9 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false,p
       throw Object.assign(new Error('navigation'),{code:'E_DOCUMENT_STALE'});
   }};
   let stateEvents=0;const installedNotices=[];
-  const ui=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>project,retireManagedPreview,
+  const ui=createLocalInstallUI({client,api,view,currentPageTarget,getProject:()=>project,retireManagedPreview,
     onState:()=>stateEvents++});
-  const get=id=>nodes.get(id);
-  return {ui,get,doc,source,binding,target,requests,installedNotices,project,client,
+  return {ui,get,view,source,binding,target,requests,installedNotices,project,client,
     get taskCatalog(){return taskCatalog;},
     get installs(){return installs;},get approvals(){return approvals;},
     get stateEvents(){return stateEvents;},
@@ -168,7 +158,7 @@ test('R25.1 invalid installation name requests no permission or candidate effect
       assert.equal(f.requests.length,count);assert.equal(f.approvals,0);assert.equal(f.installs,0);
       assert.equal(f.get('local-install-review').hidden,false);
       assert.equal(f.get('local-install-status').dataset.state,'error');
-      assert.equal(f.doc.activeElement,f.get('local-install-title'));
+      assert.equal(f.view.getSnapshot().focus.key,'local-install-title');
     }
   }
 });
@@ -181,7 +171,7 @@ test('R25.1 bottom Save opens one actual fixed-version review and does not rerun
   assert.equal(f.ui.canSave(),true);
   assert.equal(f.ui.saveLabel(),'保存为任务');
   await f.ui.prepare();assert.equal(f.get('local-install-review').hidden,false);
-  assert.equal(f.doc.activeElement,f.get('local-install-review'),
+  assert.equal(f.view.getSnapshot().focus.key,'local-install-review',
     'sticky Save dock must focus the visible review for keyboard users');
   assert.equal(f.get('local-install-confirm').disabled,false);
   assert.match(f.get('local-install-summary').textContent,/https:\/\/example.com/);
@@ -367,7 +357,7 @@ test('Invalid versions are correctable with no permission or candidate dispatch'
     f.ui.confirm({isTrusted:true});await tick();
     assert.equal(f.requests.length,count);assert.equal(f.approvals,0);assert.equal(f.installs,0);
     assert.equal(f.get('local-install-status').dataset.state,'error');
-    assert.equal(f.doc.activeElement,f.get('local-install-version'));
+    assert.equal(f.view.getSnapshot().focus.key,'local-install-version');
     assert.equal(f.get('local-install-confirm').disabled,false);
     assert.notEqual(f.ui.saveLabel(),'核对安装状态');
   }
@@ -480,11 +470,11 @@ test('R2.6 review Escape/Cancel restores focus without dispatching installation'
   f.get('local-install-review').fire('keydown',{key:'Escape',preventDefault(){prevented=true;}});
   assert.equal(prevented,true);
   assert.equal(f.get('local-install-review').hidden,true);
-  assert.equal(f.doc.activeElement,f.get('script-save'));
+  assert.equal(f.view.getSnapshot().focus.key,'script-save');
   assert.equal(f.installs,0);
   await f.ui.prepare();
   f.get('local-install-cancel').fire('click');
   assert.equal(f.get('local-install-review').hidden,true);
-  assert.equal(f.doc.activeElement,f.get('script-save'));
+  assert.equal(f.view.getSnapshot().focus.key,'script-save');
   assert.equal(f.installs,0);
 });

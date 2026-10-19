@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
+import {parseHTML} from 'linkedom';
 
 // The new driver can exercise the read-only physical candidate without changing
 // its source or receipts. All product imports, including transitive imports,
@@ -12,6 +13,7 @@ const product = path => import(pathToFileURL(resolve(sourceRoot, 'src', path)).h
 const {createBrowserSdk} = await product('framework/sdk/browser.js');
 const {createContextMenuHost} = await product('platform/chrome/context-menus.js');
 const {createSidebarTools} = await product('ui/sidebar-tools.js');
+const {createSidebarToolsView} = await product('ui/sidebar-tools-view.js');
 const {validateSidebarToolPackage, sidebarToolPackageHash, SIDEBAR_TOOL_STORE} =
   await product('ui/sidebar-tools/package.js');
 const {BROWSER_OPERATIONS, BROWSER_MENU_GRANTS_STORE, BROWSER_MENU_LAUNCH_STORE,
@@ -81,7 +83,7 @@ async function fixture() {
     remove: async keys => {for (const key of Array.isArray(keys) ? keys : [keys]) map.delete(key);}
   });
   const sender = {id: EXT, frameId: 0, documentId: 'side-panel-document',
-    documentLifecycle: 'active', url: `chrome-extension://${EXT}/ui/tool.html?hostInstanceId=${HOST}`};
+    documentLifecycle: 'active', url: `chrome-extension://${EXT}/sidepanel.html?hostInstanceId=${HOST}`};
   const api = {
     runtime: {id: EXT, lastError: null, getURL: path => `chrome-extension://${EXT}/${path}`,
       getContexts: async () => [{contextType: 'SIDE_PANEL', documentUrl: sender.url,
@@ -163,20 +165,11 @@ async function fixture() {
 
 // A small DOM/message fixture drives the existing Side Panel dispatch. The
 // modeled trusted click below is Node evidence only, never native-input proof.
-class Node {
-  constructor(tag = 'div') {
-    this.tag = tag; this.children = []; this.listeners = new Map(); this.dataset = {};
-    this.style = {}; this.attributes = new Map(); this.hidden = false;
-    if (tag === 'iframe') this.contentWindow = {sent: [], postMessage(message) {this.sent.push(message);}};
-  }
-  addEventListener(kind, fn) {const rows = this.listeners.get(kind) || []; rows.push(fn); this.listeners.set(kind, rows);}
-  removeEventListener(kind, fn) {this.listeners.set(kind, (this.listeners.get(kind) || []).filter(row => row !== fn));}
-  emit(kind, event = {}) {for (const fn of this.listeners.get(kind) || []) fn(event);}
-  append(...nodes) {for (const node of nodes) {node.parent = this; this.children.push(node);}}
-  replaceChildren(...nodes) {for (const node of this.children) node.parent = null; this.children = []; this.append(...nodes);}
-  remove() {if (this.parent) this.parent.children = this.parent.children.filter(node => node !== this); this.parent = null;}
-  setAttribute(key, value) {this.attributes.set(key, value);}
-  focus() {this.ownerDocument.activeElement = this;}
+class MessageWindow {
+  constructor(){this.listeners=new Map();}
+  addEventListener(kind,fn){const rows=this.listeners.get(kind)||[];rows.push(fn);this.listeners.set(kind,rows);}
+  removeEventListener(kind,fn){this.listeners.set(kind,(this.listeners.get(kind)||[]).filter(row=>row!==fn));}
+  emit(kind,event){for(const fn of this.listeners.get(kind)||[])fn(event);}
 }
 async function frontend(t, f, {target = {snapshot: {status: 'available', title: 'Contract form', url: TARGET_URL}}} = {}) {
   target.capture??=()=>({...f.document,title:'Contract form'});
@@ -185,39 +178,39 @@ async function frontend(t, f, {target = {snapshot: {status: 'available', title: 
   };
   const originals = new Map(['window', 'location', 'navigator'].map(key =>
     [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
-  const win = new Node('window'), elements = new Map(), copied = [];
+  const win = new MessageWindow(), copied = [];
   Object.defineProperty(globalThis, 'window', {configurable: true, value: win});
   Object.defineProperty(globalThis, 'location', {configurable: true, value: {href: f.sender.url}});
   Object.defineProperty(globalThis, 'navigator', {configurable: true,
     value: {clipboard: {writeText: async text => {copied.push(text);}}}});
-  const doc = {documentElement: {dataset: {}}, querySelector: () => new Node(),
-    getElementById: id => {
-      if (!elements.has(id)) {const node = new Node(); node.ownerDocument = doc; elements.set(id, node);}
-      return elements.get(id);
-    }, createElement: tag => {const node = new Node(tag); node.ownerDocument = doc; return node;}};
-  // The real src/ui/tool.html renders the trusted action review with [hidden].
-  // Starting this Node surrogate visible races requestActionReview and dispatches
-  // a click before any approval is pending. Mirror its actual initial DOM state.
-  const actionReview = doc.getElementById('sidebar-tool-action-review');
-  actionReview.hidden = true;
+  const {document:doc}=parseHTML('<html><body></body></html>');
+  const createElement=doc.createElement.bind(doc);
+  doc.createElement=tag=>{
+    const node=createElement(tag);
+    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:{sent:[],postMessage(message){this.sent.push(message);}}});
+    return node;
+  };
+  const view=createSidebarToolsView();
+  const frameRoot=doc.createElement('div');
+  view.attachRuntime({frameRoot,settingsControl:doc.createElement('button')});
   const messages = [];
   f.api.runtime.sendMessage = async envelope => {
     messages.push(structuredClone(envelope));
     try {return {ok: true, data: await f.host[envelope.kind === 'host' ? 'handleHost' : 'handleTool'](envelope, f.sender)};}
     catch (error) {return {ok: false, error: {code: error.code, message: error.message}};}
   };
-  const ui = createSidebarTools({api: f.api, doc, currentPageTarget: target, lockManager: locks,
+  const ui = createSidebarTools({api: f.api, doc, view, currentPageTarget: target, lockManager: locks,
     // Offline catalog unavailable: do not install fixtures or fetch remote code.
     fetcher: async () => new Response('', {status: 404}),
     taskWorkbench: {setToolActive() {}, focusInstalledTask() {return false;}}});
   t.after(() => {
-    try {ui.dispose();}
+    try {ui.dispose();view.dispose();}
     finally {for (const [key, descriptor] of originals) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
     }}
   });
   await ui.ready; ui.setVisible(true); ui.openTool(f.pkg.id);
-  const frame = elements.get('sidebar-tool-frame').children[0];
+  const frame = frameRoot.children[0];
   assert.ok(frame, 'existing Side Panel Host must mount the installed tool');
   await frame.onload();
   const loaded = frame.contentWindow.sent[0];
@@ -230,9 +223,9 @@ async function frontend(t, f, {target = {snapshot: {status: 'available', title: 
       kind: 'request', requestId, operation, payload
     }});
     await settle(() => frame.contentWindow.sent.some(row => row.requestId === requestId) ||
-      elements.get('sidebar-tool-action-review').hidden === false);
+      view.fields['sidebar-tool-action-review'].hidden === false);
     if (!frame.contentWindow.sent.some(row => row.requestId === requestId))
-      elements.get('sidebar-tool-action-continue').emit('click', {isTrusted: true});
+      view.dispatch('sidebar-tool-action-continue','click',{isTrusted:true});
     await settle(() => frame.contentWindow.sent.some(row => row.requestId === requestId));
     const reply = frame.contentWindow.sent.find(row => row.requestId === requestId);
     if (!reply.ok) throw Object.assign(new Error(reply.error.message), {code: reply.error.code});

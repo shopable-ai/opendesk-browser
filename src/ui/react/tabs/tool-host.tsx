@@ -1,112 +1,49 @@
 import * as React from 'react';
+import {TimeReviewSettings,StayFocusSettings,AiAccessSettings} from './trusted-settings.tsx';
 
 const ToolContext = React.createContext(null);
 
-// Original audited controls retain their DOM owner inside this fixed island.
-const TrustedSettingsIsland = React.memo(function TrustedSettingsIsland({nodeRef}) {
-  return <div ref={nodeRef}><section id="time-review-permission-settings" className="time-review-trusted-actions" aria-label="时间回顾采集权限" hidden={true}>
-<p>
-{"安装不等于授权采集。先单独同意记录的网站，再主动开始；仅记录前台非空闲网页的域名和时长，默认只保存在本机。"}
-</p>
-<button id="time-review-grant-idle" type="button" className="od-button od-button--secondary">
-{"授权空闲检测"}
-</button>
-<button id="time-review-revoke-idle" type="button" className="od-button od-button--secondary">
-{"撤销空闲检测"}
-</button>
-<p>
-{"网站采集授权与 Chrome 权限相互独立；撤权停止未来的记录，已有合法统计保留。"}
-</p>
-<button id="time-review-site-current-open" type="button" className="od-button od-button--secondary">
-{"授权当前网站…"}
-</button>
-<section id="time-review-site-confirm" className="time-review-inline-clear-review" aria-label="确认当前网站统计权限" hidden={true}>
-<p id="time-review-site-confirm-text">
-
-</p>
-<button id="time-review-site-current-approve" type="button" className="od-button od-button--secondary">
-{"确认授权该网站"}
-</button>
-<button id="time-review-site-current-cancel" type="button" className="od-button od-button--secondary">
-{"取消"}
-</button>
-
-</section>
-<button id="time-review-site-all-open" type="button" className="od-button od-button--secondary">
-{"授权全部普通网站…"}
-</button>
-<section id="time-review-site-all-confirm" className="time-review-inline-clear-review" aria-label="确认全部网站统计权限" hidden={true}>
-<p>
-{"确认允许 Time Review 统计全部普通 HTTP(S) 网站（不含浏览器内部与隐身页面）？该授权独立于主扩展权限。"}
-</p>
-<button id="time-review-site-all-approve" type="button" className="od-button od-button--secondary">
-{"我同意记录全部普通网站"}
-</button>
-<button id="time-review-site-all-cancel" type="button" className="od-button od-button--secondary">
-{"取消"}
-</button>
-
-</section>
-<button id="time-review-site-all-revoke" type="button" className="od-button od-button--secondary">
-{"撤销全部网站授权"}
-</button>
-<p id="time-review-site-grants-status" role="status">
-{"正在读取网站授权…"}
-</p>
-<div id="time-review-site-grants-list" aria-label="已经授权的网站">
-
-</div>
-<button id="time-review-trusted-start" type="button" className="od-button od-button--secondary">
-{"开始／恢复记录"}
-</button>
-<button id="time-review-clear-open" type="button" className="od-button od-button--secondary">
-{"清空时间统计…"}
-</button>
-<section id="time-review-inline-clear-review" className="time-review-inline-clear-review" aria-label="确认清空时间统计" hidden={true}>
-<p>
-{"确定清空所有本机时间统计？请先导出备份，清空后无法恢复。"}
-</p>
-<button id="time-review-clear-approve" type="button" className="od-button od-button--secondary">
-{"确认清空全部记录"}
-</button>
-<button id="time-review-clear-cancel" type="button" className="od-button od-button--secondary">
-{"取消"}
-</button>
-
-</section>
-<p>
-{"可选分钟明细：仅保存未来真实结算的分钟数据，不记录标题、路径或正文；不会根据旧记录补造分钟。"}
-</p>
-<button id="time-review-minute-enable" type="button" className="od-button od-button--secondary">
-{"开启分钟明细"}
-</button>
-<button id="time-review-minute-disable" type="button" className="od-button od-button--secondary">
-{"关闭并删除分钟明细…"}
-</button>
-<section id="time-review-minute-delete-review" className="time-review-inline-clear-review" aria-label="确认删除分钟明细" hidden={true}>
-<p>
-{"确定关闭未来分钟采集并永久删除已有分钟明细？日汇总和分类保持不变。"}
-</p>
-<button id="time-review-minute-delete-approve" type="button" className="od-button od-button--secondary">
-{"确认关闭并删除"}
-</button>
-<button id="time-review-minute-delete-cancel" type="button" className="od-button od-button--secondary">
-{"取消"}
-</button>
-
-</section>
-
-</section>
-</div>;
-});
 
 export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
-  const nodes = React.useRef({frameRoot:null,trustedSettings:null,adblock:null,aiProxy:null,settingsControl:null});
+  // These are the only editable inputs in this host. Business decisions remain
+  // synchronous controller actions, with the original trusted browser event.
+  const actions = React.useMemo(() => ({
+    chooseFile(event) {
+      view.patch('sidebar-tool-file', {value:event.currentTarget.value});
+      view.dispatch('sidebar-tool-file', 'change', event.nativeEvent);
+    },
+    cancelFile(event) {view.dispatch('sidebar-tool-file', 'cancel', event);},
+    language(event) {
+      view.patch('sidebar-tool-toc-language-select', {value:event.currentTarget.value});
+      view.dispatch('sidebar-tool-toc-language-select', 'change', event.nativeEvent);
+    },
+    revoke(key, id, event) {view.activateRow(key, id, event.nativeEvent);}
+  }), [view]);
+  const nodes = React.useRef({frameRoot:null,settingsControl:null});
   const refs = React.useRef(new Map());
   const runtimeRefs = React.useMemo(() => Object.fromEntries(Object.keys(nodes.current).map(key => [key, node => {nodes.current[key] = node;}])), []);
   React.useLayoutEffect(() => view.attachRuntime({...nodes.current}), [view]);
-  React.useLayoutEffect(() => {for (const effect of view.takeEffects()) refs.current.get(effect.key)?.[effect.method]?.(effect.options);}, [view, snapshot.effectVersion]);
+  React.useLayoutEffect(() => {
+    for (const effect of view.takeEffects()) {
+      let target=refs.current.get(effect.key),options=effect.options;
+      if(effect.key==='sidebar-tool-import-trigger'&&effect.method==='focus'){
+        const doc=nodes.current.frameRoot?.ownerDocument;
+        if(Object.hasOwn(options??{},'extensionToolId')){
+          if(snapshot.fields['sidebar-tool-display'].hidden===false)continue;
+          const {extensionToolId,...focusOptions}=options;options=focusOptions;
+          const controls=[...(doc?.querySelectorAll('#extension-center-list button[data-extension-key]')??[])]
+            .filter(button=>button.dataset.extensionKey==='app:'+extensionToolId);
+          target=controls.find(button=>button.dataset.extensionAction==='primary')||
+            controls.find(button=>button.dataset.extensionAction==='more')||
+            controls.find(button=>button.dataset.extensionAction==='main')||
+            doc?.getElementById('extension-center-search');
+        }
+        target??=doc?.getElementById('sidebar-tool-import-trigger')??doc?.getElementById('extension-center-import');
+      }
+      target?.[effect.method]?.(options);
+    }
+  }, [view, snapshot.effectVersion]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
@@ -143,7 +80,8 @@ export function ToolHost({view}) {
 <label htmlFor="sidebar-tool-file">
 {"选择应用包或网页增强安装包 JSON"}
 </label>
-<ToolField as="input" id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error"/><ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}>
+<ToolFileInput value={snapshot.fields['sidebar-tool-file'].value} disabled={snapshot.fields['sidebar-tool-file'].disabled}
+  onChoose={actions.chooseFile} onCancel={actions.cancelFile}/><ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}>
 
 </ToolField>
 <p className="sidebar-tool-import-hint">
@@ -282,27 +220,28 @@ export function ToolHost({view}) {
 <ToolField as="p" id="sidebar-tool-readonly-banner" className="sidebar-tool-status" data-state="readonly" role="note" hidden={true}>
 {"开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。"}
 </ToolField>
-<section id="sidebar-tool-adblock-native" hidden ref={runtimeRefs.adblock}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden ref={runtimeRefs.aiProxy}/><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
+<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>
 <ToolField as="section" id="sidebar-tool-retired-draft" className="sidebar-tool-settings-view od-surface" aria-label="停用前的草稿" hidden={true}>
 <p>
 {"工具已停止。以下表单草稿可选择并复制；关闭此窗口后副本会丢失。"}
 </p>
-<ToolField as="textarea" id="sidebar-tool-retired-draft-text" aria-label="可复制的草稿副本" readOnly={true} className="od-field">
-
-</ToolField>
+<textarea id="sidebar-tool-retired-draft-text" aria-label="可复制的草稿副本" readOnly className="od-field"
+  value={snapshot.fields['sidebar-tool-retired-draft-text'].value}/>
 <ToolField as="button" type="button" id="sidebar-tool-retired-draft-dismiss" className="od-button">
 {"清除草稿副本"}
 </ToolField>
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-<CookieSettings/><BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
+<CookieSettings onRevoke={actions.revoke}/><BookmarkSettings/><ToolField as="div" id="sidebar-tool-toc-language" className="sidebar-toc-settings-row" hidden={true}>
 <label htmlFor="sidebar-tool-toc-language-select">
 <ToolLabel name="languageLabel"/>
 </label>
-<ToolField as="select" id="sidebar-tool-toc-language-select" className="od-field" aria-label="界面语言">
+<select id="sidebar-tool-toc-language-select" className="od-field" aria-label="界面语言"
+  value={snapshot.fields['sidebar-tool-toc-language-select'].value} disabled={snapshot.fields['sidebar-tool-toc-language-select'].disabled}
+  onChange={actions.language}>
 <option value="zh-CN">
 {"简体中文"}
 </option>
@@ -310,7 +249,7 @@ export function ToolHost({view}) {
 {"English"}
 </option>
 
-</ToolField>
+</select>
 
 </ToolField>
 <div className="sidebar-toc-settings-row">
@@ -422,21 +361,21 @@ export function ToolHost({view}) {
 <ToolField as="strong" className="sidebar-toc-settings-title" id="sidebar-tool-settings-sites-title">
 {"已授权的网站"}
 </ToolField>
-<ToolField as="div" id="sidebar-tool-settings-sites" className="sidebar-toc-settings-entries">
-
-</ToolField>
+<ToolGrantRows id="sidebar-tool-settings-sites" rows={snapshot.fields['sidebar-tool-settings-sites'].rows}
+  emptyLabel={snapshot.fields['sidebar-tool-settings-sites'].emptyLabel} disabled={snapshot.fields['sidebar-tool-settings-sites'].disabled}
+  className="sidebar-toc-settings-entries" onRevoke={actions.revoke}/>
 <ToolField as="div" id="sidebar-tool-page-exceptions" hidden={true}>
 <strong className="sidebar-toc-settings-title">
 <ToolLabel name="exceptionsHeading"/>
 </strong>
-<ToolField as="div" id="sidebar-tool-settings-pages" className="sidebar-toc-settings-entries">
+<ToolGrantRows id="sidebar-tool-settings-pages" rows={snapshot.fields['sidebar-tool-settings-pages'].rows}
+  emptyLabel={snapshot.fields['sidebar-tool-settings-pages'].emptyLabel} disabled={snapshot.fields['sidebar-tool-settings-pages'].disabled}
+  className="sidebar-toc-settings-entries" onRevoke={actions.revoke}/>
 
 </ToolField>
 
 </ToolField>
-
-</ToolField>
-<TrustedSettingsIsland nodeRef={runtimeRefs.trustedSettings}/>
+<TimeReviewSettings model={snapshot.trustedSettings.timeReview} actions={view.trustedSettingsActions.timeReview}/><StayFocusSettings model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>
 </ToolField>
 
 </ToolField>
@@ -465,13 +404,16 @@ export function ToolHost({view}) {
 
 function ToolLabel({name}) {return React.useContext(ToolContext).snapshot.labels[name];}
 
-function CookieSettings() {
+function CookieSettings({onRevoke}) {
+  const {snapshot} = React.useContext(ToolContext);
+  const {rows, emptyLabel, disabled} = snapshot.fields['sidebar-tool-cookie-other-sites'];
   return <ToolField as="section" id="sidebar-tool-cookie-permissions" className="sidebar-tool-cookie-permissions od-surface">
     <ToolField as="strong" id="sidebar-tool-cookie-heading"/>
     <ToolField as="p" id="sidebar-tool-cookie-target"/>
     <ToolField as="p" id="sidebar-tool-cookie-help"/>
     <ToolField id="sidebar-tool-cookie-first-use"><ToolField as="button" id="sidebar-tool-cookie-site-toggle" className="od-button"/></ToolField>
-    <ToolField id="sidebar-tool-cookie-other-sites"/>
+    <ToolGrantRows id="sidebar-tool-cookie-other-sites" rows={rows} emptyLabel={emptyLabel} disabled={disabled}
+      rowClassName="sidebar-toc-settings-row" onRevoke={onRevoke}/>
   </ToolField>;
 }
 function BookmarkSettings() {
@@ -486,35 +428,32 @@ function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
   const {view, snapshot, refs} = React.useContext(ToolContext), state = snapshot.fields[id];
   if (!state) throw new Error('E_SIDEBAR_TOOL_FIELD: ' + id);
   const ref = React.useCallback(node => {if (node) refs.current.set(id, node); else refs.current.delete(id); nodeRef?.(node);}, [refs, id, nodeRef]);
-  React.useLayoutEffect(() => {
-    if (Tag !== 'input' || props.type !== 'file') return;
-    const node = refs.current.get(id);
-    if (state.value === '') node.value = '';
-  }, [Tag, props.type, refs, id, state.value]);
-  React.useLayoutEffect(() => {
-    if (Tag !== 'input' || props.type !== 'file') return;
-    const node = refs.current.get(id), cancel = event => view.dispatch(id, 'cancel', event);
-    node.addEventListener('cancel', cancel); return () => node.removeEventListener('cancel', cancel);
-  }, [Tag, props.type, refs, id, view]);
   const attrs = {...props, id, ref, hidden: state.hidden, title: state.title ?? props.title,
     className: state.className ?? props.className, ...state.attributes};
   for (const [key, value] of Object.entries(state.data)) attrs['data-' + key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = value;
-  if (['button','input','textarea','select','fieldset','option'].includes(Tag)) attrs.disabled = state.disabled;
-  const invoke = (type, event, values) => {if (values) view.patch(id, values); view.dispatch(id, type, event.nativeEvent);};
-  if (Tag === 'button') {attrs.type = props.type || 'button'; attrs.onClick = event => invoke('click', event);}
+  if (Tag === 'button') {attrs.disabled = state.disabled; attrs.type = props.type || 'button'; attrs.onClick = event => view.dispatch(id, 'click', event.nativeEvent);}
   if (Tag === 'details') {attrs.open = state.open; attrs.onToggle = event => {if (event.currentTarget.open !== view.fields[id].open) view.patch(id, {open:event.currentTarget.open});};}
-  if (Tag === 'input' || Tag === 'textarea') {
-    attrs.readOnly = state.readOnly;
-    if (props.type === 'file') attrs.onChange = event => invoke('change', event, {files: Array.from(event.currentTarget.files || []), value:event.currentTarget.value});
-    else if (props.type === 'checkbox' || props.type === 'radio') {attrs.checked = state.checked; attrs.onChange = event => invoke('change', event, {checked:event.currentTarget.checked});}
-    else {attrs.value = state.value; attrs.onChange = event => invoke('change', event, {value:event.currentTarget.value}); attrs.onInput = event => invoke('input', event, {value:event.currentTarget.value});}
-    return <Tag {...attrs}/>;
-  }
-  if (Tag === 'select') return <select {...attrs} value={state.value} onChange={event => invoke('change', event, {value:event.currentTarget.value})}>{state.options.map(row => <option key={row.value} value={row.value} disabled={row.disabled}>{row.label}</option>)}</select>;
-  if (['sidebar-tool-cookie-other-sites','sidebar-tool-settings-sites','sidebar-tool-settings-pages'].includes(id)) return <Tag {...attrs}>
-    {state.rows.length ? state.rows.map(row => <div key={row.id} className={id === 'sidebar-tool-cookie-other-sites' ? 'sidebar-toc-settings-row' : 'sidebar-tool-site-entry'}>
-      <span title={row.text}>{row.text}</span><button type="button" className="sidebar-tool-site-revoke" disabled={state.disabled || row.disabled} aria-label={row.ariaLabel || row.label + ' ' + row.text} onClick={event => view.activateRow(id, row.id, event.nativeEvent)}>{row.label}</button>
-    </div>) : state.emptyLabel ? <p>{state.emptyLabel}</p> : null}
-  </Tag>;
   return <Tag {...attrs}>{state.textSet ? state.textContent : children ?? state.textContent}</Tag>;
+}
+
+function ToolGrantRows({id, rows, emptyLabel, disabled, onRevoke, className, rowClassName='sidebar-tool-site-entry'}) {
+  return <div id={id} className={className}>
+    {rows.length ? rows.map(row => <div key={row.id} className={rowClassName}>
+      <span title={row.text}>{row.text}</span><button type="button" className="sidebar-tool-site-revoke" disabled={disabled || row.disabled}
+        aria-label={row.ariaLabel || row.label + ' ' + row.text} onClick={event => onRevoke(id, row.id, event)}>{row.label}</button>
+    </div>) : emptyLabel ? <p>{emptyLabel}</p> : null}
+  </div>;
+}
+
+function ToolFileInput({value, disabled, onChoose, onCancel}) {
+  const ref = React.useRef(null);
+  // File selection cannot be controlled by React. Only clear it on controller
+  // reset; cancelling a native picker is a separate, non-bubbling browser event.
+  React.useLayoutEffect(() => {if (value === '') ref.current.value = '';}, [value]);
+  React.useLayoutEffect(() => {
+    const node = ref.current;
+    node.addEventListener('cancel', onCancel); return () => node.removeEventListener('cancel', onCancel);
+  }, [onCancel]);
+  return <input ref={ref} id="sidebar-tool-file" type="file" accept=".json,application/json"
+    aria-describedby="sidebar-tool-file-error" disabled={disabled} onChange={onChoose}/>;
 }

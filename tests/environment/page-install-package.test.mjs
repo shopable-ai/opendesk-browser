@@ -24,7 +24,7 @@ async function packageFor(overrides={}){
 function fixture(){
   let db=new Map(['frameworkKV','commandJournal','runs'].map(name=>[name,new Map()])),queue=Promise.resolve();
   const host={tag:'host',namespace:'tool:test',registrationId:'host',hostDocumentId:'doc',hostInstanceId:'instance',
-    browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/ui/tool.html',active:true};
+    browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/sidepanel.html',active:true};
   db.get('commandJournal').set('host:host',host);
   const storage={transaction(stores,mode,work){
     const next=queue.then(async()=>{

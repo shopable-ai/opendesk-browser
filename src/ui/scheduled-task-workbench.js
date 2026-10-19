@@ -1,4 +1,6 @@
 import {createMyWorkbenchView} from './my-workbench-view.js';
+import {patchDeveloperField} from './develop-view.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {permissionPattern} from '../environment.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime} from '../platform/tasks/schedule-time.js';
@@ -129,7 +131,7 @@ export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
 }
 
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
-  document:doc=globalThis.document,myView=taskWorkbench.myView||createMyWorkbenchView({document:doc}),onClose=()=>{},onOpen=()=>{}}){
+  document:doc=globalThis.document,developerView=null,myView=taskWorkbench.myView||createMyWorkbenchView({document:doc}),onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),ui=id=>myView.field(id),listeners=[];
   const text=(field,value)=>{field.text=value??'';myView.publish();return field;};
   // Single Header owns navigation. Host availability remains in the list.
@@ -457,8 +459,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false,expandedRuns:new Set()};
       const latest=plan.history||[];
       const overlap=!latest.length||!view.records.length||latest.some(fire=>view.records.some(loaded=>loaded.fireId===fire.fireId));
+      if(!previous||!overlap||view.records.length<20)view.hasMore=latest.length===20;
       view.records=mergeScheduleHistoryView(latest,overlap?view.records:[]);
-      if(!previous||!overlap)view.hasMore=latest.length===20;
       historyViews.set(plan.scheduleId,view);
       return {...plan,history:view.records};
     });
@@ -501,7 +503,6 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   function openDetail(scheduleId){
     if(!allPlans.some(plan=>plan.scheduleId===scheduleId))return;
-    rememberDetailState();
     if(activeView==='list')listScrollTop=get('workspace-content')?.scrollTop??0;
     detailReturnView=activeView==='runner'?'runner':'list';
     selectedPlanId=scheduleId;
@@ -509,18 +510,21 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     focus('schedule-back',{preventScroll:true});
   }
   function leaveDetail(){
-    rememberDetailState();
     if(historyViews.has(selectedPlanId))historyViews.get(selectedPlanId).deleteReview=false;
     const scheduleId=selectedPlanId;
     show(detailReturnView);
     if(detailReturnView==='list'){
-      const card=[...get('schedule-plan-list')?.querySelectorAll('.schedule-card')||[]]
-        .find(row=>row.dataset.scheduleId===scheduleId);
-      (card?.querySelector('.schedule-plan-open')||
-        get('schedule-plan-list')?.querySelector('.schedule-plan-open')||
-        get('schedule-create'))?.focus({preventScroll:true});
-      const scroller=get('workspace-content');
-      if(scroller)scroller.scrollTop=listScrollTop;
+      // Resolve the surviving card after React commits the refreshed list.
+      queueMicrotask(()=>{
+        if(disposed||activeView!=='list')return;
+        const card=[...get('schedule-plan-list')?.querySelectorAll('.schedule-card')||[]]
+          .find(row=>row.dataset.scheduleId===scheduleId);
+        (card?.querySelector('.schedule-plan-open')||
+          get('schedule-plan-list')?.querySelector('.schedule-plan-open')||
+          get('schedule-create'))?.focus({preventScroll:true});
+        const scroller=get('workspace-content');
+        if(scroller)scroller.scrollTop=listScrollTop;
+      });
     }else focus('schedule-runner-history',{preventScroll:true});
   }
   async function change(plan,operation){
@@ -766,7 +770,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function enterDeveloper(){
     pendingCreateFromForm=activeView==='form'||(activeView==='manager'&&managerReturn==='form');
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
-    get('task-dev-status').textContent='请先真实运行并验证源码、安装固定版本；安装后返回定时计划。';
+    patchDeveloperField(developerView,developerView?.fields['task-dev-status']??get('task-dev-status'),
+      {textContent:'请先真实运行并验证源码、安装固定版本；安装后返回定时计划。'});
   }
 
   async function toggleManagedTask(row,originList){
@@ -1031,7 +1036,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(id==='schedule-timezone')ui(id).title='IANA：'+ui(id).value;
       if(id==='schedule-kind')switchKind();else preview();
     });
-  registerAction('scheduleOpenRunnerClick',()=>void api.tabs.create({url:api.runtime.getURL('ui/tool.html?scheduledRunner=1')})
+  registerAction('scheduleOpenRunnerClick',()=>void api.tabs.create({url:api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH+'?scheduledRunner=1')})
     .catch(error=>message('无法打开运行页：'+error.message,true)));
   const installedUpdates=client.subscribeInstalledTasks?.(event=>{
     if(event?.taskId&&pendingCreate)void onInstalledTask(event.taskId);

@@ -22,7 +22,7 @@ test('console Observer requires exact Chrome-confirmed extension document identi
     {...sender(),documentId:undefined}
   ];
   for(const s of invalid)await assert.rejects(requireCloudConsoleSender(api(),s),{code:'E_OWNER'});
-  for(const forged of [{tabId:123}, {documentId:'elsewhere'}, {documentUrl:'chrome-extension://trusted/ui/tool.html'},
+  for(const forged of [{tabId:123}, {documentId:'elsewhere'}, {documentUrl:'chrome-extension://trusted/sidepanel.html'},
     {contextType:'SIDE_PANEL'}, {frameId:1}, {incognito:true}]){
     const a=api();a.runtime.getContexts=async()=>[{...context(),...forged}];
     await assert.rejects(requireCloudConsoleSender(a,sender()),{code:'E_OWNER'});
@@ -31,7 +31,7 @@ test('console Observer requires exact Chrome-confirmed extension document identi
   await assert.rejects(requireCloudConsoleSender(a,sender()),{code:'E_OWNER'});
 });
 test('only native Side Panel documents can invoke cloud management and claim routes',async()=>{
-  const url='chrome-extension://trusted/ui/tool.html?hostInstanceId=real';
+  const url='chrome-extension://trusted/sidepanel.html?hostInstanceId=real';
   const a=api(),s={...sender(),url,documentId:'side-panel-document',tab:undefined};
   a.runtime.getContexts=async()=>[{
     contextType:'SIDE_PANEL',documentUrl:url,documentId:'side-panel-document',

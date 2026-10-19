@@ -83,7 +83,7 @@ async function fixture() {
   Object.assign(storage,createStorageMethods(storage,{clock}));
   let builtinSource=fakeBuiltinSource;
   authority = createRunAuthority({cloudFactory:createCloudService,loadBuiltin:async()=>builtinSource,storage,api,session:'browser-session',clock});
-  const sender = {id:'extension',url:api.runtime.getURL('ui/tool.html'),documentId:'host-doc',frameId:0,
+  const sender = {id:'extension',url:api.runtime.getURL('sidepanel.html'),documentId:'host-doc',frameId:0,
     documentLifecycle:'active',tab:{id:1,incognito:false}};
   const register = async (actual=sender, instance='host-one') => authority.registerHost({hostInstanceId:instance,
     claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},actual);

@@ -1,3 +1,5 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
+import {load} from 'cheerio';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -5,12 +7,10 @@ import {projectCloudStatus,cloudHostingSummary} from '../../src/ui/cloud-status-
 import {createDebugWorkbench} from '../../src/ui/debug-workbench.js';
 const read=path=>readFile(path,'utf8');
 function fixture(){
-  const ids=['debug-refresh','debug-copy','debug-feedback','debug-cloud-summary','debug-pairing','debug-connection',
-    'debug-reconcile','debug-slot','debug-task-count','debug-request-count','debug-snapshot'];
-  const map=new Map(ids.map(id=>[id,{textContent:'',disabled:false,listeners:new Map(),
-    addEventListener(t,fn){this.listeners.set(t,fn)},removeEventListener(t){this.listeners.delete(t)}}]));
-  const document={getElementById:id=>{assert.ok(map.has(id),id);return map.get(id)}};
-  return {document,map};
+  let model,actions;
+  const reactUI={debugMounted:true,renderDebugDiagnostics(next){model=next;},
+    connectDebugActions(next){actions=next;}};
+  return {reactUI,model:()=>model,actions:()=>actions};
 }
 const response={executorId:'PRIVATE-ID',provider:{url:'https://sensitive.example',providerId:'private'},enabled:true,online:true,
  connection:'authenticated',reconciled:true,hostReady:true,slotAvailable:true,siteAuthorization:'granted',slotState:'available',pendingResources:false,tasks:[{taskId:'PRIVATE-TASK',siteOrigins:['https://secret.local']}],
@@ -59,39 +59,47 @@ test('revocation projects only confirmation state and separates local stop from 
  }
 });
 test('development UI only reads cloudStatus and never claims, pairs, approves or starts a run',async()=>{
- const {document,map}=fixture();let n=0,copied='';
+ const {reactUI,model,actions}=fixture();let n=0,copied='';
  const cloud={cloudStatus:async()=>{n++;return response},cloudNext:()=>assert.fail('must not claim'),cloudApprove:()=>assert.fail('must not approve')};
- const debug=createDebugWorkbench({document,client:{cloud},host:{currentRun:'LOCAL-SECRET',start:()=>assert.fail('must not run')},
+ const debug=createDebugWorkbench({reactUI,client:{cloud},host:{currentRun:'LOCAL-SECRET',start:()=>assert.fail('must not run')},
    api:{runtime:{getManifest:()=>({version:'1.2.3'})}},clipboard:{writeText:x=>{copied=x;return Promise.resolve()}},
    now:()=>new Date('2026-10-11T00:00:00Z')});
  await debug.refresh();assert.equal(n,1);
- assert.equal(map.get('debug-task-count').textContent,'1');
- map.get('debug-copy').listeners.get('click')();await Promise.resolve();
+ assert.equal(model().taskCount,'1');
+ await actions().copy();
  assert.match(copied,/opendesk.cloud-control.diagnostics.v1/);
  assert.doesNotMatch(copied,/PRIVATE|SECRET|SENSITIVE|https?:\/\//);
- debug.dispose();assert.equal(map.get('debug-copy').listeners.size,0);
+ debug.dispose();assert.equal(actions(),null);assert.equal(model().disposed,true);
 });
 test('late diagnostics after disposal are ignored',async()=>{
- const {document,map}=fixture();let resume;
+ const {reactUI,model,actions}=fixture();let resume;
  const pending=new Promise(resolve=>{resume=resolve});
- const debug=createDebugWorkbench({document,client:{cloud:{cloudStatus:()=>pending}},host:{},clipboard:null});
- const operation=debug.refresh();debug.dispose();resume(response);await operation;
- assert.equal(map.get('debug-snapshot').textContent,'');
+ const debug=createDebugWorkbench({reactUI,client:{cloud:{cloudStatus:()=>pending}},host:{},clipboard:null});
+ const operation=actions().refresh();debug.dispose();const disposed=model();resume(response);await operation;
+ assert.equal(model(),disposed);assert.equal(model().snapshot,'请点击刷新');
+ assert.equal(model().disposed,true);assert.equal(actions(),null);
 });
 test('production Cloud tab is visible in Side Panel while Debug remains hidden',async()=>{
  const [entry,work,html,css,cloud,debug]=await Promise.all([
-   read('src/entrypoints/tool-shell.js'),read('src/ui/task-workbench.js'),read('src/ui/tool.html'),
+   read('src/entrypoints/tool-shell.js'),read('src/ui/task-workbench.js'),renderSidebarFixture({activeTab:'cloud',debugEnabled:false}),
    read('src/ui/tool-shell.css'),read('src/ui/cloud-hosting.js'),read('src/ui/debug-workbench.js')]);
  assert.match(entry,/debugEnabled:import\.meta\.env\.MODE==='development'/);
  assert.match(work,/if\(name==='debug'&&!debugEnabled\)return false/);
- assert.match(work,/if\(debugEnabled\)tabOrder\.push\(\['debug','tab-debug'\]\)/);
- assert.match(html,/<button[^>]*id="tab-debug"[^>]*hidden>调试<\/button>/);
- assert.match(html,/<button[^>]*id="tab-cloud"[^>]*>云控<\/button>/);
+ assert.match(await read('src/ui/react/app-shell.tsx'),/debugEnabled&&<DebugPage/);
+ const $=load(html),dev=load(await renderSidebarFixture({activeTab:'cloud',debugEnabled:true}));
+ assert.equal($('#tab-debug[hidden]').length,1);
+ assert.equal($('#workbench-debug').length,0);
+ assert.deepEqual($('[data-workbench-tab]:not([hidden])').map((_,node)=>$(node).attr('data-workbench-tab')).get(),
+   ['tasks','tools','workflow','develop','cloud']);
+ assert.equal(dev('#tab-debug').text(),'调试');
+ assert.equal(dev('#workbench-debug[hidden]').length,1);
+ assert.equal($('#tab-cloud').text(),'云控');
+ assert.equal($('#workbench-cloud[hidden]').length,0);
  assert.ok(html.indexOf('id="workbench-tools"')<html.indexOf('id="workbench-cloud"'));
  assert.ok(html.indexOf('id="workbench-cloud"')<html.indexOf('id="cloud-pair"'));
- assert.ok(html.indexOf('id="cloud-pair"')<html.indexOf('id="workbench-debug"'),
+ assert.equal($('#workbench-cloud #cloud-pair').length,1,
    'Cloud controls must remain in the one production Cloud tab');
- assert.match(html,/id="workbench-debug" role="tabpanel"[^>]*hidden>/);
+ assert.ok(dev('#workbench-cloud').index()<dev('#workbench-debug').index());
  assert.match(css,/\.workbench-nav\{[^}]*display:flex;[^}]*overflow-x:auto;/);
  assert.ok(html.indexOf('id="task-installed-cards"')<html.indexOf('id="cloud-hosting"'), 'tasks first; cloud config below');
  assert.doesNotMatch(cloud,/JSON\.stringify\(s,null,2\)/);
@@ -107,7 +115,7 @@ test('cloud status refresh is read-only and full tool/catalog tabs cannot claim 
  const start=hosting.indexOf('async function refresh()'),end=hosting.indexOf('async function dispatchNext(');
  assert.ok(start>=0&&end>start);
  assert.doesNotMatch(hosting.slice(start,end),/cloudNext|cloudResolve|host\.start/);
- assert.match(hosting,/click\('cloud-refresh',async\(\)=>\{\}\)/);
+ assert.equal((hosting.match(/onRefresh:\(\)=>action\(\(\)=>\{\},true\)/g)||[]).length,2);
  assert.match(hosting,/if\(!busy&&!disposed\)try\{await dispatchNext\(s\)/);
  assert.match(shell,/let cloudHosting=null;/);
  assert.match(shell,/const actualSidePanel=await isActualSidePanelContext\(\{api:chrome,href:hostUrl\.href\}\)/);
@@ -140,32 +148,36 @@ test('diagnostic facts are enum-only, bounded, and conservative for absent or ma
 });
 
 test('Debug reads and copies new facts without expanding its authority, then clears stale diagnostics on read failure',async()=>{
- const {document,map}=fixture();let copied='',reads=0,readFailure=false;
+ const {reactUI,model,actions}=fixture();let copied='',reads=0,readFailure=false;
  const forbidden=()=>assert.fail('diagnostics must remain read-only');
  const cloud={cloudStatus:async request=>{assert.deepEqual(request,{});reads++;if(readFailure)throw Object.assign(new Error('PRIVATE read failure'),{code:readFailure});return {...response,
    siteAuthorization:'unknown',slotState:'preview',pendingResources:false,requestTotal:76}},
    cloudNext:forbidden,cloudResolve:forbidden,cloudPair:forbidden,cloudApprove:forbidden};
- const debug=createDebugWorkbench({document,client:{cloud},host:{start:forbidden},clipboard:{writeText:async text=>{copied=text;}}});
+ const debug=createDebugWorkbench({reactUI,client:{cloud},host:{start:forbidden},clipboard:{writeText:async text=>{copied=text;}}});
  try{
-   await debug.refresh();map.get('debug-copy').listeners.get('click')();await Promise.resolve();
+   await debug.refresh();await actions().copy();
+   const $=load(await renderSidebarFixture({activeTab:'debug',debugEnabled:true,debugModel:model(),debugActions:actions()}));
+   assert.equal($('#debug-request-count').text(),'76');
+   assert.equal($('#debug-snapshot').text(),model().snapshot);
+   assert.equal($('#debug-copy').is(':disabled'),false);
    const value=JSON.parse(copied);
    assert.equal(value.siteAuthorization,'unknown');assert.equal(value.slotState,'preview');
    assert.equal(value.pendingResources,false);assert.equal(value.requests.total,76);assert.equal(reads,1);
    assert.doesNotMatch(copied,/PRIVATE|SECRET|SENSITIVE|https?:\/\//);
-   const diagnosticFields=['debug-pairing','debug-connection','debug-reconcile','debug-slot','debug-task-count','debug-request-count'];
-   for(const id of diagnosticFields)assert.notEqual(map.get(id).textContent,'未知',id);
+   const diagnosticFields=['pairing','connection','reconcile','slot','taskCount','requestCount'];
+   for(const id of diagnosticFields)assert.notEqual(model()[id],'未知',id);
    readFailure='E_TOKEN_PRIVATE';await debug.refresh();assert.equal(reads,2);
-   for(const id of diagnosticFields)assert.equal(map.get(id).textContent,'未知',id);
-   assert.equal(map.get('debug-snapshot').textContent,'未获得可信诊断快照。');
-   assert.doesNotMatch(map.get('debug-feedback').textContent,/PRIVATE/);
-   assert.match(map.get('debug-feedback').textContent,/^E_DIAGNOSTICS/);
+   for(const id of diagnosticFields)assert.equal(model()[id],'未知',id);
+   assert.equal(model().snapshot,'未获得可信诊断快照。');
+   assert.doesNotMatch(model().feedback,/PRIVATE/);
+   assert.match(model().feedback,/^E_DIAGNOSTICS/);
    for(const code of ['E_HOST_CLOSED','PRIVATE https://secret.example']){
      readFailure=code;await debug.refresh();
-     assert.match(map.get('debug-feedback').textContent,/^E_DIAGNOSTICS/);
-     assert.doesNotMatch(map.get('debug-feedback').textContent,/PRIVATE|SECRET|https?:\/\//);
-     assert.doesNotMatch(map.get('debug-snapshot').textContent,/PRIVATE|SECRET|https?:\/\//);
+     assert.match(model().feedback,/^E_DIAGNOSTICS/);
+     assert.doesNotMatch(model().feedback,/PRIVATE|SECRET|https?:\/\//);
+     assert.doesNotMatch(model().snapshot,/PRIVATE|SECRET|https?:\/\//);
    }
-   copied='';map.get('debug-copy').listeners.get('click')();await Promise.resolve();
-   assert.equal(copied,'');assert.match(map.get('debug-feedback').textContent,/没有可复制的诊断摘要/);
+   copied='';await actions().copy();
+   assert.equal(copied,'');assert.match(model().feedback,/没有可复制的诊断摘要/);
  }finally{debug.dispose();}
 });

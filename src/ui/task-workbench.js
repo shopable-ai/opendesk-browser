@@ -1,4 +1,6 @@
 import {createMyWorkbenchView} from './my-workbench-view.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
+import {patchDeveloperField,developerAction} from './develop-view.js';
 import {permissionPattern} from '../environment.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
@@ -17,16 +19,13 @@ const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled,
-  reactNavigation=null,myView=createMyWorkbenchView({document:doc})}) {
+  reactNavigation=null,developerView=null,myView=createMyWorkbenchView({document:doc})}) {
   const get=id=>doc.getElementById(id),ui=id=>myView.field(id);
   // A React Side Panel has no standalone catalog controls. Its installed
   // task snapshot must still load without binding that separate DOM surface.
   const catalogList=ui('task-catalog-list');
-  if(debugEnabled){
-    get('tab-debug').hidden=false;
-    doc.querySelector('.workbench-nav').dataset.debugEnabled='true';
-  }
-  const editorSource=executionSource || (() => get('script-source').value);
+  const developer=id=>developerView?.fields[id]??get(id);
+  const editorSource=executionSource || (() => developer('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
@@ -109,7 +108,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const callback=myView.action(fn);myView.actions[name]=callback;
     listeners.push({remove:()=>{if(myView.actions[name]===callback)delete myView.actions[name];}});
   }
-  const listen=(node,event,fn)=>{node.addEventListener(event,fn);listeners.push({node,event,fn});};
   const fail=error=>{
     if(disposed)return;
     const message=formatTaskError(error);
@@ -125,28 +123,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
-      Promise.resolve().then(()=>api.tabs.create({url:api.runtime.getURL('ui/tool.html')})).catch(fail);
+    Promise.resolve().then(()=>api.tabs.create({url:api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH)})).catch(fail);
       return;
     }
     // Ask the live tool before changing panes or destroying its editor.
     if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;
-    if(reactNavigation?.ownsPages){
-      // The installed App Shell alone owns tabpanel visibility and tab ARIA.
-      // A veto above returns before this synchronous React state publication.
-      reactNavigation.select(name);
-    }else{
-      // Legacy fallback is only for isolated Controller tests without a full
-      // React Shell; it preserves their existing DOM behavior.
-      for(const [element,view] of [
-        ['tasks','tasks'],['workflow','workflow'],['develop','develop'],['tools','tools'],['cloud','cloud'],['discover','catalog'],['debug','debug']
-      ])get('workbench-'+element).hidden=view!==name;
-      if(reactNavigation?.select)reactNavigation.select(name);
-      else for(const [view,id] of [['tasks','tab-my-tasks'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools'],['cloud','tab-cloud'],...(debugEnabled?[['debug','tab-debug']]:[])]) {
-        const tab=get(id);
-        tab.setAttribute('aria-selected',String(name===view));
-        tab.tabIndex=name===view?0:-1;
-      }
-    }
+    reactNavigation?.select(name);
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
     if(name==='tasks')renderInstalledCards();
@@ -183,15 +165,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     myView.project('runDock',{taskHidden,developHidden,workflowHidden,stopOnly:Boolean(stopOnly),
       // Workflow actions belong to its React page, rather than this footer.
       hidden:taskHidden&&developHidden});
-    if(reactNavigation?.ownsPages)return;
-    get('task-dock').hidden=taskHidden;
-    get('develop-dock').hidden=developHidden;
-    get('workflow-dock').hidden=workflowHidden;
-    get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
-    get('task-stop').setAttribute('aria-label',ui('task-stop').attributes['aria-label']);
-    // Idle Discover is a search view, not a second permanent action bar.
-    // Never expose an unrelated Run/Save action in a cross-view Stop dock.
-    get('workspace-dock').hidden=get('task-dock').hidden && get('develop-dock').hidden && get('workflow-dock').hidden;
+
   }
   function showCatalogPage() {
     const selectionAtOpen=catalogSelectionEpoch;
@@ -319,7 +293,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-install').disabled=working||!selected||selected.stage!=='available'||
       selected.installed&&selected.enabled||candidatePermission?.manifestHash!==selected?.manifestHash||!candidatePermission?.state;
     ui('task-install').text=selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
-    ui('task-create-candidate').disabled=working;
+    patchDeveloperField(developerView,developer('task-create-candidate'),{disabled:working});
     }
     syncRunDock();myView.publish();
   }
@@ -526,26 +500,26 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     update();
   }
   async function createCandidate() {
-    const id=get('script-id').value.trim(),revision=Number(get('script-revision').value);
+    const id=developer('script-id').value.trim(),revision=Number(developer('script-revision').value);
     if(!id || id.startsWith('task:') || !Number.isSafeInteger(revision)||revision<1)
       throw {code:'E_REVISION',message:'请先保存普通程序版本'};
     const captured=currentPageTarget.capture(); // Freeze site before first await.
     const saved=await client.controller.getControllerScript({scriptId:id,revision});
-    if(get('script-id').value.trim()!==id || Number(get('script-revision').value)!==revision ||
+    if(developer('script-id').value.trim()!==id || Number(developer('script-revision').value)!==revision ||
       saved.sourceUtf8!==editorSource())
       throw {code:'E_REVISION',message:'脚本版本或编辑内容已变化，请重新确认并保存'};
-    const manifest={format:'opendesk.task.v1',taskId:get('task-dev-id').value.trim(),
-      version:get('task-dev-version').value.trim(),title:get('task-dev-title').value.trim(),
-      description:get('task-dev-description').value.trim(),author:get('task-dev-author').value.trim(),
+    const manifest={format:'opendesk.task.v1',taskId:developer('task-dev-id').value.trim(),
+      version:developer('task-dev-version').value.trim(),title:developer('task-dev-title').value.trim(),
+      description:developer('task-dev-description').value.trim(),author:developer('task-dev-author').value.trim(),
       source:'local-developer',siteOrigins:[new URL(captured.url).origin],
       permissions:['page.automation'],entryFormat:'async-main',
       program:{revision:saved.revision,sourceHash:await digestUtf8(saved.sourceUtf8)},
-      paramsSchema:JSON.parse(get('task-dev-schema').value)};
+      paramsSchema:JSON.parse(developer('task-dev-schema').value)};
     const pkg=await createTaskPackage(manifest,saved.sourceUtf8);
     await currentPageTarget.revalidate(captured); // Reject wrong-site candidate after async work.
     const value=await client.request('importTaskPackage',{package:pkg});
     await refresh(identity(value));announce();
-    get('task-dev-status').textContent=`已创建待验证候选 ${identity(value)}；请先运行相同源码并提供真实 runId`;
+    patchDeveloperField(developerView,developer('task-dev-status'),{textContent:`已创建待验证候选 ${identity(value)}；请先运行相同源码并提供真实 runId`});
     navigate('catalog');
   }
   async function readFile(fileOverride=null) {
@@ -574,13 +548,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         if(!response?.ok)throw response?.error || {code:'E_HOST_NOT_FOUND',message:'请在同一窗口打开 Sidebar，再重新导入 JavaScript 草稿'};
         return ui('task-catalog-status').text='已导入同窗口 Sidebar 的未保存草稿；返回目标网页，在「开发」明确运行。未保存、未安装、未自动执行。';
       }
-      if(importDraft)await importDraft(draft);
-      else {
-        get('script-id').value=`import-${Date.now()}`;
-        get('script-revision').value='';
-        get('script-source').value=sourceUtf8;
-        get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
-      }
+      if(!importDraft)throw {code:'E_DRAFT_EDITOR_UNAVAILABLE',message:'开发编辑器尚未连接'};
+      await importDraft(draft);
       navigate('develop');
       return ui('task-catalog-status').text='JavaScript 已进入未保存草稿；不能跳过任务验证直接安装';
     }else{
@@ -647,7 +616,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   async function verify() {
     const row=candidate();
     if(!row)throw {code:'E_SCHEMA',message:'先选择候选'};
-    const runId=ui('task-verify-run').value.trim()||get('script-run-id')?.value?.trim();
+    const runId=ui('task-verify-run').value.trim()||developer('script-run-id')?.value?.trim();
     if(!runId)throw {code:'E_VERIFICATION',message:'需要真实运行的 runId'};
     const result=await client.request('verifyTaskCandidate',{taskId:row.taskId,version:row.version,runId});
     await refresh(identity(result));announce();
@@ -693,48 +662,21 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   async function fork() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择任务'};
     const value=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
-    if(importDraft)await importDraft(value.package.sourceUtf8);
-    else {
-      get('script-id').value=`draft-${row.taskId}-${Date.now()}`;
-      get('script-revision').value='';
-      get('script-source').value=value.package.sourceUtf8;
-      get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
-    }
+    if(!importDraft)throw {code:'E_DRAFT_EDITOR_UNAVAILABLE',message:'开发编辑器尚未连接'};
+    await importDraft(value.package.sourceUtf8);
     navigate('develop');
-    get('task-dev-status').textContent='已复制独立未保存草稿；原已安装版本未变化';
+    patchDeveloperField(developerView,developer('task-dev-status'),{textContent:'已复制独立未保存草稿；原已安装版本未变化'});
   }
   const asyncAction=fn=>async event=>{
     if(working||disposed)return;
     working=true;update();
     try{await fn(event);}catch(error){fail(error);}finally{working=false;update();}
   };
-  const tabOrder=[['tasks','tab-my-tasks'],['tools','tab-tools'],['workflow','tab-workflow'],['develop','tab-develop'],['cloud','tab-cloud']];
-  if(debugEnabled)tabOrder.push(['debug','tab-debug']);
-  const visibleTabs=()=>tabOrder;
-  const selectTabFromUi=tab=>{
+  reactNavigation?.connect(tab=>{
     if(navigate(tab)===false)return false;
     if(tab==='tasks')refresh(undefined,{skipUnchanged:true}).catch(fail);
     return true;
-  };
-  if(reactNavigation?.connect)reactNavigation.connect(selectTabFromUi);
-  else for(const [tab,id] of tabOrder){
-    listen(get(id),'click',()=>selectTabFromUi(tab));
-    listen(get(id),'keydown',event=>{
-      const available=visibleTabs(),index=available.findIndex(([view])=>view===tab);
-      if(index<0)return;
-      let next;
-      if(event.key==='ArrowRight')next=(index+1)%available.length;
-      else if(event.key==='ArrowLeft')next=(index+available.length-1)%available.length;
-      else if(event.key==='Home')next=0;
-      else if(event.key==='End')next=available.length-1;
-      else return; // Enter/Space retain native button activation.
-      event.preventDefault();
-      if(navigate(available[next][0])===false)return;
-      get(available[next][1]).focus?.({preventScroll:true});
-      if(available[next][0]==='tasks')
-        refresh(undefined,{skipUnchanged:true}).catch(fail);
-    });
-  }
+  });
   registerAction('openCatalogClick',()=>navigate('catalog'));
   const taskAddMenu=ui('task-add-menu');
   function showTaskAddMenu(open){
@@ -841,8 +783,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskVerifyClick',asyncAction(verify));
   registerAction('taskPublishClick',asyncAction(publish));
   registerAction('taskInstallClick',asyncAction(install));
-  const createCandidateButton=get('task-create-candidate');
-  if(createCandidateButton)listen(createCandidateButton,'click',asyncAction(createCandidate));
+  const createCandidateButton=developer('task-create-candidate');
+  if(createCandidateButton)listeners.push({remove:developerAction(developerView,createCandidateButton,'click',asyncAction(createCandidate))});
   registerAction('taskToggleClick',asyncAction(toggle));
   registerAction('taskUninstallClick',event=>{
     if(!event.isTrusted||working)return;
@@ -932,7 +874,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)return;disposed=true;
     permissionSequence++;permissionConsent.dispose();
     unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();
-    for(const {node,event,fn,remove} of listeners){if(remove)remove();else node.removeEventListener(event,fn);}
+    for(const {remove} of listeners)remove();
     listeners.length=0;updates?.close?.();
   }};
 }

@@ -38,7 +38,7 @@ const source=(body='return 42;')=>'// ==UserScript==\n// @match https://example.
   '\nasync function main(){var ui=createPageUI({id:"installed"});var child=document.createElement("iframe");ui.content.append(child);ui.onDispose(()=>{globalThis.disposals=(globalThis.disposals||0)+1;child.remove();});globalThis.ui=ui;'+body+'}';
 function fixture(){
   let db=new Map(['frameworkKV','runs','commandJournal'].map(name=>[name,new Map()])),queue=Promise.resolve();
-  const host={tag:'host',namespace:'tool:test',registrationId:'host',active:true,revoked:false,hostDocumentId:'host-doc',hostInstanceId:'instance',browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/ui/tool.html'};
+  const host={tag:'host',namespace:'tool:test',registrationId:'host',active:true,revoked:false,hostDocumentId:'host-doc',hostInstanceId:'instance',browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/sidepanel.html'};
   db.get('commandJournal').set('host:host',host);
   const storage={transaction(stores,mode,work){const next=queue.then(async()=>{
     const copy=structuredClone(db),table=name=>{assert.ok(stores.includes(name));return copy.get(name);};

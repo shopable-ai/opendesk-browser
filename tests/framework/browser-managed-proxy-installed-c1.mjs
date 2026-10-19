@@ -200,7 +200,7 @@ async function exerciseProductionDeniedSdk(extensionId){
   assert.equal(fixture.id,'managed-proxy-c2-fixture');
   await installFixtureForC1(fixture);
   await client.send('Page.navigate',{url:'chrome-extension://'+extensionId+
-    '/ui/tool.html?toolId=managed-proxy-c2-fixture'},page);
+    '/sidepanel.html?toolId=managed-proxy-c2-fixture'},page);
   let frameError='';
   let sandboxFrame;
   try{
@@ -300,7 +300,7 @@ async function nativeSidePanelDiagnostics(session,worker){
   return {dom,installed,native:await readNative(worker).catch(error=>({error:String(error)}))};
 }
 async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
-  const base='chrome-extension://'+extensionId+'/ui/tool.html';
+  const base='chrome-extension://'+extensionId+'/sidepanel.html';
   const candidate=await until(async()=>{
     const {targetInfos=[]}=await client.send('Target.getTargets');
     const other=targetInfos.filter(x=>x.targetId!==tabTargetId&&x.url?.startsWith(base));
@@ -452,7 +452,7 @@ async function main(){
   if(first.settings)assert.notEqual(first.settings.value?.mode,'pac_script');
   const tab=await until(async()=>(await targets()).find(x=>x.type==='page'&&x.url==='about:blank'),'Chrome tab');
   page=await attach(tab.targetId,true);
-  const url='chrome-extension://'+extensionId+'/ui/tool.html?toolId=ai-vip-share';
+  const url='chrome-extension://'+extensionId+'/sidepanel.html?toolId=ai-vip-share';
   await client.send('Page.navigate',{url},page);
   step('FORMAL_EXTENSION_HOST',{status:'PASS',url:await evalAt(page,'location.href')});
   const installedQuery='(async()=>{const values=await chrome.storage.local.get(['+
@@ -529,7 +529,7 @@ async function main(){
   // Never invoke chrome.sidePanel.open from Runtime.evaluate.
   let panel=after.panels.find(x=>x.type==='SIDE_PANEL')||null;
   if(!panel){
-    const catalog='chrome-extension://'+extensionId+'/ui/tool.html';
+    const catalog='chrome-extension://'+extensionId+'/sidepanel.html';
     await client.send('Page.navigate',{url:catalog},page);
     try{
       await until(async()=>{const el=await element('#catalog-open-dev-sidebar');return el?.visible&&el;},

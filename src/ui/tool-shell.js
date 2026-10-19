@@ -10,7 +10,7 @@ import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createExtensionCenter} from './extension-center.js';
-import {mountExtensionList} from './react/main.tsx';
+import {mountSidebarApp} from './react/main.tsx';
 import {createDeveloperView} from './develop-view.js';
 import {createMyWorkbenchView} from './my-workbench-view.js';
 import {createSidebarToolsView} from './sidebar-tools-view.js';
@@ -21,8 +21,10 @@ import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {validatePreviewSession} from './sidebar-tools/preview-session.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
+import {isToolSender} from '../environment.js';
 
-// An extension's Side Panel and its full-size catalog share tool.html.
+// The Side Panel and full-size tool/catalog share the official document.
 // Chrome can expose a tab-like current context in some builds; classify the
 // exact current document positively before choosing the catalog-only UI.
 // Match the full hostInstanceId URL, not just the extension origin/path.
@@ -34,8 +36,7 @@ export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,
     sender?.id!==api.runtime.id || !sender.tab || sender.tab.incognito ||
     !Number.isSafeInteger(windowId) || sender.tab.windowId!==windowId)return;
   try {
-    const sourceUrl=new URL(sender.url),toolUrl=new URL(api.runtime.getURL('ui/tool.html'));
-    if(sourceUrl.protocol!==toolUrl.protocol || sourceUrl.host!==toolUrl.host || sourceUrl.pathname!==toolUrl.pathname)return;
+    if(!isToolSender(api,sender)||!new URL(sender.url).searchParams.has('hostInstanceId'))return;
     const applied = receiveDraft(message.draft ?? message.sourceUtf8);
     if (applied?.then) return applied.then(() => ({ok:true}),error =>
       ({ok:false,error:{code:error.code || 'E_DRAFT_IMPORT',message:error.message || String(error)}}));
@@ -63,8 +64,8 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,historyClosed=false;
-window.addEventListener('pagehide',()=>{historyClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
+let trustedHistoryWorkbench=null,shellClosed=false;
+window.addEventListener('pagehide',()=>{shellClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
 const developerView=createDeveloperView();
 const myView=createMyWorkbenchView();
   const toolView=createSidebarToolsView();
@@ -94,19 +95,17 @@ const tabMemory=createSidebarTabMemory({
   onError:error=>console.warn('Sidebar tab preference unavailable',error)
 });
 let scheduleUI=null,scheduleHost=null;
+// Create the complete interface before controllers attach their real hosts.
+extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,
+  onNavigate:view=>reactNavigationRequest?.(view)??false});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options),
-  reactNavigation,myView});
-// Commit the single trusted React App Shell before binding tools and installer
-// controllers. No second root, installer or permission owner.
-extensionList=mountExtensionList(document,{debugEnabled,appShell:true,developerView,myView,toolView,
-  onNavigate:view=>reactNavigationRequest?.(view)??false});
+  reactNavigation,myView,developerView});
 extensionList.renderNavigation(pendingReactTab);
-// Construct tool controllers only after the trusted React app has adopted
-// their live DOM. Installed extensions retain their sandbox and SDK Hosts.
+// Installed extensions retain their existing sandbox and SDK Hosts.
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,view:toolView,
   // Explicit developer-only, non-release opt-in. All other opens use the
   // unchanged opaque sandbox; mounting uses the already-owned React root.
@@ -131,17 +130,17 @@ const scheduleStatus=message=>{
   }
 };
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
-  api:chrome,document,myView,onOpen:()=>scheduleStatus(scheduleHost?
+  api:chrome,document,myView,developerView,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
 function startScheduledHost(){
-  if(scheduleHost)return;
+  if(shellClosed||scheduleHost)return;
   scheduleHost=createScheduledTaskHost({client:foundationClient,host:scriptEditor.host,api:chrome,
     onStatus:scheduleStatus,
     onChange:()=>{if(scheduleUI?.shown)void scheduleUI.refresh().catch(()=>{});},
     onRun:runId=>scheduleUI?.setRun(runId)});
 }
 
-// A full catalog/tool tab also loads tool.html. It must never become a second
+// A full catalog/tool tab also loads the official document. It must never become a second
 // cloud-claiming Host merely because the extension's trusted UI is open.
 let cloudHosting=null;
 debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host,reactUI:extensionList}):null;
@@ -155,39 +154,45 @@ taskWorkbench.connectToolsView((visible,destination)=>{
 });
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
+  if(shellClosed)return;
   if(kind==='controller'){
     void scheduleUI?.onInstalled(id);
-    void taskWorkbench.refresh().then(()=>taskWorkbench.focusInstalledTask(id)).catch(console.warn);
+    void taskWorkbench.refresh().then(()=>{if(!shellClosed)taskWorkbench.focusInstalledTask(id);}).catch(console.warn);
   }else{
     taskWorkbench.navigate('tools');
     void extensionCenter.refresh();
   }
 }});
-const disposeDevelopment=installDevelopment?.({api:chrome,prepareReload:async()=>
+const disposeDevelopment=installDevelopment?.({api:chrome,onStatus:value=>extensionList.renderDevelopmentStatus(value),prepareReload:async()=>
   !sidebarTools.isDirty()&&nativeAgentHost.developmentIdle()&&await scriptEditor.prepareDevelopmentReload()&&nativeAgentHost.developmentIdle()});
 let sidebarSurface=false, draftImportAttached=false;
 const draftImportListener=(message,sender,sendResponse)=>{
+  if(shellClosed)return false;
   const response=receiveSidebarDraft({message,sender,windowId:currentPageTarget.snapshot.windowId,sidebarSurface,
-    api:chrome,receiveDraft:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8)});
+    api:chrome,receiveDraft:sourceUtf8=>{
+      if(shellClosed)throw Object.assign(new Error('Sidebar 已关闭'),{code:'E_HOST_CLOSED'});
+      return taskWorkbench.receiveDraft(sourceUtf8);
+    }});
   if(response?.then) {response.then(sendResponse);return true;}
   if(response)sendResponse(response);
   return false;
 };
 chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=true;
-/* The same authorized tool.html can be opened in a full Chrome tab.
+/* The same authorized sidepanel.html can be opened in a full Chrome tab.
  * A tab is the complete local catalog; the Side Panel stays lightweight.
  * No new document allowlist, authority, or storage instance is introduced.
  */
 Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
+  if(shellClosed)return;
   // Native Chrome context identity wins over tab-like heuristics; this keeps
   // the visible Developer/Tools tabs in a genuine Side Panel and prevents
   // catalog-only layout from hiding them after an asynchronous reclassification.
   const actualSidePanel=await isActualSidePanelContext({api:chrome,href:hostUrl.href});
+  if(shellClosed)return;
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
-    if(actualSidePanel&&!historyClosed){
-      historyUI?.mount(document);
-      trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??null;
+    if(actualSidePanel){
+      trustedHistoryWorkbench=historyUI?.create({api:chrome,hostInstanceId,reactUI:extensionList})??null;
     }
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList,
       onManageTasks:()=>taskWorkbench.navigate('tasks'),
@@ -209,35 +214,24 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
   if(!toolId&&!previewId){
     taskWorkbench.showCatalogPage();
-    const status=document.getElementById('catalog-dev-sidebar-status');
-    const openOriginalSidebar=(button,targetTab)=>{
-      // One trusted Side Panel; this full-page Catalog is not another Host.
-      // This catalog is itself a real Chrome tab: its windowId is stable even
-      // while the separate active-page target is resolving after tab changes.
-      // Resolve it synchronously so the original trusted click activation is
-      // still intact when sidePanel.open() is called.
+    const button=myView.field('catalog-open-dev-sidebar');
+    const status=text=>myView.setText('catalog-dev-sidebar-status',text);
+    myView.actions.catalogOpenSidebarClick=myView.action(event=>{
+      if(shellClosed||!event.isTrusted||button.disabled)return;
       const windowId=Number.isSafeInteger(tab.windowId)?tab.windowId:currentPageTarget.windowId;
       if(!Number.isSafeInteger(windowId)||typeof chrome.sidePanel?.open!=='function'){
-        status.textContent='无法打开侧栏，请从 Chrome 扩展按钮打开 OpenDesk';
-        return;
+        status('无法打开侧栏，请从 Chrome 扩展按钮打开 OpenDesk');return;
       }
-      button.disabled=true;status.textContent='正在打开侧栏…';
+      button.disabled=true;status('正在打开侧栏…');
       let request;
       try{request=chrome.sidePanel.open({windowId});}
-      catch(error){status.textContent='侧栏不可用：'+(error.message||error);button.disabled=false;return;}
-      Promise.resolve(request).then(()=>{
-        status.textContent=targetTab==='tasks'
-          ?'已打开 OpenDesk 侧栏，请选择「我的」查看任务'
-          :'已打开 OpenDesk 侧栏，请选择「开发」';
-      },error=>{status.textContent='侧栏不可用：'+(error.message||error);})
-        .finally(()=>{button.disabled=false;});
-    };
-    for(const [id,tab] of [['catalog-open-dev-sidebar','develop'],['task-catalog-back','tasks']]){
-      const button=document.getElementById(id);
-      if(button)listen(button,'click',event=>{
-        if(event.isTrusted&&!button.disabled)openOriginalSidebar(button,tab);
-      });
-    }
+      catch(error){status('侧栏不可用：'+(error.message||error));button.disabled=false;return;}
+      return Promise.resolve(request).then(()=>{
+        if(shellClosed)return;
+        status('已打开 OpenDesk 侧栏，请选择「开发」');
+      },error=>{if(!shellClosed)status('侧栏不可用：'+(error.message||error));})
+        .finally(()=>{if(!shellClosed)button.disabled=false;});
+    });
     return;
   }
   document.documentElement.dataset.opendeskSurface='tool-page';
@@ -246,30 +240,36 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     try{
       const key=previewStorageKey(previewId);
       const row=(await chrome.storage.session.get(key))[key];
+      if(shellClosed)return;
       const preview=validatePreviewSession(row,previewId);
       await sidebarTools.ready;
+      if(shellClosed)return;
       sidebarTools.openReadOnlyPreview(preview.tool);
       await chrome.storage.session.remove(key);
     }catch(error){
-      const target=document.getElementById('sidebar-tool-status');
-      target.textContent='预览不存在、已失效或加载失败：'+String(error.message||error).slice(0,160);
-      target.hidden=false;target.dataset.state='error';
+      if(shellClosed)return;
+      toolView.patch('sidebar-tool-status',{
+        textContent:'预览不存在、已失效或加载失败：'+String(error.message||error).slice(0,160),
+        hidden:false,data:{state:'error'}});
     }
     return;
   }
   await sidebarTools.ready;
+  if(shellClosed)return;
   sidebarTools.openTool(toolId);
 }).catch(error => console.warn('Tool tab surface unavailable',error));
 // Native menu launch context is never posted to the sandbox. The trusted host
 // binds a one-shot ticket to the exact iframe instance first.
 let lastMenuTicket='',menuOpening=false;
 async function receiveMenuLaunch(){
-  if(menuOpening)return;
+  if(shellClosed||menuOpening)return;
   const tab=await chrome.tabs.getCurrent?.();
-  if(tab?.id)return; // A context menu opens its window's Side Panel, not arbitrary tool tabs.
+  if(shellClosed||tab?.id)return; // A context menu opens its window's Side Panel, not arbitrary tool tabs.
   const stored=(await chrome.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+  if(shellClosed)return;
   const windowId=currentPageTarget.snapshot?.windowId ??
     (await chrome.windows.getCurrent()).id;
+  if(shellClosed)return;
   const row=Object.values(stored).filter(value=>value?.state==='pending'&&!value.boundTo&&
     value.windowId===windowId&&Date.now()<value.expiresAt).sort((a,b)=>b.issuedAt-a.issuedAt)[0];
   if(!row||row.ticketId===lastMenuTicket)return;
@@ -277,6 +277,7 @@ async function receiveMenuLaunch(){
   let binding=null;
   try{
     await sidebarTools.ready;
+    if(shellClosed)return;
     if(taskWorkbench.navigate('tools')===false)return;
     // A trusted gate prevents sandbox JS starting before launch.bind ACK.
     // Bind failures never publish sensitive selection to the iframe.
@@ -287,6 +288,7 @@ async function receiveMenuLaunch(){
     const result=await chrome.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
       operation:'browser.launch.bind',hostInstanceId,toolId:row.toolId,
       launchId:row.ticketId,toolInstance:token});
+    if(shellClosed)throw Object.assign(new Error('Sidebar 已关闭'),{code:'E_HOST_CLOSED'});
     if(!result?.ok)throw Object.assign(new Error(result?.error?.message||'右键启动绑定失败'),
       {code:result?.error?.code||'E_BROWSER'});
     binding.resolve();
@@ -314,6 +316,7 @@ listen(window, 'pagehide', () => {
   disposeDevelopment?.();
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.storage.onChanged.removeListener(onMenuLaunchChanged);
+  delete myView.actions.catalogOpenSidebarClick;
   developHostControls.dispose();
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;

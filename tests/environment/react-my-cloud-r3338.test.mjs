@@ -3,16 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {createServer} from 'vite';
+import {loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
 const read=path=>readFile(path,'utf8');
 test('R33.3.8 My and Cloud real React TSX renders trusted escaped strings',async t=>{
-  const vite=await createServer({configFile:false,root:process.cwd(),
-    appType:'custom',server:{middlewareMode:true},logLevel:'error'});
-  t.after(()=>vite.close());
-  const {MyTaskCount,MyTaskDetail,MyTaskRows}=
-    await vite.ssrLoadModule('/src/ui/react/tabs/tasks.tsx');
-  const {CloudOverviewText}=
-    await vite.ssrLoadModule('/src/ui/react/tabs/cloud.tsx');
+  const {MyTaskCount,MyTaskDetail,MyTaskRows,CloudOverviewText}=await loadSidebarReact();
   const poison='<img src=x onerror=alert(1)>';
   const html=renderToStaticMarkup(React.createElement(MyTaskRows,{
     rows:[{taskId:'safe',title:poison,description:poison,enabled:false}],
@@ -28,7 +22,7 @@ test('R33.3.8 My and Cloud real React TSX renders trusted escaped strings',async
     assert.match(renderToStaticMarkup(React.createElement(component,{value:poison})),
       /&lt;img src=x onerror=alert\(1\)&gt;/);
 });
-test('R33.3.8 single React root and legacy authoritative action owners',async()=>{
+test('R33.3.8 single React root and authoritative model action owners',async()=>{
   const [root,tasks,cloud,shell,preview,builder]=await Promise.all([
     read('src/ui/react/main.tsx'),read('src/ui/task-workbench.js'),
     read('src/ui/cloud-hosting.js'),read('src/ui/tool-shell.js'),
@@ -36,14 +30,16 @@ test('R33.3.8 single React root and legacy authoritative action owners',async()=
     read('scripts/preview/build-sidebar-six-react-preview.mjs')
   ]);
   assert.equal((root.match(/createRoot\(/g)||[]).length,1);
-  assert.match(root,/myRows\.after\(myWorkspace\)/);
-  assert.match(root,/renderMyTaskRows\(next\)/);
+  assert.doesNotMatch(root,/myRows\.after\(myWorkspace\)/);
+  assert.match(root,/<SidebarAppShell/);
+  assert.match(root,/myView=createMyWorkbenchView\(\)/);
+  assert.match(root,/<SidebarAppShell[\s\S]*myView=\{myView\}/);
   assert.match(root,/renderCloudOverview\(next\)/);
-  assert.match(tasks,/connectReactMyTasks\(view\)/);
-  assert.match(tasks,/reactMyTasks\.renderMyTaskRows\(/);
-  assert.match(tasks,/return; \/\/ React alone owns card children/);
+  assert.match(tasks,/myView\.project\('taskRows'/);
+  assert.match(tasks,/myView\.action\(fn\)/);
+  assert.doesNotMatch(tasks,/connectReactMyTasks|reactMyTasks\.renderMyTaskRows/);
   assert.match(cloud,/reactUI\.renderCloudPage\(/);
-  assert.match(shell,/connectReactMyTasks\(extensionList\)/);
+  assert.match(shell,/reactNavigation,myView,developerView/);
   assert.match(shell,/reactUI:extensionList/);
   for(const name of ['tabs/tasks.tsx','tabs/cloud.tsx'])
     assert.ok(builder.includes('src/ui/react/'+name));

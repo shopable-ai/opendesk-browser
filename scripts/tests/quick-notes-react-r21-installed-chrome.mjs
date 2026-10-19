@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Two REAL installed tool packages through the existing OpenDesk Host + isolated Chrome profile.
 // Unlike the dual preview, this test has NO simulated OpenDeskTool and calls the real SDK.
-// Assert Chrome's genuine SIDE_PANEL context; a tool.html tab is catalog-only.
+// Assert Chrome's genuine SIDE_PANEL context; a sidepanel.html tab is catalog-only.
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -368,7 +368,7 @@ async function toggleReact(enabled){
 }
 async function disableRevokesOpenFrame(){
   const before=new Set((await call('Target.getTargets')).targetInfos.map(t=>t.targetId));
-  const page=await call('Target.createTarget',{url:'chrome-extension://'+extensionId+'/ui/tool.html?toolId=quick-notes-react'});
+  const page=await call('Target.createTarget',{url:'chrome-extension://'+extensionId+'/sidepanel.html?toolId=quick-notes-react'});
   const manager=await attach(page.targetId);
   const target=await until(async()=>{
     const targets=(await call('Target.getTargets')).targetInfos;
@@ -565,7 +565,7 @@ async function startHost(options){
   },'real extension service worker');
   extensionId=new URL(worker.url).host;
   result.extensionId=extensionId;
-  const page=await call('Target.createTarget',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+  const page=await call('Target.createTarget',{url:'chrome-extension://'+extensionId+'/sidepanel.html'});
   host=await attach(page.targetId);
   const bootstrap=host;
   bootstrapHost=bootstrap;
@@ -581,7 +581,7 @@ async function startHost(options){
     (opened.exceptionDetails.exception?.description||opened.exceptionDetails.text));
   const context=await until(()=>evaluate(bootstrap,
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(xs=>xs.find(x=>'+
-    'x.documentUrl?.startsWith('+JSON.stringify('chrome-extension://'+extensionId+'/ui/tool.html')+')&&'+
+    'x.documentUrl?.startsWith('+JSON.stringify('chrome-extension://'+extensionId+'/sidepanel.html')+')&&'+
     'new URL(x.documentUrl).searchParams.has("hostInstanceId"))||null)'),
     'genuine Chrome SIDE_PANEL context');
   const panel=await until(async()=>{

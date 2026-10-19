@@ -1,9 +1,10 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {parseHTML} from 'linkedom';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
-import {createExtensionCenter} from '../../src/ui/extension-center.js';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from '../../src/ui/program-source.js';
 import {createPageBundle} from '../../src/scripting/user-scripts/page-bundle.js';
@@ -39,12 +40,14 @@ async function pageDraft({v2=false}={}){
 }
 
 async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
-  const {document:doc,window}=parseHTML(await readFile(new URL('../../src/ui/tool.html',import.meta.url),'utf8'));
-  const get=id=>doc.getElementById(id),store=new Map(),writes=[],received=[],requests=[];
+  const {document:doc,window}=parseHTML(await renderSidebarFixture());
+  const view=createSidebarToolsView();
+  view.attachRuntime({frameRoot:doc.getElementById('sidebar-tool-frame'),settingsControl:doc.getElementById('sidebar-tool-settings-open')});
+  const get=id=>view.fields[id]||doc.getElementById(id),store=new Map(),writes=[],received=[],requests=[];
   const oldWindow=globalThis.window,oldFetch=globalThis.fetch;
   const offline=async()=>{throw new Error('Offline DOM fixture');};
-  let host,center;
-  t.after(()=>{center?.dispose();host?.dispose();globalThis.window=oldWindow;globalThis.fetch=oldFetch;});
+  let host;
+  t.after(()=>{host?.dispose();view.dispose();globalThis.window=oldWindow;globalThis.fetch=oldFetch;});
   globalThis.window=window;globalThis.fetch=offline;
   window.HTMLElement.prototype.getBoundingClientRect=()=>({left:0,right:360,top:0,bottom:36,width:360,height:36});
   // Linkedom does not implement the writable native select.value property.
@@ -83,20 +86,20 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
     if(operation==='listPagePrograms')return {catalog:[],installed};
     assert.fail('unexpected '+operation);
   }};
-  host=createSidebarTools({api,doc,taskWorkbench,foundationClient:client,lockManager,fetcher:offline});
+  host=createSidebarTools({api,doc,view,taskWorkbench,foundationClient:client,lockManager,fetcher:offline});
   await host.ready;host.setVisible(true);
-  center=createExtensionCenter({api,doc,sidebarTools:host,taskWorkbench,
-    client});
-  await center.refresh();await tick();writes.length=0;
+  // ExtensionCenter delegates import to this public Host action; its React
+  // toolbar rendering is covered separately by extension-center-react-page.
+  await tick();writes.length=0;
   const event=(id,type,{trusted=false}={})=>{const e=new window.Event(type,{bubbles:true});
-    Object.defineProperty(e,'isTrusted',{value:trusted});return get(id).dispatchEvent(e);};
-  event('extension-center-more','click');event('extension-center-import','click');
+    Object.defineProperty(e,'isTrusted',{value:trusted});
+    return view.fields[id]?view.dispatch(id,type,e):get(id).dispatchEvent(e);};
+  assert.equal(host.openImport(),true);
   assert.equal(get('sidebar-tool-import').hidden,false);
   function select(value,{name='draft.json',size,text}={}){
     const content=typeof value==='string'?value:JSON.stringify(value);
     const file={name,size:size??Buffer.byteLength(content),text:text||(()=>Promise.resolve(content))};
-    Object.defineProperty(get('sidebar-tool-file'),'files',{configurable:true,value:[file]});
-    event('sidebar-tool-file','change');return file;
+    view.dispatch('sidebar-tool-file','change',{target:{files:[file]}});return file;
   }
   return {doc,get,event,select,host,store,writes,received,requests};
 }
@@ -137,7 +140,7 @@ test('Page install reviews permissions and calls the existing Authority only aft
   assert.equal(calls,0);unchangedAuthoring(f);
   assert.match(f.get('sidebar-tool-preview-capabilities').textContent,/读取和修改.*https:\/\/example.com\/\*/);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').dataset.state==='installed');
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='installed');
   assert.equal(calls,1);assert.equal(f.get('sidebar-tool-import').hidden,false);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchangedAuthoring(f);
   assert.match(f.get('page-install-import-status').textContent,/安装完成.*打开或刷新/);
@@ -155,8 +158,8 @@ test('same identity review carries the existing installation CAS and keeps the o
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   assert.match(f.get('sidebar-tool-preview-description').textContent,/已经安装/);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').dataset.state==='installed');
-  assert.equal(f.get('page-install-import-status').dataset.installationId,'existing-installation');
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='installed');
+  assert.equal(f.get('page-install-import-status').attributes['data-installation-id'],'existing-installation');
 });
 
 for(const recover of [true,false])test(`lost Page install response is queried once without replay (recovered=${recover})`,async t=>{
@@ -167,7 +170,7 @@ for(const recover of [true,false])test(`lost Page install response is queried on
   }});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
   if(recover)assert.match(f.get('page-install-import-status').textContent,/已查询到原安装/);
   assert.equal(sent,1);assert.equal(f.get('sidebar-tool-install').disabled,true);unchangedAuthoring(f);
 });
@@ -177,7 +180,7 @@ for(const alreadyInstalled of [false,true])test(`untrusted click cannot install 
   await settle(()=>!f.get('sidebar-tool-preview').hidden);
   const readsBeforeClick=f.requests.filter(r=>r.operation==='listPagePrograms').length;
   f.event('sidebar-tool-install','click');
-  await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
   assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,0);
   assert.equal(f.requests.filter(r=>r.operation==='listPagePrograms').length,readsBeforeClick);
   assert.equal(f.get('page-install-import-receipt').hidden,true);
@@ -189,9 +192,9 @@ test('disabled Page update confirms fixed installation without claiming automati
   const f=await fixture(t,{installed:[disabled],requestPage(operation){if(operation==='importPageInstallPackage')return disabled;}});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').dataset.state==='installed-disabled');
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='installed-disabled');
   assert.match(f.get('page-install-import-status').textContent,/安装完成.*保留原有停用状态/);
-  assert.equal(f.get('page-install-import-status').dataset.installationId,'existing-installation');
+  assert.equal(f.get('page-install-import-status').attributes['data-installation-id'],'existing-installation');
   assert.equal(f.get('sidebar-tool-install').textContent,'已安装（停用）');
   assert.equal(f.get('page-install-import-receipt').hidden,false);
   unchangedAuthoring(f);
@@ -203,7 +206,7 @@ test('disabled Page receipt with unconfirmed native state remains pending, not i
   const f=await fixture(t,{installed:[unconfirmed],requestPage(operation){if(operation==='importPageInstallPackage')return unconfirmed;}});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
   assert.equal(f.get('page-install-import-receipt').hidden,true);
   assert.match(f.get('page-install-import-status').textContent,/未自动重试安装/);
 });
@@ -249,7 +252,6 @@ for(const cancel of ['sidebar-tool-import-close','picker-cancel','empty-change',
   f.select(draft,{text:()=>gate.promise});
   if(cancel==='dispose')f.host.dispose();
   else if(cancel==='empty-change'){
-    Object.defineProperty(f.get('sidebar-tool-file'),'files',{configurable:true,value:[]});
     f.event('sidebar-tool-file','change');
   }else f.event(cancel==='picker-cancel'?'sidebar-tool-file':cancel,cancel==='picker-cancel'?'cancel':'click');
   gate.resolve(JSON.stringify(draft));await tick();await tick();unchanged(f);

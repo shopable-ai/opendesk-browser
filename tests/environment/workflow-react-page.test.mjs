@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {transformWithEsbuild} from 'vite';
+import {transform} from 'esbuild';
 import {workflowFixture,tick} from './workflow-react-fixture.mjs';
 const fill={stepId:'fill',op:'fill',locatorKind:'css',selector:'#keyword',text:'OpenDesk'};
 const get=(f,id)=>f.state().controls[id]||{};
@@ -11,7 +11,7 @@ test('workflow whole page declares DOM in TSX and adapter has no legacy renderer
   assert.doesNotMatch(view,/createElement|replaceChildren|\.append\(|addEventListener\('(click|input|change)'|new Option|dispatchEvent/);
   assert.match(component,/export function WorkflowPage/);
   assert.match(component,/useSyncExternalStore/);
-  const result=await transformWithEsbuild(component,'workflow.tsx',{loader:'tsx',jsx:'transform',target:'es2022'});
+  const result=await transform(component,{loader:'tsx',jsx:'transform',target:'es2022'});
   assert.ok(result.code.length>15000);
 });
 test('workflow normal execution preserves durable run, result, document and source identities',async t=>{

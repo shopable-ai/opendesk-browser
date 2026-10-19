@@ -505,7 +505,7 @@ async function runCft() {
     report.extensionId = extensionId;
 
     report.phases.push('open-side-panel');
-    const catalogUrl = 'chrome-extension://' + extensionId + '/ui/tool.html';
+    const catalogUrl = 'chrome-extension://' + extensionId + '/sidepanel.html';
     const {targetId: catalogTargetId} = await browser.send('Target.createTarget', {url: catalogUrl});
     const catalog = await attach(browser, catalogTargetId, 'catalog');
     await until(() => evaluate(catalog, 'document.readyState==="complete"&&!!document.querySelector("#catalog-open-dev-sidebar")'),
@@ -513,7 +513,7 @@ async function runCft() {
     await clickReal(catalog, '#catalog-open-dev-sidebar');
     const sideInfo = await until(async () => {
       const rows = (await browser.send('Target.getTargets')).targetInfos;
-      return rows.find(row => row.targetId !== catalogTargetId && row.url?.startsWith('chrome-extension://' + extensionId + '/ui/tool.html?hostInstanceId='));
+      return rows.find(row => row.targetId !== catalogTargetId && row.url?.startsWith('chrome-extension://' + extensionId + '/sidepanel.html?hostInstanceId='));
     }, 'real side panel target');
     const side = await attach(browser, sideInfo.targetId, 'side-panel');
     const sideContext = await until(() => evaluate(side,

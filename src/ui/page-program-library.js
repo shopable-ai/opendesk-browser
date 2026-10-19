@@ -122,6 +122,9 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   });
   operation('uninstall',async row=>{
     if(!row?.installed)throw new Error('尚未安装');
+    const {installationId,generation}=row.installed.authorization||{};
+    if(!installationId||!Number.isSafeInteger(generation))
+      throw new Error('安装身份不完整，请刷新后重新审阅当前安装。');
     // Explicit destructive confirmation, tied to the currently selected
     // persisted installation rather than whichever candidate is displayed.
     const confirmed=doc.defaultView?.confirm?.(
@@ -129,7 +132,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     if(confirmed!==true)return '已取消卸载。';
     const result=await client.request('uninstallPageProgram',{
       programId:row.installed.programId,manifestHash:row.installed.manifestHash,
-      expectedGeneration:row.installed.authorization?.generation??null});
+      installationId,expectedGeneration:generation});
     if(result.uninstalled!==true||result.nativeState!=='unregistered')
       throw new Error('浏览器尚未确认原生注销');
     return '已注销原生自动运行并移除安装授权；请刷新已打开的网页以清除旧页面效果。';

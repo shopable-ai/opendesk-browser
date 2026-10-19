@@ -1,0 +1,226 @@
+继续实施 OpenDesk Browser React R37.0。默认中文，直接接续真实仓库和未提交 Diff，不重新设计，不从头迁移，不只写报告。
+
+仓库：/Users/shopme/Documents/workspace/opendesk-browser
+这个提示词专家评分多少，里面引用了大量文件，是否会查看大量无关文件，本提示词是 2026-10-19 本轮实际实施后的交接记录。先恢复事实，再完成剩余实现与验证。
+
+一、目标与授权
+
+核心目标不变：将可信 Side Panel 完整收敛到现有 src/ui/react/ 单一 React 应用。React 拥有五 Tab（我的、扩展、工作流、开发、云控）、导航、公共 Dock、必要对话框与 development Debug 的结构、状态呈现和事件；正式 HTML 只保留 CSP、必要启动资源和空 #opendesk-react-app。
+
+唯一正式入口是 src/ui/sidepanel.html，经现有静态资源管线输出包根 sidepanel.html；Manifest 指向它；src/ui/tool.html 删除，正式包不输出 ui/tool.html，不建旧 URL 永久别名或重定向。
+
+不得恢复旧模板、Scaffold、DOM 搬运、模拟控件、重复监听或旧 renderer 以通过测试；不得新建第二 React 应用、Host、安装器、兼容层或运行框架。复用原 Controller、Authority、SDK、执行器、Sandbox 与生命周期。编辑器、真实 iframe Host、焦点/滚动桥接及同 Root 必要 Portal 可以保留，但须说明真实消费者、DOM owner、清理方式。
+
+保留独立 HTML/JS/React/Vue 工具、Preview、Catalog、Scheduled Runner、Standard/Developer、保存/准备/预览/运行/停止、身份/权限/数据/撤权/未知效果保护；不将动态工具 iframe 代码提升到可信文档。
+
+只允许 main；不创建分支、Git Worktree、PR；不提交、不推送。不整体回滚或覆盖用户/其他 Agent 的已有改动，尤其 My 控件、计划历史焦点、scheduled-task-workbench 及其测试。普通明确可逆步骤直接执行。可以用 native subagent 做文件互斥的有界任务，主 Agent 集成。不要启动新的总 GOAL。
+
+不停止其他会话 watcher，不覆盖共享 .wxt/public 或 dist。不改个人 Chrome 配置，不主动 Cloud Claim、配对、Native 配置修复或扩大外部授权。
+
+二、先读取并核对真实状态
+
+读取：
+- AGENTS.md
+- .agents/skills/opendesk-extension-ui/SKILL.md
+- docs/architecture/react-ui-shared-components-r33.zh-CN.md
+- docs/architecture/react-ui-r37-delivery-20261019.md
+- artifacts/r37-security-audit.md
+- artifacts/r37-build-audit.md
+- artifacts/r37-react-product-audit.md
+- artifacts/r37-test-audit.md
+- artifacts/r37-security-independent-review.md
+- artifacts/r37-react-independent-review.md
+- artifacts/r37-build-product-independent-review.md
+- artifacts/r37-preview-status.txt
+
+涉及可信 Focus Host 时再读 .agents/skills/opendesk-trusted-sidebar-feature/SKILL.md。本次 sidepanel.html 明确决定优先于旧文档保留 tool.html 的过渡限制，原安全边界不变。
+
+注意：R37 交付文档及四份原审计仍未汇总本轮最终实施，不可把其中的历史“尚未构建/旧失败”等描述当成当前源码事实；独立审查报告也保留了修复前发现，应读后续处理记录。
+
+最后现场核对：main，HEAD dea31e91d6005915f6705cdfec93249e90b7e7e9；写入本提示词前 status 279 项，tracked diff 257 files changed、4573 insertions、5095 deletions；git diff --check 通过。数字只定位，不证明当前状态，也不能把整份 Diff 归为本轮所作。无提交或推送。
+
+先核对当前 branch/HEAD/status/相关 Diff、并行写入、进程/端口、候选身份及日志对应的源码。不要因 main 上有不相干改动而停工。
+
+三、防重复执行规则
+
+下面区分“继承已实施”“本轮已实施并验证”“旧候选预检通过”“尚未完成”。
+
+1. 已实施项先看 Diff、消费者和原始证据；没有相关源码变化、新失败或证据失效，不重写、不重新迁移、不重复整组测试。
+2. 旧候选的浏览器结果保留为预检证据；后续源码变动使它们不能证明最终候选。下一步需要新候选复验相关行为，不是从零再开发。
+3. 测试数量是各切片事实，不能直接相加作唯一总数。源码/fixture/构建/扩展标签页/原生 Side Panel/安装升级分别记录。
+4. 同一失败仅在源码、环境或观察方法有明确变化后重试；不得删断言、跳过保护、任意加长超时或伪造状态。
+5. 当前没有要求新建总体计划或设计方案。先完成冻结、构建和真实操作；发现真实产品缺陷直接最小修复。
+
+四、继承已实施：核实后直接复用，不重新做
+
+- 空 sidepanel.html、Manifest/静态资源管线迁移、tool.html 删除、src/tool-document-url.js 单一路径常量、环境/导航/Runner/Native Workspace 等直接消费者已迁移。
+- 精确来源、路径、hostInstanceId、documentId、frameId、上下文及互斥参数校验；receiveSidebarDraft 接 isToolSender，旧绕过路径拒绝测试已存在。
+- mountSidebarApp 空根挂载/重复挂载保护，App Shell 创建导航、五 Tab、Dock、Catalog/Debug；prepareSidebarAppShell、Scaffold、旧业务 DOM 搬运和 Debug 旧节点接管已删除。
+- Develop/Tool 控件采用显式状态投影/动作；History 用 React BrowserHistoryPage + 原业务 Controller。
+- Time Review、Stay Focus、AI Access 设置迁入同 Root；TrustedSettingsIsland 及旧设置绘制/监听删除，三个设置 Controller 有 dispose/迟到回复隔离。
+
+这些实现不等于最终验收完成，但不要把已经迁移的模块再设计一遍。
+
+五、本轮已经完成及可复用证据
+
+A. 扩展 Page 更多菜单、详情与 toggle 的真实失败已修复。
+- 文件：src/ui/extension-center.js；tests/environment/extension-center-react-page.test.mjs。
+- 根因：Page 列表投影每次产生新 record，旧代码用对象引用比较，拒绝合法菜单/详情动作。
+- 现在 Page 用 samePageIdentity/pageIdentity 精确核对既有八项身份，保留可信手势、busy/pending/disposed；App 仍保留应有引用保护。
+- 补真实 更多→查看详情→toggle，以及原异步读回/ACK-only/安全负向；3/3 PASS。
+- 证据：artifacts/r37-core-ui-tests-20261019/extension-center-react-page-fixed.log。
+- 不再把历史 25 项中唯一 toggle 超时当成当前未修复项。只有相关变更/新失败才重跑此组件切片；最终候选实际 Page 管理行为仍需按证据范围验收。
+
+B. 两个旧浏览器驱动已迁移并通过，不再留作待迁任务。
+- scripts/tests/react-sidebar-r352-browser.mjs
+- scripts/tests/react-sidebar-r3331-browser.mjs
+- 已用空根 mountSidebarApp + 显式 onNavigate，移除 mountExtensionList/旧架构入口，保留真实渲染、输入、动作、读回、卸载和迟到负向。
+- 两者 CFT 155 PASS，证据标签 SOURCE_UI_SIMULATION_CHROMIUM；这是当前源码 UI 驱动，不是原生 Side Panel。
+- 相关细节在独立审查/产物记录中。输入未变不要重复整套。
+
+C. Develop/Tools 无真实消费者的旧 DOM fallback、renderer 和测试模拟已实际清理。
+- src/ui/develop-view.js、src/ui/script-editor.js：显式 Developer View；不再旧 DOM fallback。真实编辑器/RunHost/document/focus 边界保留。
+- src/ui/sidebar-tools-view.js、src/ui/sidebar-tools.js：清理安装/发现旧 renderer、DOM settings fallback、重复绑定；真实 iframe/settings 容器与 Host 保留。
+- src/ui/installed-page-tools.js：删除仅旧测试消费的 createInstalledPageTools；保留 installedPageEnableAction、setInstalledPageProgramEnabled；原消费者测试迁到真实状态/动作。
+- 删除无人调用的 src/ui/trusted-cookie-workbench.js；实际 Cookie 功能 Controller/React/沙箱保留，没有删除产品 Cookie 能力。
+- 相关原测试/fixture 已迁移，Develop 切片曾 324 PASS，后续 fixture 切片 219 PASS、状态切片 41 PASS，不能相加。日志归档 artifacts/r37-focused-regressions/；对应原日志 /tmp/opendesk-develop-fallback-final.log、/tmp/opendesk-develop-fallback-fixture-final.log、/tmp/opendesk-develop-fallback-status-final.log。
+- Tools 及删除边界的证据见 artifacts/r37-build-product-independent-review.md、artifacts/r37-react-independent-review.md。
+
+D. 可信 Stay Focus 撤权 epoch 竞态已修复，并获限定独立复核。
+- 真实问题：idle 权限请求 pending 时撤权并以同安装包重建 epoch，旧 callback 取了新 epoch，可能继续发送操作。
+- examples/sidebar-tools/stay-focus/trusted/tool-host.js：调用显式携带原 revocationEpoch，与当前存储精确比较，缺失/不一致 fail closed。
+- src/ui/sidebar-tools.js：真实 Frame Host 捕获原 tool/epoch，assertCurrent 在关键边界核对；不替旧 frame 刷新成新 epoch。
+- stay-focus-boundary-r1.test.mjs 增加 pending permission→仅 epoch 轮换→true callback→零发送；stay-focus-r44-transport.test.mjs 传原 epoch。
+- 红灯 /tmp/r37-focus-epoch-before.log；绿灯 artifacts/r37-focus-epoch-fixed.log（19 PASS）。独立复核日志在 artifacts/r37-developer-compat/focus-independent-*.log。
+- tool-host.js 当前已独立复核的精确 Git blob 为 f2346baa8c80e0bd153d32e810f63caed8d105fd，SHA256 88481b3267b937ef31e62acb3694c8b797a9f2dafc5b096dcc065e0ffcf5d248。
+- scripts/bundle-provenance.mjs 只更新了该精确 pin；没有放宽白名单、symlink、输出准入或 provenance。构建前核实当前字节仍一致；任何新改动需相应审查。
+- 三个继承 host-controls pins：time-review 6cb8a7e357a5a9f8011ae755dcbbbde6cde8578b；stay-focus 3f4c938e7591861333eb17eb41c6e54ca21ced79；ai-vip-share d00a67b654d109ac854fbd0691f263daabf6f607。不要回滚，也不要将作者改 pin 当独立接受。
+- 组件/transport 证据不证明原生 idle/DNR/AI 外部行为全部 PASS。
+
+E. 三个实际生命周期问题已经修复，不要重新作为未实施项。
+- IR01，src/ui/tool-shell.js：shellClosed/pagehide 贯穿迟到 getCurrent、上下文、Preview/menu storage/ready/ACK、初始化与相关动作，关闭后不创建 cloud/schedule/history、不恢复 tab、不打开迟到 Preview/menu；Preview 错误用真实 Tool View data.state 投影。
+  tests/environment/tool-shell-lifecycle-r37.test.mjs 为真实 initToolShell 的 esbuild/VM 有界依赖测试，红灯已复现，后来扩至 11 生命周期案例。最终 shell+provenance 切片 13 PASS：artifacts/r37-shell-provenance-final.log。fixture 不冒充浏览器资源生命周期。
+- IR02，src/ui/sidebar-tools.js、src/ui/react/tabs/tool-host.tsx：返回列表焦点从隐藏 ancestor 内的同步 focus 改为 React commit 后 effect，含 dirty draft 继续路径。tests/environment/sidebar-tools-focus-react.test.mjs 验证真实 React 可见焦点。证据见 build-product 独立审查报告。
+- IR03，src/ui/react/main.tsx、src/ui/sidebar-tools-view.js：首绘/owner 验证失败会 unmount 并清 WeakSet；onHide 或 attachRuntime 初始化清理抛错也不会遗留 owner/runtime。14 PASS，红/绿原日志 /tmp/opendesk-ir03-red.log、/tmp/opendesk-ir03-green.log，归档 artifacts/r37-focused-regressions/。
+
+F. 正式 HTML 包门禁已加强并验证。
+- scripts/verify-package.mjs：检查 sidepanel 唯一空 #opendesk-react-app，无额外 body 业务 HTML/template/SSR，并保留 CSP/资源验证。
+- 既有 tests/environment/sidepanel-path-r37.test.mjs 增加负向；26 PASS，/tmp/opendesk-r37-package-empty-root-after.tap，归档 artifacts/r37-focused-regressions/。
+- 有另一位 Agent 做限定只读复核；不等于当前最终候选包已构建。
+
+G. 最后新增的 React/Vue Stop 状态问题已完成修复与绿灯，不再待实现。
+- 文件：src/ui/script-editor.js、tests/environment/script-editor.test.mjs。
+- 真实问题：受管 JSX/Vue UI/样式已退出，预览状态/结果还保留“运行中”和旧 mount 结果。
+- 现在使用统一预览状态投影；只有精确 preview-retired/sourceHash/receipt.ok/managed-ui-only 真实回执才显示已停止并呈现该回执；未知结果投影真实错误，保持 quarantine，不伪造清理成功、不重放 Stop。
+- 新增 React/Vue 成功与 unknown 不伪造/不重试回归。初始红灯 /tmp/r37-component-stop-before.log。
+- 最新 node --test tests/environment/script-editor.test.mjs tests/environment/script-editor-ui.test.mjs tests/environment/page-frame-preview-editor.test.mjs：212/212 PASS，零 skip/fail，artifacts/r37-component-stop-fixed.log。
+- 另一位 Agent 限定只读审查未发现需修项，记录在 artifacts/r37-react-independent-review.md。
+- 该修复尚未进入新构建/原生复验；下一轮需用新 Developer 候选实际确认 UI 状态与真实回执，不必先重写或重复上述整个 Node 切片。
+
+H. 离线六 Tab 设计预览生成器已修复、验证并冻结。
+- scripts/preview/build-sidebar-six-react-preview.mjs：空根 + 现有 mountSidebarApp + onNavigate，不恢复 workflow-settings-react-host 等旧 HTML 节点，不改生产 CSP。
+- 最终变更/命令/冻结文件及输入闭包见 artifacts/r37-preview-status.txt、artifacts/r37-developer-compat/preview-generator/freeze.json。
+- 定向 13 PASS：artifacts/r37-developer-compat/preview-generator/targeted-final.log。
+- 实际生成成功：generation-final.json；生成物 current/index.html；CFT 离线交互 PASS：browser-after.log，均在同一 preview-generator 目录。
+- 这是 UI_PREVIEW_ONLY，不替代动态工具 Preview、Native 或最终扩展候选。
+- 不重复生成/重测未变输入；不要误把修复前 E_SIX_TAB_PREVIEW 或不同输入旧 useState 错误当当前产品缺陷。
+
+I. 其他已有源码证据应保留其范围。
+- artifacts/r37-final-source-check.log：906 项源码/测试/构建语法/固定入口/CSP/MIT 检查通过；此日志早于最后 Stop/预览等改动，不能直接称最终全量源码检查。
+- artifacts/r37-final-react-contracts.log：24 PASS、1 SKIP；该 skip 为空根浏览器环境变量缺失，后来单独带正确环境跑 1 PASS：artifacts/r37-final-empty-root-browser.log。不要把切片凑成虚假的唯一总数。
+- 当前 git diff --check 已再次通过。
+
+六、旧候选已有真实操作证据：保留，但不是本轮最终源码的验收
+
+下面两个静态候选在本轮中途成功构建；其后又实施了 Focus/IR01/IR02/IR03/Stop/包门禁等修复，所以必须标“旧候选预检”，目录里的 final 字样不代表现在仍是最终。
+
+production / Standard：
+- /private/tmp/opendesk-r37-candidate/dist/production
+- packageHash f0b37aaf22e903684e38242e9c021fbebbf26125addcb007da52c5f092ad3e7f
+- 104 assets，构建通过，/tmp/r37-production-final.log。
+- receipt：/tmp/opendesk-r37-candidate/artifacts/r37-build/build-production.json。
+
+development / Developer：
+- /private/tmp/opendesk-r37-candidate/dist/development-developer
+- packageHash 5542eb95415bd136c0b5b35ac2e8e1aff235e5860ea040efebc7a5c0438448d7
+- 153 assets，构建通过，/tmp/r37-development-developer-final.log。
+- receipt：/tmp/opendesk-r37-candidate/artifacts/r37-build/build-development-developer.json。
+
+已有旧候选实际证据：
+1. 扩展标签页/安装驱动均 PASS：artifacts/r37-final-production-installed/report.json、artifacts/r37-final-developer-installed/report.json。它们不能单独证明原生 Side Panel。
+2. Mac 原生 Panel 核心预检：artifacts/r37-final-production-native/report.json、artifacts/r37-final-developer-native/report.json；PASS_CORE_WITH_EXTERNAL_NOT_TESTED。
+   已用 Catalog 真实手势打开；getContexts 为 SIDE_PANEL、精确 URL、tabs.getCurrent 为 undefined、单 Root，production 五 Tab/development 六 Tab；五页导航/开发输入保留，实际 Controller page.title→Browser Test Lab，Stop→E_CANCELLED，Quicknotes 详情/设置、工作流输入/设置、真实 Cloud 未连接状态、实际关闭→Catalog 重开→新 Run。
+   Chrome 可能在 close/reopen 复用同 documentId，已记录；不能把“必须换 documentId”当产品不变量。需验证唯一有效上下文/Root、重新操作与迟到隔离。
+3. Developer JS/JSX/Vue 实际编译/保存候选/持久读回/页面计数器点击/Stop 拆卸有预检：artifacts/r37-developer-compat/authorized-core/report.json、report.md。
+   初次 UserScripts 未开启的历史失败保留；随后只在本任务自建 CFT 的 chrome://extensions 对该扩展用真实可信开关开启 Allow user scripts，记录 false→true；未碰日常 Chrome、未配对/Claim。准备、保存、刷新作者读回及真实页面计数器 0→1 与 Stop 清理已过；Stop 状态显示缺陷随后已修，尚待新候选复验。
+4. Task/计划/Scheduled Runner 已走真实预检：artifacts/r37-task-native-complete-preflight/report.json，PASS_TASK_AND_PAUSED_SCHEDULE。
+   示例包 examples/tasks/form-fill.v1.opendesk-task.json 先导入候选，真实草稿 Run 的 runId/页面效果，经原 Catalog 审阅本地可用→安装；真实 Installed Task Run 修改 demo-form；创建 paused 60min 计划、编辑/读回、真实 Runner 独立标签页且单 Root/等待计划、删除取消→确认。
+   最后完整计划报告使用 --continue-installed。初次 candidate→install 已实际完成但旧驱动随后在隐藏按钮处失败，不能把分散失败报告拼成“一次全链 PASS”。新最终 profile 必须默认模式重跑完整安装到删除链。
+5. 离线设计预览单列 UI_PREVIEW_ONLY，见第五节 H。
+
+七、新增/加强的真实驱动已经写好：部分改进尚未实际运行
+
+先读驱动/参数，不重新造另一套。
+
+- scripts/tests/react-sidebar-r352-installed-chrome.mjs：原标签页驱动已实际跑过。后来增加启动前/结束时 verifyPackage packageHash/edition 与 OPENDESK_BUILD_RECEIPT 的原始字节 SHA256/attemptId 绑定；这些新校验尚未在新候选运行。
+- scripts/tests/react-sidebar-r37-native-mac.mjs：原生核心已预检。后来强化 build receipt 精确身份、runtime.id、初始/重开 pageerror 观察、ready 等待、通过当前原生 page→DOM iframe frameId→精确 OOPIF target 绑定（不再任取全局 iframe），以及取消后等待原延迟结束仍无迟到结果。这些新观察/断言尚未跑最终候选，不能报告已 PASS。
+- scripts/tests/react-sidebar-r37-task-native.mjs：完整 Task/paused 计划/Runner 驱动已实现并在旧候选 --continue-installed 预检通过；新候选应默认模式从导入开始跑同一全链。
+- scripts/tests/react-sidebar-r37-tools-native.mjs：已写并 node --check，仅语法验证，尚未实际运行。覆盖 Quicknotes 停用→storage/UI 读回→启用、打开独立工具页、独立页身份/单 Root、精确本页 iframe 及真实内容。需要真实运行，不能报已有原生 PASS。
+- scripts/tests/react-sidebar-r37-developer-compat.mjs：已有 JSX/Vue 预检；下一次用新 Developer 候选，并补/核实 Stop 状态和真实 retirement receipt 断言，保持 UserScripts 真实用户开关，不伪造权限。
+
+这些脚本通常接 installed/report.json 和独立输出目录（Developer compat 还有 --enable-user-scripts 等）；执行前检查实际参数，cwd/edition 要一致。不要给旧 installed report 补造并未发生的 receipt 启动证据。
+
+八、环境与旧进程：先现场复核，保护已有会话
+
+1. 独立普通源码快照 /tmp/opendesk-r37-candidate（物理 /private/tmp/...），不是 Git Worktree，node_modules 为物理 APFS clone，不是外部 symlink。只在此构建，不复制巨大 docs。
+2. 历史日常 watcher PID 41022/父41001 已在本轮最后现场核对中不存在；43119/43120 也无监听。不要在新对话仍写“它正在运行”，也不要据此随意接管共享输出，先重查 owner/进程。
+3. 最后现场日常 dist/development 仍有 ui/tool.html、没有 sidepanel.html；它不是有效 R37 候选，不能用目录名/版本/HEAD 代替真实产物身份。
+4. 日常 Chrome /Users/shopme/Applications/Google Chrome.app；此前 CUA 核对日常扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf，load path 本仓库 dist/development。保持个人配置，不装隔离候选到日常 Chrome。
+5. 自建且本轮保留的旧 CFT，两 PID 最后仍存在；在覆盖其包目录前，应先核对并仅通过其精确 CDP Browser.close 收尾这两个本任务浏览器，不停止其他 CFT：
+   - production：PID4116，ID chkhaljgenbmndkknjhcmohlgjdbpnkk，CDP ws://127.0.0.1:64130/devtools/browser/bfc987b2-50ce-47cb-81fc-8c33704c97e5。
+   - Developer：PID4220，ID mhpfgdfhjnopjmahggjbbgajlkbjjcib，CDP ws://127.0.0.1:64236/devtools/browser/86b07758-dde4-4fe4-925d-18f1482a0435。
+   - profile 路径/启动证明见相应旧 installed/report.json；新候选使用新 profile 与新报告，不能混用旧 endpoint/身份。
+6. CFT 可执行：/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing。
+7. Playwright 模块：/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs。
+8. 标准真实测试页 http://127.0.0.1:43111/demo-form.html，最后仍监听（PID1117）；服务日志 /tmp/r37-demo-form-server.log。存在就复用；必要时按 examples/tasks 约定启动，不造临时产品入口。
+9. CUA 曾选到另一个会话的 CFT，不能沿用一个叫 cft 的变量就认定是本任务实例；按 CDP/profile/PID 精确确认。native subagent 上一轮已全部冻结，不继续写入/测试/构建。
+10. 此环境大于约400字节的工具输出可能被压缩为无法展开的 <<ccr:...>>；需要时分段读取实际文件（例如 dd 每次300字节），不要因看不到 marker 内容就假设文件为空或测试通过。
+
+九、接下来按顺序执行，不重新做第五节已完成实现
+
+1. 恢复现场，读 Diff/证据与必要源文件；确认上一轮最后 Stop 的 212 PASS 和限定审查仍对应当前源码。仅有新相关改动才重跑相应切片。
+2. 聚焦确认剩余架构 owner/消费者，无旧模板/仅测试消费 fallback 回流。若没有新缺陷，不扩展全仓清理。
+3. 源码 writer 已冻结，可同步真正相关输入到现有快照。包含 src、scripts、examples、official-tools、packages、contracts、types、vendor 和现行 manifest/wxt/package 配置及实际构建依赖；保留快照 node_modules，不拷整份 docs，不同步 artifacts/预览缓存/共享构建产物。
+   之前遗漏过 native-agent/local-project-source-contract.mjs，已补；核对真实依赖仍在。构建需要的 MIT/第三方 notices 等只复制必要文件。
+4. 核实精确 provenance 字节，串行在快照 cwd 构建两个必要候选，分别保存独立日志和身份：
+   OPENDESK_OUTPUT_GUARD_PORT=43129 OPENDESK_BUILD_EVIDENCE_DIR=artifacts/r37-build node scripts/build.mjs production
+   OPENDESK_OUTPUT_GUARD_PORT=43129 OPENDESK_BUILD_EVIDENCE_DIR=artifacts/r37-build OPENDESK_BROWSER_EDITION=developer node scripts/build.mjs development
+   工作目录必须是 /tmp/opendesk-r37-candidate，不能误在根仓库执行。输出分别 dist/production、dist/development-developer。不放宽门禁；记录 packageHash/mode/edition/receipt SHA256/attemptId/sourceDriftDuringBuild/最终输入闭包。
+   若构建失败，按有效源码/真实错误定位；输入和诊断未变不反复重建。旧生产包曾有软体积告警，应如实记录，不扩大本轮为无关体积工程。
+5. 用新候选运行加强后的 installed 驱动，必须设置 OPENDESK_EXTENSION_DIR、OPENDESK_CHROMIUM_EXECUTABLE、OPENDESK_BUILD_MODE、OPENDESK_BUILD_RECEIPT，OPENDESK_HEADFUL=1、OPENDESK_KEEP_BROWSER=1；Developer 另设置 OPENDESK_BROWSER_EDITION=developer。报告写新目录，保留旧预检。
+   Marketplace channel 校验与 cwd/edition 有关：Developer 验证/驱动从快照 cwd 执行，edition=developer，使用脚本绝对路径。不要因 root cwd 解析到别的路径导致 mismatch 就改低校验。
+6. 同一冻结新候选/新 profile 执行真实 Mac 原生核心、Tools 独立页、完整 Task/计划/Runner；Developer 执行 Debug、JS/JSX/Vue 准备/保存/持久读回/运行/Stop 与新状态回执。逐一读真实结果、截图、精确上下文，不把扩展标签页替代原生 Panel。
+7. 发现产品问题最小修复，先锁真实行为再改；发现驱动误选隐藏控件/跨页面 iframe/异步读回竞态，修驱动但保留原用户行为和安全断言。然后仅重建/复测受影响候选。
+8. 工作流 AI 真实生成执行、Cloud 未配对外部链、Native Workspace/动态 Preview 等条件不足，准确列具体步骤和缺少条件，保持 NOT_TESTED。不主动 Claim/配对/改 Native manifest 或扩大授权。
+9. 最后集中更新现有交付文档和四份审计，映射最终 Diff/候选/原始证据与外部缺口；不要新增报告代替尚未修复的产品行为。
+
+十、G1–G10 及审查口径
+
+R37 交付文档/四审计及相关搜索没有找到原 G1–G10 表。上一轮已向用户问过路径，用户明确答“你作为专家，合适判断”。不要重复问。依当前明确合同建立映射，并注明“原编号表未找到，按本轮明确完成条件重建映射”；不得冒充找到了原表，不得降标或用改名隐藏缺口。
+
+建议保持十项行为覆盖：
+G1 唯一正式入口/输出/旧入口退出；G2 单 Root/空挂载；G3 五 Tab/导航/Dock/对话框/Debug；G4 React 状态事件/旧 renderer 退出；G5 必要命令式边界/生命周期；G6 原功能与 JS/JSX/Vue/独立工具兼容；G7 精确身份/权限/CSP/撤权/未知效果；G8 隔离构建/mode/edition/provenance；G9 同候选原生 Panel/独立 Tool/Preview/Catalog/Runner；G10 证据闭环/五视角/交付结论。
+
+每项映射：目标行为→当前实现→验证方法→候选身份→原始证据→状态/缺口。保留原用户合同的所有具体通过条件；如果恢复到真正原表，按其语义对齐，不能删要求。
+
+已有三个 native subagent 的限定独立审查覆盖五个反方视角：React 架构、Chrome 安全、构建发布、产品交互、测试可靠性；不等于“五位专家签字”。各自实施的切片不冒充独立接受；报告说明排除范围、发现、用户影响和处理结果。最后 Stop 两文件已由非作者做限定只读复核。仍需对最终候选真实结果作对应更新。
+
+七个维度分别给有证据范围的评分或 NOT_SCORED：React 架构、功能兼容、生命周期、Chrome 安全、构建交付、测试可靠性、产品交互。明确作者自评/独立审查/原生运行的区别、扣分原因和未测项，不冒充专家95+，不以总分掩盖缺口。
+
+十一、完成与输出纪律
+
+当前仍为 PARTIAL / RELEASE_NOT_VERIFIED。已有大量实现、绿灯和旧候选原生预检，不等于最终源码/候选完成。尚未完成的关键项是：同步最终源码并构建新两个候选、加强驱动在新候选真实运行、Tools 新驱动首跑、完整 Task 全链单次新 profile 运行、Developer Stop 新状态原生复验、必要特殊场景证据与现有交付审计更新。
+
+在原目标及相应证据齐全前，不宣布 COMPLETE、SOURCE_COMPLETE、正式验收或95+。外部 NOT_TESTED 不折算 PASS。存在可恢复问题继续执行；确有无法自行解除的外部条件则准确记录边界。
+
+每轮先报告哪个真实用户操作可用、哪个仍失败/未验证、下一步解决什么；测试数仅补充。最终中文交付包括：React 核心状态/架构缺口、正式入口和旧入口、Root/旧 DOM 清理、五页真实操作、保留命令式边界、继承/本次 Diff 边界及 HEAD、各候选测试构建包/原生身份、十项结论/反方发现/未完成项、七维分项评价。保留全部可审查 Diff，不提交、不推送。

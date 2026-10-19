@@ -357,7 +357,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
         try{
           const targets=(await client.send('Target.getTargets')).targetInfos;
           report.failedTargets=targets.map(x=>({type:x.type,url:x.url})).slice(0,20);
-          for(const target of targets.filter(x=>x.url.includes('/ui/tool.html'))){
+          for(const target of targets.filter(x=>x.url.includes('/sidepanel.html'))){
             try{
               const session=await attach(client,target.targetId);
               report.screenshots.push(await screenshot(client,session,'failure-'+target.targetId));
@@ -427,7 +427,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   note('uninstalled-baseline',{adRequests:counts.ad,normalRequests:counts.normal,ad:baseline});
 
   const ui=await client.send('Target.createTarget',
-    {url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
+    {url:'chrome-extension://'+id+'/sidepanel.html?hostInstanceId='+randomUUID()});
   let uid=await attach(client,ui.targetId);
   await until(()=>evaluate(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")'),
     'extension native launcher');
@@ -436,7 +436,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await click(client,uid,'#catalog-open-dev-sidebar');
   const context=await until(async()=>{
     const entries=await evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return entries.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId)||null;
+    return entries.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId)||null;
   },'actual Side Panel document');
   let panel=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -583,7 +583,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   chrome=launch();capture(chrome);
   first=await connected();client=first.socket;
   const launchAgain=await client.send('Target.createTarget',
-    {url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
+    {url:'chrome-extension://'+id+'/sidepanel.html?hostInstanceId='+randomUUID()});
   uid=await attach(client,launchAgain.targetId);
   await until(()=>evaluate(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")'),'launcher after native initialization');
   const readyOff=await until(async()=>{const r=await getOwned(client,uid);
@@ -593,7 +593,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   site=await attach(client,fixtureAgain.targetId);
   await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'fixture after initial restart');
   await click(client,uid,'#catalog-open-dev-sidebar');
-  const reopenedContext=await until(()=>evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/ui/tool.html")))'),'Side Panel after initial restart');
+  const reopenedContext=await until(()=>evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/sidepanel.html")))'),'Side Panel after initial restart');
   panel=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===reopenedContext.documentUrl),'native Side Panel target after initial restart');
   sid=await attach(client,panel.targetId);
   await click(client,sid,'#tab-tools');await openInstalled(sid);
@@ -833,7 +833,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   },'extension after actual full Chrome restart',25000);
   assert.equal(idAgain,id,'extension ID must not change across restart');
   const uiAgain=await client.send('Target.createTarget',
-    {url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
+    {url:'chrome-extension://'+id+'/sidepanel.html?hostInstanceId='+randomUUID()});
   const again=await attach(client,uiAgain.targetId);
   const persisted=await until(async()=>{const r=await getOwned(client,again);
     return r.state?.enabled===true&&r.owned.length===1?r:null;},'persistent DNR after Chrome restart');
@@ -864,7 +864,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   report.revocationStatus=revokedStatus;
   await click(client,again,'#catalog-open-dev-sidebar');
   const revokedContext=await until(()=>evaluate(client,again,
-    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/ui/tool.html")))'),
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/sidepanel.html")))'),
     'Side Panel after native revocation');
   const revokedPanel=await until(async()=>(await client.send('Target.getTargets')).targetInfos
     .find(x=>x.url===revokedContext.documentUrl),'revoked Side Panel target');
@@ -894,7 +894,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await click(client,again,'#catalog-open-dev-sidebar');
   const ctx=await until(async()=>{
     const contexts=await evaluate(client,again,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return contexts.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId);
+    return contexts.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId);
   },'reopened Side Panel for uninstallation');
   const target=await until(async()=>{const all=(await client.send('Target.getTargets')).targetInfos;
     return all.find(x=>x.url===ctx.documentUrl)||null;},'reopened Side Panel target');

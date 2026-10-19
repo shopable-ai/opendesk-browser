@@ -30,8 +30,8 @@ async function target(kind='host'){
   const selected=kind==='worker'?all.find(row=>row.type==='service_worker'&&row.url.endsWith('/sw.js')):
     kind==='frame'?all.find(row=>row.type==='iframe'&&row.url.includes('/sidebar-tools/sandbox.html')):
     kind==='market'?all.find(row=>row.type==='page'&&row.url.includes('/ui/marketplace.html')):
-    kind==='sidepanel'?all.find(row=>row.type==='other'&&row.url.includes('/ui/tool.html')):
-    kind==='host'?all.find(row=>['page','other'].includes(row.type)&&row.url.includes('/ui/tool.html')):
+    kind==='sidepanel'?all.find(row=>row.type==='other'&&row.url.includes('/sidepanel.html')):
+    kind==='host'?all.find(row=>['page','other'].includes(row.type)&&row.url.includes('/sidepanel.html')):
     all.find(row=>row.targetId===kind);
   if(!selected)throw Error('Target missing: '+kind);
   const sessionId=(await client.send('Target.attachToTarget',{targetId:selected.targetId,flatten:true})).sessionId;

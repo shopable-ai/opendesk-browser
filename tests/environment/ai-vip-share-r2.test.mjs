@@ -22,7 +22,7 @@ const tool={format:'opendesk.sidebar-tool.v1',id:AI_ID,version:'1.0.0',
   html:'<main>AI</main>',css:'',js:'void 0;'};
 const origin='chrome-extension://'+'a'.repeat(32);
 const sender={
-  id:'a'.repeat(32),url:origin+'/ui/tool.html?hostInstanceId=11111111-1111-4111-8111-111111111111',
+  id:'a'.repeat(32),url:origin+'/sidepanel.html?hostInstanceId=11111111-1111-4111-8111-111111111111',
   documentId:'doc-1',frameId:0,documentLifecycle:'active'
 };
 const provider={

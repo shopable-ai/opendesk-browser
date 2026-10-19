@@ -1,6 +1,7 @@
 // Chrome permission declarations are explicit; there is no "all API permissions" wildcard.
 // Mirror this catalog in manifest.json. verifyManifest enforces their exact parity.
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 
 export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
@@ -189,7 +190,7 @@ function trustedSidePanelSender(api,sender,hostInstanceId){
     throw fail('E_OWNER','只有可信 Side Panel 文档可请求工具权限');
   let expected,actual;
   try{
-    expected=new URL(api.runtime.getURL('ui/tool.html'));
+    expected=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
     actual=new URL(sender.url);
   }catch{throw fail('E_OWNER','可信 Side Panel 地址无效')}
   if(actual.protocol!==expected.protocol||actual.host!==expected.host||actual.pathname!==expected.pathname||

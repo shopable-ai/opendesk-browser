@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -5,7 +6,7 @@ import {load} from 'cheerio';
 const read=p=>readFile(p,'utf8');
 
 test('R33.3.13 official Cloud Header has one title and the two original icon actions',async()=>{
-  const html=await read('src/ui/tool.html'),$=load(html);
+  const html=await renderSidebarFixture(),$=load(html);
   const head=$('#workbench-cloud .cloud-panel-head');
   assert.equal(head.length,1);
   assert.equal(head.children('.od-page-title').length,1);
@@ -40,10 +41,10 @@ test('R33.3.13 adaptive Cloud display preserves CloudHosting and Preview owners'
   assert.match(css,/\.cloud-panel-head>\.cloud-panel-actions\{[^}]*flex-wrap:nowrap/);
   assert.match(css,/#workbench-cloud \.cloud-overview-secondary\{[^}]*grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,200px\),1fr\)\)/);
   assert.match(css,/\.cloud-overview-metrics\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(host,/click\('cloud-overview-refresh',async\(\)=>\{\}\)/);
-  assert.match(host,/click\('cloud-configure'/);
-  assert.match(host,/click\('cloud-approve'/);
-  assert.match(host,/click\('cloud-unpair'/);
+  assert.equal((host.match(/onRefresh:\(\)=>action\(\(\)=>\{\},true\)/g)||[]).length,2);
+  assert.match(await read('src/ui/react/tabs/cloud.tsx'),/onConfigure:\(\)=>setPairingOpen\(true\)/);
+  assert.match(host,/onApprove:\(\)=>action\(approve\)/);
+  assert.match(host,/onUnpair:\(\)=>action\(async\(\)=>/);
   assert.match(react,/renderCloudOverview\(next\)/);
   assert.match(adapter,/UI_PREVIEW_ONLY/);
   assert.match(adapter,/data-preview-cloud-scenario/);
@@ -53,6 +54,8 @@ test('R33.3.13 adaptive Cloud display preserves CloudHosting and Preview owners'
   for(const id of ['cloud-approve','cloud-stop','cloud-pair','cloud-unpair',
     'cloud-client-create','cloud-client-copy','cloud-request-open-result'])
     assert.ok(adapter.includes("'"+id+"'"),id);
-  assert.match(builder,/src\/ui\/tool\.html/);
-  assert.match(builder,/src\/ui\/react\/preview\/sidebar-six-preview\.tsx/);
+  assert.match(builder,/src\/ui\/sidepanel\.html/);
+  assert.match(builder,/src\/ui\/react\/main\.tsx/);
+  assert.match(builder,/app=mountSidebarApp\(document,\{debugEnabled:true,onNavigate/);
+  assert.doesNotMatch(builder,/src\/ui\/react\/preview\/sidebar-six-preview\.tsx/);
 });

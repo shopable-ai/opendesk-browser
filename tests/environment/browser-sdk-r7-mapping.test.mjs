@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -43,40 +44,28 @@ test('R7 35-operation map remains historic and R9 Cookies use explicit scoped me
   assert.equal(typeof publicCookies.observe.read,'function');
 });
 
-test('R7 legacy Cookie safety stays tested while production has a single installed-tool entry',async()=>{
-  const [ui,workbench,host,sidecar,shell,cookieEntry]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/trusted-cookie-workbench.js'),
+test('R7 historical Cookie renderer stays retired while production has a single installed-tool entry',async()=>{
+  const [ui,host,sidecar,shell,cookieEntry]=await Promise.all([
+    renderSidebarFixture(),
     read('src/platform/chrome/context-menus.js'),read('src/entrypoints/context-menus.js'),
     read('src/ui/tool-shell.js'),read('src/entrypoints/trusted-cookie-ui.js')
   ]);
   assert.doesNotMatch(ui,/id="trusted-cookie-/,'retired Cookie workbench must not appear below installed tools');
-  assert.match(ui,/id="sidebar-tool-list"/);
+  assert.match(ui,/id="extension-center-list"/);
   assert.match(ui,/id="sidebar-tool-display"/);
-  assert.match(workbench,/event\.isTrusted/);
-  assert.match(workbench,/currentPageTarget\.revalidate/);
-  assert.match(workbench,/browser\.cookies\.approve/);
-  assert.match(workbench,/browser\.cookies\.execute/);
   assert.match(host,/checkedSender\(api,sender\)/);
   assert.match(host,/createTrustedCookieHost/);
   assert.match(sidecar,/host\[method\]/);
   assert.match(sidecar,/message\.kind==='host'/);
   // Keep the existing sidecar path for History, Schedule and Cloud consumers;
   // the retired Cookie workbench must no longer be bundled or initialized.
-  assert.match(ui,/<script src="trusted-cookie-ui\.js"><\/script>/);
+  assert.match(ui,/<script src="ui\/trusted-cookie-ui\.js"><\/script>/);
   assert.doesNotMatch(cookieEntry,/createTrustedCookieWorkbench|__opendeskTrustedCookieUI/);
   assert.match(cookieEntry,/__opendeskTrustedHistoryUI/);
   assert.match(cookieEntry,/createScheduledTaskHost,createCloudHosting/);
   assert.doesNotMatch(shell,/__opendeskTrustedCookieUI|trustedCookieWorkbench/);
   assert.doesNotMatch(shell,/import\s*\{createTrustedCookieWorkbench\}/);
-  assert(!workbench.includes('chrome.cookies.'));
-  // Preserve legacy component security coverage without a production UI mount.
-  for(const id of ['trusted-cookie-watch-start','trusted-cookie-watch-status-button',
-    'trusted-cookie-watch-read','trusted-cookie-watch-stop','trusted-cookie-watch-events'])
-    assert(workbench.includes(id),'missing legacy component coverage '+id);
-  assert(workbench.includes("const op='browser.cookies.observe.'+kind"),'Host-only observation operation is invoked');
-  assert(workbench.includes('event.isTrusted&&!busy'),'Every observer control requires a trusted click');
-  assert(workbench.includes('watchEventsNode.replaceChildren()'),'Observation events are cleared');
-  assert(workbench.includes('String(item.name'),'Cookie event name is formatted without secret values');
-  assert(!workbench.includes('item.value'),'redacted Cookie event UI must never render a value');
-  assert(!workbench.includes('storage.local.set('));
+  // Current security behavior is exercised through the live Host/installed-tool
+  // routes in browser-sdk-r7-trusted-cookies and browser-sdk-r9-installed-cookies,
+  // and through cookie-editor-react-controller; no retired DOM renderer is needed.
 });

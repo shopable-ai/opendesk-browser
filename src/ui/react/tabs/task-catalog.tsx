@@ -2,7 +2,7 @@ import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
 
 // Presentation only; the existing controller owns catalog identity and actions.
-export function TaskCatalogPage({view,hidden=false}){
+export function TaskCatalogPage({view,hidden=false,standalone=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const catalog=view.data.catalogRows||{rows:[],selectedKey:''};
   const detail=view.data.catalogDetail;
@@ -17,13 +17,14 @@ export function TaskCatalogPage({view,hidden=false}){
           <MyControl view={view} as="button" id="task-catalog-refresh" type="button"
             className="od-button od-button--secondary"
             onClick={event=>view.actions.taskCatalogRefreshClick?.(event.nativeEvent)}>刷新目录</MyControl>
-          {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog'&&
-            <button type="button" id="catalog-open-dev-sidebar"
-              className="od-button od-button--secondary">打开 OpenDesk 侧栏</button>}
+          {standalone&&
+            <MyControl view={view} as="button" type="button" id="catalog-open-dev-sidebar"
+              onClick={event=>view.actions.catalogOpenSidebarClick?.(event.nativeEvent)}
+              className="od-button od-button--secondary">打开 OpenDesk 侧栏</MyControl>}
         </div>
       </header>
-      {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog'&&
-        <p id="catalog-dev-sidebar-status" className="hint" role="status" aria-live="polite"/>}
+      {standalone&&
+        <MyControl view={view} as="p" id="catalog-dev-sidebar-status" className="hint" role="status" aria-live="polite"/>}
 
       <div>
         <label htmlFor="task-search" className="visually-hidden">搜索本地任务</label>

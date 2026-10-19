@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
@@ -39,7 +40,7 @@ test('R5.4 trusted UI and bundled tools contain no blocking JavaScript browser d
 
 test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome authority boundaries',async()=>{
   const [html,source,workflow,manifestText,markdown]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),
+    renderSidebarFixture(),
     readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('src/ui/workflow/workflow-view.js','utf8'),
     readFile('manifest.json','utf8'),

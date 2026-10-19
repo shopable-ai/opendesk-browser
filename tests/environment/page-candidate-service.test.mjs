@@ -140,10 +140,10 @@ function setup(){
   let data=new Map([['frameworkKV',new Map()],['commandJournal',new Map()]]);
   const hosts={
     a:{tag:'host',registrationId:'host-a',hostDocumentId:'doc-a',hostInstanceId:'instance-a',
-      browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/ui/tool.html',
+      browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/sidepanel.html',
       namespace:'tool:one',active:true,revoked:false},
     b:{tag:'host',registrationId:'host-b',hostDocumentId:'doc-b',hostInstanceId:'instance-b',
-      browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/ui/tool.html',
+      browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/sidepanel.html',
       namespace:'tool:two',active:true,revoked:false}
   };
   Object.values(hosts).forEach(h=>data.get('commandJournal').set('host:'+h.registrationId,structuredClone(h)));

@@ -13,7 +13,7 @@ const rules=()=>({matches:['https://example.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 function fixture(){
   const host={tag:'host',namespace:'tool:test',registrationId:'host',hostDocumentId:'tool-document',
-    hostInstanceId:'instance',browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/ui/tool.html',active:true,revoked:false};
+    hostInstanceId:'instance',browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/sidepanel.html',active:true,revoked:false};
   let db=new Map([['frameworkKV',new Map()],['commandJournal',new Map([['host:host',host]])]]),tail=Promise.resolve();
   const state={trusted:true,nativeEffects:0};
   const storage={transaction(names,mode,body){

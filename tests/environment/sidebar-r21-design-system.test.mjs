@@ -1,4 +1,6 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
+import {load} from 'cheerio';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -10,19 +12,20 @@ const contrast=(a,b)=>{const [hi,lo]=[luminance(a),luminance(b)].sort((x,y)=>y-x
 
 test('R21/R4.9 tool list has one Open entry while detail and header actions use accessible icon primitives',async()=>{
   const [host,html,tokens,design,view]=await Promise.all([
-    read('src/ui/sidebar-tools.js'),read('src/ui/tool.html'),
+    read('src/ui/sidebar-tools.js'),renderSidebarFixture(),
     read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css')
   ]);
-  const installed=host.slice(host.indexOf('function renderInstalledTools'),host.indexOf('function siteCapability'));
-  assert.match(installed,/button\.dataset\.sidebarToolAction='open'/);
-  assert.match(installed,/item\.append\(button\);list\.append\(item\)/);
-  assert.doesNotMatch(installed,/sidebar-tool-list-remove|sidebar-tool-list-tab|sidebar-tool-site-manage/,'no destructive buttons on installed rows');
-  assert.match(host,/removeButton\.setAttribute\('aria-label',removeButton\.title\)/,'destructive action is in detail with explicit accessible name');
-  for(const id of ['sidebar-tool-back','sidebar-tool-open-tab','sidebar-tool-remove'])
-    assert.match(html,new RegExp('id="'+id+'" class="sidebar-tool-icon-action od-icon-button"'));
-  assert.match(html,/<div class="sidebar-tools-head od-toolbar od-page-head">[\s\S]*<strong class="od-page-title">已安装工具<\/strong>[\s\S]*<div class="sidebar-tools-actions od-toolbar od-page-actions" role="group" aria-label="添加和管理工具">/);
-  for(const [id,label] of [['sidebar-tool-discover-toggle','添加工具'],['sidebar-tool-market','打开应用市场'],['sidebar-tool-import-trigger','导入工具文件']])
-    assert.match(html,new RegExp('id="'+id+'" class="od-icon-button" aria-label="'+label+'" title="[^"]+"'));
+  const $=load(html);
+  assert.equal($('#extension-center-list').length,1);
+  assert.equal($('#extension-center-list').attr('aria-label'),'扩展中心当前筛选列表');
+  for(const id of ['sidebar-tool-back','sidebar-tool-open-tab','sidebar-tool-remove']){
+    assert.equal($('#'+id+'[aria-label] svg[aria-hidden=true]').length,1,id);
+    assert.ok($('#'+id).hasClass('od-icon-button'),id);
+  }
+  for(const id of ['extension-center-market','extension-center-more']){
+    assert.equal($('#'+id+'[aria-label] svg[aria-hidden=true]').length,1,id);
+  }
+  assert.equal($('#extension-center-import').length,1);
   assert.match(tokens,/--od-icon-size:34px/);
   assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
   assert.match(design,/\.od-icon-button svg\{[^}]*stroke:currentColor;stroke-width:1\.8/);
@@ -58,7 +61,7 @@ test('R21 Chrome fixture adds full-width states without changing its native evid
 
 test('R4 spec matches five visible HTML tabs and preserves archived R21/R5 as history',async()=>{
   const [spec,html]=await Promise.all([
-    read('docs/product/sidebar-ui-spec.zh-CN.md'),read('src/ui/tool.html')]);
+    read('docs/product/sidebar-ui-spec.zh-CN.md'),renderSidebarFixture({debugEnabled:false})]);
   assert.ok(spec.startsWith('# OpenDesk Browser Side Panel · Extension Center R4 现行产品规格'));
   const marker='# 历史存档：OpenDesk Browser Sidebar UI SPEC · R21';
   assert.ok(spec.includes(marker),'R21 must remain explicitly archived');
@@ -66,7 +69,7 @@ test('R4 spec matches five visible HTML tabs and preserves archived R21/R5 as hi
   const archived=spec.slice(spec.indexOf(marker));
   const labels=['我的','扩展','工作流','开发','云控'];
   const tabMarkup=[...html.split('</nav>')[0].matchAll(/<button\b[^>]*role="tab"[^>]*>([^<]+)<\/button>/g)];
-  assert.deepEqual(tabMarkup.filter(row=>!/\shidden(?:\s|>)/.test(row[0])).map(row=>row[1]),labels);
+  assert.deepEqual(tabMarkup.filter(row=>!/\shidden(?:=|\s|>)/.test(row[0])).map(row=>row[1]),labels);
   assert.ok(tabMarkup.some(row=>row[1]==='调试'&&/\shidden/.test(row[0])));
   for(const label of labels)
     assert.ok(current.includes('| **'+label+'** |'),'current R4 tab missing '+label);
@@ -82,7 +85,7 @@ test('R21 secondary text selectors use the AA-contrast token, not faint local ov
   const selectors=[
     '#task-installed-count','.sidebar-tool-preview-file','.sidebar-tool-import-hint',
     '.sidebar-tool-capabilities span','.catalog-reader-fact span',
-    '.catalog-intro .eyebrow',
+
     '.catalog-card small','.catalog-reader-note','.catalog-reader-desc',
     '.workflow-minor-note','.workflow-section-header span','.workflow-ai-step-preview li span',
     '.workflow-chat-entry strong','.workflow-chat-intro p'

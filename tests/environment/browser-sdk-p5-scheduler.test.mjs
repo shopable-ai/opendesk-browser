@@ -80,7 +80,7 @@ async function fixture(){
     return Object.fromEntries(names.map(key=>[key,structuredClone(localStorage.get(key))]));
   };
   const localSet=async values=>{for(const [key,value] of Object.entries(values))localStorage.set(key,structuredClone(value));};
-  const api={runtime:{id:'scheduler-ext',getURL:()=> 'chrome-extension://scheduler-ext/ui/tool.html',
+  const api={runtime:{id:'scheduler-ext',getURL:()=> 'chrome-extension://scheduler-ext/sidepanel.html',
     getContexts:async()=>null},
     storage:{local:{get:localGet,set:localSet}},
     permissions:{contains:async request=>{

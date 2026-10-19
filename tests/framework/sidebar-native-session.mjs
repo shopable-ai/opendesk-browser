@@ -58,7 +58,7 @@ async function observe(label='observation') {
 async function armInputs() {
  const s=JSON.parse(await readFile(sessionFile)),c=await connect(s.endpoint);
  try {
-  const t=(await c.send('Target.getTargets')).targetInfos.find(t=>t.url.includes('/ui/tool.html?hostInstanceId='));
+  const t=(await c.send('Target.getTargets')).targetInfos.find(t=>t.url.includes('/sidepanel.html?hostInstanceId='));
   if(!t)throw Error('Live Side Panel missing');
   const id=(await c.send('Target.attachToTarget',{targetId:t.targetId,flatten:true})).sessionId;
   await evaluate(c,`(()=>{if(globalThis.__nativeUiInputs)return;globalThis.__nativeUiInputs=[];for(const type of ['input','change','click'])document.addEventListener(type,e=>{if(!e.target.id?.startsWith('script-'))return;globalThis.__nativeUiInputs.push({at:Date.now(),type,id:e.target.id,isTrusted:e.isTrusted,source:document.querySelector('#script-source').value,params:document.querySelector('#script-params').value,scriptId:document.querySelector('#script-id').value});},true);})()`,id);

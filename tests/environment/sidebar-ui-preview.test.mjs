@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -24,20 +25,20 @@ test('R3 remains immutable reference; R4 preview keeps installed Discover and in
 });
 test('R4.9 Tools has one navigation tier and three accessible add/import/market controls',async()=>{
   const [html,css,host,design]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js'),read('src/ui/design-system.css')
+    renderSidebarFixture(),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js'),read('src/ui/design-system.css')
   ]);
   const $=load(html),section=$('#sidebar-tools');
   assert.equal(section.length,1,'one installed-tools surface');
   // The following Cloud tab is a sibling, not a second Tools navigation tier.
   const tools=$.html(section);
   assert.doesNotMatch(tools,/role="tablist"|role="tab"|role="tabpanel"|我的工具|发现工具/);
-  assert.match(tools,/id="sidebar-tool-my-panel" aria-label="已安装工具列表"/);
-  assert.match(tools,/id="sidebar-tool-discover-panel"[^>]+hidden/);
-  for(const [id,label] of [['sidebar-tool-discover-toggle','添加工具'],['sidebar-tool-market','打开应用市场'],['sidebar-tool-import-trigger','导入工具文件']])
-    assert.match(tools,new RegExp('id="'+id+'"[^>]+aria-label="'+label+'"[^>]*>\\s*<svg'));
-  assert.match(tools,/id="sidebar-tool-discover-toggle"[^>]+aria-expanded="false" aria-controls="sidebar-tool-discover-panel"/);
-  assert.match(tools,/id="sidebar-tool-import-trigger"[^>]+aria-expanded="false" aria-controls="sidebar-tool-import"/);
-  assert.match(host,/function setDiscoveryOpen\(open\)/);
+  assert.equal($('#extension-center-list').attr('aria-label'),'扩展中心当前筛选列表');
+  for(const id of ['extension-center-market','extension-center-more']){
+    assert.equal($('#'+id+'[aria-label] svg[aria-hidden=true]').length,1,id);
+  }
+  assert.equal($('#extension-center-import').length,1);
+  assert.equal($('#extension-center-more').attr('aria-controls'),'extension-center-menu');
+  assert.equal($('#sidebar-tool-import').length,1,'same original import controller surface');
   assert.doesNotMatch(host,/showToolPane\(|toolPane=|myTab|discoverTab/);
   assert.doesNotMatch(css,/\.sidebar-tool-subtabs/);
   assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\)/);
@@ -48,7 +49,7 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
 
 test('R4 official sidebar preserves five product views, original host controls, local task search and history',async()=>{
   const [html,css,work]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
+    renderSidebarFixture({debugEnabled:false}),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
   ]);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
@@ -58,7 +59,7 @@ test('R4 official sidebar preserves five product views, original host controls, 
     'extension-center-list','extension-center-menu','task-selected-workspace','task-history',
     'task-params-form','task-run','task-stop','workspace-dock','task-result-panel','task-history-panel',
     'local-discover-search','script-source','script-run','script-save',
-    'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
+    'page-preview-tools','page-preview-status','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
   const $=load(html),nav=$('.workbench-nav button:not([hidden])');
   assert.deepEqual(nav.toArray().map(el=>$(el).text().trim()),['我的','扩展','工作流','开发','云控']);
   assert.equal($('#task-search-panel').closest('.tasks-surface').length,1,'search is inside the same Tasks surface');
@@ -68,7 +69,7 @@ test('R4 official sidebar preserves five product views, original host controls, 
   assert.doesNotMatch(html,/id="discover-dock"|id="discover-to-catalog"/,'idle Discover should have no persistent footer');
   assert.match(work,/function renderInstalledCards\(/);
   assert.match(work,/localFilter='all'/);
-  assert.match(work,/group\.append\(workspace\)/,'active task owns its details');
+  assert.equal($('#task-selected-workspace').closest('#task-installed-cards').length,1,'React task list owns selected details');
   assert.match(work,/new BroadcastChannel|new globalThis\.BroadcastChannel/);
   assert.match(work,/listTaskCatalog/,'broadcast does not replace authoritative data');
   assert.match(css,/task-history-entry/);
@@ -91,24 +92,20 @@ test('R5 keeps one derived interactive prototype with installed-only compact dis
 
 test('Developer source selector and new-script action belong to their respective headers',async()=>{
   const [html,css,design,source]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/program-source.js')
+    renderSidebarFixture(),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/program-source.js')
   ]);
-  const toolbar=html.match(/<div id="program-source-toolbar"[\s\S]*?<\/div>/)?.[0];
-  const header=html.slice(html.indexOf('<div id="developer-source-switch"'),html.indexOf('<section aria-label="当前网页"'));
-  assert.ok(header,'developer source header exists before current-page details');
-  assert.ok(html.indexOf('id="developer-source-switch"') < html.indexOf('id="developer-target-detail"'),
-    'source title/action header must appear before current page details');
-  assert.match(header,/class="developer-source-switch od-toolbar od-page-head" role="group" aria-label="代码来源" data-mode="manual"/);
-  assert.match(header,/<span class="od-page-title">直接编辑<\/span>/);
-  assert.match(header,/<div class="od-page-actions" role="group" aria-label="开发页操作">/);
-  assert.match(header,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden class="od-icon-button">[\s\S]*?<svg[^>]*aria-hidden="true"/);
-  assert.match(header,/id="local-project-mode" type="checkbox" role="switch"/);
-  assert.equal([...html.matchAll(/id="program-new-script"/g)].length,1);
-  assert.ok(toolbar,'one shared toolbar exists');
-  assert.match(toolbar,/role="group" aria-label="源码视图操作"/);
-  assert.match(toolbar,/id="program-source-files"/);
-  assert.doesNotMatch(toolbar,/id="program-new-script"/);
-  assert.doesNotMatch(toolbar,/新建单文件草稿|aria-haspopup=/,'there is only one create action, not a multi-file creation menu');
+  const $=load(html),header=$('#developer-source-switch'),toolbar=$('#program-source-toolbar');
+  assert.equal(header.length,1);
+  assert.ok(html.indexOf('id="developer-source-switch"')<html.indexOf('id="developer-target-detail"'));
+  assert.ok(header.hasClass('od-page-head'));assert.equal(header.attr('aria-label'),'代码来源');
+  assert.equal(header.attr('data-mode'),'manual');assert.equal(header.find('.od-page-title').text(),'直接编辑');
+  assert.equal(header.find('.od-page-actions[aria-label="开发页操作"]').length,1);
+  assert.equal(header.find('#program-new-script[aria-label="新建 JavaScript 草稿"] svg[aria-hidden=true]').length,1);
+  assert.equal(header.find('#local-project-mode[role=switch]').length,1);
+  assert.equal($('#program-new-script').length,1);assert.equal(toolbar.length,1);
+  assert.equal(toolbar.attr('role'),'group');assert.equal(toolbar.attr('aria-label'),'源码视图操作');
+  assert.equal(toolbar.find('#program-source-files').length,1);assert.equal(toolbar.find('#program-new-script').length,0);
+  assert.equal(toolbar.find('[aria-haspopup]').length,0);
   assert.match(css,/\.program-source-toolbar\{display:flex;flex-wrap:nowrap;/);
   assert.match(css,/\.program-source-toolbar #program-source-files\{[^}]*flex:1 1 0;min-width:0;/);
   assert.doesNotMatch(css,/\.program-source-toolbar #program-new-script\{/);
@@ -116,12 +113,12 @@ test('Developer source selector and new-script action belong to their respective
     'new action inherits the shared icon button component');
   assert.match(design,/:root\{[^}]*font-size:13px;/,
     'Side Panel default text remains readable at narrow widths');
-  assert.match(source,/get\('program-source-toolbar'\)\.hidden = !value/);
-  assert.match(source,/get\('program-new-script'\)\.hidden = !value/);
+  assert.match(source,/patchDeveloperField\(view,get\('program-source-toolbar'\),\{hidden:!value\}\)/);
+  assert.match(source,/patchDeveloperField\(view,get\('program-new-script'\),\{hidden:!value\}\)/);
 });
 
 test('R19 Sidebar spacing and corner system is consistent across all five tabs',async()=>{
-  const [html,css,design,tokens]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/design-tokens.css')]);
+  const [html,css,design,tokens]=await Promise.all([renderSidebarFixture(),read('src/ui/tool-shell.css'),read('src/ui/design-system.css'),read('src/ui/design-tokens.css')]);
   const body=(selector,source=css)=>{
     const at=source.indexOf(selector+'{');
     assert.ok(at>=0,'missing CSS rule '+selector);
@@ -182,10 +179,10 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
 
 test('R4/R23 five-tab design system has one token source and a strict trusted asset pipeline',async()=>{
   const [html,tokens,design,css,prepare,verify,visual]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
+    renderSidebarFixture(),read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
     read('scripts/prepare-public.mjs'),read('scripts/verify-package.mjs'),read('scripts/tests/sidebar-r19-layout-visual.mjs')
   ]);
-  assert.match(html,/<link rel="stylesheet" href="design-tokens\.css"><link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
+  assert.match(html,/<link rel="stylesheet" href="ui\/design-tokens\.css"><link rel="stylesheet" href="ui\/design-system\.css"><link rel="stylesheet" href="ui\/tool-shell\.css">/);
   for(const view of ['tasks','tools','workflow','develop','cloud'])
     assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
   for(const toolbar of ['task-section-head','local-discovery-search-row'])
@@ -193,16 +190,16 @@ test('R4/R23 five-tab design system has one token source and a strict trusted as
   assert.ok(html.includes('class="workflow-head od-toolbar od-page-head"'),
     'workflow header composes both shared toolbar and page-head tokens');
   assert.ok(html.includes('class="developer-source-switch od-toolbar od-page-head"'),'shared page head developer-source-switch');
-  assert.ok(html.includes('class="sidebar-tools-head od-toolbar od-page-head"'),'shared page head sidebar-tools-head');
+  assert.equal(load(html)('#extension-center-list-view > .ec-toolbar').length,1,'React extension center owns toolbar');
   for(const card of ['catalog-reader'])
     assert.ok(html.includes('class="'+card+' od-surface"'),'shared surface '+card);
-  assert.ok(html.includes('id="sidebar-tool-official-catalog"'),'official rows render from trusted Catalog');
+  assert.equal(load(html)('#extension-center-list').length,1,'unified React list receives official Catalog rows');
   assert.match(await read('src/ui/sidebar-tools.js'),/row\.className='sidebar-tool-official od-surface'/,'dynamic official rows retain the shared surface');
   assert.ok(html.includes('class="local-discovery-filters od-segmented"'));
-  assert.ok(html.includes('class="task-search-panel" hidden'));
+  assert.ok(load(html)('#task-search-panel.task-search-panel').is('[hidden]'));
   assert.doesNotMatch(html,/class="local-discovery-list od-surface"/);
   assert.ok(html.includes('class="task-card-list od-stack"'));
-  assert.ok(html.includes('class="sidebar-tool-list od-stack"'));
+  assert.ok(load(html)('#extension-center-list').hasClass('ec-list'));
   for(const token of ['--od-ink:','--od-sub:','--od-bg:','--od-line:','--od-brand:','--space-2:8px','--radius-control:8px','--radius-surface:12px']){
     const isThemeColor=token.startsWith('--od-');
     assert.equal((tokens.match(new RegExp(token,'g'))||[]).length,isThemeColor?2:1,
@@ -218,9 +215,14 @@ test('R4/R23 five-tab design system has one token source and a strict trusted as
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
   assert.doesNotMatch(prepare,/bookmark-manager\.css/,
     'legacy bookmark styles must not be copied into the trusted package');
-  assert.ok(verify.includes("'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js']"),
-    'the fixed asset verifier must require cloud hosting CSS and the precise trusted sidecars before the main shell');
-  assert.match(html, /<script src="sidebar-tool-host\.js"><\/script>\s*<script src="stay-focus-controls\.js"><\/script>\s*<script src="trusted-cookie-ui\.js"><\/script>\s*<script src="tool-shell\.js"><\/script>/,
+  const expectedAssets=['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','ui/time-review.css',
+    'ui/cloud-hosting.css','ui/extension-center.css','ui/sidebar-tool-host.js','ui/stay-focus-controls.js',
+    'ui/trusted-cookie-ui.js','ui/tool-shell.js'];
+  const actualAssets=load(html)('link[rel=stylesheet],script[src]').map((_,el)=>load(html)(el).attr(el.tagName==='link'?'href':'src')).get();
+  assert.deepEqual(actualAssets,expectedAssets,'official HTML retains exact CSS and sidecar startup order');
+  for(const asset of expectedAssets)assert.ok(verify.includes("'"+asset+"'"),'package verifier requires '+asset);
+
+  assert.match(html, /<script src="ui\/sidebar-tool-host\.js"><\/script>\s*<script src="ui\/stay-focus-controls\.js"><\/script>\s*<script src="ui\/trusted-cookie-ui\.js"><\/script>\s*<script src="ui\/tool-shell\.js"><\/script>/,
     'the native Cookie/Stay Focus controls load in a verified order before the Side Panel shell');
   // Resource auditors may add newly trusted CSS (for example Cloud Console)
   // without weakening the original token, shell and workspace audit closure.

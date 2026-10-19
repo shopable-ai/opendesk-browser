@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {composeExtensionEntries,filterExtensionEntries} from '../../src/ui/extension-center-model.js';
@@ -86,7 +87,7 @@ import {readFile} from 'node:fs/promises';
 
 test('R4 source retains one trusted installer, one combined list and high-zoom responsive actions',async()=>{
   const [html,css,center,shell]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),
+    renderSidebarFixture(),
     readFile('src/ui/extension-center.css','utf8'),
     readFile('src/ui/extension-center.js','utf8'),
     readFile('src/ui/tool-shell.js','utf8')

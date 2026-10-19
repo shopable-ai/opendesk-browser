@@ -1,305 +1,391 @@
-import test from 'node:test';
+import {test,describe,before,after} from 'node:test';
 import assert from 'node:assert/strict';
-import {createInstalledPageTools} from '../../src/ui/installed-page-tools.js';
+import {createServer} from 'node:http';
+import {build} from 'esbuild';
+import {readFile} from 'node:fs/promises';
+import {setInstalledPageProgramEnabled} from '../../src/ui/installed-page-tools.js';
 
-// DOM_COMPONENT_DOUBLE only: runs the real UI module with DOM/RPC/permission doubles.
-// No Chrome, layout, native input, permission prompt or installation evidence.
-// isTrusted below is a fixture value that exercises the guard, not a native event.
-class ElementDouble {
-  constructor(tagName,ownerDocument){
-    this.tagName=tagName;this.ownerDocument=ownerDocument;
-    this.children=[];this.parentNode=null;this.dataset={};this.attributes=new Map();
-    this.listeners=new Map();this.textContent='';this.open=false;this.disabled=false;
-    this.tabIndex=0;
-  }
-  append(...nodes){
-    for(const node of nodes){
-      if(node.parentNode)node.parentNode.children.splice(node.parentNode.children.indexOf(node),1);
-      node.parentNode=this;this.children.push(node);
-    }
-  }
-  contains(node){return !!node&&(node===this||this.children.some(child=>child.contains(node)));}
-  replaceChildren(...nodes){
-    // Removing the focused subtree drops focus, so restoration cannot pass
-    // merely because this double kept an obsolete activeElement reference.
-    if(this.children.some(child=>child.contains(this.ownerDocument.activeElement)))
-      this.ownerDocument.activeElement=this.ownerDocument.body;
-    for(const child of this.children)child.parentNode=null;
-    this.children=[];this.append(...nodes);
-  }
-  setAttribute(name,value){this.attributes.set(name,String(value));}
-  getAttribute(name){return this.attributes.get(name)??null;}
-  addEventListener(name,listener){
-    const listeners=this.listeners.get(name)||new Set();listeners.add(listener);this.listeners.set(name,listeners);
-  }
-  focus(){this.ownerDocument.activeElement=this;}
-  clickDouble(isTrusted=true){for(const listener of this.listeners.get('click')||[])listener({isTrusted});}
-  set innerHTML(value){throw new Error('UI must render catalog text using textContent');}
-}
-
-const row=(programId='page-a',overrides={})=>({
-  programId,title:'Candidate title must not win',manifestHash:'a'.repeat(64),
-  installed:{title:'已安装的原始名称',revision:3,manifestHash:'a'.repeat(64),
-    sourceHash:'b'.repeat(64),pageRules:{matches:['https://example.com/*']},
-    enabled:true,nativeState:'registered',authorization:{status:'granted',generation:7},...overrides}
+const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
+const installed=(programId='page-a',overrides={})=>({
+  programId,title:'已安装的原始名称',revision:3,manifestHash:'a'.repeat(64),
+  sourceHash:'b'.repeat(64),pageRules:{matches:['https://example.com/*']},
+  enabled:true,nativeState:'registered',
+  authorization:{status:'active',generation:7,installationId:'installation-'+programId},...overrides
 });
-const deferred=()=>{
-  let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
-  return {promise,resolve,reject};
-};
-async function settle(predicate){
-  for(let attempt=0;attempt<50&&!predicate();attempt++)await new Promise(resolve=>setImmediate(resolve));
-  assert.ok(predicate(),'component operation did not settle');
-}
-function fixture(t,catalog=[row()]){
-  const doc={activeElement:null,createElement(tag){return new ElementDouble(tag,this);}};
-  doc.body=doc.createElement('body');doc.activeElement=doc.body;
-  const list=doc.createElement('div'),status=doc.createElement('p'),external=doc.createElement('button');
-  doc.body.append(list,status,external);
-  doc.getElementById=id=>({'installed-page-tools-list':list,'installed-page-tools-status':status}[id]||null);
-  const requests=[],permissionChecks=[],permissionRequests=[],listResponses=[];
-  let allowed=true,writeHandler=async()=>({});
-  const client={async request(name,args){
-    requests.push({name,args:structuredClone(args)});
-    if(name==='listPagePrograms'){
-      const response=listResponses.length?await listResponses.shift():{catalog:structuredClone(catalog)};
-      return {...response,installed:response.installed??(response.catalog||[])
-        .filter(row=>row.installed&&row.installed.manifestHash===row.manifestHash)
-        .map(row=>({...row.installed,programId:row.programId}))};
-    }
-    assert.equal(name,'setInstalledPageEnabled','only existing list/toggle authorities are allowed');
-    const result=await writeHandler(args);
-    if(!result.error){
-      const current=catalog.find(item=>item.programId===args.programId);
-      current.installed.enabled=args.enabled;
-    }
-    return result;
-  }};
-  const api={permissions:{
-    async contains(request){permissionChecks.push(structuredClone(request));return allowed;},
-    async request(request){permissionRequests.push(structuredClone(request));throw new Error('unexpected permission prompt');}
-  }};
-  const ui=createInstalledPageTools({client,api,doc});t.after(()=>ui.dispose());
-  const card=id=>list.children.find(node=>node.children.some(child=>child.dataset.pageToolId===id));
-  const action=(id,kind)=>{
-    const current=card(id);
-    if(kind==='technical')return current.children.find(node=>node.tagName==='details').children[0];
-    return current.children.find(node=>node.dataset.pageToolAction===kind);
+
+// Actual unified controller and React page in isolated Chromium; only services
+// are doubled. Native click provenance and browser focus are never fabricated.
+async function fixture(){
+  const state={rowsModel:{rows:[]},view:'list'};
+  const root=createRoot(document.getElementById('root'));
+  const paint=()=>flushSync(()=>root.render(React.createElement(ExtensionCenterPage,state)));
+  paint();
+  document.getElementById('extension-center-list').dataset.opendeskReactOwner='extension-list';
+  const extensionList={owner:'extension-list',
+    renderRows(model){state.rowsModel=model;paint();},
+    renderToolbar(model){state.toolbarModel=model;paint();},
+    renderDetail(model){state.detailModel=model;paint();},
+    renderRecoveries(model){state.recoveryModel=model;paint();},
+    renderFeedback(model){state.feedbackModel=model;paint();},
+    renderStatus(model){state.statusModel=model;paint();},
+    renderView(view){state.view=view;paint();},
+    connectBack(fn){state.onBack=fn;paint();},
+    setMenuKey(key){state.menuKey=key;paint();},
+    renderRowMenu(items,options){state.rowMenuModel=options?{...options,items}:null;paint();}
   };
-  return {ui,doc,list,status,external,requests,permissionChecks,permissionRequests,card,action,
-    technical:id=>card(id).children.find(node=>node.tagName==='details'),
-    setCatalog:rows=>{catalog=rows;},setAllowed:value=>{allowed=value;},
-    setWriteHandler:fn=>{writeHandler=fn;},enqueueList:promise=>{listResponses.push(promise);},
-    writes:()=>requests.filter(request=>request.name==='setInstalledPageEnabled')};
+  const reads=new Map(),readQueue=[],changes=new Set(),connections=new Set();
+  const f={state,rows:window.initialRows,calls:[],permissionChecks:[],permissionRequests:[],
+    clicks:[],allowed:true,writeMode:'normal',holdWrite:false,ready:false,changes,connections};
+  document.addEventListener('click',event=>f.clicks.push({trusted:event.isTrusted,
+    action:event.target.closest('button')?.dataset.ecDetailAction}),true);
+  const api={runtime:{getURL:path=>location.origin+'/'+path},
+    tabs:{create:async()=>{throw Error('unexpected navigation');}},
+    permissions:{contains:async request=>{f.permissionChecks.push(structuredClone(request));return f.allowed;},
+      request:async request=>{f.permissionRequests.push(request);throw Error('unexpected permission prompt');}},
+    storage:{local:{get:async()=>({})},onChanged:{
+      addListener:fn=>changes.add(fn),removeListener:fn=>changes.delete(fn)}}};
+  const client={subscribeConnection(fn){connections.add(fn);return ()=>connections.delete(fn);},
+    async request(name,args){
+      f.calls.push({name,args:structuredClone(args)});
+      if(name==='listPagePrograms')return readQueue.length?readQueue.shift():{installed:structuredClone(f.rows)};
+      if(name!=='setInstalledPageEnabled')throw Error('unexpected authority: '+name);
+      if(f.holdWrite)await new Promise(resolve=>{f.releaseWrite=resolve;});
+      if(f.writeMode==='error')return {error:{code:'E_GENERATION',message:'授权代数已变化'}};
+      if(f.writeMode!=='ack'){
+        const current=f.rows.find(row=>row.programId===args.programId);
+        current.enabled=args.enabled;
+        if(f.writeMode!=='native-pending'){
+          current.nativeState=args.enabled?'registered':'disabled';
+          current.authorization.status=args.enabled?'active':'disabled';
+          current.authorization.generation++;
+        }
+      }
+      return {enabled:args.enabled};
+    }};
+  const controller=createExtensionCenter({api,client,doc:document,extensionList,
+    sidebarTools:{},taskWorkbench:{navigate(){throw Error('unexpected navigation');}}});
+  Object.assign(f,{controller,
+    beginRead(id){
+      let resolve,reject;
+      const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
+      const read={resolve,reject,settled:false};reads.set(id,read);readQueue.push(promise);
+      void controller.refresh().then(()=>{read.settled=true;});
+    },
+    finishRead(id,rows,error){
+      const read=reads.get(id);
+      if(error)read.reject(Object.assign(Error(error),{code:'E_PAGE_INSTALLATION'}));
+      else read.resolve({installed:rows});
+    },
+    readSettled:id=>reads.get(id).settled,
+    dispose(){controller.dispose();}
+  });
+  window.fixture=f;
+  await controller.refresh();f.ready=true;
 }
 
-test('R25.1 DOM double renders installed title and filters out nonmatching authority records',async t=>{
-  const fallback=row('page-b',{title:''});
-  const f=fixture(t,[row(),fallback,{...row('draft'),installed:null},
-    {...row('mismatch'),manifestHash:'c'.repeat(64)}]);
-  await f.ui.refresh();
-  assert.equal(f.list.children.length,2);
-  assert.equal(f.card('page-a').children[0].textContent,'已安装的原始名称 · r3');
-  assert.equal(f.card('page-b').children[0].textContent,'page-b · r3');
-  assert.equal(f.action('page-a','toggle').getAttribute('aria-label'),'停用自动运行：已安装的原始名称');
-  assert.equal(f.action('page-b','toggle').getAttribute('aria-label'),'停用自动运行：page-b');
-  assert.equal(f.technical('page-a').children[1].textContent,'源码 SHA-256：'+'b'.repeat(64));
-  assert.deepEqual(f.requests.map(request=>request.name),['listPagePrograms']);
-});
+const row=(page,id='page-a')=>page.locator(`[data-extension-id="page:${id}"]`);
+const action=(page,id='page-a',kind='main')=>page.locator(
+  `[data-extension-key="page:${id}"][data-extension-action="${kind}"]`);
+const toggle=page=>page.locator('[data-ec-detail-action="toggle"]');
+const status=page=>page.locator('#extension-center-status');
+const writes=page=>page.evaluate(()=>fixture.calls.filter(call=>call.name==='setInstalledPageEnabled'));
+async function detail(page,id='page-a'){await action(page,id).click();}
+async function idle(page){await page.waitForFunction(()=>!fixture.state.rowsModel.busy);}
+async function finishRead(page,id,rows,error){
+  await page.evaluate(({id,rows,error})=>fixture.finishRead(id,rows,error),{id,rows,error});
+  await page.waitForFunction(id=>fixture.readSettled(id),id);
+}
 
-test('R5.5 installed Page remains manageable without a Candidate catalog entry',async t=>{
-  const f=fixture(t,[]);
-  const installed={...row('orphan').installed,programId:'orphan'};
-  f.enqueueList(Promise.resolve({catalog:[],installed:[installed]}));
-  await f.ui.refresh();
-  assert.equal(f.list.children.length,1);
-  assert.equal(f.list.children[0].children[0].textContent,'已安装的原始名称 · r3');
-  assert.equal(f.action('orphan','toggle').getAttribute('aria-label'),
-    '停用自动运行：已安装的原始名称');
-});
-
-test('R25.1 DOM double keeps long installed title and site rules as complete literal text',async t=>{
-  const title='<img onerror=alert(1)>很长名称'+ '无空格'.repeat(100);
-  const matches=['https://example.com/'+'a'.repeat(200)+'/*','https://second.example/*'];
-  const f=fixture(t,[row('page-long',{title,pageRules:{matches}})]);await f.ui.refresh();
-  assert.equal(f.card('page-long').children[0].textContent,title+' · r3');
-  assert.equal(f.card('page-long').children[0].children.length,0);
-  assert.ok(f.card('page-long').children[1].textContent.includes(matches.join('、')));
-  assert.equal(f.action('page-long','toggle').getAttribute('aria-label'),'停用自动运行：'+title);
-});
-
-test('R25.1 DOM double distinguishes disabled, suspended, registered and pending installation states',async t=>{
-  const f=fixture(t,[row('disabled',{enabled:false}),
-    row('suspended',{authorization:{status:'suspended',generation:7}}),row('registered'),
-    row('pending',{nativeState:'pending'})]);await f.ui.refresh();
-  for(const [id,label] of [['disabled','已停用'],['suspended','访问受限'],
-    ['registered','已安装 · 自动运行'],['pending','注册待核对']])
-    assert.ok(f.card(id).children[1].textContent.endsWith('\n'+label),id);
-  assert.equal(f.action('disabled','toggle').textContent,'启用自动运行');
-  assert.equal(f.action('suspended','toggle').textContent,'恢复自动运行');
-});
-
-test('R25.1 DOM double restores toggle focus and per-program details state after reordered refresh',async t=>{
-  const f=fixture(t,[row('page-a'),row('page-b')]);await f.ui.refresh();
-  const previous=f.action('page-a','toggle');previous.focus();f.technical('page-a').open=true;
-  f.setCatalog([row('page-b'),row('page-a')]);await f.ui.refresh();
-  assert.notEqual(f.action('page-a','toggle'),previous);
-  assert.equal(f.doc.activeElement,f.action('page-a','toggle'));
-  assert.equal(f.technical('page-a').open,true);
-  assert.equal(f.technical('page-b').open,false);
-  f.technical('page-a').open=false;await f.ui.refresh();
-  assert.equal(f.technical('page-a').open,false,'closed details must not reopen from an old snapshot');
-});
-
-test('R25.1 DOM double restores technical summary focus and its expanded details',async t=>{
-  const f=fixture(t);await f.ui.refresh();
-  const previous=f.action('page-a','technical');f.technical('page-a').open=true;previous.focus();
-  await f.ui.refresh();
-  assert.notEqual(f.doc.activeElement,previous);
-  assert.equal(f.doc.activeElement,f.action('page-a','technical'));
-  assert.equal(f.technical('page-a').open,true);
-});
-
-test('R25.1 DOM double refresh leaves focus outside the Page list untouched',async t=>{
-  const f=fixture(t);await f.ui.refresh();f.external.focus();await f.ui.refresh();
-  assert.equal(f.doc.activeElement,f.external);
-});
-
-test('R25.1 DOM double moves focus to status when the focused program disappears',async t=>{
-  const f=fixture(t);await f.ui.refresh();f.action('page-a','toggle').focus();
-  f.setCatalog([]);await f.ui.refresh();
-  assert.equal(f.list.children.length,0);assert.equal(f.doc.activeElement,f.status);
-  assert.equal(f.status.tabIndex,-1);assert.equal(f.status.dataset.state,'info');
-  assert.equal(f.status.textContent,'暂无已安装网页工具。可从「开发」中安装网页脚本。');
-  assert.equal(f.writes().length,0);
-});
-
-test('R25.1 DOM double trusted disable dispatches once and retains success feedback, focus and expansion',async t=>{
-  const f=fixture(t);await f.ui.refresh();
-  const toggle=f.action('page-a','toggle'),pending=deferred();
-  toggle.focus();f.technical('page-a').open=true;f.setWriteHandler(()=>pending.promise);
-  toggle.clickDouble(false);assert.equal(f.writes().length,0);
-  toggle.clickDouble();toggle.clickDouble();
-  assert.equal(toggle.disabled,true);assert.equal(f.writes().length,1);
-  pending.resolve({});
-  await settle(()=>f.action('page-a','toggle')!==toggle);
-  assert.deepEqual(f.writes()[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),
-    enabled:false,expectedGeneration:7});
-  assert.equal(f.action('page-a','toggle').textContent,'启用自动运行');
-  assert.equal(f.action('page-a','toggle').disabled,false);
-  assert.equal(f.doc.activeElement,f.action('page-a','toggle'));
-  assert.equal(f.technical('page-a').open,true);
-  assert.equal(f.status.dataset.state,'success');
-  assert.equal(f.status.textContent,'已确认停用固定网页脚本；不会重新运行当前网页。');
-  await f.ui.refresh();assert.equal(f.status.dataset.state,'success');
-  assert.equal(f.status.textContent,'已确认停用固定网页脚本；不会重新运行当前网页。');
-  assert.deepEqual(f.permissionChecks,[]);assert.deepEqual(f.permissionRequests,[]);
-  assert.deepEqual(f.requests.map(request=>request.name),
-    ['listPagePrograms','setInstalledPageEnabled','listPagePrograms','listPagePrograms']);
-});
-
-test('R25.1 DOM double enable checks granted origins and never requests a new permission prompt',async t=>{
-  const f=fixture(t,[row('page-a',{enabled:false})]);await f.ui.refresh();
-  const toggle=f.action('page-a','toggle');toggle.focus();toggle.clickDouble();
-  await settle(()=>f.action('page-a','toggle')!==toggle);
-  assert.deepEqual(f.permissionChecks,[{origins:['https://example.com/*']}]);
-  assert.deepEqual(f.permissionRequests,[]);assert.equal(f.writes()[0].args.enabled,true);
-  assert.equal(f.status.dataset.state,'success');
-  assert.equal(f.status.textContent,'已确认启用固定网页脚本；不会重新运行当前网页。');
-  assert.equal(f.doc.activeElement,f.action('page-a','toggle'));
-});
-
-
-test('R5.6 suspended Page explicitly restores the same approved scope instead of disabling it',async t=>{
-  const suspended=row('revoked',{authorization:{status:'suspended',generation:7}});
-  const f=fixture(t,[suspended]);await f.ui.refresh();
-  const toggle=f.action('revoked','toggle');
-  assert.equal(toggle.textContent,'恢复自动运行');
-  toggle.clickDouble(false);assert.equal(f.writes().length,0);
-  f.setWriteHandler(async()=>{
-    suspended.installed.authorization.status='active';
-    return {enabled:true,nativeState:'registered'};
+describe('R25.1 installed Page behavior through unified ExtensionCenter / real React',{
+  skip:modulePath?false:'NOT_TESTED: OPENDESK_PLAYWRIGHT_MODULE required'
+},()=>{
+  let browser,server;
+  before(async()=>{
+    const {chromium}=await import(modulePath);
+    const bundled=await build({stdin:{contents:`import React from 'react';
+      import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';
+      import {ExtensionCenterPage} from './src/ui/react/tabs/tools.tsx';
+      import {createExtensionCenter} from './src/ui/extension-center.js';
+      (${fixture.toString()})().catch(error=>{window.fixtureError=String(error.stack);});`,
+      resolveDir:new URL('../../',import.meta.url).pathname,loader:'tsx'},
+      bundle:true,write:false,format:'esm',platform:'browser',target:'es2022',logLevel:'silent'});
+    const css=(await Promise.all(['design-tokens.css','design-system.css','extension-center.css']
+      .map(name=>readFile(new URL('../../src/ui/'+name,import.meta.url),'utf8')))).join('\n');
+    server=createServer((req,res)=>{
+      const script=req.url==='/app.js',style=req.url==='/style.css',catalog=req.url.includes('catalog.json');
+      res.setHeader('Content-Type',script?'text/javascript':style?'text/css':catalog?'application/json':'text/html');
+      res.end(script?bundled.outputFiles[0].text:style?css:catalog?JSON.stringify({
+        schema:'opendesk.official-tools.releases.v1',sourceRepository:'https://github.com/shopable-ai/opendesk-browser',apps:[]}):
+        '<!doctype html><html><head><link rel="stylesheet" href="/style.css"></head><body><div id="workspace-content"><div id="root"></div></div><script type="module" src="/app.js"></script></body></html>');
+    });
+    await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+    browser=await chromium.launch({headless:true,args:['--no-sandbox'],
+      ...(process.env.OPENDESK_CHROMIUM_EXECUTABLE?{executablePath:process.env.OPENDESK_CHROMIUM_EXECUTABLE}:{})});
   });
-  toggle.clickDouble();
-  await settle(()=>f.action('revoked','toggle')!==toggle);
-  assert.deepEqual(f.permissionChecks,[{origins:['https://example.com/*']}]);
-  assert.deepEqual(f.permissionRequests,[],'no implicit Chrome permission prompt');
-  assert.deepEqual(f.writes()[0].args,{
-    programId:'revoked',manifestHash:'a'.repeat(64),enabled:true,expectedGeneration:7
+  after(async()=>{
+    await browser?.close();
+    if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   });
-  assert.equal(f.action('revoked','toggle').textContent,'停用自动运行');
-  assert.equal(f.status.dataset.state,'success');
+  async function open(t,rows=[installed()]){
+    const page=await browser.newPage();page.setDefaultTimeout(5000);
+    const errors=[];page.on('pageerror',error=>errors.push(String(error)));
+    t.after(async()=>{await page.close();assert.deepEqual(errors,[]);});
+    await page.addInitScript(rows=>{window.initialRows=rows;},rows);
+    await page.goto(`http://127.0.0.1:${server.address().port}/`);
+    await page.waitForFunction(()=>window.fixture?.ready||window.fixtureError);
+    assert.equal(await page.evaluate(()=>window.fixtureError),undefined);
+    return page;
+  }
+
+  test('01 installed identity/title wins; malformed and mismatched records never become manageable',async t=>{
+    const page=await open(t,[installed(),installed('fallback',{title:''}),
+      {programId:'wrong',manifestHash:'c'.repeat(64),title:'Candidate title must not win',installed:installed('wrong')},
+      {programId:'missing-hash'},{manifestHash:'d'.repeat(64)}]);
+    assert.equal(await row(page).locator('.ec-name-text').innerText(),'已安装的原始名称');
+    assert.equal(await row(page,'fallback').locator('.ec-name-text').innerText(),'fallback');
+    assert.equal(await page.locator('#extension-center-list > li').count(),2);
+    await detail(page);
+    assert.match(await page.locator('#extension-center-detail-body').innerText(),/修订：r3/);
+    assert.match(await page.locator('#extension-center-detail-body').innerText(),new RegExp('b'.repeat(64)));
+    assert.deepEqual(await page.evaluate(()=>[...new Set(fixture.calls.map(call=>call.name))]),['listPagePrograms']);
+  });
+
+  test('02 installed Page without a Candidate remains manageable via its native row menu',async t=>{
+    const page=await open(t);
+    await action(page,'page-a','more').click();
+    await page.getByRole('menuitem',{name:'停用自动运行',exact:true}).click();await idle(page);
+    assert.equal((await writes(page)).length,1);
+    assert.equal((await writes(page))[0].args.enabled,false);
+    assert.match(await row(page).innerText(),/已停用/);
+    assert.match(await status(page).innerText(),/Page Authority 确认/);
+    assert.equal(await action(page,'page-a','more').evaluate(node=>node===document.activeElement),true);
+  });
+
+  test('03 long markup-like titles and full site rules remain literal React text',async t=>{
+    const title='<img src=x onerror="window.injected=true">'+ '很长的已安装名称'.repeat(40);
+    const matches=['https://example.com/'+ 'long-path/'.repeat(60)+'*','https://second.example/*'];
+    const page=await open(t,[installed('page-a',{title,pageRules:{matches}})]);
+    assert.equal(await row(page).locator('.ec-name-text').textContent(),title);
+    await detail(page);
+    assert.deepEqual(await page.locator('.ec-sites li').allTextContents(),matches);
+    assert.equal(await page.locator('#extension-center-detail img').count(),0);
+    assert.equal(await page.evaluate(()=>window.injected),undefined);
+  });
+
+  test('04 disabled/suspended/registered/pending states retain their distinct current UI semantics',async t=>{
+    const page=await open(t,[installed('disabled',{enabled:false}),
+      installed('suspended',{authorization:{status:'suspended',generation:7}}),
+      installed('registered'),installed('pending',{nativeState:'pending'})]);
+    assert.match(await row(page,'disabled').innerText(),/已停用/);
+    assert.match(await row(page,'suspended').innerText(),/网站访问受限/);
+    assert.doesNotMatch(await row(page,'registered').innerText(),/已停用|访问受限|待核对/);
+    assert.match(await row(page,'pending').innerText(),/注册待核对/);
+    for(const [id,label] of [['disabled','启用自动运行'],['suspended','恢复自动运行'],['registered','停用自动运行']]){
+      await detail(page,id);assert.equal(await toggle(page).innerText(),label);
+      await page.locator('#extension-center-back').click();
+    }
+    assert.deepEqual(await writes(page),[]);
+  });
+
+  test('05 reordered refresh preserves the selected detail and returns focus to that installed row',async t=>{
+    const page=await open(t,[installed(),installed('page-b',{title:'Z'})]);
+    await detail(page);
+    await page.evaluate(async()=>{fixture.rows.reverse();fixture.rows[0].title='A';await fixture.controller.refresh();});
+    assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
+    assert.equal(await page.evaluate(()=>fixture.state.detailModel.key),'page:page-a');
+    await page.locator('#extension-center-back').click();
+    assert.equal(await action(page).evaluate(node=>node===document.activeElement),true);
+  });
+
+  test('06 current technical detail stays visible and its action keeps real browser focus on refresh',async t=>{
+    const page=await open(t);await detail(page);await toggle(page).focus();
+    await page.evaluate(()=>fixture.controller.refresh());
+    assert.match(await page.locator('#extension-center-detail-body').innerText(),/固定源码 SHA-256：b{64}/);
+    assert.equal(await toggle(page).evaluate(node=>node===document.activeElement),true);
+    assert.equal(await page.locator('#installed-page-tools-list').count(),0);
+  });
+
+  test('07 list refresh leaves focus in the external search control untouched',async t=>{
+    const page=await open(t);const search=page.locator('#extension-center-search');await search.focus();
+    await page.evaluate(()=>fixture.controller.refresh());
+    assert.equal(await search.evaluate(node=>node===document.activeElement),true);
+  });
+
+  test('08 a removed selected Page exits detail and focuses the current search fallback',async t=>{
+    const page=await open(t);await detail(page);
+    await page.evaluate(async()=>{fixture.rows=[];await fixture.controller.refresh();});
+    assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
+    assert.equal(await page.locator('#extension-center-search').evaluate(node=>node===document.activeElement),true);
+    assert.equal(await page.locator('#extension-center-list > li').count(),0);
+    assert.equal((await writes(page)).length,0);
+  });
+
+  test('09 only a trusted disable dispatches once; busy/readback/feedback/focus remain authoritative',async t=>{
+    const page=await open(t);await detail(page);
+    await toggle(page).evaluate(node=>node.click());assert.equal((await writes(page)).length,0);
+    await page.evaluate(()=>{fixture.holdWrite=true;});await toggle(page).click();
+    await page.waitForFunction(()=>fixture.calls.some(call=>call.name==='setInstalledPageEnabled'));
+    assert.equal(await toggle(page).isDisabled(),true);
+    await toggle(page).evaluate(node=>node.dispatchEvent(new MouseEvent('click',{bubbles:true})));
+    assert.equal((await writes(page)).length,1);
+    await page.evaluate(()=>fixture.releaseWrite());await idle(page);
+    assert.deepEqual((await writes(page))[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),enabled:false,expectedGeneration:7});
+    assert.equal(await status(page).getAttribute('data-state'),'success');
+    assert.match(await status(page).innerText(),/Page Authority 确认/);
+    assert.equal(await toggle(page).evaluate(node=>node===document.activeElement),true);
+    await page.evaluate(()=>fixture.controller.refresh());
+    assert.equal(await status(page).getAttribute('data-state'),'success');
+    assert.equal(await page.evaluate(()=>fixture.clicks.some(click=>click.action==='toggle'&&click.trusted)),true);
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionChecks),[]);
+    assert.deepEqual(await page.evaluate(()=>[...new Set(fixture.calls.map(call=>call.name))]),['listPagePrograms','setInstalledPageEnabled']);
+  });
+
+  test('10 explicit enable checks exactly the previously approved origins with no permission request',async t=>{
+    const matches=['https://example.com/*','https://second.example/*'];
+    const page=await open(t,[installed('page-a',{enabled:false,pageRules:{matches}})]);await detail(page);
+    await toggle(page).click();await idle(page);
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionChecks),[{origins:matches}]);
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionRequests),[]);
+    assert.equal((await writes(page))[0].args.enabled,true);
+    assert.equal(await status(page).getAttribute('data-state'),'success');
+  });
+
+  test('11 suspended installation explicitly restores enabled:true in the same approved scope',async t=>{
+    const page=await open(t,[installed('page-a',{authorization:{status:'suspended',generation:9,installationId:'original'}})]);
+    await detail(page);assert.equal(await toggle(page).innerText(),'恢复自动运行');
+    await toggle(page).click();await idle(page);
+    assert.deepEqual((await writes(page))[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),enabled:true,expectedGeneration:9});
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionChecks),[{origins:['https://example.com/*']}]);
+    assert.deepEqual(await page.evaluate(()=>fixture.rows[0].pageRules.matches),['https://example.com/*']);
+    assert.equal(await page.evaluate(()=>fixture.rows[0].authorization.installationId),'original');
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionRequests),[]);
+    assert.equal(await status(page).getAttribute('data-state'),'success');
+  });
+
+  test('12 suspended Page with revoked Chrome access never writes or requests broader access',async t=>{
+    const page=await open(t,[installed('page-a',{authorization:{status:'suspended',generation:7}})]);
+    await page.evaluate(()=>{fixture.allowed=false;});await detail(page);await toggle(page).click();await idle(page);
+    assert.deepEqual(await writes(page),[]);assert.match(await status(page).innerText(),/E_PERMISSION/);
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionRequests),[]);
+    assert.equal(await toggle(page).innerText(),'恢复自动运行');
+  });
+
+  test('13 denied enable has zero writes and retains its semantic error through refresh',async t=>{
+    const page=await open(t,[installed('page-a',{enabled:false})]);await detail(page);
+    await page.evaluate(()=>{fixture.allowed=false;});await toggle(page).click();await idle(page);
+    await page.evaluate(()=>fixture.controller.refresh());
+    assert.deepEqual(await writes(page),[]);assert.match(await status(page).innerText(),/E_PERMISSION.*访问受限/);
+    assert.equal(await status(page).getAttribute('data-state'),'error');
+    assert.deepEqual(await page.evaluate(()=>fixture.permissionRequests),[]);
+  });
+
+  test('14 failed generation write preserves Authority/error and never automatically retries',async t=>{
+    const page=await open(t);await detail(page);await page.evaluate(()=>{fixture.writeMode='error';});
+    await toggle(page).click();await idle(page);
+    await page.evaluate(async()=>{await fixture.controller.refresh();document.dispatchEvent(new Event('opendesk:page-installation-changed'));});
+    await idle(page);
+    assert.equal((await writes(page)).length,1);assert.match(await status(page).innerText(),/E_GENERATION/);
+    assert.equal(await page.evaluate(()=>fixture.rows[0].enabled),true);
+    assert.equal(await page.evaluate(()=>fixture.rows[0].authorization.generation),7);
+    assert.equal(await toggle(page).isEnabled(),true);
+  });
+
+  test('15 failed installed read withdraws unverified rows; a successful read recovers without writes',async t=>{
+    const page=await open(t);await page.evaluate(()=>fixture.beginRead('failure'));
+    await finishRead(page,'failure',null,'Page registry unavailable');
+    assert.equal(await page.locator('#extension-center-list > li').count(),0);
+    assert.match(await status(page).innerText(),/读取失败.*Page registry unavailable/);
+    assert.equal(await page.locator('#extension-center-count').innerText(),'部分安装状态待核对');
+    await page.evaluate(()=>fixture.controller.refresh());
+    assert.equal(await row(page).count(),1);assert.doesNotMatch(await status(page).innerText(),/Page registry unavailable/);
+    assert.deepEqual(await writes(page),[]);
+  });
+
+  test('16 pending refresh never steals focus moved outside the rows while awaiting Authority',async t=>{
+    const page=await open(t);await action(page,'page-a','more').focus();
+    await page.evaluate(()=>fixture.beginRead('pending'));await page.locator('#extension-center-search').focus();
+    await finishRead(page,'pending',[installed()]);
+    assert.equal(await page.locator('#extension-center-search').evaluate(node=>node===document.activeElement),true);
+  });
+
+  test('17 stale read failure cannot replace a newer successful list or its status',async t=>{
+    const page=await open(t);await page.evaluate(async()=>{fixture.beginRead('old');fixture.rows[0].title='最新安装';await fixture.controller.refresh();});
+    const message=await status(page).innerText();await finishRead(page,'old',null,'obsolete failure');
+    assert.equal(await row(page).locator('.ec-name-text').innerText(),'最新安装');
+    assert.equal(await status(page).innerText(),message);
+  });
+
+  test('18 older installed success cannot replace a newer identity or reopen obsolete detail',async t=>{
+    const page=await open(t);await detail(page);
+    await page.evaluate(async()=>{fixture.beginRead('old');fixture.rows[0].sourceHash='c'.repeat(64);fixture.rows[0].title='新修订';await fixture.controller.refresh();});
+    await finishRead(page,'old',[installed()]);
+    assert.equal(await row(page).locator('.ec-name-text').innerText(),'新修订');
+    assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
+    assert.match(await status(page).innerText(),/固定身份已变化/);
+    assert.deepEqual(await writes(page),[]);
+  });
+
+  test('19 disposal ignores in-flight read/write completion and removes all refresh subscriptions',async t=>{
+    const page=await open(t);await detail(page);await page.evaluate(()=>{fixture.holdWrite=true;});
+    await toggle(page).click();await page.waitForFunction(()=>typeof fixture.releaseWrite==='function');
+    await page.evaluate(()=>{fixture.beginRead('late');fixture.dispose();});
+    const text=await page.locator('body').innerText();
+    const calls=await page.evaluate(()=>fixture.calls.length);
+    await finishRead(page,'late',[installed('late',{title:'不得渲染'})]);
+    await page.evaluate(async()=>{
+      fixture.releaseWrite();await fixture.controller.refresh();
+      document.dispatchEvent(new Event('opendesk:page-installation-changed'));
+      for(const fn of fixture.changes)fn({'opendesk.page.changed':{}},'local');
+      for(const fn of fixture.connections)fn({connected:true});
+      document.querySelector('[data-ec-detail-action="toggle"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+    });
+    assert.equal(await page.locator('body').innerText(),text);
+    assert.equal(await page.evaluate(()=>fixture.calls.length),calls);
+    assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
+  });
+
+  test('ACK and incomplete native readback do not claim success or retry/execute the Page',async t=>{
+    const page=await open(t);await detail(page);await page.evaluate(()=>{fixture.writeMode='ack';});
+    await toggle(page).click();await idle(page);
+    assert.match(await status(page).innerText(),/尚未由 Page Authority 读回确认/);
+    assert.equal((await writes(page)).length,1);
+    await page.evaluate(()=>{fixture.writeMode='native-pending';});await toggle(page).click();await idle(page);
+    assert.match(await status(page).innerText(),/原生注销或受管清理仍待核对/);
+    assert.equal(await status(page).getAttribute('data-state'),'info');
+    await page.evaluate(()=>fixture.controller.refresh());assert.equal((await writes(page)).length,2);
+    assert.deepEqual(await page.evaluate(()=>[...new Set(fixture.calls.map(call=>call.name))]),['listPagePrograms','setInstalledPageEnabled']);
+  });
+
+  test('changed manifest/revision/source/installation closes detail; stale-generation native action is rejected',async t=>{
+    const page=await open(t);
+    for(const field of ['manifestHash','revision','sourceHash','installationId']){
+      await detail(page);
+      await page.evaluate(async field=>{
+        if(field==='installationId')fixture.rows[0].authorization.installationId+='-new';
+        else if(field==='revision')fixture.rows[0].revision++;
+        else fixture.rows[0][field]=(field==='manifestHash'?'c':'d').repeat(64);
+        await fixture.controller.refresh();
+      },field);
+      assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
+      assert.match(await status(page).innerText(),/固定身份已变化/);
+    }
+    await detail(page);
+    await page.evaluate(async()=>{
+      const stale=fixture.state.detailModel.actions.find(action=>action.id==='toggle').onClick;
+      fixture.rows[0].authorization.generation++;await fixture.controller.refresh();
+      document.addEventListener('click',event=>{event.stopImmediatePropagation();stale(event);},{capture:true,once:true});
+    });
+    await toggle(page).click();
+    assert.deepEqual(await writes(page),[]);
+  });
 });
 
-test('R5.6 suspended Page with revoked Chrome access never mutates the Authority',async t=>{
-  const f=fixture(t,[row('revoked',{authorization:{status:'suspended',generation:7}})]);
-  await f.ui.refresh();f.setAllowed(false);
-  f.action('revoked','toggle').clickDouble();
-  await settle(()=>f.status.dataset.state==='error');
-  assert.equal(f.writes().length,0);assert.deepEqual(f.permissionRequests,[]);
-  assert.match(f.status.textContent,/E_PERMISSION/);
-  assert.equal(f.action('revoked','toggle').textContent,'恢复自动运行');
-});
-
-test('R25.1 DOM double denied enable has zero writes and preserves semantic error through refresh',async t=>{
-  const f=fixture(t,[row('page-a',{enabled:false})]);await f.ui.refresh();f.setAllowed(false);
-  const toggle=f.action('page-a','toggle');toggle.focus();toggle.clickDouble();
-  await settle(()=>f.action('page-a','toggle')!==toggle);
-  assert.equal(f.writes().length,0);assert.deepEqual(f.permissionRequests,[]);
-  assert.equal(f.status.dataset.state,'error');assert.match(f.status.textContent,/E_PERMISSION/);
-  const feedback=f.status.textContent;await f.ui.refresh();
-  assert.equal(f.status.textContent,feedback);assert.equal(f.status.dataset.state,'error');
-  assert.equal(f.action('page-a','toggle').textContent,'启用自动运行');
-  assert.equal(f.action('page-a','toggle').disabled,false);
-});
-
-test('R25.1 DOM double failed toggle preserves authority and error without automatic retry',async t=>{
-  const f=fixture(t);await f.ui.refresh();
-  f.setWriteHandler(async()=>({error:{code:'E_GENERATION',message:'安装身份已变化'}}));
-  const toggle=f.action('page-a','toggle');toggle.clickDouble();
-  await settle(()=>f.action('page-a','toggle')!==toggle);
-  assert.equal(f.writes().length,1);assert.equal(f.status.dataset.state,'error');
-  assert.equal(f.status.textContent,'E_GENERATION：安装身份已变化');
-  assert.equal(f.action('page-a','toggle').textContent,'停用自动运行');
-  await f.ui.refresh();assert.equal(f.writes().length,1);
-  assert.equal(f.status.textContent,'E_GENERATION：安装身份已变化');
-});
-
-test('R25.1 DOM double failed catalog read keeps existing cards and renders semantic error',async t=>{
-  const f=fixture(t);await f.ui.refresh();const previous=f.card('page-a');
-  f.enqueueList(Promise.reject(Object.assign(new Error('offline'),{code:'E_OFFLINE'})));
-  await f.ui.refresh();assert.equal(f.card('page-a'),previous);
-  assert.equal(f.status.dataset.state,'error');
-  assert.equal(f.status.textContent,'E_OFFLINE：无法读取已安装网页脚本；不会影响原安装');
-  assert.equal(f.writes().length,0);
-  await f.ui.refresh();
-  assert.equal(f.status.textContent,'');assert.equal(f.status.dataset.state,'info');
-});
-test('R25.1 DOM double pending refresh does not steal focus moved outside the list',async t=>{
-  const f=fixture(t);await f.ui.refresh();f.action('page-a','toggle').focus();
-  const response=deferred();f.enqueueList(response.promise);const refreshing=f.ui.refresh();
-  f.external.focus();response.resolve({catalog:[row()]});await refreshing;
-  assert.equal(f.doc.activeElement,f.external);
-});
-test('R25.1 DOM double stale read failure cannot replace newer successful list status',async t=>{
-  const f=fixture(t);const response=deferred();f.enqueueList(response.promise);
-  const older=f.ui.refresh();await f.ui.refresh();
-  response.reject(Object.assign(new Error('old read'),{code:'E_OFFLINE'}));await older;
-  assert.ok(f.card('page-a'));assert.notEqual(f.status.dataset.state,'error');
-});
-
-test('R25.1 DOM double late older catalog success cannot replace a newer refresh',async t=>{
-  const f=fixture(t),pending=deferred();f.enqueueList(pending.promise);
-  const older=f.ui.refresh();f.setCatalog([row('new')]);await f.ui.refresh();
-  pending.resolve({catalog:[row('old')]});await older;
-  assert.deepEqual(f.list.children.map(card=>card.children[2].dataset.pageToolId),['new']);
-});
-
-test('R25.1 DOM double disposal prevents late render and further list/toggle effects',async t=>{
-  const f=fixture(t);await f.ui.refresh();const toggle=f.action('page-a','toggle');
-  const pending=deferred();f.enqueueList(pending.promise);const refreshing=f.ui.refresh();
-  f.ui.dispose();pending.resolve({catalog:[row('replacement')]});await refreshing;
-  assert.equal(f.action('page-a','toggle'),toggle);
-  const requestCount=f.requests.length;await f.ui.refresh();toggle.clickDouble();
-  assert.equal(f.requests.length,requestCount);assert.equal(f.writes().length,0);
+test('the shared Page action rejects a mismatched installed manifest before any permission or RPC',async()=>{
+  let effects=0;
+  await assert.rejects(setInstalledPageProgramEnabled({
+    row:{programId:'page-a',manifestHash:'c'.repeat(64),installed:installed()},
+    api:{permissions:{contains:async()=>{effects++;return true;}}},
+    client:{request:async()=>{effects++;}}
+  }),{code:'E_PAGE_CHANGED'});
+  assert.equal(effects,0);
 });

@@ -1,16 +1,10 @@
+import {settingsReactFixture} from '../helpers/trusted-settings-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';
 
-function element(tag){
-  return {tag,children:[],attributes:{},listeners:{},hidden:false,disabled:false,
-    append(...nodes){this.children.push(...nodes);},
-    setAttribute(name,value){this.attributes[name]=value;},
-    addEventListener(name,handler){this.listeners[name]=handler;}
-  };
-}
 function find(node,id){
   if(node.id===id)return node;
   for(const child of node.children||[]){
@@ -21,7 +15,7 @@ function find(node,id){
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const tool={id:'ai-vip-share',capabilities:['ai.access']};
 
-test('R5 official tool compiles member, redeem and store UI with canonical design',async()=>{
+test('R5 official tool compiles member, redeem and store UI with canonical design',async t=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
   assert.equal(pkg.version,'1.3.5');
@@ -39,23 +33,23 @@ test('R5 official tool compiles member, redeem and store UI with canonical desig
   assert.match(pkg.js,/shopSdk\.create\(\{url:catalog\}\)/);
 });
 
-test('R5 existing host shows isolated product and a single trusted proxy card',async()=>{
+test('R5 existing host shows isolated product and a single trusted proxy card',async t=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
-  assert.match(host,/frameRoot\.after\?\.\(aiProxyContainer\)/);
-  assert.match(host,/container:aiProxyContainer/);
+  assert.match(host,/ui:trustedSettingsUI\?\.aiAccess/);
+  assert.doesNotMatch(host,/aiProxyContainer/);
   assert.match(host,/legacyAiProxyTool=managed&&id===AI_ID&&active\?\.capabilities\?\.includes\(AI_CAPABILITY\)/);
-  assert.match(host,/aiProxyContainer\.hidden=!\(legacyAiProxyTool&&enabled&&\(frame\|\|nativeUI\)\)/);
+  assert.match(host,/aiPermissions\?\.render\(active,readOnlyPreview,enabled,Boolean\(legacyAiProxyTool&&enabled&&\(frame\|\|nativeUI\)\)\)/);
   assert(!host.includes('frameRoot.hidden=id===AI_ID'));
   assert.match(host,/const show=managed&&tocSettingsOpen/);
   const css=await readFile('src/ui/tool-shell.css','utf8');
   assert.match(css,/\.sidebar-tool-ai-proxy-native/);
 });
 
-test('R5 trusted card uses one genuinely clicked button and no activation field',async()=>{
-  const container=element('div'),doc={createElement:element};
+test('R5 trusted card uses one genuinely clicked button and no activation field',async t=>{
+  const f=settingsReactFixture('aiAccess',t),container=f.root;
   let state={state:'disabled',canStop:false,reason:null};
   const effects=[],notices=[];
-  const ui=createAiAccessPermissionControls({api:{},doc,container,
+  const ui=createAiAccessPermissionControls({api:{},ui:f.ui,
     notice:(...args)=>notices.push(args),
     runOperation:async(op,_payload,event)=>{
       effects.push({op,gesture:event?.isTrusted===true});
@@ -68,18 +62,18 @@ test('R5 trusted card uses one genuinely clicked button and no activation field'
   const nativeCard=find(container,'ai-access-trusted-controls');
   const action=find(container,'ai-access-toggle');
   const walk=node=>[node,...(node.children||[]).flatMap(walk)];
-  assert.equal(walk(nativeCard).filter(row=>row.tag==='button').length,1);
+  assert.equal(walk(nativeCard).filter(row=>row.tagName==='BUTTON').length,1);
   assert.equal(find(container,'ai-access-activation-code'),null);
   assert.equal(action.textContent,'启用代理');
   assert.equal(action.disabled,false);
-  action.listeners.click({isTrusted:false});
+  f.invoke(action.id,{isTrusted:false});
   await flush();
   assert.equal(effects.some(row=>row.op==='aiAccess.enable'),false);
-  action.listeners.click({isTrusted:true});
+  f.invoke(action.id,{isTrusted:true});
   await flush();await flush();
   assert(effects.some(row=>row.op==='aiAccess.enable'&&row.gesture));
   assert.equal(action.textContent,'停用代理');
-  action.listeners.click({isTrusted:true});
+  f.invoke(action.id,{isTrusted:true});
   await flush();await flush();
   assert(effects.some(row=>row.op==='aiAccess.disable'&&row.gesture));
   assert.equal(action.textContent,'启用代理');
@@ -88,12 +82,11 @@ test('R5 trusted card uses one genuinely clicked button and no activation field'
   assert.equal(notices.length,0);
 });
 
-test('R5 conflict never enables proxy, but stops outstanding own intent',async()=>{
-  const container=element('div');
+test('R5 conflict never enables proxy, but stops outstanding own intent',async t=>{
+  const f=settingsReactFixture('aiAccess',t),container=f.root;
   let state={state:'conflict',canStop:false,reason:'其他扩展管理'};
   const effects=[];
-  const ui=createAiAccessPermissionControls({api:{},doc:{createElement:element},
-    container,notice:()=>{},
+  const ui=createAiAccessPermissionControls({api:{},ui:f.ui,notice:()=>{},
     runOperation:async(op)=>{
       effects.push(op);
       if(op==='aiAccess.disable')state={state:'conflict',canStop:false,reason:'其他扩展管理'};
@@ -102,19 +95,19 @@ test('R5 conflict never enables proxy, but stops outstanding own intent',async()
   ui.render(tool,false,true);await flush();
   const action=find(container,'ai-access-toggle');
   assert.equal(action.disabled,true);
-  action.listeners.click({isTrusted:true});await flush();
+  f.invoke(action.id,{isTrusted:true});await flush();
   assert.deepEqual(effects,['aiAccess.status']);
   state={state:'conflict',canStop:true,reason:'其他扩展管理'};
   await ui.refresh();
   assert.equal(action.disabled,false);
   assert.equal(action.textContent,'停用代理');
-  action.listeners.click({isTrusted:true});await flush();await flush();
+  f.invoke(action.id,{isTrusted:true});await flush();await flush();
   assert(effects.includes('aiAccess.disable'));
   assert(!effects.includes('aiAccess.enable'));
   assert.equal(action.disabled,true);
 });
 
-test('R5 no Provider, SKU or shop can invent business success',async()=>{
+test('R5 no Provider, SKU or shop can invent business success',async t=>{
   const html=await readFile('examples/sidebar-tools/ai-vip-share/src/index.html','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
   assert.match(html,/暂无法查询账号与会员权益/);
@@ -127,12 +120,12 @@ test('R5 no Provider, SKU or shop can invent business success',async()=>{
   assert(!/aiAccess\.activate|aiAccess\.enable|chrome\.proxy/.test(script));
 });
 
-test('R5.1 STOP is clickable while ENABLE is pending and ignores its late ack',async()=>{
-  const container=element('div'),calls=[];
+test('R5.1 STOP is clickable while ENABLE is pending and ignores its late ack',async t=>{
+  const f=settingsReactFixture('aiAccess',t),container=f.root,calls=[];
   let finishEnable;
   const disabled={state:'disabled',canStop:false,reason:null};
   const ui=createAiAccessPermissionControls({
-    api:{},doc:{createElement:element},container,notice:()=>{},
+    api:{},ui:f.ui,notice:()=>{},
     runOperation:(operation,_payload,event)=>{
       calls.push({operation,trusted:event?.isTrusted===true});
       if(operation==='aiAccess.status')return Promise.resolve(disabled);
@@ -146,10 +139,10 @@ test('R5.1 STOP is clickable while ENABLE is pending and ignores its late ack',a
   ui.render(tool,false,true);
   await flush();
   const action=find(container,'ai-access-toggle');
-  action.listeners.click({isTrusted:true});await flush();
+  f.invoke(action.id,{isTrusted:true});await flush();
   assert.equal(action.textContent,'停用代理');
   assert.equal(action.disabled,false);
-  action.listeners.click({isTrusted:true});await flush();await flush();
+  f.invoke(action.id,{isTrusted:true});await flush();await flush();
   assert.equal(calls.filter(row=>row.operation==='aiAccess.disable').length,1);
   assert.equal(action.textContent,'启用代理');
   assert.equal(action.disabled,false);

@@ -24,7 +24,7 @@ manifest.name='F2 controller product graph targeted proof';manifest.key=key;mani
 await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest,null,2));
 await mkdir(path.join(extension,'ui'),{recursive:true});await mkdir(path.join(extension,'scripting/sandbox'),{recursive:true});
 await writeFile(path.join(extension,'ui/fixture-config.js'),`globalThis.__controllerFixtureBase=${JSON.stringify(base)};`);
-await writeFile(path.join(extension,'ui/tool.html'),'<!doctype html><meta charset="utf-8"><title>F2 controller proof</title><body><script src="fixture-config.js"></script><script src="tool-shell.js"></script></body>');
+await writeFile(path.join(extension,'sidepanel.html'),'<!doctype html><meta charset="utf-8"><title>F2 controller proof</title><body><script src="fixture-config.js"></script><script src="tool-shell.js"></script></body>');
 for(const file of ['ui/target-bootstrap.html','scripting/sandbox/sandbox.html'])await copyFile(path.join(root,'src',file),path.join(extension,file));
 const require=createRequire(import.meta.url),configuration=require('../../webpack.config.cjs')('development');
 configuration.context=root;configuration.entry['ui/tool-shell']='./tests/framework/k3-controller-native-page.js';
@@ -66,7 +66,7 @@ try {
       const {sessionId:hostSession}=await browserClient.send('Target.attachToTarget',{targetId,flatten:true});
       hostClient={send:(method,params)=>browserClient.send(method,params,hostSession),close(){}};
       await hostClient.send('Runtime.enable');await hostClient.send('Page.enable');
-      await hostClient.send('Page.navigate',{url:`chrome-extension://${extensionId}/ui/tool.html`});
+      await hostClient.send('Page.navigate',{url:`chrome-extension://${extensionId}/sidepanel.html`});
       const evaluate=async expression=>(await hostClient.send('Runtime.evaluate',{expression,returnByValue:true})).result.value;
       let probe,raw;for(let i=0;i<1000;i++){probe=await evaluate('globalThis.__controllerProbe');raw=await evaluate('globalThis.__k3ControllerReport');if(probe?.stage==='armbusy'||raw)break;await sleep(25);}
       const baselineWorkers=(await browserClient.send('Target.getTargets')).targetInfos.filter(t=>t.type==='worker');

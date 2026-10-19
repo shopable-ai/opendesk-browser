@@ -63,7 +63,7 @@ function fixture(){
   const session=new Map(),alarms=new Map(),rules=[],writes=[];
   let clock=at,url='https://existing.example.com/watch';
   const sender={id:'abcdefghijklmnopabcdefghijklmnop',
-    url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000',
+    url:'chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000',
     frameId:0,documentId:'doc-r41',documentLifecycle:'active'};
   const storage=map=>({
     async get(keys){

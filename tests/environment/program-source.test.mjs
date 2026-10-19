@@ -1,3 +1,5 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {programDraft} from '../fixtures/program-draft.mjs';
@@ -33,12 +35,10 @@ test('source snapshots and executable hashes are independently checked before im
 });
 
 test('project file selection only changes the read-only viewer; execution uses exact frozen build',async()=>{
-  const elements=new Map();
-  const get=id=>{if(!elements.has(id))elements.set(id,{value:'',textContent:'',replaceChildren(...children){this.children=children;}});return elements.get(id);};
+  const developerView=createDeveloperView(),get=developerTestFields(developerView);
   const callbacks=new Map();
-  const previous=globalThis.Option;globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
   try{
-    const view=createProgramSourceView({document:{getElementById:get},listen:(element,type,callback)=>callbacks.set(element,callback),onChange:()=>{}});
+    const view=createProgramSourceView({view:developerView,listen:(element,type,callback)=>callbacks.set(element,callback),onChange:()=>{}});
     const draft=await programDraft();await view.importProject(draft);
     assert.equal(get('script-source').readOnly,true);
     assert.equal(get('script-source').value,draft.sourceUtf8);
@@ -65,5 +65,5 @@ test('project file selection only changes the read-only viewer; execution uses e
     const pageDraft=await programDraft('page-userscript');await view.importProject(pageDraft);
     assert.match(get('program-source-info').textContent,/Page · DOM 试运行/);
     assert.equal(get('script-source').value,pageDraft.sourceUtf8);
-  }finally{globalThis.Option=previous;}
+  }finally{developerView.dispose();}
 });

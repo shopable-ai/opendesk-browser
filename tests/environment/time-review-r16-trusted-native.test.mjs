@@ -1,3 +1,5 @@
+import {settingsReactFixture} from '../helpers/trusted-settings-react-fixture.mjs';
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
@@ -23,7 +25,7 @@ function fixture(){
     enableRecords:{'time-review':true}};
   return args;
 }
-test('R1.6 native admission needs exact built-in version, release hash, provenance and epoch',async()=>{
+test('R1.6 native admission needs exact built-in version, release hash, provenance and epoch',async t=>{
   const good=fixture();
   assert.equal(await admitsTrustedTimeReview(good),true);
   for(const change of [
@@ -41,7 +43,7 @@ test('R1.6 native admission needs exact built-in version, release hash, provenan
     {epochs:{'time-review':'other'}},{expectedEpoch:null}
   ])assert.equal(await admitsTrustedTimeReview({...good,...change}),false,JSON.stringify(change));
 });
-test('R1.6 first install with null epoch is admitted only for the exact reviewed release',async()=>{
+test('R1.6 first install with null epoch is admitted only for the exact reviewed release',async t=>{
   const good=fixture();
   good.expectedEpoch=null;
   good.epochs={};
@@ -51,12 +53,12 @@ test('R1.6 first install with null epoch is admitted only for the exact reviewed
   assert.equal(await admitsTrustedTimeReview({...good,enableRecords:{'time-review':false}}),false);
   assert.equal(await admitsTrustedTimeReview({...good,expectedEpoch:'stale-epoch'}),false);
 });
-test('R1.6 source uses one static first-party UI; other tools retain the opaque sandbox',async()=>{
+test('R1.6 source uses one static first-party UI; other tools retain the opaque sandbox',async t=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   const entry=await readFile('src/entrypoints/sidebar-tool-host.js','utf8');
   const native=await readFile('examples/sidebar-tools/time-review/trusted/trusted-native-ui.js','utf8');
   const main=await readFile('examples/sidebar-tools/time-review/src/main.js','utf8');
-  const markup=await readFile('src/ui/tool.html','utf8');
+  const markup=await renderSidebarFixture();
   assert.match(host,/sidebar-tools\/sandbox\.html/);
   assert.match(host,/admitsTrustedTimeReview/);
   assert.match(host,/MARKET_PROVENANCE_STORE/);
@@ -66,27 +68,14 @@ test('R1.6 source uses one static first-party UI; other tools retain the opaque 
   assert.match(native,/src\/main\.js/);
   assert.doesNotMatch(native.replace(/^\s*\/\/.*$/gm,''),/tool\.(?:html|css|js)/);
   assert.match(main,/__opendeskMountTrustedTimeReview/);
-  assert.match(markup,/href="time-review\.css"/);
+  assert.match(markup,/href="ui\/time-review\.css"/);
 });
 
 
 // R1.7: exercise real trusted-control callbacks with a small DOM/API mock.
 // These checks do not claim macOS Chrome permission-dialog acceptance.
-function r17PermissionFixture(){
-  const nodes=new Map();
-  function node(id=''){
-    const item={id,hidden:false,disabled:false,dataset:{},children:[],handlers:new Map(),
-      addEventListener(type,fn){this.handlers.set(type,fn);},
-      querySelectorAll(){return [...nodes.values()];},
-      replaceChildren(...children){this.children=children;},
-      append(...children){this.children.push(...children);},
-      setAttribute(){},scrollIntoView(){},focus(){}};
-    return item;
-  }
-  const get=id=>{
-    if(!nodes.has(id))nodes.set(id,node(id));
-    return nodes.get(id);
-  };
+function r17PermissionFixture(t){
+  const f=settingsReactFixture('timeReview',t),get=f.find;
   let siteGrants={allSites:false,origins:[]},idlePermission=false,requests=0,removals=0;
   let pendingRead=null,currentUrl='https://example.com/path';
   const api={
@@ -102,8 +91,7 @@ function r17PermissionFixture(){
     windows:{async getLastFocused(){return {focused:true,incognito:false,type:'normal',id:1};}},
     tabs:{async query(){return [{url:currentUrl,incognito:false}];}}
   };
-  const doc={getElementById:get,createElement:tag=>node(tag)};
-  const controls=createTimeReviewPermissionControls({api,doc,notice(){},
+  const controls=createTimeReviewPermissionControls({api,ui:f.ui,notice(){},
     async runOperation(name,payload){
       if(name==='time.siteGrant'&&payload.mode==='all')
         siteGrants={allSites:payload.enabled,origins:[]};
@@ -111,7 +99,7 @@ function r17PermissionFixture(){
     }});
   const installed={id:'time-review',capabilities:['time.review']};
   const flush=async()=>{await new Promise(resolve=>setImmediate(resolve));};
-  const click=(id,isTrusted=true)=>get(id).handlers.get('click')({isTrusted});
+  const click=(id,isTrusted=true)=>f.invoke(id,{isTrusted});
   return {api,get,controls,installed,click,flush,
     setIdle:value=>{idlePermission=value;},
     setGrants:value=>{siteGrants=value;},
@@ -124,10 +112,9 @@ function r17PermissionFixture(){
     counters:()=>({requests,removals})};
 }
 
-test('R1.7 first-party native controls have one start and only relevant Chrome idle actions',async()=>{
-  const f=r17PermissionFixture();
-  f.get('sidebar-tool-frame').dataset.timeReviewNative='true';
-  f.controls.render(f.installed);await f.flush();
+test('R1.7 first-party native controls have one start and only relevant Chrome idle actions',async t=>{
+  const f=r17PermissionFixture(t);
+  f.controls.render(f.installed,false,true);await f.flush();
   assert.equal(f.get('time-review-trusted-start').hidden,true);
   assert.equal(f.get('time-review-grant-idle').hidden,false);
   assert.equal(f.get('time-review-revoke-idle').hidden,true);
@@ -144,41 +131,40 @@ test('R1.7 first-party native controls have one start and only relevant Chrome i
   assert.equal(f.counters().removals,1);
   assert.equal(f.get('time-review-grant-idle').hidden,false);
   assert.equal(f.get('time-review-revoke-idle').hidden,true);
-  f.get('sidebar-tool-frame').dataset.timeReviewNative='';
-  f.controls.render(f.installed);await f.flush();
+  f.controls.render(f.installed,false,false);await f.flush();
   assert.equal(f.get('time-review-trusted-start').hidden,false,'sandbox fallback still has its trusted start');
   f.controls.render(null);await f.flush();
   assert.equal(f.get('time-review-permission-settings').hidden,true);
 });
 
-test('R1.7 whole-site grant cannot show redundant or ineffective per-origin enrollment',async()=>{
-  const f=r17PermissionFixture();
+test('R1.7 whole-site grant cannot show redundant or ineffective per-origin enrollment',async t=>{
+  const f=r17PermissionFixture(t);
   f.setGrants({allSites:true,origins:[]});
-  f.controls.render(f.installed);await f.flush();
+  f.controls.render(f.installed,false,true);await f.flush();
   assert.equal(f.get('time-review-site-all-open').hidden,true);
   assert.equal(f.get('time-review-site-current-open').hidden,true);
   assert.equal(f.get('time-review-site-all-revoke').hidden,false);
   f.setGrants({allSites:false,origins:['https://example.com']});
-  f.controls.render(f.installed);await f.flush();
+  f.controls.render(f.installed,false,true);await f.flush();
   assert.equal(f.get('time-review-site-current-open').hidden,true,
     'an already authorized exact Origin should not offer duplicate enrollment');
   assert.equal(f.get('time-review-site-all-open').hidden,false);
   f.setCurrentUrl('https://another.example/path');
-  f.controls.render(f.installed);await f.flush();
+  f.controls.render(f.installed,false,true);await f.flush();
   assert.equal(f.get('time-review-site-current-open').hidden,false,
     'a different Origin must remain individually authorizable');
   assert.equal(f.get('time-review-site-all-revoke').hidden,false);
   assert.equal(f.get('time-review-site-grants-list').children.length,1);
   f.setGrants({allSites:false,origins:[]});
-  f.controls.render(f.installed);await f.flush();
+  f.controls.render(f.installed,false,true);await f.flush();
   assert.equal(f.get('time-review-site-all-revoke').hidden,true);
 });
 
 
-test('R1.7 late site-grant storage read never repaints revoked/obsolete consent',async()=>{
-  const f=r17PermissionFixture();
+test('R1.7 late site-grant storage read never repaints revoked/obsolete consent',async t=>{
+  const f=r17PermissionFixture(t);
   const resolveOldRead=f.deferNextRead();
-  f.controls.render(f.installed); // old read deliberately stays in flight
+  f.controls.render(f.installed,false,true); // old read deliberately stays in flight
   f.click('time-review-site-all-open');
   f.click('time-review-site-all-approve');
   await f.flush();await f.flush();
@@ -193,11 +179,11 @@ test('R1.7 late site-grant storage read never repaints revoked/obsolete consent'
 });
 
 
-test('R1.8 unavailable Chrome permission and storage APIs fail closed without async rejection',async()=>{
-  const f=r17PermissionFixture();
+test('R1.8 unavailable Chrome permission and storage APIs fail closed without async rejection',async t=>{
+  const f=r17PermissionFixture(t);
   delete f.api.permissions.contains;
   delete f.api.storage.local.get;
-  f.controls.render(f.installed);
+  f.controls.render(f.installed,false,true);
   await f.flush();await f.flush();
   assert.equal(f.get('time-review-grant-idle').hidden,false,
     'unknown idle permission must never be treated as authorized');

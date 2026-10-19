@@ -13,7 +13,7 @@ import {TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE}
 // simulated Chrome APIs only. Not proof of native Chrome or network traffic.
 const extensionId='a'.repeat(32),hostInstanceId=randomUUID(),toolInstance=randomUUID();
 const sender={id:extensionId,frameId:0,documentLifecycle:'active',documentId:'proxy-host-doc',
-  url:'chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+hostInstanceId};
+  url:'chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+hostInstanceId};
 const config={config:{endpoint:{scheme:'socks5',host:'proxy.example.com',port:1080},
   domains:['chatgpt.com','claude.ai']}};
 const code=value=>error=>error?.code===value;

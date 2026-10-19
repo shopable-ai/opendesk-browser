@@ -16,7 +16,7 @@ const pkg=validateSidebarToolPackage({
 const identity={toolId:pkg.id,toolVersion:pkg.version,toolInstance:uid,hostInstanceId:uid,installEpoch:null,
   packageHash:await sidebarToolPackageHash(pkg)};
 const sender={id:'ext-r2',frameId:0,documentId:'host-document-1',documentLifecycle:'active',
-  url:'chrome-extension://ext-r2/ui/tool.html?hostInstanceId='+uid};
+  url:'chrome-extension://ext-r2/sidepanel.html?hostInstanceId='+uid};
 const locks={request:(_key,work)=>work()};
 const err=code=>error=>error?.code===code;
 

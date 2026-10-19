@@ -543,7 +543,7 @@ async function runNative(options, packageBefore, barriers) {
         await page.send('Runtime.enable');await page.send('Page.enable');await until(()=>evaluate(page,'document.readyState==="complete"'),'target ready');
         await evaluate(page,`(${observePage.toString()})()`);
         const decoyId=(await browser.send('Target.createTarget',{url:`${origin}/decoy`})).targetId, decoy=await attach(decoyId);
-        const toolId=(await browser.send('Target.createTarget',{url:`chrome-extension://${session.extensionId}/ui/tool.html`})).targetId;tool=await attach(toolId);
+        const toolId=(await browser.send('Target.createTarget',{url:`chrome-extension://${session.extensionId}/sidepanel.html`})).targetId;tool=await attach(toolId);
         await until(()=>evaluate(tool,'!!document.querySelector("#sdk-install")'),'product SDK UI');
         tool.on(event=>{if(event.method.startsWith('ServiceWorker.'))swEvents.push(event);});await tool.send('ServiceWorker.enable');
         const tabId=await evaluate(tool,`chrome.tabs.query({}).then(tabs=>tabs.find(tab=>tab.url===${JSON.stringify(targetURL)})?.id)`);assert(Number.isInteger(tabId));

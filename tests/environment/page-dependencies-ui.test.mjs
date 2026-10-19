@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -27,7 +28,7 @@ function fixture(sourceUtf8,{getLocks=()=>[],waitForInspect,selectedLockId=null}
 }
 
 test('development UI exposes explicit Classic @require prepare/review without legacy manual injection controls',async()=>{
-  const html=await readFile('src/ui/tool.html','utf8');
+  const html=await renderSidebarFixture();
   assert.match(html,/id="script-source"/);
   assert.match(html,/<summary id="page-preview-mode-title">网页 JavaScript 试运行<\/summary>/);
   for(const id of ['page-dependency-panel','page-dependency-list','page-dependency-prepare',

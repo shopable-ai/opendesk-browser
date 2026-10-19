@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -8,7 +9,7 @@ const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
 test('preview shell extracts live Side Panel navigation, toolbar and public host rules',async()=>{
   const [html,css,react]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
+    renderSidebarFixture({activeTab:'tools'}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
   ]);
   const extracted=extractSidebarPreviewShell(html,css,react);
   const live=await sidebarPreviewShellSource();
@@ -16,7 +17,7 @@ test('preview shell extracts live Side Panel navigation, toolbar and public host
   assert.match(extracted.digest,/^[0-9a-f]{64}$/);
   assert.ok(html.includes(extracted.nav));
   assert.match(react,/className="sidebar-tool-view-head od-toolbar od-page-head"/);
-  assert.doesNotMatch(html,/id="sidebar-tool-remove"/,
+  assert.doesNotMatch(await read('src/ui/sidepanel.html'),/id="sidebar-tool-remove"/,
     'preview must not reintroduce the deleted legacy toolbar');
   assert.match(extracted.nav,/id="tab-tools"[^>]*>扩展<\/button>/);
   for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-remove'])
@@ -28,10 +29,9 @@ test('preview shell extracts live Side Panel navigation, toolbar and public host
 
 test('preview shell rejects missing real button or stylesheet owners instead of redrawing',async()=>{
   const [html,css,react]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
+    renderSidebarFixture({activeTab:'tools'}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
   ]);
-  assert.throws(()=>extractSidebarPreviewShell(html,css,
-    react.replace('id="sidebar-tool-remove"','id="unsupported-action"')),
+  assert.throws(()=>extractSidebarPreviewShell(html.replace('id="sidebar-tool-remove"','id="unsupported-action"'),css),
     /E_PREVIEW_SHELL/);
   assert.throws(()=>extractSidebarPreviewShell(html,css.replace('.workbench-nav{','.other-nav{'),react),
     /E_PREVIEW_SHELL/);

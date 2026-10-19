@@ -10,7 +10,7 @@ export function selectControllerSidebar({contexts, targets, extensionId}) {
     let url;
     try {url = new URL(context.documentUrl);} catch {return false;}
     return url.protocol === 'chrome-extension:' && url.hostname === extensionId &&
-      url.pathname === '/ui/tool.html' && !!url.searchParams.get('hostInstanceId');
+      url.pathname === '/sidepanel.html' && !!url.searchParams.get('hostInstanceId');
   });
   assert(entries.length <= 1, 'Ambiguous native Sidebar contexts');
   if (!entries.length) return null;

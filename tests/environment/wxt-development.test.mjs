@@ -49,7 +49,7 @@ test('development reload fails closed when the retirement receipt is missing',as
 });
 function workerFixture({missingDocumentId=false,storage}={}){
   let update={protocol:'opendesk.development.v1',revision:revision(1),files:{'sw.js':'initial','ui/tool-shell.js':'initial','ui/tool-shell.css':'initial','agents/page-agent.js':'initial'}};
-  const messages=[],contexts=[{contextType:'SIDE_PANEL',documentId:'document-1',documentUrl:'chrome-extension://extension/ui/tool.html?hostInstanceId=host-1',frameId:0,incognito:false}];
+  const messages=[],contexts=[{contextType:'SIDE_PANEL',documentId:'document-1',documentUrl:'chrome-extension://extension/sidepanel.html?hostInstanceId=host-1',frameId:0,incognito:false}];
   let reloads=0,idle=true,reads=0;
   const saved={};const api={storage:{session:{get:async()=>structuredClone(saved),set:async value=>Object.assign(saved,structuredClone(value))}},runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,onConnect:event(),getContexts:async()=>contexts,reload:()=>reloads++}};
   const port={name:'opendesk.development.v1',sender:{id:'extension',url:contexts[0].documentUrl,...(!missingDocumentId&&{documentId:'document-1'})},onMessage:event(),onDisconnect:event(),disconnect(){this.onDisconnect.emit();},postMessage(message){messages.push(message);if(message.type==='prepare')this.onMessage.emit({type:'ready',token:message.token,ready:true});}};
@@ -81,6 +81,16 @@ test('retired unknown history passes the update flow only after receipt, Native 
 test('real Side Panel context resolves missing sender documentId and rejects foreign senders',async()=>{
   const f=workerFixture({missingDocumentId:true});await f.connect();assert.equal(f.messages[0].type,'connected');assert.equal(f.messages[0].documentId,'document-1');
   const foreign=workerFixture();foreign.port.sender.id='other-extension';await foreign.connect();assert.equal(foreign.messages.length,0);f.worker.dispose();foreign.worker.dispose();
+});
+
+test('R37 development ports accept root documents and disconnect the legacy path',async()=>{
+  const current=workerFixture(),legacy=workerFixture();let disconnected=false;
+  legacy.port.sender.url=legacy.port.sender.url.replace('/sidepanel.html','/ui/tool.html');
+  legacy.port.onDisconnect.addListener(()=>{disconnected=true;});
+  try{
+    await current.connect();assert.equal(current.messages[0].type,'connected');
+    await legacy.connect();assert.equal(disconnected,true);assert.equal(legacy.messages.length,0);
+  }finally{current.worker.dispose();legacy.worker.dispose();}
 });
 test('CSS updates apply without extension reload, fixed injected bytes require a safe reload',async()=>{
   const f=workerFixture();await f.connect();f.start();await until(()=>f.reads>1);
@@ -125,15 +135,24 @@ test('background waits for idle, freezes admissions, acknowledges draft and relo
   const f=workerFixture();await f.connect();f.setIdle(false);f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.worker.held,false);
   f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.worker.held,true);const reads=f.reads;await new Promise(resolve=>setTimeout(resolve,50));assert.equal(f.reloads,1);assert.equal(f.reads,reads);f.worker.dispose();
 });
-function pageFixture(prepareReload,{debugPanel=null}={}){
-  const ports=[],prepended=[],body={inert:false,prepend:node=>prepended.push(node)},link={href:'chrome-extension://extension/ui/tool-shell.css'},status={remove(){}};
+function pageFixture(prepareReload){
+  const ports=[],statuses=[],body={inert:false},link={href:'chrome-extension://extension/ui/tool-shell.css'};
   const doc={body,documentElement:{dataset:{}},
-    createElement:tag=>tag==='output'?status:{tagName:tag,children:[],append(...nodes){this.children.push(...nodes);},remove(){}},
-    getElementById:id=>id==='workbench-debug'?debugPanel:null,querySelector:()=>link};
-  const api={runtime:{connect(){const port={onMessage:event(),onDisconnect:event(),sent:[],postMessage(m){this.sent.push(m);},disconnect(){this.onDisconnect.emit();}};ports.push(port);return port;}}};
-  let navigations=0;const dispose=installDevelopmentPage({api,prepareReload,document:doc,location:{href:'chrome-extension://extension/ui/tool.html?hostInstanceId=old',replace:()=>navigations++}});
-  return {ports,body,status,link,prepended,dispose,get navigations(){return navigations;}};
+    createElement:()=>assert.fail('development status belongs to React'),
+    getElementById:()=>assert.fail('development must not query legacy status nodes'),
+    querySelector:()=>link};
+  const api={runtime:{id:'extension',connect(){
+    const port={onMessage:event(),onDisconnect:event(),sent:[],closed:false,
+      postMessage(m){this.sent.push(m);},disconnect(){this.closed=true;this.onDisconnect.emit();}};
+    ports.push(port);return port;
+  }}};
+  const urls=[];
+  const dispose=installDevelopmentPage({api,prepareReload,document:doc,
+    onStatus:value=>statuses.push(value===null?null:{...value}),
+    location:{href:'chrome-extension://extension/sidepanel.html?hostInstanceId=old&toolId=quick-notes',replace:url=>urls.push(url)}});
+  return {ports,statuses,body,link,urls,dispose,get status(){return statuses.at(-1);},get navigations(){return urls.length;}};
 }
+
 test('obsolete draft preparation cannot acknowledge or unfreeze a newer token',async()=>{
   const resolutions=[];const f=pageFixture(()=>new Promise(resolve=>resolutions.push(resolve))),p=f.ports[0];
   await p.onMessage.emit({type:'prepare',token:'old'});await until(()=>resolutions.length===1);await p.onMessage.emit({type:'abort',token:'old'});
@@ -143,38 +162,58 @@ test('obsolete draft preparation cannot acknowledge or unfreeze a newer token',a
 test('development panel labels its build fingerprint without claiming page re-injection',async()=>{
   const f=pageFixture(async()=>true),p=f.ports[0];
   await p.onMessage.emit({type:'connected',revision:revision(3)});
-  assert.match(f.status.textContent,/构建指纹/);
+  assert.match(f.status.text,/构建指纹/);
   assert.match(f.status.title,/构建 revision/);
   assert.match(f.status.title,/不证明已打开的网页重新注入/);
   f.dispose();
 });
-test('CSS hot updates stay out of normal Side Panel and use a collapsed Debug section',async()=>{
-  const children=[],debugPanel={append:node=>children.push(node)};
-  const f=pageFixture(async()=>true,{debugPanel}),p=f.ports[0];
-  assert.equal(f.prepended.length,0);
-  assert.equal(children.length,1);
-  assert.equal(children[0].tagName,'details');
-  assert.equal(children[0].children[0].tagName,'summary');
-  assert.equal(children[0].children[1],f.status);
+test('development publishes callback status and CSS updates keep it unchanged',async()=>{
+  const f=pageFixture(async()=>true),p=f.ports[0];
+  assert.match(f.status.text,/正在连接/);
   await p.onMessage.emit({type:'connected',revision:revision(3)});
-  const connected=f.status.textContent;
+  const connected=f.status,count=f.statuses.length;
   await p.onMessage.emit({type:'css',hash:'style-rev-2'});
-  assert.equal(f.status.textContent,connected);
+  assert.equal(f.statuses.length,count);assert.deepEqual(f.status,connected);
   assert.equal(new URL(f.link.href).searchParams.get('opendesk-dev'),'style-rev-2');
-  assert.equal(f.body.inert,false);
-  f.dispose();
+  assert.equal(f.body.inert,false);f.dispose();assert.equal(f.status,null);assert.equal(p.closed,true);
 });
-test('developer status is non-visual when the Debug tab does not exist',async()=>{
-  const f=pageFixture(async()=>true);
-  assert.equal(f.status.hidden,true);
-  assert.deepEqual(f.prepended,[f.status]);
-  await f.ports[0].onMessage.emit({type:'css',hash:'style-rev-2'});
-  assert.doesNotMatch(f.status.textContent||'',/样式已自动更新/);
-  f.dispose();
+test('development waiting and revision messages publish callback state without injecting nodes',async()=>{
+  const f=pageFixture(async()=>true),p=f.ports[0];
+  await p.onMessage.emit({type:'waiting',reason:'等待任务结束及草稿保存'});
+  assert.equal(f.status.text,'等待任务结束及草稿保存');
+  await p.onMessage.emit({type:'revision',revision:revision(4)});
+  assert.match(f.status.text,new RegExp(revision(4).slice(0,12)));
+  assert.match(f.status.title,new RegExp(revision(4)));
+  assert.doesNotMatch(f.status.text,/样式已自动更新/);f.dispose();assert.equal(f.status,null);
 });
+test('development reload requires active prepared token and renews document identity',async()=>{
+  const f=pageFixture(async()=>true),p=f.ports[0];
+  await p.onMessage.emit({type:'reload-page',token:'unknown'});assert.equal(f.navigations,0);
+  await p.onMessage.emit({type:'prepare',token:'ready'});await until(()=>p.sent.length===1);
+  assert.deepEqual(p.sent[0],{type:'ready',token:'ready',ready:true});
+  assert.equal(f.body.inert,true);assert.match(f.status.text,/正在应用源码更新/);
+  await p.onMessage.emit({type:'abort',token:'ready'});assert.equal(f.body.inert,false);
+  await p.onMessage.emit({type:'reload-page',token:'ready'});assert.equal(f.navigations,0);
+  await p.onMessage.emit({type:'prepare',token:'next'});await until(()=>p.sent.length===2);
+  await p.onMessage.emit({type:'reload-page',token:'next'});assert.equal(f.navigations,1);
+  const next=new URL(f.urls[0]);assert.equal(next.searchParams.has('hostInstanceId'),false);
+  assert.equal(next.searchParams.get('toolId'),'quick-notes');f.dispose();
+});
+test('development dispose invalidates pending preparation and late callbacks',async()=>{
+  let finish;const f=pageFixture(()=>new Promise(resolve=>{finish=resolve;})),p=f.ports[0];
+  await p.onMessage.emit({type:'prepare',token:'late'});await until(()=>Boolean(finish));
+  assert.equal(f.body.inert,true);f.dispose();assert.equal(f.body.inert,false);
+  assert.equal(f.status,null);const count=f.statuses.length;
+  finish(true);await new Promise(resolve=>setTimeout(resolve,20));
+  await p.onMessage.emit({type:'connected',revision:revision(8)});
+  await p.onMessage.emit({type:'reload-page',token:'late'});
+  assert.equal(f.statuses.length,count);assert.equal(p.sent.length,0);assert.equal(f.navigations,0);
+  assert.equal(p.closed,true);assert.equal(f.ports.length,1);
+});
+
 test('disconnect clears preparation and reconnects only development channel',async()=>{
   const f=pageFixture(async()=>true),p=f.ports[0];await p.onMessage.emit({type:'prepare',token:'t'});await until(()=>p.sent.length===1);assert.equal(f.body.inert,true);
-  await p.onDisconnect.emit();assert.equal(f.body.inert,false);await until(()=>f.ports.length===2);assert.equal(f.navigations,0);await f.ports[1].onMessage.emit({type:'connected'});assert.match(f.status.textContent,/已连接/);f.dispose();
+  await p.onDisconnect.emit();assert.equal(f.body.inert,false);await until(()=>f.ports.length===2);assert.equal(f.navigations,0);await f.ports[1].onMessage.emit({type:'connected'});assert.match(f.status.text,/已连接/);f.dispose();
 });
 
 test('worker recreation retains an unapplied update while a surviving host is busy',async()=>{

@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -5,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 const read=path=>readFile(path,'utf8');
 
 test('R4.9 tool header groups storefront and import as accessible icon-only actions',async()=>{
-  const [html,css,design]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
+  const [html,css,design]=await Promise.all([renderSidebarFixture(),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
   const view=html.match(/<div class="sidebar-tools-head od-toolbar od-page-head">([\s\S]*?)<\/div>\s*<\/div>/)?.[0];
   assert.ok(view,'tool list header and actions group');
   assert.match(view,/<strong class="od-page-title">已安装工具<\/strong>/);

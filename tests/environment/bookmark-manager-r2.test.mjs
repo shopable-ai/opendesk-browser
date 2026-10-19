@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -26,7 +27,7 @@ test('R2.4 official optional registration replaces all legacy host/UI/CI paths',
     '.github/workflows/bookmark-manager-r13.yml',
     'tests/environment/bookmark-manager-r1.test.mjs'])
     await assert.rejects(readFile(old,'utf8'),{code:'ENOENT'},old+' must be removed');
-  const html=await readFile('src/ui/tool.html','utf8');
+  const html=await renderSidebarFixture();
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   const packer=await readFile('scripts/prepare-public.mjs','utf8');
   const verifier=await readFile('scripts/verify-package.mjs','utf8');

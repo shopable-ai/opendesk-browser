@@ -7,7 +7,7 @@ const session = JSON.parse(await fs.readFile(path.join(dir, 'session.json')));
 const tabId = Number(process.argv[2]), label = process.argv[3] || 'S4-pending-native-facts';
 if (!Number.isSafeInteger(tabId) || !/^[A-Za-z0-9_-]+$/.test(label)) throw Error('Arguments');
 const client = await connect(session.endpoint);
-const target = (await client.send('Target.getTargets')).targetInfos.find(t => t.url.includes('/ui/tool.html?hostInstanceId='));
+const target = (await client.send('Target.getTargets')).targetInfos.find(t => t.url.includes('/sidepanel.html?hostInstanceId='));
 const {sessionId} = await client.send('Target.attachToTarget', {targetId: target.targetId, flatten: true});
 const deadline = Date.now() + 60000;
 const samples = [];

@@ -3,7 +3,8 @@ import {join, resolve, dirname, basename} from 'node:path';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
-import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';
+import {load} from 'cheerio';
+import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget, SIDEPANEL_DOCUMENT_PATH} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
@@ -59,7 +60,7 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'time-review.css', 'cloud-hosting.css', 'extension-center.css', 'sidebar-tool-host.js', 'stay-focus-controls.js', 'trusted-cookie-ui.js', 'tool-shell.js'],
+  [SIDEPANEL_DOCUMENT_PATH]: ['ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/time-review.css', 'ui/cloud-hosting.css', 'ui/extension-center.css', 'ui/sidebar-tool-host.js', 'ui/stay-focus-controls.js', 'ui/trusted-cookie-ui.js', 'ui/tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
@@ -199,7 +200,7 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
   if (!same(manifest.sandbox, {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
   if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
   if (!same(Object.keys(manifest.action || {}), ['default_title'])) throw new Error('Unexpected action resource/entry');
-  if (!same(manifest.side_panel, {default_path: 'ui/tool.html'})) throw new Error('Unexpected or missing Side Panel entry');
+  if (!same(manifest.side_panel, {default_path: SIDEPANEL_DOCUMENT_PATH})) throw new Error('Unexpected or missing Side Panel entry');
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, APPROVED_WEB_ACCESSIBLE_RESOURCES)) throw new Error('Unexpected web accessible resources');
@@ -478,7 +479,20 @@ export function inspectScript(text, file, options = {}) {
   if (/__webpack_require__\.e\s*\(|https?:\/\/[^\s'"]+\.js(?:[?#][^\s'"]*)?(?=['"\s]|$)|\brequire\(['"](?:node:|fs|net|http)/.test(text)) throw new Error(`Remote/lazy/runtime-host execution in ${file}`);
   return {approvedAsyncBodyConstructors: uses};
 }
-async function inspectHTML(root, file) {
+function inspectReactMountHTML(text, file, rootId) {
+  // Use the existing HTML parser so comments, entities and inert template
+  // contents cannot masquerade as (or hide) an additional mount point.
+  const $ = load(text), roots = $('[id="' + rootId + '"]'), mount = roots[0];
+  const inert = node => node.type === 'comment' || node.type === 'text' && !node.data.trim();
+  const body = $('body')[0];
+  if (roots.length !== 1 || mount.name !== 'div' || mount.parent !== body ||
+    !$(mount).contents().toArray().every(inert) ||
+    !$('body').contents().toArray().every(node => inert(node) || node === mount || ['script', 'link'].includes(node.name)) ||
+    !$('head').contents().toArray().every(node => inert(node) || ['meta', 'title', 'script', 'link'].includes(node.name)))
+    throw Error(`${file} must ship one empty React root without static business DOM`);
+}
+
+export async function inspectHTML(root, file) {
   const text = await readFile(join(root, file), 'utf8'), references = [], policies = [];
   if (/\son[a-z]+\s*=|<script\b(?![^>]*\bsrc\s*=)[^>]*>|(?:src|href)\s*=\s*['"](?:https?:|\/\/|data:|javascript:)/i.test(text)) throw new Error(`Unsafe HTML resources in ${file}`);
   for (const match of text.matchAll(/<([a-z][a-z0-9-]*)\b([^>]*)>/gi)) {
@@ -505,7 +519,9 @@ async function inspectHTML(root, file) {
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === 'ui/tool.html' ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === SIDEPANEL_DOCUMENT_PATH ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (file === SIDEPANEL_DOCUMENT_PATH) inspectReactMountHTML(text, file, 'opendesk-react-app');
+  if (file === 'native-agent/workspace.html') inspectReactMountHTML(text, file, 'workspace-root');
 }
 export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const root = resolve(directory);
@@ -608,10 +624,6 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
   // Workspace's public HTML is only the React mount point. Business DOM and SVG
   // controls must come from its matching, fixed compiled settings.js entry.
-  const explorerHTML=await readFile(join(root,'native-agent/workspace.html'),'utf8');
-  if((explorerHTML.match(/id="workspace-root"/g)||[]).length!==1||
-    /id="(?:file-workspace|file-list|file-editor|edit-answer)"/.test(explorerHTML))
-    throw Error('Workspace must ship one React root without static business DOM');
   const explorerJS=await readFile(join(root,'native-agent/settings.js'),'utf8');
   if(!['workspace-root','file-workspace','workspace-locale','file-editor','adopt-edit',
     'svg-r3','local-svg','data-variant','folder-open','tree-caret','file-icon'].every(value=>explorerJS.includes(value)))

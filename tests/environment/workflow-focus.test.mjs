@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -25,7 +26,7 @@ if(!vm.SourceTextModule) {
 } else {
   const [source,html]=await Promise.all([
     readFile(new URL('../../src/ui/workflow/workflow-view.js',import.meta.url),'utf8'),
-    readFile(new URL('../../src/ui/tool.html',import.meta.url),'utf8')
+    renderSidebarFixture()
   ]);
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
@@ -256,7 +257,7 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-save').listeners.has('click'),true);
     assert.equal(f.get('workflow-ai-plan').disabled,false);
     assert.equal(f.get('workflow-ai-disclosure'),undefined);
-    assert.match(await readFile('src/ui/tool.html','utf8'),/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
+    assert.match(await renderSidebarFixture(),/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
   });
 
   test('component: three standalone workflow header actions preserve keyboard focus',async t=>{

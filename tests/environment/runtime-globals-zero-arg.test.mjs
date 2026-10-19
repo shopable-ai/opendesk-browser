@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 // R16.4: prove the public no-argument main() authoring contract using real
 // ESM Webpack compilation and the existing Controller/Page compilers.
 // Node VM component evidence (L2) must NOT be reported as Mac Chrome native.
@@ -123,7 +124,7 @@ test('actual Side Panel single-file Controller demo runs with zero parameters an
   assert.match(value.date,/^\d{4}-\d{2}-\d{2}$/);
   assert.equal(value.abi,BUILTIN_ABI);
   assert.equal(vm.runInContext('typeof globalThis.page',scope),'undefined');
-  const html=await readFile('src/ui/tool.html','utf8');
+  const html=await renderSidebarFixture();
   assert.match(html,/id="tab-develop"/);
   assert.match(html,/id="script-source"/);
   assert.match(html,/id="script-run"/);

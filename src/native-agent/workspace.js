@@ -1,4 +1,5 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {previewDocument,validatePreviewURL,displayPagePreview} from './file-preview.js';
 import {createMemoryWorkspace,textSHA256} from './file-workspace-demo.js';
 import {createWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
@@ -632,7 +633,7 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     if(!event?.isTrusted||demo||busy||closed)return;
     const tabId=Number(targetId);if(!targets.has(tabId))return;
     if(kind==='sidebar'&&(!connected||!workspaceAccess.has(workspaceId)||!workspacePattern.test(workspaceId)))return;
-    const path=kind==='sidebar'?'native-agent/workspace.html?workspaceId='+encodeURIComponent(workspaceId):'ui/tool.html';
+    const path=kind==='sidebar'?'native-agent/workspace.html?workspaceId='+encodeURIComponent(workspaceId):SIDEPANEL_DOCUMENT_PATH;
     try{
       const configured=api.sidePanel.setOptions({tabId,path,enabled:true});
       const opened=api.sidePanel.open({tabId});

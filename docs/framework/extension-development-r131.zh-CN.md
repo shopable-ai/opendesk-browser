@@ -58,7 +58,7 @@ npm run dev
 | 修改内容 | 自动行为 | 用户需要做什么 |
 | --- | --- | --- |
 | `src/ui/tool-shell.css` | 替换样式表链接，同一文档热加载 CSS | 无需刷新 |
-| `src/ui/tool.html`、Sidebar JS | 保存草稿后刷新工具文档，建立新宿主身份 | 未释放的任务结束后自动应用 |
+| `src/ui/sidepanel.html`、Sidebar JS | 保存草稿后刷新工具文档，建立新宿主身份 | 未释放的任务结束后自动应用 |
 | 共享 JS 模块 | WXT 重建实际依赖它的入口，再按入口种类更新 | 根据下述生命周期处理 |
 | Background、Native transport、运行宿主或其他扩展资源 | 所有宿主确认安全后重载扩展 | Chrome 会关闭扩展页/Sidebar，重新打开 Sidebar |
 | 页面注入 JS、SDK、relay、packaged page-session | 更新文件；保留现有业务文档和安装实例 | 需要新文档时自己刷新业务网页，再明确运行/授权；已经注入的实例不会自动替换 |

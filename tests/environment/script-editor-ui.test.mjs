@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,readFile,realpath,rm,writeFile} from 'node:fs/promises';
@@ -41,7 +42,7 @@ async function until(check,message){
 }
 const hash=source=>createHash('sha256').update(source).digest('hex');
 const manualSource='async function main(){return "MANUAL_DRAFT_MUST_NOT_RUN";}';
-const html=await readFile(new URL('../../src/ui/tool.html',import.meta.url),'utf8');
+const html=await renderSidebarFixture();
 const workspace={workspaceId:'workspace-00000000-0000-0000-0000-000000000001',
   name:'prompt-shortcuts',sourceId:'source-'+'a'.repeat(24),access:'read-write',
   leaseEpoch:'lease-'+'a'.repeat(24)};
@@ -51,12 +52,12 @@ const availableTarget={status:'available',windowId:7,tabId:11,frameId:0,
   documentId:'document-a',url:'https://a.example/',origin:'https://a.example',title:'A'};
 
 async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspace],projects=[],
-  connected=false,local=true,resolveSource,handle,react=process.env.OPENDESK_DEVELOP_REACT_VIEW==='1'}={}){
+  connected=false,local=true,resolveSource,handle}={}){
   const nodes=new Map([...new Set([...Object.keys(DEVELOPER_FIELDS),...Array.from(html.matchAll(/id="([^"]+)"/g),([,id])=>id)])].map(id=>[id,new Element()]));
   const legacyFind=id=>nodes.get(id),view=new Element();
-  const legacyDoc={getElementById:legacyFind,defaultView:view,createElement:()=>new Element()};
-  const reactView=react?createDeveloperView():null;
-  const find=developerTestFields(reactView,legacyFind);
+  const legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
+  const reactView=createDeveloperView();
+  const find=developerTestFields(reactView);
   find('script-id').value='manual';find('script-revision').value='1';
   find('script-source').value=manualSource;
   find('script-params').value='{}';find('script-target-mode').value='current';
@@ -740,7 +741,7 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
     return {};
   };
   f.find('page-program-refresh').fire('click',{isTrusted:true});
-  await until(()=>f.find('page-program-list').children.some(row=>row.value==='loaded-page:1'),'Page catalog did not refresh');
+  await until(()=>f.find('page-program-list').options.some(row=>row.value==='loaded-page:1'),'Page catalog did not refresh');
   await tick();await tick();
   f.find('page-program-list').value='loaded-page:1';
   f.find('page-program-list').fire('change',{isTrusted:true});await tick();await tick();
@@ -862,7 +863,7 @@ test('R36.3 Page Candidate load refuses a late response after a React source swi
     return {catalog:[],programs:[]};
   };
   f.find('page-program-refresh').fire('click',{isTrusted:true});
-  await until(()=>f.find('page-program-list').children.some(option=>option.value==='race-page:1'),'Page catalog unavailable');
+  await until(()=>f.find('page-program-list').options.some(option=>option.value==='race-page:1'),'Page catalog unavailable');
   f.find('page-program-list').value='race-page:1';f.find('page-program-list').fire('change',{isTrusted:true});
   await until(()=>!f.find('page-program-load').disabled,'Page candidate could not be selected');
   f.find('page-program-load').fire('click',{isTrusted:true});

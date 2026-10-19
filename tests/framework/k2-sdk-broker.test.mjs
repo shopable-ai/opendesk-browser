@@ -39,7 +39,7 @@ async function fixture({fetchImpl, brokerOptions = {}, extraCapabilities = []} =
     webNavigation:{getAllFrames:async () => [{frameId:0,documentId,documentLifecycle:'active',errorOccurred:false,url:'https://fixture.example/page'}]},
     notifications:{create:(id,options,callback) => { nativeCalls.push({method:'notify',options}); callback('native-notification'); }}};
   const sender = {id:'extension',url:'https://fixture.example/page',frameId:0,documentId,documentLifecycle:'active',tab:{id:2,incognito:false}};
-  const hostSender = {...sender,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-document',tab:{id:1,incognito:false}};
+  const hostSender = {...sender,url:api.runtime.getURL('sidepanel.html'),documentId:'tool-document',tab:{id:1,incognito:false}};
   Object.assign(storage,createStorageMethods(storage,{clock,sessionTyped:createSessionTyped({api})}));
   const makeAuthority = () => createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,clock,session:'browser-session'});
   const authority = makeAuthority();

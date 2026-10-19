@@ -1,9 +1,9 @@
 // Fixed extension-owned navigation. Tool IDs are locators, never authority.
-import {validToolId,validPreviewId,validHostInstanceId} from '../../tool-document-url.js';
+import {validToolId,validPreviewId,validHostInstanceId,SIDEPANEL_DOCUMENT_PATH,SIDEPANEL_DOCUMENT_PATHNAME} from '../../tool-document-url.js';
 export {validToolId};
 export function toolPageHref(runtime,id){
   if(!validToolId(id))throw new TypeError('工具 ID 无效');
-  const url=new URL(runtime.getURL('ui/tool.html'));
+  const url=new URL(runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
   url.searchParams.set('toolId',id);
   return url.href;
 }
@@ -16,6 +16,8 @@ export function canonicalToolHostUrl(address,hostInstanceId){
   if(!validHostInstanceId(hostInstanceId))
     throw new TypeError('invalid host instance id');
   const url=new URL(address);
+  if(url.protocol!=='chrome-extension:'||url.pathname!==SIDEPANEL_DOCUMENT_PATHNAME||url.username||url.password)
+    throw new TypeError('invalid Side Panel document URL');
   const toolId=requestedToolId(url.href),previewId=requestedPreviewId(url.href);
   const scheduledRunner=url.searchParams.getAll('scheduledRunner');
   const runnerAlone=!url.searchParams.has('toolId')&&!url.searchParams.has('previewId');
@@ -36,7 +38,7 @@ export function requestedPreviewId(address){
 }
 export function toolPreviewHref(runtime,previewId){
   if(!validPreviewId(previewId))throw new TypeError('invalid preview ID');
-  const url=new URL(runtime.getURL('ui/tool.html'));
+  const url=new URL(runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
   url.searchParams.set('previewId',previewId);
   return url.href;
 }

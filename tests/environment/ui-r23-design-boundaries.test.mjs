@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -22,11 +23,11 @@ test('R23 semantic tokens are sole source of shared values and carry no page res
 });
 test('R23 trusted page styles respect explicit load order and sandbox boundary',async()=>{
   const [tool,settings,workspace,copy,verifier,styleBuild]=await Promise.all([
-    read('src/ui/tool.html'),read('src/native-agent/settings.html'),
+    renderSidebarFixture(),read('src/native-agent/settings.html'),
     read('src/native-agent/workspace.html'),read('scripts/prepare-public.mjs'),
     read('scripts/verify-package.mjs'),read('scripts/build-workspace-style.mjs')
   ]);
-  assert.match(tool,/href="design-tokens.css"><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"/);
+  assert.match(tool,/href="ui\/design-tokens.css"><link rel="stylesheet" href="ui\/design-system.css"><link rel="stylesheet" href="ui\/tool-shell.css"/);
   assert.match(settings,/href="\.\.\/ui\/design-tokens.css"><link rel="stylesheet" href="settings.css"/);
   assert.doesNotMatch(settings,/<style\b/i);
   assert.match(settings,/id="bridge-status" role="status" aria-live="polite" aria-atomic="true"/);

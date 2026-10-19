@@ -37,7 +37,7 @@ async function fixture() {
     }}};
   const authority=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,clock:{now:()=>1000},session:'session'});
   const source={id:'extension',url:`${A}/page`,frameId:0,documentId:'document-A',documentLifecycle:'active',tab:{id:2,incognito:false}};
-  const host={...source,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-document',tab:{id:1,incognito:false}};
+  const host={...source,url:api.runtime.getURL('sidepanel.html'),documentId:'tool-document',tab:{id:1,incognito:false}};
   await authority.registerHost({hostInstanceId:'tool-host',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},host);
   const installer=createSdkInstaller({authority,api});
   const payload=(targetOrigins=[B])=>({tabId:2,frameId:0,documentId:'document-A',capabilities:['network'],targetOrigins});
@@ -109,7 +109,7 @@ for(const [name,state] of [['prerender',{documentLifecycle:'prerender'}],['cache
     assert.equal(f.injections.length,3,'Only the first script entered Chrome before the lifecycle changed');
     Object.assign(f.frame,initial);
     await assert.rejects(f.authority.authorizeSdkInjection(f.payload(),
-      {...f.source,url:f.api.runtime.getURL('ui/tool.html'),documentId:'tool-document',tab:{id:1,incognito:false}},grant.grantIncarnation),
+      {...f.source,url:f.api.runtime.getURL('sidepanel.html'),documentId:'tool-document',tab:{id:1,incognito:false}},grant.grantIncarnation),
       {code:'E_GRANT_REVOKED'});
   });
 }

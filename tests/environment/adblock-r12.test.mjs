@@ -24,7 +24,7 @@ import {requestAdblockOperation,runTrustedAdblockOperation}
 const PROJECT=resolve('examples/sidebar-tools/adblock');
 const senderId='abcdefghijklmnopabcdefghijklmnop';
 const hostUrl='chrome-extension://'+senderId+
-  '/ui/tool.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
+  '/sidepanel.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
 const sender={id:senderId,url:hostUrl,documentId:'live-doc',frameId:0,
   documentLifecycle:'active'};
 const focusRule={id:FOCUS_RULE_FIRST,priority:28,action:{

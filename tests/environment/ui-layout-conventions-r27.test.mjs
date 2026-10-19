@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -44,11 +45,11 @@ test('R27 Side Panel base controls consume spacing tokens, not unrelated one-off
 
 test('R27 each trusted page uses only its appropriate stylesheet and sandbox stays independent',async()=>{
   const [sidebar,workspace,settings,market,sandbox,notes]=await Promise.all([
-    read('src/ui/tool.html'),read('src/native-agent/workspace.html'),
+    renderSidebarFixture(),read('src/native-agent/workspace.html'),
     read('src/native-agent/settings.html'),read('src/marketplace/marketplace.html'),
     read('src/sidebar-tools/sandbox.html'),read('examples/sidebar-tools/quick-notes/src/style.css')
   ]);
-  assert.match(sidebar,/href="design-tokens\.css"><link rel="stylesheet" href="design-system\.css"/);
+  assert.match(sidebar,/href="ui\/design-tokens\.css"><link rel="stylesheet" href="ui\/design-system\.css"/);
   assert.match(workspace,/href="workspace\.css"/);
   assert.doesNotMatch(workspace,/<link[^>]+design-tokens\.css/,'Workspace tokens are inlined at build time');
   assert.match(settings,/href="\.\.\/ui\/design-tokens\.css"/);

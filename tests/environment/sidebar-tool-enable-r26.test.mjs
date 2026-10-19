@@ -178,11 +178,11 @@ test('R26 confirmed uninstall uses recovery transaction and removes only its own
 test('R26 background rejects both page and host requests while stopped',async()=>{
   const knowledge={...tool,id:KNOWLEDGE_TOOL_ID,capabilities:['knowledge.store','page.capture']},f=fixture(knowledge);
   f.values[SIDEBAR_TOOL_ENABLE_STORE]={[knowledge.id]:false};f.values[CAPTURE_SITE_STORE]={[knowledge.id]:['https://chatgpt.com']};
-  f.api.runtime={id:'test',getURL:path=>'chrome-extension://test/'+path,getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId=12345678-1234-4123-8123-123456789abc',frameId:0,documentId:'host'}]};
+  f.api.runtime={id:'test',getURL:path=>'chrome-extension://test/'+path,getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:'chrome-extension://test/sidepanel.html?hostInstanceId=12345678-1234-4123-8123-123456789abc',frameId:0,documentId:'host'}]};
   const service=createKnowledgeService(f),packageHash=await knowledgePackageHash(knowledge);
   const page={id:'test',tab:{id:1},frameId:0,documentId:'page',url:'https://chatgpt.com/c/test'};
   await assert.rejects(service.dispatch({protocol:KNOWLEDGE_PROTOCOL,toolId:knowledge.id,operation:'capture.save',packageHash,expectedUrl:page.url,payload:{}},page),{code:'E_TOOL_DISABLED'});
-  const host={id:'test',url:'chrome-extension://test/ui/tool.html?hostInstanceId=12345678-1234-4123-8123-123456789abc',documentId:'host'};
+  const host={id:'test',url:'chrome-extension://test/sidepanel.html?hostInstanceId=12345678-1234-4123-8123-123456789abc',documentId:'host'};
   await assert.rejects(service.dispatch({protocol:KNOWLEDGE_PROTOCOL,toolId:knowledge.id,operation:'knowledge.list',packageHash,payload:{}},host),{code:'E_TOOL_DISABLED'});
 });
 test('R26 workspace handoff rejects stopped state and stale generations before import',async()=>{
@@ -197,7 +197,7 @@ test('R26 clip content script rechecks enabled state and generation after extrac
   const win={location:new URL('https://example.com/article'),addEventListener(){}};win.top=win;
   const controller=initPageClip({api:f.api,doc:{title:'article'},win});
   const message={protocol:'opendesk.page-clip.v1',operation:'clip.link',toolId:clip.id,expectedUrl:win.location.href};
-  const sender={id:'test',url:'chrome-extension://test/ui/tool.html?hostInstanceId=12345678-1234-4123-8123-123456789abc'};
+  const sender={id:'test',url:'chrome-extension://test/sidepanel.html?hostInstanceId=12345678-1234-4123-8123-123456789abc'};
   const send=()=>new Promise(resolve=>[...listeners][0](message,sender,resolve));
   try{
     assert.equal((await send()).ok,true);

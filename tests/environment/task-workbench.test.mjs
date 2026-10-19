@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -31,7 +32,7 @@ class Element {
 }
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-const html=await readFile('src/ui/tool.html','utf8');
+const html=await renderSidebarFixture();
 const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
@@ -313,7 +314,7 @@ test('My searches a single installed task list on demand without executing or re
   assert.equal(f.catalogOpens.length,0,'Add must not open full catalog automatically');
   await f.click('task-add-catalog');
   assert.equal(f.catalogOpens.length,1,'Catalog only opens on explicit catalog choice');
-  assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/ui/tool.html');
+  assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/sidepanel.html');
 });
 
 test('R5.1 Escape closes inline My search, clears filters and restores keyboard focus without Run',async t=>{

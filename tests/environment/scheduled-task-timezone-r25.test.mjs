@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -41,7 +42,7 @@ test('R2.5 unknown system timezone falls back to UTC; corrupt saved value is not
 });
 test('R2.5 production form is a scoped four-part layout with native dropdown and two-stage save',async()=>{
   const [html,css,ui,preview]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
+    renderSidebarFixture(),readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/scheduled-task-workbench.js','utf8'),
     readFile('examples/ui/scheduled-tasks-r2.5-preview.html','utf8')
   ]);
@@ -83,7 +84,7 @@ test('R2.6 IANA search filters choices without changing the saved zone, includin
 });
 test('R33.3.12 official one-step IANA selector and save-confirmation retain authority',async()=>{
   const [html,ui,css,preview]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),readFile('src/ui/scheduled-task-workbench.js','utf8'),
+    renderSidebarFixture(),readFile('src/ui/scheduled-task-workbench.js','utf8'),
     readFile('src/ui/tool-shell.css','utf8'),readFile('examples/ui/scheduled-tasks-r2.5-preview.html','utf8')
   ]);
   assert.match(html,/<select id="schedule-timezone" required aria-describedby=/);

@@ -226,7 +226,7 @@ async function contractCheck() {
     f1.push({path: relative, bytes: bytes.length, sha256: digest(bytes)});
   }
   const editor = await readFile(path.join(root, 'src/ui/script-editor.js'), 'utf8');
-  const html = await readFile(path.join(root, 'src/ui/tool.html'), 'utf8');
+  const html = await readFile(path.join(root, 'src/ui/sidepanel.html'), 'utf8');
   for (const id of ['script-id', 'script-revision', 'script-source', 'script-params', 'script-save', 'script-load', 'script-delete', 'script-run',
     'script-stop', 'script-read', 'script-target-mode', 'script-owned-url', 'script-tab', 'script-document', 'script-download-result', 'script-download'])
     assert(html.includes(`id="${id}"`), `Required product UI missing: ${id}`);
@@ -243,7 +243,7 @@ async function contractCheck() {
   }
   const frozenSourceSlices = ['src/platform/page-port/codec.js', 'src/framework/control/value.js', 'src/framework/ChromePage.js',
     'src/platform/host/controller-methods.js', 'src/platform/storage/repository.js', 'src/platform/downloads/index.js',
-    'src/platform/downloads/blob-lifecycle.js', 'src/run-host.js', 'src/ui/script-editor.js', 'src/ui/tool.html',
+    'src/platform/downloads/blob-lifecycle.js', 'src/run-host.js', 'src/ui/script-editor.js', 'src/ui/sidepanel.html',
     'src/scripting/packaged/page-session.js', 'src/scripting/packaged/registry.js', 'src/scripting/sandbox/controller.js',
     'src/scripting/sandbox/worker-runtime.js', 'src/scripting/sandbox/page-proxy.js', 'src/scripting/sandbox/sandbox.js', 'wxt.config.mjs']
     .map(relative => { const row = sourceBefore.files.find(file => file.path === relative); assert(row, `Frozen source slice absent: ${relative}`); return row; });

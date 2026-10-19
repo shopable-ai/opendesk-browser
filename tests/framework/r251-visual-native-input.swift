@@ -29,7 +29,7 @@ guard CommandLine.arguments.count >= 4, let pid = pid_t(CommandLine.arguments[1]
 }
 let command = CommandLine.arguments[2], url = CommandLine.arguments[3]
 inputPID = pid
-guard url.hasPrefix("chrome-extension://"), url.contains("/ui/tool.html") else {
+guard url.hasPrefix("chrome-extension://"), url.contains("/sidepanel.html") else {
     fail("Exact trusted Side Panel URL required")
 }
 if let session = CGSessionCopyCurrentDictionary() as? [String: Any],

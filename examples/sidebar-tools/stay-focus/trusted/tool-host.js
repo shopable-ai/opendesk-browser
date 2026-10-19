@@ -37,7 +37,7 @@ function requireFocusTool(tool){
     throw error('专注工具未安装或页面已关闭','E_TOOL_CHANGED');
 }
 
-export async function runTrustedStayFocusOperation({api,tool,operation,payload,event,assertCurrent}){
+export async function runTrustedStayFocusOperation({api,tool,operation,payload,event,revocationEpoch,assertCurrent}){
   if(event?.isTrusted!==true||!trustedOnly.includes(operation))
     throw error('请在工具详情中主动点击专注权限操作','E_FOCUS_TRUSTED_CLICK');
   requireFocusTool(tool);assertCurrent('initial');
@@ -47,6 +47,8 @@ export async function runTrustedStayFocusOperation({api,tool,operation,payload,e
   if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>sameSidebarToolPackage(row,tool)))
     throw error('工具已更新或卸载','E_TOOL_CHANGED');
   const installEpoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
+  if(revocationEpoch!==installEpoch)
+    throw error('当前工具安装代际已撤销，请重新打开工具','E_TOOL_CHANGED');
   const packageHash=await focusPackageHash(tool);
   assertCurrent('before-send');
   let result;

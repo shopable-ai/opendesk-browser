@@ -1,11 +1,13 @@
 import {createDeveloperView} from '../../develop-view.js';
-import {DEVELOPER_FIELDS} from '../../develop-fields.js';
 
 // UI_PREVIEW_ONLY: all changes stay in this view; no controller or Host is connected.
 export function createDeveloperPreviewView(){
   const view=createDeveloperView();
-  for(const [id,field] of Object.entries(DEVELOPER_FIELDS)){
-    if(field.tag==='button')view.patch(id,{disabled:true});
+  for(const id of ['script-run','script-save','script-stop','script-history-run','script-delete',
+    'script-download','script-read-run','script-copy-result','sdk-install','sdk-inspect','sdk-revoke',
+    'sdk-approval-preview','create-target','check-source','check-target','page-preview-run',
+    'page-preview-stop','page-component-compile','task-create-candidate','local-install-confirm']){
+    if(view.fields[id])view.patch(id,{disabled:true});
   }
   view.patch('script-current-page-host',{textContent:'仅预览'});
   view.patch('script-current-page-status',{textContent:'未连接网页',data:{state:'unknown'}});

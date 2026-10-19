@@ -31,7 +31,7 @@ async function fixture({state = 'preparing', session = 'session'} = {}) {
     return next;
   }};
   const api = {runtime: {id: 'extension', getURL: p => `chrome-extension://extension/${p}`}};
-  const sender = {id: 'extension', url: api.runtime.getURL('ui/tool.html'), documentId: 'host-document',
+  const sender = {id: 'extension', url: api.runtime.getURL('sidepanel.html'), documentId: 'host-document',
     documentLifecycle: 'active', frameId: 0, tab: {id: 1, incognito: false}};
   const authority = createRunAuthority({loadBuiltin:loadFakeBuiltin,storage, api, session: 'session', clock: {now: () => 1790970000000}});
   const host = await authority.registerHost({hostInstanceId: 'host-instance',

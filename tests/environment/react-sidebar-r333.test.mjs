@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,access} from 'node:fs/promises';
-import {transformWithEsbuild} from 'vite';
+import {transform} from 'esbuild';
 
 const read=path=>readFile(path,'utf8');
 
@@ -17,7 +17,7 @@ test('R33.3 pins one React 19 runtime and keeps existing fixed WXT entry',async(
   assert.equal(lock.packages['node_modules/scheduler'].version,'0.27.0');
   assert.match(await read('src/entrypoints/tool-shell.js'),/initToolShell/);
   const shell=await read('src/ui/tool-shell.js');
-  assert.match(shell,/mountExtensionList\(document,\{debugEnabled/);
+  assert.match(shell,/mountSidebarApp\(document,\{debugEnabled/);
   assert.match(shell,/reactNavigationRequest\?\.\(view\)/);
   assert.match(shell,/extensionCenter\.dispose\(\); sidebarTools\.dispose\(\); extensionList\.dispose\(\)/);
   await assert.rejects(access('packages/opendesk-ui-react'));
@@ -30,7 +30,7 @@ test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
     'src/ui/react/tabs/navigation.tsx',
     'src/ui/react/components/ui/button.tsx']){
     const code=await read(path);
-    const transformed=await transformWithEsbuild(code,path,{loader:'tsx',jsx:'transform',target:'es2022'});
+    const transformed=await transform(code,{loader:'tsx',jsx:'transform',target:'es2022'});
     assert.ok(transformed.code.length>0,'TSX transpiles: '+path);
     // The trusted bookmark pilot imports four fixed, reviewed first-party sources.
     // Exempt those exact statements only; arbitrary sidebar-tool imports remain forbidden.
@@ -50,7 +50,7 @@ test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
 test('R35.4 Extension Center React owns the list while existing Controller owns actions',async()=>{
   const [main,center,rows,html,docs,shell]=await Promise.all([
     read('src/ui/react/main.tsx'),read('src/ui/extension-center.js'),
-    read('src/ui/react/tabs/tools.tsx'),read('src/ui/tool.html'),
+    read('src/ui/react/tabs/tools.tsx'),read('src/ui/sidepanel.html'),
     read('docs/architecture/react-ui-shared-components-r33.zh-CN.md'),
     read('src/ui/tool-shell.js')
   ]);
@@ -61,12 +61,12 @@ test('R35.4 Extension Center React owns the list while existing Controller owns 
     'extension-center-import-host','extension-center-menu','extension-center-back'])
     assert.ok(rows.includes('id="'+id+'"'),id+' belongs to the React page');
   assert.equal((main.match(/\bcreateRoot\s*\(/g)||[]).length,1);
-  assert.match(main,/createRoot\(shell\?\.mount\|\|section\)/);
-  assert.match(main,/<SidebarAppShell scaffold=\{shell\.scaffold\}/);
-  assert.match(main,/<ExtensionCenterPage \{\.\.\.extensionProps\}\/>/);
+  assert.match(main,/createRoot\(mount\)/);
+  assert.match(main,/<SidebarAppShell activeTab=\{navigationTab\}/);
+  assert.match(await read('src/ui/react/app-shell.tsx'),/<ExtensionCenterPage \{\.\.\.extensionProps\}\/>/);
   assert.doesNotMatch(main,/createPortal\s*\(\s*<(?:ExtensionRows|ExtensionDetail|ExtensionToolbar|ExtensionStatus|ExtensionRecoveries|ExtensionRowMenu)/);
   assert.match(main,/bookmarkPilot&&createPortal\(/);
-  assert.match(main,/createPortal\(<DebugDiagnosticText/);
+  assert.doesNotMatch(main,/createPortal\(<DebugDiagnosticText/);
   assert.match(main,/root\.unmount\(\)/);
   assert.match(main,/flushSync/);
   assert.match(rows,/export function ExtensionCenterPage/);

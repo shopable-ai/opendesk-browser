@@ -11,12 +11,157 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'vite';
 
-const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nimport * as React from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {flushSync} from 'react-dom';\nimport {DeveloperPage,DeveloperDock} from '/src/ui/react/tabs/develop.tsx';\nimport {createDeveloperView} from '/src/ui/develop-view.js';\nconst calls=[],navState={tab:'tasks',blocked:null};const ui=mountExtensionList(document,{debugEnabled:false,onNavigate:view=>{calls.push('nav:'+view);if(navState.blocked===view)return false;navState.tab=view;ui.renderNavigation(view);return true;}}),state={query:'',kind:'all',scope:'smart',menuOpen:false};\nconst rowMenu=document.getElementById('extension-center-row-menu');ui.attachRowMenu(rowMenu);ui.connectBack(()=>{calls.push('back');ui.renderView('list');});\nconst row={key:'app:sample',title:'React 安全演示',description:'不可运行用户代码',kind:'app',type:'应用',installed:true,primaryAction:'打开'};\nfunction draw(){\n  ui.renderToolbar({...state,language:'zh-CN',\n    onSearch(value){state.query=value;calls.push('search:'+value);draw();},\n    onToggleMenu(){state.menuOpen=!state.menuOpen;calls.push('menu:'+state.menuOpen);draw();},\n    onKind(value){state.kind=value;calls.push('kind:'+value);draw();},\n    onScope(value){state.scope=value;calls.push('scope:'+value);draw();},\n    onReset(){state.kind='all';state.scope='smart';calls.push('reset');draw();},\n    onMarket(){calls.push('market');},onImport(){calls.push('import');},\n    onReload(){calls.push('reload');},onLanguage(value){calls.push('language:'+value);}\n  });\n  ui.renderRows({rows:[row],busy:false,pendingKey:null,\n    onOpenRow(key){calls.push('open:'+key);ui.renderView('detail');\n      ui.renderDetail({key,title:row.title,description:row.description,\n        type:'应用',kind:'app',installed:true,busy:false,actions:[],\n        installationText:'本机已安装（测试模拟）',version:'1.0.0',source:null});},\n    onMore(key){calls.push('more:'+key);ui.setMenuKey(key);\n      ui.renderRowMenu([{id:'toggle',label:'停用应用',onClick:event=>{calls.push('toggle:'+event.isTrusted);rowMenu.hidden=true;ui.renderRowMenu([]);ui.setMenuKey(null);}}]);rowMenu.hidden=false;}\n  });\n  ui.renderFeedback({showEmpty:false,emptyText:'无匹配扩展',countText:'1 个扩展'});\n  ui.renderRecoveries({ids:[],busy:false,onRetry(id,event){calls.push('cleanup:'+id+':'+event.isTrusted);}});\n  ui.renderStatus({text:'测试状态',state:'info'});\n}\ndraw();\nconst myRows=[{taskId:'demo-a',title:'回归任务 A',description:'内容保持',enabled:true},{taskId:'demo-b',title:'回归任务 B',description:'不会重建参数',enabled:true}];\nlet mySelection='demo-a';\nfunction paintMy(){ui.renderMyTaskRows({rows:myRows,selectedId:mySelection,emptyText:'',onSelect:id=>{mySelection=id;calls.push('task-select:'+id);paintMy();}});}\npaintMy();\nui.renderMyTaskCount('2 个');ui.renderMyTaskDetail('身份由 TaskWorkbench 管理');\nconst developerView=createDeveloperView();\nconst developerRoot=createRoot(document.getElementById('developer-page-fixture'));\nconst developerDockRoot=createRoot(document.getElementById('developer-dock-fixture'));\nconst patchDeveloper=(id,state)=>flushSync(()=>developerView.patch(id,state));\nconst dev={runDisabled:false,runLabel:'运行草稿',saveDisabled:false,saveHidden:false,saveTitle:'保存草稿',saveLabel:'保存版本',stopDisabled:false,stopLabel:'停止'};\nfunction paintDeveloperDock(){\n  for(const action of ['run','save','stop']){\n    patchDeveloper('script-'+action,{textContent:dev[action+'Label'],disabled:dev[action+'Disabled'],\n      hidden:!!dev[action+'Hidden'],title:dev[action+'Title']||''});\n    developerView.actions['script-'+action]=event=>calls.push(action+':'+event.isTrusted);\n  }\n}\npaintDeveloperDock();\nconst framework={mode:'javascript',compilerEnabled:true};\nfunction paintFramework(){\n  for(const kind of ['javascript','react','vue']){\n    patchDeveloper('page-component-'+kind,{checked:framework.mode===kind,\n      disabled:!framework.compilerEnabled&&kind!=='javascript'});\n    developerView.actions['page-component-'+kind]=event=>{\n      if(framework.mode===kind||!event.isTrusted)return;\n      calls.push('framework:'+kind+':'+event.isTrusted);framework.mode=kind;paintFramework();\n    };\n  }\n}\npaintFramework();\nfunction setDeveloperStatus({state,text}){patchDeveloper('script-status',{textContent:text,data:{state}});}\nfunction setDeveloperResult({text,kind}){\n  patchDeveloper('script-result',{textContent:text});\n  patchDeveloper('script-result-kind',{textContent:kind});\n}\nfunction setDeveloperTarget({title,url,host,hostTitle,status,state,statusTitle}){\n  patchDeveloper('script-current-page-title',{textContent:title});\n  patchDeveloper('script-current-page-url',{textContent:url});\n  patchDeveloper('script-current-page-host',{textContent:host,title:hostTitle});\n  patchDeveloper('script-current-page-status',{textContent:status,title:statusTitle,data:{state}});\n}\nsetDeveloperStatus({state:'ready',text:'可运行'});\nsetDeveloperResult({text:'尚无结果',kind:'尚无结果'});\nsetDeveloperTarget({title:'本地 Chromium 页面',url:'https://example.com/view',host:'example.com',hostTitle:'https://example.com/view',status:'网页可运行',state:'available',statusTitle:'已核对身份'});\nflushSync(()=>{\n  developerRoot.render(React.createElement(DeveloperPage,{view:developerView}));\n  developerDockRoot.render(React.createElement(DeveloperDock,{view:developerView}));\n});\n\nconst providerNode=document.getElementById('workflow-ai-provider');\nconst workflowSettings=document.getElementById('workflow-provider-settings');\nconst closeWorkflow=()=>{\n  workflowSettings.open=false;\n  ui.renderWorkflowSettings({open:false,onClose:closeWorkflow});\n};\nui.connectWorkflowEvents({\n  onHistory:event=>calls.push('workflow-history:'+event.isTrusted),\n  onNewSession:event=>calls.push('workflow-session:'+event.isTrusted),\n  onNewWorkflow:event=>calls.push('workflow-new:'+event.isTrusted),\n  onOpenSavedHistory:(key,event)=>calls.push('workflow-open:'+key+':'+event.isTrusted)\n});\nui.renderWorkflowHeader({saved:true,savedText:'已保存',savedTitle:'已固定',busy:false,\n  planning:false,historyExpanded:false,sessionHint:'保留当前工作流'});\nui.renderWorkflowSettings({open:false,onClose:closeWorkflow});\nui.renderWorkflowSourceName('my-inference-model');\nui.renderWorkflowHistory({open:false,busy:false,canResume:false,\n  rows:[{key:'saved-revision-fixture',title:'已保存的测试版本',fullTitle:'测试版本 r2',savedText:'r2 · fixtures only'}]});\nui.renderWorkflowMessages([{id:'chat-1',speaker:'你',message:'安全输出 <script>不可执行</script>'}]);\ndocument.getElementById('workflow-provider-toggle').addEventListener('click',event=>{\n  if(!event.isTrusted)return;\n  workflowSettings.open=true;\n  ui.renderWorkflowSettings({open:true,onClose:closeWorkflow});\n});\n\nwindow.__reactTest={ui,calls,navState,state,dev,framework,providerNode,paintDeveloperDock,paintFramework,setDeveloperResult,setDeveloperStatus,setDeveloperTarget,dispose(){ui.dispose();flushSync(()=>{developerRoot.unmount();developerDockRoot.unmount();});developerView.dispose()}};\ndocument.documentElement.dataset.fixtureReady='true';\n";
-const fixtureHtml="<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><link rel=\"stylesheet\" href=\"/src/ui/design-tokens.css\"><link rel=\"stylesheet\" href=\"/src/ui/design-system.css\"><link rel=\"stylesheet\" href=\"/src/ui/tool-shell.css\"><link rel=\"stylesheet\" href=\"/src/ui/extension-center.css\"></head><body><nav class=\"workbench-nav\" role=\"tablist\" aria-label=\"工作台\"></nav><main id=\"extension-center\"></main><section id=\"workbench-tasks\" hidden><div id=\"task-installed-count\"></div><div id=\"task-installed-cards\" class=\"task-card-list od-stack\"></div><div id=\"task-selected-workspace\" class=\"task-selected-workspace\"><input id=\"task-param-proof\" value=\"保持参数\"><details class=\"task-tools od-disclosure\" open><summary>更多操作</summary><details class=\"od-disclosure od-disclosure--flat\" open><summary><span class=\"task-management-heading\">任务管理</span></summary><div class=\"task-management-actions\"><div class=\"row\"><button type=\"button\">停用</button></div><p class=\"hint\">操作提示</p></div></details></details></div><div id=\"task-installed-detail\"></div></section><div id=\"developer-page-fixture\"></div><div id=\"developer-dock-fixture\"></div><div id=\"extension-center-row-menu\" class=\"ec-context-menu\" role=\"menu\" hidden></div><section id='workbench-workflow' style='padding:10px;min-height:170px'><section id='workflow-editor' class='workflow-editor'><header class='workflow-head'><div class='workflow-head-actions'><button>旧标题动作</button></div></header><div id='workflow-history-react-host'></div><div id='workflow-ai-transcript' role='log' aria-live='polite'></div><div class='workflow-composer'><textarea id='workflow-ai-request'>保留原始输入草稿</textarea><button type='button' id='workflow-provider-toggle'>AI 设置</button><span id='workflow-source-react-host'></span><details id='workflow-provider-settings' class='workflow-provider od-disclosure od-disclosure--flat'><summary>AI 设置</summary><label for='workflow-ai-provider'>AI 来源</label><select id='workflow-ai-provider'><option value='local_codex'>本机 Codex</option><option value='cloud_responses'>HTTPS</option></select><input id='workflow-ai-key' type='password' value='保持原值' aria-label='演示密钥'><button type='button' id='workflow-local-refresh'>重新检查</button></details></div></section><div id='workflow-settings-react-host'></div></section><script type=\"module\" src=\"/__react_fixture.js\"></script></body></html>";
+const fixtureJS=String.raw`
+import {mountSidebarApp} from '/src/ui/react/main.tsx';
+import {createDeveloperView} from '/src/ui/develop-view.js';
+import {createMyWorkbenchView} from '/src/ui/my-workbench-view.js';
+const calls=[],navState={tab:'tasks',blocked:null};
+const developerView=createDeveloperView(),myView=createMyWorkbenchView();
+const ui=mountSidebarApp(document,{debugEnabled:false,developerView,myView,
+  onNavigate(view){
+    calls.push('nav:'+view);
+    if(navState.blocked===view)return false;
+    navState.tab=view;ui.renderNavigation(view);return true;
+  }
+});
+const state={query:'',kind:'all',scope:'smart',menuOpen:false};
+ui.connectBack(()=>{calls.push('back');ui.renderView('list');});
+const row={key:'app:sample',title:'React 安全演示',description:'不可运行用户代码',kind:'app',type:'应用',installed:true,primaryAction:'打开'};
+function draw(){
+  ui.renderToolbar({...state,language:'zh-CN',
+    onSearch(value){state.query=value;calls.push('search:'+value);draw();},
+    onToggleMenu(){state.menuOpen=!state.menuOpen;calls.push('menu:'+state.menuOpen);draw();},
+    onKind(value){state.kind=value;calls.push('kind:'+value);draw();},
+    onScope(value){state.scope=value;calls.push('scope:'+value);draw();},
+    onReset(){state.kind='all';state.scope='smart';calls.push('reset');draw();},
+    onMarket(){calls.push('market');},onImport(){calls.push('import');},
+    onReload(){calls.push('reload');},onLanguage(value){calls.push('language:'+value);}
+  });
+  ui.renderRows({rows:[row],busy:false,pendingKey:null,
+    onOpenRow(key){calls.push('open:'+key);ui.renderView('detail');
+      ui.renderDetail({key,title:row.title,description:row.description,
+        type:'应用',kind:'app',installed:true,busy:false,actions:[],
+        installationText:'本机已安装（测试模拟）',version:'1.0.0',source:null});},
+    onMore(key,trigger){calls.push('more:'+key);ui.setMenuKey(key);
+      const close=()=>{ui.renderRowMenu([]);ui.setMenuKey(null);};
+      ui.renderRowMenu([{id:'toggle',label:'停用应用',onClick:event=>{
+        calls.push('toggle:'+event.isTrusted);close();
+      }}],{trigger,title:row.title,onClose:close});}
 
+  });
+  ui.renderFeedback({showEmpty:false,emptyText:'无匹配扩展',countText:'1 个扩展'});
+  ui.renderRecoveries({ids:[],busy:false,onRetry(id,event){calls.push('cleanup:'+id+':'+event.isTrusted);}});
+  ui.renderStatus({text:'测试状态',state:'info'});
+}
+draw();
+const myRows=[{taskId:'demo-a',title:'回归任务 A',description:'内容保持',enabled:true},{taskId:'demo-b',title:'回归任务 B',description:'不会重建参数',enabled:true}];
+let mySelection='demo-a';
+function paintMy(){myView.project('taskRows',{rows:myRows,selectedId:mySelection,emptyText:'',onSelect:id=>{mySelection=id;calls.push('task-select:'+id);paintMy();}});}
+paintMy();
+myView.setText('task-installed-count','2 个');
+myView.project('taskDetail','身份由 TaskWorkbench 管理');
+myView.project('taskParams',[{name:'proof',rule:{type:'string',title:'证明参数'},required:false}]);
+myView.setValue('task-param-proof','保持参数');
+myView.field('task-tools').open=true;myView.publish();
+const patchDeveloper=(id,state)=>developerView.patch(id,state);
+patchDeveloper('develop-dock',{hidden:false});
+
+const dev={runDisabled:false,runLabel:'运行草稿',saveDisabled:false,saveHidden:false,saveTitle:'保存草稿',saveLabel:'保存版本',stopDisabled:false,stopLabel:'停止'};
+function paintDeveloperDock(){
+  for(const action of ['run','save','stop']){
+    patchDeveloper('script-'+action,{textContent:dev[action+'Label'],disabled:dev[action+'Disabled'],
+      hidden:!!dev[action+'Hidden'],title:dev[action+'Title']||''});
+    developerView.actions['script-'+action]=event=>calls.push(action+':'+event.isTrusted);
+  }
+}
+paintDeveloperDock();
+const framework={mode:'javascript',compilerEnabled:true};
+function paintFramework(){
+  for(const kind of ['javascript','react','vue']){
+    patchDeveloper('page-component-'+kind,{checked:framework.mode===kind,
+      disabled:!framework.compilerEnabled&&kind!=='javascript'});
+    developerView.actions['page-component-'+kind]=event=>{
+      if(framework.mode===kind||!event.isTrusted)return;
+      calls.push('framework:'+kind+':'+event.isTrusted);framework.mode=kind;paintFramework();
+    };
+  }
+}
+paintFramework();
+function setDeveloperStatus({state,text}){patchDeveloper('script-status',{textContent:text,data:{state}});}
+function setDeveloperResult({text,kind}){
+  patchDeveloper('script-result',{textContent:text});
+  patchDeveloper('script-result-kind',{textContent:kind});
+}
+function setDeveloperTarget({title,url,host,hostTitle,status,state,statusTitle}){
+  patchDeveloper('script-current-page-title',{textContent:title});
+  patchDeveloper('script-current-page-url',{textContent:url});
+  patchDeveloper('script-current-page-host',{textContent:host,title:hostTitle});
+  patchDeveloper('script-current-page-status',{textContent:status,title:statusTitle,data:{state}});
+}
+setDeveloperStatus({state:'ready',text:'可运行'});
+setDeveloperResult({text:'尚无结果',kind:'尚无结果'});
+setDeveloperTarget({title:'本地 Chromium 页面',url:'https://example.com/view',host:'example.com',hostTitle:'https://example.com/view',status:'网页可运行',state:'available',statusTitle:'已核对身份'});
+// The workflow presentation uses the same subscription/action contract as production.
+// No Provider, execution Host, permissions or persisted workflow is supplied here.
+const subscriptions=new Set();
+let workflowModel={
+  controls:{
+    'workflow-ai-request':{value:'保留原始输入草稿'},
+    'workflow-ai-provider':{value:'custom_https'},
+    'workflow-custom-settings':{hidden:false},
+    'workflow-local-settings':{hidden:true},
+    'workflow-https-mode':{hidden:false},
+    'workflow-https-protocol':{value:'custom_https'},
+    'workflow-ai-key':{value:'保持原值'},
+    'workflow-provider-settings':{open:false}
+  },
+  phase:'idle',sourceName:'my-inference-model',
+  header:{saved:true,savedText:'已保存',savedTitle:'已固定',busy:false,
+    planning:false,historyExpanded:false,sessionHint:'保留当前工作流'},
+  history:{open:false,busy:false,canResume:false,rows:[]},
+  messages:[{id:'chat-1',speaker:'你',message:'安全输出 <script>不可执行</script>'}]
+};
+function publishWorkflow(changes){
+  workflowModel={...workflowModel,...changes};
+  for(const listener of subscriptions)listener();
+}
+function workflowField(id,changes){
+  publishWorkflow({controls:{...workflowModel.controls,
+    [id]:{...workflowModel.controls[id],...changes}}});
+}
+const workflowController={
+  subscribe(listener){subscriptions.add(listener);return ()=>subscriptions.delete(listener);},
+  getSnapshot(){return workflowModel;},
+  actions:{
+    input(id,value,event){calls.push('input:'+id+':'+event.isTrusted);workflowField(id,{value});},
+    click(id,event){
+      calls.push('workflow-click:'+id+':'+event.isTrusted);
+      if(id==='workflow-provider-toggle')workflowField('workflow-provider-settings',{open:true});
+    },
+    closeSettings(){calls.push('workflow-close');workflowField('workflow-provider-settings',{open:false});},
+    onHistory:event=>calls.push('workflow-history:'+event.isTrusted),
+    onNewSession:event=>calls.push('workflow-session:'+event.isTrusted),
+    onNewWorkflow:event=>calls.push('workflow-new:'+event.isTrusted),
+    onOpenSavedHistory:(key,event)=>calls.push('workflow-open:'+key+':'+event.isTrusted)
+  }
+};
+ui.connectWorkflowPage(workflowController);
+const providerNode=document.getElementById('workflow-https-protocol');
+window.__reactTest={ui,calls,navState,state,dev,framework,developerView,myView,providerNode,subscriptions,publishWorkflow,workflowController,get workflowModel(){return workflowModel;},paintDeveloperDock,paintFramework,setDeveloperResult,setDeveloperStatus,setDeveloperTarget,dispose(){ui.dispose();developerView.dispose()}};
+document.documentElement.dataset.fixtureReady='true';
+`;
+const originalHtml=await readFile('src/ui/sidepanel.html','utf8');
+assert.match(originalHtml,/<div\b[^>]*id="opendesk-react-app"[^>]*><\/div>/,
+  'Production starts from one empty React mount');
+assert.doesNotMatch(originalHtml,/id="(?:workspace-dock|workbench-tasks|extension-center)"/,
+  'The production document must not recreate the retired static scaffold');
+const fixtureHtml=originalHtml
+  .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+  .replace(/href="ui\//g,'href="/src/ui/')
+  .replace(/<\/body>/i,'<script type="module" src="/__react_fixture.js"></script></body>');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const browser=process.env.CHROME_BIN||
-  ['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser']
+  [join(process.cwd(),'tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'),'/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser']
     .find(path=>existsSync(path));
 assert.ok(browser,'Real Chromium/Chrome required (CHROME_BIN or installed binary)');
 // Serve fixture endpoints BEFORE Vite's transform/fallback middleware.
@@ -36,10 +181,12 @@ const vite=await createServer({root:process.cwd(),configFile:false,appType:'cust
   // only the pinned React entrypoints; do not scan the entire repository.
   optimizeDeps:{noDiscovery:true,entries:[],
     include:['react','react/jsx-runtime','react-dom','react-dom/client']},
-  server:{middlewareMode:true}});
+  // This source fixture needs transforms only; never bind the shared HMR port
+  // or start a source watcher alongside the development extension.
+  server:{middlewareMode:true,hmr:false,ws:false,watch:null}});
 const http=createHttpServer((req,res)=>{
   const path=new URL(req.url||'/','http://localhost').pathname;
-  if(path==='/'){
+  if(path==='/'||path==='/sidepanel.html'){
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
     res.end(fixtureHtml);
     return;
@@ -73,6 +220,7 @@ async function checkEventually(expression){
   throw Error('Browser assertion never became true: '+expression);
 }
 async function click(selector){
+  await evaluate('document.querySelector('+JSON.stringify(selector)+')?.scrollIntoView({block:"nearest",inline:"nearest"})');
   let rect;
   for(let attempt=0;attempt<8;attempt++){
     rect=await evaluate('(()=>{const node=document.querySelector('+JSON.stringify(selector)+');'+
@@ -106,10 +254,10 @@ try{
   const httpPort=http.address().port;
   const fixture=await fetch('http://127.0.0.1:'+httpPort+'/__react_fixture.js');
   assert.equal(fixture.status,200,'React fixture route must return HTTP 200');
-  assert.match(await fixture.text(),/mountExtensionList/);
+  assert.match(await fixture.text(),/mountSidebarApp/);
   chrome=spawn(browser,[
     '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-    '--no-first-run','--no-default-browser-check',
+    '--no-first-run','--no-default-browser-check','--window-size=960,900',
     '--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
   ],{stdio:['ignore','ignore','pipe']});
   let stderr='';
@@ -149,7 +297,7 @@ try{
     if(m.error)waiter.fail(Error(m.error.message));else waiter.ok(m.result);
   });
   await cdp('Runtime.enable');await cdp('Page.enable');await cdp('Network.enable');
-  const navigation=await cdp('Page.navigate',{url:'http://127.0.0.1:'+httpPort+'/'});
+  const navigation=await cdp('Page.navigate',{url:'http://127.0.0.1:'+httpPort+'/sidepanel.html'});
   assert(!navigation.errorText,'Fixture navigation failed: '+navigation.errorText);
   try {
     await checkEventually('document.documentElement.dataset.fixtureReady==="true"');
@@ -168,7 +316,8 @@ try{
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),0,
     'The old hidden Portal root must not be recreated');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-search").length'),1);
-  assert.equal(await evaluate('document.querySelector(".workbench-nav").dataset.opendeskReactOwner'),'sidebar-navigation');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").contains(document.querySelector(".workbench-nav"))'),true,
+    'Navigation belongs to the single production React root');
   assert.equal(await evaluate('document.querySelectorAll(".workbench-nav button[role=tab]").length'),6);
   assert.equal(await evaluate('document.getElementById("tab-debug").hidden'),true);
   await click('#tab-tools');
@@ -194,12 +343,16 @@ try{
   assert.equal(await evaluate('document.getElementById("script-status").textContent'),'可运行');
   assert.equal(await evaluate('document.getElementById("script-status").dataset.state'),'ready');
   await evaluate('window.__reactTest.setDeveloperResult({text:"安全文本 <script>alert(1)</script>",kind:"JSON"})');
+  await checkEventually('document.getElementById("script-result-kind").textContent==="JSON"');
   assert.equal(await evaluate('document.getElementById("script-result").textContent'),'安全文本 <script>alert(1)</script>');
   assert.equal(await evaluate('document.querySelectorAll("#script-result script").length'),0);
   assert.equal(await evaluate('document.getElementById("script-result-kind").textContent'),'JSON');
   await evaluate('window.__reactTest.setDeveloperStatus({state:"error",text:"错误 <unsafe>"})');
+  await checkEventually('document.getElementById("script-status").dataset.state==="error"');
   assert.equal(await evaluate('document.getElementById("script-status").textContent'),'错误 <unsafe>');
   assert.equal(await evaluate('document.getElementById("script-status").dataset.state'),'error');
+  await click('#tab-develop');
+  await checkEventually('window.__reactTest.navState.tab==="develop"');
   await click('#page-component-react');
   await checkEventually('window.__reactTest.framework.mode==="react"');
   assert.equal(await evaluate('document.getElementById("page-component-react").checked'),true);
@@ -207,12 +360,14 @@ try{
   await click('#page-component-vue');
   await checkEventually('window.__reactTest.framework.mode==="vue"');
   await evaluate('window.__reactTest.framework.mode="javascript";window.__reactTest.framework.compilerEnabled=false;window.__reactTest.paintFramework()');
+  await checkEventually('document.getElementById("page-component-react").disabled');
   assert.equal(await evaluate('document.getElementById("page-component-react").disabled'),true);
   await click('#script-run');await click('#script-save');await click('#script-stop');
   await checkEventually('window.__reactTest.calls.includes("stop:true")');
   for(const action of ['run:true','save:true','stop:true'])
     assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==='+JSON.stringify(action)+').length'),1);
   await evaluate('window.__reactTest.dev.runDisabled=true;window.__reactTest.dev.stopLabel="取消准备";window.__reactTest.paintDeveloperDock()');
+  await checkEventually('document.getElementById("script-run").disabled && document.getElementById("script-stop").textContent==="取消准备"');
   assert.equal(await evaluate('document.getElementById("script-run").disabled'),true);
   assert.equal(await evaluate('document.getElementById("script-stop").textContent'),'取消准备');
   await click('#script-run');
@@ -220,8 +375,11 @@ try{
   assert.equal(await evaluate('document.getElementById("script-current-page-status").dataset.state'),'available');
   assert.equal(await evaluate('document.getElementById("script-current-page-title").textContent'),'本地 Chromium 页面');
   await evaluate('window.__reactTest.setDeveloperTarget({title:"正在识别…",url:"",host:"正在识别…",hostTitle:"",status:"检查中",state:"resolving",statusTitle:""})');
+  await checkEventually('document.getElementById("script-current-page-status").dataset.state==="resolving"');
   assert.equal(await evaluate('document.getElementById("script-current-page-status").dataset.state'),'resolving');
   await evaluate('window.__reactTest.setDeveloperTarget({title:"本地 Chromium 页面",url:"https://example.com/view",host:"example.com",hostTitle:"https://example.com/view",status:"网页可运行",state:"available",statusTitle:"已核对身份"})');
+  await click('#tab-tools');
+  await checkEventually('window.__reactTest.navState.tab==="tools"');
   await evaluate('window.__reactTest.ui.renderFeedback({showEmpty:true,emptyText:"没有匹配",countText:"0 个扩展"})');
   assert.equal(await evaluate('document.getElementById("extension-center-empty").hidden'),false);
   assert.equal(await evaluate('document.getElementById("extension-center-empty-text").textContent'),'没有匹配');
@@ -246,11 +404,12 @@ try{
   await click('.ec-row-more');
   await checkEventually('window.__reactTest.calls.includes("more:app:sample")');
   assert.equal(await evaluate('document.querySelector(".ec-row-more").getAttribute("aria-expanded")'),'true');
-  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu").dataset.opendeskReactOwner'),'extension-row-menu');
+  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu").getAttribute("role")'),'menu',
+    'The production React menu portal owns the menu');
   await click('#extension-center-row-menu button');
   await checkEventually('window.__reactTest.calls.includes("toggle:true")');
-  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu").hidden'),true);
-  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu").childElementCount'),0);
+  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu")'),null);
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-row-menu > *").length'),0);
   await click('.ec-row-main');
   await checkEventually('window.__reactTest.calls.includes("open:app:sample")');
   assert.equal(await evaluate('document.querySelectorAll(".ec-detail-head").length'),1);
@@ -262,39 +421,49 @@ try{
   assert.equal(await evaluate('document.getElementById("extension-center-list-view").hidden'),false);
   const recorded=await evaluate('window.__reactTest.calls');
   assert.equal(recorded.filter(s=>s==='open:app:sample').length,1,'one click must not duplicate listeners');
-  // This component fixture follows a long Extension+Developer test page.
-  // Move ONLY the workflow fixture into the visible viewport before sending
-  // real CDP mouse events; never fake trusted clicks or bypass hit testing.
-  await evaluate('Object.assign(document.getElementById("workbench-workflow").style,{position:"fixed",top:"10px",left:"10px",width:"min(360px, calc(100vw - 20px))",height:"320px",background:"white",zIndex:"300"})');
-  assert.equal(await evaluate('window.__reactTest.ui.workflowMounted'),true);
+  await click('#tab-workflow');
+  await checkEventually('window.__reactTest.navState.tab==="workflow"');
+  assert.equal(await evaluate('document.getElementById("workbench-workflow").dataset.opendeskReactOwner'),'workflow-page');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-ai-transcript .workflow-chat-entry").length'),1);
   assert.equal(await evaluate('document.querySelector("#workflow-ai-transcript .workflow-chat-entry p").textContent'),'安全输出 <script>不可执行</script>');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-ai-transcript script").length'),0);
   assert.equal(await evaluate('document.querySelectorAll("#workflow-history-toggle,#workflow-ai-new-session,#workflow-new").length'),3);
   assert.equal(await evaluate('document.querySelector("#workflow-source-name").textContent'),'my-inference-model');
-  await evaluate('window.__reactTest.ui.renderWorkflowHistory({open:true,busy:false,canResume:false,rows:[{key:"saved-revision-fixture",title:"已保存的测试版本",fullTitle:"测试版本 r2",savedText:"r2 · fixtures only"}]})');
+  await evaluate('window.__reactTest.publishWorkflow({history:{open:true,busy:false,canResume:false,rows:[{key:"saved-revision-fixture",title:"已保存的测试版本",fullTitle:"测试版本 r2",savedText:"r2 · fixtures only"}]}})');
+  await checkEventually('document.querySelectorAll("#workflow-history-panel .workflow-history-row").length===1');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-history-panel .workflow-history-row").length'),1);
   await click('#workflow-history-panel .workflow-history-row');
   assert.equal(await evaluate('window.__reactTest.calls.filter(s=>s==="workflow-open:saved-revision-fixture:true").length'),1);
-  await evaluate('window.__reactTest.ui.renderWorkflowHistory({open:false,busy:false,canResume:false,rows:[]})');
+  await evaluate('window.__reactTest.publishWorkflow({history:{open:false,busy:false,canResume:false,rows:[]}})');
+  await checkEventually('document.getElementById("workflow-history-panel").hidden');
   await click('#workflow-history-toggle');
   await click('#workflow-ai-new-session');
   await click('#workflow-new');
   for(const name of ['workflow-history:true','workflow-session:true','workflow-new:true'])
     assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==='+JSON.stringify(name)+').length'),1);
+  await click('#workflow-ai-request');
+  await evaluate('(()=>{const node=document.getElementById("workflow-ai-request");node.setSelectionRange(node.value.length,node.value.length);})()');
+  await cdp('Input.insertText',{text:' · 浏览器输入'});
+  await checkEventually('window.__reactTest.workflowModel.controls["workflow-ai-request"].value==="保留原始输入草稿 · 浏览器输入"');
+  assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="input:workflow-ai-request:true").length'),1);
   await click('#workflow-provider-toggle');
   await checkEventually('document.querySelector(".workflow-sheet-overlay") && !document.querySelector(".workflow-sheet-overlay").hidden');
   assert.equal(await evaluate('document.querySelectorAll(".workflow-sheet-panel[role=dialog][aria-modal=true]").length'),1);
   assert.equal(await evaluate('document.getElementById("workflow-editor").inert'),true);
-  assert.equal(await evaluate('document.activeElement.id'),'workflow-ai-provider');
-  assert.equal(await evaluate('document.getElementById("workflow-ai-provider")===window.__reactTest.providerNode'),true);
+  assert.equal(await evaluate('document.activeElement.id'),'workflow-source-https');
+  assert.equal(await evaluate('document.getElementById("workflow-https-protocol")===window.__reactTest.providerNode'),true);
+  await click('#workflow-ai-key');
+  await evaluate('(()=>{const node=document.getElementById("workflow-ai-key");node.setSelectionRange(node.value.length,node.value.length);})()');
+  await cdp('Input.insertText',{text:' · 浏览器输入'});
+  await checkEventually('window.__reactTest.workflowModel.controls["workflow-ai-key"].value==="保持原值 · 浏览器输入"');
+  assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="input:workflow-ai-key:true").length'),1);
   await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
   assert.equal(await evaluate('document.querySelector(".workflow-sheet-panel").contains(document.activeElement)'),true);
   await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
   await checkEventually('document.querySelector(".workflow-sheet-overlay").hidden');
   assert.equal(await evaluate('document.getElementById("workflow-editor").inert'),false);
-  assert.equal(await evaluate('document.getElementById("workflow-ai-request").value'),'保留原始输入草稿');
-  assert.equal(await evaluate('document.getElementById("workflow-ai-key").value'),'保持原值');
+  assert.equal(await evaluate('document.getElementById("workflow-ai-request").value'),'保留原始输入草稿 · 浏览器输入');
+  assert.equal(await evaluate('document.getElementById("workflow-ai-key").value'),'保持原值 · 浏览器输入');
   await click('#workflow-provider-toggle');
   await checkEventually('!document.querySelector(".workflow-sheet-overlay").hidden');
   // Click above the sheet using real CDP pointer input; the backdrop's
@@ -304,14 +473,20 @@ try{
   await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:backdropPoint.x,y:backdropPoint.y,button:'left',clickCount:1});
   await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:backdropPoint.x,y:backdropPoint.y,button:'left',clickCount:1});
   await checkEventually('document.querySelector(".workflow-sheet-overlay").hidden');
-  assert.equal(await evaluate('document.getElementById("workflow-provider-settings")===window.__reactTest.providerNode.parentElement.querySelector("#workflow-ai-provider").closest("details")'),true);
+  assert.equal(await evaluate('document.getElementById("workflow-provider-settings")===window.__reactTest.providerNode.closest("details")'),true);
   // Use actual CDP mouse input (isTrusted=true), not a synthetic DOM click.
-  await evaluate('Object.assign(document.getElementById("workbench-tasks").style,{position:"fixed",top:"10px",left:"10px",width:"360px",height:"390px",overflow:"auto",background:"white",zIndex:"400"});document.getElementById("workbench-tasks").hidden=false');
+  await click('#tab-my-tasks');
+  await checkEventually('window.__reactTest.navState.tab==="tasks"');
   await checkEventually('document.querySelector("[data-task-id=demo-a]").getAttribute("aria-expanded")==="true"');
+  await click('#task-param-proof');
+  await evaluate('(()=>{const node=document.getElementById("task-param-proof");node.setSelectionRange(node.value.length,node.value.length);})()');
+  await cdp('Input.insertText',{text:' · 浏览器输入'});
+  await checkEventually('window.__reactTest.myView.field("task-param-proof").value==="保持参数 · 浏览器输入"');
   const oldParam=await evaluate('document.getElementById("task-param-proof").value');
   await click('[data-task-id="demo-a"]');
   await checkEventually('document.querySelector("[data-task-id=demo-a]").getAttribute("aria-expanded")==="false"');
-  assert.equal(await evaluate('document.getElementById("task-selected-workspace").hidden'),true);
+  assert.equal(await evaluate('document.getElementById("task-selected-workspace").checkVisibility()'),false,
+    'Collapsing the selected task hides its retained workspace');
   assert.equal(await evaluate('document.querySelector("[data-task-id=demo-a]").getAttribute("aria-pressed")'),'true');
   await click('[data-task-id="demo-a"]');
   await checkEventually('document.querySelector("[data-task-id=demo-a]").getAttribute("aria-expanded")==="true"');
@@ -322,14 +497,9 @@ try{
   assert.equal(await evaluate('window.__reactTest.calls.filter(x=>x==="task-select:demo-b").length'),1);
   assert.equal(await evaluate('document.getElementById("task-param-proof").value'),oldParam);
   // The installed task More actions are now one-level and icon-only.
-  // Mount the exact trusted markup into the UI-only browser fixture before
-  // inspecting its geometry; do not test the retired nested manager HTML.
-  const {load:readTaskHtml}=await import('cheerio');
-  const official=(await import('node:fs/promises')).readFile;
-  const $task=readTaskHtml(await official('src/ui/tool.html','utf8'));
-  const moreMarkup=$task('#task-tools').toString();
+  // Inspect the actual React workspace, without replacing its owned DOM.
+  const moreMarkup=await evaluate('document.getElementById("task-tools").outerHTML');
   assert.match(moreMarkup,/task-operation-strip/);
-  await evaluate('document.querySelector(".task-tools").outerHTML='+JSON.stringify(moreMarkup));
   const strip=await evaluate('(()=>{const node=document.querySelector("#task-tools .task-operation-strip");'+
     'const box=node.getBoundingClientRect();const parent=document.querySelector("#task-selected-workspace").getBoundingClientRect();'+
     'return {display:getComputedStyle(node).display,buttons:node.querySelectorAll("button").length,'+
@@ -339,23 +509,43 @@ try{
   assert(strip.left>=strip.parentLeft-1&&strip.right<=strip.parentRight+1,
     'Compact action strip must not overflow a selected task card: '+JSON.stringify(strip));
   assert.deepEqual(exceptions,[],'React must not throw inside Chrome');
-  await evaluate('window.__reactTest.dispose()');
+  await click('#tab-workflow');
+  await click('#workflow-provider-toggle');
+  await checkEventually('document.getElementById("workflow-editor").inert');
+  await evaluate('(()=>{const s=window.__reactTest;s.detached={editor:document.getElementById("workflow-editor"),settings:document.getElementById("workflow-provider-settings"),navigation:document.querySelector(".workbench-nav"),menu:document.getElementById("extension-center-row-menu"),run:document.getElementById("script-run"),input:document.getElementById("workflow-ai-request")};s.beforeDispose=s.calls.length;s.dispose();})()');
   assert.equal(await evaluate('document.querySelectorAll("#extension-center-react-root").length'),0);
-  assert.equal(await evaluate('document.getElementById("workflow-provider-settings").closest(".workflow-composer")!==null'),true);
+  assert.equal(await evaluate('window.__reactTest.detached.settings.isConnected'),false,
+    'The React-owned settings subtree is removed on disposal');
   assert.equal(await evaluate('document.querySelectorAll("#workflow-settings-react-host > *").length'),0);
   assert.equal(await evaluate('document.querySelector("#extension-center-list") === null'),true,
     'React root unmount must remove the complete Extension Center view');
-  assert.equal(await evaluate('document.getElementById("extension-center").dataset.opendeskReactOwner'),undefined);
-  assert.equal(await evaluate('document.querySelector(".workbench-nav").dataset.opendeskReactOwner'),undefined);
-  assert.equal(await evaluate('document.querySelector(".workbench-nav").childElementCount'),0);
-  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu").dataset.opendeskReactOwner'),undefined);
-  assert.equal(await evaluate('document.querySelectorAll("#developer-page-fixture > *, #developer-dock-fixture > *").length'),0);
+  assert.equal(await evaluate('document.getElementById("extension-center")'),null);
+  assert.equal(await evaluate('document.querySelector(".workbench-nav")'),null);
+  assert.equal(await evaluate('document.querySelectorAll(".workbench-nav > *").length'),0);
+  assert.equal(await evaluate('document.querySelector("#extension-center-row-menu")'),null);
+  assert.equal(await evaluate('document.querySelectorAll("#develop-dock > *, #workbench-develop > *").length'),0);
   assert.equal(await evaluate('document.getElementById("workbench-develop")'),null);
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").childElementCount'),0);
+  assert.equal(await evaluate('window.__reactTest.detached.editor.inert'),false,
+    'Disposing an open sheet restores the editor inert state');
+  assert.equal(await evaluate('window.__reactTest.subscriptions.size'),0);
+  assert.equal(await evaluate('window.__reactTest.myView.subscriberCount'),0);
+  assert.deepEqual(await evaluate('window.__reactTest.developerView.resourceSnapshot()'),{subscriptions:0,actions:0});
+  await evaluate('(()=>{const s=window.__reactTest;s.detached.run.click();s.detached.navigation.querySelector("button").click();s.detached.input.dispatchEvent(new Event("input",{bubbles:true}));s.publishWorkflow({sourceName:"after disposal"});s.myView.setText("task-installed-count","after disposal");s.ui.renderNavigation("tools");})()');
+  await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  assert.equal(await evaluate('window.__reactTest.calls.length===window.__reactTest.beforeDispose'),true,
+    'Detached controls and late model updates must not invoke actions after unmount');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").childElementCount'),0,
+    'Late updates must not remount the disposed app');
+  assert.deepEqual(exceptions,[],'Disposal and late updates must not throw');
   console.log(JSON.stringify({kind:'SOURCE_UI_SIMULATION_CHROMIUM',status:'PASS',
-    browser:(await cdp('Browser.getVersion')).product,checks:['single root','real typing',
+    browser:(await cdp('Browser.getVersion')).product,binary:browser,
+    fixture:'src/ui/sidepanel.html',mode:'mountSidebarApp',checks:['single root','real typing',
     'React tab navigation','veto and arrow focus','filter selection','menu click','row menu trusted click','row click','React detail subtree','empty state',
     'trusted cleanup callback','live status','developer target indicator','developer run status',
-    'developer Run Save Stop trusted clicks','disabled Run state','code-type trusted radio','developer result text escape','unmount'],operations:recorded}));
+    'developer Run Save Stop trusted clicks','disabled Run state','code-type trusted radio','developer result text escape',
+    'workflow history and sheet focus','controlled draft and key input','retained task parameters',
+    'unmount subscriptions and inert cleanup','detached actions and late updates'],operations:await evaluate('window.__reactTest.calls')}));
 }catch(error){
   let snapshot;
   try{snapshot=await evaluate('({url:location.href,body:document.body.innerText.slice(0,4000),root:document.getElementById("extension-center")?.outerHTML.slice(0,1000),searchCount:document.querySelectorAll("#extension-center-search").length})');}

@@ -183,14 +183,14 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   const items=(await browser.send('Target.getTargets')).targetInfos;
   return items.find(x=>x.type==='service_worker'&&/^chrome-extension:\/\/[^/]+\/sw\.js/.test(x.url||''))?.url?.split('/')[2];
  },'MV3 worker');
- const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());host=ui.cdp;
+ const ui=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID());host=ui.cdp;
  await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-knowledge-inbox-install")'),'tool host');
  // Test harness control opens a real SIDE_PANEL with a real Chrome gesture.
  // It supplies no content, grants, package data or fake native acknowledgement.
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
  await evalIn(host,"(()=>{const b=document.createElement('button');b.id='knowledge-test-open-panel';b.textContent='Open test Side Panel';b.style.cssText='position:fixed;top:70px;left:20px;min-width:200px;min-height:45px;z-index:999999';b.addEventListener('click',()=>chrome.sidePanel.open({windowId:"+windowId+"}));document.body.append(b);return true;})()");
  await click(host,'#knowledge-test-open-panel');
- const context=await until(async()=>{const rows=await evalIn(host,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");return rows.find(x=>x.documentUrl?.includes('/ui/tool.html'));},'real SIDE_PANEL context');
+ const context=await until(async()=>{const rows=await evalIn(host,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");return rows.find(x=>x.documentUrl?.includes('/sidepanel.html'));},'real SIDE_PANEL context');
  const sideTarget=await until(async()=>{const {targetInfos}=await browser.send('Target.getTargets');return targetInfos.find(x=>x.url===context.documentUrl);},'Side Panel target');
  const attached=await browser.send('Target.attachToTarget',{targetId:sideTarget.targetId,flatten:true});
  side={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};

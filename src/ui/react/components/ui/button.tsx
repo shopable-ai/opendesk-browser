@@ -3,7 +3,7 @@ import * as React from 'react';
 // UI-only primitives inherit the existing OpenDesk tokens and native semantics.
 // React Aria / shadcn controls are a separate, still-unverified acceptance gate.
 export function Button({children,className='',variant='secondary',...props}){
-  const classes=['od-button',variant==='secondary'?'od-button--secondary':'',className]
+  const classes=['od-button',['primary','secondary','danger','quiet'].includes(variant)?'od-button--'+variant:'',className]
     .filter(Boolean).join(' ');
   return <button type="button" {...props} className={classes}>{children}</button>;
 }

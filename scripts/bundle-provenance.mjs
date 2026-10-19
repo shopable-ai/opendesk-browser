@@ -107,7 +107,7 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
-  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'5f22f27e452b675f3df48a044457fb7bfe2f76c5',
+  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'3f4c938e7591861333eb17eb41c6e54ca21ced79',
   'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
   'examples/sidebar-tools/stay-focus/trusted/model.js':'e160e2636a31a91815a7a8fb4e4e79437b83d137',
   'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
@@ -115,7 +115,7 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
   'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
   'examples/sidebar-tools/stay-focus/trusted/service.js':'57515710f0ef1529e0ef735d3ec8db7dcd26bf59',
-  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'959d53eaabbc069da91b339d9ae99ccf76057bca'
+  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'f2346baa8c80e0bd153d32e810f63caed8d105fd'
 });
 // The shared lifecycle module is statically linked by other approved hosts
 // (including knowledge-host). Reuse AdBlock's exact fixed-output registry:
@@ -140,13 +140,13 @@ function reviewedCompiledStayFocus(target,path,root){
 // symlinks and arbitrary examples/ files remain explicitly prohibited.
 // Updating application source requires a new source review and pin revision.
 const compiledAppOwnedBackgroundInputs=Object.freeze({
-  'examples/sidebar-tools/ai-vip-share/trusted/host-controls.js':'30a86232a207262bf5e2bbc96fd06ad2a725e551',
+  'examples/sidebar-tools/ai-vip-share/trusted/host-controls.js':'d00a67b654d109ac854fbd0691f263daabf6f607',
   'examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js':'340de54ab4aabec78b3e0c05145a7a752b74e506',
   'examples/sidebar-tools/ai-vip-share/trusted/policy.js':'949ae514645f5691244f185b07e835e7e132cb5d',
   'examples/sidebar-tools/ai-vip-share/trusted/provider-config.js':'d09c57ef4bbc96f406bb2092feb9ff9b2465cf43',
   'examples/sidebar-tools/ai-vip-share/trusted/service.js':'861861cfea1a02ccf4e7c3535372c4aba389a30c',
   'examples/sidebar-tools/ai-vip-share/trusted/tool-host.js':'5fe63cd1351f29e59c77da914e9cd5ef87a2ae4e',
-  'examples/sidebar-tools/time-review/trusted/host-controls.js':'41c78beecd5f3b28e291394714c75435d6b91d12',
+  'examples/sidebar-tools/time-review/trusted/host-controls.js':'6cb8a7e357a5a9f8011ae755dcbbbde6cde8578b',
   'examples/sidebar-tools/time-review/trusted/model.js':'eeac13501cad3717a53f8ad9a2b90a70d97e6e19',
   'examples/sidebar-tools/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
   'examples/sidebar-tools/time-review/trusted/service.js':'1b4dfe90936c70ef89e90dd87307b308ef30be68',

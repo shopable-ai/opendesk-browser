@@ -138,7 +138,7 @@ async function verifyBrowserUI({browser,page,catalogTabId,base,extensionId,outpu
       'explicit Chrome Side Panel open acknowledgement',15000);
     const sidebarTarget=await until(async()=>{
       const list=await (await fetch(base+'/json/list')).json();
-      return list.find(t=>t.url?.startsWith('chrome-extension://'+extensionId+'/ui/tool.html')&&
+      return list.find(t=>t.url?.startsWith('chrome-extension://'+extensionId+'/sidepanel.html')&&
         t.id!==catalogTabId&&t.webSocketDebuggerUrl);
     },'actual Chrome Side Panel CDP target',20000);
     sidebar=await cdp(sidebarTarget.webSocketDebuggerUrl);
@@ -483,7 +483,7 @@ async function main(){
     const request=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});
     assert.equal(request.status,200);
     const tab=await request.json();page=await cdp(tab.webSocketDebuggerUrl);
-    await page.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+    await page.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/sidepanel.html'});
     await until(()=>page.read('location.protocol==="chrome-extension:"&&document.readyState==="complete"'),
       'actual packaged extension page');
     assert.equal(await page.read('typeof Worker'),'function');

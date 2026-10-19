@@ -199,7 +199,7 @@ try{
  const bridge=await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.nativeConnected?r.result:null;},'real Native handshake');record('native.handshake',bridge);report.tests.push({name:'real-native-handshake',status:'PASS'});
  if(networkObservation){const workerInfo=(await(await fetch(base+'/json/list')).json()).find(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+extensionId+'/sw.js');assert.ok(workerInfo);observedWorker=await cdp(workerInfo.webSocketDebuggerUrl);await observePage(observedWorker,workerInfo);}
  await options.click('#bridge-refresh');await options.screenshot('native-options.png');
- const toolInfo=await newTab('about:blank');tool=toolInfo.session;await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+ const toolInfo=await newTab('about:blank');tool=toolInfo.session;await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/sidepanel.html'});
  await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.hostRegistrations?.length===1;},'registered original RunHost');
  const html=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
  const nonTargetPath='/reading-toc-article.html';
@@ -298,7 +298,7 @@ try{
    await until(()=>options.read('document.querySelector("#bridge-status")?.textContent.includes('+JSON.stringify('Extension ID：'+extensionId)+')'),'restarted Native settings');
    assert.equal(await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),true,'real Native permission persists across Chrome exit');
    await until(async()=>{const state=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return state.result?.nativeConnected;},'restarted Native connection');
-   tool=(await newTab('chrome-extension://'+extensionId+'/ui/tool.html')).session;
+   tool=(await newTab('chrome-extension://'+extensionId+'/sidepanel.html')).session;
    const freshTarget=await newTab(url);target=freshTarget.session;
    await browser.call('Target.activateTarget',{targetId:freshTarget.tab.id});
    await until(()=>target.read('document.readyState==="complete"'),'restarted demo document');
@@ -424,7 +424,7 @@ try{
  const action=async()=>{await browser.call('Target.activateTarget',{targetId:actionTabs[0].targetId});const ack=await browser.call('Extensions.triggerAction',{id:extensionId,targetId:actionTabs[0].targetId});record('sidebar.browser-action',{targetId:actionTabs[0].targetId,ack});};
  const contexts=()=>options.read('chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
  async function openPanel(){
-  await action();const context=await until(async()=>{const rows=(await contexts()).filter(x=>x.documentUrl.includes('/ui/tool.html?'));return rows.length===1?rows[0]:null;},'actual Side Panel context');
+  await action();const context=await until(async()=>{const rows=(await contexts()).filter(x=>x.documentUrl.includes('/sidepanel.html?'));return rows.length===1?rows[0]:null;},'actual Side Panel context');
   const panelTarget=await until(async()=>{const rows=await(await fetch(base+'/json/list')).json();return rows.find(x=>x.url===context.documentUrl);},'actual Side Panel CDP target');
   tool=await cdp(panelTarget.webSocketDebuggerUrl);if(networkObservation)await observePage(tool,panelTarget);
   const status=await until(async()=>{const r=(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result;return r.hostRegistrations.length===1?r:null;},'actual Side Panel Host');

@@ -94,7 +94,7 @@ async function observe(label){
           ? `(async()=>({contexts:await chrome.runtime.getContexts({}),tabs:await chrome.tabs.query({}),tools:await chrome.storage.local.get(null)}))()`
           : `(()=>{const v=n=>Boolean(n.getClientRects().length);return {url:location.href,title:document.title,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,iframeCount:document.querySelectorAll('iframe').length,chromeApis:{runtime:typeof globalThis.chrome?.runtime,tabs:typeof globalThis.chrome?.tabs,storage:typeof globalThis.chrome?.storage},controls:[...document.querySelectorAll('[id],button')].filter(v).map(n=>({id:n.id,text:n.textContent?.slice(0,200),value:n.value,disabled:n.disabled,rect:{x:n.getBoundingClientRect().x,y:n.getBoundingClientRect().y,width:n.getBoundingClientRect().width,height:n.getBoundingClientRect().height}})),images:[...document.images].map(n=>({complete:n.complete,naturalWidth:n.naturalWidth,src:n.src.slice(0,60)}))};})()`,id);
         observations.push({target,state});
-        if(target.url.includes('/ui/tool.html')||target.url.includes('/sidebar-tools/sandbox.html')){
+        if(target.url.includes('/sidepanel.html')||target.url.includes('/sidebar-tools/sandbox.html')){
           const shot=await client.send('Page.captureScreenshot',{format:'png'},id);
           await writeFile(path.join(directory,label+'-'+target.targetId+'.png'),Buffer.from(shot.data,'base64'));
         }

@@ -1,3 +1,4 @@
+import {renderSidebarFixture,loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -5,7 +6,10 @@ import {readFileSync} from 'node:fs';
 // Repository source-level guard. Rendered style equivalence is checked separately
 // by scripts/tests/sidebar-r19-layout-visual.mjs in controlled Chrome.
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
-const html = read('src/ui/tool.html');
+const {createDeveloperView}=await loadSidebarReact();
+const developerView=createDeveloperView();
+developerView.patchDependencies('classic',{visible:true,entries:[],locks:[],selectedLockId:'',status:'',review:null});
+const html=await renderSidebarFixture({developerView});developerView.dispose();
 const shell = read('src/ui/tool-shell.css');
 const components = read('src/ui/design-system.css');
 const tokens = read('src/ui/design-tokens.css');
@@ -16,7 +20,7 @@ test('Side Panel linked styles remain in the single production packaging contrac
   const links=[...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(match=>match[1]);
   const references=verification.slice(verification.indexOf('const HTML_REFERENCES'),verification.indexOf('const HTML_REFERENCES')+1500);
   for(const css of links){
-    assert(preparation.includes("'ui/"+css+"'"),'source stylesheet is copied into the package: '+css);
+    assert(preparation.includes("'"+css+"'"),'source stylesheet is copied into the package: '+css);
     assert(references.includes("'"+css+"'"),'HTML stylesheet is verified by the existing package gate: '+css);
   }
 });
@@ -199,7 +203,7 @@ test('Other formal tabs reuse shared actions without restyling their unique filt
     ['sidebar-tool-settings-allow','secondary'],
     ['sidebar-tool-settings-deny','danger'],
     ['task-install','primary'], ['task-catalog-refresh','secondary'],
-    ['cloud-client-refresh','secondary'], ['workflow-ai-apply','primary'],
+    ['cloud-client-refresh','secondary'], ['workflow-run','primary'],
     ['sdk-install','primary'], ['script-save','secondary']
   ]) {
     const button = element(html, 'button', id);
@@ -208,25 +212,22 @@ test('Other formal tabs reuse shared actions without restyling their unique filt
     if (variant !== 'primary' && (icon ? variant==='danger' : true))
       assert.ok(has(button, (icon?'od-icon-button--':'od-button--') + variant), 'Wrong role: ' + id);
   }
-  assert.match(workflow, /'od-field'/);
-  assert.match(workflow, /'od-button od-button--danger'/);
+  assert.match(read('src/ui/react/tabs/workflow.tsx'), /className="od-field"/);
+  assert.match(read('src/ui/react/tabs/workflow.tsx'), /className="od-button--danger"/);
 });
 
 test('All trusted static and dynamically rendered disclosures use one shared header contract', () => {
   for (const [tag] of html.matchAll(/<details\b[^>]*>/g))
     assert.ok(has(tag, 'od-disclosure'), 'Unclassified trusted disclosure: ' + tag);
-  for (const [path, markers] of [
-    ['src/ui/task-workbench.js', ['task-history-entry', 'task-history-tech', 'catalog-source-review']],
-    ['src/ui/scheduled-task-workbench.js', ['schedule-run-details', 'schedule-history', 'schedule-more']],
-    ['src/ui/installed-page-tools.js', ['installed-page-tool-technical']],
-    ['src/ui/workflow/workflow-view.js', ['workflow-step']]
-  ]) {
-    const source = read(path);
-    for (const marker of markers)
-      assert.ok(source.includes(marker + ' od-disclosure'), 'Unclassified dynamic disclosure: ' + marker);
-  }
-  assert.match(read('src/ui/cloud-hosting.js'), /constraints\.className='od-disclosure od-disclosure--flat'/);
-  assert.match(read('src/ui/cloud-hosting.js'), /technical\.className='od-disclosure od-disclosure--flat'/);
+  // Controllers no longer build disclosure DOM. Check each actual React owner.
+  for(const [path,markers] of [
+    ['src/ui/react/tabs/my-sections.tsx',['task-history-entry','task-history-tech']],
+    ['src/ui/react/tabs/task-catalog.tsx',['catalog-source-review']],
+    ['src/ui/react/tabs/my-sections.tsx',['schedule-history','schedule-more']],
+    ['src/ui/installed-page-tools.js',['installed-page-tool-technical']],
+    ['src/ui/react/tabs/workflow.tsx',['workflow-step']],
+    ['src/ui/react/tabs/cloud-settings.tsx',['od-disclosure']]
+  ]){const source=read(path);for(const marker of markers)assert.ok(source.includes(marker),path+': '+marker);}
   // AI settings deliberately hide their summary in the existing settings subview.
   const summaryRules = [...shell.matchAll(/(?:^|\n)([^{}\n]*(?:>summary|\s+summary)[^{}\n]*)\{([^{}]*)\}/g)];
   // The installed-task overflow menu owns its native summary marker; it

@@ -1,0 +1,35 @@
+import {readFile} from 'node:fs/promises';
+import {transform} from 'esbuild';
+import {parseHTML} from 'linkedom';
+import * as React from 'react';
+import {flushSync} from 'react-dom';
+import {createRoot} from 'react-dom/client';
+
+const result=await transform(await readFile(new URL('../../src/ui/react/tabs/trusted-settings.tsx',import.meta.url),'utf8'),
+  {loader:'tsx',format:'esm',jsx:'transform'});
+export const settingsModuleURL='data:text/javascript;base64,'+Buffer.from(result.code.replace('"react"',JSON.stringify(import.meta.resolve('react')))).toString('base64');
+const components=await import(settingsModuleURL);
+const names={timeReview:'TimeReviewSettings',stayFocus:'StayFocusSettings',aiAccess:'AiAccessSettings'};
+const actionNames={'stay-focus-enable-native':'grant','stay-focus-disable':'stop','stay-focus-clear-open':'openClear',
+  'stay-focus-clear-approve':'approveClear','stay-focus-clear-cancel':'cancelClear','ai-access-toggle':'toggle',
+  'ai-access-local-activate':'activate'};
+export function settingsReactFixture(kind,t){
+  const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const previous={window:globalThis.window,document:globalThis.document};
+  globalThis.window=window;globalThis.document=document;
+  const mount=document.getElementById('mount'),root=createRoot(mount);
+  let model=null,actions=null,closed=false;
+  const paint=()=>{if(!closed)flushSync(()=>root.render(React.createElement(components[names[kind]],{model,actions})));};
+  const ui={render(next){model=next;paint();},connect(next){actions=next;paint();}};
+  const close=async()=>{
+    if(closed)return;closed=true;flushSync(()=>root.unmount());
+    await new Promise(resolve=>setImmediate(resolve));
+    globalThis.window=previous.window;globalThis.document=previous.document;
+  };
+  t?.after(close);
+  return {root:mount,doc:document,document,window,ui,close,find:id=>document.getElementById(id),
+    get model(){return model;},get actions(){return actions;},
+    // Controller tests inject a trust fixture into explicit actions. Separate
+    // React event tests prove the original native object is forwarded unchanged.
+    invoke(id,event={isTrusted:true}){return actions?.[actionNames[id]||id]?.(event);}};
+}

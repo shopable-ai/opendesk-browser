@@ -1,10 +1,11 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 // Incremental React ownership guard. Source checks do not certify native behavior.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {load} from 'cheerio';
-import {transformWithEsbuild} from 'vite';
+import {transform} from 'esbuild';
 const read=path=>readFile(path,'utf8');
 
 async function productionReactFiles(directory){
@@ -20,7 +21,7 @@ async function productionReactFiles(directory){
 
 test('R35.4 guards one trusted React root, fixed entry and exact workbench IDs',async()=>{
   const [html,root,entry,host,shell]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/react/main.tsx'),
+    renderSidebarFixture(),read('src/ui/react/main.tsx'),
     read('src/entrypoints/tool-shell.js'),read('src/ui/tool-shell.js'),
     read('src/ui/react/app-shell.tsx')
   ]);
@@ -30,17 +31,18 @@ test('R35.4 guards one trusted React root, fixed entry and exact workbench IDs',
   for(const name of ['tasks','tools','workflow','develop','cloud']){
     assert.equal($('[data-workbench-tab="'+name+'"]').length,1,name);
     const source=name==='tools'?shell:await read('src/ui/react/tabs/'+pages[name]+'.tsx');
+    assert.equal($('#workbench-'+name+'[role=tabpanel]').length,1,name+' rendered owner');
     assert.equal((source.match(new RegExp('id="workbench-'+name+'"','g'))||[]).length,1,name);
     assert.match(source,new RegExp('data-workbench-page="'+name+'"'),name);
   }
   assert.equal($('#extension-center').length,1);
-  assert.equal($('#cloud-request-samples').length,0,
+  assert.equal($('#cloud-request-samples').length,1,
     'React request history must not regain a second static implementation');
-  assert.equal($('#cloud-first-run').length,0,
+  assert.equal($('#cloud-first-run').length,1,
     'React first-run must not regain a second static implementation');
   assert.match(entry,/initToolShell/);
-  assert.match(host,/mountExtensionList\(document,\{debugEnabled,appShell:true,/);
-  assert.match(root,/createRoot\(shell\?\.mount\|\|section\)/);
+  assert.match(host,/mountSidebarApp\(document,\{debugEnabled,/);
+  assert.match(root,/createRoot\(mount\)/);
   assert.doesNotMatch(shell,/\bcreateRoot\s*\(|\bcreatePortal\s*\(/);
   for(const directory of ['packages/opendesk-ui-react','src/ui-react','src/new-sidebar'])
     assert.equal(existsSync(directory),false,'forbidden duplicate UI source: '+directory);
@@ -48,7 +50,7 @@ test('R35.4 guards one trusted React root, fixed entry and exact workbench IDs',
   let roots=0;
   for(const path of tsx){
     const source=path==='src/ui/react/main.tsx'?root:await read(path);
-    const parsed=await transformWithEsbuild(source,path,{loader:'tsx',jsx:'transform',target:'es2022'});
+    const parsed=await transform(source,{loader:'tsx',jsx:'transform',target:'es2022'});
     assert.ok(parsed.code.length>0,path+' must compile');
     roots+=(source.match(/\bcreateRoot\s*\(/g)||[]).length;
   }

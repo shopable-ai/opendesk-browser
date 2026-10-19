@@ -40,8 +40,8 @@ async function evaluate(expression){const r=await cdp('Runtime.evaluate',{expres
 try{
   await freeze('scripts/tests/extension-center-r43-layout.mjs');
   await freeze('src/ui/extension-center.js');
-  for(const p of ['src/ui/tool.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/extension-center.css'])await freeze(p);
-  const source=files.get('src/ui/tool.html').toString();
+  for(const p of ['src/ui/sidepanel.html','src/ui/design-tokens.css','src/ui/design-system.css','src/ui/extension-center.css'])await freeze(p);
+  const source=files.get('src/ui/sidepanel.html').toString();
   const start=source.indexOf('<section id="extension-center"');
   const end=source.indexOf('<div class="sidebar-tools-head',start);
   if(start<0||end<0)throw Error('Actual Extension Center markup boundaries missing');

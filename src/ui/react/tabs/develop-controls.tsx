@@ -17,7 +17,7 @@ export function DevelopField({as:Tag='div',id,children,...props}){
   if(!field)throw new Error('E_DEVELOPER_FIELD: '+id);
   const ref=React.useCallback(node=>{if(node)refs.current.set(id,node);else refs.current.delete(id);},[refs,id]);
   const attrs={...props,id,ref,hidden:field.hidden,disabled:field.disabled,
-    title:field.title||props.title,className:field.className||props.className};
+    title:field.title??props.title,className:field.className??props.className};
   for(const [key,value] of Object.entries(field.data||{}))attrs['data-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())]=value;
   for(const key of ['ariaLabel','ariaLive'])if(field[key]!==undefined)attrs[key==='ariaLabel'?'aria-label':'aria-live']=field[key];
   const invoke=(event,values)=>{if(values)model.patch(id,values);actions[id]?.(event.nativeEvent);};
@@ -26,7 +26,7 @@ export function DevelopField({as:Tag='div',id,children,...props}){
     if(props.type==='radio'||props.type==='checkbox'){
       attrs.checked=field.checked;attrs.value=field.value;
       const change=event=>{if(event.currentTarget.checked===model.fields[id].checked)return;invoke(event,{checked:event.currentTarget.checked});};
-      attrs.onChange=change;if(props.type==='radio')attrs.onClick=change;
+      attrs.onChange=change;
     }else{
       attrs.value=field.value;attrs.onChange=()=>{};
       attrs.onInput=event=>invoke(event,{value:event.currentTarget.value});

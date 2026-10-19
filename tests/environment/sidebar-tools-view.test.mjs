@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
+import {settingsModuleURL} from '../helpers/trusted-settings-react-fixture.mjs';
+import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -12,9 +14,14 @@ import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 
 const compiled = await transform(await readFile(new URL('../../src/ui/react/tabs/tool-host.tsx', import.meta.url), 'utf8'),
   {loader: 'tsx', format: 'esm', jsx: 'transform'});
-const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react')));
+const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta.resolve('react'))).replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL));
 const {ToolHost} = await import('data:text/javascript;base64,' + Buffer.from(moduleSource).toString('base64'));
 const nextTick = () => new Promise(resolve => setImmediate(resolve));
+
+test('a missing React view cannot initialize a second DOM owner', () => {
+  const doc = new Proxy({}, {get() {assert.fail('missing View must fail before touching DOM');}});
+  assert.throws(() => createSidebarTools({doc}), /E_SIDEBAR_TOOLS_VIEW_REQUIRED/);
+});
 
 test('view patches real state, batches subscriptions, preserves snapshots and releases event/row bindings', async () => {
   const view = createSidebarToolsView(), before = view.getSnapshot();
@@ -40,11 +47,18 @@ test('view patches real state, batches subscriptions, preserves snapshots and re
   let received;
   const nativeEvent = {isTrusted: true};
   const unbind = view.bind('sidebar-tool-install', 'click', event => {received = event;});
+  assert.throws(() => view.bind('sidebar-tool-install', 'click', () => {}), /E_SIDEBAR_TOOL_ACTION_OWNER/,
+    'a second owner cannot silently add or replace a controller action');
   view.patch('sidebar-tool-install', {disabled: false});
   view.dispatch('sidebar-tool-install', 'click', nativeEvent);
   assert.equal(received, nativeEvent, 'the exact event reaches the controller synchronously');
   unbind(); received = null;
   view.dispatch('sidebar-tool-install', 'click', nativeEvent); assert.equal(received, null);
+  const releaseReplacement = view.bind('sidebar-tool-install', 'click', event => {received = event;});
+  unbind();
+  view.dispatch('sidebar-tool-install', 'click', nativeEvent);
+  assert.equal(received, nativeEvent, 'late cleanup cannot remove a new owner');
+  releaseReplacement();
   const calls = [], rows = [{id: 'https://one.test', text: 'one', label: '撤销', disabled: false}];
   view.setRows('sidebar-tool-cookie-other-sites', rows, '无授权', (...args) => calls.push(args));
   rows[0].text = 'mutated';
@@ -65,6 +79,7 @@ test('view patches real state, batches subscriptions, preserves snapshots and re
 
 test('SSR contains import, execution display and trusted reviews, with one owner and escaped source', () => {
   const view = createSidebarToolsView();
+  createTimeReviewPermissionControls({ui:view.trustedSettings.timeReview,notice(){},api:{},runOperation(){}});
   view.patch('sidebar-tool-import', {hidden: false});
   view.patch('sidebar-tool-preview-title', {textContent: '<script>untrusted()</script>'});
   view.patch('sidebar-tool-retired-draft-text', {value: '<img src=x onerror=untrusted()>'});
@@ -110,7 +125,7 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
     const frame = document.createElement('iframe'); frame.dataset.instance = 'original-installation';
     view.runtime.frameRoot.append(frame);
     const trusted = document.createElement('button'); trusted.id = 'trusted-business-owner';
-    view.runtime.trustedSettings.append(trusted);
+    view.runtime.frameRoot.append(trusted);
     const release = view.bind('sidebar-tool-install', 'click', event => calls.push(['install', event]));
     return {ready: Promise.resolve(), setVisible: value => calls.push(['visible', value]),
       ...Object.fromEntries(methods.map(name => [name, (...args) => {calls.push([name, ...args]); return name;}])),
@@ -156,21 +171,22 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   const languageEvent = new window.Event('change', {bubbles: true});
   await React.act(async () => language.dispatchEvent(languageEvent));
   assert.deepEqual(rows.at(-1), ['en', languageEvent]);
-  const file = {name: 'alpha.opendesk-tool.json'}, selections = [], cancellations = [];
+  const file = {name: 'alpha.opendesk-tool.json'}, selections = [], selectedFiles = [], cancellations = [];
   const input = document.getElementById('sidebar-tool-file');
   Object.defineProperty(input, 'files', {configurable: true, value: [file]});
-  const unbindFile = view.bind('sidebar-tool-file', 'change', event => selections.push(event));
+  const unbindFile = view.bind('sidebar-tool-file', 'change', event => {selections.push(event); selectedFiles.push(event.target.files[0]);});
   const unbindCancel = view.bind('sidebar-tool-file', 'cancel', event => cancellations.push(event));
   input.value = 'alpha.opendesk-tool.json';
   const fileEvent = new window.Event('change', {bubbles: true});
   await React.act(async () => input.dispatchEvent(fileEvent));
   assert.deepEqual(selections, [fileEvent]);
-  assert.equal(view.fields['sidebar-tool-file'].files[0], file);
+  assert.deepEqual(selectedFiles, [file], 'the controller reads the real input FileList synchronously');
+  assert.equal(view.fields['sidebar-tool-file'].files, undefined, 'the view does not copy browser resources');
   const cancelEvent = new window.Event('cancel'); input.dispatchEvent(cancelEvent);
   assert.deepEqual(cancellations, [cancelEvent]);
   await React.act(async () => view.patch('sidebar-tool-file', {value: ''}));
   assert.equal(input.value, '');
-  assert.deepEqual(view.fields['sidebar-tool-file'].files, []);
+  assert.equal(view.fields['sidebar-tool-file'].files, undefined);
   unbindFile(); unbindCancel();
   unbindLanguage();
   await React.act(async () => root.unmount());
@@ -193,6 +209,55 @@ test('runtime detachment rejects pending readiness, never replays actions, and i
   assert.equal(disposeCount, 1);
   assert.throws(() => facade.openTool('alpha'), /E_SIDEBAR_TOOL_VIEW_DISPOSED/);
   view.dispose();
+});
+
+test('failed runtime initialization releases attachment for retry without deleting caller-owned DOM', async () => {
+  const {document}=parseHTML('<html><body></body></html>'),view=createSidebarToolsView();
+  const nodes=()=>Object.fromEntries(Object.keys(view.runtime).map(key=>[key,document.createElement(key==='settingsControl'?'button':'div')]));
+  const first=nodes(),frame=document.createElement('iframe');
+  first.frameRoot.append(frame);document.body.append(first.frameRoot);
+  const failure=new Error('E_TEST_FACTORY');
+  const facade=view.connect(()=>{view.bind('sidebar-tool-install','click',()=>{});throw failure;});
+  assert.throws(()=>view.attachRuntime(first),error=>error===failure);
+  await assert.rejects(facade.ready,error=>error===failure);
+  assert.deepEqual(view.resourceSnapshot(),{subscriptions:0,bindings:0,runtime:false,controllers:0,effects:0});
+  assert.ok(Object.values(view.runtime).every(node=>node===null));
+  assert.equal(frame.parentNode,first.frameRoot,'View rollback must not remove another DOM owner');
+  let disposed=0;
+  const retry=view.connect(()=>({ready:Promise.resolve(),dispose(){disposed++;}}));
+  const second=nodes(),detach=view.attachRuntime(second);await retry.ready;
+  assert.equal(view.runtime.frameRoot,second.frameRoot);
+  detach();detach();retry.dispose();view.dispose();
+  assert.equal(disposed,1);
+});
+
+test('initialization failure survives throwing controller cleanup and releases runtime', async () => {
+  const {document}=parseHTML('<html><body></body></html>'),view=createSidebarToolsView();
+  const nodes=Object.fromEntries(Object.keys(view.runtime).map(key=>[key,document.createElement('div')]));
+  const failure=new Error('E_TEST_VISIBLE');let disposed=0;
+  const facade=view.connect(()=>({ready:Promise.resolve(),setVisible(){throw failure;},
+    dispose(){disposed++;throw new Error('E_TEST_CLEANUP');}}));
+  facade.setVisible(true);
+  assert.throws(()=>view.attachRuntime(nodes),error=>error===failure);
+  await assert.rejects(facade.ready,error=>error===failure);
+  assert.equal(disposed,1);
+  assert.deepEqual(view.resourceSnapshot(),{subscriptions:0,bindings:0,runtime:false,controllers:0,effects:0});
+  assert.ok(Object.values(view.runtime).every(node=>node===null));
+  view.dispose();
+});
+
+test('view disposal completes and remains idempotent when controller cleanup throws', () => {
+  const {document}=parseHTML('<html><body></body></html>'),view=createSidebarToolsView();
+  const nodes=Object.fromEntries(Object.keys(view.runtime).map(key=>[key,document.createElement('div')]));
+  const failure=new Error('E_TEST_DISPOSE');let disposed=0;
+  view.subscribe(()=>{});view.trustedSettings.timeReview.connect({close(){}});
+  view.connect(()=>({ready:Promise.resolve(),dispose(){disposed++;throw failure;}}));
+  view.attachRuntime(nodes);
+  assert.throws(()=>view.dispose(),error=>error===failure);
+  assert.deepEqual(view.resourceSnapshot(),{subscriptions:0,bindings:0,runtime:false,controllers:0,effects:0});
+  assert.deepEqual(Object.keys(view.trustedSettingsActions),[]);
+  view.subscribe(()=>{});view.dispose();
+  assert.equal(view.resourceSnapshot().subscriptions,0);assert.equal(disposed,1);
 });
 
 test('real sidebar controller initializes with React DOM runtime, reaches ready and releases Cookie click bindings', {timeout: 10000}, async t => {
@@ -234,7 +299,19 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
     addListener: listener => storageListeners.add(listener),
     removeListener: listener => {assert.ok(storageListeners.delete(listener));}
   }}};
-  const facade = createSidebarTools({view, doc: document, api,
+  const controllerDoc = {
+    documentElement: document.documentElement,
+    getElementById(id) {
+      assert.doesNotMatch(id, /^(sidebar-tool-|page-install-import-)/, 'presentation fields come from View');
+      return document.getElementById(id);
+    },
+    querySelectorAll: selector => document.querySelectorAll(selector),
+    createElement(tag) {
+      assert.equal(tag, 'iframe', 'the Host may create only its real sandbox transport');
+      return document.createElement(tag);
+    }
+  };
+  const facade = createSidebarTools({view, doc: controllerDoc, api,
     lockManager: {request: (_name, work) => Promise.resolve().then(work)},
     fetcher: async url => {
       fetched.push(url);
@@ -280,8 +357,11 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.equal(view.fields['sidebar-tool-cookie-permissions'].hidden, false);
   const key = 'sidebar-tool-cookie-site-toggle', button = document.getElementById(key);
   assert.equal(button.disabled, false);
-  assert.equal(view.actions[key]?.click.size, 1, 'the real controller registers its Cookie handler through view.bind');
-  const clicks = [], releaseObserver = view.bind(key, 'click', event => clicks.push(event));
+  const cookieAction = view.actions[key]?.click;
+  assert.equal(typeof cookieAction, 'function', 'the real controller owns one Cookie action');
+  const clicks = [];
+  // Instrument the existing action rather than installing a second listener.
+  view.actions[key].click = event => {clicks.push(event); return cookieAction(event);};
   const click = new window.Event('click', {bubbles: true});
   await React.act(async () => button.dispatchEvent(click));
   assert.deepEqual(clicks, [click], 'React forwards the real DOM event to the bound controller action');
@@ -297,7 +377,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
   assert.equal(view.resourceSnapshot().controllers, 0);
   button.dispatchEvent(new window.Event('click', {bubbles: true}));
   assert.deepEqual(clicks, [click], 'disposed bindings cannot receive subsequent DOM clicks');
-  releaseObserver(); facade.dispose();
+  facade.dispose();
   await React.act(async () => root.unmount()); mounted = false;
   assert.deepEqual(view.resourceSnapshot(), {subscriptions: 0, bindings: 0, runtime: false, controllers: 0, effects: 0});
   assert.ok(Object.values(view.runtime).every(node => node === null));

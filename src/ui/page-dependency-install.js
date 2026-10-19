@@ -4,9 +4,9 @@ import {inferPageEntryFormat,assertPageSourceReadyToRun} from './page-dependenci
 
 // UI state/actions for the existing dependency manager. Prepare, optional manual
 // approval and execution remain independent. No downloaded code runs in this UI.
-export function createPageDependencyInstaller({client,api,document:doc,view,resolver,getSource,getProgramId,
+export function createPageDependencyInstaller({client,api,view,resolver,getSource,getProgramId,
   isBlocked=()=>false,isVisible=()=>true,onState=()=>{}}) {
-  if(!view&&!doc?.getElementById('page-dependency-panel'))
+  if(!view)
     return Object.freeze({update(){},refresh(){},get readyForRun(){return true;},confirmRun(){return Promise.resolve(true);},dispose(){}});
   let disposed=false,busy=false,generation=0,permissionGeneration=0,sourceIdentity=null;
   let report=null,selected=new Map(),review=null,reviewSource=null,reviewProgramId=null;
@@ -48,7 +48,7 @@ export function createPageDependencyInstaller({client,api,document:doc,view,reso
       approveDisabled:busy||!review||isBlocked()||checks.size!==review?.entries.length||
         reviewSource!==currentSource()||reviewProgramId!==currentProgram(),
       review:review?{reviewId:review.reviewId,entries:review.entries.map(entry=>({...entry,checked:checks.has(entry.order)}))}:null};
-    if(view)view.patchDependencies('classic',projection);else legacy.render(projection);
+    view.patchDependencies('classic',projection);
   }
   function render(notify=true){
     if(disposed)return;
@@ -155,8 +155,7 @@ export function createPageDependencyInstaller({client,api,document:doc,view,reso
     },
     chooseLock(value){if(disposed||busy||isBlocked())return;resolver.chooseLock(value);render();}
   });
-  const legacy=view?null:mountLegacyInstaller(doc,actions);
-  if(view)view.actions.pageDependencies=actions;
+  view.actions.pageDependencies=actions;
   render(false);
   return Object.freeze({update:()=>render(false),refresh,confirmRun,
     get readyForRun(){
@@ -165,65 +164,7 @@ export function createPageDependencyInstaller({client,api,document:doc,view,reso
       if(!hasRequires)return true;
       return !!report&&report===currentReport()&&(!networkOrigins().length||readyForPermission);
     },get busy(){return busy;},dispose(){
-      if(disposed)return;disposed=true;generation++;permissionGeneration++;permissions.dispose();legacy?.dispose();
-      if(view&&view.actions.pageDependencies===actions){delete view.actions.pageDependencies;view.patchDependencies('classic',null);}
+      if(disposed)return;disposed=true;generation++;permissionGeneration++;permissions.dispose();
+      if(view.actions.pageDependencies===actions){delete view.actions.pageDependencies;view.patchDependencies('classic',null);}
     }});
-}
-
-// Isolated legacy fixtures only. React view mode never queries or mutates nodes.
-function mountLegacyInstaller(doc,actions){
-  const get=id=>doc.getElementById(id),panel=get('page-dependency-panel'),status=get('page-dependency-status'),
-    list=get('page-dependency-list'),prepare=get('page-dependency-prepare'),reviewPanel=get('page-dependency-review'),
-    reviewList=get('page-dependency-review-list'),approve=get('page-dependency-approve'),lock=get('page-dependency-lock');
-  const listeners=[],checks=new Map();let reviewId=null;
-  const listen=(node,event,fn)=>{node.addEventListener(event,fn);listeners.push(()=>node.removeEventListener(event,fn));};
-  const option=row=>{const node=doc.createElement('option');node.value=row.value;node.textContent=row.label;return node;};
-  const paragraph=(parent,text,className='hint')=>{
-    const node=doc.createElement('p');node.className=className;node.textContent=text;parent.append(node);
-  };
-  listen(prepare,'click',actions.prepare);listen(approve,'click',actions.approve);
-  listen(list,'change',event=>{const order=event.target?.dataset?.dependencyOrder;
-    if(order!==undefined)actions.chooseAcquisition(Number(order),event.target.value);});
-  listen(reviewList,'change',()=>{
-    const values=[...checks].map(([order,node])=>[order,node.checked]);
-    for(const [order,checked] of values)actions.checkReview(order,checked,reviewId);
-  });
-  listen(lock,'change',event=>actions.chooseLock(event.target.value));
-  return {render(model){
-    panel.hidden=!model.visible;status.dataset.state=model.statusState;status.textContent=model.status;
-    prepare.disabled=model.prepareDisabled;prepare.textContent=model.prepareLabel;approve.disabled=model.approveDisabled;
-    const rows=model.entries.map(row=>{
-      const container=doc.createElement('div');container.className='od-surface od-stack';
-      paragraph(container,(row.name||'第三方库')+' · 版本 '+(row.version||'未识别')+' · '+
-        (row.sourceKind==='packaged'?'扩展预装':row.cacheChoices?.length?'本程序有已审核缓存':
-          row.sharedCacheChoices?.length?'发现跨程序已审核字节':'首次需要下载'),'identity');
-      paragraph(container,'来源：'+(row.url||row.raw));
-      paragraph(container,'许可证：'+(row.license?.name||'尚未核实，请自行检查来源与许可证')+' · '+
-        (row.downloadError?'不支持：'+row.downloadError.message:'运行时自动固定并校验'));
-      const picker=doc.createElement('select');picker.dataset.dependencyOrder=String(row.order);
-      picker.setAttribute('aria-label','第 '+(row.order+1)+' 项依赖的获取方式');
-      picker.append(...row.options.map(option));picker.disabled=row.disabled;picker.value=row.value;container.append(picker);
-      if(row.downloadError)paragraph(container,row.downloadError.code+'：'+row.downloadError.message);
-      return container;
-    });
-    list.replaceChildren(...rows);lock.hidden=model.locks.length<=1;lock.disabled=model.lockDisabled;
-    lock.replaceChildren(option({value:'',label:'多份固定版本：请选择本次执行的锁'}),...model.locks.map(option));lock.value=model.selectedLockId;
-    if(reviewId!==(model.review?.reviewId||null)){
-      reviewId=model.review?.reviewId||null;checks.clear();const sections=[];
-      for(const entry of model.review?.entries||[]){
-        const section=doc.createElement('div');section.className='od-stack';
-        paragraph(section,(entry.name||'库')+' · 固定版本 '+(entry.version||'未识别')+'\n来源：'+entry.url+
-          '\n实际来源：'+entry.resolvedUrl+'\n获得方式：'+entry.acquisition+'\n大小：'+entry.byteLength+' bytes'+
-          '\nSHA-256：'+entry.sha256+'\n许可证：'+(entry.license?.name||'未知；用户须自行确认合规')+
-          '\n验证：'+(entry.integrityResult?.verified?.join('、')||'原始字节 SHA-256')+'\n运行世界：'+entry.world+
-          '\n安全风险：'+(entry.risk||'第三方代码可以访问获准页面 DOM 和网页允许的网络渠道'),'identity');
-        const label=doc.createElement('label'),check=doc.createElement('input');check.type='checkbox';checks.set(entry.order,check);
-        label.append(check,doc.createTextNode(' 已核对这份代码的来源、完整 SHA 与风险，允许为当前程序建立依赖锁'));
-        section.append(label);sections.push(section);
-      }
-      reviewList.replaceChildren(...sections);if(model.review)reviewPanel.open=true;
-    }
-    for(const entry of model.review?.entries||[])checks.get(entry.order).checked=entry.checked;
-    reviewPanel.hidden=!model.review;
-  },dispose(){listeners.forEach(remove=>remove());}};
 }

@@ -1,5 +1,7 @@
 // Pure identity/locator parsing shared by trusted navigation and host admission.
 // A locator selects existing UI; it never approves installation, a Task or a run.
+export const SIDEPANEL_DOCUMENT_PATH='sidepanel.html';
+export const SIDEPANEL_DOCUMENT_PATHNAME='/'+SIDEPANEL_DOCUMENT_PATH;
 const TOOL_ID=/^[a-z][a-z0-9-]{1,39}$/;
 const PREVIEW_ID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const HOST_INSTANCE_ID=/^[A-Za-z0-9._:-]{1,128}$/;
@@ -9,7 +11,8 @@ export const validHostInstanceId=id=>typeof id==='string'&&HOST_INSTANCE_ID.test
 export function toolDocumentIdentity(baseAddress,address){
   try{
     const base=new URL(baseAddress),url=new URL(address);
-    if(url.protocol!==base.protocol||url.host!==base.host||url.pathname!==base.pathname||
+    if(base.protocol!=='chrome-extension:'||base.pathname!==SIDEPANEL_DOCUMENT_PATHNAME||
+      url.protocol!==base.protocol||url.host!==base.host||url.pathname!==base.pathname||
       url.hash||url.username||url.password)return null;
     const pairs=[...url.searchParams],keys=new Set(pairs.map(([key])=>key));
     if(pairs.length!==keys.size||[...keys].some(key=>!['hostInstanceId','toolId','previewId','scheduledRunner'].includes(key)))return null;

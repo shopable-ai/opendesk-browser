@@ -66,7 +66,7 @@ try{
   assert.equal(hash(releaseBytes),report.release.sha256);
   assert.equal(report.installation.packageHash,await sidebarToolPackageHash(JSON.parse(releaseBytes)));
   report.build=JSON.parse(await readFile(extension+'/development-update.json','utf8')).revision;
-  const page=targetInfos.find(t=>t.url.startsWith('chrome-extension://'+extensionId+'/ui/tool.html'));
+  const page=targetInfos.find(t=>t.url.startsWith('chrome-extension://'+extensionId+'/sidepanel.html'));
   if(page)report.ui=await evaluate(client,'({text:document.body.innerText,dev:document.getElementById("opendesk-development-status")?.textContent})',await attach(page));
   const sandbox=targetInfos.find(t=>t.type==='iframe'&&t.url.startsWith(
     'chrome-extension://'+extensionId+'/sidebar-tools/sandbox.html'));

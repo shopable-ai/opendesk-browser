@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
 import {officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
 import test from 'node:test';
@@ -81,7 +82,7 @@ test('R22 reinstated clipper checks the exact install epoch; missing, stale, dis
  win.top=win;
  const clipper=initPageClip({api,doc,win});
  assert.ok(clipper&&typeof handler==='function');
- const sender={id:api.runtime.id,url:'chrome-extension://trusted-test-extension/ui/tool.html?hostInstanceId=12345678-1234-4234-8234-123456789abc'};
+ const sender={id:api.runtime.id,url:'chrome-extension://trusted-test-extension/sidepanel.html?hostInstanceId=12345678-1234-4234-8234-123456789abc'};
  const ask=installEpoch=>new Promise(resolve=>{
   assert.equal(handler({protocol:CLIP_PROTOCOL,operation:'clip.link',toolId:pkg.id,
     expectedUrl:url,...(installEpoch===undefined?{}:{installEpoch})},sender,resolve),true);
@@ -163,7 +164,7 @@ test('R22 fixed release inclusion and trusted-site wiring are explicit',async()=
  const [publicScript,verify,entry,host,html,sandbox]=await Promise.all([
   readFile('scripts/prepare-public.mjs','utf8'),readFile('scripts/verify-package.mjs','utf8'),
   readFile('src/entrypoints/page-relay.js','utf8'),readFile('src/ui/sidebar-tools.js','utf8'),
-  readFile('src/ui/tool.html','utf8'),readFile('src/sidebar-tools/sandbox.html','utf8')]);
+  renderSidebarFixture(),readFile('src/sidebar-tools/sandbox.html','utf8')]);
  assert.match(publicScript,/buildOfficialTools/);
  assert.match(verify,/createOfficialToolResources/);
  assert.match(entry,/initPageClip/);

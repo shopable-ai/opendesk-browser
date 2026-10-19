@@ -38,6 +38,24 @@ export function MyTaskHistory({rows=[]}){
 }
 
 export function MyScheduleDetail({model}){
+  const historySummary=React.useRef(null),paginationNode=React.useRef(null),recoveryNode=React.useRef(null);
+  const paginationRef=React.useCallback(node=>{
+    const previous=paginationNode.current;
+    paginationNode.current=node;
+    if(!node&&previous?.ownerDocument.activeElement===previous)
+      queueMicrotask(()=>historySummary.current?.focus({preventScroll:true}));
+  },[]);
+  const recoveryRef=React.useCallback(node=>{
+    const previous=recoveryNode.current;
+    recoveryNode.current=node;
+    if(!node&&previous?.ownerDocument.activeElement===previous){
+      const document=previous.ownerDocument;
+      queueMicrotask(()=>{
+        const detail=document.getElementById('schedule-detail-view');
+        if(detail&&!detail.hidden)document.getElementById('schedule-back')?.focus({preventScroll:true});
+      });
+    }
+  },[]);
   if(!model)return null;
   const {plan,records=[],expandedRuns=new Set()}=model;
   const p=presentSchedulePlan(plan,records),last=records[0];
@@ -53,14 +71,14 @@ export function MyScheduleDetail({model}){
       {p.recentText&&<p className="schedule-recent-result" data-tone={p.recentTone}>{p.recentText}</p>}
     </section>
     {warning&&<p className="schedule-status-help">{warning}{plan.needsAttention&&
-      <button type="button" className="od-button od-button--secondary" onClick={event=>trusted(event,model.onManage)}>检查已安装任务</button>}</p>}
+      <button ref={recoveryRef} type="button" className="od-button od-button--secondary" onClick={event=>trusted(event,model.onManage)}>检查已安装任务</button>}</p>}
     <div className="schedule-actions od-toolbar schedule-detail-actions">{canToggle&&<button type="button"
       className="od-button od-button--secondary" disabled={Boolean(plan.paused&&plan.needsAttention)}
       title={plan.paused&&plan.needsAttention?'请先处理固定任务与网站权限，再恢复计划':undefined}
       onClick={event=>trusted(event,model.onToggle)}>{plan.paused?'恢复计划':'暂停计划'}</button>}</div>
     <details className="schedule-history od-disclosure od-disclosure--flat" open={model.open}
       onToggle={event=>{if(event.currentTarget.open!==model.open)model.onHistoryToggle(event.currentTarget.open);}}>
-      <summary>运行记录{last?' · 最近：'+scheduleFireLabel(last.status)+' · '+formatScheduleTime(last.scheduledAt,plan.timezone):' · 暂无'}</summary>
+      <summary ref={historySummary}>运行记录{last?' · 最近：'+scheduleFireLabel(last.status)+' · '+formatScheduleTime(last.scheduledAt,plan.timezone):' · 暂无'}</summary>
       <p className="schedule-history-status hint" role="status" aria-live="polite" hidden={!model.historyError}>{model.historyError}</p>
       <div className="od-stack">{records.map(fire=><div key={fire.fireId} className="schedule-history-row" data-fire-id={fire.fireId}>
         {formatScheduleTime(fire.scheduledAt,plan.timezone)} · {scheduleFireLabel(fire.status)}
@@ -69,7 +87,7 @@ export function MyScheduleDetail({model}){
           onToggle={event=>model.onRunToggle(fire.fireId,event.currentTarget.open)}><summary>技术详情</summary>
           <small>RunId：{fire.runId} · ResultId：{fire.resultId??'未生成'} · 资源：{fire.retirementState==='released'?'已释放':'等待释放'}</small>
         </details>}
-      </div>)}{model.hasMore&&<button type="button" className="od-button od-button--secondary schedule-load-more"
+      </div>)}{model.hasMore&&<button ref={paginationRef} type="button" className="od-button od-button--secondary schedule-load-more"
         disabled={model.loading} onClick={event=>trusted(event,model.onLoadMore)}>
         {model.loading?'正在读取…':model.historyError?'重试加载记录':'加载更早记录'}</button>}</div>
     </details>

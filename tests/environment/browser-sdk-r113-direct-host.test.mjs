@@ -11,7 +11,7 @@ import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../src/framework/sdk/browser-
 // single Host/Dispatcher. Only Chrome primitives are fixtures; NOT native proof.
 const uuid='01234567-89ab-4def-8123-456789abcdef';
 const sender={id:'direct-host',frameId:0,documentId:'side-panel-doc',documentLifecycle:'active',
-  url:'chrome-extension://direct-host/ui/tool.html?hostInstanceId='+uuid};
+  url:'chrome-extension://direct-host/sidepanel.html?hostInstanceId='+uuid};
 const code=value=>error=>error?.code===value;
 const samples={
   'browser.runtime.getPlatformInfo':{args:{},result:{os:'mac',arch:'arm64',nacl_arch:'arm'}},

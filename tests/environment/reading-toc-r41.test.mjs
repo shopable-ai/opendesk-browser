@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -226,7 +227,7 @@ test('R4.1 installer entry, constrained content script, and distributable resour
   const [entry,host,html,resources,verify]=await Promise.all([
     readFile('src/entrypoints/page-relay.js','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),
-    readFile('src/ui/tool.html','utf8'),
+    renderSidebarFixture(),
     readFile('scripts/prepare-public.mjs','utf8'),
     readFile('scripts/verify-package.mjs','utf8')
   ]);

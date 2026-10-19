@@ -1,4 +1,5 @@
 import {isToolSender,resolveToolSender} from '../../environment.js';
+import {SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
 
 const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const MAX_TEXT_BYTES=256,MAX_URL=2048,MAX_TITLE=256;
@@ -44,7 +45,7 @@ async function requireTrustedSidePanel({api,sender,hostInstanceId}){
   if(!isToolSender(api,trusted)||trusted.id!==api.runtime.id||trusted.tab?.incognito||
      (trusted.frameId!==undefined&&trusted.frameId!==0))
     throw fail('E_OWNER','Only the trusted OpenDesk Side Panel may search history');
-  const expected=new URL(api.runtime.getURL('ui/tool.html'));
+  const expected=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
   let actual;
   try{actual=new URL(trusted.url)}catch{throw fail('E_OWNER','Invalid Side Panel sender URL')}
   if(actual.protocol!==expected.protocol||actual.host!==expected.host||actual.pathname!==expected.pathname||

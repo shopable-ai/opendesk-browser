@@ -1,4 +1,5 @@
 import {resolveToolSender,isToolSender} from '../environment.js';
+import {SIDEPANEL_DOCUMENT_PATH,SIDEPANEL_DOCUMENT_PATHNAME} from '../tool-document-url.js';
 const protocol='opendesk.development.v1';
 const baselineKey='opendesk.development.applied.v1';
 const unavailable='开发输出暂不可用；保留当前宿主与任务。';
@@ -32,8 +33,8 @@ export function developmentRunHostIdle(storage){
 
 export function developmentChanges(previous,next) {
   const changed=Object.keys(next.files).filter(file=>previous.files[file]!==next.files[file]);
-  return {changed,css:changed.includes('ui/tool-shell.css'),page:changed.some(file=>['ui/tool.html','ui/tool-shell.js'].includes(file)),
-    extension:changed.some(file=>!['ui/tool-shell.css','ui/tool.html','ui/tool-shell.js'].includes(file))};
+  return {changed,css:changed.includes('ui/tool-shell.css'),page:changed.some(file=>[SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file)),
+    extension:changed.some(file=>!['ui/tool-shell.css',SIDEPANEL_DOCUMENT_PATH,'ui/tool-shell.js'].includes(file))};
 }
 export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000}={}) {
   const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false;
@@ -78,7 +79,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       // must acknowledge its own draft; one host cannot vote for another.
       if(!await checkIdle())return;
       const contexts=await api.runtime.getContexts({});
-      const tools=contexts.filter(context=>{try{return new URL(context.documentUrl).pathname==='/ui/tool.html';}catch{return false;}});
+      const tools=contexts.filter(context=>{try{return new URL(context.documentUrl).pathname===SIDEPANEL_DOCUMENT_PATHNAME;}catch{return false;}});
       if(tools.some(context=>!ports.has(context.documentId))){waiting('等待全部工具页连接开发服务；没有响应的宿主不会被自动关闭。');return;}
       const rows=[...ports.values()];token=crypto.randomUUID();
       for(const row of rows){row.ready=false;row.token=token;row.port.postMessage({type:'prepare',token});}
@@ -86,7 +87,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       if(rows.some(row=>!row.ready)||!await checkIdle()){waiting('等待任务结束和草稿成功保存；源码更新已保留。');return;}
       // A new host opened during acknowledgement must also participate.
       const current=await api.runtime.getContexts({});
-      if(current.some(context=>{try{return new URL(context.documentUrl).pathname==='/ui/tool.html'&&!rows.some(row=>row.documentId===context.documentId);}catch{return false;}}))return;
+      if(current.some(context=>{try{return new URL(context.documentUrl).pathname===SIDEPANEL_DOCUMENT_PATHNAME&&!rows.some(row=>row.documentId===context.documentId);}catch{return false;}}))return;
       if(rows.some(row=>ports.get(row.documentId)!==row||!row.ready||row.token!==token))return;
       if(changes.extension){
         console.info('[OpenDesk dev] Safe extension reload',changes.changed,next.revision);

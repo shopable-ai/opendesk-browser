@@ -1,3 +1,4 @@
+import {settingsReactFixture} from '../helpers/trusted-settings-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
@@ -12,31 +13,25 @@ import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/st
 
 const tool={format:'opendesk.sidebar-tool.v1',id:'stay-focus',version:'1.0.0',title:'Stay Focus',
   description:'Boundary regression',capabilities:['focus.control'],html:'<main>Focus</main>',css:'',js:'void 0;'};
-test('R3.1 a disabled Focus cannot request Chrome native permissions',async()=>{
-  class Node{
-    constructor(){this.children=[];this.listeners={};this.hidden=false;this.disabled=false;}
-    addEventListener(type,listener){this.listeners[type]=listener;}
-    append(...children){this.children.push(...children);}
-    scrollIntoView(){}
-    focus(){}
-  }
-  const container=new Node(),doc={createElement:()=>new Node()};
+test('R3.1 a disabled Focus cannot request Chrome native permissions',async t=>{
+
+  const f=settingsReactFixture('stayFocus',t);
   let requests=0,operations=0;
   const controls=createStayFocusPermissionControls({api:{permissions:{request(){
     requests++;return Promise.resolve(true);
-  }}},doc,container,notice:()=>{},runOperation:async()=>{operations++;}});
+  }}},ui:f.ui,notice:()=>{},runOperation:async()=>{operations++;}});
   controls.render(tool,false,false);
-  const grant=container.children[0].children.find(node=>node.id==='stay-focus-enable-native');
+  const grant=f.find('stay-focus-enable-native');
   assert.ok(grant);
   assert.equal(grant.disabled,true,'stop state must gate Chrome permission requests');
-  grant.listeners.click({isTrusted:true});
+  f.invoke(grant.id,{isTrusted:true});
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(requests,0);assert.equal(operations,0);
   controls.render(tool,false,true);
   assert.equal(grant.disabled,false);
-  grant.listeners.click({isTrusted:false});
+  f.invoke(grant.id,{isTrusted:false});
   assert.equal(requests,0);
-  grant.listeners.click({isTrusted:true});
+  f.invoke(grant.id,{isTrusted:true});
   assert.equal(requests,1,'native permission request begins synchronously from trusted click');
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(operations,1);
@@ -140,6 +135,22 @@ function hostFixture(){
     openSettings(){throw new Error('Unexpected settings request');},
     requestBrowserClick(){throw new Error('Unexpected approval request');}};
 }
+test('pending Focus permission cannot adopt a replacement installation epoch',async t=>{
+  const f=hostFixture(),ui=settingsReactFixture('stayFocus',t);
+  let approve,finish;
+  const completed=new Promise(resolve=>{finish=resolve;});
+  f.api.permissions={request:()=>new Promise(resolve=>{approve=resolve;})};
+  const controls=createStayFocusPermissionControls({api:f.api,ui:ui.ui,notice:()=>finish(),
+    runOperation:(operation,payload,event)=>runTrustedStayFocusOperation({...f,operation,payload,event})});
+  t.after(()=>controls.dispose());
+  controls.render(tool,false,true);
+  ui.invoke('stay-focus-enable-native',{isTrusted:true});
+  assert.equal(typeof approve,'function');
+  f.data.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'epoch-after-revocation'});
+  approve(true);
+  await completed;
+  assert.equal(f.calls.length,0,'old permission callback must not send using the new epoch');
+});
 test('Focus status is read-only RPC with the installed digest and epoch',async()=>{
   const f=hostFixture();
   assert.deepEqual(await requestStayFocusOperation({...f,operation:'focus.status',payload:{}}),{confirmed:true});
@@ -200,7 +211,7 @@ test('Focus RPC failure keeps the backend error and does not cross another tool 
 });
 test('Shared sender URL gate binds optional toolId and rejects extra query or cross-extension origins',()=>{
   const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p}};
-  const url=api.runtime.getURL('ui/tool.html')+'?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
+  const url=api.runtime.getURL('sidepanel.html')+'?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
   const sender=url=>({id:'extension',url});
   assert.equal(isSidebarToolHostSender(api,sender(url)),true);
   for(const id of ['stay-focus','time-review','reading-toc','cookie-editor']){

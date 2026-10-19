@@ -145,7 +145,7 @@ try{
     const action=rows.filter(x=>['AXButton','AXMenuItem'].includes(x.role)&&/OpenDesk Browser/.test(x.title+' '+x.description)&&!/(menu|菜单|Options|选项)/i.test(x.title+' '+x.description));
     assert.equal(action.length,1,'Unique actual OpenDesk action');
     native('press',action[0].title||action[0].description);
-    const context=await until(async()=>(await read(worker,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})")).find(x=>x.documentUrl?.includes('/ui/tool.html')),'Real SIDE_PANEL context');
+    const context=await until(async()=>(await read(worker,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})")).find(x=>x.documentUrl?.includes('/sidepanel.html')),'Real SIDE_PANEL context');
     const target=await until(async()=>(await browser.call('Target.getTargets')).targetInfos.find(x=>x.url===context.documentUrl),'Side Panel target');
     side=await attach(target.targetId);originalSide=side;await until(()=>read(side,"!!document.querySelector('#tab-tools')"),'Side Panel ready');
     await screenshot('side-panel-open.png');return {context,targetId:target.targetId};

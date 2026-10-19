@@ -221,7 +221,8 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
     if(active&&scroller.current&&model.phase==='planning')scroller.current.scrollTop=scroller.current.scrollHeight;
   },[model.messages,model.phase,active]);
   const action=(id,label,{icon=false,primary=false,kind,...props}={})=>icon
-    ?<IconButton id={id} label={label} className="workflow-icon-button" hidden={c(id).hidden}
+      ?<IconButton id={id} label={label} title={id==='workflow-ai-plan'?'发送并执行':label}
+        className={'workflow-icon-button'+(primary?' od-icon-button--primary':'')} hidden={c(id).hidden}
         disabled={Boolean(c(id).disabled)} onClick={event=>click(id,event)} {...props}><Glyph kind={kind}/></IconButton>
     :<Button id={id} variant={primary?'primary':'secondary'} hidden={c(id).hidden}
         disabled={Boolean(c(id).disabled)} onClick={event=>click(id,event)} {...props}>{label}</Button>;
@@ -351,7 +352,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         <div className="workflow-composer-actions">
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
           <WorkflowSourceName value={model.sourceName||'Codex'}/>
-          {action('workflow-ai-plan','发送并执行浏览器任务',{icon:true,kind:'send'})}
+        {action('workflow-ai-plan','发送并执行浏览器任务',{icon:true,primary:true,kind:'send'})}
           {action('workflow-ai-cancel','停止 AI 规划')}
         </div>
       </div>

@@ -280,7 +280,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return targets.find(x=>x.type==='service_worker'&&x.url?.endsWith('/sw.js'))?.url?.split('/')[2];
   },'real unpacked SW',15000);
   report.extensionId=id;
-  const ui=await client.send('Target.createTarget',{url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
+  const ui=await client.send('Target.createTarget',{url:'chrome-extension://'+id+'/sidepanel.html?hostInstanceId='+randomUUID()});
   const uid=(await client.send('Target.attachToTarget',{targetId:ui.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},uid);await client.send('Page.enable',{},uid);
   diagnosticSessions=[{name:'catalog-page',session:uid}];
@@ -291,7 +291,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await click(client,uid,'#catalog-open-dev-sidebar');
   const context=await until(async()=>{const found=await evalRead(client,uid,
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return found.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId);
+    return found.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId);
   },'real SIDE_PANEL');
   let sideTargetId;
   let sid=await until(async()=>{const x=(await client.send('Target.getTargets')).targetInfos;
@@ -638,7 +638,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x[0]||null)'), 'Side Panel reopen');
   sid=await until(async()=>{const targets=(await client.send('Target.getTargets')).targetInfos;
     const candidates=targets.filter(x=>x.targetId!==ui.targetId&&x.type!=='iframe'&&
-      x.url.startsWith('chrome-extension://'+id+'/ui/tool.html'));
+      x.url.startsWith('chrome-extension://'+id+'/sidepanel.html'));
     const target=targets.find(x=>x.url===nextContext.documentUrl)||(candidates.length===1?candidates[0]:null);
     if(!target)return null;sideTargetId=target.targetId;
     return (await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;},'reopened panel target');
@@ -737,7 +737,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   },'restarted installed extension SW',20000);
   assert.equal(restoredId,id,'Chrome restart must retain the exact installed extension identity');
   const reopenedUI=await client.send('Target.createTarget',{
-    url:'chrome-extension://'+restoredId+'/ui/tool.html?hostInstanceId='+randomUUID()});
+    url:'chrome-extension://'+restoredId+'/sidepanel.html?hostInstanceId='+randomUUID()});
   const reopenedSession=(await client.send('Target.attachToTarget',
     {targetId:reopenedUI.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},reopenedSession);
@@ -768,7 +768,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const restoredContext=await until(async()=>{
     const contexts=await evalRead(client,reopenedSession,
       'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
-    return contexts.find(row=>row.documentUrl?.includes('/ui/tool.html')&&row.documentId);
+    return contexts.find(row=>row.documentUrl?.includes('/sidepanel.html')&&row.documentId);
   },'Side Panel reopened after Chrome restart');
   sid=await until(async()=>{
     const targets=(await client.send('Target.getTargets')).targetInfos;

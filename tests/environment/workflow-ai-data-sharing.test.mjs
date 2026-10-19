@@ -1,3 +1,5 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
+import {load} from 'cheerio';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {workflowForModel,restoreModelRedactions,verifiedWorkflowHistory} from '../../src/ui/workflow/data-sharing.js';
@@ -55,17 +57,21 @@ test('custom HTTPS planning follows the same minimization',async()=>{
 test('user-initiated AI sends directly without custom consent UI or ledger',async()=>{
   const {readFile}=await import('node:fs/promises');
   const [html,view,css,sharing]=await Promise.all([
-    'src/ui/tool.html','src/ui/workflow/workflow-view.js','src/ui/tool-shell.css',
-    'src/ui/workflow/data-sharing.js'
-  ].map(path=>readFile(path,'utf8')));
-  assert.match(html,/id="workflow-ai-plan"[^>]*aria-label="发送并执行浏览器任务"/);
+    renderSidebarFixture({activeTab:'workflow',debugEnabled:false}),
+    ...['src/ui/workflow/workflow-view.js','src/ui/tool-shell.css',
+    'src/ui/workflow/data-sharing.js'].map(path=>readFile(path,'utf8'))
+  ]);
+  const $=load(html);
+  assert.equal($('#workflow-ai-plan').attr('aria-label'),'发送并执行浏览器任务');
+  assert.equal($('#workflow-ai-plan').closest('[data-opendesk-react-owner="workflow-page"]').length,1);
+  assert.equal($('[id$="-react-host"]').length,0,'no legacy workflow portals');
   assert.doesNotMatch(html,/id="workflow-ai-disclosure"|id="workflow-ai-review-|id="workflow-ai-revoke"/);
   assert.doesNotMatch(html,/workflow-ai-data-details|同意并生成|模型的数据发送许可/);
   assert.doesNotMatch(css,/\.workflow-ai-data-review|\.workflow-ai-data-details|\.workflow-ai-revoke/);
   assert.doesNotMatch(view,/modelConsent|modelScope|pendingModelReview|showModelReview|renderDataDisclosure/);
   assert.doesNotMatch(sharing,/createModelConsent|modelDataScope|CONSENT_STORAGE_KEY|ConsentManager|AuthorizationManager/);
   assert.doesNotMatch(view,/create(?:Consent|Authorization|Permission)Manager|new (?:Consent|Authorization|Permission)Manager/);
-  assert.match(view,/listen\(get\('workflow-ai-plan'\),'click',plan\)/);
+  assert.match(view,/bind\('workflow-ai-plan','click',plan\)/);
   assert.match(view,/async function plan\(event\)\s*\{\s*if\(!event\.isTrusted\|\|busy\)return/);
   assert.match(view,/const origins=\[permissionPattern\(captured\.url\)\]/);
   assert.match(view,/if\(selected!=='local_codex'\)origins\.push\(permissionPattern\(frozen\.endpoint\)\)/);

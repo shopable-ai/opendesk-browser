@@ -291,7 +291,7 @@ async function browserRun(mode, label) {
       if(event.method==='Runtime.executionContextsCleared')contexts.clear();});
     await page.send('Runtime.enable');await until(() => evaluate(page, 'document.readyState === "complete"'), 'target loaded');
     const decoyId = (await browserClient.send('Target.createTarget', {url: decoyURL})).targetId, decoy = await attach(decoyId);
-    const toolId = (await browserClient.send('Target.createTarget', {url: `chrome-extension://${extensionId}/ui/tool.html`})).targetId;
+    const toolId = (await browserClient.send('Target.createTarget', {url: `chrome-extension://${extensionId}/sidepanel.html`})).targetId;
     const tool = await attach(toolId); await until(() => evaluate(tool, '!!document.querySelector("#sdk-install")'), 'current product SDK UI');
     await page.send('Runtime.evaluate', {expression: 'globalThis.__sdkNativeEvents=[]; for(const name of ["OPEN_DESK_SDK_READY","OPEN_DESK_SDK_RESULT"]) window.addEventListener(name,event=>__sdkNativeEvents.push({at:Date.now(),name,message:JSON.parse(event.detail)}));'});
     await evaluate(page,`(${observePage.toString()})()`);

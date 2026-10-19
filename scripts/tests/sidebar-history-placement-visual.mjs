@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// STATIC_MARKUP_CHROME: product HTML/CSS and audited History mount only.
+// STATIC_MARKUP_CHROME: product React SSR/CSS and audited History model only.
 // No tool-shell, Chrome APIs, installed tools, native permission or history calls.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -8,6 +8,8 @@ import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve,join,sep} from 'node:path';
 import {spawn} from 'node:child_process';
+import {renderSidebarFixture} from '../../tests/helpers/sidebar-react-fixture.mjs';
+import {TRUSTED_HISTORY_INITIAL_STATE} from '../../src/ui/trusted-history-workbench.js';
 
 const root=resolve('.'),out=resolve(process.argv[2]||'artifacts/sidebar-history-placement-20261014/layout');
 const profile=await mkdtemp(join(tmpdir(),'sidebar-history-static-'));
@@ -44,7 +46,8 @@ function scene(name,zoom=1){
   for(const page of document.querySelectorAll('[data-workbench-page]'))page.hidden=page.dataset.workbenchPage!==document.documentElement.dataset.opendeskTab;
   get('sidebar-tool-list-view').hidden=detail;
   get('sidebar-tool-display').hidden=!detail;
-  get('sidebar-tool-discover-panel').hidden=name!=='list-discovery';
+  const discovery=get('sidebar-tool-discover-panel');
+  if(discovery)discovery.hidden=name!=='list-discovery';
   if(get('trusted-history-panel'))get('trusted-history-panel').open=name!=='list-closed';
   get('sidebar-tool-title').textContent='静态工具界面';
   return detail;
@@ -70,13 +73,23 @@ function measure(){
 try{
   await mkdir(out,{recursive:true});
   // Bind the real producers of the simulated list/detail state as well.
-  for(const path of ['src/ui/tool-shell.js','src/ui/sidebar-tools.js','scripts/tests/sidebar-history-placement-visual.mjs'])await source(path);
-  const html=(await source('src/ui/tool.html')).toString().replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'');
-  assert.doesNotMatch(html,/<script\b/,'static fixture must not execute the extension shell');
+  for(const path of ['src/ui/sidepanel.html','src/ui/tool-shell.js','src/ui/sidebar-tools.js',
+    'src/ui/react/app-shell.tsx','src/ui/react/tabs/browser-history.tsx','src/ui/trusted-history-workbench.js',
+    'tests/helpers/sidebar-react-fixture.mjs','scripts/preview/react-sidebar-ssr.mjs',
+    'scripts/tests/sidebar-history-placement-visual.mjs'])await source(path);
+  const fixtures=new Map();
+  for(const sidePanel of [true,false]){
+    const html=(await renderSidebarFixture({activeTab:'tools',
+      browserHistoryModel:sidePanel?TRUSTED_HISTORY_INITIAL_STATE:null}))
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'');
+    assert.doesNotMatch(html,/<script\b/,'static fixture must not execute the extension shell');
+    fixtures.set(sidePanel,html);
+  }
   server=createServer(async(req,res)=>{
     try{
-      const pathname=new URL(req.url,'http://127.0.0.1').pathname;
-      if(pathname==='/ui/tool.html')return res.writeHead(200,{'Content-Type':'text/html'}).end(html);
+      const requested=new URL(req.url,'http://127.0.0.1'),pathname=requested.pathname;
+      if(pathname==='/sidepanel.html')return res.writeHead(200,{'Content-Type':'text/html'})
+        .end(fixtures.get(requested.searchParams.get('staticContext')==='side-panel'));
       const path=pathname==='/ui/time-review.css'?'examples/sidebar-tools/time-review/src/style.css':'src'+pathname;
       assert.ok(resolve(root,path).startsWith(root+sep));
       if(!/\.(?:js|css)$/.test(path))return res.writeHead(404).end();
@@ -85,7 +98,7 @@ try{
     }catch{res.writeHead(404).end();}
   });
   await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
-  const url='http://127.0.0.1:'+server.address().port+'/ui/tool.html';
+  const url='http://127.0.0.1:'+server.address().port+'/sidepanel.html';
   browser=spawn(process.env.CHROME_BIN||'google-chrome',[
     '--headless=new','--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--use-mock-keychain','--password-store=basic','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'
@@ -114,9 +127,8 @@ try{
       if(await evaluate('location.href==='+JSON.stringify(targetUrl)+' && document.readyState==="complete" && !!document.getElementById("sidebar-host-browser-tools") && [...document.querySelectorAll("link[rel=stylesheet]")].every(node=>node.sheet)'))break;
       if(i===99)throw Error('Static product CSS did not load');await sleep(100);
     }
-    // The source contract test verifies the shell's positive native context
-    // gate. Here each simulated context has its own actual static document.
-    if(sidePanel)await evaluate('(async()=>{const ui=await import("/ui/trusted-history-workbench.js");ui.mountTrustedHistoryWorkbench(document);ui.mountTrustedHistoryWorkbench(document);})()');
+    // Admission is simulated only in the SSR model. No legacy DOM mount or
+    // permission-capable controller executes in this static document.
     fixtureSidePanel=sidePanel;
   }
   const samples=[];

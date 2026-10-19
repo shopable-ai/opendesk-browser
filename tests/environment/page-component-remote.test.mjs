@@ -1,3 +1,5 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPageComponentRemote,assertPinnedESMSource} from '../../src/ui/page-component-remote.js';
@@ -8,16 +10,9 @@ const rows=[{url:root,code:`import value from '${child}';export default value;`,
 const pin=({url,sha256,bytes})=>({url,sha256,bytes});
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
-class Node{
-  textContent='';value='';hidden=false;disabled=false;dataset={};listeners=new Map();
-  addEventListener(name,fn){this.listeners.set(name,fn);}removeEventListener(name){this.listeners.delete(name);}
-  replaceChildren(...children){this.children=children;this.value=children[0]?.value||'';}
-  click(trusted=true){return this.listeners.get('click')?.({isTrusted:trusted});}
-}
-globalThis.Option=class extends Node{constructor(text,value){super();this.textContent=text;this.value=value;}};
 function fixture({missingOrigin=false,denyOrigin=false}={}){
   let grant=!missingOrigin,inClick=false;
-  const nodes=new Map(['','-status','-prepare','-cancel','-sources','-details','-detail-body','-lock'].map(suffix=>['page-component-remote'+suffix,new Node()]));
+  const view=createDeveloperView(),find=developerTestFields(view);
   const f={source:{componentSource:`import value from '${root}';export default function App(){return value}`,framework:'react'},
     calls:[],permissions:[],locked:false,downloadGate:null};
   const entries=rows.map(pin),manifestDigest='manifest-d3',lockId='component-lock-'+'f'.repeat(64);
@@ -48,8 +43,8 @@ function fixture({missingOrigin=false,denyOrigin=false}={}){
     return Promise.resolve(!denyOrigin);
   }}};
   f.preparer=preparer;
-  f.controller=createPageComponentRemote({client,preparer,api,document:{getElementById:id=>nodes.get(id)},getInput:()=>f.source});
-  f.get=id=>nodes.get('page-component-remote'+id);f.click=trusted=>f.get('-prepare').click(trusted);
+  f.controller=createPageComponentRemote({client,preparer,api,view,getInput:()=>f.source});
+  f.get=id=>find('page-component-remote'+id);f.click=(trusted=true)=>f.get('-prepare').fire('click',{isTrusted:trusted});
   f.runClick=()=>{inClick=true;try{return f.controller.confirmRun({isTrusted:true},f.source);}
     finally{inClick=false;}};
   f.changeGrant=value=>{grant=value;for(const listener of value?added:removed)listener({origins:[root]});};

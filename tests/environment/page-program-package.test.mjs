@@ -95,7 +95,7 @@ const genericSource = entryFormat => ['// ==UserScript==','// @name Generic page
 async function genericFixture(entryFormat='classic-userscript') {
   const namespace='tool:page-fixture';
   const host={tag:'host',active:true,registrationId:'page-host',hostDocumentId:'host-document',hostInstanceId:'host-instance',
-    browserSessionIncarnation:'session-one',hostUrl:'chrome-extension://fixture/ui/tool.html'};
+    browserSessionIncarnation:'session-one',hostUrl:'chrome-extension://fixture/sidepanel.html'};
   let tables=new Map([['frameworkKV',new Map()],['commandJournal',new Map([['host:page-host',host]])]]);
   const storage={async transaction(stores,mode,work) {
     const next=structuredClone(tables),table=name=>{assert.ok(stores.includes(name));return next.get(name);};

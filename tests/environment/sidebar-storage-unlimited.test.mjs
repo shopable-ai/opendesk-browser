@@ -119,7 +119,7 @@ test('My Apps opens local installed package while official catalog is missing or
   const open=walk(root).find(n=>n.textContent==='打开'&&n.listeners.has('click'));
   assert(open,'local Open control must not be guarded by catalog contents');
   await open.listeners.get('click')();
-  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/ui\/tool.html/);
+  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/ui\/sidepanel.html/);
   assert.equal(f.values[sidebarToolStorageKey(tool.id)].notes,'private draft');
   assert.equal(active,0);
 });

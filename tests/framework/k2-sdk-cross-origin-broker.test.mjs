@@ -36,7 +36,7 @@ async function fixture(t, observe = () => {}) {
   const clock = {now:()=>Date.now()}; Object.assign(storage,createStorageMethods(storage,{clock}));
   const authority = createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,clock,session:'session'});
   const sender = {id:'extension',url:`${A}/page`,frameId:0,documentId:'doc-A',documentLifecycle:'active',tab:{id:2,incognito:false}};
-  const host = {...sender,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-doc',tab:{id:1,incognito:false}};
+  const host = {...sender,url:api.runtime.getURL('sidepanel.html'),documentId:'tool-doc',tab:{id:1,incognito:false}};
   await authority.registerHost({hostInstanceId:'tool-host',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},host);
   const broker = createSdkBroker({authority,storage,api,clock}); t.after(()=>broker.dispose());
   const grant = (targetOrigins=[http.origins.B])=>authority.grantSdk({tabId:2,frameId:0,documentId:'doc-A',capabilities:['network'],targetOrigins},host);

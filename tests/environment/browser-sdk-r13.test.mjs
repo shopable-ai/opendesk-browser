@@ -11,7 +11,7 @@ import {installPageRelay} from '../../src/agents/page-relay.js';
 
 const readSample=async(name)=>JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/'+name,import.meta.url),'utf8'));
 const uid='01234567-89ab-4def-8123-456789abcdef';
-const sender={id:'ext-r13',url:'chrome-extension://ext-r13/ui/tool.html?hostInstanceId='+uid,
+const sender={id:'ext-r13',url:'chrome-extension://ext-r13/sidepanel.html?hostInstanceId='+uid,
   documentId:'host-document-A',documentLifecycle:'active',frameId:0};
 function makeChrome(){
   const menus=new Map(),events=[],changes=[],values=new Map(),sessionValues=new Map();
@@ -60,6 +60,14 @@ const markTrustedRightClick=(host,api)=>assert.equal(host.noteSourceContext(
 
 const hostLaunch={...hostContext,launchId:null};
 async function cycle(host){await host.synchronize();}
+
+test('R37 Browser dispatcher rejects the legacy trusted document path before tool handling',async()=>{
+  const fake=makeChrome(),host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
+  await assert.rejects(host.handleTool({operation:'browser.capabilities.list',args:{},...hostContext},
+    {...sender,url:sender.url.replace('/sidepanel.html','/ui/tool.html')}),{code:'E_OWNER'});
+  assert.equal(fake.menus.size,0);
+  assert.equal(fake.api.opened.length,0);
+});
 
 test('R1.3 v1 strict unchanged; v2 contribution validated and digest-sensitive',async()=>{
   const sample=await readSample('selection-notes.opendesk-tool.json');

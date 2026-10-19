@@ -1,5 +1,15 @@
 # OpenDesk Browser · 统一 React Side Panel 与自定义工具兼容合同（R33.1）
 
+## R37 正式入口与单根合同（2026-10-19，替代下文阶段性 HTML 接管约束）
+
+正式入口为 `src/ui/sidepanel.html`，静态构建输出根目录 `sidepanel.html`，Manifest 的 `side_panel.default_path` 指向此处。`ui/tool.html` 已退役，无别名、重定向或第二 Host。HTML 仅声明文档、既有 CSP/样式/启动脚本和空的 `#opendesk-react-app`；不承载业务模板。
+
+唯一启动链继续复用 `src/entrypoints/tool-shell.js → src/ui/tool-shell.js → src/ui/react/main.tsx → app-shell.tsx`。Main 直接创建一个 Root；App Shell 创建导航、五 Tab、目录、Dock 与 development Debug，不搬运旧 DOM，不保留 Scaffold 或第二挂载路径。原 Controller、RunHost、Host、Authority、安装及用户工具 Sandbox 继续拥有业务权威；React 负责可信 UI。编辑器与工具 iframe 仅保留必要的运行容器，不能据此重新引入业务模板。
+
+可信路径使用 `src/tool-document-url.js` 的唯一常量；路径更名不改变安装身份、权限、hostInstanceId、documentId/frameId、Tool/Preview/Runner 排斥或撤权语义。独立工具、Preview、Catalog、Runner 均复用同一 React 应用。正式版五 Tab，Debug 仅 development 可见，诊断不触发云控授权或业务执行。
+
+实施和候选验证进度见 [R37 本地交付记录](react-ui-r37-delivery-20261019.md)。下文及 R35.4 账本中的旧入口、Portal 接管与暂存旧模板均为历史阶段记录；不能覆盖本节。Node、构建、Chromium 和 Mac Chrome 证据须独立记录，未测不得宣布 COMPLETE 或 95+。
+
 ## R33.3.1 实施记录（2026-10-16，实测状态优先）
 
 - React 正式扩展视图已在 `src/ui/react/main.tsx` 收敛为一处 `createRoot`，列表/详情/搜索筛选工具栏使用 React Portals 保留现有容器与 ID；扩展动作仍由 `src/ui/extension-center.js` 路由至原 Host/权限服务。工具栏原生静态节点仍用于不带 React 注入的遗留 DOM 测试；正式 React 路径不再重复绑定菜单/筛选事件。列表、详情、工具栏完成后，扩展空态、清理回执、返回等区域暂仍旧 DOM 管理，扩展 Tab 只可记 PARTIAL。
@@ -28,7 +38,7 @@
 - **P0 — 可信 Side Panel 五 Tab：** 统一 React UI、交互、设计系统与业务适配；以「开发」「扩展」为优先实施区域，其余「工作流」「我的」「云控」完成后达到同一结构。
 - **P0 — 自定义工具零退化：** 保留原 opaque-origin iframe + SDK/Host/安装链；保留原「开发」的 JS/React/Vue 编辑、编译、预览、Run、Save、Stop 语义。只做风险驱动的定向兼容测试，测试失败才最小修复。
 - **P1 — 用户 React 工具按需复用组件：** 可以选用新的 React 组件源码；由工具自己预编译成原格式，不强制改 React Starter/旧工具，也不把新 UI Kit 加给 HTML/Vue 工具。可使用独立的受控消费验证，而不将所有现有工具改版。
-- **P2 — 在独立完整标签页重新设计 UI：** 现有 `ui/tool.html?toolId=...` 已与 Side Panel 复用同一工具宿主及 Sandbox；保持可用即可，暂不单独开发一套 React 全页面。不得把独立页面改版作为五 Tab 的阻断项。
+- **P2 — 在独立完整标签页重新设计 UI：** 现有 `sidepanel.html?toolId=...` 已与 Side Panel 复用同一工具宿主及 Sandbox；保持可用即可，暂不单独开发一套 React 全页面。不得把独立页面改版作为五 Tab 的阻断项。
 - **不属于本轮：** 全量重写扩展底层、Browser SDK、Host、SW、权限、安装器、用户工具 UI 或 Page USER_SCRIPT 系统。
 
 ## 二、组件库和构建方案：有方向，但不能虚报已经选型落地
@@ -47,7 +57,7 @@
 | --- | --- | --- |
 | **R33.2 历史候选公共包（已弃用）** | `packages/opendesk-ui-react/` | **R33.3 不创建、不消费**；仅在出现真实独立第二消费者及性能/维护实证后，才可评估抽取；绝不与 `src/ui/react/components/ui/` 重复维护 |
 | **可信 Side Panel React UI 和共享组件（R33.3 当前唯一来源）** | `src/ui/react/` | 五 Tab 页面、React 挂载与 `components/ui/` 统一归属；渐进接管，禁止重复 DOM owner；只创建正式使用的文件 |
-| **既有浏览器 HTML / 启动入口** | `src/ui/tool.html`、`src/ui/tool-shell.js`、`src/entrypoints/tool-shell.js` | 在原文件上做受控最小接入；保留**同一个** WXT 固定产物 `ui/tool-shell.js`，默认**禁止**另建 React WXT entry、另一份 sidebar.html 或第二路由入口 |
+| **既有浏览器 HTML / 启动入口** | `src/ui/sidepanel.html`、`src/ui/tool-shell.js`、`src/entrypoints/tool-shell.js` | HTML 仅提供空挂载点；复用**同一个** WXT 固定产物 `ui/tool-shell.js`，默认**禁止**另建 React WXT entry、另一份 sidebar.html 或第二路由入口 |
 | **现有业务服务和旧视图** | `src/ui/script-editor.js`、`src/ui/sidebar-tools.js`、`src/ui/workflow/` 等 | 已迁移的视图用薄适配器复用原业务逻辑；旧视图完成真实回归前保留，不直接整文件覆盖；明确 React DOM 所有权，避免双事件写入 |
 | **视觉标准** | `src/ui/design-tokens.css`、`src/ui/design-system.css` | 单一权威；共享 UI 组件从现有 CSS variables/构建时映射获取视觉值；不用新色板，Tailwind Preflight 不全局注入用户工具 |
 | **原有用户自定义工具/Starter** | `examples/sidebar-tools/*` | **默认只读**，HTML/JS、Vue、React 保持原样作为示例；新组件只是新 React 工具可选项，除实际回归缺陷外不改正式源码、工具 ID、版本或安装包 |
@@ -60,7 +70,7 @@
 
 ## 三、可信 Side Panel React 迁移：最终统一、分模块落地
 
-原可信 Side Panel 核心入口包括 `src/ui/tool.html`、`tool-shell.js`、`script-editor.js`、`sidebar-tools.js`、`workflow/workflow-view.js` 等，存在不少 DOM 事件与业务行为交织。**工作重点是 UI 与业务状态/服务解耦，而不是机械将 95KB HTML 全改成 JSX。**
+R33 历史基线的可信 Side Panel 核心入口包括已退役的 `src/ui/tool.html`、`tool-shell.js`、`script-editor.js`、`sidebar-tools.js`、`workflow/workflow-view.js` 等，存在不少 DOM 事件与业务行为交织。**工作重点是 UI 与业务状态/服务解耦，而不是机械将 95KB HTML 全改成 JSX。**
 
 1. **恢复基线：** 读取最新 `main`、现有五 Tab 页面结构、事件、数据状态、权限、工具 iframe 与已有 CI；先记实际依赖及行为，不因旧评分重做整套框架研究。
 2. **组件方案确定：** 完成首选 UI 方案的真实技术验证；只建立真实消费的组件、Tokens 与安全 CSS 接入；不接新 Runtime CDN、第二套 Editor/Compiler/Host。

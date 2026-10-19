@@ -117,7 +117,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const menuItems=[];
     const add=(label,fn,actionId)=>{
       const activate=event=>{
-        if(!event?.isTrusted||disposed||busy||pendingKey||find(row.key)?.record!==row.record)return;
+        const current=find(row.key);
+        if(!event?.isTrusted||disposed||busy||pendingKey||(row.kind==='page'
+          ?!samePageIdentity(current,pageIdentity(row)):current?.record!==row.record))return;
         closeRowMenu(true);fn(event);
       };
       menuItems.push({id:actionId,label,onClick:activate});
@@ -315,8 +317,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       const identity=selectedIdentity;
       const add=(label,id,onClick)=>actions.push({label,id,onClick(event){
         const current=find(row.key);
-        if(disposed||busy||pendingKey||selectedIdentity!==identity||
-          current?.record!==row.record||current?.release!==row.release)return;
+        // Page rows are fresh projections. Compare the pinned installation
+        // identity, including its authorization generation, rather than wrappers.
+        if(disposed||busy||pendingKey||selectedIdentity!==identity||(row.kind==='page'
+          ?!samePageIdentity(current,pageIdentity(row))
+          :current?.record!==row.record||current?.release!==row.release))return;
         onClick(event);
       }});
       if(row.kind==='app'){

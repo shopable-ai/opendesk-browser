@@ -13,7 +13,7 @@ const mkSite=(host,mode='limit',minutes=1)=>({host,subdomains:true,enabled:true,
 const at=new Date(2026,9,13,10,0,0).getTime();
 function fixture(){
   const tool=buildTool(),docId='document-123';
-  const host='chrome-extension://abcdefghijklmnopabcdefghijklmnop/ui/tool.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
+  const host='chrome-extension://abcdefghijklmnopabcdefghijklmnop/sidepanel.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
   const sender={id:'abcdefghijklmnopabcdefghijklmnop',url:host,frameId:0,documentId:docId,documentLifecycle:'active'};
   const stored=new Map([[SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{}],
     [TOOL_REVOCATION_EPOCHS_STORE,{['stay-focus']:'epoch-1'}]]);

@@ -13,7 +13,7 @@ try {
   const pages=[];
   for(const target of targets.filter(target=>['page','other'].includes(target.type)&&!target.url.startsWith('chrome://'))) {
     const {sessionId}=await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true});
-    if(label==='arm'&&target.url.includes('/ui/tool.html'))await evaluate(client,`(()=>{
+    if(label==='arm'&&target.url.includes('/sidepanel.html'))await evaluate(client,`(()=>{
       if(globalThis.__r41Inputs)return;
       globalThis.__r41Inputs=[];
       for(const type of ['input','change','click'])document.addEventListener(type,event=>{

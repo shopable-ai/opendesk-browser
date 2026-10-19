@@ -9,7 +9,7 @@ export async function fixture() {
   const session = 'session-current';
   const registrationId = 'host-reg';
   const host = {tag: 'host', registrationId, hostInstanceId: 'host-1', hostDocumentId: 'host-doc-1', active: true, revoked: false, browserSessionIncarnation: session};
-  const sender = {id: 'test-extension', documentId: host.hostDocumentId, frameId: 0, url: 'chrome-extension://test-extension/ui/tool.html', tab: {id: 8}};
+  const sender = {id: 'test-extension', documentId: host.hostDocumentId, frameId: 0, url: 'chrome-extension://test-extension/sidepanel.html', tab: {id: 8}};
   const target = {targetSessionId: 'target-session', tabId: 20, frameId: 0, documentId: 'document-1', allowedOrigin: template.allowedOrigin,
     targetVersion: 1, browserSessionIncarnation: session, creationId: 'creation-1'};
   const identity = {runId: 'run-1', hostInstanceId: host.hostInstanceId, hostDocumentId: host.hostDocumentId,

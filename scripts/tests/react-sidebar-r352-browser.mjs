@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SOURCE_UI_SIMULATION_CHROMIUM. Real tool.html and appShell:true, but NO installed
+// SOURCE_UI_SIMULATION_CHROMIUM. Real sidepanel.html and mountSidebarApp, but NO installed
 // extension, Host, permission grant, sandbox, Scheduler or persistence proof.
 // Navigate through real CDP input: JavaScript-dispatched clicks cannot fake isTrusted.
 import assert from 'node:assert/strict';
@@ -11,17 +11,123 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'vite';
 
-const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nimport {createDeveloperView} from '/src/ui/develop-view.js';\nimport {createMyWorkbenchView} from '/src/ui/my-workbench-view.js';\n\nconst state={ui:null,accepted:'tasks',blocked:null,calls:[],trustedClicks:[],\n  cloudActions:[],headerActions:[]};\nstate.developerView=createDeveloperView();\nstate.myView=createMyWorkbenchView();\ndocument.addEventListener('click',event=>{\n  if(event.target.closest?.('[data-workbench-tab]'))state.trustedClicks.push(event.isTrusted);\n},true);\nstate.ui=mountExtensionList(document,{\n  debugEnabled:false,appShell:true,developerView:state.developerView,myView:state.myView,\n  onNavigate(tab){\n    state.calls.push(tab);\n    if(tab===state.blocked)return false;\n    state.accepted=tab;\n    state.ui.renderNavigation(tab);\n    return true;\n  }\n});\n\n// The UI fixture supplies presentation models only. There is no Cloud Host,\n// installer, credential, scheduler or execution authority in this browser test.\nconst subscriptions=new Set();\nstate.workflowModel={controls:{'workflow-ai-request':{value:''}},phase:'idle',messages:[]};\nstate.workflowController={\n  subscribe(listener){subscriptions.add(listener);return ()=>subscriptions.delete(listener);},\n  getSnapshot(){return state.workflowModel;},\n  actions:{\n    input(id,value){\n      state.workflowModel={...state.workflowModel,controls:{\n        ...state.workflowModel.controls,[id]:{\n          ...(state.workflowModel.controls[id]||{}),value\n        }\n      }};\n      for(const listener of subscriptions)listener();\n    },\n    click(){}\n  }\n};\nstate.ui.connectWorkflowPage(state.workflowController);\nconst requestRows=[{key:'entry-0',index:0,title:'请求 <img src=x onerror=evil()>',\n  summary:'状态未知 · 未重新执行'}];\nconst requestModel={\n  rows:requestRows,pageText:'第 1 条 / 2 条',canPrev:false,canNext:true,detail:null,\n  onPrev(){state.cloudActions.push('prev');},\n  onNext(){\n    state.cloudActions.push('next');\n    state.publishCloud({requests:{...state.cloudPage.requests,\n      pageText:'第 2 条 / 2 条',canNext:false,canPrev:true,detail:null}});\n  },\n  onDetail(index){\n    state.cloudActions.push('detail:'+index);\n    state.publishCloud({requests:{...state.cloudPage.requests,detail:{\n      key:'entry-'+index,title:'详情 <script>alert(1)</script>',\n      state:'状态未知',facts:'未收到回执',reason:'不能自动重试',\n      runId:'尚无可核对的原始 Run',canOpenRun:false,\n      note:'仅状态，没有正文'\n    }}});\n  },\n  onClose(){\n    state.cloudActions.push('close');\n    state.publishCloud({requests:{...state.cloudPage.requests,detail:null}});\n  },\n  onOpenResult(){state.cloudActions.push('unexpected-open');}\n};\nstate.cloudPage={\n  overview:{summary:'连接 <script>不应执行</script>',connection:'未连接'},\n  authorization:{tasks:[],busy:false,canApprove:false,canStop:false},\n  pairing:{brief:'未配对',status:'尚未配对',busy:false},\n  clients:{rows:[],tasks:[],count:0,busy:false},\n  requests:requestModel,\n  setup:{visible:true,nextStep:'连接提供者'},\n  visibleApproval:false,\n  onRefresh(){state.headerActions.push('refresh');},\n  onOpenConsole(){state.headerActions.push('console');}\n};\nstate.publishCloud=(changes={})=>{\n  state.cloudPage={...state.cloudPage,...changes};\n  state.ui.renderCloudPage(state.cloudPage);\n};\nstate.publishCloud();\nstate.myView.setText('task-installed-count','0 个任务');\nstate.ui.renderFeedback({showEmpty:true,emptyText:'暂无扩展',countText:'0 个扩展'});\nconst get=id=>document.getElementById(id);\nstate.original={\n  task:get('workbench-tasks'),workflow:get('workbench-workflow'),\n  develop:get('workbench-develop'),cloudApproval:get('cloud-approval-section'),\n  cloudHosting:get('cloud-hosting'),taskParams:get('task-params-form'),\n  scriptSource:get('script-source'),workflowDraft:get('workflow-ai-request')\n};\nwindow.__r352=state;\ndocument.documentElement.dataset.r352Ready='true';\n";
-const originalHtml=await readFile('src/ui/tool.html','utf8');
+const fixtureJS=String.raw`
+import {mountSidebarApp} from '/src/ui/react/main.tsx';
+import {createDeveloperView} from '/src/ui/develop-view.js';
+import {createMyWorkbenchView} from '/src/ui/my-workbench-view.js';
+
+const state={ui:null,accepted:'tasks',blocked:null,calls:[],trustedClicks:[],
+  cloudActions:[],headerActions:[],inputs:[]};
+state.developerView=createDeveloperView();
+state.myView=createMyWorkbenchView();
+state.myView.project('taskRows',{rows:[{taskId:'draft-proof',title:'草稿身份',enabled:true}],selectedId:'draft-proof'});
+state.developerView.actions['script-source']=event=>state.inputs.push('source:'+event.isTrusted);
+document.addEventListener('click',event=>{
+  if(event.target.closest?.('[data-workbench-tab]'))state.trustedClicks.push(event.isTrusted);
+},true);
+state.ui=mountSidebarApp(document,{
+  debugEnabled:false,developerView:state.developerView,myView:state.myView,
+  onNavigate(tab){
+    state.calls.push(tab);
+    if(tab===state.blocked)return false;
+    state.accepted=tab;
+    state.ui.renderNavigation(tab);
+    return true;
+  }
+});
+
+// The UI fixture supplies presentation models only. There is no Cloud Host,
+// installer, credential, scheduler or execution authority in this browser test.
+const subscriptions=new Set();
+state.workflowModel={controls:{'workflow-ai-request':{value:''}},phase:'idle',messages:[]};
+state.workflowSubscriptionCount=()=>subscriptions.size;
+state.publishWorkflow=changes=>{
+  state.workflowModel={...state.workflowModel,...changes};
+  for(const listener of subscriptions)listener();
+};
+state.workflowController={
+  subscribe(listener){subscriptions.add(listener);return ()=>subscriptions.delete(listener);},
+  getSnapshot(){return state.workflowModel;},
+  actions:{
+    input(id,value,event){
+      state.inputs.push(id+':'+event.isTrusted);
+      state.publishWorkflow({controls:{
+        ...state.workflowModel.controls,[id]:{
+          ...(state.workflowModel.controls[id]||{}),value
+        }
+      }});
+    },
+    click(){}
+  }
+};
+state.ui.connectWorkflowPage(state.workflowController);
+const requestRows=[{key:'entry-0',index:0,title:'请求 <img src=x onerror=evil()>',
+  summary:'状态未知 · 未重新执行'}];
+const requestModel={
+  rows:requestRows,pageText:'第 1 条 / 2 条',canPrev:false,canNext:true,detail:null,
+  onPrev(){state.cloudActions.push('prev');},
+  onNext(){
+    state.cloudActions.push('next');
+    state.publishCloud({requests:{...state.cloudPage.requests,
+      pageText:'第 2 条 / 2 条',canNext:false,canPrev:true,detail:null}});
+  },
+  onDetail(index){
+    state.cloudActions.push('detail:'+index);
+    state.publishCloud({requests:{...state.cloudPage.requests,detail:{
+      key:'entry-'+index,title:'详情 <script>alert(1)</script>',
+      state:'状态未知',facts:'未收到回执',reason:'不能自动重试',
+      runId:'尚无可核对的原始 Run',canOpenRun:false,
+      note:'仅状态，没有正文'
+    }}});
+  },
+  onClose(){
+    state.cloudActions.push('close');
+    state.publishCloud({requests:{...state.cloudPage.requests,detail:null}});
+  },
+  onOpenResult(){state.cloudActions.push('unexpected-open');}
+};
+state.cloudPage={
+  overview:{summary:'连接 <script>不应执行</script>',connection:'未连接'},
+  authorization:{tasks:[],busy:false,canApprove:false,canStop:false},
+  pairing:{brief:'未配对',status:'尚未配对',busy:false},
+  clients:{rows:[],tasks:[],count:0,busy:false},
+  requests:requestModel,
+  setup:{visible:true,nextStep:'连接提供者'},
+  visibleApproval:false,
+  onRefresh(){state.headerActions.push('refresh');},
+  onOpenConsole(){state.headerActions.push('console');}
+};
+state.publishCloud=(changes={})=>{
+  state.cloudPage={...state.cloudPage,...changes};
+  state.ui.renderCloudPage(state.cloudPage);
+};
+state.publishCloud();
+state.myView.setText('task-installed-count','0 个任务');
+state.ui.renderFeedback({showEmpty:true,emptyText:'暂无扩展',countText:'0 个扩展'});
+const get=id=>document.getElementById(id);
+state.original={
+  task:get('workbench-tasks'),workflow:get('workbench-workflow'),
+  develop:get('workbench-develop'),cloudApproval:get('cloud-approval-section'),
+  cloudHosting:get('cloud-hosting'),taskParams:get('task-params-form'),
+  scriptSource:get('script-source'),workflowDraft:get('workflow-ai-request')
+};
+window.__r352=state;
+document.documentElement.dataset.r352Ready='true';
+`;
+const originalHtml=await readFile('src/ui/sidepanel.html','utf8');
 assert.doesNotMatch(originalHtml, /id="workbench-cloud"/,
   'Cloud is supplied by its React page, without a competing static template');
-assert.match(originalHtml, /id="workspace-dock"/);
+assert.match(originalHtml,/<div\b[^>]*id="opendesk-react-app"[^>]*><\/div>/,
+  'The production React root is empty before mountSidebarApp runs');
+assert.doesNotMatch(originalHtml,/id="workspace-dock"/,
+  'React supplies the Dock without a competing static template');
 const fixtureHtml=originalHtml
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+  .replace(/href="ui\//g,'href="/src/ui/')
   .replace(/<\/body>/i,'<script type="module" src="/__r352.js"></script></body>');
 const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 const binary=process.env.CHROME_BIN||
-  ['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser']
+  [join(process.cwd(),'tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'),'/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser']
     .find(path=>existsSync(path));
 assert.ok(binary,'CHROME_BIN or an installed Chromium is required');
 const profile=await mkdtemp(join(tmpdir(),'od-r352-chrome-'));
@@ -31,11 +137,12 @@ const vite=await createServer({
   resolve:{dedupe:['react','react-dom']},logLevel:'error',
   optimizeDeps:{noDiscovery:true,entries:[],
     include:['react','react/jsx-runtime','react-dom','react-dom/client']},
-  server:{middlewareMode:true}
+  // Source transforms only: no shared HMR port or development watcher.
+  server:{middlewareMode:true,hmr:false,ws:false,watch:null}
 });
 const server=createHttpServer((req,res)=>{
   const path=new URL(req.url||'/','http://localhost').pathname;
-  if(path==='/src/ui/tool.html'||path==='/__r352.js'){
+  if(path==='/sidepanel.html'||path==='/__r352.js'){
     res.writeHead(200,{'Content-Type':path.endsWith('.html')
       ?'text/html; charset=utf-8':'text/javascript; charset=utf-8'});
     res.end(path.endsWith('.html')?fixtureHtml:fixtureJS);
@@ -133,7 +240,7 @@ try{
     else result.resolve(message.result);
   });
   await cdp('Runtime.enable');await cdp('Page.enable');
-  const url='http://127.0.0.1:'+server.address().port+'/src/ui/tool.html';
+  const url='http://127.0.0.1:'+server.address().port+'/sidepanel.html';
   const navigation=await cdp('Page.navigate',{url});
   assert(!navigation.errorText,'Unable to load real HTML');
   try{await eventually('document.documentElement.dataset.r352Ready==="true"');}
@@ -157,7 +264,7 @@ try{
     'selected:d.querySelector("[aria-selected=true][data-workbench-tab]")?.dataset.workbenchTab,'+
     'cloudSections:[...d.querySelector("#workbench-cloud .cloud-panel").children].map(x=>x.id||x.className)'+
     '}})()');
-  assert.equal(baseline.shell,true,'The formal appShell:true branch must run');
+  assert.equal(baseline.shell,true,'The production mountSidebarApp must own the complete shell');
   assert.equal(baseline.owned,true);
   assert.equal(baseline.nav,6);
   assert.equal(baseline.roots,1);
@@ -233,14 +340,23 @@ try{
   assert.equal(await evaluate('window.__r352.trustedClicks.every(Boolean)'),true,
     'Native mouse clicks must be trusted');
 
-  // Model-backed drafts survive tab switches and repeated React paints. Merely
-  // writing directly to the DOM would not exercise the controlled React owner.
+  // Real input must reach the models before navigation and repeated paints.
+  await mouseClick('#script-source');
+  await evaluate('document.getElementById("script-source").select()');
+  await cdp('Input.insertText',{text:'async function main(){return 42;}'});
+  await eventually('window.__r352.developerView.getSnapshot().fields["script-source"].value==="async function main(){return 42;}"');
+  await mouseClick('#tab-workflow');
+  await eventually('window.__r352.accepted==="workflow"');
+  await mouseClick('#workflow-ai-request');
+  await cdp('Input.insertText',{text:'不可丢失的工作流草稿'});
+  await eventually('window.__r352.workflowModel.controls["workflow-ai-request"].value==="不可丢失的工作流草稿"');
+  await mouseClick('#tab-cloud');
+  await mouseClick('#tab-develop');
   await evaluate('(()=>{const s=window.__r352;'+
-    's.developerView.patch("script-source",{value:"async function main(){return 42;}"});'+
-    's.workflowController.actions.input("workflow-ai-request","不可丢失的工作流草稿");'+
     's.ui.renderCloudOverview({tasks:"3",requests:"1"});'+
     's.myView.project("taskDetail","身份：保留");'+
     's.ui.renderNavigation("cloud");s.ui.renderNavigation("develop");})()');
+  await eventually('document.getElementById("script-source").value==="async function main(){return 42;}" && document.getElementById("workflow-ai-request").value==="不可丢失的工作流草稿"');
   const preserved=await evaluate('(()=>{const s=window.__r352;'+
     'return {source:s.original.scriptSource===document.getElementById("script-source"),'+
     'sourceValue:s.original.scriptSource.value,'+
@@ -253,6 +369,8 @@ try{
     assert.equal(preserved[key],true,'React retained business DOM identity: '+key);
   assert.equal(preserved.sourceValue,'async function main(){return 42;}');
   assert.equal(preserved.workflowValue,'不可丢失的工作流草稿');
+  assert.deepEqual(await evaluate('window.__r352.inputs'),
+    ['source:true','workflow-ai-request:true'],'Both drafts must use trusted browser input');
 
   for(const width of [320,360,400,440,960]){
     await cdp('Emulation.setDeviceMetricsOverride',{
@@ -265,10 +383,26 @@ try{
       'No duplicate mount or detached controls at '+width+'px');
   }
   await cdp('Emulation.clearDeviceMetricsOverride');
+  await evaluate('(()=>{const s=window.__r352;s.beforeDispose={calls:s.calls.length,inputs:s.inputs.length,cloud:s.cloudActions.length,header:s.headerActions.length};s.ui.dispose();})()');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").childElementCount'),0,
+    'Disposing the production root removes all pages and the Dock');
+  assert.equal(await evaluate('document.querySelectorAll(".workbench-nav,#workspace-dock,[data-workbench-page]").length'),0);
+  assert.equal(await evaluate('window.__r352.myView.subscriberCount'),0);
+  assert.equal(await evaluate('window.__r352.workflowSubscriptionCount()'),0);
+  assert.equal(await evaluate('window.__r352.developerView.resourceSnapshot().subscriptions'),0);
+  await evaluate('(()=>{const s=window.__r352;s.original.scriptSource.dispatchEvent(new Event("input",{bubbles:true}));s.original.workflowDraft.dispatchEvent(new Event("input",{bubbles:true}));s.developerView.patch("script-source",{value:"after disposal"});s.myView.setText("task-installed-count","after disposal");s.publishWorkflow({sourceName:"after disposal"});s.ui.renderNavigation("cloud");s.publishCloud();})()');
+  assert.deepEqual(await evaluate('(()=>{const s=window.__r352;return {calls:s.calls.length,inputs:s.inputs.length,cloud:s.cloudActions.length,header:s.headerActions.length}})()'),
+    await evaluate('window.__r352.beforeDispose'),'Unmounted controls must not dispatch actions');
+  assert.equal(await evaluate('document.getElementById("opendesk-react-app").childElementCount'),0,
+    'Late presentation updates must not remount the app');
+  await evaluate('window.__r352.developerView.dispose()');
   assert.deepEqual(exceptions,[],'No console errors or uncaught runtime exceptions');
   console.log('REACT_SIDEBAR_R352_APPSHELL_CHROMIUM_PASS',{
-    evidence:'SOURCE_UI_SIMULATION_CHROMIUM',fixture:'src/ui/tool.html',
-    mode:'appShell:true',widths:[320,360,400,440,960]
+    evidence:'SOURCE_UI_SIMULATION_CHROMIUM',fixture:'src/ui/sidepanel.html',
+    mode:'mountSidebarApp',browser:(await cdp('Browser.getVersion')).product,binary,
+    widths:[320,360,400,440,960],checks:['trusted navigation and veto focus',
+      'cloud actions and focus','trusted controlled draft input','retained DOM',
+      'unmount subscriptions','detached actions and late updates']
   });
 }finally{
   try{socket?.close();}catch{}

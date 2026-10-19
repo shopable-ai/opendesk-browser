@@ -696,7 +696,7 @@ test('R2 picker uses extension-owned message, exact document, unique semantic se
     const fn=[...f.runtimeMessages][0];assert(fn,'trusted listener must exist');
     fn({protocol:'opendesk.prompt-shortcuts.picker.v1',toolId:PROMPT_ID,
       operation,expectedUrl:f.win.location.href,...extra},{
-      id:'test-extension',url:'chrome-extension://test-extension/tool.html'
+      id:'test-extension',url:'chrome-extension://test-extension/sidepanel.html'
     },resolve);
   });
   const session='01234567-89ab-cdef-0123-456789abcdef';
@@ -732,7 +732,7 @@ test('R2.1 site picker suppresses pointerup/dblclick, keyboard submission and su
   const send=(operation,session,extra={})=>new Promise(resolve=>{
     [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',toolId:PROMPT_ID,
       operation,session,expectedUrl:f.win.location.href,...extra},
-    {id:'test-extension',url:'chrome-extension://test-extension/tool.html'},resolve);
+    {id:'test-extension',url:'chrome-extension://test-extension/sidepanel.html'},resolve);
   });
   const event=(type,key='')=>({type,key,isTrusted:true,target:f.editor,
     prevented:false,stopped:false,
@@ -841,7 +841,7 @@ for(const value of ['true','plaintext-only']){
     const send=(operation,extra={})=>new Promise(resolve=>{
       [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',
         toolId:PROMPT_ID,operation,expectedUrl:f.win.location.href,...extra},
-      {id:'test-extension',url:'chrome-extension://test-extension/tool.html'},resolve);
+      {id:'test-extension',url:'chrome-extension://test-extension/sidepanel.html'},resolve);
     });
     const session='31234567-89ab-cdef-0123-456789abcdef';
     try{
@@ -886,7 +886,7 @@ test('R2.3 rejects disjoint website selector and hides stale custom rail',async(
   const send=(operation,extra={})=>new Promise(resolve=>
     [...f.runtimeMessages][0]({protocol:'opendesk.prompt-shortcuts.picker.v1',
       toolId:PROMPT_ID,expectedUrl:f.win.location.href,operation,...extra},
-    {id:'test-extension',url:'chrome-extension://test-extension/tool.html'},resolve));
+    {id:'test-extension',url:'chrome-extension://test-extension/sidepanel.html'},resolve));
   try{
     await settle();
     assert.equal(f.buttons().length,1,'valid same-region rule renders buttons');

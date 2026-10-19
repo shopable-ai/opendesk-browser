@@ -66,7 +66,7 @@ test('R4.5 failed official edits block unrelated publication and recover after s
   // Preserve the locale marker so this fails at syntax validation rather than preprocessing.
   await f.write(path,source+'\nconst = broken;');f.change(path);await f.flush();
   assert.equal(await f.marker(),before);assert(f.errors.some(x=>x.includes('syntax error')));
-  await f.write('src/ui/tool.html','<main>unrelated static edit</main>');f.change('src/ui/tool.html');await f.flush();
+  await f.write('src/ui/sidepanel.html','<main>unrelated static edit</main>');f.change('src/ui/sidepanel.html');await f.flush();
   assert.equal(await f.marker(),before,'unrelated success cannot clear the failed official source');
   await rm(join(f.root,path));f.change(path,'unlink');await f.flush();assert.equal(await f.marker(),before);
   await f.write(path,source+'\nvoid "recovered";');f.change(path,'add');await f.flush();
@@ -249,7 +249,7 @@ test('required Workspace source failures survive unrelated successful static cop
       const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');
       await writeFile(join(outDir,path),pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
     }
-    const unrelated=join(root,'src/ui/tool.html');await mkdir(dirname(unrelated),{recursive:true});await writeFile(unrelated,'valid static HTML');
+    const unrelated=join(root,'src/ui/sidepanel.html');await mkdir(dirname(unrelated),{recursive:true});await writeFile(unrelated,'valid static HTML');
     await buildOfficialTools(outDir);
     development.configureDevelopment(wxt,server);
     await server.reloadExtension();

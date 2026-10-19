@@ -6,65 +6,31 @@ import {createTrustedHistoryWorkbench,normalizeTrustedHistoryForm} from '../../s
 
 const hostInstanceId='01234567-89ab-4def-8123-456789abcdef';
 
-class Node{
-  constructor(tag='div',id=''){
-    this.tag=tag;this.id=id;this.children=[];this.listeners=new Map();
-    this.dataset={};this.className='';this.textContent='';this.value='';
-    this.disabled=false;this.hidden=false;this.attributes={};
-  }
-  append(...children){this.children.push(...children);}
-  replaceChildren(...children){this.children=[...children];}
-  addEventListener(name,fn){this.listeners.set(name,[...(this.listeners.get(name)||[]),fn]);}
-  removeEventListener(name,fn){
-    this.listeners.set(name,(this.listeners.get(name)||[]).filter(item=>item!==fn));
-  }
-  emit(name,isTrusted=true){for(const fn of this.listeners.get(name)||[])fn({isTrusted});}
-  setAttribute(key,value){this.attributes[key]=value;}
-  querySelectorAll(selector){
-    const self=selector.startsWith('.')&&this.className.split(/\s+/).includes(selector.slice(1))||
-      selector===this.tag||selector==='#'+this.id?[this]:[];
-    return self.concat(this.children.flatMap(child=>child.querySelectorAll(selector)));
-  }
-}
+import * as React from 'react';
+import {historyReactFixture} from '../helpers/browser-history-react-fixture.mjs';
 
-function makeDom(width=360){
-  const root=new Node('section','trusted-history-panel');
-  root.clientWidth=width;
-  const nodes=new Map([[root.id,root]]);
-  const add=(id,tag='input')=>{const node=new Node(tag,id);nodes.set(id,node);root.append(node);return node;};
-  for(const id of ['trusted-history-text','trusted-history-start','trusted-history-end','trusted-history-limit'])
-    add(id,'input');
-  add('trusted-history-search','button');
-  add('trusted-history-status','p');
-  add('trusted-history-results','div');
-  const doc={getElementById:id=>nodes.get(id)||null,createElement:tag=>new Node(tag)};
-  return {doc,root,get:id=>nodes.get(id)};
-}
-
-const flush=()=>new Promise(resolve=>setImmediate(resolve));
-
-function fixture({granted=false,width=360}={}){
-  const dom=makeDom(width),calls=[];
-  dom.get('trusted-history-text').value='example';
-  dom.get('trusted-history-start').value='2026-10-01';
-  dom.get('trusted-history-end').value='2026-10-07';
-  dom.get('trusted-history-limit').value='3';
+async function fixture(t,{granted=false,requestResult=true,response,sendMessage}={}){
+  const calls=[];
   const api={
     permissions:{
       contains:async request=>{calls.push(['contains',structuredClone(request)]);return granted;},
-      request(request){calls.push(['request',structuredClone(request)]);granted=true;return Promise.resolve(true);}
+      request(request){calls.push(['request',structuredClone(request)]);return Promise.resolve(requestResult);}
     },
     runtime:{sendMessage:async envelope=>{
       calls.push(['sendMessage',structuredClone(envelope)]);
-      return {ok:true,data:{visits:[{url:'https://example.com/path',title:'Example',lastVisitTime:Date.UTC(2026,9,3)}]}};
+      if(sendMessage)return sendMessage(envelope);
+      return response??{ok:true,data:{visits:[{url:'https://example.com/path',title:'Example',lastVisitTime:Date.UTC(2026,9,3)}]}};
     }}
   };
-  const ui=createTrustedHistoryWorkbench({api,doc:dom.doc,hostInstanceId});
-  return {...dom,api,calls,ui};
+  const f=await historyReactFixture(t,{api,hostInstanceId});
+  for(const [field,value] of Object.entries({text:'example',startDate:'2026-10-01',endDate:'2026-10-07',limit:'3'}))
+    await f.change(field,value);
+  calls.length=0;
+  return Object.assign(f,{api,calls});
 }
 
-test('R10.6 trusted History workbench is optional when DOM is absent',()=>{
-  assert.doesNotThrow(()=>createTrustedHistoryWorkbench({doc:{getElementById:()=>null}}).dispose());
+test('R10.6 trusted History workbench is optional without a React renderer',()=>{
+  assert.doesNotThrow(()=>createTrustedHistoryWorkbench({api:{permissions:{contains(){throw new Error('must not read');}}}}).dispose());
 });
 
 test('R10.6 trusted History query requires explicit text, date range and bounded limit',()=>{
@@ -82,38 +48,32 @@ test('R10.6 trusted History query requires explicit text, date range and bounded
   assert.throws(()=>normalizeTrustedHistoryForm({text:'x',startDate:'2026-10-01',endDate:'2026-10-02',limit:101}),{code:'E_SCHEMA'});
 });
 
-test('R10.6 real click synchronously requests optional history permission then calls Host route',async()=>{
-  const f=fixture();
-  await flush();
-  f.calls.length=0;
-  f.get('trusted-history-search').emit('click',true);
-  assert.deepEqual(f.calls[0],['request',{permissions:['history']}],
-    'chrome.permissions.request must start in the trusted click handler');
-  await flush();await flush();
+test('R10.6 trusted action synchronously requests optional history permission then calls Host route',async t=>{
+  const f=await fixture(t);
+  await React.act(async()=>{
+    const pending=f.actions.search({isTrusted:true});
+    assert.deepEqual(f.calls[0],['request',{permissions:['history']}],
+      'chrome.permissions.request must start in the trusted click stack');
+    await pending;
+  });
   const envelope=f.calls.find(([name])=>name==='sendMessage')?.[1];
   assert.equal(envelope.protocol,BROWSER_HOST_PROTOCOL);
   assert.equal(envelope.kind,'host');
   assert.equal(envelope.operation,'browser.history.searchTrusted');
   assert.equal(envelope.hostInstanceId,hostInstanceId);
-  assert.deepEqual(envelope.args.text,'example');
+  assert.deepEqual(envelope.args,normalizeTrustedHistoryForm({text:'example',startDate:'2026-10-01',endDate:'2026-10-07',limit:'3'}));
   assert.equal(f.get('trusted-history-results').querySelectorAll('.trusted-history-result').length,1);
-  f.ui.dispose();
+  assert.equal(f.get('trusted-history-search').disabled,false);
 });
 
-test('R10.6 synthetic click and invalid ranges never request permission or reach Host',async()=>{
-  const synthetic=fixture();await flush();synthetic.calls.length=0;
-  synthetic.get('trusted-history-search').emit('click',false);
-  await flush();
-  assert.deepEqual(synthetic.calls,[]);
-  synthetic.ui.dispose();
-
-  const invalid=fixture();await flush();invalid.calls.length=0;
-  invalid.get('trusted-history-end').value='2026-11-10';
-  invalid.get('trusted-history-search').emit('click',true);
-  await flush();
-  assert.deepEqual(invalid.calls,[]);
-  assert.match(invalid.get('trusted-history-status').textContent,/最多 31 天/);
-  invalid.ui.dispose();
+test('R10.6 React synthetic click and invalid ranges never request permission or reach Host',async t=>{
+  const f=await fixture(t);
+  await React.act(async()=>f.get('trusted-history-search').dispatchEvent(new f.window.Event('click',{bubbles:true})));
+  assert.deepEqual(f.calls,[]);
+  await f.change('endDate','2026-11-10');
+  await f.search();
+  assert.deepEqual(f.calls,[]);
+  assert.match(f.get('trusted-history-status').textContent,/最多 31 天/);
 });
 
 test('R10.6 trusted History UI is not exposed through ordinary Browser SDK tool operations',async()=>{
@@ -124,18 +84,123 @@ test('R10.6 trusted History UI is not exposed through ordinary Browser SDK tool 
   assert.doesNotMatch(source,/kind:'tool'|iframe|createElement\('script'\)|innerHTML|eval\(|new Function/);
 });
 
-test('R10.6 static 320/360/460 component contract uses od primitives without fixed widths',async()=>{
-  const source=await readFile('src/ui/trusted-history-workbench.js','utf8');
-  assert.doesNotMatch(source,/style\.(?:width|minWidth|maxWidth)|width:\s*\d/);
-  for(const width of [320,360,460]){
-    const f=fixture({granted:true,width});
-    await flush();
-    assert.equal(f.root.dataset.trustedHistoryWorkbench,'mounted');
-    f.get('trusted-history-search').emit('click',true);
-    await flush();await flush();
-    assert.equal(f.get('trusted-history-search').disabled,false);
-    assert.equal(f.get('trusted-history-results').querySelectorAll('.od-surface').length,1);
-    assert.equal(f.get('trusted-history-results').querySelectorAll('.od-stack').length,1);
-    f.ui.dispose();
+test('R37 React history keeps disclosure, labels and escaped result primitives',async t=>{
+  const f=await fixture(t,{granted:true,response:{ok:true,data:{visits:[{url:'https://example.com/<b>',title:'<img src=x onerror=alert(1)>',typedCount:99,privateExtra:'not for UI'}]}}});
+  await f.search();
+  assert.equal(f.calls.some(([name])=>name==='request'),false);
+  assert.equal(f.get('trusted-history-panel').tagName,'DETAILS');
+  assert.equal(f.get('trusted-history-panel').dataset.historyPermission,'granted');
+  assert.equal(f.get('trusted-history-results').querySelectorAll('.od-surface').length,1);
+  assert.equal(f.get('trusted-history-results').querySelector('strong').textContent,'<img src=x onerror=alert(1)>');
+  assert.equal(f.get('trusted-history-results').querySelector('img'),null);
+  assert.equal(f.get('trusted-history-results').querySelector('small').textContent,'未知时间');
+  assert.deepEqual(Object.keys(f.model.visits[0]),['url','title','lastVisitTime']);
+  assert.equal(Object.isFrozen(f.model.visits[0]),true);
+  assert.equal(f.get('trusted-history-status').getAttribute('role'),'status');
+  assert.equal(f.get('trusted-history-results').getAttribute('aria-live'),'polite');
+  const source=await readFile('src/ui/react/tabs/browser-history.tsx','utf8');
+  assert.doesNotMatch(source,/style\.(?:width|minWidth|maxWidth)|width:\s*\d|dangerouslySetInnerHTML/);
+});
+
+test('R37 permission denial and document/owner errors clear private results without echoing backend messages',async t=>{
+  for(const code of ['E_DOCUMENT_CHANGED','E_OWNER','E_CHROME_PERMISSION_REQUIRED','E_BROWSER']){
+    await t.test(code,async t=>{
+      const f=await fixture(t,{granted:true});
+      await f.search();
+      f.api.runtime.sendMessage=async()=>({ok:false,error:{code,message:'PRIVATE URL https://secret.example'}});
+      await f.search();
+      assert.equal(f.get('trusted-history-results').children.length,0);
+      assert.doesNotMatch(f.get('trusted-history-status').textContent,/PRIVATE|secret/);
+      assert.equal(f.get('trusted-history-search').disabled,false);
+    });
   }
+  await t.test('denied optional permission',async t=>{
+    const f=await fixture(t,{requestResult:false});await f.search();
+    assert.deepEqual(f.calls.map(([name])=>name),['request']);
+    assert.equal(f.model.permission,'missing');
+    assert.match(f.model.status,/需要 Chrome history/);
+  });
+});
+
+test('R37 input invalidates pending search and keeps composition input nodes',async t=>{
+  let resolve;
+  const f=await fixture(t,{granted:true,sendMessage:()=>new Promise(done=>{resolve=done;})});
+  const input=f.get('trusted-history-text');
+  const panel=f.get('trusted-history-panel');panel.setAttribute('open','');
+  let pending;
+  await React.act(async()=>{pending=f.actions.search({isTrusted:true});});
+  assert.equal(f.get('trusted-history-search').disabled,true);
+  const callCount=f.calls.length;
+  await f.search();
+  assert.equal(f.calls.length,callCount,'busy query does not duplicate requests');
+  await React.act(async()=>{
+    input.value='拼音';
+    const event=new f.window.Event('input',{bubbles:true});event.isComposing=true;input.dispatchEvent(event);
+  });
+  assert.equal(f.model.text,'拼音');
+  assert.equal(f.get('trusted-history-text'),input);
+  assert.equal(f.get('trusted-history-panel'),panel);
+  assert.equal(panel.hasAttribute('open'),true,'state updates preserve disclosure state');
+  await React.act(async()=>{resolve({ok:true,data:{visits:[{url:'https://stale.example',title:'stale'}]}});await pending;});
+  assert.equal(f.model.visits,null);
+  assert.equal(f.get('trusted-history-results').children.length,0);
+  assert.equal(f.get('trusted-history-search').disabled,false);
+  assert.equal(f.get('trusted-history-text'),input);
+});
+
+test('R37 dispose disconnects actions, unmounts results and ignores late replies',async t=>{
+  let resolve;
+  const f=await fixture(t,{granted:true,sendMessage:()=>new Promise(done=>{resolve=done;})});
+  const actions=f.actions;let pending;
+  await React.act(async()=>{pending=actions.search({isTrusted:true});});
+  await React.act(async()=>f.ui.dispose());
+  assert.equal(f.model,null);assert.equal(f.actions,null);
+  assert.equal(f.get('trusted-history-panel'),null);
+  const count=f.snapshots.length;
+  await React.act(async()=>{resolve({ok:true,data:{visits:[{url:'https://late.example'}]}});await pending;actions.change('text','late');await actions.search({isTrusted:true});});
+  assert.equal(f.snapshots.length,count);
+});
+
+test('R37 empty and malformed results remain distinct from an unqueried form',async t=>{
+  const f=await fixture(t,{granted:true,response:{ok:true,data:{visits:[]}}});
+  assert.equal(f.get('trusted-history-results').textContent,'');
+  await f.search();assert.match(f.get('trusted-history-results').textContent,/没有匹配/);
+  f.api.runtime.sendMessage=async()=>({ok:true,data:{visits:{url:'https://bad.example'}}});
+  await f.search();assert.equal(f.get('trusted-history-results').textContent,'');
+  assert.match(f.model.status,/浏览器未能完成/);
+});
+
+test('R37 React forwards the original native click without recreating a gesture',async t=>{
+  const f=await fixture(t),events=[];
+  await React.act(async()=>f.reactUI.connectBrowserHistoryActions({...f.actions,search:event=>events.push(event)}));
+  const event=new f.window.Event('click',{bubbles:true});
+  f.get('trusted-history-search').dispatchEvent(event);
+  assert.deepEqual(events,[event]);
+  assert.equal(events[0].isTrusted,undefined,'the fixture must not manufacture native trust');
+});
+
+test('R37 a late contains response cannot replace a newer permission request result',async t=>{
+  let resolveContains;
+  const f=await historyReactFixture(t,{hostInstanceId,api:{
+    permissions:{contains:()=>new Promise(done=>{resolveContains=done;}),request:()=>Promise.resolve(true)},
+    runtime:{sendMessage:async()=>({ok:true,data:{visits:[]}})}
+  }});
+  for(const [field,value] of Object.entries({text:'term',startDate:'2026-10-01',endDate:'2026-10-01'}))await f.change(field,value);
+  await f.search();
+  await React.act(async()=>{resolveContains(false);});
+  assert.equal(f.model.permission,'granted');
+});
+
+test('R37 disposing during permission request cannot reach Host or republish private state',async t=>{
+  let grant;const calls=[];
+  const f=await historyReactFixture(t,{hostInstanceId,api:{
+    permissions:{contains:async()=>false,request:()=>new Promise(done=>{grant=done;})},
+    runtime:{sendMessage:async()=>{calls.push('host');return {ok:true,data:{visits:[]}};}}
+  }});
+  for(const [field,value] of Object.entries({text:'term',startDate:'2026-10-01',endDate:'2026-10-01'}))await f.change(field,value);
+  let pending;
+  await React.act(async()=>{pending=f.actions.search({isTrusted:true});f.ui.dispose();});
+  const count=f.snapshots.length;
+  await React.act(async()=>{grant(true);await pending;});
+  assert.deepEqual(calls,[]);assert.equal(f.snapshots.length,count);assert.equal(f.model,null);
 });

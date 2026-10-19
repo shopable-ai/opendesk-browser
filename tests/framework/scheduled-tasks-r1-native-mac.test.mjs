@@ -44,7 +44,7 @@ async function visible(client,session,selector){
   return evaluate(client,expr(selector)+'&&!('+expr(selector)+').disabled&&('+expr(selector)+').getClientRects().length>0',session);
 }
 async function click(client,session,selector){
-  // A genuine extension page may self-navigate from tool.html to its
+  // A genuine extension page may self-navigate from sidepanel.html to its
   // hostInstanceId URL as the DevTools session attaches. Reacquire DOM
   // geometry only BEFORE the first real pointer event; never replay an
   // uncertain user click after mousePressed.
@@ -274,26 +274,26 @@ function readySidePanelContext(rows,extensionId,documentId=null){
     try{
       const url=new globalThis.URL(row.documentUrl);
       return url.protocol==='chrome-extension:'&&url.hostname===extensionId&&
-        url.pathname==='/ui/tool.html'&&!!url.searchParams.get('hostInstanceId');
+        url.pathname==='/sidepanel.html'&&!!url.searchParams.get('hostInstanceId');
     }catch{return false;}
   });
 }
 test('native Side Panel observer waits past the initial sender redirect',()=>{
-  const initial={contextType:'SIDE_PANEL',documentId:'initial',documentUrl:'chrome-extension://test/ui/tool.html'};
+  const initial={contextType:'SIDE_PANEL',documentId:'initial',documentUrl:'chrome-extension://test/sidepanel.html'};
   const ready={...initial,documentId:'ready',documentUrl:initial.documentUrl+'?hostInstanceId=owned'};
   assert.equal(readySidePanelContext([initial],'test'),undefined);
   assert.equal(readySidePanelContext([initial,ready],'test'),ready);
 });
 test('native Side Panel observer rejects another extension, tab or missing identity',()=>{
-  const ready={contextType:'SIDE_PANEL',documentId:'owned',documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId=owned'};
+  const ready={contextType:'SIDE_PANEL',documentId:'owned',documentUrl:'chrome-extension://test/sidepanel.html?hostInstanceId=owned'};
   assert.equal(readySidePanelContext([
     {...ready,documentUrl:ready.documentUrl.replace('://test/','://other/')},
     {...ready,contextType:'TAB'}, {...ready,documentId:null},
-    {...ready,documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId='}
+    {...ready,documentUrl:'chrome-extension://test/sidepanel.html?hostInstanceId='}
   ],'test'),undefined);
 });
 test('native Side Panel observer never substitutes a replacement document',()=>{
-  const ready={contextType:'SIDE_PANEL',documentId:'owned',documentUrl:'chrome-extension://test/ui/tool.html?hostInstanceId=owned'};
+  const ready={contextType:'SIDE_PANEL',documentId:'owned',documentUrl:'chrome-extension://test/sidepanel.html?hostInstanceId=owned'};
   assert.equal(readySidePanelContext([{...ready,documentId:'replacement'}],'test','owned'),undefined);
   assert.equal(readySidePanelContext([ready],'test','owned'),ready);
 });
@@ -408,7 +408,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     assert(CI_UNSANDBOXED_LINUX,'--no-sandbox may only be used in the named ephemeral GitHub Linux CFT runner');
   await mkdir(OUT,{recursive:true});
   const sourceHash=sha(await readFile('src/platform/tasks/schedule-service.js'));
-  const sourceBinding=await Promise.all(['src/ui/scheduled-task-workbench.js','src/ui/tool.html',
+  const sourceBinding=await Promise.all(['src/ui/scheduled-task-workbench.js','src/ui/sidepanel.html',
     'src/ui/tool-shell.css','src/ui/design-system.css','src/ui/design-tokens.css',
     'tests/framework/scheduled-tasks-r1-native-mac.test.mjs','tests/framework/time-review-native-input.swift','package-lock.json','wxt.config.mjs']
     .map(async file=>({file,sha256:sha(await readFile(file))})));
@@ -517,7 +517,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   const siteSid=await attach(client,site.targetId);
   await deadline(()=>evaluate(client,'document.readyState==="complete"&&!!document.querySelector("#submit")',siteSid),
     'real HTTP demo form ready');
-  const catalog=await client.send('Target.createTarget',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+  const catalog=await client.send('Target.createTarget',{url:'chrome-extension://'+extensionId+'/sidepanel.html'});
   const catalogSid=await attach(client,catalog.targetId);
   await deadline(()=>evaluate(client,'!!document.querySelector("#catalog-open-dev-sidebar")',catalogSid),
     'installed complete Task catalog');
@@ -525,7 +525,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await click(client,catalogSid,'#catalog-open-dev-sidebar');
   const sideContext=await deadline(async()=>{
     const rows=await contexts(client,catalogSid);
-    // tool.html first replaces its provisional document with a sender-bound URL.
+    // sidepanel.html first replaces its provisional document with a sender-bound URL.
     return readySidePanelContext(rows,extensionId);
   },'real Chrome SIDE_PANEL document context',18000);
   const sideTarget=await deadline(async()=>{
@@ -533,7 +533,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const rows=(await client.send('Target.getTargets')).targetInfos;
     report.sidePanelTargetObservation={expectedDocumentId:sideContext.documentId,
       expectedUrl:sideContext.documentUrl,current:current??null,
-      targets:rows.filter(row=>row.url?.startsWith('chrome-extension://'+extensionId+'/ui/tool.html'))};
+      targets:rows.filter(row=>row.url?.startsWith('chrome-extension://'+extensionId+'/sidepanel.html'))};
     if(current?.documentUrl!==sideContext.documentUrl)return null;
     return rows.find(x=>x.url===current.documentUrl);
   },'real Side Panel DevTools target');
@@ -642,7 +642,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   try{
     runnerTarget=await deadline(async()=>{
       const rows=(await client.send('Target.getTargets')).targetInfos;
-      return rows.find(x=>x.url?.includes('/ui/tool.html?')&&x.url.includes('scheduledRunner=1'));
+      return rows.find(x=>x.url?.includes('/sidepanel.html?')&&x.url.includes('scheduledRunner=1'));
     },'user-opened visible scheduled RunHost tab',18000);
   }catch(error){
     // Diagnostics ONLY, never a substitute for the real tab assertion.
@@ -727,7 +727,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
   await client.send('Target.closeTarget',{targetId:sideId});
   await deadline(async()=>{
     const rows=await contexts(client,runnerSid);
-    return !rows.some(x=>x.contextType==='SIDE_PANEL'&&x.documentUrl?.includes('/ui/tool.html'));
+    return !rows.some(x=>x.contextType==='SIDE_PANEL'&&x.documentUrl?.includes('/sidepanel.html'));
   },'real Side Panel fully closed while runner remains',15000);
   report.tests.sidePanelClosedRunnerLive='PASS';
   const due=await deadline(async()=>{
@@ -804,7 +804,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const returnedSide=await deadline(async()=>{
       const rows=await contexts(client,catalogSid);
       return rows.find(x=>x.contextType==='SIDE_PANEL'&&x.documentId&&
-        x.documentId!==sideContext.documentId&&x.documentUrl?.includes('/ui/tool.html'));
+        x.documentId!==sideContext.documentId&&x.documentUrl?.includes('/sidepanel.html'));
     },'real Side Panel reopens after all scheduling Hosts vanished',25000);
     const reopenedTarget=await deadline(async()=>{
       const rows=(await client.send('Target.getTargets')).targetInfos;
@@ -1061,8 +1061,8 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const catalogAgain=await client.send('Target.createTarget',{url:'about:blank'});
     const catAgainSid=await attach(client,catalogAgain.targetId);
     await client.send('Page.navigate',{
-      url:'chrome-extension://'+extensionId+'/ui/tool.html'},catAgainSid);
-    // tool.html without hostInstanceId performs a genuine extension-owned
+      url:'chrome-extension://'+extensionId+'/sidepanel.html'},catAgainSid);
+    // sidepanel.html without hostInstanceId performs a genuine extension-owned
     // location.replace() into its canonical sender URL. Wait for that real
     // navigation to settle before opening IndexedDB or the old CDP context
     // may return "Inspected target navigated or closed".
@@ -1097,7 +1097,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     const sideAgain=await deadline(async()=>{
       const list=await contexts(client,catAgainSid);
       return list.find(x=>x.contextType==='SIDE_PANEL'&&x.documentId&&
-        x.documentUrl?.includes('/ui/tool.html'));
+        x.documentUrl?.includes('/sidepanel.html'));
     },'fresh genuine Side Panel in the restarted Chrome process',23000);
     const sideTargetAgain=await deadline(async()=>{
       const targets=(await client.send('Target.getTargets')).targetInfos;
@@ -1144,7 +1144,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await click(client,sideAgainSid,'#schedule-open-runner');
     const runnerAgain=await deadline(async()=>{
       const targets=(await client.send('Target.getTargets')).targetInfos;
-      return targets.find(x=>x.url?.includes('/ui/tool.html?')&&x.url.includes('scheduledRunner=1'));
+      return targets.find(x=>x.url?.includes('/sidepanel.html?')&&x.url.includes('scheduledRunner=1'));
     },'new user-opened visible RunHost after full Chrome restart',18000);
     const runnerAgainSid=await attach(client,runnerAgain.targetId);
     await deadline(()=>evaluate(client,
@@ -1193,7 +1193,7 @@ test('real installed Chrome: verified Task via Alarms -> original RunHost -> pag
     await client.send('Target.activateTarget',{targetId:catalog.targetId});
     await click(client,catalogSid,'#catalog-open-dev-sidebar');
     const formContext=await deadline(async()=>(await contexts(client,catalogSid)).find(context=>
-      context.contextType==='SIDE_PANEL'&&context.documentId&&context.documentUrl?.includes('/ui/tool.html')),
+      context.contextType==='SIDE_PANEL'&&context.documentId&&context.documentUrl?.includes('/sidepanel.html')),
       'genuine reopened Side Panel for native form matrix');
     const formTarget=await deadline(async()=>(await client.send('Target.getTargets')).targetInfos.find(target=>
       target.url===formContext.documentUrl),'actual form Side Panel target');

@@ -6,7 +6,7 @@ const KV='frameworkKV',CONFIG='cloud:config',PREFIX='cloud:request:';
 const namespace='tool:trusted-extension',taskId='task.alpha',otherTaskId='task.beta';
 const host={namespace,principal:'extension-tool:trusted-extension',registrationId:'host-one',
   hostDocumentId:'doc-one',hostInstanceId:'host-instance'};
-const sender={id:'trusted-extension',documentId:'doc-one',url:'chrome-extension://trusted-extension/ui/tool.html'};
+const sender={id:'trusted-extension',documentId:'doc-one',url:'chrome-extension://trusted-extension/sidepanel.html'};
 const runRef={runId:'run-one',resultId:'result-one',requestId:'cloud:assignment-one',
   sourceHash:'source-one',manifestHash:'manifest-one',grantId:'grant-one'};
 const task={taskId,version:'1.0.0',manifestHash:'manifest-one',contentHash:'source-one',

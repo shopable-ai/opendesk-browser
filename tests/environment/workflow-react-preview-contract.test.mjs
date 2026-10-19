@@ -1,7 +1,8 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {transformWithEsbuild} from 'vite';
+import {transform} from 'esbuild';
 
 const read=path=>readFile(path,'utf8');
 test('R33.3.6 source-bound preview only reuses real Workflow JSX and installed shell',async()=>{
@@ -13,7 +14,7 @@ test('R33.3.6 source-bound preview only reuses real Workflow JSX and installed s
   assert.match(entry,/from '\.\.\/tabs\/workflow\.tsx'/);
   for(const name of ['WorkflowHeader','WorkflowHistory','WorkflowSourceName','WorkflowTranscript','WorkflowSettingsSheet','WorkflowResultText'])
     assert.match(entry,new RegExp('createPortal\\(<'+name));
-  for(const path of ['src/ui/tool.html','src/ui/design-tokens.css',
+  for(const path of ['src/ui/sidepanel.html','src/ui/design-tokens.css',
     'src/ui/design-system.css','src/ui/tool-shell.css','src/ui/react/tabs/workflow.tsx'])
     assert.ok(builder.includes(path),'canonical input missing '+path);
   assert.match(builder,/--check/);
@@ -23,7 +24,7 @@ test('R33.3.6 source-bound preview only reuses real Workflow JSX and installed s
   const executable=entry.replace(/^\s*\/\/[^\n]*$/gm,'');
   assert.doesNotMatch(executable,/chrome\.|(?:^|\W)fetch\(|localStorage|sessionStorage|createWorkflowProviderFacade/);
   assert.doesNotMatch(executable,/from ['"][^'"]*(?:framework\/sdk|platform\/host|installer|sandbox)/);
-  const result=await transformWithEsbuild(entry,'workflow-preview.tsx',
+  const result=await transform(entry,
     {loader:'tsx',jsx:'transform',target:'es2022'});
   assert.ok(result.code.length>1000);
 });
@@ -57,10 +58,10 @@ test('R23.11 preview never forges saved history, native status or a provider tok
   const [entry,builder,html,view]=await Promise.all([
     read('src/ui/react/preview/workflow-preview.tsx'),
     read('scripts/preview/build-workflow-react-preview.mjs'),
-    read('src/ui/tool.html'),
+    renderSidebarFixture(),
     read('src/ui/workflow/workflow-view.js')
   ]);
-  for(const node of ['workflow-history-react-host','workflow-source-react-host',
+  for(const node of ['workflow-history-panel','workflow-source-name',
     'workflow-source-local','workflow-source-https','workflow-https-protocol'])
     assert.match(html,new RegExp('id="'+node+'"'));
   assert.match(entry,/model=\{\{open:history,rows:\[\],canResume:false/);
@@ -68,13 +69,13 @@ test('R23.11 preview never forges saved history, native status or a provider tok
   assert.match(entry,/sourceBound:true,native:false,provider:false/);
   assert.match(builder,/src\/ui\/react\/preview\/workflow-preview\.tsx/);
   assert.match(builder,/src\/ui\/workflow\/workflow-view\.js/);
-  assert.match(view,/get\('workflow-ai-model'\)\.value\.trim\(\)/);
+  assert.match(view,/control\('workflow-ai-model'\)\.value\.trim\(\)/);
 });
 
 test('R23.14 source-bound preview keeps honest disconnected state with production copy',async()=>{
   const [entry,html,view]=await Promise.all([
     read('src/ui/react/preview/workflow-preview.tsx'),
-    read('src/ui/tool.html'),
+    renderSidebarFixture(),
     read('src/ui/workflow/workflow-view.js')
   ]);
   assert.match(entry,/get\('workflow-local-status'\)\.textContent='未连接'/);
@@ -82,5 +83,5 @@ test('R23.14 source-bound preview keeps honest disconnected state with productio
   assert.match(entry,/native:false,provider:false/);
   assert.doesNotMatch(entry,/尚未连接 OpenDesk（离线预览，不探测）|示例规划中|本轮批准交互示例|UNKNOWN（模拟 UI 状态）/);
   assert.match(html,/id="workflow-local-status-detail"/);
-  assert.match(view,/get\('workflow-local-status-detail'\)\.textContent=detail/);
+  assert.match(view,/control\('workflow-local-status-detail'\)\.text=detail/);
 });

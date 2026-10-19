@@ -5,7 +5,6 @@ import {readFile} from 'node:fs/promises';
 import {createHash,webcrypto} from 'node:crypto';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
-import {DEVELOPER_FIELDS} from '../../src/ui/develop-fields.js';
 import {developerTestFields} from './develop-view-fixture.mjs';
 import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
@@ -32,7 +31,6 @@ class Element {
 }
 globalThis.Option=class extends Element {constructor(text,value){super();this.textContent=text;this.value=value;}};
 const event=()=>{const e=new Element();return {addListener:fn=>e.addEventListener('event',fn),removeListener:fn=>e.removeEventListener('event',fn),emit:(...args)=>{for(const fn of e.listeners.get('event')||[])fn(...args);}};};
-const html=await readFile('src/ui/tool.html','utf8');
 const sha256=value=>createHash('sha256').update(value).digest('hex');
 globalThis.crypto ||= webcrypto;
 const bytes=value=>new TextEncoder().encode(value).length;
@@ -50,12 +48,9 @@ const componentInspectResult=({componentSource,framework,projectId,remoteModules
 });
 async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget}={}) {
-  const nodes=new Map([...new Set([...Object.keys(DEVELOPER_FIELDS),...Array.from(html.matchAll(/id="([^"]+)"/g),([,id])=>id)])].map(id=>[id,new Element()]));
-  const walk=(node,id)=>node.id===id?node:node.children.map(child=>walk(child,id)).find(Boolean);
-  const legacyFind=id=>nodes.get(id)||[...nodes.values()].map(node=>walk(node,id)).find(Boolean);
-  const view=new Element(), legacyDoc={getElementById:legacyFind,defaultView:view,createElement:()=>new Element()};
-  const projection=process.env.OPENDESK_DEVELOP_REACT_VIEW==='1'?createDeveloperView():null;
-  const find=developerTestFields(projection,legacyFind);
+  const view=new Element(), legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
+  const projection=createDeveloperView();
+  const find=developerTestFields(projection);
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
@@ -219,7 +214,7 @@ test('Result copy keeps its icon and reports clipboard success, failure and rese
   await f.click('script-copy-result');
   assert.deepEqual(writes,['{"value":7}']);
   assert.equal(feedback.textContent,'已复制');assert.equal(feedback.hidden,false);
-  assert.equal(button['aria-label'],'已复制');
+  assert.equal(button.ariaLabel,'已复制');
   reject=true;await f.click('script-copy-result');
   assert.equal(feedback.textContent,'无法自动复制');
   assert.equal(button.title,'请选中返回值后手动复制');
@@ -250,6 +245,29 @@ for(const framework of ['react','vue'])test(framework+' primary Run compiles a m
   assert.equal(f.find('script-copy-result').disabled,false);
   assert.equal(f.find('script-stop').disabled,false);
   assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
+});
+
+for(const framework of ['react','vue'])test(framework+' Stop projects the actual managed cleanup receipt into preview state',async t=>{
+  const f=await componentFixture(t,framework);await f.click('script-run');await f.settle();
+  const mounted=f.previews[0],receipt={state:'preview-retired',sourceHash:createHash('sha256').update(mounted.sourceUtf8).digest('hex'),
+    receipt:{ok:true,scope:'managed-ui-only'}};
+  const request=f.client.request;
+  f.client.request=(type,payload)=>type==='retirePagePreview'?Promise.resolve(receipt):request(type,payload);
+  await f.click('script-stop');
+  assert.equal(f.find('script-stop').disabled,true);
+  assert.match(f.find('page-preview-status').textContent,/已停止/);
+  assert.equal(f.find('page-preview-status').dataset.state,'completed');
+  assert.deepEqual(JSON.parse(f.find('page-preview-result').textContent),receipt);
+});
+test('unconfirmed component Stop projects an error without a fabricated cleanup receipt or retry',async t=>{
+  const f=await componentFixture(t,'react');await f.click('script-run');await f.settle();
+  const request=f.client.request;let stops=0;
+  f.client.request=(type,payload)=>type==='retirePagePreview'?(stops++,Promise.reject({code:'E_OUTCOME_UNKNOWN',message:'transport lost'})):request(type,payload);
+  await f.click('script-stop');
+  assert.equal(f.find('page-preview-status').dataset.state,'error');
+  assert.match(f.find('page-preview-status').textContent,/无法确认/);
+  assert.deepEqual(JSON.parse(f.find('page-preview-result').textContent),{error:{code:'E_OUTCOME_UNKNOWN',message:'transport lost'}});
+  assert.equal(f.find('script-stop').disabled,true);await f.click('script-stop');assert.equal(stops,1);
 });
 
 for(const failure of ['permission','document','compiler','unknown'])test('component primary Run preserves '+failure+' protection and visible feedback',async t=>{
@@ -734,7 +752,7 @@ test('draft import rejects empty/oversized sources and active saves without over
   assert.equal(f.find('script-source').value,before);gate.resolve();await tick();
 });
 
-test('imported Classic @require inspects per-program grants without any implicit download, approval or run',async t=>{
+test('imported Classic @require inspects before Run and never dispatches without a fixed lock',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const source='// ==UserScript==\n// @require https://cdn.example/library.js\n// ==/UserScript==\nasync function main(){return document.title;}';
   f.editor.importDraft(source);await tick();
@@ -743,8 +761,9 @@ test('imported Classic @require inspects per-program grants without any implicit
   assert.equal(f.find('page-preview-entry'),undefined);
   f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');
   f.find('script-source').value=source;f.find('script-source').fire('input');await tick();
-  assert.equal(f.find('script-run').disabled,true,'unapproved Page dependencies cannot be admitted');
+  assert.equal(f.find('script-run').disabled,false,'Run can prepare dependencies through the controller');
   await f.click('script-run');
+  assert.equal(f.find('script-status').dataset.state,'error','failed dependency preparation cannot dispatch');
   assert.equal(f.permissions.length,0,'missing approval never triggers a site or CDN permission prompt');
   f.editor.importDraft('async function main(){return 1;}');await tick();
   assert.equal(f.find('script-run').disabled,false);
@@ -755,7 +774,7 @@ test('imported Classic @require inspects per-program grants without any implicit
 test('Save persists revision/hash without requesting permission, creating a Run, or executing code',async t=>{
   const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');
   assert.equal(f.persisted.scripts[0].revision,1);assert.match(f.persisted.scripts[0].contentHash,/^[a-f0-9]{64}$/);
-  assert.equal((f.find('script-list').options||f.find('script-list').children).some(row=>row.value==='my-script'),true);
+  assert.equal(f.find('script-list').options.some(row=>row.value==='my-script'),true);
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);
   f.find('script-source').value='unsaved changes';f.find('script-source').fire('input');await tick();assert.match(f.find('script-version').textContent,/存在未保存修改/);
 });
@@ -766,7 +785,7 @@ test('reopened editor lists saved scripts without running and loads the selected
   t.after(()=>f.dispose());await tick();
   assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);assert.equal(f.permissions.length,0);
   assert.equal(f.find('script-source').value,'return params.value;');
-  assert.equal((f.find('script-list').options||f.find('script-list').children).some(row=>row.value==='saved-script'),true);
+  assert.equal(f.find('script-list').options.some(row=>row.value==='saved-script'),true);
   f.find('script-list').value='saved-script';await f.click('script-list-load');
   assert.equal(f.find('script-id').value,'saved-script');assert.equal(f.find('script-revision').value,'1');
   assert.equal(f.find('script-source').value,'return "saved";');assert.match(f.find('script-version').textContent,/r1/);
@@ -788,7 +807,7 @@ test('Delete tombstones the latest head and refreshes the saved-script selector'
   const f=await fixture({scripts:[{scriptId:'my-script',revision:1,sourceUtf8:'return "saved";',contentHash}],runs:[],results:[]});
   t.after(()=>f.dispose());await tick();await f.click('script-load');await f.click('script-delete');
   assert.equal(f.persisted.scripts[0].tombstoned,true);
-  assert.equal((f.find('script-list').options||f.find('script-list').children).some(row=>row.value==='my-script'),false);
+  assert.equal(f.find('script-list').options.some(row=>row.value==='my-script'),false);
 });
 
 test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B',async t=>{
@@ -1147,7 +1166,7 @@ test('denied results never populate visible values, technical history or downloa
   assert.match(f.find('script-result').textContent,/无权查看/);
   assert.doesNotMatch(f.find('script-result').textContent,/SENSITIVE-HTML/);
   assert.equal(f.find('script-download').disabled,true);
-  assert(!f.find('script-download-result').children.some(row=>row.value==='result-private'));
+  assert(!f.find('script-download-result').options.some(row=>row.value==='result-private'));
   assert.doesNotMatch(f.find('script-history').textContent,/SENSITIVE-HTML/);
 });
 
@@ -1214,15 +1233,15 @@ test('R17 accepts 32 scoped sources with same-name directories but rejects an un
   f.editor.connectLocalProjects({});
   f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
   const select=f.find('local-project-select');
-  assert.equal(select.children.length,33);
-  assert.notEqual(select.children[1].textContent,select.children[2].textContent,
+  assert.equal(select.options.length,33);
+  assert.notEqual(select.options[1].label,select.options[2].label,
     'same basename is disambiguated by source identity rather than merged');
   assert.equal(f.find('local-project-status').dataset.state,'selection-needed');
   assert.equal(f.starts.length,0);
   count=33;
   f.find('local-project-refresh').fire('click',{isTrusted:true});await tick();
   assert.equal(f.find('local-project-status').dataset.state,'disconnected');
-  assert.equal(select.children.length,1,'invalid list must not retain stale online projects');
+  assert.equal(select.options.length,1,'invalid list must not retain stale online projects');
 });
 
 test('R37.1 JavaScript, React and Vue share one visible source without hidden buffers',async t=>{

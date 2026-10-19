@@ -262,7 +262,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   async function activate(target){await browser.send('Target.activateTarget',{targetId:target.targetId});await target.send('Page.bringToFront');}
   async function visible(target,selector){return until(()=>evaluate(target,'(()=>{const n=document.querySelector('+JSON.stringify(selector)+');return !!n&&!n.disabled&&!!n.getClientRects().length})()'),'visible '+selector);}
   async function openPanel(launcher=host){
-    if(!launcher)launcher=host=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
+    if(!launcher)launcher=host=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID());
     await until(()=>evaluate(launcher,'!!document.querySelector("#tab-tools")'),'launcher UI');
     await activate(launcher);
     const windowId=await evaluate(launcher,'chrome.windows.getCurrent().then(w=>w.id)');
@@ -284,7 +284,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
       const context=await until(async()=>{
         attempt.after=await evaluate(launcher,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
         const created=attempt.after.filter(row=>!previousIds.has(row.contextId)&&
-          row.documentUrl?.includes('/ui/tool.html')&&new URL(row.documentUrl).searchParams.has('hostInstanceId'));
+          row.documentUrl?.includes('/sidepanel.html')&&new URL(row.documentUrl).searchParams.has('hostInstanceId'));
         assert(created.length<=1,'one gesture must create a unique actual Side Panel context');
         return created[0];
       },'new actual SIDE_PANEL context');
@@ -557,7 +557,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     await click(market,'#market-my');
     const index=(await installed()).findIndex(row=>row.id===release.toolId)+1;
     const open='#market-root .surface .action-row:nth-child('+index+') button';await visible(market,open);await click(market,open);
-    const opened=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&new URL(row.url).searchParams.get('toolId')===release.toolId),'explicit market tool open');
+    const opened=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/sidepanel.html')&&new URL(row.url).searchParams.get('toolId')===release.toolId),'explicit market tool open');
     const toolPage=await attach(opened.targetId);
     if(release.toolId==='time-review'&&release.version===TRUSTED_TIME_REVIEW_VERSION){
       // The exact, provenance-checked official Time Review runs as a trusted
@@ -655,7 +655,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   for(const release of catalog.apps.filter(row=>row.toolId!=='markdown-workbench')){
     await officialInstall(release.toolId);await openTool(release.toolId);await back();
   }
-  const secondLauncher=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID(),true);
+  const secondLauncher=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID(),true);
   const second=await openPanel(secondLauncher);
   assert.notEqual(second.windowId,side.windowId,'concurrent approvals use two actual Chrome windows');
   assert.notEqual(second.contextId,side.contextId,'each window owns its real SIDE_PANEL context');

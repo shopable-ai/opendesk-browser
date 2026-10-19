@@ -56,7 +56,7 @@ try{
   report.extension=item;
   await manager.screenshot({path:join(out,'browser-package.png')});
   let ui=await context.newPage();
-  const url='chrome-extension://'+item.id+'/ui/tool.html';
+  const url='chrome-extension://'+item.id+'/sidepanel.html';
   await ui.goto(url,{waitUntil:'domcontentloaded'});
   const worker=()=>context.serviceWorkers().find(row=>row.url().startsWith('chrome-extension://'+item.id+'/'));
   if(!worker())await context.waitForEvent('serviceworker',{timeout:15000});

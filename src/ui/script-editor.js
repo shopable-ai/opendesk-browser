@@ -43,16 +43,17 @@ function printable(value, depth = 0) {
   return JSON.stringify(value);
 }
 
-export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: hostDocument = globalThis.document,view=null,
+export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: hostDocument = globalThis.document,view,
   hostFactory = createRunHost,sharedRunHost=null,componentPreparerFactory=createBrowserPageComponentPreparer,
   staticESMPreparerFactory=createStaticESMPreparer,
   browserCompilerEnabled=typeof __OPENDESK_BROWSER_COMPILER_ENABLED__==='undefined'||
     __OPENDESK_BROWSER_COMPILER_ENABLED__!==false}) {
+  invariant(view,'E_DEVELOPER_VIEW','开发编辑器需要已连接的视图');
   const host = sharedRunHost ?? hostFactory({api, client, document: hostDocument, templateModuleFactory: null});
   // The complete React page consumes this UI projection. RunHost retains the
   // real host document; no user code is evaluated in the trusted React tree.
   const doc=hostDocument;
-  const find = id => view ? view.fields[id] : doc.getElementById(id);
+  const find = id => view.fields[id];
   const status = find('script-status'), output = find('script-result');
   const resultKind = find('script-result-kind'), copyResult = find('script-copy-result');
   const pageTechnicalPanel = find('page-preview-technical-panel'), pageTechnical = find('page-preview-technical');
@@ -73,14 +74,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
   // package, so do not present JSX/SFC radio choices as usable actions.
   if(!browserCompilerEnabled){
     // Standard is a normal JS editor, not a three-way code-mode picker.
-    // Keep the input controls, but do not advertise unavailable compiler modes.
+    // Keep the declared fields without advertising unavailable compiler modes.
     const authoringModes=find('page-component-editor-tools');
     if(authoringModes)patchDeveloperField(view,authoringModes,{hidden:true});
-    const sourceLabel=view?view.fields['developer-source-label']:doc.querySelector('label[for="script-source"]');
+    const sourceLabel=find('developer-source-label');
     if(sourceLabel)patchDeveloperField(view,sourceLabel,{textContent:'JavaScript 源码编辑器'});
     for(const mode of ['react','vue']){
       const choice=componentInputs[mode];
-      if(choice){patchDeveloperField(view,choice,{disabled:true});if(choice.parentElement)patchDeveloperField(view,choice.parentElement,{hidden:true});}
+      if(choice)patchDeveloperField(view,choice,{disabled:true});
     }
   }
   let componentMode='javascript',javascriptWorld='controller',loadedPageSource=false,browserManagedPreview=null,browserEffectUnknown=false;
@@ -102,8 +103,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function componentMessage(state,message){
     if(!componentStatus)return;
     patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!message});
-    patchDeveloperField(view,componentStatus,{data:{...(componentStatus.data||componentStatus.dataset),state:state}});
+    patchDeveloperField(view,componentStatus,{data:{...componentStatus.data,state:state}});
     patchDeveloperField(view,componentStatus,{textContent:message||''});
+  }
+  function projectPagePreviewStatus(state,message,result){
+    if(disposed)return;
+    const node=find('page-preview-status');
+    patchDeveloperField(view,node,{data:{...node.data,state},textContent:message});
+    if(result!==undefined)patchDeveloperField(view,find('page-preview-result'),{textContent:result});
   }
   let ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
   // The original Script Editor exclusively owns authorized result values.
@@ -184,7 +191,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     // RunHost return values enter the result area only via an authorized Result
     // projection, never through transient claim/preview transport payloads.
-    {patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:state}});patchDeveloperField(view,status,{textContent:message});}
+    {patchDeveloperField(view,status,{data:{...status.data,state:state}});patchDeveloperField(view,status,{textContent:message});}
     const taskStatus = find('script-task-status');
     patchDeveloperField(view,taskStatus,{hidden:state !== 'results' || !taskStatus.textContent});
   }
@@ -208,13 +215,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
   if (scriptsRecovery) patchDeveloperField(view,scriptsRecovery,{hidden:true});
   function showUserScriptsRecovery(state = 'blocked', message = 'page.evaluate() 无法执行。请打开扩展设置，开启「允许用户脚本」后返回检测；不会自动重放任务。') {
     if (!scriptsRecovery || disposed) return;
-    patchDeveloperField(view,scriptsRecovery,{hidden:false}); patchDeveloperField(view,scriptsRecovery,{data:{...(scriptsRecovery.data||scriptsRecovery.dataset),state:state}});
+    patchDeveloperField(view,scriptsRecovery,{hidden:false}); patchDeveloperField(view,scriptsRecovery,{data:{...scriptsRecovery.data,state:state}});
     patchDeveloperField(view,scriptsRecoveryStatus,{textContent:message});
     patchDeveloperField(view,scriptsSettings,{hidden:state !== 'blocked'});
   }
   function hideUserScriptsRecovery() {
     scriptsCheckSequence++; // Fence a late read-only probe from an earlier run.
-    if (scriptsRecovery) { patchDeveloperField(view,scriptsRecovery,{hidden:true}); patchDeveloperField(view,scriptsRecovery,{data:{...(scriptsRecovery.data||scriptsRecovery.dataset),state:'idle'}}); }
+    if (scriptsRecovery) { patchDeveloperField(view,scriptsRecovery,{hidden:true}); patchDeveloperField(view,scriptsRecovery,{data:{...scriptsRecovery.data,state:'idle'}}); }
   }
   const fail = error => {
     const help = formatTaskError(error);
@@ -411,7 +418,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       patchDeveloperField(view,find('script-current-page-title'),{textContent:ui.title});
       patchDeveloperField(view,find('script-current-page-url'),{textContent:ui.url});
       patchDeveloperField(view,currentPageHost,{textContent:ui.host});patchDeveloperField(view,currentPageHost,{title:ui.hostTitle});
-      patchDeveloperField(view,currentPageStatus,{data:{...(currentPageStatus.data||currentPageStatus.dataset),state:ui.state}});
+      patchDeveloperField(view,currentPageStatus,{data:{...currentPageStatus.data,state:ui.state}});
       patchDeveloperField(view,currentPageStatus,{textContent:ui.status});patchDeveloperField(view,currentPageStatus,{title:ui.statusTitle});
     }
     if(available)patchDeveloperField(view,currentPageDebug,{textContent:JSON.stringify({
@@ -425,12 +432,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   function renderRunningTarget(target, runId) {
     if (!target) {
-      patchDeveloperField(view,runningTargetStatus,{data:{...(runningTargetStatus.data||runningTargetStatus.dataset),state:'idle'}});
+      patchDeveloperField(view,runningTargetStatus,{data:{...runningTargetStatus.data,state:'idle'}});
       patchDeveloperField(view,runningTargetStatus,{textContent:'运行目标：尚未建立'});
       developerAttribute(view,runningTargetStatus,'title',null);
       return;
     }
-    patchDeveloperField(view,runningTargetStatus,{data:{...(runningTargetStatus.data||runningTargetStatus.dataset),state:'running'}});
+    patchDeveloperField(view,runningTargetStatus,{data:{...runningTargetStatus.data,state:'running'}});
     patchDeveloperField(view,runningTargetStatus,{textContent:`运行目标：${target.url || target.allowedOrigin || '已冻结文档'}`});
     patchDeveloperField(view,runningTargetStatus,{title:JSON.stringify({runId,tabId:target.tabId,frameId:target.frameId,
       documentId:target.documentId,url:target.url,origin:target.allowedOrigin || target.origin})});
@@ -447,7 +454,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         ? `草稿快照 · SHA-256 ${run.revision.sourceHash}`
         : `${run.revision.scriptId} · r${run.revision.revision} · ${run.revision.sourceHash}` : ''});
     renderRunningTarget(run?.target, run?.runId);
-    patchDeveloperField(view,runningTargetStatus,{data:{...(runningTargetStatus.data||runningTargetStatus.dataset),state:run?.state || 'idle'}});
+    patchDeveloperField(view,runningTargetStatus,{data:{...runningTargetStatus.data,state:run?.state || 'idle'}});
   }
   function clearDocuments() {
     selectionVersion++; documents.clear();
@@ -609,7 +616,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     patchDeveloperField(view,copyResult,{disabled:!visibleResult || deniedRuns.has(focused?.runId)});
     displayCopyResult('复制结果');
     if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
-      if ((scriptsRecovery?.data||scriptsRecovery?.dataset)?.state !== 'available') showUserScriptsRecovery();
+      if (scriptsRecovery?.data.state !== 'available') showUserScriptsRecovery();
     } else if (visibleResult) hideUserScriptsRecovery();
     // Reveal genuine outcome only for this session's own draft; old history
     // stays collapsed on ordinary entry, preserving editor working space.
@@ -838,8 +845,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const runMode=mode.value,runKind=programSource.kind(),version=selectionVersion;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
-      const node=find('page-preview-status');patchDeveloperField(view,node,{data:{...(node.data||node.dataset),state:state}});patchDeveloperField(view,node,{textContent:message});
-      if(result!==undefined)patchDeveloperField(view,find('page-preview-result'),{textContent:result});
+      projectPagePreviewStatus(state,message,result);
       display(state,message);
       if(state==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) showUserScriptsRecovery();
       else if(state==='error' && message.startsWith('E_USER_SCRIPTS_NATIVE')) showUserScriptsRecovery('error', message);
@@ -1086,7 +1092,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const changed=!previewMatchesEditor(previous)||scriptId()!==programId||
         find('script-revision').value.trim()!==revisionText;
       const status=find('page-candidate-status');
-      patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:'saved'}});
+      patchDeveloperField(view,status,{data:{...status.data,state:'saved'}});
       patchDeveloperField(view,status,{textContent:`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
         ' '+prepared.summary+
         (changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
@@ -1275,7 +1281,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   if(candidateSaveButton)listen(candidateSaveButton,'click',event=>{
     if(!event.isTrusted)return;
     (isComponentDraft()?savePreparedComponent():savePageCandidate()).catch(error=>{
-      const node=find('page-candidate-status');patchDeveloperField(view,node,{data:{...(node.data||node.dataset),state:'error'}});
+      const node=find('page-candidate-status');patchDeveloperField(view,node,{data:{...node.data,state:'error'}});
       patchDeveloperField(view,node,{textContent:(error.code||'E_PAGE_CANDIDATE')+'：'+(error.message||error)});
     });
   });
@@ -1294,6 +1300,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_UI_CLEANUP_FAILED',message:'没有收到可信的组件停止回执'};
         if(browserManagedPreview===owned)browserManagedPreview=null;
         componentMessage('completed','已停止 · 受管组件和样式已清理');
+        projectPagePreviewStatus('completed','已停止 · 受管组件和样式已清理',JSON.stringify(result,null,2));
         patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
         patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({stop:result,framework:owned.framework},null,2)});
         display('completed','受管组件已清理；网页业务效果不会回滚。');
@@ -1306,6 +1313,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         quarantineBrowserEffect(owned.target); // Uncertain Stop is document-bound; never blindly retry.
         componentMessage('error',(error.code||'E_UI_CLEANUP')+'：'+error.message+
           '；无法确认组件已清理，请重新加载目标网页');
+        projectPagePreviewStatus('error','无法确认组件已清理，请重新加载目标网页',JSON.stringify({error:{
+          code:error.code||'E_UI_CLEANUP',message:error.message||String(error)}},null,2));
         throw error;
       }
       finally{stopping=false;update();}
@@ -1343,11 +1352,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     listen(find('script-save'),'click',saveClick);
     for(const [next,input] of Object.entries(componentInputs))if(input)
       listen(input,'change',event=>{
-        if(view&&!event?.isTrusted){syncComponentInputs();return;}
+        if(!event?.isTrusted){syncComponentInputs();return;}
         if(input.checked)chooseComponentMode(next);
       });
     if(javascriptWorldSelect)listen(javascriptWorldSelect,'change',event=>{
-      if(view&&!event?.isTrusted){update();return;}
+      if(!event?.isTrusted){update();return;}
       chooseJavascriptWorld(javascriptWorldSelect.value);
     });
     on('script-source','input',sourceInput);

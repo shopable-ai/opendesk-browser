@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -114,7 +115,7 @@ test('core API status is separately queried; it never grants applications automa
 
 test('site recovery is reachable from every workbench tab and detailed controls retain the original panel', async () => {
   const [html,shell,css]=await Promise.all([
-    readFile('src/ui/tool.html','utf8'),
+    renderSidebarFixture(),
     readFile('src/ui/tool-shell.js','utf8'),
     readFile('src/ui/tool-shell.css','utf8')]);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>id);

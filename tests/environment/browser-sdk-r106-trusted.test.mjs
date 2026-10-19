@@ -7,7 +7,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/
 
 const EXT='trusted-extension';
 const HOST='host-instance-00000000-0000-4000-8000-000000000000';
-const URL=`chrome-extension://${EXT}/ui/tool.html?hostInstanceId=${HOST}`;
+const URL=`chrome-extension://${EXT}/sidepanel.html?hostInstanceId=${HOST}`;
 const sender=()=>({id:EXT,url:URL,frameId:0,documentId:'side-panel-doc',documentLifecycle:'active'});
 const context=()=>({contextType:'SIDE_PANEL',documentUrl:URL,documentId:'side-panel-doc',frameId:0,incognito:false});
 const boundedQuery={text:'term',startTime:100,endTime:3000};
@@ -93,6 +93,18 @@ test('trusted history search rejects forged sender, missing permission and unsaf
   const unavailable=historyApi();delete unavailable.api.runtime.getContexts;
   await assert.rejects(createBrowserHistoryHost({api:unavailable.api})
     .searchTrusted(boundedQuery,{sender:sender(),hostInstanceId:HOST}),{code:'E_SERVICE_UNSUPPORTED'});
+});
+
+test('R37 trusted History and permission prompts reject the legacy path before native effects',async()=>{
+  const legacy={...sender(),url:URL.replace('/sidepanel.html','/ui/tool.html')};
+  const history=historyApi();
+  await assert.rejects(createBrowserHistoryHost({api:history.api}).searchTrusted(boundedQuery,
+    {sender:legacy,hostInstanceId:HOST}),{code:'E_OWNER'});
+  assert.equal(history.calls.some(([name])=>name==='history.search'),false);
+  const f=permissionApi(),consent=createToolPermissionConsent({api:f.api});
+  const prepared=await consent.prepare({toolId:'bookmark-tool',capability:'browser.bookmarks.createOwned',origin:'https://example.com'});
+  await assert.rejects(consent.requestForTool({isTrusted:true},prepared,{sender:legacy,hostInstanceId:HOST}),{code:'E_OWNER'});
+  assert.equal(f.calls.some(([name])=>name==='request'),false);
 });
 
 test('permission request for tool starts synchronously from trusted click and verifies final state',async()=>{

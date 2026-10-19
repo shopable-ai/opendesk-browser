@@ -657,7 +657,7 @@ async function runNative(){
       return {version,extensionId:report.extensionId,pid:launched.metadata.pid,profile:launched.metadata.profile};
     });
     await recordCase('side-panel-contexts',async()=>{
-      const target=await client.send('Target.createTarget',{url:'chrome-extension://'+report.extensionId+'/ui/tool.html?hostInstanceId='+randomUUID()});
+      const target=await client.send('Target.createTarget',{url:'chrome-extension://'+report.extensionId+'/sidepanel.html?hostInstanceId='+randomUUID()});
       control=await attach(client,target.targetId);
       await click(client,control,'#catalog-open-dev-sidebar',report.trace);
       const context=await deadline(async()=> (await read(client,control,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})")).find(r=>r.documentId),'real Side Panel');
@@ -821,7 +821,7 @@ async function runNative(){
       runnerTarget=await deadline(async()=> (await client.send('Target.getTargets')).targetInfos.find(x=>{
         if(prior.includes(x.targetId))return false;
         try{const url=new URL(x.url);return url.protocol==='chrome-extension:'&&url.hostname===report.extensionId&&
-          url.pathname==='/ui/tool.html'&&url.searchParams.get('scheduledRunner')==='1'&&
+          url.pathname==='/sidepanel.html'&&url.searchParams.get('scheduledRunner')==='1'&&
           /^[0-9a-f-]{36}$/i.test(url.searchParams.get('hostInstanceId')||'');}catch{return false;}
       }),'newly user-opened exact canonical Schedule RunHost');
       runner=await attach(client,runnerTarget.targetId);

@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 // R5.2 migration: test the real React Cloud Controller snapshot, not the
 // deleted DOM form. Each historic scenario remains covered.
 import test from 'node:test';
@@ -23,11 +24,12 @@ async function surface({status=base,cloud={},catalog={catalog:[],installed:[]},o
   return {view,client,model:()=>snapshot,reads:()=>reads,claims:()=>claims};
 }
 test('Cloud keeps task consent primary and endpoint settings secondary',async()=>{
-  const [html,js,react,authorization,settings,appShell,css]=await Promise.all([
-    'src/ui/tool.html','src/ui/cloud-hosting.js','src/ui/react/tabs/cloud.tsx',
+  const [entry,js,react,authorization,settings,appShell,css]=await Promise.all([
+    'src/ui/sidepanel.html','src/ui/cloud-hosting.js','src/ui/react/tabs/cloud.tsx',
     'src/ui/react/tabs/cloud-authorization.tsx','src/ui/react/tabs/cloud-settings.tsx',
     'src/ui/react/app-shell.tsx','src/ui/tool-shell.css'
   ].map(file=>readFile(file,'utf8')));
+  const html=await renderSidebarFixture();
   assert.match(react,/export function CloudConnectionPage/);
   const page=react.slice(react.indexOf('export function CloudConnectionPage'),
     react.indexOf('// Program source never renders'));
@@ -35,6 +37,10 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
     '<CloudRequestHistory','<CloudClientCredentials','<CloudPairingSettings'])
     assert.ok(page.includes(tag),tag+' must be composed by React');
   assert.ok(page.indexOf('<CloudTaskAuthorization')<page.indexOf('<CloudPairingSettings'));
+  // Check composition order rather than component definition order.
+  const reactOrder=['id="cloud-overview-state"','<CloudFirstRun','<CloudRequestHistory']
+    .map(tag=>page.indexOf(tag));
+  assert.ok(reactOrder.every((index,i)=>index>=0&&(i===0||index>reactOrder[i-1])));
   assert.match(react,/id="cloud-first-run"/);
   for(const id of ['cloud-request-prev','cloud-request-next','cloud-request-detail','cloud-request-open-result'])
     assert.ok(react.includes('id="'+id+'"'));
@@ -49,7 +55,7 @@ test('Cloud keeps task consent primary and endpoint settings secondary',async()=
   assert.match(js,/cloud\.cloudClientRevoke\(/);
   assert.match(css,/\.cloud-request-pagination/);
   assert.match(html,/id="tab-cloud"/);
-  assert.equal((html.match(/id="cloud-hosting"/g)||[]).length,0,
+  assert.equal((entry.match(/id="cloud-hosting"/g)||[]).length,0,
     'React is sole DOM writer; obsolete duplicate native form must not return');
 });
 test('unpaired cloud shows inline connection CTA, never claims a new Run',async()=>{

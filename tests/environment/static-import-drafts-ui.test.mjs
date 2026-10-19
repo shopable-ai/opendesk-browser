@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createPageDependencyResolver} from '../../src/ui/page-dependencies.js';
 import {createPageDependencyReview} from '../../src/ui/page-dependency-review.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {parseStaticESMSource,STATIC_ESM_WORLDS} from '../../src/scripting/user-scripts/static-esm.js';
 
 // Component evidence only; compiler and real Chrome verification have separate owners.
@@ -16,19 +17,8 @@ const waitFor=async check=>{const end=Date.now()+3000;
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 const url='https://library.example.org/v1.0.0/value.js',code='export default 7;';
 const source='import value from "'+url+'";\nexport default async function main(){return value;}';
-class Element {
-  children=[];listeners=new Map();value='';checked=false;disabled=false;hidden=false;
-  append(...nodes){this.children.push(...nodes);}
-  replaceChildren(...nodes){this.children=nodes;}
-  setAttribute(key,value){this[key]=value;}
-  addEventListener(key,fn){this.listeners.set(key,fn);}
-  removeEventListener(key){this.listeners.delete(key);}
-  remove(){}
-  fire(key,event={isTrusted:true}){this.listeners.get(key)?.(event);}
-}
 function fixture({text=source,inspectGate,compileGate,readCode=code,loadOverride,builtOverride}={}) {
-  let live=text,ui,disposed=false;const parent=new Element(),requests=[],compiled=[],approved=new Map();
-  const doc={getElementById:()=>parent,createElement:()=>new Element()};
+  let live=text,ui,disposed=false;const view=createDeveloperView(),requests=[],compiled=[],approved=new Map();
   const identity=input=>{
     const requires=parseStaticESMSource(input.sourceUtf8).requires.map(row=>({...row,sourceKind:'https',
       sha256:hash(code),byteLength:code.length,license:{status:'unknown'},risk:'第三方代码'}));
@@ -72,43 +62,41 @@ function fixture({text=source,inspectGate,compileGate,readCode=code,loadOverride
     return builtOverride?builtOverride(built):built;
   }};
   const resolver=createPageDependencyResolver({client,getSource:()=>live,preparer,onState:()=>ui?.update()});
-  ui=createPageDependencyReview({client,resolver,getSource:()=>live,document:doc,
+  ui=createPageDependencyReview({client,resolver,getSource:()=>live,view,
     api:{permissions:{contains:async()=>true,request:async()=>true}}});
-  const walk=(node,id)=>node.id===id?node:node.children.map(child=>walk(child,id)).find(Boolean);
-  const find=id=>walk(parent,id);
-  return {requests,compiled,approved,resolver,find,
+  const state=()=>view.getSnapshot().dependencies.network,actions=view.actions.pageDependencyReview;
+  return {requests,compiled,approved,resolver,state,actions,
     async edit(value){live=value;await resolver.refresh();ui.update();await settle();},
-    async world(value){find('network-js-world').value=value;find('network-js-world').fire('change');await settle();},
-    async click(id,event){find(id).fire('click',event);await settle();},
+    async world(value){actions.chooseWorld(value);await settle();},
+    async invoke(name,event={isTrusted:true}){await actions[name](event);await settle();},
     async approve(){
-      await this.click('network-js-prepare');
-      find('network-js-sources').children[0].fire('click');
-      await waitFor(()=>!find('network-js-prepare').disabled&&
-        (find('network-js-sources').children[1]?.hidden===false||/E_[A-Z_]+/.test(find('network-js-status').textContent)));
-      assert.equal(find('network-js-sources').children[1]?.hidden,false,'approval requires displayed SHA-verified source');
-      find('network-js-consent').checked=true;find('network-js-consent').fire('change');
-      await this.click('network-js-approve');
+      await this.invoke('prepare');
+      void actions.readSource({isTrusted:true},0,state().review.reviewId);
+      await waitFor(()=>!state().busy&&(state().review?.entries[0]?.code!==undefined||/E_[A-Z_]+/.test(state().status)));
+      assert.equal(state().review.entries[0].code,code,'approval requires SHA-verified source');
+      actions.accept(true,state().review.reviewId);
+      await this.invoke('approve');
     },
-    dispose(){ui.dispose();resolver.dispose();preparer.dispose();},
+    dispose(){ui.dispose();resolver.dispose();preparer.dispose();view.dispose();},
     get disposed(){return disposed;}
   };
 }
-test('static import review uses the existing DOM, requires cached source and explicit approval, then compiles offline',async t=>{
+test('static import review uses React view projections, requires cached source and explicit approval, then compiles offline',async t=>{
   const f=fixture();t.after(()=>f.dispose());await settle();
-  assert.equal(f.find('network-js-world').value,'esm-page');
+  assert.equal(f.state().world,'esm-page');
   assert.throws(()=>f.resolver.capture({sourceFormat:'esm-page'}),e=>e.code==='E_DEPENDENCY_UNLOCKED');
-  await f.click('network-js-prepare',{isTrusted:false});
+  await f.invoke('prepare',{isTrusted:false});
   assert.equal(f.requests.filter(row=>row.method==='preparePageDependencies').length,0);
-  await f.click('network-js-prepare');
-  assert.match(f.find('network-js-status').textContent,/下载准备完成/);
-  f.find('network-js-consent').checked=true;f.find('network-js-consent').fire('change');
-  assert.equal(f.find('network-js-approve').disabled,true);
-  f.find('network-js-sources').children[0].fire('click');await settle();
-  assert.equal(f.find('network-js-sources').children[1].value,code);
-  assert.match(f.find('network-js-status').textContent,/已显示固定缓存原文/);
-  await f.click('network-js-approve',{isTrusted:false});assert.equal(f.approved.size,0);
-  await f.click('network-js-approve');
-  assert.match(f.find('network-js-status').textContent,/已明确批准/);
+  await f.invoke('prepare');
+  assert.match(f.state().status,/下载准备完成/);
+  f.actions.accept(true,f.state().review.reviewId);
+  assert.equal(f.state().approveDisabled,true);
+  void f.actions.readSource({isTrusted:true},0,f.state().review.reviewId);await settle();
+  assert.equal(f.state().review.entries[0].code,code);
+  assert.match(f.state().status,/已显示固定缓存原文/);
+  await f.invoke('approve',{isTrusted:false});assert.equal(f.approved.size,0);
+  await f.invoke('approve');
+  assert.match(f.state().status,/已明确批准/);
   assert.equal(f.compiled.length,0,'approval must not compile or execute');
   const captured=f.resolver.capture({sourceFormat:'esm-page'});
   const built=await f.resolver.compile(captured);
@@ -123,8 +111,8 @@ test('Page approval cannot authorize Controller; world change clears review and 
   const pageLock=f.resolver.capture({sourceFormat:'esm-page'}).lockId;
   assert.throws(()=>f.resolver.capture({sourceFormat:'esm-controller'}),e=>e.code==='E_DEPENDENCY_WORLD');
   await f.world('esm-controller');
-  assert.equal(f.find('network-js-consent').checked,false);
-  assert.equal(f.find('network-js-sources').children.length,0);
+  assert.equal(Boolean(f.state().review?.accepted),false);
+  assert.equal(f.state().review?.entries.length||0,0);
   assert.throws(()=>f.resolver.capture({sourceFormat:'esm-controller'}),e=>e.code==='E_DEPENDENCY_UNLOCKED');
   assert.equal(f.requests.at(-1).input.sourceFormat,'esm-controller');
   await f.approve();
@@ -138,10 +126,10 @@ test('export default zero-argument main without imports waits for inspect, then 
   t.after(()=>f.dispose());await settle();
   assert.throws(()=>f.resolver.capture({sourceFormat:'esm-page'}),e=>e.code==='E_DEPENDENCY_PENDING');
   gate.resolve();await settle();
-  assert.match(f.find('network-js-status').textContent,/无需外部依赖/);
-  assert.equal(f.find('network-js-prepare').disabled,true);
-  assert.equal(f.find('network-js-approve').disabled,true);
-  await f.click('network-js-prepare');assert.equal(f.approved.size,0);
+  assert.match(f.state().status,/无需外部依赖/);
+  assert.equal(f.state().prepareDisabled,true);
+  assert.equal(f.state().approveDisabled,true);
+  await f.invoke('prepare');assert.equal(f.approved.size,0);
   const captured=f.resolver.capture({sourceFormat:'esm-page'});
   assert.equal(captured.lockId,null);
   assert.throws(()=>f.resolver.accept({lockId:'dep-lock-'+hash('empty'),manifestDigest:captured.manifestDigest},f.resolver.snapshot()),
@@ -155,21 +143,21 @@ test('export default zero-argument main without imports waits for inspect, then 
 });
 test('corrupt displayed bytes never enable approval',async t=>{
   const f=fixture({readCode:code+'//changed'});t.after(()=>f.dispose());await settle();
-  await f.click('network-js-prepare');f.find('network-js-sources').children[0].fire('click');
+  await f.invoke('prepare');void f.actions.readSource({isTrusted:true},0,f.state().review.reviewId);
   // WebCrypto SHA-256 resolves asynchronously; setImmediate ticks are not a
   // completion barrier under parallel full-suite CI load.
-  await waitFor(()=>/E_DEPENDENCY_HASH/.test(f.find('network-js-status').textContent));
-  f.find('network-js-consent').checked=true;f.find('network-js-consent').fire('change');
-  assert.match(f.find('network-js-status').textContent,/E_DEPENDENCY_HASH/);
-  assert.equal(f.find('network-js-approve').disabled,true);assert.equal(f.approved.size,0);
+  await waitFor(()=>/E_DEPENDENCY_HASH/.test(f.state().status));
+  f.actions.accept(true,f.state().review.reviewId);
+  assert.match(f.state().status,/E_DEPENDENCY_HASH/);
+  assert.equal(f.state().approveDisabled,true);assert.equal(f.approved.size,0);
 });
 test('changed import URL requires independent approval and HTTP imports are rejected before preparation',async t=>{
   const f=fixture();t.after(()=>f.dispose());await settle();await f.approve();
   await f.edit(source.replace('/value.js','/other.js'));
   assert.throws(()=>f.resolver.capture({sourceFormat:'esm-page'}),e=>e.code==='E_DEPENDENCY_UNLOCKED');
   await f.edit(source.replace('https://','http://'));
-  assert.equal(f.find('network-js-prepare').disabled,true);
-  assert.match(f.find('network-js-status').textContent,/E_DEPENDENCY_URL/);
+  assert.equal(f.state().prepareDisabled,true);
+  assert.match(f.state().status,/E_DEPENDENCY_URL/);
 });
 for(const field of ['world','sourceFormat','lockId','manifestDigest'])test('loader '+field+' mismatch is refused before compilation',async t=>{
   const f=fixture({loadOverride:value=>({...value,[field]:'wrong'})});

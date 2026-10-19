@@ -51,7 +51,7 @@ try{
   report.extension=item;
   const worker=context.serviceWorkers().find(row=>row.url().startsWith('chrome-extension://'+item.id+'/'));
   assert(worker,'Real extension Service Worker missing');report.serviceWorker=worker.url();
-  const ui=context.pages().find(page=>page.url().startsWith('chrome-extension://'+item.id+'/ui/tool.html'));
+  const ui=context.pages().find(page=>page.url().startsWith('chrome-extension://'+item.id+'/sidepanel.html'));
   assert(ui,'Open the actual product UI before observing');
   report.runtime=await ui.evaluate(async()=>({id:chrome.runtime.id,version:chrome.runtime.getManifest().version,
     permissions:await chrome.permissions.getAll(),userScriptsAvailable:typeof chrome.userScripts==='object',

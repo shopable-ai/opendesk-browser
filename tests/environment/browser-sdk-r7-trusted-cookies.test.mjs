@@ -7,7 +7,7 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {operationSchemas} from '../../src/framework/sdk/browser-schemas.js';
 const uuid='01234567-89ab-4def-8123-456789abcdef';
 const sender={id:'cookie-test-ext',frameId:0,documentId:'trusted-host-document-1',documentLifecycle:'active',
-  url:'chrome-extension://cookie-test-ext/ui/tool.html?hostInstanceId='+uuid};
+  url:'chrome-extension://cookie-test-ext/sidepanel.html?hostInstanceId='+uuid};
 const reject=code=>error=>error?.code===code;
 function fixture(){
   const tab={id:27,windowId:9,active:true,url:'https://shop.example.test/account',

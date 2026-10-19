@@ -1,9 +1,10 @@
 // Shared URL gate for fixed extension-owned tool hosts. Services additionally
 // validate the live document/context, installation, capability and epoch.
+import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 export function isSidebarToolHostSender(api,sender,expectedToolId=null) {
   if(!api?.runtime?.id || sender?.id!==api.runtime.id || typeof sender.url!=='string')return false;
   try {
-    const source=new URL(sender.url), shell=new URL(api.runtime.getURL('ui/tool.html'));
+    const source=new URL(sender.url), shell=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
     const token=source.searchParams.get('hostInstanceId');
     return source.protocol===shell.protocol && source.host===shell.host && source.pathname===shell.pathname &&
       !source.hash && (source.searchParams.size===1 || source.searchParams.size===2 &&

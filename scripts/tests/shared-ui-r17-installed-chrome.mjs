@@ -317,7 +317,7 @@ try{
   },'real extension service worker');
   result.extensionId=new URL(worker.url).host;
   workerSession=await attach(worker.targetId);
-  const target=await cdp('Target.createTarget',{url:'chrome-extension://'+result.extensionId+'/ui/tool.html'});
+  const target=await cdp('Target.createTarget',{url:'chrome-extension://'+result.extensionId+'/sidepanel.html'});
   catalog=await attach(target.targetId);host=catalog;
   await cdp('Page.enable',{},catalog);
   result.catalogTarget=target.targetId;
@@ -357,7 +357,7 @@ try{
         'old service worker destroyed by actual extension reload');
       // MV3 workers may remain dormant after reload until a real extension
       // document requests them. Open the product before waiting for its worker.
-      const reopened=await cdp('Target.createTarget',{url:'chrome-extension://'+result.extensionId+'/ui/tool.html'});
+      const reopened=await cdp('Target.createTarget',{url:'chrome-extension://'+result.extensionId+'/sidepanel.html'});
       catalog=await attach(reopened.targetId);host=catalog;
       result.catalogTarget=reopened.targetId;
       await until(()=>evaluate(catalog,'document.readyState==="complete"&&!!document.querySelector("#tab-tools")'),

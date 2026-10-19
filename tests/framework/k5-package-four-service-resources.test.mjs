@@ -31,7 +31,7 @@ async function withPackage(mode, run) {
   const root = await mkdtemp(join(tmpdir(), 'opendesk-sdk-package-component-'));
   try {
     await put(root, 'manifest.json', await readFile(new URL('../../manifest.json', import.meta.url)));
-    for (const path of ['ui/tool.html', 'native-agent/settings.html', 'ui/target-bootstrap.html', 'ui/tool-shell.css', SANDBOX_HTML, 'sidebar-tools/sandbox.html'])
+    for (const path of ['sidepanel.html', 'native-agent/settings.html', 'ui/target-bootstrap.html', 'ui/tool-shell.css', SANDBOX_HTML, 'sidebar-tools/sandbox.html'])
       await put(root, path, await readFile(new URL(`../../src/${path}`, import.meta.url)));
     await put(root, 'licenses/todo-user-vue-MIT.txt', await readFile(new URL('../../docs/contracts/licenses/todo-user-vue-MIT.txt', import.meta.url)));
     // Reproduce the real R3 build's exact vetted vendor + licence assets.

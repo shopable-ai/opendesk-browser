@@ -71,7 +71,7 @@
     }
   ],
   "side_panel": {
-    "default_path": "ui/tool.html"
+    "default_path": "sidepanel.html"
   },
   "options_ui": {
     "page": "native-agent/settings.html",

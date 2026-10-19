@@ -10,7 +10,7 @@ import {selectControllerSidebar, validateControllerSidebarAck} from './k5-contro
 function fixture() {
   const extensionId = 'a'.repeat(32);
   const context = {contextType:'SIDE_PANEL', contextId:'context-a', documentId:'document-a',
-    documentUrl:`chrome-extension://${extensionId}/ui/tool.html?hostInstanceId=owner-a`,
+    documentUrl:`chrome-extension://${extensionId}/sidepanel.html?hostInstanceId=owner-a`,
     tabId:-1, windowId:8, incognito:false};
   const target = {type:'other', targetId:'target-a', url:context.documentUrl};
   const request = {requestId:'request-a', pid:100, extensionId};

@@ -4,7 +4,7 @@ import {configureSidePanel, createHealthProbe, isToolSender, PROTOCOL, httpUrl, 
 import {createEnvironmentHost} from '../../src/run-host.js';
 
 const extension = 'fixture-extension';
-const toolUrl = `chrome-extension://${extension}/ui/tool.html`;
+const toolUrl = `chrome-extension://${extension}/sidepanel.html`;
 test('product shell configures the Chrome Side Panel action and never creates a popup', async () => {
   let configured = 0, popups = 0;
   const api = {sidePanel:{setPanelBehavior:async options=>{configured++;assert.deepEqual(options,{openPanelOnActionClick:true});}},
@@ -145,7 +145,7 @@ test('missing Side Panel sender documentId resolves only unique native instance 
   let contexts=[{contextType:'SIDE_PANEL',documentUrl:url,documentId:'native-side-doc',frameId:0,incognito:false}];
   const api={runtime:{id:extension,getURL:()=>toolUrl,getContexts:async query=>{assert.deepEqual(query,{contextTypes:['SIDE_PANEL'],documentUrls:[url]});return contexts;}}};
   const resolved=await resolveToolSender(api,sender);assert.equal(resolved.documentId,'native-side-doc');assert(isToolSender(api,resolved));
-  for(const changed of [{...sender,url:toolUrl},{...sender,id:'foreign'},{...sender,frameId:1},{...sender,documentId:'forged',url:'https://evil.example/ui/tool.html'},{...sender,tab:{id:1}}])await assert.rejects(resolveToolSender(api,changed),{code:'E_OWNER'});
+  for(const changed of [{...sender,url:toolUrl},{...sender,id:'foreign'},{...sender,frameId:1},{...sender,documentId:'forged',url:'https://evil.example/sidepanel.html'},{...sender,tab:{id:1}}])await assert.rejects(resolveToolSender(api,changed),{code:'E_OWNER'});
   contexts=[...contexts,...contexts];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
   contexts=[];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});
   contexts=[{contextType:'TAB',documentUrl:url,documentId:'wrong',frameId:0,incognito:false}];await assert.rejects(resolveToolSender(api,sender),{code:'E_OWNER'});

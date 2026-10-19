@@ -129,7 +129,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   const row=items.find(x=>x.type==='service_worker'&&/^chrome-extension:\/\/[^/]+\/sw\.js/.test(x.url||''));
   return row?.url?.split('/')[2];
  },'OpenDesk MV3 SW registered');
- const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
+ const ui=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID());
  host=ui.cdp;
  console.log('R22_NATIVE_STAGE: extension host tab opened');
  await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-web-markdown-clipper-install")'),'tool host loaded');
@@ -139,7 +139,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  console.log('R22_NATIVE_STAGE: Side Panel native gesture invoked');
  const context=await until(async()=>{
   const c=await evalIn(host,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
-  return c.find(x=>x.documentUrl?.includes('/ui/tool.html'));
+  return c.find(x=>x.documentUrl?.includes('/sidepanel.html'));
  },'real SIDE_PANEL context');
  const sideTarget=await until(async()=>{
   const {targetInfos}=await browser.send('Target.getTargets');

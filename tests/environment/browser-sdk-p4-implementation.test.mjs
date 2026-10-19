@@ -82,7 +82,7 @@ test('revocation denies read and unknown post-write outcome never reports succes
 
 const HOST_INSTANCE='01234567-89ab-4def-8123-456789abcdef';
 const STORAGE_SENDER={id:'r114-test',frameId:0,documentId:'storage-panel',documentLifecycle:'active',
-  url:'chrome-extension://r114-test/ui/tool.html?hostInstanceId='+HOST_INSTANCE};
+  url:'chrome-extension://r114-test/sidepanel.html?hostInstanceId='+HOST_INSTANCE};
 async function hostedStorage({caps=['browser.storage']}={}){
   const pkg=validateSidebarToolPackage({format:'opendesk.sidebar-tool.v2',id:'storage-probe',
     version:'1.0.0',title:'Storage probe',description:'Verified installed scoped service',

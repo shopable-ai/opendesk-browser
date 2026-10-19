@@ -16,7 +16,7 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOO
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
-import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
+import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
@@ -71,12 +71,12 @@ export function checkSidebarToolRequestBudget(message){
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools(options={}) {
-  if(options.view)return options.view.connect(()=>createSidebarToolsController(options));
-  return createSidebarToolsController(options);
+  if(!options.view)throw new Error('E_SIDEBAR_TOOLS_VIEW_REQUIRED');
+  return options.view.connect(()=>createSidebarToolsController(options));
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,view=null}) {
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -108,72 +108,56 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
   }
   const nativeTimeReview=globalThis.__opendeskTrustedTimeReviewUI||null;
-  // Only runtime containers and the no-view legacy surface query real DOM.
-  // Only runtime containers and the no-view legacy surface query real DOM.
-  const get=id=>doc.getElementById(id);
-  const trustedSettings=view ? view.runtime.trustedSettings : get('sidebar-tool-settings-view');
-  const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
-  const empty=get('sidebar-tool-empty'), backButton=view ? view.fields["sidebar-tool-back"] : get('sidebar-tool-back');
-  const display=view ? view.fields["sidebar-tool-display"] : get('sidebar-tool-display'), frameRoot=view ? view.runtime.frameRoot : get('sidebar-tool-frame');
-  // The existing extension Host owns the trusted proxy card, never installed HTML/JS.
-  const aiProxyContainer=view ? view.runtime.aiProxy : doc.createElement('section');
-  aiProxyContainer.id='sidebar-tool-ai-proxy-native';
-  aiProxyContainer.className='sidebar-tool-ai-proxy-native';
-  aiProxyContainer.setAttribute('aria-label','AI 网站访问可信控制');
-  aiProxyContainer.hidden=true;
-  if(!view)frameRoot.after?.(aiProxyContainer);
-  const status=view ? view.fields["sidebar-tool-status"] : get('sidebar-tool-status'), fileInput=view ? view.fields["sidebar-tool-file"] : get('sidebar-tool-file');
-  const importTrigger=view ? view.fields["sidebar-tool-import-trigger"] : get('sidebar-tool-import-trigger'), importPanel=view ? view.fields["sidebar-tool-import"] : get('sidebar-tool-import');
-  const importClose=view ? view.fields["sidebar-tool-import-close"] : get('sidebar-tool-import-close'), preview=view ? view.fields["sidebar-tool-preview"] : get('sidebar-tool-preview');
-  const previewTitle=view ? view.fields["sidebar-tool-preview-title"] : get('sidebar-tool-preview-title'), previewVersion=view ? view.fields["sidebar-tool-preview-version"] : get('sidebar-tool-preview-version');
-  const previewDescription=view ? view.fields["sidebar-tool-preview-description"] : get('sidebar-tool-preview-description');
-  const previewCapabilities=view ? view.fields["sidebar-tool-preview-capabilities"] : get('sidebar-tool-preview-capabilities'), previewFile=view ? view.fields["sidebar-tool-preview-file"] : get('sidebar-tool-preview-file');
-  const installButton=view ? view.fields["sidebar-tool-install"] : get('sidebar-tool-install'), removeButton=view ? view.fields["sidebar-tool-remove"] : get('sidebar-tool-remove');
-  const removeReview=view ? view.fields["sidebar-tool-inline-remove"] : get('sidebar-tool-inline-remove');
-  const removeReviewText=view ? view.fields["sidebar-tool-inline-remove-text"] : get('sidebar-tool-inline-remove-text');
-  const removeReviewConfirm=view ? view.fields["sidebar-tool-inline-remove-confirm"] : get('sidebar-tool-inline-remove-confirm');
-  const removeReviewCancel=view ? view.fields["sidebar-tool-inline-remove-cancel"] : get('sidebar-tool-inline-remove-cancel');
-  const fileError=view ? view.fields["sidebar-tool-file-error"] : get('sidebar-tool-file-error'), updatePanel=view ? view.fields["sidebar-tool-update"] : get('sidebar-tool-update');
-  const updateVersions=view ? view.fields["sidebar-tool-update-versions"] : get('sidebar-tool-update-versions');
-  const updateCapabilities=view ? view.fields["sidebar-tool-update-capabilities"] : get('sidebar-tool-update-capabilities');
-  const updateWarning=view ? view.fields["sidebar-tool-update-warning"] : get('sidebar-tool-update-warning');
-  const title=view ? view.fields["sidebar-tool-title"] : get('sidebar-tool-title'),openTabButton=view ? view.fields["sidebar-tool-open-tab"] : get('sidebar-tool-open-tab');
-  const actionReview=view ? view.fields["sidebar-tool-action-review"] : get('sidebar-tool-action-review'),actionSummary=view ? view.fields["sidebar-tool-action-summary"] : get('sidebar-tool-action-summary');
-  const actionContinue=view ? view.fields["sidebar-tool-action-continue"] : get('sidebar-tool-action-continue'),actionCancel=view ? view.fields["sidebar-tool-action-cancel"] : get('sidebar-tool-action-cancel');
+  // React owns presentation fields; only the existing iframe Host receives DOM.
+  const backButton=view.fields['sidebar-tool-back'];
+  const display=view.fields['sidebar-tool-display'],frameRoot=view.runtime.frameRoot;
+  const status=view.fields["sidebar-tool-status"], fileInput=view.fields["sidebar-tool-file"];
+  const importTrigger=view.fields["sidebar-tool-import-trigger"], importPanel=view.fields["sidebar-tool-import"];
+  const importClose=view.fields["sidebar-tool-import-close"], preview=view.fields["sidebar-tool-preview"];
+  const previewTitle=view.fields["sidebar-tool-preview-title"], previewVersion=view.fields["sidebar-tool-preview-version"];
+  const previewDescription=view.fields["sidebar-tool-preview-description"];
+  const previewCapabilities=view.fields["sidebar-tool-preview-capabilities"], previewFile=view.fields["sidebar-tool-preview-file"];
+  const installButton=view.fields["sidebar-tool-install"], removeButton=view.fields["sidebar-tool-remove"];
+  const removeReview=view.fields["sidebar-tool-inline-remove"];
+  const removeReviewText=view.fields["sidebar-tool-inline-remove-text"];
+  const removeReviewConfirm=view.fields["sidebar-tool-inline-remove-confirm"];
+  const removeReviewCancel=view.fields["sidebar-tool-inline-remove-cancel"];
+  const fileError=view.fields["sidebar-tool-file-error"], updatePanel=view.fields["sidebar-tool-update"];
+  const updateVersions=view.fields["sidebar-tool-update-versions"];
+  const updateCapabilities=view.fields["sidebar-tool-update-capabilities"];
+  const updateWarning=view.fields["sidebar-tool-update-warning"];
+  const title=view.fields["sidebar-tool-title"],openTabButton=view.fields["sidebar-tool-open-tab"];
+  const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
+  const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
   let pendingAction=null,pendingPage=null;
   const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
-  const pageInstallStatus=view ? view.fields["page-install-import-status"] : get('page-install-import-status');
-  const pageInstallReceipt=view ? view.fields["page-install-import-receipt"] : get('page-install-import-receipt');
-  const pageInstallReceiptText=view ? view.fields["page-install-import-receipt-text"] : get('page-install-import-receipt-text');
-  const settingsButton=view ? view.fields["sidebar-tool-settings-open"] : get('sidebar-tool-settings-open'),settingsView=view ? view.fields["sidebar-tool-settings-view"] : get('sidebar-tool-settings-view');
-  const tocLanguageRow=view ? view.fields["sidebar-tool-toc-language"] : get('sidebar-tool-toc-language'),tocLanguageSelect=view ? view.fields["sidebar-tool-toc-language-select"] : get('sidebar-tool-toc-language-select');
-  const menuButton=view ? view.fields["sidebar-tool-context-menu"] : get('sidebar-tool-context-menu');
-  const settingsScopeButton=view ? view.fields["sidebar-tool-settings-scope"] : get('sidebar-tool-settings-scope');
-  const enableButton=view ? view.fields["sidebar-tool-enable"] : get('sidebar-tool-enable'),enableHint=view ? view.fields["sidebar-tool-enable-hint"] : get('sidebar-tool-enable-hint');
-  const promptNativeRow=view ? view.fields["sidebar-tool-prompt-native-row"] : get('sidebar-tool-prompt-native-row'),promptNativeAction=view ? view.fields["sidebar-tool-prompt-native-action"] : get('sidebar-tool-prompt-native-action');
-  const promptWebRow=view ? view.fields["sidebar-tool-prompt-web-row"] : get('sidebar-tool-prompt-web-row'),promptWebAction=view ? view.fields["sidebar-tool-prompt-web-action"] : get('sidebar-tool-prompt-web-action');
-  const promptEnableLabel=view ? view.fields["sidebar-tool-prompt-enable-label"] : get('sidebar-tool-prompt-enable-label'),promptEnableDescription=view ? view.fields["sidebar-tool-prompt-enable-description"] : get('sidebar-tool-prompt-enable-description');
-  const launchButton=view ? view.fields["sidebar-tool-launch"] : get('sidebar-tool-launch'),eyeButton=view ? view.fields["sidebar-tool-visibility"] : get('sidebar-tool-visibility');
-  const visibilitySection=view ? view.fields["sidebar-tool-visibility-settings"] : get('sidebar-tool-visibility-settings');
-  const pageExceptionSection=view ? view.fields["sidebar-tool-page-exceptions"] : get('sidebar-tool-page-exceptions');
-  const retiredDraft=view ? view.fields["sidebar-tool-retired-draft"] : get('sidebar-tool-retired-draft'),retiredDraftText=view ? view.fields["sidebar-tool-retired-draft-text"] : get('sidebar-tool-retired-draft-text');
-  const retiredDraftDismiss=view ? view.fields["sidebar-tool-retired-draft-dismiss"] : get('sidebar-tool-retired-draft-dismiss');
+  const pageInstallStatus=view.fields["page-install-import-status"];
+  const pageInstallReceipt=view.fields["page-install-import-receipt"];
+  const pageInstallReceiptText=view.fields["page-install-import-receipt-text"];
+  const settingsButton=view.fields["sidebar-tool-settings-open"],settingsView=view.fields["sidebar-tool-settings-view"];
+  const tocLanguageRow=view.fields["sidebar-tool-toc-language"],tocLanguageSelect=view.fields["sidebar-tool-toc-language-select"];
+  const menuButton=view.fields["sidebar-tool-context-menu"];
+  const settingsScopeButton=view.fields["sidebar-tool-settings-scope"];
+  const enableButton=view.fields["sidebar-tool-enable"],enableHint=view.fields["sidebar-tool-enable-hint"];
+  const promptNativeRow=view.fields["sidebar-tool-prompt-native-row"],promptNativeAction=view.fields["sidebar-tool-prompt-native-action"];
+  const promptWebRow=view.fields["sidebar-tool-prompt-web-row"],promptWebAction=view.fields["sidebar-tool-prompt-web-action"];
+  const promptEnableLabel=view.fields["sidebar-tool-prompt-enable-label"],promptEnableDescription=view.fields["sidebar-tool-prompt-enable-description"];
+  const launchButton=view.fields["sidebar-tool-launch"],eyeButton=view.fields["sidebar-tool-visibility"];
+  const visibilitySection=view.fields["sidebar-tool-visibility-settings"];
+  const pageExceptionSection=view.fields["sidebar-tool-page-exceptions"];
+  const retiredDraft=view.fields["sidebar-tool-retired-draft"],retiredDraftText=view.fields["sidebar-tool-retired-draft-text"];
+  const retiredDraftDismiss=view.fields["sidebar-tool-retired-draft-dismiss"];
   const recoverableDrafts=new Map();let frameDraft='';
-  const settingsScopeLabel=view ? view.fields["sidebar-tool-settings-scope-label"] : get('sidebar-tool-settings-scope-label'),settingsTarget=view ? view.fields["sidebar-tool-settings-target"] : get('sidebar-tool-settings-target');
-  const settingsAllow=view ? view.fields["sidebar-tool-settings-allow"] : get('sidebar-tool-settings-allow'),settingsDeny=view ? view.fields["sidebar-tool-settings-deny"] : get('sidebar-tool-settings-deny');
-  const settingsHint=view ? view.fields["sidebar-tool-settings-hint"] : get('sidebar-tool-settings-hint');
-  const settingsSiteVisibility=view ? view.fields["sidebar-tool-settings-site-visibility"] : get('sidebar-tool-settings-site-visibility');
-  const settingsPageVisibility=view ? view.fields["sidebar-tool-settings-page-visibility"] : get('sidebar-tool-settings-page-visibility');
-  const settingsSites=view ? view.fields["sidebar-tool-settings-sites"] : get('sidebar-tool-settings-sites'),settingsPages=view ? view.fields["sidebar-tool-settings-pages"] : get('sidebar-tool-settings-pages');
-  const settingsSitesTitle=view ? view.fields["sidebar-tool-settings-sites-title"] : get('sidebar-tool-settings-sites-title');
-  const readOnlyBanner=view ? view.fields["sidebar-tool-readonly-banner"] : get('sidebar-tool-readonly-banner');
-  const officialRoot=get('sidebar-tool-official-catalog');
-  const discoverPanel=get('sidebar-tool-discover-panel'),discoverToggle=get('sidebar-tool-discover-toggle');
-  const search=get('sidebar-tool-search'),filterAvailable=get('sidebar-tool-filter-available'),filterAll=get('sidebar-tool-filter-all');
-  let officialFilter='available',officialQuery='';
+  const settingsScopeLabel=view.fields["sidebar-tool-settings-scope-label"],settingsTarget=view.fields["sidebar-tool-settings-target"];
+  const settingsAllow=view.fields["sidebar-tool-settings-allow"],settingsDeny=view.fields["sidebar-tool-settings-deny"];
+  const settingsHint=view.fields["sidebar-tool-settings-hint"];
+  const settingsSiteVisibility=view.fields["sidebar-tool-settings-site-visibility"];
+  const settingsPageVisibility=view.fields["sidebar-tool-settings-page-visibility"];
+  const settingsSites=view.fields["sidebar-tool-settings-sites"],settingsPages=view.fields["sidebar-tool-settings-pages"];
+  const settingsSitesTitle=view.fields["sidebar-tool-settings-sites-title"];
+  const readOnlyBanner=view.fields["sidebar-tool-readonly-banner"];
   let officialReleases=[],officialError='',officialLoaded=false;
-  let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
-  let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,expandedSiteTool='';
+  let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0;
   let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';
   const siteTogglePending=new Set();
   let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;
@@ -182,18 +166,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
-  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
+  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
-  const listen=(node,type,fn)=>{
-    if(view&&node?.key){listeners.push(view.bind(node.key,type,fn));return;}
-    if(!node)return;
-    node.addEventListener(type,fn);
-    listeners.push(()=>node.removeEventListener(type,fn));
-  };
+  const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
   const notice=(message,problem=false)=>{
     if(disposed)return;
     patchToolField(view, status, {textContent: message});setToolFieldAttribute(view, status, 'data-state', problem?'error':'info');
@@ -235,43 +214,37 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const cookieCaps=[
     ['read','读取 Cookie 元数据'],['values','读取敏感值'],
     ['write','新建、编辑及删除'],['observe','短时观察变化'],['clear','清理当前主机']];
-  const cookiePermissions=view ? view.fields['sidebar-tool-cookie-permissions'] : doc.createElement('section');
+  const cookiePermissions=view.fields['sidebar-tool-cookie-permissions'];
   patchToolField(view,cookiePermissions,{className:'sidebar-tool-cookie-permissions od-surface'});
   setToolFieldAttribute(view,cookiePermissions,'aria-label','Cookie 网站授权');
   patchToolField(view,cookiePermissions,{hidden:true});
-  const cookieHeading=view ? view.fields['sidebar-tool-cookie-heading'] : doc.createElement('strong');
+  const cookieHeading=view.fields['sidebar-tool-cookie-heading'];
   patchToolField(view,cookieHeading,{textContent:'Cookie 网站权限'});
-  const cookieTarget=view ? view.fields['sidebar-tool-cookie-target'] : doc.createElement('p');
+  const cookieTarget=view.fields['sidebar-tool-cookie-target'];
   patchToolField(view,cookieTarget,{className:'sidebar-toc-settings-hint'});
-  const cookieHelp=view ? view.fields['sidebar-tool-cookie-help'] : doc.createElement('p');
+  const cookieHelp=view.fields['sidebar-tool-cookie-help'];
   patchToolField(view,cookieHelp,{className:'sidebar-toc-settings-hint'});
   patchToolField(view,cookieHelp,{textContent:''});
-  (!view&&cookiePermissions.append(cookieHeading,cookieTarget,cookieHelp));
   // One trusted site decision covers only the installed package's declared
   // Cookie capabilities; sandbox code cannot grant its own permissions.
-  const cookieFirstUse=view ? view.fields['sidebar-tool-cookie-first-use'] : doc.createElement('div');
+  const cookieFirstUse=view.fields['sidebar-tool-cookie-first-use'];
   patchToolField(view,cookieFirstUse,{className:'sidebar-tool-cookie-first-use'});
-  const cookieSiteToggle=view ? view.fields['sidebar-tool-cookie-site-toggle'] : doc.createElement('button');patchToolField(view,cookieSiteToggle,{type:'button'});
+  const cookieSiteToggle=view.fields['sidebar-tool-cookie-site-toggle'];patchToolField(view,cookieSiteToggle,{type:'button'});
   patchToolField(view,cookieSiteToggle,{id:'sidebar-tool-cookie-site-toggle'});patchToolField(view,cookieSiteToggle,{className:'od-button'});
   let cookieGrantPending=false;
-  (!view&&cookieFirstUse.append(cookieSiteToggle));(!view&&cookiePermissions.append(cookieFirstUse));
-  const cookieOtherSites=view ? view.fields['sidebar-tool-cookie-other-sites'] : doc.createElement('div');
+  const cookieOtherSites=view.fields['sidebar-tool-cookie-other-sites'];
   patchToolField(view,cookieOtherSites,{className:'sidebar-toc-settings-entries'});
-  (!view&&cookiePermissions.append(cookieOtherSites));
-  (!view)&&trustedSettings?.append(cookiePermissions);
   // Full Bookmarks belongs to the installed package, never inherited from Owned.
-  const fullBookmarkSettings=view ? view.fields['sidebar-tool-bookmark-permissions'] : doc.createElement('section');
+  const fullBookmarkSettings=view.fields['sidebar-tool-bookmark-permissions'];
   patchToolField(view,fullBookmarkSettings,{className:'sidebar-tool-cookie-permissions od-surface'});
   setToolFieldAttribute(view,fullBookmarkSettings,'aria-label','Chrome 完整书签独立授权');
   patchToolField(view,fullBookmarkSettings,{hidden:true});
-  const fullBookmarkHeading=view ? view.fields['sidebar-tool-bookmark-heading'] : doc.createElement('strong');
+  const fullBookmarkHeading=view.fields['sidebar-tool-bookmark-heading'];
   patchToolField(view,fullBookmarkHeading,{textContent:'完整 Chrome 书签访问'});
-  const fullBookmarkInfo=view ? view.fields['sidebar-tool-bookmark-info'] : doc.createElement('p');patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
+  const fullBookmarkInfo=view.fields['sidebar-tool-bookmark-info'];patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
   patchToolField(view,fullBookmarkInfo,{textContent:'可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。'});
-  const fullBookmarkButton=view ? view.fields['sidebar-tool-bookmark-grant'] : doc.createElement('button');
+  const fullBookmarkButton=view.fields['sidebar-tool-bookmark-grant'];
   patchToolField(view,fullBookmarkButton,{type:'button'});patchToolField(view,fullBookmarkButton,{className:'od-button'});
-  (!view&&fullBookmarkSettings.append(fullBookmarkHeading,fullBookmarkInfo,fullBookmarkButton));
-  (!view)&&trustedSettings?.append(fullBookmarkSettings);
   const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
   // The permission surface is generic to any installed tool that declares
   // Cookie capabilities; an official Cookie Editor is NOT a privileged exception.
@@ -302,29 +275,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view,cookieSiteToggle,{disabled:busy||cookieGrantPending||!origin||requested.length===0});
     // Previously granted sites remain revocable after their tabs are closed.
     // Revocation is an explicit user click and never requires recreating a tab.
-    if(view){
-      const rows=Object.entries(menuGrants?.[tool.id]?.cookieSites||{})
-        .filter(([site,row])=>!(site===origin&&allowed)&&Object.values(row||{}).some(v=>v===true))
-        .map(([site])=>({id:site,text:site,label:'撤销网站权限',disabled:busy||cookieGrantPending}));
-      view.setRows(cookieOtherSites.key,rows,'', (site,event)=>{
-        if(!event?.isTrusted)return;
-        return changeCookieSite({site,all:true}).catch(error=>notice((error.code||'E_COOKIE')+'：'+error.message,true));
-      });
-      return;
-    }
-    cookieOtherSites.replaceChildren();
-    const sites=menuGrants?.[tool.id]?.cookieSites||{};
-    for(const [site,row] of Object.entries(sites)){
-      if((site===origin&&allowed)||!Object.values(row||{}).some(v=>v===true))continue;
-      const line=doc.createElement('div');line.className='sidebar-toc-settings-row';
-      const name=doc.createElement('span');name.textContent=site;
-      const revoke=doc.createElement('button');revoke.type='button';revoke.textContent='撤销网站权限';
-      revoke.setAttribute('aria-label','撤销 '+site+' 的全部 Cookie 权限');
-      revoke.disabled=busy||cookieGrantPending;
-      revoke.addEventListener('click',event=>{if(!event.isTrusted)return;
-        void changeCookieSite({site,all:true}).catch(error=>notice((error.code||'E_COOKIE')+'：'+error.message,true));});
-      line.append(name,revoke);(!view&&cookieOtherSites.append(line));
-    }
+    const rows=Object.entries(menuGrants?.[tool.id]?.cookieSites||{})
+      .filter(([site,row])=>!(site===origin&&allowed)&&Object.values(row||{}).some(v=>v===true))
+      .map(([site])=>({id:site,text:site,label:'撤销网站权限',disabled:busy||cookieGrantPending}));
+    view.setRows(cookieOtherSites.key,rows,'', (site,event)=>{
+      if(!event?.isTrusted)return;
+      return changeCookieSite({site,all:true}).catch(error=>notice((error.code||'E_COOKIE')+'：'+error.message,true));
+    });
   }
   async function changeCookieSite({site=null,capability=null,all=false}={}){
     if(!active||!isCookieTool(active)||readOnlyPreview||busy)return;
@@ -376,24 +333,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       (error?.code||'E_COOKIE')+'）：'+String(error?.message||error).slice(0,160),true))
       .finally(()=>{cookieGrantPending=false;render();});
   });
-  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:trustedSettings,notice,runOperation:runTrustedTimeReviewOperation}):null;
+  const timePermissions=settingsView?createTimeReviewPermissionControls({api,ui:trustedSettingsUI?.timeReview,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const focusPermissions=settingsView&&focus?.createPermissionControls
-    ?focus.createPermissionControls({api,doc,container:trustedSettings,notice,runOperation:(operation,payload,event)=>{
-      const tool=active;
-      return focus.runTrustedOperation({api,tool,operation,payload,event,assertCurrent:phase=>{
+    ?focus.createPermissionControls({api,ui:trustedSettingsUI?.stayFocus,notice,runOperation:(operation,payload,event)=>{
+      const tool=active,revocationEpoch=frameRevocationEpoch;
+      return focus.runTrustedOperation({api,tool,operation,payload,event,revocationEpoch,assertCurrent:phase=>{
         if(disposed||!tool||!samePackage(active,tool)||
+           revocationEpoch!==(revocationEpochs[tool.id]??null)||
            phase==='initial'&&busy||phase!=='after-send'&&readOnlyPreview)
           throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
       }});
     }}):null;
-  // The React sandbox owns the only active AdBlock product UI.
-  // Legacy installs see an inert update notice; trusted DNR cleanup remains.
-  const adblockContainer=view ? view.runtime.adblock : get('sidebar-tool-adblock-native');
-  if(adblockContainer)adblockContainer.textContent=
-    '此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；' +
-    '你仍可停用或卸载，可信服务负责清理该工具自有规则。';
   const aiPermissions=aiAccess?.createPermissionControls
-    ?aiAccess.createPermissionControls({api,doc,container:aiProxyContainer,notice,
+    ?aiAccess.createPermissionControls({api,ui:trustedSettingsUI?.aiAccess,notice,
       runOperation:(operation,payload,event)=>{
         const tool=active;
         return aiAccess.runTrustedOperation({api,tool,operation,payload,event,
@@ -657,81 +609,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       page:Object.freeze({getContext:()=>request('browser.page.getContext')})
     });
   }
-  // An optional installed-list companion, never another top-level tab.
-  function setDiscoveryOpen(open){
-    if(view)return; // Official discovery is owned by Extension Center.
-    if(disposed)return;
-    discoverPanel.hidden=!open;
-    discoverToggle.setAttribute('aria-expanded',String(Boolean(open)));
-  }
-  function marketDetail(release){
-    return api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+
-      '#/apps/'+release.id+'/versions/'+release.version});
-  }
-  function renderOfficialTools(){
-    if(view||!officialRoot)return;
-    if(checkedInstalled!==installed||checkedReleases!==officialReleases){
-      checkedInstalled=installed;checkedReleases=officialReleases;officialMatches=new Set();
-      const epoch=++matchEpoch;
-      Promise.all(officialReleases.map(async release=>[
-        release.id,await matchesOfficialRelease(release,toolById(release.toolId))
-      ])).then(rows=>{
-        if(disposed||epoch!==matchEpoch)return;
-        officialMatches=new Set(rows.filter(([,matches])=>matches).map(([id])=>id));render();
-      }).catch(()=>{/* A failed digest never grants official attribution. */});
-    }
-    const officialView=JSON.stringify([officialLoaded,officialError,busy,officialReleases,officialFilter,officialQuery,
-      officialReleases.map(release=>[officialToolStatus(release,installed),officialMatches.has(release.id)])]);
-    // Keep DOM controls mounted across unrelated page observations and pointer gestures.
-    if(officialView===lastOfficialView)return;
-    lastOfficialView=officialView;
-    const focusId=doc.activeElement?.dataset?.officialInstall;
-    officialRoot.replaceChildren();
-    if(!officialLoaded){
-      const message=doc.createElement('p');message.className='sidebar-tool-discovery-message';
-      message.textContent=officialError||'正在读取内置工具…';officialRoot.append(message);
-      if(officialError){
-        const retry=doc.createElement('button');retry.type='button';retry.className='od-button';retry.textContent='重新读取';
-        retry.addEventListener('click',action(loadOfficial));officialRoot.append(retry);
-      }
-      return;
-    }
-    const candidates=officialReleases.filter(release=>{
-      const state=officialToolStatus(release,installed);
-      if(officialFilter==='available'&&state!=='available')return false;
-      return !officialQuery||[release.packageTitle,release.description,release.toolId]
-        .some(value=>value.toLocaleLowerCase().includes(officialQuery));
-    });
-    if(!candidates.length){
-      const emptyResult=doc.createElement('p');emptyResult.className='sidebar-tool-discovery-message';
-      emptyResult.textContent=officialQuery?'没有找到匹配的工具':
-        officialFilter==='available'?'内置工具已全部安装。可前往应用市场发现更多工具。':'没有可展示的工具';
-      officialRoot.append(emptyResult);return;
-    }
-    for(const release of candidates){
-      const state=officialToolStatus(release,installed),row=doc.createElement('div');
-      row.className='sidebar-tool-official od-surface';row.dataset.officialToolId=release.toolId;
-      row.dataset.installationState=state;
-      const copy=doc.createElement('div');copy.className='sidebar-tool-official-copy';
-      const name=doc.createElement('button');name.type='button';name.className='sidebar-tool-official-title';
-      name.textContent=release.packageTitle;name.title='查看「'+release.packageTitle+'」详情';
-      name.addEventListener('click',action(()=>marketDetail(release)));
-      const description=doc.createElement('span');description.className='sidebar-tool-official-description';
-      description.textContent=release.description;
-      copy.append(name,description);
-      const button=doc.createElement('button');button.type='button';button.className='od-button';
-      button.id='sidebar-tool-official-'+release.toolId+'-install';button.dataset.officialInstall=release.toolId;
-      const matched=officialMatches.has(release.id);
-      button.textContent=state==='available'?'安装':state==='update'?'更新':
-        state==='installed'&&matched?'打开':'管理';
-      button.disabled=busy;
-      button.setAttribute('aria-label',button.textContent+'官方'+release.packageTitle);
-      button.addEventListener('click',action(()=>['available','update'].includes(state)?reviewOfficial(release):
-        state==='installed'&&matched?(setDiscoveryOpen(false),openTool(release.toolId)):marketDetail(release)));
-      row.append(copy,button);officialRoot.append(row);
-      if(focusId===release.toolId)button.focus?.({preventScroll:true});
-    }
-  }
   async function loadOfficial(){
     // Catalog data is also consumed by Extension Center installation reviews.
     // Its availability must not depend on the retired discovery DOM.
@@ -758,37 +635,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
     }
   }
-  function renderInstalledTools() {
-    if(view)return; // Extension Center is the only installed-list owner.
-    const installedView=JSON.stringify([busy,installedReadError,enableReadError,enableRecords,installed,officialReleases]);
-    if(installedView===lastInstalledView)return;
-    lastInstalledView=installedView;
-    const focusedId=doc.activeElement?.dataset?.sidebarToolId;
-    list.replaceChildren();
-    for(const row of installed){
-      const item=doc.createElement('div');item.className='sidebar-tool-row';item.dataset.sidebarToolId=row.id;
-      const button=doc.createElement('button');button.type='button';button.className='sidebar-tool-item';
-      button.dataset.sidebarToolId=row.id;button.dataset.sidebarToolAction='open';button.title=row.description;
-      button.setAttribute('aria-label','打开工具「'+row.title+'」的详情');
-      const icon=doc.createElement('span');icon.className='sidebar-tool-item-icon';icon.setAttribute('aria-hidden','true');
-      icon.innerHTML='<svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>';
-      const copy=doc.createElement('span');copy.className='sidebar-tool-item-copy';
-      const heading=doc.createElement('strong');heading.textContent=row.title;
-      const newerRelease=officialReleases.find(release=>release.toolId===row.id&&officialToolStatus(release,installed)==='update');
-      if(newerRelease){const marker=doc.createElement('span');marker.className='sidebar-tool-update-mark';marker.textContent='可更新';heading.append(marker);}
-      const subtitle=doc.createElement('small');subtitle.textContent=row.description;copy.append(heading,subtitle);
-      if(installed.some(other=>other.id!==row.id&&other.title===row.title)){
-        const identity=doc.createElement('span');identity.className='sidebar-tool-item-identity';
-        identity.textContent='安装 ID：'+row.id;copy.append(identity);
-        button.setAttribute('aria-label','打开工具「'+row.title+'」的详情，安装 ID：'+row.id);
-      }
-      const version=doc.createElement('span');version.className='sidebar-tool-item-version';
-      version.textContent='v'+row.version+(installedReadError?' · 安装待核对':enableReadError?' · 状态异常':sidebarToolEnabled(enableRecords,row.id)?'':' · 已停用');
-      button.disabled=installedReadError;
-      button.append(icon,copy,version);button.addEventListener('click',()=>openTool(row.id));item.append(button);list.append(item);
-      if(row.id===focusedId&&!active)button.focus?.({preventScroll:true});
-    }
-  }
   function siteCapability(tool){
     return tool?.capabilities.includes(CAPTURE_CAPABILITY)?CAPTURE_CAPABILITY:
       tool?.capabilities.includes(CLIP_CAPABILITY)?CLIP_CAPABILITY:
@@ -798,16 +644,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id,promptSettings=managed&&id===PROMPT_ID;
     setToolFieldAttribute(view, settingsView, 'data-tool', promptSettings?PROMPT_ID:'');
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
-    timePermissions?.render(active,readOnlyPreview);
+    timePermissions?.render(active,readOnlyPreview,frameRoot?.dataset?.timeReviewNative==='true');
     focusPermissions?.render(active,readOnlyPreview,enabled);
     // Never revive the abandoned native controller for historical installs.
     const legacyAdblock=managed&&id===ADBLOCK_ID&&active?.uiRuntime!=='opendesk.react-ui.v1';
-    if(adblockContainer)adblockContainer.hidden=!legacyAdblock||tocSettingsOpen;
-    aiPermissions?.render(active,readOnlyPreview,enabled);
+    view.setLegacyAdblockVisible(legacyAdblock&&!tocSettingsOpen);
     // Only legacy ai.access installations use the separately hosted control card.
     // v2 browser.proxy.managed tools own their visible UI via the audited SDK.
     const legacyAiProxyTool=managed&&id===AI_ID&&active?.capabilities?.includes(AI_CAPABILITY);
-    aiProxyContainer.hidden=!(legacyAiProxyTool&&enabled&&(frame||nativeUI));
+    aiPermissions?.render(active,readOnlyPreview,enabled,Boolean(legacyAiProxyTool&&enabled&&(frame||nativeUI)));
     const sitePending=siteTogglePending.has(id);
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
@@ -819,9 +664,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, tocLanguageSelect, {disabled: busy||!isToc});
       setToolFieldAttribute(view, tocLanguageSelect, 'aria-label', tocText('languageLabel'));
     }
-    if(view)view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,tocText(key)])));
-    else for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
-      element.textContent=tocText(element.getAttribute('data-toc-host-text'));
+    view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,tocText(key)])));
     if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent: promptSettings?'启用工具':tocText('toggleHeading')});
     if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden: !promptSettings});
     setToolFieldAttribute(view, settingsView, 'aria-label', id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
@@ -837,7 +680,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, openTabButton, {title: tocText('openTabAction')});
       setToolFieldAttribute(view, openTabButton, 'aria-label', openTabButton.title);
     }
-    setToolFieldAttribute(view, view ? view.fields['sidebar-tool-generic-site-binary'] : get('sidebar-tool-generic-site-binary'), 'aria-label',isToc?tocText('siteGroup'):'当前网站授权');
+    setToolFieldAttribute(view, view.fields['sidebar-tool-generic-site-binary'], 'aria-label',isToc?tocText('siteGroup'):'当前网站授权');
     if(!managed)tocSettingsOpen=false;
     const show=managed&&tocSettingsOpen;
     // Exactly one tool title and one settings icon in the shared toolbar.
@@ -850,8 +693,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // enrollment card. Do not replace/hide its live stats iframe.
     const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active)||isFullBookmarkTool(active));
     // Native approval/stop remains visible above a live sandbox, never inside it.
-    if(!view&&trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
-    else if(!view&&!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
     setToolFieldAttribute(view, display, 'data-trusted-tool-inline', String(trustedInline));
     patchToolField(view, settingsView, {hidden: !show});
     if(promptNativeRow)patchToolField(view, promptNativeRow, {hidden: !(show&&promptSettings)});
@@ -916,7 +757,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const capabilityOnly=Boolean(siteCapability(active)&&!promptSettings);
     for(const id of ['sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary',
       'sidebar-tool-generic-site-advanced']){
-      const field=view ? view.fields[id] : get(id);if(field)patchToolField(view,field,{hidden:!capabilityOnly});
+      const field=view.fields[id];if(field)patchToolField(view,field,{hidden:!capabilityOnly});
     }
     patchToolField(view, settingsHint, {hidden: !capabilityOnly});
     patchToolField(view, settingsScopeLabel, {textContent: isToc?tocText('siteAvailability'):'当前网站授权'});
@@ -943,23 +784,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const identity=JSON.stringify([id,origins,denied,busy,sitePending,isToc?tocLocale:null]);
     if(identity===lastTocSettingsRows)return;lastTocSettingsRows=identity;
     const section=(container,items,handler,emptyLabel)=>{
-      if(view){
-        const label=container===settingsSites&&!isToc?'撤销':tocText('restore');
-        view.setRows(container.key,items.map(entry=>({id:entry,text:entry,label,disabled:busy||sitePending})),emptyLabel,
-          entry=>action(()=>runSiteToggle(id,()=>handler(entry)))());
-        return;
-      }
-      container.replaceChildren();
-      if(!items.length){const label=doc.createElement('p');label.textContent=emptyLabel;container.append(label);}
-      for(const entry of items){
-        const row=doc.createElement('div');row.className='sidebar-tool-site-entry';
-        const label=doc.createElement('span');label.textContent=entry;label.title=entry;
-        const button=doc.createElement('button');button.type='button';button.className='sidebar-tool-site-revoke';
-        button.textContent=container===settingsSites&&!isToc?'撤销':tocText('restore');button.setAttribute('aria-label',button.textContent+' '+entry);
-        button.disabled=busy||sitePending;
-        button.addEventListener('click',action(()=>runSiteToggle(id,()=>handler(entry))));
-        row.append(label,button);container.append(row);
-      }
+      const label=container===settingsSites&&!isToc?'撤销':tocText('restore');
+      view.setRows(container.key,items.map(entry=>({id:entry,text:entry,label,disabled:busy||sitePending})),emptyLabel,
+        entry=>action(()=>runSiteToggle(id,()=>handler(entry)))());
     };
     section(settingsPages,denied,url=>setTocPageAvailability(true,url),isToc?tocText('noPages'):'没有排除的页面');
     section(settingsSites,origins,url=>capability===CAPTURE_CAPABILITY?changeCaptureSite(id,url,false):
@@ -969,10 +796,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed)return;
     if(pendingUninstallId&&!installed.some(row=>row.id===pendingUninstallId&&samePackage(row,pendingUninstallBaseline)))
       cancelRemovalReview();
-    renderInstalledTools();
-    if(!view&&empty)empty.hidden=installed.length!==0||installedReadError;
-    renderOfficialTools();
-    if(!view&&listView)listView.hidden=Boolean(active);
     patchToolField(view, display, {hidden: !active});
     const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
       active?.capabilities.includes(TOC_CAPABILITY)&&
@@ -1014,16 +837,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
   }
   function focusToolInList(id) {
-    // R4 uses one visible list; legacy rows remain in the DOM for the original host.
-    const controls=[...doc.querySelectorAll('#extension-center-list button[data-extension-key]')]
-      .filter(button=>button.dataset.extensionKey==='app:'+id);
-    const action=controls.find(button=>button.dataset.extensionAction==='primary')||
-      controls.find(button=>button.dataset.extensionAction==='more')||
-      controls.find(button=>button.dataset.extensionAction==='main');
-    const item=[...(list?.children||[])].find(node=>node.dataset?.sidebarToolId===id);
-    const target=action || item?.children?.[0] || doc.getElementById('extension-center-search');
-    if(target)target.focus?.({preventScroll:true});
-    else requestToolFieldEffect(view,importTrigger,'focus',{preventScroll:true});
+    // The list is still hidden until React commits the suspended ToolHost.
+    // Resolve its current action (or search/import fallback) after that commit.
+    requestToolFieldEffect(view,importTrigger,'focus',{preventScroll:true,extensionToolId:id??null});
   }
   function cancelRemovalReview(){
     pendingUninstallId=null;pendingUninstallBaseline=null;
@@ -1216,13 +1032,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||busy||!visible||active||!officialLoaded)return false;
     const release=officialReleases.find(row=>row.toolId===id);
     if(!release)return false;
-    setDiscoveryOpen(false);
     void reviewOfficial(release);
     return true;
   }
   function openImport(){
     if(disposed||busy||!visible||active)return false;
-    setDiscoveryOpen(false);setImportOpen(true);notice('');return true;
+    setImportOpen(true);notice('');return true;
   }
   function openReadOnlyPreview(value){
     
@@ -2436,7 +2251,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   async function chooseFile(selectedFile) {
     if(disposed||busy)return;
-    const selection=++fileSelection,file=view ? selectedFile : fileInput.files?.[0];
+    const selection=++fileSelection,file=selectedFile;
     // Preserve the browser's selected filename; clearing .value here lies to the user.
     resetReview();setFileError();notice('');
     if(!file)return;
@@ -2515,7 +2330,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, installButton, {disabled: !canCommitReview()});render();
     }
     if(!accepted||disposed)return;
-    setImportOpen(false);setDiscoveryOpen(false);render();focusToolInList(accepted.id);
+    setImportOpen(false);render();focusToolInList(accepted.id);
     notice(officialTocInstalled?
       '阅读目录已安装。符合条件的网页自动显示目录，无需再启用或逐站授权；“打开”仅查看侧边栏目录。':
       '已安装「'+accepted.title+'」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。');
@@ -2591,34 +2406,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   cancelRemovalReview();
   cancelActionReview();
   notice('');
-  setDiscoveryOpen(false);
-  if(!view){
-  listen(discoverToggle,'click',()=>{
-    if(busy)return;
-    const next=discoverPanel.hidden;
-    if(next&&!importPanel.hidden)setImportOpen(false);
-    setDiscoveryOpen(next);
-    if(next)search.focus?.({preventScroll:true});
-    else discoverToggle.focus?.({preventScroll:true});
-  });
-  if(search)listen(search,'input',()=>{
-    officialQuery=(search.value||'').trim().toLocaleLowerCase();renderOfficialTools();
-  });
-  if(filterAvailable)listen(filterAvailable,'click',()=>{
-    officialFilter='available';filterAvailable.setAttribute('aria-pressed','true');
-    filterAll?.setAttribute('aria-pressed','false');renderOfficialTools();
-  });
-  if(filterAll)listen(filterAll,'click',()=>{
-    officialFilter='all';filterAll.setAttribute('aria-pressed','true');
-    filterAvailable?.setAttribute('aria-pressed','false');renderOfficialTools();
-  });
-  const marketButton=get('sidebar-tool-market');
-  if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));
-  }
   listen(importTrigger,'click',()=>{
     if(busy)return;
     const next=importPanel.hidden;
-    if(next)setDiscoveryOpen(false);
     setImportOpen(next);notice('');
   });
   listen(importClose,'click',()=>{
@@ -2857,7 +2647,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     requestToolFieldEffect(view, removeButton, 'focus', {preventScroll:true});
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
-  listen(window,'message',onMessage);
+  const messageWindow=window;
+  messageWindow.addEventListener('message',onMessage);
+  listeners.push(()=>messageWindow.removeEventListener('message',onMessage));
   if(retiredDraftDismiss)listen(retiredDraftDismiss,'click',()=>{if(active)recoverableDrafts.delete(active.id);render();});
   // Knowledge drafts do not register browser-native exit confirmations.
   // Native Chrome permission removal must erase already-rendered private
@@ -2931,6 +2723,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
+    timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();
     for(const release of listeners.splice(0))release();
     queued.clear();
   }});

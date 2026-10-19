@@ -1,45 +1,37 @@
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createLocalProjectView} from '../../src/ui/local-project.js';
 
 // Component evidence only; these events do not claim trusted browser input.
-class Element {
-  checked=false;disabled=false;value='';textContent='';dataset={};children=[];listeners=new Map();mutations=0;
-  constructor(){
-    this.dataset=new Proxy({},{set:(target,key,value)=>{this.mutations++;target[key]=value;return true;}});
-    return new Proxy(this,{set:(target,key,value)=>{if(['hidden','disabled','value','textContent','title'].includes(key))target.mutations++;target[key]=value;return true;}});
-  }
-  addEventListener(event,callback){this.listeners.set(event,callback);}
-  removeEventListener(event){this.listeners.delete(event);}
-  fire(event,detail={}){this.listeners.get(event)?.({isTrusted:true,...detail});}
-  replaceChildren(...children){this.mutations++;this.children=children;}
-  append(child){this.mutations++;this.children.push(child);}
-  removeAttribute(name){this.mutations++;delete this[name];}
-}
-globalThis.Option=class extends Element {constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 const project={bindingId:'local-a',name:'TOC',sourceId:'source-a',runtimeKind:'page-userscript',preparation:{state:'ready'}};
 const workspace={workspaceId:'workspace-00000000-0000-0000-0000-000000000001',name:'prompt-shortcuts',sourceId:'source-'+'a'.repeat(24),access:'read-write',leaseEpoch:'lease-'+'a'.repeat(24)};
 const fileCatalog=workspaces=>({workspaces,sessionId:'files-session-'+'a'.repeat(24)});
 function fixture(t,{nativeConnected=true,connected=false,saved,files=[]}={}){
-  const nodes=new Map(),find=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
+  const developerView=createDeveloperView(),find=developerTestFields(developerView);
   find('local-project-mode').checked=true;
   let state={connected,nativeConnected,providerEpoch:connected?'epoch-a':null},projects=[project],listener;
-  const calls=[],writes=[],opened=[];let changes=0;
+  const calls=[],writes=[],opened=[];let changes=0,observedSnapshot,publications=0;
   const client={requestLocalProject:async method=>{calls.push(method);return method==='status'?state:method==='workspaces.list'?fileCatalog(files):{providerEpoch:state.providerEpoch,projects};},
     subscribeLocalProjects:callback=>{listener=callback;return ()=>{listener=null;};}};
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path,openOptionsPage:async()=>opened.push('options')},tabs:{create:async value=>opened.push(value)},storage:{local:{get:async()=>saved?{'opendesk.local-project.selection.v1':saved}:{},set:async value=>{writes.push(value);}}}};
-  const view=createLocalProjectView({client,api,document:{getElementById:find},onChange:()=>changes++,preparationDelayMs:0});
+  const view=createLocalProjectView({client,api,view:developerView,onChange:()=>changes++,preparationDelayMs:0});
   t.after(()=>view.dispose());
   return {view,find,calls,writes,opened,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},setFiles:value=>{files=value;},notify:value=>listener(value),
-    activity:()=>({mutations:[...nodes.values()].reduce((sum,node)=>sum+node.mutations,0),changes,writes:writes.length})};
+    activity:()=>{
+      const snapshot=developerView.getSnapshot();
+      if(snapshot!==observedSnapshot){observedSnapshot=snapshot;publications++;}
+      return {publications,changes,writes:writes.length};
+    }};
 }
 test('file-only catalog stays metadata-only and opens only through a trusted explicit action',async t=>{
   const f=fixture(t,{files:[workspace]});await tick();
   const binding='file-workspace:'+workspace.workspaceId;
   assert.equal(f.find('local-project-select').value,binding);
-  assert.match(f.find('local-project-select').children[1].textContent,/prompt-shortcuts · 文件工作区/);
+  assert.match(f.find('local-project-select').options[1].label,/prompt-shortcuts · 文件工作区/);
   assert.equal(f.find('local-project-select').disabled,false);
   assert.equal(f.find('local-project-status').dataset.state,'entry-unavailable');
   assert.match(f.find('local-project-status').textContent,/尚未发现可运行入口.*package.json/);
@@ -157,7 +149,7 @@ test('mixed catalog deduplicates runnable workspace and keeps file selections un
   const other={...workspace,workspaceId:workspace.workspaceId.slice(0,-1)+'2',sourceId:'source-'+'b'.repeat(24),name:'files only'};
   const f=fixture(t,{connected:true,files:[workspace,other]});
   f.setProjects([{...project,sourceId:workspace.sourceId}]);await tick();
-  assert.deepEqual(f.find('local-project-select').children.map(row=>row.value),['',project.bindingId,'file-workspace:'+other.workspaceId]);
+  assert.deepEqual(f.find('local-project-select').options.map(row=>row.value),['',project.bindingId,'file-workspace:'+other.workspaceId]);
   f.find('local-project-select').value=project.bindingId;f.find('local-project-select').fire('change');
   const captured=f.view.capture();assert.equal(f.view.connected(),true);
   f.find('local-project-select').value='file-workspace:'+other.workspaceId;f.find('local-project-select').fire('change');
@@ -165,14 +157,14 @@ test('mixed catalog deduplicates runnable workspace and keeps file selections un
   assert.throws(()=>f.view.assertCaptured(captured),{code:'E_DEV_CONFLICT'});
   f.setProjects([{...project,workspaceId:workspace.workspaceId,sourceId:'source-other'}]);
   f.find('local-project-refresh').fire('click');await tick();
-  assert.equal(f.find('local-project-select').children.length,4,'conflicting source identity must not hide a workspace');
+  assert.equal(f.find('local-project-select').options.length,4,'conflicting source identity must not hide a workspace');
 });
 test('file revocation removes live metadata, retains an offline selection and blocks opening',async t=>{
   t.mock.timers.enable({apis:['setInterval']});
   const f=fixture(t,{files:[workspace]});await tick();const binding=f.view.selectedBindingId();
   f.setFiles([]);t.mock.timers.tick(2000);await tick();
   assert.equal(f.view.selectedBindingId(),binding);
-  assert.match(f.find('local-project-select').children.at(-1).textContent,/离线/);
+  assert.match(f.find('local-project-select').options.at(-1).label,/离线/);
   assert.equal(f.find('local-project-select').disabled,true);
   assert.notEqual(f.find('local-project-connect').textContent,'打开文件工作区 ↗');
   f.find('local-project-connect').fire('click');await tick();assert.deepEqual(f.opened,['options']);
@@ -185,11 +177,11 @@ test('file revocation removes live metadata, retains an offline selection and bl
 test('unchanged disconnected, file-only and runnable idle polls and duplicate notifications do not mutate DOM or notify editor',async t=>{
   t.mock.timers.enable({apis:['setInterval']});
   for(const config of [{nativeConnected:false},{},{files:[workspace]},{connected:true}]){
-    const f=fixture(t,config);await tick();const before=f.activity(),options=f.find('local-project-select').children;
+    const f=fixture(t,config);await tick();const before=f.activity(),options=f.find('local-project-select').options;
     for(let i=0;i<3;i++){t.mock.timers.tick(2000);await tick();}
     f.notify({connected:config.connected===true,nativeConnected:config.nativeConnected!==false,providerEpoch:config.connected?'epoch-a':null});await tick();
     assert.deepEqual(f.activity(),before,JSON.stringify(config));
-    assert.equal(f.find('local-project-select').children,options);
+    assert.equal(f.find('local-project-select').options,options);
     f.view.dispose();
   }
 });
@@ -197,7 +189,7 @@ test('optional catalog rejects malformed metadata or unavailable bridge without 
   for(const value of [{projects:[project]},fileCatalog([{...workspace,access:'owner'}]),{workspaces:[workspace]},fileCatalog([{...workspace,workspaceId:'javascript:alert(1)'}]),fileCatalog([{...workspace,sourceId:'bad'}]),fileCatalog([{...workspace,sourceId:''}]),fileCatalog([{...workspace,leaseEpoch:42}]),Object.assign(new Error('old bridge'),{code:'E_SCHEMA'}),Object.assign(new Error('offline'),{code:'E_FILES_DISCONNECTED'}),Object.assign(new Error('timeout'),{code:'E_FILES_TIMEOUT'})]){
     const f=fixture(t,{connected:true}),request=f.client.requestLocalProject;
     f.client.requestLocalProject=async(method,params)=>{if(method!=='workspaces.list')return request(method,params);if(value instanceof Error)throw value;return value;};
-    await tick();assert.equal(f.view.connected(),true);assert.equal(f.find('local-project-select').children.length,2);
+    await tick();assert.equal(f.view.connected(),true);assert.equal(f.find('local-project-select').options.length,2);
     assert.equal(f.view.capture().bindingId,project.bindingId);f.view.dispose();
   }
 });
@@ -208,7 +200,7 @@ test('older statuses without explicit Native connectivity never query file metad
     t.mock.timers.tick(2000);await tick();
     assert.equal(f.calls.includes('workspaces.list'),false);
     assert.equal(f.view.connected(),state.connected);
-    assert.equal(f.find('local-project-select').children.some(row=>/文件工作区/.test(row.textContent)),false);
+    assert.equal(f.find('local-project-select').options.some(row=>/文件工作区/.test(row.label)),false);
     f.view.dispose();
   }
 });
@@ -224,9 +216,9 @@ test('slow optional file catalog does not block runnable readiness or source met
   const captured=f.view.capture();
   t.mock.timers.tick(2000);await f.view.assertReady(captured);await tick();
   assert.equal(fileReads,1);assert.equal(f.view.connected(),true);
-  assert.equal(f.find('local-project-select').children.length,2);
+  assert.equal(f.find('local-project-select').options.length,2);
   gate.resolve(fileCatalog([workspace]));await tick();
-  assert.equal(f.find('local-project-select').children.length,3);
+  assert.equal(f.find('local-project-select').options.length,3);
   f.view.assertCaptured(captured);
 });
 test('slow disconnected recovery stays quiet, skips timer ticks and invalidates late file discovery on mode switch',async t=>{
@@ -245,9 +237,9 @@ test('changing selection among live rows and reordered file metadata never rebui
   const other={...workspace,workspaceId:workspace.workspaceId.slice(0,-1)+'2',name:'other files'};
   const f=fixture(t,{connected:true,files:[workspace,other]});await tick();
   f.find('local-project-select').value='file-workspace:'+other.workspaceId;f.find('local-project-select').fire('change');
-  const before=f.activity(),options=f.find('local-project-select').children;
+  const before=f.activity(),options=f.find('local-project-select').options;
   f.setFiles([other,workspace]);t.mock.timers.tick(2000);await tick();
-  assert.equal(f.find('local-project-select').children,options);assert.deepEqual(f.activity(),before);
+  assert.equal(f.find('local-project-select').options,options);assert.deepEqual(f.activity(),before);
 });
 test('file metadata remains independently available when the runnable catalog errors',async t=>{
   const f=fixture(t,{connected:true,files:[workspace]}),request=f.client.requestLocalProject;
@@ -441,7 +433,7 @@ test('bad background SHA is non-executable and prior project stays visible offli
   assert.equal(f.find('local-project-status').dataset.state,'source-error');
   assert.throws(()=>f.view.capture(),{code:'E_DEV_SOURCE'});
   f.setProjects([]);f.find('local-project-refresh').fire('click');await tick();
-  assert.match(f.find('local-project-select').children.at(-1).textContent,/离线/);
+  assert.match(f.find('local-project-select').options.at(-1).label,/离线/);
   assert.equal(f.view.readyForRun(),false);
 });
 
@@ -532,10 +524,10 @@ test('a selected directory follows its unique live program identity when the Pro
   assert.equal(f.find('local-project-params').value,'{"selected":true}');
   assert.deepEqual(f.opened,[]);
   assert.ok(f.calls.every(method=>['status','workspaces.list','projects.list'].includes(method)), 'association must not resolve or execute source');
-  const before=f.activity(),options=f.find('local-project-select').children;
+  const before=f.activity(),options=f.find('local-project-select').options;
   t.mock.timers.tick(6000);await tick();
   assert.deepEqual(f.activity(),before);
-  assert.equal(f.find('local-project-select').children,options);
+  assert.equal(f.find('local-project-select').options,options);
 });
 
 test('a restored directory selection associates only by matching current source, never project name',async t=>{

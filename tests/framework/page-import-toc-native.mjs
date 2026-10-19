@@ -469,7 +469,7 @@ async function realRun() {
     async function findSidePanel(excludeId) {
       return until(async () => {
         const rows = await (await fetch(base + '/json/list')).json();
-        return rows.find(row => row.id !== excludeId && row.url.startsWith('chrome-extension://' + extensionId + '/ui/tool.html') && row.webSocketDebuggerUrl);
+        return rows.find(row => row.id !== excludeId && row.url.startsWith('chrome-extension://' + extensionId + '/sidepanel.html') && row.webSocketDebuggerUrl);
       }, 'Actual Native workbench Side Panel');
     }
 
@@ -478,7 +478,7 @@ async function realRun() {
     target = targetTab.session;
     await browser.call('Target.activateTarget', {targetId: targetTab.tab.id});
     await until(() => target.read('document.readyState==="complete"'), 'fixture loaded');
-    const catalog = await newTab('chrome-extension://' + extensionId + '/ui/tool.html');
+    const catalog = await newTab('chrome-extension://' + extensionId + '/sidepanel.html');
     await until(() => catalog.session.read('(()=>{const e=document.querySelector("#catalog-open-dev-sidebar");if(!e||e.disabled)return false;const r=e.getBoundingClientRect();return r.width>0&&r.height>0})()'), 'Real visible develop sidebar entry');
     await browser.call('Target.activateTarget', {targetId: catalog.tab.id});
     await clickNode(catalog.session, 'document.querySelector("#catalog-open-dev-sidebar")');

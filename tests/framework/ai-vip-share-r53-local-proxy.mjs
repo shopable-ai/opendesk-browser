@@ -103,7 +103,7 @@ try{
     let rows=ax();let menu=rows.filter(x=>['AXButton','AXPopUpButton'].includes(x.role)&&/^(Extensions|扩展程序菜单|扩展程序|扩展)$/.test(x.description||x.title));
     assert.equal(menu.length,1);native('press',menu[0].description||menu[0].title);await pause(200);rows=ax();
     const action=rows.filter(x=>['AXButton','AXMenuItem'].includes(x.role)&&/OpenDesk Browser/.test(x.title+' '+x.description)&&!/(menu|菜单|Options|选项)/i.test(x.title+' '+x.description));assert.equal(action.length,1);native('press',action[0].title||action[0].description);
-    const context=await until(async()=>(await read(worker,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})")).find(x=>x.documentUrl?.includes('/ui/tool.html')),'Real Side Panel');
+    const context=await until(async()=>(await read(worker,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})")).find(x=>x.documentUrl?.includes('/sidepanel.html')),'Real Side Panel');
     const target=await until(async()=>(await browser.call('Target.getTargets')).targetInfos.find(x=>x.url===context.documentUrl),'Side target');side=originalSide=await attach(target.targetId);
     await pause(1000);await click('#tab-tools');
     await until(()=>read(side,"document.querySelector('#tab-tools')?.getAttribute('aria-selected')==='true'"),'Extensions tab selected');

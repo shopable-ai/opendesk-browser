@@ -20,7 +20,7 @@ function sidePanelTarget(targets,contexts){
   return matches[0];
 }
 async function attachSidePanel(){
-  const control=await attach('/ui/tool.html?hostInstanceId=');
+  const control=await attach('/sidepanel.html?hostInstanceId=');
   const contexts=await evaluate(client,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})",control.id);
   const targets=(await client.send('Target.getTargets')).targetInfos;
   const target=sidePanelTarget(targets,contexts);
@@ -30,14 +30,14 @@ async function attachSidePanel(){
 async function attach(part,type,selector){
   let targets=(await client.send('Target.getTargets')).targetInfos;
   if(type==='service_worker'&&!targets.some(t=>t.type===type&&t.url.includes(part))){
-    const context=targets.find(t=>t.type==='page'&&t.url.includes('/ui/tool.html?hostInstanceId='));
+    const context=targets.find(t=>t.type==='page'&&t.url.includes('/sidepanel.html?hostInstanceId='));
     assert(context,'Real extension page required to start its own idle worker');
     const control=(await client.send('Target.attachToTarget',{targetId:context.targetId,flatten:true})).sessionId;
     await client.send('ServiceWorker.enable',{},control);
     await client.send('ServiceWorker.startWorker',{scopeURL:'chrome-extension://'+session.extensionId+'/'},control);
     for(let i=0;i<30;i++){targets=(await client.send('Target.getTargets')).targetInfos;if(targets.some(t=>t.type===type&&t.url.includes(part)))break;await pause(100);}
   }
-  const explicitId=part==='/ui/tool.html?hostInstanceId='?process.env.TOOL_HOST_TARGET_ID:
+  const explicitId=part==='/sidepanel.html?hostInstanceId='?process.env.TOOL_HOST_TARGET_ID:
     part==='/sidebar-tools/sandbox.html'?process.env.TOOL_SANDBOX_TARGET_ID:undefined;
   for(const target of targets.filter(t=>t.url.includes(part)&&(!type||t.type===type)&&(!explicitId||t.targetId===explicitId))){
     const id=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
@@ -76,7 +76,7 @@ async function toolNavigation(id){
 try{
   const selector=['input','click','click-dialog','guard-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined;
   const host=selector||process.env.TOOL_HOST_TARGET_ID
-    ?await attach('/ui/tool.html?hostInstanceId=',undefined,selector):await attachSidePanel();
+    ?await attach('/sidepanel.html?hostInstanceId=',undefined,selector):await attachSidePanel();
   if(mode==='cycle'){
     const navigation=await toolNavigation(host.id);
     const measurements=[];

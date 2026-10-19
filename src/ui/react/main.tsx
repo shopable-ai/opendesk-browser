@@ -1,9 +1,7 @@
 import * as React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createPortal,flushSync} from 'react-dom';
-import {prepareSidebarAppShell,SidebarAppShell} from './app-shell.tsx';
-import {ExtensionCenterPage} from './tabs/tools.tsx';
-import {DebugDiagnosticText} from './tabs/debug.tsx';
+import {SidebarAppShell} from './app-shell.tsx';
 import {createDeveloperView} from '../develop-view.js';
 import {createMyWorkbenchView} from '../my-workbench-view.js';
 import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';
@@ -14,14 +12,16 @@ import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 
 // A single trusted root owns every product page. Existing controllers supply
 // presentation snapshots and actions; installed tool code stays in its sandbox.
-export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appShell=false,
+const mountedDocuments=new WeakSet();
+
+export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null}={}){
-  let section=doc.getElementById('extension-center');
-  if(!section||section.dataset.opendeskReactOwner)throw new Error('E_REACT_EXTENSION_MOUNT');
-  if(appShell&&typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
+  const mount=doc.getElementById('opendesk-react-app');
+  if(!mount||mount.childNodes.length||mountedDocuments.has(doc))throw new Error('E_REACT_APP_MOUNT');
+  if(typeof onNavigate!=='function')throw new Error('E_REACT_APP_SHELL_NAVIGATION');
   const initialTab=doc.documentElement?.dataset?.opendeskTab||'tasks';
-  const shell=appShell?prepareSidebarAppShell(doc):null;
-  const root=createRoot(shell?.mount||section);
+  const root=createRoot(mount);
+  mountedDocuments.add(doc);
   let disposed=false,navigationTab=initialTab,workflowController=null;
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
@@ -30,14 +30,24 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
   let rowMenuModel=null,bookmarkPilot=null;
-  const debugIds={summary:'debug-cloud-summary',pairing:'debug-pairing',connection:'debug-connection',
-    reconcile:'debug-reconcile',slot:'debug-slot',taskCount:'debug-task-count',requestCount:'debug-request-count',
-    snapshot:'debug-snapshot',feedback:'debug-feedback'};
-  const debugNodes=Object.fromEntries(Object.entries(debugIds).map(([key,id])=>[key,doc.getElementById(id)]));
-  const debugMounted=Object.values(debugNodes).every(Boolean);
-  let debugModel=Object.fromEntries(Object.entries(debugNodes).map(([key,node])=>[key,node?.textContent||'']));
-  if(debugMounted)for(const [key,node]of Object.entries(debugNodes)){
-    node.replaceChildren();node.dataset.opendeskReactOwner='debug-'+key;
+  let debugModel={},debugActions={},development=null;
+  let browserHistoryModel=null,browserHistoryActions={};
+  const ownedNodes=[];
+  function dispose(){
+    if(disposed)return;disposed=true;
+    try{cloudPageModel.onHide?.();}
+    finally{
+      try{root.unmount();}
+      finally{
+        mountedDocuments.delete(doc);
+        if(bookmarkPilot?.container.dataset.opendeskReactOwner==='bookmark-react-pilot')
+          delete bookmarkPilot.container.dataset.opendeskReactOwner;
+        bookmarkPilot=null;
+        for(const [node,owner]of ownedNodes)
+          if(node.dataset.opendeskReactOwner===owner)delete node.dataset.opendeskReactOwner;
+        ownedNodes.length=0;
+      }
+    }
   }
   function paint(){
     if(disposed)return;
@@ -45,37 +55,40 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS}</style>
-      {shell?<SidebarAppShell scaffold={shell.scaffold} activeTab={navigationTab}
-        debugEnabled={debugEnabled} onNavigate={onNavigate} extensionProps={extensionProps}
+      <SidebarAppShell activeTab={navigationTab}
+        debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
+        browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
+        onNavigate={onNavigate} extensionProps={extensionProps}
         developerView={developerView} myView={myView} toolView={toolView} workflowController={workflowController}
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
-        :<ExtensionCenterPage {...extensionProps}/>}
       {bookmarkPilot&&createPortal(<><style>{bookmarkScopedCSS}</style>
         <BookmarkReactApp mode="trusted" runtime={bookmarkPilot.runtime} onStateChange={bookmarkPilot.onStateChange}/>
         </>,bookmarkPilot.container)}
-      {debugMounted&&Object.entries(debugNodes).map(([key,node])=>
-        createPortal(<DebugDiagnosticText value={debugModel[key]}/>,node,key))}
     </>));
   }
-  paint();
-  section=doc.getElementById('extension-center');
   const owners={'extension-center':'extension-center','extension-center-list':'extension-list',
     'extension-center-detail-body':'extension-detail','extension-center-cleanups':'extension-cleanups',
     'extension-center-empty':'extension-empty','extension-center-count':'extension-count',
     'extension-center-status':'extension-status'};
-  for(const [id,owner]of Object.entries(owners)){
-    const node=doc.getElementById(id);if(!node)throw new Error('E_REACT_EXTENSION_MOUNT');
-    node.dataset.opendeskReactOwner=owner;
+  try{
+    paint();
+    for(const [id,owner]of Object.entries(owners)){
+      const node=doc.getElementById(id);if(!node)throw new Error('E_REACT_EXTENSION_MOUNT');
+      node.dataset.opendeskReactOwner=owner;ownedNodes.push([node,owner]);
+    }
+    const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
+    if(toolbar){toolbar.dataset.opendeskReactOwner='extension-toolbar';ownedNodes.push([toolbar,'extension-toolbar']);}
+  }catch(error){
+    try{dispose();}catch{/* Preserve the initial mount failure after attempting all cleanup. */}
+    throw error;
   }
-  const toolbar=doc.querySelector('#extension-center-list-view > .ec-toolbar');
-  if(toolbar)toolbar.dataset.opendeskReactOwner='extension-toolbar';
   return Object.freeze({
-    owner:'extension-list',navigationMounted:Boolean(shell),appShellMounted:Boolean(shell),debugMounted,
-    cloudPageMounted:Boolean(shell),cloudOverviewMounted:Boolean(shell),
+    owner:'extension-list',navigationMounted:true,appShellMounted:true,debugMounted:debugEnabled,
+    cloudPageMounted:true,cloudOverviewMounted:true,
     renderNavigation(view){
-      if(disposed||!shell)return;
-      if(!['tasks','tools','workflow','develop','cloud','catalog','debug'].includes(view))
+      if(disposed)return;
+      if(!['tasks','tools','workflow','develop','cloud','catalog','debug'].includes(view)||view==='debug'&&!debugEnabled)
         throw new Error('E_REACT_NAVIGATION_SNAPSHOT');
       if(navigationTab===view)return;
       if(navigationTab==='cloud'&&view!=='cloud')cloudPageModel.onHide?.();
@@ -119,17 +132,22 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       };
     },
     renderCloudPage(next){
-      if(disposed||!shell)return;
+      if(disposed)return;
       if(!next?.overview||!next.authorization||!next.pairing||!next.clients||!next.requests)
         throw new Error('E_REACT_CLOUD_PAGE_SNAPSHOT');
       cloudPageModel=next;paint();
     },
-    renderCloudOverview(next){if(disposed||!shell)return;
+    renderCloudOverview(next){if(disposed)return;
       cloudPageModel={...cloudPageModel,overview:{...cloudPageModel.overview,...next}};paint();},
+    connectDebugActions(next){
+      if(disposed||!debugEnabled)throw new Error('E_REACT_DEBUG_OWNER');
+      debugActions=next??{};paint();
+    },
+    renderDevelopmentStatus(next){if(disposed||!debugEnabled)return;development=next;paint();},
+    renderBrowserHistory(next){if(disposed)return;browserHistoryModel=next;paint();},
+    connectBrowserHistoryActions(next){if(disposed)return;browserHistoryActions=next??{};paint();},
     renderDebugDiagnostics(next){
-      if(disposed||!debugMounted)throw new Error('E_REACT_DEBUG_OWNER');
-      for(const [key,value]of Object.entries(next))
-        if(!Object.hasOwn(debugNodes,key)||typeof value!=='string')throw new Error('E_REACT_DEBUG_SNAPSHOT');
+      if(disposed||!debugEnabled)throw new Error('E_REACT_DEBUG_OWNER');
       debugModel={...debugModel,...next};paint();
     },
     renderRowMenu(items,options={}){if(disposed)return;rowMenuModel=items.length?{...options,items}:null;paint();},
@@ -140,11 +158,6 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
     renderFeedback(next){if(disposed)return;feedbackModel=next;paint();},
     renderRecoveries(next){if(disposed)return;recoveryModel=next;paint();},
     renderStatus(next){if(disposed)return;statusModel=next;paint();},
-    dispose(){
-      if(disposed)return;disposed=true;cloudPageModel.onHide?.();root.unmount();
-      if(bookmarkPilot)delete bookmarkPilot.container.dataset.opendeskReactOwner;
-      for(const node of Object.values(debugNodes))if(node)delete node.dataset.opendeskReactOwner;
-      for(const id of Object.keys(owners)){const node=doc.getElementById(id);if(node)delete node.dataset.opendeskReactOwner;}
-    }
+    dispose
   });
 }

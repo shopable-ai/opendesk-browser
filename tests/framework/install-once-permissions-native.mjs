@@ -548,7 +548,7 @@ try {
   await client.send('Target.activateTarget', {targetId: actionTab.targetId});
   await client.send('Extensions.triggerAction', {id: extensionId, targetId: actionTab.targetId});
   const context = await until(async () => (await evaluate(client, 'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})', worker.sessionId))
-    .find(row => row.documentUrl.includes('/ui/tool.html?')), 'actual Side Panel context');
+    .find(row => row.documentUrl.includes('/sidepanel.html?')), 'actual Side Panel context');
   const panelTarget = await until(async () => (await targets()).find(target => target.url === context.documentUrl), 'Side Panel CDP target');
   panel = await sessionFor(panelTarget); await arm(panel);
   report.sidePanel = {contextType: context.contextType, documentId: context.documentId, targetId: panelTarget.targetId};

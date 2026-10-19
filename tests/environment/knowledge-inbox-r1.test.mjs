@@ -27,7 +27,7 @@ function fixture(){
   const store={[SIDEBAR_TOOL_STORE]:[structuredClone(pkg)],[CAPTURE_SITE_STORE]:changeCaptureGrant({},pkg.id,url,true)},session={},downloads=[],tabs=[];
   const area=data=>({get:async keys=>Object.fromEntries((keys===null?Object.keys(data):Array.isArray(keys)?keys:[keys]).map(key=>[key,structuredClone(data[key])])),
     set:async values=>{Object.assign(data,structuredClone(values));},remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];}});
-  const id='abcdefghijklmnopabcdefghijklmnop',hostURL='chrome-extension://'+id+'/ui/tool.html?hostInstanceId=12345678-1234-4123-8123-123456789abc';
+  const id='abcdefghijklmnopabcdefghijklmnop',hostURL='chrome-extension://'+id+'/sidepanel.html?hostInstanceId=12345678-1234-4123-8123-123456789abc';
   const api={runtime:{id,getURL:path=>'chrome-extension://'+id+'/'+path,
     getContexts:async()=>[{contextType:'SIDE_PANEL',documentUrl:hostURL,documentId:'host-doc',frameId:0,incognito:false}]},
     storage:{local:area(store),session:area(session)},permissions:{contains:async()=>true},

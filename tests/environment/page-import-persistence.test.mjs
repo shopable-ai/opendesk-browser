@@ -46,7 +46,7 @@ function responseFor(code){
 
 function fixture({mutateBeforeSave,mutateBeforeCandidatePut}={}){
   const host={tag:'host',registrationId:'host-a',hostDocumentId:'doc-a',hostInstanceId:'instance-a',
-    browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/ui/tool.html',
+    browserSessionIncarnation:'session',hostUrl:'chrome-extension://test/sidepanel.html',
     namespace:'tool:persistence',active:true,revoked:false};
   let data=new Map([['frameworkKV',new Map()],['commandJournal',new Map([['host:host-a',host]])]]);
   let queue=Promise.resolve(),loadCount=0,candidatePutCount=0;

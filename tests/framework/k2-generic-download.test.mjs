@@ -43,7 +43,7 @@ async function fixture(value) {
       sendMessage(_id,message,_target,cb){queueMicrotask(()=>cb({type:message.type,cancelled:true}));}},
     webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:'page-doc',documentLifecycle:'active',url:'https://controller.example/page'}]},
     userScripts:{getScripts:async()=>[],execute:async()=>[]}};
-  const sender={id:extensionId,url:api.runtime.getURL('ui/tool.html'),documentId:'host-doc',frameId:0,documentLifecycle:'active',tab:{id:1,incognito:false}};
+  const sender={id:extensionId,url:api.runtime.getURL('sidepanel.html'),documentId:'host-doc',frameId:0,documentLifecycle:'active',tab:{id:1,incognito:false}};
   const clock={now:()=>time};Object.assign(storage,createStorageMethods(storage,{clock}));
   const authority=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,session:'browser-session',clock});
   const registration=await authority.registerHost({hostInstanceId:'host-one',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},sender);

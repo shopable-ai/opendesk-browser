@@ -31,35 +31,32 @@ export function createDeveloperView(){
   return Object.freeze({fields,actions,patch,patchDependencies,
     getSnapshot:()=>snapshot,
     subscribe(fn){if(disposed)return ()=>{};subscribers.add(fn);return ()=>subscribers.delete(fn);},
-    focus(key){snapshot={...snapshot,focus:{key,sequence:(snapshot.focus?.sequence||0)+1}};for(const fn of subscribers)fn();},
+    focus(key){
+      if(disposed)return;
+      if(!fields[key])throw new Error('E_DEVELOPER_FIELD: '+key);
+      snapshot={...snapshot,focus:{key,sequence:(snapshot.focus?.sequence||0)+1}};
+      for(const fn of subscribers)fn();
+    },
     resourceSnapshot:()=>({subscriptions:subscribers.size,actions:Object.keys(actions).length}),
     dispose(){disposed=true;subscribers.clear();for(const key of Object.keys(actions))delete actions[key];}
   });
 }
 
-export const createDeveloperModel=createDeveloperView;
-
-// The optional legacy branch supports existing isolated controller consumers
-// while their UI tests move to the same declared model. React never supplies a
-// fake document or captures a DOM tree through these helpers.
+// Business controllers publish through the declared view. The real document
+// belongs to RunHost and React, never to these field/action helpers.
 export function patchDeveloperField(view,field,values){
-  if(view)view.patch(field.key,values);
-  else {const {data,...rest}=values;Object.assign(field,rest);if(data)Object.assign(field.dataset,data);}
+  view.patch(field.key,values);
 }
 export function developerOptions(view,field,rows){
-  if(view)view.patch(field.key,{options:rows,value:rows.some(row=>row.value===field.value)?field.value:rows[0]?.value||''});
-  else field.replaceChildren(...rows.map(({label,value})=>new Option(label,value)));
+  view.patch(field.key,{options:rows,value:rows.some(row=>row.value===field.value)?field.value:rows[0]?.value||''});
 }
 export function developerAction(view,field,event,action){
-  if(view){view.actions[field.key]=action;return ()=>{if(view.actions[field.key]===action)delete view.actions[field.key];};}
-  field.addEventListener(event,action);return ()=>field.removeEventListener(event,action);
+  view.actions[field.key]=action;return ()=>{if(view.actions[field.key]===action)delete view.actions[field.key];};
 }
 export function appendDeveloperOptions(view,field,rows){
-  if(view)view.patch(field.key,{options:[...field.options,...rows]});
-  else field.append(...rows.map(({label,value})=>new Option(label,value)));
+  view.patch(field.key,{options:[...field.options,...rows]});
 }
 export function developerAttribute(view,field,name,value){
-  if(view)view.patch(field.key,{[name==='aria-label'?'ariaLabel':name==='aria-live'?'ariaLive':name]:value??''});
-  else if(value==null)field.removeAttribute(name);else field.setAttribute(name,value);
+  view.patch(field.key,{[name==='aria-label'?'ariaLabel':name==='aria-live'?'ariaLive':name]:value??''});
 }
-export function focusDeveloperField(view,field){if(view)view.focus(field.key);else field?.focus?.();}
+export function focusDeveloperField(view,field){view.focus(field.key);}

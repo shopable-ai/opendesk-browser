@@ -19,7 +19,7 @@ const tool={format:'opendesk.sidebar-tool.v1',id:AI_ID,version:'1.0.0',
   title:'AI VIP Share',description:'fixture',capabilities:[AI_CAPABILITY],
   html:'<main>AI</main>',css:'',js:'void 0;'};
 const origin='chrome-extension://'+'a'.repeat(32);
-const sender={id:'a'.repeat(32),url:origin+'/ui/tool.html?hostInstanceId='+randomUUID(),
+const sender={id:'a'.repeat(32),url:origin+'/sidepanel.html?hostInstanceId='+randomUUID(),
   documentId:'doc-1',frameId:0,documentLifecycle:'active'};
 const keyFor=id=>id===AI_ID?AI_STORE:LEGACY_AI_STORE;
 // Deterministic test-only implementation of the named, FIFO Web Locks contract.

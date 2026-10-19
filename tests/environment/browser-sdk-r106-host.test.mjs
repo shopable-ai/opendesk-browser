@@ -13,7 +13,7 @@ const ORIGIN='https://example.com';
 const TARGET_URL=ORIGIN+'/form';
 const DOC={tabId:21,windowId:7,documentId:'target-doc',url:TARGET_URL,origin:ORIGIN};
 const sender={id:EXT,frameId:0,documentId:'side-panel-doc',documentLifecycle:'active',
-  url:`chrome-extension://${EXT}/ui/tool.html?hostInstanceId=${HOST}`};
+  url:`chrome-extension://${EXT}/sidepanel.html?hostInstanceId=${HOST}`};
 const reject=code=>error=>error?.code===code;
 
 const schedulerTool=validateSidebarToolPackage({

@@ -1,3 +1,4 @@
+import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -120,7 +121,7 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   assert.equal(readingTocHostText('fr','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en','unknown'),'');
   const [host,markup]=await Promise.all([
-    readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/tool.html','utf8')
+    readFile('src/ui/sidebar-tools.js','utf8'),renderSidebarFixture()
   ]);
   assert.match(host,/readingTocHostText/);
   assert.match(host,/isToc\?tocLocale:null/);

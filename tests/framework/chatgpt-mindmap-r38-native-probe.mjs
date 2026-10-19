@@ -102,7 +102,7 @@ try{
   // Chrome MV3 workers are lazy: opening a packaged extension UI through a
   // real tab is a product action, not synthetic worker or execution RPC.
   let extensionUI=await context.newPage();
-  await extensionUI.goto('chrome-extension://'+extensionId+'/ui/tool.html',
+  await extensionUI.goto('chrome-extension://'+extensionId+'/sidepanel.html',
     {waitUntil:'domcontentloaded'}).catch(error=>{
       report.extensionUIError=String(error);
     });
@@ -153,7 +153,7 @@ try{
     // Chrome can replace an extension document when its permission state
     // changes. Reopen the real packaged UI if the old tab was retired.
     if(extensionUI.isClosed())extensionUI=await context.newPage();
-    await extensionUI.goto('chrome-extension://'+extensionId+'/ui/tool.html',
+    await extensionUI.goto('chrome-extension://'+extensionId+'/sidepanel.html',
       {waitUntil:'domcontentloaded'});
     access=await available();
   }

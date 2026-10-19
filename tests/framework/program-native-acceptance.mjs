@@ -74,7 +74,7 @@ async function targetSession(client, session, targetName) {
     if (!sw) throw Error('Extension worker not observed');
     const swId = (await client.send('Target.attachToTarget',{targetId:sw.targetId,flatten:true})).sessionId;
     const contexts = await evaluate(client, 'chrome.runtime.getContexts({})', swId);
-    contextUrl = contexts.find(value => value.contextType === (targetName === 'panel' ? 'SIDE_PANEL' : 'TAB') && value.documentUrl?.includes('/ui/tool.html'))?.documentUrl;
+    contextUrl = contexts.find(value => value.contextType === (targetName === 'panel' ? 'SIDE_PANEL' : 'TAB') && value.documentUrl?.includes('/sidepanel.html'))?.documentUrl;
     if (!contextUrl) throw Error('Native extension context not observed: ' + targetName);
   }
   const target = targets.find(value => targetName === 'panel'

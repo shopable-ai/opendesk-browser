@@ -112,7 +112,7 @@ export async function runR261Acceptance(d){
   await click(side,'#sidebar-tool-launch');await until(()=>frameCount(side).then(n=>n===1),'explicit launch');await back();
 
   await phase('r261-two-real-side-panels-sync');
-  const launcher=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID(),true);
+  const launcher=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID(),true);
   const second=await openPanel(launcher);
   const draftFrame=await openTool(notes.id),draft='R26.1 未保存草稿 '+randomUUID();
   await click(draftFrame,'#note-text');await draftFrame.send('Input.insertText',{text:draft});

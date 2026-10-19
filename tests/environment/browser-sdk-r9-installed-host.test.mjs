@@ -21,7 +21,7 @@ const identity={toolId:cookiePkg.id,toolVersion:cookiePkg.version,
   toolInstance:uid,hostInstanceId:uid,installEpoch:null,
   packageHash:await sidebarToolPackageHash(cookiePkg)};
 const sender={id:'cookie-host-test',frameId:0,documentId:'host-doc',documentLifecycle:'active',
-  url:'chrome-extension://cookie-host-test/ui/tool.html?hostInstanceId='+uid};
+  url:'chrome-extension://cookie-host-test/sidepanel.html?hostInstanceId='+uid};
 
 function fixture(){
   const local=new Map([['opendesk.sidebar-tools.installed.v1',[cookiePkg]]]),session=new Map();
