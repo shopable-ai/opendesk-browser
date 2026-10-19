@@ -90,3 +90,11 @@ node --test tests/environment/sidebar-preview-contract.test.mjs tests/environmen
 - 若外层诊断需要改变离线 iframe 的测试状态，只能调用工具专有的 Mock 允许列表，经有界的仅预览消息协议发送到 opaque iframe，核对来源 WindowProxy 和离线确认消息；不得借 \`allow-same-origin\`、直接 \`chrome.*\`、外部网络、跨世界 DOM 访问或通用特权 Bridge。
 - Chrome 回归须分别断言：真实包内无实验台；生成 frameHtml 内无实验台控件；外部 \`.preview-device\` 之外可找到实验台；控件点击只修改 Mock 内存。用户点击书签行只查看只读详情；仅“编辑”操作进入输入态。编辑草稿未保存而选其他行时，先显示清晰的放弃/保留决定，不得把新行呈现为仍在编辑的表单。
 - 实验台不属于生产 UI 视觉评分范围；CI Chrome Mock 只能证明模拟交互，Native 扩展安装/CRUD 必须另有相同候选身份的证据。共享模板源码锁变化需审查后按 Git blob 核实，绝不随意哈希重算制造通过。
+
+
+## R5.6 · React Sandbox Tool 正式同源预览
+
+针对 `uiRuntime: "opendesk.react-ui.v1"` 的工具，预览**必须同时锁定工具 UI 编译字节和宿主发布的 React/Shared UI Runtime 版本**。检查 `src/entrypoints/sidebar-shared-ui.js`、`examples/sidebar-tools/adblock/vite.config.mjs` 和 `examples/sidebar-tools/shared-ui-demo/preview/index.html` 的实际执行合同；JSX 应由原 Vite 编译为 Classic IIFE 与静态 CSS，预览只消费这些已有字节，不重新维护一份 React 模拟组件。
+
+预览的 Host 只注入范围明确的模拟 `OpenDeskTool.request`，不可具备 `chrome.*`、真实 DNR、安装/撤权或未审计权限。诊断控制、主题/宽度和故障注入只在工具 iframe **外面**。生成记录应含候选 commit、`tool.config.json`、HTML/CSS/JS 哈希、共享 Runtime/版本来源及模拟标识。更换 JSX、Host mock 或任何编译资源都要重新生成和检查；若缺少与源码匹配的共享 Runtime 或编译字节，**阻止声明 SOURCE_HTML_INLINE 或 SOURCE_PARITY_PASS**，不得将旧预览保留为本轮的正式预览。设计稿、Mock UI、离线真实源码预览、可导入正式包和已安装 Chrome 分级展示，实际未测的标 `NOT_TESTED`。
+
