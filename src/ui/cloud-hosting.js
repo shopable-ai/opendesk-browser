@@ -374,9 +374,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     // Validate only the exact reviewed source and current top-level document.
     // This explicit click starts ONE original RunHost Controller draft, not an
     // installed Task and not an ongoing Cloud authorization.
+    // Freeze the exact active tab/document from the user click, before any
+    // asynchronous source verification or permission query.
+    const captured=currentPageTarget.capture();
     const pkg=await verifyTaskPackage(reviewed.package);
     if(disposed||reviewedProgram!==reviewed)throw {code:'E_DELIVERY_REVIEW_REQUIRED'};
-    const captured=currentPageTarget.capture(),manifest=pkg.manifest;
+    const manifest=pkg.manifest;
     if(!manifest.siteOrigins.includes(captured.origin))throw {code:'E_TARGET'};
     let params;
     try{params=validateTaskParams(manifest.paramsSchema,JSON.parse(paramsText));}
@@ -388,6 +391,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       imported:false,success:false,verified:false,available:false,installed:false,
       permissionPrepared:false};
     lastTrial=trial;publish();
+    try{
     await requireChromePermissions({api,request:{
       origins:manifest.siteOrigins.map(permissionPattern)}});
     await currentPageTarget.revalidate(captured);
@@ -425,6 +429,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     }finally{
       if(trialActiveId===claim.runId)trialActiveId=null;
       if(!disposed)publish();
+    }
+    }catch(error){
+      if(!disposed&&lastTrial===trial&&trial.state==='preparing'){
+        trial.state='failed';
+        trial.message='启动或授权未完成；若原始状态未知，请核对运行记录后决定下一步。';
+        publish();
+      }
+      throw error;
     }
   }
   async function stopTrial(){
