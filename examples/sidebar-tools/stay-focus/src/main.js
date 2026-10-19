@@ -315,7 +315,7 @@
   $('daily-budget-minutes').addEventListener('input',()=>{
     budgetDraft=$('daily-budget-minutes').value;render();
   });
-  $('daily-budget-form').addEventListener('submit',event=>{
+  $('daily-budget-save').addEventListener('click',event=>{
     event.preventDefault();
     const value=Number($('daily-budget-minutes').value);
     if(!Number.isInteger(value)||value<1||value>1440){
@@ -346,7 +346,7 @@
   $('site-new').addEventListener('click',()=>{
     resetSiteEditor();$('manual-site').open=false;
   });
-  $('site-form').addEventListener('submit',event=>{
+  $('site-save').addEventListener('click',event=>{
     event.preventDefault();
     const host=escapeHost($('site-host').value),group=$('site-group').value;
     const existing=state?.sites?.find(site=>site.host===host);
