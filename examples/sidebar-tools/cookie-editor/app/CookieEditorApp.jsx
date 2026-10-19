@@ -173,6 +173,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const target=snapshot.target;
   const openPanel=name=>guarded(()=>{
     setSelected(null);setPanel(name);setPage(1);setStatus('');
+    if(name==='import')setImportNotice(null);
   });
   const switchMode=next=>guarded(()=>{
     if(next===mode)return;
