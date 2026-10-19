@@ -183,14 +183,29 @@ for(const alreadyInstalled of [false,true])test(`untrusted click cannot install 
   assert.equal(f.get('page-install-import-receipt').hidden,true);
 });
 
-test('disabled existing installation cannot be presented as automatic-use success',async t=>{
-  const pkg=await installPackage(),disabled=receipt(pkg,{enabled:false,nativeState:'disabled'});
+test('disabled Page update confirms fixed installation without claiming automatic execution',async t=>{
+  const pkg=await installPackage(),disabled=receipt(pkg,{enabled:false,nativeState:'disabled',
+    authorization:{installationId:'existing-installation',generation:4,status:'disabled'}});
   const f=await fixture(t,{installed:[disabled],requestPage(operation){if(operation==='importPageInstallPackage')return disabled;}});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').dataset.state==='installed-disabled');
+  assert.match(f.get('page-install-import-status').textContent,/安装完成.*保留原有停用状态/);
+  assert.equal(f.get('page-install-import-status').dataset.installationId,'existing-installation');
+  assert.equal(f.get('sidebar-tool-install').textContent,'已安装（停用）');
+  assert.equal(f.get('page-install-import-receipt').hidden,false);
+  unchangedAuthoring(f);
+});
+
+test('disabled Page receipt with unconfirmed native state remains pending, not installed',async t=>{
+  const pkg=await installPackage(),unconfirmed=receipt(pkg,{enabled:false,nativeState:'blocked',
+    authorization:{installationId:'existing-installation',generation:4,status:'disabled'}});
+  const f=await fixture(t,{installed:[unconfirmed],requestPage(operation){if(operation==='importPageInstallPackage')return unconfirmed;}});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('page-install-import-status').dataset.state==='pending-review');
-  assert.match(f.get('page-install-import-status').textContent,/原安装仍处于停用状态/);
   assert.equal(f.get('page-install-import-receipt').hidden,true);
+  assert.match(f.get('page-install-import-status').textContent,/未自动重试安装/);
 });
 
 for(const format of [SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2])test(`${format} retains review and explicit installation without execution`,async t=>{

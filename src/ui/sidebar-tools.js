@@ -2371,21 +2371,27 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, installButton, {disabled: false});patchToolField(view, preview, {hidden: false});
   }
   function showPageInstallReceipt(pkg,result) {
+    // The original Page Authority checks getScripts for both active and
+    // intentionally disabled installs. Neither state grants new permissions.
+    const active=result?.enabled===true&&result.nativeState==='registered'&&
+      result.authorization?.status==='active';
+    const disabled=result?.enabled===false&&result.nativeState==='disabled'&&
+      result.authorization?.status==='disabled';
     if(result?.programId!==pkg.programId||result.revision!==pkg.revision||result.sourceHash!==pkg.sourceHash||
-       !result.authorization?.installationId||result.nativeState!=='registered'||result.enabled!==true||
-       result.authorization.status!=='active'||result.error||
+       !result.authorization?.installationId||!result.manifestHash||!(active||disabled)||result.error||
        JSON.stringify(result.pageRules)!==JSON.stringify(pkg.pageRules))
-      throw Object.assign(new Error(result?.enabled===false?'原安装仍处于停用状态，可在扩展详情主动恢复。':
-        result?.error?.message||'安装尚未获得有效注册回执，请核对扩展详情。'),{code:'E_PAGE_INSTALL_PENDING'});
-    setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'installed');
+      throw Object.assign(new Error(result?.error?.message||'安装尚未获得确认的原生状态，请核对扩展详情。'),
+        {code:'E_PAGE_INSTALL_PENDING'});
+    setToolFieldAttribute(view, pageInstallStatus, 'data-state', disabled?'installed-disabled':'installed');
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', result.authorization.installationId);
     setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', result.manifestHash);
-    patchToolField(view, pageInstallStatus, {textContent: '安装完成 · '+pkg.title+' v'+pkg.version+'（r'+pkg.revision+'）。打开或刷新批准的网站即可使用。'});
+    patchToolField(view, pageInstallStatus, {textContent: '安装完成 · '+pkg.title+' v'+pkg.version+'（r'+pkg.revision+'）。'+
+      (disabled?'保留原有停用状态；可在「扩展」中主动启用。':'打开或刷新批准的网站即可使用。')});
     patchToolField(view, pageInstallStatus, {hidden: false});
     patchToolField(view, pageInstallReceiptText, {textContent: '安装 ID：'+result.authorization.installationId+
       '；注册：'+result.nativeState+'；固定清单 SHA-256：'+result.manifestHash});
     patchToolField(view, pageInstallReceipt, {hidden: false});
-    patchToolField(view, installButton, {textContent: '已安装'});
+    patchToolField(view, installButton, {textContent: disabled?'已安装（停用）':'已安装'});
     doc.dispatchEvent(new doc.defaultView.Event('opendesk:page-installation-changed'));
   }
   async function installPagePackage(event) {

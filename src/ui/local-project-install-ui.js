@@ -452,20 +452,18 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
       onInstalled({kind:result.kind,id:result.id,version:result.version});
     })().catch(error=>{
       if(disposed)return;
-      const rejectedBeforeDispatch=!dispatched&&
-        ['E_PERMISSION','E_GESTURE','E_PERMISSION_CHECK_REQUIRED'].includes(error?.code);
-      // Explicitly denied permissions cannot leave an ambiguous install receipt;
-      // allow a fresh, deliberate review without requiring a second business Run.
-      // After any possible candidate/verify/install effect, fail closed.
-      unknown=!rejectedBeforeDispatch;
+      // No installed version can change before the first managed-preview
+      // retirement or Candidate submission. Pre-dispatch identity, navigation
+      // and permission failures are retryable, not phantom UNKNOWN receipts.
+      unknown=dispatched;
       unknownReview=unknown?{...selected.planned,attemptedVersion:approvedVersion,
         attemptedManifestHash,attemptedTitle:approvedTitle}:null;
       project()?.rememberInstallAttempt?.(unknownReview);
       review=null;patchDeveloperField(view,confirmButton,{disabled:true});
-      say(rejectedBeforeDispatch
-        ?message(error)+'。尚未提交安装；检查网站访问后可以再次点击底部保存进行审阅。'
-        :message(error)+'。原有安装保留；先在正式列表只读核对持久状态，禁止盲目重试。',
-        rejectedBeforeDispatch?'error':'unknown');
+      say(unknown
+        ?message(error)+'。原有安装保留；先在正式列表只读核对持久状态，禁止盲目重试。'
+        :message(error)+'。尚未提交安装；检查项目、网页或权限后可重新审阅。',
+        unknown?'unknown':'error');
       patchDeveloperField(view,panel,{hidden:false});
     }).finally(()=>{installing=false;if(!disposed){update();onState();}});
   }

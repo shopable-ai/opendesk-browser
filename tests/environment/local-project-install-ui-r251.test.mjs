@@ -328,6 +328,10 @@ test('R25.1 source ID change after review cannot install under stale project ide
   await settle(()=>/项目来源身份已变化/.test(f.get('local-install-status').textContent));
   assert.equal(f.installs,0);
   assert.equal(f.requests.includes('importTaskPackage'),false);
+  assert.equal(f.get('local-install-status').dataset.state,'error');
+  assert.notEqual(f.ui.saveLabel(),'核对安装状态',
+    'a rejection before Candidate submission must not create an unknown install');
+  assert.equal(f.ui.canSave(),true,'the original verified Run can be reviewed again');
 });
 
 const verified=f=>f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id',
