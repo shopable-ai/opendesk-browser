@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // R33.3.6 six-tab offline preview. DOM/CSS are extracted from the installed
 // tool.html. React Portals reuse the actual trusted component implementations;
-// legacy My/Cloud/Debug/Editor regions remain explicit DOM-owner snapshots.
+// legacy My/Cloud/Debug regions remain explicit DOM-owner snapshots.
 // Generated HTML is a build artifact; edit the real sources, not index.html.
 import {readFile,writeFile,mkdir,mkdtemp,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -27,6 +27,11 @@ const inputs=[
   'src/ui/react/components/ui/button.tsx',
   'src/ui/react/tabs/tools.tsx',
   'src/ui/react/tabs/develop.tsx',
+  'src/ui/react/tabs/develop-controls.tsx',
+  'src/ui/react/tabs/develop-dependencies.tsx',
+  'src/ui/develop-view.js',
+  'src/ui/develop-fields.js',
+  'src/ui/react/preview/developer-preview.js',
   'src/ui/react/tabs/debug.tsx',
   'src/ui/react/tabs/workflow.tsx',
   'src/ui/react/tabs/tasks.tsx',
@@ -76,16 +81,13 @@ export async function generateSidebarSixReactPreview(){
     'workflow-editor','workflow-provider-settings','workflow-settings-react-host',
     'workflow-ai-transcript','workflow-chat-intro','workflow-provider-toggle',
     'workflow-planning-indicator','workflow-ai-progress','workflow-ai-approval',
-    'workflow-manage-panel','page-component-framework','develop-dock',
-    'script-status','cloud-status','debug-cloud-summary','debug-snapshot',
+    'workflow-manage-panel','develop-dock',
+    'cloud-status','debug-cloud-summary','debug-snapshot',
     'task-dock','workflow-dock'
   ];
   for(const id of mustIds)must($('#'+id).length===1,'required official node missing '+id);
   must($('#workflow-editor .workflow-head-actions').length===1,'workflow React target missing');
   must($('#extension-center-list-view .ec-toolbar').length===1,'extension React target missing');
-  must($('#page-component-framework .page-component-choices').length===1,
-    'developer React target missing');
-  must($('#develop-dock .dock-buttons').length===1,'developer buttons target missing');
   const originalLinks=$('head link[rel=stylesheet]').map((_,node)=>$(node).attr('href')).get()
     .filter(path=>path!=='time-review.css'); // CSS for time-review is a build-only asset.
   must(originalLinks.length===stylePaths.length&&

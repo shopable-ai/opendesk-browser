@@ -25,9 +25,9 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 ## 先以当前源码确立可信界限
 
-先读 `AGENTS.md`、`docs/framework/testing-guide.md`、`docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md`、`docs/api/sidebar-tool-development.zh-CN.md`、`docs/architecture/ui-layout-conventions-r27.zh-CN.md`、`docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md`。再核查实际 `main` 与并行改动，不用旧 GOAL 的状态替代现实。
+先核查真实 `main`、`AGENTS.md` 的当前阶段、用户最新优先级及目标文件 diff。只读当前功能源码及直接依赖；涉及开发/安装合同才查[运行边界](../../../docs/architecture/browser-framework/custom-tool-ui-and-local-development.zh-CN.md)与[工具开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)，调整布局/导航才查 [R27](../../../docs/architecture/ui-layout-conventions-r27.zh-CN.md) / [R28](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，准备运行验证才查[测试指南](../../../docs/framework/testing-guide.md)和相关证据。不要求每次通读，不用旧 GOAL 替代现实或延续已被用户调整的验收目标。
 
-实际共享边界：`src/ui/tool.html`、`src/ui/tool-shell.js`、`src/ui/sidebar-tools.js`、`src/ui/sidebar-tools/{installation,lifecycle,package}.js`、`src/sidebar-tools/official-catalog.js`、`src/entrypoints/sidebar-tool-host.js`，以及各功能自己的 `src/<feature>/` 和 `examples/sidebar-tools/<id>/`。先画出 **代码来源 → 宿主调用 → 权限判定 → 后台生命周期 → 安装/撤权 → UI** 的真实依赖，再决定最小改动。不得仅凭文件名判断谁拥有业务。
+可能涉及的共享边界：`src/ui/tool.html`、`src/ui/tool-shell.js`、`src/ui/sidebar-tools.js`、`src/ui/sidebar-tools/{installation,lifecycle,package}.js`、`src/sidebar-tools/official-catalog.js`、`src/entrypoints/sidebar-tool-host.js`，以及功能自己的 `src/<feature>/` 和 `examples/sidebar-tools/<id>/`。仅追踪本次相关的代码来源、宿主调用、权限、生命周期或安装/撤权依赖，决定最小改动；不要求普通缺陷重画完整架构图，不凭文件名判断业务 owner。
 
 ### 唯一安全分流
 
@@ -75,27 +75,19 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 ## UI、测试及交付
 
-仅改文档/Skill 时验证链接、事实、元数据与场景阅读，不运行下面的产品测试/构建；代码变更才选择对应定向门槛。未执行真实 Chrome、Native、安装升级或后台恢复必须标 `NOT_TESTED`。
+按 [AGENTS.md 的开发阶段规则](../../../AGENTS.md#开发阶段先完成核心需求与最小验证用户于2026-10-17明确)先完成当前核心操作，再选择受影响的定向验证；本节的场景与评分不构成每次开发的全量清单。仅改文档/Skill 时验证链接、事实、元数据与阶段逻辑，不运行产品测试、构建或浏览器。相关 Chrome、Native、安装升级或恢复项未执行时标 `NOT_TESTED`。
 
-Side Panel 优先复用 `od-page/od-stack/od-surface/od-button/od-field`，真实 token 在 `src/ui/design-tokens.css`；密度遵守 4/8/12/16px、单层 gutter、窄屏及 200% 缩放。动态 iframe 的 CSS 独立映射尺寸，不能向特权 Host 借 JS/CSS 作为安全边界。中文长文案、暗色、键盘/焦点、停止与卸载后的 DOM/事件清理都要验收。
+Side Panel 优先复用 `od-page/od-stack/od-surface/od-button/od-field`，真实 token 在 `src/ui/design-tokens.css`；密度遵守 4/8/12/16px、单层 gutter。动态 iframe 的 CSS 独立映射尺寸，不能向特权 Host 借 JS/CSS 作为安全边界。按本次改动验证受影响的中文长文案、暗色、键盘/焦点、停止与卸载后的 DOM/事件清理；宽度、缩放等专项矩阵按用户当前明确要求执行。
 
-**工具详情标题与创建入口（遵循 R28）**：独立工具/二级视图默认仅显示一个清晰标题和必要操作，禁止惯性在标题下加入固定描述、价值口号、数据来源或重复面包屑；真正的权限/错误/未保存动态状态应独立告知。文件夹等可管理集合的“＋ 新建”必须贴近所属区标题，自定义行级重命名/移动/删除可被键盘和触摸明确发现，根目录不展示不可用动作。先以无真实权限的 HTML 原型检查 320/360/420px 及列表→表单→返回的完整路径，再进入可信源码实施；右侧评审上下文区域不可成为 Side Panel 实际使用时的唯一操作入口。评分按功能、信息架构、可发现性、安全/隔离、响应式和证据分别记录，不以总体分掩盖不达标项。
+**工具详情标题与创建入口（遵循 R28）**：独立工具/二级视图默认仅显示一个清晰标题和必要操作，禁止惯性在标题下加入固定描述、价值口号、数据来源或重复面包屑；真正的权限/错误/未保存动态状态应独立告知。文件夹等可管理集合的“＋ 新建”必须贴近所属区标题，自定义行级重命名/移动/删除可被键盘和触摸明确发现，根目录不展示不可用动作。新交互确需原型时，可用无真实权限的 HTML 原型检查本轮要求的尺寸及列表→表单→返回路径；既有核心缺陷直接在现有入口修复，不以新建原型为前置条件。右侧评审上下文区域不可成为 Side Panel 实际使用时的唯一操作入口。正式验收评分按功能、信息架构、可发现性、安全/隔离、响应式和证据分别记录，不以总体分掩盖不达标项。
 
-变更了 Stay Focus 时定向覆盖：
+定向测试入口按实际改动选择，不按工具名称整组运行：Stay Focus 的业务/服务可查 `tests/environment/stay-focus-r1.test.mjs`、`stay-focus-service-r1.test.mjs`；Time Review 的可信准入/站点授权可查 `time-review-r16-trusted-native.test.mjs`、`time-review-r15-site-grants.test.mjs`；通用工具合同/Host 可查 `sidebar-tools.test.mjs`、`sidebar-tools-host.test.mjs`。
 
-```sh
-node --test tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/sidebar-tools-host.test.mjs
-```
+通用 Host/安装器变更按受影响合同选择跨工具负例：身份/来源变化检查改包与假 ID，撤权/会话变化检查旧 epoch、跨来源拒绝和恢复，卸载清理变化检查自有数据/规则及其他工具不受损。权限、CSP、来源锁定、未知副作用等实际受影响的保护不得省略；纯 UI/文案变更不因此扩成完整生命周期矩阵。
 
-变更 Time Review 可信直挂时定向覆盖：
+确需编译/产物或浏览器行为证据时再选检查、构建/包校验或 `tests/framework/stay-focus-r1-native.test.mjs` / `time-review-r13-native.test.mjs` 的相关场景；构建失败按 AGENTS 的定位与重试规则处理，相关输入和诊断依据均未变化时不重复全量构建。完整安装更新/撤权矩阵、正式候选验收和独立评分，仅在用户当前明确要求或适用的正式交付合同下执行。先核对相关证据和资源归属，不争抢 Profile；Node mock PASS 不等于新候选 Chrome PASS。
 
-```sh
-node --test tests/environment/time-review-r16-trusted-native.test.mjs tests/environment/time-review-r15-site-grants.test.mjs tests/environment/sidebar-tools.test.mjs
-```
-
-涉及通用 Host/安装器还要覆盖不同工具的安装、更新/卸载、启停、改包与假 ID、跨来源撤权、后台/Sidebar 重启；按影响执行 `npm run check`、实际构建/包校验及 `tests/framework/stay-focus-r1-native.test.mjs` / `time-review-r13-native.test.mjs` 等真实 Chrome 驱动。先核对测试指南、现有证据与资源归属，不争抢 Profile；测试文件存在或 Node mock PASS 不等于新候选 Chrome PASS。
-
-交付时说明：哪些具体耦合被修复、共享 Host 增减了什么、第一方静态代码和动态工具如何区别、原安装/权限/存储合同是否保持、哪项负向测试在真实 Chrome 通过。质量目标 `≥95/100`：安全来源/权限 25、正确业务边界 20、架构复用 15、功能/生命周期 15、跨工具负向回归 15、UI 可访问性 5、文档与证据 5。未做同候选实测一律标 `NOT_TESTED`，不凭文档自报 95+。
+开发交付时说明：哪个核心操作已可用、哪些具体耦合被修复、共享 Host 是否变化、原安装/权限/存储合同是否保持，以及受影响验证和缺口。仅在用户当前明确要求独立评分或适用正式合同要求评分时使用既有 `≥95/100` 目标：安全来源/权限 25、正确业务边界 20、架构复用 15、功能/生命周期 15、跨工具负向回归 15、UI 可访问性 5、文档与证据 5。相关原生项未做同候选实测标 `NOT_TESTED`，不凭文档自报 95+；不为完成普通开发额外启动评分。
 
 
 **R1.2 例外（统一书签文件树）**：文件夹和书签属于同一父子树时，不能机械套用「按集合拆区/区标题各放新增」；合并为单棵可折叠树，一行「收藏当前页 / ＋书签 / ＋文件夹」。详情见 R28；AI 重排、社区和商业推荐只能在独立已批准阶段开发，私人书签/历史及派生画像不得用于个性化广告。

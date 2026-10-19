@@ -1,3 +1,4 @@
+import {createMyWorkbenchView} from './my-workbench-view.js';
 import {permissionPattern} from '../environment.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
@@ -16,16 +17,17 @@ const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled,
-  reactNavigation=null}) {
-  const get=id=>doc.getElementById(id);
+  reactNavigation=null,myView=createMyWorkbenchView({document:doc})}) {
+  const get=id=>doc.getElementById(id),ui=id=>myView.field(id);
+  // A React Side Panel has no standalone catalog controls. Its installed
+  // task snapshot must still load without binding that separate DOM surface.
+  const catalogList=ui('task-catalog-list');
   if(debugEnabled){
     get('tab-debug').hidden=false;
     doc.querySelector('.workbench-nav').dataset.debugEnabled='true';
   }
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
-  let reactMyTasks=null; // UI sink only, no duplicate task store or Host.
-  let fallbackExpandedTaskId=null, fallbackLastSelection=null; // legacy DOM UI only
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
   let catalogSequence=0, catalogSelectionEpoch=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
@@ -54,9 +56,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function rememberParams() {
     if(!renderKey)return;
     const prior={};
-    for(const control of get('task-params-form').children){
-      const name=control?.dataset?.taskParam;
-      if(name)prior[name]=control.type==='checkbox'?{checked:control.checked}:{value:control.value};
+    for(const {name,rule} of myView.data.taskParams||[]){
+      const control=ui('task-param-'+name);
+      prior[name]=rule.type==='boolean'?{checked:control.checked}:{value:control.value};
     }
     parameterDrafts.set(renderKey,prior);
   }
@@ -99,15 +101,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   updates?.addEventListener?.('message',event=>{
     if(!disposed&&event.data?.type==='catalog-changed')refresh().catch(fail);
   });
+  const focus=(id,options)=>{
+    myView.publish();queueMicrotask(()=>get(id)?.focus?.(options));
+  };
+  const actionName=(id,event)=>id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1);
+  function registerAction(name,fn){
+    const callback=myView.action(fn);myView.actions[name]=callback;
+    listeners.push({remove:()=>{if(myView.actions[name]===callback)delete myView.actions[name];}});
+  }
   const listen=(node,event,fn)=>{node.addEventListener(event,fn);listeners.push({node,event,fn});};
   const fail=error=>{
     if(disposed)return;
     const message=formatTaskError(error);
-    get('task-status').textContent=message;
-    get('task-catalog-status').textContent=message;
-    get('task-dev-status').textContent=message;
+    ui('task-status').text=message;
+    if(catalogList)ui('task-catalog-status').text=message;
+    myView.publish();
   };
-  const option=(name,value)=>new Option(name,value);
   function navigate(name,{initial=false}={}) {
     // Previous Discover URLs now open the local task search in My.
     if(name==='discover')name='tasks';
@@ -160,17 +169,26 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !scheduledOwns && !running);
     // Idle scheduled plans have no ordinary manual Run. If a manual Task is
     // already running, keep its original Stop control visible across views.
-    get('task-dock').hidden=catalogSurface || (taskOwns?false:scheduledSurfaceActive || scheduledOwns || draftOwns || workflowOwns || view!=='tasks' || toolActive);
-    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || scheduledOwns || view!=='develop');
-    get('workflow-dock').hidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || scheduledOwns || view!=='workflow');
+    const taskHidden=catalogSurface || (taskOwns?false:scheduledSurfaceActive || scheduledOwns || draftOwns || workflowOwns || view!=='tasks' || toolActive);
+    const developHidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || scheduledOwns || view!=='develop');
+    const workflowHidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || scheduledOwns || view!=='workflow');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
     // On another view (or another task), expose only that owner's Stop control.
     const selected=installedRow();
     const stopOnly=taskOwns && (scheduledSurfaceActive || view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
       draftOwns && view!=='develop' || workflowOwns && view!=='workflow';
+    ui('task-dock').hidden=taskHidden;
+    ui('task-stop').attributes['aria-label']=taskOwns
+      ? `停止「${runOwnerTitle || '当前任务'}」` : '停止当前任务';
+    myView.project('runDock',{taskHidden,developHidden,workflowHidden,stopOnly:Boolean(stopOnly),
+      // Workflow actions belong to its React page, rather than this footer.
+      hidden:taskHidden&&developHidden});
+    if(reactNavigation?.ownsPages)return;
+    get('task-dock').hidden=taskHidden;
+    get('develop-dock').hidden=developHidden;
+    get('workflow-dock').hidden=workflowHidden;
     get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
-    get('task-stop').setAttribute('aria-label',taskOwns
-      ? `停止「${runOwnerTitle || '当前任务'}」` : '停止当前任务');
+    get('task-stop').setAttribute('aria-label',ui('task-stop').attributes['aria-label']);
     // Idle Discover is a search view, not a second permanent action bar.
     // Never expose an unrelated Run/Save action in a cross-view Stop dock.
     get('workspace-dock').hidden=get('task-dock').hidden && get('develop-dock').hidden && get('workflow-dock').hidden;
@@ -198,23 +216,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       // Old persisted/default choices must not hide a fresh Workflow candidate.
       // Only an actual choice made while this review was loading takes priority.
       if(!selected || catalogSelectionEpoch!==selectionAtOpen)return;
-      get('task-catalog-list').value=selected.candidateKey;
+      ui('task-catalog-list').value=selected.candidateKey;
       renderCatalogCards();renderCandidate();
       // Never carry a prior candidate's verification receipt into this version.
-      get('task-verify-run').value=selected.runId || '';
-      get('task-catalog-status').textContent=selected.runId
+      ui('task-verify-run').value=selected.runId || '';
+      ui('task-catalog-status').text=selected.runId
         ? '已根据同窗口固定版本预选候选并预填真实运行 ID；仍需亲自核对运行证据、设为可用并确认安装。'
         : '已定位候选固定版本；请先用相同源码真实运行，然后核对证据。未自动验证或安装。';
     })().catch(error=>console.warn('Task review shortcut unavailable; use manual catalog review',error));
   }
   const identity=row=>`${row.taskId}@${row.version}`;
-  const candidate=()=>catalog.find(row=>identity(row)===get('task-catalog-list').value);
-  const installedRow=()=>installed.find(row=>row.taskId===get('task-installed-list').value);
+  const candidate=()=>catalogList?catalog.find(row=>identity(row)===catalogList.value):undefined;
+  const installedRow=()=>installed.find(row=>row.taskId===ui('task-installed-list').value);
   const candidateFor=row=>row && catalog.find(value=>value.taskId===row.taskId&&value.version===row.version);
   function renderTaskStatus() {
     const row=installedRow(),selectedKey=row?identity(row):null;
     const otherOwner=runOwnerKey && runOwnerKey!==selectedKey && (running || (activeRunId && host.currentRun===activeRunId));
-    get('task-status').textContent=otherOwner
+    ui('task-status').text=otherOwner
       ? `「${runOwnerTitle}」${activeRunId && host.currentRun===activeRunId?'正在运行，底部可停止':'正在准备，暂不可启动其他任务'}`
       :selectedKey?taskNotices.get(selectedKey)||'':'';
   }
@@ -228,54 +246,24 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const manifest=row.manifest;
     return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n状态：${states[row.stage] || row.stage}${row.verifiedAt?' · 有本机运行验证记录':''}`;
   };
-  function clearChildren(node) {node.replaceChildren();}
   function renderForm(row) {
-    const wrapper=get('task-params-form'),key=identity(row);
+    const key=identity(row);
     if(renderKey===key)return;
-    rememberParams();
-    renderKey=key;clearChildren(wrapper);
-    const schema=row.manifest.paramsSchema;
-    for(const [name,rule] of Object.entries(schema.properties)) {
-      const label=doc.createElement('label');label.textContent=`${rule.title}${schema.required.includes(name)?' *':''}`;
-      const control=rule.enum?doc.createElement('select'):doc.createElement('input');
-      control.dataset.taskParam=name;control.dataset.taskType=rule.type;
-      control.id='task-param-'+name;
-      label.htmlFor=control.id;
-      if(rule.enum) {
-        if(!schema.required.includes(name)&&rule.default===undefined)control.append(option('（不填写）',''));
-        for(const value of rule.enum)control.append(option(String(value),String(value)));
-        if(Object.hasOwn(rule,'default'))control.value=String(rule.default);
-      }else if(rule.type==='boolean') {
-        control.type='checkbox';control.checked=rule.default===true;
-      }else{
-        control.type=rule.type==='number'||rule.type==='integer'?'number':'text';
-        if(control.type==='number')control.step=rule.type==='integer'?'1':'any';
-        if(rule.minLength!==undefined)control.minLength=rule.minLength;
-        if(rule.maxLength!==undefined)control.maxLength=rule.maxLength;
-        if(rule.minimum!==undefined)control.min=String(rule.minimum);
-        if(rule.maximum!==undefined)control.max=String(rule.maximum);
-        if(Object.hasOwn(rule,'default'))control.value=String(rule.default);
-        control.required=schema.required.includes(name);
-      }
-      wrapper.append(label,control);
-      if(rule.description){const help=doc.createElement('p');help.className='hint';help.textContent=rule.description;wrapper.append(help);}
-    }
-    const prior=parameterDrafts.get(key);
-    if(prior){
-      for(const control of wrapper.children){
-        const value=prior[control?.dataset?.taskParam];
-        if(!value)continue;
-        if(Object.hasOwn(value,'checked'))control.checked=value.checked;
-        else control.value=value.value;
-      }
-    }
-    // An empty form is intentional: do not take up space to explain "no params".
-    if(!Object.keys(schema.properties).length)wrapper.textContent='';
+    rememberParams();renderKey=key;
+    const schema=row.manifest.paramsSchema,prior=parameterDrafts.get(key)||{};
+    const fields=Object.entries(schema.properties).map(([name,rule])=>{
+      const control=ui('task-param-'+name),saved=prior[name];
+      if(rule.type==='boolean')control.checked=saved?.checked??(rule.default===true);
+      else control.value=saved?.value??(Object.hasOwn(rule,'default')?String(rule.default):
+        rule.enum&&schema.required.includes(name)?String(rule.enum[0]):'');
+      return {name,rule,required:schema.required.includes(name)};
+    });
+    myView.project('taskParams',fields);
   }
   function paramsFromForm(schema) {
     const result={};
     for(const [name,rule] of Object.entries(schema.properties)) {
-      const control=get('task-param-'+name);
+      const control=ui('task-param-'+name);
       if(!control)throw {code:'E_PARAMS',message:`缺少参数输入：${name}`};
       let value;
       if(rule.type==='boolean')value=control.checked;
@@ -312,341 +300,169 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     const siteState=origin?(siteAvailable?'matched':'unmatched'):'unavailable';
     const siteMessage=origin?(siteAvailable?'适用于当前网页':'当前网页不适用'):'当前网页不可运行';
-    get('task-current-site').textContent=siteMessage;
-    get('task-current-site').dataset.state=siteState;
-    get('task-current-site').title=origin || '';
-    get('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable||
+    ui('task-current-site').text=siteMessage;
+    ui('task-current-site').dataset.state=siteState;
+    ui('task-current-site').title=origin || '';
+    ui('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable||
       !taskMatchesView(row,info,origin);
-    get('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
-    get('task-fork-draft').disabled=!row||working;
-    const toggleAction=get('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
+    ui('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
+    ui('task-fork-draft').disabled=!row||working;
+    const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
     toggleAction.disabled=!row||working;
-    toggleAction.title=toggleLabel;toggleAction.setAttribute('aria-label',toggleLabel);
-    for(const icon of toggleAction.children||[])
-      if(icon?.dataset?.taskToggleIcon)
-        icon.hidden=icon.dataset.taskToggleIcon!==(row?.enabled?'pause':'play');
-    get('task-uninstall').disabled=!row||working;
-    get('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
-    get('task-verify').disabled=working||!selected||selected.stage!=='candidate';
-    get('task-publish').disabled=working||!selected||selected.stage!=='verified';
-    get('task-install').disabled=working||!selected||selected.stage!=='available'||
+    toggleAction.title=toggleLabel;toggleAction.attributes['aria-label']=toggleLabel;
+    toggleAction.text=toggleLabel;
+    ui('task-uninstall').disabled=!row||working;
+    ui('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
+    if(catalogList){
+    ui('task-verify').disabled=working||!selected||selected.stage!=='candidate';
+    ui('task-publish').disabled=working||!selected||selected.stage!=='verified';
+    ui('task-install').disabled=working||!selected||selected.stage!=='available'||
       selected.installed&&selected.enabled||candidatePermission?.manifestHash!==selected?.manifestHash||!candidatePermission?.state;
-    get('task-install').textContent=selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
-    get('task-create-candidate').disabled=working;
-    syncRunDock();
+    ui('task-install').text=selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
+    ui('task-create-candidate').disabled=working;
+    }
+    syncRunDock();myView.publish();
   }
-  const taskSearchReturnFocus=()=>get('task-search-toggle').hidden?
-    get('task-open-catalog'):get('task-search-toggle');
+  const taskSearchReturnFocus=()=>focus(ui('task-search-toggle').hidden?'task-open-catalog':'task-search-toggle',{preventScroll:true});
   function renderInstalledCards() {
-    const parent=get('task-installed-cards'),selected=get('task-installed-list').value,
-      workspace=get('task-selected-workspace');
-    const focused=doc.activeElement;
-    const focusedTaskId=parent.contains?.(focused) && focused?.dataset?.taskId || null;
-    const focusedInWorkspace=workspace.contains?.(focused) || false;
-    let replacementFocus=null,origin=null;
-    if(currentPage?.status==='available') {
-      try {origin=new URL(currentPage.url).origin;} catch { /* No stale URL fallback. */ }
+    const selected=ui('task-installed-list').value;
+    let origin=null;
+    if(currentPage?.status==='available'){
+      try{origin=new URL(currentPage.url).origin;}catch{/* No stale URL fallback. */}
     }
     const visible=installed.filter(row=>taskMatchesView(row,candidateFor(row),origin));
     for(const value of ['all','current','disabled'])
-      get('local-filter-'+value).setAttribute('aria-pressed',String(localFilter===value));
-    get('local-discover-count').textContent=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
-    if(reactMyTasks?.myTasksMounted){
-      const emptyText=!installed.length?'暂无任务。点击上方「添加」导入本地任务。'
-        :localFilter==='current'&&!origin?'当前网页不可用。选择「全部」查看已安装任务。'
-        :localFilter==='disabled'&&!localQuery?'没有已停用任务。'
-        :'没有匹配的任务。试试其他关键词或选择「全部」。';
-      const rows=visible.map(row=>{
-        const info=candidateFor(row);
-        return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
-          title:info?.manifest.title||row.taskId,
-          description:info?.manifest.description||'已安装任务'};
-      });
-      reactMyTasks.renderMyTaskRows({rows,selectedId:selected,emptyText,
-        manageMode:taskManagementMode,onManage:openTaskManagement,
-        onSelect:taskId=>{
-          if(disposed||!installed.some(row=>row.taskId===taskId))return;
-          get('task-installed-list').value=taskId;renderInstalledSelection();
-        }});
-      if(focusedInWorkspace&&workspace.hidden)
-        (get('task-search-panel').hidden?taskSearchReturnFocus():
-          get('local-discover-search')).focus?.({preventScroll:true});
-      else if(focusedInWorkspace&&focused?.isConnected!==false)
-        focused.focus?.({preventScroll:true});
-      else if(focusedTaskId&&!visible.some(row=>row.taskId===focusedTaskId))
-        (get('task-search-panel').hidden?taskSearchReturnFocus():
-          get('local-discover-search')).focus?.({preventScroll:true});
-      return; // React alone owns card children and moves the original live form.
-    }
-    // Move the same live controls under the selected card, never recreate them.
-    // Filtering is a view only: neither installed identity nor task params change.
-    parent.replaceChildren();
-    if(!installed.length || !visible.length){
-      workspace.hidden=true;
-      const empty=doc.createElement('p');
-      empty.className='task-search-empty';
-      empty.textContent=!installed.length
-        ? '暂无任务。点击上方「添加」导入本地任务。'
-        : localFilter==='current' && !origin
-          ? '当前网页不可用。选择「全部」查看已安装任务。'
-          : localFilter==='disabled' && !localQuery
-            ? '没有已停用任务。'
-            : '没有匹配的任务。试试其他关键词或选择「全部」。';
-      parent.append(empty,workspace);
-      if(focusedInWorkspace)
-        (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
-      return;
-    }
-    let attached=false;
-    for(const row of visible){
-      const info=candidateFor(row),group=doc.createElement('div'),button=doc.createElement('button');
-      group.className='task-card-group'+(row.taskId===selected?' selected':'');
-      if(taskManagementMode)group.dataset.management='true';
-      button.type='button';button.className='task-card';
-      button.dataset.taskId=row.taskId;
-      button.setAttribute('aria-pressed',String(row.taskId===selected));
-      button.setAttribute('aria-expanded',String(row.taskId===selected&&row.taskId===fallbackExpandedTaskId));
-      button.setAttribute('aria-controls','task-selected-workspace');
-      const badge=doc.createElement('span');badge.className='task-card-icon';
-      badge.textContent=(info?.manifest.title || row.taskId).slice(0,1).toUpperCase();
-      badge.setAttribute('aria-hidden','true');
-      const copy=doc.createElement('span');copy.className='task-card-copy';
-      const title=doc.createElement('strong');title.textContent=info?.manifest.title || row.taskId;
-      const subtitle=doc.createElement('small');subtitle.textContent=info?.manifest.description || '已安装任务';
-      copy.append(title,subtitle);
-      const state=doc.createElement('span');state.className='task-card-state'+(row.enabled?'':' off');
-      state.textContent=row.enabled?'':'已停用';
-      button.append(badge,copy,state);
-      if(focusedTaskId===row.taskId)replacementFocus=button;
-      button.addEventListener('click',()=>{
-        const wasFocused=doc.activeElement===button;
-        if(get('task-installed-list').value===row.taskId){
-           fallbackExpandedTaskId=fallbackExpandedTaskId===row.taskId?null:row.taskId;
-           renderInstalledCards(); // No RunHost/draft/result changes on collapse.
-         }else{
-           get('task-installed-list').value=row.taskId;renderInstalledSelection();
-         }
-        if(wasFocused) {
-          for(const next of get('task-installed-cards').querySelectorAll?.('.task-card')||[])
-            if(next.dataset.taskId===row.taskId){next.focus?.({preventScroll:true});break;}
-        }
-      });
-      group.append(button);
-      if(taskManagementMode){
-        const manage=doc.createElement('button');manage.type='button';
-        manage.className='task-card-manage od-icon-button';
-        const manageLabel='管理「'+(info?.manifest.title||row.taskId)+'」';
-        manage.setAttribute('aria-label',manageLabel);manage.title=manageLabel;
-        const svg=doc.createElementNS?.('http://www.w3.org/2000/svg','svg')||doc.createElement('svg');
-        svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-        const svgNode=(tag,attributes)=>{
-          const el=doc.createElementNS?.('http://www.w3.org/2000/svg',tag)||doc.createElement(tag);
-          for(const [key,value] of Object.entries(attributes))el.setAttribute(key,String(value));
-          return el;
-        };
-        svg.append(svgNode('path',{d:'M4 7h9m6 0h1M4 17h1m6 0h9'}),
-          svgNode('circle',{cx:16,cy:7,r:3}),svgNode('circle',{cx:8,cy:17,r:3}));
-        manage.append(svg);
-        manage.addEventListener('click',()=>openTaskManagement(row.taskId));
-        group.append(manage);
-      }
-      if(row.taskId===selected){
-        // Keep the one live workspace inside its selected card when collapsed;
-        // no extra sibling and no remounted parameters, results or listeners.
-        workspace.hidden=row.taskId!==fallbackExpandedTaskId;
-        group.append(workspace);attached=true;
-      }
-      parent.append(group);
-    }
-    if(!attached){workspace.hidden=true;parent.append(workspace);}
-    if(focusedInWorkspace && !workspace.hidden && focused?.isConnected!==false)
-      focused.focus?.({preventScroll:true});
-    else if(focusedInWorkspace && workspace.hidden)
-      (get('task-search-panel').hidden?taskSearchReturnFocus():get('local-discover-search')).focus?.({preventScroll:true});
-    else replacementFocus?.focus?.({preventScroll:true});
+      ui('local-filter-'+value).attributes['aria-pressed']=String(localFilter===value);
+    ui('local-discover-count').text=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
+    const emptyText=!installed.length?'暂无任务。点击上方「添加」导入本地任务。'
+      :localFilter==='current'&&!origin?'当前网页不可用。选择「全部」查看已安装任务。'
+      :localFilter==='disabled'&&!localQuery?'没有已停用任务。':'没有匹配的任务。试试其他关键词或选择「全部」。';
+    myView.project('taskRows',{rows:visible.map(row=>{
+      const info=candidateFor(row);
+      return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
+        title:info?.manifest.title||row.taskId,description:info?.manifest.description||'已安装任务'};
+    }),selectedId:selected,emptyText,manageMode:taskManagementMode,onManage:openTaskManagement,
+      onSelect:taskId=>{
+        if(disposed||!installed.some(row=>row.taskId===taskId))return;
+        ui('task-installed-list').value=taskId;renderInstalledSelection();
+      }});
   }
   function openTaskManagement(taskId) {
     if(disposed||!installed.some(row=>row.taskId===taskId))return;
-    if(get('task-installed-list').value!==taskId) {
-      get('task-installed-list').value=taskId;renderInstalledSelection();
+    if(ui('task-installed-list').value!==taskId) {
+      ui('task-installed-list').value=taskId;renderInstalledSelection();
     }
-    fallbackExpandedTaskId=taskId;
-    get('task-tools').open=true;
+    ui('task-tools').open=true;
     renderInstalledCards();
   }
   function setTaskManagementMode(open) {
     taskManagementMode=Boolean(open);
-    get('task-manage-toggle').setAttribute('aria-pressed',String(taskManagementMode));
+    ui('task-manage-toggle').attributes['aria-pressed']=String(taskManagementMode);
     if(taskManagementMode){
-      get('task-tools').open=true;
+      ui('task-tools').open=true;
       if(!installedRow()&&installed[0]){
-        get('task-installed-list').value=installed[0].taskId;
+        ui('task-installed-list').value=installed[0].taskId;
         renderInstalledSelection();
       }
     }else{
       dismissTaskUninstall();
-      get('task-tools').open=false;
+      ui('task-tools').open=false;
     }
     renderInstalledCards();
   }
   function dismissTaskUninstall() {
     pendingTaskUninstall=null;
-    get('task-uninstall-confirm').hidden=true;
+    ui('task-uninstall-confirm').hidden=true;
   }
   function renderInstalled() {
-    const count=get('task-installed-count');
-    if(reactMyTasks?.myTasksMounted)reactMyTasks.renderMyTaskCount(installed.length+' 个');
-    else if(count)count.textContent=installed.length+' 个';
-    const sel=get('task-installed-list'),prior=sel.value;
-    sel.replaceChildren(option(installed.length?'请选择已安装任务':'暂无已安装任务',''));
-    for(const row of installed) {
-      const info=candidateFor(row);
-      sel.append(option(`${info?.manifest.title || row.taskId} · v${row.version}${row.enabled?'':'（已停用）'}`,row.taskId));
-    }
-    if(installed.some(row=>row.taskId===prior))sel.value=prior;
-    else if(installed.length)sel.value=installed[0].taskId;
+    ui('task-installed-count').text=installed.length+' 个';
+    const sel=ui('task-installed-list'),prior=sel.value;
+    myView.options('task-installed-list',[
+      {label:installed.length?'请选择已安装任务':'暂无已安装任务',value:''},
+      ...installed.map(row=>({label:`${candidateFor(row)?.manifest.title||row.taskId} · v${row.version}${row.enabled?'':'（已停用）'}`,value:row.taskId}))
+    ]);
+    sel.value=installed.some(row=>row.taskId===prior)?prior:installed[0]?.taskId||'';
     renderInstalledSelection();
   }
   function renderInstalledSelection() {
-    const currentSelection=get('task-installed-list').value;
+    const currentSelection=ui('task-installed-list').value;
     if(pendingTaskUninstall&&pendingTaskUninstall.taskId!==currentSelection)
       dismissTaskUninstall();
-    if(taskManagementMode)get('task-tools').open=true;
-    if(currentSelection!==fallbackLastSelection){
-      fallbackLastSelection=currentSelection;
-      fallbackExpandedTaskId=currentSelection||null;
-    }
+    if(taskManagementMode)ui('task-tools').open=true;
     const row=installedRow(),info=candidateFor(row);
     const detailText=info
       ?`适用网站：${info.manifest.siteOrigins.join('、')}\n所需能力：${info.manifest.permissions.join('、')}\n来源：${info.manifest.source} · v${row.version}`
       :'';
-    if(reactMyTasks?.myTasksMounted)reactMyTasks.renderMyTaskDetail(detailText);
-    else get('task-installed-detail').textContent=detailText;
-    get('task-result-panel').hidden=true;
-    get('task-history-panel').hidden=true;
-    get('task-result').textContent='';
+    myView.project('taskDetail',detailText);
+    ui('task-result-panel').hidden=true;
+    ui('task-history-panel').hidden=true;
+    ui('task-result').text='';
     latestResultDisplay=null;
-    get('task-result-reveal').hidden=true;
+    ui('task-result-reveal').hidden=true;
     renderTaskStatus();
     if(info)renderForm(info);
-    else{renderKey=null;clearChildren(get('task-params-form'));}
+    else{rememberParams();renderKey=null;myView.project('taskParams',[]);}
     renderInstalledCards();
     update();refreshHistory().catch(fail);
   }
   function renderCatalog(preserve) {
-    const sel=get('task-catalog-list'),old=preserve||sel.value;
-    sel.replaceChildren(option(catalog.length?'请选择候选版本':'目录中没有任务',''));
-    for(const row of catalog)sel.append(option(`${row.manifest.title} · v${row.version} · ${states[row.stage]}`,identity(row)));
-    if(catalog.some(row=>identity(row)===old))sel.value=old;
-    renderCatalogCards();
-    renderCandidate();
+    const old=preserve||catalogList.value;
+    myView.options('task-catalog-list',[
+      {label:catalog.length?'请选择候选版本':'目录中没有任务',value:''},
+      ...catalog.map(row=>({label:`${row.manifest.title} · v${row.version} · ${states[row.stage]}`,value:identity(row)}))
+    ]);
+    catalogList.value=catalog.some(row=>identity(row)===old)?old:'';
+    renderCatalogCards();renderCandidate();
   }
   function renderCatalogCards() {
-    const parent=get('task-catalog-cards'),current=get('task-catalog-list').value;
-    parent.replaceChildren();
     const rows=catalog.filter(row=>{
-      if(catalogFilter==='installed'&&!row.installed) return false;
+      if(catalogFilter==='installed'&&!row.installed)return false;
       if(catalogFilter==='available'&&row.stage!=='available')return false;
       if(catalogFilter==='candidate'&&row.stage!=='candidate')return false;
       const manifest=row.manifest;
       return [manifest.title,manifest.description,manifest.author,manifest.source,...manifest.siteOrigins]
         .join(' ').toLocaleLowerCase().includes(catalogQuery);
     });
-    get('task-catalog-count').textContent=`共 ${rows.length} 个本地任务版本`;
-    if(!rows.length){
-      const empty=doc.createElement('p');empty.className='hint';
-      empty.textContent='没有匹配的任务，请尝试其他关键词或分类。';
-      parent.append(empty);return;
-    }
-    for(const row of rows){
-      const button=doc.createElement('button');button.type='button';button.className='catalog-card';
-      if(identity(row)===current)button.className+=' selected';
-      const title=doc.createElement('strong');title.textContent=row.manifest.title;
-      const summary=doc.createElement('small');summary.textContent=row.manifest.description;
-      const state=doc.createElement('span');state.className='catalog-card-state';
-      state.textContent=`${states[row.stage]||row.stage} · v${row.version}${row.installed?' · 已安装':''}`;
-      button.append(title,summary,state);
-      button.addEventListener('click',()=>{
-        catalogSelectionEpoch++;
-        get('task-catalog-list').value=identity(row);
-        get('task-verify-run').value=''; // A different candidate requires its own RunId.
-        renderCatalogCards();renderCandidate();
-      });
-      parent.append(button);
-    }
+    ui('task-catalog-count').text=`共 ${rows.length} 个本地任务版本`;
+    myView.project('catalogRows',{selectedKey:catalogList.value,filter:catalogFilter,rows:rows.map(row=>({
+      key:identity(row),title:row.manifest.title,description:row.manifest.description,
+      state:`${states[row.stage]||row.stage} · v${row.version}${row.installed?' · 已安装':''}`
+    }))});
   }
   function renderCandidate() {
-    const row=candidate(),reader=get('task-catalog-detail');
-    reader.replaceChildren();
-    if(!row) {
-      reader.textContent='请选择任务卡片，查看完整用途、来源和所需权限。';
-      update();return;
-    }
-    const heading=doc.createElement('h3');heading.textContent=row.manifest.title;
-    const subtitle=doc.createElement('p');subtitle.className='catalog-reader-desc';
-    subtitle.textContent=row.manifest.description;
-    const meta=doc.createElement('div');meta.className='catalog-reader-facts';
-    for(const [name,value] of [
-      ['版本',row.version],['作者',row.manifest.author],['来源',row.manifest.source],
-      ['适用网站',row.manifest.siteOrigins.join('、')],
-      ['所需权限',row.manifest.permissions.join('、')],
-      ['验证状态',states[row.stage] || row.stage]]){
-      const fact=doc.createElement('div');fact.className='catalog-reader-fact';
-      const key=doc.createElement('span');key.textContent=name;
-      const val=doc.createElement('strong');val.textContent=value;
-      fact.append(key,val);meta.append(fact);
-    }
-    const advanced=doc.createElement('details');advanced.className='od-disclosure od-disclosure--flat';
-    const summary=doc.createElement('summary');summary.textContent='高级：版本和源码校验身份';
-    const hashes=doc.createElement('pre');
-    hashes.textContent=`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`;
-    advanced.append(summary,hashes);
-    const schema=row.manifest.paramsSchema;
-    const paramNote=doc.createElement('p');paramNote.className='catalog-reader-note';
-    const paramFields=Object.entries(schema.properties);
-    paramNote.textContent=paramFields.length
-      ? '运行参数：'+paramFields.map(([name,rule])=>
-          (rule.title||name)+'（'+rule.type+
-          (schema.required.includes(name)?'，必填':'，可选')+
-          (Object.hasOwn(rule,'default')?'，默认 '+String(rule.default):'')+'）').join('；')
-      : '运行参数：无';
-    const codeReview=doc.createElement('details');codeReview.className='catalog-source-review od-disclosure od-disclosure--flat';
-    const codeTitle=doc.createElement('summary');codeTitle.textContent='查看完整冻结源码（只读）';
-    const sourcePreview=doc.createElement('pre');
-    sourcePreview.textContent='展开后从正式任务目录读取固定版本；只查看，不运行。';
-    codeReview.append(codeTitle,sourcePreview);
-    let requested=false;
-    codeReview.addEventListener('toggle',()=>{
-      if(!codeReview.open||requested||disposed)return;
-      requested=true;
-      sourcePreview.textContent='正在读取固定版本源码…';
-      void (async()=>{
-        const frozen=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
-        if(frozen?.manifestHash!==row.manifestHash ||
-          frozen.package?.manifestHash!==row.manifestHash ||
-          frozen.package?.manifest?.taskId!==row.taskId ||
-          frozen.package?.manifest?.version!==row.version ||
-          frozen.package?.manifest?.program?.sourceHash!==row.manifest.program.sourceHash ||
-          typeof frozen.package?.sourceUtf8!=='string')
-          throw {code:'E_REVIEW_IDENTITY',message:'固定源码身份已变化，请刷新目录后重新审阅'};
-        if(!disposed&&reader.contains(codeReview) &&
-          candidate()?.manifestHash===row.manifestHash&&identity(candidate())===identity(row))
-          sourcePreview.textContent=frozen.package.sourceUtf8;
-      })().catch(error=>{
-        if(!disposed&&reader.contains(codeReview) && identity(candidate())===identity(row))
-          sourcePreview.textContent=formatTaskError(error);
-        requested=false; // Closing and reopening may retry this read, not Verify.
-      });
+    const row=candidate();
+    if(!row){myView.project('catalogDetail',null);update();return;}
+    const schema=row.manifest.paramsSchema,paramFields=Object.entries(schema.properties);
+    myView.project('catalogDetail',{
+      key:identity(row),title:row.manifest.title,description:row.manifest.description,
+      facts:[['版本',row.version],['作者',row.manifest.author],['来源',row.manifest.source],
+        ['适用网站',row.manifest.siteOrigins.join('、')],['所需权限',row.manifest.permissions.join('、')],
+        ['验证状态',states[row.stage]||row.stage]].map(([name,value])=>({name,value})),
+      hashes:`源码 SHA-256：${row.manifest.program.sourceHash}\nManifest SHA-256：${row.manifestHash}`,
+      paramsNote:paramFields.length?'运行参数：'+paramFields.map(([name,rule])=>
+        (rule.title||name)+'（'+rule.type+(schema.required.includes(name)?'，必填':'，可选')+
+        (Object.hasOwn(rule,'default')?'，默认 '+String(rule.default):'')+'）').join('；'):'运行参数：无',
+      source:'展开后从正式任务目录读取固定版本；只查看，不运行。',sourceLoaded:false,
+      note:row.stage==='available'?'只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
+        :'此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。',
+      addedSites:addedTaskSites(row)
     });
-    const note=doc.createElement('p');note.className='catalog-reader-note';
-    note.textContent=row.stage==='available'
-      ? '只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
-      : '此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。';
-    reader.append(heading,subtitle,meta,paramNote,advanced,codeReview,note);
-    const added=addedTaskSites(row);
-    if(added.length){const change=doc.createElement('p');change.textContent='新增权限需要确认：'+added.join('、');reader.append(change);}
-    void prepareCandidatePermission(row);
-    update();
+    void prepareCandidatePermission(row);update();
+  }
+  async function readCandidateSource(key){
+    const row=candidate(),detail=myView.data.catalogDetail;
+    if(!row||identity(row)!==key||detail?.key!==key||detail.sourceLoaded||detail.loading)return;
+    detail.loading=true;detail.sourceError='';detail.source='正在读取固定版本源码…';myView.publish();
+    try{
+      const frozen=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
+      if(frozen?.manifestHash!==row.manifestHash || frozen.package?.manifestHash!==row.manifestHash ||
+        frozen.package?.manifest?.taskId!==row.taskId || frozen.package?.manifest?.version!==row.version ||
+        frozen.package?.manifest?.program?.sourceHash!==row.manifest.program.sourceHash ||
+        typeof frozen.package?.sourceUtf8!=='string')
+        throw {code:'E_REVIEW_IDENTITY',message:'固定源码身份已变化，请刷新目录后重新审阅'};
+      if(!disposed&&myView.data.catalogDetail===detail){detail.source=frozen.package.sourceUtf8;detail.sourceLoaded=true;}
+    }catch(error){if(!disposed&&myView.data.catalogDetail===detail)detail.sourceError=formatTaskError(error);}
+    finally{detail.loading=false;myView.publish();}
   }
   async function refresh(preferred,{skipUnchanged=false}={}) {
     const seq=++catalogSequence;
@@ -674,65 +490,35 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   async function refreshHistory() {
     const seq=++historySequence,row=installedRow();
     if(!row){
-      latestResultDisplay=null;get('task-result-reveal').hidden=true;
-      get('task-history').textContent='';
-      get('task-history-panel').hidden=true;
-      get('task-result-panel').hidden=true;
+      latestResultDisplay=null;ui('task-result-reveal').hidden=true;
+      myView.project('taskHistory',[]);
+      ui('task-history-panel').hidden=true;
+      ui('task-result-panel').hidden=true;
       return;
     }
     const view=await client.controller.snapshotControllerRun({});
     if(disposed||seq!==historySequence||installedRow()?.taskId!==row.taskId)return;
     const runs=view.runs.filter(value=>value.revision?.scriptId===row.scriptId).slice(-8).reverse();
     const matching=view.results.filter(value=>value.revision?.scriptId===row.scriptId);
-    const history=get('task-history');
-    history.replaceChildren();
     if(!runs.length){
-      latestResultDisplay=null;get('task-result-reveal').hidden=true;
-      history.textContent='';
-      get('task-history-panel').hidden=true;
-      get('task-result-panel').hidden=true;
-      return;
+      latestResultDisplay=null;ui('task-result-reveal').hidden=true;
+      myView.project('taskHistory',[]);
+      ui('task-history-panel').hidden=true;ui('task-result-panel').hidden=true;return;
     }
-    const list=doc.createElement('div');list.className='task-history-entries';
-    for(const [index,run] of runs.entries()){
+    myView.project('taskHistory',runs.map((run,index)=>{
       const result=matching.find(value=>value.runId===run.runId);
-      const state=runStateNames[run.state]||run.state||'状态待确认';
-      const entry=doc.createElement('details');entry.className='task-history-entry od-disclosure od-disclosure--flat';
-      const summary=doc.createElement('summary');
-      summary.textContent=`${state} · 最近第 ${index+1} 次`;
-      const output=doc.createElement('pre');
-      const presented=taskResultView(run,result);
-      output.textContent=presented.text;
-      const technical=doc.createElement('details');technical.className='task-history-tech od-disclosure od-disclosure--flat';
-      const technicalHeading=doc.createElement('summary');technicalHeading.textContent='技术信息';
-      const technicalContent=doc.createElement('pre');
-      technicalContent.textContent=formatTaskRunTechnical(run,result);
-      technical.append(technicalHeading,technicalContent);
-      entry.append(summary,output);
-      if (typeof presented.fullText === 'string') {
-        const reveal=doc.createElement('button');reveal.type='button';reveal.className='task-result-reveal';
-        reveal.textContent='显示完整原值';
-        reveal.title='完整原值可能包含访问令牌等敏感信息';
-        reveal.addEventListener('click',()=>{
-          const showing=reveal.dataset.revealed==='true';
-          output.textContent=showing?presented.text:presented.fullText;
-          reveal.dataset.revealed=String(!showing);
-          reveal.textContent=showing?'显示完整原值':'隐藏完整原值';
-        });
-        entry.append(reveal);
-      }
-      entry.append(technical);list.append(entry);
-    }
-    history.append(list);
-    get('task-history-panel').hidden=false;
-    get('task-result-panel').hidden=false;
+      return {runId:run.runId,state:runStateNames[run.state]||run.state||'状态待确认',
+        ordinal:index+1,...taskResultView(run,result),technical:formatTaskRunTechnical(run,result)};
+    }));
+    ui('task-history-panel').hidden=false;
+    ui('task-result-panel').hidden=false;
     const latest=matching.find(value=>value.runId===runs[0].runId);
     const presented=taskResultView(runs[0],latest);
     latestResultDisplay={...presented,taskKey:identity(row)};
-    get('task-result').textContent=presented.text;
-    const reveal=get('task-result-reveal');
+    ui('task-result').text=presented.text;
+    const reveal=ui('task-result-reveal');
     reveal.hidden=typeof presented.fullText!=='string';
-    reveal.dataset.revealed='false';reveal.textContent='查看完整原值';
+    reveal.dataset.revealed='false';reveal.text='查看完整原值';
     if(activeRunId&&identity(row)===runOwnerKey&&runs.some(value=>value.runId===activeRunId)){
       const live=matching.find(value=>value.runId===activeRunId);
       if(live)setTaskNotice(identity(row),`本次任务：${runStateNames[live.state]||live.state}`);
@@ -764,9 +550,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   async function readFile(fileOverride=null) {
     // Both Sidebar and full catalog share one parser, Host import and validation.
-    const file=fileOverride||get('task-package-file').files?.[0];
+    const file=fileOverride||ui('task-package-file').files?.[0];
     if(!file)return;
-    if(!fileOverride)get('task-package-file').value='';
+    if(!fileOverride)ui('task-package-file').value='';
     if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
     const sourceUtf8=await file.text();
     const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
@@ -786,8 +572,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           throw {code:'E_DRAFT_TRANSPORT',message};
         });
         if(!response?.ok)throw response?.error || {code:'E_HOST_NOT_FOUND',message:'请在同一窗口打开 Sidebar，再重新导入 JavaScript 草稿'};
-        get('task-catalog-status').textContent='已导入同窗口 Sidebar 的未保存草稿；返回目标网页，在「开发」明确运行。未保存、未安装、未自动执行。';
-        return;
+        return ui('task-catalog-status').text='已导入同窗口 Sidebar 的未保存草稿；返回目标网页，在「开发」明确运行。未保存、未安装、未自动执行。';
       }
       if(importDraft)await importDraft(draft);
       else {
@@ -797,15 +582,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         get('script-source').dispatchEvent(new Event('input',{bubbles:true}));
       }
       navigate('develop');
-      get('task-dev-status').textContent='JavaScript 已进入未保存草稿；不能跳过任务验证直接安装';
+      return ui('task-catalog-status').text='JavaScript 已进入未保存草稿；不能跳过任务验证直接安装';
     }else{
       const value=await client.request('importTaskPackage',{package:parsed});
       await refresh(identity(value));announce();
-      get('task-catalog-status').textContent=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
+      return ui('task-catalog-status').text=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
     }
   }
   function run(event) {
-    if(!event.isTrusted||disposed||running||working||host.currentRun||get('task-run').disabled)return;
+    if(!event.isTrusted||disposed||running||working||host.currentRun||ui('task-run').disabled)return;
     let chosen,params,site,permission,captured;
     try {
       chosen=installedRow();const info=candidateFor(chosen);
@@ -818,7 +603,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
     }catch(error){fail(error);return;}
     running=true;activeRunId=null;runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
-    get('task-result-panel').hidden=true;update();
+    ui('task-result-panel').hidden=true;update();
     setTaskNotice(runOwnerKey,'正在检查访问权限并验证目标网页');
     (async()=>{
       await permission;
@@ -862,16 +647,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   async function verify() {
     const row=candidate();
     if(!row)throw {code:'E_SCHEMA',message:'先选择候选'};
-    const runId=get('task-verify-run').value.trim()||get('script-run-id').value.trim();
+    const runId=ui('task-verify-run').value.trim()||get('script-run-id')?.value?.trim();
     if(!runId)throw {code:'E_VERIFICATION',message:'需要真实运行的 runId'};
     const result=await client.request('verifyTaskCandidate',{taskId:row.taskId,version:row.version,runId});
     await refresh(identity(result));announce();
-    get('task-catalog-status').textContent=`${identity(result)}：已核对本机持久运行及页面原生回执；不代表第三方审核`;
+    ui('task-catalog-status').text=`${identity(result)}：已核对本机持久运行及页面原生回执；不代表第三方审核`;
   }
   async function publish() {
     const row=candidate();if(!row)throw {code:'E_SCHEMA',message:'先选择候选'};
     const value=await client.request('makeTaskAvailable',{taskId:row.taskId,version:row.version,manifestHash:row.manifestHash});
-    await refresh(identity(value));announce();get('task-catalog-status').textContent=`${identity(value)} 已成为本地可安装版本`;
+    await refresh(identity(value));announce();ui('task-catalog-status').text=`${identity(value)} 已成为本地可安装版本`;
   }
   async function install(event) {
     const row=structuredClone(candidate());if(!row)throw {code:'E_SCHEMA',message:'先选择任务'};
@@ -883,10 +668,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       expectedGeneration:previous?.generation??null,expectedInstallationId:previous?.installationId??null});
     await refresh(identity(row));announce();
     onTaskInstalled?.(installedTask.taskId);
-    get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
+    ui('task-status').text=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
     const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
-    get('task-catalog-status').textContent=installedMessage;
-    get('task-install-feedback').textContent=installedMessage;
+    ui('task-catalog-status').text=installedMessage;
+    ui('task-install-feedback').text=installedMessage;
     // The full-page catalog has no visible Sidebar tabs/dock. Never navigate
     // it to a hidden task pane after installation.
     if(!catalogSurface)navigate('tasks');
@@ -897,13 +682,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)throw {code:'E_HOST_CLOSED',message:'任务面板已关闭'};
     await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,enabled:!row.enabled,
       expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
-    await refresh();announce();get('task-status').textContent=row.enabled?'任务已停用':'任务已重新启用';
+    await refresh();announce();ui('task-status').text=row.enabled?'任务已停用':'任务已重新启用';
   }
   async function uninstall() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择已安装任务'};
     await client.request('uninstallTask',{taskId:row.taskId,version:row.version,
       expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
-    await refresh();announce();get('task-status').textContent='已卸载确定版本；历史结果仍可保留';
+    await refresh();announce();ui('task-status').text='已卸载确定版本；历史结果仍可保留';
   }
   async function fork() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择任务'};
@@ -950,137 +735,134 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
   }
-  listen(get('open-catalog'),'click',()=>navigate('catalog'));
-  const taskAddMenu=get('task-add-menu');
+  registerAction('openCatalogClick',()=>navigate('catalog'));
+  const taskAddMenu=ui('task-add-menu');
   function showTaskAddMenu(open){
     if(!taskAddMenu){if(open)navigate('catalog');return;}
     taskAddMenu.hidden=!open;
-    get('task-open-catalog').setAttribute('aria-expanded',String(open));
+    ui('task-open-catalog').attributes['aria-expanded']=String(open);
     if(open){
       get('workspace-content')?.scrollTo?.({top:0});
-      get('task-add-import').focus?.({preventScroll:true});
+      focus('task-add-import',{preventScroll:true});
     }else if(doc.documentElement?.dataset?.opendeskTab==='tasks')
-      get('task-open-catalog').focus?.({preventScroll:true});
+      focus('task-open-catalog',{preventScroll:true});
   }
-  listen(get('task-open-catalog'),'click',()=>showTaskAddMenu(taskAddMenu?.hidden!==false));
+  registerAction('taskOpenCatalogClick',()=>showTaskAddMenu(taskAddMenu?.hidden!==false));
   if(taskAddMenu){
     taskAddMenu.hidden=true;
-    listen(get('task-add-close'),'click',()=>showTaskAddMenu(false));
-    listen(get('task-add-import'),'click',()=>get('task-add-file').click());
-    listen(get('task-add-catalog'),'click',()=>{
+    registerAction('taskAddCloseClick',()=>showTaskAddMenu(false));
+    registerAction('taskAddImportClick',()=>get('task-add-file')?.click?.());
+    registerAction('taskAddCatalogClick',()=>{
       showTaskAddMenu(false);navigate('catalog');
     });
-    listen(get('task-add-develop'),'click',()=>{
+    registerAction('taskAddDevelopClick',()=>{
       if(navigate('develop')!==false){
         showTaskAddMenu(false);
         get('tab-develop').focus?.({preventScroll:true});
       }
     });
-    listen(get('task-add-file'),'change',asyncAction(async()=>{
-      const input=get('task-add-file'),file=input.files?.[0];
+    registerAction('taskAddFileChange',asyncAction(async()=>{
+      const input=ui('task-add-file'),file=input.files?.[0];
       if(!file)return;
       try{
-        await readFile(file);
-        get('task-add-status').textContent=get('task-catalog-status').textContent+
+        const status=await readFile(file);
+        ui('task-add-status').text=status+
           (file.name.toLowerCase().endsWith('.js')?'':'；需要安装时，请打开「浏览任务目录」审阅和验证');
         if(doc.documentElement?.dataset?.opendeskTab==='develop'){
           showTaskAddMenu(false);
           get('tab-develop').focus?.({preventScroll:true});
         }
       }catch(error){
-        get('task-add-status').textContent=formatTaskError(error);
+        ui('task-add-status').text=formatTaskError(error);
         throw error;
       }finally{input.value='';}
     }));
   }
   function setTaskSearchOpen(open){
-    const panel=get('task-search-panel'),toggle=get('task-search-toggle');
-    panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
+    const panel=ui('task-search-panel'),toggle=ui('task-search-toggle');
+    panel.hidden=!open;toggle.attributes['aria-expanded']=String(open);
     if(open){
       renderInstalledCards();update();
-      get('local-discover-search').focus?.({preventScroll:true});
+      focus('local-discover-search',{preventScroll:true});
     }else{
-      localQuery='';localFilter='all';get('local-discover-search').value='';
-      renderInstalledCards();update();taskSearchReturnFocus().focus?.({preventScroll:true});
+      localQuery='';localFilter='all';ui('local-discover-search').value='';
+      renderInstalledCards();update();taskSearchReturnFocus();
     }
   }
-  listen(get('task-manage-toggle'),'click',event=>{
+  registerAction('taskManageToggleClick',event=>{
     if(!event.isTrusted)return;
     setTaskManagementMode(!taskManagementMode);
   });
-  listen(get('task-search-toggle'),'click',()=>setTaskSearchOpen(get('task-search-panel').hidden));
-  listen(get('task-search-panel'),'keydown',event=>{
+  registerAction('taskSearchToggleClick',()=>setTaskSearchOpen(ui('task-search-panel').hidden));
+  registerAction('taskSearchPanelKeydown',event=>{
     if(event.key!=='Escape'||event.defaultPrevented||event.isComposing)return;
     event.preventDefault();
     setTaskSearchOpen(false);
   });
-  listen(get('local-discover-search'),'input',()=>{
-    localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();
+  registerAction('localDiscoverSearchInput',()=>{
+    localQuery=ui('local-discover-search').value.trim().toLocaleLowerCase();
     renderInstalledCards();update();
   });
   for(const value of ['all','current','disabled'])
-    listen(get('local-filter-'+value),'click',()=>{
+    registerAction(actionName('local-filter-'+value,'click'),()=>{
       localFilter=value;renderInstalledCards();update();
     });
-  listen(get('task-search'),'input',()=>{
-    catalogQuery=get('task-search').value.trim().toLocaleLowerCase();
-    renderCatalogCards();
+  registerAction('taskSearchInput',()=>{catalogQuery=ui('task-search').value.trim().toLocaleLowerCase();renderCatalogCards();});
+  registerAction('taskCatalogFilterClick',filter=>{
+    if(!['all','installed','available','candidate'].includes(filter))return;
+    catalogFilter=filter;renderCatalogCards();
   });
-  listen(get('task-categories'),'click',event=>{
-    const selected=event.target.closest?.('button[data-catalog-filter]');
-    if(!selected)return;
-    catalogFilter=selected.dataset.catalogFilter;
-    for(const button of get('task-categories').querySelectorAll('button[data-catalog-filter]'))
-      button.classList.toggle('selected',button.dataset.catalogFilter===catalogFilter);
-    renderCatalogCards();
-  });
-  listen(get('task-params-form'),'submit',event=>event.preventDefault());
-  listen(get('task-params-form'),'input',persistParams);
-  listen(get('task-params-form'),'change',persistParams);
-  listen(get('task-installed-list'),'change',renderInstalledSelection);
-  listen(get('task-result-reveal'),'click',()=>{
+  const selectCandidate=key=>{
+    if(key&&!catalog.some(row=>identity(row)===key))return;
+    catalogSelectionEpoch++;catalogList.value=key;ui('task-verify-run').value='';
+    renderCatalogCards();renderCandidate();
+  };
+  registerAction('taskCatalogSelect',selectCandidate);
+  registerAction('taskCatalogSourceOpen',readCandidateSource);
+  registerAction('taskParamsFormSubmit',event=>event.preventDefault());
+  registerAction('taskParamsFormInput',persistParams);
+  registerAction('taskParamsFormChange',persistParams);
+  registerAction('taskInstalledListChange',renderInstalledSelection);
+  registerAction('taskResultRevealClick',()=>{
     const entry=latestResultDisplay,row=installedRow();
     if(!row || entry?.taskKey!==identity(row) || typeof entry.fullText!=='string')return;
-    const button=get('task-result-reveal'), showing=button.dataset.revealed==='true';
-    get('task-result').textContent=showing?entry.text:entry.fullText;
+    const button=ui('task-result-reveal'), showing=button.dataset.revealed==='true';
+    ui('task-result').text=showing?entry.text:entry.fullText;
     button.dataset.revealed=String(!showing);
-    button.textContent=showing?'查看完整原值':'隐藏完整原值';
+    button.text=showing?'查看完整原值':'隐藏完整原值';
   });
-  listen(get('task-catalog-list'),'change',()=>{
-    catalogSelectionEpoch++;
-    get('task-verify-run').value='';
-    renderCandidate();
-  });
-  listen(get('task-run'),'click',run);
-  listen(get('task-stop'),'click',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
+  registerAction('taskCatalogListChange',()=>selectCandidate(catalogList.value));
+  registerAction('taskRunClick',run);
+  registerAction('taskStopClick',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
     host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
-  listen(get('task-refresh'),'click',asyncAction(()=>refresh()));
-  listen(get('task-catalog-refresh'),'click',asyncAction(()=>refresh()));
-  listen(get('task-create-candidate'),'click',asyncAction(createCandidate));
-  listen(get('task-package-file'),'change',asyncAction(()=>readFile()));
-  listen(get('task-verify'),'click',asyncAction(verify));
-  listen(get('task-publish'),'click',asyncAction(publish));
-  listen(get('task-install'),'click',asyncAction(install));
-  listen(get('task-toggle'),'click',asyncAction(toggle));
-  listen(get('task-uninstall'),'click',event=>{
+  registerAction('taskRefreshClick',asyncAction(()=>refresh()));
+  registerAction('taskCatalogRefreshClick',asyncAction(()=>refresh()));
+  registerAction('taskPackageFileChange',asyncAction(()=>readFile()));
+  registerAction('taskVerifyClick',asyncAction(verify));
+  registerAction('taskPublishClick',asyncAction(publish));
+  registerAction('taskInstallClick',asyncAction(install));
+  const createCandidateButton=get('task-create-candidate');
+  if(createCandidateButton)listen(createCandidateButton,'click',asyncAction(createCandidate));
+  registerAction('taskToggleClick',asyncAction(toggle));
+  registerAction('taskUninstallClick',event=>{
     if(!event.isTrusted||working)return;
     const row=installedRow();if(!row)return;
     pendingTaskUninstall={taskId:row.taskId,version:row.version,
       generation:row.generation??null,installationId:row.installationId??null};
     const info=candidateFor(row);
-    get('task-uninstall-summary').textContent=
+    ui('task-uninstall-summary').text=
       '卸载「'+(info?.manifest.title||row.taskId)+'」v'+row.version+'？历史结果仍可能保留。';
-    get('task-uninstall-confirm').hidden=false;
-    get('task-uninstall-cancel').focus?.({preventScroll:true});
+    ui('task-uninstall-confirm').hidden=false;
+    focus('task-uninstall-cancel',{preventScroll:true});
     update();
   });
-  listen(get('task-uninstall-cancel'),'click',event=>{
+  registerAction('taskUninstallCancelClick',event=>{
     if(!event.isTrusted)return;
     dismissTaskUninstall();
-    get('task-uninstall').focus?.({preventScroll:true});
+    focus('task-uninstall',{preventScroll:true});
     update();
   });
-  listen(get('task-uninstall-yes'),'click',asyncAction(async event=>{
+  registerAction('taskUninstallYesClick',asyncAction(async event=>{
     if(!event.isTrusted||!pendingTaskUninstall)return;
     const selected=installedRow(),pending=pendingTaskUninstall;
     if(!selected||selected.taskId!==pending.taskId||selected.version!==pending.version||
@@ -1091,10 +873,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     try{await uninstall();}finally{dismissTaskUninstall();}
   }));
-  listen(get('task-tools'),'toggle',()=>{
-    if(!get('task-tools').open)dismissTaskUninstall();
+  registerAction('taskToolsToggle',()=>{
+    if(!ui('task-tools').open)dismissTaskUninstall();
   });
-  listen(get('task-fork-draft'),'click',asyncAction(fork));
+  registerAction('taskForkDraftClick',asyncAction(fork));
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     currentPage=next;update();renderInstalledCards();
   });
@@ -1112,10 +894,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks',{initial:true});update();
-  return {navigate,showCatalogPage,refresh,connectReactMyTasks(view){
-    if(disposed||reactMyTasks||!view?.myTasksMounted)return;
-    reactMyTasks=view;view.renderMyTaskCount(installed.length+' 个');renderInstalledCards();
-  },setWorkflowRunOwner(runId) {
+  return {navigate,showCatalogPage,refresh,myView,setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();
@@ -1138,10 +917,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed||!selectedRow)return false;
     if(navigate('tasks')===false)return false;
     // A manager handoff must not leave its explicitly selected task filtered out.
-    localQuery='';localFilter='all';get('local-discover-search').value='';
-    get('task-search-panel').hidden=true;
-    get('task-search-toggle').setAttribute('aria-expanded','false');
-    get('task-installed-list').value=taskId;
+    localQuery='';localFilter='all';ui('local-discover-search').value='';
+    ui('task-search-panel').hidden=true;
+    ui('task-search-toggle').attributes['aria-expanded']='false';
+    ui('task-installed-list').value=taskId;
     renderInstalledSelection();
     return true;
   },receiveDraft(sourceUtf8) {
@@ -1153,7 +932,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)return;disposed=true;
     permissionSequence++;permissionConsent.dispose();
     unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();
-    for(const {node,event,fn} of listeners)node.removeEventListener(event,fn);
+    for(const {node,event,fn,remove} of listeners){if(remove)remove();else node.removeEventListener(event,fn);}
     listeners.length=0;updates?.close?.();
   }};
 }

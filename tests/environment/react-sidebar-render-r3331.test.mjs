@@ -3,13 +3,15 @@ import assert from 'node:assert/strict';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
+import {load} from 'cheerio';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 
 // These are actual React 19 renders of the production TSX components.
 // Client click/focus/installed-extension behavior requires separate Chromium
 // evidence and is not inferred from static markup.
 test('R33.3.1 renders extension toolbar, rows and detail as real React elements',async t=>{
   const vite=await createServer({configFile:false,root:process.cwd(),
-    appType:'custom',server:{middlewareMode:true},logLevel:'error'});
+    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
   t.after(()=>vite.close());
   const {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty,
     ExtensionRecoveries,ExtensionStatus,ExtensionRowMenu,ExtensionCenterPage}=
@@ -99,44 +101,11 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(rowMenu,/role="menuitem"/);
   assert.match(rowMenu,/&lt;script&gt;/);
   assert.doesNotMatch(rowMenu,/<script\b/i);
-  const {DeveloperTargetText,DeveloperActions,DeveloperFramework,DeveloperRunStatus,DeveloperResultText}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
-  const devIndicator=renderToStaticMarkup(React.createElement(DeveloperTargetText,{
-    value:'网页标题 <svg onload=alert(1)>',node:null,title:'bad',state:'available'
-  }));
-  assert.match(devIndicator,/&lt;svg onload=alert\(1\)&gt;/);
-  assert.doesNotMatch(devIndicator,/<svg\b/i);
-  const actions=renderToStaticMarkup(React.createElement(DeveloperActions,{model:{
-    runLabel:'运行 <img onerror=evil()>',runDisabled:true,
-    saveLabel:'保存版本',saveDisabled:false,saveHidden:false,saveTitle:'保存草稿',
-    stopLabel:'停止',stopDisabled:true
-  }}));
-  assert.match(actions,/id="script-run"[^>]*disabled=""/);
-  assert.match(actions,/id="script-save"/);
-  assert.match(actions,/id="script-stop"[^>]*disabled=""/);
-  assert.match(actions,/&lt;img onerror=evil\(\)&gt;/);
-  assert.doesNotMatch(actions,/<img\b/i);
-  const framework=renderToStaticMarkup(React.createElement(DeveloperFramework,{model:{
-    mode:'react',compilerEnabled:true,onSelect:()=>{}
-  }}));
-  assert.match(framework,/id="page-component-javascript"/);
-  assert.match(framework,/id="page-component-react"[^>]*checked=""/);
-  assert.match(framework,/id="page-component-vue"/);
-  assert.match(framework,/aria-label="React JSX"/);
-  const safeResult=renderToStaticMarkup(React.createElement(DeveloperResultText,{
-    value:'返回值 <script>alert(1)</script>'
-  }));
-  assert.match(safeResult,/&lt;script&gt;/);
-  assert.doesNotMatch(safeResult,/<script\b/);
-  const runStatus=renderToStaticMarkup(React.createElement(DeveloperRunStatus,{
-    node:null,model:{state:'error',text:'运行错误 <script>evil()</script>'}
-  }));
-  assert.match(runStatus,/&lt;script&gt;/);
-  assert.doesNotMatch(runStatus,/<script\b/i);
 });
 
 test('R35.1 React owns accessible five-tab navigation markup',async t=>{
   const vite=await createServer({configFile:false,root:process.cwd(),
-    appType:'custom',server:{middlewareMode:true},logLevel:'error'});
+    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
   t.after(()=>vite.close());
   const {SidebarNavigation}=await vite.ssrLoadModule('/src/ui/react/tabs/navigation.tsx');
   const html=renderToStaticMarkup(React.createElement(SidebarNavigation,{
@@ -149,4 +118,61 @@ test('R35.1 React owns accessible five-tab navigation markup',async t=>{
   assert.match(html,/id="tab-debug"[^>]*hidden=""/);
   assert.equal((html.match(/role="tab"/g)||[]).length,6);
   assert.doesNotMatch(html,/onClick=|dangerouslySetInnerHTML/);
+});
+
+
+test('developer page and dock render the same view with safe text and controlled fields',async t=>{
+  const vite=await createServer({configFile:false,root:process.cwd(),
+    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
+  t.after(()=>vite.close());
+  const {DeveloperPage,DeveloperDock}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const view=createDeveloperView();
+  t.after(()=>view.dispose());
+  let runs=0;
+  view.actions['script-run']=()=>runs++;
+  view.patch('script-source',{value:'async function main() { return "<script>source</script>"; }'});
+  view.patch('script-params',{value:'{"draft":true}'});
+  view.patch('script-current-page-host',{textContent:'example.com',title:'https://example.com/view'});
+  view.patch('script-current-page-title',{textContent:'网页标题 <svg onload=alert(1)>'});
+  view.patch('script-current-page-status',{textContent:'网页可运行',data:{state:'available'}});
+  view.patch('script-run',{textContent:'运行 <img onerror=evil()>',disabled:true});
+  view.patch('script-save',{disabled:false,title:'保存草稿'});
+  view.patch('script-stop',{disabled:true});
+  view.patch('page-component-javascript',{checked:false});
+  view.patch('page-component-react',{checked:true});
+  view.patch('script-result',{textContent:'返回值 <script>alert(1)</script>'});
+  view.patch('script-result-kind',{textContent:'JSON'});
+  view.patch('script-status',{textContent:'运行错误 <script>evil()</script>',data:{state:'error'}});
+  const render=(hidden=false)=>load(renderToStaticMarkup(React.createElement(React.Fragment,null,
+    React.createElement(DeveloperPage,{view,hidden}),React.createElement(DeveloperDock,{view,hidden}))));
+  let $=render();
+  const ids=$('[id]').map((_,node)=>$(node).attr('id')).get();
+  assert.equal(new Set(ids).size,ids.length,'one owner for each developer control');
+  assert.equal($('#script-current-page-host').text(),'example.com');
+  assert.equal($('#script-current-page-host').attr('title'),'https://example.com/view');
+  assert.equal($('#script-current-page-title').text(),'网页标题 <svg onload=alert(1)>');
+  assert.equal($('#script-current-page-title svg').length,0);
+  assert.equal($('#script-current-page-status').attr('data-state'),'available');
+  assert.equal($('#script-run').prop('disabled'),true);
+  assert.equal($('#script-run').text(),'运行 <img onerror=evil()>');
+  assert.equal($('#script-run img').length,0);
+  assert.equal($('#script-save').prop('disabled'),false);
+  assert.equal($('#script-save').attr('title'),'保存草稿');
+  assert.equal($('#script-stop').prop('disabled'),true);
+  assert.equal($('#page-component-framework input').length,3);
+  assert.equal($('#page-component-react').prop('checked'),true);
+  assert.equal($('#page-component-react').attr('aria-label'),'React JSX');
+  assert.equal($('#script-result').text(),'返回值 <script>alert(1)</script>');
+  assert.equal($('#script-result-kind').text(),'JSON');
+  assert.equal($('#script-status').attr('data-state'),'error');
+  assert.equal($('#script-status').text(),'运行错误 <script>evil()</script>');
+  assert.equal($('script').length,0);
+  view.patch('script-result',{textContent:'新结果'});
+  $=render(true);
+  assert.equal($('#workbench-develop').prop('hidden'),true);
+  assert.equal($('#develop-dock').prop('hidden'),true);
+  assert.equal($('#script-result').text(),'新结果');
+  assert.equal($('#script-source').val(),view.fields['script-source'].value);
+  assert.equal($('#script-params').val(),'{"draft":true}');
+  assert.equal(runs,0,'rendering and view patches never run the draft');
 });

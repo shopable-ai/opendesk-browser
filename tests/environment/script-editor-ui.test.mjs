@@ -8,6 +8,9 @@ import vm from 'node:vm';
 import {LocalDevResolver} from '../../native-agent/local-dev/resolver.mjs';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {DEVELOPER_FIELDS} from '../../src/ui/develop-fields.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 // Component fixtures only: these events provide no Chrome/native gesture proof.
 class Element {
   value=''; textContent=''; dataset={}; checked=false; disabled=false;
@@ -48,10 +51,12 @@ const availableTarget={status:'available',windowId:7,tabId:11,frameId:0,
   documentId:'document-a',url:'https://a.example/',origin:'https://a.example',title:'A'};
 
 async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspace],projects=[],
-  connected=false,local=true,resolveSource,handle}={}){
-  const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
-  const find=id=>nodes.get(id),view=new Element();
-  const doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
+  connected=false,local=true,resolveSource,handle,react=process.env.OPENDESK_DEVELOP_REACT_VIEW==='1'}={}){
+  const nodes=new Map([...new Set([...Object.keys(DEVELOPER_FIELDS),...Array.from(html.matchAll(/id="([^"]+)"/g),([,id])=>id)])].map(id=>[id,new Element()]));
+  const legacyFind=id=>nodes.get(id),view=new Element();
+  const legacyDoc={getElementById:legacyFind,defaultView:view,createElement:()=>new Element()};
+  const reactView=react?createDeveloperView():null;
+  const find=developerTestFields(reactView,legacyFind);
   find('script-id').value='manual';find('script-revision').value='1';
   find('script-source').value=manualSource;
   find('script-params').value='{}';find('script-target-mode').value='current';
@@ -98,7 +103,7 @@ async function fixture(t,{targetAvailable=true,slotAvailable=true,files=[workspa
       }
       assert.fail('unexpected local-project request: '+method);
     },subscribeLocalProjects(callback){localListener=callback;return ()=>{};}};
-  const editor=createScriptEditor({client,currentPageTarget:target,api,document:doc,hostFactory:()=>host});
+  const editor=createScriptEditor({client,currentPageTarget:target,api,document:legacyDoc,view:reactView,hostFactory:()=>host});
   t.after(()=>{
     editor.dispose();
     assert.deepEqual(commits,[],'selection, inspection and review must not commit Controller source');
@@ -626,26 +631,20 @@ test('local Run stays disabled during refresh and Native disconnect',async t=>{
 for(const bridge of ['legacy','react'])for(const framework of ['react','vue'])
 for(const control of ['script-load','script-list-load'])
 test(`R343 ${bridge} ${framework} ${control} restores Controller routing and retains framework drafts`,async t=>{
-  const f=await fixture(t,{local:false,files:[]});
+  const f=await fixture(t,{local:false,files:[],react:bridge==='react'});
   const source='async function main(){return "loaded-controller";}';
   const row={scriptId:'manual',revision:1,sourceUtf8:source,contentHash:hash(source)};
   f.holdLoad(row);
-  let actions,frameworkModel;
-  if(bridge==='react'){
-    f.editor.connectReactDeveloperActions(model=>{actions=model;});
-    f.editor.connectReactDeveloperFramework(model=>{frameworkModel=model;});
-  }
   const select=async kind=>{
-    if(bridge==='react')frameworkModel.onSelect(kind,{isTrusted:true});
-    else{const input=f.find('page-component-'+kind);input.checked=true;input.fire('change');}
+    const input=f.find('page-component-'+kind);input.checked=true;input.fire('change');
     await tick();await tick();
   };
   const action=async kind=>{
-    if(bridge==='react')actions[kind==='run'?'onRun':'onSave']({isTrusted:true});
-    else f.find('script-'+kind).fire('click',{isTrusted:true});
+    f.find('script-'+kind).fire('click',{isTrusted:true});
     await tick();await tick();
   };
   await select(framework);
+  assert.equal(f.find('developer-run-technical').hidden,true,'Controller receipt leaked into component mode');
   const componentDraft=framework==='react'
     ?'export default function MyDraft(){return null;}'
     :'<template><p>retained Vue draft</p></template>';
@@ -656,11 +655,10 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   await until(()=>f.find('script-status').dataset.state==='loaded','Controller revision did not load');
   assert.equal(f.find('script-source').value,source);
   assert.equal(f.editor.executionSource(),source);
-  assert.equal(bridge==='react'?frameworkModel.mode:
-    f.find('page-component-javascript').checked?'javascript':framework,'javascript',
+  assert.equal(f.find('page-component-javascript').checked?'javascript':framework,'javascript',
   'loading a Controller revision must leave Page component mode');
-  assert.equal(bridge==='react'?actions.runLabel:f.find('script-run').textContent,'运行草稿');
-  assert.equal(bridge==='react'?actions.saveLabel:f.find('script-save').textContent,'保存版本');
+  assert.equal(f.find('script-run').textContent,'运行草稿');
+  assert.equal(f.find('script-save').textContent,'保存版本');
   const starts=[],commits=[];
   f.host.start=async request=>{
     starts.push(request);
@@ -672,7 +670,7 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing and ret
   };
   await action('run');
   await until(()=>starts.length===1,'loaded Controller was routed to Page preview instead of RunHost');
-  await until(()=>bridge==='react'?!actions.runDisabled:!f.find('script-run').disabled,
+  await until(()=>!f.find('script-run').disabled,
     'Controller Run did not settle');
   assert.deepEqual(starts[0].source,{kind:'draft',sourceUtf8:source});
   await action('save');
@@ -756,12 +754,14 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
   assert.equal(previews[0].target.documentId,'document-a');
   assert.equal(previews[0].managedUI.enabled,true);
   assert.equal(f.manualRuns.length,0);
+  assert.equal(f.find('developer-run-technical').hidden,true,'Controller receipt leaked into Page preview');
   await until(()=>!f.find('script-run').disabled,'Page preview did not settle');
   assert.equal(f.find('program-new-script').hidden,false);
   f.find('program-new-script').fire('click',{isTrusted:true});
   await f.click();
   await until(()=>f.manualRuns.length===1,'New Script retained the loaded Page execution intent');
   assert.equal(previews.length,1);
+  assert.equal(f.find('developer-run-technical').hidden,false);
 });
 
 test('R36.2 JavaScript Controller/Page selection retains independent drafts without execution', async t => {

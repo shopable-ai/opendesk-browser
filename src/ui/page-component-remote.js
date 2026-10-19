@@ -1,3 +1,4 @@
+import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 // Existing component editor + existing Broker for automatic SHA-fixed ESM.
 // Run/Save can prepare new versions; installed revisions remain strictly offline.
 // Manual preparation and lock selection remain optional advanced diagnostics.
@@ -17,8 +18,8 @@ export function assertPinnedESMSource(url){
     throw error('E_REMOTE_VERSION_UNPINNED','新 ESM 来源必须使用明确的版本号或完整 Commit SHA，不能自动下载 latest/main 等可变地址：'+url);
   return url;
 }
-export function createPageComponentRemote({client,preparer,api,document:doc,getInput,isBlocked=()=>false,onState=()=>{}}){
-  const get=id=>doc.getElementById(id),panel=get('page-component-remote'),status=get('page-component-remote-status'),
+export function createPageComponentRemote({client,preparer,api,document:doc,view=null,getInput,isBlocked=()=>false,onState=()=>{}}){
+  const get=id=>view?view.fields[id]:doc.getElementById(id),panel=get('page-component-remote'),status=get('page-component-remote-status'),
     button=get('page-component-remote-prepare'),cancelButton=get('page-component-remote-cancel'),
     sources=get('page-component-remote-sources'),details=get('page-component-remote-details'),
     detailBody=get('page-component-remote-detail-body'),selector=get('page-component-remote-lock');
@@ -39,23 +40,23 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
   }
   function render(notify=true){
     if(!panel)return;
-    const input=getInput();panel.hidden=!compatible(input);
+    const input=getInput();patchDeveloperField(view,panel,{hidden:!compatible(input)});
     if(panel.hidden)return;
     const stage=state?.stage||'idle';
-    status.textContent=state?.message||(input.framework==='controller'
+    patchDeveloperField(view,status,{textContent:state?.message||(input.framework==='controller'
       ? 'Controller ESM：点击运行会自动解析、获取并固定明确版本的静态依赖图。首次下载可能需要 Chrome 来源授权；Developer 上限 32 模块 / 256 KiB。'
-      : '点击运行会自动处理固定 HTTPS 依赖；高级检查仅供查看来源、许可证与 SHA。已固定资产可离线复用，上限 32 个模块 / 256 KiB。');
-    status.dataset.state=stage;
-    button.textContent=stage==='download'?(state?.cachedUrls?.length===state?.urls?.length?'确认复用缓存':'确认获取所列模块'):stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'高级：检查依赖';
-    button.disabled=busy||isBlocked()||stage==='choose'&&!selector?.value;
-    cancelButton.hidden=!busy;cancelButton.disabled=false;
-    sources.hidden=!(state?.urls?.length);sources.textContent=(state?.urls||[]).join('\n');
-    selector.hidden=stage!=='choose';
-    details.hidden=!(state?.entries?.length);
+      : '点击运行会自动处理固定 HTTPS 依赖；高级检查仅供查看来源、许可证与 SHA。已固定资产可离线复用，上限 32 个模块 / 256 KiB。')});
+    patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:stage}});
+    patchDeveloperField(view,button,{textContent:stage==='download'?(state?.cachedUrls?.length===state?.urls?.length?'确认复用缓存':'确认获取所列模块'):stage==='review'?'确认固定此版本':stage==='choose'?'使用所选固定版本':'高级：检查依赖'});
+    patchDeveloperField(view,button,{disabled:busy||isBlocked()||stage==='choose'&&!selector?.value});
+    patchDeveloperField(view,cancelButton,{hidden:!busy});patchDeveloperField(view,cancelButton,{disabled:false});
+    patchDeveloperField(view,sources,{hidden:!(state?.urls?.length)});patchDeveloperField(view,sources,{textContent:(state?.urls||[]).join('\n')});
+    patchDeveloperField(view,selector,{hidden:stage!=='choose'});
+    patchDeveloperField(view,details,{hidden:!(state?.entries?.length)});
     if(state?.entries?.length){
-      detailBody.textContent=state.entries.map(row=>row.url+'\n'+row.bytes+' bytes · SHA-256 '+row.sha256+
-        '\n许可证：'+(row.license?.name||'来源未声明，需作者核对')).join('\n\n');
-      if(stage==='review')details.open=true;
+      patchDeveloperField(view,detailBody,{textContent:state.entries.map(row=>row.url+'\n'+row.bytes+' bytes · SHA-256 '+row.sha256+
+        '\n许可证：'+(row.license?.name||'来源未声明，需作者核对')).join('\n\n')});
+      if(stage==='review')patchDeveloperField(view,details,{open:true});
     }
     if(notify)onState();
   }
@@ -139,8 +140,8 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     }
     if(report.locks?.length>1){
       state={stage:'choose',input,analysis,report,message:'存在多份已固定版本，请明确选择本次使用的版本。'};
-      selector.replaceChildren(new Option('选择固定依赖版本',''),...report.locks.map(row=>new Option(row.lockId.slice(0,28)+'… · '+row.entries.length+' 个模块',row.lockId)));
-      selector.value='';render();return;
+      developerOptions(view,selector,[{label:'选择固定依赖版本',value:''},...report.locks.map(row=>({label:row.lockId.slice(0,28)+'… · '+row.entries.length+' 个模块',value:row.lockId}))]);
+      patchDeveloperField(view,selector,{value:''});render();return;
     }
     await showDownload(ticket,input,analysis,null,report.cachedUrls||[]);
   }
@@ -305,11 +306,11 @@ export function createPageComponentRemote({client,preparer,api,document:doc,getI
     return loaded;
   }
   const onCancel=event=>{if(event?.isTrusted)cancel();},onSelection=()=>render();
-  button?.addEventListener('click',click);cancelButton?.addEventListener('click',onCancel);selector?.addEventListener('change',onSelection);
+  const removeActions=[developerAction(view,button,'click',click),developerAction(view,cancelButton,'click',onCancel),developerAction(view,selector,'change',onSelection)];
   scheduleRunPermissionWarm();
   return Object.freeze({loadForRun,autoLoadForRun,confirmRun,resumeRunPermissionWarm,
     refresh,cancel,update:()=>render(false),
     get readyForRun(){return readyForRun();},get busy(){return busy;},
     dispose(){if(disposed)return;disposed=true;generation++;warmEpoch++;if(warmTimer)clearTimeout(warmTimer);permissions.dispose();
-      button?.removeEventListener('click',click);cancelButton?.removeEventListener('click',onCancel);selector?.removeEventListener('change',onSelection);}});
+      removeActions.forEach(remove=>remove());}});
 }

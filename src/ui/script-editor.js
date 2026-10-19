@@ -1,3 +1,4 @@
+import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {createRunHost} from '../run-host.js';
 import {permissionPattern} from '../environment.js';
 import {base64ToBytes, decodeValue} from '../platform/page-port/codec.js';
@@ -6,7 +7,7 @@ import {BUDGETS, invariant, digestUtf8} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
 import {createPageDependencyReview} from './page-dependency-review.js';
 import {createPageDependencyInstaller} from './page-dependency-install.js';
-import {preparePageCandidateDraft} from './page-candidate-source.js';
+import {preparePageCandidateDraft,validatePageCandidateAuthoring} from './page-candidate-source.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {parseControllerClassicDependencies} from '../scripting/user-scripts/controller-classic.js';
 import {createProgramSourceView,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
@@ -42,13 +43,16 @@ function printable(value, depth = 0) {
   return JSON.stringify(value);
 }
 
-export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: doc = globalThis.document,
+export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: hostDocument = globalThis.document,view=null,
   hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer,
   staticESMPreparerFactory=createStaticESMPreparer,
   browserCompilerEnabled=typeof __OPENDESK_BROWSER_COMPILER_ENABLED__==='undefined'||
     __OPENDESK_BROWSER_COMPILER_ENABLED__!==false}) {
-  const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
-  const find = id => doc.getElementById(id);
+  const host = hostFactory({api, client, document: hostDocument, templateModuleFactory: null});
+  // The complete React page consumes this UI projection. RunHost retains the
+  // real host document; no user code is evaluated in the trusted React tree.
+  const doc=hostDocument;
+  const find = id => view ? view.fields[id] : doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
   const resultKind = find('script-result-kind'), copyResult = find('script-copy-result');
   const pageTechnicalPanel = find('page-preview-technical-panel'), pageTechnical = find('page-preview-technical');
@@ -73,12 +77,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Keep the DOM IDs present for legacy draft restoration and lifecycle
     // guards, but never advertise a compilation mode missing from this ZIP.
     const authoringModes=find('page-component-editor-tools');
-    if(authoringModes)authoringModes.hidden=true;
-    const sourceLabel=doc.querySelector('label[for="script-source"]');
-    if(sourceLabel)sourceLabel.textContent='JavaScript 源码编辑器';
+    if(authoringModes)patchDeveloperField(view,authoringModes,{hidden:true});
+    const sourceLabel=view?view.fields['developer-source-label']:doc.querySelector('label[for="script-source"]');
+    if(sourceLabel)patchDeveloperField(view,sourceLabel,{textContent:'JavaScript 源码编辑器'});
     for(const mode of ['react','vue']){
       const choice=componentInputs[mode];
-      if(choice){choice.disabled=true;if(choice.parentElement)choice.parentElement.hidden=true;}
+      if(choice){patchDeveloperField(view,choice,{disabled:true});if(choice.parentElement)patchDeveloperField(view,choice.parentElement,{hidden:true});}
     }
   }
   const componentPresets=Object.freeze({
@@ -96,11 +100,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     browserUnknownTarget={tabId:target.tabId,documentId:target.documentId};
   }
   const syncComponentInputs=()=>{
-    if(reactDeveloperFramework)reactDeveloperFramework({
-      mode:componentMode,compilerEnabled:browserCompilerEnabled,
-      onSelect:(next,event)=>{if(event?.isTrusted&&!disposed)chooseComponentMode(next);}
-    });
-    else for(const [mode,node] of Object.entries(componentInputs))if(node)node.checked=mode===componentMode;
+    for(const [mode,node] of Object.entries(componentInputs))if(node)patchDeveloperField(view,node,{checked:mode===componentMode});
   };
   const componentDrafts={javascript:'',react:componentPresets.react,vue:componentPresets.vue};
   // A choice of JavaScript world changes only the editor buffer. Execution
@@ -114,9 +114,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const browserBinding='browser-v1-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
   function componentMessage(state,message){
     if(!componentStatus)return;
-    componentStatus.hidden=componentMode==='javascript'&&!message;
-    componentStatus.dataset.state=state;
-    componentStatus.textContent=message||'';
+    patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!message});
+    patchDeveloperField(view,componentStatus,{data:{...(componentStatus.data||componentStatus.dataset),state:state}});
+    patchDeveloperField(view,componentStatus,{textContent:message||''});
   }
   const draftFields={source:'script-source',params:'script-params',id:'script-id',revision:'script-revision'};
   const captureDraft=()=>{
@@ -141,14 +141,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
       .catch(error=>console.warn('Sidebar draft could not be retained',error));
   }
   let scriptListSequence = 0, ownedDraftRunId = null, ownedManagedPreview=null, lastPagePreview=null;
-  let reactDeveloperTarget=null,reactDeveloperActions=null,reactDeveloperFramework=null,reactDeveloperStatus=null,reactDeveloperResult=null;
   // The original Script Editor exclusively owns authorized result values.
-  // Its legacy DOM writer survives only until the React portal handoff.
+  // React renders the editor fields without taking ownership of results.
   const resultProjection={text:output.textContent||'',kind:resultKind.textContent||''};
   function writeResultField(key,value){
     resultProjection[key]=value??'';
-    if(reactDeveloperResult)reactDeveloperResult({...resultProjection});
-    else (key==='text'?output:resultKind).textContent=resultProjection[key];
+    patchDeveloperField(view,key==='text'?output:resultKind,{textContent:resultProjection[key]});
   }
   const setResultText=value=>writeResultField('text',value);
   const setResultKind=value=>writeResultField('kind',value);
@@ -158,12 +156,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
   let browserListenersAttached = false;
   let dependencyResolver,dependencyReview,dependencyInstaller;
   let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
-  const localInstaller=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>localProject,readControllerRun:options=>host.controller.snapshotControllerRun(options),
+  const localInstaller=createLocalInstallUI({client,api,doc,view,currentPageTarget,getProject:()=>localProject,readControllerRun:options=>host.controller.snapshotControllerRun(options),
     isBusy:()=>running||previewBusy||stopping,retireManagedPreview:retireLocalPreviewForInstall,onState:()=>update()});
   const listen = (element, event, listener) => {
-    element.addEventListener(event, listener); listeners.push({element, event, listener});
+    const remove=developerAction(view,element,event,listener);listeners.push({element,event,listener,remove});
   };
-  const programSource = createProgramSourceView({document:doc,listen,onChange:() => {loadedPageSource=false;javascriptWorld='controller';javascriptDrafts.controller=programSource.source();dependencyResolver?.refresh();dependencyInstaller?.refresh();componentRemote?.refresh();update();}});
+  const programSource = createProgramSourceView({document:doc,view,listen,onChange:() => {loadedPageSource=false;javascriptWorld='controller';javascriptDrafts.controller=programSource.source();dependencyResolver?.refresh();dependencyInstaller?.refresh();componentRemote?.refresh();update();}});
 
   // Controller Classic uses the existing native source-permission consent, not
   // a second grant registry. The read-only observation is primed on edit; only
@@ -211,38 +209,37 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     // RunHost return values enter the result area only via an authorized Result
     // projection, never through transient claim/preview transport payloads.
-    if(reactDeveloperStatus)reactDeveloperStatus({state,text:message});
-    else {status.dataset.state = state;status.textContent = message;}
+    {patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:state}});patchDeveloperField(view,status,{textContent:message});}
     const taskStatus = find('script-task-status');
-    taskStatus.hidden = state !== 'results' || !taskStatus.textContent;
+    patchDeveloperField(view,taskStatus,{hidden:state !== 'results' || !taskStatus.textContent});
   }
   function displayCopyResult(label) {
     // Feedback must not replace the icon subtree when results refresh asynchronously.
-    copyResult.title = label;
-    copyResult.setAttribute('aria-label', label);
+    patchDeveloperField(view,copyResult,{title:label});
+    developerAttribute(view,copyResult,'aria-label',label);
     const feedback = find('script-copy-feedback');
     if (feedback) {
-      feedback.textContent = label === '复制结果' ? '' : label;
-      feedback.hidden = !feedback.textContent;
+      patchDeveloperField(view,feedback,{textContent:label === '复制结果' ? '' : label});
+      patchDeveloperField(view,feedback,{hidden:!feedback.textContent});
     }
   }
   function beginResult() {
     setResultText('正在运行…');
     setResultKind('等待返回值');
-    copyResult.disabled = true;
+    patchDeveloperField(view,copyResult,{disabled:true});
     displayCopyResult('复制结果');
   }
   let scriptsCheckSequence = 0;
-  if (scriptsRecovery) scriptsRecovery.hidden = true;
+  if (scriptsRecovery) patchDeveloperField(view,scriptsRecovery,{hidden:true});
   function showUserScriptsRecovery(state = 'blocked', message = 'page.evaluate() 无法执行。请打开扩展设置，开启「允许用户脚本」后返回检测；不会自动重放任务。') {
     if (!scriptsRecovery || disposed) return;
-    scriptsRecovery.hidden = false; scriptsRecovery.dataset.state = state;
-    scriptsRecoveryStatus.textContent = message;
-    scriptsSettings.hidden = state !== 'blocked';
+    patchDeveloperField(view,scriptsRecovery,{hidden:false}); patchDeveloperField(view,scriptsRecovery,{data:{...(scriptsRecovery.data||scriptsRecovery.dataset),state:state}});
+    patchDeveloperField(view,scriptsRecoveryStatus,{textContent:message});
+    patchDeveloperField(view,scriptsSettings,{hidden:state !== 'blocked'});
   }
   function hideUserScriptsRecovery() {
     scriptsCheckSequence++; // Fence a late read-only probe from an earlier run.
-    if (scriptsRecovery) { scriptsRecovery.hidden = true; scriptsRecovery.dataset.state = 'idle'; }
+    if (scriptsRecovery) { patchDeveloperField(view,scriptsRecovery,{hidden:true}); patchDeveloperField(view,scriptsRecovery,{data:{...(scriptsRecovery.data||scriptsRecovery.dataset),state:'idle'}}); }
   }
   const fail = error => {
     const help = formatTaskError(error);
@@ -251,7 +248,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Failed admission/preview is not a still-running script return value.
       setResultText('本次执行失败，未产生可显示的返回值');
       setResultKind('执行失败');
-      copyResult.disabled=true;
+      patchDeveloperField(view,copyResult,{disabled:true});
     }
     if (error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') showUserScriptsRecovery();
     else if (error?.code === 'E_USER_SCRIPTS_NATIVE') showUserScriptsRecovery('error', help);
@@ -262,13 +259,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function renderRevisionState() {
     const node = find('script-version');
     if (!currentRevision || currentRevision.scriptId !== scriptId()) {
-      node.dataset.dirty = 'false';
-      node.textContent = currentRevision ? '当前脚本 ID 尚未加载持久版本；仍可直接运行草稿' : '未保存草稿可直接运行；只有点击保存才创建正式版本';
+      patchDeveloperField(view,node,{data:{...(node.data||node.dataset),dirty:'false'}});
+      patchDeveloperField(view,node,{textContent:currentRevision ? '当前脚本 ID 尚未加载持久版本；仍可直接运行草稿' : '未保存草稿可直接运行；只有点击保存才创建正式版本'});
       return;
     }
     if (currentRevision.revision !== Number(find('script-revision').value)) {
-      node.dataset.dirty = 'false';
-      node.textContent = `已加载 r${currentRevision.revision}；本次运行始终使用编辑器当前草稿`;
+      patchDeveloperField(view,node,{data:{...(node.data||node.dataset),dirty:'false'}});
+      patchDeveloperField(view,node,{textContent:`已加载 r${currentRevision.revision}；本次运行始终使用编辑器当前草稿`});
       return;
     }
     let savedSource=currentRevision.sourceUtf8;
@@ -276,10 +273,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
       readControllerClassicAuthorSource(savedSource))?.authorSourceUtf8??savedSource;}
     catch{savedSource='';} // Damaged authoring headers must not appear clean.
     const dirty = programSource.source() !== savedSource;
-    node.dataset.dirty = String(dirty);
-    node.textContent = dirty
+    patchDeveloperField(view,node,{data:{...(node.data||node.dataset),dirty:String(dirty)}});
+    patchDeveloperField(view,node,{textContent:dirty
       ? `已保存 r${currentRevision.revision} · 存在未保存修改 · 运行草稿不会覆盖已保存版本`
-      : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`;
+      : `已保存 r${currentRevision.revision} · 可运行草稿；不自动创建新 revision`});
   }
   function otherTabOwnsBrowserUI(){
     return !!browserManagedPreview&&currentPageState?.status==='available'&&
@@ -329,49 +326,51 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(localPageResult&&!localPageResultIsCurrent({allowResolving:true})){
       localPageResult=null;
       setResultText('上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。');
-      setResultKind('上次结果已失效');copyResult.disabled=true;
+      setResultKind('上次结果已失效');patchDeveloperField(view,copyResult,{disabled:true});
       display('unknown','上次本地 Page 结果已失效，不能用于验证或安装当前源码');
     }
-    if(localPageResult)copyResult.disabled=!localPageResultIsCurrent();
+    if(localPageResult)patchDeveloperField(view,copyResult,{disabled:!localPageResultIsCurrent()});
     persistDraft();
     renderRevisionState();
     const pageExecution=isComponentDraft()||isPageDraft();
     const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
-    if(worldRow)worldRow.hidden=componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot();
+    if(worldRow)patchDeveloperField(view,worldRow,{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
     if(worldChoice){
-      worldChoice.value=javascriptWorld;
-      worldChoice.disabled=editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||
-        !!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown;
+      patchDeveloperField(view,worldChoice,{value:javascriptWorld});
+      patchDeveloperField(view,worldChoice,{disabled:editingBusy||running||stopping||previewBusy||!!host.currentRun||browserPreparing||
+        !!componentRemote?.busy||!!browserManagedPreview||browserEffectUnknown});
     }
     const paramsTools=find('manual-project-params-tools');
-    if(paramsTools)paramsTools.hidden=pageExecution||!!localProject?.active();
+    if(paramsTools)patchDeveloperField(view,paramsTools,{hidden:pageExecution||!!localProject?.active()});
     const versionIdentity=find('script-version-identity');
-    if(versionIdentity)versionIdentity.hidden=!!localProject?.active();
+    if(versionIdentity)patchDeveloperField(view,versionIdentity,{hidden:!!localProject?.active()});
     // Describe the selected official source format instead of telling React /
     // Vue authors to write the legacy async function main() entry.
+    const controllerTechnical=find('developer-run-technical');
+    if(controllerTechnical)patchDeveloperField(view,controllerTechnical,{hidden:componentMode!=='javascript'||loadedPageSource});
     const previewTitle=find('page-preview-mode-title');
     const previewHint=find('page-preview-mode-hint');
     const modeHint=find('page-component-hint');
-    if(previewTitle)previewTitle.textContent=componentMode==='javascript'?
-      '网页 JavaScript 试运行':componentMode==='react'?'网页 React JSX 组件试运行':'网页 Vue SFC 组件试运行';
-    if(previewHint)previewHint.textContent=componentMode==='react'?
+    if(previewTitle)patchDeveloperField(view,previewTitle,{textContent:componentMode==='javascript'?
+      '网页 JavaScript 试运行':componentMode==='react'?'网页 React JSX 组件试运行':'网页 Vue SFC 组件试运行'});
+    if(previewHint)patchDeveloperField(view,previewHint,{textContent:componentMode==='react'?
       '使用官方 React import、App JSX 和默认导出组件。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
       componentMode==='vue'?
         '使用官方 Vue script setup、template 与 scoped CSS。系统按需编译并受管挂载；无需 main() 或手动 Vite。仅获授权网页可运行。':
-        '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。';
-    if(modeHint)modeHint.textContent=componentMode==='javascript'?
+        '直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。运行前仍需网站授权。'});
+    if(modeHint)patchDeveloperField(view,modeHint,{textContent:componentMode==='javascript'?
       (isPageDraft()?'Page JavaScript 使用当前网页 DOM；Controller 使用 page 自动化 API，二者执行协议不同。':browserCompilerEnabled?'保存草稿不会运行网页':
         '标准版支持直接运行 JavaScript。JSX/Vue SFC 请使用本地 opendesk browser dev . 或 Developer Edition。'):
-      '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。';
+      '组件草稿保留在当前窗口会话；只有明确点击运行才操作网页，安装须另外授权。'});
     // Controller Save commits a Controller revision. Page ESM uses the
     // separate, preview-verified Page Candidate Save button.
     let saveDisabled=editingBusy||(isComponentDraft()&&!canPrepareComponentCandidate())||
       (loadedPageSource&&!isComponentDraft()&&!canSavePagePreview());
-    find('script-load').disabled=editingBusy;
+    patchDeveloperField(view,find('script-load'),{disabled:editingBusy});
     const saveTitle=isComponentDraft()?'保存组件候选':
       lastPagePreview?.sourceFormat==='esm-page'&&previewMatchesEditor(lastPagePreview)?'保存已试运行的 Page import 候选':'保存 Controller 固定版本';
-    find('script-list-refresh').disabled = editingBusy; find('script-list-load').disabled = editingBusy || !scriptList.value;
-    find('script-delete').disabled = editingBusy || !revisions.has(scriptId());
+    patchDeveloperField(view,find('script-list-refresh'),{disabled:editingBusy}); patchDeveloperField(view,find('script-list-load'),{disabled:editingBusy || !scriptList.value});
+    patchDeveloperField(view,find('script-delete'),{disabled:editingBusy || !revisions.has(scriptId())});
     let runDisabled = stopping || editingBusy || previewBusy || running || !projection?.slotAvailable || !!host.currentRun ||
       (componentMode!=='javascript'||!programSource.source().trim()) || programSource.kind() === 'page-userscript' ||
       (browserCompilerEnabled&&hasUnbuiltESM(programSource.source())&&!componentRemote?.readyForRun) ||
@@ -379,56 +378,52 @@ export function createScriptEditor({client, currentPageTarget, development=false
       mode.value === 'current' && currentPageState?.status !== 'available';
     const stopDisabled = stopping || !browserPreparing&&!componentRemote?.busy&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
     const stopLabel=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
-    if(componentSelector)componentSelector.disabled=!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot();
-    if(componentStatus)componentStatus.hidden=componentMode==='javascript'&&!componentStatus.textContent;
-    find('page-preview-run').disabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
+    if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:!!localProject?.active()||editingBusy||previewBusy||running||stopping||componentRemote?.busy||!!programSource.snapshot()});
+    if(componentStatus)patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!componentStatus.textContent});
+    patchDeveloperField(view,find('page-preview-run'),{disabled:stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
       (componentMode==='javascript'&&(dependencyResolver?.busy||
          (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)))||
        editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
-      currentPageState?.status!=='available';
-    find('page-preview-run').textContent=componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件';
+      currentPageState?.status!=='available'});
+    patchDeveloperField(view,find('page-preview-run'),{textContent:componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件'});
     if(pageExecution)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
-    if(pageCandidateButton)pageCandidateButton.disabled=!canSavePagePreview()&&!canPrepareComponentCandidate();
-    if(pageCandidateButton)pageCandidateButton.title='';
-    find('script-owned-url').disabled = mode.value !== 'owned';
-    tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
-    find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
+    if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{disabled:!canSavePagePreview()&&!canPrepareComponentCandidate()});
+    if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{title:''});
+    patchDeveloperField(view,find('script-owned-url'),{disabled:mode.value !== 'owned'});
+    patchDeveloperField(view,tab,{disabled:mode.value !== 'borrowed'}); patchDeveloperField(view,frame,{disabled:mode.value !== 'borrowed' || !documents.size});
+    patchDeveloperField(view,find('script-download'),{disabled:downloading || !downloadable.has(resultSelect.value)});
     let saveHidden=true,saveLabel='保存版本',runLabel='运行草稿';
     if(localProject?.active()){
-      for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
+      for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))patchDeveloperField(view,find(id),{disabled:true});
       saveHidden=false; // Visibility is navigation; Authority still gates install confirmation.
       saveDisabled=editingBusy||running||stopping||previewBusy||!localInstaller.hasSelection();
       saveLabel=localInstaller.saveLabel();
       runLabel='运行本地项目';
       runDisabled=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.canAttemptRun()||currentPageState?.status!=='available';
-      find('script-version').textContent='本地项目模式 · 手工草稿已保留；运行所选项目准备完成的代码';
+      patchDeveloperField(view,find('script-version'),{textContent:'本地项目模式 · 手工草稿已保留；运行所选项目准备完成的代码'});
     }else {
       runLabel=componentMode!=='javascript'
         ? '运行'+(componentMode==='react'?' React':' Vue')+' 组件'
         : isPageDraft()?'运行网页 JavaScript':'运行草稿';
       saveLabel=isComponentDraft()?'准备并保存网页脚本':isPageDraft()?'保存网页脚本版本':'保存版本';
     }
-    find('script-library-tools').hidden=!!localProject?.active()||pageExecution;
-    find('page-preview-tools').hidden=!!localProject?.active()||!pageExecution;
+    patchDeveloperField(view,find('script-library-tools'),{hidden:!!localProject?.active()||pageExecution});
+    patchDeveloperField(view,find('page-preview-tools'),{hidden:!!localProject?.active()||!pageExecution});
     const saveVersion=find('script-save-version');
     if(saveVersion){
-      saveVersion.hidden=pageExecution||!!localProject?.active();
-      saveVersion.disabled=saveDisabled||!programSource.source().trim();
+      patchDeveloperField(view,saveVersion,{hidden:pageExecution||!!localProject?.active()});
+      patchDeveloperField(view,saveVersion,{disabled:saveDisabled||!programSource.source().trim()});
     }
-    const actions={runDisabled,runLabel,saveDisabled,saveHidden,saveTitle,saveLabel,
-      stopDisabled,stopLabel,stopHidden:!!localProject?.active()&&stopDisabled,onRun:start,onSave:saveClick,
-      onStop:event=>{if(event?.isTrusted&&!disposed)Promise.resolve().then(stop).catch(fail);}};
-    if(reactDeveloperActions)reactDeveloperActions(actions);
-    else{
+    {
       const runButton=find('script-run'),saveButton=find('script-save'),stopButton=find('script-stop');
-      runButton.disabled=runDisabled;runButton.textContent=runLabel;
-      saveButton.disabled=saveDisabled;saveButton.hidden=saveHidden;
-      saveButton.title=saveTitle;saveButton.textContent=saveLabel;
-      stopButton.disabled=stopDisabled;stopButton.hidden=!!localProject?.active()&&stopDisabled;
-      stopButton.textContent=stopLabel;
+      patchDeveloperField(view,runButton,{disabled:runDisabled});patchDeveloperField(view,runButton,{textContent:runLabel});
+      patchDeveloperField(view,saveButton,{disabled:saveDisabled});patchDeveloperField(view,saveButton,{hidden:saveHidden});
+      patchDeveloperField(view,saveButton,{title:saveTitle});patchDeveloperField(view,saveButton,{textContent:saveLabel});
+      patchDeveloperField(view,stopButton,{disabled:stopDisabled});patchDeveloperField(view,stopButton,{hidden:!!localProject?.active()&&stopDisabled});
+      patchDeveloperField(view,stopButton,{textContent:stopLabel});
     }
     dependencyInstaller?.update();
   }
@@ -462,54 +457,53 @@ export function createScriptEditor({client, currentPageTarget, development=false
       statusTitle:available?'目标网页可运行；运行时核对所选源码、网站授权及文档身份':
         resolving?'':next?.message||'未找到活动 HTTP(S) 主文档'
     };
-    if(reactDeveloperTarget)reactDeveloperTarget(ui);
-    else {
+    {
       // Keep the exact original IDs/semantics for standalone editor consumers.
-      find('script-current-page-title').textContent=ui.title;
-      find('script-current-page-url').textContent=ui.url;
-      currentPageHost.textContent=ui.host;currentPageHost.title=ui.hostTitle;
-      currentPageStatus.dataset.state=ui.state;
-      currentPageStatus.textContent=ui.status;currentPageStatus.title=ui.statusTitle;
+      patchDeveloperField(view,find('script-current-page-title'),{textContent:ui.title});
+      patchDeveloperField(view,find('script-current-page-url'),{textContent:ui.url});
+      patchDeveloperField(view,currentPageHost,{textContent:ui.host});patchDeveloperField(view,currentPageHost,{title:ui.hostTitle});
+      patchDeveloperField(view,currentPageStatus,{data:{...(currentPageStatus.data||currentPageStatus.dataset),state:ui.state}});
+      patchDeveloperField(view,currentPageStatus,{textContent:ui.status});patchDeveloperField(view,currentPageStatus,{title:ui.statusTitle});
     }
-    if(available)currentPageDebug.textContent=JSON.stringify({
+    if(available)patchDeveloperField(view,currentPageDebug,{textContent:JSON.stringify({
       windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
-      documentId:next.documentId,url:next.url,origin:next.origin},null,2);
+      documentId:next.documentId,url:next.url,origin:next.origin},null,2)});
     else if(resolving)
-      currentPageDebug.textContent=next.windowId==null?'':JSON.stringify({windowId:next.windowId},null,2);
-    else currentPageDebug.textContent=JSON.stringify({
-      windowId:next?.windowId??null,reason:next?.reason||'E_TARGET'},null,2);
+      patchDeveloperField(view,currentPageDebug,{textContent:next.windowId==null?'':JSON.stringify({windowId:next.windowId},null,2)});
+    else patchDeveloperField(view,currentPageDebug,{textContent:JSON.stringify({
+      windowId:next?.windowId??null,reason:next?.reason||'E_TARGET'},null,2)});
     update();
   }
   function renderRunningTarget(target, runId) {
     if (!target) {
-      runningTargetStatus.dataset.state = 'idle';
-      runningTargetStatus.textContent = '运行目标：尚未建立';
-      runningTargetStatus.removeAttribute('title');
+      patchDeveloperField(view,runningTargetStatus,{data:{...(runningTargetStatus.data||runningTargetStatus.dataset),state:'idle'}});
+      patchDeveloperField(view,runningTargetStatus,{textContent:'运行目标：尚未建立'});
+      developerAttribute(view,runningTargetStatus,'title',null);
       return;
     }
-    runningTargetStatus.dataset.state = 'running';
-    runningTargetStatus.textContent = `运行目标：${target.url || target.allowedOrigin || '已冻结文档'}`;
-    runningTargetStatus.title = JSON.stringify({runId,tabId:target.tabId,frameId:target.frameId,
-      documentId:target.documentId,url:target.url,origin:target.allowedOrigin || target.origin});
+    patchDeveloperField(view,runningTargetStatus,{data:{...(runningTargetStatus.data||runningTargetStatus.dataset),state:'running'}});
+    patchDeveloperField(view,runningTargetStatus,{textContent:`运行目标：${target.url || target.allowedOrigin || '已冻结文档'}`});
+    patchDeveloperField(view,runningTargetStatus,{title:JSON.stringify({runId,tabId:target.tabId,frameId:target.frameId,
+      documentId:target.documentId,url:target.url,origin:target.allowedOrigin || target.origin})});
   }
   const stateLabels = {preparing:'正在准备',running:'运行中',stopping:'正在停止',settling:'正在保存结果',
     retiring:'正在释放资源',completed:'已完成',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
   function renderTask(run) {
     if (disposed) return;
     currentTask = run;
-    find('script-task-id').textContent = run ? `runId：${run.runId}` : '尚未运行';
-    find('script-task-status').textContent = run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : '';
-    find('script-task-version').textContent = run?.revision
+    patchDeveloperField(view,find('script-task-id'),{textContent:run ? `runId：${run.runId}` : '尚未运行'});
+    patchDeveloperField(view,find('script-task-status'),{textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
+    patchDeveloperField(view,find('script-task-version'),{textContent:run?.revision
       ? run.sourceKind === 'draft' || run.revision.kind === 'draft'
         ? `草稿快照 · SHA-256 ${run.revision.sourceHash}`
-        : `${run.revision.scriptId} · r${run.revision.revision} · ${run.revision.sourceHash}` : '';
+        : `${run.revision.scriptId} · r${run.revision.revision} · ${run.revision.sourceHash}` : ''});
     renderRunningTarget(run?.target, run?.runId);
-    runningTargetStatus.dataset.state = run?.state || 'idle';
+    patchDeveloperField(view,runningTargetStatus,{data:{...(runningTargetStatus.data||runningTargetStatus.dataset),state:run?.state || 'idle'}});
   }
   function remember(row, {head = true, authorSourceUtf8 = row.sourceUtf8} = {}) {
     if (head) revisions.set(row.scriptId, row.revision);
     currentRevision = row; currentRevisionAuthorSource = authorSourceUtf8;
-    find('script-revision').value = String(row.revision);
+    patchDeveloperField(view,find('script-revision'),{value:String(row.revision)});
     update(); return row;
   }
   function savedControllerSource(authorSourceUtf8,compiledSourceUtf8) {
@@ -530,12 +524,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function renderScriptList(rows) {
     const selected = scriptList.value || scriptId();
     revisions.clear();
-    scriptList.replaceChildren(new Option(rows.length ? '选择已保存脚本' : '没有已保存脚本', ''));
+    developerOptions(view,scriptList,[{label:rows.length ? '选择已保存脚本' : '没有已保存脚本',value:''}]);
     for (const row of rows) {
       revisions.set(row.scriptId, row.revision);
-      scriptList.append(new Option(`${row.scriptId} · r${row.revision} · ${row.contentHash}`, row.scriptId));
+      appendDeveloperOptions(view,scriptList,[{label:`${row.scriptId} · r${row.revision} · ${row.contentHash}`,value:row.scriptId}]);
     }
-    if (rows.some(row => row.scriptId === selected)) scriptList.value = selected;
+    if (rows.some(row => row.scriptId === selected)) patchDeveloperField(view,scriptList,{value:selected});
     update();
   }
   async function refreshScripts({silent = false} = {}) {
@@ -547,15 +541,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   function clearDocuments() {
     selectionVersion++; documents.clear();
-    frame.replaceChildren(new Option('请选择当前精确文档', '')); update();
+    developerOptions(view,frame,[{label:'请选择当前精确文档',value:''}]); update();
   }
   async function refreshTabs() {
-    clearDocuments(); tab.replaceChildren(new Option('请选择具体网页', ''));
+    clearDocuments(); developerOptions(view,tab,[{label:'请选择具体网页',value:''}]);
     const rows = await api.tabs.query({});
     if (disposed) return;
     for (const row of rows) {
       if (!row.incognito && Number.isSafeInteger(row.id) && /^https?:\/\//.test(row.url || ''))
-        tab.append(new Option(`[${row.id}] ${row.title || row.url} · ${row.url}`, String(row.id)));
+        appendDeveloperOptions(view,tab,[{label:`[${row.id}] ${row.title || row.url} · ${row.url}`,value:String(row.id)}]);
     }
   }
   async function refreshDocuments() {
@@ -568,7 +562,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (!row.documentId || row.errorOccurred || !/^https?:\/\//.test(row.url || '') ||
         row.documentLifecycle && row.documentLifecycle !== 'active') continue;
       documents.set(row.documentId, {mode:'borrowed',tabId,frameId:row.frameId,documentId:row.documentId,url:row.url});
-      frame.append(new Option(`frame ${row.frameId} · ${row.documentId} · ${row.url}`, row.documentId));
+      appendDeveloperOptions(view,frame,[{label:`frame ${row.frameId} · ${row.documentId} · ${row.url}`,value:row.documentId}]);
     }
     update();
   }
@@ -654,7 +648,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // ownership of the user's prior Page/JSX/Vue authoring buffers.
     loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';
     syncComponentInputs();lastPagePreview=null;componentMessage('idle','');
-    if(fromList)find('script-id').value=id;
+    if(fromList)patchDeveloperField(view,find('script-id'),{value:id});
     programSource.replaceSource(recorded?.authorSourceUtf8??row.sourceUtf8);
     javascriptDrafts.controller=programSource.source();
     scheduleControllerClassicWarm();
@@ -671,7 +665,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (!expectedRevision) throw {code:'E_REVISION',message:'请先加载最新持久版本'};
     await host.controller.tombstoneControllerScript({scriptId:id,expectedRevision});
     revisions.delete(id); if (currentRevision?.scriptId === id) currentRevision = undefined;
-    find('script-version').textContent = '脚本已删除'; update();
+    patchDeveloperField(view,find('script-version'),{textContent:'脚本已删除'}); update();
     await refreshScripts({silent: true});
     display('deleted','脚本已删除；已运行版本的源码保留至任务退休');
   }
@@ -681,33 +675,32 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Controller history must not overwrite the current local Page result.
     if(localPageResultIsCurrent({allowResolving:true})){update();return;}
     const previous = resultSelect.value;
-    downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
+    downloadable.clear(); developerOptions(view,resultSelect,[{label:'请选择要下载的结果',value:''}]);
     // Defense in depth: even a malformed/stale host projection cannot put a
     // revoked result in the visible text, history payload or download selector.
     const deniedRuns = new Set(snapshot.resultDeliveryDenied || []);
     const values = snapshot.results.filter(row => !deniedRuns.has(row.runId)).map(row => {
       if (row.state === 'completed' && row.outcome?.ok === true) {
         downloadable.set(row.resultId,row);
-        resultSelect.append(new Option(`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + row.revision.revision}`,row.resultId));
+        appendDeveloperOptions(view,resultSelect,[{label:`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + row.revision.revision}`,value:row.resultId}]);
       }
       return {tag:row.tag,runId:row.runId,resultId:row.resultId,state:row.state,sourceKind:row.sourceKind || 'saved',
         revision:row.revision && {scriptId:row.revision.scriptId,revision:row.revision.revision,sourceHash:row.revision.sourceHash},
         sourceHash:row.revision?.sourceHash,
         ...(row.outcome?.ok === true ? {value:decodeValue(row.outcome.valueWire)} : {error:row.outcome?.error})};
     });
-    if (downloadable.has(previous)) resultSelect.value = previous;
+    if (downloadable.has(previous)) patchDeveloperField(view,resultSelect,{value:previous});
     const task = currentTask && snapshot.runs.find(row=>row.runId === currentTask.runId);
     if (task) renderTask(task);
     else if (!running && !host.currentRun && snapshot.run) renderTask(snapshot.run);
     else if (!currentTask && !running && !host.currentRun && snapshot.runs.length) renderTask(snapshot.runs.at(-1));
     if (!snapshot.run) {
       const history = find('script-history-run'), selected = history.value;
-      history.replaceChildren(new Option('选择历史任务', ''));
-      for (const row of snapshot.runs) history.append(new Option(
-        `${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,row.runId));
-      if (snapshot.runs.some(row=>row.runId === selected)) history.value = selected;
-      find('script-history-open').disabled = !history.value;
-      find('script-history').textContent = printable({runs:snapshot.runs,results:values,downloads:snapshot.downloads,resultDeliveryDenied:snapshot.resultDeliveryDenied});
+      developerOptions(view,history,[{label:'选择历史任务',value:''}]);
+      for (const row of snapshot.runs) appendDeveloperOptions(view,history,[{label:`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,value:row.runId}]);
+      if (snapshot.runs.some(row=>row.runId === selected)) patchDeveloperField(view,history,{value:selected});
+      patchDeveloperField(view,find('script-history-open'),{disabled:!history.value});
+      patchDeveloperField(view,find('script-history'),{textContent:printable({runs:snapshot.runs,results:values,downloads:snapshot.downloads,resultDeliveryDenied:snapshot.resultDeliveryDenied})});
     }
     update();
     const focused = snapshot.run || currentTask;
@@ -720,22 +713,29 @@ export function createScriptEditor({client, currentPageTarget, development=false
     setResultKind(!visibleResult ? '暂无返回值' : currentValues.length > 1
       ? `共 ${currentValues.length} 项结果` : Object.hasOwn(visibleResult,'value')
         ? runValueKind(visibleResult.value) : '执行错误');
-    copyResult.disabled = !visibleResult || deniedRuns.has(focused?.runId);
+    patchDeveloperField(view,copyResult,{disabled:!visibleResult || deniedRuns.has(focused?.runId)});
     displayCopyResult('复制结果');
     if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
-      if (scriptsRecovery?.dataset.state !== 'available') showUserScriptsRecovery();
+      if ((scriptsRecovery?.data||scriptsRecovery?.dataset)?.state !== 'available') showUserScriptsRecovery();
     } else if (visibleResult) hideUserScriptsRecovery();
     // Reveal genuine outcome only for this session's own draft; old history
     // stays collapsed on ordinary entry, preserving editor working space.
     if (ownedDraftRunId && values.some(row => row.runId === ownedDraftRunId))
-      find('developer-results-panel').open = true;
+      patchDeveloperField(view,find('developer-results-panel'),{open:true});
   }
-  async function read(runId = find('script-run-id').value.trim()) {
+  async function read(runId = find('script-run-id').value.trim(),{reveal=false}={}) {
     if (disposed) return;
     const token = ++snapshotSequence;
     try {
       const snapshot = await host.controller.snapshotControllerRun(runId ? {runId} : {});
-      if (!disposed && token === snapshotSequence) showSnapshot(snapshot);
+      if (!disposed && token === snapshotSequence){
+        if(reveal)invariant(snapshot.run?.runId===runId,'E_RUN','原始运行记录不存在或身份已变化');
+        showSnapshot(snapshot);
+        if(reveal){
+          patchDeveloperField(view,find('developer-results-panel'),{open:true});
+          patchDeveloperField(view,find('script-history-panel'),{open:true});
+        }
+      }
     } catch (error) {if (!disposed && token === snapshotSequence) throw error;}
   }
   async function observeDownload(attemptId) {
@@ -746,15 +746,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const view = await client.request('reconcileDownload',{attemptId});
       if (disposed) return;
       entry.attempt = view.attempt;
-      downloadStatus.textContent = `下载 ${view.attempt.state} · ${entry.sha256}`;
+      patchDeveloperField(view,downloadStatus,{textContent:`下载 ${view.attempt.state} · ${entry.sha256}`});
       entry.localRevoked ||= host.artifactResources.release(view.attempt);
       if (entry.localRevoked) {
         await client.request('recordResourceRelease',{attemptId}); downloads.delete(attemptId);
-        downloadStatus.textContent = view.receipt?.browserDownloadComplete === true
-          ? `浏览器已完成下载 · 产物 SHA-256 ${entry.sha256}（磁盘文件待核对）` : `下载 ${view.attempt.state}，资源已释放 · ${entry.sha256}`;
+        patchDeveloperField(view,downloadStatus,{textContent:view.receipt?.browserDownloadComplete === true
+          ? `浏览器已完成下载 · 产物 SHA-256 ${entry.sha256}（磁盘文件待核对）` : `下载 ${view.attempt.state}，资源已释放 · ${entry.sha256}`});
       } else entry.timer = setTimeout(() => observeDownload(attemptId),1000);
     } catch (error) {
-      downloadStatus.textContent = `${error.code || 'E_EFFECT_UNKNOWN'}：${error.message}；${entry.localRevoked ? '本地 Blob 已释放，等待后台确认' : '保留资源与原尝试'}`;
+      patchDeveloperField(view,downloadStatus,{textContent:`${error.code || 'E_EFFECT_UNKNOWN'}：${error.message}；${entry.localRevoked ? '本地 Blob 已释放，等待后台确认' : '保留资源与原尝试'}`});
       if (!disposed) entry.timer = setTimeout(() => observeDownload(attemptId),1000);
     }
   }
@@ -764,9 +764,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const retired=await client.request('retirePreparedArtifact',{artifactId:entry.artifactId});
       for(const attemptId of retired.attemptIds) await client.request('recordResourceRelease',{attemptId});
       preparations.delete(entry.artifactId);
-      downloadStatus.textContent='未提交的下载已取消，本地资源与后台记录已收尾';
+      patchDeveloperField(view,downloadStatus,{textContent:'未提交的下载已取消，本地资源与后台记录已收尾'});
     } catch(error) {
-      downloadStatus.textContent=`${error.code || 'E_EFFECT_UNKNOWN'}：未提交的 Blob 已在本地释放，等待后台取消确认`;
+      patchDeveloperField(view,downloadStatus,{textContent:`${error.code || 'E_EFFECT_UNKNOWN'}：未提交的 Blob 已在本地释放，等待后台取消确认`});
       if(!disposed) entry.timer=setTimeout(()=>retirePreparation(entry),1000);
     }
   }
@@ -774,7 +774,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (downloading) return;
     const row = downloadable.get(resultSelect.value);
     if (!row) throw {code:'E_RESULT',message:'请选择已完成的持久结果'};
-    downloading = true; update(); downloadStatus.textContent = '正在准备持久结果文件…';
+    downloading = true; update(); patchDeveloperField(view,downloadStatus,{textContent:'正在准备持久结果文件…'});
     try {
       const prepared = await client.request('prepareArtifact',{requestId:crypto.randomUUID(),runId:row.runId,
         resultId:row.resultId,filename:`result-${row.runId}.json`,format:'typed-json'});
@@ -801,9 +801,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
       // Accepted dispatch is distinct from browser download completion.
       try {
         await client.request('dispatchDownload',{attemptId:attempt.attemptId});
-        downloadStatus.textContent = `已提交下载，等待浏览器完成 · ${artifact.sha256}`;
+        patchDeveloperField(view,downloadStatus,{textContent:`已提交下载，等待浏览器完成 · ${artifact.sha256}`});
       } finally {observeDownload(attempt.attemptId);}
-    } catch (error) {downloadStatus.textContent = `${error.code || 'E_EFFECT_UNKNOWN'}：${error.message || error}`;}
+    } catch (error) {patchDeveloperField(view,downloadStatus,{textContent:`${error.code || 'E_EFFECT_UNKNOWN'}：${error.message || error}`});}
     finally {downloading = false; update();}
   }
   function start(event) {
@@ -880,7 +880,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       admittedRunId = claim.runId;
       ownedDraftRunId = claim.runId;
       if (disposed) return;
-      find('script-run-id').value = claim.runId;
+      patchDeveloperField(view,find('script-run-id'),{value:claim.runId});
       renderTask(claim);
       display('running', '已接受冻结草稿；等待脚本结束及持久结果',
         {runId:claim.runId,sourceKind:claim.sourceKind,sourceHash:claim.revision.sourceHash,
@@ -891,7 +891,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     })().catch(error => {startError=error;admittedRunId ||= error.runId;fail(error);}).finally(async () => {
       running = false;browserPreparing=false;
       if (disposed) return;
-      if (admittedRunId) find('script-run-id').value = admittedRunId;
+      if (admittedRunId) patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       // Observe all durable history; association comes from the admitted run,
       // never from an editable runId or the editor's current revision.
       try {await read('');}
@@ -910,7 +910,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
     ownedDraftRunId=null;localPageResult=null;localInstaller.reset();running=true;renderTask(null);update();beginResult();
-    find('developer-results-panel').open=true;display('resolving','正在读取本地项目的当前源码…');
+    patchDeveloperField(view,find('developer-results-panel'),{open:true});display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
@@ -929,8 +929,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
           ...(page?{sourceUtf8:source.sourceUtf8,entryFormat:source.entryFormat,bindingId:source.bindingId,...(source.managedUI?{managedUI:true}:{}),...(source.pageRules?{pageRules:source.pageRules}:{})}:
           {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:30000})}});
       if(page){
-        find('script-task-id').textContent='previewId：'+claim.previewId;
-        find('script-task-version').textContent='Page USER_SCRIPT · SHA-256 '+source.sourceHash;
+        patchDeveloperField(view,find('script-task-id'),{textContent:'previewId：'+claim.previewId});
+        patchDeveloperField(view,find('script-task-version'),{textContent:'Page USER_SCRIPT · SHA-256 '+source.sourceHash});
         let result=claim;
         while(!disposed&&result.state==='preview-pending'){
           await new Promise(resolve=>{finishLocalPoll=resolve;localPollTimer=setTimeout(resolve,200);});localPollTimer=null;finishLocalPoll=null;
@@ -949,15 +949,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
         localInstaller.succeeded({source,binding,target:captured,previewId:claim.previewId});
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
         const valueText=result.result?.resultText ?? 'undefined';
-        find('page-preview-result').textContent=valueText;
+        patchDeveloperField(view,find('page-preview-result'),{textContent:valueText});
         setResultText(valueText);setResultKind('本地 Page · 本次结果');
-        copyResult.disabled=false;find('developer-results-panel').open=true;
-        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
-        pageTechnical.textContent='源码 SHA-256：'+source.sourceHash;
+        patchDeveloperField(view,copyResult,{disabled:false});patchDeveloperField(view,find('developer-results-panel'),{open:true});
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:'源码 SHA-256：'+source.sourceHash});
       }else{
         admittedRunId=ownedDraftRunId=claim.runId;
         if(disposed)return;
-        find('script-run-id').value=claim.runId;renderTask(claim);
+        patchDeveloperField(view,find('script-run-id'),{value:claim.runId});renderTask(claim);
         display('running','已运行本地源码快照；修改文件只影响下一次运行',{...claim,inputHash:source.inputHash});update();
         const result=await host.completion;
         if(result.error)throw result.error;
@@ -977,11 +977,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(page||!admittedRunId){
         setResultText(formatTaskError(error));
         setResultKind(page?'本地 Page · 执行失败':'本地项目 · 未启动');
-        copyResult.disabled=true;find('developer-results-panel').open=true;
+        patchDeveloperField(view,copyResult,{disabled:true});patchDeveloperField(view,find('developer-results-panel'),{open:true});
       }
     }).finally(async()=>{
       running=false;if(disposed)return;
-      if(admittedRunId)find('script-run-id').value=admittedRunId;
+      if(admittedRunId)patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       try{if(page)projection=await host.controller.snapshotControllerRun({});else await read('');}catch{projection=undefined;}
       if(startError)fail(startError);update();
     });
@@ -1013,16 +1013,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const runMode=mode.value,runKind=programSource.kind(),version=selectionVersion;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
-      const node=find('page-preview-status');node.dataset.state=state;node.textContent=message;
-      if(result!==undefined)find('page-preview-result').textContent=result;
+      const node=find('page-preview-status');patchDeveloperField(view,node,{data:{...(node.data||node.dataset),state:state}});patchDeveloperField(view,node,{textContent:message});
+      if(result!==undefined)patchDeveloperField(view,find('page-preview-result'),{textContent:result});
       display(state,message);
       if(state==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) showUserScriptsRecovery();
       else if(state==='error' && message.startsWith('E_USER_SCRIPTS_NATIVE')) showUserScriptsRecovery('error', message);
       else if(state==='completed') hideUserScriptsRecovery();
       setResultText(state==='running'?'正在运行…':state==='error'?'本次网页试运行失败，未产生可显示的返回值':result??'undefined');
       setResultKind(state==='completed'?'网页试运行结果':state==='error'?'网页试运行失败':'等待网页返回值');
-      copyResult.disabled=state!=='completed';
-      find('developer-results-panel').open=true;
+      patchDeveloperField(view,copyResult,{disabled:state!=='completed'});
+      patchDeveloperField(view,find('developer-results-panel'),{open:true});
     };
     try {
       captured=currentPageTarget.capture();
@@ -1072,7 +1072,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if(fixedFrameSource&&(componentMode!=='javascript'||programSource.kind()!==runKind||mode.value!==runMode||selectionVersion!==version))
         throw {code:'E_DEPENDENCY_STALE',message:'网页草稿或运行模式已变化；不会执行旧代码'};
     };
-    lastPagePreview=null;previewBusy=true;update();pageTechnicalPanel.hidden=true;pageTechnical.textContent='';
+    lastPagePreview=null;previewBusy=true;update();patchDeveloperField(view,pageTechnicalPanel,{hidden:true});patchDeveloperField(view,pageTechnical,{textContent:''});
     displayPreview('running','正在核对当前文档与固定源码…','');
     (async()=>{
       await permission;
@@ -1120,7 +1120,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
                 typeof observed.receiptNonce==='string'&&observed.completion.nonce===observed.receiptNonce){
                 browserManagedPreview={...identity,recoveredOnly:true};browserEffectUnknown=false;browserUnknownTarget=null;
                 error.previewRecovered=true;
-                pageTechnicalPanel.hidden=false;pageTechnical.textContent=JSON.stringify({originalPreview:observed},null,2);
+                patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({originalPreview:observed},null,2)});
               }
             }catch{} // No original completion remains unknown; never dispatch again.
           }
@@ -1139,9 +1139,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
         displayPreview('completed',fixedFrameSource?
           '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。':
           '组件已在当前网页运行；停止可清理受管 UI。可保存固定版本并单独审阅安装。',result.resultText ?? 'undefined');
-        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
-        pageTechnical.textContent=JSON.stringify({...result,authoring:{framework:built.framework,compilerVersion:built.compilerVersion,
-          sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs,remoteModules:built.remoteModules||[]}},null,2);
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({...result,authoring:{framework:built.framework,compilerVersion:built.compilerVersion,
+          sourceHash:built.sourceHash,cacheHit:built.cacheHit,prepareMs:built.prepareMs,remoteModules:built.remoteModules||[]}},null,2)});
         return;
       }
       const checkPage=()=>{if(disposed||prepareTicket!==browserPrepareGeneration)
@@ -1185,14 +1185,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
         '当前精确文档试运行完成；可保存作者 import 源码、批准依赖锁与固定编译产物。保存不会自动安装。':
         '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
         result.resultText ?? 'undefined');
-      pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
-        pageTechnical.textContent=JSON.stringify(result,null,2);
+      patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(result,null,2)});
     })().catch(error=>{
       const recovered=error.previewRecovered?'；已读取原完成回执，可以停止原组件。未重放运行。':'';
       displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)+recovered,'');
       if(componentSnapshot||frozenComponent)componentMessage('error',(error.code||'E_PAGE_COMPILER')+'：'+(error.message||error)+recovered);
       if(error.response?.state==='preview-failed'){
-        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;pageTechnical.textContent=JSON.stringify(error.response,null,2);
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(error.response,null,2)});
       }
     }).finally(()=>{browserPreparing=false;previewBusy=false;update();});
   }
@@ -1247,7 +1247,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const programId=scriptId(),revision=revisionText?Number(revisionText):1;
     if(!previewMatchesEditor(previous))
       throw {code:'E_REVISION',message:'源码已经修改，请重新试运行后保存'};
-    const prepared=preparePageCandidateDraft({...previous,programId,revision});
+    // Only editable JSX/SFC has component author metadata. Frozen drafts and
+    // managed JavaScript retain their exact executable source instead.
+    const {authoringSourceUtf8,...candidate}=previous;
+    const prepared=preparePageCandidateDraft({...candidate,programId,revision,
+      ...(['react','vue'].includes(previous.componentMode)?{authoringSourceUtf8}:{})});
     editingBusy=true;update();
     try {
       await currentPageTarget.revalidate(previous.target);
@@ -1257,28 +1261,28 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const changed=!previewMatchesEditor(previous)||scriptId()!==programId||
         find('script-revision').value.trim()!==revisionText;
       const status=find('page-candidate-status');
-      status.dataset.state='saved';
-      status.textContent=`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
+      patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:'saved'}});
+      patchDeveloperField(view,status,{textContent:`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
         ' '+prepared.summary+
         (changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
-        ' 请在已保存网页脚本中验证冻结版本，再明确安装。';
+        ' 请在已保存网页脚本中验证冻结版本，再明确安装。'});
       await pageLibrary.refresh(programId+':'+revision);
     }finally{editingBusy=false;update();}
   }
   dependencyResolver=createPageDependencyResolver({client,getSource:()=>programSource.source(),
     preparer:staticESMPreparer,getProgramId:()=>scriptId(),onState:update});
 
-  dependencyReview=createPageDependencyReview({client,resolver:dependencyResolver,api,document:doc,
+  dependencyReview=createPageDependencyReview({client,resolver:dependencyResolver,api,document:doc,view,
     getSource:()=>programSource.source(),onState:update,
     isAvailable:()=>componentMode==='javascript'&&!localProject?.active()&&!programSource.snapshot()&&
       !editingBusy&&!running&&!previewBusy&&!stopping&&!host.currentRun});
 
-  dependencyInstaller=createPageDependencyInstaller({client,api,document:doc,resolver:dependencyResolver,
+  dependencyInstaller=createPageDependencyInstaller({client,api,document:doc,view,resolver:dependencyResolver,
     getSource:()=>programSource.source(),getProgramId:()=>scriptId(),
     isVisible:()=>componentMode==='javascript'&&!localProject?.active()&&programSource.kind()!=='controller',
     isBlocked:()=>disposed||editingBusy||previewBusy||running||stopping||!!host.currentRun,
     onState:update});
-  componentRemote=createPageComponentRemote({client,preparer:browserPreparer,api,document:doc,
+  componentRemote=createPageComponentRemote({client,preparer:browserPreparer,api,document:doc,view,
     getInput:()=>{
       const source=programSource.source();
       return componentMode==='javascript'&&browserCompilerEnabled&&!localProject?.active()&&
@@ -1287,18 +1291,29 @@ export function createScriptEditor({client, currentPageTarget, development=false
         {componentSource:source,framework:localProject?.active()||programSource.snapshot()?'javascript':componentMode};
     },
     isBlocked:()=>editingBusy||previewBusy||running||stopping||!!host.currentRun,onState:update});
-  const pageLibrary=createPageProgramLibrary({client,currentPageTarget,api,document:doc,onLoad:async row=>{
-    if(editingBusy||localProject?.active())throw {code:'E_BUSY',message:'请先结束当前编辑操作并切换为手工草稿'};
-    const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value;
+  const pageLibrary=createPageProgramLibrary({client,currentPageTarget,api,document:doc,view,onLoad:async row=>{
+    const loadBlocked=()=>editingBusy||running||previewBusy||stopping||host.currentRun||
+      browserManagedPreview||browserEffectUnknown||localProject?.active()||programSource.snapshot();
+    if(loadBlocked())throw {code:'E_BUSY',message:'请先停止当前运行并切换为手工草稿'};
+    const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value,
+      previousMode=componentMode,previousWorld=javascriptWorld;
     const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
-    if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value)
+    const authoring=await validatePageCandidateAuthoring(saved);
+    if(disposed||loadBlocked()||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value||
+      previousMode!==componentMode||previousWorld!==javascriptWorld)
       throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
     componentDrafts[componentMode]=source;
-    loadedPageSource=true;componentMode='javascript';javascriptWorld='page';syncComponentInputs();
-    programSource.replaceSource(saved.authorSourceUtf8??saved.sourceUtf8);javascriptDrafts.page=programSource.source();find('script-id').value=row.programId;
-    find('script-revision').value=String(row.revision);lastPagePreview=null;
+    if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=source;
+    loadedPageSource=true;componentMode=authoring?.framework??'javascript';javascriptWorld='page';syncComponentInputs();
+    programSource.replaceSource(authoring?.sourceUtf8??saved.authorSourceUtf8??saved.sourceUtf8);
+    componentDrafts[componentMode]=programSource.source();
+    if(componentMode==='javascript')javascriptDrafts.page=programSource.source();
+    patchDeveloperField(view,find('script-id'),{value:row.programId});
+    patchDeveloperField(view,find('script-revision'),{value:String(row.revision)});lastPagePreview=null;
     if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
     else dependencyResolver.refresh();
+    browserPreparer.cancel();browserPrepareGeneration++;
+    dependencyInstaller.refresh();componentRemote.refresh();
     update();
   }});
   const onNavigation = details => {
@@ -1315,7 +1330,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       browserEffectUnknown=false;
       browserUnknownTarget=null;
     }
-    if(String(tabId)===tab.value){tab.value='';clearDocuments();}
+    if(String(tabId)===tab.value){patchDeveloperField(view,tab,{value:''});clearDocuments();}
     update();
   };
   const on = (id, event, operation) => listen(find(id), event, () => Promise.resolve().then(operation).catch(fail));
@@ -1337,7 +1352,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
-  on('script-history-run','change',()=>{find('script-history-open').disabled=!find('script-history-run').value;});
+  on('script-history-run','change',()=>{patchDeveloperField(view,find('script-history-open'),{disabled:!find('script-history-run').value});});
   on('script-copy-result','click',async () => {
     if (disposed || copyResult.disabled) return;
     try {
@@ -1347,7 +1362,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     } catch {
       if (disposed) return;
       displayCopyResult('无法自动复制');
-      copyResult.title = '请选中返回值后手动复制';
+      patchDeveloperField(view,copyResult,{title:'请选中返回值后手动复制'});
     }
   });
   on('script-download','click',downloadResult); on('script-download-result','change',update);
@@ -1417,7 +1432,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   listen(scriptsCheck, 'click', event => {
     if (!event.isTrusted || disposed || scriptsRecovery.hidden || scriptsCheck.disabled) return;
     const sequence = ++scriptsCheckSequence;
-    scriptsCheck.disabled = true;
+    patchDeveloperField(view,scriptsCheck,{disabled:true});
     showUserScriptsRecovery('checking', '正在读取 Chrome 用户脚本能力（只检测，不申请权限）…');
     void inspectUserScriptsAccess(api).then(available => {
       if (disposed || sequence !== scriptsCheckSequence) return;
@@ -1429,7 +1444,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (disposed || sequence !== scriptsCheckSequence) return;
       showUserScriptsRecovery('error', `${error.code || 'E_USER_SCRIPTS_NATIVE'}：${error.message}`);
     }).finally(() => {
-      if (!disposed && sequence === scriptsCheckSequence) scriptsCheck.disabled = false;
+      if (!disposed && sequence === scriptsCheckSequence) patchDeveloperField(view,scriptsCheck,{disabled:false});
     });
   });
   listen(find('page-preview-run'), 'click', previewPage);
@@ -1437,8 +1452,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   if(candidateSaveButton)listen(candidateSaveButton,'click',event=>{
     if(!event.isTrusted)return;
     (isComponentDraft()?savePreparedComponent():savePageCandidate()).catch(error=>{
-      const node=find('page-candidate-status');node.dataset.state='error';
-      node.textContent=(error.code||'E_PAGE_CANDIDATE')+'：'+(error.message||error);
+      const node=find('page-candidate-status');patchDeveloperField(view,node,{data:{...(node.data||node.dataset),state:'error'}});
+      patchDeveloperField(view,node,{textContent:(error.code||'E_PAGE_CANDIDATE')+'：'+(error.message||error)});
     });
   });
   async function stop(){
@@ -1456,10 +1471,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
           throw {code:'E_UI_CLEANUP_FAILED',message:'没有收到可信的组件停止回执'};
         if(browserManagedPreview===owned)browserManagedPreview=null;
         componentMessage('completed','已停止 · 受管组件和样式已清理');
-        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
-        pageTechnical.textContent=JSON.stringify({stop:result,framework:owned.framework},null,2);
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({stop:result,framework:owned.framework},null,2)});
         display('completed','受管组件已清理；网页业务效果不会回滚。');
       }catch(error){
+        if(error?.code==='E_DEV_RELOADING'){
+          // Dispatch was explicitly rejected; retain the original Stop right.
+          display('blocked','源码更新暂缓了停止请求；原组件仍可停止，请稍后重试。');
+          return;
+        }
         quarantineBrowserEffect(owned.target); // Uncertain Stop is document-bound; never blindly retry.
         componentMessage('error',(error.code||'E_UI_CLEANUP')+'：'+error.message+
           '；无法确认组件已清理，请重新加载目标网页');
@@ -1483,9 +1503,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
           sourceHash:owned.sourceHash,tabId:owned.target.tabId,
           documentId:owned.target.documentId,url:owned.target.url};
         setResultText(JSON.stringify(result,null,2));setResultKind('本地 Page · 停止回执');
-        copyResult.disabled=false;find('developer-results-panel').open=true;
-        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
-        pageTechnical.textContent=JSON.stringify({stop:result},null,2);
+        patchDeveloperField(view,copyResult,{disabled:false});patchDeveloperField(view,find('developer-results-panel'),{open:true});
+        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});
+        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({stop:result},null,2)});
         display('completed','受管 UI 已清理；网页业务效果不会回滚。');
       }finally{stopping=false;update();}
       return;
@@ -1552,7 +1572,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         if(programSource.kind()==='page-userscript')javascriptWorld='page';
         if(programSource.kind()==='controller')javascriptWorld='controller';
         if(componentMode==='javascript')javascriptDrafts[javascriptWorld]=programSource.source();
-        for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name]??'';
+        for(const [name,id] of Object.entries(draftFields))if(name!=='source')patchDeveloperField(view,find(id),{value:saved[name]??''});
         dependencyResolver.refresh();componentRemote.refresh();
       }
     }
@@ -1565,51 +1585,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
     loadedPageSource=pageImport;componentMode='javascript';javascriptWorld=pageImport?'page':'controller';syncComponentInputs();
     javascriptDrafts[javascriptWorld]=sourceUtf8;
     currentRevision = undefined;
-    find('script-id').value = `import-${Date.now()}`;
-    find('script-revision').value = '';
+    patchDeveloperField(view,find('script-id'),{value:`import-${Date.now()}`});
+    patchDeveloperField(view,find('script-revision'),{value:''});
     programSource.replaceSource(sourceUtf8);
     dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh(); update();
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
   scheduleControllerClassicWarm();
-  return {host,connectReactDeveloperResult(render){
-    if(disposed||reactDeveloperResult||typeof render!=='function')
-      throw new Error('E_REACT_DEVELOPER_RESULT_OWNERSHIP');
-    reactDeveloperResult=render;render({...resultProjection});
-  },connectReactDeveloperStatus(render){
-    if(disposed||reactDeveloperStatus||typeof render!=='function')
-      throw new Error('E_REACT_DEVELOPER_STATUS_OWNERSHIP');
-    reactDeveloperStatus=render;
-    render({state:status.dataset.state||'loading',text:status.textContent||''});
-  },connectReactDeveloperFramework(render){
-    if(disposed||reactDeveloperFramework||typeof render!=='function')
-      throw new Error('E_REACT_DEVELOPER_FRAMEWORK_OWNERSHIP');
-    const attached=Object.values(componentInputs).map(element=>
-      listeners.filter(entry=>entry.element===element&&entry.event==='change'));
-    if(attached.some(entries=>entries.length!==1))
-      throw new Error('E_REACT_DEVELOPER_FRAMEWORK_LEGACY_LISTENERS');
-    for(const entry of attached.flat()){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
-    reactDeveloperFramework=render;syncComponentInputs();
-  },connectReactDeveloperActions(render){
-    if(disposed||reactDeveloperActions||typeof render!=='function')
-      throw new Error('E_REACT_DEVELOPER_ACTIONS_OWNERSHIP');
-    const attached=['script-run','script-save','script-stop'].map(id=>
-      listeners.filter(entry=>entry.element===find(id)&&entry.event==='click'));
-    if(attached.some(entries=>entries.length!==1))
-      throw new Error('E_REACT_DEVELOPER_LEGACY_LISTENERS');
-    // Remove the legacy listeners before React replaces the DOM children.
-    for(const entry of attached.flat()){
-      entry.element.removeEventListener(entry.event,entry.listener);
-      listeners.splice(listeners.indexOf(entry),1);
-    }
-    reactDeveloperActions=render;update();
-  },connectReactDeveloperTarget(render){
-    if(disposed||reactDeveloperTarget||typeof render!=='function')
-      throw new Error('E_REACT_DEVELOPER_TARGET_OWNERSHIP');
-    reactDeveloperTarget=render;renderCurrentPage(currentPageState);
+  return {host,model:view,async openRun(runId){
+    invariant(typeof runId==='string'&&runId.trim()===runId&&runId.length>0&&runId.length<=200,
+      'E_RUN','请选择有效的原始运行记录');
+    await read(runId,{reveal:true});
   },async prepareDevelopmentReload(){
     const idle=()=>!disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&!ownedManagedPreview&&!browserManagedPreview&&
       !host.executionPending&&!host.currentRun&&!downloading&&!preparations.size&&!client.resourceSnapshot?.().pending;
@@ -1625,7 +1611,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   },connectLocalProjects(adapter,{onInstalled}={}){
     if(localProject||!find('local-project-mode'))return;
     localAdapter=adapter;localInstaller.setOnInstalled(onInstalled);
-    localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
+    localProject=createLocalProjectView({client,api,document:doc,view,onChange:update});update();
   },executionSource:()=>{
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'本地开发项目请通过正式打包流程创建已安装任务'};
     const source=programSource.source();
@@ -1657,10 +1643,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; reactDeveloperTarget=null;reactDeveloperActions=null;reactDeveloperFramework=null;reactDeveloperStatus=null;reactDeveloperResult=null; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
-    for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);
+    for (const entry of listeners) entry.remove();
     listeners.length = 0;
     for (const entry of downloads.values()) { clearTimeout(entry.timer); entry.timer = null; }
     for (const entry of preparations.values()) { clearTimeout(entry.timer); entry.timer = null; }

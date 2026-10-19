@@ -12,11 +12,16 @@ export async function validateKnowledgeHandoff(value,{installed,enableRecords,in
     throw new Error('知识草稿已过期、内容不完整或工具已变化，请从收件箱重新发送');
   return structuredClone(value);
 }
-export function initKnowledgeWorkspaceHandoff({api,doc,canImport,onImport,report,lockManager=globalThis.navigator?.locks}){
-  const panel=doc.getElementById('knowledge-handoff'),button=doc.getElementById('knowledge-handoff-import');
-  if(!panel||!button||!api?.tabs?.getCurrent)return {controls(){}};
+export function createKnowledgeWorkspaceHandoff({api,canImport,onImport,report,lockManager=globalThis.navigator?.locks}){
   let pending=null,key=null,busy=false,disposed=false;
-  function controls(){button.disabled=busy||!pending||!canImport();}
+  const listeners=new Set();
+  let snapshot=Object.freeze({pending:null,busy:false,disabled:true});
+  function controls(){
+    if(disposed)return;
+    snapshot=Object.freeze({pending:pending?Object.freeze({title:pending.title,filename:pending.filename}):null,
+      busy,disabled:busy||!pending||!canImport()});
+    for(const listener of [...listeners])listener();
+  }
   async function read(){
     const tab=await api.tabs.getCurrent();if(!Number.isInteger(tab?.id)||disposed)return;
     key=KNOWLEDGE_WORKSPACE_PREFIX+tab.id;
@@ -24,7 +29,6 @@ export function initKnowledgeWorkspaceHandoff({api,doc,canImport,onImport,report
     const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
     pending=await validateKnowledgeHandoff(value,{installed:saved[SIDEBAR_TOOL_STORE],enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],installEpoch:saved[TOOL_REVOCATION_EPOCHS_STORE]?.['knowledge-inbox']??null});
     if(disposed)return;
-    panel.hidden=false;doc.getElementById('knowledge-handoff-title').textContent='来自知识收件箱：'+pending.title;
     controls();
   }
   const click=async event=>{
@@ -41,12 +45,27 @@ export function initKnowledgeWorkspaceHandoff({api,doc,canImport,onImport,report
         if(disposed)return;
         const imported=await onImport(value);
         if(imported===false)return;
-        pending=null;panel.hidden=true;
+        pending=null;
         await api.storage.session.remove(key);
       });
     }catch(error){report(error);}finally{busy=false;controls();}
   };
-  button.addEventListener('click',click);
-  void read().catch(report);
-  return {controls,dispose(){disposed=true;button.removeEventListener('click',click);}};
+  const ready=api?.tabs?.getCurrent?read().catch(report):Promise.resolve();
+  return {getSnapshot:()=>snapshot,subscribe(listener){listeners.add(listener);return ()=>listeners.delete(listener);},
+    controls,importDraft:click,ready,dispose(){disposed=true;listeners.clear();}};
+}
+
+// Compatibility for the isolated legacy consumer; the official Workspace now
+// subscribes to the controller above and owns its DOM entirely in React.
+export function initKnowledgeWorkspaceHandoff({doc,...options}){
+  const panel=doc.getElementById('knowledge-handoff'),button=doc.getElementById('knowledge-handoff-import');
+  if(!panel||!button)return {controls(){}};
+  const controller=createKnowledgeWorkspaceHandoff(options);
+  const render=()=>{
+    const state=controller.getSnapshot();panel.hidden=!state.pending;button.disabled=state.disabled;
+    if(state.pending)doc.getElementById('knowledge-handoff-title').textContent='来自知识收件箱：'+state.pending.title;
+  };
+  const stop=controller.subscribe(render);render();
+  button.addEventListener('click',controller.importDraft);
+  return {controls:controller.controls,dispose(){stop();controller.dispose();button.removeEventListener('click',controller.importDraft);}};
 }

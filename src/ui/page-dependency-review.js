@@ -3,73 +3,61 @@ import {digestUtf8} from '../platform/protocol.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
 
-// Source-attached actions; durable bytes/approvals stay in the existing manager.
+// Source-attached state/actions only. Durable bytes and approvals stay in the manager.
 export function createPageDependencyReview({client,resolver,getSource,isAvailable=()=>true,
-  api=globalThis.chrome,document:doc=globalThis.document,onState=()=>{}}) {
-  const parent=doc.getElementById('manual-source-editor');
-  if(!parent)return {update(){},get readyForRun(){return true;},confirmRun(){return Promise.resolve(true);},dispose(){}};
-  const node=(tag,id,text)=>{const el=doc.createElement(tag);if(id)el.id=id;if(text)el.textContent=text;return el;};
-  const root=node('details','network-js-review');root.className='od-stack';root.hidden=true;
-  const summary=node('summary',null,'网络 JS：下载准备与审核');
-  const state=node('p','network-js-status');state.setAttribute('role','status');state.setAttribute('aria-live','polite');
-  const prepare=node('button','network-js-prepare','下载并准备依赖');prepare.type='button';
-  const worldLabel=node('label'),world=node('select','network-js-world');
-  worldLabel.append(node('span',null,'依赖用途'),world);worldLabel.hidden=true;
-  for(const [value,text] of [['esm-page','用于网页 Page'],['esm-controller','用于 Controller']]) {
-    const option=node('option',null,text);option.value=value;world.append(option);
-  }
-  world.value='esm-page';world.setAttribute('aria-label','静态 import 的运行世界');
-  const metadata=node('textarea','network-js-metadata');metadata.readOnly=true;metadata.rows=5;
-  metadata.setAttribute('aria-label','待审核的依赖来源、哈希、许可证和风险');metadata.hidden=true;
-  const sources=node('div','network-js-sources');sources.className='od-stack';
-  const label=node('label'),accept=node('input','network-js-consent');accept.type='checkbox';
-  label.append(accept,node('span',null,'我已审核来源、源码、SHA-256 和许可证信息'));label.hidden=true;
-  const approve=node('button','network-js-approve','批准这些固定字节');approve.type='button';approve.hidden=true;
-  root.append(summary,state,worldLabel,prepare,metadata,sources,label,approve);parent.append(root);
-  let disposed=false,working=false,review=null,captured=null,sourceIdentity=null,availableIdentity=null,generation=0,permissionIdentity=null,permissionReady=false,approved=false,notice='';
-  const viewed=new Set(),listeners=[],sourceListeners=[];
+  api=globalThis.chrome,document:doc=globalThis.document,view,onState=()=>{}}) {
+  if(!view&&!doc?.getElementById('manual-source-editor'))
+    return {update(){},get readyForRun(){return true;},confirmRun(){return Promise.resolve(true);},dispose(){}};
+  let disposed=false,working=false,review=null,captured=null,sourceIdentity=null,availableIdentity=null,
+    generation=0,permissionIdentity=null,permissionReady=false,approved=false,notice='',accepted=false,projection;
+  const codes=new Map();
   const consent=createChromePermissionConsent({api,onChange(){permissionIdentity=null;permissionReady=false;update();}});
   const message=error=>(error?.code||'E_DEPENDENCY_REVIEW')+'：'+(error?.message||String(error));
-  const listen=(el,type,fn,list=listeners)=>{el.addEventListener(type,fn);list.push(()=>el.removeEventListener(type,fn));};
-  const invalidate=()=>{review=null;captured=null;approved=false;notice='';viewed.clear();accept.checked=false;
-    sourceListeners.splice(0).forEach(remove=>remove());metadata.hidden=true;metadata.value='';sources.replaceChildren();label.hidden=true;approve.hidden=true;};
+  const invalidate=()=>{review=null;captured=null;approved=false;notice='';codes.clear();accepted=false;};
   const assertCurrent=snapshot=>{
     if(disposed||snapshot.generation!==generation||!isAvailable()||getSource()!==snapshot.sourceUtf8||resolver.snapshot().key!==snapshot.key)
       throw {code:'E_DEPENDENCY_LOCK_STALE',message:'准备期间源码或编辑模式已变化；请重新准备，网页尚未运行'};
   };
   const originsFor=report=>[...new Set((report?.requires||[]).filter(row=>row.sourceKind==='https'&&!row.downloadError)
     .map(row=>'https://'+new URL(row.url).hostname+'/*'))];
+  function publish(values){
+    projection={...values,busy:working,review:review?{
+      reviewId:review.reviewId,accepted,approved,
+      entries:review.entries.map(entry=>({...entry,code:codes.get(entry.order)}))
+    }:null};
+    if(view)view.patchDependencies('network',projection);
+    else legacy.render(projection);
+  }
   function update() {
     if(disposed)return;
     const source=getSource(),parsed=parseUserScriptDependencies(source),available=isAvailable(),esm=hasUnbuiltESM(source);
     const identitySource=JSON.stringify([source,resolver.sourceFormat]);
-    if(identitySource!==sourceIdentity||available!==availableIdentity){generation++;sourceIdentity=identitySource;availableIdentity=available;invalidate();permissionIdentity=null;permissionReady=false;}
-    root.hidden=!available||!esm&&!parsed.requires.length;
-    worldLabel.hidden=!esm;world.disabled=working;
-    if(esm)world.value=resolver.sourceFormat;
-    prepare.textContent=esm?'下载并准备 '+(world.value==='esm-controller'?'Controller':'Page')+' 依赖':'下载并准备依赖';
-    if(root.hidden)return;
+    if(identitySource!==sourceIdentity||available!==availableIdentity){
+      generation++;sourceIdentity=identitySource;availableIdentity=available;invalidate();permissionIdentity=null;permissionReady=false;
+    }
+    const values={visible:available&&(esm||!!parsed.requires.length),isESM:esm,world:resolver.sourceFormat||'esm-page',
+      worldDisabled:working,prepareDisabled:true,approveDisabled:true,status:notice,
+      prepareLabel:esm?'下载并准备 '+(resolver.sourceFormat==='esm-controller'?'Controller':'Page')+' 依赖':'下载并准备依赖'};
+    if(!values.visible){publish(values);return;}
     let snapshot;
-    try{snapshot=resolver.snapshot();}catch(error){state.textContent=message(error);prepare.disabled=true;approve.disabled=true;return;}
+    try{snapshot=resolver.snapshot();}catch(error){publish({...values,status:message(error)});return;}
     const report=snapshot.report,origins=originsFor(report),identity=JSON.stringify([snapshot.key,origins]);
     if(identity!==permissionIdentity){
       permissionIdentity=identity;permissionReady=!origins.length;
       if(origins.length)void consent.prepare({origins}).then(result=>{
         if(!disposed&&permissionIdentity===identity){permissionReady=!!result;update();onState();}
-      }).catch(error=>{if(!disposed&&permissionIdentity===identity){notice=message(error);state.textContent=notice;onState();}});
+      }).catch(error=>{if(!disposed&&permissionIdentity===identity){notice=message(error);update();onState();}});
     }
     const unsupported=report?.requires?.find(row=>row.downloadError);
     const noDependencies=esm&&Array.isArray(report?.requires)&&report.requires.length===0;
-    prepare.disabled=working||!report||noDependencies||!permissionReady||!!unsupported;
-    approve.disabled=working||approved||!review||viewed.size!==review.entries.length||!accept.checked;
-    state.textContent=notice||(noDependencies?'无需外部依赖；可在所选世界离线编译运行，无需下载或批准。':unsupported?message(unsupported.downloadError):report?.locks?.length===1||report?.selectedLockId
-      ? '已有批准版本可离线试运行。重新下载只生成待审核字节，批准前保留原锁。'
-      : esm?'按静态 HTTPS import 准备；当前用于 '+(world.value==='esm-controller'?'Controller':'网页 Page')+'。下载、批准与运行独立；其他运行世界需要单独准备批准。':
-        '按源码中的 @require 声明准备。下载与批准均不运行网页；批准后另行点击网页试运行。');
+    publish({...values,prepareDisabled:working||!report||noDependencies||!permissionReady||!!unsupported,
+      approveDisabled:working||approved||!review||codes.size!==review.entries.length||!accepted,
+      status:notice||(noDependencies?'无需外部依赖；可在所选世界离线编译运行，无需下载或批准。':unsupported?message(unsupported.downloadError):
+        report?.locks?.length===1||report?.selectedLockId
+          ? '已有批准版本可离线试运行。重新下载只生成待审核字节，批准前保留原锁。'
+          : '点击 Run 会自动校验、获取并固定依赖。这里是可选的高级下载与审阅，不会运行网页。')});
   }
-  // The Page Run button owns the one native HTTPS-origin gesture. The
-  // existing manual review uses the very same consent object; no second
-  // permission/downloader implementation is introduced.
+  // Called synchronously by the existing Page Run click, using the same consent.
   function pageRunPermission(){
     if(disposed)throw {code:'E_HOST_CLOSED',message:'依赖面板已关闭'};
     if(!hasUnbuiltESM(getSource())||resolver.sourceFormat!=='esm-page')return null;
@@ -80,10 +68,7 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
     return {identity:JSON.stringify([snapshot.key,origins]),origins};
   }
   function readyForRun(){
-    try{
-      const row=pageRunPermission();
-      return !row||permissionIdentity===row.identity&&permissionReady;
-    }catch{return false;}
+    try{const row=pageRunPermission();return !row||permissionIdentity===row.identity&&permissionReady;}catch{return false;}
   }
   function confirmRun(event){
     if(!event?.isTrusted)return Promise.reject({code:'E_GESTURE',message:'请主动点击 Page Run'});
@@ -98,18 +83,18 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
   function action(event,operation) {
     if(!event?.isTrusted||disposed||working||!isAvailable())return;
     working=true;update();onState();
-    Promise.resolve().then(operation).catch(error=>{if(!disposed)notice=message(error);})
+    return Promise.resolve().then(operation).catch(error=>{if(!disposed)notice=message(error);})
       .finally(()=>{working=false;if(!disposed){update();onState();}});
   }
-  listen(prepare,'click',event=>{
-    if(!event?.isTrusted||prepare.disabled)return;
+  function prepare(event){
+    if(!event?.isTrusted||disposed||working||!isAvailable()||projection.prepareDisabled)return;
     let snapshot,permission;
     try{
       snapshot={...resolver.snapshot(),generation};const origins=originsFor(snapshot.report);
-      // Request synchronously from this trusted click, before the first await.
+      // Keep the native permission request inside the real trusted click stack.
       permission=origins.length?consent.confirm(event,{origins}):Promise.resolve(true);
     }catch(error){notice=message(error);update();return;}
-    action(event,async()=>{
+    return action(event,async()=>{
       invalidate();notice='正在下载准备；网页尚未运行…';update();await permission;assertCurrent(snapshot);
       const result=await client.request('preparePageDependencies',{sourceUtf8:snapshot.sourceUtf8,
         entryFormat:snapshot.entryFormat,...(snapshot.sourceFormat?{sourceFormat:snapshot.sourceFormat}:{}),explicitUserAction:true});
@@ -119,43 +104,99 @@ export function createPageDependencyReview({client,resolver,getSource,isAvailabl
       if(snapshot.sourceFormat&&(result.sourceFormat!==snapshot.sourceFormat||result.world!==snapshot.world))
         throw {code:'E_DEPENDENCY_WORLD',message:'下载回执的运行世界不符，请独立准备批准'};
       captured=snapshot;review=structuredClone(result);
-      metadata.value=review.entries.map(row=>`${row.order+1}. ${row.url}\n实际来源：${row.resolvedUrl}\nSHA-256：${row.sha256}\n大小：${row.byteLength} B；许可证：${row.license?.name||'未知，需要自行审阅'}\n${row.risk}`).join('\n\n');
-      metadata.hidden=false;label.hidden=false;approve.hidden=false;
-      for(const entry of review.entries){
-        const button=node('button',null,`查看缓存源码 ${entry.order+1}`);button.type='button';
-        const code=node('textarea');code.readOnly=true;code.rows=8;code.hidden=true;code.setAttribute('aria-label',`依赖 ${entry.order+1} 的完整缓存源码`);
-        listen(button,'click',event=>action(event,async()=>{
-          assertCurrent(snapshot);
-          const bytes=await client.request('readPageDependencyReview',{reviewId:result.reviewId,order:entry.order});
-          assertCurrent(snapshot);
-          if(bytes.reviewId!==result.reviewId||bytes.order!==entry.order||bytes.sha256!==entry.sha256||
-            typeof bytes.code!=='string'||await digestUtf8(bytes.code)!==entry.sha256)
-            throw {code:'E_DEPENDENCY_HASH',message:'缓存原文与审核 SHA-256 不符'};
-          assertCurrent(snapshot);code.value=bytes.code;code.hidden=false;viewed.add(entry.order);
-          notice='已显示固定缓存原文；哈希不代表代码可信，请逐项审阅后再批准。';
-        }),sourceListeners);
-        sources.append(button,code);
-      }
-      notice='下载准备完成。请逐项查看缓存源码，审核来源、哈希与许可证后批准；网页尚未运行。';
+      notice='下载准备完成。可逐项查看缓存源码，审核来源、哈希与许可证后批准；网页尚未运行。';
     });
-  });
-  listen(accept,'change',update);
-  listen(approve,'click',event=>{
-    if(approve.disabled)return;
+  }
+  function readSource(event,order,reviewId){
+    if(!review||review.reviewId!==reviewId)return;
+    const frozen=review,snapshot=captured,entry=frozen.entries.find(row=>row.order===order);
+    if(!entry)return;
+    return action(event,async()=>{
+      assertCurrent(snapshot);
+      const bytes=await client.request('readPageDependencyReview',{reviewId:frozen.reviewId,order:entry.order});
+      assertCurrent(snapshot);
+      if(bytes.reviewId!==frozen.reviewId||bytes.order!==entry.order||bytes.sha256!==entry.sha256||
+        typeof bytes.code!=='string'||await digestUtf8(bytes.code)!==entry.sha256)
+        throw {code:'E_DEPENDENCY_HASH',message:'缓存原文与审核 SHA-256 不符'};
+      assertCurrent(snapshot);codes.set(entry.order,bytes.code);
+      notice='已显示固定缓存原文；哈希不代表代码可信，请逐项审阅后再批准。';
+    });
+  }
+  function approve(event){
+    if(projection.approveDisabled)return;
     const frozen=review,snapshot=captured;
-    action(event,async()=>{
+    return action(event,async()=>{
       assertCurrent(snapshot);
       const lock=await client.request('approvePageDependencies',{reviewId:frozen.reviewId,explicitUserAction:true,
         acceptedHashes:frozen.entries.map(row=>row.sha256)});
       assertCurrent(snapshot);resolver.accept(lock,snapshot);approved=true;
       notice='已明确批准这些固定字节。网页尚未运行；请单独点击'+(snapshot.sourceFormat==='esm-controller'?'运行草稿':'网页试运行')+'。';
     });
-  });
-  listen(world,'change',()=>{
-    if(working||disposed){world.value=resolver.sourceFormat;return;}
-    resolver.refresh({sourceFormat:world.value});update();onState();
-  });
+  }
+  const actions=Object.freeze({prepare,readSource,approve,
+    accept(value,reviewId){if(disposed||working||!review||review.reviewId!==reviewId)return;accepted=value===true;update();},
+    chooseWorld(value){
+      if(disposed||working||!['esm-page','esm-controller'].includes(value))return;
+      resolver.refresh({sourceFormat:value});update();onState();
+    }});
+  const legacy=view?null:mountLegacyReview(doc,actions);
+  if(view)view.actions.pageDependencyReview=actions;
   update();
-  return {update,confirmRun,get readyForRun(){return readyForRun();},
-    get busy(){return working;},dispose(){disposed=true;consent.dispose();listeners.forEach(remove=>remove());sourceListeners.forEach(remove=>remove());root.remove?.();}};
+  return {update,confirmRun,get readyForRun(){return readyForRun();},get busy(){return working;},
+    dispose(){
+      if(disposed)return;disposed=true;generation++;consent.dispose();legacy?.dispose();
+      if(view&&view.actions.pageDependencyReview===actions){
+        delete view.actions.pageDependencyReview;view.patchDependencies('network',null);
+      }
+    }};
+}
+
+// Isolated legacy controller fixtures only; view mode never calls this DOM owner.
+function mountLegacyReview(doc,actions){
+  const node=(tag,id,text)=>{const el=doc.createElement(tag);if(id)el.id=id;if(text)el.textContent=text;return el;};
+  const root=node('details','network-js-review');root.className='od-stack';root.hidden=true;
+  const state=node('p','network-js-status');state.setAttribute('role','status');state.setAttribute('aria-live','polite');
+  const prepare=node('button','network-js-prepare');prepare.type='button';
+  const worldLabel=node('label'),world=node('select','network-js-world');
+  worldLabel.append(node('span',null,'依赖用途'),world);
+  for(const [value,text] of [['esm-page','用于网页 Page'],['esm-controller','用于 Controller']]){
+    const option=node('option',null,text);option.value=value;world.append(option);
+  }
+  world.setAttribute('aria-label','静态 import 的运行世界');
+  const metadata=node('textarea','network-js-metadata');metadata.readOnly=true;metadata.rows=5;
+  metadata.setAttribute('aria-label','待审核的依赖来源、哈希、许可证和风险');
+  const sources=node('div','network-js-sources');sources.className='od-stack';
+  const label=node('label'),accept=node('input','network-js-consent');accept.type='checkbox';
+  label.append(accept,node('span',null,'我已审核来源、源码、SHA-256 和许可证信息'));
+  const approve=node('button','network-js-approve','批准这些固定字节');approve.type='button';
+  root.append(node('summary',null,'网络 JS：下载准备与审核'),state,worldLabel,prepare,metadata,sources,label,approve);
+  doc.getElementById('manual-source-editor').append(root);
+  const listeners=[],rows=new Map();let reviewId=null;
+  const listen=(el,event,fn)=>{el.addEventListener(event,fn);listeners.push(()=>el.removeEventListener(event,fn));};
+  listen(prepare,'click',actions.prepare);listen(approve,'click',actions.approve);
+  listen(accept,'change',()=>actions.accept(accept.checked,reviewId));
+  listen(world,'change',()=>actions.chooseWorld(world.value));
+  function clearRows(){for(const {button,handler} of rows.values())button.removeEventListener('click',handler);rows.clear();sources.replaceChildren();}
+  return {render(model){
+    root.hidden=!model.visible;state.textContent=model.status;
+    worldLabel.hidden=!model.isESM;world.value=model.world;world.disabled=model.worldDisabled;
+    prepare.disabled=model.prepareDisabled;prepare.textContent=model.prepareLabel;approve.disabled=model.approveDisabled;
+    metadata.hidden=label.hidden=approve.hidden=!model.review;accept.checked=!!model.review?.accepted;
+    const nextId=model.review?.reviewId||null;
+    if(nextId!==reviewId){clearRows();reviewId=nextId;
+      for(const entry of model.review?.entries||[]){
+        const order=entry.order,id=reviewId,button=node('button',null,'查看缓存源码 '+(order+1));
+        button.type='button';const code=node('textarea');code.readOnly=true;code.rows=8;
+        code.setAttribute('aria-label','依赖 '+(order+1)+' 的完整缓存源码');
+        const handler=event=>actions.readSource(event,order,id);button.addEventListener('click',handler);
+        rows.set(order,{button,code,handler});sources.append(button,code);
+      }
+    }
+    metadata.value=(model.review?.entries||[]).map(row=>(row.order+1)+'. '+row.url+'\n实际来源：'+row.resolvedUrl+
+      '\nSHA-256：'+row.sha256+'\n大小：'+row.byteLength+' B；许可证：'+(row.license?.name||'未知，需要自行审阅')+'\n'+row.risk).join('\n\n');
+    for(const entry of model.review?.entries||[]){
+      const row=rows.get(entry.order);row.button.disabled=model.busy;
+      row.code.hidden=entry.code===undefined;row.code.value=entry.code||'';
+    }
+  },dispose(){listeners.forEach(remove=>remove());clearRows();root.remove?.();}};
 }

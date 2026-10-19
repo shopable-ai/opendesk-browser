@@ -42,7 +42,7 @@ test('R33.3.8 single React root and legacy authoritative action owners',async()=
   assert.match(tasks,/connectReactMyTasks\(view\)/);
   assert.match(tasks,/reactMyTasks\.renderMyTaskRows\(/);
   assert.match(tasks,/return; \/\/ React alone owns card children/);
-  assert.match(cloud,/reactUI\.renderCloudOverview\(values\)/);
+  assert.match(cloud,/reactUI\.renderCloudPage\(/);
   assert.match(shell,/connectReactMyTasks\(extensionList\)/);
   assert.match(shell,/reactUI:extensionList/);
   for(const name of ['tabs/tasks.tsx','tabs/cloud.tsx'])

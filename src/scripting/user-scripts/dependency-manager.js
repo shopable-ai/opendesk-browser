@@ -554,6 +554,19 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   // Native settings and legacy metadata converge here, behind the same Host gate.
   const pageKey=(ns,id,revision)=>'page-candidate:'+canonical([ns,id,revision]);
   const pageView=row=>({candidateId:row.candidateId,manifestHash:row.manifestHash,stage:'Candidate'});
+  // Authoring is an editor attachment, never an execution or compiler identity.
+  // Bind it to this immutable Candidate without changing the executable manifest.
+  const pageIdentity=(ns,manifestHash,environment,authoring)=>hashObject(
+    [ns,manifestHash,environment,...(authoring===undefined?[]:[authoring])]);
+  function validatePageAuthoring(value,stored=false){
+    const allowed=['framework','sourceUtf8',...(stored?['authorSourceHash','sourceHash']:[])];
+    ensure(value&&typeof value==='object'&&!Array.isArray(value)&&
+      Object.keys(value).length===allowed.length&&Object.keys(value).every(k=>allowed.includes(k))&&
+      ['react','vue'].includes(value.framework)&&typeof value.sourceUtf8==='string'&&
+      value.sourceUtf8.trim().length>0&&encoder.encode(value.sourceUtf8).byteLength<=128*1024&&
+      (!stored||HEX64.test(value.authorSourceHash)&&HEX64.test(value.sourceHash)),
+      'E_PAGE_AUTHORING','组件作者元数据无效');
+  }
   async function pageRow(row,ns) {
     ensure(row?.tag==='page-candidate-v1' && row.namespace===ns && row.stage==='Candidate' &&
       row.verification===null && typeof row.sourceUtf8==='string','E_PAGE_CANDIDATE');
@@ -565,14 +578,26 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       ensure(typeof row.authorSourceUtf8==='string'&&row.manifest.compilation.authorSourceHash===
         await hashBytes(encoder.encode(row.authorSourceUtf8)),'E_SOURCE_HASH','作者 import 源码偏离冻结版本');
     }else ensure(!Object.hasOwn(row,'authorSourceUtf8'),'E_STATIC_ESM_IDENTITY');
+    if(Object.hasOwn(row,'authoring')){
+      validatePageAuthoring(row.authoring,true);
+      ensure(!row.manifest.compilation&&row.manifest.entryFormat==='async-main','E_PAGE_AUTHORING');
+      ensure(row.authoring.sourceHash===row.manifest.sourceHash&&row.authoring.authorSourceHash===
+        await hashBytes(encoder.encode(row.authoring.sourceUtf8)),'E_SOURCE_HASH','组件作者源码或执行绑定已改变');
+    }
+    ensure(row.candidateId==='page-'+await pageIdentity(ns,row.manifestHash,row.builtinIdentity,row.authoring),'E_HASH');
     return row;
   }
   async function importPageCandidate(request,sender) {
     fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId','pageRules',
-      'authorSourceUtf8','authorLockId','compilerVersion','dependencyScope']);
+      'authorSourceUtf8','authorLockId','compilerVersion','dependencyScope','authoring']);
     // Freeze both bytes and settings before the first asynchronous operation.
     // Neither mutating a request later nor a native pageRules field grants a service.
     request=clone(request);
+    if(Object.hasOwn(request,'authoring')){
+      validatePageAuthoring(request.authoring);
+      ensure(!Object.hasOwn(request,'authorSourceUtf8')&&!Object.hasOwn(request,'authorLockId')&&
+        !Object.hasOwn(request,'compilerVersion')&&request.entryFormat==='async-main','E_PAGE_AUTHORING');
+    }
     const dependencyEpoch=permissionRemovalEpoch;
     ensure(typeof request.programId==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
       Number.isSafeInteger(request.revision) && request.revision>0,'E_REVISION');
@@ -610,6 +635,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,pageRules,
       ...(compilation?{compilation}:{})};
     validatePageProgramManifest(manifest);
+    const authoring=request.authoring?{...request.authoring,
+      authorSourceHash:await hashBytes(encoder.encode(request.authoring.sourceUtf8)),sourceHash:manifest.sourceHash}:undefined;
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime,fetchImpl}));
     const manifestHash=await hashObject(manifest),host=await hostFor(sender);
     const saved=await inTransaction(host,'readwrite',async tx=>{
@@ -626,15 +653,17 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       const key=pageKey(host.namespace,manifest.programId,manifest.revision),old=await tx.get(DEPENDENCY_STORE,key);
       if(old) {
         await pageRow(old,host.namespace);
-        ensure(old.manifestHash===manifestHash && old.sourceUtf8===request.sourceUtf8,'E_REQUEST_CONFLICT');
+        ensure(old.manifestHash===manifestHash && old.sourceUtf8===request.sourceUtf8&&
+          same(old.authoring,authoring),'E_REQUEST_CONFLICT');
         assertBuiltinIdentity(old.builtinIdentity,environment);
         checkPermissionEpoch();
         return pageView(old);
       }
       const row={tag:'page-candidate-v1',namespace:host.namespace,
-        candidateId:'page-'+await hashObject([host.namespace,manifestHash,environment]),builtinIdentity:environment,
+        candidateId:'page-'+await pageIdentity(host.namespace,manifestHash,environment,authoring),builtinIdentity:environment,
         manifestHash,manifest,sourceUtf8:request.sourceUtf8,
         ...(compilation?{authorSourceUtf8:request.authorSourceUtf8}:{}),
+        ...(authoring?{authoring}:{}),
         stage:'Candidate',verification:null,createdAt:timestamp()};
       checkPermissionEpoch();
       await tx.put(DEPENDENCY_STORE,row,key);
@@ -650,6 +679,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     const {candidate:row}=await readStoredPageCandidate(host.namespace,request.programId,request.revision);
     await hostFor(sender,host);
     return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8,builtinIdentity:row.builtinIdentity,
+      ...(row.authoring?{authoring:clone(row.authoring)}:{}),
       ...(row.manifest.compilation?{authorSourceUtf8:row.authorSourceUtf8}:{})};
   }
   // Internal broker-only reader for a persisted installation. It provides

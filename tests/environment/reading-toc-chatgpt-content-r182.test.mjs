@@ -5,10 +5,11 @@ import {createReadingTocIndex} from '../../src/reading-toc/model.js';
 // Minimal DOM fixture: headings keep their real ancestor/DOM identities, while
 // the assistant's .markdown boundary is separate from turn chrome and role labels.
 class Node {
-  constructor(kind,tagName='DIV',parentElement=null,textContent=''){
+  constructor(kind,tagName='DIV',parentElement=null,textContent='',attributes={}){
     this.kind=kind;this.tagName=tagName;this.parentElement=parentElement;
-    this.textContent=textContent;this.isConnected=true;
+    this.textContent=textContent;this.isConnected=true;this.attributes=attributes;
   }
+  getAttribute(name){return this.attributes[name]??null;}
   getClientRects(){return this.isConnected?[1]:[];}
   matches(){return false;}
   closest(selector){
@@ -18,6 +19,11 @@ class Node {
       if(selector==='[data-message-role="assistant"]'&&node.kind==='assistant-new')return node;
       if(selector==='[data-conversation-transcript]'&&node.kind==='transcript')return node;
       if(selector==='[data-assistant-markdown-root]'&&node.kind==='markdown-new')return node;
+      if(selector==='[data-chatgpt-selection-message-id][data-chatgpt-selection-conversation-id]'&&
+         node.getAttribute('data-chatgpt-selection-message-id')!==null&&
+         node.getAttribute('data-chatgpt-selection-conversation-id')!==null)return node;
+      if(selector==='[data-markdown-text-style="assistant-message"]'&&
+         node.getAttribute('data-markdown-text-style')==='assistant-message')return node;
       if(selector==='.AnswerItem'&&node.kind==='zhihu')return node;
       if(selector==='article'&&node.kind==='article')return node;
       if(selector==='main,[role="main"]'&&node.kind==='main')return node;
@@ -142,4 +148,62 @@ test('R1.8.6 live ChatGPT transcript layout keeps only assistant markdown and di
   assert.notEqual(snapshot.items[0].sourceId,snapshot.items[1].sourceId);
   assert.notEqual(snapshot.items[0].id,snapshot.items[1].id);
   assert.equal(index.resolve(snapshot.items[0].id,snapshot.items[1].sourceId),null);
+});
+
+test('R1.9.2 observed ChatGPT message-selection layout indexes three independent answers',()=>{
+  const body=new Node('body','BODY'),headings=[];
+  const answer=(message,conversation='conversation-a')=>new Node('selection','DIV',body,'',{
+    'data-chatgpt-selection-message-id':message,
+    'data-chatgpt-selection-conversation-id':conversation
+  });
+  const markdown=parent=>new Node('content','DIV',parent,'',{
+    'data-markdown-text-style':'assistant-message'
+  });
+  for(const id of ['answer-a','answer-b','answer-c']){
+    const root=answer(id),text=markdown(root);
+    headings.push(new Node('heading','H2',root,'ChatGPT 说：'),
+      new Node('heading','H2',text,'重复标题'),
+      new Node('heading','H3',markdown(root),'子章节'));
+  }
+  const user=answer('user-message');
+  headings.unshift(new Node('heading','H2',new Node('content','DIV',user,'',{
+    'data-markdown-text-style':'user-message'
+  }),'用户标题'));
+  const index=createReadingTocIndex(docFor(body,headings)),first=index.rebuild();
+  assert.equal(first.adapter,'chatgpt');
+  assert.equal(first.sources.length,3);
+  assert.deepEqual(first.items.map(x=>x.label),['重复标题','子章节','重复标题','子章节','重复标题','子章节']);
+  assert.deepEqual(first.items.map(x=>x.depth),[0,1,0,1,0,1]);
+  assert.equal(new Set(first.items.map(x=>x.id)).size,6);
+  const [a,,b]=first.items;
+  assert.notEqual(a.sourceId,b.sourceId);
+  assert.equal(index.resolve(a.id,b.sourceId),null);
+  assert.equal(index.resolve(a.id,a.sourceId)?.element,headings[2]);
+  for(const heading of headings)heading.isConnected=false;
+  const replacement=new Node('heading','H2',markdown(answer('next-answer','conversation-b')),'历史对话章节');
+  headings.push(replacement);
+  const switched=index.rebuild();
+  assert.deepEqual(switched.items.map(x=>x.label),['历史对话章节']);
+  assert.notEqual(switched.items[0].sourceId,a.sourceId);
+  assert.equal(index.resolve(a.id,a.sourceId),null,'old conversation cannot navigate');
+  assert.equal(index.resolve(switched.items[0].id,switched.items[0].sourceId)?.element,replacement);
+});
+
+test('R1.9.2 ChatGPT selection metadata alone never admits user or orphan headings',()=>{
+  const body=new Node('body','BODY');
+  const root=new Node('selection','DIV',body,'',{
+    'data-chatgpt-selection-message-id':'message',
+    'data-chatgpt-selection-conversation-id':'conversation'
+  });
+  const empty=new Node('selection','DIV',body,'',{
+    'data-chatgpt-selection-message-id':'',
+    'data-chatgpt-selection-conversation-id':'conversation'
+  });
+  const markdown=parent=>new Node('content','DIV',parent,'',{
+    'data-markdown-text-style':'assistant-message'
+  });
+  const headings=[new Node('heading','H2',root,'消息控件'),
+    new Node('heading','H2',markdown(body),'孤立内容'),
+    new Node('heading','H2',markdown(empty),'缺少消息身份')];
+  assert.deepEqual(createReadingTocIndex(docFor(body,headings)).rebuild().items,[]);
 });

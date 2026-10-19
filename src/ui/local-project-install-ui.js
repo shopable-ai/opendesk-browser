@@ -1,3 +1,4 @@
+import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 // Thin Developer UI bridge for the existing Page / Task installation authorities.
 // The only persistent installed state is still the original Page or Task registry.
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
@@ -8,8 +9,8 @@ import {prepareLocalProjectInstallation,assertLocalInstallVersion,assertLocalIns
 
 const hash=/^[a-f0-9]{64}$/;
 const issue=(code,message)=>Object.assign(new Error(message),{code});
-export function createLocalInstallUI({client,api,doc,currentPageTarget,getProject,readControllerRun,isBusy=()=>false,retireManagedPreview,onState=()=>{}}){
-  const find=id=>doc.getElementById(id);
+export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget,getProject,readControllerRun,isBusy=()=>false,retireManagedPreview,onState=()=>{}}){
+  const find=id=>view?view.fields[id]:doc.getElementById(id);
   const panel=find('local-install-review'),summary=find('local-install-summary'),
     title=find('local-install-title'),version=find('local-install-version'),
     warning=find('local-install-warning'),status=find('local-install-status'),
@@ -20,15 +21,15 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   const isSelected=()=>!!selected();
   let onInstalled=()=>{};
   const message=error=>(error?.code||'E_INSTALL')+'：'+(error?.message||String(error));
-  const say=(text,state='info')=>{status.textContent=text;status.dataset.state=state;};
+  const say=(text,state='info')=>{patchDeveloperField(view,status,{textContent:text});patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:state}});};
   const consent=createChromePermissionConsent({api,onChange(){
     if(disposed||installing)return;
-    review=null;panel.hidden=true;onState();
+    review=null;patchDeveloperField(view,panel,{hidden:true});onState();
   }});
   function reveal(){
-    panel.hidden=false;
-    panel.scrollIntoView?.({block:'nearest'});
-    panel.focus?.();
+    patchDeveloperField(view,panel,{hidden:false});
+    if(!view)panel.scrollIntoView?.({block:'nearest'});
+    focusDeveloperField(view,panel);
   }
   const project=()=>getProject?.();
   const permissionRequest=planned=>({origins:planned.kind==='page-userscript'
@@ -51,7 +52,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     current()&&!preparing&&!installing;
   const sameInstalled=()=>installed&&verified&&installed.exact===true&&
     installed.sourceHash===verified.source.sourceHash&&installed.inputHash===verified.source.inputHash;
-  function hide(){review=null;panel.hidden=true;confirmButton.disabled=true;}
+  function hide(){review=null;patchDeveloperField(view,panel,{hidden:true});patchDeveloperField(view,confirmButton,{disabled:true});}
   function pendingFor(local){
     const attempt=local?.previousInstallAttempt?.();
     return attempt?.bindingId===local?.selectedBindingId()&&
@@ -227,12 +228,12 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     if(verified&&!current()&&!resolvingSameWindow&&!unknown){
       verified=null;hide();onState();
     }
-    confirmButton.disabled=unknown?!unknownReview||reconciling||installing:
-      !review||preparing||installing||!current();
-    confirmButton.textContent=reconciling?'正在核对…':installing?'正在保存…':
-      unknown?'只读核对已安装状态':'确认安装固定版本';
-    cancelButton.disabled=preparing||installing||reconciling;
-    title.readOnly=version.readOnly=unknown||preparing||installing||reconciling;
+    patchDeveloperField(view,confirmButton,{disabled:unknown?!unknownReview||reconciling||installing:
+      !review||preparing||installing||!current()});
+    patchDeveloperField(view,confirmButton,{textContent:reconciling?'正在核对…':installing?'正在保存…':
+      unknown?'只读核对已安装状态':'确认安装固定版本'});
+    patchDeveloperField(view,cancelButton,{disabled:preparing||installing||reconciling});
+    patchDeveloperField(view,title,{readOnly:version.readOnly=unknown||preparing||installing||reconciling});
   }
   function succeeded({source,binding,target,runId=null,resultId=null,previewId=null},{remember=true}={}){
     if(!hash.test(source?.sourceHash)||!hash.test(source?.inputHash)||
@@ -289,7 +290,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
           unconfirmed:'安装记录存在，但版本、源码或原生注册状态尚未全部确认'
         }[observed.state]||'安装状态尚未确认';
         say(stateText+'；未执行、未重新安装。效果未知时禁止盲目重试。','unknown');
-        panel.hidden=false;
+        patchDeveloperField(view,panel,{hidden:false});
       }
     }catch(error){
       if(!disposed)say(message(error)+'；只读核对失败，尚未重试任何安装或验证。','unknown');
@@ -308,18 +309,18 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         // A file workspace has no executable source identity. Keep the Save
         // review accessible, but explain how to connect a real project instead
         // of suggesting a Run that this workspace is explicitly forbidden to do.
-        summary.textContent='当前选择的是文件工作区，尚无可运行的项目入口。';
-        warning.textContent='请在项目 package.json 中配置 opendesk 运行入口并连接源码 Provider，再选择具体的 Controller 或 Page 程序。文件工作区不能直接运行或安装。';
+        patchDeveloperField(view,summary,{textContent:'当前选择的是文件工作区，尚无可运行的项目入口。'});
+        patchDeveloperField(view,warning,{textContent:'请在项目 package.json 中配置 opendesk 运行入口并连接源码 Provider，再选择具体的 Controller 或 Page 程序。文件工作区不能直接运行或安装。'});
         say('未安装：文件工作区尚无可执行项目。','unknown');
-        confirmButton.disabled=true;reveal();return;
+        patchDeveloperField(view,confirmButton,{disabled:true});reveal();return;
       }
       if(installed&&!installed.changed){
         onInstalled({kind:installed.kind,id:installed.id,version:installed.version,focus:true});return;
       }
-      summary.textContent=installed?'旧版本保留在原安装目录；更新前需要验证当前源码。':'当前项目还没有可复用的成功验证。';
-      warning.textContent=verificationReason||'请主动运行本地项目；Page 运行可能产生网页副作用。';
+      patchDeveloperField(view,summary,{textContent:installed?'旧版本保留在原安装目录；更新前需要验证当前源码。':'当前项目还没有可复用的成功验证。'});
+      patchDeveloperField(view,warning,{textContent:verificationReason||'请主动运行本地项目；Page 运行可能产生网页副作用。'});
       say('安装入口仍可使用；当前源码尚未取得安装资格。','unknown');
-      confirmButton.disabled=true;reveal();return;
+      patchDeveloperField(view,confirmButton,{disabled:true});reveal();return;
     }
     if(sameInstalled()){onInstalled({kind:installed.kind,id:installed.id,focus:true});return;}
     if(review){reveal();return;}
@@ -347,19 +348,19 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       const access=await consent.prepare(permissionRequest(planned));
       if(!access||before!==verified||!current())throw issue('E_DEV_CONFLICT','项目、页面或权限状态在审阅期间改变，请重新运行');
       review={planned,source:structuredClone(source),binding:structuredClone(binding),target:structuredClone(before.target),previewId:before.previewId};
-      title.value=planned.defaultTitle;
-      title.readOnly=false;
-      version.value=planned.version;
-      summary.textContent=(planned.kind==='page-userscript'?'网页增强':'自动化任务')+
+      patchDeveloperField(view,title,{value:planned.defaultTitle});
+      patchDeveloperField(view,title,{readOnly:false});
+      patchDeveloperField(view,version,{value:planned.version});
+      patchDeveloperField(view,summary,{textContent:(planned.kind==='page-userscript'?'网页增强':'自动化任务')+
         (planned.installedVersion?' · 更新 '+planned.installedVersion+' → ':' · 安装 ')+planned.version+
         (planned.installedVersion?'\n原网站范围：'+planned.installedSiteOrigins.join('、'):'')+
         '\n适用网站：'+planned.siteOrigins.join('、')+
-        '\n源码 SHA-256：'+planned.sourceHash+'\n输入版本：'+planned.inputHash;
-      warning.textContent=(planned.scopeChanged?'网站/权限范围与旧版不同，必须审阅后重新确认。\n':'')+(planned.needsReexecution
+        '\n源码 SHA-256：'+planned.sourceHash+'\n输入版本：'+planned.inputHash});
+      patchDeveloperField(view,warning,{textContent:(planned.scopeChanged?'网站/权限范围与旧版不同，必须审阅后重新确认。\n':'')+(planned.needsReexecution
         ?'确认安装会在当前文档再次执行相同的冻结 Page 程序以完成正式验证，可能再次产生网页效果；验证成功后才安装。'
-        :'本次安装只核对原 Controller 持久结果与原生页面操作回执，不再运行脚本。');
+        :'本次安装只核对原 Controller 持久结果与原生页面操作回执，不再运行脚本。')});
       say('尚未安装。请先核对网站、版本和可能的再次执行。');
-      panel.hidden=false;
+      patchDeveloperField(view,panel,{hidden:false});
       // The Save action lives in the sticky bottom dock while this review is
       // in the source area. Move keyboard focus to the actual visible review
       // so narrow Side Panels and screen readers do not miss confirmation.
@@ -378,7 +379,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     // editing fields while an asynchronous permission prompt is open cannot
     // swap the Task version or title after approval.
     let approvedTitle;
-    try{approvedTitle=assertLocalInstallTitle(title.value);}catch(error){say(message(error),'error');title.focus();return;}
+    try{approvedTitle=assertLocalInstallTitle(title.value);}catch(error){say(message(error),'error');focusDeveloperField(view,title);return;}
     const approvedVersion=version.value.trim();
     const validVersion=selected.planned.kind==='page-userscript'
       ?/^[1-9]\d*$/.test(approvedVersion)&&Number.isSafeInteger(Number(approvedVersion))
@@ -386,7 +387,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     if(!validVersion||approvedVersion.length>24){
       say(selected.planned.kind==='page-userscript'?'版本必须为正整数，例如 1。':
         '版本必须为三段数字，例如 1.0.0，最多 24 个字符。','error');
-      version.focus();return;
+      focusDeveloperField(view,version);return;
     }
     // Permission request is made synchronously from a trusted confirmation click.
     const permission=consent.confirm(event,permissionRequest(selected.planned));
@@ -438,12 +439,12 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       unknownReview=unknown?{...selected.planned,attemptedVersion:approvedVersion,
         attemptedManifestHash,attemptedTitle:approvedTitle}:null;
       project()?.rememberInstallAttempt?.(unknownReview);
-      review=null;confirmButton.disabled=true;
+      review=null;patchDeveloperField(view,confirmButton,{disabled:true});
       say(rejectedBeforeDispatch
         ?message(error)+'。尚未提交安装；检查网站访问后可以再次点击底部保存进行审阅。'
         :message(error)+'。原有安装保留；先在正式列表只读核对持久状态，禁止盲目重试。',
         rejectedBeforeDispatch?'error':'unknown');
-      panel.hidden=false;
+      patchDeveloperField(view,panel,{hidden:false});
     }).finally(()=>{installing=false;if(!disposed){update();onState();}});
   }
   const cancel=()=>{
@@ -453,16 +454,16 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     // action (or project picker if that action has become unavailable).
     const save=find('script-save');
     const focus=save&&!save.hidden&&!save.disabled?save:find('local-project-select');
-    focus?.focus?.();onState();
+    focusDeveloperField(view,focus);onState();
   };
   const onConfirm=event=>confirm(event),onCancel=()=>cancel();
   const onReviewKeyDown=event=>{
     if(event?.key!=='Escape'||panel.hidden||preparing||installing||reconciling)return;
     event.preventDefault?.();cancel();
   };
-  panel.addEventListener('keydown',onReviewKeyDown);
-  confirmButton.addEventListener('click',onConfirm);
-  cancelButton.addEventListener('click',onCancel);
+  const removeReviewKey=developerAction(view,panel,'keydown',onReviewKeyDown);
+  const removeConfirm=developerAction(view,confirmButton,'click',onConfirm);
+  const removeCancel=developerAction(view,cancelButton,'click',onCancel);
   return Object.freeze({canSave,hasSelection:isSelected,saveLabel:()=>reconciling?'正在核对…':installing?'正在安装…':
     preparing?'正在准备安装…':unknown?'核对安装状态':checking?'正在核对…':
     installed&&(sameInstalled()||!current()&&!installed.changed)?'管理已安装':
@@ -470,6 +471,6 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     (verified?.source.runtimeKind==='page-userscript'||project()?.selectedProject()?.runtimeKind==='page-userscript')
       ?'安装网页增强':'保存为任务',
     update,reset,succeeded,prepare,confirm,setOnInstalled(fn){onInstalled=fn||(()=>{});},
-    dispose(){disposed=true;consent.dispose();panel.removeEventListener('keydown',onReviewKeyDown);confirmButton.removeEventListener('click',onConfirm);
-      cancelButton.removeEventListener('click',onCancel);}});
+    dispose(){disposed=true;consent.dispose();removeReviewKey();removeConfirm();
+      removeCancel();}});
 }

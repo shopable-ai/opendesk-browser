@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone,transformPinnedReactDomDevBind} from '../../scripts/react-dom-input-csp.mjs';
+import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
+import {transformPinnedReactPrototype,transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone,transformPinnedReactDomDevBind} from '../../scripts/react-dom-input-csp.mjs';
 import {inspectScript} from '../../scripts/verify-package.mjs';
 
 const modulePath='/repo/node_modules/react-dom/cjs/react-dom-client.production.js';
@@ -22,7 +24,9 @@ test('pinned ReactDOM input tracker uses the instance prototype without dynamic 
   assert.throws(()=>replace(source,modulePath.replace('production','development')),/drift/);
 });
 
-test('only the pinned client module in the trusted shell can receive the transform',()=>{
+test('only the pinned client module in the fixed trusted entries can receive the transform',()=>{
+  const workspace=replace(source,modulePath,{target:'native-agent/settings.js',reactDomVersion:'19.2.0'});
+  assert.deepEqual(inspectScript(workspace,'native-agent/settings.js'),{approvedAsyncBodyConstructors:0});
   assert.equal(replace(source,'/repo/node_modules/other/cjs/react-dom-client.production.js'),null);
   assert.equal(replace(source,'\\0'+modulePath+'?commonjs-exports'),null);
   assert.equal(replace(source,modulePath+'?commonjs-proxy'),null);
@@ -116,4 +120,29 @@ test('pinned development ReactDOM static native bind alias keeps semantics witho
   assert.throws(()=>transformPinnedReactDomDevBind(
     'var bind=Function.prototype.bind;const bad=Function.prototype.bind;',
     development,{target,reactDomVersion:'19.2.0'}),/shape drift/);
+});
+
+test('Workspace pinned React keeps PureComponent descriptor and behavior without a scanner exception',async()=>{
+  const id='/repo/node_modules/react/cjs/react.production.js';
+  const source=await readFile(new URL('../../node_modules/react/cjs/react.production.js',import.meta.url),'utf8');
+  const options={target:'native-agent/settings.js',reactVersion:'19.2.0'};
+  const transformed=transformPinnedReactPrototype(source,id,options);
+  assert.doesNotMatch(transformed,/\.constructor\b/);
+  const run=code=>{const exports={};runInNewContext(code,{exports});return exports;};
+  const original=run(source),changed=run(transformed);
+  for(const react of [original,changed]){
+    const {PureComponent,Component}=react;
+    const descriptor=Object.getOwnPropertyDescriptor(PureComponent.prototype,'constructor');
+    assert.equal(descriptor.value,PureComponent);
+    assert.deepEqual([descriptor.writable,descriptor.enumerable,descriptor.configurable],[true,true,true]);
+    const instance=new PureComponent({title:'draft'});
+    assert.equal(instance.props.title,'draft');
+    assert.equal(instance.isPureReactComponent,true);
+    assert.equal(instance.setState,Component.prototype.setState);
+  }
+  assert.equal(transformPinnedReactPrototype(source,id,{...options,target:'sw.js'}),null);
+  assert.equal(transformPinnedReactPrototype(source,id,{...options,target:'ui/tool-shell.js'}),null);
+  assert.throws(()=>transformPinnedReactPrototype(source,id,{...options,reactVersion:'19.3.0'}),/changed version/);
+  assert.throws(()=>transformPinnedReactPrototype(source.replace('pureComponentPrototype.constructor = PureComponent;','pureComponentPrototype.constructor = Other;'),id,options),/source shape/);
+  inspectScript('var x={};Object.defineProperty(x,"constructor",{value:function(){},writable:true,enumerable:true,configurable:true});','native-agent/settings.js');
 });

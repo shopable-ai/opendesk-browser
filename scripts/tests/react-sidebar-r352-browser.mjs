@@ -13,7 +13,8 @@ import {createServer} from 'vite';
 
 const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nconst state={ui:null,accepted:'tasks',blocked:null,calls:[],trustedClicks:[]};\ndocument.addEventListener('click',event=>{\n  if(event.target.closest?.('[data-workbench-tab]'))state.trustedClicks.push(event.isTrusted);\n},true);\nstate.ui=mountExtensionList(document,{\n  debugEnabled:false,appShell:true,\n  onNavigate(tab){\n    state.calls.push(tab);\n    if(tab===state.blocked)return false;\n    state.accepted=tab;\n    state.ui.renderNavigation(tab);\n    return true;\n  }\n});\nconst get=id=>document.getElementById(id);\nstate.original={\n  task:get('workbench-tasks'),workflow:get('workbench-workflow'),\n  develop:get('workbench-develop'),cloudApproval:get('cloud-approval-section'),\n  cloudHosting:get('cloud-hosting'),taskParams:get('task-params-form'),\n  scriptSource:get('script-source'),workflowDraft:get('workflow-ai-request')\n};\nstate.ui.renderCloudOverview({summary:'连接 <script>不应执行</script>',connection:'未连接'});\nstate.ui.renderMyTaskCount('0 个任务');\nstate.ui.renderFeedback({showEmpty:true,emptyText:'暂无扩展',countText:'0 个扩展'});\nwindow.__r352=state;\ndocument.documentElement.dataset.r352Ready='true';\n";
 const originalHtml=await readFile('src/ui/tool.html','utf8');
-assert.match(originalHtml, /id="workbench-cloud"/);
+assert.doesNotMatch(originalHtml, /id="workbench-cloud"/,
+  'Cloud is supplied by its React page, without a competing static template');
 assert.match(originalHtml, /id="workspace-dock"/);
 const fixtureHtml=originalHtml
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')

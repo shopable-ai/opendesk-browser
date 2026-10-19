@@ -1,28 +1,30 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {previewDocument,validatePreviewURL,displayPagePreview} from './file-preview.js';
 import {createMemoryWorkspace,textSHA256} from './file-workspace-demo.js';
-import {initWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
+import {createWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
 import {sourceLabel,sourceName} from './source-label.js';
-import {recoverControlFocus} from './control-focus.js';
 import {validateRequestPath} from './workspace-chat-request.js';
 import {validateWorkspaceTreeListing,parentDirectoriesForFile,MAX_WORKSPACE_TREE_EXPANSIONS,MAX_WORKSPACE_TREE_REFRESH} from './workspace-file-tree.js';
-import {createWorkspaceFileIcon,createWorkspaceTreeChevron} from './workspace-file-icons.js';
 import {readToolSnapshot} from './tool-snapshot.js';
 import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
-import {initKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
+import {createKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
 import {localizeLiteral,subscribeLocale,translate,formatFileSize,getLocale} from '../i18n/index.js';
 import {isDirtyWorkspaceDraft as dirty,sameWorkspaceAuthority as sameAuthority,
   workspaceRecordKey,validateWorkspaceRead,createWorkspaceDraft,reconcileWorkspaceRead,
   verifyWorkspaceWriteReceipt,verifyWorkspaceWriteReadBack} from './workspace-domain.js';
 import {createWorkspaceStore,projectWorkspaceState} from './workspace-store.js';
 
-export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document,client}={}){
-  const root=doc.getElementById('file-workspace');if(!root)return;
-  const byId=id=>doc.getElementById(id);
-  for(const [id,title,sandbox] of [['file-preview','文件静态预览',''],['app-preview','本机应用预览','allow-scripts allow-forms allow-same-origin']]){
-    const frame=doc.createElement('iframe');frame.id=id;frame.title=title;frame.setAttribute('sandbox',sandbox);frame.referrerPolicy='no-referrer';
-    byId(id+'-slot').append(frame);
-  }
+// This controller owns Native authority and drafts. React owns every UI node,
+// focus transition and iframe. HTML sanitization is supplied by the UI owner.
+export function createWorkspaceController({api=globalThis.chrome,client,
+  renderPreviewDocument=(path,content)=>{
+    if(/\.html?$/i.test(path))throw new Error('HTML 预览需要接入 renderPreviewDocument 安全渲染回调');
+    return previewDocument(path,content,null);
+  },copyText=text=>globalThis.navigator?.clipboard?.writeText(text),
+  openExternal=(url)=>globalThis.open?.(url,'_blank','noopener,noreferrer'),
+  locationURL=globalThis.location?.href||'https://invalid.local/',
+  lockManager=globalThis.navigator?.locks,createChatEdit=createWorkspaceChatEdit,
+  createKnowledgeHandoff=createKnowledgeWorkspaceHandoff}={}){
   const native=!!api?.runtime?.id;
   async function bridge(message){
     const response=await api.runtime.sendMessage({protocol:AGENT_CONFIG_PROTOCOL,...message});
@@ -31,35 +33,39 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   }
   client||=native?{demo:false,state:()=>bridge({type:'files.state'}),request:(method,params,expected={})=>bridge({type:'files.request',method,params,...(expected.sessionId?{expectedSessionId:expected.sessionId}:{})})}:createMemoryWorkspace();
   const demo=!!client.demo,records=new Map(),targets=new Map(),workspaceAccess=new Map(),workspaceRows=new Map();
+  const draftRevisions=new WeakMap();
+  const draftRevision=record=>record?draftRevisions.get(record)||0:0;
+  function editDraft(record,content){
+    record.content=String(content);draftRevisions.set(record,draftRevision(record)+1);
+  }
   const HISTORY_KEY='opendesk.workspace.display-cache.v1';
   const workspacePattern=/^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
-  const query=new URL(globalThis.location?.href||'https://invalid.local/').searchParams;
+  const query=new URL(locationURL).searchParams;
   const requested=workspacePattern.test(query.get('workspaceId')||'')?query.get('workspaceId'):'';
   let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
   let current=null,workspaceId=requested,busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
   let treeFolders=new Map(),treeIdentity='',treeRevision=0;
-  let knowledgeHandoff=null,resolveActionReview=null;
+  let resolveActionReview=null,actionReview=null,targetId='',saveAsPath='',previewURL='http://127.0.0.1:3000/';
+  let previewHTML='',previewKind='',connectedPreviewURL='',toolStatus={text:'',error:false};
+  let connectionLabel='',treeMessage='',knowledgeHandoff=null,stopKnowledge=null;
+  let pickerRows=[];
   const store=createWorkspaceStore();
-  const viewStore=Object.freeze({getSnapshot:store.getSnapshot,subscribe:store.subscribe});
   // Non-modal, in-page choice. Operations waiting for a decision keep their
   // native authority/identity and revalidate before committing any side effect.
   function requestActionReview(message,button='继续'){
     if(resolveActionReview)return Promise.resolve(false);
-    const panel=byId('workspace-action-review');
-    byId('workspace-action-summary').textContent=message;
-    byId('workspace-action-continue').textContent=button;
-    panel.hidden=false;panel.scrollIntoView?.({block:'nearest'});
-    return new Promise(resolve=>{resolveActionReview=resolve;});
+    actionReview=Object.freeze({message,button});
+    const decision=new Promise(resolve=>{resolveActionReview=resolve;});
+    publishSnapshot();
+    return decision;
   }
   function finishActionReview(accepted){
     const done=resolveActionReview;
     resolveActionReview=null;
-    byId('workspace-action-review').hidden=true;
+    actionReview=null;publishSnapshot();
     done?.(accepted);
   }
-  byId('workspace-action-continue').addEventListener('click',()=>finishActionReview(true));
-  byId('workspace-action-cancel').addEventListener('click',()=>finishActionReview(false));
   const historyReady=(async()=>{
     if(demo)return;
     try{
@@ -73,19 +79,49 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   })();
   let lastStatus='',lastStatusError=false;
   function publishSnapshot(){
-    // Immutable data projection only. No session/lease credential enters React.
-    store.publish(projectWorkspaceState({connected,busy,demo,workspaceId,
-      rows:[...workspaceRows.values()],
-      targets:[...targets].map(([tabId,target])=>({...target,tabId})),
-      targetId:byId('target-picker')?.value||'',current,treeFolders,view,
+    const recordOnline=connected&&workspaceAccess.has(current?.workspaceId);
+    const owner=history.find(row=>row.workspaceId===current?.workspaceId);
+    const sameName=owner&&history.filter(row=>sourceName(row.name)===sourceName(owner.name)).length>1;
+    const ownedBy=demo?'内存演示目录':owner?sourceLabel(owner,{duplicate:sameName}):'目录身份待连接核验';
+    const fileMeta=current?ownedBy+' / '+current.path+' · '+formatFileSize(new TextEncoder().encode(current.content).length)+' · '+
+      (current.sha256?.slice(0,10)||'')+(recordOnline?' · 已核验目录':' · 离线草稿')+(!writable()?' · 只读':''):translate('runtime.selectFile');
+    const currentAuthority=current&&sameAuthority(current.authority,authorityFor(current.workspaceId));
+    const draftLabel=current?.importedDraft?'待创建的知识草稿':current?.unknown?'保存结果未知，请重读':current?.remote?'磁盘版本已变化':
+      current&&!recordOnline?'离线草稿':current&&!currentAuthority?'目录连接已变化 · 请重新读取':dirty(current)?'未保存草稿':current?'已与磁盘同步':'';
+    const reason=workspaceRows.get(workspaceId)?.accessReason;
+    const accessReason=reason==='persistent-read-only'?'本目录已有明确的长期只读授权，CLI 默认读写不会升级它。':
+      reason==='active-session'?'复用已在线会话的只读权限；重复启动不会修改原会话。':'当前 CLI 会话以只读模式接入，保存由 Native 拒绝。';
+    const canEdit=!closed&&!busy;
+    const canFile=canEdit&&connected&&workspaceAccess.has(workspaceId);
+    const canWrite=canFile&&writable()&&currentAuthority&&current?.workspaceId===workspaceId;
+    const hasTarget=!demo&&targets.has(Number(targetId));
+    store.publish(projectWorkspaceState({connected,busy,demo,workspaceId,rows:pickerRows,
+      targets:[...targets.values()],targetId,current,treeFolders,view,
       status:localizeLiteral(lastStatus),statusError:lastStatusError,locale:getLocale(),
-      access:workspaceAccess.get(workspaceId)||'none',creationPending}));
+      access:workspaceAccess.get(workspaceId)||'none',creationPending,
+      presentation:{connectionLabel:localizeLiteral(connectionLabel),fileTitle:current?.path.split('/').at(-1)||'打开一个文件',
+        fileMeta,draftLabel:localizeLiteral(draftLabel),previewHTML,previewKind:localizeLiteral(previewKind),
+        previewURL,connectedPreviewURL,saveAsPath,
+        creationPending:creationPending?{workspaceId:creationPending.workspaceId,path:creationPending.path}:null,
+        accessReason:localizeLiteral(accessReason),treeMessage,toolPreviewStatus:{text:localizeLiteral(toolStatus.text),error:toolStatus.error},
+        actionReview:actionReview?{message:localizeLiteral(actionReview.message),button:localizeLiteral(actionReview.button)}:null,
+        directoryName:current?.path.includes('/')?'/'+current.path.slice(0,current.path.lastIndexOf('/')):translate('workspace.rootDirectory'),
+        pendingSource:!!pendingSource,knowledgeHandoff:knowledgeHandoff?.getSnapshot().pending||null},
+      capabilities:{setDraft:!closed&&!!current,read:!!canFile,save:!!canWrite&&dirty(current)&&!current.unknown&&!current.remote&&!current.importedDraft,
+        reread:!!canFile&&!!current&&current.workspaceId===workspaceId&&!current.importedDraft,
+        discardDraft:!!canFile&&!!current&&current.workspaceId===workspaceId&&dirty(current)&&!current.importedDraft,
+        saveAs:!!canWrite&&!creationPending,checkCreated:!!canFile&&!!creationCheckAuthority(),
+        useDisk:canEdit&&current?.workspaceId===workspaceId&&sameAuthority(current?.remote?.authority,authorityFor()),
+        refresh:canEdit,selectWorkspace:canEdit&&connected,setTarget:canEdit&&!demo,
+        refreshTree:!!canFile,toggleDirectory:!!canFile,collapseTree:!!canFile&&[...treeFolders.entries()].some(([path,node])=>path&&node.expanded),
+        pagePreview:canEdit&&connected&&!!current&&hasTarget,removePagePreview:canEdit&&hasTarget,
+        copyContent:canEdit&&!!current,openSettings:canEdit&&native,
+        openSidebar:canEdit&&hasTarget&&connected&&workspaceAccess.has(workspaceId),openWorkbench:canEdit&&hasTarget,
+        previewTool:!!canFile&&!demo&&!!api?.storage?.session?.set&&!!api?.tabs?.create,
+        importKnowledge:canEdit&&canImportKnowledge()&&!!knowledgeHandoff&&!knowledgeHandoff.getSnapshot().disabled}}));
   }
-  const status=(text,error=false)=>{lastStatus=text;lastStatusError=error;const el=byId('workspace-status');el.textContent=localizeLiteral(text);el.classList.toggle('error',error);publishSnapshot();};
-  const toolPreviewStatus=(message,error=false)=>{
-    const node=byId('preview-sidebar-tool-status');
-    if(node){node.textContent=localizeLiteral(message);node.classList.toggle('error',error);}
-  };
+  const status=(text,error=false)=>{lastStatus=text;lastStatusError=error;publishSnapshot();};
+  const toolPreviewStatus=(message,error=false)=>{toolStatus={text:message,error};publishSnapshot();};
   const failure=e=>status((e.code?e.code+' · ':'')+(e.message||String(e)),true);
   const writable=()=>current&&workspaceAccess.get(current.workspaceId)==='read-write';
   const authorityFor=(ws=workspaceId)=>{
@@ -94,6 +130,13 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       sessionId:fileState.sessionId||(demo?'memory-demo-session':null),access:row.access,
       devLeaseEpoch:fileState.devLeaseEpoch===1?1:0});
   };
+  function creationCheckAuthority(){
+    const authority=authorityFor();
+    // An explicit check may read through a renewed grant for the same source.
+    // It never repeats the create or transfers its outcome to another source.
+    return creationPending&&authority&&creationPending.workspaceId===workspaceId&&
+      creationPending.authority.sourceId===authority.sourceId?authority:null;
+  }
   const expected=authority=>authority?.sessionId?{sessionId:authority.sessionId}:{};
   const fileParams=(params,authority)=>({...params,...(authority?.devLeaseEpoch===1?{leaseEpoch:authority.leaseEpoch}:{})});
   async function assertAuthority(authority){
@@ -117,65 +160,19 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       throw {code:'E_FILES_ACCESS',message:'当前目录未处于有效读写连接。',outcome:'NOT_DISPATCHED'};
     await assertAuthority(record.authority);
     await chatEdit?.beforeSave(record);
+    if(closed||current!==record||!sameAuthority(record.authority,authorityFor()))
+      throw {code:'E_FILES_SESSION',message:'保存前目录或草稿身份已变化，未执行写入。',outcome:'NOT_DISPATCHED'};
   }
   function controls(){
     knowledgeHandoff?.controls();
-    byId('file-workspace').setAttribute('aria-busy',String(busy));
-    const currentAuthority=current&&sameAuthority(current.authority,authorityFor(current.workspaceId));
-    for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
-    byId('target-picker').disabled=busy||demo;
-    const previewTool=byId('preview-sidebar-tool');
-    if(previewTool)previewTool.disabled=busy||demo||!connected||!workspaceAccess.has(workspaceId)||
-      !api?.storage?.session?.set||!api?.tabs?.create;
-    byId('workspace-picker').disabled=busy||!connected;
-    byId('workspace-access-note').hidden=!connected||workspaceAccess.get(workspaceId)!=='read-only';
-    const reason=workspaceRows.get(workspaceId)?.accessReason;
-    byId('workspace-access-reason').textContent=reason==='persistent-read-only'?'本目录已有明确的长期只读授权，CLI 默认读写不会升级它。':
-      reason==='active-session'?'复用已在线会话的只读权限；重复启动不会修改原会话。':'当前 CLI 会话以只读模式接入，保存由 Native 拒绝。';
-    byId('refresh-files').disabled=busy||!connected||!workspaceAccess.has(workspaceId);
-    for(const node of byId('file-list').querySelectorAll('button'))node.disabled=busy||!connected;
-    byId('parent-directory').disabled=busy||!connected||![...treeFolders.entries()].some(([path,node])=>path&&node.expanded);
-    // Read-only Native grants limit disk writes, not the user's unsaved
-    // in-memory draft. Do not mistake a read-only workspace for a read-only
-    // text editor; Save/Save As remain authority-gated below.
-    byId('file-editor').disabled=busy||!current;
-    byId('save-file').disabled=busy||!connected||!writable()||!currentAuthority||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.unknown||!!current?.remote||!!current?.importedDraft;
-    byId('reload-file').disabled=busy||!connected||!current||current.workspaceId!==workspaceId||!!current?.importedDraft;
-    byId('discard-file-draft').disabled=busy||!connected||!workspaceAccess.has(workspaceId)||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.importedDraft;
-    byId('copy-content').disabled=busy||!current;
-    byId('save-as').disabled=busy||!connected||!writable()||!currentAuthority||current?.workspaceId!==workspaceId||!!creationPending;
-    byId('check-created').hidden=!creationPending;byId('check-created').disabled=busy||!connected||
-      creationPending?.workspaceId!==workspaceId||!sameAuthority(creationPending?.authority,authorityFor());
-    byId('show-page-preview').disabled=busy||!connected||!current||demo||!targets.has(Number(byId('target-picker').value));
-    for(const id of ['open-sidebar','open-workbench','remove-page-preview'])byId(id).disabled=demo||busy||!targets.has(Number(byId('target-picker').value));
-    const recordOnline=connected&&workspaceAccess.has(current?.workspaceId);
-    byId('draft-label').textContent=localizeLiteral(!current?'未打开文件':!recordOnline?'离线草稿 · 禁止磁盘操作':current.unknown?'保存结果待核对':!currentAuthority?'目录连接已变化 · 请重新读取':current.remote?'磁盘版本已变化':dirty(current)?'有未保存的修改':'已保存');
-    byId('draft-label').classList.toggle('dirty',dirty(current)||!!current?.unknown);
-    byId('conflict-panel').hidden=!current?.remote;
-    if(current?.remote)byId('disk-version').textContent=current.remote.content;
-    if(current){
-      const count=new TextEncoder().encode(current.content).length;
-      const owner=history.find(row=>row.workspaceId===current.workspaceId);
-      const sameName=owner&&history.filter(row=>sourceName(row.name)===sourceName(owner.name)).length>1;
-      const ownedBy=demo?'内存演示目录':owner?sourceLabel(owner,{duplicate:sameName}):'目录身份待连接核验';
-      byId('file-meta').textContent=ownedBy+' / '+current.path+' · '+formatFileSize(count)+' · '+
-        (current.sha256?.slice(0,10)||'')+(recordOnline?' · 已核验目录':' · 离线草稿')+(!writable()?' · 只读':'');
-    }else{
-      byId('file-meta').textContent=translate('runtime.selectFile');
-    }
-    byId('open-sidebar').disabled=byId('open-sidebar').disabled||!connected||!workspaceAccess.has(workspaceId);
-    byId('file-title').title=current?.path||'打开一个文件';
-    byId('file-meta').title=byId('file-meta').textContent;
-    chatEdit?.controls({busy,connected:connected&&workspaceAccess.has(workspaceId)});
+    chatEdit?.update({busy,connected:connected&&workspaceAccess.has(workspaceId)});
     publishSnapshot();
   }
   async function operation(action){
     if(busy||closed)return;
-    const restoreFocus=recoverControlFocus(doc,byId('file-editor'));
-    busy=true;controls();restoreFocus.disabled();
-    try{await action();}catch(e){failure(e);}finally{
+    busy=true;controls();
+    try{return await action();}catch(e){failure(e);}finally{
       busy=false;controls();
-      restoreFocus.restore(!closed);
       if(pendingRefresh&&!closed){pendingRefresh=false;void operation(refresh);}
     }
   }
@@ -185,55 +182,56 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     void operation(refresh);
   }
   function populatePicker(rows,{offline=false}={}){
-    const picker=byId('workspace-picker'),counts=new Map();
+    const counts=new Map();
     for(const row of rows){const name=sourceName(row.name);counts.set(name,(counts.get(name)||0)+1);}
-    picker.replaceChildren();
-    if(pendingSource&&rows.length)picker.append(new Option('指定来源暂不可用，请明确选择目录',''));
-    for(const row of rows)picker.append(new Option(sourceLabel(row,{offline,duplicate:counts.get(sourceName(row.name))>1})+
-      (!offline&&row.access==='read-only'?'（只读）':''),row.workspaceId));
-    if(!rows.length)picker.append(new Option(offline?'尚未连接本机':'尚无已接入目录',''));
-    else if(!pendingSource&&!rows.some(row=>row.workspaceId===workspaceId)&&!workspaceId)workspaceId=rows[0].workspaceId;
-    if(workspaceId&&!rows.some(row=>row.workspaceId===workspaceId))
-      picker.append(new Option(sourceLabel(history.find(row=>row.workspaceId===workspaceId)||{name:'原工作区'},{offline:true}),workspaceId));
-    picker.value=workspaceId||'';
+    pickerRows=rows.map(row=>({...row,offline,label:sourceLabel(row,{offline,duplicate:counts.get(sourceName(row.name))>1})+
+      (!offline&&row.access==='read-only'?'（只读）':'')}));
+    if(!pendingSource&&!rows.some(row=>row.workspaceId===workspaceId)&&!workspaceId&&rows.length)workspaceId=rows[0].workspaceId;
+    if(workspaceId&&!rows.some(row=>row.workspaceId===workspaceId)){
+      const row=history.find(row=>row.workspaceId===workspaceId)||{workspaceId,name:'原工作区'};
+      pickerRows.push({...row,offline:true,label:sourceLabel(row,{offline:true})});
+    }
   }
   function offline(message){
+    connected=false;workspaceAccess.clear();workspaceRows.clear();fileState={};
     toolPreviewStatus('本地工具来源离线；不能读取新的构建快照。',true);
-    connected=false;workspaceAccess.clear();workspaceRows.clear();fileState={};chatEdit?.invalidate('本机连接或授权已失效，旧请求和提案已停用，草稿保留。');resetFileTree();
+    chatEdit?.invalidate('本机连接或授权已失效，旧请求和提案已停用，草稿保留。');resetFileTree();
     populatePicker(history,{offline:true});
-    byId('connection-label').textContent=translate('runtime.notConnected');
-    byId('connection-label').classList.remove('ready');
+    connectionLabel=translate('runtime.notConnected');
     status(message);
     controls();
   }
   function renderPreview(){
-    clearTimeout(previewTimer);if(!current)return;
-    byId('file-preview').srcdoc=previewDocument(current.path,current.content,doc);
-    byId('preview-kind').textContent=localizeLiteral(/\.(md|markdown)$/i.test(current.path)?'基础 Markdown':/\.html?$/i.test(current.path)?'静态 HTML · 无脚本':'源码文本 · 未执行');
-  }
-  function showRecord(record){
-    current=record;byId('file-title').textContent=record.path.split('/').at(-1);byId('file-editor').value=record.content;
-    for(const node of byId('file-list').querySelectorAll('button')){
-      const selected=node.dataset.kind==='file'&&node.dataset.path===record.path;
-      node.classList.toggle('selected',selected);node.setAttribute('aria-selected',String(selected));
+    clearTimeout(previewTimer);
+    previewHTML='';previewKind='';
+    if(current){
+      previewKind=/\.(md|markdown)$/i.test(current.path)?'基础 Markdown':/\.html?$/i.test(current.path)?'静态 HTML · 无脚本':'源码文本 · 未执行';
+      try{previewHTML=renderPreviewDocument(current.path,current.content);}
+      catch(error){failure(error);}
     }
-    const parent=record.path.includes('/')?record.path.slice(0,record.path.lastIndexOf('/')):'';
-    byId('directory-name').textContent=parent?'/'+parent:translate('workspace.rootDirectory');
-    byId('directory-name').title=parent?'当前路径：/'+parent:'当前路径：根目录';
-    renderPreview();controls();
+    publishSnapshot();
   }
+  function showRecord(record){current=record;renderPreview();controls();}
   async function readFile(ws,path,authority=authorityFor(ws)){
-    if(!authority)throw {code:'E_FILES_SESSION',message:'目录当前不可用。',outcome:'NOT_DISPATCHED'};
+    if(closed||!authority)throw {code:'E_FILES_SESSION',message:'目录当前不可用。',outcome:'NOT_DISPATCHED'};
+    validateRequestPath(path);
     const data=validateWorkspaceRead(await client.request('files.read',fileParams({workspaceId:ws,path},authority),expected(authority)),ws,path);
     if(await textSHA256(data.content)!==data.sha256)throw {code:'E_FILES_PROTOCOL',message:'文件内容与版本不一致，未替换草稿'};
-    if(!sameAuthority(authority,authorityFor(ws)))throw {code:'E_FILES_SESSION',message:'读取期间目录连接已变化，未更新草稿。'};
+    if(closed||!sameAuthority(authority,authorityFor(ws)))throw {code:'E_FILES_SESSION',message:'读取期间目录连接已变化，未更新草稿。'};
     return {...data,authority};
   }
   async function openFile(path){
+    if(!connected||!workspaceAccess.has(workspaceId))throw {code:'E_FILES_SESSION',message:'请先选择已连接的授权目录。',outcome:'NOT_DISPATCHED'};
+    validateRequestPath(path);
     if(!await leaveImportedDraft())return;
     const ws=workspaceId,key=workspaceRecordKey(ws,path),authority=authorityFor(ws);
     let record=records.get(key);
-    if(!record){const data=await readFile(ws,path,authority);record=createWorkspaceDraft(data);records.set(key,record);}
+    if(!record){
+      const selected=current,revision=draftRevision(selected),data=await readFile(ws,path,authority);
+      if(current!==selected||draftRevision(selected)!==revision)
+        throw {code:'E_EDIT_BASE',message:'读取期间当前草稿已编辑，后续输入已保留。请再次选择要打开的文件。'};
+      record=createWorkspaceDraft(data);records.set(key,record);
+    }
     if(workspaceId===ws){showRecord(record);status(demo?'这是可编辑的内存演示文件。':'已从授权目录读取文件；尚未发送到 AI。');}
   }
   async function leaveImportedDraft(){
@@ -256,9 +254,8 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   // folder does NOT navigate away or request its siblings again.
   function resetFileTree(){
     treeFolders=new Map();treeIdentity='';treeRevision++;
-    byId('file-list').replaceChildren();byId('directory-name').textContent=translate('workspace.rootDirectory');
-    byId('directory-name').title='当前路径：根目录';
-    byId('tree-message').textContent='';
+    treeMessage='';
+    publishSnapshot();
   }
   const folderState=()=>({expanded:false,entries:null,truncated:false});
   function ensureFileTree(){
@@ -271,56 +268,26 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     return authority;
   }
   function renderFileTree(){
-    const list=byId('file-list'),rootFolder=treeFolders.get('');
-    if(!rootFolder){list.replaceChildren();byId('tree-message').textContent='';publishSnapshot();return;}
-    const rows=[{path:'',name:translate('workspace.rootDirectory'),kind:'directory',depth:0,pos:1,size:1}],warnings=[];
-    function visit(path,depth){
+    const rootFolder=treeFolders.get('');
+    if(!rootFolder){treeMessage='';publishSnapshot();return;}
+    let visible=0,warnings=0;
+    function visit(path){
       const folder=treeFolders.get(path);
       if(!folder?.expanded||!folder.entries)return;
-      if(folder.truncated)warnings.push('/'+path);
-      for(const [index,entry] of folder.entries.entries()){
-        rows.push({...entry,depth,pos:index+1,size:folder.entries.length});
+      if(folder.truncated)warnings++;
+      for(const entry of folder.entries){
+        visible++;
         if(entry.kind==='directory'){
           if(!treeFolders.has(entry.path))treeFolders.set(entry.path,folderState());
-          visit(entry.path,depth+1);
+          visit(entry.path);
         }
       }
     }
-    visit('',1);
-    const previousFocus=doc.activeElement?.dataset?.path;
-    const selected=rows.some(row=>row.kind==='file'&&row.path===current?.path&&current.workspaceId===workspaceId)
-      ?current.path:'';
-    const tabStop=rows.some(row=>row.path===previousFocus)?previousFocus:selected;
-    const nodes=rows.map(row=>{
-      const button=doc.createElement('button');button.type='button';button.className='file-entry';
-      button.dataset.path=row.path;button.dataset.kind=row.kind;
-      button.setAttribute('role','treeitem');button.setAttribute('aria-level',String(row.depth+1));
-      button.setAttribute('aria-posinset',String(row.pos));button.setAttribute('aria-setsize',String(row.size));
-      button.tabIndex=row.path===tabStop?0:-1;
-      const isSelected=row.kind==='file'&&row.path===current?.path&&current.workspaceId===workspaceId;
-      button.setAttribute('aria-selected',String(isSelected));button.classList.toggle('selected',isSelected);
-      const folder=row.kind==='directory'?treeFolders.get(row.path):null;
-      if(folder)button.setAttribute('aria-expanded',String(folder.expanded));
-      button.title=row.path?'/'+row.path:'已授权目录';
-      button.style?.setProperty('--tree-indent',String(Math.min(row.depth,16)*16+8)+'px');
-      const caret=folder?createWorkspaceTreeChevron(doc,folder.expanded):doc.createElement('span');
-      if(!folder){caret.className='tree-caret tree-caret-empty';caret.setAttribute('aria-hidden','true');}
-      const icon=createWorkspaceFileIcon(doc,row.kind,row.name,!!folder?.expanded);
-      const name=doc.createElement('span');name.className='file-name';name.textContent=row.name;
-      button.append(caret,icon,name);
-      if(folder?.truncated){
-        const flag=doc.createElement('span');flag.className='tree-truncated';flag.textContent=translate('runtime.partial');
-        flag.title=translate('runtime.nativeTruncated');button.append(flag);
-      }
-      button.addEventListener('click',()=>runTreeAction(row.path,()=>folder?toggleFileDirectory(row.path):openFile(row.path)));
-      return button;
-    });
-    list.replaceChildren(...nodes);
-    for(const button of nodes)button.disabled=busy||!connected;
+    visit('');
     const expanded=[...treeFolders.entries()].filter(([path,node])=>path&&node.expanded).length;
-    byId('tree-message').textContent=rootFolder.entries===null?translate('runtime.loadingTree'):
-      (rows.length===1?translate('runtime.emptyFolder'):translate('runtime.treeVisible',{visible:rows.length-1,expanded}))+
-      (warnings.length?translate('runtime.treePartial',{count:warnings.length}):'');
+    treeMessage=rootFolder.entries===null?translate('runtime.loadingTree'):
+      (visible?translate('runtime.treeVisible',{visible,expanded}):translate('runtime.emptyFolder'))+
+      (warnings?translate('runtime.treePartial',{count:warnings}):'');
     publishSnapshot();
   }
   async function loadFileFolder(path,authority,{force=false}={}){
@@ -370,64 +337,26 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       await loadFileFolder(parent,authority,{force:true});
     }
     renderFileTree();
-    for(const node of byId('file-list').querySelectorAll('button')){
-      const selected=node.dataset.kind==='file'&&node.dataset.path===path;
-      node.classList.toggle('selected',selected);node.setAttribute('aria-selected',String(selected));
-    }
   }
   function collapseFileTree(){
     for(const [path,folder] of treeFolders)folder.expanded=path==='';
     renderFileTree();controls();
   }
-  async function runTreeAction(path,action){
-    const focused=doc.activeElement?.dataset?.path===path;
-    await operation(action);
-    if(!focused||closed||busy||!connected||doc.hidden||!doc.hasFocus?.()||
-      ![doc.body,byId('file-editor')].includes(doc.activeElement))return;
-    const buttons=[...byId('file-list').querySelectorAll('button')];
-    const target=buttons.find(button=>button.dataset.path===path&&!button.disabled);
-    if(target){for(const button of buttons)button.tabIndex=button===target?0:-1;target.focus({preventScroll:true});}
-  }
-  function fileTreeKeydown(event){
-    const target=event.target;
-    if(!['file','directory'].includes(target?.dataset?.kind))return;
-    const buttons=[...byId('file-list').querySelectorAll('button')].filter(node=>node.dataset.kind);
-    const index=buttons.indexOf(target);if(index<0)return;
-    let next=null;
-    if(event.key==='ArrowDown')next=buttons[Math.min(index+1,buttons.length-1)];
-    else if(event.key==='ArrowUp')next=buttons[Math.max(0,index-1)];
-    else if(event.key==='Home')next=buttons[0];
-    else if(event.key==='End')next=buttons.at(-1);
-    else if(event.key==='ArrowRight'&&target.dataset.kind==='directory'){
-      if(target.getAttribute('aria-expanded')==='false'){
-        event.preventDefault();void runTreeAction(target.dataset.path,()=>toggleFileDirectory(target.dataset.path));return;
-      }
-      if(buttons[index+1]?.dataset.path.startsWith(target.dataset.path?target.dataset.path+'/':''))
-        next=buttons[index+1];
-    }else if(event.key==='ArrowLeft'){
-      if(target.dataset.kind==='directory'&&target.getAttribute('aria-expanded')==='true'&&target.dataset.path){
-        event.preventDefault();void runTreeAction(target.dataset.path,()=>toggleFileDirectory(target.dataset.path));return;
-      }
-      const parent=target.dataset.path.includes('/')?
-        target.dataset.path.slice(0,target.dataset.path.lastIndexOf('/')):'';
-      next=buttons.find(node=>node.dataset.path===parent)||buttons[0];
-    }
-    if(next){event.preventDefault();for(const button of buttons)button.tabIndex=button===next?0:-1;next.focus({preventScroll:true});}
-  }
   async function loadTargets(){
-    if(demo){byId('target-picker').replaceChildren(new Option('扩展中可选择 ChatGPT 等网页',''));return;}
-    const previous=byId('target-picker').value;targets.clear();
-    const list=await api.tabs.query({currentWindow:true});
-    const options=[];
-    for(const tab of list){if(!Number.isInteger(tab.id)||!/^https?:\/\//.test(tab.url||''))continue;
+    if(demo)return;
+    const previous=targetId,list=await api.tabs.query({currentWindow:true}),next=new Map();
+    for(const tab of list){
+      if(!Number.isInteger(tab.id)||!/^https?:\/\//.test(tab.url||''))continue;
       let frame;try{frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});}catch{continue;}
       if(typeof frame?.documentId!=='string')continue;
-      targets.set(tab.id,{tabId:tab.id,documentId:frame.documentId,url:frame.url});
-      options.push(new Option(tab.title||frame.url,String(tab.id)));
+      next.set(tab.id,{tabId:tab.id,documentId:frame.documentId,url:frame.url,title:tab.title||frame.url});
     }
-    byId('target-picker').replaceChildren(new Option('选择网页',''),...options);
-    if(targets.has(Number(previous)))byId('target-picker').value=previous;
-    else{const active=list.find(t=>t.active&&targets.has(t.id));if(active)byId('target-picker').value=String(active.id);}
+    if(closed)return;
+    const previousTarget=targets.get(Number(previous)),nextTarget=next.get(Number(previous));
+    if(previousTarget&&(!nextTarget||previousTarget.documentId!==nextTarget.documentId||previousTarget.url!==nextTarget.url))
+      chatEdit?.invalidate('目标网页或文档身份已变化，请重新绑定。');
+    targets.clear();for(const [key,value] of next)targets.set(key,value);
+    targetId=targets.has(Number(previous))?previous:String(list.find(t=>t.active&&targets.has(t.id))?.id||'');
   }
   async function refresh(){
     const ticket=refreshGeneration;
@@ -438,9 +367,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     catch(error){if(ticket===refreshGeneration)offline('无法读取 Native 状态：'+(error.code||error.message||'连接失败'));return;}
     if(ticket!==refreshGeneration||closed)return;
     fileState=state;connected=!!state.connected;
-    const label=byId('connection-label');
-    label.textContent=localizeLiteral(demo?'交互演示':connected?'Native 已连接':state.nativeConnected&&!state.supported?'需更新 OpenDesk':'尚未连接本机');
-    label.classList.toggle('ready',connected&&!demo);
+    connectionLabel=demo?'交互演示':connected?'Native 已连接':state.nativeConnected&&!state.supported?'需更新 OpenDesk':'尚未连接本机';
     if(!connected){
       offline(state.nativeConnected&&!state.supported?'本机 OpenDesk 不支持文件工作区，请更新。':'本机尚未连接；历史目录仅用于展示，不能执行文件操作。');
       return;
@@ -490,8 +417,9 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     if(ticket!==refreshGeneration||closed)return;
     if(current&&current.workspaceId!==workspaceId&&!dirty(current))current=null;
     if(!current){
-      const file=byId('file-list').querySelector('button[data-path$="README.md"]')||byId('file-list').querySelector('button[data-path$=".md"]');
-      if(file)await openFile(file.dataset.path);
+      const files=[...treeFolders.values()].flatMap(folder=>folder.expanded?folder.entries||[]:[]).filter(entry=>entry.kind==='file');
+      const file=files.find(entry=>entry.path.endsWith('README.md'))||files.find(entry=>entry.path.endsWith('.md'));
+      if(file)await openFile(file.path);
     }
     status(demo?'内存演示文件。':'本机已连接；文件工作区可用。保存或运行都需要明确操作。');
   }
@@ -524,9 +452,10 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }
   }
   async function reread(){
-    const record=current;if(!record)return;
+    const record=current;if(!record||record.importedDraft||record.workspaceId!==workspaceId)return;
+    const revision=draftRevision(record);
     const disk=await readFile(record.workspaceId,record.path);
-    const result=reconcileWorkspaceRead(record,disk);
+    const result=reconcileWorkspaceRead(record,disk,{preserveDraft:draftRevision(record)!==revision});
     Object.assign(record,result.record);
     if(result.kind==='unchanged'){
       status('磁盘仍为读取时的版本，当前草稿已保留。');return;
@@ -550,10 +479,16 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       const disk=await readFile(record.workspaceId,record.path,authority);
       if(!verifyWorkspaceWriteReadBack(disk,{workspaceId:record.workspaceId,path:record.path,content,sha256:result.sha256})){record.remote=disk;record.unknown=false;
         status('保存已收到回执，但磁盘内容随后发生变化。草稿已保留。',true);return;}
-      Object.assign(record,disk,{baseContent:content,unknown:false,remote:null});
+      // The response proves the submitted bytes, not any later keystrokes.
+      // Advance the disk baseline while retaining the latest in-memory draft.
+      const latestContent=record.content;
+      Object.assign(record,disk,{content:latestContent,baseContent:content,unknown:false,remote:null});
+      const committed=Object.freeze({workspaceId:record.workspaceId,path:record.path,content,baseContent:content,
+        sha256:disk.sha256,bytes:disk.bytes,unknown:false,remote:null,importedDraft:false});
       if(current===record)showRecord(record);
-      await chatEdit?.saved(record);
-      status(demo?'演示文件已保存到内存，并已读回核对。':'已保存到本地文件，并已读回核对。');
+      await chatEdit?.saved(record,committed);
+      status(dirty(record)?'保存时的版本已写入并读回核对；后续编辑仍是未保存草稿。':
+        demo?'演示文件已保存到内存，并已读回核对。':'已保存到本地文件，并已读回核对。');
     }catch(e){
       if(e.code==='E_FILES_CONFLICT'){try{record.remote=await readFile(record.workspaceId,record.path);}catch{}
         status('文件已被其他编辑器修改。没有覆盖磁盘，当前草稿已保留。',true);
@@ -561,12 +496,15 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }
   }
   async function saveAs(newPath=null){
-    const record=current,path=String(newPath??byId('save-as-path').value).trim();if(!record||!path)throw new Error('请填写新文件的相对路径');
+    if(creationPending)throw {code:'E_FILES_PENDING',message:'新文件创建结果尚待核对，请先核对新文件，不要重复创建。',outcome:'NOT_DISPATCHED'};
+    const record=current,path=String(newPath??saveAsPath).trim();if(!record||!path)throw new Error('请填写新文件的相对路径');
+    validateRequestPath(path);
+    const content=record.content,revision=draftRevision(record);
     await assertSaveAuthority(record);
-    const ws=record.workspaceId,content=record.content,authority=record.authority;
+    const ws=record.workspaceId,authority=record.authority;
     let acknowledged=false,data;
     try{
-      creationPending={workspaceId:ws,path,content,authority};
+      creationPending={workspaceId:ws,path,content,authority,sourceRecord:record,draftRevision:revision};
       const ack=await client.request('files.create',fileParams({workspaceId:ws,path,content},authority),expected(authority));
       verifyWorkspaceWriteReceipt(ack,{workspaceId:ws,path,sha256:await textSHA256(content),create:true});
       acknowledged=true;
@@ -575,37 +513,45 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       else{creationPending=null;throw e;}return;}
     await showCreated(data,'新文件已创建并读回核对。');
   }
-  async function showCreated(data,message){
-    const record=createWorkspaceDraft(data);records.set(workspaceRecordKey(data.workspaceId,data.path),record);
-    workspaceId=data.workspaceId;byId('workspace-picker').value=workspaceId;creationPending=null;
-    showRecord(record);byId('save-as-path').value='';
-    try{await revealFileInTree(data.path);status(message);}
+  async function showCreated(data,message,{conflict=false}={}){
+    const pending=creationPending,source=pending?.sourceRecord,revision=pending?.draftRevision;
+    const edited=source&&draftRevision(source)!==revision;
+    const record=createWorkspaceDraft(data);
+    if(edited)record.content=source.content;
+    else if(conflict)record.content=pending.content;
+    if(conflict)record.remote=data;
+    records.set(workspaceRecordKey(data.workspaceId,data.path),record);
+    workspaceId=data.workspaceId;creationPending=null;
+    saveAsPath='';showRecord(record);
+    if(edited&&dirty(record))message+=' 后续编辑仍保留为未保存草稿。';
+    try{await revealFileInTree(data.path);status(message,conflict);}
     catch(e){status(message+' 目录刷新失败，请点击「刷新目录」。'+(e.message||String(e)),true);}
   }
   async function checkCreated(){
     const pending=creationPending;if(!pending)return;
-    await assertAuthority(pending.authority);
-    const data=await readFile(pending.workspaceId,pending.path,pending.authority);
-    if(data.content!==pending.content){status('新文件存在，但内容与待保存草稿不同。原草稿仍保留，请从文件列表打开并核对。',true);return;}
+    const authority=creationCheckAuthority();
+    if(!authority)throw {code:'E_FILES_SESSION',message:'目录当前不可用。',outcome:'NOT_DISPATCHED'};
+    await assertAuthority(authority);
+    const data=await readFile(pending.workspaceId,pending.path,authority);
+    if(data.content!==pending.content){
+      await showCreated(data,'磁盘版本已读取。当前草稿保留，请比较版本，或另存为新文件。',{conflict:true});return;
+    }
     await showCreated(data,'新文件已读回，内容与草稿一致。');
   }
   async function pagePreview(remove=false){
-    const target=targets.get(Number(byId('target-picker').value));if(!target||!remove&&!current)throw new Error('请选择目标网页');
-    const html=remove?'':previewDocument(current.path,current.content,doc),title=current?.path||'';
+    const target=targets.get(Number(targetId));if(!target||!remove&&!current)throw new Error('请选择目标网页');
+    const html=remove?'':renderPreviewDocument(current.path,current.content),title=current?.path||'';
     const frame=await api.webNavigation.getFrame({tabId:target.tabId,frameId:0});
-    if(frame?.documentId!==target.documentId)throw new Error('目标网页已经导航。请刷新连接，重新选择页面。');
+    if(closed||target!==targets.get(Number(targetId))||frame?.documentId!==target.documentId)throw new Error('目标网页已经导航或关闭。请刷新连接，重新选择页面。');
     await api.scripting.executeScript({target:{tabId:target.tabId,documentIds:[target.documentId]},world:'ISOLATED',func:displayPagePreview,args:[{html,title,remove}]});
     status(remove?'已移除当前网页中的预览。':'已在目标网页显示当前文件的静态预览。');
   }
   function chooseView(next){
-    if(!['preview','source','split','app'].includes(next))return;
-    view=next;for(const b of root.querySelectorAll('[data-view]'))if(b.tagName==='BUTTON')b.setAttribute('aria-pressed',String(b.dataset.view===view));
-    byId('file-surface').hidden=next==='app';byId('app-surface').hidden=next!=='app';
-    if(next!=='app')byId('file-surface').dataset.view=next;
-    publishSnapshot();
+    if(closed||!['preview','source','split','app'].includes(next))return;
+    view=next;publishSnapshot();
   }
-  chatEdit=initWorkspaceChatEdit({api,doc,demo,getRecord:()=>connected&&workspaceAccess.has(workspaceId)&&current?.workspaceId===workspaceId?current:null,
-    getTarget:()=>targets.get(Number(byId('target-picker').value)),getAuthority:()=>authorityFor(),assertAuthority,
+  chatEdit=createChatEdit({api,demo,getRecord:()=>connected&&workspaceAccess.has(workspaceId)&&current?.workspaceId===workspaceId?current:null,
+    getTarget:()=>targets.get(Number(targetId)),getAuthority:()=>authorityFor(),assertAuthority,
     requestFile:async(request,authority)=>{
       await assertAuthority(authority);
       validateRequestPath(request.path,{directory:request.operation==='list'});
@@ -624,83 +570,85 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       if(!await leaveImportedDraft())throw {code:'E_EDIT_BASE',message:'已保留尚未创建的知识草稿；本次未读取其他文件。',outcome:'NOT_DISPATCHED'};
       const ws=workspaceId,key=workspaceRecordKey(ws,request.path),previous=records.get(key);
       if(previous&&(dirty(previous)||previous.unknown||previous.remote))throw {code:'E_EDIT_BASE',message:'该文件有未保存或待核对的草稿，请先处理。'};
+      const selected=current,revision=draftRevision(selected),previousRevision=draftRevision(previous);
       const disk=await readFile(ws,request.path,authority);
       await assertAuthority(authority);
+      if(current!==selected||draftRevision(selected)!==revision||draftRevision(previous)!==previousRevision)
+        throw {code:'E_EDIT_BASE',message:'读取期间草稿已编辑，后续输入已保留；请重新建立读取请求。'};
       const record=previous||{};Object.assign(record,disk,{baseContent:disk.content,unknown:false,remote:null});
       records.set(key,record);showRecord(record);
       return {record,data:{workspaceId:ws,path:disk.path,sha256:disk.sha256,content:disk.content,bytes:disk.bytes}};
     },
     run:operation,isWritable:()=>writable()&&current?.workspaceId===workspaceId,
-    readCurrent:async()=>{const record=current,ticket=refreshGeneration,authority=authorityFor();
+    readCurrent:async()=>{const record=current,ticket=refreshGeneration,authority=authorityFor(),revision=draftRevision(record);
       if(!connected||!workspaceAccess.has(workspaceId)||record?.workspaceId!==workspaceId)
         throw {code:'E_EDIT_BASE',message:'请先连接并明确选择当前文件所属的工作区。'};
       if(!record||dirty(record)||record.unknown||record.remote)throw {code:'E_EDIT_BASE',message:'请先保存或核对当前草稿。'};
       const disk=await readFile(record.workspaceId,record.path,authority);
       if(ticket!==refreshGeneration||current!==record||!connected||!workspaceAccess.has(workspaceId)||record.workspaceId!==workspaceId)
         throw {code:'E_EDIT_BASE',message:'读取期间工作区状态已变化，请等待刷新后重新生成上下文。'};
+      if(draftRevision(record)!==revision||dirty(record)||record.unknown||record.remote)
+        throw {code:'E_EDIT_BASE',message:'读取期间草稿已编辑，后续输入已保留；请先保存或核对后重新生成上下文。'};
       Object.assign(record,disk,{baseContent:disk.content});showRecord(record);return record;},
-    setDraft:(record,content)=>{record.content=content;showRecord(record);chooseView('split');}
+    setDraft:(record,content)=>{
+      if(closed||current!==record)throw {code:'E_EDIT_BASE',message:'草稿所属文件已变化，未采用修改。'};
+      editDraft(record,content);showRecord(record);chooseView('split');
+    }
   });
-  byId('demo-banner').hidden=!demo;
-  if(demo){byId('open-settings').hidden=true;byId('target-picker').disabled=true;}
-  byId('refresh-connection').addEventListener('click',scheduleRefresh);
-  byId('preview-sidebar-tool')?.addEventListener('click',event=>{
-    if(!event.isTrusted||demo)return;
-    void operation(previewSidebarTool);
-  });
-  byId('refresh-files').addEventListener('click',()=>operation(()=>refreshFileTree({expanded:true})));
-  byId('parent-directory').addEventListener('click',()=>{if(!busy)collapseFileTree();});
-  byId('file-list').addEventListener('keydown',fileTreeKeydown);
-  byId('workspace-picker').addEventListener('change',()=>operation(async()=>{
-    const selected=byId('workspace-picker').value;if(pendingSource&&!workspaceAccess.has(selected))return;
-    if(!await leaveImportedDraft()){byId('workspace-picker').value=workspaceId;return;}
+  async function selectWorkspace(selected){
+    if(pendingSource&&!workspaceAccess.has(selected))return;
+    if(!await leaveImportedDraft()||closed)return;
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
-    pendingSource='';workspaceId=selected;current=null;resetFileTree();
+    pendingSource='';workspaceId=selected;current=null;resetFileTree();renderPreview();
     toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
-    byId('file-title').textContent='打开一个文件';byId('file-editor').value='';
-    byId('file-preview').removeAttribute('srcdoc');
     if(!demo)api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
     if(connected&&workspaceAccess.has(workspaceId))await refreshFileTree();
-  }));
-  byId('target-picker').addEventListener('change',()=>{chatEdit.invalidate('已切换目标对话，旧请求和提案已失效。');controls();});
-  function updateDraftContent(value,{allowBusy=false}={}){
-    if(!current||busy&&!allowBusy)return false;
-    current.content=String(value);
-    // Do not rewrite the same textarea value while typing: retain caret,
-    // selection and IME composition in the existing editor.
-    const editor=byId('file-editor');
-    if(editor.value!==current.content)editor.value=current.content;
-    controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);
+  }
+  function updateDraftContent(value){
+    if(!current||closed)return false;
+    editDraft(current,value);controls();
+    clearTimeout(previewTimer);previewTimer=setTimeout(()=>{if(!closed)renderPreview();},200);
     return true;
   }
-  byId('file-editor').addEventListener('input',()=>{updateDraftContent(byId('file-editor').value);});
-  byId('save-file').addEventListener('click',()=>operation(save));
-  byId('reload-file').addEventListener('click',()=>operation(reread));
-  byId('discard-file-draft').addEventListener('click',()=>operation(async()=>{
+  async function discardDraft(){
     const record=current,ws=workspaceId;
-    if(!record||record.workspaceId!==ws)throw {code:'E_FILES_SESSION',message:'请先选择草稿所属目录。'};
+    if(!record||record.workspaceId!==ws||record.importedDraft)throw {code:'E_FILES_SESSION',message:'请先选择草稿所属目录。'};
+    const revision=draftRevision(record);
     const disk=await readFile(ws,record.path);
     if(current!==record||workspaceId!==ws)throw {code:'E_FILES_SESSION',message:'读取期间选择已变化，原草稿保留。'};
-    Object.assign(record,disk,{baseContent:disk.content,remote:null,unknown:false});chatEdit.forgetRecord(record);showRecord(record);
-    status('已明确丢弃草稿并重新读取磁盘；如需 AI 修改，请建立新的读取请求。');
-  }));
-  byId('save-as').addEventListener('click',()=>operation(saveAs));
-  byId('check-created').addEventListener('click',()=>operation(checkCreated));
-  byId('use-disk').addEventListener('click',()=>{if(!current?.remote||busy)return;const disk=current.remote;Object.assign(current,disk,{baseContent:disk.content,remote:null,unknown:false});chatEdit.forgetRecord(current);showRecord(current);status('已明确采用磁盘版本。');});
-  byId('copy-content').addEventListener('click',()=>{if(!current)return;const content=current.content;globalThis.navigator.clipboard.writeText(content).then(()=>status('内容已复制。你可以自行粘贴到 AI 对话。')).catch(failure);});
-  for(const button of root.querySelectorAll('button[data-view]'))button.addEventListener('click',()=>chooseView(button.dataset.view));
-  byId('show-page-preview').addEventListener('click',()=>operation(()=>pagePreview(false)));
-  byId('remove-page-preview').addEventListener('click',()=>operation(()=>pagePreview(true)));
-  byId('open-settings').addEventListener('click',()=>{if(native)api.runtime.openOptionsPage().catch(failure);});
-  for(const [id,path] of [['open-sidebar','native-agent/workspace.html'],['open-workbench','ui/tool.html']])byId(id).addEventListener('click',event=>{
-    if(!event.isTrusted||demo)return;
-    const tabId=Number(byId('target-picker').value);if(!targets.has(tabId))return;
-    if(id==='open-sidebar'&&(!connected||!workspaceAccess.has(workspaceId)||!workspacePattern.test(workspaceId)))return;
-    const panelPath=id==='open-sidebar'?path+'?workspaceId='+encodeURIComponent(workspaceId):path;
-    api.sidePanel.setOptions({tabId,path:panelPath,enabled:true}).then(()=>api.sidePanel.open({tabId})).then(()=>status(id==='open-sidebar'?'已在选中页面打开文件侧栏。':'已恢复该页面的工作台侧栏。')).catch(failure);
-  });
-  byId('connect-preview').addEventListener('click',()=>{try{const url=validatePreviewURL(byId('preview-url').value);byId('app-preview').src=url;status('预览地址：'+url+'。如果为空白，请确认服务已启动，或独立打开。');}catch(e){failure(e);}});
-  byId('open-preview-tab').addEventListener('click',()=>{try{const url=validatePreviewURL(byId('preview-url').value);native?api.tabs.create({url}):globalThis.open(url,'_blank','noopener,noreferrer');}catch(e){failure(e);}});
+    const edited=draftRevision(record)!==revision,content=edited?record.content:disk.content;
+    Object.assign(record,disk,{content,baseContent:disk.content,remote:null,unknown:false});chatEdit.forgetRecord(record);showRecord(record);
+    status(edited?'磁盘已读回核对；读取期间的新编辑已保留为草稿。':'已明确丢弃草稿并重新读取磁盘；如需 AI 修改，请建立新的读取请求。');
+  }
+  function useDisk(){
+    if(!current?.remote||busy||closed||current.workspaceId!==workspaceId||
+      !sameAuthority(current.remote.authority,authorityFor()))return;
+    const disk=current.remote;Object.assign(current,disk,{baseContent:disk.content,remote:null,unknown:false});
+    chatEdit.forgetRecord(current);showRecord(current);status('已明确采用磁盘版本。');
+  }
+  // Called directly from a React user event: do not insert an async boundary
+  // before privileged UI calls that depend on transient browser activation.
+  function openPanel(kind,event){
+    if(!event?.isTrusted||demo||busy||closed)return;
+    const tabId=Number(targetId);if(!targets.has(tabId))return;
+    if(kind==='sidebar'&&(!connected||!workspaceAccess.has(workspaceId)||!workspacePattern.test(workspaceId)))return;
+    const path=kind==='sidebar'?'native-agent/workspace.html?workspaceId='+encodeURIComponent(workspaceId):'ui/tool.html';
+    try{
+      const configured=api.sidePanel.setOptions({tabId,path,enabled:true});
+      const opened=api.sidePanel.open({tabId});
+      return Promise.all([configured,opened])
+        .then(()=>status(kind==='sidebar'?'已在选中页面打开文件侧栏。':'已恢复该页面的工作台侧栏。')).catch(failure);
+    }
+    catch(error){failure(error);}
+  }
+  function copyContent(){
+    if(!current||busy||closed)return;
+    try{
+      const copied=copyText(current.content);
+      if(!copied)throw new Error('浏览器不允许复制，请手工选择文本。');
+      return Promise.resolve(copied).then(()=>status('内容已复制。你可以自行粘贴到 AI 对话。')).catch(failure);
+    }catch(error){failure(error);}
+  }
   const onNativeChange=(message,sender)=>{
     if(!demo&&message?.protocol===AGENT_CONFIG_PROTOCOL&&message.type==='files.changed'&&
       (!sender?.id||sender.id===api.runtime.id)){
@@ -709,13 +657,13 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }
   };
   const onNavigation=details=>{
-    if(details.frameId===0&&details.tabId===Number(byId('target-picker').value)){
+    if(details.frameId===0&&details.tabId===Number(targetId)){
       chatEdit.invalidate('目标对话发生导航，旧请求和提案已失效。返回原对话也需要重新绑定。');
       scheduleRefresh();
     }
   };
   const onTabRemoved=tabId=>{
-    if(tabId===Number(byId('target-picker').value)){chatEdit.invalidate('目标标签页已关闭。');targets.delete(tabId);byId('target-picker').value='';controls();}
+    if(tabId===Number(targetId)){chatEdit.invalidate('目标标签页已关闭。');targets.delete(tabId);targetId='';controls();}
   };
   if(native){
     api.runtime.onMessage?.addListener(onNativeChange);
@@ -723,48 +671,61 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     api.webNavigation.onCommitted?.addListener(onNavigation);
     api.tabs.onRemoved?.addListener(onTabRemoved);
   }
-  knowledgeHandoff=initKnowledgeWorkspaceHandoff({api:demo?null:api,doc,
-    canImport:()=>!busy&&!creationPending&&connected&&workspaceAccess.get(workspaceId)==='read-write',report:failure,
-    onImport:async draft=>{
-      let imported=false;
-      await operation(async()=>{
-        if(!await leaveImportedDraft())return;
-        if(dirty(current)&&!current?.importedDraft){
-          const previous=current;
-          const accepted=await requestActionReview('当前文件有未保存修改。切换到知识草稿后，原文件草稿保留在本窗口。','切换到知识草稿');
-          if(!accepted||current!==previous)return;
-        }
-        const authority=authorityFor();await assertAuthority(authority);
-        showRecord({workspaceId,path:draft.filename,content:draft.markdown,baseContent:'',sha256:null,
-          authority,importedDraft:true});
-        byId('save-as-path').value=draft.filename;chooseView('split');controls();
-        status('知识草稿尚未写入磁盘；关闭页面不再弹窗提醒。请先创建新文件或复制内容。');
-        imported=true;
-      });
-      return imported;
-    }});
+  async function importKnowledgeDraft(draft){
+    let imported=false;
+    await operation(async()=>{
+      if(!await leaveImportedDraft())return;
+      if(dirty(current)&&!current?.importedDraft){
+        const previous=current;
+        const accepted=await requestActionReview('当前文件有未保存修改。切换到知识草稿后，原文件草稿保留在本窗口。','切换到知识草稿');
+        if(!accepted||closed||current!==previous)return;
+      }
+      const authority=authorityFor();await assertAuthority(authority);
+      if(!canImportKnowledge())return;
+      saveAsPath=draft.filename;
+      showRecord({workspaceId,path:draft.filename,content:draft.markdown,baseContent:'',sha256:null,authority,importedDraft:true});
+      chooseView('split');controls();
+      status('知识草稿尚未写入磁盘；关闭页面不再弹窗提醒。请先创建新文件或复制内容。');
+      imported=true;
+    });
+    return imported;
+  }
+  function canImportKnowledge(){return !closed&&!creationPending&&connected&&workspaceAccess.get(workspaceId)==='read-write';}
+  knowledgeHandoff=createKnowledgeHandoff({api:demo?null:api,lockManager,
+    canImport:()=>!busy&&canImportKnowledge(),onImport:importKnowledgeDraft,report:failure});
+  stopKnowledge=knowledgeHandoff.subscribe(publishSnapshot);
   // Closing a browser tab does not show a JS-created beforeunload modal.
   // Explicit in-app switches still require the nonmodal draft choice above.
   const stopLocale=subscribeLocale(()=>{if(closed)return;controls();if(lastStatus)status(lastStatus,lastStatusError);renderFileTree();});
-  const unload=()=>{closed=true;store.dispose();stopLocale();finishActionReview(false);knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
+  const unload=()=>{
+    if(closed)return;
+    closed=true;stopLocale();stopKnowledge?.();finishActionReview(false);knowledgeHandoff?.dispose();chatEdit?.dispose();clearTimeout(previewTimer);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);
       api.tabs.onRemoved?.removeListener?.(onTabRemoved);}
+    store.dispose();
   };
-  globalThis.addEventListener('pagehide',unload,{once:true});
   const actions=Object.freeze({
-    refresh:()=>operation(refresh),
-    refreshFiles:()=>operation(()=>refreshFileTree({expanded:true})),
-    collapseFiles:()=>{if(!busy)collapseFileTree();},
-    toggleDirectory:path=>operation(()=>toggleFileDirectory(path)),
-    openFile:path=>operation(()=>openFile(path)),
-    updateDraft:value=>updateDraftContent(value),
-    save:()=>operation(save),
-    reread:()=>operation(reread),
-    saveAs:path=>operation(()=>saveAs(path)),
-    chooseView
+    setDraft:updateDraftContent,read:path=>operation(()=>openFile(path)),
+    save:()=>operation(save),reread:()=>operation(reread),discardDraft:()=>operation(discardDraft),
+    saveAs:path=>operation(()=>saveAs(path)),checkCreated:()=>operation(checkCreated),useDisk,
+    refresh:()=>{if(closed)return;refreshGeneration++;if(busy){pendingRefresh=true;return;}return operation(refresh);},
+    selectWorkspace:id=>operation(()=>selectWorkspace(String(id))),
+    setTarget:id=>{if(busy||closed||demo)return;targetId=targets.has(Number(id))?String(id):'';chatEdit.invalidate('已切换目标对话，旧请求和提案已失效。');controls();},
+    toggleDirectory:path=>operation(()=>toggleFileDirectory(path)),refreshTree:()=>operation(()=>refreshFileTree({expanded:true})),
+    collapseTree:()=>{if(!busy&&!closed)collapseFileTree();},chooseView,
+    setSaveAsPath:path=>{if(!busy&&!closed){saveAsPath=String(path);publishSnapshot();}},
+    setPreviewURL:url=>{if(!closed){previewURL=String(url);publishSnapshot();}},
+    connectPreview:()=>{if(closed)return;try{connectedPreviewURL=validatePreviewURL(previewURL);status('预览地址：'+connectedPreviewURL+'。如果为空白，请确认服务已启动，或独立打开。');}catch(error){failure(error);}},
+    openPreview:()=>{if(closed)return;try{const url=validatePreviewURL(previewURL);return Promise.resolve(native?api.tabs.create({url}):openExternal(url)).catch(failure);}catch(error){failure(error);}},
+    copyContent,pagePreview:(remove=false)=>operation(()=>pagePreview(remove)),
+    openSettings:()=>{if(native&&!closed)try{return api.runtime.openOptionsPage().catch(failure);}catch(error){failure(error);}},
+    openSidebar:event=>openPanel('sidebar',event),openWorkbench:event=>openPanel('workbench',event),
+    previewTool:event=>{if(!event?.isTrusted||demo)return;return operation(previewSidebarTool);},
+    confirmAction:()=>finishActionReview(true),cancelAction:()=>finishActionReview(false),importKnowledge:event=>knowledgeHandoff.importDraft(event)
   });
-  controls();void operation(refresh);
-  return {dispose:unload,store:viewStore,actions};
+  controls();
+  const ready=Promise.all([operation(refresh),knowledgeHandoff.ready]).then(()=>undefined);
+  return Object.freeze({getSnapshot:store.getSnapshot,subscribe:store.subscribe,actions,ready,dispose:unload,chatEdit,knowledgeHandoff});
 }

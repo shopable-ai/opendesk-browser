@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
-import {initFileWorkspace} from '../../src/native-agent/workspace.js';
+import {createWorkspaceController} from '../../src/native-agent/workspace.js';
+import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {KNOWLEDGE_WORKSPACE_PREFIX,knowledgePackageHash} from '../../src/knowledge/policy.js';
@@ -14,51 +15,9 @@ const B='workspace-00000000-0000-4000-8000-000000000002';
 const hash=text=>createHash('sha256').update(text).digest('hex');
 const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
   emit(...args){for(const fn of listeners)fn(...args);},get size(){return listeners.size;}};};
-// Minimal DOM contract used by the real Workspace controller. This suite is
-// component integration, not an extension sender or Chrome gesture attestation.
-function documentFixture(){
-  const nodes=new Map();
-  let doc;
-  class Element {
-    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.events=new Map();
-      this.attrs={};this.value='';this.textContent='';this.disabled=false;this.hidden=false;
-      this.classList={toggle(){},remove(){}};}
-    set id(value){this.attrs.id=value;nodes.set(value,this);}get id(){return this.attrs.id;}
-    set disabled(value){this._disabled=value;if(value&&doc?.activeElement===this)queueMicrotask(()=>{
-      if(this.disabled&&doc?.activeElement===this)doc.activeElement=doc.body;
-    });}
-    get disabled(){return this._disabled;}
-    get isConnected(){return true;}
-    getClientRects(){return this.hidden?[]:[{}];}
-    focus(){doc.activeElement=this;doc.dispatchEvent(new Event('focusin'));}
-    setAttribute(key,value){this.attrs[key]=value;}getAttribute(key){return this.attrs[key]??null;}removeAttribute(key){delete this.attrs[key];}
-    append(...values){this.children.push(...values);}replaceChildren(...values){this.children=[...values];}
-    addEventListener(type,fn){this.events.set(type,fn);}
-    removeEventListener(type,fn){if(this.events.get(type)===fn)this.events.delete(type);}
-    querySelectorAll(selector){
-      const all=this.id==='file-workspace'?[...nodes.values()]:this.children;
-      return all.filter(n=>n.tagName==='BUTTON'&&(!selector.includes('data-view')||n.dataset.view));
-    }
-    querySelector(selector){
-      const suffix=selector.match(/data-path\$="([^"]+)"/)?.[1];
-      return this.querySelectorAll(selector).find(n=>!suffix||n.dataset.path?.endsWith(suffix))||null;
-    }
-  }
-  const html=readFileSync(new URL('../../src/native-agent/workspace.html',import.meta.url),'utf8');
-  for(const match of html.matchAll(/<([a-z0-9-]+)\b[^>]*\bid="([^"]+)"[^>]*>/gi)){
-    const el=new Element(match[1]);el.id=match[2];el.hidden=/\bhidden\b/.test(match[0]);
-    const view=match[0].match(/data-view="([^"]+)"/);if(view)el.dataset.view=view[1];
-  }
-  doc=Object.assign(new EventTarget(),{getElementById:id=>nodes.get(id),createElement:tag=>new Element(tag),
-    body:new Element('body'),hidden:false,hasFocus:()=>true});
-  doc.activeElement=doc.body;
-  return {doc,nodes,Option:function(text,value){const el=new Element('option');el.textContent=text;el.value=value;return el;}};
-}
+// Native file-service fixture only. The production controller has no document,
+// element, focus or virtual DOM adapter; consumers observe immutable snapshots.
 async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidTree=false}={}){
-  const {doc,nodes,Option}=documentFixture(),prior={Option:globalThis.Option,location:globalThis.location,addEventListener:globalThis.addEventListener};
-  globalThis.Option=Option;
-  globalThis.location={href:'chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?workspaceId='+A};
-  globalThis.addEventListener=()=>{};
   let state={connected:true,supported:true,sessionId:randomUUID(),devLeaseEpoch:1,maxContentBytes:32768};
   const row=id=>({workspaceId:id,sourceId:'source-'+(id===A?'a':'b').repeat(24),name:'同名目录',access:'read-write',
     accessReason:'temporary-cli',...(noLease?{}:{leaseEpoch:randomUUID()})});
@@ -81,14 +40,20 @@ async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidT
    (Array.isArray(keys)?keys:[keys]).filter(key=>key===SIDEBAR_TOOL_STORE).map(key=>[key,[pkg]])
   );
     api.storage.session={get:async key=>({[key]:session[key]}),remove:async key=>{delete session[key];}};
-    const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'locks');
-    Object.defineProperty(globalThis.navigator,'locks',{configurable:true,value:{request:async(_name,work)=>work()}});
-    t.after(()=>{if(previous)Object.defineProperty(globalThis.navigator,'locks',previous);else delete globalThis.navigator.locks;});
+  }
+  const faults={},holds=new Map();
+  function deferNext(method){
+    let release,entered;
+    const wait=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;});
+    holds.set(method,{wait,entered});t.after(release);
+    return {started,release};
   }
   const client={demo:false,state:async()=>{
     const snapshot={...state};if(mixSession){mixSession=false;state={...state,sessionId:randomUUID()};}return snapshot;
   },request:async(method,params={},expected={})=>{
     calls.push({method,params:{...params},expected:{...expected}});
+    const hold=holds.get(method);
+    if(hold){holds.delete(method);hold.entered();await hold.wait;}
     if(expected.sessionId!==state.sessionId)throw {code:'E_FILES_SESSION',message:'session changed'};
     if(method==='workspaces.list')return {workspaces:rows.map(r=>({...r}))};
     const grant=rows.find(r=>r.workspaceId===params.workspaceId);
@@ -107,258 +72,405 @@ async function fixture(t,{noLease=false,knowledgeDraft=false,tree=false,invalidT
     if(method==='files.read'){const content=created.get(grant.workspaceId+'\0'+params.path)??(tree&&params.path==='src/app/page.tsx'?'export default function Page() { return null; }\n':files.get(grant.workspaceId));return {workspaceId:grant.workspaceId,path:params.path,content,sha256:hash(content),bytes:Buffer.byteLength(content)}}
     if(method==='files.create'){
       const key=grant.workspaceId+'\0'+params.path;if(created.has(key)||params.path==='README.md')throw {code:'E_FILES_EXISTS'};
-      created.set(key,params.content);return {saved:true,created:true,workspaceId:grant.workspaceId,path:params.path,sha256:hash(params.content)};
+      if(grant.access!=='read-write')throw {code:'E_FILES_ACCESS'};
+      created.set(key,params.content);
+      if(faults.createUnknown){faults.createUnknown=false;throw {code:'E_FILES_DISCONNECTED',outcome:'OUTCOME_UNKNOWN'};}
+      return {saved:true,created:true,workspaceId:grant.workspaceId,path:params.path,sha256:hash(params.content)};
     }
     if(method==='files.write'){
       if(grant.access!=='read-write')throw {code:'E_FILES_ACCESS'};
       if(params.expectedSha256!==hash(files.get(grant.workspaceId)))throw {code:'E_FILES_CONFLICT'};
-      files.set(grant.workspaceId,params.content);return {saved:true,workspaceId:grant.workspaceId,path:params.path,sha256:hash(params.content)};
+      files.set(grant.workspaceId,params.content);
+      if(faults.writeUnknown){faults.writeUnknown=false;throw {code:'E_FILES_DISCONNECTED',outcome:'OUTCOME_UNKNOWN'};}
+      return {saved:true,workspaceId:grant.workspaceId,path:params.path,sha256:hash(params.content)};
     }
     throw Error('unexpected method '+method);
   }};
-  const get=id=>{assert.ok(nodes.has(id),id);return nodes.get(id);};
+  let chatContract;
+  const savedCalls=[];
+  const controller=createWorkspaceController({api,client,
+    createChatEdit(options){
+      chatContract=options;
+      const chat=createWorkspaceChatEdit(options);
+      return {...chat,saved(record,committed){savedCalls.push({record,committed});return chat.saved(record,committed);}};
+    },
+    locationURL:'chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?workspaceId='+A,
+    lockManager:{request:async(_name,work)=>work()}});
+  t.after(()=>controller.dispose());
+  await controller.ready;
+  const snapshot=controller.getSnapshot,actions=controller.actions;
   const settle=async()=>{
     const deadline=Date.now()+3000;
-    do{await pause(2);if(!get('refresh-connection').disabled)return;}while(Date.now()<deadline);
-    throw Error('Workspace did not settle: '+get('workspace-status').textContent);
+    do{await pause(2);if(!snapshot().busy)return;}while(Date.now()<deadline);
+    throw Error('Workspace did not settle: '+snapshot().status.text);
   };
-  const ui=initFileWorkspace({api,doc,client});t.after(()=>{ui.dispose();Object.assign(globalThis,prior);});
-  await settle();
-  return {doc,get,files,calls,panels,navigation,committed,removed,messages,ui,settle,session,created,
+  return {controller,snapshot,actions,files,calls,panels,navigation,committed,removed,messages,settle,session,created,faults,deferNext,chatContract,savedCalls,
     get rows(){return rows;},set rows(value){rows=value;},get state(){return state;},set state(value){state=value;},
-    mix(){mixSession=true;},
-    async click(id){get(id).events.get('click')({isTrusted:true});await settle();},
-    async select(id){get('workspace-picker').value=id;get('workspace-picker').events.get('change')();await settle();},
-    edit(text){get('file-editor').value=text;get('file-editor').events.get('input')();},
-    async openFile(){const button=get('file-list').querySelector('button[data-path$="README.md"]');assert.ok(button);button.events.get('click')();await settle();}
-  };
+    mix(){mixSession=true;},select:id=>actions.selectWorkspace(id),edit:actions.setDraft,openFile:(path='README.md')=>actions.read(path)};
 }
-test('Workspace restores focus lost to busy controls and respects focus moved during the operation',async t=>{
-  const h=await fixture(t),refresh=h.get('refresh-connection'),save=h.get('save-file'),editor=h.get('file-editor');
-  refresh.focus();await h.click('refresh-connection');
-  assert.equal(h.doc.activeElement,refresh,'refresh must restore its temporarily disabled trigger');
-  h.edit('explicitly saved draft');save.focus();await h.click('save-file');
-  assert.equal(h.doc.activeElement,editor,'a completed Save is disabled, so focus returns to its editable draft');
-  refresh.focus();refresh.events.get('click')();editor.focus();await h.settle();
-  assert.equal(h.doc.activeElement,editor,'an async response must not take focus from another control');
-  refresh.focus();refresh.events.get('click')();editor.focus();h.doc.activeElement=h.doc.body;await h.settle();
-  assert.equal(h.doc.activeElement,h.doc.body,'moving focus away and back to BODY still cancels restoration');
-  refresh.focus();refresh.events.get('click')();h.doc.hidden=true;h.doc.dispatchEvent(new Event('visibilitychange'));
-  h.doc.hidden=false;await h.settle();
-  assert.equal(h.doc.activeElement,h.doc.body,'leaving and returning to the document cancels restoration');
+
+test('Workspace is DOM-free and publishes busy transitions without owning elements or focus',async t=>{
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'document');
+  Object.defineProperty(globalThis,'document',{configurable:true,get(){throw Error('Controller touched document');}});
+  t.after(()=>{if(previous)Object.defineProperty(globalThis,'document',previous);else delete globalThis.document;});
+  const h=await fixture(t),states=[];
+  assert.equal('doc' in h.controller,false);assert.equal('publish' in h.controller,false);
+  assert.ok(h.snapshot().presentation.previewHTML.includes('A real-content contract'));
+  const stop=h.controller.subscribe(()=>states.push(h.snapshot()));t.after(stop);
+  await h.actions.refresh();h.edit('explicitly saved draft');await h.actions.save();
+  assert.ok(states.some(state=>state.busy));assert.equal(h.snapshot().busy,false);
+  assert.ok(states.every(state=>Object.isFrozen(state)&&Object.isFrozen(state.file)&&Object.isFrozen(state.presentation)));
+  const source=readFileSync('src/native-agent/workspace.js','utf8');
+  assert.doesNotMatch(source,/getElementById|querySelector|createElement|innerHTML|addEventListener|recoverControlFocus/);
+  const revision=h.snapshot().revision;stop();await h.actions.refresh();
+  assert.ok(h.snapshot().revision>revision);const count=states.length;h.actions.chooseView('source');assert.equal(states.length,count);
 });
 
-test('Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded',async t=>{
+test('Workspace invalidates write capabilities when a previously writable grant is revoked or downgraded',async t=>{
   const h=await fixture(t);h.edit('keep this draft');
-  h.rows[0].access='read-only';await h.click('save-file');
-  assert.equal(h.get('save-file').disabled,true,'a rejected old authority must stop presenting Save as available');
-  assert.equal(h.get('file-editor').value,'keep this draft');
+  h.rows[0].access='read-only';await h.actions.save();
+  assert.equal(h.snapshot().capabilities.save,false);
+  assert.equal(h.snapshot().file.content,'keep this draft');
   assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
-  await h.click('refresh-connection');await h.click('discard-file-draft');
-  h.rows[0].access='read-write';await h.click('refresh-connection');await h.click('reload-file');
-  h.edit('keep after revoke');h.rows=[];await h.click('save-file');
-  assert.equal(h.get('save-file').disabled,true);
-  assert.equal(h.get('file-editor').value,'keep after revoke');
+  await h.actions.refresh();await h.actions.discardDraft();
+  h.rows[0].access='read-write';await h.actions.refresh();await h.actions.reread();
+  h.edit('keep after revoke');h.rows=[];await h.actions.save();
+  assert.equal(h.snapshot().capabilities.save,false);assert.equal(h.snapshot().file.content,'keep after revoke');
   assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
 });
 
 test('Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B',async t=>{
   const h=await fixture(t);
-  assert.equal(h.get('workspace-picker').value,A);assert.match(h.get('file-editor').value,/A real/);
-  await h.click('open-sidebar');
+  assert.equal(h.snapshot().workspaceId,A);assert.match(h.snapshot().file.content,/A real/);
+  assert.notEqual(h.snapshot().workspaces[0].label,h.snapshot().workspaces[1].label,'same-name directories need distinct labels');
+  const opening=h.actions.openSidebar({isTrusted:true});
+  assert.equal(h.panels.length,2,'both Chrome calls must enter synchronously while the user gesture is active');
+  await opening;
   assert.deepEqual(h.panels[0],{tabId:8,path:'native-agent/workspace.html?workspaceId='+A,enabled:true});
   const originalB=h.files.get(B),initialHash=hash(h.files.get(A)),epoch=h.rows[0].leaseEpoch;
-  h.edit('A edited only\n');await h.click('save-file');
+  h.edit('A edited only\n');await h.actions.save();
   assert.equal(h.files.get(A),'A edited only\n');assert.equal(h.files.get(B),originalB);
   const write=h.calls.find(call=>call.method==='files.write');
   assert.equal(write.params.workspaceId,A);assert.equal(write.params.leaseEpoch,epoch);
   assert.equal(write.params.expectedSha256,initialHash);assert.equal(write.expected.sessionId,h.state.sessionId);
   assert.equal(h.calls.at(-1).method,'files.read','success requires a second file-service read');
   await h.select(B);
-  assert.match(h.get('file-meta').textContent,/选择左侧文件/,'old workspace file metadata must be cleared on switch');
-  assert.equal(h.get('directory-name').textContent,'根目录');
-  await h.openFile();assert.equal(h.get('file-editor').value,originalB);
+  assert.equal(h.snapshot().file,null);assert.match(h.snapshot().presentation.fileMeta,/选择左侧文件/);
+  assert.equal(h.snapshot().presentation.directoryName,'根目录');
+  await h.openFile();assert.equal(h.snapshot().file.content,originalB);
 });
+
 test('A to no online directories to B preserves A identity, label and draft until explicit selection',async t=>{
-  const h=await fixture(t);h.edit('unsaved A');
-  h.rows=[];await h.click('refresh-connection');
-  assert.equal(h.get('workspace-picker').value,A);assert.equal(h.get('file-editor').value,'unsaved A');
+  const h=await fixture(t);h.edit('unsaved A');h.rows=[];await h.actions.refresh();
+  assert.equal(h.snapshot().workspaceId,A);assert.equal(h.snapshot().file.content,'unsaved A');
   h.rows=[{workspaceId:B,sourceId:'source-'+'b'.repeat(24),name:'同名目录',access:'read-write',leaseEpoch:randomUUID()}];
-  await h.click('refresh-connection');
-  assert.equal(h.get('workspace-picker').value,A);assert.equal(h.get('file-editor').value,'unsaved A');
-  assert.match(h.get('file-meta').textContent,/同名目录/);assert.match(h.get('draft-label').textContent,/离线草稿/);
-  assert.equal(h.get('save-file').disabled,true);assert.equal(h.get('open-sidebar').disabled,true);
+  await h.actions.refresh();
+  assert.equal(h.snapshot().workspaceId,A);assert.equal(h.snapshot().file.content,'unsaved A');
+  assert.match(h.snapshot().presentation.fileMeta,/同名目录/);assert.match(h.snapshot().presentation.draftLabel,/离线草稿/);
+  assert.equal(h.snapshot().capabilities.save,false);assert.equal(h.snapshot().capabilities.openSidebar,false);
   assert.equal(h.calls.filter(call=>call.method==='files.read'&&call.params.workspaceId===B).length,0);
-  await h.select(B);await h.openFile();assert.equal(h.get('file-editor').value,h.files.get(B));
+  await h.select(B);await h.openFile();assert.equal(h.snapshot().file.content,h.files.get(B));
 });
+
 test('same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch',async t=>{
   const h=await fixture(t,{noLease:true});h.edit('stale draft');
   assert.equal(h.calls.find(call=>call.method==='files.read').params.leaseEpoch,'');
-  h.rows[0]={...h.rows[0],leaseEpoch:randomUUID()};
-  await h.click('refresh-connection');await h.click('save-file');
+  h.rows[0]={...h.rows[0],leaseEpoch:randomUUID()};await h.actions.refresh();await h.actions.save();
   assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
-  assert.match(h.get('workspace-status').textContent,/E_FILES_SESSION/);
-  assert.equal(h.get('file-editor').value,'stale draft');
+  assert.match(h.snapshot().status.text,/E_FILES_SESSION/);assert.equal(h.snapshot().file.content,'stale draft');
 });
+
 test('a Native state/catalog session mismatch clears operation authority without mixing identities',async t=>{
-  const h=await fixture(t);h.edit('retained');h.mix();await h.click('refresh-connection');
-  assert.equal(h.get('save-file').disabled,true);assert.equal(h.get('file-editor').value,'retained');
-  assert.match(h.get('workspace-status').textContent,/E_FILES_SESSION/);
+  const h=await fixture(t);h.edit('retained');h.mix();await h.actions.refresh();
+  assert.equal(h.snapshot().capabilities.save,false);assert.equal(h.snapshot().file.content,'retained');
+  assert.match(h.snapshot().status.text,/E_FILES_SESSION/);
 });
+
 test('SPA round trips and tab removal retire request bindings; disconnect clears authority immediately',async t=>{
-  const h=await fixture(t);
-  h.get('chat-request-path').value='README.md';await h.click('prepare-file-request');assert.ok(h.get('edit-context').value);
+  const h=await fixture(t),chat=h.controller.chatEdit;
+  chat.actions.setRequestPath('README.md');await chat.actions.prepareFileRequest();assert.ok(chat.getSnapshot().prompt);
   h.navigation.emit({tabId:8,frameId:0,url:'https://chatgpt.com/c/other'});
   h.navigation.emit({tabId:8,frameId:0,url:'https://chatgpt.com/c/current'});await h.settle();
-  assert.equal(h.get('edit-context').value,'');assert.equal(h.get('fill-chat-context').disabled,true);
-  await h.click('prepare-file-request');assert.ok(h.get('edit-context').value);
-  h.removed.emit(8);assert.equal(h.get('edit-context').value,'');assert.equal(h.get('target-picker').value,'');
+  assert.equal(chat.getSnapshot().prompt,'');assert.equal(chat.getSnapshot().controls.fillContext,false);
+  await chat.actions.prepareFileRequest();assert.ok(chat.getSnapshot().prompt);
+  h.removed.emit(8);assert.equal(chat.getSnapshot().prompt,'');assert.equal(h.snapshot().targetId,'');
   h.edit('offline retained');
   h.messages.emit({protocol:AGENT_CONFIG_PROTOCOL,type:'files.changed',connected:false},{id:'a'.repeat(32)});
-  assert.equal(h.get('save-file').disabled,true);assert.equal(h.get('file-editor').value,'offline retained');
+  assert.equal(h.snapshot().capabilities.save,false);assert.equal(h.snapshot().file.content,'offline retained');
   h.state={...h.state,connected:false};await h.settle();
-  h.ui.dispose();assert.equal(h.navigation.size,0);assert.equal(h.committed.size,0);assert.equal(h.removed.size,0);
+  h.controller.dispose();assert.equal(h.navigation.size,0);assert.equal(h.committed.size,0);assert.equal(h.removed.size,0);assert.equal(h.messages.size,0);
 });
 
 test('knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action',async t=>{
   const prior=globalThis.confirm;t.after(()=>{globalThis.confirm=prior;});
   globalThis.confirm=()=>{throw Error('browser modal must never run');};
   const h=await fixture(t,{knowledgeDraft:true});
-  for(let i=0;i<20&&h.get('knowledge-handoff').hidden;i++)await pause(2);
-  assert.equal(h.get('knowledge-handoff').hidden,false);
-  await h.click('knowledge-handoff-import');
-  for(let i=0;i<20&&!h.get('file-editor').value.includes('来自收件箱');i++)await pause(2);
-  assert.match(h.get('file-editor').value,/来自收件箱/);
-  assert.equal(h.get('save-file').disabled,true,'import never overwrites an existing file');
+  assert.ok(h.controller.knowledgeHandoff.getSnapshot().pending);
+  await h.actions.importKnowledge({isTrusted:true});
+  assert.match(h.snapshot().file.content,/来自收件箱/);assert.equal(h.snapshot().capabilities.save,false);
   assert.equal(h.calls.filter(call=>['files.write','files.create'].includes(call.method)).length,0);
+  assert.equal(h.controller.knowledgeHandoff.getSnapshot().pending,null);
+  assert.equal(h.session[KNOWLEDGE_WORKSPACE_PREFIX+777],undefined,'handoff consumed once after import');
   h.edit('# 已编辑的知识草稿\n\n保留我');
-  const switchPending=h.select(B);
-  await pause(10);
-  assert.equal(h.get('workspace-action-review').hidden,false,'switch stays inside current page');
-  h.get('workspace-action-cancel').events.get('click')();
-  await switchPending;
-  assert.equal(h.get('workspace-picker').value,A);
-  const opening=h.openFile();
-  await pause(10);
-  assert.equal(h.get('workspace-action-review').hidden,false);
-  h.get('workspace-action-cancel').events.get('click')();
-  await opening;
-  assert.match(h.get('file-editor').value,/保留我/);
-  await h.click('save-as');
+  const switchPending=h.select(B);await pause(5);
+  assert.ok(h.snapshot().presentation.actionReview);h.actions.cancelAction();await switchPending;
+  assert.equal(h.snapshot().workspaceId,A);
+  const opening=h.openFile();await pause(5);
+  assert.ok(h.snapshot().presentation.actionReview);h.actions.cancelAction();await opening;
+  assert.match(h.snapshot().file.content,/保留我/);
+  await h.actions.saveAs();
   assert.equal(h.created.get(A+'\0knowledge.md'),'# 已编辑的知识草稿\n\n保留我');
-  const create=h.calls.findIndex(call=>call.method==='files.create');
-  assert.equal(h.calls[create+1].method,'files.read','successful create requires readback');
-  assert.equal(h.get('save-file').disabled,true,'newly created file is clean');
-  await h.select(B);assert.equal(h.get('workspace-picker').value,B);
+  const create=h.calls.findIndex(call=>call.method==='files.create');assert.equal(h.calls[create+1].method,'files.read');
+  assert.equal(h.snapshot().file.dirty,false);assert.equal(h.snapshot().capabilities.save,false);
+  await h.select(B);assert.equal(h.snapshot().workspaceId,B);
 });
 
 test('R5.1 Native Workspace uses inline draft reminders without a browser unload modal',()=>{
   const source=readFileSync('src/native-agent/workspace.js','utf8');
-  assert.doesNotMatch(source,/globalThis\.confirm\s*\(/);
-  assert.doesNotMatch(source,/addEventListener\(['"]beforeunload/);
-  assert.doesNotMatch(source,/event\.returnValue\s*=/);
-  assert.match(source,/关闭页面不再弹窗提醒/);
+  assert.doesNotMatch(source,/globalThis\.confirm\s*\(/);assert.doesNotMatch(source,/addEventListener\(['"]beforeunload/);
+  assert.doesNotMatch(source,/event\.returnValue\s*=/);assert.match(source,/关闭页面不再弹窗提醒/);
 });
 
 test('R50 native workspace has an in-page decision and no browser confirm on unsaved draft',async t=>{
-  const old=globalThis.confirm;t.after(()=>{globalThis.confirm=old;});
-  globalThis.confirm=()=>{throw Error('native modal invoked');};
-  const h=await fixture(t,{knowledgeDraft:true});
-  for(let i=0;i<60&&h.get('knowledge-handoff').hidden;i++)await pause(5);
-  assert.equal(h.get('knowledge-handoff').hidden,false,'handoff must be shown before import');
-  await h.click('knowledge-handoff-import');
-  // Import is a separate asynchronous handoff after the UI operation is available.
-  // Do not equate a temporarily enabled action control with the completed import.
-  for(let i=0;i<80&&!h.get('file-editor').value.includes('来自收件箱');i++)await pause(5);
-  assert.match(h.get('file-editor').value,/来自收件箱/);
-  const attempt=h.select(B);
-  await pause(10);
-  assert.equal(h.get('workspace-action-review').hidden,false);
-  assert.match(h.get('workspace-action-summary').textContent,/尚未创建为文件/);
-  h.get('workspace-action-cancel').events.get('click')();
-  await attempt;
-  assert.equal(h.get('workspace-picker').value,A);
-  assert.match(h.get('file-editor').value,/来自收件箱/);
+  const old=globalThis.confirm;t.after(()=>{globalThis.confirm=old;});globalThis.confirm=()=>{throw Error('native modal invoked');};
+  const h=await fixture(t,{knowledgeDraft:true});assert.ok(h.controller.knowledgeHandoff.getSnapshot().pending);
+  await h.actions.importKnowledge({isTrusted:true});assert.match(h.snapshot().file.content,/来自收件箱/);
+  const attempt=h.select(B);await pause(5);
+  assert.match(h.snapshot().presentation.actionReview.message,/尚未创建为文件/);
+  h.actions.cancelAction();await attempt;
+  assert.equal(h.snapshot().workspaceId,A);assert.match(h.snapshot().file.content,/来自收件箱/);
 });
 
 test('Workspace file tree keeps parents visible, loads branches on demand and preserves draft on refresh',async t=>{
-  const h=await fixture(t,{tree:true});
-  const rows=()=>h.get('file-list').children.filter(node=>node.tagName==='BUTTON');
-  const find=path=>rows().find(node=>node.dataset.path===path);
-  assert.ok(find('README.md'));assert.ok(find('src'));assert.ok(find('docs'));
-  assert.equal(find('README.md').children[1].attrs['data-variant'],'markdown',
-    'file-type icon must be SVG, not a DIR/MD/TXT character badge');
-  assert.equal(find('src').children[1].attrs['data-variant'],'folder');
-  assert.equal(find('src').children[0].attrs['data-expanded'],'false');
-  assert.equal(find('src').getAttribute('aria-expanded'),'false');
+  const h=await fixture(t,{tree:true}),find=path=>h.snapshot().tree.find(row=>row.path===path);
+  assert.ok(find('README.md'));assert.ok(find('src'));assert.ok(find('docs'));assert.equal(find('src').expanded,false);
   assert.equal(h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length,0);
-  find('src').events.get('click')();await h.settle();
-  assert.ok(find('README.md'),'root files stay visible while subdirectories expand');
-  assert.ok(find('src/app'));assert.ok(find('src/index.ts'));
-  assert.equal(find('src').getAttribute('aria-expanded'),'true');
-  assert.equal(find('src').children[1].attrs['data-variant'],'folder-open');
-  assert.equal(find('src').children[0].attrs['data-expanded'],'true');
+  await h.actions.toggleDirectory('src');assert.ok(find('README.md'));assert.ok(find('src/app'));assert.ok(find('src/index.ts'));assert.equal(find('src').expanded,true);
   const listsBefore=h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length;
-  find('src').events.get('click')();await h.settle();
-  assert.equal(find('src/app'),undefined);assert.ok(find('README.md'));
-  find('src').events.get('click')();await h.settle();
-  assert.equal(h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length,listsBefore);
-  find('src/app').events.get('click')();await h.settle();
-  assert.ok(find('src/app/page.tsx'));assert.ok(find('README.md'));
-  find('src/app/page.tsx').events.get('click')();await h.settle();
-  assert.match(h.get('file-editor').value,/export default/);
-  assert.equal(h.get('file-title').textContent,'page.tsx','show the basename, not a long path in the main title');
-  assert.equal(h.get('file-title').title,'src/app/page.tsx','the full path remains discoverable');
-  assert.equal(h.get('directory-name').textContent,'/src/app');
-  h.edit('locally edited, not saved');
-  await h.click('refresh-files');
-  assert.ok(find('src/app/page.tsx'));assert.equal(h.get('file-editor').value,'locally edited, not saved');
+  await h.actions.toggleDirectory('src');assert.equal(find('src/app'),undefined);assert.ok(find('README.md'));
+  await h.actions.toggleDirectory('src');assert.equal(h.calls.filter(call=>call.method==='files.list'&&call.params.path==='src').length,listsBefore);
+  await h.actions.toggleDirectory('src/app');assert.ok(find('src/app/page.tsx'));assert.ok(find('README.md'));
+  await h.openFile('src/app/page.tsx');assert.match(h.snapshot().file.content,/export default/);
+  assert.equal(h.snapshot().presentation.fileTitle,'page.tsx');assert.equal(h.snapshot().file.path,'src/app/page.tsx');
+  assert.equal(h.snapshot().presentation.directoryName,'/src/app');
+  h.edit('locally edited, not saved');await h.actions.refreshTree();
+  assert.ok(find('src/app/page.tsx'));assert.equal(h.snapshot().file.content,'locally edited, not saved');
   assert.ok(h.calls.some(call=>call.method==='files.list'&&call.params.path==='src/app'));
   assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
-  await h.click('parent-directory');assert.equal(find('src/app'),undefined);
-  assert.ok(find('src'));assert.ok(find('README.md'));
+  h.actions.collapseTree();assert.equal(find('src/app'),undefined);assert.ok(find('src'));assert.ok(find('README.md'));
 });
-test('Workspace file tree never renders mismatched Native paths',async t=>{
-  const h=await fixture(t,{tree:true,invalidTree:true});
-  assert.match(h.get('workspace-status').textContent,/E_FILES_PROTOCOL/);
-  assert.equal(h.get('file-list').children.length,0);
-  assert.equal(h.calls.filter(call=>call.method==='files.read').length,0);
+
+test('Workspace file tree never publishes mismatched Native paths',async t=>{
+  const h=await fixture(t,{tree:true,invalidTree:true});assert.match(h.snapshot().status.text,/E_FILES_PROTOCOL/);
+  assert.equal(h.snapshot().tree.length,0);assert.equal(h.calls.filter(call=>call.method==='files.read').length,0);
 });
+
 test('Workspace file tree separates expansion state on workspace switch',async t=>{
-  const h=await fixture(t,{tree:true});
-  const find=path=>h.get('file-list').children.find(node=>node.dataset.path===path);
-  find('src').events.get('click')();await h.settle();
-  assert.ok(find('src/app'));
-  await h.select(B);
-  assert.ok(find('src'));assert.equal(find('src/app'),undefined);
-  assert.equal(find('src').getAttribute('aria-expanded'),'false');
+  const h=await fixture(t,{tree:true}),find=path=>h.snapshot().tree.find(row=>row.path===path);
+  await h.actions.toggleDirectory('src');assert.ok(find('src/app'));await h.select(B);
+  assert.ok(find('src'));assert.equal(find('src/app'),undefined);assert.equal(find('src').expanded,false);
 });
 
 test('R23.1 observable Workspace snapshot mirrors real file operations without leaking Native credentials',async t=>{
   const h=await fixture(t),notifications=[];
-  assert.ok(h.ui.store?.getSnapshot&&h.ui.store?.subscribe);
-  assert.equal('publish' in h.ui.store,false,'React gets a read-only projection, not the publisher');
-  const stop=h.ui.store.subscribe(()=>notifications.push(h.ui.store.getSnapshot().revision));
-  t.after(stop);
-  const ready=h.ui.store.getSnapshot();
-  assert.equal(ready.connected,true);
-  assert.equal(ready.workspaceId,A);
-  assert.equal(ready.file.path,'README.md');
-  assert.equal(ready.file.dirty,false);
-  assert.equal(JSON.stringify(ready).includes(h.state.sessionId),false);
-  assert.equal(JSON.stringify(ready).includes(h.rows[0].leaseEpoch),false);
+  assert.equal(h.controller.getSnapshot,h.snapshot);assert.equal('publish' in h.controller,false);
+  const stop=h.controller.subscribe(()=>notifications.push(h.snapshot().revision));t.after(stop);
+  const ready=h.snapshot();assert.equal(ready.connected,true);assert.equal(ready.workspaceId,A);
+  assert.equal(ready.file.path,'README.md');assert.equal(ready.file.dirty,false);
+  assert.equal(JSON.stringify(ready).includes(h.state.sessionId),false);assert.equal(JSON.stringify(ready).includes(h.rows[0].leaseEpoch),false);
+  assert.equal(h.actions.setDraft('Changed by controller action'),true);
+  const edited=h.snapshot();assert.equal(edited.file.content,'Changed by controller action');assert.equal(edited.file.dirty,true);
+  await h.actions.save();const saved=h.snapshot();
+  assert.equal(saved.file.content,'Changed by controller action');assert.equal(saved.file.dirty,false);assert.equal(h.files.get(A),'Changed by controller action');
+  h.actions.chooseView('split');assert.equal(h.snapshot().view,'split');assert.ok(notifications.length>=3);
+});
 
-  assert.equal(h.ui.actions.updateDraft('Changed by controller action'),true);
-  const edited=h.ui.store.getSnapshot();
-  assert.equal(edited.file.content,'Changed by controller action');
-  assert.equal(edited.file.dirty,true);
-  assert.equal(h.get('file-editor').value,'Changed by controller action');
-  await h.ui.actions.save();await h.settle();
-  const saved=h.ui.store.getSnapshot();
-  assert.equal(saved.file.content,'Changed by controller action');
-  assert.equal(saved.file.dirty,false);
-  assert.equal(h.files.get(A),'Changed by controller action');
-  h.ui.actions.chooseView('split');
-  assert.equal(h.ui.store.getSnapshot().view,'split');
-  assert.ok(notifications.length>=3,'subscribers observe real draft, write and view transitions');
+test('unknown save is never replayed and is reconciled only by an explicit disk reread',async t=>{
+  const h=await fixture(t);h.edit('write acknowledged only by later readback');h.faults.writeUnknown=true;
+  await h.actions.save();assert.equal(h.snapshot().file.unknown,true);assert.equal(h.snapshot().file.dirty,true);
+  const count=h.calls.filter(call=>call.method==='files.write').length;
+  await h.actions.save();assert.equal(h.calls.filter(call=>call.method==='files.write').length,count);
+  await h.actions.reread();assert.equal(h.snapshot().file.unknown,false);assert.equal(h.snapshot().file.dirty,false);
+});
+
+test('unknown create stays pending, blocks repeated create and requires checkCreated readback',async t=>{
+  const h=await fixture(t);h.actions.setSaveAsPath('new.md');h.faults.createUnknown=true;
+  await h.actions.saveAs();assert.equal(h.snapshot().creationPending.path,'new.md');assert.equal(h.snapshot().capabilities.saveAs,false);
+  const count=h.calls.filter(call=>call.method==='files.create').length;
+  await h.actions.saveAs('another.md');assert.equal(h.calls.filter(call=>call.method==='files.create').length,count);
+  await h.actions.checkCreated();assert.equal(h.snapshot().creationPending,null);assert.equal(h.snapshot().file.path,'new.md');assert.equal(h.snapshot().file.dirty,false);
+});
+
+test('conflict preserves a draft until explicit disk adoption; switching away retains the original draft',async t=>{
+  const h=await fixture(t);h.edit('my draft');await h.select(B);await h.openFile();await h.select(A);await h.openFile();
+  assert.equal(h.snapshot().file.content,'my draft');h.files.set(A,'disk changed externally');await h.actions.save();
+  assert.equal(h.snapshot().file.content,'my draft');assert.equal(h.snapshot().file.remote.content,'disk changed externally');
+  assert.equal(h.files.get(A),'disk changed externally');h.actions.useDisk();assert.equal(h.snapshot().file.content,'disk changed externally');assert.equal(h.snapshot().file.dirty,false);
+});
+
+test('typing during a delayed save readback stays editable and cannot be overwritten by the saved bytes',async t=>{
+  const h=await fixture(t);h.edit('content at Save click');
+  const gate=h.deferNext('files.read'),saving=h.actions.save();await gate.started;
+  assert.equal(h.snapshot().busy,true);assert.equal(h.snapshot().capabilities.setDraft,true);
+  assert.equal(h.actions.setDraft('typed while Save awaits readback'),true);
+  assert.equal(h.snapshot().file.content,'typed while Save awaits readback');gate.release();await saving;
+  assert.equal(h.files.get(A),'content at Save click','only the explicit Save snapshot is written');
+  assert.equal(h.snapshot().file.content,'typed while Save awaits readback');
+  assert.equal(h.snapshot().file.baseContent,'content at Save click');assert.equal(h.snapshot().file.sha256,hash('content at Save click'));
+  assert.equal(h.snapshot().file.dirty,true);assert.equal(h.snapshot().file.unknown,false);
+  assert.equal(h.snapshot().capabilities.save,true);assert.match(h.snapshot().status.text,/后续编辑/);
+  assert.equal(h.savedCalls[0].record.content,'typed while Save awaits readback');
+  assert.equal(h.savedCalls[0].committed.content,'content at Save click');
+  assert.equal(h.savedCalls[0].committed.sha256,hash('content at Save click'));
+  assert.equal(Object.isFrozen(h.savedCalls[0].committed),true);
+});
+
+test('saveAs writes its submitted snapshot and carries subsequent typing into the new unsaved draft',async t=>{
+  const h=await fixture(t);h.edit('content at Create click');
+  const gate=h.deferNext('workspaces.list'),creating=h.actions.saveAs('created.md');await gate.started;
+  h.edit('newer typing during create authority check');gate.release();await creating;
+  assert.equal(h.created.get(A+'\0created.md'),'content at Create click');
+  assert.equal(h.snapshot().file.path,'created.md');assert.equal(h.snapshot().file.content,'newer typing during create authority check');
+  assert.equal(h.snapshot().file.baseContent,'content at Create click');assert.equal(h.snapshot().file.dirty,true);
+});
+
+test('checkCreated preserves later source draft edits while resolving an unknown create outcome',async t=>{
+  const h=await fixture(t);h.edit('created snapshot');h.faults.createUnknown=true;await h.actions.saveAs('later.md');
+  const gate=h.deferNext('files.read'),checking=h.actions.checkCreated();await gate.started;
+  h.edit('new typing during create verification');gate.release();await checking;
+  assert.equal(h.snapshot().creationPending,null);assert.equal(h.snapshot().file.path,'later.md');
+  assert.equal(h.created.get(A+'\0later.md'),'created snapshot');assert.equal(h.snapshot().file.baseContent,'created snapshot');
+  assert.equal(h.snapshot().file.content,'new typing during create verification');assert.equal(h.snapshot().file.dirty,true);
+});
+
+test('reread and explicit discard never replace keystrokes entered while the disk read is pending',async t=>{
+  const h=await fixture(t),base=h.snapshot().file.content;
+  h.files.set(A,'external disk change');
+  const readingGate=h.deferNext('files.read'),reading=h.actions.reread();await readingGate.started;
+  h.edit('typed during reread');readingGate.release();await reading;
+  assert.equal(h.snapshot().file.content,'typed during reread');assert.equal(h.snapshot().file.baseContent,base);
+  assert.equal(h.snapshot().file.remote.content,'external disk change');
+  const discardGate=h.deferNext('files.read'),discarding=h.actions.discardDraft();await discardGate.started;
+  h.edit('new input after Discard was clicked');discardGate.release();await discarding;
+  assert.equal(h.snapshot().file.content,'new input after Discard was clicked');assert.equal(h.snapshot().file.baseContent,'external disk change');
+  assert.equal(h.snapshot().file.remote,null);assert.equal(h.snapshot().file.dirty,true);
+});
+
+test('delayed AI context reads reject a newly edited draft instead of replacing it or publishing stale context',async t=>{
+  const h=await fixture(t),chat=h.controller.chatEdit,base=h.snapshot().file.content;
+  chat.actions.setTask('Summarize this file');
+  const gate=h.deferNext('files.read'),preparing=chat.actions.prepareEdit();await gate.started;
+  assert.equal(h.snapshot().capabilities.setDraft,true);h.edit('typed during AI context read');gate.release();await preparing;
+  assert.equal(h.snapshot().file.content,'typed during AI context read');assert.equal(h.snapshot().file.baseContent,base);
+  assert.equal(chat.getSnapshot().prompt,'');assert.match(chat.getSnapshot().status.text,/E_EDIT_BASE/);
+  assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+});
+
+test('opening another file does not replace a draft edited while its Native read is pending',async t=>{
+  const h=await fixture(t,{tree:true}),gate=h.deferNext('files.read'),opening=h.actions.read('src/app/page.tsx');await gate.started;
+  h.edit('continue editing the current file');gate.release();await opening;
+  assert.equal(h.snapshot().file.path,'README.md');assert.equal(h.snapshot().file.content,'continue editing the current file');
+  assert.match(h.snapshot().status.text,/E_EDIT_BASE/);assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+});
+
+test('typing during the write itself preserves newer draft bytes while advancing only the committed baseline',async t=>{
+  const h=await fixture(t);h.edit('submitted file bytes');
+  const gate=h.deferNext('files.write'),saving=h.actions.save();await gate.started;
+  h.edit('newer input while write is pending');gate.release();await saving;
+  assert.equal(h.files.get(A),'submitted file bytes');assert.equal(h.snapshot().file.content,'newer input while write is pending');
+  assert.equal(h.snapshot().file.baseContent,'submitted file bytes');assert.equal(h.snapshot().file.sha256,hash('submitted file bytes'));
+  assert.equal(h.snapshot().file.dirty,true);assert.equal(h.savedCalls[0].committed.content,'submitted file bytes');
+});
+
+test('Chat file requests recheck the same record after awaiting Native and retain any new draft',async t=>{
+  const h=await fixture(t),base=h.snapshot().file.content,gate=h.deferNext('files.read');
+  const requesting=h.chatContract.run(()=>assert.rejects(
+    h.chatContract.requestFile({operation:'read',path:'README.md'},h.chatContract.getAuthority()),{code:'E_EDIT_BASE'}));
+  await gate.started;assert.equal(h.snapshot().busy,true);h.edit('typed during a Chat file request');gate.release();await requesting;
+  assert.equal(h.snapshot().file.content,'typed during a Chat file request');assert.equal(h.snapshot().file.baseContent,base);
+  assert.equal(h.snapshot().file.dirty,true);assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+});
+
+test('clean records show changed lease or session identity until an explicit reread binds the current authority',async t=>{
+  const h=await fixture(t);
+  for(const change of ['lease','session']){
+    assert.equal(h.snapshot().file.dirty,false);
+    if(change==='lease')h.rows[0]={...h.rows[0],leaseEpoch:randomUUID()};
+    else h.state={...h.state,sessionId:randomUUID()};
+    await h.actions.refresh();assert.match(h.snapshot().presentation.draftLabel,/目录连接已变化/);
+    assert.doesNotMatch(h.snapshot().presentation.draftLabel,/已与磁盘同步/);
+    await h.actions.reread();assert.equal(h.snapshot().presentation.draftLabel,'已与磁盘同步');
+  }
+});
+
+test('reread preserves an edit that returns to the old baseline while the disk has changed',async t=>{
+  const h=await fixture(t),base=h.snapshot().file.content;
+  h.edit('draft before reread');h.files.set(A,'external disk version');
+  const gate=h.deferNext('files.read'),reading=h.actions.reread();await gate.started;
+  h.edit(base);gate.release();await reading;
+  assert.equal(h.snapshot().file.content,base);
+  assert.equal(h.snapshot().file.remote.content,'external disk version');
+  assert.equal(h.snapshot().capabilities.save,false);
+});
+
+test('explicit reread after reconnect allows a conflicting draft to be saved as a new file',async t=>{
+  const h=await fixture(t);h.edit('my retained draft');h.files.set(A,'external disk version');
+  h.rows[0]={...h.rows[0],leaseEpoch:randomUUID()};h.state={...h.state,sessionId:randomUUID()};
+  await h.actions.refresh();assert.equal(h.snapshot().capabilities.saveAs,false);
+  await h.actions.reread();assert.equal(h.snapshot().file.content,'my retained draft');
+  assert.equal(h.snapshot().file.remote.content,'external disk version');
+  assert.equal(h.snapshot().capabilities.save,false);assert.equal(h.snapshot().capabilities.saveAs,true);
+  await h.actions.saveAs('recovered.md');
+  assert.equal(h.created.get(A+'\0recovered.md'),'my retained draft');
+  assert.equal(h.files.get(A),'external disk version');assert.equal(h.snapshot().file.dirty,false);
+  assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+});
+
+test('unknown create can be explicitly checked after reconnect without replaying the create',async t=>{
+  const h=await fixture(t);h.edit('submitted creation');h.faults.createUnknown=true;
+  await h.actions.saveAs('pending.md');h.edit('later draft');
+  h.rows[0]={...h.rows[0],leaseEpoch:randomUUID()};h.state={...h.state,sessionId:randomUUID()};
+  await h.actions.refresh();assert.equal(h.snapshot().capabilities.checkCreated,true);
+  assert.equal(h.snapshot().creationPending.path,'pending.md');
+  await h.actions.checkCreated();
+  assert.equal(h.snapshot().creationPending,null);assert.equal(h.snapshot().file.path,'pending.md');
+  assert.equal(h.snapshot().file.baseContent,'submitted creation');assert.equal(h.snapshot().file.content,'later draft');
+  assert.equal(h.snapshot().file.dirty,true);assert.equal(h.calls.filter(call=>call.method==='files.create').length,1);
+  const read=h.calls.filter(call=>call.method==='files.read').at(-1);
+  assert.equal(read.expected.sessionId,h.state.sessionId);assert.equal(read.params.leaseEpoch,h.rows[0].leaseEpoch);
+});
+
+test('unknown create cannot be checked through a changed source with the same workspace display identity',async t=>{
+  const h=await fixture(t);h.edit('submitted creation');h.faults.createUnknown=true;
+  await h.actions.saveAs('pending.md');h.rows[0]={...h.rows[0],sourceId:'source-'+'c'.repeat(24)};
+  await h.actions.refresh();assert.equal(h.snapshot().capabilities.checkCreated,false);
+  const count=h.calls.filter(call=>call.method==='files.read').length;await h.actions.checkCreated();
+  assert.equal(h.calls.filter(call=>call.method==='files.read').length,count);
+  assert.equal(h.snapshot().creationPending.path,'pending.md');assert.equal(h.snapshot().file.content,'submitted creation');
+});
+
+test('a cached conflict from an old lease cannot replace the draft after reconnect',async t=>{
+  const h=await fixture(t);h.edit('keep my draft');h.files.set(A,'old conflict version');await h.actions.save();
+  assert.equal(h.snapshot().capabilities.useDisk,true);
+  h.rows[0]={...h.rows[0],leaseEpoch:randomUUID()};await h.actions.refresh();
+  assert.equal(h.snapshot().capabilities.useDisk,false);h.actions.useDisk();
+  assert.equal(h.snapshot().file.content,'keep my draft');
+  h.files.set(A,'current disk version');await h.actions.reread();
+  assert.equal(h.snapshot().capabilities.useDisk,true);h.actions.useDisk();
+  assert.equal(h.snapshot().file.content,'current disk version');assert.equal(h.snapshot().file.dirty,false);
+});
+
+test('checking a changed created file opens a recoverable conflict without discarding later edits or rewriting it',async t=>{
+  const h=await fixture(t);h.edit('submitted creation');h.faults.createUnknown=true;
+  await h.actions.saveAs('pending.md');h.created.set(A+'\0pending.md','externally changed created file');
+  h.edit('later draft to retain');await h.actions.checkCreated();
+  assert.equal(h.snapshot().creationPending,null);assert.equal(h.snapshot().file.path,'pending.md');
+  assert.equal(h.snapshot().file.content,'later draft to retain');
+  assert.equal(h.snapshot().file.remote.content,'externally changed created file');
+  assert.equal(h.snapshot().capabilities.save,false);assert.equal(h.snapshot().capabilities.saveAs,true);
+  assert.equal(h.calls.filter(call=>call.method==='files.create').length,1);
+  await h.actions.saveAs('recovered.md');
+  assert.equal(h.created.get(A+'\0recovered.md'),'later draft to retain');
+  assert.equal(h.created.get(A+'\0pending.md'),'externally changed created file');
+  assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
 });

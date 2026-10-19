@@ -16,7 +16,9 @@ function surface(){
     if(!nodes.has(id))nodes.set(id,node());
     return nodes.get(id);
   };
-  return {nodes,document:{
+  let model;
+  return {nodes,reactUI:{cloudPageMounted:true,renderCloudPage(next){model=next;}},
+    model:()=>model,document:{
     documentElement:{dataset:{opendeskTab:'cloud'}},
     getElementById,createElement:node
   }};
@@ -24,7 +26,7 @@ function surface(){
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('Cloud Side Panel heartbeat claims once but manual read-only refresh cannot claim/resolve/start',async()=>{
-  const {document,nodes}=surface(),calls=[],hostCalls=[];
+  const {document,reactUI,model}=surface(),calls=[],hostCalls=[];
   const status={provider:{providerId:'redacted'},enabled:true,online:true,reconciled:true,
     connection:'authenticated',hostReady:true,slotAvailable:true,tasks:[],
     requestTotal:0,requests:[]};
@@ -34,24 +36,25 @@ test('Cloud Side Panel heartbeat claims once but manual read-only refresh cannot
     cloudResolve:async()=>{hostCalls.push('resolve');throw Error('unexpected resolution');}
   }};
   const host={executionPending:false,start:async()=>{hostCalls.push('start');}};
-  const control=createCloudHosting({client,host,document,api:{}});
+  const control=createCloudHosting({client,host,document,api:{},reactUI});
   await flush();await flush();
   assert.equal(calls.filter(x=>x.type==='claim').length,1);
   assert.deepEqual(calls.filter(x=>x.type==='status').map(x=>x.query),
     [{includeRequests:false},{limit:5}]);
-  nodes.get('cloud-refresh').events.get('click')();
+  await model().onRefresh();
   await flush();await flush();
   assert.equal(calls.filter(x=>x.type==='claim').length,1);
   assert.equal(calls.filter(x=>x.type==='status').length,3);
   assert.deepEqual(calls.at(-1),{type:'status',query:{limit:5}});
   assert.deepEqual(hostCalls,[]);
   control.dispose();
-  for(const id of ['cloud-refresh','cloud-overview-refresh','cloud-open-console'])
-    assert.equal(nodes.get(id).events.size,0);
+  const count=calls.length;
+  await model().onRefresh();
+  assert.equal(calls.length,count,'Disposed React actions cannot refresh or claim');
 });
 
 test('Cloud console opens a fixed extension tab and cannot register a second execution Host',async()=>{
-  const {document,nodes}=surface(),calls=[],opened=[];
+  const {document,reactUI,model}=surface(),calls=[],opened=[];
   const client={cloud:{
     cloudStatus:async query=>{calls.push({type:'status',query});return {provider:null,
       enabled:false,online:false,reconciled:false,connection:'offline',tasks:[],
@@ -60,9 +63,9 @@ test('Cloud console opens a fixed extension tab and cannot register a second exe
   }};
   const api={runtime:{getURL:path=>'chrome-extension://trusted/'+path},
     tabs:{create:async options=>opened.push(options)}};
-  const control=createCloudHosting({client,host:{executionPending:false},document,api});
+  const control=createCloudHosting({client,host:{executionPending:false},document,api,reactUI});
   await flush();await flush();
-  nodes.get('cloud-open-console').events.get('click')();
+  await model().onOpenConsole();
   await flush();await flush();
   assert.deepEqual(opened,[{url:'chrome-extension://trusted/ui/cloud-control.html'}]);
   assert.deepEqual(calls.filter(x=>x.type==='claim'),[]);

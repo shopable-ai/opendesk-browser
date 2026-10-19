@@ -2,7 +2,8 @@ import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import {ExtensionToolbar,ExtensionRows,ExtensionDetail,ExtensionEmpty} from '../tabs/tools.tsx';
-import {DeveloperActions,DeveloperFramework,DeveloperRunStatus} from '../tabs/develop.tsx';
+import {DeveloperPage,DeveloperDock} from '../tabs/develop.tsx';
+import {createDeveloperPreviewView} from './developer-preview.js';
 import {WorkflowHeader,WorkflowHistory,WorkflowSourceName,WorkflowTranscript,WorkflowSettingsSheet} from '../tabs/workflow.tsx';
 import {DebugDiagnosticText} from '../tabs/debug.tsx';
 import {MyTaskCount,MyTaskRows,MyTaskDetail} from '../tabs/tasks.tsx';
@@ -21,7 +22,12 @@ const get=id=>{
 const names=['tasks','tools','workflow','develop','cloud','debug'];
 const tabButtons=names.map(key=>doc.querySelector('[data-workbench-tab="'+key+'"]'));
 if(tabButtons.some(el=>!el))throw Error('E_SIDEBAR_PREVIEW_NAV');
-const panels=names.map(key=>get('workbench-'+key));
+const developerPageHost=doc.createElement('div');
+const developerDockHost=doc.createElement('div');
+get('workbench-develop').replaceWith(developerPageHost);
+get('develop-dock').replaceWith(developerDockHost);
+const developerView=createDeveloperPreviewView();
+const panels=names.map(key=>key==='develop'?developerPageHost:get('workbench-'+key));
 const controls=get('od-sidebar-preview-controls');
 const toolbar=get('extension-center-list-view').querySelector('.ec-toolbar');
 const extensionList=get('extension-center-list');
@@ -38,9 +44,6 @@ const cloudKeys={myState:'cloud-my-state',summary:'cloud-overview-state',
   host:'cloud-overview-host',slot:'cloud-overview-slot',
   tasks:'cloud-overview-tasks',requests:'cloud-overview-requests'};
 const cloudNodes=Object.fromEntries(Object.entries(cloudKeys).map(([key,id])=>[key,get(id)]));
-const developerChoices=get('page-component-framework').querySelector('.page-component-choices');
-const developerDock=get('develop-dock').querySelector('.dock-buttons');
-const developerStatus=get('script-status');
 const workflowHeader=get('workflow-editor').querySelector('.workflow-head-actions');
 const workflowTranscript=get('workflow-ai-transcript');
 const workflowHistoryHost=get('workflow-history-react-host');
@@ -53,10 +56,10 @@ const debugIds={
   requestCount:'debug-request-count',snapshot:'debug-snapshot',feedback:'debug-feedback'
 };
 const debugNodes=Object.fromEntries(Object.entries(debugIds).map(([key,id])=>[key,get(id)]));
-if(!toolbar||!developerChoices||!developerDock||!workflowHeader)throw Error('E_SIDEBAR_PREVIEW_PORTAL');
+if(!toolbar||!workflowHeader)throw Error('E_SIDEBAR_PREVIEW_PORTAL');
 for(const node of [toolbar,extensionList,extensionDetail,extensionEmpty,toolFrame,
   myCount,myRows,myDetail,...Object.values(cloudNodes),
-  developerChoices,developerDock,developerStatus,workflowHeader,workflowTranscript,
+  workflowHeader,workflowTranscript,
   workflowHistoryHost,workflowSourceHost,...Object.values(debugNodes)])
   node.replaceChildren();
 const sampleExtensions=Object.freeze([
@@ -145,10 +148,6 @@ function Preview(){
   const [planDensity,setPlanDensity]=React.useState('many');
   const [taskSearch,setTaskSearch]=React.useState('');
   const [taskFilter,setTaskFilter]=React.useState('all');
-  const [framework,setFramework]=React.useState('javascript');
-  const [projectMode,setProjectMode]=React.useState(false);
-  const [projectSelection,setProjectSelection]=React.useState('');
-  const [projectFeedback,setProjectFeedback]=React.useState('');
   const previousRoute=React.useRef('');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
@@ -242,6 +241,10 @@ function Preview(){
     // Match WorkflowView.closeAISettings: the details must close with the sheet.
     workflowSettings.open=false;setSheetOpen(false);
   },[]);
+  React.useEffect(()=>{
+    developerView.patch('script-status',{textContent:labels[scene],
+      data:{state:scene==='error'?'error':scene==='running'?'running':'unknown'}});
+  },[scene]);
   React.useLayoutEffect(()=>{
     get('od-sidebar-preview-stage').style.width=width+'px';
     names.forEach((name,i)=>{
@@ -259,25 +262,6 @@ function Preview(){
     get('sidebar-tool-settings-open').setAttribute('aria-expanded',String(!!opened&&toolSettingsOpen));
     get('sidebar-tool-remove').disabled=!opened;
     get('sidebar-tool-settings-view').hidden=true; // Host settings cannot execute offline.
-    // Mirror only the real local-project DOM layout; the Native Provider,
-    // runtime approvals and fixed source hashes cannot exist offline.
-    const sourceSwitch=get('developer-source-switch');
-    sourceSwitch.dataset.mode=projectMode?'local':'manual';
-    sourceSwitch.querySelector('.od-page-title').textContent=projectMode?'项目连接':'直接编辑';
-    get('local-project-mode').checked=projectMode;
-    get('local-project-tools').hidden=!projectMode;
-    get('manual-source-editor').hidden=projectMode;
-    get('manual-project-params-tools').hidden=projectMode;
-    get('local-project-recovery').hidden=!projectMode;
-    get('local-project-params-tools').hidden=!projectMode||projectSelection!=='preview-controller';
-    get('local-project-select').disabled=!projectMode;
-    get('local-project-intro').textContent='选择已授权的本地项目，核对来源后明确运行。离线预览只能展示交互。';
-    const localStatus=get('local-project-status');
-    localStatus.dataset.state='disconnected';
-    localStatus.textContent=projectMode?(projectFeedback||
-      (projectSelection?'仅预览 · 已选示例，Native 与源码 Provider 均未连接，无法运行或安装。':
-        '仅预览 · 正式环境从 Native 读取已授权项目；当前没有真实项目授权。')):'';
-    get('local-project-diagnostics').textContent='仅预览 · Chrome Native：未连接；源码 Provider：未连接；固定项目身份与源代码均未读取。';
     importPanel.hidden=!importOpen;
     actionReview.hidden=!extensionReview;
     get('sidebar-tool-preview').hidden=!importCandidate;
@@ -308,9 +292,8 @@ function Preview(){
       previousRoute.current=route;
     }
     const dock=get('workspace-dock');
-    const taskDock=get('task-dock'),developDock=get('develop-dock'),workflowDock=get('workflow-dock');
+    const taskDock=get('task-dock'),workflowDock=get('workflow-dock');
     taskDock.hidden=tab!=='tasks';
-    developDock.hidden=tab!=='develop';
     workflowDock.hidden=true; // No real workflow RunHost in preview.
     dock.hidden=(tab!=='tasks'&&tab!=='develop')||(tab==='tasks'&&taskMode!=='list');
     get('extension-center-list-view').hidden=!!detail;
@@ -348,7 +331,7 @@ function Preview(){
     workflowStatus.textContent=workflowFeedback;
     workflowStatus.hidden=!workflowFeedback;
   },[tab,width,scene,cloudScenario,cloudDetailOpen,selected,sheetOpen,history,workflowNewReview,workflowFeedback,transcript.length,workflowEntry,detail,taskMode,
-    opened,openToolKey,toolSettingsOpen,projectMode,projectSelection,projectFeedback,
+    opened,openToolKey,toolSettingsOpen,
     importOpen,importCandidate,importError,extensionReview,extensionRecords,taskNotice]);
   React.useEffect(()=>{
     const handlers=tabButtons.map((button,i)=>{
@@ -409,28 +392,6 @@ function Preview(){
     for(const [id,fn] of handlers)get(id).addEventListener('click',fn);
     return ()=>{for(const [id,fn] of handlers)get(id).removeEventListener('click',fn);};
   },[openToolKey,opened]);
-  React.useEffect(()=>{
-    const mode=get('local-project-mode'),select=get('local-project-select');
-    select.replaceChildren(new Option('选择演示项目（不代表授权）',''),
-      new Option('Controller 示例 · 仅预览','preview-controller'),
-      new Option('Page 示例 · 仅预览','preview-page'));
-    const modeChanged=()=>{setProjectMode(mode.checked);setProjectFeedback('');};
-    const projectChanged=()=>{setProjectSelection(select.value);setProjectFeedback('');};
-    const refresh=()=>setProjectFeedback('仅预览 · 无法读取 Native 项目列表；请在正式 Chrome 扩展中刷新。');
-    const connect=()=>setProjectFeedback('仅预览 · 离线文件不能连接本机 OpenDesk；正式扩展使用现有选项页连接。');
-    const guide=()=>{
-      get('local-project-guide').open=true;
-      get('local-project-guide').querySelector('summary')?.focus({preventScroll:true});
-      setProjectFeedback('仅预览 · 下方展示正式项目授权与接入说明。');
-    };
-    const listeners=[['local-project-mode','change',modeChanged],
-      ['local-project-select','change',projectChanged],
-      ['local-project-refresh','click',refresh],
-      ['local-project-connect','click',connect],
-      ['local-project-guide-open','click',guide]];
-    for(const [id,event,fn] of listeners)get(id).addEventListener(event,fn);
-    return ()=>{for(const [id,event,fn] of listeners)get(id).removeEventListener(event,fn);};
-  },[]);
   // The real import card, file chooser, update review and confirm IDs are
   // borrowed from tool.html. No browser storage or installer is invoked.
   React.useEffect(()=>{
@@ -704,14 +665,8 @@ function Preview(){
       '适用网站：example.invalid\n所需能力：网页自动化\n来源：本地任务 · 界面预览':''}/>,myDetail)}
     {Object.entries(cloudNodes).map(([key,node])=>
       createPortal(<CloudOverviewText value={cloudPreview[key]}/>,node,'cloud-'+key))}
-    {createPortal(<DeveloperFramework model={{mode:framework,compilerEnabled:true,
-      onSelect:setFramework}}/>,developerChoices)}
-    {createPortal(<DeveloperRunStatus node={developerStatus}
-      model={{state:scene==='error'?'error':scene==='running'?'running':'unknown',
-        text:labels[scene]}}/>,developerStatus)}
-    {createPortal(<DeveloperActions model={{runDisabled:true,saveDisabled:true,stopDisabled:true,
-      runLabel:projectMode?'运行本地项目':'运行草稿',
-      saveLabel:projectMode?'安装固定版本':'保存版本',stopLabel:'停止'}}/>,developerDock)}
+    {createPortal(<DeveloperPage view={developerView} hidden={tab!=='develop'}/>,developerPageHost)}
+    {createPortal(<DeveloperDock view={developerView} hidden={tab!=='develop'}/>,developerDockHost)}
     {createPortal(<WorkflowHeader model={{
       saved:false,busy:scene==='loading',planning:scene==='loading',
       historyExpanded:history,sessionHint:'新对话（仅预览）'}}
@@ -750,4 +705,4 @@ function Preview(){
 }
 const root=createRoot(get('od-sidebar-preview-root'));
 root.render(<Preview/>);
-window.addEventListener('pagehide',()=>root.unmount(),{once:true});
+window.addEventListener('pagehide',()=>{root.unmount();developerView.dispose();},{once:true});

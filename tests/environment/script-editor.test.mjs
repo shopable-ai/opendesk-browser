@@ -4,6 +4,9 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {createHash,webcrypto} from 'node:crypto';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {DEVELOPER_FIELDS} from '../../src/ui/develop-fields.js';
+import {developerTestFields} from './develop-view-fixture.mjs';
 import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {createRunHost} from '../../src/run-host.js';
@@ -47,10 +50,12 @@ const componentInspectResult=({componentSource,framework,projectId,remoteModules
 });
 async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget}={}) {
-  const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
+  const nodes=new Map([...new Set([...Object.keys(DEVELOPER_FIELDS),...Array.from(html.matchAll(/id="([^"]+)"/g),([,id])=>id)])].map(id=>[id,new Element()]));
   const walk=(node,id)=>node.id===id?node:node.children.map(child=>walk(child,id)).find(Boolean);
-  const find=id=>nodes.get(id)||[...nodes.values()].map(node=>walk(node,id)).find(Boolean);
-  const view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
+  const legacyFind=id=>nodes.get(id)||[...nodes.values()].map(node=>walk(node,id)).find(Boolean);
+  const view=new Element(), legacyDoc={getElementById:legacyFind,defaultView:view,createElement:()=>new Element()};
+  const projection=process.env.OPENDESK_DEVELOP_REACT_VIEW==='1'?createDeveloperView():null;
+  const find=developerTestFields(projection,legacyFind);
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
@@ -113,7 +118,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     }};
   const target=createCurrentPageTarget({api});await target.ready;
   const testedTarget=wrapTarget?wrapTarget(target):target;
-  const editor=createScriptEditor({client,currentPageTarget:testedTarget,api,document:doc,
+  const editor=createScriptEditor({client,currentPageTarget:testedTarget,api,document:legacyDoc,view:projection,
     ...(staticESMPreparerFactory?{staticESMPreparerFactory}:{}),
     ...(componentPreparerFactory?{componentPreparerFactory}:{}),hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
     execute:async(source,params)=>{executions.push({source,params});context.signal.addEventListener('abort',()=>terminal.resolve({status:context.signal.reason.code==='E_HOST_CLOSED'?'host-closed':'stopped'}),{once:true});return terminal.promise;},
@@ -734,7 +739,7 @@ test('imported Classic @require inspects per-program grants without any implicit
 test('Save persists revision/hash without requesting permission, creating a Run, or executing code',async t=>{
   const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');
   assert.equal(f.persisted.scripts[0].revision,1);assert.match(f.persisted.scripts[0].contentHash,/^[a-f0-9]{64}$/);
-  assert.equal(f.find('script-list').children.some(row=>row.value==='my-script'),true);
+  assert.equal((f.find('script-list').options||f.find('script-list').children).some(row=>row.value==='my-script'),true);
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);
   f.find('script-source').value='unsaved changes';f.find('script-source').fire('input');await tick();assert.match(f.find('script-version').textContent,/存在未保存修改/);
 });
@@ -745,7 +750,7 @@ test('reopened editor lists saved scripts without running and loads the selected
   t.after(()=>f.dispose());await tick();
   assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);assert.equal(f.permissions.length,0);
   assert.equal(f.find('script-source').value,'return params.value;');
-  assert.equal(f.find('script-list').children.some(row=>row.value==='saved-script'),true);
+  assert.equal((f.find('script-list').options||f.find('script-list').children).some(row=>row.value==='saved-script'),true);
   f.find('script-list').value='saved-script';await f.click('script-list-load');
   assert.equal(f.find('script-id').value,'saved-script');assert.equal(f.find('script-revision').value,'1');
   assert.equal(f.find('script-source').value,'return "saved";');assert.match(f.find('script-version').textContent,/r1/);
@@ -767,7 +772,7 @@ test('Delete tombstones the latest head and refreshes the saved-script selector'
   const f=await fixture({scripts:[{scriptId:'my-script',revision:1,sourceUtf8:'return "saved";',contentHash}],runs:[],results:[]});
   t.after(()=>f.dispose());await tick();await f.click('script-load');await f.click('script-delete');
   assert.equal(f.persisted.scripts[0].tombstoned,true);
-  assert.equal(f.find('script-list').children.some(row=>row.value==='my-script'),false);
+  assert.equal((f.find('script-list').options||f.find('script-list').children).some(row=>row.value==='my-script'),false);
 });
 
 test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B',async t=>{
@@ -1389,6 +1394,31 @@ test('R24.3 confirmed closure of the owning tab retires the editor ownership wit
   assert.equal(count,1,'removal must never auto-dispatch user source');
 });
 
+test('development dispatch rejection preserves the original component Stop right',async t=>{
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
+  t.after(()=>f.dispose());
+  const original=f.client.request.bind(f.client);let attempts=0;
+  f.client.request=async(method,payload)=>{
+    if(method==='previewPageScript')return {state:'preview-evaluated',managedUI:true,resultText:'{}',
+      managedPreviewId:payload.managedUI.previewId,sourceHash:'a'.repeat(64),
+      tabId:payload.target.tabId,documentId:payload.target.documentId};
+    if(method==='retirePagePreview'){
+      if(++attempts===1)throw {code:'E_DEV_RELOADING',message:'请求未执行'};
+      return {state:'preview-retired',previewId:payload.previewId,sourceHash:'a'.repeat(64),
+        receipt:{ok:true,scope:'managed-ui-only',instances:1}};
+    }
+    return original(method,payload);
+  };
+  await selectBrowserReact(f);await f.click('page-preview-run');
+  await waitForComponentUI(()=>!f.find('script-stop').disabled,'managed Stop unavailable');
+  await f.click('script-stop');
+  await waitForComponentUI(()=>f.find('script-status').dataset.state==='blocked','dispatch rejection missing');
+  assert.equal(f.find('script-stop').disabled,false);
+  await f.click('script-stop');
+  await waitForComponentUI(()=>f.find('page-component-status').textContent.includes('已停止'),'original Stop lost');
+  assert.equal(attempts,2);
+});
+
 test('R24.3 a confirmed failed component retains exact managed Stop rights',async t=>{
   const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
   t.after(()=>f.dispose());
@@ -1477,6 +1507,62 @@ function honestComponentFixture(){
   compiler.prepare=async input=>{const output=await original(input);output.sourceHash=createHash('sha256').update(output.sourceUtf8).digest('hex');return output;};
   return compiler;
 }
+
+for(const framework of ['react','vue'])test(`Page ${framework} save and reopen restores editable author source and type`,async t=>{
+  let compilerFails=false,imports=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>{
+    const compiler=honestComponentFixture(),prepare=compiler.prepare;
+    compiler.prepare=async input=>{if(compilerFails)throw {code:'E_PAGE_COMPILER',message:'Invalid edited component'};return prepare(input);};
+    return compiler;
+  }});
+  t.after(()=>f.dispose());
+  const author=framework==='react'?'export default function App(){return <b>author JSX</b>}':
+    '<template><b>author SFC</b></template>';
+  const choose=async kind=>{const field=f.find('page-component-'+kind);field.checked=true;field.fire('change');await tick();};
+  await choose(framework);
+  f.find('script-source').value=author;f.find('script-source').fire('input');
+  const original=f.client.request.bind(f.client);let saved;
+  f.client.request=async(method,payload)=>{
+    if(method==='importPageCandidate'){
+      imports++;
+      saved={...structuredClone(payload),stage:'Candidate',candidateId:'author-candidate',manifestHash:'f'.repeat(64),manifest:{}};
+      return {stage:saved.stage,candidateId:saved.candidateId,manifestHash:saved.manifestHash};
+    }
+    if(method==='listPagePrograms')return {catalog:saved?[saved]:[],installed:[]};
+    if(method==='getPageCandidate'){
+      const sourceHash=createHash('sha256').update(saved.sourceUtf8).digest('hex');
+      return {...structuredClone(saved),manifest:{entryFormat:'async-main',sourceHash},
+        authoring:{...saved.authoring,sourceHash,
+          authorSourceHash:createHash('sha256').update(saved.authoring.sourceUtf8).digest('hex')}};
+    }
+    return original(method,payload);
+  };
+  await f.click('script-save');
+  await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','author Candidate was not saved');
+  assert.deepEqual(saved.authoring,{framework,sourceUtf8:author});
+  assert.notEqual(saved.sourceUtf8,author,'execution bytes stay separate from editable source');
+  assert.equal(saved.authorSourceUtf8,undefined,'component must not pretend to be esm-page');
+  const executable=saved.sourceUtf8;
+  await choose('javascript');
+  f.find('script-source').value='async function main(){return "other draft";}';f.find('script-source').fire('input');
+  await f.click('page-program-refresh');
+  await waitForComponentUI(()=>!f.find('page-program-load').disabled,'saved Candidate was not selectable');
+  await f.click('page-program-load');
+  await waitForComponentUI(()=>f.find('script-source').value===author,'reopen lost author source');
+  assert.equal(f.find('page-component-'+framework).checked,true,'reopen lost author type');
+  assert.equal(f.find('page-component-javascript').checked,false);
+  assert.equal(f.find('script-run').textContent,'运行'+(framework==='react'?' React':' Vue')+' 组件');
+  await choose('javascript');await choose(framework);
+  assert.equal(f.find('script-source').value,author,'switching away and back lost reopened source');
+  assert.equal(saved.sourceUtf8,executable,'loading must not rewrite fixed execution bytes');
+  assert.equal(f.starts.length,0);assert.equal(f.previews.length,0,'save/load does not execute');
+  compilerFails=true;
+  f.find('script-source').value=author+'\n/* invalid edit';f.find('script-source').fire('input');
+  await f.click('script-save');
+  await waitForComponentUI(()=>f.find('script-status').textContent.includes('E_PAGE_COMPILER'),'failed edit was not rejected');
+  assert.equal(imports,1,'compiler failure must not save previous execution bytes');
+  assert.equal(f.previews.length,0,'compiler failure must not execute previous output');
+});
 async function frozenComponentDraft(v2=false){
   const source="// ==UserScript==\n// @name frozen-react\n// @match https://a.example/*\n// @opendesk-lib react\n// ==/UserScript==\nasync function main(){return {frozen:true}};";
   const file={path:'src/App.jsx',sourceUtf8:"import React from 'react';export default function App(){return <b>frozen</b>}"};
@@ -1645,7 +1731,7 @@ async function staticESMFixture(t,{sourceUtf8='import value from "https://librar
   f.find('script-source').value=sourceUtf8;f.find('script-source').fire('input');
   for(let n=0;n<8;n++)await tick();
   return {...f,compiled,staticRequests,componentRequests,sourceUtf8,pageLockId,componentLockId,
-    async world(value){f.find('network-js-world').value=value;f.find('network-js-world').fire('change');for(let n=0;n<8;n++)await tick();await new Promise(resolve=>setTimeout(resolve,220));},
+    async world(value){f.find('script-javascript-world').value=value==='esm-controller'?'controller':'page';f.find('script-javascript-world').fire('change');for(let n=0;n<8;n++)await tick();await new Promise(resolve=>setTimeout(resolve,220));},
     async settle(){for(let n=0;n<100&&f.find('script-status').dataset.state==='running';n++)await tick();}
   };
 }
@@ -1780,7 +1866,7 @@ test('loading a saved Page import restores author bytes and Page lock without ru
   f.find('page-program-list').value='saved-esm:1';f.find('page-program-list').fire('change');
   await f.click('page-program-load');for(let n=0;n<16;n++)await tick();
   assert.equal(f.find('script-source').value,f.sourceUtf8);
-  assert.equal(f.find('network-js-world').value,'esm-page');
+  assert.equal(f.find('script-javascript-world').value,'page');
   assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
   assert.equal(f.find('page-candidate-save').disabled,true);
   await f.click('page-preview-run');await f.settle();
@@ -1789,7 +1875,7 @@ test('loading a saved Page import restores author bytes and Page lock without ru
 test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or explicit world switch',async t=>{
   const f=await staticESMFixture(t);
   await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();
-  assert.equal(f.find('network-js-world').value,'esm-page','Page preview selector remains a Page intent');
+  assert.equal(f.find('script-javascript-world').value,'page','Page preview selector remains a Page intent');
   await f.click('script-run');for(let n=0;n<20&&!f.executions.length;n++)await tick();
   assert.equal(f.starts.length,1);assert.equal(f.previews.length,0);
   assert.deepEqual(f.starts[0].source,{kind:'draft',sourceUtf8:f.executions[0].source});

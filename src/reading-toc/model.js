@@ -30,8 +30,17 @@ export function createReadingTocIndex(doc) {
       // requires both an assistant turn and its explicit Markdown boundary.
       const turn=heading.closest('[data-message-role="assistant"]');
       const content=heading.closest('[data-assistant-markdown-root]');
-      return turn?.closest('[data-conversation-transcript]')&&
-        content?.closest('[data-message-role="assistant"]')===turn?turn:null;
+      if(turn?.closest('[data-conversation-transcript]')&&
+         content?.closest('[data-message-role="assistant"]')===turn)return turn;
+      // Current ChatGPT binds answer fragments to one selected message rather
+      // than a role-bearing turn. Keep both the assistant content boundary and
+      // its conversation/message owner; selection metadata alone is not content.
+      const ownerSelector='[data-chatgpt-selection-message-id][data-chatgpt-selection-conversation-id]';
+      const owner=heading.closest(ownerSelector);
+      const answer=heading.closest('[data-markdown-text-style="assistant-message"]');
+      return owner?.getAttribute('data-chatgpt-selection-message-id')?.trim()&&
+        owner.getAttribute('data-chatgpt-selection-conversation-id')?.trim()&&
+        answer?.closest(ownerSelector)===owner?owner:null;
     }
     if(kind==='zhihu')return heading.closest('.AnswerItem');
     return heading.closest('article')||heading.closest('main,[role="main"]')||doc.body;

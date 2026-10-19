@@ -1,12 +1,19 @@
+import {TaskCatalogPage} from './tabs/task-catalog.tsx';
 import * as React from 'react';
 import {SidebarNavigation} from './tabs/navigation.tsx';
 import {ExtensionCenterPage} from './tabs/tools.tsx';
 import {CloudConnectionPage} from './tabs/cloud.tsx';
+import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
+import {MyTasksPage,MyTasksDock} from './tabs/my-page.tsx';
+import {WorkflowPage} from './tabs/workflow.tsx';
+import {ToolHost} from './tabs/tool-host.tsx';
 
-// Migration boundary: the navigation, content container, Tools page and
-// Extension Center are rendered in the ONE trusted React tree. Unmigrated
-// business panels are adopted as opaque DOM children, not React Portals.
-// Their Controller/Host and sandbox lifetimes do not change in this step.
+const emptyToolSnapshot={fields:{}};
+const readEmptyTool=()=>emptyToolSnapshot;
+const subscribeEmptyTool=()=>()=>{};
+
+// Product pages share one trusted React tree. Only the non-product diagnostic
+// and standalone catalog scaffolds, and installed tool Hosts, are adopted.
 export function prepareSidebarAppShell(doc){
   const nav=doc.querySelector('.workbench-nav');
   const main=doc.getElementById('workspace-content');
@@ -14,33 +21,22 @@ export function prepareSidebarAppShell(doc){
   const sidebar=doc.getElementById('sidebar-tools');
   const list=doc.getElementById('sidebar-tool-list-view');
   const center=doc.getElementById('extension-center');
-  const cloud=doc.getElementById('workbench-cloud');
-  const cloudPanel=cloud?.querySelector(':scope > .cloud-panel');
-  const cloudHeader=cloudPanel?.querySelector(':scope > .cloud-panel-head');
-  const cloudOverview=cloudPanel?.querySelector(':scope > .cloud-overview');
   const dock=doc.getElementById('workspace-dock');
   if(!nav||!main||!tools||!sidebar||!list||!center||!dock||
-    !cloud||!cloudPanel||!cloudHeader||!cloudOverview||
     doc.getElementById('opendesk-react-app')||
-    tools.parentElement!==main||cloud.parentElement!==main||
+    tools.parentElement!==main||
     sidebar.parentElement!==tools||
     list.parentElement!==sidebar||center.parentElement!==list)
     throw new Error('E_REACT_APP_SHELL_STRUCTURE');
-  const pages=Array.from(main.children);
+  const pages=Array.from(main.children).filter(page=>
+    page.id!=='site-access-recovery'&&
+    !['tasks','workflow','develop','cloud'].includes(page.dataset.workbenchPage));
   const toolIndex=pages.indexOf(tools);
-  if(toolIndex<0||pages.indexOf(cloud)<=toolIndex)
+  if(toolIndex<0)
     throw new Error('E_REACT_APP_SHELL_PAGES');
-  const sidebarChildren=Array.from(sidebar.children);
-  const listIndex=sidebarChildren.indexOf(list);
-  if(listIndex<0)throw new Error('E_REACT_APP_SHELL_TOOL_LIST');
   const scaffold={
     beforeTools:pages.slice(0,toolIndex),
-    afterTools:pages.slice(toolIndex+1).filter(node=>node!==cloud),
-    cloudLegacySections:Array.from(cloudPanel.children)
-      .filter(node=>node!==cloudHeader&&node!==cloudOverview),
-    beforeList:sidebarChildren.slice(0,listIndex),
-    afterList:sidebarChildren.slice(listIndex+1),
-    listRemainder:Array.from(list.children).filter(node=>node!==center),
+    afterTools:pages.slice(toolIndex+1),
     dock
   };
   const mount=doc.createElement('div');
@@ -55,8 +51,20 @@ export function prepareSidebarAppShell(doc){
 
 export function SidebarAppShell({
   scaffold,activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
-  extensionProps={},cloudModel={},cloudRequestsModel={}
+  extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
+  developerView,myView,toolView=null,workflowController=null
 }){
+  React.useSyncExternalStore(myView.subscribe,myView.getSnapshot,myView.getSnapshot);
+  const developerSnapshot=React.useSyncExternalStore(developerView.subscribe,developerView.getSnapshot,developerView.getSnapshot);
+  const toolSnapshot=React.useSyncExternalStore(toolView?.subscribe??subscribeEmptyTool,
+    toolView?.getSnapshot??readEmptyTool,toolView?.getSnapshot??readEmptyTool);
+  const siteAccess=developerSnapshot.fields['site-access-status'];
+  const siteGrant=developerSnapshot.fields['site-access-grant'];
+  // Page/React/Vue previews retain Stop authority outside Controller RunHost.
+  const developerStop=developerSnapshot.fields['script-stop'];
+  const developerCanStop=!developerStop.disabled&&!developerStop.hidden;
+  const runDock=myView.data.runDock??{taskHidden:activeTab!=='tasks',developHidden:activeTab!=='develop',
+    hidden:!['tasks','develop'].includes(activeTab),stopOnly:false};
   const mountMain=React.useCallback(node=>{
     if(!node)return;
     const tools=node.querySelector('#workbench-tools');
@@ -65,23 +73,6 @@ export function SidebarAppShell({
       if(child.parentElement!==node)node.insertBefore(child,tools);
     for(const child of scaffold.afterTools)
       if(child.parentElement!==node)node.append(child);
-  },[scaffold]);
-  const mountSidebar=React.useCallback(node=>{
-    if(!node)return;
-    const list=node.querySelector('#sidebar-tool-list-view');
-    if(!list)throw new Error('E_REACT_APP_SHELL_LIST');
-    for(const child of scaffold.beforeList)
-      if(child.parentElement!==node)node.insertBefore(child,list);
-    for(const child of scaffold.afterList)
-      if(child.parentElement!==node)node.append(child);
-  },[scaffold]);
-  const mountList=React.useCallback(node=>{
-    if(!node)return;
-    for(const child of scaffold.listRemainder)
-      if(child.parentElement!==node)node.append(child);
-  },[scaffold]);
-  const mountDock=React.useCallback(node=>{
-    if(node&&scaffold.dock.parentElement!==node)node.append(scaffold.dock);
   },[scaffold]);
   // React is the sole writer for visible page selection. The legacy panels
   // remain opaque until their data/edit surfaces migrate; no Portal composes
@@ -100,21 +91,37 @@ export function SidebarAppShell({
         onNavigate={onNavigate}/>
     </nav>
     <main id="workspace-content" ref={mountMain}>
+      <div id="site-access-recovery" className="row" role="status" hidden={siteAccess.data.websites!==false}>
+        <span id="site-access-recovery-message">访问受限：Chrome 已限制网站访问。</span>
+        <button id="site-access-restore" type="button" className="od-button"
+          disabled={siteGrant.disabled} aria-describedby="site-access-recovery-message"
+          onClick={event=>developerView.actions['site-access-restore']?.(event.nativeEvent)}>
+          {siteGrant.textContent||'恢复全部网站访问'}
+        </button>
+      </div>
+      <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'}/>
+      <MyTasksPage view={myView} hidden={activeTab!=='tasks'}/>
       <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
         className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
-        <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具"
-          ref={mountSidebar}>
-          <div id="sidebar-tool-list-view" ref={mountList}>
+        <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
+          <div id="sidebar-tool-list-view" hidden={toolSnapshot.fields['sidebar-tool-display']?.hidden===false}>
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
             </section>
           </div>
+          {toolView&&<ToolHost view={toolView}/>}
         </section>
       </div>
+      <WorkflowPage controller={workflowController} active={activeTab==='workflow'}/>
+      <DeveloperPage view={developerView} hidden={activeTab!=='develop'}/>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}
-        legacySections={scaffold.cloudLegacySections}
+        setupModel={cloudSetupModel}
+        pageModel={cloudPageModel}
         hidden={activeTab!=='cloud'}/>
     </main>
-    <div className="opendesk-react-dock-host" ref={mountDock}/>
+    <footer id="workspace-dock" className="workspace-dock" hidden={runDock.hidden&&!developerCanStop} data-stop-only={String(runDock.stopOnly||developerCanStop&&activeTab!=='develop')}>
+      <MyTasksDock view={myView} hidden={runDock.taskHidden}/>
+      <DeveloperDock view={developerView} hidden={runDock.developHidden&&!developerCanStop}/>
+    </footer>
   </>;
 }

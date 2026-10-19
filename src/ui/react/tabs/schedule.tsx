@@ -80,6 +80,21 @@ export function SchedulePlanRows({plans=[],currentRunId='',canStop,onOpen,onTogg
 // TaskWorkbench/Scheduler adapter; no Registry or Chrome capability crosses in.
 export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
   onToggle,onCopy,onCreatePlan,onUninstall}){
+  const [openTaskId,setOpenTaskId]=React.useState('');
+  const menus=React.useRef(new Map());
+  React.useEffect(()=>{
+    if(!openTaskId)return;
+    const menu=menus.current.get(openTaskId),doc=menu?.ownerDocument;
+    const close=event=>{
+      if(event.type==='keydown'&&event.key!=='Escape')return;
+      if(event.type==='pointerdown'&&menu?.contains(event.target))return;
+      setOpenTaskId('');
+      if(event.type==='keydown'){event.preventDefault();menu?.querySelector('summary')?.focus({preventScroll:true});}
+    };
+    doc?.addEventListener('pointerdown',close);doc?.addEventListener('keydown',close);
+    return ()=>{doc?.removeEventListener('pointerdown',close);doc?.removeEventListener('keydown',close);};
+  },[openTaskId]);
+  React.useEffect(()=>{if(openTaskId&&!rows.some(row=>row.taskId===openTaskId))setOpenTaskId('');},[rows,openTaskId]);
   if(!rows.length)return <p className="task-search-empty" role="status">{emptyText}</p>;
   const trusted=(event,callback)=>{
     if(event.nativeEvent?.isTrusted===true)callback?.(event.nativeEvent);
@@ -121,7 +136,12 @@ export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
             <path d="M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
           </svg>
         </IconButton>
-        <details className="schedule-manager-menu">
+        <details className="schedule-manager-menu" open={openTaskId===row.taskId}
+          ref={node=>{if(node)menus.current.set(row.taskId,node);else menus.current.delete(row.taskId);}}
+          onToggle={event=>{
+            const open=event.currentTarget.open;
+            setOpenTaskId(current=>open?row.taskId:current===row.taskId?'':current);
+          }}>
           <summary className="od-icon-button schedule-manager-action schedule-manager-menu-trigger"
             data-manager-action="more" data-manager-more={row.taskId}
             title={'更多操作：'+title} aria-label={'更多操作：'+title}>
@@ -135,14 +155,14 @@ export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
             {canCreatePlan&&<button type="button"
               className="od-button od-button--quiet schedule-manager-action schedule-manager-menu-item"
               onClick={event=>trusted(event,()=>{
-                event.currentTarget.closest('details').open=false;
+                setOpenTaskId('');
                 onCreatePlan?.(row);
               })}>为此任务设置定时</button>}
             <button type="button" className="od-button od-button--quiet schedule-manager-uninstall schedule-manager-action schedule-manager-menu-item"
               data-manager-uninstall={row.taskId} aria-label={'卸载固定版本「'+title+'」'}
               onClick={event=>trusted(event,()=>{
-                const trigger=event.currentTarget.closest('details')?.querySelector('summary');
-                event.currentTarget.closest('details').open=false;
+                const trigger=menus.current.get(row.taskId)?.querySelector('summary');
+                setOpenTaskId('');
                 onUninstall?.(row,trigger);
               })}>卸载固定版本</button>
             <details className="schedule-manager-more od-disclosure od-disclosure--flat">

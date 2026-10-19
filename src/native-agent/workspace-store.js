@@ -1,5 +1,5 @@
-// A read-only view-model stream for a future React useSyncExternalStore consumer.
-// The existing trusted controller remains the sole owner of records and Native
+// A read-only view-model stream for the React useSyncExternalStore consumer.
+// The DOM-free controller remains the sole owner of records and Native
 // authority. Never publish sessionId, leaseEpoch or Native request credentials.
 export function createWorkspaceStore(){
   let snapshot=Object.freeze({revision:0}),closed=false;
@@ -24,7 +24,7 @@ export function createWorkspaceStore(){
 
 export function projectWorkspaceState({connected=false,busy=false,demo=false,workspaceId='',
   rows=[],targets=[],targetId='',current=null,treeFolders=new Map(),view='preview',
-  status='',statusError=false,locale='en',access='none',creationPending=null}={}){
+  status='',statusError=false,locale='en',access='none',creationPending=null,presentation={},capabilities={}}={}){
   const file=current?Object.freeze({
     workspaceId:current.workspaceId,path:current.path,content:current.content,
     baseContent:current.baseContent,sha256:current.sha256||null,
@@ -50,9 +50,26 @@ export function projectWorkspaceState({connected=false,busy=false,demo=false,wor
     writable:!!connected&&access==='read-write',view,locale,
     status:Object.freeze({text:status,error:!!statusError}),
     workspaces:Object.freeze(rows.map(row=>Object.freeze({workspaceId:row.workspaceId,name:row.name,
-      access:row.access,sourceId:row.sourceId||''}))),
+      access:row.access,sourceId:row.sourceId||'',label:row.label||row.name,offline:!!row.offline}))),
     targets:Object.freeze(targets.map(row=>Object.freeze({tabId:row.tabId,title:row.title||row.url,url:row.url}))),
     targetId:String(targetId||''),file,tree:Object.freeze(visible),
-    creationPending:creationPending?Object.freeze({path:creationPending.path,workspaceId:creationPending.workspaceId}):null
+    creationPending:creationPending?Object.freeze({path:creationPending.path,workspaceId:creationPending.workspaceId}):null,
+    presentation:freezePresentation(presentation),capabilities:Object.freeze({...capabilities})
   };
+}
+
+// Explicit projection, not a spread of controller state: session credentials and
+// authority objects must never cross the UI subscription boundary.
+function freezePresentation(value){
+  const text=key=>typeof value[key]==='string'?value[key]:'';
+  return Object.freeze({
+    connectionLabel:text('connectionLabel'),fileTitle:text('fileTitle'),fileMeta:text('fileMeta'),draftLabel:text('draftLabel'),
+    previewHTML:text('previewHTML'),previewKind:text('previewKind'),previewURL:text('previewURL'),connectedPreviewURL:text('connectedPreviewURL'),
+    saveAsPath:text('saveAsPath'),accessReason:text('accessReason'),treeMessage:text('treeMessage'),directoryName:text('directoryName'),
+    pendingSource:!!value.pendingSource,
+    creationPending:value.creationPending?Object.freeze({workspaceId:value.creationPending.workspaceId,path:value.creationPending.path}):null,
+    toolPreviewStatus:Object.freeze({text:value.toolPreviewStatus?.text||'',error:!!value.toolPreviewStatus?.error}),
+    actionReview:value.actionReview?Object.freeze({message:value.actionReview.message,button:value.actionReview.button}):null,
+    knowledgeHandoff:value.knowledgeHandoff?Object.freeze({title:value.knowledgeHandoff.title,filename:value.knowledgeHandoff.filename}):null
+  });
 }

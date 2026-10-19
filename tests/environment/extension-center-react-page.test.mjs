@@ -1,0 +1,219 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {build} from 'esbuild';
+import {readFile} from 'node:fs/promises';
+
+// An isolated browser fixture: actual production controller + React page,
+// service doubles only. Never touches the product watcher or installed Chrome.
+const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
+async function fixture(){
+  const state={rowsModel:{rows:[]},toolbarModel:null,detailModel:null,
+    recoveryModel:null,feedbackModel:null,statusModel:null,view:'list',menuKey:null};
+  const root=createRoot(document.getElementById('root'));
+  const paint=()=>flushSync(()=>root.render(React.createElement(ExtensionCenterPage,state)));
+  paint();
+  document.getElementById('extension-center-list').dataset.opendeskReactOwner='extension-list';
+  const extensionList={owner:'extension-list',
+    renderRows(model){state.rowsModel=model;paint();},
+    renderToolbar(model){state.toolbarModel=model;paint();},
+    renderDetail(model){state.detailModel=model;paint();},
+    renderRecoveries(model){state.recoveryModel=model;paint();},
+    renderFeedback(model){state.feedbackModel=model;paint();},
+    renderStatus(model){state.statusModel=model;paint();},
+    renderView(view){state.view=view;paint();},
+    connectBack(fn){state.onBack=fn;paint();},
+    setMenuKey(key){state.menuKey=key;paint();},
+    renderRowMenu(items,options){state.rowMenuModel=options?{...options,items}:null;paint();}
+  };
+  const app={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',title:'快速笔记',description:'记录内容',
+    version:'1.0.0',capabilities:['storage.local'],html:'<main>Notes</main>',css:'',js:'void 0;'};
+  const page={programId:'reader',manifestHash:'a'.repeat(64),installed:{title:'阅读增强',
+    revision:1,manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,
+    nativeState:'registered',authorization:{status:'granted',generation:5},
+    pageRules:{matches:['https://example.com/*']}}};
+  const store={[SIDEBAR_TOOL_STORE]:[app],[SIDEBAR_TOOL_ENABLE_STORE]:{[app.id]:true}};
+  const changes=new Set(),connections=new Set(),calls=[];
+  let lastNativeEvent;
+  const eventCall=(action,id,event)=>{lastNativeEvent=event;calls.push({action,id,native:event instanceof MouseEvent,
+    trusted:event?.isTrusted,gesture:navigator.userActivation.isActive});};
+  let corrupt=false,ackOnly=false,holdToggle=false,finishToggle;
+  const api={runtime:{getURL:path=>location.origin+'/'+path},tabs:{create:async value=>calls.push(value)},
+    permissions:{contains:async()=>true,request:async()=>{throw Error('unexpected permission');}},
+    storage:{local:{get:async keys=>{if(corrupt)throw Error('storage unavailable');
+      return Object.fromEntries(keys.map(key=>[key,structuredClone(store[key])]))}},
+      onChanged:{addListener:fn=>changes.add(fn),removeListener:fn=>changes.delete(fn)}}};
+  const client={subscribeConnection(fn){connections.add(fn);return ()=>connections.delete(fn);},
+    async request(method,args){
+      if(method==='listPagePrograms')return {catalog:structuredClone([page])};
+      if(method!=='setInstalledPageEnabled')throw Error(method);
+      calls.push({action:'page-toggle',args});
+      if(!ackOnly){page.installed.enabled=args.enabled;page.installed.authorization.generation++;}
+      return {enabled:args.enabled};
+    }};
+  const sidebarTools={openTool:id=>{calls.push({action:'open',id});return true;},
+    openSettings:id=>calls.push({action:'settings',id}),openImport:()=>calls.push({action:'import'}),
+    openOfficialReview:()=>false,
+    toggleEnabled(id,event){eventCall('toggle',id,event);
+      const finish=()=>{store[SIDEBAR_TOOL_ENABLE_STORE][id]=!store[SIDEBAR_TOOL_ENABLE_STORE][id];return true;};
+      return holdToggle?new Promise(resolve=>{finishToggle=()=>resolve(finish());}):Promise.resolve(finish());},
+    retryUninstallCleanup(id,event){eventCall('cleanup',id,event);store[TOOL_CLEANUP_STORE]={};
+      return Promise.resolve({state:'cleaned',toolId:id});}};
+  const controller=createExtensionCenter({api,client,doc:document,sidebarTools,extensionList,
+    taskWorkbench:{navigate:tab=>{calls.push({action:'navigate',tab});return true;}}});
+  window.fixture={state,calls,store,page,changes,connections,controller,
+    nativeEvent:()=>lastNativeEvent,
+    setCorrupt:value=>{corrupt=value;},setAckOnly:value=>{ackOnly=value;},
+    hold:()=>{holdToggle=true;},release:()=>finishToggle(),
+    dispose(){controller.dispose();root.unmount();},
+    cleanup(id='quick-notes'){store[SIDEBAR_TOOL_STORE]=[];store[TOOL_CLEANUP_STORE]={
+      [id]:{version:app.version,createdAt:1}};},
+  };
+  await controller.refresh();
+}
+
+async function browserFixture(t){
+  const css=(await Promise.all(['design-tokens.css','design-system.css','extension-center.css']
+    .map(name=>readFile(new URL('../../src/ui/'+name,import.meta.url),'utf8')))).join('\n');
+  const {chromium}=await import(modulePath);
+  const bundled=await build({stdin:{contents:`import React from 'react';
+    import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';
+    import {ExtensionCenterPage} from './src/ui/react/tabs/tools.tsx';
+    import {createExtensionCenter} from './src/ui/extension-center.js';
+    import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from './src/ui/sidebar-tools/package.js';
+    import {SIDEBAR_TOOL_ENABLE_STORE} from './src/ui/sidebar-tools/lifecycle.js';
+    import {TOOL_CLEANUP_STORE} from './src/ui/sidebar-tools/installation.js';
+    (${fixture.toString()})();`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,
+    format:'esm',platform:'browser',target:'es2022',logLevel:'silent'});
+  const server=createServer((req,res)=>{
+    res.setHeader('Content-Type',req.url==='/app.js'?'text/javascript':req.url==='/style.css'?'text/css':req.url.includes('catalog.json')?'application/json':'text/html');
+    res.end(req.url==='/style.css'?css:req.url==='/app.js'?bundled.outputFiles[0].text:req.url.includes('catalog.json')?
+      JSON.stringify({schema:'opendesk.official-tools.releases.v1',sourceRepository:'https://github.com/shopable-ai/opendesk-browser',
+        apps:[{id:'opendesk/quick-notes',toolId:'quick-notes',kind:'sidebar-tool',installationPolicy:'optional',version:'1.0.0',
+          packageTitle:'快速笔记',description:'记录内容',capabilities:['storage.local'],packagePath:'official-tools/quick-notes/quick-notes.opendesk-tool.json',bytes:100,sha256:'c'.repeat(64)}]}):
+      '<!doctype html><html><head><link rel="stylesheet" href="/style.css"></head><body><div id="workspace-content"><div id="root"></div></div><script type="module" src="/app.js"></script></body></html>');
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const browser=await chromium.launch({headless:true,args:['--no-sandbox'],
+    ...(process.env.OPENDESK_CHROMIUM_EXECUTABLE?{executablePath:process.env.OPENDESK_CHROMIUM_EXECUTABLE}:{})});
+  t.after(()=>browser.close());const page=await browser.newPage();
+  const errors=[];page.on('pageerror',error=>errors.push(String(error)));
+  await page.goto(`http://127.0.0.1:${server.address().port}/`);
+  await page.locator('[data-extension-id="page:reader"]').waitFor();
+  t.after(()=>assert.deepEqual(errors,[]));return page;
+}
+const options={skip:modulePath?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE to an existing Playwright installation'};
+
+test('React page preserves list, search/filter, detail identity and native Page actions',options,async t=>{
+  const page=await browserFixture(t);
+  await page.locator('[data-extension-key="app:quick-notes"][data-extension-action="primary"]').click();
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='open').length),1);
+  await page.locator('#extension-center-search').fill('阅读');
+  assert.equal(await page.locator('#extension-center-list > li').count(),1);
+  await page.locator('[data-extension-key="page:reader"][data-extension-action="main"]').click();
+  assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
+  assert.match(await page.locator('.ec-sites').innerText(),/https:\/\/example.com\/\*/);
+  await page.locator('[data-ec-detail-action="toggle"]').click();
+  await page.waitForFunction(()=>fixture.page.installed.enabled===false&&fixture.state.detailModel?.busy===false);
+  assert.equal(await page.locator('[data-ec-detail-action="toggle"]').evaluate(node=>node===document.activeElement),true);
+  assert.equal(await page.evaluate(()=>fixture.calls.find(x=>x.action==='page-toggle').args.expectedGeneration),5);
+  await page.evaluate(()=>{fixture.setAckOnly(true);});
+  await page.locator('[data-ec-detail-action="toggle"]').click();
+  await page.waitForFunction(()=>fixture.state.statusModel?.text.includes('读回确认'));
+  await page.evaluate(async()=>{fixture.page.installed.revision++;fixture.page.installed.sourceHash='d'.repeat(64);await fixture.controller.refresh();});
+  assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
+  assert.match(await page.locator('#extension-center-status').innerText(),/固定身份已变化/);
+  await page.locator('#extension-center-search').fill('');
+  await page.locator('#extension-center-more').click();
+  await page.locator('[data-ec-kind="page"]').click();
+  assert.equal(await page.locator('#extension-center-list > li').count(),1);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#extension-center-menu').isVisible(),false);
+  await page.locator('#extension-center-more').click();
+  await page.locator('#extension-center-reset').click();
+  assert.equal(await page.locator('#extension-center-list > li').count(),2);
+  await page.evaluate(async()=>{fixture.setCorrupt(true);await fixture.controller.refresh();});
+  assert.equal(await page.locator('[data-extension-id="app:quick-notes"]').count(),0);
+  assert.equal(await page.locator('#extension-center-count').innerText(),'部分安装状态待核对');
+  await page.evaluate(()=>fixture.dispose());
+  assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
+});
+
+test('React row menu preserves native gestures, keyboard/outside close, pending and disposal',options,async t=>{
+  const page=await browserFixture(t);
+  const more=page.locator('[data-extension-key="app:quick-notes"][data-extension-action="more"]');
+  await more.click();
+  const menu=page.locator('#extension-center-row-menu');await menu.waitFor();
+  assert.equal(await menu.getByRole('menuitem').first().evaluate(node=>node===document.activeElement),true,
+    'first menu item receives focus on opening');
+  await page.keyboard.press('End');
+  assert.equal(await menu.getByRole('menuitem').last().evaluate(node=>node===document.activeElement),true);
+  await page.keyboard.press('Home');
+  assert.equal(await menu.getByRole('menuitem').first().evaluate(node=>node===document.activeElement),true);
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await menu.getByRole('menuitem').last().evaluate(node=>node===document.activeElement),true);
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await menu.getByRole('menuitem').first().evaluate(node=>node===document.activeElement),true);
+  await page.keyboard.press('Escape');assert.equal(await menu.count(),0);
+  assert.equal(await more.evaluate(node=>node===document.activeElement),true);
+  await more.click();await page.keyboard.press('Tab');assert.equal(await menu.count(),0);
+  await more.click();await page.locator('#extension-center-search').click();assert.equal(await menu.count(),0);
+  await more.click();await page.evaluate(()=>document.dispatchEvent(new Event('scroll')));assert.equal(await menu.count(),0);
+  await more.click();
+  await menu.locator('[data-ec-context-action="toggle"]').evaluate(node=>node.click());
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='toggle').length),0);
+  await page.evaluate(()=>fixture.hold());
+  await menu.locator('[data-ec-context-action="toggle"]').click();
+  assert.equal(await page.locator('#extension-center-list button:enabled').count(),0);
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.find(x=>x.action==='toggle')),
+    {action:'toggle',id:'quick-notes',native:true,trusted:true,gesture:true});
+  assert.deepEqual(await page.evaluate(()=>{
+    const event=fixture.nativeEvent();
+    return {type:event.type,trusted:event.isTrusted,action:event.target.dataset.ecContextAction};
+  }),{type:'click',trusted:true,action:'toggle'});
+  await page.evaluate(()=>fixture.release());
+  await page.waitForFunction(()=>fixture.state.rowsModel.busy===false);
+  assert.equal(await page.locator('#extension-center-status').innerText(),'已从本机安装记录确认应用停用。');
+  await more.click();await menu.locator('[data-ec-context-action="detail"]').click();
+  assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
+  await page.keyboard.press('Escape');assert.equal(await page.locator('#extension-center-list-view').isVisible(),true);
+  await more.click();await menu.locator('[data-ec-context-action="settings"]').click();
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='settings').length),1);
+  await more.click();
+  await page.evaluate(()=>{
+    window.stale={onClick:fixture.state.rowMenuModel.items[0].onClick,event:fixture.nativeEvent()};
+    fixture.dispose();
+  });
+  assert.equal(await menu.count(),0);
+  await page.evaluate(()=>{
+    if(!stale.event.isTrusted)throw Error('Disposal must also reject the previously trusted native event');
+    stale.onClick(stale.event);
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    document.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+    document.dispatchEvent(new Event('scroll'));
+  });
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='toggle').length),1);
+  assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
+});
+
+test('React orphaned cleanup recovery retains trusted native events while catalog is unavailable',options,async t=>{
+  const page=await browserFixture(t);
+  await page.evaluate(async()=>{fixture.cleanup('local-only');await fixture.controller.refresh();});
+  await page.locator('#extension-center-more').click();
+  await page.locator('[data-ec-scope="available"]').click();
+  await page.keyboard.press('Escape');
+  const cleanup=page.getByRole('button',{name:'恢复「local-only」的卸载清理'});
+  await cleanup.evaluate(node=>node.click());
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='cleanup').length),0);
+  await cleanup.click();
+  await page.waitForFunction(()=>fixture.state.rowsModel.busy===false&&fixture.calls.some(x=>x.action==='cleanup'));
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.find(x=>x.action==='cleanup')),
+    {action:'cleanup',id:'local-only',native:true,trusted:true,gesture:true});
+  assert.equal(await page.locator('#extension-center-cleanups').isVisible(),false);
+  assert.equal(await page.locator('#extension-center-status').innerText(),
+    '已从存储读回确认卸载清理完成；需要重新安装时请主动审阅。');
+  assert.equal(await page.locator('[data-ec-detail-action="install"]').count(),0);
+  await page.evaluate(()=>fixture.dispose());
+  assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
+});

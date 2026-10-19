@@ -14,7 +14,7 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
     '.workbench-nav','#workspace-content','#workbench-tools',
     '#sidebar-tools','#sidebar-tool-list-view','#extension-center',
     '#workspace-dock','#workbench-tasks','#workbench-workflow',
-    '#workbench-develop','#workbench-cloud','#workbench-debug'
+    '#workbench-debug'
   ];
   for(const selector of selectors)
     assert.equal($(selector).length,1,selector);
@@ -22,12 +22,15 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.equal($('#sidebar-tools').parent().attr('id'),'workbench-tools');
   assert.equal($('#sidebar-tool-list-view').parent().attr('id'),'sidebar-tools');
   assert.equal($('#extension-center').parent().attr('id'),'sidebar-tool-list-view');
-  assert.equal($('#workbench-cloud > .cloud-panel > .cloud-overview').length,1);
-  assert.equal($('#cloud-approval-section').length,1);
-  // R35.3: request history is no longer supplied by static HTML.
+  assert.equal($('#extension-center').children().length,0,'extension content is owned by React');
+  assert.equal($('#sidebar-tool-display,#sidebar-tool-import,#sidebar-tool-settings-view').length,0,
+    'abandoned extension templates must not create a second DOM owner');
+  // The complete Cloud page is supplied by React, including authorization.
+  assert.equal($('#workbench-cloud').length,0);
+  assert.equal($('#cloud-approval-section').length,0);
   assert.equal($('#cloud-request-samples').length,0);
-  assert.equal($('#cloud-hosting').length,1);
-  assert.equal($('#workspace-dock').children('.dock-actions').length,3);
+  assert.equal($('#cloud-hosting').length,0);
+  assert.equal($('#workspace-dock').children('.dock-actions').length,2);
   const shell=await read('src/ui/react/app-shell.tsx');
   const [tool,task,root]=await Promise.all([
     read('src/ui/tool-shell.js'),read('src/ui/task-workbench.js'),
@@ -43,9 +46,9 @@ test('R35.1 official HTML has required safe adoption points (SOURCE_ONLY)',async
   assert.match(shell,/export function prepareSidebarAppShell\(doc\)/);
   assert.match(shell,/export function SidebarAppShell\(/);
   assert.match(shell,/mount\.id='opendesk-react-app'/);
-  assert.match(shell,/cloudLegacySections:Array\.from\(cloudPanel\.children\)/);
+  assert.doesNotMatch(shell,/cloudLegacySections/);
   assert.match(shell,/<CloudConnectionPage model=\{cloudModel\}/);
-  assert.match(root,/cloudOverviewMounted&&!shell/);
+  assert.match(root,/cloudPageMounted:Boolean\(shell\),cloudOverviewMounted:Boolean\(shell\)/);
   assert.match(shell,/<ExtensionCenterPage \{\.\.\.extensionProps\}\/>/);
   assert.doesNotMatch(shell,/createRoot\(|createPortal\(|chrome\.|browser\.|client\.request\(/);
   for(const path of ['src/ui/react/app-shell.tsx','src/ui/react/tabs/navigation.tsx',

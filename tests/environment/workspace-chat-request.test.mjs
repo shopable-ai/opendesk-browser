@@ -5,7 +5,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL} from '../../src/native-agent/workspace-chat-request.js';
 import {createEditContext,parseEditProposal,validateEditProposal,EDIT_PROTOCOL} from '../../src/native-agent/workspace-ai-proposal.js';
 import {inspectChatGPTEditsOnPage,fillChatGPTComposerOnPage,verifyChatGPTComposerOnPage,fillChatGPTComposer} from '../../src/native-agent/workspace-chatgpt.js';
-import {initWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
+import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
 
 const WS='workspace-12345678-1234-4234-8234-123456789abc';
 const BINDING='binding-1234567890123456',REQUEST='request-1234567890123456';
@@ -210,15 +210,10 @@ test('a confirmed editing failure may retry the retained text but a changed user
 function controllerFixture(){
   const page=pageFixture(),marker=randomUUID(),files=new Map([['README.md','marker='+marker+'\n']]);
   page.addMessage('user','existing conversation');
-  const nodes=new Map(),el=id=>{
-    if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',hidden:true,disabled:false,events:new Map(),
-      classList:{toggle(){}},addEventListener(type,fn){this.events.set(type,fn);}});
-    return nodes.get(id);
-  };
   let authority={workspaceId:WS,sourceId:'source-'+'a'.repeat(24),leaseEpoch:randomUUID(),sessionId:randomUUID(),access:'read-write',devLeaseEpoch:1};
-  let current=null,pending=Promise.resolve(),ui,reads=0,writes=0,readGate=null,readError=null;
-  ui=initWorkspaceChatEdit({api:page.api,doc:{getElementById:el},demo:false,getRecord:()=>current,getTarget:()=>page.target,
-    getAuthority:()=>authority,assertAuthority:async expected=>{if(expected!==authority)throw {code:'E_FILES_SESSION'};},
+  let current=null,ui,reads=0,writes=0,readGate=null,readError=null;
+  ui=createWorkspaceChatEdit({api:page.api,demo:false,getRecord:()=>current,getTarget:()=>page.target,
+    getAuthority:()=>authority,assertAuthority:async expected=>{if(['workspaceId','sourceId','leaseEpoch','sessionId','access'].some(key=>expected[key]!==authority[key]))throw {code:'E_FILES_SESSION'};},
     isWritable:()=>authority?.access==='read-write',readCurrent:async()=>current,
     setDraft:(record,text)=>{record.content=text;},
     requestFile:async request=>{
@@ -226,18 +221,17 @@ function controllerFixture(){
       if(request.operation==='list')return {data:{workspaceId:WS,path:request.path,entries:[{name:'README.md',path:'README.md',kind:'file'}],truncated:false}};
       const body=files.get(request.path);
       current={workspaceId:WS,path:request.path,content:body,baseContent:body,sha256:hash(body)};
-      ui.controls({busy:true,connected:true});
+      ui.update({busy:true,connected:true});
       return {record:current,data:{workspaceId:WS,path:request.path,content:body,sha256:hash(body),bytes:new TextEncoder().encode(body).length}};
     },
-    run:fn=>{pending=(async()=>{ui.controls({busy:true,connected:true});try{await fn();}finally{ui.controls({connected:true});}})();}
+    run:async fn=>{ui.update({busy:true,connected:true});try{await fn();}finally{ui.update({busy:false,connected:true});}}
   });
-  el('chat-request-path').value='README.md';ui.controls({connected:true});
-  const start=id=>{el(id).events.get('click')();return pending;};
-  return {page,el,ui,files,marker,start,click:start,get reads(){return reads;},get writes(){return writes;},get current(){return current;},
+  ui.actions.setRequestPath('README.md');ui.update({connected:true});
+  return {page,ui,state:()=>ui.getSnapshot(),files,marker,get reads(){return reads;},get writes(){return writes;},get current(){return current;},
     set authority(value){authority=value;},get authority(){return authority;},set readGate(value){readGate=value;},set readError(value){readError=value;},
     send(){const text=page.state.editor.text;assert.ok(text);page.state.editor.text='';page.addMessage('user',text);return text;},
-    requestFromPrompt(){return JSON.parse(el('edit-context').value.match(/\{\n[\s\S]*?\n\}/)[0]);},
-    result(){return JSON.parse(el('chat-file-result').value.slice(el('chat-file-result').value.indexOf('{\n')));},
+    requestFromPrompt(){return JSON.parse(ui.getSnapshot().prompt.match(/\{\n[\s\S]*?\n\}/)[0]);},
+    result(){return JSON.parse(ui.getSnapshot().resultText.slice(ui.getSnapshot().resultText.indexOf('{\n')));},
     answer(value,language){page.addMessage('assistant','',[{text:JSON.stringify(value),language}]);},
     async save(){
       await ui.beforeSave(current);
@@ -249,11 +243,11 @@ function controllerFixture(){
   };
 }
 async function requestRead(h){
-  await h.click('prepare-file-request');
-  assert.ok(!h.el('edit-context').value.includes(h.marker),'initial prompt cannot reveal the random body');
+  await h.ui.actions.prepareFileRequest();
+  assert.ok(!h.state().prompt.includes(h.marker),'initial prompt cannot reveal the random body');
   const request=h.requestFromPrompt();
-  await h.click('fill-chat-context');h.send();h.answer(request,'opendesk-request');
-  await h.click('read-chatgpt-edit');
+  await h.ui.actions.fillContext();h.send();h.answer(request,'opendesk-request');
+  await h.ui.actions.readChatGPT();
   return {request,result:h.result()};
 }
 test('controller completes two distinct read-result-edit cycles with fresh requests and the saved baseline',async()=>{
@@ -262,34 +256,34 @@ test('controller completes two distinct read-result-edit cycles with fresh reque
   assert.equal(first.result.data.content,before);assert.ok(h.page.state.editor.text.includes(h.marker));
   assert.equal(h.writes,0);h.send();
   h.answer({...first.result.editProposal,content:before+'round one\n'},'opendesk-edit');
-  await h.click('read-chatgpt-edit');assert.equal(h.writes,0);
-  await h.click('adopt-edit');assert.equal(h.files.get('README.md'),before);
+  await h.ui.actions.readChatGPT();assert.equal(h.writes,0);
+  await h.ui.actions.adopt();assert.equal(h.files.get('README.md'),before);
   await h.save();const sha1=hash(h.files.get('README.md'));assert.equal(h.writes,1);
   const second=await requestRead(h);
   assert.notEqual(second.request.requestId,first.request.requestId);
   assert.notEqual(second.request.bindingId,first.request.bindingId);
   assert.equal(second.result.editProposal.baseSha256,sha1);
   h.send();h.answer({...second.result.editProposal,content:second.result.data.content+'round two\n'},'opendesk-edit');
-  await h.click('read-chatgpt-edit');await h.click('adopt-edit');await h.save();
+  await h.ui.actions.readChatGPT();await h.ui.actions.adopt();await h.save();
   assert.equal(h.reads,2);assert.equal(h.writes,2);
   assert.match(h.files.get('README.md'),/round one\nround two\n$/);
-  assert.equal(JSON.parse(h.el('edit-receipt').textContent).sha256,hash(h.files.get('README.md')));
+  assert.equal(JSON.parse(h.state().receipt).sha256,hash(h.files.get('README.md')));
 });
 test('result blocked by a user draft is retained; retry only refills and never reruns the file request',async()=>{
   const h=controllerFixture();
-  await h.click('prepare-file-request');const request=h.requestFromPrompt();
-  await h.click('fill-chat-context');h.send();h.answer(request,'opendesk-request');h.page.state.editor.text='USER DRAFT';
-  await h.click('read-chatgpt-edit');
+  await h.ui.actions.prepareFileRequest();const request=h.requestFromPrompt();
+  await h.ui.actions.fillContext();h.send();h.answer(request,'opendesk-request');h.page.state.editor.text='USER DRAFT';
+  await h.ui.actions.readChatGPT();
   assert.equal(h.reads,1);assert.equal(h.page.state.editor.text,'USER DRAFT');assert.ok(h.result().data.content.includes(h.marker));
-  h.page.state.editor.text='';await h.click('refill-chat-result');
+  h.page.state.editor.text='';await h.ui.actions.refillResult();
   assert.ok(h.page.state.editor.text.includes(h.marker));assert.equal(h.reads,1);
-  await h.click('read-chatgpt-edit');assert.equal(h.reads,1,'old nonce cannot reread');
+  await h.ui.actions.readChatGPT();assert.equal(h.reads,1,'old nonce cannot reread');
 });
 test('an adopted proposal cannot survive regeneration, workspace switching, or a changed file baseline',async()=>{
   for(const change of ['regenerate','workspace','baseline','answer text']){
     const h=controllerFixture(),{result}=await requestRead(h);h.send();
     h.answer({...result.editProposal,content:'proposed'},'opendesk-edit');
-    await h.click('read-chatgpt-edit');await h.click('adopt-edit');
+    await h.ui.actions.readChatGPT();await h.ui.actions.adopt();
     assert.equal(h.current.content,'proposed');
     if(change==='regenerate')h.page.state.streaming=true;
     if(change==='workspace'){h.authority={...h.authority,leaseEpoch:randomUUID()};h.ui.authorityChanged();}
@@ -302,29 +296,29 @@ test('an adopted proposal cannot survive regeneration, workspace switching, or a
 test('external edits conflict, read-only authority refuses adoption, and old proposal replay never writes',async()=>{
   const h=controllerFixture(),{result}=await requestRead(h);h.send();
   const edit={...result.editProposal,content:'proposed'};h.answer(edit,'opendesk-edit');
-  await h.click('read-chatgpt-edit');await h.click('adopt-edit');
+  await h.ui.actions.readChatGPT();await h.ui.actions.adopt();
   h.files.set('README.md','external editor');
   await assert.rejects(h.save(),e=>e.code==='E_FILES_CONFLICT');assert.equal(h.writes,0);
-  await h.click('read-chatgpt-edit');assert.equal(h.el('edit-review').hidden,true);
+  await h.ui.actions.readChatGPT();assert.equal(!h.state().proposal,true);
   const ro=controllerFixture();ro.authority={...ro.authority,access:'read-only'};
   const read=await requestRead(ro);ro.send();ro.answer({...read.result.editProposal,content:'attempt'},'opendesk-edit');
-  await ro.click('read-chatgpt-edit');await ro.click('adopt-edit');
+  await ro.ui.actions.readChatGPT();await ro.ui.actions.adopt();
   assert.equal(ro.current.content,read.result.data.content);assert.equal(ro.writes,0);
 });
 test('a late callback after binding invalidation cannot fill either the old or a replacement target',async()=>{
-  const h=controllerFixture();await h.click('prepare-file-request');const request=h.requestFromPrompt();
-  await h.click('fill-chat-context');h.send();h.answer(request,'opendesk-request');
+  const h=controllerFixture();await h.ui.actions.prepareFileRequest();const request=h.requestFromPrompt();
+  await h.ui.actions.fillContext();h.send();h.answer(request,'opendesk-request');
   let release;h.readGate=new Promise(resolve=>{release=resolve;});
-  const pending=h.start('read-chatgpt-edit');
+  const pending=h.ui.actions.readChatGPT();
   for(let n=0;n<80&&h.reads===0;n++)await Promise.resolve();
   assert.equal(h.reads,1);
   h.ui.invalidate('conversation navigated');release();await pending;
   assert.equal(h.page.state.editor.text,'');assert.equal(h.writes,0);
-  assert.match(h.el('chat-edit-status').textContent,/E_REQUEST_CONTEXT/);
+  assert.match(h.state().status.text,/E_REQUEST_CONTEXT/);
 });
 test('new request mode diagnoses an old Go without lease capability before exporting a prompt',async()=>{
   const h=controllerFixture();h.authority={...h.authority,devLeaseEpoch:0,leaseEpoch:''};
-  await h.click('prepare-file-request');
-  assert.match(h.el('chat-edit-status').textContent,/E_NATIVE_UPDATE_REQUIRED/);
-  assert.equal(h.el('edit-context').value,'');assert.equal(h.reads,0);
+  await h.ui.actions.prepareFileRequest();
+  assert.match(h.state().status.text,/E_NATIVE_UPDATE_REQUIRED/);
+  assert.equal(h.state().prompt,'');assert.equal(h.reads,0);
 });

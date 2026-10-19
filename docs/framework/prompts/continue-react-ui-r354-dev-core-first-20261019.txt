@@ -1,0 +1,52 @@
+# GOAL：OpenDesk Browser React UI R35.4 续接 — 开发模式与核心闭环优先
+
+默认中文。直接接续现有实现，不重写总方案，不只做文档。
+仓库：/Users/shopme/Documents/workspace/opendesk-browser
+正式入口：src/ui/tool.html、src/ui/tool-shell.js；React 唯一根：src/ui/react/。
+
+一、最新优先级
+先完成持续开发模式下真实可用的产品核心流程。先收口当前 Cloud React 未完成改动，再继续「开发」Tab 核心闭环，随后按已有基础推进另外三页；本轮不要求一次完成 production 95+ 最终验收。优先实际页面和业务接线，不扩展边缘场景。
+
+日常扩展固定加载 dist/development，优先复用 npm run dev watcher。先核验实际加载路径、扩展 ID、serve 连接及构建指纹。没有 watcher 才自行启动并验证，不以 build:dev 静态包冒充持续开发。不得复制到另一个日常加载目录或修改 Native 配对。
+
+二、必须继承的真实状态（重新核对后继续）
+上一会话初始 main：149507305e9f5a0e0ab42d743ae439491f9ba242。fetch 后 origin/main：7f5ba6af23521371482ff6dd72c6ce17051aa32e。git merge --ff-only origin/main 被已有 src/ui/script-editor.js 和 tests/environment/script-editor-ui.test.mjs 本地修改阻止，未覆盖、stash 或替别人提交。其他 Agent 正在改 Native Workspace、Quick Notes、Script Editor。不得因它们存在而全仓停工；只协调实际重叠。
+
+R35.3 的 9bc1ba07、ba28b6ae、eb38d454 已在初始 HEAD；1b3bcfd1、e92d0482 当时只在 origin/main。上会话已将远端最新 Cloud 相关五个文件内容作为本轮修改基础，但 Git 全局尚未安全快进。务必区分工作区源码、HEAD、origin/main 与构建候选身份。
+
+当前 Cloud 是未提交 WIP，尚未证明业务可运行，不能当作已交付：
+- src/ui/cloud-hosting.js：正在改为完整 React 页面投影与动作；保留原 Cloud Host、RunHost 和 task 安装身份校验。新接口为 reactUI.cloudPageMounted / renderCloudPage(next)。投影含 overview、setup、authorization、pairing、clients、requests。主要旧 DOM 生成已移除，但异步、授权失效、错误恢复仍须定向验证修复。
+- src/ui/react/tabs/cloud-authorization.tsx：新增纯受控任务授权 UI，包含固定身份、网站、参数、独立结果确认和结果撤权。
+- src/ui/react/tabs/cloud-settings.tsx：新增纯受控配对与外部客户端凭据 UI，调用原 Controller；不持久化密钥或配对码。
+- src/ui/react/tabs/cloud.tsx：接入整页组件；已修复本会话集成时产生的重复 CloudConnectionPage 声明，五个相关 TSX 已经 Vite transformWithEsbuild 通过。
+- src/ui/react/app-shell.tsx：已移除 Cloud 的 legacySections/scaffold 借用。
+- src/ui/react/main.tsx：新增完整 Cloud 投影接线，切离 Cloud 清除敏感短期值，删除 Cloud 文字业务 Portal。
+- src/ui/tool.html：已删除静态 Cloud 区块；读取时约 944 行，main.tsx 仍有约 25 个其他 Portal。数字不是完成证明。
+- 子 Agent 已停止；四个 Cloud 测试文件均未修改，仍须迁移旧 DOM 断言。所有子任务均已收口，无需等待旧 Agent。
+
+记录：docs/framework/workstreams/react-ui-r354-20261019.md、react-ui-r354-authorization-20261019.md、react-ui-r354-settings-20261019.md。原始日志：artifacts/react-ui-r354/。这些是实施/证据记录，不是新需求或已完成声明。
+
+三、下一步直接做
+1. 只读核对 branch/status/当前文件及并行 owner；安全同步 main，有重叠只暂停相关部分。不要 stash、覆盖或提交他人改动。
+2. 先跑最小语法/TSX检查，读 Cloud 新投影和组件接口，修复实际接线错误。重点检查 main.tsx → SidebarAppShell → CloudConnectionPage 的完整 props，以及旧 Controller 是否仍写 Cloud React DOM。
+3. 在持续开发模式跑通 Cloud 正常核心闭环：未配对 → 配对 → 选择已安装任务 → 核对固定版本/网站/参数 → 普通执行授权与结果正文独立确认 → 批准/停止/撤权；外部客户端凭据创建/单次展示/复制/撤销；请求分页/详情/原始 Run 只读入口。保留真实权限手势，不自动重试未知执行结果。
+4. 对本次改动直接影响的保护做必要回归：任务版本/安装 generation/选择变化使旧确认失效；关闭、切页、pagehide 后敏感值清除；迟到异步响应不恢复旧密钥或覆盖新状态；状态刷新不得 claim/重复启动任务。只检查真实相关风险，不扩展全量对抗测试。
+5. 同步迁移仍断言旧静态 Cloud HTML 或旧 DOM 事件的测试，改为等价的正式 React/Controller 行为断言。不能跳过或降低安全断言；不能为兼容过时测试恢复主页面旧 DOM。测试变更必须验证相同行为。
+6. Cloud 核心流程可用后，优先「开发」Tab：JavaScript / React JSX / Vue SFC 编辑 → 编译/诊断 → 预览/真实运行 → Stop/结果 → 保存/重开。复用最新 ScriptEditor/Compiler/RunHost，先读并行改动，严禁复制第二套编辑器或业务权威。再逐页推进扩展、我的/Scheduler、工作流。
+7. 每页核心流程迁移完成即删除该页已替代 HTML、业务 Portal 和 DOM 写入；其余页保留有效功能，禁止一次删空。独立 Sidebar Tool 沙箱/SDK/Installer 维持原边界。
+
+四、已有验证应如何使用
+迁移前：npm run check 及指定四组 React Node 测试 PASS；r352 源码 Chromium 和已安装 MV3 冒烟也 PASS，但只证明旧候选，不能用于本轮新源码。已安装 runner 输出硬编码 LINUX 标签，实际执行使用 Mac Chrome for Testing 155；仍不等于原生 Side Panel 验收。
+基线 npm run build 与 build:dev FAIL：并行 Native Workspace 迁移缺少 src/ui/react/workspace/WorkspaceView 导入目标；verify 因未完成构建缺 browser-edition.json FAIL。重新核对当前状态，不将该历史原因永久套用，不擅自接管并行模块。
+Cloud 清理后的 React 回归曾 FAIL：旧静态 HTML 断言未迁移，且当时 CloudConnectionPage 重复声明；重复声明已修复，回归尚未完整重跑。当前仅五个相关 TSX 变换 PASS，不代表 Cloud 业务 PASS。
+
+五、减少边缘性工作
+当前开发阶段只做：必要语法/依赖检查、受影响定向测试、正常用户主流程和本次直接影响的安全保护。不要在主流程尚未可用时先跑全仓测试、全量 production 构建、多宽度/200%缩放/主题矩阵、变异测试、故障注入、长时间压力或反复原生全套验收。之前 R35.4 终验矩阵留到用户再次明确要求正式验收时，不作为本轮开发收尾前提。已有失败仅在源码、环境或观察方法变化后重跑。
+正常窗口/default zoom；只修复真实阻止核心操作的可见问题。不做额外 Keychain/多浏览器环境研究。不要以评分、文档、截图和新提示词替代实现。
+
+六、Git 与交付
+只在 main 写入；不建分支/worktree/PR，不强推/reset/clean。共享 Git 操作串行，只暂存自己明确路径。用户原任务已授权通过测试后安全提交并推送 main；未验证 WIP 不作为完成成果提交。保留其他 Agent 改动；提交遵循 Lore protocol。
+
+交付只报告真实文件、核心流程结果、定向测试和候选身份。区分 SOURCE_ONLY、SOURCE_UI_SIMULATION_CHROMIUM、INSTALLED_EXTENSION_CHROME、NATIVE_MAC_SIDE_PANEL；未测写 NOT_TESTED，失败写 FAIL。本轮不强求专家评分或 95+；五 Tab 全部完成及对应原生证据前不得宣称 R35.4 最终交付。
+
+立即从当前 WIP 继续实施，先修 Cloud 主流程，再完成开发模式与「开发」Tab 核心可用闭环。无需重开架构讨论或要求用户重复批准普通可逆步骤。

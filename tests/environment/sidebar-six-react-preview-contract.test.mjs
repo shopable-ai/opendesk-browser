@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {load} from 'cheerio';
-import {transformWithEsbuild} from 'vite';
+import {createServer,transformWithEsbuild} from 'vite';
+import * as React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 
 const read=path=>readFile(path,'utf8');
 test('R33.3.6 six official panels (development Debug only) are source-bound',async()=>{
@@ -44,7 +46,7 @@ test('R33.3.6 six official panels (development Debug only) are source-bound',asy
     'src/ui/cloud-hosting.css','src/ui/extension-center.css'])
     assert.ok(builder.includes(path),'missing official input '+path);
   for(const name of ['ExtensionToolbar','ExtensionRows','ExtensionDetail',
-    'DeveloperFramework','DeveloperActions','WorkflowHeader','WorkflowTranscript',
+    'WorkflowHeader','WorkflowTranscript',
     'WorkflowSettingsSheet','DebugDiagnosticText'])
     assert.match(adapter,new RegExp('createPortal\\(<'+name+'\\b'));
   assert.match(adapter,/const root=createRoot\(/);
@@ -151,4 +153,53 @@ test('R33.3.16 source-owned task manager and dual workflow examples are not a pa
   assert.match(presentation,/RUNNING:'positive',ADMITTED:'info'/);
   await transformWithEsbuild(flows,'sidebar-six-my-flows.tsx',
     {loader:'tsx',jsx:'transform',target:'es2022'});
+});
+
+
+test('developer preview uses the complete page and dock with isolated local-project state',async t=>{
+  const vite=await createServer({configFile:false,root:process.cwd(),
+    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
+  t.after(()=>vite.close());
+  const {DeveloperPage,DeveloperDock}=await vite.ssrLoadModule('/src/ui/react/tabs/develop.tsx');
+  const {createDeveloperPreviewView}=await vite.ssrLoadModule('/src/ui/react/preview/developer-preview.js');
+  const view=createDeveloperPreviewView();
+  t.after(()=>view.dispose());
+  const render=()=>load(renderToStaticMarkup(React.createElement(React.Fragment,null,
+    React.createElement(DeveloperPage,{view}),React.createElement(DeveloperDock,{view}))));
+  let $=render();
+  assert.equal($('#workbench-develop').length,1);
+  assert.equal($('#develop-dock').length,1);
+  assert.equal($('#manual-source-editor').prop('hidden'),false);
+  assert.equal($('#local-project-tools').prop('hidden'),true);
+  assert.equal($('#local-project-select option').length,3);
+  for(const id of ['script-run','script-save','script-stop','page-program-install'])
+    assert.equal($('#'+id).prop('disabled'),true,id+' cannot invoke real capabilities');
+  view.patch('script-source',{value:'preview draft <script>text</script>'});
+  view.patch('local-project-mode',{checked:true});
+  view.actions['local-project-mode']();
+  view.patch('local-project-select',{value:'preview-controller'});
+  view.actions['local-project-select']();
+  $=render();
+  assert.equal($('#developer-source-switch').attr('data-mode'),'local');
+  assert.equal($('#manual-source-editor').prop('hidden'),true);
+  assert.equal($('#local-project-tools').prop('hidden'),false);
+  assert.equal($('#local-project-params-tools').prop('hidden'),false);
+  assert.equal($('#script-run').text(),'运行本地项目');
+  assert.equal($('#script-save').text(),'安装固定版本');
+  assert.equal($('#local-project-status').attr('data-state'),'disconnected');
+  assert.match($('#local-project-status').text(),/无法运行或安装/);
+  view.actions['local-project-refresh']();
+  assert.match(render()('#local-project-status').text(),/无法读取 Native/);
+  view.actions['local-project-guide-open']();
+  assert.equal(render()('#local-project-guide').prop('open'),true);
+  view.actions['page-component-vue']();
+  assert.equal(render()('#page-component-vue').prop('checked'),true);
+  view.patch('local-project-mode',{checked:false});
+  view.actions['local-project-mode']();
+  $=render();
+  assert.equal($('#manual-source-editor').prop('hidden'),false);
+  assert.equal($('#script-source').val(),'preview draft <script>text</script>');
+  assert.equal($('#script-run').prop('disabled'),true);
+  assert.equal($('#script-save').prop('disabled'),true);
+  assert.equal($('script').length,0);
 });

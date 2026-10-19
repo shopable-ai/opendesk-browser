@@ -1,12 +1,9 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {createDevelopmentPairingRequest} from './pairing.js';
-import {initFileWorkspace} from './workspace.js';
 import {recoverControlFocus} from './control-focus.js';
 import {initTrustedPageLocale,subscribeLocale,translate} from '../i18n/index.js';
 export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document,navigate=url=>globalThis.location.assign(url)}={}) {
-  const workspacePage=!!doc.getElementById('file-workspace');
-  initTrustedPageLocale({api,doc,page:workspacePage?'workspace':'settings'});
-  if(workspacePage)return initFileWorkspace({api,doc});
+  initTrustedPageLocale({api,doc,page:'settings'});
   const status=doc.getElementById('bridge-status'),enable=doc.getElementById('bridge-enable'),
     disable=doc.getElementById('bridge-disable'),refresh=doc.getElementById('bridge-refresh'),pair=doc.getElementById('bridge-pair');
   const show=value=>{status.textContent=value};

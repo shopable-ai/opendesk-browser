@@ -14,7 +14,11 @@ export const WORKSPACE_STYLE_INPUTS=Object.freeze([
   'src/ui/design-tokens.css',
   'src/native-agent/workspace.html',
   'src/native-agent/workspace.js',
-  'src/native-agent/workspace-chat-edit-ui.js'
+  'src/native-agent/workspace-chat-edit-ui.js',
+  'src/ui/react/workspace/WorkspaceView.tsx',
+  'src/ui/react/workspace/ChatEditPanel.tsx',
+  'src/ui/react/workspace/FileTree.tsx',
+  'src/ui/react/workspace/view-helpers.tsx'
 ]);
 export const WORKSPACE_STYLE_DEST='native-agent/workspace.css';
 

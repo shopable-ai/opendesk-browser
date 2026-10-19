@@ -17,19 +17,19 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 **最新五 Tab/类型标签的权威**为 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md) 与 `src/ui/tool.html`。遗留 `tab-tools`/`workbench-tools` DOM ID 不是仍存在「工具」一级 Tab 的证据。
 
-按顺序读：
+先恢复 `AGENTS.md` 的当前阶段、用户最新优先级及目标文件 diff；以下按任务选择相关章节，不是每次依次读完的清单：
 
-1. `AGENTS.md`、`docs/framework/testing-guide.md`、既有变更/原始验收证据；
-2. [R27 跨界面布局与样式](../../../docs/architecture/ui-layout-conventions-r27.zh-CN.md)：全局原则、按容器的尺寸/密度、Tailwind 隔离、验证矩阵；
-3. [R28 Tab 多功能区与子视图](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)：Tab/Index/Section/Subview/Surface、列表/详情/表单切换、状态；
-4. [R30 Side Panel 页面顶部与纵向节奏](../../../docs/architecture/sidebar-design-system-r20.zh-CN.md)：历史工具页的标题/操作布局作为视觉参照，**不是**复制历史 CSS；
-5. 当前源码：`src/ui/tool.html`、`src/ui/tool-shell.js`、`src/ui/tool-shell.css`、`src/ui/design-system.css`、**唯一 token** `src/ui/design-tokens.css`；若是计划，则查看 `src/ui/scheduled-task-workbench.js` 与 `tests/environment/scheduled-task-ui-r1.test.mjs`。
+- 调整布局密度、间距、容器或样式隔离：查 [R27 跨界面布局与样式](../../../docs/architecture/ui-layout-conventions-r27.zh-CN.md) 的对应规则。
+- 调整列表/详情/表单、返回与草稿：查 [R28 Tab 多功能区与子视图](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)。
+- 调整页首、折叠或公共视觉：查 [R30/R31 Side Panel 设计系统](../../../docs/architecture/sidebar-design-system-r20.zh-CN.md)；历史页面仅作参照，不复制历史 CSS。
+- 实现时先读目标组件和直接事件/样式依赖；涉及公共规则才补查 `src/ui/design-system.css`、唯一 token `src/ui/design-tokens.css` 或对应 shell。计划任务按受影响入口查 `src/ui/scheduled-task-workbench.js`，不预先扫描所有公共源码。
+- 确需运行测试或复用验收证据时，再查 `docs/framework/testing-guide.md`、相关测试与同输入证据；历史验收不是普通功能开发的阅读前置条件。
 
 **入口先分类**：可信 Side Panel 使用上述 `od-*`；扩展 Settings 使用自身 CSS + 合适的 tokens；Marketplace 属于独立响应式页面；Native Workspace 使用固定离线 Tailwind v4，且 `:root` 16px 保证 rem 基准；sandbox/网页注入 UI 不引入宿主 CSS、全局 reset、Preflight 或特权代码。
 
-## 开始实现之前必须画出“可见导航”和页面状态
+## 改变导航或交互时核对受影响的页面状态
 
-在改代码前先写下以下五项（简短文字或状态图即可），没有就不要直接堆 HTML：
+新建页面或改变导航/交互时，简要说明下列受影响项；既有缺陷直接核对当前入口及失败步骤，不要求重画完整状态图或新建 HTML 原型：
 
 1. **入口**：属于现行哪个一级 Tab？正式为 **我的 / 扩展 / 工作流 / 开发 / 云控**，开发版另有隐藏「调试」。旧「发现」的任务检索属于「我的」；旧「工具」和已安装 Page 的管理统一在「扩展」。无正式产品变更及验收，**不新建一级 Tab，不隐藏/合并五 Tab**。
 2. **用户对象**：索引页的主对象是什么（任务、计划、应用、网页增强、订阅等）；卡片只展示名称、状态、最重要数值与 1–2 个高频动作。
@@ -78,7 +78,7 @@ R30 首行的普通标题为 12px/600；R31 明确「当前网页」属于有边
 
 开发页中「来源与当前网站」「运行状态与结果」分别是 8px 的关联组；卡片 padding 由 `od-surface--padded` 提供 12px；彼此独立的主章节由父容器 `--space-4` 分隔 16px。新增 Modifier 须先证明至少两个真实消费者确需同一语义。保留 `#developer-target-detail` 等 ID/ARIA、Run/Save/Stop/安装/权限的原绑定，当前网页域名与可运行状态仍动态展示，不能写成固定网址。
 
-**强制检验：**`sidebar-component-contract.test.mjs` 的 CSS 规则/声明所有权扫描，`sidebar-r19-layout-visual.mjs` 的开发 `#developer-results-panel` 和云控 `#cloud-hosting` computed-style、Hover、深浅色及展开态比较；现有键盘/窄屏/粗指针覆盖不可删除。源码合同、静态 Chrome、日常 `dist/development`、真实安装生产包与 Mac Chrome 缩放必须分级记录，未执行标 `NOT_TESTED`。仅可信 Side Panel 可直接复用完整宿主 CSS；Workspace、Settings、Marketplace 使用各自隔离构建/主题映射，独立工具 iframe 与目标网站严禁导入宿主特权 CSS/JS。
+**受影响范围检验：**修改共享 CSS 规则/声明所有权时运行 `sidebar-component-contract.test.mjs`；修改开发 `#developer-results-panel` 或云控 `#cloud-hosting` 的对应样式时，按当前阶段选用 `sidebar-r19-layout-visual.mjs` 的相关比较。保留现有键盘/窄屏/粗指针覆盖，不因此每次运行完整矩阵。只报告实际执行的证据层级；涉及的原生/安装项未执行标 `NOT_TESTED`，宽度与缩放专项按当前任务范围处理。仅可信 Side Panel 可直接复用完整宿主 CSS；Workspace、Settings、Marketplace 使用各自隔离构建/主题映射，独立工具 iframe 与目标网站严禁导入宿主特权 CSS/JS。
 ## 「我的 → 定时计划」专项防退化示例
 
 当前真实实现已在 `#workbench-tasks` 下包含 `#scheduled-panel`，以及 `#schedule-list-view`、`#schedule-form`、任务管理与独立 runner；`src/ui/scheduled-task-workbench.js` 的 `show(view)` 切换视图。它的计划列表卡片目前还内嵌较重的历史/更多/删除确认。**这不是已经存在完整单计划 Detail 页的证明。**
@@ -89,18 +89,15 @@ R30 首行的普通标题为 12px/600；R31 明确「当前网页」属于有边
 
 ## 标准开发与验证流程
 
-1. **审前**：识别实际页面、当前导航、容器所有者、CSS 来源及 UI 生命周期；对照 1–2 个已存在的合理消费者。可只读生成 DOM/状态层级，不先“统一重写”页面。
+按 [AGENTS.md 的开发阶段规则](../../../AGENTS.md#开发阶段先完成核心需求与最小验证用户于2026-10-17明确)选择本轮需要的步骤，以下不是每次任务的全量清单。核心流程未通时先修复；仅改文档或 Skill 时只核对内容、链接和格式。
+
+1. **核心入口**：先走当前问题的一条最短操作链，记录失败或未验证步骤；仅核对相关页面、容器、CSS 来源和事件生命周期，需要复用时再看已有消费者。
 2. **最小变更**：只改确切组件、类与范围内 CSS；先复用 `od-*`，业务 CSS 只保留真正业务布局。保护真实点击、Run/Stop/权限回调与事件解绑。
-3. **源码测试**：对应范围选择现成测试，例如：
-
-   ```sh
-   node --test tests/environment/sidebar-component-contract.test.mjs tests/environment/ui-layout-conventions-r27.test.mjs tests/environment/scheduled-task-ui-r1.test.mjs tests/environment/sidebar-tab-memory.test.mjs tests/framework/sidebar-develop-layout-r29.test.mjs
-   ```
-
-4. **构建**：涉及可信扩展 UI 时依相关变化执行 `npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`；不要与其他 Agent 同时覆写共享 dist/Chrome Profile。
-5. **视觉与交互**：Side Panel 300/320/360/420/520 CSS px；实际 Chrome 100/125/150/200% zoom，浅色/深色、长中文/URL、零项/1 项/20 项、错误/加载/授权撤销。记录 scrollWidth、可见区域、焦点/ARIA、文本对比、实际用户点击、截图和候选 SHA/包哈希。真实 Side Panel、CDP 标签页和静态预览必须**分级记录，不能替代**。
+3. **定向验证**：仅选能证明本次行为的现成检查。共享组件/布局对应 `tests/environment/sidebar-component-contract.test.mjs` / `ui-layout-conventions-r27.test.mjs`；计划操作对应 `scheduled-task-ui-r1.test.mjs`；Tab 记忆对应 `sidebar-tab-memory.test.mjs`；开发布局对应 `tests/framework/sidebar-develop-layout-r29.test.mjs`。这些是候选入口，不是成组必跑命令。
+4. **按需构建集成**：确需编译或产物证据时，选择相关的 `npm run check`、构建或包校验；失败先查相关入口、日志及定向检查，按 AGENTS 的构建重试规则处理，不顺次重跑全部命令。正常开发复用已有 dev watcher，不覆写并行 dist/Profile。正式包验收仅由用户当前明确要求或适用的正式交付合同触发，在核心可用后执行。
+5. **视觉与交互**：开发阶段验证本次影响的正常用户操作、焦点和滚动。完整多状态矩阵仅由当前明确要求或适用正式合同触发；宽度、缩放专项仍须用户针对当前任务明确要求。按实际执行范围记录焦点/ARIA、截图及候选身份；真实 Side Panel、CDP 标签页和静态预览分级记录，不能互相替代。
 6. **回归**：保留 Tab 导航、列表/详情/表单返回、保存草稿、Stop 所有权、后台任务身份、卸载/撤权；只修视觉也要验证受影响的交互。
 
 ## 独立质量评分，不用漂亮截图补安全缺口
 
-为每个变更分别报告：信息架构、页面排版一致性、可读性、响应式、可访问性、交互/表单保真、跨界面隔离、回归充分性、原生证据（各独立 0–100 或 `NOT_TESTED`）。产品交付要求相关核心维度**逐项达到 95/100**、无阻断失败，并有绑定当前源码/构建身份的真实 Chrome 记录；静态规范/Node PASS 不能代替产品 95+。未达到明确写出差距，不通过美化评分掩盖。
+独立评分仅在用户当前明确要求或适用的正式交付合同要求时执行，按该要求选择信息架构、排版一致性、可读性、响应式、可访问性、交互/表单保真、跨界面隔离、回归与原生证据等维度。适用 95+ 目标时仍须相关核心维度逐项达到 95/100、无阻断失败，并有绑定当前候选的真实 Chrome 证据；静态规范/Node PASS 不能代替产品 95+，未测项标 `NOT_TESTED`。普通开发只报告核心操作、受影响验证和剩余缺口。

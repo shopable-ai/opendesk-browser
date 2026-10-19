@@ -12,11 +12,8 @@ import {uiMessage,resolveUiLocale} from './app-localization.js';
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,localeController=null,extensionList=null}){
   const get=id=>doc.getElementById(id);
   const list=get('extension-center-list'),search=get('extension-center-search');
-  const listing=get('extension-center-list-view'),detail=get('extension-center-detail');
-  const more=get('extension-center-more'),menu=get('extension-center-menu');
-  const notice=get('extension-center-status'),workspace=get('workspace-content');
-  if(!list)return {refresh:async()=>{},dispose(){}};
-  if(extensionList&&(extensionList.owner!=='extension-list'||list.dataset.opendeskReactOwner!=='extension-list'))
+  const more=get('extension-center-more'),workspace=get('workspace-content');
+  if(!extensionList||extensionList.owner!=='extension-list'||list?.dataset.opendeskReactOwner!=='extension-list')
     throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[];
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set();
@@ -24,9 +21,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let sources={};
   let catalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null;
-  const node=(tag,cls='',value)=>{const element=doc.createElement(tag);if(cls)element.className=cls;
-    if(value!==undefined)element.textContent=String(value);return element;};
-  const button=(value,fn,cls='')=>{const b=node('button',cls,value);b.type='button';b.addEventListener('click',fn);return b;};
   const language=()=>localeController?.getLocale?.()||'zh-CN';
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
     row.title===readingTocCatalog.messages['zh-CN'].title&&
@@ -54,44 +48,31 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const find=key=>all().find(row=>row.key===key);
   const message=(value='',state='info',origin='action')=>{
     statusOrigin=origin;
-    if(extensionList)extensionList.renderStatus({text:value,state});
-    else {notice.textContent=value;notice.dataset.state=state;}
+    if(!disposed)extensionList.renderStatus({text:value,state});
   };
   function closeMenu(returnFocus=false){
-    if(extensionList){if(toolbarMenuOpen){toolbarMenuOpen=false;syncFilters();}}
-    else{menu.hidden=true;more.setAttribute('aria-expanded','false');}
+    if(toolbarMenuOpen){toolbarMenuOpen=false;syncFilters();}
     if(returnFocus)more.focus({preventScroll:true});
   }
-  function showMenu(){
-    if(extensionList){toolbarMenuOpen=true;syncFilters();}
-    else{menu.hidden=false;more.setAttribute('aria-expanded','true');}
-  }
   function syncFilters(){
-    if(extensionList){
-      extensionList.renderToolbar({
-        query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
-        language:resolveUiLocale(language(),['zh-CN','en'],'zh-CN'),
-        onSearch(value){searchText=value;query=value.trim();draw();},
-        onMarket(){openMarket();},
-        onToggleMenu(){closeRowMenu();toolbarMenuOpen?closeMenu():showMenu();},
-        onKind(value){kind=value;draw();},
-        onScope(value){scope=value;draw();},
-        onReset(){kind='all';scope='smart';draw();},
-        onImport(){closeMenu();backIfNeeded();sidebarTools.openImport();
-          get('sidebar-tool-file')?.focus({preventScroll:true});},
-        onReload(){closeMenu();message('正在刷新扩展…','loading','loading');
-          void readOfficial();void refresh();},
-        onLanguage(value){void localeController?.setLocale(value).catch(error=>{
-          message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
-        });}
-      });
-      return;
-    }
-    for(const b of menu.querySelectorAll('button[data-ec-kind]'))
-      b.setAttribute('aria-pressed',String(b.dataset.ecKind===kind));
-    for(const b of menu.querySelectorAll('button[data-ec-scope]'))
-      b.setAttribute('aria-pressed',String(b.dataset.ecScope===scope));
-    more.dataset.active=String(kind!=='all'||scope!=='smart');
+    extensionList.renderToolbar({
+      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
+      language:resolveUiLocale(language(),['zh-CN','en'],'zh-CN'),
+      onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
+      onMarket(){if(!disposed)openMarket();},
+      onToggleMenu(){if(disposed)return;closeRowMenu();toolbarMenuOpen=!toolbarMenuOpen;syncFilters();},
+      onCloseMenu:closeMenu,
+      onKind(value){if(disposed)return;kind=value;draw();},
+      onScope(value){if(disposed)return;scope=value;draw();},
+      onReset(){if(disposed)return;kind='all';scope='smart';draw();},
+      onImport(){if(disposed)return;closeMenu();backIfNeeded();sidebarTools.openImport();
+        get('sidebar-tool-file')?.focus({preventScroll:true});},
+      onReload(){if(disposed)return;closeMenu();message('正在刷新扩展…','loading','loading');
+        void readOfficial();void refresh();},
+      onLanguage(value){if(disposed)return;void localeController?.setLocale(value).catch(error=>{
+        message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
+      });}
+    });
   }
   const restoreRowFocus=(key,action)=>{
     const buttons=[...list.querySelectorAll('button[data-extension-key]')]
@@ -102,19 +83,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(!target)return false;
     target.focus({preventScroll:true});return true;
   };
-  const rowMenu=node('div','ec-context-menu');
-  rowMenu.id='extension-center-row-menu';rowMenu.setAttribute('role','menu');rowMenu.hidden=true;
-  doc.body.append(rowMenu);
-  if(extensionList)extensionList.attachRowMenu(rowMenu);
   let rowMenuKey=null,rowMenuTrigger=null;
   function closeRowMenu(returnFocus=false){
     const key=rowMenuKey,trigger=rowMenuTrigger;
-    rowMenu.hidden=true;
-    if(extensionList)extensionList.renderRowMenu([]);
-    else rowMenu.replaceChildren();
     rowMenuKey=null;rowMenuTrigger=null;
-    if(extensionList)extensionList.setMenuKey(null);
-    else trigger?.setAttribute('aria-expanded','false');
+    extensionList.renderRowMenu([]);
+    extensionList.setMenuKey(null);
     if(returnFocus){
       if(trigger?.isConnected)trigger.focus({preventScroll:true});
       else if(key)restoreRowFocus(key,'more');
@@ -122,23 +96,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function showRowMenu(key,trigger){
     if(busy||pendingKey||disposed)return;
-    if(!rowMenu.hidden&&rowMenuKey===key){closeRowMenu(true);return;}
+    if(rowMenuKey===key){closeRowMenu(true);return;}
     const row=find(key);if(!row?.installed)return;
     closeRowMenu();closeMenu();
     rowMenuKey=key;rowMenuTrigger=trigger;
-    if(extensionList)extensionList.setMenuKey(key);
-    else trigger.setAttribute('aria-expanded','true');
-    rowMenu.setAttribute('aria-label','管理「'+titleOf(row)+'」');
+    extensionList.setMenuKey(key);
     const menuItems=[];
     const add=(label,fn,actionId)=>{
       const activate=event=>{
-        if(!event.isTrusted||busy)return;
+        if(!event?.isTrusted||disposed||busy||pendingKey||find(row.key)?.record!==row.record)return;
         closeRowMenu(true);fn(event);
       };
-      if(extensionList){menuItems.push({id:actionId,label,onClick:activate});return;}
-      const b=button(label,activate,'ec-context-action');
-      b.dataset.ecContextAction=actionId;b.setAttribute('role','menuitem');
-      rowMenu.append(b);
+      menuItems.push({id:actionId,label,onClick:activate});
     };
     if(row.kind==='app'){
       if(row.stateKnown!==false&&typeof sidebarTools.toggleEnabled==='function')
@@ -184,18 +153,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add('查看详情',()=>openDetail(key,'more'),'detail');
-    if(extensionList)extensionList.renderRowMenu(menuItems);
-    rowMenu.hidden=false;
-    // Fixed positioning escapes the clipped list and fits inside the Side Panel.
-    const rect=trigger.getBoundingClientRect();
-    const view=doc.defaultView,screenW=view?.innerWidth||doc.documentElement.clientWidth;
-    const screenH=view?.innerHeight||doc.documentElement.clientHeight;
-    const width=rowMenu.offsetWidth,height=rowMenu.offsetHeight,gutter=8;
-    rowMenu.style.left=Math.max(gutter,Math.min(rect.right-width,screenW-width-gutter))+'px';
-    rowMenu.style.top=(rect.bottom+height+gutter<=screenH?rect.bottom+3:
-      Math.max(gutter,rect.top-height-3))+'px';
-    rowMenu.querySelector('button')?.focus({preventScroll:true});
+    extensionList.renderRowMenu(menuItems,{
+      key,title:titleOf(row),trigger,onClose:closeRowMenu
+    });
   }
+
   function rowDescription(row){
     const reason=pendingKey===row.key?'处理中':row.cleanupPending?'卸载清理待恢复':
       !row.installed?'可安装':row.stateKnown===false?'状态待核对':
@@ -210,43 +172,21 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const active=doc.activeElement;
     const key=list.contains(active)?active?.dataset?.extensionKey:null;
     const action=active?.dataset?.extensionAction;
-    const menuFocusKey=!rowMenu.hidden&&rowMenu.contains(active)?rowMenuKey:null;
+    const menuFocusKey=get('extension-center-row-menu')?.contains(active)?rowMenuKey:null;
     closeRowMenu();
     const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
-    if(!extensionList)list.setAttribute('aria-busy',String(Boolean(busy||pendingKey)));
-    // React alone owns list children in the production Side Panel.
-    // The DOM fallback is isolated to legacy test harnesses during migration.
-    if(!extensionList)list.replaceChildren();
     // A cleanup journal is not an installed app or a trusted Catalog release.
     // Show a recovery-only control in discovery even if the catalog is offline.
-    const recovery=get('extension-center-cleanups');
     const orphaned=scope==='available'&&appStatusKnown&&kind!=='page'?
       [...pendingCleanups].filter(id=>!official.some(release=>release.toolId===id)&&
         (!query||id.toLocaleLowerCase().replace(/[\s-]+/g,'').includes(
           query.toLocaleLowerCase().replace(/[\s-]+/g,''))||
           '卸载清理待恢复'.includes(query))):[];
-    if(extensionList)extensionList.renderRecoveries({
+    extensionList.renderRecoveries({
       ids:orphaned,busy:Boolean(busy||pendingKey),
       onRetry(id,event){void retryCleanup({id,key:'app:'+id,cleanupPending:true},event);}
     });
-    else if(recovery){
-      recovery.hidden=orphaned.length===0;
-      recovery.replaceChildren();
-      if(orphaned.length){
-        recovery.append(node('p','','以下扩展已从安装记录移除，但清理仍待完成：'));
-        for(const id of orphaned){
-          const line=node('p','',id+' · 卸载清理待恢复');
-          const retry=button('恢复清理',event=>{
-            void retryCleanup({id,key:'app:'+id,cleanupPending:true},event);
-          },'od-button od-button--secondary');
-          retry.disabled=busy||Boolean(pendingKey);
-          retry.setAttribute('aria-label','恢复「'+id+'」的卸载清理');
-          line.append(retry);recovery.append(line);
-        }
-      }
-    }
-    if(extensionList){
-      extensionList.renderRows({
+    extensionList.renderRows({
         rows:rows.map(row=>({
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
           description:rowDescription(row),installed:row.installed,
@@ -255,53 +195,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         busy:Boolean(busy||pendingKey),pendingKey,
         onOpenRow:openRow,onMore:showRowMenu
       });
-    }else{
-    for(const row of rows){
-      const item=node('li','ec-row');item.dataset.extensionId=row.key;
-      const primaryAction=resolveExtensionPrimaryAction(row);
-      if(primaryAction)item.classList.add('ec-row--has-primary');
-      const rowBusy=busy||Boolean(pendingKey);
-      if(busy||pendingKey===row.key)item.setAttribute('aria-busy','true');
-      // The full row and explicit primary button share one handler.
-      const main=button('',()=>openRow(row.key),'ec-row-main');
-      main.dataset.extensionKey=row.key;main.dataset.extensionAction='main';
-      main.disabled=rowBusy;
-      main.setAttribute('aria-label',(primaryAction?.label||'查看详情')+'「'+titleOf(row)+'」');
-      main.title=main.getAttribute('aria-label');
-      const glyph=node('span','ec-glyph');glyph.setAttribute('aria-hidden','true');
-      glyph.textContent=row.kind==='page'?'◇':'▦';
-      const copy=node('span','ec-copy'),line=node('span','ec-name-line');
-      const name=node('span','ec-name');
-      name.append(node('span','ec-name-text',titleOf(row)));
-      name.title=titleOf(row);
-      const type=node('span','ec-type',typeOf(row));
-      const description=node('span','ec-description',rowDescription(row));
-      line.append(name,type);copy.append(line,description);
-      description.title=description.textContent;
-      main.append(glyph,copy);
-      const actions=node('span','ec-row-actions');
-      if(primaryAction){
-        const primary=button(primaryAction.label,()=>openRow(row.key),
-          'ec-action od-button od-button--secondary');
-        primary.dataset.extensionKey=row.key;primary.dataset.extensionAction='primary';
-        primary.setAttribute('aria-label',primaryAction.label+'「'+titleOf(row)+'」');
-        primary.title=primary.getAttribute('aria-label');primary.disabled=rowBusy;
-        actions.append(primary);
-      }
-      if(row.installed){
-        const manage=button('⋮',event=>showRowMenu(row.key,event.currentTarget),
-          'ec-row-more od-icon-button');
-        manage.dataset.extensionKey=row.key;manage.dataset.extensionAction='more';
-        manage.setAttribute('aria-label','管理「'+titleOf(row)+'」');
-        manage.setAttribute('aria-haspopup','menu');manage.setAttribute('aria-expanded','false');
-        manage.setAttribute('aria-controls',rowMenu.id);
-        manage.title=manage.getAttribute('aria-label');manage.disabled=rowBusy;
-        actions.append(manage);
-      }
-      if(!actions.childElementCount)item.classList.add('ec-row--no-actions');
-      item.append(main,actions);list.append(item);
-    }
-    }
     const showEmpty=rows.length===0&&orphaned.length===0&&hasLoaded;
     const emptyText=dataError?
       '安装状态读取失败或待核对；请刷新重试。不会将旧缓存当作已安装记录。':
@@ -309,12 +202,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       kind==='page'?'暂无已安装的网页增强':'还没有已安装扩展；请切换至「可安装 / 更新」发现官方工具。';
     const countText=!hasLoaded?'正在读取扩展…':
       dataError?'部分安装状态待核对':rows.length+' 个扩展';
-    if(extensionList)extensionList.renderFeedback({showEmpty,emptyText,countText});
-    else {
-      get('extension-center-empty').hidden=!showEmpty;
-      get('extension-center-empty-text').textContent=emptyText;
-      get('extension-center-count').textContent=countText;
-    }
+    extensionList.renderFeedback({showEmpty,emptyText,countText});
     syncFilters();
     if(!busy&&!pendingKey){
       if(key)restoreRowFocus(key,action);
@@ -336,7 +224,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   // An installed, enabled, verified app may open; all other rows lead to details.
   function openRow(key){
-    const row=find(key);if(!row||busy||pendingKey||(scope!=='available'&&!row.installed))return;
+    const row=find(key);if(disposed||!row||busy||pendingKey||(scope!=='available'&&!row.installed))return;
     if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}
     if(resolveExtensionPrimaryAction(row)?.id==='open'){
       try{
@@ -346,7 +234,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
   }
   function openDetail(key,returnAction='main'){
-    const row=find(key);if(!row||(scope!=='available'&&!row.installed))return;
+    const row=find(key);if(disposed||!row||(scope!=='available'&&!row.installed))return;
     closeRowMenu();
     selectedInstalled=row.installed;
     // A detail belongs to one reviewed package/revision, not merely a reusable ID.
@@ -359,19 +247,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     focusKey=key;focusAction=returnAction;
     listScroll=workspace?.scrollTop||0;selectedKey=key;detailFocusAction=null;
     closeMenu();
-    if(extensionList)extensionList.renderView('detail');
-    else{listing.hidden=true;detail.hidden=false;}
+    extensionList.renderView('detail');
     renderDetail();workspace?.scrollTo?.({top:0});
     get('extension-center-back')?.focus({preventScroll:true});
   }
   function back(){
+    if(disposed)return;
     selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;
-    if(extensionList)extensionList.renderView('list');
-    else{detail.hidden=true;listing.hidden=false;}
+    extensionList.renderView('list');
     workspace?.scrollTo?.({top:listScroll});
     if(!restoreRowFocus(focusKey,focusAction))search.focus({preventScroll:true});
   }
   function renderDetail(){
+    if(disposed)return;
     const row=find(selectedKey);
     const identityChanged=Boolean(row&&row.installed===selectedInstalled&&(
       row.kind==='app'?
@@ -390,12 +278,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(row)message('扩展安装状态或固定身份已变化，已返回列表；请重新核对后操作。','info');
       return;
     }
-    if(extensionList){
+    {
       // React solely owns extension-center-detail-body; keep the authoritative
       // verified identity check and all existing Host/permission routes above.
       const focused=doc.activeElement?.dataset?.ecDetailAction||detailFocusAction;
       const actions=[];
-      const add=(label,id,onClick)=>actions.push({label,id,onClick});
+      const identity=selectedIdentity;
+      const add=(label,id,onClick)=>actions.push({label,id,onClick(event){
+        const current=find(row.key);
+        if(disposed||busy||pendingKey||selectedIdentity!==identity||
+          current?.record!==row.record||current?.release!==row.release)return;
+        onClick(event);
+      }});
       if(row.kind==='app'){
         if(!row.installed){
           if(row.cleanupPending)
@@ -428,68 +322,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       });
       return;
     }
-    const area=get('extension-center-detail-body'),focused=doc.activeElement?.dataset?.ecDetailAction||detailFocusAction;
-    area.replaceChildren();
-    const head=node('div','ec-detail-head'),glyph=node('span','ec-glyph');
-    glyph.textContent=row.kind==='page'?'◇':'▦';glyph.setAttribute('aria-hidden','true');
-    const copy=node('div','ec-detail-copy');
-    copy.append(node('strong','',titleOf(row)),node('span','ec-type',typeOf(row)));
-    head.append(glyph,copy);area.append(head,node('p','',rowDescription(row)));
-    const actions=node('div','ec-detail-actions');
-    function detailButton(label,fn,action){
-      const b=button(label,fn,'od-button od-button--secondary');
-      b.dataset.ecDetailAction=action;b.disabled=busy||Boolean(pendingKey);return b;
-    }
-    if(row.kind==='app'){
-      if(!row.installed){
-        if(row.cleanupPending)
-          actions.append(detailButton('恢复卸载清理',event=>{void retryCleanup(row,event);},'cleanup'));
-        else actions.append(detailButton('审阅并安装',()=>openReview(row.key),'install'));
-      }else{
-        if(row.stateKnown!==false)
-          actions.append(detailButton('设置与权限',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings'));
-        if(row.update&&row.release)actions.append(detailButton('审阅新版',()=>openReview(row.key),'update'));
-      }
-    }else if(row.installed){
-      if(row.stateKnown!==false)actions.append(detailButton(row.enabled?'停用自动运行':'启用自动运行',
-        event=>togglePage(row,event),'toggle'));
-      actions.append(detailButton('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop'));
-    }
-    area.append(actions);
-    const meta=node('section','ec-detail-card');
-    meta.append(node('h3','','安装与来源'));
-    meta.append(node('p','',row.installed?'本机已安装 · '+(row.stateKnown===false?'状态待核对':row.enabled?'已启用':'已停用'):
-      row.cleanupPending?'已从安装记录移除 · 卸载清理待恢复':'官方目录中的固定发行候选 · 尚未安装'));
-    meta.append(node('p','',row.kind==='app'?'版本：v'+row.version:
-      '修订：r'+row.version));
-    if(row.kind==='app'){
-      if(row.installed){
-        const source=sources[row.id];
-        meta.append(node('p','','来源：'+(source?.label||'暂未读取安装来源')));
-        if(source?.sha256)meta.append(node('p','','固定包 SHA-256：'+source.sha256));
-        meta.append(node('p','',installedAppUsage(row)));
-      }else meta.append(node('p','',row.cleanupPending?
-        '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
-        '正式安装必须在现有应用市场审阅固定包和能力清单。'));
-    }else{
-      const installedPage=row.record.installed;
-      const sites=node('section','ec-detail-card');
-      sites.append(node('h3','','网站范围与授权'));
-      const matches=installedPage.pageRules?.matches||[];
-      const ul=node('ul','ec-sites');
-      for(const pattern of matches)ul.append(node('li','',pattern));
-      sites.append(ul,node('p','',installedPage.authorization?.status==='suspended'?
-        '网站访问受限；需要按照原授权规则重新授权。':
-        '仅在原安装批准的网站范围内运行，不因扩展本身具备网站访问权限而扩大程序授权。'));
-      area.append(meta,sites);
-      if(focused&&!busy)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
-      return;
-    }
-    area.append(meta);
-    if(focused&&!busy)area.querySelector('[data-ec-detail-action="'+focused+'"]')?.focus({preventScroll:true});
   }
   async function togglePage(row,event){
-    if(!event.isTrusted||busy||pendingKey||row.kind!=='page')return;
+    if(disposed||!event?.isTrusted||busy||pendingKey||row.kind!=='page')return;
     if(row.stateKnown===false)return;
     if(find(row.key)?.record!==row.record){
       message('网页增强状态已变化，请刷新后重试。','error');void refresh();return;
@@ -520,7 +355,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       else restoreRowFocus(row.key,'more');}}
   }
   async function retryCleanup(row,event){
-    if(!event?.isTrusted||busy||pendingKey||!row.cleanupPending||
+    if(disposed||!event?.isTrusted||busy||pendingKey||!row.cleanupPending||
       typeof sidebarTools.retryUninstallCleanup!=='function')return;
     busy=true;pendingKey=row.key;draw();if(selectedKey)renderDetail();
     let outcome,operationError,readback=false;
@@ -538,6 +373,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     draw();if(selectedKey)renderDetail();
   }
   async function refresh(){
+    if(disposed)return false;
     const id=++sequence;
     const results=await Promise.allSettled([
       api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE]),
@@ -592,62 +428,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       draw();if(selectedKey)renderDetail();
     }}
   }
-  const languageInput=get('extension-center-language');
-  const syncLanguage=()=>{if(disposed)return;
-    if(languageInput&&!extensionList)languageInput.value=resolveUiLocale(language(),['zh-CN','en'],'zh-CN');
-    draw();if(selectedKey)renderDetail();
-  };
+  const syncLanguage=()=>{if(disposed)return;draw();if(selectedKey)renderDetail();};
   const stopLanguage=localeController?.subscribe?.(syncLanguage);
   void localeController?.ready?.then(syncLanguage);
-  if(!extensionList){
-    // The React path supplies these callbacks as props. Never attach a second
-    // legacy listener to a React-owned input, menu button or filter control.
-    languageInput?.addEventListener('change',()=>{
-      void localeController?.setLocale(languageInput.value).catch(error=>{
-        message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
-      });
-    });
-    search.addEventListener('input',()=>{query=search.value.trim();draw();});
-    more.addEventListener('click',()=>{closeRowMenu();menu.hidden?showMenu():closeMenu();});
-    for(const b of menu.querySelectorAll('[data-ec-kind]'))b.addEventListener('click',()=>{kind=b.dataset.ecKind;draw();});
-    for(const b of menu.querySelectorAll('[data-ec-scope]'))b.addEventListener('click',()=>{scope=b.dataset.ecScope;draw();});
-    get('extension-center-reset').addEventListener('click',()=>{kind='all';scope='smart';draw();});
-    get('extension-center-import').addEventListener('click',()=>{
-      closeMenu();backIfNeeded();sidebarTools.openImport();get('sidebar-tool-file')?.focus({preventScroll:true});
-    });
-    get('extension-center-reload').addEventListener('click',()=>{
-      closeMenu();message('正在刷新扩展…','loading','loading');void readOfficial();void refresh();
-    });
-    get('extension-center-market').addEventListener('click',()=>openMarket());
-  }
-  if(extensionList)extensionList.connectBack(back);
-  else get('extension-center-back').addEventListener('click',back);
+  extensionList.connectBack(back);
   function backIfNeeded(){if(selectedKey)back();}
-  const clickOutside=event=>{
-    if(!menu.hidden&&!get('extension-center-menu-wrap').contains(event.target))closeMenu();
-    if(!rowMenu.hidden&&!rowMenu.contains(event.target)&&
-       !rowMenuTrigger?.contains(event.target))closeRowMenu();
-  };
-  const keyDown=event=>{
-    if(!rowMenu.hidden){
-      if(event.key==='Escape'){event.preventDefault();closeRowMenu(true);return;}
-      if(rowMenu.contains(doc.activeElement)&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
-        event.preventDefault();
-        const buttons=[...rowMenu.querySelectorAll('button')],index=buttons.indexOf(doc.activeElement);
-        const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
-          (index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
-        buttons[next]?.focus({preventScroll:true});return;
-      }
-      if(event.key==='Tab'&&rowMenu.contains(doc.activeElement))closeRowMenu(true);
-    }
-    if(event.key==='Escape'){
-      if(!menu.hidden){event.preventDefault();closeMenu(true);}
-      else if(selectedKey&&!detail.hidden){event.preventDefault();back();}
-    }
-  };
-  const onScroll=()=>{if(!rowMenu.hidden)closeRowMenu();};
-  doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
-  doc.addEventListener('scroll',onScroll,true);
   const storageChanged=(changes,area)=>{
     if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||MARKET_PROVENANCE_STORE in changes||
       TOOL_CLEANUP_STORE in changes||
@@ -659,9 +444,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readOfficial();void refresh();
-  return {refresh,dispose(){disposed=true;sequence++;officialSequence++;closeRowMenu();rowMenu.remove();
+  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;closeRowMenu();
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);
-    doc.removeEventListener('click',clickOutside);
-    doc.removeEventListener('keydown',keyDown);doc.removeEventListener('scroll',onScroll,true);
     api.storage.onChanged?.removeListener(storageChanged);connChanged?.();stopLanguage?.();}};
 }

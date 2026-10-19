@@ -1,3 +1,4 @@
+import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import readingTocCatalog from '../reading-toc/locales.generated.js';
@@ -68,8 +69,13 @@ export function checkSidebarToolRequestBudget(message){
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
-export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null}) {
+export function createSidebarTools(options={}) {
+  if(options.view)return options.view.connect(()=>createSidebarToolsController(options));
+  return createSidebarToolsController(options);
+}
+
+function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
+  currentPageTarget,taskWorkbench,foundationClient,localeController=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,view=null}) {
   // Native focus controls load from an audited extension-only classic WXT entry.
   // A missing sidecar fails closed; user-owned opaque sandbox cannot supply it.
   const focus=globalThis.__opendeskStayFocusTrustedUI||null;
@@ -102,62 +108,65 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
   }
   const nativeTimeReview=globalThis.__opendeskTrustedTimeReviewUI||null;
+  // Only runtime containers and the no-view legacy surface query real DOM.
+  // Only runtime containers and the no-view legacy surface query real DOM.
   const get=id=>doc.getElementById(id);
+  const trustedSettings=view ? view.runtime.trustedSettings : get('sidebar-tool-settings-view');
   const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');
-  const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');
-  const display=get('sidebar-tool-display'), frameRoot=get('sidebar-tool-frame');
+  const empty=get('sidebar-tool-empty'), backButton=view ? view.fields["sidebar-tool-back"] : get('sidebar-tool-back');
+  const display=view ? view.fields["sidebar-tool-display"] : get('sidebar-tool-display'), frameRoot=view ? view.runtime.frameRoot : get('sidebar-tool-frame');
   // The existing extension Host owns the trusted proxy card, never installed HTML/JS.
-  const aiProxyContainer=doc.createElement('section');
+  const aiProxyContainer=view ? view.runtime.aiProxy : doc.createElement('section');
   aiProxyContainer.id='sidebar-tool-ai-proxy-native';
   aiProxyContainer.className='sidebar-tool-ai-proxy-native';
   aiProxyContainer.setAttribute('aria-label','AI 网站访问可信控制');
   aiProxyContainer.hidden=true;
-  frameRoot.after?.(aiProxyContainer);
-  const status=get('sidebar-tool-status'), fileInput=get('sidebar-tool-file');
-  const importTrigger=get('sidebar-tool-import-trigger'), importPanel=get('sidebar-tool-import');
-  const importClose=get('sidebar-tool-import-close'), preview=get('sidebar-tool-preview');
-  const previewTitle=get('sidebar-tool-preview-title'), previewVersion=get('sidebar-tool-preview-version');
-  const previewDescription=get('sidebar-tool-preview-description');
-  const previewCapabilities=get('sidebar-tool-preview-capabilities'), previewFile=get('sidebar-tool-preview-file');
-  const installButton=get('sidebar-tool-install'), removeButton=get('sidebar-tool-remove');
-  const removeReview=get('sidebar-tool-inline-remove');
-  const removeReviewText=get('sidebar-tool-inline-remove-text');
-  const removeReviewConfirm=get('sidebar-tool-inline-remove-confirm');
-  const removeReviewCancel=get('sidebar-tool-inline-remove-cancel');
-  const fileError=get('sidebar-tool-file-error'), updatePanel=get('sidebar-tool-update');
-  const updateVersions=get('sidebar-tool-update-versions');
-  const updateCapabilities=get('sidebar-tool-update-capabilities');
-  const updateWarning=get('sidebar-tool-update-warning');
-  const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
-  const actionReview=get('sidebar-tool-action-review'),actionSummary=get('sidebar-tool-action-summary');
-  const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');
+  if(!view)frameRoot.after?.(aiProxyContainer);
+  const status=view ? view.fields["sidebar-tool-status"] : get('sidebar-tool-status'), fileInput=view ? view.fields["sidebar-tool-file"] : get('sidebar-tool-file');
+  const importTrigger=view ? view.fields["sidebar-tool-import-trigger"] : get('sidebar-tool-import-trigger'), importPanel=view ? view.fields["sidebar-tool-import"] : get('sidebar-tool-import');
+  const importClose=view ? view.fields["sidebar-tool-import-close"] : get('sidebar-tool-import-close'), preview=view ? view.fields["sidebar-tool-preview"] : get('sidebar-tool-preview');
+  const previewTitle=view ? view.fields["sidebar-tool-preview-title"] : get('sidebar-tool-preview-title'), previewVersion=view ? view.fields["sidebar-tool-preview-version"] : get('sidebar-tool-preview-version');
+  const previewDescription=view ? view.fields["sidebar-tool-preview-description"] : get('sidebar-tool-preview-description');
+  const previewCapabilities=view ? view.fields["sidebar-tool-preview-capabilities"] : get('sidebar-tool-preview-capabilities'), previewFile=view ? view.fields["sidebar-tool-preview-file"] : get('sidebar-tool-preview-file');
+  const installButton=view ? view.fields["sidebar-tool-install"] : get('sidebar-tool-install'), removeButton=view ? view.fields["sidebar-tool-remove"] : get('sidebar-tool-remove');
+  const removeReview=view ? view.fields["sidebar-tool-inline-remove"] : get('sidebar-tool-inline-remove');
+  const removeReviewText=view ? view.fields["sidebar-tool-inline-remove-text"] : get('sidebar-tool-inline-remove-text');
+  const removeReviewConfirm=view ? view.fields["sidebar-tool-inline-remove-confirm"] : get('sidebar-tool-inline-remove-confirm');
+  const removeReviewCancel=view ? view.fields["sidebar-tool-inline-remove-cancel"] : get('sidebar-tool-inline-remove-cancel');
+  const fileError=view ? view.fields["sidebar-tool-file-error"] : get('sidebar-tool-file-error'), updatePanel=view ? view.fields["sidebar-tool-update"] : get('sidebar-tool-update');
+  const updateVersions=view ? view.fields["sidebar-tool-update-versions"] : get('sidebar-tool-update-versions');
+  const updateCapabilities=view ? view.fields["sidebar-tool-update-capabilities"] : get('sidebar-tool-update-capabilities');
+  const updateWarning=view ? view.fields["sidebar-tool-update-warning"] : get('sidebar-tool-update-warning');
+  const title=view ? view.fields["sidebar-tool-title"] : get('sidebar-tool-title'),openTabButton=view ? view.fields["sidebar-tool-open-tab"] : get('sidebar-tool-open-tab');
+  const actionReview=view ? view.fields["sidebar-tool-action-review"] : get('sidebar-tool-action-review'),actionSummary=view ? view.fields["sidebar-tool-action-summary"] : get('sidebar-tool-action-summary');
+  const actionContinue=view ? view.fields["sidebar-tool-action-continue"] : get('sidebar-tool-action-continue'),actionCancel=view ? view.fields["sidebar-tool-action-cancel"] : get('sidebar-tool-action-cancel');
   let pendingAction=null,pendingPage=null;
   const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
-  const pageInstallStatus=get('page-install-import-status');
-  const pageInstallReceipt=get('page-install-import-receipt');
-  const pageInstallReceiptText=get('page-install-import-receipt-text');
-  const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');
-  const tocLanguageRow=get('sidebar-tool-toc-language'),tocLanguageSelect=get('sidebar-tool-toc-language-select');
-  const menuButton=get('sidebar-tool-context-menu');
-  const settingsScopeButton=get('sidebar-tool-settings-scope');
-  const enableButton=get('sidebar-tool-enable'),enableHint=get('sidebar-tool-enable-hint');
-  const promptNativeRow=get('sidebar-tool-prompt-native-row'),promptNativeAction=get('sidebar-tool-prompt-native-action');
-  const promptWebRow=get('sidebar-tool-prompt-web-row'),promptWebAction=get('sidebar-tool-prompt-web-action');
-  const promptEnableLabel=get('sidebar-tool-prompt-enable-label'),promptEnableDescription=get('sidebar-tool-prompt-enable-description');
-  const launchButton=get('sidebar-tool-launch'),eyeButton=get('sidebar-tool-visibility');
-  const visibilitySection=get('sidebar-tool-visibility-settings');
-  const pageExceptionSection=get('sidebar-tool-page-exceptions');
-  const retiredDraft=get('sidebar-tool-retired-draft'),retiredDraftText=get('sidebar-tool-retired-draft-text');
-  const retiredDraftDismiss=get('sidebar-tool-retired-draft-dismiss');
+  const pageInstallStatus=view ? view.fields["page-install-import-status"] : get('page-install-import-status');
+  const pageInstallReceipt=view ? view.fields["page-install-import-receipt"] : get('page-install-import-receipt');
+  const pageInstallReceiptText=view ? view.fields["page-install-import-receipt-text"] : get('page-install-import-receipt-text');
+  const settingsButton=view ? view.fields["sidebar-tool-settings-open"] : get('sidebar-tool-settings-open'),settingsView=view ? view.fields["sidebar-tool-settings-view"] : get('sidebar-tool-settings-view');
+  const tocLanguageRow=view ? view.fields["sidebar-tool-toc-language"] : get('sidebar-tool-toc-language'),tocLanguageSelect=view ? view.fields["sidebar-tool-toc-language-select"] : get('sidebar-tool-toc-language-select');
+  const menuButton=view ? view.fields["sidebar-tool-context-menu"] : get('sidebar-tool-context-menu');
+  const settingsScopeButton=view ? view.fields["sidebar-tool-settings-scope"] : get('sidebar-tool-settings-scope');
+  const enableButton=view ? view.fields["sidebar-tool-enable"] : get('sidebar-tool-enable'),enableHint=view ? view.fields["sidebar-tool-enable-hint"] : get('sidebar-tool-enable-hint');
+  const promptNativeRow=view ? view.fields["sidebar-tool-prompt-native-row"] : get('sidebar-tool-prompt-native-row'),promptNativeAction=view ? view.fields["sidebar-tool-prompt-native-action"] : get('sidebar-tool-prompt-native-action');
+  const promptWebRow=view ? view.fields["sidebar-tool-prompt-web-row"] : get('sidebar-tool-prompt-web-row'),promptWebAction=view ? view.fields["sidebar-tool-prompt-web-action"] : get('sidebar-tool-prompt-web-action');
+  const promptEnableLabel=view ? view.fields["sidebar-tool-prompt-enable-label"] : get('sidebar-tool-prompt-enable-label'),promptEnableDescription=view ? view.fields["sidebar-tool-prompt-enable-description"] : get('sidebar-tool-prompt-enable-description');
+  const launchButton=view ? view.fields["sidebar-tool-launch"] : get('sidebar-tool-launch'),eyeButton=view ? view.fields["sidebar-tool-visibility"] : get('sidebar-tool-visibility');
+  const visibilitySection=view ? view.fields["sidebar-tool-visibility-settings"] : get('sidebar-tool-visibility-settings');
+  const pageExceptionSection=view ? view.fields["sidebar-tool-page-exceptions"] : get('sidebar-tool-page-exceptions');
+  const retiredDraft=view ? view.fields["sidebar-tool-retired-draft"] : get('sidebar-tool-retired-draft'),retiredDraftText=view ? view.fields["sidebar-tool-retired-draft-text"] : get('sidebar-tool-retired-draft-text');
+  const retiredDraftDismiss=view ? view.fields["sidebar-tool-retired-draft-dismiss"] : get('sidebar-tool-retired-draft-dismiss');
   const recoverableDrafts=new Map();let frameDraft='';
-  const settingsScopeLabel=get('sidebar-tool-settings-scope-label'),settingsTarget=get('sidebar-tool-settings-target');
-  const settingsAllow=get('sidebar-tool-settings-allow'),settingsDeny=get('sidebar-tool-settings-deny');
-  const settingsHint=get('sidebar-tool-settings-hint');
-  const settingsSiteVisibility=get('sidebar-tool-settings-site-visibility');
-  const settingsPageVisibility=get('sidebar-tool-settings-page-visibility');
-  const settingsSites=get('sidebar-tool-settings-sites'),settingsPages=get('sidebar-tool-settings-pages');
-  const settingsSitesTitle=get('sidebar-tool-settings-sites-title');
-  const readOnlyBanner=get('sidebar-tool-readonly-banner');
+  const settingsScopeLabel=view ? view.fields["sidebar-tool-settings-scope-label"] : get('sidebar-tool-settings-scope-label'),settingsTarget=view ? view.fields["sidebar-tool-settings-target"] : get('sidebar-tool-settings-target');
+  const settingsAllow=view ? view.fields["sidebar-tool-settings-allow"] : get('sidebar-tool-settings-allow'),settingsDeny=view ? view.fields["sidebar-tool-settings-deny"] : get('sidebar-tool-settings-deny');
+  const settingsHint=view ? view.fields["sidebar-tool-settings-hint"] : get('sidebar-tool-settings-hint');
+  const settingsSiteVisibility=view ? view.fields["sidebar-tool-settings-site-visibility"] : get('sidebar-tool-settings-site-visibility');
+  const settingsPageVisibility=view ? view.fields["sidebar-tool-settings-page-visibility"] : get('sidebar-tool-settings-page-visibility');
+  const settingsSites=view ? view.fields["sidebar-tool-settings-sites"] : get('sidebar-tool-settings-sites'),settingsPages=view ? view.fields["sidebar-tool-settings-pages"] : get('sidebar-tool-settings-pages');
+  const settingsSitesTitle=view ? view.fields["sidebar-tool-settings-sites-title"] : get('sidebar-tool-settings-sites-title');
+  const readOnlyBanner=view ? view.fields["sidebar-tool-readonly-banner"] : get('sidebar-tool-readonly-banner');
   const officialRoot=get('sidebar-tool-official-catalog');
   const discoverPanel=get('sidebar-tool-discover-panel'),discoverToggle=get('sidebar-tool-discover-toggle');
   const search=get('sidebar-tool-search'),filterAvailable=get('sidebar-tool-filter-available'),filterAll=get('sidebar-tool-filter-all');
@@ -180,13 +189,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
   const listen=(node,type,fn)=>{
+    if(view&&node?.key){listeners.push(view.bind(node.key,type,fn));return;}
+    if(!node)return;
     node.addEventListener(type,fn);
     listeners.push(()=>node.removeEventListener(type,fn));
   };
   const notice=(message,problem=false)=>{
     if(disposed)return;
-    status.textContent=message;status.dataset.state=problem?'error':'info';
-    status.hidden=!message;
+    patchToolField(view, status, {textContent: message});setToolFieldAttribute(view, status, 'data-state', problem?'error':'info');
+    patchToolField(view, status, {hidden: !message});
   };
   const capabilities=Object.freeze({
     'storage.local':'保存此工具的数据',
@@ -224,43 +235,43 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const cookieCaps=[
     ['read','读取 Cookie 元数据'],['values','读取敏感值'],
     ['write','新建、编辑及删除'],['observe','短时观察变化'],['clear','清理当前主机']];
-  const cookiePermissions=doc.createElement('section');
-  cookiePermissions.className='sidebar-tool-cookie-permissions od-surface';
-  cookiePermissions.setAttribute('aria-label','Cookie 网站授权');
-  cookiePermissions.hidden=true;
-  const cookieHeading=doc.createElement('strong');
-  cookieHeading.textContent='Cookie 网站权限';
-  const cookieTarget=doc.createElement('p');
-  cookieTarget.className='sidebar-toc-settings-hint';
-  const cookieHelp=doc.createElement('p');
-  cookieHelp.className='sidebar-toc-settings-hint';
-  cookieHelp.textContent='';
-  cookiePermissions.append(cookieHeading,cookieTarget,cookieHelp);
+  const cookiePermissions=view ? view.fields['sidebar-tool-cookie-permissions'] : doc.createElement('section');
+  patchToolField(view,cookiePermissions,{className:'sidebar-tool-cookie-permissions od-surface'});
+  setToolFieldAttribute(view,cookiePermissions,'aria-label','Cookie 网站授权');
+  patchToolField(view,cookiePermissions,{hidden:true});
+  const cookieHeading=view ? view.fields['sidebar-tool-cookie-heading'] : doc.createElement('strong');
+  patchToolField(view,cookieHeading,{textContent:'Cookie 网站权限'});
+  const cookieTarget=view ? view.fields['sidebar-tool-cookie-target'] : doc.createElement('p');
+  patchToolField(view,cookieTarget,{className:'sidebar-toc-settings-hint'});
+  const cookieHelp=view ? view.fields['sidebar-tool-cookie-help'] : doc.createElement('p');
+  patchToolField(view,cookieHelp,{className:'sidebar-toc-settings-hint'});
+  patchToolField(view,cookieHelp,{textContent:''});
+  (!view&&cookiePermissions.append(cookieHeading,cookieTarget,cookieHelp));
   // One trusted site decision covers only the installed package's declared
   // Cookie capabilities; sandbox code cannot grant its own permissions.
-  const cookieFirstUse=doc.createElement('div');
-  cookieFirstUse.className='sidebar-tool-cookie-first-use';
-  const cookieSiteToggle=doc.createElement('button');cookieSiteToggle.type='button';
-  cookieSiteToggle.id='sidebar-tool-cookie-site-toggle';cookieSiteToggle.className='od-button';
+  const cookieFirstUse=view ? view.fields['sidebar-tool-cookie-first-use'] : doc.createElement('div');
+  patchToolField(view,cookieFirstUse,{className:'sidebar-tool-cookie-first-use'});
+  const cookieSiteToggle=view ? view.fields['sidebar-tool-cookie-site-toggle'] : doc.createElement('button');patchToolField(view,cookieSiteToggle,{type:'button'});
+  patchToolField(view,cookieSiteToggle,{id:'sidebar-tool-cookie-site-toggle'});patchToolField(view,cookieSiteToggle,{className:'od-button'});
   let cookieGrantPending=false;
-  cookieFirstUse.append(cookieSiteToggle);cookiePermissions.append(cookieFirstUse);
-  const cookieOtherSites=doc.createElement('div');
-  cookieOtherSites.className='sidebar-toc-settings-entries';
-  cookiePermissions.append(cookieOtherSites);
-  settingsView?.append(cookiePermissions);
+  (!view&&cookieFirstUse.append(cookieSiteToggle));(!view&&cookiePermissions.append(cookieFirstUse));
+  const cookieOtherSites=view ? view.fields['sidebar-tool-cookie-other-sites'] : doc.createElement('div');
+  patchToolField(view,cookieOtherSites,{className:'sidebar-toc-settings-entries'});
+  (!view&&cookiePermissions.append(cookieOtherSites));
+  (!view)&&trustedSettings?.append(cookiePermissions);
   // Full Bookmarks belongs to the installed package, never inherited from Owned.
-  const fullBookmarkSettings=doc.createElement('section');
-  fullBookmarkSettings.className='sidebar-tool-cookie-permissions od-surface';
-  fullBookmarkSettings.setAttribute('aria-label','Chrome 完整书签独立授权');
-  fullBookmarkSettings.hidden=true;
-  const fullBookmarkHeading=doc.createElement('strong');
-  fullBookmarkHeading.textContent='完整 Chrome 书签访问';
-  const fullBookmarkInfo=doc.createElement('p');fullBookmarkInfo.className='sidebar-toc-settings-hint';
-  fullBookmarkInfo.textContent='可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。';
-  const fullBookmarkButton=doc.createElement('button');
-  fullBookmarkButton.type='button';fullBookmarkButton.className='od-button';
-  fullBookmarkSettings.append(fullBookmarkHeading,fullBookmarkInfo,fullBookmarkButton);
-  settingsView?.append(fullBookmarkSettings);
+  const fullBookmarkSettings=view ? view.fields['sidebar-tool-bookmark-permissions'] : doc.createElement('section');
+  patchToolField(view,fullBookmarkSettings,{className:'sidebar-tool-cookie-permissions od-surface'});
+  setToolFieldAttribute(view,fullBookmarkSettings,'aria-label','Chrome 完整书签独立授权');
+  patchToolField(view,fullBookmarkSettings,{hidden:true});
+  const fullBookmarkHeading=view ? view.fields['sidebar-tool-bookmark-heading'] : doc.createElement('strong');
+  patchToolField(view,fullBookmarkHeading,{textContent:'完整 Chrome 书签访问'});
+  const fullBookmarkInfo=view ? view.fields['sidebar-tool-bookmark-info'] : doc.createElement('p');patchToolField(view,fullBookmarkInfo,{className:'sidebar-toc-settings-hint'});
+  patchToolField(view,fullBookmarkInfo,{textContent:'可读取、编辑、移动及删除所有 Chrome 书签和文件夹（包括其他工具创建的）。仅此工具安装版本可用，递归删除仍需逐次确认。'});
+  const fullBookmarkButton=view ? view.fields['sidebar-tool-bookmark-grant'] : doc.createElement('button');
+  patchToolField(view,fullBookmarkButton,{type:'button'});patchToolField(view,fullBookmarkButton,{className:'od-button'});
+  (!view&&fullBookmarkSettings.append(fullBookmarkHeading,fullBookmarkInfo,fullBookmarkButton));
+  (!view)&&trustedSettings?.append(fullBookmarkSettings);
   const isFullBookmarkTool=tool=>tool?.capabilities?.includes('browser.bookmarks.full')===true;
   // The permission surface is generic to any installed tool that declares
   // Cookie capabilities; an official Cookie Editor is NOT a privileged exception.
@@ -273,24 +284,34 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   };
   function renderCookieSettings(show){
     const tool=active,app=show&&isCookieTool(tool)&&!readOnlyPreview;
-    cookiePermissions.hidden=!app;
+    patchToolField(view,cookiePermissions,{hidden:!app});
     if(!app)return;
     const origin=websiteOrigin(currentPageTarget?.snapshot?.url),record=cookieSiteRecord(tool,origin);
-    cookieTarget.textContent=origin?'当前网站：'+origin:'请选择普通 HTTP(S) 网页才能授权新网站';
+    patchToolField(view,cookieTarget,{textContent:origin?'当前网站：'+origin:'请选择普通 HTTP(S) 网页才能授权新网站'});
     const requested=cookieCaps.filter(([cap])=>tool.capabilities.includes('browser.cookies.'+cap));
     const allowed=requested.length>0&&requested.every(([cap])=>record?.[cap]===true);
     const granted=requested.filter(([cap])=>record?.[cap]===true);
-    cookieTarget.textContent=origin?'当前网站：'+origin+(allowed?' · 已授权':
+    patchToolField(view,cookieTarget,{textContent:origin?'当前网站：'+origin+(allowed?' · 已授权':
       granted.length?' · 部分授权：'+granted.map(([,label])=>label).join('、'):' · 未授权'):
-      '请选择普通 HTTP(S) 网页才能授权新网站';
-    cookieFirstUse.hidden=!origin;
-    cookieHelp.textContent='一次授权本站：'+requested.map(([,label])=>label).join('、')+
-      '。导入导出复用这些权限，删除和敏感导出仍需操作确认；可随时撤销。';
-    cookieSiteToggle.textContent=cookieGrantPending?'正在处理…':allowed?'撤销本站授权':'允许管理本站 Cookie';
-    cookieSiteToggle.dataset.enabled=String(allowed);
-    cookieSiteToggle.disabled=busy||cookieGrantPending||!origin||requested.length===0;
+      '请选择普通 HTTP(S) 网页才能授权新网站'});
+    patchToolField(view,cookieFirstUse,{hidden:!origin});
+    patchToolField(view,cookieHelp,{textContent:'一次授权本站：'+requested.map(([,label])=>label).join('、')+
+      '。导入导出复用这些权限，删除和敏感导出仍需操作确认；可随时撤销。'});
+    patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':allowed?'撤销本站授权':'允许管理本站 Cookie'});
+    setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allowed));
+    patchToolField(view,cookieSiteToggle,{disabled:busy||cookieGrantPending||!origin||requested.length===0});
     // Previously granted sites remain revocable after their tabs are closed.
     // Revocation is an explicit user click and never requires recreating a tab.
+    if(view){
+      const rows=Object.entries(menuGrants?.[tool.id]?.cookieSites||{})
+        .filter(([site,row])=>!(site===origin&&allowed)&&Object.values(row||{}).some(v=>v===true))
+        .map(([site])=>({id:site,text:site,label:'撤销网站权限',disabled:busy||cookieGrantPending}));
+      view.setRows(cookieOtherSites.key,rows,'', (site,event)=>{
+        if(!event?.isTrusted)return;
+        return changeCookieSite({site,all:true}).catch(error=>notice((error.code||'E_COOKIE')+'：'+error.message,true));
+      });
+      return;
+    }
     cookieOtherSites.replaceChildren();
     const sites=menuGrants?.[tool.id]?.cookieSites||{};
     for(const [site,row] of Object.entries(sites)){
@@ -302,7 +323,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       revoke.disabled=busy||cookieGrantPending;
       revoke.addEventListener('click',event=>{if(!event.isTrusted)return;
         void changeCookieSite({site,all:true}).catch(error=>notice((error.code||'E_COOKIE')+'：'+error.message,true));});
-      line.append(name,revoke);cookieOtherSites.append(line);
+      line.append(name,revoke);(!view&&cookieOtherSites.append(line));
     }
   }
   async function changeCookieSite({site=null,capability=null,all=false}={}){
@@ -333,7 +354,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     render();notice(all?'已撤销 '+current+' 的 Cookie 网站权限':
       (cookieSiteRecord(tool,current)?.[capability]?'已授权 ':'已撤销 ')+current+' 的 '+capability+' 能力');
   }
-  cookieSiteToggle.addEventListener('click',event=>{
+  listen(cookieSiteToggle,'click',event=>{
     if(!event?.isTrusted||cookieGrantPending||busy)return;
     const origin=websiteOrigin(currentPageTarget?.snapshot?.url),tool=active,token=instance;
     if(!tool||!origin)return;
@@ -355,9 +376,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       (error?.code||'E_COOKIE')+'）：'+String(error?.message||error).slice(0,160),true))
       .finally(()=>{cookieGrantPending=false;render();});
   });
-  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
+  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:trustedSettings,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const focusPermissions=settingsView&&focus?.createPermissionControls
-    ?focus.createPermissionControls({api,doc,container:settingsView,notice,runOperation:(operation,payload,event)=>{
+    ?focus.createPermissionControls({api,doc,container:trustedSettings,notice,runOperation:(operation,payload,event)=>{
       const tool=active;
       return focus.runTrustedOperation({api,tool,operation,payload,event,assertCurrent:phase=>{
         if(disposed||!tool||!samePackage(active,tool)||
@@ -365,15 +386,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           throw Object.assign(new Error('工具已关闭或不可用'),{code:'E_TOOL_CHANGED'});
       }});
     }}):null;
-  const adblockContainer=get('sidebar-tool-adblock-native');
+  const adblockContainer=view ? view.runtime.adblock : get('sidebar-tool-adblock-native');
   const adblockControls=adblockContainer&&adblock?.createPermissionControls?
     adblock.createPermissionControls({api,doc,container:adblockContainer,notice,
-      settingsControl:settingsButton,
+      settingsControl:view?view.runtime.settingsControl:settingsButton,
       onViewChange:()=>renderTocSettings(),
       openToolManagement:()=>{
         if(active?.id!==ADBLOCK_ID||readOnlyPreview)return;
         tocSettingsOpen=true;renderTocSettings();
-        settingsButton.focus?.({preventScroll:true});
+        requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});
       },
       runOperation:(operation,payload,event)=>{
         const tool=active;
@@ -400,22 +421,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
   function resetReview() {
     pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;
-    pageInstallStatus.textContent='';pageInstallStatus.hidden=true;
-    delete pageInstallStatus.dataset.installationId;delete pageInstallStatus.dataset.manifestHash;
-    pageInstallReceipt.hidden=true;pageInstallReceipt.open=false;pageInstallReceiptText.textContent='';
-    preview.hidden=true;updatePanel.hidden=true;installButton.disabled=true;
+    patchToolField(view, pageInstallStatus, {textContent: ''});patchToolField(view, pageInstallStatus, {hidden: true});
+    setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', null);setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', null);
+    patchToolField(view, pageInstallReceipt, {hidden: true});patchToolField(view, pageInstallReceipt, {open: false});patchToolField(view, pageInstallReceiptText, {textContent: ''});
+    patchToolField(view, preview, {hidden: true});patchToolField(view, updatePanel, {hidden: true});patchToolField(view, installButton, {disabled: true});
   }
   function setFileError(message='') {
-    fileError.textContent=message;fileError.hidden=!message;
-    fileInput.setAttribute('aria-invalid',String(Boolean(message)));
+    patchToolField(view, fileError, {textContent: message});patchToolField(view, fileError, {hidden: !message});
+    setToolFieldAttribute(view, fileInput, 'aria-invalid', String(Boolean(message)));
   }
   function clearImport() {
     fileSelection++;resetReview();
-    fileInput.value='';setFileError();
+    patchToolField(view, fileInput, {value: ''});setFileError();
   }
   function setImportOpen(open) {
-    importPanel.hidden=!open;
-    importTrigger.setAttribute('aria-expanded',String(open));
+    patchToolField(view, importPanel, {hidden: !open});
+    setToolFieldAttribute(view, importTrigger, 'aria-expanded', String(open));
     if(!open)clearImport();
   }
   // Only a private Symbol lets statically compiled JSX reuse the existing
@@ -429,22 +450,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // In-page decisions replace synchronous browser dialogs. Every destructive
   // confirmation is bound to a reviewed action and rechecks identity on commit.
   function cancelActionReview(){
-    const old=pendingAction;pendingAction=null;actionReview.hidden=true;
+    const old=pendingAction;pendingAction=null;patchToolField(view, actionReview, {hidden: true});
     old?.cancel?.();
   }
   function requestActionReview({message,button='继续',run,toolId=null,cancel=null}){
     if(disposed||busy)return;
     if(pendingAction)cancelActionReview();
     pendingAction={run,toolId,cancel};
-    actionSummary.textContent=message;
-    actionContinue.textContent=button;
-    actionReview.hidden=false;
-    actionReview.scrollIntoView?.({block:'nearest'});
+    patchToolField(view, actionSummary, {textContent: message});
+    patchToolField(view, actionContinue, {textContent: button});
+    patchToolField(view, actionReview, {hidden: false});
+    requestToolFieldEffect(view, actionReview, 'scrollIntoView', {block:'nearest'});
   }
   async function applyActionReview(event){
     const choice=pendingAction;
     if(!choice||busy||disposed)return;
-    pendingAction=null;actionReview.hidden=true;
+    pendingAction=null;patchToolField(view, actionReview, {hidden: true});
     await choice.run(event); // Do not defer actual Chrome user activation.
   }
   function requestBrowserClick({message,button,toolId,run}){
@@ -641,6 +662,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   // An optional installed-list companion, never another top-level tab.
   function setDiscoveryOpen(open){
+    if(view)return; // Official discovery is owned by Extension Center.
     if(disposed)return;
     discoverPanel.hidden=!open;
     discoverToggle.setAttribute('aria-expanded',String(Boolean(open)));
@@ -650,7 +672,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       '#/apps/'+release.id+'/versions/'+release.version});
   }
   function renderOfficialTools(){
-    if(!officialRoot)return;
+    if(view||!officialRoot)return;
     if(checkedInstalled!==installed||checkedReleases!==officialReleases){
       checkedInstalled=installed;checkedReleases=officialReleases;officialMatches=new Set();
       const epoch=++matchEpoch;
@@ -661,11 +683,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         officialMatches=new Set(rows.filter(([,matches])=>matches).map(([id])=>id));render();
       }).catch(()=>{/* A failed digest never grants official attribution. */});
     }
-    const view=JSON.stringify([officialLoaded,officialError,busy,officialReleases,officialFilter,officialQuery,
+    const officialView=JSON.stringify([officialLoaded,officialError,busy,officialReleases,officialFilter,officialQuery,
       officialReleases.map(release=>[officialToolStatus(release,installed),officialMatches.has(release.id)])]);
     // Keep DOM controls mounted across unrelated page observations and pointer gestures.
-    if(view===lastOfficialView)return;
-    lastOfficialView=view;
+    if(officialView===lastOfficialView)return;
+    lastOfficialView=officialView;
     const focusId=doc.activeElement?.dataset?.officialInstall;
     officialRoot.replaceChildren();
     if(!officialLoaded){
@@ -714,7 +736,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
   }
   async function loadOfficial(){
-    if(!officialRoot)return;
+    // Catalog data is also consumed by Extension Center installation reviews.
+    // Its availability must not depend on the retired discovery DOM.
     try{
       const result=await loadOfficialCatalog({api,fetcher});
       if(disposed)return;
@@ -739,9 +762,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
   }
   function renderInstalledTools() {
-    const view=JSON.stringify([busy,installedReadError,enableReadError,enableRecords,installed,officialReleases]);
-    if(view===lastInstalledView)return;
-    lastInstalledView=view;
+    if(view)return; // Extension Center is the only installed-list owner.
+    const installedView=JSON.stringify([busy,installedReadError,enableReadError,enableRecords,installed,officialReleases]);
+    if(installedView===lastInstalledView)return;
+    lastInstalledView=installedView;
     const focusedId=doc.activeElement?.dataset?.sidebarToolId;
     list.replaceChildren();
     for(const row of installed){
@@ -775,7 +799,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function renderTocSettings(){
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id,promptSettings=managed&&id===PROMPT_ID;
-    settingsView.dataset.tool=promptSettings?PROMPT_ID:'';
+    setToolFieldAttribute(view, settingsView, 'data-tool', promptSettings?PROMPT_ID:'');
     const enabled=Boolean(managed&&!enableReadError&&sidebarToolEnabled(enableRecords,id));
     timePermissions?.render(active,readOnlyPreview);
     focusPermissions?.render(active,readOnlyPreview,enabled);
@@ -793,91 +817,91 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Settings live in the trusted Host. Repaint text, never iframe content or permissions.
     const tocLocale=isToc?localeController?.getLocale?.()||'zh-CN':'zh-CN';
     const tocText=key=>readingTocHostText(tocLocale,key);
-    if(tocLanguageRow)tocLanguageRow.hidden=!isToc;
+    if(tocLanguageRow)patchToolField(view, tocLanguageRow, {hidden: !isToc});
     if(tocLanguageSelect){
-      tocLanguageSelect.value=resolveUiLocale(tocLocale,['zh-CN','en'],'zh-CN');
-      tocLanguageSelect.disabled=busy||!isToc;
-      tocLanguageSelect.setAttribute('aria-label',tocText('languageLabel'));
+      patchToolField(view, tocLanguageSelect, {value: resolveUiLocale(tocLocale,['zh-CN','en'],'zh-CN')});
+      patchToolField(view, tocLanguageSelect, {disabled: busy||!isToc});
+      setToolFieldAttribute(view, tocLanguageSelect, 'aria-label', tocText('languageLabel'));
     }
-    for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
+    if(view)view.patchLabels(Object.fromEntries(Object.entries(view.labels).map(([key])=>[key,tocText(key)])));
+    else for(const element of settingsView.querySelectorAll?.('[data-toc-host-text]')||[])
       element.textContent=tocText(element.getAttribute('data-toc-host-text'));
-    if(promptEnableLabel)promptEnableLabel.textContent=promptSettings?'启用工具':tocText('toggleHeading');
-    if(promptEnableDescription)promptEnableDescription.hidden=!promptSettings;
-    settingsView.setAttribute('aria-label',id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
+    if(promptEnableLabel)patchToolField(view, promptEnableLabel, {textContent: promptSettings?'启用工具':tocText('toggleHeading')});
+    if(promptEnableDescription)patchToolField(view, promptEnableDescription, {hidden: !promptSettings});
+    setToolFieldAttribute(view, settingsView, 'aria-label', id===ADBLOCK_ID?'工具管理':tocText('settingsTitle'));
     const adblockManagement=managed&&id===ADBLOCK_ID&&tocSettingsOpen;
-    settingsButton.title=id===ADBLOCK_ID?
-      adblockManagement?'返回 AdBlock 产品':'打开 AdBlock 产品设置':tocText('settingsTitle');
-    settingsButton.setAttribute('aria-label',settingsButton.title);
-    settingsButton.setAttribute('aria-controls',id===ADBLOCK_ID&&!tocSettingsOpen?
+    patchToolField(view, settingsButton, {title: id===ADBLOCK_ID?
+      adblockManagement?'返回 AdBlock 产品':'打开 AdBlock 产品设置':tocText('settingsTitle')});
+    setToolFieldAttribute(view, settingsButton, 'aria-label', settingsButton.title);
+    setToolFieldAttribute(view, settingsButton, 'aria-controls', id===ADBLOCK_ID&&!tocSettingsOpen?
       (active?.uiRuntime==='opendesk.react-ui.v1'?'sidebar-tool-frame':'sidebar-tool-adblock-native'):'sidebar-tool-settings-view');
-    backButton.title=tocText('backAction');
-    backButton.setAttribute('aria-label',backButton.title);
+    patchToolField(view, backButton, {title: tocText('backAction')});
+    setToolFieldAttribute(view, backButton, 'aria-label', backButton.title);
     if(openTabButton){
-      openTabButton.title=tocText('openTabAction');
-      openTabButton.setAttribute('aria-label',openTabButton.title);
+      patchToolField(view, openTabButton, {title: tocText('openTabAction')});
+      setToolFieldAttribute(view, openTabButton, 'aria-label', openTabButton.title);
     }
-    get('sidebar-tool-generic-site-binary')?.setAttribute('aria-label',
-      isToc?tocText('siteGroup'):'当前网站授权');
+    setToolFieldAttribute(view, view ? view.fields['sidebar-tool-generic-site-binary'] : get('sidebar-tool-generic-site-binary'), 'aria-label',isToc?tocText('siteGroup'):'当前网站授权');
     if(!managed)tocSettingsOpen=false;
     const show=managed&&tocSettingsOpen;
     // Exactly one tool title and one settings icon in the shared toolbar.
     // AdBlock product pages are owned by its trusted control factory.
-    if(title)title.hidden=false;
-    settingsButton.hidden=!managed;
-    settingsButton.disabled=busy||sitePending;
-    settingsButton.setAttribute('aria-expanded',String(show||
+    if(title)patchToolField(view, title, {hidden: false});
+    patchToolField(view, settingsButton, {hidden: !managed});
+    patchToolField(view, settingsButton, {disabled: busy||sitePending});
+    setToolFieldAttribute(view, settingsButton, 'aria-expanded', String(show||
       (managed&&id===ADBLOCK_ID&&adblockControls?.view?.()==='settings')));
     // Time Review uses the same trusted static settings DOM as an inline
     // enrollment card. Do not replace/hide its live stats iframe.
     const trustedInline=show&&(id===TIME_REVIEW_ID||id===FOCUS_ID||id===AI_ID||isCookieTool(active)||isFullBookmarkTool(active));
     // Native approval/stop remains visible above a live sandbox, never inside it.
-    if(trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
-    else if(!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
-    display.setAttribute('data-trusted-tool-inline',String(trustedInline));
-    settingsView.hidden=!show;
-    if(promptNativeRow)promptNativeRow.hidden=!(show&&promptSettings);
-    if(promptWebRow)promptWebRow.hidden=!(show&&promptSettings);
-    if(promptWebAction){promptWebAction.setAttribute('aria-checked',String(promptWebButtons===true));
-      promptWebAction.disabled=!promptSettings||busy||sitePending||!enabled||promptWebPending||promptWebButtons===null;
-      promptWebAction.title=promptWebButtons===null?'读取网页按钮设置中':'在已支持的网站显示快捷按钮';}
+    if(!view&&trustedInline&&settingsView.nextElementSibling!==frameRoot)frameRoot.before?.(settingsView);
+    else if(!view&&!trustedInline&&settingsView.previousElementSibling!==retiredDraft)retiredDraft.after?.(settingsView);
+    setToolFieldAttribute(view, display, 'data-trusted-tool-inline', String(trustedInline));
+    patchToolField(view, settingsView, {hidden: !show});
+    if(promptNativeRow)patchToolField(view, promptNativeRow, {hidden: !(show&&promptSettings)});
+    if(promptWebRow)patchToolField(view, promptWebRow, {hidden: !(show&&promptSettings)});
+    if(promptWebAction){setToolFieldAttribute(view, promptWebAction, 'aria-checked', String(promptWebButtons===true));
+      patchToolField(view, promptWebAction, {disabled: !promptSettings||busy||sitePending||!enabled||promptWebPending||promptWebButtons===null});
+      patchToolField(view, promptWebAction, {title: promptWebButtons===null?'读取网页按钮设置中':'在已支持的网站显示快捷按钮'});}
     if(promptSettings&&promptNativeAction){
       const targetOrigin=supportedOrigin(currentPageTarget?.snapshot?.url);
       const record=menuGrants?.[PROMPT_ID],contextActive=Boolean(record?.version===active.version&&
         record?.origins?.includes(CHATGPT_ORIGIN)&&record?.activeActions?.length);
-      promptNativeAction.textContent=contextActive?'关闭右键快捷添加':'启用右键快捷添加';
-      promptNativeAction.setAttribute('aria-pressed',String(contextActive));
-      promptNativeAction.setAttribute('role','switch');
-      promptNativeAction.setAttribute('aria-label','选中文字快速添加');
-      promptNativeAction.setAttribute('aria-checked',String(contextActive));
-      promptNativeAction.disabled=busy||sitePending||!enabled||!targetOrigin;
-      promptNativeAction.title=!targetOrigin?'请先打开 chatgpt.com 网页':'仅影响 Chrome 原生右键快捷添加';
+      patchToolField(view, promptNativeAction, {textContent: contextActive?'关闭右键快捷添加':'启用右键快捷添加'});
+      setToolFieldAttribute(view, promptNativeAction, 'aria-pressed', String(contextActive));
+      setToolFieldAttribute(view, promptNativeAction, 'role', 'switch');
+      setToolFieldAttribute(view, promptNativeAction, 'aria-label', '选中文字快速添加');
+      setToolFieldAttribute(view, promptNativeAction, 'aria-checked', String(contextActive));
+      patchToolField(view, promptNativeAction, {disabled: busy||sitePending||!enabled||!targetOrigin});
+      patchToolField(view, promptNativeAction, {title: !targetOrigin?'请先打开 chatgpt.com 网页':'仅影响 Chrome 原生右键快捷添加'});
     }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
     frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||
       (managed&&id===ADBLOCK_ID&&active?.uiRuntime!=='opendesk.react-ui.v1'&&
          adblockControls?.view?.()!=='exceptions');
     renderCookieSettings(show);
-    fullBookmarkSettings.hidden=!(show&&managed&&isFullBookmarkTool(active));
+    patchToolField(view,fullBookmarkSettings,{hidden:!(show&&managed&&isFullBookmarkTool(active))});
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
     const hasFullBookmarkConsent=Boolean(fullGrant?.bookmarkFull===true&&
       fullGrant.version===active?.version&&fullGrant.installEpoch===currentEpoch);
-    fullBookmarkButton.textContent=hasFullBookmarkConsent?'撤销此工具的完整书签访问':'授权此工具访问全部书签';
-    fullBookmarkButton.disabled=busy||!enabled||!isFullBookmarkTool(active);
-    fullBookmarkButton.setAttribute('aria-pressed',String(hasFullBookmarkConsent));
-    removeButton.hidden=readOnlyPreview;if(openTabButton)openTabButton.hidden=readOnlyPreview;
-    if(enableButton){enableButton.textContent=promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具';enableButton.disabled=busy||enableReadError;
-      enableButton.setAttribute('role',promptSettings?'switch':'button');
-      enableButton.setAttribute('aria-label',promptSettings?'启用工具':enableButton.textContent);
-      if(promptSettings)enableButton.setAttribute('aria-checked',String(enabled));else enableButton.removeAttribute('aria-checked');
-      enableButton.setAttribute('aria-pressed',String(enabled));}
-    if(enableHint)enableHint.hidden=promptSettings&&!enableReadError;
-    if(enableHint)enableHint.textContent=promptSettings?
+    patchToolField(view,fullBookmarkButton,{textContent:hasFullBookmarkConsent?'撤销此工具的完整书签访问':'授权此工具访问全部书签'});
+    patchToolField(view,fullBookmarkButton,{disabled:busy||!enabled||!isFullBookmarkTool(active)});
+    setToolFieldAttribute(view,fullBookmarkButton,'aria-pressed',String(hasFullBookmarkConsent));
+    patchToolField(view, removeButton, {hidden: readOnlyPreview});if(openTabButton)patchToolField(view, openTabButton, {hidden: readOnlyPreview});
+    if(enableButton){patchToolField(view, enableButton, {textContent: promptSettings?'':isToc?tocText(enabled?'disable':'enable'):enabled?'停用工具':'启用工具'});patchToolField(view, enableButton, {disabled: busy||enableReadError});
+      setToolFieldAttribute(view, enableButton, 'role', promptSettings?'switch':'button');
+      setToolFieldAttribute(view, enableButton, 'aria-label', promptSettings?'启用工具':enableButton.textContent);
+      if(promptSettings)setToolFieldAttribute(view, enableButton, 'aria-checked', String(enabled));else setToolFieldAttribute(view, enableButton, 'aria-checked', null);
+      setToolFieldAttribute(view, enableButton, 'aria-pressed', String(enabled));}
+    if(enableHint)patchToolField(view, enableHint, {hidden: promptSettings&&!enableReadError});
+    if(enableHint)patchToolField(view, enableHint, {textContent: promptSettings?
       (enableReadError?'工具状态读取异常，已保护性停止运行。':enabled?'已启用 · 基础快捷按钮可直接使用':'已停用 · 已保存提示词保留'):
       isToc?tocText(enableReadError?'enableError':enabled?'enabledHint':'disabledHint'):
       enableReadError?'启停状态读取异常；已保护性停止运行。':
-      enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。';
-    if(launchButton){launchButton.hidden=!managed||Boolean(frame||nativeUI||nativePending);launchButton.disabled=busy||!enabled;
-      launchButton.textContent=isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用';}
+      enabled?'工具已启用。启用不会自动运行代码。':'工具已停用。数据、网站授权和显示偏好保留。'});
+    if(launchButton){patchToolField(view, launchButton, {hidden: !managed||Boolean(frame||nativeUI||nativePending)});patchToolField(view, launchButton, {disabled: busy||!enabled});
+      patchToolField(view, launchButton, {textContent: isToc?tocText(enabled?'launch':'launchDisabled'):enabled?'打开工具':'已停用，请在设置中启用'});}
     const url=currentPageTarget?.snapshot?.url,capability=siteCapability(active);
     const origin=capability===CAPTURE_CAPABILITY?chatCaptureOrigin(url):websiteOrigin(url);
     const grants=capability===CAPTURE_CAPABILITY?captureGrants:capability===CLIP_CAPABILITY?clipGrants:siteGrants;
@@ -886,11 +910,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const appearance=readingTocDisplayState(tocVisibility,id,url);
     const pageAllowed=readingTocPageAllowed(tocPageRules,id,url);
     if(eyeButton){
-      eyeButton.hidden=!isToc;eyeButton.disabled=busy||sitePending||!enabled||!origin||!grant||!pageAllowed;
-      eyeButton.title=tocText(!enabled?'eyeToolDisabled':!origin?'eyeUnsupported':
+      patchToolField(view, eyeButton, {hidden: !isToc});patchToolField(view, eyeButton, {disabled: busy||sitePending||!enabled||!origin||!grant||!pageAllowed});
+      patchToolField(view, eyeButton, {title: tocText(!enabled?'eyeToolDisabled':!origin?'eyeUnsupported':
         !grant?'eyeSiteDisabled':!pageAllowed?'eyePageExcluded':
-        appearance.show?'eyeHide':'eyeShow');
-      eyeButton.setAttribute('aria-label',eyeButton.title);eyeButton.setAttribute('aria-pressed',String(appearance.show));
+        appearance.show?'eyeHide':'eyeShow')});
+      setToolFieldAttribute(view, eyeButton, 'aria-label', eyeButton.title);setToolFieldAttribute(view, eyeButton, 'aria-pressed', String(appearance.show));
     }
     if(!show)return;
     // Only tools with the generic TOC/Clip/Capture site capability use
@@ -898,33 +922,39 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const capabilityOnly=Boolean(siteCapability(active)&&!promptSettings);
     for(const id of ['sidebar-tool-generic-site-scope','sidebar-tool-generic-site-binary',
       'sidebar-tool-generic-site-advanced']){
-      const node=get(id);if(node)node.hidden=!capabilityOnly;
+      const field=view ? view.fields[id] : get(id);if(field)patchToolField(view,field,{hidden:!capabilityOnly});
     }
-    settingsHint.hidden=!capabilityOnly;
-    settingsScopeLabel.textContent=isToc?tocText('siteAvailability'):'当前网站授权';
-    settingsTarget.textContent=capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权';
-    settingsScopeButton.hidden=true;
+    patchToolField(view, settingsHint, {hidden: !capabilityOnly});
+    patchToolField(view, settingsScopeLabel, {textContent: isToc?tocText('siteAvailability'):'当前网站授权'});
+    patchToolField(view, settingsTarget, {textContent: capability?(origin||(isToc?tocText('selectPage'):'请选择适用网页')):'此工具不需要网站授权'});
+    patchToolField(view, settingsScopeButton, {hidden: true});
     for(const [button,chosen] of [[settingsAllow,grant],[settingsDeny,!grant]]){
-      button.textContent=isToc?tocText(button===settingsAllow?'siteEnable':'siteDisable'):
-        button===settingsAllow?'授权当前网站':'撤销当前网站授权';
-      button.hidden=!capability;button.disabled=busy||sitePending||!origin;button.setAttribute('aria-pressed',String(Boolean(origin)&&chosen));
+      patchToolField(view,button,{textContent:isToc?tocText(button===settingsAllow?'siteEnable':'siteDisable'):
+        button===settingsAllow?'授权当前网站':'撤销当前网站授权',hidden:!capability,disabled:busy||sitePending||!origin});
+      setToolFieldAttribute(view,button,'aria-pressed',String(Boolean(origin)&&chosen));
     }
-    settingsHint.textContent=promptSettings?'默认在 chatgpt.com 使用网页快捷按钮，无需二次网站授权；点击只填写草稿，不会自动发送。':isToc?tocText('tocIntro')+
+    patchToolField(view, settingsHint, {textContent: promptSettings?'默认在 chatgpt.com 使用网页快捷按钮，无需二次网站授权；点击只填写草稿，不会自动发送。':isToc?tocText('tocIntro')+
       tocText(!origin?'unsupportedPage':grant?'siteAvailable':'siteDisabled'):
       !capability?'工具能力以安装时的审阅为准。':!origin?'请切换到适用网页，设置仍可管理。':
       grant?'当前网站已授权；授权与工具启停、外观显隐互相独立。':
-        '点击授权后直接生效：'+readableCapability(capability)+'。仅适用于上方网站，可随时撤销。';
-    if(visibilitySection)visibilitySection.hidden=!isToc;
-    if(pageExceptionSection)pageExceptionSection.hidden=!isToc;
+        '点击授权后直接生效：'+readableCapability(capability)+'。仅适用于上方网站，可随时撤销。'});
+    if(visibilitySection)patchToolField(view, visibilitySection, {hidden: !isToc});
+    if(pageExceptionSection)patchToolField(view, pageExceptionSection, {hidden: !isToc});
     for(const [button,hidden] of [[settingsSiteVisibility,appearance.hiddenOnSite],[settingsPageVisibility,appearance.hiddenOnPage]]){
-      button.hidden=!isToc;button.textContent=isToc?tocText(hidden?'restoreVisibility':'hide'):hidden?'恢复显示':'隐藏';button.setAttribute('aria-pressed',String(!hidden));
-      button.disabled=busy||sitePending||!enabled||!grant||!origin;
+      patchToolField(view,button,{hidden:!isToc,textContent:isToc?tocText(hidden?'restoreVisibility':'hide'):hidden?'恢复显示':'隐藏',disabled:busy||sitePending||!enabled||!grant||!origin});
+      setToolFieldAttribute(view,button,'aria-pressed',String(!hidden));
     }
     const origins=isToc?blockedTocOrigins(grants):capability?grantedOrigins(grants,id):[],denied=isToc?disabledTocPages(tocPageRules,id):[];
-    if(settingsSitesTitle)settingsSitesTitle.textContent=isToc?tocText('disabledSites'):'已授权的网站';
+    if(settingsSitesTitle)patchToolField(view, settingsSitesTitle, {textContent: isToc?tocText('disabledSites'):'已授权的网站'});
     const identity=JSON.stringify([id,origins,denied,busy,sitePending,isToc?tocLocale:null]);
     if(identity===lastTocSettingsRows)return;lastTocSettingsRows=identity;
     const section=(container,items,handler,emptyLabel)=>{
+      if(view){
+        const label=container===settingsSites&&!isToc?'撤销':tocText('restore');
+        view.setRows(container.key,items.map(entry=>({id:entry,text:entry,label,disabled:busy||sitePending})),emptyLabel,
+          entry=>action(()=>runSiteToggle(id,()=>handler(entry)))());
+        return;
+      }
       container.replaceChildren();
       if(!items.length){const label=doc.createElement('p');label.textContent=emptyLabel;container.append(label);}
       for(const entry of items){
@@ -946,30 +976,30 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(pendingUninstallId&&!installed.some(row=>row.id===pendingUninstallId&&samePackage(row,pendingUninstallBaseline)))
       cancelRemovalReview();
     renderInstalledTools();
-    empty.hidden=installed.length!==0||installedReadError;
+    if(!view&&empty)empty.hidden=installed.length!==0||installedReadError;
     renderOfficialTools();
-    listView.hidden=Boolean(active);
-    display.hidden=!active;
+    if(!view&&listView)listView.hidden=Boolean(active);
+    patchToolField(view, display, {hidden: !active});
     const trustedTocTitle=active?.id===READING_TOC_TOOL_ID&&
       active?.capabilities.includes(TOC_CAPABILITY)&&
       active?.title===readingTocCatalog.messages['zh-CN'].title;
     const currentTocLocale=localeController?.getLocale?.()||'zh-CN';
     const visibleTitle=trustedTocTitle?
       uiMessage(readingTocCatalog,currentTocLocale,'title'):active?.title;
-    title.textContent=active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
-      readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):'';
-    title.title=active?'v'+active.version:'';
-    removeButton.title=readOnlyPreview?'只读预览尚未安装，不能卸载':
+    patchToolField(view, title, {textContent: active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
+      readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):''});
+    patchToolField(view, title, {title: active?'v'+active.version:''});
+    patchToolField(view, removeButton, {title: readOnlyPreview?'只读预览尚未安装，不能卸载':
       active?(trustedTocTitle?
         readingTocHostText(currentTocLocale,'uninstallPrefix')+visibleTitle+
         readingTocHostText(currentTocLocale,'uninstallSuffix'):
-        '卸载「'+active.title+'」及其本地数据'):'卸载工具';
-    removeButton.setAttribute('aria-label',removeButton.title);
-    removeButton.disabled=!active || busy || readOnlyPreview;
-    if(openTabButton)openTabButton.disabled=!active||busy||readOnlyPreview;
-    if(readOnlyBanner)readOnlyBanner.hidden=!readOnlyPreview;
-    if(retiredDraft){retiredDraft.hidden=!active||!recoverableDrafts.has(active.id);
-      retiredDraftText.value=active?recoverableDrafts.get(active.id)||'':'';}
+        '卸载「'+active.title+'」及其本地数据'):'卸载工具'});
+    setToolFieldAttribute(view, removeButton, 'aria-label', removeButton.title);
+    patchToolField(view, removeButton, {disabled: !active || busy || readOnlyPreview});
+    if(openTabButton)patchToolField(view, openTabButton, {disabled: !active||busy||readOnlyPreview});
+    if(readOnlyBanner)patchToolField(view, readOnlyBanner, {hidden: !readOnlyPreview});
+    if(retiredDraft){patchToolField(view, retiredDraft, {hidden: !active||!recoverableDrafts.has(active.id)});
+      patchToolField(view, retiredDraftText, {value: active?recoverableDrafts.get(active.id)||'':''});}
     if(menuButton){
       const actions=active?.contributes?.contextMenus;
       const hasActions=!readOnlyPreview&&active?.capabilities.includes('browser.contextMenu')&&
@@ -977,13 +1007,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
       const enabled=Boolean(active&&origin&&menuGrants[active.id]?.version===active.version&&
         menuGrants[active.id]?.origins?.includes(origin)&&menuGrants[active.id]?.activeActions?.length);
-      menuButton.hidden=!hasActions||active?.id===PROMPT_ID;
-      menuButton.disabled=busy||!origin||!hasActions||enableReadError||
-        !sidebarToolEnabled(enableRecords,active?.id);
-      menuButton.dataset.enabled=String(enabled);
-      menuButton.setAttribute('aria-pressed',String(enabled));
-      menuButton.title=enabled?'停用此网站的右键菜单':'为当前网站启用右键菜单';
-      menuButton.setAttribute('aria-label',menuButton.title);
+      patchToolField(view, menuButton, {hidden: !hasActions||active?.id===PROMPT_ID});
+      patchToolField(view, menuButton, {disabled: busy||!origin||!hasActions||enableReadError||
+        !sidebarToolEnabled(enableRecords,active?.id)});
+      setToolFieldAttribute(view, menuButton, 'data-enabled', String(enabled));
+      setToolFieldAttribute(view, menuButton, 'aria-pressed', String(enabled));
+      patchToolField(view, menuButton, {title: enabled?'停用此网站的右键菜单':'为当前网站启用右键菜单'});
+      setToolFieldAttribute(view, menuButton, 'aria-label', menuButton.title);
     }
     renderTocSettings();
     taskWorkbench.setToolActive?.(Boolean(visible && active));
@@ -996,13 +1026,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const action=controls.find(button=>button.dataset.extensionAction==='primary')||
       controls.find(button=>button.dataset.extensionAction==='more')||
       controls.find(button=>button.dataset.extensionAction==='main');
-    const item=[...list.children].find(node=>node.dataset?.sidebarToolId===id);
-    (action || item?.children?.[0] || doc.getElementById('extension-center-search') || importTrigger)
-      .focus?.({preventScroll:true});
+    const item=[...(list?.children||[])].find(node=>node.dataset?.sidebarToolId===id);
+    const target=action || item?.children?.[0] || doc.getElementById('extension-center-search');
+    if(target)target.focus?.({preventScroll:true});
+    else requestToolFieldEffect(view,importTrigger,'focus',{preventScroll:true});
   }
   function cancelRemovalReview(){
     pendingUninstallId=null;pendingUninstallBaseline=null;
-    removeReview.hidden=true;
+    patchToolField(view, removeReview, {hidden: true});
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
@@ -1041,7 +1072,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        nativeTimeReview?.version===TRUSTED_TIME_REVIEW_VERSION&&typeof nativeTimeReview.mount==='function'){
       // Async fail-closed admission finishes BEFORE any privileged UI code
       // mounts. A modified/offline/legacy same-ID package keeps its sandbox.
-      nativePending=true;render();backButton.focus?.({preventScroll:true});
+      nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
       notice('正在校验当前扩展内置的 Time Review 官方发行身份…');
       void admittedNativeTimeReview(tool,frameRevocationEpoch).then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
@@ -1071,7 +1102,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_BOOKMARK_ID&&
        trustedBookmarkPilot?.enabled===true&&typeof trustedBookmarkPilot.mount==='function'){
-      nativePending=true;render();backButton.focus?.({preventScroll:true});
+      nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
       notice('正在核验书签管理官方安装身份…');
       void admittedNativeBookmark(tool,frameRevocationEpoch).then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
@@ -1147,7 +1178,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         locale:localeController?.getLocale()||'zh-CN'},'*');
     };
-    frameRoot.append(frame);render();backButton.focus?.({preventScroll:true});
+    frameRoot.append(frame);render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
   }
   function openTool(id,{launchGate=null}={}) {
@@ -1167,7 +1198,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     try{requireToolRuntime(tool);}
     catch(error){notice((error.code||'E_TOOL_RUNTIME')+'：'+error.message,true);return;}
     if(enableReadError||!sidebarToolEnabled(enableRecords,id)){
-      destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();backButton.focus?.();return;
+      destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();requestToolFieldEffect(view, backButton, 'focus');return;
     }
     mountTool(tool,{launchGate});
     return instance;
@@ -1182,7 +1213,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(disposed||!visible||busy)return;
       cancelRemovalReview();setImportOpen(false);
       destroyFrame();active=tool;readOnlyPreview=false;previewDirty=false;
-      tocSettingsOpen=true;tocScope='site';render();backButton.focus?.({preventScroll:true});
+      tocSettingsOpen=true;tocScope='site';render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     };
     if(active&&!canLeave(show))return false;
     show();return true;
@@ -1551,7 +1582,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const idleGranted=await api.permissions.contains({permissions:['idle']});
         assertSession(source,token);
         if(!hasScope||!idleGranted){
-          tocSettingsOpen=true;render();settingsView.scrollIntoView?.({block:'nearest'});
+          tocSettingsOpen=true;render();requestToolFieldEffect(view, settingsView, 'scrollIntoView', {block:'nearest'});
           throw Object.assign(new Error(!hasScope?
             '请在上方原位授权卡中选择可记录的网站，再点击「开始／恢复记录」。':
             '请在上方原位授权卡中批准 Chrome 空闲检测，再点击「开始／恢复记录」。'),
@@ -2015,13 +2046,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const stillReviewed=(!current&&!pendingBaseline) ||
         (current&&pendingBaseline&&samePackage(current,pendingBaseline));
       if(!stillReviewed){
-        fileSelection++;resetReview();fileInput.value='';
+        fileSelection++;resetReview();patchToolField(view, fileInput, {value: ''});
         setFileError('已安装工具发生变化，请重新选择文件核对权限');
       }
     }
     render();
     if(invalidated){
-      if(visible)importTrigger.focus?.({preventScroll:true});
+      if(visible)requestToolFieldEffect(view, importTrigger, 'focus', {preventScroll:true});
       notice('工具已在其他窗口更新或卸载，旧界面已关闭。',true);
     }
   };
@@ -2285,38 +2316,38 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       throw new Error('工具安装状态已变化，请重新选择安装包');
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
-    previewTitle.textContent=candidate.title;
-    previewVersion.textContent='v'+candidate.version;
-    previewDescription.textContent=candidate.description;
-    previewCapabilities.textContent=candidate.capabilities.length
-      ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力';
-    previewFile.textContent=sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+
+    patchToolField(view, previewTitle, {textContent: candidate.title});
+    patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
+    patchToolField(view, previewDescription, {textContent: candidate.description});
+    patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
+      ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});
+    patchToolField(view, previewFile, {textContent: sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+
       (previousHash?' · 当前包 SHA-256（规范序列化）：'+previousHash:'')+
-      '。包 Hash 已规范化，文件空白或键顺序不影响此值。';
+      '。包 Hash 已规范化，文件空白或键顺序不影响此值。'});
     if(previous){
       const added=addedCapabilities(candidate,previous);
       const removed=previous.capabilities.filter(id=>!candidate.capabilities.includes(id));
       const change=versionOrder(candidate.version,previous.version);
-      updatePanel.hidden=false;
-      updateVersions.textContent='当前 v'+previous.version+' → 新 v'+candidate.version;
-      updateCapabilities.textContent='新增能力：'+(added.map(readableCapability).join('、')||'无')+
-        '；移除能力：'+(removed.map(readableCapability).join('、')||'无');
+      patchToolField(view, updatePanel, {hidden: false});
+      patchToolField(view, updateVersions, {textContent: '当前 v'+previous.version+' → 新 v'+candidate.version});
+      patchToolField(view, updateCapabilities, {textContent: '新增能力：'+(added.map(readableCapability).join('、')||'无')+
+        '；移除能力：'+(removed.map(readableCapability).join('、')||'无')});
       const risks=[...(change<0?['版本回退']:[]),
         ...(added.length?['申请新增能力']:[]),
         ...(change===0&&!samePackage(candidate,previous)?['相同版本的内容发生变化']:[]),
         ...(!samePackage(candidate,previous)?['将替换同 ID 的已安装代码，请核对来源；现有工具数据保留']:[])];
-      updateWarning.textContent=risks.length?'点击确认更新前请核对：'+risks.join('；')+'。':'';
-      updateWarning.hidden=!risks.length;
+      patchToolField(view, updateWarning, {textContent: risks.length?'点击确认更新前请核对：'+risks.join('；')+'。':''});
+      patchToolField(view, updateWarning, {hidden: !risks.length});
       const identical=samePackage(candidate,previous);
-      installButton.textContent=identical?'已安装相同工具':'确认更新';
-      installButton.disabled=identical;
+      patchToolField(view, installButton, {textContent: identical?'已安装相同工具':'确认更新'});
+      patchToolField(view, installButton, {disabled: identical});
       if(release&&!identical&&change<=0){
-        installButton.disabled=true;
-        updateWarning.hidden=false;
-        updateWarning.textContent='当前同 ID 安装内容与官方发行不同；官方入口禁止同版本替换或降级。原安装和数据保留。';
+        patchToolField(view, installButton, {disabled: true});
+        patchToolField(view, updateWarning, {hidden: false});
+        patchToolField(view, updateWarning, {textContent: '当前同 ID 安装内容与官方发行不同；官方入口禁止同版本替换或降级。原安装和数据保留。'});
       }
-    }else{installButton.textContent='确认安装';installButton.disabled=false;}
-    preview.hidden=false;
+    }else{patchToolField(view, installButton, {textContent: '确认安装'});patchToolField(view, installButton, {disabled: false});}
+    patchToolField(view, preview, {hidden: false});
   }
   async function reviewPagePackage(value,file,selection) {
     const pkg=await validatePageInstallPackage(value);
@@ -2330,21 +2361,21 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       throw new Error('未能核对网页增强安装状态，请重新选择文件。');
     const installed=response.installed.find(row=>row.programId===pkg.programId)||null;
     pendingPage={pkg,installed};
-    previewTitle.textContent=pkg.title;
-    previewVersion.textContent='v'+pkg.version+' · r'+pkg.revision;
-    previewDescription.textContent='网页增强 · 安装后在批准的网站自动运行。';
-    previewCapabilities.textContent='读取和修改以下网站的网页内容：'+pkg.pageRules.matches.join('、')+
+    patchToolField(view, previewTitle, {textContent: pkg.title});
+    patchToolField(view, previewVersion, {textContent: 'v'+pkg.version+' · r'+pkg.revision});
+    patchToolField(view, previewDescription, {textContent: '网页增强 · 安装后在批准的网站自动运行。'});
+    patchToolField(view, previewCapabilities, {textContent: '读取和修改以下网站的网页内容：'+pkg.pageRules.matches.join('、')+
       (pkg.pageRules.excludeMatches.length?'；排除：'+pkg.pageRules.excludeMatches.join('、'):'')+
-      '。仅在顶层网页运行，不获得侧栏或 Native 权限。';
-    previewFile.textContent='身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON');
+      '。仅在顶层网页运行，不获得侧栏或 Native 权限。'});
+    patchToolField(view, previewFile, {textContent: '身份：'+pkg.programId+'；文件：'+(file.name||'本地 JSON')});
     if(installed){
-      previewDescription.textContent=installed.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash
+      patchToolField(view, previewDescription, {textContent: installed.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash
         ?'此版本已经安装；确认后核对原安装与注册状态。'
-        :'已安装 r'+installed.revision+'；确认后按原版本规则安装此固定版本。';
-      if(installed.enabled===false)previewDescription.textContent+=' 原安装已被主动停用，将保留停用状态。';
+        :'已安装 r'+installed.revision+'；确认后按原版本规则安装此固定版本。'});
+      if(installed.enabled===false)patchToolField(view, previewDescription, {textContent: previewDescription.textContent + (' 原安装已被主动停用，将保留停用状态。')});
     }
-    installButton.textContent=installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':'确认安装';
-    installButton.disabled=false;preview.hidden=false;
+    patchToolField(view, installButton, {textContent: installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':'确认安装'});
+    patchToolField(view, installButton, {disabled: false});patchToolField(view, preview, {hidden: false});
   }
   function showPageInstallReceipt(pkg,result) {
     if(result?.programId!==pkg.programId||result.revision!==pkg.revision||result.sourceHash!==pkg.sourceHash||
@@ -2353,15 +2384,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        JSON.stringify(result.pageRules)!==JSON.stringify(pkg.pageRules))
       throw Object.assign(new Error(result?.enabled===false?'原安装仍处于停用状态，可在扩展详情主动恢复。':
         result?.error?.message||'安装尚未获得有效注册回执，请核对扩展详情。'),{code:'E_PAGE_INSTALL_PENDING'});
-    pageInstallStatus.dataset.state='installed';
-    pageInstallStatus.dataset.installationId=result.authorization.installationId;
-    pageInstallStatus.dataset.manifestHash=result.manifestHash;
-    pageInstallStatus.textContent='安装完成 · '+pkg.title+' v'+pkg.version+'（r'+pkg.revision+'）。打开或刷新批准的网站即可使用。';
-    pageInstallStatus.hidden=false;
-    pageInstallReceiptText.textContent='安装 ID：'+result.authorization.installationId+
-      '；注册：'+result.nativeState+'；固定清单 SHA-256：'+result.manifestHash;
-    pageInstallReceipt.hidden=false;
-    installButton.textContent='已安装';
+    setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'installed');
+    setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', result.authorization.installationId);
+    setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', result.manifestHash);
+    patchToolField(view, pageInstallStatus, {textContent: '安装完成 · '+pkg.title+' v'+pkg.version+'（r'+pkg.revision+'）。打开或刷新批准的网站即可使用。'});
+    patchToolField(view, pageInstallStatus, {hidden: false});
+    patchToolField(view, pageInstallReceiptText, {textContent: '安装 ID：'+result.authorization.installationId+
+      '；注册：'+result.nativeState+'；固定清单 SHA-256：'+result.manifestHash});
+    patchToolField(view, pageInstallReceipt, {hidden: false});
+    patchToolField(view, installButton, {textContent: '已安装'});
     doc.dispatchEvent(new doc.defaultView.Event('opendesk:page-installation-changed'));
   }
   async function installPagePackage(event) {
@@ -2369,9 +2400,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const reviewed=pendingPage,selection=fileSelection,{pkg,installed}=reviewed;
     // Request missing Chrome permissions synchronously from the real Install click.
     const permission=pageConsent.confirm(event,{origins:pkg.pageRules.matches});
-    busy=true;installButton.disabled=true;fileInput.disabled=true;importClose.disabled=true;
-    pageInstallStatus.textContent='正在安装并核对注册状态…';pageInstallStatus.hidden=false;
-    pageInstallStatus.dataset.state='pending';
+    busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
+    patchToolField(view, pageInstallStatus, {textContent: '正在安装并核对注册状态…'});patchToolField(view, pageInstallStatus, {hidden: false});
+    setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'pending');
     let installationRequested=false;
     try{
       await permission;
@@ -2395,18 +2426,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(result&&result.revision===pkg.revision&&result.sourceHash===pkg.sourceHash)
           readback=' 已查询到原安装 r'+result.revision+'（'+result.nativeState+'）；仍需核对本次安装结果。';
       }catch{/* Preserve the original failure; no mutation replay. */}
-      pageInstallStatus.dataset.state='pending-review';
-      pageInstallStatus.textContent=(error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
-        readback+' 请核对扩展中的安装状态；未自动重试安装。';
-      installButton.textContent='需要核对';
+      setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'pending-review');
+      patchToolField(view, pageInstallStatus, {textContent: (error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
+        readback+' 请核对扩展中的安装状态；未自动重试安装。'});
+      patchToolField(view, installButton, {textContent: '需要核对'});
     }finally{
       busy=false;
-      if(!disposed){fileInput.disabled=false;importClose.disabled=false;}
+      if(!disposed){patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});}
     }
   }
-  async function chooseFile() {
+  async function chooseFile(selectedFile) {
     if(disposed||busy)return;
-    const selection=++fileSelection,file=fileInput.files?.[0];
+    const selection=++fileSelection,file=view ? selectedFile : fileInput.files?.[0];
     // Preserve the browser's selected filename; clearing .value here lies to the user.
     resetReview();setFileError();notice('');
     if(!file)return;
@@ -2433,7 +2464,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   async function install() {
     if(!canCommitReview()||installButton.disabled)return;
-    busy=true;installButton.disabled=true;fileInput.disabled=true;importClose.disabled=true;
+    busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
     let accepted=null,officialTocInstalled=false;
     try{
       const candidate=validateSidebarToolPackage(pending),baseline=pendingBaseline;
@@ -2481,8 +2512,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(accepted)clearImport(); // A consumed approval cannot survive a failed list refresh.
       throw error;
     }finally{
-      busy=false;fileInput.disabled=false;importClose.disabled=false;
-      installButton.disabled=!canCommitReview();render();
+      busy=false;patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});
+      patchToolField(view, installButton, {disabled: !canCommitReview()});render();
     }
     if(!accepted||disposed)return;
     setImportOpen(false);setDiscoveryOpen(false);render();focusToolInList(accepted.id);
@@ -2497,11 +2528,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(active?.id===id&&toolSaving){notice('当前工具正在保存，请完成保存后再卸载。',true);return;}
     if(!confirmed){
       pendingUninstallId=id;pendingUninstallBaseline=structuredClone(item);
-      removeReviewText.textContent='卸载「'+item.title+'」将删除本工具的安装包、本地数据与网站授权。此操作无法自动撤销。';
-      removeReview.hidden=false;
-      removeReviewConfirm.disabled=false;
+      patchToolField(view, removeReviewText, {textContent: '卸载「'+item.title+'」将删除本工具的安装包、本地数据与网站授权。此操作无法自动撤销。'});
+      patchToolField(view, removeReview, {hidden: false});
+      patchToolField(view, removeReviewConfirm, {disabled: false});
       notice('');
-      removeReview.scrollIntoView?.({block:'nearest'});
+      requestToolFieldEffect(view, removeReview, 'scrollIntoView', {block:'nearest'});
       return;
     }
     if(pendingUninstallId!==id||!samePackage(pendingUninstallBaseline,item)){
@@ -2562,6 +2593,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   cancelActionReview();
   notice('');
   setDiscoveryOpen(false);
+  if(!view){
   listen(discoverToggle,'click',()=>{
     if(busy)return;
     const next=discoverPanel.hidden;
@@ -2583,6 +2615,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   const marketButton=get('sidebar-tool-market');
   if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));
+  }
   listen(importTrigger,'click',()=>{
     if(busy)return;
     const next=importPanel.hidden;
@@ -2591,9 +2624,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   listen(importClose,'click',()=>{
     if(busy)return;
-    setImportOpen(false);notice('');importTrigger.focus?.();
+    setImportOpen(false);notice('');requestToolFieldEffect(view, importTrigger, 'focus');
   });
-  listen(fileInput,'change',()=>chooseFile().catch(error=>setFileError(String(error?.message||error))));
+  listen(fileInput,'change',event=>chooseFile(event?.target?.files?.[0]).catch(error=>setFileError(String(error?.message||error))));
   listen(fileInput,'cancel',()=>{if(!busy)clearImport();});
   listen(installButton,'click',event=>{
     if(pendingPage){void installPagePackage(event);return;}
@@ -2601,7 +2634,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   listen(backButton,'click',()=>{
     if(busy)return;
-    if(tocSettingsOpen){closePromptSettings();settingsButton.focus?.({preventScroll:true});return;}
+    if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});return;}
     const id=active?.id;
     if(closeTool())focusToolInList(id);
   });
@@ -2653,7 +2686,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const grant=menuGrants?.[tool.id];
     const hadConsent=grant?.bookmarkFull===true&&grant.version===tool.version&&grant.installEpoch===epoch;
     const permission=hadConsent?Promise.resolve(true):api.permissions.request({permissions:['bookmarks']});
-    fullBookmarkButton.disabled=true;
+    patchToolField(view,fullBookmarkButton,{disabled:true});
     void (async()=>{
       if(await permission!==true)throw Object.assign(new Error('未授予 Chrome 全部书签权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
       if(disposed||!active||!samePackage(active,tool)||
@@ -2748,11 +2781,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       return;
     }
     if(active.id===PROMPT_ID){
-      if(tocSettingsOpen){closePromptSettings();settingsButton.focus?.({preventScroll:true});return;}
+      if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, settingsButton, 'focus', {preventScroll:true});return;}
       if(toolDirty||toolSaving){notice('请先保存或取消未保存的提示词草稿，再打开工具设置。',true);return;}
-      tocSettingsOpen=true;tocScope='site';refreshPromptSettings(active);backButton.focus?.({preventScroll:true});return;
+      tocSettingsOpen=true;tocScope='site';refreshPromptSettings(active);requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;
     }
-    tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();backButton.focus?.({preventScroll:true});
+    tocSettingsOpen=!tocSettingsOpen;tocScope='site';render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
   });
   listen(settingsScopeButton,'click',()=>{tocScope=tocScope==='site'?'page':'site';render();});
   const setSitePermission=allowed=>{
@@ -2822,7 +2855,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
   listen(removeReviewCancel,'click',()=>{
     cancelRemovalReview();notice('已取消卸载。');
-    removeButton.focus?.({preventScroll:true});
+    requestToolFieldEffect(view, removeButton, 'focus', {preventScroll:true});
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);
@@ -2881,7 +2914,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(disposed||active?.id!==READING_TOC_TOOL_ID||!localeController?.setLocale)return;
       const requested=tocLanguageSelect.value;
       void Promise.resolve().then(()=>localeController.setLocale(requested)).catch(error=>{
-        tocLanguageSelect.value=resolveUiLocale(localeController.getLocale(),['zh-CN','en'],'zh-CN');
+        patchToolField(view, tocLanguageSelect, {value: resolveUiLocale(localeController.getLocale(),['zh-CN','en'],'zh-CN')});
         notice(readingTocHostText(localeController.getLocale(),'languageSaveError')+
           String(error?.message||error),true);
       });

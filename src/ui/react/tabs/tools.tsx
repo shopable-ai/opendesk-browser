@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {createPortal} from 'react-dom';
 import {Button,IconButton} from '../components/ui/button.tsx';
 
 // Sole owner of extension-center-list children. All actions delegate to the
@@ -13,7 +14,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}
         aria-label={label+'「'+row.title+'」'} title={label+'「'+row.title+'」'}
-        onClick={()=>onOpenRow(row.key)}>
+        onClick={event=>onOpenRow(row.key,event.nativeEvent)}>
         <span className="ec-glyph" aria-hidden="true">{row.kind==='page'?'◇':'▦'}</span>
         <span className="ec-copy">
           <span className="ec-name-line">
@@ -30,25 +31,24 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
           data-extension-key={row.key} data-extension-action="primary"
           aria-label={row.primaryAction+'「'+row.title+'」'}
           title={row.primaryAction+'「'+row.title+'」'}
-          onClick={()=>onOpenRow(row.key)}>{row.primaryAction}</Button>}
+          onClick={event=>onOpenRow(row.key,event.nativeEvent)}>{row.primaryAction}</Button>}
         {row.installed&&<IconButton className="ec-row-more" disabled={busy}
           label={'管理「'+row.title+'」'} data-extension-key={row.key}
           data-extension-action="more" aria-haspopup="menu"
           aria-expanded={menuKey===row.key} aria-controls="extension-center-row-menu"
-          onClick={event=>onMore(row.key,event.currentTarget)}>⋮</IconButton>}
+          onClick={event=>onMore(row.key,event.currentTarget,event.nativeEvent)}>⋮</IconButton>}
       </span>
     </li>;
   });
 }
 
  
-// Extension Detail uses a Portal within the same trusted React root; the
-// parent back button, selection epoch and permission checks remain with the
-// existing Extension Center controller.
+// Detail actions retain the originating native event. Identity and permission
+// checks remain with the existing Extension Center controller.
 export function ExtensionDetail({model,container}){
   React.useLayoutEffect(()=>{
     if(!model||model.busy||!model.focusAction)return;
-    const target=[...container.querySelectorAll('button[data-ec-detail-action]')]
+    const target=[...(container?.querySelectorAll('button[data-ec-detail-action]')||[])]
       .find(node=>node.dataset.ecDetailAction===model.focusAction);
     target?.focus?.({preventScroll:true});
   },[model,container]);
@@ -64,7 +64,7 @@ export function ExtensionDetail({model,container}){
     <div className="ec-detail-actions">
       {model.actions.map(action=><Button key={action.id} disabled={model.busy}
         data-ec-detail-action={action.id}
-        onClick={action.onClick}>{action.label}</Button>)}
+        onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>)}
     </div>
     <section className="ec-detail-card">
       <h3>安装与来源</h3>
@@ -101,10 +101,10 @@ export function ExtensionToolbar({model}){
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
       <input id="extension-center-search" type="search" placeholder="搜索当前列表"
         autoComplete="off" value={current.query||''}
-        onChange={event=>current.onSearch?.(event.currentTarget.value)}/>
+        onChange={event=>current.onSearch?.(event.currentTarget.value,event.nativeEvent)}/>
     </label>
     <IconButton id="extension-center-market" className="ec-icon" label="在新标签页打开应用市场"
-      onClick={()=>current.onMarket?.()}>
+      onClick={event=>current.onMarket?.(event.nativeEvent)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>
     </IconButton>
     <div id="extension-center-menu-wrap" className="ec-menu-wrap">
@@ -112,7 +112,7 @@ export function ExtensionToolbar({model}){
         title="扩展筛选与更多操作" aria-haspopup="true"
         aria-expanded={menuOpen} aria-controls="extension-center-menu"
         data-active={String(kind!=='all'||scope!=='smart')}
-        onClick={()=>current.onToggleMenu?.()}>
+        onClick={event=>current.onToggleMenu?.(event.nativeEvent)}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
       </IconButton>
       <div id="extension-center-menu" className="ec-more" role="group"
@@ -120,28 +120,28 @@ export function ExtensionToolbar({model}){
         <fieldset><legend>类型</legend><div className="ec-filter-group">
           {[[ 'all','全部'],['app','应用'],['page','网页增强']].map(([value,label])=>
             <button key={value} type="button" data-ec-kind={value}
-              aria-pressed={kind===value} onClick={()=>current.onKind?.(value)}>{label}</button>)}
+              aria-pressed={kind===value} onClick={event=>current.onKind?.(value,event.nativeEvent)}>{label}</button>)}
         </div></fieldset>
         <fieldset className="ec-language"><legend>OpenDesk 界面语言</legend>
           <label htmlFor="extension-center-language" className="visually-hidden">界面语言</label>
           <select id="extension-center-language" aria-label="OpenDesk 界面语言"
             value={current.language||'zh-CN'}
-            onChange={event=>current.onLanguage?.(event.currentTarget.value)}>
+            onChange={event=>current.onLanguage?.(event.currentTarget.value,event.nativeEvent)}>
             <option value="zh-CN">简体中文</option><option value="en">English</option>
           </select>
         </fieldset>
         <fieldset><legend>显示范围</legend><div className="ec-filter-group">
           {[[ 'smart','已安装'],['available','可安装 / 更新']].map(([value,label])=>
             <button key={value} type="button" data-ec-scope={value}
-              aria-pressed={scope===value} onClick={()=>current.onScope?.(value)}>{label}</button>)}
+              aria-pressed={scope===value} onClick={event=>current.onScope?.(value,event.nativeEvent)}>{label}</button>)}
         </div></fieldset>
         <button id="extension-center-reset" className="ec-menu-action" type="button"
-          onClick={()=>current.onReset?.()}>恢复默认筛选</button>
+          onClick={event=>current.onReset?.(event.nativeEvent)}>恢复默认筛选</button>
         <div className="ec-menu-separator">
           <button id="extension-center-import" className="ec-menu-action" type="button"
-            onClick={()=>current.onImport?.()}>导入本地工具包</button>
+            onClick={event=>current.onImport?.(event.nativeEvent)}>导入本地工具包</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"
-            onClick={()=>current.onReload?.()}>刷新扩展</button>
+            onClick={event=>current.onReload?.(event.nativeEvent)}>刷新扩展</button>
         </div>
       </div>
     </div>
@@ -164,7 +164,7 @@ export function ExtensionRecoveries({model}){
     {ids.map(id=><p key={id}>
       {id+' · 卸载清理待恢复'}
       <Button disabled={Boolean(model.busy)} aria-label={'恢复「'+id+'」的卸载清理'}
-        onClick={event=>model.onRetry?.(id,event)}>恢复清理</Button>
+        onClick={event=>model.onRetry?.(id,event.nativeEvent)}>恢复清理</Button>
     </p>)}
   </>;
 }
@@ -174,16 +174,53 @@ export function ExtensionStatus({model}){
 }
 
  
-// React owns each inline menu item, while the original Extension Center owns
-// positioning, keyboard focus, package identity and privileged Host actions.
-// Native click is forwarded synchronously so isTrusted remains meaningful.
-export function ExtensionRowMenu({items=[]}){
-  return items.map(item=><button type="button" key={item.id}
-    className="ec-context-action" role="menuitem"
-    data-ec-context-action={item.id}
+// One React-owned menu, including its host, placement and listener lifetime.
+// The portal remains part of this page/root and escapes the clipped list.
+export function ExtensionRowMenu({items=[],model=null}){
+  const ref=React.useRef(null);
+  React.useLayoutEffect(()=>{
+    const menu=ref.current,trigger=model?.trigger;
+    if(!menu||!trigger)return;
+    const doc=trigger.ownerDocument,view=doc.defaultView;
+    const rect=trigger.getBoundingClientRect();
+    const screenW=view?.innerWidth||doc.documentElement.clientWidth;
+    const screenH=view?.innerHeight||doc.documentElement.clientHeight;
+    const width=menu.offsetWidth,height=menu.offsetHeight,gutter=8;
+    menu.style.left=Math.max(gutter,Math.min(rect.right-width,screenW-width-gutter))+'px';
+    menu.style.top=(rect.bottom+height+gutter<=screenH?rect.bottom+3:
+      Math.max(gutter,rect.top-height-3))+'px';
+    menu.querySelector('button')?.focus({preventScroll:true});
+    const clickOutside=event=>{
+      if(!menu.contains(event.target)&&!trigger.contains(event.target))model.onClose?.(false);
+    };
+    const keyDown=event=>{
+      if(event.key==='Escape'){
+        event.preventDefault();model.onClose?.(true);return;
+      }
+      if(!menu.contains(doc.activeElement))return;
+      if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+        event.preventDefault();
+        const buttons=[...menu.querySelectorAll('button')],index=buttons.indexOf(doc.activeElement);
+        const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
+          (index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
+        buttons[next]?.focus({preventScroll:true});
+      }else if(event.key==='Tab')model.onClose?.(true);
+    };
+    const scroll=event=>{if(!menu.contains(event.target))model.onClose?.(false);};
+    doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
+    doc.addEventListener('scroll',scroll,true);
+    return ()=>{
+      doc.removeEventListener('click',clickOutside);doc.removeEventListener('keydown',keyDown);
+      doc.removeEventListener('scroll',scroll,true);
+    };
+  },[model]);
+  const buttons=(model?.items||items).map(item=><button type="button" key={item.id}
+    className="ec-context-action" role="menuitem" data-ec-context-action={item.id}
     onClick={event=>item.onClick?.(event.nativeEvent)}>{item.label}</button>);
+  if(!model)return buttons;
+  return createPortal(<div ref={ref} id="extension-center-row-menu" className="ec-context-menu"
+    role="menu" aria-label={'管理「'+model.title+'」'}>{buttons}</div>,model.trigger.ownerDocument.body);
 }
-
 
 // React owns the complete Extension Center presentation within one subtree.
 // The pre-existing Installer is mounted into one explicit host-owned slot;
@@ -191,11 +228,27 @@ export function ExtensionRowMenu({items=[]}){
 export function ExtensionCenterPage({
   rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
   toolbarModel=null,detailModel=null,feedbackModel=null,recoveryModel=null,
-  statusModel=null,menuKey=null,view='list',onBack=()=>{},detailContainer=null
+  statusModel=null,menuKey=null,rowMenuModel=null,view='list',onBack=()=>{}
 }){
   const detailVisible=view==='detail';
+  const detailRef=React.useRef(null),pageRef=React.useRef(null);
+  React.useEffect(()=>{
+    const doc=pageRef.current?.ownerDocument;
+    if(!doc)return;
+    const clickOutside=event=>{
+      if(toolbarModel?.menuOpen&&!doc.getElementById('extension-center-menu-wrap')?.contains(event.target))
+        toolbarModel.onCloseMenu?.(false);
+    };
+    const keyDown=event=>{
+      if(event.defaultPrevented||event.key!=='Escape')return;
+      if(toolbarModel?.menuOpen){event.preventDefault();toolbarModel.onCloseMenu?.(true);}
+      else if(detailVisible){event.preventDefault();onBack(event);}
+    };
+    doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
+    return ()=>{doc.removeEventListener('click',clickOutside);doc.removeEventListener('keydown',keyDown);};
+  },[toolbarModel,detailVisible,onBack]);
   return <>
-    <div id="extension-center-list-view" hidden={detailVisible}>
+    <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible}>
       <div className="ec-toolbar"><ExtensionToolbar model={toolbarModel}/></div>
       <div id="extension-center-import-host"></div>
       <span id="extension-center-count" className="visually-hidden" aria-live="polite">
@@ -216,11 +269,12 @@ export function ExtensionCenterPage({
     <section id="extension-center-detail" className="ec-detail" aria-label="扩展详情"
       hidden={!detailVisible}>
       <button id="extension-center-back" className="ec-detail-back" type="button"
-        onClick={onBack}>← 返回列表</button>
-      <div id="extension-center-detail-body">
-        <ExtensionDetail model={detailModel} container={detailContainer}/>
+        onClick={event=>onBack(event.nativeEvent)}>← 返回列表</button>
+      <div ref={detailRef} id="extension-center-detail-body">
+        <ExtensionDetail model={detailModel} container={detailRef.current}/>
       </div>
     </section>
+    {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}
     <p id="extension-center-status" className="ec-message" role="status"
       aria-live="polite" data-state={statusModel?.state||'info'}>
       <ExtensionStatus model={statusModel}/>

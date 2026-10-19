@@ -47,10 +47,13 @@ test('R23 trusted Workspace and Settings each expose one language chooser withou
   const settings=await readFile('src/native-agent/settings.html','utf8');
   const bootstrap=await readFile('src/native-agent/settings.js','utf8');
   const controller=await readFile('src/native-agent/workspace.js','utf8');
-  assert.equal((workspace.match(/id="workspace-locale"/g)||[]).length,1);
+  const view=await readFile('src/ui/react/workspace/WorkspaceView.tsx','utf8');
+  assert.equal((workspace.match(/id="workspace-root"/g)||[]).length,1);
+  assert.doesNotMatch(workspace,/id="(?:file-editor|file-list|workspace-locale)"/);
+  assert.equal((view.match(/id="workspace-locale"/g)||[]).length,1);
   assert.equal((settings.match(/id="settings-locale"/g)||[]).length,1);
   assert.match(bootstrap,/initTrustedPageLocale/);
-  assert.match(controller,/formatFileSize\(count\)/);
+  assert.match(controller,/formatFileSize\(/);
   assert.match(controller,/assertAuthority\(authority\)/);
   assert.match(controller,/expectedSha256:record.sha256/);
   // R23.1 moved the ACK identity/SHA guard into the pure Native domain.
@@ -68,11 +71,12 @@ test('R23 trusted Workspace and Settings each expose one language chooser withou
 
 test('R23 language option labels are registry-owned and adding a new locale never edits Workspace HTML',async()=>{
   const {readFile}=await import('node:fs/promises');
-  for(const path of ['src/native-agent/workspace.html','src/native-agent/settings.html']){
-    const html=await readFile(path,'utf8');
-    assert.match(html,/<select id="(?:workspace|settings)-locale"[^>]*><option value="auto">浏览器语言<\/option><\/select>/);
-    assert.doesNotMatch(html,/<option value="en">English<\/option>/);
-  }
+  const settings=await readFile('src/native-agent/settings.html','utf8');
+  assert.match(settings,/<select id="settings-locale"[^>]*><option value="auto">浏览器语言<\/option><\/select>/);
+  const view=await readFile('src/ui/react/workspace/WorkspaceView.tsx','utf8');
+  assert.match(view,/SUPPORTED_LOCALES\.map/);
+  assert.match(view,/LOCALE_NAMES\[/);
+  assert.doesNotMatch(view,/<option value="en">English<\/option>/);
   const code=await readFile('src/i18n/index.js','utf8');
   assert.match(code,/SUPPORTED_LOCALES\.map\(id=>\[id,LOCALE_NAMES\[id\]\]\)/);
 });

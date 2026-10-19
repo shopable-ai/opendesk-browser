@@ -13,58 +13,37 @@ export function MyTaskDetail({value=''}) {
     })}
   </div>;
 }
-export function MyTaskRows({rows=[],selectedId='',workspace=null,emptyText='',onSelect,
-  manageMode=false,onManage}) {
+export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
+  manageMode=false,onManage,renderWorkspace,workspace=null}) {
   const [expandedTaskId,setExpandedTaskId]=React.useState(selectedId);
   const previousSelection=React.useRef(selectedId);
-  const selectedGroup=React.useRef(null),fallback=React.useRef(null);
-  // The selected card can be removed by uninstall or filtering. React detaches
-  // its ref before deleting the row: rescue the SAME live DOM-owned form first,
-  // so TaskWorkbench listeners, drafts and history are never destroyed.
-  const protectWorkspace=React.useCallback(node=>{
-    if(node){selectedGroup.current=node;return;}
-    const previous=selectedGroup.current;
-    if(previous&&workspace?.parentNode===previous&&fallback.current)
-      fallback.current.append(workspace);
-    selectedGroup.current=null;
-  },[workspace]);
-  // An external TaskWorkbench selection opens the details. Re-clicking an
-  // already selected row only changes UI state; it cannot reset RunHost data.
+  const rowsRef=React.useRef(null),returnFocus=React.useRef(null);
   React.useLayoutEffect(()=>{
     if(previousSelection.current!==selectedId){
-      previousSelection.current=selectedId;
-      setExpandedTaskId(selectedId);
+      previousSelection.current=selectedId;setExpandedTaskId(selectedId);
     }
   },[selectedId]);
-  React.useEffect(()=>{
-    if(manageMode&&selectedId)setExpandedTaskId(selectedId);
-  },[manageMode,selectedId]);
-  const expanded=expandedTaskId===selectedId?expandedTaskId:'';
-  // Relocate the SAME live form: never remount controls, lose undo/IME or
-  // replace their original listeners and TaskWorkbench data ownership.
+  React.useEffect(()=>{if(manageMode&&selectedId)setExpandedTaskId(selectedId);},[manageMode,selectedId]);
+  const selected=rows.some(row=>row.taskId===selectedId),expanded=expandedTaskId===selectedId&&selected;
+  // Keep ONE React workspace mounted across selection/filter/collapse, retaining
+  // IME, form controls and disclosure state; only its visibility changes.
   React.useLayoutEffect(()=>{
-    if(!workspace)return;
-    const selected=selectedGroup.current,holder=selected||fallback.current;
-    // React may insert a management button after the borrowed workspace.
-    // Keep the native workspace LAST and the management button next to the
-    // task row, in visual AND keyboard order, without remounting any field.
-    if(holder&&(workspace.parentNode!==holder||(selected&&holder.lastElementChild!==workspace)))
-      holder.append(workspace);
-    workspace.hidden=!selected;
-  },[rows,selectedId,expanded,workspace,manageMode]);
-  return <>
+    if(!expanded&&returnFocus.current){
+      [...rowsRef.current?.querySelectorAll('[data-task-id]')||[]].find(node=>node.dataset.taskId===selectedId)?.focus({preventScroll:true});
+      returnFocus.current=null;
+    }
+  },[expanded,selectedId]);
+  return <div ref={rowsRef}>
     {rows.length===0&&<p className="task-search-empty">{emptyText}</p>}
     {rows.map(row=><div key={row.taskId}
       className={'task-card-group'+(row.taskId===selectedId?' selected':'')}
-      data-management={manageMode?'true':undefined}
-      ref={row.taskId===expanded?protectWorkspace:null}>
+      data-management={manageMode?'true':undefined}>
       <button type="button" className="task-card" data-task-id={row.taskId}
-        aria-pressed={row.taskId===selectedId} aria-expanded={row.taskId===expanded}
+        aria-pressed={row.taskId===selectedId} aria-expanded={row.taskId===selectedId&&expanded}
         aria-controls="task-selected-workspace"
         onClick={event=>{
           if(!event.nativeEvent?.isTrusted)return;
-          if(row.taskId===selectedId)
-            setExpandedTaskId(current=>current===row.taskId?'':row.taskId);
+          if(row.taskId===selectedId)setExpandedTaskId(current=>current===row.taskId?'':row.taskId);
           else {setExpandedTaskId(row.taskId);onSelect?.(row.taskId);}
         }}>
         <span className="task-card-icon" aria-hidden="true">{String(row.title||row.taskId).slice(0,1).toUpperCase()}</span>
@@ -75,13 +54,16 @@ export function MyTaskRows({rows=[],selectedId='',workspace=null,emptyText='',on
         aria-label={'管理「'+row.title+'」'} title={'管理「'+row.title+'」'}
         onClick={event=>{
           if(!event.nativeEvent?.isTrusted)return;
-          setExpandedTaskId(row.taskId);
-          onManage?.(row.taskId);
+          setExpandedTaskId(row.taskId);onManage?.(row.taskId);
         }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"/>
           <circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/></svg>
       </button>}
     </div>)}
-    <div ref={fallback} hidden aria-hidden="true"/>
-  </>;
+    <div hidden={!expanded} onFocusCapture={event=>{returnFocus.current=event.target;}}>
+      {renderWorkspace?.()||(React.isValidElement(workspace)?workspace:null)}
+    </div>
+  </div>;
 }
+
+export {MyTasksPage,MyTasksDock} from './my-page.tsx';

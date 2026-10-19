@@ -9,6 +9,8 @@ import {hashPageProgramManifest,validatePageProgramManifest,verifyPageProgramSou
 import {invariant} from '../../src/platform/protocol.js';
 import {validateProgramDraft} from '../../src/ui/program-source.js';
 import {describeDependencyManifest} from '../../src/scripting/user-scripts/dependency-manager.js';
+import {preparePageCandidateDraft,validatePageCandidateAuthoring} from '../../src/ui/page-candidate-source.js';
+import {digestUtf8} from '../../src/platform/protocol.js';
 globalThis.crypto ||= webcrypto;
 const source=['// ==UserScript==','// @name Candidate fixture','// @match https://example.com/*',
   '// @run-at document-idle','// @noframes','// ==/UserScript==',
@@ -16,6 +18,124 @@ const source=['// ==UserScript==','// @name Candidate fixture','// @match https:
 const request={programId:'page-fixture',revision:1,sourceUtf8:source,entryFormat:'classic-userscript',
   importSourceUrl:null,lockId:null};
 const fails=(fn,code)=>assert.rejects(fn,e=>e.code===code,'Expected '+code);
+
+const componentInput=framework=>preparePageCandidateDraft({
+  programId:'component-'+framework,revision:1,entryFormat:'async-main',lockId:null,
+  previewUrl:'https://example.com/demo',componentMode:framework,
+  sourceUtf8:`async function main(){return "frozen-${framework}-execution";}`,
+  authoringSourceUtf8:framework==='react'
+    ? 'export default function App(){return <p>作者 JSX</p>;}'
+    : '<template><p>作者 SFC</p></template><script setup>const value=1;</script>'
+}).request;
+for(const framework of ['react','vue'])test(`${framework} authoring survives the real Candidate repository without becoming execution or compilation proof`,async()=>{
+  const f=setup(),input=componentInput(framework);
+  const saved=await f.manager.importPageCandidate(input,f.a);
+  const restored=await f.manager.getPageCandidate({programId:input.programId,revision:1},f.a);
+  const expected={...input.authoring,authorSourceHash:await digestUtf8(input.authoring.sourceUtf8),
+    sourceHash:await digestUtf8(input.sourceUtf8)};
+  assert.equal(restored.candidateId,saved.candidateId);
+  assert.equal(restored.sourceUtf8,input.sourceUtf8);
+  assert.deepEqual(restored.authoring,expected);
+  assert.equal(restored.authoring.sourceHash,restored.manifest.sourceHash);
+  assert.deepEqual(await validatePageCandidateAuthoring(restored),restored.authoring);
+  assert.equal(Object.hasOwn(restored,'authorSourceUtf8'),false);
+  for(const key of ['authoring','compilation','verification'])assert.equal(Object.hasOwn(restored.manifest,key),false);
+  const internal=await f.manager.readStoredPageCandidate('tool:one',input.programId,1);
+  assert.deepEqual(internal.candidate.authoring,restored.authoring);
+  assert.equal(internal.candidate.verification,null);
+  const resolution=await f.manager.loadForExecution({sourceUtf8:restored.sourceUtf8,entryFormat:'async-main',lockId:null},f.a);
+  await verifyPageProgramSource({manifest:restored.manifest,sourceUtf8:restored.sourceUtf8,dependencyResolution:resolution});
+  await fails(()=>f.manager.getPageCandidate({programId:input.programId,revision:1},f.b),'E_PAGE_CANDIDATE');
+  restored.authoring.sourceUtf8='caller changed its returned copy';
+  assert.deepEqual((await f.manager.getPageCandidate({programId:input.programId,revision:1},f.a)).authoring,expected);
+});
+
+test('existing ESM Candidate author source remains on its original compilation identity',async()=>{
+  const f=setup(),input={programId:'existing-esm',revision:1,entryFormat:'async-main',lockId:null,
+    sourceUtf8:'async function main(){return 42;}',authorSourceUtf8:'export default async function main(){return 42;}',
+    authorLockId:null,compilerVersion:'7.29.9'};
+  await f.manager.importPageCandidate(input,f.a);
+  const stored=await f.manager.getPageCandidate({programId:input.programId,revision:1},f.a);
+  assert.equal(stored.authorSourceUtf8,input.authorSourceUtf8);
+  assert.equal(stored.sourceUtf8,input.sourceUtf8);
+  assert.equal(stored.manifest.compilation.sourceFormat,'esm-page');
+  assert.equal(stored.manifest.compilation.authorSourceHash,await digestUtf8(input.authorSourceUtf8));
+  assert.equal(Object.hasOwn(stored,'authoring'),false);
+  assert.equal(await validatePageCandidateAuthoring(stored),null);
+});
+
+test('component revision is immutable across author text, framework and attachment presence',async()=>{
+  const f=setup(),input=componentInput('react');
+  const saved=await f.manager.importPageCandidate(input,f.a);
+  assert.deepEqual(await f.manager.importPageCandidate(input,f.a),saved);
+  for(const authoring of [
+    {...input.authoring,sourceUtf8:input.authoring.sourceUtf8+'\n// changed'},
+    {...input.authoring,framework:'vue'}
+  ])await fails(()=>f.manager.importPageCandidate({...input,authoring},f.a),'E_REQUEST_CONFLICT');
+  const {authoring,...withoutAttachment}=input;
+  await fails(()=>f.manager.importPageCandidate(withoutAttachment,f.a),'E_REQUEST_CONFLICT');
+  const second=setup();
+  await second.manager.importPageCandidate(withoutAttachment,second.a);
+  await fails(()=>second.manager.importPageCandidate(input,second.a),'E_REQUEST_CONFLICT');
+  assert.equal(f.rows().size,1);
+});
+
+test('repository snapshots component attachment before awaiting and derives hashes itself',async()=>{
+  const f=setup(),input=structuredClone(componentInput('vue')),original=structuredClone(input);
+  const pending=f.manager.importPageCandidate(input,f.a);
+  input.authoring.framework='react';input.authoring.sourceUtf8='changed during save';input.sourceUtf8+='// changed';
+  await pending;
+  const stored=await f.manager.getPageCandidate({programId:original.programId,revision:1},f.a);
+  assert.equal(stored.sourceUtf8,original.sourceUtf8);
+  assert.equal(stored.authoring.sourceUtf8,original.authoring.sourceUtf8);
+  assert.equal(stored.authoring.framework,'vue');
+  assert.equal(stored.authoring.sourceHash,await digestUtf8(original.sourceUtf8));
+});
+
+test('invalid component metadata or compiler/grant claims cannot enter the repository',async()=>{
+  const input=componentInput('react');
+  for(const authoring of [undefined,null,[],{},
+    {...input.authoring,framework:'esm-page'}, {...input.authoring,framework:'javascript'},
+    {...input.authoring,sourceUtf8:''},{...input.authoring,sourceUtf8:'中'.repeat(43691)},
+    {...input.authoring,sourceHash:'0'.repeat(64)}, {...input.authoring,authorSourceHash:'0'.repeat(64)},
+    {...input.authoring,compilerVersion:'7.29.9'}, {...input.authoring,verification:{ok:true}}
+  ]){
+    const f=setup();
+    await fails(()=>f.manager.importPageCandidate({...input,authoring},f.a),'E_PAGE_AUTHORING');
+    assert.equal(f.rows().size,0);
+  }
+  for(const patch of [{entryFormat:'classic-userscript'}, {authorSourceUtf8:'export default async function main(){}'},
+    {authorLockId:null},{compilerVersion:'7.29.9'}]){
+    const f=setup();
+    await fails(()=>f.manager.importPageCandidate({...input,...patch},f.a),'E_PAGE_AUTHORING');
+    assert.equal(f.rows().size,0);
+  }
+});
+
+test('stored component metadata tampering is rejected by public and internal repository readers',async()=>{
+  const variants=[
+    [row=>{row.authoring.sourceUtf8+='\n// tamper';},'E_SOURCE_HASH'],
+    [row=>{row.authoring.authorSourceHash='0'.repeat(64);},'E_SOURCE_HASH'],
+    [row=>{row.authoring.sourceHash='0'.repeat(64);},'E_SOURCE_HASH'],
+    [row=>{row.authoring.framework='vue';},'E_HASH'],
+    [row=>{row.authoring.framework='esm-page';},'E_PAGE_AUTHORING'],
+    [row=>{row.authoring.compiled=true;},'E_PAGE_AUTHORING'],
+    [row=>{delete row.authoring;},'E_HASH'],
+    [row=>{row.authoring=null;},'E_PAGE_AUTHORING'],
+    [async row=>{row.authoring.sourceUtf8+='\n// tamper';
+      row.authoring.authorSourceHash=await digestUtf8(row.authoring.sourceUtf8);},'E_HASH'],
+    [async row=>{row.sourceUtf8+='\n// tamper';row.manifest.sourceHash=await digestUtf8(row.sourceUtf8);
+      row.manifestHash=await hashPageProgramManifest(row.manifest);},'E_SOURCE_HASH']
+  ];
+  for(const [tamper,code] of variants){
+    const f=setup(),input=componentInput('react');
+    await f.manager.importPageCandidate(input,f.a);
+    await tamper([...f.rows().values()].find(row=>row.tag==='page-candidate-v1'));
+    await fails(()=>f.manager.getPageCandidate({programId:input.programId,revision:1},f.a),code);
+    await fails(()=>f.manager.readStoredPageCandidate('tool:one',input.programId,1),code);
+  }
+});
+
 function setup(){
   let data=new Map([['frameworkKV',new Map()],['commandJournal',new Map()]]);
   const hosts={

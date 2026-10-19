@@ -66,18 +66,6 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.doesNotMatch(main,/createPortal\(<ExtensionRecoveries/);
   assert.doesNotMatch(main,/createPortal\(<ExtensionEmpty/);
   assert.doesNotMatch(main,/createPortal\(<ExtensionStatus/);
-  assert.match(main,/createPortal\(\s*<DeveloperTargetText/);
-  assert.match(main,/developerTargetMounted/);
-  assert.match(main,/renderDeveloperTarget\(next\)/);
-  assert.match(main,/createPortal\(\s*<DeveloperActions/);
-  assert.match(main,/renderDeveloperActions\(next\)/);
-  assert.match(main,/createPortal\(\s*<DeveloperFramework/);
-  assert.match(main,/renderDeveloperFramework\(next\)/);
-  assert.match(main,/createPortal\(\s*<DeveloperRunStatus/);
-  assert.match(main,/renderDeveloperStatus\(next\)/);
-  assert.match(main,/renderDeveloperResult\(next\)/);
-  assert.match(main,/createPortal\(\s*<DeveloperResultText/);
-  assert.match(main,/developerRunStatus\.replaceChildren\(\)/);
   assert.match(main,/node\.replaceChildren\(\)/);
   assert.match(main,/renderFeedback\(next\)/);
   assert.match(center,/extensionList\.renderFeedback\(/);
@@ -86,26 +74,6 @@ test('R33.3 single DOM child owner and original privileged operations',async()=>
   assert.match(center,/extensionList\.renderRowMenu\(menuItems\)/);
   assert.match(center,/if\(extensionList\)\{menuItems\.push\(/);
   assert.match(center,/extensionList\.renderStatus\(/);
-  const [shell,scriptEditor]=await Promise.all([
-    read('src/ui/tool-shell.js'),read('src/ui/script-editor.js')
-  ]);
-  assert.match(shell,/scriptEditor\.connectReactDeveloperResult\(/);
-  assert.match(scriptEditor,/connectReactDeveloperResult\(render\)/);
-  assert.match(scriptEditor,/if\(reactDeveloperResult\)reactDeveloperResult\(/);
-  assert.doesNotMatch(scriptEditor,/\b(?:output|resultKind)\.textContent\s*=(?!=)/);
-  assert.match(shell,/scriptEditor\.connectReactDeveloperTarget\(/);
-  assert.match(scriptEditor,/connectReactDeveloperTarget\(render\)/);
-  assert.match(shell,/scriptEditor\.connectReactDeveloperActions\(/);
-  assert.match(scriptEditor,/connectReactDeveloperActions\(render\)/);
-  assert.match(shell,/scriptEditor\.connectReactDeveloperFramework\(/);
-  assert.match(scriptEditor,/connectReactDeveloperFramework\(render\)/);
-  assert.match(shell,/scriptEditor\.connectReactDeveloperStatus\(/);
-  assert.match(scriptEditor,/connectReactDeveloperStatus\(render\)/);
-  assert.match(scriptEditor,/if\(reactDeveloperStatus\)reactDeveloperStatus\(/);
-  assert.match(scriptEditor,/chooseComponentMode\(next\)/);
-  assert.match(scriptEditor,/entry\.element\.removeEventListener/);
-  assert.match(scriptEditor,/onRun:start,onSave:saveClick/);
-  assert.match(scriptEditor,/if\(reactDeveloperTarget\)reactDeveloperTarget\(ui\)/);
   assert.doesNotMatch(main,/createRoot\(container\)|createRoot\(detailContainer\)/);
   assert.match(main,/root\.unmount\(\)/);
   assert.match(main,/flushSync/);

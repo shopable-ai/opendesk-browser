@@ -22,15 +22,16 @@ export function createWorkspaceDraft(read){
   return {...read,baseContent:read.content,unknown:false,remote:null};
 }
 
-export function reconcileWorkspaceRead(record,disk){
+export function reconcileWorkspaceRead(record,disk,{preserveDraft=false}={}){
   // Never allow a late response from another file or authorization to replace
   // the user's in-memory draft. The controller separately checks session/lease.
   if(!record||!disk||record.workspaceId!==disk.workspaceId||record.path!==disk.path)
     fail('E_FILES_SESSION','磁盘回包属于另一工作区或文件，原草稿已保留。');
-  if(isDirtyWorkspaceDraft(record)&&disk.sha256===record.sha256)
+  const keepDraft=preserveDraft||isDirtyWorkspaceDraft(record);
+  if(keepDraft&&disk.sha256===record.sha256)
     return {kind:'unchanged',record:{...record,authority:disk.authority,unknown:false,remote:null}};
-  if(isDirtyWorkspaceDraft(record)&&disk.content!==record.content)
-    return {kind:'conflict',record:{...record,remote:disk,unknown:false}};
+  if(keepDraft&&disk.content!==record.content)
+    return {kind:'conflict',record:{...record,authority:disk.authority,remote:disk,unknown:false}};
   return {kind:'accepted',record:{...record,...disk,baseContent:disk.content,remote:null,unknown:false}};
 }
 

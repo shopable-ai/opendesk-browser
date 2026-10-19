@@ -1,32 +1,40 @@
 import * as React from 'react';
+import {CloudTaskAuthorization} from './cloud-authorization.tsx';
+import {CloudPairingSettings,CloudClientCredentials} from './cloud-settings.tsx';
 // Pure escaped text: CloudHosting keeps the only read/claim/authority/revoke owner.
 export function CloudOverviewText({value=''}) {return <>{String(value??'')}</>;}
 
 
-// React owns the Cloud tab header and connection overview. The existing Cloud
-// Host is still the ONLY authority for pairing, approval, task selection,
-// remote requests and stop/revoke. Its mutable forms/lists are adopted intact
-// below the React-owned overview until their controllers expose action/snapshot
-// contracts. Do not import Host/SDK or run user code inside this component.
-export function CloudConnectionPage({model={},requestsModel={},legacySections=[],hidden=false}){
-  const attachRest=React.useCallback(node=>{
-    if(!node)return;
-    for(const child of legacySections)
-      if(child.parentElement!==node)node.append(child);
-  },[legacySections]);
+// First-run actions stay in the same Controller and trusted React tree.
+export function CloudFirstRun({model={}}){
+  return <div id="cloud-first-run" className="cloud-first-run od-surface" hidden={!model.visible}>
+    <p id="cloud-next-step">{model.nextStep||'请先连接可信提供者。'}</p>
+    <button type="button" id="cloud-configure" className="od-button"
+      onClick={event=>{if(event.nativeEvent?.isTrusted===true)model.onConfigure?.();}}>
+      连接提供者
+    </button>
+  </div>;
+}
+
+// CloudHosting projects the complete page; React is its only DOM owner.
+export function CloudConnectionPage({model={},requestsModel={},setupModel={},pageModel={},hidden=false}){
+  const [pairingOpen,setPairingOpen]=React.useState(false);
+  const trusted=(event,action)=>{if(event.nativeEvent?.isTrusted===true)action?.();};
   return <div id="workbench-cloud" role="tabpanel" aria-labelledby="tab-cloud"
     className="od-page" data-workbench-page="cloud" hidden={hidden}>
-    <section className="cloud-panel od-stack" aria-label="云控管理" ref={attachRest}>
+    <section className="cloud-panel od-stack" aria-label="云控管理">
       <header className="cloud-panel-head od-toolbar">
         <strong className="od-page-title">云控</strong>
         <div className="cloud-panel-actions od-action-group">
           <button type="button" id="cloud-open-console" className="od-icon-button"
+            onClick={event=>trusted(event,pageModel.onOpenConsole)}
             title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"/>
             </svg>
           </button>
           <button type="button" id="cloud-overview-refresh" className="od-icon-button"
+            onClick={event=>trusted(event,pageModel.onRefresh)}
             title="刷新云控状态" aria-label="刷新云控状态">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/>
@@ -67,7 +75,14 @@ export function CloudConnectionPage({model={},requestsModel={},legacySections=[]
           </p>
         </details>
       </section>
+      <CloudFirstRun model={{...setupModel,onConfigure:()=>setPairingOpen(true)}}/>
+      <div hidden={!pageModel.visibleApproval}>
+        <CloudTaskAuthorization model={pageModel.authorization}/>
+      </div>
       <CloudRequestHistory model={requestsModel}/>
+      <CloudClientCredentials model={pageModel.clients}/>
+      <CloudPairingSettings model={pageModel.pairing} open={pairingOpen}
+        onOpenChange={setPairingOpen}/>
     </section>
   </div>;
 }
@@ -78,13 +93,15 @@ export function CloudConnectionPage({model={},requestsModel={},legacySections=[]
 // checks. Only plain-text projections and trusted UI actions cross this seam.
 export function CloudRequestHistory({model={}}){
   const rows=Array.isArray(model.rows)?model.rows:[];
-  const detail=model.detail||null,focus=React.useRef(null);
+  const detail=model.detail||null,focus=React.useRef(null),lastOpener=React.useRef(null);
   const trusted=(event,callback,value)=>{
     if(event.nativeEvent?.isTrusted===true&&typeof callback==='function')
       callback(value);
   };
   React.useLayoutEffect(()=>{
     if(detail)focus.current?.focus?.({preventScroll:true});
+    else if(lastOpener.current?.isConnected)
+      lastOpener.current.focus?.({preventScroll:true});
   },[detail?.key]);
   return <section className="cloud-requests od-surface"
     aria-label="云请求历史和原始结果入口">
@@ -93,7 +110,10 @@ export function CloudRequestHistory({model={}}){
       {rows.length?rows.map(row=><li key={row.key}>
         <span>{row.title}</span><span>{row.summary}</span>
         <button type="button" className="od-button od-button--secondary"
-          onClick={event=>trusted(event,model.onDetail,row.index)}>查看详情</button>
+          onClick={event=>{
+            lastOpener.current=event.currentTarget;
+            trusted(event,model.onDetail,row.index);
+          }}>查看详情</button>
       </li>):<li>{model.emptyText||'暂无云请求'}</li>}
     </ol>
     <div className="cloud-request-pagination" aria-label="云请求历史翻页">

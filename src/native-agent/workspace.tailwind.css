@@ -5,6 +5,7 @@
 @source "./workspace.html";
 @source "./workspace.js";
 @source "./workspace-chat-edit-ui.js";
+@source "../ui/react/workspace";
 
 @layer base {
   :root {

@@ -1,9 +1,10 @@
+import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
 // Existing Sidebar subpanel; Chrome observations are ephemeral, and program
 // authorization stays in the original Installed Page / Authority records.
-export function createPageProgramLibrary({client,currentPageTarget,api,document:doc,onLoad}){
-  const find=id=>doc.getElementById(id),select=find('page-program-list');
+export function createPageProgramLibrary({client,currentPageTarget,api,document:doc,view=null,onLoad}){
+  const find=id=>view?view.fields[id]:doc.getElementById(id),select=find('page-program-list');
   if(!select)return {refresh:async()=>{},dispose(){}};
   const status=find('page-program-status'),detail=find('page-program-detail');
   const button=name=>find('page-program-'+name);
@@ -11,7 +12,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   const identity=row=>row.programId+':'+row.revision;
   const chosen=()=>rows.find(row=>identity(row)===select.value);
   const requestFor=row=>({origins:row.pageRules.matches});
-  const showError=error=>{if(!disposed)status.textContent=(error.code||'E_PAGE_INSTALLATION')+'：'+(error.message||error);};
+  const showError=error=>{if(!disposed)patchDeveloperField(view,status,{textContent:(error.code||'E_PAGE_INSTALLATION')+'：'+(error.message||error)});};
   const consent=createChromePermissionConsent({api,onChange(){
     candidateAccess=installedAccess=null;render();void refresh().catch(showError);
   }});
@@ -19,22 +20,22 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   function render(){
     if(disposed)return;
     const row=chosen(),install=row?.installed,grant=install?.authorization;
-    select.disabled=busy;
-    button('load').disabled=busy||!row;
-    button('verify').disabled=busy||!row||row.stage!=='Candidate';
+    patchDeveloperField(view,select,{disabled:busy});
+    patchDeveloperField(view,button('load'),{disabled:busy||!row});
+    patchDeveloperField(view,button('verify'),{disabled:busy||!row||row.stage!=='Candidate'});
     const needsConfirmation=install&&(!grant||grant.status==='needs-confirmation');
-    button('install').disabled=busy||!row||!candidateAccess||!['Verified','Available'].includes(row.stage)||
-      install?.manifestHash===row.manifestHash&&!needsConfirmation;
-    button('install').textContent=needsConfirmation?'重新确认安装':install&&row?.authorizationChange?.requiresConfirmation?'确认新增权限并升级':install?'安装此版本':'安装自动运行';
-    button('toggle').disabled=busy||!install;
-    button('toggle').textContent=install?.enabled?'停用自动运行':'启用自动运行';
-    button('uninstall').disabled=busy||!install;
-    button('refresh').disabled=busy;
+    patchDeveloperField(view,button('install'),{disabled:busy||!row||!candidateAccess||!['Verified','Available'].includes(row.stage)||
+      install?.manifestHash===row.manifestHash&&!needsConfirmation});
+    patchDeveloperField(view,button('install'),{textContent:needsConfirmation?'重新确认安装':install&&row?.authorizationChange?.requiresConfirmation?'确认新增权限并升级':install?'安装此版本':'安装自动运行'});
+    patchDeveloperField(view,button('toggle'),{disabled:busy||!install});
+    patchDeveloperField(view,button('toggle'),{textContent:install?.enabled?'停用自动运行':'启用自动运行'});
+    patchDeveloperField(view,button('uninstall'),{disabled:busy||!install});
+    patchDeveloperField(view,button('refresh'),{disabled:busy});
     const selectedIsInstalled=install?.manifestHash===row?.manifestHash;
     const restricted=selectedIsInstalled&&grant?.status==='suspended';
-    button('restore').hidden=!restricted&&candidateAccess?.granted!==false;
-    button('restore').disabled=busy||!candidateAccess;
-    if(!row){detail.textContent='保存网页脚本版本后，在这里核对、安装与停用。';return;}
+    patchDeveloperField(view,button('restore'),{hidden:!restricted&&candidateAccess?.granted!==false});
+    patchDeveloperField(view,button('restore'),{disabled:busy||!candidateAccess});
+    if(!row){patchDeveloperField(view,detail,{textContent:'保存网页脚本版本后，在这里核对、安装与停用。'});return;}
     const access=!candidateAccess?'正在检查':candidateAccess.granted?'已满足':'访问受限 · 恢复访问';
     // Durable installation authorization is not a native Chrome registration.
     // A failed register()/getScripts() must never appear as a working Program.
@@ -44,7 +45,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
       install.nativeState==='registered'?'已授权 · Chrome 已注册':
       '原生注册异常 · 自动运行未确认';
     const delta=install&&row.authorizationChange?.requiresConfirmation?row.authorizationChange:null;
-    detail.textContent=`${row.programId} · r${row.revision} · ${row.stage}\n`+
+    patchDeveloperField(view,detail,{textContent:`${row.programId} · r${row.revision} · ${row.stage}\n`+
       '匹配：'+row.pageRules.matches.join('、')+'\n当前版本的网站访问：'+access+
       '\n程序能力：隔离网页 DOM；不继承扩展、其他程序或独立网页 SDK 的权限。'+
       (delta?'\n新增权限需要确认：'+[
@@ -58,7 +59,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
         '\n请打开 Chrome 扩展详情，开启「允许用户脚本」（Chrome 138+），然后返回恢复访问。此操作不能由网页替用户完成。':'')+
       (install?.lastExecution?'\n最近执行：'+install.lastExecution.state+' · '+install.lastExecution.documentId+
         (install.lastExecution.error?'\n'+install.lastExecution.error.code+'：'+install.lastExecution.error.message:
-          '\n结果：'+(install.lastExecution.result?.resultText??'尚未返回')):'');
+          '\n结果：'+(install.lastExecution.result?.resultText??'尚未返回')):'')});
   }
   async function readAccess(){
     const seq=++accessSequence,row=chosen();candidateAccess=installedAccess=null;render();
@@ -72,18 +73,17 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   async function refresh(preferred){
     const seq=++sequence,result=await client.request('listPagePrograms',{});
     if(disposed||seq!==sequence)return;
-    const previous=preferred??select.value;rows=result.catalog;select.replaceChildren();
-    if(!rows.length){const option=doc.createElement('option');option.value='';option.textContent='尚未保存网页脚本';select.append(option);}
-    for(const row of rows){const option=doc.createElement('option');option.value=identity(row);option.textContent=`${row.programId} · r${row.revision} · ${row.stage}`;select.append(option);}
-    if(rows.some(row=>identity(row)===previous))select.value=previous;
+    const previous=preferred??select.value;rows=result.catalog;
+    developerOptions(view,select,rows.length?rows.map(row=>({value:identity(row),label:`${row.programId} · r${row.revision} · ${row.stage}`})):[{value:'',label:'尚未保存网页脚本'}]);
+    if(rows.some(row=>identity(row)===previous))patchDeveloperField(view,select,{value:previous});
     render();await readAccess();
   }
-  const listen=(node,event,callback)=>{node.addEventListener(event,callback);listeners.push([node,event,callback]);};
+  const listen=(node,event,callback)=>{listeners.push(developerAction(view,node,event,callback));};
   const operation=(name,work)=>listen(button(name),'click',event=>{
     if(!event.isTrusted||busy||disposed)return;
-    const row=structuredClone(chosen());busy=true;render();status.textContent='正在核对…';
+    const row=structuredClone(chosen());busy=true;render();patchDeveloperField(view,status,{textContent:'正在核对…'});
     let pending;try{pending=work(row,event);}catch(error){pending=Promise.reject(error);}
-    Promise.resolve(pending).then(message=>{if(!disposed)status.textContent=message;}).catch(showError)
+    Promise.resolve(pending).then(message=>{if(!disposed)patchDeveloperField(view,status,{textContent:message});}).catch(showError)
       .finally(async()=>{busy=false;if(disposed)return;try{await refresh(row&&identity(row));}catch(error){showError(error);}render();});
   });
   listen(select,'change',()=>{void readAccess().catch(showError);});
@@ -163,5 +163,5 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     })();
   });
   client.ready.then(()=>refresh()).catch(showError);
-  return {refresh,dispose(){disposed=true;sequence++;accessSequence++;consent.dispose();for(const [node,event,fn]of listeners)node.removeEventListener(event,fn);}};
+  return {refresh,dispose(){disposed=true;sequence++;accessSequence++;consent.dispose();for(const remove of listeners)remove();}};
 }

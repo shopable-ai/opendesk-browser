@@ -1,20 +1,18 @@
+import {createDeveloperHostControls} from './develop-host-controls.js';
 import {createDebugWorkbench} from './debug-workbench.js';
-import {PROTOCOL, permissionPattern} from '../environment.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_LAUNCH_STORE} from '../framework/sdk/browser-contract.js';
 import {createHostClient} from '../platform/host/client.js';
-import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
-import {createSdkApproval, sdkApprovalPreview, sdkHttpLabPreset} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
-import {createTaskWorkbench} from './task-workbench.js';
-import {createScheduledTaskWorkbench} from './scheduled-task-workbench.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
-import {createInstalledPageTools} from './installed-page-tools.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountExtensionList} from './react/main.tsx';
+import {createDeveloperView} from './develop-view.js';
+import {createMyWorkbenchView} from './my-workbench-view.js';
+import {createSidebarToolsView} from './sidebar-tools-view.js';
 import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from './trusted-bookmark-admission.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {requireCompleteInstalledSidebarTools,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
@@ -27,8 +25,6 @@ import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {validatePreviewSession} from './sidebar-tools/preview-session.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
-import {createSiteAccess} from './site-access.js';
-import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
 // An extension's Side Panel and its full-size catalog share tool.html.
 // Chrome can expose a tab-like current context in some builds; classify the
@@ -68,9 +64,16 @@ if(!historyUI?.createScheduledTaskHost)throw new Error('E_TRUSTED_SCHEDULE_HOST_
 const createScheduledTaskHost=historyUI.createScheduledTaskHost;
 if(!historyUI?.createCloudHosting)throw new Error('E_TRUSTED_CLOUD_UI_MISSING');
 const createCloudHosting=historyUI.createCloudHosting;
+if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
+  throw new Error('E_TRUSTED_TASK_UI_MISSING');
+const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
 let trustedHistoryWorkbench=null,historyClosed=false;
 window.addEventListener('pagehide',()=>{historyClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
-const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
+const developerView=createDeveloperView();
+const myView=createMyWorkbenchView();
+  const toolView=createSidebarToolsView();
+const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,
+  development:Boolean(installDevelopment),view:developerView});
 let debugWorkbench=null;
 let extensionList=null,reactNavigationRequest=null,pendingReactTab='tasks';
 const reactNavigation=Object.freeze({
@@ -99,15 +102,15 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
   debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options),
-  reactNavigation});
+  reactNavigation,myView});
 // Commit the single trusted React App Shell before binding tools and installer
 // controllers. No second root, installer or permission owner.
-extensionList=mountExtensionList(document,{debugEnabled,appShell:true,
+extensionList=mountExtensionList(document,{debugEnabled,appShell:true,developerView,myView,toolView,
   onNavigate:view=>reactNavigationRequest?.(view)??false});
 extensionList.renderNavigation(pendingReactTab);
 // Construct tool controllers only after the trusted React app has adopted
 // their live DOM. Installed extensions retain their sandbox and SDK Hosts.
-const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,
+const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,view:toolView,
   // Explicit developer-only, non-release opt-in. All other opens use the
   // unchanged opaque sandbox; mounting uses the already-owned React root.
   trustedBookmarkPilot:{
@@ -118,10 +121,6 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
       return extensionList.mountBookmarkPilot(args);
     }
   }});
-const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
-const importHost=document.getElementById('extension-center-import-host');
-const originalImport=document.getElementById('sidebar-tool-import');
-if(importHost&&originalImport)importHost.append(originalImport);
 /* Deliberately off in production and regular development. The opt-in URL must
  * already contain its canonical hostInstanceId; a redirect drops unknown
  * parameters. The candidate never replaces the installed Cookie iframe. */
@@ -189,34 +188,20 @@ if(debugEnabled&&hostUrl.searchParams.get('cookieReactPilot')==='1'){
   }
 }
 
-if(extensionList.myTasksMounted)taskWorkbench.connectReactMyTasks(extensionList);
-// Render the trusted workflow portals BEFORE WorkflowView registers business
-// handlers; React owns the header/modal, the original view retains Authority.
+// React owns the whole page; the original workflow controller retains Authority.
 const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
-  openCatalog:()=>taskWorkbench.navigate('catalog'),reactUI:extensionList});
-// React owns the developer indicators and dock buttons; the original
-// Script Editor remains sole owner of draft, compiler, RunHost and Stop.
-if(extensionList.developerTargetMounted)
-  scriptEditor.connectReactDeveloperTarget(model=>extensionList.renderDeveloperTarget(model));
-if(extensionList.developerActionsMounted)
-  scriptEditor.connectReactDeveloperActions(model=>extensionList.renderDeveloperActions(model));
-if(extensionList.developerFrameworkMounted)
-  scriptEditor.connectReactDeveloperFramework(model=>extensionList.renderDeveloperFramework(model));
-if(extensionList.developerStatusMounted)
-  scriptEditor.connectReactDeveloperStatus(model=>extensionList.renderDeveloperStatus(model));
-if(extensionList.developerResultMounted)
-  scriptEditor.connectReactDeveloperResult(model=>extensionList.renderDeveloperResult(model));
+  openCatalog:()=>taskWorkbench.navigate('catalog')});
+extensionList.connectWorkflowPage(workflowView);
 const extensionCenter=createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,localeController,extensionList});
 const scheduleStatus=message=>{
   for(const id of ['schedule-host-status','schedule-runner-host-status']){
-    const label=document.getElementById(id);
-    if(label)label.textContent=message;
+    myView.setText(id,message);
   }
 };
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
-  api:chrome,document,reactUI:extensionList,onOpen:()=>scheduleStatus(scheduleHost?
+  api:chrome,document,myView,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
 function startScheduledHost(){
   if(scheduleHost)return;
@@ -234,13 +219,10 @@ window.addEventListener('pagehide',()=>cloudHosting?.dispose(),{once:true});
 taskWorkbench.connectToolsView((visible,destination)=>{
   const accepted=sidebarTools.setVisible(visible,destination);
   if(visible&&accepted!==false){
-    void installedPageTools.refresh();
     void extensionCenter.refresh();
   }
   return accepted;
 });
-const pageRefresh=document.getElementById('installed-page-tools-refresh');
-pageRefresh?.addEventListener('click',()=>void installedPageTools.refresh());
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
   if(kind==='controller'){
@@ -248,7 +230,6 @@ scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
     void taskWorkbench.refresh().then(()=>taskWorkbench.focusInstalledTask(id)).catch(console.warn);
   }else{
     taskWorkbench.navigate('tools');
-    void installedPageTools.refresh();
     void extensionCenter.refresh();
   }
 }});
@@ -278,7 +259,12 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       historyUI?.mount(document);
       trustedHistoryWorkbench=historyUI?.create({api:chrome,doc:document,hostInstanceId})??null;
     }
-    cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList});
+    cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList,
+      onManageTasks:()=>taskWorkbench.navigate('tasks'),
+      onOpenRun:async runId=>{
+        if(taskWorkbench.navigate('develop')===false)return;
+        await scriptEditor.openRun(runId);
+      }});
     startScheduledHost();
     void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
     return;
@@ -386,234 +372,23 @@ const onMenuLaunchChanged=(changes,area)=>{
 chrome.storage.onChanged.addListener(onMenuLaunchChanged);
 void receiveMenuLaunch().catch(error=>console.warn('Menu startup',error));
 const listeners = [];
-let browserListenersAttached = false;
 const listen = (element, event, listener, options) => {
   element.addEventListener(event, listener, options); listeners.push({element, event, listener, options});
 };
-const accessStatus=document.querySelector('#site-access-status');
-const accessGrant=document.querySelector('#site-access-grant');
-const accessRecovery=document.querySelector('#site-access-recovery');
-const accessRestore=document.querySelector('#site-access-restore');
-let siteAccessView={phase:'checking',message:'正在查询 Chrome 网站权限',snapshot:null,busy:false};
-function renderSiteAccess(view=siteAccessView){
-  siteAccessView=view;
-  accessStatus.dataset.state=view.phase;
-  accessStatus.textContent=view.message+(view.snapshot
-    ? `（Cookie：${view.snapshot.cookies?'已授权':'未授权'}；通知：${view.snapshot.notifications?'已授权':'未授权'}）` : '');
-  const satisfied=view.snapshot?.websites===true;
-  accessGrant.disabled=view.busy||!view.snapshot||satisfied;
-  accessGrant.textContent=satisfied?'全部网站已授权':'恢复全部网站访问';
-  accessRecovery.hidden=view.snapshot?.websites!==false;
-  accessRestore.disabled=view.busy||!view.snapshot||satisfied;
-  accessRestore.textContent=view.busy?'正在恢复访问…':'恢复全部网站访问';
-}
-const siteAccess=createSiteAccess({api:chrome,onState:renderSiteAccess});
-for(const button of [accessGrant,accessRestore])listen(button,'click',event=>{
-  // permissions.request must be invoked synchronously in a trusted click.
-  siteAccess.grant(event).catch(error=>
-    console.warn('Chrome site access not granted',error));
-});
-listen(document.querySelector('#site-access-refresh'),'click',()=>
-  siteAccess.refresh().catch(error=>console.warn('Chrome site access refresh failed',error)));
-siteAccess.refresh().catch(error=>console.warn('Chrome site access check failed',error));
-
+const developHostControls = createDeveloperHostControls({api:chrome, client:foundationClient, view:developerView});
 Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({
   snapshot: () => snapshotToolResources(scriptEditor.resourceSnapshot(),
-    {subscriptions: listeners.length + 2 * Number(browserListenersAttached) + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})
+    {subscriptions: listeners.length + developHostControls.resourceSnapshot().subscriptions + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})
 })});
-const scrapingPanel = document.querySelector('#scraping-panel');
-scrapingPanel.dataset.moduleStatus = 'MODULE_NOT_INSTALLED';
-scrapingPanel.textContent = '采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。';
-let target;
-const status = document.querySelector('#status');
-const result = document.querySelector('#health-result');
-function display(error, data) {
-  status.dataset.error = String(Boolean(error));
-  status.textContent = error ? `${error.code || 'E_TARGET'}：${error.message}` : data?.scope === 'environment-health-only' ? '目标健康检查通过（仅环境通信）' : '工具窗口已聚焦';
-  result.textContent = data ? JSON.stringify(data, null, 2) : '';
-}
-async function request(type, payload = {}) {
-  const response = await chrome.runtime.sendMessage({protocol: PROTOCOL, type, ...payload});
-  if (!response?.ok) throw response?.error || {code: 'E_TARGET', message: '未收到扩展响应'};
-  return response.data;
-}
-async function action(operation) {
-  try {
-    status.textContent = '正在检查…';
-    const data = await operation();
-    if (data.target) { target = data.target; document.querySelector('#check-target').disabled = false; }
-    display(null, data);
-  } catch (error) { display(error); }
-}
-listen(document.querySelector('#create-target'), 'click', () => {
-  let pattern,url;
-  try { url=document.querySelector('#target-url').value;pattern=permissionPattern(url); } catch (error) { display(error); return; }
-  action(async () => {
-    await requireChromePermissions({api:chrome,request:{origins:[pattern]}});
-    return request('CREATE_HEALTH_TARGET', {url});
-  });
-});
-listen(document.querySelector('#check-source'), 'click', () => action(() => request('CHECK_SOURCE')));
-listen(document.querySelector('#check-target'), 'click', () => action(() => request('CHECK_HEALTH', {target})));
-const sdkTab = document.querySelector('#sdk-tab');
-const sdkDocument = document.querySelector('#sdk-document');
-const sdkInstall = document.querySelector('#sdk-install');
-const sdkInspect = document.querySelector('#sdk-inspect');
-const sdkRevoke = document.querySelector('#sdk-revoke');
-const sdkStatus = document.querySelector('#sdk-status');
-const sdkResult = document.querySelector('#sdk-result');
-const sdkCapabilities = document.querySelector('#sdk-capabilities');
-const sdkTargets = document.querySelector('#sdk-target-origins');
-const sdkPreview = document.querySelector('#sdk-approval-preview');
-const capabilityLabels = {
-  network: 'HTTP 网络请求（仅本次精确批准的来源与目标）', 'storage.persistent': '持久存储',
-  'storage.session': '浏览器会话存储', notifications: '通知', 'device.id': '稳定应用 ID',
-  'network.info': '外部网络信息（当前未启用）'
-};
-let sdkDocuments = new Map(), sdkSelectionVersion = 0, sdkBusy = false, autoLabPreset = null;
-for (const capability of new Set(Object.values(ADMITTED_METHODS).map(method => method.capability))) {
-  const label = document.createElement('label'), input = document.createElement('input');
-  input.type = 'checkbox'; input.value = capability; input.name = 'sdk-capability';
-  // Registry metadata is an allowlist, never authority. Network info is disabled by the service.
-  input.disabled = capability === 'network.info';
-  label.append(input, document.createTextNode(` ${capabilityLabels[capability] || capability} `));
-  sdkCapabilities.append(label);
-}
-const selectedCapabilities = () => [...sdkCapabilities.querySelectorAll('input:checked:not(:disabled)')].map(input => input.value);
-function sdkDisplay(state, message, data) {
-  sdkStatus.dataset.state = state; sdkStatus.textContent = message;
-  sdkResult.textContent = data === undefined ? '' : JSON.stringify(data, null, 2);
-}
-function sdkError(error) { sdkDisplay('error', `${error.code || 'E_TARGET'}：${error.message || error}`); }
-const sdkSelection = () => ({document:sdkDocuments.get(sdkDocument.value),
-  capabilities:selectedCapabilities(), targetText:sdkTargets.value});
-function sdkUpdateButton() {
-  const {valid, text} = sdkApprovalPreview(sdkSelection());
-  sdkPreview.textContent = text;
-  sdkInstall.disabled = sdkBusy || !valid;
-  sdkInspect.disabled = sdkBusy || !sdkDocuments.has(sdkDocument.value);
-  sdkRevoke.disabled = sdkBusy || !sdkApproval.currentGrant;
-}
-const sdkApproval = createSdkApproval({api:chrome, client:foundationClient, permissionPattern, readSelection:sdkSelection,
-  onBusy(value) { sdkBusy = value; sdkUpdateButton(); },
-  onState({state,message,snapshot,receipt,error,lastConfirmedReceipt}) {
-    sdkDisplay(state,message,{approvalSnapshot:snapshot,receipt,error,
-      lastConfirmedReceipt,historyNotice:'历史回执不证明当前授权仍有效，也不代表当前输入已批准'});
-  }});
-function sdkInputsChanged() {
-  sdkApproval.invalidate(); sdkUpdateButton();
-}
-// Preselect ONLY the exact, local first-party demo. This is input convenience,
-// not background authorization, an SDK install or an HTTP request.
-function sdkDocumentChanged() {
-  const doc = sdkDocuments.get(sdkDocument.value);
-  const preset = doc?.frameId === 0 ? sdkHttpLabPreset(doc.url) : null;
-  const network = sdkCapabilities.querySelector('input[value="network"]');
-  if (!preset && autoLabPreset && sdkTargets.value === autoLabPreset.targetText &&
-      selectedCapabilities().length === 1 && selectedCapabilities()[0] === 'network') {
-    sdkTargets.value = ''; if (network) network.checked = false;
-  }
-  autoLabPreset = null;
-  if (preset && !sdkTargets.value.trim() && selectedCapabilities().length === 0 &&
-      network && !network.disabled) {
-    network.checked = true;
-    sdkTargets.value = preset.targetText;
-    autoLabPreset = preset;
-  }
-  sdkInputsChanged();
-}
-function clearSdkDocument() {
-  sdkSelectionVersion++; sdkDocuments = new Map();
-  sdkApproval.invalidate('文档列表已变化，请重新选择精确文档并批准');
-  sdkDocument.replaceChildren(new Option('请选择当前精确文档', ''));
-  sdkDocument.disabled = true; sdkUpdateButton();
-}
-async function refreshSdkTabs() {
-  clearSdkDocument(); sdkTab.replaceChildren(new Option('请选择具体网页', ''));
-  const version = sdkSelectionVersion;
-  const tabs = await chrome.tabs.query({});
-  if (version !== sdkSelectionVersion) return;
-  const demoTabs = [];
-  for (const tab of tabs) {
-    if (tab.incognito || !Number.isInteger(tab.id) || !/^https?:\/\//.test(tab.url || '')) continue;
-    sdkTab.append(new Option(`[${tab.id}] ${tab.title || tab.url} — ${tab.url}`, String(tab.id)));
-    if (sdkHttpLabPreset(tab.url)) demoTabs.push(tab);
-  }
-  const demo = demoTabs.find(tab => tab.active) || demoTabs[0];
-  if (demo) {
-    sdkTab.value = String(demo.id);
-    await refreshSdkDocuments();
-  } else sdkDisplay('idle', '请选择网页、当前文档和服务');
-}
-async function refreshSdkDocuments() {
-  clearSdkDocument();
-  if (!sdkTab.value) return;
-  const tabId = Number(sdkTab.value), version = sdkSelectionVersion;
-  const [tab, frames] = await Promise.all([chrome.tabs.get(tabId), chrome.webNavigation.getAllFrames({tabId})]);
-  if (version !== sdkSelectionVersion || sdkTab.value !== String(tabId)) return;
-  if (tab.incognito) throw {code: 'E_PERMISSION', message: '不支持隐身网页'};
-  for (const frame of frames || []) {
-    if (!frame.documentId || frame.errorOccurred || !/^https?:\/\//.test(frame.url || '') ||
-        (frame.documentLifecycle && frame.documentLifecycle !== 'active')) continue;
-    sdkDocuments.set(frame.documentId, {tabId, frameId: frame.frameId, documentId: frame.documentId, url: frame.url});
-    sdkDocument.append(new Option(`frame ${frame.frameId} · ${frame.documentId} · ${frame.url}`, frame.documentId));
-  }
-  sdkDocument.disabled = sdkDocuments.size === 0;
-  const root = [...sdkDocuments.values()].find(doc => doc.frameId === 0);
-  if (root) {
-    sdkDocument.value = root.documentId;
-    sdkDocumentChanged();
-  }
-  sdkDisplay('idle', autoLabPreset
-    ? '已预填本地 HTTP 实验页的 network 与目标 Origin；请核对后点击明确批准并安装（尚未授权或发送 HTTP）'
-    : root ? '已选择当前主文档；请核对并选择要授权的服务' : '没有可自动选择的当前 HTTP(S) 主文档');
-}
-foundationClient.ready.catch(sdkError);
-listen(document.querySelector('#sdk-refresh'), 'click', () => refreshSdkTabs().catch(sdkError));
-listen(sdkTab, 'change', () => refreshSdkDocuments().catch(sdkError));
-listen(sdkDocument, 'change', sdkDocumentChanged);
-listen(sdkCapabilities, 'change', () => {autoLabPreset = null; sdkInputsChanged();});
-listen(sdkTargets, 'input', () => {autoLabPreset = null; sdkInputsChanged();});
-listen(sdkInstall, 'click', event => {
-  if (!event.isTrusted || sdkBusy || sdkInstall.disabled) return;
-  // Permissions are requested synchronously by the approved snapshot handler.
-  sdkApproval.approve(event).catch(error => {
-    console.warn('SDK approval was not confirmed', error);
-  });
-});
-listen(sdkInspect, 'click', event => {
-  if (!event.isTrusted || sdkBusy || sdkInspect.disabled) return;
-  sdkApproval.inspectGrant().catch(error=>console.warn('SDK grant inspection was not confirmed',error));
-});
-listen(sdkRevoke, 'click', event => {
-  if (!event.isTrusted || sdkBusy || sdkRevoke.disabled) return;
-  sdkApproval.revoke(event).catch(error=>console.warn('SDK grant revocation was not confirmed',error));
-});
-const sdkPermissionsRemoved = () => sdkApproval.invalidate('浏览器权限撤销已被观察；当前显示不再证明授权有效，请重新批准');
-chrome.permissions.onRemoved.addListener(sdkPermissionsRemoved);
-const sdkNavigation = details => {
-  if (String(details.tabId) !== sdkTab.value) return;
-  clearSdkDocument(); sdkDisplay('stale', '网页已导航，请重新选择当前文档并授权');
-};
-const sdkTabRemoved = tabId => {
-  if (String(tabId) !== sdkTab.value) return;
-  sdkTab.value = ''; clearSdkDocument(); sdkDisplay('stale', '选定网页已关闭');
-};
-chrome.webNavigation.onCommitted.addListener(sdkNavigation);
-chrome.tabs.onRemoved.addListener(sdkTabRemoved);
-browserListenersAttached = true;
-refreshSdkTabs().catch(sdkError);
 listen(window, 'pagehide', () => {
   disposeDevelopment?.();
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
   chrome.storage.onChanged.removeListener(onMenuLaunchChanged);
-  chrome.webNavigation.onCommitted.removeListener(sdkNavigation); chrome.tabs.onRemoved.removeListener(sdkTabRemoved);
-  chrome.permissions.onRemoved.removeListener(sdkPermissionsRemoved); sdkApproval.dispose();
-  browserListenersAttached = false;
+  developHostControls.dispose();
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   scheduleHost?.dispose();scheduleUI?.dispose();
-  tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); extensionList.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

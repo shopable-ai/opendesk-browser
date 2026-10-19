@@ -2,7 +2,7 @@ import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
 import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {transformPinnedAxiosBrowserSource} from './scripts/axios-browser-csp.mjs';
-import {transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone,transformPinnedReactDomDevBind} from './scripts/react-dom-input-csp.mjs';
+import {transformPinnedReactPrototype,transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone,transformPinnedReactDomDevBind} from './scripts/react-dom-input-csp.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -97,13 +97,15 @@ export default defineConfig({
         const options = config.build.terserOptions;
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
       }
-      if (target === 'ui/tool-shell.js') {
-         // Chrome's trusted Side Panel uses the pinned React 19.2.0 release
+      if (target === 'ui/tool-shell.js' || target === 'native-agent/settings.js') {
+        // Chrome's trusted React documents use the pinned React 19.2.0 release
          // runtime in BOTH extension output modes. Development-only React
          // diagnostics access arbitrary .constructor members rejected by the
          // existing fail-closed CSP AST gate. Keep sourcemaps and every other
          // development integration unchanged; do NOT weaken the scanner.
          config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
+      }
+      if (target === 'ui/tool-shell.js') {
          // Preserve the existing fixed IIFE byte budget; never relax.
          const options=config.build.terserOptions;
          config.build.terserOptions={...options,
@@ -133,12 +135,15 @@ export default defineConfig({
       if (target === 'libs/packages/store.js') config.build.lib.name = 'OpenDeskStoreBundle';
       if (target === 'libs/packages/cheerio.js') config.build.lib.name = 'OpenDeskCheerioBundle';
       if (target === 'libs/packages/fingerprintjs.js') config.build.lib.name = 'OpenDeskFingerprintJSBundle';
-      if(target==='ui/tool-shell.js') {
+      if(target==='ui/tool-shell.js'||target==='native-agent/settings.js') {
+        const reactVersion=JSON.parse(readFileSync(resolve('node_modules/react/package.json'),'utf8')).version;
         const reactDomVersion=JSON.parse(readFileSync(resolve('node_modules/react-dom/package.json'),'utf8')).version;
         config.plugins.push({
           name:'opendesk-pinned-react-dom-input-tracker-csp',
           enforce:'pre',
           transform(code,id){
+            const prototype=transformPinnedReactPrototype(code,id,{target,reactVersion});
+            if(prototype!==null)return {code:prototype,map:null};
             const input=transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion});
             if(input===null)return;
             const replay=transformPinnedReactDomReplayClone(input,id,{target,reactDomVersion});

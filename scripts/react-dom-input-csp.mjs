@@ -3,11 +3,26 @@
 // Object.getPrototypeOf(node) selects that same prototype without consulting an
 // overridable constructor property. Do not relax the package AST/CSP scanner.
 const PINNED_REACT_DOM_VERSION='19.2.0';
+// Workspace does not inherit the Side Panel scanner exception. Preserve React's
+// own data-property assignment with an explicit descriptor in this pinned source.
+export function transformPinnedReactPrototype(code,id,{target,reactVersion}={}){
+  if(target!=='native-agent/settings.js'||id.startsWith('\0')||id.includes('?')||
+    !/\/node_modules\/react\/cjs\/react\.production\.js$/.test(id.replaceAll('\\','/')))return null;
+  if(reactVersion!==PINNED_REACT_DOM_VERSION)throw new Error('React prototype changed version; re-audit constructor safety');
+  const assignment='pureComponentPrototype.constructor = PureComponent;';
+  if(!code.includes('var pureComponentPrototype = (PureComponent.prototype = new ComponentDummy());')||
+    code.split(assignment).length!==2||(code.match(/\.constructor\b/g)||[]).length!==1)
+    throw new Error('React prototype source shape changed; re-audit constructor safety');
+  return code.replace(assignment,'Object.defineProperty(pureComponentPrototype, "constructor", {value: PureComponent, writable: true, enumerable: true, configurable: true});');
+}
+// Fixed trusted documents only. Workspace shares the reviewed pinned client;
+// this never authorizes sandbox packages, user programs or arbitrary entries.
+const TRUSTED_REACT_ENTRIES=new Set(['ui/tool-shell.js','native-agent/settings.js']);
 const CLIENT_MODULE=/\/node_modules\/react-dom\/cjs\/react-dom-client\.(?:production|development)\.js$/;
 const TRACKER_DESCRIPTOR=/\bObject\.getOwnPropertyDescriptor\(\s*([A-Za-z_$][\w$]*)\.constructor\.prototype\s*,\s*([A-Za-z_$][\w$]*)\s*\)/g;
 
 export function transformPinnedReactDomInputTracker(code,id,{target,reactDomVersion}={}){
-  if(target!=='ui/tool-shell.js'||id.startsWith('\0')||id.includes('?')||
+  if(!TRUSTED_REACT_ENTRIES.has(target)||id.startsWith('\0')||id.includes('?')||
     !CLIENT_MODULE.test(id.replaceAll('\\','/')))
     return null;
   if(reactDomVersion!==PINNED_REACT_DOM_VERSION)
@@ -37,7 +52,7 @@ export function transformPinnedReactDomInputTracker(code,id,{target,reactDomVers
 // arbitrary nativeEvent.constructor. Use only literal DOM Event constructors.
 const REPLAY_CONSTRUCTOR=/\bnew\s+([A-Za-z_$][\w$]*)\.constructor\s*\(\s*\1\.type\s*,\s*\1\s*\)/g;
 export function transformPinnedReactDomReplayClone(code,id,{target,reactDomVersion}={}){
-  if(target!=='ui/tool-shell.js'||id.startsWith('\0')||id.includes('?')||
+  if(!TRUSTED_REACT_ENTRIES.has(target)||id.startsWith('\0')||id.includes('?')||
     !CLIENT_MODULE.test(id.replaceAll('\\','/')))return null;
   if(reactDomVersion!==PINNED_REACT_DOM_VERSION)
     throw new Error('ReactDOM replay changed version; re-audit constructor safety');
@@ -61,7 +76,7 @@ export function transformPinnedReactDomReplayClone(code,id,{target,reactDomVersi
 const DEV_CLIENT_MODULE=/\/node_modules\/react-dom\/cjs\/react-dom-client\.development\.js$/;
 const DEV_BIND_ALIAS=/\b([A-Za-z_$][\w$]*)\s*=\s*Function\.prototype\.bind\b/g;
 export function transformPinnedReactDomDevBind(code,id,{target,reactDomVersion}={}){
-  if(target!=='ui/tool-shell.js'||id.startsWith('\0')||id.includes('?')||
+  if(!TRUSTED_REACT_ENTRIES.has(target)||id.startsWith('\0')||id.includes('?')||
     !DEV_CLIENT_MODULE.test(id.replaceAll('\\','/')))return null;
   if(reactDomVersion!==PINNED_REACT_DOM_VERSION)
     throw new Error('ReactDOM bind changed version; re-audit native method safety');

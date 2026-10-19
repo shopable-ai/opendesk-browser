@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createEditContext,parseEditProposal,validateEditProposal,createEditReceipt,EDIT_PROTOCOL} from '../../src/native-agent/workspace-ai-proposal.js';
 import {inspectChatGPTEditsOnPage,readChatGPTEdit,isChatGPTURL} from '../../src/native-agent/workspace-chatgpt.js';
-import {initWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
+import {createWorkspaceChatEdit} from '../../src/native-agent/workspace-chat-edit-ui.js';
 import {createMemoryWorkspace,DEMO_WORKSPACE_ID} from '../../src/native-agent/file-workspace-demo.js';
 
 const hash=text=>createHash('sha256').update(text).digest('hex');
@@ -120,54 +120,51 @@ test('Chrome wrapper checks target before and after injection and keeps ISOLATED
   assert.deepEqual(Object.keys(script.args[0]).sort(),['expectedUrl','identityOnly','requestId']);
 });
 
-function uiHarness({api,demo=true,target=null}={}){
-  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',hidden:['edit-context-panel','edit-review','edit-receipt-panel'].includes(id),disabled:false,
-    classList:{toggle(){}},events:new Map(),addEventListener(type,handler){this.events.set(type,handler);}});return nodes.get(id);};
-  let current=record(),pending=Promise.resolve(),drafts=0,ui;
-  ui=initWorkspaceChatEdit({api,doc:{getElementById:get},demo,getRecord:()=>current,getTarget:()=>target,
+function controllerHarness({api,demo=true,target=null}={}){
+  let current=record(),drafts=0,ui;
+  ui=createWorkspaceChatEdit({api,demo,getRecord:()=>current,getTarget:()=>target,
     isWritable:()=>true,readCurrent:async()=>current,setDraft:(r,content)=>{drafts++;r.content=content;},
-    run:fn=>{pending=(async()=>{ui.controls({busy:true,connected:true});try{await fn();}finally{ui.controls({connected:true});}})();}});
-  ui.controls({connected:true});
-  return {get,ui,get current(){return current;},set current(r){current=r;ui.controls({connected:true});},get drafts(){return drafts;},
-    async click(id){get(id).events.get('click')();await pending;},
-    answer(content='Changed'){const text=get('edit-context').value.match(/```json\s+([\s\S]*?)\s+```/)[1];return JSON.stringify({...JSON.parse(text),content});}};
+    run:async fn=>{ui.update({busy:true,connected:true});try{await fn();}finally{ui.update({busy:false,connected:true});}}});
+  ui.update({connected:true});
+  return {ui,state:()=>ui.getSnapshot(),get current(){return current;},set current(r){current=r;ui.update({connected:true});},get drafts(){return drafts;},
+    answer(content='Changed'){const text=ui.getSnapshot().prompt.match(/```json\s+([\s\S]*?)\s+```/)[1];return JSON.stringify({...JSON.parse(text),content});}};
 }
 
 test('UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save',async()=>{
-  const h=uiHarness();await h.click('prepare-edit');const answer=h.answer();h.get('edit-answer').value=answer;
-  await h.click('review-edit');assert.equal(h.drafts,0);assert.equal(h.current.content,'# Original\n');
-  assert.equal(h.get('edit-review').hidden,false);assert.equal(h.get('edit-after').textContent,'Changed');
-  await h.click('adopt-edit');assert.equal(h.drafts,1);assert.equal(h.current.content,'Changed');
-  assert.equal(h.current.baseContent,'# Original\n');assert.equal(h.get('edit-receipt-panel').hidden,true);
-  assert.equal(h.get('edit-receipt').textContent,'');
-  h.get('edit-answer').value=answer;await h.click('review-edit');assert.match(h.get('chat-edit-status').textContent,/E_EDIT_CONTEXT/);assert.equal(h.drafts,1);
+  const h=controllerHarness();await h.ui.actions.prepareEdit();const answer=h.answer();h.ui.actions.setAnswer(answer);
+  await h.ui.actions.review();assert.equal(h.drafts,0);assert.equal(h.current.content,'# Original\n');
+  assert.equal(!h.state().proposal,false);assert.equal(h.state().proposalAfter,'Changed');
+  await h.ui.actions.adopt();assert.equal(h.drafts,1);assert.equal(h.current.content,'Changed');
+  assert.equal(h.current.baseContent,'# Original\n');assert.equal(!h.state().receipt,true);
+  assert.equal(h.state().receipt,'');
+  h.ui.actions.setAnswer(answer);await h.ui.actions.review();assert.match(h.state().status.text,/E_EDIT_CONTEXT/);assert.equal(h.drafts,1);
   h.current.baseContent=h.current.content;h.current.sha256=hash(h.current.content);await h.ui.saved(h.current);
-  const receipt=JSON.parse(h.get('edit-receipt').textContent);assert.equal(receipt.backend,'memory-only');assert.equal(receipt.sha256,hash('Changed'));
+  const receipt=JSON.parse(h.state().receipt);assert.equal(receipt.backend,'memory-only');assert.equal(receipt.sha256,hash('Changed'));
 });
 
 test('UI refuses to overwrite a draft changed while the answer was being prepared',async()=>{
-  const h=uiHarness();await h.click('prepare-edit');const answer=h.answer('AI changed');
-  h.current.content='My unsaved text';h.get('edit-answer').value=answer;await h.click('review-edit');
-  assert.equal(h.current.content,'My unsaved text');assert.equal(h.drafts,0);assert.match(h.get('chat-edit-status').textContent,/E_EDIT_BASE/);
+  const h=controllerHarness();await h.ui.actions.prepareEdit();const answer=h.answer('AI changed');
+  h.current.content='My unsaved text';h.ui.actions.setAnswer(answer);await h.ui.actions.review();
+  assert.equal(h.current.content,'My unsaved text');assert.equal(h.drafts,0);assert.match(h.state().status.text,/E_EDIT_BASE/);
 });
 
 test('manual changes after adoption cannot be attributed to the original AI proposal receipt',async()=>{
-  const h=uiHarness();await h.click('prepare-edit');h.get('edit-answer').value=h.answer('AI text');await h.click('review-edit');await h.click('adopt-edit');
+  const h=controllerHarness();await h.ui.actions.prepareEdit();h.ui.actions.setAnswer(h.answer('AI text'));await h.ui.actions.review();await h.ui.actions.adopt();
   h.current.content='User revised text';h.current.baseContent=h.current.content;h.current.sha256=hash(h.current.content);
-  await h.ui.saved(h.current);assert.equal(h.get('edit-receipt').textContent,'');assert.match(h.get('chat-edit-status').textContent,/人工调整/);
+  await h.ui.saved(h.current);assert.equal(h.state().receipt,'');assert.match(h.state().status.text,/人工调整/);
 });
 
 test('switching files invalidates the exported context even when the user switches back',async()=>{
-  const h=uiHarness(),original=h.current;await h.click('prepare-edit');const answer=h.answer();
+  const h=controllerHarness(),original=h.current;await h.ui.actions.prepareEdit();const answer=h.answer();
   h.current={...record(),path:'other.md'};h.current=original;
-  h.get('edit-answer').value=answer;await h.click('review-edit');assert.equal(h.drafts,0);assert.match(h.get('chat-edit-status').textContent,/E_EDIT_CONTEXT/);
+  h.ui.actions.setAnswer(answer);await h.ui.actions.review();assert.equal(h.drafts,0);assert.match(h.state().status.text,/E_EDIT_CONTEXT/);
 });
 
 test('malformed replacement import removes an earlier valid preview, and empty proposals are visibly labelled',async()=>{
-  const h=uiHarness();await h.click('prepare-edit');h.get('edit-answer').value=h.answer('');await h.click('review-edit');
-  assert.equal(h.get('edit-after').textContent,'（将清空文件正文）');
-  h.get('edit-answer').value='incomplete';await h.click('review-edit');assert.equal(h.get('edit-review').hidden,true);
-  await h.click('adopt-edit');assert.equal(h.drafts,0);
+  const h=controllerHarness();await h.ui.actions.prepareEdit();h.ui.actions.setAnswer(h.answer(''));await h.ui.actions.review();
+  assert.equal(h.state().proposalAfter,'（将清空文件正文）');
+  h.ui.actions.setAnswer('incomplete');await h.ui.actions.review();assert.equal(!h.state().proposal,true);
+  await h.ui.actions.adopt();assert.equal(h.drafts,0);
 });
 
 test('failed repeat reads invalidate an earlier preview before streaming, ambiguous or changed-target errors',async()=>{
@@ -175,11 +172,11 @@ test('failed repeat reads invalidate an earlier preview before streaming, ambigu
   const api={webNavigation:{getFrame:async()=>({...target})},scripting:{executeScript:async({args})=>[
     {frameId:0,documentId:target.documentId,result:!args[0].identityOnly&&errorCode?{ok:false,error:{code:errorCode,message:'rejected'}}:
       {ok:true,url:target.url,...(!args[0].identityOnly?{blocks:[answer]}:{})}}]}};
-  const h=uiHarness({api,demo:false,target});await h.click('prepare-edit');answer=h.answer();
+  const h=controllerHarness({api,demo:false,target});await h.ui.actions.prepareEdit();answer=h.answer();
   for(const failure of ['E_CHAT_STREAMING','E_EDIT_AMBIGUOUS','E_CHAT_TARGET']){
-    errorCode=null;await h.click('read-chatgpt-edit');assert.equal(h.get('edit-review').hidden,false);
-    errorCode=failure;await h.click('read-chatgpt-edit');assert.equal(h.get('edit-review').hidden,true);
-    assert.equal(h.get('adopt-edit').disabled,true);await h.click('adopt-edit');assert.equal(h.drafts,0);
+    errorCode=null;await h.ui.actions.readChatGPT();assert.equal(!h.state().proposal,false);
+    errorCode=failure;await h.ui.actions.readChatGPT();assert.equal(!h.state().proposal,true);
+    assert.equal(!h.state().controls.adopt,true);await h.ui.actions.adopt();assert.equal(h.drafts,0);
   }
 });
 

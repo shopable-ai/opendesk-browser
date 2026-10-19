@@ -31,331 +31,94 @@ export function projectCloudInstalledTasks(data,approved=[]){
 const cloudChoiceKey=task=>[task.taskId,task.version,task.manifestHash,task.sourceHash,
   task.installationId,task.generation].join('|');
 
-export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI=null}){
-  const get=id=>doc.getElementById(id),cloud=client.cloud;let disposed=false,busy=false,starting=false,timer;
-  const status=get('cloud-status'),brief=get('cloud-brief'),myState=get('cloud-my-state');
-  const overview=get('cloud-overview-state'),sampleList=get('cloud-request-samples');
-  let lastSamples='',lastFullRefresh=0,lastCatalogAt=0,lastCatalogStamp='';
-  let requestOffset=0,requestNextOffset=null,selectedRequestIndex=null,selectedOriginalRunId=null;
-  const reactRequests=reactUI?.cloudRequestsMounted===true;
-  let requestRows=[],requestRawRows=[],requestPageText='正在读取请求记录…',requestError='';
-  let taskChoices=[];const selections=new Map();
-  let hostingEnabled=false;
-  const updateResultConsent=()=>{get('cloud-result-consent').disabled=busy||hostingEnabled;};
-  let statusText=status.textContent,operationFeedback='';
-  let activeClientTasks=[],lastClientTasksStamp='',clientNextOffset=null,oneTimeToken='';
-  const put=(id,text)=>{const el=get(id);if(el)el.textContent=text;};
-  const renderOverview=values=>{
+// A single Controller owns selections, confirmations and operation lifetimes.
+// React receives projections/actions only; the Cloud Host rechecks every pin.
+export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI,onOpenRun,onManageTasks}){
+  if(!reactUI?.cloudPageMounted)throw new Error('E_REACT_CLOUD_PAGE_REQUIRED');
+  const cloud=client.cloud,get=id=>doc.getElementById(id);
+  let disposed=false,busy=false,starting=false,timer,refreshing=null,epoch=0,secretEpoch=0;
+  let state=null,taskChoices=[],catalogStamp='',catalogAt=0,lastRefresh=0;
+  const selections=new Map();
+  let consent=false,resultConsent=false,operationFeedback='',catalogError='';
+  let requestOffset=0,nextOffset=null,selectedRequest=null,requestRows=[],requestRaw=[];
+  let pageText='正在读取请求记录…',requestError='';
+  let clientRows=[],clientNextOffset=null,clientCount='按需管理',clientStatus='连接并授权任务后，可以管理外部应用凭据。';
+  let clientPins='',clientTaskId='',clientName='',clientResult=false,oneTimeToken='';
+  let pairing={url:'',providerId:'',pairingCode:'',loopback:false};
+  let overview={summary:'正在检查连接与授权…',connection:'检测中'},brief='未配对',statusText='尚未配对';
+  let statusFailed=false;
+  const selectedTasks=()=>taskChoices.filter(t=>t.eligible&&selections.get(cloudChoiceKey(t))?.selected);
+  const activeTasks=()=>state?.enabled&&Array.isArray(state.tasks)?state.tasks:[];
+  const resetConsent=()=>{consent=false;resultConsent=false;};
+  const clearSecrets=()=>{secretEpoch++;oneTimeToken='';pairing.pairingCode='';publish();};
+  function originalRun(){
+    const row=selectedRequest===null?null:requestRaw[selectedRequest-requestOffset];
+    return typeof row?.runId==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.runId)?row.runId:null;
+  }
+  function publish(){
     if(disposed)return;
-    if(reactUI?.cloudOverviewMounted){reactUI.renderCloudOverview(values);return;}
-    for(const [key,text] of Object.entries(values)){
-      if(key==='myState')myState.textContent=text;
-      else if(key==='summary')overview.textContent=text;
-      else put('cloud-overview-'+key,text);
-    }
-  };
-  const updateStatus=()=>{status.textContent=[statusText,operationFeedback].filter(Boolean).join('\n');};
-  const selectedTasks=()=>taskChoices.filter(task=>
-    task.eligible&&selections.get(cloudChoiceKey(task))?.selected);
-  function renderApprovalSummary(){
-    const selected=selectedTasks(),uploaded=selected.filter(task=>
-      selections.get(cloudChoiceKey(task))?.resultAllowed).length;
-    put('cloud-approval-summary',selected.length+' 项已选 · '+uploaded+
-      ' 项允许回传结果正文；未勾选的任务仅回传最小执行状态。');
-    // Review only the selected immutable identities. The HTML must not copy
-    // manifest descriptions as markup or disclose their source SHA by default.
-    const review=get('cloud-approval-review'),items=get('cloud-review-items');
-    review.hidden=selected.length===0;items.replaceChildren();
-    for(const task of selected){
-      const row=doc.createElement('li'),schema=task.paramsSchema;
-      const parameters=schema?.properties?Object.keys(schema.properties).map(name=>
-        name+(schema.required?.includes(name)?'（必填）':'（可选）')).join('、'):'待核对';
-      row.textContent=task.title+' · v'+task.version+
-        ' · 网站：'+task.siteOrigins.join('、')+
-        ' · 参数：'+(parameters||'无')+
-        ' · 结果正文：'+(selections.get(cloudChoiceKey(task))?.resultAllowed?'允许':'不回传');
-      items.append(row);
-    }
-    const button=get('cloud-approve');
-    if(button)button.disabled=!selected.length||!button.cloudCanApprove;
-  }
-  async function refreshTaskChoices(cloudState){
-    if(typeof client.request!=='function'||Date.now()-lastCatalogAt<5000)return;
-    lastCatalogAt=Date.now();
-    let data;
-    try{data=await client.request('listTaskCatalog',{});}
-    catch{taskChoices=[];const list=get('cloud-task-list');
-      list.textContent='任务目录不可读取；请先检查本地安装与授权';renderApprovalSummary();return;}
-    if(disposed)return;
-    const projected=projectCloudInstalledTasks(data,cloudState.tasks),
-      stamp=JSON.stringify([projected,!!cloudState.enabled]);
-    if(stamp===lastCatalogStamp)return;
-    lastCatalogStamp=stamp;taskChoices=projected;
-    // An external install/upgrade/consent change makes any earlier human
-    // confirmation stale, even when the old Task remains selected.
-    get('cloud-consent').checked=false;
-    get('cloud-result-consent').checked=false;
-    const keys=new Set(taskChoices.map(cloudChoiceKey));
-    for(const key of selections.keys())if(!keys.has(key))selections.delete(key);
-    const parent=get('cloud-task-list');parent.replaceChildren();
-    if(!taskChoices.length){
-      const empty=doc.createElement('p');empty.textContent='暂无已安装任务。请先在「我的」验证并安装 Controller Task。';
-      empty.className='hint';parent.append(empty);
-      const manage=doc.createElement('button');manage.type='button';manage.className='od-button od-button--secondary';
-      manage.textContent='前往「我的」安装任务';manage.addEventListener('click',()=>get('tab-my-tasks')?.click?.());
-      parent.append(manage);
-    }
-    for(const task of taskChoices){
-      const key=cloudChoiceKey(task),selection=selections.get(key)||{selected:false,resultAllowed:false};
-      const section=doc.createElement('section');section.className='cloud-task-choice';
-      const header=doc.createElement('label'),check=doc.createElement('input'),title=doc.createElement('span');
-      check.type='checkbox';check.dataset.cloudTaskKey=key;check.checked=selection.selected;
-      check.disabled=!task.eligible||cloudState.enabled;
-      title.textContent=task.title+' · v'+task.version+
-        (task.eligible?'':task.enabled?' · 需要重新验证':' · 已停用')+
-        (task.approved?' · 当前已批准':task.requiresReapproval?' · 需重新批准':'');
-      header.append(check,title);section.append(header);
-      if(task.description){const description=doc.createElement('small');
-        description.className='cloud-task-description';description.textContent=task.description;
-        header.append(description);}
-      const scope=doc.createElement('p');scope.className='cloud-task-scope';
-      scope.textContent='允许访问：'+(task.siteOrigins.join('、')||'网站范围尚未验证');
-      section.append(scope);
-      if(task.requiresReapproval){
-        const warning=doc.createElement('p');warning.className='cloud-task-needs-review';
-        warning.textContent='此任务版本或安装授权已经变化；先停止云控，再核对并重新批准。';
-        section.append(warning);
-      }
-      const params=doc.createElement('p');params.className='cloud-task-params';
-      const schema=task.paramsSchema;
-      params.textContent='参数许可（固定 Schema）：'+(schema?.properties
-        ?Object.entries(schema.properties).map(([name,rule])=>
-          name+' ('+rule.type+(schema.required?.includes(name)?'，必填':'，可选')+
-          (Array.isArray(rule.enum)?'，选项 '+rule.enum.join('/'):'')+')').join('；')||'无参数'
-        :'不可读取');
-      section.append(params);
-      const label=doc.createElement('label'),result=doc.createElement('input'),copy=doc.createElement('span');
-      result.type='checkbox';result.dataset.cloudResultKey=key;result.checked=cloudState.enabled?task.resultAllowed===true:selection.resultAllowed;
-      result.disabled=!task.eligible||(cloudState.enabled&&(!task.approved||task.resultAllowed!==true));
-      copy.textContent='允许回传结果正文（网页数据、返回值与错误详情）'+
-        (task.resultAllowed?' · 当前已授权':' · 默认关闭');
-      label.append(result,copy);section.append(label);
-      const constraints=doc.createElement('details'),open=doc.createElement('summary'),
-        values=doc.createElement('pre');
-      constraints.className='od-disclosure od-disclosure--flat';
-      open.textContent='查看参数约束';
-      values.textContent=JSON.stringify(task.paramsSchema??{},null,2);
-      constraints.append(open,values);section.append(constraints);
-      const technical=doc.createElement('details'),technicalLabel=doc.createElement('summary'),
-        technicalValue=doc.createElement('pre');
-      technical.className='od-disclosure od-disclosure--flat';
-      technicalLabel.textContent='查看授权状态与固定版本详情';
-      const explanation=doc.createElement('p');
-      explanation.className='cloud-task-authorization';
-      explanation.textContent=task.approved
-        ?'当前安装身份已与批准的任务版本一致。结果正文：'+(task.resultAllowed?'已允许回传':'不回传')
-        :task.requiresReapproval
-          ?'旧云控批准不再匹配当前安装身份。请停止当前托管，重新检查任务的网站和参数后批准。'
-          :task.eligible?'该任务可供选择，但尚未批准远程执行。'
-            :'该任务尚不可批准，请先在「我的」启用并完成版本验证。';
-      technicalValue.textContent=JSON.stringify({
-        taskId:task.taskId,version:task.version,manifestHash:task.manifestHash,
-        sourceHash:task.sourceHash,installationId:task.installationId,generation:task.generation
-      },null,2);
-      technical.append(technicalLabel,explanation,technicalValue);section.append(technical);parent.append(section);
-    }
-    renderApprovalSummary();
-  }
-  const operationFail=error=>{
-    if(disposed)return;
-    const messages={E_CLOUD_CONSENT_REQUIRED:'请先核对所选任务的固定版本、网站范围与安装代际。',
-      E_CLOUD_TASK_REQUIRED:'请先安装并选择任务。',
-      E_CLOUD_RESULT_CONSENT_REQUIRED:'请确认允许所选任务的结果回传范围。',
-      E_CLOUD_TASK_SELECTION:'请选择 1–32 项已验证且启用的 Controller Task。',
-      E_PAIRING:'配对操作未完成，请核对提供者地址、身份与配对码。',
-      E_PAIR_ACTIVE:'此浏览器已在提供者配对，请先撤销旧配对。',
-      E_EXECUTOR_TARGET:'外部请求没有指向已配对的浏览器。',
-      E_REVISION:'任务版本或安装授权已变化，请停止后重新批准。',
-      E_CLOUD_REVOKED:'云控授权已停止，任务不能继续执行。',
-      E_PERMISSION:'目标网站访问尚未授权，请核对网站权限。',
-      E_PROVIDER:'提供者连接异常，请核对 HTTPS 地址和网络。'};
-    operationFeedback=Object.hasOwn(messages,error?.code)?messages[error.code]:
-      cloudErrorText(error);
-    updateStatus();
-  };
-  function clearClientToken(){
-    oneTimeToken='';
-    get('cloud-client-token').value='';
-    get('cloud-client-once').hidden=true;
-  }
-  function updateClientResultChoice(){
-    const current=activeClientTasks.find(t=>t.taskId===get('cloud-client-task').value);
-    const result=get('cloud-client-result');
-    result.disabled=!current?.resultAllowed;
-    if(result.disabled)result.checked=false;
-  }
-  function updateClientTaskChoices(cloudState){
-    const approved=cloudState.enabled&&Array.isArray(cloudState.tasks)?cloudState.tasks:[];
-    const stamp=JSON.stringify(approved.map(t=>[t.taskId,t.version,t.manifestHash,
-      t.sourceHash,t.installationId,t.generation,t.resultAllowed]));
-    if(stamp!==lastClientTasksStamp){
-      lastClientTasksStamp=stamp;activeClientTasks=approved;
-      const select=get('cloud-client-task'),previous=select.value;
-      select.replaceChildren();
-      if(!approved.length){
-        const empty=doc.createElement('option');empty.value='';
-        empty.textContent='先批准并启用云控任务';select.append(empty);
-        select.value='';
-      }else{
-        for(const task of approved){
-          const opt=doc.createElement('option'),local=taskChoices.find(t=>
-            t.taskId===task.taskId&&t.manifestHash===task.manifestHash);
-          opt.value=task.taskId;opt.textContent=(local?.title||task.taskId)+' · v'+task.version;
-          select.append(opt);
-        }
-        select.value=approved.some(t=>t.taskId===previous)?previous:approved[0].taskId;
-      }
-      updateClientResultChoice();
-    }
-    get('cloud-client-task').disabled=!approved.length;
-    get('cloud-client-create').disabled=!approved.length;
-    get('cloud-client-refresh').disabled=!cloudState.provider;
-  }
-  async function refreshClientList({append=false}={}){
-    if(append&&clientNextOffset===null)return;
-    const offset=append?clientNextOffset:0;
-    const response=await cloud.cloudClients({offset,limit:20});
-    if(disposed)return;
-    const list=get('cloud-clients-list');
-    if(!append)list.replaceChildren();
-    for(const clientRow of response.clients){
-      const row=doc.createElement('li'),copy=doc.createElement('span'),
-        revoke=doc.createElement('button');
-      row.className='cloud-client-row';
-      const names=clientRow.tasks.map(pin=>{
-        const task=taskChoices.find(t=>t.taskId===pin.taskId&&t.version===pin.version);
-        return task?.title||pin.taskId;
-      }).join('、');
-      copy.textContent=(clientRow.label||'外部客户端')+' · '+names+
-        (clientRow.allowResult?' · 可读取结果':' · 仅任务状态');
-      revoke.type='button';revoke.className='od-button od-button--secondary';
-      revoke.textContent='撤销';
-      let confirmed=false;
-      revoke.addEventListener('click',()=>{
-        if(!confirmed){confirmed=true;revoke.textContent='确认撤销';return;}
-        void action(async()=>{
-          await cloud.cloudClientRevoke({clientId:clientRow.clientId});
-          clearClientToken();
-          await refreshClientList();
-          put('cloud-clients-status','外部应用凭据已撤销；历史运行记录仍保留。');
-        });
-      });
-      row.append(copy,revoke);list.append(row);
-    }
-    if(!list.children.length){
-      const empty=doc.createElement('li');empty.textContent='暂无有效的外部应用凭据。';
-      list.append(empty);
-    }
-    clientNextOffset=response.nextOffset??null;
-    get('cloud-client-more').hidden=clientNextOffset===null;
-    put('cloud-clients-count',String(response.total)+' 个有效授权');
-  }
-  // Only the Cloud Host provides the receipt and authorized original Run ID.
-  // Rendering history never claims, executes or retries any request.
-  function renderReactRequests(){
-    if(!reactRequests||disposed)return;
-    const index=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
-    const sample=index>=0?requestRows[index]:null;
-    const raw=index>=0?requestRawRows[index]:null;
-    selectedOriginalRunId=typeof raw?.runId==='string'&&
-      /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.runId)
-      ?raw.runId:null;
-    const detail=sample?{
-      key:String(selectedRequestIndex),title:sample.title,
-      state:[sample.state,sample.run].join(' · '),
-      facts:[sample.result,sample.settlement,sample.receipt].join(' · '),
-      reason:sample.reason||'暂无其他状态信息。',
-      runId:selectedOriginalRunId||'尚无可核对的原始 Run',
-      canOpenRun:Boolean(selectedOriginalRunId),
-      note:selectedOriginalRunId
-        ?'仅在本机可信「开发 → 运行记录」读取原始数据，仍受原网站和 Run 授权限制；不会重新执行，也不扩大外部结果权限。'
-        :'该请求尚未绑定可查询的原始 Run；状态未知时请勿重新执行。'
-    }:null;
-    reactUI.renderCloudRequests({
-      rows:requestRows.map((row,index)=>({
-        key:String(requestOffset+index),index,
-        title:[row.title,row.state,row.run].filter(Boolean).join(' · '),
-        summary:[row.result,row.settlement,row.receipt,row.reason]
-          .filter(Boolean).join(' · ')
-      })),
-      emptyText:requestError||'此页暂无请求记录',
-      pageText:requestPageText,canPrev:!requestError&&requestOffset>0,
-      canNext:!requestError&&requestNextOffset!==null,detail,
-      onDetail:index=>{
-        if(disposed||!Number.isInteger(index)||index<0||index>=requestRows.length)return;
-        selectedRequestIndex=requestOffset+index;renderReactRequests();
-      },
-      onClose:()=>closeRequestDetail(),
-      // Page changes are local state transitions, not read-only no-ops.
-      // action() invokes its callback only for non-readOnly operations.
-      onPrev:()=>void action(pagePrev),
-      onNext:()=>void action(pageNext),
-      onOpenResult:()=>void action(openOriginalRun)
+    const projected=state?projectCloudStatus(state):null;
+    const pending=['pending','unknown'].includes(projected?.revocation);
+    const sample=selectedRequest===null?null:requestRows[selectedRequest-requestOffset];
+    const runId=originalRun();
+    reactUI.renderCloudPage({
+      overview,visibleApproval:!!state?.provider,
+      setup:{visible:!state?.provider,nextStep:'先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。'},
+      onRefresh:()=>action(()=>{},true),onOpenConsole:()=>action(()=>api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')})),
+      onHide:()=>{clearSecrets();publish();},
+      authorization:{tasks:taskChoices.map(task=>({...task,key:cloudChoiceKey(task),
+        selected:state?.enabled?task.approved:selections.get(cloudChoiceKey(task))?.selected===true,
+        resultSelected:state?.enabled?task.resultAllowed:selections.get(cloudChoiceKey(task))?.resultAllowed===true})),
+        hostingEnabled:state?.enabled===true,busy,consent,resultConsent,error:catalogError,
+        canApprove:!busy&&!statusFailed&&!!state?.provider&&!state.enabled&&!pending,
+        canStop:!busy&&!!state?.provider&&!!state.enabled,
+        onSelection:(key,value)=>choose(key,value,false),onResultSelection:(key,value)=>choose(key,value,true),
+        onConsent:value=>{if(!busy&&!state?.enabled){consent=value;publish();}},
+        onResultConsent:value=>{if(!busy&&!state?.enabled){resultConsent=value;publish();}},
+        onApprove:()=>action(approve),onStop:()=>action(async()=>{clearSecrets();catalogAt=0;resetConsent();await cloud.cloudStop({});}),
+        onManageTasks:()=>onManageTasks?.()},
+      pairing:{...pairing,brief,status:[statusText,operationFeedback].filter(Boolean).join('\n'),busy,
+        canPair:!busy&&!statusFailed&&!!projected&&!projected.paired&&!pending,
+        canUnpair:!busy&&!!state?.provider,
+        onField:(name,value)=>{if(!busy&&Object.hasOwn(pairing,name)){pairing[name]=value;publish();}},
+        onPair:()=>action(async()=>{const input={url:pairing.url,providerId:pairing.providerId.trim(),
+          pairingCode:pairing.pairingCode.trim(),allowLoopback:pairing.loopback};
+          pairing.pairingCode='';publish();await cloud.cloudPair(input);}),
+        onUnpair:()=>action(async()=>{clearSecrets();catalogAt=0;resetConsent();await cloud.cloudUnpair({});}),
+        onRefresh:()=>action(()=>{},true)},
+      clients:{name:clientName,taskId:clientTaskId,resultAllowed:clientResult,
+        tasks:activeTasks().map(pin=>({...pin,title:taskChoices.find(t=>t.taskId===pin.taskId)?.title||pin.taskId})),
+        rows:clientRows.map(row=>({...row,tasksText:row.tasks.map(pin=>taskChoices.find(t=>t.taskId===pin.taskId&&t.version===pin.version)?.title||pin.taskId).join('、')})),
+        token:oneTimeToken,status:clientStatus,count:clientCount,nextOffset:clientNextOffset,busy,
+        canCreate:!busy&&!statusFailed&&activeTasks().length>0,canRefresh:!busy&&!!state?.provider,
+        onField:(name,value)=>{if(busy)return;
+          if(name==='name')clientName=value;
+          if(name==='taskId'){clientTaskId=value;clientResult=false;}
+          if(name==='resultAllowed')clientResult=value===true&&activeTasks().some(t=>t.taskId===clientTaskId&&t.resultAllowed);
+          publish();},
+        onCreate:()=>action(createClient),onCopy:()=>action(copyToken),
+        onDismissToken:()=>{secretEpoch++;oneTimeToken='';publish();},
+        onRefresh:()=>action(()=>refreshClients()),onMore:()=>action(()=>refreshClients(true)),
+        onRevoke:id=>{const row=clientRows.find(row=>row.clientId===id);if(!row||busy)return;
+          if(!row.confirming){row.confirming=true;publish();return;}
+          void action(async()=>{clearSecrets();await cloud.cloudClientRevoke({clientId:id});
+            await refreshClients();clientStatus='外部应用凭据已撤销；历史运行记录仍保留。';});}},
+      requests:{rows:requestRows.map((row,index)=>({key:String(requestOffset+index),index,
+          title:[row.title,row.state,row.run].filter(Boolean).join(' · '),
+          summary:[row.result,row.settlement,row.receipt,row.reason].filter(Boolean).join(' · ')})),
+        emptyText:requestError||'此页暂无请求记录',pageText,
+        canPrev:!busy&&!requestError&&requestOffset>0,canNext:!busy&&!requestError&&nextOffset!==null,
+        detail:sample?{key:String(selectedRequest),title:sample.title,state:[sample.state,sample.run].join(' · '),
+          facts:[sample.result,sample.settlement,sample.receipt].join(' · '),reason:sample.reason||'暂无其他状态信息。',
+          runId:runId||'尚无可核对的原始 Run',canOpenRun:!!runId,
+          note:runId?'仅在本机可信「开发 → 运行记录」读取原始数据，不会重新执行。':'请求尚未绑定原始 Run；状态未知时请勿重新执行。'}:null,
+        onPrev:()=>action(()=>{requestOffset=Math.max(0,requestOffset-5);selectedRequest=null;}),
+        onNext:()=>action(()=>{if(nextOffset!==null)requestOffset=nextOffset;selectedRequest=null;}),
+        onDetail:index=>{if(Number.isInteger(index)&&index>=0&&index<requestRows.length){selectedRequest=requestOffset+index;publish();}},
+        onClose:()=>{const index=selectedRequest===null?null:selectedRequest-requestOffset;selectedRequest=null;publish();
+          if(index!==null)get('cloud-request-samples')?.querySelectorAll('button')[index]?.focus();},
+        onOpenResult:()=>action(openOriginalRun)}
     });
-  }
-  function closeRequestDetail(){
-    selectedRequestIndex=null;selectedOriginalRunId=null;
-    if(reactRequests){renderReactRequests();return;}
-    get('cloud-request-detail').hidden=true;
-    get('cloud-request-open-result').disabled=true;
-    put('cloud-request-detail-run-id','');
-  }
-  function showRequestDetail(sample,raw){
-    // Only a trusted cloudStatus Host projection can provide this pointer.
-    // Results are NOT copied into the Cloud UI or the external Provider.
-    selectedOriginalRunId=typeof raw?.runId==='string'&&
-      /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw.runId)
-      ?raw.runId:null;
-    if(reactRequests){renderReactRequests();return;}
-    get('cloud-request-detail').hidden=false;
-    put('cloud-request-detail-title',sample.title);
-    put('cloud-request-detail-state',[sample.state,sample.run].join(' · '));
-    put('cloud-request-detail-facts',[sample.result,sample.settlement,sample.receipt].join(' · '));
-    put('cloud-request-detail-reason',sample.reason||'暂无其他状态信息。');
-    put('cloud-request-detail-run-id',selectedOriginalRunId||'尚无可核对的原始 Run');
-    get('cloud-request-open-result').disabled=!selectedOriginalRunId;
-    put('cloud-request-detail-note',selectedOriginalRunId
-      ?'仅在本机可信「开发 → 运行记录」读取原始数据，仍受原网站和 Run 授权限制；不会重新执行，也不扩大外部结果权限。'
-      :'该请求尚未绑定可查询的原始 Run；状态未知时请勿重新执行。');
-  }
-  function sampleView(samples,rawRows=[]){
-    const serial=JSON.stringify([requestOffset,samples,rawRows.map(row=>row?.runId??null)]);
-    if(serial===lastSamples)return;lastSamples=serial;
-    if(reactRequests){
-      requestRows=samples;requestRawRows=rawRows;
-      const i=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
-      if(i<0||i>=samples.length)selectedRequestIndex=null;
-      renderReactRequests();return;
-    }
-    sampleList.replaceChildren();
-    if(!samples.length){const li=doc.createElement('li');li.textContent='此页暂无请求记录';sampleList.append(li);closeRequestDetail();return;}
-    samples.forEach((s,i)=>{
-      const li=doc.createElement('li'),state=doc.createElement('span'),
-        detail=doc.createElement('span'),button=doc.createElement('button');
-      state.textContent=[s.title,s.state,s.run].filter(Boolean).join(' · ');
-      detail.textContent=[s.result,s.settlement,s.receipt,s.reason].filter(Boolean).join(' · ');
-      button.type='button';button.className='od-button od-button--secondary';
-      button.textContent='查看详情';
-      button.addEventListener('click',()=>{
-        selectedRequestIndex=requestOffset+i;
-        showRequestDetail(s,rawRows[i]);
-        get('cloud-request-detail-title').focus?.();
-      });
-      li.append(state,detail,button);sampleList.append(li);
-    });
-    const i=selectedRequestIndex===null?-1:selectedRequestIndex-requestOffset;
-    if(i>=0&&i<samples.length)showRequestDetail(samples[i],rawRows[i]);
-    else closeRequestDetail();
   }
   const cloudErrorText=e=>{let code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
     const help={E_AUTH:'提供者拒绝凭据，请核对配对状态',
@@ -369,7 +132,10 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       E_CLIENT:'该外部应用授权已失效，请刷新列表',
       E_CLIENT_SCOPE:'外部应用只能调用当前已批准且版本匹配的任务，结果权限不能扩大',
       E_CLIENT_LIMIT:'外部授权数量已达上限，请先撤销不用的应用',
-      E_CLOUD_STOPPED:'云控已停用，请先重新批准当前任务'};
+      E_CLOUD_STOPPED:'云控已停用，请先重新批准当前任务',
+      E_CLOUD_CONSENT_REQUIRED:'请先核对所选任务的固定版本、网站范围与安装代际',
+      E_CLOUD_TASK_SELECTION:'请选择 1–32 项已验证且启用的 Controller Task',
+      E_CLOUD_RESULT_CONSENT_REQUIRED:'请确认允许所选任务的结果回传范围'};
     if(!Object.hasOwn(help,code))code='E_CLOUD';
     // Only render trusted, fixed local validation messages verbatim. Remote
     // Provider errors remain projected to known codes, never raw page details.
@@ -379,187 +145,141 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const safe=local.has(e?.message)?e.message:null;
     return safe||(help[code]||'操作未完成，请检查连接与授权')+'（'+code+'）';
   };
-  const fail=error=>{
+
+  const operationFail=error=>{if(disposed)return;operationFeedback=cloudErrorText(error);publish();};
+  function fail(error){
+    statusFailed=true;clearSecrets();resetConsent();
+    statusText='云控状态暂不可读取，请稍后核对。 '+cloudErrorText(error);brief='状态异常';
+    overview={myState:'状态不可读取',summary:'云端托管状态暂不可读取',provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'};
+    requestError='请求状态暂不可读取';requestRows=[];requestRaw=[];selectedRequest=null;pageText='历史状态不可读取';publish();
+  }
+  async function refreshTasks(s){
+    if(typeof client.request!=='function'||Date.now()-catalogAt<5000)return;
+    catalogAt=Date.now();
+    let data;
+    try{data=await client.request('listTaskCatalog',{});}catch{
+      taskChoices=[];catalogStamp='';catalogAt=0;resetConsent();
+      catalogError='任务目录不可读取；请先检查本地安装与授权';return;
+    }
     if(disposed)return;
-    brief.textContent='状态异常';statusText='云控状态暂不可读取，请稍后核对。'+(error?' '+cloudErrorText(error):'');updateStatus();
-    renderOverview({myState:'状态不可读取',summary:'云端托管状态暂不可读取',
-      provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',
-      tasks:'待核对',requests:'待核对'});
-    get('cloud-pair').disabled=true;get('cloud-approve').disabled=true;
-    get('cloud-refresh').disabled=false;get('cloud-overview-refresh').disabled=false;
-    lastSamples='';
-    if(reactRequests){
-      requestError='请求状态暂不可读取';requestRows=[];requestRawRows=[];
-      requestPageText='历史状态不可读取';renderReactRequests();
-    }else{
-      sampleList.replaceChildren();const li=doc.createElement('li');
-      li.textContent='请求状态暂不可读取';sampleList.append(li);
-    }
-    closeRequestDetail();if(!reactRequests){get('cloud-request-prev').disabled=true;
-      get('cloud-request-next').disabled=true;put('cloud-request-page','历史状态不可读取');}
-  };
-  // Refresh is deliberately read-only. Cloud claim/dispatch belongs only to poll().
+    const next=projectCloudInstalledTasks(data,s.tasks),stamp=JSON.stringify([next,!!s.enabled]);
+    catalogError='';
+    if(stamp!==catalogStamp){catalogStamp=stamp;taskChoices=next;resetConsent();
+      const keys=new Set(next.map(cloudChoiceKey));for(const key of selections.keys())if(!keys.has(key))selections.delete(key);}
+  }
   async function refresh(){
-    const s=await cloud.cloudStatus({limit:5,...(requestOffset?{offset:requestOffset}:{})});if(disposed)return null;
-    const projected=projectCloudStatus(s),summary=cloudHostingSummary(projected),samples=projectCloudRequestSamples(s);
-    brief.textContent=projected.revocation==='pending'?'本机已停止；服务端撤销待确认':projected.revocation==='unknown'?'撤销状态待核对':
-      !projected.paired?(projected.revocation==='confirmed'?'撤销已确认':'未配对'):!projected.enabled?(projected.remoteSuspension==='pending'?'本地已停 · 远端待确认':'已关闭'):!projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'宿主未就绪':
-      projected.siteAuthorization==='revoked'?'网站访问已撤销':projected.siteAuthorization==='none'?'未批准网站范围':projected.siteAuthorization!=='granted'?'网站授权待核对':
-      !projected.slotAvailable?cloudSlotStateLabel(projected.slotState):projected.pendingResources!==false?'待处理资源待核对':'可用';
-    statusText=summary+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;updateStatus();
-    const latest=samples[0];
-    const myStateText=brief.textContent+' · 已批准 '+projected.approvedTasks+' 项任务'+
-      (projected.pendingResources===true?' · 仍有待处理资源，等待停止、核对及资源释放':projected.pendingResources===false?'':' · 待处理资源状态待核对')+
-      (latest?' · 最近请求：'+[latest.title,latest.state,latest.run,latest.result,latest.settlement,latest.receipt,latest.reason].filter(Boolean).join(' · '):'');
-    get('cloud-first-run').hidden=!!s.provider;
-    get('cloud-approval-section').hidden=!s.provider;
-    put('cloud-next-step','先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。');
-    renderOverview({myState:myStateText,summary,
-      provider:projected.paired?'已配对':'未配对',
-      connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
-      host:projected.hostReady?'已就绪':'不可用',
-      slot:cloudSlotStateLabel(projected.slotState),
-      tasks:String(projected.approvedTasks),requests:String(projected.requests.total)});
-    hostingEnabled=s.enabled===true;updateResultConsent();
-    requestNextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
-    if(!reactRequests){
-      get('cloud-request-prev').disabled=requestOffset===0;
-      get('cloud-request-next').disabled=requestNextOffset===null;
+    if(disposed)return null;
+    if(refreshing)return refreshing;
+    const revision=epoch;
+    refreshing=(async()=>{
+      const s=await cloud.cloudStatus({limit:5,...(requestOffset?{offset:requestOffset}:{})});
+      if(disposed||revision!==epoch)return null;
+      state=s;statusFailed=false;
+      const projected=projectCloudStatus(s),samples=projectCloudRequestSamples(s);
+      brief=projected.revocation==='pending'?'本机已停止；服务端撤销待确认':projected.revocation==='unknown'?'撤销状态待核对':
+        !projected.paired?(projected.revocation==='confirmed'?'撤销已确认':'未配对'):!projected.enabled?'已关闭':
+        !projected.online?'连接中':!projected.reconciled?'对账中':!projected.hostReady?'宿主未就绪':
+        projected.siteAuthorization==='revoked'?'网站访问已撤销':projected.siteAuthorization!=='granted'?'网站授权待核对':
+        !projected.slotAvailable?cloudSlotStateLabel(projected.slotState):projected.pendingResources!==false?'待处理资源待核对':'可用';
+      statusText=cloudHostingSummary(projected)+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
+      overview={myState:brief+' · 已批准 '+projected.approvedTasks+' 项任务',summary:cloudHostingSummary(projected),
+        provider:projected.paired?'已配对':'未配对',connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
+        host:projected.hostReady?'已就绪':'不可用',slot:cloudSlotStateLabel(projected.slotState),tasks:String(projected.approvedTasks),requests:String(projected.requests.total)};
+      requestRows=samples;requestRaw=samples.length?s.requests.slice(-samples.length).reverse():[];requestError='';
+      nextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
+      if(selectedRequest!==null&&(selectedRequest<requestOffset||selectedRequest>=requestOffset+samples.length))selectedRequest=null;
+      pageText=samples.length?'第 '+(requestOffset+1)+'–'+(requestOffset+samples.length)+' 条 / 共 '+projected.requests.total+' 条':'此页暂无请求 / 共 '+projected.requests.total+' 条';
+      await refreshTasks(s);if(disposed||revision!==epoch)return null;
+      const stamp=JSON.stringify(activeTasks());
+      if(stamp!==clientPins){clientPins=stamp;clearSecrets();clientResult=false;
+        if(!activeTasks().some(t=>t.taskId===clientTaskId))clientTaskId=activeTasks()[0]?.taskId||'';}
+      if(!s.provider){clearSecrets();clientRows=[];clientNextOffset=null;clientCount='按需管理';}
+      lastRefresh=Date.now();publish();return s;
+    })().finally(()=>{refreshing=null;});
+    return refreshing;
+  }
+  async function action(fn,readOnly=false){
+    if(disposed||busy)return;
+    busy=true;operationFeedback='';epoch++;publish();
+    // Call synchronously, before the first await, to retain trusted activation.
+    try{
+      try{if(!readOnly)await fn();}catch(error){operationFail(error);return;}
+      if(disposed)return;
+      if(refreshing)await refreshing;
+      try{await refresh();}catch(error){if(!disposed)fail(error);}
+    }finally{busy=false;if(!disposed)publish();}
+  }
+  function choose(key,value,result){
+    if(disposed||busy)return;
+    const task=taskChoices.find(t=>cloudChoiceKey(t)===key);if(!task?.eligible)return;
+    if(state?.enabled){
+      if(!result||value||!task.approved||!task.resultAllowed)return;
+      return action(async()=>{try{await cloud.cloudRevokeResults({taskId:task.taskId});
+        operationFeedback='所选任务的结果回传授权已撤销；托管状态保持不变。';}finally{catalogAt=0;resetConsent();clearSecrets();}});
     }
-    const total=projected.requests.total,shown=samples.length;
-    const pageText=total&&shown
-      ?'第 '+(requestOffset+1)+'–'+(requestOffset+shown)+' 条 / '+total+' 条':'暂无请求';
-    if(reactRequests){requestError='';requestPageText=pageText;}
-    else put('cloud-request-page',pageText);
-    sampleView(samples,shown?s.requests.slice(-shown).reverse():[]);
-    lastFullRefresh=Date.now();await refreshTaskChoices(s);
-    updateClientTaskChoices(s);
-    if(!s.provider){clearClientToken();clientNextOffset=null;
-      get('cloud-clients-list').replaceChildren();
-      put('cloud-clients-count','按需管理');}
-    get('cloud-pair').disabled=projected.paired||projected.revocation==='pending'||projected.revocation==='unknown';
-    get('cloud-approve').cloudCanApprove=!!s.provider&&!s.enabled&&projected.revocation!=='pending'&&projected.revocation!=='unknown';
-    renderApprovalSummary();get('cloud-stop').disabled=!s.provider||!s.enabled;get('cloud-unpair').disabled=!s.provider;
-    return s;
+    const selection=selections.get(key)||{selected:false,resultAllowed:false};
+    if(result)selection.resultAllowed=value===true;else selection.selected=value===true;
+    selections.set(key,selection);resetConsent();publish();
+  }
+  async function approve(){
+    if(!consent)throw {code:'E_CLOUD_CONSENT_REQUIRED'};
+    const selected=selectedTasks();
+    if(!selected.length||selected.length>32)throw {code:'E_CLOUD_TASK_SELECTION'};
+    if(selected.some(t=>selections.get(cloudChoiceKey(t))?.resultAllowed)&&!resultConsent)throw {code:'E_CLOUD_RESULT_CONSENT_REQUIRED'};
+    const tasks=selected.map(t=>({taskId:t.taskId,version:t.version,manifestHash:t.manifestHash,sourceHash:t.sourceHash,
+      siteOrigins:t.siteOrigins,installationId:t.installationId,generation:t.generation,resultAllowed:selections.get(cloudChoiceKey(t)).resultAllowed===true}));
+    resetConsent();clearSecrets();catalogAt=0;
+    await cloud.cloudApprove({tasks});
+  }
+  async function refreshClients(append=false){
+    if(append&&clientNextOffset===null)return;
+    const response=await cloud.cloudClients({offset:append?clientNextOffset:0,limit:20});if(disposed)return;
+    clientRows=append?[...clientRows,...response.clients]:response.clients;
+    clientNextOffset=response.nextOffset??null;clientCount=String(response.total)+' 个有效授权';
+  }
+  async function createClient(){
+    const label=clientName.trim();if(!label)throw Error('请填写外部应用名称');
+    const pin=activeTasks().find(t=>t.taskId===clientTaskId);
+    if(!pin||(clientResult&&!pin.resultAllowed))throw {code:'E_CLIENT_SCOPE'};
+    oneTimeToken='';
+    const secretVersion=secretEpoch;
+    const issued=await cloud.cloudClientGrant({label,taskId:clientTaskId,allowResult:clientResult});
+    if(disposed||secretVersion!==secretEpoch)return;
+    if(!/^[a-f0-9]{64}$/.test(issued?.credential))throw {code:'E_AUTH'};
+    oneTimeToken=issued.credential;clientResult=false;publish();
+    clientStatus='已创建专用凭据。请立即复制并通过可信渠道交给外部应用，离开后无法再次查看。';
+    await refreshClients();
+  }
+  async function copyToken(){
+    if(!oneTimeToken)return;
+    if(!globalThis.navigator?.clipboard?.writeText)throw {code:'E_CLIPBOARD'};
+    await globalThis.navigator.clipboard.writeText(oneTimeToken);
+    if(!disposed)clientStatus='密钥已复制；不要发送到公开聊天或日志。';
+  }
+  async function openOriginalRun(){
+    const runId=originalRun();if(!runId)return;
+    if(typeof onOpenRun!=='function')throw {code:'E_CLOUD_RESULT_VIEW'};
+    await onOpenRun(runId);
   }
   async function dispatchNext(s){
     if(disposed||!s?.enabled||host.executionPending||starting||!s.online||!s.reconciled)return;
-    const next=await cloud.cloudNext({});if(!next||disposed)return;
-    starting=true;try{const request=await cloud.cloudResolve(next);await host.start(request);host.completion.catch(operationFail).finally(()=>{starting=false;});}catch(e){starting=false;throw e;}
-  }
-  async function action(fn,readOnly){if(busy)return;busy=true;updateResultConsent();
-    operationFeedback='';updateStatus();
+    starting=true;
     try{
-      if(!readOnly){try{await fn();}catch(error){operationFail(error);return;}}
-      try{await refresh();}catch{fail();}
-    }finally{busy=false;updateResultConsent();}
+      const next=await cloud.cloudNext({});if(!next||disposed){starting=false;return;}
+      const request=await cloud.cloudResolve(next);if(disposed){starting=false;return;}
+      await host.start(request);
+      host.completion.catch(operationFail).finally(()=>{starting=false;});
+    }catch(error){starting=false;throw error;}
   }
-  const listeners=[];function click(id,fn){
-    const readOnly=id==='cloud-refresh'||id==='cloud-overview-refresh';
-    const handler=()=>void action(fn,readOnly);get(id).addEventListener('click',handler);listeners.push([id,handler]);}
-  click('cloud-configure',async()=>{get('cloud-hosting').open=true;get('cloud-url').focus?.();});
-  click('cloud-pair',()=>cloud.cloudPair({url:get('cloud-url').value,providerId:get('cloud-provider-id').value.trim(),pairingCode:get('cloud-pairing-code').value.trim(),allowLoopback:get('cloud-loopback').checked}).then(()=>{get('cloud-pairing-code').value='';}));
-  const onChoiceChange=event=>{
-    const input=event?.target,key=input?.dataset?.cloudTaskKey||input?.dataset?.cloudResultKey;
-    if(!key)return;
-    const row=taskChoices.find(task=>cloudChoiceKey(task)===key);
-    if(!row?.eligible)return;
-    if(hostingEnabled){if(!input.dataset.cloudResultKey||input.checked||!row.approved||!row.resultAllowed)return;void action(async()=>{try{const result=await cloud.cloudRevokeResults({taskId:row.taskId});lastCatalogAt=0;operationFeedback='所选任务的结果回传授权已撤销；托管状态保持不变。';return result;}catch(error){lastCatalogAt=0;await refresh().catch(()=>fail());throw error;}},false);return;}
-    const selection=selections.get(key)||{selected:false,resultAllowed:false};
-    if(input.dataset.cloudTaskKey)selection.selected=!!input.checked;
-    else selection.resultAllowed=!!input.checked;
-    selections.set(key,selection);
-    // A user must confirm the exact current selection, not an earlier
-    // version of the list or an earlier result-body consent scope.
-    get('cloud-consent').checked=false;
-    get('cloud-result-consent').checked=false;
-    renderApprovalSummary();
-  };
-  get('cloud-task-list').addEventListener('change',onChoiceChange);
-  listeners.push(['cloud-task-list',onChoiceChange,'change']);
-  click('cloud-approve',async()=>{
-    if(!get('cloud-consent').checked)throw {code:'E_CLOUD_CONSENT_REQUIRED'};
-    const selected=selectedTasks();
-    if(!selected.length||selected.length>32)throw {code:'E_CLOUD_TASK_SELECTION'};
-    if(selected.some(task=>selections.get(cloudChoiceKey(task)).resultAllowed)&&
-      !get('cloud-result-consent').checked)throw {code:'E_CLOUD_RESULT_CONSENT_REQUIRED'};
-    await cloud.cloudApprove({tasks:selected.map(task=>({
-      taskId:task.taskId,version:task.version,manifestHash:task.manifestHash,
-      sourceHash:task.sourceHash,siteOrigins:task.siteOrigins,
-      installationId:task.installationId,generation:task.generation,
-      resultAllowed:selections.get(cloudChoiceKey(task)).resultAllowed===true
-    }))});
-    get('cloud-consent').checked=false;get('cloud-result-consent').checked=false;
-  });
-  click('cloud-stop',async()=>{await cloud.cloudStop({});clearClientToken();});
-  click('cloud-unpair',async()=>{await cloud.cloudUnpair({});clearClientToken();});
-  click('cloud-client-refresh',()=>refreshClientList());
-  click('cloud-client-more',()=>refreshClientList({append:true}));
-  click('cloud-client-create',async()=>{
-    const label=get('cloud-client-name').value.trim();
-    if(!label)throw Error('请填写外部应用名称');
-    const taskId=get('cloud-client-task').value;
-    const selected=activeClientTasks.find(t=>t.taskId===taskId);
-    if(!selected)throw Object.assign(Error('Task not approved'),{code:'E_CLIENT_SCOPE'});
-    const allowResult=get('cloud-client-result').checked===true;
-    if(allowResult&&!selected.resultAllowed)
-      throw Object.assign(Error('Result not approved'),{code:'E_CLIENT_SCOPE'});
-    clearClientToken();
-    const issued=await cloud.cloudClientGrant({label,taskId,allowResult});
-    if(!/^[a-f0-9]{64}$/.test(issued?.credential))
-      throw Object.assign(Error('Invalid issued credential'),{code:'E_AUTH'});
-    oneTimeToken=issued.credential;
-    get('cloud-client-token').value=oneTimeToken;
-    get('cloud-client-once').hidden=false;
-    get('cloud-client-result').checked=false;
-    await refreshClientList();
-    put('cloud-clients-status','已创建“'+label+'”的专用凭据。请立即复制并通过可信渠道交给外部应用，离开本面板后无法再次查看。');
-  });
-  click('cloud-client-copy',async()=>{
-    if(!oneTimeToken)return;
-    if(!globalThis.navigator?.clipboard?.writeText)
-      throw Object.assign(Error('Clipboard unavailable'),{code:'E_CLIPBOARD'});
-    await globalThis.navigator.clipboard.writeText(oneTimeToken);
-    put('cloud-clients-status','密钥已复制；不要发送到公开聊天或日志。');
-  });
-  const onClientTaskChange=()=>updateClientResultChoice();
-  get('cloud-client-task').addEventListener('change',onClientTaskChange);
-  listeners.push(['cloud-client-task',onClientTaskChange,'change']);
-  const onClientPanelToggle=()=>{if(!get('cloud-clients').open)clearClientToken();};
-  get('cloud-clients').addEventListener('toggle',onClientPanelToggle);
-  listeners.push(['cloud-clients',onClientPanelToggle,'toggle']);
-  // The user's “核对状态” gesture must never itself claim or run a cloud task.
-  click('cloud-refresh',async()=>{});
-  click('cloud-overview-refresh',async()=>{});
-  // Paged reads do not claim, renew, replay or otherwise mutate a Cloud Job.
-  async function pagePrev(){requestOffset=Math.max(0,requestOffset-5);closeRequestDetail();}
-  async function pageNext(){
-    if(requestNextOffset!==null){requestOffset=requestNextOffset;closeRequestDetail();}
+  async function poll(){
+    if(disposed)return;
+    try{if(!busy){const revision=epoch,s=await cloud.cloudStatus({includeRequests:false});
+      if(revision!==epoch)return;
+      if(!busy&&!disposed)try{await dispatchNext(s);}catch(error){operationFail(error);}
+      const visible=doc.documentElement?.dataset?.opendeskTab==='cloud';
+      if(!busy&&!disposed&&Date.now()-lastRefresh>=(visible?5000:15000))await refresh();
+    }}catch(error){if(!disposed)fail(error);}finally{if(!disposed)timer=setTimeout(poll,2000);}
   }
-  async function openOriginalRun(){
-    if(!selectedOriginalRunId)return;
-    const tab=get('tab-develop'),field=get('script-run-id'),query=get('script-read-run');
-    if(!tab?.click||!field||!query?.click)throw {code:'E_CLOUD_RESULT_VIEW'};
-    // Read the existing authenticated result. Do not execute or replay the Task.
-    get('developer-results-panel').open=true;
-    get('script-history-panel').open=true;
-    field.value=selectedOriginalRunId;
-    tab.click();query.click();
-  }
-  if(!reactRequests){
-    click('cloud-request-prev',pagePrev);
-    click('cloud-request-next',pageNext);
-    click('cloud-request-close',async()=>closeRequestDetail());
-    click('cloud-request-open-result',openOriginalRun);
-  }
-  click('cloud-open-console',async()=>{await api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')});});
-  // Preserve the two-second dispatch cadence without scanning cloud history
-  // every time. Visibility changes observations, not execution ownership.
-  async function poll(){if(disposed)return;try{if(!busy){
-    const s=await cloud.cloudStatus({includeRequests:false});
-    if(!busy&&!disposed)try{await dispatchNext(s);}catch(error){operationFail(error);}
-    const cloudVisible=doc.documentElement?.dataset?.opendeskTab==='cloud';
-    if(!busy&&!disposed&&Date.now()-lastFullRefresh>=(cloudVisible?5000:15000))await refresh();
-  }}catch(e){if(!disposed)fail(e);}finally{if(!disposed)timer=setTimeout(poll,2000);}}
-  void poll();return {refresh,dispose(){disposed=true;clearClientToken();clearTimeout(timer);for(const[id,fn,event='click']of listeners)get(id).removeEventListener(event,fn);}};
+  publish();void poll();
+  return {refresh,dispose(){if(disposed)return;clearSecrets();publish();disposed=true;epoch++;clearTimeout(timer);}};
 }

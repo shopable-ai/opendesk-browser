@@ -1,2 +1,2 @@
-import {initFileWorkspace} from '../../src/native-agent/workspace.js';
-initFileWorkspace({api:null});
+import {mountWorkspace} from '../../src/ui/react/workspace/main.tsx';
+mountWorkspace({api:null});

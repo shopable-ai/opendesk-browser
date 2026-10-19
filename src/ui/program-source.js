@@ -1,3 +1,4 @@
+import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {validatePageSource,PAGE_BUNDLE_LIMITS} from '../scripting/user-scripts/page-bundle.js';
 import {inspectPageFrameSource,PAGE_FRAME_DRAFT_LIMIT} from '../scripting/user-scripts/page-frame-resources.js';
 import {validateRemoteLock} from '../scripting/user-scripts/remote-esm-contract.js';
@@ -102,50 +103,49 @@ export async function validateProgramDraft(input) {
   return Object.freeze(value);
 }
 
-export function createProgramSourceView({document:doc,listen,onChange}) {
-  const get = id => doc.getElementById(id), editor = get('script-source');
+export function createProgramSourceView({document:doc,view=null,listen,onChange}) {
+  const get = id => view?view.fields[id]:doc.getElementById(id), editor = get('script-source');
   let artifact = null;
   const source = () => artifact?.sourceUtf8 ?? editor.value;
   function show(value) {
     artifact = value;
     const project = value?.project;
-    get('program-source-info').hidden = !value;
-    get('program-source-toolbar').hidden = !value;
-    editor.readOnly = Boolean(value);
-    editor.hidden = Boolean(value && !project);
-    get('program-source-files').hidden = !project;
-    get('program-new-script').hidden = !value;
-    get('program-generated').hidden = !value;
-    get('program-generated').open = false;
-    get('program-generated-source').textContent = value?.sourceUtf8 || '';
+    patchDeveloperField(view,get('program-source-info'),{hidden:!value});
+    patchDeveloperField(view,get('program-source-toolbar'),{hidden:!value});
+    patchDeveloperField(view,editor,{readOnly:Boolean(value)});
+    patchDeveloperField(view,editor,{hidden:Boolean(value && !project)});
+    patchDeveloperField(view,get('program-source-files'),{hidden:!project});
+    patchDeveloperField(view,get('program-new-script'),{hidden:!value});
+    patchDeveloperField(view,get('program-generated'),{hidden:!value});
+    patchDeveloperField(view,get('program-generated'),{open:false});
+    patchDeveloperField(view,get('program-generated-source'),{textContent:value?.sourceUtf8 || ''});
     if (project) {
-      get('program-source-files').replaceChildren(new Option('program.js · 实际执行代码',''),
-        ...value.authoring.files.map(file => new Option(`${file.path} · 源码快照`,file.path)));
-      get('program-source-files').value = '';
-      editor.value = value.sourceUtf8;
+      developerOptions(view,get('program-source-files'),[{label:'program.js · 实际执行代码',value:''},...value.authoring.files.map(file => ({label:`${file.path} · 源码快照`,value:file.path}))]);
+      patchDeveloperField(view,get('program-source-files'),{value:''});
+      patchDeveloperField(view,editor,{value:value.sourceUtf8});
       const runtime = value.runtimeKind === 'controller' ? 'Controller · 运行草稿' : 'Page · DOM 试运行';
-      get('program-source-info').textContent = `${project.id} v${project.version} · ${runtime} · ${project.entry}\n` +
+      patchDeveloperField(view,get('program-source-info'),{textContent:`${project.id} v${project.version} · ${runtime} · ${project.entry}\n` +
         `${value.build.mode} · 本地构建，浏览器未验证 · ${value.build.byteLength} 字节\nSHA-256：${value.build.sourceHash}\n` +
-        '运行使用固定 program.js，请先检查实际执行代码。源码快照只读、仅供参考；SHA-256 校验字节，不证明快照生成了执行代码。修改后请在本地重新构建、导入。';
+        '运行使用固定 program.js，请先检查实际执行代码。源码快照只读、仅供参考；SHA-256 校验字节，不证明快照生成了执行代码。修改后请在本地重新构建、导入。'});
     } else if (value) {
-      editor.value = '';
-      get('program-source-info').textContent = '已编译程序 · 无项目源码快照。请回本地项目修改并重新构建；保存与运行使用导入的完整产物。';
+      patchDeveloperField(view,editor,{value:''});
+      patchDeveloperField(view,get('program-source-info'),{textContent:'已编译程序 · 无项目源码快照。请回本地项目修改并重新构建；保存与运行使用导入的完整产物。'});
       digestUtf8(value.sourceUtf8).then(hash => {
-        if (artifact === value) get('program-source-info').textContent += `\n${bytes(value.sourceUtf8)} 字节 · SHA-256：${hash}`;
+        if (artifact === value) patchDeveloperField(view,get('program-source-info'),{textContent:get('program-source-info').textContent + (`\n${bytes(value.sourceUtf8)} 字节 · SHA-256：${hash}`)});
       }).catch(() => {});
     }
   }
   function replaceSource(sourceUtf8) {
     if (artifact?.project && artifact.sourceUtf8 === sourceUtf8) return;
     show(compiled(sourceUtf8) ? {sourceUtf8} : null);
-    if (!artifact) editor.value = sourceUtf8;
+    if (!artifact) patchDeveloperField(view,editor,{value:sourceUtf8});
   }
   listen(get('program-source-files'),'change',() => {
-    if (artifact?.project && get('program-source-files').value === '') {editor.value = artifact.sourceUtf8;return;}
+    if (artifact?.project && get('program-source-files').value === '') {patchDeveloperField(view,editor,{value:artifact.sourceUtf8});return;}
     const file = artifact?.authoring?.files.find(row => row.path === get('program-source-files').value);
-    if (file) editor.value = file.sourceUtf8;
+    if (file) patchDeveloperField(view,editor,{value:file.sourceUtf8});
   });
-  listen(get('program-new-script'),'click',() => {show(null);editor.value = 'async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}';onChange();});
+  listen(get('program-new-script'),'click',() => {show(null);patchDeveloperField(view,editor,{value:'async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}'});onChange();});
   return {source,replaceSource,kind:() => artifact?.runtimeKind,snapshot:() => artifact?.project ? artifact : null,
     async importProject(input,shouldApply=() => true) {
       const value = await validateProgramDraft(input);

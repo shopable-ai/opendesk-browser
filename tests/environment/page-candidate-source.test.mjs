@@ -1,12 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {preparePageCandidateDraft} from '../../src/ui/page-candidate-source.js';
+import {preparePageCandidateDraft,validatePageCandidateAuthoring} from '../../src/ui/page-candidate-source.js';
+import {webcrypto} from 'node:crypto';
+import {digestUtf8} from '../../src/platform/protocol.js';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../../src/scripting/user-scripts/dependency-metadata.js';
 import {validatePageProgramRules} from '../../src/scripting/user-scripts/page-program-rules.js';
 
 const src='async function main(){document.title = "page candidate";return 42;}';
 const basic={sourceUtf8:src,entryFormat:'async-main',lockId:null,programId:'my-page-script',
   revision:1,previewUrl:'https://example.com/profile?myId=42#section'};
+globalThis.crypto ||= webcrypto;
 
 test('native Page JavaScript keeps original bytes and freezes scheduling outside source',()=>{
   const value=preparePageCandidateDraft(basic);
@@ -76,4 +79,72 @@ test('explicit native settings are copied without source rewriting or implicit n
   assert.equal(preparePageCandidateDraft({...basic,sourceUtf8:full}).request.sourceUtf8,full);
   assert.throws(()=>preparePageCandidateDraft({...basic,pageRules:null}),{code:'E_PAGE_CONTRACT'});
   assert.throws(()=>preparePageCandidateDraft({...basic,pageRules:{...pageRules,matches:['<all_urls>']}}),{code:'E_PAGE_MATCH'});
+});
+
+for(const componentMode of ['react','vue'])test(`${componentMode} authoring is attached without replacing fixed execution bytes`,()=>{
+  const authoringSourceUtf8=componentMode==='react'
+    ? 'export default function App(){return <p>作者 JSX</p>;}'
+    : '<template><p>作者 SFC</p></template><script setup>const value=1;</script>';
+  const result=preparePageCandidateDraft({...basic,componentMode,authoringSourceUtf8});
+  assert.equal(result.request.sourceUtf8,src);
+  assert.deepEqual(result.request.authoring,{framework:componentMode,sourceUtf8:authoringSourceUtf8});
+  assert.ok(Object.isFrozen(result.request.authoring));
+  for(const field of ['authorSourceUtf8','authorLockId','compilerVersion','sourceFormat','verification'])
+    assert.equal(Object.hasOwn(result.request,field),false);
+});
+
+test('component attachments reject missing author bytes, unsupported modes and ESM compiler claims',()=>{
+  const value={...basic,componentMode:'react',authoringSourceUtf8:'export default () => <p/>;'};
+  for(const patch of [
+    {componentMode:'javascript'},{componentMode:'esm-page'},{componentMode:undefined},
+    {authoringSourceUtf8:undefined},{authoringSourceUtf8:''},{authoringSourceUtf8:' '},
+    {authoringSourceUtf8:'中'.repeat(43691)},
+    {sourceFormat:'esm-page',compiledSourceUtf8:src,compilerVersion:'7.29.9'},
+    {compilerVersion:'7.29.9'},{entryFormat:'classic-userscript'}
+  ])assert.throws(()=>preparePageCandidateDraft({...value,...patch}),{code:'E_PAGE_AUTHORING'});
+  assert.equal(Object.hasOwn(preparePageCandidateDraft({...basic,componentMode:'javascript'}).request,'authoring'),false);
+});
+
+test('ordinary ESM author source retains its separate compilation request',()=>{
+  const original='export default async function main(){return 42;}';
+  const {request}=preparePageCandidateDraft({...basic,sourceUtf8:original,
+    sourceFormat:'esm-page',compiledSourceUtf8:src,compilerVersion:'7.29.9'});
+  assert.equal(request.sourceUtf8,src);
+  assert.equal(request.authorSourceUtf8,original);
+  assert.equal(request.compilerVersion,'7.29.9');
+  assert.equal(Object.hasOwn(request,'authoring'),false);
+});
+
+test('managed and frozen JavaScript executable copies do not become component attachments',()=>{
+  const {request}=preparePageCandidateDraft({...basic,componentMode:'javascript',authoringSourceUtf8:src});
+  assert.equal(request.sourceUtf8,src);
+  assert.equal(Object.hasOwn(request,'authoring'),false);
+  assert.equal(Object.hasOwn(request,'authorSourceUtf8'),false);
+  assert.throws(()=>preparePageCandidateDraft({...basic,componentMode:'javascript',authoringSourceUtf8:src+'// changed'}),
+    {code:'E_PAGE_AUTHORING'});
+});
+
+test('editor attachment validation restores a frozen snapshot and rejects changed source bindings',async()=>{
+  assert.equal(await validatePageCandidateAuthoring({sourceUtf8:src}),null);
+  const authorSource='export default () => <p>作者</p>;',sourceHash=await digestUtf8(src);
+  const saved={sourceUtf8:src,manifest:{entryFormat:'async-main',sourceHash},
+    authoring:{framework:'react',sourceUtf8:authorSource,authorSourceHash:await digestUtf8(authorSource),sourceHash}};
+  const checked=await validatePageCandidateAuthoring(saved);
+  assert.deepEqual(checked,saved.authoring);
+  assert.ok(Object.isFrozen(checked));
+  for(const patch of [
+    {sourceUtf8:src+'\n// changed'},
+    {manifest:{...saved.manifest,sourceHash:'0'.repeat(64)}},
+    {authoring:{...saved.authoring,sourceUtf8:authorSource+'\n// changed'}},
+    {authoring:{...saved.authoring,sourceHash:'0'.repeat(64)}},
+    {authoring:{...saved.authoring,authorSourceHash:'0'.repeat(64)}}
+  ])await assert.rejects(validatePageCandidateAuthoring({...saved,...patch}),{code:'E_SOURCE_HASH'});
+  for(const patch of [
+    {authoring:undefined},{authoring:null},{authoring:{...saved.authoring,framework:'esm-page'}},
+    {authoring:{...saved.authoring,compilerVersion:'7.29.9'}},
+    {manifest:{...saved.manifest,compilation:{sourceFormat:'esm-page'}}}
+  ])await assert.rejects(validatePageCandidateAuthoring({...saved,...patch}),{code:'E_PAGE_AUTHORING'});
+  const pending=validatePageCandidateAuthoring(saved);
+  saved.authoring.sourceUtf8='changed while hashing';saved.authoring.framework='vue';
+  assert.deepEqual(await pending,checked);
 });

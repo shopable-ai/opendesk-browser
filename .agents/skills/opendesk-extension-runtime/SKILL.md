@@ -17,9 +17,9 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 先用 [四类需求与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md) 解释：网页自动化用 Controller，网页增强用 Page USER_SCRIPT，独立管理 UI 用 Sidebar Tool，多职责产品组合已有能力。不要用 Background/Worker 作为普通用户第一轮选项；产品类型、运行环境、源码模块、文件入口、语言/框架、触发时机分开。普通作者沿公开 API 与示例开发，不要求先读框架源码。
 
-## 必须先读的权威事实
+## 按当前任务取用权威事实
 
-先检查当前 `main`、`AGENTS.md`、`docs/framework/testing-guide.md`、对应工作流、当前 diff/共享构建资源。按任务读取：
+先检查真实 `main`、`AGENTS.md` 的当前阶段、用户最新优先级及目标文件 diff；需要测试/构建时才核对测试指南、对应流程与共享资源。以下只读相关章节和直接依赖，不预先做全框架研究：
 
 - `docs/api/browser-sdk-prelaunch-contract-20261013.zh-CN.md`：预发布 API 统一、Chrome 官方语义优先、旧接口只迁消费者不保留重复兼容；
 - `docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md`：Controller/USER_SCRIPT/宿主/SW/iframe 可用变量的不同世界；
@@ -80,14 +80,15 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 
 ## 一次工程变更的最短闭环
 
-**仅改文档/Skill**：验证链接、示例与源码事实、元数据及场景阅读；不触发下列产品测试和构建。只有运行代码变化才按影响选择对应验证，真实 Chrome/Native/安装升级/恢复未执行时标 `NOT_TESTED`。
+按 [AGENTS.md 的开发阶段规则](../../../AGENTS.md#开发阶段先完成核心需求与最小验证用户于2026-10-17明确)先修当前核心操作；用户调整阶段后，旧 GOAL、计划与历史清单不继续充当完成条件。仅改文档/Skill 时只核对链接、事实、元数据及阶段逻辑，不运行产品测试、构建或浏览器。
 
-- **事实表**：源码文件、构建入口、执行世界、来源与目标身份、信任边界、代码运行后结果/停止归属、当前观察到的真实缺口。
+- **当前缺口**：先在现有入口执行最短核心操作链，记录失败或未验证步骤；只核对相关源码/入口、执行世界、来源/目标身份、结果与 Stop 归属，不为普通修复制作完整研究表。
 - **最小修改**：先修既有模块/消费者，保持一个真实入口和一条结果链，不建立重复 Registry、Host、Worker 或灰度兼容副本。
-- **定向回归**：从 `tests/environment/browser-tabs-host.test.mjs`、`tests/environment/sidebar-run-host-build-boundary.test.mjs`、`tests/environment/native-page-program.test.mjs`、`tests/environment/runtime-globals-zero-arg.test.mjs` 及实际能力测试选择；如改 SDK/Controller，补相关 `tests/framework/browser-sdk-r106-native.mjs` 等已存在的真实 Chrome 驱动。
-- **构建与扩展验收**：资源允许时按 `npm run check` → `npm run test`/影响测试 → `npm run build`/`build:developer`（若有关）→ 包 `verify` → Chrome 原生/用户 Mac 测试。提前核对共享 dist/Profile/测试端口占用；旧成功候选只有输入相同时可复用。
-- **证据分级**：SOURCE_WIRED、NODE_PASS、BUILD_PASS、CHROME_NATIVE_PASS、MAC_NATIVE_PASS、INSTALL/ZIP_PASS、CWS_COMPLIANCE_REVIEW 分别记录候选 SHA、Extension ID、版本、包哈希、真实 runId/resultId/previewId 和失效路径；一项不得替另一项。
+- **开发验证**：按当前缺陷、改动与受影响的保护，从 `tests/environment/browser-tabs-host.test.mjs`、`sidebar-run-host-build-boundary.test.mjs`、`native-page-program.test.mjs`、`runtime-globals-zero-arg.test.mjs` 及实际能力测试中选必要项。权限、CSP、来源锁定、身份、撤权及未知副作用受影响时保留对应负例；仅当当前行为必须由浏览器证明时，选择已有 Chrome 驱动的相关场景，不因触及 SDK/Controller 就启动整套原生验收。
+- **按需产物检查**：日常迭代复用已有 dev watcher；确需编译、入口闭包或 Manifest/包证据时，选择对应检查或构建/`verify`。构建失败先查相关入口、错误日志和现有定向检查；相关输入和诊断依据均未变化时，不重复全量构建，不将失败扩大成构建研究。执行前核对实际 dist/Profile/端口占用。
+- **正式验收**：完整测试矩阵、production 包/ZIP、Chrome 与用户 Mac 验收、CWS 审查及独立评分，仅由用户当前明确要求或当前适用的正式交付合同触发，核心可用后再按合同执行；资源充足不是触发条件。历史标准与原始证据保留，同输入证据才可复用。
+- **证据分级**：按实际执行范围报告 SOURCE_WIRED、NODE_PASS、BUILD_PASS、CHROME_NATIVE_PASS、MAC_NATIVE_PASS、INSTALL/ZIP_PASS、CWS_COMPLIANCE_REVIEW；记录适用的候选身份、包摘要、运行 ID 与限制，一项不得替另一项。未执行的相关正式项标 `NOT_TESTED`，不为开发完成新建全量验收报告或账本。
 
 ## 验收评分
 
-架构唯一性、Chrome API 正确性、执行世界/权限边界、生命周期/Stop、实际可靠性、源码与包体积、原生测试证据分别**独立打分**。相关高风险维度要求每项 ≥95 才能称本轮产品达到 95+；未测试标 `NOT_TESTED`，发现未知原生结果就报告阻塞，不伪造通过。
+仅在用户当前明确要求评分或适用正式合同要求评分时，对架构唯一性、Chrome API 正确性、执行世界/权限边界、生命周期/Stop、可靠性、源码与包体积、原生证据等适用维度独立评分。适用 95+ 目标时，相关高风险维度仍须逐项 ≥95；未测试标 `NOT_TESTED`，不伪造通过。普通开发报告核心操作和定向验证；原生项未测只限制原生结论，若确实阻塞当前核心操作才作为当前 blocker。

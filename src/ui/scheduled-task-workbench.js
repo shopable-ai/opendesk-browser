@@ -1,25 +1,14 @@
+import {createMyWorkbenchView} from './my-workbench-view.js';
 import {permissionPattern} from '../environment.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {nextScheduleAt,parseWallScheduleTime,formatWallScheduleTime} from '../platform/tasks/schedule-time.js';
 import {formatScheduleRule as frequencyLabel,formatScheduleTime as describeTime,
-  scheduleFireLabel as scheduleStatus,presentSchedulePlan,schedulePlanIconPath,
-  schedulePlanStatusLabel,schedulePlanNeedsNotice} from './schedule-plan-presentation.js';
+  scheduleFireLabel as scheduleStatus} from './schedule-plan-presentation.js';
 
 const terminal=new Set(['SUCCESS','FAILED','STOPPED','UNKNOWN','MISSED','CANCELLED','NEEDS_ATTENTION']);
-const text=(node,value)=>{node.textContent=value??'';return node;};
-function element(doc,tag,css,content){
-  const node=doc.createElement(tag);
-  if(css)node.className=css;
-  if(content!==undefined)node.textContent=content;
-  return node;
-}
-function action(doc,label,fn,css='od-button od-button--secondary'){
-  const button=element(doc,'button',css,label);
-  button.type='button';button.addEventListener('click',fn);return button;
-}
 // Task management is a safe detour for an active editor, not a new-plan flow.
 export const canStartScheduleFromManager=returnView=>returnView!=='form';
-const scheduleStatusGuidance=Object.freeze({
+export const scheduleStatusGuidance=Object.freeze({
   READY:'已排队，等待到期后检查授权及运行条件。',
   WAITING_HOST:'这次触发曾等待合法可见运行宿主；保持运行页打开供后续检查。Chrome 退出时无法执行。',
   WAITING_TARGET:'等待获准访问的目标网页；按计划设置检查是否需要打开目标页。',
@@ -140,21 +129,25 @@ export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
 }
 
 export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
-  document:doc=globalThis.document,reactUI=null,onClose=()=>{},onOpen=()=>{}}){
-  const get=id=>doc.getElementById(id),listeners=[];
+  document:doc=globalThis.document,myView=taskWorkbench.myView||createMyWorkbenchView({document:doc}),onClose=()=>{},onOpen=()=>{}}){
+  const get=id=>doc.getElementById(id),ui=id=>myView.field(id),listeners=[];
+  const text=(field,value)=>{field.text=value??'';myView.publish();return field;};
   // Single Header owns navigation. Host availability remains in the list.
-  get('schedule-create').setAttribute('aria-label','新建定时计划');
-  const bind=(id,event,fn)=>{
-    const node=get(id);if(!node)throw new Error('Missing schedule UI: '+id);
-    node.addEventListener(event,fn);listeners.push(()=>node.removeEventListener(event,fn));
+  ui('schedule-create').attributes['aria-label']='新建定时计划';
+  const focus=(id,options)=>{
+    myView.publish();queueMicrotask(()=>get(id)?.focus?.(options));
   };
+  const actionName=(id,event)=>id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1);
+  function registerAction(name,fn){
+    const callback=myView.action(fn);myView.actions[name]=callback;
+    listeners.push(()=>{if(myView.actions[name]===callback)delete myView.actions[name];});
+  }
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
   let uninstallReturnFocus=null,pendingCopyTask=null,copyTaskReturnId=null;
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0,formScrollTop=0;
   let managerScrollTop=0;
-  let cloudPanelVisibility;
   let permissionSeq=0,awaitingSave=null,editRevision=0,storageProbeRevision=0,refreshSeq=0;
   let formDirty=false,discardDestination='list';
   let taskListSignature='',planListSignature='';
@@ -163,27 +156,27 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   const formFields={title:'schedule-title',task:'schedule-task-select',
     target:'schedule-target',params:'schedule-params',time:'schedule-timezone'};
   const clearConfirmation=()=>{
-    awaitingSave=null;get('schedule-save-confirm').hidden=true;
+    awaitingSave=null;ui('schedule-save-confirm').hidden=true;
   };
   function fieldError(name,value){
-    const field=get(formFields[name]),error=get('schedule-'+name+'-error');
+    const field=ui(formFields[name]),error=ui('schedule-'+name+'-error');
     text(error,value||'');
-    field?.setAttribute('aria-invalid',value?'true':'false');
+    if(field)field.attributes['aria-invalid']=value?'true':'false';
     if(name==='time'){
       for(const id of ['schedule-kind','schedule-once','schedule-clock','schedule-minutes','schedule-deadline']){
-        const control=get(id);
-        if(control&&!control.closest('[hidden]'))control.setAttribute('aria-invalid',value?'true':'false');
-        else control?.removeAttribute('aria-invalid');
+        const control=ui(id);
+        if(control)control.attributes['aria-invalid']=value?'true':'false';
+
       }
     }
   }
   const message=(value,error=false)=>{
-    const el=get('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';
+    const el=ui('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';myView.publish();
   };
   // Only reads native Chrome origin-wide quota. It is NOT a schedule-only
   // count, and never garbage-collects UNKNOWN, unsettled or audit records.
   async function refreshStorageUsage(){
-    const serial=++storageProbeRevision,display=get('schedule-storage-status');
+    const serial=++storageProbeRevision,display=ui('schedule-storage-status');
     const area=doc.defaultView?.navigator?.storage;
     const policy='历史不会自动清理；按计划分页查看。';
     if(typeof area?.estimate!=='function'){
@@ -208,33 +201,23 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }
   }
   const isRunner=()=>doc.documentElement?.dataset?.opendeskSurface==='scheduled-runner';
-  const views={runner:get('schedule-runner-view'),list:get('schedule-list-view'),
-    detail:get('schedule-detail-view'),form:get('schedule-form'),manager:get('schedule-task-manager')};
+  const views={runner:ui('schedule-runner-view'),list:ui('schedule-list-view'),
+    detail:ui('schedule-detail-view'),form:ui('schedule-form'),manager:ui('schedule-task-manager')};
   // Never replace an unsaved Developer buffer without the user's decision.
   // This review is trusted UI next to the existing manager; the Task Registry,
   // Scheduler and Developer stay the only owners of their actual data.
-  const copyReview=element(doc,'div','od-surface');
-  copyReview.id='schedule-copy-confirm';copyReview.hidden=true;
-  copyReview.setAttribute('role','group');
-  copyReview.setAttribute('aria-label','确认覆盖开发草稿');
-  const copyReviewLabel=element(doc,'p');copyReviewLabel.id='schedule-copy-label';
-  const copyReviewActions=element(doc,'div','schedule-actions od-toolbar');
-  const copyApprove=action(doc,'确认覆盖并复制',()=>{
-    const row=pendingCopyTask;
-    if(!row||busy)return;
+  const copyReview=ui('schedule-copy-confirm');copyReview.hidden=true;
+  const copyReviewLabel=ui('schedule-copy-label');
+  registerAction('scheduleCopyYesClick',()=>{
+    const row=pendingCopyTask;if(!row||busy)return;
     closeCopyReview();void copyManagedTask(row);
-  },'od-button');
-  copyApprove.id='schedule-copy-yes';
-  const copyCancel=action(doc,'取消',()=>closeCopyReview(true),'od-button od-button--secondary');
-  copyCancel.id='schedule-copy-no';
-  copyReviewActions.append(copyApprove,copyCancel);
-  copyReview.append(copyReviewLabel,copyReviewActions);
-  views.manager.append(copyReview);
+  });
+  registerAction('scheduleCopyNoClick',()=>closeCopyReview(true));
   function closeCopyReview(restoreFocus=false){
     const taskId=copyTaskReturnId;
     pendingCopyTask=null;copyTaskReturnId=null;copyReview.hidden=true;
     if(restoreFocus&&taskId){
-      const card=[...get('schedule-manager-list').querySelectorAll('.schedule-manager-card')]
+      const card=[...get('schedule-manager-list')?.querySelectorAll('.schedule-manager-card')||[]]
         .find(node=>node.dataset.managerTaskId===taskId);
       card?.querySelector('[data-manager-action="copy"]')?.focus({preventScroll:true});
     }
@@ -252,20 +235,20 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(changing)message('');
     activeView=view;
     if(view!=='manager')closeCopyReview();
-    for(const [key,node] of Object.entries(views))node.hidden=key!==view;
+    for(const [key,state] of Object.entries(views))state.hidden=key!==view;myView.publish();
     if(changing&&scroller)
       scroller.scrollTop=view==='list'&&['detail','form'].includes(prior)?listScrollTop:
         view==='form'&&prior==='manager'&&managerReturn==='form'?formScrollTop:0;
-    get('schedule-create').hidden=view!=='list';
-    get('schedule-open-manager').hidden=view!=='list';
-    get('schedule-manager-create').hidden=view!=='manager';
-    get('schedule-detail-edit').hidden=view!=='detail';
-    get('schedule-detail-delete').hidden=view!=='detail';
-    get('schedule-open-runner').hidden=view!=='list';
+    ui('schedule-create').hidden=view!=='list';
+    ui('schedule-open-manager').hidden=view!=='list';
+    ui('schedule-manager-create').hidden=view!=='manager';
+    ui('schedule-detail-edit').hidden=view!=='detail';
+    ui('schedule-detail-delete').hidden=view!=='detail';
+    ui('schedule-open-runner').hidden=view!=='list';
     const runnerLabel=isRunner()?'再打开一个独立运行页':'打开独立运行页';
-    get('schedule-open-runner').setAttribute('aria-label',runnerLabel);
-    get('schedule-open-runner').title=runnerLabel;
-    get('schedule-back').hidden=isRunner()&&view==='runner';
+    ui('schedule-open-runner').attributes['aria-label']=runnerLabel;
+    ui('schedule-open-runner').title=runnerLabel;
+    ui('schedule-back').hidden=isRunner()&&view==='runner';
     const backLabel=view==='detail'?(detailReturnView==='runner'?'返回运行概览':'返回计划列表'):
       view==='form'?(formReturnView==='detail'?'返回计划详情':
         formReturnView==='manager'?'返回任务管理':
@@ -273,39 +256,25 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       view==='manager'?(managerReturn==='form'?'返回编辑计划':
         managerReturn==='detail'?'返回计划详情':'返回定时计划'):
       isRunner()?'返回运行概览':'返回我的任务';
-    get('schedule-back').setAttribute('aria-label',backLabel);
-    get('schedule-back').title=backLabel;
-    if(view==='form')text(get('schedule-cancel'),backLabel);
-    text(get('schedule-panel-title'),view==='detail'?
+    ui('schedule-back').attributes['aria-label']=backLabel;
+    ui('schedule-back').title=backLabel;
+    if(view==='form')text(ui('schedule-cancel'),backLabel);
+    text(ui('schedule-panel-title'),view==='detail'?
       (allPlans.find(plan=>plan.scheduleId===selectedPlanId)?.title||'计划详情'):
       view==='runner'?'运行概览':view==='manager'?'任务管理':view==='form'?
         (editing?'编辑定时计划':'创建定时计划'):'定时计划');
-    text(get('schedule-panel-subtitle'),'');
-    get('schedule-panel-subtitle').hidden=true;
+    text(ui('schedule-panel-subtitle'),'');
+    ui('schedule-panel-subtitle').hidden=true;
   };
   const showPanel=()=>{
-    const cloudPanel=doc.querySelector('#workbench-tasks .cloud-panel');
-    if(!shown)cloudPanelVisibility=cloudPanel?.hidden;
-    shown=true;get('scheduled-panel').hidden=false;
+    shown=true;ui('scheduled-panel').hidden=false;
     taskWorkbench.setScheduledSurfaceActive?.(true);
-    doc.querySelector('#workbench-tasks .tasks-surface').hidden=true;
-    // The optional Cloud quick entry was retired from current tool.html.
-    // Keep both the old optional entry and the official Tasks surface safe.
-    const cloudEntry=doc.querySelector('#workbench-tasks .cloud-my-entry');
-    if(cloudEntry)cloudEntry.hidden=true;
-    if(cloudPanel)cloudPanel.hidden=true;
-    onOpen();
+    ui('my-task-surface').hidden=true;onOpen();
   };
   function hidePanel(){
-    closeCopyReview();shown=false;get('scheduled-panel').hidden=true;
+    closeCopyReview();shown=false;ui('scheduled-panel').hidden=true;
     taskWorkbench.setScheduledSurfaceActive?.(false);
-    doc.querySelector('#workbench-tasks .tasks-surface').hidden=false;
-    const cloudEntry=doc.querySelector('#workbench-tasks .cloud-my-entry');
-    if(cloudEntry)cloudEntry.hidden=false;
-    const cloudPanel=doc.querySelector('#workbench-tasks .cloud-panel');
-    if(cloudPanel&&cloudPanelVisibility!==undefined)cloudPanel.hidden=cloudPanelVisibility;
-    cloudPanelVisibility=undefined;
-    onClose();
+    ui('my-task-surface').hidden=false;onClose();
   }
   async function refresh(){
     if(disposed)return;
@@ -354,32 +323,21 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         label:'原固定任务 · v'+editing.version+'（已不可用，需检查安装与授权）',disabled:true});
     return choices;
   }
-  function taskChoicesMatch(select,choices){
-    const options=[...select.querySelectorAll('option')];
-    return options.length===choices.length&&options.every((option,index)=>
-      option.value===choices[index].value&&option.textContent===choices[index].label&&
-      Boolean(option.disabled)===choices[index].disabled);
-  }
   function populateChoices(){
-    const select=get('schedule-task-select'),previous=select.value;
+    const select=ui('schedule-task-select'),previous=select.value;
     const rows=eligible(),choices=taskChoiceProjection(rows);
-    if(!taskChoicesMatch(select,choices))select.replaceChildren(...choices.map(choice=>{
-      const option=element(doc,'option',null,choice.label);
-      option.value=choice.value;option.disabled=choice.disabled;return option;
-    }));
-    const nextValue=editing?editing.taskId:rows.some(row=>row.taskId===previous)?previous:'';
-    if(select.value!==nextValue)select.value=nextValue;
-    const disabled=Boolean(editing);
-    if(select.disabled!==disabled)select.disabled=disabled;
-    get('schedule-task-empty').hidden=disabled||rows.length>0;
-    showTaskVersion();
+    if(JSON.stringify(select.options)!==JSON.stringify(choices))myView.options('schedule-task-select',choices);
+    select.value=editing?editing.taskId:rows.some(row=>row.taskId===previous)?previous:'';
+    select.disabled=Boolean(editing);
+    ui('schedule-task-empty').hidden=Boolean(editing)||rows.length>0;
+    void showTaskVersion();
   }
   async function showTaskVersion(){
     const seq=++permissionSeq;
-    const row=eligible().find(r=>r.taskId===get('schedule-task-select').value);
+    const row=eligible().find(r=>r.taskId===ui('schedule-task-select').value);
     const origins=candidate(row)?.manifest?.siteOrigins||[];
     if(!row){
-      text(get('schedule-task-version'),editing?
+      text(ui('schedule-task-version'),editing?
         '原计划固定任务不可用；请恢复相同安装身份与网站授权。需使用其他任务时请新建计划。':
         '请选择已安装、已验证且已启用的 Controller 任务');
       return;
@@ -387,16 +345,16 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const prefix=`固定版本 v${row.version}`+
       (editing?' · 编辑时任务身份不可更换（更换请新建计划）':'')+
       ` · 网站范围：${origins.join('，')||'不可用'}`;
-    text(get('schedule-task-version'),prefix+' · 正在核查网站权限…');
+    text(ui('schedule-task-version'),prefix+' · 正在核查网站权限…');
     try{
       const allowed=Boolean(api.permissions?.contains)&&origins.length>0&&
         (await Promise.all(origins.map(origin=>api.permissions.contains({
           origins:[permissionPattern(origin)]}).catch(()=>false)))).every(Boolean);
-      if(seq!==permissionSeq)return;
-      text(get('schedule-task-version'),prefix+(allowed?' · 网站权限已授权':' · 网站权限不足，需要处理'));
+      if(disposed||seq!==permissionSeq)return;
+      text(ui('schedule-task-version'),prefix+(allowed?' · 网站权限已授权':' · 网站权限不足，需要处理'));
     }catch{
-      if(seq===permissionSeq)text(get('schedule-task-version'),prefix+' · 网站权限状态未知');
-    }
+      if(!disposed&&seq===permissionSeq)text(ui('schedule-task-version'),prefix+' · 网站权限状态未知');
+    }finally{myView.publish();}
   }
   function renderRunner(){
     const byTime=(a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity);
@@ -421,32 +379,32 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const focus=current?.plan||settling?.plan||upcoming||plans.find(p=>p.needsAttention)||
       plans.find(p=>!p.paused)||plans[0];
     runnerFocusId=focus?.scheduleId??null;
-    text(get('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
-    text(get('schedule-runner-next-detail'),upcoming?
+    text(ui('schedule-runner-next'),upcoming?upcoming.title:'暂无待执行计划');
+    text(ui('schedule-runner-next-detail'),upcoming?
       frequencyLabel(upcoming)+' · '+describeTime(upcoming.nextDueAt,upcoming.timezone):'可从计划管理创建或恢复计划');
-    text(get('schedule-runner-current'),current?current.plan.title:
+    text(ui('schedule-runner-current'),current?current.plan.title:
       settling?'正在核对上次结果':unconfirmedRun?'执行状态待确认':'暂无任务运行');
-    text(get('schedule-runner-current-detail'),current?
+    text(ui('schedule-runner-current-detail'),current?
       scheduleStatus(current.fire.status)+' · '+describeTime(current.fire.scheduledAt,current.plan.timezone):
       settling?settling.plan.title+' · 正在结算（尚未确认成功）':
       unconfirmedRun?'已关联原执行槽，正在核对真实状态':
       waiting?'未运行 · '+scheduleStatus(waiting.fire.status):'到期后才检查执行条件');
-    text(get('schedule-runner-result'),latest?scheduleStatus(latest.fire.status):'尚无执行结果');
-    text(get('schedule-runner-result-detail'),latest?
+    text(ui('schedule-runner-result'),latest?scheduleStatus(latest.fire.status):'尚无执行结果');
+    text(ui('schedule-runner-result-detail'),latest?
       latest.plan.title+' · '+describeTime(latest.fire.scheduledAt,latest.plan.timezone):'运行历史可在计划管理中查看');
-    text(get('schedule-runner-focus-title'),focus?focus.title:'还没有定时计划');
-    text(get('schedule-runner-focus-time'),current&&focus?.scheduleId===current.plan.scheduleId?
+    text(ui('schedule-runner-focus-title'),focus?focus.title:'还没有定时计划');
+    text(ui('schedule-runner-focus-time'),current&&focus?.scheduleId===current.plan.scheduleId?
       '正在执行 · '+describeTime(current.fire.scheduledAt,current.plan.timezone):
       settling&&focus?.scheduleId===settling.plan.scheduleId?'正在结算 · 尚未确认成功':
       focus?.paused?'已暂停':focus?.needsAttention?'需要处理授权或固定任务':
       Number.isFinite(focus?.nextDueAt)?describeTime(focus.nextDueAt,focus.timezone):
       '暂无下次执行');
-    text(get('schedule-runner-focus-detail'),focus?
+    text(ui('schedule-runner-focus-detail'),focus?
       (current&&focus.scheduleId===current.plan.scheduleId?'当前任务 · '+scheduleStatus(current.fire.status):
         settling&&focus.scheduleId===settling.plan.scheduleId?'最近执行 · 正在结算（不是成功）':
         frequencyLabel(focus)+' · '+(focus.paused?'已暂停':describeTime(focus.nextDueAt,focus.timezone))):
       '创建一个已验证并安装的任务计划');
-    text(get('schedule-runner-explain'),current&&focus?.scheduleId===current.plan.scheduleId?
+    text(ui('schedule-runner-explain'),current&&focus?.scheduleId===current.plan.scheduleId?
       scheduleStatusGuidance[current.fire.status]:
       settling&&focus?.scheduleId===settling.plan.scheduleId?
         scheduleStatusGuidance.SETTLING:
@@ -459,48 +417,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       latest?.fire.status==='UNKNOWN'&&latest.plan.scheduleId===focus?.scheduleId?
         scheduleStatusGuidance.UNKNOWN:
       '计划到期后校验目标网页、固定任务身份和执行槽；浏览器关闭期间不执行。');
-    const toggle=get('schedule-runner-toggle');
+    const toggle=ui('schedule-runner-toggle');
     toggle.disabled=!focus||Boolean(focus.needsAttention&&!focus.paused);
-    text(toggle,focus?.paused?'恢复计划':'暂停计划');
-  }
-  function makeHistoryRow(fire,zone){
-    const row=element(doc,'div','schedule-history-row',
-      `${describeTime(fire.scheduledAt,zone)} · ${scheduleStatus(fire.status)}`);
-    row.dataset.fireId=fire.fireId;
-    const guidance=scheduleStatusGuidance[fire.status];
-    if(guidance)row.append(element(doc,'small','schedule-status-guidance',guidance));
-    if(fire.runId){
-      const advanced=element(doc,'details','schedule-run-details od-disclosure od-disclosure--flat');
-      advanced.append(element(doc,'summary',null,'技术详情'));
-      advanced.append(element(doc,'small',null,
-        `RunId：${fire.runId} · ResultId：${fire.resultId??'未生成'} · 资源：${fire.retirementState==='released'?'已释放':'等待释放'}`));
-      row.append(advanced);
-    }
-    return row;
-  }
-
-  // Keep all loaded Fire pages and disclosure states keyed by the stable plan.
-  function rememberDetailState(){
-    const root=get('schedule-detail-view');
-    const view=historyViews.get(root.dataset.scheduleId);
-    if(!view)return;
-    view.open=Boolean(root.querySelector('.schedule-history')?.open);
-    view.moreOpen=Boolean(root.querySelector('.schedule-more')?.open);
-    view.deleteReview=Boolean(root.querySelector('.schedule-delete-confirm'));
-    view.expandedRuns=new Set([...root.querySelectorAll('.schedule-history-row')]
-      .filter(row=>row.querySelector('.schedule-run-details')?.open)
-      .map(row=>row.dataset.fireId));
+    text(toggle,focus?.paused?'恢复计划':'暂停计划');myView.publish();
   }
   function syncStopButtons(){
-    if(reactUI?.schedulePlansMounted){
-      reactUI.renderScheduledCurrentRun(host.currentRun);
-      return; // React alone owns action availability after the handoff.
-    }
-    for(const button of get('schedule-plan-list').querySelectorAll('[data-schedule-action="stop"]')){
-      button.disabled=button.dataset.runId!==host.currentRun;
-      button.title=button.disabled?'仅当前运行宿主可停止此执行；请到运行页核对':
-        button.getAttribute('aria-label');
-    }
+    myView.project('planRows',{...myView.data.planRows,currentRunId:host.currentRun||''});
   }
   async function stopCardRun(plan,fire){
     // A list card may stop only the exact admitted scheduled Fire owned by
@@ -521,271 +443,61 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }finally{busy=false;}
   }
   function renderPlans(){
-    rememberDetailState();
-    const parent=get('schedule-plan-list');
-    const reactOwned=Boolean(reactUI?.schedulePlansMounted),reactRows=[];
-    const publishReactRows=()=>reactUI.renderScheduledPlanRows({
-      plans:reactRows,currentRunId:host.currentRun||'',
-      onOpen:openDetail,onToggle:plan=>void change(plan,plan.paused?'resume':'pause'),
-      onEdit:edit,onStop:(plan,fire)=>void stopCardRun(plan,fire)
-    });
-    const focused=doc.activeElement?.closest?.('.schedule-card');
-    const focusedId=focused&&parent.contains(focused)?focused.dataset.scheduleId:null;
-    const focusAction=doc.activeElement?.dataset?.scheduleAction;
-    const focusedSelector=focusedId?doc.activeElement?.matches?.('.schedule-plan-open')?
-      '.schedule-plan-open':(['stop','toggle','edit'].includes(focusAction)?
-        '.schedule-plan-actions [data-schedule-action="'+focusAction+'"]':null):null;
     const ids=new Set(allPlans.map(plan=>plan.scheduleId));
     for(const id of historyViews.keys())if(!ids.has(id))historyViews.delete(id);
-    if(!reactOwned)parent.replaceChildren();
     const sorted=allPlans.slice().sort((a,b)=>(a.nextDueAt??Infinity)-(b.nextDueAt??Infinity));
     const enabled=allPlans.filter(p=>!p.paused&&!p.needsAttention&&Number.isFinite(p.nextDueAt)).length;
     const paused=allPlans.filter(p=>p.paused).length;
-    const running=allPlans.filter(p=>(p.history||[]).some(f=>
-      ['ADMITTED','RUNNING'].includes(f.status))).length;
-    get('schedule-list-summary').hidden=!allPlans.length;
-    text(get('schedule-list-summary'),allPlans.length?
-      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排 · ${paused} 个已暂停 · ${running} 个运行中`:
-      '');
-    if(!allPlans.length){
-      if(reactOwned){publishReactRows();renderDetail();return;}
-      const empty=element(doc,'div','schedule-empty od-stack');
-      empty.setAttribute('role','status');
-      const icon=element(doc,'span','schedule-empty-icon','◷');
-      icon.setAttribute('aria-hidden','true');
-      empty.append(icon,element(doc,'h3','od-page-title','尚无定时计划'),
-        element(doc,'p','schedule-empty-hint hint','点击右上角「＋ 新建」，安排第一个已验证任务。'));
-      parent.append(empty);
-      renderDetail();return;
-    }
-    for(const plan of sorted){
+    const running=allPlans.filter(p=>(p.history||[]).some(f=>['ADMITTED','RUNNING'].includes(f.status))).length;
+    ui('schedule-list-summary').hidden=!allPlans.length;
+    text(ui('schedule-list-summary'),allPlans.length?
+      `共 ${allPlans.length} 个计划 · ${enabled} 个已安排 · ${paused} 个已暂停 · ${running} 个运行中`:'');
+    const plans=sorted.map(plan=>{
       const previous=historyViews.get(plan.scheduleId);
-      const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false};
+      const view=previous||{records:[],hasMore:false,open:false,moreOpen:false,deleteReview:false,expandedRuns:new Set()};
       const latest=plan.history||[];
-      const overlap=!latest.length||!view.records.length||
-        latest.some(fire=>view.records.some(loaded=>loaded.fireId===fire.fireId));
-      // Never skip an unobserved page after a long background gap.
+      const overlap=!latest.length||!view.records.length||latest.some(fire=>view.records.some(loaded=>loaded.fireId===fire.fireId));
       view.records=mergeScheduleHistoryView(latest,overlap?view.records:[]);
       if(!previous||!overlap)view.hasMore=latest.length===20;
       historyViews.set(plan.scheduleId,view);
-      if(reactOwned){
-        reactRows.push({...plan,history:view.records});
-        continue;
-      }
-      const card=element(doc,'article','schedule-card od-surface');
-      card.dataset.scheduleId=plan.scheduleId;
-      const presentation=presentSchedulePlan(plan,view.records);
-      const head=element(doc,'div','schedule-card-head od-toolbar');
-      const titleRow=element(doc,'div','schedule-plan-title-row');
-      titleRow.append(action(doc,plan.title,()=>openDetail(plan.scheduleId),
-        'od-button od-button--quiet schedule-plan-open'));
-      const state=element(doc,'span','schedule-state schedule-state-icon');
-      state.dataset.tone=presentation.tone;
-      // A Fire state is deliberately not mistaken for the lifecycle of its plan.
-      state.title=schedulePlanStatusLabel(presentation);
-      state.setAttribute('role','img');state.setAttribute('aria-label',state.title);
-      state.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+
-        schedulePlanIconPath(presentation)+'"/></svg>';
-      titleRow.append(state);head.append(titleRow);
-      const toolbar=element(doc,'div','schedule-plan-actions od-toolbar');
-      toolbar.setAttribute('aria-label','计划快捷操作');
-      const toggleLabel=(plan.paused?'恢复计划「':'暂停计划「')+plan.title+'」';
-      const toggle=action(doc,'',()=>void change(plan,plan.paused?'resume':'pause'),
-        'od-icon-button schedule-plan-action');
-      toggle.setAttribute('aria-label',toggleLabel);toggle.title=toggleLabel;
-      toggle.dataset.scheduleAction='toggle';
-      // A completed one-off or an already concluded one-off has nothing to
-      // "resume"; editing/re-scheduling is a separate explicit operation.
-      const togglable=plan.paused||plan.triggerKind!=='once'||Number.isFinite(plan.nextDueAt);
-      toggle.disabled=Boolean(plan.paused&&plan.needsAttention);
-      if(toggle.disabled)toggle.title='请先处理固定任务与网站权限，再恢复计划';
-      toggle.innerHTML=plan.paused?
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 12 7-12 7Z"/></svg>':
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M17 5v14"/></svg>';
-      const editLabel='编辑计划「'+plan.title+'」';
-      const editButton=action(doc,'',()=>edit(plan),'od-icon-button schedule-plan-action');
-      editButton.setAttribute('aria-label',editLabel);editButton.title=editLabel;
-      editButton.dataset.scheduleAction='edit';
-      editButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16 4l4 4-11 11H5v-4L16 4Z"/></svg>';
-      const activeFire=view.records.find(fire=>
-        ['ADMITTED','RUNNING'].includes(fire.status)&&typeof fire.runId==='string'&&fire.runId);
-      if(activeFire){
-        const stopLabel='停止本次执行「'+plan.title+'」';
-        const stopButton=action(doc,'',()=>void stopCardRun(plan,activeFire),
-          'od-icon-button schedule-plan-action');
-        stopButton.dataset.scheduleAction='stop';
-        stopButton.dataset.runId=activeFire.runId;
-        stopButton.setAttribute('aria-label',stopLabel);stopButton.title=stopLabel;
-        stopButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
-        stopButton.disabled=host.currentRun!==activeFire.runId;
-        if(stopButton.disabled)stopButton.title='仅当前运行宿主可停止此执行；请到运行页核对';
-        toolbar.append(stopButton);
-      }
-      if(togglable)toolbar.append(toggle);
-      toolbar.append(editButton);
-      head.append(toolbar);
-      const timing=element(doc,'p','schedule-plan-meta schedule-timing-line');
-      timing.append(element(doc,'span','schedule-plan-frequency',presentation.frequencyText),
-        element(doc,'span','schedule-timing-separator',' · '),
-        element(doc,'span','schedule-next-time',presentation.nextText));
-      card.append(head,timing);
-      // Do not spend a third line repeating an ordinary successful last run.
-      if((plan.needsAttention||schedulePlanNeedsNotice(presentation))&&presentation.recentText){
-        const last=element(doc,'p','schedule-recent-result','最近：'+presentation.recentText);
-        last.dataset.tone=presentation.recentTone;card.append(last);
-      }
-      card.addEventListener('click',event=>{
-        if(!event.target.closest?.('button,a,summary,input,select'))openDetail(plan.scheduleId);
-      });
-      parent.append(card);
-    }
-    if(reactOwned)publishReactRows();
+      return {...plan,history:view.records};
+    });
+    myView.project('planRows',{plans,currentRunId:host.currentRun||'',
+      onOpen:myView.action(openDetail),onToggle:plan=>void change(plan,plan.paused?'resume':'pause'),
+      onEdit:myView.action(edit),onStop:(plan,fire)=>void stopCardRun(plan,fire)});
     renderDetail();
-    if(focusedId&&focusedSelector){
-      const restored=[...parent.querySelectorAll('.schedule-card')].find(card=>
-        card.dataset.scheduleId===focusedId);
-      (restored?.querySelector(focusedSelector)||restored?.querySelector('.schedule-plan-open'))
-        ?.focus({preventScroll:true});
-    }
   }
   function renderDetail(){
-    const parent=get('schedule-detail-view');
     const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
     if(!plan){
-      parent.replaceChildren();parent.dataset.scheduleId='';
+      myView.project('scheduleDetail',null);
       if(activeView==='detail'){
-        leaveDetail();selectedPlanId=null;
-        message('此计划已被移除，已返回计划列表');
+        leaveDetail();selectedPlanId=null;message('此计划已被移除，已返回计划列表');
       }
       return;
     }
-    const view=historyViews.get(plan.scheduleId);
-    if(!view)return;
-    const scrollTop=get('workspace-content')?.scrollTop??0;
-    const focusedRun=parent.contains(doc.activeElement)&&
-      doc.activeElement?.matches?.('.schedule-run-details > summary')?
-        doc.activeElement.closest('.schedule-history-row')?.dataset.fireId:null;
-    const focusSelectors=['.schedule-history > summary','.schedule-load-more',
-      '.schedule-more > summary',
-      '.schedule-delete-confirm button','.schedule-delete-confirm button:last-child',
-      '.schedule-detail-actions button','.schedule-status-help button'];
-    const focusSelector=parent.contains(doc.activeElement)?
-      focusSelectors.find(selector=>doc.activeElement?.matches?.(selector)):null;
-    const card=element(doc,'div','schedule-detail-card od-stack');
-    const summary=element(doc,'section','schedule-detail-summary od-surface od-surface--padded od-stack');
+    const view=historyViews.get(plan.scheduleId);if(!view)return;
+    const setOpen=(key,value)=>{view[key]=value;renderDetail();};
     const catalogEntry=catalog.find(item=>item.taskId===plan.taskId&&item.version===plan.version);
-    const presentation=presentSchedulePlan(plan,view.records);
-    const state=element(doc,'span','schedule-state',presentation.badge);
-    state.dataset.tone=presentation.tone;
-    summary.append(state,
-      element(doc,'p','schedule-next-time',presentation.timingText),
-      element(doc,'p','schedule-plan-meta hint',catalogEntry?.manifest?.title||plan.taskId),
-      element(doc,'p','schedule-detail-url hint','目标网页：'+plan.targetUrl));
-    if(presentation.recentText){
-      const recent=element(doc,'p','schedule-recent-result',presentation.recentText);
-      recent.dataset.tone=presentation.recentTone;summary.append(recent);
-    }
-      const last=view.records[0];
-      const warning=plan.needsAttention?
-        '当前任务安装身份或网站权限不足；请检查已安装任务，不会自动换绑新版。':
-        last&&!['SUCCESS','STOPPED'].includes(last.status)?scheduleStatusGuidance[last.status]:'';
-      const hint=warning?element(doc,'p','schedule-status-help',warning):null;
-      if(hint&&plan.needsAttention){
-        hint.append(' ');
-        hint.append(action(doc,'检查已安装任务',()=>openManager('detail'),
-          'od-button od-button--secondary'));
-      }
-      const history=element(doc,'details','schedule-history od-disclosure od-disclosure--flat');
-      history.open=view.open;
-      history.append(element(doc,'summary',null,
-        '运行记录'+(last?` · 最近：${scheduleStatus(last.status)} · ${describeTime(last.scheduledAt,plan.timezone)}`:' · 暂无')));
-      const historyStatus=element(doc,'p','schedule-history-status hint',view.historyError||'');
-      historyStatus.setAttribute('role','status');historyStatus.setAttribute('aria-live','polite');
-      historyStatus.hidden=!view.historyError;
-      history.append(historyStatus);
-      const historyList=element(doc,'div','od-stack');
-      for(const fire of view.records){
-        const row=makeHistoryRow(fire,plan.timezone);
-        const technical=row.querySelector('.schedule-run-details');
-        if(technical)technical.open=Boolean(view.expandedRuns?.has(fire.fireId));
-        historyList.append(row);
-      }
-      if(view.hasMore){
-        const more=action(doc,'加载更早记录',async()=>{
-          if(more.disabled)return;
-          more.disabled=true;text(more,'正在读取…');
-          try{
-            const page=await client.request('listScheduleHistory',{
-              scheduleId:plan.scheduleId,offset:view.records.length,limit:20});
-            const seen=new Set(view.records.map(fire=>fire.fireId));
-            for(const fire of page.history){
-              if(seen.has(fire.fireId))continue;
-              seen.add(fire.fireId);view.records.push(fire);
-              if(historyList.isConnected)historyList.insertBefore(makeHistoryRow(fire,plan.timezone),more);
-            }
-            view.hasMore=Boolean(page.hasMore&&page.history.length);
-            view.historyError='';text(historyStatus,'');historyStatus.hidden=true;
-            if(!historyList.isConnected){renderPlans();return;}
-            if(!view.hasMore){
-              if(doc.activeElement===more)history.querySelector('summary').focus({preventScroll:true});
-              more.remove();
-            }
-            else {more.disabled=false;text(more,'加载更早记录');}
-          }catch(error){
-            more.disabled=false;text(more,'重试加载记录');
-            view.historyError='加载历史失败：'+(error?.message||String(error));
-            if(historyStatus.isConnected){text(historyStatus,view.historyError);historyStatus.hidden=false;}
-            else renderPlans();
-          }
-        },'od-button od-button--secondary schedule-load-more');
-        historyList.append(more);
-      }
-      history.append(historyList);
-
-    const toolbar=element(doc,'div','schedule-actions od-toolbar schedule-detail-actions');
-    // A completed one-off never exposes an impossible pause or resume.
-    const canToggle=plan.paused||plan.triggerKind!=='once'||Number.isFinite(plan.nextDueAt);
-    if(canToggle){
-      const toggle=action(doc,plan.paused?'恢复计划':'暂停计划',
-        ()=>void change(plan,plan.paused?'resume':'pause'),'od-button od-button--secondary');
-      toggle.disabled=Boolean(plan.paused&&plan.needsAttention);
-      if(toggle.disabled)toggle.title='请先处理固定任务与网站权限，再恢复计划';
-      toolbar.append(toggle);
-    }
-      const more=element(doc,'details','schedule-more od-disclosure od-disclosure--flat');
-      more.open=view.moreOpen;
-      more.append(element(doc,'summary',null,'固定版本与时区'));
-      more.append(element(doc,'p','hint',
-        `固定版本 v${plan.version} · IANA 时区 ${plan.timezone} · 任务 ${plan.taskId}`));
-
-    card.append(summary);
-    if(hint)card.append(hint);
-    card.append(toolbar,history,more);
-    if(view.deleteReview){
-      const confirm=element(doc,'div','schedule-delete-confirm od-surface');
-      confirm.setAttribute('role','group');
-      confirm.setAttribute('aria-label','确认删除当前计划');
-      confirm.append(element(doc,'strong',null,'确认删除计划'),
-        element(doc,'p',null,
-          `确定删除「${plan.title}」？计划将停止后续触发，已有 Run/Result 历史不会因删除计划自动清除。`));
-      confirm.append(action(doc,'确认删除',()=>void change(plan,'delete'),
-        'od-button schedule-danger-button'),
-        action(doc,'取消',()=>{
-          view.deleteReview=false;renderDetail();
-          get('schedule-detail-delete').focus({preventScroll:true});
-        },'od-button od-button--secondary'));
-      card.append(confirm);
-    }
-    parent.dataset.scheduleId=plan.scheduleId;
-    parent.replaceChildren(card);
-    if(focusSelector)(card.querySelector(focusSelector)||get('schedule-back'))?.focus({preventScroll:true});
-    if(focusedRun)[...historyList.querySelectorAll('.schedule-history-row')]
-      .find(row=>row.dataset.fireId===focusedRun)?.querySelector('.schedule-run-details > summary')
-      ?.focus({preventScroll:true});
-    if(activeView==='detail'){
-      text(get('schedule-panel-title'),plan.title);
-      const scroller=get('workspace-content');if(scroller)scroller.scrollTop=scrollTop;
-    }
+    myView.project('scheduleDetail',{plan,taskTitle:catalogEntry?.manifest?.title||plan.taskId,
+      ...view,records:[...view.records],expandedRuns:new Set(view.expandedRuns||[]),
+      onHistoryToggle:value=>setOpen('open',value),onMoreToggle:value=>setOpen('moreOpen',value),
+      onRunToggle:(id,open)=>{view.expandedRuns??=new Set();if(open)view.expandedRuns.add(id);else view.expandedRuns.delete(id);},
+      onToggle:()=>void change(plan,plan.paused?'resume':'pause'),
+      onManage:myView.action(()=>openManager('detail')),onDelete:()=>void change(plan,'delete'),
+      onCancelDelete:()=>{view.deleteReview=false;renderDetail();focus('schedule-detail-delete',{preventScroll:true});},
+      onLoadMore:async()=>{
+        if(view.loading||!view.hasMore)return;
+        view.loading=true;renderDetail();
+        try{
+          const page=await client.request('listScheduleHistory',{scheduleId:plan.scheduleId,offset:view.records.length,limit:20});
+          if(disposed||historyViews.get(plan.scheduleId)!==view)return;
+          view.records=mergeScheduleHistoryView(view.records,page.history||[]);
+          view.hasMore=Boolean(page.hasMore&&page.history?.length);view.historyError='';
+        }catch(error){if(!disposed)view.historyError='加载历史失败：'+(error?.message||String(error));}
+        finally{view.loading=false;if(!disposed)renderDetail();}
+      }});
+    text(ui('schedule-panel-title'),plan.title);
   }
   function openDetail(scheduleId){
     if(!allPlans.some(plan=>plan.scheduleId===scheduleId))return;
@@ -794,7 +506,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     detailReturnView=activeView==='runner'?'runner':'list';
     selectedPlanId=scheduleId;
     renderDetail();show('detail');
-    get('schedule-back').focus({preventScroll:true});
+    focus('schedule-back',{preventScroll:true});
   }
   function leaveDetail(){
     rememberDetailState();
@@ -802,14 +514,14 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const scheduleId=selectedPlanId;
     show(detailReturnView);
     if(detailReturnView==='list'){
-      const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+      const card=[...get('schedule-plan-list')?.querySelectorAll('.schedule-card')||[]]
         .find(row=>row.dataset.scheduleId===scheduleId);
       (card?.querySelector('.schedule-plan-open')||
-        get('schedule-plan-list').querySelector('.schedule-plan-open')||
-        get('schedule-create')).focus({preventScroll:true});
+        get('schedule-plan-list')?.querySelector('.schedule-plan-open')||
+        get('schedule-create'))?.focus({preventScroll:true});
       const scroller=get('workspace-content');
       if(scroller)scroller.scrollTop=listScrollTop;
-    }else get('schedule-runner-history').focus({preventScroll:true});
+    }else focus('schedule-runner-history',{preventScroll:true});
   }
   async function change(plan,operation){
     if(busy)return;busy=true;
@@ -837,28 +549,28 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }finally{busy=false;}
   }
   function switchKind(){
-    const kind=get('schedule-kind').value;
-    get('schedule-once-field').hidden=kind!=='once';
-    get('schedule-clock-field').hidden=!['daily','weekly'].includes(kind);
-    get('schedule-weekdays-field').hidden=kind!=='weekly';
-    get('schedule-interval-field').hidden=kind!=='interval';
+    const kind=ui('schedule-kind').value;
+    ui('schedule-once-field').hidden=kind!=='once';
+    ui('schedule-clock-field').hidden=!['daily','weekly'].includes(kind);
+    ui('schedule-weekdays-field').hidden=kind!=='weekly';
+    ui('schedule-interval-field').hidden=kind!=='interval';
     preview();
   }
   function trigger(){
-    const kind=get('schedule-kind').value,zone=get('schedule-timezone').value.trim();
-    if(kind==='once')return {kind,zone,spec:{at:parseWallScheduleTime(zone,get('schedule-once').value)}};
+    const kind=ui('schedule-kind').value,zone=ui('schedule-timezone').value.trim();
+    if(kind==='once')return {kind,zone,spec:{at:parseWallScheduleTime(zone,ui('schedule-once').value)}};
     if(kind==='interval'){
-      const everyMinutes=Number(get('schedule-minutes').value);
+      const everyMinutes=Number(ui('schedule-minutes').value);
       const unchanged=editing?.triggerKind==='interval'&&
         editing.triggerSpec.everyMinutes===everyMinutes;
       return {kind,zone,spec:{anchorAt:unchanged?editing.triggerSpec.anchorAt:Date.now()+everyMinutes*60000,
         everyMinutes}};
     }
-    const match=get('schedule-clock').value.match(/^(\d{2}):(\d{2})$/);
+    const match=ui('schedule-clock').value.match(/^(\d{2}):(\d{2})$/);
     if(!match)throw Error('请输入有效的执行时间');
     const spec={hour:Number(match[1]),minute:Number(match[2])};
     if(kind==='weekly'){
-      spec.days=[...get('schedule-weekdays-field').querySelectorAll('input:checked')].map(node=>Number(node.value));
+      spec.days=[0,1,2,3,4,5,6].filter(day=>get('my-weekday-'+day).checked);
     }
     return {kind,zone,spec};
   }
@@ -867,25 +579,25 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       const {kind,zone,spec}=trigger();
       const next=nextScheduleAt(kind,spec,zone,Date.now());
       if(next===null)throw Error('该时间没有后续触发，请选择未来时间');
-      text(get('schedule-next-time'),describeTime(next,zone));
-      text(get('schedule-next-zone'),'按 '+zone+' 固定时区执行 · Chrome 关闭时不唤醒电脑');
-      get('schedule-next').dataset.state='valid';
+      text(ui('schedule-next-time'),describeTime(next,zone));
+      text(ui('schedule-next-zone'),'按 '+zone+' 固定时区执行 · Chrome 关闭时不唤醒电脑');
+      ui('schedule-next').dataset.state='valid';
       if(!touched.has('time'))fieldError('time','');
     }catch(error){
-      text(get('schedule-next-time'),'请检查执行时间');
-      text(get('schedule-next-zone'),error?.message||'请输入有效的执行时间和时区');
-      get('schedule-next').dataset.state='invalid';
+      text(ui('schedule-next-time'),'请检查执行时间');
+      text(ui('schedule-next-zone'),error?.message||'请输入有效的执行时间和时区');
+      ui('schedule-next').dataset.state='invalid';
       if(touched.has('time'))fieldError('time',error?.message||'请输入有效的执行时间和时区');
     }
   }
   function validateLocal(showAll=false){
     const errors={};const fail=(name,value)=>{errors[name]=value;};
-    const title=get('schedule-title').value.trim();
+    const title=ui('schedule-title').value.trim();
     if(!title||title.length>100)fail('title','计划名称应为 1–100 个字符');
-    const row=eligible().find(r=>r.taskId===get('schedule-task-select').value);
+    const row=eligible().find(r=>r.taskId===ui('schedule-task-select').value);
     if(!row)fail('task','请选择已验证、已安装且已启用的任务');
     let url;
-    const entered=get('schedule-target').value.trim();
+    const entered=ui('schedule-target').value.trim();
     try{
       url=new URL(entered);
       if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.hash||
@@ -896,7 +608,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       '请输入完整的 http:// 或 https:// 网页地址':(error?.message||'目标网址无效'));}
     let params;
     try{
-      params=JSON.parse(get('schedule-params').value||'{}');
+      params=JSON.parse(ui('schedule-params').value||'{}');
       if(!params||typeof params!=='object'||Array.isArray(params)||
         JSON.stringify(params).length>8192)throw Error('请输入不超过 8192 字符的 JSON 对象');
     }catch(error){fail('params',error instanceof SyntaxError?
@@ -906,7 +618,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       rule=trigger();
       const next=nextScheduleAt(rule.kind,rule.spec,rule.zone,Date.now());
       if(next===null)throw Error('执行时间已过，请选择未来时间');
-      const deadline=Number(get('schedule-deadline').value);
+      const deadline=Number(ui('schedule-deadline').value);
       if(!Number.isSafeInteger(deadline)||deadline<1||deadline>60)
         throw Error('最长等待时间必须为 1–60 分钟');
     }catch(error){fail('time',error?.message||'执行规则或 IANA 时区不正确');}
@@ -926,68 +638,56 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }catch{return '';}
   }
   function populateTimeZoneSelect(selected=getScheduleDeviceTimeZone()){
-    const select=get('schedule-timezone'),groups=listScheduleTimeZoneGroups(globalThis.Intl,selected);
-    select.replaceChildren(...groups.map(row=>{
-      const group=doc.createElement('optgroup');
-      group.label=row.label;
-      for(const {value,label} of row.options){
-        const option=doc.createElement('option');
-        option.value=value;
-        const name=label.replace(/\s*\([^)]*\)\s*$/,'').replace(/^自动识别 · /,'设备时区 · ');
-        const offset=scheduleZoneOffset(value);
-        text(option,name+(offset?' · '+offset:''));
-        option.title=value;
-        group.append(option);
-      }
-      return group;
-    }));
-    // Do not silently rebind an existing plan to the device timezone.
+    const select=ui('schedule-timezone'),groups=listScheduleTimeZoneGroups(globalThis.Intl,selected);
+    myView.options('schedule-timezone',groups.map(group=>({...group,options:group.options.map(({value,label})=>{
+      const name=label.replace(/\s*\([^)]*\)\s*$/,'').replace(/^自动识别\s*·\s*/,''),offset=scheduleZoneOffset(value);
+      return {value,label:name+(offset?' · '+offset:''),title:value};
+    })})));
     select.value=selected;
     select.title='IANA：'+selected;
   }
   function reset(){
     editing=null;pendingTask=null;formDirty=false;
-    get('schedule-discard-confirm').hidden=true;
+    ui('schedule-discard-confirm').hidden=true;
     clearConfirmation();touched.clear();
     for(const name of Object.keys(formFields))fieldError(name,'');
-    const form=get('schedule-form');form.reset();
-    get('schedule-title').value='';
+    myView.resetScheduleForm();
+    ui('schedule-title').value='';
     const selectedZone=getScheduleDeviceTimeZone();
     // A missing/invalid device zone falls back to UTC. The default wall time
     // must be computed in the SAME selected IANA zone, not host Date getters.
-    get('schedule-once').value=formatWallScheduleTime(selectedZone,Date.now()+10*60000);
+    ui('schedule-once').value=formatWallScheduleTime(selectedZone,Date.now()+10*60000);
     populateTimeZoneSelect(selectedZone);
-    get('schedule-params').value='{}';get('schedule-kind').value='once';
-    get('schedule-task-select').disabled=false;
-    get('schedule-clock').value='09:00';get('schedule-minutes').value='60';
-    get('schedule-deadline').value='5';get('schedule-misfire').value='skip';
+    ui('schedule-params').value='{}';ui('schedule-kind').value='once';
+    ui('schedule-task-select').disabled=false;
+    ui('schedule-clock').value='09:00';ui('schedule-minutes').value='60';
+    ui('schedule-deadline').value='5';ui('schedule-misfire').value='skip';
     populateChoices();switchKind();
   }
   function edit(plan){
-    formDirty=false;get('schedule-discard-confirm').hidden=true;
+    formDirty=false;ui('schedule-discard-confirm').hidden=true;
     clearConfirmation();touched.clear();
     for(const name of Object.keys(formFields))fieldError(name,'');
     formReturnView=activeView==='detail'?'detail':isRunner()?'runner':'list';
     editing=plan;show('form');
-    get('schedule-title').value=plan.title;
+    ui('schedule-title').value=plan.title;
     populateChoices();
-    get('schedule-target').value=plan.targetUrl;
-    get('schedule-params').value=JSON.stringify(plan.params,null,2);
-    get('schedule-kind').value=plan.triggerKind;
+    ui('schedule-target').value=plan.targetUrl;
+    ui('schedule-params').value=JSON.stringify(plan.params,null,2);
+    ui('schedule-kind').value=plan.triggerKind;
     populateTimeZoneSelect(plan.timezone);
     if(plan.triggerKind==='once')
-      get('schedule-once').value=formatWallScheduleTime(plan.timezone,plan.triggerSpec.at);
+      ui('schedule-once').value=formatWallScheduleTime(plan.timezone,plan.triggerSpec.at);
     else if(['daily','weekly'].includes(plan.triggerKind)){
-      get('schedule-clock').value=`${String(plan.triggerSpec.hour).padStart(2,'0')}:${String(plan.triggerSpec.minute).padStart(2,'0')}`;
+      ui('schedule-clock').value=`${String(plan.triggerSpec.hour).padStart(2,'0')}:${String(plan.triggerSpec.minute).padStart(2,'0')}`;
       if(plan.triggerKind==='weekly')
-        for(const input of get('schedule-weekdays-field').querySelectorAll('input'))
-          input.checked=plan.triggerSpec.days.includes(Number(input.value));
-    }else get('schedule-minutes').value=String(plan.triggerSpec.everyMinutes);
-    get('schedule-misfire').value=plan.misfirePolicy;
-    get('schedule-deadline').value=String(plan.startDeadlineMs/60000);
-    get('schedule-open-target').checked=plan.openIfMissing;
-    get('schedule-paused').checked=plan.paused;
-    switchKind();showTaskVersion();get('schedule-title').focus();
+        for(const day of [0,1,2,3,4,5,6])get('my-weekday-'+day).checked=plan.triggerSpec.days.includes(day);
+    }else ui('schedule-minutes').value=String(plan.triggerSpec.everyMinutes);
+    ui('schedule-misfire').value=plan.misfirePolicy;
+    ui('schedule-deadline').value=String(plan.startDeadlineMs/60000);
+    ui('schedule-open-target').checked=plan.openIfMissing;
+    ui('schedule-paused').checked=plan.paused;
+    switchKind();showTaskVersion();focus('schedule-title');
   }
   async function save(event){
     event.preventDefault();if(busy)return;
@@ -996,18 +696,16 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     const local=validateLocal(true);
     if(!local){
       message('请先修正上方标记的字段',true);
-      const invalid=Object.keys(formFields).find(name=>get(formFields[name])?.getAttribute('aria-invalid')==='true');
+      const invalid=Object.keys(formFields).find(name=>ui(formFields[name])?.attributes['aria-invalid']==='true');
       if(invalid==='time'){
-         const badZone=!isScheduleTimeZone(get('schedule-timezone').value,globalThis.Intl);
-         const kind=get('schedule-kind').value;
-         const target=badZone?get('schedule-timezone'):
-           kind==='once'?get('schedule-once'):
-           kind==='interval'?get('schedule-minutes'):get('schedule-clock');
-         target.focus();
-       }else if(invalid)get(formFields[invalid]).focus();
+         const badZone=!isScheduleTimeZone(ui('schedule-timezone').value,globalThis.Intl);
+         const kind=ui('schedule-kind').value;
+         const target=badZone?'schedule-timezone':kind==='once'?'schedule-once':kind==='interval'?'schedule-minutes':'schedule-clock';
+         focus(target);
+       }else if(invalid)focus(formFields[invalid]);
       return;
     }
-    busy=true;get('schedule-save').disabled=true;
+    busy=true;ui('schedule-save').disabled=true;
     try{
       const resolved=await client.request('resolveInstalledTask',{taskId:local.row.taskId});
       // Re-authorizing a Task can increment Generation without changing
@@ -1025,28 +723,28 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         title:local.title,taskId:resolved.taskId,
         version:resolved.version,manifestHash:resolved.manifestHash,sourceHash:resolved.contentHash,
         installationId:resolved.installationId,taskGeneration:resolved.generation,
-        params:local.params,targetUrl:local.url.href,openIfMissing:get('schedule-open-target').checked,
-        timezone:zone,triggerKind:kind,triggerSpec:spec,misfirePolicy:get('schedule-misfire').value,
-        startDeadlineMs:Number(get('schedule-deadline').value)*60000,paused:get('schedule-paused').checked};
+        params:local.params,targetUrl:local.url.href,openIfMissing:ui('schedule-open-target').checked,
+        timezone:zone,triggerKind:kind,triggerSpec:spec,misfirePolicy:ui('schedule-misfire').value,
+        startDeadlineMs:Number(ui('schedule-deadline').value)*60000,paused:ui('schedule-paused').checked};
       if(revision!==editRevision)throw Error('表单在核对过程中被修改，请重新检查并确认');
       awaitingSave={input};
       const timing=frequencyLabel(input)+' · '+describeTime(nextScheduleAt(kind,spec,zone,Date.now()),zone);
-      text(get('schedule-save-summary'),
+      text(ui('schedule-save-summary'),
         `${input.title}\n任务：${resolved.manifest.title||resolved.taskId} · v${resolved.version}\n网址：${input.targetUrl}\n时区：${zone}（保存后固定）\n时间：${timing}\n状态：${input.paused?'先暂停':'启用'}`);
-      get('schedule-save-confirm').hidden=false;
+      ui('schedule-save-confirm').hidden=false;
       message('请核对固定任务、目标网址与执行规则后确认保存');
-      get('schedule-confirm-yes').focus();
+      focus('schedule-confirm-yes');
     }catch(error){message('无法确认计划：'+(error?.message||String(error)),true);}
-    finally{busy=false;get('schedule-save').disabled=false;}
+    finally{busy=false;ui('schedule-save').disabled=false;}
   }
   async function confirmSave(){
     if(busy||!awaitingSave)return;
-    busy=true;get('schedule-confirm-yes').disabled=true;
+    busy=true;ui('schedule-confirm-yes').disabled=true;
     const pending=awaitingSave;
     try{
       const {refreshError}=await commitScheduledMutation(
         ()=>client.request('saveSchedule',pending.input),refresh);
-      clearConfirmation();formDirty=false;get('schedule-discard-confirm').hidden=true;
+      clearConfirmation();formDirty=false;ui('schedule-discard-confirm').hidden=true;
       const afterSave=editing?formReturnView:isRunner()?'runner':'list';
       const savedPlanId=editing?.scheduleId??null;
       editing=null;show(afterSave==='manager'?'list':afterSave);
@@ -1063,12 +761,12 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       }
       message(failure.message,true);
     }
-    finally{busy=false;get('schedule-confirm-yes').disabled=false;}
+    finally{busy=false;ui('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
     pendingCreateFromForm=activeView==='form'||(activeView==='manager'&&managerReturn==='form');
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
-    text(get('task-dev-status'),'请先真实运行并验证源码、安装固定版本；安装后返回定时计划。');
+    get('task-dev-status').textContent='请先真实运行并验证源码、安装固定版本；安装后返回定时计划。';
   }
 
   async function toggleManagedTask(row,originList){
@@ -1094,13 +792,13 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function reviewCopyManagedTask(row,title){
     if(busy||disposed)return;
     // Copy and uninstall never share a pending destructive intention.
-    confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
+    confirmUninstall=null;ui('schedule-uninstall-confirm').hidden=true;
     pendingCopyTask=row;copyTaskReturnId=row.taskId;
     text(copyReviewLabel,'将「'+title+'」v'+row.version+
       ' 复制到开发？开发编辑器当前未保存的源码与修改将被替换。'+
       '请先保存或备份草稿。已安装任务、固定身份与定时计划均不会改变。');
-    copyReview.hidden=false;copyReview.scrollIntoView?.({block:'nearest'});
-    copyApprove.focus({preventScroll:true});
+    copyReview.hidden=false;get('schedule-copy-confirm')?.scrollIntoView?.({block:'nearest'});
+    focus('schedule-copy-yes',{preventScroll:true});
   }
   async function copyManagedTask(row){
     if(busy)return;busy=true;
@@ -1129,142 +827,39 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   function createPlanFromManagedTask(row,title){
     managerReturn='list';formReturnView='manager';show('form');
-    reset();get('schedule-task-select').value=row.enabled?row.taskId:'';
-    showTaskVersion();get('schedule-title').value=title+' 定时';
+    reset();ui('schedule-task-select').value=row.enabled?row.taskId:'';
+    showTaskVersion();ui('schedule-title').value=title+' 定时';
   }
   function confirmManagedTaskUninstall(row,title,trigger){
     closeCopyReview();uninstallReturnFocus=trigger;confirmUninstall=row;
-    const review=get('schedule-uninstall-confirm');
+    const review=ui('schedule-uninstall-confirm');
     review.hidden=false;
-    text(get('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
+    text(ui('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
       '？后续计划可能无法运行，但已有 Run/Result 历史不会自动清除。');
-    review.scrollIntoView?.({block:'nearest'});
-    get('schedule-uninstall-yes').focus({preventScroll:true});
+    get('schedule-uninstall-confirm')?.scrollIntoView?.({block:'nearest'});
+    focus('schedule-uninstall-yes',{preventScroll:true});
   }
   function renderManager(){
-    const parent=get('schedule-manager-list');
-    const focused=doc.activeElement?.closest?.('.schedule-manager-card');
-    const focusedTask=focused?.dataset?.managerTaskId;
-    const focusedAction=doc.activeElement?.dataset?.managerAction;
-    const menuOpenTask=parent.querySelector('.schedule-manager-menu[open]')
-      ?.closest('.schedule-manager-card')?.dataset.managerTaskId;
-    const reactOwned=Boolean(reactUI?.scheduleManagerMounted);
-    if(!reactOwned)parent.replaceChildren();
-    const filter=get('schedule-manager-filter').value;
-    const q=get('schedule-manager-search').value.trim().toLowerCase();
+    const filter=ui('schedule-manager-filter').value;
+    const q=ui('schedule-manager-search').value.trim().toLowerCase();
     const rows=installed.filter(row=>(filter==='all'||row.enabled===(filter==='enabled'))&&
       [row.taskId,candidate(row)?.manifest?.title||''].some(value=>value.toLowerCase().includes(q)));
-    const total=get('schedule-manager-count');
-    if(total)text(total,'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
-    if(reactOwned){
-      const projection=rows.map(row=>{
-        const entry=candidate(row),title=entry?.manifest?.title||row.taskId;
-        return {...row,title,description:entry?.manifest?.description||'',
-          siteOrigins:entry?.manifest?.siteOrigins||[],
-          linked:allPlans.filter(plan=>plan.taskId===row.taskId).length};
-      });
-      reactUI.renderScheduledManagerRows({
-        rows:projection,canCreatePlan:canStartScheduleFromManager(managerReturn),
-        emptyText:installed.length?'没有符合条件的任务，可更改搜索或筛选。':
-          '暂无已安装任务，请先到开发页创建并安装。',
-        onToggle:row=>void toggleManagedTask(row,row.siteOrigins),
-        onCopy:row=>reviewCopyManagedTask(row,row.title),
-        onCreatePlan:row=>createPlanFromManagedTask(row,row.title),
-        onUninstall:(row,trigger)=>confirmManagedTaskUninstall(row,row.title,trigger)
-      });
-      if(focusedTask&&focusedAction){
-        const restored=[...parent.querySelectorAll('.schedule-manager-card')]
-          .find(card=>card.dataset.managerTaskId===focusedTask);
-        restored?.querySelector('[data-manager-action="'+focusedAction+'"]')?.focus({preventScroll:true});
-      }
-      return;
-    }
-    if(!rows.length){
-      parent.append(element(doc,'p','task-search-empty',
-        installed.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。'));
-      return;
-    }
-    // Version identity, permission receipts and Registry mutations stay in
-    // the existing trusted TaskWorkbench. These are only view projections.
-    const iconAction=(label,path,callback,extra='')=>{
-      const button=action(doc,label,callback,'od-icon-button schedule-manager-action '+extra);
-      button.title=label;button.setAttribute('aria-label',label);
-      if(!extra.includes('schedule-manager-menu-item'))button.textContent='';
-      const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
-      const shape=doc.createElementNS('http://www.w3.org/2000/svg','path');
-      shape.setAttribute('d',path);svg.append(shape);button.append(svg);
-      return button;
-    };
-    for(const row of rows){
-      const details=candidate(row),title=details?.manifest?.title||row.taskId;
-      const originList=details?.manifest?.siteOrigins||[];
-      const linked=allPlans.filter(plan=>plan.taskId===row.taskId).length;
-      const card=element(doc,'article','schedule-manager-card od-surface');
-      card.dataset.managerTaskId=row.taskId;
-      const heading=element(doc,'div','schedule-manager-card-head');
-      const identity=element(doc,'div','schedule-manager-identity');
-      const titleLine=element(doc,'div','schedule-manager-title-line');
-      titleLine.append(element(doc,'strong',null,title));
-      const state=element(doc,'span','schedule-manager-state schedule-state-icon');
-      state.dataset.state=row.enabled?'enabled':'disabled';
-      state.title=row.enabled?'已启用':'已停用';
-      state.setAttribute('role','img');state.setAttribute('aria-label',state.title);
-      state.innerHTML=row.enabled?
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>':
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>';
-      titleLine.append(state);
-      identity.append(titleLine,element(doc,'p','hint','v'+row.version+' · '+linked+' 个关联计划'));
-      heading.append(identity);
-      const controls=element(doc,'div','schedule-manager-actions od-toolbar');
-      controls.setAttribute('role','group');
-      controls.setAttribute('aria-label','管理「'+title+'」');
-      const toggle=iconAction((row.enabled?'停用':'启用')+'「'+title+'」',
-        row.enabled?'M7 5v14M17 5v14':'m8 5 12 7-12 7Z',
-        ()=>void toggleManagedTask(row,originList),'schedule-manager-toggle');
-      toggle.dataset.managerAction='toggle';controls.append(toggle);
-      const copy=iconAction('复制「'+title+'」到开发',
-        'M8 8h12v12H8zM16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3',
-        ()=>reviewCopyManagedTask(row,title),'schedule-manager-copy');
-      copy.dataset.managerAction='copy';controls.append(copy);
-      const disclosure=element(doc,'details','schedule-manager-menu');
-      disclosure.open=menuOpenTask===row.taskId;
-      const trigger=element(doc,'summary','od-icon-button schedule-manager-action schedule-manager-menu-trigger');
-      trigger.title='更多操作：'+title;
-      trigger.setAttribute('aria-label',trigger.title);
-      trigger.dataset.managerAction='more';
-      trigger.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>';
-      const popover=element(doc,'div','schedule-manager-menu-panel od-surface');
-      if(canStartScheduleFromManager(managerReturn)){
-        popover.append(iconAction('为此任务设置定时',
-          'M7 3v4m10-4v4M4 9h16M5 5h14v15H5zM12 12v4l3 2',()=>{
-            disclosure.open=false;createPlanFromManagedTask(row,title);
-          },'schedule-manager-menu-item'));
-      }
-      popover.append(iconAction('卸载固定版本「'+title+'」',
-        'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',()=>{
-          disclosure.open=false;confirmManagedTaskUninstall(row,title,trigger);
-        },'schedule-manager-menu-item schedule-manager-uninstall'));
-      const metadata=element(doc,'details','schedule-manager-more od-disclosure od-disclosure--flat');
-      metadata.append(element(doc,'summary',null,'固定版本与网站范围'),
-        element(doc,'p','hint','任务 ID：'+row.taskId),
-        element(doc,'p','hint','固定版本：v'+row.version),
-        element(doc,'p','hint','适用网站：'+(originList.join('，')||'未指定')));
-      popover.append(metadata);
-      disclosure.append(trigger,popover);controls.append(disclosure);
-      card.append(heading,controls);parent.append(card);
-    }
-    if(focusedTask&&focusedAction){
-      const restored=[...parent.querySelectorAll('.schedule-manager-card')]
-        .find(card=>card.dataset.managerTaskId===focusedTask);
-      restored?.querySelector('[data-manager-action="'+focusedAction+'"]')?.focus({preventScroll:true});
-    }
+    text(ui('schedule-manager-count'),'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
+    myView.project('managerRows',{rows:rows.map(row=>{
+      const entry=candidate(row);
+      return {...row,title:entry?.manifest?.title||row.taskId,description:entry?.manifest?.description||'',
+        siteOrigins:entry?.manifest?.siteOrigins||[],linked:allPlans.filter(plan=>plan.taskId===row.taskId).length};
+    }),canCreatePlan:canStartScheduleFromManager(managerReturn),
+      emptyText:installed.length?'没有符合条件的任务，可更改搜索或筛选。':'暂无已安装任务，请先到开发页创建并安装。',
+      onToggle:row=>void toggleManagedTask(row,row.siteOrigins),onCopy:myView.action(row=>reviewCopyManagedTask(row,row.title)),
+      onCreatePlan:myView.action(row=>createPlanFromManagedTask(row,row.title)),
+      onUninstall:myView.action((row,trigger)=>confirmManagedTaskUninstall(row,row.title,trigger))});
   }
   function openManager(returnView){
     managerScrollTop=get('workspace-content')?.scrollTop??0;
     managerReturn=returnView;
     renderManager();show('manager');
-    get('schedule-manager-search').focus({preventScroll:true});
+    focus('schedule-manager-search',{preventScroll:true});
   }
   async function uninstall(){
     if(!confirmUninstall||busy)return;busy=true;
@@ -1274,8 +869,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         ()=>client.request('uninstallTask',{taskId:row.taskId,version:row.version,
           expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null}),
         refresh);
-      get('schedule-uninstall-confirm').hidden=true;confirmUninstall=null;
-      get('schedule-manager-search').focus?.({preventScroll:true});
+      ui('schedule-uninstall-confirm').hidden=true;confirmUninstall=null;
+      focus('schedule-manager-search',{preventScroll:true});
       message(refreshError?'固定版本已卸载，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
         '已卸载固定版本；关联计划需重新安装授权',Boolean(refreshError));
@@ -1284,8 +879,8 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       if(failure.uncertain){
         // Keep the stale row for inspection, but do not leave a destructive
         // confirmation available for a blind second submission.
-        confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
-        get('schedule-manager-search').focus?.({preventScroll:true});
+        confirmUninstall=null;ui('schedule-uninstall-confirm').hidden=true;
+        focus('schedule-manager-search',{preventScroll:true});
       }
       message(failure.message,true);
     }finally{busy=false;}
@@ -1299,22 +894,21 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     void host.stop({runId:selectedFire,controller:true}).catch(error=>message(error.message,true));
   }
   function focusReturnedView(view,scheduleId=editing?.scheduleId){
-    if(view==='detail')get('schedule-detail-edit').focus({preventScroll:true});
+    if(view==='detail')focus('schedule-detail-edit',{preventScroll:true});
     else if(view==='list'){
-      const card=[...get('schedule-plan-list').querySelectorAll('.schedule-card')]
+      const card=[...get('schedule-plan-list')?.querySelectorAll('.schedule-card')||[]]
         .find(row=>row.dataset.scheduleId===scheduleId);
-      (card?.querySelector('.schedule-plan-open')||get('schedule-create'))
-        .focus({preventScroll:true});
-    }else if(view==='manager')get('schedule-manager-search').focus({preventScroll:true});
-    else if(view==='runner')get('schedule-runner-history').focus({preventScroll:true});
+      (card?.querySelector('.schedule-plan-open')||get('schedule-create'))?.focus({preventScroll:true});
+    }else if(view==='manager')focus('schedule-manager-search',{preventScroll:true});
+    else if(view==='runner')focus('schedule-runner-history',{preventScroll:true});
   }
   function requestLeaveForm(destination){
     if(busy)return;
     if(formDirty){
       discardDestination=destination;
       clearConfirmation();
-      get('schedule-discard-confirm').hidden=false;
-      get('schedule-discard-no').focus();
+      ui('schedule-discard-confirm').hidden=false;
+      focus('schedule-discard-no');
       return;
     }
     clearConfirmation();show(destination);focusReturnedView(destination);
@@ -1322,10 +916,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   function leaveManager(){
     const destination=managerReturn;
     show(destination);
-    if(destination==='form')get('schedule-manage-tasks').focus({preventScroll:true});
+    if(destination==='form')focus('schedule-manage-tasks',{preventScroll:true});
     else if(destination==='detail')
-      (get('schedule-detail-view').querySelector('.schedule-status-help .od-button')||
-        get('schedule-detail-edit')).focus({preventScroll:true});
+      (get('schedule-detail-view')?.querySelector('.schedule-status-help .od-button')||
+        get('schedule-detail-edit'))?.focus({preventScroll:true});
     else focusReturnedView(destination);
     const scroller=get('workspace-content');if(scroller)scroller.scrollTop=managerScrollTop;
   }
@@ -1338,123 +932,106 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(isRunner()){show('runner');return;}
     hidePanel();
     // Back returns keyboard users to the exact control that opened this subview.
-    get('schedule-open').focus?.({preventScroll:true});
+    focus('schedule-open',{preventScroll:true});
   }
-  bind('schedule-open','click',()=>void open());
-  bind('schedule-stop','click',stop);
-  bind('schedule-back','click',navigateBack);
-  bind('schedule-runner-manage','click',()=>show('list'));
-  bind('schedule-runner-refresh','click',()=>void refresh().catch(error=>message(error.message,true)));
-  bind('schedule-runner-toggle','click',()=>{
+  registerAction('scheduleOpenClick',()=>void open());
+  registerAction('scheduleStopClick',stop);
+  registerAction('scheduleBackClick',navigateBack);
+  registerAction('scheduleRunnerManageClick',()=>show('list'));
+  registerAction('scheduleRunnerRefreshClick',()=>void refresh().catch(error=>message(error.message,true)));
+  registerAction('scheduleRunnerToggleClick',()=>{
     const plan=allPlans.find(p=>p.scheduleId===runnerFocusId);
     if(plan)void change(plan,plan.paused?'resume':'pause');
   });
-  bind('schedule-runner-history','click',()=>{
+  registerAction('scheduleRunnerHistoryClick',()=>{
     const plan=allPlans.find(row=>row.scheduleId===runnerFocusId);
     if(!plan){show('list');return;}
     openDetail(plan.scheduleId);
-    const details=get('schedule-detail-view').querySelector('.schedule-history');
-    if(details){details.open=true;
-      const view=historyViews.get(plan.scheduleId);if(view)view.open=true;
-      details.querySelector('summary')?.focus();}
+    const view=historyViews.get(plan.scheduleId);if(view){view.open=true;renderDetail();}
+    queueMicrotask(()=>get('schedule-detail-view')?.querySelector('.schedule-history > summary')?.focus());
   });
-  bind('schedule-create','click',()=>{formReturnView=isRunner()?'runner':'list';reset();show('form');get('schedule-title').focus();});
-  bind('schedule-open-manager','click',()=>openManager('list'));
-  bind('schedule-detail-edit','click',()=>{
+  registerAction('scheduleCreateClick',()=>{formReturnView=isRunner()?'runner':'list';reset();show('form');focus('schedule-title');});
+  registerAction('scheduleOpenManagerClick',()=>openManager('list'));
+  registerAction('scheduleDetailEditClick',()=>{
     const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
     if(plan)edit(plan);
   });
-  bind('schedule-detail-delete','click',()=>{
+  registerAction('scheduleDetailDeleteClick',()=>{
     if(activeView!=='detail'||busy)return;
     const plan=allPlans.find(row=>row.scheduleId===selectedPlanId);
     const view=historyViews.get(plan?.scheduleId);
     if(!plan||!view)return;
     view.deleteReview=true;
     renderDetail();
-    get('schedule-detail-view').querySelector('.schedule-delete-confirm button')?.focus({preventScroll:true});
+    queueMicrotask(()=>get('schedule-detail-view')?.querySelector('.schedule-delete-confirm button')?.focus({preventScroll:true}));
   });
-  bind('schedule-cancel','click',()=>requestLeaveForm(formReturnView));
-  bind('schedule-discard-yes','click',()=>{
+  registerAction('scheduleCancelClick',()=>requestLeaveForm(formReturnView));
+  registerAction('scheduleDiscardYesClick',()=>{
     formDirty=false;
-    get('schedule-discard-confirm').hidden=true;
+    ui('schedule-discard-confirm').hidden=true;
     clearConfirmation();
     show(discardDestination);
     focusReturnedView(discardDestination);
   });
-  bind('schedule-discard-no','click',()=>{
-    get('schedule-discard-confirm').hidden=true;
-    get('schedule-title').focus();
+  registerAction('scheduleDiscardNoClick',()=>{
+    ui('schedule-discard-confirm').hidden=true;
+    focus('schedule-title');
   });
-  bind('schedule-confirm-yes','click',()=>void confirmSave());
-  bind('schedule-confirm-no','click',()=>{clearConfirmation();get('schedule-save').focus();});
+  registerAction('scheduleConfirmYesClick',()=>void confirmSave());
+  registerAction('scheduleConfirmNoClick',()=>{clearConfirmation();focus('schedule-save');});
   for(const [id,name] of [
     ['schedule-title','title'],['schedule-task-select','task'],['schedule-target','target'],
     ['schedule-params','params'],['schedule-kind','time'],['schedule-timezone','time'],
     ['schedule-once','time'],['schedule-clock','time'],['schedule-minutes','time'],
     ['schedule-weekdays-field','time'],['schedule-deadline','time']]){
-    bind(id,'input',()=>{
+    registerAction(actionName(id,'input'),()=>{
       touched.add(name);formDirty=true;editRevision++;
-      get('schedule-discard-confirm').hidden=true;
+      ui('schedule-discard-confirm').hidden=true;
       clearConfirmation();validateLocal(false);
       if(name==='time')preview();
     });
   }
   for(const id of ['schedule-open-target','schedule-misfire','schedule-paused'])
-    bind(id,'change',()=>{formDirty=true;editRevision++;clearConfirmation();});
-  bind('schedule-form','submit',save);
-  bind('schedule-task-select','change',()=>{
+    registerAction(actionName(id,'change'),()=>{formDirty=true;editRevision++;clearConfirmation();});
+  registerAction('scheduleFormSubmit',save);
+  registerAction('scheduleTaskSelectChange',()=>{
     formDirty=true;editRevision++;clearConfirmation();void showTaskVersion();
   });
-  bind('schedule-timezone','change',()=>{
-    formDirty=true;editRevision++;clearConfirmation();
-    // Keep the open native picker and keyboard focus stable.
-    get('schedule-timezone').title='IANA：'+get('schedule-timezone').value;
-  });
-  bind('schedule-task-empty-create','click',enterDeveloper);
-  bind('scheduled-panel','keydown',event=>{
+  registerAction('scheduleTaskEmptyCreateClick',enterDeveloper);
+  registerAction('scheduledPanelKeydown',event=>{
     if(event.key!=='Escape'||event.defaultPrevented)return;
-    if(!get('schedule-discard-confirm').hidden){
-      event.preventDefault();get('schedule-discard-no').click();
-    }else if(!get('schedule-save-confirm').hidden){
-      event.preventDefault();clearConfirmation();get('schedule-save').focus();
-    }else if(!get('schedule-uninstall-confirm').hidden){
-      event.preventDefault();get('schedule-uninstall-no').click();
+    if(!ui('schedule-discard-confirm').hidden){
+      event.preventDefault();get('schedule-discard-no')?.click?.();
+    }else if(!ui('schedule-save-confirm').hidden){
+      event.preventDefault();clearConfirmation();focus('schedule-save');
+    }else if(!ui('schedule-uninstall-confirm').hidden){
+      event.preventDefault();get('schedule-uninstall-no')?.click?.();
     }else if(!copyReview.hidden){
       event.preventDefault();closeCopyReview(true);
     }else{
-      const menu=doc.querySelector('.schedule-manager-menu[open]');
-      if(menu){
-        event.preventDefault();menu.open=false;
-        menu.querySelector('summary')?.focus({preventScroll:true});
-      }
+      // The React manager owns menu dismissal and returns focus to its trigger.
     }
   });
-  bind('schedule-new-script','click',enterDeveloper);
-  bind('schedule-manage-tasks','click',()=>openManager('form'));
-  bind('schedule-manager-create','click',enterDeveloper);
-  bind('schedule-manager-back','click',leaveManager);
-  const closeManagerMenus=event=>{
-    if(!shown||activeView!=='manager')return;
-    for(const menu of get('schedule-manager-list').querySelectorAll('.schedule-manager-menu[open]'))
-      if(!menu.contains(event.target))menu.open=false;
-  };
-  doc.addEventListener('pointerdown',closeManagerMenus);
-  listeners.push(()=>doc.removeEventListener('pointerdown',closeManagerMenus));
-  bind('schedule-manager-search','input',()=>{closeCopyReview();renderManager();});
-  bind('schedule-manager-filter','change',()=>{closeCopyReview();renderManager();});
-  bind('schedule-uninstall-yes','click',()=>void uninstall());
-  bind('schedule-uninstall-no','click',()=>{
-    confirmUninstall=null;get('schedule-uninstall-confirm').hidden=true;
+  registerAction('scheduleNewScriptClick',enterDeveloper);
+  registerAction('scheduleManageTasksClick',()=>openManager('form'));
+  registerAction('scheduleManagerCreateClick',enterDeveloper);
+  registerAction('scheduleManagerBackClick',leaveManager);
+  registerAction('scheduleManagerSearchInput',()=>{closeCopyReview();renderManager();});
+  registerAction('scheduleManagerFilterChange',()=>{closeCopyReview();renderManager();});
+  registerAction('scheduleUninstallYesClick',()=>void uninstall());
+  registerAction('scheduleUninstallNoClick',()=>{
+    confirmUninstall=null;ui('schedule-uninstall-confirm').hidden=true;
     if(uninstallReturnFocus?.isConnected)uninstallReturnFocus.focus?.({preventScroll:true});
     uninstallReturnFocus=null;
   });
   for(const id of ['schedule-kind','schedule-once','schedule-timezone','schedule-clock',
     'schedule-minutes','schedule-weekdays-field'])
-    bind(id,'change',()=>{
+    registerAction(actionName(id,'change'),()=>{
       formDirty=true;editRevision++;clearConfirmation();
+      if(id==='schedule-timezone')ui(id).title='IANA：'+ui(id).value;
       if(id==='schedule-kind')switchKind();else preview();
     });
-  bind('schedule-open-runner','click',()=>void api.tabs.create({url:api.runtime.getURL('ui/tool.html?scheduledRunner=1')})
+  registerAction('scheduleOpenRunnerClick',()=>void api.tabs.create({url:api.runtime.getURL('ui/tool.html?scheduledRunner=1')})
     .catch(error=>message('无法打开运行页：'+error.message,true)));
   const installedUpdates=client.subscribeInstalledTasks?.(event=>{
     if(event?.taskId&&pendingCreate)void onInstalledTask(event.taskId);
@@ -1477,7 +1054,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       pendingCreateFromForm=false;
       showPanel();show('form');
       if(!editing){
-        get('schedule-task-select').value=taskId;
+        ui('schedule-task-select').value=taskId;
         showTaskVersion();
         message('新任务已验证安装，可继续设置时间和目标。');
       }else{
@@ -1489,9 +1066,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   return {open,hidePanel,refresh,setRun(runId){
     selectedFire=runId;
     taskWorkbench.setScheduledRunOwner?.(runId);
-    get('schedule-stop').hidden=!runId;
+    ui('schedule-stop').hidden=!runId;
     renderRunner();
   },onInstalled:onInstalledTask,get shown(){return shown;},dispose(){
-    disposed=true;for(const remove of listeners)remove();unsubscribe?.();installedUpdates?.();hidePanel();
+    disposed=true;permissionSeq++;refreshSeq++;storageProbeRevision++;for(const remove of listeners)remove();unsubscribe?.();installedUpdates?.();hidePanel();
   }};
 }

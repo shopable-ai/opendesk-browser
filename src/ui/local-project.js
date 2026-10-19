@@ -1,11 +1,12 @@
+import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {sourceLabel,sourceName} from '../native-agent/source-label.js';
 
 const KEY='opendesk.local-project.selection.v1';
 const HELP_URL='https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md';
 const failure=(code,message)=>Object.assign(new Error(message),{code});
-export function createLocalProjectView({client,api,document:doc,onChange=()=>{},preparationDelayMs=450}){
-  const find=id=>doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
+export function createLocalProjectView({client,api,document:doc,view=null,onChange=()=>{},preparationDelayMs=450}){
+  const find=id=>view?view.fields[id]:doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
   let disposed=false,generation=0,selectionGeneration=0,connected=false,nativeConnected=false,epoch=null,projects=[],workspaces=[],selection='',savedName='',savedSourceId='',last=null,checking=false,diagnostic='';
   let backgroundTimer=null,backgroundRead=null,backgroundKey='',backgroundError=null,prepared=null,workspaceOpenError=null;
   // Recovery pointers extend the existing selection preference. Authority still
@@ -40,35 +41,35 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       ['controller','page-userscript'].includes(row.runtimeKind||prepared?.runtimeKind)&&
       (state==='ready'||state===undefined&&prepared?.bindingId===row.bindingId&&prepared?.providerEpoch===epoch));
   };
-  const listen=(node,event,callback)=>{node.addEventListener(event,callback);listeners.push([node,event,callback]);};
+  const listen=(node,event,callback)=>{listeners.push(developerAction(view,node,event,callback));};
   function render(message){
     const local=active(),row=selected(),preparation=row?.preparation,ready=readyForRun();
     const identity=JSON.stringify([local,checking,connected,nativeConnected,epoch,selection,row,workspaces.length,row?.fileOnly?programsFor(row).length:null,diagnostic,last,preparationError?.code,nativeUpdateError?.code,backgroundError,prepared,workspaceOpenError,message]);
     if(identity===rendered)return;
     rendered=identity;
     const switchHead=find('developer-source-switch');
-    switchHead.dataset.mode=local?'local':'manual';
-    const heading=switchHead.querySelector?.('.od-page-title');
-    if(heading)heading.textContent=local?'项目连接':'直接编辑';
-    find('local-project-tools').hidden=!local;
-    find('manual-source-editor').hidden=local;
-    find('local-project-params-tools').hidden=!local||row?.runtimeKind!=='controller';
-    find('manual-project-params-tools').hidden=local;
+    patchDeveloperField(view,switchHead,{data:{...(switchHead.data||switchHead.dataset),mode:local?'local':'manual'}});
+    const heading=view?view.fields['developer-source-title']:switchHead.querySelector?.('.od-page-title');
+    if(heading)patchDeveloperField(view,heading,{textContent:local?'项目连接':'直接编辑'});
+    patchDeveloperField(view,find('local-project-tools'),{hidden:!local});
+    patchDeveloperField(view,find('manual-source-editor'),{hidden:local});
+    patchDeveloperField(view,find('local-project-params-tools'),{hidden:!local||row?.runtimeKind!=='controller'});
+    patchDeveloperField(view,find('manual-project-params-tools'),{hidden:local});
     const intro=find('local-project-intro');
-    if(intro)intro.textContent='选择已授权项目，可运行或核对安装；复用历史验证必须匹配当前源码、网页与持久回执。';
-    select.disabled=checking||(!connected&&!workspaces.length);
-    find('local-project-connect').textContent=row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗';
-    find('local-project-connect').disabled=row?.fileOnly?!canOpenWorkspace():false;
+    if(intro)patchDeveloperField(view,intro,{textContent:'选择已授权项目，可运行或核对安装；复用历史验证必须匹配当前源码、网页与持久回执。'});
+    patchDeveloperField(view,select,{disabled:checking||(!connected&&!workspaces.length)});
+    patchDeveloperField(view,find('local-project-connect'),{textContent:row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗'});
+    patchDeveloperField(view,find('local-project-connect'),{disabled:row?.fileOnly?!canOpenWorkspace():false});
     const recovery=local&&(!connected||!projects.length||row?.fileOnly);
     const recoveryPanel=find('local-project-recovery');
-    if(recoveryPanel)recoveryPanel.hidden=!recovery;
-    find('local-project-connect').hidden=!recovery||(nativeConnected&&!row?.fileOnly);
-    find('local-project-guide').hidden=!recovery;
-    status.dataset.state=!local?'manual':checking?'checking':row?.fileOnly?'entry-unavailable':!connected?
+    if(recoveryPanel)patchDeveloperField(view,recoveryPanel,{hidden:!recovery});
+    patchDeveloperField(view,find('local-project-connect'),{hidden:!recovery||(nativeConnected&&!row?.fileOnly)});
+    patchDeveloperField(view,find('local-project-guide'),{hidden:!recovery});
+    patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:!local?'manual':checking?'checking':row?.fileOnly?'entry-unavailable':!connected?
       (workspaces.length?'selection-needed':nativeConnected?'source-unavailable':'disconnected'):nativeUpdateError?'update-required':
       !row?'selection-needed':backgroundError||preparation?.state==='source-error'?'source-error':
-      ready?'ready':'preparing';
-    status.textContent=!local?'':checking?'正在检查本机连接…':message||(
+      ready?'ready':'preparing'}});
+    patchDeveloperField(view,status,{textContent:!local?'':checking?'正在检查本机连接…':message||(
       row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:programsFor(row).length>1?'所选目录有多个运行入口；请选择具体程序后运行。':'所选目录已连接，尚未发现可运行入口。请核对该项目的 package.json 中 opendesk 入口及源码 Provider 连接；配置完成后由原目录 opendesk-dev . 接入。打开文件仅用于辅助编辑，不会运行代码。'):
       !connected&&workspaces.length?'请选择已授权项目；等待该项目的运行入口与源码 Provider 就绪。':
       !connected?(nativeConnected?sourceUnavailable:'本地项目服务未连接；已授权的项目仍保留，恢复 Native 后自动检查。'):
@@ -80,7 +81,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       preparationError?'准备状态暂不可用，正在重新核对…':
       ready?(preparation?.state==='ready'?'已准备 · 点击「运行本地项目」才会执行':'源码已核验 · 运行前将再次读取最新版本'):
       preparationLabels[preparation?.state]||'正在准备最新源码…'
-    );
+    )});
     const report=prepared||(preparation?.state==='ready'?preparation:null);
     const details=[
       'Chrome Native：'+(nativeConnected?'已连接':'未连接'),
@@ -98,12 +99,12 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
         '；编译 '+Math.round(last.timings?.webpackMs||0)+'ms；总计 '+Math.round(last.timings?.totalMs||0)+
         'ms；构建 '+(last.timings?.buildCount??'未知')+' 次':''
     ].filter(Boolean).join('；');
-    if(local)status.title=details;else status.removeAttribute('title');
+    if(local)patchDeveloperField(view,status,{title:details});else developerAttribute(view,status,'title',null);
     const diagnostics=find('local-project-diagnostics');
-    if(diagnostics)diagnostics.textContent=details;
+    if(diagnostics)patchDeveloperField(view,diagnostics,{textContent:details});
     const refreshButton=find('local-project-refresh');
-    refreshButton.disabled=checking;
-    refreshButton.hidden=false; // Always offer explicit refresh, including ready projects.
+    patchDeveloperField(view,refreshButton,{disabled:checking});
+    patchDeveloperField(view,refreshButton,{hidden:false}); // Always offer explicit refresh, including ready projects.
     onChange();
   }
   function resetBackground(){
@@ -164,14 +165,14 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
     const available=rows();
     if(!selection&&available.length===1){selection=available[0].bindingId;persist();}
     const identity=JSON.stringify([available.map(row=>[row.bindingId,row.name,row.sourceId,row.runtimeKind,row.fileOnly,!connected&&!row.fileOnly]),selection&&!selected()?[selection,savedName,savedSourceId]:null]);
-    if(identity===choiceIdentity){if(select.value!==selection)select.value=selection;return;}
+    if(identity===choiceIdentity){if(select.value!==selection)patchDeveloperField(view,select,{value:selection});return;}
     choiceIdentity=identity;
-    select.replaceChildren(new Option('选择已授权项目',''));
+    developerOptions(view,select,[{label:'选择已授权项目',value:''}]);
     const counts=new Map();
     for(const row of available){const name=sourceName(row.name);counts.set(name,(counts.get(name)||0)+1);}
-    for(const row of available)select.append(new Option(sourceLabel(row,{kind:row.fileOnly?'文件工作区':row.runtimeKind==='page-userscript'?'页面脚本':'',duplicate:counts.get(sourceName(row.name))>1,offline:!connected&&!row.fileOnly}),row.bindingId));
-    if(selection&&!selected())select.append(new Option(sourceLabel({name:savedName,sourceId:savedSourceId,bindingId:selection},{offline:true}),selection));
-    select.value=selection;
+    for(const row of available)appendDeveloperOptions(view,select,[{label:sourceLabel(row,{kind:row.fileOnly?'文件工作区':row.runtimeKind==='page-userscript'?'页面脚本':'',duplicate:counts.get(sourceName(row.name))>1,offline:!connected&&!row.fileOnly}),value:row.bindingId}]);
+    if(selection&&!selected())appendDeveloperOptions(view,select,[{label:sourceLabel({name:savedName,sourceId:savedSourceId,bindingId:selection},{offline:true}),value:selection}]);
+    patchDeveloperField(view,select,{value:selection});
   }
   function persist(){
     const row=selected();
@@ -308,7 +309,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   }
   listen(find('local-project-connect'),'click',event=>{
     if(!event.isTrusted||!active()||disposed)return;
-    const unable=()=>{if(!disposed&&active())status.textContent='未能打开本机连接设置。可在 Chrome 扩展详情中打开「扩展选项」。';};
+    const unable=()=>{if(!disposed&&active())patchDeveloperField(view,status,{textContent:'未能打开本机连接设置。可在 Chrome 扩展详情中打开「扩展选项」。'});};
     try{
       const row=selected();
       if(row?.fileOnly){openWorkspace(event);return;}
@@ -318,7 +319,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   });
   listen(find('local-project-guide-open'),'click',event=>{
     if(!event.isTrusted||!active())return;
-    const unable=()=>{status.textContent='未能打开文档。请查看仓库 docs/api/quickstart.zh-CN.md 的「首次配置」章节。';};
+    const unable=()=>{patchDeveloperField(view,status,{textContent:'未能打开文档。请查看仓库 docs/api/quickstart.zh-CN.md 的「首次配置」章节。'});};
     try {
       const opened=api.tabs?.create?.({url:HELP_URL});
       if(!opened)return unable();
@@ -342,7 +343,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
   const initial=selectionGeneration;
   api.storage?.local?.get(KEY).then(value=>{
     if(disposed||selectionGeneration!==initial)return;
-    const saved=value[KEY];if(saved&&typeof saved.bindingId==='string'){selection=saved.bindingId;savedName=sourceName(saved.name,'之前的项目');savedSourceId=typeof saved.sourceId==='string'?saved.sourceId:'';/* Restoring a UI preference does not authorize or execute. */if(saved.localMode===true)mode.checked=true;if(typeof saved.paramsText==='string'&&saved.paramsText.length<=32768)find('local-project-params').value=saved.paramsText;
+    const saved=value[KEY];if(saved&&typeof saved.bindingId==='string'){selection=saved.bindingId;savedName=sourceName(saved.name,'之前的项目');savedSourceId=typeof saved.sourceId==='string'?saved.sourceId:'';/* Restoring a UI preference does not authorize or execute. */if(saved.localMode===true)patchDeveloperField(view,mode,{checked:true});if(typeof saved.paramsText==='string'&&saved.paramsText.length<=32768)patchDeveloperField(view,find('local-project-params'),{value:saved.paramsText});
       if(saved.lastVerifiedProof&&typeof saved.lastVerifiedProof==='object'&&!Array.isArray(saved.lastVerifiedProof))
         lastVerifiedProof=saved.lastVerifiedProof;
       if(saved.lastInstalledRef&&typeof saved.lastInstalledRef==='object'&&!Array.isArray(saved.lastInstalledRef))
@@ -394,6 +395,6 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{},
       lastInstalledRef=structuredClone(ref);persist();
     },
     capture,resolve,assertCaptured,assertReady,
-    dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
+    dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();for(const remove of listeners)remove();},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }
