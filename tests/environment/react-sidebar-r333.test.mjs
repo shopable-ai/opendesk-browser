@@ -19,7 +19,7 @@ test('R33.3 pins one React 19 runtime and keeps existing fixed WXT entry',async(
   const shell=await read('src/ui/tool-shell.js');
   assert.match(shell,/mountExtensionList\(document,\{debugEnabled/);
   assert.match(shell,/reactNavigationRequest\?\.\(view\)/);
-  assert.match(shell,/extensionCenter\.dispose\(\); extensionList\.dispose\(\)/);
+  assert.match(shell,/extensionCenter\.dispose\(\); sidebarTools\.dispose\(\); extensionList\.dispose\(\)/);
   await assert.rejects(access('packages/opendesk-ui-react'));
 });
 
@@ -47,54 +47,42 @@ test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
   }
 });
 
-test('R33.3 single DOM child owner and original privileged operations',async()=>{
-  const [main,center,rows,html,docs]=await Promise.all([
+test('R35.4 Extension Center React owns the list while existing Controller owns actions',async()=>{
+  const [main,center,rows,html,docs,shell]=await Promise.all([
     read('src/ui/react/main.tsx'),read('src/ui/extension-center.js'),
     read('src/ui/react/tabs/tools.tsx'),read('src/ui/tool.html'),
-    read('docs/architecture/react-ui-shared-components-r33.zh-CN.md')
+    read('docs/architecture/react-ui-shared-components-r33.zh-CN.md'),
+    read('src/ui/tool-shell.js')
   ]);
-  assert.match(html,/id="extension-center-list" class="ec-list"/);
-  assert.match(main,/createRoot\(shell\?\.mount\|\|section\)/);
-  assert.match(main,/<SidebarAppShell scaffold=\{shell\.scaffold\}/);
-  assert.match(main,/<ExtensionCenterPage \{\.\.\.pageProps\}\/>/);
-  assert.doesNotMatch(main,/createPortal\(<ExtensionRows/);
-  assert.match(main,/createPortal\(<ExtensionRowMenu/);
-  assert.match(main,/attachRowMenu\(element\)/);
-  assert.match(main,/renderRowMenu\(items\)/);
-  assert.doesNotMatch(main,/createPortal\(<ExtensionDetail/);
-  assert.doesNotMatch(main,/createPortal\(<ExtensionToolbar/);
-  assert.doesNotMatch(main,/createPortal\(<ExtensionRecoveries/);
-  assert.doesNotMatch(main,/createPortal\(<ExtensionEmpty/);
-  assert.doesNotMatch(main,/createPortal\(<ExtensionStatus/);
-  assert.match(main,/node\.replaceChildren\(\)/);
-  assert.match(main,/renderFeedback\(next\)/);
-  assert.match(center,/extensionList\.renderFeedback\(/);
-  assert.match(center,/extensionList\.renderRecoveries\(/);
-  assert.match(center,/extensionList\.attachRowMenu\(rowMenu\)/);
-  assert.match(center,/extensionList\.renderRowMenu\(menuItems\)/);
-  assert.match(center,/if\(extensionList\)\{menuItems\.push\(/);
-  assert.match(center,/extensionList\.renderStatus\(/);
-  assert.doesNotMatch(main,/createRoot\(container\)|createRoot\(detailContainer\)/);
-  assert.match(main,/root\.unmount\(\)/);
+  // The formal HTML must not regain the duplicated extension business UI.
+  assert.doesNotMatch(html,/id="extension-center-list"/);
+  assert.match(rows,/<ul id="extension-center-list"/);
+  for(const id of ['extension-center-search','extension-center-detail','extension-center-status',
+    'extension-center-import-host','extension-center-menu','extension-center-back'])
+    assert.ok(rows.includes('id="'+id+'"'),id+' belongs to the React page');
+  assert.equal((main.match(/\\bcreateRoot\\s*\\(/g)||[]).length,1);
+  assert.match(main,/createRoot\\(shell\\?\\.mount\\|\\|section\\)/);
+  assert.match(main,/<SidebarAppShell scaffold=\\{shell\\.scaffold\\}/);
+  assert.match(main,/<ExtensionCenterPage \\{\\.\\.\\.extensionProps\\}\\/>/);
+  assert.doesNotMatch(main,/createPortal\\s*\\(\\s*<(?:ExtensionRows|ExtensionDetail|ExtensionToolbar|ExtensionStatus|ExtensionRecoveries|ExtensionRowMenu)/);
+  assert.match(main,/bookmarkPilot&&createPortal\\(/);
+  assert.match(main,/createPortal\\(<DebugDiagnosticText/);
+  assert.match(main,/root\\.unmount\\(\\)/);
   assert.match(main,/flushSync/);
-  assert.match(center,/if\(!extensionList\)list\.replaceChildren\(\)/);
-  assert.match(center,/extensionList\.renderRows\(/);
-  assert.match(center,/extensionList\.renderToolbar\(/);
-  assert.match(center,/if\(!extensionList\)\{/);
-  assert.match(center,/extensionList\.renderDetail\(/);
-  assert.match(center,/extensionList\.renderView\('detail'\)/);
-  assert.match(center,/extensionList\.connectBack\(back\)/);
   assert.match(rows,/export function ExtensionCenterPage/);
   assert.match(rows,/export function ExtensionDetail/);
+  assert.match(rows,/return createPortal\\(<div ref=\\{ref\\} id="extension-center-row-menu"/);
+  assert.match(rows,/onClick=\\{event=>onOpenRow\\(row\\.key,event\\.nativeEvent\\)\\}/);
+  assert.match(rows,/onClick=\\{event=>onMore\\(row\\.key,event\\.currentTarget,event\\.nativeEvent\\)\\}/);
   assert.match(rows,/data-ec-detail-action/);
-  assert.match(rows,/onClick=\{event=>onMore\(row\.key,event\.currentTarget\)\}/);
-  assert.match(rows,/aria-expanded=\{menuKey===row\.key\}/);
-  assert.match(center,/sidebarTools\.toggleEnabled\(row\.id,event\)/);
-  assert.match(center,/setInstalledPageProgramEnabled\(/);
-  assert.match(center,/if\(!row\|\|row\.installed!==selectedInstalled\|\|identityChanged\)/);
-  assert.match(center,/retryCleanup\(row,event\)/);
-  assert.match(center,/rowMenu\.contains\(doc\.activeElement\).*ArrowDown/);
-  assert.match(center,/event\.key==='Tab'&&rowMenu\.contains\(doc\.activeElement\)/);
-  assert.match(center,/togglePage\(row,event\)/);
+  // Retain exactly one real privileged operation chain: React event ->
+  // ExtensionCenter Controller -> existing SidebarTools/Page Installer.
+  for(const method of ['renderRows','renderToolbar','renderFeedback','renderRecoveries',
+    'renderStatus','renderRowMenu','renderView','connectBack'])
+    assert.match(center,new RegExp('extensionList\\\\.'+method+'\\\\('),method);
+  assert.match(center,/sidebarTools\\.toggleEnabled\\(row\\.id,event\\)/);
+  assert.match(center,/setInstalledPageProgramEnabled\\(/);
+  assert.match(center,/retryCleanup\\(row,event\\)/);
+  assert.match(shell,/extensionCenter\\.dispose\\(\\); sidebarTools\\.dispose\\(\\); extensionList\\.dispose\\(\\)/);
   assert.match(docs,/当前唯一生效的 React 源码路径决定/);
 });
