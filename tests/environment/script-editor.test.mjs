@@ -1063,6 +1063,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
     }
     return originalRequest(type,payload);
   };
+  fx.find('script-javascript-world').value='page';fx.find('script-javascript-world').fire('change',{isTrusted:true});await tick();
   const source='async function main(){document.title="candidate";return document.title;}';
   fx.find('script-source').value=source;fx.find('script-source').fire('input');
   assert.equal(fx.find('page-candidate-save').disabled,true,'not available before native preview success');
@@ -1098,6 +1099,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
 
 test('R12: navigating the actual page or a rejected preview cannot save a Page Candidate',async t=>{
   const fx=await fixture();t.after(()=>fx.dispose());
+  fx.find('script-javascript-world').value='page';fx.find('script-javascript-world').fire('change',{isTrusted:true});await tick();
   const source='async function main(){return document.title;}';
   fx.find('script-source').value=source;fx.find('script-source').fire('input');
   for(let n=0;n<8;n++)await tick();
@@ -1828,7 +1830,7 @@ test('a damaged saved header cannot block a newly compiled Controller draft',asy
   await f.finish(7);
 });
 test('Page static imports save author source and approved lock alongside the actual compiled bytes',async t=>{
-  const f=await staticESMFixture(t);
+  const f=await staticESMFixture(t);await f.page();
   const imports=[],originalRequest=f.client.request;
   f.client.request=async(method,payload)=>{
     if(method==='importPageCandidate'){imports.push(structuredClone(payload));return {stage:'Candidate',candidateId:'page-fixed',manifestHash:'f'.repeat(64)};}
@@ -1858,7 +1860,7 @@ test('Page static imports save author source and approved lock alongside the act
   await f.click('page-candidate-save');assert.equal(imports.length,1);
 });
 test('loading a saved Page import restores author bytes and Page lock without running',async t=>{
-  const f=await staticESMFixture(t);
+  const f=await staticESMFixture(t);await f.page();
   await f.click('script-run');await f.settle();
   const frozen=f.compiled[0],original=f.client.request;
   const row={programId:'saved-esm',revision:1,stage:'Candidate',manifestHash:'f'.repeat(64),
@@ -1904,8 +1906,8 @@ test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or
 });
 for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entry runs without a dependency lock',async t=>{
   const f=await staticESMFixture(t,{sourceUtf8:'export default async function main(){return 7;}',approved:false});
-  if(world==='esm-controller')await f.world(world);
-  await f.click(world==='esm-controller'?'script-run':'script-run');
+  if(world==='esm-page')await f.page();else await f.world(world);
+  await f.click('script-run');
   if(world==='esm-page')await f.settle();else for(let n=0;n<12&&!f.executions.length;n++)await tick();
   assert.equal(f.compiled.length,1);
   assert.equal(f.compiled[0].lockId,null);
@@ -1956,7 +1958,7 @@ test('Page selection routes the primary Run button through Page Host, never Cont
   assert.equal(f.previews[0].target.documentId,'doc-11','Page binds the exact active document');
 });
 test('Page ESM result must carry the actual compiled source hash',async t=>{
-  const f=await staticESMFixture(t,{badReceipt:true});
+  const f=await staticESMFixture(t,{badReceipt:true});await f.page();
   await f.click('script-run');await f.settle();
   assert.match(f.find('page-preview-status').textContent,/E_STATIC_ESM_OUTPUT/);
   assert.equal(f.find('page-candidate-save').disabled,true);
