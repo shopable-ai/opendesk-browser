@@ -78,7 +78,7 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
         </details>
       </section>
       <CloudFirstRun model={{...setupModel,onConfigure:()=>setPairingOpen(true)}}/>
-      <CloudProgramInbox model={pageModel.programs}/>
+      {!setupModel.visible&&<CloudProgramInbox model={pageModel.programs}/>}
       <div hidden={!pageModel.visibleApproval}>
         <CloudTaskAuthorization model={pageModel.authorization}/>
       </div>
