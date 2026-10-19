@@ -26,6 +26,9 @@ test('R2.14 remains offline; approved rail and four scenes are source-bound',()=
   assert.match(script,/if\(state\.composing\)/);
   assert.match(script,/aria-describedby/);
   assert.match(script,/state\.sponsor=false/);
+  assert.match(html,/max-width:min\(680px,calc\(100% - 124px\)\)/);
+  assert.match(script,/rail\.dataset\.layout='content-left'/);
+  assert.doesNotMatch(script,/right\+rw<=w-8/,'Do not prioritize right-side placement');
 });
 
 let chromium=null,unavailable='Playwright/Chromium unavailable — NOT_TESTED';
@@ -132,4 +135,44 @@ browserTest('Compact viewport, dark theme, English and Japanese; avoid composer 
     await page.locator('#lang').selectOption(lang);
     assert.ok((await page.locator('#rail .prompt').first().getAttribute('aria-label'))?.length);
   }
+});
+
+// Explicit direction regression: visible vertical rail belongs LEFT of the composer.
+// The existing trusted/page.js already anchors on the left; this guards preview parity.
+browserTest('Desktop rail is LEFT of the composer in all four scenes and A B C designs',async page=>{
+  await page.locator('#settings summary').click();
+  const scenes=['normal-new','project-new','normal-old','project-old'];
+  for(const size of ['1440','1280','1024']){
+    await page.locator('#size').selectOption(size);
+    for(let i=0;i<scenes.length;i++){
+      await page.locator('#scenes button').nth(i).click();
+      for(let variant=0;variant<3;variant++){
+        await page.locator('#variants button').nth(variant).click();
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        const metrics=await page.evaluate(()=>{
+          const stage=document.getElementById('stage'),rail=document.getElementById('rail');
+          const composer=document.getElementById('composer');
+          const column=document.getElementById('column');
+          const scale=stage.getBoundingClientRect().width/stage.offsetWidth;
+          const r=rail.getBoundingClientRect(),p=composer.getBoundingClientRect(),c=column.getBoundingClientRect();
+          return {layout:rail.dataset.layout,railRight:r.right,composerLeft:p.left,
+            columnLeft:c.left,gap:(c.left-r.right)/scale,railWidth:r.width/scale};
+        });
+        assert.equal(metrics.layout,'content-left',size+' '+scenes[i]);
+        assert.ok(metrics.railRight<metrics.composerLeft,
+          'Rail must remain LEFT: '+JSON.stringify({size,scene:scenes[i],variant,metrics}));
+        assert.ok(metrics.gap>=9,'Leave a readable gap beside the composer: '+JSON.stringify(metrics));
+      }
+    }
+  }
+  await page.locator('#count').selectOption('0');
+  await page.evaluate(()=>new Promise(requestAnimationFrame));
+  assert.equal(await page.locator('#rail').getAttribute('data-layout'),'content-left');
+  assert.equal(await page.locator('#rail .od').count(),1);
+  await page.locator('#count').selectOption('4');
+  await page.locator('#sponsor').check();
+  await page.evaluate(()=>new Promise(requestAnimationFrame));
+  assert.equal(await page.locator('#rail').getAttribute('data-layout'),'content-left');
+  assert.equal(await page.locator('#rail .prompt').count(),4);
+  assert.equal(await page.locator('#rail .ad').count(),1);
 });
