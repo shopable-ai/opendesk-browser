@@ -201,17 +201,7 @@
 @media(max-width:260px){.cookie-editor-react .cookie-utility-actions>button{min-width:0}}
 
 
-/* Import uses the native top layer: never reflow the Cookie list or inline a preview. */
-.cookie-editor-react .cookie-import-dialog{
-  box-sizing:border-box;width:min(430px,calc(100vw - 24px));
-  max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);
-  margin:auto;padding:0;overflow:auto;
-  border:1px solid var(--od-line);border-radius:var(--radius-surface);
-  color:var(--od-ink);background:var(--od-paper);
-}
-.cookie-editor-react .cookie-import-dialog::backdrop{
-  background:color-mix(in srgb,var(--od-ink) 45%,transparent);
-}
+/* Import belongs to the content workspace; no native modal/backdrop remains. */
 .cookie-editor-react .cookie-import-body{
   display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3);
 }
@@ -297,3 +287,12 @@
   .cookie-editor-react .cookie-import-workspace .cookie-import-paste{flex:0 0 auto}
   .cookie-editor-react .cookie-import-workspace .cookie-import-paste textarea{height:140px}
 }
+
+/* Keep the offline workspace reachable inside the same fixed-height sandbox. */
+.cookie-editor-react .cookie-offline{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+}
+.cookie-editor-react .cookie-import-selected{
+  flex:0 0 auto;margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere;
+}
+.cookie-editor-react .row-text small{font-size:var(--od-note-size)}

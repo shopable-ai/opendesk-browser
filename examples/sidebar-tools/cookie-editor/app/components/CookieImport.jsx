@@ -12,6 +12,8 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const triggerRef=React.useRef(null);
   const fileRef=React.useRef(null);
   const sourceRef=React.useRef(null);
+  const stagedFile=React.useRef(null);
+  const [stagedName,setStagedName]=React.useState('');
   const active=React.useRef(false);
   const running=React.useRef(false);
   const intentRef=React.useRef(null);
@@ -35,6 +37,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     return ()=>{
       active.current=false;
       if(sourceRef.current)sourceRef.current.value='';
+      stagedFile.current=null;
       if(triggerRef.current?.isConnected)triggerRef.current.focus();
     };
   },[]);
@@ -56,6 +59,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       const imported=await onImportText?.(text);
       if(imported==='unknown')setUncertain(true);
       if(imported===true){
+        stagedFile.current=null;
         if(sourceRef.current)sourceRef.current.value='';
         onClose?.({committed:true});
       }
@@ -99,8 +103,9 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         accept=".json,.txt,.cookies,text/plain,application/json"
         disabled={disabled||busy||uncertain}
         onChange={event=>{void importFile(event.currentTarget.files?.[0]);}}/>
-      <CookieImportDropzone dragging={dragging} disabled={disabled||busy||uncertain}
-        maxSize="8 MiB" onPick={()=>{beginIntent();fileRef.current?.click();}}
+      <CookieImportDropzone dragging={dragging} fileName={stagedName}
+        disabled={disabled||busy||uncertain}
+        maxSize="8 MiB" onPick={()=>{stagedFile.current=null;setStagedName('');beginIntent();fileRef.current?.click();}}
         onDragEnter={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragOver={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragLeave={event=>{
@@ -108,9 +113,16 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         }}
         onDrop={event=>{
           event.preventDefault();setDragging(false);
-          beginIntent();
-          void importFile(event.dataTransfer?.files?.[0]);
+          const file=event.dataTransfer?.files?.[0];
+          if(!file||busy||uncertain||disabled)return;
+          if(file.size>MAX_FILE){onNotice?.('文件超过 8 MiB，请分批导入。','error');return;}
+          // A drop event is not guaranteed to activate the trusted parent.
+          // Stage the file, then mint authorization from the visible Import click.
+          stagedFile.current=file;setStagedName(file.name.slice(0,100));
         }}/>
+      {stagedName&&<p className="cookie-import-selected" role="status">
+        已选择 {stagedName} · 点击导入即可写入
+      </p>}
       <label className="cookie-import-paste" htmlFor="cookie-import-source">
         <span>或粘贴 Cookie 内容</span>
         <textarea id="cookie-import-source" ref={sourceRef}
@@ -120,10 +132,13 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           disabled={disabled||busy||uncertain}/>
       </label>
       <div className="cookie-import-actions">
-        <Button type="button" variant="secondary" disabled={busy}
-          onClick={close}>取消</Button>
         <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
-          onClick={()=>{beginIntent();void importText(sourceRef.current?.value||'');}}>
+          onClick={()=>{
+            beginIntent();
+            const file=stagedFile.current;
+            if(file)void importFile(file);
+            else void importText(sourceRef.current?.value||'');
+          }}>
           {busy?'导入中…':'导入'}
         </Button>
       </div>
