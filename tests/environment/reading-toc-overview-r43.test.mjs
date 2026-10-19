@@ -100,10 +100,11 @@ test('R4.3 trusted index publishes per-answer overview, parent identity and stab
 });
 
 test('R4.3 installed tool has the same adaptive UI source and a discoverable patch update',async()=>{
-  const [config,bundled,host,html,css,js]=await Promise.all([
+  const [config,bundled,host,extensions,html,css,js]=await Promise.all([
     readFile('examples/sidebar-tools/reading-toc/tool.config.json','utf8').then(JSON.parse),
     officialToolFixture('reading-toc'),
     readFile('src/ui/sidebar-tools.js','utf8'),
+    readFile('src/ui/react/tabs/tools.tsx','utf8'),
     readFile('examples/sidebar-tools/reading-toc/src/index.html','utf8'),
     readFile('examples/sidebar-tools/reading-toc/src/style.css','utf8'),
     readFile('examples/sidebar-tools/reading-toc/src/main.js','utf8')
@@ -111,7 +112,13 @@ test('R4.3 installed tool has the same adaptive UI source and a discoverable pat
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId==='reading-toc');
   assert.equal(config.version,release.version);
   assert.equal(bundled.version,release.version);
-  assert.match(host,/officialToolStatus/);
+  assert.match(host,/await loadOfficialCatalog\(\{api,fetcher\}\)/);
+  assert.match(host,/await loadOfficialTool\(release,\{api,fetcher\}\)/);
+  assert.match(host,/await reviewCandidate\(tool,/);
+  assert.match(host,/verifyReviewedOfficialTool/);
+  assert.match(host,/compareToolVersions/);
+  assert.match(extensions,/id="extension-center-list"/);
+  assert.match(extensions,/data-extension-action="primary"/);
   assert.match(html,/data-toc-mode="top"[^>]*aria-label="主要章节（内容较少时自动补充子章节）" title="主要章节"/);
   assert.match(html,/data-toc-mode="focus"[^>]*aria-pressed="true"/);
   assert.match(html,/data-toc-mode="top"[^>]*aria-pressed="false"/);

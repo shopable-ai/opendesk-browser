@@ -120,14 +120,20 @@ test('R1.3 trusted TOC settings change language without importing tool permissio
   assert.equal(readingTocHostText('en','noPages'),'No excluded pages');
   assert.equal(readingTocHostText('fr','siteDisable'),'停用当前网站');
   assert.equal(readingTocHostText('en','unknown'),'');
-  const [host,markup]=await Promise.all([
-    readFile('src/ui/sidebar-tools.js','utf8'),renderSidebarFixture()
+  const [host,markup,react]=await Promise.all([
+    readFile('src/ui/sidebar-tools.js','utf8'),
+    renderSidebarFixture(),
+    readFile('src/ui/react/tabs/tool-host.tsx','utf8')
   ]);
   assert.match(host,/readingTocHostText/);
   assert.match(host,/isToc\?tocLocale:null/);
   assert.match(host,/if\(active\?\.id===READING_TOC_TOOL_ID\)render\(\)/);
-  assert.match(markup,/data-toc-host-text="overlayHint"/);
-  assert.match(markup,/data-toc-host-text="exceptionsHeading"/);
+  assert.match(host,/view\.patchLabels\(/,'trusted Host must update locale state');
+  assert.match(react,/snapshot\.labels\[name\]/,'React must consume trusted, localized labels');
+  assert.match(react,/ToolLabel name="overlayHint"/);
+  assert.match(react,/ToolLabel name="exceptionsHeading"/);
+  assert.match(markup,/网站可用且工具启用时显示/);
+  assert.match(markup,/阅读目录已排除的页面/);
   assert.match(markup,/id="sidebar-tool-toc-language-select"/);
   assert.match(host,/listen\(tocLanguageSelect,'change'/);
 });

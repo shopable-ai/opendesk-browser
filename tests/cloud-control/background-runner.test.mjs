@@ -40,3 +40,28 @@ test('offscreen loop serializes claims and disposes original Host without replay
   f.loop.dispose();assert.equal(await f.loop.tick(),null);
   assert.deepEqual(f.calls.slice(-2),[['host-dispose'],['client-dispose']]);
 });
+
+test('Offscreen pagehide keeps the original Host Client alive until durable RunHost shutdown settles',async()=>{
+  const f=fixture(),events=f.calls;
+  let finish;
+  f.host.dispose=()=>{events.push(['host-dispose']);return new Promise(resolve=>{finish=resolve;});};
+  const closing=f.loop.dispose();
+  assert.equal(events.some(([name])=>name==='host-dispose'),true);
+  assert.equal(events.some(([name])=>name==='client-dispose'),false,
+    'Closing the transport before the original Run fence completes loses the settlement RPC');
+  assert.equal(f.loop.dispose(),closing,'Repeated pagehide must not dispose the transport twice');
+  assert.equal(await f.loop.tick(),null,'A disposing Runner must not claim another assignment');
+  finish();
+  await closing;
+  assert.deepEqual(events.slice(-2),[['host-dispose'],['client-dispose']]);
+});
+
+test('Failed Host shutdown still releases the transport exactly once without replaying a job',async()=>{
+  const f=fixture(),warnings=[];
+  f.host.dispose=()=>Promise.reject(Object.assign(new Error('Host disappeared'),{code:'E_HOST_CLOSED'}));
+  const loop=createCloudRunnerLoop({client:f.client,host:f.host,log:(...values)=>warnings.push(values)});
+  await loop.dispose();
+  assert.equal(f.calls.filter(([name])=>name==='client-dispose').length,1);
+  assert.equal(f.calls.some(([name])=>name==='claim'),false);
+  assert.ok(warnings.some(row=>row.includes('E_HOST_CLOSED')));
+});

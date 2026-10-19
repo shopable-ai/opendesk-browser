@@ -191,7 +191,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   if(shellClosed)return;
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
-    if(actualSidePanel){
+    if(actualSidePanel&&debugEnabled){
       trustedHistoryWorkbench=historyUI?.create({api:chrome,hostInstanceId,reactUI:extensionList})??null;
     }
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList,

@@ -31,7 +31,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   let statusModel={text:'',state:'info'},cloudPageModel={};
   let rowMenuModel=null,bookmarkPilot=null;
   let debugModel={},debugActions={},development=null;
-  let browserHistoryModel=null,browserHistoryActions={};
+  let browserHistoryModel=null,browserHistoryActions=null;
   const ownedNodes=[];
   function dispose(){
     if(disposed)return;disposed=true;
@@ -145,7 +145,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     },
     renderDevelopmentStatus(next){if(disposed||!debugEnabled)return;development=next;paint();},
     renderBrowserHistory(next){if(disposed)return;browserHistoryModel=next;paint();},
-    connectBrowserHistoryActions(next){if(disposed)return;browserHistoryActions=next??{};paint();},
+    connectBrowserHistoryActions(next){if(disposed)return;browserHistoryActions=next??null;paint();},
     renderDebugDiagnostics(next){
       if(disposed||!debugEnabled)throw new Error('E_REACT_DEBUG_OWNER');
       debugModel={...debugModel,...next};paint();

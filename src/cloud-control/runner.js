@@ -2,7 +2,7 @@
 // This loop never parses scripts, invents a Run, or sends a provider receipt.
 export function createCloudRunnerLoop({client,host,schedule=setTimeout,unschedule=clearTimeout,log=console.warn}={}){
   if(!client?.cloud||typeof host?.start!=='function')throw Error('E_CLOUD_RUNNER_CONTRACT');
-  let disposed=false,claiming=false,started=false,timer=null;
+  let disposed=false,claiming=false,started=false,timer=null,shutdownPromise;
   async function tick(){
     if(disposed||claiming||host.executionPending)return null;
     claiming=true;
@@ -27,6 +27,21 @@ export function createCloudRunnerLoop({client,host,schedule=setTimeout,unschedul
     finally{if(!disposed)timer=schedule(pump,2000);}
   }
   function start(){if(started||disposed)return;started=true;void pump();}
-  function dispose(){if(disposed)return;disposed=true;unschedule(timer);host.dispose?.();client.dispose?.();}
+  function dispose(){
+    if(disposed)return shutdownPromise;
+    disposed=true;unschedule(timer);
+    let drain;
+    try{drain=host.dispose?.();}catch(error){log('[cloud runner shutdown]',error?.code||error?.message||error);}
+    // The original RunHost can still be committing an E_HOST_CLOSED fence
+    // and settling its one native Run. Do not close its shared RPC transport
+    // first: that turns a known interruption into an avoidable unknown result.
+    const release=()=>{try{client.dispose?.();}catch(error){log('[cloud runner release]',error?.code||error?.message||error);}};
+    if(drain&&typeof drain.then==='function'){
+      shutdownPromise=Promise.resolve(drain).catch(error=>{
+        log('[cloud runner shutdown]',error?.code||error?.message||error);
+      }).then(release);
+    }else{release();shutdownPromise=Promise.resolve();}
+    return shutdownPromise;
+  }
   return Object.freeze({start,tick,dispose});
 }

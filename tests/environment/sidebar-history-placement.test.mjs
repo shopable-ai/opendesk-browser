@@ -9,53 +9,65 @@ import {isActualSidePanelContext} from '../../src/ui/sidepanel-context.js';
 
 const hostInstanceId='01234567-89ab-4def-8123-456789abcdef';
 const visible=node=>Boolean(node)&&!node.hidden&&(!node.parentElement||visible(node.parentElement));
-async function fixture({model=TRUSTED_HISTORY_INITIAL_STATE,detail=false,activeTab='tools'}={}){
+async function fixture({model=TRUSTED_HISTORY_INITIAL_STATE,detail=false,
+  activeTab='tools',debugEnabled=true}={}){
   const toolView=createSidebarToolsView();
   toolView.patch('sidebar-tool-display',{hidden:!detail});
   try{
-    const {document}=parseHTML(await renderSidebarFixture({activeTab,toolView,browserHistoryModel:model}));
+    const {document}=parseHTML(await renderSidebarFixture({
+      activeTab,debugEnabled,toolView,browserHistoryModel:model
+    }));
     return document;
   }finally{toolView.dispose();}
 }
 
-test('React host history belongs to the browser-tools list, never current tool or discovery content',async()=>{
-  const doc=await fixture(),history=doc.getElementById('trusted-history-panel');
-  assert.ok(history,'positive Side Panel model exposes history');
-  assert.equal(history.tagName,'DETAILS');
-  assert.equal(history.parentElement.id,'sidebar-host-browser-tools');
-  assert.equal(history.closest('#sidebar-tool-list-view')?.id,'sidebar-tool-list-view');
-  assert.equal(doc.querySelector('#sidebar-tool-display #trusted-history-panel'),null);
+test('Extensions stays focused on extension lifecycle; History is not a bottom entry',async()=>{
+  const doc=await fixture({activeTab:'tools'});
+  const extension=doc.getElementById('extension-center');
+  const history=doc.getElementById('trusted-history-panel');
+  assert.ok(extension,'extension list is still present');
+  assert.ok(history,'developer diagnostics retain the trusted history tool');
+  assert.equal(doc.querySelector('#workbench-tools #trusted-history-panel'),null);
+  assert.equal(doc.querySelector('#sidebar-tool-list-view #trusted-history-panel'),null);
   assert.equal(doc.querySelector('#extension-center #trusted-history-panel'),null);
-  assert.equal(visible(history),true);
-  const detail=await fixture({detail:true});
-  assert.equal(visible(detail.getElementById('trusted-history-panel')),false,'opening tools and previews hides the list-owned entry');
-  const other=await fixture({activeTab:'tasks'});
-  assert.equal(visible(other.getElementById('trusted-history-panel')),false);
-  assert.equal(visible((await fixture()).getElementById('trusted-history-panel')),true,'return to the list restores the entry');
+  assert.equal(history.closest('#workbench-debug')?.id,'workbench-debug');
+  assert.equal(visible(history),false,'history is not visible from Extensions');
+  assert.equal(visible((await fixture({activeTab:'tools',detail:true}))
+    .getElementById('trusted-history-panel')),false);
+  const release=await fixture({activeTab:'tools',debugEnabled:false});
+  assert.equal(release.getElementById('trusted-history-panel'),null,
+    'ordinary release never mounts privileged diagnostic UI');
+  assert.equal(release.getElementById('sidebar-host-browser-tools'),null);
 });
 
-test('one React owner renders history once and null removes private results',async()=>{
-  const shown=await fixture({model:{...TRUSTED_HISTORY_INITIAL_STATE,visits:[{url:'https://private.example',title:'Private'}]}});
-  assert.equal(shown.querySelectorAll('#trusted-history-panel').length,1);
+test('Developer Debug page keeps history available behind its deliberate entry',async()=>{
+  const doc=await fixture({activeTab:'debug'});
+  const region=doc.getElementById('sidebar-host-browser-tools');
+  assert.equal(region?.tagName,'SECTION');
+  assert.match(region.getAttribute('aria-label'),/浏览器工具/);
+  assert.equal(region.closest('#workbench-debug')?.id,'workbench-debug');
+  const history=doc.getElementById('trusted-history-panel');
+  assert.equal(history?.tagName,'DETAILS');
+  assert.equal(visible(history),true);
+  assert.equal(doc.querySelectorAll('#trusted-history-panel').length,1);
+  const other=await fixture({activeTab:'tasks'});
+  assert.equal(visible(other.getElementById('trusted-history-panel')),false);
+  const disabled=await fixture({activeTab:'debug',model:null});
+  assert.equal(disabled.getElementById('sidebar-host-browser-tools'),null);
+  assert.equal(disabled.getElementById('trusted-history-panel'),null);
+});
+
+test('Null snapshots remove private history without leaking results into extension rows',async()=>{
+  const shown=await fixture({activeTab:'debug',model:{
+    ...TRUSTED_HISTORY_INITIAL_STATE,visits:[{url:'https://private.example',title:'Private'}]
+  }});
   assert.match(shown.getElementById('trusted-history-results').textContent,/private.example/);
-  const removed=await fixture({model:null});
-  assert.equal(removed.getElementById('trusted-history-panel'),null);
+  const removed=await fixture({activeTab:'debug',model:null});
+  assert.equal(removed.querySelector('#trusted-history-panel'),null);
   assert.doesNotMatch(removed.body.textContent,/private.example/);
 });
 
-test('the real React shell labels browser tools and omits the region before trusted admission',async()=>{
-  const doc=await fixture();
-  assert.equal(doc.querySelectorAll('#sidebar-host-browser-tools').length,1);
-  const region=doc.getElementById('sidebar-host-browser-tools');
-  assert.equal(region.tagName,'SECTION');
-  assert.match(region.getAttribute('aria-label'),/浏览器工具/);
-  assert.equal(region.closest('#sidebar-tool-list-view')?.id,'sidebar-tool-list-view');
-  const unclassified=await fixture({model:null});
-  assert.equal(unclassified.getElementById('sidebar-host-browser-tools'),null);
-  assert.equal(unclassified.getElementById('trusted-history-panel'),null);
-});
-
-test('History initializes only after positive Side Panel proof and receives the existing React renderer',async()=>{
+test('History Host retains Side Panel identity and developer gate; preview has no authority',async()=>{
   const href='chrome-extension://test/sidepanel.html?hostInstanceId='+hostInstanceId;
   const api=contexts=>({runtime:{getURL:path=>'chrome-extension://test/'+path,getContexts:async()=>contexts}});
   assert.equal(await isActualSidePanelContext({api:api([
@@ -69,10 +81,13 @@ test('History initializes only after positive Side Panel proof and receives the 
   ]),href}),false);
   assert.equal(await isActualSidePanelContext({api:{runtime:{}},href}),false);
   const shell=await readFile('src/ui/tool-shell.js','utf8');
-  assert.doesNotMatch(shell,/historyUI\?\.mount/);
-  assert.match(shell,/if\(actualSidePanel&&!historyClosed\)\{\s*trustedHistoryWorkbench=historyUI\?\.create\(\{[^}]*reactUI:extensionList/);
-  assert.match(shell,/historyClosed=true;trustedHistoryWorkbench\?\.dispose\(\)/,'pagehide cancels pending initialization and disposes private UI');
+  assert.match(shell,/if\(actualSidePanel&&debugEnabled\)\{\s*trustedHistoryWorkbench=historyUI\?\.create\(\{[^}]*reactUI:extensionList/);
+  assert.match(shell,/shellClosed=true;trustedHistoryWorkbench\?\.dispose\(\)/);
   const sidecar=await readFile('src/entrypoints/trusted-cookie-ui.js','utf8');
   assert.doesNotMatch(sidecar,/mountTrustedHistoryWorkbench|mount:/);
   assert.match(sidecar,/create:createTrustedHistoryWorkbench/);
+  const preview=await readFile('scripts/preview/build-sidebar-six-react-preview.mjs','utf8');
+  assert.match(preview,/app\.renderBrowserHistory\(\{text:'',startDate:'',endDate:''/);
+  assert.match(preview,/app\.connectBrowserHistoryActions\(null\)/);
+  assert.match(preview,/UI_PREVIEW_ONLY/);
 });

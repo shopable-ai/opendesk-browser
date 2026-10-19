@@ -17,7 +17,8 @@ const stylePaths=[
 const inputs=[
   'src/ui/sidepanel.html',...stylePaths,
   'src/ui/react/main.tsx','src/ui/react/app-shell.tsx',
-  'src/ui/react/tabs/navigation.tsx','src/ui/react/components/ui/button.tsx',
+  'src/ui/react/tabs/navigation.tsx','src/ui/react/tabs/browser-history.tsx',
+  'src/ui/react/components/ui/button.tsx',
   'src/ui/react/tabs/tools.tsx','src/ui/react/tabs/develop.tsx',
   'src/ui/react/tabs/develop-controls.tsx','src/ui/react/tabs/develop-dependencies.tsx',
   'src/ui/develop-view.js','src/ui/develop-fields.js',
@@ -77,6 +78,10 @@ const onNavigate=tab=>{
 };
 app=mountSidebarApp(document,{debugEnabled:true,onNavigate,developerView,myView,toolView});
 app.connectWorkflowPage({...workflow,actions:workflowActions});
+// Debug-only, read-only preview: no Chrome permission, history query or data.
+app.renderBrowserHistory({text:'',startDate:'',endDate:'',limit:'25',busy:false,
+  status:'仅界面预览 · 不读取浏览器历史',permission:'unknown',visits:null});
+app.connectBrowserHistoryActions(null);
 const toolbar={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
 const publishToolbar=()=>app.renderToolbar({...toolbar,
   onSearch:value=>{toolbar.query=value;publishToolbar();},
