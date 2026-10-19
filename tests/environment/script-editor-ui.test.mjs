@@ -760,6 +760,10 @@ test('loaded Page Candidate uses ordinary Run; New Script restores Controller in
   await until(()=>!f.find('script-run').disabled,'Page preview did not settle');
   assert.equal(f.find('program-new-script').hidden,false);
   f.find('program-new-script').fire('click',{isTrusted:true});
+  assert.equal(f.find('script-source').value,'','新建源码必须为空，不得隐式插入执行模板');
+  f.find('script-source').value='return 1;';
+  f.find('script-source').fire('input',{isTrusted:true});
+  await tick();
   await f.click();
   await until(()=>f.manualRuns.length===1,'New Script retained the loaded Page execution intent');
   assert.equal(previews.length,1);

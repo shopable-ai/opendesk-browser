@@ -1567,7 +1567,7 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
     }
     return original(method,payload);
   };
-  await f.click('script-save-version');
+  await f.click('page-candidate-save');
   await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','author Candidate was not saved');
   assert.deepEqual(saved.authoring,{framework,sourceUtf8:author});
   assert.notEqual(saved.sourceUtf8,author,'execution bytes stay separate from editable source');
@@ -1588,7 +1588,7 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
   assert.equal(f.starts.length,0);assert.equal(f.previews.length,0,'save/load does not execute');
   compilerFails=true;
   f.find('script-source').value=author+'\n/* invalid edit';f.find('script-source').fire('input');
-  await f.click('script-save-version');
+  await f.click('page-candidate-save');
   await waitForComponentUI(()=>f.find('page-candidate-status').textContent.includes('E_PAGE_COMPILER'),'failed edit was not rejected');
   assert.equal(imports,1,'compiler failure must not save previous execution bytes');
   assert.equal(f.previews.length,0,'compiler failure must not execute previous output');
