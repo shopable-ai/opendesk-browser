@@ -82,10 +82,19 @@ async function snapshot(c,jobIds=[],assets=[]){
     /^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(t.url));
   assert(runners.length<=1&&workers.length<=1&&runners.length+workers.length>0,
     'Cannot uniquely identify an actual OpenDesk Offscreen/Service Worker context');
-  // Prefer the living Offscreen document itself: SW is allowed to sleep.
-  // The fallback reads the SAME extension IndexedDB and native contexts.
-  const inspected=runners[0]||workers[0];
-  const extensionId=new URL(inspected.url).host;
+  // The actual Offscreen runtime does NOT expose runtime.getContexts().
+  // Inspect the original extension Service Worker, which has this API and
+  // reads the same original IndexedDB without creating another RunHost.
+  const extensionId=new URL((runners[0]||workers[0]).url).host;
+  assert([...runners,...workers].every(t=>new URL(t.url).host===extensionId),
+    'Multiple extension identities found; refusing cross-extension inspection');
+  const inspected=workers[0]||await until(async()=>{
+    const live=(await c.send('Target.getTargets')).targetInfos.filter(t=>
+      t.type==='service_worker'&&
+      t.url==='chrome-extension://'+extensionId+'/sw.js');
+    assert(live.length<=1,'Multiple original Service Worker targets');
+    return live[0]||null;
+  },'Original Service Worker context for native Chrome identity',10000);
   const {sessionId}=await c.send('Target.attachToTarget',{targetId:inspected.targetId,flatten:true});
   try{
     await c.send('Runtime.enable',{},sessionId);
