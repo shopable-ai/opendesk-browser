@@ -46,7 +46,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let clientPins='',clientTaskId='',clientName='',clientResult=false,oneTimeToken='';
   let pairing={url:'',providerId:'',pairingCode:'',loopback:false};
   let overview={summary:'正在检查连接与授权…',connection:'检测中'},brief='未配对',statusText='尚未配对';
-  let statusFailed=false;
+  let statusFailed=false,programRows=[],programStatus='点击刷新，检查服务器交付的待审核程序。';
   const selectedTasks=()=>taskChoices.filter(t=>t.eligible&&selections.get(cloudChoiceKey(t))?.selected);
   const activeTasks=()=>state?.enabled&&Array.isArray(state.tasks)?state.tasks:[];
   const resetConsent=()=>{consent=false;resultConsent=false;};
@@ -63,6 +63,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const runId=originalRun();
     reactUI.renderCloudPage({
       overview,visibleApproval:!!state?.provider,
+      programs:{rows:programRows,busy,canRefresh:!!state?.provider&&!busy,
+        status:programStatus,onRefresh:()=>action(refreshPrograms),
+        onImport:deliveryId=>action(()=>acceptProgram(deliveryId))},
       setup:{visible:!state?.provider,nextStep:'先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。'},
       onRefresh:()=>action(()=>{},true),onOpenConsole:()=>action(()=>api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')})),
       onHide:()=>{clearSecrets();publish();},
@@ -121,7 +124,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     });
   }
   const cloudErrorText=e=>{let code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
-    const help={E_AUTH:'提供者拒绝凭据，请核对配对状态',
+    const help={E_DELIVERY:'交付程序身份或源码校验失败，请刷新后核对',
+      E_DELIVERY_LIMIT:'服务器待审核程序数量已达上限',
+      E_AUTH:'提供者拒绝凭据，请核对配对状态',
       E_PAIRING:'连接尚未完成配对，或需要先解除已有配对',
       E_PAIR_ACTIVE:'此浏览器已在提供者配对，请先撤销旧配对',
       E_EXECUTOR_TARGET:'外部请求没有指向已配对的浏览器',
@@ -193,7 +198,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       const stamp=JSON.stringify(activeTasks());
       if(stamp!==clientPins){clientPins=stamp;clearSecrets();clientResult=false;
         if(!activeTasks().some(t=>t.taskId===clientTaskId))clientTaskId=activeTasks()[0]?.taskId||'';}
-      if(!s.provider){clearSecrets();clientRows=[];clientNextOffset=null;clientCount='按需管理';}
+      if(!s.provider){clearSecrets();programRows=[];programStatus='请先连接服务器，再检查待审核程序。';clientRows=[];clientNextOffset=null;clientCount='按需管理';}
       lastRefresh=Date.now();publish();return s;
     })().finally(()=>{refreshing=null;});
     return refreshing;
@@ -220,6 +225,33 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const selection=selections.get(key)||{selected:false,resultAllowed:false};
     if(result)selection.resultAllowed=value===true;else selection.selected=value===true;
     selections.set(key,selection);resetConsent();publish();
+  }
+  async function refreshPrograms(){
+    if(typeof cloud.cloudProgramInbox!=='function')return;
+    const result=await cloud.cloudProgramInbox({});
+    if(disposed)return;
+    programRows=result.programs;
+    programStatus=programRows.length?'待审核程序 '+programRows.length+' 项；接收仅导入候选，不会执行。':'暂无新交付的程序。';
+  }
+  async function acceptProgram(deliveryId){
+    const row=programRows.find(item=>item.deliveryId===deliveryId);
+    if(!row||typeof cloud.cloudProgramFetch!=='function'||typeof client.request!=='function')
+      throw {code:'E_DELIVERY'};
+    const answer=await cloud.cloudProgramFetch({deliveryId});
+    if(disposed||answer?.deliveryId!==deliveryId||
+      answer.package?.manifestHash!==row.manifestHash||
+      answer.package?.manifest?.program?.sourceHash!==row.sourceHash)
+      throw {code:'E_DELIVERY'};
+    // Existing Task installer verifies every byte and stages only a Candidate.
+    // No Controller Run, permission grant or installation follows this call.
+    await client.request('importTaskPackage',{package:answer.package});
+    programRows=programRows.filter(item=>item.deliveryId!==deliveryId);
+    programStatus='已导入待验证任务 '+row.title+'；前往「我的」试运行、验证并决定是否安装。';
+    catalogAt=0;
+    // If acknowledgement fails, local Candidate remains. A later refresh may
+    // re-offer the immutable bytes; neither path grants execution.
+    try{await cloud.cloudProgramReceived({deliveryId,manifestHash:row.manifestHash});}
+    catch{programStatus+=' 提供者回执待核对；任务未自动执行。';}
   }
   async function approve(){
     if(!consent)throw {code:'E_CLOUD_CONSENT_REQUIRED'};
