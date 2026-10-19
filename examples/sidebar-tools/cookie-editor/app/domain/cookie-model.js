@@ -103,8 +103,12 @@ function normalizeCookie(raw,hostname,allowExpired=false){
 }
 
 function nativeInput(row,target){
-  if(!target||row.domain.replace(/^\./,'').toLowerCase()!==target.hostname)
-    throw new Error('当前 SDK 限定精确主机 Domain，请切换到该 Cookie 的所属主机');
+  const domain=row?.domain?.replace(/^\./,'').toLowerCase();
+  // Domain cookies of a parent domain are valid on an authorized subdomain.
+  // Never widen host-only cookies or accept unrelated sites.
+  if(!target||!(domain===target.hostname||
+    (row.hostOnly===false&&target.hostname.endsWith('.'+domain))))
+    throw new Error('Cookie 不属于当前已授权网站');
   // A Cookie Path containing raw URL delimiters or unsupported characters
   // cannot be represented by the exact Chrome URL needed for readback/remove.
   const lookup=new URL(target.origin);lookup.pathname=row.path;
