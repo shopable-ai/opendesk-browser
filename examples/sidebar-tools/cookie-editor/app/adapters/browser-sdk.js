@@ -16,8 +16,10 @@ export const safeCode=(error,fallback='E_COOKIE_READ')=>
   safeCodes.has(error?.code)?error.code:fallback;
 
 function exactRoute(target,row){
-  if(!target||row?.domain?.replace(/^\./,'').toLowerCase()!==target.hostname)
-    throw Error('Cookie Domain 与当前主机不一致');
+  const domain=row?.domain?.replace(/^\./,'').toLowerCase();
+  if(!target||!(domain===target.hostname||
+    (row.hostOnly===false&&target.hostname.endsWith('.'+domain))))
+    throw Error('Cookie 不属于当前已授权网站');
   const url=new URL(target.origin);
   url.pathname=row.path;
   if(url.pathname!==row.path)

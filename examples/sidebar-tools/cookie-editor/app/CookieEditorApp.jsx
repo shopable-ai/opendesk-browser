@@ -173,6 +173,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const target=snapshot.target;
   const openPanel=name=>guarded(()=>{
     setSelected(null);setPanel(name);setPage(1);setStatus('');
+    if(name==='import')setImportNotice(null);
   });
   const switchMode=next=>guarded(()=>{
     if(next===mode)return;
@@ -191,9 +192,15 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const importFromText=async text=>{
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
-    if(modeRef.current!=='browser'||controller.snapshot().phase!=='ready')return false;
+    const initial=controller.snapshot();
+    if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
     const plan=await controller.previewImport(text,'auto',true);
+    // Never report a stale success/error against a newly selected site.
+    const currentSite=controller.snapshot();
+    if(initial.epoch!==currentSite.epoch||
+      initial.target?.url!==currentSite.target?.url)return false;
     if(!plan){
+      controller.dismissImportReport();
       noteImport('无法导入：Cookie 格式不正确或网站授权不可用。');
       return false;
     }
@@ -203,7 +210,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         ?'Cookie 不属于当前已授权网站。'
         :/过期|expirationDate/.test(first)
           ?'Cookie 已过期。':'内容不符合 Cookie 格式或权限要求。';
-      controller.discardImport();
+      controller.discardImport();controller.dismissImportReport();
       noteImport('未导入 '+plan.total+' 条：'+reason);
       return false;
     }

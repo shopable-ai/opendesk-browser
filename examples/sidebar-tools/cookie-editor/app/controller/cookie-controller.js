@@ -81,6 +81,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // Explicitly release short-lived raw import bytes when the input or panel
   // changes; an old preflight must never remain actionable after dismissal.
   function discardImport(){importPlan=null;importRevision++;}
+  function dismissImportReport(){
+    // The modal owns recoverable parse/empty-plan feedback as a transient Toast.
+    // Never erase revocation or uncertain Host-write diagnostics here.
+    if(phase==='ready'&&/^(没有可导入记录|导入预检失败)/.test(message)){
+      message='';messageType='info';notify();
+    }
+  }
   function discardClear(){clearPlan=null;clearRevision++;}
   function getRow(id){const row=rows.find(row=>row.id===id);return row?structuredClone(row):null;}
   async function readValue(id){
@@ -432,5 +439,5 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
-    discardImport,exportTo,syncMetadata,dispose};
+    discardImport,dismissImportReport,exportTo,syncMetadata,dispose};
 }

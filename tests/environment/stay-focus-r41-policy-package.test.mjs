@@ -20,7 +20,7 @@ const at=new Date(2026,9,18,10,0,0).getTime();
 
 test('real Stay Focus install package carries bounded data, no privileged JS',async()=>{
   const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
-  assert.equal(tool.version,'1.0.4');
+  assert.equal(tool.version,'1.0.5');
   assert.ok(tool.backgroundPolicy.defaultSites.includes('pinterest.com'));
   assert.equal(tool.backgroundPolicy.kind,'site-budget.v2');
   assert.equal(tool.backgroundPolicy.dailyMinutes,30);
@@ -187,7 +187,7 @@ test('R4.3 package first-use defaults execute; user preferences win after packag
     {id:'entertainment',minutes:51}),f.sender);
   await f.focus.dispatch(await f.msg(app,'focus.site.put',
     {site:site('user-choice.example.com')}),f.sender);
-  const upgraded={...app,version:'1.0.5',backgroundPolicy:{
+  const upgraded={...app,version:'1.0.6',backgroundPolicy:{
     ...app.backgroundPolicy,dailyMinutes:71,
     suggestions:app.backgroundPolicy.suggestions.map(row=>row.host==='github.com'?
       {...row,suggestLimit:true}:row),
@@ -216,7 +216,7 @@ test('R4.3 package first-use defaults execute; user preferences win after packag
     'new default must not enroll during reauthorization');
 });
 
-test('R4.4 1.0.3 to 1.0.4: identical worker, package-only upgrade and explicit Pinterest enrollment',async()=>{
+test('R5.4 older package to 1.0.5: same worker, package-only upgrade and explicit Pinterest enrollment',async()=>{
   const app=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
   const previous={...app,version:'1.0.3',backgroundPolicy:{...app.backgroundPolicy,
     defaultSites:app.backgroundPolicy.defaultSites.filter(host=>host!=='pinterest.com')}};
@@ -233,7 +233,7 @@ test('R4.4 1.0.3 to 1.0.4: identical worker, package-only upgrade and explicit P
     lockManager:{request:async(_key,run)=>run()},candidate:app,baseline:previous,
     reviewApproved:true,approveUpdate:async()=>true});
   assert.equal(install.state,'installed');
-  assert.equal(f.stored.get(SIDEBAR_TOOL_STORE)[0].version,'1.0.4');
+  assert.equal(f.stored.get(SIDEBAR_TOOL_STORE)[0].version,app.version);
   f.focus.invalidate({revoke:true});
   const waiting=await f.focus.tick({boot:true});
   assert.equal(waiting.enabled,false);

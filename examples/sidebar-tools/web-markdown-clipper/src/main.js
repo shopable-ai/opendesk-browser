@@ -4,13 +4,14 @@ const {root,request}=globalThis.OpenDeskTool;
 const q=id=>root.querySelector('#'+id);
 const input=q('clip-source'),display=q('clip-preview'),state=q('clip-status');
 const modes=Array.from(root.querySelectorAll('[data-clip-mode]'));
-let mode='article',version=0,record=null,markdown='';
+let mode='article',version=0,record=null,markdown='',exportBusy=false;
 const say=(value,error=false)=>{state.textContent=String(value);state.dataset.error=String(error);};
+const setExportBusy=busy=>{exportBusy=busy;q('clip-copy').disabled=busy;q('clip-download').disabled=busy;};
 const escapeLabel=s=>String(s||'').replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim().replace(/[\[\]\\]/g,'\\$&')||'网页链接';
 const clean=s=>String(s||'').replace(/[\u0000-\u001f]/g,' ').slice(0,900);
 const cite=r=>'来源：['+escapeLabel(r.title)+']('+r.source+')';
 function refresh(){
- if(!record){markdown='';input.value='';display.replaceChildren();return;}
+ if(!record){markdown='';input.value='';q('clip-site').textContent='当前网页';display.replaceChildren();return;}
  let content=mode==='quote'?record.markdown.trim().split('\n').map(x=>x?'> '+x:'>').join('\n')+'\n':record.markdown;
  if(mode!=='link'){
   if(mode==='quote')content+='\n'+cite(record)+'\n';
@@ -39,6 +40,7 @@ modes.forEach(b=>b.addEventListener('click',()=>{
 q('clip-meta').addEventListener('change',refresh);
 q('clip-fetch').addEventListener('click',async()=>{
  const token=++version;
+ record=null;refresh();
  const b=q('clip-fetch');b.disabled=true;say('正在读取授权网页…');
  const operation=mode==='article'?'clip.article':mode==='link'?'clip.link':'clip.selection';
  try{
@@ -63,23 +65,37 @@ q('clip-show-preview').addEventListener('click',()=>{
  q('clip-show-preview').setAttribute('aria-pressed','true');
 });
 q('clip-copy').addEventListener('click',async()=>{
+ if(exportBusy)return;
  if(!markdown)return say('请先剪藏',true);
  const ticket=version,content=markdown;
  const current=()=>ticket===version&&content===markdown;
+ setExportBusy(true);
  try{const response=await globalThis.OpenDeskSDK.browser.clipboard.writeText(content);
   if(!current())return;
   if(!response?.copied)throw Error('复制未确认');say('已复制 Markdown');
- }catch{if(!current())return;input.hidden=false;display.hidden=true;input.focus();input.select();say('自动复制失败，请按 Ctrl/Cmd+C',true);}
+ }catch(error){
+  if(!current())return;
+  if(error?.code==='E_CANCELLED')say('已取消复制');
+  else if(error?.code==='E_OUTCOME_UNKNOWN')say('复制结果未知，请检查系统剪贴板，勿重复操作',true);
+  else{input.hidden=false;display.hidden=true;input.focus();input.select();say('自动复制失败，请按 Ctrl/Cmd+C',true);}
+ }finally{setExportBusy(false);}
 });
 q('clip-download').addEventListener('click',async()=>{
+ if(exportBusy)return;
  if(!markdown)return say('请先剪藏',true);
  const ticket=version,content=markdown;
+ setExportBusy(true);
  const filename=(clean(record?.title).replace(/[\/\\:*?"<>|]/g,'-').replace(/^\.+/,'').trim().slice(0,60)||'web-clip')+'.md';
  try{const done=await globalThis.OpenDeskSDK.browser.downloads.text({text:content,filename});
   if(ticket!==version||content!==markdown)return;
   if(done?.started!==true)throw Error('下载未确认');
   say('已请求下载，请在 Chrome 确认保存');
- }catch(e){if(ticket===version&&content===markdown)say('下载失败：'+String(e.message||e),true);}
+ }catch(e){
+  if(ticket!==version||content!==markdown)return;
+  if(e?.code==='E_CANCELLED')say('已取消下载');
+  else if(e?.code==='E_OUTCOME_UNKNOWN')say('下载结果未知，请检查 Chrome 下载记录，勿重复操作',true);
+  else say('下载失败：'+String(e.message||e),true);
+ }finally{setExportBusy(false);}
 });
 root.addEventListener('opendesk-page-changed',()=>reset('网页已变化，请重新剪藏'));
 refresh();

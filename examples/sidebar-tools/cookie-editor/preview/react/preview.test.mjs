@@ -160,3 +160,41 @@ test('scene disposal retires metadata sync and releases pending reads',async()=>
  await new Promise(resolve=>setImmediate(resolve));loading.close();await pending;
  assert.equal(loading.controller.snapshot().rows.length,0);
 });
+
+
+test('import modal reuses real Controller, never inserts a review panel or edits a domain',async()=>{
+ const [component,app,css]=await Promise.all([
+  read('../../app/components/CookieImport.jsx'),
+  read('../../app/CookieEditorApp.jsx'),
+  read('../../src/react.css')
+ ]);
+ assert.match(component,/<dialog\b/);
+ assert.match(component,/dialog\.showModal\(\)/);
+ assert.match(component,/onImportText/);
+ assert.match(app,/controller\.previewImport\(text,'auto',true\)/);
+ assert.match(app,/controller\.executeImport\(text,'auto',true\)/);
+ assert.match(app,/cookie-import-toast/);
+ assert.match(css,/\.cookie-import-dialog::backdrop/);
+ for(const legacy of ['cookie-import-summary','cookie-import-overwrite','导入预检结果','新增 {plan.created}'])
+  assert.equal(component.includes(legacy),false);
+});
+
+
+test('authorized subdomain imports valid parent-domain cookies without a domain editor',async()=>{
+ const f=fixture();try{
+  await f.controller.load();
+  const source=JSON.stringify([{name:'parent_pref',value:'fictional',
+    domain:'.example.com',hostOnly:false,path:'/'}]);
+  const plan=await f.controller.previewImport(source,'auto',true);
+  assert.equal(plan.accepted,1);
+  assert.equal(await f.controller.executeImport(source,'auto',true),true);
+  assert.ok(f.controller.snapshot().rows.some(row=>
+    row.name==='parent_pref'&&row.domain==='.example.com'));
+  const foreign=JSON.stringify([{name:'unrelated',value:'fictional',
+    domain:'.elsewhere.invalid',hostOnly:false,path:'/'}]);
+  const denied=await f.controller.previewImport(foreign,'auto',true);
+  assert.equal(denied.accepted,0);
+  assert.equal(denied.skipped,1);
+  assert.equal(f.mock.inspect().rows.some(row=>row.name==='unrelated'),false);
+ }finally{f.close();}
+});
