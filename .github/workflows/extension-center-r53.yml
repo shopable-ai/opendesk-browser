@@ -1,0 +1,101 @@
+name: Extension Center R5.3 source-bound React preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ui/react/**'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/sidepanel.html'
+      - 'src/ui/extension-center.css'
+      - 'src/ui/design-tokens.css'
+      - 'src/ui/design-system.css'
+      - 'src/ui/tool-shell.css'
+      - 'src/ui/cloud-hosting.css'
+      - 'scripts/preview/build-sidebar-six-react-preview.mjs'
+      - 'scripts/tests/extension-center-r53-preview-chromium.mjs'
+      - 'tests/environment/sidebar-history-placement.test.mjs'
+      - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/extension-center-r53.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: extension-center-r53-preview-main
+  cancel-in-progress: true
+jobs:
+  source-preview-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Verify React ownership, trusted history lifecycle and controller contracts
+        run: |
+          node --test \
+            tests/environment/sidebar-history-placement.test.mjs \
+            tests/environment/browser-sdk-r106-history-ui.test.mjs \
+            tests/environment/extension-center-react-page.test.mjs \
+            tests/environment/extension-center-r47-interaction.test.mjs \
+            tests/environment/react-sidebar-app-shell-r351.test.mjs \
+            tests/environment/sidebar-six-react-preview-contract.test.mjs
+      - name: Generate actual React HTML (do not hand-edit compiled JS)
+        run: |
+          node scripts/preview/build-sidebar-six-react-preview.mjs
+          node scripts/preview/build-sidebar-six-react-preview.mjs --check
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real Chromium 320/360/400/440 React preview pointer and layout smoke
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/tests/extension-center-r53-preview-chromium.mjs
+      - name: Build and verify production and development WXT candidates
+        run: |
+          npm run check
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Sync generated React HTML only if remote main still matches this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=prototypes/sidebar/react-preview/index.html
+          if git diff --quiet -- "$file"; then
+            echo 'PREVIEW_ALREADY_SYNCHRONIZED=true'
+            exit 0
+          fi
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
+            echo 'PREVIEW_SYNC_BLOCKED=MAIN_HEAD_ADVANCED'
+            echo 'Regenerate on current main; refusing stale or non-fast-forward upload.'
+            exit 1
+          fi
+          git add -- "$file"
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'chore(preview): sync official React Extension Center HTML [skip ci]'
+          git push origin HEAD:refs/heads/main
+      - name: Record evidence grade
+        if: always()
+        run: |
+          echo 'PREVIEW_GRADE=SOURCE_BOUND_UI_ONLY'
+          echo 'INSTALLED_MV3_CHROME=NOT_TESTED_BY_THIS_JOB'
+          echo 'MAC_NATIVE_SIDE_PANEL=NOT_TESTED'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extension-center-r53-source-preview
+          path: |
+            prototypes/sidebar/react-preview/index.html
+            artifacts/extension-center-r53/*.png
+          if-no-files-found: warn
+          retention-days: 14
