@@ -30,7 +30,13 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.ok(paths.includes('src/ui/react/main.tsx'));
   assert.ok(paths.includes('src/ui/react/app-shell.tsx'));
   assert.ok(!paths.includes('src/ui/react/preview/sidebar-six-preview.tsx'),'retired Portal adapter is not a consumer');
-  assert.match(await read('scripts/preview/build-sidebar-six-react-preview.mjs'),/app=mountSidebarApp\(document,\{debugEnabled:true,onNavigate/);
+  const previewSource=await read('scripts/preview/build-sidebar-six-react-preview.mjs');
+  assert.match(previewSource,/app=mountSidebarApp\(document,\{debugEnabled:true,onNavigate/);
+  assert.match(previewSource,/app\.connectBack\(closeDetail\)/);
+  assert.match(previewSource,/app\.renderRows\(\{rows:shown\.map/);
+  assert.match(previewSource,/onSearch:value=>\{toolbar\.query=value;publishToolbar\(\);publishRows\(\)/);
+  assert.match(previewSource,/primaryAction:null/);
+  assert.match(previewSource,/onMarket:previewNotice,onImport:previewNotice,onReload:previewNotice/);
 });
 // Legacy design fixtures remain checked for historical layout regressions;
 // the R37 generation and Chromium evidence above/below prove the active consumer.

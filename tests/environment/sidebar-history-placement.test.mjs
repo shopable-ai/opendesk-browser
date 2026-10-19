@@ -83,7 +83,12 @@ test('History Host retains Side Panel identity and developer gate; preview has n
   ]),href}),false);
   assert.equal(await isActualSidePanelContext({api:{runtime:{}},href}),false);
   const shell=await readFile('src/ui/tool-shell.js','utf8');
-  assert.match(shell,/if\(actualSidePanel&&debugEnabled\)\{\s*trustedHistoryWorkbench=historyUI\?\.create\(\{[^}]*reactUI:extensionList/);
+  assert.match(shell,/if\(actualSidePanel\)\{\s*verifiedSidePanel=true;\s*syncTrustedHistory\(pendingReactTab\)/);
+  assert.match(shell,/function syncTrustedHistory\(view=pendingReactTab\)/);
+  assert.match(shell,/!verifiedSidePanel\|\|!debugEnabled\|\|view!=='debug'/);
+  assert.match(shell,/trustedHistoryWorkbench\?\.dispose\(\);\s*trustedHistoryWorkbench=null/);
+  assert.match(shell,/select\(view\)\{\s*pendingReactTab=view;\s*extensionList\?\.renderNavigation\(view\);\s*syncTrustedHistory\(view\)/);
+  assert.doesNotMatch(shell,/if\(actualSidePanel&&debugEnabled\)\{/);
   assert.match(shell,/shellClosed=true;trustedHistoryWorkbench\?\.dispose\(\)/);
   const sidecar=await readFile('src/entrypoints/trusted-cookie-ui.js','utf8');
   assert.doesNotMatch(sidecar,/mountTrustedHistoryWorkbench|mount:/);

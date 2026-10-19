@@ -304,15 +304,20 @@ export function ExtensionCenterPage({
     </div>
     <section id="extension-center-detail" className="ec-detail" aria-label="扩展详情"
       hidden={!detailVisible}>
-      <button id="extension-center-back" className="ec-detail-back" type="button"
-        onClick={event=>onBack(event.nativeEvent)}>← 返回列表</button>
+      <IconButton id="extension-center-back" className="ec-detail-back" label="返回扩展列表"
+        onClick={event=>onBack(event.nativeEvent)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m14 6-6 6 6 6"/>
+        </svg>
+      </IconButton>
       <div ref={detailRef} id="extension-center-detail-body">
         <ExtensionDetail model={detailModel} container={detailRef.current}/>
       </div>
     </section>
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}
     <p id="extension-center-status" className="ec-message" role="status"
-      aria-live="polite" data-state={statusModel?.state||'info'}>
+      aria-live="polite" data-state={statusModel?.state||'info'}
+      hidden={!statusModel?.text}>
       <ExtensionStatus model={statusModel}/>
     </p>
   </>;

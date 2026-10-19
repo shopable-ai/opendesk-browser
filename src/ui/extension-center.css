@@ -61,7 +61,9 @@
 .ec-message{margin:8px 2px;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
 .ec-message:empty{display:none}
 .ec-message[data-state=error]{color:var(--od-negative)}.ec-message[data-state=success]{color:var(--od-positive)}
-.ec-detail-back{padding:6px;border:0;background:transparent;color:var(--od-accent-ink);font-size:12px}
+.ec-detail-back{display:inline-grid;place-items:center;width:34px;min-width:34px;height:34px;min-height:34px;padding:0;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-accent-ink);cursor:pointer}
+.ec-detail-back:hover{background:var(--od-muted)}
+.ec-detail-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ec-detail-head{display:flex;align-items:center;gap:10px;padding:10px 0 12px;border-bottom:1px solid var(--od-line)}
 .ec-detail-head strong{font-size:15px}
 .ec-detail-copy{min-width:0;display:grid;gap:4px}

@@ -64,7 +64,19 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false;
+let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false;
+// Do not construct or query the privileged History controller while Extensions
+// (or any ordinary tab) is active. Leaving Debug also clears private results.
+function syncTrustedHistory(view=pendingReactTab){
+  if(shellClosed)return;
+  if(!verifiedSidePanel||!debugEnabled||view!=='debug'){
+    trustedHistoryWorkbench?.dispose();
+    trustedHistoryWorkbench=null;
+    return;
+  }
+  if(!trustedHistoryWorkbench)
+    trustedHistoryWorkbench=historyUI?.create({api:chrome,hostInstanceId,reactUI:extensionList})??null;
+}
 window.addEventListener('pagehide',()=>{shellClosed=true;trustedHistoryWorkbench?.dispose();},{once:true});
 const developerView=createDeveloperView();
 const myView=createMyWorkbenchView();
@@ -84,6 +96,7 @@ const reactNavigation=Object.freeze({
   select(view){
     pendingReactTab=view;
     extensionList?.renderNavigation(view);
+    syncTrustedHistory(view);
   }
 });
 // The full-size tool/catalog page must never overwrite the Side Panel's last tab.
@@ -191,8 +204,9 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   if(shellClosed)return;
   if(actualSidePanel||!tab?.id){
     sidebarSurface=true;
-    if(actualSidePanel&&debugEnabled){
-      trustedHistoryWorkbench=historyUI?.create({api:chrome,hostInstanceId,reactUI:extensionList})??null;
+    if(actualSidePanel){
+      verifiedSidePanel=true;
+      syncTrustedHistory(pendingReactTab);
     }
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList,
       currentPageTarget,onTaskInstalled:taskId=>{

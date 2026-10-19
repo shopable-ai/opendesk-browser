@@ -82,16 +82,73 @@ app.connectWorkflowPage({...workflow,actions:workflowActions});
 app.renderBrowserHistory({text:'',startDate:'',endDate:'',limit:'25',busy:false,
   status:'仅界面预览 · 不读取浏览器历史',permission:'unknown',visits:null});
 app.connectBrowserHistoryActions(null);
+// Presentation data only: the real React component consumes the same snapshot
+// contract, while no Installer, Chrome permission or Host operation is present.
+const demoRows=Object.freeze([
+  {key:'app:demo-reading',title:'演示 · 阅读目录',kind:'app',type:'应用',
+    description:'展示网页标题与文章大纲（演示数据）',installed:true,version:'1.0.0'},
+  {key:'page:demo-markup',title:'演示 · 网页内容标注与阅读辅助工具',kind:'page',type:'网页增强',
+    description:'在示例网站标注文字（不运行任何脚本）',installed:true,version:'1'},
+  {key:'app:demo-import',title:'演示 · 待安装应用',kind:'app',type:'应用',
+    description:'仅展示官方目录候选外观，不提供模拟安装',installed:false,version:'2.0.0'}
+]);
 const toolbar={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
-const publishToolbar=()=>app.renderToolbar({...toolbar,
-  onSearch:value=>{toolbar.query=value;publishToolbar();},
-  onKind:value=>{toolbar.kind=value;publishToolbar();},
-  onScope:value=>{toolbar.scope=value;publishToolbar();},
-  onLanguage:value=>{toolbar.language=value;publishToolbar();},
-  onToggleMenu:()=>{toolbar.menuOpen=!toolbar.menuOpen;publishToolbar();}
-});
+const previewNotice=()=>app.renderStatus({text:'仅预览 · 请在正式 Chrome 扩展中执行此操作',state:'info'});
+const closeRowMenu=()=>app.renderRowMenu([]);
+const closeDetail=()=>{closeRowMenu();app.renderView('list');};
+function openDemoDetail(key){
+  const row=demoRows.find(item=>item.key===key);
+  if(!row)return;
+  closeRowMenu();
+  app.renderDetail({key:row.key,title:row.title,kind:row.kind,type:row.type,
+    description:row.description,installed:row.installed,cleanupPending:false,
+    version:row.version,busy:false,actions:[],
+    source:row.installed?{label:'演示来源（非真实安装）'}:null,
+    installationText:row.installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
+    usageText:'仅供审阅排版，不运行扩展',appDataText:'',
+    sites:row.kind==='page'?['https://example.com/*']:[],suspended:false,
+    pageInfo:row.kind==='page'?{
+      source:'演示数据',excluded:[],capabilities:[],networkOrigins:[],
+      authorization:'无真实授权',nativeState:'无真实注册',installationId:'无',
+      dataRule:'演示界面不读取、修改或清理任何网站数据'
+    }:null});
+  app.renderView('detail');
+}
+app.connectBack(closeDetail);
+function publishRows(){
+  const query=toolbar.query.trim().toLocaleLowerCase();
+  const shown=demoRows.filter(row=>
+    (toolbar.kind==='all'||toolbar.kind===row.kind)&&
+    (toolbar.scope==='available'?!row.installed:row.installed)&&
+    (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
+  app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
+    ({key,title,kind,type,description,installed,primaryAction:null})),
+    busy:false,pendingKey:null,onOpenRow:openDemoDetail,
+    onMore:(key,trigger)=>{
+      const row=demoRows.find(item=>item.key===key);
+      if(!row)return;
+      app.renderRowMenu([{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}],
+        {key,title:row.title,trigger,onClose:closeRowMenu});
+    }});
+  app.renderFeedback({showEmpty:shown.length===0,
+    emptyText:'仅预览 · 当前筛选下没有演示条目',
+    countText:'仅预览 · '+shown.length+' 个演示条目'});
+}
+function publishToolbar(){
+  app.renderToolbar({...toolbar,
+    onSearch:value=>{toolbar.query=value;publishToolbar();publishRows();},
+    onKind:value=>{toolbar.kind=value;publishToolbar();publishRows();},
+    onScope:value=>{toolbar.scope=value;publishToolbar();publishRows();},
+    onLanguage:value=>{toolbar.language=value;publishToolbar();previewNotice();},
+    onToggleMenu:()=>{toolbar.menuOpen=!toolbar.menuOpen;publishToolbar();},
+    onCloseMenu:()=>{toolbar.menuOpen=false;publishToolbar();},
+    onReset:()=>{toolbar.kind='all';toolbar.scope='smart';toolbar.menuOpen=false;
+      publishToolbar();publishRows();},
+    onMarket:previewNotice,onImport:previewNotice,onReload:previewNotice
+  });
+}
 publishToolbar();
-app.renderFeedback({showEmpty:true,emptyText:'仅预览 · 没有真实安装记录',countText:'仅预览'});
+publishRows();
 app.renderDebugDiagnostics({cloudSummary:'仅预览 · 未连接真实 Host',snapshotText:'UI_PREVIEW_ONLY'});
 window.addEventListener('pagehide',()=>{app.dispose();developerView.dispose();workflow.dispose();},{once:true});
 document.documentElement.dataset.previewProof=proof.scope;
