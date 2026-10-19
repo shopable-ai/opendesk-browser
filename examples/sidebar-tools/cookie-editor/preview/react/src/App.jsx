@@ -448,7 +448,7 @@ export default function App(){
             <div className="new-label">新建 Cookie</div>{renderEditor()}</div>:null}
           renderEditor={()=>renderEditor()}/>
        {scene==='readonly'&&<p className="quiet-note">当前仅可查看，编辑与导入需要独立写入授权。</p>}
-       <details className="secondary-tools"><summary>更多 · 变化观察</summary><p>正式观察由 Browser SDK 和可信宿主执行；本预览不模拟真实事件。</p></details>
+
        </>}
    </main>
  </div>;
