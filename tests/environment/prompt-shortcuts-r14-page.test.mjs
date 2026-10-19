@@ -486,6 +486,27 @@ test('R2.15 content-left rail avoids live navigation and never flips to content-
   }finally{f.controller.dispose();}
 });
 
+test('R2.15 navigation outside main still blocks unsafe left placement',async()=>{
+  const f=await readyPage();
+  try{
+    const external=mockElement('aside');
+    let edge=310;
+    f.main.getBoundingClientRect=()=>regionRect(0,0,1200,768);
+    external.getBoundingClientRect=()=>regionRect(0,0,edge,768);
+    const originalQuery=f.doc.querySelectorAll.bind(f.doc);
+    f.doc.querySelectorAll=selector=>selector==='aside, nav, [role="navigation"]'?
+      [external]:originalQuery(selector);
+    f.win.innerWidth=1200;f.win.innerHeight=768;
+    f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),true,
+      'external native nav must reserve its actual width');
+    assert.equal(f.host().style.left,'350px','compact fallback aligns with composer, never right');
+    edge=260;f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),false);
+    assert.equal(f.host().style.left,'286px','safe gap allows left vertical B rail');
+  }finally{f.controller.dispose();}
+});
+
 test('R2.15 only tall left-edge navigation reserves gutter; main excludes navigation once',async()=>{
   const f=await readyPage();
   try{
