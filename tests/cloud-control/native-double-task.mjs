@@ -124,6 +124,9 @@ async function snapshot(c,jobIds=[],assets=[]){
       'results:allResults.filter(x=>x?.tag==="controller-result"&&runIds.includes(x.runId)).map(x=>({'+
         'runId:x.runId,resultId:x.resultId,state:x.state,ok:x.outcome?.ok===true,'+
         'sourceHash:x.revision?.sourceHash,valueWire:x.outcome?.valueWire})),'+
+      'hosts:journal.filter(x=>x?.tag==="host"&&x.active===true&&!x.revoked&&'+
+        'x.hostUrl===chrome.runtime.getURL("cloud-control/runner.html")).map(x=>({'+
+        'documentId:x.hostDocumentId,registrationId:x.registrationId})),'+
       'native:journal.filter(x=>x?.tag==="controller-operation"&&runIds.includes(x.runId)).map(x=>({'+
         'runId:x.runId,receipts:(x.nativeReceipts||[]).filter(y=>y.stage==="result").length}))};'+
       '}finally{db.close()}})()';
@@ -172,7 +175,8 @@ async function closePanel(c,initial){
   assert.equal((await c.send('Target.closeTarget',{targetId:panelTargets[0].targetId})).success,true);
   return until(async()=>{
     const now=await snapshot(c),contexts=nativeContexts(now);
-    return contexts.panel.length===0&&contexts.offscreen.length===1?now:null;
+    return contexts.panel.length===0&&contexts.offscreen.length===1&&
+      now.hosts?.filter(x=>x.documentId===contexts.offscreen[0].documentId).length===1?now:null;
   },'Side Panel closed, Offscreen still alive',10000);
 }
 function matchEvidence(native,job,status,pin,kind,expected,effects){
@@ -283,7 +287,16 @@ async function main(){
     if(nativeContexts(before).panel.length!==1)throw Object.assign(
       Error('Real Side Panel must be opened by the user before native acceptance'),
       {code:'HUMAN_ACTION_REQUIRED'});
+    before=await until(async()=>{
+      const state=await snapshot(c);
+      const offscreen=nativeContexts(state).offscreen;
+      return offscreen.length===1&&
+        state.hosts?.filter(x=>x.documentId===offscreen[0].documentId).length===1?state:null;
+    },'Original Offscreen RunHost registered and alive',5000);
     before=await snapshot(c,[],assetNames);
+    assert.equal(before.hosts.filter(x=>
+      x.documentId===nativeContexts(before).offscreen[0].documentId).length,1,
+      'Offscreen context exists but original RunHost registration is not active');
     for(const asset of before.assets){
       const localHash=createHash('sha256').update(await readFile(path.join(buildDir,asset.path))).digest('hex');
       assert.equal(asset.sha256,localHash,'Loaded Chrome asset differs from verified build: '+asset.path);
@@ -349,7 +362,7 @@ async function main(){
       providerRegistered:tasks.length,clientTaskPins:tasks.length,
       clientResultConsent:true,providerConnected:true,
       sitePermissionGranted:true,userScriptsAvailable:true,verifiedChromeAssets:assetNames,
-      sidePanelOpen:true,offscreenPresent:true});
+      sidePanelOpen:true,offscreenPresent:true,originalHostRegistered:true});
     if(preflightOnly){
       const ready=smokeOnly?'READY_FOR_SMOKE':'READY_FOR_NATIVE_TEST';
       report.status=ready;
