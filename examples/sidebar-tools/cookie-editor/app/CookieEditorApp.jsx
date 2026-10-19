@@ -139,12 +139,14 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       if(saved){setSelected(null);setDirty(false);setPage(1);}
     }finally{setWorking(false);}
   };
-  const remove=id=>ask('仅删除所选 Cookie 的精确身份，可能影响当前网站登录。确定删除？',
-    async()=>{
-      setWorking(true);
-      try{if(await controller.remove(id)){setSelected(null);setDirty(false);}}
-      finally{setWorking(false);}
-    });
+  const remove=async id=>{
+    if(locked)return;
+    // Deleting one explicitly selected identity is a single click. Native
+    // remove still requires a verified Host receipt and refreshes the list.
+    setWorking(true);
+    try{if(await controller.remove(id)){setSelected(null);setDirty(false);}}
+    finally{setWorking(false);}
+  };
   const clear=async()=>{
     setWorking(true);
     let result;
