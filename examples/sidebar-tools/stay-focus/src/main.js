@@ -274,9 +274,17 @@
         if(revision!==pageId.current)throw Error('标签页已切换，未提交旧网站规则。');
         const old=managed(actual,currentStatus.sites);
         if(old?.enabled)return notice('当前网站已经受管理。');
+        // Only the trusted Host catalog may canonicalize a known subdomain.
+        // Page titles and string-substring matches never classify or authorize.
+        const known=(currentStatus.catalog||[]).find(row=>
+          actual===row.host||actual.endsWith('.'+row.host));
+        const normalized=known?.host||actual;
+        const doubleCheck=activeHost(await api.request('currentPage.info',{}));
+        if(doubleCheck!==actual||revision!==pageId.current)
+          throw Error('当前网页已切换，未提交旧网页的网站规则。');
         const site=old?{host:old.host,subdomains:old.subdomains,enabled:true,
           mode:old.mode,minutes:old.minutes,group:old.group}:
-          {host:actual,subdomains:true,enabled:true,mode:'limit',
+          {host:normalized,subdomains:true,enabled:true,mode:'limit',
             minutes:currentStatus.dailyBudget.minutes,group:'entertainment'};
         const ok=await operate('focus.site.put',{site});
         if(ok&&revision!==pageId.current)
