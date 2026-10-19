@@ -14,7 +14,7 @@ async function productionReactFiles(directory){
     if(entry.name==='preview')continue; // not the production Side Panel
     const path=directory+'/'+entry.name;
     if(entry.isDirectory())result.push(...await productionReactFiles(path));
-    else if(/\\.tsx$/.test(entry.name))result.push(path);
+    else if(/\.tsx$/.test(entry.name))result.push(path);
   }
   return result;
 }
@@ -38,9 +38,9 @@ test('R35.4 guards one trusted React root, fixed entry and exact workbench IDs',
   assert.equal($('#cloud-first-run').length,0,
     'React first-run must not regain a second static implementation');
   assert.match(entry,/initToolShell/);
-  assert.match(host,/mountExtensionList\\(document,\\{debugEnabled,appShell:true,/);
-  assert.match(root,/createRoot\\(shell\\?\\.mount\\|\\|section\\)/);
-  assert.doesNotMatch(shell,/\\bcreateRoot\\s*\\(|\\bcreatePortal\\s*\\(/);
+  assert.match(host,/mountExtensionList\(document,\{debugEnabled,appShell:true,/);
+  assert.match(root,/createRoot\(shell\?\.mount\|\|section\)/);
+  assert.doesNotMatch(shell,/\bcreateRoot\s*\(|\bcreatePortal\s*\(/);
   for(const directory of ['packages/opendesk-ui-react','src/ui-react','src/new-sidebar'])
     assert.equal(existsSync(directory),false,'forbidden duplicate UI source: '+directory);
   const tsx=await productionReactFiles('src/ui/react');
@@ -49,7 +49,7 @@ test('R35.4 guards one trusted React root, fixed entry and exact workbench IDs',
     const source=path==='src/ui/react/main.tsx'?root:await read(path);
     const parsed=await transformWithEsbuild(source,path,{loader:'tsx',jsx:'transform',target:'es2022'});
     assert.ok(parsed.code.length>0,path+' must compile');
-    roots+=(source.match(/\\bcreateRoot\\s*\\(/g)||[]).length;
+    roots+=(source.match(/\bcreateRoot\s*\(/g)||[]).length;
   }
   assert.equal(roots,1,'exactly one production createRoot in the trusted UI');
 });
@@ -63,13 +63,13 @@ test('R35.4 tabs and reusable components cannot become a second privileged Host'
   ];
   for(const path of paths){
     const code=await read(path);
-    assert.doesNotMatch(code,/(?:\\bchrome|\\bbrowser)\\s*\\.\\s*(?:runtime|tabs|scripting|permissions|storage)|\\bclient\\.request\\s*\\(|\\bnew\\s+Worker\\s*\\(|\\beval\\s*\\(/,
+    assert.doesNotMatch(code,/(?:\bchrome|\bbrowser)\s*\.\s*(?:runtime|tabs|scripting|permissions|storage)|\bclient\.request\s*\(|\bnew\s+Worker\s*\(|\beval\s*\(/,
       path+' must stay presentation-only');
   }
   const cloud=await read('src/ui/react/tabs/cloud.tsx');
   const owner=await read('src/ui/cloud-hosting.js');
-  assert.match(cloud,/actionsModel\\.onRefresh/);
-  assert.match(cloud,/actionsModel\\.onOpenConsole/);
-  assert.match(owner,/reactUI\\?\\.cloudActionsMounted/);
-  assert.match(owner,/reactUI\\.renderCloudActions\\(/);
+  assert.match(cloud,/actionsModel\.onRefresh/);
+  assert.match(cloud,/actionsModel\.onOpenConsole/);
+  assert.match(owner,/reactUI\?\.cloudActionsMounted/);
+  assert.match(owner,/reactUI\.renderCloudActions\(/);
 });
