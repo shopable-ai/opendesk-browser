@@ -109,3 +109,73 @@ test('late clipboard and download replies cannot override navigation or mode cha
  assert.equal(nodes['clip-status'].textContent,'点击剪藏获取内容');
  assert.equal(nodes['clip-source'].value,'');
 });
+
+test('starting another extraction immediately clears stale Markdown and source site',async()=>{
+ const next=deferred();let calls=0,copies=0;
+ const {nodes}=mounted({
+  request:()=>++calls===1?Promise.resolve({markdown:'旧内容',source:'https://old.example/a',title:'旧',site:'old.example'}):next.promise,
+  clipboard:async()=>{copies++;return {copied:true};}
+ });
+ await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-site'].textContent,'old.example');
+ const fetching=nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'','old content must disappear before new read finishes');
+ assert.equal(nodes['clip-site'].textContent,'当前网页','old origin must disappear');
+ await nodes['clip-copy'].fire('click');
+ assert.equal(copies,0,'stale content must not be exportable');
+ next.resolve({markdown:'新内容',source:'https://new.example/b',title:'新',site:'new.example'});
+ await fetching;
+ assert.equal(nodes['clip-source'].value,'新内容');
+ assert.equal(nodes['clip-site'].textContent,'new.example');
+});
+test('trusted export remains single-flight even if users repeat copy or download clicks',async()=>{
+ const copy=deferred(),download=deferred();let copyCalls=0,downloadCalls=0;
+ const {nodes}=mounted({
+  request:async()=>({markdown:'# 内容',source:'https://example.com',title:'文章',site:'example.com'}),
+  clipboard:()=>{copyCalls++;return copy.promise;},
+  download:()=>{downloadCalls++;return download.promise;}
+ });
+ await nodes['clip-fetch'].fire('click');
+ const copying=nodes['clip-copy'].fire('click');
+ assert.equal(nodes['clip-copy'].disabled,true);
+ assert.equal(nodes['clip-download'].disabled,true);
+ await nodes['clip-copy'].fire('click');
+ await nodes['clip-download'].fire('click');
+ assert.equal(copyCalls,1);
+ assert.equal(downloadCalls,0);
+ copy.resolve({copied:true});await copying;
+ assert.equal(nodes['clip-copy'].disabled,false);
+ assert.equal(nodes['clip-download'].disabled,false);
+ const downloading=nodes['clip-download'].fire('click');
+ await nodes['clip-download'].fire('click');
+ await nodes['clip-copy'].fire('click');
+ assert.equal(downloadCalls,1);
+ assert.equal(copyCalls,1);
+ download.resolve({started:true});await downloading;
+ assert.equal(nodes['clip-download'].disabled,false);
+ assert.equal(nodes['clip-status'].textContent,'已请求下载，请在 Chrome 确认保存');
+});
+test('cancelled and uncertain exports never pretend to have succeeded or failed definitively',async()=>{
+ let copyCode='E_CANCELLED',downloadCode='E_CANCELLED';
+ const typedError=code=>Object.assign(new Error(code),{code});
+ const {nodes}=mounted({
+  request:async()=>({markdown:'中文内容',source:'https://example.com',title:'安全',site:'example.com'}),
+  clipboard:async()=>{throw typedError(copyCode);},
+  download:async()=>{throw typedError(downloadCode);}
+ });
+ await nodes['clip-fetch'].fire('click');
+ await nodes['clip-copy'].fire('click');
+ assert.equal(nodes['clip-status'].textContent,'已取消复制');
+ assert.equal(nodes['clip-status'].dataset.error,'false');
+ assert.equal(nodes['clip-source'].selected,undefined,'cancel must not automatically offer a manual copy');
+ copyCode='E_OUTCOME_UNKNOWN';await nodes['clip-copy'].fire('click');
+ assert.match(nodes['clip-status'].textContent,/复制结果未知/);
+ assert.equal(nodes['clip-source'].selected,undefined,'unknown result must not falsely claim a copy failure');
+ await nodes['clip-download'].fire('click');
+ assert.equal(nodes['clip-status'].textContent,'已取消下载');
+ assert.equal(nodes['clip-status'].dataset.error,'false');
+ downloadCode='E_OUTCOME_UNKNOWN';await nodes['clip-download'].fire('click');
+ assert.match(nodes['clip-status'].textContent,/下载结果未知/);
+ copyCode='E_DENIED';await nodes['clip-copy'].fire('click');
+ assert.equal(nodes['clip-source'].selected,true,'known copy failure retains manual fallback');
+});
