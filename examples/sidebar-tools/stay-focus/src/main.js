@@ -327,7 +327,9 @@
         h('p',{className:'sf-hint'},'所有娱乐网站共用这一份每日额度。'))),
       h('section',{className:'sf-session'},
         h('div',null,h('strong',null,'临时专注'),h('p',null,'暂时限制受管网站 25 分钟')),
-        h(Button,{disabled:busy||!state,onClick:()=>void operate(
+        h(Button,{disabled:busy||!state||!state.enabled,
+          title:!state?.enabled?'请先从可信扩展设置中开启限制':undefined,
+          onClick:()=>void operate(
           focusRunning?'focus.session.stop':'focus.session.start',
           focusRunning?{}:{minutes:25})},focusRunning?'结束':'开始')),
       note?h('p',{className:'sf-notice','data-error':failed,
