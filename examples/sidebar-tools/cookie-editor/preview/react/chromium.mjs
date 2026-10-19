@@ -374,7 +374,7 @@ try{
  await test('R4.9.2 horizontal value icon alignment',async()=>{
    await page.getByRole('button',{name:'导出 Cookie'}).click();
    await page.locator('[data-row="b"]').click();
-   for(const width of [320,384,520]){
+   for(const width of [320,380,384,520]){
      await page.setViewportSize({width,height:880});
      const input=await page.locator('.value-input input').boundingBox();
      const button=await page.getByRole('button',{name:'读取并显示 Cookie 值'}).boundingBox();
@@ -385,8 +385,12 @@ try{
    await page.getByRole('button',{name:'取消',exact:true}).click();
  });
  await test('viewport + zoom + dark',async()=>{
-  for(const width of [320,360,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}@${zoom}`);}await page.evaluate('document.body.style.zoom=""');}
-  await page.getByRole('button',{name:'深色'}).click();await page.screenshot({path:join(output,'384-dark.png'),fullPage:true});
+  for(const width of [320,360,380,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}@${zoom}`);}await page.evaluate('document.body.style.zoom=""');}
+  await page.getByRole('button',{name:'关闭导出'}).click();
+  await page.setViewportSize({width:380,height:850});
+  await page.screenshot({path:join(output,'380-list.png'),fullPage:true});
+  await page.getByRole('button',{name:'深色'}).click();
+  await page.screenshot({path:join(output,'380-dark.png'),fullPage:true});
  });
  await test('first authorization denial, recovery, auto-hide and revocation',async()=>{
    await page.locator('[data-testid="scenario"]').selectOption('first');
