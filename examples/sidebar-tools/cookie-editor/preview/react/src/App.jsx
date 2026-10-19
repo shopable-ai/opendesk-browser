@@ -1,5 +1,6 @@
 import React from 'react';
-import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows,CookieFormField as Field,CookieAdvancedFields,CookieImportDropzone,CookieExportFormatRow,CookieExportActions} from '../../../ui/CookieEditorView.jsx';
+import {CookieSiteBar,CookieToolbar,CookieSearch,CookieRows,CookieFormField as Field,CookieValueField,CookieAdvancedFields,CookieImportDropzone,CookieExportFormatRow,CookieExportActions} from '../../../ui/CookieEditorView.jsx';
+import CookieClearDialog from '../../../app/components/CookieClearDialog.jsx';
 
 // PREVIEW-ONLY: virtual fixture rows; no Chrome APIs, SDK, persistence, or network.
 const demoSite='shop.example.com';
@@ -130,7 +131,7 @@ export default function App(){
  const [rows,setRows]=React.useState(initialRows);const [scene,setScene]=React.useState('ready');const [dark,setDark]=React.useState(false);
  const [grantBusy,setGrantBusy]=React.useState(false);const [grantError,setGrantError]=React.useState('');
  const [query,setQuery]=React.useState('');const [filter,setFilter]=React.useState('all');const [sort,setSort]=React.useState('name');const [expandedFilters,setExpandedFilters]=React.useState(false);
- const [selected,setSelected]=React.useState(null);const [draft,setDraft]=React.useState(null);const [baseline,setBaseline]=React.useState(null);const [pending,setPending]=React.useState(null);const [reveal,setReveal]=React.useState(false);const [advancedOpen,setAdvancedOpen]=React.useState(false);
+ const [selected,setSelected]=React.useState(null);const [draft,setDraft]=React.useState(null);const [baseline,setBaseline]=React.useState(null);const [pending,setPending]=React.useState(null);const [advancedOpen,setAdvancedOpen]=React.useState(false);
  const [io,setIo]=React.useState(null);const [importText,setImportText]=React.useState('');const [fileName,setFileName]=React.useState('');const [overwrite,setOverwrite]=React.useState(false);const [format,setFormat]=React.useState('json');const [includeValues,setIncludeValues]=React.useState(true);
  const [confirm,setConfirm]=React.useState(null);const [saving,setSaving]=React.useState(false);const [needsVerify,setNeedsVerify]=React.useState(false);const [skipPartition,setSkipPartition]=React.useState(false);const [flash,setFlash]=React.useState(null);const [error,setError]=React.useState('');const [failNext,setFailNext]=React.useState('');
  const [version,setVersion]=React.useState(0); const fileRef=React.useRef(null);const fileReadRef=React.useRef(0);const dragDepthRef=React.useRef(0);const [fileDragging,setFileDragging]=React.useState(false);const epochRef=React.useRef(0); const focusKey=React.useRef(null);
@@ -144,7 +145,7 @@ export default function App(){
  const clearCandidates=rows.filter(c=>c.domain===demoSite&&c.storeId==='0'&&!c.partitionKey);
  const clearKeys=()=>clearCandidates.map(identity).sort();
  const notify=(text,tone='success')=>{setFlash({text,tone});setError('');};
- const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setReveal(false);setAdvancedOpen(false);setPending(null);setError('');};
+ const resetEditor=()=>{setSelected(null);setDraft(null);setBaseline(null);setAdvancedOpen(false);setPending(null);setError('');};
  const focusAfter=id=>{focusKey.current=id;};
  // A deferred RAF can steal focus back from a search field the user already entered.
  // Commit DOM synchronously before focusing; never leave a stale autofocus queued.
@@ -155,7 +156,7 @@ export default function App(){
   (document.querySelector(target)||document.querySelector('[aria-label="搜索 Cookie"]'))?.focus();
  },[selected,version]);
  React.useEffect(()=>{if(!flash?.ephemeral)return;const timer=setTimeout(()=>setFlash(v=>v===flash?null:v),2400);return()=>clearTimeout(timer);},[flash]);
- const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setReveal(false);setAdvancedOpen(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#cookie-name');setVersion(v=>v+1);};
+ const openEditor=(id)=>{const c=id==='new'?null:rows.find(x=>x.id===id);const d=toDraft(c);setSelected(id);setDraft(d);setBaseline({...d});setPending(null);setError('');setAdvancedOpen(false);setIo(null);setConfirm(null);setFlash(null);focusAfter('#opendesk-cookie-attribute-key');setVersion(v=>v+1);};
  const requestSwitch=(id)=>{if(saving||!granted)return;if(selected===id){requestClose();return;}if(selected!==null&&dirty){setPending(id);setError('');return;}openEditor(id);};
  const requestClose=()=>{if(saving)return;if(dirty){setPending('close');return;}const old=selected;resetEditor();if(old&&old!=='new')focusAfter('[data-row="'+old+'"]');else focusAfter('[data-action="new"] button');setVersion(v=>v+1);};
  const discard=()=>{const p=pending;setPending(null);if(p==='close'){const old=selected;resetEditor();focusAfter(old==='new'?'[data-action="new"] button':'[data-row="'+old+'"]');setVersion(v=>v+1);}else if(p!==null)openEditor(p);};
@@ -190,8 +191,8 @@ export default function App(){
     issue='请选择有效的未来过期时间（本地时间），不能使用过去或超出范围的日期。';
   if(issue){
    setError(issue);
-   if(issue.startsWith('名称')){focusAfter('#cookie-name');setVersion(v=>v+1);}
-   else if(issue.startsWith('Cookie 值')){focusAfter('#cookie-value');setVersion(v=>v+1);}
+   if(issue.startsWith('名称')){focusAfter('#opendesk-cookie-attribute-key');setVersion(v=>v+1);}
+   else if(issue.startsWith('Cookie 值')){focusAfter('#opendesk-cookie-attribute-data');setVersion(v=>v+1);}
    else{
     setAdvancedOpen(true);
     if(issue.startsWith('请选择有效的未来')){focusAfter('[aria-label="过期时间（本地时间）"]');setVersion(v=>v+1);}
@@ -371,7 +372,7 @@ export default function App(){
  // Escape closes panels, except while an IME owns Escape for candidate selection.
  const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
  return <div className={'r49-page '+(dark?'theme-dark':'')}>
-   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R5.2</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
+   <section className="demo-lab" aria-label="预览场景切换器"><div className="lab-title"><span>Cookie Editor R5.15</span><span className="lab-label">独立交互候选 · 虚构数据</span></div><div className="lab-controllers">
       <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}><option value="ready">已授权</option><option value="first">未授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option></select></label>
       <label>下次操作 <select data-testid="failure" value={failNext} onChange={e=>setFailNext(e.target.value)}><option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option><option value="grantDenied">授权被拒绝</option><option value="grantError">授权请求失败</option></select></label>
       <button className="lab-button" type="button" onClick={()=>setDark(a=>!a)}>{dark?'浅色':'深色'}</button><button className="lab-button" type="button" onClick={resetAll}>重置</button>
@@ -392,16 +393,11 @@ export default function App(){
           onNew={()=>requestSwitch('new')} onClear={requestClear}
           clearDisabled={!clearCandidates.length||needsVerify}
           busy={busy} readonly={!canWrite}/>
-       {confirm?.type==='clear'&&<section className="clear-confirm"
-          role="group" aria-label="确认安全清理本站 Cookie">
-         <strong>安全清理本站 Cookie</strong>
-         <p>将模拟清理 <b>{confirm.count} 条</b>当前主机的 Host-only Cookie（Store 0、非分区）。不会清理父域 Cookie、其他 Store、分区 Cookie 或其他网站。</p>
-         <div className="panel-actions"><button className="text-btn" type="button"
-           onClick={()=>setConfirm(null)}>取消</button>
-           <button className="text-btn danger" type="button" disabled={saving}
-             onClick={handleConfirm}>确认清理 {confirm.count} 条</button></div>
-       </section>}
-       <CookieSearch query={query} onQuery={setQuery}
+       {confirm?.type==='clear'&&<CookieClearDialog hostname={demoSite}
+          count={confirm.count} busy={saving} onCancel={()=>setConfirm(null)}
+          onConfirm={handleConfirm}
+          scopeText="仅模拟清理当前主机 Store 0 的非分区 Host-only Cookie；其他 Cookie 保留。"/>}
+        <CookieSearch query={query} onQuery={setQuery}
           expandedFilters={expandedFilters}
           onToggleFilters={()=>setExpandedFilters(v=>!v)}
           filter={filter} onFilter={setFilter} sort={sort} onSort={setSort}/>
@@ -455,16 +451,21 @@ export default function App(){
    </main>
  </div>;
  function renderEditor(){return <section className="inline-editor" aria-label={selected==='new'?'新建 Cookie':'编辑 Cookie'} data-testid="editor">
-    <div className="editor-top"><span>{selected==='new'?'新建':'编辑'} Cookie</span><span className="editor-top-right">{dirty&&<em>未保存</em>}<IconButton name="close" label="关闭编辑" small onClick={requestClose} disabled={saving}/></span></div>
-    <Field label="名称"><input id="cookie-name" type="text" aria-invalid={error.startsWith('名称')||undefined} aria-describedby={error.startsWith('名称')?'cookie-editor-error':undefined} value={draft.name} onChange={e=>update('name',e.target.value)} maxLength="256" autoComplete="off" disabled={!canWrite||saving}/></Field>
-    <Field label="值"><div className="value-input"><input id="cookie-value" aria-label="Cookie 值" aria-invalid={error.startsWith('Cookie 值')||undefined} aria-describedby={error.startsWith('Cookie 值')?'cookie-editor-error':undefined} type={reveal?'text':'password'} autoComplete="off" value={draft.valueTouched?draft.valueInput:(reveal?current?.value||'':'')} placeholder={selected==='new'?'输入值（可为空）':'保留原值 · 点击眼睛查看'} onChange={e=>setDraft(d=>({...d,valueInput:e.target.value,valueTouched:true}))} disabled={!canWrite||saving}/>
-      {<IconButton small name={reveal?'eyeoff':'eye'} label={reveal?'隐藏 Cookie 值':'读取并显示 Cookie 值'} onClick={()=>{if(!canValues){setError('尚未授权敏感值读取，请在工具设置中单独授权。');return;}setError('');setReveal(a=>!a)}}/>}</div></Field>
-    
-    {current&&<div className="value-controls">{draft.valueTouched?<><span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span><button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}>恢复原值</button></>:<button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:true}))}>清空值</button>}</div>}
+    <div className="editor-top"><span>{selected==='new'?'新建':'编辑'} Cookie</span><span className="editor-top-right">{dirty&&<em>未保存</em>}</span></div>
+    <Field label="名称"><input id="opendesk-cookie-attribute-key" name="opendesk-cookie-attribute-key" type="text" autoComplete="off" autoCapitalize="off" spellCheck={false} aria-invalid={error.startsWith('名称')||undefined} aria-describedby={error.startsWith('名称')?'cookie-editor-error':undefined} value={draft.name} onChange={e=>update('name',e.target.value)} maxLength="256" disabled={!canWrite||saving}/></Field>
+    <CookieValueField
+       inputValue={draft.valueTouched?draft.valueInput:(canValues?current?.value||'':'')}
+       invalid={error.startsWith('Cookie 值')}
+       describedBy={error.startsWith('Cookie 值')?'cookie-editor-error':undefined}
+       disabled={!canWrite||saving} onChange={e=>setDraft(d=>({...d,
+         valueInput:e.target.value,valueTouched:true}))}
+       placeholder={selected==='new'?'输入 Cookie 值（可为空）':
+         canValues?'可直接编辑 Cookie 原值':'原值未授权 · 输入新值或保留原值'}/>
+     {current&&<div className="value-controls">{draft.valueTouched?<><span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span><button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}>恢复原值</button></>:<button className="inline-link" type="button" onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:true}))}>清空值</button>}</div>}
     <CookieAdvancedFields draft={draft} existing={selected!=='new'}
       disabled={!canWrite||saving} onChange={update} advancedOpen={advancedOpen}
       onAdvancedToggle={e=>setAdvancedOpen(e.currentTarget.open)} error={error}/>
-    {current&&draft.name!==current.name&&<p className="editor-hint">名称变更不是原地覆盖：正式版先创建并核实新 Cookie，再删除旧名称；失败可能两条并存。</p>}
+    {current&&draft.name!==current.name&&<p className="editor-hint">更名将先新建并核实，再删除旧名称；失败时请刷新核对。</p>}
     {error&&<Message id="cookie-editor-error" tone="error">{error}</Message>}
     {pending!==null&&<div className="discard-row" role="status"><span>放弃当前未保存修改？</span><button type="button" className="text-btn" onClick={()=>setPending(null)}>继续编辑</button><button type="button" className="text-btn" onClick={discard}>放弃</button></div>}
     <div className="editor-actions">{selected!=='new'&&<button className="delete-btn" type="button" onClick={remove} disabled={saving||needsVerify||!canWrite}><Icon name="trash"/>删除</button>}<span className="spacer"/><button className="text-btn" type="button" onClick={requestClose} disabled={saving}>取消</button><button className="text-btn primary" type="button" onClick={save} disabled={!canWrite||saving||needsVerify}>{saving?'保存中…':'保存'}</button></div>

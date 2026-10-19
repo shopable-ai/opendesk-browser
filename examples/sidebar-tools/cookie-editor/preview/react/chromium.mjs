@@ -15,7 +15,7 @@ const pass=[];
 const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name)};
 try{
  await page.goto(url,{waitUntil:'load'});
- assert.equal(await page.title(),'Cookie Editor R5.2 · 380px 交互预览','React build must have the R4.11 preview title');
+ assert.equal(await page.title(),'Cookie Editor R5.15 · 380px 交互预览','React build must have the R4.11 preview title');
  await test('380px native-width panel when standalone HTML is opened on desktop',async()=>{
    await page.setViewportSize({width:1280,height:880});
    await page.locator('.cookie-app').waitFor();
@@ -46,32 +46,53 @@ try{
    assert.equal(await toolbar.getByRole('button',{name:'新建 Cookie'}).count(),1);
    assert.equal(await toolbar.getByRole('button',{name:'安全清理本站 Cookie'}).count(),1);
    await clear.click();
-   await page.getByRole('group',{name:'确认安全清理本站 Cookie'}).waitFor();
-   await page.getByText(/不会清理父域 Cookie/).waitFor();
-   assert.equal(await page.locator('.cookie-row').count(),8,'click alone must never clear');
-   await page.getByRole('button',{name:'取消',exact:true}).click();
-   assert.equal(await page.locator('.cookie-row').count(),8,'cancellation preserves every fixture');
+   const dialog=page.getByRole('dialog',{name:'清理本站 Cookie'});
+   await dialog.waitFor();
+   assert.equal(await dialog.evaluate(el=>el.matches(':modal')),true,'must use real native modal');
+   assert.equal(await dialog.locator('.cookie-clear-dialog-host').innerText(),'shop.example.com');
+   assert.match(await dialog.innerText(),/将清理 6 条 Cookie/);
+   assert.match(await dialog.innerText(),/Store 0 的非分区 Host-only/);
+   assert.equal(await page.evaluate(()=>document.activeElement?.textContent?.trim()),'取消',
+     'cancel receives initial focus');
+   await page.keyboard.press('Tab');
+   assert.equal(await page.evaluate(()=>document.activeElement?.closest('dialog')!==null),true,
+     'Tab focus stays inside modal');
+   await page.keyboard.press('Escape');
+   assert.equal(await page.locator('dialog:modal').count(),0,'Escape closes the modal');
+   assert.equal(await page.locator('.cookie-row').count(),8,'Escape does not delete Cookie');
+   assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('aria-label')),
+     '安全清理本站 Cookie','focus returns to opener');
    await clear.click();
-   await page.getByRole('button',{name:/确认清理 6 条/}).click();
+   await dialog.getByRole('button',{name:'取消',exact:true}).click();
+   assert.equal(await page.locator('.cookie-row').count(),8,'cancel preserves all fixtures');
+   await clear.click();
+   for(const width of [320,380,520]){
+     await page.setViewportSize({width,height:850});
+     assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,
+       'modal horizontal overflow '+width);
+   }
+   await page.setViewportSize({width:380,height:850});
+   await page.screenshot({path:join(output,'380-clear-dialog.png'),fullPage:true});
+   await dialog.getByRole('button',{name:'清理 6 条',exact:true}).click();
    await page.getByText(/已模拟安全清理 6 条/).waitFor();
    assert.equal(await page.locator('.cookie-row').count(),2,'domain and partition rows are excluded');
    await page.locator('[data-testid="scenario"]').selectOption('ready');
    assert.equal(await page.locator('.cookie-row').count(),8);
  });
  await test('inline dirty restore and save',async()=>{
-   await page.locator('[data-row="b"]').click();await page.locator('#cookie-name').fill('renamed');assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
-   await page.locator('#cookie-name').fill('theme');assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
-   await page.locator('#cookie-name').fill('renamed');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText(/已模拟重命名/).waitFor();
+   await page.locator('[data-row="b"]').click();await page.locator('#opendesk-cookie-attribute-key').fill('renamed');assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
+   await page.locator('#opendesk-cookie-attribute-key').fill('theme');assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+   await page.locator('#opendesk-cookie-attribute-key').fill('renamed');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText(/已模拟重命名/).waitFor();
    assert.match(await page.locator('[data-row="b"]').innerText(),/renamed/);
  });
- await test('draft switch and discard inline',async()=>{await page.locator('[data-row="b"]').click();await page.locator('#cookie-name').fill('again');await page.locator('[data-row="c"]').click();await page.getByText('放弃当前未保存修改？').waitFor();await page.getByRole('button',{name:'放弃',exact:true}).click();assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true');});
+ await test('draft switch and discard inline',async()=>{await page.locator('[data-row="b"]').click();await page.locator('#opendesk-cookie-attribute-key').fill('again');await page.locator('[data-row="c"]').click();await page.getByText('放弃当前未保存修改？').waitFor();await page.getByRole('button',{name:'放弃',exact:true}).click();assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true');});
  await test('search pins active draft',async()=>{
    assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true');
-   await page.locator('#cookie-name').fill('temporary');
+   await page.locator('#opendesk-cookie-attribute-key').fill('temporary');
    const searchBox=page.getByRole('searchbox',{name:'搜索 Cookie'});
    await searchBox.fill('not-a-matching-cookie-r52');
    assert.equal(await searchBox.inputValue(),'not-a-matching-cookie-r52','search text must enter search, never the draft');
-   assert.equal(await page.locator('#cookie-name').inputValue(),'temporary','search must not corrupt the unsaved draft');
+   assert.equal(await page.locator('#opendesk-cookie-attribute-key').inputValue(),'temporary','search must not corrupt the unsaved draft');
    await page.locator('.pinned-note').waitFor();
    assert.equal(await page.locator('[data-row="c"]').getAttribute('aria-expanded'),'true','dirty editor stays expanded after unmatched search');
    await page.getByRole('button',{name:'筛选与排序'}).click();
@@ -80,7 +101,7 @@ try{
    await page.locator('.pinned-note').waitFor();
    await page.getByRole('button',{name:'全部',exact:true}).click();
    await page.screenshot({path:join(output,'search-pin-draft.png'),fullPage:true});
-   await page.locator('#cookie-name').fill('locale');
+   await page.locator('#opendesk-cookie-attribute-key').fill('locale');
    assert.equal(await page.getByText('未保存',{exact:true}).count(),0,'restoring the original name clears dirty');
    await page.getByRole('button',{name:'取消',exact:true}).click();
    assert.equal(await page.locator('.pinned-note').count(),0,'clean editor close removes the pin');
@@ -88,10 +109,25 @@ try{
    await searchBox.fill('');
    assert.equal(await searchBox.inputValue(),'');
  });
- await test('create and value reveal',async()=>{
-  await page.getByRole('button',{name:'新建 Cookie'}).click();await page.locator('#cookie-name').fill('created');await page.getByRole('button',{name:'保存',exact:true}).click();await page.getByText('已保存 Cookie').waitFor();
-  await page.locator('[data-row="a"]').click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'');await page.getByRole('button',{name:'读取并显示 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'sess_demo_only_C18');
-  await page.getByRole('button',{name:'隐藏 Cookie 值'}).click();assert.equal(await page.getByLabel('Cookie 值',{exact:true}).inputValue(),'');await page.getByRole('button',{name:'取消',exact:true}).click();
+ await test('R5.15 editable Cookie data never impersonates a password form',async()=>{
+  await page.getByRole('button',{name:'新建 Cookie'}).click();
+  await page.locator('#opendesk-cookie-attribute-key').fill('created');
+  const input=page.getByLabel('Cookie 值',{exact:true});
+  assert.equal(await input.getAttribute('type'),'text');
+  assert.equal(await input.getAttribute('autocomplete'),'off');
+  assert.equal(await input.getAttribute('name'),'opendesk-cookie-attribute-data');
+  assert.equal(await page.locator('input[type=password]').count(),0);
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText('已保存 Cookie').waitFor();
+  await page.locator('[data-row="a"]').click();
+  assert.equal(await input.inputValue(),'sess_demo_only_C18','granted simulated original is visible');
+  assert.equal(await page.getByRole('button',{name:/读取并显示 Cookie 值|隐藏 Cookie 值/}).count(),0);
+  await input.fill('new_preview_value');
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
+  await page.getByRole('button',{name:'恢复原值'}).click();
+  assert.equal(await input.inputValue(),'sess_demo_only_C18');
+  assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
+  await page.getByRole('button',{name:'取消',exact:true}).click();
  });
 
  await test('single Cookie deletion happens on click without a second confirmation',async()=>{
@@ -137,7 +173,7 @@ try{
  await test('R5.2 empty vs retained value, semantic dirty and secure constraints',async()=>{
   await page.locator('[data-row="b"]').click();
   const value=page.getByLabel('Cookie 值',{exact:true});
-  assert.equal(await value.getAttribute('type'),'password');
+  assert.equal(await value.getAttribute('type'),'text');
   await page.getByRole('button',{name:'清空值'}).click();
   await page.getByText('将写入空值').waitFor();
   assert.equal(await page.getByText('未保存',{exact:true}).count(),1);
@@ -159,7 +195,7 @@ try{
  });
  await test('R5.2 new persistent Cookie requires future expiration and prefix safety',async()=>{
   await page.getByRole('button',{name:'新建 Cookie'}).click();
-  await page.locator('#cookie-name').fill('__Host-demo');
+  await page.locator('#opendesk-cookie-attribute-key').fill('__Host-demo');
   await page.getByText('属性与高级设置').click();
   await page.getByRole('checkbox',{name:/Session/}).uncheck();
   await page.getByRole('button',{name:'保存',exact:true}).click();
@@ -193,25 +229,25 @@ try{
  });
  await test('R5.2.1 compact validation and new-editor keyboard focus',async()=>{
   await page.getByRole('button',{name:'新建 Cookie'}).click();
-  await page.locator('#cookie-name').fill('invalid name');
+  await page.locator('#opendesk-cookie-attribute-key').fill('invalid name');
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText(/名称不可为空/).waitFor();
   assert.equal(await page.locator('details.advanced').getAttribute('open'),null,'basic error must not expand advanced fields');
-  assert.equal(await page.locator('#cookie-name').getAttribute('aria-invalid'),'true');
-  await page.waitForFunction(()=>document.activeElement?.id==='cookie-name');
-  await page.locator('#cookie-name').fill('');
+  assert.equal(await page.locator('#opendesk-cookie-attribute-key').getAttribute('aria-invalid'),'true');
+  await page.waitForFunction(()=>document.activeElement?.id==='opendesk-cookie-attribute-key');
+  await page.locator('#opendesk-cookie-attribute-key').fill('');
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='新建 Cookie');
   await page.getByRole('button',{name:'新建 Cookie'}).click();
-  await page.locator('#cookie-name').fill('temporary');
-  await page.getByRole('button',{name:'关闭编辑'}).click();
+  await page.locator('#opendesk-cookie-attribute-key').fill('temporary');
+  await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.getByText('放弃当前未保存修改？').waitFor();
   await page.getByRole('button',{name:'放弃',exact:true}).click();
   await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='新建 Cookie');
  });
  await test('R5.2.1 unknown writes block deletion until refresh',async()=>{
   await page.locator('[data-row="b"]').click();
-  await page.locator('#cookie-name').fill('pending_rename');
+  await page.locator('#opendesk-cookie-attribute-key').fill('pending_rename');
   await page.locator('[data-testid="failure"]').selectOption('unknown');
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.locator('#cookie-editor-error[role="alert"]').waitFor();
@@ -225,7 +261,7 @@ try{
  await test('R4.11 automatically analyzes import, safe skip, overwrite on opt-in',async()=>{
    // Isolate this preflight fixture: prior deletion tests intentionally reset rows.
    await page.getByRole('button',{name:'新建 Cookie'}).click();
-   await page.locator('#cookie-name').fill('created');
+   await page.locator('#opendesk-cookie-attribute-key').fill('created');
    await page.getByRole('button',{name:'保存',exact:true}).click();
    await page.getByText('已保存 Cookie').waitFor();
    await page.getByRole('button',{name:'导入 Cookie'}).click();
@@ -376,16 +412,17 @@ try{
    await page.getByRole('button',{name:'复制',exact:true}).click();
    assert.equal(await page.getByRole('button',{name:'确认复制'}).count(),0);
  });
- await test('R4.9.2 horizontal value icon alignment',async()=>{
+ await test('R5.15 Cookie Value occupies full row without redundant icon',async()=>{
    await page.getByRole('button',{name:'导出 Cookie'}).click();
    await page.locator('[data-row="b"]').click();
    for(const width of [320,380,384,520]){
      await page.setViewportSize({width,height:880});
      const input=await page.locator('.value-input input').boundingBox();
-     const button=await page.getByRole('button',{name:'读取并显示 Cookie 值'}).boundingBox();
-     assert.ok(input&&button,'value input/icon must be visible');
-     const delta=Math.abs((input.y+input.height/2)-(button.y+button.height/2));
-     assert.ok(delta<=1,`Value eye button not vertically centered: ${width}px, delta=${delta}`);
+     const holder=await page.locator('.value-input').boundingBox();
+     assert.ok(input&&holder,'Cookie Value input visible');
+     assert.ok(input.width>=holder.width-4,`Value input should fill row ${width}`);
+     assert.equal(await page.locator('.value-input button').count(),0);
+     assert.equal(await page.locator('input[type=password]').count(),0);
    }
    await page.getByRole('button',{name:'取消',exact:true}).click();
  });

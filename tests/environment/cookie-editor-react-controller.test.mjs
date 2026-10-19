@@ -187,3 +187,30 @@ test('editing import text during async preflight invalidates old plan without wr
   assert.doesNotMatch(JSON.stringify(f.snapshots),/STALE_SECRET/);
   f.controller.dispose();
 });
+
+test('R5.15 preserving an unedited Cookie value is not an empty write',async()=>{
+  const f=fixture();await f.controller.load();
+  const id=f.controller.snapshot().rows[0].id;
+  const input={...base,secure:true,value:''};
+  assert.equal(await f.controller.save(input,{originalId:id,valueEdited:false}),true);
+  assert.equal(f.rows()[0].value,'SECRET_FIXTURE');
+  assert.equal(f.rows()[0].secure,true);
+  assert.equal(f.calls.filter(([kind])=>kind==='set').length,1);
+  assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_FIXTURE/);
+  f.controller.dispose();
+});
+
+test('R5.15 no value grant refuses implicit blank overwrite but permits explicit empty',async()=>{
+  const f=fixture();await f.controller.load();
+  const id=f.controller.snapshot().rows[0].id;
+  f.cookies.get=async()=>({cookie:{...base,valueRedacted:true}});
+  assert.equal(await f.controller.readValue(id),null);
+  assert.equal(await f.controller.save({...base,secure:true,value:''},
+    {originalId:id,valueEdited:false}),false);
+  assert.equal(f.calls.filter(([kind])=>kind==='set').length,0);
+  assert.equal(f.rows()[0].value,'SECRET_FIXTURE');
+  assert.equal(await f.controller.save({...base,value:''},
+    {originalId:id,valueEdited:true}),true);
+  assert.equal(f.rows()[0].value,'');
+  f.controller.dispose();
+});

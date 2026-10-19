@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import {CookieIcon,CookieFormField,CookieAdvancedFields} from './CookieEditorView.jsx';
+import {CookieFormField,CookieValueField,CookieAdvancedFields} from './CookieEditorView.jsx';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
@@ -20,14 +20,15 @@ const fromLocal=input=>{
 };
 export default function CookieInlineEditor({row=null,target,disabled=false,
   readValue,onSave,onCancel,onDelete,onDirty}){
-  const valueRef=React.useRef(null),revealedRef=React.useRef(null);
-  // Raw sensitive values may exist only in short-lived refs/DOM, never React state.
+  const valueRef=React.useRef(null);
+  // Raw Cookie values never enter React state, props or snapshots.
   const originalValueRef=React.useRef(null),valueEditedRef=React.useRef(false);
-  const revealGeneration=React.useRef(0),revealTimer=React.useRef(null);
+  const readGeneration=React.useRef(0),inputRevision=React.useRef(0);
+  const readTimer=React.useRef(null),readValueRef=React.useRef(readValue);
+  readValueRef.current=readValue;
   const [valueEdited,setValueEdited]=React.useState(false);
   const [newValueDirty,setNewValueDirty]=React.useState(false);
-  const [showValue,setShowValue]=React.useState(false);
-  const [revealing,setRevealing]=React.useState(false);
+  const [readStatus,setReadStatus]=React.useState(row?'loading':'new');
   const [message,setMessage]=React.useState('');
   const [discardConfirm,setDiscardConfirm]=React.useState(false);
   const [draft,setDraft]=React.useState(()=>({
@@ -48,70 +49,61 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     (edited?valueEdited:newValueDirty);
   const dirty=isDirty();
   React.useEffect(()=>{onDirty?.(dirty);},[dirty,onDirty]);
-  React.useEffect(()=>()=> {
-    // Outstanding Host value reads cannot resurrect secrets after unmount.
-    revealGeneration.current++;
-    originalValueRef.current=null;
-    valueEditedRef.current=false;
-    if(valueRef.current)valueRef.current.value='';
-    if(revealedRef.current){revealedRef.current.textContent='';revealedRef.current.hidden=true;}
-    if(revealTimer.current)clearTimeout(revealTimer.current);
+  React.useEffect(()=>{
+    if(!row||!readValueRef.current)return;
+    let alive=true;
+    const generation=++readGeneration.current;
+    const revision=inputRevision.current;
+    setReadStatus('loading');
+    // A Host read is independently authorized. Null/denied never means ''.
+    void Promise.resolve().then(()=>readValueRef.current(row.id)).then(value=>{
+      if(!alive||generation!==readGeneration.current||revision!==inputRevision.current
+        ||valueEditedRef.current||!valueRef.current)return;
+      if(typeof value!=='string'){setReadStatus('unavailable');return;}
+      originalValueRef.current=value;
+      valueRef.current.value=value;
+      setReadStatus('available');
+      if(readTimer.current)clearTimeout(readTimer.current);
+      readTimer.current=setTimeout(()=>{
+        if(!alive)return;
+        // Expire the original, never an unsaved user-entered value.
+        originalValueRef.current=null;
+        if(!valueEditedRef.current&&valueRef.current)valueRef.current.value='';
+        setReadStatus('expired');
+      },20000);
+    }).catch(()=>{
+      if(alive&&generation===readGeneration.current)setReadStatus('unavailable');
+    });
+    return ()=>{
+      alive=false;
+      readGeneration.current++;
+      originalValueRef.current=null;
+      valueEditedRef.current=false;
+      if(readTimer.current)clearTimeout(readTimer.current);
+      readTimer.current=null;
+      if(valueRef.current)valueRef.current.value='';
+    };
   },[row?.id,target?.url]);
   const update=(key,value)=>{setDraft(old=>({...old,[key]:value}));setMessage('');};
-  const dismissReveal=()=>{
-    revealGeneration.current++;
-    if(revealTimer.current)clearTimeout(revealTimer.current);
-    revealTimer.current=null;
-    // An unedited disclosed value must never persist in a hidden input.
-    if(row&&!valueEditedRef.current&&valueRef.current)valueRef.current.value='';
-    originalValueRef.current=null;
-    if(revealedRef.current){revealedRef.current.textContent='';revealedRef.current.hidden=true;}
-    setShowValue(false);setRevealing(false);
-  };
-  const reveal=async()=>{
-    if(!row||!readValue)return;
-    const sequence=++revealGeneration.current;
-    setRevealing(true);
-    try{
-      const value=await readValue(row.id);
-      if(sequence!==revealGeneration.current||!valueRef.current)return;
-      if(typeof value==='string'){
-        // Preview's in-place eye interaction, backed by a real, separately
-        // authorized Host read. No Cookie value enters JSX props or state.
-        originalValueRef.current=value;
-        valueRef.current.value=value;
-        setShowValue(true);
-        if(revealTimer.current)clearTimeout(revealTimer.current);
-        revealTimer.current=setTimeout(dismissReveal,20000);
-      }else setMessage('敏感值不可用；请检查独立授权或刷新。');
-    }catch{
-      if(sequence===revealGeneration.current)
-        setMessage('敏感值读取失败；请检查独立授权后再尝试。');
-    }finally{
-      if(sequence===revealGeneration.current)setRevealing(false);
-    }
-  };
-  const toggleValue=()=>{
-    if(showValue){dismissReveal();return;}
-    if(edited&&!valueEditedRef.current){void reveal();return;}
-    setShowValue(true);
-  };
   const setInputEdited=()=>{
-    if(revealing){revealGeneration.current++;setRevealing(false);}
-    const value=valueRef.current?.value||'';
+    // A late Host answer must never replace a newer keystroke.
+    inputRevision.current++;
+    readGeneration.current++;
+    const input=valueRef.current?.value??'';
     if(edited){
-      const changed=originalValueRef.current===null||value!==originalValueRef.current;
+      const changed=originalValueRef.current===null||input!==originalValueRef.current;
       valueEditedRef.current=changed;setValueEdited(changed);
-    }else setNewValueDirty(Boolean(value));
+    }else setNewValueDirty(input.length>0);
     setMessage('');
   };
   const restoreValue=()=>{
+    inputRevision.current++;readGeneration.current++;
     valueEditedRef.current=false;setValueEdited(false);
-    dismissReveal();
-    if(valueRef.current)valueRef.current.value='';
+    if(valueRef.current)valueRef.current.value=originalValueRef.current??'';
+    setMessage('');
   };
   const clearValue=()=>{
-    dismissReveal();
+    inputRevision.current++;readGeneration.current++;
     if(valueRef.current)valueRef.current.value='';
     valueEditedRef.current=true;setValueEdited(true);
     setMessage('');
@@ -122,7 +114,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     onCancel?.();
   };
   const submit=event=>{
-    event.preventDefault();dismissReveal();setMessage('');
+    event.preventDefault();setMessage('');
     const expiry=draft.session?undefined:fromLocal(draft.expiration);
     if(!draft.session&&(!Number.isFinite(expiry)||expiry<=Date.now()/1000)){
       setMessage('请填写未来的有效过期时间。');return;
@@ -132,54 +124,37 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       originalId:row?.id||null,valueEdited:!edited||valueEdited
     });
   };
-  return <form className="cookie-inline-editor inline-editor od-surface od-surface--padded" onSubmit={submit}
+  return <form autoComplete="off" className="cookie-inline-editor inline-editor od-surface od-surface--padded" onSubmit={submit}
     aria-label={edited?'编辑 Cookie '+row.name:'新建 Cookie'}>
     <div className="cookie-editor-heading editor-top">
       <strong>{edited?'编辑 Cookie':'新建 Cookie'}</strong>
       <span className="editor-top-right">
         {dirty&&<em className="cookie-dirty-note">未保存</em>}
-        <Button type="button" className="od-icon-button cookie-editor-close" disabled={disabled}
-          aria-label="关闭编辑" title="关闭编辑" onClick={requestClose}>×</Button>
       </span>
     </div>
     <div className="cookie-editor-grid cookie-editor-primary">
       <CookieFormField label="名称">
-        <input id="cookie-name" className="od-field" aria-label="名称" required maxLength={256}
+        <input id="opendesk-cookie-attribute-key" name="opendesk-cookie-attribute-key" type="text" autoComplete="off" autoCapitalize="off" spellCheck={false} className="od-field" aria-label="名称" required maxLength={256}
           value={draft.name} disabled={disabled}
           onChange={e=>update('name',e.target.value)}/>
       </CookieFormField>
-      <CookieFormField label="值">
-        <div className="cookie-value-inline value-input">
-          <input id="cookie-sensitive-edit" aria-label="Cookie 值"
-            className="od-field" ref={valueRef}
-            data-cookie-secret-input="true" type={showValue?'text':'password'}
-            autoComplete="off" maxLength={4096} disabled={disabled}
-            placeholder={edited?'保留原值 · 点击眼睛查看':'输入值（可为空）'}
-            onChange={setInputEdited}/>
-          <Button type="button" className="od-icon-button cookie-value-toggle"
-            disabled={disabled||revealing} aria-pressed={showValue}
-            title={showValue?'隐藏 Cookie 值':edited&&!valueEdited?'读取并显示原值（需授权）':'显示输入'}
-            aria-label={showValue?'隐藏 Cookie 值':edited&&!valueEdited?'读取并显示原值（需授权）':'显示输入'}
-            onClick={toggleValue}>
-            <CookieIcon name={showValue?'eyeoff':'eye'}/>
-          </Button>
-        </div>
-      </CookieFormField>
+      <CookieValueField inputRef={valueRef} disabled={disabled} onChange={setInputEdited}
+        placeholder={edited?(readStatus==='loading'?'正在读取原值…':
+          readStatus==='expired'?'原值已自动隐藏 · 保存时重新读取':
+          '未读取原值 · 可输入新值'):'输入 Cookie 值（可为空）'}/>
     </div>
     {edited&&<div className="cookie-value-restore value-controls">
-      {valueEdited?<span>{valueRef.current?.value===''?'将写入空值':'将写入新值'}</span>:null}
+      {valueEdited?<span>{valueRef.current?.value===''?'将写入空值':'将写入新值'}</span>:
+        readStatus==='unavailable'?<span>原值未读取，留空代表保留</span>:null}
       <Button type="button" variant="secondary" className="inline-link"
         disabled={disabled} onClick={valueEdited?restoreValue:clearValue}>
         {valueEdited?'恢复原值':'清空值'}
       </Button>
     </div>}
-    <output ref={revealedRef} data-cookie-secret-output="true"
-      className="cookie-sensitive-output" aria-label="临时敏感值" hidden/>
     <CookieAdvancedFields draft={draft} existing={edited} disabled={disabled}
       onChange={update} error={message}/>
     {edited&&draft.name!==row.name&&<p className="editor-hint">
-      名称变更不是原地覆盖：正式版先创建并核实新 Cookie，再删除旧名称；
-      失败时两条可能并存。
+      更名将先新建并核实，再删除旧名称；失败时请刷新核对。
     </p>}
     {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
     {discardConfirm&&<div className="discard-row" role="status">

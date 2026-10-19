@@ -4,6 +4,7 @@ import {createCookieSdkAdapter} from './adapters/browser-sdk.js';
 import {createCookieController} from './controller/cookie-controller.js';
 import {CookieEditorView} from './components/CookieEditorView.jsx';
 import CookieInlineEditor from './components/CookieInlineEditor.jsx';
+import CookieClearDialog from './components/CookieClearDialog.jsx';
 import CookieImport from './components/CookieImport.jsx';
 import CookieExport from './components/CookieExport.jsx';
 import CookiePermissions from './components/CookiePermissions.jsx';
@@ -29,7 +30,6 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [status,setStatus]=React.useState('');
   const [working,setWorking]=React.useState(false);
   const appliedSite=React.useRef('');
-  const cancelButton=React.useRef(null);
   const data=React.useRef(null);
   if(data.current===null){
     const adapter=createCookieSdkAdapter({
@@ -55,8 +55,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const cleanEditor=()=>{
     setPanel(null);setSelected(null);setDirty(false);setStatus('');
   };
-  const ask=(text,action,onCancel,kind='discard')=>{
-    setConfirmation({text,action,onCancel,kind});
+  const ask=(text,action,onCancel,kind='discard',details={})=>{
+    setConfirmation({text,action,onCancel,kind,...details});
   };
   const guarded=(action)=>{
     if(locked)return;
@@ -105,9 +105,6 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   },[hostRoot,controller]);
   React.useEffect(()=>{setState?.({busy,dirty});},[busy,dirty,setState]);
   React.useEffect(()=>{
-    if(confirmation?.kind==='clear')cancelButton.current?.focus();
-  },[confirmation]);
-  React.useEffect(()=>{
     // A live session invalidation must not discard an offline editor's
     // independent dirty state when an unrelated browser event fires.
     if(modeRef.current==='offline')return;
@@ -150,15 +147,24 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     finally{setWorking(false);}
   };
   const clear=async()=>{
+    if(locked)return;
+    if(dirty){setStatus('请先保存或取消当前修改，再清理本站 Cookie。');return;}
+    setStatus('');
     setWorking(true);
     let result;
     try{result=await controller.previewClear();}
     finally{setWorking(false);}
     if(!result)return;
-    ask('清理 '+result.hostname+' 的 '+result.count+' 条 Host-only Cookie？',
+    if(!result.count){
+      controller.discardClear();
+      setStatus('当前清理范围内没有可删除的 Host-only Cookie。');
+      return;
+    }
+    ask('',
       async()=>{setWorking(true);try{await controller.executeClear();}
         finally{setWorking(false);}},
-      ()=>controller.discardClear(),'clear');
+      ()=>controller.discardClear(),'clear',
+      {hostname:result.hostname,count:result.count});
   };
   const select=id=>guarded(()=>{setPanel(null);setSelected(id);setStatus('');});
   const onKeyDown=e=>{
@@ -168,11 +174,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       e.preventDefault();return;
     }
     if(!confirmation)return;
-    if(e.key==='Escape'){e.preventDefault();endConfirm(false);}
-    if(e.key==='Tab'&&confirmation.kind==='clear'){
-      const buttons=e.currentTarget.querySelectorAll('.cookie-confirm button');
-      if(buttons.length===2){e.preventDefault();
-        (e.currentTarget.ownerDocument.activeElement===buttons[0]?buttons[1]:buttons[0]).focus();}
+    if(e.key==='Escape'&&confirmation.kind==='discard'){
+      e.preventDefault();endConfirm(false);
     }
   };
   return <main className="cookie-editor-react od-page" onKeyDown={onKeyDown}>
@@ -255,15 +258,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     {mode==='browser'&&snapshot.message&&<p role="status" className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':snapshot.messageType==='warning'?'od-alert--warning':'')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
-    {confirmation?.kind==='clear'&&<div className="cookie-confirm od-alert od-alert--warning"
-      role="alertdialog" aria-modal="true" aria-label="确认安全清理">
-      <p>{confirmation.text}</p>
-      <div className="cookie-editor-actions">
-        <Button ref={cancelButton} type="button" onClick={()=>endConfirm(false)}>取消</Button>
-        <Button type="button" className="od-button--danger"
-          onClick={()=>endConfirm(true)}>确认清理</Button>
-      </div>
-    </div>}
+    {confirmation?.kind==='clear'&&<CookieClearDialog
+      hostname={confirmation.hostname} count={confirmation.count} busy={working}
+      onCancel={()=>endConfirm(false)} onConfirm={()=>endConfirm(true)}/>}
     {confirmation?.kind==='discard'&&<div className="discard-row" role="status">
       <span>{confirmation.text}</span>
       <Button type="button" variant="secondary" onClick={()=>endConfirm(false)}>继续编辑</Button>

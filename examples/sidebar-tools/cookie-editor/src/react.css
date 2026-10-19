@@ -163,3 +163,19 @@
 .cookie-editor-react .cookie-utility-content .cookie-site-select{margin-bottom:0}
 .cookie-editor-react .cookie-observe-fold{margin-top:var(--space-3)}
 .cookie-editor-react .cookie-observe-fold .cookie-observe{margin-top:var(--space-2)}
+
+/* R5.15: modal geometry only; shared OpenDesk design owns appearance. */
+.cookie-clear-dialog{
+  box-sizing:border-box;width:min(360px,calc(100vw - 24px));max-width:calc(100vw - 24px);
+  max-height:calc(100dvh - 24px);margin:auto;padding:0;
+  border-radius:var(--radius-surface);overflow:auto;
+}
+.cookie-clear-dialog::backdrop{background:rgba(16,28,47,.5)}
+.cookie-clear-dialog-body{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3)}
+.cookie-clear-dialog h2{margin:0;font-size:16px;line-height:1.4}
+.cookie-clear-dialog p{margin:0;font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.cookie-clear-dialog .cookie-clear-dialog-host{font-weight:600}
+.cookie-clear-dialog .cookie-clear-dialog-scope{font-size:var(--od-note-size);color:var(--od-sub)}
+.cookie-clear-dialog-actions{display:flex;justify-content:flex-end;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-1)}
+.cookie-clear-dialog-actions>button{min-height:36px;min-width:90px}
+@media(max-width:350px){.cookie-clear-dialog-body{padding:var(--space-2)}.cookie-clear-dialog-actions>button{flex:1 1 0;min-width:0}}

@@ -37,6 +37,23 @@ export function CookieFormField({label,children,className=''}) {
     <span>{label}</span>{children}
   </label>;
 }
+// Neutral attribute naming prevents the browser from interpreting a Cookie
+// value editor as a username/password form. Never use a password-type input here.
+export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
+  placeholder='',maxLength=4096,invalid=false,describedBy}){
+  return <CookieFormField label="值">
+    <div className="cookie-value-inline value-input">
+      <input id="opendesk-cookie-attribute-data" name="opendesk-cookie-attribute-data"
+        aria-label="Cookie 值" aria-invalid={invalid||undefined}
+        aria-describedby={describedBy} className="od-field"
+        ref={inputRef} type="text" autoComplete="off" autoCapitalize="off"
+        autoCorrect="off" spellCheck={false}
+        data-cookie-secret-input="true" maxLength={maxLength}
+        disabled={disabled} placeholder={placeholder} onChange={onChange}
+        {...(inputValue===undefined?{}:{value:inputValue})}/>
+    </div>
+  </CookieFormField>;
+}
 // Pure presentation of the approved Preview IO controls. Both simulated
 // and native adapters implement the callbacks; no credentials live here.
 export function CookieImportDropzone({dragging=false,fileName='',maxSize='150 KB',
@@ -214,9 +231,9 @@ export function CookieRows({
         <span className="row-text"><strong>{row.name}</strong>
           <small>{row.domain} <span>·</span> {row.path}</small></span>
         <span className="row-flags">
-          {row.httpOnly&&<abbr title="HttpOnly">H</abbr>}
-          {row.secure&&<abbr title="Secure">S</abbr>}
-          {row.partitionKey&&<abbr title="Partitioned">P</abbr>}
+          {row.httpOnly&&<abbr title="HttpOnly · 网页脚本不可读取" aria-label="HttpOnly Cookie">H</abbr>}
+          {row.secure&&<abbr title="Secure · 仅安全连接传输" aria-label="Secure Cookie">S</abbr>}
+          {row.partitionKey&&<abbr title="Partitioned · 分区 Cookie" aria-label="Partitioned Cookie">P</abbr>}
         </span>
         <CookieIcon name="chevron"/>
       </button>

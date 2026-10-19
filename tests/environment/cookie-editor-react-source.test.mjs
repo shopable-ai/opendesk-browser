@@ -28,7 +28,7 @@ test('Value remains outside global React state and fixture source',async()=>{
     get('app/CookieEditorApp.jsx'),
     get('app/components/CookieEditorView.jsx')]);
   assert.match(editor,/valueRef=React\.useRef/);
-  assert.match(editor,/revealedRef=React\.useRef/);
+  assert.match(editor,/originalValueRef=React\.useRef/);
   assert.match(importer,/sourceRef=React\.useRef/);
   assert.match(offline,/cookies=React\.useRef/);
   for(const source of [app,preview,editor,importer,offline])
@@ -44,8 +44,8 @@ test('golden Preview and installed editor share form JSX while secrets stay in e
   assert.match(barrel,/CookieFormField/);
   assert.match(preview,/CookieFormField as Field/);
   assert.match(editor,/<CookieFormField label="名称">/);
-  assert.match(editor,/<CookieFormField label="值">/);
-  assert.match(editor,/revealGeneration\.current\+\+/);
+  assert.match(editor,/<CookieValueField inputRef=\{valueRef\}/);
+  assert.match(editor,/readGeneration\.current\+\+/);
   assert.match(editor,/originalValueRef\.current=null/);
   assert.match(editor,/clearValue/);
   assert.match(editor,/discardConfirm/);
@@ -99,4 +99,47 @@ test('formal native package unchanged until candidate passes all gates',async()=
   assert.equal(official.version,'2.0.23');
   assert.match(vite,/'@opendesk\/ui':'OpenDeskSidebarUI'/);
   assert.match(vite,/react:'OpenDeskPageReact'/);
+});
+
+test('R5.15 Cookie fields never impersonate a username/password form',async()=>{
+  const [preview,editor,view,barrel]=await Promise.all([
+    get('preview/react/src/App.jsx'),get('app/components/CookieInlineEditor.jsx'),
+    get('app/components/CookieEditorView.jsx'),get('ui/CookieEditorView.jsx')]);
+  assert.match(view,/export function CookieValueField/);
+  assert.match(preview,/<CookieValueField/);
+  assert.match(editor,/<CookieValueField/);
+  assert.match(barrel,/CookieValueField/);
+  assert.match(view,/id="opendesk-cookie-attribute-data"/);
+  assert.match(view,/name="opendesk-cookie-attribute-data"/);
+  assert.match(view,/type="text" autoComplete="off"/);
+  assert.match(editor,/autoComplete="off" className="cookie-inline-editor/);
+  for(const source of [preview,editor,view]){
+    assert.doesNotMatch(source,/type=["']password["']/);
+    assert.doesNotMatch(source,/cookie-value-toggle|<CookieIcon name=\{showValue/);
+  }
+  assert.match(editor,/inputRevision\.current\+\+/);
+  assert.match(editor,/valueEditedRef\.current/);
+  assert.match(editor,/originalValueRef\.current=null/);
+  assert.match(editor,/valueEdited:!edited\|\|valueEdited/);
+});
+
+test('R5.15 clear Dialog is shared and is a real native modal',async()=>{
+  const [dialog,official,preview,controller,adapter]=await Promise.all([
+    get('app/components/CookieClearDialog.jsx'),
+    get('app/CookieEditorApp.jsx'),get('preview/react/src/App.jsx'),
+    get('app/controller/cookie-controller.js'),
+    get('app/adapters/browser-sdk.js')]);
+  assert.match(dialog,/<dialog /);
+  assert.match(dialog,/\.showModal\(\)/);
+  assert.match(dialog,/\.focus\(\)/);
+  assert.match(dialog,/onCancel=/);
+  assert.match(preview,/<CookieClearDialog /);
+  assert.match(official,/<CookieClearDialog/);
+  assert.doesNotMatch(preview,/className="clear-confirm"/);
+  assert.doesNotMatch(official,/className="cookie-confirm/);
+  assert.match(official,/controller\.previewClear\(\)/);
+  assert.match(official,/controller\.executeClear\(\)/);
+  assert.match(official,/if\(dirty\)/);
+  assert.match(controller,/previewRef/);
+  assert.match(adapter,/maxCookies:50/);
 });
