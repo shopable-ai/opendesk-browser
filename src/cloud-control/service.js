@@ -1,5 +1,5 @@
 import {canonical,digest,invariant,newId} from '../platform/protocol.js';
-import {validateTaskParams} from '../platform/tasks/contract.js';
+import {validateTaskParams,verifyTaskPackage} from '../platform/tasks/contract.js';
 import {assertRunTaskAuthorization} from '../platform/tasks/service.js';
 import {requireGrant} from '../platform/target/index.js';
 import {decodeValue} from '../platform/page-port/codec.js';
@@ -470,6 +470,58 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     invariant(config?.credential,'E_PAIRING');
     return post(config,'client-revoke',{clientId:request.clientId});
   }
+  // Passive, exact-source program delivery. Only the trusted Side Panel
+  // can request these; this path never admits a Run or authorizes capabilities.
+  async function programConfig(sender){
+    const c=await scoped(sender,tx=>tx.get(KV,CONFIG));
+    invariant(c?.credential&&!c.unpairing,'E_PAIRING');
+    return c;
+  }
+  async function assertProgramPairing(c){
+    const fresh=await read();
+    invariant(fresh?.credential===c.credential&&!fresh.unpairing&&
+      canonical(pairingIdentity(fresh))===canonical(pairingIdentity(c)),
+      'E_CLOUD_REVOKED');
+  }
+  async function cloudProgramInbox(request={},sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      !Object.keys(request).length,'E_SCHEMA');
+    const c=await programConfig(sender);
+    const answer=await post(c,'program-inbox',{});
+    await assertProgramPairing(c);
+    invariant(Array.isArray(answer?.programs)&&answer.programs.length<=16,'E_PROVIDER');
+    return {programs:answer.programs.map(row=>{
+      invariant(typeof row.deliveryId==='string'&&/^[a-f0-9-]{36}$/i.test(row.deliveryId)&&
+        typeof row.taskId==='string'&&typeof row.version==='string'&&
+        /^[a-f0-9]{64}$/.test(row.manifestHash)&&/^[a-f0-9]{64}$/.test(row.sourceHash)&&
+        typeof row.title==='string'&&row.title.length<=100&&
+        Array.isArray(row.siteOrigins)&&row.siteOrigins.length===1,'E_PROVIDER');
+      return {deliveryId:row.deliveryId,taskId:row.taskId,version:row.version,
+        manifestHash:row.manifestHash,sourceHash:row.sourceHash,
+        title:row.title,siteOrigins:structuredClone(row.siteOrigins)};
+    })};
+  }
+  async function cloudProgramFetch(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===1&&
+      /^[a-f0-9-]{36}$/i.test(request.deliveryId),'E_SCHEMA');
+    const c=await programConfig(sender);
+    const answer=await post(c,'program-fetch',{deliveryId:request.deliveryId});
+    await assertProgramPairing(c);
+    invariant(answer?.deliveryId===request.deliveryId,'E_DELIVERY');
+    const pkg=await verifyTaskPackage(answer.package);
+    return {deliveryId:request.deliveryId,package:pkg};
+  }
+  async function cloudProgramReceived(request,sender){
+    invariant(request&&typeof request==='object'&&!Array.isArray(request)&&
+      Object.keys(request).length===2&&/^[a-f0-9-]{36}$/i.test(request.deliveryId)&&
+      /^[a-f0-9]{64}$/.test(request.manifestHash),'E_SCHEMA');
+    const c=await programConfig(sender);
+    const answer=await post(c,'program-received',request);
+    await assertProgramPairing(c);
+    invariant(answer?.received===true&&answer.deliveryId===request.deliveryId,'E_DELIVERY');
+    return {received:true};
+  }
   async function cloudNext(_,sender){if(nextPromise)return null;nextPromise=next(sender);try{return await nextPromise;}finally{nextPromise=null;}}
   async function pendingRequest(sender,host,configSnapshot,{isCurrent=()=>true}={}){
     return scoped(sender,async(tx,currentHost)=>{
@@ -625,7 +677,7 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
       });
     }
   }
-  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
+  return {cloudStatus,cloudObserve,cloudPair,cloudApprove,cloudRevokeResults,cloudStop,cloudUnpair,cloudClients,cloudClientGrant,cloudClientRevoke,cloudProgramInbox,cloudProgramFetch,cloudProgramReceived,cloudNext,cloudResolve,bind,permit,assertActive,read,post,reconcile,invalidate,retryRevocation,adoptPairing,
     captureAuthentication(){const epoch=connectionEpoch;return ()=>epoch===connectionEpoch;},
     attachConnection({start,stop}){wake=start;close=stop;},connection(state){if(state!=='authenticated')connectionEpoch++;connectionState=state;online=state==='authenticated';if(!online)reconciled=false;},setReconciled(value){reconciled=value;}};
 }
