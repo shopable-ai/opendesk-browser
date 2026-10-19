@@ -157,3 +157,21 @@ test('scene disposal retires mock observation and releases pending reads',async(
  await new Promise(resolve=>setImmediate(resolve));loading.close();await pending;
  assert.equal(loading.controller.snapshot().rows.length,0);
 });
+
+
+test('import modal reuses real Controller, never inserts a review panel or edits a domain',async()=>{
+ const [component,app,css]=await Promise.all([
+  read('../../app/components/CookieImport.jsx'),
+  read('../../app/CookieEditorApp.jsx'),
+  read('../../src/react.css')
+ ]);
+ assert.match(component,/<dialog\b/);
+ assert.match(component,/dialog\.showModal\(\)/);
+ assert.match(component,/onImportText/);
+ assert.match(app,/controller\.previewImport\(text,'auto',true\)/);
+ assert.match(app,/controller\.executeImport\(text,'auto',true\)/);
+ assert.match(app,/cookie-import-toast/);
+ assert.match(css,/\.cookie-import-dialog::backdrop/);
+ for(const legacy of ['cookie-import-summary','cookie-import-overwrite','导入预检结果','新增 {plan.created}'])
+  assert.equal(component.includes(legacy),false);
+});
