@@ -1,4 +1,4 @@
-import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH} from './tool-document-url.js';
+import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from './tool-document-url.js';
 export const PROTOCOL = 'opendesk.environment.v1';
 export const HEALTH_FILE = 'agents/health.js';
 export const SELECTION_FILE = 'agents/selection-entry.js';
@@ -23,8 +23,9 @@ export function isToolSender(api, sender) {
   // otherwise accept only the packaged top-level extension document.
   const topLevel = sender?.tab ? sender.frameId === 0 : sender?.frameId === undefined || sender.frameId === 0;
   const route=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
-  return sender?.id === api.runtime.id && Boolean(route) &&
-    (!route.hasLocator||Number.isSafeInteger(sender.tab?.id)&&sender.tab.id>=0) &&
+  const offscreen=sender?.url===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH)&&!sender?.tab;
+  return sender?.id === api.runtime.id && (Boolean(route)||offscreen) &&
+    (offscreen||!route.hasLocator||Number.isSafeInteger(sender.tab?.id)&&sender.tab.id>=0) &&
     typeof sender.documentId === 'string' && sender.documentId.length > 0 &&
     topLevel && (!sender.documentLifecycle || sender.documentLifecycle === 'active') && !sender.tab?.incognito;
 }
@@ -32,6 +33,15 @@ export function isToolSender(api, sender) {
 // a unique native context for this packaged host instance, never from payload.
 export async function resolveToolSender(api, sender) {
   if (isToolSender(api, sender)) return sender;
+  // Only native OFFSCREEN_DOCUMENT context may fill an absent sender documentId.
+  if(sender?.id===api.runtime.id&&sender.url===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH)&&
+    !sender.tab&&!sender.documentId&&(sender.frameId===undefined||sender.frameId===0)){
+    const contexts=await api.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT'],documentUrls:[sender.url]});
+    if(contexts.length!==1||contexts[0].contextType!=='OFFSCREEN_DOCUMENT'||
+      contexts[0].frameId!==0||contexts[0].incognito||!contexts[0].documentId)
+      throw new EnvironmentError('E_OWNER','Cloud runner native document is missing or ambiguous');
+    return Object.freeze({...sender,documentId:contexts[0].documentId,frameId:0});
+  }
   const route=toolDocumentIdentity(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender?.url);
   if (sender?.documentId || sender?.id !== api.runtime.id || sender.tab ||
       sender.frameId !== undefined && sender.frameId !== 0 ||

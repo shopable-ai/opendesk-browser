@@ -1,6 +1,8 @@
 // Pure identity/locator parsing shared by trusted navigation and host admission.
 // A locator selects existing UI; it never approves installation, a Task or a run.
 export const SIDEPANEL_DOCUMENT_PATH='sidepanel.html';
+// Fixed trusted offscreen-only DOM Host (not a second Controller engine).
+export const CLOUD_RUNNER_DOCUMENT_PATH='cloud-control/runner.html';
 export const SIDEPANEL_DOCUMENT_PATHNAME='/'+SIDEPANEL_DOCUMENT_PATH;
 const TOOL_ID=/^[a-z][a-z0-9-]{1,39}$/;
 const PREVIEW_ID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;

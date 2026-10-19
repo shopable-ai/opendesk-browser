@@ -17,6 +17,8 @@ export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "notifications",
   "unlimitedStorage",
   "alarms",
+  // Trusted hidden document reuses the original Controller after Side Panel closes.
+  "offscreen",
   // Chrome forbids "proxy" as an optional permission. The fixed, audited AI
   // Access service is the only product allowed to manage it after a real click.
   "proxy",

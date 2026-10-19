@@ -111,3 +111,19 @@ test('React Cloud header has one gesture path, read-only refresh and no action a
   assert.equal(calls.length,finished,'a stale React callback cannot operate after pagehide');
   assert.equal(opened.length,1);
 });
+
+test('native offscreen Host prevents Side Panel competing claims while keeping management visible',async()=>{
+  const {document,reactUI}=surface(),calls=[];
+  const status={provider:{providerId:'trusted'},enabled:true,online:true,reconciled:true,
+    connection:'authenticated',hostReady:true,slotAvailable:true,tasks:[],requestTotal:0,requests:[]};
+  const api={runtime:{getURL:p=>'chrome-extension://trusted/'+p,
+    getContexts:async args=>{assert.deepEqual(args,{contextTypes:['OFFSCREEN_DOCUMENT'],
+      documentUrls:['chrome-extension://trusted/cloud-control/runner.html']});
+      return [{contextType:'OFFSCREEN_DOCUMENT',documentId:'original-runner'}];}}};
+  const client={cloud:{cloudStatus:async()=>status,
+    cloudNext:async()=>{calls.push('claim');throw Error('Second Cloud dispatcher must not claim');}}};
+  const control=createCloudHosting({api,client,host:{executionPending:false},document,reactUI});
+  await flush();await flush();await flush();
+  assert.deepEqual(calls,[]);
+  control.dispose();
+});

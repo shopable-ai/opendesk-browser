@@ -17,6 +17,7 @@ const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
   ['src/ui/'+SIDEPANEL_DOCUMENT_PATH]:SIDEPANEL_DOCUMENT_PATH,
   'src/ui/cloud-control.html':'ui/cloud-control.html',
+  'src/cloud-control/runner.html':'cloud-control/runner.html',
   'src/ui/cloud-control-console.css':'ui/cloud-control-console.css',
   'src/marketplace/marketplace.html':'ui/marketplace.html',
   'src/marketplace/marketplace.css':'ui/marketplace.css',

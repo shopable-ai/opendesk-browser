@@ -16,7 +16,7 @@
 
 ## 用户场景与安装
 
-当前工具源码版本为 **1.0.3**；正式安装包仍须经过候选构建、受影响测试和显式晋升才能算正式交付。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「工具 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
+当前工具源码配置版本为 **1.0.4**；正式安装包仍须经过候选构建、受影响测试和显式晋升才能算正式交付。用户只需安装包含预编译 Stay Focus 后台能力的 OpenDesk Browser 扩展，从「工具 → 发现」安装并打开，不需要 Node 或项目源码。缺少该可信运行能力的扩展会提示升级，不再假称可以使用。首次打开时原生授权区位于主要内容上方；工具内“前往设置停用限制”仅引导可信操作，不会直接请求沙箱停用。停用工具后重新启用，仍需通过可信控制区启动限制。
 
 
 1. 构建或使用包含此发行条目的 OpenDesk Chrome 扩展。在 Side Panel →「工具」→「发现 / 官方工具」，选择 **Stay Focus · 保持专注**，审阅能力和安装来源，安装后点击「打开」。
@@ -50,6 +50,14 @@
 - DNR 不能拦截已经返回并渲染的旧网页本身；Host 会在新限制触发时尝试将它导航至固定页。Chrome 内部页、特殊 Service Worker/cache/navigation 与 SPA 无网络行为存在原生局限；必须用真实浏览器验证后再写产品级 PASS。
 - 用户可以关闭/卸载 OpenDesk 扩展，系统不会继续强制封锁；本工具不是不可绕过的企业级管控。
 
+## R5.1 · 真实源码交互预览（非原生 Chrome 验收）
+
+- 预览入口：[`preview/index.html`](preview/index.html)。这是已提交的独立 HTML，包含当前 `src/index.html`、`src/style.css`、`src/main.js` 的原始字节和只在预览内使用的隔离 Host 适配器。
+- 生成：`node examples/sidebar-tools/stay-focus/preview/build.mjs`。
+- 同源检查：`node examples/sidebar-tools/stay-focus/preview/build.mjs --check`。若正式源码变化，必须重新生成预览并提交，不得长期维护第二套可安装 UI。
+- 本地在 Mac 直接打开：`open examples/sidebar-tools/stay-focus/preview/index.html`。支持 320/360/400/440px、明暗外观、模拟授权和额度/网站/升级/撤权等操作。
+- **预览适配器不进入可安装 JSON，也不执行真实 Chrome DNR/Alarm/idle。** 安装、跨重启计时、双 JSON 升级、权限撤销、跨应用隔离和卸载仍必须独立获取原生证据；不能把预览状态当作通过证明。
+
 ## 本地构建与定向验证
 
 在仓库根目录运行：
@@ -63,7 +71,7 @@ npm run build:dev
 npm run verify
 ```
 
-独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.3/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
+独立发行应出现在 `artifacts/sidebar-tools/stay-focus/1.0.4/stay-focus.opendesk-tool.json`；Chrome 扩展官方离线副本位于 `dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json`。
 
 **原生验收不是单元测试**：在 Mac Chrome for Testing 里加载正式 `dist/production`，通过 Side Panel 的实际安装界面授权；用真实 HTTP(S) 服务和 `chrome.declarativeNetRequest.getDynamicRules()` 检查 730000–730199、真实导航至 `chrome-extension://…/stay-focus/blocked-quota.html`，再测试断开 SW、整个 Chrome 重启、撤权、停用、卸载后 `getDynamicRules` 返回空并可重新访问。完成时应保存浏览器/包 SHA、日志、截图和原始规则证据。
 
