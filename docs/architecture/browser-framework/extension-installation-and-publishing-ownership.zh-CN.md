@@ -32,7 +32,7 @@
 
 | 类型 / 用户看到的位置 | 当前可导入/冻结的格式 | 关键内容与执行世界 | 当前权威 |
 | --- | --- | --- | --- |
-| Sidebar App / 「扩展 · 应用」 | 项目正式文件 **<id>.opendesk-tool.json**；format = **opendesk.sidebar-tool.v1** 或 **opendesk.sidebar-tool.v2** | id、version、title、description、capabilities、html/css/js；可选 uiRuntime、backgroundPolicy；v2 有 requires、contributes、可选 scripts。打开时在 opaque-origin iframe 运行，通过获准 SDK/Host 调用能力 | src/ui/sidebar-tools/package.js、installation.js，SIDEBAR_TOOL_STORE |
+| Sidebar App / 「扩展 · 应用」 | 项目正式文件 **（工具 ID）.opendesk-tool.json**；format = **opendesk.sidebar-tool.v1** 或 **opendesk.sidebar-tool.v2** | id、version、title、description、capabilities、html/css/js；可选 uiRuntime、backgroundPolicy；v2 有 requires、contributes、可选 scripts。打开时在 opaque-origin iframe 运行，通过获准 SDK/Host 调用能力 | src/ui/sidebar-tools/package.js、installation.js，SIDEBAR_TOOL_STORE |
 | Page Program / 「扩展 · 网页增强」 | **.opendesk-page.json**；format = **opendesk.page-install.v1** | programId、version、title、revision、entryFormat、sourceUtf8、sourceHash、pageRules、packageHash（共十个且不允许额外字段）；在经授权的网站 USER_SCRIPT 世界按安装规则自动执行 | src/scripting/user-scripts/page-install-package.js、installed-programs.js，Installed Page Authority |
 | Controller Task / 「我的」 | format = **opendesk.task-package.v1**，内含 **opendesk.task.v1** manifest | taskId、version、siteOrigins、permissions、paramsSchema、固定程序 sourceHash 等；只由用户 Run 或独立批准的计划触发，使用 Controller Worker/RunHost | src/platform/tasks/contract.js，Task Authority |
 
