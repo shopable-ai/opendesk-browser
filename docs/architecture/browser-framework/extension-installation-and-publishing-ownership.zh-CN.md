@@ -118,6 +118,16 @@ Page 离线安装包的十个键来自 page-install-package.js：
 
 没有真实发布服务与经过审核的来源信任根时，第三阶段记录 **BLOCKED / ONLINE_PUBLISH_NOT_IMPLEMENTED**；不要自行捏造 API、登录、签名密钥或把前端演示按钮写成“已上架”。
 
+### 6.1 离线发行预检命令（SOURCE_WIRED；不代表线上发布）
+
+在任一种正式安装包构建、原 Schema 验证及冻结之后，可复用唯一离线预检：
+
+    node scripts/prepare-extension-release.mjs --package <已冻结的安装包.json> --metadata <发行资料.json> --out <预检结果.json>
+
+发行资料文件必须独立于可执行包，使用 schema = `opendesk.release-preflight-input.v1`，并提供 `publisherName`、`license`、`summary`、`releaseNotes`、`sourceDisclosure: "package-includes-executable-source"` 和 `screenshots` 数组（可为空；非空项需包含 `relativePath` 与 `sha256`，指向发行资料目录下的真实 PNG）。发行资料只能表达作者声明，不能代替验证作者所有权。
+
+此命令直接调用三种原安装包校验器（Sidebar / Page / Task），不重写既有字段；核对精确文件 SHA-256、原包字节大小、发行描述和截图完整性；使用**另一个输出文件**记录 `OFFLINE_PACKAGE_VALIDATED` 和 `ONLINE_PUBLISH_NOT_IMPLEMENTED`。作者身份核验、源码安全审查、上传/审核服务及**上传授权**仍是明确未满足项。它不会更新 Installed Authority、启动代码、请求 Chrome 权限、联网或上架。结果文件不是市场准入凭证。脚本及测试以最新 main 的真实源码与测试结果为准，不用 CLI 返回值冒充真实 Chrome 或市场发布证据。
+
 ## 7. 需要修复的结构性缺口与验收证据
 
 - **P0：安装版资源所有权**：Provider 断开和原项目不可用时继续执行固定版本 A；改变开发源码 B 不改变安装版本；对 Candidate/依赖材料清理采取引用保护或无损迁移，禁止直接删库。以真实 Chrome A→B、新文档、重启及卸载逐项证明。
