@@ -1,0 +1,9 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "node": [
+    "tests/environment/browser-sdk-contract-compat.test.mjs",
+    "tests/environment/browser-sdk-r8-cookies.test.mjs",
+    "tests/environment/browser-sdk-r13.test.mjs"
+  ]
+}

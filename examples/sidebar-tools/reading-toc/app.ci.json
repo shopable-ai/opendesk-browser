@@ -1,0 +1,22 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "page",
+  "host": "production",
+  "node": [
+    "tests/environment/reading-toc-ai-r18.test.mjs",
+    "tests/environment/reading-toc-placement-r42.test.mjs",
+    "tests/environment/reading-toc-r41.test.mjs",
+    "tests/environment/reading-toc-recovery-r48.test.mjs",
+    "tests/environment/reading-toc-localization-preview-r12.test.mjs",
+    "tests/environment/reading-toc-auth-r41.test.mjs",
+    "tests/environment/reading-toc-lifecycle-r41.test.mjs"
+  ],
+  "browser": [
+    "tests/framework/reading-toc-preview-r14-native.test.mjs"
+  ],
+  "native": {
+    "tests": [
+      "tests/framework/reading-toc-native-r41.test.mjs"
+    ]
+  }
+}

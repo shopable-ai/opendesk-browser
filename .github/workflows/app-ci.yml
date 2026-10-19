@@ -1,0 +1,189 @@
+name: OpenDesk App CI (discovered projects, shared gates)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/app-ci.yml'
+      - 'scripts/app-ci.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/build-official-tools.mjs'
+      - 'scripts/stage-sidebar-tool.mjs'
+      - 'scripts/build-adblock-react.mjs'
+      - 'scripts/verify-adblock-native-release.mjs'
+      - 'scripts/preview/**'
+      - 'scripts/tests/**'
+      - 'examples/sidebar-tools/**'
+      - '!examples/sidebar-tools/**/*.opendesk-tool.json'
+      - 'tests/environment/**'
+      - 'tests/framework/**'
+      - 'src/sidebar-tools/**'
+      - 'src/ui/sidebar-tools/**'
+      - 'src/ui/react/**'
+      - 'src/platform/**'
+      - 'src/entrypoints/sidebar-tool-host.js'
+      - 'src/sw.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/tool-shell.css'
+      - 'manifest.json'
+      - 'official-tools/**'
+      - 'wxt.config.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: 'App directory names, comma-separated; all to audit every project'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-ci-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      apps: ${{ steps.plan.outputs.apps }}
+      native: ${{ steps.plan.outputs.native }}
+      has_apps: ${{ steps.plan.outputs.has_apps }}
+      has_native: ${{ steps.plan.outputs.has_native }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned builder and profile dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Select only changed Apps; fail if a required risk profile is absent
+        id: plan
+        env:
+          APP_CI_BASE: ${{ github.event.before }}
+          APP_CI_SELECTED: ${{ inputs.apps }}
+        run: node scripts/app-ci.mjs plan
+
+  ci-contract:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: New ordinary App fixture, automatic selection and fail-closed DNR gate
+        run: node --test tests/environment/app-ci.test.mjs
+
+  app-validate:
+    needs: discover
+    if: needs.discover.outputs.has_apps == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.discover.outputs.apps) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore pinned dependencies without install hooks
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Read validated App test profile; cannot grant Host permissions
+        id: profile
+        run: node scripts/app-ci.mjs inspect "${{ matrix.app }}"
+      - name: Compile App and build a source-identical, unpromoted candidate
+        run: node scripts/app-ci.mjs build "${{ matrix.app }}"
+      - name: Existing shared install/update/disable/uninstall and App-owned tests
+        run: node scripts/app-ci.mjs node "${{ matrix.app }}"
+      - uses: browser-actions/setup-chrome@v2
+        if: steps.profile.outputs.chrome == 'true'
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Chromium UI and page behavior; not native Chrome DNR approval
+        if: steps.profile.outputs.chrome == 'true'
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: xvfb-run -a node scripts/app-ci.mjs browser "${{ matrix.app }}"
+      - name: Retain candidate, tested bytes, Chrome evidence and required host inputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendesk-app-${{ matrix.app }}-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/app-ci/${{ matrix.app }}/
+            artifacts/sidebar-tools/${{ matrix.app }}/
+            examples/sidebar-tools/${{ matrix.app }}/dist/
+            examples/sidebar-tools/${{ matrix.app }}/src/main.js
+            examples/sidebar-tools/${{ matrix.app }}/src/style.css
+            dist/production/
+            dist/development/
+
+  native-macos-chrome:
+    needs: [discover, app-validate]
+    if: always() && needs.discover.result == 'success' && needs.discover.outputs.has_native == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.discover.outputs.native) }}
+    runs-on: macos-15
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download exact Linux-tested App candidate and Chrome host build
+        uses: actions/download-artifact@v4
+        with:
+          name: opendesk-app-${{ matrix.app }}-${{ github.sha }}
+          path: .
+      - name: Restore pinned dependencies for authentic native tests
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Actual macOS Chrome installed extension, DNR/page lifecycle and receipt verification
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/app-ci.mjs native "${{ matrix.app }}"
+      - name: Preserve native evidence, including blocked or failed receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opendesk-app-native-${{ matrix.app }}-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/app-ci/${{ matrix.app }}/
+            artifacts/adblock-r12-native/
+            artifacts/reading-toc-r41/
+            artifacts/reading-toc-r181/

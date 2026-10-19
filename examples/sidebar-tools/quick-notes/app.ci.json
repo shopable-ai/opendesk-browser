@@ -1,0 +1,8 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "node": [
+    "tests/environment/sidebar-quick-notes.test.mjs",
+    "tests/environment/sidebar-product-contract.test.mjs"
+  ]
+}

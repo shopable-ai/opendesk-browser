@@ -1,0 +1,143 @@
+name: OpenDesk App release (manual, immutable, gated)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App project directory, not an arbitrary file path'
+        required: true
+        type: string
+      validated_run_id:
+        description: 'Successful run ID from OpenDesk App CI on main'
+        required: true
+        type: string
+      candidate_sha256:
+        description: 'Exact SHA256 from validated candidate receipt'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opendesk-app-release-main
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: app-release
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Accept only successful independent App CI from the current main
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP: ${{ inputs.app }}
+          RUN_ID: ${{ inputs.validated_run_id }}
+          EXPECTED_SHA: ${{ inputs.candidate_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$APP" =~ ^[a-z0-9][a-z0-9-]{0,63}$ ]] || exit 1
+          [[ "$RUN_ID" =~ ^[1-9][0-9]*$ ]] || exit 1
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{64}$ ]] || exit 1
+          test -f "examples/sidebar-tools/$APP/tool.config.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > "$RUNNER_TEMP/validated-run.json"
+          RUN_RECORD="$RUNNER_TEMP/validated-run.json" node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const r=JSON.parse(readFileSync(process.env.RUN_RECORD));
+          assert.equal(r.conclusion,'success','all required Linux, Chromium and native checks must pass');
+          assert.equal(r.head_branch,'main');
+          assert.ok(r.path?.startsWith('.github/workflows/app-ci.yml'),
+            'the validated run must belong to the generic App CI');
+          assert.equal(r.repository.full_name,process.env.GITHUB_REPOSITORY);
+          assert.match(r.head_sha,/^[a-f0-9]{40}$/,'valid reviewed main commit');
+          console.log('REVIEWED_APP_CI',r.id,r.head_sha,r.conclusion);
+          NODE
+      - name: Fetch candidate and prove package identity; never execute third-party code
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP: ${{ inputs.app }}
+          RUN_ID: ${{ inputs.validated_run_id }}
+          EXPECTED_SHA: ${{ inputs.candidate_sha256 }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          HEAD_SHA="$(git rev-parse HEAD)"
+          test "$HEAD_SHA" = "$(git rev-parse refs/remotes/origin/main)" ||
+            { echo "::error::main advanced before release"; exit 1; }
+          RUN_SHA="$(node -e "const r=require(process.argv[1]);console.log(r.head_sha)" "$RUNNER_TEMP/validated-run.json")"
+          test "$HEAD_SHA" = "$RUN_SHA" || { echo "::error::main changed after CI"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/approved"
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" \
+            -n "opendesk-app-$APP-$HEAD_SHA" -D "$RUNNER_TEMP/approved"
+          CANDIDATE="$RUNNER_TEMP/approved/artifacts/app-ci/$APP/candidate.opendesk-tool.json"
+          RECEIPT="$RUNNER_TEMP/approved/artifacts/app-ci/$APP/candidate-receipt.json"
+          test -s "$CANDIDATE" && test -s "$RECEIPT"
+          ACTUAL_SHA="$(sha256sum "$CANDIDATE" | cut -d ' ' -f1)"
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA" || { echo "::error::candidate SHA mismatch"; exit 1; }
+          APP="$APP" CANDIDATE="$CANDIDATE" RECEIPT="$RECEIPT" HEAD_SHA="$HEAD_SHA" node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync,existsSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const read=p=>JSON.parse(readFileSync(p,'utf8'));
+          const {APP,CANDIDATE,RECEIPT,HEAD_SHA,EXPECTED_SHA}=process.env;
+          const candidateBytes=readFileSync(CANDIDATE),candidate=JSON.parse(candidateBytes);
+          const receipt=read(RECEIPT),meta=read('examples/sidebar-tools/'+APP+'/tool.config.json');
+          const sha=createHash('sha256').update(candidateBytes).digest('hex');
+          assert.equal(sha,EXPECTED_SHA);
+          assert.equal(receipt.schema,'opendesk.app-ci-candidate.v1');
+          assert.equal(receipt.sourceCommit,HEAD_SHA);
+          assert.equal(receipt.project,'examples/sidebar-tools/'+APP);
+          assert.equal(receipt.sha256,sha);
+          assert.equal(receipt.bytes,candidateBytes.length);
+          assert.equal(receipt.id,candidate.id);
+          assert.equal(receipt.version,candidate.version);
+          assert.equal(meta.id,candidate.id);
+          assert.equal(meta.version,candidate.version,
+            'preview-only React candidate cannot be released as a different installed version');
+          assert.deepEqual(meta.capabilities||[],candidate.capabilities||[]);
+          const target='examples/sidebar-tools/'+APP+'/'+candidate.id+'.opendesk-tool.json';
+          if(existsSync(target)){
+            const old=readFileSync(target),previous=JSON.parse(old);
+            assert.equal(previous.id,candidate.id);
+            if(old.equals(candidateBytes)){console.log('SAME_OFFICIAL_PACKAGE');}
+            else {
+              const parse=v=>{const m=/^(\d+)\.(\d+)\.(\d+)$/.exec(v);
+                assert.ok(m,'simple semver required for immutable release');return m.slice(1).map(Number);};
+              const now=parse(candidate.version),prior=parse(previous.version);
+              assert.ok(now.some((n,i)=>n!==prior[i])&&
+                (now[0]>prior[0]||
+                now[0]===prior[0]&&now[1]>prior[1]||
+                now[0]===prior[0]&&now[1]===prior[1]&&now[2]>prior[2]),
+                'a version cannot overwrite different bytes or downgrade');
+            }
+          }
+          console.log('APP_RELEASE_VERIFIED',APP,candidate.version,sha);
+          NODE
+          DEST="examples/sidebar-tools/$APP/$(node -p "require('./examples/sidebar-tools/$APP/tool.config.json').id").opendesk-tool.json"
+          cp "$CANDIDATE" "$DEST"
+          git diff --check -- "$DEST"
+          git add -- "$DEST"
+          if git diff --cached --quiet; then
+            echo "Identical previously published package; nothing to promote"
+            exit 0
+          fi
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$HEAD_SHA" = "$(git rev-parse refs/remotes/origin/main)" ||
+            { echo "::error::main advanced; do not publish stale proof"; exit 1; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "release(app): promote $APP from validated CI candidate"
+          git push origin HEAD:refs/heads/main

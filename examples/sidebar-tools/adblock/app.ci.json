@@ -1,0 +1,39 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "dnr",
+  "build": "node:scripts/build-adblock-react.mjs",
+  "host": "production",
+  "node": [
+    "tests/environment/adblock-r12.test.mjs",
+    "tests/environment/adblock-host-controls-r13.test.mjs",
+    "tests/environment/adblock-preview-contract.test.mjs",
+    "tests/environment/adblock-native-release.test.mjs",
+    "tests/environment/adblock-sandbox-refresh.test.mjs",
+    "tests/environment/adblock-required-dnr-contract.test.mjs",
+    "tests/environment/adblock-page-invalidation-r23.test.mjs",
+    "tests/environment/adblock-timeout-r23.test.mjs",
+    "tests/environment/adblock-legacy-retired-r23.test.mjs",
+    "tests/environment/stay-focus-boundary-r1.test.mjs",
+    "tests/environment/verify-package-react-constructor.test.mjs",
+    "tests/environment/react-dom-input-csp-r3331.test.mjs",
+    "tests/environment/sidebar-preview-shell.test.mjs",
+    "tests/environment/sidebar-preview-contract.test.mjs",
+    "tests/environment/sidebar-preview-kit.test.mjs"
+  ],
+  "browser": [
+    "scripts/tests/adblock-preview-chrome.mjs",
+    "scripts/tests/sidebar-preview-runtime-chrome.mjs",
+    "scripts/tests/bookmark-manager-r26-preview-chrome.mjs"
+  ],
+  "native": {
+    "tests": [
+      "tests/framework/adblock-r12-native.test.mjs"
+    ],
+    "verifier": "scripts/verify-adblock-native-release.mjs",
+    "receipt": "artifacts/adblock-r12-native/native-report.json",
+    "env": {
+      "OPENDESK_ADBLOCK_NATIVE": "1",
+      "OPENDESK_ADBLOCK_NATIVE_EVIDENCE": "artifacts/adblock-r12-native"
+    }
+  }
+}

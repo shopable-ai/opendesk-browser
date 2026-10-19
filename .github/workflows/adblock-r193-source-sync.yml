@@ -124,6 +124,8 @@ jobs:
           if-no-files-found: warn
           path: artifacts/adblock-r193-native/
   promote-verified-sources:
+    # One-shot legacy publisher is frozen during universal App CI migration.
+    if: false
     needs: [source-preview-package, native-macos-chrome]
     runs-on: ubuntu-latest
     timeout-minutes: 15

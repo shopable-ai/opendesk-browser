@@ -168,7 +168,8 @@ jobs:
   # candidate alone is NOT a trusted release and must not modify main.
   publish-official-package:
     needs: [source-and-package, native-macos-chrome]
-    if: github.ref == 'refs/heads/main'
+    # Deprecated write-capable path: generic App CI + manually gated App release own promotion.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

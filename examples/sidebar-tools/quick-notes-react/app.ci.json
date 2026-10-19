@@ -1,0 +1,16 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react",
+  "host": "development",
+  "afterBuild": [
+    "examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs"
+  ],
+  "node": [
+    "tests/environment/sidebar-quick-notes-react-r21.test.mjs",
+    "tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs",
+    "tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs"
+  ],
+  "browser": [
+    "scripts/tests/quick-notes-react-r21-preview-chrome.mjs"
+  ]
+}

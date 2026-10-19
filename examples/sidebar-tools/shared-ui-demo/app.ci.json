@@ -1,0 +1,11 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react",
+  "host": "development",
+  "node": [
+    "tests/environment/sidebar-shared-ui-r17.test.mjs"
+  ],
+  "browser": [
+    "scripts/tests/shared-ui-r17-preview-chrome.mjs"
+  ]
+}
