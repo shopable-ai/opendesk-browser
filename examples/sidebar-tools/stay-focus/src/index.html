@@ -14,7 +14,7 @@
         <label for="daily-budget-minutes">每日额度</label>
         <input id="daily-budget-minutes" type="number" value="30" min="1" max="1440" step="1" inputmode="numeric" required>
         <span class="sf-budget-unit">分钟</span>
-        <button id="daily-budget-save" type="submit" class="sf-primary" hidden>保存</button>
+        <button id="daily-budget-save" type="button" class="sf-primary" hidden>保存</button>
       </form>
       <div id="budget-presets" class="sf-budget-presets" aria-label="快捷设置每日娱乐额度">
         <button type="button" data-budget="15">15</button>
@@ -54,7 +54,7 @@
       </div>
       <label id="site-minutes-row" class="sf-site-minutes" hidden>网站独立额度（分钟）<input id="site-minutes" type="number" min="1" max="1440" value="30"></label>
       <label class="sf-check"><input type="checkbox" id="site-subdomains" checked>包含子域名</label>
-      <div class="sf-actions"><button class="sf-primary" id="site-save" type="submit">添加网站</button><button class="sf-secondary" type="button" id="site-new" hidden>取消编辑</button></div>
+      <div class="sf-actions"><button class="sf-primary" id="site-save" type="button">添加网站</button><button class="sf-secondary" type="button" id="site-new" hidden>取消编辑</button></div>
     </form>
   </details>
 
