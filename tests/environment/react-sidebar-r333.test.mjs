@@ -79,7 +79,7 @@ test('R35.4 Extension Center React owns the list while existing Controller owns 
   // ExtensionCenter Controller -> existing SidebarTools/Page Installer.
   for(const method of ['renderRows','renderToolbar','renderFeedback','renderRecoveries',
     'renderStatus','renderRowMenu','renderView','connectBack'])
-    assert.match(center,new RegExp('extensionList\\\\.'+method+'\\\\('),method);
+    assert.ok(center.includes('extensionList.'+method+'('),method+' keeps Controller authority');
   assert.match(center,/sidebarTools\.toggleEnabled\(row\.id,event\)/);
   assert.match(center,/setInstalledPageProgramEnabled\(/);
   assert.match(center,/retryCleanup\(row,event\)/);
