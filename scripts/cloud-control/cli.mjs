@@ -54,6 +54,15 @@ if(command==='provider'){
     const pkg=await verifyTaskPackage(JSON.parse(await readFile(resolve(file),'utf8')));
     path='register';body={manifest:pkg.manifest,manifestHash:pkg.manifestHash};
   }
+  else if(command==='program:deliver'){
+    // Explicit local operator action: submit immutable JS Task bytes for
+    // review by a specific paired browser, never as an execution command.
+    const file=option('package',null),executor=option('executor',null);
+    if(!file||!executor)throw Error('program:deliver requires --package and --executor');
+    const pkg=await verifyTaskPackage(JSON.parse(await readFile(resolve(file),'utf8')));
+    path='program-deliver';body={requestKey:option('key',randomUUID()),
+      targetExecutorId:executor,package:pkg};
+  }
   else if(command==='tasks'){path='tasks';body={};}
   else if(command==='executors'){path='executors';body={};}
   else if(command==='client:grant'){
