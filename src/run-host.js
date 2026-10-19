@@ -246,20 +246,31 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
   });
   const pagehide = () => dispose();
   doc?.defaultView?.addEventListener('pagehide', pagehide, {once: true});
+  let shutdownPromise;
   function dispose() {
-    if (disposed) return; disposed = true; unsubscribeConnection?.();unsubscribeRuns?.();
+    if (disposed) return shutdownPromise;
+    disposed = true; unsubscribeConnection?.();unsubscribeRuns?.();
+    let pendingStop=null;
     if (active?.controllerRun && active.runId) {
       const local = active;
-      // Closing the actual host destroys its realm. Commit its cancel fence
-      // while the document still exists; SW hostGone performs fallback recovery.
+      // Closing a Host must start its durable cancellation BEFORE the
+      // transport can be released. The owner Worker still reconciles any
+      // operation with unknown native effects after this document disappears.
       local.control?.close?.();
       local.controller.abort(new FoundationError('E_HOST_CLOSED', 'RunHost closed'));
-      controls.stopControllerRun({runId: local.runId, requestId: crypto.randomUUID(), reason: 'E_HOST_CLOSED'})
+      pendingStop=controls.stopControllerRun({runId: local.runId, requestId: crypto.randomUUID(), reason: 'E_HOST_CLOSED'})
         .catch(() => { local.context?.dispose('E_HOST_CLOSED'); local.control?.close(); });
     } else active?.controller.abort(new FoundationError('E_HOST_CLOSED', 'RunHost closed'));
     scraping?.dispose(); doc?.defaultView?.removeEventListener('pagehide', pagehide);
-    if (ownsClient) Promise.all([...admissions]).then(() => lastCompletion).finally(() => client.dispose()).catch(() => client.dispose());
+    // An admission can still be in flight while pagehide fires. The caller
+    // owning an injected Host Client must not dispose its transport until
+    // the original admission, stop fence and completion/retirement settle.
+    const admissionsDone=Promise.allSettled([...admissions]);
+    shutdownPromise=Promise.allSettled([pendingStop,admissionsDone])
+      .then(()=>Promise.allSettled([lastCompletion])).then(()=>undefined);
+    if (ownsClient) void shutdownPromise.then(()=>client.dispose());
     observers.clear();
+    return shutdownPromise;
   }
   return {...services, get module() { return getModule(); }, ready:client.ready,
     handshake:{contractVersion:CONTRACT_VERSION,contractHash:CONTRACT_HASH}, productionRunHostImplemented:true,
