@@ -175,6 +175,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
   const listen=(field,type,fn)=>listeners.push(view.bind(field.key,type,fn));
+  // Only Cookie Editor uses the available Side Panel height. Other tools
+  // preserve their content-based resize policy.
+  const fitCookieFrame=()=>{
+    if(!frame||active?.id!=='cookie-editor'||frameRoot.hidden||disposed)return;
+    const workspace=doc.getElementById('workspace-content');
+    const bottom=workspace?.getBoundingClientRect?.().bottom??globalThis.innerHeight;
+    const top=frame.getBoundingClientRect().top;
+    if(!Number.isFinite(bottom)||!Number.isFinite(top))return;
+    const height=Math.max(260,Math.min(1600,Math.floor(bottom-top-12)));
+    if(frame.style.height!==height+'px')frame.style.height=height+'px';
+  };
+  if(typeof globalThis.addEventListener==='function'){
+    globalThis.addEventListener('resize',fitCookieFrame);
+    listeners.push(()=>globalThis.removeEventListener('resize',fitCookieFrame));
+  }
   const notice=(message,problem=false)=>{
     if(disposed)return;
     patchToolField(view, status, {textContent: message});setToolFieldAttribute(view, status, 'data-state', problem?'error':'info');
@@ -1013,7 +1028,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
         locale:localeController?.getLocale()||'zh-CN'},'*');
     };
-    frameRoot.append(frame);render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+    frameRoot.append(frame);render();fitCookieFrame();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
   }
   function openTool(id,{launchGate=null}={}) {
@@ -1789,6 +1804,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.kind==='resize'){
       // Only live frame, null origin, matching tool ID and session are accepted above.
+      if(active?.id==='cookie-editor'){fitCookieFrame();return;}
       if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000){
         // The Time Review long-form settings / zoomed Canvas can legitimately
         // exceed the general tool limit. Keep one outer workspace scroll,
