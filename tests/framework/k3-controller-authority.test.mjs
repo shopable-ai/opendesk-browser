@@ -1581,6 +1581,22 @@ test('cloudResolve uses a durable direct request key and rejects non-cloud ident
     {op:'get',key:'cloud:request:'+f.requestId});
   await assert.rejects(f.cloud.cloudResolve({requestId:'foreign'},f.sender),code('E_SCHEMA'));
 });
+test('cloudResolve rejects a mismatched fixed source, version or program before RunHost admission',async()=>{
+  for(const [field,value] of [
+    ['contentHash','0'.repeat(64)],
+    ['version','9.9.9'],
+    ['scriptId','task:incorrect.program:1.0.0']
+  ]){
+    const f=await cloudTaskFixture(),priorEffects=f.calls.length;
+    await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const key='cloud:request:'+f.requestId,row=await tx.get('frameworkKV',key);
+      row.task[field]=value;await tx.put('frameworkKV',row,key);
+    });
+    await assert.rejects(f.cloud.cloudResolve({requestId:f.requestId},f.sender),code('E_PERMISSION'),field);
+    assert.equal(f.calls.length,priorEffects,field+' must not create a target or Worker');
+    assert.equal((await f.rows('runs')).filter(r=>r.cloudRequestId===f.requestId).length,0);
+  }
+});
 test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
   const f=await cloudTaskFixture();let called=0;
   t.mock.method(globalThis,'fetch',async(url,options)=>{
