@@ -480,7 +480,7 @@ test('R2.15 content-left rail avoids live navigation and never flips to content-
     f.events.get('resize')();await settle();
     assert.equal(f.host().style.left,'286px','hidden navigation reserves no space');
     aside.hidden=false;nav.hidden=false;
-    f.win.getComputedStyle=node=>({visibility:node===f.main?'visible':'hidden'});
+    f.win.getComputedStyle=node=>({visibility:node===aside||node===nav?'hidden':'visible'});
     f.events.get('resize')();await settle();
     assert.equal(f.host().style.left,'286px','CSS-hidden navigation reserves no space');
   }finally{f.controller.dispose();}
