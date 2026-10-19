@@ -410,7 +410,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     };
     if(targetRect.left>=win.innerWidth||targetRect.top>=win.innerHeight){host.hidden=true;return;}
     // The live editor and measured navigation edge determine the LEFT gutter.
-    const verticalWidth=rail.scrollWidth||52;
+    // Reset from a prior compact route BEFORE measuring vertical width;
+    // scrollWidth from the horizontal rail would otherwise trap desktop layout.
+    rail.classList.toggle('horizontal',false);
+    const verticalWidth=rail.offsetWidth||52;
     const safeLeft=rect.safeLeft??rect.left;
     const left=targetRect.left-verticalWidth-12;
     const vertical=win.innerWidth>=600&&left>=Math.max(8,safeLeft+8)&&
