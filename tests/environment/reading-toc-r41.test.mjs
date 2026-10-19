@@ -236,7 +236,9 @@ test('R4.1 installer entry, constrained content script, and distributable resour
   assert.match(host,/currentPageTarget\.revalidate\(target\)/);
   assert.match(host,/documentId:target\.documentId/);
   assert.match(host,/READING_TOC_SITE_STORE/);
-  assert.match(html,/id="sidebar-tool-official-catalog"/);
+  assert.match(html,/id="extension-center-list"/);
+  assert.match(html,/id="extension-center-import-host"/);
+  assert.match(html,/id="sidebar-tool-settings-deny"/);
   assert.match(resources,/buildOfficialTools/);
   assert.match(verify,/createOfficialToolResources/);
 });

@@ -596,8 +596,13 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
   assert.notEqual(conversation.data.items[5].sourceId,conversation.data.items[6].sourceId);
-  assert.equal(new Set(conversation.data.items.filter(row=>row.label==='重复标题').map(row=>row.id)).size,3,
-    'same heading text in three answers must have independent navigation IDs');
+  const duplicateTitles=conversation.data.items.filter(row=>row.label==='重复标题');
+  assert.equal(duplicateTitles.length,4,'the three assistant answers contain four same-label headings');
+  assert.equal(new Set(duplicateTitles.map(row=>row.id)).size,4,
+    'every same-label heading needs an independent navigation ID, including both in answer one');
+  assert.deepEqual(conversation.data.sources.map(source=>
+    duplicateTitles.filter(row=>row.sourceId===source.id).length),[2,1,1],
+    'duplicate headings remain bound to their original assistant answers');
   // Keep the actual webpage active: its origin controls must not target tool.html.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
