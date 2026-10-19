@@ -16,6 +16,7 @@ const deliveryId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     sourceHash:pkg.manifest.program.sourceHash,siteOrigins:pkg.manifest.siteOrigins};
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 async function fixture(t){
+  let taskStage='candidate';
   const calls=[],actual={origin,url:origin+'/demo-form.html',status:'available',
     tabId:11,windowId:9,frameId:0,documentId:'test-document'};
   let snapshot;
@@ -51,10 +52,10 @@ async function fixture(t){
   },request:async(method,input)=>{
     calls.push([method,input]);
     if(method==='listTaskCatalog')return {catalog:[],installed:[]};
-    if(method==='getTaskCandidate')return {stage:'candidate',manifestHash:pkg.manifestHash,package:pkg};
+    if(method==='getTaskCandidate')return {stage:taskStage,manifestHash:pkg.manifestHash,package:pkg};
     if(method==='importTaskPackage')return {taskId:pkg.manifest.taskId,version:pkg.manifest.version};
     if(method==='verifyTaskCandidate')return {verification:{sourceHash:pkg.manifest.program.sourceHash}};
-    if(method==='makeTaskAvailable')return {stage:'available',manifestHash:pkg.manifestHash};
+    if(method==='makeTaskAvailable'){taskStage='available';return {stage:taskStage,manifestHash:pkg.manifestHash};}
     if(method==='installTask')return {taskId:pkg.manifest.taskId,version:pkg.manifest.version};
     throw Error('Unexpected operation: '+method);
   }};
