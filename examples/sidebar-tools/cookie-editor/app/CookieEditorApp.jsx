@@ -189,11 +189,19 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     modeRef.current=next;
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
+  const beginImportIntent=async()=>{
+    const state=controller.snapshot();
+    if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target)
+      return false;
+    const receipt=await adapter.beginImportIntent(state.target);
+    return receipt?.authorized===true;
+  };
   const importFromText=async text=>{
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
     const initial=controller.snapshot();
     if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
+    try{
     const plan=await controller.previewImport(text,'auto',true);
     // Never report a stale success/error against a newly selected site.
     const currentSite=controller.snapshot();
@@ -221,8 +229,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       setPanel(null);setSelected(null);setDirty(false);setPage(1);
       return true;
     }
-    noteImport('导入结果未完全确认，请先核对 Chrome，勿直接重复提交。');
+    noteImport(controller.snapshot().message||
+      '导入结果未完全确认，请先核对 Chrome，勿直接重复提交。');
     return 'unknown';
+    }finally{
+      void adapter.finishImportIntent().catch(()=>{});
+    }
   };
   const save=async(row,options)=>{
     setWorking(true);
@@ -330,7 +342,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
             onDelete={remove}/>}/>
         {panel==='import'&&<CookieImport disabled={locked}
           notice={importNotice} onImportText={importFromText} onNotice={noteImport}
-          onClose={()=>{controller.discardImport();setPanel(null);}}/>}
+          onBeginImport={beginImportIntent}
+          onClose={()=>{controller.discardImport();void adapter.finishImportIntent().catch(()=>{});setPanel(null);}}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onClose={()=>setPanel(null)}/>}
       </div>}
