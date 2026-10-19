@@ -7,7 +7,7 @@ const MAX_FILE=8*1024*1024;
 // Import is a focused modal, not a second editor or an inline list section.
 // Raw Cookie values live only in a DOM textarea / local async stack, never React state.
 // The Controller performs the existing permission, preflight and verified Host writes.
-export default function CookieImport({disabled=false,onClose,onImportText,onNotice}){
+export default function CookieImport({disabled=false,onClose,onImportText,onNotice,notice}){
   const dialogRef=React.useRef(null);
   const triggerRef=React.useRef(null);
   const fileRef=React.useRef(null);
@@ -16,6 +16,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
   const running=React.useRef(false);
   const headingId=React.useId();
   const [busy,setBusy]=React.useState(false);
+  const [uncertain,setUncertain]=React.useState(false);
   const [dragging,setDragging]=React.useState(false);
   React.useLayoutEffect(()=>{
     active.current=true;
@@ -35,7 +36,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
     if(!running.current&&!disabled)onClose?.();
   };
   const importText=async text=>{
-    if(running.current||disabled)return;
+    if(running.current||disabled||uncertain)return;
     if(!text?.trim()){
       onNotice?.('请先选择文件或粘贴 Cookie 内容。','error');
       return;
@@ -43,6 +44,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
     running.current=true;setBusy(true);
     try{
       const imported=await onImportText?.(text);
+      if(imported==='unknown')setUncertain(true);
       if(imported===true){
         if(sourceRef.current)sourceRef.current.value='';
         onClose?.({committed:true});
@@ -55,7 +57,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
     }
   };
   const importFile=async file=>{
-    if(!file||running.current||disabled)return;
+    if(!file||running.current||disabled||uncertain)return;
     if(file.size>MAX_FILE){
       onNotice?.('文件超过 8 MiB，请分批导入。','error');
       if(fileRef.current)fileRef.current.value='';
@@ -84,9 +86,9 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
       </header>
       <input ref={fileRef} type="file" hidden
         accept=".json,.txt,.cookies,text/plain,application/json"
-        disabled={disabled||busy}
+        disabled={disabled||busy||uncertain}
         onChange={event=>{void importFile(event.currentTarget.files?.[0]);}}/>
-      <CookieImportDropzone dragging={dragging} disabled={disabled||busy}
+      <CookieImportDropzone dragging={dragging} disabled={disabled||busy||uncertain}
         maxSize="8 MiB" onPick={()=>fileRef.current?.click()}
         onDragEnter={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragOver={event=>{event.preventDefault();if(!busy)setDragging(true);}}
@@ -103,16 +105,20 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
           className="od-field" rows={5} aria-label="粘贴 Cookie 内容"
           placeholder="JSON、Cookie Header 或 Netscape"
           autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
-          disabled={disabled||busy}/>
+          disabled={disabled||busy||uncertain}/>
       </label>
       <div className="cookie-import-actions">
         <Button type="button" variant="secondary" disabled={busy}
           onClick={close}>取消</Button>
-        <Button type="button" variant="primary" disabled={disabled||busy}
+        <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
           onClick={()=>void importText(sourceRef.current?.value||'')}>
           {busy?'导入中…':'导入'}
         </Button>
       </div>
+      {notice&&<div role={notice.kind==='error'?'alert':'status'}
+        className={'cookie-import-toast'+(notice.kind==='error'?' cookie-import-toast--error':'')}>
+        {notice.text}
+      </div>}
     </div>
   </dialog>;
 }
