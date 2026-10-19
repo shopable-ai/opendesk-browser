@@ -100,7 +100,7 @@
     en:[['P','Polish','Polish this text while preserving its meaning.'],['T','Translate','Translate this text while preserving structure and terms.'],['S','Summarize','Summarize this text into three key points.'],['W','Write','Draft a clear, natural paragraph from this idea.']],
     ja:[['推','推敲','意味を保ったまま自然な文章に推敲してください。'],['訳','翻訳','専門用語と形式を維持して翻訳してください。'],['要','要約','要点を三つに要約してください。'],['書','執筆','このアイデアから自然で明快な文章を書いてください。']]
   };
-  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closeRail:false,closedRail:new Set(),closedCards:new Set(),closedWeb:new Set(),closedTip:new Set(),pop:''};
+  const state = {group:'B',id:'B01',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4,boundaries:true,active:true,preset:'brand',extra:null,formMode:'new',closedRail:new Set(),closedCards:new Set(),closedWeb:new Set(),closedTip:new Set(),pop:''};
   const T = key => (words[old.state.lang] || words.zh)[key] || key;
   const idx = () => Math.max(0, LANGS.indexOf(old.state.lang));
   const name = id => positions[id].names[idx()];
@@ -174,6 +174,9 @@
   const site=document.querySelector('.sim-site'),siteBody=$('siteBody');
   const compose=document.querySelector('.sim-site > .site-compose');
   const page=make('section','r28-page');page.id='r28Page';
+  let composingDraft=false;
+  $('draft').addEventListener('compositionstart',()=>{composingDraft=true;});
+  $('draft').addEventListener('compositionend',()=>{composingDraft=false;if(page.dataset.r28Scene!==state.scene)createWeb();});
   siteBody.append(page);
   const rail=$('rail'),originalShortcut=$('shortcut');
   const brand=make('button','r28-mark','OD');brand.id='r28Brand';brand.type='button';
@@ -195,7 +198,7 @@
   rail.append(railAd);
   const railClose=make('button','r29-rail-close','×');railClose.type='button';
   railClose.setAttribute('aria-label',T('dismiss')+' · '+T('partner'));
-  railClose.addEventListener('click',()=>{state.closeRail=true;state.closedRail.add(state.id);hidePop(true);sync();$('r28Restore').focus();});
+  railClose.addEventListener('click',()=>{state.closedRail.add(state.id);hidePop(true);sync();$('r28Restore').focus({preventScroll:true});});
   rail.append(railClose);
   const pop=make('div','r28-rail-pop');pop.id='r28Pop';pop.hidden=true;pop.setAttribute('role','status');
   rail.append(pop);
@@ -253,7 +256,7 @@
     const unit=make(asButton?'button':'span','r28-demo-ad');
     if(asButton){unit.type='button';unit.addEventListener('click',()=>openDialog(unsold?'sponsor':index===-1?'brand':'sponsor'));}
     const layout=layoutOverride||state.layout;
-    unit.dataset.layout=['icon','text','vertical','mini','brand-logo','brand-hover','brand-attribution','icon-text','hover-card','expand-card','event','directory','affiliate'].includes(layout)?layout:'landscape';
+    unit.dataset.layout=layout;
     if(unsold)unit.dataset.unsold='true';
     const firstParty=layout==='self'||layout.startsWith('brand-');
     const icon=make('span','r28-ad-icon',unsold?'+':firstParty?'OD':layout==='event'?'EV':layout==='directory'?'DX':layout==='affiliate'?'↗':'FN');
@@ -269,7 +272,7 @@
   }
   function renderInventory(){
     for(const id of ['S01','S02','S04','S05','S06','S07','S08','S03']){slots[id].replaceChildren();delete slots[id].dataset.r28Current;}
-    if(!state.active||!old.state.enabled)return;
+    if(!state.active||!old.state.enabled||state.group!=='S')return;
     const view=old.state.view;
     const formTitle=$('editView').querySelector('h2');
     formTitle.textContent=state.formMode==='new'?(['新建提示词','New prompt','新規プロンプト'][idx()]):(['编辑提示词','Edit prompt','プロンプトを編集'][idx()]);
@@ -280,8 +283,7 @@
       const holder=state.id==='S01'?slots.S01:state.id==='S08'?slots.S08:slots.S02;
       if(showCards) {
         const row=make('div','r28-card-row');row.append(make('strong','',T('sold')+' '+state.sold+'/3'));
-        const close=make('button','',T('dismiss'));close.type='button';close.addEventListener('click',()=>{for(let i=0;i<3;i++)state.closedCards.add(state.id+':'+i);sync();$('r28Restore').focus();});
-        row.append(close);holder.append(row);
+        holder.append(row);
         const list=make('div','r28-inventory');list.dataset.layout=state.layout==='mini'?'mini':state.layout==='hero'?'hero':'standard';
         const max=['S01','S08'].includes(state.id)?1:3;
         for(let i=0;i<max;i++){
@@ -348,6 +350,7 @@
     site.dataset.r28Legacy='false';page.hidden=false;
     // Avoid tearing down a focused IME textarea and live chat scroll during ad redraws.
     const sceneChanged=page.dataset.r28Scene!==state.scene||!page.contains(compose);
+    if(composingDraft&&sceneChanged)return;
     if(sceneChanged){
       page.replaceChildren();
       page.append(make('span','r28-mock-meta',T('mockSite')));
@@ -467,10 +470,13 @@
     old.state.format='logo';old.state.placement='A1';
     old.state.tipOpen=['B06','B07','B08'].includes(id);
     // Selecting a location must NEVER fabricate a sold sponsor. Zero sold stays zero.
-    old.render();$('r28Announcement').textContent=id+' · '+name(id)+(state.group==='N'||state.group==='C'?' · '+T('riskHint'):'');
+    old.render();
+    if(id==='B02')showPop('brand');
+    if(id==='B04')showPop('sponsor');
+    $('r28Announcement').textContent=id+' · '+name(id)+(state.group==='N'||state.group==='C'?' · '+T('riskHint'):'');
   };
   function preset(key) {
-    state.preset=key;state.active=true;state.extra=null;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;old.state.enabled=true;old.state.long=false;
+    state.preset=key;state.active=true;state.extra=null;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();old.state.enabled=true;old.state.long=false;
     if(key==='brand')Object.assign(state,{id:'B01',group:'B',scene:'new',mode:'user',sold:0,layout:'landscape',prompts:4});
     if(key==='sponsor')Object.assign(state,{id:'B03',group:'B',scene:'new',mode:'user',sold:1,layout:'icon',prompts:4});
     if(key==='hover')Object.assign(state,{id:'B07',group:'B',scene:'short',mode:'user',sold:1,layout:'landscape',prompts:4});
@@ -572,11 +578,11 @@
   }
   $('r28Bounds').addEventListener('change',e=>{state.boundaries=e.target.checked;sync();});
   $('r28Dismiss').addEventListener('click',()=>{old.state.enabled=false;old.render();});
-  $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;old.render();});
+  $('r28Restore').addEventListener('click',()=>{old.state.enabled=true;state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();old.render();});
   for(const id of ['showEdit','addFirst'])$(id).addEventListener('click',()=>{
     prepareForm('new');if(state.group==='S'){state.id='S04';old.render();}
   });
-  $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();state.closeRail=false;sync();});
+  $('resetAds').addEventListener('click',()=>{state.closedCards.clear();state.closedWeb.clear();state.closedTip.clear();state.closedRail.clear();sync();});
   for(const el of [$('placement'),$('format'),...document.querySelectorAll('.preset')]){
     el.addEventListener(el.tagName==='SELECT'?'change':'click',()=>{state.active=false;state.preset='';hidePop();sync();});
   }
