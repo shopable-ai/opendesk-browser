@@ -243,7 +243,7 @@
     originalShortcut.textContent=prompts[0][0];originalShortcut.hidden=state.active&&state.prompts<1;
     extraButtons.forEach((b,i)=>{b.textContent=prompts[i+1][0];b.title=prompts[i+1][1];b.setAttribute('aria-label',prompts[i+1][1]);b.hidden=!state.active||state.prompts<i+2;});
     railAd.title=T('partner');railAd.setAttribute('aria-label',T('partner')+' · '+T('view'));
-    const show=state.active&&old.state.enabled&&!state.closedRail.has(state.id)&&(state.sold>0||state.mode==='sales')&&state.preset!=='brand';
+    const show=state.active&&old.state.enabled&&['B03','B04','B05'].includes(state.id)&&!state.closedRail.has(state.id)&&(state.sold>0||state.mode==='sales')&&state.preset!=='brand';
     railAd.hidden=!show;separator.hidden=!show;railClose.hidden=!show;
     railClose.setAttribute('aria-label',T('dismiss')+' · '+T('partner'));
     brand.dataset.r28Current=state.active&&['B01','B02'].includes(state.id)?'true':'false';
@@ -281,7 +281,7 @@
     const showCards=(state.sold>0||state.mode==='sales')&&!(state.layout==='recruit'&&state.mode==='user');
     if(view==='list'){
       const holder=state.id==='S01'?slots.S01:state.id==='S08'?slots.S08:slots.S02;
-      if(showCards) {
+      if(showCards&&['S01','S02','S08'].includes(state.id)) {
         const row=make('div','r28-card-row');row.append(make('strong','',T('sold')+' '+state.sold+'/3'));
         holder.append(row);
         const list=make('div','r28-inventory');list.dataset.layout=state.layout==='mini'?'mini':state.layout==='hero'?'hero':'standard';
