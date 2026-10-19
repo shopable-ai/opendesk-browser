@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
@@ -20,9 +21,8 @@ const at=new Date(2026,9,18,10,0,0).getTime();
 
 test('real Stay Focus install package carries bounded data, no privileged JS',async()=>{
   const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
-    const config=JSON.parse((await import('node:fs/promises')).readFile?
-    await (await import('node:fs/promises')).readFile(
-      new URL('../../examples/sidebar-tools/stay-focus/tool.config.json',import.meta.url),'utf8'):'{}');
+    const config=JSON.parse(readFileSync(
+    new URL('../../examples/sidebar-tools/stay-focus/tool.config.json',import.meta.url),'utf8'));
   assert.equal(tool.version,config.version);
   assert.ok(tool.backgroundPolicy.defaultSites.includes('pinterest.com'));
   assert.equal(tool.backgroundPolicy.kind,'site-budget.v2');
