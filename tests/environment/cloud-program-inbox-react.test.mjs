@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createCloudHosting} from '../../src/ui/cloud-hosting.js';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {matchesCloudProgramDescriptor,summarizeCloudSourceDifference} from '../../src/ui/cloud-program-review.js';
 
 const pkg=JSON.parse(await readFile(new URL('../../examples/tasks/form-fill.v1.opendesk-task.json',import.meta.url),'utf8'));
 const deliveryId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -94,4 +95,19 @@ test('Changed descriptor cannot import code reviewed for a different fixed sourc
   await f.model().programs.onImport(deliveryId);
   assert.equal(f.calls.some(c=>c[0]==='importTaskPackage'),false);
   assert.equal(f.calls.some(c=>c[0]==='received'),false);
+});
+
+test('reviewed descriptor pins name and origin as well as source and manifest hash',()=>{
+  assert.equal(matchesCloudProgramDescriptor(pin,deliveryId,pkg),true);
+  assert.equal(matchesCloudProgramDescriptor({...pin,title:'Renamed'},deliveryId,pkg),false);
+  assert.equal(matchesCloudProgramDescriptor({...pin,siteOrigins:['https://bad.example']},deliveryId,pkg),false);
+});
+test('line change preview explains omissions and leaves original sources immutable',()=>{
+  const before='same\\nold\\nfooter',after='same\\nnew\\nfooter';
+  const result=summarizeCloudSourceDifference(before,after);
+  assert.equal(result.removed,1);
+  assert.equal(result.added,1);
+  assert.match(result.excerpt,/- old/);
+  assert.match(result.excerpt,/\\+ new/);
+  assert.equal(summarizeCloudSourceDifference(undefined,after),null);
 });

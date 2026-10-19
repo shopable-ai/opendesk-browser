@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setImmediate} from 'node:timers/promises';
+import {readFile} from 'node:fs/promises';
 import {projectCloudInstalledTasks,createCloudHosting} from '../../src/ui/cloud-hosting.js';
 
 const sha=a=>a.repeat(64);
@@ -65,9 +66,8 @@ test('Side Panel approves two distinct pinned Tasks with individual result scope
       ['https://example.org'],['https://example.org'],['https://example.org']]);
     assert.deepEqual(items().map(row=>row.title),['表单提交','Locator 搜索','停用项']);
     assert.deepEqual(items().map(row=>row.version),['1.0.0','1.0.0','1.0.0']);
-    assert.match((await import('node:fs/promises')).readFile ?
-      (await (await import('node:fs/promises')).readFile(
-        'src/ui/react/tabs/cloud-authorization.tsx','utf8')):'',/参数许可（固定 Schema）/);
+    assert.match(await readFile('src/ui/react/tabs/cloud-authorization.tsx','utf8'),
+      /参数许可（固定 Schema）/);
 
     for(let i=0;i<2;i++){
       const key=items()[i].key;

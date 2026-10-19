@@ -2,7 +2,8 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {openProvider} from './provider.mjs';
-import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {verifyTaskPackage,createTaskPackage} from '../../src/platform/tasks/contract.js';
+import {digestUtf8} from '../../src/platform/protocol.js';
 const args=process.argv.slice(2),command=args.shift()||'provider';
 const option=(name,fallback)=>{const i=args.indexOf('--'+name);return i<0?fallback:args[i+1];};
 const directory=resolve(option('directory','.local/cloud-control')),port=Number(option('port','43112'));
@@ -57,9 +58,35 @@ if(command==='provider'){
   else if(command==='program:deliver'){
     // Explicit local operator action: submit immutable JS Task bytes for
     // review by a specific paired browser, never as an execution command.
-    const file=option('package',null),executor=option('executor',null);
-    if(!file||!executor)throw Error('program:deliver requires --package and --executor');
-    const pkg=await verifyTaskPackage(JSON.parse(await readFile(resolve(file),'utf8')));
+    const file=option('package',null),js=option('js',null),
+      executor=option('executor',null);
+    if(!executor||Boolean(file)===Boolean(js))
+      throw Error('program:deliver requires --executor and exactly one of --package or --js');
+    let pkg;
+    if(file){
+      pkg=await verifyTaskPackage(JSON.parse(await readFile(resolve(file),'utf8')));
+    }else{
+      // Direct JS is only an authoring convenience. It is transformed into
+      // the same immutable Task Package before Provider delivery, with no new
+      // execution path or automatic install/Cloud approval.
+      const taskId=option('task-id',null),version=option('version',null),
+        siteOrigin=option('site',null);
+      if(!taskId||!version||!siteOrigin)
+        throw Error('--js requires --task-id, --version and one exact --site origin');
+      const sourceUtf8=await readFile(resolve(js),'utf8'),
+        schemaFile=option('params-schema-file',null),
+        paramsSchema=schemaFile?JSON.parse(await readFile(resolve(schemaFile),'utf8')):
+          {type:'object',properties:{},required:[],additionalProperties:false};
+      const manifest={format:'opendesk.task.v1',taskId,version,
+        title:option('title',taskId),
+        description:option('description','Server-delivered Controller Task reviewed locally'),
+        author:option('author','Cloud Operator'),
+        source:'cloud-operator',siteOrigins:[siteOrigin],
+        permissions:['page.automation'],entryFormat:'async-main',
+        program:{revision:1,sourceHash:await digestUtf8(sourceUtf8)},
+        paramsSchema};
+      pkg=await createTaskPackage(manifest,sourceUtf8);
+    }
     path='program-deliver';body={requestKey:option('key',randomUUID()),
       targetExecutorId:executor,package:pkg};
   }

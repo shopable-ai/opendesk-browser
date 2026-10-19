@@ -12,6 +12,11 @@ on:
       - 'src/run-host.js'
       - 'tests/framework/k3-controller-authority.test.mjs'
       - 'src/ui/cloud-hosting.js'
+      - 'src/ui/cloud-program-review.js'
+      - 'src/ui/react/tabs/cloud.tsx'
+      - 'src/ui/react/tabs/cloud-authorization.tsx'
+      - 'src/ui/react/tabs/cloud-settings.tsx'
+      - 'tests/environment/cloud-program-inbox-react.test.mjs'
       - 'src/ui/cloud-status-presentation.js'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
@@ -52,3 +57,4 @@ jobs:
           node --test tests/environment/cloud-hosting-r3.test.mjs
           node --test tests/environment/cloud-control-sidebar-r28.test.mjs
           node --test tests/environment/cloud-control-console-r3.test.mjs
+          node --test tests/environment/cloud-program-inbox-react.test.mjs
