@@ -5,7 +5,7 @@
 | 应用 | A 业务源码独立 | B 安装与生命周期 | C 可信特权代码独立升级 | 本轮代码结论 | 产品结论 |
 | --- | --- | --- | --- | --- | --- |
 | Web Markdown Clipper | 并行会话验证中 | 未在本轮验证 | 未在本轮验证 | IN_PROGRESS_OTHER_CONVERSATION | NOT_TESTED |
-| Reading TOC | 已迁移专属既有标签页修复；CI 待验 | 现有安装机制保留；本轮未实测 | **BLOCKED**：可信逻辑静态编入 Browser | PARTIAL / CI_PENDING | CHROME_NOT_TESTED |
+| Reading TOC | **STATIC_VERIFIED / CI_PENDING**：8 份 trusted 源 SHA 与正式入口一致；Node 未运行 | **CHROME_NOT_TESTED**：安装/更新/启停/撤权/卸载待实测 | **BLOCKED**：特权逻辑静态编入 Browser | SOURCE_AUDITED / CI_QUEUED；CODE_COMPLETE=NOT_VERIFIED | PRODUCT_DONE=NO |
 | Stay Focus | 未在本轮核验；避免并行覆盖 | 未在本轮核验 | 未在本轮核验 | NOT_AUDITED_THIS_ROUND | NOT_TESTED |
 | Time Review | 未在本轮核验 | 未在本轮核验 | 未在本轮核验 | NOT_AUDITED_THIS_ROUND | NOT_TESTED |
 | AI VIP Share | 未在本轮核验 | 未在本轮核验 | 未在本轮核验 | NOT_AUDITED_THIS_ROUND | NOT_TESTED |
@@ -23,6 +23,18 @@
 - C：`trusted/page.js` 与 `trusted/existing-tabs.js` 虽归插件维护，却由 WXT 固定编译进浏览器；正式 `.opendesk-tool.json` 仅携带沙盒 UI 的 HTML/CSS/JS，无法独立升级特权 JS。不得宣称 C PASS；禁止为了过关直接执行可安装包或远端 JS 作为特权脚本。应在 Browser Framework 专项产品决策中确定可审计的独立可信代码交付边界，再实施/复核。
 - 当前判定：`A=PATCH_COMMITTED_CI_PENDING`，`B=CHROME_NOT_TESTED`，`C=BLOCKED_ARCHITECTURAL`，`CODE_COMPLETE=NOT_YET_VERIFIED`，`PRODUCT_DONE=NO`。未运行本机 Node/npm，也没有使用用户 Mac Profile；历史 R1.9.2 的 87/87 不代表本次提交测试结果。
 - 下一步：先核对本次 Reading TOC CI，失败则只修 Reading TOC；若源码回归确实通过，记 `CODE_COMPLETE / CHROME_NOT_TESTED`，再进入 Stay Focus 源码独立性复核；C 的架构约束和 Chrome 验收继续跟踪，不跨任务冒充 DONE。
+
+### Reading TOC R1.5 · 2026-10-19（源码归属与 CI 复核）
+
+- **基线**：本轮核验 main 快照 `54bfd259c86a7be033ec4810ad83eece3eb4558e`；原 Reading TOC 提交 `e6680133ac3e4047d9ee0c899cc7c81e5ef869f5`；未重复迁移已完成的代码；后续 main 提交不自动算本插件通过。
+- **A · STATIC_VERIFIED / CI_PENDING**：应用 `examples/sidebar-tools/reading-toc/trusted/` 的 8 份可信模块（model/overview/placement/page/view/policy/locales.generated/existing-tabs）的 Git blob SHA 与 `scripts/bundle-provenance.mjs` 固定 SHA 全匹配。正式 `src/entrypoints/page-relay.js` 和 `src/entrypoints/preinstall-intent.js` 已引用 App 目录，旧 `src/reading-toc/` 及 `src/sidebar-tools/reading-toc-existing-tabs.js` 已不存在；没有新建 Host、SDK、Registry 或安装器。
+- **正式包静态身份**：仓库 `reading-toc.opendesk-tool.json` 版本 1.0.9，HTML/CSS/沙盒 JS，无应用可信 worker/page 源；原始 UTF-8 共 28525 字节，独立计算 SHA-256 `56890b9feeb6908c5967eb16aed19a1e811f8d376dd270c01e78c0c93b052071`，与官方锁定值一致。`existing-tabs.js` 仅可进入固定 `sidebar-tools/preinstall-intent.js`，不能进入沙盒用户包。未产生本轮新的 build 包。
+- **CI（同一提交）**：App CI [39259980401](https://github.com/shopable-ai/opendesk-browser/actions/runs/39259980401) = QUEUED；Reading TOC [39259980384](https://github.com/shopable-ai/opendesk-browser/actions/runs/39259980384) = QUEUED；Sidebar Tools [39259980301](https://github.com/shopable-ai/opendesk-browser/actions/runs/39259980301) = QUEUED。已查询 Run / Job，未有执行完成 Step、失败日志或本 SHA 的 PASS 证据；14 个列明的 Node 测试文件均在仓库列表可见但未在本轮运行。
+- **执行环境**：实际执行 GitHub 远程源码、提交、Run、Job、包字节审计；没有用户 Mac 工作区。容器 `git ls-remote` 因 github.com DNS 解析失败。`node --test`、`app-ci inspect/build/node/browser/native`、`build-sidebar-tool --check-project`、`npm run build/verify` 均为 NOT_TESTED，不得记 PASS。
+- **B · CHROME_NOT_TESTED**：已有覆盖安装、章节、多回答、Side Panel、停用、撤权、升级/卸载的自动化测试源码，尚无这次提交的真实 Mac Chrome 执行证据，不能据测试存在声明完成。
+- **C · BLOCKED_ARCHITECTURAL**：App-owned 可信 JS 固定编入 WXT Browser，独立 `.opendesk-tool.json` 无特权 JS 升级能力。本轮不放松权限隔离、不创建第二套可信运行平台。
+- **本轮变更与结论**：Reading TOC 产品源码 +0/-0/净 0；仅更新进度文档。A=STATIC_VERIFIED_CI_PENDING，B=CHROME_NOT_TESTED，C=BLOCKED_ARCHITECTURAL，CODE_COMPLETE=NOT_VERIFIED，PRODUCT_DONE=NO。
+- **后续门槛**：先获取真实 CI 结果；FAIL 仅修 Reading TOC 根因；Node/候选构建通过后才允许记 CODE_COMPLETE，仍须保留 Chrome NOT_TESTED 和 C 阻断。CI 仍 QUEUED 时不自动切换 Stay Focus，不覆盖 Web Markdown Clipper / Stay Focus 的并行修改。
 
 ## 变更守则
 
