@@ -117,11 +117,13 @@
     // Produce valid literal closing tags without slash-escaping ambiguity.
     const closeScript='<'+'/script>';
     const bridge='globalThis.OpenDeskTool={root:document,request:(op,payload)=>parent.__stayFocusMockRequest(op,payload)};';
+    const tag=code=>'<script>'+String(code).replaceAll('<'+'/script','<\\'+'/script')+closeScript;
     frame.srcdoc='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
       '<meta name="viewport" content="width=device-width,initial-scale=1">'+
-      '<style>html,body{margin:0;background:transparent}'+source.css+'</style></head><body>'+
-      source.html+'<script>'+bridge+closeScript+
-      '<script>'+source.js+closeScript+'</body></html>';
+      '<style>html,body{margin:0;background:transparent}'+
+      bundle.runtime.css+'\n'+source.css+'</style></head><body>'+
+      source.html+tag(bundle.runtime.react)+tag(bundle.runtime.adapter)+
+      tag(bridge)+tag(source.js)+'</body></html>';
   }
   function renderHost(){
     $('host-state').textContent=!model.installed?'未安装':!model.granted?'尚未授权':
@@ -181,6 +183,6 @@
   $('host-revoke').addEventListener('click',()=>hostOperate('revoke'));
   $('host-uninstall').addEventListener('click',()=>hostOperate('uninstall'));
   $('parity').textContent='正式 UI Git blob：'+bundle.hashes.html.slice(0,9)+' / '+
-    bundle.hashes.css.slice(0,9)+' / '+bundle.hashes.js.slice(0,9);
+    bundle.hashes.css.slice(0,9)+' / '+bundle.hashes.js.slice(0,9)+' · React 19.2.0 · 非正式预览组件适配器';
   restoreScene('first');
 })();
