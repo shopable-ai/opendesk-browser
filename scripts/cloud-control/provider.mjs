@@ -67,7 +67,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   await save();
   // State snapshots and fsync are only required for real mutations. Pure
   // observations remain serialized with writes but never touch the .tmp file.
-  const readonlyRoutes=new Set(['/v1/job-status','/v1/reconcile','/v1/cancellation','/v1/client-list',
+  const readonlyRoutes=new Set(['/v1/job-status','/v1/client-scope','/v1/reconcile','/v1/cancellation','/v1/client-list',
     '/v1/program-inbox','/v1/program-fetch',
     '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
   const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
@@ -128,7 +128,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
         // Local administration is never served by the external HTTPS listener.
         if(publicRequest)fail('E_ROUTE');
         if(!secureEqual(req.headers.authorization,'Bearer '+credentials.adminToken))fail('E_AUTH');
-      }else if(path==='/v1/submit'||path==='/v1/job-status'){
+      }else if(['/v1/submit','/v1/job-status','/v1/client-scope'].includes(path)){
         if(!publicRequest)fail('E_TLS_REQUIRED');
         const clientId=Object.keys(state.clients).find(id=>
           !state.clients[id].revokedAt&&
@@ -466,6 +466,16 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
                   targetPairingId:client.pairingId,targetGrantId:owner.grantId,submittedBy:client.clientId};
                 return {jobId};
               });
+            break;
+          }
+          case '/v1/client-scope':{
+            // An authenticated external client may read only its OWN immutable
+            // task pins and result-consent scope. No admin or executor token,
+            // internal credentials, or executable source is exposed.
+            exact(b,[]);
+            out={clientId:client.clientId,providerId:state.providerId,
+              executorId:client.executorId,grantId:client.grantId,
+              tasks:structuredClone(client.tasks),allowResult:client.allowResult===true};
             break;
           }
           case '/v1/job-status':{
