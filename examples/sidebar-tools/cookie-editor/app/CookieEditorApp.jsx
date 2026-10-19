@@ -120,15 +120,19 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     if(mode!=='browser'||snapshot.phase!=='ready'||selected!==null||
       panel!==null||busy||dirty||confirmation)return;
     let active=true;
+    const visible=()=>{
+      const surface=hostRoot?.host||hostRoot;
+      return document.visibilityState!=='hidden'&&surface?.isConnected!==false&&
+        (typeof surface?.getClientRects!=='function'||surface.getClientRects().length>0);
+    };
     const sync=()=>{
-      if(!active||document.visibilityState==='hidden')return;
+      if(!active||!visible())return;
       const period=controller.snapshot().syncStale?60000:15000;
       const now=Date.now();
       if(now-lastAutoCheck.current<period)return;
       lastAutoCheck.current=now;
       void controller.syncMetadata({canApply:()=>active&&
-        modeRef.current==='browser'&&!dirtyRef.current&&
-        document.visibilityState!=='hidden'});
+        modeRef.current==='browser'&&!dirtyRef.current&&visible()});
     };
     sync();
     const timer=window.setInterval(sync,5000);
@@ -139,7 +143,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       window.removeEventListener('focus',sync);
       document.removeEventListener('visibilitychange',sync);
     };
-  },[mode,snapshot.phase,snapshot.epoch,selected,panel,busy,dirty,confirmation,controller]);
+  },[mode,snapshot.phase,snapshot.epoch,selected,panel,busy,dirty,confirmation,controller,hostRoot]);
   React.useEffect(()=>{
     // A live session invalidation must not discard an offline editor's
     // independent dirty state when an unrelated browser event fires.
