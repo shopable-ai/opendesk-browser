@@ -103,16 +103,18 @@ async function attachActualReact(c,side){
   const session=await attach(c,target.targetId);
   await until(()=>evaluate(c,session,
     '!!document.querySelector(".adblock-app")&&'+
-    '!!document.querySelector("[role=switch][aria-label=\\"全局广告拦截\\"]")'),
+    '!!document.querySelector("[data-slot=\\"switch\\"][aria-label=\\"全局广告拦截\\"]")'),
     'installed React App and React Aria switch mounted',25000);
   return session;
 }
 async function reactSwitch(c,session,label){
-  const selector='[role="switch"][aria-label="'+label+'"]';
+  // The real shared React Aria Switch puts its selected and disabled state
+  // on the labeled data-slot=switch element (the input may be visually hidden).
+  const selector='[data-slot="switch"][aria-label="'+label+'"]';
   return evaluate(c,session,
-    '(()=>{const input=document.querySelector('+JSON.stringify(selector)+');'+
-    'return input?{on:input.checked===true||input.getAttribute("aria-checked")==="true",'+
-    'disabled:input.disabled===true||input.getAttribute("aria-disabled")==="true"}:null;})()');
+    '(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+    'return n?{on:n.hasAttribute("data-selected"),'+
+    'disabled:n.hasAttribute("data-disabled")}:null;})()');
 }
 async function requestReactReview(c,side,react,selector,expectedCopy){
   await clickSandbox(c,side,react,selector);
@@ -603,8 +605,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   note('react-installed-settings-navigation',{opened:true,returned:true});
 
   const globalLabel='全局广告拦截';
-  const globalSelector='label.od-shared-switch:has([role="switch"][aria-label="全局广告拦截"])';
-  const currentSelector='label.od-shared-switch:has([role="switch"][aria-label="当前网站广告过滤"])';
+  const globalSelector='[data-slot="switch"][aria-label="全局广告拦截"]';
+  const currentSelector='[data-slot="switch"][aria-label="当前网站广告过滤"]';
   await until(async()=>{
     const x=await reactSwitch(client,react,globalLabel);return x&&!x.disabled&&!x.on;
   },'installed React starts with global protection OFF');
@@ -743,7 +745,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   let focused=false;
   for(let i=0;i<60;i++){
     if(await evaluate(client,react,
-      'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"')){focused=true;break;}
+      'document.activeElement?.closest('+JSON.stringify(globalSelector)+')!==null')){focused=true;break;}
     for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
       {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
   }
@@ -758,14 +760,15 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return r.state?.enabled===false&&r.owned.length===0;},'Space OFF removes real rules');
   assert.equal((await probe(client,site,adUrl())).success,true);
   await until(()=>evaluate(client,react,
-    'document.querySelector("[role=switch][aria-label=\\"全局广告拦截\\"]")?.disabled===false'),
+    '(()=>{const n=document.querySelector("[data-slot=\\"switch\\"][aria-label=\\"全局广告拦截\\"]");'+
+    'return !!n&&!n.hasAttribute("data-disabled");})()'),
     'React switch action completes');
   // One more physical Tab/Space cycle may be needed because trusted review
   // moves focus back to the Side Panel; never force focus from JavaScript.
   focused=false;
   for(let i=0;i<60;i++){
     if(await evaluate(client,react,
-      'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"')){focused=true;break;}
+      'document.activeElement?.closest('+JSON.stringify(globalSelector)+')!==null')){focused=true;break;}
     for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
       {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
   }
