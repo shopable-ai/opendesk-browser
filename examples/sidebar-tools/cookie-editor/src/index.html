@@ -1,19 +1,26 @@
 <main class="cookie-app" aria-label="Cookie Editor 管理面板">
-<header class="site-bar" aria-label="当前网站">
+<header class="site-bar" aria-label="网站 Cookie">
 <span class="site-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></svg></span>
-<div class="site-meta"><span class="site-eyebrow">当前网站</span><button id="site-pick" class="site-pick" type="button" title="切换网站" aria-label="切换或选择网站"><strong id="site-host">正在读取当前网站…</strong><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><span id="site-url" class="secondary" hidden></span></div>
-<span id="site-grant-status" class="site-grant-status" role="status">检查中</span>
+<div class="site-meta"><button id="site-pick" class="site-pick" type="button" title="切换网站" aria-label="切换或选择网站"><strong id="site-host">正在读取当前网站…</strong><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button><span id="site-url" class="secondary" hidden></span></div>
+<span id="site-grant-status" class="site-grant-status" role="status" hidden>检查中</span>
+<details id="offline-tools" class="workspace-options">
+  <summary title="更多工具" aria-label="更多工具"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></summary>
+  <div class="mode-tabs" role="group" aria-label="Cookie 工具">
+    <button id="mode-browser" class="mode-button active" type="button" aria-pressed="true">浏览器</button>
+    <button id="mode-offline" class="mode-button" type="button" aria-pressed="false">离线文件</button>
+  </div>
+</details>
 <button id="refresh" class="icon-button" type="button" aria-label="刷新 Cookie" title="刷新 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg></button></header>
 <section id="browser-panel" class="browser-panel" aria-label="真实浏览器 Cookie">
   <details id="target-selector" class="target-selector">
-    <summary>切换或选择网站</summary>
-    <label for="target-url">目标网页地址</label>
+    <summary>网站 URL</summary>
+    <label for="target-url" class="visually-hidden">网站 URL</label>
     <div class="target-entry">
       <input id="target-url" data-sensitive="true" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/">
-      <button id="apply-target" class="text-button" type="button">选择</button>
-      <button id="use-current" class="text-button" type="button">当前页</button>
+      <button id="apply-target" class="icon-button" type="button" title="使用此网站" aria-label="使用此网站"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></button>
+      <button id="use-current" class="icon-button" type="button" title="跟随当前页" aria-label="跟随当前页"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></svg></button>
     </div>
-    <p id="target-help" class="hint">选择地址不代表获得 Cookie 权限。只会在正式 SDK 和网站授权均有效时读取。</p>
+    <p id="target-help" class="visually-hidden" role="status"></p>
   </details>
   <div id="browser-state" class="browser-state" role="group" aria-labelledby="browser-state-heading" aria-live="polite" aria-atomic="true">
     <strong id="browser-state-heading">正在检查网站…</strong>
@@ -24,6 +31,7 @@
     <button id="live-import" class="icon-button" type="button" disabled title="导入 Cookie" aria-label="导入真实 Chrome Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v13m-4-4 4 4 4-4M4 17v4h16v-4"/></svg></button>
     <button id="live-export" class="icon-button" type="button" disabled title="导出 Cookie" aria-label="导出真实 Chrome Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 15v5h16v-5"/></svg></button>
     <span class="live-action-divider" aria-hidden="true"></span><button id="live-new" class="icon-button" type="button" disabled title="新建 Cookie" aria-label="新建真实 Chrome Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+     <button id="live-clear" class="icon-button danger-text" type="button" disabled title="清理本站 Cookie" aria-label="清理本站 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
   </div>
   <section id="live-export-panel" class="editor-panel inline-operation" aria-labelledby="live-export-heading" hidden>
     <div class="section-head"><strong id="live-export-heading">导出本站 Cookie</strong><button id="live-export-close" class="icon-button" type="button" title="关闭导出" aria-label="关闭导出"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
@@ -56,31 +64,9 @@
   </div>
   <div id="live-cookie-list" class="cookie-list" role="list" aria-label="真实浏览器 Cookie 元数据"></div>
   <p id="live-empty" class="empty-message">正在检查网站授权与 Cookie…</p>
-  <p id="browser-list-hint" class="browser-list-hint" hidden>点击条目可原位展开编辑；每次只编辑一条。敏感值默认隐藏。</p>
-  <details id="browser-permissions" class="permission-details">
-    <summary>更多 · 网站清理、变化观察与权限</summary>
-    <p>敏感值、清理及观察按网站分别授权；可在工具「设置」中管理。</p>
-    <div class="browser-advanced-actions"><button id="live-clear" class="text-button danger-text" type="button" disabled>安全清理本站</button></div>
-    <details class="browser-observe">
-      <summary>Cookie 变化观察（15 秒）</summary>
-      <div class="browser-advanced-actions">
-        <button id="live-observe-start" class="text-button" type="button">开始观察</button>
-        <button id="live-observe-read" class="text-button" type="button" disabled>读取变化</button>
-        <button id="live-observe-stop" class="text-button" type="button" disabled>停止观察</button>
-      </div>
-      <p id="live-observe-status" class="hint" role="status">未观察；事件不包含 Cookie 值。</p>
-      <div id="live-observe-events" class="cookie-list" role="list" aria-label="Cookie 变化事件"></div>
-    </details>
-  </details>
+  <p id="browser-list-hint" class="browser-list-hint" hidden></p>
 </section>
-<details id="offline-tools" class="workspace-options">
-  <summary>离线文件工具（不修改浏览器）</summary>
-  <div class="mode-tabs" role="group" aria-label="Cookie 工作模式">
-    <button id="mode-browser" class="mode-button active" type="button" aria-pressed="true">返回浏览器 Cookie</button>
-    <button id="mode-offline" class="mode-button" type="button" aria-pressed="false">使用离线工作区</button>
-  </div>
-</details>
-<p id="preview-banner" class="preview-banner" role="note" hidden>离线工作区：操作只作用于临时内存，不读取或修改浏览器 Cookie。</p>
+<p id="preview-banner" class="preview-banner" role="note" hidden>离线 · 不修改 Chrome Cookie</p>
 <section id="cookie-content" class="cookie-content" aria-label="离线工作区 Cookie 列表" hidden>
 <div class="toolbar"><label for="search" class="visually-hidden">搜索 Cookie</label><input id="search" class="search-field" type="search" autocomplete="off" placeholder="搜索名称、域名或路径" aria-label="搜索 Cookie">
 <button id="add" class="icon-button" type="button" title="新建 Cookie" aria-label="新建 Cookie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -97,18 +83,18 @@
 <div class="section-head"><strong id="editor-heading">新建 Cookie</strong><span id="editor-dirty" class="editor-dirty" role="status" hidden>未保存</span><button id="editor-close" class="icon-button" type="button" title="关闭编辑" aria-label="关闭编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <form id="editor-form">
 <div class="field"><label for="cookie-name">名称</label><input id="cookie-name" type="text" maxlength="256" autocomplete="off" required></div>
-<div class="field cookie-value-field"><label for="cookie-value">值</label><div class="cookie-value-control"><input id="cookie-value" type="password" data-sensitive="true" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="保持旧值（默认隐藏）" aria-describedby="cookie-value-help"><button id="editor-reveal-value" class="reveal-value-button" type="button" title="显示 Cookie 值" aria-label="显示 Cookie 值" data-revealed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><button id="editor-reset-value" class="inline-link" type="button" hidden>撤销值修改 · 保留原值</button><span id="cookie-value-help" class="visually-hidden">已有 Cookie 未修改值时保留旧值需单独授权；输入后清空表示写入空值。</span></div>
-<details id="cookie-advanced" class="cookie-advanced"><summary>Cookie 属性与高级设置</summary><div class="cookie-advanced-fields">
+<div class="field cookie-value-field"><label for="cookie-value">值</label><div class="cookie-value-control"><input id="cookie-value" type="password" data-sensitive="true" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="保持旧值（默认隐藏）" aria-describedby="cookie-value-help"><button id="editor-reveal-value" class="reveal-value-button" type="button" title="显示 Cookie 值" aria-label="显示 Cookie 值" data-revealed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><code id="editor-revealed-value" class="revealed-cookie-value" data-sensitive="true" hidden></code><button id="editor-reset-value" class="icon-button" type="button" title="恢复原值" aria-label="恢复原值" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><span id="cookie-value-help" class="visually-hidden">已有 Cookie 未修改值时保留旧值需单独授权；输入后清空表示写入空值。</span></div>
+<details id="cookie-advanced" class="cookie-advanced"><summary>属性</summary><div class="cookie-advanced-fields">
 <div class="field-grid">
-<div class="field"><label for="cookie-domain">域名</label><input id="cookie-domain" type="text" maxlength="253" autocomplete="off" required></div>
-<div class="field"><label for="cookie-path">路径</label><input id="cookie-path" type="text" maxlength="1024" value="/" autocomplete="off" required></div></div>
+<div class="field"><label for="cookie-domain">Domain</label><input id="cookie-domain" type="text" maxlength="253" autocomplete="off" required></div>
+<div class="field"><label for="cookie-path">Path</label><input id="cookie-path" type="text" maxlength="1024" value="/" autocomplete="off" required></div></div>
 <div class="field"><label for="cookie-same-site">SameSite</label><select id="cookie-same-site"><option value="unspecified">未指定</option><option value="lax">Lax</option><option value="strict">Strict</option><option value="no_restriction">None</option></select></div>
-<div class="flag-grid"><label class="check-label"><input id="cookie-host-only" type="checkbox" checked>仅当前主机</label><label class="check-label"><input id="cookie-secure" type="checkbox">Secure</label><label class="check-label"><input id="cookie-http-only" type="checkbox">HttpOnly</label><label class="check-label"><input id="cookie-session" type="checkbox" checked>会话 Cookie</label></div>
-<div id="expiry-field" class="field" hidden><label for="cookie-expiry">过期时间</label><input id="cookie-expiry" type="datetime-local" step="1"></div>
-<p id="editor-scope-note" class="field-note">现有 Cookie 的 Domain、Path、Store、Partition 身份保持不变。</p></div></details>
-<p id="editor-help" class="hint">名称可以修改；修改浏览器 Cookie 时按权限保存，Domain/Path/Partition 保持不变。</p>
+<div class="flag-grid"><label class="check-label"><input id="cookie-host-only" type="checkbox" checked>Host-only</label><label class="check-label"><input id="cookie-secure" type="checkbox">Secure</label><label class="check-label"><input id="cookie-http-only" type="checkbox">HttpOnly</label><label class="check-label"><input id="cookie-session" type="checkbox" checked>Session</label></div>
+<div id="expiry-field" class="field" hidden><label for="cookie-expiry">过期</label><input id="cookie-expiry" type="datetime-local" step="1"></div>
+<p id="editor-scope-note" class="visually-hidden"></p></div></details>
+<p id="editor-help" class="visually-hidden"></p>
 <div id="editor-discard" class="editor-discard" role="group" aria-label="未保存修改确认" hidden><span>放弃当前未保存修改？</span><button id="editor-discard-keep" class="text-button" type="button">继续编辑</button><button id="editor-discard-confirm" class="text-button" type="button">放弃</button></div>
-<div class="form-actions"><button id="editor-delete" class="text-button danger-text editor-delete" type="button" title="精确删除此 Cookie" hidden>删除</button><button id="editor-cancel" class="text-button" type="button">取消</button><button id="editor-save" class="text-button primary" type="button">保存 Cookie</button></div></form></section>
+<div class="form-actions"><button id="editor-delete" class="icon-button danger-text editor-delete" type="button" title="删除 Cookie" aria-label="删除 Cookie" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button><button id="editor-cancel" class="icon-button" type="button" title="取消编辑" aria-label="取消编辑"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><button id="editor-save" class="text-button primary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>保存</button></div></form></section>
 <section id="import-panel" class="editor-panel" aria-labelledby="import-heading" hidden>
 <div class="section-head"><strong id="import-heading">导入离线工作区</strong><button id="import-close" class="icon-button" type="button" title="关闭导入" aria-label="关闭导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
 <div class="field"><label for="import-file">选择本地文件（可选）</label><input id="import-file" data-sensitive="true" type="file" accept=".json,.txt,text/plain,application/json"></div>

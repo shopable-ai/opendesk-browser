@@ -74,3 +74,38 @@ test('changing pages clears cached Markdown before subsequent copy',async()=>{
   assert.equal(nodes['clip-source'].value,'');
   assert.equal(nodes['clip-status'].dataset.error,'true');
 });
+
+test('quote mode folds unsafe multiline titles into one escaped source link',async()=>{
+ const {nodes,modes}=mounted({request:async()=>({
+  markdown:'正文内容\n',source:'https://example.com/article',title:'复杂 [标题]\n另一行  ',site:'A'
+ })});
+ await modes[2].fire('click');
+ await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,
+  '> 正文内容\n\n来源：[复杂 \\[标题\\] 另一行](https://example.com/article)\n');
+});
+test('late clipboard and download replies cannot override navigation or mode changes',async()=>{
+ const copy=deferred(),download=deferred();
+ let copyPayload='',downloadPayload='';
+ const {nodes,modes,root}=mounted({
+  request:async()=>({markdown:'# 正文\n',source:'https://example.com/a',title:'现在',site:'A'}),
+  clipboard:text=>{copyPayload=text;return copy.promise;},
+  download:data=>{downloadPayload=data.text;return download.promise;}
+ });
+ await nodes['clip-fetch'].fire('click');
+ const copying=nodes['clip-copy'].fire('click');
+ root.events['opendesk-page-changed']();
+ copy.resolve({copied:true});
+ await copying;
+ assert.equal(copyPayload,'# 正文\n');
+ assert.equal(nodes['clip-status'].textContent,'网页已变化，请重新剪藏');
+ assert.equal(nodes['clip-source'].value,'');
+ await nodes['clip-fetch'].fire('click');
+ const downloading=nodes['clip-download'].fire('click');
+ await modes[3].fire('click');
+ download.resolve({started:true});
+ await downloading;
+ assert.equal(downloadPayload,'# 正文\n');
+ assert.equal(nodes['clip-status'].textContent,'点击剪藏获取内容');
+ assert.equal(nodes['clip-source'].value,'');
+});

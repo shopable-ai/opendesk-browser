@@ -36,11 +36,6 @@
 .cookie-editor-react .cookie-panel>p{margin:0}
 .cookie-editor-react .cookie-permission,.cookie-editor-react .cookie-offline-banner{margin-bottom:var(--space-3)}
 .cookie-editor-react .cookie-permission p,.cookie-editor-react .cookie-offline-banner p{margin:var(--space-2) 0;font-size:var(--od-note-size)}
-.cookie-editor-react .cookie-observe{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);margin-top:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-3)}
-.cookie-editor-react .cookie-observe>div{flex:1;display:grid;min-width:120px}
-.cookie-editor-react .cookie-observe small{color:var(--od-sub)}
-.cookie-editor-react .cookie-observe ul{flex-basis:100%;list-style:none;margin:0;padding:0;overflow-wrap:anywhere}
-.cookie-editor-react .cookie-observe li{border-top:1px solid var(--od-line);padding:var(--space-2) 2px}
 .cookie-editor-react .cookie-confirm{position:relative;z-index:2;margin-top:var(--space-3)}
 .cookie-editor-react .cookie-confirm p{margin:0 0 var(--space-2)}
 .cookie-editor-react .cookie-pages{display:flex;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-3)}
@@ -149,21 +144,20 @@
 .cookie-editor-react .advanced-body .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
 .cookie-editor-react .advanced-body .pair .field{grid-template-columns:minmax(0,1fr)}
 .cookie-editor-react .advanced-body .toggles-row{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
-.cookie-editor-react .advanced-body .toggles-label{flex:0 0 76px}
 .cookie-editor-react .advanced-body .toggles{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
-.cookie-editor-react .advanced-body .editor-identity{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
-.cookie-editor-react .advanced-body .editor-identity>div{display:grid;gap:var(--space-1);min-width:0}
+.cookie-editor-react .advanced-body .editor-identity{border-top:1px solid var(--od-line);padding-top:var(--space-2);min-width:0}
+.cookie-editor-react .advanced-body .editor-identity>summary{cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}
+.cookie-editor-react .advanced-body .editor-identity-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);padding-top:var(--space-2)}
+.cookie-editor-react .advanced-body .editor-identity-fields>div{display:grid;gap:var(--space-1);min-width:0}
 .cookie-editor-react .advanced-body code{overflow-wrap:anywhere}
 .cookie-editor-react .advanced-body .editor-timezone,.cookie-editor-react .advanced-body .editor-hint{overflow-wrap:anywhere}
-@media(max-width:350px){.cookie-editor-react .advanced-body .pair,.cookie-editor-react .advanced-body .editor-identity{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .advanced-body .field{grid-template-columns:56px minmax(0,1fr)}}
+@media(max-width:350px){.cookie-editor-react .advanced-body .pair,.cookie-editor-react .advanced-body .editor-identity-fields{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .advanced-body .field{grid-template-columns:56px minmax(0,1fr)}}
 
 /* Preview is the main surface: no duplicate Host heading or multi-layer Card padding. */
 .cookie-editor-react .cookie-utility-settings{margin-top:var(--space-3)}
-.cookie-editor-react .cookie-utility-settings summary,.cookie-editor-react .cookie-observe-fold summary{cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-utility-settings summary{cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}
 .cookie-editor-react .cookie-utility-content{display:grid;gap:var(--space-3);padding:var(--space-3) 0}
 .cookie-editor-react .cookie-utility-content .cookie-site-select{margin-bottom:0}
-.cookie-editor-react .cookie-observe-fold{margin-top:var(--space-3)}
-.cookie-editor-react .cookie-observe-fold .cookie-observe{margin-top:var(--space-2)}
 
 /* R5.15: modal geometry only; shared OpenDesk design owns appearance. */
 .cookie-clear-dialog{
@@ -191,3 +185,20 @@
 .cookie-editor-react .cookie-editor-actions .cookie-editor-icon-action{flex:0 0 36px;width:36px;height:36px;min-width:36px;padding:0;display:grid;place-items:center}
 .cookie-editor-react .cookie-editor-actions .cookie-editor-save{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2)}
 .cookie-editor-react .cookie-editor-actions .cookie-editor-save svg{width:16px;height:16px;flex:none}
+
+/* R5.20: retain only the scoped hostname, with a compact tools popover. */
+.cookie-editor-react .site-bar{position:relative;z-index:2;min-height:44px;padding:var(--space-2) var(--space-3)}
+.cookie-editor-react .site-hostname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--od-note-size);font-weight:650}
+.cookie-editor-react .cookie-utility-settings{position:static;margin:0;flex:none}
+.cookie-editor-react .cookie-utility-settings>summary{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:var(--radius-control);list-style:none;cursor:pointer;color:var(--od-sub)}
+.cookie-editor-react .cookie-utility-settings>summary::-webkit-details-marker{display:none}
+.cookie-editor-react .cookie-utility-settings>summary svg{width:17px;height:17px}
+.cookie-editor-react .cookie-utility-settings>summary:hover{background:var(--od-bg)}
+.cookie-editor-react .cookie-utility-content{position:absolute;left:var(--space-2);right:var(--space-2);top:calc(100% + 2px);z-index:10;display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);box-shadow:0 8px 22px rgba(20,30,48,.13)}
+.cookie-editor-react .cookie-target-label{display:grid;gap:var(--space-1);min-width:0;font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-target-label input{min-width:0;width:100%}
+.cookie-editor-react .cookie-utility-actions{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.cookie-editor-react .cookie-utility-spacer{flex:1;min-width:4px}
+.cookie-editor-react .cookie-offline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
+@media(max-width:260px){.cookie-editor-react .cookie-utility-actions>button{min-width:0}}

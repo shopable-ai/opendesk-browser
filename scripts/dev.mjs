@@ -10,6 +10,7 @@ import {resolveDevelopmentBrowserEdition} from './browser-editions-r245.mjs';
 // compiler flag and the pinned resources copied into the daily extension.
 process.env.OPENDESK_BROWSER_EDITION=resolveDevelopmentBrowserEdition();
 const {preparePublic}=await import('./prepare-public.mjs');
+const {buildAdblockReact}=await import('./build-adblock-react.mjs');
 const {drainDevelopment,configureDevelopmentRestarts}=await import('./wxt-development.mjs');
 
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -43,6 +44,7 @@ bootstrapping=(async()=>{
   console.log('[OpenDesk dev] Preparing complete extension; browser auto-start disabled.');
   process.env.OPENDESK_BUILD_MODE='development';
   await verifyReadingTocTrustedLocales();
+  await buildAdblockReact({log:false});
   await preparePublic();
   if(closing)return;
   // Keep Chrome's existing unpacked path/ID even when compiler assets ship.

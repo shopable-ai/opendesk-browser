@@ -87,6 +87,10 @@ test('candidate cannot install without matching trustworthy native run, then exa
   assert.equal((await f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId})).stage,'verified');
   assert.equal((await f.send('makeTaskAvailable',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash})).stage,'available');
+  const realCatalog=(await f.send('listTaskCatalog',{})).catalog[0];
+  assert.equal(realCatalog.verification.manifestHash,pkg.manifestHash,
+    'Cloud UI must receive the real immutable verified manifest digest');
+  assert.equal(realCatalog.verification.sourceHash,pkg.manifest.program.sourceHash);
   assert.equal((await f.send('installTask',{taskId:pkg.manifest.taskId,version:'1.0.0',
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null})).enabled,true);
   await assert.rejects(f.send('installTask',{taskId:pkg.manifest.taskId,version:'1.0.0',

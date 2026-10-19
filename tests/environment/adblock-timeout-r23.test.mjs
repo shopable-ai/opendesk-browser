@@ -33,7 +33,8 @@ function reviewHarness(source){
   const context={
     disposed:false,busy:false,pendingAction:null,ADBLOCK_ID:'adblock',
     view:{},actionReview:{},
-    requestActionReview(options){this.pendingAction=options;},
+    // Production updates lexical state; its plain call does not bind `this`.
+    requestActionReview(options){context.pendingAction=options;},
     patchToolField(_view,_field,patch){patches.push(patch);},
     setTimeout(callback,ms){const item={callback,ms,active:true};timers.push(item);return timers.length;},
     clearTimeout(id){if(timers[id-1])timers[id-1].active=false;}

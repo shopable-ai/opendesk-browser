@@ -230,8 +230,10 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
   }
   const unsubscribeRuns=client.subscribeRun?.(event=>{
     const local=active;
-    if(event.type==='controller-fenced'&&local?.controllerRun&&event.runId===local.runId)
+    if(event.type==='controller-fenced'&&local?.controllerRun&&event.runId===local.runId){
+      local.control?.stop?.();
       local.controller.abort(new FoundationError(event.reasonCode,'Native target fenced'));
+    }
   });
   const unsubscribeConnection = client.subscribeConnection?.(event => {
     const local = active;

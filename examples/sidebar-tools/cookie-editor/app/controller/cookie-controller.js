@@ -21,16 +21,17 @@ export function createCookieController({adapter,onChange=()=>{}}){
     message='',messageType='info',importPlan=null,clearPlan=null,
     observing=null,observeCursor='0',observeEvents=[],observeStats=null;
   let importRevision=0,clearRevision=0,valueRevision=0;
+  let syncStale=false,syncPending=null,syncGeneration=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
     phase,message,messageType,observing:!!observing,
     observeEvents:observeEvents.map(x=>({...x})),
-    observeStats:observeStats?{...observeStats}:null});
+    observeStats:observeStats?{...observeStats}:null,syncStale});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
-    retireObservation();
+    retireObservation();retireSync();syncStale=false;
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
     clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
@@ -43,7 +44,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     return true;
   }
   const lock=()=>{if(closed||busy||!target||phase!=='ready')return null;
-    busy=true;valueRevision++;const at=target,ticket=epoch;notify();return {at,ticket};};
+    retireSync();busy=true;valueRevision++;const at=target,ticket=epoch;notify();return {at,ticket};};
   const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
   // Host observation sessions are owned by the old URL and may survive the UI.
@@ -56,7 +57,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
-    retireObservation();
+    retireObservation();retireSync();syncStale=false;
     const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;
     clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
@@ -447,8 +448,41 @@ export function createCookieController({adapter,onChange=()=>{}}){
       report('变化观察中止'+formatCode(error,'E_COOKIE_OBSERVE')+'。','error');
     }}finally{unlock(guard);}
   }
+  // A read started before any operation must stay retired even if that
+  // operation fails and releases busy without changing the target epoch.
+  function retireSync(){syncGeneration++;syncPending=null;}
+  // Passive list refresh uses the public SDK and returns metadata only. It must
+  // never erase a live editor, re-read Cookie values or trigger a write.
+  async function syncMetadata({canApply=()=>true}={}){
+    if(closed||busy||phase!=='ready'||!target||!canApply()||
+      syncPending?.ticket===epoch)return false;
+    const at=target,ticket=epoch,token={ticket,generation:syncGeneration};
+    syncPending=token;
+    const safe=()=>current(ticket,at)&&syncPending===token&&
+      token.generation===syncGeneration&&!busy&&canApply();
+    try{
+      const found=await adapter.list(at,{isCurrent:safe});
+      if(found===null||!safe())return false;
+      // Even unchanged metadata can accompany a changed Cookie value.
+      // Retire sensitive reads started before this accepted refresh.
+      valueRevision++;
+      const next=found.map(row=>({...row,id:key(row)}));
+      const previous=new Map(rows.map(row=>[row.id,row]));
+      const changed=next.length!==rows.length||next.some(row=>
+        JSON.stringify(previous.get(row.id))!==JSON.stringify(row));
+      if(changed)rows=next;
+      if(changed||syncStale){syncStale=false;notify();}
+      return true;
+    }catch(error){
+      if(current(ticket,at)&&rejectLostAccess(error))return false;
+      // Keep the last known metadata visible but identify it as stale. Native
+      // permissions and write receipts remain the only authority for mutations.
+      if(safe()&&!syncStale){syncStale=true;notify();}
+      return false;
+    }finally{if(syncPending===token)syncPending=null;}
+  }
   function dispose(){
-    retireObservation();
+    retireObservation();retireSync();syncStale=false;
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
     clearPlan=null;observeEvents=[];
   }
@@ -456,5 +490,5 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
-    discardImport,exportTo,observe,dispose};
+    discardImport,exportTo,observe,syncMetadata,dispose};
 }

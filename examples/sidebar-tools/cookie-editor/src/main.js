@@ -7,7 +7,8 @@ const E=id=>root.querySelector('#'+id),editor=E('editor-panel'),importer=E('impo
 let data=null,epoch=0,dirty=false,busy=false,editing=null,pending=null,returnFocus=null,importFileSequence=0;
 let mode='browser',targetOverride='',targetPending=false,liveTarget=null,liveRows=[],liveState='idle',liveMessage='';
 let expandedCookieKey=null,importPreview=null;
-const liveSecrets=new Map();let observing=null,observeCursor='0',liveValueEdited=false,originalExpiryInput='';
+const liveSecrets=new Map();let liveValueEdited=false,originalExpiryInput='';
+let passivePending=false,passiveNextAt=0,passiveRevision=0,passiveStale=false;
 let editorBaseline=null,typedValueRevealed=false,pendingInlineAction=null;
 const browserSdk=()=>globalThis.OpenDeskSDK?.browser||null;
 function parseTarget(input){
@@ -68,7 +69,11 @@ const sameNativeSlot=(a,b)=>a.name===b.name&&a.path===b.path&&
   (a.storeId??null)===(b.storeId??null)&&
   (a.partitionKey?.topLevelSite??null)===(b.partitionKey?.topLevelSite??null)&&
   Boolean(a.partitionKey?.hasCrossSiteAncestor)===Boolean(b.partitionKey?.hasCrossSiteAncestor);
-const status=(msg,type='info')=>{E('status').textContent=msg;E('status').dataset.state=type;E('status').hidden=!msg;};
+const status=(msg,type='info')=>{
+  // Verified routine actions update their rows directly: no success banner.
+  const text=type==='success'?'':msg;
+  E('status').textContent=text;E('status').dataset.state=type;E('status').hidden=!text;
+};
 // Host/SDK error text (including error.code) is untrusted and may carry Cookie values.
 const safeErrorCodes=new Set([
   'E_CANCELLED','E_COOKIE_CONFLICT','E_OUTCOME_UNKNOWN','E_PERMISSION_REQUIRED',
@@ -92,6 +97,7 @@ const safeCookieDetail=error=>safeCookieDetails.has(error?.message)?error.messag
   '请手动刷新核对 Cookie，切勿盲目重试。';
 const notify=()=>setState?.({dirty,busy});
 const setBusy=value=>{
+  if(value)passiveRevision++; // Cancel an older passive read before any Host operation.
   busy=value;notify();
   for(const id of ['refresh','add','import-toggle','copy','download','clear','editor-save','import-apply','live-import-confirm','live-export-copy','live-export-confirm','editor-reset-value','live-export-metadata'])
     E(id).disabled=value||(!data&&id!=='refresh')||(id==='clear'&&!data?.cookies?.length);
@@ -228,16 +234,18 @@ function renderBrowser(){
   E('live-new').disabled=busy||!hasRead||targetPending;
   for(const id of ['live-import','live-export','live-clear'])
     E(id).disabled=busy||!hasRead||targetPending;
-  E('live-observe-start').disabled=busy||!hasRead||!!observing;
-  for(const id of ['live-observe-read','live-observe-stop'])E(id).disabled=busy||!observing;
   E('live-toolbar').hidden=!hasRead;
   E('live-filters').hidden=!hasRead;
-  E('browser-list-hint').hidden=!hasRead;
+  E('browser-list-hint').hidden=true;
   E('site-grant-status').textContent=mode==='offline'?'离线':
     !liveTarget?'无网站':targetPending?'待确认':!available?'服务不可用':
     hasRead?'✓ 已授权':liveState==='blocked'?'未授权':
     liveState==='error'?'读取失败':'检查中';
   E('site-grant-status').dataset.state=hasRead&&mode==='browser'?'ready':'pending';
+  if(passiveStale&&hasRead)E('site-grant-status').textContent='未同步';
+  E('site-grant-status').hidden=(hasRead&&!passiveStale)||mode==='offline';
+  E('mode-browser').hidden=mode==='browser';
+  E('mode-offline').hidden=mode==='offline';
   E('site-pick').disabled=busy||mode!=='browser';
   E('live-filter-toggle').disabled=busy||!hasRead;
   for(const chip of root.querySelectorAll('[data-cookie-filter]')){
@@ -493,7 +501,7 @@ function saveToList(list,row,previous=null){
 }
 async function refresh({preserveStatus=false}={}){
   const id=++epoch,prior=data;
-  shown.clear();liveSecrets.clear();observing=null;liveRows=[];liveState='idle';liveMessage='';setBusy(true);
+  shown.clear();liveSecrets.clear();passiveStale=false;liveRows=[];liveState='idle';liveMessage='';setBusy(true);
   try{
     let target=null;
     if(targetOverride)target=parseTarget(targetOverride);
@@ -511,10 +519,7 @@ async function refresh({preserveStatus=false}={}){
     E('site-host').textContent=target?.hostname||'尚未选择网站';
     E('site-url').textContent=target?.url||'';E('site-url').hidden=!target;
     E('target-url').value=target?.url||'';targetPending=false;
-    E('preview-banner').textContent='离线文件工具 · '+(target?
-      '本地数据以 '+host+' 为校验范围，不读取或修改 Chrome Cookie。':
-      '请返回浏览器模式，先选择 HTTP(S) 网站地址，再进入离线文件工具。')+
-      ' 关闭工具后临时数据不保留。';
+    E('preview-banner').textContent='离线文件 · 不修改 Chrome Cookie';
     if(!preserveStatus)status(mode==='offline'?'正在使用离线工作区；所有修改仅保存在临时内存。':'');
   }catch(error){if(id===epoch){liveState='error';liveMessage=String(error.message||error);status(liveMessage,'error');}}
   finally{if(id===epoch){
@@ -567,6 +572,40 @@ async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>t
   }
   return [...combined.values()];
 }
+// Passive refresh is active only while the visible Cookie list is idle.
+// No value reads, write retries, Host observation sessions or background polling.
+function passiveVisible(){
+  const doc=root.ownerDocument,mount=root.host||root;
+  return doc.visibilityState!=='hidden'&&mount?.isConnected!==false&&
+    (typeof mount?.getClientRects!=='function'||mount.getClientRects().length>0);
+}
+function passiveAllowed(){
+  return mode==='browser'&&liveState==='ready'&&!!liveTarget&&!targetPending&&
+    !busy&&!pending&&!dirty&&expandedCookieKey===null&&editor.hidden&&
+    importer.hidden&&E('live-export-panel').hidden&&passiveVisible();
+}
+function checkPassiveCookies(){
+  if(!passiveAllowed()||passivePending||Date.now()<passiveNextAt)return;
+  const target=liveTarget,id=epoch,revision=passiveRevision;
+  passivePending=true;
+  passiveNextAt=Date.now()+(liveRows.length>400?5000:2000);
+  const current=()=>passiveAllowed()&&epoch===id&&
+    liveTarget?.url===target.url&&revision===passiveRevision;
+  void (async()=>{
+    try{
+      const result=await scopedLiveCookies(browserSdk(),target,{isCurrent:current});
+      if(result===null||!current())return;
+      const next=redactMetadata(result);
+      if(passiveStale||JSON.stringify(next)!==JSON.stringify(liveRows)){
+        liveRows=next;passiveStale=false;render();
+      }
+    }catch{
+      if(current()){
+        passiveStale=true;passiveNextAt=Date.now()+30000;render();
+      }
+    }finally{passivePending=false;}
+  })();
+}
 async function readBrowserMetadata(){
   if(busy||pending||!liveTarget||targetPending)return;
   const sdk=browserSdk(),target=liveTarget,id=epoch;
@@ -588,7 +627,8 @@ async function readBrowserMetadata(){
     if(result===null)return;
     const rows=redactMetadata(result);
     if(id!==epoch||liveTarget?.url!==target.url||targetPending||mode!=='browser')return;
-    liveRows=rows;liveState='ready';liveMessage='';
+    liveRows=rows;liveState='ready';liveMessage='';passiveStale=false;
+    passiveNextAt=Date.now()+2000;
   }catch(error){
     if(id===epoch){liveRows=[];liveState='error';
       liveMessage='读取被拒绝或结果不确定（'+safeCookieCode(error,'E_COOKIE_READ')+
@@ -628,7 +668,7 @@ async function revealBrowserValue(row){
     if(receipt?.cookie?.valueRedacted!==false||typeof receipt.cookie.value!=='string'||
        key(receipt.cookie)!==identity)
       throw new Error('敏感值授权不足，值未被读取');
-    liveSecrets.set(identity,receipt.cookie.value);status('仅为选定 Cookie 显示当前敏感值。');
+    liveSecrets.set(identity,receipt.cookie.value);status('');
   }catch(e){if(stillCurrent(id,target)){
     // SDK errors are untrusted and may themselves contain a Cookie value.
     const code=safeCookieCode(e,'E_COOKIE_VALUES');
@@ -700,9 +740,7 @@ async function saveBrowserCookie(){
       if(removed?.removed!==true||removed.verified!==true)
         throw Object.assign(new Error('旧 Cookie 删除未确认'),{code:'E_OUTCOME_UNKNOWN'});
     }
-    confirmed=true;liveSecrets.clear();scrubEditors();
-    status(renamed?'Chrome 已确认新名称写入且旧名称删除。正在刷新列表。':
-      'Chrome 已确认保存。正在刷新列表。','success');
+    confirmed=true;liveSecrets.clear();scrubEditors();status('');
   }catch(e){if(stillCurrent(id,target)){
     if(newNameSaved){
       liveSecrets.clear();scrubEditors();
@@ -728,7 +766,7 @@ async function deleteBrowserCookie(row){
     if(!stillCurrent(id,target))return;
     if(result?.removed!==true||result.verified!==true)
       throw Object.assign(new Error('删除回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
-    confirmed=true;scrubEditors();status('Chrome 已确认删除「'+row.name+'」。','success');
+    confirmed=true;scrubEditors();status('');
   }catch(e){if(stillCurrent(id,target)){
     if(e.code==='E_CANCELLED')status('已取消删除，未删除 Cookie。');
     else status('删除未确认（'+safeCookieCode(e,'E_COOKIE_REMOVE')+
@@ -772,43 +810,6 @@ async function clearBrowserSite(){
   });
 }
 
-async function observeBrowser(action){
-  if(busy||!liveTarget||mode!=='browser'||targetPending)return;
-  const id=epoch,target=liveTarget;setBusy(true);
-  try{
-    if(action==='start'){
-      const state=await browserSdk().cookies.observe.start({url:target.url,durationMs:15000,maxEvents:40});
-      if(!stillCurrent(id,target))return;
-      observing=state;observeCursor='0';E('live-observe-events').replaceChildren();
-      E('live-observe-status').textContent='Cookie 元数据观察已启动，最长 15 秒；无敏感值。';
-    }else if(observing){
-      const args={url:target.url,sessionRef:observing.sessionRef};
-      if(action==='stop'){
-        await browserSdk().cookies.observe.stop(args);
-        if(!stillCurrent(id,target))return;
-        observing=null;E('live-observe-status').textContent='已停止观察。';
-      }else if(action==='read'){
-        const response=await browserSdk().cookies.observe.read({...args,cursor:observeCursor,limit:40});
-        if(!stillCurrent(id,target))return;
-        observeCursor=response.nextCursor;
-        const doc=root.ownerDocument;
-        for(const event of response.events||[]){
-          const row=doc.createElement('div');row.className='cookie-row';row.setAttribute('role','listitem');
-          row.textContent=(event.removed?'删除':'变更')+' · '+event.name+' · '+event.domain+event.path;
-          E('live-observe-events').append(row);
-        }
-        E('live-observe-status').textContent='本次读取 '+(response.events?.length??0)+
-          ' 个变化，缺口 '+response.gapCount+'，缓冲丢弃 '+response.droppedCount+'；无 Cookie 值。';
-      }
-    }
-  }catch(error){
-    if(stillCurrent(id,target)){
-      if(['E_SESSION_EXPIRED','E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED'].includes(error.code))observing=null;
-      E('live-observe-status').textContent='观察被拒绝或结束（'+safeCookieCode(error,'E_COOKIE_OBSERVE')+
-        '）：请检查会话和网站权限。';
-    }
-  }finally{if(id===epoch){setBusy(false);render();}}
-}
 async function exportBrowserCookies(method){
   if(!['copy','download'].includes(method)||busy||pending||!liveTarget||
       liveState!=='ready'||targetPending)return;
@@ -1191,11 +1192,9 @@ function scrubEditors(){
 function changeMode(next){
   if(busy||pending||mode===next)return;
   guarded(()=>{
-    scrubEditors();mode=next;liveSecrets.clear();observing=null;
-    E('offline-tools').open=next==='offline';
-    if(next==='browser')status('');
+    scrubEditors();mode=next;liveSecrets.clear();
+    E('offline-tools').open=false;status('');
     if(next==='browser'&&liveTarget&&liveState!=='ready'&&!targetPending)void readBrowserMetadata();
-    else status('离线工作区：新增、编辑、导入和清空均不影响真实 Chrome Cookie。');
     render();
   });
 }
@@ -1210,7 +1209,7 @@ E('target-url').addEventListener('input',()=>{
   const wasPending=targetPending;
   targetPending=E('target-url').value!==(liveTarget?.url||'');
   if(targetPending||wasPending){
-    epoch++;liveRows=[];liveState='idle';liveSecrets.clear();observing=null;
+    epoch++;liveRows=[];liveState='idle';liveSecrets.clear();
   }
   render();
   if(wasPending&&!targetPending&&mode==='browser'&&liveTarget)
@@ -1295,9 +1294,6 @@ function handleLiveExport(method){
 E('live-export-copy').addEventListener('click',()=>handleLiveExport('copy'));
 E('live-export-confirm').addEventListener('click',()=>handleLiveExport('download'));
 E('live-import-confirm').addEventListener('click',confirmLiveImport);
-E('live-observe-start').addEventListener('click',()=>{void observeBrowser('start');});
-E('live-observe-read').addEventListener('click',()=>{void observeBrowser('read');});
-E('live-observe-stop').addEventListener('click',()=>{void observeBrowser('stop');});
 E('site-pick').addEventListener('click',()=>{
   if(busy||mode!=='browser')return;
   const picker=E('target-selector');picker.open=!picker.open;
@@ -1436,7 +1432,7 @@ root.addEventListener('keydown',event=>{
 root.addEventListener('opendesk-cookie-grants-changed',()=>{
   mark();
   const wasBusy=busy,preserveDraft=!wasBusy&&dirty&&(!editor.hidden||!importer.hidden);
-  liveSecrets.clear();observing=null;
+  liveSecrets.clear();
   E('editor-revealed-value').textContent='';
   E('editor-revealed-value').hidden=true;
   E('editor-reveal-value').hidden=true;
@@ -1454,7 +1450,7 @@ root.addEventListener('opendesk-page-changed',()=>{
   const switchSite=(preserveStatus=false)=>{
     // Invalidate every in-flight native receipt before any new target is read.
     epoch++;data=null;liveRows=[];busy=false;dirty=false;liveState='idle';
-    shown.clear();liveSecrets.clear();observing=null;
+    shown.clear();liveSecrets.clear();
     scrubEditors();cancelConfirmation();setBusy(false);render();void refresh({preserveStatus});
   };
   if(busy){
@@ -1469,8 +1465,17 @@ root.addEventListener('opendesk-page-changed',()=>{
   if(pending)cancelConfirmation();
   guarded(switchSite);
 });
-root.ownerDocument.defaultView?.addEventListener?.('pagehide',()=>{
-  epoch++;liveRows=[];data=null;liveTarget=null;shown.clear();liveSecrets.clear();observing=null;scrubEditors();
+const passiveWindow=root.ownerDocument.defaultView;
+const resumePassive=()=>{if(!passiveVisible())return;passiveNextAt=0;checkPassiveCookies();};
+const passiveTimer=passiveWindow?.setInterval?.(checkPassiveCookies,1000);
+passiveWindow?.addEventListener?.('focus',resumePassive);
+root.ownerDocument.addEventListener('visibilitychange',resumePassive);
+passiveWindow?.addEventListener?.('pagehide',()=>{
+  if(passiveTimer!==undefined)passiveWindow.clearInterval(passiveTimer);
+  passiveWindow.removeEventListener('focus',resumePassive);
+  root.ownerDocument.removeEventListener('visibilitychange',resumePassive);
+  passiveRevision++;epoch++;liveRows=[];data=null;liveTarget=null;
+  shown.clear();liveSecrets.clear();scrubEditors();
 },{once:true});
 void refresh();
 })();

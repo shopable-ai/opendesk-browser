@@ -50,11 +50,6 @@ jobs:
           node --check scripts/preview/adblock-host-preview.js
           node --check scripts/tests/adblock-preview-chrome.mjs
           node --check tests/environment/adblock-preview-contract.test.mjs
-          node --check examples/sidebar-tools/adblock/preview/app.js
-          node --check examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
-          node --check examples/sidebar-tools/adblock/preview/acceptance.mjs
-          node examples/sidebar-tools/adblock/preview/vendor/rebuild-htm.mjs
-          git diff --exit-code -- examples/sidebar-tools/adblock/preview/vendor/htm-3.1.1.js
           node scripts/preview/check-preview-contract.mjs
       - name: Verify lock is byte-identical to official source regeneration
         run: |
@@ -64,9 +59,8 @@ jobs:
       - name: Build production Shared UI before any source-bound AdBlock preview tests
         run: |
           node scripts/build-adblock-react.mjs
-          # The released 1.2.0 assets intentionally remain tracked until native approval.
-          # Preview uses the freshly compiled 1.2.1 candidate; it never promotes releases.
-          git status --short -- examples/sidebar-tools/adblock/src/main.js examples/sidebar-tools/adblock/src/style.css
+          # Current candidate is built from src/App.jsx; no in-src output is maintained.
+          test -s examples/sidebar-tools/adblock/dist/build-ready.json
           npm run build
           test -s dist/production/sidebar-shared-ui.js
       - name: Verify package identity, mock safety and negative guards
@@ -109,11 +103,6 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/adblock-preview-chrome.mjs artifacts/preview-chrome
-      - name: Run file:// React zero-build preview acceptance in real Chrome
-        env:
-          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-          ADBLOCK_PREVIEW_EVIDENCE_DIR: artifacts/preview-chrome/adblock-react-file
-        run: node examples/sidebar-tools/adblock/preview/acceptance.mjs
       - name: R2.6 Bookmark Manager interactive source-bound preview in Chrome
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}

@@ -80,7 +80,8 @@ try{
   await button('筛选与排序').click();await button('分区').click();
   assert.equal(await page.locator('.cookie-row').count(),1);assert.equal(await row('embedded_pref').count(),1);
   await button('全部').click();await button('筛选与排序').click();
-  await row('embedded_pref').click();await editor().locator('summary').click();
+  await row('embedded_pref').click();await editor().locator('.advanced > summary').click();
+  await editor().locator('.editor-identity > summary').click();
   assert.match(await editor().innerText(),/Store ID/);assert.match(await editor().innerText(),/PartitionKey/);
   assert.equal(await page.locator('input[type=password]').count(),0);
   await button('取消').click();
@@ -157,9 +158,9 @@ try{
  });
  await test('shared offline workspace starts empty and live data returns on explicit browser mode',async()=>{
   const utility=page.locator('.cookie-utility-settings');await utility.locator('summary').click();
-  await button('离线工作区').click();await page.locator('.cookie-offline').waitFor();
+  await button('离线文件').click();await page.locator('.cookie-offline').waitFor();
   assert.equal(await page.locator('.cookie-row').count(),0);
-  await button('浏览器').click();await ready();
+  await button('返回浏览器').click();await ready();
  });
  await test('380px dark and editing evidence; clear-value icon stays inside input',async()=>{
   await reset();await button('深色').click();

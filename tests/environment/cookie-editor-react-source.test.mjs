@@ -21,7 +21,10 @@ test('Cookie React candidate has isolated root and single public SDK pathway',as
   assert.match(app,/OpenDeskSDK\?\.browser/);
   assert.match(app,/opendesk-cookie-grants-changed/);
   assert.match(app,/opendesk-page-changed/);
-  assert.match(controller,/retireObservation/);
+  assert.match(controller,/async function syncMetadata/);
+  assert.match(app,/controller\.syncMetadata/);
+  assert.match(app,/document\.visibilityState/);
+  assert.doesNotMatch(app,/cookie-observe-fold|变化观察/);
   assert.match(adapter,/capabilities\.getStatus/);
   assert.doesNotMatch(app,/chrome\.cookies|document\.cookie|localStorage|sessionStorage/);
 });
@@ -90,8 +93,9 @@ test('advanced Cookie identities use shared-App JSX and remain read-only for exi
   assert.match(view,/readOnly=\{existing\}/);
   assert.match(view,/Store ID/);
   assert.match(view,/PartitionKey/);
-  assert.match(view,/属性与高级设置/);
-  assertSharedApp(preview);
+  assert.match(view,/<summary>属性<\/summary>/);
+  assert.match(view,/editor-identity-fields/);
+  assert.doesNotMatch(view,/设备本地时间；|Domain Cookie/);
   assert.match(editor,/<CookieAdvancedFields draft=\{draft\}/);
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|localStorage/);
 });

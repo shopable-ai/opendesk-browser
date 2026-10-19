@@ -4,7 +4,7 @@ export {SIDEPANEL_DOCUMENT_PATH} from '../src/tool-document-url.js';
 export const PACKAGE_ENTRIES = Object.freeze({
   sw: './src/sw.js',
   'ui/tool-shell': './src/ui/tool-shell.js',
-  'cloud-control/cloud-runner': './src/cloud-control/runner.js',
+  'cloud-control/cloud-runner': './src/entrypoints/cloud-runner.js',
   'ui/stay-focus-controls': './src/entrypoints/stay-focus-controls.js',
   'ui/trusted-cookie-ui': './src/entrypoints/trusted-cookie-ui.js',
   'ui/sidebar-tool-host': './src/entrypoints/sidebar-tool-host.js',

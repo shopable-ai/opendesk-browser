@@ -252,3 +252,27 @@ input[type=file]{min-width:0;width:100%;max-width:100%;font-size:12px}.export-ac
  #editor-panel .field,#editor-panel .cookie-advanced-fields .field{grid-template-columns:54px minmax(0,1fr);gap:6px}
 }
 @media(prefers-reduced-motion:reduce){.row-chevron{transition:none}}
+
+
+/* R5.20: compact native toolbar and one discoverable low-frequency tools menu. */
+.site-bar{position:relative;z-index:2;min-height:43px;padding:7px 9px}
+.site-bar .site-meta{flex:1;min-width:0}
+.site-bar #offline-tools.workspace-options{position:static;flex:none;border:0;margin:0;padding:0}
+.site-bar #offline-tools>summary{display:grid;place-items:center;width:30px;height:30px;list-style:none;border-radius:7px;cursor:pointer;color:var(--od-sub)}
+.site-bar #offline-tools>summary::-webkit-details-marker{display:none}
+.site-bar #offline-tools>summary svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.5;fill:currentColor}
+.site-bar #offline-tools>summary:hover{background:var(--od-paper)}
+.site-bar #offline-tools .mode-tabs{position:absolute;z-index:10;top:calc(100% + 4px);right:9px;min-width:min(190px,calc(100vw - 24px));display:block;padding:5px;border:1px solid var(--od-line);background:var(--od-paper);border-radius:9px;box-shadow:0 8px 22px rgba(20,30,48,.13)}
+.site-bar #offline-tools .mode-button:not([hidden]){display:block;width:100%;text-align:left;min-height:32px;padding:6px 9px}
+.site-bar #offline-tools .mode-button[hidden]{display:none!important}
+#target-selector[open]{margin-top:0}
+#target-selector .target-entry{display:flex;gap:6px;align-items:center}
+#target-selector .target-entry input{flex:1}
+#target-selector .target-entry .icon-button{width:33px;height:33px}
+#editor-panel.cookie-inline #editor-reset-value{grid-column:2;justify-self:start;width:30px;height:30px}
+#editor-panel .form-actions>.icon-button{width:34px;height:34px;min-width:34px}
+#editor-panel #editor-save{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#editor-panel #editor-save svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#editor-panel .cookie-advanced>summary{font-size:11px;color:var(--od-sub)}
+#browser-list-hint{display:none!important}
+@media(max-width:260px){.site-bar #offline-tools .mode-tabs{right:4px;left:4px;min-width:0}#target-selector .target-entry{flex-wrap:wrap}#target-selector .target-entry input{flex-basis:100%}}

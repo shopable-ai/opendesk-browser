@@ -155,7 +155,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         event.target.matches?.('input[type="text"]'))submit(event);
     }}>
     <div className="cookie-editor-heading editor-top">
-      <strong>{edited?'编辑 Cookie':'新建 Cookie'}</strong>
+      <strong>{edited?'编辑':'新建'}</strong>
       <span className="editor-top-right">
         {dirty&&<em className="cookie-dirty-note">未保存</em>}
       </span>
@@ -169,13 +169,13 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       <CookieValueField inputRef={valueRef} disabled={disabled} onChange={setInputEdited}
         showClear={valuePresent} onClear={clearValue}
         placeholder={edited?(readStatus==='loading'?'正在读取原值…':
-          readStatus==='expired'?'原值已自动隐藏 · 保存时重新读取':
-          '未读取原值 · 可输入新值'):'输入 Cookie 值（可为空）'}/>
+          readStatus==='expired'?'原值已隐藏':
+          '留空保留原值'):'可为空'}/>
     </div>
     {edited&&(valueEdited||readStatus==='unavailable')&&
       <div className="cookie-value-restore value-controls">
         {valueEdited?<span>{valueRef.current?.value===''?'将写入空值':'将写入新值'}</span>:
-          <span>原值未读取，留空代表保留</span>}
+          <span>未读取 · 留空保留</span>}
         {valueEdited&&originalValueRef.current!==null&&
           <CookieIconButton name="undo" label="恢复原值" className="cookie-value-undo"
             disabled={disabled} onClick={restoreValue}/>}
@@ -183,7 +183,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     <CookieAdvancedFields draft={draft} existing={edited} disabled={disabled}
       onChange={update} error={message}/>
     {edited&&draft.name!==row.name&&<p className="editor-hint">
-      更名将先新建并核实，再删除旧名称；失败时请刷新核对。
+      更名先创建新项，再删除旧项。
     </p>}
     {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
     {discardConfirm&&<div className="discard-row" role="status">
@@ -196,7 +196,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         className="cookie-editor-icon-action" onClick={()=>onDelete?.(row.id)}
         disabled={disabled}/>}
       <span className="cookie-spacer"/>
-      <Button type="button" disabled={disabled} onClick={requestClose}>取消</Button>
+      <CookieIconButton name="close" label="取消" disabled={disabled}
+          onClick={requestClose}/>
       <Button variant="primary" type="button" onClick={submit}
         className="cookie-editor-save" disabled={disabled||(edited&&!dirty)}>
         <CookieIcon name="check"/>保存

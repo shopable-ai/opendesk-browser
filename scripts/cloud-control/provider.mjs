@@ -136,7 +136,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
         if(!clientId)fail('E_AUTH');
         client={...state.clients[clientId],clientId};
         const target=state.executors[client.executorId];
-        if(!target||target.revokedAt||target.pairingId!==client.pairingId||
+        if(!target||target.revokedAt||target.revocation||target.pairingId!==client.pairingId||
           !client.grantId||client.grantId!==target.grantId)fail('E_AUTH');
       }else if(path!=='/v1/pair'){executorId=Object.keys(state.executors).find(id=>
         !state.executors[id].revokedAt&&secureEqual(req.headers.authorization,'Bearer '+state.executors[id].credential));
@@ -148,7 +148,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
           if(!live||live.revokedAt||live.credential!==client.credential||
             live.executorId!==client.executorId||live.pairingId!==client.pairingId||
             live.grantId!==client.grantId||
-            state.executors[live.executorId]?.grantId!==live.grantId)fail('E_AUTH');
+            (state.executors[live.executorId]?.revocation||state.executors[live.executorId]?.grantId!==live.grantId))fail('E_AUTH');
         }
         let out;
         switch(path){
@@ -165,7 +165,11 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
           case '/v1/revoke':{
  exact(b,['revocationId'],['pairingId','pairingGeneration']);if(!nonempty(b.revocationId)||b.revocationId.length>150)fail('E_SCHEMA');
  const e=state.executors[executorId],pair=pairing(executorId);for(const k of ['pairingId','pairingGeneration'])if(Object.hasOwn(b,k)&&b[k]!==pair[k])fail('E_PAIRING');
- out=e.revocation??{providerId:pair.providerId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,revocationId:b.revocationId,revoked:true};e.revocation=out;purgePairingPrograms(executorId,pair.pairingId);afterCommit=()=>retire(executorId);break;}
+ if(e.revocation&&e.revocation.revocationId!==b.revocationId)fail('E_REVOCATION');
+ out=e.revocation??{providerId:pair.providerId,pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,revocationId:b.revocationId,revoked:true};
+ e.revocation=out;
+ for(const client of Object.values(state.clients))if(client.executorId===executorId&&client.pairingId===pair.pairingId)client.revokedAt??=clock()||1;
+ purgePairingPrograms(executorId,pair.pairingId);afterCommit=()=>retire(executorId);break;}
  case '/v1/unpair':{
             exact(b,[]);const row=state.executors[executorId];
             row.revokedAt=clock()||1;row.credential=token();delete row.capabilities;delete row.grantId;
@@ -225,7 +229,17 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             const e=state.executors[executorId];if(Object.hasOwn(b,'grantId')&&(!e.grantId||b.grantId!==e.grantId))fail('E_GRANT');if(e.suspendedAt)fail('E_CLOUD_STOPPED');
             const legacy=e.pairingId===e.legacyPairingId&&e.pairingGeneration===e.legacyPairingGeneration;
             const scope=legacy&&state.requests[executorId+':claim:'+b.claimId]?executorId+':claim':executorId+':'+e.pairingId+':'+e.pairingGeneration+':claim';
-            out=once(scope,b.claimId,b,()=>{
+            // A legacy persisted claim answer may predate the explicit grantId field.
+            // Only byte-identical old body plus the SAME currently approved grant
+            // can reuse it. Never silently create another assignment.
+            const cached=state.requests[scope+':'+b.claimId];
+            if(cached&&Object.hasOwn(b,'grantId')&&cached.digest===hash({claimId:b.claimId,tasks:b.tasks})){
+              if(cached.answer?.assignment){
+                const priorJob=owned(cached.answer.assignment,executorId);
+                if(priorJob.targetGrantId!==b.grantId)fail('E_GRANT');
+              }
+              out=structuredClone(cached.answer);
+            }else out=once(scope,b.claimId,b,()=>{
               if(![...sockets.values()].some(p=>(p.executorId??p)===executorId&&activePairing(p)))fail('E_CONNECTION');
               const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.assignment&&!Object.hasOwn(j,'attemptEpoch')&&!j.cancelled&&
                 j.targetExecutorId===executorId&&(!j.targetPairingId||j.targetPairingId===e.pairingId)&&
@@ -244,6 +258,12 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
             exact(b,['assignmentId','permitId'],[...bindingKeys,'binding']);const j=owned(b,executorId);assertBinding(j,b);const permit=currentPermit(j),e=state.executors[executorId];
             if(!nonempty(b.permitId)||permit.permitId!==b.permitId||!Number.isFinite(permit.leaseUntil)||permit.leaseUntil<=clock()||j.cancelled||j.assignment.leaseUntil<=clock()||(j.targetGrantId&&j.targetGrantId!==e.grantId)||e.suspendedAt)fail('E_LEASE');
             j.assignment.leaseUntil=clock()+90000;j.permit={...permit,leaseUntil:j.assignment.leaseUntil};out={leaseUntil:j.assignment.leaseUntil};break;}
+          case '/v1/cancel':{
+            exact(b,['assignmentId'],[...bindingKeys,'binding']);
+            const j=owned(b,executorId);assertBinding(j,b);
+            if(j.receipt){out={cancelled:false,alreadyFinished:true};break;}
+            j.cancelled=true;j.cancelledAt??=clock()||1;
+            out={cancelled:true,alreadyFinished:false};break;}
           case '/v1/cancellation':{
             exact(b,['assignmentId'],[...bindingKeys,'binding']);const j=owned(b,executorId);out={cancelled:Boolean(j.cancelled),leaseUntil:j.assignment.leaseUntil};break;}
           case '/v1/receipt':{

@@ -75,22 +75,48 @@ async function attach(c,targetId){
  */
 async function attachActualPanel(c,context,excludeIds=[]){
   assert.ok(context?.documentId&&context?.documentUrl,
-    'Chrome must report a real SIDE_PANEL document');
+    'Chrome must report real SIDE_PANEL document');
   const expected=new URL(context.documentUrl);
   return until(async()=>{
     const targets=(await c.send('Target.getTargets')).targetInfos
       .filter(x=>!excludeIds.includes(x.targetId)&&
-        (x.type==='page'||x.type==='other')&&x.url?.startsWith(expected.origin+expected.pathname));
+        (x.type==='page'||x.type==='other')&&(()=>{
+          try{const actual=new URL(x.url);return actual.protocol===expected.protocol&&actual.host===expected.host&&
+            actual.pathname===expected.pathname;}
+          catch{return false;}
+        })());
     for(const target of targets){
+      let session;
       try{
-        const session=await attach(c,target.targetId);
-        const realPanel=await evaluate(c,session,
-          '!!document.querySelector("#tab-tools")&&!!document.querySelector("#sidebar-tool-frame")');
-        if(realPanel)return {target,session};
-      }catch{/* An unready target is not proof of a Side Panel. */}
+        session=await attach(c,target.targetId);
+        // Ask inside this document. A CDP target ID is not a Chrome document ID.
+        // Never use a canonical context URL to query all same-path panels: that
+        // would also authenticate a different panel with the same canonical URL.
+        const identity=await evaluate(c,session,`(async()=>{
+          const href=location.href;
+          const contexts=await chrome.runtime.getContexts({
+            contextTypes:["SIDE_PANEL"],documentUrls:[href]
+          });
+          return {href,hostInstanceId:new URL(href).searchParams.get("hostInstanceId"),
+            contexts,realPanel:!!document.querySelector("#tab-tools")&&
+              !!document.querySelector("#sidebar-tool-frame")};
+        })()`);
+        const own=identity.contexts.filter(x=>x.documentId===context.documentId&&
+          x.documentUrl===context.documentUrl&&x.contextType==='SIDE_PANEL');
+        const actual=new URL(identity.href);
+        const targetUrl=new URL(target.url);
+        const selectedHost=expected.searchParams.get('hostInstanceId');
+        if(identity.realPanel&&own.length===1&&
+          actual.href===targetUrl.href&&identity.hostInstanceId&&
+          (!selectedHost||selectedHost===identity.hostInstanceId)&&
+          own[0].documentUrl===context.documentUrl){
+          return {target,session,identity};
+        }
+      }catch{/* An unready target is not proof of Side Panel identity. */}
+      if(session)await c.send('Target.detachFromTarget',{sessionId:session}).catch(()=>{});
     }
     return null;
-  },'real Side Panel CDP target with verified panel DOM',25000);
+  },'real Side Panel self-reported documentId and full URL/hostInstanceId',25000);
 }
 async function attachActualReact(c,side){
   const url=await until(()=>evaluate(c,side,
@@ -101,20 +127,30 @@ async function attachActualReact(c,side){
     .find(x=>x.type==='iframe'&&x.url===url),
     'real isolated React iframe CDP target',25000);
   const session=await attach(c,target.targetId);
+  await until(()=>evaluate(c,session,'!!document.querySelector(".adblock-app")'),
+    'installed React root mounted',25000);
+  await writeFile(path.join(OUT,'installed-react-dom.json'),JSON.stringify(await evaluate(c,session,
+    '({url:location.href,switches:[...document.querySelectorAll("[data-slot=switch],input")].map(n=>'+
+    '({tag:n.tagName,html:n.outerHTML}))})'),null,2));
   await until(()=>evaluate(c,session,
     '!!document.querySelector(".adblock-app")&&'+
-    '!!document.querySelector("[data-slot=\\"switch\\"][aria-label=\\"全局广告拦截\\"]")'),
+    '!!document.querySelector('+JSON.stringify(reactSwitchSelector('全局广告拦截'))+')'),
     'installed React App and React Aria switch mounted',25000);
   return session;
 }
+function reactSwitchSelector(label){
+  return '[data-slot="switch"]:has(input[role="switch"][aria-label='+JSON.stringify(label)+'])';
+}
 async function reactSwitch(c,session,label){
-  // The real shared React Aria Switch puts its selected and disabled state
-  // on the labeled data-slot=switch element (the input may be visually hidden).
-  const selector='[data-slot="switch"][aria-label="'+label+'"]';
-  return evaluate(c,session,
+  const selector=reactSwitchSelector(label);
+  const state=await evaluate(c,session,
     '(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
-    'return n?{on:n.hasAttribute("data-selected"),'+
-    'disabled:n.hasAttribute("data-disabled")}:null;})()');
+    'const input=n?.querySelector("input[role=switch]");'+
+    'return n&&input?{on:input.checked,selected:n.hasAttribute("data-selected"),'+
+    'disabled:input.disabled||n.hasAttribute("data-disabled")}:null;})()');
+  if(state)assert.equal(state.on,state.selected,
+    label+' native input.checked must agree with React selected state');
+  return state;
 }
 async function requestReactReview(c,side,react,selector,expectedCopy){
   await clickSandbox(c,side,react,selector);
@@ -138,13 +174,13 @@ async function approveReactReview(c,side){
 // Observe actual Chrome calls without supplying permissions, results or gestures.
 // Invoke the original synchronously so permissions.request retains user activation.
 function observeNativeCalls(){
-  if(typeof document==='undefined'||location.protocol!=='chrome-extension:'||!globalThis.chrome?.runtime?.id||
+  if(location.protocol!=='chrome-extension:'||!globalThis.chrome?.runtime?.id||
     globalThis.__adblockNativeObserved)return;
   globalThis.__adblockNativeObserved=true;
   const record=value=>console.debug('ADBLOCK_NATIVE_CALL '+JSON.stringify({
     eventId:crypto.randomUUID(),at:new Date().toISOString(),url:location.href,...value}));
   record({kind:'context',extensionId:chrome.runtime.id,manifest:chrome.runtime.getManifest(),
-    world:'trusted_document'});
+    world:typeof document==='undefined'?'extension_worker':'trusted_document'});
   const errorValue=error=>({name:error?.name,code:error?.code,
     message:error?.message,stack:error?.stack});
   for(const [owner,name] of [[chrome.permissions,'contains'],[chrome.permissions,'request'],
@@ -169,7 +205,7 @@ function observeNativeCalls(){
       return result;
     };
   }
-  for(const type of ['pointerdown','click'])document.addEventListener(type,event=>{
+  if(typeof document!=='undefined')for(const type of ['pointerdown','click'])document.addEventListener(type,event=>{
     const control=event.target.closest?.('#sidebar-tool-action-review button');
     if(control)record({kind:'input',type,isTrusted:event.isTrusted,
       control:control.getAttribute('aria-label'),disabled:control.disabled,
@@ -351,7 +387,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     chromeBin:BIN,packageSHA256:createHash('sha256').update(bytes).digest('hex'),
     env:'real-macos-chrome',status:'NOT_TESTED',nativePermission:'NOT_TESTED',
     network:'NOT_TESTED',globalToggle:'NOT_TESTED',siteException:'NOT_TESTED',
-    otherSite:'NOT_TESTED',iframe:'NOT_TESTED',closedPanel:'NOT_TESTED',
+    otherSite:'NOT_TESTED',iframe:'NOT_TESTED',nestedIframe:'NOT_TESTED',
+    siteReviewDrift:'NOT_TESTED',closedPanel:'NOT_TESTED',
     restoreCancellation:'NOT_TESTED',workerStoppedDnr:'NOT_TESTED',
     workerRestart:'NOT_TESTED',browserRestart:'NOT_TESTED',upgrade:'NOT_TESTED',coexistence:'NOT_TESTED',
     physicalWidths:{status:'NOT_TESTED',requested:[320,360,400,480],
@@ -378,7 +415,9 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       counts.framePage++;
       res.setHeader('content-type','text/html;charset=utf-8');
       const image='http://zedo.com:'+port+'/frame-pixel?nonce='+encodeURIComponent(uri.searchParams.get('n')||'');
-      res.end('<!doctype html><h1>iframe served</h1><img src="'+image+'">');
+      const child=uri.searchParams.get('child');
+      res.end('<!doctype html><h1>iframe served</h1><img src="'+image+'">'+
+        (child?'<iframe src="'+child.replaceAll('&','&amp;').replaceAll('"','&quot;')+'"></iframe>':''));
     }else if(uri.pathname==='/ad-pixel'||uri.pathname==='/frame-pixel'||uri.pathname==='/normal-pixel'){
       if(uri.pathname==='/frame-pixel'&&hostname==='zedo.com')counts.frameAd++;
       if(uri.pathname==='/ad-pixel'&&hostname==='zedo.com')counts.ad++;
@@ -485,6 +524,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   const worker=(await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='service_worker'&&x.url==='chrome-extension://'+id+'/sw.js');
   const workerSession=(await client.send('Target.attachToTarget',{targetId:worker.targetId,flatten:true})).sessionId;
   await client.send('Runtime.enable',{},workerSession);
+  await evaluate(client,workerSession,'('+observeNativeCalls.toString()+')()');
   const visit=await client.send('Target.createTarget',{url:page});
   let site=await attach(client,visit.targetId);
   await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'first-party fixture');
@@ -507,11 +547,15 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return entries.find(x=>x.documentUrl?.includes('/sidepanel.html')&&x.documentId)||null;
   },'actual Side Panel document');
   // A Chrome SIDE_PANEL context may use a canonical URL, while the actual
-  // page target appends ?hostInstanceId=... . Check panel DOM before binding.
+  // page target appends ?hostInstanceId=... . Require document-local context proof.
+  note('side-panel-context-targets',{context,
+    contexts:await evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})'),
+    targets:(await client.send('Target.getTargets')).targetInfos.map(({targetId,type,url})=>({targetId,type,url}))});
   const initialPanel=await attachActualPanel(client,context,[ui.targetId]);
   let panel=initialPanel.target,sid=initialPanel.session;
   report.nativePanel={documentId:context.documentId,contextUrl:context.documentUrl,
-    targetId:panel.targetId,targetUrl:panel.url,targetType:panel.type};
+    targetId:panel.targetId,targetUrl:panel.url,targetType:panel.type,
+    identity:initialPanel.identity};
   await click(client,sid,'#tab-tools');
   // The R4 extension center is the only visible installation surface. The
   // historical discovery button still exists in markup but is CSS-hidden.
@@ -542,6 +586,11 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await click(client,sid,'#extension-center-more');
   const installed='#extension-center-list button[data-extension-key="app:adblock"][data-extension-action="primary"]';
   const openInstalled=async session=>{
+    await until(()=>evaluate(client,session,'(()=>{'+
+    'const tools=document.querySelector("#workbench-tools"),importing=document.querySelector("#sidebar-tool-import");'+
+    'const file=document.querySelector("#sidebar-tool-file"),close=document.querySelector("#sidebar-tool-import-close");'+
+    'return !!tools&&!tools.hidden&&!!importing&&importing.hidden&&!!file&&!file.disabled&&!!close&&!close.disabled;})()'),
+    'trusted Host installation finishes and Tools route is visible');
     await until(()=>evaluate(client,session,'(()=>{const list=document.querySelector("#extension-center-list");'+
       'const b=document.querySelector('+JSON.stringify(installed)+'),row=b?.closest("li");'+
       'return list?.getAttribute("aria-busy")==="false"&&!!row&&'+
@@ -605,8 +654,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   note('react-installed-settings-navigation',{opened:true,returned:true});
 
   const globalLabel='全局广告拦截';
-  const globalSelector='[data-slot="switch"][aria-label="全局广告拦截"]';
-  const currentSelector='[data-slot="switch"][aria-label="当前网站广告过滤"]';
+  const globalSelector=reactSwitchSelector('全局广告拦截');
+  const currentSelector=reactSwitchSelector('当前网站广告过滤');
   await until(async()=>{
     const x=await reactSwitch(client,react,globalLabel);return x&&!x.disabled&&!x.on;
   },'installed React starts with global protection OFF');
@@ -658,6 +707,10 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
       'await chrome.windows.update(t.windowId,{focused:true});return t.id;})()');
   };
   await activateFixture();
+  note('active-site-native-window',await evaluate(client,sid,
+    '(async()=>({window:await chrome.windows.getCurrent(),'+
+    'contexts:await chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}),'+
+    'tabs:await chrome.tabs.query({active:true})}))()'));
   await until(()=>evaluate(client,react,
     'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),
     'real current-site identity from Chrome');
@@ -665,6 +718,56 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await until(async()=>{
     const x=await reactSwitch(client,react,currentLabel);return x&&!x.disabled&&x.on;
   },'React site switch enabled for the current HTTP website');
+  const beforeStaleReview=await getOwned(client,uid);
+  const beforeStaleRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
+  // Capture the actual Host reply. React immediately rereads the new page and
+  // can clear the transient notice before the next CDP polling interval.
+  await evaluate(client,react,`(()=>{
+    globalThis.__adblockDriftReplies=[];
+    globalThis.__adblockDriftObserver=event=>{
+      const value=event.data;
+      if(event.source===parent&&value?.toolId==='adblock'&&value.kind==='response')
+        globalThis.__adblockDriftReplies.push(structuredClone(value));
+    };
+    addEventListener('message',globalThis.__adblockDriftObserver);
+  })()`);
+  const dnrWrites=()=>nativeCallTrace.filter(x=>x.kind==='call'&&
+    x.name==='updateDynamicRules'&&x.sessionId===workerSession);
+  const writesBeforeStale=dnrWrites().length;
+  await requestReactReview(client,sid,react,currentSelector,'关闭 127.0.0.1 的广告过滤');
+  const reviewOther=await client.send('Target.createTarget',{url:otherPage});
+  const reviewOtherSession=await attach(client,reviewOther.targetId);
+  await until(()=>evaluate(client,reviewOtherSession,
+    'document.querySelector("h1")?.textContent==="Network fixture ready"'),
+    'website B loaded while A review remains open');
+  await evaluate(client,uid,'(async()=>{const t=(await chrome.tabs.query({url:'+JSON.stringify(otherPage)+'}))[0];'+
+    'if(!t)throw Error("website B tab unavailable");await chrome.tabs.update(t.id,{active:true});'+
+    'await chrome.windows.update(t.windowId,{focused:true});return t.id;})()');
+  await until(()=>evaluate(client,uid,'chrome.tabs.query({active:true,lastFocusedWindow:true}).then(t=>t[0]?.url==='+
+    JSON.stringify(otherPage)+')'),'website B is truly active before confirming A review');
+  await approveReactReview(client,sid);
+  const staleReply=await until(()=>evaluate(client,react,
+    'globalThis.__adblockDriftReplies.find(x=>x.ok===false&&'+
+    '/^E_ADBLOCK_(SITE|STATE)_CHANGED$/.test(x.error?.code))'),
+    'trusted A review rejects the changed active website');
+  await evaluate(client,react,'removeEventListener("message",globalThis.__adblockDriftObserver)');
+  assert.deepEqual(await getOwned(client,uid),beforeStaleReview,
+    'rejected A review must preserve both A/B exceptions and state');
+  const afterStaleRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
+  assert.deepEqual([...afterStaleRules].sort((a,b)=>a.id-b.id),
+    [...beforeStaleRules].sort((a,b)=>a.id-b.id),'changed-site review must preserve all DNR rules');
+  assert.equal(dnrWrites().length,writesBeforeStale,
+    'changed-site review must not even issue an extra DNR write');
+  report.siteReviewDrift='PASS';
+  note('trusted-review-site-change-rejected',{reply:staleReply,
+    exceptions:beforeStaleReview.state?.exceptions,dnrWrites:dnrWrites().length-writesBeforeStale});
+  await client.send('Target.closeTarget',{targetId:reviewOther.targetId});
+  await activateFixture();
+  await until(()=>evaluate(client,react,
+    'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),
+    'website A identity restored after rejected review');
+  await until(async()=>{const x=await reactSwitch(client,react,currentLabel);
+    return x&&!x.disabled&&x.on;},'website A remains filtered after rejected review');
   await requestReactReview(client,sid,react,currentSelector,'关闭 127.0.0.1 的广告过滤');
   await approveReactReview(client,sid);
   await until(async()=>{
@@ -695,6 +798,54 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await until(()=>counts.framePage>0,'actual descendant iframe page requested');
   await until(()=>counts.frameAd>frameBefore,'real descendant iframe request exempted');
   report.iframe='PASS';note('nested-iframe-exception',{framePageHits:counts.framePage,adHits:counts.frameAd});
+  const nestedNonce=randomUUID(),outerNonce=randomUUID(),nestedProbeNonce=randomUUID();
+  const innerUrl='http://localhost:'+port+'/frame?n='+nestedNonce;
+  const outerUrl='http://zedo.com:'+port+'/frame?n='+outerNonce+'&child='+encodeURIComponent(innerUrl);
+  await evaluate(client,site,'(()=>{const f=document.createElement("iframe");f.src='+
+    JSON.stringify(outerUrl)+';document.body.append(f);return true;})()');
+  await until(()=>serverRequests.some(x=>x.hostname==='zedo.com'&&x.path==='/frame'&&
+    new URLSearchParams(x.query).get('n')===outerNonce)&&serverRequests.some(x=>
+    x.hostname==='localhost'&&x.path==='/frame'&&new URLSearchParams(x.query).get('n')===nestedNonce),
+    'both cross-origin iframe levels reach the HTTP server with distinct nonces');
+  const innerTarget=await until(async()=>(await client.send('Target.getTargets')).targetInfos
+    .find(x=>x.type==='iframe'&&x.url===innerUrl),'real second-level cross-origin iframe target');
+  const innerSession=await attach(client,innerTarget.targetId);
+  await until(()=>evaluate(client,innerSession,'document.readyState==="complete"'),
+    'second-level cross-origin document ready');
+  const tree=(await client.send('Page.getFrameTree',{},site)).frameTree;
+  const outerTarget=await until(async()=>(await client.send('Target.getTargets')).targetInfos
+    .find(x=>x.type==='iframe'&&x.url===outerUrl),'real first-level cross-origin iframe target');
+  const outerSession=await attach(client,outerTarget.targetId);
+  // OOPIFs may be omitted from their parent's Page tree. Resolve each actual
+  // owner element in the parent target rather than assuming a flattened tree.
+  const outerTree=(await client.send('Page.getFrameTree',{},outerSession)).frameTree;
+  const innerTree=(await client.send('Page.getFrameTree',{},innerSession)).frameTree;
+  const frameOwner=async(parentSession,frameId,url)=>{
+    const owner=await client.send('DOM.getFrameOwner',{frameId},parentSession);
+    const {node}=await client.send('DOM.describeNode',{backendNodeId:owner.backendNodeId},parentSession);
+    assert.equal(node.nodeName,'IFRAME','cross-origin frame must have a real parent iframe');
+    const attrs=Object.fromEntries(Array.from({length:node.attributes.length/2},
+      (_,i)=>node.attributes.slice(i*2,i*2+2)));
+    assert.equal(attrs.src,url,'parent iframe src must match the exact child document');
+    return {frameId,backendNodeId:owner.backendNodeId,attributes:attrs};
+  };
+  assert.equal(outerTree.frame.url,outerUrl);
+  assert.equal(innerTree.frame.url,innerUrl);
+  const outerOwner=await frameOwner(site,outerTree.frame.id,outerUrl);
+  const innerOwner=await frameOwner(outerSession,innerTree.frame.id,innerUrl);
+  const nestedImage='http://zedo.com:'+port+'/frame-pixel?nonce='+nestedProbeNonce;
+  const nestedHits=()=>serverRequests.filter(x=>x.hostname==='zedo.com'&&x.path==='/frame-pixel'&&
+    new URLSearchParams(x.query).get('nonce')===nestedProbeNonce).length;
+  assert.equal(nestedHits(),0,'nested probe nonce must not have any earlier HTTP hits');
+  const nestedRequest=await probe(client,innerSession,nestedImage);
+  assert.equal(nestedRequest.success,true,'two cross-origin levels inherit website A exception');
+  assert.equal(nestedRequest.network.status,200);
+  assert.equal(nestedHits(),1,'exact nested CDP request nonce must reach HTTP server once');
+  report.nestedIframe='PASS';
+  note('two-level-cross-origin-iframe-exception',{outerUrl,innerUrl,outerNonce,nestedNonce,
+    probeNonce:nestedProbeNonce,request:nestedRequest,httpHits:nestedHits(),
+    frameTree:tree,outerTree,innerTree,outerOwner,innerOwner});
+
 
   await activateFixture();
   await until(async()=>{
@@ -760,7 +911,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     return r.state?.enabled===false&&r.owned.length===0;},'Space OFF removes real rules');
   assert.equal((await probe(client,site,adUrl())).success,true);
   await until(()=>evaluate(client,react,
-    '(()=>{const n=document.querySelector("[data-slot=\\"switch\\"][aria-label=\\"全局广告拦截\\"]");'+
+    '(()=>{const n=document.querySelector('+JSON.stringify(globalSelector)+');'+
     'return !!n&&!n.hasAttribute("data-disabled");})()'),
     'React switch action completes');
   // One more physical Tab/Space cycle may be needed because trusted review
@@ -797,6 +948,14 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   const runningWorker=(await client.send('Target.getTargets')).targetInfos
     .find(x=>x.type==='service_worker'&&x.url===workerUrl);
   assert.ok(runningWorker,'a live extension worker must exist before the stop test');
+  const beforeWorkerSession=(await client.send('Target.attachToTarget',
+    {targetId:runningWorker.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},beforeWorkerSession);
+  const workerContext=async session=>until(()=>client.events
+    .filter(x=>x.sessionId===session&&x.method==='Runtime.executionContextCreated')
+    .map(x=>x.params.context).find(x=>x.uniqueId&&x.auxData?.isDefault!==false),
+    'real worker Runtime execution context');
+  const beforeWorkerContext=await workerContext(beforeWorkerSession);
   const stoppedEventStart=client.events.length;
   await client.send('ServiceWorker.stopAllWorkers',{},uid);
   await until(async()=>!(await client.send('Target.getTargets')).targetInfos
@@ -809,9 +968,14 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal((await client.send('Target.getTargets')).targetInfos
     .some(x=>x.type==='service_worker'&&x.url===workerUrl),false,
     'worker must remain stopped until the authenticated status message wakes it');
-  const stoppedVersions=client.events.slice(stoppedEventStart)
-    .filter(x=>x.sessionId===uid&&x.method==='ServiceWorker.workerVersionUpdated')
-    .flatMap(x=>x.params.versions).filter(x=>x.scriptURL===workerUrl&&x.runningStatus==='stopped');
+  const stoppedVersions=await until(()=>{
+    const versions=client.events.slice(stoppedEventStart)
+      .filter(x=>x.sessionId===uid&&x.method==='ServiceWorker.workerVersionUpdated')
+      .flatMap(x=>x.params.versions)
+      .filter(x=>x.scriptURL===workerUrl&&x.runningStatus==='stopped');
+    return versions.length?versions:null;
+  },'Chrome reports the extension worker stopped before wake');
+  const wakeEventStart=client.events.length;
   // Use the shipped, authenticated read-only status protocol from the real
   // extension host. A DNR-only network probe cannot prove worker recovery.
   const statusMessage={protocol:'opendesk.adblock.v1',toolId:'adblock',operation:'adblock.status',
@@ -828,7 +992,21 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.deepEqual(recoveredStatus.data.exceptions,[]);
   const recoveredWorker=await until(async()=>(await client.send('Target.getTargets')).targetInfos
     .find(x=>x.type==='service_worker'&&x.url===workerUrl),'new worker target after status wake request');
-  assert.notEqual(recoveredWorker.targetId,runningWorker.targetId,'wake must create a new worker target');
+  // Chrome can reuse targetId (and versionId) across stop/wake. Runtime
+  // uniqueId identifies the actual execution context rather than the target.
+  const runningVersions=await until(()=>{
+    const versions=client.events.slice(wakeEventStart)
+      .filter(x=>x.sessionId===uid&&x.method==='ServiceWorker.workerVersionUpdated')
+      .flatMap(x=>x.params.versions).filter(x=>x.scriptURL===workerUrl&&
+        x.runningStatus==='running'&&stoppedVersions.some(v=>v.versionId===x.versionId));
+    return versions.length?versions:null;
+  },'same registered worker version transitions from stopped to running');
+  const recoveredWorkerSession=(await client.send('Target.attachToTarget',
+    {targetId:recoveredWorker.targetId,flatten:true})).sessionId;
+  await client.send('Runtime.enable',{},recoveredWorkerSession);
+  const recoveredWorkerContext=await workerContext(recoveredWorkerSession);
+  assert.notEqual(recoveredWorkerContext.uniqueId,beforeWorkerContext.uniqueId,
+    'wake must rebuild the real worker Runtime execution context');
   const afterWorker=await getOwned(client,uid);
   assert.deepEqual(afterWorker.state,beforeWorker.state,'worker recovery must preserve durable filtering intent');
   assert.deepEqual(sortedRules(afterWorker.owned),sortedRules(beforeWorker.owned));
@@ -837,7 +1015,8 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   assert.equal(recoveredRequest.success,false,'actual filtering must still work after worker service recovery');
   assert.equal(recoveredRequest.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
   report.workerRecovery={beforeTargetId:runningWorker.targetId,afterTargetId:recoveredWorker.targetId,
-    stoppedVersions,request:statusMessage,response:recoveredStatus,stoppedRequest,recoveredRequest};
+    stoppedVersions,runningVersions,beforeWorkerContext,recoveredWorkerContext,
+    request:statusMessage,response:recoveredStatus,stoppedRequest,recoveredRequest};
   report.workerRestart='PASS';
   note('actual-worker-stop-wake-and-service-recovery',report.workerRecovery);
 
@@ -877,7 +1056,7 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
   await click(client,again,'#catalog-open-dev-sidebar');
   const resumedContext=await until(()=>evaluate(client,again,
     'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>'+
-    'c.documentUrl?.includes("/ui/tool.html")&&c.documentId))'),
+    'c.documentUrl?.includes("/sidepanel.html")&&c.documentId))'),
     'real Side Panel exists after Chrome restart');
   const resumedPanel=await attachActualPanel(client,resumedContext,[uiAgain.targetId]);
   sid=resumedPanel.session;

@@ -5,6 +5,7 @@ import {watch} from 'node:fs';
 import {STATIC_RESOURCES} from './prepare-public.mjs';
 import {BROWSER_EDITION_RECORD,readEditionRecord} from './browser-editions-r245.mjs';
 import {buildOfficialTools,officialToolInputs,writeOfficialToolResources} from './build-official-tools.mjs';
+import {buildAdblockReact} from './build-adblock-react.mjs';
 import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog} from '../src/sidebar-tools/official-catalog.js';
 import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest} from './verify-package.mjs';
@@ -132,6 +133,8 @@ export function configureDevelopment(wxt,server) {
   const sync=(event,file)=>{
     if(!accepting||!['add','change','unlink'].includes(event))return;
     const input=resolve(file),dest=sources.get(input),style=styleSources.has(input);
+    // Generated AdBlock files are a consequence, never a watcher trigger.
+    if(input.startsWith(resolve(toolRoot,'adblock/dist')+'/'))return;
     const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||input.startsWith(toolRoot+'/');
     if(!dest&&!style&&!official)return;
     const version=++changeId;sourceVersions.set(input,version);
@@ -151,8 +154,13 @@ export function configureDevelopment(wxt,server) {
       if(official){
         if(generation!==officialGeneration)return;
         const changes=[...officialChanges];officialChanges.clear();
+        const adblockSourceChanged=changes.some(path=>
+          /^examples\/sidebar-tools\/adblock\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
+        if(adblockSourceChanged)await buildAdblockReact({log:false});
         const inputs=await officialToolInputs(wxt.config.root);
-        if(!catalogDirty&&!changes.some(path=>inputs.includes(path)))return;
+        // A JSX edit is intentionally absent from officialToolInputs(): only
+        // compiled dist bytes are declared. Still publish the new package.
+        if(!catalogDirty&&!adblockSourceChanged&&!changes.some(path=>inputs.includes(path)))return;
         const generated=await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
         copyErrors.delete(errorKey);
         if(catalogDirty){

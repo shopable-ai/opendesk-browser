@@ -21,7 +21,7 @@ function detail(row) {
   return {taskId:row.taskId,version:row.version,manifest:structuredClone(row.package.manifest),
     manifestHash:row.package.manifestHash,stage:row.stage,verifiedAt:row.verification?.verifiedAt ?? null,
     verification:row.verification ? {runId:row.verification.runId,resultId:row.verification.resultId,
-      sourceHash:row.verification.sourceHash,origin:row.verification.origin} : null};
+      sourceHash:row.verification.sourceHash,manifestHash:row.verification.manifestHash,origin:row.verification.origin} : null};
 }
 function validCandidate(row,namespace) {
   invariant(row?.tag==='task-candidate-v1' && row.namespace===namespace &&

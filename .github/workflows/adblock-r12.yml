@@ -65,7 +65,7 @@ jobs:
       - name: Compile current AdBlock React before testing or packaging
         run: |
           node scripts/build-adblock-react.mjs
-          sha256sum examples/sidebar-tools/adblock/src/main.js examples/sidebar-tools/adblock/src/style.css
+          sha256sum examples/sidebar-tools/adblock/dist/tool.js examples/sidebar-tools/adblock/dist/tool.css
       - name: Independent AdBlock boundary and adversarial tests
         run: |
           node --test tests/environment/adblock-r12.test.mjs tests/environment/adblock-host-controls-r13.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/verify-package-react-constructor.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs
@@ -96,8 +96,8 @@ jobs:
       - name: Preserve the exact compiled React inputs for native-gated publishing
         run: |
           mkdir -p artifacts/adblock-r24-react
-          cp examples/sidebar-tools/adblock/src/main.js artifacts/adblock-r24-react/main.js
-          cp examples/sidebar-tools/adblock/src/style.css artifacts/adblock-r24-react/style.css
+          cp examples/sidebar-tools/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
+          cp examples/sidebar-tools/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
       - name: Preserve exact candidate - not native approval yet
         uses: actions/upload-artifact@v4
         with:
@@ -250,8 +250,8 @@ jobs:
           git switch -C main refs/remotes/origin/main
           npm ci --ignore-scripts --no-audit --no-fund
           node scripts/build-adblock-react.mjs
-          cmp examples/sidebar-tools/adblock/src/main.js artifacts/adblock-r24-react/main.js
-          cmp examples/sidebar-tools/adblock/src/style.css artifacts/adblock-r24-react/style.css
+          cmp examples/sidebar-tools/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
+          cmp examples/sidebar-tools/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --out artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
           cmp "$candidate" artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from "$candidate"
@@ -259,7 +259,8 @@ jobs:
           cmp "$candidate" "$official"
           sha256sum "$official"
 
-          git add -- "$official" examples/sidebar-tools/adblock/src/main.js examples/sidebar-tools/adblock/src/style.css
+          # Generated dist remains ignored: native evidence gates only official JSON.
+          git add -- "$official"
           if git diff --cached --quiet; then
             echo "Official package is already source-identical; no redundant commit"
             exit 0

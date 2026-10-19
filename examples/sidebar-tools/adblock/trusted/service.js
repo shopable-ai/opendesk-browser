@@ -86,6 +86,23 @@ export function createAdblockService({
     if(matches.length!==1)fail('E_ADBLOCK_SENDER','工具宿主窗口或文档已切换');
     return matches[0];
   }
+  async function hostWindow(context,sender,hostWindowId){
+    // Chrome may omit Side Panel window metadata (-1). Only its authenticated
+    // trusted document may supply the native owning window; never use SW focus.
+    const windowId=Number.isSafeInteger(context.windowId)&&context.windowId>=0
+      ?context.windowId:context.contextType==='SIDE_PANEL'&&context.windowId===-1
+        ?hostWindowId:null;
+    if(!Number.isSafeInteger(windowId)||windowId<0||
+      hostWindowId!==undefined&&hostWindowId!==windowId||
+      sender.tab&&sender.tab.windowId!==windowId)
+      fail('E_ADBLOCK_SENDER','可信工具所属窗口无效或不一致');
+    let window;
+    try{window=await api.windows.get(windowId);}
+    catch{fail('E_ADBLOCK_SENDER','可信工具所属窗口已关闭或不可用');}
+    if(window?.id!==windowId||window.incognito!==false)
+      fail('E_ADBLOCK_SENDER','可信工具所属窗口已改变或为隐身窗口');
+    return windowId;
+  }
   async function probeDocument(sender){
     if(isSidebarToolHostSender(api,sender,ADBLOCK_ID))return (await hostDocument(sender)).documentId;
     try{
@@ -134,6 +151,10 @@ export function createAdblockService({
     const auth=await authority({beforeWrite,dnrReady});
     const persist=async(next,previous,scope)=>{
       await beforeWrite();
+      // No authority/window awaits between this site read and the policy write.
+      if(operation==='adblock.site.set'&&scope==='广告过滤策略'&&
+         (await activeSite(windowId)).currentHost!==payload.host)
+        fail('E_ADBLOCK_SITE_CHANGED','当前激活网站已改变，请重新核对网站');
       return writeVerifiedLocalValue(api,ADBLOCK_STORE,next,previous,scope);
     };
     const hasPermission=await permission().catch(()=>
@@ -280,20 +301,25 @@ export function createAdblockService({
       serviceReady:true,permissions:{dnr:hasPermission}};
   }
   async function dispatch(message,sender){
-    if(!own(message,['protocol','toolId','operation','payload','packageHash','installEpoch'])||
+    const fields=['protocol','toolId','operation','payload','packageHash','installEpoch'];
+    const hasHostWindow=Object.hasOwn(message||{},'hostWindowId');
+    if(hasHostWindow)fields.push('hostWindowId');
+    if(!own(message,fields)||
        message.protocol!==ADBLOCK_PROTOCOL||message.toolId!==ADBLOCK_ID||
        !ADBLOCK_OPERATIONS.includes(message.operation)||
+      hasHostWindow&&(!Number.isSafeInteger(message.hostWindowId)||message.hostWindowId<0)||
        typeof message.packageHash!=='string'||!/^[a-f0-9]{64}$/.test(message.packageHash)||
        JSON.stringify(message).length>16000||message.payload===null||
        typeof message.payload!=='object'||Array.isArray(message.payload))
       fail('E_ADBLOCK_REQUEST','广告拦截操作或宿主身份无效');
-    const context=await hostDocument(sender),doc=context.documentId,windowId=context.windowId;
+    const context=await hostDocument(sender),doc=context.documentId;
+    const hostWindowId=message.hostWindowId,windowId=await hostWindow(context,sender,hostWindowId);
     return lock(async()=>{
       let effectStarted=false;
       const validateHost=async()=>{
         try{
           const live=await hostDocument(sender,doc);
-          if(live.windowId!==windowId)
+          if(await hostWindow(live,sender,hostWindowId)!==windowId)
             fail('E_ADBLOCK_SENDER','工具宿主所属窗口已改变');
           return live.documentId;
         }

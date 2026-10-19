@@ -44,7 +44,7 @@ export async function requireCloudSidePanelSender(api,sender){
 export async function requireCloudRunnerSender(api,sender){
   const expected=api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
   invariant(sender?.id===api.runtime.id&&sender.url===expected&&!sender.tab&&
-    sender.frameId===0&&!sender.incognito&&
+    (sender.frameId===undefined||sender.frameId===0)&&!sender.incognito&&
     (sender.documentLifecycle===undefined||sender.documentLifecycle==='active')&&
     typeof sender.documentId==='string'&&sender.documentId.length>0,
     'E_OWNER','Cloud execution requires an original trusted offscreen Host');

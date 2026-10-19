@@ -298,8 +298,24 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       'Old external client cannot see data after Browser re-approval');
     await assert.rejects(retry('/v1/capabilities',{grantId,
       tasks:taskAdvertised},executor.credential),{code:'E_GRANT_STALE'});
+    // Revoke this exact pairing after a new external client has submitted
+    // work. Neither submitting a new Job nor reading its OWN old Job is legal
+    // with the retired client credential.
+    const lateClient=await retry('/v1/client-grant',{grantId:rotatedGrant,
+      tasks:[pin],allowResult:false,label:'Revoked-pairing external client'},executor.credential);
+    const lateJob=await retry('/v1/submit',{...seed,requestKey:'revoked-pairing-original'},
+      lateClient.credential);
+    assert.equal((await retry('/v1/job-status',{jobId:lateJob.jobId},
+      lateClient.credential)).state,'queued');
+    await retry('/v1/revoke',{revocationId:randomUUID()},executor.credential);
+    for(const [path,body] of [
+      ['/v1/submit',{...seed,requestKey:'revoked-pairing-new'}],
+      ['/v1/job-status',{jobId:lateJob.jobId}]
+    ])await assert.rejects(retry(path,body,lateClient.credential),{code:'E_AUTH'},
+      'Unpair must revoke former client access including its own old Job');
     const state=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
-    assert.equal(Object.keys(state.jobs).length,4);
+    assert.ok(state.clients[lateClient.clientId].revokedAt);
+    assert.equal(Object.keys(state.jobs).length,5);
     assert.equal(state.jobs[created.jobId].targetExecutorId,executorId);
     assert.equal(JSON.stringify(state).includes(pkg.sourceUtf8),false);
   }finally{ws?.terminate();await provider.close();await rm(directory,{force:true,recursive:true});}

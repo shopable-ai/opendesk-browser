@@ -15,7 +15,7 @@ const read=path=>readFile(resolve(project,path),'utf8');
 test('AdBlock 1.2.1 candidate uses one compiled React 19 Shared UI tool',async()=>{
   const [pkg,config,jsx,entry,css,compiled]=await Promise.all([
     createSidebarToolPackage(project),read('tool.config.json'),read('src/App.jsx'),
-    read('src/main.jsx'),read('src/style.css'),read('src/main.js')]);
+    read('src/main.jsx'),read('dist/tool.css'),read('dist/tool.js')]);
   const meta=JSON.parse(config);
   assert.equal(pkg.id,'adblock');
   assert.equal(pkg.version,'1.2.1');
@@ -24,7 +24,8 @@ test('AdBlock 1.2.1 candidate uses one compiled React 19 Shared UI tool',async()
   assert.equal(pkg.html,'<div id="tool-app"></div>\n');
   assert.equal(pkg.css,css);
   assert.equal(pkg.js,compiled);
-  assert.equal(meta.files.js,'src/main.js');
+  assert.equal(meta.files.js,'dist/tool.js');
+  assert.equal(meta.files.css,'dist/tool.css');
   assert.match(jsx,/from '@opendesk\/ui'/);
   for(const name of ['Card','Switch','Button'])assert.match(jsx,new RegExp('\\b'+name+'\\b'));
   for(const op of ['adblock.enable','adblock.disable','adblock.site.set','adblock.site.restore','adblock.status'])

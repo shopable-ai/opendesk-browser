@@ -13,6 +13,7 @@ const row=(patch={})=>({
   hostOnly:true,secure:true,httpOnly:true,sameSite:'lax',session:true,
   ...patch
 });
+const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {resolve,promise};};
 
 test('R5.20 withheld JSON values are invalid while explicit empty values remain importable',()=>{
   const plan=inspectImport(JSON.stringify([
@@ -38,6 +39,48 @@ test('R5.20 stale reads stop before transport and after unpaged replies',async()
   active=true;
   assert.equal(await readAllCookies(sdk,{url:site.url},()=>active),null);
   assert.equal(calls,1);
+});
+
+test('scoped reads retire at each deferred boundary without querying the next scope',async()=>{
+  const stages=['ordinary','partition','partitioned'];
+  for(const stage of stages){
+    const pending=deferred(),started=deferred(),calls=[];
+    let active=true;
+    const partitionKey={topLevelSite:site.origin};
+    const resultFor=name=>name==='partition'?{partitionKey}:
+      [row(name==='partitioned'?{partitionKey}:{})];
+    const read=async name=>{
+      calls.push(name);
+      if(name===stage){started.resolve();return pending.promise;}
+      return resultFor(name);
+    };
+    const sdk={cookies:{
+      getAll:async args=>read(args.partitionKey?'partitioned':'ordinary'),
+      getPartitionKey:async()=>read('partition')
+    }};
+    const reading=scopedLiveCookies(sdk,site,{isCurrent:()=>active});
+    await started.promise;
+    active=false;pending.resolve(resultFor(stage));
+    assert.equal(await reading,null);
+    assert.deepEqual(calls,stages.slice(0,stages.indexOf(stage)+1));
+  }
+});
+
+test('invalidated paged reads discard partial rows and never follow a late cursor',async()=>{
+  for(const delayedPage of [1,2]){
+    const pending=deferred(),started=deferred();let active=true,calls=0;
+    const sdk={cookies:{getAllPage:async()=>{
+      calls++;
+      if(calls===delayedPage){started.resolve();return pending.promise;}
+      return {cookies:[row()],nextCursor:'second'};
+    }}};
+    const reading=readAllCookies(sdk,{url:site.url},()=>active);
+    await started.promise;
+    active=false;
+    pending.resolve({cookies:[row({name:'late'})],nextCursor:'more'});
+    assert.equal(await reading,null);
+    assert.equal(calls,delayedPage);
+  }
 });
 
 test('R5.20 sensitive value receipts must retain metadata as well as identity',async()=>{

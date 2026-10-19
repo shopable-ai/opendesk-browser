@@ -227,6 +227,36 @@ test('Request details open the original Run read-only',async t=>{
   assert.equal(f.calls.some(call=>call[0]==='claim'),false);
 });
 
+test('Selection tracks an immutable request across list reorder and Stop passes only its original key',async t=>{
+  const requestId='cloud:original-request',requestKey='cloud:request:original-pair-key',
+    runId='11111111-1111-4111-8111-111111111111';
+  const requests=[{requestId,requestKey,jobId:'original-job',runId,canStopThis:true,
+    taskTitle:'被选择的请求',state:'permitted',runState:'running'},
+    {requestId:'cloud:other',requestKey:'cloud:request:other',taskTitle:'另一请求',
+      state:'waiting',canStopThis:true}];
+  const f=await fixture(t,{enabled:true,requests});
+  f.model().requests.onDetail(1);
+  assert.equal(f.model().requests.detail.requestId,requestId);
+  assert.equal(f.model().requests.detail.canStopThis,true);
+  const key=f.model().requests.detail.key;
+  const first=f.model().requests.rows[1].key;
+  assert.equal(key,first);
+  assert.ok(!JSON.stringify(f.model().requests.rows).includes(requestId));
+  // A newer request is inserted while the detail is open. Never change the
+  // original selected Run/Job by reusing its previous array position.
+  requests.push({requestId:'cloud:latest',requestKey:'cloud:request:latest',
+    taskTitle:'新请求',state:'waiting'});
+  await f.model().onRefresh();
+  assert.equal(f.model().requests.detail.requestId,requestId);
+  assert.equal(f.model().requests.detail.jobId,'original-job');
+  assert.equal(f.model().requests.detail.runId,runId);
+  assert.equal(f.model().requests.detail.key,key);
+  assert.ok(f.model().requests.rows.some(row=>row.key===key));
+  f.model().requests.onClose();
+  assert.equal(f.model().requests.detail,null);
+  assert.equal(f.calls.some(call=>call[0]==='claim'),false);
+});
+
 test('Request pages use cloudStatus offsets and map each detail to that page original Run',async t=>{
   const requests=Array.from({length:12},(_,index)=>({taskTitle:'请求 '+(index+1),
     runId:'00000000-0000-4000-8000-'+String(index+1).padStart(12,'0'),
@@ -246,10 +276,11 @@ test('Request pages use cloudStatus offsets and map each detail to that page ori
   assert.equal(f.model().requests.pageText,'第 6–10 条 / 共 12 条');
   assert.equal(f.model().requests.canPrev,true);
   assert.equal(f.model().requests.canNext,true);
-  assert.deepEqual(f.model().requests.rows.map(row=>row.key),['5','6','7','8','9']);
+  assert.equal(new Set(f.model().requests.rows.map(row=>row.key)).size,5);
+  assert.ok(f.model().requests.rows.every(row=>/^request-\d+$/.test(row.key)),'React keys are stable opaque handles');
   assert.deepEqual(f.model().requests.rows.map(row=>row.title),[7,6,5,4,3].map(n=>'请求 '+n+' · 已完成 · 已完成'));
   f.model().requests.onDetail(1);
-  assert.equal(f.model().requests.detail.key,'6');
+  assert.equal(f.model().requests.detail.key,f.model().requests.rows[1].key);
   assert.equal(f.model().requests.detail.title,'请求 6');
   assert.equal(f.model().requests.detail.state,'已完成 · 已完成');
   assert.equal(f.model().requests.detail.facts,'结果已保存 · 资源已释放 · 回执已确认');

@@ -45,7 +45,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let state=null,taskChoices=[],catalogStamp='',catalogAt=0,lastRefresh=0;
   const selections=new Map();
   let consent=false,resultConsent=false,operationFeedback='',catalogError='';
-  let requestOffset=0,nextOffset=null,selectedRequest=null,requestRows=[],requestRaw=[];
+  let requestOffset=0,nextOffset=null,selectedRequestKey=null,requestActionFeedback='',requestRows=[],requestRaw=[];
   let pageText='正在读取请求记录…',requestError='';
   let clientRows=[],clientNextOffset=null,clientCount='按需管理',clientStatus='连接并授权任务后，可以管理外部应用凭据。';
   let clientPins='',clientTaskId='',clientName='',clientResult=false,oneTimeToken='';
@@ -63,15 +63,28 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   const activeTasks=()=>state?.enabled&&Array.isArray(state.tasks)?state.tasks:[];
   const resetConsent=()=>{consent=false;resultConsent=false;};
   const clearSecrets=()=>{secretEpoch++;oneTimeToken='';pairing.pairingCode='';reviewedProgram=null;publish();};
+  const displayKeys=new Map();let nextDisplayKey=0;
+  const requestDisplayKey=row=>{
+    const identity=requestIdentity(row);
+    if(!identity)return null;
+    if(!displayKeys.has(identity))displayKeys.set(identity,'request-'+(++nextDisplayKey));
+    return displayKeys.get(identity);
+  };
+  const requestIdentity=row=>typeof row?.requestKey==='string'&&row.requestKey
+    ?row.requestKey:typeof row?.requestId==='string'&&row.requestId
+    ?row.requestId:typeof row?.runId==='string'&&row.runId?row.runId:null;
+  const selectedIndex=()=>selectedRequestKey===null?-1:
+    requestRaw.findIndex(row=>requestIdentity(row)===selectedRequestKey);
+  const selectedRow=()=>{const index=selectedIndex();return index<0?null:requestRaw[index];};
   function originalRun(){
-    const row=selectedRequest===null?null:requestRaw[selectedRequest-requestOffset];
+    const row=selectedRow();
     return typeof row?.runId==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.runId)?row.runId:null;
   }
   function publish(){
     if(disposed)return;
     const projected=state?projectCloudStatus(state):null;
     const pending=['pending','unknown'].includes(projected?.revocation);
-    const sample=selectedRequest===null?null:requestRows[selectedRequest-requestOffset];
+    const index=selectedIndex(),sample=index<0?null:requestRows[index],selected=selectedRow();
     const runId=originalRun();
     const review=reviewedProgram&&programRows.some(row=>matchesCloudProgramDescriptor(
       row,reviewedProgram.deliveryId,reviewedProgram.package))?reviewedProgram:null;
@@ -150,21 +163,37 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
           if(!row.confirming){row.confirming=true;publish();return;}
           void action(async()=>{clearSecrets();await cloud.cloudClientRevoke({clientId:id});
             await refreshClients();clientStatus='外部应用凭据已撤销；历史运行记录仍保留。';});}},
-      requests:{rows:requestRows.map((row,index)=>({key:String(requestOffset+index),index,
+      requests:{rows:requestRows.map((row,index)=>({key:requestDisplayKey(requestRaw[index])??String(requestOffset+index),index,
           title:[row.title,row.state,row.run].filter(Boolean).join(' · '),
           summary:[row.result,row.settlement,row.receipt,row.reason].filter(Boolean).join(' · ')})),
         emptyText:requestError||'此页暂无请求记录',pageText,
         canPrev:!busy&&!requestError&&requestOffset>0,canNext:!busy&&!requestError&&nextOffset!==null,
-        detail:sample?{key:String(selectedRequest),title:sample.title,state:[sample.state,sample.run].join(' · '),
+        detail:sample?{key:requestDisplayKey(selected),title:sample.title,state:[sample.state,sample.run].join(' · '),
+          requestId:selected?.requestId||'',jobId:selected?.jobId||'',resultId:selected?.resultId||'',canStopThis:!busy&&selected?.canStopThis===true&&!!selected.requestKey,
           facts:[sample.result,sample.settlement,sample.receipt].join(' · '),reason:sample.reason||'暂无其他状态信息。',
           runId:runId||'尚无可核对的原始 Run',canOpenRun:!!runId,
-          note:runId?'仅在本机可信「开发 → 运行记录」读取原始数据，不会重新执行。':'请求尚未绑定原始 Run；状态未知时请勿重新执行。'}:null,
-        onPrev:()=>action(()=>{requestOffset=Math.max(0,requestOffset-5);selectedRequest=null;}),
-        onNext:()=>action(()=>{if(nextOffset!==null)requestOffset=nextOffset;selectedRequest=null;}),
-        onDetail:index=>{if(Number.isInteger(index)&&index>=0&&index<requestRows.length){selectedRequest=requestOffset+index;publish();}},
-        onClose:()=>{const index=selectedRequest===null?null:selectedRequest-requestOffset;selectedRequest=null;publish();
-          if(index!==null)get('cloud-request-samples')?.querySelectorAll('button')[index]?.focus();},
-        onOpenResult:()=>action(openOriginalRun)}
+          note:requestActionFeedback||(runId?'仅在本机可信「开发 → 运行记录」读取原始数据，不会重新执行。':'请求尚未绑定原始 Run；状态未知时请勿重新执行。')}:null,
+        onPrev:()=>action(()=>{requestOffset=Math.max(0,requestOffset-5);selectedRequestKey=null;requestActionFeedback='';}),
+        onNext:()=>action(()=>{if(nextOffset!==null)requestOffset=nextOffset;selectedRequestKey=null;requestActionFeedback='';}),
+        onDetail:index=>{if(Number.isInteger(index)&&index>=0&&index<requestRows.length){
+          const identity=requestIdentity(requestRaw[index]);
+          if(!identity)return;
+          selectedRequestKey=identity;requestActionFeedback='';publish();
+        }},
+        onClose:()=>{const index=selectedIndex();selectedRequestKey=null;requestActionFeedback='';publish();
+          if(index>=0)get('cloud-request-samples')?.querySelectorAll('button')[index]?.focus();},
+        onOpenResult:()=>action(openOriginalRun),
+        onStopThis:()=>action(async()=>{
+          const row=selectedRow();
+          if(!row?.requestKey||row.canStopThis!==true)throw {code:'E_CLOUD_FENCED'};
+          const stopped=await cloud.cloudCancelRequest({requestId:row.requestId,requestKey:row.requestKey});
+          requestActionFeedback=stopped.alreadyFinished?(stopped.stopRequested?
+            'Provider 已保存原回执；本地停止请求不代表结果或网页效果被撤回。':
+            '原请求已结束，未执行取消。'):
+            stopped.outcomeUnknown?'原 Run 的网页效果待核对，不能重放，也不能宣称已撤回。':
+            stopped.providerConfirmed?'已请求停止原 Run，Provider 已确认；最终以原运行状态为准。':
+              '已请求停止原 Run，Provider 取消待确认；不会重新执行任务。';
+        })}
     });
   }
   const cloudErrorText=e=>{let code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
@@ -192,6 +221,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       E_CLIENT_SCOPE:'外部应用只能调用当前已批准且版本匹配的任务，结果权限不能扩大',
       E_CLIENT_LIMIT:'外部授权数量已达上限，请先撤销不用的应用',
       E_CLOUD_STOPPED:'云控已停用，请先重新批准当前任务',
+      E_CLOUD_FENCED:'原云请求已结束或授权变化，请刷新后核对',
       E_CLOUD_CONSENT_REQUIRED:'请先核对所选任务的固定版本、网站范围与安装代际',
       E_CLOUD_TASK_SELECTION:'请选择 1–32 项已验证且启用的 Controller Task',
       E_CLOUD_RESULT_CONSENT_REQUIRED:'请确认允许所选任务的结果回传范围'};
@@ -210,7 +240,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     statusFailed=true;clearSecrets();resetConsent();
     statusText='云控状态暂不可读取，请稍后核对。 '+cloudErrorText(error);brief='状态异常';
     overview={myState:'状态不可读取',summary:'云端托管状态暂不可读取',provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',tasks:'待核对',requests:'待核对'};
-    requestError='请求状态暂不可读取';requestRows=[];requestRaw=[];selectedRequest=null;pageText='历史状态不可读取';publish();
+    requestError='请求状态暂不可读取';requestRows=[];requestRaw=[];selectedRequestKey=null;requestActionFeedback='';pageText='历史状态不可读取';publish();
   }
   async function refreshTasks(s){
     if(typeof client.request!=='function'||Date.now()-catalogAt<5000)return;
@@ -242,11 +272,12 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         !projected.slotAvailable?cloudSlotStateLabel(projected.slotState):projected.pendingResources!==false?'待处理资源待核对':'可用';
       statusText=cloudHostingSummary(projected)+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
       overview={myState:brief+' · 已批准 '+projected.approvedTasks+' 项任务',summary:cloudHostingSummary(projected),
-        provider:projected.paired?'已配对':'未配对',connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
+        provider:s.provider?`${s.provider.url} · ${s.provider.providerId}`:'未配对',executor:typeof s.executorId==='string'?s.executorId:'未配对',
+        connection:projected.online?'已连接':projected.connection==='backoff'?'重连中':'未连接',
         host:projected.hostReady?'已就绪':'不可用',slot:cloudSlotStateLabel(projected.slotState),tasks:String(projected.approvedTasks),requests:String(projected.requests.total)};
       requestRows=samples;requestRaw=samples.length?s.requests.slice(-samples.length).reverse():[];requestError='';
       nextOffset=Number.isSafeInteger(s.requestPage?.nextOffset)?s.requestPage.nextOffset:null;
-      if(selectedRequest!==null&&(selectedRequest<requestOffset||selectedRequest>=requestOffset+samples.length))selectedRequest=null;
+      if(selectedRequestKey!==null&&selectedIndex()<0){selectedRequestKey=null;requestActionFeedback='';}
       pageText=samples.length?'第 '+(requestOffset+1)+'–'+(requestOffset+samples.length)+' 条 / 共 '+projected.requests.total+' 条':'此页暂无请求 / 共 '+projected.requests.total+' 条';
       await refreshTasks(s);if(disposed||revision!==epoch)return null;
       const stamp=JSON.stringify(activeTasks());

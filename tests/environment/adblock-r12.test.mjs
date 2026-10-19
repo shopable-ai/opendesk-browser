@@ -81,6 +81,8 @@ async function fixture({permission:initialPermission=true,sessionFailure=null}={
     storage:{local:storage,session:sessionFailure==='missing'?undefined:sessionStorage,
       onChanged:storageChanged},
     permissions:{async contains(){return permission;},onRemoved:permissionRemoved,onAdded:permissionAdded},
+    windows:{async getCurrent(){return {id:10,incognito:false};},
+      async get(id){return {id,incognito:false};}},
     tabs:{async query(){return [{id:1,windowId:10,url:current,active:true,incognito:false}];}},
     declarativeNetRequest:{
       async getSessionRules(){return structuredClone(sessionRules);},
@@ -378,9 +380,104 @@ test('missing panel window identity never falls back to a different focused wind
   const contexts=f.api.runtime.getContexts;
   f.api.runtime.getContexts=async()=> (await contexts()).map(row=>({...row,windowId:-1}));
   f.api.tabs.query=async()=>{assert.fail('must not query a guessed window');};
-  const data=await f.service.dispatch(f.message('adblock.status'),sender);
-  assert.equal(data.currentHost,null);
-  assert.equal(data.currentSite.reason,'window-unavailable');
+  await assert.rejects(f.service.dispatch(f.message('adblock.status'),sender),{
+    code:'E_ADBLOCK_SENDER'});
+});
+
+test('Chrome panel context without window metadata uses its trusted Host window',async()=>{
+  const f=await fixture(),contexts=f.api.runtime.getContexts,queries=[];
+  f.api.runtime.getContexts=async()=>
+    (await contexts()).map(row=>({...row,windowId:-1,tabId:-1}));
+  f.api.windows.getCurrent=async()=>{assert.fail('SW must not resolve the current or focused window');};
+  f.api.windows.getLastFocused=async()=>{assert.fail('SW must not use a focused-window fallback');};
+  f.api.tabs.query=async query=>{
+    queries.push(query);
+    return [{id:1,windowId:10,active:true,incognito:false,url:'http://127.0.0.1:43111/demo-form.html'}];
+  };
+  const send=(operation,payload={})=>f.service.dispatch({
+    ...f.message(operation,payload),hostWindowId:10},sender);
+  const status=await send('adblock.status');
+  assert.equal(status.currentHost,'127.0.0.1');
+  assert.equal(status.currentSite.status,'ready');
+  assert.equal((await send('adblock.enable')).enabled,true);
+  const excepted=await send('adblock.site.set',{host:'127.0.0.1',filtering:false});
+  assert.deepEqual(excepted.exceptions,['127.0.0.1']);
+  assert.ok(queries.length>0);
+  assert.ok(queries.every(query=>query.active===true&&query.windowId===10));
+});
+
+test('Host window metadata cannot override a verified context or malformed window',async()=>{
+  const cases=[
+    {contextType:'SIDE_PANEL',contextWindow:10,hostWindowId:20},
+    {contextType:'SIDE_PANEL',contextWindow:-2,hostWindowId:10},
+    {contextType:'TAB',contextWindow:-1,hostWindowId:10},
+    {contextType:'TAB',contextWindow:10,hostWindowId:10,senderWindow:20},
+    {contextType:'SIDE_PANEL',contextWindow:-1,hostWindowId:10,window:{id:20,incognito:false}},
+    {contextType:'SIDE_PANEL',contextWindow:-1,hostWindowId:10,window:{id:10,incognito:true}},
+    {contextType:'SIDE_PANEL',contextWindow:-1,hostWindowId:10,missing:true}
+  ];
+  for(const scenario of cases){
+    const f=await fixture();
+    f.api.runtime.getContexts=async()=>[{contextType:scenario.contextType,documentUrl:hostUrl,
+      documentId:'live-doc',frameId:0,tabId:3,windowId:scenario.contextWindow,incognito:false}];
+    f.api.windows.get=async id=>{
+      if(scenario.missing)throw Error('window closed');
+      return scenario.window||{id,incognito:false};
+    };
+    f.api.tabs.query=async()=>{assert.fail('invalid Host binding must not query a website');};
+    const caller=scenario.contextType==='TAB'?{...sender,
+      tab:{id:3,windowId:scenario.senderWindow??10,incognito:false}}:sender;
+    await assert.rejects(f.service.dispatch({...f.message('adblock.enable'),
+      hostWindowId:scenario.hostWindowId},caller),{code:'E_ADBLOCK_SENDER'},JSON.stringify(scenario));
+    assert.equal(f.actions.length,0);assert.equal(f.changes.length,0);
+  }
+});
+
+test('invalid Host window fields and sandbox payload window claims are rejected',async()=>{
+  const f=await fixture();
+  for(const hostWindowId of [-1,1.5,'10',null,Number.MAX_SAFE_INTEGER+1]){
+    await assert.rejects(f.service.dispatch({...f.message('adblock.enable'),hostWindowId},sender),{
+      code:'E_ADBLOCK_REQUEST'});
+  }
+  await assert.rejects(f.service.dispatch({...f.message('adblock.enable',{hostWindowId:10}),
+    hostWindowId:10},sender),{code:'E_ADBLOCK_REQUEST'});
+  assert.equal(f.actions.length,0);assert.equal(f.changes.length,0);
+});
+
+test('negative panel context still rejects stale or forged documents before writes',async()=>{
+  for(const changed of [{documentId:'stale-doc'},{documentUrl:hostUrl+'#forged'}]){
+    const f=await fixture(),contexts=f.api.runtime.getContexts;
+    let reads=0;
+    f.api.runtime.getContexts=async()=>
+      (await contexts()).map(row=>({...row,windowId:-1,...(++reads>1?changed:{})}));
+    await assert.rejects(f.service.dispatch({...f.message('adblock.enable'),hostWindowId:10},sender),{
+      code:'E_ADBLOCK_SENDER'});
+    assert.equal(f.actions.length,0);assert.equal(f.changes.length,0);
+  }
+  const f=await fixture();
+  await assert.rejects(f.service.dispatch({...f.message('adblock.enable'),hostWindowId:10},
+    {...sender,id:'forged'}),{code:'E_ADBLOCK_SENDER'});
+});
+
+test('panel window loss is fenced before writes and unknown after native effects',async()=>{
+  for(const phase of ['before-write','native-write']){
+    const f=await fixture(),contexts=f.api.runtime.getContexts;
+    let closed=false,reads=0;
+    f.api.runtime.getContexts=async()=>
+      (await contexts()).map(row=>({...row,windowId:-1,tabId:-1}));
+    f.api.windows.get=async id=>{
+      if(closed||phase==='before-write'&&++reads>1)throw Error('window closed');
+      return {id,incognito:false};
+    };
+    const update=f.api.declarativeNetRequest.updateDynamicRules;
+    f.api.declarativeNetRequest.updateDynamicRules=async args=>{
+      await update(args);closed=true;
+    };
+    await assert.rejects(f.service.dispatch({...f.message('adblock.enable'),hostWindowId:10},sender),{
+      code:phase==='before-write'?'E_ADBLOCK_SENDER':'E_OUTCOME_UNKNOWN'},phase);
+    assert.equal(f.actions.length,phase==='before-write'?0:1,'never replay the DNR write');
+    if(phase==='before-write')assert.equal(f.changes.length,0);
+  }
 });
 
 test('a hosted tool tab also resolves the active page only inside its verified window',async()=>{
@@ -704,6 +801,54 @@ test('durable cleanup uncertainty prevents a new worker from resuming the old en
   assert.deepEqual(f.rules.map(rule=>rule.id),[FOCUS_RULE_FIRST]);
   assert.equal(f.stored.get(ADBLOCK_DNR_CLEANUP_STORE),false);
 });
+test('trusted Host supplies its native window outside the sandbox payload',async()=>{
+  const f=await fixture(),contexts=f.api.runtime.getContexts,sent=[];
+  f.api.runtime.getContexts=async()=>
+    (await contexts()).map(row=>({...row,windowId:-1,tabId:-1}));
+  f.api.runtime.sendMessage=async message=>{
+    sent.push(message);return {ok:true,data:await f.service.dispatch(message,sender)};
+  };
+  const result=await requestAdblockOperation({api:f.api,tool:f.tool,
+    operation:'adblock.status',revocationEpoch:'epoch-1',assertCurrent:()=>{}});
+  assert.equal(result.currentHost,'news.example.com');
+  assert.equal(sent.length,1);assert.equal(sent[0].hostWindowId,10);
+  assert.deepEqual(sent[0].payload,{});
+  await assert.rejects(requestAdblockOperation({api:f.api,tool:f.tool,
+    operation:'adblock.status',payload:{hostWindowId:20},revocationEpoch:'epoch-1'}),{
+    code:'E_ADBLOCK_REQUEST'});
+  assert.equal(sent.length,1,'sandbox window claims must not reach the service');
+});
+
+test('trusted Host rejects unavailable or incognito native windows before sending',async()=>{
+  for(const window of [{id:-1,incognito:false},{id:10,incognito:true},null]){
+    const f=await fixture();
+    f.api.windows.getCurrent=async()=>window;
+    f.api.runtime.sendMessage=async()=>{assert.fail('invalid Host window must not send');};
+    await assert.rejects(requestAdblockOperation({api:f.api,tool:f.tool,
+      operation:'adblock.status',revocationEpoch:'epoch-1'}),{code:'E_ADBLOCK_SENDER'});
+  }
+  const f=await fixture();
+  f.api.windows.getCurrent=async()=>{throw Error('window unavailable');};
+  f.api.runtime.sendMessage=async()=>{assert.fail('failed native window read must not send');};
+  await assert.rejects(requestAdblockOperation({api:f.api,tool:f.tool,
+    operation:'adblock.status',revocationEpoch:'epoch-1'}),{code:'E_ADBLOCK_SENDER'});
+});
+
+test('Host window drift after an acknowledged write is unknown and never replayed',async()=>{
+  const f=await fixture();
+  let sends=0;
+  f.api.runtime.sendMessage=async message=>{
+    sends++;const data=await f.service.dispatch(message,sender);
+    f.api.windows.getCurrent=async()=>({id:20,incognito:false});
+    return {ok:true,data};
+  };
+  await assert.rejects(runTrustedAdblockOperation({api:f.api,tool:f.tool,
+    operation:'adblock.enable',event:{isTrusted:true},revocationEpoch:'epoch-1'}),{
+    code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(sends,1);assert.equal(f.actions.length,1);
+  assert.equal(f.stored.get(ADBLOCK_STORE).enabled,true);
+});
+
 test('React sandbox proposes operations but cannot mutate DNR without host confirmation',async()=>{
   const f=await fixture();
   f.api.runtime.sendMessage=async message=>({ok:true,data:await f.service.dispatch(message,sender)});
@@ -787,4 +932,74 @@ test.skip('R1.1 legacy fixed native view (superseded by installable React UI)',a
   assert.ok(changes.includes('adblock.enable'));
   assert.equal(global.attributes['aria-checked'],'true');
   assert.equal(site.attributes['aria-checked'],'true');
+});
+
+test('confirmation pins the first Host window even when both windows show the same site',async()=>{
+  for(const phase of ['confirmation','final-send','before-mutation']){
+    const f=await fixture();let windowId=10,mutations=0,statuses=0,windowReads=0;
+    f.api.windows.getCurrent=async()=>{
+      if(++windowReads===5&&phase==='before-mutation')windowId=20;
+      return {id:windowId,incognito:false};
+    };
+    f.api.runtime.sendMessage=async message=>{
+      if(message.operation!=='adblock.status')mutations++;
+      const data=await f.service.dispatch(message,sender);
+      if(message.operation==='adblock.status'&&++statuses===2&&phase==='final-send')
+        windowId=20;
+      return {ok:true,data};
+    };
+    await assert.rejects(requestAdblockOperation({api:f.api,tool:f.tool,
+      operation:'adblock.enable',revocationEpoch:'epoch-1',
+      requestBrowserClick:args=>{
+        if(phase==='confirmation')windowId=20;
+        return args.run({isTrusted:true});
+      }}),{code:phase==='final-send'?'E_OUTCOME_UNKNOWN':'E_ADBLOCK_SENDER'});
+    assert.equal(mutations,0);assert.equal(f.actions.length,0);
+  }
+});
+
+test('lost or malformed mutation replies are unknown with exactly one send and write',async()=>{
+  for(const reply of ['reject',undefined,null,{}, {ok:true}, {ok:'yes',data:{}},
+    {ok:false}, {ok:true,data:{}}, {ok:true,data:[]}, {ok:true,data:null}]){
+    const f=await fixture();let sends=0;
+    f.api.runtime.sendMessage=async message=>{
+      sends++;await f.service.dispatch(message,sender);
+      if(reply==='reject')throw Error('reply channel closed');
+      return reply;
+    };
+    await assert.rejects(runTrustedAdblockOperation({api:f.api,tool:f.tool,
+      operation:'adblock.enable',event:{isTrusted:true},revocationEpoch:'epoch-1'}),{
+      code:'E_OUTCOME_UNKNOWN'});
+    assert.equal(sends,1);assert.equal(f.actions.length,1);
+    assert.equal(f.stored.get(ADBLOCK_STORE).enabled,true);
+  }
+});
+
+test('an explicit service refusal preserves its error without replay',async()=>{
+  const f=await fixture();let sends=0;
+  f.api.runtime.sendMessage=async()=>{
+    sends++;return {ok:false,error:{code:'E_TOOL_CHANGED',message:'revoked'}};
+  };
+  await assert.rejects(runTrustedAdblockOperation({api:f.api,tool:f.tool,
+    operation:'adblock.enable',event:{isTrusted:true},revocationEpoch:'epoch-1'}),{
+    code:'E_TOOL_CHANGED'});
+  assert.equal(sends,1);assert.equal(f.actions.length,0);
+});
+
+test('site.set rechecks navigation after its initial site read before policy persistence',async()=>{
+  for(const target of ['https://other.example/article','chrome://extensions/']){
+    const f=await fixture();await f.service.dispatch(f.message('adblock.enable'),sender);
+    const beforeActions=f.actions.length,beforeChanges=f.changes.length;
+    const query=f.api.tabs.query;let reads=0;
+    f.api.tabs.query=async args=>{
+      const tabs=await query(args);
+      if(++reads===1)f.setCurrent(target);
+      return tabs;
+    };
+    await assert.rejects(f.service.dispatch(f.message('adblock.site.set',{
+      host:'news.example.com',filtering:false}),sender),{code:'E_ADBLOCK_SITE_CHANGED'});
+    assert.equal(reads,2);assert.equal(f.changes.length,beforeChanges);
+    assert.equal(f.actions.length,beforeActions);
+    assert.deepEqual(f.stored.get(ADBLOCK_STORE).exceptions,[]);
+  }
 });

@@ -189,7 +189,7 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Only byte-reviewed first-party Clipper page/policy sources enter fixed
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'ab547dcff0fd4772eccb26bfd74515f4cade3668',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'ae9f44d05b868d67c2973b39720757e07d8516d3',
   'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'6240ef2d75f251c0b4d980690081d3540bba275f'
 });
 function reviewedCompiledWebClipper(target,path,root){

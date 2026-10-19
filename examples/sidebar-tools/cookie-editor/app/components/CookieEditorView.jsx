@@ -17,6 +17,7 @@ const shapes={
   close:<path d="M6 6l12 12M18 6 6 18"/>,
   undo:<><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></>,
   check:<path d="m5 12 5 5L20 7"/>,
+  more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
   chevron:<path d="m7 10 5 5 5-5"/>,
   eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
@@ -111,7 +112,7 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
   advancedOpen,onAdvancedToggle,error=''}){
   return <details className="advanced cookie-editor-details od-disclosure"
     open={advancedOpen} onToggle={onAdvancedToggle}>
-    <summary>属性与高级设置</summary>
+    <summary>属性</summary>
     <div className="advanced-body">
       <div className="pair">
         <CookieFormField label="Domain">
@@ -125,14 +126,6 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
             readOnly={existing} disabled={disabled}/>
         </CookieFormField>
       </div>
-      <div className="toggles-row">
-        <span className="toggles-label">Host-only</span>
-        <div className="toggles"><label>
-          <input type="checkbox" checked={draft.hostOnly===true}
-            disabled={existing||disabled} onChange={e=>onChange('hostOnly',e.target.checked)}/>
-          {' '}{draft.hostOnly?'仅当前主机':'Domain Cookie'}
-        </label></div>
-      </div>
       <CookieFormField label="SameSite">
         <select className="od-field" aria-label="SameSite"
           value={draft.sameSite||'unspecified'} disabled={disabled}
@@ -143,8 +136,10 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
         </select>
       </CookieFormField>
       <div className="toggles-row">
-        <span className="toggles-label">选项</span>
         <div className="toggles">
+          <label title="仅当前主机"><input type="checkbox"
+            checked={draft.hostOnly===true} disabled={existing||disabled}
+            onChange={e=>onChange('hostOnly',e.target.checked)}/> Host-only</label>
           <label><input type="checkbox" checked={draft.secure===true}
             disabled={disabled} onChange={e=>onChange('secure',e.target.checked)}/> Secure</label>
           <label><input type="checkbox" checked={draft.httpOnly===true}
@@ -153,28 +148,31 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
             disabled={disabled} onChange={e=>onChange('session',e.target.checked)}/> Session</label>
         </div>
       </div>
-      {!draft.session&&<CookieFormField label="过期时间">
+      {!draft.session&&<CookieFormField label="过期">
         <input className="od-field" aria-label="过期时间（本地时间）"
+          title="本地时间"
           aria-invalid={error.startsWith('请选择有效的未来')||undefined}
           type="datetime-local" step="1" value={draft.expiration||''}
           onChange={e=>onChange('expiration',e.target.value)} disabled={disabled}/>
       </CookieFormField>}
-      {!draft.session&&<p className="editor-timezone">设备本地时间；保存时转换为 Unix 秒，不按 UTC 直接解释输入。</p>}
-      <div className="editor-identity">
-        <div><span>Store ID</span><code>{draft.storeId??'当前 Store'}</code></div>
-        <div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'无（非分区）'}</code></div>
-      </div>
-      <p className="editor-hint">Domain、Path、Host-only、Store、Partition 为既有 Cookie 的只读身份；HttpOnly 无法由普通网页 JS 直接读取。</p>
+      {existing&&<details className="editor-identity">
+        <summary>存储信息</summary>
+        <div className="editor-identity-fields">
+          <div><span>Store ID</span><code>{draft.storeId??'默认'}</code></div>
+          <div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'—'}</code></div>
+        </div>
+      </details>}
     </div>
   </details>;
 }
 // Pure presentation shared by Preview and official React.
-export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,onRefresh}){
+export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh,utilities}){
   return <header className="site-bar">
-    <span className="site-symbol"><CookieIcon name="globe"/></span>
-    <div className="site-name"><span>当前网站</span><strong title={site}>{site}</strong></div>
+    <strong className="site-hostname" title={site} aria-label={'网站 '+site}>{site}</strong>
     {loading&&<span className="site-status muted">读取中</span>}
-    {readonly&&<span className="site-status limited">仅查看</span>}
+    {readonly&&<span className="site-status limited">只读</span>}
+    {syncStale&&<span className="site-status limited" title="自动同步暂不可用">未同步</span>}
+    {utilities}
     <Action name="refresh" label="刷新 Cookie" onClick={onRefresh}
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
@@ -261,7 +259,7 @@ export function CookieRows({
   </section>;
 }
 export function CookieEditorView({
-  site,rows=[],selected=null,onSelect=()=>{},onRefresh,
+  site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,utilities=null,
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,
@@ -283,7 +281,8 @@ export function CookieEditorView({
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
   return <main className="cookie-react-view" aria-label="Cookie Editor">
-    <CookieSiteBar site={site} readonly={readonly} busy={busy} onRefresh={onRefresh}/>
+    <CookieSiteBar site={site} readonly={readonly} busy={busy} utilities={utilities}
+      syncStale={syncStale} onRefresh={onRefresh}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       busy={busy} readonly={readonly}/>

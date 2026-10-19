@@ -9,7 +9,17 @@ const requireTool=tool=>{
   if(tool?.id!==ADBLOCK_ID||!tool.capabilities?.includes(ADBLOCK_CAPABILITY))
     throw adblockError('E_TOOL_CHANGED','未安装可信 AdBlock 扩展工具');
 };
-async function authenticated({api,tool,operation,payload,revocationEpoch,assertCurrent}){
+async function currentHostWindowId(api){
+  let window;
+  // This runs in the trusted document, where Chrome returns its owning window.
+  // A sandbox payload must never choose this binding.
+  try{window=await api.windows.getCurrent();}
+  catch{throw adblockError('E_ADBLOCK_SENDER','无法确认可信工具所属窗口');}
+  if(!Number.isSafeInteger(window?.id)||window.id<0||window.incognito!==false)
+    throw adblockError('E_ADBLOCK_SENDER','可信工具所属窗口不可用');
+  return window.id;
+}
+async function authenticated({api,tool,operation,payload,revocationEpoch,assertCurrent,expectedWindowId}){
   requireTool(tool);
   assertCurrent?.('initial');
   await assertSidebarToolEnabled(api,ADBLOCK_ID);
@@ -21,16 +31,31 @@ async function authenticated({api,tool,operation,payload,revocationEpoch,assertC
     (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[ADBLOCK_ID]??null)!==revocationEpoch)
     throw adblockError('E_TOOL_CHANGED','广告工具已更新、撤权、停用或卸载');
   const packageHash=await sidebarToolPackageHash(tool);
+  const hostWindowId=await currentHostWindowId(api);
+  if(expectedWindowId!==undefined&&hostWindowId!==expectedWindowId)
+    throw adblockError('E_ADBLOCK_SENDER','确认期间可信工具所属窗口已改变，请重新读取');
   assertCurrent?.('before-send');
   return {protocol:ADBLOCK_PROTOCOL,toolId:ADBLOCK_ID,
-    operation,payload,packageHash,installEpoch:revocationEpoch};
+    operation,payload,packageHash,installEpoch:revocationEpoch,hostWindowId};
 }
 async function verifiedSend(api,message,assertCurrent){
-  const result=await api.runtime.sendMessage(message);
-  if(!result?.ok)
-    throw adblockError(result?.error?.code||'E_ADBLOCK_HOST',
-      result?.error?.message||'Chrome 广告服务尚未确认');
-  try{assertCurrent?.('after-send');}
+  const uncertain=()=>adblockError(message.operation==='adblock.status'?'E_ADBLOCK_HOST':'E_OUTCOME_UNKNOWN',
+    'Chrome 服务回复无法确认，请读取实际 DNR 状态，不要重放变更');
+  let result;
+  try{result=await api.runtime.sendMessage(message);}
+  catch{throw uncertain();}
+  if(result?.ok===false&&typeof result.error?.code==='string'&&result.error.code&&
+     typeof result.error?.message==='string')
+    throw adblockError(result.error.code,result.error.message);
+  if(result?.ok!==true||!result.data||typeof result.data!=='object'||Array.isArray(result.data)||
+     typeof result.data.installed!=='boolean'||typeof result.data.toolEnabled!=='boolean'||
+     typeof result.data.enabled!=='boolean'||typeof result.data.permissions?.dnr!=='boolean')
+    throw uncertain();
+  try{
+    if(await currentHostWindowId(api)!==message.hostWindowId)
+      throw adblockError('E_ADBLOCK_SENDER','可信工具所属窗口已改变');
+    assertCurrent?.('after-send');
+  }
   catch{throw adblockError('E_OUTCOME_UNKNOWN','浏览器窗口已切换，请重新读取实际 DNR 状态');}
   return result.data;
 }
@@ -111,8 +136,13 @@ export async function requestAdblockOperation({
   if(!payload||typeof payload!=='object'||Array.isArray(payload))
     throw adblockError('E_ADBLOCK_REQUEST','广告拦截操作参数不合法');
   requestShape(operation,payload);
-  const send=async(op,data)=>verifiedSend(api,
-    await authenticated({api,tool,operation:op,payload:data,revocationEpoch,assertCurrent}),assertCurrent);
+  let expectedWindowId;
+  const send=async(op,data)=>{
+    const message=await authenticated({api,tool,operation:op,payload:data,revocationEpoch,
+      assertCurrent,expectedWindowId});
+    expectedWindowId??=message.hostWindowId;
+    return verifiedSend(api,message,assertCurrent);
+  };
   if(operation==='adblock.status')return send(operation,payload);
   // A sandbox cannot provide user activation, a Chrome permission, or a false
   // UI snapshot. Read the trusted service and pin one precise requested action.

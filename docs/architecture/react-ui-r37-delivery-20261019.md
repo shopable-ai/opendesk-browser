@@ -33,6 +33,10 @@
 
 当前不能宣布源码/正式发布完成：收尾复核期间 `src/ui/script-editor.js` 与 `tests/environment/script-editor.test.mjs` 发生并行编辑。首次核对时现行验证输入 10/10 与索引相符；随后产品输入和对应测试不再相符。已验包与回执未变，**包证据继续有效，当前工作树不再等同已验源码**。保留新增改动，不覆盖这两份文件，不把未冻结的并行编辑自动装入已验包；该部分等待 owner 冻结后按实际影响补验。其余文档与审计收尾继续。
 
+用户已明确回复：**“仍在修改，先保留已验快照证据”**。后续其他并行输入变化同样不纳入本次已验范围；不扩展调查其业务。最终只读核对的完整漂移清单、读取时点与冻结包字节/归属结果见 [integrity-check.json](../../artifacts/r37-final-local-20261019/integrity-check.json)：83项一致性检查通过，不是83个功能测试。该文件显式记录 `currentWorkspaceMatchesFrozenProductInputs=false`。
+
+收尾再次观察仓库仍为main，HEAD已变为`d8cc1501330e53b754455e7ed228e35523323496`；这是并行仓库状态，不能替换上述冻结基线。本轮没有执行提交、推送、切分支或回退操作。
+
 ### 冻结输入与构建入口
 
 - 普通源码快照：`/private/tmp/opendesk-r37-candidate`（`/tmp/opendesk-r37-candidate` 为同一路径），保留其 node_modules；不是 Git worktree。冻结清单见 [final-product-inputs.json](../../artifacts/r37-current-freeze-20261019/final-product-inputs.json)，共 1,668 项同步输入；每份真实 build receipt 另记录 618 项实际构建输入。
@@ -68,8 +72,10 @@ OPENDESK_OUTPUT_GUARD_PORT=43129 OPENDESK_BUILD_EVIDENCE_DIR=artifacts/r37-build
 | 完整 Task 默认链 | `production/task/report.json`：PASS_TASK_AND_PAUSED_SCHEDULE | `developer/task/report.json`：同状态 | 导入→草稿执行→审阅安装→已安装执行→创建暂停计划→Runner→编辑→删除确认；Runner 为“等待计划”，不宣称定时触发执行或历史压力矩阵 |
 | Developer 组件与 Debug | 不适用 | `developer/compat/report.json`：PASS_NATIVE_CORE_WITH_PREVIEW_REFERENCE_ONLY | Debug 刷新；React JSX/Vue 准备保存、列表读回；真实页面计数器 0→1；Stop 后可见组件状态及用户展开的真实回执 |
 | Page 管理与卸载修复 | 未单独执行该补充链 | `developer/page-management/report.json`：PASS | localhost 固定范围，验证→安装→更多/详情→停用→启用同一注册→卸载；实际原生注册清空，不代表既有网页副作用自动回滚 |
-| 已保存作者源码精确读回 | 不适用 | `developer/source-readback/` | 补充定向观察；最终状态见本目录报告与索引，不与 Run/Stop 计数相加 |
+| 已保存作者源码精确读回 | 不适用 | `developer/source-readback/report.json` 的 React/Vue 两步；`developer/javascript-readback/report.json`：PASS | JSX/Vue 已保存候选加载后与作者源码逐字相同；JS 固定版本保存→替换编辑器源码→加载持久版本后逐字相同；不与 Run/Stop 计数相加 |
 | 离线 UI Preview | 不作新候选 PASS | `compat` 中 REFERENCE_ONLY | 仅引用旧 freeze/generation/browser 日志原字节哈希；`inputClosureVerified=false`、`frozenCandidateVerified=false`、`previewExecuted=false` |
+
+源码读回补充的观察失败全部保留：`source-readback/report.json` 整体仍为 FAIL，仅其已完成的 React/Vue 精确读回步骤可用；不能把该报告整条提升为 PASS。JS 后续独立报告才是保存/加载通过证据。中间尝试分别遇到错误 cwd/构建配置、隐藏控件、Page 执行环境、原生选择器与折叠区/状态观察问题；记录在两目录的 `attempt-*.report.json`。最终 JS 观察采用真实原生选择器输入和用户点击展开现有区块，没有注入业务动作、伪造 isTrusted 或改变产品代码。`supplementalObservation` 显式说明接受/排除范围。
 
 ### 本次发现、修复与继承边界
 

@@ -15,6 +15,7 @@ test('Runner sender must be a live Chrome OFFSCREEN_DOCUMENT, never a tab',async
   const {api,sender,context}=fixture();
   assert.equal(isToolSender(api,sender),true);
   await requireCloudRunnerSender(api,sender);
+  await requireCloudRunnerSender(api,{...sender,frameId:undefined});
   await assert.rejects(requireCloudRunnerSender(api,{...sender,tab:{id:3}}),{code:'E_OWNER'});
   await assert.rejects(requireCloudRunnerSender(api,{...sender,documentId:'forged'}),{code:'E_OWNER'});
   assert.equal(isToolSender(api,{...sender,url:url+'?fake=1'}),false);
