@@ -1,6 +1,6 @@
 // Real macOS Chrome for Testing smoke: reviewed install, native permission,
 // actual HTTP image network, DNR readback, global switch, per-site bypass,
-// Chrome worker recovery, permission revocation and uninstall.
+// Chrome worker recovery, tool disable/revoke, required DNR and uninstall.
 // No mocked DNR, artificial rule insertion, synthetic click or storage seeding.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -67,6 +67,72 @@ async function attach(c,targetId){
   await evaluate(c,s,'('+observeNativeCalls.toString()+')()');
   return s;
 }
+
+/** Bind CDP to the actual Chrome Side Panel, never a second launcher tab.
+ * Chrome 155 exposes the Side Panel as type=page and appends hostInstanceId
+ * in the target URL, while runtime.getContexts may give a canonical URL.
+ * Require BOTH a live SIDE_PANEL document and the shipped Side Panel DOM.
+ */
+async function attachActualPanel(c,context,excludeIds=[]){
+  assert.ok(context?.documentId&&context?.documentUrl,
+    'Chrome must report a real SIDE_PANEL document');
+  const expected=new URL(context.documentUrl);
+  return until(async()=>{
+    const targets=(await c.send('Target.getTargets')).targetInfos
+      .filter(x=>!excludeIds.includes(x.targetId)&&
+        (x.type==='page'||x.type==='other')&&x.url?.startsWith(expected.origin+expected.pathname));
+    for(const target of targets){
+      try{
+        const session=await attach(c,target.targetId);
+        const realPanel=await evaluate(c,session,
+          '!!document.querySelector("#tab-tools")&&!!document.querySelector("#sidebar-tool-frame")');
+        if(realPanel)return {target,session};
+      }catch{/* An unready target is not proof of a Side Panel. */}
+    }
+    return null;
+  },'real Side Panel CDP target with verified panel DOM',25000);
+}
+async function attachActualReact(c,side){
+  const url=await until(()=>evaluate(c,side,
+    '(()=>{const n=document.querySelector("#sidebar-tool-frame");'+
+    'const f=n?.querySelector("iframe");return n&&!n.hidden&&f&&f.getBoundingClientRect().height>0?f.src:null})()'),
+    'visible installed React iframe',25000);
+  const target=await until(async()=>(await c.send('Target.getTargets')).targetInfos
+    .find(x=>x.type==='iframe'&&x.url===url),
+    'real isolated React iframe CDP target',25000);
+  const session=await attach(c,target.targetId);
+  await until(()=>evaluate(c,session,
+    '!!document.querySelector(".adblock-app")&&'+
+    '!!document.querySelector("[role=switch][aria-label=\\"全局广告拦截\\"]")'),
+    'installed React App and React Aria switch mounted',25000);
+  return session;
+}
+async function reactSwitch(c,session,label){
+  return evaluate(c,session,
+    '(()=>{const input=document.querySelector("[role=switch][aria-label="+'+
+    JSON.stringify(label)+
+    '+"]");return input?{on:input.checked===true||input.getAttribute("aria-checked")==="true",'+
+    'disabled:input.disabled===true||input.getAttribute("aria-disabled")==="true"}:null;})()');
+}
+async function requestReactReview(c,side,react,selector,expectedCopy){
+  await clickSandbox(c,side,react,selector);
+  const review=await until(()=>evaluate(c,side,
+    '(()=>{const panel=document.getElementById("sidebar-tool-action-review");'+
+    'if(!panel||panel.hidden)return null;return {'+
+    'summary:document.getElementById("sidebar-tool-action-summary")?.textContent,'+
+    'button:document.getElementById("sidebar-tool-action-continue")?.textContent};})()'),
+    'trusted Host approval review for real React input');
+  assert.ok(review.summary?.includes(expectedCopy),
+    'review must describe the exact React operation: '+JSON.stringify(review));
+  return review;
+}
+async function approveReactReview(c,side){
+  await click(c,side,'#sidebar-tool-action-continue');
+  await until(()=>evaluate(c,side,
+    'document.getElementById("sidebar-tool-action-review")?.hidden===true'),
+    'trusted Host review closes after Chrome Input approval');
+}
+
 // Observe actual Chrome calls without supplying permissions, results or gestures.
 // Invoke the original synchronously so permissions.request retains user activation.
 function observeNativeCalls(){
@@ -102,7 +168,7 @@ function observeNativeCalls(){
     };
   }
   for(const type of ['pointerdown','click'])document.addEventListener(type,event=>{
-    const control=event.target.closest?.('#sidebar-tool-adblock-native button');
+    const control=event.target.closest?.('#sidebar-tool-action-review button');
     if(control)record({kind:'input',type,isTrusted:event.isTrusted,
       control:control.getAttribute('aria-label'),disabled:control.disabled,
       checked:control.getAttribute('aria-checked'),stack:new Error('native input').stack});
@@ -438,11 +504,12 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     const entries=await evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
     return entries.find(x=>x.documentUrl?.includes('/ui/tool.html')&&x.documentId)||null;
   },'actual Side Panel document');
-  let panel=await until(async()=>{
-    const targets=(await client.send('Target.getTargets')).targetInfos;
-    return targets.find(x=>x.url===context.documentUrl)||null;
-  },'actual Side Panel target');
-  let sid=await attach(client,panel.targetId);
+  // A Chrome SIDE_PANEL context may use a canonical URL, while the actual
+  // page target appends ?hostInstanceId=... . Check panel DOM before binding.
+  const initialPanel=await attachActualPanel(client,context,[ui.targetId]);
+  let panel=initialPanel.target,sid=initialPanel.session;
+  report.nativePanel={documentId:context.documentId,contextUrl:context.documentUrl,
+    targetId:panel.targetId,targetUrl:panel.url,targetType:panel.type};
   await click(client,sid,'#tab-tools');
   // The R4 extension center is the only visible installation surface. The
   // historical discovery button still exists in markup but is CSS-hidden.
@@ -493,275 +560,226 @@ test('macOS Chrome actual AdBlock DNR and network lifecycle',
     packageSHA256:report.packageSHA256,manifestVersion:manifest.version,manifestName:manifest.name,
     loadedManifestMatched:true,installedPackageHash:report.installedIdentity.packageHash};
   note('loaded-candidate-identity',report.packageIdentity);
-  await until(()=>evaluate(client,sid,'(()=>{const x=document.querySelector("#sidebar-tool-adblock-native");return !!x&&!x.hidden&&!!x.querySelector("[role=switch]")})()'),
-    'trusted AdBlock switches visible');
-  // R1.9.5 approved toolbar must match the ACTUALLY INSTALLED Side Panel,
-  // never the standalone preview or sandbox mock.
-  const toolbar=await evaluate(client,sid,`(()=>{
-    const byId=id=>document.getElementById(id);
-    const back=byId('sidebar-tool-back'),title=byId('sidebar-tool-title');
-    const settings=byId('sidebar-tool-settings-open'),remove=byId('sidebar-tool-remove');
-    const root=byId('sidebar-tool-adblock-native'),frame=byId('sidebar-tool-frame');
-    const rect=node=>node.getBoundingClientRect();
-    return {title:title?.textContent?.trim(),
-      titleFontPx:Number.parseFloat(getComputedStyle(title).fontSize),
-      backTitleGapPx:rect(title).left-rect(back).right,
-      settingsVisible:!settings.hidden&&rect(settings).width>0,
-      removeVisible:!remove.hidden&&rect(remove).width>0,
-      actionRowOffsetPx:Math.abs((rect(settings).top+rect(settings).bottom)/2-
-        (rect(remove).top+rect(remove).bottom)/2),
-      duplicateBrand:!!root.querySelector('.adblock-native-head,.adblock-native-logo,'+
-        '.adblock-native-title,.adblock-native-subtitle'),
-      overviewVisible:root.querySelector('.adblock-native-overview')?.hidden===false,
-      exceptionsHidden:root.querySelector('[aria-label="已停用的网站"]')?.hidden===true,
-      iframeHidden:frame.hidden===true};
-  })()`);
-  assert.equal(toolbar.title,'广告拦截');
-  assert.ok(Math.abs(toolbar.titleFontPx-14)<=1,'installed title must remain about 14px');
-  assert.ok(Math.abs(toolbar.backTitleGapPx-8)<=2,'installed back/title gap must remain 8px');
-  assert.equal(toolbar.settingsVisible,true,'settings belongs to the installed toolbar');
-  assert.equal(toolbar.removeVisible,true,'uninstall belongs to the installed toolbar');
-  assert.ok(toolbar.actionRowOffsetPx<=2,'settings and uninstall must share a row');
-  assert.equal(toolbar.duplicateBrand,false,'installed product body must not repeat a brand header');
-  assert.equal(toolbar.overviewVisible,true);
-  assert.equal(toolbar.exceptionsHidden,true);
-  assert.equal(toolbar.iframeHidden,true,'exceptions iframe must be hidden on Overview');
-  report.installedUiParity='PASS';note('r195-installed-toolbar-parity',toolbar);
-  report.screenshots.push(await screenshot(client,sid,'adblock-installed-before-native-grant'));
-  // Optional local inspection keeps the actual Chrome Side Panel available for
-  // native splitter input. It never turns a manual result into CI acceptance.
-  if(process.env.OPENDESK_ADBLOCK_NATIVE_MANUAL_LAYOUT==='1'){
-    await writeFile(path.join(OUT,'manual-layout-ready.json'),JSON.stringify({profile,
-      extensionId:id,panelTargetId:panel.targetId,root:ROOT},null,2)+'\n');
-    await until(async()=>{
-      try{return (await readFile(path.join(OUT,'manual-layout-continue'),'utf8')).trim()==='continue';}
-      catch{return false;}
-    },'explicit completion of native physical Side Panel inspection',180000);
-  }
-  // Product settings belong to the same trusted toolbar and must return.
-  await click(client,sid,'#sidebar-tool-settings-open');
-  await until(()=>evaluate(client,sid,
-    'document.querySelector("#sidebar-tool-adblock-native [aria-label=\\"AdBlock 产品设置\\"]")?.hidden===false'),
-    'actual installed product settings visible');
-  await click(client,sid,'#sidebar-tool-settings-open');
-  await until(()=>evaluate(client,sid,
-    'document.querySelector("#sidebar-tool-adblock-native .adblock-native-overview")?.hidden===false'),
-    'toolbar settings returns to AdBlock overview');
-  note('r195-installed-settings-navigation',{opened:true,returned:true});
-  note('installed-no-filter-before-opt-in',{adRequests:counts.ad,officialVersion:pkg.version});
-
-  const global='#sidebar-tool-adblock-native button[aria-label="全局广告拦截"]';
-  assert.equal(await evaluate(client,sid,
-    'chrome.permissions.contains({permissions:["declarativeNetRequestWithHostAccess"]})'),
-    false,'clean Chrome Profile must not pregrant DNR');
-  await click(client,sid,global);
-  const grant=await until(()=>evaluate(client,sid,
-    'chrome.permissions.contains({permissions:["declarativeNetRequestWithHostAccess"]})'),
-    'actual Chrome optional DNR permission',11000).catch(()=>false);
-  if(!grant){report.nativePermission='BLOCKED_NATIVE_PERMISSION_PROMPT';
-    report.screenshots.push(await screenshot(client,sid,'native-chrome-permission-blocked'));
-    throw Error('Chrome native permission not granted; cannot report ad blocking PASS');}
+  // Source-identical candidate -> real installed opaque iframe -> React Aria.
+  // This never opens a standalone preview and never grants Chrome permissions.
+  const react=await attachActualReact(client,sid);
+  const chromePermission=await evaluate(client,uid,
+    'chrome.permissions.contains({permissions:["declarativeNetRequestWithHostAccess"]})');
+  assert.equal(manifest.permissions.includes('declarativeNetRequestWithHostAccess'),true,
+    'current Manifest requires DNR and cannot be tested as an optional grant');
+  assert.equal(chromePermission,true,'actual loaded Chrome extension must own its mandatory DNR permission');
   report.nativePermission='PASS';
-  // Chromium issue 551296620: the first optional DNR grant does not initialize
-  // the native rules API queue. The PRODUCT must explain this and keep intent
-  // OFF; a full browser restart is the supported recovery, never a test pregrant.
-  await until(()=>evaluate(client,sid,
-    'document.querySelector("#sidebar-tool-adblock-native")?.textContent.includes("完整退出")'),
-    'product explains first-grant Chrome restart without claiming filtering');
-  const pending=await getOwned(client,uid);
-  assert.equal(pending.state?.enabled===true,false,'initial grant must not persist filtering intent');
-  assert.equal(pending.owned.length,0);
-  report.screenshots.push(await screenshot(client,sid,'first-grant-restart-required'));
-  note('first-grant-native-initialization',{nativePermission:true,enabled:false,ownedRules:0,
-    chromiumIssue:'https://issues.chromium.org/issues/551296620'});
-  await writeFile(path.join(OUT,'cdp-before-first-restart.json'),JSON.stringify(client.events,null,2)+'\n');
-  const initialChrome=chrome;
-  await client.send('Browser.close').catch(()=>{});
-  await until(()=>initialChrome.exitCode!==null||initialChrome.signalCode!==null,'Chrome exits after first permission',25000);
-  client.close();client=null;
-  await rm(path.join(profile,'DevToolsActivePort'),{force:true});
-  chrome=launch();capture(chrome);
-  first=await connected();client=first.socket;
-  const launchAgain=await client.send('Target.createTarget',
-    {url:'chrome-extension://'+id+'/ui/tool.html?hostInstanceId='+randomUUID()});
-  uid=await attach(client,launchAgain.targetId);
-  await until(()=>evaluate(client,uid,'!!document.querySelector("#catalog-open-dev-sidebar")'),'launcher after native initialization');
-  const readyOff=await until(async()=>{const r=await getOwned(client,uid);
-    return r.owned.length===0&&r.state?.enabled!==true?r:null;},'restart does not enable filtering by itself');
-  assert.equal(readyOff.owned.length,0);
-  const fixtureAgain=await client.send('Target.createTarget',{url:page});
-  site=await attach(client,fixtureAgain.targetId);
-  await until(()=>evaluate(client,site,'document.querySelector("h1")?.textContent==="Network fixture ready"'),'fixture after initial restart');
-  await click(client,uid,'#catalog-open-dev-sidebar');
-  const reopenedContext=await until(()=>evaluate(client,uid,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(x=>x.find(c=>c.documentUrl.includes("/ui/tool.html")))'),'Side Panel after initial restart');
-  panel=await until(async()=>(await client.send('Target.getTargets')).targetInfos.find(x=>x.url===reopenedContext.documentUrl),'native Side Panel target after initial restart');
-  sid=await attach(client,panel.targetId);
-  await click(client,sid,'#tab-tools');await openInstalled(sid);
-  await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+JSON.stringify(global)+');return b&&!b.disabled&&b.getAttribute("aria-checked")==="false"})()'),'manual filtering remains available after restart');
-  await click(client,sid,global);
+  const installedToolbar=await evaluate(client,sid,'(()=>{'+
+    'const title=document.getElementById("sidebar-tool-title");'+
+    'const frame=document.getElementById("sidebar-tool-frame");'+
+    'const settings=document.getElementById("sidebar-tool-settings-open");'+
+    'const remove=document.getElementById("sidebar-tool-remove");'+
+    'return {title:title?.textContent?.trim(),frameVisible:!!frame&&!frame.hidden,'+
+    'settingsVisible:!!settings&&!settings.hidden,'+
+    'removeVisible:!!remove&&!remove.hidden};})()');
+  assert.equal(installedToolbar.title,'广告拦截');
+  assert.equal(installedToolbar.frameVisible,true,'installed React must not be hidden as the retired native view');
+  assert.equal(installedToolbar.settingsVisible,true);
+  assert.equal(installedToolbar.removeVisible,true);
+  report.installedUiParity='PASS';
+  note('installed-react-ui-parity',installedToolbar);
+  report.screenshots.push(await screenshot(client,sid,'adblock-installed-react-off'));
+  if(process.env.OPENDESK_ADBLOCK_NATIVE_MANUAL_LAYOUT==='1'){
+    await writeFile(path.join(OUT,'manual-layout-ready.json'),JSON.stringify({
+      profile,extensionId:id,panelTargetId:panel.targetId,reactSession:react,root:ROOT},null,2)+'\n');
+    await until(async()=>{try{return (await readFile(path.join(OUT,'manual-layout-continue'),'utf8')).trim()==='continue';}
+      catch{return false;}},'native physical splitter review',180000);
+  }
+  // The host toolbar Settings message navigates the installed React product,
+  // not a detached, retired native AdBlock screen.
+  await click(client,sid,'#sidebar-tool-settings-open');
+  await until(()=>evaluate(client,react,
+    'document.querySelector(".adblock-app")?.textContent.includes("设置说明")'),
+    'trusted toolbar opens installed React settings');
+  await clickSandbox(client,sid,react,'button[aria-label="返回广告拦截概览"]');
+  await until(()=>evaluate(client,react,
+    'document.querySelector(".adblock-app")?.textContent.includes("全局保护")'),
+    'React settings return to real overview');
+  note('react-installed-settings-navigation',{opened:true,returned:true});
+
+  const globalLabel='全局广告拦截';
+  const globalSelector='label.od-shared-switch:has([role="switch"][aria-label="全局广告拦截"])';
+  const currentSelector='label.od-shared-switch:has([role="switch"][aria-label="当前网站广告过滤"])';
+  await until(async()=>{
+    const x=await reactSwitch(client,react,globalLabel);return x&&!x.disabled&&!x.on;
+  },'installed React starts with global protection OFF');
+  const beforeEnable=await getOwned(client,uid);
+  assert.equal(beforeEnable.owned.length,0,'fresh install must not auto-block');
+  assert.equal((await probe(client,site,adUrl())).success,true,'fresh installation must allow the ad before opt-in');
+  await requestReactReview(client,sid,react,globalSelector,'开启全局过滤');
+  assert.equal((await getOwned(client,uid)).owned.length,0,
+    'React requesting approval must not write DNR early');
+  await approveReactReview(client,sid);
   const enabled=await until(async()=>{
-    const r=await getOwned(client,uid);
-    return r.state?.enabled===true&&r.owned.some(x=>x.id===F)?r:null;
-  },'native AdBlock rules added and read back',Number(process.env.OPENDESK_ADBLOCK_DNR_TIMEOUT||22000));
-  assert.equal(enabled.owned[0].condition.domainType,'thirdParty');
+    const result=await getOwned(client,uid);
+    const ui=await reactSwitch(client,react,globalLabel);
+    return result.state?.enabled===true&&result.owned.some(x=>x.id===F)&&ui?.on?result:null;
+  },'real React ON, trusted Host, Chrome DNR readback',25000);
+  assert.equal(enabled.owned.find(x=>x.id===F).condition.domainType,'thirdParty');
   const beforeBlock=counts.ad;
   const blocked=await probe(client,site,adUrl());
-  assert.equal(blocked.success,false,'Chrome must block actual third-party ad image');
+  assert.equal(blocked.success,false,'real Chrome must block matching network image');
   assert.equal(blocked.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
-  assert.equal(counts.ad,beforeBlock,'the local HTTP server MUST NOT receive the blocked ad');
-  assert.equal((await probe(client,site,normalUrl())).success,true,'normal image remains accessible');
-  report.network='PASS';note('actual-network-block',{blocked,adServerHits:counts.ad,
-    normalServerHits:counts.normal,nativeRuleIds:enabled.owned.map(x=>x.id)});
+  assert.equal(counts.ad,beforeBlock,'blocked ad MUST NOT reach local HTTP server');
+  assert.equal((await probe(client,site,normalUrl())).success,true);
+  report.network='PASS';note('real-react-network-block',{
+    request:blocked,adServerHits:counts.ad,ownedRules:enabled.owned.map(x=>x.id)});
 
-  await click(client,sid,global);
-  await until(async()=>{const r=await getOwned(client,uid);
-    return r.state?.enabled===false&&r.owned.length===0?r:null;},'pause verified by Chrome DNR');
+  await requestReactReview(client,sid,react,globalSelector,'关闭全局过滤');
+  await approveReactReview(client,sid);
+  await until(async()=>{
+    const r=await getOwned(client,uid),ui=await reactSwitch(client,react,globalLabel);
+    return r.state?.enabled===false&&r.owned.length===0&&ui&&!ui.on;
+  },'React OFF and real DNR removal');
   const paused=await probe(client,site,adUrl());
-  assert.equal(paused.success,true,'real ad request should resume after trusted OFF');
-  assert.equal(counts.ad,beforeBlock+1);
-  await click(client,sid,global);
-  await until(async()=>{const r=await getOwned(client,uid);
-    return r.state?.enabled===true&&r.owned.length===1?r:null;},'reenable verified');
+  assert.equal(paused.success,true,'real HTTP ad request must resume after OFF');
+  await requestReactReview(client,sid,react,globalSelector,'开启全局过滤');
+  await approveReactReview(client,sid);
+  await until(async()=>{
+    const r=await getOwned(client,uid),ui=await reactSwitch(client,react,globalLabel);
+    return r.state?.enabled===true&&r.owned.some(x=>x.id===F)&&ui?.on;
+  },'React re-enable and DNR readback');
   const reblocked=await probe(client,site,adUrl());
-  assert.equal(reblocked.success,false,'trusted ON must block the ad again');
-  report.globalToggle='PASS';note('trusted-global-pause-resume',
-    {paused,reenabled:reblocked,ownedRuleId:F});
-  // Keyboard changes must traverse the shipped tab order and generate Chrome
-  // trusted input. No element.focus(), DOM click, or synthetic keyboard event.
-  for(let i=0;i<40;i++){
-    if(await evaluate(client,sid,'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"'))break;
-    for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
-      {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
-  }
-  assert.equal(await evaluate(client,sid,'document.activeElement?.getAttribute("aria-label")'),'全局广告拦截');
-  for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
-    {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
-  await until(async()=>{const r=await getOwned(client,uid);return r.state?.enabled===false&&r.owned.length===0;},'Space disables filtering');
-  assert.equal((await probe(client,site,adUrl())).success,true);
-  // Rule mutation may complete before the native Side Panel has performed its
-  // final authoritative read and restored keyboard focus. Wait for actual
-  // actionable UI, never add a sleep or inject element.focus() in the test.
-  await until(()=>evaluate(client,sid,'(()=>{const b=document.querySelector('+
-    JSON.stringify(global)+');return !!b&&!b.disabled&&b.getAttribute("aria-checked")==="false"&&'+
-    'document.activeElement===b;})()'), 'Space OFF restores actionable keyboard focus');
-  for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
-    {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
-  await until(async()=>{const r=await getOwned(client,uid);return r.state?.enabled===true&&r.owned.length===1;},'Space reenables filtering');
-  assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
-  note('native-keyboard-switch',{tabOrder:true,spaceOffOn:true,ariaVerified:true});
+  assert.equal(reblocked.network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+  report.globalToggle='PASS';note('react-global-off-on',{paused,reblocked});
 
-  // Real tab selection: no test writes the tool's Chrome state or DNR data.
-  await evaluate(client,uid,'(async()=>{const t=(await chrome.tabs.query({url:'+JSON.stringify(page)+'}))[0];'+
-    'if(!t)throw Error("page tab unavailable");await chrome.tabs.update(t.id,{active:true});'+
-    'await chrome.windows.update(t.windowId,{focused:true});return t.id;})()');
-  const nativeSite=await until(()=>evaluate(client,sid,
-    '(()=>{const n=document.querySelector("#sidebar-tool-adblock-native");'+
-    'return n&&!n.hidden&&n.textContent.includes("127.0.0.1")})()'),
-    'current real website reflected in trusted controls');
-  assert.equal(nativeSite,true);
-  const siteButton=await evaluate(client,sid,
-    '(()=>{const n=document.querySelector("#sidebar-tool-adblock-native");'+
-    'return [...n.querySelectorAll(\'button[role="switch"]\')].map(x=>({label:x.getAttribute("aria-label"),on:x.getAttribute("aria-checked")}))})()');
-  assert.equal(siteButton.length,2);
-  const siteSelector='#sidebar-tool-adblock-native button[aria-label="网站 127.0.0.1 的广告过滤"]';
-  await click(client,sid,siteSelector);
-  await until(async()=>{const r=await getOwned(client,uid);
+  // Use the real tab/window selection; the sandbox may never choose the host
+  // from a stale status snapshot or from an untrusted request payload.
+  const activateFixture=async()=>{
+    await evaluate(client,uid,'(async()=>{const t=(await chrome.tabs.query({url:'+JSON.stringify(page)+'}))[0];'+
+      'if(!t)throw Error("page tab unavailable");await chrome.tabs.update(t.id,{active:true});'+
+      'await chrome.windows.update(t.windowId,{focused:true});return t.id;})()');
+  };
+  await activateFixture();
+  await until(()=>evaluate(client,react,
+    'document.querySelector(".adblock-host")?.textContent.trim()==="127.0.0.1"'),
+    'real current-site identity from Chrome');
+  const currentLabel='当前网站广告过滤';
+  await until(async()=>{
+    const x=await reactSwitch(client,react,currentLabel);return x&&!x.disabled&&x.on;
+  },'React site switch enabled for the current HTTP website');
+  await requestReactReview(client,sid,react,currentSelector,'关闭 127.0.0.1 的广告过滤');
+  await approveReactReview(client,sid);
+  await until(async()=>{
+    const r=await getOwned(client,uid),ui=await reactSwitch(client,react,currentLabel);
     return r.state?.exceptions?.includes('127.0.0.1')&&
-      r.owned.some(x=>x.action?.type==='allowAllRequests')?r:null;},
-    'hostname-only exception is persisted and native allowAllRequests installed');
+      r.owned.some(x=>x.action?.type==='allowAllRequests')&&ui&&!ui.on;
+  },'real website A exception, allowAllRequests and React readback');
   await client.send('Page.reload',{ignoreCache:true},site);
-  await until(()=>evaluate(client,site,'document.readyState==="complete"'),'real page refresh after exception');
+  await until(()=>evaluate(client,site,'document.readyState==="complete"'),
+    'real page A refresh after exception');
   const allowed=await probe(client,site,adUrl());
-  assert.equal(allowed.success,true,'current-site exception must allow third-party ad after reload');
-  report.siteException='PASS';note('exact-host-allow-all-requests',
-    {host:'127.0.0.1',passed:allowed,serverAdHits:counts.ad});
+  assert.equal(allowed.success,true,'site A exception must permit matching third-party ad');
+  report.siteException='PASS';note('real-react-site-exception',{host:'127.0.0.1',allowed});
 
   const other=await client.send('Target.createTarget',{url:otherPage});
   const otherSession=await attach(client,other.targetId);
-  await until(()=>evaluate(client,otherSession,'document.querySelector("h1")?.textContent==="Network fixture ready"'),
-    'other hostname first-party page');
+  await until(()=>evaluate(client,otherSession,
+    'document.querySelector("h1")?.textContent==="Network fixture ready"'),
+    'real website B');
   const otherBlocked=await probe(client,otherSession,adUrl());
-  assert.equal(otherBlocked.success,false,'allow 127.0.0.1 must not allow localhost');
-  report.otherSite='PASS';note('other-host-remains-filtered',{host:'localhost',request:otherBlocked});
+  assert.equal(otherBlocked.network.errorText,'net::ERR_BLOCKED_BY_CLIENT',
+    'website B must continue blocking despite A exception');
+  report.otherSite='PASS';note('website-b-stays-blocked',{host:'localhost',otherBlocked});
   const frameBefore=counts.frameAd;
-  await evaluate(client,site,'(()=>{const n=document.createElement("iframe");n.src='+
+  await evaluate(client,site,'(()=>{const f=document.createElement("iframe");f.src='+
     JSON.stringify('http://localhost:'+port+'/frame?n='+randomUUID())+
-    ';document.body.append(n);return true;})()');
-  await until(()=>counts.framePage>0,'actual nested iframe page received');
-  await until(()=>counts.frameAd>frameBefore,'third-party ad from descendant iframe of excepted site');
-  report.iframe='PASS';note('cross-origin-nested-frame-inherits-site-exception',{framePageHits:counts.framePage,
-    adHits:counts.frameAd});
+    ';document.body.append(f);return true;})()');
+  await until(()=>counts.framePage>0,'actual descendant iframe page requested');
+  await until(()=>counts.frameAd>frameBefore,'real descendant iframe request exempted');
+  report.iframe='PASS';note('nested-iframe-exception',{framePageHits:counts.framePage,adHits:counts.frameAd});
 
-  await evaluate(client,uid,'(async()=>{const t=(await chrome.tabs.query({url:'+JSON.stringify(page)+'}))[0];'+
-    'await chrome.tabs.update(t.id,{active:true});await chrome.windows.update(t.windowId,{focused:true});})()');
-  await until(()=>evaluate(client,sid,'document.querySelector('+JSON.stringify(siteSelector)+')?.getAttribute("aria-checked")==="false"'),
-    'site switch now off');
-  // R1.9 three-page product: the opaque exception iframe is deliberately
-  // hidden on Overview. A real trusted pointer must navigate to Exceptions
-  // before the restore control can receive a meaningful user click.
-  const exceptionsNav='#sidebar-tool-adblock-native button[aria-label="管理已停用的网站"]';
-  await click(client,sid,exceptionsNav);
-  await until(()=>evaluate(client,sid,'(()=>{const root=document.querySelector("#sidebar-tool-adblock-native");'+
-    'const page=root?.querySelector(".adblock-native-overview");'+
-    'const exceptions=root?.querySelector(".adblock-native-subpage[aria-label=\\"已停用的网站\\"]");'+
-    'const frame=document.querySelector("#sidebar-tool-frame");'+
-    'return !!root&&!root.hidden&&page?.hidden===true&&exceptions?.hidden===false&&'+
-    'frame?.hidden===false&&frame.getBoundingClientRect().height>0;})()'),
-    'real native Exceptions navigation exposes opaque iframe');
-  const sandboxTarget=await until(async()=>{
-    const url=await evaluate(client,sid,'document.querySelector("#sidebar-tool-frame iframe")?.src');
-    return (await client.send('Target.getTargets')).targetInfos.find(x=>x.type==='iframe'&&x.url===url);
-  },'installed AdBlock sandbox document');
-  const sandbox=await attach(client,sandboxTarget.targetId);
+  await activateFixture();
+  await until(async()=>{
+    const x=await reactSwitch(client,react,currentLabel);return x&&!x.on;
+  },'site A React switch reflects exception');
+  await clickSandbox(client,sid,react,'button.adblock-link');
   const restoreSelector='button[aria-label="恢复 127.0.0.1 的广告过滤"]';
-  await until(()=>evaluate(client,sandbox,
-    '(globalThis.OpenDeskTool?.root||document).querySelector('+JSON.stringify(restoreSelector)+')?.disabled===false'),
-    'real disabled-sites list offers restore');
-  report.screenshots.push(await screenshot(client,sid,'real-site-exception-list'));
+  await until(()=>evaluate(client,react,
+    'document.querySelector('+JSON.stringify(restoreSelector)+')?.disabled===false'),
+    'installed React exception list offers website A restore');
+  report.screenshots.push(await screenshot(client,sid,'adblock-installed-react-exceptions'));
   const beforeRestore=await getOwned(client,uid);
   const beforeRestoreRules=await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()');
   const sortedRules=rules=>[...rules].sort((a,b)=>a.id-b.id);
-  const requestRestoreReview=async()=>{
-    const geometry=await clickSandbox(client,sid,sandbox,restoreSelector);
-    try{
-      await until(()=>evaluate(client,sid,'(()=>{const review=document.querySelector("#sidebar-tool-action-review");'+
-        'return !!review&&!review.hidden&&document.querySelector("#sidebar-tool-action-summary")?.textContent.includes("恢复 127.0.0.1 的广告过滤")&&'+
-        'document.querySelector("#sidebar-tool-action-continue")?.textContent.trim()==="确认恢复";})()'),
-        'sandbox restore requires trusted host review');
-    }catch(error){
-      await sandboxDiagnostic(client,sid,sandbox,restoreSelector,
-        {phase:'trusted-host-review',geometry},error).catch(()=>{});
-      throw error;
-    }
-  };
-  await requestRestoreReview();
-  assert.deepEqual(await getOwned(client,uid),beforeRestore,'review alone must not restore site filtering');
+  await requestReactReview(client,sid,react,restoreSelector,'恢复 127.0.0.1 的广告过滤');
+  assert.deepEqual(await getOwned(client,uid),beforeRestore,'review cannot restore without trusted click');
   await click(client,sid,'#sidebar-tool-action-cancel');
-  await until(()=>evaluate(client,sid,'document.querySelector("#sidebar-tool-action-review")?.hidden===true'),
-    'trusted host review closes after real Cancel');
-  await until(()=>evaluate(client,sandbox,'(()=>{const root=globalThis.OpenDeskTool?.root||document;'+
-    'return root.textContent.includes("已取消恢复，网站过滤设置未改变")&&'+
-    'root.querySelector('+JSON.stringify(restoreSelector)+')?.disabled===false;})()'),
-    'sandbox acknowledges cancelled restore and offers the same action again');
-  const cancelledRestore=await getOwned(client,uid);
-  assert.deepEqual(cancelledRestore.state,beforeRestore.state,'Cancel must preserve stored exceptions and approval');
+  await until(()=>evaluate(client,sid,'document.getElementById("sidebar-tool-action-review")?.hidden===true'),
+    'Cancel closes trusted Host review');
+  await until(()=>evaluate(client,react,
+    'document.querySelector(".adblock-notice")?.textContent.includes("已取消")'),
+    'React displays user cancellation without claiming a write');
+  const cancelled=await getOwned(client,uid);
+  assert.deepEqual(cancelled.state,beforeRestore.state,'Cancel preserves stored exceptions');
   assert.deepEqual(sortedRules(await evaluate(client,uid,'chrome.declarativeNetRequest.getDynamicRules()')),
-    sortedRules(beforeRestoreRules),'Cancel must leave every Chrome dynamic rule unchanged');
+    sortedRules(beforeRestoreRules),'Cancel leaves all Chrome DNR rules unchanged');
   await client.send('Page.reload',{ignoreCache:true},site);
-  await until(()=>evaluate(client,site,'document.readyState==="complete"'),'page reload after cancelled restore');
-  const cancelledRequest=await probe(client,site,adUrl());
-  assert.equal(cancelledRequest.success,true,'Cancel must keep the site exception effective on actual network');
+  await until(()=>evaluate(client,site,'document.readyState==="complete"'),
+    'site A reload after cancel');
+  assert.equal((await probe(client,site,adUrl())).success,true,
+    'cancelled restore must not suppress website A exception');
   report.restoreCancellation='PASS';
-  note('site-restore-cancelled',{exceptions:cancelledRestore.state.exceptions,
-    dynamicRuleIds:beforeRestoreRules.map(x=>x.id),request:cancelledRequest});
-  await requestRestoreReview();
-  await click(client,sid,'#sidebar-tool-action-continue');
-  await until(async()=>{const r=await getOwned(client,uid);
-    return r.state?.exceptions?.length===0&&r.owned.length===1?r:null;},'site filter restored');
+  await requestReactReview(client,sid,react,restoreSelector,'恢复 127.0.0.1 的广告过滤');
+  await approveReactReview(client,sid);
+  await until(async()=>{
+    const r=await getOwned(client,uid);
+    return r.state?.exceptions?.length===0&&r.owned.length===1?r:null;
+  },'real React restoration and Chrome DNR readback');
   await client.send('Page.reload',{ignoreCache:true},site);
-  await until(()=>evaluate(client,site,'document.readyState==="complete"'),'page reload after restore');
-  assert.equal((await probe(client,site,adUrl())).success,false,'restoring site must reblock ad');
-  note('site-filter-restored',{remainingExceptions:0});
+  await until(()=>evaluate(client,site,'document.readyState==="complete"'),
+    'site A reload after restore');
+  assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+  note('react-site-restored',{exceptions:0});
+
+  await clickSandbox(client,sid,react,'button[aria-label="返回广告拦截概览"]');
+  // Genuine Side Panel keyboard input must traverse into the React Aria input.
+  // Do not invoke input.focus() or synthesize DOM keyboard events.
+  let focused=false;
+  for(let i=0;i<60;i++){
+    if(await evaluate(client,react,
+      'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"')){focused=true;break;}
+    for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+      {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
+  }
+  assert.equal(focused,true,'physical Tab must reach installed React global switch');
+  for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+    {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
+  await until(()=>evaluate(client,sid,
+    'document.getElementById("sidebar-tool-action-review")?.hidden===false'),
+    'Space on React Aria Switch requests trusted review');
+  await approveReactReview(client,sid);
+  await until(async()=>{const r=await getOwned(client,uid);
+    return r.state?.enabled===false&&r.owned.length===0;},'Space OFF removes real rules');
+  assert.equal((await probe(client,site,adUrl())).success,true);
+  await until(()=>evaluate(client,react,
+    'document.querySelector("[role=switch][aria-label=\\"全局广告拦截\\"]")?.disabled===false'),
+    'React switch action completes');
+  // One more physical Tab/Space cycle may be needed because trusted review
+  // moves focus back to the Side Panel; never force focus from JavaScript.
+  focused=false;
+  for(let i=0;i<60;i++){
+    if(await evaluate(client,react,
+      'document.activeElement?.getAttribute("aria-label")==="全局广告拦截"')){focused=true;break;}
+    for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+      {type,key:'Tab',code:'Tab',windowsVirtualKeyCode:9},sid);
+  }
+  assert.equal(focused,true,'React Aria remains keyboard reachable after OFF');
+  for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',
+    {type,key:' ',code:'Space',windowsVirtualKeyCode:32},sid);
+  await until(()=>evaluate(client,sid,
+    'document.getElementById("sidebar-tool-action-review")?.hidden===false'),
+    'Space ON requests trusted review');
+  await approveReactReview(client,sid);
+  await until(async()=>{const r=await getOwned(client,uid);
+    return r.state?.enabled===true&&r.owned.some(x=>x.id===F);},'Space ON restores DNR');
+  assert.equal((await probe(client,site,adUrl())).network.errorText,'net::ERR_BLOCKED_BY_CLIENT');
+  note('react-keyboard-tab-space',{keyboardTrusted:true,hostReviewed:true});
 
   // The native Side Panel can close; DNR belongs to the extension worker.
   await client.send('Target.closeTarget',{targetId:panel.targetId});
