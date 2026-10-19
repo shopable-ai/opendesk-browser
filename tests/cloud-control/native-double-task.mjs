@@ -73,7 +73,7 @@ async function fixture(effects){
   return {sha256:createHash('sha256').update(original).digest('hex'),
     close:()=>new Promise(resolve=>server.close(resolve))};
 }
-async function snapshot(c,jobIds=[]){
+async function snapshot(c,jobIds=[],assets=[]){
   const targets=(await c.send('Target.getTargets')).targetInfos;
   const runners=targets.filter(t=>['page','other'].includes(t.type)&&
     /^chrome-extension:\/\/[a-p]{32}\/cloud-control\/runner\.html$/.test(t.url));
@@ -91,6 +91,8 @@ async function snapshot(c,jobIds=[]){
     // Chrome's original IndexedDB, native readonly transactions. Filter
     // by Provider jobId before copying anything into the test process.
     const expression='(async()=>{const wanted='+JSON.stringify(jobIds)+';'+
+      'const assetPaths='+JSON.stringify(assets)+';'+
+      'const buildAssets=await Promise.all(assetPaths.map(async p=>{const r=await fetch(chrome.runtime.getURL(p),{cache:"no-store"});if(!r.ok)throw Error("Chrome build asset unavailable: "+p);const bytes=await r.arrayBuffer();const hash=await crypto.subtle.digest("SHA-256",bytes);return {path:p,sha256:Array.from(new Uint8Array(hash),x=>x.toString(16).padStart(2,"0")).join("")}}));'+
       'if(!(await indexedDB.databases()).some(d=>d.name==="opendesk-browser"))throw Error("Original DB missing");'+
       'const db=await new Promise((ok,no)=>{const q=indexedDB.open("opendesk-browser");q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});'+
       'try{const names=["frameworkKV","runs","results","commandJournal"],tx=db.transaction(names,"readonly");'+
@@ -100,11 +102,19 @@ async function snapshot(c,jobIds=[]){
       'const rows=kv.filter(x=>x?.tag==="cloud-request-v1"&&wanted.includes(x.assignment?.jobId));'+
       'const runIds=rows.map(x=>x.runId);'+
       'const runs=allRuns.filter(x=>x?.tag==="controller-run"&&runIds.includes(x.runId));'+
-      'return {contexts:(await chrome.runtime.getContexts({})).map(x=>({type:x.contextType,url:x.documentUrl,documentId:x.documentId})),'+
-      'cloud:{enabled:config?.enabled===true,approved:(config?.tasks||[]).map(x=>({taskId:x.taskId,'+
-        'version:x.version,manifestHash:x.manifestHash,sourceHash:x.contentHash,resultAllowed:x.resultAllowed}))},'+
+      'return {assets:buildAssets,sitePermissionGranted:await chrome.permissions.contains({origins:["http://127.0.0.1:43111/*"]}),'+
+      'contexts:(await chrome.runtime.getContexts({})).map(x=>({type:x.contextType,url:x.documentUrl,documentId:x.documentId})),'+
+      'cloud:{providerId:config?.providerId,executorId:config?.executorId,grantId:config?.grantId,'+
+        'enabled:config?.enabled===true,approved:(config?.tasks||[]).map(x=>({taskId:x.taskId,'+
+        'version:x.version,manifestHash:x.manifestHash,sourceHash:x.contentHash,resultAllowed:x.resultAllowed,'+
+        'installationId:x.installationId,generation:x.generation}))},'+
       'installed:kv.filter(x=>x?.tag==="task-installed-v1").map(x=>({taskId:x.taskId,version:x.version,'+
-        'manifestHash:x.manifestHash,enabled:x.enabled})),'+
+        'manifestHash:x.manifestHash,enabled:x.enabled,installationId:x.authorization?.installationId,'+
+        'generation:x.authorization?.generation})),'+
+      'available:kv.filter(x=>x?.tag==="task-candidate-v1"&&x.stage==="available").map(x=>({'+
+        'taskId:x.package?.manifest?.taskId,version:x.package?.manifest?.version,'+
+        'manifestHash:x.package?.manifestHash,sourceHash:x.verification?.sourceHash,'+
+        'nativeReceiptCount:x.verification?.nativeReceiptCount})),'+
       'requests:rows.map(x=>({jobId:x.assignment?.jobId,assignmentId:x.assignment?.assignmentId,'+
         'requestId:x.requestId,runRef:x.runRef,receiptId:x.receipt?.receiptId,receiptDigest:x.receipt?.digest,'+
         'delivery:x.delivery?.state})),'+
@@ -182,7 +192,9 @@ function matchEvidence(native,job,status,pin,kind,expected,effects){
     pageEffect:kind,originalResultConfirmed:true};
 }
 async function main(){
-  const report={status:'RUNNING',startedAt:new Date().toISOString(),
+  const preflightOnly=process.argv[2]==='--preflight';
+  assert(!process.argv[2]||preflightOnly,'Only --preflight is supported');
+  const report={status:'RUNNING',stage:'config',startedAt:new Date().toISOString(),
     gitSha:process.env.GITHUB_SHA||null,steps:[]},effects=[];
   let c,server;
   await mkdir(OUT,{recursive:true});
@@ -205,8 +217,13 @@ async function main(){
       await task('examples/tasks/modern-search.v1.opendesk-task.json')
     ];
     assert.notEqual(tasks[0].taskId,tasks[1].taskId);
-    server=await fixture(effects);
-    report.fixture={url:FIXTURE_URL,sha256:server.sha256,observer:'passive and read-only, native sendBeacon'};
+    // All reads below are side-effect free: never submit a Provider Job,
+    // claim a Task, alter Chrome preferences, or create an Offscreen document.
+    report.stage='chrome';
+    const buildDir=process.env.OPENDESK_CLOUD_NATIVE_BUILD_DIR;
+    assert(buildDir&&path.isAbsolute(buildDir),
+      'OPENDESK_CLOUD_NATIVE_BUILD_DIR must name the absolute verified Chrome extension build');
+    const assetNames=['manifest.json','sw.js','cloud-control/runner.html'];
     c=await connect(cdp.href);
     report.chrome=await c.send('Browser.getVersion');
     let before=await until(async()=>{
@@ -216,20 +233,74 @@ async function main(){
     report.extensionId=before.extensionId;
     assert.equal(before.cloud.enabled,true,'Cloud not approved/enabled');
     assert.equal(nativeContexts(before).offscreen.length,1,'Offscreen not present');
-    assert.equal(nativeContexts(before).panel.length,1,'Side Panel preflight missing');
-    const registered=await post(adminURL,'admin/tasks',admin);
+    if(nativeContexts(before).panel.length!==1)throw Object.assign(
+      Error('Real Side Panel must be opened by the user before native acceptance'),
+      {code:'HUMAN_ACTION_REQUIRED'});
+    before=await snapshot(c,[],assetNames);
+    for(const asset of before.assets){
+      const localHash=createHash('sha256').update(await readFile(path.join(buildDir,asset.path))).digest('hex');
+      assert.equal(asset.sha256,localHash,'Loaded Chrome asset differs from verified build: '+asset.path);
+    }
+    if(before.sitePermissionGranted!==true)throw Object.assign(
+      Error('Chrome site permission is not granted for the 43111 test origin'),
+      {code:'HUMAN_ACTION_REQUIRED'});
+    report.stage='provider';
+    const [registered,providerState,clientScope]=await Promise.all([
+      post(adminURL,'admin/tasks',admin),
+      post(adminURL,'admin/state',admin),
+      post(provider.href,'v1/client-scope',token)
+    ]);
+    assert.equal(before.cloud.providerId,providerState.providerId,'Browser paired with another Provider');
+    assert.equal(clientScope.providerId,providerState.providerId,'External token belongs to another Provider');
+    assert.equal(clientScope.executorId,before.cloud.executorId,'External token belongs to another Executor');
+    assert.equal(clientScope.grantId,before.cloud.grantId,'External token belongs to an older Cloud grant');
+    assert.equal(clientScope.allowResult,true,'External client has no full result read consent');
+    assert.deepEqual([...clientScope.tasks].sort((a,b)=>a.taskId.localeCompare(b.taskId)),
+      [...tasks].sort((a,b)=>a.taskId.localeCompare(b.taskId)),
+      'External client lacks the two exact immutable Task pins');
+    const executor=providerState.executors[clientScope.executorId];
+    assert.equal(executor?.connected,true,'Provider has no connected browser Executor');
     for(const pin of tasks){
-      assert(before.installed.some(x=>x.enabled&&x.taskId===pin.taskId&&
-        x.version===pin.version&&x.manifestHash===pin.manifestHash),'Task is not installed: '+pin.taskId);
-      assert(before.cloud.approved.some(x=>x.taskId===pin.taskId&&x.version===pin.version&&
-        x.manifestHash===pin.manifestHash&&x.sourceHash===pin.sourceHash&&x.resultAllowed===true),
-        'Task Cloud approval or output consent missing: '+pin.taskId);
+      const installed=before.installed.find(x=>x.enabled&&x.taskId===pin.taskId&&
+        x.version===pin.version&&x.manifestHash===pin.manifestHash&&
+        x.installationId&&Number.isSafeInteger(x.generation)&&x.generation>0);
+      if(!installed)throw Object.assign(Error('Task not installed/enabled: '+pin.taskId),
+        {code:'HUMAN_ACTION_REQUIRED'});
+      assert(before.available.some(x=>x.taskId===pin.taskId&&x.version===pin.version&&
+        x.manifestHash===pin.manifestHash&&x.sourceHash===pin.sourceHash&&
+        x.nativeReceiptCount>0),'Task lacks native Controller verification: '+pin.taskId);
+      if(!before.cloud.approved.some(x=>x.taskId===pin.taskId&&x.version===pin.version&&
+        x.manifestHash===pin.manifestHash&&x.sourceHash===pin.sourceHash&&
+        x.installationId===installed.installationId&&x.generation===installed.generation&&
+        x.resultAllowed===true))throw Object.assign(
+          Error('Task has no matching Cloud approval and result consent: '+pin.taskId),
+          {code:'HUMAN_ACTION_REQUIRED'});
       assert(registered.tasks.some(x=>x.taskId===pin.taskId&&x.version===pin.version&&
         x.manifestHash===pin.manifestHash&&x.sourceHash===pin.sourceHash),
         'Provider has not registered immutable Task: '+pin.taskId);
+      assert(executor.capabilities?.some(x=>x.taskId===pin.taskId&&
+        x.manifestHash===pin.manifestHash&&x.sourceHash===pin.sourceHash),
+        'Provider Executor has not advertised immutable Task: '+pin.taskId);
     }
+    // The fixture port must be free BEFORE starting a potentially lengthy Run.
+    report.stage='fixture-port';
+    const probe=createServer();
+    try{
+      await new Promise((ok,no)=>{probe.once('error',no);probe.listen(43111,'127.0.0.1',ok);});
+    }finally{if(probe.listening)await new Promise(ok=>probe.close(ok));}
     report.steps.push({stage:'preflight',installed:2,cloudApproved:2,providerRegistered:2,
-      sidePanelOpen:true,offscreenPresent:true});
+      clientTaskPins:2,clientResultConsent:true,providerConnected:true,
+      sitePermissionGranted:true,verifiedChromeAssets:assetNames,sidePanelOpen:true,offscreenPresent:true});
+    if(preflightOnly){
+      report.status='READY_FOR_NATIVE_TEST';
+      console.log('READY_FOR_NATIVE_TEST '+JSON.stringify({extensionId:before.extensionId,
+        taskIds:tasks.map(x=>x.taskId),browser:report.chrome.product,
+        buildAssetsVerified:assetNames.length,fixturePortAvailable:true}));
+      return;
+    }
+    report.stage='native-e2e';
+    server=await fixture(effects);
+    report.fixture={url:FIXTURE_URL,sha256:server.sha256,observer:'passive and read-only, native sendBeacon'};
     const jobIds=[];
     async function execute(pin,params,kind,value){
       const body={requestKey:randomUUID(),...pin,params,target:{mode:'owned',url:FIXTURE_URL}};
@@ -274,14 +345,17 @@ async function main(){
       assert.notEqual(a[property],b[property],'Independent '+property+' required');
     assert.equal(nativeContexts(await snapshot(c,jobIds)).panel.length,0,
       'Second Job ran only while Side Panel was open');
-    report.status='CLOUD_DOUBLE_TASK_E2E_PASS';
+    report.stage='complete';report.status='CLOUD_DOUBLE_TASK_E2E_PASS';
     console.log('CLOUD_DOUBLE_TASK_E2E_PASS '+JSON.stringify({chrome:report.chrome.product,
       extensionId:report.extensionId,taskIds:[a.taskId,b.taskId],
       jobIds:[a.jobId,b.jobId],receiptIds:[a.receiptId,b.receiptId],panelClosed:true}));
   }catch(error){
-    report.status='BLOCKED';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:String(error.message)};
+    report.status=preflightOnly?(error.code||'BLOCKED_ENV'):'BLOCKED';
+    report.error={code:error.code||'E_NATIVE_ACCEPTANCE',
+      stage:report.stage,message:String(error.message)};
     process.exitCode=1;
-    console.error('CLOUD_DOUBLE_TASK_E2E_BLOCKED '+JSON.stringify(report.error));
+    console.error((preflightOnly?'NATIVE_READINESS_BLOCKED ':'CLOUD_DOUBLE_TASK_E2E_BLOCKED ')+
+      JSON.stringify(report.error));
   }finally{
     report.completedAt=new Date().toISOString();
     report.nativeEvidence=effects;
