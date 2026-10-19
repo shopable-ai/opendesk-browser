@@ -154,49 +154,49 @@ Page 离线安装包的十个键来自 page-install-package.js：
 
 ## 9. R6.0：一个插件多个运行组件的产品架构决策（2026-10-19）
 
-> **PRODUCT_DECISION / DESIGN_PROPOSED，不代表已完成组合安装功能。** 研究基线 main \`b44dc1971d28fe69cb4c9ac335c16fcd49f7a9cc\`；编辑前核对后续 main \`f13fc637cd1a17982355d4ab5ce20158481610d3\` 的变更只涉及 Prompt Shortcuts 与 Cookie Editor 的预览/测试，未触及本节研究的源文件。**CHROME_NATIVE_NOT_TESTED / MAC_CHROME_NOT_TESTED / ONLINE_PUBLISH_NOT_IMPLEMENTED。** 本节追加决策而不取代上文现有格式和 Authority 合同。
+> **PRODUCT_DECISION / DESIGN_PROPOSED，不代表已完成组合安装功能。** 研究基线 main `b44dc1971d28fe69cb4c9ac335c16fcd49f7a9cc`；编辑前核对后续 main `f13fc637cd1a17982355d4ab5ce20158481610d3` 的变更只涉及 Prompt Shortcuts 与 Cookie Editor 的预览/测试，未触及本节研究的源文件。**CHROME_NATIVE_NOT_TESTED / MAC_CHROME_NOT_TESTED / ONLINE_PUBLISH_NOT_IMPLEMENTED。** 本节追加决策而不取代上文现有格式和 Authority 合同。
 
 ### 9.1 五层概念不可互换
 
 - **产品身份**：用户看到、选择安装、启停、更新和卸载的一个插件。一个产品可以是纯 Page、纯 Sidebar、纯 Task、第一方固定能力组合，或未来多个动态制品的组合。不得强制纯 Page 携带 Sidebar。
 - **使用场景**：侧栏、网页增强、页面自动化、浏览器后台、组合应用。这是产品意图，不是代码运行世界或文件扩展名。
-- **运行入口及权限世界**：Sidebar opaque sandbox；Page \`USER_SCRIPT\`；经过审核、随浏览器构建的可信 \`ISOLATED\` Content Script；Controller Worker / RunHost；宿主固定 MV3 Service Worker。共享 JS 仅在经各入口编译后成为对应产物代码，不是可单独执行的跨世界入口。
-- **可安装执行制品**：既有 \`opendesk.sidebar-tool.v1/v2\`、\`opendesk.page-install.v1\`、\`opendesk.task-package.v1\`，由各自现有 Authority 接受。Sidebar v2 的 \`scripts\` 只在原 opaque sandbox 顺序执行固定 Classic 依赖，不能声明 Page 或 SW 入口。
+- **运行入口及权限世界**：Sidebar opaque sandbox；Page `USER_SCRIPT`；经过审核、随浏览器构建的可信 `ISOLATED` Content Script；Controller Worker / RunHost；宿主固定 MV3 Service Worker。共享 JS 仅在经各入口编译后成为对应产物代码，不是可单独执行的跨世界入口。
+- **可安装执行制品**：既有 `opendesk.sidebar-tool.v1/v2`、`opendesk.page-install.v1`、`opendesk.task-package.v1`，由各自现有 Authority 接受。Sidebar v2 的 `scripts` 只在原 opaque sandbox 顺序执行固定 Classic 依赖，不能声明 Page 或 SW 入口。
 - **发行描述、身份与生命周期**：开发草稿、固定制品、已安装授权记录、用户私有数据、市场发行元数据分别持久化。来源签名/发布者证明不能由裸 ID、SHA 或本地 filename 冒充。
 
 ### 9.2 五个真实对照及 Reading TOC 的反例
 
 | 产品 | 动态 Sidebar 包 / 代码 | 其他源码实际归属 | 结论 |
 | --- | --- | --- | --- |
-| Reading TOC | \`reading-toc.opendesk-tool.json\` v1.0.9；其 \`js\` 为 \`examples/sidebar-tools/reading-toc/src/main.js\` | \`src/reading-toc/page.js\` 由 \`src/entrypoints/page-relay.js\` 静态加载进固定可信 Content Script；安装包**没有** Page 源码字段 | 一个 Sidebar 产品调用预编译可信网页能力；**不是**第三方可移植多世界 JS 包 |
-| Prompt Shortcuts | v2 包，主 JS + \`scripts[]\` 中固定 \`trusted/model.js\` Classic 资产 | \`examples/sidebar-tools/prompt-shortcuts/trusted/page.js\` 静态编入原 Page Relay；菜单由固定宿主控制 | 不因网页按钮存在而迁为 \`.opendesk-page.json\` |
-| Stay Focus | Sidebar v1 配置含 \`backgroundPolicy\` | \`examples/sidebar-tools/stay-focus/trusted/service.js\` 被 \`src/sw.js\` 静态导入，\`trusted/page-notice.js\` 编入 Relay | 关闭侧栏后仍有固定后台职责，**不支持动态 SW JS** |
-| AdBlock | React Sidebar 工具，仓库源码配置 v1.2.1、仓库便携 \`adblock.opendesk-tool.json\` 仍 v1.2.0（需单独解决晋升） | \`examples/sidebar-tools/adblock/trusted/service.js\` 固定于 SW，拥有自己的 DNR 规则 | DNR 权力不能因同 ID 第三方包而继承 |
-| ChatGPT Mind Map | 无 Sidebar 必需项 | \`examples/programs/chatgpt-mindmap/src/main.js\` 及其他源码构建为独立 USER_SCRIPT + 受管资源，正式发行采用 \`opendesk.page-install.v1\` | 独立 Page 是有效产品类型；本轮未原生重验，部分第三方资源公开发行许可仍受限 |
+| Reading TOC | `reading-toc.opendesk-tool.json` v1.0.9；其 `js` 为 `examples/sidebar-tools/reading-toc/src/main.js` | `src/reading-toc/page.js` 由 `src/entrypoints/page-relay.js` 静态加载进固定可信 Content Script；安装包**没有** Page 源码字段 | 一个 Sidebar 产品调用预编译可信网页能力；**不是**第三方可移植多世界 JS 包 |
+| Prompt Shortcuts | v2 包，主 JS + `scripts[]` 中固定 `trusted/model.js` Classic 资产 | `examples/sidebar-tools/prompt-shortcuts/trusted/page.js` 静态编入原 Page Relay；菜单由固定宿主控制 | 不因网页按钮存在而迁为 `.opendesk-page.json` |
+| Stay Focus | Sidebar v1 配置含 `backgroundPolicy` | `examples/sidebar-tools/stay-focus/trusted/service.js` 被 `src/sw.js` 静态导入，`trusted/page-notice.js` 编入 Relay | 关闭侧栏后仍有固定后台职责，**不支持动态 SW JS** |
+| AdBlock | React Sidebar 工具，仓库源码配置 v1.2.1、仓库便携 `adblock.opendesk-tool.json` 仍 v1.2.0（需单独解决晋升） | `examples/sidebar-tools/adblock/trusted/service.js` 固定于 SW，拥有自己的 DNR 规则 | DNR 权力不能因同 ID 第三方包而继承 |
+| ChatGPT Mind Map | 无 Sidebar 必需项 | `examples/programs/chatgpt-mindmap/src/main.js` 及其他源码构建为独立 USER_SCRIPT + 受管资源，正式发行采用 `opendesk.page-install.v1` | 独立 Page 是有效产品类型；本轮未原生重验，部分第三方资源公开发行许可仍受限 |
 
-\`manifest.json\` 只注册原固定 \`agents/page-relay.js\` 等宿主脚本；\`src/sidebar-tools/reading-toc-existing-tabs.js\` 的修复注入也是固定宿主文件。旧固定可信能力与未来动态 Page 安装是不同信任路径，不能相互转换或统称为 \`.opendesk-page.json\`。
+`manifest.json` 只注册原固定 `agents/page-relay.js` 等宿主脚本；`src/sidebar-tools/reading-toc-existing-tabs.js` 的修复注入也是固定宿主文件。旧固定可信能力与未来动态 Page 安装是不同信任路径，不能相互转换或统称为 `.opendesk-page.json`。
 
 ### 9.3 方案取舍：A 为兼容基线，B 为目标，C 暂不引入
 
 - **A（保留三套专用格式且完全独立发行）**：兼容和安全成本最低，但普通用户须分别安装管理多个动态制品，不满足第三方组合产品诉求；现有第一方 fixed Host 组合仍可正常使用。
-- **B（保留三套执行包，在发行与产品管理层聚合）——选择的演进方向**：一个**来源可核验的产品发行身份**引用 0–N 个不同类型、已独立校验和固定哈希的制品；不更改原代码执行世界；各 Authority 仍为唯一安装、授权、回收权威。只在有真实第二个动态组件需要整体安装时，引入**最小、非授权性的协调事务/所有权回执**。现有固定宿主能力作为经审查的 \`requiredHostFeature\`，**不虚构独立子安装记录**。纯 Page / Sidebar / Task 延用单独发行和安装路径。
+- **B（保留三套执行包，在发行与产品管理层聚合）——选择的演进方向**：一个**来源可核验的产品发行身份**引用 0–N 个不同类型、已独立校验和固定哈希的制品；不更改原代码执行世界；各 Authority 仍为唯一安装、授权、回收权威。只在有真实第二个动态组件需要整体安装时，引入**最小、非授权性的协调事务/所有权回执**。现有固定宿主能力作为经审查的 `requiredHostFeature`，**不虚构独立子安装记录**。纯 Page / Sidebar / Task 延用单独发行和安装路径。
 - **C（现有格式进化为全能多入口执行包）**：会迫使严格校验器、权限、作者体验、存储迁移、失败恢复同步重做，在真实 B 验证未失败前不合理；不实施。
-- **不是本轮决策**：不新建 \`.opendesk-app.json\`、ZIP、第二 Installer、第二 Registry/Host/SDK、通用特权 SW 入口或自动公开发布。B 所需**发行层的引用元数据及运输方式仍待 R6.1 经真实需求验证后最小定义**；不能声称现有三个严格 JSON 格式已经支持一文件组合离线安装。
+- **不是本轮决策**：不新建 `.opendesk-app.json`、ZIP、第二 Installer、第二 Registry/Host/SDK、通用特权 SW 入口或自动公开发布。B 所需**发行层的引用元数据及运输方式仍待 R6.1 经真实需求验证后最小定义**；不能声称现有三个严格 JSON 格式已经支持一文件组合离线安装。
 
 ### 9.4 B 的安装、运行与数据安全边界（必须先实现才可对外宣称）
 
-1. **身份**：将经信任渠道验证的 \`publisherId + productId + immutableReleaseDigest\` 与已有各子安装 \`kind + nativeAuthorityKey + artifactHash + installationId/generation\` 关联。产品协调记录仅是可核验的所有权与事务凭据，**不是新增运行权限**。裸 \`productId\`、同名安装包或仅有 SHA 不构成发行者身份。
-2. **组成**：声明每个子组件 \`required/optional\`、功能用途、固定摘要和受限权限范围；第一方内置 Content/SW 服务只标为宿主支持要求，不能附带第三方后台代码。组件相互调用必须通过已授权的 SDK/Host/RunHost 协议。
+1. **身份**：将经信任渠道验证的 `publisherId + productId + immutableReleaseDigest` 与已有各子安装 `kind + nativeAuthorityKey + artifactHash + installationId/generation` 关联。产品协调记录仅是可核验的所有权与事务凭据，**不是新增运行权限**。裸 `productId`、同名安装包或仅有 SHA 不构成发行者身份。
+2. **组成**：声明每个子组件 `required/optional`、功能用途、固定摘要和受限权限范围；第一方内置 Content/SW 服务只标为宿主支持要求，不能附带第三方后台代码。组件相互调用必须通过已授权的 SDK/Host/RunHost 协议。
 3. **安装前**：先整体验证每个子包和发行来源、版本/摘要、权限差集及目标 Chrome/SDK 能力，防止同 ID 原有安装被接管；现有子安装默认**不得静默认领**，更不得在卸载时清除。
-4. **安装期间**：用户一次理解整体用途与新增权限，但 Chrome 独立手势/授权仍照原平台规则执行；操作必须有可恢复 journal。所有新子组件必须先处于**不可执行的准备态或权威执行栅栏**，随后逐一读回原生状态再提交可用。**当前 \`installPageProgram\` 默认首次启用并注册，尚不支持此组合阶段的原生不可执行准备**，因此这个组合一次安装闭环是 **NOT_IMPLEMENTED**；不得只增加 UI 和 JSON 就报 PASS。
-5. **失败和更新**：跨 Chrome Storage、IndexedDB、\`chrome.userScripts\`、DNR、Controller 等没有统一原生原子事务。采用经验证的可恢复协调步骤，先栅栏再迁移；失败保护旧版本私有数据、已停用意图、已核验权限，按精确身份撤销**本次确实新创建**的子组件；部分失败显示 \`degraded/cleanup-pending/outcome-unknown\`，不假报整体成功，不盲目重试未知写入或副作用。
+4. **安装期间**：用户一次理解整体用途与新增权限，但 Chrome 独立手势/授权仍照原平台规则执行；操作必须有可恢复 journal。所有新子组件必须先处于**不可执行的准备态或权威执行栅栏**，随后逐一读回原生状态再提交可用。**当前 `installPageProgram` 默认首次启用并注册，尚不支持此组合阶段的原生不可执行准备**，因此这个组合一次安装闭环是 **NOT_IMPLEMENTED**；不得只增加 UI 和 JSON 就报 PASS。
+5. **失败和更新**：跨 Chrome Storage、IndexedDB、`chrome.userScripts`、DNR、Controller 等没有统一原生原子事务。采用经验证的可恢复协调步骤，先栅栏再迁移；失败保护旧版本私有数据、已停用意图、已核验权限，按精确身份撤销**本次确实新创建**的子组件；部分失败显示 `degraded/cleanup-pending/outcome-unknown`，不假报整体成功，不盲目重试未知写入或副作用。
 6. **停用/卸载**：整体停用必须分别调用原 Authority 的撤权/停机；Controller 正在运行需要原 RunHost 的运行栅栏，Page 要注销并处理活跃旧网页副作用，固定宿主服务停止自己的规则。卸载按所有权和版本/代际 CAS 删除，仅清理**确实归该安装拥有**的资源；共享固定宿主代码、他人组件、其他插件数据、用户真实网站数据不可删除。无证据不自动迁移本地用户数据。
-7. **资源所有权 P0**：\`installed-programs.js\` 的 \`material/descriptor\` 会经 \`dependency-manager.js\` 的 \`readStoredPageCandidate\` 读取持久 \`page-candidate-v1\`。它是当前已安装版本运行所需的冻结源码材料，不依赖在线 Provider，但**不能按临时 Candidate 删除**。先补所有权/引用保护及 Provider 断开、开发目录删除、重启、新文档的真实验收，再重命名、迁移或 GC。
-8. **发布**：独立于本机安装。签名/发布者验证、版本不可变、公开源码与许可审阅和一键获取多制品均属后续；现有 \`official-tools/catalog.json\` 主要描述 Sidebar 固定发行，\`opendesk.release-preflight-input.v1\` 只做离线预检；不能冒充线上多组件发行或商店审核通过。
+7. **资源所有权 P0**：`installed-programs.js` 的 `material/descriptor` 会经 `dependency-manager.js` 的 `readStoredPageCandidate` 读取持久 `page-candidate-v1`。它是当前已安装版本运行所需的冻结源码材料，不依赖在线 Provider，但**不能按临时 Candidate 删除**。先补所有权/引用保护及 Provider 断开、开发目录删除、重启、新文档的真实验收，再重命名、迁移或 GC。
+8. **发布**：独立于本机安装。签名/发布者验证、版本不可变、公开源码与许可审阅和一键获取多制品均属后续；现有 `official-tools/catalog.json` 主要描述 Sidebar 固定发行，`opendesk.release-preflight-input.v1` 只做离线预检；不能冒充线上多组件发行或商店审核通过。
 
 ### 9.5 R6.1 最小实施门禁与反方回归
 
 - 先给出现存 A/FIXED 组合与未来 B/DYNAMIC 组合的可执行验收矩阵，不修改 v1/v2 Sidebar、Page v1、Task v1 的现有严格 Schema。
 - R6.1 优先做 **read-only 产品关联试点 + 资源所有权/失败恢复证明**。若试点涉及真实跨 Authority 安装，必须先在原 Page Authority 增加经严格测试的“不可执行准备/提交”语义和取消/撤权栅栏，**否则阻止启用聚合安装动作**。禁止另造沙箱、SW 或并行 Installed Authority。
 - 十个否证：Reading TOC 固定可信逻辑；Prompt Shortcuts 格式保留；纯 Page 无 Sidebar；未审阅 SW JS 注入被拒；部分安装与回执丢失；共享/他人数据不被清理；Provider 删除仍执行已安装固定源码；同 ID 跨发布者接管被拒；无第二 Installer/Registry/Host；统一 UI 不误授权。
-- 实证区分 \`SOURCE_VERIFIED\`、\`DESIGN_PROPOSED\`、\`NOT_IMPLEMENTED\`、\`NODE_PASS\`、\`BUILD_PASS\`、\`CHROME_NATIVE_PASS\`、\`MAC_CHROME_NOT_TESTED\`。不基于架构文档、虚构分数或 Mock 宣称生产 95+。
+- 实证区分 `SOURCE_VERIFIED`、`DESIGN_PROPOSED`、`NOT_IMPLEMENTED`、`NODE_PASS`、`BUILD_PASS`、`CHROME_NATIVE_PASS`、`MAC_CHROME_NOT_TESTED`。不基于架构文档、虚构分数或 Mock 宣称生产 95+。
