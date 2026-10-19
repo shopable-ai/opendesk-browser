@@ -9,6 +9,7 @@ import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/s
 import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/trusted/service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
 import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
+import {handlePromptRailOpen} from '../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -142,6 +143,7 @@ chrome.tabs.onRemoved.addListener(tabId => {
       label:`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`}));
 });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if(handlePromptRailOpen({api:chrome,message,sender,respond:sendResponse}))return true;
   // The independent fixed health-host listener owns only the environment
   // protocol. This host continues to own Foundation RPC and its dispatch fence.
   if(message?.protocol!==FOUNDATION_PROTOCOL)return false;
