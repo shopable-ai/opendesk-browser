@@ -93,6 +93,11 @@ test('R22 reinstated clipper checks the exact install epoch; missing, stale, dis
   const allowed=await ask(validEpoch);
   assert.equal(allowed.ok,true,JSON.stringify(allowed));
   assert.match(allowed.data.markdown,/安全剪藏标题/);
+  // Markdown link names must be one line, escape brackets and remain a single safe link.
+  doc.title='  复杂 [标题]\n另一行  ';
+  const normalized=await ask(validEpoch);
+  assert.equal(normalized.ok,true,JSON.stringify(normalized));
+  assert.equal(normalized.data.markdown,'[复杂 \\[标题\\] 另一行](https://news.example/article)\n');
   values[SIDEBAR_TOOL_ENABLE_STORE]={[pkg.id]:false};
   assert.equal((await ask(validEpoch)).ok,false,'turning off the tool revokes content reads');
   values[SIDEBAR_TOOL_ENABLE_STORE]={};
