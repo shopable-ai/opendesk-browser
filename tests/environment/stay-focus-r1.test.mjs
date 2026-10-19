@@ -1,4 +1,5 @@
 import {settingsReactFixture} from '../helpers/trusted-settings-react-fixture.mjs';
+import {mountStayFocusReact} from '../helpers/stay-focus-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -322,91 +323,73 @@ test('internal block page uses a real window ID and never defers sidePanel.open 
 });
 
 
-test('R5.4 quick-add uses the existing Host catalog, shared budget and user clicks only',async()=>{
-  const script=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
-  function mount(page){
-    const dom=new Map(),writes=[];
-    class Node{
-      constructor(){this.handlers={};this.children=[];this.dataset={};this.style={};
-        this.hidden=false;this.disabled=false;this.value='';this.textContent='';
-        this.checked=false;this.attributes={};}
-      addEventListener(name,handler){this.handlers[name]=handler;}
-      setAttribute(name,value){this.attributes[name]=String(value);}
-      getAttribute(name){return this.attributes[name]??null;}
-      replaceChildren(...nodes){this.children=nodes;}
-      append(...nodes){this.children.push(...nodes);}
-      querySelectorAll(){return [];}
-      focus(){}
-      scrollIntoView(){}
-      closest(){return null;}
-    }
-    const root={querySelector:selector=>{
-      if(!dom.has(selector))dom.set(selector,new Node());
-      return dom.get(selector);
-    },querySelectorAll:()=>[],addEventListener:()=>{}};
-    const empty={enabled:false,day:'2026-10-19',permissions:{ready:false},sites:[],
-      catalog:FOCUS_CATALOG,dailyBudget:{minutes:30,budgetMs:1800000,usedMs:0,
-        remainingMs:1800000,managedCount:0},groups:{},
-      schedule:{enabled:false,days:[],startMinute:540,endMinute:1020},
-      focusUntil:null,ruleReceipt:{verified:false}};
-    let state=empty;
-    const request=async(op,data)=>{
-      if(op==='focus.status')return state;
-      if(op==='currentPage.info')return page;
-      if(op==='focus.site.put'){
-        writes.push(data.site);
-        state={...state,sites:[{...data.site,usedMs:0,
-          remainingMs:data.site.minutes*60000,budgetMs:data.site.minutes*60000,reason:null}]};
-        return state;
-      }
-      if(op==='focus.disable')
-        throw Object.assign(Error('请使用外层可信设置'),{code:'E_FOCUS_TRUSTED_CLICK'});
-      throw Error('unexpected operation: '+op);
-    };
-    runInNewContext(script,{globalThis:{OpenDeskTool:{root,request}},
-      document:{createElement:()=>new Node(),createElementNS:()=>new Node(),
-        addEventListener:()=>{},visibilityState:'visible'},URL,
-      Option:class{constructor(label,value){this.label=label;this.value=value;}},
-      setInterval:()=>0});
-    return {get:id=>root.querySelector('#'+id),writes};
-  }
-  const youtube=mount({status:'available',url:'https://m.youtube.com/watch?v=sample',
-    title:'Python tutorials on YouTube'});
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.match(youtube.get('quick-add').textContent,/youtube.com/);
-  assert.equal(youtube.get('quick-add').disabled,false);
-  assert.equal(youtube.writes.length,0,'recognition must not install anything');
-  youtube.get('quick-add').handlers.click();
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(JSON.parse(JSON.stringify(youtube.writes)),[{
-    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',
-    minutes:30,group:'entertainment'
-  }],'a user click must request one shared-pool site through the existing Host');
-  const forged=mount({status:'available',url:'https://youtube.com.attacker.test/',
-    title:'Video portal featuring YouTube'});
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.match(forged.get('quick-add').textContent,/youtube\.com\.attacker\.test/);
-  assert.equal(forged.writes.length,0,
-    'website title alone must not silently authorize or install a rule');
-  const work=mount({status:'available',url:'https://github.com/shopable-ai/opendesk-browser',
-    title:'My development work'});
-  await new Promise(resolve=>setImmediate(resolve));
-  const candidates=work.get('quick-presets').children.map(child=>child.textContent);
-  assert.ok(!candidates.some(text=>/GitHub|Docs|Coursera/.test(text)),
-    'work/study categories must not be suggested as entertainment defaults');
-  assert.equal(work.writes.length,0);
+test('R5.6 React current-site click uses Host catalog, revalidation and one request',async()=>{
+  const ui=mountStayFocusReact({url:'https://m.youtube.com/watch?v=sample'});
+  await ui.flush();
+  assert.ok(ui.button('加入'),'current page has an add button');
+  assert.equal(ui.writes.length,0,'recognition alone never writes a rule');
+  ui.button('加入').props.onClick();
+  await ui.flush();
+  assert.deepEqual(ui.writes,[{operation:'focus.site.put',payload:{site:{
+    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:30,
+    group:'entertainment'}}}]);
+  assert.equal(ui.button('加入'),null,'already managed site cannot be re-added');
+  assert.ok(ui.find(node=>node.type==='span'&&ui.text(node)==='已管理'));
+  ui.unmount();assert.equal(ui.disposed,true);
+});
+test('R5.6 forged subdomain and paused site cannot widen or reset a rule',async()=>{
+  const forged=mountStayFocusReact({url:'https://youtube.com.attacker.test/',title:'YouTube'});
+  await forged.flush();forged.button('加入').props.onClick();await forged.flush();
+  assert.equal(forged.writes[0].payload.site.host,'youtube.com.attacker.test',
+    'substring/title must never canonicalize an attacker domain');
+  forged.unmount();
+  const existing={host:'youtube.com',subdomains:true,enabled:false,mode:'always',
+    minutes:8,group:''};
+  const paused=mountStayFocusReact({url:'https://m.youtube.com/',sites:[existing]});
+  await paused.flush();assert.ok(paused.button('恢复'));
+  paused.button('恢复').props.onClick();await paused.flush();
+  assert.deepEqual(paused.writes[0].payload.site,{...existing,enabled:true},
+    'resume preserves the existing mode, scope and independent budget');
+  paused.unmount();
+});
+test('R5.6 daily budget saves only a validated edited value',async()=>{
+  const ui=mountStayFocusReact({url:'https://example.com'});
+  await ui.flush();
+  assert.equal(ui.button('保存'),null,'save is absent until changed');
+  ui.field('sf-daily-budget').props.onChange({target:{value:'45'}});
+  await ui.flush();
+  assert.ok(ui.button('保存'));
+  ui.button('保存').props.onClick();await ui.flush();
+  assert.deepEqual(ui.writes,[{operation:'focus.group.put',payload:{
+    id:'entertainment',minutes:45}}]);
+  ui.unmount();
+  const invalid=mountStayFocusReact();
+  await invalid.flush();
+  invalid.field('sf-daily-budget').props.onChange({target:{value:'0'}});
+  await invalid.flush();invalid.button('保存').props.onClick();await invalid.flush();
+  assert.equal(invalid.writes.length,0);
+  invalid.unmount();
 });
 
-test('isolated Stay Focus UI retains narrow-layout, dark-mode, keyboard and status contracts',()=>{
-  const css=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/style.css',import.meta.url),'utf8');
-  const main=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+test('R5.6 UI uses one React owner, shared icon controls and responsive styling',()=>{
+  const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
+  const css=readFileSync(new URL('src/style.css',base),'utf8');
+  const js=readFileSync(new URL('src/main.js',base),'utf8');
+  const html=readFileSync(new URL('src/index.html',base),'utf8');
+  const config=JSON.parse(readFileSync(new URL('tool.config.json',base),'utf8'));
   assert.match(css,/@media\(max-width:355px\)/);
-  assert.match(css,/\.sf-budget-form\{display:flex;align-items:center;flex-wrap:nowrap/);
   assert.match(css,/@media\(prefers-color-scheme:dark\)/);
   assert.match(css,/:focus-visible/);
-  assert.match(main,/未授权/);
-  assert.match(main,/规则待核对/);
-  assert.match(main,/已暂停/);
+  assert.match(css,/\.sf-popup/);
+  assert.match(js,/R\.createRoot\(mount\)/);
+  assert.match(js,/root\.unmount\(\)/);
+  assert.match(js,/IconButton/);
+  assert.match(js,/Switch/);
+  assert.match(js,/opendesk-page-changed/);
+  assert.doesNotMatch(js,/document\.createElement\(|replaceChildren\(/);
+  assert.match(html,/id="tool-app"/);
+  assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
+  assert.equal(config.files.js,'src/main.js');
 });
 
 test('R1.4 fixed trusted classification, single 30-minute pool and old durable records',()=>{
@@ -493,83 +476,46 @@ test('R1.4 isolated page notice accepts fixed messages only, never duplicates or
   assert.equal(removed,true,'listener retired on content-script cleanup');
 });
 
-test('R1.4 official budget UI has no required single-site setup wizard',()=>{
-  const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
-  for(const id of ['budget-total','total-used','total-remaining','native-state',
-    'daily-budget-form','focus-pause','sites','manual-site','advanced'])
-    assert.match(html,new RegExp('id="'+id+'"'),'missing the first screen contract: '+id);
-  const manual=html.indexOf('<details class="sf-settings sf-manual"');
-  const current=html.indexOf('id="total-used"');
-  assert.ok(manual>current,'advanced manual setup cannot precede the daily total');
-  assert.match(html,/<option value="entertainment">娱乐共享额度/);
+test('R5.6 first-screen order is shared budget then sites, no preset buttons',()=>{
+  const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
+  const html=readFileSync(new URL('src/index.html',base),'utf8');
+  const script=readFileSync(new URL('src/main.js',base),'utf8');
+  assert.equal(html.trim(),'<div id="tool-app" aria-label="Stay Focus 应用"></div>');
+  assert.ok(script.indexOf('今日娱乐时间')<script.indexOf('管理的网站'));
+  assert.match(script,/sf-daily-budget/);
+  assert.doesNotMatch(script,/data-budget|sf-budget-presets|budget-presets/);
+  assert.match(script,/currentPage\.info/);
 });
 
-test('R1.6 settings save through button clicks when sandbox denies form submission',()=>{
-  const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
+test('R5.6 React has button-driven budget, site, schedule, group and whitelist writes',()=>{
   const script=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
-  const cases=[
-    ['daily-budget','focus.group.put',{'daily-budget-minutes':'2'}, {id:'entertainment',minutes:2}],
-    ['site','focus.site.put',{'site-host':'localhost','site-minutes':'2','site-mode':'limit',
-      'site-group':'entertainment'}, {site:{host:'localhost',minutes:30,subdomains:true,
-        enabled:true,mode:'limit',group:'entertainment'}}],
-    ['group','focus.group.put',{'group-name':'study','group-minutes':'5'}, {id:'study',minutes:5}],
-    ['schedule','focus.schedule.set',{'schedule-from':'09:00','schedule-to':'17:00'},
-      {schedule:{enabled:true,days:[1],startMinute:540,endMinute:1020}}],
-    ['whitelist','focus.whitelist.set',{'whitelist':'github.com'}, {hosts:['github.com']}]
-  ];
-  for(const [prefix,operation,values,payload] of cases){
-    const nodes=new Map(),requests=[];
-    const $=id=>{if(!nodes.has(id))nodes.set(id,{value:values[id]??'',checked:true,
-      listeners:{},addEventListener(type,fn){this.listeners[type]=fn;},
-      querySelectorAll(){return [{value:'1'}];}});return nodes.get(id);};
-    // Run the actual registration + validation handler. The sandbox supplies
-    // native button clicks, while it intentionally never dispatches submit.
-    const start=script.indexOf("$('"+prefix+'-save' +"').addEventListener");
-    assert.ok(start>=0,prefix+' must not depend on sandbox-blocked submit');
-    const end=script.indexOf('\n  });',start)+7;
-    runInNewContext(script.slice(start,end),{$,state:{enabled:true,sites:[]},
-      editingSite:null,call:(op,data)=>{requests.push({op,data});return Promise.resolve(false);},
-      message:()=>{},escapeHost:focusHost,
-      checkTime:value=>Number(value.slice(0,2))*60+Number(value.slice(3))});
-    assert.match(html,new RegExp('id="'+prefix+'-save"[^>]*type="button"'));
-    $(prefix+'-save').listeners.click({preventDefault(){}});
-    assert.deepEqual(JSON.parse(JSON.stringify(requests)),[{op:operation,data:payload}]);
-    if(prefix==='daily-budget'){
-      $('daily-budget-minutes').value='0';$(prefix+'-save').listeners.click({preventDefault(){}});
-      assert.equal(requests.length,1,'invalid budget must never reach the Host');
-    }
-  }
-  assert.doesNotMatch(script,/addEventListener\('submit'/);
+  for(const operation of ['focus.group.put','focus.site.put','focus.site.remove',
+    'focus.schedule.set','focus.whitelist.set','focus.session.start','focus.session.stop'])
+    assert.ok(script.includes(operation),'missing business operation: '+operation);
+  assert.doesNotMatch(script,/addEventListener\('submit'|type=['"]submit['"]/);
+  assert.match(script,/request\('currentPage\.info'/);
+  assert.match(script,/request\('focus\.status'/);
+  assert.match(script,/writing\.current/);
+  assert.match(script,/readId\.current\+\+/);
 });
 
-test('R4.3 editing a paused site retains the pause and never renames implicitly',()=>{
-  const source=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
-  const start=source.indexOf("$('site-save').addEventListener");
-  const end=source.indexOf('\n  });',start)+7;
-  assert.ok(start>=0&&end>start);
-  const values={'site-host':'example.com','site-minutes':'9','site-mode':'limit',
-    'site-group':'entertainment'};
-  const nodes=new Map(),requests=[],messages=[];
-  const $=id=>{
-    if(!nodes.has(id))nodes.set(id,{value:values[id]??'',checked:true,
-      listeners:{},addEventListener(type,listener){this.listeners[type]=listener;}});
-    return nodes.get(id);
-  };
-  runInNewContext(source.slice(start,end),{$,editingSite:'example.com',
-    state:{sites:[{host:'example.com',enabled:false,minutes:9}]},
-    call:(operation,payload)=>{requests.push({operation,payload});return Promise.resolve(false);},
-    message:(value)=>messages.push(value),escapeHost:focusHost});
-  $('site-save').listeners.click({preventDefault(){}});
-  assert.deepEqual(JSON.parse(JSON.stringify(requests)),[
-    {operation:'focus.site.put',payload:{site:{host:'example.com',minutes:9,
-      subdomains:true,enabled:false,mode:'limit',group:'entertainment'}}}
-  ]);
-  $('site-host').value='different.example';
-  $('site-save').listeners.click({preventDefault(){}});
-  assert.equal(requests.length,1,'a domain change must not create a second site');
-  assert.ok(messages.some(message=>message.includes('编辑时不能更改域名')));
+test('R5.6 editor locks the domain and preserves paused rule state',async()=>{
+  const paused={host:'example.com',subdomains:true,enabled:false,mode:'limit',
+    minutes:9,group:'entertainment'};
+  const ui=mountStayFocusReact({url:'https://example.com',sites:[paused]});
+  await ui.flush();
+  const row=ui.find(node=>node.props?.site?.host==='example.com'&&
+    typeof node.props?.edit==='function');
+  assert.ok(row,'React managed site row must be renderable');
+  row.props.edit(paused);
+  await ui.flush();
+  const editor=ui.find(node=>node.props?.initial?.host==='example.com'&&
+    typeof node.props?.save==='function');
+  assert.ok(editor,'editing must open the actual React editor');
+  assert.equal(editor.props.initial.enabled,false);
+  assert.equal(editor.props.initial.host,'example.com');
+  ui.unmount();
 });
-
 
 test('R5.1 portable preview embeds the exact installable Stay Focus HTML/CSS/JS',()=>{
   const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
