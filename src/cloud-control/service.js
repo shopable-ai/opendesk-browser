@@ -515,7 +515,14 @@ export function createCloudService({storage,api,clock={now:()=>Date.now()},asser
     },'readwrite');
   }
   async function cloudResolve(request,sender){invariant(typeof request?.requestId==='string'&&request.requestId.startsWith('cloud:'),'E_SCHEMA');const config=await read(),initial=await transaction('readonly',tx=>findRequest(tx,request.requestId,config),[KV]);invariant(initial,'E_TASK');const t=await resolveTask({taskId:initial.task.taskId},sender);return scoped(sender,async(tx,host)=>{const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.requestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&!r.runId&&r.state==='waiting'&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
-    invariant(t.installationId===r.task.installationId&&t.generation===r.task.generation&&t.manifestHash===r.task.manifestHash,'E_PERMISSION');return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+60000,r.assignment.leaseUntil)};});}
+    // Fail at the resolver boundary, before RunHost admission, if an older or
+    // malformed assignment points at any other locally installed source.
+    invariant(t.taskId===r.task.taskId&&t.version===r.task.version&&
+      t.scriptId===r.task.scriptId&&t.contentHash===r.task.contentHash&&
+      t.manifestHash===r.task.manifestHash&&
+      t.installationId===r.task.installationId&&t.generation===r.task.generation,
+      'E_PERMISSION','Cloud task no longer matches the exact local installation');
+    return {scriptId:t.scriptId,revision:t.revision,contentHash:t.contentHash,params:r.params,target:r.assignment.target,expectedTaskGeneration:t.generation,expectedTaskInstallationId:t.installationId,requestId:r.requestId,cloudRequestId:r.requestId,deadlineAt:Math.min(clock.now()+60000,r.assignment.leaseUntil)};});}
   async function bind(tx,run,request,host){
     const c=await tx.get(KV,CONFIG),r=await findRequest(tx,request.cloudRequestId,c);invariant(c?.enabled&&r?.namespace===host.namespace&&r.grantId===c.grantId&&r.state==='waiting'&&!r.runId&&r.assignment.leaseUntil>clock.now(),'E_CLOUD_REVOKED');
     invariant(run.scriptId===r.task.scriptId&&run.contentHash===r.task.contentHash&&run.installedTaskAuthorization?.manifestHash===r.task.manifestHash&&canonical(run.installedTaskAuthorization?.authorization)===canonical({tag:'task-install-authorization-v1',installationId:r.task.installationId,generation:r.task.generation,scope:{capabilities:r.task.manifest.permissions,siteOrigins:r.task.manifest.siteOrigins,networkOrigins:[]}})&&canonical(decodeValue(run.paramsWire))===canonical(r.params)&&canonical(run.selection)===canonical(r.assignment.target)&&!run.networkOrigins.length,'E_TASK');
