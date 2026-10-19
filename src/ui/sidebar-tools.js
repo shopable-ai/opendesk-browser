@@ -18,6 +18,7 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
+import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
@@ -132,6 +133,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
   let pendingAction=null,pendingPage=null;
   const cookieImportGate=createCookieImportIntentGate();
+  const cookieWriteGate=createCookieWriteIntentGate();
   const pageConsent=api.permissions?createChromePermissionConsent({api}):null;
   const pageInstallStatus=view.fields["page-install-import-status"];
   const pageInstallReceipt=view.fields["page-install-import-receipt"];
@@ -888,7 +890,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
   const canLeaveTool=()=>!isDirty()||(notice('知识收件箱有未保存的编辑，请先保存；不会自动丢弃草稿。',true),false);
-  function suspendTool() {cookieImportGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  function suspendTool() {cookieImportGate.revoke();cookieWriteGate.revoke();cancelRemovalReview();cancelActionReview();tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy)return false;
     const previousId=active?.id;
@@ -1149,6 +1151,34 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('无效的导入会话'),{code:'E_SCHEMA'});
       return cookieImportGate.close(cookieImportOwner(tool,token,revocationEpoch),payload.ref);
     }
+    // A single Save click admits one named/path-scoped write, never removal,
+    // bulk import, cleanup, or unreviewed tools.
+    if(operation==='cookieEditor.write.begin'){
+      if(!verifiedGesture)
+        throw Object.assign(new Error('请重新点击保存 Cookie'),{code:'E_USER_GESTURE_REQUIRED'});
+      if(!payload||Object.keys(payload).sort().join(',')!=='name,path,url'||
+         typeof payload.url!=='string'||typeof payload.name!=='string'||
+         typeof payload.path!=='string'||!tool.capabilities.includes('browser.cookies.write'))
+        throw Object.assign(new Error('无效的 Cookie 保存操作'),{code:'E_SCHEMA'});
+      const origin=websiteOrigin(payload.url);
+      if(!origin||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
+         cookieSiteRecord(tool,origin)?.write!==true)
+        throw Object.assign(new Error('请先授权当前网站写入 Cookie'),{code:'E_SITE_GRANT_REQUIRED'});
+      if(!await admittedOfficialCookieImport(tool,revocationEpoch))
+        throw Object.assign(new Error('仅正式 Cookie Editor 可一键保存'),{code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+      assertSession(source,token);
+      if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
+         cookieSiteRecord(tool,origin)?.write!==true)
+        throw Object.assign(new Error('网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
+      return cookieWriteGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
+        origin,name:payload.name,path:payload.path,verifiedUserActivation:verifiedGesture});
+    }
+    if(operation==='cookieEditor.write.finish'){
+      if(!payload||Object.keys(payload).join(',')!=='ref'||
+         !Number.isSafeInteger(payload.ref)||payload.ref<1)
+        throw Object.assign(new Error('无效的保存会话'),{code:'E_SCHEMA'});
+      return cookieWriteGate.close(cookieImportOwner(tool,token,revocationEpoch),payload.ref);
+    }
     // Browser SDK requests use the same sandbox instance and installation
     // check, but cross the trusted Chrome host without acquiring a UI lock
     // that would deadlock the host's existing per-tool Web Lock.
@@ -1168,7 +1198,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
       const packageHash=await sidebarToolPackageHash(tool);
       assertSession(source,token);
-      let importBatchOwner=null;
+      let importBatchOwner=null,writeIntentOwner=null;
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
         installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId};
@@ -1384,7 +1414,29 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             }catch(error){cookieImportGate.revoke();throw error;}
           }
         }
-        if(!importBatchOwner){
+        if(operation==='browser.cookies.set'&&tool.id==='cookie-editor'&&
+           await admittedOfficialCookieImport(tool,revocationEpoch)){
+          const owner=cookieImportOwner(tool,token,revocationEpoch);
+          if(cookieWriteGate.acquire({owner,origin,name:payload.name,path:payload.path})){
+            writeIntentOwner=owner;
+            try{
+              assertSession(source,token);
+              if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
+                 cookieSiteRecord(tool,origin)?.write!==true)
+                throw Object.assign(new Error('网站或授权已改变'),{code:'E_DOCUMENT_CHANGED'});
+              const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+                operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
+                installEpoch:revocationEpoch,toolInstance:token,hostInstanceId,
+                targetOperation:operation,targetArgs:payload||{}});
+              if(!approval?.ok||typeof approval.data?.approvalRef!=='string')
+                throw Object.assign(new Error('可信 Host 拒绝本次保存'),
+                  {code:approval?.error?.code||'E_BROWSER'});
+              assertSession(source,token);
+              envelope.approvalRef=approval.data.approvalRef;
+            }catch(error){cookieWriteGate.revoke();throw error;}
+          }
+        }
+        if(!importBatchOwner&&!writeIntentOwner){
           const kind=operation==='browser.cookies.clearSite'?'清理该网站的 Host-only Cookie':
             operation==='browser.cookies.observe.start'?'开始临时监听 Cookie 变化':
             operation==='browser.cookies.remove'?'删除指定 Cookie':
@@ -1420,8 +1472,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           cookieImportGate.settle({owner:importBatchOwner,
             count:payload.cookies.length,confirmed:complete});
         }
+        if(writeIntentOwner)cookieWriteGate.settle({owner:writeIntentOwner});
       }catch(error){
         if(importBatchOwner)cookieImportGate.revoke();
+        if(writeIntentOwner)cookieWriteGate.revoke();
         throw error;
       }
       if(browserExport){
@@ -1829,7 +1883,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
-    const verifiedGesture=message.operation==='cookieEditor.import.begin'&&
+    const verifiedGesture=(message.operation==='cookieEditor.import.begin'||
+      message.operation==='cookieEditor.write.begin')&&
       globalThis.navigator?.userActivation?.isActive===true;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
@@ -1876,7 +1931,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       void runDefaultPreinstall();
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,
       MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE].some(key=>Object.hasOwn(changes||{},key)))
-      cookieImportGate.revoke();
+      (cookieImportGate.revoke(),cookieWriteGate.revoke());
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
       if(pendingAction?.cancel)cancelActionReview();
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
@@ -2843,7 +2898,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   render();
   return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
-    cookieImportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
+    cookieImportGate.revoke();cookieWriteGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();
     for(const release of listeners.splice(0))release();
     queued.clear();

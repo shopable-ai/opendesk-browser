@@ -190,6 +190,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
   const activeImportRef=React.useRef(null);
+  const writeInFlight=React.useRef(false);
   const finishImportIntent=ref=>{
     if(!Number.isSafeInteger(ref)||ref<1)return;
     if(activeImportRef.current===ref)activeImportRef.current=null;
@@ -248,11 +249,31 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   };
   const save=async(row,options)=>{
+    // Capture the trusted operation during the original Save click, before any
+    // Controller reads or React state updates. Chrome still verifies the write.
+    if(writeInFlight.current)return;
+    writeInFlight.current=true;
+    const state=controller.snapshot();
+    let pending=null,ref=null;
+    if(modeRef.current==='browser'&&state.phase==='ready'&&state.target)
+      pending=adapter.beginWriteIntent(state.target,row);
     setWorking(true);
     try{
+      const admitted=await pending;
+      if(admitted?.authorized!==true||!Number.isSafeInteger(admitted.ref)||admitted.ref<1){
+        setStatus('保存未获得当前网站的可信操作许可，请重新点击保存。');
+        return;
+      }
+      ref=admitted.ref;
       const saved=await controller.save(row,options);
-      if(saved){setSelected(null);setDirty(false);setPage(1);}
-    }finally{setWorking(false);}
+      if(saved){setSelected(null);setDirty(false);setPage(1);setStatus('');}
+    }catch{
+      setStatus('本次保存授权失败，未自动重试。请检查网站权限后重新操作。');
+    }finally{
+      if(ref!==null)void adapter.finishWriteIntent(ref).catch(()=>{});
+      writeInFlight.current=false;
+      setWorking(false);
+    }
   };
   const remove=async id=>{
     if(locked)return;

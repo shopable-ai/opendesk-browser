@@ -46,7 +46,7 @@ test('verified official package, original Host approval and existing review surv
   assert.match(code,/cookieImportGate\.acquire/);
   assert.match(code,/operation:'browser\.intent\.confirm'/);
   assert.match(code,/cookieImportGate\.settle/);
-  assert.match(code,/if\(!importBatchOwner\)/);
+  assert.match(code,/if\(!importBatchOwner&&!writeIntentOwner\)/);
 });
 
 test('a delayed finish from an earlier click cannot cancel a newer import',()=>{

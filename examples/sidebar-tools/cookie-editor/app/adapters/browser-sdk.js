@@ -83,6 +83,10 @@ export function createCookieSdkAdapter({getBrowser,request}){
     targetFor,checkRead,list,exactList,readValue,
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),
     finishImportIntent:ref=>request('cookieEditor.import.finish',{ref}),
+    beginWriteIntent:(target,row)=>request('cookieEditor.write.begin',{
+      url:target.url,name:row.name,path:row.path||'/'
+    }),
+    finishWriteIntent:ref=>request('cookieEditor.write.finish',{ref}),
     getStore:target=>browser().cookies.getCurrentStore({url:target.url}),
     getPartition:target=>browser().cookies.getPartitionKey({url:target.url}),
     write:(target,row,{ifAbsent=false}={})=>
