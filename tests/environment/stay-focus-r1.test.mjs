@@ -571,9 +571,12 @@ test('R4.3 editing a paused site retains the pause and never renames implicitly'
 test('R5.1 portable preview embeds the exact installable Stay Focus HTML/CSS/JS',()=>{
   const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
   const preview=readFileSync(new URL('preview/index.html',base),'utf8');
-  const match=preview.match(/<script type="application\\/json" id="sf-bundle">([\\s\\S]*?)<\\/script>/);
-  assert.ok(match,'preview must carry one source-bound JSON bundle');
-  const embedded=JSON.parse(match[1]);
+  const prefix='<script type="application/json" id="sf-bundle">';
+  const begin=preview.indexOf(prefix);
+  assert.ok(begin>=0,'preview must carry one source-bound JSON bundle');
+  const stop=preview.indexOf('</script>',begin+prefix.length);
+  assert.ok(stop>begin,'preview JSON script must terminate');
+  const embedded=JSON.parse(preview.slice(begin+prefix.length,stop));
   for(const [key,filename] of Object.entries({
     html:'src/index.html',css:'src/style.css',js:'src/main.js'
   }))assert.equal(embedded.source[key],readFileSync(new URL(filename,base),'utf8'),
