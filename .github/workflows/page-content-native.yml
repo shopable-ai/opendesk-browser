@@ -68,7 +68,12 @@ jobs:
           /usr/bin/ditto "$original" "$app"
           test -f "$app/Contents/Info.plist"
           printf 'chrome-bin=%s\n' "$app/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
-      - name: Real MV3 Controller HTML and R13 Locator form (source-bound webpack fixture)
+      - name: Real MV3 Controller HTML and R13 Locator form (17 native cases)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.bundle.outputs.chrome-bin }}
+        run: node tests/framework/page-content-native.mjs
+      - name: Real MV3 Controller full Page library suite (30 native cases)
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.bundle.outputs.chrome-bin }}
+          OPENDESK_NATIVE_PAGE_LIBS: '1'
         run: node tests/framework/page-content-native.mjs
