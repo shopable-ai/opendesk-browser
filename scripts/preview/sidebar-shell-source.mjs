@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 
 const sourceHtml=new URL('../../src/ui/tool.html',import.meta.url);
+const sourceReact=new URL('../../src/ui/react/tabs/tool-host.tsx',import.meta.url);
 const sourceCss=new URL('../../src/ui/tool-shell.css',import.meta.url);
 const selectors=Object.freeze([
   '.workbench-nav{',
@@ -24,13 +25,31 @@ const selectors=Object.freeze([
 const sha256=value=>createHash('sha256').update(value).digest('hex');
 const fail=message=>{throw Error('E_PREVIEW_SHELL: '+message);};
 
-export function extractSidebarPreviewShell(html,css){
+// Navigation remains in tool.html; the toolbar is owned by React.
+// Extract from the compiled product's JSX source, never from deleted old HTML.
+export function extractSidebarPreviewShell(html,css,react){
   const nav=html.match(/<nav class="workbench-nav"[^>]*>[\s\S]*?<\/nav>/)?.[0];
-  const head=html.match(/<div class="sidebar-tool-view-head od-toolbar od-page-head">[\s\S]*?<\/div>/)?.[0];
-  if(!nav||!head||!/id="tab-tools"[^>]*>扩展<\/button>/.test(nav)||
-    !/id="sidebar-tool-back"/.test(head)||!/id="sidebar-tool-remove"/.test(head)||
-    !/id="sidebar-tool-title"/.test(head))
+  const toolbar=react?.match(/<div className="sidebar-tool-view-head od-toolbar od-page-head">([\s\S]*?)<\/div>/)?.[1];
+  if(!nav||!toolbar||!/id="tab-tools"[^>]*>扩展<\/button>/.test(nav))
     fail('real Side Panel navigation/toolbar contract is unavailable');
+  for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-open-tab',
+    'sidebar-tool-settings-open','sidebar-tool-remove']){
+    if(!new RegExp('<ToolField as="(?:button|strong)"[^>]* id="'+id+'"').test(toolbar))
+      fail('missing real React toolbar control: '+id);
+  }
+  const body=toolbar.replace(/<ToolField as="(button|strong)"([^>]*)>([\s\S]*?)<\/ToolField>/g,
+    (_,tag,jsxAttributes,content)=>{
+      const attributes=jsxAttributes.replace(/\bclassName=/g,'class=')
+        .replace(/\s+nodeRef=\{[^}]+\}/g,'')
+        .replace(/\s+(hidden|disabled)=\{true\}/g,' $1')
+        .replace(/\s+(hidden|disabled)=\{false\}/g,'');
+      return '<'+tag+attributes+'>'+content+'</'+tag+'>';
+    }).replace(/\bstrokeWidth=/g,'stroke-width=')
+      .replace(/\bstrokeLinecap=/g,'stroke-linecap=')
+      .replace(/\bstrokeLinejoin=/g,'stroke-linejoin=');
+  if(body.includes('<ToolField')||/\{[^}]+\}/.test(body))
+    fail('unsupported dynamic React toolbar markup');
+  const head='<div class="sidebar-tool-view-head od-toolbar od-page-head">'+body+'</div>';
   const allTabs=[...nav.matchAll(/role="tab"/g)];
   if(allTabs.length!==6)fail('unexpected trusted Side Panel tab count');
   const rules=css.split('\n');
@@ -44,6 +63,8 @@ export function extractSidebarPreviewShell(html,css){
     digest:sha256(nav+'\n'+head+'\n'+shellCss)});
 }
 export async function sidebarPreviewShellSource(){
-  const [html,css]=await Promise.all([readFile(sourceHtml,'utf8'),readFile(sourceCss,'utf8')]);
-  return extractSidebarPreviewShell(html,css);
+  const [html,css,react]=await Promise.all([
+    readFile(sourceHtml,'utf8'),readFile(sourceCss,'utf8'),readFile(sourceReact,'utf8')
+  ]);
+  return extractSidebarPreviewShell(html,css,react);
 }
