@@ -26,10 +26,45 @@ async function source(root,name,limit=220000,asBytes=false) {
   const bytes=await readFile(actual);
   return asBytes?bytes:new TextDecoder('utf-8',{fatal:true}).decode(bytes);
 }
+// Validate the existing build-ready contract at every packing entrance,
+// not only the local staging CLI. Optional source digests reject stale JSX.
+// Other tools with source-only entries keep their existing build semantics.
+export async function checkCompiledToolBuildReady(root,meta){
+  const paths=meta.files||{};
+  if(![paths.css,paths.js].some(path=>typeof path==='string'&&path.startsWith('dist/')))
+    return null;
+  const ready=JSON.parse(await source(root,'dist/build-ready.json',20000));
+  const names=[paths.css,paths.js].sort();
+  if(ready?.format!=='opendesk.ui-build-ready.v1'||
+    typeof ready.buildId!=='string'||!ready.buildId||ready.buildId.length>100||
+    !ready.files||typeof ready.files!=='object'||Array.isArray(ready.files)||
+    Object.keys(ready.files).sort().join(',')!==names.join(','))
+    fail('compiled UI build receipt does not match declared tool resources');
+  const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+  for(const name of names){
+    const bytes=await source(root,name,220000,true),expected=ready.files[name];
+    if(!expected||expected.bytes!==bytes.length||expected.sha256!==sha256(bytes))
+      fail('compiled UI bytes differ from their build receipt: '+name);
+  }
+  if(ready.sources!==undefined){
+    if(!ready.sources||typeof ready.sources!=='object'||Array.isArray(ready.sources)||
+      Object.keys(ready.sources).length<1||Object.keys(ready.sources).length>32)
+      fail('compiled UI source receipt is invalid');
+    for(const [name,expected] of Object.entries(ready.sources)){
+      if(name.startsWith('dist/'))fail('compiled UI source cannot be an output: '+name);
+      const bytes=await source(root,name,220000,true);
+      if(!expected||expected.bytes!==bytes.length||expected.sha256!==sha256(bytes))
+        fail('compiled UI source changed since the successful build: '+name);
+    }
+  }else if(meta.uiRuntime===SIDEBAR_TOOL_SHARED_UI_RUNTIME)
+    fail('compiled React UI requires a source-bound build receipt');
+  return ready;
+}
 export async function createSidebarToolPackage(projectPath) {
   const root=await realpath(projectPath);
   const meta=JSON.parse(await source(root,'tool.config.json',16384));
   const v2=meta?.format===SIDEBAR_TOOL_FORMAT_V2;
+  await checkCompiledToolBuildReady(root,meta);
   if(meta?.uiRuntime!==undefined&&meta.uiRuntime!==SIDEBAR_TOOL_SHARED_UI_RUNTIME)
     fail('unsupported shared UI runtime');
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||

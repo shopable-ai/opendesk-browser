@@ -4,7 +4,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {resolve,join,dirname,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
-import {buildSidebarTool} from './build-sidebar-tool.mjs';
+import {buildSidebarTool,checkCompiledToolBuildReady} from './build-sidebar-tool.mjs';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const NATIVE_PREVIEW_ROOT='opendesk-tool-preview';
 const CHUNK_BYTES=16000; // base64 per file <= 21,336 ASCII bytes; Go Native cap: 32,768.
@@ -98,23 +98,12 @@ async function declaredSnapshot(root){
     const bytes=await ownedFile(root,name);
     hashes.push([name,bytes.length,digest(bytes)]);
   }
-  let buildId=null;
-  if(paths.js.startsWith('dist/')||paths.css.startsWith('dist/')){
+  const ready=await checkCompiledToolBuildReady(root,config);
+  if(ready){
     const bytes=await ownedFile(root,'dist/build-ready.json');
-    let ready;try{ready=JSON.parse(bytes.toString('utf8'));}
-    catch{fail('compiled UI build receipt is invalid');}
-    if(ready?.format!=='opendesk.ui-build-ready.v1'||typeof ready.buildId!=='string'||
-      !ready.buildId||ready.buildId.length>100||!ready.files||typeof ready.files!=='object'||
-      Object.keys(ready.files).sort().join(',')!==[paths.css,paths.js].sort().join(','))
-      fail('compiled UI build receipt does not match tool resources');
-    for(const name of [paths.css,paths.js]){
-      const actual=hashes.find(row=>row[0]===name),expected=ready.files[name];
-      if(!actual||!expected||expected.bytes!==actual[1]||expected.sha256!==actual[2])
-        fail('compiled UI output changed since the last successful build: '+name);
-    }
     hashes.push(['dist/build-ready.json',bytes.length,digest(bytes)]);
-    buildId=ready.buildId;
   }
+  const buildId=ready?.buildId||null;
   return {fingerprint:digest(JSON.stringify(hashes)),buildId};
 }
 export async function inspectSidebarToolProject(path){

@@ -8,7 +8,7 @@ import {valid,verified,readyToOperate,siteHost,confirmed}
 
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 const app=()=>read('examples/sidebar-tools/adblock/src/App.jsx');
-const compiled=()=>read('examples/sidebar-tools/adblock/src/main.js');
+const compiled=()=>read('examples/sidebar-tools/adblock/dist/tool.js');
 const base={installed:true,toolEnabled:true,enabled:true,restartRequired:false,
   currentHost:'news.example.com',currentSite:{status:'ready'},exceptions:[],
   permissions:{dnr:true},rules:{verified:true,ruleIds:[]}};

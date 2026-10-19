@@ -9,8 +9,8 @@
   "uiRuntime": "opendesk.react-ui.v1",
   "files": {
     "html": "src/index.html",
-    "css": "src/style.css",
-    "js": "src/main.js"
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
   },
   "assets": []
 }
