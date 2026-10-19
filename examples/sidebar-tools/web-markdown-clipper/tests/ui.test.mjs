@@ -222,3 +222,19 @@ test('YAML source metadata stays text and cannot become DOM injection',async()=>
  assert.equal(elements.filter(e=>e.tagName==='SCRIPT').length,0);
  assert.match(nodes['clip-source'].value,/^---\ntitle:/);
 });
+
+test('offline preview must embed the exact formal HTML and reuse official JS and CSS',async()=>{
+ const [html,stage,wrapper]=await Promise.all([
+  readFile(new URL('../src/index.html',import.meta.url),'utf8'),
+  readFile(new URL('../preview/stage.html',import.meta.url),'utf8'),
+  readFile(new URL('../preview/index.html',import.meta.url),'utf8')
+ ]);
+ assert.ok(stage.includes('\n'+html+'\n'),'stage must embed the exact official UI, not a redesigned copy');
+ assert.match(stage,/src="\.\.\/src\/main\.js"/);
+ assert.match(stage,/href="\.\.\/src\/style\.css"/);
+ assert.match(wrapper,/src="stage\.html"/);
+ for(const width of [320,360,400,440])assert.ok(wrapper.includes('data-width="'+width+'"'));
+ assert.match(wrapper,/非真实设备结果/);
+ assert.match(stage,/模拟复制（未写入系统剪贴板）/);
+ assert.match(stage,/模拟下载（未创建磁盘文件）/);
+});
