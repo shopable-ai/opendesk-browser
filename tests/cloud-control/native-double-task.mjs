@@ -12,7 +12,7 @@ import {connect,evaluate} from '../framework/sidebar-native-session.mjs';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
 
-const URL='http://127.0.0.1:43111/demo-form.html';
+const FIXTURE_URL='http://127.0.0.1:43111/demo-form.html';
 const OUT=path.resolve(process.env.OPENDESK_CLOUD_NATIVE_EVIDENCE||'artifacts/cloud-double-task-e2e');
 async function until(fn,what,ms=90000){
   const end=Date.now()+ms;
@@ -62,7 +62,7 @@ async function fixture(effects){
     }
     if(req.url==='/__opendesk_cloud_proof'&&req.method==='POST'){
       let body='';for await(const chunk of req){body+=chunk;if(body.length>4096)break;}
-      try{const row=JSON.parse(body);assert(row.url===URL&&['form','search'].includes(row.type));
+      try{const row=JSON.parse(body);assert(row.url===FIXTURE_URL&&['form','search'].includes(row.type));
         effects.push({at:new Date().toISOString(),...row});res.writeHead(204);res.end();}
       catch{res.writeHead(400);res.end();}
       return;
@@ -163,7 +163,7 @@ function matchEvidence(native,job,status,pin,kind,expected,effects){
   assert.equal(witnesses.length,1,'Exactly one Chrome DOM effect witness required');
   if(kind==='form'){
     assert.equal(witnesses[0].done,'已提交：'+expected);
-    assert.deepEqual(actual,{ok:true,url:URL});
+    assert.deepEqual(actual,{ok:true,url:FIXTURE_URL});
   }else{
     assert.equal(witnesses[0].result,'结果：'+expected);
     assert.equal(witnesses[0].count,'提交次数：1');
@@ -199,7 +199,7 @@ async function main(){
     ];
     assert.notEqual(tasks[0].taskId,tasks[1].taskId);
     server=await fixture(effects);
-    report.fixture={url:URL,sha256:server.sha256,observer:'passive and read-only, native sendBeacon'};
+    report.fixture={url:FIXTURE_URL,sha256:server.sha256,observer:'passive and read-only, native sendBeacon'};
     c=await connect(cdp.href);
     report.chrome=await c.send('Browser.getVersion');
     let before=await snapshot(c);
@@ -222,7 +222,7 @@ async function main(){
       sidePanelOpen:true,offscreenPresent:true});
     const jobIds=[];
     async function execute(pin,params,kind,value){
-      const body={requestKey:randomUUID(),...pin,params,target:{mode:'owned',url:URL}};
+      const body={requestKey:randomUUID(),...pin,params,target:{mode:'owned',url:FIXTURE_URL}};
       const first=await post(provider.href,'v1/submit',token,body);
       assert(typeof first.jobId==='string'&&first.jobId,'Provider did not issue Job');
       const repeated=await post(provider.href,'v1/submit',token,body);
@@ -274,7 +274,7 @@ async function main(){
     console.error('CLOUD_DOUBLE_TASK_E2E_BLOCKED '+JSON.stringify(report.error));
   }finally{
     report.completedAt=new Date().toISOString();
-    report.nativeEvidence=effects.map(x=>({type:x.type,at:x.at,url:x.url}));
+    report.nativeEvidence=effects;
     c?.close();if(server)await server.close();
     await writeFile(path.join(OUT,'native-double-task-report.json'),JSON.stringify(report,null,2)+'\n');
   }
