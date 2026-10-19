@@ -315,10 +315,24 @@ try{
     if(!userScript?.ok)throw Error('Native Page USER_SCRIPT builtins did not return an original document receipt');
     console.log('NATIVE_PAGE_BUILTINS_PASS',JSON.stringify(userScript.value));
   }
-  const expected=['/api/get','/api/post','/api/status/429','/api/status/500'];
-  if(JSON.stringify(networkEvents.map(row=>row.path))!==JSON.stringify(expected) ||
+  // Every network effect comes from a named, real Controller case above:
+  // axiosx GET/POST, Axios GET, Axios validateStatus 429/500 and axiosx
+  // negative-status 429/500. A fixed four-request list silently fell behind
+  // the two additional native cases and falsely failed 17/17 passing cases.
+  // Keep exact method/order/body assertions: no duplicate HTTP side effects.
+  const expected=[
+    {method:'GET',path:'/api/get',source:'opendesk',body:null},
+    {method:'POST',path:'/api/post',source:null,body:JSON.stringify({marker:'OpenDesk',n:1})},
+    {method:'GET',path:'/api/get',source:'controller-axios',body:null},
+    {method:'GET',path:'/api/status/429',source:null,body:null},
+    {method:'GET',path:'/api/status/500',source:null,body:null},
+    {method:'GET',path:'/api/status/429',source:null,body:null},
+    {method:'GET',path:'/api/status/500',source:null,body:null}
+  ];
+  const observed=networkEvents.map(({method,path,source,body})=>({method,path,source,body}));
+  if(JSON.stringify(observed)!==JSON.stringify(expected)||
       networkEvents.some(row=>row.cookie!==null))
-    throw Error('Real Controller HTTP effects do not match single-dispatch or credentials omit: '+JSON.stringify(networkEvents));
+    throw Error('Real Controller HTTP effects do not match named cases, single-dispatch or credentials omit: '+JSON.stringify(networkEvents));
   console.log('NATIVE_CONTROLLER_NETWORK_PASS',JSON.stringify({origin:networkOrigin,
     requests:networkEvents.length,methods:networkEvents.map(row=>row.method),
     paths:networkEvents.map(row=>row.path),allCookiesOmitted:true}));
