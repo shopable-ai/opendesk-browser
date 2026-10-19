@@ -69,6 +69,20 @@ test('Remote Task bytes are delivered only to the pinned pairing and never run a
     assert.equal(state.programDeliveries[accepted.deliveryId].package,undefined,
       'Acknowledgement purges executable bytes while retaining immutable receipt');
     assert.equal(JSON.stringify(state.requests).includes(pkg.sourceUtf8),false);
+    const pending=await post('/admin/program-deliver',
+      {requestKey:'pending-before-revocation',targetExecutorId:executorId,package:pkg},adminAuth);
+    assert.equal((await post('/v1/program-inbox',{},credential)).programs.length,1);
+    assert.deepEqual(await post('/v1/unpair',{},credential),{revoked:true});
+    const retired=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
+    assert.equal(retired.programDeliveries[pending.deliveryId].package,undefined,
+      'Revocation purges unapproved remote executable bytes');
+    await assert.rejects(post('/v1/program-fetch',{deliveryId:pending.deliveryId},credential),
+      {code:'E_AUTH'});
+    const next=await post('/v1/pair',{executorId,pairingCode:admin.pairingCode});
+    assert.deepEqual((await post('/v1/program-inbox',{},next.credential)).programs,[],
+      'New pairing generation cannot inherit a prior remote source');
+    await assert.rejects(post('/v1/program-fetch',{deliveryId:pending.deliveryId},
+      next.credential),{code:'E_DELIVERY'});
   }finally{
     await provider.close();
     await rm(directory,{recursive:true,force:true});
