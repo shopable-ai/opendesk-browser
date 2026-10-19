@@ -48,3 +48,16 @@ test('verified official package, original Host approval and existing review surv
   assert.match(code,/cookieImportGate\.settle/);
   assert.match(code,/if\(!importBatchOwner\)/);
 });
+
+test('a delayed finish from an earlier click cannot cancel a newer import',()=>{
+  const gate=createCookieImportIntentGate(),owner='cookie-editor/install/instance';
+  const origin='https://example.com';
+  const first=gate.start({owner,origin,verifiedUserActivation:true});
+  const second=gate.start({owner,origin,verifiedUserActivation:true});
+  assert.notEqual(first.ref,second.ref);
+  assert.deepEqual(gate.close(owner,first.ref),{closed:false});
+  assert.equal(gate.acquire({owner,origin,count:25}),true);
+  gate.settle({owner,count:25,confirmed:true});
+  assert.deepEqual(gate.close(owner,second.ref),{closed:true});
+  assert.equal(gate.acquire({owner,origin,count:1}),false);
+});
