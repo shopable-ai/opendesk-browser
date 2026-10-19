@@ -3,7 +3,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--od-bg);color:var(--od-ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.5}
 .r49-page{min-height:100vh;padding:16px 0 32px}
-.demo-lab,.cookie-app{width:100%;max-width:380px;margin:0 auto}
+.demo-lab,.cookie-app{width:100%;max-width:520px;margin:0 auto}
 .demo-lab{padding:0 12px;margin-bottom:12px;color:var(--od-sub);font-size:11px}
 .lab-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;cursor:pointer}
 .lab-title>span:first-child{font-weight:700;color:var(--od-ink);font-size:13px}

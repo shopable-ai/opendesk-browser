@@ -6,7 +6,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 const here=dirname(fileURLToPath(import.meta.url));
-const output=resolve(here,'../../../../../artifacts/cookie-editor-r520');
+const output=resolve(here,'../../../../../artifacts/cookie-editor-r523');
 await mkdir(output,{recursive:true});
 const html=await readFile(join(here,'index.html'));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -30,7 +30,7 @@ const editor=()=>page.locator('.cookie-inline-editor');
 try{
  await page.goto(pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});await ready();
  await test('fixed React 19 + Shared UI, one actual App and 380px frame',async()=>{
-  assert.equal(await page.title(),'Cookie Editor R5.20 · 380px 交互预览');
+  assert.equal(await page.title(),'Cookie Editor R5.23 · 自适应侧边栏交互预览');
   assert.deepEqual(await page.evaluate(()=>({react:OpenDeskPageReact.version,button:typeof OpenDeskSidebarUI.Button,chrome:typeof chrome?.cookies})),{react:'19.2.0',button:'function',chrome:'undefined'});
   assert.equal(await page.locator('.cookie-editor-react').count(),1);
   assert.equal(await page.locator('.site-hostname').count(),1);
@@ -44,6 +44,23 @@ try{
   }
   assert.ok((await page.locator('.searchbox > svg').boundingBox()).width<=20,'search icon must stay compact');
   await page.screenshot({path:join(output,'380-light.png'),fullPage:true});
+ });
+ await test('320/360/400/440px full-height sidebar and expansive import workspace',async()=>{
+  for(const width of [320,360,400,440]){
+   await page.setViewportSize({width,height:760});
+   const box=await page.locator('.cookie-editor-react').boundingBox();
+   assert.ok(Math.abs(box.height-760)<3,'app fills iframe height at '+width);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   await button('导入 Cookie').click();
+   const workspace=page.getByRole('region',{name:'导入 Cookie'});await workspace.waitFor();
+   assert.equal(await page.locator('dialog:modal').count(),0,'import has no extra modal');
+   assert.equal(await page.locator('.cookie-row').count(),0,'list yields space to import');
+   const area=await workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'}).boundingBox();
+   assert.ok(area.width>=width-56&&area.height>=140,'editable region uses sidebar space');
+   await workspace.getByRole('button',{name:'关闭导入'}).click();
+   await ready();
+  }
+  await page.setViewportSize({width:380,height:880});
  });
  await test('site change during a read exposes explicit read-only recovery',async()=>{
   await page.evaluate(()=>{
@@ -135,41 +152,45 @@ try{
   await page.getByText(/E_OUTCOME_UNKNOWN/).waitFor();assert.equal(await nameInput().inputValue(),'unknown_sid');
   assert.equal(await row('unknown_sid').count(),0);await reset();
  });
- await test('import is a native modal with no inline preview, one click commit and toast',async()=>{
+ await test('one-click import uses in-sidebar workspace, not a blocking modal',async()=>{
   await button('导入 Cookie').click();
-  const dialog=page.getByRole('dialog',{name:'导入 Cookie'});await dialog.waitFor();
-  assert.equal(await dialog.evaluate(el=>el.matches(':modal')),true);
+  const workspace=page.getByRole('region',{name:'导入 Cookie'});await workspace.waitFor();
+  assert.equal(await page.locator('dialog:modal').count(),0);
+  assert.equal(await page.locator('.cookie-row').count(),0);
   assert.equal(await page.locator('.cookie-import-panel').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
-  const input=dialog.getByRole('textbox',{name:'粘贴 Cookie 内容'});
+  const input=workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'});
   await input.fill(JSON.stringify([{name:'import_a',value:'fictional A'},
     {name:'import_b',value:'fictional B'},{name:'bad name',value:'invalid'},
     {name:'theme',value:'overwrite existing'}]));
-  assert.equal(await page.locator('.cookie-row').count(),8);
+  assert.equal(await page.locator('.cookie-row').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
-  await dialog.getByRole('button',{name:'导入',exact:true}).click();
-  await row('import_a').waitFor();await dialog.waitFor({state:'hidden'});
+  await workspace.getByRole('button',{name:'导入',exact:true}).click();
+  await row('import_a').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),10);
   assert.match(await page.locator('.cookie-import-toast').innerText(),/已导入 3 条，跳过 1 条/);
   await reset();
  });
- await test('foreign-domain failures are concise and file selection imports immediately',async()=>{
+ await test('foreign-domain errors stay in workspace; real file chooser click imports once',async()=>{
   await button('导入 Cookie').click();
-  const dialog=page.getByRole('dialog',{name:'导入 Cookie'});await dialog.waitFor();
-  await dialog.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
+  const workspace=page.getByRole('region',{name:'导入 Cookie'});await workspace.waitFor();
+  await workspace.getByRole('textbox',{name:'粘贴 Cookie 内容'}).fill(
     JSON.stringify([{name:'foreign',value:'fictional',domain:'elsewhere.invalid'}]));
-  await dialog.getByRole('button',{name:'导入',exact:true}).click();
-  const alert=dialog.getByRole('alert');await alert.waitFor();
+  await workspace.getByRole('button',{name:'导入',exact:true}).click();
+  const alert=workspace.getByRole('alert');await alert.waitFor();
   assert.match(await alert.innerText(),/未导入 1 条/);
-  assert.equal(await page.locator('.cookie-row').count(),8);
-  assert.equal(await dialog.evaluate(el=>el.matches(':modal')),true);
+  assert.equal(await page.locator('.cookie-row').count(),0);
+  assert.equal(await page.locator('dialog:modal').count(),0);
   assert.equal(await page.getByRole('status',{name:'导入预检结果'}).count(),0);
-  await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
-  await button('导入 Cookie').click();await dialog.waitFor();
+  await page.keyboard.press('Escape');await workspace.waitFor({state:'detached'});
+  await button('导入 Cookie').click();await workspace.waitFor();
+  const chooserPromise=page.waitForEvent('filechooser');
+  await workspace.getByRole('button',{name:'选择或拖入 Cookie 文件'}).click();
+  const chooser=await chooserPromise;
   const file=JSON.stringify([{name:'import_file',value:'fictional'}]);
-  await dialog.locator('input[type=file]').setInputFiles({
+  await chooser.setFiles({
     name:'cookies.json',mimeType:'application/json',buffer:Buffer.from(file)});
-  await row('import_file').waitFor();await dialog.waitFor({state:'hidden'});
+  await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
  });
  await test('JSON copy/download use actual export UI; partition loss and denied values are blocked',async()=>{
@@ -224,7 +245,7 @@ try{
   await openLab();await button('浅色').click();
   await row('session_id').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='sess_demo_only_C18');
-  await valueInput().fill('fictional R5.20 editing');
+  await valueInput().fill('fictional R5.23 editing');
   await lab.locator('summary').click();
   const clear=page.locator('.value-input').getByRole('button',{name:'清空值'});
   const field=await valueInput().boundingBox(),icon=await clear.boundingBox();
@@ -234,7 +255,7 @@ try{
   await clear.click();assert.equal(await valueInput().inputValue(),'');assert.equal(await button('保存').isEnabled(),true);
  });
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
- const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Other widths and browser zoom out of scope']};
+ const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
  await writeFile(join(output,'chromium-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:'PASS',tests:pass.length,htmlSha256:receipt.htmlSha256,output}));
 }catch(error){
  await page.screenshot({path:join(output,'failure.png'),fullPage:true}).catch(()=>{});
