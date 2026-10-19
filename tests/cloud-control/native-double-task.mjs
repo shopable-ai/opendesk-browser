@@ -212,6 +212,9 @@ async function main(){
   },wallClockMs);
   await mkdir(OUT,{recursive:true});
   try{
+    const [nodeMajor,nodeMinor]=process.versions.node.split('.').map(Number);
+    assert(nodeMajor>22||(nodeMajor===22&&nodeMinor>=12),
+      'Node >=22.12.0 is required before native verification');
     const cdp=new URL(process.env.OPENDESK_CLOUD_NATIVE_CDP);
     assert(cdp.protocol==='ws:'&&cdp.hostname==='127.0.0.1'&&
       cdp.pathname.startsWith('/devtools/browser/')&&!cdp.username&&!cdp.password,'Explicit local Chrome browser CDP required');
@@ -363,18 +366,19 @@ async function main(){
       extensionId:report.extensionId,taskIds:[a.taskId,b.taskId],
       jobIds:[a.jobId,b.jobId],receiptIds:[a.receiptId,b.receiptId],panelClosed:true}));
   }catch(error){
-    report.status=preflightOnly?(error.code||'BLOCKED_ENV'):'BLOCKED';
+    report.status=preflightOnly&&error.code==='HUMAN_ACTION_REQUIRED'?
+      'HUMAN_ACTION_REQUIRED':preflightOnly?'BLOCKED_ENV':'BLOCKED';
     report.error={code:error.code||'E_NATIVE_ACCEPTANCE',
       stage:report.stage,message:String(error.message)};
     process.exitCode=1;
     console.error((preflightOnly?'NATIVE_READINESS_BLOCKED ':'CLOUD_DOUBLE_TASK_E2E_BLOCKED ')+
       JSON.stringify(report.error));
   }finally{
-    clearTimeout(watchdog);
     report.completedAt=new Date().toISOString();
     report.nativeEvidence=effects;
     c?.close();if(server)await server.close();
     await writeFile(path.join(OUT,'native-double-task-report.json'),JSON.stringify(report,null,2)+'\n');
+    clearTimeout(watchdog);
   }
 }
 await main();
