@@ -315,11 +315,12 @@ test('twenty Controller runs and twenty Page previews reuse Chrome grants with z
     await f.click('script-run');await f.finish(n);await tick();
     assert.equal(f.starts.length,n+1);assert.equal(f.persisted.results.length,n+1);
   }
-  f.find('script-source').value='async function main(){return document.title;}';
-  for(let n=0;n<20;n++){await f.click('page-preview-run');await tick();assert.equal(f.previews.length,n+1);}
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');
+  f.find('script-source').value='async function main(){return document.title;}';f.find('script-source').fire('input');await tick();
+  for(let n=0;n<20;n++){await f.click('script-run');await tick();assert.equal(f.previews.length,n+1);}
   assert.equal(f.permissions.length,0);assert.ok(f.permissionChecks.length>=40);
   f.setPermission(Promise.resolve(false));
-  await f.click('script-run');await f.click('page-preview-run');await tick();
+  await f.click('script-run');await f.click('script-run');await tick();
   assert.equal(f.starts.length,20);assert.equal(f.previews.length,20);assert.equal(f.permissions.length,0);
 });
 
@@ -727,11 +728,13 @@ test('imported Classic @require inspects per-program grants without any implicit
   assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main',programId:f.find('script-id').value}]);
   assert.equal(f.find('page-dependency-add'),undefined);
   assert.equal(f.find('page-preview-entry'),undefined);
-  await f.click('page-preview-run');
-  assert.match(f.find('page-preview-status').textContent,/E_DEPENDENCY_VERSION/);
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');
+  f.find('script-source').value=source;f.find('script-source').fire('input');await tick();
+  assert.equal(f.find('script-run').disabled,true,'unapproved Page dependencies cannot be admitted');
+  await f.click('script-run');
   assert.equal(f.permissions.length,0,'missing approval never triggers a site or CDN permission prompt');
   f.editor.importDraft('async function main(){return 1;}');await tick();
-  assert.equal(f.find('page-preview-run').disabled,false);
+  assert.equal(f.find('script-run').disabled,false);
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
   assert.equal(f.previews.length,0);assert.equal(f.persisted.scripts.length,0);
 });
@@ -945,7 +948,7 @@ test('R24.3 final asynchronous document check refuses a React component edited b
   radio.checked=true;radio.fire('change');await tick();
   const first=f.find('script-source').value;
   assert.match(first,/from 'react'/);
-  f.find('page-preview-run').fire('click',{isTrusted:true});
+  f.find('script-run').fire('click',{isTrusted:true});
   const reached=await Promise.race([entered.promise.then(()=>true),
     new Promise(resolve=>setTimeout(()=>resolve(false),1200))]);
   assert.equal(reached,true,'Component did not reach the final async document fence; checks='+
@@ -959,27 +962,28 @@ test('R24.3 final asynchronous document check refuses a React component edited b
   assert.equal(f.previews.length,0,'stale compiled bytes must never reach the existing Page executor');
   assert.equal(f.find('page-preview-status').dataset.state,'error');
   assert.match(f.find('page-preview-status').textContent,/E_PAGE_COMPILER_STALE/);
-  assert.equal(f.find('page-preview-run').disabled,false,'new source can be explicitly run after stale admission rejected');
+  assert.equal(f.find('script-run').disabled,false,'new source can be explicitly run after stale admission rejected');
 });
 
 test('DOM preview binds frozen plain JavaScript and exact current document from trusted click',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const pending=deferred();f.setPermission(pending.promise);
   const source='async function main(){document.title="frozen";return document.title;}';
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');
   f.find('script-source').value=source;f.find('script-source').fire('input');
   for(let n=0;n<8;n++)await tick();
-  f.find('page-preview-run').fire('click',{isTrusted:false});
+  f.find('script-run').fire('click',{isTrusted:false});
   assert.equal(f.permissions.length,0,'untrusted event must never open a permission prompt');
-  f.find('page-preview-run').fire('click',{isTrusted:true});
+  f.find('script-run').fire('click',{isTrusted:true});
   assert.equal(f.permissions.length,0,'trusted Run also never requests website permission');
   assert.equal(f.permissionChecks.length,1,'permission is checked before admission');
-  assert.equal(f.find('page-preview-run').disabled,true,'no overlapping user-script preview while permission is pending');
+  assert.equal(f.find('script-run').disabled,true,'no overlapping user-script preview while permission is pending');
   assert.equal(f.find('script-run').disabled,true,'do not start Controller while page preview is pending');
   f.find('script-run').fire('click',{isTrusted:true});
   assert.equal(f.starts.length,0,'trusted click must not start Controller while preview is pending');
   pending.resolve(true);
   await waitForComponentUI(()=>f.previews.length===1,'plain JavaScript preview must dispatch after permission resolves; status='+
-    f.find('page-preview-status').textContent+' runDisabled='+f.find('page-preview-run').disabled);
+    f.find('page-preview-status').textContent+' runDisabled='+f.find('script-run').disabled);
   assert.equal(f.previews.length,1);
   assert.equal(f.previews[0].sourceUtf8,source);
   assert.equal(f.previews[0].entryFormat,'async-main');
@@ -996,8 +1000,9 @@ test('DOM preview binds frozen plain JavaScript and exact current document from 
 test('DOM preview refuses to inject when the active document changes while permission is pending',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const pending=deferred();f.setPermission(pending.promise);
-  f.find('script-source').value='async function main(){return document.title;}';
-  f.find('page-preview-run').fire('click',{isTrusted:true});
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');
+  f.find('script-source').value='async function main(){return document.title;}';f.find('script-source').fire('input');await tick();
+  f.find('script-run').fire('click',{isTrusted:true});
   await f.switchTab();
   pending.resolve(true);
   await tick();await tick();
@@ -1063,7 +1068,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   assert.equal(fx.find('page-candidate-save').disabled,true,'not available before native preview success');
   fx.find('page-candidate-save').fire('click',{isTrusted:true});await tick();
   assert.equal(requests.length,0,'cannot import Candidate without proof of preview');
-  await fx.click('page-preview-run');await tick();
+  await fx.click('script-run');await tick();
   assert.equal(fx.previews.length,1);
   assert.equal(fx.find('page-candidate-save').disabled,false);
   fx.find('page-candidate-save').fire('click',{isTrusted:false});await tick();
@@ -1096,7 +1101,7 @@ test('R12: navigating the actual page or a rejected preview cannot save a Page C
   const source='async function main(){return document.title;}';
   fx.find('script-source').value=source;fx.find('script-source').fire('input');
   for(let n=0;n<8;n++)await tick();
-  await fx.click('page-preview-run');
+  await fx.click('script-run');
   await waitForComponentUI(()=>fx.find('page-candidate-save').disabled===false,
     'successful preview should enable Candidate save; status='+fx.find('page-preview-status').textContent);
   const imports=[];
@@ -1111,7 +1116,7 @@ test('R12: navigating the actual page or a rejected preview cannot save a Page C
     if(type==='previewPageScript')throw {code:'E_PAGE_SCRIPT_EXECUTION',message:'source failed'};
     return original(type,payload);
   };
-  await fx.click('page-preview-run');await tick();
+  await fx.click('script-run');await tick();
   assert.equal(fx.find('page-candidate-save').disabled,true,'failure must not reactivate last successful preview');
 });
 
@@ -1232,9 +1237,7 @@ test('R24.3 React and Vue modes keep independent official source drafts without 
   react.checked=true;react.fire('change');await tick();
   assert.equal(editor.value,reactDraft,'Switch must recover exact unsaved React source');
   assert.equal(f.find('script-save').disabled,false,'Components can prepare and save a frozen Page Candidate without running');
-  assert.equal(f.find('script-run').disabled,f.find('page-preview-run').disabled,'Component primary run follows page-preview availability');
   assert.equal(f.find('script-run').textContent,'运行 React 组件');
-  assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
   f.click('script-run');await tick();
   assert.equal(f.starts.length,0,'Component source cannot enter Controller RunHost');
 });
@@ -1257,7 +1260,7 @@ async function selectBrowserReact(f){
   const input=f.find('page-component-react');
   input.checked=true;input.fire('change');await tick();
   assert.equal(input.checked,true);
-  assert.equal(f.find('page-preview-run').textContent,'运行 React 组件');
+  assert.equal(f.find('script-run').textContent,'运行 React 组件');
 }
 test('R24.3 an outcome-unknown browser component blocks the SAME document, but a genuinely new document permits explicit Run',async t=>{
   const f=await fixture(undefined,undefined,{componentPreparerFactory:browserComponentFixture});
@@ -1272,26 +1275,26 @@ test('R24.3 an outcome-unknown browser component blocks the SAME document, but a
     return original(method,payload);
   };
   await selectBrowserReact(f);
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
     'unknown page effect must be reported');
   assert.match(f.find('page-preview-status').textContent,/E_EFFECT_UNKNOWN/);
-  assert.equal(f.find('page-preview-run').disabled,true,'unknown effect fences additional Run');
+  assert.equal(f.find('script-run').disabled,true,'unknown effect fences additional Run');
   f.find('page-component-vue').checked=true;f.find('page-component-vue').fire('change');await tick();
   assert.equal(f.find('page-component-react').checked,true,'framework switch cannot bypass uncertain execution');
   assert.equal(dispatched,1,'no duplicate dispatch after unknown receipt');
   await f.switchTab();
-  assert.equal(f.find('page-preview-run').disabled,true,
+  assert.equal(f.find('script-run').disabled,true,
     'switching tabs does not prove the unknown original document was retired');
   await f.activateTab(11);
-  assert.equal(f.find('page-preview-run').disabled,true,
+  assert.equal(f.find('script-run').disabled,true,
     'returning to the same potentially affected document must stay blocked');
   await f.navigateTab(11);
-  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+  await waitForComponentUI(()=>f.find('script-run').disabled===false,
     'only a new document in the original tab can release the uncertain effect');
   assert.match(f.find('page-component-status').textContent,/新网页文档/);
   assert.equal(dispatched,1,'navigation alone must never replay user code');
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>dispatched===2,'new document requires a NEW explicit Run');
 });
 test('R24.3 malformed Page receipt is quarantined and cannot be retried in the same document',async t=>{
@@ -1309,19 +1312,19 @@ test('R24.3 malformed Page receipt is quarantined and cannot be retried in the s
     return original(method,payload);
   };
   await selectBrowserReact(f);
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
     'untrusted Page receipt must be rejected');
   assert.match(f.find('page-preview-status').textContent,/E_PAGE_COMPILER_RECEIPT/);
-  assert.equal(f.find('page-preview-run').disabled,true);
+  assert.equal(f.find('script-run').disabled,true);
   assert.equal(dispatches,1);
   await f.switchTab();
-  assert.equal(f.find('page-preview-run').disabled,true,
+  assert.equal(f.find('script-run').disabled,true,
     'an unrelated tab must not unlock a mismatched receipt');
   await f.activateTab(11);
-  assert.equal(f.find('page-preview-run').disabled,true);
+  assert.equal(f.find('script-run').disabled,true);
   await f.navigateTab(11);
-  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+  await waitForComponentUI(()=>f.find('script-run').disabled===false,
     'only the original tab navigating to a new document can release a mismatched receipt');
   assert.equal(dispatches,1,'new document must not auto-run');
 });
@@ -1346,14 +1349,14 @@ test('R24.3 switching tabs retains the original confirmed managed preview for a 
     return original(method,payload);
   };
   await selectBrowserReact(f);
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed',
     'original Page preview must be confirmed before changing tabs');
   assert.equal(f.previews.length,1);
   const previewId=f.previews[0].managedUI.previewId;
   assert.equal(f.find('script-stop').disabled,false,'original document can Stop');
   await f.switchTab();
-  assert.equal(f.find('page-preview-run').disabled,true,
+  assert.equal(f.find('script-run').disabled,true,
     'a different tab cannot orphan the original live managed UI');
   assert.equal(f.find('script-stop').disabled,true,
     'a different document cannot Stop the original one');
@@ -1365,7 +1368,7 @@ test('R24.3 switching tabs retains the original confirmed managed preview for a 
     'original Stop receipt must be acknowledged');
   assert.deepEqual(retirements,[previewId],
     'Stop uses the original real preview ID, not a new or fabricated ID');
-  assert.equal(f.find('page-preview-run').disabled,false,
+  assert.equal(f.find('script-run').disabled,false,
     'normal explicit Run becomes available after confirmed retirement');
 });
 test('R24.3 confirmed closure of the owning tab retires the editor ownership without replay',async t=>{
@@ -1383,13 +1386,13 @@ test('R24.3 confirmed closure of the owning tab retires the editor ownership wit
     return original(method,payload);
   };
   await selectBrowserReact(f);
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed',
     'managed Page ownership was established');
   await f.switchTab();
-  assert.equal(f.find('page-preview-run').disabled,true);
+  assert.equal(f.find('script-run').disabled,true);
   await f.removeTab(11);
-  await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+  await waitForComponentUI(()=>f.find('script-run').disabled===false,
     'actual tab removal proves the previous document cannot still own the UI');
   assert.equal(count,1,'removal must never auto-dispatch user source');
 });
@@ -1409,7 +1412,7 @@ test('development dispatch rejection preserves the original component Stop right
     }
     return original(method,payload);
   };
-  await selectBrowserReact(f);await f.click('page-preview-run');
+  await selectBrowserReact(f);await f.click('script-run');
   await waitForComponentUI(()=>!f.find('script-stop').disabled,'managed Stop unavailable');
   await f.click('script-stop');
   await waitForComponentUI(()=>f.find('script-status').dataset.state==='blocked','dispatch rejection missing');
@@ -1443,7 +1446,7 @@ test('R24.3 a confirmed failed component retains exact managed Stop rights',asyn
     return original(method,payload);
   };
   await selectBrowserReact(f);
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
     'confirmed failed component must be reported');
   assert.match(f.find('page-preview-status').textContent,/E_PAGE_SCRIPT_EXECUTION/);
@@ -1470,20 +1473,20 @@ test('R24.3 missing or forged browser results never allow a second same-document
           tabId:payload.target.tabId,documentId:payload.target.documentId}});
     };
     await selectBrowserReact(f);
-    await f.click('page-preview-run');
+    await f.click('script-run');
     await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error',
       'invalid receipt must not complete');
-    assert.equal(f.find('page-preview-run').disabled,true);
+    assert.equal(f.find('script-run').disabled,true);
     assert.equal(f.find('script-stop').disabled,true,
       'untrusted response cannot authorize a Stop in an unknown world');
     await f.switchTab();
-    assert.equal(f.find('page-preview-run').disabled,true,
+    assert.equal(f.find('script-run').disabled,true,
       'new tab is not proof the original document was retired');
     await f.activateTab(11);
-    assert.equal(f.find('page-preview-run').disabled,true);
+    assert.equal(f.find('script-run').disabled,true);
     assert.equal(calls,1,'no replay after invalid result');
     await f.navigateTab(11);
-    await waitForComponentUI(()=>f.find('page-preview-run').disabled===false,
+    await waitForComponentUI(()=>f.find('script-run').disabled===false,
       'only the original document changing can release the quarantine');
   }
 });
@@ -1595,7 +1598,7 @@ test('browser component Save prepares a frozen Candidate with zero Page executio
   assert.notEqual(requests[0].payload.sourceUtf8,source);assert.equal(f.find('script-source').value,source);
   assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);
   assert.match(f.find('page-component-status').textContent,/尚未进行网页运行验收/);
-  await f.click('page-preview-run');
+  await f.click('script-run');
   await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','explicit Run should receive managed result');
   const dispatch=requests.find(row=>row.method==='previewPageScript');assert.ok(dispatch.payload.managedUI.previewId);
   assert.equal(dispatch.payload.sourceUtf8,requests[0].payload.sourceUtf8);
@@ -1612,7 +1615,7 @@ test('frozen v1 and versioned v2 JSON components Save and Run exact verified byt
     await f.editor.importDraft(draft);assert.equal(requests.length,0);assert.equal(f.find('script-source').readOnly,true);
     await f.click('script-save');await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','frozen JSON should save directly');
     assert.equal(requests[0].method,'importPageCandidate');assert.equal(requests[0].payload.sourceUtf8,draft.sourceUtf8);
-    await f.click('page-preview-run');await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','frozen JSON managed preview should complete');
+    await f.click('script-run');await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','frozen JSON managed preview should complete');
     const preview=requests.find(row=>row.method==='previewPageScript');
     assert.equal(preview.payload.sourceUtf8,draft.sourceUtf8);assert.equal(preview.payload.managedUI.enabled,true);assert.equal(compiled,0);
     assert.equal(f.find('script-stop').disabled,false);await f.click('script-stop');
@@ -1627,11 +1630,11 @@ test('Stop during browser component preparation prevents a late compiler result 
     const ready=deferred(),value=await honestComponentFixture().prepare({framework:'react',projectId:'browser-react'});let started=false;
     const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({inspect:async input=>componentInspectResult(input),prepare:async()=>{started=true;return ready.promise;},cancel(){},dispose(){}})});
     t.after(()=>f.dispose());const requests=browserPageResponses(f);await selectBrowserReact(f);
-    await f.click(save?'script-save':'page-preview-run');await waitForComponentUI(()=>started,'compiler should be pending');
+    await f.click(save?'script-save':'script-run');await waitForComponentUI(()=>started,'compiler should be pending');
     assert.equal(f.find('script-stop').disabled,false);assert.equal(f.find('script-stop').textContent,'取消准备');
     await f.click('script-stop');ready.resolve(value);await tick();await tick();await tick();
     assert.equal(requests.length,0,'a canceled operation may not dispatch or save stale source');
-    assert.equal(f.find('page-preview-run').disabled,false);
+    assert.equal(f.find('script-run').disabled,false);
   }
 });
 
@@ -1648,9 +1651,9 @@ test('effect unknown reads one original completion, restores only Stop ownership
       }
       return original(method,payload);
     };
-    await selectBrowserReact(f);await f.click('page-preview-run');
+    await selectBrowserReact(f);await f.click('script-run');
     await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='error','unknown effect should remain a visible error');
-    assert.equal(queries,1);assert.equal(dispatches,1);assert.equal(f.find('page-preview-run').disabled,true);
+    assert.equal(queries,1);assert.equal(dispatches,1);assert.equal(f.find('script-run').disabled,true);
     assert.equal(f.find('script-stop').disabled,forged);
     if(!forged){await f.click('script-stop');await waitForComponentUI(()=>requests.some(row=>row.method==='retirePagePreview'),'original confirmed ownership permits cleanup');}
     assert.equal(dispatches,1,'receipt recovery never causes a second execution');
@@ -1825,7 +1828,7 @@ test('Page static imports save author source and approved lock alongside the act
     return originalRequest(method,payload);
   };
   assert.match(f.find('script-save').title,/保存/);
-  await f.click('page-preview-run');await f.settle();
+  await f.click('script-run');await f.settle();
   assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);
   assert.equal(f.compiled.length,1);
   assert.deepEqual(f.previews[0],{sourceUtf8:'async function main(){return 7;}',entryFormat:'async-main',lockId:null,
@@ -1849,7 +1852,7 @@ test('Page static imports save author source and approved lock alongside the act
 });
 test('loading a saved Page import restores author bytes and Page lock without running',async t=>{
   const f=await staticESMFixture(t);
-  await f.click('page-preview-run');await f.settle();
+  await f.click('script-run');await f.settle();
   const frozen=f.compiled[0],original=f.client.request;
   const row={programId:'saved-esm',revision:1,stage:'Candidate',manifestHash:'f'.repeat(64),
     sourceHash:createHash('sha256').update('async function main(){return 7;}').digest('hex'),
@@ -1869,7 +1872,7 @@ test('loading a saved Page import restores author bytes and Page lock without ru
   assert.equal(f.find('script-javascript-world').value,'page');
   assert.equal(f.previews.length,1);assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);
   assert.equal(f.find('page-candidate-save').disabled,true);
-  await f.click('page-preview-run');await f.settle();
+  await f.click('script-run');await f.settle();
   assert.equal(f.previews.length,2);assert.equal(f.compiled.at(-1).lockId,frozen.lockId);
 });
 test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or explicit world switch',async t=>{
@@ -1894,7 +1897,7 @@ test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or
 for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entry runs without a dependency lock',async t=>{
   const f=await staticESMFixture(t,{sourceUtf8:'export default async function main(){return 7;}',approved:false});
   if(world==='esm-controller')await f.world(world);
-  await f.click(world==='esm-controller'?'script-run':'page-preview-run');
+  await f.click(world==='esm-controller'?'script-run':'script-run');
   if(world==='esm-page')await f.settle();else for(let n=0;n<12&&!f.executions.length;n++)await tick();
   assert.equal(f.compiled.length,1);
   assert.equal(f.compiled[0].lockId,null);
@@ -1906,7 +1909,7 @@ for(const world of ['esm-page','esm-controller'])test(world+' no-import ESM entr
 });
 for(const change of ['source','world','document','target-mode'])test('Page import compilation discards '+change+' changes before dispatch',async t=>{
   const gate=deferred(),f=await staticESMFixture(t,{compileGate:gate});
-  await f.click('page-preview-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
+  await f.click('script-run');for(let n=0;n<12&&!f.compiled.length;n++)await tick();
   assert.equal(f.compiled.length,1);
   if(change==='source'){f.find('script-source').value=f.sourceUtf8+'\n// changed';f.find('script-source').fire('input');}
   else if(change==='world')await f.world('esm-controller');
@@ -1918,7 +1921,7 @@ for(const change of ['source','world','document','target-mode'])test('Page impor
 });
 test('Page ESM result must carry the actual compiled source hash',async t=>{
   const f=await staticESMFixture(t,{badReceipt:true});
-  await f.click('page-preview-run');await f.settle();
+  await f.click('script-run');await f.settle();
   assert.match(f.find('page-preview-status').textContent,/E_STATIC_ESM_OUTPUT/);
   assert.equal(f.find('page-candidate-save').disabled,true);
 });

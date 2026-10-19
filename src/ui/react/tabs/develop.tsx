@@ -540,9 +540,6 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
             <DevelopField as="p" id="page-preview-mode-hint" className="hint">
               {"直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。"}
             </DevelopField>
-            <DevelopField as="button" id="page-preview-run" type="button" className="od-button">
-              {"在当前网页试运行"}
-            </DevelopField>
             <DevelopField as="p" id="page-component-status" role="status" aria-live="polite">
             </DevelopField>
             <DevelopField as="p" id="page-preview-status" role="status">

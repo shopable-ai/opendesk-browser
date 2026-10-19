@@ -5,7 +5,7 @@ import {DEVELOPER_FIELDS} from './develop-fields.js';
 // React renders them and calls the exported actions directly.
 export function createDeveloperView(){
   const fields=Object.fromEntries(Object.entries(DEVELOPER_FIELDS).map(([key,initial])=>{
-    const {tag,dataset,options,...state}=initial;
+    const {dataset,options,...state}=initial;
     return [key,{key,value:'',textContent:'',hidden:false,disabled:false,checked:false,readOnly:false,
       open:false,textSet:Object.hasOwn(state,'textContent'),...state,data:{...dataset},options:(options||[]).map(([label,value])=>({label,value})),rows:[]}];
   }));

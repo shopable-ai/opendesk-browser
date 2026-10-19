@@ -43,11 +43,11 @@ function printable(value, depth = 0) {
 }
 
 export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: hostDocument = globalThis.document,view=null,
-  hostFactory = createRunHost,componentPreparerFactory=createBrowserPageComponentPreparer,
+  hostFactory = createRunHost,sharedRunHost=null,componentPreparerFactory=createBrowserPageComponentPreparer,
   staticESMPreparerFactory=createStaticESMPreparer,
   browserCompilerEnabled=typeof __OPENDESK_BROWSER_COMPILER_ENABLED__==='undefined'||
     __OPENDESK_BROWSER_COMPILER_ENABLED__!==false}) {
-  const host = hostFactory({api, client, document: hostDocument, templateModuleFactory: null});
+  const host = sharedRunHost ?? hostFactory({api, client, document: hostDocument, templateModuleFactory: null});
   // The complete React page consumes this UI projection. RunHost retains the
   // real host document; no user code is evaluated in the trusted React tree.
   const doc=hostDocument;
@@ -382,15 +382,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const stopLabel=browserPreparing||componentRemote?.busy?'取消准备':canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:frameworkBusy()});
     if(componentStatus)patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!componentStatus.textContent});
-    patchDeveloperField(view,find('page-preview-run'),{disabled:stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
+    const pageRunDisabled = stopping||browserEffectUnknown||browserManagedPreview?.recoveredOnly||otherTabOwnsBrowserUI()||previewBusy||componentRemote?.busy||dependencyInstaller?.busy ||
       (componentMode==='javascript'&&(dependencyResolver?.busy||
          (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)))||
        editingBusy||running||!!host.currentRun||
       !programSource.source().trim()||programSource.kind()==='controller'||
       (componentMode!=='javascript'&&!componentRemote?.readyForRun)||
-      currentPageState?.status!=='available'});
-    patchDeveloperField(view,find('page-preview-run'),{textContent:componentMode==='javascript'?'在当前网页试运行':'运行'+(componentMode==='react'?' React':' Vue')+' 组件'});
-    if(pageExecution)runDisabled=find('page-preview-run').disabled||!projection?.slotAvailable;
+      currentPageState?.status!=='available';
+    if(pageExecution)runDisabled=pageRunDisabled||!projection?.slotAvailable;
     const pageCandidateButton=find('page-candidate-save');
     if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{disabled:!canSavePagePreview()&&!canPrepareComponentCandidate()});
     if(pageCandidateButton)patchDeveloperField(view,pageCandidateButton,{title:''});
@@ -399,7 +398,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     patchDeveloperField(view,find('script-download'),{disabled:downloading || !downloadable.has(resultSelect.value)});
     let saveHidden=true,saveLabel='保存版本',runLabel='运行草稿';
     if(localProject?.active()){
-      for(const id of ['script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))patchDeveloperField(view,find(id),{disabled:true});
+      for(const id of ['script-load','script-list-load','script-delete','task-create-candidate'])if(find(id))patchDeveloperField(view,find(id),{disabled:true});
       saveHidden=false; // Visibility is navigation; Authority still gates install confirmation.
       saveDisabled=editingBusy||running||stopping||previewBusy||!localInstaller.hasSelection();
       saveLabel=localInstaller.saveLabel();
@@ -1460,7 +1459,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (!disposed && sequence === scriptsCheckSequence) patchDeveloperField(view,scriptsCheck,{disabled:false});
     });
   });
-  listen(find('page-preview-run'), 'click', previewPage);
   const candidateSaveButton=find('page-candidate-save');
   if(candidateSaveButton)listen(candidateSaveButton,'click',event=>{
     if(!event.isTrusted)return;
@@ -1680,7 +1678,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
     if (disposed) return; disposed = true; controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
-    api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
+    api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); if(!sharedRunHost)host.dispose();
     browserListenersAttached = false;
     for (const entry of listeners) entry.remove();
     listeners.length = 0;
