@@ -60,29 +60,29 @@ test('R35.4 Extension Center React owns the list while existing Controller owns 
   for(const id of ['extension-center-search','extension-center-detail','extension-center-status',
     'extension-center-import-host','extension-center-menu','extension-center-back'])
     assert.ok(rows.includes('id="'+id+'"'),id+' belongs to the React page');
-  assert.equal((main.match(/\\bcreateRoot\\s*\\(/g)||[]).length,1);
-  assert.match(main,/createRoot\\(shell\\?\\.mount\\|\\|section\\)/);
-  assert.match(main,/<SidebarAppShell scaffold=\\{shell\\.scaffold\\}/);
-  assert.match(main,/<ExtensionCenterPage \\{\\.\\.\\.extensionProps\\}\\/>/);
-  assert.doesNotMatch(main,/createPortal\\s*\\(\\s*<(?:ExtensionRows|ExtensionDetail|ExtensionToolbar|ExtensionStatus|ExtensionRecoveries|ExtensionRowMenu)/);
-  assert.match(main,/bookmarkPilot&&createPortal\\(/);
-  assert.match(main,/createPortal\\(<DebugDiagnosticText/);
-  assert.match(main,/root\\.unmount\\(\\)/);
+  assert.equal((main.match(/\bcreateRoot\s*\(/g)||[]).length,1);
+  assert.match(main,/createRoot\(shell\?\.mount\|\|section\)/);
+  assert.match(main,/<SidebarAppShell scaffold=\{shell\.scaffold\}/);
+  assert.match(main,/<ExtensionCenterPage \{\.\.\.extensionProps\}\/>/);
+  assert.doesNotMatch(main,/createPortal\s*\(\s*<(?:ExtensionRows|ExtensionDetail|ExtensionToolbar|ExtensionStatus|ExtensionRecoveries|ExtensionRowMenu)/);
+  assert.match(main,/bookmarkPilot&&createPortal\(/);
+  assert.match(main,/createPortal\(<DebugDiagnosticText/);
+  assert.match(main,/root\.unmount\(\)/);
   assert.match(main,/flushSync/);
   assert.match(rows,/export function ExtensionCenterPage/);
   assert.match(rows,/export function ExtensionDetail/);
-  assert.match(rows,/return createPortal\\(<div ref=\\{ref\\} id="extension-center-row-menu"/);
-  assert.match(rows,/onClick=\\{event=>onOpenRow\\(row\\.key,event\\.nativeEvent\\)\\}/);
-  assert.match(rows,/onClick=\\{event=>onMore\\(row\\.key,event\\.currentTarget,event\\.nativeEvent\\)\\}/);
+  assert.match(rows,/return createPortal\(<div ref=\{ref\} id="extension-center-row-menu"/);
+  assert.match(rows,/onClick=\{event=>onOpenRow\(row\.key,event\.nativeEvent\)\}/);
+  assert.match(rows,/onClick=\{event=>onMore\(row\.key,event\.currentTarget,event\.nativeEvent\)\}/);
   assert.match(rows,/data-ec-detail-action/);
   // Retain exactly one real privileged operation chain: React event ->
   // ExtensionCenter Controller -> existing SidebarTools/Page Installer.
   for(const method of ['renderRows','renderToolbar','renderFeedback','renderRecoveries',
     'renderStatus','renderRowMenu','renderView','connectBack'])
     assert.match(center,new RegExp('extensionList\\\\.'+method+'\\\\('),method);
-  assert.match(center,/sidebarTools\\.toggleEnabled\\(row\\.id,event\\)/);
-  assert.match(center,/setInstalledPageProgramEnabled\\(/);
-  assert.match(center,/retryCleanup\\(row,event\\)/);
-  assert.match(shell,/extensionCenter\\.dispose\\(\\); sidebarTools\\.dispose\\(\\); extensionList\\.dispose\\(\\)/);
+  assert.match(center,/sidebarTools\.toggleEnabled\(row\.id,event\)/);
+  assert.match(center,/setInstalledPageProgramEnabled\(/);
+  assert.match(center,/retryCleanup\(row,event\)/);
+  assert.match(shell,/extensionCenter\.dispose\(\); sidebarTools\.dispose\(\); extensionList\.dispose\(\)/);
   assert.match(docs,/当前唯一生效的 React 源码路径决定/);
 });
