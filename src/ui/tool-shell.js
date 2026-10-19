@@ -200,6 +200,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
         void scheduleUI?.onInstalled(taskId);
       },
       onManageTasks:()=>taskWorkbench.navigate('tasks'),
+       onReviewCandidates:()=>taskWorkbench.navigate('catalog'),
       onOpenRun:async runId=>{
         if(taskWorkbench.navigate('develop')===false)return;
         await scriptEditor.openRun(runId);

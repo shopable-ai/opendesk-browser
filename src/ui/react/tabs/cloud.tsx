@@ -112,6 +112,12 @@ export function CloudProgramInbox({model={}}){
       </button>
     </div>
     <p role="status" className="hint">{model.status||'云端交付的源码不会自动执行或安装。'}</p>
+    {model.continueCandidate&&<div className="cloud-program-actions">
+      <button type="button" className="od-button" disabled={!model.continueCandidate.canOpen}
+        onClick={event=>trusted(event,model.onContinueCandidate)}>
+        在任务目录继续试运行、验证与安装
+      </button>
+    </div>}
     {rows.length>0&&<ul className="cloud-request-samples cloud-program-list">
       {rows.map(row=>{
         const current=review?.deliveryId===row.deliveryId;

@@ -38,7 +38,7 @@ const cloudChoiceKey=task=>[task.taskId,task.version,task.manifestHash,task.sour
 
 // A single Controller owns selections, confirmations and operation lifetimes.
 // React receives projections/actions only; the Cloud Host rechecks every pin.
-export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI,currentPageTarget,onTaskInstalled,onOpenRun,onManageTasks}){
+export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI,currentPageTarget,onTaskInstalled,onOpenRun,onManageTasks,onReviewCandidates}){
   if(!reactUI?.cloudPageMounted)throw new Error('E_REACT_CLOUD_PAGE_REQUIRED');
   const cloud=client.cloud,get=id=>doc.getElementById(id);
   let disposed=false,busy=false,starting=false,timer,refreshing=null,epoch=0,secretEpoch=0;
@@ -51,7 +51,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let clientPins='',clientTaskId='',clientName='',clientResult=false,oneTimeToken='';
   let pairing={url:'',providerId:'',pairingCode:'',loopback:false};
   let overview={summary:'正在检查连接与授权…',connection:'检测中'},brief='未配对',statusText='尚未配对';
-  let statusFailed=false,programRows=[],reviewedProgram=null,lastTrial=null,
+  let statusFailed=false,programRows=[],reviewedProgram=null,lastTrial=null,importedCandidate=null,
     trialActiveId=null,trialStopping=false,
     programStatus='点击刷新，检查服务器交付的待审核程序。';
   const permissionConsent=api?.permissions?
@@ -92,6 +92,10 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       overview,visibleApproval:!!state?.provider,
       programs:{rows:programRows,busy,canRefresh:!!state?.provider&&!busy,
         status:programStatus,onRefresh:()=>action(refreshPrograms),
+        continueCandidate:importedCandidate&&!(lastTrial?.deliveryId===importedCandidate.deliveryId&&lastTrial.success)
+          ?{taskId:importedCandidate.taskId,title:importedCandidate.title,version:importedCandidate.version,
+            canOpen:typeof onReviewCandidates==='function'}:null,
+        onContinueCandidate:()=>{if(!disposed&&importedCandidate)onReviewCandidates?.(importedCandidate.taskId);},
         trial:lastTrial?{
           deliveryId:lastTrial.deliveryId,title:lastTrial.title,taskId:lastTrial.taskId,
           version:lastTrial.version,runId:lastTrial.runId,sourceHash:lastTrial.sourceHash,
@@ -373,6 +377,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     // The preexisting installer independently checks every byte. Candidate
     // import grants no Controller Run, site permission or Cloud approval.
     await client.request('importTaskPackage',{package:pkg});
+    importedCandidate={deliveryId,taskId:row.taskId,title:row.title,version:row.version};
     reviewedProgram=null;
     programRows=programRows.filter(item=>item.deliveryId!==deliveryId);
     programStatus='已导入待验证任务 '+row.title+'；请到「我的」使用原有试运行、验证与安装流程。';

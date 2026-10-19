@@ -11,7 +11,7 @@ const pin={deliveryId,taskId:pkg.manifest.taskId,version:pkg.manifest.version,
   title:pkg.manifest.title,manifestHash:pkg.manifestHash,
   sourceHash:pkg.manifest.program.sourceHash,siteOrigins:pkg.manifest.siteOrigins};
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-async function make(t,{mutate=packageValue=>packageValue,ackFailure=false}={}){
+async function make(t,{mutate=packageValue=>packageValue,ackFailure=false,onReviewCandidates}={}){
   const calls=[],forbidden=()=>assert.fail('Cloud delivery must not run or authorize anything');
   let snapshot;
   const client={cloud:{
@@ -35,7 +35,7 @@ async function make(t,{mutate=packageValue=>packageValue,ackFailure=false}={}){
   }};
   const view=createCloudHosting({client,host:{executionPending:false,start:forbidden},
     document:{documentElement:{dataset:{opendeskTab:'cloud'}},getElementById:()=>null},
-    api:{},reactUI:{cloudPageMounted:true,renderCloudPage(next){snapshot=next;}}});
+    api:{},onReviewCandidates,reactUI:{cloudPageMounted:true,renderCloudPage(next){snapshot=next;}}});
   t.after(()=>view.dispose());
   await flush();await flush();
   return {calls,model:()=>snapshot};
@@ -67,6 +67,25 @@ test('Provider descriptor remains source-free until a trusted review, then impor
   assert.equal(f.model().programs.review,null);
   assert.match(f.model().programs.status,/待验证任务/);
   assert.equal(f.calls.some(c=>['cloudApprove','cloudNext','run'].includes(c[0])),false);
+});
+test('Import-first review shows a direct, non-executing handoff to the existing candidate catalog',async t=>{
+  const opened=[];
+  const f=await make(t,{onReviewCandidates:taskId=>opened.push(taskId)});
+  await f.model().programs.onRefresh();
+  await f.model().programs.onReview(deliveryId);
+  await f.model().programs.onImport(deliveryId);
+  assert.equal(f.model().programs.rows.length,0);
+  assert.equal(f.model().programs.review,null);
+  assert.deepEqual(f.model().programs.continueCandidate,{
+    taskId:pkg.manifest.taskId,title:pkg.manifest.title,version:pkg.manifest.version,canOpen:true});
+  assert.deepEqual(opened,[], 'Import must not navigate without a separate user action');
+  f.model().programs.onContinueCandidate();
+  assert.deepEqual(opened,[pkg.manifest.taskId]);
+  assert.equal(f.calls.some(([method])=>['cloudNext','cloudApprove','host.start'].includes(method)),false);
+  const react=await readFile('src/ui/react/tabs/cloud.tsx','utf8');
+  const shell=await readFile('src/ui/tool-shell.js','utf8');
+  assert.match(react,/model\.continueCandidate.*?<button[\s\S]*?model\.onContinueCandidate/s);
+  assert.match(shell,/onReviewCandidates:\(\)=>taskWorkbench\.navigate\('catalog'\)/);
 });
 test('Tampered JS is rejected at review before import and Provider acknowledgement',async t=>{
   const f=await make(t,{mutate:p=>({...p,sourceUtf8:p.sourceUtf8+'\\n// unauthorized mutation'})});
