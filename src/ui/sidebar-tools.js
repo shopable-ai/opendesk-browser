@@ -270,8 +270,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       granted.length?' · 部分授权：'+granted.map(([,label])=>label).join('、'):' · 未授权'):
       '请选择普通 HTTP(S) 网页才能授权新网站'});
     patchToolField(view,cookieFirstUse,{hidden:!origin});
-    patchToolField(view,cookieHelp,{textContent:'一次授权本站：'+requested.map(([,label])=>label).join('、')+
-      '。导入导出复用这些权限，删除和敏感导出仍需操作确认；可随时撤销。'});
+    patchToolField(view,cookieHelp,{textContent:tool.id==='cookie-editor'?'':(
+      '一次授权本站：'+requested.map(([,label])=>label).join('、')+
+      '。导入导出复用这些权限，删除和敏感导出仍需操作确认；可随时撤销。')});
     patchToolField(view,cookieSiteToggle,{textContent:cookieGrantPending?'正在处理…':allowed?'撤销本站授权':'允许管理本站 Cookie'});
     setToolFieldAttribute(view,cookieSiteToggle,'data-enabled',String(allowed));
     patchToolField(view,cookieSiteToggle,{disabled:busy||cookieGrantPending||!origin||requested.length===0});
@@ -329,7 +330,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
       if(active===tool&&instance===token){
         tocSettingsOpen=revoke;render();
-        notice(revoke?'已撤销本站 Cookie 授权':'已授权管理本站 Cookie，后续操作复用此次网站授权。');
+        // Cookie Editor already reflects grant state in its controls. Avoid
+        // a second persistent success banner in the Tool shell.
+        notice(tool.id==='cookie-editor'?'':revoke?'已撤销本站 Cookie 授权':
+          '已授权管理本站 Cookie，后续操作复用此次网站授权。');
       }
     })().catch(error=>notice('网站授权未全部完成，请在设置中查看当前状态（'+
       (error?.code||'E_COOKIE')+'）：'+String(error?.message||error).slice(0,160),true))
