@@ -150,7 +150,8 @@ test('My hosting status displays saved stopped results and pending release with 
     await f.model().onRefresh();await f.model().pairing.onRefresh();
     assert.equal(reads,before+2);
     assert.match(f.model().requests.rows[0].summary,/结果已保存.*资源释放中.*回执未确认.*等待资源释放/);
-    assert.match(f.model().overview.summary,/结果已保存|资源释放/);
+    assert.equal(f.model().overview.slot,'执行槽状态待核对',
+      'Saved result does not imply Chrome has released the execution slot');
   }finally{hosting.dispose();}
 });
 
@@ -162,7 +163,7 @@ test('My hosting readiness and unreadable status never expose raw errors or stal
     client:{cloud},host:{executionPending:true}});
   try{
     await flush();await flush();assert.equal(f.model().pairing.brief,'宿主未就绪');
-    assert.match(f.model().overview.summary,/等待浏览器执行宿主就绪/);
+    assert.match(f.model().overview.summary,/需要可用的浏览器执行宿主/);
     error=true;await f.model().pairing.onRefresh();
     assert.equal(f.model().overview.myState,'状态不可读取');
     assert.match(f.model().requests.emptyText,/请求状态暂不可读取/);
