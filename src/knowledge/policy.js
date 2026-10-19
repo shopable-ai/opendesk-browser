@@ -1,6 +1,6 @@
 import {sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {validateSidebarToolPackage,sidebarToolStorageKey} from '../ui/sidebar-tools/package.js';
-import {grantedOrigins,changeTocGrant} from '../reading-toc/policy.js';
+import {grantedOrigins,changeSiteGrant} from '../ui/sidebar-tools/site-grants.js';
 
 export const KNOWLEDGE_TOOL_ID='knowledge-inbox';
 export const KNOWLEDGE_PROTOCOL='opendesk.knowledge.v1';
@@ -34,7 +34,7 @@ export function captureAllowed(installed,sites,url,enableRecords){
 }
 export function changeCaptureGrant(sites,id,url,enabled){
   if(id!==KNOWLEDGE_TOOL_ID||!chatCaptureOrigin(url))throw new Error('当前只支持 ChatGPT 网站的知识保存');
-  return changeTocGrant(sites,id,url,enabled);
+  return changeSiteGrant(sites,id,url,enabled);
 }
 export async function knowledgeDigest(value){
   const bytes=new TextEncoder().encode(value);

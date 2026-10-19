@@ -92,8 +92,8 @@ test('R1.2 application choice is stored only by trusted host; read/write errors 
 
 test('R1.2 source wiring covers both trusted webpage overlay and sandbox without a new SDK',async()=>{
   const [overlay,page,bridge,host,pkgBuilder,official] = await Promise.all([
-    readFile('src/reading-toc/view.js','utf8'),
-    readFile('src/reading-toc/page.js','utf8'),
+    readFile('examples/sidebar-tools/reading-toc/trusted/view.js','utf8'),
+    readFile('examples/sidebar-tools/reading-toc/trusted/page.js','utf8'),
     readFile('src/sidebar-tools/bridge.js','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('scripts/build-sidebar-tool.mjs','utf8'),
