@@ -48,8 +48,8 @@ async function click(target,selector){
  for(const type of ['mousePressed','mouseReleased'])await target.send('Input.dispatchMouseEvent',{type,...rect,button:'left',clickCount:1});
 }
 const fixture='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>页面测试：剪藏</title>'+
- '<nav>导航和广告不应剪藏</nav><article><h1>页面测试：剪藏</h1><h2>重复章节</h2><h2>重复章节</h2>'+
- '<p>中文测试内容，支持 <strong>粗体</strong> 与 <a href="/read">内部链接</a>。'+
+ '<style>.r22-clip-hidden{display:none}</style><nav>导航和广告不应剪藏</nav><article><h1>页面测试：剪藏</h1><h2>重复章节</h2><h2>重复章节</h2>'+
+ '<p>中文测试内容，支持 <strong>粗体</strong><span class="r22-clip-hidden">R22_CSS_HIDDEN_SECRET</span> 与 <a href="/read">内部链接</a>。'+
  '这是网页文章正文的完整测试。'.repeat(12)+'</p>'+
  '<pre><code class="language-js">const value = 42;</code></pre>'+
  '<table><tr><th>列一</th><th>列二</th></tr><tr><td>甲</td><td>乙</td></tr></table>'+
@@ -194,7 +194,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  },'trusted content script extracted actual fixture DOM');
  assert.match(extracted,/重复章节/);
  assert.match(extracted,/\| 列一 \| 列二 \|/);
- assert.doesNotMatch(extracted,/导航和广告不应剪藏/);
+ assert.doesNotMatch(extracted,/导航和广告不应剪藏|R22_CSS_HIDDEN_SECRET/);
  // Exercise actual Chrome DOM selection, quote and link through the installed trusted relay.
  const selected=await evalIn(article,"(()=>{const text=document.querySelector('article p').firstChild;"+
    "const range=document.createRange();range.setStart(text,0);range.setEnd(text,6);"+
@@ -208,6 +208,20 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
    return text?.includes('中文测试')?text:null;
  },'trusted selected DOM Markdown');
  assert.doesNotMatch(selectedMarkdown,/重复章节|const value/);
+ // A visible browser selection excludes CSS-hidden text. The selected DOM
+ // range still contains it, so Chrome must prove the trusted relay strips it.
+ const fullSelected=await evalIn(article,"(()=>{const r=document.createRange();r.selectNodeContents(document.querySelector('article p'));"+
+  "const s=getSelection();s.removeAllRanges();s.addRange(r);return s.toString()})()");
+ assert.doesNotMatch(fullSelected,/R22_CSS_HIDDEN_SECRET/);
+ await until(()=>evalIn(clip,'!document.querySelector("#clip-fetch").disabled'),'second selection request available');
+ await click(clip,'#clip-fetch');
+ const cleanSelected=await until(async()=>{
+  const text=await evalIn(clip,'document.querySelector("#clip-source").value');
+  return text?.includes('粗体')?text:null;
+ },'CSS-hidden selection exclusion');
+ assert.doesNotMatch(cleanSelected,/R22_CSS_HIDDEN_SECRET/);
+ assert.match(cleanSelected,/\*\*粗体\*\*/);
+
  await click(clip,'[data-clip-mode=quote]');
  await click(clip,'#clip-fetch');
  const quoted=await until(async()=>{
