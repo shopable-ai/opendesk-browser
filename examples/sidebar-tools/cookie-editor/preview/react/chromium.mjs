@@ -271,9 +271,9 @@ try{
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.locator('#cookie-editor-error[role="alert"]').waitFor();
   assert.match(await page.locator('#cookie-editor-error').innerText(),/写入结果未知/,'error message must appear in the active editor, not a hidden scenario option');
-  assert.equal(await page.locator('.delete-btn').isDisabled(),true);
+  assert.equal(await page.getByRole('button',{name:'删除 Cookie',exact:true}).isDisabled(),true);
   await page.getByRole('button',{name:'刷新 Cookie'}).click();
-  assert.equal(await page.locator('.delete-btn').isDisabled(),false);
+  assert.equal(await page.getByRole('button',{name:'删除 Cookie',exact:true}).isDisabled(),false);
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.getByRole('button',{name:'放弃',exact:true}).click();
  });
