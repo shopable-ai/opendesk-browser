@@ -154,10 +154,13 @@ export function configureDevelopment(wxt,server) {
       if(official){
         if(generation!==officialGeneration)return;
         const changes=[...officialChanges];officialChanges.clear();
-        if(changes.some(path=>/^examples\/sidebar-tools\/adblock\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path)))
-          await buildAdblockReact({log:false});
+        const adblockSourceChanged=changes.some(path=>
+          /^examples\/sidebar-tools\/adblock\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
+        if(adblockSourceChanged)await buildAdblockReact({log:false});
         const inputs=await officialToolInputs(wxt.config.root);
-        if(!catalogDirty&&!changes.some(path=>inputs.includes(path)))return;
+        // A JSX edit is intentionally absent from officialToolInputs(): only
+        // compiled dist bytes are declared. Still publish the new package.
+        if(!catalogDirty&&!adblockSourceChanged&&!changes.some(path=>inputs.includes(path)))return;
         const generated=await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
         copyErrors.delete(errorKey);
         if(catalogDirty){

@@ -43,7 +43,7 @@ npm run build
 ```bash
 npm run build
 node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario success --theme light --width 360 --height 760
-open artifacts/previews/adblock/success-light-360.html
+open artifacts/previews/adblock/side-panel-success-light-360.html
 ```
 
 预览输出文件名以构建脚本实际结果为准，也可以传 `--out artifacts/previews/adblock/review.html` 后直接打开它。预览加载的是 `dist/tool.js` 与 `dist/tool.css` 对应的**正式 React 组件**，另有预览专用 `scripts/preview/adblock-mock.js` 只模拟 SDK 回执；它不能证明网络广告真正被 Chrome DNR 阻断。

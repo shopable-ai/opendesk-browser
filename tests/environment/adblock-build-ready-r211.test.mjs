@@ -67,3 +67,11 @@ test('editable historical React/HTM and old in-src compiler outputs are retired'
     await assert.rejects(access(join(PROJECT,obsolete)),{code:'ENOENT'},obsolete);
   assert.match((await read('preview/index.html')).toString('utf8'),/非真实广告拦截/);
 });
+
+test('development watcher republishes compiled AdBlock on JSX-only changes',async()=>{
+  const source=await readFile(resolve('scripts/wxt-development.mjs'),'utf8');
+  assert.match(source,/const adblockSourceChanged=changes\.some/);
+  assert.match(source,/if\(adblockSourceChanged\)await buildAdblockReact/);
+  assert.match(source,/!catalogDirty&&!adblockSourceChanged&&!changes\.some/);
+  assert.match(source,/adblock\/dist/);
+});
