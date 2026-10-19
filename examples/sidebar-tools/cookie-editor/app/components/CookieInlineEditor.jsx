@@ -196,7 +196,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         className="cookie-editor-icon-action" onClick={()=>onDelete?.(row.id)}
         disabled={disabled}/>}
       <span className="cookie-spacer"/>
-      <Button type="button" disabled={disabled} onClick={requestClose}>取消</Button>
+      <CookieIconButton name="close" label="取消" disabled={disabled}
+          onClick={requestClose}/>
       <Button variant="primary" type="button" onClick={submit}
         className="cookie-editor-save" disabled={disabled||(edited&&!dirty)}>
         <CookieIcon name="check"/>保存
