@@ -449,7 +449,14 @@ try{
   // Do not rely on another test leaving Export open.
   await page.getByRole('button',{name:'导出 Cookie'}).click();
   await page.getByRole('button',{name:'关闭导出'}).waitFor();
-  for(const width of [320,360,380,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}@${zoom}`);}await page.evaluate('document.body.style.zoom=""');}
+  for(const width of [320,360,380,384,420,520]){await page.setViewportSize({width,height:850});assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,`overflow ${width}`);await page.screenshot({path:join(output,`${width}-export.png`),fullPage:true});for(const zoom of ['125%','150%','200%']){await page.evaluate(z=>document.body.style.zoom=z,zoom);const overflow=await page.evaluate(()=>{
+    const view=innerWidth;
+    const offenders=[...document.querySelectorAll('body *')].filter(el=>{
+      const box=el.getBoundingClientRect();
+      return box.width>0&&box.right>view+1;
+    }).slice(0,8).map(el=>({tag:el.tagName,className:typeof el.className==='string'?el.className:'',right:Math.round(el.getBoundingClientRect().right)}));
+    return {fits:document.documentElement.scrollWidth<=view,scrollWidth:document.documentElement.scrollWidth,view,offenders};
+  });assert.equal(overflow.fits,true,`overflow ${width}@${zoom}: ${JSON.stringify(overflow)}`);}await page.evaluate('document.body.style.zoom=""');}
   await page.getByRole('button',{name:'关闭导出'}).click();
   await page.setViewportSize({width:380,height:850});
   await page.screenshot({path:join(output,'380-list.png'),fullPage:true});

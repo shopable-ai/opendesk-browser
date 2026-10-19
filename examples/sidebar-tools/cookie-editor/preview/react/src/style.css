@@ -191,3 +191,26 @@
 .demo-lab[open] > summary::before{transform:rotate(90deg)}
 .demo-lab > summary:focus-visible{outline:2px solid #365eda;outline-offset:2px}
 .demo-lab .lab-controllers{padding-top:6px}
+
+/* R5.16: adapt to the *actual panel width*, including browser/CSS zoom.
+   Viewport media queries alone do not react to a scaled 160px usable panel. */
+.cookie-app,.demo-lab{container-type:inline-size;min-width:0}
+.demo-lab .lab-title span{min-width:0;overflow-wrap:anywhere}
+.demo-lab .lab-controllers label{min-width:0;max-width:100%;flex-wrap:wrap}
+.demo-lab .lab-controllers select{min-width:0;max-width:100%}
+@container (max-width:240px){
+  .cookie-app .export-actions{grid-template-columns:minmax(0,1fr)}
+  .cookie-app .export-actions>.text-btn{width:100%;white-space:normal;overflow-wrap:anywhere}
+  .export-format .field{flex-wrap:wrap}
+  .inline-editor .field,.inline-editor .advanced-body .field,
+  .editor-identity>div,.inline-editor .toggles-row{
+    grid-template-columns:minmax(0,1fr);gap:4px
+  }
+  .inline-editor .field>input,.inline-editor .field>select,
+  .inline-editor .field>.value-input,
+  .inline-editor .advanced-body .field>input,
+  .inline-editor .advanced-body .field>select{grid-column:1}
+  .inline-editor .value-controls,.editor-timezone,.editor-hint{margin-left:0;max-width:100%}
+  .cookie-app .row-flags{flex-wrap:wrap;justify-content:flex-end}
+  .demo-lab .lab-label{display:none}
+}
