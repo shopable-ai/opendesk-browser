@@ -11,7 +11,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'vite';
 
-const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nconst state={ui:null,accepted:'tasks',blocked:null,calls:[],trustedClicks:[]};\ndocument.addEventListener('click',event=>{\n  if(event.target.closest?.('[data-workbench-tab]'))state.trustedClicks.push(event.isTrusted);\n},true);\nstate.ui=mountExtensionList(document,{\n  debugEnabled:false,appShell:true,\n  onNavigate(tab){\n    state.calls.push(tab);\n    if(tab===state.blocked)return false;\n    state.accepted=tab;\n    state.ui.renderNavigation(tab);\n    return true;\n  }\n});\nconst get=id=>document.getElementById(id);\nstate.original={\n  task:get('workbench-tasks'),workflow:get('workbench-workflow'),\n  develop:get('workbench-develop'),cloudApproval:get('cloud-approval-section'),\n  cloudHosting:get('cloud-hosting'),taskParams:get('task-params-form'),\n  scriptSource:get('script-source'),workflowDraft:get('workflow-ai-request')\n};\nstate.ui.renderCloudOverview({summary:'连接 <script>不应执行</script>',connection:'未连接'});\nstate.ui.renderMyTaskCount('0 个任务');\nstate.ui.renderFeedback({showEmpty:true,emptyText:'暂无扩展',countText:'0 个扩展'});\nwindow.__r352=state;\ndocument.documentElement.dataset.r352Ready='true';\n";
+const fixtureJS="\nimport {mountExtensionList} from '/src/ui/react/main.tsx';\nimport {createDeveloperView} from '/src/ui/develop-view.js';\nimport {createMyWorkbenchView} from '/src/ui/my-workbench-view.js';\n\nconst state={ui:null,accepted:'tasks',blocked:null,calls:[],trustedClicks:[],\n  cloudActions:[],headerActions:[]};\nstate.developerView=createDeveloperView();\nstate.myView=createMyWorkbenchView();\ndocument.addEventListener('click',event=>{\n  if(event.target.closest?.('[data-workbench-tab]'))state.trustedClicks.push(event.isTrusted);\n},true);\nstate.ui=mountExtensionList(document,{\n  debugEnabled:false,appShell:true,developerView:state.developerView,myView:state.myView,\n  onNavigate(tab){\n    state.calls.push(tab);\n    if(tab===state.blocked)return false;\n    state.accepted=tab;\n    state.ui.renderNavigation(tab);\n    return true;\n  }\n});\n\n// The UI fixture supplies presentation models only. There is no Cloud Host,\n// installer, credential, scheduler or execution authority in this browser test.\nconst subscriptions=new Set();\nstate.workflowModel={controls:{'workflow-ai-request':{value:''}},phase:'idle',messages:[]};\nstate.workflowController={\n  subscribe(listener){subscriptions.add(listener);return ()=>subscriptions.delete(listener);},\n  getSnapshot(){return state.workflowModel;},\n  actions:{\n    input(id,value){\n      state.workflowModel={...state.workflowModel,controls:{\n        ...state.workflowModel.controls,[id]:{\n          ...(state.workflowModel.controls[id]||{}),value\n        }\n      }};\n      for(const listener of subscriptions)listener();\n    },\n    click(){}\n  }\n};\nstate.ui.connectWorkflowPage(state.workflowController);\nconst requestRows=[{key:'entry-0',index:0,title:'请求 <img src=x onerror=evil()>',\n  summary:'状态未知 · 未重新执行'}];\nconst requestModel={\n  rows:requestRows,pageText:'第 1 条 / 2 条',canPrev:false,canNext:true,detail:null,\n  onPrev(){state.cloudActions.push('prev');},\n  onNext(){\n    state.cloudActions.push('next');\n    state.publishCloud({requests:{...state.cloudPage.requests,\n      pageText:'第 2 条 / 2 条',canNext:false,canPrev:true,detail:null}});\n  },\n  onDetail(index){\n    state.cloudActions.push('detail:'+index);\n    state.publishCloud({requests:{...state.cloudPage.requests,detail:{\n      key:'entry-'+index,title:'详情 <script>alert(1)</script>',\n      state:'状态未知',facts:'未收到回执',reason:'不能自动重试',\n      runId:'尚无可核对的原始 Run',canOpenRun:false,\n      note:'仅状态，没有正文'\n    }}});\n  },\n  onClose(){\n    state.cloudActions.push('close');\n    state.publishCloud({requests:{...state.cloudPage.requests,detail:null}});\n  },\n  onOpenResult(){state.cloudActions.push('unexpected-open');}\n};\nstate.cloudPage={\n  overview:{summary:'连接 <script>不应执行</script>',connection:'未连接'},\n  authorization:{tasks:[],busy:false,canApprove:false,canStop:false},\n  pairing:{brief:'未配对',status:'尚未配对',busy:false},\n  clients:{rows:[],tasks:[],count:0,busy:false},\n  requests:requestModel,\n  setup:{visible:true,nextStep:'连接提供者'},\n  visibleApproval:false,\n  onRefresh(){state.headerActions.push('refresh');},\n  onOpenConsole(){state.headerActions.push('console');}\n};\nstate.publishCloud=(changes={})=>{\n  state.cloudPage={...state.cloudPage,...changes};\n  state.ui.renderCloudPage(state.cloudPage);\n};\nstate.publishCloud();\nstate.myView.setText('task-installed-count','0 个任务');\nstate.ui.renderFeedback({showEmpty:true,emptyText:'暂无扩展',countText:'0 个扩展'});\nconst get=id=>document.getElementById(id);\nstate.original={\n  task:get('workbench-tasks'),workflow:get('workbench-workflow'),\n  develop:get('workbench-develop'),cloudApproval:get('cloud-approval-section'),\n  cloudHosting:get('cloud-hosting'),taskParams:get('task-params-form'),\n  scriptSource:get('script-source'),workflowDraft:get('workflow-ai-request')\n};\nwindow.__r352=state;\ndocument.documentElement.dataset.r352Ready='true';\n";
 const originalHtml=await readFile('src/ui/tool.html','utf8');
 assert.doesNotMatch(originalHtml, /id="workbench-cloud"/,
   'Cloud is supplied by its React page, without a competing static template');
@@ -171,39 +171,19 @@ try{
   assert.match(await evaluate('document.getElementById("cloud-overview-state").textContent'),
     /<script>不应执行<\/script>/);
 
-  // R35.3: formal React Cloud request view. Physical CDP clicks must be
-  // trusted, cause exactly one Controller action and preserve disclosure focus.
-  await evaluate(`(()=>{const s=window.__r352;
-    s.cloudActions=[];
-    const model={
-      rows:[{key:'entry-0',index:0,title:'请求 <img src=x onerror=evil()>',
-        summary:'状态未知 · 未重新执行'}],
-      pageText:'第 1 条 / 2 条',canPrev:false,canNext:true,detail:null,
-      onPrev(){s.cloudActions.push('prev');},
-      onNext(){s.cloudActions.push('next');s.ui.renderCloudRequests({
-        ...model,pageText:'第 2 条 / 2 条',canNext:false,canPrev:true});},
-      onDetail(index){
-        s.cloudActions.push('detail:'+index);
-        s.ui.renderCloudRequests({...model,detail:{
-          key:'entry-'+index,title:'详情 <script>alert(1)</script>',
-          state:'状态未知',facts:'未收到回执',reason:'不能自动重试',
-          runId:'尚无可核对的原始 Run',canOpenRun:false,
-          note:'仅状态，没有正文'}});},
-      onClose(){s.cloudActions.push('close');s.ui.renderCloudRequests(model);},
-      onOpenResult(){s.cloudActions.push('unexpected-open');}
-    };
-    s.ui.renderCloudRequests(model);
-  })()`);
+  // Real CDP actions against the current complete React Cloud page.
+  // Each click reaches exactly one presentation callback; no Host exists here.
   await mouseClick('#tab-cloud');
-  await evaluate('(()=>{const s=window.__r352;s.cloudSetupClicks=0;'+
-    's.ui.renderCloudSetup({visible:true,nextStep:"连接提供者",'+
-    'onConfigure:()=>{s.cloudSetupClicks++;}});})()');
   assert.equal(await evaluate('document.getElementById("cloud-first-run").hidden'),false);
+  assert.equal(await evaluate('document.getElementById("cloud-open-console").disabled'),false);
+  assert.equal(await evaluate('document.getElementById("cloud-overview-refresh").disabled'),false);
+  await mouseClick('#cloud-overview-refresh');
+  await mouseClick('#cloud-open-console');
+  assert.deepEqual(await evaluate('window.__r352.headerActions'),['refresh','console']);
   await mouseClick('#cloud-configure');
-  assert.equal(await evaluate('window.__r352.cloudSetupClicks'),1,
-    'React setup button forwards exactly one trusted callback');
-  await evaluate('window.__r352.ui.renderCloudSetup({visible:false,'+
-    'nextStep:"已连接",onConfigure:()=>{}})');
+  await eventually('document.getElementById("cloud-hosting").open===true');
+  await eventually('document.activeElement.id==="cloud-url"');
+  await evaluate('window.__r352.publishCloud({setup:{visible:false,nextStep:"已连接"}})');
   assert.equal(await evaluate('document.getElementById("cloud-first-run").hidden'),true);
   assert.equal(await evaluate('document.querySelectorAll("#cloud-request-samples").length'),1);
   assert.equal(await evaluate('document.querySelector("#cloud-request-samples img")'),null);
@@ -253,12 +233,13 @@ try{
   assert.equal(await evaluate('window.__r352.trustedClicks.every(Boolean)'),true,
     'Native mouse clicks must be trusted');
 
-  // Paint many React snapshots, but preserve the same business nodes and drafts.
+  // Model-backed drafts survive tab switches and repeated React paints. Merely
+  // writing directly to the DOM would not exercise the controlled React owner.
   await evaluate('(()=>{const s=window.__r352;'+
-    's.original.scriptSource.value="async function main(){return 42;}";'+
-    's.original.workflowDraft.value="不可丢失的工作流草稿";'+
+    's.developerView.patch("script-source",{value:"async function main(){return 42;}"});'+
+    's.workflowController.actions.input("workflow-ai-request","不可丢失的工作流草稿");'+
     's.ui.renderCloudOverview({tasks:"3",requests:"1"});'+
-    's.ui.renderMyTaskDetail("身份：保留");'+
+    's.myView.project("taskDetail","身份：保留");'+
     's.ui.renderNavigation("cloud");s.ui.renderNavigation("develop");})()');
   const preserved=await evaluate('(()=>{const s=window.__r352;'+
     'return {source:s.original.scriptSource===document.getElementById("script-source"),'+
@@ -269,7 +250,7 @@ try{
     'approval:s.original.cloudApproval===document.getElementById("cloud-approval-section"),'+
     'task:s.original.task===document.getElementById("workbench-tasks")};})()');
   for(const key of ['source','workflow','cloud','approval','task'])
-    assert.equal(preserved[key],true,'Borrowed business DOM identity: '+key);
+    assert.equal(preserved[key],true,'React retained business DOM identity: '+key);
   assert.equal(preserved.sourceValue,'async function main(){return 42;}');
   assert.equal(preserved.workflowValue,'不可丢失的工作流草稿');
 
