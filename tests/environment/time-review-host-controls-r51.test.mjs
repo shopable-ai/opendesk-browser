@@ -104,7 +104,10 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
   assert.match(frameVisibility[1],/!\(frame\|\|nativeUI\)/);
   assert.match(frameVisibility[1],/\blegacyAdblock\b/,
     'legacy AdBlock suppression remains scoped without hiding trusted tools');
-  assert.match(shell,/display\.setAttribute\('data-trusted-tool-inline'/);
+  assert.match(shell,/setToolFieldAttribute\(view,\s*display,\s*'data-trusted-tool-inline'/);
+  const adapter=await readFile('src/ui/sidebar-tools-view.js','utf8');
+  assert.match(adapter,/if \(view\) return view\.patch\(field\.key, \{attributes:/);
+  assert.match(adapter,/else field\.setAttribute\(name, String\(value\)\)/);
   assert.match(shell,/api\.permissions\.contains\(\{permissions:\['idle'\]\}\)/);
   assert.match(shell,/api\.storage\.local\.get\(TIME_REVIEW_KEY\)/);
   assert.match(shell,/E_TIME_PERMISSION_SETUP/);
@@ -112,10 +115,12 @@ test('R1.5.1 Time Review consent preserves shared trusted inline card without re
   const css=await readFile('src/ui/tool-shell.css','utf8');
   assert.match(css,/#sidebar-tool-display\[data-trusted-tool-inline="true"\]/);
   assert.match(css,/#sidebar-tool-settings-view\{order:1/);
-  const html=await readFile('src/ui/tool.html','utf8');
-  assert.match(html,/id="time-review-site-current-approve"/);
-  assert.match(html,/id="time-review-site-all-approve"/);
-  assert.match(html,/id="time-review-grant-idle"/);
+  const react=await readFile('src/ui/react/tabs/tool-host.tsx','utf8');
+  assert.match(react,/const TrustedSettingsIsland = React\.memo/);
+  assert.match(react,/<TrustedSettingsIsland nodeRef=\{runtimeRefs\.trustedSettings\}/);
+  assert.match(react,/view\.attachRuntime\(\{\.\.\.nodes\.current\}\)/);
+  for(const id of ['time-review-site-current-approve','time-review-site-all-approve','time-review-grant-idle'])
+    assert.match(react,new RegExp('id="'+id+'"'));
 });
 
 test('R1.5.1 trusted inline authorization keeps DOM and visual tab order identical',async()=>{

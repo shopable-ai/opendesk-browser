@@ -191,14 +191,20 @@ test('R1.5 sandbox cannot grant website or all-sites permissions',async()=>{
   assert.match(source,/if\(\['time\.start','time\.clear','time\.minuteConsent','time\.siteGrant'\]\.includes\(operation\)&&event\?\.isTrusted!==true\)/);
 });
 
-test('R1.5 static trusted permission elements are part of the real tool host HTML',async()=>{
+test('R1.5 trusted permission elements are owned by the real React tool host',async()=>{
+  const react=await readFile('src/ui/react/tabs/tool-host.tsx','utf8');
   const html=await readFile('src/ui/tool.html','utf8');
+  assert.match(react,/const TrustedSettingsIsland = React\.memo/);
+  assert.match(react,/<TrustedSettingsIsland nodeRef=\{runtimeRefs\.trustedSettings\}/);
+  assert.match(react,/view\.attachRuntime\(\{\.\.\.nodes\.current\}\)/);
   for(const id of ['time-review-permission-settings','time-review-site-grants-list',
     'time-review-site-grants-status','time-review-site-confirm','time-review-site-all-confirm',
     'time-review-inline-clear-review','time-review-minute-delete-review',
     ...TIME_CONTROL_IDS]){
-    assert.match(html,new RegExp('id="'+id+'"'),'missing trusted control '+id);
+    assert.match(react,new RegExp('id="'+id+'"'),'missing trusted React control '+id);
   }
+  assert.doesNotMatch(html,/id="time-review-permission-settings"/,
+    'legacy HTML must not duplicate the React-owned trusted controls');
   const css=await readFile('src/ui/tool-shell.css','utf8');
   assert.match(css,/\.time-review-trusted-actions\[hidden\]\{display:none!important\}/);
 });

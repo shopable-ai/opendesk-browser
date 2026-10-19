@@ -24,8 +24,8 @@ import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../src/reading-toc/policy.js';
 import {TIME_CONTROL_IDS} from './time-review-host-controls-fixture.mjs';
 
-// The real Side Panel declares these once in ui/tool.html. Host fixtures must
-// model those fixed nodes rather than re-creating Time Review UI at runtime.
+// The real React ToolHost owns these audited nodes. Legacy controller fixtures
+// model the same controls without granting permissions or remounting the UI.
 const TRUSTED_STATIC_IDS=[
   ...TIME_CONTROL_IDS,
   'time-review-permission-settings','time-review-site-confirm','time-review-site-confirm-text',
@@ -216,8 +216,16 @@ class Node {
   replaceChildren(...items){for(const child of this.children)child.parent=null;this.children=[];this.append(...items);}
   append(...items){for(const item of items){item.parent=this;this.children.push(item);}}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);this.parent=null;}
-  setAttribute(name,value){this.attributes.set(name,value);}
-  removeAttribute(name){this.attributes.delete(name);}
+  setAttribute(name,value){
+    this.attributes.set(name,value);
+    if(name.startsWith('data-'))
+      this.dataset[name.slice(5).replace(/-([a-z])/g,(_,ch)=>ch.toUpperCase())]=String(value);
+  }
+  removeAttribute(name){
+    this.attributes.delete(name);
+    if(name.startsWith('data-'))
+      delete this.dataset[name.slice(5).replace(/-([a-z])/g,(_,ch)=>ch.toUpperCase())];
+  }
   focus(){this.focused=true;if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const pause=()=>new Promise(resolve=>setImmediate(resolve));
