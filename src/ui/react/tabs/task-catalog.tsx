@@ -17,6 +17,9 @@ export function TaskCatalogPage({view,hidden=false}){
           <MyControl view={view} as="button" id="task-catalog-refresh" type="button"
             className="od-button od-button--secondary"
             onClick={event=>view.actions.taskCatalogRefreshClick?.(event.nativeEvent)}>刷新目录</MyControl>
+          {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog-page'&&
+            <button type="button" id="catalog-open-dev-sidebar"
+              className="od-button od-button--secondary">打开 OpenDesk 侧栏</button>}
         </div>
       </header>
 
