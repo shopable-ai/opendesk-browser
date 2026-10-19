@@ -206,6 +206,9 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
   if(!toolId&&!previewId){
+    // This full-page catalog may open the real Side Panel with a trusted click.
+    // The React task catalog only renders the launcher on this surface.
+    document.documentElement.dataset.opendeskSurface='catalog-page';
     taskWorkbench.showCatalogPage();
     const status=document.getElementById('catalog-dev-sidebar-status');
     const openOriginalSidebar=(button,targetTab)=>{
