@@ -52,6 +52,7 @@ jobs:
             tests/environment/cookie-editor-react-domain.test.mjs \
             tests/environment/cookie-editor-react-controller.test.mjs \
             tests/environment/cookie-editor-react-source.test.mjs \
+            tests/environment/cookie-editor-import-intent.test.mjs \
             tests/environment/cookie-editor-react-design.test.mjs \
             tests/environment/browser-sdk-r8-cookies.test.mjs \
             tests/environment/browser-sdk-r9-installed-cookies.test.mjs \

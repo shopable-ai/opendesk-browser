@@ -7,13 +7,21 @@ const MAX_FILE=8*1024*1024;
 // Import is a focused modal, not a second editor or an inline list section.
 // Raw Cookie values live only in a DOM textarea / local async stack, never React state.
 // The Controller performs the existing permission, preflight and verified Host writes.
-export default function CookieImport({disabled=false,onClose,onImportText,onNotice,notice}){
+export default function CookieImport({disabled=false,onClose,onImportText,onBeginImport,onNotice,notice}){
   const dialogRef=React.useRef(null);
   const triggerRef=React.useRef(null);
   const fileRef=React.useRef(null);
   const sourceRef=React.useRef(null);
   const active=React.useRef(false);
   const running=React.useRef(false);
+  const intentRef=React.useRef(null);
+  const beginIntent=()=>{
+    let pending;
+    try{pending=Promise.resolve(onBeginImport?.());}
+    catch(error){pending=Promise.reject(error);}
+    // Native file-picker admission starts within the original user click.
+    intentRef.current=pending.then(value=>value===true,()=>false);
+  };
   const headingId=React.useId();
   const [busy,setBusy]=React.useState(false);
   const [uncertain,setUncertain]=React.useState(false);
@@ -43,6 +51,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
     }
     running.current=true;setBusy(true);
     try{
+      if(await intentRef.current!==true){
+        onNotice?.('本次导入未获得可信操作授权，请重新点击导入。','error');
+        return;
+      }
       const imported=await onImportText?.(text);
       if(imported==='unknown')setUncertain(true);
       if(imported===true){
@@ -90,7 +102,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
         disabled={disabled||busy||uncertain}
         onChange={event=>{void importFile(event.currentTarget.files?.[0]);}}/>
       <CookieImportDropzone dragging={dragging} disabled={disabled||busy||uncertain}
-        maxSize="8 MiB" onPick={()=>fileRef.current?.click()}
+        maxSize="8 MiB" onPick={()=>{beginIntent();fileRef.current?.click();}}
         onDragEnter={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragOver={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragLeave={event=>{
@@ -98,6 +110,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
         }}
         onDrop={event=>{
           event.preventDefault();setDragging(false);
+          beginIntent();
           void importFile(event.dataTransfer?.files?.[0]);
         }}/>
       <label className="cookie-import-paste" htmlFor="cookie-import-source">
@@ -112,7 +125,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onNoti
         <Button type="button" variant="secondary" disabled={busy}
           onClick={close}>取消</Button>
         <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
-          onClick={()=>void importText(sourceRef.current?.value||'')}>
+          onClick={()=>{beginIntent();void importText(sourceRef.current?.value||'');}}>
           {busy?'导入中…':'导入'}
         </Button>
       </div>

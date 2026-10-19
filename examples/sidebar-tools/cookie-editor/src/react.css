@@ -248,3 +248,14 @@
   .cookie-editor-react .cookie-import-body{padding:var(--space-2)}
   .cookie-editor-react .cookie-import-actions button{flex:1 1 0;min-width:0}
 }
+
+/* Export also lives in the top layer: format changes never reflow the list. */
+.cookie-editor-react .cookie-export-dialog{
+  box-sizing:border-box;width:min(430px,calc(100vw - 24px));
+  max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);
+  margin:auto;padding:0;overflow:auto;
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  color:var(--od-ink);background:var(--od-paper);
+}
+.cookie-editor-react .cookie-export-dialog::backdrop{background:rgba(15,23,42,.45)}
+.cookie-editor-react .cookie-export-dialog .cookie-panel{margin:0}

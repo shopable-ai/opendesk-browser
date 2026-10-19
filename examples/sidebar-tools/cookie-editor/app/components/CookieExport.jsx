@@ -4,7 +4,21 @@ import {CookieExportFormatRow,CookieExportActions} from './CookieEditorView.jsx'
 
 // Identical export choices to the approved React preview. Only the existing
 // Controller/SDK may read values or write clipboard/download bytes.
-export default function CookieExport({controller,disabled=false,onClose}){
+export default function CookieExport({controller,disabled=false,onClose,onDelivered}){
+  const dialogRef=React.useRef(null);
+  const previousFocus=React.useRef(null);
+  const titleId=React.useId();
+  const [message,setMessage]=React.useState('');
+  React.useLayoutEffect(()=>{
+    const dialog=dialogRef.current;
+    const previous=dialog.ownerDocument.activeElement;
+    previousFocus.current=previous&&previous!==dialog.ownerDocument.body?previous:null;
+    dialog.showModal();
+    return ()=>{
+      if(dialog.open)dialog.close();
+      if(previousFocus.current?.isConnected)previousFocus.current.focus();
+    };
+  },[]);
   const [format,setFormat]=React.useState('json');
   const [includeValues,setIncludeValues]=React.useState(true);
   const [working,setWorking]=React.useState(false);
@@ -17,7 +31,9 @@ export default function CookieExport({controller,disabled=false,onClose}){
     setWorking(true);
     try{
       // A false/unknown result must never become a success toast or automatic retry.
-      await controller.exportTo({format,metadata,method});
+      const success=await controller.exportTo({format,metadata,method});
+      if(success)onDelivered?.(method);
+      else setMessage(controller.snapshot().message||'导出失败，请检查授权或格式');
     }finally{setWorking(false);}
   };
   const choose=method=>{
@@ -26,10 +42,11 @@ export default function CookieExport({controller,disabled=false,onClose}){
     // Cookie Value and clipboard/download grants; React adds no second dialog.
     void deliver(method);
   };
-  return <section className="cookie-panel cookie-export-panel od-surface od-surface--padded"
-    aria-label="导出 Cookie">
+  return <dialog ref={dialogRef} className="cookie-export-dialog od-surface"
+    aria-labelledby={titleId} onCancel={event=>{event.preventDefault();if(!busy)onClose?.();}}>
+    <section className="cookie-panel cookie-export-panel od-surface--padded">
     <div className="cookie-panel-heading">
-      <h3>导出 Cookie</h3>
+      <h3 id={titleId}>导出 Cookie</h3>
       <Button type="button" className="od-button--quiet" disabled={busy}
         onClick={onClose} aria-label="关闭导出">关闭</Button>
     </div>
@@ -45,5 +62,7 @@ export default function CookieExport({controller,disabled=false,onClose}){
     </p>}
     <CookieExportActions disabled={busy||lossy} onCopy={()=>choose('copy')}
       onDownload={()=>choose('download')}/>
-  </section>;
+    {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
+  </section>
+  </dialog>;
 }

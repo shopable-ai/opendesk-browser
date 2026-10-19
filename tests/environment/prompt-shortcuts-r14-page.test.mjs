@@ -15,7 +15,7 @@ function mockElement(tag='div'){
   const handlers=new Map(),node={
     tagName:tag,children:[],attributes:{},dataset:{},style:{},hidden:false,isConnected:true,textContent:'',
     className:'',value:'',title:'',readOnly:false,disabled:false,
-    classList:{items:new Set(),toggle(name,enabled){
+    classList:{items:new Set(),contains(name){return this.items.has(name);},toggle(name,enabled){
       if(enabled)this.items.add(name);else this.items.delete(name);
     }},
     addEventListener(name,fn){const list=handlers.get(name)||[];list.push(fn);handlers.set(name,list);},
@@ -296,7 +296,7 @@ test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button
     assert.equal(f.rail().classList.items.has('narrow'),true);
     assert.equal(f.rail().classList.items.has('folded'),false);
     assert.equal(f.buttons().length,1);
-    assert.equal(f.rail().children.length,1,'no extra expand/collapse button');
+    assert.equal(f.rail().children.length,2,'OD plus one shortcut, no fold button');
     assert.deepEqual(f.buttons()[0].children.map(span=>span.textContent),['🧑‍💻','中']);
     f.buttons()[0].emit('mouseenter');
     const host=f.root.children.find(item=>item.attributes['data-opendesk-prompts']!==undefined);
@@ -321,7 +321,7 @@ test('R2.6 newly saved library entries appear on injected page via storage chang
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first,second],settings}});
     await settle();
     assert.equal(f.buttons().length,2,'storage change must update currently opened page');
-    assert.equal(f.rail().children.length,2,'no extra fold button or duplicated injection');
+    assert.equal(f.rail().children.length,3,'one OD plus two shortcuts, no duplicated injection');
     assert.equal(f.buttons()[1].getAttribute('aria-label'),'插入提示词：'+second.name);
     f.change(PROMPT_DATA_STORE,{library:{schema:1,items:[first],settings}});
     await settle();
@@ -381,7 +381,7 @@ test('R1.8 open tooltip follows rail scroll and window layout without rewriting 
     hostLeft=1100;hostTop=120;buttonTop=220;
     f.win.innerHeight=320;f.events.get('resize')();await settle();
     assert.equal(tip.style.top,'88px');
-    assert.equal(tip.style.left,'auto');assert.equal(tip.style.right,'55px');
+    assert.equal(tip.style.left,'auto');assert.equal(tip.style.right,'59px');
     assert.equal(tip.children[1],content,'layout retains the original tooltip content');
     assert.equal(content.textContent,f.row.body);
     f.main.getBoundingClientRect=()=>({left:260,top:80,width:540,height:640});
@@ -454,34 +454,39 @@ test('R1.8 current insertion failure copies the complete prompt without focusing
 
 function regionRect(left,top,width,height){return {left,top,width,height,right:left+width,bottom:top+height};}
 
-test('R1.8 full-width ChatGPT main trims expanded semantic navigation and restores collapsed region',async()=>{
+test('R2.15 content-left rail avoids live navigation and never flips to content-right',async()=>{
   const f=await readyPage();
   try{
     const aside=mockElement('aside'),nav=mockElement('nav');
-    let expanded=true;
+    let edge=260;
     f.main.getBoundingClientRect=()=>regionRect(0,0,1263,843);
-    aside.getBoundingClientRect=()=>regionRect(expanded?0:-260,0,260,843);
-    nav.getBoundingClientRect=()=>regionRect(expanded?0:-260,96,260,582);
-    f.main.querySelectorAll=selector=>{
-      assert.equal(selector,'aside, nav, [role="navigation"]');return [aside,nav];
-    };
+    aside.getBoundingClientRect=()=>regionRect(0,0,edge,843);
+    nav.getBoundingClientRect=()=>regionRect(0,96,edge,582);
+    f.main.querySelectorAll=()=>[aside,nav];
     f.win.innerWidth=1263;f.win.innerHeight=843;
     f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'272px','rail starts inside chat, beyond the real expanded sidebar');
-    assert.equal(f.host().style.top,'422px','only the horizontal region changes');
-    expanded=false;f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'12px','fully offscreen collapsed navigation reserves no space');
-    expanded=true;aside.hidden=true;nav.hidden=true;
+    assert.equal(f.host().style.left,'286px','52px B rail sits 12px LEFT of editor');
+    assert.equal(f.host().style.top,'422px');
+    assert.equal(f.rail().classList.contains('horizontal'),false);
+    assert(286>=edge,'rail is outside the real expanded sidebar');
+    edge=320;f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),true,
+      'too-wide navigation must force the ABOVE-composer fallback, not right placement');
+    assert.equal(f.host().style.left,'350px');
+    edge=0;f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),false);
+    assert.equal(f.host().style.left,'286px','collapsed navigation restores left rail');
+    aside.hidden=true;nav.hidden=true;edge=320;
     f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'12px','hidden semantic navigation reserves no space');
+    assert.equal(f.host().style.left,'286px','hidden navigation reserves no space');
     aside.hidden=false;nav.hidden=false;
-    f.win.getComputedStyle=()=>({visibility:'hidden'});
+    f.win.getComputedStyle=node=>({visibility:node===f.main?'visible':'hidden'});
     f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'12px','CSS-hidden navigation is ignored');
+    assert.equal(f.host().style.left,'286px','CSS-hidden navigation reserves no space');
   }finally{f.controller.dispose();}
 });
 
-test('R1.8 region ignores unrelated floating asides and preserves main already right of navigation',async()=>{
+test('R2.15 only tall left-edge navigation reserves gutter; main excludes navigation once',async()=>{
   const f=await readyPage();
   try{
     const candidates=[regionRect(300,0,180,843),regionRect(0,100,260,200),
@@ -491,18 +496,18 @@ test('R1.8 region ignores unrelated floating asides and preserves main already r
     f.main.getBoundingClientRect=()=>regionRect(0,0,1263,843);
     f.main.querySelectorAll=()=>candidates;
     f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'12px','floating, short, overly wide and vertically offscreen asides are ignored');
+    assert.equal(f.host().style.left,'286px','irrelevant floating asides ignored');
     f.main.getBoundingClientRect=()=>regionRect(260,0,1003,843);
     const nav=mockElement('nav');nav.getBoundingClientRect=()=>regionRect(0,96,260,582);
     f.main.querySelectorAll=()=>[nav];
     f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'272px','main already excludes navigation; do not offset it twice');
+    assert.equal(f.host().style.left,'286px','main already excludes navigation');
     const navigation=mockElement('div');navigation.setAttribute('role','navigation');
     navigation.getBoundingClientRect=()=>regionRect(0,96,180,582);
     f.main.getBoundingClientRect=()=>regionRect(0,0,1263,843);
     f.main.querySelectorAll=()=>[navigation];
     f.events.get('resize')();await settle();
-    assert.equal(f.host().style.left,'192px','role navigation uses its measured width');
+    assert.equal(f.host().style.left,'286px','role navigation does not shift content-aligned rail right');
   }finally{f.controller.dispose();}
 });
 
@@ -525,14 +530,16 @@ test('R1.8 follows the full-height conversation container after a sidebar transi
     composer.getBoundingClientRect=()=>regionRect(377,461,768,52);
     f.win.innerWidth=1263;f.win.innerHeight=899;
     await f.controller.refresh();await settle();
-    assert.equal(f.host().style.left,'272px');
+    assert.equal(f.host().style.left,'286px');
     assert.equal(f.host().style.top,'450px');
     assert(observed.has(content),'observe the actual conversation container');
     assert.equal(f.host().attributes['data-opendesk-prompts-anchor'],'conversation-region-r18');
-    edge=0;notify();await settle();
-    assert.equal(f.host().style.left,'12px','content resizing updates layout without window resize');
-    edge=260;f.docEvents.get('transitionend')();await settle();
-    assert.equal(f.host().style.left,'272px','transition completion remeasures final position');
+    edge=0;f.editor.getBoundingClientRect=()=>regionRect(90,480,540,100);
+    notify();await settle();
+    assert.equal(f.host().style.left,'26px','composer shift repositions the LEFT rail');
+    edge=260;f.editor.getBoundingClientRect=()=>regionRect(350,480,540,100);
+    f.docEvents.get('transitionend')();await settle();
+    assert.equal(f.host().style.left,'286px','transition completion remeasures editor and gutter');
   }finally{f.controller.dispose();}
   assert(disconnected,'dispose disconnects the layout observer');
   assert(!f.docEvents.has('transitionend'),'dispose removes the transition listener');
@@ -1039,7 +1046,7 @@ test('R2.8 history conversation navigation restores one dock on the new composer
     await settle();
     assert.equal(f.host(),oldHost,'reuse the original host/shadow, do not duplicate');
     assert.equal(f.host().hidden,false,'dock visible in new conversation');
-    assert.equal(f.host().style.left,'432px','re-anchor to the new conversation area');
+    assert.equal(f.host().style.left,'436px','re-anchor left of the new composer');
     assert.equal(f.buttons().length,1,'exactly one shortcut after navigation');
     assert.equal(f.siteEvents.size,1,'single storage listener');
     f.buttons()[0].emit('click',{isTrusted:true});await settle();
@@ -1077,9 +1084,10 @@ test('R2.8 composer temporarily absent and CSS-hidden old main cannot strand the
     f.doc.querySelectorAll=selector=>selector==='main'?[oldMain,newMain]:[];
     f.doc.querySelector=selector=>selector==='main'||selector==='main#main'?oldMain:null;
     f.win.getComputedStyle=node=>({display:'block',visibility:node===oldMain?'hidden':'visible',opacity:'1'});
+    f.editor.getBoundingClientRect=()=>regionRect(610,480,540,100);
     f.events.get('resize')();await settle();
     assert.equal(f.host().hidden,false);
-    assert.equal(f.host().style.left,'542px','ignore the CSS-hidden previous main');
+    assert.equal(f.host().style.left,'546px','ignore the CSS-hidden previous main');
     f.doc.querySelectorAll=()=>[];
     f.doc.querySelector=()=>null;
     f.mutationObservers[0].notify([{target:f.doc.body}]);await settle();
@@ -1088,7 +1096,7 @@ test('R2.8 composer temporarily absent and CSS-hidden old main cannot strand the
     f.doc.querySelector=selector=>selector==='main'||selector==='main#main'?newMain:null;
     f.mutationObservers[0].notify([{target:f.doc.body}]);await settle();
     assert.equal(f.host().hidden,false,'restore automatically without a reload');
-    assert.equal(f.host().style.left,'542px');
+    assert.equal(f.host().style.left,'546px');
   }finally{f.controller.dispose();}
 });
 
@@ -1140,5 +1148,69 @@ test('R2.8 long history scrolling keeps the shortcuts in the visible conversatio
     f.main.getBoundingClientRect=()=>regionRect(260,-2000,900,5000);
     f.events.get('scroll')();await settle();
     assert.equal(f.host().style.top,'384px','center the visible viewport, not a far-away document midpoint');
+  }finally{f.controller.dispose();}
+});
+
+test('R2.15 B rail keeps its OD entry with zero prompts, caps at four, respects theme',async()=>{
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const make=i=>model.draft({label:'提示'+i,body:'正文'+i},null,()=> 'prompt-r215-'+i);
+  const f=fixture({pkg,library:{schema:1,items:[],settings:{webButtons:true}}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await settle();
+    const rail=f.rail();
+    assert(rail,'empty ChatGPT library must preserve OD entry');
+    assert.equal(f.buttons().length,0);
+    assert.equal(rail.children.length,1);
+    assert.equal(rail.children[0].className,'brand');
+    assert.equal(rail.children[0].textContent,'OD');
+    assert.equal(rail.children[0].getAttribute('aria-label'),'打开 OpenDesk 侧边栏');
+    f.change(PROMPT_DATA_STORE,{library:{schema:1,
+      items:[1,2,3,4,5].map(make),settings:{webButtons:true}}});
+    await settle();
+    assert.equal(f.buttons().length,4,'only four independently clickable prompts');
+    assert.equal(f.rail().children.length,5,'one OD, never a duplicated brand');
+    f.doc.documentElement.setAttribute('data-theme','dark');
+    f.events.get('resize')();await settle();
+    const host=f.root.children.find(node=>node.attributes['data-opendesk-prompts']!==undefined);
+    assert.equal(host.classList.contains('dark'),true,'theme follows actual page root');
+    f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+    assert.equal(f.rail(),undefined,'explicit revocation removes OD and all prompts');
+  }finally{controller.dispose();}
+});
+
+test('R2.15 OD click uses one genuine gesture and never triggers draft insert',async()=>{
+  const f=await readyPage();
+  try{
+    const brand=f.rail().children[0];let invoked=0,captured;
+    f.api.runtime.sendMessage=message=>{invoked++;captured=message;return Promise.resolve({ok:true,data:{opened:true}});};
+    brand.emit('click',{isTrusted:false});await settle();
+    assert.equal(invoked,0,'synthetic page click is not eligible');
+    brand.emit('click',{isTrusted:true});
+    assert.equal(invoked,1,'dispatch occurs synchronously on trusted click');
+    assert.equal(captured.protocol,'opendesk.prompt-shortcuts.rail-open.v1');
+    assert.equal(captured.expectedUrl,f.win.location.href);
+    await settle();
+    assert.equal(f.calls.length,0,'opening the panel must not affect ChatGPT draft');
+    assert.equal(f.panel('feedback').hidden,true,'successful open requires no extra Toast');
+  }finally{f.controller.dispose();}
+});
+
+test('R2.15 390px fallback aligns above composer, never overlays the input',async()=>{
+  const f=await readyPage();
+  try{
+    f.win.innerWidth=390;f.win.innerHeight=844;
+    f.main.getBoundingClientRect=()=>regionRect(0,0,390,844);
+    f.editor.getBoundingClientRect=()=>regionRect(24,700,342,75);
+    f.events.get('resize')();await settle();
+    assert.equal(f.rail().classList.contains('horizontal'),true);
+    assert.equal(f.host().style.left,'24px');
+    assert.equal(f.host().style.top,'630px');
+    assert.equal(f.host().style.transform,'none');
+    assert.equal(f.host().hidden,false);
+    f.editor.getBoundingClientRect=()=>regionRect(24,42,342,75);
+    f.events.get('resize')();await settle();
+    assert.equal(f.host().hidden,true,'insufficient vertical space hides instead of obstructing editor');
   }finally{f.controller.dispose();}
 });
