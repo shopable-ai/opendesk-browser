@@ -111,7 +111,7 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
   advancedOpen,onAdvancedToggle,error=''}){
   return <details className="advanced cookie-editor-details od-disclosure"
     open={advancedOpen} onToggle={onAdvancedToggle}>
-    <summary>属性与高级设置</summary>
+    <summary>属性</summary>
     <div className="advanced-body">
       <div className="pair">
         <CookieFormField label="Domain">
@@ -125,26 +125,20 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
             readOnly={existing} disabled={disabled}/>
         </CookieFormField>
       </div>
-      <div className="toggles-row">
-        <span className="toggles-label">Host-only</span>
-        <div className="toggles"><label>
-          <input type="checkbox" checked={draft.hostOnly===true}
-            disabled={existing||disabled} onChange={e=>onChange('hostOnly',e.target.checked)}/>
-          {' '}{draft.hostOnly?'仅当前主机':'Domain Cookie'}
-        </label></div>
-      </div>
       <CookieFormField label="SameSite">
         <select className="od-field" aria-label="SameSite"
           value={draft.sameSite||'unspecified'} disabled={disabled}
           onChange={e=>onChange('sameSite',e.target.value)}>
-          <option value="unspecified">未指定</option>
+          <option value="unspecified">默认</option>
           <option value="lax">Lax</option><option value="strict">Strict</option>
           <option value="no_restriction">None</option>
         </select>
       </CookieFormField>
       <div className="toggles-row">
-        <span className="toggles-label">选项</span>
         <div className="toggles">
+          <label title="仅当前主机"><input type="checkbox"
+            checked={draft.hostOnly===true} disabled={existing||disabled}
+            onChange={e=>onChange('hostOnly',e.target.checked)}/> Host-only</label>
           <label><input type="checkbox" checked={draft.secure===true}
             disabled={disabled} onChange={e=>onChange('secure',e.target.checked)}/> Secure</label>
           <label><input type="checkbox" checked={draft.httpOnly===true}
@@ -153,28 +147,31 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
             disabled={disabled} onChange={e=>onChange('session',e.target.checked)}/> Session</label>
         </div>
       </div>
-      {!draft.session&&<CookieFormField label="过期时间">
+      {!draft.session&&<CookieFormField label="过期">
         <input className="od-field" aria-label="过期时间（本地时间）"
+          title="本地时间"
           aria-invalid={error.startsWith('请选择有效的未来')||undefined}
           type="datetime-local" step="1" value={draft.expiration||''}
           onChange={e=>onChange('expiration',e.target.value)} disabled={disabled}/>
       </CookieFormField>}
-      {!draft.session&&<p className="editor-timezone">设备本地时间；保存时转换为 Unix 秒，不按 UTC 直接解释输入。</p>}
-      <div className="editor-identity">
-        <div><span>Store ID</span><code>{draft.storeId??'当前 Store'}</code></div>
-        <div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'无（非分区）'}</code></div>
-      </div>
-      <p className="editor-hint">Domain、Path、Host-only、Store、Partition 为既有 Cookie 的只读身份；HttpOnly 无法由普通网页 JS 直接读取。</p>
+      {existing&&<details className="editor-identity">
+        <summary>存储信息</summary>
+        <div className="editor-identity-fields">
+          <div><span>Store ID</span><code>{draft.storeId??'默认'}</code></div>
+          <div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'—'}</code></div>
+        </div>
+      </details>}
     </div>
   </details>;
 }
 // Pure presentation shared by Preview and official React.
-export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,onRefresh}){
+export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh}){
   return <header className="site-bar">
     <span className="site-symbol"><CookieIcon name="globe"/></span>
     <div className="site-name"><span>当前网站</span><strong title={site}>{site}</strong></div>
     {loading&&<span className="site-status muted">读取中</span>}
     {readonly&&<span className="site-status limited">仅查看</span>}
+    {syncStale&&<span className="site-status limited" title="自动更新失败，可点击刷新">未同步</span>}
     <Action name="refresh" label="刷新 Cookie" onClick={onRefresh}
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
@@ -261,7 +258,7 @@ export function CookieRows({
   </section>;
 }
 export function CookieEditorView({
-  site,rows=[],selected=null,onSelect=()=>{},onRefresh,
+  site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,
@@ -283,7 +280,8 @@ export function CookieEditorView({
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
   return <main className="cookie-react-view" aria-label="Cookie Editor">
-    <CookieSiteBar site={site} readonly={readonly} busy={busy} onRefresh={onRefresh}/>
+    <CookieSiteBar site={site} readonly={readonly} busy={busy}
+      syncStale={syncStale} onRefresh={onRefresh}/>
     <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       busy={busy} readonly={readonly}/>
