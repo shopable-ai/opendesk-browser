@@ -4,7 +4,7 @@ import {randomUUID,randomBytes,createHash,timingSafeEqual} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename,open,unlink} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {WebSocketServer} from 'ws';
-import {validateTaskParams} from '../../src/platform/tasks/contract.js';
+import {validateTaskParams,verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 import {registeredPackage,registeredTask,taskRegistryKey,taskPin,validateCloudTarget} from './task-registry.mjs';
 import {canonical} from '../../src/platform/protocol.js';
 const builtinTask=await registeredPackage(JSON.parse(await readFile(new URL('../../examples/tasks/form-fill.v1.opendesk-task.json',import.meta.url),'utf8')));
@@ -46,6 +46,9 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   // Legacy assigned work remains pinned to its original Executor. Unowned queued
   // R1-R5 jobs stay quarantined: an identical Task never grants ownership.
   state.executors??={};state.jobs??={};state.requests??={};state.clients??={};
+  state.programDeliveries??={};
+  if(!state.programDeliveries||typeof state.programDeliveries!=='object'||Array.isArray(state.programDeliveries))fail('E_DELIVERY');
+  for(const row of Object.values(state.programDeliveries))if(row?.package)await verifyTaskPackage(row.package);
   for(const row of Object.values(state.executors)){row.pairingId??=randomUUID();row.pairingGeneration??=1;if(!Object.hasOwn(row,'legacyPairingId'))row.legacyPairingId=row.pairingId;if(!Object.hasOwn(row,'legacyPairingGeneration'))row.legacyPairingGeneration=row.pairingGeneration;}
   state.taskRegistry??={};
   if(!state.taskRegistry||typeof state.taskRegistry!=='object'||Array.isArray(state.taskRegistry))fail('E_REGISTRY');
@@ -65,6 +68,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
   // State snapshots and fsync are only required for real mutations. Pure
   // observations remain serialized with writes but never touch the .tmp file.
   const readonlyRoutes=new Set(['/v1/job-status','/v1/reconcile','/v1/cancellation','/v1/client-list',
+    '/v1/program-inbox','/v1/program-fetch',
     '/admin/state','/admin/tasks','/admin/executors','/admin/clients']);
   const serial=(fn,readOnly=false)=>{const next=tail.then(async()=>{
     const before=readOnly?null:structuredClone(state);
@@ -104,8 +108,10 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
     try{
       if(req.method!=='POST')fail('E_METHOD');
       if(req.headers.origin&&!req.headers.origin.startsWith('chrome-extension://'))fail('E_ORIGIN');
-      let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>65536)fail('E_LIMIT');}const b=JSON.parse(text||'{}');
       const path=new URL(req.url,'http://127.0.0.1').pathname;
+      // Remote source is accepted only by the authenticated local admin route.
+      const requestLimit=path==='/admin/program-deliver'?110000:65536;
+      let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>requestLimit)fail('E_LIMIT');}const b=JSON.parse(text||'{}');
       const admin=path.startsWith('/admin/');
       let executorId,client;
       const readOnly=readonlyRoutes.has(path);
@@ -240,6 +246,57 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               else fail('E_RESULT_SCOPE');
               j.receipt={receiptId:randomUUID(),receivedAt:clock(),digest:hash(b),result:b.result};j.state='received';return {receiptId:j.receipt.receiptId,digest:j.receipt.digest};});break;}
           case '/v1/reconcile':exact(b,[]);out={...pairing(executorId),assignments:Object.values(state.jobs).filter(j=>j.assignment?.executorId===executorId&&activePairing(identity(j))).map(j=>{owned({assignmentId:j.assignment.assignmentId},executorId);return {...identity(j),runRef:j.runRef??null,permit:j.permit?currentPermit(j):null,cancelled:!!j.cancelled,leaseUntil:j.assignment.leaseUntil,receipt:j.receipt?{receiptId:j.receipt.receiptId,digest:j.receipt.digest}:null};})};break;
+          case '/admin/program-deliver':{
+            // Durable, immutable delivery is NOT a Run or installation.
+            exact(b,['requestKey','targetExecutorId','package']);
+            if(typeof b.requestKey!=='string'||!b.requestKey||b.requestKey.length>150)fail('E_SCHEMA');
+            const pkg=await verifyTaskPackage(b.package);
+            const owner=state.executors[b.targetExecutorId];
+            if(!owner||owner.revokedAt||owner.revocation)fail('E_EXECUTOR_TARGET');
+            const pin=registeredTask(pkg.manifest,pkg.manifestHash);
+            const key=taskRegistryKey(pin),old=state.taskRegistry[key];
+            if(old&&canonical(old)!==canonical(pin))fail('E_TASK_CONFLICT');
+            const pair=pairing(b.targetExecutorId);
+            out=once('program-deliver:'+b.targetExecutorId+':'+pair.pairingId,
+              b.requestKey,{pin:taskPin(pin),sourceHash:pin.sourceHash},()=>{
+                const pending=Object.values(state.programDeliveries).filter(row=>
+                  row.targetExecutorId===b.targetExecutorId&&
+                  row.pairingId===pair.pairingId&&!row.receivedAt);
+                if(pending.length>=16)fail('E_DELIVERY_LIMIT');
+                const deliveryId=randomUUID();
+                state.programDeliveries[deliveryId]={deliveryId,targetExecutorId:b.targetExecutorId,
+                  pairingId:pair.pairingId,pairingGeneration:pair.pairingGeneration,
+                  package:pkg,task:taskPin(pin),title:pkg.manifest.title,
+                  siteOrigins:pkg.manifest.siteOrigins,createdAt:clock(),receivedAt:null};
+                state.taskRegistry[key]=pin;
+                return {deliveryId,task:taskPin(pin)};
+              });break;}
+          case '/v1/program-inbox':{
+            exact(b,[]);
+            const pair=pairing(executorId);
+            out={programs:Object.values(state.programDeliveries).filter(row=>
+              row.targetExecutorId===executorId&&row.pairingId===pair.pairingId&&
+              row.pairingGeneration===pair.pairingGeneration&&!row.receivedAt&&row.package)
+              .map(({deliveryId,task,title,siteOrigins,createdAt})=>
+                ({deliveryId,...task,title,siteOrigins,createdAt}))};
+            break;}
+          case '/v1/program-fetch':{
+            exact(b,['deliveryId']);
+            const pair=pairing(executorId),row=state.programDeliveries[b.deliveryId];
+            if(!row||row.targetExecutorId!==executorId||row.pairingId!==pair.pairingId||
+              row.pairingGeneration!==pair.pairingGeneration||row.receivedAt||!row.package)
+              fail('E_DELIVERY');
+            out={deliveryId:row.deliveryId,package:structuredClone(row.package)};
+            break;}
+          case '/v1/program-received':{
+            exact(b,['deliveryId','manifestHash']);
+            const pair=pairing(executorId),row=state.programDeliveries[b.deliveryId];
+            if(!row||row.targetExecutorId!==executorId||row.pairingId!==pair.pairingId||
+              row.pairingGeneration!==pair.pairingGeneration||row.task.manifestHash!==b.manifestHash)
+              fail('E_DELIVERY');
+            if(!row.receivedAt){row.receivedAt=clock()||1;delete row.package;}
+            out={received:true,deliveryId:row.deliveryId};
+            break;}
           case '/admin/register':{
             // Only a local administrator can register a verified fixed manifest.
             // The route deliberately rejects sourceUtf8, JS, shell and CDP input.
