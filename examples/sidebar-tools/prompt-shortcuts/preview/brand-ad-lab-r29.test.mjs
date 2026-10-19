@@ -48,7 +48,7 @@ test('dismiss, restore, prompt-first states and zero-sold user guards',()=>{
  assert.match(base,/hadDraftFocus/);
  assert.match(base,/setSelectionRange/);
  assert.match(base,/formMode:'new'/);
- assert.match(base,/state\.formMode='edit'/);
+ assert.match(base,/prepareForm\('edit'\)/);
  assert.match(base,/prompts<i\+2/);
  assert.match(oldCss,/#railSponsor\[hidden\]/);
  assert.match(base,/window\.OpenDeskR28=/);
