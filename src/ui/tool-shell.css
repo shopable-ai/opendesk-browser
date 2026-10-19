@@ -1499,3 +1499,16 @@
 .schedule-panel #schedule-host-status{margin:0}
 .schedule-panel .schedule-form-section,.schedule-panel .schedule-rule-field{min-width:0}
 .schedule-panel #schedule-form input,.schedule-panel #schedule-form select,.schedule-panel #schedule-form textarea{max-width:100%}
+
+/* Cloud R1.6: remote code is a bounded read-only review surface. */
+.cloud-program-list .cloud-program-item{display:flex;flex-direction:column;align-items:stretch;gap:var(--space-2)}
+.cloud-program-summary{display:grid;gap:4px;min-width:0;width:100%;overflow-wrap:anywhere}
+.cloud-program-summary strong{font-size:12px}
+.cloud-program-summary span{font-size:10px;color:var(--od-sub);text-align:left!important}
+.cloud-program-actions{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.cloud-program-review{width:100%;min-width:0;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--od-radius-md,10px)}
+.cloud-program-review p{margin:0 0 var(--space-2);overflow-wrap:anywhere}
+.cloud-program-review pre{max-height:min(45vh,420px);max-width:100%;overflow:auto;white-space:pre;overflow-wrap:normal;font-size:11px;line-height:1.6;tab-size:2}
+.cloud-program-review .cloud-program-source{min-width:0}
+.cloud-program-review .cloud-program-source>strong{display:block;margin:var(--space-2) 0}
+.cloud-program-review .cloud-program-hash{font-size:10px;color:var(--od-sub);word-break:break-all}

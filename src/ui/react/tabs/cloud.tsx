@@ -91,31 +91,76 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
 }
 
 
-// Program source never renders in markup. Only a trusted click asks the
-// existing Cloud Host to fetch and import a hash-pinned Candidate.
+// Program source never renders before a trusted review click. Reviewed JS
+// is shown only as inert, escaped React text, never injected into HTML/eval.
 export function CloudProgramInbox({model={}}){
-  const rows=Array.isArray(model.rows)?model.rows:[];
+  const rows=Array.isArray(model.rows)?model.rows:[],
+    review=model.review||null;
+  const trusted=(event,fn,id)=>{
+    if(event.nativeEvent?.isTrusted===true&&typeof fn==='function')fn(id);
+  };
   return <section className="cloud-programs od-surface" aria-label="云端交付的待审核程序">
     <div className="cloud-section-title od-toolbar">
       <strong>待审核程序</strong>
       <button type="button" className="od-button od-button--secondary"
         disabled={!model.canRefresh}
-        onClick={event=>{if(event.nativeEvent?.isTrusted===true)model.onRefresh?.();}}>
+        onClick={event=>trusted(event,model.onRefresh)}>
         刷新
       </button>
     </div>
     <p role="status" className="hint">{model.status||'云端交付的源码不会自动执行或安装。'}</p>
-    {rows.length>0&&<ul className="cloud-request-samples">
-      {rows.map(row=><li key={row.deliveryId}>
-        <strong>{row.title||row.taskId}</strong>
-        <span>{row.taskId} · {row.version} · {row.siteOrigins?.[0]||''}</span>
-        <span>SHA-256 {row.sourceHash}</span>
-        <button type="button" className="od-button od-button--secondary"
-          disabled={Boolean(model.busy)}
-          onClick={event=>{if(event.nativeEvent?.isTrusted===true)model.onImport?.(row.deliveryId);}}>
-          接收为待验证任务
-        </button>
-      </li>)}
+    {rows.length>0&&<ul className="cloud-request-samples cloud-program-list">
+      {rows.map(row=>{
+        const current=review?.deliveryId===row.deliveryId;
+        return <li key={row.deliveryId} className="cloud-program-item">
+          <div className="cloud-program-summary">
+            <strong>{row.title||row.taskId}</strong>
+            <span>{row.taskId} · v{row.version} · {row.siteOrigins?.join('、')||''}</span>
+            <span>SHA-256 {row.sourceHash}</span>
+          </div>
+          <div className="cloud-program-actions">
+            <button type="button" className="od-button od-button--secondary"
+              disabled={Boolean(model.busy)}
+              onClick={event=>trusted(event,model.onReview,row.deliveryId)}>
+              {current?'重新核对源码':'查看源码与权限'}
+            </button>
+            <button type="button" className="od-button"
+              disabled={Boolean(model.busy)||!current}
+              onClick={event=>trusted(event,model.onImport,row.deliveryId)}>
+              接收为待验证任务
+            </button>
+          </div>
+          {current&&<section className="cloud-program-review" aria-label="已校验的远程程序源码">
+            <p><strong>程序说明：</strong>{review.description||'未提供'} </p>
+            <p><strong>来源：</strong>{review.sourceOrigin} · {review.author}</p>
+            <p><strong>网站：</strong>{review.siteOrigins?.join('、')}</p>
+            <p><strong>权限：</strong>{review.permissions?.join('、')}</p>
+            <p className="cloud-program-hash">程序 SHA-256 {review.sourceHash}</p>
+            <p className="cloud-program-hash">清单 SHA-256 {review.manifestHash}</p>
+            <details className="od-disclosure od-disclosure--flat">
+              <summary>查看参数约束</summary>
+              <pre>{review.paramsSchema}</pre>
+            </details>
+            <div className="cloud-program-source">
+              <strong>完整 JS 源码（只读）</strong>
+              <pre><code>{review.source}</code></pre>
+            </div>
+            {review.previousVersion
+              ?<details className="od-disclosure od-disclosure--flat">
+                <summary>与已安装 v{review.previousVersion} 的差异</summary>
+                {review.difference?<><p className="hint">差异区间：新增 {review.difference.added} 行、删除 {review.difference.removed} 行；共同首尾已折叠。</p>
+                  <pre>{review.difference.excerpt}</pre>
+                  <details className="od-disclosure od-disclosure--flat">
+                    <summary>查看已安装版本完整源码</summary>
+                    <pre>{review.previousSource}</pre>
+                  </details>
+                </>:<p className="hint">已安装版本源码暂不可读取；请在任务目录核对后再替换。</p>}
+              </details>
+              :<p className="hint">本机尚无此 Task 的已安装版本。</p>}
+            <p className="hint">接收只保存候选；首次执行、验证和安装仍需在本机明确操作，不会自动授权云控。</p>
+          </section>}
+        </li>;
+      })}
     </ul>}
   </section>;
 }

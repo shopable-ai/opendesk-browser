@@ -1,5 +1,7 @@
 // Hosting shares the visible document's existing RunHost and Authority slot.
 import {projectCloudStatus,cloudHostingSummary,projectCloudRequestSamples,cloudSlotStateLabel} from './cloud-status-presentation.js';
+import {verifyTaskPackage} from '../platform/tasks/contract.js';
+import {matchesCloudProgramDescriptor,summarizeCloudSourceDifference} from './cloud-program-review.js';
 // Advisory projection only: the Browser Host uses the original Task resolver
 // again before granting authority, binding a Run, or admitting a Worker.
 export function projectCloudInstalledTasks(data,approved=[]){
@@ -46,11 +48,11 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let clientPins='',clientTaskId='',clientName='',clientResult=false,oneTimeToken='';
   let pairing={url:'',providerId:'',pairingCode:'',loopback:false};
   let overview={summary:'正在检查连接与授权…',connection:'检测中'},brief='未配对',statusText='尚未配对';
-  let statusFailed=false,programRows=[],programStatus='点击刷新，检查服务器交付的待审核程序。';
+  let statusFailed=false,programRows=[],reviewedProgram=null,programStatus='点击刷新，检查服务器交付的待审核程序。';
   const selectedTasks=()=>taskChoices.filter(t=>t.eligible&&selections.get(cloudChoiceKey(t))?.selected);
   const activeTasks=()=>state?.enabled&&Array.isArray(state.tasks)?state.tasks:[];
   const resetConsent=()=>{consent=false;resultConsent=false;};
-  const clearSecrets=()=>{secretEpoch++;oneTimeToken='';pairing.pairingCode='';publish();};
+  const clearSecrets=()=>{secretEpoch++;oneTimeToken='';pairing.pairingCode='';reviewedProgram=null;publish();};
   function originalRun(){
     const row=selectedRequest===null?null:requestRaw[selectedRequest-requestOffset];
     return typeof row?.runId==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.runId)?row.runId:null;
@@ -61,10 +63,24 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const pending=['pending','unknown'].includes(projected?.revocation);
     const sample=selectedRequest===null?null:requestRows[selectedRequest-requestOffset];
     const runId=originalRun();
+    const review=reviewedProgram&&programRows.some(row=>matchesCloudProgramDescriptor(
+      row,reviewedProgram.deliveryId,reviewedProgram.package))?reviewedProgram:null;
     reactUI.renderCloudPage({
       overview,visibleApproval:!!state?.provider,
       programs:{rows:programRows,busy,canRefresh:!!state?.provider&&!busy,
         status:programStatus,onRefresh:()=>action(refreshPrograms),
+        review:review?{deliveryId:review.deliveryId,
+          source:review.package.sourceUtf8,description:review.package.manifest.description,
+          author:review.package.manifest.author,sourceOrigin:review.package.manifest.source,
+          permissions:review.package.manifest.permissions,
+          siteOrigins:review.package.manifest.siteOrigins,
+          paramsSchema:JSON.stringify(review.package.manifest.paramsSchema,null,2),
+          sourceHash:review.package.manifest.program.sourceHash,
+          manifestHash:review.package.manifestHash,
+          previousVersion:review.previousVersion,
+          previousSource:review.previousSource,
+          difference:review.difference}:null,
+        onReview:deliveryId=>action(()=>reviewProgram(deliveryId)),
         onImport:deliveryId=>action(()=>acceptProgram(deliveryId))},
       setup:{visible:!state?.provider,nextStep:'先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。'},
       onRefresh:()=>action(()=>{},true),onOpenConsole:()=>action(()=>api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')})),
@@ -125,6 +141,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   const cloudErrorText=e=>{let code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
     const help={E_DELIVERY:'交付程序身份或源码校验失败，请刷新后核对',
+      E_DELIVERY_REVIEW_REQUIRED:'请先查看并核对完整源码，再接收待验证任务',
+      E_HASH:'远程源码哈希验证失败；程序未导入',
       E_DELIVERY_LIMIT:'服务器待审核程序数量已达上限',
       E_AUTH:'提供者拒绝凭据，请核对配对状态',
       E_PAIRING:'连接尚未完成配对，或需要先解除已有配对',
@@ -198,7 +216,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       const stamp=JSON.stringify(activeTasks());
       if(stamp!==clientPins){clientPins=stamp;clearSecrets();clientResult=false;
         if(!activeTasks().some(t=>t.taskId===clientTaskId))clientTaskId=activeTasks()[0]?.taskId||'';}
-      if(!s.provider){clearSecrets();programRows=[];programStatus='请先连接服务器，再检查待审核程序。';clientRows=[];clientNextOffset=null;clientCount='按需管理';}
+      if(!s.provider){clearSecrets();programRows=[];reviewedProgram=null;programStatus='请先连接服务器，再检查待审核程序。';clientRows=[];clientNextOffset=null;clientCount='按需管理';}
       lastRefresh=Date.now();publish();return s;
     })().finally(()=>{refreshing=null;});
     return refreshing;
@@ -231,25 +249,68 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const result=await cloud.cloudProgramInbox({});
     if(disposed)return;
     programRows=result.programs;
-    programStatus=programRows.length?'待审核程序 '+programRows.length+' 项；接收仅导入候选，不会执行。':'暂无新交付的程序。';
+    if(reviewedProgram&&!programRows.some(row=>matchesCloudProgramDescriptor(
+      row,reviewedProgram.deliveryId,reviewedProgram.package)))reviewedProgram=null;
+    programStatus=programRows.length?'待审核程序 '+programRows.length+' 项；只有明确查看源码后才能导入候选。':'暂无新交付的程序。';
+  }
+  async function reviewProgram(deliveryId){
+    const row=programRows.find(item=>item.deliveryId===deliveryId);
+    if(!row||typeof cloud.cloudProgramFetch!=='function')throw {code:'E_DELIVERY'};
+    // Remote bytes are requested ONLY following the user's trusted review
+    // click, verified by Cloud Service and again in this receiving document.
+    const answer=await cloud.cloudProgramFetch({deliveryId});
+    if(disposed||answer?.deliveryId!==deliveryId)throw {code:'E_DELIVERY'};
+    const pkg=await verifyTaskPackage(answer.package);
+    if(!matchesCloudProgramDescriptor(row,deliveryId,pkg))throw {code:'E_DELIVERY'};
+    let previousVersion=null,previousSource=null;
+    if(typeof client.request==='function'){
+      try{
+        const catalog=await client.request('listTaskCatalog',{});
+        const installed=catalog?.installed?.find(item=>item.taskId===row.taskId);
+        if(installed){
+          previousVersion=installed.version;
+          try{
+            const prior=await client.request('getTaskCandidate',{
+              taskId:installed.taskId,version:installed.version});
+            if(prior?.manifestHash===installed.manifestHash&&
+              prior.package?.manifestHash===installed.manifestHash){
+              const verified=await verifyTaskPackage(prior.package);
+              previousSource=verified.sourceUtf8;
+            }
+          }catch{/* An unavailable old candidate cannot authorize or hide the new source. */}
+        }
+      }catch{/* The installed catalog is advisory; source review still requires exact pins. */}
+    }
+    if(disposed||!programRows.some(item=>matchesCloudProgramDescriptor(item,deliveryId,pkg)))
+      throw {code:'E_DELIVERY'};
+    reviewedProgram={deliveryId,package:pkg,previousVersion,previousSource,
+      difference:summarizeCloudSourceDifference(previousSource,pkg.sourceUtf8)};
+    programStatus='源码已读取并校验固定版本。核对后可接收为待验证任务；此操作不会执行或安装。';
   }
   async function acceptProgram(deliveryId){
-    const row=programRows.find(item=>item.deliveryId===deliveryId);
-    if(!row||typeof cloud.cloudProgramFetch!=='function'||typeof client.request!=='function')
+    const row=programRows.find(item=>item.deliveryId===deliveryId),
+      reviewed=reviewedProgram;
+    if(!row||!reviewed||reviewed.deliveryId!==deliveryId||
+      !matchesCloudProgramDescriptor(row,deliveryId,reviewed.package))
+      throw {code:'E_DELIVERY_REVIEW_REQUIRED'};
+    if(typeof cloud.cloudProgramFetch!=='function'||typeof client.request!=='function')
       throw {code:'E_DELIVERY'};
+    // Refetch under the current Provider pairing and compare with the bytes
+    // actually reviewed. A changed source must return to the review step.
     const answer=await cloud.cloudProgramFetch({deliveryId});
-    if(disposed||answer?.deliveryId!==deliveryId||
-      answer.package?.manifestHash!==row.manifestHash||
-      answer.package?.manifest?.program?.sourceHash!==row.sourceHash)
-      throw {code:'E_DELIVERY'};
-    // Existing Task installer verifies every byte and stages only a Candidate.
-    // No Controller Run, permission grant or installation follows this call.
-    await client.request('importTaskPackage',{package:answer.package});
+    if(disposed||answer?.deliveryId!==deliveryId)throw {code:'E_DELIVERY'};
+    const pkg=await verifyTaskPackage(answer.package);
+    if(!matchesCloudProgramDescriptor(row,deliveryId,pkg)||
+      pkg.sourceUtf8!==reviewed.package.sourceUtf8)
+      throw {code:'E_DELIVERY_REVIEW_REQUIRED'};
+    // The preexisting installer independently checks every byte. Candidate
+    // import grants no Controller Run, site permission or Cloud approval.
+    await client.request('importTaskPackage',{package:pkg});
+    reviewedProgram=null;
     programRows=programRows.filter(item=>item.deliveryId!==deliveryId);
-    programStatus='已导入待验证任务 '+row.title+'；前往「我的」试运行、验证并决定是否安装。';
+    programStatus='已导入待验证任务 '+row.title+'；请到「我的」使用原有试运行、验证与安装流程。';
     catalogAt=0;
-    // If acknowledgement fails, local Candidate remains. A later refresh may
-    // re-offer the immutable bytes; neither path grants execution.
+    // An ACK timeout may leave the immutable Candidate, never an auto-run.
     try{await cloud.cloudProgramReceived({deliveryId,manifestHash:row.manifestHash});}
     catch{programStatus+=' 提供者回执待核对；任务未自动执行。';}
   }
@@ -313,5 +374,5 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     }}catch(error){if(!disposed)fail(error);}finally{if(!disposed)timer=setTimeout(poll,2000);}
   }
   publish();void poll();
-  return {refresh,dispose(){if(disposed)return;clearSecrets();publish();disposed=true;epoch++;clearTimeout(timer);}};
+  return {refresh,dispose(){if(disposed)return;clearSecrets();publish();disposed=true;reviewedProgram=null;programRows=[];epoch++;clearTimeout(timer);}};
 }

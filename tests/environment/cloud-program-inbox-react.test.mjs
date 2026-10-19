@@ -39,7 +39,7 @@ async function make(t,{mutate=packageValue=>packageValue,ackFailure=false}={}){
   await flush();await flush();
   return {calls,model:()=>snapshot};
 }
-test('Provider sends a source descriptor, and only a trusted user action imports a Candidate',async t=>{
+test('Provider descriptor remains source-free until a trusted review, then imports only the reviewed version',async t=>{
   const f=await make(t);
   assert.equal(f.model().programs.rows.length,0);
   assert.equal(f.calls.filter(c=>c[0]==='inbox'||c[0]==='fetch').length,0,
@@ -47,28 +47,51 @@ test('Provider sends a source descriptor, and only a trusted user action imports
   await f.model().programs.onRefresh();
   assert.equal(f.model().programs.rows.length,1);
   assert.equal(JSON.stringify(f.model().programs.rows).includes(pkg.sourceUtf8),false);
+  assert.equal(f.model().programs.review,null);
+  await f.model().programs.onImport(deliveryId);
+  assert.equal(f.calls.some(c=>c[0]==='importTaskPackage'),false,
+    'A direct import without a source-review action cannot stage code');
+  assert.match(f.model().pairing.status,/查看并核对完整源码/);
+  await f.model().programs.onReview(deliveryId);
+  assert.equal(f.model().programs.review.source,pkg.sourceUtf8);
+  assert.deepEqual(f.model().programs.review.permissions,pkg.manifest.permissions);
+  assert.equal(f.model().programs.review.manifestHash,pkg.manifestHash);
+  assert.equal(f.model().programs.review.sourceHash,pkg.manifest.program.sourceHash);
   assert.equal(f.calls.some(c=>c[0]==='importTaskPackage'),false);
   await f.model().programs.onImport(deliveryId);
   assert.equal(f.calls.filter(c=>c[0]==='importTaskPackage').length,1);
   assert.deepEqual(f.calls.find(c=>c[0]==='received')[1],
     {deliveryId,manifestHash:pkg.manifestHash});
   assert.equal(f.model().programs.rows.length,0);
+  assert.equal(f.model().programs.review,null);
   assert.match(f.model().programs.status,/待验证任务/);
   assert.equal(f.calls.some(c=>['cloudApprove','cloudNext','run'].includes(c[0])),false);
 });
-test('Tampered JS is rejected by the existing immutable Task verifier with no ACK',async t=>{
-  const f=await make(t,{mutate:p=>({...p,sourceUtf8:p.sourceUtf8+'\n// unauthorized mutation'})});
+test('Tampered JS is rejected at review before import and Provider acknowledgement',async t=>{
+  const f=await make(t,{mutate:p=>({...p,sourceUtf8:p.sourceUtf8+'\\n// unauthorized mutation'})});
   await f.model().programs.onRefresh();
-  await f.model().programs.onImport(deliveryId);
+  await f.model().programs.onReview(deliveryId);
+  assert.equal(f.model().programs.review,null);
+  assert.equal(f.calls.some(c=>c[0]==='importTaskPackage'),false);
   assert.equal(f.calls.some(c=>c[0]==='received'),false);
   assert.equal(f.model().programs.rows.length,1);
-  assert.match(f.model().pairing.status,/操作未完成|交付程序/);
+  assert.match(f.model().pairing.status,/源码哈希验证失败|交付程序|操作未完成/);
 });
-test('Lost Provider ACK does not roll back locally imported Candidate or cause a re-run',async t=>{
+test('Lost Provider ACK keeps imported Candidate without permitting auto-run',async t=>{
   const f=await make(t,{ackFailure:true});
   await f.model().programs.onRefresh();
+  await f.model().programs.onReview(deliveryId);
   await f.model().programs.onImport(deliveryId);
   assert.equal(f.calls.filter(c=>c[0]==='importTaskPackage').length,1);
   assert.equal(f.model().programs.rows.length,0);
   assert.match(f.model().programs.status,/回执待核对/);
+});
+test('Changed descriptor cannot import code reviewed for a different fixed source',async t=>{
+  const f=await make(t);
+  await f.model().programs.onRefresh();
+  await f.model().programs.onReview(deliveryId);
+  f.model().programs.rows[0]={...f.model().programs.rows[0],sourceHash:'0'.repeat(64)};
+  await f.model().programs.onImport(deliveryId);
+  assert.equal(f.calls.some(c=>c[0]==='importTaskPackage'),false);
+  assert.equal(f.calls.some(c=>c[0]==='received'),false);
 });
