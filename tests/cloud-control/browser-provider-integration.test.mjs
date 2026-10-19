@@ -262,6 +262,8 @@ test('modern pairing uses new claim storage and does not associate other grants,
 test('modern Provider claim binds a fresh Browser run and permit with full pairing identity',async t=>{
   const f=await modernProviderFixture(t);await connectProvider(t,f.provider,f.credential);await seedModernJob(f,'modern-claim');
   const {service,storage,sender,grantId}=await configureModernService(f);
+  await providerPost(f.provider,'/v1/capabilities',{grantId,tasks:[{
+    taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}]},f.credential);
   const next=await service.cloudNext({},sender);assert.match(next.requestId,/^cloud:/);
   const row=(await storage.all(KV)).find(value=>value?.tag==='cloud-request-v1');
   assert.equal(row.requestId,next.requestId);assert.equal(row.grantId,grantId);assert.equal(row.namespace,namespace);
@@ -347,12 +349,13 @@ test('fixed-Task single cancellation fences only the original Run, not hosting o
 
 test('remote runRef without local row blocks cached claim replay instead of creating a second Browser row',async t=>{
   const f=await modernProviderFixture(t);await connectProvider(t,f.provider,f.credential);await seedModernJob(f,'remote-runref');
+  const {service,storage,sender,grantId}=await configureModernService(f);
   const claimId='remote-claim',tasks=[{taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}];
-  const assignment=(await providerPost(f.provider,'/v1/claim',{claimId,tasks},f.credential)).assignment;
+  await providerPost(f.provider,'/v1/capabilities',{grantId,tasks},f.credential);
+  const assignment=(await providerPost(f.provider,'/v1/claim',{claimId,grantId,tasks},f.credential)).assignment;
   const runRef={runId:randomUUID(),resultId:randomUUID(),requestId:'cloud:'+assignment.assignmentId,
-    sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId:randomUUID()};
+    sourceHash:pkg.manifest.program.sourceHash,manifestHash:pkg.manifestHash,grantId};
   await providerPost(f.provider,'/v1/admission',{assignmentId:assignment.assignmentId,runRef},f.credential);
-  const {service,storage,sender}=await configureModernService(f,{grantId:runRef.grantId});
   const config=await storage.get(KV,CONFIG);config.claimId=claimId;await storage.put(KV,config,CONFIG);
   await service.reconcile();
   await assert.rejects(service.cloudNext({},sender),errorCode('E_RUN_REF'));
