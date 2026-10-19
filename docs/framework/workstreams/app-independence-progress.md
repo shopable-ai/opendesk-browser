@@ -5,7 +5,7 @@
 | 应用 | A 业务源码独立 | B 安装与生命周期 | C 可信特权代码独立升级 | 本轮代码结论 | 产品结论 |
 | --- | --- | --- | --- | --- | --- |
 | Web Markdown Clipper | 并行会话验证中 | 未在本轮验证 | 未在本轮验证 | IN_PROGRESS_OTHER_CONVERSATION | NOT_TESTED |
-| Reading TOC | **STATIC_VERIFIED / CI_PENDING**：8 份 trusted 源 SHA 与正式入口一致；Node 未运行 | **CHROME_NOT_TESTED**：安装/更新/启停/撤权/卸载待实测 | **BLOCKED**：特权逻辑静态编入 Browser | SOURCE_AUDITED / CI_QUEUED；CODE_COMPLETE=NOT_VERIFIED | PRODUCT_DONE=NO |
+| Reading TOC | **STATIC_VERIFIED / FIX_COMMITTED_CI_PENDING**：8 份 trusted 源 SHA 与固定入口一致；R1.5.1 React 回归和预览修复已入 main，Node 尚未重跑通过 | **CHROME_NOT_TESTED**：旧 SHA Ubuntu Chrome 测试失败；新 SHA 排队；Mac 未验收 | **BLOCKED_ARCHITECTURAL**：可信 JS 固定编入 WXT，不允许动态包执行特权脚本 | FIX_COMMITTED / CI_QUEUED；CODE_COMPLETE=NOT_VERIFIED | PRODUCT_DONE=NO |
 | Stay Focus | 未在本轮核验；避免并行覆盖 | 未在本轮核验 | 未在本轮核验 | NOT_AUDITED_THIS_ROUND | NOT_TESTED |
 | Time Review | 未在本轮核验 | 未在本轮核验 | 未在本轮核验 | NOT_AUDITED_THIS_ROUND | NOT_TESTED |
 | AI VIP Share | 未在本轮核验 | 未在本轮核验 | 未在本轮核验 | NOT_AUDITED_THIS_ROUND | NOT_TESTED |
@@ -35,6 +35,15 @@
 - **C · BLOCKED_ARCHITECTURAL**：App-owned 可信 JS 固定编入 WXT Browser，独立 `.opendesk-tool.json` 无特权 JS 升级能力。本轮不放松权限隔离、不创建第二套可信运行平台。
 - **本轮变更与结论**：Reading TOC 产品源码 +0/-0/净 0；仅更新进度文档。A=STATIC_VERIFIED_CI_PENDING，B=CHROME_NOT_TESTED，C=BLOCKED_ARCHITECTURAL，CODE_COMPLETE=NOT_VERIFIED，PRODUCT_DONE=NO。
 - **后续门槛**：先获取真实 CI 结果；FAIL 仅修 Reading TOC 根因；Node/候选构建通过后才允许记 CODE_COMPLETE，仍须保留 Chrome NOT_TESTED 和 C 阻断。CI 仍 QUEUED 时不自动切换 Stay Focus，不覆盖 Web Markdown Clipper / Stay Focus 的并行修改。
+
+### Reading TOC R1.5.1 · 2026-10-19（真实 CI 解阻与复测等待）
+
+- **最新直接修复**：[提交 03a243f4577cc5b96e0e16de989af78f4d02780f](https://github.com/shopable-ai/opendesk-browser/commit/03a243f4577cc5b96e0e16de989af78f4d02780f)；main 从 `c2f99f09eed1782c2ebdf531a89a36e8b1ef5c89` 以非强制且校验预期 HEAD 的方式前进。仅 7 文件：`tests/framework/reading-toc-native-r41.test.mjs`、`tests/environment/reading-toc-overview-r43.test.mjs`、`tests/environment/reading-toc-r41.test.mjs`、`tests/environment/sidebar-tool-localization-r12.test.mjs` 的 Reading TOC 测试断言，以及 `examples/sidebar-tools/reading-toc/preview/{index.html,reading-toc-r12-interactive-preview.html,reading-toc-r12-overlay-preview.html}`。Reading TOC trusted/、正式包和其他应用产品文件未改。
+- **旧 SHA CI 真实日志**：`e6680133ac3e4047d9ee0c899cc7c81e5ef869f5` 上 [Reading TOC run 39259980384](https://github.com/shopable-ai/opendesk-browser/actions/runs/39259980384) 最终 `CANCELLED`，但其步骤 #5 Node 实际执行 **82/86 PASS、4 FAIL**（过时 React 宿主断言 3 处 + 已提交交互预览不再等于构建输出）；步骤 #9 真实 Ubuntu Chrome 测试失败（同名标题实际跨三回答有 4 个，不是旧断言要求的 3 个）；步骤 #6 `npm run build` 成功、#10 Chromium 预览成功、#11 100 项 Sidebar regressions 成功。旧 CI 出现 FAIL 不可因最终 CANCELLED 而宣称 PASS。
+- **根因和修复**：保持四个同名标题的独立导航 ID 与回答归属验证（每回答 2/1/1），不减少断言；读取官方目录、审阅与更新路径仍由原可信 Host 控制，React Extension Center 现为 UI 源；语言与例外采用当前 React 标签快照；将三份预览的 React SSR shell 与实际失败日志的生成输出同步，Side Panel 预览字节经重建核对一致。未放宽安装包验证、SDK/Host、授权、XSS/权限边界或写入特权逻辑。
+- **修复 SHA 的 CI**：[Reading TOC 39275966044](https://github.com/shopable-ai/opendesk-browser/actions/runs/39275966044)、[App CI 39275965877](https://github.com/shopable-ai/opendesk-browser/actions/runs/39275965877)、[Sidebar Tools 39275965681](https://github.com/shopable-ai/opendesk-browser/actions/runs/39275965681) 在首次核查时均为 `QUEUED`、未开始 Node/Chrome 检验；不可将旧 SHA 的绿色构建计作新 SHA 的最终候选验收。
+- **本轮执行环境**：GitHub Actions 的原始 Run/Job/Step/TAP 日志与 GitHub 原生 Blob/Tree/Commit 写入；用户 Mac 工作区未挂载到本环境，容器虽有 Node v22.16.0，却无法通过 DNS 访问 github.com。`node --test --test-concurrency=1 tests/environment/app-business-ownership-r1.test.mjs tests/environment/reading-toc-*.test.mjs`、`node scripts/app-ci.mjs inspect|build|node reading-toc`、`node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --check-project` 未能在新 SHA 的真实仓库执行，均记 `NOT_TESTED`。
+- **门槛**：`A=STATIC_VERIFIED / CI_PENDING`；`B=CHROME_NOT_TESTED`（真实 Mac Profile、站点/单页权限、重启与卸载未验收）；`C=BLOCKED_ARCHITECTURAL`（独立 JSON 不可热升级 WXT 内置可信 JS）；`CODE_COMPLETE=NOT_VERIFIED`、`PRODUCT_DONE=NO`。必须取得新 SHA Node + 构建 + 候选包校验全部实际 PASS，才能准备 Stay Focus 下一轮交接；不得因此修改 Stay Focus 并行成果。
 
 ## 变更守则
 
