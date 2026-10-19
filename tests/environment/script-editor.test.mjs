@@ -874,7 +874,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{
   const f=await fixture();t.after(()=>f.dispose());const save=deferred();f.setSaveGate(save);await f.click('script-save');
   f.find('script-id').value='another-script';f.find('script-id').fire('input');save.resolve();await tick();
-  assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/未保存草稿可直接运行/);
+  assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/当前源码可直接运行/);
   f.find('script-id').value='my-script';const load=deferred();f.setLoadGate(load);await f.click('script-load');
   f.find('script-source').value='new edit while loading';load.resolve();await tick();
   assert.equal(f.find('script-source').value,'new edit while loading');assert.match(f.find('script-status').textContent,/E_REVISION/);

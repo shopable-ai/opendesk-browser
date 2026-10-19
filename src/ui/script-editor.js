@@ -851,7 +851,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     };
     try {
       captured=currentPageTarget.capture();
-      if (programSource.kind() === 'controller') throw {code:'E_PROGRAM_KIND',message:'这是 Controller 项目，请使用运行草稿'};
+      if (programSource.kind() === 'controller') throw {code:'E_PROGRAM_KIND',message:'这是 Controller 项目，请使用「运行」'};
       const artifact=programSource.snapshot();
       if(componentMode!=='javascript'&&!artifact){
         if(!browserCompilerEnabled)throw {code:'E_PAGE_COMPILER_UNAVAILABLE',
