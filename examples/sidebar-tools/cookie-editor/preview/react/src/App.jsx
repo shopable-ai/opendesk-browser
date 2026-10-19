@@ -227,17 +227,17 @@ export default function App(){
   notify(renamed?'已模拟重命名；正式版须先新建、核实，再删除旧身份。':'已保存 Cookie');
   focusAfter('[data-row="'+updated.id+'"]');setVersion(v=>v+1);
  };
- const remove=()=>{if(!current||saving||needsVerify||!canWrite)return;setConfirm({type:'delete',message:'精确删除「'+current.name+'」？',id:current.id,key:identity(current)});};
- const runDelete=async()=>{
-  const plan=confirm;
-  if(plan?.type!=='delete'||!current||saving||needsVerify||!canWrite||
-    plan.id!==current.id||plan.key!==identity(current)){
-   setConfirm(null);setError('Cookie 身份已变化或仍待核对，请刷新后再删除。');return;
-  }
-  const epoch=epochRef.current;setSaving(true);await sleep(200);
+ const remove=async()=>{
+  if(!current||saving||needsVerify||!canWrite)return;
+  const id=current.id,before=identity(current),epoch=epochRef.current;
+  setSaving(true);setError('');
+  await sleep(200);
   if(epoch!==epochRef.current)return;
-  setRows(a=>a.filter(x=>x.id!==plan.id));setSaving(false);setConfirm(null);
-  resetEditor();notify('已删除 Cookie');
+  if(!rows.some(item=>item.id===id&&identity(item)===before)){
+   setSaving(false);setError('Cookie 身份已变化，请刷新后再操作。');return;
+  }
+  setRows(a=>a.filter(item=>item.id!==id));
+  setSaving(false);resetEditor();notify('已删除 Cookie');
  };
  const useScene=v=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setScene(v);setFlash(null);setError('');setConfirm(null);setIo(null);resetEditor();setQuery('');if(v==='empty')setRows([]);else setRows(initialRows());};
  const requestGrant=async()=>{
@@ -366,7 +366,7 @@ export default function App(){
   setRows(previous=>previous.filter(c=>!included.has(identity(c))));
   notify('已模拟安全清理 '+plan.count+' 条本站 Host-only Cookie；其他身份保持不变。');
  };
- const handleConfirm=()=>{if(confirm?.type==='delete')runDelete();else if(confirm?.type==='clear')void runClear();};
+ const handleConfirm=()=>{if(confirm?.type==='clear')void runClear();};
  const resetAll=()=>{epochRef.current++;setSaving(false);setGrantBusy(false);setGrantError('');setNeedsVerify(false);setRows(initialRows());setScene('ready');resetEditor();setIo(null);setConfirm(null);setFlash(null);setError('');setFilter('all');setQuery('');setImportText('');setFileName('');setOverwrite(false);fileReadRef.current++;resetFileDrag();setFailNext('');};
  // Escape closes panels, except while an IME owns Escape for candidate selection.
  const appKeydown=e=>{if(e.key!=='Escape'||e.nativeEvent?.isComposing||e.keyCode===229)return;if(confirm){setConfirm(null);return;}if(pending){setPending(null);return;}if(selected!==null){requestClose();return;}if(io)setIo(null);};
@@ -451,7 +451,6 @@ export default function App(){
           renderEditor={()=>renderEditor()}/>
        {scene==='readonly'&&<p className="quiet-note">当前仅可查看，编辑与导入需要独立写入授权。</p>}
        <details className="secondary-tools"><summary>更多 · 变化观察</summary><p>正式观察由 Browser SDK 和可信宿主执行；本预览不模拟真实事件。</p></details>
-       {confirm?.type==='delete'&&<section className="confirmation" role="alertdialog" aria-modal="true" aria-label="确认操作"><p>{confirm.message}</p><div className="panel-actions"><button className="text-btn" onClick={()=>setConfirm(null)}>取消</button><button className="text-btn primary" id="r491-export-confirm-yes" onClick={handleConfirm} disabled={saving}>{saving?'处理中…':'确认'}</button></div></section>}
        </>}
    </main>
  </div>;
