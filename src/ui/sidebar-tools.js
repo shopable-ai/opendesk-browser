@@ -1129,9 +1129,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         origin,verifiedUserActivation:verifiedGesture});
     }
     if(operation==='cookieEditor.import.finish'){
-      if(payload&&Object.keys(payload).length)
-        throw Object.assign(new Error('无效的结束操作'),{code:'E_SCHEMA'});
-      return cookieImportGate.close(cookieImportOwner(tool,token,revocationEpoch));
+      if(!payload||Object.keys(payload).join(',')!=='ref'||
+         !Number.isSafeInteger(payload.ref)||payload.ref<1)
+        throw Object.assign(new Error('无效的导入会话'),{code:'E_SCHEMA'});
+      return cookieImportGate.close(cookieImportOwner(tool,token,revocationEpoch),payload.ref);
     }
     // Browser SDK requests use the same sandbox instance and installation
     // check, but cross the trusted Chrome host without acquiring a UI lock
