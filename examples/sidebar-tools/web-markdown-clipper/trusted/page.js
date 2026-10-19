@@ -28,8 +28,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
     try{
       if(message.operation==='clip.link'){
         const label=title.replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim()||'网页链接';
-        markdown='['+label.replace(/[\[\]\\]/g,'\\      if(message.operation==='clip.link')
-        markdown='['+title.replace(/[\[\]\\]/g,'\\$&')+']('+canonical+')\n';')+']('+canonical+')\n';
+        markdown='['+label.replace(/[\[\]\\]/g,'\\$&')+']('+canonical+')\n';
       }
       else if(message.operation==='clip.selection'){
         const selection=win.getSelection();
