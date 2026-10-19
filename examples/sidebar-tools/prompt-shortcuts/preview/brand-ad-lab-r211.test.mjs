@@ -161,7 +161,6 @@ inBrowser('REAL Chromium: six meaningful presets, 17 visual formats, narrow mock
  assert.equal(await gallery.count(),17);
  const signatures=new Set();
  for(const fmt of formats){
-  const b=gallery.filter({has:page.locator('strong')}).filter({visible:true}).filter({has:page.locator('[data-format="'+fmt+'"]')});
   const node=page.locator('#r29Gallery button[data-format="'+fmt+'"]');
   await node.click();
   if(['hover-card','expand-card','brand-hover'].includes(fmt)){
