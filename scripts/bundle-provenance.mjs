@@ -173,6 +173,22 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
   return hash;
 }
 
+// Fixed Chrome Page Relay may import exactly this byte-reviewed first-party
+// Web Markdown Clipper conversion module. Never allow a whole examples/ prefix.
+const compiledWebClipperInputs=Object.freeze({
+  'examples/sidebar-tools/web-markdown-clipper/trusted/convert.js':'b53147ff3bd888f1291e81daf8a90d06b5a1a114'
+});
+function reviewedCompiledWebClipper(target,path,root){
+  if(target!=='agents/page-relay.js'||!Object.hasOwn(compiledWebClipperInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted Web Clipper source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledWebClipperInputs[path])
+    throw Error('Trusted Web Clipper source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
 export function assertLibraryModuleBoundary(target,path,npmName) {
@@ -208,7 +224,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
       reviewedCompiledBookmarkReact(chunk.fileName,path,root)||
       reviewedCompiledStayFocus(chunk.fileName,path,root)||
-      reviewedCompiledAppOwnedBackground(chunk.fileName,path,root);
+      reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
+      reviewedCompiledWebClipper(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,

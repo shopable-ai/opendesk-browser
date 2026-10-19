@@ -12,7 +12,7 @@ import {CLIP_CAPABILITY,CLIP_SITE_STORE,CLIP_PROTOCOL,clipGrantAllowed,changeCli
 import {initPageClip} from '../../src/page-clip/page.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTES} from '../../src/page-clip/convert.js';
+import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTES} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
 
 const tools=['web-markdown-clipper','markdown-workbench'];
 const readPkg=officialToolFixture;

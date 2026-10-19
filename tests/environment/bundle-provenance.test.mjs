@@ -222,3 +222,22 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
     'examples/programs/local-controller/src/main.js'
   ])assert.throws(()=>make('sw.js',resolve(unknown)),/cannot enter/);
 });
+
+
+test('R1.3 pinned Web Clipper conversion module can only enter the existing Page Relay',async ctx=>{
+  const path='examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
+  const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
+  const row=make('agents/page-relay.js');
+  assert.equal(row.modules[0].path,path);
+  assert.match(row.modules[0].reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
+  for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/,
+      'permission boundary for '+target);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'web-clipper-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  await mkdir(join(root,'examples/sidebar-tools/web-markdown-clipper/trusted'),{recursive:true});
+  await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned edit\n');
+  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Web Clipper source changed/);
+  assert.throws(()=>make('sw.js',root),/cannot enter a privileged fixed bundle/);
+});
