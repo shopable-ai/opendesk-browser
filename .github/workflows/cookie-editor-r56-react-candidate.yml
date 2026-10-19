@@ -9,8 +9,7 @@ on:
       - 'examples/sidebar-tools/cookie-editor/src/root.html'
       - 'examples/sidebar-tools/cookie-editor/package.json'
       - 'examples/sidebar-tools/cookie-editor/app.ci.json'
-      - 'examples/sidebar-tools/cookie-editor/preview/react/src/**'
-      - 'examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs'
+      - 'examples/sidebar-tools/cookie-editor/preview/react/**'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/cookie-import-intent.js'
       - 'src/ui/sidebar-tools/cookie-write-intent.js'
@@ -18,6 +17,8 @@ on:
       - 'examples/sidebar-tools/cookie-editor/vite.config.mjs'
       - 'examples/sidebar-tools/cookie-editor/scripts/**'
       - 'tests/environment/cookie-editor-react-*.test.mjs'
+      - 'tests/environment/cookie-editor-import-intent.test.mjs'
+      - 'tests/environment/cookie-editor-write-intent.test.mjs'
       - 'tests/environment/page-install-package.test.mjs'
       - 'tests/environment/sidebar-shared-ui-r17.test.mjs'
       - 'examples/sidebar-tools/shared-ui-demo/**'
@@ -53,6 +54,8 @@ jobs:
         run: |
           node --check examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js
           node --check examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js
+          node --check src/ui/sidebar-tools.js
+          node --check src/ui/sidebar-tools/cookie-write-intent.js
           node --check examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js
           node --check examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs
           node --test \
