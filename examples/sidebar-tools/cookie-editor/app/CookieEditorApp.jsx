@@ -191,6 +191,13 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   });
   const activeImportRef=React.useRef(null);
   const writeInFlight=React.useRef(false);
+  const restoreImportFocus=React.useRef(false);
+  React.useLayoutEffect(()=>{
+    if(panel!==null||!restoreImportFocus.current)return;
+    restoreImportFocus.current=false;
+    hostRoot.querySelector('.cookie-editor-react [aria-label="导入 Cookie"]')
+      ?.focus({preventScroll:true});
+  },[panel]);
   const finishImportIntent=ref=>{
     if(!Number.isSafeInteger(ref)||ref<1)return;
     if(activeImportRef.current===ref)activeImportRef.current=null;
@@ -236,6 +243,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
     const ok=await controller.executeImport(text,'auto',true);
     if(ok){
+      restoreImportFocus.current=true;
       noteImport('已导入 '+plan.accepted+' 条'+
         (plan.skipped?'，跳过 '+plan.skipped+' 条':'')+'。','success');
       setPanel(null);setSelected(null);setDirty(false);setPage(1);
@@ -375,7 +383,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         {panel==='import'&&<CookieImport disabled={locked}
           notice={importNotice} onImportText={importFromText} onNotice={noteImport}
           onBeginImport={beginImportIntent}
-          onClose={()=>{controller.discardImport();finishImportIntent(activeImportRef.current);setPanel(null);}}/>}
+          onClose={()=>{restoreImportFocus.current=true;controller.discardImport();finishImportIntent(activeImportRef.current);setPanel(null);}}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onDelivered={method=>{setPanel(null);noteImport(method==='copy'?'已复制 Cookie':'已导出 Cookie','success');}}
           onClose={()=>setPanel(null)}/>}
