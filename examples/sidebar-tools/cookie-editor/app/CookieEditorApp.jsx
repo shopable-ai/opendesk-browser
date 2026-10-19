@@ -35,6 +35,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [confirmation,updateConfirmation]=React.useState(null);
   const setConfirmation=value=>{syncGate.current.confirmation=value;updateConfirmation(value);};
   const [status,setStatus]=React.useState('');
+  const [importNotice,setImportNotice]=React.useState(null);
   const [working,updateWorking]=React.useState(false);
   const setWorking=value=>{syncGate.current.working=value;updateWorking(value);};
   const appliedSite=React.useRef('');
@@ -48,6 +49,13 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     data.current={adapter,controller};
   }
   const {controller,adapter}=data.current;
+  const noteImport=(text,kind='error')=>setImportNotice({text,kind});
+  React.useEffect(()=>{
+    if(!importNotice)return;
+    const timer=window.setTimeout(()=>setImportNotice(null),
+      importNotice.kind==='error'?6500:3500);
+    return ()=>window.clearTimeout(timer);
+  },[importNotice]);
   const snapshot=view||controller.snapshot();
   const busy=Boolean(snapshot.busy||working);
   const locked=busy||Boolean(confirmation);
@@ -180,6 +188,35 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     modeRef.current=next;
     setMode(next);setSelected(null);setPanel(null);setDirty(false);
   });
+  const importFromText=async text=>{
+    // Keep Controller's real preflight/Host receipt, but make it one user action.
+    // Raw Cookie values are never stored in React state or rendered as a preview.
+    if(modeRef.current!=='browser'||controller.snapshot().phase!=='ready')return false;
+    const plan=await controller.previewImport(text,'auto',true);
+    if(!plan){
+      noteImport('无法导入：Cookie 格式不正确或网站授权不可用。');
+      return false;
+    }
+    if(!plan.accepted){
+      const first=String(plan.issues?.[0]?.reason||'');
+      const reason=/域名|网站范围|Host-only/.test(first)
+        ?'Cookie 不属于当前已授权网站。'
+        :/过期|expirationDate/.test(first)
+          ?'Cookie 已过期。':'内容不符合 Cookie 格式或权限要求。';
+      controller.discardImport();
+      noteImport('未导入 '+plan.total+' 条：'+reason);
+      return false;
+    }
+    const ok=await controller.executeImport(text,'auto',true);
+    if(ok){
+      noteImport('已导入 '+plan.accepted+' 条'+
+        (plan.skipped?'，跳过 '+plan.skipped+' 条':'')+'。','success');
+      setPanel(null);setSelected(null);setDirty(false);setPage(1);
+      return true;
+    }
+    noteImport('导入结果未完全确认，请先核对 Chrome，勿直接重复提交。');
+    return 'unknown';
+  };
   const save=async(row,options)=>{
     setWorking(true);
     try{
@@ -284,14 +321,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
             onDelete={remove}/>}/>
-        {panel==='import'&&<CookieImport controller={controller} disabled={locked}
-          onClose={result=>{
-            // A verified import has already committed; it must not reopen the
-            // unsaved-change dialog using the render's stale dirty closure.
-            if(result?.committed===true){setPanel(null);setDirty(false);return;}
-            guarded(()=>{setPanel(null);setDirty(false);});
-          }}
-          onDirty={setDirty}/>}
+        {panel==='import'&&<CookieImport disabled={locked}
+          notice={importNotice} onImportText={importFromText} onNotice={noteImport}
+          onClose={()=>{controller.discardImport();setPanel(null);}}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
           onClose={()=>setPanel(null)}/>}
       </div>}
@@ -301,6 +333,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':'od-alert--warning')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
+    {panel!=='import'&&importNotice&&<div
+      role={importNotice.kind==='error'?'alert':'status'}
+      className={'cookie-import-toast'+
+        (importNotice.kind==='error'?' cookie-import-toast--error':'')}>
+      {importNotice.text}
+    </div>}
     {confirmation?.kind==='clear'&&<CookieClearDialog
       hostname={confirmation.hostname} count={confirmation.count} busy={working}
       onCancel={()=>endConfirm(false)} onConfirm={()=>endConfirm(true)}/>}
