@@ -344,7 +344,13 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     observe(node);
     const right=rect.left+rect.width,bottom=rect.top+rect.height;
     let left=rect.left;
-    for(const navigation of node.querySelectorAll('aside, nav, [role="navigation"]')){
+    // On some ChatGPT layouts the native left nav is a SIBLING of <main>,
+    // not its descendant. It still reserves real on-screen space.
+    const navigations=new Set([
+      ...Array.from(node.querySelectorAll('aside, nav, [role="navigation"]')),
+      ...Array.from(doc.querySelectorAll?.('aside, nav, [role="navigation"]')||[])
+    ]);
+    for(const navigation of navigations){
       observe(navigation);
       if(!navigation.isConnected||navigation.hidden||navigation.closest('[hidden], [aria-hidden="true"], [inert]'))continue;
       const style=win.getComputedStyle?.(navigation);
