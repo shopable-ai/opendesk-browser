@@ -453,7 +453,7 @@ export default function App(){
    </main>
  </div>;
  function renderEditor(){return <section className="inline-editor" aria-label={selected==='new'?'新建 Cookie':'编辑 Cookie'} data-testid="editor">
-    <div className="editor-top"><span>{selected==='new'?'新建':'编辑'} Cookie</span><span className="editor-top-right">{dirty&&<em>未保存</em>}</span></div>
+    <div className="editor-top"><span>{selected==='new'?'新建':'编辑'}</span><span className="editor-top-right">{dirty&&<em>未保存</em>}</span></div>
     <Field label="名称"><input id="opendesk-cookie-attribute-key" name="opendesk-cookie-attribute-key" type="text" autoComplete="off" autoCapitalize="off" spellCheck={false} aria-invalid={error.startsWith('名称')||undefined} aria-describedby={error.startsWith('名称')?'cookie-editor-error':undefined} value={draft.name} onChange={e=>update('name',e.target.value)} maxLength="256" disabled={!canWrite||saving}/></Field>
     <CookieValueField
        inputValue={draft.valueTouched?draft.valueInput:(canValues?current?.value||'':'')}
@@ -464,17 +464,17 @@ export default function App(){
        showClear={Boolean(draft.valueTouched?draft.valueInput:(canValues?current?.value||'':''))}
        onClear={()=>{setDraft(d=>({...d,valueInput:'',valueTouched:true}));setError('');
          document.getElementById('opendesk-cookie-attribute-data')?.focus();}}
-       placeholder={selected==='new'?'输入 Cookie 值（可为空）':
-         canValues?'可直接编辑 Cookie 原值':'原值未授权 · 输入新值或保留原值'}/>
+       placeholder={selected==='new'?'可为空':
+         canValues?'修改 Cookie 值':'留空保留原值'}/>
      {current&&draft.valueTouched&&<div className="value-controls">
-       <span>{draft.valueInput===''?'将写入空值':'将写入输入的新值'}</span>
+       <span>{draft.valueInput===''?'将写入空值':'将写入新值'}</span>
        {canValues&&<IconButton name="undo" label="恢复原值" className="cookie-value-undo"
          disabled={!canWrite||saving} onClick={()=>setDraft(d=>({...d,valueInput:'',valueTouched:false}))}/>}
      </div>}
     <CookieAdvancedFields draft={draft} existing={selected!=='new'}
       disabled={!canWrite||saving} onChange={update} advancedOpen={advancedOpen}
       onAdvancedToggle={e=>setAdvancedOpen(e.currentTarget.open)} error={error}/>
-    {current&&draft.name!==current.name&&<p className="editor-hint">更名将先新建并核实，再删除旧名称；失败时请刷新核对。</p>}
+    {current&&draft.name!==current.name&&<p className="editor-hint">更名先创建新项，再删除旧项。</p>}
     {error&&<Message id="cookie-editor-error" tone="error">{error}</Message>}
     {pending!==null&&<div className="discard-row" role="status"><span>放弃当前未保存修改？</span><button type="button" className="text-btn" onClick={()=>setPending(null)}>继续编辑</button><button type="button" className="text-btn" onClick={discard}>放弃</button></div>}
     <div className="editor-actions">{selected!=='new'&&<IconButton name="trash" label="删除 Cookie" className="cookie-editor-icon-action cookie-editor-delete" onClick={remove} disabled={saving||needsVerify||!canWrite}/>}<span className="spacer"/><button className="text-btn" type="button" onClick={requestClose} disabled={saving}>取消</button><button className="text-btn primary cookie-editor-save" type="button" onClick={save} disabled={!canWrite||saving||needsVerify}><Icon name="check"/>{saving?'保存中…':'保存'}</button></div>
