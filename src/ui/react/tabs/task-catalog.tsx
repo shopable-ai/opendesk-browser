@@ -17,12 +17,12 @@ export function TaskCatalogPage({view,hidden=false}){
           <MyControl view={view} as="button" id="task-catalog-refresh" type="button"
             className="od-button od-button--secondary"
             onClick={event=>view.actions.taskCatalogRefreshClick?.(event.nativeEvent)}>刷新目录</MyControl>
-          {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog-page'&&
+          {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog'&&
             <button type="button" id="catalog-open-dev-sidebar"
               className="od-button od-button--secondary">打开 OpenDesk 侧栏</button>}
         </div>
       </header>
-      {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog-page'&&
+      {!hidden&&document.documentElement.dataset.opendeskSurface==='catalog'&&
         <p id="catalog-dev-sidebar-status" className="hint" role="status" aria-live="polite"/>}
 
       <div>
