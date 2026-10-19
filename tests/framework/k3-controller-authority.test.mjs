@@ -4,6 +4,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Worker} from 'node:worker_threads';
 import {runInNewContext} from 'node:vm';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {WebSocket} from 'ws';
+import {openProvider} from '../../scripts/cloud-control/provider.mjs';
 import {createRunAuthority} from '../../src/platform/host/authority.js';
 import {createSdkBroker} from '../../src/platform/host/sdk-broker.js';
 import {recoverHostTab} from '../../src/platform/host/broker.js';
@@ -1922,5 +1927,128 @@ test('website or task authorization withdrawn after delivery intent prevents res
     await f.cloud.reconcile().catch(error=>{assert.ok(['E_PERMISSION','E_TASK_REVOKED'].includes(error.code),error.code);});
     assert.equal(uploads,0);assert.equal((await f.rows('results')).filter(r=>r.runId===f.run.runId).length,1);
     assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').receipt,undefined);
+  }
+});
+
+// A live Provider + the actual Task Installer/Resolver, Cloud Service and RunHost
+// must execute LOCAL pinned bytes. Chrome DOM/native APIs are test doubles here:
+// NODE_INTEGRATION, not a native Chrome/CWS acceptance result.
+test('remote fixed Task request runs locally installed JS via the original RunHost and confirms one Provider receipt',{timeout:25000},async t=>{
+  const f=await installedTaskFixture(),source='async function main(){return await page.title();}',
+    pkg=await createTaskPackage(f.manifest,source);
+  const directory=await mkdtemp(join(tmpdir(),'od-cloud-installed-runhost-'));
+  let provider;
+  try{
+    provider=await openProvider({directory,port:0});
+    const base='http://127.0.0.1:'+provider.port,
+      admin=JSON.parse(await readFile(provider.credentialFile,'utf8'));
+    const post=async(path,body,token)=>{
+      const response=await fetch(base+path,{method:'POST',
+        headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},
+        body:JSON.stringify(body)});
+      const output=await response.json();
+      if(!response.ok)throw Object.assign(new Error(output.error?.message||String(response.status)),output.error);
+      return output;
+    };
+    const executorId=crypto.randomUUID(),
+      paired=await post('/v1/pair',{executorId,pairingCode:admin.pairingCode}),
+      pin={taskId:f.resolved.taskId,version:f.resolved.version,
+        manifestHash:f.resolved.manifestHash,sourceHash:f.resolved.contentHash},
+      grantId=crypto.randomUUID();
+    assert.equal(pkg.manifestHash,pin.manifestHash);
+    await post('/admin/register',{manifest:pkg.manifest,manifestHash:pkg.manifestHash},admin.adminToken);
+    const auth=await post('/v1/auth',{},paired.credential);
+    const socket=new WebSocket(base.replace(/^http/,'ws')+'/v1/events');
+    t.after(()=>socket.terminate());
+    await new Promise((resolve,reject)=>{
+      socket.once('error',reject);
+      socket.once('open',()=>socket.send(JSON.stringify({type:'authenticate',ticket:auth.ticket})));
+      socket.once('message',data=>{
+        try{assert.equal(JSON.parse(String(data)).type,'authenticated');resolve();}
+        catch(error){reject(error);}
+      });
+    });
+    await post('/v1/capabilities',{grantId,tasks:[{
+      taskId:pin.taskId,manifestHash:pin.manifestHash,sourceHash:pin.sourceHash
+    }]},paired.credential);
+    const namespace='tool:'+f.api.runtime.id;
+    await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
+      url:base,providerId:provider.providerId,credential:paired.credential,
+      executorId,pairingId:paired.pairingId,pairingGeneration:paired.pairingGeneration,
+      namespace,enabled:true,tasks:[{...f.resolved,resultAllowed:false}],
+      grantId,claimId:null,pendingRequestId:null
+    },'cloud:config'));
+    const cloud=f.authority.cloud;
+    cloud.connection('authenticated');cloud.setReconciled(true);
+    const target={mode:'owned',url:'https://a.example/page'},params={no:false,zero:0};
+    await assert.rejects(post('/admin/seed',{requestKey:'bad-remote-source',...pin,
+      targetExecutorId:executorId,params,target,sourceUtf8:'async function main(){throw Error("REMOTE")}'},
+      admin.adminToken),error=>error?.code==='E_SCHEMA',
+      'Provider must not ingest a remote executable payload');
+    const seed=await post('/admin/seed',{requestKey:'fixed-local-task',...pin,
+      targetExecutorId:executorId,params,target},admin.adminToken);
+    await cloud.reconcile();
+    const waiting=await cloud.cloudNext({},f.sender);
+    assert.match(waiting.requestId,/^cloud:/);
+    const runnable=await cloud.cloudResolve(waiting,f.sender);
+    assert.equal(Object.hasOwn(runnable,'sourceUtf8'),false,
+      'Remote task delivery must contain only an installed program reference');
+    assert.equal(runnable.scriptId,f.resolved.scriptId);
+    assert.equal(runnable.contentHash,pin.sourceHash);
+    assert.equal(runnable.expectedTaskInstallationId,f.resolved.installationId);
+    assert.equal(runnable.expectedTaskGeneration,f.resolved.generation);
+    assert.deepEqual(runnable.params,params);
+    const saved=(await f.rows('scriptRevisions')).find(row=>row.scriptId===runnable.scriptId);
+    assert.equal(saved.sourceUtf8,pkg.sourceUtf8);
+    assert.equal(saved.contentHash,pin.sourceHash);
+    const controller=Object.fromEntries(['startControllerRun','controllerOperation',
+      'stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+      .map(method=>[method,request=>f.authority[method](request,f.sender)]));
+    const client={ready:Promise.resolve(f.registration),controller,storage:{},pagePort:{},
+      exportBridge:{},entitlement:{},runCommands:{},subscribeRun:()=>()=>{}};
+    let sourceExecuted=null,executions=0;
+    const host=createRunHost({api:f.api,client,document:undefined,templateModuleFactory:null,
+      controllerFactory:({context})=>{
+        let complete,retire,finished=false;
+        const result=new Promise(resolve=>{complete=resolve;}),
+          retired=new Promise(resolve=>{retire=resolve;});
+        const finish=value=>{
+          if(finished)return;finished=true;complete(value);retire({acknowledged:true});
+        };
+        const stop=()=>finish({status:'stopped'});
+        return {result,retired,stop,close:stop,execute(bytes,argumentsValue){
+          executions++;sourceExecuted=bytes;
+          Promise.resolve().then(()=>runInNewContext(bytes+'\nmain()',{
+            page:context.page,params:argumentsValue
+          })).then(value=>finish({status:'succeeded',value:controlEncode(value)}),
+            error=>finish({status:'error',error:{code:error.code||'E_CONTROL_EXECUTION',message:error.message}}));
+          return result;
+        }};
+      }});
+    t.after(()=>host.dispose());
+    const claimed=await host.start(runnable);
+    const completion=await host.completion;
+    assert.equal(executions,1);
+    assert.equal(sourceExecuted,saved.sourceUtf8);
+    assert.equal(claimed.sourceKind,'saved');
+    assert.equal(completion.state,'completed');
+    assert.equal(completion.retirement.state,'released');
+    assert.equal(decodeValue(completion.result.outcome.valueWire),'Top');
+    const persisted=(await f.rows('runs')).find(row=>row.runId===claimed.runId);
+    assert.equal(persisted.cloudRequestId,waiting.requestId);
+    assert.equal(persisted.retirementState,'released');
+    assert.equal(persisted.revision.sourceHash,pin.sourceHash);
+    await cloud.reconcile();
+    const remote=await post('/admin/state',{},admin.adminToken),job=remote.jobs[seed.jobId];
+    assert.equal(job.receipt?.result?.visibility,'status-only');
+    assert.equal(job.runRef?.runId,claimed.runId);
+    assert.equal(job.runRef?.resultId,claimed.resultId);
+    assert.equal(job.runRef?.sourceHash,pin.sourceHash);
+    assert.ok(job.receipt?.receiptId);
+    assert.equal(await cloud.cloudNext({},f.sender),null,'Receipt reconciliation does not replay the completed Worker');
+    assert.equal(executions,1);
+  }finally{
+    await provider?.close();
+    await rm(directory,{recursive:true,force:true});
   }
 });
