@@ -572,6 +572,40 @@ async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>t
   }
   return [...combined.values()];
 }
+// Passive refresh is active only while the visible Cookie list is idle.
+// No value reads, write retries, Host observation sessions or background polling.
+function passiveVisible(){
+  const doc=root.ownerDocument,mount=root.host||root;
+  return doc.visibilityState!=='hidden'&&mount?.isConnected!==false&&
+    (typeof mount?.getClientRects!=='function'||mount.getClientRects().length>0);
+}
+function passiveAllowed(){
+  return mode==='browser'&&liveState==='ready'&&!!liveTarget&&!targetPending&&
+    !busy&&!pending&&!dirty&&expandedCookieKey===null&&editor.hidden&&
+    importer.hidden&&E('live-export-panel').hidden&&passiveVisible();
+}
+function checkPassiveCookies(){
+  if(!passiveAllowed()||passivePending||Date.now()<passiveNextAt)return;
+  const target=liveTarget,id=epoch,revision=passiveRevision;
+  passivePending=true;
+  passiveNextAt=Date.now()+(liveRows.length>400?5000:2000);
+  const current=()=>passiveAllowed()&&epoch===id&&
+    liveTarget?.url===target.url&&revision===passiveRevision;
+  void (async()=>{
+    try{
+      const result=await scopedLiveCookies(browserSdk(),target,{isCurrent:current});
+      if(result===null||!current())return;
+      const next=redactMetadata(result);
+      if(passiveStale||JSON.stringify(next)!==JSON.stringify(liveRows)){
+        liveRows=next;passiveStale=false;render();
+      }
+    }catch{
+      if(current()){
+        passiveStale=true;passiveNextAt=Date.now()+30000;render();
+      }
+    }finally{passivePending=false;}
+  })();
+}
 async function readBrowserMetadata(){
   if(busy||pending||!liveTarget||targetPending)return;
   const sdk=browserSdk(),target=liveTarget,id=epoch;
@@ -706,9 +740,7 @@ async function saveBrowserCookie(){
       if(removed?.removed!==true||removed.verified!==true)
         throw Object.assign(new Error('旧 Cookie 删除未确认'),{code:'E_OUTCOME_UNKNOWN'});
     }
-    confirmed=true;liveSecrets.clear();scrubEditors();
-    status(renamed?'Chrome 已确认新名称写入且旧名称删除。正在刷新列表。':
-      'Chrome 已确认保存。正在刷新列表。','success');
+    confirmed=true;liveSecrets.clear();scrubEditors();status('');
   }catch(e){if(stillCurrent(id,target)){
     if(newNameSaved){
       liveSecrets.clear();scrubEditors();
@@ -734,7 +766,7 @@ async function deleteBrowserCookie(row){
     if(!stillCurrent(id,target))return;
     if(result?.removed!==true||result.verified!==true)
       throw Object.assign(new Error('删除回执未核实'),{code:'E_OUTCOME_UNKNOWN'});
-    confirmed=true;scrubEditors();status('Chrome 已确认删除「'+row.name+'」。','success');
+    confirmed=true;scrubEditors();status('');
   }catch(e){if(stillCurrent(id,target)){
     if(e.code==='E_CANCELLED')status('已取消删除，未删除 Cookie。');
     else status('删除未确认（'+safeCookieCode(e,'E_COOKIE_REMOVE')+
@@ -1433,8 +1465,17 @@ root.addEventListener('opendesk-page-changed',()=>{
   if(pending)cancelConfirmation();
   guarded(switchSite);
 });
-root.ownerDocument.defaultView?.addEventListener?.('pagehide',()=>{
-  epoch++;liveRows=[];data=null;liveTarget=null;shown.clear();liveSecrets.clear();scrubEditors();
+const passiveWindow=root.ownerDocument.defaultView;
+const resumePassive=()=>{if(!passiveVisible())return;passiveNextAt=0;checkPassiveCookies();};
+const passiveTimer=passiveWindow?.setInterval?.(checkPassiveCookies,1000);
+passiveWindow?.addEventListener?.('focus',resumePassive);
+root.ownerDocument.addEventListener('visibilitychange',resumePassive);
+passiveWindow?.addEventListener?.('pagehide',()=>{
+  if(passiveTimer!==undefined)passiveWindow.clearInterval(passiveTimer);
+  passiveWindow.removeEventListener('focus',resumePassive);
+  root.ownerDocument.removeEventListener('visibilitychange',resumePassive);
+  passiveRevision++;epoch++;liveRows=[];data=null;liveTarget=null;
+  shown.clear();liveSecrets.clear();scrubEditors();
 },{once:true});
 void refresh();
 })();
