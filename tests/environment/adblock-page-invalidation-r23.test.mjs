@@ -1,20 +1,57 @@
-// The real bridge emits root events on navigation and tool-state changes.
-// This contract is source-level only; genuine Chrome events are tested by CDP.
+// React AdBlock navigation regression: identity is governed by the product
+// model and a fresh Host read, never by a copied JSX source expression.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {siteHost,confirmed} from '../../examples/sidebar-tools/adblock/src/model.js';
+
 const src=()=>readFile(new URL('../../examples/sidebar-tools/adblock/src/App.jsx',import.meta.url),'utf8');
-test('AdBlock React subscribes to the sandbox bridge root, never a missing parent postMessage',async()=>{
+const state=(host,overrides={})=>({
+  enabled:true,exceptions:[],toolEnabled:true,restartRequired:false,
+  permissions:{dnr:true},rules:{verified:true},
+  currentSite:{status:'ready'},currentHost:host,...overrides
+});
+
+test('AdBlock React listens for the actual sandbox page and tool invalidation events',async()=>{
   const code=await src();
   for(const name of ['opendesk-page-changed','opendesk-tool-state-changed']){
-    assert.ok(code.includes("addEventListener?.('"+name+"',onPageChanged)"));
-    assert.ok(code.includes("removeEventListener?.('"+name+"',onPageChanged)"));
+    assert.ok(code.includes("addEventListener?.('"+name+"',onPageChanged)"),name+' subscribe');
+    assert.ok(code.includes("removeEventListener?.('"+name+"',onPageChanged)"),name+' unsubscribe');
   }
   assert.doesNotMatch(code,/event\.data\?\.kind==='page-changed'/);
 });
-test('context invalidation disables stale site actions ahead of async status read',async()=>{
+
+test('context change invalidates in-flight reads and site controls before refresh',async()=>{
   const code=await src();
-  assert.match(code,/const onPageChanged=\(\)=>\{[\s\S]*?current\.current=null;setState\(null\);setLoading\(true\);[\s\S]*?void refresh\(\);/);
-  assert.match(code,/const host=state\?\.currentSite\?\.status==='ready'\?state\.currentHost:null/);
-  assert.match(code,/const siteLocked=switchLocked\|\|!on\|\|!host;/);
+  const invalidation=code.slice(code.indexOf('const onPageChanged=()=>{'),
+    code.indexOf('const onMessage=',code.indexOf('const onPageChanged=()=>{')));
+  assert.ok(invalidation.startsWith('const onPageChanged=()=>{'),'navigation handler must exist');
+  for(const fragment of [
+    'contextRevision.current++','reading.current++',
+    'current.current=null','setState(null)','setLoading(true)','void refresh()'])
+    assert.ok(invalidation.includes(fragment),'missing navigation invalidation: '+fragment);
+  assert.match(code,/const host=siteHost\(state\)/);
+  assert.match(code,/const siteLocked=switchLocked\|\|!on\|\|!host/);
+  assert.match(code,/const operationContext=contextRevision\.current/);
+  assert.match(code,/if\(operationContext!==contextRevision\.current\)/);
+});
+
+test('site identity stays unavailable until trusted Host reports ready',()=>{
+  for(const status of ['navigating','incognito','unsupported','unavailable'])
+    assert.equal(siteHost(state('old.example',{currentSite:{status}})),null,status);
+  assert.equal(siteHost(state('new.example')), 'new.example');
+  assert.equal(siteHost(state('',{currentSite:{status:'ready'}})),null);
+  assert.equal(siteHost(state('old.example',{currentSite:{status:'ready'},currentHost:null})),null);
+});
+
+test('a previous website cannot masquerade as a confirmed new-site exception',()=>{
+  const previous=state('a.example',{exceptions:['a.example']});
+  const afterNavigation=state('b.example',{exceptions:['a.example']});
+  assert.equal(confirmed(previous,afterNavigation,'adblock.site.set',
+    {host:'a.example',filtering:false}),false,'old tab result must not confirm new tab');
+  assert.equal(confirmed(afterNavigation,afterNavigation,'adblock.site.set',
+    {host:'a.example',filtering:false}),false,'current site is authoritative');
+  const newSite=state('b.example',{exceptions:['a.example','b.example']});
+  assert.equal(confirmed(newSite,newSite,'adblock.site.set',
+    {host:'b.example',filtering:false}),true,'matching Host readback can confirm');
 });
