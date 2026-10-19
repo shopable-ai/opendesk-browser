@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {DEBUG_INITIAL_STATE} from '../../debug-workbench.js';
+import {BrowserHistory} from './browser-history.tsx';
 
 // Trusted diagnostics are always rendered as escaped text.
 export function DebugDiagnosticText({value=''}) {
@@ -7,7 +8,8 @@ export function DebugDiagnosticText({value=''}) {
 }
 
 // The single app root owns the development gate, model subscription and actions.
-export function DebugPage({model={},actions=null,hidden=false,development=null}) {
+export function DebugPage({model={},actions=null,hidden=false,development=null,
+  browserHistoryModel=null,browserHistoryActions=null}) {
   const state={...DEBUG_INITIAL_STATE,...model};
   const unavailable=state.disposed;
   const metrics=[
@@ -47,6 +49,9 @@ export function DebugPage({model={},actions=null,hidden=false,development=null})
       <details className="debug-detail od-disclosure"><summary>脱敏诊断快照</summary>
         <pre id="debug-snapshot" aria-label="诊断快照"><DebugDiagnosticText value={state.snapshot}/></pre>
       </details>
+      {browserHistoryModel&&<section id="sidebar-host-browser-tools" aria-label="可信浏览器工具">
+        <BrowserHistory model={browserHistoryModel} actions={browserHistoryActions}/>
+      </section>}
     </section>
   </div>;
 }

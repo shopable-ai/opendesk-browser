@@ -8,7 +8,6 @@ import {MyTasksPage,MyTasksDock} from './tabs/my-page.tsx';
 import {WorkflowPage} from './tabs/workflow.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
 import {DebugPage} from './tabs/debug.tsx';
-import {BrowserHistory} from './tabs/browser-history.tsx';
 
 const emptyToolSnapshot={fields:{}};
 const readEmptyTool=()=>emptyToolSnapshot;
@@ -56,9 +55,6 @@ export function SidebarAppShell({
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
             </section>
-            {browserHistoryModel&&<section id="sidebar-host-browser-tools" aria-label="可信浏览器工具">
-              <BrowserHistory model={browserHistoryModel} actions={browserHistoryActions}/>
-            </section>}
           </div>
           {toolView&&<ToolHost view={toolView}/>}
         </section>
@@ -69,7 +65,9 @@ export function SidebarAppShell({
         setupModel={cloudSetupModel}
         pageModel={cloudPageModel}
         hidden={activeTab!=='cloud'}/>
-      {debugEnabled&&<DebugPage model={debugModel} actions={debugActions} development={development} hidden={activeTab!=='debug'}/>}
+      {debugEnabled&&<DebugPage model={debugModel} actions={debugActions} development={development}
+        browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
+        hidden={activeTab!=='debug'}/>}
     </main>
     <footer id="workspace-dock" className="workspace-dock" hidden={runDock.hidden&&!developerCanStop} data-stop-only={String(runDock.stopOnly||developerCanStop&&activeTab!=='develop')}>
       <MyTasksDock view={myView} hidden={runDock.taskHidden}/>
