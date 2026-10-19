@@ -14,6 +14,8 @@ The merged App keeps the compact native controls, inline ×, restore-original ac
 
 `index.html` is standalone and embeds fixed React 19.2.0, shared UI, the actual App, and product CSS. Its CSP blocks network connections. It does not install or run a browser extension. `src/style.css` owns only the preview frame and fictional scene controls; product icon sizes and text geometry belong to `../../src/react.css`.
 
+The shared product components retain the compact editor labels and value hints, the “属性” / “存储信息” disclosures, and the compact site hostname. The preview does not restore the old standalone business UI or its separate “变化观察” section. Chromium coverage retains disclosure-based selectors, read-only Domain/Path, disabled Host-only, and partition identity checks against the actual App; preview CSS does not override those product styles.
+
 Prerequisites: Node >=22.12, the existing preview lockfile/dependencies, `src/libs/page-frameworks/react-19.2.0.js`, and the shared UI emitted by the existing watcher at `dist/development/sidebar-shared-ui.js`. Do not start another Host writer or fall back to production output.
 
 ```sh
@@ -22,6 +24,8 @@ npm run check
 npm test
 CHROME_BIN='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm run test:chromium
 ```
+
+For this conflict-only merge, no preview build, browser run, installation, or native validation was performed. The existing HTML, screenshots, and earlier pass counts remain historical evidence until checked against the merged sources.
 
 The existing Vite plus `build-preview.mjs` wrapper binds the document to source input hashes. `check` detects stale HTML; the Chromium command checks the current build without rebuilding it. Artifacts and screenshots are local evidence under `artifacts/cookie-editor-r520/`, not extra committed snapshot matrices.
 

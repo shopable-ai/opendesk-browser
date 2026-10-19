@@ -33,6 +33,8 @@ try{
   assert.equal(await page.title(),'Cookie Editor R5.20 · 380px 交互预览');
   assert.deepEqual(await page.evaluate(()=>({react:OpenDeskPageReact.version,button:typeof OpenDeskSidebarUI.Button,chrome:typeof chrome?.cookies})),{react:'19.2.0',button:'function',chrome:'undefined'});
   assert.equal(await page.locator('.cookie-editor-react').count(),1);
+  assert.equal(await page.locator('.site-hostname').count(),1);
+  assert.equal(await page.getByText('更多 · 变化观察',{exact:true}).count(),0);
   assert.equal(await lab.getAttribute('open'),null);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   assert.equal(Math.round((await page.locator('.cookie-app').boundingBox()).width),380);
@@ -57,6 +59,8 @@ try{
  await test('inline edit: original value, clean cancel, dirty guard and restoration',async()=>{
   await row('session_id').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='sess_demo_only_C18');
+  assert.equal(await editor().locator('.editor-top > strong').innerText(),'编辑');
+  assert.equal(await valueInput().getAttribute('placeholder'),'留空保留原值');
   assert.equal(await button('保存').isDisabled(),true);
   await button('取消').click();assert.equal(await editor().count(),0);
   await row('session_id').click();await nameInput().fill('edited_session');
@@ -68,7 +72,9 @@ try{
   await button('取消').click();
  });
  await test('save rename uses actual Controller and preserves the old value',async()=>{
-  await row('session_id').click();await nameInput().fill('renamed_sid');await button('保存').click();
+  await row('session_id').click();await nameInput().fill('renamed_sid');
+  assert.equal((await editor().locator('.editor-hint').innerText()).trim(),'更名先创建新项，再删除旧项。');
+  await button('保存').click();
   await row('renamed_sid').waitFor();assert.equal(await row('session_id').count(),0);
   await row('renamed_sid').click();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='sess_demo_only_C18');
@@ -80,9 +86,19 @@ try{
   await button('筛选与排序').click();await button('分区').click();
   assert.equal(await page.locator('.cookie-row').count(),1);assert.equal(await row('embedded_pref').count(),1);
   await button('全部').click();await button('筛选与排序').click();
-  await row('embedded_pref').click();await editor().locator('.advanced > summary').click();
-  await editor().locator('.editor-identity > summary').click();
-  assert.match(await editor().innerText(),/Store ID/);assert.match(await editor().innerText(),/PartitionKey/);
+  await row('embedded_pref').click();
+  const attributes=editor().locator('details.advanced');
+  assert.equal(await attributes.locator(':scope > summary').innerText(),'属性');
+  await attributes.locator(':scope > summary').click();
+  assert.equal(await editor().getByRole('textbox',{name:'Domain',exact:true}).getAttribute('readonly'),'');
+  assert.equal(await editor().getByRole('textbox',{name:'Path',exact:true}).getAttribute('readonly'),'');
+  assert.equal(await editor().getByRole('checkbox',{name:'Host-only',exact:true}).isDisabled(),true);
+  const storage=editor().locator('details.editor-identity');
+  assert.equal(await storage.getAttribute('open'),null);
+  assert.equal(await storage.locator(':scope > summary').innerText(),'存储信息');
+  await storage.locator(':scope > summary').click();
+  assert.match(await storage.innerText(),/Store ID/);assert.match(await storage.innerText(),/PartitionKey/);
+  assert.match(await storage.innerText(),/partner\.example\.net/);
   assert.equal(await page.locator('input[type=password]').count(),0);
   await button('取消').click();
  });

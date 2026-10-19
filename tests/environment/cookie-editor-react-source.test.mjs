@@ -25,6 +25,8 @@ test('Cookie React candidate has isolated root and single public SDK pathway',as
   assert.match(app,/controller\.syncMetadata/);
   assert.match(app,/document\.visibilityState/);
   assert.doesNotMatch(app,/cookie-observe-fold|变化观察/);
+  assert.doesNotMatch(adapter,/observeStart|observeRead|observeStop/);
+  assert.doesNotMatch(controller,/observeStart|observeRead|observeStop|async function observe\(/);
   assert.match(adapter,/capabilities\.getStatus/);
   assert.doesNotMatch(app,/chrome\.cookies|document\.cookie|localStorage|sessionStorage/);
 });

@@ -66,6 +66,7 @@ browserTest('Four states, three variants, zero to four buttons and composer inte
     await page.locator('#rail').evaluate(el=>el.offsetHeight);
     assert.match(await page.locator('#rail').getAttribute('class'),new RegExp('variant-'+variant));
   }
+  await page.locator('#settings summary').click();
   for(let count=0;count<=4;count++){
     await page.locator('#count').selectOption(String(count));
     assert.equal(await page.locator('#rail .prompt').count(),count);
@@ -98,6 +99,7 @@ browserTest('Tooltip Escape and separately dismissible sponsor retain keyboard f
   assert.equal(await page.locator('#tip').isVisible(),true);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#tip').isHidden(),true);
+  await page.locator('#settings summary').click();
   await page.locator('#sponsor').check();
   await page.locator('#rail .ad').focus();
   assert.equal(await page.locator('#tip').isVisible(),true);
@@ -111,6 +113,7 @@ browserTest('Tooltip Escape and separately dismissible sponsor retain keyboard f
 });
 
 browserTest('Compact viewport, dark theme, English and Japanese; avoid composer overlap',async page=>{
+  await page.locator('#settings summary').click();
   for(const size of ['1440','1024','390']){
     await page.locator('#size').selectOption(size);
     await page.waitForTimeout(120);

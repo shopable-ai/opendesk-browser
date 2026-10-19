@@ -2,7 +2,8 @@ import * as React from 'react';
 import CookieEditorApp from '../../../app/CookieEditorApp.jsx';
 import {createMockSdk} from './mock-sdk.js';
 
-// Scene controls live outside the unchanged product App. Only SDK responses are fictional.
+// The shared product App owns compact editor copy, attribute/storage disclosures and the site header.
+// Scene controls live outside that App. Only SDK responses are fictional.
 export default function App(){
  const [scene,setScene]=React.useState('ready');
  const [revision,setRevision]=React.useState(0);

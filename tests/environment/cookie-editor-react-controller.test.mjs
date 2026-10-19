@@ -10,7 +10,7 @@ const copy=value=>structuredClone(value);
 const deferred=()=>{let resolve,reject;const promise=new Promise((done,fail)=>{resolve=done;reject=fail;});return {resolve,reject,promise};};
 function fixture(){
   let rows=[copy(base)],allow=true;
-  const calls=[],stopCalls=[];
+  const calls=[];
   const cookies={
     getAll:async opts=>{
       calls.push(['getAll',copy(opts)]);
@@ -31,12 +31,7 @@ function fixture(){
       return {removed:true,verified:true};
     },
     clearSite:async opts=>opts.preview?{matched:rows.length,previewRef:'12345678-1234-1234-1234-123456789abc'}:
-      {preview:false,scope:'EXACT_HOST_HOST_ONLY',matched:1,removed:1,remaining:0},
-    observe:{
-      start:async()=>({sessionRef:'session-ref'}),
-      read:async()=>({events:[],nextCursor:'0'}),
-      stop:async opts=>{stopCalls.push(copy(opts));return {stopped:true};}
-    }
+      {preview:false,scope:'EXACT_HOST_HOST_ONLY',matched:1,removed:1,remaining:0}
   };
   const browser={cookies,capabilities:{getStatus:async()=>({callableNow:allow,
     reasonCode:allow?undefined:'E_SITE_GRANT_REQUIRED'})},
@@ -46,7 +41,7 @@ function fixture(){
     request:async()=>({status:'available',url:site})});
   const snapshots=[];
   const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
-  return {browser,cookies,adapter,controller,calls,stopCalls,snapshots,
+  return {browser,cookies,adapter,controller,calls,snapshots,
     rows:()=>copy(rows),replaceRows:value=>{rows=copy(value)},
     grant:value=>{allow=value}};
 }
@@ -154,7 +149,6 @@ test('passive sync revocation clears scope and previews even if a draft blocks a
     const source='fresh=PRIVATE_IMPORT';
     await f.controller.previewImport(source);
     await f.controller.previewClear();
-    await f.controller.observe('start');
     const epoch=f.controller.snapshot().epoch,pending=deferred(),started=deferred();
     const original=f.cookies.getAll;let canApply=true;
     f.cookies.getAll=async()=>{started.resolve();return pending.promise;};
@@ -167,8 +161,6 @@ test('passive sync revocation clears scope and previews even if a draft blocks a
     assert.equal(snapshot.target,null);
     assert.deepEqual(snapshot.rows,[]);
     assert.equal(snapshot.syncStale,false);
-    assert.equal(snapshot.observing,false);
-    assert.equal(f.stopCalls.length,1);
     f.cookies.getAll=original;
     await f.controller.load();
     assert.equal(await f.controller.executeImport(source),false);
@@ -248,13 +240,10 @@ test('unknown native write must never automatically retry',async()=>{
   assert.match(f.controller.snapshot().message,/不要自动重试/);
   f.controller.dispose();
 });
-test('navigation invalidates stale async reads and retires observation',async()=>{
+test('navigation invalidates stale async reads',async()=>{
   const f=fixture();await f.controller.load();
-  await f.controller.observe('start');
   f.controller.invalidate('目标已变');
-  await Promise.resolve();await Promise.resolve();
   assert.equal(f.controller.snapshot().rows.length,0);
-  assert.equal(f.stopCalls.length,1);
   await f.controller.load();
   const pending=deferred();f.cookies.getAll=async()=>pending.promise;
   const read=f.controller.load();await Promise.resolve();await Promise.resolve();
@@ -673,41 +662,5 @@ test('R5.20 batched revocation receipts retire the epoch and cannot replay an im
   await f.controller.load();
   assert.equal(await f.controller.executeImport('fresh=PRIVATE'),false);
   assert.equal(writes,1);
-  f.controller.dispose();
-});
-
-test('R5.20 observation reports legacy gap/drop facts with metadata-only snapshots',async()=>{
-  const f=fixture();await f.controller.load();
-  f.cookies.observe.read=async()=>({
-    events:[{name:'sid',domain:base.domain,path:'/',removed:false,
-      value:'OBSERVE_SECRET',details:{value:'NESTED_SECRET'}},
-      {name:'old',domain:base.domain,path:'/account',removed:true}],
-    nextCursor:'2',gapCount:4,droppedCount:9,sessionRef:'PRIVATE_SESSION_REF'
-  });
-  await f.controller.observe('start');
-  assert.equal(f.controller.snapshot().observeStats,null);
-  await f.controller.observe('read');
-  const snapshot=f.controller.snapshot();
-  assert.deepEqual(snapshot.observeStats,{eventCount:2,gapCount:4,droppedCount:9});
-  assert.equal(snapshot.message,'本次读取 2 个变化，缺口 4，缓冲丢弃 9；无 Cookie 值。');
-  assert.deepEqual(snapshot.observeEvents,[
-    {name:'sid',domain:base.domain,path:'/',removed:false},
-    {name:'old',domain:base.domain,path:'/account',removed:true}
-  ]);
-  snapshot.observeStats.gapCount=999;
-  assert.equal(f.controller.snapshot().observeStats.gapCount,4);
-  assert.doesNotMatch(JSON.stringify(f.snapshots),/OBSERVE_SECRET|NESTED_SECRET|PRIVATE_SESSION_REF/);
-  // Incomplete receipts must not claim a confirmed zero gap or zero drops.
-  f.cookies.observe.read=async()=>({events:[],nextCursor:'2'});
-  await f.controller.observe('read');
-  assert.deepEqual(f.controller.snapshot().observeStats,
-    {eventCount:0,gapCount:null,droppedCount:null});
-  assert.match(f.controller.snapshot().message,/缺口 未提供，缓冲丢弃 未提供/);
-  await f.controller.observe('stop');
-  assert.equal(f.controller.snapshot().observeStats,null);
-  await f.controller.observe('start');await f.controller.observe('read');
-  f.controller.invalidate('撤权');
-  assert.equal(f.controller.snapshot().observeStats,null);
-  assert.deepEqual(f.controller.snapshot().observeEvents,[]);
   f.controller.dispose();
 });

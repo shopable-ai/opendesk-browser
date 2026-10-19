@@ -18,20 +18,17 @@ const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
 export function createCookieController({adapter,onChange=()=>{}}){
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
-    message='',messageType='info',importPlan=null,clearPlan=null,
-    observing=null,observeCursor='0',observeEvents=[],observeStats=null;
+    message='',messageType='info',importPlan=null,clearPlan=null;
   let importRevision=0,clearRevision=0,valueRevision=0;
   let syncStale=false,syncPending=null,syncGeneration=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
-    phase,message,messageType,observing:!!observing,
-    observeEvents:observeEvents.map(x=>({...x})),
-    observeStats:observeStats?{...observeStats}:null,syncStale});
+    phase,message,messageType,syncStale});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     const uncertain=busy;
-    retireObservation();retireSync();syncStale=false;
+    retireSync();syncStale=false;
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;
     clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
@@ -47,17 +44,9 @@ export function createCookieController({adapter,onChange=()=>{}}){
     retireSync();busy=true;valueRevision++;const at=target,ticket=epoch;notify();return {at,ticket};};
   const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
-  // Host observation sessions are owned by the old URL and may survive the UI.
-  // Retire them on every target/grant change, including in-flight read failures.
-  function retireObservation(){
-    const at=target,sessionRef=observing?.sessionRef;
-    observing=null;observeCursor='0';observeEvents=[];observeStats=null;
-    if(at&&typeof sessionRef==='string')
-      void Promise.resolve().then(()=>adapter.observeStop(at,sessionRef)).catch(()=>{});
-  }
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
-    retireObservation();retireSync();syncStale=false;
+    retireSync();syncStale=false;
     const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;
     clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
@@ -401,53 +390,6 @@ export function createCookieController({adapter,onChange=()=>{}}){
       await load(guard.at.url,{preserveMessage:true});
     return complete;
   }
-  async function observe(action){
-    const guard=lock();if(!guard)return;
-    try{
-      if(action==='start'){
-        const started=await adapter.observeStart(guard.at);
-        if(!verifiedRead(guard)){
-          if(typeof started?.sessionRef==='string')
-            void Promise.resolve().then(()=>adapter.observeStop(guard.at,started.sessionRef)).catch(()=>{});
-          return;
-        }
-        if(typeof started?.sessionRef!=='string')throw badReceipt();
-        observing=started;observeCursor='0';observeEvents=[];observeStats=null;
-        report('已开始 15 秒元数据观察，无 Cookie Value。');
-      }else if(observing){
-        const sessionRef=observing.sessionRef;
-        if(action==='stop'){
-          // Clear the local handle before awaiting the Host, so navigation
-          // cannot schedule a duplicate stop or revive a stale session.
-          observing=null;observeCursor='0';observeEvents=[];observeStats=null;
-          await adapter.observeStop(guard.at,sessionRef);
-          if(!verifiedRead(guard))return;
-          report('已停止观察。');
-        }else if(action==='read'){
-          const outcome=await adapter.observeRead(guard.at,sessionRef,observeCursor);
-          if(!verifiedRead(guard))return;
-          observeCursor=outcome.nextCursor;
-          observeEvents=(outcome.events||[]).slice(-40).map(item=>({
-            name:String(item.name||''),domain:String(item.domain||''),
-            path:String(item.path||''),removed:item.removed===true
-          }));
-          // Only bounded numeric facts leave the private SDK receipt. Missing
-          // or invalid counters are unknown, never a confirmed zero loss.
-          const count=value=>Number.isSafeInteger(value)&&value>=0?value:null;
-          observeStats={eventCount:outcome.events?.length??0,
-            gapCount:count(outcome.gapCount),droppedCount:count(outcome.droppedCount)};
-          report('本次读取 '+observeStats.eventCount+' 个变化，缺口 '+
-            (observeStats.gapCount??'未提供')+'，缓冲丢弃 '+
-            (observeStats.droppedCount??'未提供')+'；无 Cookie 值。');
-        }
-      }
-    }catch(error){if(verifiedRead(guard)){
-      if(rejectLostAccess(error))return;
-      if(error?.code==='E_SESSION_EXPIRED')
-        retireObservation();
-      report('变化观察中止'+formatCode(error,'E_COOKIE_OBSERVE')+'。','error');
-    }}finally{unlock(guard);}
-  }
   // A read started before any operation must stay retired even if that
   // operation fails and releases busy without changing the target epoch.
   function retireSync(){syncGeneration++;syncPending=null;}
@@ -482,13 +424,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
     }finally{if(syncPending===token)syncPending=null;}
   }
   function dispose(){
-    retireObservation();retireSync();syncStale=false;
+    retireSync();syncStale=false;
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;
-    clearPlan=null;observeEvents=[];
+    clearPlan=null;
   }
   // Initial state is available synchronously through snapshot(). Do not
   // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
-    discardImport,exportTo,observe,syncMetadata,dispose};
+    discardImport,exportTo,syncMetadata,dispose};
 }
