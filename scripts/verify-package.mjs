@@ -62,6 +62,7 @@ export const FIXED_ASSETS = Object.freeze({
 const HTML_REFERENCES = Object.freeze({
   [SIDEPANEL_DOCUMENT_PATH]: ['ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/time-review.css', 'ui/cloud-hosting.css', 'ui/extension-center.css', 'ui/sidebar-tool-host.js', 'ui/stay-focus-controls.js', 'ui/trusted-cookie-ui.js', 'ui/tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
+  'cloud-control/runner.html': ['cloud-runner.js'],
   'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
@@ -519,7 +520,7 @@ export async function inspectHTML(root, file) {
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === SIDEPANEL_DOCUMENT_PATH ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : (file === SIDEPANEL_DOCUMENT_PATH || file === 'cloud-control/runner.html') ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
   if (file === SIDEPANEL_DOCUMENT_PATH) inspectReactMountHTML(text, file, 'opendesk-react-app');
   if (file === 'native-agent/workspace.html') inspectReactMountHTML(text, file, 'workspace-root');
 }

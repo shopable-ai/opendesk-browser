@@ -4,6 +4,7 @@ import {verifyTaskPackage,validateTaskParams} from '../platform/tasks/contract.j
 import {permissionPattern} from '../environment.js';
 import {requireChromePermissions,createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 import {matchesCloudProgramDescriptor,summarizeCloudSourceDifference} from './cloud-program-review.js';
+import {CLOUD_RUNNER_DOCUMENT_PATH} from '../tool-document-url.js';
 // Advisory projection only: the Browser Host uses the original Task resolver
 // again before granting authority, binding a Run, or admitting a Worker.
 export function projectCloudInstalledTasks(data,approved=[]){
@@ -546,6 +547,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   async function dispatchNext(s){
     if(disposed||!s?.enabled||host.executionPending||starting||!s.online||!s.reconciled)return;
+    // Avoid competing claims: the background owner wins whenever Chrome reports it.
+    if(api.runtime?.getContexts&&api.runtime?.getURL){
+      try{
+        const runners=await api.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT'],
+          documentUrls:[api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH)]});
+        if(disposed||runners.length)return;
+      }catch{return;} // Unknown native owner state must never permit duplicate dispatch.
+    }
     starting=true;
     try{
       const next=await cloud.cloudNext({});if(!next||disposed){starting=false;return;}

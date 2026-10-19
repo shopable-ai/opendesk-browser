@@ -8,6 +8,7 @@ import {installStayFocusService} from '../examples/sidebar-tools/stay-focus/trus
 import {installAdblockService} from '../examples/sidebar-tools/adblock/trusted/service.js';
 import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/trusted/service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
+import {CLOUD_RUNNER_DOCUMENT_PATH} from './tool-document-url.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -35,6 +36,21 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
+// An offscreen document supplies only the DOM/Worker needed by the SAME RunHost.
+let runnerCreating=null;
+async function ensureCloudRunner(broker){
+  if(runnerCreating)return runnerCreating;
+  runnerCreating=(async()=>{
+    if((await broker.authority.cloud?.read())?.enabled!==true)return false;
+    const url=chrome.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
+    const contexts=await chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT'],documentUrls:[url]});
+    if(contexts.length)return true;
+    await chrome.offscreen.createDocument({url:CLOUD_RUNNER_DOCUMENT_PATH,
+      reasons:['WORKERS'],justification:'Execute already-approved Controller Tasks after closing the Side Panel'});
+    return true;
+  })();
+  try{return await runnerCreating;}finally{runnerCreating=null;}
+}
 // Fixed Browser Host sidecar reuses the sole foundation Scheduler instance.
 // No user code executes in this worker or can replace this trusted closure.
 globalThis.__opendeskBrowserSchedule=async(operation,args,owner,intent)=>{
@@ -46,7 +62,16 @@ globalThis.__opendeskBrowserSchedule=async(operation,args,owner,intent)=>{
 };
 registerDownloadEvents(chrome,foundation);
 let readyFoundation;
-foundation.then(broker=>{readyFoundation=broker;if(broker.authority.cloud)globalThis.__opendeskCloudConnection({service:broker.authority.cloud,api:chrome});}).catch(()=>{});
+foundation.then(async broker=>{
+  readyFoundation=broker;
+  if(broker.authority.cloud)globalThis.__opendeskCloudConnection({service:broker.authority.cloud,api:chrome});
+  await ensureCloudRunner(broker);
+}).catch(error=>console.warn('[cloud runner recovery]',error?.code||error?.message));
+// Reuse the existing MV3 cloud wake alarm, not a second transport or scheduler.
+chrome.alarms?.onAlarm?.addListener(alarm=>{
+  if(alarm.name==='opendesk.cloud.recover.v1')
+    foundation.then(ensureCloudRunner).catch(error=>console.warn('[cloud runner wake]',error?.code||error?.message));
+});
 foundation.catch(error => console.error('foundation startup',error));
 development?.start(async()=>{
   if(pendingFoundation||development.nativePending)return false;
@@ -136,7 +161,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
   pendingFoundation++;
-  foundation.then(broker=>broker.handle(message,sender)).then(
+  foundation.then(async broker=>{
+    const data=await broker.handle(message,sender);
+    if(message.type==='cloudApprove')await ensureCloudRunner(broker);
+    return data;
+  }).then(
     data=>sendResponse({ok:true,data}),
     error=>sendResponse({ok:false,error:projectFoundationError(error)})
   ).finally(()=>pendingFoundation--);

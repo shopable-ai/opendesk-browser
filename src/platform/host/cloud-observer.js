@@ -1,5 +1,6 @@
 // Observer-only extension page. This does not register, borrow or emulate a Host.
 import {invariant} from '../protocol.js';
+import {CLOUD_RUNNER_DOCUMENT_PATH} from '../../tool-document-url.js';
 
 export async function requireCloudConsoleSender(api,sender){
   const expected=api.runtime.getURL('ui/cloud-control.html');
@@ -38,4 +39,19 @@ export async function requireCloudSidePanelSender(api,sender){
     contexts[0].contextType==='SIDE_PANEL'&&contexts[0].documentId===sender.documentId&&
     contexts[0].documentUrl===sender.url&&contexts[0].frameId===0&&!contexts[0].incognito,
   'E_OWNER','Cloud execution sender is not a live Side Panel document');
+}
+
+export async function requireCloudRunnerSender(api,sender){
+  const expected=api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
+  invariant(sender?.id===api.runtime.id&&sender.url===expected&&!sender.tab&&
+    sender.frameId===0&&!sender.incognito&&
+    (sender.documentLifecycle===undefined||sender.documentLifecycle==='active')&&
+    typeof sender.documentId==='string'&&sender.documentId.length>0,
+    'E_OWNER','Cloud execution requires an original trusted offscreen Host');
+  const contexts=await api.runtime.getContexts({
+    contextTypes:['OFFSCREEN_DOCUMENT'],documentUrls:[expected],documentIds:[sender.documentId]});
+  invariant(Array.isArray(contexts)&&contexts.length===1&&
+    contexts[0].contextType==='OFFSCREEN_DOCUMENT'&&contexts[0].documentUrl===expected&&
+    contexts[0].documentId===sender.documentId&&contexts[0].frameId===0&&!contexts[0].incognito,
+    'E_OWNER','Cloud runner native document identity was lost');
 }
