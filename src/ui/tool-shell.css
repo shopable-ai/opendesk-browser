@@ -1512,3 +1512,12 @@
 .cloud-program-review .cloud-program-source{min-width:0}
 .cloud-program-review .cloud-program-source>strong{display:block;margin:var(--space-2) 0}
 .cloud-program-review .cloud-program-hash{font-size:10px;color:var(--od-sub);word-break:break-all}
+
+/* Cloud R1.6 one-off source trial uses the existing RunHost and task installer. */
+.cloud-program-trial{display:grid;gap:var(--space-2);margin:var(--space-2) 0;min-width:0}
+.cloud-program-trial>label{font-size:11px;font-weight:600}
+.cloud-program-trial textarea{width:100%;min-width:0;box-sizing:border-box;padding:8px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-surface,transparent);color:inherit;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.cloud-program-trial .od-button{justify-self:start}
+.cloud-program-trial-result{margin:var(--space-3) 0;padding:var(--space-3);min-width:0;border:1px solid var(--od-line);border-radius:var(--od-radius-md,10px)}
+.cloud-program-trial-result>p{margin:var(--space-2) 0;overflow-wrap:anywhere}
+.cloud-program-trial-result .cloud-program-hash{word-break:break-all;font-size:10px;color:var(--od-sub)}

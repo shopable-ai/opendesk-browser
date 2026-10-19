@@ -95,7 +95,9 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},pag
 // is shown only as inert, escaped React text, never injected into HTML/eval.
 export function CloudProgramInbox({model={}}){
   const rows=Array.isArray(model.rows)?model.rows:[],
-    review=model.review||null;
+    review=model.review||null,trial=model.trial||null;
+  const [paramsText,setParamsText]=React.useState('{}');
+  React.useEffect(()=>setParamsText('{}'),[review?.deliveryId,review?.sourceHash]);
   const trusted=(event,fn,id)=>{
     if(event.nativeEvent?.isTrusted===true&&typeof fn==='function')fn(id);
   };
@@ -157,11 +159,55 @@ export function CloudProgramInbox({model={}}){
                 </>:<p className="hint">已安装版本源码暂不可读取；请在任务目录核对后再替换。</p>}
               </details>
               :<p className="hint">本机尚无此 Task 的已安装版本。</p>}
-            <p className="hint">接收只保存候选；首次执行、验证和安装仍需在本机明确操作，不会自动授权云控。</p>
+            <div className="cloud-program-trial">
+              <label htmlFor="cloud-program-params">试运行参数（JSON）</label>
+              <textarea id="cloud-program-params" rows={2}
+                value={paramsText} onChange={event=>setParamsText(event.currentTarget.value)}
+                spellCheck={false}/>
+              <button type="button" className="od-button"
+                disabled={Boolean(model.busy)}
+                onClick={event=>{
+                  if(event.nativeEvent?.isTrusted===true)
+                    model.onTrial?.(row.deliveryId,paramsText,event.nativeEvent);
+                }}>在当前授权网页单次试运行</button>
+            </div>
+            <p className="hint">本次执行使用原有 Controller Worker；只允许清单指定的网站。试运行不自动安装，也不授予云控长期权限。</p>
           </section>}
         </li>;
       })}
     </ul>}
+    {trial&&<section className="cloud-program-trial-result od-disclosure"
+      aria-label="本机一次性试运行记录">
+      <strong>最近试运行 · {trial.title} v{trial.version}</strong>
+      <p role="status">{trial.message||'执行状态待核对'}</p>
+      <p className="hint">Run：{trial.runId||'尚未创建'} · 状态：{trial.state}</p>
+      <p className="cloud-program-hash">SHA-256 {trial.sourceHash}</p>
+      <div className="cloud-program-actions">
+        <button type="button" className="od-button od-button--secondary"
+          disabled={!trial.canStop}
+          onClick={event=>trusted(event,model.onStopTrial)}>停止本次 Run</button>
+        <button type="button" className="od-button od-button--secondary"
+          disabled={!trial.runId}
+          onClick={event=>trusted(event,model.onOpenTrial)}>
+          查看原始 Run / Result
+        </button>
+        <button type="button" className="od-button od-button--secondary"
+          disabled={!trial.canVerify}
+          onClick={event=>trusted(event,model.onVerifyTrial)}>
+          验证页面回执并发布本地版本
+        </button>
+        <button type="button" className="od-button"
+          disabled={!trial.canInstall}
+          onClick={event=>{
+            if(event.nativeEvent?.isTrusted===true)
+              model.onInstallTrial?.(event.nativeEvent);
+          }}>
+          正式安装此版本
+        </button>
+      </div>
+      {!trial.imported&&<p className="hint">先在上方点击「接收为待验证任务」，再验证本次 Run。</p>}
+      {trial.installed&&<p className="hint">安装后若希望服务器调用，须另外批准此精确 Task 安装版本。</p>}
+    </section>}
   </section>;
 }
 

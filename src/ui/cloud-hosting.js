@@ -1,6 +1,8 @@
 // Hosting shares the visible document's existing RunHost and Authority slot.
 import {projectCloudStatus,cloudHostingSummary,projectCloudRequestSamples,cloudSlotStateLabel} from './cloud-status-presentation.js';
-import {verifyTaskPackage} from '../platform/tasks/contract.js';
+import {verifyTaskPackage,validateTaskParams} from '../platform/tasks/contract.js';
+import {permissionPattern} from '../environment.js';
+import {requireChromePermissions,createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 import {matchesCloudProgramDescriptor,summarizeCloudSourceDifference} from './cloud-program-review.js';
 // Advisory projection only: the Browser Host uses the original Task resolver
 // again before granting authority, binding a Run, or admitting a Worker.
@@ -35,7 +37,7 @@ const cloudChoiceKey=task=>[task.taskId,task.version,task.manifestHash,task.sour
 
 // A single Controller owns selections, confirmations and operation lifetimes.
 // React receives projections/actions only; the Cloud Host rechecks every pin.
-export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI,onOpenRun,onManageTasks}){
+export function createCloudHosting({client,host,document:doc=globalThis.document,api=globalThis.chrome,reactUI,currentPageTarget,onTaskInstalled,onOpenRun,onManageTasks}){
   if(!reactUI?.cloudPageMounted)throw new Error('E_REACT_CLOUD_PAGE_REQUIRED');
   const cloud=client.cloud,get=id=>doc.getElementById(id);
   let disposed=false,busy=false,starting=false,timer,refreshing=null,epoch=0,secretEpoch=0;
@@ -48,7 +50,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   let clientPins='',clientTaskId='',clientName='',clientResult=false,oneTimeToken='';
   let pairing={url:'',providerId:'',pairingCode:'',loopback:false};
   let overview={summary:'正在检查连接与授权…',connection:'检测中'},brief='未配对',statusText='尚未配对';
-  let statusFailed=false,programRows=[],reviewedProgram=null,programStatus='点击刷新，检查服务器交付的待审核程序。';
+  let statusFailed=false,programRows=[],reviewedProgram=null,lastTrial=null,
+    trialActiveId=null,trialStopping=false,
+    programStatus='点击刷新，检查服务器交付的待审核程序。';
+  const permissionConsent=api?.permissions?
+    createChromePermissionConsent({api,onChange:()=>{
+      if(lastTrial?.available){lastTrial.permissionPrepared=false;
+        void prepareInstallPermission(lastTrial);}
+    }}):null;
   const selectedTasks=()=>taskChoices.filter(t=>t.eligible&&selections.get(cloudChoiceKey(t))?.selected);
   const activeTasks=()=>state?.enabled&&Array.isArray(state.tasks)?state.tasks:[];
   const resetConsent=()=>{consent=false;resultConsent=false;};
@@ -69,6 +78,16 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       overview,visibleApproval:!!state?.provider,
       programs:{rows:programRows,busy,canRefresh:!!state?.provider&&!busy,
         status:programStatus,onRefresh:()=>action(refreshPrograms),
+        trial:lastTrial?{
+          deliveryId:lastTrial.deliveryId,title:lastTrial.title,taskId:lastTrial.taskId,
+          version:lastTrial.version,runId:lastTrial.runId,sourceHash:lastTrial.sourceHash,
+          state:lastTrial.state,message:lastTrial.message,imported:lastTrial.imported,
+          verified:lastTrial.verified,available:lastTrial.available,installed:lastTrial.installed,
+          busy,permissionPrepared:lastTrial.permissionPrepared,
+          canStop:!!trialActiveId&&host.currentRun===trialActiveId&&!trialStopping,
+          canVerify:!busy&&lastTrial.imported===true&&lastTrial.success===true&&!lastTrial.verified,
+          canInstall:!busy&&lastTrial.available===true&&!lastTrial.installed&&lastTrial.permissionPrepared===true
+        }:null,
         review:review?{deliveryId:review.deliveryId,
           source:review.package.sourceUtf8,description:review.package.manifest.description,
           author:review.package.manifest.author,sourceOrigin:review.package.manifest.source,
@@ -81,7 +100,15 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
           previousSource:review.previousSource,
           difference:review.difference}:null,
         onReview:deliveryId=>action(()=>reviewProgram(deliveryId)),
-        onImport:deliveryId=>action(()=>acceptProgram(deliveryId))},
+        onImport:deliveryId=>action(()=>acceptProgram(deliveryId)),
+        onTrial:(deliveryId,paramsText,event)=>action(()=>trialProgram(deliveryId,paramsText,event)),
+        onStopTrial:()=>{void stopTrial();},
+        onVerifyTrial:()=>action(verifyTrial),
+        onInstallTrial:event=>action(()=>installTrial(event)),
+        onOpenTrial:()=>action(async()=>{
+          if(!lastTrial?.runId||typeof onOpenRun!=='function')throw {code:'E_CLOUD_RESULT_VIEW'};
+          await onOpenRun(lastTrial.runId);
+        })},
       setup:{visible:!state?.provider,nextStep:'先安装或验证任务，再连接可信提供者并选择允许远程调用的任务。'},
       onRefresh:()=>action(()=>{},true),onOpenConsole:()=>action(()=>api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')})),
       onHide:()=>{clearSecrets();publish();},
@@ -143,6 +170,14 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const help={E_DELIVERY:'交付程序身份或源码校验失败，请刷新后核对',
       E_DELIVERY_REVIEW_REQUIRED:'请先查看并核对完整源码，再接收待验证任务',
       E_HASH:'远程源码哈希验证失败；程序未导入',
+      E_VERIFICATION:'试运行尚无成功的原生页面操作回执；请查看原始 Run 再重试',
+      E_DOCUMENT_STALE:'当前目标网页已经变化，请回到授权网站后重试',
+      E_TARGET:'请切换到此程序允许的网站，再点击试运行',
+      E_PARAMS:'参数格式或取值不符合源码声明，请检查后重试',
+      E_GESTURE:'请主动点击试运行或正式安装',
+      E_PERMISSION_CHECK_REQUIRED:'网站权限尚未准备完成，请稍后再试',
+      E_RUN_ACTIVE:'已有其他任务正在执行，请先结束该任务',
+      E_HOST_CLOSED:'运行宿主已关闭；请检查原始 Run 的最终状态',
       E_DELIVERY_LIMIT:'服务器待审核程序数量已达上限',
       E_AUTH:'提供者拒绝凭据，请核对配对状态',
       E_PAIRING:'连接尚未完成配对，或需要先解除已有配对',
@@ -310,9 +345,152 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     programRows=programRows.filter(item=>item.deliveryId!==deliveryId);
     programStatus='已导入待验证任务 '+row.title+'；请到「我的」使用原有试运行、验证与安装流程。';
     catalogAt=0;
+    if(lastTrial?.deliveryId===deliveryId&&lastTrial.manifestHash===row.manifestHash&&
+      lastTrial.sourceHash===row.sourceHash)lastTrial.imported=true;
     // An ACK timeout may leave the immutable Candidate, never an auto-run.
     try{await cloud.cloudProgramReceived({deliveryId,manifestHash:row.manifestHash});}
     catch{programStatus+=' 提供者回执待核对；任务未自动执行。';}
+  }
+  async function prepareInstallPermission(trial){
+    if(!permissionConsent||!trial?.available)return;
+    try{
+      const observed=await permissionConsent.prepare({
+        origins:trial.siteOrigins.map(permissionPattern)});
+      if(!disposed&&lastTrial===trial){
+        trial.permissionPrepared=Boolean(observed);
+        publish();
+      }
+    }catch(error){if(!disposed&&lastTrial===trial)operationFail(error);}
+  }
+  async function trialProgram(deliveryId,paramsText,event){
+    if(event?.isTrusted!==true)throw {code:'E_GESTURE'};
+    const reviewed=reviewedProgram,row=programRows.find(item=>item.deliveryId===deliveryId);
+    if(!reviewed||!row||!matchesCloudProgramDescriptor(row,deliveryId,reviewed.package))
+      throw {code:'E_DELIVERY_REVIEW_REQUIRED'};
+    if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||
+      typeof host.start!=='function'||typeof client.controller?.snapshotControllerRun!=='function')
+      throw {code:'E_HOST_CLOSED'};
+    if(host.executionPending||host.currentRun)throw {code:'E_RUN_ACTIVE'};
+    // Validate only the exact reviewed source and current top-level document.
+    // This explicit click starts ONE original RunHost Controller draft, not an
+    // installed Task and not an ongoing Cloud authorization.
+    const pkg=await verifyTaskPackage(reviewed.package);
+    if(disposed||reviewedProgram!==reviewed)throw {code:'E_DELIVERY_REVIEW_REQUIRED'};
+    const captured=currentPageTarget.capture(),manifest=pkg.manifest;
+    if(!manifest.siteOrigins.includes(captured.origin))throw {code:'E_TARGET'};
+    let params;
+    try{params=validateTaskParams(manifest.paramsSchema,JSON.parse(paramsText));}
+    catch{throw {code:'E_PARAMS'};}
+    const trial={deliveryId,title:manifest.title,taskId:manifest.taskId,
+      version:manifest.version,manifestHash:pkg.manifestHash,
+      sourceHash:manifest.program.sourceHash,siteOrigins:[...manifest.siteOrigins],
+      runId:null,state:'preparing',message:'正在验证目标网页并申请一次性 Run',
+      imported:false,success:false,verified:false,available:false,installed:false,
+      permissionPrepared:false};
+    lastTrial=trial;publish();
+    await requireChromePermissions({api,request:{
+      origins:manifest.siteOrigins.map(permissionPattern)}});
+    await currentPageTarget.revalidate(captured);
+    if(disposed||lastTrial!==trial||reviewedProgram!==reviewed)throw {code:'E_DELIVERY_REVIEW_REQUIRED'};
+    const claim=await host.start({source:{kind:'draft',sourceUtf8:pkg.sourceUtf8},
+      params,target:{mode:'borrowed',tabId:captured.tabId,frameId:captured.frameId,
+        documentId:captured.documentId,expectedUrl:captured.url,
+        expectedWindowId:captured.windowId},networkOrigins:[],deadlineAt:Date.now()+30000});
+    trial.runId=claim.runId;trialActiveId=claim.runId;trial.state='running';
+    trial.message='正在运行固定源码；若关闭 Side Panel，可能中断，请查看原始 Run';
+    publish();
+    try{
+      const completed=await host.completion;
+      if(disposed)return;
+      const observation=await client.controller.snapshotControllerRun({runId:claim.runId});
+      const run=observation.run??observation.runs?.find(item=>item.runId===claim.runId);
+      const result=observation.results?.find(item=>item.runId===claim.runId&&
+        item.resultId===run?.resultId);
+      const proven=run?.runId===claim.runId&&run?.revision?.sourceHash===trial.sourceHash&&
+        run.state==='completed'&&run.retirementState==='released'&&
+        run.workerRetired===true&&run.target?.allowedOrigin===manifest.siteOrigins[0]&&
+        result?.state==='completed'&&result?.revision?.sourceHash===trial.sourceHash&&
+        result?.outcome?.ok===true&&completed?.pendingSettlement!==true;
+      trial.success=proven===true;
+      trial.state=run?.state||completed?.state||'paused_unknown';
+      trial.message=proven
+        ?'本次 Run 已持久完成；仍需验证真实页面操作回执才能安装。'
+        :'运行未得到符合安装条件的完整原始结果；请查看 Run / Result，不要重复执行未知副作用。';
+    }catch(error){
+      if(!disposed){
+        trial.success=false;trial.state='paused_unknown';
+        trial.message='原始 Run / Result 暂不可读取，请核对运行记录；不要自动重试。';
+        operationFail(error);
+      }
+    }finally{
+      if(trialActiveId===claim.runId)trialActiveId=null;
+      if(!disposed)publish();
+    }
+  }
+  async function stopTrial(){
+    const runId=trialActiveId;
+    if(!runId||trialStopping||host.currentRun!==runId)return;
+    trialStopping=true;
+    if(lastTrial?.runId===runId)lastTrial.message='正在请求停止本次 Run；以持久状态为准。';
+    publish();
+    try{await host.stop({controller:true,runId,reason:'E_CANCELLED'});}
+    catch(error){operationFail(error);}
+    finally{trialStopping=false;if(!disposed)publish();}
+  }
+  async function verifyTrial(){
+    const trial=lastTrial;
+    if(!trial?.imported||!trial.success||!trial.runId)throw {code:'E_VERIFICATION'};
+    // Existing trusted Installer cross-checks the native effect journal,
+    // not just a fulfilled JS return value or the UI trial model.
+    const candidate=await client.request('getTaskCandidate',{
+      taskId:trial.taskId,version:trial.version});
+    if(disposed||lastTrial!==trial||candidate?.manifestHash!==trial.manifestHash||
+      candidate.package?.manifest?.program?.sourceHash!==trial.sourceHash)
+      throw {code:'E_REVISION'};
+    const verified=await client.request('verifyTaskCandidate',{
+      taskId:trial.taskId,version:trial.version,runId:trial.runId});
+    if(disposed||lastTrial!==trial||verified?.verification?.sourceHash!==trial.sourceHash)
+      throw {code:'E_VERIFICATION'};
+    const available=await client.request('makeTaskAvailable',{
+      taskId:trial.taskId,version:trial.version,manifestHash:trial.manifestHash});
+    if(disposed||lastTrial!==trial||available?.stage!=='available'||
+      available?.manifestHash!==trial.manifestHash)throw {code:'E_VERIFICATION'};
+    trial.verified=true;trial.available=true;
+    trial.message='已核实原始 Run、页面操作回执与固定源码。现在可明确安装此版本。';
+    await prepareInstallPermission(trial);
+  }
+  async function installTrial(event){
+    const trial=lastTrial;
+    if(!trial?.available||!trial.verified||!trial.permissionPrepared||!permissionConsent)
+      throw {code:'E_VERIFICATION'};
+    // Invoke Chrome's permission request synchronously from the native
+    // Install click. The original Task Installer checks generation/manifest.
+    const confirmation=permissionConsent.confirm(event,{
+      origins:trial.siteOrigins.map(permissionPattern)});
+    await confirmation;
+    if(disposed||lastTrial!==trial)throw {code:'E_HOST_CLOSED'};
+    const candidate=await client.request('getTaskCandidate',{
+      taskId:trial.taskId,version:trial.version});
+    if(candidate?.stage!=='available'||candidate.manifestHash!==trial.manifestHash||
+      candidate.package?.manifest?.program?.sourceHash!==trial.sourceHash)
+      throw {code:'E_REVISION'};
+    const catalog=await client.request('listTaskCatalog',{}),
+      previous=catalog.installed?.find(item=>item.taskId===trial.taskId);
+    if(previous?.version===trial.version&&previous.manifestHash===trial.manifestHash){
+      trial.installed=true;trial.message=previous.enabled
+        ?'该固定版本已安装；若需云控执行，请另外批准这一安装身份。'
+        :'该固定版本已安装但停用；请在「我的」启用。';
+      return;
+    }
+    await client.request('installTask',{taskId:trial.taskId,version:trial.version,
+      manifestHash:trial.manifestHash,expectedInstalledVersion:previous?.version??null,
+      expectedGeneration:previous?.generation??null,
+      expectedInstallationId:previous?.installationId??null});
+    if(disposed||lastTrial!==trial)return;
+    trial.installed=true;
+    trial.message='已正式安装此固定版本；云控仍须另行批准，不会自动授予远程执行权限。';
+    catalogAt=0;
+    onTaskInstalled?.(trial.taskId);
   }
   async function approve(){
     if(!consent)throw {code:'E_CLOUD_CONSENT_REQUIRED'};
@@ -374,5 +552,5 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     }}catch(error){if(!disposed)fail(error);}finally{if(!disposed)timer=setTimeout(poll,2000);}
   }
   publish();void poll();
-  return {refresh,dispose(){if(disposed)return;clearSecrets();publish();disposed=true;reviewedProgram=null;programRows=[];epoch++;clearTimeout(timer);}};
+  return {refresh,dispose(){if(disposed)return;clearSecrets();publish();disposed=true;reviewedProgram=null;programRows=[];lastTrial=null;epoch++;clearTimeout(timer);permissionConsent?.dispose();}};
 }
