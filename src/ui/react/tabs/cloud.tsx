@@ -21,7 +21,7 @@ export function CloudFirstRun({model={}}){
       }}>连接提供者</button>
   </div>;
 }
-export function CloudConnectionPage({model={},requestsModel={},setupModel={},legacySections=[],hidden=false}){
+export function CloudConnectionPage({model={},requestsModel={},setupModel={},actionsModel={},legacySections=[],hidden=false}){
   const attachRest=React.useCallback(node=>{
     if(!node)return;
     for(const child of legacySections)
@@ -34,12 +34,20 @@ export function CloudConnectionPage({model={},requestsModel={},setupModel={},leg
         <strong className="od-page-title">云控</strong>
         <div className="cloud-panel-actions od-action-group">
           <button type="button" id="cloud-open-console" className="od-icon-button"
+            disabled={typeof actionsModel.onOpenConsole!=='function'}
+            onClick={event=>{
+              if(event.nativeEvent?.isTrusted===true)actionsModel.onOpenConsole?.();
+            }}
             title="在大页面打开云控控制台" aria-label="在新标签页打开只读云控控制台">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14 5h5v5m0-5-9 9M19 14v5H5V5h5"/>
             </svg>
           </button>
           <button type="button" id="cloud-overview-refresh" className="od-icon-button"
+            disabled={typeof actionsModel.onRefresh!=='function'}
+            onClick={event=>{
+              if(event.nativeEvent?.isTrusted===true)actionsModel.onRefresh?.();
+            }}
             title="刷新云控状态" aria-label="刷新云控状态">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/>

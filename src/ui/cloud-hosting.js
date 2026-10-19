@@ -388,7 +388,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       provider:'待核对',connection:'待核对',host:'待核对',slot:'待核对',
       tasks:'待核对',requests:'待核对'});
     get('cloud-pair').disabled=true;get('cloud-approve').disabled=true;
-    get('cloud-refresh').disabled=false;get('cloud-overview-refresh').disabled=false;
+    get('cloud-refresh').disabled=false;
+    if(!reactUI?.cloudActionsMounted)get('cloud-overview-refresh').disabled=false;
     lastSamples='';
     if(reactRequests){
       requestError='请求状态暂不可读取';requestRows=[];requestRawRows=[];
@@ -451,7 +452,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     const next=await cloud.cloudNext({});if(!next||disposed)return;
     starting=true;try{const request=await cloud.cloudResolve(next);await host.start(request);host.completion.catch(operationFail).finally(()=>{starting=false;});}catch(e){starting=false;throw e;}
   }
-  async function action(fn,readOnly){if(busy)return;busy=true;updateResultConsent();
+  async function action(fn,readOnly){if(disposed||busy)return;busy=true;updateResultConsent();
     operationFeedback='';updateStatus();
     try{
       if(!readOnly){try{await fn();}catch(error){operationFail(error);return;}}
@@ -537,7 +538,6 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   listeners.push(['cloud-clients',onClientPanelToggle,'toggle']);
   // The user's “核对状态” gesture must never itself claim or run a cloud task.
   click('cloud-refresh',async()=>{});
-  click('cloud-overview-refresh',async()=>{});
   // Paged reads do not claim, renew, replay or otherwise mutate a Cloud Job.
   async function pagePrev(){requestOffset=Math.max(0,requestOffset-5);closeRequestDetail();}
   async function pageNext(){
@@ -559,7 +559,18 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     click('cloud-request-close',async()=>closeRequestDetail());
     click('cloud-request-open-result',openOriginalRun);
   }
-  click('cloud-open-console',async()=>{await api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')});});
+  const openConsole=async()=>{await api.tabs.create({url:api.runtime.getURL('ui/cloud-control.html')});};
+  if(reactUI?.cloudActionsMounted){
+    // React owns both header buttons. The CloudHosting action queue remains the
+    // sole read/permission authority; never register a second native listener.
+    reactUI.renderCloudActions({
+      onRefresh:()=>void action(async()=>{},true),
+      onOpenConsole:()=>void action(openConsole,false)
+    });
+  }else{
+    click('cloud-overview-refresh',async()=>{});
+    click('cloud-open-console',openConsole);
+  }
   // Preserve the two-second dispatch cadence without scanning cloud history
   // every time. Visibility changes observations, not execution ownership.
   async function poll(){if(disposed)return;try{if(!busy){

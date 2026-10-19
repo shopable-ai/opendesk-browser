@@ -274,6 +274,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
   const cloudRequestsMounted=Boolean(shell);
   const cloudSetupMounted=Boolean(shell);
   let cloudSetupModel={visible:false,nextStep:'请先连接可信提供者。',onConfigure:null};
+  let cloudActionsModel={onRefresh:null,onOpenConsole:null};
   function paint(){
     if(disposed)return;
     const pageProps={rowsModel:model,menuKey,toolbarModel,detailModel,
@@ -289,7 +290,7 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
         debugEnabled={debugEnabled} onNavigate={onNavigate}
         extensionProps={pageProps} cloudModel={cloudModel}
         cloudRequestsModel={cloudRequestsModel}
-        cloudSetupModel={cloudSetupModel}/>:<>
+        cloudSetupModel={cloudSetupModel} cloudActionsModel={cloudActionsModel}/>:<>
         {navigationHost&&createPortal(<SidebarNavigation
           activeTab={navigationTab} debugEnabled={debugEnabled}
           onNavigate={onNavigate}/>,navigationHost)}
@@ -441,6 +442,15 @@ export function mountExtensionList(doc,{debugEnabled=false,onNavigate=null,appSh
       const next=typeof runId==='string'?runId:'';
       if(scheduleRowsModel.currentRunId===next)return;
       scheduleRowsModel={...scheduleRowsModel,currentRunId:next};paint();
+    },
+    cloudActionsMounted:Boolean(shell),
+    renderCloudActions(next){
+      if(disposed)return;
+      if(!shell||!next||Object.keys(next).length!==2||
+        typeof next.onRefresh!=='function'||typeof next.onOpenConsole!=='function')
+        throw new Error('E_REACT_CLOUD_ACTION_OWNER');
+      cloudActionsModel=Object.freeze({onRefresh:next.onRefresh,onOpenConsole:next.onOpenConsole});
+      paint();
     },
     cloudSetupMounted,
     renderCloudSetup(next){
