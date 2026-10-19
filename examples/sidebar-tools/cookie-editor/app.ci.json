@@ -5,7 +5,7 @@
   "afterBuild": [
     "examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs"
   ],
-  "extraCandidate": "artifacts/sidebar-tools/cookie-editor/r56-react-2.0.24-candidate.opendesk-tool.json",
+  "extraCandidate": "artifacts/sidebar-tools/cookie-editor/r56-react-2.0.28-candidate.opendesk-tool.json",
   "node": [
     "tests/environment/cookie-editor-react-build.test.mjs",
     "tests/environment/cookie-editor-react-domain.test.mjs",
@@ -17,6 +17,7 @@
     "tests/environment/cookie-editor-r50-trusted-pilot.test.mjs",
     "tests/environment/browser-sdk-r8-cookies.test.mjs",
     "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
-    "tests/environment/browser-sdk-r9-installed-host.test.mjs"
+    "tests/environment/browser-sdk-r9-installed-host.test.mjs",
+    "tests/environment/cookie-editor-import-intent.test.mjs"
   ]
 }

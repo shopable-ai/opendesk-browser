@@ -19,6 +19,7 @@ const clone=value=>structuredClone(value);
 const error=code=>Object.assign(Error(code),{code});
 export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let rows=scenario==='empty'?[]:fictionalCookies(),failure='',clearPlan=null,releaseLoading;
+ let importRef=0,writeRef=0;
  const loading=scenario==='loading'?new Promise(resolve=>{releaseLoading=resolve;}):null;
  const calls=[],deliveries=[],observations=new Set();
  const fail=operation=>{
@@ -94,7 +95,22 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     }
     return {downloadId:1};
    }}},
-  request:async operation=>{if(operation!=='currentPage.info')throw error('E_PERMISSION');return {status:'available',url:'https://'+demoSite+'/'};},
+  request:async(operation,payload)=>{
+   if(operation==='currentPage.info')return {status:'available',url:'https://'+demoSite+'/'};
+   // Preview-only synthetic admission; no bypass of formal Host grants.
+   if(operation==='cookieEditor.import.begin'||operation==='cookieEditor.write.begin'){
+    if(payload?.url!=='https://'+demoSite+'/')throw error('E_COOKIE_SCOPE');
+    const ref=operation==='cookieEditor.import.begin'?++importRef:++writeRef;
+    record(operation,{url:payload.url});
+    return {authorized:true,ref};
+   }
+   if(operation==='cookieEditor.import.finish'||operation==='cookieEditor.write.finish'){
+    const current=operation==='cookieEditor.import.finish'?importRef:writeRef;
+    const closed=payload?.ref===current&&current>0;
+    record(operation,{closed});return {closed};
+   }
+   throw error('E_PERMISSION');
+  },
   setFailure:value=>{failure=value;},dispose:()=>{releaseLoading?.();observations.clear();},
   inspect:()=>({rows:clone(rows),calls:clone(calls),deliveries:clone(deliveries),observations:[...observations]})
  };

@@ -4,11 +4,11 @@ import {CookieImportDropzone,CookieIconButton} from './CookieEditorView.jsx';
 
 const MAX_FILE=8*1024*1024;
 
-// Import is a focused modal, not a second editor or an inline list section.
+// Import is a full-height sidebar workspace, not a cramped modal or second editor.
 // Raw Cookie values live only in a DOM textarea / local async stack, never React state.
 // The Controller performs the existing permission, preflight and verified Host writes.
 export default function CookieImport({disabled=false,onClose,onImportText,onBeginImport,onNotice,notice}){
-  const dialogRef=React.useRef(null);
+  const workspaceRef=React.useRef(null);
   const triggerRef=React.useRef(null);
   const fileRef=React.useRef(null);
   const sourceRef=React.useRef(null);
@@ -28,15 +28,13 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const [dragging,setDragging]=React.useState(false);
   React.useLayoutEffect(()=>{
     active.current=true;
-    const dialog=dialogRef.current;
-    const previous=dialog.ownerDocument.activeElement;
-    triggerRef.current=previous&&previous!==dialog.ownerDocument.body?previous:null;
-    dialog.showModal();
+    const workspace=workspaceRef.current;
+    const previous=workspace.ownerDocument.activeElement;
+    triggerRef.current=previous&&previous!==workspace.ownerDocument.body?previous:null;
     sourceRef.current?.focus();
     return ()=>{
       active.current=false;
       if(sourceRef.current)sourceRef.current.value='';
-      if(dialog.open)dialog.close();
       if(triggerRef.current?.isConnected)triggerRef.current.focus();
     };
   },[]);
@@ -88,9 +86,9 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       if(active.current&&fileRef.current)fileRef.current.value='';
     }
   };
-  return <dialog ref={dialogRef} className="cookie-import-dialog od-surface"
-    aria-labelledby={headingId}
-    onCancel={event=>{event.preventDefault();close();}}>
+  return <section ref={workspaceRef} className="cookie-import-workspace"
+    role="region" aria-labelledby={headingId}
+    onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
     <div className="cookie-import-body">
       <header className="cookie-import-heading">
         <h2 id={headingId}>导入 Cookie</h2>
@@ -134,5 +132,5 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         {notice.text}
       </div>}
     </div>
-  </dialog>;
+  </section>;
 }

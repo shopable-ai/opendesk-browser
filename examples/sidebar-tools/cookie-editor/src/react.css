@@ -259,3 +259,41 @@
 }
 .cookie-editor-react .cookie-export-dialog::backdrop{background:rgba(15,23,42,.45)}
 .cookie-editor-react .cookie-export-dialog .cookie-panel{margin:0}
+
+/* R5.23: the trusted Side Panel sizes the iframe; this app fills that viewport
+   and scrolls the list, rather than stretching a small centered popup. */
+.cookie-editor-react{
+  box-sizing:border-box;height:100dvh;min-height:0;max-height:100dvh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.cookie-editor-react>.cookie-editor-workspace{
+  display:flex;flex:1 1 auto;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
+}
+.cookie-editor-react .cookie-react-view{
+  display:flex;flex:1 1 auto;flex-direction:column;min-height:0;overflow:hidden;
+}
+.cookie-editor-react .cookie-react-view>:not(.cookie-list){flex:0 0 auto}
+.cookie-editor-react .cookie-react-view>.cookie-list{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+}
+.cookie-editor-react .cookie-import-workspace{
+  display:flex;flex:1 1 auto;flex-direction:column;min-height:0;min-width:0;
+  padding:var(--space-3);overflow:hidden;
+}
+.cookie-editor-react .cookie-import-workspace .cookie-import-body{
+  display:flex;flex:1 1 auto;flex-direction:column;gap:var(--space-3);min-height:0;min-width:0;
+}
+.cookie-editor-react .cookie-import-workspace .cookie-import-heading,
+.cookie-editor-react .cookie-import-workspace .cookie-import-dropzone,
+.cookie-editor-react .cookie-import-workspace .cookie-import-actions{flex:0 0 auto}
+.cookie-editor-react .cookie-import-workspace .cookie-import-paste{
+  display:flex;flex:1 1 auto;flex-direction:column;min-height:120px;min-width:0;
+}
+.cookie-editor-react .cookie-import-workspace .cookie-import-paste textarea{
+  flex:1 1 auto;height:100%;min-height:140px;max-height:none;resize:none;
+}
+@media(max-height:420px){
+  .cookie-editor-react .cookie-import-workspace{overflow-y:auto}
+  .cookie-editor-react .cookie-import-workspace .cookie-import-paste{flex:0 0 auto}
+  .cookie-editor-react .cookie-import-workspace .cookie-import-paste textarea{height:140px}
+}

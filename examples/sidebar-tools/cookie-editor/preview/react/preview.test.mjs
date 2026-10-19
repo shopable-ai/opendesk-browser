@@ -162,19 +162,19 @@ test('scene disposal retires metadata sync and releases pending reads',async()=>
 });
 
 
-test('import modal reuses real Controller, never inserts a review panel or edits a domain',async()=>{
+test('full-height import workspace uses real Controller without a review panel',async()=>{
  const [component,app,css]=await Promise.all([
   read('../../app/components/CookieImport.jsx'),
   read('../../app/CookieEditorApp.jsx'),
   read('../../src/react.css')
  ]);
- assert.match(component,/<dialog\b/);
- assert.match(component,/dialog\.showModal\(\)/);
+ assert.match(component,/className="cookie-import-workspace"/);
+ assert.doesNotMatch(component,/<dialog\b|showModal\(\)/);
  assert.match(component,/onImportText/);
  assert.match(app,/controller\.previewImport\(text,'auto',true\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',true\)/);
  assert.match(app,/cookie-import-toast/);
- assert.match(css,/\.cookie-import-dialog::backdrop/);
+ assert.match(css,/\.cookie-import-workspace/);
  for(const legacy of ['cookie-import-summary','cookie-import-overwrite','导入预检结果','新增 {plan.created}'])
   assert.equal(component.includes(legacy),false);
 });

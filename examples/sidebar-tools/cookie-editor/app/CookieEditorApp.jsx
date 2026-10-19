@@ -307,8 +307,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     <>
       <CookiePermissions phase={snapshot.phase} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}/>
-      {snapshot.phase==='ready'&&<div className="od-surface">
-        <CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
+      {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
+        {panel===null&&<CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
           utilities={<details className="cookie-utility-settings od-disclosure">
             <summary title="更多工具" aria-label="更多工具"><CookieIcon name="more"/></summary>
             <div className="cookie-utility-content">
@@ -350,7 +350,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           editor={row=><CookieInlineEditor key={row.id} row={row} target={target}
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
-            onDelete={remove}/>}/>
+            onDelete={remove}/>}/>}
         {panel==='import'&&<CookieImport disabled={locked}
           notice={importNotice} onImportText={importFromText} onNotice={noteImport}
           onBeginImport={beginImportIntent}
