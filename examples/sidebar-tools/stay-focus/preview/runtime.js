@@ -106,18 +106,19 @@
     renderHost();
     return snapshot();
   };
-  const escapedScript=text=>String(text).replace(/<\/script/gi,'<\\/script');
   function renderFrame(){
     const frame=$('preview-frame');
     $('empty-install').hidden=model.installed;
     frame.hidden=!model.installed;
     if(!model.installed){frame.removeAttribute('srcdoc');return;}
+    // Produce valid literal closing tags without slash-escaping ambiguity.
+    const closeScript='<'+'/script>';
     const bridge='globalThis.OpenDeskTool={root:document,request:(op,payload)=>parent.__stayFocusMockRequest(op,payload)};';
     frame.srcdoc='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
       '<meta name="viewport" content="width=device-width,initial-scale=1">'+
       '<style>html,body{margin:0;background:transparent}'+source.css+'</style></head><body>'+
-      source.html+'<script>'+escapedScript(bridge)+'<\\/script>'+
-      '<script>'+escapedScript(source.js)+'<\\/script></body></html>';
+      source.html+'<script>'+bridge+closeScript+
+      '<script>'+source.js+closeScript+'</body></html>';
   }
   function renderHost(){
     $('host-state').textContent=!model.installed?'未安装':!model.granted?'尚未授权':
@@ -176,7 +177,7 @@
   $('host-stop').addEventListener('click',()=>hostOperate('stop'));
   $('host-revoke').addEventListener('click',()=>hostOperate('revoke'));
   $('host-uninstall').addEventListener('click',()=>hostOperate('uninstall'));
-  $('parity').textContent='正式 UI SHA-256：'+bundle.hashes.html.slice(0,9)+' / '+
+  $('parity').textContent='正式 UI Git blob：'+bundle.hashes.html.slice(0,9)+' / '+
     bundle.hashes.css.slice(0,9)+' / '+bundle.hashes.js.slice(0,9);
   restoreScene('first');
 })();
