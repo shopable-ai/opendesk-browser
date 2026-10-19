@@ -11,7 +11,7 @@ const business={
   'time-review':['host-controls.js','model.js','policy.js','service.js','sync-outbox.js','sync-transport.js','trusted-admission.js','trusted-native-ui.js'],
   'ai-smart-access':['host-controls.js','lifecycle.js','policy.js','provider-config.js','service.js','tool-host.js'],
   'page-clip':['convert.js','page.js','policy.js'],
-  'reading-toc':['model.js','overview.js','placement.js','page.js','view.js','policy.js','locales.generated.js']
+  'reading-toc':['model.js','overview.js','placement.js','page.js','view.js','policy.js','locales.generated.js','existing-tabs.js']
 };
 
 test('R1 app-owned trusted business has one implementation and no src re-export layer',()=>{
@@ -33,6 +33,7 @@ test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome 
     ['examples/sidebar-tools/web-markdown-clipper/trusted/policy.js','ui/marketplace.js'],
     ['examples/sidebar-tools/reading-toc/trusted/page.js','agents/page-relay.js'],
     ['examples/sidebar-tools/reading-toc/trusted/view.js','agents/page-relay.js'],
+    ['examples/sidebar-tools/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js'],
     ['examples/sidebar-tools/reading-toc/trusted/policy.js','ui/marketplace.js'],
     ['examples/sidebar-tools/reading-toc/trusted/locales.generated.js','ui/tool-shell.js']
   ];
@@ -64,6 +65,8 @@ test('R1 approved fixed runtime entrypoints use app-owned sources and existing H
 test('R1.3 page clip plugin owns trusted page, policy and converter, with shared browser site grants',()=>{
   assert.equal(existsSync(file('src/page-clip')),false);
   assert.equal(existsSync(file('src/reading-toc')),false);
+  assert.equal(existsSync(file('src/sidebar-tools/reading-toc-existing-tabs.js')),false,'TOC worker repair must be App-owned');
+  assert.match(read('src/entrypoints/preinstall-intent.js'),/reading-toc\/trusted\/existing-tabs\.js/);
   const entry=read('src/entrypoints/page-relay.js');
   assert.match(entry,/reading-toc\/trusted\/page\.js/);
   assert.match(entry,/web-markdown-clipper\/trusted\/page\.js/);

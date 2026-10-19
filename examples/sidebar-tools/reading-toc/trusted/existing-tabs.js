@@ -2,10 +2,10 @@
 // was registered. Never inject portable tool JS or bypass Chrome site access.
 import {verifyOfficialReadingToc,tocGrantAllowed,readingTocPageAllowed,
   READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,websiteOrigin}
-  from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
-import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE} from '../ui/sidebar-tools/lifecycle.js';
-import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE} from './official-reading-toc.js';
+  from './policy.js';
+import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE} from '../../../../src/sidebar-tools/official-reading-toc.js';
 
 export const READING_TOC_REPAIR_SCRIPT='agents/page-relay.js';
 const keys=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,MARKET_PROVENANCE_STORE,

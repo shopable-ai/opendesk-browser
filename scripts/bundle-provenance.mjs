@@ -206,13 +206,19 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/page.js':'8c9c3faa71c26a84e3388c41c31dffcac947d76e',
   'examples/sidebar-tools/reading-toc/trusted/view.js':'71f6d57ad101936c963c41c118c8e78ef74bbf3b',
   'examples/sidebar-tools/reading-toc/trusted/policy.js':'17d930495245bf92c6e36a9228a7cd286dc611b3',
-  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295'
+  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'0484bd67fadb23a88c6a7164435d5bf90acd8295',
+  'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
 });
 function reviewedCompiledReadingToc(target,path,root){
-  if(!Object.hasOwn(compiledReadingTocInputs,path)||
-    (path.endsWith('/policy.js')||path.endsWith('/locales.generated.js')
-      ? (!preapprovedFixedTargets.has(target)||target.startsWith('scripting/')||target.startsWith('libs/'))
-      : target!=='agents/page-relay.js'))return null;
+  if(!Object.hasOwn(compiledReadingTocInputs,path))return null;
+  // Existing-tabs repair is a reviewed App-specific adapter within the existing
+  // fixed preinstall worker; it cannot run from sandbox or user package bytes.
+  const approved=path.endsWith('/existing-tabs.js')
+    ? target==='sidebar-tools/preinstall-intent.js'
+    : path.endsWith('/policy.js')||path.endsWith('/locales.generated.js')
+      ? preapprovedFixedTargets.has(target)&&!target.startsWith('scripting/')&&!target.startsWith('libs/')
+      : target==='agents/page-relay.js';
+  if(!approved)return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('Trusted Reading TOC source must not be a symlink: '+path);
   const bytes=readFileSync(file);
