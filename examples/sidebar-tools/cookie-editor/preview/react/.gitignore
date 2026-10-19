@@ -1,2 +1,5 @@
 node_modules/
 dist/
+
+# Generated Chromium preview screenshots stay local.
+/screenshots/
