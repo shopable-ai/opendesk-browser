@@ -164,11 +164,12 @@ try{
  });
  await test('R5.2 advanced properties, Session toggle and timezone date validation',async()=>{
   await page.locator('[data-row="b"]').click();
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
   assert.equal(await page.getByLabel('Domain').inputValue(),'shop.example.com');
   assert.equal(await page.getByLabel('Domain').getAttribute('readonly'),'');
   assert.equal(await page.getByLabel('Path').getAttribute('readonly'),'');
-  assert.equal(await page.getByRole('checkbox',{name:/仅当前主机/}).isDisabled(),true);
+  assert.equal(await page.getByRole('checkbox',{name:'Host-only'}).isDisabled(),true);
+  await page.locator('details.editor-identity > summary').click();
   await page.getByText('Store ID',{exact:true}).waitFor();
   await page.getByText('PartitionKey',{exact:true}).waitFor();
   const expiry=page.getByLabel('过期时间（本地时间）');
@@ -185,7 +186,8 @@ try{
   assert.equal(await page.getByText('未保存',{exact:true}).count(),0);
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.locator('[data-row="h"]').click();
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
+  await page.locator('details.editor-identity > summary').click();
   await page.getByText(/partner.example.net/).waitFor();
   await page.getByRole('button',{name:'取消',exact:true}).click();
  });
@@ -205,7 +207,7 @@ try{
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.getByRole('button',{name:'放弃',exact:true}).click();
   await page.locator('[data-row="b"]').click();
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
   await page.getByLabel('SameSite').selectOption('no_restriction');
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText(/SameSite=None 必须/).waitFor();
@@ -215,7 +217,7 @@ try{
  await test('R5.2 new persistent Cookie requires future expiration and prefix safety',async()=>{
   await page.getByRole('button',{name:'新建 Cookie'}).click();
   await page.locator('#opendesk-cookie-attribute-key').fill('__Host-demo');
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
   await page.getByRole('checkbox',{name:/Session/}).uncheck();
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText(/请选择有效的未来过期时间/).waitFor();
@@ -233,7 +235,7 @@ try{
  });
  await test('R5.2 full expanded form is responsive including zoom',async()=>{
   await page.locator('[data-row="h"]').click();
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
   for(const width of [320,360,380,420,520]){
     await page.setViewportSize({width,height:850});
     assert.equal(await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),true,'expanded width '+width);
@@ -331,7 +333,7 @@ try{
   await page.getByText(/已导入 1 条/).waitFor();
   const row=page.locator('.cookie-row').filter({hasText:'future_roundtrip'});
   await row.locator('.row-trigger').click();
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
   const expiry=page.getByLabel('过期时间（本地时间）');
   assert.equal(await expiry.evaluate(el=>new Date(el.value).getTime()/1000),1893456000);
   const adjusted=await page.evaluate(()=>{
@@ -344,7 +346,7 @@ try{
   await page.getByRole('button',{name:'保存',exact:true}).click();
   await page.getByText('已保存 Cookie').waitFor();
   await row.locator('.row-trigger').click();
-  await page.getByText('属性与高级设置').click();
+  await page.locator('details.advanced > summary').click();
   assert.equal(await page.getByLabel('过期时间（本地时间）').inputValue(),adjusted);
   await page.getByRole('button',{name:'取消',exact:true}).click();
   await page.getByRole('button',{name:'导出 Cookie'}).click();
