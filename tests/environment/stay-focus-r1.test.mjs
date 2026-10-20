@@ -386,7 +386,10 @@ test('R5.6 UI uses one React owner, shared icon controls and responsive styling'
   assert.doesNotMatch(js,/document\.createElement\(|replaceChildren\(/);
   assert.match(html,/id="tool-app"/);
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
-  assert.equal(config.files.js,'src/main.js');
+  assert.equal(config.files.js,'dist/tool.js');
+  assert.equal(config.files.css,'dist/tool.css');
+  assert.doesNotMatch(js,/className:'sf-current'/,
+    'the trusted React toolbar owns the single current-site management control');
 });
 
 test('R1.4 fixed trusted classification, single 30-minute pool and old durable records',()=>{
