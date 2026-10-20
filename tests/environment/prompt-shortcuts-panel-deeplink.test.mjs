@@ -103,4 +103,6 @@ test('official native Side Panel controller reuses React ToolHost and does not n
   assert.match(source,/panelToolIntents\.start\(currentWindow\.id\)/);
   assert.match(source,/taskWorkbench\.navigate\('tools'\)/);
   assert.match(source,/sidebarTools\.openTool\(toolId\)/);
+  const host=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert.match(host,/active\?\.id===id&&!readOnlyPreview&&!tocSettingsOpen&&frame\?\.isConnected/);
 });

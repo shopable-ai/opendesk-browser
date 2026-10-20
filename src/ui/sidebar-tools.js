@@ -1038,6 +1038,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
     if(installedReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
+    // An OD rail click on the already-open app must not remount its iframe,
+    // discard its draft or introduce a redundant leave-confirmation dialog.
+    if(!launchGate&&active?.id===id&&!readOnlyPreview&&!tocSettingsOpen&&frame?.isConnected)
+      return instance;
     if(launchGate&&active&&(toolSaving||toolDirty||isDirty())){
       notice('当前工具有未保存内容，请先保存或关闭，再重新从右键菜单启动。',true);return;
     }
