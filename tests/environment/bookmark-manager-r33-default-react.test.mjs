@@ -43,3 +43,20 @@ test('R3.3 first Full Bookmarks approval visibly leads into a fresh observer',as
  assert.ok(effect.indexOf('service.watchStart()')<effect.indexOf('load({initial:true})'),
   'trusted observer must subscribe before the initial native snapshot');
 });
+
+test('R3.3 React does not duplicate the trusted Host deletion review',async()=>{
+ const [app,controller,service]=await Promise.all([
+  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx',
+  'src/ui/sidebar-tools.js',
+  'examples/sidebar-tools/bookmark-manager/src/service.js'].map(read));
+ assert.match(app,/function prepareDelete\(id\)/);
+ assert.match(app,/void removeConfirmed\(target\)/);
+ assert.doesNotMatch(app,/confirmDelete&&<Confirm/);
+ assert.match(app,/await service\.remove\(\{expected:target\.expected,confirmed:true,/);
+ assert.match(app,/if\(refreshed\.byId\.has\(target\.id\)\)/);
+ assert.match(controller,/operation==='browser\.bookmarks\.removeTree'/);
+ assert.match(controller,/requestBrowserClick\(\{toolId:tool\.id,[\s\S]*?button:'允许本次操作'/);
+ assert.match(service,/prepareRemoveTree/);
+ assert.match(service,/snapshotRef:tree\.snapshotRef/);
+ assert.match(service,/removeTree\(\{id:item\.id,ticket:prepared\.ticket\}\)/);
+});
