@@ -160,6 +160,7 @@ function publishDemoUninstall(){
   app.renderUninstall(row?{
     title:'卸载「'+row.title+'」？',busy:false,
     text:'仅预览：确认后从本页内存中的已安装列表移除，不执行真实卸载或清理。',
+    identity:{key:row.key,kind:row.kind,version:row.version},
     onCancel:cancelDemoUninstallReview,onConfirm:confirmDemoUninstallReview
   }:null);
 }
@@ -223,11 +224,15 @@ function publishRows(){
     (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
   app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
     ({key,title,kind,type,description,installed,stateKnown:true,primaryAction:null})),
-    busy:false,pendingKey:null,onOpenRow:openDemoDetail,onUninstall:openDemoListUninstall,
+    busy:false,pendingKey:null,onOpenRow:openDemoDetail,
     onMore:(key,trigger)=>{
       const row=demoRows.find(item=>item.key===key);
       if(!row)return;
       const items=[{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}];
+      if(demoInstalled(row))items.push({id:'uninstall',label:'卸载…',onClick:event=>{
+        trigger.focus({preventScroll:true});
+        openDemoListUninstall(key,event);
+      }});
       app.renderRowMenu(items,{key,title:row.title,trigger,onClose:closeRowMenu});
     }});
   app.renderFeedback({showEmpty:shown.length===0,

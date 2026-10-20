@@ -4,7 +4,7 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 
 // Sole owner of extension-center-list children. All actions delegate to the
 // trusted existing Extension Center; user packages stay in their sandbox.
-export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onUninstall}){
+export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
   // Distinct package IDs remain visible to people and assistive technologies
   // when two independently installed tools intentionally reuse a title.
   const titles=new Map();
@@ -16,9 +16,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onU
       ?row.key.slice(4):null;
     const accessible=label+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'');
     return <li key={row.key} data-extension-id={row.key}
-      className={['ec-row',row.primaryAction?'ec-row--has-primary':'',
-        !row.primaryAction&&!row.installed?'ec-row--no-actions':'',
-        row.installed?'ec-row--has-uninstall':''].filter(Boolean).join(' ')}
+      className="ec-row"
       aria-busy={busy||pendingKey===row.key?'true':undefined}>
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}
@@ -37,19 +35,6 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onU
         </span>
       </button>
       <span className="ec-row-actions">
-        {row.primaryAction&&<Button className="ec-action" disabled={busy}
-          data-extension-key={row.key} data-extension-action="primary"
-          aria-label={row.primaryAction+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
-          title={row.primaryAction+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
-          onClick={event=>onOpenRow(row.key,event.nativeEvent)}>{row.primaryAction}</Button>}
-        {row.installed&&<IconButton className="ec-row-uninstall" disabled={busy||row.stateKnown===false}
-          label={'卸载「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
-          data-extension-key={row.key} data-extension-action="uninstall"
-          onClick={event=>onUninstall?.(row.key,event.nativeEvent)}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4.5 7h15M9 7V4.5h6V7m2.5 0-.8 12.5H7.3L6.5 7M10 10.5v6m4-6v6"/>
-          </svg>
-        </IconButton>}
         {row.installed&&<IconButton className="ec-row-more" disabled={busy}
           label={'管理「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')} data-extension-key={row.key}
           data-extension-action="more" aria-haspopup="menu"
@@ -372,15 +357,12 @@ export function ExtensionRowMenu({items=[],model=null}){
 // The pre-existing Installer is mounted into one explicit host-owned slot;
 // security decisions and dynamically installed UI are never executed here.
 export function ExtensionCenterPage({
-  rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{},onUninstall:()=>{}},
+  rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
   toolbarModel=null,detailModel=null,uninstallModel=null,feedbackModel=null,recoveryModel=null,
   statusModel=null,menuKey=null,rowMenuModel=null,view='list',onBack=()=>{}
 }){
   const detailVisible=view==='detail';
   const detailRef=React.useRef(null),pageRef=React.useRef(null);
-  // Presentation snapshot of the clicked row; the controller alone pins and
-  // rechecks the installation identity before any destructive operation.
-  const uninstallTargetRef=React.useRef(null);
   React.useEffect(()=>{
     const doc=pageRef.current?.ownerDocument;
     if(!doc)return;
@@ -405,11 +387,7 @@ export function ExtensionCenterPage({
       </span>
       <ul id="extension-center-list" className="ec-list" aria-label="扩展中心当前筛选列表"
         aria-busy={Boolean(rowsModel.busy||rowsModel.pendingKey)}>
-        <ExtensionRows {...rowsModel} menuKey={menuKey} onUninstall={(key,event)=>{
-          const row=rowsModel.rows.find(row=>row.key===key);
-          uninstallTargetRef.current=row?{key:row.key,kind:row.kind,version:row.version}:null;
-          rowsModel.onUninstall?.(key,event);
-        }}/>
+        <ExtensionRows {...rowsModel} menuKey={menuKey}/>
       </ul>
       <div id="extension-center-cleanups" className="ec-empty" aria-live="polite"
         hidden={!recoveryModel?.ids?.length}>
@@ -449,7 +427,7 @@ export function ExtensionCenterPage({
     <UninstallDialog open={Boolean(uninstallModel)}
       title={uninstallModel?.title||'卸载扩展？'}
       busy={Boolean(uninstallModel?.busy)}
-      identity={uninstallModel?.identity||uninstallTargetRef.current}
+      identity={uninstallModel?.identity}
       description={uninstallModel?.text||''}
       onCancel={event=>uninstallModel?.onCancel?.(event)}>
       <div className="od-uninstall-dialog-actions">

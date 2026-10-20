@@ -26,13 +26,11 @@
 .ec-list:empty{display:none}
 .ec-row{position:relative;min-height:72px}
 .ec-row:hover,.ec-row:focus-within{background:var(--od-muted)}
-/* One full-row hit target; compact actions float above it without a separate column. */
-.ec-row-main{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:72px;min-width:0;max-width:none;padding:9px 88px 9px 10px;border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+/* Full row opens the tool/detail; a single menu floats over content on hover/focus. */
+.ec-row-main{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:72px;min-width:0;max-width:none;padding:9px 10px;border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
 .ec-row-main:hover:not(:disabled){background:transparent}
-.ec-row-actions{position:absolute;top:8px;right:8px;z-index:1;display:flex;align-items:center;gap:4px;opacity:1;pointer-events:auto}
-.ec-row--has-primary .ec-row-main{padding-right:132px}
-.ec-row--has-uninstall:not(.ec-row--has-primary) .ec-row-main{padding-right:88px}
-.ec-row--no-actions .ec-row-main{padding-right:10px}
+.ec-row-actions{position:absolute;top:50%;right:8px;z-index:1;display:flex;align-items:center;opacity:0;pointer-events:none;transform:translateY(-50%);transition:opacity .12s ease}
+.ec-row:hover .ec-row-actions,.ec-row:focus-within .ec-row-actions{opacity:1;pointer-events:auto}
 .ec-row-actions:empty{display:none}
 .ec-row+.ec-row{border-top:1px solid var(--od-line)}
 .ec-glyph{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--od-muted);color:var(--od-accent-ink)}
@@ -41,18 +39,13 @@
 .ec-copy{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0}
 .ec-name-line{display:flex;align-items:center;gap:6px;min-width:0;min-height:19px}
 .ec-name{display:flex;align-items:center;min-width:0;min-height:34px;text-align:left;font-size:13px;line-height:1.4;font-weight:700;color:var(--od-ink)}
-.ec-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ec-name-text{min-width:0;overflow:hidden;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .ec-type{flex:none;display:inline-flex;align-items:center;min-height:18px;padding:1px 5px;border:1px solid var(--od-line);border-radius:4px;white-space:nowrap;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.3}
 .ec-description{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.45}
 /* Only duplicate-title installed apps show their authoritative ID. Avoid truncating identity at 320px. */
 .ec-identity{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
-.ec-action{min-width:36px;min-height:34px;padding:4px 8px;white-space:nowrap;color:var(--od-accent-ink);font-size:12px;font-weight:650}
-.ec-row-more{width:34px;min-width:34px;min-height:34px;padding:0;color:var(--od-sub);font-size:19px}
-.ec-row-uninstall{display:grid;place-items:center;width:34px;min-width:34px;min-height:34px;padding:0;
-  border-radius:var(--radius-control);color:var(--od-sub)}
-.ec-row-uninstall svg{width:17px;height:17px;fill:none;stroke:currentColor;
-  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.ec-row-uninstall:hover:not(:disabled){background:var(--od-muted);color:var(--od-negative)}
+.ec-row-more{display:grid;place-items:center;width:34px;min-width:34px;min-height:34px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 2px 8px #101a2a20;color:var(--od-sub);font-size:19px}
+.ec-row-more:hover:not(:disabled){background:var(--od-muted)}
 .ec-context-menu{position:fixed;z-index:1000;min-width:172px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow-y:auto;
   padding:5px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);
   box-shadow:0 12px 32px #101a2a35}
@@ -60,8 +53,8 @@
 .ec-context-action{display:block;width:100%;min-height:36px;text-align:left;padding:7px 10px;border:0;border-radius:6px;
   background:transparent;color:var(--od-ink);font-size:12px}
 .ec-context-action:hover,.ec-context-action:focus-visible{background:var(--od-muted)}
+.ec-context-action[data-ec-context-action="uninstall"]{margin-top:4px;border-top:1px solid var(--od-line);color:var(--od-negative)}
 .ec-context-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.ec-action:hover:not(:disabled){border-color:var(--od-focus)}
 .ec-empty{text-align:center;padding:27px 14px;border:1px dashed var(--od-line);border-radius:10px;color:var(--od-sub);font-size:12px}
 .ec-empty p{margin:0 0 8px}
 .ec-message{margin:8px 2px;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
@@ -85,48 +78,38 @@
 @media(max-width:330px){
   .ec-toolbar{gap:5px}
   .ec-row{min-height:68px}
-  .ec-row-main{grid-template-columns:30px minmax(0,1fr);gap:5px;min-height:68px;padding:8px 84px 8px 6px}
+  .ec-row-main{grid-template-columns:30px minmax(0,1fr);gap:5px;min-height:68px;padding:8px 6px}
   .ec-row-actions{right:6px}
-  .ec-row--has-primary .ec-row-main{padding-right:126px}
-  .ec-row--has-uninstall:not(.ec-row--has-primary) .ec-row-main{padding-right:84px}
-  .ec-row--no-actions .ec-row-main{padding-right:6px}
   .ec-glyph{width:30px;height:30px}
   .ec-type{padding:1px 3px}
-  .ec-action{padding:4px 6px;min-width:34px}
 }
-/* Hoverless/touch input must not hide the only explicit actions. */
+/* Touch lacks hover: retain one 44px control rather than three permanent actions. */
 @media(hover:none),(pointer:coarse){
-  .ec-row-main{padding-right:112px}
-  .ec-row--has-primary .ec-row-main{padding-right:160px}
-  .ec-row--no-actions .ec-row-main{padding-right:10px}
-  .ec-action,.ec-row-more,.ec-row-uninstall{min-width:44px;min-height:44px}
-  .ec-row-more{width:44px}
+  .ec-row-main{padding-right:54px}
+  .ec-row-actions{opacity:1;pointer-events:auto}
+  .ec-row-more{width:44px;min-width:44px;min-height:44px}
   .ec-toolbar .ec-icon{width:44px;min-width:44px;min-height:44px}
   .ec-more button{min-width:44px;min-height:44px}
 }
-/* At extreme narrow widths actions occupy a second visual line, not a fixed right column. */
 @media(max-width:240px){
   .ec-toolbar{flex-wrap:wrap}
   .ec-search{order:0;flex:1 1 100%;width:100%}
   .ec-toolbar>#extension-center-market{order:1}
   .ec-menu-wrap{order:2;margin-left:auto}
   .ec-row{min-height:82px}
-  .ec-row-main{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:82px;align-items:start;padding:8px 6px 44px}
-  .ec-row--has-primary .ec-row-main{padding-right:6px}
-  .ec-row--has-uninstall:not(.ec-row--has-primary) .ec-row-main{padding-right:6px}
-  .ec-row--no-actions .ec-row-main{padding-right:6px;padding-bottom:8px}
+  .ec-row-main{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:82px;align-items:center;padding:8px 6px}
   .ec-glyph{width:26px;height:26px}
   .ec-name-line{flex-wrap:wrap;gap:3px}
   .ec-name{flex:1 1 70px;max-width:100%;min-height:18px}
   .ec-description{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
-  .ec-row-actions{top:auto;right:6px;bottom:6px;transform:none}
+  .ec-row-actions{right:6px}
   .ec-more{right:0;max-width:calc(100vw - 20px)}
 }
 @media(hover:none) and (max-width:240px),(pointer:coarse) and (max-width:240px){
-  .ec-row-main{padding-right:6px;padding-bottom:52px}
+  .ec-row-main{padding-right:54px}
 }
 @media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
-@media(prefers-reduced-motion:reduce){.ec-context-menu{scroll-behavior:auto}}
+@media(prefers-reduced-motion:reduce){.ec-context-menu{scroll-behavior:auto}.ec-row-actions{transition:none}}
 @media(prefers-color-scheme:dark){.ec-more{box-shadow:0 12px 32px #0007}}
 
 /* R5.4: One Host-owned installer, lifted out of the long React list into a

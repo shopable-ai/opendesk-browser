@@ -152,6 +152,9 @@
 
 /* Bookmark icon-only buttons must not inherit the Side Panel's global button padding/min-height.
    Otherwise their SVGs overflow the fixed 25–32px grid and appear shifted right. */
-.bm-app :is(.bm-icon-btn,.bm-disclosure,.bm-row-more,.bm-sheet-close,.bm-preview-close,.bm-preview-action,.bm-close,.bm-search-wrap button){padding:0;min-height:0}
-.bm-app :is(.bm-icon-btn,.bm-disclosure,.bm-row-more,.bm-sheet-close,.bm-preview-close,.bm-preview-action,.bm-close,.bm-search-wrap button)>svg{display:block;pointer-events:none}
+.bm-app :where(.bm-icon-btn,.bm-disclosure,.bm-row-more,.bm-sheet-close,.bm-preview-close,.bm-preview-action,.bm-close,.bm-search-wrap button){padding:0;min-height:0}
+.bm-app :where(.bm-icon-btn,.bm-disclosure,.bm-row-more,.bm-sheet-close,.bm-preview-close,.bm-preview-action,.bm-close,.bm-search-wrap button)>svg{display:block;pointer-events:none}
 .bm-app .bm-close{width:28px;height:28px;display:grid;place-items:center}
+/* Mirror trusted-host control defaults; preserve the compact search/editor grid. */
+.bm-app .bm-search-wrap input{min-height:0}
+.bm-app .bm-field label{margin:0}
