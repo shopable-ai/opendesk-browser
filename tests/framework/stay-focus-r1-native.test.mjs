@@ -392,50 +392,54 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.groups?.entertainment===2)'),
     'trusted two-minute shared quota',15000);
   note('native-shared-budget-edited',{minutes:2,approvedViaUI:true});
-  if(process.env.OPENDESK_FOCUS_NATIVE_MANUAL_SITES==='1'){
-    report.siteEntryDriver='ASSISTED_NATIVE_UI';
-    await click(client,frame,'#manual-site > summary');
-    note('await-native-site-entry',{hosts:['127.0.0.1','localhost'],group:'entertainment',minutes:2});
-    await until(()=>evalRead(client,sid,'chrome.storage.local.get("'+store+'")'+
-      '.then(x=>["127.0.0.1","localhost"].every(host=>x["'+store+'"]?.sites?.some('+
-      's=>s.host===host&&s.enabled&&s.group==="entertainment"&&s.mode==="limit")))'),
-      'two hosts saved via assisted native UI',360000);
-  }else{
-  await click(client,frame,'#manual-site > summary');
-  await click(client,frame,'#site-group');
-  await press(client,frame,'End','End',35);
-  await press(client,frame,'Enter','Enter',13);
-  assert.equal(await evalRead(client,frame,'document.querySelector("#site-group").value'),'entertainment');
-  await fill(client,frame,'#site-host','127.0.0.1');
-  // The macOS menu used by always-block mode cannot be driven by CDP.
-  // Keep that historical scene explicitly blocked and continue the requested
-  // shared-quota path with the real UI's default limit mode.
-  report.alwaysMode='NATIVE_BLOCKED_MACOS_SELECT_MENU';
-  assert.equal(await evalRead(client,frame,'document.querySelector("#site-mode").value'),'limit');
-  await click(client,frame,'#site-save');
-  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'trusted two-minute shared quota review');
-  await click(client,sid,'#sidebar-tool-action-continue');
-  await until(async()=>{
-    const result=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
-      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {site:x["'+store+'"]?.sites?.find(s=>s.host==="127.0.0.1"),'+
-      'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
-    return result.site?.mode==='limit'&&result.site.minutes===15&&
-      result.site.group==='entertainment'&&result.owned===0;
-  },'real UI saved an unused two-minute shared quota');
-  // Configure another LOCAL host through the same reviewed sandbox UI.
-  // Its time contributes to the existing g:entertainment ledger.
-  await replaceField(client,frame,'#site-host','localhost');
-  await click(client,frame,'#site-save');
+  // R5.8: the extension-owned React button, not a sandbox approval or fake
+  // DOM event, is the primary current-site path. This uses actual CDP mouse.
+  await client.send('Target.activateTarget',{targetId:beforeGrantVisit.targetId});
+  await until(()=>evalRead(client,sid,
+    '(()=>{const b=document.querySelector("#stay-focus-current-add");'+
+    'return !!b&&!b.disabled&&b.textContent.trim()==="加入"&&b.getClientRects().length>0})()'),
+    'real trusted React current-site Add is available',20000);
+  await click(client,sid,'#stay-focus-current-add');
+  await until(()=>evalRead(client,sid,'chrome.storage.local.get("'+store+'").then(x=>'+
+    'x["'+store+'"]?.sites?.some(s=>s.host==="127.0.0.1"&&s.enabled&&'+
+    's.group==="entertainment"&&s.mode==="limit"))'),
+    'one real React click saved the active HTTP host without a second review',20000);
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
+    'trusted current-site Add must not open a redundant sandbox confirmation');
+  const firstSite=await evalRead(client,sid,'(async()=>{'+
+    'const x=await chrome.storage.local.get("'+store+'");'+
+    'const rules=await chrome.declarativeNetRequest.getDynamicRules();'+
+    'return {site:x["'+store+'"]?.sites?.find(s=>s.host==="127.0.0.1"),'+
+    'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
+  assert.equal(firstSite.site?.minutes,2);
+  assert.equal(firstSite.owned,0,'a not-yet-exhausted quota must not block local HTTP');
+  report.siteEntryDriver='TRUSTED_REACT_NATIVE_CLICK';
+  note('native-one-click-joined-active-website',{host:'127.0.0.1',
+    sharedMinutes:2,secondConfirmation:false,ownedRules:firstSite.owned});
+
+  // Add a second loopback hostname with the same shared entertainment budget.
+  // Native keyboard/mouse drive the ACTUAL React editor and existing Host review.
+  await click(client,frame,'button[aria-label="添加自定义网站"]');
+  await until(()=>evalRead(client,frame,
+    '!!document.querySelector(".sf-editor input[placeholder=\"例如 youtube.com\"]")'),
+    'React website editor opened');
+  assert.equal(await evalRead(client,frame,
+    'document.querySelector(".sf-editor select")?.value'),'entertainment');
+  assert.equal(await evalRead(client,frame,
+    'document.querySelectorAll(".sf-editor select")[1]?.value'),'limit');
+  await fill(client,frame,'.sf-editor input[placeholder="例如 youtube.com"]','localhost');
+  await click(client,frame,'.sf-editor .sf-actions button');
   await until(()=>evalRead(client,sid,
     '!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'second loopback domain shares the trusted budget');
+    'second local host receives its real trusted Host review');
   await click(client,sid,'#sidebar-tool-action-continue');
   await until(()=>evalRead(client,sid,
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.some('+
-    's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"))'),
-    'second actual site joins the same shared group');
-  }
+    's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"&&s.enabled))'),
+    'second localhost site shares the same actual quota');
+  report.alwaysMode='NATIVE_BLOCKED_MACOS_SELECT_MENU';
+  report.quotaSiteInputs='REAL_REACT_TOOLBAR_AND_EDITOR';
   report.quota='IN_PROGRESS';
   note('real-ui-two-minute-shared-quota',{minutes:2,
     domains:['127.0.0.1','localhost'],storageUsageWasNotModified:true});
