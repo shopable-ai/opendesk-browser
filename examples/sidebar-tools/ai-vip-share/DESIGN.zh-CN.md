@@ -1,5 +1,7 @@
 # AI VIP Share R4.2 — 会员权益、兑换码、激活链接与商品中心（产品设计）
 
+> **唯一当前状态入口：[README 顶部：1.3.8 源码与正式包已交付](README.zh-CN.md#current-status)。** 本文保留 R4/R4.1/R4.2 当时的设计、需求与证据，以下“当前”“本轮”“待实施”“仅设计”均按各节历史日期理解，不代表 1.3.8 进度。正式全量验收、评分与上线延期，历史门槛不触发本轮执行。
+
 > 日期：2026-10-15 · 状态：**PRODUCT_DESIGN_PROPOSED（设计已提案，尚未生产交付）**  
 > 仓库：`shopable-ai/opendesk-browser`，工具 ID：`ai-vip-share`  
 > 规范归属：`examples/sidebar-tools/ai-vip-share/DESIGN.zh-CN.md`  
@@ -7,12 +9,12 @@
 
 ## 1. 历史基线、已有决策与本次新增范围
 
-### 1.1 目前确实存在的文档 / 源码
+### 1.1 R4 提案时确实存在的文档 / 源码（历史）
 
 - `docs/framework/workstreams/ai-smart-access-r1.md`：设备码、激活码与租约验证（R1 不支持 URL 命令）、AI 站点 PAC 规则及不可直接暴露特权操作等技术约束。
 - `docs/framework/workstreams/ai-vip-share-r2-identity-20261014.md`：更名为 `ai-vip-share`、安装身份隔离及仍需 SDK 迁移的状态。
 - `examples/sidebar-tools/ai-vip-share/README.zh-CN.md`：独立包构建、安装及 `SDK_BLOCKED / PROVIDER_BLOCKED / NATIVE_NOT_TESTED` 阻塞。
-- 当前 `src/index.html` 仅有访问提示；真实启停与激活表单仍由过渡期 `src/ai-smart-access/host-controls.js` 在可信宿主呈现。`provider-config.js` 的激活、验证地址为空。
+- R4 提案时 `src/index.html` 仅有访问提示；当时真实启停与激活表单仍由过渡期 `src/ai-smart-access/host-controls.js` 在可信宿主呈现。`provider-config.js` 的激活、验证地址为空。此为历史源码状态。
 
 **历史文档没有形成可实施的完整会员商品、购买、会员时长、领取记录、激活链接无缝续接 UX 规格。本文件为新增产品规格，不把提案说成既有实现。** 参考仓库 `shopable-ai/ai-proxy` 是通用代理管理产品，不应把它的订阅 UI、付费后台或供应商配置直接复制到 AI VIP Share。
 
@@ -22,7 +24,7 @@
 
 会员权益/账号/剩余时长/兑换码/更多商品是首要信息；具体代理协议、PAC 和域名清单为低优先级能力详情。用户在目标 AI 网站使用服务时，工具主要承担会员管理，而非每天手动选代理节点。
 
-**关键语义：**“AI VIP Share 会员”表示本产品合法交付、已在商品合同中列明的权益，**不天然代表** ChatGPT Plus、Claude Pro 等第三方账户的订阅状态或对第三方账号的共享授权。任何第三方会员商品必须有独立 SKU、权益内容、合法授权、交付状态与售后条款；不收集第三方账号密码。**2026-10-20 用户更新：允许接收服务端 Cookie JSON，经现有公共 Cookie SDK 向固定批准站点交付已授权会话；本轮使用测试文件验证框架完整性。** 旧版全面排除 Cookie 的范围已被替代。当前生产后台、目标及账号所有者授权尚未核实，先保持生产目标空名单；开发 fixture 只向自有受控页面写合成会话，不执行历史远程 scripts。Cookie 写入不等同于第三方会员成功；详见当前 [README 的 Cookie 合同](README.zh-CN.md#cookie-交付2026-10-20本轮按用户指定测试文件验证)。
+**关键语义：**“AI VIP Share 会员”表示本产品合法交付、已在商品合同中列明的权益，**不天然代表** ChatGPT Plus、Claude Pro 等第三方账户的订阅状态或对第三方账号的共享授权。任何第三方会员商品必须有独立 SKU、权益内容、合法授权、交付状态与售后条款；不收集第三方账号密码。**2026-10-20 用户更新（1.3.7 历史 Cookie 轮次）：允许接收服务端 Cookie JSON，经现有公共 Cookie SDK 向固定批准站点交付已授权会话；该轮使用测试文件验证框架完整性。** 旧版全面排除 Cookie 的范围已被替代。生产后台、目标及账号所有者授权尚未核实，保持生产目标空名单；开发 fixture 只向自有受控页面写合成会话，不执行历史远程 scripts。Cookie 写入不等同于第三方会员成功；详见 [README：1.3.7 历史证据与 Cookie 合同](README.zh-CN.md#cookie-delivery-137)，1.3.8 状态见本文顶部链接。
 
 ## 2. 核心场景与三种获得会员方式
 
@@ -125,10 +127,10 @@
 建议分阶段：
 
 1. **R4.0 设计定稿**：主界面、链接场景、异常与购买弹层；本次仅增加 Markdown、独立 HTML 原型和 README 导航，未替换运行时。
-2. **生产 UI 接入（待实施；R4.1 仅完善设计/原型）**：审定设计后将主卡、兑换卡、详情迁入 `src/index.html|style.css|main.js`，复用统一 Design System；可信动作仍由公共宿主安全 UI/SDK 承载。
+2. **生产 UI 接入（历史当时状态：待实施；R4.1 仅完善设计/原型）**：审定设计后将主卡、兑换卡、详情迁入 `src/index.html|style.css|main.js`，复用统一 Design System；可信动作仍由公共宿主安全 UI/SDK 承载。后续 UI 已接线，当前可用性见 README，不以本条判为仍待迁移。
 3. **R4.2 账号与商品 API**：审核正式 origin、身份、SKU、价格、权益模型，提供服务端失败与状态回执，保证未配置时 fail closed。
 4. **R4.3 激活链接**：白名单 HTTPS、单次短票、安装检测、显式确认、幂等兑换、回跳继续；不走未授权自动安装。
-5. **R4.4 公共 Proxy SDK / 原生 Chrome 验收**：迁出 `src/ai-smart-access/` 专用业务、验证 Chrome 代理控制/冲突/停用/重启/卸载；完整安装及真实联网证据分开记录。
+5. **R4.4 公共 Proxy SDK / 原生 Chrome 验收（历史当时计划）**：迁出 `src/ai-smart-access/` 专用业务、验证 Chrome 代理控制/冲突/停用/重启/卸载；完整安装及真实联网证据分开记录。后续公共 SDK 已接线，旧可信适配归属 `trusted/`；需求保留，原生结果须按 README 的候选身份边界分别判断。
 
 ## 8. 设计/工程 95+ 验收门槛
 
@@ -143,7 +145,7 @@
 - [ ] 统一 CSS 语义规则、工具级隔离、主分支最小变更、构建与测试有可复核产物。
 - [ ] 最终 95+ 是具备实际代码、系统与浏览器证据后的**工程验收门槛**；离线 HTML 原型的视觉评分不能代替交付评分。
 
-## 9. 当前完成与未完成
+## 9. R4 提案当时完成与未完成（历史）
 
 - **已做**：核查原 R1/R2 设计与代码基线，新增 R4 产品规格和本地可离线交互的独立 HTML；原型为固定演示数据，不进行业务调用。
 - **未做**：正式会员账号、商品/支付系统、真实兑换、已审核激活链接、运行时 UI 迁移、Managed Proxy SDK、生产供应商线路、Chrome 原生闭环。
@@ -223,6 +225,6 @@ node --test preview/test-r41.mjs
 - 实际权益、份额、兑换生效时间、到期规则由商品/服务端回执驱动；普通兑换码无法根据格式推断商品，也不得给任意输入直接 +30 天。时间类的会员主卡仍可展示服务端确认的剩余时间，非时间类需展示适用的其它权益形式。
 - 「查看更多商品」展示真实商品目录；离线静态示例仅供排版审核，不宣称商品种类完整、已定价或已上架。
 - 「AI 网站访问」只设一个可见启停按钮；单击启用直接发起可信操作，不出现模式选择弹层，也不多一次确认。停用不受会员/服务端异常限制；不可控/冲突/停止失败在卡片内处理。Chrome 强制系统授权不因此被绕过。
-- 本轮仍是产品设计和离线 HTML 原型；正式源代码 `src/**`、代理控制 Host/SDK、Provider 均不在本轮修改。真实 Native Chrome 验收仍为 `NATIVE_NOT_TESTED`。
+- **历史 R4.2 当时范围**：该轮仍是产品设计和离线 HTML 原型；正式源代码 `src/**`、代理控制 Host/SDK、Provider 均不在该轮修改。当时真实 Native Chrome 验收为 `NATIVE_NOT_TESTED`。不据此否认后续源码接线或特定旧候选原生证据，也不将其扩展成 1.3.8 通过；当前以 README 为准。
 
 定向测试入口：`node --test examples/sidebar-tools/ai-vip-share/preview/test-r41.mjs`（R4.1 历史用例 + R4.2 新合同）。

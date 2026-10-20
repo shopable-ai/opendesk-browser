@@ -1,10 +1,14 @@
 # AI VIP Share · R5.7 离线产品预览
 
+正式工具的唯一当前状态入口见 [README：1.3.8 源码与正式包已交付](../README.zh-CN.md#current-status)。本页保留 R5.7 离线预览说明与历史证据。
+
 **唯一主入口：** [index.html](index.html)（直接使用 Chrome 打开本地 HTML，无服务器、CDN、生产 SDK 或额外构建）。
 
 **不修改的历史视觉参照：** [ai-vip-share-r4-preview.html](ai-vip-share-r4-preview.html)。R5.7 延续其品牌图形和会员主卡结构，不额外创建版本命名的主 HTML。
 
 > **信任边界：** 本页是纯静态离线产品预览。账号、会员、商品、兑换、浏览器安装和代理状态都没有与真实服务连接。所有权益、回执和安装状态都只能作为**明确标记的演示结果**。不得据此声明商业产品或 Chrome 代理已上线。
+
+安装状态由实验台**手工模拟**；页面不验证真实短效 ticket、宿主/工具安装身份、跨安装意图恢复或回跳。完成模拟安装步骤只证明本页的交互状态变化，不能证明专属激活链接已实现。下文 `DEMO-ACCESS-2026` 等离线演示码**不等于**本地 fixture 的 `DEMO-VIP-01`，两者不共享账号、权益或账本。
 
 ## 在预览中完成完整体验
 
@@ -36,7 +40,7 @@
 | 更多商品的单外链入口 | 经审核的正式 HTTPS 商城域名及受信任外链打开方式 | `https://example.com/` 当成真实商城 |
 | 网络状态、会员/代理等互不污染 | 宿主/SDK/Provider 分层，独立安全验收 | HTML 原型当作已完成 Chrome 代理验收 |
 
-**正式代码本轮不修改：** `../src/index.html`、`../src/style.css`、`../src/main.js`、SDK/Host/Dispatcher/Chrome driver 或已安装工具 JSON。
+**历史 R5.7 预览轮次不修改正式代码：** `../src/index.html`、`../src/style.css`、`../src/main.js`、SDK/Host/Dispatcher/Chrome driver 或已安装工具 JSON；这不描述后续 1.3.8 的源码范围。
 
 ## 验证指令与证据等级
 
@@ -45,7 +49,7 @@ node --test examples/sidebar-tools/ai-vip-share/preview/test-r41.mjs examples/si
 ```
 
 - R5.7 构建时已通过 **3 段控制器语法解析**，并用仓库代码与 Node 测试等价的自定义内存 DOM 驱动完成 **22/22 行为场景**；此项只能报告为 `SIMULATED_DOM_PASS`。
-- 当前执行环境**没有挂载用户 Mac 工作目录、不能直接运行仓库 Node 命令或真实 Chromium 预览文件**，故 `NODE_NOT_RUN` 与 `VISUAL_NOT_TESTED`；需要在实际仓库和 Chrome 内按上面的命令、390/360/320px 与深浅主题分别复验。
+- R5.7 当时执行环境**没有挂载用户 Mac 工作目录、不能直接运行仓库 Node 命令或真实 Chromium 预览文件**，故记录 `NODE_NOT_RUN` 与 `VISUAL_NOT_TESTED`，当时列有 390/360/320px 与深浅主题复验待办。此为历史记录，本轮不据此启动测试或尺寸矩阵。
 - 不得因纯模拟测试通过就认定正式扩展、SDK、会员 Provider、Chrome Native 或视觉 95+ 已验收。
 
 独立实施证据见 [R5.7 工作记录](../../../../docs/framework/workstreams/ai-vip-share-r57-preview-ux-20261016.md)。

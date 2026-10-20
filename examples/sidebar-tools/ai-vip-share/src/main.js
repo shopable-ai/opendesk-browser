@@ -103,9 +103,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.7';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.8';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -332,6 +332,7 @@
       record.schemaVersion===1);
   }
   function renderLocalDevelopment(){
+    renderFeatureStatus();
     localSection.hidden=!developmentProfile;
     localConnect.disabled=!developmentProfile||localConnecting||busy||cookieBusy||
       (localMode&&(Boolean(recoveryFault)||Boolean(recovery&&recoveryMatchesService())||localSwitchBlocked()));
@@ -340,6 +341,28 @@
     localStatus.textContent=localNotice||(localMode?
       '本地开发 · 已选择 127.0.0.1:7898 演示服务。兑换 DEMO-VIP-01 后才授予演示权益；不是付费会员。':
       '本地开发 · 尚未连接。主动连接后使用本机演示账号与兑换服务，不代表正式会员或代理已启用。');
+  }
+  function renderFeatureStatus(){
+    // Configuration is not evidence of login, redemption, Cookie or proxy success.
+    const set=(id,text)=>{const element=byId('ai-vip-'+id);if(element)element.textContent=text;};
+    set('service-mode',localMode?'本地演示已选择。请按下方步骤兑换测试码；演示权益不代表正式会员。':
+      productionEndpoints?'正式会员服务已配置；以账号查询和兑换回执为准。':
+        '正式服务未配置。安装工具后即可查看接入状态，无需另外激活工具。');
+    set('feature-member',localMode?'演示账号由本地测试服务提供；权益以会员卡的实际查询结果为准。':
+      productionEndpoints?'从会员卡查询服务返回的账号与权益；登录、绑定由正式账号服务提供。':
+        '正式账号服务未配置，暂不能登录、绑定或查询权益。');
+    set('feature-redeem',endpoints?'账号核验后显示输入框；先预检再确认。兑换记录随权益刷新，结果未知时使用「核对上次兑换」。':
+      '正式兑换服务未配置，输入框暂不显示；专属链接和旧设备激活也不能代替兑换服务。');
+    set('feature-cookie',localMode?'仅演示测试站点。有效兑换回执后显示写入确认；写入后仍需到目标页面验证会话。':
+      COOKIE_TARGETS.length?'仅接收已批准目标的有效交付，逐项确认写入后到目标页面核对。':
+        '生产目标未配置；收到有效交付后才可核对目标并确认写入。');
+    set('feature-shop',catalog?'从「查看更多商品」打开已配置目录；商品购买与兑换结果分别核验。':
+      '商城地址未配置，商品按钮暂不显示。');
+    set('feature-proxy',localMode?'演示兑换授予代理功能后才可启用；启用、停止与 Cookie 分开操作。':
+      APPROVED_PROXY_ENDPOINT?'有效权益与浏览器授权核验后可请求启用；停止入口优先保留。':
+        '生产代理未配置；代理连接与会员权益分别核验，已有控制意图仍可请求停用。');
+    set('demo-availability',developmentProfile?'本地演示入口可用：使用下方「连接本地开发」。本机测试服务需保持运行。':
+      '本地演示入口不可用：需匹配已审阅安装包的开发版扩展。正式版、旧开发版或包来源不匹配时不提供入口；仅重新导入 JSON 无法更新扩展。可用「重新检测代理状态」再次检测。');
   }
   async function readLocalPreference(){
     if(typeof storeRequest!=='function')fail('E_LOCAL_STORAGE','工具存储不可用');

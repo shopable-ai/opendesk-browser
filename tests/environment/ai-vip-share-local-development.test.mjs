@@ -123,7 +123,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.3.7');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.3.8');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
@@ -139,6 +139,38 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   await reopened.click('local-connect');
   assert.equal(reopened.get('member-state').textContent,'服务未配置');
   assert.equal(reopened.store.get(PREFERENCE).enabled,false);
+});
+
+test('feature status explains hidden production controls without granting development or issuing requests',async()=>{
+  const e=await runtime({developmentProfile:null});
+  assert.match(e.get('service-mode').textContent,/正式服务未配置/);
+  assert.match(e.get('feature-member').textContent,/账号服务未配置/);
+  assert.match(e.get('feature-redeem').textContent,/输入框暂不显示/);
+  assert.match(e.get('feature-cookie').textContent,/生产目标未配置/);
+  assert.match(e.get('feature-shop').textContent,/商城地址未配置/);
+  assert.match(e.get('feature-proxy').textContent,/生产代理未配置/);
+  assert.match(e.get('demo-availability').textContent,/旧开发版或包来源不匹配/);
+  assert.equal(e.get('local-development').hidden,true);
+  assert.equal(e.get('redeem-form').hidden,true);
+  assert.equal(e.calls.length,0);assert.equal(e.cookieCalls.length,0);assert.equal(e.proxyCalls.length,0);
+});
+
+test('feature status follows explicit local selection and revocation without claiming commercial success',async()=>{
+  const e=await runtime();
+  assert.match(e.get('demo-availability').textContent,/入口可用/);
+  assert.match(e.get('service-mode').textContent,/正式服务未配置/);
+  await e.click('local-connect');
+  assert.match(e.get('service-mode').textContent,/本地演示已选择/);
+  assert.match(e.get('feature-member').textContent,/实际查询结果/);
+  assert.match(e.get('feature-redeem').textContent,/先预检再确认/);
+  assert.match(e.get('feature-cookie').textContent,/仅演示测试站点/);
+  assert.match(e.get('feature-proxy').textContent,/演示兑换授予/);
+  assert.equal(e.get('proxy-toggle').hidden,true);
+  e.setStatus({...released,developmentProfile:null});await e.click('proxy-refresh');
+  assert.match(e.get('service-mode').textContent,/正式服务未配置/);
+  assert.match(e.get('demo-availability').textContent,/入口不可用/);
+  assert.equal(e.get('local-development').hidden,true);
+  assert.equal(e.cookieCalls.length,0);assert.equal(e.proxyCalls.length,0);
 });
 
 test('sandbox trusted button and Enter preview without native form submission or duplicate requests',async()=>{
@@ -166,6 +198,9 @@ test('unknown redeem acknowledgement survives reopen and only status query resol
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
   assert.equal(e.fixture.ledger.size,1);assert(e.store.get(RECOVERY));
   assert.equal(e.get('recovery').hidden,false);
+  // The official 1.3.7 journal must survive the in-place 1.3.8 package upgrade.
+  const prior=e.store.get(RECOVERY);
+  e.store.set(RECOVERY,{...prior,packageVersion:'1.3.7'});
   const reopened=await runtime({store:e.store,fixture:e.fixture});
   assert.equal(reopened.get('redeem-form').hidden,true);
   assert.equal(reopened.calls.filter(row=>row.url.endsWith('/redeem')).length,0);

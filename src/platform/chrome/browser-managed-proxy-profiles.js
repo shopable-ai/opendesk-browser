@@ -11,9 +11,9 @@ export const REVIEWED_MANAGED_PROXY_PROFILES=Object.freeze([]);
 // installed package, storage, or the legacy AI local-test adapter. WXT serve
 // uses Vite's build pipeline, so DEV may be false; MODE is the actual mode.
 const developmentBuild=import.meta.env?.MODE==='development';
-// Reviewed ai-vip-share 1.3.7, 95327 bytes; public scoped Cookie delivery. Any package change needs source review
+// Reviewed ai-vip-share 1.3.8, 100215 bytes; status guidance only, same scoped SDK operations. Any package change needs source review
 // and a new pin; runtime preferences and package claims cannot approve it.
-const developmentPackageHash='5a68205a64d8298496cd5f7d299650d61562c3d40e4916eee043ceced73e9c84';
+const developmentPackageHash='6ff24241544fa42d79db4ef3d7acb37ee7236bd4c162e669edaa36c85ddf7707';
 export const MANAGED_PROXY_DEVELOPMENT_ENABLED=developmentBuild&&
   typeof developmentPackageHash==='string'&&/^[0-9a-f]{64}$/.test(developmentPackageHash);
 export const DEVELOPMENT_MANAGED_PROXY_CONFIG=Object.freeze({

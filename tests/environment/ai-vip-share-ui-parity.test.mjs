@@ -81,12 +81,12 @@ test('responsive styling and explicit theme tokens cover narrow Sidebar tool',()
 
 test('v2 Sidebar Tool candidate builds from the real UI source, not preview',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.3.7');
+  assert.equal(config.version,'1.3.8');
   assert.equal(config.files.html,'src/index.html');
   assert.equal(config.files.css,'src/style.css');
   assert.equal(config.files.js,'src/main.js');
   const pkg=await createSidebarToolPackage(toolRoot);
-  assert.equal(pkg.version,'1.3.7');
+  assert.equal(pkg.version,'1.3.8');
   assert.equal(pkg.html,html);
   assert.match(pkg.css,/ai-vip-brand/);
   assert.match(pkg.js,/RECOVERY_COMPAT_VERSIONS/);

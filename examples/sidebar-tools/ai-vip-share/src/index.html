@@ -13,10 +13,29 @@
     </div>
   </header>
 
+  <section class="ai-vip-review" aria-labelledby="ai-vip-features-title">
+    <h2 id="ai-vip-features-title">功能与接入状态</h2>
+    <p id="ai-vip-service-mode" class="ai-vip-note" role="status" aria-live="polite">正式服务未配置。安装工具后即可查看接入状态，无需另外激活工具。</p>
+    <details class="ai-vip-service ai-vip-feature-details">
+      <summary>查看 6 类功能与入口 <span aria-hidden="true">▾</span></summary>
+      <dl class="ai-vip-feature-list">
+        <dt>会员账号与权益 · 下方会员卡</dt><dd id="ai-vip-feature-member">正式账号服务未配置，暂不能登录、绑定或查询权益。</dd>
+        <dt>兑换码激活与记录 · 下方兑换激活</dt><dd id="ai-vip-feature-redeem">正式兑换服务未配置，输入框暂不显示。</dd>
+        <dt>专属激活链接与安装续接</dt><dd>尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。</dd>
+        <dt>网站 Cookie 交付 · 有效兑换回执后出现</dt><dd id="ai-vip-feature-cookie">生产目标未配置；收到有效交付后才可核对目标并确认写入。</dd>
+        <dt>更多商品</dt><dd id="ai-vip-feature-shop">商城地址未配置，商品按钮暂不显示。</dd>
+        <dt>代理启停 · 下方 AI 网站访问</dt><dd id="ai-vip-feature-proxy">生产代理未配置；代理连接与会员权益分别核验。</dd>
+      </dl>
+    </details>
+    <p id="ai-vip-demo-availability" class="ai-vip-note">正在检测本地演示入口。</p>
+    <p class="ai-vip-fine-print">旧设备 / 代理激活是历史技术流程，当前没有设备激活入口；它不能代替兑换码激活或专属链接激活。</p>
+  </section>
+
   <section id="ai-vip-local-development" class="ai-vip-review" aria-labelledby="ai-vip-local-title" hidden>
     <strong id="ai-vip-local-title">本地开发</strong>
     <p id="ai-vip-local-status" role="status" aria-live="polite">尚未连接本地开发服务。</p>
     <button id="ai-vip-local-connect" class="od-button od-button--secondary" type="button" disabled>连接本地开发</button>
+    <p class="ai-vip-fine-print">演示步骤：先连接 → 输入测试码 DEMO-VIP-01 → 预检兑换 → 核对账号并确认兑换 → 查看权益与兑换记录。Cookie 写入和代理启用仍各自确认。演示数据不代表付费会员。</p>
   </section>
 
   <section id="ai-vip-member-card" class="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
@@ -121,7 +140,7 @@
     <div class="ai-vip-service-content">
       <p>仅在通过可信 Browser SDK 与 Chrome 原生权限确认后管理本工具的代理，不修改其他工具或系统 VPN 配置。连接可用不代表第三方会员已开通。</p>
       <p>站点示例：ChatGPT · Claude · Gemini · Perplexity；最终适用范围以审核后的服务与商品说明为准。系统代理、VPN / TUN 与本工具状态分别核验。</p>
-      <p id="ai-vip-link-status">专属激活链接续接尚未接入正式安装与服务验证流程；目前请手动输入兑换码。</p>
+      <p id="ai-vip-link-status">专属激活链接尚未接通。兑换码需会员服务可用后手动输入；本地演示请先使用上方连接入口。</p>
     </div>
   </details>
 </main>
