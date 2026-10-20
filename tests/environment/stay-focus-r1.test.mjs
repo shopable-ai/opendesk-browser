@@ -323,33 +323,30 @@ test('internal block page uses a real window ID and never defers sidePanel.open 
 });
 
 
-test('R5.6 React current-site click uses Host catalog, revalidation and one request',async()=>{
+test('R5.7 sandbox current-site display is read-only; native React owns the one-click writer',async()=>{
   const ui=mountStayFocusReact({url:'https://m.youtube.com/watch?v=sample'});
   await ui.flush();
-  assert.ok(ui.button('加入'),'current page has an add button');
-  assert.equal(ui.writes.length,0,'recognition alone never writes a rule');
-  ui.button('加入').props.onClick();
-  await ui.flush();
-  assert.deepEqual(ui.writes,[{operation:'focus.site.put',payload:{site:{
-    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:30,
-    group:'entertainment'}}}]);
-  assert.equal(ui.button('加入'),null,'already managed site cannot be re-added');
-  assert.ok(ui.find(node=>node.type==='span'&&ui.text(node)==='已管理'));
+  assert.equal(ui.button('加入'),null,'sandbox cannot offer a misleading second-click action');
+  assert.equal(ui.button('恢复'),null,'sandbox must not duplicate the native resume action');
+  assert.ok(ui.find(node=>node.type==='strong'&&ui.text(node)==='m.youtube.com'));
+  assert.ok(ui.find(node=>node.type==='span'&&ui.text(node)==='在上方一键加入'));
+  assert.equal(ui.writes.length,0,'reading current page never submits a rule');
   ui.unmount();assert.equal(ui.disposed,true);
 });
-test('R5.6 forged subdomain and paused site cannot widen or reset a rule',async()=>{
+test('R5.7 read-only current-page status does not widen forged hosts or resume paused rules',async()=>{
   const forged=mountStayFocusReact({url:'https://youtube.com.attacker.test/',title:'YouTube'});
-  await forged.flush();forged.button('加入').props.onClick();await forged.flush();
-  assert.equal(forged.writes[0].payload.site.host,'youtube.com.attacker.test',
-    'substring/title must never canonicalize an attacker domain');
+  await forged.flush();
+  assert.ok(forged.find(node=>node.type==='strong'&&
+    forged.text(node)==='youtube.com.attacker.test'));
+  assert.equal(forged.writes.length,0);
   forged.unmount();
   const existing={host:'youtube.com',subdomains:true,enabled:false,mode:'always',
     minutes:8,group:''};
   const paused=mountStayFocusReact({url:'https://m.youtube.com/',sites:[existing]});
-  await paused.flush();assert.ok(paused.button('恢复'));
-  paused.button('恢复').props.onClick();await paused.flush();
-  assert.deepEqual(paused.writes[0].payload.site,{...existing,enabled:true},
-    'resume preserves the existing mode, scope and independent budget');
+  await paused.flush();
+  assert.ok(paused.find(node=>node.type==='span'&&paused.text(node)==='已暂停'));
+  assert.equal(paused.button('恢复'),null,'resume belongs to verified native click');
+  assert.equal(paused.writes.length,0);
   paused.unmount();
 });
 test('R5.6 daily budget saves only a validated edited value',async()=>{
