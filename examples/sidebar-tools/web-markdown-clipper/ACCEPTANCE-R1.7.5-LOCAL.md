@@ -4,7 +4,7 @@
 
 1. **可以通过 Chrome 原生右键保存。** 在受控 Mac Chrome 中用真实鼠标选中指定中文，经原生菜单打开已安装 1.1.4，一次保存后在「我的摘录」打开，正文与 HTTPS 来源一致。
 2. **正常完整退出后仍存在。** 同候选、同扩展 ID、同 Profile 的旧进程确认结束后，新进程逐字读回三条记录，删除的测试记录没有恢复；单独关闭侧栏再开也通过。
-3. **旧版原位升级保留了数据和正文授权。** 实际验证链为可信历史 1.1.0 → 1.1.3 → 1.1.4；没有卸载重装。右键授权仍绑定旧版本，必须显式重新启用。直接单跳 1.1.0 → 1.1.4 未执行。
+3. **旧版原位升级保留了数据和正文授权。** 除原两段链，续验已在全新独立 Profile 实际完成可信历史 1.1.0 → 1.1.4 直接升级，没有卸载重装。旧摘录及编辑逐字段保留，正文授权不变；旧右键授权不对新版生效，显式重新启用后原生剪藏恢复。
 4. **搜索、编辑、复制、Markdown 下载与 JSON 备份通过。** 以实际 UI、pbpaste、磁盘文件解析和逐字段比对为准；普通复制、下载、鲜读备份单击完成。
 5. **发现并修复颜色问题，保留原产品。** 1.1.4 仅给搜索 input 的 placeholder 使用既有 --sub，深色对比度由 3.2873 提高到 6.8815；浅色 4.8152。保留 HTML/CSS/JS、布局和全部业务。
 
@@ -20,6 +20,7 @@
 - 标准 demo-form 由 HTTPS `https://localhost:43180/demo-form.html` 提供，仅替换样本为指定中文，真实处理自签名证书页面。公开 HTTPS 网站 **NOT_TESTED**。
 - 原生右键证据来自 macOS CGEvent 鼠标拖选和 Accessibility Chrome 菜单；没有伪造 DOM contextmenu，没有直接写 Storage 构造结果。普通 UI 可用 Chrome Input，Storage 只读用于比较。
 - 根 `dist/development`、个人 Profile、其他 Agent 的 15 个文件均保留。收尾正常关闭本任务 Chrome，确认 PID 89096 不存在，仅停止自己的 HTTPS fixture PID 83711；Profile 和证据保留。见 `final-owned-environment-cleanup.json`。
+- 直接升级续验使用另外的独立 `production-direct-upgrade-profile`，加载同一静态 production 路径、扩展 ID 和 packageHash。先 96201，再正常退出后 98592；收尾两者均已结束，HTTPS fixture 96178 也已正常停止，未停止其他服务。见 `direct-upgrade-launch.json`、`direct-upgrade-114-restart-readback.json`、`direct-upgrade-owned-environment-cleanup.json`。
 
 本地原始证据根目录（下表文件名均相对这里）：
 
@@ -33,7 +34,7 @@
 |---|---|---|
 | 指定中文 → 原生菜单 → 自动打开预填 | PASS | `production-114-native-selection.json`、`production-114-native-menu.txt`、`production-114-native-prefill.json`；菜单「OD · 保存选中内容到我的摘录」 |
 | 一次保存 → 我的摘录 → 全文及来源 | PASS | `production-114-save-ui.json`、`production-114-exact-note-open.json`；全文为「这是一条用于 OpenDesk Browser 真实验收的中文摘录。」 |
-| 保存后没有意外重复数据 | PASS（本次正常保存） / NODE PASS | 保存前两条，保存后三条，目标原文仅一条；`production-114-after-save-storage.json`。额外重复原生剪藏未可靠完成，不冒称完整重复操作压力流程通过；去重和 single-flight 有定向测试 |
+| 保存后没有意外重复数据 | PASS / NODE PASS | 续验 `direct-upgrade-114-repeat-native-selection.json`、`-menu.txt` 与 `direct-upgrade-114-repeat-save-comparison.json`：重新原生剪藏并保存，记录仍2条、原文仅1条，整个 clips 值不变；不外推压力测试 |
 | 关闭侧栏，再从 Chrome 打开 | PASS | `production-114-sidebar-reopen-receipt.json`、`production-114-sidebar-reopened-ui.json`；真实 AX 中侧栏关闭，再开读回三条全文 |
 | 完全退出 Chrome，同 Profile 启动 | PASS | `production-114-final-restart-receipt.json`：正常 Browser.close 后旧 PID **88699** 消失，新 PID **89096**；重启前后整个保存快照一致，三条记录完整 |
 | 搜索、打开、编辑、保存、复制 | PASS | `production-keyboard-search-input.json`、`production-keyboard-open.json`、`production-keyboard-edit-input.json`、`production-keyboard-save.json`、`production-keyboard-copy.json`；原生 Unicode/Tab/Return 操作。该阶段为 1.1.3，JS 与最终 1.1.4 逐字节相同，编辑内容最终重启仍在 |
@@ -66,10 +67,15 @@
 | 1.1.0 → 1.1.3 → 1.1.4，同工具 ID | PASS | `production-110-to113-review.json`、`production-113-to114-review.json`、`production-114-upgrade-comparison.json` |
 | 旧编辑、正文站点授权保留 | PASS | 旧记录各字段与最终重启一致，clip-sites 相等 |
 | 右键授权不自动扩给新版 | PASS | 旧 grant 记录仍在但绑定旧 version/hash；最终显式重新启用后才绑定 1.1.4 与正式 SHA；原生菜单继续可用 |
-| 直接单跳 1.1.0 → 1.1.4 | NOT_TESTED | 不用两段实际链冒称单跳 |
+| 直接单跳 1.1.0 → 1.1.4 | PASS | 独立新 Profile 的 `direct-upgrade-110-review.json`、`direct-upgrade-110-edited-storage.json`、`direct-upgrade-114-review.json`、`direct-upgrade-114-comparison.json`；真实审阅、确认更新，旧编辑及正文授权逐字段一致 |
+| 直接升级后重新启用右键、两次剪藏保存及重启 | PASS | 重新启用前 `direct-upgrade-114-pregrant-native-menu.txt` 没有剪藏项；重新启用后 `direct-upgrade-114-native-*` 与 `direct-upgrade-114-repeat-native-*` 原生执行成功。`direct-upgrade-114-restart-readback.json`：96201 正常结束→98592，同 Profile 两条记录及授权一致，`direct-upgrade-114-restart-ui.json` / `.png` 实际界面读回 |
 | 升级提交中途进程中断、断电或回滚 | NOT_TESTED | 真实取消/无效包拒绝不能证明事务提交中途恢复 |
 
 1.1.3 → 1.1.4 的 HTML/JS/capabilities 不变，仅 CSS +64 字节；没有添加数据迁移，没有覆盖旧发行版本。
+
+续验独立复核 `direct-upgrade-independent-review.md` 实际解析五份原始 Storage，确认七字段旧编辑、两类 grant、菜单及重启 UI 的上述结果；未据此追加评分。逐动作原生输出在主会话工具记录，磁盘证据不是独立连续录像，进程退出 probe 记录也不是浏览器自身退出码。事务中断继续 NOT_TESTED。
+
+启动回执的 `packageHash` 指整个 Browser 的生产包，不能与工具 JSON 的 SHA-256 直接比较。新增 `direct-upgrade-hash-scopes.json` 明确两种范围，并按构建回执 recipe 重算实际加载目录106文件，Browser 为 c8a2…95bd、工具为 ff33…7fab；原 launch/restart 回执没有重写。
 
 ## 剪贴板与磁盘实物
 
@@ -88,7 +94,7 @@ JSON 为 `opendesk.clipper-notes.backup.v1`，三条内容、顺序及字段均�
 - **共享工具宿主超过原工程预算。** 1,074,242 字节超过原 1024 KiB。按既有容量合同和独立审查，**973b89e8a** 将 production 有界预算调整到 **1056 KiB（1,081,344）**，development 1088 KiB 不变；它是工程预算，不是 Chrome 限制。保留全部功能、CSP、来源、权限、字节上限+1拒绝断言；22/22 门禁，独立 CLEAR，最终构建退出0。余量仅7102字节，后续增长需重新评估。
 - **真实深色搜索占位文字对比度不足。** **8f0be0049** 发布 1.1.4，仅沿用 --sub 并固定 opacity:1，深色 3.2873→6.8815，浅色4.8152。原设计不变，浅深截图复验通过。更早1.1.2的深色错误红字2.717→8.842修复继续保留；不把历史截图冒称最终全状态实测。
 - **验收驱动仍使用已移除的旧 UI，包负向夹具成为空替换。** 同提交只更新真实 React 工具列表/详情/导入选择器及现有安装审阅驱动；保留权限与内容断言。负向测试先断言替换目标唯一且确实变更，生产扫描器不变。最终9项包测试和 R22 Chrome 集成通过。
-- **观察器错误没有伪装成产品缺陷。** 曾选错/选空中文、中间更换 unpacked 路径导致扩展 ID 不同、媒体 override 关闭后误判深色、200% 发给网页、剪贴板读取早于异步完成、关侧栏立即要求 CDP target 消失。均保留原证据，修正观察方法后只采用身份一致的有效结果。最后额外重复原生拖选仍未稳定，不保存错误选区，也不算 PASS。
+- **观察器错误没有伪装成产品缺陷。** 曾选错/选空中文、中间更换 unpacked 路径导致扩展 ID 不同、媒体 override 关闭后误判深色、200% 发给网页、剪贴板读取早于异步完成、关侧栏立即要求 CDP target 消失。均保留原证据，修正观察方法后只采用身份一致的有效结果。续验先实际点击网页使其获得焦点，再鼠标拖选，完成直接升级后的两次原生剪藏；早先选空记录仍保留，不算成功。
 - **记录错误已纠正。** 954 文件检查属于较早阶段，不是最终 build 嵌套；最终快照单独 check 为949文件、exit0。旧命令账本中的 provenance 路径拼错，原安全日志只证明9项包测试；已另行执行正确 `bundle-package-provenance.test.mjs` 的 production 用例，1/1、exit0。旧记录不删除。
 - 另一个工具已有 Prompt tooltip 59px/64px 断言差异属于共享基线；没有为绿灯修改无关 UI 或删除断言。
 
@@ -130,7 +136,32 @@ Browser / Native 两入口配置的是同一个 R22 Chrome 集成场景，不称
 
 R22 的 `if: always()` 全仓库回归在上述失败后仍继续，故取证时运行总状态可能仍为 in_progress；不能把跳过的构建/原生步骤算通过，也不将无关全仓库断言都归因于 Clipper。日志片段 `remote-ci-source-114-markdown-excerpt.log` 与完整 discover 日志 `remote-ci-source-114-discover.log` 保留实际失败。
 
-**正式发布剩余阻断：**无 overlay 的 main 产物未验证；共享 CI 的官方工具预编译前置和其他工具的 Cookie profile 未关闭。未修改这些工具的业务、未借此停用保护。文档收尾提交之后的最新 SHA 另行核对，不以旧源码 CI 冒称新 SHA 已通过。
+以上是 8f0be 源码提交的历史观察。续验开始时 main 与远程均为 **ac148eac81fc8a09eb0e54fa1c9ef3d3b1793c6b**；最新结果另见下表，不以历史发现失败覆盖后来的成功发现。
+
+| ac148e 的远程检查 | 实际观察 | 根因与范围 |
+|---|---|---|
+| [App CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/39485122597) | discover 成功；Clipper app-validate 失败；ci-contract 失败；原生 job 排队 | 本次仅 Clipper 选择成功。实际构建 `E_PREVIEW_DESIGN` 来自共享 Prompt CSS 的硬编码颜色；ci-contract 在干净 runner 缺官方 React 编译前置。原生日志未产生，不判 PASS |
+| [Markdown R22](https://github.com/shopable-ai/opendesk-browser/actions/runs/39485122420) | 首个验证步骤仍失败；always 全仓库回归仍在运行 | 初始错误仍为全官方 fixture 缺少 `dist/tool.css`；不是 Clipper 源文件缺失 |
+
+实际日志为 `continuation-current-ci-final.json`、`continuation-app-build-excerpt.log` 与 `continuation-ci-contract-excerpt.log`。这些结果不包括随后 CI 修复提交，修复后的远程结果须按新 SHA 查看。
+
+### CI 前置最小修复及验证边界
+
+在 `.github/workflows/markdown-tools-r22.yml` 的首次验证前，以及 `.github/workflows/app-ci.yml` 的独立 ci-contract job 测试前，补运行已有三个编译器：`build-adblock-react.mjs`、`build-stay-focus-react.mjs`、`build-cookie-editor-react.mjs`。没有改 BASE_TESTS、官方 catalog、权限、候选同源或拒绝断言，没有新增构建系统或依赖。
+
+在 ac148e 的全新 `git archive` 隔离目录 `ci-r22-preflight` 验证，没有改根目录 dist：
+
+| 实际命令 / 输入 | 退出码 / 结果 | 日志 |
+|---|---|---|
+| 三个现有编译器依次执行 | 各 exit0 | `ci-r22-precompile-results.json` 及三个 compiler log |
+| 未加 overlay：R22 与 official-tools-catalog 测试 | exit1；缺编译文件已解决，下一实际失败为共享 Prompt `E_PREVIEW_DESIGN` | `ci-r22-preflight-tests.log` |
+| 隔离目录仅复制已有受保护 Prompt 单行 token 修复，再执行 R22 与 app-ci 合同测试 | exit0，13/13 | `ci-r22-app-contract-only.log` |
+| 同样 overlay，附加整个 catalog 回归 | exit1，29/31 | `ci-r22-contract-overlay-tests.log`；两项分别为 Prompt 源码与正式包不同源、AI VIP capability 期望不一致，不修改其他工具业务或降低断言 |
+| Ruby YAML 解析两份工作流 | exit0 | `ci-prerequisite-yaml-parse.log` |
+
+`ci-r22-preflight-inputs.json` 与 `ci-r22-preflight-overlay-inputs.json` 分别保留两次输入声明。后两组不是纯已提交 main 的证明。因为此次没有修改 Clipper 可执行代码，正式 1.1.4 JSON 和已验证 production 候选均未重建。
+
+**正式发布剩余阻断：**无 overlay 的 main 构建因受保护的 Prompt CSS 仍失败。其现有单行修复未经文件归属协调授权，继续保留且未暂存；待用户回复单独提出的整合请求。CI 前置本地已验证，远程新提交结果未确认；共享 catalog 的上述两项失败及广泛选择下其他工具的 Cookie profile 仍未关闭。没有 Clipper 核心操作 P0，不把这些限制写成全量 CI PASS。
 
 ## 本轮提交与文件归属
 
@@ -140,6 +171,7 @@ R22 的 `if: always()` 全仓库回归在上述失败后仍继续，故取证时
 | `33b2f6b1af524f396994ade30d5d53e455010367` | `src/analytics/collector.js`、`contract.js`、`host.js`，Prompt `trusted/page.js`，`scripts/bundle-provenance.mjs`，analytics-page-scope / analytics-r11-product / prompt-shortcuts-r14-page / prompt-shortcuts-r14 四份测试；修复真实来源边界失败 |
 | `973b89e8ada4c5beef0ded46424cf3d87a5386a2` | `scripts/build-contract.mjs`、`check-source.mjs`、`verify-package.mjs`，`fixed-entries-audit.test.mjs`、`sw-budget-policy.test.mjs`，R23与R131两份文档；落实独立审核的有限工程容量 |
 | `8f0be00492c5e3b4380b5c5bb0b3f46630d095b3` | Clipper `src/style.css`、版本/README/唯一JSON；`tests/environment/package.test.mjs`、`tests/framework/markdown-tools-native-r22.test.mjs`；真实颜色修复及现有失效验收驱动修正 |
+| `0067f3a0238c7a29c31599b68145be7e9ead5622` | 两份现有 CI workflow 的官方 React 预编译前置；修复干净 runner 的真实准备顺序故障，独立审查 CLEAR，不改变产品代码或正式包 |
 | `c035e9c287332e4672258c8b6d5b5e3e25661753` 及本报告收尾提交 | 仅验收文档；不改变已验证产物 |
 
 只有 main 写入，没有创建分支/worktree/PR，没有强推/reset/clean。其他 Agent 15 个文件与保护基线 SHA 均一致，未暂存、提交或覆盖。证据基线 `protected-parallel-before-113-commit.json`。
@@ -153,7 +185,7 @@ R22 的 `if: always()` 全仓库回归在上述失败后仍继续，故取证时
 | 产品 UX / Pasteur | 95 | 实际浅深色、窄屏、单击操作、中文与焦点；保存关闭编辑器后的焦点衔接仍可改善；完整备份纯键盘及全部异常状态视觉 NOT_TESTED |
 | Chrome SDK与原生右键 / Nash | 96 | 真实菜单保存、正式候选、具体未授权 Origin 拒绝与定向安全保护；有效期内同 Ticket 完整原生追踪、导航/撤权竞态及公网 NOT_TESTED |
 | 存储可靠性 / McClintock | 96 | 正常重启三条逐字段一致、旧编辑保留、删除持续、pbpaste/文件哈希；真实磁盘/配额/中途进程故障 NOT_TESTED |
-| 权限安全与旧版升级 / Averroes | 96 | 同 ID 两段原位升级、正文授权保留、右键按版本重新启用、提交前取消和拒绝；直接单跳及事务中断 NOT_TESTED |
+| 权限安全与旧版升级 / Averroes | 96 | 原独立评分基于同 ID 两段升级、正文授权保留、右键按版本重新启用、提交前取消和拒绝。续验另补直接单跳及其重启实证，不追改专家原评分；事务中断仍 NOT_TESTED |
 | 构建测试与发布 / Godel | 94 | 最终产物106文件与门禁有依据；纯已提交main产物、最终远程CI未验证；预算余量小。两项证据记录已按意见补正并实际补测，专家追加核实后维持94分 |
 
 **已验证核心链没有 Clipper P0。** 本地核心使用验收可以交付；全维度95+、无overlay的纯main正式Browser发布，以及未测的实际原生负向/事务中断场景均不作通过结论。发布剩余项必须按实际证据关闭，不能用评分代替。
