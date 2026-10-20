@@ -107,6 +107,7 @@ SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk
 - 首次进入尚无完整书签许可时，展开既有 Full Bookmarks 授权控件；Chrome optional 权限和 Host 内的 Full Consent 仍为单独的用户授权。授权成功且没有未保存或进行中的写入时，仅重新挂载经过校验的界面，以重新订阅观察事件后读取原生树。
 - SDK 仍经 `requestTrustedBookmark` → `dispatch` → 既有 Browser Host，原生书签存储和危险目录删除票据未绕过。Classic `src/main.js` 和正式 0.3.8 安装包尚保留兼容沙箱路径；**没有通过 Mac Chrome 前不得提升产品版本或宣称正式交付通过**。
 - 静态回归：`node --test tests/environment/bookmark-manager-r33-default-react.test.mjs tests/environment/bookmark-manager-r306-trusted-react.test.mjs tests/environment/bookmark-manager-r32-formal-source.test.mjs`。已有 CI WXT/Chromium 通过只证明源码和模拟操作，不是隔离 Profile 的真实 Chrome CRUD、升级或撤权证据。
-- 本阶段待原生验收重点：单次保存是否仍触发额外 Host 审阅、单条/目录删除是否存在重复确认、真实 2,000+ 树与观察会话刷新、权限撤销中的草稿保护、100%/200% 缩放及正式包升级一致性。出现任何失败，先在同一 `main` 修复，再升级正式包和 Catalog。
+- 删除 UX 源码已去掉 React 的第二层确认：菜单删除直接进入原有 Host 的**单次操作审批**；既有 Service 子树签名、短时一次性删除票据与写入后完整树读回未取消。React 预览只验证 Mock 单次提交，不模拟真实 Host 审批结果。
+- 本阶段待原生验收重点：保存/移动是否仍有多次 Host 审阅、真实 Chrome 删除时是否只出现一次 Host 确认、真实 2,000+ 树与观察会话刷新、权限撤销中的草稿保护、100%/200% 缩放及正式包升级一致性。出现任何失败，先在同一 `main` 修复，再升级正式包和 Catalog。
 
 **当前状态：SOURCE_DEFAULT_REACT_ENABLED / NATIVE_NOT_TESTED / BOOKMARK_MANAGER_RELEASE_BLOCKED。**
