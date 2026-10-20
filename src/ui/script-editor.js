@@ -1,9 +1,9 @@
-import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAction} from './develop-view.js';
+import {patchDeveloperField,developerAction} from './develop-view.js';
 import {createControllerRevisionView} from './controller-revision-view.js';
 import {createRunArtifactDownload} from './run-artifact-download.js';
+import {createControllerResultsView} from './controller-results-view.js';
 import {createRunHost} from '../run-host.js';
 import {permissionPattern} from '../environment.js';
-import {decodeValue} from '../platform/page-port/codec.js';
 import {invariant, digestUtf8} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
 import {createPageDependencyReview} from './page-dependency-review.js';
@@ -16,15 +16,13 @@ import {createProgramSourceView} from './program-source.js';
 import {createPageComponentRemote} from './page-component-remote.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
 import {inspectPageSource,validatePageSource,PAGE_BUNDLE_PREFIX} from '../scripting/user-scripts/page-bundle.js';
-import {inspectPageFrameSource} from '../scripting/user-scripts/page-frame-resources.js';
-import {dispatchManagedPagePreview,dispatchPageDraftPreview} from './page-preview-dispatch.js';
+import {createPagePreviewFlow} from './page-preview-flow.js';
 import {createBrowserPageComponentPreparer} from './page-component-preparer.js';
 import {createStaticESMPreparer} from './static-esm-preparer.js';
 import {createLocalProjectView} from './local-project.js';
 import {localProjectAllowsOrigin} from '../platform/local-project-site-scope.js';
 import {createLocalInstallUI} from './local-project-install-ui.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
-import {formatControllerRunResult, formatRunValue, runValueKind} from './run-result-presentation.js';
 import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 import {createPageProgramLibrary} from './page-program-library.js';
@@ -50,8 +48,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const scriptsSettings = find('script-user-scripts-settings');
   const scriptsCheck = find('script-user-scripts-check');
   const currentPageStatus = find('script-current-page-status'), currentPageHost = find('script-current-page-host'),
-    currentPageDebug = find('script-current-page-debug'), runningTargetStatus = find('script-running-target');
-  let projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
+    currentPageDebug = find('script-current-page-debug');
+  let editingBusy = false, stopping = false, previewBusy = false;
   const componentSelector=find('page-component-framework'),componentStatus=find('page-component-status');
   const pagePreviewStatus=find('page-preview-status');
   const componentInputs=Object.freeze(Object.fromEntries(
@@ -119,6 +117,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
       programSource.replaceSource(source);sourceInput();
     }});
   const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
+  const controllerResults=createControllerResultsView({host,view,resultDownloads,
+    isDisposed:()=>disposed,isRunning:()=>running,getOwnedRunId:()=>ownedDraftRunId,
+    isLocalPageResultCurrent:localPageResultIsCurrent,onUpdate:update,onStatus:display,
+    setResultText,setResultKind,displayCopyResult,
+    showRecovery:showUserScriptsRecovery,hideRecovery:hideUserScriptsRecovery});
 
   const controllerClassic=createControllerClassicReadiness({api,getSource:programSource.source,
     isCurrent:()=>componentMode==='javascript'&&!isPageDraft()&&!localProject?.active()&&
@@ -198,7 +201,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(browserManagedPreview&&!browserUnknownTarget&&!localProject?.active()&&!running&&!stopping&&!previewBusy&&!host.currentRun&&
       currentPageState?.status==='available'&&currentPageState.documentId===browserManagedPreview.target.documentId&&
       currentPageState.tabId===browserManagedPreview.target.tabId)return true;
-    if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!projection?.slotAvailable)return false;
+    if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!controllerResults.projection?.slotAvailable)return false;
     return localProject.selectedBindingId()===ownedManagedPreview.bindingId&&currentPageState?.status==='available'&&currentPageState.documentId===ownedManagedPreview.target.documentId&&currentPageState.tabId===ownedManagedPreview.target.tabId;
   }
   function localPageResultIsCurrent({allowResolving=false}={}) {
@@ -256,7 +259,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         '编辑源码不会自动执行；点击「运行」才执行。':
         '标准版支持 JavaScript；React/Vue 需要 Developer Edition。'):
       '切换代码类型不会替换当前源码；点击「运行」才执行。'});
-    const blocked=stopping||editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||currentPageState?.status!=='available';
+    const blocked=stopping||editingBusy||previewBusy||running||!controllerResults.projection?.slotAvailable||!!host.currentRun||currentPageState?.status!=='available';
     let runDisabled=blocked;
     if(local)runDisabled||=!localProject.canAttemptRun();
     else if(pageExecution)runDisabled||=!source.trim()||!!browserUnknownTarget||browserManagedPreview?.recoveredOnly||
@@ -316,23 +319,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
       windowId:next?.windowId??null,reason:next?.reason||'E_TARGET'},null,2)});
     update();
   }
-  const stateLabels = {preparing:'正在准备',running:'运行中',stopping:'正在停止',settling:'正在保存结果',
-    retiring:'正在释放资源',completed:'已完成',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
-  function renderTask(run) {
-    if (disposed) return;
-    currentTask = run;
-    patchDeveloperField(view,find('script-task-id'),{textContent:run ? `runId：${run.runId}` : '尚未运行'});
-    patchDeveloperField(view,find('script-task-status'),{textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
-    patchDeveloperField(view,find('script-task-version'),{textContent:run?.revision
-      ? run.sourceKind === 'draft' || run.revision.kind === 'draft'
-        ? `草稿快照 · SHA-256 ${run.revision.sourceHash}`
-        : `${run.revision.scriptId} · r${run.revision.revision} · ${run.revision.sourceHash}` : ''});
-    const target=run?.target;
-    patchDeveloperField(view,runningTargetStatus,{data:{...runningTargetStatus.data,state:run?.state||'idle'},
-      textContent:target?`运行目标：${target.url||target.allowedOrigin||'已冻结文档'}`:'运行目标：尚未建立',
-      title:target?JSON.stringify({runId:run.runId,tabId:target.tabId,frameId:target.frameId,
-        documentId:target.documentId,url:target.url,origin:target.allowedOrigin||target.origin}):''});
-  }
   function captureCurrentPage(){
     if(!currentPageTarget)throw {code:'E_TARGET',message:'当前网页服务不可用'};
     // Preserve the single exact-document CurrentPageTarget handoff to the existing RunHost.
@@ -357,75 +343,12 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }finally{componentRemote.resumeRunPermissionWarm();}
 
   }
-  function showSnapshot(snapshot) {
-    if (disposed) return;
-    projection = snapshot;
-    // Controller history must not overwrite the current local Page result.
-    if(localPageResultIsCurrent({allowResolving:true})){update();return;}
-    // Defense in depth: even a malformed/stale host projection cannot put a
-    // revoked result in the visible text, history payload or download selector.
-    const deniedRuns = new Set(snapshot.resultDeliveryDenied || []);
-    const values = snapshot.results.filter(row => !deniedRuns.has(row.runId)).map(row => {
-      return {tag:row.tag,runId:row.runId,resultId:row.resultId,state:row.state,sourceKind:row.sourceKind || 'saved',
-        revision:row.revision && {scriptId:row.revision.scriptId,revision:row.revision.revision,sourceHash:row.revision.sourceHash},
-        sourceHash:row.revision?.sourceHash,
-        ...(row.outcome?.ok === true ? {value:decodeValue(row.outcome.valueWire)} : {error:row.outcome?.error})};
-    });
-    resultDownloads.showResults(snapshot.results,deniedRuns);
-    const task = currentTask && snapshot.runs.find(row=>row.runId === currentTask.runId);
-    if (task) renderTask(task);
-    else if (!running && !host.currentRun && snapshot.run) renderTask(snapshot.run);
-    else if (!currentTask && !running && !host.currentRun && snapshot.runs.length) renderTask(snapshot.runs.at(-1));
-    if (!snapshot.run) {
-      const history = find('script-history-run'), selected = history.value;
-      developerOptions(view,history,[{label:'选择历史任务',value:''}]);
-      for (const row of snapshot.runs) appendDeveloperOptions(view,history,[{label:`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + (row.revision?.revision ?? '?')} · ${stateLabels[row.state] || row.state}`,value:row.runId}]);
-      if (snapshot.runs.some(row=>row.runId === selected)) patchDeveloperField(view,history,{value:selected});
-      patchDeveloperField(view,find('script-history-open'),{disabled:!history.value});
-      patchDeveloperField(view,find('script-history'),{textContent:formatRunValue({runs:snapshot.runs,results:values,downloads:snapshot.downloads,resultDeliveryDenied:snapshot.resultDeliveryDenied})});
-    }
-    update();
-    const focused = snapshot.run || currentTask;
-    display('results', focused ? '任务状态：' : '已读取持久结果');
-    // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
-    // Authorized technical history stays available in the existing collapsed panel.
-    setResultText(formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied));
-    const currentValues = values.filter(row => row.runId === focused?.runId);
-    const visibleResult = currentValues[0];
-    setResultKind(!visibleResult ? '暂无返回值' : currentValues.length > 1
-      ? `共 ${currentValues.length} 项结果` : Object.hasOwn(visibleResult,'value')
-        ? runValueKind(visibleResult.value) : '执行错误');
-    patchDeveloperField(view,copyResult,{disabled:!visibleResult || deniedRuns.has(focused?.runId)});
-    displayCopyResult('复制结果');
-    if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
-      if (scriptsRecovery?.data.state !== 'available') showUserScriptsRecovery();
-    } else if (visibleResult) hideUserScriptsRecovery();
-    // Reveal genuine outcome only for this session's own draft; old history
-    // stays collapsed on ordinary entry, preserving editor working space.
-    if (ownedDraftRunId && values.some(row => row.runId === ownedDraftRunId))
-      patchDeveloperField(view,find('developer-results-panel'),{open:true});
-  }
-  async function read(runId = find('script-run-id').value.trim(),{reveal=false}={}) {
-    if (disposed) return;
-    const token = ++snapshotSequence;
-    try {
-      const snapshot = await host.controller.snapshotControllerRun(runId ? {runId} : {});
-      if (!disposed && token === snapshotSequence){
-        if(reveal)invariant(snapshot.run?.runId===runId,'E_RUN','原始运行记录不存在或身份已变化');
-        showSnapshot(snapshot);
-        if(reveal){
-          patchDeveloperField(view,find('developer-results-panel'),{open:true});
-          patchDeveloperField(view,find('script-history-panel'),{open:true});
-        }
-      }
-    } catch (error) {if (!disposed && token === snapshotSequence) throw error;}
-  }
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
     if(isComponentDraft()||isPageDraft()){
-      if(!projection?.slotAvailable)return;
-      previewPage(event);return;
+      if(!controllerResults.projection?.slotAvailable)return;
+      pagePreviewFlow.run(event);return;
     }
     let chosen, params, permission, sourceUtf8,esm,classic;
     const runKind=programSource.kind();
@@ -454,7 +377,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     hideUserScriptsRecovery();
     let startError, admittedRunId;
     const id=scriptId(),ticket=++browserPrepareGeneration;
-    ownedDraftRunId=null;running=true;browserPreparing=esm||classic;renderTask(null);update();beginResult();
+    ownedDraftRunId=null;running=true;browserPreparing=esm||classic;controllerResults.renderTask(null);update();beginResult();
     display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':
       classic?'正在从 SHA 缓存准备固定 Controller Classic 库…':`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
@@ -492,7 +415,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       ownedDraftRunId = claim.runId;
       if (disposed) return;
       patchDeveloperField(view,find('script-run-id'),{value:claim.runId});
-      renderTask(claim);
+      controllerResults.renderTask(claim);
       display('running', '已接受冻结草稿；等待脚本结束及持久结果');
       update();
       const result = await host.completion;
@@ -503,14 +426,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (admittedRunId) patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
       // Observe all durable history; association comes from the admitted run,
       // never from an editable runId or the editor's current revision.
-      try {await read('');}
-      catch (error) {projection=undefined;display('unknown',`后台状态待确认：${error.code || 'E_EFFECT_UNKNOWN'}`);}
+      try {await controllerResults.read('');}
+      catch (error) {controllerResults.clearProjection();display('unknown',`后台状态待确认：${error.code || 'E_EFFECT_UNKNOWN'}`);}
       if (startError) fail(startError);
       update();
     });
   }
   function startLocal(event){
-    if(!event.isTrusted||!localAdapter||!projection?.slotAvailable||!localProject.canAttemptRun()||currentPageState?.status!=='available')return;
+    if(!event.isTrusted||!localAdapter||!controllerResults.projection?.slotAvailable||!localProject.canAttemptRun()||currentPageState?.status!=='available')return;
     let captured,binding,paramsText,permission;
     try{
       binding=localProject.capture();captured=currentPageTarget.capture();paramsText=find('local-project-params').value;
@@ -518,7 +441,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
-    ownedDraftRunId=null;localPageResult=null;localInstaller.reset();running=true;renderTask(null);update();beginResult();
+    ownedDraftRunId=null;localPageResult=null;localInstaller.reset();running=true;controllerResults.renderTask(null);update();beginResult();
     patchDeveloperField(view,find('developer-results-panel'),{open:true});display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       await permission;
@@ -526,7 +449,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const source=await localProject.resolve(binding);
       await currentPageTarget.revalidate(captured);await localProject.assertReady(binding,source.sourceHash);localProject.assertCaptured(binding);
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
-      if(stopping||editingBusy||previewBusy||!projection?.slotAvailable||host.currentRun)
+      if(stopping||editingBusy||previewBusy||!controllerResults.projection?.slotAvailable||host.currentRun)
         throw {code:'E_RUN_ACTIVE',message:'运行状态已变化；请等待当前任务释放后重新运行'};
       page=source.runtimeKind==='page-userscript';
       const params=page?{}:JSON.parse(paramsText);
@@ -565,7 +488,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       }else{
         admittedRunId=ownedDraftRunId=claim.runId;
         if(disposed)return;
-        patchDeveloperField(view,find('script-run-id'),{value:claim.runId});renderTask(claim);
+        patchDeveloperField(view,find('script-run-id'),{value:claim.runId});controllerResults.renderTask(claim);
         display('running','已运行本地源码快照；修改文件只影响下一次运行');update();
         const result=await host.completion;
         if(result.error)throw result.error;
@@ -590,7 +513,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }).finally(async()=>{
       running=false;if(disposed)return;
       if(admittedRunId)patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
-      try{if(page)projection=await host.controller.snapshotControllerRun({});else await read('');}catch{projection=undefined;}
+      try{if(page)controllerResults.setProjection(await host.controller.snapshotControllerRun({}));else await controllerResults.read('');}catch{controllerResults.clearProjection();}
       if(startError)fail(startError);update();
     });
   }
@@ -610,135 +533,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     return !editingBusy&&!previewBusy&&!componentRemote?.busy&&!localProject?.active()&&previewMatchesEditor(lastPagePreview)&&
       currentPageState?.status==='available'&&currentPageState.documentId===lastPagePreview.documentId&&
       currentPageState.tabId===lastPagePreview.tabId&&currentPageState.url===lastPagePreview.previewUrl;
-  }
-  function previewPage(event) {
-    if (!event.isTrusted || disposed || stopping || previewBusy ||
-      componentRemote?.busy || (componentMode==='javascript'&&dependencyResolver?.busy) ||
-      (componentMode==='javascript'&&(!dependencyResolver?.sourceFormat&&!dependencyInstaller?.readyForRun)) ||
-      editingBusy || running || host.currentRun) return;
-    if(localProject?.active())return;
-    let captured, permission, pageSource,componentSnapshot,frozenComponent,fixedFrameSource,prepareTicket;
-    const runKind=programSource.kind();
-    const displayPreview=(state,message,result)=>{
-      if(disposed)return;
-      patchDeveloperField(view,pagePreviewStatus,{data:{...pagePreviewStatus.data,state},textContent:message});
-      display(state,message);
-      if(state==='error' && message.startsWith('E_USER_SCRIPTS_UNAVAILABLE')) showUserScriptsRecovery();
-      else if(state==='error' && message.startsWith('E_USER_SCRIPTS_NATIVE')) showUserScriptsRecovery('error', message);
-      else if(state==='completed') hideUserScriptsRecovery();
-      setResultText(state==='running'?'正在运行…':state==='error'?'本次网页试运行失败，未产生可显示的返回值':result??'undefined');
-      setResultKind(state==='completed'?'网页试运行结果':state==='error'?'网页试运行失败':'等待网页返回值');
-      patchDeveloperField(view,copyResult,{disabled:state!=='completed'});
-      patchDeveloperField(view,find('developer-results-panel'),{open:true});
-    };
-    try {
-      captured=currentPageTarget.capture();
-      if (programSource.kind() === 'controller') throw {code:'E_PROGRAM_KIND',message:'这是 Controller 项目，请使用「运行」'};
-      const artifact=programSource.snapshot();
-      if(componentMode!=='javascript'&&!artifact){
-        if(!browserCompilerEnabled)throw {code:'E_PAGE_COMPILER_UNAVAILABLE',
-          message:'标准版不附带浏览器 JSX/SFC 编译器；请使用本地开发工具或独立 Developer Edition'};
-        componentSnapshot={framework:componentMode,source:programSource.source()};
-        if(!componentSnapshot.source.trim())throw {code:'E_SOURCE',message:'请输入组件源码'};
-      }else{
-        pageSource=dependencyResolver.captureForRun();
-        if(!pageSource.sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 JavaScript 源码'};
-        if(artifact?.project.entryMode==='component'){
-          const framework=/^\/\/ @opendesk-lib (react|vue)\s*$/m.exec(pageSource.sourceUtf8)?.[1];
-          if(!framework)throw {code:'E_PROGRAM_DRAFT',message:'固定组件缺少唯一框架身份'};
-          frozenComponent={framework,source:pageSource.sourceUtf8,sourceHash:artifact.build.sourceHash,projectId:artifact.project.id};
-        }else if(loadedPageSource||!pageSource.sourceFormat&&inspectPageFrameSource(pageSource.sourceUtf8)?.resources.length){
-          // Explicitly loaded Page bytes keep their Page world and managed
-          // lifecycle; reopening a frozen Vue/React version needs no compiler.
-          // Fixed child resources need the same host-owned lifecycle as a
-          // component, but their verified JavaScript is never recompiled.
-          fixedFrameSource={source:pageSource.sourceUtf8};
-        }
-      }
-      if((componentSnapshot||frozenComponent||fixedFrameSource)&&(!!browserUnknownTarget||browserManagedPreview?.recoveredOnly))
-        throw {code:'E_EFFECT_UNKNOWN',message:'上次受管运行仍需清理；已查询到的原回执只用于停止，不会自动重新运行'};
-      // Source permission is requested synchronously from this trusted Run
-      // gesture if the editor has already observed a missing Chrome grant.
-      // Website permission remains independently read-only/Authority gated.
-      permission=Promise.all([
-        requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}}),
-        componentMode==='javascript'?
-          (dependencyResolver.sourceFormat?dependencyReview.confirmRun(event):dependencyInstaller.confirmRun(event)):
-          componentSnapshot?componentRemote.confirmRun(event,{
-            componentSource:componentSnapshot.source,framework:componentSnapshot.framework}):Promise.resolve(true)
-      ]);
-    } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
-    const managedInput=componentSnapshot||frozenComponent||fixedFrameSource;
-    prepareTicket=++browserPrepareGeneration;
-    if(managedInput)browserPreparing=true;
-    const assertPreparation=()=>{
-      if(disposed||prepareTicket!==browserPrepareGeneration)
-        throw {code:'E_PAGE_COMPILER_STALE',message:'组件准备已取消；迟到结果不会运行'};
-      if(programSource.source()!==managedInput.source||componentSnapshot&&componentMode!==componentSnapshot.framework)
-        throw {code:'E_PAGE_COMPILER_STALE',message:'组件源码或框架已变化；旧结果不会运行'};
-      if(fixedFrameSource&&(componentMode!=='javascript'||programSource.kind()!==runKind))
-        throw {code:'E_DEPENDENCY_STALE',message:'网页草稿或运行模式已变化；不会执行旧代码'};
-    };
-    lastPagePreview=null;previewBusy=true;update();patchDeveloperField(view,pageTechnicalPanel,{hidden:true});patchDeveloperField(view,pageTechnical,{textContent:''});
-    displayPreview('running','正在核对当前文档与固定源码…','');
-    (async()=>{
-      await permission;
-      if(disposed)throw {code:'E_HOST_CLOSED',message:'工作台已关闭'};
-      if(managedInput)assertPreparation();
-      await currentPageTarget.revalidate(captured);
-      if(managedInput){
-        assertPreparation();
-        const {result,built,previous}=await dispatchManagedPagePreview({
-          client,currentPageTarget,dependencyResolver,prepareManagedSource,
-          captured,pageSource,managedInput,fixedFrameSource,
-          frozen:!!frozenComponent||!!fixedFrameSource,entryFormat:pageSource?.entryFormat,
-          bindingId:browserBinding,check:assertPreparation,
-          onPrepared:()=>{browserPreparing=false;update();},
-          onOwner:identity=>{browserManagedPreview=identity;},
-          onUnknown:quarantineBrowserEffect,
-          onRecovered:(identity,observed)=>{
-            browserManagedPreview=identity;browserUnknownTarget=null;
-            patchDeveloperField(view,pageTechnicalPanel,{hidden:false});
-            patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({originalPreview:observed},null,2)});
-          }
-        });
-        lastPagePreview={...previous,componentMode};
-        const editorChanged=!previewMatchesEditor(lastPagePreview);
-        if(!fixedFrameSource)componentMessage('completed',editorChanged?'旧源码已运行，但编辑内容已变化；先停止旧组件，再运行最新源码':
-          '组件已运行 · 可停止或保存固定版本 · 保存不会自动运行或安装');
-        displayPreview('completed',fixedFrameSource?
-          '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。':
-          '组件已在当前网页运行；停止可清理受管 UI。可保存固定版本并单独审阅安装。',result.resultText ?? 'undefined');
-        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});
-        patchDeveloperField(view,pageTechnicalPanel,{open:false});
-        patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify({...result,authoring:{framework:built.framework,
-          compilerVersion:built.compilerVersion,sourceHash:built.sourceHash,cacheHit:built.cacheHit,
-          prepareMs:built.prepareMs,remoteModules:built.remoteModules||[]}},null,2)});
-        return;
-      }
-      const checkPage=()=>{if(disposed||prepareTicket!==browserPrepareGeneration)
-        throw {code:'E_DEPENDENCY_STALE',message:'网页草稿已变化或准备取消；不会执行旧代码'};};
-      const {result,pageSource:readySource,previous}=await dispatchPageDraftPreview({
-        client,currentPageTarget,dependencyResolver,captured,pageSource,check:checkPage,
-        isCompiledCurrent:()=>!disposed&&programSource.source()===pageSource.sourceUtf8&&
-          programSource.kind()===runKind&&componentMode==='javascript'&&!localProject?.active()
-      });
-      lastPagePreview=previous;
-      displayPreview('completed',readySource.sourceFormat?
-        '当前精确文档试运行完成；可保存作者 import 源码、批准依赖锁与固定编译产物。保存不会自动安装。':
-        '当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
-        result.resultText ?? 'undefined');
-      patchDeveloperField(view,pageTechnicalPanel,{hidden:false});
-      patchDeveloperField(view,pageTechnicalPanel,{open:false});
-      patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(result,null,2)});
-    })().catch(error=>{
-      const recovered=error.previewRecovered?'；已读取原完成回执，可以停止原组件。未重放运行。':'';
-      displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)+recovered,'');
-      if(componentSnapshot||frozenComponent)componentMessage('error',(error.code||'E_PAGE_COMPILER')+'：'+(error.message||error)+recovered);
-      if(error.response?.state==='preview-failed'){
-        patchDeveloperField(view,pageTechnicalPanel,{hidden:false});patchDeveloperField(view,pageTechnicalPanel,{open:false});patchDeveloperField(view,pageTechnical,{textContent:JSON.stringify(error.response,null,2)});
-      }
-    }).finally(()=>{browserPreparing=false;previewBusy=false;update();});
   }
   async function prepareManagedSource(input,captured,check,{frozen=false,entryFormat='async-main'}={}){
     if(frozen){
@@ -831,6 +625,24 @@ export function createScriptEditor({client, currentPageTarget, development=false
     update();
   }});
   const pageCandidates=createPageCandidateActions({client,view,currentPageTarget,pageLibrary});
+  const pagePreviewFlow=createPagePreviewFlow({client,api,host,view,currentPageTarget,programSource,
+    dependencyResolver,dependencyReview,dependencyInstaller,componentRemote,prepareManagedSource,
+    browserCompilerEnabled,browserBinding,
+    state:{
+      get disposed(){return disposed;},get stopping(){return stopping;},
+      get busy(){return previewBusy;},set busy(v){previewBusy=v;},
+      get editingBusy(){return editingBusy;},get running(){return running;},
+      get mode(){return componentMode;},get loadedPageSource(){return loadedPageSource;},
+      get localActive(){return !!localProject?.active();},
+      get unknown(){return browserUnknownTarget;},set unknown(v){browserUnknownTarget=v;},
+      get managed(){return browserManagedPreview;},set managed(v){browserManagedPreview=v;},
+      get last(){return lastPagePreview;},set last(v){lastPagePreview=v;},
+      get preparing(){return browserPreparing;},set preparing(v){browserPreparing=v;},
+      get ticket(){return browserPrepareGeneration;},nextTicket(){return ++browserPrepareGeneration;}
+    },
+    ui:{update,display,componentMessage,showRecovery:showUserScriptsRecovery,
+      hideRecovery:hideUserScriptsRecovery,setResultText,setResultKind,
+      matches:previewMatchesEditor,quarantine:quarantineBrowserEffect}});
   const onRemoved = tabId => {
     // Closing the exact owning tab proves its document is gone. Merely
     // selecting a different tab is never evidence of successful Stop.
@@ -859,9 +671,9 @@ export function createScriptEditor({client, currentPageTarget, development=false
     Promise.resolve().then(()=>localInstaller.prepare()).catch(fail);
   });
   on('script-load','click',edit(controllerRevisions.load)); on('script-list-load','click',edit(controllerRevisions.loadLatest));
-  on('script-read','click',()=>read('')); on('script-delete','click',edit(()=>controllerRevisions.remove())); on('script-list-refresh','click',()=>controllerRevisions.refresh().catch(fail));
-  on('script-read-run','click',()=>read());
-  on('script-history-open','click',()=>read(find('script-history-run').value));
+  on('script-read','click',()=>controllerResults.read('')); on('script-delete','click',edit(()=>controllerRevisions.remove())); on('script-list-refresh','click',()=>controllerRevisions.refresh().catch(fail));
+  on('script-read-run','click',()=>controllerResults.read());
+  on('script-history-open','click',()=>controllerResults.read(find('script-history-run').value));
   on('script-history-run','change',()=>{patchDeveloperField(view,find('script-history-open'),{disabled:!find('script-history-run').value});});
   on('script-copy-result','click',async () => {
     if (disposed || copyResult.disabled) return;
@@ -1045,13 +857,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
   api.tabs.onRemoved.addListener(onRemoved);
   const unsubscribeRun = host.subscribe(next => {
     if (disposed) return;
-    if (currentTask?.runId === next.runId) renderTask({...currentTask,...next});
+    if (controllerResults.currentTask?.runId === next.runId) controllerResults.renderTask({...controllerResults.currentTask,...next});
     // RunHost releases its local owner after notifying terminal observers.
     queueMicrotask(update);
   });
   const unsubscribeCurrentPage = currentPageTarget?.subscribe(renderCurrentPage);
   currentPageTarget?.ready?.catch(fail);
-  const recoverView = () => read('').catch(error=>{projection=undefined;update();fail(error);});
+  const recoverView = () => controllerResults.read('').catch(error=>{controllerResults.clearProjection();update();fail(error);});
   const unsubscribeConnection = client.subscribeConnection?.(event=>{if(event.connected) recoverView();});
   client.ready.then(recoverView).catch(fail);
   controllerRevisions.refresh({silent: true}).catch(fail); update();
@@ -1069,7 +881,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   return {host,model:view,async openRun(runId){
     invariant(typeof runId==='string'&&runId.trim()===runId&&runId.length>0&&runId.length<=200,
       'E_RUN','请选择有效的原始运行记录');
-    await read(runId,{reveal:true});
+    await controllerResults.read(runId,{reveal:true});
   },async prepareDevelopmentReload(){
     // Preserve RunHost / Native / download idle gating during development
     // reload. There is no source backup or post-reload restoration.
