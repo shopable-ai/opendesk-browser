@@ -147,3 +147,32 @@ test('R1.1 preview uses the production App but distinctly labels offline AI',asy
  assert.match(source,/root\.render\(<App runtime=\{\{conversation\}\} mode="preview"\/>\)/);
  assert.doesNotMatch(source,/fetch\(|chrome\.bookmarks/);
 });
+
+test('R1.2 an external rename after Send blocks a selected bookmark write before SDK dispatch',async()=>{
+ const f=fixture();
+ f.nodes.push({id:'selected',title:'原书签',url:'https://example.com/old',parentId:'1'});
+ const seen=await f.service.load();
+ f.nodes.find(node=>node.id==='selected').title='其他窗口已改名';
+ await assert.rejects(executeBookmarkPlan({
+  plan:{actions:[{type:'bookmark.update',target:'$selected',title:'AI 新名称'}]},
+  context:{...context,selectedId:'selected'},expectedTree:seen,service:f.service
+ }),error=>error.code==='E_BOOKMARK_STALE'&&error.writeIssued===false);
+ assert.equal(f.calls.includes('bookmark.update'),false);
+ assert.equal(f.nodes.find(node=>node.id==='selected').title,'其他窗口已改名');
+});
+
+test('R1.2 confirmed first mutation can be followed by another action in the same turn',async()=>{
+ const f=fixture();
+ f.nodes.push({id:'existing',title:'旧名称',url:'https://example.com',parentId:'1'});
+ const seen=await f.service.load();
+ const result=await executeBookmarkPlan({
+  plan:{actions:[{type:'bookmark.update',target:'$selected',title:'新名称'},
+   {type:'bookmark.move',target:'$lastBookmark',parent:'其他'}]},
+  context:{...context,selectedId:'existing'},expectedTree:seen,service:f.service
+ });
+ assert.equal(result.messages.length,2);
+ assert.equal(result.refs.bookmarkId,'existing');
+ assert.equal(f.nodes.find(node=>node.id==='existing').title,'新名称');
+ assert.equal(f.nodes.find(node=>node.id==='existing').parentId,'2');
+ assert.equal(f.calls.filter(call=>call==='bookmark.update'||call==='bookmark.move').length,2);
+});

@@ -315,7 +315,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    const [{proposal},pageContext]=await Promise.all([providerPromise,pagePromise]);
    if(signal.signal.aborted)throw Object.assign(Error('本轮已停止'),{code:'E_CANCELLED'});
    const result=await executeBookmarkPlan({plan:proposal,service,signal:signal.signal,
-    context:{...pinned,pageContext},refs:pinned.refs,
+    expectedTree:tree,context:{...pinned,pageContext},refs:pinned.refs,
     onStep:step=>{
      chatRefs.current=step.refs;
      appendConversation('助手',step.message);

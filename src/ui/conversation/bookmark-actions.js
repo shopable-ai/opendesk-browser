@@ -105,13 +105,22 @@ export function bookmarkConversationContext(tree,{selectedId=null,currentFolderI
 
 // A fresh complete Chrome snapshot starts every turn. Every mutation gets its
 // own post-write readback, and only verified IDs enter the next turn's context.
-export async function executeBookmarkPlan({plan,service,context,refs={},signal,onStep=()=>{}}){
+export async function executeBookmarkPlan({plan,service,context,refs={},expectedTree=null,signal,onStep=()=>{}}){
  const checked=validateBookmarkPlan(plan);
  if(checked.question)return {question:checked.question,refs,tree:null,messages:[]};
  let tree=await service.load();aborted(signal);
  const nextRefs={folderId:refs.folderId||null,bookmarkId:refs.bookmarkId||null,
   matches:[...(refs.matches||[]).slice(0,12)]};
- const messages=[];
+ const messages=[],confirmedInTurn=new Set();
+ // Compare the pre-AI visible snapshot with the fresh Service snapshot before
+ // any referenced write. Verified writes in this turn are not external changes.
+ const requireFresh=node=>{
+  const prior=expectedTree?.byId?.get(node.id);
+  if(prior&&!confirmedInTurn.has(node.id)&&
+    (prior.title!==node.title||prior.url!==node.url||prior.parentId!==node.parentId))
+   throw fail('E_BOOKMARK_STALE','「'+prior.title+'」已在其他窗口变化，请刷新并重新确认目标');
+  return node;
+ };
  for(const action of checked.actions){
   // A Stop between operations preserves the actual verified partial journal.
   // Never issue or replay a later mutation after cancellation.
@@ -131,11 +140,11 @@ export async function executeBookmarkPlan({plan,service,context,refs={},signal,o
     continue;
    }
    if(action.type==='folder.create'){
-    const parent=parentOf(tree,action.parent,context,nextRefs);
+    const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
     issued=true;target=await service.createFolder({title:action.title,parentId:parent.id});
     kind='folder';actual={id:target?.id,title:action.title,parentId:parent.id};
    }else if(action.type==='bookmark.create'){
-    const parent=parentOf(tree,action.parent,context,nextRefs);
+    const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
     const source=action.url==='$currentPage'?context.pageContext:null;
     if(action.url==='$currentPage'&&(!source||source.status!=='available'||
       !source.tabRef||!source.documentRef))
@@ -147,13 +156,13 @@ export async function executeBookmarkPlan({plan,service,context,refs={},signal,o
      ...(source?{sourcePage:{url,tabRef:source.tabRef,documentRef:source.documentRef}}:{})});
     kind='bookmark';actual={id:target?.id,title,url,parentId:parent.id};
    }else if(action.type==='bookmark.move'){
-    const expected=targetOf(tree,action.target,context,nextRefs);
-    const parent=parentOf(tree,action.parent,context,nextRefs);
+    const expected=requireFresh(targetOf(tree,action.target,context,nextRefs));
+    const parent=requireFresh(parentOf(tree,action.parent,context,nextRefs));
     issued=true;target=await service.move({expected,parentId:parent.id});
     kind=nodeFolder(expected)?'folder':'bookmark';
     actual={id:expected.id,title:expected.title,url:expected.url,parentId:parent.id};
    }else if(action.type==='bookmark.update'){
-    const expected=targetOf(tree,action.target,context,nextRefs);
+    const expected=requireFresh(targetOf(tree,action.target,context,nextRefs));
     issued=true;target=await service.update({expected,title:action.title,url:expected.url});
     kind=nodeFolder(expected)?'folder':'bookmark';
     actual={id:expected.id,title:action.title,url:expected.url,parentId:expected.parentId};
@@ -164,6 +173,7 @@ export async function executeBookmarkPlan({plan,service,context,refs={},signal,o
    if(!found||found.title!==actual.title||found.parentId!==actual.parentId||
      (kind==='bookmark'&&found.url!==actual.url))
     throw fail('E_OUTCOME_UNKNOWN','写入后读回与期望不一致；已停止后续修改');
+   confirmedInTurn.add(found.id);
    if(action.type==='folder.create')nextRefs.folderId=found.id;
    if(action.type==='bookmark.create')nextRefs.bookmarkId=found.id;
    if(action.type==='bookmark.move'||action.type==='bookmark.update'){
