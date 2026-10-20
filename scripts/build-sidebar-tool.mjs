@@ -19,7 +19,12 @@ function rel(value) {
 async function source(root,name,limit=220000,asBytes=false) {
   const path=resolve(root,rel(name));
   if(!path.startsWith(root+'/'))fail('source path escaped project');
-  const actual=await realpath(path);
+  let actual;
+  try{actual=await realpath(path);}
+  catch(error){
+    if(error?.code==='ENOENT')fail('required project file missing: '+name);
+    throw error; // Keep permission, I/O and malformed-link failures observable.
+  }
   if(!actual.startsWith(root+'/'))fail('symlink escaped project');
   const info=await stat(actual);
   if(!info.isFile()||info.size>limit)fail('source file exceeds budget: '+name);
