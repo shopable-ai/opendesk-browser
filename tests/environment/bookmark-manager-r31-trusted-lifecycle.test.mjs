@@ -44,7 +44,7 @@ test('R3.1 Chromium assertions use the approved responsive details instead of st
 
 test('R3.1 trusted React CSS stays with the fixed JS root, not in an unexpected WXT asset',async()=>{
  const react=await read('src/ui/react/main.tsx');
- assert.match(react,/cookiePilotScopedCSS from '\.\/tabs\/cookie-pilot\.css\?raw'/);
+  assert.match(react,/bookmarkScopedCSS from '\.\.\/\.\.\/\.\.\/examples\/sidebar-tools\/bookmark-manager\/src\/react\/style\.css\?raw'/);
  assert.match(react,/bookmarkPilotLayoutCSS from '\.\/tabs\/bookmark-pilot\.css\?raw'/);
  assert.match(react,/<style data-opendesk-trusted-react-css/);
  assert.doesNotMatch(react,/^import '\.\/tabs\/(?:cookie|bookmark)-pilot\.css';/m);
