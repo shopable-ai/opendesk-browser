@@ -100,3 +100,13 @@ SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk
 - **保留历史审核入口**：`preview/index.html` 尚未晋升为 R3.2 交互 HTML；此阶段不更换该文件，也不覆盖 `bookmark-manager.opendesk-tool.json`、官方 Catalog 或工具版本 `0.3.8`。Classic `src/main.js` 仍是已安装动态沙箱工具的兼容入口，直至独立原生验收批准。
 - **预算范围分离**：可信 JSX 走 WXT 固定 Host 的 1 MiB `ui/tool-shell.js` 硬限；`npm run preview:budget` 测试的是独立 IIFE Sidebar Tool 可行性，当前旧动态工具 JS 220,000 bytes/完整包 320,000 bytes，`BUDGET_BLOCKED` 不等于可信 WXT 失败。没有新动态工具业务的必要性，不扩大整个安装框架。
 - **真实验证**：Node/CI 测试、Chromium Mock 与 Mac 原生独立分栏报告。隔离 Profile 的真实 Full Bookmarks 授权、2,159+ 书签、130+ 文件夹、CRUD、危险删除、撤权、跨窗口更新和新标签页事件尚无本版本证据时为 `NOT_TESTED`；正式版本不提前发布。
+
+## R3.3 · 默认 React 入口源码接线（待隔离 Profile 原生验收）
+
+- 正常安装的 Side Panel 打开「书签管理」时，不再要求 Debug 或 `bookmarkReactPilot=1`。Controller 先核对已安装工具、官方发行目录、固定包 SHA、启用状态、来源证明与撤权代际；**全部一致后**才通过既有 React Root / Portal 执行正式 `src/react/App.jsx`。非官方/旧版本或身份不符的包仍回退隔离 iframe，不承接可信 JSX 权限。
+- 首次进入尚无完整书签许可时，展开既有 Full Bookmarks 授权控件；Chrome optional 权限和 Host 内的 Full Consent 仍为单独的用户授权。授权成功且没有未保存或进行中的写入时，仅重新挂载经过校验的界面，以重新订阅观察事件后读取原生树。
+- SDK 仍经 `requestTrustedBookmark` → `dispatch` → 既有 Browser Host，原生书签存储和危险目录删除票据未绕过。Classic `src/main.js` 和正式 0.3.8 安装包尚保留兼容沙箱路径；**没有通过 Mac Chrome 前不得提升产品版本或宣称正式交付通过**。
+- 静态回归：`node --test tests/environment/bookmark-manager-r33-default-react.test.mjs tests/environment/bookmark-manager-r306-trusted-react.test.mjs tests/environment/bookmark-manager-r32-formal-source.test.mjs`。已有 CI WXT/Chromium 通过只证明源码和模拟操作，不是隔离 Profile 的真实 Chrome CRUD、升级或撤权证据。
+- 本阶段待原生验收重点：单次保存是否仍触发额外 Host 审阅、单条/目录删除是否存在重复确认、真实 2,000+ 树与观察会话刷新、权限撤销中的草稿保护、100%/200% 缩放及正式包升级一致性。出现任何失败，先在同一 `main` 修复，再升级正式包和 Catalog。
+
+**当前状态：SOURCE_DEFAULT_REACT_ENABLED / NATIVE_NOT_TESTED / BOOKMARK_MANAGER_RELEASE_BLOCKED。**

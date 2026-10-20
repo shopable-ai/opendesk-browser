@@ -2615,11 +2615,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       '阅读目录已安装。符合条件的网页自动显示目录，无需再启用或逐站授权；“打开”仅查看侧边栏目录。':
       '已安装「'+accepted.title+'」。无需再次启用，可直接打开应用界面；额外敏感权限按需确认。');
   }
-  async function remove(id=active?.id,{confirmed=false}={}) {
+  async function remove(id=active?.id,{confirmed=false,externalBaseline=null}={}) {
     if(installedReadError)throw new Error('安装记录待核对，无法卸载旧缓存中的工具');
     const item=toolById(id);
-    if(!item||busy)return;
-    if(active?.id===id&&toolSaving){notice('当前工具正在保存，请完成保存后再卸载。',true);return;}
+    if(!item||busy||disposed)return false;
+    if(active?.id===id&&toolSaving){notice('当前工具正在保存，请完成保存后再卸载。',true);return false;}
     if(!confirmed){
       pendingUninstallId=id;pendingUninstallBaseline=structuredClone(item);
       patchToolField(view, removeReviewText, {textContent: '卸载后将移除该工具，并清理其本地数据和网站授权。此操作无法撤销。'});
@@ -2629,8 +2629,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       requestToolFieldEffect(view, removeReview, 'scrollIntoView', {block:'nearest'});
       return;
     }
-    if(pendingUninstallId!==id||!samePackage(pendingUninstallBaseline,item)){
+    if(externalBaseline){
+      if(externalBaseline.id!==id||!samePackage(externalBaseline,item))
+        throw Object.assign(new Error('工具安装身份已改变，原卸载确认失效'),{code:'E_TOOL_CHANGED'});
+    }else if(pendingUninstallId!==id||!samePackage(pendingUninstallBaseline,item)){
       cancelRemovalReview();throw new Error('工具已变化，原卸载确认已失效');
+    }
+    if(active?.id===id&&(toolDirty||isDirty())){
+      notice('当前工具还有未保存的编辑；请先保存或取消编辑，再卸载。',true);
+      return false;
     }
     cancelRemovalReview();
     const itemIndex=installed.findIndex(row=>row.id===item.id);
@@ -2643,7 +2650,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         installed=requireCompleteInstalledSidebarTools(
           (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
         const current=toolById(item.id);
-        if(!current)return;
+        if(!current)throw Object.assign(new Error('工具已在其他窗口卸载，请刷新列表核对'),{code:'E_TOOL_CHANGED'});
         if(!samePackage(current,item))throw new Error('工具已在其他窗口更新，请重新确认卸载');
         // Durable intent first; a failed registry write must not delete data.
         await recordToolUninstall(api,current);
@@ -2661,6 +2668,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       busy=false;render();
       if(removed&&visible)focusToolInList(installed[Math.min(itemIndex,installed.length-1)]?.id);
     }
+    return removed;
+  }
+  // Trusted list entry calls the existing guarded remove path. React never
+  // writes the registry, starts cleanup, or creates a second uninstall Host.
+  function uninstallFromList(id,baseline,event){
+    if(!event?.isTrusted||disposed||!visible||busy)return false;
+    if(!baseline||baseline.id!==id)
+      throw Object.assign(new Error('缺少固定的安装身份'),{code:'E_TOOL_CHANGED'});
+    return remove(id,{confirmed:true,externalBaseline:baseline});
   }
   async function retryUninstallCleanup(id,event){
     if(!event?.isTrusted||disposed||busy||!visible||installedReadError)return {state:'blocked',toolId:id};
@@ -3010,7 +3026,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

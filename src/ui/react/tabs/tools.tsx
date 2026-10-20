@@ -4,7 +4,7 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 
 // Sole owner of extension-center-list children. All actions delegate to the
 // trusted existing Extension Center; user packages stay in their sandbox.
-export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
+export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onUninstall}){
   // Distinct package IDs remain visible to people and assistive technologies
   // when two independently installed tools intentionally reuse a title.
   const titles=new Map();
@@ -17,7 +17,8 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
     const accessible=label+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'');
     return <li key={row.key} data-extension-id={row.key}
       className={['ec-row',row.primaryAction?'ec-row--has-primary':'',
-        !row.primaryAction&&!row.installed?'ec-row--no-actions':''].filter(Boolean).join(' ')}
+        !row.primaryAction&&!row.installed?'ec-row--no-actions':'',
+        row.installed?'ec-row--has-uninstall':''].filter(Boolean).join(' ')}
       aria-busy={busy||pendingKey===row.key?'true':undefined}>
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}
@@ -41,6 +42,14 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
           aria-label={row.primaryAction+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
           title={row.primaryAction+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
           onClick={event=>onOpenRow(row.key,event.nativeEvent)}>{row.primaryAction}</Button>}
+        {row.installed&&<IconButton className="ec-row-uninstall" disabled={busy||row.stateKnown===false}
+          label={'卸载「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')}
+          data-extension-key={row.key} data-extension-action="uninstall"
+          onClick={event=>onUninstall?.(row.key,event.nativeEvent)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4.5 7h15M9 7V4.5h6V7m2.5 0-.8 12.5H7.3L6.5 7M10 10.5v6m4-6v6"/>
+          </svg>
+        </IconButton>}
         {row.installed&&<IconButton className="ec-row-more" disabled={busy}
           label={'管理「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')} data-extension-key={row.key}
           data-extension-action="more" aria-haspopup="menu"
@@ -313,8 +322,8 @@ export function ExtensionRowMenu({items=[],model=null}){
 // The pre-existing Installer is mounted into one explicit host-owned slot;
 // security decisions and dynamically installed UI are never executed here.
 export function ExtensionCenterPage({
-  rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
-  toolbarModel=null,detailModel=null,feedbackModel=null,recoveryModel=null,
+  rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{},onUninstall:()=>{}},
+  toolbarModel=null,detailModel=null,uninstallModel=null,feedbackModel=null,recoveryModel=null,
   statusModel=null,menuKey=null,rowMenuModel=null,view='list',onBack=()=>{}
 }){
   const detailVisible=view==='detail';
@@ -376,6 +385,18 @@ export function ExtensionCenterPage({
           onClick={event=>detailModel?.confirmation?.onCancel(event.nativeEvent)}>取消</Button>
         <Button className="od-uninstall-confirm" disabled={Boolean(detailModel?.busy)}
           onClick={event=>detailModel?.confirmation?.onConfirm(event.nativeEvent)}>确认卸载</Button>
+      </div>
+    </UninstallDialog>
+    <UninstallDialog open={Boolean(uninstallModel)}
+      title={uninstallModel?.title||'卸载扩展？'}
+      busy={Boolean(uninstallModel?.busy)}
+      onCancel={event=>uninstallModel?.onCancel?.(event)}>
+      <p>{uninstallModel?.text||''}</p>
+      <div className="od-uninstall-dialog-actions">
+        <Button data-uninstall-cancel="true" disabled={Boolean(uninstallModel?.busy)}
+          onClick={event=>uninstallModel?.onCancel?.(event.nativeEvent)}>取消</Button>
+        <Button className="od-uninstall-confirm" disabled={Boolean(uninstallModel?.busy)}
+          onClick={event=>uninstallModel?.onConfirm?.(event.nativeEvent)}>确认卸载</Button>
       </div>
     </UninstallDialog>
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}

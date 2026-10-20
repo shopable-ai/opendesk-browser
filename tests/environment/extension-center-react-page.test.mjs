@@ -8,7 +8,7 @@ import {readFile} from 'node:fs/promises';
 // service doubles only. Never touches the product watcher or installed Chrome.
 const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
 async function fixture(){
-  const state={rowsModel:{rows:[]},toolbarModel:null,detailModel:null,
+  const state={rowsModel:{rows:[]},toolbarModel:null,detailModel:null,uninstallModel:null,
     recoveryModel:null,feedbackModel:null,statusModel:null,view:'list',menuKey:null};
   const root=createRoot(document.getElementById('root'));
   const paint=()=>flushSync(()=>root.render(React.createElement(ExtensionCenterPage,state)));
@@ -18,6 +18,7 @@ async function fixture(){
     renderRows(model){state.rowsModel=model;paint();},
     renderToolbar(model){state.toolbarModel=model;paint();},
     renderDetail(model){state.detailModel=model;paint();},
+    renderUninstall(model){state.uninstallModel=model;paint();},
     renderRecoveries(model){state.recoveryModel=model;paint();},
     renderFeedback(model){state.feedbackModel=model;paint();},
     renderStatus(model){state.statusModel=model;paint();},
@@ -30,14 +31,15 @@ async function fixture(){
     version:'1.0.0',capabilities:['storage.local'],html:'<main>Notes</main>',css:'',js:'void 0;'};
   const page={programId:'reader',manifestHash:'a'.repeat(64),installed:{title:'阅读增强',
     revision:1,manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,
-    nativeState:'registered',authorization:{status:'granted',generation:5},
+    nativeState:'registered',authorization:{status:'active',generation:5,
+      installationId:'fixture-page-install-1'},
     pageRules:{matches:['https://example.com/*']}}};
   const store={[SIDEBAR_TOOL_STORE]:[app],[SIDEBAR_TOOL_ENABLE_STORE]:{[app.id]:true}};
   const changes=new Set(),connections=new Set(),calls=[];
   let lastNativeEvent;
   const eventCall=(action,id,event)=>{lastNativeEvent=event;calls.push({action,id,native:event instanceof MouseEvent,
     trusted:event?.isTrusted,gesture:navigator.userActivation.isActive});};
-  let corrupt=false,ackOnly=false,holdToggle=false,finishToggle;
+  let corrupt=false,ackOnly=false,holdToggle=false,finishToggle,pageInstalled=true;
   const api={runtime:{getURL:path=>location.origin+'/'+path},tabs:{create:async value=>calls.push(value)},
     permissions:{contains:async()=>true,request:async()=>{throw Error('unexpected permission');}},
     storage:{local:{get:async keys=>{if(corrupt)throw Error('storage unavailable');
@@ -45,7 +47,19 @@ async function fixture(){
       onChanged:{addListener:fn=>changes.add(fn),removeListener:fn=>changes.delete(fn)}}};
   const client={subscribeConnection(fn){connections.add(fn);return ()=>connections.delete(fn);},
     async request(method,args){
-      if(method==='listPagePrograms')return {installed:structuredClone([{programId:page.programId,...page.installed}])};
+      if(method==='listPagePrograms')return {installed:pageInstalled?
+        structuredClone([{programId:page.programId,...page.installed}]):[]};
+      if(method==='uninstallPageProgram'){
+        calls.push({action:'page-uninstall',args});
+        if(!pageInstalled||args.programId!==page.programId||
+          args.manifestHash!==page.manifestHash||
+          args.installationId!==page.installed.authorization.installationId||
+          args.expectedGeneration!==page.installed.authorization.generation)
+          throw Object.assign(Error('Page identity changed'),{code:'E_PAGE_IDENTITY'});
+        pageInstalled=false;
+        return {uninstalled:true,nativeState:'unregistered',manifestHash:page.manifestHash,
+          installationId:args.installationId,managedCleanup:{state:'retired'}};
+      }
       if(method!=='setInstalledPageEnabled')throw Error(method);
       calls.push({action:'page-toggle',args});
       if(!ackOnly){page.installed.enabled=args.enabled;page.installed.authorization.generation++;}
@@ -54,6 +68,15 @@ async function fixture(){
   const sidebarTools={openTool:id=>{calls.push({action:'open',id});return true;},
     openSettings:id=>calls.push({action:'settings',id}),openImport:()=>calls.push({action:'import'}),
     openOfficialReview:()=>false,
+    uninstallFromList(id,baseline,event){
+      eventCall('app-uninstall',id,event);
+      const original=store[SIDEBAR_TOOL_STORE].find(item=>item.id===id);
+      if(!original||baseline?.id!==id||original.version!==baseline.version||
+         original.html!==baseline.html)
+        throw Object.assign(Error('App identity changed'),{code:'E_TOOL_CHANGED'});
+      store[SIDEBAR_TOOL_STORE]=store[SIDEBAR_TOOL_STORE].filter(item=>item.id!==id);
+      return Promise.resolve(true);
+    },
     toggleEnabled(id,event){eventCall('toggle',id,event);
       const finish=()=>{store[SIDEBAR_TOOL_ENABLE_STORE][id]=!store[SIDEBAR_TOOL_ENABLE_STORE][id];return true;};
       return holdToggle?new Promise(resolve=>{finishToggle=()=>resolve(finish());}):Promise.resolve(finish());},
@@ -62,7 +85,8 @@ async function fixture(){
   const controller=createExtensionCenter({api,client,doc:document,sidebarTools,extensionList,
     taskWorkbench:{navigate:tab=>{calls.push({action:'navigate',tab});return true;}}});
   window.fixture={state,calls,store,page,changes,connections,controller,
-    nativeEvent:()=>lastNativeEvent,
+    installedApps:()=>store[SIDEBAR_TOOL_STORE],
+    pageInstalled:()=>pageInstalled,nativeEvent:()=>lastNativeEvent,
     setCorrupt:value=>{corrupt=value;},setAckOnly:value=>{ackOnly=value;},
     hold:()=>{holdToggle=true;},release:()=>finishToggle(),
     dispose(){controller.dispose();root.unmount();},
@@ -205,6 +229,72 @@ test('React row menu preserves native gestures, keyboard/outside close, pending 
   });
   assert.equal(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='toggle').length),1);
   assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
+});
+
+test('R5.6 installed App row opens one modal; cancel/Escape preserve state, confirm binds native gesture and persists removal',options,async t=>{
+  const page=await browserFixture(t);
+  const trash=page.locator('[data-extension-key="app:quick-notes"][data-extension-action="uninstall"]');
+  assert.equal(await trash.count(),1,'An installed App exposes the direct trash control');
+  await trash.click();
+  const modal=page.locator('.od-uninstall-dialog[aria-modal="true"]');
+  await modal.waitFor();
+  assert.equal(await modal.count(),1,'The list opens exactly one shared confirmation');
+  assert.match(await modal.getByRole('heading').innerText(),/快速笔记/);
+  assert.equal(await modal.locator('[data-uninstall-cancel]').evaluate(node=>document.activeElement===node),true,
+    'Cancel receives initial focus');
+  await page.keyboard.press('Escape');
+  assert.equal(await modal.count(),0,'Escape closes without removing anything');
+  assert.equal(await page.evaluate(()=>fixture.installedApps().length),1);
+  await trash.click();
+  await modal.locator('[data-uninstall-cancel]').click();
+  assert.equal(await page.evaluate(()=>fixture.installedApps().length),1);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='app-uninstall').length),0);
+  await trash.click();
+  await modal.getByRole('button',{name:'确认卸载'}).click();
+  await page.waitForFunction(()=>fixture.state.uninstallModel===null&&
+    !document.querySelector('[data-extension-id="app:quick-notes"]'));
+  assert.equal(await page.evaluate(()=>fixture.installedApps().length),0);
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='app-uninstall')),
+    [{action:'app-uninstall',id:'quick-notes',native:true,trusted:true,gesture:true}],
+    'Only one trusted gesture reaches the existing App Host facade');
+  assert.match(await page.locator('#extension-center-status').innerText(),/读回确认卸载/);
+  await page.evaluate(()=>fixture.controller.refresh());
+  assert.equal(await page.locator('[data-extension-id="app:quick-notes"]').count(),0);
+});
+
+test('R5.6 installed Page row directly opens one confirmation; fixed generation is passed to original authority and read back',options,async t=>{
+  const page=await browserFixture(t);
+  const trash=page.locator('[data-extension-key="page:reader"][data-extension-action="uninstall"]');
+  assert.equal(await trash.count(),1);
+  await trash.click();
+  const modal=page.locator('.od-uninstall-dialog[aria-modal="true"]');
+  await modal.waitFor();
+  assert.match(await modal.innerText(),/阅读增强/);
+  await modal.getByRole('button',{name:'取消'}).click();
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='page-uninstall').length),0);
+  await trash.click();
+  await modal.getByRole('button',{name:'确认卸载'}).click();
+  await page.waitForFunction(()=>fixture.state.uninstallModel===null&&
+    !document.querySelector('[data-extension-id="page:reader"]'));
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='page-uninstall')),
+    [{action:'page-uninstall',args:{programId:'reader',manifestHash:'a'.repeat(64),
+      installationId:'fixture-page-install-1',expectedGeneration:5}}]);
+  assert.equal(await page.evaluate(()=>fixture.pageInstalled()),false);
+  assert.match(await page.locator('#extension-center-status').innerText(),/Page Authority 回执/);
+  await page.evaluate(()=>fixture.controller.refresh());
+  assert.equal(await page.locator('[data-extension-key="page:reader"][data-extension-action="uninstall"]').count(),0);
+});
+
+test('R5.6 changes to Page installation identity invalidate the opened list dialog before dispatch',options,async t=>{
+  const page=await browserFixture(t);
+  await page.locator('[data-extension-key="page:reader"][data-extension-action="uninstall"]').click();
+  await page.evaluate(async()=>{
+    fixture.page.installed.authorization.generation++;
+    await fixture.controller.refresh();
+  });
+  assert.equal(await page.locator('.od-uninstall-dialog').count(),0);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(row=>row.action==='page-uninstall').length),0);
+  assert.match(await page.locator('#extension-center-status').innerText(),/卸载确认已失效/);
 });
 
 test('React orphaned cleanup recovery retains trusted native events while catalog is unavailable',options,async t=>{
