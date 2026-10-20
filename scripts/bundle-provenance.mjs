@@ -111,7 +111,7 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
-  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'3f4c938e7591861333eb17eb41c6e54ca21ced79',
+  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'e781030f4526d48b14a0b051920183a84ae681ca',
   'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
   'examples/sidebar-tools/stay-focus/trusted/model.js':'e160e2636a31a91815a7a8fb4e4e79437b83d137',
   'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
@@ -119,7 +119,7 @@ const compiledStayFocusInputs=Object.freeze({
   'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
   'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
   'examples/sidebar-tools/stay-focus/trusted/service.js':'fa53cf39835af38b5b0afdff586015500850ab22',
-  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'f2346baa8c80e0bd153d32e810f63caed8d105fd'
+  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'cb7ac4b76be907d07d699c802fc576de6074d0b9'
 });
 // The shared lifecycle module is statically linked by other approved hosts
 // (including knowledge-host). Reuse AdBlock's exact fixed-output registry:
