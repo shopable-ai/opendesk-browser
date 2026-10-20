@@ -7,6 +7,7 @@ import {BROWSER_EDITION_RECORD,readEditionRecord} from './browser-editions-r245.
 import {buildOfficialTools,officialToolInputs,writeOfficialToolResources} from './build-official-tools.mjs';
 import {buildAdblockReact} from './build-adblock-react.mjs';
 import {buildStayFocusReact} from './build-stay-focus-react.mjs';
+import {buildCookieEditorReactIfOfficial} from './build-cookie-editor-react.mjs';
 import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog} from '../src/sidebar-tools/official-catalog.js';
 import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest} from './verify-package.mjs';
@@ -136,7 +137,8 @@ export function configureDevelopment(wxt,server) {
     const input=resolve(file),dest=sources.get(input),style=styleSources.has(input);
     // Generated AdBlock files are a consequence, never a watcher trigger.
     if(input.startsWith(resolve(toolRoot,'adblock/dist')+'/')||
-      input.startsWith(resolve(toolRoot,'stay-focus/dist')+'/'))return;
+      input.startsWith(resolve(toolRoot,'stay-focus/dist')+'/')||
+      input.startsWith(resolve(toolRoot,'cookie-editor/dist')+'/'))return;
     const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||input.startsWith(toolRoot+'/');
     if(!dest&&!style&&!official)return;
     const version=++changeId;sourceVersions.set(input,version);
@@ -162,10 +164,14 @@ export function configureDevelopment(wxt,server) {
         const stayFocusSourceChanged=changes.some(path=>
           /^examples\/sidebar-tools\/stay-focus\/(?:src\/|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
         if(stayFocusSourceChanged)await buildStayFocusReact({log:false});
+        const cookieSourceChanged=changes.some(path=>
+          /^examples\/sidebar-tools\/cookie-editor\/(?:app\/|src\/react\.css$|src\/root\.html$|vite\.config\.mjs$|tool\.config\.json$|package\.json$)/.test(path));
+        const cookieReactBuilt=cookieSourceChanged&&
+          Boolean(await buildCookieEditorReactIfOfficial({log:false}));
         const inputs=await officialToolInputs(wxt.config.root);
         // A JSX edit is intentionally absent from officialToolInputs(): only
         // compiled dist bytes are declared. Still publish the new package.
-        if(!catalogDirty&&!adblockSourceChanged&&!stayFocusSourceChanged&&
+        if(!catalogDirty&&!adblockSourceChanged&&!stayFocusSourceChanged&&!cookieReactBuilt&&
           !changes.some(path=>inputs.includes(path)))return;
         const generated=await buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});
         copyErrors.delete(errorKey);

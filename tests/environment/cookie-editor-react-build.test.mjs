@@ -29,6 +29,9 @@ test('built React JSX uses one classic chunk and pinned runtime, not bundled Rea
     get('dist/build-ready.json').then(bytes=>JSON.parse(bytes.toString('utf8')))
   ]);
   assert.equal(ready.format,'opendesk.ui-build-ready.v1');
+  assert.equal(ready.buildId,sha(Buffer.from(JSON.stringify({
+    sources:ready.sources,files:ready.files
+  }))),'identical sources and output must have a deterministic Build Ready ID');
   for(const [name,bytes] of [['tool.js',js],['tool.css',css]]){
     assert.equal(ready.files['dist/'+name].bytes,bytes.length);
     assert.equal(ready.files['dist/'+name].sha256,sha(bytes));

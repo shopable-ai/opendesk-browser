@@ -1,6 +1,7 @@
 import {preparePublic} from './prepare-public.mjs';
 import {buildAdblockReact} from './build-adblock-react.mjs';
 import {buildStayFocusReact} from './build-stay-focus-react.mjs';
+import {buildCookieEditorReactIfOfficial} from './build-cookie-editor-react.mjs';
 import {officialToolInputs} from './build-official-tools.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
 import {prepare,build} from 'wxt';
@@ -32,6 +33,7 @@ await verifyReadingTocTrustedLocales();
 // Compile independent React tools before fingerprinting official inputs.
 await buildAdblockReact({log:false});
 await buildStayFocusReact({log:false});
+await buildCookieEditorReactIfOfficial({log:false});
 inputsBefore = await sourceInputs();
 process.env.OPENDESK_BUILD_MODE=mode;
 await preparePublic();

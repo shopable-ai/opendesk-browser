@@ -46,8 +46,9 @@ function receiptPlugin(){
       const tmp=output+'.'+randomUUID()+'.new';
       if(JSON.stringify(await sourceFingerprints())!==JSON.stringify(builtSources))
         throw Error('Cookie React source changed during build');
+      const buildId=hash(Buffer.from(JSON.stringify({sources:builtSources,files})));
       await writeFile(tmp,JSON.stringify({format:'opendesk.ui-build-ready.v1',
-        buildId:randomUUID(),files,sources:builtSources},null,2)+'\n',{flag:'wx'});
+        buildId,files,sources:builtSources},null,2)+'\n',{flag:'wx'});
       await rename(tmp,output);
     }
   };

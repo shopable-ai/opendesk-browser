@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {"node": ">=22.12.0"},
   "scripts": {
-    "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
+    "build": "node ../../../scripts/build-cookie-editor-react.mjs",
     "stage:candidate": "node scripts/stage-react-candidate.mjs"
   }
 }
