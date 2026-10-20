@@ -414,6 +414,29 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
   assert.equal(firstSite.site?.minutes,2);
   assert.equal(firstSite.owned,0,'a not-yet-exhausted quota must not block local HTTP');
+  // R5.8: the same trusted one-click path also pauses and resumes, preserving
+  // the exact site group, mode, scope and budget without another confirmation.
+  await until(()=>evalRead(client,sid,
+    '!!document.querySelector("#stay-focus-current-pause")&&!document.querySelector("#stay-focus-current-pause").disabled'),
+    'managed current-site Pause button');
+  await click(client,sid,'#stay-focus-current-pause');
+  const pausedCurrent=await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.find('+
+    's=>s.host==="127.0.0.1"&&!s.enabled)||null)'),'real React current-site Pause');
+  assert.deepEqual({...pausedCurrent,enabled:true},firstSite.site);
+  await until(()=>evalRead(client,sid,
+    '(()=>{const b=document.querySelector("#stay-focus-current-add");return !!b&&!b.disabled&&b.textContent.trim()==="恢复"})()'),
+    'trusted Restore button for paused current website');
+  await click(client,sid,'#stay-focus-current-add');
+  const resumedCurrent=await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.find('+
+    's=>s.host==="127.0.0.1"&&s.enabled)||null)'),'real React current-site Restore');
+  assert.deepEqual(resumedCurrent,firstSite.site,
+    'restarting a paused site must never change its quota, group or scope');
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true);
+  report.nativeCurrentSiteActions={added:true,paused:true,restored:true,
+    extraConfirmations:0,storedSettingsPreserved:true};
   report.siteEntryDriver='TRUSTED_REACT_NATIVE_CLICK';
   note('native-one-click-joined-active-website',{host:'127.0.0.1',
     sharedMinutes:2,secondConfirmation:false,ownedRules:firstSite.owned});
