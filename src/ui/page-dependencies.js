@@ -26,7 +26,7 @@ export function assertPageSourceReadyToRun(sourceUtf8) {
 }
 
 // Lookup and capture never download, approve or prompt for permissions.
-export function createPageDependencyResolver({client,getSource,getProgramId=()=>undefined,preparer,onState=()=>{}}) {
+export function createPageDependencyResolver({client,getSource,getProgramId=()=>undefined,preparer,onState=()=>{},autoRefresh=true}) {
   let disposed=false,sequence=0,sourceKey=null,pending=false,locks=[],lookupError=null,report=null,inspection=null;
   let selectedFormat='esm-page',lookup=Promise.resolve();
   let restoredLock=null,selectedLockId=null;
@@ -314,8 +314,14 @@ export function createPageDependencyResolver({client,getSource,getProgramId=()=>
     refresh(true);
     return {...snapshot,lockId:lock.lockId};
   }
-  refresh();
-  return {capture,captureForRun,resolveForRun,refresh,snapshot,accept,restore,compile,get sourceFormat(){return current().sourceFormat;},
+  if(autoRefresh)refresh();
+  function suspend(){
+    if(disposed||sourceKey===null&&!pending)return;
+    sequence++;preparer?.cancel();sourceKey=null;pending=false;lookup=Promise.resolve();
+    locks=[];selectedLockId=null;lookupError=null;report=null;inspection=null;restoredLock=null;
+    onState();
+  }
+  return {capture,captureForRun,resolveForRun,refresh,suspend,snapshot,accept,restore,compile,get sourceFormat(){return current().sourceFormat;},
   chooseLock(id){
     if(id&& !locks.some(row=>row.lockId===id))throw {code:'E_DEPENDENCY_LOCK',message:'所选依赖锁不属于当前程序'};
     selectedLockId=id||null;onState();

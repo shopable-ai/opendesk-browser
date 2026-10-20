@@ -178,6 +178,42 @@ test('React page preserves list, search/filter, detail identity and native Page 
   assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
 });
 
+test('The last hovered or focused installed row keeps the only desktop More button',options,async t=>{
+  const page=await browserFixture(t);
+  const app=page.locator('[data-extension-id="app:quick-notes"]');
+  const reader=page.locator('[data-extension-id="page:reader"]');
+  const active=()=>page.locator('#extension-center-list .ec-row--action-visible');
+  const opacity=locator=>locator.locator('.ec-row-actions').evaluate(node=>getComputedStyle(node).opacity);
+  assert.equal(await active().count(),1,'exactly one menu visible when the list first loads');
+  assert.equal(await active().getAttribute('data-extension-id'),'app:quick-notes');
+  assert.equal(await opacity(app),'1');
+  assert.equal(await opacity(reader),'0');
+  await reader.hover();
+  await page.waitForFunction(()=>document.querySelector('.ec-row--action-visible')?.dataset.extensionId==='page:reader');
+  await page.locator('#extension-center-search').hover();
+  assert.equal(await active().count(),1,'moving away must not clear the last visible control');
+  assert.equal(await opacity(reader),'1');
+  assert.equal(await opacity(app),'0','previous row menu must disappear');
+  await app.hover();
+  await page.waitForFunction(()=>document.querySelector('.ec-row--action-visible')?.dataset.extensionId==='app:quick-notes');
+  await page.locator('#extension-center-search').hover();
+  assert.equal(await opacity(app),'1','the last hovered row remains pinned when pointer leaves');
+  assert.equal(await opacity(reader),'0');
+  await reader.locator('[data-extension-action="main"]').focus();
+  await page.waitForFunction(()=>document.querySelector('.ec-row--action-visible')?.dataset.extensionId==='page:reader');
+  assert.equal(await opacity(reader),'1','keyboard focus also moves the discoverable control');
+  await reader.locator('[data-extension-action="more"]').click();
+  assert.equal(await page.locator('#extension-center-row-menu').count(),1);
+  await page.keyboard.press('Escape');
+  assert.equal(await active().getAttribute('data-extension-id'),'page:reader');
+  await page.locator('#extension-center-search').fill('阅读');
+  assert.equal(await page.locator('#extension-center-list > li').count(),1);
+  assert.equal(await active().getAttribute('data-extension-id'),'page:reader');
+  await page.locator('#extension-center-search').fill('');
+  assert.equal(await active().count(),1,'restoring search must not show multiple pinned menus');
+  assert.equal(await active().getAttribute('data-extension-id'),'page:reader');
+});
+
 test('React row menu preserves native gestures, keyboard/outside close, pending and disposal',options,async t=>{
   const page=await browserFixture(t);
   const more=page.locator('[data-extension-key="app:quick-notes"][data-extension-action="more"]');

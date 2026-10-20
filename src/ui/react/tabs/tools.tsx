@@ -10,14 +10,25 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
   const titles=new Map();
   for(const row of rows)if(row.installed)
     titles.set(row.title,(titles.get(row.title)||0)+1);
+  // Keep the last hovered/focused installed row's menu visible after pointer exit.
+  // Until the user interacts, the first installed row demonstrates the control.
+  const [lastInteractedKey,setLastInteractedKey]=React.useState(null);
+  const activeActionKey=rows.some(row=>row.installed&&row.key===lastInteractedKey)
+    ?lastInteractedKey:rows.find(row=>row.installed)?.key;
   return rows.map(row=>{
     const label=row.primaryAction||'查看详情';
     const identity=row.installed&&titles.get(row.title)>1&&row.key.startsWith('app:')
       ?row.key.slice(4):null;
     const accessible=label+'「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'');
     return <li key={row.key} data-extension-id={row.key}
-      className="ec-row"
-      aria-busy={busy||pendingKey===row.key?'true':undefined}>
+      className={row.installed&&row.key===activeActionKey?'ec-row ec-row--action-visible':'ec-row'}
+      aria-busy={busy||pendingKey===row.key?'true':undefined}
+      onPointerEnter={event=>{
+        if(row.installed&&event.pointerType!=='touch')setLastInteractedKey(row.key);
+      }}
+      onFocusCapture={()=>{
+        if(row.installed)setLastInteractedKey(row.key);
+      }}>
       <button type="button" className="ec-row-main" data-extension-key={row.key}
         data-extension-action="main" disabled={busy}
         aria-label={accessible} title={accessible}

@@ -57,13 +57,31 @@ test('R5.11 hover and keyboard reveal one overlay; touch retains one 44px menu',
   const css=await readFile('src/ui/extension-center.css','utf8');
   assert.match(css,/\.ec-row\{position:relative;min-height:72px\}/);
   assert.match(css,/\.ec-row-actions\{position:absolute;[^}]*opacity:0;pointer-events:none/);
-  assert.match(css,/\.ec-row:hover \.ec-row-actions,\.ec-row:focus-within \.ec-row-actions\{opacity:1;pointer-events:auto\}/);
+  assert.match(css,/\.ec-row--action-visible \.ec-row-actions\{opacity:1;pointer-events:auto\}/);
   assert.match(css,/@media\(hover:none\),\(pointer:coarse\)\{/);
   assert.match(css,/\.ec-row-more\{width:44px;min-width:44px;min-height:44px\}/);
   assert.match(css,/@media\(max-width:240px\)/);
   assert.match(css,/\.ec-context-menu\{position:fixed;z-index:1000/);
   assert.match(css,/#extension-center \.ec-row-main:focus-visible/);
   assert.doesNotMatch(css,/padding-right:132px|padding-right:160px/);
+});
+
+test('R5.13 last-hovered installed row retains the only desktop More affordance',async()=>{
+  const [react,css]=await Promise.all([
+    readFile('src/ui/react/tabs/tools.tsx','utf8'),
+    readFile('src/ui/extension-center.css','utf8')
+  ]);
+  assert.match(react,/const \[lastInteractedKey,setLastInteractedKey\]=React\.useState\(null\)/);
+  assert.match(react,/const activeActionKey=rows\.some\(row=>row\.installed&&row\.key===lastInteractedKey\)/);
+  assert.match(react,/event\.pointerType!=='touch'\)setLastInteractedKey\(row\.key\)/);
+  assert.match(react,/onFocusCapture=\{\(\)=>\{/);
+  assert.match(react,/row\.installed&&row\.key===activeActionKey\?'ec-row ec-row--action-visible':'ec-row'/);
+  assert.match(css,/\.ec-row--action-visible \.ec-row-actions\{opacity:1;pointer-events:auto\}/);
+  assert.match(css,/\.ec-row--action-visible \.ec-row-main\{padding-right:52px\}/);
+  assert.doesNotMatch(css,/\.ec-row:hover \.ec-row-actions|\.ec-row:focus-within \.ec-row-actions/);
+  assert.match(css,/@media\(hover:none\),\(pointer:coarse\)\{/);
+  assert.match(css,/\.ec-row-main,\.ec-row--action-visible \.ec-row-main\{padding-right:54px\}/);
+  assert.doesNotMatch(react,/data-extension-action="uninstall"|data-extension-action="primary"/);
 });
 
 test('R4.3 list and detail foregrounds remain readable against normal and hover surfaces in both themes',async()=>{

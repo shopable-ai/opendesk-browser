@@ -8,7 +8,8 @@ import {invariant, digestUtf8} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
 import {createPageDependencyReview} from './page-dependency-review.js';
 import {createPageDependencyInstaller} from './page-dependency-install.js';
-import {preparePageCandidateDraft,validatePageCandidateAuthoring} from './page-candidate-source.js';
+import {validatePageCandidateAuthoring} from './page-candidate-source.js';
+import {createPageCandidateActions} from './page-candidate-actions.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {parseControllerClassicDependencies} from '../scripting/user-scripts/controller-classic.js';
 import {createProgramSourceView} from './program-source.js';
@@ -27,7 +28,8 @@ import {formatControllerRunResult, formatRunValue, runValueKind} from './run-res
 import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 import {createPageProgramLibrary} from './page-program-library.js';
-import {requireChromePermissions,createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
+import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
+import {createControllerClassicReadiness} from './controller-classic-readiness.js';
 
 export function createScriptEditor({client, currentPageTarget, development=false, api = globalThis.chrome, document: hostDocument = globalThis.document,view,
   hostFactory = createRunHost,sharedRunHost=null,componentPreparerFactory=createBrowserPageComponentPreparer,
@@ -118,46 +120,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }});
   const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
 
-  // Controller Classic uses the existing native source-permission consent, not
-  // a second grant registry. The read-only observation is primed on edit; only
-  // a real Run click may request missing Chrome HTTPS origin access.
-  let controllerClassicWarmEpoch=0,controllerClassicWarm=null,controllerClassicWarmError=null;
-  const controllerClassicConsent=createChromePermissionConsent({api,
-    onChange:()=>scheduleControllerClassicWarm()});
-  function scheduleControllerClassicWarm(){
-    const source=programSource.source(),epoch=++controllerClassicWarmEpoch;
-    controllerClassicWarm=null;controllerClassicWarmError=null;
-    let origins;
-    try{
-      const refs=parseControllerClassicDependencies(source);
-      if(!refs.length){update();return;}
-      origins=[...new Set(refs.map(row=>new URL(row.url).origin+'/*'))];
-    }catch(cause){controllerClassicWarmError={source,cause};update();return;}
-    controllerClassicConsent.prepare({origins}).then(observed=>{
-      if(disposed||epoch!==controllerClassicWarmEpoch||source!==programSource.source())return;
-      if(observed)controllerClassicWarm={source,origins};
-      update();
-    }).catch(cause=>{
-      if(disposed||epoch!==controllerClassicWarmEpoch||source!==programSource.source())return;
-      controllerClassicWarmError={source,cause};update();
-    });
-    update();
-  }
-  function controllerClassicReadyForRun(){
-    const source=programSource.source();
-    try{if(!parseControllerClassicDependencies(source).length)return true;}
-    catch{return true;} // Let Run explain malformed source instead of hiding the error.
-    return controllerClassicWarm?.source===source||controllerClassicWarmError?.source===source;
-  }
-  function confirmControllerClassicRun(event,source){
-    const refs=parseControllerClassicDependencies(source);
-    if(!refs.length)return Promise.resolve(true);
-    if(controllerClassicWarmError?.source===source)return Promise.reject(controllerClassicWarmError.cause);
-    if(controllerClassicWarm?.source!==source)return Promise.reject(Object.assign(
-      new Error('正在只读检查 Classic 来源权限，请检查完成后再次点击 Run'),
-      {code:'E_PERMISSION_PENDING'}));
-    return controllerClassicConsent.confirm(event,{origins:controllerClassicWarm.origins});
-  }
+  const controllerClassic=createControllerClassicReadiness({api,getSource:programSource.source,
+    isCurrent:()=>componentMode==='javascript'&&!isPageDraft()&&!localProject?.active()&&
+      !hasUnbuiltESM(programSource.source()),
+    onState:update});
 
   function display(state, message) {
     if (disposed) return;
@@ -246,11 +212,19 @@ export function createScriptEditor({client, currentPageTarget, development=false
        localPageResult.documentId===currentPageState.documentId&&
        localPageResult.url===currentPageState.url);
   }
+  let updatedContext=null;
   function update() {
     if (disposed) return;
-    componentRemote?.update();
-    dependencyReview?.update();
-    localInstaller.update();
+    const pageExecution=isComponentDraft()||isPageDraft(),local=!!localProject?.active(),source=programSource.source();
+    const context=local?'local':componentMode!=='javascript'&&!programSource.snapshot()?'component':
+      pageExecution?'page':hasUnbuiltESM(source)?'controller-esm':'controller';
+    const changed=context!==updatedContext,previous=updatedContext;
+    updatedContext=context;
+    // One contextual refresh per relevant owner; mode changes still clear
+    // the previous panel. Ordinary Run/Result does not refresh every manager.
+    if(context==='component'||context==='controller-esm'||changed)componentRemote?.update();
+    if(context==='page'||changed){dependencyReview?.update();dependencyInstaller?.update();}
+    if(context==='local'||previous==='local')localInstaller.update();
     // A target refresh is pending evidence, not a confirmed document change.
     // Keep the original result, but do not expose it as current until resolved.
     if(localPageResult&&!localPageResultIsCurrent({allowResolving:true})){
@@ -260,8 +234,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       display('unknown','上次本地 Page 结果已失效，不能用于验证或安装当前源码');
     }
     if(localPageResult)patchDeveloperField(view,copyResult,{disabled:!localPageResultIsCurrent()});
-    const pageExecution=isComponentDraft()||isPageDraft(),local=!!localProject?.active(),source=programSource.source();
-    controllerRevisions.update({busy:editingBusy,local,page:pageExecution});
+    if(context==='controller'||context==='controller-esm'||changed)
+      controllerRevisions.update({busy:editingBusy,local,page:pageExecution});
     const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
     if(worldRow)patchDeveloperField(view,worldRow,{hidden:componentMode!=='javascript'||!!localProject?.active()||!!programSource.snapshot()});
     if(worldChoice)patchDeveloperField(view,worldChoice,{value:javascriptWorld,disabled:frameworkBusy()});
@@ -289,7 +263,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       otherTabOwnsBrowserUI()||componentRemote?.busy||dependencyInstaller?.busy||programSource.kind()==='controller'||
       (componentMode==='javascript'?(dependencyResolver?.busy||
         (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)):!componentRemote?.readyForRun);
-    else runDisabled||=!source.trim()||(browserCompilerEnabled&&hasUnbuiltESM(source)&&!componentRemote?.readyForRun)||!controllerClassicReadyForRun();
+    else runDisabled||=!source.trim()||(browserCompilerEnabled&&hasUnbuiltESM(source)&&!componentRemote?.readyForRun)||!controllerClassic.readyForRun();
     const preparing=browserPreparing||controllerRevisions.preparing||componentRemote?.busy;
     const stopDisabled = stopping || !preparing&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
     const stopLabel=preparing?'取消准备':canStopManaged()?'停止受管 UI':'停止';
@@ -307,7 +281,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
         textContent:localProject?.active()?localInstaller.saveLabel():'检查并保存本地项目'});
       patchDeveloperField(view,stopButton,{disabled:stopDisabled,hidden:local&&stopDisabled,textContent:stopLabel});
     }
-    dependencyInstaller?.update();
   }
   function renderCurrentPage(next) {
     if (disposed) return;
@@ -475,7 +448,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
           ...(find('script-allow-cookies').checked?{permissions:['cookies']}:{} )}}),
         esm&&browserCompilerEnabled?
           componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true),
-        classic?confirmControllerClassicRun(event,sourceUtf8):Promise.resolve(true)
+        classic?controllerClassic.confirmRun(event,sourceUtf8):Promise.resolve(true)
       ]);
     } catch (error) { fail(error); return; }
     hideUserScriptsRecovery();
@@ -850,10 +823,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
   async function savePreparedComponent(){
     if(!canPrepareComponentCandidate()||disposed)return;
     const captured=currentPageTarget.capture(),artifact=programSource.snapshot(),source=programSource.source();
-    const frozen=artifact?.project.entryMode==='component';
-    const framework=frozen?/^\/\/ @opendesk-lib (react|vue)\s*$/m.exec(source)?.[1]:componentMode;
-    if(!framework)throw {code:'E_PROGRAM_DRAFT',message:'固定组件缺少框架身份'};
-    const identity={source,framework,...(frozen?{sourceHash:artifact.build.sourceHash,projectId:artifact.project.id}:{})};
     const mode=componentMode,ticket=++browserPrepareGeneration;
     const check=()=>{
       if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==source||componentMode!==mode)
@@ -862,62 +831,38 @@ export function createScriptEditor({client, currentPageTarget, development=false
     lastPagePreview=null;editingBusy=true;browserPreparing=true;update();
     componentMessage('preparing','正在离线准备固定 Candidate；此操作不会运行或安装网页脚本');
     try{
-      const built=await prepareManagedSource(identity,captured,check,{frozen});
-      await currentPageTarget.revalidate(captured);check();
-      lastPagePreview={sourceUtf8:built.sourceUtf8,entryFormat:built.entryFormat,lockId:null,importSourceUrl:null,
-        authoringSourceUtf8:source,componentMode:mode,previewUrl:captured.url,documentId:captured.documentId,
-        tabId:captured.tabId,target:captured,sourceHash:built.sourceHash,preparedOnly:true};
+      lastPagePreview=await pageCandidates.prepareComponent({source,artifact,mode,captured,check,prepareManagedSource});
       componentMessage('prepared','组件已准备；保存只创建 Candidate，尚未进行网页运行验收');
     }finally{editingBusy=false;browserPreparing=false;update();}
     await savePageCandidate();
   }
-  async function savePageCandidate() {
+  async function savePageCandidate(){
     if(editingBusy||disposed||previewBusy||!lastPagePreview||localProject?.active())return;
-    const previous=lastPagePreview,revisionText=find('script-revision').value.trim();
-    if(!isComponentDraft()&&hasUnbuiltESM(programSource.source())&&previous.sourceFormat!=='esm-page')
-      throw {code:'E_STATIC_ESM_IDENTITY',message:'请先准备并试运行当前作者 import 源码'};
-    const programId=scriptId(),revision=revisionText?Number(revisionText):1;
-    if(!previewMatchesEditor(previous))
-      throw {code:'E_REVISION',message:'源码已经修改，请重新试运行后保存'};
-    // Only editable JSX/SFC has component author metadata. Frozen drafts and
-    // managed JavaScript retain their exact executable source instead.
-    const {authoringSourceUtf8,...candidate}=previous;
-    const prepared=preparePageCandidateDraft({...candidate,programId,revision,
-      ...(['react','vue'].includes(previous.componentMode)?{authoringSourceUtf8}:{})});
+    const previous=lastPagePreview,programId=scriptId(),revisionText=find('script-revision').value.trim();
     editingBusy=true;update();
-    try {
-      await currentPageTarget.revalidate(previous.target);
-      const saved=await client.request('importPageCandidate',prepared.request);
-      if(saved?.stage!=='Candidate'||typeof saved.candidateId!=='string'||typeof saved.manifestHash!=='string')
-        throw {code:'E_PAGE_CANDIDATE',message:'未收到可信的固定候选身份'};
-      const changed=!previewMatchesEditor(previous)||scriptId()!==programId||
-        find('script-revision').value.trim()!==revisionText;
-      const status=find('page-candidate-status');
-      patchDeveloperField(view,status,{data:{...status.data,state:'saved'}});
-      patchDeveloperField(view,status,{textContent:`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
-        ' '+prepared.summary+
-        (changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
-        ' 请在已保存网页脚本中验证冻结版本，再明确安装。'});
-      await pageLibrary.refresh(programId+':'+revision);
+    try{
+      await pageCandidates.save({previous,source:programSource.source(),componentDraft:isComponentDraft(),
+        programId,revisionText,stillCurrent:()=>previewMatchesEditor(previous)&&scriptId()===programId&&
+          find('script-revision').value.trim()===revisionText});
     }finally{editingBusy=false;update();}
   }
   dependencyResolver=createPageDependencyResolver({client,getSource:programSource.source,
-    preparer:staticESMPreparer,getProgramId:scriptId,onState:update});
+    preparer:staticESMPreparer,getProgramId:scriptId,onState:update,autoRefresh:false});
 
   dependencyReview=createPageDependencyReview({client,resolver:dependencyResolver,api,document:doc,view,
     getSource:programSource.source,onState:update,
-    isAvailable:()=>componentMode==='javascript'&&!localProject?.active()&&!programSource.snapshot()&&
+    isAvailable:()=>isPageDraft()&&!localProject?.active()&&!programSource.snapshot()&&
       !editingBusy&&!running&&!previewBusy&&!stopping&&!host.currentRun});
 
   dependencyInstaller=createPageDependencyInstaller({client,api,document:doc,view,resolver:dependencyResolver,
     getSource:programSource.source,getProgramId:scriptId,
-    isVisible:()=>componentMode==='javascript'&&!localProject?.active()&&programSource.kind()!=='controller',
+    isVisible:()=>isPageDraft()&&!localProject?.active()&&programSource.kind()!=='controller',
     isBlocked:()=>disposed||editingBusy||previewBusy||running||stopping||!!host.currentRun,
     onState:update});
   componentRemote=createPageComponentRemote({client,preparer:browserPreparer,api,document:doc,view,
     getInput:()=>{
       const source=programSource.source();
-      return componentMode==='javascript'&&browserCompilerEnabled&&!localProject?.active()&&
+      return componentMode==='javascript'&&!isPageDraft()&&browserCompilerEnabled&&!localProject?.active()&&
         !programSource.snapshot()&&hasUnbuiltESM(source)?
         controllerESMInput(source,scriptId()):
         {componentSource:source,framework:localProject?.active()||programSource.snapshot()?'javascript':componentMode};
@@ -946,6 +891,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     dependencyInstaller.refresh();componentRemote.refresh();
     update();
   }});
+  const pageCandidates=createPageCandidateActions({client,view,currentPageTarget,pageLibrary});
   const onRemoved = tabId => {
     // Closing the exact owning tab proves its document is gone. Merely
     // selecting a different tab is never evidence of successful Stop.
@@ -1023,8 +969,15 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const javascriptWorldSelect=find('script-javascript-world');
   function sourceInput(){
     browserPreparer.cancel();browserPrepareGeneration++;
-    dependencyResolver.refresh();dependencyInstaller.refresh();componentRemote.refresh();
-    scheduleControllerClassicWarm();
+    const local=!!localProject?.active(),page=!local&&componentMode==='javascript'&&isPageDraft();
+    const remote=!local&&!page&&(componentMode!=='javascript'||hasUnbuiltESM(programSource.source()));
+    if(page){dependencyResolver.refresh({sourceFormat:'esm-page'});dependencyInstaller.refresh();}
+    else{dependencyResolver.suspend();dependencyInstaller.update();}
+    if(remote)componentRemote.refresh();
+    else componentRemote.update(); // Clear an obsolete panel without priming an unrelated compiler.
+    if(!local&&!page&&!remote&&componentMode==='javascript')controllerClassic.schedule();
+    else controllerClassic.cancel();
+    update();
   }
   on('script-id','input',()=>{
     lastPagePreview=null;sourceInput();
@@ -1173,7 +1126,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     sourceInput();
     display('draft','源码已导入，尚未保存为正式版本；请选择目标网页后点击运行');
   }
-  scheduleControllerClassicWarm();
+  sourceInput();
   return {host,model:view,async openRun(runId){
     invariant(typeof runId==='string'&&runId.trim()===runId&&runId.length>0&&runId.length<=200,
       'E_RUN','请选择有效的原始运行记录');
@@ -1222,7 +1175,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:resultDownloads.resourceSnapshot().timers+Number(localPollTimer!=null),
     pending:resultDownloads.resourceSnapshot().pending, subscriptions:listeners.length+Number(!disposed)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; controllerRevisions.dispose();resultDownloads.dispose();controllerClassicConsent.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; controllerRevisions.dispose();resultDownloads.dispose();controllerClassic.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.tabs.onRemoved.removeListener(onRemoved); if(!sharedRunHost)host.dispose();
     for (const remove of listeners) remove();
     listeners.length = 0;

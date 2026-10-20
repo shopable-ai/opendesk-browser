@@ -133,6 +133,23 @@ try{
     const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(artifacts,'extensions.png'),Buffer.from(shot.data,'base64'));
   }
+  // Real Chromium preview: initial hint moves to the last hovered row and remains on pointer exit.
+  const pinned=()=>evaluate('document.querySelector("#extension-center-list .ec-row--action-visible")?.dataset.extensionId');
+  assert.equal(await pinned(),'app:demo-reading','first installed item shows the initial More affordance');
+  const hoverRow=async key=>{
+    const box=await evaluate('(()=>{const el=document.querySelector('+JSON.stringify('[data-extension-id="'+key+'"]')+
+      ');const rect=el.getBoundingClientRect();return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})()');
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:box.x,y:box.y});
+    await waitUntil('document.querySelector("#extension-center-list .ec-row--action-visible")?.dataset.extensionId==='+JSON.stringify(key));
+  };
+  await hoverRow('page:demo-markup');
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:4,y:4});
+  assert.equal(await pinned(),'page:demo-markup','last hovered row stays pinned after mouse exit');
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list .ec-row--action-visible").length'),1,
+    'only one desktop list row retains its menu');
+  await hoverRow('app:demo-reading');
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:4,y:4});
+  assert.equal(await pinned(),'app:demo-reading','hovering the former first row moves the hint back');
   const listMenu='[data-extension-key="app:demo-reading"][data-extension-action="more"]';
   const chooseListUninstall=async key=>{
     await click('[data-extension-key="'+key+'"][data-extension-action="more"]');
