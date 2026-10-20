@@ -34,7 +34,8 @@ test('R3.1 event gap fails closed; background resync cannot silently clear unkno
 
 test('R3.1 Chromium assertions use the approved responsive details instead of stale R3.0.4 non-modal contract',async()=>{
  const chrome=await read(chromeFile);
- assert.match(chrome,/for\(const width of \[320,360,400,440,960\]\)/);
+ assert.match(chrome,/const widths=\[320,360,400,440,960\];/);
+ assert.match(chrome,/for\(const width of widths\)/);
  assert.match(chrome,/width<740\?'true':null,'responsive modal semantics'/);
  assert.match(chrome,/approved floating pane insets/);
  assert.match(chrome,/backdrop closes floating preview/);

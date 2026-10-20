@@ -45,7 +45,7 @@
 .bm-detail-path{font-size:11px;color:var(--od-sub);margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* The displayed URL (not a 28px footer icon) is the primary open affordance.
    Keep full URLs keyboard-focusable and wrap safely at narrow widths. */
-.bm-detail-url{display:inline-flex;align-items:flex-start;gap:5px;min-width:0;max-width:100%;min-height:28px;padding:4px 0;border-radius:5px;font-size:11px;line-height:1.5;color:var(--od-brand);text-decoration:none;white-space:normal;overflow-wrap:anywhere;word-break:break-word;cursor:pointer}
+.bm-detail-url{display:inline-flex;align-items:flex-start;gap:5px;min-width:0;max-width:100%;min-height:28px;padding:4px 0;border-radius:5px;font-size:11px;line-height:1.5;color:var(--od-accent-ink);text-decoration:none;white-space:normal;overflow-wrap:anywhere;word-break:break-word;cursor:pointer}
 .bm-detail-url>span{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 .bm-detail-url svg{flex:none;margin-top:2px}
 .bm-detail-url:hover>span{text-decoration:underline}
@@ -66,7 +66,7 @@
 .bm-popover{position:fixed;z-index:30;background:var(--od-paper);min-width:178px;border-radius:10px;box-shadow:0 12px 35px #1b2c4926,0 0 0 1px var(--od-line);padding:5px;display:grid;gap:1px}
 .bm-popover button{min-height:35px;display:flex;align-items:center;gap:9px;padding:7px 9px;background:none;color:var(--od-ink);border:0;border-radius:6px;text-align:left}
 .bm-popover button:hover,.bm-popover button:focus-visible{background:var(--od-muted)}
-.bm-scrim{position:fixed;z-index:40;inset:0;background:#10264375;display:grid;place-items:center;padding:14px}
+.bm-scrim{position:fixed;inset:0;background:#10264375;display:grid;place-items:center;padding:14px}
 .bm-dialog{width:100%;max-width:350px;padding:18px;background:var(--od-paper);border-radius:12px;box-shadow:0 18px 50px #0d213646}
 .bm-dialog h2{font-size:15px;line-height:1.5;margin:0 0 8px}.bm-dialog p{color:var(--od-sub);line-height:1.6;font-size:12px;margin:0 0 16px;overflow-wrap:anywhere}
 .bm-dialog-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
@@ -83,11 +83,6 @@
  .bm-sheet-close{width:30px;min-width:30px;height:30px;flex:none;border-radius:8px;border:1px solid var(--od-line);background:var(--od-paper);display:grid;place-items:center;color:var(--od-sub)}
 .bm-sheet-close:hover{background:var(--od-muted)}
 .bm-sheet .bm-inspector{overflow:visible;flex:none;min-height:0;max-height:none}
-.bm-sheet .bm-readonly{padding:13px 15px 18px}
-.bm-sheet .bm-detail-title{font-size:13px;line-height:1.5;gap:7px;align-items:flex-start}
-.bm-sheet .bm-detail-title span{white-space:normal;overflow-wrap:anywhere;min-width:0}
-.bm-sheet .bm-detail-path{margin:9px 0;color:var(--od-sub);font-size:12px}
-.bm-sheet .bm-detail-url{max-width:100%;font-size:12px;white-space:normal;overflow-wrap:anywhere}
 .bm-sheet .bm-editor{padding:12px 14px 17px;gap:10px}
 .bm-sheet .bm-field{gap:5px}
 .bm-sheet .bm-field label{font-size:12px;font-weight:560;color:var(--od-ink)}
@@ -156,6 +151,6 @@
  .bm-search-wrap{height:44px}
  .bm-search-wrap button{width:44px;min-width:44px;height:44px}
  .bm-search-wrap input{height:42px}
- .bm-popover button,.bm-button,.bm-picker-item{min-height:44px}
+ .bm-popover button,.bm-button,.bm-picker-item,.bm-text-button{min-height:44px}
  .bm-sheet .bm-editor-actions .bm-button{height:44px}
 }

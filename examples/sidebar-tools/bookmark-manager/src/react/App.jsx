@@ -1,6 +1,9 @@
+/** @jsx h */
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
 const model=globalThis.BookmarkR2Model;
+const TREE_ROW_HEIGHT=44;
+function h(...args){return React.createElement(...args)}
 const iconPaths={
  folder:<><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10H3z"/></>,
  link:<><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></>,
@@ -18,7 +21,7 @@ const iconPaths={
  alert:<><path d="m12 3 10 18H2z"/><path d="M12 9v5M12 17v.2"/></>,
 };
 function Icon({name,size=18}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{iconPaths[name]||iconPaths.link}</svg>}
-function Button({icon,children,kind='secondary',...props}){return <OpenDeskButton variant={kind} className={'bm-button bm-button--'+kind} {...props}>{icon&&<Icon name={icon} size={16}/>}{children}</OpenDeskButton>}
+function Button(props){return <OpenDeskButton variant="primary" className="bm-button bm-button--primary" {...props}/>}
 function isFolder(node){return model.isFolder(node)}
 function canTarget(tree,node){try{model.parentFolder(tree,node.id);return true}catch{return false}}
 function folderLabel(tree,id){const parts=[];let current=tree?.byId.get(id),count=0;while(current&&count++<12){if(current.parentId!==null)parts.unshift(current.title);current=tree.byId.get(current.parentId)}return parts.join(' / ')||'书签栏'}
@@ -61,7 +64,7 @@ function highlightSearchTitle(title,term){
 }
 function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActiveId,onSelect,onFolder,onToggle,onMenu,onEdit,onScrollClose,scrollRef}){
  const [top,setTop]=useState(0),[height,setHeight]=useState(510);
- const rowHeight=44,virtual=rows.length>120;
+ const rowHeight=TREE_ROW_HEIGHT,virtual=rows.length>120;
  useLayoutEffect(()=>{const el=scrollRef.current;if(!el)return;const resize=()=>setHeight(el.clientHeight||510);resize();if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(resize);ro.observe(el);return()=>ro.disconnect()}},[scrollRef]);
  const start=virtual?Math.max(0,Math.floor(top/rowHeight)-6):0;
  const end=virtual?Math.min(rows.length,Math.ceil((top+height)/rowHeight)+6):rows.length;
@@ -112,8 +115,8 @@ function FolderPicker({tree,value,onChange,onClose,currentId,disabled=false}){
   <div className="bm-picker-head"><strong>选择目标文件夹</strong><OpenDeskIconButton className="bm-close" onClick={onClose} label="关闭文件夹选择"><Icon name="x" size={16}/></OpenDeskIconButton></div>
   <label className="bm-sr-only" htmlFor="bm-folder-search">搜索目标文件夹</label>
   <input id="bm-folder-search" autoFocus disabled={disabled} placeholder="搜索文件夹或路径" value={term} onChange={e=>setTerm(e.target.value)}/>
-  <div className="bm-picker-list" role="listbox" aria-label="目标文件夹">
-   {folders.map(folder=><button role="option" disabled={disabled} aria-selected={value===folder.id} key={folder.id} type="button" className={'bm-picker-item'+(value===folder.id?' picked':'')} onClick={()=>{onChange(folder.id);onClose()}}>
+  <div className="bm-picker-list" role="group" aria-label="目标文件夹">
+   {folders.map(folder=><button disabled={disabled} aria-current={value===folder.id||undefined} key={folder.id} type="button" className={'bm-picker-item'+(value===folder.id?' picked':'')} onClick={()=>{onChange(folder.id);onClose()}}>
     <Icon name="folder" size={16}/><span><b>{folder.title}</b><small>{folderLabel(tree,folder.parentId)}</small></span></button>)}
    {!folders.length&&<p className="bm-note">没有可用的目标文件夹</p>}
   </div><small className="bm-note">共 {folders.length} 个符合条件的目标 · 已排除自身、子目录及受保护节点</small>
@@ -128,7 +131,7 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
    {draft.kind==='bookmark'&&<div className="bm-field"><label htmlFor="bm-edit-url">网址</label><input id="bm-edit-url" type="url" required disabled={busy} maxLength={2048} value={draft.url} placeholder="https://example.com" onChange={e=>setDraft({...draft,url:e.target.value})}/></div>}
    <div className="bm-parent-line"><span className="bm-note">所在文件夹：</span><span className="bm-parent-path" title={folderLabel(tree,draft.parentId)}>{folderLabel(tree,draft.parentId)}</span><button type="button" className="bm-text-button" disabled={busy} aria-expanded={pickerOpen} onClick={()=>onOpenPicker(!pickerOpen)}>更改</button></div>
    {pickerOpen&&<FolderPicker tree={tree} disabled={busy} value={draft.parentId} currentId={draft.mode==='edit'&&draft.kind==='folder'?draft.id:null} onChange={id=>setDraft({...draft,parentId:id})} onClose={()=>setPickerOpen(false)}/>}
-   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} kind="primary" icon="arrow" disabled={busy||uncertain}>保存</Button><button type="button" className="bm-button" onClick={onCancel} disabled={busy}>取消</button></div>
+   <div className="bm-editor-actions"><Button type="button" data-testid="bookmark-save" onClick={onSave} disabled={busy||uncertain}>保存</Button><button type="button" className="bm-button" onClick={onCancel} disabled={busy}>取消</button></div>
    {error&&<p className="bm-sheet-error" role="alert">{error}</p>}
    {uncertain&&<p className="bm-warning">写入结果未知，已禁止重复保存。请先核对书签状态。</p>}
   </form>:
@@ -148,7 +151,9 @@ function Inspector({tree,node,draft,setDraft,onSave,onCancel,onOpenPicker,picker
 
 function PreviewPane({tree,node,onClose,onEdit,onCopy}){
  const folder=isFolder(node),count=tree.children.get(node.id)?.length||0;
- const narrow=Boolean(globalThis.matchMedia?.('(max-width:739px)')?.matches);
+ const media=useMemo(()=>globalThis.matchMedia?.('(max-width:739px)'),[]);
+ const [narrow,setNarrow]=useState(Boolean(media?.matches));
+ useEffect(()=>{const change=()=>setNarrow(Boolean(media?.matches));change();media?.addEventListener('change',change);return()=>media?.removeEventListener('change',change)},[media]);
  const closeRef=useRef(null);
  useEffect(()=>{if(narrow)closeRef.current?.focus({preventScroll:true})},[narrow]);
  const onKeyDown=event=>{
@@ -316,7 +321,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   const index=rows.findIndex(row=>row.node.id===id);
   if(index<0)return;
   pendingFolderReveal.current=null;
-  scroller.scrollTop=Math.max(0,index*42); // Position entered folder at the top, not amid unrelated sibling bookmarks.
+  scroller.scrollTop=Math.max(0,index*TREE_ROW_HEIGHT); // Position entered folder at the top, not amid unrelated sibling bookmarks.
  },[rows]);
  const current=tree?.byId.get(selectedId)||null;
  const previewNode=previewOpen&&!draft?current:null;
@@ -393,11 +398,11 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
   }
  function onMenu(id,button){setMenu(null);setSelectedId(id);setActiveId(id);menuButtonRef.current=button;const r=button.getBoundingClientRect();const max=window.innerWidth-190;setMenu({id,locked:Boolean(tree?.byId.get(id)?.locked),top:Math.max(8,Math.min(r.bottom+4,window.innerHeight-190)),left:Math.max(8,Math.min(r.right-182,max))})}
  function actionMenu(action,id){closeMenu();if(action==='detail')request({type:'detail',id});else if(action==='delete')request({type:'delete',id});else request({type:'edit',id,move:action==='move'})}
- async function save(e){if(mode==='trusted'&&!e.isTrusted)return;if(mode==='preview')globalThis.__bmReactSaveStage='submit-handler';e.preventDefault();if(!draft||busy||busyRef.current||uncertain||authorityEpoch.current)return;
+ async function save(e){if(mode==='trusted'&&!e.isTrusted)return;e.preventDefault();if(!draft||busy||busyRef.current||uncertain||authorityEpoch.current)return;
   let title,url;try{title=model.displayName(draft.title);url=draft.kind==='bookmark'?model.asHttpUrl(draft.url):undefined;model.parentFolder(tree,draft.parentId);
    if(draft.kind==='folder'&&draft.mode==='edit'&&model.isDescendant(tree,draft.parentId,draft.id))throw Error('文件夹不能移动到自身或子目录');
   }catch(ex){setError(humanError(ex));return}
-  if(mode==='preview')globalThis.__bmReactSaveStage='validated';fillEpoch.current++;const write=++writeEpoch.current;readEpoch.current++;
+  fillEpoch.current++;const write=++writeEpoch.current;readEpoch.current++;
   const current=()=>activeRef.current&&!authorityEpoch.current&&write===writeEpoch.current;
   busyRef.current=true;setBusy(true);setError('');
   let completedWrite=false;
@@ -425,13 +430,13 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
     if(!result)result=expected;
    }
    if(!current())return;
-   if(mode==='preview')globalThis.__bmReactSaveStage='request-completed';const verified=await service.load();if(!current())return;
+   const verified=await service.load();if(!current())return;
    const actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
-   if(mode==='preview')globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
+   if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
   }catch(ex){if(current()){
    if(authorityDenied(ex))revoke();
-   else{const outcome=completedWrite?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',partialWrite:true,cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}
+   else{const outcome=completedWrite?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',partialWrite:true,cause:ex}):ex;setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}
   }}finally{writeEpoch.current++;readEpoch.current++;busyRef.current=false;if(activeRef.current){setBusy(false);setLoading(false)}}
  }
  async function removeConfirmed(target){

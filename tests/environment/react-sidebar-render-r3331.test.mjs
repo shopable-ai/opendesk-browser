@@ -5,10 +5,31 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 import {load} from 'cheerio';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 
 // These are actual React 19 renders of the production TSX components.
 // Client click/focus/installed-extension behavior requires separate Chromium
 // evidence and is not inferred from static markup.
+test('ToolHost local JSX factory preserves real import and bookmark permission fields',async t=>{
+  const vite=await createServer({configFile:false,root:process.cwd(),
+    appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});
+  t.after(()=>vite.close());
+  const {ToolHost}=await vite.ssrLoadModule('/src/ui/react/tabs/tool-host.tsx');
+  const view=createSidebarToolsView();
+  t.after(()=>view.dispose());
+  const title='书签 <script>unsafe()</script>';
+  view.patch('sidebar-tool-title',{textContent:title,textSet:true});
+  view.patch('sidebar-tool-import',{hidden:false});
+  await Promise.resolve();
+  const before=view.getSnapshot();
+  const $=load(renderToStaticMarkup(React.createElement(ToolHost,{view})));
+  assert.equal($('#sidebar-tool-title').text(),title);
+  assert.equal($('#sidebar-tool-file').attr('type'),'file');
+  assert.equal($('#sidebar-tool-bookmark-grant').get(0).tagName,'button');
+  assert.equal($('script').length,0);
+  assert.strictEqual(view.getSnapshot(),before,'rendering never dispatches an install or permission action');
+});
+
 test('R33.3.1 renders extension toolbar, rows and detail as real React elements',async t=>{
   const vite=await createServer({configFile:false,root:process.cwd(),
     appType:'custom',server:{middlewareMode:true,ws:false},logLevel:'error'});

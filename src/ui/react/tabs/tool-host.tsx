@@ -1,8 +1,10 @@
+/** @jsx h */
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 import {UninstallDialog} from './tools.tsx';
 
+const h=React.createElement.bind(React);
 const ToolContext = React.createContext(null);
 
 

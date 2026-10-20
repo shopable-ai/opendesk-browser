@@ -110,16 +110,66 @@ async function setInput(ctx,id,value){
   +JSON.stringify(value)+");el.dispatchEvent(new Event('input',{bubbles:true}));return el.value;");
 }
 
-async function assertIconCentered(ctx,selector,label){
-  const code="const el=document.querySelector("+JSON.stringify(selector)+");"+
-    "if(!el)return null;const svg=el.querySelector('svg');if(!svg)return null;"+
-    "const a=el.getBoundingClientRect(),b=svg.getBoundingClientRect(),style=getComputedStyle(el);"+
-    "return {dx:(b.left+b.width/2)-(a.left+a.width/2),dy:(b.top+b.height/2)-(a.top+a.height/2),padding:style.paddingLeft};";
-  const result=await invoke(ctx,code);
-  assert.ok(result,label+' must contain an SVG icon');
-  assert.ok(Math.abs(result.dx)<=0.6&&Math.abs(result.dy)<=0.6,
-    label+' SVG must be centered in its button: '+JSON.stringify(result));
-  assert.equal(result.padding,'0px',label+' must not inherit host button padding');
+async function assertDetailContrast(ctx,label){
+ const colors=await invoke(ctx,"const e=document.querySelector('a.bm-detail-url');return {foreground:getComputedStyle(e).color,background:getComputedStyle(document.querySelector('.bm-preview-pane')).backgroundColor}");
+ const luminance=rgb=>rgb.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+ const levels=[luminance(colors.foreground),luminance(colors.background)].sort((a,b)=>a-b);
+ const ratio=(levels[1]+.05)/(levels[0]+.05);
+ assert.ok(ratio>=4.5,'detail URL contrast '+label+' '+JSON.stringify({...colors,ratio}));
+ return {...colors,ratio};
+}
+async function assertIconCentered(ctx,selector,label,{shared=false,coarse=false}={}){
+  const results=await invoke(ctx,"return [...document.querySelectorAll("+JSON.stringify(selector)+")].map(el=>{"+
+    "const svg=el.querySelector('svg'),a=el.getBoundingClientRect(),b=svg?.getBoundingClientRect(),style=getComputedStyle(el);"+
+    "return {tag:el.tagName,type:el.getAttribute('type'),label:el.getAttribute('aria-label'),shared:el.classList.contains('od-icon-button'),"+
+    "rowTitle:el.matches('.bm-row-more')?el.closest('[data-node-id]').title:null,"+
+    "width:a.width,height:a.height,svgWidth:b?.width,svgHeight:b?.height,hidden:svg?.getAttribute('aria-hidden'),"+
+    "dx:b?(b.left+b.width/2)-(a.left+a.width/2):null,dy:b?(b.top+b.height/2)-(a.top+a.height/2):null,padding:style.paddingLeft};});");
+  assert.ok(results.length,label+' must render icon buttons');
+  for(const result of results){
+    assert.equal(result.tag,'BUTTON',label+' must render a native button');
+    assert.equal(result.type,'button',label+' must not submit a form');
+    assert.ok(result.width>0&&result.height>0&&result.svgWidth>0&&result.svgHeight>0,label+' must contain a rendered SVG');
+    assert.equal(result.hidden,'true',label+' decorative SVG must be hidden from assistive technology');
+    if(shared){
+      assert.equal(result.shared,true,label+' must render the shared IconButton');
+      assert.ok(result.label?.trim(),label+' shared IconButton must render aria-label');
+      if(result.rowTitle!==null)assert.equal(result.label,'操作 '+result.rowTitle,label+' label must identify its row');
+    }
+    assert.ok(Math.abs(result.dx)<=0.6&&Math.abs(result.dy)<=0.6,
+      label+' SVG must be centered in its button: '+JSON.stringify(result));
+    assert.equal(result.padding,'0px',label+' must not inherit host button padding');
+    if(coarse)assert.ok(result.width>=44&&result.height>=44,label+' coarse pointer target must be at least 44px: '+JSON.stringify(result));
+  }
+}
+async function setFrameViewport(ctx,outer,width,zoom=1){
+  // The legacy shell URL helper silently ignores 320/440. Measure the iframe,
+  // including the host gutter, rather than treating its query string as proof.
+  await invoke(outer,"const device=document.querySelector('.preview-device'),frame=document.getElementById('opendesk-preview-frame');"+
+    "const gutter=device.clientWidth-frame.clientWidth;device.style.width="+JSON.stringify(width*zoom)+"+gutter+'px';device.style.maxWidth='none';return true;");
+  await invoke(ctx,"document.documentElement.style.zoom="+JSON.stringify(String(zoom))+";await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return true;");
+  const actual=await invoke(ctx,"const app=document.querySelector('.bm-app');return {innerWidth,layoutWidth:app.offsetWidth,renderedWidth:app.getBoundingClientRect().width,zoom:Number(getComputedStyle(document.documentElement).zoom)};");
+  assert.equal(actual.innerWidth,width*zoom,'actual iframe viewport '+width+' at '+zoom+'x');
+  assert.equal(actual.layoutWidth,width,'actual App layout viewport '+width+' at '+zoom+'x');
+  assert.ok(Math.abs(actual.renderedWidth-width*zoom)<=0.6,'actual App rendered width '+JSON.stringify(actual));
+  assert.equal(actual.zoom,zoom,'CSS document zoom must actually apply');
+  return actual;
+}
+async function assertTreeGeometry(ctx,label,zoom=1){
+  const rows=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row')].map(el=>({id:el.dataset.nodeId,height:el.getBoundingClientRect().height,top:el.getBoundingClientRect().top,cssHeight:getComputedStyle(el).height,position:getComputedStyle(el).position}));");
+  assert.ok(rows.length>1&&rows.length<90,label+' virtual DOM must be populated and bounded');
+  for(let i=0;i<rows.length;i++){
+    assert.equal(rows[i].cssHeight,'44px',label+' actual row height '+rows[i].id);
+    assert.equal(rows[i].position,'absolute',label+' must exercise virtual rows');
+    assert.ok(Math.abs(rows[i].height/zoom-44)<=0.1,label+' rendered row height '+JSON.stringify(rows[i]));
+    if(i)assert.ok(Math.abs((rows[i].top-rows[i-1].top)/zoom-44)<=0.1,label+' virtual row stride must remain 44px');
+  }
+}
+async function assertRowVisible(ctx,id,label){
+  const actual=await invoke(ctx,"const tree=document.querySelector('[role=tree]'),row=document.getElementById("+JSON.stringify('bm-treeitem-'+id)+");if(!row)return null;const a=tree.getBoundingClientRect(),b=row.getBoundingClientRect();return {active:tree.getAttribute('aria-activedescendant'),focused:document.activeElement===tree,top:b.top-a.top,bottom:a.bottom-b.bottom};");
+  assert.ok(actual,label+' row must be mounted');
+  assert.ok(actual.top>=-0.6&&actual.bottom>=-0.6,label+' row must be fully inside tree viewport: '+JSON.stringify(actual));
+  return actual;
 }
 const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'examples/sidebar-tools/bookmark-manager/preview/index.html');
 const html=await readFile(previewPath,'utf8');
@@ -130,8 +180,9 @@ assert.equal(manifest.reactRuntime,true);
 assert.equal(manifest.formalEntry,true,'Regression must mount actual formal.jsx');
 assert.equal(manifest.hostAdapter,'MOCK_HOST_ADAPTER');
 assert.equal(manifest.nativeVerified,false,'Mock Host is not Native evidence');
-const report=[];
-let browserInfo={};
+const widths=[320,360,400,440,960];
+const report=[],geometryReport=[];
+let browserInfo={},currentCase=null;
 async function click(ctx,sel){
  const q=JSON.stringify(sel);
  return invoke(ctx,"const n=document.querySelector("+q+");if(!n)throw Error('no '+ "+q+");n.click();return true");
@@ -150,17 +201,23 @@ const gone=async(ctx,sel,label)=>until(ctx,"!document.querySelector("+JSON.strin
 try{
  await connect();
  browserInfo=await cdp('Browser.getVersion');
- for(const width of [320,360,400,440,960]){
+ await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
+ await cdp('Emulation.setTouchEmulationEnabled',{enabled:false});
+ for(const width of widths){
+  currentCase={width,mode:'light-fine-100'};
   await cdp('Emulation.setDeviceMetricsOverride',{width:1350,height:1100,deviceScaleFactor:1,mobile:false});
   await cdp('Page.navigate',{url:pathToFileURL(previewPath).href+'?width='+width});
   const ctx=await findReactFrame();
-  await outerContext();
+  const outer=await outerContext();
+  await setFrameViewport(ctx,outer,width);
   await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,159')",'initial data '+width);
    const hostButton=await invoke(ctx,"const b=document.createElement('button');document.querySelector('.bm-app').append(b);const s=getComputedStyle(b),value=[s.paddingLeft,s.minHeight];b.remove();return value;");
    assert.deepEqual(hostButton,['12px','34px'],'preview must include actual trusted host button defaults '+width);
-   await assertIconCentered(ctx,'.bm-icon-btn','topbar icon '+width);
+   await assertIconCentered(ctx,'.bm-icon-btn','topbar icon '+width,{shared:true});
    await assertIconCentered(ctx,'.bm-disclosure:not(.is-placeholder)','tree folder chevron '+width);
-   await assertIconCentered(ctx,'.bm-row-more','tree row action '+width);
+   await assertIconCentered(ctx,'.bm-row-more','tree row action '+width,{shared:true});
+  assert.deepEqual(await invoke(ctx,"return [...document.querySelectorAll('.bm-topbar .bm-icon-btn')].map(el=>el.getAttribute('aria-label'))"),['新建书签','新建文件夹','收藏当前页','刷新书签'],'shared topbar labels '+width);
+  await assertTreeGeometry(ctx,'initial tree '+width);
   const originalHeight=await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)");
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-inspector')===null"),true);
   // A coarse-pointer device must not show a noisy ellipsis on every idle row.
@@ -174,6 +231,14 @@ try{
   await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.focus();t.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}));return true");
   await until(ctx,"document.querySelector('[role=tree]')?.getAttribute('aria-activedescendant')==='bm-treeitem-2651'",'End reaches last visible row '+width);
   assert.equal(await invoke(ctx,"return !!document.getElementById(document.querySelector('[role=tree]').getAttribute('aria-activedescendant'))"),true,'End active node mounted');
+  const last=await assertRowVisible(ctx,'2651','End last item '+width);
+  assert.equal(last.active,'bm-treeitem-2651','End active descendant matches last item');
+  assert.equal(last.focused,true,'End keeps keyboard focus in tree');
+  await assertTreeGeometry(ctx,'End tree '+width);
+  await invoke(ctx,"document.querySelector('[role=tree]').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));return true");
+  await until(ctx,"document.querySelector('[data-testid=bookmark-preview] .bm-detail-title span')?.textContent.includes('模拟书签 2152')",'last item keyboard activation '+width);
+  await click(ctx,'.bm-preview-close');
+  await gone(ctx,'[data-testid="bookmark-preview"]','last keyboard preview closes '+width);
   await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));return true");
   await until(ctx,"document.querySelector('[role=tree]')?.getAttribute('aria-activedescendant')==='bm-treeitem-1'",'Home reaches first row '+width);
   await invoke(ctx,"const t=document.querySelector('[data-testid=\"bookmark-tree\"]');t.scrollTop=t.scrollHeight;t.dispatchEvent(new Event('scroll',{bubbles:true}));return true");
@@ -185,8 +250,8 @@ try{
   await until(ctx,"!!document.querySelector('[data-node-id=\"100\"]')",'restore tree position '+width);
   await click(ctx,'[data-node-id="100"]');
   await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'one click preview '+width);
-   await assertIconCentered(ctx,'.bm-preview-close','detail close '+width);
-   await assertIconCentered(ctx,'.bm-preview-action','detail action '+width);
+   await assertIconCentered(ctx,'.bm-preview-close','detail close '+width,{shared:true});
+   await assertIconCentered(ctx,'.bm-preview-action','detail action '+width,{shared:true});
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),false,'readonly is nonmodal');
   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('aria-modal')"),width<740?'true':null,'responsive modal semantics');
   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('role')"),width<740?'dialog':'complementary','responsive preview role');
@@ -247,10 +312,14 @@ try{
   await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'menu view reuses responsive preview');
   await click(ctx,'[data-testid="bookmark-preview"] [aria-label="编辑"]');
   await until(ctx,"!!document.getElementById('bm-edit-url')",'preview enters existing editor');
-   await assertIconCentered(ctx,'.bm-sheet-close','editor close '+width);
+   await assertIconCentered(ctx,'.bm-sheet-close','editor close '+width,{shared:true});
    assert.deepEqual(await invoke(ctx,"const s=getComputedStyle(document.querySelector('.bm-field label'));return [s.marginTop,s.marginBottom]"),['0px','0px'],'editor label must not inherit host margins');
    assert.equal(await invoke(ctx,"return getComputedStyle(document.querySelector('.bm-search-wrap input')).minHeight"),'0px','search input must fit 36px toolbar');
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),true,'editor stays a modal Sheet');
+  assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"] [data-testid=\"bookmark-editor\"] #bm-edit-url')"),true,'real bookmark editor is inside the Sheet '+width);
+  const readonlySheetSelectors=['.bm-sheet .bm-readonly','.bm-sheet .bm-detail-title','.bm-sheet .bm-detail-title span','.bm-sheet .bm-detail-path','.bm-sheet .bm-detail-url'];
+  const readonlySheetCounts=await invoke(ctx,"return "+JSON.stringify(readonlySheetSelectors)+".map(selector=>document.querySelectorAll(selector).length)");
+  for(let i=0;i<readonlySheetSelectors.length;i++)assert.equal(readonlySheetCounts[i],0,'unreachable readonly Sheet selector '+readonlySheetSelectors[i]+' '+width);
   await screenshot('bookmark-r304-'+width+'-preview-edit.png');
   await click(ctx,'.bm-editor-actions button:last-child');
   await gone(ctx,'[data-testid="bookmark-sheet"]','preview edit cancel');
@@ -271,6 +340,8 @@ try{
   await setInput(ctx,'bm-edit-name','离开需要确认');
   await click(ctx,'.bm-sheet-close');
   await until(ctx,"!!document.querySelector('[data-testid=\\\"confirm-dialog\\\"]')",'dirty X confirmation '+width);
+  const confirmScrim=await invoke(ctx,"const dialog=document.querySelector('[data-testid=\"confirm-dialog\"]'),scrim=dialog?.closest('.bm-scrim');return scrim?{zIndex:getComputedStyle(scrim).zIndex,dialogs:scrim.querySelectorAll('[data-testid=\"confirm-dialog\"]').length}:null");
+  assert.deepEqual(confirmScrim,{zIndex:'42',dialogs:1},'actual confirmation scrim uses the winning z-index 42 '+width);
   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\\\"confirm-dialog\\\"] button')?.textContent"),'继续编辑');
   await click(ctx,'[data-testid="confirm-dialog"] button:first-child');
   await gone(ctx,'[data-testid="confirm-dialog"]','continue editing');
@@ -280,7 +351,7 @@ try{
   await gone(ctx,'[data-testid="bookmark-sheet"]','explicitly discard');
   await setInput(ctx,'bm-search','模拟书签 2152');
   await until(ctx,"!!document.querySelector('[data-node-id=\"2651\"]')",'last tree node search');
-   await assertIconCentered(ctx,'.bm-search-wrap button','clear search '+width);
+   await assertIconCentered(ctx,'.bm-search-wrap button','clear search '+width,{shared:true});
   await click(ctx,'[data-node-id="2651"] .bm-node-title');
   await until(ctx,"document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent.includes('模拟书签 2152')",'one click search result');
   await openMenu(ctx,'2651');
@@ -327,11 +398,14 @@ try{
    await until(ctx,"!!document.getElementById('bm-edit-name')",'edit before folder picker');
    await click(ctx,'.bm-parent-line .bm-text-button');
    await until(ctx,"!!document.getElementById('bm-folder-search')",'folder picker open');
-    await assertIconCentered(ctx,'.bm-picker .bm-close','picker close '+width);
+    await assertIconCentered(ctx,'.bm-picker .bm-close','picker close '+width,{shared:true});
    await setInput(ctx,'bm-folder-search','性能文件夹 0130');
    await until(ctx,"document.querySelectorAll('.bm-picker-item').length===1",'130 folder query');
    await screenshot('bookmark-r304-400-folder-picker.png');
-   await click(ctx,'.bm-picker-item');
+   await invoke(ctx,"document.querySelector('.bm-picker-item').focus();return true");
+   await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'},ctx.session);
+   await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13},ctx.session);
+   await gone(ctx,'[data-testid="folder-picker"]','native Enter chooses the target folder');
    await click(ctx,'.bm-editor-actions button:last-child');
    await gone(ctx,'[data-testid="bookmark-sheet"]','cancel pending move without warning');
    await openMenu(ctx,'100');
@@ -374,6 +448,7 @@ try{
    await click(ctx,'[data-node-id="11"] .bm-node-title');
    await until(ctx,"document.getElementById('bm-search').value===''",'folder search result returns to tree');
    await until(ctx,"document.querySelector('[data-node-id=\"11\"]')?.getAttribute('aria-expanded')==='true'",'folder result expands and scrolls into view');
+   await assertRowVisible(ctx,'11','searched folder reveal uses 44px stride');
    assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=bookmark-preview]')"),false,'search folder navigation stays list-first');
    await screenshot('bookmark-r304-400-search-folder-drilldown.png');
   }
@@ -436,16 +511,93 @@ try{
    assert.deepEqual(host.mutations,[{operation:'remove',id:'100'},{operation:'removeTree',id:'10'}]);
   report.push({width,treeHeight:originalHeight,noPersistentInspector:true,mockHost:host,passed:['one-click-preview','five-click-five-previews','folder-row-toggle','folder-disclosure','folder-menu-details','nonmodal-preview','view-detail-on-demand','direct-cancel','edit-no-tree-jump','save-readback','search-2159','create-types','single-host-review-no-react-confirm','host-cancel-preserves-bookmark','ticketed-recursive-delete','focus-restore','menu-Escape',...(width===400?['folder-130','failure-preserve','unknown-draft-safety','search-folder-drilldown']:[])]});
  }
+ // Reuse formal.jsx and its existing Host fixture. These cases exercise only
+ // affected controls/virtualization, without repeating CRUD or adding mock UI.
+ for(const mode of [
+  {name:'dark',dark:true,coarse:false,zoom:1},
+  {name:'coarse',dark:false,coarse:true,zoom:1},
+  {name:'zoom-200',dark:false,coarse:false,zoom:2}
+ ])for(const width of widths){
+  currentCase={width,mode:mode.name};
+  const label=mode.name+' '+width;
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1350*mode.zoom,height:1100*mode.zoom,deviceScaleFactor:1,mobile:false});
+  await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:mode.dark?'dark':'light'}]});
+  await cdp('Emulation.setTouchEmulationEnabled',{enabled:mode.coarse,...(mode.coarse?{maxTouchPoints:1}:{})});
+  await cdp('Page.navigate',{url:pathToFileURL(previewPath).href+'?width='+width});
+  const ctx=await findReactFrame(),outer=await outerContext();
+  if(ctx.session){
+   await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:mode.dark?'dark':'light'}]},ctx.session);
+   await cdp('Emulation.setTouchEmulationEnabled',{enabled:mode.coarse,...(mode.coarse?{maxTouchPoints:1}:{})},ctx.session);
+  }
+  const viewport=await setFrameViewport(ctx,outer,width,mode.zoom);
+  await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,159')",'initial data '+label);
+  const media=await invoke(ctx,"const s=getComputedStyle(document.documentElement);return {dark:matchMedia('(prefers-color-scheme:dark)').matches,coarse:matchMedia('(pointer:coarse)').matches,colorScheme:s.colorScheme,paper:s.getPropertyValue('--od-paper').trim(),darkPaper:s.getPropertyValue('--od-dark-paper').trim()};");
+  assert.equal(media.dark,mode.dark,'actual dark media '+label);
+  assert.equal(media.coarse,mode.coarse,'actual pointer media '+label);
+  assert.equal(media.colorScheme,mode.dark?'dark':'light','actual native control color scheme '+label);
+  if(mode.dark)assert.equal(media.paper,media.darkPaper,'canonical dark tokens '+label);
+  const options={shared:true,coarse:mode.coarse};
+  await assertIconCentered(ctx,'.bm-icon-btn','topbar '+label,options);
+  await assertIconCentered(ctx,'.bm-disclosure:not(.is-placeholder)','disclosure '+label,{coarse:mode.coarse});
+  await assertIconCentered(ctx,'.bm-row-more','row action '+label,options);
+  await assertTreeGeometry(ctx,'initial '+label,mode.zoom);
+  await invoke(ctx,"const t=document.querySelector('[role=tree]');t.focus();t.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}));return true");
+  await until(ctx,"document.querySelector('[role=tree]')?.getAttribute('aria-activedescendant')==='bm-treeitem-2651'",'last keyboard item '+label);
+  const last=await assertRowVisible(ctx,'2651','last keyboard item '+label);
+  assert.equal(last.active,'bm-treeitem-2651','last active descendant '+label);
+  assert.equal(last.focused,true,'tree retains keyboard focus '+label);
+  await assertTreeGeometry(ctx,'last '+label,mode.zoom);
+  await invoke(ctx,"document.querySelector('[role=tree]').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));return true");
+  await until(ctx,"document.querySelector('[data-testid=bookmark-preview] .bm-detail-title span')?.textContent.includes('模拟书签 2152')",'keyboard preview '+label);
+  await assertIconCentered(ctx,'.bm-preview-close','preview close '+label,options);
+  await assertIconCentered(ctx,'.bm-preview-action','preview action '+label,options);
+  await assertDetailContrast(ctx,label);
+  if(mode.name==='dark'&&width===400){
+   await setFrameViewport(ctx,outer,960);
+   await until(ctx,"document.querySelector('[data-testid=bookmark-preview]')?.getAttribute('role')==='complementary'",'open preview follows desktop breakpoint');
+   await setFrameViewport(ctx,outer,400);
+   await until(ctx,"document.querySelector('[data-testid=bookmark-preview]')?.getAttribute('aria-modal')==='true'&&document.querySelector('.bm-preview-pane')?.contains(document.activeElement)",'open preview restores modal focus at narrow breakpoint');
+  }
+  await screenshot('bookmark-r304-'+width+'-'+mode.name+'.png');
+  await click(ctx,'[data-testid="bookmark-preview"] [aria-label="编辑"]');
+  await until(ctx,"!!document.getElementById('bm-edit-url')",'editor '+label);
+  await assertIconCentered(ctx,'.bm-sheet-close','editor close '+label,options);
+  const editorActions=await invoke(ctx,"return [...document.querySelectorAll('.bm-editor-actions button')].map(b=>({className:b.className,width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height}));");
+  assert.equal(editorActions.length,2,'one save and one cancel '+label);
+  assert.ok(Math.abs(editorActions[0].width-editorActions[1].width)<=0.6,'editor actions share available width '+label+' '+JSON.stringify(editorActions));
+  assert.ok(Math.abs(editorActions[0].height-editorActions[1].height)<=0.6,'editor actions share height '+label+' '+JSON.stringify(editorActions));
+  assert.match(editorActions[0].className,/\bbm-button--primary\b/,'shared save retains local primary styles '+label);
+  if(mode.coarse){
+   for(const action of editorActions)assert.ok(action.height>=44,'coarse editor actions retain 44px targets '+label);
+   assert.ok(await invoke(ctx,"return document.querySelector('.bm-parent-line .bm-text-button').getBoundingClientRect().height>=44"),'coarse folder change retains 44px target '+label);
+  }
+  await click(ctx,'.bm-parent-line .bm-text-button');
+  await until(ctx,"!!document.getElementById('bm-folder-search')",'picker '+label);
+  assert.equal(await invoke(ctx,"return document.querySelector('.bm-picker-list').getAttribute('role')"),'group','folder destinations retain native button keyboard semantics '+label);
+  await assertIconCentered(ctx,'.bm-picker .bm-close','picker close '+label,options);
+  await click(ctx,'.bm-picker .bm-close');
+  await click(ctx,'.bm-editor-actions button:last-child');
+  await gone(ctx,'[data-testid="bookmark-sheet"]','cancel editor '+label);
+  await setInput(ctx,'bm-search','产品研究');
+  await until(ctx,"!!document.querySelector('[data-node-id=\"11\"] .bm-search-highlight')",'search '+label);
+  await assertIconCentered(ctx,'.bm-search-wrap button','search clear '+label,options);
+  await click(ctx,'[data-node-id="11"] .bm-node-title');
+  await until(ctx,"document.getElementById('bm-search').value===''&&document.querySelector('[data-node-id=\"11\"]')?.getAttribute('aria-expanded')==='true'",'folder reveal '+label);
+  await assertRowVisible(ctx,'11','searched folder reveal '+label);
+  assert.equal(await invoke(ctx,"const app=document.querySelector('.bm-app');return app.scrollWidth<=app.clientWidth+1"),true,'no App horizontal overflow '+label);
+  geometryReport.push({width,mode:mode.name,viewport,media,zoomMethod:mode.zoom===2?'CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM':'none',passed:['shared-native-button-labels','svg-center-0.6px','44px-row-height-and-stride','last-item-visible-keyboard-activation','search-folder-visible',...(mode.coarse?['44px-coarse-targets']:[])]});
+ }
+ assert.equal(geometryReport.length,widths.length*3,'all five widths must exercise dark, coarse and 200% CSS document zoom');
  assert.deepEqual(network,[],'no network requests');
  assert.deepEqual(exceptions,[],'no browser JS exceptions');
  const crypto=await import('node:crypto');
- await writeFile(join(out,'bookmark-r304-interaction.json'),JSON.stringify({kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,installed:false,browser:browserInfo.product,manifest,sourceSha256:crypto.createHash('sha256').update(html).digest('hex'),report},null,2));
- console.log('R304_REACT_CHROMIUM_PASS '+JSON.stringify(report));
+ await writeFile(join(out,'bookmark-r304-interaction.json'),JSON.stringify({kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,installed:false,browser:browserInfo.product,manifest,sourceSha256:crypto.createHash('sha256').update(html).digest('hex'),report,geometryReport},null,2));
+ console.log('R304_REACT_CHROMIUM_PASS '+JSON.stringify({report,geometryReport}));
 }catch(e){
  await writeFile(join(out,'bookmark-r304-failure.txt'),String(e?.stack||e));
  await writeFile(join(out,'bookmark-r304-failure.json'),JSON.stringify({
   kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,
-  error:String(e?.stack||e),exceptions,network},null,2));
+  error:String(e?.stack||e),currentCase,geometryReport,exceptions,network},null,2));
  console.error(e);process.exitCode=1;
 }finally{
  try{socket?.close()}catch{}

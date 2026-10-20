@@ -121,7 +121,10 @@ test('R3.2 production Service: paginated 2,292 nodes, CRUD readback, observer ga
 test('R3.5 shared OpenDesk buttons, 44px virtual stride and inherited dark color scheme',async()=>{
  const [app,css,shared]=await Promise.all([read(appPath),read(cssPath),read('src/ui/react/components/ui/button.tsx')]);
  assert.match(app,/import \{Button as OpenDeskButton,IconButton as OpenDeskIconButton\}/);
- assert.match(app,/const rowHeight=44,virtual=rows\.length>120/);
+ assert.match(app,/const TREE_ROW_HEIGHT=44;/);
+ assert.match(app,/const rowHeight=TREE_ROW_HEIGHT,virtual=rows\.length>120/);
+ assert.match(app,/scroller\.scrollTop=Math\.max\(0,index\*TREE_ROW_HEIGHT\)/);
+ assert.doesNotMatch(app,/index\s*\*\s*42/);
  assert.match(app,/<OpenDeskIconButton label="新建书签"/);
  assert.match(css,/\.bm-tree-row\{height:44px;/);
  assert.match(css,/@media\(pointer:coarse\)/);
