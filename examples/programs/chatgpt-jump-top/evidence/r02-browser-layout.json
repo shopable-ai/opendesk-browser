@@ -1,0 +1,2368 @@
+{
+  "evidenceKind": "SYNTHETIC_BROWSER_FIXTURE",
+  "site": "dedicated about:blank with generated content",
+  "browserVersion": "155.0.8059.39",
+  "adapterSha256": "9d64e1ff6c7e002e8889842b3a5dff6f008a50cfc0adcad8791434e12088d556",
+  "status": "PASS",
+  "caseCount": 14,
+  "cases": [
+    {
+      "id": "independent-section-bindings",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 0,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 0,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": 358,
+            "bottom": 3158,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3270,
+            "bottom": 6070,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 6182,
+            "bottom": 6362,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 358,
+            "bottom": 3158,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3270,
+            "bottom": 6070,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 6182,
+            "bottom": 6362,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 318,
+            "bottom": 358,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3230,
+            "bottom": 3270,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 6142,
+            "bottom": 6182,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 318,
+            "bottom": 358,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3230,
+            "bottom": 3270,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 6142,
+            "bottom": 6182,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "bindings": [
+          {
+            "header": "header-a",
+            "target": "pre-a",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-b",
+            "target": "pre-b",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-editor",
+            "target": "synthetic-editor",
+            "kind": "editor",
+            "currentMain": true
+          }
+        ],
+        "preGeometry": [
+          {
+            "name": "a",
+            "height": 2800,
+            "overflowY": "auto",
+            "verticalRange": 0
+          },
+          {
+            "name": "b",
+            "height": 2800,
+            "overflowY": "auto",
+            "verticalRange": 0
+          }
+        ]
+      },
+      "checks": [
+        {
+          "name": "each header binds only its own content and the current main",
+          "pass": true
+        },
+        {
+          "name": "tall overflow:auto pre blocks have no vertical self-scroll range",
+          "pass": true
+        },
+        {
+          "name": "binding discovery does not scroll",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "direct-jump-sticky-toolbar-geometry",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 208,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3062,
+            "bottom": 5862,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5974,
+            "bottom": 6154,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 5974,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "jumped": true
+      },
+      "checks": [
+        {
+          "name": "jumpRegionTop accepts the live region binding",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "future-unpinned-header-does-not-add-scroll-compensation",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 248,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 2910,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 5822,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 6114,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": -586,
+            "bottom": -546,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 70,
+            "bottom": 110,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2982,
+            "bottom": 3022,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5894,
+            "bottom": 5934,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "jumped": true,
+        "futureRect": {
+          "before": {
+            "top": 5530,
+            "bottom": 5710,
+            "left": 26,
+            "right": 1702,
+            "width": 1676,
+            "height": 180
+          },
+          "after": {
+            "top": 6186,
+            "bottom": 6366,
+            "left": 26,
+            "right": 1702,
+            "width": 1676,
+            "height": 180
+          }
+        },
+        "expectedTargetTop": 110
+      },
+      "checks": [
+        {
+          "name": "jumpRegionTop accepts the region with a static local header",
+          "pass": true
+        },
+        {
+          "name": "the future sticky header remains below the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the future header contributes no visible obstruction",
+          "pass": true
+        },
+        {
+          "name": "only the visible toolbar and 12px gap determine the content start",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "repeat-install-deduplicates",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 248,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 248,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": 110,
+            "bottom": 2910,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 5822,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 6114,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 2910,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 5822,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 6114,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2982,
+            "bottom": 3022,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5894,
+            "bottom": 5934,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2982,
+            "bottom": 3022,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5894,
+            "bottom": 5934,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "firstCount": 3,
+        "secondCount": 3,
+        "previousMounted": false,
+        "currentMounted": true,
+        "previousResources": {
+          "listeners": 0,
+          "observers": 0,
+          "timers": 0,
+          "clickListeners": 0,
+          "windowListeners": 0,
+          "observerCallbacks": 0,
+          "listenerCalls": 0
+        },
+        "currentResources": {
+          "listeners": 7,
+          "observers": 1,
+          "timers": 0,
+          "clickListeners": 3,
+          "windowListeners": 4,
+          "observerCallbacks": 0,
+          "listenerCalls": 0
+        },
+        "placementCorrect": true,
+        "unrelatedCount": 0
+      },
+      "checks": [
+        {
+          "name": "both installs have exactly three local buttons",
+          "pass": true
+        },
+        {
+          "name": "the previous session releases its listeners and observer",
+          "pass": true
+        },
+        {
+          "name": "only one active session owns three click listeners and one observer",
+          "pass": true
+        },
+        {
+          "name": "buttons precede their own Open editor action",
+          "pass": true
+        },
+        {
+          "name": "unrelated headers receive no local button",
+          "pass": true
+        },
+        {
+          "name": "retired buttons do not scroll",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "header-a-jumps-only-to-own-region",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 208,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3062,
+            "bottom": 5862,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5974,
+            "bottom": 6154,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 5974,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "bindings": [
+          {
+            "header": "header-a",
+            "target": "pre-a",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-b",
+            "target": "pre-b",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-editor",
+            "target": "synthetic-editor",
+            "kind": "editor",
+            "currentMain": true
+          }
+        ]
+      },
+      "checks": [
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        },
+        {
+          "name": "the two content starts stay distinct",
+          "pass": true
+        },
+        {
+          "name": "the clicked header still binds its own target",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "header-b-jumps-only-to-own-region",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 3816,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 3120,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -3458,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2366,
+            "bottom": 2546,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -2762,
+            "bottom": 38,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 3062,
+            "bottom": 3242,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": -698,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -2,
+            "bottom": 38,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "bindings": [
+          {
+            "header": "header-a",
+            "target": "pre-a",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-b",
+            "target": "pre-b",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-editor",
+            "target": "synthetic-editor",
+            "kind": "editor",
+            "currentMain": true
+          }
+        ]
+      },
+      "checks": [
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        },
+        {
+          "name": "the two content starts stay distinct",
+          "pass": true
+        },
+        {
+          "name": "the clicked header still binds its own target",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "textarea-scroll-preserves-value-and-selection",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 5988,
+          "a": 0,
+          "b": 0,
+          "editor": 720
+        },
+        "after": {
+          "document": 0,
+          "main": 5988,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -5630,
+            "bottom": -2830,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": -2718,
+            "bottom": 82,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 194,
+            "bottom": 374,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -5630,
+            "bottom": -2830,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": -2718,
+            "bottom": 82,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 194,
+            "bottom": 374,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": -2870,
+            "bottom": -2830,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 42,
+            "bottom": 82,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 154,
+            "bottom": 194,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -2870,
+            "bottom": -2830,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 42,
+            "bottom": 82,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 154,
+            "bottom": 194,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "valueUnchanged": true,
+        "selectionUnchanged": true
+      },
+      "checks": [
+        {
+          "name": "only textarea scrolls to its own zero",
+          "pass": true
+        },
+        {
+          "name": "textarea value and selection stay byte-for-byte unchanged",
+          "pass": true
+        },
+        {
+          "name": "textarea outer layout is unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "react-header-replacement",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 208,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3062,
+            "bottom": 5862,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5974,
+            "bottom": 6154,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 5974,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "staleConnectedAtClick": false,
+        "staleScrollTop": {
+          "before": 904,
+          "after": 904
+        },
+        "freshButtonDifferent": true,
+        "oldHeaderConnected": false,
+        "oldTargetConnected": true
+      },
+      "checks": [
+        {
+          "name": "stale button cannot move the current region before refresh",
+          "pass": true
+        },
+        {
+          "name": "the replacement case exercises the intended stale identity",
+          "pass": true
+        },
+        {
+          "name": "observer refresh mounts a new working button",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "react-target-replacement",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 208,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3062,
+            "bottom": 5862,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5974,
+            "bottom": 6154,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 5974,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "staleConnectedAtClick": true,
+        "staleScrollTop": {
+          "before": 904,
+          "after": 904
+        },
+        "freshButtonDifferent": true,
+        "oldHeaderConnected": true,
+        "oldTargetConnected": false
+      },
+      "checks": [
+        {
+          "name": "stale button cannot move the current region before refresh",
+          "pass": true
+        },
+        {
+          "name": "the replacement case exercises the intended stale identity",
+          "pass": true
+        },
+        {
+          "name": "observer refresh mounts a new working button",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "removed-host-alone-is-restored-without-duplicate-listeners",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 208,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3062,
+            "bottom": 5862,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5974,
+            "bottom": 6154,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 5974,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "oldHostConnected": false,
+        "freshButtonDifferent": true,
+        "staleListenerRemoved": true,
+        "staleScrollTop": {
+          "before": 904,
+          "after": 904
+        },
+        "count": 3,
+        "resources": {
+          "listeners": 7,
+          "observers": 1,
+          "timers": 0,
+          "clickListeners": 3,
+          "windowListeners": 4,
+          "observerCallbacks": 7,
+          "listenerCalls": 8
+        }
+      },
+      "checks": [
+        {
+          "name": "removing only the owned host causes observer-driven recovery",
+          "pass": true
+        },
+        {
+          "name": "the removed host leaves no active click listener",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "spa-main-replacement",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 3816,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 3120,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -3458,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2366,
+            "bottom": 2546,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -2762,
+            "bottom": 38,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 3062,
+            "bottom": 3242,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": -698,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -2,
+            "bottom": 38,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "oldMainConnected": false,
+        "staleButtonConnected": false,
+        "staleScrollTop": {
+          "before": 3816,
+          "after": 3816
+        },
+        "currentBindings": [
+          {
+            "header": "header-a",
+            "target": "pre-a",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-b",
+            "target": "pre-b",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-editor",
+            "target": "synthetic-editor",
+            "kind": "editor",
+            "currentMain": true
+          }
+        ],
+        "count": 3
+      },
+      "checks": [
+        {
+          "name": "old main and old button are detached",
+          "pass": true
+        },
+        {
+          "name": "the old button cannot scroll the replacement main",
+          "pass": true
+        },
+        {
+          "name": "all three bindings recover under the replacement main",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "aria-controls-target-id-change-invalidates-and-recovers",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 904,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 208,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2366,
+            "bottom": 5166,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5278,
+            "bottom": 5458,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 150,
+            "bottom": 2950,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3062,
+            "bottom": 5862,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5974,
+            "bottom": 6154,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5238,
+            "bottom": 5278,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 110,
+            "bottom": 150,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 3022,
+            "bottom": 3062,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 5934,
+            "bottom": 5974,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "sameTarget": true,
+        "invalidatedCount": 2,
+        "invalidatedListeners": 2,
+        "staleListenerRemoved": true,
+        "staleScrollTop": {
+          "before": 904,
+          "after": 904
+        },
+        "freshButtonDifferent": true,
+        "currentBindings": [
+          {
+            "header": "header-a",
+            "target": "pre-a-renamed",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-b",
+            "target": "pre-b",
+            "kind": "region",
+            "currentMain": true
+          },
+          {
+            "header": "header-editor",
+            "target": "synthetic-editor",
+            "kind": "editor",
+            "currentMain": true
+          }
+        ],
+        "count": 3
+      },
+      "checks": [
+        {
+          "name": "changing only the controlled target id retires the unresolved binding",
+          "pass": true
+        },
+        {
+          "name": "the retired button cannot invoke a listener or scroll",
+          "pass": true
+        },
+        {
+          "name": "updating aria-controls restores a new button for the renamed target",
+          "pass": true
+        },
+        {
+          "name": "the outer conversation scroll position changes",
+          "pass": true
+        },
+        {
+          "name": "content starts at least 12px below actual pinned or fixed obstructions",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are inside the visible scrollport",
+          "pass": true
+        },
+        {
+          "name": "the first 12px of content are painted without a covering element",
+          "pass": true
+        },
+        {
+          "name": "document and independent inner scrollers stay unchanged",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "dispose-cleans-dom-observer-listeners-and-timers",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 3816,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 3816,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": -3458,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2366,
+            "bottom": 2546,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -3458,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": -546,
+            "bottom": 2254,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2366,
+            "bottom": 2546,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": -698,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": -698,
+            "bottom": -658,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 98,
+            "bottom": 138,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 2326,
+            "bottom": 2366,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "pendingTimers": 1,
+        "immediately": [
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 0,
+            "listenerCalls": 0
+          },
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 14,
+            "listenerCalls": 12
+          }
+        ],
+        "finalResources": [
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 0,
+            "listenerCalls": 0
+          },
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 14,
+            "listenerCalls": 12
+          }
+        ],
+        "count": 0,
+        "mounted": false,
+        "callbacksUnchanged": true
+      },
+      "checks": [
+        {
+          "name": "dispose exercises and cancels a pending refresh",
+          "pass": true
+        },
+        {
+          "name": "program disposal removes all listeners and disconnects observers",
+          "pass": true
+        },
+        {
+          "name": "DOM mutations and events cannot remount after disposal",
+          "pass": true
+        },
+        {
+          "name": "retired button and refresh cannot scroll after disposal",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "short-content-has-no-local-button",
+      "status": "PASS",
+      "synthetic": true,
+      "scrollTop": {
+        "before": {
+          "document": 0,
+          "main": 0,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        },
+        "after": {
+          "document": 0,
+          "main": 0,
+          "a": 0,
+          "b": 0,
+          "editor": 0
+        }
+      },
+      "targetRect": {
+        "before": {
+          "a": {
+            "top": 358,
+            "bottom": 378,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 490,
+            "bottom": 510,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 622,
+            "bottom": 802,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 358,
+            "bottom": 378,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 490,
+            "bottom": 510,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 622,
+            "bottom": 802,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "headerRect": {
+        "before": {
+          "a": {
+            "top": 318,
+            "bottom": 358,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 450,
+            "bottom": 490,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 582,
+            "bottom": 622,
+            "left": 26,
+            "right": 1702
+          }
+        },
+        "after": {
+          "a": {
+            "top": 318,
+            "bottom": 358,
+            "left": 26,
+            "right": 1702
+          },
+          "b": {
+            "top": 450,
+            "bottom": 490,
+            "left": 26,
+            "right": 1702
+          },
+          "editor": {
+            "top": 582,
+            "bottom": 622,
+            "left": 26,
+            "right": 1702
+          }
+        }
+      },
+      "toolbarRect": {
+        "before": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        },
+        "after": {
+          "top": 54,
+          "bottom": 98,
+          "left": 26,
+          "right": 1702
+        }
+      },
+      "details": {
+        "bindings": [],
+        "count": 0,
+        "mounted": false,
+        "editorRange": 0,
+        "finalResources": [
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 0,
+            "listenerCalls": 0
+          },
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 14,
+            "listenerCalls": 12
+          },
+          {
+            "listeners": 0,
+            "observers": 0,
+            "timers": 0,
+            "clickListeners": 0,
+            "windowListeners": 0,
+            "observerCallbacks": 0,
+            "listenerCalls": 0
+          }
+        ]
+      },
+      "checks": [
+        {
+          "name": "short pre and textarea targets produce no binding or button",
+          "pass": true
+        },
+        {
+          "name": "a no-button installation still disposes all resources",
+          "pass": true
+        },
+        {
+          "name": "short-content checks do not scroll",
+          "pass": true
+        }
+      ]
+    }
+  ]
+}

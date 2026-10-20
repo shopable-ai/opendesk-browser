@@ -18,8 +18,8 @@ export default async function main() {
     pageRules,
     baseStyles: false
   });
-  // The managed UI provides cleanup only; the actual button belongs in the
-  // conversation header, not in OpenDesk's default floating panel.
+  // The managed UI owns cleanup; visible buttons belong to each resolved
+  // native toolbar, separately bound to its content start.
   owner.host.hidden = true;
   owner.host.style.setProperty('display', 'none', 'important');
   try {

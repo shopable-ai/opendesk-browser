@@ -1,0 +1,346 @@
+{
+  "date": "2026-10-20",
+  "deliveryStatus": "SOURCE_AND_PACKAGE_READY_PRODUCT_ACCEPTANCE_INCOMPLETE",
+  "baseline": {
+    "startHead": "d22e268df8fcea20c3d9499fa66b0526bd231ca4",
+    "remoteMainRead": true,
+    "historicalFeatureCommitUsedAsHead": false,
+    "beforeEvidenceKind": "SOURCE_REVIEW",
+    "before": "jumpConversationTop always scrolled the conversation container to 0; toolbar and content region were not separately bound",
+    "after": "stable content target and nearest real scrollport; canonical instant landing followed by at most one measured sticky correction",
+    "beforeAfterRealChatGPT": "NOT_TESTED"
+  },
+  "sourceFiles": [
+    {
+      "file": "src/conversation.js",
+      "sha256": "9d64e1ff6c7e002e8889842b3a5dff6f008a50cfc0adcad8791434e12088d556",
+      "bytes": 15659
+    },
+    {
+      "file": "src/main.js",
+      "sha256": "4c0798f70a7449144d48f2780ce5c1312898a24f7033334e800d85a2c2bd7d5c",
+      "bytes": 1026
+    },
+    {
+      "file": "package.json",
+      "sha256": "b730e7f9d50d89d035a6655baa39cc46052811f178f3bc217b3cc6169a883c62",
+      "bytes": 627
+    },
+    {
+      "file": "tests/conversation.test.mjs",
+      "sha256": "2e5653789614809cc6c0ffc27ee722f00bba6100ccf476f7af2a0bf8cb5a0ede",
+      "bytes": 26425
+    },
+    {
+      "file": "tests/browser-checks.mjs",
+      "sha256": "fd11555243b74b9bf9ec16d51f3ba76b01a80c85617cf04f5cd6df2340881374",
+      "bytes": 32834
+    }
+  ],
+  "checks": [
+    {
+      "command": "node --test examples/programs/chatgpt-jump-top/tests/conversation.test.mjs tests/environment/chatgpt-jump-top.test.mjs",
+      "status": "PASS",
+      "executions": 81,
+      "uniqueAdapterCases": 40,
+      "manifestCases": 1,
+      "note": "environment test imports the adapter suite, so the requested command executes those 40 cases twice"
+    },
+    {
+      "command": "node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top",
+      "status": "AUTHORING_VALID_NOT_PACKAGED"
+    },
+    {
+      "command": "npm run build:program -- examples/programs/chatgpt-jump-top",
+      "status": "BUILT_UNVERIFIED",
+      "buildMode": "production",
+      "buildHash": "2f8c1667e0047e4c6a7152b5da121f0d1438abdfa470b139db9cc30c911cc791",
+      "sourceHash": "2f8c1667e0047e4c6a7152b5da121f0d1438abdfa470b139db9cc30c911cc791",
+      "sourceBytes": 27334,
+      "installable": false
+    },
+    {
+      "command": "node scripts/build-page-install-package.mjs --input <build>/program.opendesk-draft.json --out examples/programs/chatgpt-jump-top/chatgpt-jump-top.opendesk-page.json --revision 2 --title 'ChatGPT 长内容回顶'",
+      "status": "PACKAGE_VALIDATED_BYTES_MATCH_BUILD",
+      "packageHash": "d4f7d103c7c67c1fca006600dbc6e3c120f8069b2d9476a485c146c156ee3d45",
+      "sourceHash": "2f8c1667e0047e4c6a7152b5da121f0d1438abdfa470b139db9cc30c911cc791"
+    },
+    {
+      "command": "runBrowserChecks(dedicatedAboutBlankPlaywrightPage)",
+      "status": "PASS",
+      "caseCount": 14,
+      "evidenceKind": "SYNTHETIC_BROWSER_FIXTURE"
+    }
+  ],
+  "package": {
+    "file": "chatgpt-jump-top.opendesk-page.json",
+    "format": "opendesk.page-install.v1",
+    "programId": "opendesk.chatgpt-jump-top",
+    "version": "0.2.0",
+    "revision": 2,
+    "sourceHash": "2f8c1667e0047e4c6a7152b5da121f0d1438abdfa470b139db9cc30c911cc791",
+    "packageHash": "d4f7d103c7c67c1fca006600dbc6e3c120f8069b2d9476a485c146c156ee3d45",
+    "installationStatus": "NOT_TESTED",
+    "upgradeStatus": "NOT_TESTED"
+  },
+  "runtime": {
+    "extensionMode": "existing static development package; live watcher connection not confirmed",
+    "extensionPath": "dist/development",
+    "authenticatedChrome": {
+      "status": "NOT_TESTED",
+      "failure": "AppleScript error 12: JavaScript from Apple Events disabled; console fallback did not reliably identify the authorized target",
+      "bodyOrPrivateUrlRecorded": false
+    },
+    "connectedTestChrome": {
+      "version": "155.0.8059.39",
+      "chatgptAuthenticated": false
+    },
+    "directoryCli": {
+      "status": "BLOCKED",
+      "failureCode": "E_NATIVE_NOT_READY",
+      "temporarySession": "exited after native disconnection"
+    },
+    "authorityInstallation": {
+      "status": "BLOCKED",
+      "reason": "No successful Page import/review/install receipt; test sidebar navigation had zero visible geometry",
+      "install": "NOT_TESTED",
+      "disable": "NOT_TESTED",
+      "restore": "NOT_TESTED",
+      "upgrade": "NOT_TESTED",
+      "reopen": "NOT_TESTED",
+      "uninstall": "NOT_TESTED"
+    },
+    "appleEventsJavaScriptAfterTest": "OFF_CONFIRMED_MENU_UNCHECKED"
+  },
+  "manualMatrix": [
+    {
+      "scenario": "普通短对话",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "短内容合成页面无按钮；登录态未测试"
+    },
+    {
+      "scenario": "超长用户消息",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "没有指定页面的有效 DOM/点击回执"
+    },
+    {
+      "scenario": "超长助手回复",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "没有指定页面的有效 DOM/点击回执"
+    },
+    {
+      "scenario": "多个 header",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "合成页面分别绑定 pre-a / pre-b / editor"
+    },
+    {
+      "scenario": "Sticky 顶栏",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "实际 Chromium 合成几何及 Node 反例通过"
+    },
+    {
+      "scenario": "独立滚动编辑器",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "合成 textarea 值/选区保持，父容器不动"
+    },
+    {
+      "scenario": "页面中部与底部",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "合成区域一次点击同步完成"
+    },
+    {
+      "scenario": "切换两条对话",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "仅合成 main 替换通过"
+    },
+    {
+      "scenario": "React 重绘",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "合成 header/target/host 替换通过"
+    },
+    {
+      "scenario": "刷新及 Chrome 重启",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "未执行当前候选的真实安装运行"
+    },
+    {
+      "scenario": "停止、撤权及卸载",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "合成 dispose 资源归零；Authority 未测试"
+    },
+    {
+      "scenario": "320/360/400px、200% 缩放",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "未取得登录态产品证据"
+    },
+    {
+      "scenario": "键盘和两种主题",
+      "pageType": "authenticated ChatGPT",
+      "status": "NOT_TESTED",
+      "buttonCount": null,
+      "domRelation": null,
+      "scrollBefore": null,
+      "scrollAfter": null,
+      "targetVisiblePosition": null,
+      "stickyOcclusion": null,
+      "oneClick": null,
+      "componentEvidence": "原生 button 与焦点样式已实现，真实操作未测试"
+    }
+  ],
+  "independentReview": {
+    "kind": "read-only source and in-memory counterexample review; reviewer did not operate Chrome",
+    "finalAdapterSha256": "9d64e1ff6c7e002e8889842b3a5dff6f008a50cfc0adcad8791434e12088d556",
+    "resolved": [
+      "unengaged sticky predicted as coverage",
+      "real sticky gap obscures the first line",
+      "parallel-column toolbar counted as coverage",
+      "old pinned header changes repeated landing",
+      "removed host fails to recover",
+      "ID changes retain stale binding",
+      "repeated full-page ID scans",
+      "editor without own real scrollport",
+      "fully covered port falsely reported successful"
+    ],
+    "remaining": "Real ChatGPT DOM, UX and Authority acceptance have no valid current-candidate receipts",
+    "scores": [
+      {
+        "dimension": "真实用户场景正确性",
+        "score": null,
+        "status": "NOT_SCORED",
+        "reason": "component evidence does not establish authenticated product acceptance ≥95"
+      },
+      {
+        "dimension": "Sticky 与滚动定位正确性",
+        "score": null,
+        "status": "NOT_SCORED",
+        "reason": "component evidence does not establish authenticated product acceptance ≥95"
+      },
+      {
+        "dimension": "按钮位置与视觉一致性",
+        "score": null,
+        "status": "NOT_SCORED",
+        "reason": "component evidence does not establish authenticated product acceptance ≥95"
+      },
+      {
+        "dimension": "多区域及生命周期稳定性",
+        "score": null,
+        "status": "NOT_SCORED",
+        "reason": "component evidence does not establish authenticated product acceptance ≥95"
+      },
+      {
+        "dimension": "键盘与响应式可用性",
+        "score": null,
+        "status": "NOT_SCORED",
+        "reason": "component evidence does not establish authenticated product acceptance ≥95"
+      },
+      {
+        "dimension": "正式构建与交付可靠性",
+        "score": null,
+        "status": "NOT_SCORED",
+        "reason": "component evidence does not establish authenticated product acceptance ≥95"
+      }
+    ]
+  },
+  "privacy": {
+    "committedEvidence": "generated fixture IDs, geometry, hashes and status only",
+    "privateConversationBody": false,
+    "cookiesOrTokens": false,
+    "privateConversationUrl": false
+  }
+}
