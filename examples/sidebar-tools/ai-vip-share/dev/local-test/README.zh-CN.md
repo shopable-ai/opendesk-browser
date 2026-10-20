@@ -3,7 +3,7 @@
 本目录已正式纳入 `examples/sidebar-tools/ai-vip-share/dev/local-test/`。**无需再下载或解压 ZIP**。
 它是独立开发测试工具，不属于 Sidebar Tool 安装包，也不会连接尚未审核的商业 Provider。
 
-唯一当前状态、六类入口及本轮证据见 [工具 README 顶部](../../README.zh-CN.md#current-status)。**1.3.8 源码与正式包已交付，确切候选的指定受控浏览器与定向 Node 范围已验证，同一打包器晋升与 `--check-project` 通过**；浏览器使用独立临时真实 fixture 和模拟公开 Host，没有新包原生 Chrome 安装、真实 Cookie 或真实代理证据。当前完整 main 构建未验证；正式全量验收、评分与上线延期。
+当前工具版本、安装与浏览器证据见[工具 README](../../README.zh-CN.md#current-status)。本目录只定义受控开发协议，不是已恢复的商业后台协议。下述 HTTP 测试通过不代表已安装扩展完成可信 Cookie 写入或网页登录；两个真实产品入口由主线程验证。商业后台、日常 Chrome 与 production 正式验收仍为 `NOT_TESTED`。
 
 **先复用现有 7898 服务，不重启账本。** fixture 使用单进程内存存储，重启会丢失演示权益、预检及幂等/未知事务记录；升级工具或 Host 不要求重启它。先在仓库根目录只读检查：
 
@@ -25,11 +25,29 @@ curl -sS http://127.0.0.1:7898/health
 curl -sS http://127.0.0.1:7898/proxy.pac
 ```
 
-## 当前公开 SDK 开发入口（1.3.8，需匹配新版 Host）
+## 服务端分配与两个激活入口（受控开发协议）
+
+小目标是让手动输入激活码与允许 URL 触发汇入同一流程：`/api/preview` → `/api/redeem` → 必要时 `/api/status` 查询回执 → 取得当前分配 → 可信审阅与原 Host 写入完整 Cookie 批次 → 目标页核对身份。权益到账或技术代理启用不代表目标网站登录。客户端不提供账号选择器，也不能指定分配对象。
+
+- `DEMO-VIP-01` 由服务器分配 `shared-a`（公司共享账号 A）；`DEMO-VIP-02` 分配 `shared-b`（公司共享账号 B）。一张码在整个 fixture 账本中只消费一次，不能通过新预检、新 key、其他会员或权益过期再次产生权益或交付。
+- 手动入口使用上述演示码。URL 入口为 `http://127.0.0.1:7898/activate?activation_code=DEMO-VIP-01` 或对应的 `DEMO-VIP-02`。`GET /activate` 只返回静态开发说明页，不执行脚本、不兑换、不写 Cookie、不回显参数；响应固定 `Cache-Control: no-store`、`Referrer-Policy: no-referrer` 与禁脚本 CSP。只接受一个有效的 `activation_code`，缺失、空值、非法码、重复参数或多余参数返回 400；其他 path 不构成该入口。已安装工具仍需独立校验准确 origin/path/参数并进入原可信授权链。
+- 最新成功兑换决定该会员的唯一当前分配。`GET /api/member` 的 `sharedAccounts` 保留 `schemaVersion/companyId/accounts`，新增 `assignedAccountId/redemptionId`；`accounts` 只含当前分配一项，条目的 `id/label/targetUrl/cookieScope` 不变。过期或撤权后不返回可用分配，不退回历史分配。历史兑换摘要只含脱敏码。
+- `POST /api/status` 的共享会话请求严格为 `{operation:'sharedSession',accountId,redemptionId,requestId}`，拒绝 `sharedAccountId` 和其他多余字段。认证会员、当前兑换和服务端分配必须一致。响应为原 `{schemaVersion,accountId,sharedAccountId,requestId,serverNow,cookieDelivery}` 加 `redemptionId`；`sharedAccountId` 仅是服务端结果。
+- `requestId` 绑定会员与 `redemptionId`。有效期内重试返回同一交付；更换绑定返回 409，旧分配、撤权与会员过期返回 403，已过写入期限的同一请求返回 `409 E_DELIVERY_EXPIRED`，绝不自动刷新该交付。当前分配有权限时可用新 requestId 请求一份新交付，不重新消费码。
+- 每份交付包含相同的两个固定 HttpOnly Cookie 槽位：`opendesk_fixture_session` 与 `opendesk_fixture_context`，路径均为 `/session/`。新分配完整覆盖这两项，不清空无关站点数据；写入期限 120 秒，Cookie 生命周期 1 小时。`/session/` 检查两项来自同一交付、属于当前分配、Cookie 未过期且权益未撤销，才显示明确的 A/B 身份。新的分配立即使旧分配所有交付失效，包括晚到旧响应；写入期限不缩短已成功安装 Cookie 的生命周期。
+- `/api/redeem` 同 key 返回原回执，`/api/status` 原兑换查询保持不变。已消费码重新预检返回 `409 E_CODE_CONSUMED`；消费前并行生成的其他 preview 也不能再兑换。`pending` 预留该码（`409 E_CODE_PENDING`），未知结果只能查询原事务；明确 `rejected + final:true` 不授予权益。查询历史回执不重新授予旧分配的写入权限。
+
+可通过 `isSharedAccessAllowed({accountId,sharedAccountId,redemptionId,serverNow})` 注入撤权。Cookie 只在进程内；页面与启动日志均不输出 Cookie 值或激活码。多个浏览器可分别持有同一分配的完整 Cookie 对；这不代表单个 Cookie store 可并发隔离多个账号。`/api/activate` 及 `/api/verify` 仍为独立技术代理协议，不消费这些兑换记录，也不授予网站会话。
+
+**保留已有服务与账本。** 新源码不会热更新已运行的 Node fixture。旧 7898 服务缺少新协议时，由主线程原生驱动在 `[::1]:7898` 创建自有 fixture，并只将该隔离浏览器的 127.0.0.1:7898 映射至 IPv6，不停止 IPv4 服务、不清空其账本。本轮不启动常驻服务；原生入口以主线程最新驱动为准，验证手动码与 URL 激活及服务器分配，旧选择器测试不再适用。Cookie 值和激活码不进截图、NetLog 或日志。日常扩展仍固定 `dist/development`，复用现有 watcher。
+
+以下 1.3.8 章节是上轮操作记录；它不能证明新共享账号合同或当前包原生通过。
+
+## 历史公开 SDK 开发入口（1.3.8，需匹配对应 Host）
 
 既有可信开发 pin 已在源码同步并完成对应 Node 检查；**实际 Host 必须以 development MODE 编译，并批准 1.3.8 精确包 hash。** profile 按编译 MODE 与包 hash 判断，合法静态 development 快照也可测试；不要求 watcher 已连接。旧 Host 不随 JSON 导入更新；production、旧 pin 或包来源不匹配时不会返回开发 profile，界面应说明演示不可用，不能靠重复导入或手改 pin 解决。匹配新版开发 Host 后可点击「重新检测代理状态」。
 
-日常源码迭代仍遵守 `dist/development` 与 `npm run dev` watcher 政策，保留原扩展 ID 和 Native 配对，不以静态快照替换日常扩展。本轮观察到 43119/43120 均无监听，旧 `development.lock` 已不存在；日常 Chrome 实际加载路径、真实扩展 ID 与已安装工具包不可访问，均未验证。这与 SDK 是否批准 profile 分开判断。
+日常源码迭代仍遵守 `dist/development` 与 `npm run dev` watcher 政策，保留原扩展 ID 和 Native 配对，不以静态快照替换日常扩展。该历史记录当时观察到 43119/43120 均无监听，旧 `development.lock` 已不存在；不能据此判断本轮服务状态。日常 Chrome 实际加载路径、真实扩展 ID 与已安装工具包在该记录中均未验证，与 SDK 是否批准 profile 分开判断。
 
 7897 必须已经是可用的 **HTTP CONNECT** 代理；7898 是下面的本地 fixture，不提供代理功能。仅在确需首次启动服务、且浏览器请求包含扩展 Origin 时绑定实际 ID；不要据此重启现有服务：
 
@@ -110,7 +128,7 @@ open -na 'Google Chrome' --args --user-data-dir="$PROFILE" --no-first-run --prox
 
 ## 四、模拟会员 Provider 的 HTTP 数据
 
-所有业务测试请求使用 `X-OpenDesk-Local-Test: 1` 请求头；禁止跨网站 Origin。测试券码 **DEMO-VIP-01**，账号为 `local-fixture-account`。
+所有业务测试请求使用 `X-OpenDesk-Local-Test: 1` 请求头；默认拒绝浏览器 Origin。演示码 **DEMO-VIP-01 / DEMO-VIP-02** 分别分配 A/B，会员账号为 `local-fixture-account`。仅明确配置的隔离扩展 Origin 加测试请求头可以访问；这不是 CORS 放行。
 
 ```sh
 curl -sS -H 'X-OpenDesk-Local-Test: 1' http://127.0.0.1:7898/api/member
@@ -127,7 +145,7 @@ curl -sS -X POST http://127.0.0.1:7898/api/preview -H 'X-OpenDesk-Local-Test: 1'
 }
 ```
 
- `/api/redeem` 只在一次有效预览下给出 `redeemed` 结果，重复同一 `idempotencyKey` 返回同一回执，改变同一键所绑定的 `previewId` 则返回 `409`。可以附加请求头 `X-Fixture-Drop-Ack: 1` 模拟“已消费但响应丢失”，接着只使用 `/api/status` 查询，不重试兑换 POST。未找到事务返回 `unknown`，不是“未兑换”的权威证明。还可在第一次 `/api/redeem` 提交时用 `X-Fixture-Outcome: pending` 模拟处理中、用 `X-Fixture-Outcome: final-rejected` 模拟服务端明确 `rejected + final:true`；两者都不会授予权益。
+ `/api/redeem` 只在一次有效且未消费的码预览下给出 `redeemed` 结果；同一码的其他 preview 或新 key 不能再次消费。重复同一 `idempotencyKey` 返回同一回执，改变同一键所绑定的 `previewId` 则返回 `409`。可以附加请求头 `X-Fixture-Drop-Ack: 1` 模拟“已消费但响应丢失”，接着只使用 `/api/status` 查询，不重试兑换 POST。未找到事务返回 `unknown`，不是“未兑换”的权威证明。还可在第一次 `/api/redeem` 提交时用 `X-Fixture-Outcome: pending` 模拟处理中、用 `X-Fixture-Outcome: final-rejected` 模拟服务端明确 `rejected + final:true`；两者都不会授予权益。
 
 技术租约 mock：`POST /api/activate` 输入 `{"deviceId":"local-device","code":"DEMO-VIP-01"}` 返回 `{leaseId,expiresAt,endpoint}`；`POST /api/verify` 输入 `{"deviceId":"local-device","leaseId":"..."}` 返回 `{active:true,lease}`。`endpoint` 使用保留测试域名 `proxy.fixture.test` 及 `socks5`，**仅验证生产消息形状，无法连接你的 127.0.0.1:7897**，不要当成真正代理节点。代理实际联通请使用前述 PAC。
 
@@ -156,7 +174,7 @@ POST 只接受整数 `delayMs`（0–5000ms）；0 清除待用延迟，其他�
 node --test examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs
 ```
 
-目前覆盖：严格域名 PAC、非法相似域名、未绑定/已绑定/过期权益、无副作用预检、服务端时钟与预检过期边界、同 key 幂等与 consumed preview 拒绝、模拟 504 后只查询回执、pending/final rejected 不授予、账户切换隔离、两类激活码与固定开发端点、有界一次性 verify 延迟、Origin/请求头访问限制。`X-Fixture-Drop-Ack` 是提交后返回模拟 504，不是真实断网。
+定向 HTTP 测试覆盖：静态激活 URL 的精确参数与隐私响应头、服务端 A/B 分配、全账本单码一次消费与并行预检、当前分配单项目录、新分配替换和旧响应失效、完整两 Cookie 目标身份核对、部分/混合/重复/伪造 Cookie 拒绝、精确共享会话请求和幂等绑定、撤权/过期/禁止回退、模拟 504 后查询回执、pending 保留与 final rejected、会员身份隔离，以及原 PAC/代理/verify 延迟/Origin/CLI 回归。只运行上面的单个测试文件；测试自行创建并清理随机端口临时实例，不操作已有 7898 服务。HTTP PASS 不证明真实扩展写入、URL 自动触发或商业后台 PASS。`X-Fixture-Drop-Ack` 是提交后返回模拟 504，不是真实断网。
 
 **历史实现限制（不适用于文首 1.3.8 开发入口）：** `src/ai-smart-access/provider-config.js` 的 `activateUrl/verifyUrl` 均为空并要求固定 **HTTPS** origin；`src/ai-smart-access/policy.js` 明确拒绝 `localhost` / IP 代理端点且只接受 `https` 或 `socks5`；商业工具 `main.js` 四个 BUSINESS_ENDPOINTS 也为空且必须为经审核的 HTTPS；`host-controls.js` 当时没有用户激活码入口。不能直接填写 `http://127.0.0.1:7898`，或把 HTTP 7897 伪报为 HTTPS。历史上做 **OpenDesk 真实按钮端到端联调**，需要一个经安全审查、development-only、仅 loopback 且隔离 Chrome Profile 的测试 adapter；正式主包、公共代理协议与正常安全校验不能因此放宽。
 

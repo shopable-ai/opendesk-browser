@@ -11,13 +11,20 @@ const AI_DOMAINS=Object.freeze([
 ]);
 const ACCOUNT_ID='local-fixture-account';
 const DISPLAY_NAME='l***@fixture.test';
-const MASKED_CODE='****-01';
 const DEMO_CODE='DEMO-VIP-01';
+const DEMO_ASSIGNMENTS=Object.freeze({'DEMO-VIP-01':'shared-a','DEMO-VIP-02':'shared-b'});
+const maskedCode=code=>'****-'+code.slice(-2);
 const LOCAL_DEV_CODE='LOCAL-DEV-ONLY';
 const TEST_HEADER='x-opendesk-local-test';
 const MAX_BODY=4096;
 const MAX_VERIFY_DELAY_MS=5000;
 const SESSION_COOKIE_NAME='opendesk_fixture_session';
+const CONTEXT_COOKIE_NAME='opendesk_fixture_context';
+const SESSION_TARGET='http://127.0.0.1:7898/session/';
+const SHARED_ACCOUNTS=Object.freeze([
+  {id:'shared-a',label:'公司共享账号 A'},
+  {id:'shared-b',label:'公司共享账号 B'}
+]);
 
 function readBody(request){
   return new Promise((resolve,reject)=>{
@@ -56,12 +63,15 @@ function pacFor({proxyPort,proxyKind}){
 
 /** Start with a private in-memory ledger. Keep the server alive across sidebar/reload tests. */
 export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now,extensionOrigin=null,
-  getMemberState=()=>({account:{state:'bound',id:ACCOUNT_ID,displayNameMasked:DISPLAY_NAME},entitlements:[]})}={}){
+  getMemberState=()=>({account:{state:'bound',id:ACCOUNT_ID,displayNameMasked:DISPLAY_NAME},entitlements:[]}),
+  // Test-only revocation policy, checked for both delivery and every target-page visit.
+  isSharedAccessAllowed=()=>true}={}){
   if(!Number.isInteger(proxyPort)||proxyPort<1||proxyPort>65535)throw Error('proxyPort out of range');
   if(!['http','socks5'].includes(proxyKind))throw Error('proxyKind must be http or socks5');
   if(extensionOrigin!==null&&!/^chrome-extension:\/\/[a-p]{32}$/.test(extensionOrigin))
     throw Error('extensionOrigin must be one exact isolated Chrome extension origin');
   const previews=new Map(),ledger=new Map(),leases=new Map();
+  const sharedRequests=new Map(),sessions=new Map();
   const pac=pacFor({proxyPort,proxyKind});
   let nextVerifyDelayMs=0,verificationsInFlight=0;
   const getVerificationState=()=>({nextVerifyDelayMs,verificationsInFlight});
@@ -71,16 +81,46 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
     nextVerifyDelayMs=delayMs;
     return getVerificationState();
   };
+  const currentAssignment=accountId=>[...ledger.values()].reverse().find(row=>
+    row.receipt.accountId===accountId&&row.receipt.status==='redeemed');
+  // Codes are single-use across accounts and preview IDs. Pending effects stay reserved.
+  const codeReservation=code=>[...ledger.values()].find(row=>row.code===code&&
+    ['redeemed','pending'].includes(row.receipt.status));
+  const sharedAccessAllowed=(accountId,redemptionId)=>{
+    const currentTime=now();
+    const assignment=currentAssignment(accountId);
+    return Boolean(assignment&&assignment.receipt.redemptionId===redemptionId&&
+      SHARED_ACCOUNTS.some(row=>row.id===assignment.sharedAccountId)&&
+      assignment.receipt.grantedEntitlements.some(entitlement=>entitlement.featureId==='local-managed-proxy'&&
+        entitlement.status==='active'&&Number.isFinite(entitlement.expiresAt)&&entitlement.expiresAt>currentTime)&&
+      isSharedAccessAllowed({accountId,redemptionId,sharedAccountId:assignment.sharedAccountId,serverNow:currentTime})===true);
+  };
+  const issueDelivery=(accountId,sharedAccountId,redemptionId)=>{
+    const issuedAt=now();
+    const cookieDelivery={schemaVersion:1,deliveryId:randomUUID(),targetUrl:SESSION_TARGET,
+      expiresAt:issuedAt+120000,cookies:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({
+        name,value:randomUUID(),path:'/session/',httpOnly:true,secure:false,sameSite:'lax',
+        expirationDate:(issuedAt+3600000)/1000
+      }))};
+    sessions.set(cookieDelivery.deliveryId,{accountId,sharedAccountId,redemptionId,cookieDelivery});
+    return cookieDelivery;
+  };
   const member=()=>{
     const state=getMemberState(),bound=state.account.state==='bound';
-    const receipts=bound?[...ledger.values()].map(row=>row.receipt)
-      .filter(row=>row.accountId===state.account.id&&row.status==='redeemed'):[];
+    const receipts=bound?[...ledger.values()]
+      .filter(({receipt})=>receipt.accountId===state.account.id&&receipt.status==='redeemed'):[];
+    const assignment=bound?currentAssignment(state.account.id):null;
+    const accounts=assignment&&sharedAccessAllowed(state.account.id,assignment.receipt.redemptionId)?
+      SHARED_ACCOUNTS.filter(row=>row.id===assignment.sharedAccountId):[];
     return {schemaVersion:1,serverNow:now(),account:state.account,
-      entitlements:bound?[...state.entitlements,...(receipts.length?receipts[0].grantedEntitlements:[])]:[],
-      redemptions:receipts.map(receipt=>({
+      entitlements:bound?[...state.entitlements,...(assignment?.receipt.grantedEntitlements??[])]:[],
+      redemptions:receipts.map(({receipt,code})=>({
       redemptionId:receipt.redemptionId,skuTitle:'本地测试配额',
-      redeemedAt:receipt.redeemedAt,status:'redeemed',voucherPreviewMasked:MASKED_CODE
-    }))};
+        redeemedAt:receipt.redeemedAt,status:'redeemed',voucherPreviewMasked:maskedCode(code)
+      })),...(accounts.length?{sharedAccounts:{schemaVersion:1,companyId:'fixture-company',
+        assignedAccountId:assignment.sharedAccountId,redemptionId:assignment.receipt.redemptionId,
+      accounts:accounts.map(row=>({...row,targetUrl:SESSION_TARGET,
+        cookieScope:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({name,path:'/session/'}))}))}}:{})};
   };
   const server=http.createServer(async(req,res)=>{
     const path=(req.url||'').split('?')[0];
@@ -89,17 +129,32 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
     if(req.headers.origin&&(req.headers.origin!==extensionOrigin||req.headers[TEST_HEADER]!=='1')){
       json(res,403,{error:'E_BROWSER_ORIGIN_DISABLED'});return;
     }
+    if(req.method==='GET'&&path==='/activate'){
+      const query=new URL(req.url,'http://127.0.0.1').searchParams;
+      const valid=[...query.keys()].length===1&&query.getAll('activation_code').length===1&&
+        Object.hasOwn(DEMO_ASSIGNMENTS,query.get('activation_code'));
+      res.writeHead(valid?200:400,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
+        'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff',
+        'Content-Security-Policy':"default-src 'none'"});
+      res.end('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><body><p>'+
+        (valid?'本地开发激活入口：由已安装工具按可信授权流程处理。':'本地开发激活链接无效。')+
+        '</p></body></html>');return;
+    }
     if(req.method==='GET'&&path==='/session/'){
-      const tokens=(req.headers.cookie||'').split(';').map(part=>part.trim())
-        .filter(part=>part.startsWith(SESSION_COOKIE_NAME+'='))
-        .map(part=>part.slice(SESSION_COOKIE_NAME.length+1));
+      const cookies=(req.headers.cookie||'').split(';').map(part=>part.trim());
       const currentTime=now();
-      const active=[...ledger.values()].some(({receipt})=>receipt.cookieDelivery?.cookies.some(cookie=>
-        cookie.expirationDate*1000>currentTime&&tokens.includes(cookie.value)));
+      const active=[...sessions.values()].find(row=>sharedAccessAllowed(row.accountId,row.redemptionId)&&
+        row.cookieDelivery.cookies.every(cookie=>{
+          const matching=cookies.filter(part=>part.startsWith(cookie.name+'='));
+          return cookie.expirationDate*1000>currentTime&&matching.length===1&&matching[0]===cookie.name+'='+cookie.value;
+        }));
+      const sharedAccount=active&&SHARED_ACCOUNTS.find(row=>row.id===active.sharedAccountId);
       res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
         'X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"});
       res.end('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><body><p>'+
-        (active?'受控会话有效':'未建立受控会话')+'</p></body></html>');return;
+        (active?'受控会话有效':'未建立受控会话')+'</p>'+
+        (sharedAccount?`<p data-shared-account="${sharedAccount.id}">${sharedAccount.label}</p>`:'')+
+        '</body></html>');return;
     }
     if(req.method==='GET'&&path==='/health'){
       json(res,200,{ok:true,mode:'LOCAL_FIXTURE_NOT_PRODUCTION',memberPort:server.address()?.port,
@@ -132,12 +187,18 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       json(res,403,{error:'E_ACCOUNT_UNBOUND'});return;
     }
     if(path==='/api/preview'){
-      if(data.code!==DEMO_CODE){json(res,422,{error:'E_DEMO_CODE_INVALID'});return;}
+      if(typeof data.code!=='string'||!Object.hasOwn(DEMO_ASSIGNMENTS,data.code)){
+        json(res,422,{error:'E_DEMO_CODE_INVALID'});return;
+      }
+      const reserved=codeReservation(data.code);
+      if(reserved){
+        json(res,409,{error:reserved.receipt.status==='pending'?'E_CODE_PENDING':'E_CODE_CONSUMED'});return;
+      }
       const previewId=randomUUID(),expiresAt=now()+120000;
-      previews.set(previewId,{accountId:account.id,expiresAt});
+      previews.set(previewId,{accountId:account.id,expiresAt,code:data.code});
       json(res,200,{previewId,accountId:account.id,skuTitle:'本地测试配额',
         grantSummary:'增加 20 次演示额度，开通仅限本机 HTTP 7897 的开发代理；不是付费会员',
-        voucherPreviewMasked:MASKED_CODE,expiresAt});return;
+        voucherPreviewMasked:maskedCode(data.code),expiresAt});return;
     }
     if(path==='/api/redeem'){
       const {previewId,accountId,idempotencyKey}=data;
@@ -152,26 +213,25 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       if(!pre||pre.accountId!==accountId||pre.expiresAt<=now()){
         json(res,409,{error:'E_PREVIEW_INVALID'});return;
       }
+      const reserved=codeReservation(pre.code);
+      if(reserved){
+        json(res,409,{error:reserved.receipt.status==='pending'?'E_CODE_PENDING':'E_CODE_CONSUMED'});return;
+      }
       const simulated=req.headers['x-fixture-outcome'];
       if(['pending','final-rejected'].includes(simulated)){
         const receipt={status:simulated==='pending'?'pending':'rejected',
           ...(simulated==='final-rejected'?{final:true}:{}),accountId,idempotencyKey};
-        ledger.set(idempotencyKey,{previewId,receipt});
+        ledger.set(idempotencyKey,{previewId,code:pre.code,receipt});
         previews.delete(previewId);
         json(res,200,receipt);return;
       }
-      const redeemedAt=now();
+      const redeemedAt=now(),redemptionId=randomUUID(),sharedAccountId=DEMO_ASSIGNMENTS[pre.code];
       const receipt={status:'redeemed',accountId,idempotencyKey,
-        redemptionId:randomUUID(),redeemedAt,cookieDelivery:{
-          schemaVersion:1,deliveryId:randomUUID(),targetUrl:'http://127.0.0.1:7898/session/',
-          expiresAt:redeemedAt+120000,cookies:[{
-            name:SESSION_COOKIE_NAME,value:randomUUID(),path:'/session/',
-            httpOnly:true,secure:false,sameSite:'lax',expirationDate:(redeemedAt+3600000)/1000
-          }]},grantedEntitlements:[{
+        redemptionId,redeemedAt,cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId),grantedEntitlements:[{
           type:'quota',status:'active',title:'本地测试配额',remaining:20,total:20,unit:'次'},
-          {type:'feature',status:'active',featureId:'local-managed-proxy',title:'本地开发代理',
+          {type:'feature',status:'active',featureId:'local-managed-proxy',title:'本地开发代理',expiresAt:redeemedAt+3600000,
             detail:'仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}]};
-      ledger.set(idempotencyKey,{previewId,receipt});
+      ledger.set(idempotencyKey,{previewId,code:pre.code,sharedAccountId,receipt});
       previews.delete(previewId);
       if(req.headers['x-fixture-drop-ack']==='1'){
         // Deliberately emulate a lost receipt AFTER applying a single mock effect.
@@ -180,6 +240,30 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
       json(res,200,receipt);return;
     }
     if(path==='/api/status'){
+      if(data.operation==='sharedSession'){
+        const {accountId,redemptionId,requestId}=data;
+        if(Object.keys(data).length!==4||!['operation','accountId','redemptionId','requestId'].every(key=>Object.hasOwn(data,key))||
+          typeof redemptionId!=='string'||!redemptionId.trim()||redemptionId.length>128||
+          typeof requestId!=='string'||!requestId.trim()||requestId.length>128){
+          json(res,400,{error:'E_SHARED_SESSION_REQUEST'});return;
+        }
+        if(accountId!==account.id){json(res,403,{error:'E_ACCOUNT_IDENTITY'});return;}
+        const previous=sharedRequests.get(requestId);
+        if(previous&&(previous.accountId!==accountId||previous.redemptionId!==redemptionId)){
+          json(res,409,{error:'E_IDEMPOTENCY_CONFLICT'});return;
+        }
+        if(!sharedAccessAllowed(accountId,redemptionId)){
+          json(res,403,{error:'E_SHARED_ACCESS_DENIED'});return;
+        }
+        if(previous&&previous.cookieDelivery.expiresAt<=now()){
+          json(res,409,{error:'E_DELIVERY_EXPIRED'});return;
+        }
+        const {sharedAccountId}=currentAssignment(accountId);
+        const response=previous??{schemaVersion:1,accountId,sharedAccountId,redemptionId,requestId,serverNow:now(),
+          cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId)};
+        sharedRequests.set(requestId,response);
+        json(res,200,response);return;
+      }
       if(data.accountId!==account.id||typeof data.idempotencyKey!=='string'){
         json(res,403,{error:'E_ACCOUNT_IDENTITY'});return;
       }
@@ -223,7 +307,7 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
     }
     json(res,404,{error:'E_ROUTE_NOT_FOUND'});
   });
-  return {server,pac,ledger,previews,leases,setNextVerifyDelay,getVerificationState};
+  return {server,pac,ledger,previews,leases,sharedRequests,sessions,setNextVerifyDelay,getVerificationState};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
@@ -240,6 +324,6 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
     console.log(`[local fixture] ${origin}/health`);
     console.log(`[PAC] ${origin}/proxy.pac → ${proxyKind.toUpperCase()} 127.0.0.1:${proxyPort}`);
     console.log('[CAUTION] LOCAL MOCK ONLY; cannot wire HTTP fixture/loopback endpoint into R5.2 production validators.');
-    console.log(`[Demo request header] X-OpenDesk-Local-Test: 1; demo code: ${DEMO_CODE}`);
+    console.log('[Demo request header] X-OpenDesk-Local-Test: 1; activation codes are documented only.');
   });
 }

@@ -19,6 +19,8 @@ const development=buildMode==='development';
 const developmentCore=process.env.OPENDESK_PROXY_DEV_CORE==='1';
 assert(!developmentCore||development,'Local positive-flow driver requires development mode');
 const cookieDevelopment=process.env.OPENDESK_PROXY_DEV_COOKIE==='1';
+const sharedCore=process.env.OPENDESK_VIP_SHARED_CORE==='1';
+assert(!sharedCore||cookieDevelopment&&developmentCore,'Shared core requires development Cookie mode');
 const staticDevelopment=process.env.OPENDESK_PROXY_C1_STATIC==='1';
 const extensionOverride=process.env.OPENDESK_PROXY_C1_EXTENSION_PATH;
 assert(!cookieDevelopment||developmentCore,'Cookie flow requires DEV_CORE=1 in development mode');
@@ -37,7 +39,8 @@ const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 const receipt={schema:'opendesk.managed-proxy.c1.v1',sha:process.env.GITHUB_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
   build:buildMode.toUpperCase(),extensionPath:PATH,mockSdk:false,installed:false,sidePanelObserved:false,
   result:'NOT_TESTED',steps:[],screenshots:[],errors:[]};
-if(cookieDevelopment)receipt.cookiePrivacy={responseCookieValues:'omitted',screenshots:'disabled',netLog:'disabled'};
+if(cookieDevelopment)receipt.cookiePrivacy={responseCookieValues:'omitted',activationCodes:'omitted',
+  urlQueryAndHash:'omitted before evidence retention',pageTitles:'omitted',screenshots:'disabled',netLog:'disabled'};
 if(staticDevelopment){
   receipt.mode='STATIC_DEVELOPMENT';
   receipt.developmentConnection={connected:false,reason:'static frozen development test snapshot'};
@@ -65,10 +68,10 @@ async function connect(url){
     if(developmentCore&&['Network.responseReceived','Network.loadingFailed'].includes(reply.method)){
       receipt.networkEvents??=[];
       const p=reply.params,r=p.response;
-      const row={sessionId:reply.sessionId,method:reply.method,
+      const row=sanitizeManagedProxyEvidence({sessionId:reply.sessionId,method:reply.method,
         params:{type:p.type,errorText:p.errorText,response:r?{url:r.url,status:r.status,
           remoteIPAddress:r.remoteIPAddress,remotePort:r.remotePort,protocol:r.protocol,
-          securityState:r.securityState,fromDiskCache:r.fromDiskCache}:undefined}};
+          securityState:r.securityState,fromDiskCache:r.fromDiskCache}:undefined}});
       if(receipt.networkEvents.length<300)receipt.networkEvents.push(row);
       if(cookieDevelopment&&p.type==='Document'&&r?.url==='http://127.0.0.1:7898/session/'){
         // Keep target evidence available after AI pages exhaust the broad trace.
@@ -79,7 +82,8 @@ async function connect(url){
     if(['Page.frameNavigated','Runtime.exceptionThrown','Runtime.executionContextsCleared'].includes(reply.method)&&
       !(cookieDevelopment&&reply.method==='Runtime.exceptionThrown')){
       receipt.cdpEvents??=[];
-      if(receipt.cdpEvents.length<200)receipt.cdpEvents.push({at:new Date().toISOString(),...reply});
+      if(receipt.cdpEvents.length<200)receipt.cdpEvents.push(cookieDevelopment?
+        sanitizeManagedProxyEvidence({at:new Date().toISOString(),...reply}):{at:new Date().toISOString(),...reply});
     }
     const pending=waiters.get(reply.id);if(!pending)return;
     waiters.delete(reply.id);clearTimeout(pending.timeout);
@@ -181,10 +185,10 @@ async function toolFrame(hostSession=page,requiredSelector='#tool-root'){
   const children=(node)=>[
     ...(node?.frame?[{id:node.frame.id,url:node.frame.url}]:[]),
     ...(node?.childFrames||[]).flatMap(children)];
-  throw Error('Sandbox CDP context inaccessible: '+JSON.stringify({
+  throw Error('Sandbox CDP context inaccessible: '+JSON.stringify(sanitizeManagedProxyEvidence({
     frames:children(tree),targets:targets.map(t=>({type:t.type,url:t.url,id:t.targetId})),
     parentWorldError
-  }));
+  })));
 }
 async function toolResult(frame){
   const text=await evalAt(frame.session,
@@ -337,7 +341,7 @@ async function startCookieFixture(extensionId){
   cookieFixture=createLocalFixture({proxyPort:7897,proxyKind:'http',extensionOrigin});
   cookieFixture.server.on('request',request=>{
     // Never capture Cookie headers or response bodies; preserve IPv4's ledger.
-    cookieFixtureRequests.push({method:request.method,path:(request.url||'').split('?')[0]});
+    cookieFixtureRequests.push({method:request.method,path:(request.url||'').split(/[?#]/)[0]});
   });
   await new Promise((done,fail)=>{
     const failed=error=>fail(new Error('Owned IPv6 fixture could not bind [::1]:7898: '+error.code));
@@ -803,15 +807,23 @@ async function main(){
       await screenshot('native-side-panel-blocked',sidePanelSession).catch(()=>{});
       step('C1_SIDE_PANEL_INTERACTION',{status:'NATIVE_UI_BLOCKED',error:receipt.sidePanelBlocker});
       console.error('MANAGED_PROXY_C1_SIDE_PANEL_DIAGNOSTICS='+
-        JSON.stringify(receipt.sidePanelDiagnostics));
+        JSON.stringify(cookieDevelopment?sanitizeManagedProxyEvidence(receipt.sidePanelDiagnostics):receipt.sidePanelDiagnostics));
     }
   }
-  const required=developmentCore?['FORMAL_INSTALL_IDENTITY','C1_SIDE_PANEL_TOOLS_VISIBLE',
+  const required=sharedCore?['FORMAL_INSTALL_IDENTITY','C1_SIDE_PANEL_TOOLS_VISIBLE','DEV_MEMBER_REDEEMED',
+    'DEV_ACTIVATION_MANUAL_ASSIGNED','DEV_ACTIVATION_MANUAL_COOKIE_BATCH','DEV_ACTIVATION_MANUAL_HOST_TARGET',
+    'DEV_ACTIVATION_MANUAL_SESSION','DEV_ACTIVATION_URL_ASSIGNED',
+    'DEV_ACTIVATION_URL_COOKIE_BATCH','DEV_ACTIVATION_URL_HOST_TARGET','DEV_ACTIVATION_URL_SESSION',
+    'DEV_ACTIVATION_OLD_SESSION_REPLACED','DEV_ACTIVATION_URL_NO_REPLAY','DEV_ACTIVATION_REOPEN_NO_REPLAY']:
+    developmentCore?['FORMAL_INSTALL_IDENTITY','C1_SIDE_PANEL_TOOLS_VISIBLE',
     'DEV_MEMBER_REDEEMED','DEV_PROXY_ENABLED','DEV_NETWORK_RESPONSES','DEV_ACTIVE_STOP','DEV_REOPEN_RELEASED']:['FORMAL_INSTALL_IDENTITY','C1_SDK_STATUS',
     'C1_PRODUCTION_ENABLE_DENIED','C1_SDK_STOP','NO_UNAPPROVED_NATIVE_SET',
     'C1_SIDE_PANEL_TOOLS_VISIBLE','C1_SIDE_PANEL_OFFICIAL_UI',
     'C1_SIDE_PANEL_SDK_HOST_NATIVE'];
-  if(cookieDevelopment)required.push('DEV_COOKIE_OWNED_FIXTURE','DEV_COOKIE_TARGET_MAPPED',
+  if(cookieDevelopment&&sharedCore)required.push('DEV_COOKIE_OWNED_FIXTURE','DEV_COOKIE_TARGET_MAPPED',
+    'DEV_COOKIE_SITE_GRANTED','DEV_COOKIE_READY_BEFORE_REDEEM','DEV_COOKIE_CANDIDATE_IDENTITY');
+  if(sharedCore&&process.env.OPENDESK_VIP_URL_BOUNDARIES==='1')required.push('DEV_ACTIVATION_URL_BOUNDARIES');
+  if(cookieDevelopment&&!sharedCore)required.push('DEV_COOKIE_OWNED_FIXTURE','DEV_COOKIE_TARGET_MAPPED',
     'DEV_COOKIE_SITE_GRANTED','DEV_COOKIE_READY_BEFORE_REDEEM','DEV_COOKIE_DELIVERY_VALIDATED',
     'DEV_COOKIE_TRUSTED_BATCH_APPROVED','DEV_COOKIE_SAVED_VERIFIED','DEV_COOKIE_SESSION_ESTABLISHED',
     'DEV_COOKIE_SESSION_PROXY_ENABLED','DEV_REOPEN_ACTIVE','DEV_COOKIE_SESSION_REOPEN_ACTIVE',
@@ -829,7 +841,7 @@ async function main(){
     console.error('MANAGED_PROXY_C1=NATIVE_UI_BLOCKED');
     return;
   }
-    receipt.result=developmentCore?'DEV_CORE_NATIVE_PASS':development?'DEV_C1_NATIVE_PASS':'FORMAL_C1_NATIVE_PASS';
+    receipt.result=sharedCore?'DEV_ACTIVATION_CORE_NATIVE_PASS':developmentCore?'DEV_CORE_NATIVE_PASS':development?'DEV_C1_NATIVE_PASS':'FORMAL_C1_NATIVE_PASS';
   console.log('MANAGED_PROXY_C1='+receipt.result);
 }
 try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.stack||e));
@@ -837,7 +849,7 @@ try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.st
     receipt.uiDiagnostics??=await installerDiagnostics().catch(error=>({error:String(error)}));
     await screenshot('failure').catch(()=>{});
   }
-  console.error('MANAGED_PROXY_C1=FAIL',e);process.exitCode=1;
+  console.error('MANAGED_PROXY_C1=FAIL',cookieDevelopment?sanitizeManagedProxyEvidence(String(e.stack||e)):e);process.exitCode=1;
 }finally{
   if(developmentCore&&child?.exitCode===null){
     try{await client?.send('Browser.close');}catch{}

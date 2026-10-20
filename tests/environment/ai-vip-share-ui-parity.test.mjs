@@ -81,12 +81,12 @@ test('responsive styling and explicit theme tokens cover narrow Sidebar tool',()
 
 test('v2 Sidebar Tool candidate builds from the real UI source, not preview',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.3.8');
+  assert.equal(config.version,'1.4.0');
   assert.equal(config.files.html,'src/index.html');
   assert.equal(config.files.css,'src/style.css');
   assert.equal(config.files.js,'src/main.js');
   const pkg=await createSidebarToolPackage(toolRoot);
-  assert.equal(pkg.version,'1.3.8');
+  assert.equal(pkg.version,'1.4.0');
   assert.equal(pkg.html,html);
   assert.match(pkg.css,/ai-vip-brand/);
   assert.match(pkg.js,/RECOVERY_COMPAT_VERSIONS/);
@@ -100,4 +100,16 @@ test('R5.9.4 empty state hides unavailable content instead of emitting fake metr
   assert.match(html,/id="ai-vip-proxy-toggle"[^>]*hidden/);
   assert.match(js,/toggle\.hidden=!stop&&!ready/);
   assert.match(js,/redeemForm\.hidden=!showForm/);
+});
+
+
+test('server allocation is read-only and manual activation keeps explicit review',()=>{
+  assert.match(html,/<p id="ai-vip-shared-account"[^>]*aria-live="polite"/);
+  assert.doesNotMatch(html,/<select[^>]*id="ai-vip-shared-account"|<option\b/);
+  assert.match(html,/id="ai-vip-shared-receive"[^>]*>重新取得分配会话</);
+  assert.match(html,/id="ai-vip-redeem"[^>]*>预检激活</);
+  assert.match(html,/id="ai-vip-redeem-confirm"[^>]*>确认激活</);
+  assert.equal(config.capabilities.at(-1),'currentPage.read');
+  assert.match(js,/storeRequest\('currentPage\.info'\)/);
+  assert.doesNotMatch(js,/addEventListener\(['"]message['"]/);
 });

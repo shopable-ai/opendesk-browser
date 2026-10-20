@@ -7,9 +7,15 @@ import assert from 'node:assert/strict';
 export function sanitizeManagedProxyEvidence(value){
   function clean(item,cookie=false){
     if(Array.isArray(item))return item.map(row=>clean(row,cookie));
+    if(typeof item==='string')return item.replace(/\b(?:https?|chrome-extension):\/\/[^\s<>"'`]+/gi,url=>{
+      try{const parsed=new URL(url);parsed.search='';parsed.hash='';return parsed.href;}
+      catch{return '[redacted URL]';}
+    }).replace(/DEMO-VIP-[A-Za-z0-9._-]+/g,'[redacted activation]');
     if(!item||typeof item!=='object')return item;
+    cookie=cookie||(typeof item.name==='string'&&Object.hasOwn(item,'value'));
     return Object.fromEntries(Object.entries(item)
-      .filter(([key])=>!(cookie&&key==='value')&&!/^(cookie|set-cookie)$/i.test(key))
+      .filter(([key])=>!(cookie&&key==='value')&&
+        !/^(cookie|set-cookie|code|activation_?code|voucher(code|PreviewMasked)?|postData|body|title|urlFragment)$/i.test(key))
       .map(([key,child])=>[key,clean(child,cookie||key==='cookieDelivery'||key==='cookies')]));
   }
   return clean(value);
@@ -20,24 +26,35 @@ export async function exerciseManagedProxyDevelopmentCore(h){
     toolFrame,readNative,screenshot,step,receipt}=h;
   let frame=h.officialFrame;
   const cookieFlow=process.env.OPENDESK_PROXY_DEV_COOKIE==='1';
+  const sharedCore=process.env.OPENDESK_VIP_SHARED_CORE==='1';
   const cookieTarget='http://127.0.0.1:7898/session/';
   const sanitizeSource='('+sanitizeManagedProxyEvidence.toString()+')';
   const read=expression=>evalAt(frame.session,expression,frame.contextId);
   const text=id=>read(`document.getElementById(${JSON.stringify(id)})?.textContent??null`);
   await evalAt(panelSession,`(()=>{globalThis.__managedDevBusinessRequests=[];
     globalThis.__managedDevCookieRequests=[];
+    globalThis.__managedDevTabRequests=[];globalThis.__managedDevEditStates=[];
     window.addEventListener('message',event=>{const m=event.data;
-      if(event.source!==document.querySelector('#sidebar-tool-frame iframe')?.contentWindow||m?.kind!=='request')return;
-      if(m.operation==='browser.network.request')
+      if(event.source!==document.querySelector('#sidebar-tool-frame iframe')?.contentWindow)return;
+      if(['edit-state','dirty'].includes(m?.kind))globalThis.__managedDevEditStates.push({kind:m.kind,dirty:m.dirty,busy:m.busy});
+      if(m?.kind!=='request')return;
+      if(m.operation==='browser.network.request'){
+        const data=m.payload?.data;
         globalThis.__managedDevBusinessRequests.push({requestId:m.requestId,instance:m.instance,
-          operation:m.operation,url:m.payload?.url,method:m.payload?.method});
+          operation:m.operation,url:${sanitizeSource}(m.payload?.url),method:m.payload?.method,
+          requestKeys:data&&typeof data==='object'?Object.keys(data):[],
+          session:data?.operation==='sharedSession'?{operation:data.operation,accountId:data.accountId,
+            redemptionId:data.redemptionId,requestId:data.requestId}:undefined});
+      }
+      if(m.operation==='browser.tabs.create')globalThis.__managedDevTabRequests.push(
+        ${sanitizeSource}({requestId:m.requestId,instance:m.instance,payload:m.payload}));
       if(${cookieFlow}&&(m.operation==='browser.cookies.setMany'||m.operation?.startsWith('cookieEditor.')))
         globalThis.__managedDevCookieRequests.push({requestId:m.requestId,instance:m.instance,
           operation:m.operation,payload:${sanitizeSource}(m.payload)});
     });return true;})()`);
   async function observeFrame(){await read(`(()=>{globalThis.__managedDevResponses=[];globalThis.__managedDevInput=[];
     globalThis.__managedDevCookieDeliveries=[];
-    for(const type of ['click','submit','keydown'])document.addEventListener(type,event=>{
+    for(const type of ['click','submit','keydown','change'])document.addEventListener(type,event=>{
       globalThis.__managedDevInput.push({type,isTrusted:event.isTrusted,target:event.target?.id});
     },true);window.addEventListener('message',event=>{
       const m=event.data;if(event.source!==parent||m?.kind!=='response')return;
@@ -45,13 +62,20 @@ export async function exerciseManagedProxyDevelopmentCore(h){
       if(${cookieFlow}&&d){
         const now=Date.now(),c=d.cookies?.[0];
         globalThis.__managedDevCookieDeliveries.push({requestId:m.requestId,instance:m.instance,
-          valid:m.ok===true&&m.result.status>=200&&m.result.status<300&&data.status==='redeemed'&&
+          valid:m.ok===true&&m.result.status>=200&&m.result.status<300&&(data.status==='redeemed'||
+            (${sharedCore}&&data.schemaVersion===1&&['shared-a','shared-b'].includes(data.sharedAccountId)))&&
             d.schemaVersion===1&&typeof d.deliveryId==='string'&&d.deliveryId.length>0&&
             d.targetUrl===${JSON.stringify(cookieTarget)}&&Number.isFinite(d.expiresAt)&&d.expiresAt>now&&
-            Array.isArray(d.cookies)&&d.cookies.length===1&&c?.name==='opendesk_fixture_session'&&
+            Array.isArray(d.cookies)&&d.cookies.length===(${sharedCore}?2:1)&&c?.name==='opendesk_fixture_session'&&
             typeof c.value==='string'&&/^[0-9a-f-]{36}$/.test(c.value)&&
             c.path==='/session/'&&c.httpOnly===true&&c.secure===false&&c.sameSite==='lax'&&
-            Number.isFinite(c.expirationDate)&&c.expirationDate>now/1000,
+            Number.isFinite(c.expirationDate)&&c.expirationDate>now/1000&&
+            (!${sharedCore}||(typeof data.redemptionId==='string'&&data.redemptionId.length>0&&
+              new Set(d.cookies.map(row=>row.name)).size===2&&d.cookies.every(row=>
+                ['opendesk_fixture_session','opendesk_fixture_context'].includes(row.name)&&
+                typeof row.value==='string'&&/^[0-9a-f-]{36}$/.test(row.value)&&row.path==='/session/'&&
+                !row.domain&&row.httpOnly===true&&row.secure===false&&row.sameSite==='lax'&&
+                Number.isFinite(row.expirationDate)&&row.expirationDate>now/1000))),
           delivery:${sanitizeSource}(d)});
       }
       globalThis.__managedDevResponses.push(${sanitizeSource}(m));
@@ -66,7 +90,17 @@ export async function exerciseManagedProxyDevelopmentCore(h){
     }
   }
   async function settled(check,label){
-    return until(async()=>{await approvePending();return check();},label);
+    try{return await until(async()=>{await approvePending();return check();},label);}
+    catch(error){
+      try{
+        const observation=await read(`(()=>{const ids=['ai-vip-member-state','ai-vip-redeem-status',
+          'ai-vip-redeem-error','ai-vip-shared-status','ai-vip-cookie-status'];
+          return {ui:Object.fromEntries(ids.map(id=>[id,document.getElementById(id)?.textContent])),
+            responses:globalThis.__managedDevResponses?.slice(-14)};})()`);
+        step('DEV_CORE_FAILURE_OBSERVATION',{label,observation});
+      }catch{/* Preserve the original failure if its frame has already closed. */}
+      throw error;
+    }
   }
   async function click(id){
     await read(`document.getElementById(${JSON.stringify(id)})?.scrollIntoView({block:'center'})`);
@@ -80,7 +114,8 @@ export async function exerciseManagedProxyDevelopmentCore(h){
     assert(!navigation.errorText,'Cookie target navigation failed; verify IPv6 --host-rules mapping');
     const document=await until(()=>evalAt(cookiePage,`(()=>{const text=document.body?.innerText?.trim();
       return location.href===${JSON.stringify(cookieTarget)}&&document.readyState==='complete'&&
-        ['受控会话有效','未建立受控会话'].includes(text)?{url:location.href,text}:null;})()`),
+        ['受控会话有效','未建立受控会话'].some(value=>text?.startsWith(value))?
+          {url:location.href,text,sharedAccountId:document.querySelector('[data-shared-account]')?.dataset.sharedAccount??null}:null;})()`),
       'actual Cookie target document; IPv6 host mapping must reach the owned fixture');
     const ownedRequests=h.cookieFixtureRequests().slice(before);
     assert(ownedRequests.some(row=>row.method==='GET'&&row.path==='/session/'),
@@ -91,7 +126,7 @@ export async function exerciseManagedProxyDevelopmentCore(h){
     assert(['::1','[::1]'].includes(response.remoteIPAddress),'Cookie target must use the owned IPv6 listener');
     assert.equal(response.remotePort,7898);
     assert.equal(response.status,200);
-    assert.equal(document.text,expected,'Actual target page session state');
+    assert(document.text.startsWith(expected),'Actual target page session state');
     const result={document,response,ownedRequests};
     step(name,{status:'PASS',...result});return result;
   }
@@ -180,6 +215,201 @@ export async function exerciseManagedProxyDevelopmentCore(h){
     row.requestId===request.requestId&&row.instance===request.instance);
     return sanitizeManagedProxyEvidence({...request,ok:response?.ok,status:response?.result?.status,data:response?.result?.data});});
   step('DEV_MEMBER_REDEEMED',{status:'PASS',member,businessReceipts});
+  if(sharedCore){
+    const hostPages=[];
+    const expression=(fn,...args)=>'('+fn.toString()+')('+args.map(arg=>JSON.stringify(arg)).join(',')+')';
+    const inFrame=(fn,...args)=>read(expression(fn,...args));
+    const cookieBatches=()=>evalAt(panelSession,'globalThis.__managedDevCookieRequests');
+    const activationCounts=async()=>({
+      previews:h.cookieFixtureRequests().filter(row=>row.method==='POST'&&row.path==='/api/preview').length,
+      redemptions:h.cookieFixtureRequests().filter(row=>row.method==='POST'&&row.path==='/api/redeem').length,
+      sessions:(await evalAt(panelSession,'globalThis.__managedDevBusinessRequests')).filter(row=>row.session).length,
+      cookieBatches:(await cookieBatches()).length,
+      openedTargets:(await evalAt(panelSession,'globalThis.__managedDevTabRequests')).length
+    });
+    async function targetIdentity(session,id){
+      return until(()=>evalAt(session,expression((target,assigned)=>{
+        if(location.href!==target||document.readyState!=='complete')return null;
+        const identity=document.querySelector('[data-shared-account]');
+        return identity?.dataset.sharedAccount===assigned&&document.body.innerText.startsWith('受控会话有效')?
+          {url:location.href,sharedAccountId:identity.dataset.sharedAccount,label:identity.textContent}:null;
+      },cookieTarget,id)),'actual Host-opened target identity');
+    }
+    async function installAssignment(id,entry,index){
+      await settled(()=>inFrame(()=>{
+        const assigned=document.getElementById('ai-vip-shared-account');
+        const install=document.getElementById('ai-vip-cookie-install');
+        return assigned?.tagName==='P'&&assigned.textContent.trim()&&
+          document.getElementById('ai-vip-shared-status')?.textContent.includes('服务器已交付')&&
+          install&&!install.disabled&&!install.closest('[hidden]');
+      }),'server-assigned delivery for '+entry);
+      const delivered=await inFrame(assigned=>{
+        const response=[...globalThis.__managedDevResponses].reverse().find(row=>
+          row.result?.data?.sharedAccountId===assigned&&row.result.data.cookieDelivery);
+        if(!response)return null;
+        const data=response.result.data;
+        const redemption=globalThis.__managedDevResponses.find(row=>
+          row.result?.data?.status==='redeemed'&&row.result.data.redemptionId===data.redemptionId);
+        const member=[...globalThis.__managedDevResponses].reverse().find(row=>
+          row.result?.data?.sharedAccounts?.redemptionId===data.redemptionId)?.result.data;
+        return {requestId:response.requestId,instance:response.instance,response:data,
+          redemption:redemption?.result.data,assignment:member?.sharedAccounts,
+          valid:globalThis.__managedDevCookieDeliveries.some(row=>row.requestId===response.requestId&&
+            row.instance===response.instance&&row.valid)};
+      },id);
+      assert.equal(delivered?.valid,true,'Server returns a valid assigned Cookie delivery');
+      assert.equal(delivered.assignment?.assignedAccountId,id);
+      assert.equal(delivered.assignment.accounts.length,1,'The server assigns exactly one account');
+      assert.equal(delivered.assignment.accounts[0].id,id);
+      assert.equal(delivered.assignment.accounts[0].targetUrl,cookieTarget);
+      assert.equal(delivered.redemption?.accountId,delivered.response.accountId);
+      assert.equal(delivered.redemption?.redemptionId,delivered.response.redemptionId);
+      const sessionRequest=(await evalAt(panelSession,'globalThis.__managedDevBusinessRequests')).find(row=>
+        row.requestId===delivered.requestId&&row.instance===delivered.instance);
+      assert(sessionRequest?.session,'Assigned delivery must follow the existing sharedSession protocol');
+      assert.deepEqual([...sessionRequest.requestKeys].sort(),['accountId','operation','redemptionId','requestId']);
+      assert.equal(sessionRequest.session.accountId,delivered.response.accountId);
+      assert.equal(sessionRequest.session.redemptionId,delivered.response.redemptionId);
+      assert.equal(sessionRequest.session.requestId,delivered.response.requestId);
+      assert.equal((await cookieBatches()).length,index,'Activation cannot silently install Cookies');
+      step('DEV_ACTIVATION_'+entry+'_ASSIGNED',{status:'PASS',sharedAccountId:id,
+        delivery:delivered,sessionRequest});
+
+      const beforeTargets=new Set((await client.send('Target.getTargets')).targetInfos.map(row=>row.targetId));
+      const beforeTabs=(await evalAt(panelSession,'globalThis.__managedDevTabRequests')).length;
+      const beforeHttp=h.cookieFixtureRequests().length;
+      const inputStart=(await read('globalThis.__managedDevInput')).length;
+      await click('ai-vip-cookie-install');
+      const summary=await until(async()=>{
+        const value=await evalAt(panelSession,expression(()=>{
+          const button=document.querySelector('#sidebar-tool-action-continue');
+          return button&&!button.disabled&&!button.closest('[hidden]')&&button.getBoundingClientRect().height>0?
+            document.querySelector('#sidebar-tool-action-summary')?.textContent:null;
+        }));
+        if(value?.includes('批量写入'))return value;
+        if(value)await approvePending();
+        return null;
+      },'exact assigned Cookie batch review');
+      assert(summary.includes('http://127.0.0.1:7898')&&summary.includes('批量写入 2 条 Cookie'));
+      const batches=await cookieBatches();
+      assert.equal(batches.length,index+1);
+      const request=batches.at(-1);
+      assert.equal(request.operation,'browser.cookies.setMany');
+      assert.equal(request.payload.url,cookieTarget);
+      assert.deepEqual(request.payload.cookies,delivered.response.cookieDelivery.cookies);
+      const inputs=(await read('globalThis.__managedDevInput')).slice(inputStart);
+      assert.equal(inputs.filter(row=>row.type==='click'&&row.isTrusted&&row.target==='ai-vip-cookie-install').length,1);
+      await clickIn(panelSession,'#sidebar-tool-action-continue','native-side-panel');
+      const response=await until(async()=>(await read('globalThis.__managedDevResponses')).find(row=>
+        row.requestId===request.requestId&&row.instance===request.instance),'real assigned Cookie acknowledgement');
+      assert.equal(response.ok,true);assert.equal(response.result.saved,2);assert.equal(response.result.verified,2);
+      assert.equal(response.result.results?.length,2);
+      for(const [cookieIndex,row]of response.result.results.entries()){
+        assert.equal(row.index,cookieIndex);assert.equal(row.saved,true);assert.equal(row.verified,true);
+      }
+      step('DEV_ACTIVATION_'+entry+'_COOKIE_BATCH',{status:'PASS',summary,request,response,inputs});
+
+      // Require the SDK request/ack and its new target. Do not navigate a
+      // test-created tab and call that the tool's open-target result.
+      const opened=await settled(async()=>{
+        const tabRequest=(await evalAt(panelSession,'globalThis.__managedDevTabRequests')).slice(beforeTabs)
+          .find(row=>row.payload?.url===cookieTarget);
+        if(!tabRequest)return null;
+        const ack=(await read('globalThis.__managedDevResponses')).find(row=>
+          row.requestId===tabRequest.requestId&&row.instance===tabRequest.instance);
+        if(!ack)return null;
+        assert.equal(ack.ok,true,'Original Host must acknowledge tabs.create');
+        const targets=(await client.send('Target.getTargets')).targetInfos.filter(row=>
+          row.type==='page'&&row.url===cookieTarget&&!beforeTargets.has(row.targetId));
+        assert(targets.length<=1,'One activation must open one target');
+        return targets.length===1?{target:targets[0],request:tabRequest,response:ack}:null;
+      },'Host tabs.create opens the assigned target');
+      const session=(await client.send('Target.attachToTarget',{targetId:opened.target.targetId,flatten:true})).sessionId;
+      for(const domain of ['Runtime','Page','Network'])await client.send(domain+'.enable',{},session);
+      const document=await targetIdentity(session,id);
+      assert(h.cookieFixtureRequests().slice(beforeHttp).some(row=>row.method==='GET'&&row.path==='/session/'),
+        'Host-opened target must reach the owned IPv6 fixture');
+      hostPages.push({targetId:opened.target.targetId,session});
+      step('DEV_ACTIVATION_'+entry+'_HOST_TARGET',{status:'PASS',targetId:opened.target.targetId,
+        request:opened.request,response:opened.response,document});
+      const independent=await checkCookieSession('受控会话有效','DEV_ACTIVATION_'+entry+'_SESSION');
+      assert.equal(independent.document.sharedAccountId,id,'Real webpage must match server assignment');
+      return delivered;
+    }
+    const first=await installAssignment('shared-a','MANUAL',0);
+    async function navigateActivation(url){
+      await client.send('Target.activateTarget',{targetId:cookiePageId});
+      const navigation=await client.send('Page.navigate',{url},cookiePage);
+      assert(!navigation.errorText,'Activation page navigation failed');
+      await until(()=>evalAt(cookiePage,expression(expected=>
+        document.readyState==='complete'&&location.href===expected,url)),'activation URL document');
+      assert.equal(await evalAt(panelSession,'!!document.querySelector("#sidebar-tool-frame iframe")?.contentWindow'),true);
+      // The already-open installed tool must observe currentPage.info itself.
+      assert.equal((await toolFrame(panelSession,'#ai-vip-member-state')).frameId,frame.frameId);
+    }
+    async function quietInterval(){
+      // Observe more than two actual 1200 ms metadata polls, without calling
+      // the activation function, emitting events or reloading the sandbox.
+      await evalAt(panelSession,'new Promise(done=>setTimeout(()=>done(true),2800))');
+    }
+    const initial=await activationCounts();
+    assert.deepEqual(initial,{previews:1,redemptions:1,sessions:1,cookieBatches:1,openedTargets:1});
+    const invalidUrls=[
+      ['origin','http://[::1]:7898/activate?activation_code=DEMO-VIP-02'],
+      ['path','http://127.0.0.1:7898/session/?activation_code=DEMO-VIP-02'],
+      ['missing','http://127.0.0.1:7898/activate'],
+      ['invalid','http://127.0.0.1:7898/activate?activation_code=bad!'],
+      ['duplicate','http://127.0.0.1:7898/activate?activation_code=DEMO-VIP-02&activation_code=DEMO-VIP-02']
+    ];
+    if(process.env.OPENDESK_VIP_URL_BOUNDARIES==='1'){
+      for(const [boundary,url]of invalidUrls){
+        await navigateActivation(url);await quietInterval();
+        assert.deepEqual(await activationCounts(),initial,'Rejected URL cannot activate or write: '+boundary);
+      }
+      step('DEV_ACTIVATION_URL_BOUNDARIES',{status:'PASS',boundaries:invalidUrls.map(([name])=>name),counts:initial});
+    }else{
+      step('DEV_ACTIVATION_URL_BOUNDARIES',{status:'NOT_TESTED',reason:'Optional URL boundary checks not requested'});
+    }
+
+    const activationUrl='http://127.0.0.1:7898/activate?activation_code=DEMO-VIP-02';
+    await navigateActivation(activationUrl);
+    const second=await installAssignment('shared-b','URL',1);
+    assert.notEqual(second.response.redemptionId,first.response.redemptionId);
+    assert.notEqual(second.response.cookieDelivery.deliveryId,first.response.cookieDelivery.deliveryId);
+    const after=await activationCounts();
+    assert.deepEqual(after,{previews:2,redemptions:2,sessions:2,cookieBatches:2,openedTargets:2});
+    await client.send('Page.reload',{ignoreCache:true},hostPages[0].session);
+    const replaced=await targetIdentity(hostPages[0].session,'shared-b');
+    step('DEV_ACTIVATION_OLD_SESSION_REPLACED',{status:'PASS',document:replaced});
+
+    await navigateActivation(activationUrl);await quietInterval();
+    assert.deepEqual(await activationCounts(),after,'Repeated URL cannot consume again or write again');
+    step('DEV_ACTIVATION_URL_NO_REPLAY',{status:'PASS',counts:after});
+    step('DEV_ACTIVATION_BEFORE_REOPEN',{status:'OBSERVED',editStates:await evalAt(panelSession,'globalThis.__managedDevEditStates.slice(-8)')});
+    // Normal top-level navigation suspends and destroys the old sandbox. It
+    // avoids conflating this tool's recovery test with the shared Back control.
+    await clickIn(panelSession,'#tab-my-tasks','native-side-panel');
+    await until(()=>evalAt(panelSession,`document.documentElement.dataset.opendeskTab==='tasks'&&
+      !document.querySelector('#sidebar-tool-frame iframe')`),'old tool sandbox suspended by My tab');
+    await clickIn(panelSession,'#tab-tools','native-side-panel');
+    const selector='#extension-center-list button[data-extension-key="app:ai-vip-share"][data-extension-action="main"]';
+    await settled(()=>evalAt(panelSession,expression(selector=>{
+      const row=document.querySelector(selector);
+      if(!row||row.closest('[hidden]')||row.getBoundingClientRect().height<=0)return false;
+      row.scrollIntoView({block:'center'});return true;
+    },selector)),'visible installed app list after leaving tool');
+    await clickIn(panelSession,selector,'native-side-panel');
+    frame=await until(async()=>{try{return await toolFrame(panelSession,'#ai-vip-member-state');}catch{return null;}},'reopened activation app');
+    await observeFrame();
+    await settled(async()=>await text('ai-vip-member-state')==='权益有效','reopened member');
+    await quietInterval();
+    assert.deepEqual(await activationCounts(),after,'Reopened app cannot replay activation or Cookie writes');
+    assert.equal(await read('document.getElementById("ai-vip-cookie-install").hidden'),true);
+    step('DEV_ACTIVATION_REOPEN_NO_REPLAY',{status:'PASS',counts:after});
+    for(const target of hostPages)await client.send('Target.closeTarget',{targetId:target.targetId});
+    await client.send('Target.closeTarget',{targetId:cookiePageId});
+    return;
+  }
   if(cookieFlow){
     const checks=await read('globalThis.__managedDevCookieDeliveries');
     const redeem=businessReceipts.find(row=>row.method==='POST'&&row.url===

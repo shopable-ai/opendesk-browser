@@ -46,6 +46,9 @@
   const localConnect=byId('ai-vip-local-connect'),localStatus=byId('ai-vip-local-status');
   const cookieSection=byId('ai-vip-cookie-section'),cookieStatus=byId('ai-vip-cookie-status');
   const cookieInstall=byId('ai-vip-cookie-install'),cookieResults=byId('ai-vip-cookie-results');
+  const sharedSection=byId('ai-vip-shared-section'),sharedAssigned=byId('ai-vip-shared-account');
+  const sharedStatus=byId('ai-vip-shared-status'),sharedReceive=byId('ai-vip-shared-receive');
+  const cookieOpen=byId('ai-vip-cookie-open');
   if([memberState,accountName,productName,remaining,unit,expiry,verified,
     benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
@@ -103,9 +106,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.3.8';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.0';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -118,6 +121,8 @@
     'E_COOKIE_PARTITION','E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED',
     'E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_PERMISSION','E_SCHEMA','E_LIMIT']);
   let cookiePending=null,cookieRecord=null,cookieReady=false,cookieBusy=false,cookieFault='';
+  let cookieFaultRecoverable=false;
+  let sharedCatalog=null,sharedId='',sharedGeneration=0,sharedBusy=false,sharedNotice='',acquireAfterActivation=false;
   let localSwitchBlocked=()=>false,refreshDevelopmentAvailability=async()=>{};
   // Provider clock, not device Date.now(), determines preview validity.
   // A stale member snapshot cannot authorize a new voucher side effect.
@@ -155,6 +160,97 @@
     throw error;
   }
   const exactKeys=(value,keys)=>plain(value)&&Object.keys(value).every(key=>keys.includes(key));
+  const cookieScope=rows=>JSON.stringify(rows.map(row=>[row.name,row.path,row.domain||'']).sort());
+  function validateSharedCatalog(data){
+    if(data===undefined)return null;
+    if(!exactKeys(data,['schemaVersion','companyId','assignedAccountId','redemptionId','accounts'])||data.schemaVersion!==1||
+      !safeString(data.companyId,120)||!safeString(data.assignedAccountId,120)||!safeString(data.redemptionId,120)||
+      !Array.isArray(data.accounts)||data.accounts.length!==1||data.accounts[0]?.id!==data.assignedAccountId)
+      fail('E_SHARED_SCHEMA','共享账号目录无效');
+    const ids=new Set(),scopes=new Map();
+    const accounts=data.accounts.map(row=>{
+      if(!exactKeys(row,['id','label','targetUrl','cookieScope'])||!safeString(row.id,120)||
+        ids.has(row.id)||!safeString(row.label,100)||!cookieTarget(row.targetUrl)||
+        !Array.isArray(row.cookieScope)||!row.cookieScope.length||row.cookieScope.length>50)
+        fail('E_SHARED_SCHEMA','共享账号或目标无效');
+      ids.add(row.id);
+      const identities=new Set();
+      for(const slot of row.cookieScope){
+        if(!exactKeys(slot,['name','path','domain'])||!safeString(slot.name,256)||/[;=\s\x00-\x1f\x7f]/.test(slot.name)||
+          typeof slot.path!=='string'||!slot.path.startsWith('/')||slot.path.length>512||/[\r\n;]/.test(slot.path)||
+          (slot.domain!==undefined&&slot.domain!==new URL(row.targetUrl).hostname)||
+          identities.has(slot.name+'\n'+slot.path))fail('E_SHARED_SCHEMA','共享会话范围无效');
+        identities.add(slot.name+'\n'+slot.path);
+      }
+      const scope=cookieScope(row.cookieScope);
+      if(scopes.has(row.targetUrl)&&scopes.get(row.targetUrl)!==scope)
+        fail('E_SHARED_SCHEMA','同一目标的账号必须完整替换相同会话范围');
+      scopes.set(row.targetUrl,scope);
+      return {...row,cookieScope:row.cookieScope.map(slot=>({...slot}))};
+    });
+    return {companyId:data.companyId,assignedAccountId:data.assignedAccountId,redemptionId:data.redemptionId,accounts};
+  }
+  function invalidateShared(){
+    sharedGeneration++;sharedBusy=false;sharedCatalog=null;sharedId='';
+    if(cookiePending?.sharedAccountId)cookiePending=null;
+  }
+  function assignedShared(){return sharedCatalog?.accounts.find(row=>row.id===sharedId);}
+  function renderShared(){
+    if(!sharedSection||!sharedAssigned||!sharedStatus||!sharedReceive)return;
+    sharedSection.hidden=!sharedCatalog;
+    sharedAssigned.textContent=assignedShared()?.label||'尚未分配';
+    sharedReceive.disabled=busy||cookieBusy||sharedBusy||!assignedShared()||
+      !cookieReady||(Boolean(cookieFault)&&!cookieFaultRecoverable)||['unknown','partial'].includes(cookieRecord?.state);
+    sharedStatus.textContent=['unknown','partial'].includes(cookieRecord?.state)?
+      '上次会话写入结果仍需人工核对；已停止取得会话，不会自动重放。':
+      sharedBusy?'正在取得服务器分配账号的会话…':sharedNotice||
+      (assignedShared()?'服务器已分配 '+assignedShared().label+'；尚未写入目标网站。':'当前没有服务器分配的账号。');
+    if(cookieBusy)refresh.disabled=true;
+  }
+  async function requestSharedSession(){
+    const selected=assignedShared();
+    if(!selected||busy||sharedBusy||cookieBusy||!endpoints||!cookieReady||(cookieFault&&!cookieFaultRecoverable)||
+      ['unknown','partial'].includes(cookieRecord?.state))return;
+    if(cookieFaultRecoverable){cookieFault='';cookieFaultRecoverable=false;}
+    const generation=++sharedGeneration,revision=serviceRevision,accountId=snapshot?.account.id;
+    const companyId=sharedCatalog.companyId,redemptionId=sharedCatalog.redemptionId,requestId=crypto.randomUUID();
+    cookiePending=null;sharedBusy=true;sharedNotice='';renderRedeem();
+    try{
+      // The same authenticated business endpoint handles a distinct, structured session request.
+      const result=await businessRequest('POST',endpoints.voucherStatus,
+        {operation:'sharedSession',accountId,redemptionId,requestId});
+      if(generation!==sharedGeneration||revision!==serviceRevision)return;
+      const now=estimatedServerNow();
+      if(!exactKeys(result,['schemaVersion','accountId','sharedAccountId','redemptionId','requestId','serverNow','cookieDelivery'])||
+        result.schemaVersion!==1||result.accountId!==accountId||snapshot?.account.id!==accountId||
+        result.sharedAccountId!==sharedCatalog?.assignedAccountId||result.redemptionId!==redemptionId||
+        sharedCatalog?.redemptionId!==redemptionId||result.requestId!==requestId||dateMs(result.serverNow)===null||
+        now===null||Math.abs(now-result.serverNow)>30000||sharedCatalog?.companyId!==companyId)
+        fail('E_SHARED_IDENTITY','交付与当前共享账号不符');
+      const delivery=validateCookieDelivery(result.cookieDelivery);
+      if(delivery.targetUrl!==selected.targetUrl||cookieScope(delivery.payload.cookies)!==cookieScope(selected.cookieScope))
+        fail('E_SHARED_SCOPE','交付未完整覆盖该账号已批准的会话范围');
+      receiveCookies(result);
+      if(!cookiePending)fail('E_SHARED_DELIVERY','交付无法接收');
+      cookiePending={...cookiePending,accountId,sharedAccountId:result.sharedAccountId,companyId,redemptionId,
+        scope:cookieScope(selected.cookieScope),revision,assignmentGeneration:generation};
+      sharedNotice='服务器已交付 '+selected.label+'。请确认写入，再到目标网页核对账号。';
+    }catch{
+      if(generation!==sharedGeneration||revision!==serviceRevision)return;
+      cookiePending=null;sharedNotice='未取得有效的服务器分配账号交付；请刷新授权目录后重试。未写入 Cookie。';
+    }finally{
+      if(generation===sharedGeneration){sharedBusy=false;renderRedeem();}
+    }
+  }
+  sharedReceive?.addEventListener('click',event=>{
+    if(event.isTrusted===true&&!sharedReceive.disabled)void requestSharedSession();
+  });
+  async function openCookieTarget(){
+    if(cookieRecord?.state!=='success'||!cookieTarget(cookieRecord.targetUrl))return;
+    try{await window.OpenDeskSDK.browser.tabs.create({url:cookieRecord.targetUrl});}
+    catch{sharedNotice='Cookie 已写入，但目标网页未能打开；请手动打开目标站核对账号。';renderShared();}
+  }
+  cookieOpen?.addEventListener('click',event=>{if(event.isTrusted===true)void openCookieTarget();});
   function cookieTarget(url){
     const targets=localMode&&developmentProfile?[LOCAL_ORIGIN+'/session/']:COOKIE_TARGETS;
     return typeof url==='string'&&targets.includes(url);
@@ -211,14 +307,16 @@
       record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId)?labels[record.state]:
         cookiePending?'已收到 '+cookiePending.payload.cookies.length+' 项 Cookie，目标：'+new URL(cookiePending.targetUrl).origin+
           '。确认写入可能替换该网站当前会话。':'尚未收到 Cookie 交付。');
+    if(cookieOpen)cookieOpen.hidden=record?.state!=='success'||!cookieTarget(record.targetUrl);
   }
   async function readCookieRecord(){
     const result=await storeRequest('storage.get',{key:COOKIE_KEY,withEtag:true});
     const r=result?.value;
     if(!plain(result)||result.preview===true||typeof result.etag!=='string'||! /^[a-f0-9]{64}$/.test(result.etag)||
-      (r!==null&&(!exactKeys(r,['schemaVersion','deliveryId','attemptId','accountId','serviceOrigin','targetUrl','state','count','results','seen'])||
+      (r!==null&&(!exactKeys(r,['schemaVersion','deliveryId','attemptId','accountId','serviceOrigin','targetUrl','state','count','results','seen','sharedAccountId','scope'])||
         r.schemaVersion!==1||!safeString(r.deliveryId,120)||!safeString(r.attemptId,120)||
         !safeString(r.accountId,120)||typeof r.serviceOrigin!=='string'||typeof r.targetUrl!=='string'||
+        (r.sharedAccountId!==undefined&&(!safeString(r.sharedAccountId,120)||typeof r.scope!=='string'||r.scope.length>16000))||
         !['success','partial','failed','unknown'].includes(r.state)||!Number.isInteger(r.count)||r.count<1||r.count>50||
         !Array.isArray(r.seen)||r.seen.length>50||r.seen.some(row=>!exactKeys(row,['deliveryId','expiresAt'])||
           !safeString(row.deliveryId,120)||dateMs(row.expiresAt)===null)||
@@ -233,7 +331,7 @@
     catch{/* Acknowledgement loss is resolved only by exact readback, never by repeating a write. */}
     const after=await readCookieRecord();
     const comparable=r=>r===null?null:JSON.stringify([r.schemaVersion,r.deliveryId,r.attemptId,r.accountId,
-      r.serviceOrigin,r.targetUrl,r.state,r.count,r.results.map(row=>[row.index,row.saved,row.verified,row.code]),
+      r.serviceOrigin,r.targetUrl,r.state,r.count,r.sharedAccountId,r.scope,r.results.map(row=>[row.index,row.saved,row.verified,row.code]),
       r.seen.map(row=>[row.deliveryId,row.expiresAt])]);
     if(comparable(after.value)!==comparable(record))fail('E_COOKIE_STORAGE','Cookie 恢复记录未持久确认');
     cookieRecord=record;return after;
@@ -283,18 +381,31 @@
         if(delivery.revision!==serviceRevision||snapshot?.account.id!==delivery.accountId||
           now===null||delivery.expiresAt<=now||!cookieTarget(delivery.targetUrl))
           fail('E_COOKIE_DELIVERY','交付已失效或账号已变化');
+        if(delivery.sharedAccountId){
+          const latest=verifiedMember(await businessRequest('GET',endpoints.member));
+          acceptMemberSnapshot(latest);
+          if(delivery.assignmentGeneration!==sharedGeneration||sharedId!==delivery.sharedAccountId||
+            sharedCatalog?.companyId!==delivery.companyId||sharedCatalog?.redemptionId!==delivery.redemptionId||
+          snapshot.account.id!==delivery.accountId||
+            cookieScope(assignedShared()?.cookieScope||[])!==delivery.scope)
+            fail('E_COOKIE_DELIVERY','共享账号已变化或授权已撤销');
+        }
         const before=await readCookieRecord(),old=before.value;
         if(old&&(['unknown','partial'].includes(old.state)||
           old.seen.some(row=>row.deliveryId===delivery.deliveryId)&&!(old.deliveryId===delivery.deliveryId&&old.state==='failed')))
           fail('E_COOKIE_REPLAY','此交付已执行或上次结果待核对，禁止重放');
+        if(delivery.sharedAccountId&&old?.scope&&old.targetUrl===delivery.targetUrl&&old.scope!==delivery.scope)
+          fail('E_COOKIE_SCOPE','会话范围已变化，禁止留下旧账号的未替换 Cookie');
         const seen=(old?.seen||[]).filter(row=>row.expiresAt>now&&row.deliveryId!==delivery.deliveryId);
         if(seen.length>=50)fail('E_COOKIE_LIMIT','仍有效的交付记录过多，请稍后再试');
         seen.push({deliveryId:delivery.deliveryId,expiresAt:delivery.expiresAt});
         const record={schemaVersion:1,deliveryId:delivery.deliveryId,attemptId:crypto.randomUUID(),
           accountId:delivery.accountId,serviceOrigin:new URL(endpoints.member).origin,targetUrl:delivery.targetUrl,
+          ...(delivery.sharedAccountId?{sharedAccountId:delivery.sharedAccountId,scope:delivery.scope}:{}),
           state:'unknown',count:delivery.payload.cookies.length,results:[],seen};
         marker=await saveCookieRecord(record,before);
         if(delivery.revision!==serviceRevision||snapshot?.account.id!==delivery.accountId||
+          (delivery.sharedAccountId&&(sharedId!==delivery.sharedAccountId||delivery.assignmentGeneration!==sharedGeneration))||
           estimatedServerNow()===null||delivery.expiresAt<=estimatedServerNow())
           fail('E_COOKIE_DELIVERY','交付状态已变化');
         started=true;
@@ -302,7 +413,13 @@
         const outcome=cookieOutcome(result,record.count);
         await saveCookieRecord({...record,...outcome},marker);
         if(outcome.state!=='failed')cookiePending=null;
+        if(delivery.sharedAccountId){
+          sharedNotice=outcome.state==='success'?'已写入 '+assignedShared().label+'；正在打开目标网页，请核对实际账号。':
+            '账号切换未完成；请核对逐项回执与目标页面，不会自动重试。';
+          if(outcome.state==='success')await openCookieTarget();
+        }
       }catch(error){
+        cookieFaultRecoverable=!started&&error?.code==='E_COOKIE_DELIVERY';
         // Before invocation there can be no Cookie effect. The SDK also rejects
         // schema/budget/permission preflight before its per-item write loop.
         if(marker&&(!started||['E_SITE_GRANT_REQUIRED','E_CHROME_PERMISSION_REQUIRED','E_SCHEMA','E_LIMIT'].includes(error?.code))){
@@ -339,7 +456,7 @@
     localConnect.textContent=localConnecting?'正在连接…':localMode?'退出本地开发':'连接本地开发';
     localConnect.setAttribute('aria-pressed',String(localMode));
     localStatus.textContent=localNotice||(localMode?
-      '本地开发 · 已选择 127.0.0.1:7898 演示服务。兑换 DEMO-VIP-01 后才授予演示权益；不是付费会员。':
+      '本地开发 · 已选择 127.0.0.1:7898 演示服务。使用测试激活码后由服务端分配账号；不是付费会员。':
       '本地开发 · 尚未连接。主动连接后使用本机演示账号与兑换服务，不代表正式会员或代理已启用。');
   }
   function renderFeatureStatus(){
@@ -353,7 +470,7 @@
         '正式账号服务未配置，暂不能登录、绑定或查询权益。');
     set('feature-redeem',endpoints?'账号核验后显示输入框；先预检再确认。兑换记录随权益刷新，结果未知时使用「核对上次兑换」。':
       '正式兑换服务未配置，输入框暂不显示；专属链接和旧设备激活也不能代替兑换服务。');
-    set('feature-cookie',localMode?'仅演示测试站点。有效兑换回执后显示写入确认；写入后仍需到目标页面验证会话。':
+    set('feature-cookie',localMode?'仅演示测试站点。激活后从服务器取得公司共享账号；不能自选目标账号；确认写入后到测试站核对实际账号。':
       COOKIE_TARGETS.length?'仅接收已批准目标的有效交付，逐项确认写入后到目标页面核对。':
         '生产目标未配置；收到有效交付后才可核对目标并确认写入。');
     set('feature-shop',catalog?'从「查看更多商品」打开已配置目录；商品购买与兑换结果分别核验。':
@@ -376,6 +493,7 @@
   }
   function changeBusinessMode(development){
     if(localMode===development)return;
+    invalidateShared();sharedNotice='';acquireAfterActivation=false;
     localMode=development;
     endpoints=development?LOCAL_ENDPOINTS:productionEndpoints;
     ++serviceRevision;++seq;
@@ -575,6 +693,7 @@
       account.state==='guest'&&(data.entitlements.length||data.redemptions.length))
       fail('E_MEMBER_SCHEMA','账号与权益归属不一致');
     return {serverNow:data.serverNow,account,
+      sharedAccounts:account.state==='bound'?validateSharedCatalog(data.sharedAccounts):null,
       entitlements:data.entitlements.map(verifiedEntitlement),
       redemptions:data.redemptions.map(verifiedRecord)};
   }
@@ -666,7 +785,8 @@
   function renderRedeem(){
     const accountReady=Boolean(endpoints)&&snapshot?.account.state==='bound';
     const locked=Boolean(recovery||recoveryFault);
-    const allowed=accountReady&&!busy&&!cookieBusy&&recoveryReady&&!locked;
+    const allowed=accountReady&&!busy&&!cookieBusy&&recoveryReady&&!locked&&
+      !['unknown','partial'].includes(cookieRecord?.state);
     const showForm=accountReady&&!locked;
     redeemForm.hidden=!showForm;
     redeemIntro.hidden=!showForm;
@@ -674,7 +794,7 @@
     code.disabled=!allowed||Boolean(pending);
     redeem.disabled=!allowed||Boolean(pending)||
       !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
-    redeem.textContent=busy?'正在处理…':'预检兑换';
+    redeem.textContent=busy?'正在处理…':'预检激活';
     confirm.disabled=!allowed||!pending;
     previewPanel.hidden=!pending;
     cancel.hidden=!pending;
@@ -691,6 +811,9 @@
     refreshProxyPresentation();
     renderLocalDevelopment();
     renderCookies();
+    renderShared();
+    window.OpenDeskTool.setState?.({dirty:Boolean(code.value||pending||cookiePending),
+      busy:busy||cookieBusy||sharedBusy});
   }
   function redeemNotice(message,error=false){
     redeemStatus.textContent=message;
@@ -716,7 +839,20 @@
     return result.data;
   }
   function acceptMemberSnapshot(data){
-    snapshot=data;
+    const selected=assignedShared();
+    const next=data.sharedAccounts;
+    const replacement=next?.accounts.find(row=>row.id===sharedId);
+    if(snapshot?.account.id!==data.account.id||sharedCatalog?.companyId!==next?.companyId||sharedCatalog?.redemptionId!==next?.redemptionId||
+      (selected&&(!replacement||replacement.targetUrl!==selected.targetUrl||cookieScope(replacement.cookieScope)!==cookieScope(selected.cookieScope)))){
+      invalidateShared();sharedNotice='账号或授权目录已变化，请重新取得会话。';
+    }
+    sharedCatalog=next;
+    sharedId=next?.assignedAccountId||'';
+    // A slow member response cannot move the sampled server clock backwards
+    // and thereby extend a previously received Cookie delivery.
+    const floor=snapshot&&serverSampleAt!==null?
+      snapshot.serverNow+Math.max(0,performance.now()-serverSampleAt):data.serverNow;
+    snapshot={...data,serverNow:Math.max(data.serverNow,floor)};
     if(cookiePending?.accountId!==data.account.id)cookiePending=null;
     serverSampleAt=performance.now();
     if(pending&&pending.accountId!==data.account.id){
@@ -744,6 +880,7 @@
     }catch(error){
       if(current!==seq)return;
       snapshot=null;serverSampleAt=null;
+      invalidateShared();cookiePending=null;
       pending=null;code.value='';
       memberCard.setAttribute('data-view','failed');
       memberState.textContent='无法核验';
@@ -762,7 +899,10 @@
         redeemNotice('服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。');
       else redeemNotice('会员无法核验，兑换已暂停。',true);
     }finally{
-      if(current===seq){busy=false;refresh.disabled=false;if(snapshot)renderMember();else renderRedeem();}
+      if(current===seq){
+        busy=false;refresh.disabled=false;if(snapshot)renderMember();else renderRedeem();
+        if(acquireAfterActivation&&snapshot){acquireAfterActivation=false;void requestSharedSession();}
+      }
     }
   }
   function validatePreview(data){
@@ -790,12 +930,17 @@
     return data;
   }
   async function redeemClick(event){
-    if(event?.isTrusted!==true||busy||cookieBusy||!endpoints||!recoveryReady||
-      recovery||recoveryFault||snapshot?.account.state!=='bound')return;
+    if(event?.isTrusted!==true)return;
+    return runActivation(code.value.trim());
+  }
+  // Both entry points use this private flow. URL input never fabricates a trusted event.
+  async function runActivation(value,automatic=false,urlCode=value){
+    if(busy||cookieBusy||!endpoints||!recoveryReady||
+      recovery||recoveryFault||['unknown','partial'].includes(cookieRecord?.state)||snapshot?.account.state!=='bound')return;
     if(!pending){
-      const value=code.value.trim();
       if(!/^[A-Za-z0-9._-]{6,120}$/.test(value))return;
       const accountId=snapshot.account.id;
+      sharedGeneration++;sharedBusy=false;cookiePending=null;sharedNotice='';
       busy=true;renderRedeem();redeemNotice('正在请求服务端核验兑换内容…');
       try{
         const result=validatePreview(await businessRequest('POST',endpoints.voucherPreview,{code:value}));
@@ -810,7 +955,15 @@
       }finally{
         busy=false;renderRedeem();
         // The input becomes disabled after preflight; move focus to the review.
-        if(pending)confirm.focus?.({preventScroll:true});
+        if(pending&&!automatic)confirm.focus?.({preventScroll:true});
+      }
+      if(automatic&&pending){
+        try{
+          if(activationCodeFromPage(await storeRequest('currentPage.info'))!==value){
+            pending=null;redeemNotice('激活网页已变化，未提交激活；已保留防重放记录。',true);renderRedeem();return;
+          }
+          await runActivation('',true,value);
+        }catch{pending=null;redeemNotice('无法重新核验激活网页，未提交激活。',true);renderRedeem();}
       }
       return;
     }
@@ -835,6 +988,8 @@
       const latest=verifiedMember(await businessRequest('GET',endpoints.member));
       acceptMemberSnapshot(latest);
       const currentServerNow=estimatedServerNow();
+      if(automatic&&activationCodeFromPage(await storeRequest('currentPage.info'))!==urlCode)
+        fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化');
       if(intentRevision!==serviceRevision||latest.account.state!=='bound'||latest.account.id!==accountId||
         pending?.id!==previewId||currentServerNow===null||
         pending.expiresAt<=currentServerNow)
@@ -848,6 +1003,8 @@
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
       await beginRecovery(accountId,key,redemptionIntent); // Write-ahead and verified readback.
+      if(automatic&&activationCodeFromPage(await storeRequest('currentPage.info'))!==urlCode)
+        fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化；保留事务供核对，不会提交');
       const submitNow=estimatedServerNow();
       if(intentRevision!==serviceRevision||snapshot?.account.id!==accountId||pending?.id!==previewId||
         submitNow===null||pending.expiresAt<=submitNow)
@@ -858,7 +1015,8 @@
       pending=null;code.value='';
       // Valid receipt is authoritative; failed journal clearing keeps a lock.
       await clearRecovered(key);
-      receiveCookies(result);
+      cookiePending=null;cookieFault='';
+      acquireAfterActivation=true;
       redeemNotice((localMode?'本地开发服务':'服务端')+'已确认兑换成功。正在刷新权益与兑换记录；代理状态保持不变。');
       busy=false;renderRedeem();
       await refreshMember();
@@ -902,7 +1060,8 @@
       if(data.status==='redeemed'){
         validateReceipt(data,saved.idempotencyKey);
         await clearRecovered(saved.idempotencyKey);
-        receiveCookies(data);
+        cookiePending=null;cookieFault='';
+        acquireAfterActivation=true;
         redeemNotice('服务端已确认上次兑换成功，已解除重复提交保护；请刷新权益。');
         busy=false;
         await refreshMember();
@@ -970,6 +1129,66 @@
     if(event?.isTrusted!==true)return;
     cancelPendingPreview();
   });
+  // Production activation origin/path/parameter are intentionally unconfigured.
+  // Local fixture protocol only; metadata comes from the installed public Host.
+  const ACTIVATION_URLS=Object.freeze([]);
+  const ACTIVATION_KEY='aiVipActivationR140';
+  let urlChecking=false;
+  function activationCodeFromPage(info){
+    if(!plain(info)||info.status!=='available'||typeof info.url!=='string'||info.url.length>2048)return null;
+    try{
+      const url=new URL(info.url);
+      const rules=localMode&&developmentProfile?[{origin:LOCAL_ORIGIN,path:'/activate',parameter:'activation_code'}]:ACTIVATION_URLS;
+      const rule=rules.find(row=>url.origin===row.origin&&url.pathname===row.path);
+      if(!rule||url.username||url.password||url.hash)return null;
+      const entries=[...url.searchParams.entries()];
+      if(entries.length!==1||entries[0][0]!==rule.parameter||
+        !/^[A-Za-z0-9._-]{6,120}$/.test(entries[0][1]))return null;
+      return entries[0][1];
+    }catch{return null;}
+  }
+  async function claimActivation(value,revision){
+    // Salted deduplication markers, never the URL, code, or Cookie. A claim is
+    // written and read back BEFORE any activation POST. Unknown claims stay locked.
+    const before=await storeRequest('storage.get',{key:ACTIVATION_KEY,withEtag:true});
+    const data=before.value===null?{schemaVersion:1,salt:crypto.randomUUID(),seen:[]}:before.value;
+    if(!exactKeys(data,['schemaVersion','salt','seen'])||data.schemaVersion!==1||
+      !safeString(data.salt,120)||!Array.isArray(data.seen)||data.seen.length>64||
+      data.seen.some(row=>typeof row!=='string'||!/^[a-f0-9]{64}$/.test(row)))
+      fail('E_ACTIVATION_RECORD','自动激活恢复记录无法核验；不会提交。');
+    const bytes=new TextEncoder().encode(data.salt+'\n'+value);
+    const fingerprint=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+    if(data.seen.includes(fingerprint))return false;
+    if(data.seen.length>=64)fail('E_ACTIVATION_LIMIT','自动激活记录已满；不会自动清除或重放。');
+    const next={...data,seen:[...data.seen,fingerprint]};
+    if(revision!==serviceRevision)return false;
+    await storeRequest('storage.set',{key:ACTIVATION_KEY,value:next,ifMatch:before.etag});
+    const after=await storeRequest('storage.get',{key:ACTIVATION_KEY,withEtag:true});
+    if(!exactKeys(after.value,['schemaVersion','salt','seen'])||after.value.schemaVersion!==next.schemaVersion||
+      after.value.salt!==next.salt||JSON.stringify(after.value.seen)!==JSON.stringify(next.seen))
+      fail('E_ACTIVATION_RECORD','自动激活事务未持久确认；不会提交。');
+    return revision===serviceRevision;
+  }
+  async function checkActivationPage(){
+    if(urlChecking||busy||cookieBusy||sharedBusy||pending||cookiePending||!endpoints||
+      !recoveryReady||recovery||recoveryFault||!cookieReady||cookieFault||
+      ['unknown','partial'].includes(cookieRecord?.state)||snapshot?.account.state!=='bound')return;
+    urlChecking=true;
+    const revision=serviceRevision;
+    try{
+      const info=await storeRequest('currentPage.info');
+      if(revision!==serviceRevision)return;
+      const value=activationCodeFromPage(info);
+      if(!value||!await claimActivation(value,revision))return;
+      // Metadata can change while the recovery claim is being saved.
+      const latest=await storeRequest('currentPage.info');
+      if(revision!==serviceRevision||activationCodeFromPage(latest)!==value||busy||cookieBusy||pending)return;
+      redeemNotice('已识别允许网站的激活参数，正在请求服务器分配账号…');
+      await runActivation(value,true);
+    }catch{
+      redeemNotice('自动激活尚未完成；请核对网络、当前网页读取权限和恢复记录。未确认的操作不会自动重试。',true);
+    }finally{urlChecking=false;}
+  }
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
   shop.disabled=!catalog;
   shopSection.hidden=!catalog;
@@ -1163,5 +1382,7 @@
   void loadCookieRecord();
   renderBusinessConfiguration();
   setupManagedProxy();
+  // Only the open installed app observes its current target; no background sandbox.
+  if(typeof window.setInterval==='function')window.setInterval(()=>{void checkActivationPage();},1200);
   renderRedeem();
 })();

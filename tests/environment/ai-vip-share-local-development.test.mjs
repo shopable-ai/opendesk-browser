@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createHash,randomUUID} from 'node:crypto';
+import {createHash,randomUUID,webcrypto} from 'node:crypto';
 import {PassThrough} from 'node:stream';
 import vm from 'node:vm';
 import {createLocalFixture} from '../../examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs';
@@ -38,11 +38,15 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 }
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
-  performanceClock=performance}={}){
+  performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false}={}){
   const nodes=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>[id,node(id)]));
-  const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[];
+  const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
+  let page=currentPage??{status:'unavailable'};
   let current={...released,...(developmentProfile?{developmentProfile}: {})};
   const storage=async(operation,payload)=>{
+    if(operation==='currentPage.info'){
+      pageCalls.push(operation);return clone(typeof page==='function'?await page():page);
+    }
     storageCalls.push({operation,...clone(payload)});
     const before=store.get(payload.key)??null;
     if(operation==='storage.get'){
@@ -61,24 +65,34 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     assert(['/api/member','/api/preview','/api/redeem','/api/status'].includes(new URL(args.url).pathname));
     if(network)return network(args,fixture);
     const result=await fixtureRequest(fixture,{...args,headers:args.config.headers});
-    if(receiptTransform&&result.data?.status==='redeemed')result.data=receiptTransform(clone(result.data));
+    if(cookieScopeOverride&&result.data?.sharedAccounts)for(const row of result.data.sharedAccounts.accounts)row.cookieScope=clone(cookieScopeOverride);
+    if(receiptTransform&&result.data?.cookieDelivery)result.data=receiptTransform(clone(result.data));
     return result;
   };
   const managed={getStatus:async()=>getStatus?getStatus():clone(current),
     requestEnable:async args=>{proxyCalls.push({action:'enable',...clone(args)});current={...owned,developmentProfile};return clone(current)},
     requestDisable:async()=>{proxyCalls.push({action:'disable'});current={...released,developmentProfile};return clone(current)}};
-  const window={OpenDeskTool:{root:{querySelector:id=>nodes.get(id.slice(1))},request:storage},
+  const window={OpenDeskTool:{root:{querySelector:id=>nodes.get(id.slice(1))},request:storage,
+    setState:state=>toolStates.push(clone(state))},
     OpenDeskSDK:{browser:{network:{request},proxy:{managed},cookies:{setMany:async args=>{
       cookieCalls.push(clone(args));return cookieSetMany?cookieSetMany(args):{
         saved:args.cookies.length,verified:args.cookies.length,
         results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
-    }},tabs:{create:async()=>{throw Error('unused')}}}}};
-  vm.runInNewContext(script,{window,document:{createElement:()=>node()},URL,Date,Intl,performance:performanceClock,
-    crypto:{randomUUID}}, {timeout:2000});
+    }},tabs:{create:async args=>{tabCalls.push(clone(args));return {tabRef:'fixture-tab'};}}}}};
+  // Capture polling without creating timers; each check is driven explicitly below.
+  if(pollTimers)window.setInterval=(callback,ms)=>{timers.push({callback,ms});return timers.length;};
+  // Test-only source instrumentation exposes private functions without production hooks.
+  assert.match(script,/\}\)\(\);\s*$/);
+  const instrumented=script.replace(/\}\)\(\);\s*$/,
+    'window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n})();');
+  vm.runInNewContext(instrumented,{window,document:{createElement:()=>node()},URL,Date,Intl,performance:performanceClock,
+    TextEncoder,Uint8Array,crypto:{randomUUID,subtle:webcrypto.subtle}}, {timeout:2000});
   await flush();
   const get=name=>nodes.get('ai-vip-'+name);
   const click=async(name,trusted=true)=>{get(name).listeners.click({isTrusted:trusted});await flush()};
-  return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,
+  return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,tabCalls,pageCalls,timers,toolStates,
+    activation:window.__activationTests,setPage(value){page=value},
+    async checkPage(){await window.__activationTests.checkActivationPage();await flush();},
     async preview(value='DEMO-VIP-01'){
       get('redeem-code').value=value;get('redeem-code').listeners.input();
       get('redeem-form').listeners.submit({isTrusted:true,preventDefault(){}});await flush();
@@ -123,7 +137,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.3.8');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.4.0');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
@@ -162,7 +176,7 @@ test('feature status follows explicit local selection and revocation without cla
   await e.click('local-connect');
   assert.match(e.get('service-mode').textContent,/本地演示已选择/);
   assert.match(e.get('feature-member').textContent,/实际查询结果/);
-  assert.match(e.get('feature-redeem').textContent,/先预检再确认/);
+  assert.match(e.get('feature-redeem').textContent,/预检.*确认/);
   assert.match(e.get('feature-cookie').textContent,/仅演示测试站点/);
   assert.match(e.get('feature-proxy').textContent,/演示兑换授予/);
   assert.equal(e.get('proxy-toggle').hidden,true);
@@ -207,7 +221,7 @@ test('unknown redeem acknowledgement survives reopen and only status query resol
   await reopened.click('recovery-check');
   assert.equal(reopened.store.get(RECOVERY),null);
   assert.equal(reopened.get('member-state').textContent,'权益有效');
-  assert.equal(reopened.calls.filter(row=>row.url.endsWith('/status')).length,1);
+  assert.equal(reopened.calls.filter(row=>row.url.endsWith('/status')&&!row.data?.operation).length,1);
   assert.equal(e.fixture.ledger.size,1);
   assert.equal(reopened.calls.filter(row=>row.url.endsWith('/redeem')).length,0);
 });
@@ -330,12 +344,151 @@ const syntheticDelivery=()=>({schemaVersion:1,deliveryId:randomUUID(),targetUrl:
     path:'/session/',httpOnly:true,secure:false,sameSite:'lax',expirationDate:Date.now()/1000+3600}]});
 async function cookieRuntime(options={}){
   const transform=options.receiptTransform;
-  const e=await runtime({...options,receiptTransform:r=>{
+  const e=await runtime({...options,cookieScopeOverride:options.cookieScopeOverride||[{name:'synthetic_session',path:'/session/'}],receiptTransform:r=>{
     r.cookieDelivery=syntheticDelivery();return transform?transform(r):r;
   }});
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
   return e;
 }
+// Change the assignment through the real in-memory server protocol, never a UI selector.
+async function allocateOnServer(fixture,code='DEMO-VIP-02'){
+  const headers={'X-OpenDesk-Local-Test':'1'};
+  const preview=await fixtureRequest(fixture,{method:'POST',url:ORIGIN+'/api/preview',headers,data:{code}});
+  assert.equal(preview.status,200);
+  const redeemed=await fixtureRequest(fixture,{method:'POST',url:ORIGIN+'/api/redeem',headers,
+    data:{previewId:preview.data.previewId,accountId:preview.data.accountId,idempotencyKey:randomUUID()}});
+  assert.equal(redeemed.status,200);return redeemed.data;
+}
+test('manual activation acquires only the server assignment and server reassignment replaces the approved session slots',async()=>{
+  const e=await runtime();await e.click('local-connect');
+  assert.equal(e.get('shared-section').hidden,true);
+  await e.preview();await e.click('redeem-confirm');
+  assert.equal(e.get('shared-account').textContent,'公司共享账号 A');
+  assert.equal(e.get('shared-account').listeners.change,undefined);
+  assert.match(e.get('shared-status').textContent,/服务器已交付.*账号 A/);
+  assert.equal(e.cookieCalls.length,0,'activation obtains data; the Host still reviews the exact Cookie batch');
+  await e.click('cookie-install');
+  assert.equal(e.store.get(COOKIE_KEY).sharedAccountId,'shared-a');
+  await allocateOnServer(e.fixture);await e.click('refresh');
+  assert.equal(e.get('shared-account').textContent,'公司共享账号 B');
+  await e.click('shared-receive');await e.click('cookie-install');
+  assert.equal(e.store.get(COOKIE_KEY).sharedAccountId,'shared-b');
+  assert.equal(e.store.get(COOKIE_KEY).state,'success');
+  assert.equal(e.cookieCalls.length,2);
+  for(const call of e.calls.filter(row=>row.data?.operation==='sharedSession')){
+    assert.deepEqual(Object.keys(call.data).sort(),['accountId','operation','redemptionId','requestId']);
+    assert(!Object.hasOwn(call.data,'sharedAccountId'),'client cannot select the server account');
+  }
+  for(const batch of e.cookieCalls){
+    assert.deepEqual(batch.cookies.map(row=>row.name).sort(),['opendesk_fixture_context','opendesk_fixture_session']);
+    assert.equal(batch.url,ORIGIN+'/session/');
+    for(const row of batch.cookies)assert(!JSON.stringify([...e.store.values()]).includes(row.value));
+  }
+  assert.equal(e.tabCalls.length,2);
+  assert(e.tabCalls.every(row=>row.url===ORIGIN+'/session/'));
+  const reopened=await runtime({fixture:e.fixture,store:e.store});
+  assert.equal(reopened.get('shared-account').textContent,'公司共享账号 B');
+  assert.equal(reopened.cookieCalls.length,0);assert.equal(reopened.get('cookie-install').hidden,true);
+});
+test('a late delivery for the previous server assignment cannot replace a freshly assigned session',async()=>{
+  const hold=deferred(),entered=deferred();let delay=false;
+  const e=await runtime({network:async(args,fixture)=>{
+    const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+    if(delay&&args.data?.operation==='sharedSession'&&response.data.sharedAccountId==='shared-a'){
+      entered.resolve();await hold.promise;
+    }
+    return response;
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  delay=true;e.get('shared-receive').listeners.click({isTrusted:true});await entered.promise;
+  await allocateOnServer(e.fixture);await e.click('refresh');await e.click('shared-receive');
+  assert.equal(e.get('shared-account').textContent,'公司共享账号 B');
+  hold.resolve();await e.flush();
+  assert.match(e.get('shared-status').textContent,/服务器已交付.*账号 B/);
+  await e.click('cookie-install');assert.equal(e.store.get(COOKIE_KEY).sharedAccountId,'shared-b');
+});
+test('shared invalid identity, incomplete scope and expiry never write or announce a successful switch',async()=>{
+  for(const fault of ['identity','redemption','account','target','scope','expiry']){
+    const e=await runtime({network:async(args,fixture)=>{
+      const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+      if(args.data?.operation==='sharedSession'){
+        if(fault==='identity')response.data.sharedAccountId='shared-b';
+        if(fault==='redemption')response.data.redemptionId='different-redemption';
+        if(fault==='account')response.data.accountId='different-account';
+        if(fault==='target')response.data.cookieDelivery.targetUrl='https://unrelated.test/';
+        if(fault==='scope')response.data.cookieDelivery.cookies.pop();
+        if(fault==='expiry')response.data.cookieDelivery.expiresAt=Date.now()-1000;
+      }
+      return response;
+    }});
+    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+    assert.match(e.get('shared-status').textContent,/未取得有效/);
+    await e.click('cookie-install');assert.equal(e.cookieCalls.length,0,fault);
+    assert.doesNotMatch(e.get('shared-status').textContent,/切换成功/);
+  }
+});
+test('shared partial and unknown writes block new delivery, reopening and automatic replay',async()=>{
+  for(const state of ['partial','unknown']){
+    const e=await runtime({cookieSetMany:async()=>{
+      if(state==='unknown')throw Error('ack lost');
+      return {saved:1,verified:1,stopped:true,results:[{index:0,saved:true,verified:true},{index:1,saved:false,verified:false,code:'E_GRANT_REVOKED'}]};
+    }});
+    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');await e.click('cookie-install');
+    assert.equal(e.store.get(COOKIE_KEY).state,state);
+    await e.preview('DEMO-VIP-02');await e.click('redeem-confirm');
+    assert.equal(e.fixture.ledger.size,1,'unknown or partial Cookie effects block further activation');
+    await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
+    const reopened=await runtime({fixture:e.fixture,store:e.store});
+    await reopened.click('shared-receive');await reopened.click('cookie-install');
+    assert.equal(reopened.cookieCalls.length,0);
+  }
+});
+test('shared permission revoked before confirmation cancels the batch without replacing the current session',async()=>{
+  let revoked=false;
+  const e=await runtime({network:async(args,fixture)=>{
+    const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+    if(revoked&&new URL(args.url).pathname==='/api/member')delete response.data.sharedAccounts;
+    return response;
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  revoked=true;await e.click('cookie-install');
+  assert.equal(e.cookieCalls.length,0);assert.equal(e.get('cookie-install').hidden,true);
+});
+test('shared activation cannot fall back to a redeem Cookie when the following directory is revoked',async()=>{
+  let redeemed=false;
+  const e=await runtime({network:async(args,fixture)=>{
+    const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+    if(args.url.endsWith('/redeem'))redeemed=true;
+    if(redeemed&&args.url.endsWith('/member'))delete response.data.sharedAccounts;
+    return response;
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  assert.equal(e.get('member-state').textContent,'权益有效');
+  assert.equal(e.get('cookie-install').hidden,true);
+  await e.click('cookie-install');assert.equal(e.cookieCalls.length,0);
+});
+test('shared expired unsubmitted delivery permits explicit fresh acquisition without another activation',async()=>{
+  let offset=0;
+  const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,now:()=>Date.now()+offset});
+  const e=await runtime({fixture,performanceClock:{now:()=>performance.now()+offset}});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  offset=121000;await e.click('cookie-install');assert.equal(e.cookieCalls.length,0);
+  assert.equal(e.get('shared-receive').disabled,false);
+  await e.click('shared-receive');await e.click('cookie-install');
+  assert.equal(e.cookieCalls.length,1);assert.equal(e.fixture.ledger.size,1);
+});
+test('shared delayed directory response cannot rewind server time and extend a delivery expiry',async()=>{
+  let offset=0,delay=false;
+  const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,now:()=>Date.now()+offset});
+  const e=await runtime({fixture,performanceClock:{now:()=>performance.now()+offset},network:async(args,fixture)=>{
+    const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+    if(delay&&args.url.endsWith('/member'))offset=121000;
+    return response;
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  offset=119000;delay=true;await e.click('cookie-install');
+  assert.equal(e.cookieCalls.length,0);assert.equal(e.get('cookie-install').hidden,true);
+});
 test('Cookie delivery waits for explicit user intent, uses public setMany, records no values and never replays after reopen',async()=>{
   const e=await cookieRuntime();
   assert.equal(e.get('cookie-install').disabled,false);
@@ -369,16 +522,16 @@ test('Cookie parser refuses cross-origin, script fields, store/partition overrid
   for(const mutate of mutations){
     const e=await cookieRuntime({receiptTransform:r=>{mutate(r.cookieDelivery);return r}});
     assert.equal(e.get('cookie-install').hidden,true);
-    assert.match(e.get('cookie-status').textContent,/已拒绝 Cookie 交付/);
+    assert.match(e.get('shared-status').textContent,/未取得有效/);
     assert.equal(e.cookieCalls.length,0);
     assert.equal(e.store.get(RECOVERY),null,'invalid Cookie data must not misreport redemption as unknown');
   }
   const malformed=await cookieRuntime({receiptTransform:r=>({...r,cookieDelivery:'{invalid JSON'})});
-  assert.equal(malformed.cookieCalls.length,0);assert.match(malformed.get('cookie-status').textContent,/已拒绝/);
+  assert.equal(malformed.cookieCalls.length,0);assert.match(malformed.get('shared-status').textContent,/未取得有效/);
 });
 test('partial, unknown and malformed per-item receipts remain bounded and never replay on click or reopening',async()=>{
   for(const kind of ['partial','unknown','bad-count','bad-index','saved-unverified','missing-code']){
-    const e=await cookieRuntime({receiptTransform:r=>{
+    const e=await cookieRuntime({cookieScopeOverride:[{name:'synthetic_session',path:'/session/'},{name:'synthetic_second',path:'/session/'}],receiptTransform:r=>{
       r.cookieDelivery.cookies.push({...r.cookieDelivery.cookies[0],name:'synthetic_second'});return r},
       cookieSetMany:async()=>kind==='bad-index'?{saved:1,verified:1,results:[{index:1,saved:true,verified:true}]}:
         kind==='saved-unverified'?{saved:1,verified:0,results:[{index:0,saved:true,verified:false}],stopped:true}:
@@ -437,16 +590,15 @@ test('Cookie confirmation blocks redemption controls and handlers until its rece
   const entered=deferred(),resume=deferred();
   const e=await cookieRuntime({cookieSetMany:async()=>{entered.resolve();await resume.promise;
     return {saved:1,verified:1,results:[{index:0,saved:true,verified:true}]};}});
-  await e.preview();assert.equal(e.get('redeem-confirm').disabled,false);
   const count=e.fixture.ledger.size;
   e.get('cookie-install').listeners.click({isTrusted:true});await entered.promise;
   assert.equal(e.get('redeem-confirm').disabled,true);
   assert.equal(e.get('redeem-code').disabled,true);
   assert.equal(e.get('recovery-check').disabled,true);
-  await e.click('redeem-confirm');await e.click('recovery-check');
+  await e.preview('DEMO-VIP-02');await e.click('redeem-confirm');await e.click('recovery-check');
   assert.equal(e.fixture.ledger.size,count);
   resume.resolve();await e.flush();
-  assert.equal(e.get('redeem-confirm').disabled,false);
+  await e.preview('DEMO-VIP-02');assert.equal(e.get('redeem-confirm').disabled,false);
   await e.click('redeem-confirm');assert.equal(e.fixture.ledger.size,count+1);
 });
 test('expiry, account change and development revocation during persistence stay definitely unsubmitted',async()=>{
@@ -473,11 +625,267 @@ test('success A then B survives reopen and refuses a still-valid historical A de
   const a=syntheticDelivery(),b=syntheticDelivery();let delivered=a;
   const e=await cookieRuntime({receiptTransform:r=>({...r,cookieDelivery:delivered})});
   await e.click('cookie-install');delivered=b;
-  await e.preview();await e.click('redeem-confirm');await e.click('cookie-install');
+  await e.preview('DEMO-VIP-02');await e.click('redeem-confirm');await e.click('cookie-install');
   assert.equal(e.cookieCalls.length,2);assert.equal(e.store.get(COOKIE_KEY).state,'success');
-  const reopened=await runtime({store:e.store,fixture:e.fixture,
+  const reopened=await runtime({store:e.store,fixture:e.fixture,cookieScopeOverride:[{name:'synthetic_session',path:'/session/'}],
     receiptTransform:r=>({...r,cookieDelivery:a})});
-  await reopened.preview();await reopened.click('redeem-confirm');await reopened.click('cookie-install');
+  await reopened.click('shared-receive');await reopened.click('cookie-install');
   assert.equal(reopened.cookieCalls.length,0);
   assert.equal(reopened.store.get(COOKIE_KEY).deliveryId,b.deliveryId);
+});
+
+const ACTIVATION='aiVipActivationR140';
+const activationPage=(code='DEMO-VIP-01')=>({status:'available',url:ORIGIN+'/activate?activation_code='+encodeURIComponent(code)});
+const posts=(e,path)=>e.calls.filter(row=>row.method==='POST'&&row.url.endsWith(path));
+
+test('URL activation uses Host page metadata, one shared flow, a durable salted claim and explicit Cookie review',async()=>{
+  const e=await runtime({currentPage:activationPage(),pollTimers:true});
+  assert.equal(e.timers.length,1);assert.equal(e.timers[0].ms,1200);
+  assert.equal(e.calls.length,0,'installing/opening the sandbox is not activation authority');
+  await e.click('local-connect');await e.checkPage();
+  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,1);
+  assert.equal(posts(e,'/preview')[0].data.code,'DEMO-VIP-01');
+  assert.equal(e.fixture.ledger.size,1);
+  assert.equal(e.get('shared-account').textContent,'公司共享账号 A');
+  assert.equal(e.cookieCalls.length,0,'URL input cannot silently approve the Cookie batch');
+  const record=e.store.get(ACTIVATION);
+  assert.deepEqual(Object.keys(record).sort(),['salt','schemaVersion','seen']);
+  assert.equal(record.schemaVersion,1);assert.equal(record.seen.length,1);
+  assert.equal(record.seen[0],createHash('sha256').update(record.salt+'\nDEMO-VIP-01').digest('hex'));
+  assert(!JSON.stringify([...e.store.values()]).includes('DEMO-VIP-01'));
+  assert(!JSON.stringify(e.storageCalls).includes('activation_code'));
+  await e.click('cookie-install',false);assert.equal(e.cookieCalls.length,0);
+  await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
+  assert.equal(e.store.get(COOKIE_KEY).sharedAccountId,'shared-a');
+  assert.equal(e.tabCalls.at(-1).url,ORIGIN+'/session/');
+  assert.doesNotMatch(e.get('shared-status').textContent,/登录成功/,'writing Cookies is not target-page identity evidence');
+  for(let i=0;i<3;i++)await e.checkPage();
+  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,1);
+  const reopened=await runtime({store:e.store,fixture:e.fixture,currentPage:activationPage()});
+  await reopened.checkPage();
+  assert.equal(posts(reopened,'/preview').length,0);assert.equal(posts(reopened,'/redeem').length,0);
+  assert.equal(reopened.cookieCalls.length,0,'reopen never replays the batch or activation');
+});
+
+test('manual activation rejects synthetic click, Enter, submit and confirmation events',async()=>{
+  const e=await runtime();await e.click('local-connect');
+  const field=e.get('redeem-code');field.value='DEMO-VIP-01';field.listeners.input();
+  const event={isTrusted:false,key:'Enter',preventDefault(){}};
+  e.get('redeem').listeners.click(event);field.listeners.keydown(event);
+  e.get('redeem-form').listeners.submit(event);await e.flush();
+  assert.equal(posts(e,'/preview').length,0);assert.equal(e.store.get(ACTIVATION),undefined);
+  await e.preview();await e.click('redeem-confirm',false);
+  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
+  await e.click('redeem-confirm');assert.equal(posts(e,'/redeem').length,1);
+});
+
+test('URL parser and live entry reject other origins, paths, malformed or repeated parameters and untrusted metadata',async()=>{
+  const e=await runtime();await e.click('local-connect');
+  const invalid=[
+    {status:'unavailable',url:activationPage().url},null,[],{},
+    {status:'available',url:3},
+    ...[
+      'https://127.0.0.1:7898/activate?activation_code=DEMO-VIP-01',
+      'http://localhost:7898/activate?activation_code=DEMO-VIP-01',
+      'http://127.0.0.1:7899/activate?activation_code=DEMO-VIP-01',
+      'http://127.0.0.1:7898.evil.test/activate?activation_code=DEMO-VIP-01',
+      ORIGIN+'/session/?activation_code=DEMO-VIP-01',ORIGIN+'/activate/?activation_code=DEMO-VIP-01',
+      ORIGIN+'/activate',ORIGIN+'/activate?code=DEMO-VIP-01',ORIGIN+'/activate?activation_code=',
+      ORIGIN+'/activate?activation_code=short',ORIGIN+'/activate?activation_code='+'a'.repeat(121),
+      ORIGIN+'/activate?activation_code=invalid%20code',ORIGIN+'/activate?activation_code=invalid%0Acode',
+      ORIGIN+'/activate?activation_code=DEMO-VIP-01&activation_code=DEMO-VIP-01',
+      ORIGIN+'/activate?activation_code=DEMO-VIP-01&activation_code=DEMO-VIP-02',
+      ORIGIN+'/activate?activation_code=DEMO-VIP-01&other=1',
+      ORIGIN+'/activate?activation_code=DEMO-VIP-01#fragment',
+      'http://user:password@127.0.0.1:7898/activate?activation_code=DEMO-VIP-01',
+      'not-a-url','data:text/plain,activation_code=DEMO-VIP-01',
+      ORIGIN+'/activate?activation_code='+'a'.repeat(2048)
+    ].map(url=>({status:'available',url}))
+  ];
+  for(const info of invalid){
+    assert.equal(e.activation.activationCodeFromPage(info),null);
+    e.setPage(info);await e.checkPage();
+  }
+  assert.equal(posts(e,'/preview').length,0);assert.equal(posts(e,'/redeem').length,0);
+  assert.equal(e.store.get(ACTIVATION),undefined);assert.equal(e.cookieCalls.length,0);
+  assert.equal(e.activation.activationCodeFromPage(activationPage('a._-01')),'a._-01');
+  assert.equal(e.activation.activationCodeFromPage(activationPage('a'.repeat(120))),'a'.repeat(120));
+  const production=await runtime({developmentProfile:null,currentPage:activationPage()});
+  assert.equal(production.activation.activationCodeFromPage(activationPage()),null);
+  await production.checkPage();assert.equal(production.pageCalls.length,0);assert.equal(production.calls.length,0);
+});
+
+test('duplicate URL observations and trusted manual actions coalesce while activation preflight is in flight',async()=>{
+  const entered=deferred(),resume=deferred();
+  const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>{
+    if(args.url.endsWith('/preview')){entered.resolve();await resume.promise;}
+    return fixtureRequest(fixture,{...args,headers:args.config.headers});
+  }});
+  await e.click('local-connect');
+  const running=e.activation.checkActivationPage();await entered.promise;
+  await e.checkPage();await e.preview();await e.click('redeem-confirm');
+  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
+  resume.resolve();await running;await e.flush();
+  assert.equal(posts(e,'/redeem').length,1);assert.equal(e.store.get(ACTIVATION).seen.length,1);
+});
+
+test('URL activation cannot interrupt a manual preview or an in-flight Cookie write',async()=>{
+  const entered=deferred(),resume=deferred();
+  const e=await runtime({currentPage:activationPage('DEMO-VIP-02'),cookieSetMany:async args=>{
+    entered.resolve();await resume.promise;
+    return {saved:args.cookies.length,verified:args.cookies.length,
+      results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
+  }});
+  await e.click('local-connect');await e.preview();await e.checkPage();
+  assert.equal(posts(e,'/preview').length,1);assert.equal(e.store.get(ACTIVATION),undefined);
+  await e.click('redeem-confirm');
+  e.get('cookie-install').listeners.click({isTrusted:true});await entered.promise;
+  await e.checkPage();assert.equal(posts(e,'/redeem').length,1);assert.equal(e.store.get(ACTIVATION),undefined);
+  resume.resolve();await e.flush();assert.equal(e.cookieCalls.length,1);
+});
+
+test('unknown or partial Cookie outcomes block both activation entries across reopening',async()=>{
+  for(const outcome of ['unknown','partial']){
+    const e=await runtime({currentPage:activationPage('DEMO-VIP-02'),cookieSetMany:async()=>{
+      if(outcome==='unknown')throw Error('ack lost');
+      return {saved:1,verified:1,stopped:true,results:[{index:0,saved:true,verified:true},
+        {index:1,saved:false,verified:false,code:'E_GRANT_REVOKED'}]};
+    }});
+    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');await e.click('cookie-install');
+    assert.equal(e.store.get(COOKIE_KEY).state,outcome);
+    await e.checkPage();await e.preview('DEMO-VIP-02');await e.click('redeem-confirm');
+    assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,1);
+    assert.equal(e.store.get(ACTIVATION),undefined);
+    const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage('DEMO-VIP-02')});
+    await reopened.checkPage();await reopened.preview('DEMO-VIP-02');await reopened.click('redeem-confirm');
+    assert.equal(posts(reopened,'/preview').length,0);assert.equal(posts(reopened,'/redeem').length,0);
+    assert.equal(reopened.cookieCalls.length,0);
+  }
+});
+
+test('URL unknown activation result keeps the claim and transaction; reopen permits only explicit status reconciliation',async()=>{
+  const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>fixtureRequest(fixture,{...args,
+    headers:{...args.config.headers,...(args.url.endsWith('/redeem')?{'X-Fixture-Drop-Ack':'1'}:{})}})});
+  await e.click('local-connect');await e.checkPage();
+  assert.equal(e.fixture.ledger.size,1);assert(e.store.get(RECOVERY));assert(e.store.get(ACTIVATION));
+  assert.equal(e.cookieCalls.length,0);assert.doesNotMatch(e.get('redeem-status').textContent,/已确认兑换成功/);
+  const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage()});
+  await reopened.checkPage();assert.equal(posts(reopened,'/redeem').length,0);
+  await reopened.click('recovery-check');assert.equal(reopened.store.get(RECOVERY),null);
+  await reopened.checkPage();assert.equal(posts(reopened,'/redeem').length,0);
+  assert.equal(posts(reopened,'/preview').length,0);assert.equal(e.fixture.ledger.size,1);
+});
+
+test('URL preview network failure retains its claim and never auto-retries on polling or reopening',async()=>{
+  const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>{
+    if(args.url.endsWith('/preview'))throw Error('network unavailable');
+    return fixtureRequest(fixture,{...args,headers:args.config.headers});
+  }});
+  await e.click('local-connect');await e.checkPage();await e.checkPage();
+  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
+  assert.equal(e.store.get(RECOVERY)??null,null);assert(e.store.get(ACTIVATION));
+  const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage()});
+  await reopened.checkPage();assert.equal(posts(reopened,'/preview').length,0);
+});
+
+test('URL changes during preview or final member recheck cancel automatic activation before consumption',async()=>{
+  for(const point of ['preview','member']){
+    let observe=false;
+    const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>{
+      const reply=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+      if(observe&&args.url.endsWith(point==='preview'?'/preview':'/member'))e.setPage({status:'available',url:ORIGIN+'/session/'});
+      return reply;
+    }});
+    await e.click('local-connect');observe=true;await e.checkPage();
+    assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
+    assert.equal(e.fixture.ledger.size,0);assert.equal(e.cookieCalls.length,0);
+    assert.equal(e.store.get(RECOVERY)??null,null);
+    e.setPage(activationPage());await e.checkPage();assert.equal(posts(e,'/preview').length,1,'changed-page claim stays consumed');
+  }
+});
+
+test('URL claim is verified before requests and failed, conflicting or uncertain persistence never triggers activation',async()=>{
+  for(const kind of ['conflict','lost-ack','mismatch']){
+    const e=await runtime({currentPage:activationPage(),afterStorageSet:(payload,store)=>{
+      if(payload.key!==ACTIVATION)return;
+      if(kind==='mismatch')store.delete(ACTIVATION);
+      else throw Object.assign(Error('claim persistence unconfirmed'),{code:kind==='conflict'?'E_STORAGE_CONFLICT':'E_OUTCOME_UNKNOWN'});
+    }});
+    await e.click('local-connect');await e.checkPage();
+    assert.equal(posts(e,'/preview').length,0);assert.equal(posts(e,'/redeem').length,0);
+    assert.equal(e.store.get(RECOVERY)??null,null);assert.equal(e.cookieCalls.length,0);
+    if(kind!=='mismatch'){
+      const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage()});
+      await reopened.checkPage();assert.equal(posts(reopened,'/preview').length,0);
+    }
+  }
+});
+
+test('malformed or full URL claim journal fails closed instead of clearing fingerprints',async()=>{
+  const invalid=[{}, {schemaVersion:1,salt:'salt',seen:['bad']},
+    {schemaVersion:2,salt:'salt',seen:[]},{schemaVersion:1,salt:'salt',seen:[],code:'forbidden'},
+    {schemaVersion:1,salt:'salt',seen:Array.from({length:64},(_,i)=>createHash('sha256').update(String(i)).digest('hex'))}];
+  for(const record of invalid){
+    const e=await runtime({currentPage:activationPage(),store:new Map([[ACTIVATION,record]])});
+    await e.click('local-connect');await e.checkPage();
+    assert.equal(posts(e,'/preview').length,0);assert.deepEqual(e.store.get(ACTIVATION),record);
+  }
+});
+
+test('revocation or URL change during claim persistence prevents activation without clearing the claim',async()=>{
+  for(const kind of ['revocation','page']){
+    const e=await runtime({currentPage:activationPage(),afterStorageSet:async payload=>{
+      if(payload.key!==ACTIVATION)return;
+      if(kind==='page')e.setPage({status:'available',url:ORIGIN+'/session/'});
+      else{e.setStatus({...released,developmentProfile:null});await e.click('proxy-refresh');}
+    }});
+    await e.click('local-connect');await e.checkPage();
+    assert(e.store.get(ACTIVATION));assert.equal(posts(e,'/preview').length,0);
+    assert.equal(posts(e,'/redeem').length,0);assert.equal(e.cookieCalls.length,0);
+  }
+});
+
+test('concurrent open tools share a CAS claim so one activation URL produces at most one server transaction',async()=>{
+  const store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN});
+  const first=await runtime({store,fixture,currentPage:activationPage()});await first.click('local-connect');
+  const second=await runtime({store,fixture,currentPage:activationPage()});
+  await Promise.all([first.checkPage(),second.checkPage()]);
+  assert.equal(posts(first,'/preview').length+posts(second,'/preview').length,1);
+  assert.equal(posts(first,'/redeem').length+posts(second,'/redeem').length,1);
+  assert.equal(fixture.ledger.size,1);assert.equal(store.get(ACTIVATION).seen.length,1);
+});
+
+test('URL change while redemption journal is being persisted stops consumption and retains status-only recovery',async()=>{
+  const e=await runtime({currentPage:activationPage(),afterStorageSet:payload=>{
+    if(payload.key===RECOVERY&&payload.value)e.setPage({status:'available',url:ORIGIN+'/session/'});
+  }});
+  await e.click('local-connect');await e.checkPage();
+  assert.equal(posts(e,'/preview').length,1);
+  assert.equal(posts(e,'/redeem').length,0,'changed activation page must be checked after awaited persistence');
+  assert(e.store.get(RECOVERY),'persisted intent remains available for explicit status reconciliation');
+  assert.equal(e.cookieCalls.length,0);
+  e.setPage(activationPage());await e.checkPage();assert.equal(posts(e,'/redeem').length,0);
+});
+
+test('URL activation accepts canonical Host key ordering in persisted claim readback',async()=>{
+  const e=await runtime({currentPage:activationPage(),afterStorageSet:(payload,store)=>{
+    if(payload.key===ACTIVATION)store.set(ACTIVATION,Object.fromEntries(Object.entries(payload.value)
+      .sort(([left],[right])=>left.localeCompare(right))));
+  }});
+  await e.click('local-connect');await e.checkPage();
+  assert.equal(posts(e,'/redeem').length,1);
+  assert.equal(e.get('shared-account').textContent,'公司共享账号 A');
+  assert.equal(e.cookieCalls.length,0);
+  await e.checkPage();assert.equal(posts(e,'/redeem').length,1);
+});
+
+
+test('consumed activation clears Host draft state after the reviewed Cookie write',async()=>{
+  const e=await runtime();await e.click('local-connect');
+  e.get('redeem-code').value='DEMO-VIP-01';e.get('redeem-code').listeners.input();
+  assert.equal(e.toolStates.at(-1)?.dirty,true);
+  await e.preview();await e.click('redeem-confirm');
+  assert.equal(e.toolStates.at(-1)?.dirty,true,'unwritten in-memory Cookie delivery is a pending draft');
+  await e.click('cookie-install');
+  assert.deepEqual(e.toolStates.at(-1),{dirty:false,busy:false});
 });

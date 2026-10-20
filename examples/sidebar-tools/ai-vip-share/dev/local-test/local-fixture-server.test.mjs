@@ -6,8 +6,9 @@ import {spawn,spawnSync} from 'node:child_process';
 import {createLocalFixture} from './local-fixture-server.mjs';
 const SERVER_NOW=Date.UTC(2026,9,15);
 const boundAccount={state:'bound',id:'local-fixture-account',displayNameMasked:'l***@fixture.test'};
-let serverNow=SERVER_NOW,memberState={account:boundAccount,entitlements:[]};
-const fixture=createLocalFixture({now:()=>serverNow,getMemberState:()=>memberState});
+let serverNow=SERVER_NOW,memberState={account:boundAccount,entitlements:[]},sharedAccess=true;
+const fixture=createLocalFixture({now:()=>serverNow,getMemberState:()=>memberState,
+  isSharedAccessAllowed:()=>sharedAccess});
 const {server,pac}=fixture;
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const addr=`http://127.0.0.1:${server.address().port}`;
@@ -15,9 +16,15 @@ const api=async(path,method='GET',data,headers={})=>{
   const r=await fetch(addr+path,{method,headers:{'X-OpenDesk-Local-Test':'1',...(data?{'Content-Type':'application/json'}:{}),...headers},
     ...(data?{body:JSON.stringify(data)}:{})});return {status:r.status,data:await r.json()};
 };
-const redeemSession=async()=>{
-  const preview=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
-  const post={previewId:preview.data.previewId,accountId:boundAccount.id,idempotencyKey:randomUUID()};
+const cookieHeader=delivery=>delivery.cookies.map(cookie=>cookie.name+'='+cookie.value).join('; ');
+const sharedSession=async(redemptionId,requestId=randomUUID(),accountId=memberState.account.id)=>{
+  redemptionId??=(await api('/api/member')).data.sharedAccounts?.redemptionId??randomUUID();
+  return api('/api/status','POST',{operation:'sharedSession',accountId,redemptionId,requestId});
+};
+const redeemSession=async(code='DEMO-VIP-01')=>{
+  const preview=await api('/api/preview','POST',{code});
+  assert.equal(preview.status,200);
+  const post={previewId:preview.data.previewId,accountId:memberState.account.id,idempotencyKey:randomUUID()};
   const response=await api('/api/redeem','POST',post);
   assert.equal(response.status,200);
   return {post,receipt:response.data};
@@ -53,6 +60,7 @@ test.beforeEach(()=>{
   serverNow=SERVER_NOW;
   memberState={account:boundAccount,entitlements:[]};
   fixture.previews.clear();fixture.ledger.clear();fixture.leases.clear();
+  fixture.sharedRequests.clear();fixture.sessions.clear();sharedAccess=true;
   fixture.setNextVerifyDelay(0);
 });
 test.after(()=>new Promise(resolve=>server.close(resolve)));
@@ -60,6 +68,36 @@ test('health is loopback only, mock mode is explicit',async()=>{
   const r=await fetch(addr+'/health');const data=await r.json();
   assert.equal(data.ok,true);assert.equal(data.proxyPort,7897);
   assert.equal(data.browserReleaseIntegration,false);
+});
+test('development activation URL is inert, exact and never reflects activation parameters',async()=>{
+  const before=await api('/api/member');
+  for(const code of ['DEMO-VIP-01','DEMO-VIP-02']){
+    const response=await fetch(addr+'/activate?activation_code='+code);
+    assert.equal(response.status,200);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal(response.headers.get('referrer-policy'),'no-referrer');
+    assert.equal(response.headers.get('content-security-policy'),"default-src 'none'");
+    assert.equal(response.headers.get('set-cookie'),null);
+    const html=await response.text();
+    assert(html.includes('本地开发激活入口'));
+    assert(!html.includes(code)&&!html.includes('activation_code')&&!html.includes('<script'));
+  }
+  for(const query of ['', '?code=DEMO-VIP-01', '?activation_code=', '?activation_code=INVALID',
+    '?activation_code=DEMO-VIP-01&activation_code=DEMO-VIP-01',
+    '?activation_code=DEMO-VIP-01&activation_code=DEMO-VIP-02',
+    '?activation_code=DEMO-VIP-01&extra=1', '?activation_code=%3Cscript%3E',
+    '?activation_code=DEMO-VIP-01%0A']){
+    const response=await fetch(addr+'/activate'+query);
+    assert.equal(response.status,400);
+    assert.equal(response.headers.get('referrer-policy'),'no-referrer');
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    const html=await response.text();
+    assert(!html.includes('DEMO-VIP-')&&!html.includes('<script')&&!html.includes('activation_code'));
+  }
+  for(const path of ['/activate/','/session/activate','/Activate'])
+    assert.equal((await api(path+'?activation_code=DEMO-VIP-01')).status,404);
+  assert.deepEqual((await api('/api/member')).data,before.data,'opening a URL grants no entitlement or Cookie');
+  assert.equal(fixture.previews.size,0);assert.equal(fixture.ledger.size,0);assert.equal(fixture.sessions.size,0);
 });
 test('PAC only routes approved AI hosts, not lookalikes',()=>{
   const sandbox={dnsDomainIs:(host,domain)=>host.endsWith(domain)};
@@ -95,7 +133,28 @@ test('basic member, preview, redemption and immutable idempotency',async()=>{
   assert.equal(missing.data.status,'unknown');
   assert.equal(missing.data.cookieDelivery,undefined);
 });
-test('successful redemption issues a short-lived delivery with an ephemeral scoped session cookie',async()=>{
+test('one code is consumed once across concurrent previews, new keys, expiry and accounts',async()=>{
+  const previews=await Promise.all([1,2].map(()=>api('/api/preview','POST',{code:'DEMO-VIP-01'})));
+  const posts=previews.map(({data})=>({previewId:data.previewId,accountId:boundAccount.id,idempotencyKey:randomUUID()}));
+  const attempts=await Promise.all(posts.map(post=>api('/api/redeem','POST',post)));
+  assert.deepEqual(attempts.map(row=>row.status).sort(),[200,409]);
+  const index=attempts.findIndex(row=>row.status===200),receipt=attempts[index].data;
+  const ledgerSize=fixture.ledger.size,sessionCount=fixture.sessions.size;
+  assert.equal(ledgerSize,1);assert.equal(sessionCount,1);
+  for(const elapsed of [0,3600001]){
+    serverNow=SERVER_NOW+elapsed;
+    const preview=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
+    assert.equal(preview.status,409);assert.equal(preview.data.error,'E_CODE_CONSUMED');
+    const retry=await api('/api/redeem','POST',{...posts[index],idempotencyKey:randomUUID()});
+    assert.equal(retry.status,409);
+    const replay=await api('/api/redeem','POST',posts[index]);
+    assert(JSON.stringify(replay.data)===JSON.stringify(receipt),'same key remains evidence of the sole effect');
+  }
+  memberState={account:{...boundAccount,id:'another-member'},entitlements:[]};
+  assert.equal((await api('/api/preview','POST',{code:'DEMO-VIP-01'})).status,409);
+  assert.equal(fixture.ledger.size,ledgerSize);assert.equal(fixture.sessions.size,sessionCount);
+});
+test('successful redemption issues a short-lived delivery with two ephemeral scoped cookies',async()=>{
   serverNow+=123;
   const {receipt}=await redeemSession();
   const delivery=receipt.cookieDelivery;
@@ -105,12 +164,15 @@ test('successful redemption issues a short-lived delivery with an ephemeral scop
   assert.match(delivery.deliveryId,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   assert.equal(delivery.targetUrl,'http://127.0.0.1:7898/session/');
   assert.equal(delivery.expiresAt,serverNow+120000);
-  assert.equal(delivery.cookies.length,1);
+  assert.equal(delivery.cookies.length,2);
   const {value,...attributes}=delivery.cookies[0];
   assert(typeof value==='string'&&value.length>=32,'session token is opaque and nonempty');
   assert.deepEqual(attributes,{name:'opendesk_fixture_session',path:'/session/',httpOnly:true,
     secure:false,sameSite:'lax',expirationDate:(serverNow+3600000)/1000});
-  const other=(await redeemSession()).receipt.cookieDelivery;
+  const {value:contextValue,...contextAttributes}=delivery.cookies[1];
+  assert(typeof contextValue==='string'&&contextValue.length>=32&&contextValue!==value);
+  assert.deepEqual(contextAttributes,{...attributes,name:'opendesk_fixture_context'});
+  const other=(await redeemSession('DEMO-VIP-02')).receipt.cookieDelivery;
   assert(delivery.deliveryId!==other.deliveryId,'different receipts have different delivery IDs');
   assert(value!==other.cookies[0].value,'different receipts have different session tokens');
   const member=JSON.stringify((await api('/api/member')).data);
@@ -130,7 +192,7 @@ test('delivery remains identical on repeated redemption and status even after de
   }
   assert.equal(fixture.ledger.size,1);
 });
-test('session page accepts only an issued unexpired Cookie without requiring the API test header',async()=>{
+test('session page requires an issued unexpired Cookie pair without the API test header',async()=>{
   const {receipt}=await redeemSession();
   const delivery=receipt.cookieDelivery,{name,value,expirationDate}=delivery.cookies[0];
   const check=async(headers,expected)=>{
@@ -148,11 +210,12 @@ test('session page accepts only an issued unexpired Cookie without requiring the
   await check({},'未建立受控会话');
   await check({Cookie:`${name}=${randomUUID()}`},'未建立受控会话');
   await check({Cookie:`other_${name}=${value}`},'未建立受控会话');
-  await check({Cookie:`other=1; ${name}=${value}; another=2`},'受控会话有效');
+  await check({Cookie:`${name}=${value}`},'未建立受控会话');
+  await check({Cookie:`other=1; ${cookieHeader(delivery)}; another=2`},'受控会话有效');
   serverNow=delivery.expiresAt;
-  await check({Cookie:`${name}=${value}`},'受控会话有效');
+  await check({Cookie:cookieHeader(delivery)},'受控会话有效');
   serverNow=expirationDate*1000-1;
-  await check({Cookie:`${name}=${value}`},'受控会话有效');
+  await check({Cookie:cookieHeader(delivery)},'受控会话有效');
   serverNow++;
   await check({Cookie:`${name}=${value}`},'未建立受控会话');
   await check({'X-OpenDesk-Local-Test':'1',Cookie:`${name}=${value}`},'未建立受控会话');
@@ -161,6 +224,188 @@ test('session page accepts only an issued unexpired Cookie without requiring the
     assert.equal(response.status,403);
     assert.equal(response.headers.get('cache-control'),'no-store');
     assert.equal((await response.json()).error,'E_BROWSER_ORIGIN_DISABLED');
+  }
+});
+test('shared directory exposes only the server assignment bound to its redemption',async()=>{
+  memberState.entitlements=[{type:'feature',featureId:'local-managed-proxy',status:'active',expiresAt:SERVER_NOW+3600000}];
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined,'an injected entitlement alone cannot activate access');
+  assert.equal((await sharedSession()).status,403);
+  const {receipt}=await redeemSession();
+  const directory=(await api('/api/member')).data.sharedAccounts;
+  assert.deepEqual(directory,{schemaVersion:1,companyId:'fixture-company',
+    assignedAccountId:'shared-a',redemptionId:receipt.redemptionId,accounts:[
+      {id:'shared-a',label:'公司共享账号 A',targetUrl:'http://127.0.0.1:7898/session/',cookieScope:[
+        {name:'opendesk_fixture_session',path:'/session/'},{name:'opendesk_fixture_context',path:'/session/'}]}
+    ]});
+  memberState={account:{...boundAccount,id:'other-member'},entitlements:memberState.entitlements};
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  assert.equal((await sharedSession(receipt.redemptionId)).status,403,'another member cannot borrow the first redemption');
+  memberState={account:{state:'guest'},entitlements:[]};
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  assert.equal((await sharedSession(receipt.redemptionId,randomUUID(),boundAccount.id)).status,403);
+});
+test('server reassignment replaces both Cookie slots and invalidates all earlier assignment sessions',async()=>{
+  const jar=new Map([['unrelated;/session/',{name:'unrelated',value:'keep',path:'/session/'}]]);
+  const issued=[];
+  for(const [code,id] of [['DEMO-VIP-01','shared-a'],['DEMO-VIP-02','shared-b']]){
+    const {receipt}=await redeemSession(code);
+    const directory=(await api('/api/member')).data.sharedAccounts;
+    assert.equal(directory.assignedAccountId,id);
+    assert.equal(directory.redemptionId,receipt.redemptionId);
+    assert.deepEqual(directory.accounts.map(row=>row.id),[id]);
+    const member=(await api('/api/member')).data;
+    assert.equal(member.redemptions.at(-1).voucherPreviewMasked,id==='shared-a'?'****-01':'****-02');
+    const response=await sharedSession(receipt.redemptionId);
+    assert.equal(response.status,200);
+    assert.deepEqual(Object.keys(response.data).sort(),[
+      'accountId','cookieDelivery','redemptionId','requestId','schemaVersion','serverNow','sharedAccountId']);
+    assert.equal(response.data.schemaVersion,1);
+    assert.equal(response.data.accountId,boundAccount.id);
+    assert.equal(response.data.sharedAccountId,id);
+    assert.equal(response.data.redemptionId,receipt.redemptionId);
+    assert.equal(response.data.serverNow,serverNow);
+    const delivery=response.data.cookieDelivery;
+    assert.equal(delivery.schemaVersion,1);
+    assert.equal(delivery.targetUrl,'http://127.0.0.1:7898/session/');
+    assert.equal(delivery.expiresAt,serverNow+120000);
+    assert.deepEqual(delivery.cookies.map(({name,path})=>({name,path})),[
+      {name:'opendesk_fixture_session',path:'/session/'},{name:'opendesk_fixture_context',path:'/session/'}]);
+    for(const cookie of delivery.cookies){
+      assert.equal(cookie.expirationDate,(serverNow+3600000)/1000);
+      assert.equal(cookie.httpOnly,true);assert.equal(cookie.secure,false);assert.equal(cookie.sameSite,'lax');
+      assert(typeof cookie.value==='string'&&cookie.value.length>=32);
+      assert(issued.every(old=>old.cookieDelivery.cookies.every(prior=>prior.value!==cookie.value)));
+      jar.set(cookie.name+';'+cookie.path,cookie);
+    }
+    const target=await fetch(addr+'/session/',{headers:{Cookie:cookieHeader({cookies:[...jar.values()]})}});
+    const html=await target.text();
+    assert.equal(target.status,200);
+    assert(html.includes('受控会话有效')&&html.includes(`data-shared-account="${id}"`));
+    assert(html.includes(id==='shared-a'?'公司共享账号 A':'公司共享账号 B'));
+    assert(!html.includes(id==='shared-a'?'公司共享账号 B':'公司共享账号 A'));
+    assert(!html.includes('<script')&&delivery.cookies.every(cookie=>!html.includes(cookie.value)));
+    assert.equal(jar.size,3,'only the two contracted slots change');
+    assert.equal(jar.get('unrelated;/session/').value,'keep');
+    for(const old of issued){
+      for(const requestId of [old.requestId,randomUUID()])
+        assert.equal((await sharedSession(old.redemptionId,requestId)).status,403);
+      const stale=await (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader(old.cookieDelivery)}})).text();
+      assert(stale.includes('未建立受控会话'),'a late old delivery cannot restore the old assignment');
+    }
+    issued.push(response.data);
+  }
+  // Receipt lookup is immutable evidence, not fresh authority to install the old session.
+  const firstRow=[...fixture.ledger.values()][0];
+  const lookup=await api('/api/status','POST',{accountId:boundAccount.id,idempotencyKey:firstRow.receipt.idempotencyKey});
+  assert.equal(lookup.data.redemptionId,issued[0].redemptionId);
+  assert.equal((await api('/api/member')).data.redemptions.length,2);
+});
+test('target rejects mixed, partial, duplicate and forged pairs without reflecting Cookie values',async()=>{
+  await redeemSession();
+  const a=(await sharedSession()).data.cookieDelivery;
+  const b=(await sharedSession()).data.cookieDelivery;
+  for(const cookies of [[],[a.cookies[0]],[a.cookies[1]],[a.cookies[0],b.cookies[1]],
+    [b.cookies[0],a.cookies[1]],[...a.cookies,a.cookies[0]],
+    [a.cookies[0],{...a.cookies[1],value:randomUUID()}]]){
+    const html=await (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader({cookies})}})).text();
+    assert(html.includes('未建立受控会话')&&!html.includes('data-shared-account'));
+    assert([...a.cookies,...b.cookies].every(cookie=>!html.includes(cookie.value)));
+  }
+});
+test('sharedSession accepts only the exact redemption request and binds request IDs to member and redemption',async()=>{
+  const {receipt}=await redeemSession();
+  const requestId=randomUUID(),first=await sharedSession(receipt.redemptionId,requestId);
+  assert.equal(first.status,200);
+  serverNow++;
+  const repeated=await sharedSession(receipt.redemptionId,requestId);
+  assert.equal(repeated.status,200);
+  assert(JSON.stringify(repeated.data)===JSON.stringify(first.data),'repeat preserves every response byte');
+  assert.equal((await sharedSession(randomUUID(),requestId)).status,409);
+  assert.equal((await sharedSession(randomUUID())).status,403);
+  assert.equal((await sharedSession(receipt.redemptionId,randomUUID(),'wrong-member')).status,403);
+  const body={operation:'sharedSession',accountId:boundAccount.id,redemptionId:receipt.redemptionId,requestId:randomUUID()};
+  const {redemptionId,...missingRedemption}=body;
+  for(const invalid of [{...body,extra:true},{...body,cookies:[]},{...body,requestId:''},
+    {...body,requestId:' '},{...body,requestId:1},{...body,requestId:'x'.repeat(129)},
+    {...body,redemptionId:''},{...body,redemptionId:null},{...body,redemptionId:'x'.repeat(129)},
+    {...body,sharedAccountId:'shared-b'},missingRedemption,{...missingRedemption,sharedAccountId:'shared-a'}]){
+    assert.equal((await api('/api/status','POST',invalid)).status,400);
+  }
+  memberState={account:{...boundAccount,id:'other-member'},entitlements:[]};
+  assert.equal((await sharedSession(receipt.redemptionId,requestId)).status,409,'a request ID cannot move to another member');
+  memberState={account:boundAccount,entitlements:[]};
+  const next=(await redeemSession('DEMO-VIP-02')).receipt;
+  assert.equal((await sharedSession(next.redemptionId,requestId)).status,409,'a request ID cannot move to a new assignment');
+  assert.equal(fixture.sharedRequests.size,1);
+});
+test('expired shared requests cannot rotate their pair and revocation denies delivery and installed sessions',async()=>{
+  const {receipt}=await redeemSession();
+  const requestId=randomUUID(),first=(await sharedSession(receipt.redemptionId,requestId)).data;
+  const target=async()=> (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader(first.cookieDelivery)}})).text();
+  serverNow=first.cookieDelivery.expiresAt;
+  const repeated=await sharedSession(receipt.redemptionId,requestId);
+  assert.equal(repeated.status,409);
+  assert.equal(repeated.data.error,'E_DELIVERY_EXPIRED');
+  assert(JSON.stringify(fixture.sharedRequests.get(requestId))===JSON.stringify(first),'expired request never issues new values');
+  assert((await target()).includes('受控会话有效'),'a write deadline does not shorten an installed Cookie lifetime');
+  sharedAccess=false;
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  assert.equal((await sharedSession(receipt.redemptionId,requestId)).status,403);
+  assert.equal((await sharedSession()).status,403);
+  assert((await target()).includes('未建立受控会话'));
+  sharedAccess=true;
+  serverNow=SERVER_NOW+3600000-1;
+  assert((await target()).includes('受控会话有效'));
+  serverNow++;
+  assert((await target()).includes('未建立受控会话'));
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  assert.equal((await sharedSession(receipt.redemptionId,requestId)).status,403);
+});
+test('revoked granted entitlement stops directory, new deliveries and already installed sessions',async()=>{
+  const {receipt}=await redeemSession();
+  const delivery=(await sharedSession()).data.cookieDelivery;
+  const stored=fixture.ledger.get(receipt.idempotencyKey).receipt;
+  stored.grantedEntitlements.find(row=>row.featureId==='local-managed-proxy').status='revoked';
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  assert.equal((await sharedSession()).status,403);
+  const html=await (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader(delivery)}})).text();
+  assert(html.includes('未建立受控会话'));
+});
+test('membership expiry denies a still-unexpired Cookie pair',async()=>{
+  await redeemSession();
+  serverNow+=60000;
+  const delivery=(await sharedSession()).data.cookieDelivery;
+  serverNow=SERVER_NOW+3600000;
+  assert(delivery.cookies.every(cookie=>cookie.expirationDate*1000>serverNow));
+  assert.equal((await sharedSession()).status,403);
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  const html=await (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader(delivery)}})).text();
+  assert(html.includes('未建立受控会话'));
+});
+test('reassignment revocation never falls back to an earlier still-valid entitlement',async()=>{
+  const first=(await redeemSession()).receipt;
+  const second=(await redeemSession('DEMO-VIP-02')).receipt;
+  const delivery=(await sharedSession()).data.cookieDelivery;
+  fixture.ledger.get(second.idempotencyKey).receipt.grantedEntitlements
+    .find(row=>row.featureId==='local-managed-proxy').status='revoked';
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  assert.equal((await sharedSession(first.redemptionId)).status,403);
+  assert.equal((await sharedSession(second.redemptionId)).status,403);
+  const html=await (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader(delivery)}})).text();
+  assert(html.includes('未建立受控会话'));
+});
+test('separate browser jars can share one assignment but a consumed code cannot grant another member',async()=>{
+  const {receipt}=await redeemSession();
+  const first=(await sharedSession()).data.cookieDelivery;
+  const sameMember=(await sharedSession()).data.cookieDelivery;
+  memberState={account:{...boundAccount,id:'second-member'},entitlements:[]};
+  assert.equal((await api('/api/preview','POST',{code:'DEMO-VIP-01'})).status,409);
+  assert.equal((await sharedSession(receipt.redemptionId)).status,403);
+  assert.equal((await api('/api/member')).data.sharedAccounts,undefined);
+  for(const delivery of [first,sameMember]){
+    const html=await (await fetch(addr+'/session/',{headers:{Cookie:cookieHeader(delivery)}})).text();
+    assert(html.includes('受控会话有效')&&html.includes('data-shared-account="shared-a"'),
+      'new deliveries for the same assignment do not revoke another browser jar');
   }
 });
 test('lost acknowledgement still has one authoritative receipt',async()=>{
@@ -183,9 +428,10 @@ test('lost acknowledgement still has one authoritative receipt',async()=>{
   assert.equal(member.data.redemptions[0].redemptionId,lookup.data.redemptionId);
 });
 test('pending and authoritative final rejection never grant member entitlements',async()=>{
-  for(const [outcome,expected] of [['pending','pending'],['final-rejected','rejected']]){
+  for(const [outcome,expected,code] of [['pending','pending','DEMO-VIP-01'],['final-rejected','rejected','DEMO-VIP-02']]){
     const before=(await api('/api/member')).data;
-    const p=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
+    const p=await api('/api/preview','POST',{code});
+    const parallelPreview=await api('/api/preview','POST',{code});
     const idempotencyKey=randomUUID();
     const row=await api('/api/redeem','POST',{
       previewId:p.data.previewId,accountId:p.data.accountId,idempotencyKey
@@ -202,6 +448,14 @@ test('pending and authoritative final rejection never grant member entitlements'
     const list=await api('/api/member');
     assert.deepEqual(list.data.entitlements,before.entitlements);
     assert.deepEqual(list.data.redemptions,before.redemptions);
+    assert.equal((await api('/api/preview','POST',{code})).status,expected==='pending'?409:200);
+    if(expected==='pending'){
+      const retry=await api('/api/redeem','POST',{
+        previewId:parallelPreview.data.previewId,accountId:p.data.accountId,idempotencyKey:randomUUID()
+      });
+      assert.equal(retry.status,409);
+      assert.equal(retry.data.error,'E_CODE_PENDING');
+    }
   }
 });
 test('unbound member is guest and cannot preview, redeem or query another account',async()=>{
@@ -238,9 +492,9 @@ test('expired entitlement and exact preview expiry use server time without sleep
 });
 test('account switching isolates previews, history, entitlements and recovery receipts',async()=>{
   const p=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
+  const stale=await api('/api/preview','POST',{code:'DEMO-VIP-02'});
   const post={previewId:p.data.previewId,accountId:boundAccount.id,idempotencyKey:randomUUID()};
   const redeemed=await api('/api/redeem','POST',post);
-  const stale=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
   memberState={account:{state:'bound',id:'other-fixture-account',displayNameMasked:'o***@fixture.test'},entitlements:[]};
   const other=(await api('/api/member')).data;
   assert.deepEqual(other.redemptions,[]);assert.deepEqual(other.entitlements,[]);
@@ -250,7 +504,8 @@ test('account switching isolates previews, history, entitlements and recovery re
   assert.equal((await api('/api/redeem','POST',{
     ...post,previewId:stale.data.previewId,accountId:other.account.id,idempotencyKey:randomUUID()
   })).status,409);
-  const pOther=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
+  assert.equal((await api('/api/preview','POST',{code:'DEMO-VIP-01'})).status,409,'codes are not reusable across accounts');
+  const pOther=await api('/api/preview','POST',{code:'DEMO-VIP-02'});
   const otherPost={...post,previewId:pOther.data.previewId,accountId:other.account.id};
   assert.equal((await api('/api/redeem','POST',otherPost)).status,409,'a key cannot cross accounts');
   const otherRedeemed=await api('/api/redeem','POST',{...otherPost,idempotencyKey:randomUUID()});
@@ -402,11 +657,11 @@ test('IPv6-only CLI coexists on the IPv4 fixture port with a separate memory led
   assert(JSON.stringify((await ipv6Api('/api/status',post)).cookieDelivery)===JSON.stringify(receipt.cookieDelivery),
     'IPv6 status retains the delivery');
   const cookie=receipt.cookieDelivery.cookies[0],ipv4Cookie=ipv4Receipt.cookieDelivery.cookies[0];
-  for(const [origin,sessionCookie,expected] of [
-    [child.origin,cookie,'受控会话有效'],[child.origin,ipv4Cookie,'未建立受控会话'],
-    [addr,ipv4Cookie,'受控会话有效'],[addr,cookie,'未建立受控会话']
+  for(const [origin,delivery,expected] of [
+    [child.origin,receipt.cookieDelivery,'受控会话有效'],[child.origin,ipv4Receipt.cookieDelivery,'未建立受控会话'],
+    [addr,ipv4Receipt.cookieDelivery,'受控会话有效'],[addr,receipt.cookieDelivery,'未建立受控会话']
   ]){
-    const response=await fetch(origin+'/session/',{headers:{Cookie:`${sessionCookie.name}=${sessionCookie.value}`}});
+    const response=await fetch(origin+'/session/',{headers:{Cookie:cookieHeader(delivery)}});
     const html=await response.text();
     assert(html.includes(expected),'each listener accepts only its own issued token');
     assert(!html.includes(cookie.value)&&!html.includes(ipv4Cookie.value),'HTML contains no Cookie values');
@@ -417,4 +672,6 @@ test('IPv6-only CLI coexists on the IPv4 fixture port with a separate memory led
   assert.equal(fixture.ledger.size,1,'IPv4 fixture ledger remains unchanged');
   assert(!child.output().includes(cookie.value)&&!child.output().includes(ipv4Cookie.value),
     'CLI logs contain no Cookie values');
+  assert(!child.output().includes('DEMO-VIP-01')&&!child.output().includes('DEMO-VIP-02'),
+    'CLI startup logs contain no activation codes');
 });

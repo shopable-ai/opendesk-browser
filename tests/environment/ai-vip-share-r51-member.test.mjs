@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {performance} from 'node:perf_hooks';
-import {createHash} from 'node:crypto';
+import {createHash,webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
 const sourcePath='examples/sidebar-tools/ai-vip-share/src/main.js';
@@ -28,16 +28,23 @@ function element(id=''){
   };
 }
 async function runtime({configured=false,provider,store={value:null},clockShiftMs=0,
-  storageGet,afterStorageSet,monotonicClock=performance,catalogUrl,tabsCreate}={}){
+  storageGet,afterStorageSet,monotonicClock=performance,catalogUrl,tabsCreate,currentPage}={}){
   const [html,script]=await Promise.all([readFile(htmlPath,'utf8'),readFile(sourcePath,'utf8')]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(row=>row[1]);
   const nodes=new Map(ids.map(id=>[id,element(id)]));
   const calls=[],storageCalls=[],tabCalls=[],reply=provider||(()=>{throw Error('No provider');});
   const request=async args=>{calls.push(args);return reply(args)};
   const etag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  // Separate Host storage keys; legacy journal assertions continue to use store.value.
+  const records=store.records??=new Map();
   const storage=async (operation,payload)=>{
-    // This harness models the redemption key independently of the Cookie journal.
-    if(payload.key==='aiVipCookieDeliveryR137')return {value:null,etag:etag(null)};
+    if(operation==='currentPage.info')return currentPage?await currentPage():{status:'unavailable'};
+    if(payload.key!=='aiVipRedeemR52'){
+      const value=records.get(payload.key)??null;
+      if(operation==='storage.get')return {value:structuredClone(value),etag:etag(value)};
+      assert.equal(operation,'storage.set');assert.equal(payload.ifMatch,etag(value));
+      records.set(payload.key,structuredClone(payload.value));return {saved:true};
+    }
     storageCalls.push(operation);
     if(operation==='storage.get')return {value:storageGet?await storageGet(store.value):store.value,etag:etag(store.value)};
     if(operation!=='storage.set')throw Error('Unexpected storage operation');
@@ -65,7 +72,7 @@ async function runtime({configured=false,provider,store={value:null},clockShiftM
   vm.runInNewContext(scriptText,{window,document,URL,
     Date:class extends Date {static now(){return Date.now()+clockShiftMs;}},
     performance:monotonicClock,Intl,Math,Set,Number,Array,
-    Promise,crypto:{randomUUID:()=> '11111111-1111-4111-8111-111111111111'}}, {timeout:2000});
+    Promise,TextEncoder,Uint8Array,crypto:{subtle:webcrypto.subtle,randomUUID:()=> '11111111-1111-4111-8111-111111111111'}}, {timeout:2000});
   await flush();await flush();
   return {nodes,calls,storageCalls,tabCalls,store,flush};
 }
@@ -83,9 +90,9 @@ const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.3.8');
+  assert.equal(pkg.version,'1.4.0');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write']);
+  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   assert(pkg.html.includes('id="ai-vip-benefits"'));
   assert(pkg.html.includes('id="ai-vip-history-list"'));
@@ -525,7 +532,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.3.8');
+  assert.equal(store.value?.packageVersion,'1.4.0');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);

@@ -20,7 +20,7 @@
       <summary>查看 6 类功能与入口 <span aria-hidden="true">▾</span></summary>
       <dl class="ai-vip-feature-list">
         <dt>会员账号与权益 · 下方会员卡</dt><dd id="ai-vip-feature-member">正式账号服务未配置，暂不能登录、绑定或查询权益。</dd>
-        <dt>兑换码激活与记录 · 下方兑换激活</dt><dd id="ai-vip-feature-redeem">正式兑换服务未配置，输入框暂不显示。</dd>
+        <dt>激活码激活与记录 · 下方兑换激活</dt><dd id="ai-vip-feature-redeem">正式兑换服务未配置，输入框暂不显示。</dd>
         <dt>专属激活链接与安装续接</dt><dd>尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。</dd>
         <dt>网站 Cookie 交付 · 有效兑换回执后出现</dt><dd id="ai-vip-feature-cookie">生产目标未配置；收到有效交付后才可核对目标并确认写入。</dd>
         <dt>更多商品</dt><dd id="ai-vip-feature-shop">商城地址未配置，商品按钮暂不显示。</dd>
@@ -28,14 +28,14 @@
       </dl>
     </details>
     <p id="ai-vip-demo-availability" class="ai-vip-note">正在检测本地演示入口。</p>
-    <p class="ai-vip-fine-print">旧设备 / 代理激活是历史技术流程，当前没有设备激活入口；它不能代替兑换码激活或专属链接激活。</p>
+    <p class="ai-vip-fine-print">旧设备 / 代理激活是历史技术流程，当前没有设备激活入口；它不能代替激活码激活或专属链接激活。</p>
   </section>
 
   <section id="ai-vip-local-development" class="ai-vip-review" aria-labelledby="ai-vip-local-title" hidden>
     <strong id="ai-vip-local-title">本地开发</strong>
     <p id="ai-vip-local-status" role="status" aria-live="polite">尚未连接本地开发服务。</p>
     <button id="ai-vip-local-connect" class="od-button od-button--secondary" type="button" disabled>连接本地开发</button>
-    <p class="ai-vip-fine-print">演示步骤：先连接 → 输入测试码 DEMO-VIP-01 → 预检兑换 → 核对账号并确认兑换 → 查看权益与兑换记录。Cookie 写入和代理启用仍各自确认。演示数据不代表付费会员。</p>
+    <p class="ai-vip-fine-print">演示步骤：先连接 → 输入测试码 DEMO-VIP-01 → 预检激活 → 核对账号并确认激活 → 查看权益与兑换记录。Cookie 写入和代理启用仍各自确认。演示数据不代表付费会员。</p>
   </section>
 
   <section id="ai-vip-member-card" class="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
@@ -75,17 +75,17 @@
 
   <section class="ai-vip-redeem" aria-labelledby="ai-vip-redeem-title">
     <h2 id="ai-vip-redeem-title">兑换激活</h2>
-    <p id="ai-vip-redeem-intro" class="ai-vip-note" hidden>预检兑换内容后，再确认领取。</p>
+    <p id="ai-vip-redeem-intro" class="ai-vip-note" hidden>预检激活内容后，再确认领取。</p>
     <form id="ai-vip-redeem-form" class="ai-vip-redeem-form" novalidate hidden>
-      <label class="ai-vip-sr-only" for="ai-vip-redeem-code">兑换码或激活码</label>
+      <label class="ai-vip-sr-only" for="ai-vip-redeem-code">激活码或激活码</label>
       <div class="ai-vip-redeem-inputs">
         <input id="ai-vip-redeem-code" class="od-field" type="password" data-sensitive
           maxlength="120" autocomplete="off" autocapitalize="none" spellcheck="false"
-          aria-describedby="ai-vip-redeem-status" placeholder="输入兑换码或激活码" disabled>
-        <button id="ai-vip-code-reveal" class="od-icon-button" type="button" title="显示或隐藏兑换码" aria-label="显示兑换码" aria-pressed="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        <button id="ai-vip-code-clear" class="od-icon-button" type="button" title="清空兑换码" aria-label="清空兑换码" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
+          aria-describedby="ai-vip-redeem-status" placeholder="输入激活码或激活码" disabled>
+        <button id="ai-vip-code-reveal" class="od-icon-button" type="button" title="显示或隐藏激活码" aria-label="显示激活码" aria-pressed="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button id="ai-vip-code-clear" class="od-icon-button" type="button" title="清空激活码" aria-label="清空激活码" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
       </div>
-      <button id="ai-vip-redeem" class="od-button ai-vip-primary" type="submit" disabled>预检兑换</button>
+      <button id="ai-vip-redeem" class="od-button ai-vip-primary" type="submit" disabled>预检激活</button>
     </form>
     <div id="ai-vip-redeem-preview" class="ai-vip-review" hidden>
       <div class="ai-vip-benefits-head"><strong>兑换预检</strong><span>尚未领取</span></div>
@@ -93,7 +93,7 @@
       <p id="ai-vip-preview-description"></p>
       <p id="ai-vip-preview-account"></p>
       <div class="ai-vip-review-actions">
-        <button id="ai-vip-redeem-confirm" class="od-button ai-vip-primary" type="button" disabled>确认兑换</button>
+        <button id="ai-vip-redeem-confirm" class="od-button ai-vip-primary" type="button" disabled>确认激活</button>
         <button id="ai-vip-redeem-cancel" class="od-button od-button--secondary" type="button" hidden>取消</button>
       </div>
     </div>
@@ -102,9 +102,18 @@
       <p id="ai-vip-recovery-status" role="status" aria-live="polite"></p>
       <button id="ai-vip-recovery-check" class="od-button od-button--secondary" type="button" disabled>核对上次兑换</button>
     </div>
-    <p id="ai-vip-redeem-status" class="ai-vip-note" role="status" aria-live="polite">会员服务接入后可使用兑换码。</p>
+    <p id="ai-vip-redeem-status" class="ai-vip-note" role="status" aria-live="polite">会员服务接入后可使用激活码。</p>
     <p id="ai-vip-redeem-error" class="ai-vip-error" role="alert" hidden></p>
     <p id="ai-vip-redeem-fine" class="ai-vip-fine-print" hidden>兑换以服务端回执为准，不会自动启用代理。</p>
+  </section>
+
+  <section id="ai-vip-shared-section" class="ai-vip-review" aria-labelledby="ai-vip-shared-title" hidden>
+    <h2 id="ai-vip-shared-title">公司共享账号</h2>
+    <p class="ai-vip-note">服务器分配的目标账号</p>
+    <p id="ai-vip-shared-account" aria-live="polite"></p>
+    <p id="ai-vip-shared-status" role="status" aria-live="polite"></p>
+    <button id="ai-vip-shared-receive" class="od-button od-button--secondary" type="button" disabled>重新取得分配会话</button>
+    <p class="ai-vip-fine-print">公司成员可在各自浏览器使用授权账号。同一浏览器的同一 Cookie 存储会切换当前账号，不提供多账号并发隔离。</p>
   </section>
 
   <section id="ai-vip-cookie-section" class="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
@@ -113,6 +122,7 @@
     <p class="ai-vip-fine-print">写入可能替换该网站当前会话。Cookie 写入回执不代表登录或第三方会员成功；请在目标页面核对。停止代理不会删除 Cookie。</p>
     <ul id="ai-vip-cookie-results" class="ai-vip-list" aria-label="逐项写入回执"></ul>
     <button id="ai-vip-cookie-install" class="od-button od-button--secondary" type="button" disabled>确认写入网站 Cookie</button>
+    <button id="ai-vip-cookie-open" class="od-button od-button--secondary" type="button" hidden>打开目标网站核对账号</button>
   </section>
 
   <section id="ai-vip-shop-section" class="ai-vip-shop" aria-label="更多商品" hidden>
@@ -140,7 +150,7 @@
     <div class="ai-vip-service-content">
       <p>仅在通过可信 Browser SDK 与 Chrome 原生权限确认后管理本工具的代理，不修改其他工具或系统 VPN 配置。连接可用不代表第三方会员已开通。</p>
       <p>站点示例：ChatGPT · Claude · Gemini · Perplexity；最终适用范围以审核后的服务与商品说明为准。系统代理、VPN / TUN 与本工具状态分别核验。</p>
-      <p id="ai-vip-link-status">专属激活链接尚未接通。兑换码需会员服务可用后手动输入；本地演示请先使用上方连接入口。</p>
+      <p id="ai-vip-link-status">生产激活链接尚未配置。本地开发连接后可手动输入激活码，或在此工具打开时访问约定激活网址自动请求分配；网站权限与 Cookie 批次仍需可信确认。</p>
     </div>
   </details>
 </main>
