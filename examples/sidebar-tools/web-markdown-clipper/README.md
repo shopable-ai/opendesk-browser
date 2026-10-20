@@ -14,10 +14,49 @@ open examples/sidebar-tools/web-markdown-clipper/preview/index.html
 
 网页内容读取由 OpenDesk 可信 Content Script 完成；当前工具只是无 Chrome 权限的隔离 UI。
 
+## 运行方式：预览与真实扩展不同
+
+**正式工具不是 React。** 页面来自 `src/index.html`、`src/style.css`、`src/main.js`，通过现有 OpenDesk Tool SDK 与可信 Host 获取授权网页内容；不需要运行 React 开发服务器。
+
+**A. 仅体验 UI（模拟数据）：**
+
+在本地 Mac 仓库根目录、已安全同步最新 main 后执行：
+
+```bash
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+Chrome 打开：
+
+`http://127.0.0.1:8765/examples/sidebar-tools/web-markdown-clipper/preview/index.html`
+
+在工具中点击「剪藏」加载示例，然后切换「源码 / 预览」、来源格式、宽度及主题。**模拟复制、下载和网站访问不会执行真实操作。**
+
+**B. 使用真实 Chrome 剪藏网页：**
+
+```bash
+npm ci
+npm run build
+```
+
+打开 Chrome `chrome://extensions`，启用开发者模式，选择「加载已解压的扩展程序」，加载仓库的 `dist/production`。从 Chrome 的 OpenDesk 侧边栏进入「扩展」（旧版可能显示「工具」）→「发现」→「网页剪藏」→「安装」。在工具设置中允许当前网站剪藏，然后从该工具按「剪藏」获取真实活动网页内容。复制结果和下载文件必须通过真实系统确认，不能根据 UI 提示认定落盘成功。
+
+真实验收的最短非 Chrome 命令：
+
+```bash
+npm run check
+APP_CI_SELECTED=web-markdown-clipper node scripts/app-ci.mjs plan
+node scripts/app-ci.mjs inspect web-markdown-clipper
+node scripts/app-ci.mjs build web-markdown-clipper
+node scripts/app-ci.mjs node web-markdown-clipper
+```
+
+只有前置环境 GO 后才运行 `node scripts/app-ci.mjs native web-markdown-clipper`，并设置可执行的 `CHROME_BIN`。该现有 native 脚本主要验证真实扩展配合本地 Fixture，不等于公共网页、系统剪贴板及下载落盘全部验收。
+
 ## 使用
 
-1. 在 Side Panel → 工具 找到「网页剪藏」并安装；首次安装必须明确预览 `page.clip`、`user.export` 两项能力。
-2. 保持目标 HTTP(S) 页面为同窗口活动标签页；从工具列表点「允许剪藏当前网站」并在确认框批准 **Origin**。
+1. 在 Side Panel → 扩展（旧版可能显示「工具」）→ 发现，找到「网页剪藏」并安装；首次安装需预览 `page.clip`、`user.export` 两项能力。
+2. 保持目标 HTTP(S) 页面为同窗口活动标签页；在工具设置中点击「允许剪藏当前网站」，授权当前 **Origin**。
 3. 打开工具，切换「文章 / 选区 / 引用 / 链接」，然后点击「剪藏」；选区或引用模式须先在网页选择目标文本。
 4. 检查源码或只读预览，按需选择 YAML Front Matter/文末引用，点击「复制」或「下载 .md」。
 5. 对网页做 SPA 导航、刷新、更换文章或重新选择范围后，重新点击剪藏。工具不会后台自动搜集内容。
