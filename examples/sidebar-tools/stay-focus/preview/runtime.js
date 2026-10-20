@@ -86,6 +86,8 @@
     switch(op){
       case 'focus.site.put':{
         const site=structuredClone(payload.site);
+        if(site.group==='entertainment'&&model.groups.entertainment===undefined)
+          model.groups.entertainment=policy.dailyMinutes;
         const index=model.sites.findIndex(row=>row.host===site.host);
         if(index<0)model.sites.push(site);else model.sites[index]=site;
         break;
