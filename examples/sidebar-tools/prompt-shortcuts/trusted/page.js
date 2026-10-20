@@ -23,7 +23,13 @@ const STYLE=String.raw`
  width:max-content;max-width:calc(100vw - 16px);padding:6px;border-radius:17px;
  background:var(--od-rail-bg);border:1px solid var(--od-rail-border);
  box-shadow:var(--od-rail-shadow);scrollbar-width:thin;overscroll-behavior:contain;box-sizing:border-box}
-.rail.horizontal{flex-direction:row;max-height:none;overflow-x:auto;overflow-y:hidden}
+.rail.horizontal{flex-direction:row;max-height:none;overflow-x:auto;overflow-y:hidden;max-width:calc(100vw - 16px)}
+.rail{--ps-image-width:68px;--ps-image-height:48px}
+.rail[data-image-size="compact"]{--ps-image-width:48px;--ps-image-height:40px}
+.rail[data-image-size="standard"]{--ps-image-width:56px;--ps-image-height:44px}
+.item.image{width:var(--ps-image-width);min-width:var(--ps-image-width);
+  height:var(--ps-image-height);min-height:var(--ps-image-height);padding:0;border-radius:10px;overflow:hidden}
+.item.image img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 button{font:inherit;cursor:pointer;color:var(--od-button-fg);background:var(--od-button-bg);
  border:1px solid transparent;border-radius:11px;outline-offset:2px;box-sizing:border-box;
  box-shadow:none;user-select:none}
@@ -74,7 +80,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
-  let items=[],observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
+  let items=[],imageSize='large',observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
   const themeMedia=win.matchMedia?.('(prefers-color-scheme: dark)');
   let locationTimer=0,retryTimer=0,readFailures=0;
@@ -532,7 +538,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       host.style.transform='translateY(-50%)';host.hidden=false;
     }else{
       // At small widths, LEFT align above the composer; never jump to the right.
-      const width=rail.scrollWidth||Math.min(250,52+items.length*43);
+      // Horizontal rail scrolls; its intrinsic width must never hide every button.
+       const width=rail.offsetWidth||Math.min(win.innerWidth-16,250);
       const height=rail.offsetHeight||52;
       const top=targetRect.top-height-18;
       if(top<8||width>win.innerWidth-16){host.hidden=true;hideTip();return;}
@@ -571,9 +578,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     const maxTop=win.innerHeight-hostRect.top-tipHeight-12;
     const minTop=12-hostRect.top;
     tip.style.top=Math.round(Math.max(minTop,Math.min(buttonRect.top-hostRect.top-12,maxTop)))+'px';
-    const freeRight=win.innerWidth-hostRect.left-64;
-    tip.style.left=freeRight<260?'auto':'64px';
-    tip.style.right=freeRight<260?'59px':'auto';
+    const offset=Math.max(64,(rail.offsetWidth||52)+12);
+    const freeRight=win.innerWidth-hostRect.left-offset;
+    tip.style.left=freeRight<260?'auto':offset+'px';
+    tip.style.right=freeRight<260?offset+'px':'auto';
   };
   const showTip=(row,button)=>{
     if(!tip||!host||!host.isConnected)return;
@@ -781,7 +789,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');
       shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
-    rail.replaceChildren();
+    rail.replaceChildren();rail.dataset.imageSize=imageSize;
     if(builtInPage(win.location.href)){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
       brand.textContent='OD';brand.title='打开提示词快捷按钮';
@@ -793,9 +801,22 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       button.className='item';
       button.setAttribute('aria-label','插入提示词：'+row.name);
       button.title=row.name; // Full multiline details appear on focus/hover.
-      for(const part of model.parts(row.label)){
-        const span=doc.createElement('span');span.textContent=part;button.append(span);
-      }
+      const fallbackLabel=()=>{
+        button.replaceChildren();
+        for(const part of model.parts(row.label)){
+          const span=doc.createElement('span');span.textContent=part;button.append(span);
+        }
+      };
+      if(row.appearance==='image'){
+        try{
+          const url=model.normalizeImageUrl(row.imageUrl,true);
+          button.classList.add('image');
+          const img=doc.createElement('img');
+          img.alt='';img.decoding='async';img.loading='lazy';img.referrerPolicy='no-referrer';
+          img.addEventListener('error',()=>{if(img.parentNode===button)fallbackLabel();});
+          button.append(img);img.src=url;
+        }catch{fallbackLabel();}
+      }else fallbackLabel();
       button.addEventListener('mouseenter',()=>showTip(row,button));
       button.addEventListener('focus',()=>showTip(row,button));
       button.addEventListener('mouseleave',delayHideTip);
@@ -836,7 +857,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       readFailures=0;
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);
-      items=rows.slice(0,4);visible=true;render();
+      items=rows.slice(0,4);imageSize=library.settings.imageSize;visible=true;render();
       syncJump();
       if(!observer){
         observer=new win.MutationObserver(records=>{
