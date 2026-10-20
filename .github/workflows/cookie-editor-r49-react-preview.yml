@@ -28,6 +28,11 @@ jobs:
       - name: Install pinned React 19, Vite and Playwright
         working-directory: examples/sidebar-tools/cookie-editor/preview/react
         run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build existing fixed Shared UI asset (filtered WXT entry only)
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          OPENDESK_BUILD_MODE=development npx wxt build --mode development --filter-entrypoint sidebar-shared-ui
+          test -s dist/development/sidebar-shared-ui.js
       - name: Build and verify exact offline React HTML
         working-directory: examples/sidebar-tools/cookie-editor/preview/react
         run: |
