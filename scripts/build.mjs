@@ -1,5 +1,6 @@
 import {preparePublic} from './prepare-public.mjs';
 import {buildAdblockReact} from './build-adblock-react.mjs';
+import {buildStayFocusReact} from './build-stay-focus-react.mjs';
 import {officialToolInputs} from './build-official-tools.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
 import {prepare,build} from 'wxt';
@@ -28,8 +29,9 @@ try {
 await mkdir(evidence,{recursive:true});
 await writeFile(`${evidence}/build-${outputLabel}-latest.json`,JSON.stringify({status:'in_progress',mode,attemptId,startedAt:new Date().toISOString()})+'\n');
 await verifyReadingTocTrustedLocales();
-// Build the sole AdBlock React source before fingerprinting official inputs.
+// Compile independent React tools before fingerprinting official inputs.
 await buildAdblockReact({log:false});
+await buildStayFocusReact({log:false});
 inputsBefore = await sourceInputs();
 process.env.OPENDESK_BUILD_MODE=mode;
 await preparePublic();

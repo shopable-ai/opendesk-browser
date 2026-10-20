@@ -52,6 +52,68 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
 }
 
  
+
+/** Shared confirmation shell; the trusted controller still owns uninstall. */
+export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
+  onCancel,returnFocusSelector,children}) {
+  const panelRef=React.useRef(null),titleId=React.useId();
+  const latest=React.useRef({busy,onCancel});
+  latest.current={busy,onCancel};
+  React.useLayoutEffect(()=>{
+    if(!open)return;
+    const panel=panelRef.current;
+    if(!panel)return;
+    const doc=panel.ownerDocument,root=doc.getElementById('opendesk-react-app');
+    const previous=doc.activeElement,previousInert=root?.inert;
+    const previousOverflow=doc.body.style.overflow;
+    if(root)root.inert=true;
+    doc.body.style.overflow='hidden';
+    (panel.querySelector('[data-uninstall-cancel]')||panel).focus({preventScroll:true});
+    const onKeyDown=event=>{
+      if(event.key==='Escape'){
+        event.preventDefault();event.stopPropagation();
+        if(!latest.current.busy)latest.current.onCancel?.(event);
+        return;
+      }
+      if(event.key!=='Tab')return;
+      const focusable=[...panel.querySelectorAll(
+        'button:not([disabled]),[href],input:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter(node=>!node.closest('[hidden]')&&node.getClientRects().length);
+      const first=focusable[0],last=focusable.at(-1);
+      if(!first){event.preventDefault();panel.focus({preventScroll:true});return;}
+      if(event.shiftKey&&(doc.activeElement===first||!panel.contains(doc.activeElement))){
+        event.preventDefault();last.focus({preventScroll:true});
+      }else if(!event.shiftKey&&(doc.activeElement===last||!panel.contains(doc.activeElement))){
+        event.preventDefault();first.focus({preventScroll:true});
+      }
+    };
+    doc.addEventListener('keydown',onKeyDown,true);
+    return ()=>{
+      doc.removeEventListener('keydown',onKeyDown,true);
+      doc.body.style.overflow=previousOverflow;
+      if(root)root.inert=previousInert;
+      const preferred=returnFocusSelector?doc.querySelector(returnFocusSelector):null;
+      const visible=node=>node?.isConnected&&!node.closest?.('[hidden]')&&
+        node.getClientRects().length>0;
+      const target=visible(preferred)?preferred:
+        visible(previous)?previous:doc.getElementById('extension-center-search');
+      target?.focus?.({preventScroll:true});
+    };
+  },[open,returnFocusSelector]);
+  if(!open)return null;
+  const surface=<div className="od-uninstall-overlay">
+    <button type="button" className="od-uninstall-backdrop" tabIndex={-1}
+      aria-label="取消卸载" disabled={busy}
+      onClick={event=>onCancel?.(event.nativeEvent)}/>
+    <section ref={panelRef} className="od-uninstall-dialog" tabIndex={-1}
+      role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={busy}>
+      <h2 id={titleId}>{title}</h2>
+      {children}
+    </section>
+  </div>;
+  return typeof document==='undefined'?surface:createPortal(surface,document.body);
+}
+
 // Detail actions retain the originating native event. Identity and permission
 // checks remain with the existing Extension Center controller.
 export function ExtensionDetail({model,container}){
@@ -75,17 +137,6 @@ export function ExtensionDetail({model,container}){
         data-ec-detail-action={action.id}
         onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>)}
     </div>
-    {model.confirmation&&<section className="ec-detail-card" role="group"
-      aria-label="确认卸载网页增强">
-      <h3>确认卸载网页增强</h3>
-      <p>{model.confirmation.text}</p>
-      <div className="ec-detail-actions">
-        <Button disabled={model.busy} data-ec-detail-action="cancel-uninstall"
-          onClick={event=>model.confirmation.onCancel(event.nativeEvent)}>取消</Button>
-        <Button disabled={model.busy} data-ec-detail-action="confirm-uninstall"
-          onClick={event=>model.confirmation.onConfirm(event.nativeEvent)}>确认卸载</Button>
-      </div>
-    </section>}
     <section className="ec-detail-card">
       <h3>安装与来源</h3>
       <p>{model.installationText}</p>
@@ -314,6 +365,19 @@ export function ExtensionCenterPage({
         <ExtensionDetail model={detailModel} container={detailRef.current}/>
       </div>
     </section>
+    <UninstallDialog open={detailVisible&&Boolean(detailModel?.confirmation)}
+      title={'卸载「'+(detailModel?.title||'网页增强')+'」？'}
+      busy={Boolean(detailModel?.busy)}
+      returnFocusSelector='#extension-center-detail [data-ec-detail-action="uninstall"]'
+      onCancel={event=>detailModel?.confirmation?.onCancel(event)}>
+      <p>{detailModel?.confirmation?.text||''}</p>
+      <div className="od-uninstall-dialog-actions">
+        <Button data-uninstall-cancel="true" disabled={Boolean(detailModel?.busy)}
+          onClick={event=>detailModel?.confirmation?.onCancel(event.nativeEvent)}>取消</Button>
+        <Button className="od-uninstall-confirm" disabled={Boolean(detailModel?.busy)}
+          onClick={event=>detailModel?.confirmation?.onConfirm(event.nativeEvent)}>确认卸载</Button>
+      </div>
+    </UninstallDialog>
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}
     <p id="extension-center-status" className="ec-message" role="status"
       aria-live="polite" data-state={statusModel?.state||'info'}

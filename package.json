@@ -16,7 +16,7 @@
     "pack:dev": "node scripts/pack.mjs development",
     "verify": "node scripts/verify-package.mjs dist/production && node scripts/verify-package.mjs dist/development",
     "check": "node scripts/check-source.mjs",
-    "pretest": "node scripts/build-adblock-react.mjs",
+    "pretest": "node scripts/build-adblock-react.mjs && node scripts/build-stay-focus-react.mjs",
     "test": "node --test tests/environment/*.test.mjs",
     "dev:chrome": "node scripts/dev-chrome.mjs",
     "build:program": "node scripts/build-program-project.mjs",

@@ -16,7 +16,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-too
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
 async function model(){
   const source=await readFile(ROOT+'/trusted/model.js','utf8'),sandbox={
-    Intl,TextEncoder,crypto:webcrypto
+    URL,Intl,TextEncoder,crypto:webcrypto
   };
   runInNewContext(source,sandbox);
   return sandbox.OpenDeskPromptShortcutsModel;
@@ -118,9 +118,9 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','709620e151cc448844a263e1f367db23a5fbb2da'],
+    ['trusted/model.js','9f58c21cd1754eb1a35961cb22424a73ba604afe'],
     ['trusted/policy.js','6544a03db0f11373dccdf67cc9b5ce808920a495'],
-    ['trusted/page.js','36f97dd396e33abb712f2bc225bde13dfcb4efb8']
+    ['trusted/page.js','a64a436b8ecc3ba67287de6f6afec1ca94a2fcce']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
@@ -197,4 +197,28 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
     'formal list CTA must preserve canonical quiet-button token instead of blue primary button');
   assert.doesNotMatch(js,/request\('clipboard\.writeText'/);
   assert.doesNotMatch(html,/模拟数据|模拟撤销|mockContextMenu|SIMULATED PREVIEW/);
+});
+
+
+test('R2.8 candidate origins, selector grammar and Grok path are strictly bounded',async()=>{
+  const m=await model();
+  for(const [origin,path] of [
+    ['https://claude.ai','/new'],['https://gemini.google.com','/app'],
+    ['https://chat.deepseek.com','/'],['https://www.perplexity.ai','/'],
+    ['https://grok.com','/'],['https://x.com','/i/grok']
+  ]){
+    const hint=m.siteHint(origin,path);
+    assert(hint,origin+' should offer discovery hints');
+    assert(hint.containers.length>0&&hint.editors.length>0);
+    for(const selector of [...hint.containers,...hint.editors])
+      assert.equal(m.validSelector(selector),true,origin+' invalid CSS candidate '+selector);
+    m.siteRule({origin,pathScope:hint.pathScope,
+      containerSelector:hint.containers[0],editorSelector:hint.editors[0]});
+  }
+  assert.equal(m.siteHint('https://x.com','/home'),null,'ordinary X composer must not be targeted');
+  assert.equal(m.siteHint('https://x.com','/i/grokfake'),null);
+  assert.equal(m.siteHint('https://cursor.com','/agents'),null,'Cursor Web DOM is not verified');
+  assert.equal(m.siteHint('https://claude.ai.evil.test','/'),null);
+  assert.equal(m.siteHint('http://claude.ai','/'),null);
+  assert.equal(m.siteHint('https://chatgpt.com','/'),null,'ChatGPT keeps its built-in adapter');
 });

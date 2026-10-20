@@ -235,3 +235,24 @@ test('R1.1 native hostname match cannot express port, but grants retain exact or
   await h2.synchronize();
   assert.equal(f2.menus.size,0,'without site consent no native entry may be built');
 });
+
+
+test('R1.6 protocol wildcard is ONLY a declaration; Chrome native menu still projects exact approved Origins',async()=>{
+ const f=await fixture();
+ f.tool.contributes.contextMenus[0].documentUrlPatterns=['http://*/*','https://*/*'];
+ validateSidebarToolPackage(f.tool);
+ f.grant.packageHash=await sidebarToolPackageHash(f.tool);
+ f.local.set(SIDEBAR_TOOL_STORE,[f.tool]);
+ f.local.set(BROWSER_MENU_GRANTS_STORE,{[f.tool.id]:f.grant});
+ const host=f.host();
+ await host.synchronize();
+ const id='opendesk.tool.selection-notes.capture-selection';
+ assert.deepEqual(f.menus.get(id)?.documentUrlPatterns,['https://example.com/*'],
+  'do not install a global native all-site menu from a wildcard package template');
+ const invalid=structuredClone(f.tool);
+ invalid.contributes.contextMenus[0].documentUrlPatterns=['https://*.*/*'];
+ assert.throws(()=>validateSidebarToolPackage(invalid),{code:'E_TOOL_SCHEMA'});
+ f.setSite(false);
+ await host.synchronize();
+ assert.equal(f.menus.size,0,'revoked Chrome website access must remove projected native entries');
+});

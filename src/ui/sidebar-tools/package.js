@@ -69,6 +69,9 @@ export function validateSidebarToolPackage(value) {
          !Array.isArray(action.documentUrlPatterns)||!action.documentUrlPatterns.length||
          action.documentUrlPatterns.length>5||
          !action.documentUrlPatterns.every(pattern=>{
+           // A protocol-only declaration is a TEMPLATE, never an all-sites grant.
+           // Native entries are projected solely for per-Origin approved sites.
+           if(pattern==='http://*/*'||pattern==='https://*/*')return true;
            if(typeof pattern!=='string'||pattern.length>200||
               !/^https?:\/\/[a-z0-9.-]+\/\*$/.test(pattern))return false;
            try {const url=new URL(pattern);return !url.username&&!url.password&&url.hostname.includes('.')&&

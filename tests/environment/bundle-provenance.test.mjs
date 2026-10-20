@@ -224,24 +224,45 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
 });
 
 
-test('R1.3 pinned Web Clipper conversion module can only enter the existing Page Relay',async ctx=>{
-  const path='examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
+test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
+  const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  const pin='82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c';
+  const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
+  for(const target of ['sw.js','agents/page-relay.js'])
+    assert.equal(make(target).modules[0].reviewedFirstPartyBlob,pin);
+  for(const target of ['ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  const file=join(root,path);
+  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unsigned edit\n');
+  assert.throws(()=>make('sw.js',root),/Trusted Prompt Shortcuts source changed/);
+});
+
+test('R1.3 pinned shared Markdown converter can only enter the existing Page Relay',async ctx=>{
+  const path='examples/shared/markdown/convert.js';
+  const legacy='examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');
   assert.equal(row.modules[0].path,path);
-  assert.match(row.modules[0].reviewedFirstPartyBlob,/^[0-9a-f]{40}$/);
+  assert.equal(row.modules[0].reviewedFirstPartyBlob,'b53147ff3bd888f1291e81daf8a90d06b5a1a114');
   for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/,
-      'permission boundary for '+target);
-  const root=await realpath(await mkdtemp(join(tmpdir(),'web-clipper-pin-')));
+      'shared converter must not cross the Page Relay boundary: '+target);
+  assert.throws(()=>describeBundle({chunk:{fileName:'agents/page-relay.js',
+    modules:{[resolve(legacy)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}}),
+    /cannot enter a privileged fixed bundle/,
+    'removed legacy Clipper path must never be treated as an approved source');
+  const root=await realpath(await mkdtemp(join(tmpdir(),'shared-markdown-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/web-markdown-clipper/trusted'),{recursive:true});
+  await mkdir(join(root,'examples/shared/markdown'),{recursive:true});
   await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned edit\n');
-  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Web Clipper source changed/);
+  assert.throws(()=>make('agents/page-relay.js',root),/Shared Markdown source changed/);
   assert.throws(()=>make('sw.js',root),/cannot enter a privileged fixed bundle/);
 });
-
 
 test('R1.3 Reading TOC model, overview and placement require audited Page Relay pins',async ctx=>{
   const names=['overview.js','model.js','placement.js'];

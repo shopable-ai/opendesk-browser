@@ -1206,7 +1206,7 @@ test('R2.15 B rail keeps its OD entry with zero prompts, caps at four, respects 
     assert.equal(rail.children.length,1);
     assert.equal(rail.children[0].className,'brand');
     assert.equal(rail.children[0].textContent,'OD');
-    assert.equal(rail.children[0].getAttribute('aria-label'),'打开 OpenDesk 侧边栏');
+    assert.equal(rail.children[0].getAttribute('aria-label'),'打开提示词快捷按钮');
     f.change(PROMPT_DATA_STORE,{library:{schema:1,
       items:[1,2,3,4,5].map(make),settings:{webButtons:true}}});
     await settle();

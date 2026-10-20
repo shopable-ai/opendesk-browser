@@ -1,6 +1,6 @@
 # 提示词快捷按钮（Prompt Shortcuts）
 
-> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.5`（R2.7 源码候选；正式包以 CI 核验和发布为准）。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
+> 正式工具 ID：`prompt-shortcuts`，版本 `1.1.6`（R2.8 源码候选；正式包以 CI 核验和发布为准）。ChatGPT 内置适配器已完成，其他网站可配置自定义规则。源码在本目录；不是额外的 Chrome Extension。
 
 ## 使用流程
 
@@ -125,3 +125,12 @@ git diff -- examples/sidebar-tools/prompt-shortcuts/
 - **网页反馈**：确认插入成功时不显示视觉 Toast，只通过屏幕阅读器实时区域提示「已插入草稿，未发送」；插入失败但剪贴板复制成功显示「已复制，请粘贴」约 3 秒；都失败时显示可用 Esc 清除的错误提示约 5 秒。连续操作定时器防串扰，SPA、停用、卸载与销毁清理反馈和临时 DOM。原草稿、IME、Undo、真实 DOM 读回和不自动发送逻辑保持不变。
 - **即时同步**：新增/编辑/排序/删除/导入/单条或全局启停均经 Host 存储提交后触发现有 `chrome.storage.onChanged`；可信网页适配器停止并刷新，不需页面刷新，不追加展开收起按钮。
 - **验收等级**：新增了真实经典脚本的 Node 模拟 Host 回归测试和可信页面提示生命周期测试，但只有实际 CI 结果才能称为 Node/Chromium PASS。版本 1.1.5 正式 JSON 应由仓库 `prompt-shortcuts-r14.yml` 的验证候选自动同步；同步前原始 1.1.4 包不等于新源码。真实 Mac Chrome 安装升级/已登录 ChatGPT 中文 IME/Undo 若没有对应本版证据须标记 NOT_TESTED。禁止将过往版本的证据继承为 1.1.5 PASS。
+
+
+### R2.8 跨站候选定位（源码候选 1.1.6）
+
+- 「管理网站」→「配置当前网站」：Claude、Gemini、DeepSeek、Perplexity、Grok 的精确 Origin 会尝试固定源码中的语义 CSS 候选（`data-testid`、富文本编辑器、`#chat-input`）。现有可信 `prompt.page.check` 检查当前真实网页的唯一可见容器、唯一可编辑输入框、容器包含关系和 Origin。通过后只预填表单，用户主动保存后才启用。
+- Grok 的 `x.com` 规则仅限 `/i/grok`，不会作用于 X 的普通帖子编辑器。Cursor Web（`cursor.com/agents`）暂缺可核实的 DOM 选择器，继续使用网页点选，不把网址本身当作可验证支持。
+- 自动定位失败保留原有双目标点选；异步 Host 回执不能覆盖用户修改后的草稿；检测不写入存储，也不自动发送。
+- **定位通过不代表实际插入通过**。需要在安装的 Mac Chrome 真网站账号会话中验收富文本、多行、中文 IME、Cmd+Z、SPA、权限撤销。没有创建第二套 Host，也没有扩大站点权限。
+- 参考：Playwright Locators、danslabs/Claude.ai-CSS-fixes、afumu/openteam Gemini site adapter、ops120/grok-brain。

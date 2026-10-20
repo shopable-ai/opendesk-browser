@@ -83,6 +83,14 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
       }
   }
   function once(scope,key,body,fn){if(typeof key!=='string'||key.length>150)fail('E_SCHEMA');const k=scope+':'+key,d=hash(body),old=state.requests[k];if(old){if(old.digest!==d)fail('E_REQUEST_CONFLICT');return structuredClone(old.answer);}const answer=fn();state.requests[k]={digest:d,answer:structuredClone(answer)};return answer;}
+  // Scope both remote status and Stop to the exact submitting client.
+  function clientJob(jobId,client){
+    const job=typeof jobId==='string'?state.jobs[jobId]:null;
+    if(!job||job.submittedBy!==client.clientId||
+      job.targetExecutorId!==client.executorId||job.targetPairingId!==client.pairingId||
+      job.targetGrantId!==client.grantId)fail('E_JOB');
+    return job;
+  }
   // The trusted local admin and the paired Browser share one immutable pin check.
   function pinnedClientTasks(row,tasks){
     if(!Array.isArray(tasks)||tasks.length<1||tasks.length>32)fail('E_CLIENT_SCOPE');
@@ -128,7 +136,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
         // Local administration is never served by the external HTTPS listener.
         if(publicRequest)fail('E_ROUTE');
         if(!secureEqual(req.headers.authorization,'Bearer '+credentials.adminToken))fail('E_AUTH');
-      }else if(['/v1/submit','/v1/job-status','/v1/client-scope'].includes(path)){
+      }else if(['/v1/submit','/v1/job-status','/v1/job-cancel','/v1/client-scope'].includes(path)){
         if(!publicRequest)fail('E_TLS_REQUIRED');
         const clientId=Object.keys(state.clients).find(id=>
           !state.clients[id].revokedAt&&
@@ -478,26 +486,35 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
               tasks:structuredClone(client.tasks),allowResult:client.allowResult===true};
             break;
           }
+          case '/v1/job-cancel':{
+            exact(b,['jobId']);
+            const j=clientJob(b.jobId,client);
+            if(j.receipt){out={jobId:j.jobId,cancelled:false,alreadyFinished:true};break;}
+            j.cancelled=true;j.cancelledAt??=clock()||1;
+            out={jobId:j.jobId,cancelled:true,alreadyFinished:false};
+            break;
+          }
           case '/v1/job-status':{
             exact(b,['jobId']);
-            const j=state.jobs[b.jobId];
-            if(typeof b.jobId!=='string'||!j||j.submittedBy!==client.clientId||
-              j.targetExecutorId!==client.executorId||
-              j.targetPairingId!==client.pairingId||
-              j.targetGrantId!==client.grantId)fail('E_JOB');
+            const j=clientJob(b.jobId,client);
             const status=j.receipt?.result?.state||
               (j.cancelled?(j.runRef?'OUTCOME_UNKNOWN':'cancelled'):
                 j.state==='admitted'&&j.assignment?.leaseUntil<=clock()?'OUTCOME_UNKNOWN':
                 j.state==='assigned'&&j.assignment?.leaseUntil<=clock()?'expired_before_admission':
                 j.state);
             const full=j.receipt?.result;
-            out={jobId:j.jobId,state:status,receiptConfirmed:!!j.receipt,
-              ...(client.allowResult===true&&j.resultAllowed===true&&
-                full?.visibility==='full'?{result:{
-                  state:full.state,
-                  ...(Object.hasOwn(full,'valueWire')?{valueWire:full.valueWire}:{}),
-                  ...(Object.hasOwn(full,'error')?{error:full.error}:{})
-                }}:{})};
+            out={jobId:j.jobId,state:status,receiptConfirmed:!!j.receipt};
+            if(client.allowResult===true&&j.resultAllowed===true&&full?.visibility==='full'){
+              out.result={state:full.state,
+                ...(Object.hasOwn(full,'valueWire')?{valueWire:full.valueWire}:{}),
+                ...(Object.hasOwn(full,'error')?{error:full.error}:{})};
+              // Correlated IDs only; never expose raw Run or page data unless
+              // both Browser and authenticated client approved full results.
+              if(j.runRef&&j.receipt?.receiptId&&j.receipt?.digest)
+                out.trace={requestId:j.runRef.requestId,runId:j.runRef.runId,
+                  resultId:j.runRef.resultId,receiptId:j.receipt.receiptId,
+                  receiptDigest:j.receipt.digest};
+            }
             break;
           }
           case '/admin/cancel':exact(b,['jobId']);if(!state.jobs[b.jobId])fail('E_JOB');state.jobs[b.jobId].cancelled=true;out={cancelled:true};break;
@@ -514,7 +531,7 @@ function currentPermit(j){if(!j.permit||!nonempty(j.permit.permitId))fail('E_LEA
       },readOnly);
       if(afterCommit)afterCommit();
       if(path==='/admin/seed')notify(b.targetExecutorId);
-      if(path==='/v1/submit')notify(client.executorId);
+      if(path==='/v1/submit'||path==='/v1/job-cancel')notify(client.executorId);
       if(path==='/admin/cancel')notify(state.jobs[b.jobId]?.targetExecutorId);
       if(path==='/v1/unpair')retire(executorId);if(answer.drop){req.socket.destroy();return;}res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(answer.out));
     }catch(e){res.writeHead(e.code==='E_AUTH'?401:e.code==='E_REQUEST_CONFLICT'?409:400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{code:e.code||'E_SCHEMA',message:e.message}}));}

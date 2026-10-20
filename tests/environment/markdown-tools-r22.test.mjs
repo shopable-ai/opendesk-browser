@@ -17,11 +17,16 @@ import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTE
 
 const tools=['web-markdown-clipper','markdown-workbench'];
 const readPkg=officialToolFixture;
-test('R22 both tools are distinct, bounded v1 installable packages with no remote script',async()=>{
+test('R22 Markdown workbench v1 and upgraded Clipper v2 are bounded installable packages',async()=>{
  const [clip,work]=await Promise.all(tools.map(readPkg));
  assert.equal(validateSidebarToolPackage(clip).id,'web-markdown-clipper');
  assert.equal(validateSidebarToolPackage(work).id,'markdown-workbench');
- assert.deepEqual(clip.capabilities,['page.clip','user.export']);
+ assert.equal(clip.format,'opendesk.sidebar-tool.v2');
+ assert.deepEqual(clip.capabilities,['page.clip','user.export','storage.local','currentPage.read','browser.contextMenu']);
+ assert.equal(clip.contributes.contextMenus[0].handler,'open-self');
+ assert.deepEqual(clip.contributes.contextMenus[0].documentUrlPatterns,['http://*/*','https://*/*']);
+ assert.equal(clip.scripts.length,1,'notes model must be a SHA-bound local Classic JS asset');
+ assert.equal(work.format,'opendesk.sidebar-tool.v1');
  assert.deepEqual(work.capabilities,['user.export']);
  for(const pkg of [clip,work]){
   assert.doesNotMatch(pkg.html,/<script|<iframe|<style|onload\s*=/i);

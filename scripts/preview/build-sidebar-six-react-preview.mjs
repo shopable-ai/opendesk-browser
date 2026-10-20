@@ -92,19 +92,103 @@ const demoRows=Object.freeze([
   {key:'app:demo-import',title:'演示 · 待安装应用',kind:'app',type:'应用',
     description:'仅展示官方目录候选外观，不提供模拟安装',installed:false,version:'2.0.0'}
 ]);
+const demoRemoved=new Set();
+let pendingDemoReview=null,selectedDemoKey=null;
+const demoInstalled=row=>row.installed&&!demoRemoved.has(row.key);
 const toolbar={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
 const previewNotice=()=>app.renderStatus({text:'仅预览 · 请在正式 Chrome 扩展中执行此操作',state:'info'});
+// The canonical React preview demonstrates the drawer and file metadata only.
+// Neither this adapter nor the disabled button can install, update or grant access.
+let previewSelection=0;
+const previewOpenImport=()=>{
+  toolbar.menuOpen=false;publishToolbar();
+  toolView.patch('sidebar-tool-import',{hidden:false});
+};
+toolView.bind('sidebar-tool-import-close','click',()=>{
+  previewSelection++;
+  toolView.patch('sidebar-tool-import',{hidden:true});
+  toolView.patch('sidebar-tool-preview',{hidden:true});
+  toolView.patch('sidebar-tool-file',{value:''});
+  toolView.patch('sidebar-tool-file-error',{hidden:true,textContent:''});
+});
+toolView.bind('sidebar-tool-file','change',async event=>{
+  const selection=++previewSelection,file=event?.target?.files?.[0];
+  toolView.patch('sidebar-tool-preview',{hidden:true});
+  toolView.patch('sidebar-tool-file-error',{hidden:true,textContent:''});
+  if(!file)return;
+  try{
+    if(file.size>1024*1024)throw Error('文件超过预览读取上限 1 MiB');
+    const value=JSON.parse(await file.text());
+    if(selection!==previewSelection)return;
+    const isPage=value?.format==='opendesk.page-install.v1';
+    const isTool=['opendesk.sidebar-tool.v1','opendesk.sidebar-tool.v2'].includes(value?.format);
+    const identity=isPage?value?.programId:value?.id;
+    if((!isPage&&!isTool)||typeof identity!=='string'||!identity.trim()||
+       typeof value.title!=='string'||!value.title.trim()||
+       typeof value.version!=='string'||!value.version.trim())
+      throw Error('无法识别安装包格式、身份、标题或版本；仅预览字段，不是完整包校验');
+    const sites=isPage&&Array.isArray(value.pageRules?.matches)
+      ?value.pageRules.matches.filter(item=>typeof item==='string').slice(0,20):[];
+    const requested=isPage
+      ?'作用网站：'+(sites.join('、')||'未提供可显示的网站范围')
+      :Array.isArray(value.capabilities)
+        ?value.capabilities.filter(item=>typeof item==='string').slice(0,30).join('、')||'未声明额外能力'
+        :'未读取';
+    toolView.patch('sidebar-tool-preview-title',{textContent:value.title.slice(0,100)});
+    toolView.patch('sidebar-tool-preview-version',{textContent:'v'+value.version.slice(0,40)+
+      (isPage&&Number.isSafeInteger(value.revision)?' · r'+value.revision:'')});
+    toolView.patch('sidebar-tool-preview-description',{textContent:
+      (isPage?'网页增强':'侧边栏应用')+' · 仅显示文件自述字段；未执行包验证、安装列表读回或真实授权，无法安装。'});
+    toolView.patch('sidebar-tool-preview-capabilities',{textContent:requested});
+    toolView.patch('sidebar-tool-preview-file',{textContent:'文件：'+file.name.slice(0,140)+
+      ' · 身份（未验证）：'+identity.slice(0,100)});
+    toolView.patch('sidebar-tool-update',{hidden:true});
+    toolView.patch('sidebar-tool-install',{disabled:true,textContent:'仅预览 · 不执行安装'});
+    toolView.patch('sidebar-tool-preview',{hidden:false});
+  }catch(error){
+    if(selection!==previewSelection)return;
+    toolView.patch('sidebar-tool-file-error',{hidden:false,
+      textContent:'仅预览 · '+String(error?.message||error)});
+  }
+});
 const closeRowMenu=()=>app.renderRowMenu([]);
-const closeDetail=()=>{closeRowMenu();app.renderView('list');};
+const closeDetail=()=>{
+  pendingDemoReview=null;selectedDemoKey=null;closeRowMenu();app.renderView('list');
+};
+function openDemoUninstallReview(key,event){
+  if(!event?.isTrusted||!demoRows.some(row=>row.key===key&&demoInstalled(row)))return;
+  pendingDemoReview=key;openDemoDetail(key);
+}
+function cancelDemoUninstallReview(event){
+  if(!event?.isTrusted||!pendingDemoReview)return;
+  const key=pendingDemoReview;
+  pendingDemoReview=null;openDemoDetail(key);
+}
+function confirmDemoUninstallReview(event){
+  if(!event?.isTrusted||!pendingDemoReview||pendingDemoReview!==selectedDemoKey)return;
+  const key=pendingDemoReview,row=demoRows.find(item=>item.key===key);
+  if(!row||!demoInstalled(row)){cancelDemoUninstallReview(event);return;}
+  demoRemoved.add(key);closeDetail();publishRows();
+  app.renderStatus({text:'仅预览 · 已从安装列表移除「'+row.title+
+    '」（仅内存演示，没有真实卸载或权限变更）',state:'success'});
+  document.getElementById('extension-center-search')?.focus({preventScroll:true});
+}
 function openDemoDetail(key){
-  const row=demoRows.find(item=>item.key===key);
+  const row=demoRows.find(item=>item.key===key&&!demoRemoved.has(item.key));
   if(!row)return;
-  closeRowMenu();
+  selectedDemoKey=key;closeRowMenu();
+  const installed=demoInstalled(row),reviewing=pendingDemoReview===key;
   app.renderDetail({key:row.key,title:row.title,kind:row.kind,type:row.type,
-    description:row.description,installed:row.installed,cleanupPending:false,
-    version:row.version,busy:false,actions:[],
-    source:row.installed?{label:'演示来源（非真实安装）'}:null,
-    installationText:row.installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
+    description:row.description,installed,cleanupPending:false,
+    version:row.version,busy:false,
+    actions:installed&&!reviewing?[{id:'uninstall',label:'卸载…',
+      onClick:event=>openDemoUninstallReview(key,event)}]:[],
+    confirmation:reviewing?{
+      text:'确认后，该演示条目会从已安装列表消失。这里不调用真实卸载、数据清理或权限 API。',
+      onCancel:cancelDemoUninstallReview,onConfirm:confirmDemoUninstallReview
+    }:null,
+    source:installed?{label:'演示来源（非真实安装）'}:null,
+    installationText:installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
     usageText:'仅供审阅排版，不运行扩展',appDataText:'',
     sites:row.kind==='page'?['https://example.com/*']:[],suspended:false,
     pageInfo:row.kind==='page'?{
@@ -118,8 +202,9 @@ app.connectBack(closeDetail);
 function publishRows(){
   const query=toolbar.query.trim().toLocaleLowerCase();
   const shown=demoRows.filter(row=>
+    !demoRemoved.has(row.key)&&
     (toolbar.kind==='all'||toolbar.kind===row.kind)&&
-    (toolbar.scope==='available'?!row.installed:row.installed)&&
+    (toolbar.scope==='available'?!demoInstalled(row):demoInstalled(row))&&
     (!query||(row.title+' '+row.description).toLocaleLowerCase().includes(query)));
   app.renderRows({rows:shown.map(({key,title,kind,type,description,installed})=>
     ({key,title,kind,type,description,installed,primaryAction:null})),
@@ -127,8 +212,10 @@ function publishRows(){
     onMore:(key,trigger)=>{
       const row=demoRows.find(item=>item.key===key);
       if(!row)return;
-      app.renderRowMenu([{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}],
-        {key,title:row.title,trigger,onClose:closeRowMenu});
+      const items=[{id:'detail',label:'查看详情',onClick:()=>openDemoDetail(key)}];
+      if(demoInstalled(row))items.push({id:'uninstall',label:'卸载…',
+        onClick:event=>openDemoUninstallReview(key,event)});
+      app.renderRowMenu(items,{key,title:row.title,trigger,onClose:closeRowMenu});
     }});
   app.renderFeedback({showEmpty:shown.length===0,
     emptyText:'仅预览 · 当前筛选下没有演示条目',
@@ -144,7 +231,7 @@ function publishToolbar(){
     onCloseMenu:()=>{toolbar.menuOpen=false;publishToolbar();},
     onReset:()=>{toolbar.kind='all';toolbar.scope='smart';toolbar.menuOpen=false;
       publishToolbar();publishRows();},
-    onMarket:previewNotice,onImport:previewNotice,onReload:previewNotice
+    onMarket:previewNotice,onImport:previewOpenImport,onReload:previewNotice
   });
 }
 publishToolbar();

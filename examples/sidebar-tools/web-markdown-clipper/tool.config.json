@@ -1,16 +1,42 @@
 {
+  "format": "opendesk.sidebar-tool.v2",
   "id": "web-markdown-clipper",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "title": "网页剪藏",
-  "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+  "description": "网页选区右键摘录、Markdown 提取和本地轻量便签。短摘录保存到浏览器；全文可下载。",
   "capabilities": [
     "page.clip",
-    "user.export"
+    "user.export",
+    "storage.local",
+    "currentPage.read",
+    "browser.contextMenu"
   ],
   "files": {
     "html": "src/index.html",
     "css": "src/style.css",
-    "js": "src/main.js"
+    "js": "src/main.js",
+    "dependencies": [
+      "src/notes.js"
+    ]
   },
-  "assets": []
+  "assets": [],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": [
+      {
+        "actionId": "save-selection",
+        "title": "保存选中内容到我的摘录",
+        "contexts": [
+          "selection"
+        ],
+        "documentUrlPatterns": [
+          "http://*/*",
+          "https://*/*"
+        ],
+        "handler": "open-self"
+      }
+    ]
+  }
 }

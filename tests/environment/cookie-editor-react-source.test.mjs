@@ -86,6 +86,19 @@ test('Preview IO presentation is shared without moving native Cookie operations 
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|secret_preview_never_real|sess_demo_only_C18/);
 });
 
+test('R5.25 file selection never starts a Cookie write or trusted import intent',async()=>{
+  const importer=await get('app/components/CookieImport.jsx');
+  assert.match(importer,/onChange=\{event=>\{stageFile\(event\.currentTarget\.files\?\.\[0\]\);\}\}/);
+  assert.match(importer,/const stageFile=file=>\{/);
+  assert.match(importer,/stagedFile\.current=file;setStagedName\(/);
+  assert.match(importer,/const reading=React\.useRef\(false\)/);
+  assert.match(importer,/reading\.current=true;setBusy\(true\)/);
+  assert.match(importer,/if\(reading\.current\|\|running\.current\|\|disabled\|\|uncertain\)return/);
+  assert.match(importer,/beginIntent\(\);\s*if\(file\)void importFile\(file\)/);
+  assert.doesNotMatch(importer,/onChange=\{event=>\{void importFile\(/);
+  assert.doesNotMatch(importer,/onPick=\{[^\n]*beginIntent\(/);
+});
+
 test('advanced Cookie identities use shared-App JSX and remain read-only for existing records',async()=>{
   const [view,preview,editor]=await Promise.all([
     get('app/components/CookieEditorView.jsx'),

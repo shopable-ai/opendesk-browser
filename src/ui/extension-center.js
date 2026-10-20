@@ -306,7 +306,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
     const page=row.kind==='page'?row.record.installed:null;
     const confirmation=pendingReview?{
-      text:'卸载将撤销 Chrome 自动运行注册和本机安装记录，并尝试清理原网页受管界面；不会自动删除网站自己的数据。取消不会产生变更。',
+      text:'卸载后将停止此网页增强自动运行，并从本机安装列表移除；不会自动删除网站自己的数据。',
       onConfirm:confirmPageUninstall,onCancel:cancelPageUninstall
     }:null;
     {

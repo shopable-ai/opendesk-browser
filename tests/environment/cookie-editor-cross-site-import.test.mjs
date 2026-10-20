@@ -54,10 +54,12 @@ test('existing Host limits multi-origin writes to the trusted Cookie Editor impo
   ]);
   assert.match(panel,/admittedOfficialCookieImport\(tool,revocationEpoch\)/);
   assert.match(panel,/cookieImportGate\.acquire/);
-  assert.match(panel,/cookieImportSource:sourceOrigin/);
+  assert.match(panel,/cookieImportSource:sourceOrigin,document/);
+  assert.match(panel,/captureCookieImportDocument/);
   assert.match(host,/identity\.toolId!=='cookie-editor'/);
   assert.match(host,/operation!=='browser\.cookies\.setMany'/);
   assert.match(host,/await authorizedCookie\(identity,operation,sourceOrigin\)/);
   assert.match(host,/await verifyBrowserOwner\(identity,operation,destination\.origin\)/);
   assert.match(host,/cookieImportSource!==undefined/);
+  assert.match(host,/verifyCookieImportDocument/);
 });

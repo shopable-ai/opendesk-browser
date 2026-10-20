@@ -23,7 +23,7 @@ test('Stay Focus business has one app-owned source and no obsolete src re-export
 test('only reviewed UI files become an installable tool package, not privileged trusted code',()=>{
   const config=JSON.parse(read(app+'tool.config.json'));
   assert.equal(config.id,'stay-focus');
-  assert.deepEqual(config.files,{html:'src/index.html',css:'src/style.css',js:'src/main.js'});
+  assert.deepEqual(config.files,{html:'src/index.html',css:'dist/tool.css',js:'dist/tool.js'});
   assert.deepEqual(config.assets,[]);
   const ui=read(app+'src/main.js');
   assert.match(ui,/globalThis\.OpenDeskTool/);

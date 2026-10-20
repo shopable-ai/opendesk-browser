@@ -21,7 +21,7 @@ if(command==='provider'){
     httpsPort:provider.publicPort,httpsHost:publicTls?.host??null,
     directory,credentials:provider.credentialFile}));
   for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>provider.close().then(()=>process.exit(0)));
-}else if(command==='submit:remote'||command==='status:remote'){
+}else if(command==='submit:remote'||command==='status:remote'||command==='cancel:remote'){
   const url=option('url',''),credentialPath=option('token-file',null),packagePath=option('package',null);
   const parsed=new URL(url);
   if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.search||parsed.hash||
@@ -37,7 +37,7 @@ if(command==='provider'){
       manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash,
       params:JSON.parse(option('params','{}')),
       target:{mode:'owned',url:option('target','')}};
-  }else{path='job-status';body={jobId:option('job','')};}
+  }else{path=command==='cancel:remote'?'job-cancel':'job-status';body={jobId:option('job','')};}
   const response=await fetch(url+'v1/'+path,{method:'POST',
     headers:{'Content-Type':'application/json',Authorization:'Bearer '+secret},
     body:JSON.stringify(body),redirect:'error',signal:AbortSignal.timeout(10000)});

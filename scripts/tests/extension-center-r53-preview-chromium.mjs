@@ -120,12 +120,99 @@ try{
     '返回扩展列表','Icon back must remain accessible');
   await click('#extension-center-back');
   await waitUntil('!document.getElementById("extension-center-list-view").hidden');
+  // Real pointer events against the SAME dialog shared by production and the
+  // source-bound preview. Cancelling must leave the installed list unchanged.
+  await click('[data-extension-key="app:demo-reading"][data-extension-action="main"]');
+  await click('#extension-center-detail [data-ec-detail-action="uninstall"]');
+  await waitUntil('!!document.querySelector(".od-uninstall-dialog[aria-modal=true]")');
+  assert.equal(await evaluate('document.activeElement?.hasAttribute("data-uninstall-cancel")'),
+    true,'Uninstall confirmation should first focus Cancel');
+  assert.equal(await evaluate('document.querySelectorAll(".od-uninstall-dialog").length'),1,
+    'Uninstall opens exactly one modal');
+  await click('.od-uninstall-dialog [data-uninstall-cancel]');
+  await waitUntil('!document.querySelector(".od-uninstall-dialog")');
+  assert.equal(await evaluate('document.querySelectorAll("#extension-center-list > li").length'),2,
+    'Cancel must not remove installed records');
+  await click('#extension-center-detail [data-ec-detail-action="uninstall"]');
+  await click('.od-uninstall-dialog .od-uninstall-confirm');
+  await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
+  assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
+    'page:demo-markup','Only the reviewed tool disappears from the installed list');
+  assert.match(await evaluate('document.getElementById("extension-center-status").textContent'),
+    /仅内存演示/,'Preview success cannot claim any real uninstall');
+  // A fresh isolated preview resets demo data before checking search and import.
+  await visit('?tab=tools&reset=uninstall');
   await click('#extension-center-search');
   await cdp('Input.insertText',{text:'标注'});
   await waitUntil('document.querySelectorAll("#extension-center-list > li").length===1');
   assert.equal(await evaluate('document.querySelector("#extension-center-list > li").dataset.extensionId'),
     'page:demo-markup','Search should filter React rows');
   await visit('?tab=tools&reset=1');
+  // The import sheet must remain visible and clickable regardless of list length.
+  await click('#extension-center-more');
+  await waitUntil('!document.getElementById("extension-center-menu").hidden');
+  await click('#extension-center-import');
+  await waitUntil('!document.getElementById("sidebar-tool-import").hidden');
+  await waitUntil('document.activeElement?.id==="sidebar-tool-file"');
+  // Layout-only DOM stress: 100 rows are NOT 100 installed records. The
+  // production React shell still owns the real two-row preview dataset.
+  const countWithLongList=await evaluate(`(()=>{
+    const list=document.getElementById('extension-center-list');
+    const sample=list.querySelector('li');
+    if(!sample)return 0;
+    const fragment=document.createDocumentFragment();
+    for(let i=0;i<98;i++){
+      const clone=sample.cloneNode(true);
+      clone.dataset.extensionId='layout-only-'+i;
+      clone.querySelectorAll('button').forEach(button=>button.disabled=true);
+      fragment.appendChild(clone);
+    }
+    list.appendChild(fragment);
+    return list.children.length;
+  })()`);
+  assert.equal(countWithLongList,100,'Importer layout stress requires a long DOM list');
+  const sheet=await evaluate(`(()=>{
+    const panel=document.getElementById('sidebar-tool-import');
+    const overlay=document.querySelector('.od-import-overlay');
+    const rect=panel.getBoundingClientRect();
+    return {role:panel.getAttribute('role'),modal:panel.getAttribute('aria-modal'),
+      portal:panel.parentElement===overlay,position:getComputedStyle(overlay).position,
+      top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,
+      width:innerWidth,height:innerHeight,active:document.activeElement?.id,
+      installDisabled:document.getElementById('sidebar-tool-install').disabled};
+  })()`);
+  assert.equal(sheet.role,'dialog','Importer must be an accessible dialog');
+  assert.equal(sheet.modal,'true','Importer must be a modal sheet');
+  assert.equal(sheet.portal,true,'Importer must escape the long list');
+  assert.equal(sheet.position,'fixed','Importer must use the viewport');
+  assert.equal(sheet.active,'sidebar-tool-file','File chooser should receive initial focus');
+  assert.ok(sheet.top>=-2&&sheet.bottom<=sheet.height+2&&sheet.right<=sheet.width+2,
+    'Import sheet must fit viewport: '+JSON.stringify(sheet));
+  assert.equal(sheet.installDisabled,true,'Offline preview must never enable real install');
+  for(const width of [320,360,400,440]){
+    await cdp('Emulation.setDeviceMetricsOverride',
+      {width,height:620,deviceScaleFactor:1,mobile:false});
+    const geometry=await evaluate(`(()=>{
+      const panel=document.getElementById('sidebar-tool-import');
+      const rect=panel.getBoundingClientRect();
+      return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,
+        width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth};
+    })()`);
+    assert.ok(geometry.left>=-2&&geometry.right<=geometry.width+2&&
+      geometry.top>=-2&&geometry.bottom<=geometry.height+2&&
+      geometry.overflow<=geometry.width+2,
+      'Import drawer overflow at '+width+': '+JSON.stringify(geometry));
+    const capture=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(join(artifacts,'import-sheet-'+width+'.png'),Buffer.from(capture.data,'base64'));
+  }
+  await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',
+    windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+  await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
+    windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+  await waitUntil('document.getElementById("sidebar-tool-import").hidden');
+  await cdp('Emulation.setDeviceMetricsOverride',
+    {width:360,height:950,deviceScaleFactor:1,mobile:false});
+  // The existing extension filters and list remain intact after closing.
   await click('#extension-center-more');
   await waitUntil('!document.getElementById("extension-center-menu").hidden');
   await click('[data-ec-scope="available"]');

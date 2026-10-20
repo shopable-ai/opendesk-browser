@@ -7,6 +7,9 @@ const modes=Array.from(root.querySelectorAll('[data-clip-mode]'));
 let mode='article',version=0,record=null,markdown='',exportBusy=false;
 const say=(value,error=false)=>{state.textContent=String(value);state.dataset.error=String(error);};
 const setExportBusy=busy=>{exportBusy=busy;q('clip-copy').disabled=busy;q('clip-download').disabled=busy;};
+const notes=globalThis.OpenDeskClipNotes?.create?.({
+ root,request,sdk:globalThis.OpenDeskSDK.browser,onStatus:say
+});
 const escapeLabel=s=>String(s||'').replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim().replace(/[\[\]\\]/g,'\\$&')||'网页链接';
 const clean=s=>String(s||'').replace(/[\u0000-\u001f]/g,' ').slice(0,900);
 const cite=r=>'来源：['+escapeLabel(r.title)+']('+r.source+')';
@@ -92,7 +95,11 @@ function renderPreview(content){
  flush();display.replaceChildren(out);
 }
 function refresh(){
- if(!record){markdown='';input.value='';q('clip-site').textContent='当前网页';display.replaceChildren();return;}
+ if(!record){
+  markdown='';input.value='';q('clip-site').textContent='当前网页';
+  q('clip-title').textContent='打开网页，提取文章或选中文字';
+  display.replaceChildren();notes?.setClip(null);return;
+ }
  let content=mode==='quote'?record.markdown.trim().split('\n').map(x=>x?'> '+x:'>').join('\n')+'\n':record.markdown;
  if(mode!=='link'){
   if(mode==='quote')content+='\n'+cite(record)+'\n';
@@ -102,12 +109,21 @@ function refresh(){
   }
  }
  markdown=content;input.value=content;
+ const title=q('clip-title');if(title)title.textContent=clean(record.title);
+ notes?.setClip({body:mode==='quote'?content:record.markdown,
+   title:record.title,source:record.source});
  renderPreview(content);
 }
 function reset(text){version++;record=null;q('clip-fetch').disabled=false;refresh();if(text)say(text);}
 modes.forEach(b=>b.addEventListener('click',()=>{
  mode=b.dataset.clipMode;modes.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
- reset(mode==='selection'||mode==='quote'?'请先在网页中选中文字':'点击剪藏获取内容');
+ const action=mode==='article'?'提取当前文章':mode==='link'?'生成链接':
+   mode==='quote'?'生成引用':'提取选中文字';
+ q('clip-fetch').textContent=action;q('clip-fetch').setAttribute('aria-label',action);
+ const hint=q('clip-selection-hint');if(hint)hint.textContent=
+  mode==='selection'||mode==='quote'?'请先在网页中选中文字；也可右键直接进入摘录保存流程。':
+  '在网页选中文字后，也可右键选择「保存选中内容到我的摘录」。';
+ reset(mode==='selection'||mode==='quote'?'请先在网页中选中文字':'点击提取获取内容');
 }));
 q('clip-meta').addEventListener('change',refresh);
 q('clip-fetch').addEventListener('click',async()=>{
@@ -122,7 +138,7 @@ q('clip-fetch').addEventListener('click',async()=>{
      typeof result.source!=='string'||!/^https?:\/\//.test(result.source))
     throw Error('剪藏结果无效');
   record=result;q('clip-site').textContent=clean(result.site);refresh();
-  say('已获取内容，请检查 Markdown');
+  say('已提取内容，可保存短摘录、复制或下载 Markdown');
  }catch(e){if(token===version){record=null;refresh();say(e.message||'剪藏失败',true);}}
  finally{if(token===version)b.disabled=false;}
 });
@@ -149,7 +165,10 @@ q('clip-copy').addEventListener('click',async()=>{
   if(!current())return;
   if(error?.code==='E_CANCELLED')say('已取消复制');
   else if(error?.code==='E_OUTCOME_UNKNOWN')say('复制结果未知，请检查系统剪贴板，勿重复操作',true);
-  else{input.hidden=false;display.hidden=true;input.focus();input.select();say('自动复制失败，请按 Ctrl/Cmd+C',true);}
+  else{input.hidden=false;display.hidden=true;input.focus();input.select();
+   q('clip-show-source').setAttribute('aria-pressed','true');
+   q('clip-show-preview').setAttribute('aria-pressed','false');
+   say('自动复制失败，请按 Ctrl/Cmd+C',true);}
  }finally{setExportBusy(false);}
 });
 q('clip-download').addEventListener('click',async()=>{
@@ -169,6 +188,50 @@ q('clip-download').addEventListener('click',async()=>{
   else say('下载失败：'+String(e.message||e),true);
  }finally{setExportBusy(false);}
 });
-root.addEventListener('opendesk-page-changed',()=>reset('网页已变化，请重新剪藏'));
+async function readCurrentPage(){
+ const ticket=version;
+ try{
+  const info=await request('currentPage.info');
+  if(ticket!==version||record||info?.status!=='available')return;
+  const current=new URL(info.url);
+  if(!['http:','https:'].includes(current.protocol))return;
+  q('clip-site').textContent=current.hostname;
+  const title=q('clip-title');if(title)title.textContent=clean(info.title||current.hostname);
+ }catch{/* An unavailable active website must not break local notes. */}
+}
+async function receiveRightClick(){
+ try{
+  const launch=await globalThis.OpenDeskSDK.browser.launch.consume();
+  if(launch?.toolId!=='web-markdown-clipper'||launch.actionId!=='save-selection'||
+     typeof launch.selection!=='string'||!launch.selection.trim()||
+     !Number.isFinite(launch.expiresAt)||Date.now()>=launch.expiresAt||
+     typeof launch.source?.url!=='string')return;
+  const url=new URL(launch.source.url);
+  if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return;
+  // Align the right-click path with trusted safeClipSource: never persist a
+  // clicked URL fragment or well-known bearer/token fields in local notes.
+  url.hash='';
+  for(const key of [...url.searchParams.keys()]){
+   if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
+    url.searchParams.delete(key);
+  }
+  // The Host has already checked ticket, document ID, Origin and one-use delivery.
+  // Do not silently save: the existing open-self menu opens a prefilled draft.
+  version++;mode='selection';
+  modes.forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.clipMode===mode)));
+  q('clip-fetch').textContent='提取选中文字';
+  q('clip-fetch').setAttribute('aria-label','提取选中文字');
+  record={markdown:launch.selection,title:url.hostname,site:url.hostname,
+    source:url.href,capturedAt:new Date().toISOString()};
+  q('clip-site').textContent=url.hostname;refresh();
+  say('已载入右键选中的文字，点击「保存摘录」即可保存。');
+ }catch{/* Ordinary opening has no trusted right-click launch ticket. */}
+}
+root.addEventListener('opendesk-page-changed',()=>{
+ reset('网页已变化，请重新剪藏');
+ if(notes)void readCurrentPage();
+});
 refresh();
+if(notes){void readCurrentPage();void receiveRightClick();}
+
 })();

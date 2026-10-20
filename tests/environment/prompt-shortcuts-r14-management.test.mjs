@@ -54,7 +54,7 @@ function buttonByText(root,text){
   const button=allDescendants(root).find(node=>node.tagName==='BUTTON'&&node.textContent===text);
   assert(button,'missing clickable '+text);return button;
 }
-async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,initial=null,initialStored=initial,initialSites=null,pickRequest=null,menuSelection=null,storageFault=null}={}){
+async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=false,siteReadbackFault=false,deferLaunch=false,initial=null,initialStored=initial,initialSites=null,pickRequest=null,menuSelection=null,storageFault=null,pageContext={status:'available',origin:'https://example.org',path:'/compose'},checkRequest=null}={}){
   const [html,main,modelSource]=await Promise.all([
     readFile(tool+'/src/index.html','utf8'),readFile(tool+'/src/main.js','utf8'),
     readFile(tool+'/trusted/model.js','utf8')
@@ -89,8 +89,9 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
     if(op==='browser.downloads.text'){
       downloads.push(payload);return {started:true};
     }
-    if(op==='prompt.page.context')return {status:'available',origin:'https://example.org',path:'/compose'};
-    if(op==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
+    if(op==='prompt.page.context')return pageContext;
+    if(op==='prompt.page.check')return checkRequest?checkRequest(payload.rule):
+      {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
     if(op.startsWith('prompt.page.pick.')&&pickRequest)return pickRequest(op,payload);
     if(op==='storage.get'&&payload.key==='sites'){
       if(siteReadbackFault&&siteWrites>0)throw Error('Website rules readback unavailable');
@@ -1016,4 +1017,67 @@ test('R2.7 export/import roundtrip preserves normalized model fields',async()=>{
   for(const field of ['body','label','name','labelAuto','nameAuto','shape','enabled'])
     assert.equal(after[field],before[field],field);
   assert.notEqual(after.id,before.id);
+});
+
+
+test('R2.8 website configuration comes before long preset list in the actual tool UI',async()=>{
+  const html=await readFile(tool+'/src/index.html','utf8');
+  const ids=['ps-sites-open','ps-site-current','ps-site-form','ps-site-status','ps-sites-list'];
+  const positions=ids.map(id=>html.indexOf('id="'+id+'"'));
+  for(let i=0;i<positions.length;i++){
+    assert(positions[i]>=0,ids[i]+' must exist in shipped HTML');
+    if(i)assert(positions[i]>positions[i-1],ids[i]+' must follow '+ids[i-1]);
+  }
+});
+
+test('R2.8 Claude proposals require real Host check and explicit website save',async()=>{
+  const target='[data-testid="chat-input"][contenteditable="true"]';
+  const f=await fixture({
+    pageContext:{status:'available',origin:'https://claude.ai',path:'/new'},
+    checkRequest:rule=>{
+      if(rule.containerSelector==='main'&&rule.editorSelector===target)
+        return {valid:true,origin:'https://claude.ai',containerMatches:1,editorMatches:1,editorType:'richtext'};
+      throw Error('No unique visible composer');
+    }
+  }),n=f.nodes;
+  n['ps-sites-open'].click();await settle();n['ps-site-current'].click();await settle();
+  assert.equal(n['ps-site-auto'].hidden,false);
+  assert.equal(n['ps-site-container'].value,'main');
+  assert.equal(n['ps-site-editor'].value,target);
+  assert.match(n['ps-site-verified'].textContent,/本页定位通过.*未做实际插入测试/);
+  assert.equal(f.siteWrites(),0,'auto-detection must never grant or persist permission');
+  n['ps-site-save'].click();await settle();
+  assert.equal(f.siteWrites(),1);
+  assert.equal(f.siteStored().rules[0].editorSelector,target);
+});
+
+test('R2.8 Grok candidate miss leaves user picker available and cannot save',async()=>{
+  const f=await fixture({
+    pageContext:{status:'available',origin:'https://grok.com',path:'/'},
+    checkRequest:()=>{throw Error('No unique visible editor');}
+  }),n=f.nodes;
+  n['ps-sites-open'].click();await settle();n['ps-site-current'].click();await settle();
+  assert.equal(n['ps-site-container'].value,'');
+  assert.equal(n['ps-site-editor'].value,'');
+  assert.match(n['ps-site-verified'].textContent,/手动点选/);
+  assert(f.requests.some(row=>row.op==='prompt.page.check'));
+  n['ps-site-save'].click();await settle();
+  assert.equal(f.siteWrites(),0,'a failed probe is never a verified rule');
+});
+
+test('R2.8 late auto-locate check cannot overwrite a manually changed input',async()=>{
+  let finish;
+  const f=await fixture({
+    pageContext:{status:'available',origin:'https://claude.ai',path:'/new'},
+    checkRequest:()=>new Promise(resolve=>{finish=resolve;})
+  }),n=f.nodes;
+  n['ps-sites-open'].click();await settle();n['ps-site-current'].click();await settle();
+  assert.equal(n['ps-site-auto'].disabled,true);
+  n['ps-site-editor'].value='textarea#my-draft';n['ps-site-editor'].emit('input');
+  finish({valid:true,origin:'https://claude.ai',containerMatches:1,editorMatches:1,editorType:'richtext'});
+  await settle();
+  assert.equal(n['ps-site-editor'].value,'textarea#my-draft');
+  assert.doesNotMatch(n['ps-site-verified'].textContent,/本页定位通过/);
+  assert.equal(n['ps-site-auto'].disabled,false);
+  assert.equal(f.siteWrites(),0);
 });

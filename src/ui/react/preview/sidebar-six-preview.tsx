@@ -34,9 +34,9 @@ const extensionList=get('extension-center-list');
 const extensionDetail=get('extension-center-detail-body');
 const extensionEmpty=get('extension-center-empty');
 const toolFrame=get('sidebar-tool-frame');
-const importHost=get('extension-center-import-host'),importPanel=get('sidebar-tool-import');
+const importPanel=get('sidebar-tool-import'),importOverlay=importPanel.closest('.od-import-overlay');
 const actionReview=get('sidebar-tool-action-review');
-importHost.append(importPanel); // Relocate the SAME installed DOM, preview-only adapter.
+// The installed ToolHost now portals the SAME importer above the entire list.
 const myCount=get('task-installed-count'),myRows=get('task-installed-cards');
 const myDetail=get('task-installed-detail'),myWorkspace=get('task-selected-workspace');
 const cloudKeys={myState:'cloud-my-state',summary:'cloud-overview-state',
@@ -263,6 +263,7 @@ function Preview(){
     get('sidebar-tool-remove').disabled=!opened;
     get('sidebar-tool-settings-view').hidden=true; // Host settings cannot execute offline.
     importPanel.hidden=!importOpen;
+    if(importOverlay)importOverlay.hidden=!importOpen;
     actionReview.hidden=!extensionReview;
     get('sidebar-tool-preview').hidden=!importCandidate;
     get('sidebar-tool-install').disabled=!importCandidate;

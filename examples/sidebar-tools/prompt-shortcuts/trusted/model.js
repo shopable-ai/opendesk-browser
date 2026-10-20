@@ -110,6 +110,56 @@ function siteFor(sites,value){
   return matching[0]?.enabled?matching[0]:null;
 }
 
+// Candidate CSS selectors are suggestions, never automatic permissions or compatibility claims.
+// The existing trusted prompt.page.check must validate them on the real page before saving.
+const SITE_HINTS=Object.freeze({
+  'https://claude.ai':{
+    name:'Claude',pathScope:'/',containers:['main','[role="main"]'],
+    editors:['[data-testid="chat-input"][contenteditable="true"]',
+      '[data-testid="chat-input"] div.ProseMirror[contenteditable="true"]',
+      'div.ProseMirror[contenteditable="true"]']
+  },
+  'https://gemini.google.com':{
+    name:'Gemini',pathScope:'/',containers:['chat-window','main','[role="main"]'],
+    editors:['rich-textarea div.ql-editor[contenteditable="true"]',
+      'div.ql-editor[contenteditable="true"]',
+      'rich-textarea [contenteditable="true"]']
+  },
+  'https://chat.deepseek.com':{
+    name:'DeepSeek',pathScope:'/',containers:['main','[role="main"]'],
+    editors:['textarea#chat-input','#chat-input']
+  },
+  'https://www.perplexity.ai':{
+    name:'Perplexity',pathScope:'/',containers:['main','[role="main"]'],
+    editors:['textarea[data-testid="search-input"]',
+      'textarea[data-testid="composer-input"]',
+      'textarea[placeholder="Ask anything"]']
+  },
+  'https://perplexity.ai':{
+    name:'Perplexity',pathScope:'/',containers:['main','[role="main"]'],
+    editors:['textarea[data-testid="search-input"]',
+      'textarea[data-testid="composer-input"]',
+      'textarea[placeholder="Ask anything"]']
+  },
+  'https://grok.com':{
+    name:'Grok',pathScope:'/',containers:['main','[role="main"]'],
+    editors:['[data-testid="chat-input"] div.ProseMirror[contenteditable="true"]',
+      'div.ProseMirror[contenteditable="true"]',
+      'div[data-testid="chat-input"][contenteditable="true"]']
+  },
+  'https://x.com':{
+    name:'Grok',pathScope:'/i/grok',containers:['main','[role="main"]'],
+    editors:['[data-testid="grokInput"][contenteditable="true"]',
+      '[data-testid="grokInput"] div.ProseMirror[contenteditable="true"]']
+  }
+});
+function siteHint(origin,path='/'){
+  if(!Object.hasOwn(SITE_HINTS,origin)||typeof path!=='string')return null;
+  const item=SITE_HINTS[origin],scope=item.pathScope;
+  if(scope!=='/'&&path!==scope&&!path.startsWith(scope+'/'))return null;
+  return {name:item.name,pathScope:scope,containers:[...item.containers],editors:[...item.editors]};
+}
+
 // R2.7: backups contain prompt data only. Site rules and grants never cross this boundary.
 const BACKUP_FORMAT='opendesk.prompt-shortcuts',BACKUP_VERSION=1,BACKUP_MAX_BYTES=262144;
 const duplicateKey=body=>body.normalize('NFC').replace(/\r\n?/g,'\n').trim();
@@ -191,6 +241,6 @@ function backupPlan(library,imported,mode='append'){
 Object.defineProperty(globalThis,'OpenDeskPromptShortcutsModel',{
   value:Object.freeze({parts,visible,auto,validLabel,defaults,bytes,draft,load,
      BACKUP_FORMAT,BACKUP_VERSION,BACKUP_MAX_BYTES,duplicateKey,backupExport,backupParse,backupPlan,
-    sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor}),configurable:true
+    sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,siteHint}),configurable:true
 });
 })();

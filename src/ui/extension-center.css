@@ -120,3 +120,68 @@
 @media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
 @media(prefers-reduced-motion:reduce){.ec-context-menu{scroll-behavior:auto}}
 @media(prefers-color-scheme:dark){.ec-more{box-shadow:0 12px 32px #0007}}
+
+/* R5.4: One Host-owned installer, lifted out of the long React list into a
+   viewport-bound sheet. The backdrop never performs an install operation. */
+.od-import-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;
+  justify-content:center;isolation:isolate}
+.od-import-overlay[hidden],.od-import-overlay [hidden]{display:none!important}
+.od-import-backdrop{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;
+  border:0;border-radius:0;background:rgba(16,26,42,.48);cursor:default}
+.od-import-overlay #sidebar-tool-import{position:relative;display:flex;flex-direction:column;
+  width:100%;max-width:520px;min-width:0;max-height:min(88dvh,760px);min-height:0;
+  margin:0;padding:0;overflow:hidden;border:1px solid var(--od-line);
+  border-bottom:0;border-radius:16px 16px 0 0;background:var(--od-paper);
+  box-shadow:0 -14px 48px rgba(16,26,42,.22);color:var(--od-ink)}
+.od-import-overlay .sidebar-tool-import-head{flex:none;min-height:52px;padding:8px 14px;
+  border-bottom:1px solid var(--od-line)}
+.od-import-overlay .sidebar-tool-import-head strong{font-size:14px;color:var(--od-ink)}
+.od-import-overlay #sidebar-tool-import-close{min-width:36px;min-height:36px;
+  background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-line)}
+.od-import-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 14px 16px;scrollbar-gutter:stable}
+.od-import-overlay .sidebar-tool-import label{display:block}
+.od-import-sheet-footer{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--od-line);background:var(--od-paper)}
+.od-import-sheet-footer #sidebar-tool-install{width:100%;min-height:40px}
+.od-import-overlay #sidebar-tool-import:focus-visible,
+.od-import-overlay button:focus-visible,.od-import-overlay input:focus-visible{
+  outline:2px solid var(--od-focus);outline-offset:-2px}
+@media(min-width:600px) and (min-height:500px){
+  .od-import-overlay #sidebar-tool-import{margin-bottom:14px;border-bottom:1px solid var(--od-line);
+    border-radius:16px}
+}
+@media(max-height:480px){
+  .od-import-overlay #sidebar-tool-import{max-height:calc(100dvh - 8px)}
+  .od-import-overlay .sidebar-tool-import-head{min-height:42px;padding:4px 12px}
+}
+
+/* One deliberate destructive confirmation for Tool and Page uninstall.
+   This portal is centered in the viewport, not appended below a long list. */
+.od-uninstall-overlay{position:fixed;inset:0;z-index:2100;display:flex;
+  align-items:center;justify-content:center;padding:12px;isolation:isolate}
+.od-uninstall-backdrop{position:absolute;inset:0;width:100%;height:100%;
+  margin:0;padding:0;border:0;border-radius:0;background:rgba(16,26,42,.48)}
+.od-uninstall-dialog{position:relative;display:flex;flex-direction:column;gap:12px;
+  width:min(100%,380px);max-height:calc(100dvh - 24px);min-width:0;
+  overflow:auto;overscroll-behavior:contain;padding:16px;
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  background:var(--od-paper);color:var(--od-ink);
+  box-shadow:0 18px 48px rgba(16,26,42,.26)}
+.od-uninstall-dialog h2{margin:0;font-size:16px;line-height:1.4;font-weight:650;
+  overflow-wrap:anywhere}
+.od-uninstall-dialog p{margin:0;font-size:12px;line-height:1.6;color:var(--od-sub);
+  overflow-wrap:anywhere}
+.od-uninstall-dialog #sidebar-tool-inline-remove{border:0;margin:0;padding:0;
+  min-width:0;background:transparent;box-shadow:none}
+.od-uninstall-dialog #sidebar-tool-inline-remove-text{color:var(--od-sub)}
+.od-uninstall-dialog .od-uninstall-dialog-actions{display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+.od-uninstall-dialog-actions button{min-height:40px;min-width:0;
+  padding:8px 10px;font-size:12px;font-weight:600}
+.od-uninstall-dialog .od-uninstall-confirm,
+.od-uninstall-dialog #sidebar-tool-inline-remove-confirm{background:var(--od-negative);
+  border-color:var(--od-negative);color:var(--od-paper)}
+.od-uninstall-dialog button:focus-visible,.od-uninstall-dialog:focus-visible{
+  outline:2px solid var(--od-focus);outline-offset:2px}
+@media(max-height:320px){.od-uninstall-dialog{padding:12px;gap:8px}}

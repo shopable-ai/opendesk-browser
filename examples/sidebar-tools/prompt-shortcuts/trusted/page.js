@@ -675,8 +675,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     rail.replaceChildren();
     if(supportedOrigin(win.location.href)){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
-      brand.textContent='OD';brand.title='打开 OpenDesk 侧边栏';
-      brand.setAttribute('aria-label','打开 OpenDesk 侧边栏');
+      brand.textContent='OD';brand.title='打开提示词快捷按钮';
+      brand.setAttribute('aria-label','打开提示词快捷按钮');
       brand.addEventListener('click',openSidebar);rail.append(brand);
     }
     for(const row of items){

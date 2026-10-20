@@ -7,6 +7,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,writeFile,copyFile,rm} from 'node:fs/promises';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {build as buildVite} from 'vite';
 import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {tmpdir} from 'node:os';
 import {lookup} from 'node:dns/promises';
@@ -323,9 +324,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await client.send('Runtime.enable',{},frame);await client.send('Page.enable',{},frame);
   inputParents.set(frame,sid);
   diagnosticSessions=[{name:'side-panel',session:sid},{name:'sandbox',session:frame}];
-  await until(()=>evalRead(client,frame,'!!document.querySelector("#site-host")'),'real Stay Focus UI');
+  await until(()=>evalRead(client,frame,'!!document.querySelector("#sf-daily-budget")'),'real Stay Focus UI');
   const dimensions=await evalRead(client,frame,
-    '(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,visible:!!document.querySelector("#site-host")}))()');
+    '(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,visible:!!document.querySelector("#sf-daily-budget")}))()');
   assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
   report.toolGeometry=dimensions;
   report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
@@ -379,10 +380,10 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   // edits storage usage or creates a fake DNR rule. That also crosses the
   // last-one-minute page reminder with no 30-minute stress run.
   await until(()=>evalRead(client,frame,
-    '(()=>{const x=document.querySelector("#daily-budget-minutes");return !!x&&!x.disabled})()'),
+    '(()=>{const x=document.querySelector("#sf-daily-budget");return !!x&&!x.disabled})()'),
     'daily total editable after activation',45000);
-  await replaceField(client,frame,'#daily-budget-minutes','2');
-  await click(client,frame,'#daily-budget-save');
+  await replaceField(client,frame,'#sf-daily-budget','2');
+  await click(client,frame,'.sf-budget-form button');
   await until(()=>evalRead(client,sid,
     '!document.querySelector("#sidebar-tool-action-review").hidden'),
     'real trusted daily budget review');
@@ -391,50 +392,77 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.groups?.entertainment===2)'),
     'trusted two-minute shared quota',15000);
   note('native-shared-budget-edited',{minutes:2,approvedViaUI:true});
-  if(process.env.OPENDESK_FOCUS_NATIVE_MANUAL_SITES==='1'){
-    report.siteEntryDriver='ASSISTED_NATIVE_UI';
-    await click(client,frame,'#manual-site > summary');
-    note('await-native-site-entry',{hosts:['127.0.0.1','localhost'],group:'entertainment',minutes:2});
-    await until(()=>evalRead(client,sid,'chrome.storage.local.get("'+store+'")'+
-      '.then(x=>["127.0.0.1","localhost"].every(host=>x["'+store+'"]?.sites?.some('+
-      's=>s.host===host&&s.enabled&&s.group==="entertainment"&&s.mode==="limit")))'),
-      'two hosts saved via assisted native UI',360000);
-  }else{
-  await click(client,frame,'#manual-site > summary');
-  await click(client,frame,'#site-group');
-  await press(client,frame,'End','End',35);
-  await press(client,frame,'Enter','Enter',13);
-  assert.equal(await evalRead(client,frame,'document.querySelector("#site-group").value'),'entertainment');
-  await fill(client,frame,'#site-host','127.0.0.1');
-  // The macOS menu used by always-block mode cannot be driven by CDP.
-  // Keep that historical scene explicitly blocked and continue the requested
-  // shared-quota path with the real UI's default limit mode.
-  report.alwaysMode='NATIVE_BLOCKED_MACOS_SELECT_MENU';
-  assert.equal(await evalRead(client,frame,'document.querySelector("#site-mode").value'),'limit');
-  await click(client,frame,'#site-save');
-  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'trusted two-minute shared quota review');
-  await click(client,sid,'#sidebar-tool-action-continue');
-  await until(async()=>{
-    const result=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+
-      'const rules=await chrome.declarativeNetRequest.getDynamicRules();return {site:x["'+store+'"]?.sites?.find(s=>s.host==="127.0.0.1"),'+
-      'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
-    return result.site?.mode==='limit'&&result.site.minutes===15&&
-      result.site.group==='entertainment'&&result.owned===0;
-  },'real UI saved an unused two-minute shared quota');
-  // Configure another LOCAL host through the same reviewed sandbox UI.
-  // Its time contributes to the existing g:entertainment ledger.
-  await replaceField(client,frame,'#site-host','localhost');
-  await click(client,frame,'#site-save');
+  // R5.8: the extension-owned React button, not a sandbox approval or fake
+  // DOM event, is the primary current-site path. This uses actual CDP mouse.
+  await client.send('Target.activateTarget',{targetId:beforeGrantVisit.targetId});
+  await until(()=>evalRead(client,sid,
+    '(()=>{const b=document.querySelector("#stay-focus-current-add");'+
+    'return !!b&&!b.disabled&&b.textContent.trim()==="加入"&&b.getClientRects().length>0})()'),
+    'real trusted React current-site Add is available',20000);
+  await click(client,sid,'#stay-focus-current-add');
+  await until(()=>evalRead(client,sid,'chrome.storage.local.get("'+store+'").then(x=>'+
+    'x["'+store+'"]?.sites?.some(s=>s.host==="127.0.0.1"&&s.enabled&&'+
+    's.group==="entertainment"&&s.mode==="limit"))'),
+    'one real React click saved the active HTTP host without a second review',20000);
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
+    'trusted current-site Add must not open a redundant sandbox confirmation');
+  const firstSite=await evalRead(client,sid,'(async()=>{'+
+    'const x=await chrome.storage.local.get("'+store+'");'+
+    'const rules=await chrome.declarativeNetRequest.getDynamicRules();'+
+    'return {site:x["'+store+'"]?.sites?.find(s=>s.host==="127.0.0.1"),'+
+    'owned:rules.filter(r=>r.id>=730000&&r.id<=730199).length}})()');
+  assert.equal(firstSite.site?.minutes,2);
+  assert.equal(firstSite.owned,0,'a not-yet-exhausted quota must not block local HTTP');
+  // R5.8: the same trusted one-click path also pauses and resumes, preserving
+  // the exact site group, mode, scope and budget without another confirmation.
+  await until(()=>evalRead(client,sid,
+    '!!document.querySelector("#stay-focus-current-pause")&&!document.querySelector("#stay-focus-current-pause").disabled'),
+    'managed current-site Pause button');
+  await click(client,sid,'#stay-focus-current-pause');
+  const pausedCurrent=await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.find('+
+    's=>s.host==="127.0.0.1"&&!s.enabled)||null)'),'real React current-site Pause');
+  assert.deepEqual({...pausedCurrent,enabled:true},firstSite.site);
+  await until(()=>evalRead(client,sid,
+    '(()=>{const b=document.querySelector("#stay-focus-current-add");return !!b&&!b.disabled&&b.textContent.trim()==="恢复"})()'),
+    'trusted Restore button for paused current website');
+  await click(client,sid,'#stay-focus-current-add');
+  const resumedCurrent=await until(()=>evalRead(client,sid,
+    'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.find('+
+    's=>s.host==="127.0.0.1"&&s.enabled)||null)'),'real React current-site Restore');
+  assert.deepEqual(resumedCurrent,firstSite.site,
+    'restarting a paused site must never change its quota, group or scope');
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true);
+  report.nativeCurrentSiteActions={added:true,paused:true,restored:true,
+    extraConfirmations:0,storedSettingsPreserved:true};
+  report.siteEntryDriver='TRUSTED_REACT_NATIVE_CLICK';
+  note('native-one-click-joined-active-website',{host:'127.0.0.1',
+    sharedMinutes:2,secondConfirmation:false,ownedRules:firstSite.owned});
+
+  // Add a second loopback hostname with the same shared entertainment budget.
+  // Native keyboard/mouse drive the ACTUAL React editor and existing Host review.
+  await click(client,frame,'button[aria-label="添加自定义网站"]');
+  await until(()=>evalRead(client,frame,
+    '!!document.querySelector(".sf-editor input[placeholder=\"例如 youtube.com\"]")'),
+    'React website editor opened');
+  assert.equal(await evalRead(client,frame,
+    'document.querySelector(".sf-editor select")?.value'),'entertainment');
+  assert.equal(await evalRead(client,frame,
+    'document.querySelectorAll(".sf-editor select")[1]?.value'),'limit');
+  await fill(client,frame,'.sf-editor input[placeholder="例如 youtube.com"]','localhost');
+  await click(client,frame,'.sf-editor .sf-actions button');
   await until(()=>evalRead(client,sid,
     '!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'second loopback domain shares the trusted budget');
+    'second local host receives its real trusted Host review');
   await click(client,sid,'#sidebar-tool-action-continue');
   await until(()=>evalRead(client,sid,
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.some('+
-    's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"))'),
-    'second actual site joins the same shared group');
-  }
+    's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"&&s.enabled))'),
+    'second localhost site shares the same actual quota');
+  report.alwaysMode='NATIVE_BLOCKED_MACOS_SELECT_MENU';
+  report.quotaSiteInputs='REAL_REACT_TOOLBAR_AND_EDITOR';
   report.quota='IN_PROGRESS';
   note('real-ui-two-minute-shared-quota',{minutes:2,
     domains:['127.0.0.1','localhost'],storageUsageWasNotModified:true});
@@ -662,19 +690,40 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   report.heartbeat.workerRestart=await nativeFocusHeartbeat(client,uid,true,'worker restart');
   report.workerRestart=reached?'PASS':'PASS_DATA_ONLY_DNR_NOT_TESTED';note('real-worker-restart',{old:oldWorker.targetId,current:nextWorker.targetId,quota:workerQuota});
 
-  await until(()=>evalRead(client,frame,'!!document.querySelector("#managed-site-details")'),'reopened tool rendered');
-  await click(client,frame,'#managed-site-details > summary');
-  await click(client,frame,'button[aria-label="暂停 youtube.com"]');
-  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),'pause site trusted review');
+  await until(()=>evalRead(client,frame,
+    '!!document.querySelector(".sf-list .sf-site")'),'reopened React site management');
+  let youtubeIndex=await evalRead(client,frame,'[...document.querySelectorAll(".sf-list .sf-site")]'+
+    '.findIndex(n=>n.querySelector("strong")?.textContent==="youtube.com")+1');
+  if(youtubeIndex<1){
+    await click(client,frame,'.sf-show-all');
+    youtubeIndex=await until(()=>evalRead(client,frame,
+      '[...document.querySelectorAll(".sf-list .sf-site")]'+
+      '.findIndex(n=>n.querySelector("strong")?.textContent==="youtube.com")+1'),
+      'YouTube visible after expanding React site list');
+  }
+  const siteMenu='.sf-list .sf-site:nth-child('+youtubeIndex+') button[aria-label="管理 youtube.com"]';
+  const firstSiteMenuItem='.sf-list .sf-site:nth-child('+youtubeIndex+') [role="menuitem"]:first-child';
+  await click(client,frame,siteMenu);
+  assert.match(await evalRead(client,frame,
+    'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/暂停/);
+  await click(client,frame,firstSiteMenuItem);
+  await until(()=>evalRead(client,sid,
+    '!document.querySelector("#sidebar-tool-action-review").hidden'),'pause website Host review');
   await click(client,sid,'#sidebar-tool-action-continue');
-  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&!s.enabled))'),
-    'individual site paused');
+  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
+    'x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&!s.enabled))'),
+    'individual site paused by the React menu');
   report.sitePause=reached?'PASS':'PASS_UI_STATE_ONLY';
-  await click(client,frame,'button[aria-label="恢复 youtube.com"]');
-  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),'resume site trusted review');
+  await click(client,frame,siteMenu);
+  assert.match(await evalRead(client,frame,
+    'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/恢复/);
+  await click(client,frame,firstSiteMenuItem);
+  await until(()=>evalRead(client,sid,
+    '!document.querySelector("#sidebar-tool-action-review").hidden'),'restore website Host review');
   await click(client,sid,'#sidebar-tool-action-continue');
-  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&s.enabled))'),
-    'individual site restored');
+  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
+    'x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&s.enabled))'),
+    'individual site restored by React menu');
 
   // Native lifecycle: the user can stop enforcement without uninstalling and
   // re-enable with the original daily quota still exhausted. Never write
@@ -799,15 +848,24 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     host:'archive.org',name:'Internet Archive',category:'学习',
     suggestLimit:false,quick:false
   });
-  const temporaryProject=await mkdtemp(path.join(tmpdir(),'opendesk-stay-focus-upgrade-'));
+  // Recompile the exact newer version with the SAME audited Vite config.
+  // A source-bound receipt must not be forged or copied from the old package.
+  const upgradeRoot=path.resolve('artifacts/app-ci/stay-focus');
+  await mkdir(upgradeRoot,{recursive:true});
+  const temporaryProject=await mkdtemp(path.join(upgradeRoot,'native-upgrade-'));
   const upgradePackageFile=path.join(OUT,'stay-focus-upgrade-candidate.opendesk-tool.json');
   try{
     await mkdir(path.join(temporaryProject,'src'));
-    for(const name of ['index.html','style.css','main.js'])
+    for(const name of ['index.html','style.css','main.js','entry.js'])
       await copyFile(path.resolve('examples/sidebar-tools/stay-focus/src',name),
         path.join(temporaryProject,'src',name));
+    for(const name of ['vite.config.mjs','package.json'])
+      await copyFile(path.resolve('examples/sidebar-tools/stay-focus',name),
+        path.join(temporaryProject,name));
     await writeFile(path.join(temporaryProject,'tool.config.json'),
       JSON.stringify(upgradedConfig,null,2)+'\n');
+    await buildVite({configFile:path.join(temporaryProject,'vite.config.mjs'),
+      logLevel:'warn',clearScreen:false});
     await buildSidebarTool(temporaryProject,{out:upgradePackageFile});
   }finally{
     await rm(temporaryProject,{recursive:true,force:true});

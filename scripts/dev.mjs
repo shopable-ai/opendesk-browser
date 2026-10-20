@@ -11,6 +11,7 @@ import {resolveDevelopmentBrowserEdition} from './browser-editions-r245.mjs';
 process.env.OPENDESK_BROWSER_EDITION=resolveDevelopmentBrowserEdition();
 const {preparePublic}=await import('./prepare-public.mjs');
 const {buildAdblockReact}=await import('./build-adblock-react.mjs');
+const {buildStayFocusReact}=await import('./build-stay-focus-react.mjs');
 const {drainDevelopment,configureDevelopmentRestarts}=await import('./wxt-development.mjs');
 
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -45,6 +46,7 @@ bootstrapping=(async()=>{
   process.env.OPENDESK_BUILD_MODE='development';
   await verifyReadingTocTrustedLocales();
   await buildAdblockReact({log:false});
+  await buildStayFocusReact({log:false});
   await preparePublic();
   if(closing)return;
   // Keep Chrome's existing unpacked path/ID even when compiler assets ship.

@@ -36,19 +36,22 @@ export function handlePromptRailOpen({api=globalThis.chrome,message,sender,respo
   let opening;
   try{opening=api.sidePanel.open({windowId:sender.tab.windowId});}
   catch{answer({ok:false,error:{code:'E_SIDE_PANEL'}});return true;}
-  let persisted;
-  try{
-    const route=createPanelToolIntent({
-      windowId:sender.tab.windowId,tabId:sender.tab.id,toolId:'prompt-shortcuts'
-    });
-    persisted=api.storage.session.set({[panelToolIntentKey(sender.tab.windowId)]:route});
-  }catch{answer({ok:false,error:{code:'E_ROUTE_UNAVAILABLE'}});return true;}
-  Promise.all([
-    Promise.resolve(opening).catch(()=>{throw new Error('E_SIDE_PANEL');}),
-    Promise.resolve(persisted).catch(()=>{throw new Error('E_ROUTE_UNAVAILABLE');})
-  ]).then(
-    ()=>answer({ok:true,data:{opened:true}}),
-    error=>answer({ok:false,error:{code:error?.message==='E_ROUTE_UNAVAILABLE'?
-      'E_ROUTE_UNAVAILABLE':'E_SIDE_PANEL'}}));
+  // Publish the one-shot locator only when Chrome confirms its native panel
+  // opened. A rejected gesture must not leave a stale route in session storage.
+  // sidePanel.open itself remains synchronous above (Chrome user activation).
+  Promise.resolve(opening).then(()=>{
+    try{
+      const route=createPanelToolIntent({
+        windowId:sender.tab.windowId,tabId:sender.tab.id,toolId:'prompt-shortcuts'
+      });
+      return Promise.resolve(api.storage.session.set({
+        [panelToolIntentKey(sender.tab.windowId)]:route
+      })).then(
+        ()=>answer({ok:true,data:{opened:true}}),
+        ()=>answer({ok:false,error:{code:'E_ROUTE_UNAVAILABLE'}}));
+    }catch{
+      answer({ok:false,error:{code:'E_ROUTE_UNAVAILABLE'}});
+    }
+  },()=>answer({ok:false,error:{code:'E_SIDE_PANEL'}}));
   return true;
 }

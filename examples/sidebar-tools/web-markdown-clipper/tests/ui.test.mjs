@@ -15,8 +15,9 @@ class Node {
   focus(){this.focused=true;}
   select(){this.selected=true;}
 }
-function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),download=async()=>({started:true})}={}){
-  const ids=['clip-source','clip-preview','clip-status','clip-site','clip-meta','clip-fetch',
+function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),download=async()=>({started:true}),
+  launch=async()=>{throw Error('E_LAUNCH_EXPIRED');},notesFactory=null}={}){
+  const ids=['clip-source','clip-preview','clip-status','clip-site','clip-title','clip-meta','clip-fetch',
     'clip-show-source','clip-show-preview','clip-copy','clip-download'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id)]));
   nodes['clip-meta'].value='none';
@@ -24,8 +25,10 @@ function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),downl
   const root={querySelector:key=>nodes[key.slice(1)],querySelectorAll:()=>modes,events:{},
     addEventListener(name,fn){this.events[name]=fn;}};
   const document={createElement:tag=>new Node(tag),createDocumentFragment:()=>new Node('fragment')};
-  runInNewContext(source,{globalThis:{OpenDeskTool:{root,request},OpenDeskSDK:{browser:{
-    clipboard:{writeText:clipboard},downloads:{text:download}}}},document,URL});
+  const context={OpenDeskTool:{root,request},OpenDeskSDK:{browser:{
+    clipboard:{writeText:clipboard},downloads:{text:download},launch:{consume:launch}}}};
+  if(notesFactory)context.OpenDeskClipNotes={create:notesFactory};
+  runInNewContext(source,{globalThis:context,document,URL,Date});
   return {nodes,modes,root};
 }
 test('switching modes invalidates stale extraction without unlocking a newer request',async()=>{
@@ -106,7 +109,7 @@ test('late clipboard and download replies cannot override navigation or mode cha
  download.resolve({started:true});
  await downloading;
  assert.equal(downloadPayload,'# 正文\n');
- assert.equal(nodes['clip-status'].textContent,'点击剪藏获取内容');
+ assert.equal(nodes['clip-status'].textContent,'点击提取获取内容');
  assert.equal(nodes['clip-source'].value,'');
 });
 
@@ -230,6 +233,7 @@ test('offline preview must embed the exact formal HTML and reuse official JS and
   readFile(new URL('../preview/index.html',import.meta.url),'utf8')
  ]);
  assert.ok(stage.includes('\n'+html+'\n'),'stage must embed the exact official UI, not a redesigned copy');
+ assert.match(stage,/src="\.\.\/src\/notes\.js"/);
  assert.match(stage,/src="\.\.\/src\/main\.js"/);
  assert.match(stage,/href="\.\.\/src\/style\.css"/);
  assert.match(wrapper,/src="stage\.html"/);
@@ -237,4 +241,34 @@ test('offline preview must embed the exact formal HTML and reuse official JS and
  assert.match(wrapper,/非真实设备结果/);
  assert.match(stage,/模拟复制（未写入系统剪贴板）/);
  assert.match(stage,/模拟下载（未创建磁盘文件）/);
+ for(const action of ['simulate-menu','data-storage="quota"','data-storage="failure"','data-storage="unknown"'])
+  assert.ok(wrapper.includes(action),'preview needs '+action);
+});
+
+test('one-use right-click selection strips sensitive URL fields and fragments before local save',async()=>{
+ let current=null;
+ const {nodes}=mounted({
+  notesFactory:()=>({setClip:value=>{current=value;}}),
+  launch:async()=>({
+   toolId:'web-markdown-clipper',actionId:'save-selection',
+   selection:'选中一段内容',
+   source:{url:'https://example.com/article?access_token=SECRET&mode=read&session_id=ABC#jwt=FRAGMENT'},
+   expiresAt:Date.now()+60000
+  })
+ });
+ await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ assert.equal(current?.body,'选中一段内容');
+ assert.equal(current?.source,'https://example.com/article?mode=read');
+ assert.equal(nodes['clip-site'].textContent,'example.com');
+ assert.match(nodes['clip-status'].textContent,/点击「保存摘录」/);
+});
+test('expired right-click tickets do not insert stale content into notes',async()=>{
+ let current=null;
+ mounted({
+  notesFactory:()=>({setClip:value=>{current=value;}}),
+  launch:async()=>({toolId:'web-markdown-clipper',actionId:'save-selection',
+   selection:'expired',source:{url:'https://example.com/'},expiresAt:Date.now()-1000})
+ });
+ await Promise.resolve();await Promise.resolve();
+ assert.equal(current,null);
 });

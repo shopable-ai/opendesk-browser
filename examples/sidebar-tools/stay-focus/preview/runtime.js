@@ -86,6 +86,8 @@
     switch(op){
       case 'focus.site.put':{
         const site=structuredClone(payload.site);
+        if(site.group==='entertainment'&&model.groups.entertainment===undefined)
+          model.groups.entertainment=policy.dailyMinutes;
         const index=model.sites.findIndex(row=>row.host===site.host);
         if(index<0)model.sites.push(site);else model.sites[index]=site;
         break;
@@ -136,6 +138,14 @@
     $('host-stop').hidden=!model.installed||!model.enabled;
     $('host-revoke').hidden=!model.installed||!model.granted;
     $('host-uninstall').hidden=!model.installed;
+    const current=model.sites.find(site=>site.host==='youtube.com');
+    $('host-current-host').textContent='youtube.com';
+    $('host-current-action').hidden=Boolean(current?.enabled);
+    $('host-current-action').disabled=!model.installed;
+    $('host-current-action').textContent=current?'恢复':'加入';
+    $('host-current-state').hidden=!current?.enabled;
+    $('host-current-state').textContent=!model.enabled?'已保存 · 未开启':
+      !model.verified?'已保存 · 待核对':'✓ 已管理';
     $('host-feedback').dataset.scenario=scenario;
   }
   function renderAll(){renderHost();renderFrame();}
@@ -175,6 +185,19 @@
   $('preview-frame').addEventListener('load',()=>{
     const active=$('theme').value;
     $('preview-frame').contentDocument?.querySelector('.sf')?.setAttribute('data-preview-theme',active);
+  });
+  $('host-current-action').addEventListener('click',()=>{
+    const old=model.sites.find(site=>site.host==='youtube.com');
+    if(!model.installed||old?.enabled)return;
+    const site=old?{...old,enabled:true}:
+      {host:'youtube.com',subdomains:true,enabled:true,mode:'limit',
+        minutes:Number(model.groups.entertainment??policy.dailyMinutes),group:'entertainment'};
+    // Simulated trusted Side Panel: one explicit click, one in-memory Host write.
+    // No native permission or Chrome DNR side effect is claimed.
+    void globalThis.__stayFocusMockRequest('focus.site.put',{site})
+      .then(()=>renderFrame()).catch(error=>{
+        $('host-feedback').textContent=String(error?.message||error);
+      });
   });
   $('host-install').addEventListener('click',()=>hostOperate('install'));
   $('install-empty').addEventListener('click',()=>hostOperate('install'));

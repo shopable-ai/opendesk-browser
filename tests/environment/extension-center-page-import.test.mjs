@@ -80,10 +80,20 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
     get('script-source').value=draft.sourceUtf8;
     doc.documentElement.dataset.opendeskTab='develop';
   }};
+  let installedPages=structuredClone(installed);
   const client={async request(operation,payload){
     requests.push({operation,payload});
-    if(requestPage){const result=await requestPage(operation,payload);if(result!==undefined)return result;}
-    if(operation==='listPagePrograms')return {catalog:[],installed};
+    if(requestPage){
+      const result=await requestPage(operation,payload);
+      if(result!==undefined){
+        // Fake Authority only: model the persistent list separately from its
+        // mutation receipt so the controller must perform a real second read.
+        if(operation==='importPageInstallPackage'&&result?.programId&&result?.manifestHash)
+          installedPages=[...installedPages.filter(row=>row.programId!==result.programId),structuredClone(result)];
+        return result;
+      }
+    }
+    if(operation==='listPagePrograms')return {catalog:[],installed:structuredClone(installedPages)};
     assert.fail('unexpected '+operation);
   }};
   host=createSidebarTools({api,doc,view,taskWorkbench,foundationClient:client,lockManager,fetcher:offline});
@@ -140,11 +150,14 @@ test('Page install reviews permissions and calls the existing Authority only aft
   assert.equal(calls,0);unchangedAuthoring(f);
   assert.match(f.get('sidebar-tool-preview-capabilities').textContent,/读取和修改.*https:\/\/example.com\/\*/);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='installed');
-  assert.equal(calls,1);assert.equal(f.get('sidebar-tool-import').hidden,false);
+  await settle(()=>f.get('sidebar-tool-import').hidden);
+  assert.equal(calls,1);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchangedAuthoring(f);
-  assert.match(f.get('page-install-import-status').textContent,/安装完成.*打开或刷新/);
+  assert.match(f.get('sidebar-tool-status').textContent,/已安装网页增强.*打开或刷新/);
+  assert.equal(f.get('page-install-import-status').hidden,true);
   assert.equal(f.get('sidebar-tool-install').disabled,true);
+  assert.equal(f.requests.filter(r=>r.operation==='listPagePrograms').length,2,
+    'Review and post-install readback each query the original Authority');
 });
 function unchangedAuthoring(f){assert.equal(f.received.length,0);assert.equal(f.writes.length,0);
   assert.equal(f.get('script-source').value,'');assert.equal(f.get('sidebar-tool-frame').childElementCount,0);}
@@ -157,9 +170,43 @@ test('same identity review carries the existing installation CAS and keeps the o
   }}});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   assert.match(f.get('sidebar-tool-preview-description').textContent,/已经安装/);
+  assert.equal(f.get('sidebar-tool-update').hidden,false);
+  assert.match(f.get('sidebar-tool-update-versions').textContent,/r1.*r1/);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='installed');
-  assert.equal(f.get('page-install-import-status').attributes['data-installation-id'],'existing-installation');
+  await settle(()=>f.get('sidebar-tool-import').hidden);
+  assert.match(f.get('sidebar-tool-status').textContent,/已更新网页增强/);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+});
+
+test('Page update review discloses added website scope and existing revision before confirm',async t=>{
+  const pkg=await installPackage(),older=receipt(pkg,{
+    version:'0.9.0',revision:0,
+    pageRules:{...pkg.pageRules,matches:['https://old.example/*']}
+  });
+  const f=await fixture(t,{installed:[older]});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-update').hidden,false);
+  assert.match(f.get('sidebar-tool-update-versions').textContent,/v0\.9\.0.*r0.*v1\.0\.0.*r1/);
+  assert.match(f.get('sidebar-tool-update-capabilities').textContent,/新增网站范围.*example\.com.*移除网站范围.*old\.example/);
+  assert.match(f.get('sidebar-tool-update-warning').textContent,/新增网站范围/);
+  assert.equal(f.get('sidebar-tool-install').textContent,'确认更新');
+  assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,0,
+    'Only showing permission changes does not install or prompt');
+});
+
+test('valid Page receipt without a durable installed-list readback does not close or retry',async t=>{
+  const pkg=await installPackage();let calls=0;
+  const f=await fixture(t,{requestPage(operation){
+    if(operation==='importPageInstallPackage'){calls++;return receipt(pkg);}
+    if(operation==='listPagePrograms')return {catalog:[],installed:[]};
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
+  assert.equal(f.get('sidebar-tool-import').hidden,false,'uncertain result keeps review visible');
+  assert.match(f.get('page-install-import-status').textContent,/E_PAGE_INSTALL_READBACK/);
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+  assert.equal(calls,1,'missing readback must not replay the installer');
 });
 
 for(const recover of [true,false])test(`lost Page install response is queried once without replay (recovered=${recover})`,async t=>{
@@ -192,11 +239,10 @@ test('disabled Page update confirms fixed installation without claiming automati
   const f=await fixture(t,{installed:[disabled],requestPage(operation){if(operation==='importPageInstallPackage')return disabled;}});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
-  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='installed-disabled');
-  assert.match(f.get('page-install-import-status').textContent,/安装完成.*保留原有停用状态/);
-  assert.equal(f.get('page-install-import-status').attributes['data-installation-id'],'existing-installation');
-  assert.equal(f.get('sidebar-tool-install').textContent,'已安装（停用）');
-  assert.equal(f.get('page-install-import-receipt').hidden,false);
+  await settle(()=>f.get('sidebar-tool-import').hidden);
+  assert.match(f.get('sidebar-tool-status').textContent,/已更新网页增强.*停用状态已保留/);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
   unchangedAuthoring(f);
 });
 

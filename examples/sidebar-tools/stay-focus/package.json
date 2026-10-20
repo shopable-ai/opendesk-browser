@@ -1,0 +1,9 @@
+{
+  "name": "opendesk-stay-focus",
+  "version": "1.0.7",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs"
+  }
+}
