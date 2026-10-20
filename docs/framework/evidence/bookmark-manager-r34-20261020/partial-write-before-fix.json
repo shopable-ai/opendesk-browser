@@ -1,0 +1,54 @@
+{
+  "candidate": {
+    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
+    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
+    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+  },
+  "kind": "REAL_MAC_CFT_PARTIAL_MOVE_THEN_UPDATE_CANCEL",
+  "status": "FAIL_MISSING_PARTIAL_WRITE_WARNING",
+  "at": "2026-10-20T07:20:38.472Z",
+  "fixture": {
+    "folder": {
+      "dateAdded": 1792480838473,
+      "dateGroupModified": 1792480838473,
+      "id": "3308",
+      "index": 4,
+      "parentId": "2",
+      "syncing": false,
+      "title": "R34-partial-1792480838473-target"
+    },
+    "item": {
+      "dateAdded": 1792480838474,
+      "id": "3309",
+      "index": 3,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R34-partial-1792480838473-before",
+      "url": "https://example.com/partial"
+    }
+  },
+  "moveCommittedBeforeSecondApproval": {
+    "dateAdded": 1792480838474,
+    "id": "3309",
+    "index": 0,
+    "parentId": "3308",
+    "syncing": false,
+    "title": "R34-partial-1792480838473-before",
+    "url": "https://example.com/partial"
+  },
+  "message": "写入结果未知：已停止重复提交。请刷新核对数据后再决定。",
+  "draft": "R34-partial-1792480838473-after",
+  "retryDisabled": true,
+  "nativeAfter": [
+    {
+      "dateAdded": 1792480838474,
+      "id": "3309",
+      "index": 0,
+      "parentId": "3308",
+      "syncing": false,
+      "title": "R34-partial-1792480838473-before",
+      "url": "https://example.com/partial"
+    }
+  ],
+  "explicitPartialWarning": false
+}

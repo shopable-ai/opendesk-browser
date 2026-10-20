@@ -1,7 +1,9 @@
 {
-  "schema_version": 1,
-  "title": "Bookmark Manager R3.4 independent read-only review",
-  "reviewed_at": "2026-10-20T07:06:09.646764+00:00",
+  "schemaVersion": 1,
+  "kind": "CURRENT_FINAL_EXCERPT_OF_INDEPENDENT_AGENT_REPORT",
+  "fullLocalReport": "artifacts/bookmark-manager-r34/independent-review.json",
+  "fullLocalReportSha256": "f284aa4fe61ce77e0db6c684cecfa4847d5798058b36a4856c393fc3dbbdd1dd",
+  "historyNote": "历史评审、旧候选和旧源码身份保留在完整本地报告；本摘录只转录当前结论和证据复核，不将旧源码评审改写成当前版本。",
   "reviewer": {
     "role": "Independent reviewer",
     "product_files_edited": false,
@@ -12,376 +14,537 @@
     "skill": "/Users/shopme/.codex/skills/code-review/SKILL.md",
     "independence_limit": "The reviewer did not author the product diff. The Skill's additional code-reviewer and architect subagent lanes were unavailable in this session; this is a single independent review, not a completed dual-lane approval."
   },
-  "scope": {
-    "requested": "Current uncommitted Bookmark App, Host transport, React preview, CI changes and artifacts/bookmark-manager-r34 native evidence.",
-    "excluded": "Unrelated concurrent ChatGPT Mindmap/core work; product edits; browser/build execution; branch/worktree changes; installation/promotion.",
-    "reviewed_files": [
-      {
-        "path": ".github/workflows/bookmark-manager-r302-react-preview.yml",
-        "sha256": "88a88fd06a1bff2eaa857afbce012fd8d84b5bd58ddcd7de1ee91705cb868426",
-        "git_blob": "1dfd48db961b012a52d6dcbf1e198b5f0556e1d2",
-        "bytes": 6739
-      },
-      {
-        "path": "examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs",
-        "sha256": "b09d4bdfe4275b554292d6f95b7630cd38268fa5e91d939437779ec637dc62e6",
-        "git_blob": "a4f21708084b609939b7747927878cfca7829630",
-        "bytes": 33179
-      },
-      {
-        "path": "examples/sidebar-tools/bookmark-manager/preview/react/check-bundle.mjs",
-        "sha256": "a0a13daa1790a3d872ee9ef92d7e4acd28f9a5083920e5394018eb0a10d95bd8",
-        "git_blob": "7ca26d33f55fc108ceec188dfa1e5553c877057f",
-        "bytes": 3283
-      },
-      {
-        "path": "examples/sidebar-tools/bookmark-manager/preview/react/run-chrome.mjs",
-        "sha256": "f4470c7f4e3632c041ea77220f911353090d28bf9b28ee28c0d087f02b44cabe",
-        "git_blob": "7746a048464ece09f6a2892d47385a5bc524e0a1",
-        "bytes": 3686
-      },
-      {
-        "path": "examples/sidebar-tools/bookmark-manager/preview/react/vite.config.mjs",
-        "sha256": "c3e49811a4c14d143db007dbba5823eabcf3cddefca0bf2a39b55935a5119c8d",
-        "git_blob": "927c1225e9fb80ac6a2e2b481785a92ac39f6301",
-        "bytes": 1540
-      },
-      {
-        "path": "examples/sidebar-tools/bookmark-manager/preview/react/mock-host-adapter.mjs",
-        "sha256": "bd25a0cef416f1cc82a6b04037b401bd65e8076d1337dfc0722ee0fdbb79e6c3",
-        "git_blob": "969be1447b0e2a7073657ed481fb65791489340b",
-        "bytes": 3318
-      },
-      {
-        "path": "examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
-        "sha256": "d8ea504191e371d1ebbc3a64f4200ba438bff6c9507ef4656be45924a88a41fa",
-        "git_blob": "85e4e5579b77bee2078602bcf208177ad9838efc",
-        "bytes": 41811
-      },
-      {
-        "path": "scripts/bundle-provenance.mjs",
-        "sha256": "2dec8bed94d062c42a7f1255da41caaafe85210cafb67ac4caf41f928fa634b6",
-        "git_blob": "361fa195b281390d7ff8af329fe6d6d31004d479",
-        "bytes": 23429
-      },
-      {
-        "path": "src/ui/sidebar-tools.js",
-        "sha256": "842702f89f767df615a01bf15fc8cd3db8cc8ca86597691e4d7f5516fd779731",
-        "git_blob": "a171492f997788573becd6f106d3272efd018ced",
-        "bytes": 201956
-      },
-      {
-        "path": "tests/environment/bookmark-manager-r34-write-order.test.mjs",
-        "sha256": "f1440c9839228825a9bcb05a1b6633e003bda81388aded50c255f656c0e8275b",
-        "git_blob": "3f76a36e4232f80296061df3d0992d46fcfb52cf",
-        "bytes": 11276
-      },
-      {
-        "path": "tests/environment/bookmark-manager-r34-transport.test.mjs",
-        "sha256": "1f3f8b717f2b591a23c60ed468ec6e4bfe8ed5664bdc8450887a04ac88adc802",
-        "git_blob": "bac7aa5da80ec46330567ba331210531927a954c",
-        "bytes": 1949
-      }
-    ],
-    "only_output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/independent-review.json",
-    "follow_up": "Known fixes only: fillCurrentPage isCurrent rename and selected-parent test status; supported restart/session/scenario candidate binding and obsolete drive.start removal; existing uninstallFromList facade forwarding. No broader review or testing.",
-    "latest": "Only supplied candidate 140c10 native results and minimal source/build/test-log identity checks, including the scenario/upgrade assertion paths. No unrelated audit, new test, build or browser operation."
-  },
+  "reviewed_at": "2026-10-20T07:47:59.081461+00:00",
   "conclusion": {
     "recommendation": "NO_OPEN_PRODUCT_FINDINGS_IN_REVIEWED_SCOPE",
-    "release_readiness": "LOCAL_SUPPLIED_ACCEPTANCE_COMPLETE_AWAITING_COMMIT_CI",
+    "release_readiness": "CURRENT_CANDIDATE_LOCAL_NATIVE_PASS_DECLARED_RELEASE_GATES_PENDING",
     "architectural_status": "WATCH",
     "critical": 0,
     "high": 0,
     "medium": 0,
     "low": 0,
-    "summary": "Final4 candidate140c10/App SHA256079ca891 (Git blobf54cb8e) has the supplied actual Mac CFT A-H PASS evidence, final UX, actual macOS Side Panel close/reopen into a new context, actual other-window chrome://bookmarks edit synchronization at4275ms, and normal imported non-official package sandbox/no-React/no-grant isolation with bookmarks unchanged after uninstall. The official0.3.8 package is promoted and project-matched; formal file, production built package and production catalog all match SHA2560d018dc9. Known findings remain resolved and no current product release blocker is identified in this bounded review. Local supplied acceptance is complete; commit/CI results are not inferred. Ten numeric dimensions remain NOT_SCORED, while the observed native checks are explicitly PASS.",
+    "summary": "Current candidate2be20f1/App91414f8 (blob5c42a4) is verified against summary.json and thirteen matching actual Mac native JSON files: all PASS. Native A-H, events/gap, crosswindow UI edit, UX, conflict, lifecycle, normal uninstall/upgrade and untrusted sandbox pass. Partial-write recovery explicitly warns risk, retains the draft, blocks retry, supports discard-dialog Tab/Escape and explicit discard/refresh. Actual native write followed by lost original SW acknowledgement retains unknown-outcome draft, blocks Enter replay, and reads exactly one item after explicit reconciliation. Final H restarts with3509 identical native items; actual macOS Side Panel close/reopen creates a new context without changing native bookmarks. All known product findings are resolved. Ten numeric scores remain NOT_SCORED. The supplied summary still declares formal release blocked by its recorded release gates; exact-commit CI and95 are not claimed.",
     "numeric_score": null,
     "score_status": "NOT_SCORED",
-    "scoring_reason": "The current evidence permits auditable categorical PASS/partial-coverage judgments for observed behavior. It does not establish calibrated 0-100 results across all ten dimensions: task-efficiency, full accessibility, performance distributions and native fault outcomes remain only partially observed. The review declines retrospective arbitrary weights. NOT_SCORED means no defensible numerical mark is issued, not a failed native acceptance or CI-only evidence.",
-    "approval_limit": "Ready for the scoped commit/CI step based on supplied local evidence; this reviewer did not commit, run CI, operate a browser or run extra tests. This is not a global proof of unrelated framework release contracts.",
-    "count_scope": "Severity counts above include OPEN findings only; resolved historical findings remain recorded below."
+    "scoring_reason": "Current actual native evidence supports observed-case PASS judgments; no calibrated ten-dimension numeric assessment has been performed. Resolved native partial-write and lost-receipt recovery are not retained as evidence gaps.",
+    "approval_limit": "This final update reads only the specified summary and thirteen native JSONs and updates the independent report. No source analysis, tests, build, browser or broader audit. Formal release status remains distinct from current native acceptance.",
+    "count_scope": "Severity counts above include OPEN findings only; resolved historical findings remain recorded below.",
+    "summary_declared_release_status": "BOOKMARK_MANAGER_RELEASE_BLOCKED",
+    "summary_declared_release_blockers": {
+      "releaseBlockers": [
+        {
+          "id": "CI_EXACT_COMMIT_NOT_VERIFIED",
+          "next": "推送包含本次源码的main提交，并读取同一提交工作流结果。"
+        },
+        {
+          "id": "INDEPENDENT_95_NOT_VERIFIED",
+          "next": "独立评审按公开评价依据核定十维；缺真实证据的项保留NOT_SCORED，不自行填95。"
+        }
+      ]
+    }
+  },
+  "current_assessment": {
+    "reviewed_at": "2026-10-20T07:47:59.081461+00:00",
+    "kind": "INDEPENDENT_READ_ONLY_COMMIT_EVIDENCE_JSON_REVIEW",
+    "scope": "Only summary.json and the thirteen named current-candidate native JSON files in docs/framework/evidence/bookmark-manager-r34-20261020. No source analysis, tests, build, browser operation or expanded findings.",
+    "candidate": {
+      "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+      "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+      "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+    },
+    "app_git_blob": "5c42a4d5f7c35bccb31fc9076fdc21427325e068",
+    "app_sha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6",
+    "identity_basis": "Exact equality of all three candidate identity fields in every listed native file and every B-F scenario with summary.source.candidate. Source identity is read from the supplied summary; no new source inspection was performed.",
+    "summary": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/summary.json",
+      "sha256": "b4c595d1130c3a2c4eb29efef2c1d8d5c0ac38821f5f284bbc9de3d4ccc07f3c",
+      "status": "BOOKMARK_MANAGER_RELEASE_BLOCKED",
+      "observedAt": "2026-10-20T07:44:11.087124+00:00"
+    },
+    "native_manifest": [
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/browse-final.json",
+        "sha256": "1ee80c5509269287db179336bde1efc585698c915f21c44957f81fdd755ebaf7",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_NATIVE_BROWSE",
+        "at": "2026-10-20T07:29:39.342Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/scenarios.json",
+        "sha256": "1cf379ea3df2dbfe28b447647c0618831056afcdcd5f1466e48f6ac10c880d82",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_INSTALLED_NATIVE_SIDE_PANEL",
+        "at": "2026-10-20T07:28:22.939Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/events-final.json",
+        "sha256": "2639cd862f4e6c1b606097ebd37b2f40725a80791aeccf74f1bebd240670d4ae",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_NATIVE_EVENT_INJECTION",
+        "at": "2026-10-20T07:29:23.339Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/crosswindow-real-ui-final4.json",
+        "sha256": "4da63d1538ccd6c2a47636ec287c7c74c00f7bf708b6c7933e72aeec14bebcdc",
+        "status": "PASS",
+        "kind": "REAL_MAC_CHROME_BOOKMARKS_MANAGER_UI",
+        "at": "2026-10-20T07:34:54.094Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/ux-final.json",
+        "sha256": "f8f905566b311da0adaf4f7e131ac0186b89f8013554b9d72c225e2fd5ac3888",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_PRODUCTION_TOOL_TAB",
+        "at": "2026-10-20T07:29:41.233Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/conflict-final.json",
+        "sha256": "78a8c263d75069b74568ff36be71f4913d76a5b4beada3c64231a3ab7183ccbc",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_EXTERNAL_CONFLICT",
+        "at": null,
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lifecycle-final.json",
+        "sha256": "4e322c32260076bdc05e286cebbb283189ddc4c45d0b4ab6da45ea0f6bf9cd13",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_PRODUCT_LIFECYCLE",
+        "at": "2026-10-20T07:29:59.056Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/upgrade-final.json",
+        "sha256": "02291b6f629205f961a94710d1186a59d3f355eb4b6e2a9011e1a7429bc06ec4",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_NORMAL_IMPORT_AND_OFFICIAL_MARKET_UPGRADE",
+        "at": "2026-10-20T07:30:03.369Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/untrusted-final4.json",
+        "sha256": "b2f6761c5da1c291c9694f02d1128910e24f7e5d3c268490cfbbc6b0defc56a3",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_UNTRUSTED_NORMAL_IMPORT",
+        "at": "2026-10-20T07:34:54.278Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+        "sha256": "df214d5fff5db413516bf225e1f47357ee3a93f290bee9ae23dbb0091bb4245d",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_PARTIAL_MOVE_THEN_UPDATE_CANCEL",
+        "at": "2026-10-20T07:26:15.830Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lost-ack-native.json",
+        "sha256": "59381467f1857d4b195ffc95431d4b2b2731482ae21fc46a673d6bc5addeb227",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_NATIVE_WRITE_RECEIPT_LOSS",
+        "at": "2026-10-20T07:40:10.505Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/restart-final.json",
+        "sha256": "c46705f6c3e459e89df872b8760504cd7eccc8bd51b484d39294668005bd7a25",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_SAME_PROFILE_RESTART",
+        "at": "2026-10-20T07:41:41.061Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      },
+      {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/close-reopen-final4.json",
+        "sha256": "a4b08f52166b337c5871f2c437cd60b9055b3aa4399d5c8f24dd9828ee833163",
+        "status": "PASS",
+        "kind": "REAL_MAC_CFT_NATIVE_CLOSE_REOPEN_SIDE_PANEL",
+        "at": "2026-10-20T07:42:42.704Z",
+        "candidate": {
+          "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+          "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+          "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+        }
+      }
+    ],
+    "native_kind": "REAL_MAC_CFT_NATIVE_BOOKMARKS",
+    "browser": "Chrome for Testing 155.0.8059.39 macOS arm64",
+    "extension_id": "jbamnbckklhjolckjkbkpgonphncclhi",
+    "extension_path": "artifacts/bookmark-manager-r34/source/dist/production",
+    "profile": "artifacts/bookmark-manager-r34/native/profile",
+    "native_A_H": "PASS",
+    "B_F_case_identity_checks": "PASS",
+    "native_partial_write": {
+      "status": "PASS",
+      "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+      "message": "部分写入风险：已停止重复提交。请刷新核对数据后再决定。",
+      "move_committed_title_unchanged": true,
+      "draft_retained": true,
+      "retry_disabled": true,
+      "Tab_loop": true,
+      "Escape_preserves_draft": true,
+      "explicit_discard_refresh": true
+    },
+    "native_lost_ack": {
+      "status": "PASS",
+      "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lost-ack-native.json",
+      "method": "Pause original service-worker success-response callback after actual native create completes, then stop only the owned worker before it sends the response. No SDK/Host stubs or altered response.",
+      "worker_source_sha256": "ecf12f2001997b9afba316a24c13680ec1b0c452563ebb88800154d33d87e83d",
+      "paused_after_real_native_write": true,
+      "owned_worker_close_success": true,
+      "message": "写入结果未知：已停止重复提交。请刷新核对数据后再决定。",
+      "draft_retained": true,
+      "retry_disabled": true,
+      "Enter_no_duplicate": true,
+      "native_before_count": 1,
+      "native_after_Enter_count": 1,
+      "explicit_discard_refresh": true,
+      "native_after_reconcile_count": 1
+    },
+    "final_H": {
+      "status": "PASS",
+      "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/restart-final.json",
+      "nodeCount": 3509,
+      "treeIdentical": true,
+      "permission": true,
+      "at": "2026-10-20T07:41:41.061Z"
+    },
+    "macOS_close_reopen": {
+      "status": "PASS",
+      "evidence": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/close-reopen-final4.json",
+      "method": "Native macOS click on observed Close Side Panel button, then normal extension toolbar action and product tool list",
+      "nativeBookmarksUnchanged": true,
+      "oldContextId": "58aedbbd-c013-4711-aa81-3eae2f546214",
+      "newContextId": "e1f138e1-4063-4fa1-9780-af9222e63172"
+    },
+    "remaining_current_native_acceptance": [],
+    "product_release_blockers": [],
+    "summary_declared_release_status": "BOOKMARK_MANAGER_RELEASE_BLOCKED",
+    "summary_declared_release_blockers": {
+      "releaseBlockers": [
+        {
+          "id": "CI_EXACT_COMMIT_NOT_VERIFIED",
+          "next": "推送包含本次源码的main提交，并读取同一提交工作流结果。"
+        },
+        {
+          "id": "INDEPENDENT_95_NOT_VERIFIED",
+          "next": "独立评审按公开评价依据核定十维；缺真实证据的项保留NOT_SCORED，不自行填95。"
+        }
+      ]
+    },
+    "external_ci_status": {
+      "status": "PENDING_EXACT_COMMIT",
+      "reason": "本地结果与GitHub CI分开记录；推送后按最终main提交读取工作流，不使用旧Commit PASS。"
+    },
+    "numeric_status": "NOT_SCORED",
+    "numeric_total": null,
+    "numeric_scope_note": "Ten numeric results stay unscored; concrete observed native behaviors are PASS. No95 claim is made.",
+    "evidence_limit": "Historical before-fix and optional-permission baseline files are not part of these thirteen current-candidate PASS files. Mock Host preview remains distinct from actual Mac native evidence. No unlisted native flow or exact-commit CI result is inferred.",
+    "reviewer_product_edits": 0,
+    "reviewer_tests_build_browser_runs": 0
+  },
+  "latest_known_issue_status": {
+    "updated_at": "2026-10-20T07:47:59.081461+00:00",
+    "candidate": {
+      "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+      "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+      "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+    },
+    "current_candidate": {
+      "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+      "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+      "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+    },
+    "known_findings": "ALL_RESOLVED",
+    "open_product_findings": 0,
+    "native_A_H": "PASS",
+    "partial_write": "PASS",
+    "lost_ack": "PASS",
+    "H_restart_3509_identical": "PASS",
+    "macOS_close_reopen_new_context": "PASS",
+    "current_native_acceptance_pending": [],
+    "exact_commit_CI": {
+      "status": "PENDING_EXACT_COMMIT",
+      "reason": "本地结果与GitHub CI分开记录；推送后按最终main提交读取工作流，不使用旧Commit PASS。"
+    },
+    "numeric_scores": "NOT_SCORED",
+    "evidence_root": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020"
   },
   "dimensions": [
     {
       "dimension": "product_usability",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "CORE_NATIVE_FLOWS_SUPPORTED",
-      "observed": "Actual Mac CRUD/current-page/browse and final 360/400/960 light/dark CSS cases pass. OS200% and tree keyboard active-descendant checks pass. Actual macOS Side Panel close and toolbar/product reopen produces a new context with bookmarks unchanged.",
-      "gap": "No calibrated usability scale or complete independent task-efficiency evaluation; these observations do not establish every UI state.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current actual Mac browse, search/folder interaction, UX cases and normal macOS Side Panel close/reopen all PASS. Partial-write discard dialog Tab/Escape and explicit discard/refresh are PASS.",
+      "gap": "No quantitative task-efficiency study or calibrated usability score is supplied.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/scenarios.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/browse-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/ux-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/close-reopen-final4.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/browse-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/ux-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/close-reopen-final4.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "business_correctness",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "OBSERVED_CORE_AND_UPGRADE_PASS",
-      "observed": "Fresh native create/edit/move/delete/current-page selected parent, cycle exclusion, one Host delete approval and safe links pass. Normal uninstall/import0.3.7/official0.3.8 upgrade preserves bookmarks with no added capabilities.",
-      "gap": "Observed flows do not establish every cancellation, imported-data or partial-write combination.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current B-F individual native scenarios all PASS and each carries the current candidate: create/current page, edit, move/cycle exclusion, deletion approval and safe link behavior. Partial move then canceled update explicitly warns risk.",
+      "gap": "Observed native cases do not establish every possible business/import combination.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/scenarios.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/upgrade-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/node-final4.log"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/scenarios.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/upgrade-final.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "data_consistency",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "OBSERVED_NATIVE_INVARIANTS_PASS",
-      "observed": "Native readback, preserved conflict draft, unchanged data across lifecycle/uninstall/upgrade, 240-event resnapshot and final H tree identity have same-candidate PASS evidence. Actual other-window chrome://bookmarks dialog name editing syncs in4275ms; close/reopen and non-official package uninstall preserve native bookmarks.",
-      "gap": "Intentionally lost native replies and partial move/update outcomes are not exercised by this batch; Node coverage is distinct.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current event/gap recovery and real crosswindow edit synchronization PASS. Final same-profile restart has3509 identical items. Real lost-ack create remains exactly one item after Enter and explicit discard/refresh; partial-write native parent/title states are explicitly checked.",
+      "gap": "Malformed native receipt handling is outside these supplied cases; the lost-receipt and partial-write evidence gaps are resolved.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/events-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/conflict-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/lifecycle-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/upgrade-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/restart-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/crosswindow-real-ui-final4.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/close-reopen-final4.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/untrusted-final4.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/events-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/crosswindow-real-ui-final4.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/restart-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lost-ack-native.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "permissions",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "OBSERVED_PRODUCT_AUTHORITY_PASS",
-      "observed": "Full Bookmarks revoke clears both private roots; regrant and disable/restore pass. Official upgrade adds no capability. The facade forwards the existing guarded Host uninstall method. Actual locally imported non-official package receives no trusted React root or grant, uses the manifest-declared sandbox, and leaves native bookmarks unchanged after uninstall.",
-      "gap": "Chrome optional-permission removal and deliberately delayed native in-flight revocation are not established; no permission-bypass finding is asserted.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current lifecycle revoke/regrant/disable/restore, normal uninstall/upgrade, and real nonofficial manifest sandbox checks are PASS. Full capability and official/untrusted admission remain described in summary; no new permissions are inferred.",
+      "gap": "Summary explicitly identifies the separate Chrome optional-permission-removal test as historical baseline evidence; it is not counted among the thirteen current native files.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/lifecycle-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/upgrade-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/sidebar-tools-view.js:169",
-        "/Users/shopme/Documents/workspace/opendesk-browser/src/ui/sidebar-tools.js:2692",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/untrusted-final4.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lifecycle-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/upgrade-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/untrusted-final4.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/summary.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "architecture",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "KNOWN_BOUNDARIES_AND_BINDING_SUPPORTED",
-      "observed": "App/Host/view match the frozen candidate. Compiled App pin, build receipt and physical shell match. Existing SDK/Host/Authority and guarded facade remain in use. Current native negative identity test confirms the normal non-official manifest sandbox path; official package hash matches the production catalog.",
-      "gap": "This targeted review does not constitute a complete independent system-architecture evaluation or completed extra subagent lanes.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Summary documents the unique React root with existing model/service/SDK/Host. Current native nonofficial identity remains on the isolated manifest sandbox path, and current upgrade/sandbox observations PASS. This update performs no new architecture/source audit.",
+      "gap": "No new independent system-wide architecture evaluation is performed in this evidence-only update.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/source/docs/framework/evidence/wxt/builds/build-production.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/verify-final4.log",
-        "current_assessment.source_matches",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/untrusted-final4.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/source/dist/production/official-tools/catalog.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/summary.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/untrusted-final4.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/upgrade-final.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "react_lifecycle",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "KNOWN_GUARDS_RESOLVED_NATIVE_LIFECYCLE_PASS",
-      "observed": "Known event/read/write/fill invalidation findings remain resolved. Node122 includes selected-parent actual callbacks; native revoke/regrant, disable/restore, upgrade and final restart pass. Actual macOS Side Panel close followed by normal toolbar/product reopen creates a different context and preserves native bookmarks.",
-      "gap": "No exhaustive real React scheduling/unmount/StrictMode audit is established.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current lifecycle PASS; real macOS Side Panel close/reopen uses a different context with native bookmarks unchanged. Final same-profile restart PASS with3509 identical items. Real test SW response loss recovers through explicit discard/refresh.",
+      "gap": "Only the supplied native lifecycle cases are established; no blanket assessment of all asynchronous interleavings is made.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/node-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/lifecycle-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/upgrade-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/restart-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/close-reopen-final4.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lifecycle-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/close-reopen-final4.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/restart-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lost-ack-native.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "performance",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "LIMITED_MEASUREMENTS_AND_BUDGET_PASS",
-      "observed": "A records 3259 nodes, 115ms single refresh and 7 rendered rows in that state; G move/delete sync 4444/4139ms. Final H records 3261 nodes. Unchanged build/preview byte limits pass. A separate actual chrome://bookmarks dialog edit takes4275ms to synchronize.",
-      "gap": "Single observations do not establish percentiles, expanded-tree worst cases or CPU/memory budgets. No declared event-latency SLO or calibrated score was supplied.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current native browse full snapshot: 123ms, rendered rows 12. Native event move/delete synchronization: 1684/4455ms; crosswindow UI edit 4463ms. These are observed measurements, not statistical scores.",
+      "gap": "No latency-distribution or complete load benchmark is supplied.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/browse-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/events-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/restart-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/verify-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/preview-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/crosswindow-real-ui-final4.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/browse-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/events-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/crosswindow-real-ui-final4.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "accessibility",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "LIMITED_REAL_MAC_KEYBOARD_ZOOM_EVIDENCE",
-      "observed": "Six CSS/media cases, OS200% without recorded horizontal overflow and valid changed tree active-descendant keyboard focus pass in the actual production tool-tab. Current driver explicitly sends Home and ArrowDown for the recorded tree keyboard check.",
-      "gap": "No screen-reader audit, complete keyboard/edit/dialog workflow or full contrast/focus evaluation. These limits are not observed product failures.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current real Mac UX checks PASS for the observed widths/themes, OS200% and Home/ArrowDown keyboard behavior. Partial-write discard dialog Tab loop and Escape draft preservation PASS.",
+      "gap": "No screen-reader evaluation or complete accessibility study is supplied.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/ux-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/ux-final.mjs:7"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/ux-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/summary.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "error_recovery",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "OBSERVED_CONFLICT_AND_EVENT_RECOVERY_PASS",
-      "observed": "Native external conflict preserves the draft; event overflow resnapshots; revocation clears private roots and normal regrant reopens. Node logs cover uncertain receipts and delayed callbacks.",
-      "gap": "Deliberately dropped/malformed native replies and partial-write exercises are not in this batch; Node fault tests are not relabeled native.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Current real partial move/update-cancel case explicitly warns risk, retains draft, blocks retry and supports Tab/Escape plus explicit discard/refresh. Real native create with original SW acknowledgement lost shows unknown outcome, preserves draft, blocks Enter replay and reconciles to exactly one item. External conflict/event recovery PASS.",
+      "gap": "Malformed native receipts remain outside supplied native evidence; dropped acknowledgements and partial-write recovery are resolved evidence gaps.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/conflict-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/events-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/lifecycle-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/node-final4.log"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/partial-write-native.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/lost-ack-native.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/conflict-final.json",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/events-final.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     },
     {
       "dimension": "build_release",
       "score": null,
       "status": "NOT_SCORED",
-      "assessment": "SUPPLIED_BUILD_AND_NATIVE_ACCEPTANCE_COMPLETE",
-      "observed": "Exact candidate binding, App pin, no build source drift, physical shell digest, Node122/122, source-check922, unchanged byte gates, normal upgrade/uninstall, final UX and post-check H are present and PASS. Original packer promotion and check-project logs PASS; formal0.3.8 file, production catalog and built package share SHA2560d018dc9.",
-      "gap": "Commit and CI are the next user step; no CI result is inferred. The standalone formal React preview is separate from the promoted official package. Broader unrelated release contracts are outside this bounded review.",
+      "assessment": "PASS_FOR_OBSERVED_CASES_NOT_NUMERICALLY_SCORED",
+      "observed": "Summary records126 targeted tests, syntax/check, production build/verification and unchanged byte limits PASS; Mock Host preview is separately labeled. All thirteen supplied native files are current-candidate PASS. Summary records formal release status and exact-commit CI pending.",
+      "gap": "Exact-commit CI and independently established95 remain declared release gates in summary; no numerical mark is invented.",
       "evidence": [
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/verify-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/node-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/check-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/preview-final4.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/upgrade-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/ux-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/restart-final.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/promote.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/check-project.log",
-        "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
-        "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/source/dist/production/official-tools/catalog.json"
-      ]
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/bookmark-manager-r34-20261020/summary.json"
+      ],
+      "candidate": {
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+      },
+      "evidence_reviewed_at": "2026-10-20T07:47:59.081461+00:00"
     }
   ],
-  "latest_known_issue_status": {
-    "updated_at": "2026-10-20T07:06:09.646764+00:00",
-    "provenance": "INDEPENDENT_READ_ONLY_CURRENT_FINAL4_ARTIFACT_CHECK",
+  "scoring_decision": {
+    "reviewed_at": "2026-10-20T07:47:59.081461+00:00",
+    "observed_behavior_assessment_possible": true,
+    "numeric_ten_dimension_score_issued": false,
+    "numeric_status": "NOT_SCORED",
+    "numeric_total": null,
+    "why": "Current thirteen native files support observed-case PASS, including partial write, lost acknowledgement,3509-item restart and real macOS close/reopen. Quantitative scores were not assigned. Summary-declared independent95 is not falsely marked complete.",
+    "not_a_release_blocker": false,
+    "no_95_claim": true,
     "candidate": {
-      "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-      "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-      "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+      "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+      "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
     },
-    "known_findings": "ALL_RESOLVED",
-    "final4_native_A_H": "PASS",
-    "additional_native_close_reopen_crosswindow_untrusted": "PASS",
-    "formal_package_promotion_project_catalog_match": "PASS",
-    "local_supplied_acceptance_pending": [],
-    "external_CI": "AWAITING_COMMIT_AND_CI",
-    "numeric_scores": "NOT_SCORED"
+    "release_gate_interpretation": "NOT_SCORED is not a product defect; summary still lists independent95 verification as a formal release gate."
   },
-  "reportKind": "CURRENT_FINAL4_EXCERPT",
-  "fullLocalReport": {
-    "path": "artifacts/bookmark-manager-r34/independent-review.json",
-    "sha256": "1800d50b2d19b88c9940dce5169e10cede1de2f7800affc918eaafd16ea6ed64"
-  },
-  "resolvedFindings": [
-    {
-      "id": "R34-IR-001",
-      "status": "RESOLVED",
-      "area": "React lifecycle / error recovery",
-      "title": "Invalidate pending current-page fills when clearing a revoked view",
-      "source_references": [
-        {
-          "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
-          "line": 247,
-          "end_line": 251
-        },
-        {
-          "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
-          "line": 466,
-          "end_line": 476
-        },
-        {
-          "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
-          "line": 246
-        }
-      ]
-    },
-    {
-      "id": "R34-IR-002",
-      "status": "RESOLVED",
-      "area": "Release evidence integrity",
-      "title": "Bind resumed native scenario PASS results to the candidate",
-      "source_references": [
-        {
-          "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/scenarios.mjs",
-          "line": 3,
-          "end_line": 7
-        }
-      ]
-    },
-    {
-      "id": "R34-IR-003",
-      "status": "RESOLVED",
-      "area": "Business correctness / current-page parent selection",
-      "title": "Keep the selected bookmark node distinct from the fill-validity callback",
-      "source_references": [
-        {
-          "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
-          "line": 321
-        },
-        {
-          "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
-          "line": 468,
-          "end_line": 475
-        }
-      ]
-    }
-  ],
-  "finalEvidenceReview": {
-    "reviewed_at": "2026-10-20T07:06:09.646764+00:00",
-    "scope": "Only new final4 close/reopen, actual cross-window edit, non-official import isolation, latest UX/restart and formal package delivery identity",
-    "candidate": {
-      "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-      "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-      "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
-    },
-    "additional_native_manifest": [
+  "declared_formal_release_gates_pending": {
+    "releaseBlockers": [
       {
-        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/close-reopen-final4.json",
-        "sha256": "45181f3e70accab175807a29c29fb8a42b662b8145e4dfc566a30f55267778a0",
-        "status": "PASS",
-        "at": "2026-10-20T07:02:37.806Z",
-        "candidate_matches": true
+        "id": "CI_EXACT_COMMIT_NOT_VERIFIED",
+        "next": "推送包含本次源码的main提交，并读取同一提交工作流结果。"
       },
       {
-        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/crosswindow-real-ui-final4.json",
-        "sha256": "c62404d560dbc4138d3af4246db46eb0726330db57c4c0539216e4f4533e7ce0",
-        "status": "PASS",
-        "at": "2026-10-20T06:57:47.400Z",
-        "candidate_matches": true
-      },
-      {
-        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/untrusted-final4.json",
-        "sha256": "440dbf34daa0bd37d7100b6dbec59f46cf62b20b5c19781627b7693a2e9b00d3",
-        "status": "PASS",
-        "at": "2026-10-20T06:59:31.408Z",
-        "candidate_matches": true
-      },
-      {
-        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/ux-final.json",
-        "sha256": "3b6e9c9ff2e9b706b2d7e5cf6f599e58269df96c5cd93abce0c8a4e0158968d3",
-        "status": "PASS",
-        "at": "2026-10-20T06:56:00.440Z",
-        "candidate_matches": true
-      },
-      {
-        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/restart-final.json",
-        "sha256": "e24690fe907f8b0903a4730f5c5bdeb6efd6b7283e06bc4d6092574c4590fd96",
-        "status": "PASS",
-        "at": "2026-10-20T07:00:47.266Z",
-        "candidate_matches": true
+        "id": "INDEPENDENT_95_NOT_VERIFIED",
+        "next": "独立评审按公开评价依据核定十维；缺真实证据的项保留NOT_SCORED，不自行填95。"
       }
-    ],
-    "formal_package_sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
-    "open_product_findings": 0,
-    "local_acceptance_pending": [],
-    "numeric_scores": "NOT_SCORED",
-    "reviewer_product_edits": false,
-    "reviewer_test_build_browser_runs": 0
-  }
+    ]
+  },
+  "scopeLimit": "独立Agent阅读13份原生JSON；后补paging-native.json未由该Agent复核，单列在summary.validation.nativePaging。"
 }

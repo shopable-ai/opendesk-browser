@@ -1,11 +1,11 @@
 {
   "kind": "REAL_MAC_CFT_INSTALLED_NATIVE_SIDE_PANEL",
   "candidate": {
-    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+    "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+    "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+    "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
   },
-  "scenarioSourceSha256": "b1556bd8576d0bc606374adab50b214d4c1be5fa742879c350740fe11b1ced71",
+  "scenarioSourceSha256": "9bb76c85eeefac9d68333a5c479aad7bccd760b0a72a63d730234f42b21f8701",
   "browser": {
     "protocolVersion": "1.3",
     "product": "Chrome/155.0.8059.39",
@@ -15,44 +15,44 @@
   },
   "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/source/dist/production",
   "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r34/native/profile",
-  "startedAt": "2026-10-20T06:54:43.772Z",
+  "startedAt": "2026-10-20T07:28:22.939Z",
   "results": [
     {
       "name": "B:create-folder-bookmark-current-page",
       "status": "PASS",
       "candidate": {
-        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
       },
-      "at": "2026-10-20T06:55:03.305Z",
+      "at": "2026-10-20T07:28:42.467Z",
       "evidence": {
         "folder": {
           "children": [],
-          "dateAdded": 1792479291199,
-          "dateGroupModified": 1792479291199,
-          "id": "3301",
-          "index": 3,
+          "dateAdded": 1792481310701,
+          "dateGroupModified": 1792481310701,
+          "id": "3314",
+          "index": 6,
           "parentId": "2",
           "syncing": false,
-          "title": "R34-F4a-目标"
+          "title": "R34-F5-目标"
         },
         "bookmark": {
-          "dateAdded": 1792479296025,
-          "id": "3302",
+          "dateAdded": 1792481315740,
+          "id": "3315",
           "index": 0,
-          "parentId": "3300",
+          "parentId": "3313",
           "syncing": false,
-          "title": "R34-F4a-中文 English",
+          "title": "R34-F5-中文 English",
           "url": "https://example.com/r34"
         },
         "currentPage": {
-          "dateAdded": 1792479300926,
-          "id": "3303",
+          "dateAdded": 1792481320495,
+          "id": "3316",
           "index": 1,
-          "parentId": "3300",
+          "parentId": "3313",
           "syncing": false,
-          "title": "R34-F4a-收藏当前页",
+          "title": "R34-F5-收藏当前页",
           "url": "http://127.0.0.1:43111/demo-form.html"
         }
       }
@@ -61,28 +61,28 @@
       "name": "C:edit-name-url-parent-single-save",
       "status": "PASS",
       "candidate": {
-        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
       },
-      "at": "2026-10-20T06:55:11.146Z",
+      "at": "2026-10-20T07:28:50.128Z",
       "evidence": {
         "before": {
-          "dateAdded": 1792479296025,
-          "id": "3302",
+          "dateAdded": 1792481315740,
+          "id": "3315",
           "index": 0,
-          "parentId": "3300",
+          "parentId": "3313",
           "syncing": false,
-          "title": "R34-F4a-中文 English",
+          "title": "R34-F5-中文 English",
           "url": "https://example.com/r34"
         },
         "after": {
-          "dateAdded": 1792479296025,
-          "id": "3302",
+          "dateAdded": 1792481315740,
+          "id": "3315",
           "index": 0,
-          "parentId": "3301",
+          "parentId": "3314",
           "syncing": false,
-          "title": "R34-F4a-已编辑",
+          "title": "R34-F5-已编辑",
           "url": "https://example.org/edited"
         },
         "concurrentSaveDisabled": true
@@ -92,13 +92,13 @@
       "name": "D:move-bookmark-folder-prevent-cycle",
       "status": "PASS",
       "candidate": {
-        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
       },
-      "at": "2026-10-20T06:55:26.740Z",
+      "at": "2026-10-20T07:29:05.620Z",
       "evidence": {
-        "bookmarkParent": "3300",
+        "bookmarkParent": "3313",
         "folderParent": "2",
         "cycleOptions": [
           "R34-工作书签栏",
@@ -235,7 +235,9 @@
           "R34-Folder-129其他书签 / R34-压力测试",
           "R34-Folder-130其他书签 / R34-压力测试",
           "R34-目标其他书签",
-          "R34-F4a-目标其他书签"
+          "R34-partial-1792480838473-target其他书签",
+          "R34-partial-1792481175830-target其他书签",
+          "R34-F5-目标其他书签"
         ]
       }
     },
@@ -243,11 +245,11 @@
       "name": "F:one-safe-http-link-new-tab-unsafe-blocked",
       "status": "PASS",
       "candidate": {
-        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
       },
-      "at": "2026-10-20T06:55:31.767Z",
+      "at": "2026-10-20T07:29:09.617Z",
       "evidence": {
         "anchors": [
           {
@@ -257,34 +259,34 @@
           }
         ],
         "opened": "https://example.org/edited",
-        "unsafeId": "3305"
+        "unsafeId": "3318"
       }
     },
     {
       "name": "E:bookmark-empty-folder-recursive-folder-one-review",
       "status": "PASS",
       "candidate": {
-        "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-        "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-        "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+        "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+        "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+        "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
       },
-      "at": "2026-10-20T06:55:46.358Z",
+      "at": "2026-10-20T07:29:23.207Z",
       "evidence": [
         {
-          "id": "3302",
-          "title": "R34-F4a-已编辑",
+          "id": "3315",
+          "title": "R34-F5-已编辑",
           "nativeRemoved": true,
           "reactDialog": false
         },
         {
-          "id": "3301",
-          "title": "R34-F4a-目标",
+          "id": "3314",
+          "title": "R34-F5-目标",
           "nativeRemoved": true,
           "reactDialog": false
         },
         {
-          "id": "3300",
-          "title": "R34-F4a-工作",
+          "id": "3313",
+          "title": "R34-F5-工作",
           "nativeRemoved": true,
           "reactDialog": false
         }

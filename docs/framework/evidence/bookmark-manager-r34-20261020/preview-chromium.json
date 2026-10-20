@@ -5,16 +5,16 @@
   "exitCode": 0,
   "sourceEdits": [],
   "blocker": null,
-  "appBlob": "f54cb8e74021068c1122ea736b2edabe752a174d",
-  "currentAppHash": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce",
+  "appBlob": "5c42a4d5f7c35bccb31fc9076fdc21427325e068",
+  "currentAppHash": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6",
   "budget": {
     "status": "SCHEMA_BUNDLE_READY_NOT_INSTALLED",
-    "previewJSBytes": 219916,
+    "previewJSBytes": 219942,
     "jsLimit": 220000,
-    "jsRemainingBytes": 84,
-    "packageBytes": 263560,
+    "jsRemainingBytes": 58,
+    "packageBytes": 263588,
     "packageLimit": 320000,
-    "bundleSha256": "e22a72af0265c2b33a952e2548af94b8fba23b87b696a32bca493433b4b6af56"
+    "bundleSha256": "e70758ac582c9788c13ec750125ebe5a3f48b82d7a6e71500c115fab3308bb7d"
   },
   "mockHostChromium": {
     "status": "PASS",
@@ -41,10 +41,10 @@
     "singleHostReviewAndCancelPreserved": true,
     "ticketedRecursiveDelete": true,
     "evidence": "examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence/bookmark-r304-interaction.json",
-    "sourceSha256": "6918477534dd7f01f8fb3d094f301e9102a60a0a575c3194318a5c71b4ddfe6e",
+    "sourceSha256": "883d6ad61459e6ea4284057f24f199d519e9793fd985a3a165816f5e05781694",
     "sourceAndBudgetHashesMatch": true,
     "ownBrowserProcessesRemaining": 0,
     "ownProfilesRemaining": 0
   },
-  "chromiumLog": "examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-final4.log"
+  "chromiumLog": "examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-partial.log"
 }

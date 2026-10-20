@@ -238,3 +238,31 @@ test('R3.4 revocation between move and update prevents the second mutation',asyn
   assert.equal(updates,0,'a late move receipt cannot authorize an update after revocation');
   assert.equal(app.ui.tree,null);assert.equal(app.ui.uncertain,true);
 });
+
+for(const code of ['E_USER_CANCEL','E_OUTCOME_UNKNOWN','E_NATIVE_WRITE']){
+ test(`R3.4 completed move followed by ${code} warns partial write and blocks retries`,async()=>{
+  const tree=model.bookmarkTree([{id:'0',title:'root',children:[{id:'1',title:'bar',children:[
+   {id:'old',title:'old',children:[]},{id:'target',title:'target',children:[]}]}]}]);
+  let moves=0,updates=0;
+  const app=harness({load:async()=>tree,move:async({expected,parentId})=>{
+   moves++;return{...expected,parentId};
+  },update:async()=>{updates++;throw Object.assign(Error('Update did not complete'),{code})}});
+  await app.mount();app.ui.request({type:'edit',id:'old'});app.render();
+  app.ui.setDraft(d=>({...d,title:'Edited',parentId:'target'}));app.render();
+  await app.ui.save({preventDefault(){}});app.render();
+  assert.match(app.ui.error,/部分写入风险/);assert.equal(app.ui.uncertain,true);
+  assert.equal(app.ui.draft.title,'Edited');assert.equal(app.ui.draft.parentId,'target');
+  await app.ui.save({preventDefault(){}});assert.equal(moves,1);assert.equal(updates,1);
+  assert.notEqual(app.ui.notice,'已保存');app.unmount();
+ });
+}
+test('R3.4 an update denied before any completed write retains the draft without a partial warning',async()=>{
+ const app=harness({load:async()=>snapshot(),update:async()=>{
+  throw Object.assign(Error('Native update denied'),{code:'E_NATIVE_WRITE'});
+ }});
+ await app.mount();app.ui.request({type:'edit',id:'old'});app.render();
+ app.ui.setDraft(d=>({...d,title:'Edited'}));app.render();
+ await app.ui.save({preventDefault(){}});app.render();
+ assert.equal(app.ui.error,'Native update denied');assert.equal(app.ui.uncertain,false);
+ assert.equal(app.ui.draft.title,'Edited');app.unmount();
+});

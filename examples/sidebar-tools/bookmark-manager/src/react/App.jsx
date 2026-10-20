@@ -40,7 +40,7 @@ function filteredRows(tree,expanded,query){
 }
 function initialDraft(mode,kind,node,parentId){const title=mode==='edit'?node.title:'',url=mode==='edit'?(node.url||''):'',folder=mode==='edit'?node.parentId:parentId;return {mode,kind,id:node?.id||null,expected:node?{...node}:null,title,url,parentId:folder,initial:{title,url,parentId:folder}}}
 function dirtyDraft(d){return Boolean(d&&(d.title!==d.initial.title||d.url!==d.initial.url||d.parentId!==d.initial.parentId))}
-function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return '写入结果未知：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请在工具设置中核对授权后重新打开。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
+function humanError(error){const code=error?.code||'';if(code==='E_OUTCOME_UNKNOWN')return (error.partialWrite?'部分写入风险':'写入结果未知')+'：已停止重复提交。请刷新核对数据后再决定。';if(code==='E_GRANT_REVOKED'||code==='E_BOOKMARK_PERMISSION')return '书签访问权限失效，请在工具设置中核对授权后重新打开。';if(code==='E_BOOKMARK_STALE')return '该书签已被外部修改或删除。原草稿已保留，请核对后再处理。';return error?.message||'操作未完成，请重试。'}
 function authorityDenied(error){return ['E_BOOKMARK_PERMISSION','E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED'].includes(error?.code)}
 // Existing imported Chrome bookmarks may contain chrome:, file:, data: or other
 // schemes. Display those URLs as text, never navigate to them from a trusted UI.
@@ -431,7 +431,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    if(mode==='preview')globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
   }catch(ex){if(current()){
    if(authorityDenied(ex))revoke();
-   else{const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}
+   else{const outcome=completedWrite?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',partialWrite:true,cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}
   }}finally{writeEpoch.current++;readEpoch.current++;busyRef.current=false;if(activeRef.current){setBusy(false);setLoading(false)}}
  }
  async function removeConfirmed(target){

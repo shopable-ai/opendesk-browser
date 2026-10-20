@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "title": "Bookmark Manager R3.4 local Mac production candidate evidence",
-  "observedAt": "2026-10-20T07:04:23.763079+00:00",
+  "observedAt": "2026-10-20T07:54:53.156751+00:00",
   "status": "BOOKMARK_MANAGER_RELEASE_BLOCKED",
   "source": {
     "branch": "main",
-    "baseHead": "f2b56ece0c891c84812681f42a68f314778e893a",
+    "baseHead": "5b62351170d9f719628566230edb0e21ad5d536e",
     "commitNote": "本报告随源码提交；最终提交ID以包含此文件的Git提交为准，不用旧HEAD替代最终提交。",
-    "appBlob": "f54cb8e74021068c1122ea736b2edabe752a174d",
+    "appBlob": "5c42a4d5f7c35bccb31fc9076fdc21427325e068",
     "candidate": {
-      "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-      "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-      "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+      "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+      "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+      "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
     },
     "isolatedSourceCopy": "artifacts/bookmark-manager-r34/source",
     "liveDevelopmentWatcher": "保留原dist/development watcher，未覆盖其输出或停止服务。"
@@ -60,7 +60,7 @@
         "scenario": "A",
         "status": "PASS",
         "evidence": "browse-final.json",
-        "detail": "真实原生树、中文/英文/URL/文件夹搜索、展开折叠；3122条书签/137个文件夹；固定100条分页由真实全量快照一致性及定向Service测试共同验证，未抓取每一页RPC。"
+        "detail": "真实原生树、中文/英文/URL/文件夹搜索、展开折叠；3367条书签/139个文件夹。paging-native.json另证3509项同一快照51页，请求limit=100，实际19–72条/页由既有10500字节上限截断；原生ID无重复遗漏、原树不变。"
       },
       {
         "scenario": "B",
@@ -102,15 +102,15 @@
         "scenario": "H",
         "status": "PASS",
         "evidence": "restart-final.json",
-        "detail": "全部写入后重启同一隔离Profile，3261项原生数据逐项一致；close-reopen-final4.json另证macOS关闭侧栏后正常重开新会话。"
+        "detail": "全部写入及故障恢复后重启同一隔离Profile，3509项原生数据逐项一致；close-reopen-final4.json另证macOS关闭侧栏后正常重开新会话。"
       }
     ]
   },
   "validation": {
     "targetedNode": {
       "status": "PASS",
-      "tests": 122,
-      "log": "artifacts/bookmark-manager-r34/node-final4.log"
+      "tests": 126,
+      "log": "artifacts/bookmark-manager-r34/node-partial-fix.log"
     },
     "syntax": {
       "status": "PASS",
@@ -120,18 +120,18 @@
     "productionBuild": {
       "status": "PASS",
       "command": "OPENDESK_OUTPUT_GUARD_PORT=43290 npm --prefix artifacts/bookmark-manager-r34/source run build",
-      "log": "artifacts/bookmark-manager-r34/build-final4.log"
+      "log": "artifacts/bookmark-manager-r34/build-partial-fix.log"
     },
     "verifyPackage": {
       "status": "PASS",
       "evidence": "verify-package.json"
     },
     "budgets": {
-      "toolShellBytes": 1043631,
+      "toolShellBytes": 1043657,
       "toolShellLimit": 1048576,
-      "previewJSBytes": 219916,
+      "previewJSBytes": 219942,
       "previewJSLimit": 220000,
-      "previewPackageBytes": 263560,
+      "previewPackageBytes": 263588,
       "previewPackageLimit": 320000,
       "limitsChanged": false
     },
@@ -163,16 +163,33 @@
       "reason": "本地结果与GitHub CI分开记录；推送后按最终main提交读取工作流，不使用旧Commit PASS。"
     },
     "chromeOptionalPermission": {
-      "status": "PASS_FOR_STOP_AND_REGRANT",
-      "evidence": "permission-native-final4.json"
+      "status": "PASS_BASELINE_CANDIDATE_UNCHANGED_PERMISSION_HANDLER",
+      "evidence": "permission-native-final4.json",
+      "limitation": "此单项为140c基线候选；本次仅更改App部分写入提示，原权限handler未变。当前候选授权撤销恢复另见lifecycle-final.json。"
+    },
+    "nativeErrorRecovery": {
+      "status": "PASS_FOR_OBSERVED_CASES",
+      "partialWrite": "partial-write-native.json",
+      "lostReceipt": "lost-ack-native.json",
+      "previousFailure": "partial-write-before-fix.json",
+      "method": "真实Chrome写入及原Host审批/Worker回执故障，保留草稿、禁止重复提交，并由用户显式放弃/刷新核对；无SDK/Host替身。"
+    },
+    "nativePaging": {
+      "status": "PASS",
+      "evidence": "paging-native.json",
+      "nodes": 3509,
+      "pages": 51,
+      "requestedLimit": 100,
+      "byteLimit": 10500,
+      "limitsChanged": false,
+      "method": "仅在原Browser Host回包上加非暂停调试logpoint；正常产品刷新；未改写请求、响应或宿主代码。"
     }
   },
   "knownLimits": [
-    "未知写入、迟到异步回程和移动后更新失败由实际App回调/传输定向测试覆盖；未对Mac原生Host执行延迟写入故障注入。",
-    "分页端到端确认全量快照一致，未保存每条RPC的逐页原生跟踪。",
     "现有其他扩展列表共存已观察；未声称已完成所有其他扩展的独立业务回归。",
     "独立十维95+尚无充分可复核评分依据，保持NOT_SCORED。",
-    "Chrome全局书签权限撤销后，工具自己的旧授权仍显示为可撤销；恢复测试先撤销该工具授权再从正常设置重新申请。未声称该恢复路径为一次点击。"
+    "Chrome全局书签权限撤销后，工具自己的旧授权仍显示为可撤销；恢复测试先撤销该工具授权再从正常设置重新申请。未声称该恢复路径为一次点击。",
+    "本轮真实故障场景为移动完成后取消后续审批，以及原Host native create完成后终止Worker丢失回执；不是所有Chrome故障种类的穷举。"
   ],
   "scores": [
     {
@@ -241,6 +258,15 @@
     "openProductFindings": 0,
     "knownFindings": "ALL_RESOLVED",
     "numericScores": "NOT_SCORED",
-    "reason": "定向证据可给分类PASS；任务效率、完整无障碍、性能分布和原生故障恢复不足以给出可审查的十维0–100数字。"
+    "reason": "独立复核当前13份原生证据，包含部分写入、真实丢失回执、3509项重启和Mac侧栏关闭重开，未发现未解决产品问题；未校准十维0–100评分。后补分页跟踪由主Agent核对，不冒充已由该复核覆盖。"
+  },
+  "implementationFollowUp": {
+    "trigger": "移动已成功而后续更新取消时只显示泛化未知提示，未明确部分写入。",
+    "fix": "已完成首笔写入后的任意后续异常标记partialWrite，界面明确显示部分写入风险，继续锁定重试并保留草稿。",
+    "changedProductScope": [
+      "App.jsx error presentation and completed-write classification",
+      "reviewed App provenance pin"
+    ],
+    "noSDKHostChanges": true
   }
 }

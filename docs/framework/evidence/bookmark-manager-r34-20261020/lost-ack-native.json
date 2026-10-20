@@ -1,0 +1,67 @@
+{
+  "candidate": {
+    "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+    "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+    "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
+  },
+  "kind": "REAL_MAC_CFT_NATIVE_WRITE_RECEIPT_LOSS",
+  "status": "PASS",
+  "at": "2026-10-20T07:40:10.505Z",
+  "method": "Pause original service-worker success-response callback after actual native create completes, then stop only the owned worker before it sends the response. No SDK/Host stubs or altered response.",
+  "workerSourceSha256": "ecf12f2001997b9afba316a24c13680ec1b0c452563ebb88800154d33d87e83d",
+  "fixtureTitle": "R34-lost-ack-1792482010506",
+  "breakpoint": [
+    {
+      "scriptId": "10",
+      "lineNumber": 0,
+      "columnNumber": 235450
+    }
+  ],
+  "pausedAfterNativeWrite": {
+    "id": "3563",
+    "title": "R34-lost-ack-1792482010506",
+    "nativeReply": true
+  },
+  "nativeBeforeStopping": [
+    {
+      "dateAdded": 1792482013113,
+      "dateGroupModified": 1792482013113,
+      "id": "3563",
+      "index": 0,
+      "parentId": "3562",
+      "syncing": false,
+      "title": "R34-lost-ack-1792482010506"
+    }
+  ],
+  "stop": {
+    "success": true
+  },
+  "message": "写入结果未知：已停止重复提交。请刷新核对数据后再决定。",
+  "draft": "R34-lost-ack-1792482010506",
+  "retryDisabled": true,
+  "nativeAfterKeyboardRetry": [
+    {
+      "dateAdded": 1792482013113,
+      "dateGroupModified": 1792482013113,
+      "id": "3563",
+      "index": 0,
+      "parentId": "3562",
+      "syncing": false,
+      "title": "R34-lost-ack-1792482010506"
+    }
+  ],
+  "keyboardCannotRepeatWrite": true,
+  "activeWorkerTarget": "BE2B29A0BFD0C20F3EFAE65925D5A4BD",
+  "explicitDiscardThenRefresh": true,
+  "nativeAfterReconcile": [
+    {
+      "dateAdded": 1792482013113,
+      "dateGroupModified": 1792482013113,
+      "id": "3563",
+      "index": 0,
+      "parentId": "3562",
+      "syncing": false,
+      "title": "R34-lost-ack-1792482010506"
+    }
+  ]
+}

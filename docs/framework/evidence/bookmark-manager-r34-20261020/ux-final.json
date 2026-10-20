@@ -1,8 +1,8 @@
 {
   "candidate": {
-    "packageHash": "140c10d9941f2e3a0a6e7d768f107cfaa229d31701dea4b8bfb2f73a6d3b1099",
-    "toolShellSha256": "f73ffa820bc417d465f6e1902194f875e1ed25a25f6e202a2623e4dbb075d425",
-    "formalAppSha256": "079ca89166ea22d1fc3cbd7716acab6a7054d22088c2a6bf7589f712e8a878ce"
+    "packageHash": "2be20f1fe74b993aeadedb7f88e55b3f8aac629a499c98b5f13cffd8ac0278ed",
+    "toolShellSha256": "1c02fe4931be6af27d461324783eb52a188ea6bccec6e0f3247a0c529084e6c3",
+    "formalAppSha256": "91414f8a71e16c5ba6010d903f54bb4934f3ee70786998486793588a5d1991f6"
   },
   "kind": "REAL_MAC_CFT_PRODUCTION_TOOL_TAB",
   "status": "PASS",
@@ -69,7 +69,7 @@
       "status": "PASS"
     }
   ],
-  "at": "2026-10-20T06:56:00.440Z",
+  "at": "2026-10-20T07:29:41.233Z",
   "keyboard": {
     "before": "bm-treeitem-1",
     "focused": "tree",
