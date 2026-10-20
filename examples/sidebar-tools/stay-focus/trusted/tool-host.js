@@ -7,6 +7,9 @@ import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../..
 import {assertManagedSitePolicySupported} from '../../../../src/platform/host/managed-site-runtime-contract.js';
 
 const trustedOnly=['focus.enable','focus.disable','focus.clear'];
+// The fixed extension-owned Side Panel also owns the one-click current-site add.
+// Sandboxed tool mutations still use the existing per-operation Host review.
+const trustedOperations=[...trustedOnly,'focus.site.put'];
 const error=(message,code)=>Object.assign(new Error(message),{code});
 // Presence of a Side Panel adapter is not evidence of a running MV3 worker.
 // A live, versioned handshake fails closed without granting Chrome authority.
@@ -38,7 +41,7 @@ function requireFocusTool(tool){
 }
 
 export async function runTrustedStayFocusOperation({api,tool,operation,payload,event,revocationEpoch,assertCurrent}){
-  if(event?.isTrusted!==true||!trustedOnly.includes(operation))
+  if(event?.isTrusted!==true||!trustedOperations.includes(operation))
     throw error('请在工具详情中主动点击专注权限操作','E_FOCUS_TRUSTED_CLICK');
   requireFocusTool(tool);assertCurrent('initial');
   await assertSidebarToolEnabled(api,tool.id);
