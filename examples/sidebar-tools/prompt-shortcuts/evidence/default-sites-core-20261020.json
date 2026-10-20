@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-20",
+  "stage": "core-development",
+  "requirement": "DeepSeek and Gemini use fixed extension defaults without saving per-page rules. Click inserts only; custom rules and explicit disable remain effective.",
+  "policy": {
+    "priority": [
+      "longest matching custom rule (including explicit disabled)",
+      "fixed built-in site default"
+    ],
+    "deletingCustomRule": "restores built-in default",
+    "writesToExistingRules": false,
+    "defaultScopes": {
+      "DeepSeek": [
+        "/",
+        "/a/chat/s/<hex-or-hyphen-id>"
+      ],
+      "Gemini": [
+        "/app",
+        "/app/<id>"
+      ]
+    },
+    "ChatGPT": "existing specialized adapter retained"
+  },
+  "runtime": {
+    "mode": "continuous-development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "pathAndIdEvidence": "current Chrome Secure Preferences, exact matching path; no disabled reasons",
+    "watcherPids": [
+      86987,
+      87007
+    ],
+    "latestObservedWatcherRevision": "4681edacb94e",
+    "watcherEvidence": "existing dev watcher reported Output ready after fixed source changes; no second writer started",
+    "connection": "earlier inherited UI observation; current page update observed; current explicit connected UI status not yet read",
+    "initialBuildFailure": "an unrelated tool-shell size error was observed before subsequent watcher outputs became ready; no platform limit changed",
+    "currentSiteAccessEvidence": "Chrome native toolbar identified OpenDesk Browser Developer with current site access allowed"
+  },
+  "package": {
+    "id": "prompt-shortcuts",
+    "version": "1.1.8",
+    "bytes": 102840,
+    "sha256": "7825e56e5b75984a646f451ebd532a4e64b622fc6cd225c9ff4ee1b89486286c",
+    "candidateBuild": "PASS",
+    "promoteFrom": "PASS",
+    "checkProject": "PASS",
+    "installedVersion": "1.1.8",
+    "nativeUpgrade": {
+      "result": "PASS",
+      "path": "native Side Panel import of the promoted project JSON, reviewed v1.1.7 -> v1.1.8, AXPress Confirm Update, details readback 1.1.8",
+      "existingPromptCountAfter": 4,
+      "existingCustomRules": "not deleted or rewritten; no migration performed"
+    },
+    "postUpgradeDeepSeekInsert": {
+      "result": "PASS",
+      "method": "native AXPress, installed 1.1.8",
+      "initialDraft": "empty at this later observation",
+      "grew": true,
+      "editorFocused": true,
+      "messageCountBefore": 4,
+      "messageCountAfter": 4,
+      "railCount": 1
+    }
+  },
+  "liveSites": {
+    "DeepSeek": {
+      "defaultResolverWithNullRules": {
+        "adapter": "deepseek",
+        "containerCount": 1,
+        "editorCount": 1,
+        "contains": true,
+        "editorVisible": true
+      },
+      "actualNativeClick": {
+        "method": "AXPress prompt buttons on newly opened task page",
+        "prefixPreserved": true,
+        "grew": true,
+        "editorFocused": true,
+        "messagesUnchanged": true,
+        "railCount": 1,
+        "installationContext": "Clicks before package upgrade used installed 1.1.7 with the current trusted static adapter. The promoted 1.1.8 package was installed and version read back separately."
+      },
+      "conversationDefaultResolution": {
+        "messageCount": 4,
+        "allMessagesInCommonColumn": true,
+        "columnDiffersFromPriorSavedRule": true
+      },
+      "longReplyJump": {
+        "method": "AXPress second existing long-content arrow on a newly opened view of existing conversation",
+        "targetTop": 72,
+        "scrollPortTop": 60,
+        "offsetPx": 12,
+        "draftUnchanged": true,
+        "railCount": 1,
+        "arrowCount": 2,
+        "subsequentMessageCountCheck": 4
+      }
+    },
+    "Gemini": {
+      "state": "signed out, real Quill composer available",
+      "defaultResolverWithNullRules": {
+        "adapter": "gemini",
+        "containerCount": 1,
+        "editorCount": 1,
+        "contains": true,
+        "editorVisible": true
+      },
+      "actualNativeClick": {
+        "method": "AXPress prompt buttons on newly opened task page",
+        "prefixPreserved": true,
+        "grew": true,
+        "editorFocused": true,
+        "messagesUnchanged": true,
+        "railCount": 1,
+        "installationContext": "Installed 1.1.7 with current trusted static adapter before local 1.1.8 upgrade."
+      },
+      "loggedInRepliesAndJump": "NOT_TESTED"
+    }
+  },
+  "evidenceBoundary": "Pure default resolver was evaluated against real site DOM with null rules and no storage writes. Native clicks used the existing reviewed installation and preserved its saved custom rules. A fresh no-custom-rules installation path is covered by page-controller tests, not claimed as native installation PASS. No message sent; existing user tabs and drafts preserved.",
+  "automatedChecks": [
+    {
+      "log": "core-tests.log",
+      "tests": 114,
+      "pass": 113,
+      "fail": 1,
+      "proves": "library/package policies; default parsing; ChatGPT and multisite insertion, lifecycle, jump integration"
+    },
+    {
+      "log": "rule-lifecycle-tests.log",
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "proves": "corrected deletion restores default vs explicit disable blocks fallback"
+    },
+    {
+      "log": "default-policy-package-tests.log",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "proves": "default origin/path, custom precedence and package/source gate"
+    },
+    {
+      "log": "rail-open-tests.log",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "proves": "fixed-site OD route, exact sender page and same synchronous native activation"
+    },
+    {
+      "log": "provenance-tests.log",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "proves": "exact audited source blobs and unchanged allowed bundle targets"
+    }
+  ],
+  "notTested": [
+    "Fresh no-custom-rules native installation",
+    "Real IME/Undo",
+    "Chrome optional permission revocation",
+    "Gemini logged-in replies and jump",
+    "Other DeepSeek long-content types",
+    "Production package acceptance / independent scoring"
+  ],
+  "outOfScope": [
+    "Zoom/physical-width matrix",
+    "Claude/Perplexity/Grok support claims"
+  ],
+  "privacy": "No private conversation URL, title, body or login data recorded.",
+  "automatedChecksNote": "The initial full run had 113 PASS and one obsolete deletion expectation. That expectation was corrected for code-default fallback; the four affected lifecycle cases passed on targeted rerun. No production source changed after the full run.",
+  "sourceBlobs": {
+    "trusted/model.js": "8c4ec4e2512bcad44d40d4457336e86336fec4dd",
+    "trusted/policy.js": "4c6f608a26e0d69278c18a0afda94b3c8ce8274c",
+    "trusted/page.js": "c39f288fb30739549733806996b2ef6faffc37d7",
+    "trusted/rail-open.js": "d8650195e9b43178caafa015edaf60649d994b2f",
+    "trusted/conversation-sites.js": "7c10e8270c43be93229afbf0d3171455de628030",
+    "shared/conversation.js": "e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a"
+  },
+  "nativeODEntry": {
+    "DeepSeek": "PASS: native AXPress opened existing Side Panel and routed to installed prompt tool",
+    "Gemini": "NOT_TESTED (unit-tested fixed path/gesture route)"
+  },
+  "independentReadOnlyReview": "No core-blocking or disable/permission-race bug found; shared jump algorithm and fixed origin/path boundaries retained.",
+  "nativeTestCleanup": "Closed only task-opened site DevTools. Kept original tabs, existing DevTools, and test tabs with drafts; no user data deleted."
+}

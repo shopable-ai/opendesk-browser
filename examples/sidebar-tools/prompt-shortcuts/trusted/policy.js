@@ -22,9 +22,9 @@ export function installedPromptTool(rows){
     return tool.capabilities.includes(PROMPT_CAPABILITY)?tool:null;
   }catch{return null;}
 }
-// Built-in, fixed-source ChatGPT adapter: installing a reviewed tool with
+// Built-in, fixed-source site adapters: installing a reviewed tool with
 // page.prompts is the one-time consent. No redundant per-origin prompt grant.
-// Keep the origin and installed/enable checks at every render and click.
+// Keep exact scope, custom disable and installed/enable checks at render and click.
 export async function allowedPromptSite({installed,enabled,url,sites=null}){
   if(!sidebarToolEnabled(enabled,PROMPT_ID)||!installedPromptTool(installed))return false;
   if(supportedOrigin(url))return true;

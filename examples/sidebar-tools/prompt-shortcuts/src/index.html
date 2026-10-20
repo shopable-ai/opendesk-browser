@@ -31,11 +31,11 @@
     <div id="ps-empty" class="ps-empty" hidden><strong>尚未创建提示词</strong><p>点击右上角的新建图标添加第一个快捷按钮。</p></div>
     <section class="ps-settings" aria-label="旧版设置兼容容器" aria-hidden="true" hidden>
       <div class="ps-section-heading"><h3>快捷入口</h3><small>默认开启</small></div>
-      <label class="ps-setting-card od-surface"><span class="ps-setting-copy"><strong>网页左侧快捷按钮</strong><small>ChatGPT 页面直接可用，不需额外授权</small></span><span class="ps-switch"><input id="ps-web" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
+      <label class="ps-setting-card od-surface"><span class="ps-setting-copy"><strong>网页左侧快捷按钮</strong><small>ChatGPT、DeepSeek、Gemini 对话页默认可用</small></span><span class="ps-switch"><input id="ps-web" type="checkbox" role="switch" checked aria-label="网页左侧快捷按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
       <p class="ps-hint">原生右键快捷添加为可选功能，需要时可在工具详情的「设置」中启用。</p>
 
     </section>
-    <section class="ps-sites" aria-label="网站适配"><div class="ps-sites-heading"><h3>适用网站</h3><button id="ps-sites-open" class="od-button od-button--secondary" aria-controls="ps-sites-panel" aria-expanded="false" type="button">管理网站</button></div><div id="ps-sites-panel" hidden><p id="ps-current-site-status" class="ps-hint" role="status" aria-live="polite">当前网页识别状态待读取。</p><p class="ps-hint">ChatGPT 内置。其他网站可尝试自动定位；仅当前网页定位通过并保存后才启用。实际插入仍需在目标网站验收。</p><button id="ps-site-current" class="od-button od-button--secondary" type="button">配置当前网站</button><div id="ps-site-form" class="ps-site-form od-surface" hidden><strong id="ps-site-form-title">网站适配</strong>
+    <section class="ps-sites" aria-label="网站适配"><div class="ps-sites-heading"><h3>适用网站</h3><button id="ps-sites-open" class="od-button od-button--secondary" aria-controls="ps-sites-panel" aria-expanded="false" type="button">管理网站</button></div><div id="ps-sites-panel" hidden><p id="ps-current-site-status" class="ps-hint" role="status" aria-live="polite">当前网页识别状态待读取。</p><p class="ps-hint">ChatGPT、DeepSeek、Gemini 对话页使用扩展默认适配，无需逐页配置。自定义规则优先，已停用规则不会回退启用；删除自定义规则后恢复默认。其他网站可尝试定位并保存自定义规则。</p><button id="ps-site-current" class="od-button od-button--secondary" type="button">添加自定义规则</button><div id="ps-site-form" class="ps-site-form od-surface" hidden><strong id="ps-site-form-title">网站适配</strong>
 <p id="ps-site-origin" class="ps-site-origin"></p>
 <div class="ps-compact-row"><label for="ps-site-container" class="od-field-label">按钮容器</label><input id="ps-site-container" class="od-field" placeholder="CSS 选择器"></div>
 <button id="ps-pick-container" class="od-button od-button--secondary" type="button">在网页选择容器</button>

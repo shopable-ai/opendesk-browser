@@ -6,6 +6,7 @@ import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
 import {installJumpToTop} from '../../../programs/chatgpt-jump-top/src/conversation.js';
 import {deepSeekConversation,findDeepSeekBindings} from './conversation-sites.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
+const builtInPage=url=>Boolean(supportedOrigin(url)||MODEL.builtinSite(url));
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
 :host{all:initial;position:fixed;z-index:2147483600;pointer-events:none;color-scheme:light;font:13px/1.4 system-ui,sans-serif;
@@ -141,7 +142,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     jumpRoot=root;
     try{jump=installJumpToTop({doc,win,owner,...(deepSeek?{
       regionSelector:activeRule.containerSelector,
-      resolveBindings:()=>checkedEditor()?findDeepSeekBindings(doc,win,one(activeRule.containerSelector)):[]
+        resolveBindings:()=>checkedEditor()?findDeepSeekBindings(doc,win,siteContainer()):[]
     }:{})});}catch(error){stopJump();throw error;}
   };
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
@@ -215,8 +216,21 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       node.getAttribute?.('contenteditable')))return 'richtext';
     return null;
   };
+  const siteContainer=()=>{
+    const root=one(activeRule?.containerSelector);
+    if(activeRule?.builtin!=='deepseek'||!root)return root;
+    // DeepSeek has no main landmark. Find the common transcript/composer column
+    // from the real structure instead of pinning its generated CSS class.
+    const node=one(activeRule.editorSelector);
+    const messages=Array.from(root.querySelectorAll?.('.ds-message')||[]);
+    if(!node||!root.contains(node)||!messages.length)return root;
+    for(let parent=node.parentElement;parent&&parent!==root;parent=parent.parentElement){
+      if(messages.every(message=>parent.contains(message)))return parent;
+    }
+    return root;
+  };
   const checkedEditor=()=>{
-    const container=one(activeRule?.containerSelector);
+    const container=siteContainer();
     const node=one(activeRule?.editorSelector);
     // A previously tested selector can retarget after SPA/React reconciliation.
     // Never write into an editor outside the user's chosen button region.
@@ -389,7 +403,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
 
   const mainRegion=()=>{
     if(activeRule){
-      const node=one(activeRule.containerSelector);
+      const node=siteContainer();
       if(!available(node))return null;
       const rect=node.getBoundingClientRect();
       return rect.width>=200&&rect.height>=90?{left:rect.left,top:rect.top,
@@ -641,6 +655,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         epochs:data[TOOL_REVOCATION_EPOCHS_STORE],url:location,
         sites:supportedOrigin(location)?null:MODEL.sitesLoad(data[PROMPT_DATA_STORE]?.sites)
       }))throw Error('网站授权或页面身份已变化');
+      if(activeRule&&JSON.stringify(MODEL.siteFor(data[PROMPT_DATA_STORE]?.sites,location))!==
+         JSON.stringify(activeRule))throw Error('网站规则已变化');
       const library=model.load(data[PROMPT_DATA_STORE]?.library);
       if(library.settings.webButtons!==true||
         !library.items.some(item=>item.id===row.id&&item.body===row.body&&item.enabled))throw Error('提示词已变化或停用');
@@ -709,7 +725,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   }
   const openSidebar=event=>{
     if(event?.isTrusted!==true||disposed||paused||!visible||!host?.isConnected||
-      host.hidden||!supportedOrigin(win.location.href))return;
+      host.hidden||!builtInPage(win.location.href))return;
     hideTip();
     if(typeof api.runtime?.sendMessage!=='function'){
       showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');return;
@@ -752,7 +768,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       shadow.append(style,rail,tip,feedback,announcer);doc.documentElement.append(host);
     }
     rail.replaceChildren();
-    if(supportedOrigin(win.location.href)){
+    if(builtInPage(win.location.href)){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
       brand.textContent='OD';brand.title='打开提示词快捷按钮';
       brand.setAttribute('aria-label','打开提示词快捷按钮');
@@ -802,7 +818,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       const library=model.load(values[PROMPT_DATA_STORE]?.library);
       if(!library.settings.webButtons){stop();return;}
       const rows=library.items.filter(item=>item.enabled);
-      if(!rows.length&&!supportedOrigin(url)){stop();return;}
+      if(!rows.length&&!builtInPage(url)){stop();return;}
       readFailures=0;
       win.clearTimeout(retryTimer);retryTimer=0;
       if(!resizeObserver&&win.ResizeObserver)resizeObserver=new win.ResizeObserver(schedule);

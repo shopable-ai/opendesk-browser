@@ -83,14 +83,14 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'0f64b1d6e521b3193b85a6e0af46e60b28ed5dd1',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'eb72608044b0c74148bdea9c10fb3fde82356867',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'8c4ec4e2512bcad44d40d4457336e86336fec4dd',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'c39f288fb30739549733806996b2ef6faffc37d7',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
   'examples/programs/chatgpt-jump-top/src/conversation.js':'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'d8650195e9b43178caafa015edaf60649d994b2f'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);

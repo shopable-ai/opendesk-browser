@@ -226,7 +226,7 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
 
 test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
   const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
-  const pin='3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6';
+  const pin='d8650195e9b43178caafa015edaf60649d994b2f';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])

@@ -13,13 +13,13 @@ test('R2.15 fixed build admits exact reviewed rail code only in its two owners',
   const describe=(target,root=process.cwd(),input=path)=>describeBundle({root,
     chunk:{fileName:target,modules:{[resolve(root,input)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])
-    assert.equal(describe(target).modules[0].reviewedFirstPartyBlob,'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6');
+    assert.equal(describe(target).modules[0].reviewedFirstPartyBlob,'d8650195e9b43178caafa015edaf60649d994b2f');
   for(const target of ['ui/sidebar-tool-host.js','ui/tool-shell.js'])
     assert.throws(()=>describe(target),/cannot enter a privileged fixed bundle/);
   for(const name of ['model.js','policy.js','page.js'])
     assert.throws(()=>describe('sw.js',process.cwd(),path.replace('rail-open.js',name)),/cannot enter a privileged fixed bundle/);
   assert.equal(describe('agents/page-relay.js',process.cwd(),path.replace('rail-open.js','page.js')).modules[0].reviewedFirstPartyBlob,
-    'a64a436b8ecc3ba67287de6f6afec1ca94a2fcce');
+    'c39f288fb30739549733806996b2ef6faffc37d7');
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-provenance-')));
   try{
     await mkdir(resolve(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
@@ -36,6 +36,38 @@ const sender=()=>({id:'opendesk',frameId:0,documentLifecycle:'active',
     url:'https://chatgpt.com/c/test',incognito:false}});
 const message=()=>({protocol:PROMPT_RAIL_OPEN_PROTOCOL,expectedUrl:'https://chatgpt.com/c/test'});
 const reply=()=>{const received=[];return {received,respond:x=>received.push(x)};};
+
+test('Built-in site OD entry opens only the current exact DeepSeek/Gemini page',async()=>{
+  const urls=['https://chat.deepseek.com/',
+    'https://chat.deepseek.com/a/chat/s/01234567-89ab-cdef',
+    'https://gemini.google.com/app','https://gemini.google.com/app/01234567'];
+  for(const url of urls){
+    let opened=0;
+    const s=sender(),r=reply();s.url=s.tab.url=url;
+    handlePromptRailOpen({api:{runtime:{id:'opendesk'},sidePanel:{open(){opened++;return Promise.resolve();}},
+      storage:{session:{set:async()=>{}}}},sender:s,
+      message:{...message(),expectedUrl:url},respond:r.respond});
+    assert.equal(opened,1,'native panel opens synchronously on '+url);
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(r.received[0]?.ok,true);
+  }
+  for(const url of ['https://gemini.google.com/','https://gemini.google.com/settings',
+    'https://chat.deepseek.com/settings','https://chat.deepseek.com/a/chat/s/id/extra',
+    'https://chat.deepseek.com:444/','https://user@chat.deepseek.com/',
+    'https://gemini.google.com.evil.example/app']){
+    let opened=0;
+    const s=sender(),r=reply();s.url=s.tab.url=url;
+    handlePromptRailOpen({api:{runtime:{id:'opendesk'},sidePanel:{open(){opened++;}}},sender:s,
+      message:{...message(),expectedUrl:url},respond:r.respond});
+    assert.equal(opened,0);assert.equal(r.received[0]?.error?.code,'E_SENDER');
+  }
+  const s=sender(),r=reply();s.url='https://gemini.google.com/app';
+  s.tab.url='https://gemini.google.com/app/other';
+  let opened=0;
+  handlePromptRailOpen({api:{runtime:{id:'opendesk'},sidePanel:{open(){opened++;}}},sender:s,
+    message:{...message(),expectedUrl:s.url},respond:r.respond});
+  assert.equal(opened,0);assert.equal(r.received[0]?.error?.code,'E_SENDER');
+});
 
 test('R2.15 genuine top-level ChatGPT sender opens existing Chrome panel synchronously',async()=>{
   const r=reply();let opened=0,complete;

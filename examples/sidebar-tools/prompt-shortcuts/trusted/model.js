@@ -107,7 +107,22 @@ function siteFor(sites,value){
     (rule.pathScope==='/'||url.pathname===rule.pathScope||
      url.pathname.startsWith(rule.pathScope.endsWith('/')?rule.pathScope:rule.pathScope+'/')));
   matching.sort((a,b)=>b.pathScope.length-a.pathScope.length);
-  return matching[0]?.enabled?matching[0]:null;
+  if(matching.length)return matching[0].enabled?matching[0]:null;
+  return builtinSite(value);
+}
+
+// Fixed extension defaults, never persisted into the user's custom rules.
+function builtinSite(value){
+  let url;try{url=siteUrl(value);}catch{return null;}
+  const deepSeek=url.origin==='https://chat.deepseek.com'&&
+    /^(?:\/|\/a\/chat\/s\/[a-f0-9-]+\/?)$/iu.test(url.pathname);
+  const gemini=url.origin==='https://gemini.google.com'&&
+    /^\/app(?:\/[A-Za-z0-9_-]+)?\/?$/u.test(url.pathname);
+  if(!deepSeek&&!gemini)return null;
+  return {...siteRule({origin:url.origin,pathScope:deepSeek?'/':'/app',
+    containerSelector:deepSeek?'#root':'chat-window',
+    editorSelector:deepSeek?'#root textarea':'rich-textarea div.ql-editor[contenteditable="true"]'}),
+    builtin:deepSeek?'deepseek':'gemini'};
 }
 
 // Candidate CSS selectors are suggestions, never automatic permissions or compatibility claims.
@@ -244,6 +259,6 @@ function backupPlan(library,imported,mode='append'){
 Object.defineProperty(globalThis,'OpenDeskPromptShortcutsModel',{
   value:Object.freeze({parts,visible,auto,validLabel,defaults,bytes,draft,load,
      BACKUP_FORMAT,BACKUP_VERSION,BACKUP_MAX_BYTES,duplicateKey,backupExport,backupParse,backupPlan,
-    sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,siteHint}),configurable:true
+    sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,builtinSite,siteHint}),configurable:true
 });
 })();

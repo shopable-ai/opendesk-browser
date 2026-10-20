@@ -211,8 +211,8 @@ function renderSites(){
   for(const [name,detail,mark] of [
     ['ChatGPT','内置适配 · 真实站点仍需验收','内置'],
     ['Claude','候选 CSS 定位 · 需实站验证','可尝试'],
-    ['Gemini','候选 CSS 定位 · 需实站验证','可尝试'],
-    ['DeepSeek','候选 CSS 定位 · 需实站验证','可尝试'],
+    ['Gemini','对话页默认适配 · 无需逐页配置','内置'],
+    ['DeepSeek','对话页默认适配 · 无需逐页配置','内置'],
     ['Perplexity','候选 CSS 定位 · 需实站验证','可尝试'],
     ['Grok','候选 CSS 定位 · 需实站验证','可尝试'],
     ['Cursor Web','当前须在网页手动点选','待验证']
@@ -473,7 +473,7 @@ async function toggleSites(){
     try{
       const context=await request('prompt.page.context',{});
       el('ps-current-site-status').textContent=context?.status==='available'&&context?.origin?
-        '当前网站：'+context.origin+(context.origin==='https://chatgpt.com'?' · 内置适配':' · 可配置自定义规则'):
+        '当前网站：'+context.origin+(['https://chatgpt.com','https://chat.deepseek.com','https://gemini.google.com'].includes(context.origin)?' · 对话页内置适配':' · 可配置自定义规则'):
         '当前网页不可用；仍可管理已保存的网站规则。';
     }catch{el('ps-current-site-status').textContent='当前网页不可用；仍可管理已保存的网站规则。';}
   }
@@ -792,7 +792,7 @@ async function changeWeb(){
   if(!ready||busy||unconfirmedWrite)return;
   const desired=el('ps-web').checked;
   const next=model.load({...data,settings:{webButtons:desired}});
-  try{await commit(next);render();status(desired?'ChatGPT 快捷按钮已开启。':'ChatGPT 快捷按钮已关闭，提示词仍保留。');}
+  try{await commit(next);render();status(desired?'网页快捷按钮已开启。':'网页快捷按钮已关闭，提示词仍保留。');}
   catch(e){render();status('网页按钮设置未确认，当前显示上次确认状态：'+(e.code||e.message)+'；请重新打开核对。',true);}
 }
 async function launch(){

@@ -141,6 +141,149 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,
     docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,mutate,intervals,activeIntervals,pendingTimers};
 }
+// Real light-DOM shapes for defaults; query descendant/class selectors against
+// the tree rather than mirroring the production rule's selector strings.
+async function builtinPage(provider,{empty=false,custom=false}={}){
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整提示词🙂\n第二行'},null,()=> 'builtin-prompt');
+  const library={schema:1,items:empty?[]:[row],settings:{webButtons:true}};
+  const f=fixture({pkg,library,grants:{}}),deepSeek=provider==='DeepSeek';
+  const url=deepSeek?'https://chat.deepseek.com/a/chat/s/abcd-0123':
+    'https://gemini.google.com/app/chat_123';
+  const decorate=node=>{
+    jumpDOM(node);
+    const matches=node.matches;
+    node.matches=selector=>selector.split(',').some(part=>{
+      const classes=[...part.matchAll(/\.([\w-]+)/gu)].map(match=>match[1]);
+      return classes.every(name=>(node.getAttribute('class')||'').split(/\s+/u).includes(name))&&
+        matches(part.replace(/\.[\w-]+/gu,''));
+    });
+    return node;
+  };
+  const element=tag=>decorate(mockElement(tag));
+  for(const node of [f.root,f.doc.body,f.main,f.editor])decorate(node);
+  f.win.location.href=url;
+  f.doc.createElement=element;
+  f.main.tagName=deepSeek?'DIV':'chat-window';
+  if(deepSeek)f.main.id='root';
+  f.main.getBoundingClientRect=()=>regionRect(0,0,1366,768);
+  const column=element('section'),message=element('div'),composer=element('form');
+  column.id='builtin-column';column.getBoundingClientRect=()=>regionRect(260,40,900,700);
+  message.setAttribute('class',deepSeek?'ds-message':'model-response');
+  f.doc.body.append(f.main);f.main.append(element('aside'),column);
+  column.append(message,composer);
+  f.editor.id='builtin-editor';
+  if(deepSeek){
+    f.editor.tagName='TEXTAREA';f.editor.isContentEditable=false;
+    f.editor.removeAttribute('contenteditable');f.editor.value='保留已有草稿🙂';
+    composer.append(f.editor);
+  }else{
+    const rich=element('rich-textarea');
+    f.editor.setAttribute('class','ql-editor');f.editor.textContent='保留已有草稿🙂';
+    composer.append(rich);rich.append(f.editor);
+  }
+  const send=element('button'),submissions=[],selections=[];
+  send.setAttribute('type','submit');send.click=()=>submissions.push('click');composer.append(send);
+  composer.submit=()=>submissions.push('submit');
+  composer.requestSubmit=()=>submissions.push('requestSubmit');
+  const dispatch=event=>{
+    if(event.type==='submit'||event.key==='Enter')submissions.push(event.type);
+    return true;
+  };
+  f.editor.dispatchEvent=dispatch;composer.dispatchEvent=dispatch;f.doc.dispatchEvent=dispatch;
+  f.editor.focus=()=>{f.editor.focused=true;f.doc.activeElement=f.editor;};
+  f.editor.setSelectionRange=(start,end)=>selections.push([start,end]);
+  f.doc.querySelectorAll=selector=>[...new Set(selector.split(',').flatMap(part=>{
+    let found=[f.root];
+    for(const term of part.trim().split(/\s+/u))found=found.flatMap(node=>node.querySelectorAll(term));
+    return found;
+  }))];
+  f.doc.querySelector=selector=>f.doc.querySelectorAll(selector)[0]||null;
+  f.win.getComputedStyle=()=>({display:'block',visibility:'visible',opacity:'1'});
+  const draft=()=>deepSeek?f.editor.value:f.editor.textContent;
+  f.doc.execCommand=(command,_show,text)=>{
+    f.calls.push({command,text});
+    if(deepSeek)f.editor.value+=text;else f.editor.textContent+=text;
+    return true;
+  };
+  const rule={origin:new URL(url).origin,pathScope:new URL(url).pathname,
+    containerSelector:'#builtin-column',editorSelector:'#builtin-editor',enabled:true};
+  if(custom)f.values.set(PROMPT_DATA_STORE,{library,sites:{schema:1,rules:[rule]}});
+  const setRules=rules=>f.change(PROMPT_DATA_STORE,{library,sites:{schema:1,rules}});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  await settle();
+  const hosts=()=>f.root.children.filter(node=>Object.hasOwn(node.attributes,'data-opendesk-prompts'));
+  return {...f,controller,hosts,row,library,rule,setRules,draft,selections,submissions};
+}
+
+for(const provider of ['DeepSeek','Gemini']){
+  test('R2 builtin '+provider+' preserves a nonempty textarea/Quill draft, never sends, mounts one entry',async()=>{
+    const f=await builtinPage(provider);
+    try{
+      assert.equal(Object.hasOwn(f.values.get(PROMPT_DATA_STORE),'sites'),false,'no saved site rule');
+      assert.equal(f.hosts().length,1);assert.equal(f.hosts()[0].hidden,false);
+      assert.equal(f.rail().children.filter(node=>node.className==='brand').length,1);
+      assert.equal(f.buttons().length,1);
+      const before=f.draft();
+      f.buttons()[0].emit('click',{isTrusted:true});
+      f.buttons()[0].emit('click',{isTrusted:true});
+      await settle();
+      assert.equal(f.draft(),before+'\n'+f.row.body);
+      assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
+      if(provider==='DeepSeek')assert.deepEqual(f.selections,[[before.length,before.length]]);
+      assert.deepEqual(f.copied,[]);assert.deepEqual(f.submissions,[]);
+      f.events.get('resize')?.();f.intervals[0]?.();await settle();
+      assert.equal(f.hosts().length,1,'refresh reuses the only host');
+      assert.equal(f.buttons().length,1);
+      assert.equal(f.rail().children.filter(node=>node.className==='brand').length,1);
+    }finally{f.controller.dispose();}
+  });
+
+  test('R2 builtin '+provider+' empty library keeps one OD entry without saving defaults',async()=>{
+    const f=await builtinPage(provider,{empty:true});
+    try{
+      assert.equal(f.hosts().length,1);assert.equal(f.hosts()[0].hidden,false);
+      assert.equal(f.buttons().length,0);assert.equal(f.rail().children.length,1);
+      assert.equal(f.rail().children[0].className,'brand');
+      assert.equal(f.rail().children[0].textContent,'OD');
+      assert.equal(Object.hasOwn(f.values.get(PROMPT_DATA_STORE),'sites'),false);
+      assert.deepEqual(f.calls,[]);assert.deepEqual(f.submissions,[]);
+    }finally{f.controller.dispose();}
+  });
+
+  for(const transition of ['default-to-custom','custom-to-default','disable-default','disable-custom','disable-tool']){
+    test('R2 builtin '+provider+' pending click is discarded on '+transition,async()=>{
+      const f=await builtinPage(provider,{custom:transition.startsWith('custom')||transition==='disable-custom'});
+      try{
+        assert.equal(f.buttons().length,1);
+        const before=f.draft(),nativeGet=f.api.storage.local.get;
+        const snapshot=await nativeGet(KEYS_FOR_PENDING_READ);
+        let release;
+        f.api.storage.local.get=()=>{
+          // Delay only this click; refresh must observe the new rules normally.
+          f.api.storage.local.get=nativeGet;
+          // A read started before revocation may still return the old grant.
+          return new Promise(resolve=>{release=()=>resolve(snapshot);});
+        };
+        f.buttons()[0].emit('click',{isTrusted:true});
+        assert.equal(typeof release,'function','click reached asynchronous authority read');
+        if(transition==='disable-tool')f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});
+        else if(transition==='custom-to-default')f.setRules([]);
+        else f.setRules([{...f.rule,enabled:transition==='default-to-custom'}]);
+        await settle();await release();await settle();
+        assert.equal(f.draft(),before,'stale click cannot change the current draft');
+        assert.deepEqual(f.calls,[]);assert.deepEqual(f.copied,[]);
+        assert.deepEqual(f.submissions,[]);
+        const disabled=transition.startsWith('disable');
+        assert.equal(f.buttons().length,disabled?0:1);
+        f.intervals[0]?.();await settle();
+        assert.equal(f.buttons().length,disabled?0:1,'periodic refresh cannot revive a disabled rule');
+        assert(f.hosts().length<=1,'rule changes never duplicate the host');
+      }finally{f.controller.dispose();}
+    });
+  }
+}
+
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
@@ -1183,9 +1326,10 @@ for(const site of multisiteInputs){
         const rules=f.stored.sites.rules.flatMap(rule=>rule.origin!==f.rule.origin?[rule]:
           action==='removed'?[]:[{...rule,enabled:false}]);
         f.change(PROMPT_DATA_STORE,{...f.stored,sites:{schema:1,rules}});await settle();
-        assert.equal(f.buttons().length,0,'revoking this site leaves no controls even with the other site enabled');
+        const expectedControls=action==='removed'&&globalThis.OpenDeskPromptShortcutsModel.builtinSite(f.win.location.href)?1:0;
+        assert.equal(f.buttons().length,expectedControls,'deletion restores a built-in default; explicit disable does not');
         stale.emit('click',{isTrusted:true});await pending.release();await settle();
-        assert.equal(f.buttons().length,0,'old allowed snapshot cannot restore revoked controls');
+        assert.equal(f.buttons().length,expectedControls,'old authorization cannot change the resolved rule');
         assert.deepEqual(f.calls,[]);assert.equal(f.draft(),f.before);
         assert.deepEqual(f.caret,{start:1,end:4});assert.equal(f.editor.focused,undefined);
         assert.deepEqual(f.copied,[]);assert.deepEqual(f.dispatched,[]);assert.deepEqual(f.submissions,[]);

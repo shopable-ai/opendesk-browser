@@ -22,6 +22,67 @@ async function model(){
   return sandbox.OpenDeskPromptShortcutsModel;
 }
 const fixtureId=()=> 'example-123456';
+
+test('R2 builtin defaults work without saved rules on exact DeepSeek and Gemini paths',async()=>{
+  const m=await model();
+  for(const [origin,pathScope,paths] of [
+    ['https://chat.deepseek.com','/',['/','/a/chat/s/0123-abcd','/a/chat/s/ABCDEF-123/']],
+    ['https://gemini.google.com','/app',['/app','/app/','/app/chat_123-ABC']]
+  ]){
+    for(const path of paths){
+      const url=origin+path,rule=m.builtinSite(url);
+      assert(rule,url+' has a fixed default');
+      assert.equal(rule.origin,origin);
+      assert.equal(rule.pathScope,pathScope);
+      assert.equal(rule.enabled,true);
+      assert.equal(m.validSelector(rule.containerSelector),true);
+      assert.equal(m.validSelector(rule.editorSelector),true);
+      assert.deepEqual(m.siteFor(undefined,url),rule,'missing saved sites use the default');
+      assert.deepEqual(m.siteFor({schema:1,rules:[]},url),rule,'empty saved sites use the default');
+      assert.deepEqual(m.builtinSite(url+'?source=shortcut#draft'),rule);
+    }
+  }
+});
+
+test('R2 builtin defaults reject other origins and lookalike or unrelated paths',async()=>{
+  const m=await model();
+  for(const url of [
+    'http://chat.deepseek.com/','https://chat.deepseek.com:444/',
+    'https://chat.deepseek.com.evil.test/','https://deepseek.com/',
+    'https://chat.deepseek.com/settings','https://chat.deepseek.com/a/chat/0123-abcd',
+    'https://chat.deepseek.com/a/chat/s/','https://chat.deepseek.com/a/chat/s/not-hex',
+    'https://chat.deepseek.com/a/chat/s/abcd/extra',
+    'http://gemini.google.com/app','https://gemini.google.com:444/app',
+    'https://gemini.google.com.evil.test/app','https://gemini.google.com/',
+    'https://gemini.google.com/application','https://gemini.google.com/app/id/extra',
+    'https://gemini.google.com/app//id','https://claude.ai/new'
+  ]){
+    assert.equal(m.builtinSite(url),null,url);
+    assert.equal(m.siteFor(undefined,url),null,url+' cannot fall back to a default');
+  }
+});
+
+test('R2 builtin fallback yields to longest custom path and never revives a disabled rule',async()=>{
+  const m=await model();
+  for(const [origin,path] of [
+    ['https://chat.deepseek.com','/a/chat/s/abcd-1234'],
+    ['https://gemini.google.com','/app/abcd-1234']
+  ]){
+    const url=origin+path;
+    const broad=m.siteRule({origin,pathScope:'/',containerSelector:'main',editorSelector:'textarea'});
+    const narrow=m.siteRule({...broad,pathScope:path,containerSelector:'#custom-compose'});
+    for(const rules of [[broad,narrow],[narrow,broad]]){
+      assert.deepEqual(m.siteFor({schema:1,rules},url),narrow,'longest path wins regardless of storage order');
+      assert.equal(m.siteFor({schema:1,rules:[broad,{...narrow,enabled:false}]},url),null,
+        'disabled longest match blocks both broader custom and builtin defaults');
+    }
+    assert.equal(m.siteFor({schema:1,rules:[{...broad,enabled:false}]},url),null);
+    assert.deepEqual(m.siteFor({schema:1,rules:[{...broad,pathScope:'/unrelated'}]},url),
+      m.builtinSite(url),'unmatched custom rules leave the builtin available');
+    assert.deepEqual(m.siteFor({schema:1,rules:[]},url),m.builtinSite(url),
+      'deleting an override restores the fixed default');
+  }
+});
 test('R1.4 content-first: Unicode grapheme defaults, explicit fields and full body remain intact',async()=>{
   const m=await model(),cases=[
     ['  中文测试','中文'],[' hello world','he'],['🧑‍💻 开始','🧑‍💻开'],
@@ -118,9 +179,9 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','0f64b1d6e521b3193b85a6e0af46e60b28ed5dd1'],
-    ['trusted/policy.js','6544a03db0f11373dccdf67cc9b5ce808920a495'],
-    ['trusted/page.js','eb72608044b0c74148bdea9c10fb3fde82356867']
+    ['trusted/model.js','8c4ec4e2512bcad44d40d4457336e86336fec4dd'],
+    ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
+    ['trusted/page.js','c39f288fb30739549733806996b2ef6faffc37d7']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
@@ -130,6 +191,12 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
     assert.equal(examined(path,'ui/sidebar-tool-host.js').reviewedFirstPartyBlob,sha);
     assert.throws(()=>examined(path,'sw.js'),/Historical\/user\/vendor code cannot enter/);
   }
+  for(const target of ['agents/page-relay.js','sw.js']){
+    assert.equal(examined('trusted/rail-open.js',target).reviewedFirstPartyBlob,
+      'd8650195e9b43178caafa015edaf60649d994b2f');
+  }
+  assert.throws(()=>examined('trusted/rail-open.js','ui/sidebar-tool-host.js'),
+    /Historical\/user\/vendor code cannot enter/);
   const jump='../../programs/chatgpt-jump-top/src/conversation.js';
   assert.equal(examined(jump,'agents/page-relay.js').reviewedFirstPartyBlob,
     'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a');
