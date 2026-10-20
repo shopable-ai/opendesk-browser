@@ -14,8 +14,10 @@ test('R3.0.8 bookmark URL is the direct accessible link, with no duplicated foot
  assert.match(app,/aria-label=\{'打开网址：'\+node\.url\}/);
  assert.match(app,/<span>\{node\.url\}<\/span><Icon name="external"/);
  assert.match(app,/bm-detail-url--disabled/);
- assert.match(app,/aria-label="复制网址"/);
- assert.match(app,/aria-label="编辑"/);
+ assert.match(app,/<OpenDeskIconButton className="bm-preview-action" label="复制网址"/);
+ assert.match(app,/<OpenDeskIconButton className="bm-preview-action" label="编辑"/);
+ const shared=await readFile('src/ui/react/components/ui/button.tsx','utf8');
+ assert.match(shared,/aria-label=\{label\}/);
  assert.doesNotMatch(app,/className="bm-preview-action" aria-label="打开书签"/);
  // Non-React official sandbox remains installed until separately approved.
  assert.match(app,/export default function App\(\{runtime=null,mode='preview'/);

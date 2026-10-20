@@ -71,7 +71,7 @@
 .bm-dialog h2{font-size:15px;line-height:1.5;margin:0 0 8px}.bm-dialog p{color:var(--od-sub);line-height:1.6;font-size:12px;margin:0 0 16px;overflow-wrap:anywhere}
 .bm-dialog-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 @media(min-width:740px){.bm-tools{display:flex;align-items:center;gap:12px}.bm-search-wrap{flex:1}.bm-create-actions{grid-template-columns:auto auto}.bm-button{padding-inline:13px}.bm-readonly{padding-top:9px}}
-@media(max-width:349px){.bm-tools{padding:8px}.bm-create-actions{gap:5px}.bm-button{font-size:11px;padding:6px}.bm-count{display:none}.bm-tree-row{gap:3px}.bm-inspector-heading{padding-inline:9px}.bm-readonly,.bm-editor{padding-inline:9px}}
+@media(max-width:349px){.bm-tools{padding:8px}.bm-create-actions{gap:5px}.bm-button{font-size:11px;padding:6px}.bm-count{display:none}.bm-tree-row{gap:3px}.bm-readonly,.bm-editor{padding-inline:9px}}
 @media(prefers-reduced-motion:no-preference){.bm-tree-row,.bm-button,.bm-icon-btn{transition:background-color .12s ease}}
 
 /* R3.0.3: Tree is the sole persistent workspace. Details/edit are explicit
