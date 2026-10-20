@@ -1020,6 +1020,16 @@ test('R2.7 export/import roundtrip preserves normalized model fields',async()=>{
 });
 
 
+test('R2.8 website configuration comes before long preset list in the actual tool UI',async()=>{
+  const html=await readFile(tool+'/src/index.html','utf8');
+  const ids=['ps-sites-open','ps-site-current','ps-site-form','ps-site-status','ps-sites-list'];
+  const positions=ids.map(id=>html.indexOf('id="'+id+'"'));
+  for(let i=0;i<positions.length;i++){
+    assert(positions[i]>=0,ids[i]+' must exist in shipped HTML');
+    if(i)assert(positions[i]>positions[i-1],ids[i]+' must follow '+ids[i-1]);
+  }
+});
+
 test('R2.8 Claude proposals require real Host check and explicit website save',async()=>{
   const target='[data-testid="chat-input"][contenteditable="true"]';
   const f=await fixture({
