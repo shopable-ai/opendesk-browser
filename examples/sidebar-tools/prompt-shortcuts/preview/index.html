@@ -591,6 +591,16 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  const $=selector=>document.querySelector(selector), el=id=>document.getElementById(id), encoder=new TextEncoder();
  const COPY=()=>INITIAL.map(item=>({...item}));
  const DEMO_ITEM_KEY='opendesk.prompt-shortcuts.preview.items-r3';
+ const DEMO_SETTINGS_KEY='opendesk.prompt-shortcuts.preview.settings-r31';
+ const IMAGE_SIZES=['compact','standard','large'];
+ function restoreDemoSettings(){
+  const fallback={showBar:true,contextMenu:false,imageSize:'large'};
+  try{const raw=JSON.parse(localStorage.getItem(DEMO_SETTINGS_KEY));if(!raw||typeof raw!=='object')return fallback;
+   return {showBar:typeof raw.showBar==='boolean'?raw.showBar:true,
+    contextMenu:typeof raw.contextMenu==='boolean'?raw.contextMenu:false,
+    imageSize:IMAGE_SIZES.includes(raw.imageSize)?raw.imageSize:'large'};
+  }catch{return fallback;}
+ }
  function restoreDemoItems(){
   try{
    const rows=JSON.parse(localStorage.getItem(DEMO_ITEM_KEY));
@@ -604,7 +614,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   }catch{return COPY();}
  }
  function persistDemoItems(){try{localStorage.setItem(DEMO_ITEM_KEY,JSON.stringify(state.items));return true;}catch{return false;}}
- let state={version:1,revision:1,settings:{showBar:true,contextMenu:false},items:restoreDemoItems(),toolEnabled:true};
+ function persistDemoSettings(){try{localStorage.setItem(DEMO_SETTINGS_KEY,JSON.stringify(state.settings));return true;}catch{return false;}}
+ let state={version:1,revision:1,settings:restoreDemoSettings(),items:restoreDemoItems(),toolEnabled:true};
  let currentView='index', editId=null,baselineForm='',revisionAtEdit=1,dirty=false,saving=false,pendingDestination='index',expandedId=null,deleteId=null,copyId=null,tipButton=null,noticeKind='info',nextSaveFailure=null;
  let stagedImport=null,importRevision=0,replaceArmed=false,installed=true;
  const create=(tag,classes,text)=>{const n=document.createElement(tag);if(classes)n.className=classes;if(text!==undefined)n.textContent=text;return n;};
@@ -658,7 +669,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   img.addEventListener('error',()=>{if(holder.dataset.imageUrl!==url)return;
    fallback();if(notify)el('imageHelp').textContent='图片加载失败，已经回退备用短标签。请检查链接、格式和网页 CSP。';});
   holder.replaceChildren(img);img.src=url;
-  if(notify)el('imageHelp').textContent='56×44 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。';
+  if(notify)el('imageHelp').textContent=({compact:'48×40',standard:'56×44',large:'68×48'}[state.settings.imageSize]||'68×48')+
+   ' 圆角矩形网页按钮 · 图片完整显示，不裁切；加载失败回退短标签。';
  }
  // An automatic name is data compatibility, not a user-entered title.
  function customTitle(item){return item?.nameAuto===true?'':String(item?.name||'').trim();}
@@ -681,8 +693,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function uninstallMock(){
   closeUninstall();closeTransfer();discardImport();
-  state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false},items:[],toolEnabled:false};
-  persistDemoItems();installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
+  state={version:1,revision:state.revision+1,settings:{showBar:false,contextMenu:false,imageSize:'large'},items:[],toolEnabled:false};
+  persistDemoItems();persistDemoSettings();installed=false;editId=null;dirty=false;expandedId=null;deleteId=null;copyId=null;
   el('mockContextMenu').hidden=true;
   previewRules=[];siteEnabled={};siteDrafts={};storageCorrupt=false;
   try{localStorage.removeItem(SITE_STORAGE);}catch{}
@@ -711,6 +723,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('showBarSwitch').checked=state.settings.showBar;
   el('toolEnabledSwitch').checked=state.toolEnabled;
   el('contextSwitch').checked=state.settings.contextMenu;
+  el('imageSizeSetting').value=IMAGE_SIZES.includes(state.settings.imageSize)?state.settings.imageSize:'large';
   el('showBarSwitch').disabled=!state.toolEnabled;
   el('contextSwitch').disabled=!state.toolEnabled;
   for(const id of ['showBarSwitch','contextSwitch']){
@@ -797,7 +810,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('importAppend').addEventListener('click',()=>applyImport('append'));
  el('importReplace').addEventListener('click',()=>applyImport('replace'));
  document.addEventListener('click',e=>{if(!el('transferControl').contains(e.target))closeTransfer();});
- function renderRail(){const rail=el('pageRail');rail.replaceChildren();el('webTooltip').hidden=true;tipButton=null;
+ function renderRail(){const rail=el('pageRail');rail.replaceChildren();rail.dataset.imageSize=state.settings.imageSize||'large';el('webTooltip').hidden=true;tipButton=null;
   if(!installed||!state.settings.showBar||!state.toolEnabled){rail.hidden=true;return;}rail.hidden=false;
   const active=state.items.filter(item=>item.enabled);
   if(!active.length){rail.append(create('div','page-rail-empty','没有已启用的按钮'));return;}
@@ -1050,7 +1063,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  el('stayEditing').addEventListener('click',()=>{el('leaveConfirm').hidden=true;el('promptBody').focus();});el('discardEditing').addEventListener('click',()=>{const destination=pendingDestination;pendingDestination='index';if(destination==='host')exitTool();else returnIndex();notice('已主动放弃未保存更改。');});
  el('promptForm').addEventListener('submit',event=>void saveForm(event));el('saveContinue').addEventListener('click',event=>void saveForm(event,true));el('promptForm').addEventListener('input',updateMeter);el('promptForm').addEventListener('change',updateMeter);
  el('showBarSwitch').addEventListener('change',event=>{
-  state.settings.showBar=event.currentTarget.checked;state.revision++;renderIndex();renderRail();
+  state.settings.showBar=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();
   notice(state.settings.showBar?'网页悬浮按钮已开启（模拟）':'网页悬浮按钮已关闭，提示词仍保留（模拟）');
  });
  el('toolEnabledSwitch').addEventListener('change',event=>{
@@ -1058,8 +1071,14 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   notice(state.toolEnabled?'工具已启用（模拟）':'工具已停用，提示词仍保留（模拟）');
  });
  el('contextSwitch').addEventListener('change',event=>{
-  state.settings.contextMenu=event.currentTarget.checked;state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
+  state.settings.contextMenu=event.currentTarget.checked;persistDemoSettings();state.revision++;renderIndex();renderRail();el('mockContextMenu').hidden=true;
   notice(state.settings.contextMenu?'模拟原生右键功能已开启；正式使用仍取决于 Chrome 菜单许可。':'模拟原生右键功能已关闭。');
+ });
+ el('imageSizeSetting').addEventListener('change',event=>{
+  const next=event.currentTarget.value;if(!IMAGE_SIZES.includes(next)){setSettings();return;}
+  const previous=state.settings.imageSize;state.settings.imageSize=next;
+  if(!persistDemoSettings()){state.settings.imageSize=previous;setSettings();notice('浏览器拒绝保存尺寸设置，已恢复原尺寸。','error');return;}
+  state.revision++;renderIndex();renderRail();notice('图片按钮尺寸已设为 '+event.currentTarget.selectedOptions[0].textContent+'（模拟，刷新后保留）。','success');
  });
  el('hostSettings').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('请先处理未保存草稿。');return;}setView(currentView==='settings'?'index':'settings');setSettings();});
  el('sitesButton').addEventListener('click',()=>{
@@ -1087,7 +1106,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   el('themeButton').setAttribute('aria-pressed',String(dark));
  });
  el('resetButton').addEventListener('click',()=>{if(currentView==='form'&&dirty){showFormError('当前编辑尚未保存，请先取消或保存，再重置模拟数据。');return;}
-  try{localStorage.removeItem(DEMO_ITEM_KEY);}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
+  try{localStorage.removeItem(DEMO_ITEM_KEY);localStorage.removeItem(DEMO_SETTINGS_KEY);}catch{}state={version:1,revision:state.revision+1,settings:{showBar:true,contextMenu:false,imageSize:'large'},items:COPY(),toolEnabled:true};installed=true;el('reopenTool').hidden=false;el('toolListMessage').textContent='已模拟返回宿主工具列表。选择下方工具可重新进入管理页。';closeUninstall();discardImport();nextSaveFailure=null;expandedId=null;deleteId=null;copyId=null;el('mockDraft').value='';el('mockDraft').disabled=false;el('actionScenario').value='normal';document.querySelector('.browser-address').textContent='chatgpt.com · 模拟网页';el('mockContextMenu').hidden=true;el('siteDetails').hidden=true;el('sitesButton').setAttribute('aria-expanded','false');el('sitesButton').classList.remove('is-open');el('sitesButton').setAttribute('aria-label','展开适用网站');el('sitesButton').title='展开适用网站';returnIndex();notice('已重置为初始模拟数据。');});
  for(const [id,mode,label] of [['simulateWriteFail','write','写入失败'],['simulateConflict','conflict','并发冲突'],['simulateUnknown','unknown','结果未知']])el(id).addEventListener('click',()=>{nextSaveFailure=mode;el('failureStatus').textContent='下次保存将模拟：'+label;notice('已设置下次保存模拟：'+label+'，当前草稿会保留。');});
  document.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
