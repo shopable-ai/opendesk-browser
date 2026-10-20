@@ -167,7 +167,7 @@ export function createSidebarToolsView() {
         dispose() {closeConnection(record);}
       };
       for (const key of ['openTool', 'openSettings', 'toggleEnabled', 'uninstallFromList', 'retryUninstallCleanup',
-        'openOfficialReview', 'openImport', 'openReadOnlyPreview', 'openInTab', 'closeTool']) {
+        'openOfficialReview', 'openImport', 'openImportFiles', 'openReadOnlyPreview', 'openInTab', 'closeTool']) {
         facade[key] = (...args) => {
           if (record.closed) throw new Error('E_SIDEBAR_TOOL_VIEW_DISPOSED');
           // Never replay installation/permission gestures when refs arrive later.

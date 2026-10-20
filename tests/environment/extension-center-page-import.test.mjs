@@ -111,7 +111,8 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
     const file={name,size:size??Buffer.byteLength(content),text:text||(()=>Promise.resolve(content))};
     view.dispatch('sidebar-tool-file','change',{target:{files:[file]}});return file;
   }
-  return {doc,get,event,select,host,store,writes,received,requests};
+  return {doc,get,event,select,host,store,writes,received,requests,
+    drop:files=>view.dispatch('sidebar-tool-file','drop',{dataTransfer:{files}})};
 }
 function unchanged(f){
   assert.equal(f.received.length,0);assert.equal(f.writes.length,0);
@@ -325,3 +326,49 @@ test('broken installation package never reaches review or either importer',async
   const pkg=await installPackage(),f=await fixture(t);f.select({...pkg,sourceHash:'0'.repeat(64)});
   await settle(()=>!f.get('sidebar-tool-file-error').hidden);unchanged(f);
 });
+
+
+test('Extension file drop reuses Host review without installing or executing the package',async t=>{
+  const f=await fixture(t);
+  f.event('sidebar-tool-import-close','click');
+  assert.equal(f.get('sidebar-tool-import').hidden,true);
+  const content=JSON.stringify(app);
+  const file={name:'local.opendesk-tool.json',size:Buffer.byteLength(content),text:async()=>content};
+  assert.equal(f.host.openImportFiles([file]),true);
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-import').hidden,false);
+  assert.equal(f.get('sidebar-tool-install').disabled,false);
+  assert.match(f.get('sidebar-tool-preview-file').textContent,/local.opendesk-tool.json/);
+  assert.equal(f.writes.length,0,'dragging alone must never install');
+  unchangedAuthoring(f);
+  f.drop([file]);
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.writes.length,0,'dropping in the already opened importer must still only review');
+});
+
+test('Dropped invalid, multiple or stale files never keep a previous install approval',async t=>{
+  const f=await fixture(t);
+  const content=JSON.stringify(app),make=(name,body=content)=>({
+    name,size:Buffer.byteLength(body),text:async()=>body
+  });
+  const good=make('valid.opendesk-tool.json'),invalid=make('notes.txt');
+  f.drop([good]);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-install').disabled,false);
+  f.drop([good,good]);
+  assert.match(f.get('sidebar-tool-file-error').textContent,/一次只能拖入一个/);
+  unchanged(f);
+  f.drop([invalid]);
+  assert.match(f.get('sidebar-tool-file-error').textContent,/仅支持 JSON/);
+  unchanged(f);
+  f.drop([]);
+  assert.match(f.get('sidebar-tool-file-error').textContent,/一次只能/);
+  unchanged(f);
+  const pending=deferred(),slow={...good,name:'slow.opendesk-tool.json',text:()=>pending.promise};
+  f.drop([slow]);
+  f.drop([good]);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  pending.resolve(content);await tick();await tick();
+  assert.match(f.get('sidebar-tool-preview-file').textContent,/valid.opendesk-tool.json/);
+  assert.equal(f.writes.length,0);
+  assert.equal(f.get('sidebar-tool-file-error').hidden,true);
+});
+

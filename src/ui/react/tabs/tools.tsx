@@ -417,6 +417,28 @@ export function ExtensionCenterPage({
 }){
   const detailVisible=view==='detail';
   const detailRef=React.useRef(null),pageRef=React.useRef(null);
+  const [fileOver,setFileOver]=React.useState(false);
+  const fileDragDepth=React.useRef(0);
+  const isFileDrag=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
+  const onDragEnter=event=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();fileDragDepth.current++;setFileOver(true);
+  };
+  const onDragOver=event=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();event.dataTransfer.dropEffect='copy';
+  };
+  const onDragLeave=event=>{
+    if(!isFileDrag(event))return;
+    fileDragDepth.current=Math.max(0,fileDragDepth.current-1);
+    if(!fileDragDepth.current)setFileOver(false);
+  };
+  const onDrop=event=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();event.stopPropagation();
+    fileDragDepth.current=0;setFileOver(false);
+    toolbarModel?.onImportFiles?.(Array.from(event.dataTransfer.files||[]));
+  };
   React.useEffect(()=>{
     const doc=pageRef.current?.ownerDocument;
     if(!doc)return;
@@ -432,7 +454,9 @@ export function ExtensionCenterPage({
     doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
     return ()=>{doc.removeEventListener('click',clickOutside);doc.removeEventListener('keydown',keyDown);};
   },[toolbarModel,detailVisible,onBack]);
-  return <>
+  return <div className="ec-drop-surface"
+    onDragEnter={onDragEnter} onDragOver={onDragOver}
+    onDragLeave={onDragLeave} onDrop={onDrop}>
     <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible}>
       <div className="ec-toolbar"><ExtensionToolbar model={toolbarModel}/></div>
       <div id="extension-center-import-host"></div>
@@ -498,5 +522,9 @@ export function ExtensionCenterPage({
       hidden={!statusModel?.text}>
       <ExtensionStatus model={statusModel}/>
     </p>
-  </>;
+    {fileOver&&<div className="ec-file-drop-overlay" role="status" aria-live="polite">
+      <strong>松开以导入扩展安装包</strong>
+      <span>支持 JSON 文件；安装前仍需核对版本与权限</span>
+    </div>}
+  </div>;
 }

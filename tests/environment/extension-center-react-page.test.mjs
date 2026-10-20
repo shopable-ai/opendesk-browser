@@ -67,6 +67,7 @@ async function fixture(){
     }};
   const sidebarTools={openTool:id=>{calls.push({action:'open',id});return true;},
     openSettings:id=>calls.push({action:'settings',id}),openImport:()=>calls.push({action:'import'}),
+    openImportFiles:files=>{calls.push({action:'drop',names:Array.from(files).map(file=>file.name)});return true;},
     openOfficialReview:()=>false,
     uninstallFromList(id,baseline,event){
       eventCall('app-uninstall',id,event);
@@ -356,3 +357,33 @@ test('React orphaned cleanup recovery retains trusted native events while catalo
   await page.evaluate(()=>fixture.dispose());
   assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
 });
+
+
+test('Extension tab accepts a native file drag and forwards only files to its trusted installer',options,async t=>{
+  const page=await browserFixture(t);
+  await page.evaluate(()=>{
+    const target=document.getElementById('extension-center-list-view');
+    const data=new DataTransfer();
+    data.items.add(new File(['{"format":"sample"}'],'demo.opendesk-tool.json',{type:'application/json'}));
+    window.dragFixture={target,data};
+    target.dispatchEvent(new DragEvent('dragenter',{bubbles:true,cancelable:true,dataTransfer:data}));
+  });
+  assert.equal(await page.locator('.ec-file-drop-overlay').count(),1);
+  assert.match(await page.locator('.ec-file-drop-overlay').innerText(),/安装前仍需核对/);
+  await page.evaluate(()=>{
+    const {target,data}=window.dragFixture;
+    target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+  });
+  assert.equal(await page.locator('.ec-file-drop-overlay').count(),0);
+  assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='drop')
+    .map(c=>c.names)),[['demo.opendesk-tool.json']]);
+  assert.equal(await page.evaluate(()=>fixture.calls.some(c=>c.action==='install')),false);
+  await page.evaluate(()=>{
+    const target=document.getElementById('extension-center-list-view');
+    const data=new DataTransfer();data.setData('text/plain','ordinary text');
+    target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+  });
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='drop').length),1,
+    'non-file text drags must not trigger the importer');
+});
+
