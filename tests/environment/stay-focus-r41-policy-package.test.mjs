@@ -173,7 +173,7 @@ test('R4.3 v2 policy rejects unreviewed default scopes and malformed time data',
       enabled:policy.schedule.enabled,endMinute:policy.schedule.endMinute}}};
   assert.equal(await focusPackageHash(tool),await focusPackageHash(reordered));
 });
-test('R4.3 package first-use defaults execute; user preferences win after package-only update',async()=>{
+test('R5.9 first-use v2 recommendations require explicit site add; upgrade keeps preferences',async()=>{
   const f=fixture(),app=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
   f.stored.set(SIDEBAR_TOOL_STORE,[app]);
   const before=await f.focus.dispatch(await f.msg(app,'focus.status'),f.sender);
@@ -181,7 +181,8 @@ test('R4.3 package first-use defaults execute; user preferences win after packag
   assert.deepEqual(before.sites,[]);
   const first=await f.focus.dispatch(await f.msg(app,'focus.enable'),f.sender);
   assert.equal(first.enabled,true);
-  assert.deepEqual(new Set(first.sites.map(row=>row.host)),new Set(app.backgroundPolicy.defaultSites));
+  assert.deepEqual(first.sites,[],'package defaultSites are recommendations, not implicit DNR scopes');
+  assert.ok(first.catalog.some(row=>row.host==='youtube.com'));
   assert.deepEqual(first.schedule,app.backgroundPolicy.schedule);
   assert.equal(first.groups.entertainment,30);
   await f.focus.dispatch(await f.msg(app,'focus.group.put',
@@ -228,8 +229,9 @@ test('R5.4 older package to 1.0.5: same worker, package-only upgrade and explici
   await f.focus.dispatch(await f.msg(previous,'focus.schedule.set',{schedule:savedSchedule}),f.sender);
   await f.focus.dispatch(await f.msg(previous,'focus.group.put',{id:'entertainment',minutes:43}),f.sender);
   await f.focus.dispatch(await f.msg(previous,'focus.whitelist.set',{hosts:['docs.google.com']}),f.sender);
-  const paused=baseline.sites.find(row=>row.host==='youtube.com');
-  await f.focus.dispatch(await f.msg(previous,'focus.site.put',{site:{...site(paused.host),group:'entertainment',enabled:false}}),f.sender);
+  assert.deepEqual(baseline.sites,[],'an older 1.0.3 package also starts without silent enrollment');
+  await f.focus.dispatch(await f.msg(previous,'focus.site.put',{site:{
+    ...site('youtube.com'),group:'entertainment',enabled:false}}),f.sender);
   const install=await installReviewedSidebarTool({api:f.api,
     lockManager:{request:async(_key,run)=>run()},candidate:app,baseline:previous,
     reviewApproved:true,approveUpdate:async()=>true});

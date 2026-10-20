@@ -186,7 +186,18 @@
             h('span',null,id+' · '+mins+' 分钟/天'),
             h(Action,{name:'delete',label:'删除额度组 '+id,disabled:busy,
               onClick:()=>void operate('focus.group.remove',{id})})))),
-      h('p',{className:'sf-hint'},'浏览器权限与停止全部限制在外层可信扩展设置中管理。'));
+      h('section',{className:'sf-setting'},
+        h('strong',null,'临时屏蔽网站'),
+        h('p',{className:'sf-hint'},
+          state.focusUntil&&state.focusUntil>Date.now()
+            ?'剩余 '+Math.ceil((state.focusUntil-Date.now())/60000)+' 分钟。到期自动恢复原有规则，不重置每日额度。'
+            :'接下来 25 分钟限制已管理且未暂停的网站，到期恢复原有规则；不改变每日额度和工作时段。'),
+        h(Button,{disabled:busy||!state.enabled,
+          onClick:()=>void operate(state.focusUntil&&state.focusUntil>Date.now()
+            ?'focus.session.stop':'focus.session.start',
+            state.focusUntil&&state.focusUntil>Date.now()?{}:{minutes:25})},
+          state.focusUntil&&state.focusUntil>Date.now()?'提前结束':'屏蔽 25 分钟')),
+      h('p',{className:'sf-hint'},'全局停止与清空仅在外层可信扩展设置的「更多操作」中提供。'));
   }
   function App(){
     const [state,setState]=R.useState(null);
@@ -272,7 +283,6 @@
         if(ok)setBudgetDraft(old=>old===entered?null:old);
       });
     };
-    const focusRunning=Boolean(state?.focusUntil&&state.focusUntil>Date.now());
     return h('main',{className:'sf','aria-label':'Stay Focus 保持专注'},
       h('header',{className:'sf-heading'},
         h('div',{className:'sf-brand'},h('span',{className:'sf-brand-symbol','aria-hidden':true},'◷'),
@@ -280,7 +290,7 @@
         h('span',{className:'sf-state','data-active':Boolean(state?.enabled&&state?.ruleReceipt?.verified),
           'data-warning':Boolean(state?.enabled&&!state?.ruleReceipt?.verified)},
           loading?'正在读取':!state?'状态未知':!state.enabled?'未开启':
-            state.ruleReceipt?.verified?'保护已开启':'待核对')),
+            state.ruleReceipt?.verified?(sites.length?'限制已开启':'已开启 · 待加入网站'):'规则待核对')),
       h(Card,{className:'sf-hero'},h(CardContent,null,
         h('div',{className:'sf-headrow'},h('span',null,'今日娱乐时间'),
           h('time',null,state?.day||'—')),
@@ -298,13 +308,6 @@
           h('span',null,'分钟'),
           draftChanged?h(Button,{variant:'primary',disabled:busy||!state,onClick:saveBudget},'保存'):null),
         h('p',{className:'sf-hint'},'所有娱乐网站共用这一份每日额度。'))),
-      h('section',{className:'sf-session'},
-        h('div',null,h('strong',null,'临时专注'),h('p',null,'暂时限制受管网站 25 分钟')),
-        h(Button,{disabled:busy||!state||!state.enabled,
-          title:!state?.enabled?'请先从可信扩展设置中开启限制':undefined,
-          onClick:()=>void operate(
-          focusRunning?'focus.session.stop':'focus.session.start',
-          focusRunning?{}:{minutes:25})},focusRunning?'结束':'开始')),
       note?h('p',{className:'sf-notice','data-error':failed,
         role:failed?'alert':'status','aria-live':'polite'},note):null,
       h('section',{className:'sf-sites','aria-label':'网站管理'},

@@ -106,7 +106,9 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
       state.enabled=true;
     }else if(operation==='focus.disable'){
       requirePayload(payload,[]);
-      state.enabled=false;state.checkpoint=null;state.authorizedHash=null;state.authorizedEpoch=null;
+      // Pausing all restrictions is not permission revocation.
+      // Preserve the signed authorization so a later resume needs no Chrome prompt.
+      state.enabled=false;state.checkpoint=null;state.focusUntil=null;
     }else if(operation==='focus.site.put'){
       requirePayload(payload,['site']);
       const raw=payload.site;if(!raw||typeof raw.host!=='string')throw focusError('请提供域名和额度');
@@ -207,20 +209,12 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
         await clearFocusRules(api);
       throw cause;
     }
-    // Only genuinely new, never-configured installations receive automatic
-    // enrollment. A pre-existing custom/empty policy is never silently widened.
+    // A first activation prepares a budget and schedule only. Recommendations
+    // in backgroundPolicy.defaultSites never become rules without focus.site.put.
+    // Durable explicit/custom configurations, including empty lists, are preserved.
     if(operation==='focus.enable'&&raw===undefined){
       const defaults=focusDefaultsForPackage(auth.tool);
       state.groups[FOCUS_DEFAULT_GROUP]=defaults.minutes;
-      state.sites=defaults.sites;
-      if(defaults.schedule)state.schedule=defaults.schedule;
-    }else if(operation==='focus.group.put'&&payload?.id===FOCUS_DEFAULT_GROUP&&raw===undefined){
-      // The initial budget may be prepared before Chrome authorization.
-      // Seed the reviewed defaults once; a later enable must not reset the
-      // chosen minutes or silently leave a first-time user without sites.
-      // Already configured or deliberately emptied policies are untouched.
-      const defaults=focusDefaultsForPackage(auth.tool);
-      state.sites=defaults.sites;
       if(defaults.schedule)state.schedule=defaults.schedule;
     }
     // A Chrome site-access revocation applies only to intersecting restrictions.

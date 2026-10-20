@@ -13,30 +13,34 @@ import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/st
 
 const tool={format:'opendesk.sidebar-tool.v1',id:'stay-focus',version:'1.0.0',title:'Stay Focus',
   description:'Boundary regression',capabilities:['focus.control'],html:'<main>Focus</main>',css:'',js:'void 0;'};
-test('R3.1 a disabled Focus cannot request Chrome native permissions',async t=>{
-
+test('R5.9 a disabled Focus cannot request Chrome native permissions',async t=>{
   const f=settingsReactFixture('stayFocus',t);
-  let requests=0,operations=0;
-  const controls=createStayFocusPermissionControls({api:{permissions:{request(){
-    requests++;return Promise.resolve(true);
-  }}},ui:f.ui,notice:()=>{},runOperation:async()=>{operations++;}});
+  let requests=0,operations=0,idle=false,enabled=false;
+  const readStatus=async()=>({enabled,authorized:enabled,sites:[],
+    permissions:{idle,dnr:true,ready:idle},ruleReceipt:{verified:true}});
+  const controls=createStayFocusPermissionControls({
+    api:{permissions:{request(){requests++;idle=true;return Promise.resolve(true);}}},
+    ui:f.ui,notice:()=>{},readStatus,
+    runOperation:async()=>{operations++;enabled=true;return readStatus();}
+  });
+  t.after(()=>controls.dispose());
   controls.render(tool,false,false);
-  const grant=f.find('stay-focus-enable-native');
-  assert.ok(grant);
-  assert.equal(grant.disabled,true,'stop state must gate Chrome permission requests');
-  f.invoke(grant.id,{isTrusted:true});
+  assert.equal(f.find('stay-focus-enable-native'),null,
+    'disabled state must not present Chrome authorization');
+  f.invoke('stay-focus-enable-native',{isTrusted:true});
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(requests,0);assert.equal(operations,0);
   controls.render(tool,false,true);
-  assert.equal(grant.disabled,false);
-  f.invoke(grant.id,{isTrusted:false});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.ok(f.find('stay-focus-enable-native'));
+  f.invoke('stay-focus-enable-native',{isTrusted:false});
   assert.equal(requests,0);
-  f.invoke(grant.id,{isTrusted:true});
+  f.invoke('stay-focus-enable-native',{isTrusted:true});
   assert.equal(requests,1,'native permission request begins synchronously from trusted click');
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(operations,1);
+  assert.equal(f.model.phase,'active');
 });
-
 test('R5.7 native React one-click adds only the current verified website',async t=>{
   const f=settingsReactFixture('stayFocus',t),writes=[],notices=[];
   let page={status:'available',url:'https://m.youtube.com/watch?v=abc',
@@ -52,7 +56,8 @@ test('R5.7 native React one-click adds only the current verified website',async 
     }
   };
   const state={enabled:true,sites:[],catalog:[{host:'youtube.com'}],
-    dailyBudget:{minutes:45},ruleReceipt:{verified:true}};
+    dailyBudget:{minutes:45},authorized:true,
+    permissions:{idle:true,dnr:true,ready:true},ruleReceipt:{verified:true}};
   const controls=createStayFocusPermissionControls({api:{},ui:f.ui,pageTarget,
     notice:(message,isError)=>notices.push({message,isError}),
     readStatus:async()=>structuredClone(state),
@@ -107,7 +112,8 @@ test('R5.7 trusted quick-add refuses navigation races and resumes a paused rule 
   const existing={host:'youtube.com',subdomains:true,enabled:false,
     mode:'always',minutes:9,group:''};
   const state={enabled:true,sites:[existing],catalog:[{host:'youtube.com'}],
-    dailyBudget:{minutes:30},ruleReceipt:{verified:true}};
+    dailyBudget:{minutes:30},authorized:true,
+    permissions:{idle:true,dnr:true,ready:true},ruleReceipt:{verified:true}};
   const controls=createStayFocusPermissionControls({api:{},ui:f.ui,pageTarget,
     notice:()=>{},readStatus:async()=>structuredClone(state),
     runOperation:async(op,payload,event)=>{
@@ -234,9 +240,12 @@ test('pending Focus permission cannot adopt a replacement installation epoch',as
   const completed=new Promise(resolve=>{finish=resolve;});
   f.api.permissions={request:()=>new Promise(resolve=>{approve=resolve;})};
   const controls=createStayFocusPermissionControls({api:f.api,ui:ui.ui,notice:()=>finish(),
+    readStatus:async()=>({enabled:false,authorized:false,sites:[],
+      permissions:{idle:false,dnr:true,ready:false},ruleReceipt:{verified:true}}),
     runOperation:(operation,payload,event)=>runTrustedStayFocusOperation({...f,operation,payload,event})});
   t.after(()=>controls.dispose());
   controls.render(tool,false,true);
+  await new Promise(resolve=>setImmediate(resolve));
   ui.invoke('stay-focus-enable-native',{isTrusted:true});
   assert.equal(typeof approve,'function');
   f.data.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'epoch-after-revocation'});

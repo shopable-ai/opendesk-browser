@@ -9,9 +9,8 @@
   const catalog=()=>policy.suggestions.map(site=>({
     ...site,auto:policy.defaultSites.includes(site.host),minutes:site.suggestLimit?policy.dailyMinutes:0
   }));
-  const defaults=()=>policy.defaultSites.map(host=>({host,subdomains:true,enabled:true,
-    mode:'limit',minutes:policy.dailyMinutes,group:'entertainment'}));
-  const clean=()=>({installed:true,granted:false,enabled:false,configured:false,verified:false,
+  const clean=()=>({installed:true,granted:false,identityValid:false,enabled:false,
+    configured:false,verified:false,pending:false,denied:false,
     sites:[],groups:{},usageMs:0,whitelist:[],schedule:structuredClone(policy.schedule),
     focusUntil:null,previewNewSite:false});
   let model=clean();
@@ -25,15 +24,22 @@
     category:'视频娱乐',auto:true,quick:false,minutes:policy.dailyMinutes};
   function restoreScene(name){
     scenario=name;model=clean();
-    const seed=()=>{model.sites=defaults();model.groups.entertainment=policy.dailyMinutes;
-      model.granted=true;model.enabled=true;model.configured=true;model.verified=true;};
+    const seed=()=>{model.sites=[{host:'youtube.com',subdomains:true,enabled:true,
+      mode:'limit',minutes:policy.dailyMinutes,group:'entertainment'}];
+      model.groups.entertainment=policy.dailyMinutes;
+      model.granted=true;model.identityValid=true;model.enabled=true;
+      model.configured=true;model.verified=true;};
     switch(name){
       case 'used':seed();model.usageMs=19*60000;break;
       case 'exhausted':seed();model.usageMs=policy.dailyMinutes*60000;break;
       case 'paused':seed();model.sites[0].enabled=false;model.usageMs=6*60000;break;
       case 'session':seed();model.focusUntil=Date.now()+25*60000;model.usageMs=5*60000;break;
-      case 'upgrade':seed();model.previewNewSite=true;model.usageMs=12*60000;break;
-      case 'revoked':seed();model.granted=false;model.enabled=false;model.verified=false;break;
+      case 'upgrade':seed();model.previewNewSite=true;model.usageMs=12*60000;
+        model.identityValid=false;model.enabled=false;model.verified=false;break;
+      case 'revoked':seed();model.granted=false;model.identityValid=false;
+        model.enabled=false;model.verified=false;break;
+      case 'pending':model.pending=true;break;
+      case 'denied':model.denied=true;break;
       case 'dnr':seed();model.verified=false;break;
       case 'stopped':seed();model.enabled=false;model.focusUntil=null;model.verified=false;break;
       case 'uninstalled':model.installed=false;break;
@@ -52,7 +58,7 @@
   function snapshot(){
     const limit=Number(model.groups.entertainment??policy.dailyMinutes),budget=limit*60000;
     return {
-      enabled:model.enabled,authorized:model.granted,day:day(),
+      enabled:model.enabled,authorized:model.granted&&model.identityValid,day:day(),
       permissions:{idle:model.granted,dnr:true,ready:model.granted},
       ruleReceipt:{verified:model.enabled&&model.verified},
       tabs:{failed:0},schedule:structuredClone(model.schedule),
@@ -94,8 +100,6 @@
       }
       case 'focus.site.remove':model.sites=model.sites.filter(site=>site.host!==payload.host);break;
       case 'focus.group.put':
-        if(payload.id==='entertainment'&&!model.configured&&model.sites.length===0)
-          model.sites=defaults();
         model.groups[payload.id]=payload.minutes;break;
       case 'focus.group.remove':delete model.groups[payload.id];break;
       case 'focus.schedule.set':model.schedule=structuredClone(payload.schedule);break;
@@ -128,43 +132,75 @@
       tag(bridge)+tag(source.js)+'</body></html>';
   }
   function renderHost(){
-    $('host-state').textContent=!model.installed?'未安装':!model.granted?'尚未授权':
-      !model.enabled?'已停止':!model.verified?'DNR 未核对':'已开启';
+    $('host-state').textContent=!model.installed?'未安装':
+      model.pending?'正在等待 Chrome 授权':
+      model.denied?'Chrome 授权被拒绝':
+      !model.granted?'Chrome 权限需要重新开启':
+      model.enabled&&!model.verified?'Chrome 规则待核对':
+      model.enabled?'已开启 · 规则已核对':
+      model.identityValid?'已停止 · 授权仍有效':'安装身份已变化 · 需要重新开启';
     $('host-detail').textContent=!model.installed?'没有安装或后台状态。':
-      '模拟权限：'+(model.granted?'已批准':'未批准')+' · 后台：'+
-      (model.enabled?'运行':'未运行')+' · DNR 回读：'+(model.enabled&&model.verified?'模拟通过':'未验证');
+      '模拟 Chrome 空闲检测：'+(model.granted?'已批准':'未批准')+
+      ' · 后台限制：'+(model.enabled?'运行':'未运行')+
+      ' · DNR 回读：'+(model.enabled&&model.verified?'模拟通过':'未验证');
     $('host-install').hidden=model.installed;
     $('host-enable').hidden=!model.installed||model.enabled;
+    $('host-enable').disabled=model.pending;
+    $('host-enable').textContent=model.pending?'正在开启…':
+      model.identityValid?'重新开启 Stay Focus':
+      model.configured?'重新开启 Stay Focus':'开启 Stay Focus';
     $('host-stop').hidden=!model.installed||!model.enabled;
     $('host-revoke').hidden=!model.installed||!model.granted;
     $('host-uninstall').hidden=!model.installed;
     const current=model.sites.find(site=>site.host==='youtube.com');
     $('host-current-host').textContent='youtube.com';
+    $('native-current').hidden=!model.installed||!model.enabled||!model.verified;
     $('host-current-action').hidden=Boolean(current?.enabled);
-    $('host-current-action').disabled=!model.installed;
+    $('host-current-action').disabled=!model.installed||model.pending;
     $('host-current-action').textContent=current?'恢复':'加入';
     $('host-current-state').hidden=!current?.enabled;
-    $('host-current-state').textContent=!model.enabled?'已保存 · 未开启':
+    $('host-current-state').textContent=!model.enabled?'已保存 · 已停止':
       !model.verified?'已保存 · 待核对':'✓ 已管理';
     $('host-feedback').dataset.scenario=scenario;
   }
   function renderAll(){renderHost();renderFrame();}
+  function refreshFrameState(){
+    const doc=$('preview-frame').contentDocument,win=doc?.defaultView;
+    if(win)doc.dispatchEvent(new win.Event('opendesk-tool-state-changed'));
+  }
   function hostOperate(action){
     if(action==='install'){model=clean();scenario='first';$('scenario').value='first';}
     if(action==='enable'){
-      // Existing custom configuration must not be erased or silently widened.
-      if(!model.configured&&model.sites.length===0){
-        model.sites=defaults();model.groups.entertainment=policy.dailyMinutes;
-      }
-      model.granted=true;model.enabled=true;model.configured=true;model.verified=true;
+      if(model.pending)return;
+      // Deliberately do not enroll any suggested website on first approval.
+      const target=model;
+      model.pending=true;model.denied=false;renderHost();
+      setTimeout(()=>{
+        if(model!==target)return;
+        model.pending=false;
+        if(scenario==='denied'){
+          model.denied=true;
+          $('host-feedback').textContent='模拟用户拒绝 Chrome 可选权限；后台未开启。';
+        }else{
+          model.granted=true;model.identityValid=true;
+          model.enabled=true;model.configured=true;model.verified=true;
+          model.groups.entertainment??=policy.dailyMinutes;
+          $('host-feedback').textContent='模拟授权并开启成功；未自动加入任何网站。';
+        }
+        renderHost();refreshFrameState();
+      },450);
+      return;
     }
     if(action==='stop'){model.enabled=false;model.focusUntil=null;model.verified=false;}
-    if(action==='revoke'){model.granted=false;model.enabled=false;model.verified=false;}
+    if(action==='revoke'){
+      model.granted=false;model.identityValid=false;model.enabled=false;model.verified=false;
+    }
     if(action==='uninstall'){model=clean();model.installed=false;scenario='uninstalled';
       $('scenario').value='uninstalled';}
-    $('host-feedback').textContent='已模拟 '+({install:'安装',enable:'授权并开启',
-      stop:'停止',revoke:'撤权',uninstall:'卸载'})[action]+'；没有访问真实 Chrome 权限。';
-    renderAll();
+    $('host-feedback').textContent='已模拟 '+({install:'安装',stop:'停止',
+      revoke:'撤销 Chrome 权限',uninstall:'卸载'})[action]+'；没有执行真实 Chrome API。';
+    if(action==='install'||action==='uninstall')renderAll();
+    else{renderHost();refreshFrameState();}
   }
   for(const width of [320,360,400,440]){
     const button=document.querySelector('[data-width="'+width+'"]');
@@ -195,7 +231,7 @@
     // Simulated trusted Side Panel: one explicit click, one in-memory Host write.
     // No native permission or Chrome DNR side effect is claimed.
     void globalThis.__stayFocusMockRequest('focus.site.put',{site})
-      .then(()=>renderFrame()).catch(error=>{
+      .then(()=>refreshFrameState()).catch(error=>{
         $('host-feedback').textContent=String(error?.message||error);
       });
   });

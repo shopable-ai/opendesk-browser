@@ -136,6 +136,34 @@ for(const operation of ['focus.disable','focus.clear','tool.disable','tool.unins
     assert.equal(await f.api.permissions.contains({permissions:['declarativeNetRequestWithHostAccess']}),true);
   });
 }
+test('R5.9 global stop keeps signed authority, stored policy and shared Chrome permission',async()=>{
+  const f=fixture();
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com','always')}),f.sender);
+  const running=await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  assert.equal(running.enabled,true);
+  const signed=f.stored.get(FOCUS_STORE).authorizedHash;
+  assert.match(signed,/^[a-f0-9]{64}$/);
+  const stopped=await f.focus.dispatch(await f.msg('focus.disable'),f.sender);
+  assert.equal(stopped.enabled,false);
+  assert.equal(stopped.authorized,true);
+  assert.equal(stopped.ruleReceipt.verified,true);
+  assert.equal(f.stored.get(FOCUS_STORE).authorizedHash,signed);
+  assert.equal(f.stored.get(FOCUS_STORE).sites.length,1);
+  assert.equal(f.rules.length,0);
+  const reopened=await f.focus.tick({boot:true});
+  assert.equal(reopened.enabled,false);
+  assert.equal(reopened.authorized,true,'Chrome restart never silently restarts a voluntary stop');
+  const resumed=await f.focus.dispatch(await f.msg('focus.enable'),f.sender);
+  assert.equal(resumed.enabled,true);
+  assert.equal(resumed.ruleReceipt.verified,true);
+  f.setAllowed(false);
+  const revoked=await f.focus.tick({boot:true});
+  assert.equal(revoked.enabled,false);
+  assert.equal(revoked.authorized,false,'actual Chrome permission revocation retires tool authority');
+  assert.equal(revoked.sites.length,1,'revocation never discards website preferences');
+  assert.equal(f.rules.length,0);
+  assert.deepEqual(f.permissionRemovals,[],'Focus never revokes shared Chrome permissions');
+});
 test('quota spends foreground Chrome time; real rule readback and existing tab remediation are recorded',async()=>{
   const f=fixture();
   await f.focus.dispatch(await f.msg('focus.site.put',{site:mkSite('example.com')}),f.sender);
@@ -289,7 +317,7 @@ test('Time Review presence or independent storage does not change Stay Focus aut
   assert.deepEqual(f.stored.get('opendesk.time-review.v1'),{days:{'2026-10-13':{'example.com':300000}}});
 });
 
-test('R1.4 first true enable seeds shared entertainment, existing explicit policy is preserved',async()=>{
+test('R5.9 first enable prepares budget but never enrolls recommended websites',async()=>{
   const fresh=fixture();
   const preview=await fresh.focus.dispatch(await fresh.msg('focus.status'),fresh.sender);
   assert.equal(preview.dailyBudget.minutes,30);
@@ -297,10 +325,9 @@ test('R1.4 first true enable seeds shared entertainment, existing explicit polic
   assert.equal(fresh.stored.has(FOCUS_STORE),false);
   const enabled=await fresh.focus.dispatch(await fresh.msg('focus.enable'),fresh.sender);
   assert.equal(enabled.enabled,true);
-  assert.equal(enabled.dailyBudget.managedCount,11);
-  assert.ok(enabled.sites.some(site=>site.host==='youtube.com'&&site.group==='entertainment'));
-  assert.ok(enabled.sites.some(site=>site.host==='tiktok.com'&&site.group==='entertainment'));
-  assert.equal(enabled.sites.find(site=>site.host==='github.com'),undefined);
+  assert.equal(enabled.dailyBudget.managedCount,0);
+  assert.deepEqual(enabled.sites,[],'recommended sites never become restrictions on permission grant');
+  assert.ok(enabled.catalog.some(site=>site.host==='youtube.com'),'recommendations stay available');
   assert.equal(enabled.ruleReceipt.verified,true);
   const stored=(await fresh.api.storage.local.get(FOCUS_STORE))[FOCUS_STORE];
   assert.equal(stored.groups.entertainment,30);
@@ -402,20 +429,22 @@ test('R3.2 Marketplace has read-only live worker admission, never Focus mutation
   assert.equal(f.stored.has(FOCUS_STORE),false);
 });
 
-test('R5.4: first-use budget may be saved before Chrome authorization without losing defaults',async()=>{
+test('R5.9 first-use budget is editable without silently adding websites',async()=>{
   const f=fixture();
   const prepared=await f.focus.dispatch(await f.msg('focus.group.put',
     {id:'entertainment',minutes:45}),f.sender);
   assert.equal(prepared.enabled,false);
   assert.equal(prepared.dailyBudget.minutes,45);
-  assert.ok(prepared.sites.some(site=>site.host==='youtube.com'&&site.group==='entertainment'));
+  assert.deepEqual(prepared.sites,[],'budget preparation must not enroll a site');
   assert.equal(f.rules.length,0,'preparing a budget must never claim Chrome rules are active');
   const reopened=await f.focus.tick({boot:true});
   assert.equal(reopened.dailyBudget.minutes,45);
   const enabled=await f.focus.dispatch(await f.msg('focus.enable',{}),f.sender);
   assert.equal(enabled.enabled,true);
   assert.equal(enabled.dailyBudget.minutes,45,'authorization must preserve preselected minutes');
-  assert.ok(enabled.sites.some(site=>site.host==='youtube.com'));
+  assert.deepEqual(enabled.sites,[]);
+  await f.focus.dispatch(await f.msg('focus.site.put',{site:{
+    host:'youtube.com',subdomains:true,enabled:true,mode:'limit',minutes:45,group:'entertainment'}}),f.sender);
   await f.focus.dispatch(await f.msg('focus.site.remove',{host:'youtube.com'}),f.sender);
   const revised=await f.focus.dispatch(await f.msg('focus.group.put',
     {id:'entertainment',minutes:60}),f.sender);

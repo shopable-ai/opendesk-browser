@@ -356,24 +356,17 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     throw Error('Real Chrome native permission missing; no false acceptance');}
   const defaultPool=await until(()=>evalRead(client,sid,
     '(async()=>{const x=await chrome.storage.local.get("'+store+'");const v=x["'+store+'"];'+
-    'return v?.enabled&&v.groups?.entertainment===30&&'+
-    'v.sites?.some(s=>s.host==="youtube.com"&&s.group==="entertainment")&&'+
-    'v.sites?.some(s=>s.host==="tiktok.com"&&s.group==="entertainment")?'+
+    'return v?.enabled&&v.groups?.entertainment===30&&v.sites?.length===0?'+
     '{managed:v.sites.length,minutes:v.groups.entertainment,used:v.usage,sites:v.sites}:null})()'),
-    'true first-activation default 30-minute shared pool',15000);
+    'first activation only prepares a 30-minute pool, no implicit sites',15000);
   report.zeroConfig='PASS';report.approval='PASS';
   report.heartbeat.enabled=await nativeFocusHeartbeat(client,sid,true,'enabled');
-  const expectedDefaultHosts=[...sourceConfig.backgroundPolicy.defaultSites].sort();
-  // The signed policy, not a stale hardcoded site count, is the only
-  // first-install authority. Assert EXACT membership to catch silent changes.
-  assert.equal(defaultPool.managed,expectedDefaultHosts.length,
-    'first activation must enroll each approved package default site exactly once');
-  assert.deepEqual(defaultPool.sites.map(site=>site.host).sort(),expectedDefaultHosts,
-    'first activation must neither omit approved defaults nor add extra websites');
-  assert.ok(defaultPool.sites.every(site=>site.enabled&&site.mode==='limit'&&site.group==='entertainment'));
-  assert.ok(!defaultPool.sites.some(site=>site.host==='github.com'),'work sites excluded by default');
-  note('native-zero-config',defaultPool);
-  report.screenshots.push(await screenshot(client,sid,'zero-config-30-minute-pool'));
+  assert.equal(defaultPool.managed,0,
+    'Chrome permission grant must not silently enroll package recommendations');
+  assert.ok(sourceConfig.backgroundPolicy.defaultSites.includes('youtube.com'),
+    'the signed package still offers optional website recommendations');
+  note('native-zero-config-no-auto-sites',defaultPool);
+  report.screenshots.push(await screenshot(client,sid,'zero-config-no-auto-sites'));
   // Return to the editor using real input only when settings are expanded.
   await ensureToolSettings(client,sid,false);
   // The native acceptance uses two minutes of real Chrome browsing, never
@@ -384,10 +377,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'daily total editable after activation',45000);
   await replaceField(client,frame,'#sf-daily-budget','2');
   await click(client,frame,'.sf-budget-form button');
-  await until(()=>evalRead(client,sid,
-    '!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'real trusted daily budget review');
-  await click(client,sid,'#sidebar-tool-action-continue');
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
+    'ordinary daily budget edit must not demand redundant trusted approval');
   await until(()=>evalRead(client,sid,
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.groups?.entertainment===2)'),
     'trusted two-minute shared quota',15000);
@@ -453,10 +445,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'document.querySelectorAll(".sf-editor select")[1]?.value'),'limit');
   await fill(client,frame,'.sf-editor input[placeholder="例如 youtube.com"]','localhost');
   await click(client,frame,'.sf-editor .sf-actions button');
-  await until(()=>evalRead(client,sid,
-    '!document.querySelector("#sidebar-tool-action-review").hidden'),
-    'second local host receives its real trusted Host review');
-  await click(client,sid,'#sidebar-tool-action-continue');
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
+    'ordinary site editor Add must not demand redundant trusted approval');
   await until(()=>evalRead(client,sid,
     'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"]?.sites?.some('+
     's=>s.host==="localhost"&&s.group==="entertainment"&&s.mode==="limit"&&s.enabled))'),
@@ -692,46 +683,48 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
 
   await until(()=>evalRead(client,frame,
     '!!document.querySelector(".sf-list .sf-site")'),'reopened React site management');
-  let youtubeIndex=await evalRead(client,frame,'[...document.querySelectorAll(".sf-list .sf-site")]'+
-    '.findIndex(n=>n.querySelector("strong")?.textContent==="youtube.com")+1');
-  if(youtubeIndex<1){
-    await click(client,frame,'.sf-show-all');
-    youtubeIndex=await until(()=>evalRead(client,frame,
-      '[...document.querySelectorAll(".sf-list .sf-site")]'+
-      '.findIndex(n=>n.querySelector("strong")?.textContent==="youtube.com")+1'),
-      'YouTube visible after expanding React site list');
-  }
-  const siteMenu='.sf-list .sf-site:nth-child('+youtubeIndex+') button[aria-label="管理 youtube.com"]';
-  const firstSiteMenuItem='.sf-list .sf-site:nth-child('+youtubeIndex+') [role="menuitem"]:first-child';
+  // Only websites explicitly added by the user should be present after reboot.
+  const managedIndex=await until(()=>evalRead(client,frame,
+    '[...document.querySelectorAll(".sf-list .sf-site")]'+
+    '.findIndex(n=>n.querySelector("strong")?.textContent==="localhost")+1'),
+    'explicitly added localhost visible in React site list');
+  const siteMenu='.sf-list .sf-site:nth-child('+managedIndex+') button[aria-label="管理 localhost"]';
+  const firstSiteMenuItem='.sf-list .sf-site:nth-child('+managedIndex+') [role="menuitem"]:first-child';
   await click(client,frame,siteMenu);
   assert.match(await evalRead(client,frame,
     'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/暂停/);
   await click(client,frame,firstSiteMenuItem);
-  await until(()=>evalRead(client,sid,
-    '!document.querySelector("#sidebar-tool-action-review").hidden'),'pause website Host review');
-  await click(client,sid,'#sidebar-tool-action-continue');
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
+    'ordinary Pause must not show redundant trusted approval');
   await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
-    'x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&!s.enabled))'),
+    'x["'+store+'"].sites.some(s=>s.host==="localhost"&&!s.enabled))'),
     'individual site paused by the React menu');
   report.sitePause=reached?'PASS':'PASS_UI_STATE_ONLY';
   await click(client,frame,siteMenu);
   assert.match(await evalRead(client,frame,
     'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/恢复/);
   await click(client,frame,firstSiteMenuItem);
-  await until(()=>evalRead(client,sid,
-    '!document.querySelector("#sidebar-tool-action-review").hidden'),'restore website Host review');
-  await click(client,sid,'#sidebar-tool-action-continue');
+  assert.equal(await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
+    'ordinary Resume must not show redundant trusted approval');
   await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
-    'x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&s.enabled))'),
+    'x["'+store+'"].sites.some(s=>s.host==="localhost"&&s.enabled))'),
     'individual site restored by React menu');
 
   // Native lifecycle: the user can stop enforcement without uninstalling and
   // re-enable with the original daily quota still exhausted. Never write
   // DNR rules or usage directly from the test harness.
-  const stopVisible=await evalRead(client,sid,
+  const settingsExpanded=await evalRead(client,sid,
+    'document.querySelector("#sidebar-tool-settings-open")?.getAttribute("aria-expanded")==="true"');
+  if(!settingsExpanded)await click(client,sid,'#sidebar-tool-settings-open');
+  const moreExpanded=await evalRead(client,sid,
+    'document.querySelector("#stay-focus-more-actions")?.open===true');
+  if(!moreExpanded)await click(client,sid,'#stay-focus-more-actions > summary');
+  await until(()=>evalRead(client,sid,
     '(()=>{const node=document.querySelector("#stay-focus-disable");'+
-    'return !!node&&!node.disabled&&node.getClientRects().length>0})()');
-  if(!stopVisible)await click(client,sid,'#sidebar-tool-settings-open');
+    'return !!node&&!node.disabled&&node.getClientRects().length>0})()'),
+    'secondary native Stop exposed by user expanding More Actions');
   await click(client,sid,'#stay-focus-disable');
   await until(async()=>{
     const state=await evalRead(client,sid,'(async()=>{const x=await chrome.storage.local.get("'+store+'");'+

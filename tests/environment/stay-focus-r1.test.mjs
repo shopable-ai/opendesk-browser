@@ -18,38 +18,67 @@ const at=new Date(2026,9,13,12,0,0).getTime();
 const mkSite=(host,overrides={})=>({host,subdomains:true,enabled:true,mode:'limit',minutes:15,group:'',...overrides});
 const tick=(state,time,site=null,options={})=>settleFocus(state,{at:time,session:'this-browser-session',
   current:site?{host:site.host,site,tabId:3,windowId:1}:null,...options});
-test('trusted enable requests only optional idle, and denial never enables Focus',async t=>{
-
+test('R5.9 first start requests optional idle once; denial never enables Focus',async t=>{
   for(const approved of [false,true]){
     const f=settingsReactFixture('stayFocus',t),requests=[],operations=[],notices=[];
+    let idle=false,enabled=false;
+    const readStatus=async()=>({enabled,authorized:enabled,sites:[],
+      permissions:{idle,dnr:true,ready:idle},ruleReceipt:{verified:true}});
     const controls=createStayFocusPermissionControls({
-      api:{permissions:{request(options){requests.push(options);return Promise.resolve(approved);}}},
-      ui:f.ui,
+      api:{permissions:{request(options){requests.push(options);idle=approved;
+        return Promise.resolve(approved);}}},
+      ui:f.ui,readStatus,
       notice:(text,error)=>notices.push({text,error}),
-      runOperation:async(operation,payload,event)=>operations.push({operation,payload,event})
+      runOperation:async(operation,payload,event)=>{
+        operations.push({operation,payload,event});enabled=true;return readStatus();
+      }
     });
     const tool={id:'stay-focus',capabilities:['focus.control']};
     controls.render(tool,false,false);
-    const grant=f.find('stay-focus-enable-native');
-    f.invoke(grant.id,{isTrusted:true});
+    assert.equal(f.find('stay-focus-enable-native'),null,'disabled tool hides the primary start');
+    f.invoke('stay-focus-enable-native',{isTrusted:true});
     assert.equal(requests.length,0,'disabled tool cannot request native access');
     controls.render(tool,false,true);
-    f.invoke(grant.id,{isTrusted:false});
-    assert.equal(requests.length,0,'synthetic clicks cannot grant idle or enable Focus');
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.ok(f.find('stay-focus-enable-native'));
+    f.invoke('stay-focus-enable-native',{isTrusted:false});
+    assert.equal(requests.length,0,'synthetic clicks cannot grant idle');
     const click={isTrusted:true};
-    f.invoke(grant.id,click);
+    f.invoke('stay-focus-enable-native',click);
+    f.invoke('stay-focus-enable-native',click);
     assert.deepEqual(requests,[{permissions:['idle']}],
-      'required shared DNR must never be requested as an optional permission');
+      'only one native idle request occurs in the genuine click stack');
     await new Promise(resolve=>setImmediate(resolve));
     assert.deepEqual(operations,approved?[{operation:'focus.enable',payload:{},event:click}]:[]);
     assert.equal(notices.at(-1).error,!approved);
+    if(approved){
+      assert.equal(f.model.phase,'active');
+      assert.equal(f.find('stay-focus-enable-native'),null,'active state hides repeat authorization');
+    }else assert.match(notices.at(-1).text,/空闲检测/);
     controls.dispose();await f.close();
-    if(!approved){
-      assert.match(notices.at(-1).text,/空闲检测/);
-      assert.doesNotMatch(notices.at(-1).text,/DNR/);
-    }
-    assert.equal(grant.disabled,false,'control recovers after approval or denial');
   }
+});
+test('R5.9 existing Chrome idle permission never causes another native prompt',async t=>{
+  const f=settingsReactFixture('stayFocus',t),requests=[],writes=[];
+  let enabled=false;
+  const readStatus=async()=>({enabled,authorized:enabled,sites:[],
+    permissions:{idle:true,dnr:true,ready:true},ruleReceipt:{verified:true}});
+  const controls=createStayFocusPermissionControls({
+    api:{permissions:{request:async()=>{requests.push(true);return true;}}},
+    ui:f.ui,notice:()=>{},readStatus,
+    runOperation:async(operation,payload,event)=>{
+      writes.push({operation,payload,event});enabled=true;return readStatus();
+    }
+  });
+  controls.render({id:'stay-focus',capabilities:['focus.control']},false,true);
+  await new Promise(resolve=>setImmediate(resolve));
+  f.invoke('stay-focus-enable-native',{isTrusted:true});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(requests.length,0,'already-granted idle cannot trigger Chrome dialog');
+  assert.equal(writes.length,1);
+  assert.equal(f.model.phase,'active');
+  assert.equal(f.find('stay-focus-enable-native'),null);
+  controls.dispose();
 });
 test('R3.1 Stay Focus CI resolves the current package version instead of pinning old artifacts',()=>{
   const workflow=readFileSync(new URL('../../.github/workflows/stay-focus-r1.yml',import.meta.url),'utf8');
@@ -323,29 +352,33 @@ test('internal block page uses a real window ID and never defers sidePanel.open 
 });
 
 
-test('R5.7 sandbox current-site display is read-only; native React owns the one-click writer',async()=>{
+test('R5.9 sandbox never acts on the current website; trusted React owns quick Add',async()=>{
   const ui=mountStayFocusReact({url:'https://m.youtube.com/watch?v=sample'});
   await ui.flush();
-  assert.equal(ui.button('加入'),null,'sandbox cannot offer a misleading second-click action');
-  assert.equal(ui.button('恢复'),null,'sandbox must not duplicate the native resume action');
-  assert.ok(ui.find(node=>node.type==='strong'&&ui.text(node)==='m.youtube.com'));
-  assert.ok(ui.find(node=>node.type==='span'&&ui.text(node)==='在上方一键加入'));
-  assert.equal(ui.writes.length,0,'reading current page never submits a rule');
+  assert.equal(ui.button('加入'),null,'sandbox must not duplicate native Add');
+  assert.equal(ui.button('恢复'),null,'sandbox must not duplicate native Resume');
+  assert.equal(ui.requests.includes('currentPage.info'),false,
+    'sandbox must not read the URL; only trusted Side Panel validates the live tab');
+  assert.equal(ui.writes.length,0);
+  assert.ok(ui.find(node=>node.props?.className==='sf-sites'),
+    'normal website management remains available');
   ui.unmount();assert.equal(ui.disposed,true);
 });
-test('R5.7 read-only current-page status does not widen forged hosts or resume paused rules',async()=>{
+test('R5.9 forged titles and paused sites never trigger implicit website mutations',async()=>{
   const forged=mountStayFocusReact({url:'https://youtube.com.attacker.test/',title:'YouTube'});
   await forged.flush();
-  assert.ok(forged.find(node=>node.type==='strong'&&
-    forged.text(node)==='youtube.com.attacker.test'));
+  assert.equal(forged.requests.includes('currentPage.info'),false);
   assert.equal(forged.writes.length,0);
+  forged.pageChange({status:'available',url:'https://m.youtube.com/'});
+  await forged.flush();
+  assert.equal(forged.writes.length,0,'page navigation cannot implicitly enroll a site');
   forged.unmount();
   const existing={host:'youtube.com',subdomains:true,enabled:false,mode:'always',
     minutes:8,group:''};
   const paused=mountStayFocusReact({url:'https://m.youtube.com/',sites:[existing]});
   await paused.flush();
-  assert.ok(paused.find(node=>node.type==='span'&&paused.text(node)==='已暂停'));
-  assert.equal(paused.button('恢复'),null,'resume belongs to verified native click');
+  assert.equal(paused.state.sites[0].enabled,false,'paused state is kept intact');
+  assert.equal(paused.button('恢复'),null,'quick Restore is native only');
   assert.equal(paused.writes.length,0);
   paused.unmount();
 });
@@ -486,7 +519,9 @@ test('R5.6 first-screen order is shared budget then sites, no preset buttons',()
   assert.match(script,/onKeyDown:navigateMenu/);
   assert.match(script,/if\(!e.currentTarget.contains\(e.relatedTarget\)\)setOpen\(false\)/);
   assert.doesNotMatch(script,/data-budget|sf-budget-presets|budget-presets/);
-  assert.match(script,/currentPage\.info/);
+  assert.match(script,/opendesk-page-changed/,'sandbox listens for updates without owning URL permissions');
+  assert.ok(script.indexOf('临时屏蔽网站')>script.indexOf('更多设置'));
+  assert.doesNotMatch(script,/临时专注|className:'sf-session'/);
 });
 
 test('R5.6 React has button-driven budget, site, schedule, group and whitelist writes',()=>{
@@ -495,7 +530,8 @@ test('R5.6 React has button-driven budget, site, schedule, group and whitelist w
     'focus.schedule.set','focus.whitelist.set','focus.session.start','focus.session.stop'])
     assert.ok(script.includes(operation),'missing business operation: '+operation);
   assert.doesNotMatch(script,/addEventListener\('submit'|type=['"]submit['"]/);
-  assert.match(script,/request\('currentPage\.info'/);
+  assert.doesNotMatch(script,/request\('currentPage\.info'/,
+    'current-site discovery belongs to extension-owned trusted React');
   assert.match(script,/request\('focus\.status'/);
   assert.match(script,/writing\.current/);
   assert.match(script,/readId\.current\+\+/);
