@@ -1,4 +1,6 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
+import {createExtensionCenterDOM} from '../helpers/extension-center-react-dom.mjs';
+import {parseHTML} from 'linkedom';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -18,68 +20,8 @@ async function settle(predicate){
   assert.ok(predicate(),'R4.7 DOM state failed to settle');
 }
 
-// Real Extension Center module, DOM/RPC doubles only. Synthetic isTrusted values
-// exercise guards and MUST NOT be reported as actual Chrome trusted input.
-class ElementDouble {
-  constructor(tag,doc){
-    this.tagName=tag;this.ownerDocument=doc;this.children=[];this.parentNode=null;
-    this.listeners=new Map();this.dataset={};this.style={};this.attributes=new Map();
-    this._text='';this.className='';this.hidden=false;this.disabled=false;this.scrollTop=0;
-    this.classList={add:name=>{this.className=[...new Set([...this.className.split(/\s+/).filter(Boolean),name])].join(' ');}};
-  }
-  get textContent(){return this._text+this.children.map(child=>child.textContent).join('');}
-  set textContent(value){this.replaceChildren();this._text=String(value);}
-  get isConnected(){return this===this.ownerDocument.body||Boolean(this.parentNode?.isConnected);}
-  get childElementCount(){return this.children.length;}
-  get offsetWidth(){return this.tagName==='div'&&this.attributes.get('role')==='menu'?192:34;}
-  get offsetHeight(){return this.attributes.get('role')==='menu'?Math.max(40,this.children.length*38+10):35;}
-  getBoundingClientRect(){return {left:214,right:246,top:488,bottom:524,width:32,height:36};}
-  setAttribute(k,v){this.attributes.set(k,String(v));}
-  getAttribute(k){return this.attributes.get(k)??null;}
-  addEventListener(k,fn){const list=this.listeners.get(k)||[];list.push(fn);this.listeners.set(k,list);}
-  removeEventListener(k,fn){this.listeners.set(k,(this.listeners.get(k)||[]).filter(x=>x!==fn));}
-  dispatch(type,extra={}){
-    const event={type,isTrusted:true,target:this,currentTarget:this,defaultPrevented:false,
-      preventDefault(){this.defaultPrevented=true;},...extra};
-    if(type==='click'&&this.disabled)return event;
-    for(const fn of this.listeners.get(type)||[])fn(event);
-    return event;
-  }
-  append(...children){
-    for(const child of children){
-      if(child.parentNode)child.parentNode.children.splice(child.parentNode.children.indexOf(child),1);
-      child.parentNode=this;this.children.push(child);
-    }
-  }
-  replaceChildren(...children){
-    if(this.children.some(node=>node.contains(this.ownerDocument.activeElement)))
-      this.ownerDocument.activeElement=this.ownerDocument.body;
-    for(const node of this.children)node.parentNode=null;
-    this.children=[];this._text='';this.append(...children);
-  }
-  contains(node){return Boolean(node)&&(node===this||this.children.some(child=>child.contains(node)));}
-  matches(selector){
-    const tag=selector.match(/^(button|div|span|li)(?=\[|$)/)?.[1];
-    if(tag&&this.tagName!==tag)return false;
-    const attrs=[...selector.matchAll(/\[([a-zA-Z0-9-]+)(?:="([^"]*)")?\]/g)];
-    if(!attrs.length)return selector===this.tagName;
-    return attrs.every(([,name,val])=>{
-      const key=name.slice(5).replace(/-([a-z])/g,(_,char)=>char.toUpperCase());
-      const got=name.startsWith('data-')?this.dataset[key]:this.getAttribute(name);
-      return val===undefined?got!==undefined:String(got)===val;
-    });
-  }
-  querySelectorAll(selector){
-    const nodes=[];
-    const walk=node=>{for(const child of node.children){if(child.matches(selector))nodes.push(child);walk(child);}};
-    walk(this);return nodes;
-  }
-  querySelector(selector){return this.querySelectorAll(selector)[0]??null;}
-  focus(){this.ownerDocument.activeElement=this;}
-  scrollTo({top}){this.scrollTop=top;}
-  remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(node=>node!==this);this.parentNode=null;}
-}
-
+// Actual controller + React page in a DOM emulator; service responses and
+// synthetic trusted event values do not establish native Chrome evidence.
 const app={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',title:'快速笔记',description:'记录内容',version:'1.0.0',
   capabilities:['storage.local'],html:'<main>Notes</main>',css:'',js:'void 0;'};
 const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
@@ -90,39 +32,8 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
 }});
 
 function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null}={}){
-  const doc={listeners:new Map(),defaultView:{innerWidth:360,innerHeight:640},
-    documentElement:{clientWidth:360,clientHeight:640}};
-  doc.createElement=tag=>new ElementDouble(tag,doc);
-  doc.body=doc.createElement('body');doc.activeElement=doc.body;
-  doc.addEventListener=(type,fn)=>{const arr=doc.listeners.get(type)||[];arr.push(fn);doc.listeners.set(type,arr);};
-  doc.removeEventListener=(type,fn)=>doc.listeners.set(type,(doc.listeners.get(type)||[]).filter(x=>x!==fn));
-  doc.dispatch=(type,event={})=>{
-    const e={type,key:'',target:doc.body,preventDefault(){this.prevented=true;},...event};
-    for(const fn of doc.listeners.get(type)||[])fn(e);return e;
-  };
-  const ids=['extension-center-list','extension-center-search','extension-center-list-view',
-    'extension-center-detail','extension-center-more','extension-center-menu',
-    'extension-center-status','workspace-content','extension-center-empty',
-    'extension-center-empty-text','extension-center-count','extension-center-cleanups','extension-center-back',
-    'extension-center-detail-body','extension-center-reset','extension-center-import',
-    'extension-center-reload','extension-center-market','extension-center-menu-wrap',
-    'sidebar-tool-file'];
-  const nodes=Object.fromEntries(ids.map(id=>{const node=doc.createElement('div');node.id=id;return [id,node];}));
-  doc.getElementById=id=>nodes[id]??null;
-  nodes['extension-center-list-view'].append(nodes['extension-center-search'],nodes['extension-center-list'],
-    nodes['extension-center-empty'],nodes['extension-center-empty-text'],nodes['extension-center-count']);
-  nodes['extension-center-menu-wrap'].append(nodes['extension-center-more'],nodes['extension-center-menu']);
-  nodes['extension-center-detail'].hidden=true;
-  nodes['extension-center-menu'].hidden=true;
-  const installedScope=doc.createElement('button');installedScope.dataset.ecScope='smart';
-  const availableScope=doc.createElement('button');availableScope.dataset.ecScope='available';
-  const appKind=doc.createElement('button');appKind.dataset.ecKind='app';
-  const pageKind=doc.createElement('button');pageKind.dataset.ecKind='page';
-  nodes['extension-center-menu'].append(installedScope,availableScope,appKind,pageKind);
-  nodes['extension-center-list-view'].append(nodes['extension-center-cleanups']);
-  nodes['extension-center-detail'].append(nodes['extension-center-back'],nodes['extension-center-detail-body']);
-  doc.body.append(nodes['extension-center-list-view'],nodes['extension-center-detail'],
-    nodes['extension-center-status'],nodes['extension-center-menu-wrap'],nodes['workspace-content']);
+  const {doc,adapter}=createExtensionCenterDOM(t);
+  const nodes=new Proxy({}, {get:(_,id)=>doc.getElementById(id)});
   const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],
     [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
   if(cleanupRows)store.set(TOOL_CLEANUP_STORE,structuredClone(cleanupRows));
@@ -206,12 +117,12 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     openImport(){invocations.push(['import']);return true;}
   };
   const taskWorkbench={navigate(tab){invocations.push(['navigate',tab]);return true;}};
-  const ui=createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench});
+  const ui=createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,extensionList:adapter});
   t.after(()=>ui.dispose());
   const list=nodes['extension-center-list'];
-  const buttons=key=>list.querySelectorAll('button[data-extension-key]').filter(node=>node.dataset.extensionKey===key);
+  const buttons=key=>[...list.querySelectorAll('button[data-extension-key]')].filter(node=>node.dataset.extensionKey===key);
   const button=(key,action)=>buttons(key).find(node=>node.dataset.extensionAction===action);
-  const rowMenu=()=>doc.body.children.find(node=>node.id==='extension-center-row-menu');
+  const rowMenu=()=>doc.getElementById('extension-center-row-menu');
   const menuItem=text=>rowMenu()?.children.find(node=>node.textContent.includes(text));
   return {doc,nodes,ui,store,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
@@ -226,12 +137,12 @@ test('R4.7 actual row buttons are 0-or-1 and full-row/visible action share the s
   const f=fixture(t);
   await f.ui.refresh();
   const appButtons=f.buttons('app:quick-notes');
-  assert.deepEqual(appButtons.map(n=>n.dataset.extensionAction),['main','primary','more']);
+  assert.deepEqual(appButtons.map(n=>n.dataset.extensionAction),['main','primary','uninstall','more']);
   f.button('app:quick-notes','main').dispatch('click');
   f.button('app:quick-notes','primary').dispatch('click');
   assert.deepEqual(f.invocations.filter(x=>x[0]==='open'),[['open','quick-notes'],['open','quick-notes']]);
   const pageButtons=f.buttons('page:reader');
-  assert.deepEqual(pageButtons.map(n=>n.dataset.extensionAction),['main','more']);
+  assert.deepEqual(pageButtons.map(n=>n.dataset.extensionAction),['main','uninstall','more']);
   assert.equal(f.button('page:reader','primary'),undefined);
   f.button('page:reader','main').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false,'Page row opens detail, not code');
@@ -243,7 +154,7 @@ test('R4.7 actual row buttons are 0-or-1 and full-row/visible action share the s
 
 test('R4.7 stopped app has no fake Settings main; overflow enable uses the sole trusted host route',async t=>{
   const f=fixture(t,{disabled:true});await f.ui.refresh();
-  assert.deepEqual(f.buttons('app:quick-notes').map(n=>n.dataset.extensionAction),['main','more']);
+  assert.deepEqual(f.buttons('app:quick-notes').map(n=>n.dataset.extensionAction),['main','uninstall','more']);
   const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
   assert.match(row.children[0].textContent,/已停用/);
   f.button('app:quick-notes','main').dispatch('click');
@@ -276,8 +187,9 @@ test('R5.5 installed Page survives loss or replacement of development candidates
 test('R5.5 Page uninstall confirmation cancels without writes then deletes only after verified readback',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
-  const action=id=>f.nodes['extension-center-detail-body']
-    .querySelector('[data-ec-detail-action="'+id+'"]');
+  const action=id=>id==='confirm-uninstall'?f.doc.querySelector('.od-uninstall-confirm'):
+    id==='cancel-uninstall'?f.doc.querySelector('[data-uninstall-cancel]'):
+    f.nodes['extension-center-detail-body'].querySelector('[data-ec-detail-action="'+id+'"]');
   assert.ok(action('uninstall'),'uninstall is in Extensions detail');
   action('uninstall').dispatch('click');
   assert.equal(f.uninstalls.length,0);
@@ -296,11 +208,63 @@ test('R5.5 Page uninstall confirmation cancels without writes then deletes only 
   assert.deepEqual(f.writes,[],'uninstall never toggles an unrelated grant');
 });
 
+test('R5.4.1 list uninstall distinguishes same-name apps and returns focus after every cancellation path',async t=>{
+  const f=fixture(t,{installedRows:[app,{...app,id:'notes-two',version:'2.0.0'}]});await f.ui.refresh();
+  const trigger=f.button('app:notes-two','uninstall');
+  const cancelPaths=[()=>f.doc.querySelector('[data-uninstall-cancel]').dispatch('click'),
+    ()=>f.doc.querySelector('[aria-label="关闭卸载确认"]').dispatch('click'),
+    ()=>f.doc.dispatch('keydown',{key:'Escape'}),
+    ()=>f.doc.querySelector('.od-uninstall-backdrop').dispatch('click')];
+  for(const cancel of cancelPaths){
+    trigger.focus();trigger.dispatch('click');
+    const panel=f.doc.querySelector('[role="dialog"]');
+    assert.match(panel.textContent,/ID：notes-two/);
+    assert.doesNotMatch(panel.textContent,/版本：v(?:undefined|null)/,
+      'the list model omits versions; presentation must not invent one');
+    assert.match(f.doc.getElementById(panel.getAttribute('aria-describedby')).textContent,/本地数据与网站授权.*不可撤销/);
+    cancel();
+    assert.equal(f.doc.querySelector('[role="dialog"]'),null);
+    assert.equal(f.doc.activeElement,trigger);
+    assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,2,'cancellation never changes persistent installation records');
+  }
+});
+
+test('R5.4.1 pending list uninstall dispatches once and a failed Host action permits a newly reviewed retry',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  let rejectOperation,calls=0,originalEvent;
+  f.sidebarTools.uninstallFromList=(id,baseline,event)=>{
+    calls++;originalEvent=event;
+    assert.equal(id,app.id);assert.deepEqual(baseline,app);
+    return new Promise((resolve,reject)=>{rejectOperation=reject;});
+  };
+  f.button('app:quick-notes','uninstall').dispatch('click');
+  const confirm=f.doc.querySelector('.od-uninstall-confirm');
+  const event=confirm.dispatch('click');confirm.dispatch('click');
+  assert.equal(originalEvent,event,'confirmation keeps the originating native event');
+  assert.equal(calls,1);assert.equal(confirm.disabled,true);
+  assert.equal(f.doc.querySelector('[data-uninstall-cancel]').disabled,true);
+  assert.equal(f.doc.activeElement,f.doc.querySelector('[role="dialog"]'));
+  f.doc.dispatch('keydown',{key:'Escape'});
+  f.doc.querySelector('.od-uninstall-backdrop').dispatch('click');
+  assert.ok(f.doc.querySelector('[role="dialog"]'),'pending removal cannot be dismissed and reissued');
+  rejectOperation(Object.assign(Error('fixture uninstall failed'),{code:'E_FIXTURE_UNINSTALL'}));
+  await settle(()=>f.doc.querySelector('[role="dialog"]')===null);
+  assert.equal(calls,1,'failure never causes an automatic retry');
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,1);
+  assert.match(f.nodes['extension-center-status'].textContent,/E_FIXTURE_UNINSTALL.*不会自动重试/);
+  assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
+  const retry=f.button('app:quick-notes','uninstall');assert.equal(retry.disabled,false);
+  retry.dispatch('click');assert.ok(f.doc.querySelector('[role="dialog"]'));
+  assert.equal(calls,1,'opening a fresh review still requires a new confirmation');
+  f.doc.querySelector('[data-uninstall-cancel]').dispatch('click');
+});
+
 test('R5.5 stale Page generation invalidates an old uninstall confirmation before a write',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
-  const action=id=>f.nodes['extension-center-detail-body']
-    .querySelector('[data-ec-detail-action="'+id+'"]');
+  const action=id=>id==='confirm-uninstall'?f.doc.querySelector('.od-uninstall-confirm'):
+    id==='cancel-uninstall'?f.doc.querySelector('[data-uninstall-cancel]'):
+    f.nodes['extension-center-detail-body'].querySelector('[data-ec-detail-action="'+id+'"]');
   action('uninstall').dispatch('click');
   f.programs[0].installed.authorization.generation++;
   await f.ui.refresh();
@@ -313,8 +277,9 @@ for(const mode of ['native-fail','cleanup-unknown','ack-only','outcome-unknown']
   test('R5.5 Page uninstall '+mode+' never fabricates success or automatically retries',async t=>{
     const f=fixture(t);f.setPageUninstallMode(mode);await f.ui.refresh();
     f.button('page:reader','main').dispatch('click');
-    const action=id=>f.nodes['extension-center-detail-body']
-      .querySelector('[data-ec-detail-action="'+id+'"]');
+    const action=id=>id==='confirm-uninstall'?f.doc.querySelector('.od-uninstall-confirm'):
+      id==='cancel-uninstall'?f.doc.querySelector('[data-uninstall-cancel]'):
+      f.nodes['extension-center-detail-body'].querySelector('[data-ec-detail-action="'+id+'"]');
     action('uninstall').dispatch('click');action('confirm-uninstall').dispatch('click');
     await settle(()=>f.uninstalls.length===1);
     await settle(()=>f.nodes['extension-center-status'].dataset.state==='error'&&
@@ -341,7 +306,7 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   assert.match(f.doc.activeElement.textContent,/停用自动运行/);
   const esc=f.doc.dispatch('keydown',{key:'Escape'});
   assert.equal(esc.prevented,true);
-  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.rowMenu(),null);
   assert.equal(f.doc.activeElement,more);
   more.dispatch('click');
   f.menuItem('停用自动运行').dispatch('click');
@@ -364,7 +329,7 @@ test('R33.3.4 extension menu arrows stay scoped and Tab restores focus',async t=
   f.menuItem('查看详情').focus();
   const tab=f.doc.dispatch('keydown',{key:'Tab'});
   assert.equal(tab.prevented,undefined,'Native Tab traversal must remain available');
-  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.rowMenu(),null);
   assert.equal(f.doc.activeElement,more,'Focus returns to live trigger before native Tab');
 });
 
@@ -529,10 +494,10 @@ test('R4.7 context menu closes on outside click/scroll and never stays outside v
   assert.ok(Number.parseInt(f.rowMenu().style.top,10)>=8);
   assert.ok(Number.parseInt(f.rowMenu().style.top,10)<640);
   f.doc.dispatch('click',{target:f.nodes['extension-center-search']});
-  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.rowMenu(),null);
   more.dispatch('click');assert.equal(f.rowMenu().hidden,false);
   f.doc.dispatch('scroll');
-  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.rowMenu(),null);
   assert.equal(more.getAttribute('aria-expanded'),'false');
 });
 
@@ -589,7 +554,7 @@ test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible st
   enabled.button('app:quick-notes','more').dispatch('click');
   enabled.menuItem('查看详情').dispatch('click');
   assert.equal(enabled.nodes['extension-center-detail'].hidden,false);
-  const enabledActions=enabled.nodes['extension-center-detail-body'].querySelectorAll('button')
+  const enabledActions=[...enabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
     .map(button=>button.textContent);
   assert.deepEqual(enabledActions,['设置与权限'],
     'the verified primary Open belongs on the list, not duplicated inside Details');
@@ -600,7 +565,7 @@ test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible st
   assert.equal(disabled.nodes['extension-center-detail'].hidden,false);
   assert.match(disabled.nodes['extension-center-detail-body'].textContent,/已停用 · 记录内容/,
     'detail introduction preserves the same stopped-state message as the list and preview');
-  assert.deepEqual(disabled.nodes['extension-center-detail-body'].querySelectorAll('button')
+  assert.deepEqual([...disabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
     .map(button=>button.textContent),['设置与权限']);
 });
 
@@ -618,9 +583,9 @@ test('R4.8 background refresh restores row-menu keyboard focus',async t=>{
   const f=fixture(t);await f.ui.refresh();
   const more=f.button('app:quick-notes','more');more.dispatch('click');
   assert.equal(f.rowMenu().hidden,false);
-  assert.equal(f.doc.activeElement.tagName,'button');
+  assert.equal(f.doc.activeElement.tagName,'BUTTON');
   await f.ui.refresh();
-  assert.equal(f.rowMenu().hidden,true);
+  assert.equal(f.rowMenu(),null);
   assert.equal(f.doc.activeElement.dataset.extensionKey,'app:quick-notes');
   assert.equal(f.doc.activeElement.dataset.extensionAction,'more');
 });
@@ -681,14 +646,15 @@ test('R4.8 historical reference preserves the production toolbar action contract
     renderSidebarFixture(),
     readFile('prototypes/sidebar/extension-center-r47-frequency-first-preview.html','utf8')
   ]);
-  const toolbar=(source,endMarker)=>{
-    const start=source.indexOf('            <div class="ec-toolbar">');
-    const end=source.indexOf(endMarker,start);
-    assert.ok(start>=0&&end>start,'toolbar not found');
-    return source.slice(start,end).trim();
+  const toolbar=(source,hostId)=>{
+    const doc=parseHTML(source).document;
+    const element=doc.querySelector('.ec-toolbar'),host=doc.getElementById(hostId);
+    assert.ok(element&&host,'toolbar and import host must exist');
+    assert.equal(element.nextElementSibling,host,'toolbar must immediately precede the import host');
+    return element.outerHTML;
   };
-  const formal=toolbar(html,'            <div id="extension-center-import-host"');
-  const demo=toolbar(preview,'          <div id="preview-import-host"');
+  const formal=toolbar(html,'extension-center-import-host');
+  const demo=toolbar(preview,'preview-import-host');
   // Preserve the reviewed historical reference; the current React preview
   // has its own source-bound generator and check. Product copy may advance.
   const controls=source=>[...source.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]).sort();
@@ -838,5 +804,6 @@ test('R5.0 official catalog stale responses and failures must be rejected by sou
   assert.match(center,/const id=\+\+officialSequence/);
   assert.match(center,/id===officialSequence/);
   assert.match(center,/official=\[\];catalogError=/);
-  assert.match(center,/officialSequence\+\+;closeRowMenu/);
+  assert.match(center,/return \{refresh,dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
+    'dispose invalidates both asynchronous sequences and pending reviews before closing the menu');
 });

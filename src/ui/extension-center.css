@@ -178,6 +178,9 @@
   box-shadow:0 18px 48px rgba(16,26,42,.26)}
 .od-uninstall-dialog h2{margin:0;font-size:16px;line-height:1.4;font-weight:650;
   overflow-wrap:anywhere}
+.od-uninstall-dialog-head{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0}
+.od-uninstall-dialog-head h2{flex:1;min-width:0}
+.od-uninstall-dialog-head .od-uninstall-close{flex-shrink:0}
 .od-uninstall-dialog p{margin:0;font-size:12px;line-height:1.6;color:var(--od-sub);
   overflow-wrap:anywhere}
 .od-uninstall-dialog #sidebar-tool-inline-remove{border:0;margin:0;padding:0;

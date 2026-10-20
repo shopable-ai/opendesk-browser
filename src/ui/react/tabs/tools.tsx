@@ -64,24 +64,47 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onU
 
 /** Shared confirmation shell; the trusted controller still owns uninstall. */
 export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
-  onCancel,returnFocusSelector,children}) {
-  const panelRef=React.useRef(null),titleId=React.useId();
+  onCancel,returnFocusSelector,description,identity,children}) {
+  const panelRef=React.useRef(null),titleId=React.useId(),descriptionId=React.useId();
   const latest=React.useRef({busy,onCancel});
   latest.current={busy,onCancel};
+  const cancel=event=>{
+    if(!latest.current.busy)latest.current.onCancel?.(event.nativeEvent||event);
+  };
   React.useLayoutEffect(()=>{
     if(!open)return;
     const panel=panelRef.current;
     if(!panel)return;
-    const doc=panel.ownerDocument,root=doc.getElementById('opendesk-react-app');
-    const previous=doc.activeElement,previousInert=root?.inert;
+    const doc=panel.ownerDocument,overlay=panel.parentElement;
+    const previous=doc.activeElement;
     const previousOverflow=doc.body.style.overflow;
-    if(root)root.inert=true;
+    const isolated=new Map();
+    const isolate=()=>{
+      for(const node of doc.body.children){
+        if(node===overlay||node.contains(overlay)||isolated.has(node))continue;
+        isolated.set(node,{inert:node.inert,hidden:node.getAttribute('aria-hidden')});
+        node.inert=true;node.setAttribute('aria-hidden','true');
+      }
+    };
+    isolate();
+    const observer=new doc.defaultView.MutationObserver(isolate);
+    observer.observe(doc.body,{childList:true});
     doc.body.style.overflow='hidden';
-    (panel.querySelector('[data-uninstall-cancel]')||panel).focus({preventScroll:true});
+    // The legacy ToolHost provides its own description paragraph and actions.
+    const explanation=panel.querySelector('p:not(.od-uninstall-identity)');
+    if(explanation){
+      if(!explanation.id)explanation.id=descriptionId;
+      panel.setAttribute('aria-describedby',explanation.id);
+    }
+    const focusInside=()=>{
+      (panel.querySelector('[data-uninstall-cancel]:not([disabled])')||panel).focus({preventScroll:true});
+    };
+    focusInside();
+    const onFocusIn=event=>{if(!panel.contains(event.target))focusInside();};
     const onKeyDown=event=>{
       if(event.key==='Escape'){
         event.preventDefault();event.stopPropagation();
-        if(!latest.current.busy)latest.current.onCancel?.(event);
+        cancel(event);
         return;
       }
       if(event.key!=='Tab')return;
@@ -97,27 +120,54 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
       }
     };
     doc.addEventListener('keydown',onKeyDown,true);
+    doc.addEventListener('focusin',onFocusIn,true);
     return ()=>{
+      observer.disconnect();
       doc.removeEventListener('keydown',onKeyDown,true);
+      doc.removeEventListener('focusin',onFocusIn,true);
       doc.body.style.overflow=previousOverflow;
-      if(root)root.inert=previousInert;
+      for(const [node,value] of isolated){
+        node.inert=Boolean(value.inert);
+        if(value.hidden===null)node.removeAttribute('aria-hidden');
+        else node.setAttribute('aria-hidden',value.hidden);
+      }
       const preferred=returnFocusSelector?doc.querySelector(returnFocusSelector):null;
-      const visible=node=>node?.isConnected&&!node.closest?.('[hidden]')&&
+      const visible=node=>node?.isConnected&&!node.disabled&&!node.closest?.('[hidden],[inert]')&&
         node.getClientRects().length>0;
+      const replacement=previous?.dataset?.extensionKey?[...doc.querySelectorAll('[data-extension-key]')]
+        .find(node=>node.dataset.extensionKey===previous.dataset.extensionKey&&
+          node.dataset.extensionAction===previous.dataset.extensionAction):null;
       const target=visible(preferred)?preferred:
-        visible(previous)?previous:doc.getElementById('extension-center-search');
+        visible(previous)?previous:visible(replacement)?replacement:doc.getElementById('extension-center-search');
       target?.focus?.({preventScroll:true});
     };
   },[open,returnFocusSelector]);
+  React.useLayoutEffect(()=>{
+    const panel=panelRef.current;
+    if(open&&busy&&panel?.contains(panel.ownerDocument.activeElement)&&
+      panel.ownerDocument.activeElement.disabled)panel.focus({preventScroll:true});
+  },[open,busy]);
   if(!open)return null;
   const surface=<div className="od-uninstall-overlay">
     <button type="button" className="od-uninstall-backdrop" tabIndex={-1}
       aria-label="取消卸载" disabled={busy}
-      onClick={event=>onCancel?.(event.nativeEvent)}/>
+      onClick={cancel}/>
     <section ref={panelRef} className="od-uninstall-dialog" tabIndex={-1}
-      role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy={busy}>
-      <h2 id={titleId}>{title}</h2>
+      role="dialog" aria-modal="true" aria-labelledby={titleId}
+      aria-describedby={description?descriptionId:undefined} aria-busy={busy}>
+      <div className="od-uninstall-dialog-head">
+        <h2 id={titleId}>{title}</h2>
+        <IconButton className="od-uninstall-close" label="关闭卸载确认" disabled={busy} onClick={cancel}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </IconButton>
+      </div>
+      {identity?.key&&<p className="od-uninstall-identity">
+        {identity.kind==='page'?'网页增强':'应用'} · ID：{identity.key.slice(identity.key.indexOf(':')+1)}
+        {identity.version!=null&&' · '+(identity.kind==='page'?'修订：r':'版本：v')+identity.version}
+      </p>}
+      {description&&<p id={descriptionId}>{description}</p>}
       {children}
+      {busy&&<p role="status" aria-live="polite">正在卸载，请稍候…</p>}
     </section>
   </div>;
   return typeof document==='undefined'?surface:createPortal(surface,document.body);
@@ -328,6 +378,9 @@ export function ExtensionCenterPage({
 }){
   const detailVisible=view==='detail';
   const detailRef=React.useRef(null),pageRef=React.useRef(null);
+  // Presentation snapshot of the clicked row; the controller alone pins and
+  // rechecks the installation identity before any destructive operation.
+  const uninstallTargetRef=React.useRef(null);
   React.useEffect(()=>{
     const doc=pageRef.current?.ownerDocument;
     if(!doc)return;
@@ -352,7 +405,11 @@ export function ExtensionCenterPage({
       </span>
       <ul id="extension-center-list" className="ec-list" aria-label="扩展中心当前筛选列表"
         aria-busy={Boolean(rowsModel.busy||rowsModel.pendingKey)}>
-        <ExtensionRows {...rowsModel} menuKey={menuKey}/>
+        <ExtensionRows {...rowsModel} menuKey={menuKey} onUninstall={(key,event)=>{
+          const row=rowsModel.rows.find(row=>row.key===key);
+          uninstallTargetRef.current=row?{key:row.key,kind:row.kind,version:row.version}:null;
+          rowsModel.onUninstall?.(key,event);
+        }}/>
       </ul>
       <div id="extension-center-cleanups" className="ec-empty" aria-live="polite"
         hidden={!recoveryModel?.ids?.length}>
@@ -377,26 +434,30 @@ export function ExtensionCenterPage({
     <UninstallDialog open={detailVisible&&Boolean(detailModel?.confirmation)}
       title={'卸载「'+(detailModel?.title||'网页增强')+'」？'}
       busy={Boolean(detailModel?.busy)}
+      identity={detailModel}
+      description={detailModel?.confirmation?.text||''}
       returnFocusSelector='#extension-center-detail [data-ec-detail-action="uninstall"]'
       onCancel={event=>detailModel?.confirmation?.onCancel(event)}>
-      <p>{detailModel?.confirmation?.text||''}</p>
       <div className="od-uninstall-dialog-actions">
         <Button data-uninstall-cancel="true" disabled={Boolean(detailModel?.busy)}
           onClick={event=>detailModel?.confirmation?.onCancel(event.nativeEvent)}>取消</Button>
         <Button className="od-uninstall-confirm" disabled={Boolean(detailModel?.busy)}
-          onClick={event=>detailModel?.confirmation?.onConfirm(event.nativeEvent)}>确认卸载</Button>
+          onClick={event=>detailModel?.confirmation?.onConfirm(event.nativeEvent)}>
+          {detailModel?.busy?'正在卸载…':'确认卸载'}</Button>
       </div>
     </UninstallDialog>
     <UninstallDialog open={Boolean(uninstallModel)}
       title={uninstallModel?.title||'卸载扩展？'}
       busy={Boolean(uninstallModel?.busy)}
+      identity={uninstallModel?.identity||uninstallTargetRef.current}
+      description={uninstallModel?.text||''}
       onCancel={event=>uninstallModel?.onCancel?.(event)}>
-      <p>{uninstallModel?.text||''}</p>
       <div className="od-uninstall-dialog-actions">
         <Button data-uninstall-cancel="true" disabled={Boolean(uninstallModel?.busy)}
           onClick={event=>uninstallModel?.onCancel?.(event.nativeEvent)}>取消</Button>
         <Button className="od-uninstall-confirm" disabled={Boolean(uninstallModel?.busy)}
-          onClick={event=>uninstallModel?.onConfirm?.(event.nativeEvent)}>确认卸载</Button>
+          onClick={event=>uninstallModel?.onConfirm?.(event.nativeEvent)}>
+          {uninstallModel?.busy?'正在卸载…':'确认卸载'}</Button>
       </div>
     </UninstallDialog>
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}
