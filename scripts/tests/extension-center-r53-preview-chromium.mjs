@@ -117,6 +117,9 @@ try{
   await cdp('Page.enable');
   evidence.browser=await cdp('Browser.getVersion');
   await cdp('Emulation.setDeviceMetricsOverride',viewport);
+  await visit('');
+  assert.equal(await evaluate('document.documentElement.dataset.opendeskTab'),'tools',
+    'The standalone HTML file must open the complete Extensions tab by default');
   await visit('?tab=tools');
   assert.equal(await evaluate('document.querySelector("#workbench-tools #trusted-history-panel")'),null,
     'History must not mount in Extensions');

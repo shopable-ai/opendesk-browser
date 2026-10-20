@@ -4,6 +4,13 @@ on:
     branches: [main]
     paths:
       - 'src/ui/react/**'
+      - 'src/ui/develop-*.js'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/my-workbench-view.js'
+      - 'src/ui/sidebar-tools-view.js'
+      - 'src/ui/workflow/**'
+      - 'examples/sidebar-tools/bookmark-manager/src/**'
       - 'src/ui/tool-shell.js'
       - 'src/ui/sidepanel.html'
       - 'src/ui/extension-center.css'

@@ -45,7 +45,7 @@ import {createWorkflowUIState} from ${JSON.stringify(join(root,'src/ui/workflow/
 const proof={scope:'UI_PREVIEW_ONLY',realHost:false,realPermission:false,realResult:false};
 const names=['tasks','tools','workflow','develop','cloud','debug'];
 const initial=new URLSearchParams(location.search).get('tab');
-document.documentElement.dataset.opendeskTab=names.includes(initial)?initial:'tasks';
+document.documentElement.dataset.opendeskTab=names.includes(initial)?initial:'tools';
 const developerView=createDeveloperPreviewView();
 for(const id of ['page-candidate-save','page-program-refresh'])
   if(developerView.fields[id])developerView.patch(id,{disabled:true});
