@@ -58,8 +58,17 @@ const KEYS=[SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_
 export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}){
   if(!doc||!win||win.top!==win||!/^https?:\/\//i.test(win.location.href)||
     !api?.storage?.local?.get||!api.storage?.onChanged)return null;
+  let runtimeId;
+  try{runtimeId=api.runtime?.id;}catch{return null;}
+  if(!runtimeId)return null;
   if(win[SLOT])return win[SLOT];
   let model=MODEL,disposed=false,paused=false,epoch=0,href=win.location.href,visible=false;
+  const runtimeCurrent=()=>{
+    if(disposed)return false;
+    try{if(api.runtime?.id===runtimeId)return true;}catch{}
+    // A reloaded extension can leave this context's DOM and timers alive.
+    dispose();return false;
+  };
   let host=null,shadow=null,rail=null,tip=null,tipOwner=null,hideTipTimer=0;
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
   let items=[],observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
@@ -80,7 +89,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     const root=doc.documentElement,token=epoch,url=win.location.href;
     let alive=true;
     const resources=new Set();
-    const current=()=>alive&&!disposed&&!paused&&visible&&token===epoch&&
+    const current=()=>runtimeCurrent()&&alive&&!paused&&visible&&token===epoch&&
       url===win.location.href&&root===doc.documentElement;
     const track=cleanup=>{
       resources.add(cleanup);
@@ -759,7 +768,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     schedule();
   }
   async function refresh(){
-    if(disposed||paused)return;
+    if(!runtimeCurrent()||paused)return;
     closePicker();
     stopJump();
     const token=++epoch,url=win.location.href;
@@ -778,7 +787,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         enabled:values[SIDEBAR_TOOL_ENABLE_STORE],epochs:values[TOOL_REVOCATION_EPOCHS_STORE],
         url,sites
       });
-      if(disposed||paused||token!==epoch)return;
+      if(!runtimeCurrent()||paused||token!==epoch)return;
       if(url!==win.location.href){void refresh();return;}
       if(!permitted){stop();return;}
       activeRule=supportedOrigin(url)?null:MODEL.siteFor(sites,url);
@@ -823,8 +832,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   function dispose(){
     if(disposed)return;disposed=true;epoch++;stop();
     win.clearInterval(locationTimer);
-    api.storage.onChanged.removeListener(onStorage);
-    api.runtime?.onMessage?.removeListener(onPickerMessage);
+    // Invalidated Chrome event objects may throw even while removing listeners.
+    try{api.storage.onChanged.removeListener(onStorage);}catch{}
+    try{api.runtime?.onMessage?.removeListener(onPickerMessage);}catch{}
     win.removeEventListener('pageshow',onPageShow);win.removeEventListener('pagehide',onPageHide);
     win.removeEventListener('popstate',onNav);win.removeEventListener('hashchange',onNav);
     win.navigation?.removeEventListener?.('navigatesuccess',onNav);
@@ -888,7 +898,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   // A low-frequency fallback also repairs missed DOM events (e.g. document
   // root replacement). MutationObserver handles ordinary updates promptly.
   locationTimer=win.setInterval(()=>{
-    if(disposed||paused)return;
+    if(!runtimeCurrent()||paused)return;
     if(href!==win.location.href)void refresh();
     else if(visible)schedule();
   },1100);

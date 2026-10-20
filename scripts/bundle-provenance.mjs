@@ -85,7 +85,7 @@ function reviewedCompiledBookmarkReact(target,path,root){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'9f58c21cd1754eb1a35961cb22424a73ba604afe',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'900205ef784e13e1ff2d2b96a27017de477711c8',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'2845a958e5f85f88208ba0295f81b9aa4b37a0c0',
   // Shared with the standalone diagnostic harness; never an installed package import.
   'examples/programs/chatgpt-jump-top/src/conversation.js':'dc2ab912d8aff83a9b306d1e6a68206002620c4a',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.

@@ -53,6 +53,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   ]);
   const events=new Map(),siteEvents=new Set(),calls=[],copied=[],docEvents=new Map(),runtimeMessages=new Set();
   const mutationObservers=[],intervals=[];
+  const activeIntervals=new Set(),pendingTimers=new Map();
   const windowListeners=new Map();
   // Preserve 3s/5s toast timeouts without making the Node suite wait for them.
   const toastTimers=new Map();let nextToastTimer=100000;
@@ -76,11 +77,12 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
       if(ms===3000||ms===5000){
         const id=++nextToastTimer;toastTimers.set(id,{fn,ms});return id;
       }
-      return setTimeout(fn,0);
+      const handle=setTimeout(()=>{pendingTimers.delete(handle);fn();},0);
+      pendingTimers.set(handle,fn);return handle;
     },
-    clearTimeout(handle){toastTimers.delete(handle);clearTimeout(handle);},
-    clearInterval(){},
-    setInterval(fn){intervals.push(fn);return intervals.length;},
+    clearTimeout(handle){toastTimers.delete(handle);pendingTimers.delete(handle);clearTimeout(handle);},
+    clearInterval(handle){activeIntervals.delete(handle);},
+    setInterval(fn){intervals.push(fn);activeIntervals.add(intervals.length);return intervals.length;},
     navigator:{clipboard:{writeText:async text=>{if(rejectCopy)throw Error('剪贴板未授权');copied.push(text);}}},
     MutationObserver:class{
       constructor(callback){this.callback=callback;mutationObservers.push(this);}
@@ -137,7 +139,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
     })));
   };
   return {api,doc,win,values,change,calls,copied,buttons,rail,root,main,editor,events,siteEvents,
-    docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,mutate,intervals};
+    docEvents,runtimeMessages,toastTimers,fireToast,mutationObservers,mutate,intervals,activeIntervals,pendingTimers};
 }
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
@@ -403,6 +405,57 @@ test('Prompt jump integration: SPA toolbar replacement and exact-origin exit inv
     f.events.get('popstate')?.();await settle();assert.equal(f.arrows().length,1);
     f.click(next);await settle();assert.equal(f.scrolls.length,count);
     f.click(f.arrows()[0]);await settle();assert(f.scrolls.length>count);
+  }finally{f.controller.dispose();}
+});
+
+function assertRuntimeDisposed(f){
+  assert.equal(f.buttons().length,0);
+  assert.equal(f.doc.querySelectorAll('[data-opendesk-prompts]').length,0);
+  assert.equal(f.arrows().length,0);
+  assert.equal(f.activeIntervals.size,0);
+  assert.equal(f.pendingTimers.size,0);
+  assert.equal(f.toastTimers.size,0);
+  assert.equal(f.events.size,0);
+  assert.equal(f.docEvents.size,0);
+  assert(f.mutationObservers.every(observer=>!observer.target));
+  assert.equal(f.win.__openDeskPromptShortcutsPageV1,undefined);
+}
+
+test('Prompt runtime lifetime: invalidation removes controls and stale callbacks cannot revive them',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();assert.equal(f.arrows().length,1);assert.equal(f.buttons().length,1);
+    const stale=f.arrows()[0],pageShow=f.events.get('pageshow'),storage=[...f.siteEvents][0];
+    f.mutate([{target:f.main,addedNodes:[f.content.turn]}]);
+    const callbacks=[...f.pendingTimers.values()];
+    assert(callbacks.length>0,'exercise cancellation of pending DOM work');
+    let reads=0;const get=f.api.storage.local.get;
+    f.api.storage.local.get=keys=>{reads++;return get(keys);};
+    f.api.runtime.id=undefined;
+    f.intervals[0]();assertRuntimeDisposed(f);
+    assert.equal(f.siteEvents.size,0);assert.equal(f.runtimeMessages.size,0);
+    assert.doesNotThrow(()=>{f.controller.dispose();f.controller.dispose();});
+    for(const callback of callbacks)callback();
+    f.click(stale);f.intervals[0]();pageShow({persisted:true});
+    storage({[PROMPT_DATA_STORE]:{}},'local');await f.controller.refresh();await settle();
+    assert.equal(reads,0);assert.deepEqual(f.scrolls,[]);assertRuntimeDisposed(f);
+    assert.equal(initPromptShortcuts({api:f.api,doc:f.doc,win:f.win}),null);
+  }finally{f.controller.dispose();}
+});
+
+test('Prompt runtime lifetime: throwing Chrome listener removals cannot interrupt DOM cleanup',async()=>{
+  const f=await jumpPage();
+  try{
+    await settle();let removals=0;
+    for(const source of [f.api.storage.onChanged,f.api.runtime.onMessage]){
+      source.removeListener=()=>{removals++;throw Error('Extension context invalidated');};
+    }
+    f.api.runtime.id=undefined;
+    // Exercise the jump callback guard before the 1100ms poll runs.
+    assert.doesNotThrow(()=>f.click(f.arrows()[0]));await settle();
+    assert.equal(removals,2);assert.deepEqual(f.scrolls,[]);assertRuntimeDisposed(f);
+    assert.doesNotThrow(()=>f.controller.dispose());
+    assert.equal(removals,2,'disposal remains idempotent after Chrome removal failures');
   }finally{f.controller.dispose();}
 });
 

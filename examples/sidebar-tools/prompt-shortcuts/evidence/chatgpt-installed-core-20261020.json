@@ -1,0 +1,151 @@
+{
+  "format": "opendesk.prompt-shortcuts.installed-core-evidence.v1",
+  "observedAt": "2026-10-20T19:09:26.263811+08:00",
+  "scope": "持续开发：手动安装入口说明、现有安装状态、进入/刷新自动启动、Writing 点击、停用/恢复及输入保护。无全量正式验收。",
+  "environment": {
+    "application": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "pathEvidence": "从 Chrome Default Secure Preferences 仅读指定扩展 path，匹配固定 development 目录。",
+    "watcherPid": 87007,
+    "secondWriterStarted": false,
+    "serveClient": {
+      "status": "OBSERVED_CONNECTED",
+      "method": "实际侧栏 调试 → 本地开发服务；显示开发服务已连接、扩展 ID 与构建 revision。",
+      "observedRevision": "7b6cb0f25da1ce74d40abdbc9ea87791f23a45113aff440973b9afa1949550af",
+      "limit": "该连接观察早于最终修复产物；未将进程存在代替连接验证。"
+    },
+    "nativeCandidate": {
+      "relaySha256": "14125c7c1b6af84bc32255fe3c601e153135686a1c5531f6988bc3fe17ff7f91",
+      "developmentUpdateRevision": "cfc31b688a7a7994b52419ec143eaefad61231d695b2940c5b27afd49725fb98",
+      "updateIndexMatches": true,
+      "sameRelayBeforeAndAfterCoreActions": true,
+      "executingBytesReceipt": "NOT_TESTED：已知加载路径、新文档载入和产物指纹，不是逐字节运行时回执。",
+      "workspaceMayContainConcurrentToolChanges": true
+    }
+  },
+  "package": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+    "id": "prompt-shortcuts",
+    "version": "1.1.6",
+    "sha256": "c84364c3e504a4e3aff7b822897971b034d2d45a829d2bc4cee9a743234dbc10",
+    "status": "PROJECT_PACKAGE_MATCH",
+    "modifiedThisRun": false,
+    "installActionPerformed": false,
+    "existingInstalledToolObserved": true,
+    "installedVersionIndependentlyReadThisRun": false,
+    "limit": "保留现有安装和数据；包校验不是新安装或升级证据。JSON 不包含静态可信 page adapter。"
+  },
+  "operations": [
+    {
+      "action": "扩展 → 筛选和管理扩展 → 导入本地工具包",
+      "status": "PASS",
+      "observed": [
+        "导入扩展",
+        "选择应用包或网页增强安装包 JSON"
+      ],
+      "fileSelectedAndInstallConfirmed": false,
+      "limit": "已核对产品入口；未完成文件选择和安装确认。临时原生文件选择窗口已取消。"
+    },
+    {
+      "action": "最终适配器产物刷新长对话",
+      "status": "PASS",
+      "promptEntries": 1,
+      "jumpArrows": 5
+    },
+    {
+      "action": "最终产物 Writing 回顶 AXPress",
+      "status": "PASS",
+      "pressStatus": 0,
+      "visibleAreaChanged": false,
+      "allTextareaContentsPreserved": true,
+      "exactFirstCharacterPosition": "NOT_TESTED：AX 首字符 bounds 不足以证明精确位置。"
+    },
+    {
+      "action": "工具设置 → 启用工具，停用",
+      "status": "PASS",
+      "promptEntries": 0,
+      "jumpArrows": 0
+    },
+    {
+      "action": "工具设置 → 启用工具，恢复",
+      "status": "PASS",
+      "promptEntries": 1,
+      "jumpArrows": 5,
+      "allTextareaContentsPreserved": true
+    },
+    {
+      "action": "新进入 ChatGPT 首页",
+      "status": "PASS",
+      "promptEntries": 1,
+      "jumpArrows": 0,
+      "limit": "无长对话，零箭头符合可用内容；只证明提示词入口自动启动。"
+    },
+    {
+      "action": "最终产物新标签页打开原长对话",
+      "status": "SITE_LOAD_BLOCKED",
+      "observedMessage": "无法加载此 ChatGPT 对话",
+      "promptEntryCount": 1,
+      "longContentClick": "NOT_TESTED",
+      "limit": "先前集成和本轮较早的新进入曾显示 1 入口/5 箭头；不拿较早产物结果替代最终候选。"
+    }
+  ],
+  "fix": {
+    "cause": "源码支持的推断：开发 runtime.reload 后旧 ISOLATED 上下文与 DOM 存活，旧 window SLOT 无法约束新上下文。",
+    "change": "绑定 runtime.id；现有 1100ms 生命周期轮询及异步/点击路径检查失效并清理；Chrome listener remove 抛错不阻断 DOM 清理。",
+    "sourceVerified": true,
+    "nativeInvalidationBranch": "NOT_TESTED",
+    "legacyOrphans": "旧版已留下的实例需刷新原文档；此修改不追溯接管旧实例。"
+  },
+  "validation": [
+    {
+      "command": "node --test tests/environment/prompt-shortcuts-r14-page.test.mjs",
+      "passed": 80,
+      "failed": 0,
+      "rawLog": "/tmp/prompt-continue-page-tests-final.txt"
+    },
+    {
+      "command": "node --test --test-name-pattern='Prompt' tests/environment/bundle-provenance.test.mjs",
+      "passed": 2,
+      "failed": 0,
+      "rawLog": "/tmp/prompt-continue-provenance.txt"
+    },
+    {
+      "command": "node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js; node --check tests/environment/prompt-shortcuts-r14-page.test.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project",
+      "status": "PROJECT_PACKAGE_MATCH",
+      "rawLog": "/tmp/prompt-continue-package-check.txt"
+    }
+  ],
+  "sources": [
+    {
+      "path": "examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+      "sha256": "71ae0aad92914a51b36de14b5f9acc714cef769ab55c86f9fdf770f688a2f2eb"
+    },
+    {
+      "path": "examples/programs/chatgpt-jump-top/src/conversation.js",
+      "sha256": "bad3374a69dd7cabf5ca55132e8870327fe5316386f8ebf854d9c2bbdf4679e3"
+    },
+    {
+      "path": "tests/environment/prompt-shortcuts-r14-page.test.mjs",
+      "sha256": "496c1804c5632b2c6013b16091809a3e4e202469868d575f881f3bc2fdf98e10"
+    }
+  ],
+  "notTested": [
+    "全新手动安装及升级",
+    "全部用户消息/助手回复/文档查看器类型在当前已安装适配器的逐项真实点击",
+    "精确首字符回顶位置",
+    "最终候选新进入原长对话的内容点击（网站拒绝加载）",
+    "修复后的真实 extension reload 失效分支",
+    "production 正式验收和独立评分"
+  ],
+  "privacy": "不提交原始 AX 快照、对话 URL/标题、正文、内容 SHA 或输入计数；输入内容仅在本机比较并保存布尔结果。",
+  "provenancePin": {
+    "path": "examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+    "gitBlob": "2845a958e5f85f88208ba0295f81b9aa4b37a0c0",
+    "scope": "仅更新共享 provenance 的本工具来源锁定；其他工具的并行修改不纳入本任务提交。"
+  }
+}
