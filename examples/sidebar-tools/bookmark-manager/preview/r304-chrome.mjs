@@ -155,6 +155,26 @@ async function setFrameViewport(ctx,outer,width,zoom=1){
   assert.equal(actual.zoom,zoom,'CSS document zoom must actually apply');
   return actual;
 }
+async function assertTopbarGeometry(ctx,outer,label,{coarse=false}={}){
+  // Hit testing uses viewport coordinates: bring both the frame and toolbar
+  // onscreen before measuring, so host scrolling cannot mimic horizontal loss.
+  await invoke(outer,"document.getElementById('opendesk-preview-frame').scrollIntoView({block:'start',inline:'nearest'});return true;");
+  await invoke(ctx,"document.querySelector('.bm-topbar').scrollIntoView({block:'start',inline:'nearest'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return true;");
+  await assertIconCentered(ctx,'.bm-topbar .bm-icon-btn',label,{shared:true,coarse});
+  const geometry=await invoke(ctx,"const app=document.querySelector('.bm-app'),bar=document.querySelector('.bm-topbar'),a=app.getBoundingClientRect(),t=bar.getBoundingClientRect();"+
+    "return {overflow:app.scrollWidth-app.clientWidth,actions:[...bar.querySelectorAll('.bm-icon-btn')].map(el=>{"+
+    "const b=el.getBoundingClientRect(),s=el.querySelector('svg').getBoundingClientRect(),hit=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);"+
+    "return {label:el.getAttribute('aria-label'),complete:b.left>=Math.max(0,a.left,t.left)-0.6&&b.right<=Math.min(innerWidth,a.right,t.right)+0.6&&b.top>=Math.max(0,t.top)-0.6&&b.bottom<=Math.min(innerHeight,t.bottom)+0.6,"+
+    "hittable:!el.disabled&&getComputedStyle(el).visibility==='visible'&&!!hit&&el.contains(hit),svgInside:s.left>=b.left-0.6&&s.right<=b.right+0.6&&s.top>=b.top-0.6&&s.bottom<=b.bottom+0.6};})};");
+  assert.ok(geometry.overflow<=1,'no App horizontal overflow '+label+' '+JSON.stringify(geometry));
+  assert.deepEqual(geometry.actions.map(action=>action.label),['新建书签','新建文件夹','收藏当前页','刷新书签'],'all four top actions '+label);
+  for(const action of geometry.actions){
+    assert.equal(action.complete,true,'complete top action '+label+' '+JSON.stringify(action));
+    assert.equal(action.hittable,true,'hittable top action '+label+' '+JSON.stringify(action));
+    assert.equal(action.svgInside,true,'SVG stays inside top action '+label+' '+JSON.stringify(action));
+  }
+  return geometry;
+}
 async function assertTreeGeometry(ctx,label,zoom=1){
   const rows=await invoke(ctx,"return [...document.querySelectorAll('.bm-tree-row')].map(el=>({id:el.dataset.nodeId,height:el.getBoundingClientRect().height,top:el.getBoundingClientRect().top,cssHeight:getComputedStyle(el).height,position:getComputedStyle(el).position}));");
   assert.ok(rows.length>1&&rows.length<90,label+' virtual DOM must be populated and bounded');
@@ -181,7 +201,7 @@ assert.equal(manifest.formalEntry,true,'Regression must mount actual formal.jsx'
 assert.equal(manifest.hostAdapter,'MOCK_HOST_ADAPTER');
 assert.equal(manifest.nativeVerified,false,'Mock Host is not Native evidence');
 const widths=[320,360,400,440,960];
-const report=[],geometryReport=[];
+const report=[],geometryReport=[],toolbarReport=[];
 let browserInfo={},currentCase=null;
 async function click(ctx,sel){
  const q=JSON.stringify(sel);
@@ -588,16 +608,38 @@ try{
   geometryReport.push({width,mode:mode.name,viewport,media,zoomMethod:mode.zoom===2?'CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM':'none',passed:['shared-native-button-labels','svg-center-0.6px','44px-row-height-and-stride','last-item-visible-keyboard-activation','search-folder-visible',...(mode.coarse?['44px-coarse-targets']:[])]});
  }
  assert.equal(geometryReport.length,widths.length*3,'all five widths must exercise dark, coarse and 200% CSS document zoom');
+ // A real 360px panel at native 200% exposes 180 CSS px. Exercise that layout
+ // directly; this is bounded Mock Host coverage, not native page-zoom evidence.
+ for(const coarse of [false,true]){
+  const width=180,label='toolbar '+width+' '+(coarse?'coarse':'fine');
+  currentCase={width,mode:coarse?'toolbar-coarse':'toolbar-fine'};
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1350,height:1100,deviceScaleFactor:1,mobile:false});
+  await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
+  const touch={enabled:coarse,...(coarse?{maxTouchPoints:1}:{})};
+  await cdp('Emulation.setTouchEmulationEnabled',touch);
+  await cdp('Page.navigate',{url:pathToFileURL(previewPath).href+'?width='+width});
+  const ctx=await findReactFrame(),outer=await outerContext();
+  if(ctx.session){
+   await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]},ctx.session);
+   await cdp('Emulation.setTouchEmulationEnabled',touch,ctx.session);
+  }
+  const viewport=await setFrameViewport(ctx,outer,width);
+  await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,159')",'initial data '+label);
+  assert.equal(await invoke(ctx,"return matchMedia('(pointer:coarse)').matches"),coarse,'actual pointer media '+label);
+  const geometry=await assertTopbarGeometry(ctx,outer,label,{coarse});
+  toolbarReport.push({width,coarse,viewport,geometry,zoomMethod:'EFFECTIVE_CSS_WIDTH_NOT_NATIVE_PAGE_ZOOM'});
+ }
+ assert.equal(toolbarReport.length,2,'180px toolbar must exercise fine and coarse pointers');
  assert.deepEqual(network,[],'no network requests');
  assert.deepEqual(exceptions,[],'no browser JS exceptions');
  const crypto=await import('node:crypto');
- await writeFile(join(out,'bookmark-r304-interaction.json'),JSON.stringify({kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,installed:false,browser:browserInfo.product,manifest,sourceSha256:crypto.createHash('sha256').update(html).digest('hex'),report,geometryReport},null,2));
- console.log('R304_REACT_CHROMIUM_PASS '+JSON.stringify({report,geometryReport}));
+ await writeFile(join(out,'bookmark-r304-interaction.json'),JSON.stringify({kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,installed:false,browser:browserInfo.product,manifest,sourceSha256:crypto.createHash('sha256').update(html).digest('hex'),report,geometryReport,toolbarReport},null,2));
+ console.log('R304_REACT_CHROMIUM_PASS '+JSON.stringify({report,geometryReport,toolbarReport}));
 }catch(e){
  await writeFile(join(out,'bookmark-r304-failure.txt'),String(e?.stack||e));
  await writeFile(join(out,'bookmark-r304-failure.json'),JSON.stringify({
   kind:'CHROMIUM_FORMAL_REACT_MOCK_HOST',nativeVerified:false,
-  error:String(e?.stack||e),currentCase,geometryReport,exceptions,network},null,2));
+  error:String(e?.stack||e),currentCase,geometryReport,toolbarReport,exceptions,network},null,2));
  console.error(e);process.exitCode=1;
 }finally{
  try{socket?.close()}catch{}

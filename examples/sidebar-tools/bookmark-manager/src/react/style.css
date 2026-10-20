@@ -4,9 +4,9 @@
 .bm-app button:disabled{opacity:.45;cursor:not-allowed}
 .bm-app button:focus-visible,.bm-app input:focus-visible,.bm-app .bm-tree-scroll:focus-visible,.bm-app a:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .bm-sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
-.bm-topbar{height:42px;min-height:42px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--od-line);padding:0 12px}
+.bm-topbar{min-height:42px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;border-bottom:1px solid var(--od-line);padding:0 12px}
 .bm-heading{display:flex;align-items:baseline;gap:8px}.bm-heading strong{font-size:15px;letter-spacing:-.02em;font-weight:680}.bm-heading span{font-size:12px;font-weight:620;color:var(--od-sub);font-variant-numeric:tabular-nums}
-.bm-top-actions{display:flex;align-items:center;gap:4px}.bm-icon-btn{display:grid;place-items:center;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);border:0;border-radius:var(--radius-control);color:var(--od-sub);background:transparent}.bm-icon-btn--primary{color:var(--od-brand);background:color-mix(in srgb,var(--od-brand) 9%,var(--od-paper))}
+.bm-top-actions{display:flex;flex-wrap:wrap;min-width:0;align-items:center;gap:4px}.bm-icon-btn{display:grid;place-items:center;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);border:0;border-radius:var(--radius-control);color:var(--od-sub);background:transparent}.bm-icon-btn--primary{color:var(--od-brand);background:color-mix(in srgb,var(--od-brand) 9%,var(--od-paper))}
 .bm-icon-btn:hover,.bm-row-more:hover,.bm-text-button:hover{background:var(--od-muted);color:var(--od-brand)}
 .bm-tools{padding:8px 12px;display:grid;gap:8px;min-width:0;border-bottom:1px solid var(--od-line)}
 .bm-search-wrap{display:flex;align-items:center;gap:8px;border:1px solid var(--od-input-border);background:var(--od-paper);border-radius:9px;padding:0 9px;height:36px;color:var(--od-sub);min-width:0}
@@ -71,7 +71,7 @@
 .bm-dialog h2{font-size:15px;line-height:1.5;margin:0 0 8px}.bm-dialog p{color:var(--od-sub);line-height:1.6;font-size:12px;margin:0 0 16px;overflow-wrap:anywhere}
 .bm-dialog-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 @media(min-width:740px){.bm-tools{display:flex;align-items:center;gap:12px}.bm-search-wrap{flex:1}.bm-create-actions{grid-template-columns:auto auto}.bm-button{padding-inline:13px}.bm-readonly{padding-top:9px}}
-@media(max-width:349px){.bm-tools{padding:8px}.bm-create-actions{gap:5px}.bm-button{font-size:11px;padding:6px}.bm-count{display:none}.bm-tree-row{gap:3px}.bm-readonly,.bm-editor{padding-inline:9px}}
+@media(max-width:349px){.bm-topbar{padding-inline:8px}.bm-tools{padding:8px}.bm-create-actions{gap:5px}.bm-button{font-size:11px;padding:6px}.bm-count{display:none}.bm-tree-row{gap:3px}.bm-readonly,.bm-editor{padding-inline:9px}}
 @media(prefers-reduced-motion:no-preference){.bm-tree-row,.bm-button,.bm-icon-btn{transition:background-color .12s ease}}
 
 /* R3.0.3: Tree is the sole persistent workspace. Details/edit are explicit
