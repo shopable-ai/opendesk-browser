@@ -126,8 +126,11 @@ const SITE_HINTS=Object.freeze({
       'rich-textarea [contenteditable="true"]']
   },
   'https://chat.deepseek.com':{
-    name:'DeepSeek',pathScope:'/',containers:['main','[role="main"]'],
-    editors:['textarea#chat-input','#chat-input']
+    // Observed 2026-10-20: the chat column has no main landmark and the
+    // textarea has no id. These remain checked proposals, never permissions.
+    name:'DeepSeek',pathScope:'/',containers:['main','[role="main"]','#root ._7780f2e'],
+    editors:['textarea#chat-input','#chat-input','textarea[placeholder="给 DeepSeek 发送消息 "]',
+      'textarea[placeholder="Message DeepSeek"]']
   },
   'https://www.perplexity.ai':{
     name:'Perplexity',pathScope:'/',containers:['main','[role="main"]'],

@@ -246,7 +246,7 @@ test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',asy
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,
-    'dc2ab912d8aff83a9b306d1e6a68206002620c4a');
+    'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a');
   for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-jump-pin-')));
@@ -254,6 +254,20 @@ test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',asy
   const file=join(root,path);
   await mkdir(join(root,'examples/programs/chatgpt-jump-top/src'),{recursive:true});
   await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unreviewed edit\n');
+  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Prompt Shortcuts source changed/);
+});
+
+test('Prompt Shortcuts site bindings cannot enter other privileged outputs or drift',async ctx=>{
+  const path='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js';
+  const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
+  assert.match(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-site-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unreviewed edit\n');
   assert.throws(()=>make('agents/page-relay.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 

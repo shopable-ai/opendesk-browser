@@ -118,9 +118,9 @@ test('R1.4 fixed controller only uses scoped selectors, native insertion and no 
 
 test('R1.4 provenance pins only audited trusted tool modules to exact fixed entry points',()=>{
   const fixtures=[
-    ['trusted/model.js','9f58c21cd1754eb1a35961cb22424a73ba604afe'],
+    ['trusted/model.js','0f64b1d6e521b3193b85a6e0af46e60b28ed5dd1'],
     ['trusted/policy.js','6544a03db0f11373dccdf67cc9b5ce808920a495'],
-    ['trusted/page.js','900205ef784e13e1ff2d2b96a27017de477711c8']
+    ['trusted/page.js','eb72608044b0c74148bdea9c10fb3fde82356867']
   ];
   const examined=(path,target)=>describeBundle({chunk:{fileName:target,
       modules:{[resolve(ROOT+'/'+path)]:{renderedLength:1,originalLength:1}}},
@@ -132,7 +132,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   }
   const jump='../../programs/chatgpt-jump-top/src/conversation.js';
   assert.equal(examined(jump,'agents/page-relay.js').reviewedFirstPartyBlob,
-    'dc2ab912d8aff83a9b306d1e6a68206002620c4a');
+    'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a');
   for(const target of ['sw.js','ui/sidebar-tool-host.js']){
     assert.throws(()=>examined(jump,target),/Historical\/user\/vendor code cannot enter/);
   }

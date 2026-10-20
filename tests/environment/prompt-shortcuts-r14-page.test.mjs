@@ -1082,6 +1082,139 @@ test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fa
     f.events.get('popstate')?.();await settle();assert.equal(f.buttons().length,0);
   }finally{controller.dispose();}
 });
+const multisiteInputs=[
+  {name:'DeepSeek',url:'https://chat.deepseek.com/a/chat',containerSelector:'#root ._7780f2e',
+    editorSelector:'textarea[placeholder="Message DeepSeek"]',richtext:false},
+  {name:'Gemini',url:'https://gemini.google.com/app/mock',containerSelector:'chat-window',
+    editorSelector:'rich-textarea div.ql-editor[contenteditable="true"]',richtext:true}
+];
+
+// Reuse the page fixture with saved rules and a bounded editing-command model.
+// Exact selector lookup and Quill-shaped paragraphs do not run a CSS engine or Quill.
+async function multisiteInputPage(site){
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const model=globalThis.OpenDeskPromptShortcutsModel;
+  const row=model.draft({body:'第一段\n\n第二段🧑‍💻'},null,()=> 'multisite-prompt');
+  const library={schema:1,items:[row],settings:{webButtons:true}};
+  const rules=multisiteInputs.map(candidate=>model.siteRule({origin:new URL(candidate.url).origin,
+    pathScope:'/',containerSelector:candidate.containerSelector,editorSelector:candidate.editorSelector,
+    enabled:true}));
+  const rule=rules.find(candidate=>candidate.origin===new URL(site.url).origin);
+  const stored={library,sites:{schema:1,rules}};
+  const f=fixture({pkg,library,grants:{}}),before='已有草稿🙂\n\n保留最后一行';
+  f.values.set(PROMPT_DATA_STORE,stored);f.win.location.href=site.url;
+  const caret={start:1,end:4},selections=[],dispatched=[],submissions=[];
+  const writeDraft=text=>{
+    if(!site.richtext){f.editor.value=text;return;}
+    f.editor.children=text.split('\n').map(line=>({tagName:'P',innerText:line||'\n',textContent:line}));
+    f.editor.textContent=f.editor.children.map(child=>child.textContent).join('');
+  };
+  const draft=()=>site.richtext?f.editor.children.map(child=>child.textContent).join('\n'):f.editor.value;
+  f.editor.tagName=site.richtext?'DIV':'TEXTAREA';f.editor.isContentEditable=site.richtext;
+  if(site.richtext){f.editor.className='ql-editor';f.editor.setAttribute('contenteditable','true');}
+  else{f.editor.removeAttribute('contenteditable');f.editor.setAttribute('placeholder','Message DeepSeek');}
+  f.editor.setSelectionRange=(start,end)=>{selections.push([start,end]);caret.start=start;caret.end=end;};
+  const range={target:null,selectNodeContents(target){this.target=target;caret.start=0;caret.end=draft().length;},
+    collapse(toStart){if(toStart)caret.end=caret.start;else caret.start=caret.end;}};
+  let selectedRange=null;
+  f.doc.createRange=()=>range;
+  f.doc.getSelection=()=>({removeAllRanges(){selectedRange=null;},addRange(value){selectedRange=value;}});
+  const form=mockElement('form'),send=mockElement('button');
+  form.submit=()=>submissions.push('submit');form.requestSubmit=()=>submissions.push('requestSubmit');
+  send.click=()=>submissions.push('send');f.editor.form=form;
+  f.editor.dispatchEvent=f.doc.dispatchEvent=event=>{dispatched.push(event.type);return true;};
+  f.doc.body.append(form);form.append(f.main,send);f.main.append(f.editor);writeDraft(before);
+  f.doc.querySelectorAll=selector=>selector===site.containerSelector?[f.main]:
+    selector===site.editorSelector?[f.editor]:selector==='form'?[form]:
+    selector==='button[type="submit"]'?[send]:[];
+  f.doc.querySelector=selector=>f.doc.querySelectorAll(selector)[0]||null;
+  f.doc.execCommand=(command,_show,text)=>{
+    f.calls.push({command,text});
+    if(command!=='insertText'||f.doc.activeElement!==f.editor||
+       (site.richtext&&(selectedRange!==range||range.target!==f.editor)))return false;
+    const old=draft();writeDraft(old.slice(0,caret.start)+text+old.slice(caret.end));
+    caret.start+=text.length;caret.end=caret.start;return true;
+  };
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  const panel=name=>f.root.children.find(node=>Object.hasOwn(node.attributes,'data-opendesk-prompts'))
+    ?.shadow.children.find(node=>node.className===name);
+  return {...f,controller,row,stored,rule,before,caret,selections,draft,dispatched,submissions,panel};
+}
+
+function holdNextMultisiteRead(f){
+  const get=f.api.storage.local.get;let held=false,resume=()=>{};
+  f.api.storage.local.get=keys=>{
+    const snapshot=get(keys);
+    if(held)return snapshot;
+    held=true;
+    return new Promise((resolve,reject)=>{resume=()=>snapshot.then(resolve,reject);});
+  };
+  return {get held(){return held;},release(){return resume();}};
+}
+
+for(const site of multisiteInputs){
+  test(`Multisite input: ${site.name} ${site.richtext?'Quill-shaped contenteditable':'textarea'} appends multiline draft with caret at end and never sends`,async()=>{
+    const f=await multisiteInputPage(site);
+    try{
+      await settle();assert.equal(f.buttons().length,1,'saved custom rule renders without a second site grant');
+      f.buttons()[0].emit('click',{isTrusted:true});await settle();
+      const expected=f.before+'\n'+f.row.body;
+      assert.deepEqual(f.calls,[{command:'insertText',text:'\n'+f.row.body}]);
+      assert.equal(f.draft(),expected,'existing paragraphs, blank lines and emoji survive in order');
+      assert.deepEqual(f.caret,{start:expected.length,end:expected.length},'middle selection is replaced by an end caret');
+      if(site.richtext){
+        assert.notEqual(f.editor.textContent,expected,'paragraph structure supplies the line breaks');
+        assert.deepEqual(f.selections,[],'rich text uses a DOM Range');
+      }else assert.deepEqual(f.selections,[[f.before.length,f.before.length]]);
+      assert.equal(f.doc.activeElement,f.editor);
+      assert.match(f.panel('announcer').textContent,/已插入草稿，未发送/);
+      assert.equal(f.panel('feedback').hidden,true);
+      assert.deepEqual(f.copied,[]);assert.deepEqual(f.dispatched,[]);assert.deepEqual(f.submissions,[]);
+    }finally{f.controller.dispose();}
+  });
+
+  for(const action of ['disabled','removed']){
+    test(`Multisite input: ${site.name} ${action} rule retires stale controls and pending authorization`,async()=>{
+      const f=await multisiteInputPage(site);let pending;
+      try{
+        await settle();assert.equal(f.buttons().length,1);
+        const stale=f.buttons()[0];pending=holdNextMultisiteRead(f);
+        stale.emit('click',{isTrusted:true});assert.equal(pending.held,true);
+        const rules=f.stored.sites.rules.flatMap(rule=>rule.origin!==f.rule.origin?[rule]:
+          action==='removed'?[]:[{...rule,enabled:false}]);
+        f.change(PROMPT_DATA_STORE,{...f.stored,sites:{schema:1,rules}});await settle();
+        assert.equal(f.buttons().length,0,'revoking this site leaves no controls even with the other site enabled');
+        stale.emit('click',{isTrusted:true});await pending.release();await settle();
+        assert.equal(f.buttons().length,0,'old allowed snapshot cannot restore revoked controls');
+        assert.deepEqual(f.calls,[]);assert.equal(f.draft(),f.before);
+        assert.deepEqual(f.caret,{start:1,end:4});assert.equal(f.editor.focused,undefined);
+        assert.deepEqual(f.copied,[]);assert.deepEqual(f.dispatched,[]);assert.deepEqual(f.submissions,[]);
+        f.change(PROMPT_DATA_STORE,f.stored);await settle();
+        assert.equal(f.buttons().length,1,'restoring the saved rule creates fresh controls');
+      }finally{f.controller.dispose();await pending?.release();}
+    });
+  }
+
+  test(`Multisite input: ${site.name} pending authorization never writes after switching to the other configured origin`,async()=>{
+    const f=await multisiteInputPage(site);let pending;
+    try{
+      await settle();assert.equal(f.buttons().length,1);
+      pending=holdNextMultisiteRead(f);f.buttons()[0].emit('click',{isTrusted:true});
+      assert.equal(pending.held,true);
+      // Keep the old editable DOM and suppress popstate: URL identity alone must
+      // block a delayed click, even when the destination also has a saved rule.
+      f.win.location.href=multisiteInputs.find(candidate=>candidate!==site).url;
+      await pending.release();await settle();
+      assert.deepEqual(f.calls,[]);assert.equal(f.draft(),f.before);
+      assert.deepEqual(f.caret,{start:1,end:4});assert.equal(f.editor.focused,undefined);
+      assert.deepEqual(f.copied,[]);assert.deepEqual(f.dispatched,[]);assert.deepEqual(f.submissions,[]);
+      f.events.get('popstate')?.();await settle();
+      assert.equal(f.buttons().length,1,'the destination gets its own newly checked controls');
+      assert.deepEqual(f.calls,[],'refresh never replays the previous click on the destination');
+    }finally{f.controller.dispose();await pending?.release();}
+  });
+}
+
 test('R2 picker uses extension-owned message, exact document, unique semantic selector, Esc',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
   const library={schema:1,items:[],settings:{webButtons:true}};

@@ -190,7 +190,7 @@ function localTarget(header, anchor, main, idIndex, win) {
   }
   return null;
 }
-function isLong(target, doc, win) {
+export function isLong(target, doc, win) {
   const scroller = findConversationScroller(target, doc, win, {includeSelf: true});
   if (!scroller || scroller.scrollHeight <= scroller.clientHeight + 1) return false;
   const height = Math.max(target.getBoundingClientRect().height, target.scrollHeight || 0);
@@ -324,7 +324,8 @@ function newButton(doc, kind) {
   shadow.append(style, button);
   return {host, button};
 }
-export function installJumpToTop({doc, win, owner}) {
+export function installJumpToTop({doc, win, owner, resolveBindings = findRegionBindings,
+  regionSelector = 'main,[role="main"],header'}) {
   sessions.get(doc)?.dispose();
   const mounted = new Map();
   const cleanups = [];
@@ -339,7 +340,7 @@ export function installJumpToTop({doc, win, owner}) {
   function refresh() {
     pending = false;
     if (disposed) return;
-    const bindings = findRegionBindings(doc, win);
+    const bindings = resolveBindings(doc, win);
     for (const header of mounted.keys()) {
       if (!bindings.some(binding => binding.header === header)) remove(header);
     }
@@ -352,7 +353,7 @@ export function installJumpToTop({doc, win, owner}) {
       const unlisten = owner.on(item.button, 'click', event => {
         event.preventDefault();
         event.stopPropagation();
-        const current = findRegionBindings(doc, win).find(next => next.header === binding.header
+        const current = resolveBindings(doc, win).find(next => next.header === binding.header
           && next.anchor === binding.anchor && next.target === binding.target);
         if (current) jumpRegionTop(current, doc, win);
         else schedule();
@@ -370,13 +371,13 @@ export function installJumpToTop({doc, win, owner}) {
     const relevant = records.some(record => {
       const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
       if (target?.closest(`[${OWN}]`)) return false;
-      const inRegion = target?.closest('main,[role="main"],header');
+      const inRegion = target?.closest(regionSelector);
       if (record.type !== 'childList') return Boolean(inRegion);
       if ([...record.removedNodes].some(node => node.hasAttribute?.(OWN)
           && [...mounted.values()].some(item => item.host === node && !node.isConnected))) return true;
       const changed = [...record.addedNodes, ...record.removedNodes].filter(node => !node.hasAttribute?.(OWN));
       return changed.length > 0 && (inRegion || changed.some(node => node.nodeType === 1
-        && (node.matches('main,[role="main"],header') || node.querySelector('main,[role="main"],header'))));
+        && (node.matches(regionSelector) || node.querySelector(regionSelector))));
     });
     if (relevant) schedule();
   }, {subtree: true, childList: true, characterData: true, attributes: true,

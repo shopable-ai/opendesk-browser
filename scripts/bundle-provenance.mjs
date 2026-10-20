@@ -83,11 +83,12 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'9f58c21cd1754eb1a35961cb22424a73ba604afe',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'0f64b1d6e521b3193b85a6e0af46e60b28ed5dd1',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'2845a958e5f85f88208ba0295f81b9aa4b37a0c0',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'eb72608044b0c74148bdea9c10fb3fde82356867',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
-  'examples/programs/chatgpt-jump-top/src/conversation.js':'dc2ab912d8aff83a9b306d1e6a68206002620c4a',
+  'examples/programs/chatgpt-jump-top/src/conversation.js':'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6'
 });
@@ -96,7 +97,8 @@ const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
 const promptJumpTargets=new Set(['agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
   const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:
-    path==='examples/programs/chatgpt-jump-top/src/conversation.js'?promptJumpTargets:promptFixedTargets;
+    (path==='examples/programs/chatgpt-jump-top/src/conversation.js'||
+      path==='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js')?promptJumpTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)

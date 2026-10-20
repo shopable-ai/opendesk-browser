@@ -4,6 +4,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnable
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
 import {installJumpToTop} from '../../../programs/chatgpt-jump-top/src/conversation.js';
+import {deepSeekConversation,findDeepSeekBindings} from './conversation-sites.js';
 const MODEL=globalThis.OpenDeskPromptShortcutsModel;
 const SLOT='__openDeskPromptShortcutsPageV1';
 const STYLE=String.raw`
@@ -83,7 +84,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     releaseJump?.();releaseJump=null;
   };
   const syncJump=()=>{
-    if(!supportedOrigin(win.location.href)){stopJump();return;}
+    const deepSeek=activeRule&&deepSeekConversation(win.location.href);
+    if(!supportedOrigin(win.location.href)&&!deepSeek){stopJump();return;}
     if(jump&&jumpRoot===doc.documentElement)return;
     stopJump();
     const root=doc.documentElement,token=epoch,url=win.location.href;
@@ -106,10 +108,13 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
           if(event.isTrusted!==true)return;
           void api.storage.local.get(KEYS).then(async values=>{
             const permitted=await allowedPromptSite({
-              installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],url
+              installed:values[SIDEBAR_TOOL_STORE],enabled:values[SIDEBAR_TOOL_ENABLE_STORE],url,
+              sites:supportedOrigin(url)?null:model.sitesLoad(values[PROMPT_DATA_STORE]?.sites)
             });
             if(!current())return;
-            if(!permitted||!model.load(values[PROMPT_DATA_STORE]?.library).settings.webButtons){
+            const sameRule=!deepSeek||JSON.stringify(model.siteFor(values[PROMPT_DATA_STORE]?.sites,url))===
+              JSON.stringify(activeRule);
+            if(!permitted||!sameRule||!model.load(values[PROMPT_DATA_STORE]?.library).settings.webButtons){
               stopJump();return;
             }
             callback(event);
@@ -134,7 +139,10 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       for(const cleanup of [...resources]){resources.delete(cleanup);cleanup();}
     };
     jumpRoot=root;
-    try{jump=installJumpToTop({doc,win,owner});}catch(error){stopJump();throw error;}
+    try{jump=installJumpToTop({doc,win,owner,...(deepSeek?{
+      regionSelector:activeRule.containerSelector,
+      resolveBindings:()=>checkedEditor()?findDeepSeekBindings(doc,win,one(activeRule.containerSelector)):[]
+    }:{})});}catch(error){stopJump();throw error;}
   };
   const PICK_BLOCK_EVENTS=['pointerdown','pointerup','pointercancel','mousedown','mouseup',
     'dblclick','auxclick','contextmenu','touchstart','touchend','touchcancel'];
