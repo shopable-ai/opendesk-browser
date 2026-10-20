@@ -115,10 +115,15 @@ function createStore({request,now=()=>new Date().toISOString(),
    return {next:{version:1,items:data.items.map(x=>x.id===id?item:x)},result:{item,unchanged:false}};
   });
  }
- async function remove(id){
-  return mutate(data=>data.items.some(x=>x.id===id)?
-   {next:{version:1,items:data.items.filter(x=>x.id!==id)},result:{removed:true}}:
-   {next:null,result:{removed:false}});
+ async function remove(id,baseline=null){
+  return mutate(data=>{
+   const current=data.items.find(x=>x.id===id);
+   if(!current)return {next:null,result:{removed:false}};
+   // A one-click delete must not remove a newer edit made in another panel.
+   if(baseline&&stable(current)!==stable(baseline))
+    throw fail('E_STORAGE_CONFLICT','另一窗口已经修改这条摘录，请刷新后再删除');
+   return {next:{version:1,items:data.items.filter(x=>x.id!==id)},result:{removed:true}};
+  });
  }
  async function recover(){const value=await read();uncertain=false;return value;}
  return {read,recover,save,edit,remove,get uncertain(){return uncertain;}};
@@ -170,7 +175,7 @@ function create({root,request,sdk,onStatus}){
     if(busy)return;
     if(editing?.id===x.id&&dirty())return msg('请先保存或取消正在编辑的内容',true);
     busy=true;notify();
-    try{await store.remove(x.id);if(editing?.id===x.id)closeEditor();
+    try{await store.remove(x.id,x);if(editing?.id===x.id)closeEditor();
      await reload();msg('已删除摘录');}
     catch(e){msg(e.message||'删除结果未确认，请重新读取',true);}
     finally{busy=false;notify();}
