@@ -2569,7 +2569,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(active?.id===id&&toolSaving){notice('当前工具正在保存，请完成保存后再卸载。',true);return;}
     if(!confirmed){
       pendingUninstallId=id;pendingUninstallBaseline=structuredClone(item);
-      patchToolField(view, removeReviewText, {textContent: '卸载「'+item.title+'」将删除本工具的安装包、本地数据与网站授权。此操作无法自动撤销。'});
+      patchToolField(view, removeReviewText, {textContent: '卸载后将移除该工具，并清理其本地数据和网站授权。此操作无法撤销。'});
       patchToolField(view, removeReview, {hidden: false});
       patchToolField(view, removeReviewConfirm, {disabled: false});
       notice('');
