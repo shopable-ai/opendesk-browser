@@ -32,7 +32,12 @@ test('final package cannot omit a referenced local asset', async () => {
 });
 test('remote script and unexpected lazy chunk fail final package verification', async () => {
   await mutatedPackage(async root => {
-    const file = `${root}/sidepanel.html`; await writeFile(file, (await readFile(file, 'utf8')).replace('src="tool-shell.js"', 'src="https://example.com/runtime.js"'));
+    const file = `${root}/sidepanel.html`, html = await readFile(file, 'utf8');
+    const script = 'src="ui/tool-shell.js"';
+    assert.equal(html.split(script).length - 1, 1, 'fixture must contain exactly one tool-shell script reference');
+    const mutated = html.replace(script, 'src="https://example.com/runtime.js"');
+    assert.notEqual(mutated, html, 'remote-script mutation must change the fixture');
+    await writeFile(file, mutated);
   }, /Unsafe HTML/);
   await mutatedPackage(root => writeFile(`${root}/chunk.js`, 'void 0;'), /Unexpected JS/);
 });
@@ -40,8 +45,13 @@ test('remote script and unexpected lazy chunk fail final package verification', 
 test('R3 rejects a stale Workspace HTML artifact even when its JS bundle is otherwise valid',async()=>{
   await mutatedPackage(async root=>{
     const file=root+'/native-agent/workspace.html';
-    await writeFile(file,(await readFile(file,'utf8')).replace('data-icon-system="local-svg"','data-icon-system="legacy-text"'));
-  },/Workspace explorer UI asset is stale/);
+    const html=await readFile(file,'utf8'),mount='<div id="workspace-root"></div>';
+    assert.equal(html.split(mount).length-1,1,'fixture must contain exactly one empty Workspace React root');
+    // Legacy static business DOM is stale now that Workspace renders through React.
+    const mutated=html.replace(mount,'<div id="workspace-root"><div data-icon-system="legacy-text"></div></div>');
+    assert.notEqual(mutated,html,'stale-Workspace mutation must change the fixture');
+    await writeFile(file,mutated);
+  },/native-agent\/workspace\.html must ship one empty React root without static business DOM/);
 });
 
 test('packaged design system rejects remote CSS imports',async()=>{

@@ -33,7 +33,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip-status{font-size:11px;color:var(--sub);margin:7px 0 0}.clip-status[data-error=true]{color:#b14251}
 .clip-notes-head{justify-content:space-between;flex-wrap:wrap}.clip-notes-head button{white-space:nowrap}
 .clip-notes-tools{margin-top:12px}.clip-notes-tools input{flex:1;min-width:0;min-height:34px;padding:6px 9px;border:1px solid var(--edge);background:var(--paper);color:inherit;border-radius:8px}
-.clip-notes-meta{justify-content:space-between;color:var(--sub);font-size:11px;margin:7px 0}
+.clip-notes-tools input::placeholder{color:var(--sub);opacity:1}.clip-notes-meta{justify-content:space-between;color:var(--sub);font-size:11px;margin:7px 0}
 .clip-note-list{display:grid;gap:7px;margin-top:10px}.clip-note-card,.clip-note-editor{padding:10px;border:1px solid var(--edge);border-radius:10px;background:var(--layer);min-width:0}
 .clip-note-card .clip-note-open{display:block;width:100%;min-height:24px;padding:0;border:0;background:none;text-align:left;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .clip-note-meta{font-size:10px;color:var(--sub)}.clip-note-excerpt{margin:5px 0;color:inherit;font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere}

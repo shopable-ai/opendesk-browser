@@ -38,14 +38,33 @@ async function evalIn(target,expression){
  if(result.exceptionDetails)throw Error('CDP_PAGE_EXCEPTION '+JSON.stringify(result.exceptionDetails).slice(0,350));
  return result.result.value;
 }
-async function until(fn,what){
- for(let i=0;i<90;i++){try{const out=await fn();if(out)return out;}catch{}await pause(170);}
- throw Error('Native Chrome timeout: '+what);
+async function until(fn,what,diagnose){
+ let lastError;
+ for(let i=0;i<90;i++){try{const out=await fn();if(out)return out;}catch(error){lastError=error;}await pause(170);}
+ const detail=diagnose?await diagnose().catch(error=>({error:error.message})):null;
+ throw Error('Native Chrome timeout: '+what+(lastError?' · last error: '+lastError.message:'')+
+  (detail?' · diagnostic: '+JSON.stringify(detail):''));
+}
+async function describeControl(target,selector){
+ return evalIn(target,"(()=>{const e=document.querySelector("+JSON.stringify(selector)+
+  ");return {url:location.href,readyState:document.readyState,surface:document.documentElement.dataset.opendeskSurface,title:document.title,text:document.body?.innerText.slice(0,1800),control:e?.outerHTML.slice(0,800),blockedBy:e?.closest('[hidden],[inert],[aria-busy=true]')?.outerHTML.slice(0,300),visibility:e&&getComputedStyle(e).visibility,rects:e?.getClientRects().length};})()");
+}
+async function visible(target,selector){
+ await until(()=>evalIn(target,"(()=>{const e=document.querySelector("+JSON.stringify(selector)+
+  ");return !!e&&!e.closest('[hidden],[inert]')&&!!e.getClientRects().length&&getComputedStyle(e).visibility==='visible';})()"),'visible '+selector,()=>describeControl(target,selector));
 }
 async function click(target,selector){
- const rect=await evalIn(target,"(()=>{const e=document.querySelector("+JSON.stringify(selector)+
-  ");if(!e||e.disabled||!e.getClientRects().length)throw Error('CONTROL_UNAVAILABLE');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
+ const rect=await until(()=>evalIn(target,"(()=>{const e=document.querySelector("+JSON.stringify(selector)+
+  ");if(!e||e.disabled||e.closest('[hidden],[inert],[aria-busy=true]')||!e.getClientRects().length||getComputedStyle(e).visibility!=='visible')return false;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()"),'clickable '+selector,()=>describeControl(target,selector));
  for(const type of ['mousePressed','mouseReleased'])await target.send('Input.dispatchMouseEvent',{type,...rect,button:'left',clickCount:1});
+}
+async function selectToolScope(target,scope){
+ await visible(target,'#extension-center-list-view');
+ if(await evalIn(target,'document.querySelector("#extension-center-menu").hidden'))
+  await click(target,'#extension-center-more');
+ await click(target,'#extension-center-menu [data-ec-scope="'+scope+'"]');
+ await until(()=>evalIn(target,'document.querySelector('+JSON.stringify('[data-ec-scope="'+scope+'"]')+').getAttribute("aria-pressed")==="true"'),'extension scope '+scope);
+ await click(target,'#extension-center-more');
 }
 const fixture='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>页面测试：剪藏</title>'+
  '<style>.r22-clip-hidden{display:none}</style><nav>导航和广告不应剪藏</nav><article><h1>页面测试：剪藏</h1><h2>重复章节</h2><h2>重复章节</h2>'+
@@ -132,15 +151,18 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const ui=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID());
  host=ui.cdp;
  console.log('R22_NATIVE_STAGE: extension host tab opened');
- await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-web-markdown-clipper-install")'),'tool host loaded');
+ // A normal extension tab is a catalog/launcher surface. Product tabs become
+ // visible only in the genuine SIDE_PANEL context, after the gesture below.
+ await until(()=>evalIn(host,'document.readyState!=="loading"&&!!document.body&&typeof chrome.sidePanel?.open==="function"'),
+  'extension launcher DOM and sidePanel API ready',()=>describeControl(host,'body'));
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
- await evalIn(host,"(()=>{const b=document.createElement('button');b.id='r22-open-side';b.textContent='Open Side Panel';b.style.cssText='position:fixed;top:70px;left:20px;min-width:200px;min-height:45px;z-index:999999;background:white;color:black';b.addEventListener('click',()=>chrome.sidePanel.open({windowId:"+windowId+"}));document.body.append(b);return true;})()");
+ await evalIn(host,"(()=>{const b=document.createElement('button');b.id='r22-open-side';b.textContent='Open Side Panel';b.style.cssText='position:fixed;top:70px;left:20px;min-width:200px;min-height:45px;z-index:999999;background:white;color:black';b.addEventListener('click',()=>{b.dataset.state='opening';try{Promise.resolve(chrome.sidePanel.open({windowId:"+windowId+"})).then(()=>{b.dataset.state='opened';},error=>{b.dataset.state='error';b.textContent=error.message;});}catch(error){b.dataset.state='error';b.textContent=error.message;}});document.body.append(b);return true;})()");
  await click(host,'#r22-open-side');
  console.log('R22_NATIVE_STAGE: Side Panel native gesture invoked');
  const context=await until(async()=>{
   const c=await evalIn(host,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
   return c.find(x=>x.documentUrl?.includes('/sidepanel.html'));
- },'real SIDE_PANEL context');
+ },'real SIDE_PANEL context',()=>describeControl(host,'#r22-open-side'));
  const sideTarget=await until(async()=>{
   const {targetInfos}=await browser.send('Target.getTargets');
   return targetInfos.find(x=>x.url===context.documentUrl);
@@ -148,25 +170,26 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const attached=await browser.send('Target.attachToTarget',{targetId:sideTarget.targetId,flatten:true});
  side={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};
  await side.send('Runtime.enable');await side.send('Page.enable');
- await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'tools tab');
+ await visible(side,'#tab-tools');
  await click(side,'#tab-tools');
  console.log('R22_NATIVE_STAGE: Side Panel tools tab clicked');
- await until(()=>evalIn(side,'!document.querySelector("#workbench-tools").hidden'),'tools section');
- // Official tools are discovered separately from My Tools in the current UI.
- await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-discover-tab").disabled'),'Discover tools available');
- await click(side,'#sidebar-tool-discover-tab');
- await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),'official discovery visible');
- const officialButton='#sidebar-tool-official-web-markdown-clipper-install';
- await until(()=>evalIn(side,'(()=>{const n=document.querySelector('+JSON.stringify(officialButton)+');return !!n&&!n.disabled&&!!n.getClientRects().length;})()'),'official clipper install ready');
+ await visible(side,'#workbench-tools');
+ // Discover the fixed official release through the visible React list. Row
+ // details delegate review and installation to the existing trusted Host.
+ await selectToolScope(side,'available');
+ await click(side,'#extension-center-list [data-extension-key="app:web-markdown-clipper"][data-extension-action="main"]');
+ await visible(side,'#extension-center-detail');
  // Official candidate must stay review-only: no iframe and no content reads.
- await click(side,officialButton);
- await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'clipper preview');
+ await click(side,'#extension-center-detail [data-ec-detail-action="install"]');
+ await visible(side,'#sidebar-tool-preview');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
  assert.equal(await evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),'网页剪藏');
  await click(side,'#sidebar-tool-install');
  console.log('R22_NATIVE_STAGE: clipper official install clicked');
- const openClipper='[data-sidebar-tool-action=open][data-sidebar-tool-id=web-markdown-clipper]';
- await until(()=>evalIn(side,'!!document.querySelector('+JSON.stringify(openClipper)+')'),'clipper installed in My Tools');
+ await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-import").hidden'),'clipper installation review completed');
+ await selectToolScope(side,'smart');
+ const openClipper='#extension-center-list [data-extension-key="app:web-markdown-clipper"][data-extension-action="main"][aria-label^="打开「"]';
+ await visible(side,openClipper);
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
  await click(side,openClipper);
@@ -257,17 +280,21 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),
    'revoking clipper access returned to the installed list');
  // Install local workbench with the same audited package intake as all R1 tools.
- await click(side,'#sidebar-tool-import-trigger');
+ await click(side,'#extension-center-more');
+ await click(side,'#extension-center-import');
+ await visible(side,'#sidebar-tool-file');
  await side.send('DOM.enable');
  const doc=await side.send('DOM.getDocument',{depth:1});
  const inputNode=await side.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'#sidebar-tool-file'});
  assert(inputNode.nodeId,'Local package file input missing');
  await side.send('DOM.setFileInputFiles',{nodeId:inputNode.nodeId,
   files:[resolve('dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json')]});
+ await visible(side,'#sidebar-tool-preview');
  await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent==="Markdown 工作台"'),'local Markdown package preview');
  await click(side,'#sidebar-tool-install');
- await until(()=>evalIn(side,'!!document.querySelector("[data-sidebar-tool-action=open][data-sidebar-tool-id=markdown-workbench]")'),'workbench installed');
- await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=markdown-workbench]');
+ await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-import").hidden'),'workbench installation review completed');
+ const openWorkbench='#extension-center-list [data-extension-key="app:markdown-workbench"][data-extension-action="main"][aria-label^="打开「"]';
+ await click(side,openWorkbench);
  workbench=await iframeWith('#mdw-source');
  console.log('R22_NATIVE_STAGE: workbench iframe mounted');
  // Chrome's native file input actually imports UTF-8 Markdown in the iframe.
