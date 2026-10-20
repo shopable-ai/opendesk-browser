@@ -83,7 +83,7 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'9f58c21cd1754eb1a35961cb22424a73ba604afe',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
   'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'a64a436b8ecc3ba67287de6f6afec1ca94a2fcce',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
