@@ -30,11 +30,12 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     // Cookie Value and clipboard/download grants; React adds no second dialog.
     void deliver(method);
   };
-  return <section className="cookie-export-workspace" role="region" aria-labelledby={titleId}>
+  return <section className="cookie-export-workspace" role="region" aria-labelledby={titleId}
+    onKeyDown={event=>{if(event.key==='Escape'&&!busy){event.stopPropagation();onClose?.();}}}>
     <section className="cookie-panel cookie-export-panel od-surface--padded">
     <div className="cookie-panel-heading">
       <h3 id={titleId}>导出 Cookie</h3>
-      <Button type="button" className="od-button--quiet" disabled={busy}
+      <Button type="button" autoFocus className="od-button--quiet" disabled={busy}
         onClick={onClose} aria-label="关闭导出">关闭</Button>
     </div>
     <CookieExportFormatRow format={format} includeValues={includeValues} disabled={busy}

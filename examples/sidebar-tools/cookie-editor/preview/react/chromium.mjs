@@ -196,6 +196,7 @@ try{
  await test('JSON copy/download complete within workspace and return to list',async()=>{
   await button('导出 Cookie').click();
   const workspace=page.getByRole('region',{name:'导出 Cookie'});await workspace.waitFor();
+  assert.equal(await button('关闭导出').isFocused(),true);
   assert.equal(await page.locator('dialog:modal').count(),0);
   assert.equal(await page.locator('.cookie-row').count(),0);
   assert.equal(await page.getByRole('checkbox',{name:/包含/}).isChecked(),true);
@@ -210,7 +211,9 @@ try{
   await button('导出 Cookie').click();await workspace.waitFor();
   await page.locator('.cookie-export-panel select').selectOption('header');
   assert.equal(await button('复制').isDisabled(),true);await page.getByText(/已禁止导出/).waitFor();
-  await button('关闭导出').click();await scene('valuesDenied');await ready();
+  await page.keyboard.press('Escape');await ready();
+  assert.equal(await button('导出 Cookie').isFocused(),true);
+  await scene('valuesDenied');await ready();
   await button('导出 Cookie').click();await button('复制').click();await page.getByText(/E_COOKIE_VALUES/).waitFor();await reset();
  });
  await test('one-shot export failure reports error; retry succeeds without remount',async()=>{
