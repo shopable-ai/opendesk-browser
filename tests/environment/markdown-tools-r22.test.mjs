@@ -181,7 +181,8 @@ test('R22 fixed release inclusion and trusted-site wiring are explicit',async()=
  assert.match(host,/CLIP_SITE_STORE/);
  assert.match(host,/currentPageTarget\.revalidate\(target\)/);
  assert.match(host,/documentId:target\.documentId/);
- assert.match(html,/sidebar-tool-official-catalog/);
+ assert.match(html,/id="extension-center-list"/);
+ assert.match(html,/id="extension-center-market"/);
  assert.match(sandbox,/connect-src 'none'/);
 });
 

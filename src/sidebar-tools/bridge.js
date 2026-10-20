@@ -18,6 +18,21 @@ export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false;
+  // Capture these before any package code runs. The port never enters the
+  // public SDK; only this closure can attest a native click still in dispatch.
+  const apply=Reflect.apply,NativePromise=Promise;
+  const eventPrototype=globalThis.Event?.prototype;
+  const currentTargetGetter=eventPrototype&&Object.getOwnPropertyDescriptor(eventPrototype,'currentTarget')?.get;
+  const timeStampGetter=eventPrototype&&Object.getOwnPropertyDescriptor(eventPrototype,'timeStamp')?.get;
+  const trustedGetter=eventPrototype&&(Object.getOwnPropertyDescriptor(new Event('click'),'isTrusted')?.get||
+    Object.getOwnPropertyDescriptor(eventPrototype,'isTrusted')?.get);
+  const stopImmediate=eventPrototype?.stopImmediatePropagation;
+  const portPrototype=globalThis.MessagePort?.prototype;
+  const portPost=portPrototype?.postMessage,portClose=portPrototype?.close;
+  let exportPort=null,exportClick=null,consumedClickTimeStamp=null;
+  window.addEventListener('click',event=>{
+    if(trustedGetter&&apply(trustedGetter,event,[])===true)exportClick=event;
+  },true);
   let startupFailed=false;
   let uiLocale='zh-CN';
   const localeListeners=new Set();
@@ -66,7 +81,17 @@ export function initSidebarToolSandbox() {
   const request=(operation,payload={})=>{
     if (!instance) return Promise.reject(new Error('工具界面尚未就绪'));
     const requestId=String(++sequence);
-    return new Promise((resolve,reject)=>{
+    const clickTimeStamp=exportClick&&timeStampGetter?apply(timeStampGetter,exportClick,[]):null;
+    const directExport=exportPort&&!disposed&&timeStampGetter&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')&&
+      exportClick&&apply(trustedGetter,exportClick,[])===true&&
+      apply(currentTargetGetter,exportClick,[])!==null&&
+      Number.isFinite(clickTimeStamp)&&clickTimeStamp!==consumedClickTimeStamp;
+    // Label activation forwards a second trusted click with the original
+    // input timestamp. It must not replenish an already consumed gesture.
+    // Reserve before Promise executors, payload getters or other tool hooks.
+    if(directExport){exportClick=null;consumedClickTimeStamp=clickTimeStamp;}
+    return new NativePromise((resolve,reject)=>{
       // Time Review start/clear await a real trusted-host confirmation dialog.
       // Keep ordinary reads/writes short while allowing time to read that dialog.
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
@@ -74,15 +99,22 @@ export function initSidebarToolSandbox() {
         waiting.delete(requestId);
         // The host may already have committed a write. Do not interpret loss
         // of transport acknowledgement as cancellation or reissue the write.
-        const uncertain=toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
+        const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+        const uncertain=exporting||toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
           toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status';
-        const error=new Error(uncertain?
+        const error=new Error(exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
           '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时');
         error.code=uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT';
         reject(error);
       },timeoutMs);
       waiting.set(requestId,{resolve,reject,timeout});
-      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload},'*');
+      const message={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload};
+      if(directExport){
+        // A failed/unknown delivery must never fall back and replay the write.
+        try{apply(portPost,exportPort,[message]);}
+        catch{waiting.delete(requestId);clearTimeout(timeout);reject(Object.assign(
+          new Error('导出请求未确认，请核对实际结果，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'}));}
+      }else parent.postMessage(message,'*');
     });
   };
   // A real user input means refreshing this preview could discard unsaved work.
@@ -156,6 +188,11 @@ export function initSidebarToolSandbox() {
     const tool=message.tool;
     if (typeof tool.id!=='string' || typeof tool.html!=='string' || typeof tool.css!=='string' ||
         typeof tool.js!=='string' || tool.html.length>64000 || tool.css.length>120000 || tool.js.length>220000)return;
+    // Consume the transferred endpoint before loading scripts. Later tool
+    // message listeners must never observe this closure-private capability.
+    if(stopImmediate)apply(stopImmediate,event,[]);
+    if(currentTargetGetter&&trustedGetter&&portPost&&portClose&&event.ports?.length===1)
+      exportPort=event.ports[0];
     instance=message.instance;toolId=tool.id;
     uiLocale=acceptedLocale(message.locale);document.documentElement.lang=uiLocale;
     root.replaceChildren();
@@ -251,6 +288,8 @@ export function initSidebarToolSandbox() {
     })().catch(cause=>{if(!disposed)report('error',String(cause?.message||cause).slice(0,260));});
   });
   window.addEventListener('pagehide',()=>{
+    if(exportPort)apply(portClose,exportPort,[]);
+    exportPort=null;exportClick=null;
     disposed=true;localeListeners.clear();if(scriptUrl)URL.revokeObjectURL(scriptUrl);
     for(const {reject,timeout} of waiting.values()){clearTimeout(timeout);reject(new Error('工具已关闭'));}
     waiting.clear();

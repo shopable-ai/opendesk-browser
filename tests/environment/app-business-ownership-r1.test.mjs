@@ -21,7 +21,12 @@ test('R1 app-owned trusted business has one implementation and no src re-export 
     for(const name of files)assert.ok(read('examples/sidebar-tools/'+app+'/trusted/'+name).length>80,id+'/'+name);
     const config=JSON.parse(read('examples/sidebar-tools/'+app+'/tool.config.json'));
     assert.equal(config.id,app);
-    assert.deepEqual(Object.keys(config.files).sort(),['css','html','js']);
+    assert.deepEqual(Object.keys(config.files).filter(key=>key!=='dependencies').sort(),['css','html','js']);
+    if(config.files.dependencies!==undefined){
+      assert.ok(Array.isArray(config.files.dependencies));
+      assert.ok(config.files.dependencies.every(path=>typeof path==='string'&&path.startsWith('src/')),
+        'dependency scripts must remain app-owned sandbox sources');
+    }
     assert.doesNotMatch(JSON.stringify(config.files),/trusted/,'privileged modules must not ship as sandbox UI files');
   }
 });

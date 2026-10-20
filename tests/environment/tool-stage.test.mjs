@@ -54,7 +54,7 @@ test('compiled JS/CSS must match the last successful complete build receipt',asy
   const a=await stageSidebarTool(f.dir);
   assert.equal(a.buildId,'build-1');
   await writeFile(join(f.dir,f.files.js),'void 1;');
-  await assert.rejects(stageSidebarTool(f.dir),/changed since the last successful build/);
+  await assert.rejects(stageSidebarTool(f.dir),/E_TOOL_BUILD: compiled UI bytes differ from their build receipt: dist\/tool\.js/);
   assert.match(await readFile(a.output,'utf8'),/void 0;/);
   await f.ready();
   const b=await stageSidebarTool(f.dir);

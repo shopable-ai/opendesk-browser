@@ -9,8 +9,12 @@ import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js'
 const ROOT=resolve(new URL('../..',import.meta.url).pathname);
 const makeId=()=> 'ci-fixture-'+randomBytes(4).toString('hex');
 function cli(args,env={}){
+  const childEnv={...process.env,...env};
+  // This CLI deliberately starts a separate test runner. Inheriting the
+  // parent's runner marker makes Node skip it with exit 0, even on failure.
+  delete childEnv.NODE_TEST_CONTEXT;
   return spawnSync(process.execPath,['scripts/app-ci.mjs',...args],
-    {cwd:ROOT,encoding:'utf8',env:{...process.env,...env},timeout:90000});
+    {cwd:ROOT,encoding:'utf8',env:childEnv,timeout:90000});
 }
 async function fixture(capabilities=[]){
   const name=makeId(),project=join(ROOT,'examples/sidebar-tools',name);

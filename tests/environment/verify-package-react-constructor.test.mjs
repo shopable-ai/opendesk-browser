@@ -17,6 +17,38 @@ test('other entries cannot inherit the fixed React prototype exception',()=>{
     /Unapproved dynamic constructor reference/);
 });
 
+test('locked React shell accepts the exact folded prototype restoration',()=>{
+  const source='var shell=(function(){function Parent(){}function Component(){}'+
+    'var local;(local=Component.prototype=new Parent).constructor=Component;return Component})()';
+  assert.deepEqual(inspectScript(source,'ui/tool-shell.js'),{approvedAsyncBodyConstructors:0});
+  assert.throws(()=>inspectScript(source,'ui/cloud-console.js'),/Unapproved dynamic constructor reference/);
+});
+
+test('folded React restoration rejects computed, shadowed and nonlocal constructor shapes',()=>{
+  const head='var shell=(function(){function Parent(){}function Component(){}var local;';
+  for(const tail of [
+    '(local=Component.prototype=new Parent)["constructor"]=Component;',
+    '(local=Component.prototype=new Parent).constructor+=Component;',
+    '(local=Component.prototype=new Parent).constructor=Parent;',
+    '(local=Component.prototype=new external).constructor=Component;',
+    '(local=Component.prototype=new Parent(1)).constructor=Component;',
+    '(local=Component.prototype=new Parent).constructor;',
+    'var ctor=(local=Component.prototype=new Parent).constructor;',
+    '(local=Component.prototype=new Parent).constructor();',
+    'new (local=Component.prototype=new Parent).constructor();',
+    '(local=Component.prototype=new Parent).constructor.constructor("return 1")();',
+    '(local+=Component.prototype=new Parent).constructor=Component;',
+    '(function(Component){(local=Component.prototype=new Parent).constructor=Parent})({});'
+  ])assert.throws(()=>inspectScript(head+tail+'return Component})()','ui/tool-shell.js'),
+    /Unapproved dynamic constructor reference|Dynamic execution/,tail);
+  assert.throws(()=>inspectScript('var shell=(function(){function Parent(){sideEffect()}'+
+    'function Component(){}var local;(local=Component.prototype=new Parent).constructor=Component})()',
+    'ui/tool-shell.js'),/Unapproved dynamic constructor reference/);
+  assert.throws(()=>inspectScript('var shell=(function(){function Parent(){}function Component(){}'+
+    'var local;(function(Other){(local=Component.prototype=new Parent).constructor=Other})(Component)})()',
+    'ui/tool-shell.js'),/Unapproved dynamic constructor reference/);
+});
+
 test('React shell still forbids constructor reads, mismatched writes and dynamic calls',()=>{
   const head='var shell=(function(){function Parent(){}function Component(){}'+
     'var local=Component.prototype=new Parent;';

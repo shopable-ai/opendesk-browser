@@ -254,6 +254,8 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 
 `OpenDeskSDK.browser.clipboard.writeText(text)` 与 `OpenDeskTool.request('browser.clipboard.writeText',{text})` 使用同一规范操作、同一 `user.export` 检查和旧安装锁；下载同理。旧 `clipboard.writeText` / `file.download` 保持可用。正文是 1–150000 UTF-8 字节；下载必须为不含路径/控制字符的 `.md` 文件名，最长 90 字符。Browser 规范操作拒绝额外字段；请求包预算为 170000 字节，其他规范请求 12000 字节。选区最大 16 KiB（JSON 编码后）、上下文最大 64 KiB，领取响应预算 65536 字节。
 
+已安装 Sidebar Tool 在真实点击仍处于派发期间调用上述 Browser 导出方法时，每次点击可直接完成一次导出，不再追加 Host 确认。该证明由启动时封闭的 Bridge/Host 通道传递，不接受工具自报的手势字段；label 转发的同一次点击不能再导出。异步读取结束后、后台或合成事件发起的导出继续走现有 Host 确认；涉及 Cookie 能力的工具保留原站点授权与确认流程。安装身份、能力、精确参数、撤权及一次性 intent 校验仍适用。下载回执不证明文件已经保存；结果未知时先核对实际结果，不自动重放。
+
 `capabilities.getStatus/list` 在已安装工具的可信前台复核剪贴板/下载实际 API；SW 单独查询返回 `E_FRONTEND_CONTEXT_REQUIRED`。`page.getContext` 可成功返回 `status: unavailable`，其 `callableNow` 表示方法可调用，不能当作有可用网页。菜单状态读取与幂等注销无需网站批准；注册仍需要工具能力、Chrome `contextMenus` 与当前网站批准。领取状态需当前有效票据、同一 action、实例、安装代际、包摘要、获准 origin 和真实文档匹配。查询之后真正执行仍重查权限和身份。
 
 菜单注销清除旧票据；重新注册不复活旧选区。异步校验/确认存储跨过 60 秒截止时间不交付内容；同步时清理过期选区。SW 请求带挂载包 SHA-256，锁内拒绝同版本内容替换后的旧请求。页面 BFCache 暂停时取消旧 pending，恢复仅重建来源监听，不恢复旧请求或旧选区。

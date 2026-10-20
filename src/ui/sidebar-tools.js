@@ -174,6 +174,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
+  let frameExportPort=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   // Host-only, fire-and-forget. A telemetry failure never rejects a business effect.
@@ -605,6 +606,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return response.data;
   }
   function destroyFrame() {
+    if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
     toolDirty=false;toolSaving=false;frameDraft='';
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
@@ -1093,9 +1095,27 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }
         if(!sameInstance(frame?.contentWindow,token))return;
       }
+      const source=frame.contentWindow;
+      let transferred=[];
+      if(!readOnly&&typeof MessageChannel==='function'){
+        const channel=new MessageChannel(),port=channel.port1;
+        frameExportPort=port;
+        let lastRequest=0;
+        port.onmessage=event=>{
+          if(frameExportPort!==port||!sameInstance(source,token))return;
+          const message=event.data,id=Number(message?.requestId);
+          if(message?.kind!=='request'||
+             !['browser.clipboard.writeText','browser.downloads.text'].includes(message.operation)||
+             typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
+             !Number.isSafeInteger(id)||id<=lastRequest)return;
+          lastRequest=id;
+          onMessage({source,origin:'null',data:message},port);
+        };
+        transferred=[channel.port2];
+      }
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool,
-        locale:localeController?.getLocale()||'zh-CN'},'*');
+        locale:localeController?.getLocale()||'zh-CN'},'*',transferred);
     };
     frameRoot.append(frame);render();fitCookieFrame();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
@@ -1186,7 +1206,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null) {
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
@@ -1388,17 +1408,23 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertSession(source,token);
       }
       if(browserExport){
-        // Only an admitted official package with the original browser-observed
-        // click can reuse its one delivery. Other callers keep visible review.
+        // The private click channel and site-bound Cookie gate both reuse the
+        // existing one-use intent. Other callers keep visible review.
         const label=operation==='browser.clipboard.writeText'?'复制文本到剪贴板':/\.csv$/i.test(payload?.filename)?'导出 CSV 文件':'导出文本文件';
         const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
         const grantEpoch=cookieSiteRecord(tool,origin)?.grantEpoch;
-        const direct=cookieExportGate.consume({owner:cookieImportOwner(tool,token,revocationEpoch),origin,operation,grantEpoch});
-        if(direct)cookieExportContext={origin,grantEpoch};
+        const cookieDirect=cookieExportGate.consume({owner:cookieImportOwner(tool,token,revocationEpoch),origin,operation,grantEpoch});
+        if(cookieDirect)cookieExportContext={origin,grantEpoch};
+        // Cookie-capable tools retain their existing site/grant-bound export
+        // gate. A generic click must not replace that sensitive-data contract.
+        const clickDirect=directExportPort!==null&&!tool.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
+        const direct=cookieDirect||clickDirect;
         const approve=async event=>{
             if(!direct&&!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
             assertSession(source,token);
-            if(direct&&(!await admittedOfficialCookieImport(tool,revocationEpoch)||
+            if(clickDirect&&directExportPort!==frameExportPort)
+              throw Object.assign(new Error('导出界面已关闭'),{code:'E_TOOL_CHANGED'});
+            if(cookieDirect&&(!await admittedOfficialCookieImport(tool,revocationEpoch)||
                websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||cookieSiteRecord(tool,origin)?.read!==true))
               throw Object.assign(new Error('导出授权已变化'),{code:'E_TOOL_CHANGED'});
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
@@ -1653,6 +1679,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Download driver. SW cannot use navigator.clipboard; no sandbox
         // receives native browser access or may bypass the one-use Host intent.
         await assertSidebarToolEnabled(api,tool.id);
+        const exportState=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+        if(!requireCompleteInstalledSidebarTools(exportState[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
+           (exportState[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+          throw Object.assign(new Error('导出期间工具身份或安装代际已变化'),{code:'E_TOOL_CHANGED'});
         if(cookieExportContext){
           const saved=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]?.[tool.id];
           const grant=saved?.cookieAllSites??saved?.cookieSites?.[cookieExportContext.origin];
@@ -1677,7 +1707,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const filename=payload.filename;
         const url=browserTextDownloadUrl(payload);
         let downloadId;
-        try{downloadId=await api.downloads.download({url,filename,saveAs:true,conflictAction:'uniquify'});}
+        const clickDirect=directExportPort!==null&&!tool.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
+        // The original tool click already chose this exact download. Avoid
+        // requesting another Save As dialog; Cookie/reviewed exports keep it.
+        try{downloadId=await api.downloads.download({url,filename,saveAs:!clickDirect,conflictAction:'uniquify'});}
         catch{throw Object.assign(new Error('下载结果未知，请检查 Chrome 下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});}
         if(!Number.isInteger(downloadId))throw Object.assign(
           new Error('Chrome 未确认下载，请检查下载记录，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'});
@@ -2022,7 +2055,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');
   };
   const queued=new Map();
-  function onMessage(event) {
+  function onMessage(event,exportPort=null) {
+    // Window EventTarget invokes this with one event argument. Only our
+    // mounted port callback supplies the closure-private second argument.
+    if(exportPort!==null&&exportPort!==frameExportPort)return;
     // Sandbox pages have opaque origin; checking the claimed id/origin alone is insufficient.
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
@@ -2100,7 +2136,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
-    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportGrantEpoch));
+    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportGrantEpoch,exportPort));
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
       if(!readOnlyPreview){

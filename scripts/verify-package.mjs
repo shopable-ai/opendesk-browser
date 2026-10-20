@@ -425,16 +425,32 @@ export function inspectScript(text, file, options = {}) {
       // read/call, dynamic code execution, or general .constructor exemption.
       // Verify lexical ownership and that the assigned class matches the
       // exact prototype initialized on the preceding variable declaration.
-      const localPrototype=node.object?.type==='Identifier'?
-        resolveBinding(node.object)?.node?.init:null;
+      const foldedPrototype=node.object?.type==='AssignmentExpression'&&
+        node.object.operator==='='&&node.object.left?.type==='Identifier'?
+        node.object.right:null;
+      const localPrototype=foldedPrototype||(node.object?.type==='Identifier'?
+        resolveBinding(node.object)?.node?.init:null);
+      const componentBinding=localPrototype?.left?.object?.type==='Identifier'?
+        resolveBinding(localPrototype.left.object):null;
+      const parentHelper=localPrototype?.right?.callee?.type==='Identifier'?
+        resolveBinding(localPrototype.right.callee)?.node:null;
+      // Terser folds the same restoration into
+      // (local=Component.prototype=new Parent).constructor=Component.
+      // Accept that shape only for the locked React build and a local empty
+      // helper; it must not permit constructor reads or arbitrary allocation.
+      const reviewedFold=!!foldedPrototype&&reviewedReact19Lock&&
+        !!resolveBinding(node.object.left)&&
+        parentHelper?.type==='FunctionDeclaration'&&
+        parentHelper.params.length===0&&parentHelper.body.body.length===0;
       const reviewedReactPrototype=file==='ui/tool-shell.js'&&
+        (!foldedPrototype||reviewedFold)&&
         node.computed===false&&parent?.type==='AssignmentExpression'&&
         parent.operator==='='&&parent.left===node&&parent.right?.type==='Identifier'&&
         localPrototype?.type==='AssignmentExpression'&&localPrototype.operator==='='&&
         localPrototype.left?.type==='MemberExpression'&&!localPrototype.left.computed&&
         property(localPrototype.left)==='prototype'&&
         localPrototype.left.object?.type==='Identifier'&&
-        localPrototype.left.object.name===parent.right.name&&
+        !!componentBinding&&componentBinding===resolveBinding(parent.right)&&
         localPrototype.right?.type==='NewExpression'&&
         localPrototype.right.callee?.type==='Identifier'&&
         localPrototype.right.arguments.length===0;
