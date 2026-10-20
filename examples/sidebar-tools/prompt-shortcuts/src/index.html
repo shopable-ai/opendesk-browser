@@ -19,7 +19,7 @@
       <p id="ps-import-name" class="ps-import-name"></p>
       <p id="ps-import-stats" role="status" aria-live="polite"></p>
       <p id="ps-import-preview" class="ps-import-preview"></p>
-      <p class="ps-import-explain">默认追加并跳过重复正文；替换保留工具设置及网站规则。</p>
+      <p class="ps-import-explain">追加时保留当前图片尺寸；替换时恢复 v2 备份的图片尺寸（v1 保留现值），网站规则与权限始终不变。</p>
       <p id="ps-import-warning" class="ps-import-warning" role="alert" hidden></p>
       <div class="ps-actions ps-import-actions">
         <button id="ps-import-cancel" class="od-button od-button--secondary" type="button">取消</button>
@@ -27,6 +27,14 @@
         <button id="ps-import-append" class="od-button od-button--primary" type="button">追加导入</button>
       </div>
     </section>
+    <div class="ps-image-size-setting od-surface" role="group" aria-label="图片快捷按钮尺寸设置">
+      <label for="ps-image-size">图片按钮大小<small>统一应用到网页图片按钮</small></label>
+      <select id="ps-image-size" class="od-field" aria-label="图片按钮大小">
+        <option value="compact">紧凑 · 48×40</option>
+        <option value="standard">标准 · 56×44</option>
+        <option value="large" selected>大图 · 68×48</option>
+      </select>
+    </div>
     <div id="ps-list" class="ps-list"></div>
     <div id="ps-empty" class="ps-empty" hidden><strong>尚未创建提示词</strong><p>点击右上角的新建图标添加第一个快捷按钮。</p></div>
     <section class="ps-settings" aria-label="旧版设置兼容容器" aria-hidden="true" hidden>
@@ -56,7 +64,17 @@
         <button type="button" id="ps-toggle-settings" class="ps-optional-head" aria-label="收起按钮设置" aria-expanded="true" aria-controls="ps-setting-fields"><span id="ps-option-title">按钮设置</span><span id="ps-toggle-caret" class="ps-toggle-caret" aria-hidden="true"></span></button>
         <div id="ps-setting-fields" class="ps-setting-fields">
         <div class="ps-compact-row"><label class="od-field-label" for="ps-label">按钮短标签</label><input id="ps-label" class="od-field" maxlength="24" placeholder="自动生成前 2 字" autocomplete="off"></div>
-        <div class="ps-compact-row"><label class="od-field-label" for="ps-name">显示名称</label><input id="ps-name" class="od-field" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
+        <div class="ps-compact-row"><span class="od-field-label" id="ps-appearance-label">按钮外观</span>
+           <div class="ps-appearance-switch" role="radiogroup" aria-labelledby="ps-appearance-label">
+             <label><input id="ps-appearance-text" name="ps-appearance" type="radio" value="text" checked><span>文字</span></label>
+             <label><input id="ps-appearance-image" name="ps-appearance" type="radio" value="image"><span>图片</span></label>
+           </div>
+         </div>
+         <div id="ps-image-fields" class="ps-image-fields" hidden>
+           <div class="ps-compact-row"><label class="od-field-label" for="ps-image-url">图片 URL</label><input id="ps-image-url" class="od-field" type="url" maxlength="512" autocomplete="off" spellcheck="false" inputmode="url" placeholder="https://example.com/picture.png"></div>
+           <div class="ps-image-live"><div id="ps-image-preview" class="ps-image-preview" role="img" aria-label="图片按钮实时预览"></div><small id="ps-image-help" role="status" aria-live="polite">仅 HTTPS 图片；远程服务器可以看到图片请求，加载失败会回退短标签。</small></div>
+         </div>
+         <div class="ps-compact-row"><label class="od-field-label" for="ps-name">显示名称</label><input id="ps-name" class="od-field" maxlength="60" placeholder="留空自动生成" autocomplete="off"></div>
         <label class="ps-enabled od-surface"><span>网页显示此按钮</span><span class="ps-switch"><input id="ps-enabled" type="checkbox" role="switch" checked aria-label="显示此按钮"><span class="ps-switch-track" aria-hidden="true"></span></span></label>
         </div>
       </section>
