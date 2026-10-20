@@ -133,16 +133,25 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     }};
 }
 
-test('R4.7 actual row buttons are 0-or-1 and full-row/visible action share the same launch',async t=>{
+function openMenuUninstall(f,key){
+  const trigger=f.button(key,'more');
+  assert.ok(trigger,'Installed extension needs a management entry');
+  trigger.dispatch('click');
+  const uninstall=f.menuItem('卸载…');
+  assert.ok(uninstall,'Uninstall must live inside the overflow menu');
+  uninstall.dispatch('click');
+  return trigger;
+}
+
+test('R5.11 each row has one main target and only an overflow secondary control',async t=>{
   const f=fixture(t);
   await f.ui.refresh();
   const appButtons=f.buttons('app:quick-notes');
-  assert.deepEqual(appButtons.map(n=>n.dataset.extensionAction),['main','primary','uninstall','more']);
+  assert.deepEqual(appButtons.map(n=>n.dataset.extensionAction),['main','more']);
   f.button('app:quick-notes','main').dispatch('click');
-  f.button('app:quick-notes','primary').dispatch('click');
-  assert.deepEqual(f.invocations.filter(x=>x[0]==='open'),[['open','quick-notes'],['open','quick-notes']]);
+  assert.deepEqual(f.invocations.filter(x=>x[0]==='open'),[['open','quick-notes']]);
   const pageButtons=f.buttons('page:reader');
-  assert.deepEqual(pageButtons.map(n=>n.dataset.extensionAction),['main','uninstall','more']);
+  assert.deepEqual(pageButtons.map(n=>n.dataset.extensionAction),['main','more']);
   assert.equal(f.button('page:reader','primary'),undefined);
   f.button('page:reader','main').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false,'Page row opens detail, not code');
@@ -154,7 +163,7 @@ test('R4.7 actual row buttons are 0-or-1 and full-row/visible action share the s
 
 test('R4.7 stopped app has no fake Settings main; overflow enable uses the sole trusted host route',async t=>{
   const f=fixture(t,{disabled:true});await f.ui.refresh();
-  assert.deepEqual(f.buttons('app:quick-notes').map(n=>n.dataset.extensionAction),['main','uninstall','more']);
+  assert.deepEqual(f.buttons('app:quick-notes').map(n=>n.dataset.extensionAction),['main','more']);
   const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
   assert.match(row.children[0].textContent,/已停用/);
   f.button('app:quick-notes','main').dispatch('click');
@@ -166,7 +175,7 @@ test('R4.7 stopped app has no fake Settings main; overflow enable uses the sole 
   assert.ok(f.menuItem('启用应用'));
   f.menuItem('启用应用').dispatch('click');
   await settle(()=>f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[app.id]===true);
-  await settle(()=>f.button('app:quick-notes','primary')!==undefined);
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   assert.deepEqual(f.invocations.filter(x=>x[0]==='toggle'),[['toggle','quick-notes']]);
   assert.equal(f.invocations.some(x=>x[0]==='open'),false,'enabling must never execute');
 });
@@ -208,19 +217,19 @@ test('R5.5 Page uninstall confirmation cancels without writes then deletes only 
   assert.deepEqual(f.writes,[],'uninstall never toggles an unrelated grant');
 });
 
-test('R5.4.1 list uninstall distinguishes same-name apps and returns focus after every cancellation path',async t=>{
+test('R5.11 overflow uninstall distinguishes same-name apps and restores focus after cancellation',async t=>{
   const f=fixture(t,{installedRows:[app,{...app,id:'notes-two',version:'2.0.0'}]});await f.ui.refresh();
-  const trigger=f.button('app:notes-two','uninstall');
+  const trigger=f.button('app:notes-two','more');
   const cancelPaths=[()=>f.doc.querySelector('[data-uninstall-cancel]').dispatch('click'),
     ()=>f.doc.querySelector('[aria-label="关闭卸载确认"]').dispatch('click'),
     ()=>f.doc.dispatch('keydown',{key:'Escape'}),
     ()=>f.doc.querySelector('.od-uninstall-backdrop').dispatch('click')];
   for(const cancel of cancelPaths){
-    trigger.focus();trigger.dispatch('click');
+    trigger.focus();openMenuUninstall(f,'app:notes-two');
     const panel=f.doc.querySelector('[role="dialog"]');
     assert.match(panel.textContent,/ID：notes-two/);
-    assert.doesNotMatch(panel.textContent,/版本：v(?:undefined|null)/,
-      'the list model omits versions; presentation must not invent one');
+    assert.match(panel.textContent,/版本：v2\.0\.0/,
+      'the pinned package version identifies the uninstall target');
     assert.match(f.doc.getElementById(panel.getAttribute('aria-describedby')).textContent,/本地数据与网站授权.*不可撤销/);
     cancel();
     assert.equal(f.doc.querySelector('[role="dialog"]'),null);
@@ -237,7 +246,7 @@ test('R5.4.1 pending list uninstall dispatches once and a failed Host action per
     assert.equal(id,app.id);assert.deepEqual(baseline,app);
     return new Promise((resolve,reject)=>{rejectOperation=reject;});
   };
-  f.button('app:quick-notes','uninstall').dispatch('click');
+  openMenuUninstall(f,'app:quick-notes');
   const confirm=f.doc.querySelector('.od-uninstall-confirm');
   const event=confirm.dispatch('click');confirm.dispatch('click');
   assert.equal(originalEvent,event,'confirmation keeps the originating native event');
@@ -253,8 +262,8 @@ test('R5.4.1 pending list uninstall dispatches once and a failed Host action per
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,1);
   assert.match(f.nodes['extension-center-status'].textContent,/E_FIXTURE_UNINSTALL.*不会自动重试/);
   assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
-  const retry=f.button('app:quick-notes','uninstall');assert.equal(retry.disabled,false);
-  retry.dispatch('click');assert.ok(f.doc.querySelector('[role="dialog"]'));
+  const retry=f.button('app:quick-notes','more');assert.equal(retry.disabled,false);
+  openMenuUninstall(f,'app:quick-notes');assert.ok(f.doc.querySelector('[role="dialog"]'));
   assert.equal(calls,1,'opening a fresh review still requires a new confirmation');
   f.doc.querySelector('[data-uninstall-cancel]').dispatch('click');
 });
@@ -526,7 +535,7 @@ test('R4.7 async app toggle is single-flight and exposes processing without a se
   assert.equal(requested,1,'stale menu click cannot start concurrent action');
   f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:true});
   release(true);
-  await settle(()=>f.button('app:quick-notes','primary')!==undefined);
+  await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   assert.equal(f.button('app:quick-notes','more').disabled,false);
   assert.equal(f.button('page:reader','more').disabled,false);
   assert.equal(f.list.getAttribute('aria-busy'),'false');
@@ -745,8 +754,8 @@ test('R5.0 an unconfirmed launch is visible and does not claim that the tool ope
   f.button('app:quick-notes','main').dispatch('click');
   assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
   assert.match(f.nodes['extension-center-status'].textContent,/应用尚未打开/);
-  f.button('app:quick-notes','primary').dispatch('click');
-  assert.match(f.nodes['extension-center-status'].textContent,/应用尚未打开/);
+  assert.equal(f.button('app:quick-notes','primary'),undefined,
+    'the list must not duplicate the full-row Open action');
 });
 
 
