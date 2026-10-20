@@ -25,9 +25,6 @@
       return url.hostname.toLowerCase().replace(/\.$/,'');
     }catch{return '';}
   }
-  const activeHost=info=>info?.status==='available'?host(info.url):'';
-  const managed=(hostname,sites=[])=>[...sites].filter(s=>hostname===s.host||
-    s.subdomains&&hostname.endsWith('.'+s.host)).sort((a,b)=>b.host.length-a.host.length)[0]||null;
   const time=minutes=>String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');
   const parseTime=text=>{const m=/^([01]\d|2[0-3]):([0-5]\d)$/.exec(text);
     return m?Number(m[1])*60+Number(m[2]):null;};
@@ -179,12 +176,12 @@
       h('p',{className:'sf-hint'},'浏览器权限与停止全部限制在外层可信扩展设置中管理。'));
   }
   function App(){
-    const [state,setState]=R.useState(null),[page,setPage]=R.useState('');
+    const [state,setState]=R.useState(null);
     const [busy,setBusy]=R.useState(false),[loading,setLoading]=R.useState(true);
     const [note,setNote]=R.useState(''),[failed,setFailed]=R.useState(false);
     const [budgetDraft,setBudgetDraft]=R.useState(null),[editing,setEditing]=R.useState(undefined);
     const [expanded,setExpanded]=R.useState(false);
-    const alive=R.useRef(false),readId=R.useRef(0),pageId=R.useRef(0),writing=R.useRef(false);
+    const alive=R.useRef(false),readId=R.useRef(0),writing=R.useRef(false);
     const latest=R.useRef(null);
     const notice=R.useCallback((message,isError=false)=>{
       if(alive.current){setNote(message);setFailed(isError);}
@@ -201,13 +198,6 @@
       }catch(e){if(alive.current&&id===readId.current){
         setLoading(false);if(!latest.current)notice('无法读取 Chrome 状态：'+errorText(e),true);}}
     },[notice]);
-    const readPage=R.useCallback(async()=>{
-      const id=++pageId.current;
-      try{
-        const result=await api.request('currentPage.info',{});
-        if(alive.current&&id===pageId.current)setPage(activeHost(result));
-      }catch{if(alive.current&&id===pageId.current)setPage('');}
-    },[]);
     const operate=R.useCallback(async(operation,payload={})=>{
       if(writing.current||!latest.current)return false;
       writing.current=true;readId.current++;setBusy(true);
@@ -232,26 +222,26 @@
     },[notice,refresh]);
     R.useEffect(()=>{
       alive.current=true;
-      const pageChanged=()=>{pageId.current++;setPage('');void readPage();};
-      const visible=()=>{if(!document.hidden){void refresh();void readPage();}};
+      // The trusted outer React toolbar owns current-site identity and write actions.
+      const pageChanged=()=>{void refresh();};
+      const visible=()=>{if(!document.hidden)void refresh();};
       api.root.addEventListener('opendesk-page-changed',pageChanged);
       api.root.addEventListener('opendesk-tool-state-changed',visible);
       document.addEventListener('visibilitychange',visible);
       globalThis.addEventListener('focus',visible);
       const interval=globalThis.setInterval(()=>{if(!document.hidden)void refresh();},10000);
-      void refresh();void readPage();
-      return ()=>{alive.current=false;readId.current++;pageId.current++;
+      void refresh();
+      return ()=>{alive.current=false;readId.current++;
         globalThis.clearInterval(interval);
         api.root.removeEventListener('opendesk-page-changed',pageChanged);
         api.root.removeEventListener('opendesk-tool-state-changed',visible);
         document.removeEventListener('visibilitychange',visible);
         globalThis.removeEventListener('focus',visible);};
-    },[refresh,readPage]);
+    },[refresh]);
     const sites=state?.sites||[],budget=state?.dailyBudget?.minutes??30;
     const used=state?.dailyBudget?.usedMs??0,remaining=state?.dailyBudget?.remainingMs??budget*60000;
     const ratio=Math.min(100,Math.max(0,Math.round(used/(budget*60000)*100)));
     const text=budgetDraft??String(budget),draftChanged=budgetDraft!==null&&text!==String(budget);
-    const current=page?managed(page,sites):null;
     const saveSite=(site,message)=>{
       if(message)return notice(message,true);
       void operate('focus.site.put',{site}).then(ok=>{if(ok)setEditing(undefined);});
@@ -309,10 +299,6 @@
           h('div',{className:'sf-sites-actions'},h('span',null,sites.length+' 个'),
             h(Action,{name:'add',label:'添加自定义网站',disabled:busy,
               onClick:()=>setEditing(null)}))),
-        h('div',{className:'sf-current'},
-          h('div',null,h('span',null,'当前网页'),h('strong',null,page||'请切换到普通网页')),
-          current?.enabled?h('span',{className:'sf-managed'},h(Icon,{name:'check'}),'已管理'):
-            h('span',{className:'sf-current-status'},current?'已暂停':'在上方一键加入')),
         editing!==undefined?h(SiteEditor,{key:editing?.host||'new',initial:editing,
           budget,groups:state?.groups,busy,close:()=>setEditing(undefined),save:saveSite}):null,
         sites.length?h('div',{className:'sf-list'},
@@ -321,7 +307,7 @@
               change:next=>changeSite(site,next)})),
           sites.length>4?h(Button,{className:'sf-show-all',onClick:()=>setExpanded(v=>!v)},
             expanded?'收起列表':'查看全部 '+sites.length+' 个网站'):null):
-          h('p',{className:'sf-empty'},'暂无受管网站。点击上方可加入当前网页。')),
+          h('p',{className:'sf-empty'},'暂无受管网站。请使用上方「当前网页」的一键加入，或点击加号添加网站。')),
       h(Advanced,{state,busy,operate,error:message=>notice(message,true)}));
   }
   const mount=api.root.querySelector('#tool-app');
