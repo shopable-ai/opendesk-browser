@@ -1,0 +1,493 @@
+{
+  "status": "PASS",
+  "kind": "FINAL_STATIC_DEVELOPMENT_SIDE_PANEL_NATIVE_READ_CREATE_SAVE",
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-snapshot/dist/development",
+    "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+    "toolShellSha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "66356889-3061-4b40-9e4c-60436459f8a1",
+      "receipt": "build-development.json",
+      "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "58172c10589bc940636ea5fffe797f709e5733d3"
+    },
+    "at": "2026-10-20T14:04:25.295Z"
+  },
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/profile-1792500945958",
+  "extensionId": "lngglfnojbbblhalacncnfmdihfnaoec",
+  "at": "2026-10-20T14:05:45.433Z",
+  "tag": "R351-final-save-1792505145433",
+  "management": {
+    "description": "OpenDesk Browser 浏览器自动化框架。",
+    "enabled": true,
+    "homepageUrl": "",
+    "hostPermissions": [
+      "<all_urls>"
+    ],
+    "id": "lngglfnojbbblhalacncnfmdihfnaoec",
+    "installType": "development",
+    "isApp": false,
+    "mayDisable": true,
+    "name": "OpenDesk Browser",
+    "offlineEnabled": false,
+    "optionsUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/native-agent/settings.html",
+    "permissions": [
+      "activeTab",
+      "alarms",
+      "bookmarks",
+      "cookies",
+      "declarativeNetRequestWithHostAccess",
+      "downloads",
+      "notifications",
+      "offscreen",
+      "proxy",
+      "scripting",
+      "sidePanel",
+      "storage",
+      "tabs",
+      "unlimitedStorage",
+      "userScripts",
+      "webNavigation"
+    ],
+    "shortName": "OD",
+    "type": "extension",
+    "version": "0.1.0",
+    "versionName": ""
+  },
+  "chromePermission": true,
+  "owner": {
+    "activeActions": [],
+    "bookmarkFull": true,
+    "installEpoch": "1b4deb92-7bf5-4742-a55b-5c10785f01e5",
+    "origins": [],
+    "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "version": "0.3.8"
+  },
+  "contexts": [
+    {
+      "contextId": "171511ef-c3ef-4552-a441-3e382dc1ca89",
+      "contextType": "SIDE_PANEL",
+      "documentId": "326FC266AF8441E122B3F3B409CCB6ED",
+      "documentOrigin": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec",
+      "documentUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=3bd07459-0d96-40a4-8ac0-6437fa3fbe01",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    }
+  ],
+  "beforeTree": [
+    {
+      "id": "0",
+      "title": ""
+    },
+    {
+      "id": "1",
+      "parentId": "0",
+      "index": 0,
+      "title": "书签栏"
+    },
+    {
+      "id": "5",
+      "parentId": "1",
+      "index": 0,
+      "title": "R351-1792501044959-工作"
+    },
+    {
+      "id": "6",
+      "parentId": "5",
+      "index": 0,
+      "title": "R351-1792501044959-目标"
+    },
+    {
+      "id": "7",
+      "parentId": "5",
+      "index": 1,
+      "title": "R351-1792501044959-已编辑",
+      "url": "https://example.org/r351-edited"
+    },
+    {
+      "id": "8",
+      "parentId": "5",
+      "index": 2,
+      "title": "R351-1792501044959-子目录"
+    },
+    {
+      "id": "10",
+      "parentId": "1",
+      "index": 1,
+      "title": "R351-升级保留-1792501312838"
+    },
+    {
+      "id": "11",
+      "parentId": "10",
+      "index": 0,
+      "title": "R351-升级保留-1792501312838-书签",
+      "url": "https://example.org/r351-preserved"
+    },
+    {
+      "id": "21",
+      "parentId": "10",
+      "index": 1,
+      "title": "R351-lost-ack-1792503309190"
+    },
+    {
+      "id": "13",
+      "parentId": "1",
+      "index": 2,
+      "title": "R351-lost-ack-1792501848086"
+    },
+    {
+      "id": "15",
+      "parentId": "1",
+      "index": 3,
+      "title": "R351-final-save-1792502954404-200pct-200pct-200pct"
+    },
+    {
+      "id": "2",
+      "parentId": "0",
+      "index": 1,
+      "title": "其他书签"
+    }
+  ],
+  "firstCandidateBookmarkReadback": {
+    "id": "11",
+    "parentId": "10",
+    "index": 0,
+    "title": "R351-升级保留-1792501312838-书签",
+    "url": "https://example.org/r351-preserved"
+  },
+  "reactAdmission": {
+    "trustedReact": true,
+    "reactCount": 1,
+    "hostTag": "DIV",
+    "hostIframeCount": 0,
+    "allIframeCount": 0
+  },
+  "loadedAsset": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js",
+    "sha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+    "bytes": 1048447,
+    "scripts": [
+      "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js",
+      "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/stay-focus-controls.js",
+      "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/trusted-cookie-ui.js",
+      "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js"
+    ]
+  },
+  "loadedScript": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js",
+    "scriptId": "7",
+    "sha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+    "bytes": 1048447
+  },
+  "buttonsFinePointer": [
+    {
+      "text": "",
+      "title": "关闭",
+      "className": "od-icon-button bm-sheet-close",
+      "width": 30,
+      "height": 30
+    },
+    {
+      "text": "更改",
+      "title": "",
+      "className": "bm-text-button",
+      "width": 34,
+      "height": 34
+    },
+    {
+      "text": "保存",
+      "title": "",
+      "className": "od-button od-button--primary bm-button bm-button--primary",
+      "testId": "bookmark-save",
+      "width": 161.5,
+      "height": 38
+    },
+    {
+      "text": "取消",
+      "title": "",
+      "className": "bm-button",
+      "width": 161.5,
+      "height": 38
+    }
+  ],
+  "mediaBefore": {
+    "coarse": false,
+    "fine": true
+  },
+  "mediaWithTouchEmulation": {
+    "coarse": true,
+    "fine": false
+  },
+  "buttonsTouchEmulation": [
+    {
+      "text": "",
+      "title": "关闭",
+      "className": "od-icon-button bm-sheet-close",
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "更改",
+      "title": "",
+      "className": "bm-text-button",
+      "width": 34,
+      "height": 44
+    },
+    {
+      "text": "保存",
+      "title": "",
+      "className": "od-button od-button--primary bm-button bm-button--primary",
+      "testId": "bookmark-save",
+      "width": 161.5,
+      "height": 44
+    },
+    {
+      "text": "取消",
+      "title": "",
+      "className": "bm-button",
+      "width": 161.5,
+      "height": 44
+    }
+  ],
+  "coarseSaveCancel": {
+    "status": "PASS",
+    "method": "CFT touch emulation; actual matchMedia(pointer:coarse) observed",
+    "controls": [
+      {
+        "text": "保存",
+        "title": "",
+        "className": "od-button od-button--primary bm-button bm-button--primary",
+        "testId": "bookmark-save",
+        "width": 161.5,
+        "height": 44
+      },
+      {
+        "text": "取消",
+        "title": "",
+        "className": "bm-button",
+        "width": 161.5,
+        "height": 44
+      }
+    ]
+  },
+  "created": {
+    "children": [],
+    "dateAdded": 1792505146697,
+    "dateGroupModified": 1792505146697,
+    "id": "23",
+    "index": 4,
+    "parentId": "1",
+    "syncing": false,
+    "title": "R351-final-save-1792505145433"
+  },
+  "noSecondConfirmation": true,
+  "afterTree": [
+    {
+      "id": "0",
+      "title": ""
+    },
+    {
+      "id": "1",
+      "parentId": "0",
+      "index": 0,
+      "title": "书签栏"
+    },
+    {
+      "id": "5",
+      "parentId": "1",
+      "index": 0,
+      "title": "R351-1792501044959-工作"
+    },
+    {
+      "id": "6",
+      "parentId": "5",
+      "index": 0,
+      "title": "R351-1792501044959-目标"
+    },
+    {
+      "id": "7",
+      "parentId": "5",
+      "index": 1,
+      "title": "R351-1792501044959-已编辑",
+      "url": "https://example.org/r351-edited"
+    },
+    {
+      "id": "8",
+      "parentId": "5",
+      "index": 2,
+      "title": "R351-1792501044959-子目录"
+    },
+    {
+      "id": "10",
+      "parentId": "1",
+      "index": 1,
+      "title": "R351-升级保留-1792501312838"
+    },
+    {
+      "id": "11",
+      "parentId": "10",
+      "index": 0,
+      "title": "R351-升级保留-1792501312838-书签",
+      "url": "https://example.org/r351-preserved"
+    },
+    {
+      "id": "21",
+      "parentId": "10",
+      "index": 1,
+      "title": "R351-lost-ack-1792503309190"
+    },
+    {
+      "id": "13",
+      "parentId": "1",
+      "index": 2,
+      "title": "R351-lost-ack-1792501848086"
+    },
+    {
+      "id": "15",
+      "parentId": "1",
+      "index": 3,
+      "title": "R351-final-save-1792502954404-200pct-200pct-200pct"
+    },
+    {
+      "id": "23",
+      "parentId": "1",
+      "index": 4,
+      "title": "R351-final-save-1792505145433"
+    },
+    {
+      "id": "2",
+      "parentId": "0",
+      "index": 1,
+      "title": "其他书签"
+    }
+  ]
+}

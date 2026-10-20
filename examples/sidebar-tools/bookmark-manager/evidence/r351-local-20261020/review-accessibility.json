@@ -1,0 +1,671 @@
+{
+  "schemaVersion": 2,
+  "reviewedAt": "2026-10-20T14:11:54.891514+00:00",
+  "reviewMode": "INDEPENDENT_READ_ONLY_EVIDENCE_AND_SCOPED_SOURCE_REASSESSMENT",
+  "reviewStatus": "FINAL_DIMENSION_REVIEW_FOR_CAPTURED_EVIDENCE_NOT_RELEASE_APPROVAL",
+  "scope": "Bookmark Manager R3.5.1-LOCAL 0.3.8: fixed three-line CSS/native200 repair, existing behavior and evidence limits",
+  "dimension": "无障碍触屏",
+  "score": 92,
+  "scale": 100,
+  "status": "REVIEWED_FINAL_CANDIDATE_WITH_EXPLICIT_SCOPE_LIMITS",
+  "confidence": "high-for-observed-scoped-evidence; untested branches explicitly retained",
+  "scoringPolicy": {
+    "equalWeight": true,
+    "targetPerDimension": 95,
+    "targetUsedToDeriveScore": false,
+    "method": "Independent per-dimension judgment; rubric maintained where the baseline supplied one; no release approval inferred from a score."
+  },
+  "rationale": "92/100：控件语义24/25、键盘焦点22/25、触屏目标18/20、文字对比14/15保持原分；放大与重排证据12→14/15。增量一分来自正式新包真实200%消除toolbar裁切，一分来自新增真实alertdialog完整显示/焦点在内/继续编辑与明确放弃的行为证据，并有编辑保存取消读回。仍缺VoiceOver、物理触屏/软键盘、强制颜色与全部状态/目标审计，不推出WCAG全面符合或95。",
+  "scoreHistory": [
+    {
+      "score": 82,
+      "scope": "初轮暗色URL约3.0611:1、保存class失配、假listbox及触屏更改目标不足。"
+    },
+    {
+      "score": 90,
+      "scope": "当前正式preview逐项修复并回归；原生读屏/真实触屏/页面缩放仍未确认。"
+    },
+    {
+      "score": 90,
+      "at": "2026-10-20T13:38:15.379894+00:00",
+      "scope": "最终6be831实际SIDE_PANEL确认coarse保存/取消161.5×44、更改34×44与运行指纹；增强证据但不新增真实读屏/物理触摸/缩放覆盖，分项均保留。"
+    },
+    {
+      "score": 91,
+      "at": "2026-10-20T13:43:29.267055+00:00",
+      "scope": "真实原SIDE_PANEL200%生效/还原与截图已证实，放大证据12→13；不是所有放大交互及读屏/物理触摸均通过，其他分项保持。"
+    },
+    {
+      "score": 90,
+      "at": "2026-10-20T13:49:14.705380+00:00",
+      "scope": "真实200%单项补证确认toolbar约8px裁切，相关分项减1；driver普通取消二次确认及modal背景检查不计产品失败。等待有界复核。"
+    },
+    {
+      "score": 92,
+      "previousScore": 90,
+      "delta": 2,
+      "at": "2026-10-20T14:11:54.891514+00:00",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "scope": "92/100：控件语义24/25、键盘焦点22/25、触屏目标18/20、文字对比14/15保持原分；放大与重排证据12→14/15。增量一分来自正式新包真实200%消除toolbar裁切，一分来自新增真实alertdialog完整显示/焦点在内/继续编辑与明确放弃的行为证据，并有编辑保存取消读回。仍缺VoiceOver、物理触屏/软键盘、强制颜色与全部状态/目标审计，不推出WCAG全面符合或95。"
+    }
+  ],
+  "baselineReview": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/review-accessibility.json",
+    "sha256": "0c474ae25b175bb93d688ba539c33ac3273d9dbe1de13ebb7152ebed6fc5127e",
+    "originalScore": 90,
+    "originalRationale": "本次补证后暂记90/100：已闭环的原生10项继续PASS；真实200%新增toolbar局部裁切P2，相关布局分项下调1。原维护性笔记及仅ID删除确认按本维既有结论保留。补充driver误报已独立排除，等待单项最终回执收敛。",
+    "originalReviewedAt": "2026-10-20T13:43:29.267055+00:00",
+    "originalStatus": "REVIEW_UPDATED_CONFIRMED_ZOOM_P2_SUPPLEMENTAL_RECHECK_PENDING",
+    "role": "Historical baseline; not claimed to describe the new candidate. Original file left untouched."
+  },
+  "candidate": {
+    "toolVersion": "0.3.8",
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "productionNativeUsed": false,
+    "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+    "productionBuildPackageHash": "949959d56f3702e7aca957ad710e389388a7d06fda22952f7de4bcd451abf4d8",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/profile-1792500945958",
+    "extensionId": "lngglfnojbbblhalacncnfmdihfnaoec",
+    "loadedToolShell": {
+      "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js",
+      "scriptId": "7",
+      "sha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+      "bytes": 1048447
+    },
+    "sourcePins": {
+      "examples/sidebar-tools/bookmark-manager/src/react/App.jsx": {
+        "gitBlob": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+        "sha256": "85620b597aba32c3203e7c2588665fa13a0d7855f844ebe829c440d622624b19"
+      },
+      "examples/sidebar-tools/bookmark-manager/src/react/style.css": {
+        "gitBlob": "58172c10589bc940636ea5fffe797f709e5733d3",
+        "sha256": "454e900467bee2bb5397e71a8c63310b3c9b973d7a3051049b2e67b93ae8e0d9"
+      },
+      "src/ui/react/tabs/tool-host.tsx": {
+        "gitBlob": "31c242b2a27d985071666bc298d952c9cb564a03",
+        "sha256": "615bd8e95ad32b31eb3c33d5ccb58310d46ee7425732ceb9eb7fcebe4067fff0"
+      }
+    },
+    "snapshotSource": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-source.json"
+  },
+  "sourceReview": {
+    "cssDelta": "仅.bm-topbar去固定height并允许wrap；.bm-top-actions允许wrap且min-width:0；max-width349px时topbar padding-inline8px。",
+    "appAndToolHostPinsUnchangedFromBaseline": true,
+    "directCancel": {
+      "source": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
+      "line": 504,
+      "contract": "NOT_EXPECTED_BY_DIRECT_CANCEL_CONTRACT",
+      "sourceBehavior": "正常onCancel直接closeSheet；uncertain时走requestCloseSheet。",
+      "observed": "普通取消关闭且草稿未写入，不要求额外确认。"
+    },
+    "dirtyClose": {
+      "sourceLine": 356,
+      "behavior": "右上关闭走requestCloseSheet，dirty或uncertain触发confirmDiscard。",
+      "nativeEvidence": "dirtyClose PASS: confirmation within viewport, focus within, keep-editing preserves draft, explicit discard does not write."
+    },
+    "driverScroll": "driver scrollIntoView可使背景父页面滚动；模态打开或操作后背景工具栏离屏，不额外计为已证明的产品裁切。"
+  },
+  "buildEvidence": {
+    "development": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-build-evidence/build-development.json",
+      "sha256": "09d53cd0c935dddc9597928ba8d73c99a7741fecc16ddcca4a66b5ae9a0a38ea",
+      "status": "passed",
+      "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "sourceDriftDuringBuild": [],
+      "toolShellBytes": 1048447,
+      "toolShellBudget": 1048576,
+      "remainingBytes": 129,
+      "toolShellSha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de"
+    },
+    "production": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-build-evidence/build-production.json",
+      "sha256": "4beb2615a55e578ed7c8ca7c1ef938ecc318e1438f6b784e7e10ab5673f8db1f",
+      "status": "passed",
+      "packageHash": "949959d56f3702e7aca957ad710e389388a7d06fda22952f7de4bcd451abf4d8",
+      "sourceDriftDuringBuild": [],
+      "toolShellBytes": 1048041,
+      "toolShellBudget": 1048576,
+      "remainingBytes": 535,
+      "toolShellSha256": "1706685f206f11f629b4f15eb304ac8f29aa21ed8bc331c1e67120c91c91f8c8"
+    }
+  },
+  "logEvidence": {
+    "final-fix-source-tests.log": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-fix-source-tests.log",
+      "sha256": "259d2d718eefa18952843bdbefe161ac3f5cd047c07263cccdfad657d5e061cb",
+      "bytes": 12051,
+      "observedClaim": "128/128 targeted tests PASS",
+      "runByThisReviewer": false
+    },
+    "final-fix-built-provenance.log": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-fix-built-provenance.log",
+      "sha256": "1ec46afa40459940b656144c9df987dfdda26990dd0aaeff4eb3ae6258080d64",
+      "bytes": 288,
+      "observedClaim": "2/2 built provenance checks PASS",
+      "runByThisReviewer": false
+    },
+    "final-fix-check.log": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-fix-check.log",
+      "sha256": "3896deba1f13d50d1ab198a6c5cdc82614004ad6b5e271171c70335e388c3094",
+      "bytes": 208,
+      "observedClaim": "937 source/test/build files checked",
+      "runByThisReviewer": false
+    }
+  },
+  "previewEvidence": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence/bookmark-r304-interaction.json",
+    "sha256": "d5370713f4dc1eab2edd715c70fa3456766bed40b836dd052cd09da9b8ff6aa2",
+    "kind": "CHROMIUM_FORMAL_REACT_MOCK_HOST",
+    "nativeVerified": false,
+    "installed": false,
+    "manifestSourceBound": false,
+    "boundary": "Standalone offline Mock Host, not installed package provenance. Final native loadedScript/build SHA supply installed candidate binding.",
+    "mainCases": 5,
+    "geometryCases": 15,
+    "toolbarCases": [
+      {
+        "width": 180,
+        "coarse": false,
+        "viewport": {
+          "innerWidth": 180,
+          "layoutWidth": 180,
+          "renderedWidth": 180,
+          "zoom": 1
+        },
+        "geometry": {
+          "overflow": 0,
+          "actions": [
+            {
+              "label": "新建书签",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            },
+            {
+              "label": "新建文件夹",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            },
+            {
+              "label": "收藏当前页",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            },
+            {
+              "label": "刷新书签",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            }
+          ]
+        },
+        "zoomMethod": "EFFECTIVE_CSS_WIDTH_NOT_NATIVE_PAGE_ZOOM"
+      },
+      {
+        "width": 180,
+        "coarse": true,
+        "viewport": {
+          "innerWidth": 180,
+          "layoutWidth": 180,
+          "renderedWidth": 180,
+          "zoom": 1
+        },
+        "geometry": {
+          "overflow": 0,
+          "actions": [
+            {
+              "label": "新建书签",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            },
+            {
+              "label": "新建文件夹",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            },
+            {
+              "label": "收藏当前页",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            },
+            {
+              "label": "刷新书签",
+              "complete": true,
+              "hittable": true,
+              "svgInside": true
+            }
+          ]
+        },
+        "zoomMethod": "EFFECTIVE_CSS_WIDTH_NOT_NATIVE_PAGE_ZOOM"
+      }
+    ]
+  },
+  "nativeEvidence": {
+    "candidate-final-check": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/candidate-final-check.json",
+      "sha256": "c0ee86dd3dc78f691989be59189914bd60e905f535bfc6b5b66afcbe030adf3c",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:05:45.433Z",
+      "sameFinalCandidate": true
+    },
+    "browser-zoom-200-layout": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/browser-zoom-200-layout.json",
+      "sha256": "bac4bc069d8c192b07a806745f3c6320f0725802de8b682d5e796615d9172161",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:07:35.786Z",
+      "sameFinalCandidate": true
+    },
+    "scenarios": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/scenarios.json",
+      "sha256": "8df516a2d7b8c187f0308f4848da6f862d27e5f2b9a5dbdc645c9a482de80c09",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:06:33.024Z",
+      "sameFinalCandidate": true
+    },
+    "close-reopen": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/close-reopen.json",
+      "sha256": "b7f8713b50550e797d5383e3fee714cbee04b462a015409221aebc4acbd0edfc",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:06:51.971Z",
+      "sameFinalCandidate": true
+    },
+    "permission-native-final4": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/permission-native-final4.json",
+      "sha256": "18d455ca74dbc18f5f3481426e03e4da693cdf14e34660243cd7244148eb95f0",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:06:55.976Z",
+      "sameFinalCandidate": true
+    },
+    "upgrade-final": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/upgrade-final.json",
+      "sha256": "700e261b6d7c9541710e4920712ab76f3ea954fba8ae1831f9f898e75ece31a9",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:07:39.300Z",
+      "sameFinalCandidate": true
+    },
+    "untrusted-final4": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/untrusted-final4.json",
+      "sha256": "55876a5ac15eae29581ed03c124f263f8346fbb8e1ad7dd780cc37a16343ca25",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:07:43.142Z",
+      "sameFinalCandidate": true
+    },
+    "save-lost-ack-native": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/save-lost-ack-native.json",
+      "sha256": "3ca8a0f6aeccc924caaae462403bf21997a64fb4e5af9160dc74643e988d1661",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:08:12.187Z",
+      "sameFinalCandidate": true
+    },
+    "restart-after-update": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/restart-after-update.json",
+      "sha256": "190f87fda44a1dcefda9271077d5d7e6efd4e31c61ea23bccc7c427913cf988c",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:05:09.269Z",
+      "sameFinalCandidate": true
+    },
+    "restart": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/restart.json",
+      "sha256": "c307ccf108757d745f8e3b351c82b0b42c247f7c16ef0b4290c67b049c23c356",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:08:48.594Z",
+      "sameFinalCandidate": true
+    },
+    "update-recovered-final": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/update-recovered-final.json",
+      "sha256": "2a24dcb3e4b296dd85a45f89283bd4d04fc3eced9fbc817fc25b8fe95fc9f87e",
+      "status": "PASS",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "observedAt": "2026-10-20T14:09:25.667Z",
+      "sameFinalCandidate": true,
+      "nativeTreeIdenticalImmediatelyAfterUpdate": true,
+      "actualExtension": {
+        "id": "lngglfnojbbblhalacncnfmdihfnaoec",
+        "name": "OpenDesk Browser",
+        "version": "0.1.0",
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+        "enabled": true
+      },
+      "chromePermission": true,
+      "currentGrant": {
+        "activeActions": [],
+        "bookmarkFull": true,
+        "installEpoch": "01cebe57-ba31-42c7-b3b8-657604b9742d",
+        "origins": [],
+        "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+        "version": "0.3.8"
+      },
+      "retainedBookmark": {
+        "dateAdded": 1792501315470,
+        "id": "11",
+        "index": 0,
+        "parentId": "10",
+        "syncing": false,
+        "title": "R351-升级保留-1792501312838-书签",
+        "url": "https://example.org/r351-preserved"
+      },
+      "recoveredBy": "restart-after-update.json",
+      "failedReloadReceipt": "update-fixed-install.json",
+      "interpretation": "Same-path update succeeded after same-profile restart recovery; immediate runtime.reload itself did not pass.",
+      "failedReloadEvidence": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/update-fixed-install.json",
+        "sha256": "f57d8f312c6c4b08cfa074d9f17cc77d053d3b6c4a6c89ca936ab60967d5e82c",
+        "status": "FAIL",
+        "preserved": true
+      }
+    }
+  },
+  "nativeMeasurements": {
+    "browserZoom": 2,
+    "at200": {
+      "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=cef9f061-9338-46d7-8410-257206335cd5",
+      "dpr": 4,
+      "width": 180,
+      "height": 407,
+      "cssZoom": "1",
+      "bodyZoom": "1",
+      "viewportScale": 1
+    },
+    "viewport": {
+      "left": 0,
+      "top": 0,
+      "right": 180,
+      "bottom": 407
+    },
+    "appClientWidth": 180,
+    "appScrollWidth": 180,
+    "toolbar": [
+      {
+        "name": "新建书签",
+        "rect": {
+          "x": 8,
+          "y": 179.51953125,
+          "width": 34,
+          "height": 34,
+          "top": 179.51953125,
+          "right": 42,
+          "bottom": 213.51953125,
+          "left": 8
+        },
+        "insideApp": true,
+        "insideViewport": true,
+        "hitTest": true,
+        "svgInsideButton": true
+      },
+      {
+        "name": "新建文件夹",
+        "rect": {
+          "x": 47,
+          "y": 179.51953125,
+          "width": 34,
+          "height": 34,
+          "top": 179.51953125,
+          "right": 81,
+          "bottom": 213.51953125,
+          "left": 47
+        },
+        "insideApp": true,
+        "insideViewport": true,
+        "hitTest": true,
+        "svgInsideButton": true
+      },
+      {
+        "name": "收藏当前页",
+        "rect": {
+          "x": 96,
+          "y": 179.51953125,
+          "width": 34,
+          "height": 34,
+          "top": 179.51953125,
+          "right": 130,
+          "bottom": 213.51953125,
+          "left": 96
+        },
+        "insideApp": true,
+        "insideViewport": true,
+        "hitTest": true,
+        "svgInsideButton": true
+      },
+      {
+        "name": "刷新书签",
+        "rect": {
+          "x": 134,
+          "y": 179.51953125,
+          "width": 34,
+          "height": 34,
+          "top": 179.51953125,
+          "right": 168,
+          "bottom": 213.51953125,
+          "left": 134
+        },
+        "insideApp": true,
+        "insideViewport": true,
+        "hitTest": true,
+        "svgInsideButton": true
+      }
+    ],
+    "save": {
+      "status": "PASS",
+      "noSecondConfirmation": true
+    },
+    "cancel": {
+      "status": "PASS",
+      "draftNotWritten": true,
+      "confirmation": "NOT_EXPECTED_BY_DIRECT_CANCEL_CONTRACT"
+    },
+    "dirtyClose": {
+      "status": "PASS",
+      "confirmation": {
+        "rect": {
+          "x": 14,
+          "y": 84.44921875,
+          "width": 152,
+          "height": 238.59765625,
+          "top": 84.44921875,
+          "right": 166,
+          "bottom": 323.046875,
+          "left": 14
+        },
+        "clientWidth": 152,
+        "scrollWidth": 152,
+        "focusWithin": true,
+        "buttons": [
+          {
+            "text": "继续编辑",
+            "rect": {
+              "x": 62,
+              "y": 229.046875,
+              "width": 86,
+              "height": 34,
+              "top": 229.046875,
+              "right": 148,
+              "bottom": 263.046875,
+              "left": 62
+            },
+            "hitTest": true
+          },
+          {
+            "text": "放弃修改",
+            "rect": {
+              "x": 62,
+              "y": 271.046875,
+              "width": 86,
+              "height": 34,
+              "top": 271.046875,
+              "right": 148,
+              "bottom": 305.046875,
+              "left": 62
+            },
+            "hitTest": true
+          }
+        ]
+      },
+      "keepEditingPreservesDraft": true,
+      "explicitDiscardNotWritten": true
+    },
+    "restored": {
+      "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=cef9f061-9338-46d7-8410-257206335cd5",
+      "dpr": 2,
+      "width": 360,
+      "height": 815,
+      "cssZoom": "1",
+      "bodyZoom": "1",
+      "viewportScale": 1
+    },
+    "createdTabClosed": true
+  },
+  "screenshots": [
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/zoom-200-layout-main.png",
+      "sha256": "80887b0889506172ea6928f3f50c02e49a73649f58afc2ee286568d322d5223c",
+      "bytes": 70650,
+      "visuallyInspectedByReviewer": true
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/zoom-200-layout-editor.png",
+      "sha256": "f5c77fdedacdfadf71cba366721fbfbd864e04520bfbe9a5c1abde80c688c88d",
+      "bytes": 98530,
+      "visuallyInspectedByReviewer": true
+    },
+    {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/zoom-200-layout-dirty-close-confirmation.png",
+      "sha256": "e28d6fb632c7303eba77e26483eb67dae314d1a9b7e6ba73f94e625f98a793d7",
+      "bytes": 119026,
+      "visuallyInspectedByReviewer": true
+    }
+  ],
+  "aggregateReportAtCapture": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/report.json",
+    "sha256": "06308b77a2790bd3a5e25b306a59317920b7864999a2a54f3984e7e7f3e21715",
+    "status": "FAIL_LAYOUT",
+    "candidateHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8",
+    "updatedAt": "2026-10-20T13:53:09.008416+00:00",
+    "usedAsNewCandidatePass": false,
+    "interpretation": "Aggregate receipt at capture time; individual same-candidate receipts, not an earlier aggregate, support this assessment."
+  },
+  "findings": [],
+  "resolvedFindings": [
+    {
+      "id": "true200-toolbar-clip",
+      "previousPriority": "P2",
+      "status": "RESOLVED_FINAL_CANDIDATE_NATIVE",
+      "previousCandidateHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8",
+      "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "evidence": "native.browser-zoom-200-layout",
+      "reason": "固定CSS三行调整自然换行、动作组换行/min-width和窄屏padding；正式新包真实SIDE_PANEL 200%下clientWidth=scrollWidth=180，四个toolbar按钮完整可命中；180px fine/coarse Mock两项也PASS。",
+      "historicalFailurePreserved": true,
+      "originalFailureEvidence": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/browser-zoom-200-layout-raw-observer.json",
+      "boundary": "关闭本候选已复现的局部横向裁切；不宣称所有控件、目录选择、缩放档位和辅助技术完整验收。"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "ASSISTIVE_TECH",
+      "status": "NOT_TESTED",
+      "item": "VoiceOver朗读/浏览模式及模态背景隔离；focusWithin不是读屏证明。"
+    },
+    {
+      "id": "PHYSICAL_TOUCH",
+      "status": "NOT_TESTED",
+      "item": "物理触屏与软键盘；44px证据来自CFT touch emulation。"
+    },
+    {
+      "id": "FORCED_COLORS",
+      "status": "NOT_TESTED",
+      "item": "系统强制颜色、高对比及所有焦点状态对比。"
+    },
+    {
+      "id": "ALL_TARGETS",
+      "status": "PARTIAL_COVERAGE",
+      "item": "部分控件目标尺寸与URL对比已测；并非所有错误/重试/确认状态均44px或全部对比度符合。"
+    },
+    {
+      "id": "ZOOM_UNCOVERED_STATES",
+      "status": "PARTIAL_COVERAGE",
+      "item": "180x407下主工具栏、编辑保存/取消和dirty-close alertdialog已测；其余目录选择、完整键盘遍历和全部重排状态未完整覆盖。"
+    }
+  ],
+  "budgetRisk": {
+    "status": "WITHIN_HARD_LIMIT_VERY_LOW_HEADROOM",
+    "developmentBytes": 1048447,
+    "budgetBytes": 1048576,
+    "remainingBytes": 129,
+    "productionBytes": 1048041,
+    "productionRemainingBytes": 535,
+    "directive": "保持原硬预算；这些PASS绑定本候选，后续改动不能直接继承，不为分数放宽预算。"
+  },
+  "nativeBoundary": {
+    "chromePermissionAfterOwnerRevoke": true,
+    "actualChromePermissionRemovalTested": false,
+    "productionNativeTested": false,
+    "physicalTouchTested": false,
+    "fullExplicitUnknownRecoveryTested": false,
+    "allSameCandidateIndividualReceiptsInThisReportPassed": true,
+    "doesNotClaimWholeReleaseOrAllSecurityA11yCoverage": true,
+    "sameCandidateIndividualReceiptCount": 11,
+    "updateRecoveredBySameProfileRestart": true,
+    "immediateRuntimeReloadPassed": false
+  },
+  "reviewerActions": {
+    "sourceEdits": false,
+    "browserOperations": false,
+    "builds": false,
+    "testsRun": false,
+    "commits": false,
+    "subagentsStarted": false,
+    "allowedWritesOnly": "artifacts/bookmark-manager-r351-local/review-final-{ux,react-css,accessibility,security,testing-native,maintainability}.json"
+  },
+  "remainingP2Policy": "保留既有未修复P2；200%工具栏裁切仅在相符新候选证据范围内关闭。",
+  "rubric": [
+    {
+      "area": "控件名称、语义及标签",
+      "score": 24,
+      "maximum": 25
+    },
+    {
+      "area": "键盘与焦点",
+      "score": 22,
+      "maximum": 25
+    },
+    {
+      "area": "触屏目标与空间",
+      "score": 18,
+      "maximum": 20
+    },
+    {
+      "area": "文字对比和深色可读性",
+      "score": 14,
+      "maximum": 15
+    },
+    {
+      "area": "放大与重排证据",
+      "score": 14,
+      "maximum": 15
+    }
+  ],
+  "complianceStatus": "PARTIAL_SCOPED_EVIDENCE_NOT_FULL_WCAG_CONFORMANCE",
+  "nativeEvidenceCapturedAt": "2026-10-20T14:12:35.692500+00:00",
+  "finalEvidenceSupplement": {
+    "at": "2026-10-20T14:12:35.692500+00:00",
+    "scoreChanged": false,
+    "reason": "新增第11份同候选更新恢复收据，确认原reload失败经原Profile restart恢复并核实树/加载路径/身份/权限/保留书签；不因新增收据数量改变各维度评分。",
+    "pendingOwnerAggregate": "当前native/report.json仍是旧6be831的FAIL_LAYOUT，不能用于否定新候选的11项逐文件PASS，也不擅自改写该owner报告。"
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "kind": "HISTORICAL_CANDIDATE_NOT_FINAL",
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/latest-snapshot/dist/development",
+    "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8",
+    "toolShellSha256": "0d4bcf47799ebc80f1d674f4ae695686d80e10f4a971ca0cf7357eaab0c3ca55",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "7b2d086a-ca7e-436e-88a4-53fba9827d17",
+      "receipt": "build-development.json",
+      "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "97dc5ed640d2fedd52e14189ab7eacb8c47dce8a"
+    },
+    "at": "2026-10-20T13:21:17.874Z"
+  },
+  "nativeCoreClosing": {
+    "status": "FAIL_LAYOUT",
+    "sameCandidate": true,
+    "allRequiredPassed": false,
+    "scope": "Requested native CFT155 static-development interaction checks only. Production native acceptance and independent scoring are NOT_TESTED.",
+    "originalTenNativeChecksPassed": true,
+    "additional200LayoutPassed": false,
+    "productIssue": {
+      "status": "FAIL_LAYOUT",
+      "priority": "P1",
+      "observedAt": "real SIDE_PANEL Chrome per-origin zoom 200%, DPR 4, viewport width 180 CSS px",
+      "appClientWidth": 180,
+      "appScrollWidth": 188,
+      "refreshButtonRight": 187.84375,
+      "appRight": 180,
+      "overflowCssPx": 7.84375,
+      "description": "Bookmark app has horizontal overflow; refresh button box extends beyond the right edge. All four SVG bounds fit and button centers hit their targets; this does not prove SVG clipping.",
+      "sourceLocations": [
+        "examples/sidebar-tools/bookmark-manager/src/react/style.css:7",
+        "examples/sidebar-tools/bookmark-manager/src/react/style.css:9",
+        "examples/sidebar-tools/bookmark-manager/src/react/style.css:17"
+      ],
+      "causeAssessment": "Inference from measured bounds and CSS: fixed button widths, group gaps/padding and topbar content exceed the 180 CSS px available width."
+    },
+    "receipt": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/browser-zoom-200-layout.json"
+  },
+  "zoomLayout": "FAIL_LAYOUT",
+  "baselineReceipt": "native/zoom-200-before-fix.json",
+  "originalRawArchive": "artifacts/bookmark-manager-r351-local/native/history-6be831-core",
+  "supersededBy": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed"
+}

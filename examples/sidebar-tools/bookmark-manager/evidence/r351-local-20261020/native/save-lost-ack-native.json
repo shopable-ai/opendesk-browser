@@ -1,0 +1,402 @@
+{
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-snapshot/dist/development",
+    "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+    "toolShellSha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "66356889-3061-4b40-9e4c-60436459f8a1",
+      "receipt": "build-development.json",
+      "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "58172c10589bc940636ea5fffe797f709e5733d3"
+    },
+    "at": "2026-10-20T14:04:25.295Z"
+  },
+  "kind": "REAL_MAC_CFT_NATIVE_WRITE_RECEIPT_LOSS",
+  "status": "PASS",
+  "at": "2026-10-20T14:08:12.187Z",
+  "method": "Pause original service-worker success-response callback after actual native create completes, then stop only the owned worker before it sends the response. No SDK/Host stubs or altered response.",
+  "workerSourceSha256": "aaafae1cb91b72410bf941f0317b1368cac01146aaeaee6f39011239f180beb5",
+  "fixtureTitle": "R351-lost-ack-1792505292189",
+  "breakpoint": [
+    {
+      "scriptId": "10",
+      "lineNumber": 0,
+      "columnNumber": 244071
+    }
+  ],
+  "pausedAfterNativeWrite": {
+    "id": "29",
+    "title": "R351-lost-ack-1792505292189",
+    "nativeReply": true
+  },
+  "nativeBeforeStopping": [
+    {
+      "dateAdded": 1792505293295,
+      "dateGroupModified": 1792505293295,
+      "id": "29",
+      "index": 5,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R351-lost-ack-1792505292189"
+    }
+  ],
+  "stop": {
+    "success": true
+  },
+  "message": "写入结果未知：已停止重复提交。请刷新核对数据后再决定。",
+  "draft": "R351-lost-ack-1792505292189",
+  "retryDisabled": true,
+  "uiBeforeKeyboard": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n书签管理\n书签管理\n13 项\n搜索名称、URL 或文件夹\n书签栏\n5\nR351-1792501044959-工作\n3\nR351-升级保留-1792501312838\n2\nR351-升级保留-1792501312838-书签\nR351-lost-ack-1792503309190\n0\nR351-lost-ack-1792501848086\n0\nR351-final-save-1792502954404-200pct-200pct-200pct\n0\nR351-final-save-1792505145433-200pct-200pct\n0\n其他书签\n0\n新建文件夹\n名称\n所在文件夹：\n书签栏\n更改\n保存\n取消\n\n写入结果未知：已停止重复提交。请刷新核对数据后再决定。\n\n写入结果未知，已禁止重复保存。请先核对书签状态。",
+    "warnings": [
+      "写入结果未知，已禁止重复保存。请先核对书签状态。"
+    ],
+    "error": "写入结果未知：已停止重复提交。请刷新核对数据后再决定。",
+    "saveDisabled": true,
+    "draft": "R351-lost-ack-1792505292189"
+  },
+  "messageStatus": "PASS_VISIBLE_INDEPENDENT_UNKNOWN_WARNING",
+  "nativeAfterKeyboardRetry": [
+    {
+      "dateAdded": 1792505293295,
+      "dateGroupModified": 1792505293295,
+      "id": "29",
+      "index": 5,
+      "parentId": "1",
+      "syncing": false,
+      "title": "R351-lost-ack-1792505292189"
+    }
+  ],
+  "keyboardCannotRepeatWrite": true,
+  "uiAfterKeyboard": {
+    "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n书签管理\n书签管理\n13 项\n搜索名称、URL 或文件夹\n书签栏\n5\nR351-1792501044959-工作\n3\nR351-升级保留-1792501312838\n2\nR351-升级保留-1792501312838-书签\nR351-lost-ack-1792503309190\n0\nR351-lost-ack-1792501848086\n0\nR351-final-save-1792502954404-200pct-200pct-200pct\n0\nR351-final-save-1792505145433-200pct-200pct\n0\n其他书签\n0\n新建文件夹\n名称\n所在文件夹：\n书签栏\n更改\n保存\n取消\n\nEvent gap; reload full tree\n\n写入结果未知，已禁止重复保存。请先核对书签状态。",
+    "warning": [
+      "写入结果未知，已禁止重复保存。请先核对书签状态。"
+    ],
+    "error": "Event gap; reload full tree",
+    "saveDisabled": true,
+    "draft": "R351-lost-ack-1792505292189"
+  },
+  "saveRecovery": "Observed disabled through receipt failure and keyboard retry; re-enable timing outside this no-replay check",
+  "safetyStatus": "PASS",
+  "errorObservations": [
+    {
+      "reason": "exception",
+      "description": "Error: 书签写入回执丢失，请先核对原生数据，勿重复提交\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238599)\n    at async onSave (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:448520)",
+      "properties": [
+        {
+          "name": "code",
+          "value": "E_OUTCOME_UNKNOWN",
+          "type": "string"
+        },
+        {
+          "name": "cause",
+          "description": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+          "type": "object"
+        },
+        {
+          "name": "stack",
+          "value": "Error: 书签写入回执丢失，请先核对原生数据，勿重复提交\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238599)\n    at async onSave (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:448520)",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "书签写入回执丢失，请先核对原生数据，勿重复提交",
+          "type": "string"
+        }
+      ],
+      "location": {
+        "scriptId": "52",
+        "lineNumber": 0,
+        "columnNumber": 238578
+      },
+      "cause": [
+        {
+          "name": "stack",
+          "value": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "reason": "promiseRejection",
+      "description": "Error: 书签写入回执丢失，请先核对原生数据，勿重复提交\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238599)\n    at async onSave (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:448520)",
+      "properties": [
+        {
+          "name": "code",
+          "value": "E_OUTCOME_UNKNOWN",
+          "type": "string"
+        },
+        {
+          "name": "cause",
+          "description": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+          "type": "object"
+        },
+        {
+          "name": "stack",
+          "value": "Error: 书签写入回执丢失，请先核对原生数据，勿重复提交\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238599)\n    at async onSave (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:448520)",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "书签写入回执丢失，请先核对原生数据，勿重复提交",
+          "type": "string"
+        }
+      ],
+      "location": {
+        "scriptId": "52",
+        "lineNumber": 0,
+        "columnNumber": 239243
+      },
+      "cause": [
+        {
+          "name": "stack",
+          "value": "Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "reason": "exception",
+      "description": "Error: Event gap; reload full tree\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchRead (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:421586)\n    at async t (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439829)",
+      "properties": [
+        {
+          "name": "code",
+          "value": "E_SESSION_EXPIRED",
+          "type": "string"
+        },
+        {
+          "name": "stack",
+          "value": "Error: Event gap; reload full tree\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchRead (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:421586)\n    at async t (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439829)",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "Event gap; reload full tree",
+          "type": "string"
+        }
+      ],
+      "location": {
+        "scriptId": "52",
+        "lineNumber": 0,
+        "columnNumber": 238808
+      }
+    },
+    {
+      "reason": "promiseRejection",
+      "description": "Error: Event gap; reload full tree\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchRead (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:421586)\n    at async t (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439829)",
+      "properties": [
+        {
+          "name": "code",
+          "value": "E_SESSION_EXPIRED",
+          "type": "string"
+        },
+        {
+          "name": "stack",
+          "value": "Error: Event gap; reload full tree\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchRead (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:421586)\n    at async t (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439829)",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "Event gap; reload full tree",
+          "type": "string"
+        }
+      ],
+      "location": {
+        "scriptId": "52",
+        "lineNumber": 0,
+        "columnNumber": 239243
+      }
+    },
+    {
+      "reason": "exception",
+      "description": "Error: E_SESSION_EXPIRED\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchStop (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:422136)\n    at async i (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439488)",
+      "properties": [
+        {
+          "name": "code",
+          "value": "E_SESSION_EXPIRED",
+          "type": "string"
+        },
+        {
+          "name": "stack",
+          "value": "Error: E_SESSION_EXPIRED\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchStop (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:422136)\n    at async i (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439488)",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "E_SESSION_EXPIRED",
+          "type": "string"
+        }
+      ],
+      "location": {
+        "scriptId": "52",
+        "lineNumber": 0,
+        "columnNumber": 238808
+      }
+    },
+    {
+      "reason": "promiseRejection",
+      "description": "Error: E_SESSION_EXPIRED\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchStop (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:422136)\n    at async i (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439488)",
+      "properties": [
+        {
+          "name": "code",
+          "value": "E_SESSION_EXPIRED",
+          "type": "string"
+        },
+        {
+          "name": "stack",
+          "value": "Error: E_SESSION_EXPIRED\n    at Ri (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/sidebar-tool-host.js:1:238829)\n    at async Object.watchStop (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:422136)\n    at async i (chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/ui/tool-shell.js:37:439488)",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "value": "E_SESSION_EXPIRED",
+          "type": "string"
+        }
+      ],
+      "location": {
+        "scriptId": "52",
+        "lineNumber": 0,
+        "columnNumber": 239243
+      }
+    }
+  ],
+  "activeWorkerTarget": "494E5C97FE0675D14D86C324039F6656"
+}

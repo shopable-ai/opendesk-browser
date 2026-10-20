@@ -1,0 +1,974 @@
+{
+  "kind": "CHROMIUM_FORMAL_REACT_MOCK_HOST",
+  "nativeVerified": false,
+  "installed": false,
+  "browser": "Chrome/155.0.8059.39",
+  "manifest": {
+    "format": "opendesk.ui-preview.v1",
+    "tool": "bookmark-manager",
+    "toolVersion": "0.3.8",
+    "surface": "side-panel",
+    "scenario": "success",
+    "theme": "light",
+    "viewport": {
+      "width": 360,
+      "height": 760
+    },
+    "sourceCommit": "f76dab1b75e598805494947cd290a193708f625c",
+    "designSha256": "f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717",
+    "shellTheme": "light",
+    "previewBuild": "R3.0.5 REACT OFFLINE CANDIDATE",
+    "mock": true,
+    "installed": false,
+    "permissionsGranted": false,
+    "operations": [
+      "getTree",
+      "get",
+      "search",
+      "create",
+      "update",
+      "move",
+      "remove",
+      "prepareRemoveTree",
+      "removeTree",
+      "observe.start",
+      "observe.read",
+      "observe.stop"
+    ],
+    "r28Baseline": {
+      "sourceCommit": "f76dab1b75e598805494947cd290a193708f625c",
+      "designSha256": "f285f6b5e10fe26fce1d4c2e05fe234fc1e38ac3309c948b052f5a12ce422717",
+      "uiSha256": "c22fa65d190aef2f9194f204078e9e1c49ecaec15f0a9d25f515f95d97f68f24",
+      "shellSha256": "225ac01fe157930437a333133321e0daf8e40b82437a2e0a21f8774b59b7bae4"
+    },
+    "designStatus": "DESIGN_PROTOTYPE_NOT_SOURCE_BOUND",
+    "sourceBound": false,
+    "nativeVerified": false,
+    "previewViewportModes": [
+      360,
+      400,
+      960
+    ],
+    "reactRuntime": true,
+    "reactFiles": {
+      "bundle": "ef66be4926ea62f60bdc3f348569326f1cd495e0f9298ab8126c9528b50058e3",
+      "css": "510b9ac82bc3e8081254cbe9c23301025608b18a16b9d348391acef5d8bd172d",
+      "designSystem": "8bae0d6e66d433dc7d4ff42697698aece1bf2849dcfc1a71cf43daa541b159ca",
+      "model": "875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c",
+      "service": "59095a42310828e86160e49a262352086c19a35fc15bce655bfc81d3e743c451",
+      "mock": "06399ef111d80879c83a64632996954a40eccf297be094c10857b3e40c4087ee",
+      "app": "85620b597aba32c3203e7c2588665fa13a0d7855f844ebe829c440d622624b19",
+      "main": "86a161fdf9ea78208d76e8eea1881bb75a89e28da2a003b427a69ee6a6418053"
+    },
+    "reactFrameSha256": "b0800df6106890737bc2a64fa2048922f1cd2c9b360c334628faaae8ba8c125c",
+    "previewCandidate": "REACT_OFFLINE_MOCK",
+    "formalEntry": true,
+    "hostAdapter": "MOCK_HOST_ADAPTER"
+  },
+  "sourceSha256": "683ebd42a477025cc69d8b6e39079480a7d69efda2e3f6227433fb85e3f1739b",
+  "report": [
+    {
+      "width": 320,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    },
+    {
+      "width": 360,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    },
+    {
+      "width": 400,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape",
+        "folder-130",
+        "failure-preserve",
+        "unknown-draft-safety",
+        "search-folder-drilldown"
+      ]
+    },
+    {
+      "width": 440,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    },
+    {
+      "width": 960,
+      "treeHeight": 665,
+      "noPersistentInspector": true,
+      "mockHost": {
+        "kind": "MOCK_HOST_ADAPTER",
+        "nativeVerified": false,
+        "reviews": [
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "cancelled"
+          },
+          {
+            "operation": "remove",
+            "id": "100",
+            "expected": {
+              "id": "100",
+              "parentId": "10",
+              "index": 0,
+              "title": "OpenDesk 产品资料",
+              "url": "https://example.org/preview",
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          },
+          {
+            "operation": "prepareRemoveTree",
+            "id": "10",
+            "expected": {
+              "id": "10",
+              "parentId": "1",
+              "index": 0,
+              "title": "设计资料",
+              "url": null,
+              "unmodifiable": null,
+              "folderType": null
+            },
+            "status": "approved"
+          }
+        ],
+        "calls": {
+          "remove": 2,
+          "prepareRemoveTree": 1,
+          "removeTree": 1
+        },
+        "mutations": [
+          {
+            "operation": "remove",
+            "id": "100"
+          },
+          {
+            "operation": "removeTree",
+            "id": "10"
+          }
+        ]
+      },
+      "passed": [
+        "one-click-preview",
+        "five-click-five-previews",
+        "folder-row-toggle",
+        "folder-disclosure",
+        "folder-menu-details",
+        "nonmodal-preview",
+        "view-detail-on-demand",
+        "direct-cancel",
+        "edit-no-tree-jump",
+        "save-readback",
+        "search-2159",
+        "create-types",
+        "single-host-review-no-react-confirm",
+        "host-cancel-preserves-bookmark",
+        "ticketed-recursive-delete",
+        "focus-restore",
+        "menu-Escape"
+      ]
+    }
+  ],
+  "geometryReport": [
+    {
+      "width": 320,
+      "mode": "dark",
+      "viewport": {
+        "innerWidth": 320,
+        "layoutWidth": 320,
+        "renderedWidth": 320,
+        "zoom": 1
+      },
+      "media": {
+        "dark": true,
+        "coarse": false,
+        "colorScheme": "dark",
+        "paper": "#151c28",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 360,
+      "mode": "dark",
+      "viewport": {
+        "innerWidth": 360,
+        "layoutWidth": 360,
+        "renderedWidth": 360,
+        "zoom": 1
+      },
+      "media": {
+        "dark": true,
+        "coarse": false,
+        "colorScheme": "dark",
+        "paper": "#151c28",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 400,
+      "mode": "dark",
+      "viewport": {
+        "innerWidth": 400,
+        "layoutWidth": 400,
+        "renderedWidth": 400,
+        "zoom": 1
+      },
+      "media": {
+        "dark": true,
+        "coarse": false,
+        "colorScheme": "dark",
+        "paper": "#151c28",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 440,
+      "mode": "dark",
+      "viewport": {
+        "innerWidth": 440,
+        "layoutWidth": 440,
+        "renderedWidth": 440,
+        "zoom": 1
+      },
+      "media": {
+        "dark": true,
+        "coarse": false,
+        "colorScheme": "dark",
+        "paper": "#151c28",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 960,
+      "mode": "dark",
+      "viewport": {
+        "innerWidth": 960,
+        "layoutWidth": 960,
+        "renderedWidth": 960,
+        "zoom": 1
+      },
+      "media": {
+        "dark": true,
+        "coarse": false,
+        "colorScheme": "dark",
+        "paper": "#151c28",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 320,
+      "mode": "coarse",
+      "viewport": {
+        "innerWidth": 320,
+        "layoutWidth": 320,
+        "renderedWidth": 320,
+        "zoom": 1
+      },
+      "media": {
+        "dark": false,
+        "coarse": true,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible",
+        "44px-coarse-targets"
+      ]
+    },
+    {
+      "width": 360,
+      "mode": "coarse",
+      "viewport": {
+        "innerWidth": 360,
+        "layoutWidth": 360,
+        "renderedWidth": 360,
+        "zoom": 1
+      },
+      "media": {
+        "dark": false,
+        "coarse": true,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible",
+        "44px-coarse-targets"
+      ]
+    },
+    {
+      "width": 400,
+      "mode": "coarse",
+      "viewport": {
+        "innerWidth": 400,
+        "layoutWidth": 400,
+        "renderedWidth": 400,
+        "zoom": 1
+      },
+      "media": {
+        "dark": false,
+        "coarse": true,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible",
+        "44px-coarse-targets"
+      ]
+    },
+    {
+      "width": 440,
+      "mode": "coarse",
+      "viewport": {
+        "innerWidth": 440,
+        "layoutWidth": 440,
+        "renderedWidth": 440,
+        "zoom": 1
+      },
+      "media": {
+        "dark": false,
+        "coarse": true,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible",
+        "44px-coarse-targets"
+      ]
+    },
+    {
+      "width": 960,
+      "mode": "coarse",
+      "viewport": {
+        "innerWidth": 960,
+        "layoutWidth": 960,
+        "renderedWidth": 960,
+        "zoom": 1
+      },
+      "media": {
+        "dark": false,
+        "coarse": true,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "none",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible",
+        "44px-coarse-targets"
+      ]
+    },
+    {
+      "width": 320,
+      "mode": "zoom-200",
+      "viewport": {
+        "innerWidth": 640,
+        "layoutWidth": 320,
+        "renderedWidth": 640,
+        "zoom": 2
+      },
+      "media": {
+        "dark": false,
+        "coarse": false,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 360,
+      "mode": "zoom-200",
+      "viewport": {
+        "innerWidth": 720,
+        "layoutWidth": 360,
+        "renderedWidth": 720,
+        "zoom": 2
+      },
+      "media": {
+        "dark": false,
+        "coarse": false,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 400,
+      "mode": "zoom-200",
+      "viewport": {
+        "innerWidth": 800,
+        "layoutWidth": 400,
+        "renderedWidth": 800,
+        "zoom": 2
+      },
+      "media": {
+        "dark": false,
+        "coarse": false,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 440,
+      "mode": "zoom-200",
+      "viewport": {
+        "innerWidth": 880,
+        "layoutWidth": 440,
+        "renderedWidth": 880,
+        "zoom": 2
+      },
+      "media": {
+        "dark": false,
+        "coarse": false,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    },
+    {
+      "width": 960,
+      "mode": "zoom-200",
+      "viewport": {
+        "innerWidth": 1920,
+        "layoutWidth": 960,
+        "renderedWidth": 1920,
+        "zoom": 2
+      },
+      "media": {
+        "dark": false,
+        "coarse": false,
+        "colorScheme": "light",
+        "paper": "#fff",
+        "darkPaper": "#151c28"
+      },
+      "zoomMethod": "CSS_DOCUMENT_ZOOM_NOT_BROWSER_PAGE_ZOOM",
+      "passed": [
+        "shared-native-button-labels",
+        "svg-center-0.6px",
+        "44px-row-height-and-stride",
+        "last-item-visible-keyboard-activation",
+        "search-folder-visible"
+      ]
+    }
+  ],
+  "toolbarReport": [
+    {
+      "width": 180,
+      "coarse": false,
+      "viewport": {
+        "innerWidth": 180,
+        "layoutWidth": 180,
+        "renderedWidth": 180,
+        "zoom": 1
+      },
+      "geometry": {
+        "overflow": 0,
+        "actions": [
+          {
+            "label": "新建书签",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          },
+          {
+            "label": "新建文件夹",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          },
+          {
+            "label": "收藏当前页",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          },
+          {
+            "label": "刷新书签",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          }
+        ]
+      },
+      "zoomMethod": "EFFECTIVE_CSS_WIDTH_NOT_NATIVE_PAGE_ZOOM"
+    },
+    {
+      "width": 180,
+      "coarse": true,
+      "viewport": {
+        "innerWidth": 180,
+        "layoutWidth": 180,
+        "renderedWidth": 180,
+        "zoom": 1
+      },
+      "geometry": {
+        "overflow": 0,
+        "actions": [
+          {
+            "label": "新建书签",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          },
+          {
+            "label": "新建文件夹",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          },
+          {
+            "label": "收藏当前页",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          },
+          {
+            "label": "刷新书签",
+            "complete": true,
+            "hittable": true,
+            "svgInside": true
+          }
+        ]
+      },
+      "zoomMethod": "EFFECTIVE_CSS_WIDTH_NOT_NATIVE_PAGE_ZOOM"
+    }
+  ]
+}

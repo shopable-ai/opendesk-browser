@@ -1,0 +1,385 @@
+{
+  "kind": "REAL_CFT_SAME_PATH_UNPACKED_CANDIDATE_UPDATE",
+  "status": "FAIL",
+  "oldCandidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/latest-snapshot/dist/development",
+    "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8",
+    "toolShellSha256": "0d4bcf47799ebc80f1d674f4ae695686d80e10f4a971ca0cf7357eaab0c3ca55",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "7b2d086a-ca7e-436e-88a4-53fba9827d17",
+      "receipt": "build-development.json",
+      "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "97dc5ed640d2fedd52e14189ab7eacb8c47dce8a"
+    },
+    "at": "2026-10-20T13:21:17.874Z"
+  },
+  "oldExtensionId": "lngglfnojbbblhalacncnfmdihfnaoec",
+  "installationPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+  "latestSource": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-snapshot/dist/development",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/profile-1792500945958",
+  "at": "2026-10-20T14:04:25.128Z",
+  "writeScopeException": "User explicitly authorized updating original isolated snapshot installation path in the DEV READY follow-up; repository source and daily extension remain untouched.",
+  "beforeTree": [
+    {
+      "id": "0",
+      "title": ""
+    },
+    {
+      "id": "1",
+      "parentId": "0",
+      "index": 0,
+      "title": "书签栏"
+    },
+    {
+      "id": "5",
+      "parentId": "1",
+      "index": 0,
+      "title": "R351-1792501044959-工作"
+    },
+    {
+      "id": "6",
+      "parentId": "5",
+      "index": 0,
+      "title": "R351-1792501044959-目标"
+    },
+    {
+      "id": "7",
+      "parentId": "5",
+      "index": 1,
+      "title": "R351-1792501044959-已编辑",
+      "url": "https://example.org/r351-edited"
+    },
+    {
+      "id": "8",
+      "parentId": "5",
+      "index": 2,
+      "title": "R351-1792501044959-子目录"
+    },
+    {
+      "id": "10",
+      "parentId": "1",
+      "index": 1,
+      "title": "R351-升级保留-1792501312838"
+    },
+    {
+      "id": "11",
+      "parentId": "10",
+      "index": 0,
+      "title": "R351-升级保留-1792501312838-书签",
+      "url": "https://example.org/r351-preserved"
+    },
+    {
+      "id": "21",
+      "parentId": "10",
+      "index": 1,
+      "title": "R351-lost-ack-1792503309190"
+    },
+    {
+      "id": "13",
+      "parentId": "1",
+      "index": 2,
+      "title": "R351-lost-ack-1792501848086"
+    },
+    {
+      "id": "15",
+      "parentId": "1",
+      "index": 3,
+      "title": "R351-final-save-1792502954404-200pct-200pct-200pct"
+    },
+    {
+      "id": "2",
+      "parentId": "0",
+      "index": 1,
+      "title": "其他书签"
+    }
+  ],
+  "beforeInstalled": {
+    "id": "bookmark-manager",
+    "version": "0.3.8",
+    "sha256": "b3a6299b03f256e4c465680b05c949c004a3c934d7e754ee43a7a7b00d5ac9e3"
+  },
+  "beforeGrant": {
+    "activeActions": [],
+    "bookmarkFull": true,
+    "installEpoch": "1b4deb92-7bf5-4742-a55b-5c10785f01e5",
+    "origins": [],
+    "packageHash": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "version": "0.3.8"
+  },
+  "firstCandidateArchive": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/archive-installed-6be831f786f8",
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-snapshot/dist/development",
+    "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+    "toolShellSha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "66356889-3061-4b40-9e4c-60436459f8a1",
+      "receipt": "build-development.json",
+      "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "58172c10589bc940636ea5fffe797f709e5733d3"
+    },
+    "at": "2026-10-20T14:04:25.295Z"
+  },
+  "chromeReload": {
+    "result": {
+      "type": "boolean",
+      "value": true
+    }
+  },
+  "reloadMethod": "chrome.runtime.reload at the same original unpacked path; no uninstall or loadUnpacked install-mode change",
+  "error": "Error: replacement worker after normal Chrome reload: timeout\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/drive.mjs:12:180)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/native/update-fixed-install.mjs:29:15",
+  "didSwap": true
+}

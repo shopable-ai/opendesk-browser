@@ -1,0 +1,2811 @@
+{
+  "status": "FAIL_LAYOUT",
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/latest-snapshot/dist/development",
+    "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8",
+    "toolShellSha256": "0d4bcf47799ebc80f1d674f4ae695686d80e10f4a971ca0cf7357eaab0c3ca55",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "7b2d086a-ca7e-436e-88a4-53fba9827d17",
+      "receipt": "build-development.json",
+      "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "97dc5ed640d2fedd52e14189ab7eacb8c47dce8a"
+    },
+    "at": "2026-10-20T13:21:17.874Z"
+  },
+  "kind": "ONE_REAL_SIDE_PANEL_200_PERCENT_LAYOUT_AND_EDIT_CHECK",
+  "at": "2026-10-20T13:56:09.676Z",
+  "method": "Same-extension ordinary tab + native Chrome per-origin tabs.setZoom(2); original true SIDE_PANEL observed; no CSS zoom or viewport emulation",
+  "issues": [
+    {
+      "stage": "200-percent-main",
+      "severity": "P1",
+      "message": "bm-app horizontal overflow"
+    },
+    {
+      "stage": "200-percent-main",
+      "severity": "P1",
+      "message": "Top button clipped: 刷新书签"
+    },
+    {
+      "stage": "200-percent-editor-save",
+      "severity": "P1",
+      "message": "bm-app horizontal overflow"
+    },
+    {
+      "stage": "200-percent-editor-cancel",
+      "severity": "P1",
+      "message": "bm-app horizontal overflow"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "bm-app horizontal overflow"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top button clipped: 新建书签"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top SVG clipped/invisible: 新建书签"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top button clipped: 新建文件夹"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top SVG clipped/invisible: 新建文件夹"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top button clipped: 收藏当前页"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top SVG clipped/invisible: 收藏当前页"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top button clipped: 刷新书签"
+    },
+    {
+      "stage": "200-percent-after-save-cancel",
+      "severity": "P1",
+      "message": "Top SVG clipped/invisible: 刷新书签"
+    }
+  ],
+  "steps": [
+    {
+      "name": "200-percent-main",
+      "status": "FAIL",
+      "issues": [
+        "bm-app horizontal overflow",
+        "Top button clipped: 刷新书签"
+      ],
+      "layout": {
+        "viewport": {
+          "left": 0,
+          "top": 0,
+          "right": 180,
+          "bottom": 407
+        },
+        "app": {
+          "rect": {
+            "x": 0,
+            "y": 162,
+            "width": 180,
+            "height": 440,
+            "top": 162,
+            "right": 180,
+            "bottom": 602,
+            "left": 0
+          },
+          "clientWidth": 180,
+          "scrollWidth": 188,
+          "clientHeight": 440,
+          "scrollHeight": 440
+        },
+        "document": {
+          "clientWidth": 180,
+          "scrollWidth": 180
+        },
+        "buttons": [
+          {
+            "tag": "BUTTON",
+            "aria": "新建书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn bm-icon-btn--primary",
+            "rect": {
+              "x": 27.84375,
+              "y": 165.5,
+              "width": 34,
+              "height": 34,
+              "top": 165.5,
+              "right": 61.84375,
+              "bottom": 199.5,
+              "left": 27.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 35.84375,
+                  "y": 173.5,
+                  "width": 18,
+                  "height": 18,
+                  "top": 173.5,
+                  "right": 53.84375,
+                  "bottom": 191.5,
+                  "left": 35.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "新建文件夹",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 66.84375,
+              "y": 165.5,
+              "width": 34,
+              "height": 34,
+              "top": 165.5,
+              "right": 100.84375,
+              "bottom": 199.5,
+              "left": 66.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 74.84375,
+                  "y": 173.5,
+                  "width": 18,
+                  "height": 18,
+                  "top": 173.5,
+                  "right": 92.84375,
+                  "bottom": 191.5,
+                  "left": 74.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "收藏当前页",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 115.84375,
+              "y": 165.5,
+              "width": 34,
+              "height": 34,
+              "top": 165.5,
+              "right": 149.84375,
+              "bottom": 199.5,
+              "left": 115.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 123.84375,
+                  "y": 173.5,
+                  "width": 18,
+                  "height": 18,
+                  "top": 173.5,
+                  "right": 141.84375,
+                  "bottom": 191.5,
+                  "left": 123.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "刷新书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 153.84375,
+              "y": 165.5,
+              "width": 34,
+              "height": 34,
+              "top": 165.5,
+              "right": 187.84375,
+              "bottom": 199.5,
+              "left": 153.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": false,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "DIV",
+                "id": "",
+                "className": "bm-app",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 162,
+                  "width": 180,
+                  "height": 440,
+                  "top": 162,
+                  "right": 180,
+                  "bottom": 602,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "DIV",
+                "id": "sidebar-tool-frame",
+                "className": "sidebar-tool-frame",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 162,
+                  "width": 180,
+                  "height": 440,
+                  "top": 162,
+                  "right": 180,
+                  "bottom": 602,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 161.84375,
+                  "y": 173.5,
+                  "width": 18,
+                  "height": 18,
+                  "top": 173.5,
+                  "right": 179.84375,
+                  "bottom": 191.5,
+                  "left": 161.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 2
+              }
+            ]
+          }
+        ],
+        "editor": [],
+        "sheets": [],
+        "body": "我的\n扩展\n工作流\n开发\n云控\n调试\n书签管理\n书签管理\n12 项\n搜索名称、URL 或文件夹\n搜索结果\n1 条匹配\n书签栏\nR351-final-save-1792502954404-200pct"
+      }
+    },
+    {
+      "name": "200-percent-editor-save",
+      "status": "FAIL",
+      "issues": [
+        "bm-app horizontal overflow"
+      ],
+      "layout": {
+        "viewport": {
+          "left": 0,
+          "top": 0,
+          "right": 180,
+          "bottom": 407
+        },
+        "app": {
+          "rect": {
+            "x": 0,
+            "y": 19.75,
+            "width": 180,
+            "height": 440,
+            "top": 19.75,
+            "right": 180,
+            "bottom": 459.75,
+            "left": 0
+          },
+          "clientWidth": 180,
+          "scrollWidth": 188,
+          "clientHeight": 440,
+          "scrollHeight": 440
+        },
+        "document": {
+          "clientWidth": 180,
+          "scrollWidth": 180
+        },
+        "buttons": [
+          {
+            "tag": "BUTTON",
+            "aria": "新建书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn bm-icon-btn--primary",
+            "rect": {
+              "x": 27.84375,
+              "y": 23.25,
+              "width": 34,
+              "height": 34,
+              "top": 23.25,
+              "right": 61.84375,
+              "bottom": 57.25,
+              "left": 27.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 35.84375,
+                  "y": 31.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": 31.25,
+                  "right": 53.84375,
+                  "bottom": 49.25,
+                  "left": 35.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "新建文件夹",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 66.84375,
+              "y": 23.25,
+              "width": 34,
+              "height": 34,
+              "top": 23.25,
+              "right": 100.84375,
+              "bottom": 57.25,
+              "left": 66.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 74.84375,
+                  "y": 31.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": 31.25,
+                  "right": 92.84375,
+                  "bottom": 49.25,
+                  "left": 74.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "收藏当前页",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 115.84375,
+              "y": 23.25,
+              "width": 34,
+              "height": 34,
+              "top": 23.25,
+              "right": 149.84375,
+              "bottom": 57.25,
+              "left": 115.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 123.84375,
+                  "y": 31.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": 31.25,
+                  "right": 141.84375,
+                  "bottom": 49.25,
+                  "left": 123.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "刷新书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 153.84375,
+              "y": 23.25,
+              "width": 34,
+              "height": 34,
+              "top": 23.25,
+              "right": 187.84375,
+              "bottom": 57.25,
+              "left": 153.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": false,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "DIV",
+                "id": "",
+                "className": "bm-app",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 19.75,
+                  "width": 180,
+                  "height": 440,
+                  "top": 19.75,
+                  "right": 180,
+                  "bottom": 459.75,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "DIV",
+                "id": "sidebar-tool-frame",
+                "className": "sidebar-tool-frame",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 19.75,
+                  "width": 180,
+                  "height": 440,
+                  "top": 19.75,
+                  "right": 180,
+                  "bottom": 459.75,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 161.84375,
+                  "y": 31.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": 31.25,
+                  "right": 179.84375,
+                  "bottom": 49.25,
+                  "left": 161.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": true,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 2
+              }
+            ]
+          }
+        ],
+        "editor": [
+          {
+            "tag": "BUTTON",
+            "aria": null,
+            "text": "保存",
+            "className": "od-button od-button--primary bm-button bm-button--primary",
+            "rect": {
+              "x": 14,
+              "y": 352.5,
+              "width": 71.5,
+              "height": 38,
+              "top": 352.5,
+              "right": 85.5,
+              "bottom": 390.5,
+              "left": 14
+            },
+            "display": "flex",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 70,
+            "scrollWidth": 70
+          },
+          {
+            "tag": "BUTTON",
+            "aria": null,
+            "text": "取消",
+            "className": "bm-button",
+            "rect": {
+              "x": 94.5,
+              "y": 352.5,
+              "width": 71.5,
+              "height": 38,
+              "top": 352.5,
+              "right": 166,
+              "bottom": 390.5,
+              "left": 94.5
+            },
+            "display": "flex",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 70,
+            "scrollWidth": 70
+          }
+        ],
+        "sheets": [
+          {
+            "tag": "SECTION",
+            "aria": "编辑文件夹",
+            "text": "编辑文件夹15名称所在文件夹：书签栏更改保存取消",
+            "className": "bm-sheet",
+            "rect": {
+              "x": 0,
+              "y": 146.98046875,
+              "width": 180,
+              "height": 260.51953125,
+              "top": 146.98046875,
+              "right": 180,
+              "bottom": 407.5,
+              "left": 0
+            },
+            "display": "flex",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "clientWidth": 180,
+            "scrollWidth": 180
+          },
+          {
+            "tag": "FORM",
+            "aria": null,
+            "text": "名称所在文件夹：书签栏更改保存取消",
+            "className": "bm-editor",
+            "rect": {
+              "x": 0,
+              "y": 199.98046875,
+              "width": 180,
+              "height": 207.51953125,
+              "top": 199.98046875,
+              "right": 180,
+              "bottom": 407.5,
+              "left": 0
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "clientWidth": 180,
+            "scrollWidth": 180
+          }
+        ],
+        "body": "我的\n扩展\n工作流\n开发\n云控\n调试\n书签管理\n书签管理\n12 项\n搜索名称、URL 或文件夹\n搜索结果\n1 条匹配\n书签栏\nR351-final-save-1792502954404-200pct\n编辑文件夹\n15\n名称\n所在文件夹：\n书签栏\n更改\n保存\n取消"
+      }
+    },
+    {
+      "name": "200-percent-editor-cancel",
+      "status": "FAIL",
+      "issues": [
+        "bm-app horizontal overflow"
+      ],
+      "layout": {
+        "viewport": {
+          "left": 0,
+          "top": 0,
+          "right": 180,
+          "bottom": 407
+        },
+        "app": {
+          "rect": {
+            "x": 0,
+            "y": -22.75,
+            "width": 180,
+            "height": 440,
+            "top": -22.75,
+            "right": 180,
+            "bottom": 417.25,
+            "left": 0
+          },
+          "clientWidth": 180,
+          "scrollWidth": 188,
+          "clientHeight": 440,
+          "scrollHeight": 440
+        },
+        "document": {
+          "clientWidth": 180,
+          "scrollWidth": 180
+        },
+        "buttons": [
+          {
+            "tag": "BUTTON",
+            "aria": "新建书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn bm-icon-btn--primary",
+            "rect": {
+              "x": 27.84375,
+              "y": -19.25,
+              "width": 34,
+              "height": 34,
+              "top": -19.25,
+              "right": 61.84375,
+              "bottom": 14.75,
+              "left": 27.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 35.84375,
+                  "y": -11.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": -11.25,
+                  "right": 53.84375,
+                  "bottom": 6.75,
+                  "left": 35.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "新建文件夹",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 66.84375,
+              "y": -19.25,
+              "width": 34,
+              "height": 34,
+              "top": -19.25,
+              "right": 100.84375,
+              "bottom": 14.75,
+              "left": 66.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 74.84375,
+                  "y": -11.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": -11.25,
+                  "right": 92.84375,
+                  "bottom": 6.75,
+                  "left": 74.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "收藏当前页",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 115.84375,
+              "y": -19.25,
+              "width": 34,
+              "height": 34,
+              "top": -19.25,
+              "right": 149.84375,
+              "bottom": 14.75,
+              "left": 115.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 123.84375,
+                  "y": -11.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": -11.25,
+                  "right": 141.84375,
+                  "bottom": 6.75,
+                  "left": 123.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "刷新书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 153.84375,
+              "y": -19.25,
+              "width": 34,
+              "height": 34,
+              "top": -19.25,
+              "right": 187.84375,
+              "bottom": 14.75,
+              "left": 153.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "0.45",
+            "insideApp": false,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "DIV",
+                "id": "",
+                "className": "bm-app",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": -22.75,
+                  "width": 180,
+                  "height": 440,
+                  "top": -22.75,
+                  "right": 180,
+                  "bottom": 417.25,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "DIV",
+                "id": "sidebar-tool-frame",
+                "className": "sidebar-tool-frame",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": -22.75,
+                  "width": 180,
+                  "height": 440,
+                  "top": -22.75,
+                  "right": 180,
+                  "bottom": 417.25,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": true,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 161.84375,
+                  "y": -11.25,
+                  "width": 18,
+                  "height": 18,
+                  "top": -11.25,
+                  "right": 179.84375,
+                  "bottom": 6.75,
+                  "left": 161.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 2
+              }
+            ]
+          }
+        ],
+        "editor": [
+          {
+            "tag": "BUTTON",
+            "aria": null,
+            "text": "保存",
+            "className": "od-button od-button--primary bm-button bm-button--primary",
+            "rect": {
+              "x": 14,
+              "y": 352.5,
+              "width": 71.5,
+              "height": 38,
+              "top": 352.5,
+              "right": 85.5,
+              "bottom": 390.5,
+              "left": 14
+            },
+            "display": "flex",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 70,
+            "scrollWidth": 70
+          },
+          {
+            "tag": "BUTTON",
+            "aria": null,
+            "text": "取消",
+            "className": "bm-button",
+            "rect": {
+              "x": 94.5,
+              "y": 352.5,
+              "width": 71.5,
+              "height": 38,
+              "top": 352.5,
+              "right": 166,
+              "bottom": 390.5,
+              "left": 94.5
+            },
+            "display": "flex",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "disabled": false,
+            "clientWidth": 70,
+            "scrollWidth": 70
+          }
+        ],
+        "sheets": [
+          {
+            "tag": "SECTION",
+            "aria": "编辑文件夹",
+            "text": "编辑文件夹15名称所在文件夹：书签栏更改保存取消",
+            "className": "bm-sheet",
+            "rect": {
+              "x": 0,
+              "y": 146.98046875,
+              "width": 180,
+              "height": 260.51953125,
+              "top": 146.98046875,
+              "right": 180,
+              "bottom": 407.5,
+              "left": 0
+            },
+            "display": "flex",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "clientWidth": 180,
+            "scrollWidth": 180
+          },
+          {
+            "tag": "FORM",
+            "aria": null,
+            "text": "名称所在文件夹：书签栏更改保存取消",
+            "className": "bm-editor",
+            "rect": {
+              "x": 0,
+              "y": 199.98046875,
+              "width": 180,
+              "height": 207.51953125,
+              "top": 199.98046875,
+              "right": 180,
+              "bottom": 407.5,
+              "left": 0
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": true,
+            "clippedAncestors": [],
+            "hitTest": true,
+            "clientWidth": 180,
+            "scrollWidth": 180
+          }
+        ],
+        "body": "我的\n扩展\n工作流\n开发\n云控\n调试\n书签管理\n书签管理\n12 项\n搜索名称、URL 或文件夹\n已保存\n搜索结果\n1 条匹配\n书签栏\nR351-final-save-1792502954404-200pct-200pct\n编辑文件夹\n15\n名称\n所在文件夹：\n书签栏\n更改\n保存\n取消"
+      }
+    },
+    {
+      "name": "200-percent-after-save-cancel",
+      "status": "FAIL",
+      "issues": [
+        "bm-app horizontal overflow",
+        "Top button clipped: 新建书签",
+        "Top SVG clipped/invisible: 新建书签",
+        "Top button clipped: 新建文件夹",
+        "Top SVG clipped/invisible: 新建文件夹",
+        "Top button clipped: 收藏当前页",
+        "Top SVG clipped/invisible: 收藏当前页",
+        "Top button clipped: 刷新书签",
+        "Top SVG clipped/invisible: 刷新书签"
+      ],
+      "layout": {
+        "viewport": {
+          "left": 0,
+          "top": 0,
+          "right": 180,
+          "bottom": 407
+        },
+        "app": {
+          "rect": {
+            "x": 0,
+            "y": -40.5,
+            "width": 180,
+            "height": 440,
+            "top": -40.5,
+            "right": 180,
+            "bottom": 399.5,
+            "left": 0
+          },
+          "clientWidth": 180,
+          "scrollWidth": 188,
+          "clientHeight": 440,
+          "scrollHeight": 440
+        },
+        "document": {
+          "clientWidth": 180,
+          "scrollWidth": 180
+        },
+        "buttons": [
+          {
+            "tag": "BUTTON",
+            "aria": "新建书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn bm-icon-btn--primary",
+            "rect": {
+              "x": 27.84375,
+              "y": -37,
+              "width": 34,
+              "height": 34,
+              "top": -37,
+              "right": 61.84375,
+              "bottom": -3,
+              "left": 27.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 35.84375,
+                  "y": -29,
+                  "width": 18,
+                  "height": 18,
+                  "top": -29,
+                  "right": 53.84375,
+                  "bottom": -11,
+                  "left": 35.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "新建文件夹",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 66.84375,
+              "y": -37,
+              "width": 34,
+              "height": 34,
+              "top": -37,
+              "right": 100.84375,
+              "bottom": -3,
+              "left": 66.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 74.84375,
+                  "y": -29,
+                  "width": 18,
+                  "height": 18,
+                  "top": -29,
+                  "right": 92.84375,
+                  "bottom": -11,
+                  "left": 74.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "收藏当前页",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 115.84375,
+              "y": -37,
+              "width": 34,
+              "height": 34,
+              "top": -37,
+              "right": 149.84375,
+              "bottom": -3,
+              "left": 115.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "1",
+            "insideApp": true,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": false,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 123.84375,
+                  "y": -29,
+                  "width": 18,
+                  "height": 18,
+                  "top": -29,
+                  "right": 141.84375,
+                  "bottom": -11,
+                  "left": 123.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 1
+              }
+            ]
+          },
+          {
+            "tag": "BUTTON",
+            "aria": "刷新书签",
+            "text": "",
+            "className": "od-icon-button bm-icon-btn",
+            "rect": {
+              "x": 153.84375,
+              "y": -37,
+              "width": 34,
+              "height": 34,
+              "top": -37,
+              "right": 187.84375,
+              "bottom": -3,
+              "left": 153.84375
+            },
+            "display": "grid",
+            "visibility": "visible",
+            "opacity": "0.45",
+            "insideApp": false,
+            "insideViewport": false,
+            "clippedAncestors": [
+              {
+                "tag": "DIV",
+                "id": "",
+                "className": "bm-app",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": -40.5,
+                  "width": 180,
+                  "height": 440,
+                  "top": -40.5,
+                  "right": 180,
+                  "bottom": 399.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "DIV",
+                "id": "sidebar-tool-frame",
+                "className": "sidebar-tool-frame",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": -40.5,
+                  "width": 180,
+                  "height": 440,
+                  "top": -40.5,
+                  "right": 180,
+                  "bottom": 399.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "MAIN",
+                "id": "workspace-content",
+                "className": "",
+                "overflowX": "auto",
+                "overflowY": "auto",
+                "rect": {
+                  "x": 0,
+                  "y": 41,
+                  "width": 180,
+                  "height": 366.5,
+                  "top": 41,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "BODY",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              },
+              {
+                "tag": "HTML",
+                "id": "",
+                "className": "",
+                "overflowX": "hidden",
+                "overflowY": "hidden",
+                "rect": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 180,
+                  "height": 407.5,
+                  "top": 0,
+                  "right": 180,
+                  "bottom": 407.5,
+                  "left": 0
+                }
+              }
+            ],
+            "hitTest": false,
+            "disabled": true,
+            "clientWidth": 34,
+            "scrollWidth": 34,
+            "svgs": [
+              {
+                "tag": "svg",
+                "aria": null,
+                "text": "",
+                "className": null,
+                "rect": {
+                  "x": 161.84375,
+                  "y": -29,
+                  "width": 18,
+                  "height": 18,
+                  "top": -29,
+                  "right": 179.84375,
+                  "bottom": -11,
+                  "left": 161.84375
+                },
+                "display": "block",
+                "visibility": "visible",
+                "opacity": "1",
+                "insideApp": true,
+                "insideViewport": false,
+                "clippedAncestors": [
+                  {
+                    "tag": "MAIN",
+                    "id": "workspace-content",
+                    "className": "",
+                    "overflowX": "auto",
+                    "overflowY": "auto",
+                    "rect": {
+                      "x": 0,
+                      "y": 41,
+                      "width": 180,
+                      "height": 366.5,
+                      "top": 41,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "BODY",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  },
+                  {
+                    "tag": "HTML",
+                    "id": "",
+                    "className": "",
+                    "overflowX": "hidden",
+                    "overflowY": "hidden",
+                    "rect": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 180,
+                      "height": 407.5,
+                      "top": 0,
+                      "right": 180,
+                      "bottom": 407.5,
+                      "left": 0
+                    }
+                  }
+                ],
+                "hitTest": false,
+                "clientWidth": 18,
+                "scrollWidth": 18,
+                "insideButton": true,
+                "viewBox": "0 0 24 24",
+                "paths": 2
+              }
+            ]
+          }
+        ],
+        "editor": [],
+        "sheets": [],
+        "body": "我的\n扩展\n工作流\n开发\n云控\n调试\n书签管理\n书签管理\n12 项\n搜索名称、URL 或文件夹\n已保存\n搜索结果\n1 条匹配\n书签栏\nR351-final-save-1792502954404-200pct-200pct"
+      }
+    }
+  ],
+  "before": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=dc2f7f95-1f08-4e1d-8b92-5eb60b21eef2",
+    "dpr": 2,
+    "width": 360,
+    "height": 815,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "contextsBefore": [
+    {
+      "contextId": "7954c9e4-616a-4cec-8d4e-9bbfe7ecea87",
+      "contextType": "SIDE_PANEL",
+      "documentId": "621C480022A9AFD64393C7E6D7E47369",
+      "documentOrigin": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec",
+      "documentUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=dc2f7f95-1f08-4e1d-8b92-5eb60b21eef2",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    }
+  ],
+  "createdTab": {
+    "id": 1642412370,
+    "url": "",
+    "pendingUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?nativeZoomProbe=r351-layout-200"
+  },
+  "lastProbeTab": {
+    "active": false,
+    "audible": false,
+    "autoDiscardable": true,
+    "discarded": false,
+    "favIconUrl": "",
+    "frozen": false,
+    "groupId": -1,
+    "height": 799,
+    "highlighted": false,
+    "id": 1642412370,
+    "incognito": false,
+    "index": 1,
+    "lastAccessed": 1792504569679.528,
+    "mutedInfo": {
+      "muted": false
+    },
+    "pinned": false,
+    "selected": false,
+    "splitViewId": -1,
+    "status": "complete",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=10fb67fd-17e7-405f-803a-6e7e2a1bd85f",
+    "width": 814,
+    "windowId": 1642412347
+  },
+  "probeUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=10fb67fd-17e7-405f-803a-6e7e2a1bd85f",
+  "probeDocumentUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=10fb67fd-17e7-405f-803a-6e7e2a1bd85f",
+  "at200": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=dc2f7f95-1f08-4e1d-8b92-5eb60b21eef2",
+    "dpr": 4,
+    "width": 180,
+    "height": 407,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "actualChromeZoom": 2,
+  "beforeNode": {
+    "children": [],
+    "dateAdded": 1792502955578,
+    "dateGroupModified": 1792502955578,
+    "id": "15",
+    "index": 3,
+    "parentId": "1",
+    "syncing": false,
+    "title": "R351-final-save-1792502954404-200pct"
+  },
+  "savedNode": {
+    "children": [],
+    "dateAdded": 1792502955578,
+    "dateGroupModified": 1792502955578,
+    "id": "15",
+    "index": 3,
+    "parentId": "1",
+    "syncing": false,
+    "title": "R351-final-save-1792502954404-200pct-200pct"
+  },
+  "save": {
+    "status": "PASS",
+    "noSecondConfirmation": true
+  },
+  "afterCancelNode": {
+    "children": [],
+    "dateAdded": 1792502955578,
+    "dateGroupModified": 1792502955578,
+    "id": "15",
+    "index": 3,
+    "parentId": "1",
+    "syncing": false,
+    "title": "R351-final-save-1792502954404-200pct-200pct"
+  },
+  "cancel": {
+    "status": "PASS",
+    "draftNotWritten": true
+  },
+  "restored": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=dc2f7f95-1f08-4e1d-8b92-5eb60b21eef2",
+    "dpr": 2,
+    "width": 360,
+    "height": 815,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "createdTabClosed": true,
+  "contextsAtEnd": [
+    {
+      "contextId": "7954c9e4-616a-4cec-8d4e-9bbfe7ecea87",
+      "contextType": "SIDE_PANEL",
+      "documentId": "621C480022A9AFD64393C7E6D7E47369",
+      "documentOrigin": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec",
+      "documentUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=dc2f7f95-1f08-4e1d-8b92-5eb60b21eef2",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    }
+  ]
+}

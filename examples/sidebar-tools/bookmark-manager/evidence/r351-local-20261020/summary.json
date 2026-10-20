@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "scope": "Bookmark Manager R3.5.1-LOCAL",
+  "status": "LOCAL_FIX_VERIFIED_SCORE_TARGET_NOT_MET",
+  "version": "0.3.8",
+  "codeCommit": "6d69e619c277a01b3a7be04d968710f51e4f8c66",
+  "snapshotBase": "896e5fcdba1e749d0538b42f811abfeee397206e",
+  "runtimeMode": {
+    "kind": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "finalCandidateSource": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-snapshot/dist/development",
+    "dailyOutput": "dist/development",
+    "dailyOutputUntouched": true,
+    "oldDailyWatcherObservedRunning": false,
+    "productionRuntimeUsed": false
+  },
+  "relevantGitBlobs": {
+    "examples/sidebar-tools/bookmark-manager/src/react/App.jsx": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+    "examples/sidebar-tools/bookmark-manager/src/react/style.css": "58172c10589bc940636ea5fffe797f709e5733d3",
+    "examples/sidebar-tools/bookmark-manager/src/model.js": "34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5",
+    "examples/sidebar-tools/bookmark-manager/src/service.js": "1c1541ee128e37dd8897b073581bd476ce8f4171",
+    "src/ui/react/tabs/tool-host.tsx": "31c242b2a27d985071666bc298d952c9cb564a03"
+  },
+  "inheritedCommits": [
+    "5021b8a",
+    "2fb3d45",
+    "558e889",
+    "8dce3901a",
+    "5d86c868c86ed03f1f55d87303e26f86c54d4bf1"
+  ],
+  "fixes": [
+    "44px虚拟列表定位复用同一行高，修复搜索文件夹进入后不可见",
+    "复用现有React.createElement降低正式编译输出，预算未提高",
+    "恢复保存按钮局部样式类并去掉不存在的arrow图标",
+    "预览面板媒体查询变化同步ARIA与焦点",
+    "深色网址复用高对比度Token；触屏更改按钮达到44px",
+    "目标文件夹使用原生按钮组语义并验证真实Enter选择",
+    "删除不可达Sheet只读CSS与预览诊断全局变量",
+    "更新正式源码指纹和旧源码断言，未放宽权限或安装身份",
+    "原生200%有效宽度180px时工具栏自然换行，保留四按钮与44px粗指针目标",
+    "取消直接放弃与关闭脏草稿确认分别验证；恢复滚动后再测工具栏命中，保留原失败证据"
+  ],
+  "followupCodeDiff": {
+    "files": 3,
+    "insertions": 50,
+    "deletions": 8,
+    "net": 42
+  },
+  "formalToolPackage": {
+    "version": "0.3.8",
+    "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "bytesUnchanged": true,
+    "checkProject": "PASS",
+    "promotion": "NOT_REQUIRED_TRUSTED_CSS_NOT_PACKAGED_DYNAMIC_SOURCE"
+  },
+  "validation": {
+    "check": {
+      "status": "PASS",
+      "files": 937,
+      "receipt": "check.log"
+    },
+    "sourceTests": {
+      "status": "PASS",
+      "passed": 128,
+      "failed": 0,
+      "receipt": "node-tests.log"
+    },
+    "builtProvenance": {
+      "status": "PASS",
+      "passed": 2,
+      "receipt": "built-provenance-tests.log"
+    },
+    "reactPreview": {
+      "status": "PASS",
+      "jsBytes": 219665,
+      "jsBudget": 220000,
+      "cssBytes": 19082,
+      "receipt": "react-bundle-budget.json"
+    },
+    "production": {
+      "status": "PASS",
+      "toolShellBytes": 1048041,
+      "budget": 1048576,
+      "remaining": 535,
+      "packageHash": "949959d56f3702e7aca957ad710e389388a7d06fda22952f7de4bcd451abf4d8",
+      "receipt": "build-production.json"
+    },
+    "staticDevelopment": {
+      "status": "PASS",
+      "toolShellBytes": 1048447,
+      "budget": 1048576,
+      "remaining": 129,
+      "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+      "toolShellSha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+      "receipt": "build-development.json"
+    },
+    "chromium": {
+      "status": "PASS",
+      "host": "MOCK_HOST_ADAPTER",
+      "nativeVerified": false,
+      "widths": [
+        320,
+        360,
+        400,
+        440,
+        960
+      ],
+      "geometryScenarios": 15,
+      "additionalToolbarWidths": [
+        180
+      ],
+      "additionalToolbarScenarios": 2,
+      "receipt": "chromium-interaction.json"
+    }
+  },
+  "native": {
+    "status": "PASS_REQUIRED_LOCAL_PATHS",
+    "candidateHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+    "receipt": "native/report.json",
+    "sameCandidate": true,
+    "actualBrowserOriginZoom200": {
+      "status": "PASS",
+      "effectiveViewport": {
+        "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=cef9f061-9338-46d7-8410-257206335cd5",
+        "dpr": 4,
+        "width": 180,
+        "height": 407,
+        "cssZoom": "1",
+        "bodyZoom": "1",
+        "viewportScale": 1
+      },
+      "cssZoom": "1",
+      "restored": {
+        "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=cef9f061-9338-46d7-8410-257206335cd5",
+        "dpr": 2,
+        "width": 360,
+        "height": 815,
+        "cssZoom": "1",
+        "bodyZoom": "1",
+        "viewportScale": 1
+      },
+      "createdProbeTabClosed": true,
+      "directCancel": "PASS_WITHOUT_CONFIRMATION_BY_EXISTING_CONTRACT",
+      "dirtyCloseConfirmation": "PASS"
+    },
+    "toolAuthorityRevokeRegrant": "PASS",
+    "chromeOptionalPermissionRemoval": "NOT_TESTED",
+    "reloadUpdate": "FAILED_THEN_RECOVERED_WITH_SAME_PROFILE_RESTART"
+  },
+  "review": {
+    "status": "INDEPENDENT_REVIEW_COMPLETE_TARGET_NOT_MET",
+    "targetEachAndAverage": 95,
+    "scores": [
+      {
+        "dimension": "产品UX",
+        "score": 93,
+        "receipt": "review-ux.json"
+      },
+      {
+        "dimension": "React/CSS",
+        "score": 93,
+        "receipt": "review-react-css.json"
+      },
+      {
+        "dimension": "无障碍与触屏",
+        "score": 92,
+        "receipt": "review-accessibility.json"
+      },
+      {
+        "dimension": "安全架构",
+        "score": 96,
+        "receipt": "review-security.json"
+      },
+      {
+        "dimension": "测试与原生",
+        "score": 93,
+        "receipt": "review-testing-native.json"
+      },
+      {
+        "dimension": "可维护性",
+        "score": 88,
+        "receipt": "review-maintainability.json"
+      }
+    ],
+    "sum": 555,
+    "average": 92.5,
+    "allAtLeast95": false,
+    "averageAtLeast95": false,
+    "remainingP2": "Delete confirmation shows internal ID; state/style/test maintainability deferred without UI/Host redesign."
+  },
+  "ci": {
+    "status": "NOT_PUSHED_NEW_MAIN_DIVERGENCE_APPROVAL_PENDING",
+    "codeCommit": "6d69e619c277a01b3a7be04d968710f51e4f8c66",
+    "localUniqueCommits": [
+      "79a56c5c4",
+      "6d69e619c"
+    ],
+    "remoteUniqueCommits": [
+      "dc18cc509",
+      "b651501a1",
+      "e521d1010"
+    ],
+    "currentCodeCi": "NOT_RUN_NOT_PUSHED",
+    "previousCodeCommit": "5d86c868c86ed03f1f55d87303e26f86c54d4bf1",
+    "previousBookmarkRuns": [
+      {
+        "name": "R3.2",
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39433003023"
+      },
+      {
+        "name": "R2.9",
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39433002939"
+      },
+      {
+        "name": "R2.4",
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39433002916"
+      }
+    ],
+    "note": "New divergence occurred after the prior authorized merge; previous CI is historical and does not verify the new fix."
+  },
+  "resolvedValidationSetupFailures": [
+    {
+      "initial": "130 tests: 128 passed, 2 failed against stale daily build receipts",
+      "resolution": "same frozen candidate production/development provenance 2/2 PASS",
+      "originalLog": "artifacts/bookmark-manager-r351-local/final-fix-targeted.log"
+    },
+    {
+      "initial": "snapshot dependency symlink rejected by source boundary",
+      "resolution": "copied dependencies inside snapshot, source boundary unchanged"
+    },
+    {
+      "initial": "default build guard port briefly busy",
+      "resolution": "independent snapshot uses supported OPENDESK_OUTPUT_GUARD_PORT=43177"
+    }
+  ],
+  "otherBusinessRegressions": {
+    "status": "PREVIOUS_OBSERVATION_NOT_RERUN",
+    "mergedTests": {
+      "total": 183,
+      "passed": 178,
+      "failed": 5
+    },
+    "scope": "Extension Center / Installed Page assertions; excluded from Bookmark Manager PASS",
+    "originalLog": "artifacts/bookmark-manager-r351-local/merged-targeted-tests.log",
+    "pointerInterception": "prior Extension Center Chromium failure; causal relation not established"
+  },
+  "notTested": [
+    "Production runtime / production installation acceptance",
+    "VoiceOver",
+    "Physical touch / software keyboard",
+    "Long-term human usability",
+    "Unknown-write explicit refresh/reconciliation/re-enable full chain",
+    "Direct opaque-origin/parent-DOM adversarial probes",
+    "Chrome optional bookmarks permission removal/regrant"
+  ],
+  "localArtifacts": {
+    "evidenceRoot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local",
+    "buildInputs": "final-source.json",
+    "note": "Candidate snapshot is based on the recorded base plus scoped files; later unrelated main changes were not rebuilt."
+  }
+}

@@ -1,0 +1,3724 @@
+{
+  "status": "passed",
+  "mode": "production",
+  "attemptId": "6b88dc33-55f8-475b-802b-9aa8481f6fac",
+  "sizeReport": {
+    "kind": "physical-verified-package-capacity",
+    "mode": "production",
+    "packageHash": "949959d56f3702e7aca957ad710e389388a7d06fda22952f7de4bcd451abf4d8",
+    "budgetSource": "scripts/build-contract.mjs",
+    "productionBudgetBytes": 524288,
+    "fixedEntryReviewBytes": 327680,
+    "toolShellProductionBudgetBytes": 1048576,
+    "toolShellReviewBytes": 655360,
+    "serviceWorkerProductionBudgetBytes": 1048576,
+    "serviceWorkerDevelopmentBudgetBytes": 1572864,
+    "serviceWorkerReviewBytes": 524288,
+    "policy": {
+      "watchAtPercent": 80,
+      "criticalAtPercent": 90,
+      "designReservePercent": 20
+    },
+    "attributionNote": "renderedLength is PRE-minification Rollup length, NOT compressed bytes.",
+    "fixedEntryCount": 40,
+    "totalFixedJsBytes": 4415782,
+    "critical": [
+      "ui/tool-shell.js"
+    ],
+    "watch": [],
+    "reviewRequired": [
+      "ui/tool-shell.js",
+      "sw.js",
+      "native-agent/settings.js",
+      "ui/sidebar-tool-host.js"
+    ],
+    "entries": [
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 1048041,
+        "sha256": "1706685f206f11f629b4f15eb304ac8f29aa21ed8bc331c1e67120c91c91f8c8",
+        "budgetBytes": 1048576,
+        "remainingBytes": 535,
+        "reviewThresholdBytes": 655360,
+        "requiresSizeReview": true,
+        "usagePercent": 99.95,
+        "risk": "critical",
+        "designReserveDebtBytes": 209181,
+        "moduleCount": 181,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/react-dom/cjs/react-dom-client.production.js",
+            "renderedLength": 553251
+          },
+          {
+            "path": "src/ui/workflow/workflow-view.js",
+            "renderedLength": 74146
+          },
+          {
+            "path": "src/ui/script-editor.js",
+            "renderedLength": 69196
+          },
+          {
+            "path": "examples/sidebar-tools/bookmark-manager/src/react/App.jsx",
+            "renderedLength": 53750
+          },
+          {
+            "path": "src/ui/react/tabs/my-page.tsx",
+            "renderedLength": 51740
+          }
+        ]
+      },
+      {
+        "path": "sw.js",
+        "bytes": 710920,
+        "sha256": "741e0c197cf1f8fdbe892da8d2c18e43ec7bba4907ec5be19a9dd366250891c6",
+        "budgetBytes": 1048576,
+        "remainingBytes": 337656,
+        "reviewThresholdBytes": 524288,
+        "requiresSizeReview": true,
+        "usagePercent": 67.8,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 115,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/acorn/dist/acorn.mjs",
+            "renderedLength": 228953
+          },
+          {
+            "path": "src/platform/host/controller-methods.js",
+            "renderedLength": 72013
+          },
+          {
+            "path": "src/scripting/user-scripts/dependency-manager.js",
+            "renderedLength": 58055
+          },
+          {
+            "path": "src/scripting/user-scripts/installed-programs.js",
+            "renderedLength": 52597
+          },
+          {
+            "path": "src/framework/control/native-driver.js",
+            "renderedLength": 46343
+          }
+        ]
+      },
+      {
+        "path": "native-agent/settings.js",
+        "bytes": 379882,
+        "sha256": "5fb7d4b4e553146311303bcaa735e2766c5d1a817a05b086894f015491ac4389",
+        "budgetBytes": 524288,
+        "remainingBytes": 144406,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": true,
+        "usagePercent": 72.46,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 60,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/react-dom/cjs/react-dom-client.production.js",
+            "renderedLength": 553251
+          },
+          {
+            "path": "src/native-agent/workspace.js",
+            "renderedLength": 43317
+          },
+          {
+            "path": "node_modules/react/cjs/react.production.js",
+            "renderedLength": 18409
+          },
+          {
+            "path": "src/native-agent/workspace-chat-edit-ui.js",
+            "renderedLength": 18344
+          },
+          {
+            "path": "src/ui/react/workspace/WorkspaceView.tsx",
+            "renderedLength": 17604
+          }
+        ]
+      },
+      {
+        "path": "ui/sidebar-tool-host.js",
+        "bytes": 348772,
+        "sha256": "e31bf21e9e2583804f65ca3a80798fe842bb77cf4f10d76cec89c18a331a9682",
+        "budgetBytes": 524288,
+        "remainingBytes": 175516,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": true,
+        "usagePercent": 66.52,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 77,
+        "topModulesPreMinify": [
+          {
+            "path": "src/ui/sidebar-tools.js",
+            "renderedLength": 190091
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 40933
+          },
+          {
+            "path": "src/ui/sidebar-tools/installation.js",
+            "renderedLength": 25434
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 23250
+          },
+          {
+            "path": "src/scripting/user-scripts/dependency-metadata.js",
+            "renderedLength": 22153
+          }
+        ]
+      },
+      {
+        "path": "platform/context-menus.js",
+        "bytes": 245404,
+        "sha256": "e48b57d930d6b7b1c721b4f41d019f27b6bb0ec94e2d4db044ebfa150fd3aba1",
+        "budgetBytes": 524288,
+        "remainingBytes": 278884,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 46.81,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 43,
+        "topModulesPreMinify": [
+          {
+            "path": "src/platform/chrome/context-menus.js",
+            "renderedLength": 87014
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 42245
+          },
+          {
+            "path": "src/platform/chrome/browser-cookie-host.js",
+            "renderedLength": 31396
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 22745
+          },
+          {
+            "path": "src/platform/chrome/bookmarks-full.js",
+            "renderedLength": 19044
+          }
+        ]
+      },
+      {
+        "path": "ui/trusted-cookie-ui.js",
+        "bytes": 194992,
+        "sha256": "9b531f539ad30fb969ab23d5240e5def3414d9c776fa6e12ec3501de53f2a7dd",
+        "budgetBytes": 524288,
+        "remainingBytes": 329296,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 37.19,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 37,
+        "topModulesPreMinify": [
+          {
+            "path": "src/ui/scheduled-task-workbench.js",
+            "renderedLength": 56385
+          },
+          {
+            "path": "src/ui/task-workbench.js",
+            "renderedLength": 47779
+          },
+          {
+            "path": "src/ui/cloud-hosting.js",
+            "renderedLength": 37255
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18522
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 16752
+          }
+        ]
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 175695,
+        "sha256": "2f59c7bee9bf98b958944061475d5ab14627f5bcb591edb673c8817347d1d4d1",
+        "budgetBytes": 524288,
+        "remainingBytes": 348593,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 33.51,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 42,
+        "topModulesPreMinify": [
+          {
+            "path": "examples/sidebar-tools/prompt-shortcuts/trusted/page.js",
+            "renderedLength": 48761
+          },
+          {
+            "path": "examples/sidebar-tools/reading-toc/trusted/page.js",
+            "renderedLength": 20470
+          },
+          {
+            "path": "examples/sidebar-tools/reading-toc/trusted/view.js",
+            "renderedLength": 20154
+          },
+          {
+            "path": "examples/programs/chatgpt-jump-top/src/conversation.js",
+            "renderedLength": 19747
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18540
+          }
+        ]
+      },
+      {
+        "path": "ui/marketplace.js",
+        "bytes": 139302,
+        "sha256": "775e3690436dd697f80cb1cbf1d10566fde5ddf9e3d793e4bd79b1ee266d3bc1",
+        "budgetBytes": 524288,
+        "remainingBytes": 384986,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 26.57,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 45,
+        "topModulesPreMinify": [
+          {
+            "path": "src/marketplace/page.js",
+            "renderedLength": 46573
+          },
+          {
+            "path": "src/ui/sidebar-tools/installation.js",
+            "renderedLength": 21147
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18522
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 16936
+          },
+          {
+            "path": "src/marketplace/intent.js",
+            "renderedLength": 9601
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/cheerio.js",
+        "bytes": 121600,
+        "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628",
+        "budgetBytes": 524288,
+        "remainingBytes": 402688,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 23.19,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 62,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/cheerio/node_modules/htmlparser2/node_modules/entities/dist/esm/generated/decode-data-html.js",
+            "renderedLength": 32303
+          },
+          {
+            "path": "node_modules/cheerio/node_modules/htmlparser2/dist/esm/Tokenizer.js",
+            "renderedLength": 30212
+          },
+          {
+            "path": "node_modules/cheerio/dist/browser/api/manipulation.js",
+            "renderedLength": 24365
+          },
+          {
+            "path": "node_modules/cheerio/dist/browser/api/traversing.js",
+            "renderedLength": 24110
+          },
+          {
+            "path": "node_modules/cheerio/node_modules/htmlparser2/node_modules/entities/dist/esm/decode.js",
+            "renderedLength": 20265
+          }
+        ]
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 86133,
+        "sha256": "d8e25bf930156ac8c31095052e501d4ed1a38caaa2d14524fb1d22fee078a5fa",
+        "budgetBytes": 524288,
+        "remainingBytes": 438155,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 16.43,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 25,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 41614
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 22721
+          },
+          {
+            "path": "src/framework/sdk/entry.js",
+            "renderedLength": 11522
+          },
+          {
+            "path": "src/platform/page-port/codec.js",
+            "renderedLength": 9206
+          },
+          {
+            "path": "src/framework/sdk/registry.js",
+            "renderedLength": 8590
+          }
+        ]
+      },
+      {
+        "path": "sidebar-tools/preinstall-intent.js",
+        "bytes": 74763,
+        "sha256": "c0663c23d1fc64bb85c598e43acf2605ee0acbfaa4e6303bfacb2dc1998d558a",
+        "budgetBytes": 524288,
+        "remainingBytes": 449525,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 14.26,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 28,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18522
+          },
+          {
+            "path": "src/ui/sidebar-tools/installation.js",
+            "renderedLength": 17468
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 16776
+          },
+          {
+            "path": "src/ui/sidebar-tools/package.js",
+            "renderedLength": 9617
+          },
+          {
+            "path": "src/framework/sdk/registry.js",
+            "renderedLength": 8145
+          }
+        ]
+      },
+      {
+        "path": "sidebar-tools/bridge.js",
+        "bytes": 71202,
+        "sha256": "7e9257d690730402a35891dc3c4862e11efd32a735f12e687c26b497e5e40c3f",
+        "budgetBytes": 524288,
+        "remainingBytes": 453086,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 13.58,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 14,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 41472
+          },
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 22683
+          },
+          {
+            "path": "src/sidebar-tools/bridge.js",
+            "renderedLength": 13708
+          },
+          {
+            "path": "src/framework/sdk/registry.js",
+            "renderedLength": 8079
+          },
+          {
+            "path": "src/framework/sdk/browser.js",
+            "renderedLength": 4536
+          }
+        ]
+      },
+      {
+        "path": "cloud-control/cloud-runner.js",
+        "bytes": 69732,
+        "sha256": "b8af8b594bace7dcb865e93d124c91e0bc8a5c8a352db915770cbe342b0d393f",
+        "budgetBytes": 524288,
+        "remainingBytes": 454556,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 13.3,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 30,
+        "topModulesPreMinify": [
+          {
+            "path": "src/run-host.js",
+            "renderedLength": 17752
+          },
+          {
+            "path": "src/framework/ChromePage.js",
+            "renderedLength": 15585
+          },
+          {
+            "path": "src/scripting/sandbox/controller.js",
+            "renderedLength": 11181
+          },
+          {
+            "path": "src/platform/host/client.js",
+            "renderedLength": 10666
+          },
+          {
+            "path": "src/framework/context.js",
+            "renderedLength": 8263
+          }
+        ]
+      },
+      {
+        "path": "knowledge/knowledge-host.js",
+        "bytes": 66642,
+        "sha256": "9468e2a3839081d114ad166f722585902cee1202e5cebf88f369ea6aac9b351d",
+        "budgetBytes": 524288,
+        "remainingBytes": 457646,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 12.71,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 24,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18516
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 16697
+          },
+          {
+            "path": "src/knowledge/service.js",
+            "renderedLength": 11744
+          },
+          {
+            "path": "src/knowledge/model.js",
+            "renderedLength": 8409
+          },
+          {
+            "path": "src/ui/sidebar-tools/package.js",
+            "renderedLength": 8168
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/crypto-js.js",
+        "bytes": 66438,
+        "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320",
+        "budgetBytes": 524288,
+        "remainingBytes": 457850,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 12.67,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 82,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/crypto-js/cipher-core.js",
+            "renderedLength": 31425
+          },
+          {
+            "path": "node_modules/crypto-js/tripledes.js",
+            "renderedLength": 26323
+          },
+          {
+            "path": "node_modules/crypto-js/core.js",
+            "renderedLength": 25065
+          },
+          {
+            "path": "node_modules/crypto-js/blowfish.js",
+            "renderedLength": 21904
+          },
+          {
+            "path": "node_modules/crypto-js/sha512.js",
+            "renderedLength": 14037
+          }
+        ]
+      },
+      {
+        "path": "ui/stay-focus-controls.js",
+        "bytes": 63559,
+        "sha256": "850550b1aa881246a8f138a49361463ebdf7ce8d6554d30b6aec83500bc2dd71",
+        "budgetBytes": 524288,
+        "remainingBytes": 460729,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 12.12,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 22,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18516
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 16697
+          },
+          {
+            "path": "examples/sidebar-tools/stay-focus/trusted/host-controls.js",
+            "renderedLength": 11211
+          },
+          {
+            "path": "src/ui/sidebar-tools/package.js",
+            "renderedLength": 9332
+          },
+          {
+            "path": "src/framework/sdk/registry.js",
+            "renderedLength": 8079
+          }
+        ]
+      },
+      {
+        "path": "cloud-control/cloud-host.js",
+        "bytes": 62029,
+        "sha256": "04cd68938320bc75afa6ac4e19b2160ed325dfddfd7ca0a354e2e3b9b2f3760c",
+        "budgetBytes": 524288,
+        "remainingBytes": 462259,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 11.83,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 16,
+        "topModulesPreMinify": [
+          {
+            "path": "src/cloud-control/service.js",
+            "renderedLength": 59929
+          },
+          {
+            "path": "src/platform/page-port/codec.js",
+            "renderedLength": 8222
+          },
+          {
+            "path": "src/cloud-control/history-index.js",
+            "renderedLength": 8043
+          },
+          {
+            "path": "src/platform/tasks/contract.js",
+            "renderedLength": 7337
+          },
+          {
+            "path": "src/cloud-control/connection.js",
+            "renderedLength": 4566
+          }
+        ]
+      },
+      {
+        "path": "sidebar-shared-ui.js",
+        "bytes": 61419,
+        "sha256": "8b6a3263dbfaa2905d2a8fd27d0daadf75793c22f895f46e75f1997bd31cce30",
+        "budgetBytes": 524288,
+        "remainingBytes": 462869,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 11.71,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 67,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/react-aria/dist/private/interactions/usePress.mjs",
+            "renderedLength": 18915
+          },
+          {
+            "path": "src/ui/design-system.css",
+            "renderedLength": 10720
+          },
+          {
+            "path": "node_modules/react-aria/dist/private/interactions/useFocusVisible.mjs",
+            "renderedLength": 9651
+          },
+          {
+            "path": "node_modules/react-stately/dist/private/form/useFormValidationState.mjs",
+            "renderedLength": 8357
+          },
+          {
+            "path": "node_modules/react-aria/dist/private/interactions/utils.mjs",
+            "renderedLength": 7949
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/axios.js",
+        "bytes": 56622,
+        "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff",
+        "budgetBytes": 524288,
+        "remainingBytes": 467666,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 10.8,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 61,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/axios/lib/utils.js",
+            "renderedLength": 30601
+          },
+          {
+            "path": "node_modules/axios/lib/adapters/fetch.js",
+            "renderedLength": 21157
+          },
+          {
+            "path": "node_modules/axios/lib/core/AxiosHeaders.js",
+            "renderedLength": 10214
+          },
+          {
+            "path": "node_modules/axios/lib/adapters/xhr.js",
+            "renderedLength": 9092
+          },
+          {
+            "path": "node_modules/axios/lib/core/Axios.js",
+            "renderedLength": 8539
+          }
+        ]
+      },
+      {
+        "path": "marketplace/market-host.js",
+        "bytes": 53096,
+        "sha256": "de7784b9911d71b1a6db4f0cd998774e9f07bbaeb1b5e0d35e8b02335d1795c7",
+        "budgetBytes": 524288,
+        "remainingBytes": 471192,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 10.13,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 21,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/sdk/browser-schemas.js",
+            "renderedLength": 18516
+          },
+          {
+            "path": "src/framework/sdk/browser-contract.js",
+            "renderedLength": 16697
+          },
+          {
+            "path": "src/marketplace/external.js",
+            "renderedLength": 8321
+          },
+          {
+            "path": "src/framework/sdk/registry.js",
+            "renderedLength": 8105
+          },
+          {
+            "path": "src/marketplace/intent.js",
+            "renderedLength": 5060
+          }
+        ]
+      },
+      {
+        "path": "native-agent/transport.js",
+        "bytes": 44658,
+        "sha256": "2340bc072412df5fe745814dcf607a8e5ffee5bf7d003b4404f61774f4466b9a",
+        "budgetBytes": 524288,
+        "remainingBytes": 479630,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 8.52,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 18,
+        "topModulesPreMinify": [
+          {
+            "path": "src/native-agent/service-worker.js",
+            "renderedLength": 16830
+          },
+          {
+            "path": "src/native-agent/workflow-ai-service.js",
+            "renderedLength": 14934
+          },
+          {
+            "path": "src/native-agent/managed-preview.js",
+            "renderedLength": 7953
+          },
+          {
+            "path": "src/native-agent/local-project-service.js",
+            "renderedLength": 6835
+          },
+          {
+            "path": "src/native-agent/file-workspace-service.js",
+            "renderedLength": 5322
+          }
+        ]
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 40720,
+        "sha256": "3ff369cb2d9e4a5437ff7ba3192935e252f03c64d2c7b406d9f59b037c0d7f37",
+        "budgetBytes": 524288,
+        "remainingBytes": 483568,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 7.77,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 19,
+        "topModulesPreMinify": [
+          {
+            "path": "src/framework/ChromePage.js",
+            "renderedLength": 15585
+          },
+          {
+            "path": "src/platform/page-port/codec.js",
+            "renderedLength": 8202
+          },
+          {
+            "path": "src/framework/context.js",
+            "renderedLength": 7944
+          },
+          {
+            "path": "src/framework/control/locator-contract.js",
+            "renderedLength": 5990
+          },
+          {
+            "path": "src/libs/runtime-contract.js",
+            "renderedLength": 4280
+          }
+        ]
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 39816,
+        "sha256": "86befa34aea3cb30e6d1c8d1947fdad28dbfedaf7186840afd12299dfca9d457",
+        "budgetBytes": 524288,
+        "remainingBytes": 484472,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 7.59,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 12,
+        "topModulesPreMinify": [
+          {
+            "path": "src/scripting/packaged/locator-dom.js",
+            "renderedLength": 21332
+          },
+          {
+            "path": "src/scripting/packaged/registry.js",
+            "renderedLength": 14671
+          },
+          {
+            "path": "src/platform/page-port/codec.js",
+            "renderedLength": 8202
+          },
+          {
+            "path": "src/framework/sdk/registry.js",
+            "renderedLength": 8164
+          },
+          {
+            "path": "src/scripting/packaged/page-session.js",
+            "renderedLength": 6663
+          }
+        ]
+      },
+      {
+        "path": "time-review/time-review-host.js",
+        "bytes": 36460,
+        "sha256": "168b66ad54e8b732c8159cf7c1c721144d2aa10f0dc3754d73c6922152eb291e",
+        "budgetBytes": 524288,
+        "remainingBytes": 487828,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 6.95,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 15,
+        "topModulesPreMinify": [
+          {
+            "path": "examples/sidebar-tools/time-review/trusted/service.js",
+            "renderedLength": 16046
+          },
+          {
+            "path": "examples/sidebar-tools/time-review/trusted/model.js",
+            "renderedLength": 13359
+          },
+          {
+            "path": "src/ui/sidebar-tools/package.js",
+            "renderedLength": 7938
+          },
+          {
+            "path": "examples/sidebar-tools/time-review/trusted/sync-outbox.js",
+            "renderedLength": 4718
+          },
+          {
+            "path": "src/framework/sdk/browser-direct.generated.js",
+            "renderedLength": 3790
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/fingerprintjs.js",
+        "bytes": 36317,
+        "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f",
+        "budgetBytes": 524288,
+        "remainingBytes": 487971,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 6.93,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 6,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/@fingerprintjs/fingerprintjs/dist/fp.esm.js",
+            "renderedLength": 128469
+          },
+          {
+            "path": "src/libs/packages/fingerprintjs.js",
+            "renderedLength": 2409
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/fingerprintjs.js",
+            "renderedLength": 827
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/fingerprintjs.js",
+            "renderedLength": 82
+          }
+        ]
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 34423,
+        "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00",
+        "budgetBytes": 524288,
+        "remainingBytes": 489865,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 6.57,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 8,
+        "topModulesPreMinify": [
+          {
+            "path": "src/platform/schema.js",
+            "renderedLength": 21098
+          },
+          {
+            "path": "src/agents/page-agent.js",
+            "renderedLength": 12951
+          },
+          {
+            "path": "src/platform/protocol.js",
+            "renderedLength": 9291
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/page-agent.js",
+            "renderedLength": 818
+          },
+          {
+            "path": "src/platform/journal.js",
+            "renderedLength": 377
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/dayjs.js",
+        "bytes": 20304,
+        "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164",
+        "budgetBytes": 524288,
+        "remainingBytes": 503984,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 3.87,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 21,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/dayjs/dayjs.min.js",
+            "renderedLength": 7307
+          },
+          {
+            "path": "node_modules/dayjs/plugin/duration.js",
+            "renderedLength": 4907
+          },
+          {
+            "path": "node_modules/dayjs/plugin/customParseFormat.js",
+            "renderedLength": 4062
+          },
+          {
+            "path": "node_modules/dayjs/plugin/utc.js",
+            "renderedLength": 2304
+          },
+          {
+            "path": "node_modules/dayjs/plugin/timezone.js",
+            "renderedLength": 2300
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/lodash.js",
+        "bytes": 12832,
+        "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18",
+        "budgetBytes": 524288,
+        "remainingBytes": 511456,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 2.45,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 112,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/lodash-es/_unicodeWords.js",
+            "renderedLength": 3105
+          },
+          {
+            "path": "node_modules/lodash-es/truncate.js",
+            "renderedLength": 2950
+          },
+          {
+            "path": "node_modules/lodash-es/memoize.js",
+            "renderedLength": 2156
+          },
+          {
+            "path": "node_modules/lodash-es/_unicodeToArray.js",
+            "renderedLength": 1653
+          },
+          {
+            "path": "node_modules/lodash-es/_unicodeSize.js",
+            "renderedLength": 1610
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/query-string.js",
+        "bytes": 9274,
+        "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9",
+        "budgetBytes": 524288,
+        "remainingBytes": 515014,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 1.77,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 10,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/query-string/base.js",
+            "renderedLength": 14947
+          },
+          {
+            "path": "node_modules/decode-uri-component/index.js",
+            "renderedLength": 4121
+          },
+          {
+            "path": "src/libs/packages/query-string.js",
+            "renderedLength": 1035
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/query-string.js",
+            "renderedLength": 824
+          },
+          {
+            "path": "node_modules/filter-obj/index.js",
+            "renderedLength": 676
+          }
+        ]
+      },
+      {
+        "path": "agents/health-host.js",
+        "bytes": 9096,
+        "sha256": "c3bf03b3c3933ea0482e207dd7132c43037ed5eacdecbbb35055da464e39712d",
+        "budgetBytes": 524288,
+        "remainingBytes": 515192,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 1.73,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 6,
+        "topModulesPreMinify": [
+          {
+            "path": "src/environment.js",
+            "renderedLength": 11763
+          },
+          {
+            "path": "src/tool-document-url.js",
+            "renderedLength": 2037
+          },
+          {
+            "path": "src/entrypoints/health-host.js",
+            "renderedLength": 1634
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/health-host.js",
+            "renderedLength": 821
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          }
+        ]
+      },
+      {
+        "path": "libs/runtime/page-core.js",
+        "bytes": 8763,
+        "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a",
+        "budgetBytes": 524288,
+        "remainingBytes": 515525,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 1.67,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 7,
+        "topModulesPreMinify": [
+          {
+            "path": "src/libs/runtime-contract.js",
+            "renderedLength": 4280
+          },
+          {
+            "path": "src/libs/core.js",
+            "renderedLength": 3721
+          },
+          {
+            "path": "src/libs/catalog.js",
+            "renderedLength": 3523
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/page-core.js",
+            "renderedLength": 815
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/store.js",
+        "bytes": 8689,
+        "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6",
+        "budgetBytes": 524288,
+        "remainingBytes": 515599,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 1.66,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 14,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/store/src/store-engine.js",
+            "renderedLength": 7179
+          },
+          {
+            "path": "src/libs/packages/store.js",
+            "renderedLength": 3656
+          },
+          {
+            "path": "node_modules/store/src/util.js",
+            "renderedLength": 2652
+          },
+          {
+            "path": "node_modules/store/storages/cookieStorage.js",
+            "renderedLength": 1725
+          },
+          {
+            "path": "node_modules/store/storages/memoryStorage.js",
+            "renderedLength": 1006
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/file-saver.js",
+        "bytes": 4131,
+        "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c",
+        "budgetBytes": 524288,
+        "remainingBytes": 520157,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.79,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 9,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/file-saver/dist/FileSaver.min.js",
+            "renderedLength": 2916
+          },
+          {
+            "path": "src/libs/packages/file-saver.js",
+            "renderedLength": 1715
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/file-saver.js",
+            "renderedLength": 818
+          },
+          {
+            "path": "virtual:commonjsHelpers.js",
+            "renderedLength": 334
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          }
+        ]
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4010,
+        "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e",
+        "budgetBytes": 524288,
+        "remainingBytes": 520278,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.76,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 5,
+        "topModulesPreMinify": [
+          {
+            "path": "src/scripting/sandbox/sandbox.js",
+            "renderedLength": 6023
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/sandbox.js",
+            "renderedLength": 809
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/sandbox.js",
+            "renderedLength": 61
+          },
+          {
+            "path": "virtual:virtual:wxt-plugins",
+            "renderedLength": 27
+          }
+        ]
+      },
+      {
+        "path": "ui/cloud-console.js",
+        "bytes": 3942,
+        "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df",
+        "budgetBytes": 524288,
+        "remainingBytes": 520346,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.75,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 6,
+        "topModulesPreMinify": [
+          {
+            "path": "src/ui/cloud-control-console.js",
+            "renderedLength": 4933
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/cloud-console.js",
+            "renderedLength": 827
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/cloud-console.js",
+            "renderedLength": 71
+          },
+          {
+            "path": "src/platform/protocol.js",
+            "renderedLength": 42
+          }
+        ]
+      },
+      {
+        "path": "libs/packages/js-cookie.js",
+        "bytes": 2236,
+        "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53",
+        "budgetBytes": 524288,
+        "remainingBytes": 522052,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.43,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 6,
+        "topModulesPreMinify": [
+          {
+            "path": "node_modules/js-cookie/dist/js.cookie.mjs",
+            "renderedLength": 3380
+          },
+          {
+            "path": "src/libs/packages/js-cookie.js",
+            "renderedLength": 875
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/js-cookie.js",
+            "renderedLength": 815
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/js-cookie.js",
+            "renderedLength": 78
+          }
+        ]
+      },
+      {
+        "path": "stay-focus/blocked.js",
+        "bytes": 1726,
+        "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93",
+        "budgetBytes": 524288,
+        "remainingBytes": 522562,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.33,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 5,
+        "topModulesPreMinify": [
+          {
+            "path": "examples/sidebar-tools/stay-focus/trusted/blocked.js",
+            "renderedLength": 1838
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/blocked.js",
+            "renderedLength": 809
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/blocked.js",
+            "renderedLength": 75
+          },
+          {
+            "path": "virtual:virtual:wxt-plugins",
+            "renderedLength": 27
+          }
+        ]
+      },
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 931,
+        "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9",
+        "budgetBytes": 524288,
+        "remainingBytes": 523357,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.18,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 6,
+        "topModulesPreMinify": [
+          {
+            "path": "src/agents/bootstrap.js",
+            "renderedLength": 999
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/bootstrap.js",
+            "renderedLength": 815
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/bootstrap.js",
+            "renderedLength": 63
+          },
+          {
+            "path": "src/platform/protocol.js",
+            "renderedLength": 42
+          }
+        ]
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 828,
+        "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65",
+        "budgetBytes": 524288,
+        "remainingBytes": 523460,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.16,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 6,
+        "topModulesPreMinify": [
+          {
+            "path": "src/agents/health.js",
+            "renderedLength": 1094
+          },
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/health.js",
+            "renderedLength": 806
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/health.js",
+            "renderedLength": 65
+          },
+          {
+            "path": "src/environment.js",
+            "renderedLength": 43
+          }
+        ]
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 383,
+        "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb",
+        "budgetBytes": 524288,
+        "remainingBytes": 523905,
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false,
+        "usagePercent": 0.07,
+        "risk": "normal",
+        "designReserveDebtBytes": 0,
+        "moduleCount": 5,
+        "topModulesPreMinify": [
+          {
+            "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/selection-entry.js",
+            "renderedLength": 833
+          },
+          {
+            "path": "src/agents/selection-entry.js",
+            "renderedLength": 310
+          },
+          {
+            "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+            "renderedLength": 166
+          },
+          {
+            "path": "src/entrypoints/selection-entry.js",
+            "renderedLength": 67
+          },
+          {
+            "path": "virtual:virtual:wxt-plugins",
+            "renderedLength": 27
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 1048041,
+        "sha256": "1706685f206f11f629b4f15eb304ac8f29aa21ed8bc331c1e67120c91c91f8c8",
+        "kind": "generated-js",
+        "budgetBytes": 1048576,
+        "remainingBytes": 535,
+        "risk": "critical",
+        "reviewThresholdBytes": 655360,
+        "requiresSizeReview": true
+      },
+      {
+        "path": "sw.js",
+        "bytes": 710920,
+        "sha256": "741e0c197cf1f8fdbe892da8d2c18e43ec7bba4907ec5be19a9dd366250891c6",
+        "kind": "generated-js",
+        "budgetBytes": 1048576,
+        "remainingBytes": 337656,
+        "risk": "normal",
+        "reviewThresholdBytes": 524288,
+        "requiresSizeReview": true
+      },
+      {
+        "path": "native-agent/settings.js",
+        "bytes": 379882,
+        "sha256": "5fb7d4b4e553146311303bcaa735e2766c5d1a817a05b086894f015491ac4389",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 144406,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": true
+      },
+      {
+        "path": "ui/sidebar-tool-host.js",
+        "bytes": 348772,
+        "sha256": "e31bf21e9e2583804f65ca3a80798fe842bb77cf4f10d76cec89c18a331a9682",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 175516,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": true
+      },
+      {
+        "path": "platform/context-menus.js",
+        "bytes": 245404,
+        "sha256": "e48b57d930d6b7b1c721b4f41d019f27b6bb0ec94e2d4db044ebfa150fd3aba1",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 278884,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/trusted-cookie-ui.js",
+        "bytes": 194992,
+        "sha256": "9b531f539ad30fb969ab23d5240e5def3414d9c776fa6e12ec3501de53f2a7dd",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 329296,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/page-frameworks/react-19.2.0.js",
+        "bytes": 193163,
+        "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+        "kind": "raw-runtime-js",
+        "budgetBytes": 262144,
+        "remainingBytes": 68981,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 175695,
+        "sha256": "2f59c7bee9bf98b958944061475d5ab14627f5bcb591edb673c8817347d1d4d1",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 348593,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/marketplace.js",
+        "bytes": 139302,
+        "sha256": "775e3690436dd697f80cb1cbf1d10566fde5ddf9e3d793e4bd79b1ee266d3bc1",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 384986,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 136070,
+        "sha256": "18a078aeda61409ea4668ef89cf415ca2c24bf67fe472c94c6e8f6688f5a932a",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/cheerio.js",
+        "bytes": 121600,
+        "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 402688,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/page-frameworks/vue-3.5.22.js",
+        "bytes": 118131,
+        "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174",
+        "kind": "raw-runtime-js",
+        "budgetBytes": 262144,
+        "remainingBytes": 144013,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+        "bytes": 113936,
+        "sha256": "52a78930efae167db0d2482332f9a84e879b19fad81e61bdcbe1fdc653885ac3",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+        "bytes": 102840,
+        "sha256": "7825e56e5b75984a646f451ebd532a4e64b622fc6cd225c9ff4ee1b89486286c",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json",
+        "bytes": 95327,
+        "sha256": "5a68205a64d8298496cd5f7d299650d61562c3d40e4916eee043ceced73e9c84",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+        "kind": "raw-vendor-js",
+        "budgetBytes": 131072,
+        "remainingBytes": 43539,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+        "bytes": 86736,
+        "sha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 86133,
+        "sha256": "d8e25bf930156ac8c31095052e501d4ed1a38caaa2d14524fb1d22fee078a5fa",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 438155,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "sidebar-tools/preinstall-intent.js",
+        "bytes": 74763,
+        "sha256": "c0663c23d1fc64bb85c598e43acf2605ee0acbfaa4e6303bfacb2dc1998d558a",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 449525,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "sidebar-tools/bridge.js",
+        "bytes": 71202,
+        "sha256": "7e9257d690730402a35891dc3c4862e11efd32a735f12e687c26b497e5e40c3f",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 453086,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "cloud-control/cloud-runner.js",
+        "bytes": 69732,
+        "sha256": "b8af8b594bace7dcb865e93d124c91e0bc8a5c8a352db915770cbe342b0d393f",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 454556,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "knowledge/knowledge-host.js",
+        "bytes": 66642,
+        "sha256": "9468e2a3839081d114ad166f722585902cee1202e5cebf88f369ea6aac9b351d",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 457646,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/crypto-js.js",
+        "bytes": 66438,
+        "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 457850,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/stay-focus-controls.js",
+        "bytes": 63559,
+        "sha256": "850550b1aa881246a8f138a49361463ebdf7ce8d6554d30b6aec83500bc2dd71",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 460729,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "bytes": 62341,
+        "sha256": "06433d9c8e08993d5c1dc1880f35ce7b472abda78bb733715af4574450e3f59d",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "cloud-control/cloud-host.js",
+        "bytes": 62029,
+        "sha256": "04cd68938320bc75afa6ac4e19b2160ed325dfddfd7ca0a354e2e3b9b2f3760c",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 462259,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "sidebar-shared-ui.js",
+        "bytes": 61419,
+        "sha256": "8b6a3263dbfaa2905d2a8fd27d0daadf75793c22f895f46e75f1997bd31cce30",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 462869,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/axios.js",
+        "bytes": 56622,
+        "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 467666,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "marketplace/market-host.js",
+        "bytes": 53096,
+        "sha256": "de7784b9911d71b1a6db4f0cd998774e9f07bbaeb1b5e0d35e8b02335d1795c7",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 471192,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "native-agent/transport.js",
+        "bytes": 44658,
+        "sha256": "2340bc072412df5fe745814dcf607a8e5ffee5bf7d003b4404f61774f4466b9a",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 479630,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/time-review/time-review.opendesk-tool.json",
+        "bytes": 41548,
+        "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 41231,
+        "sha256": "2240fb2701de7e69fb91798e86946767f945b43d5cd5fb28b34708d941989ef1",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 40720,
+        "sha256": "3ff369cb2d9e4a5437ff7ba3192935e252f03c64d2c7b406d9f59b037c0d7f37",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 483568,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 39816,
+        "sha256": "86befa34aea3cb30e6d1c8d1947fdad28dbfedaf7186840afd12299dfca9d457",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 484472,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "time-review/time-review-host.js",
+        "bytes": 36460,
+        "sha256": "168b66ad54e8b732c8159cf7c1c721144d2aa10f0dc3754d73c6922152eb291e",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 487828,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/fingerprintjs.js",
+        "bytes": 36317,
+        "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 487971,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "native-agent/workspace.css",
+        "bytes": 34647,
+        "sha256": "7251acd2ca969f0b832fdc6f2328e42f55a9f90aa744be97b16c687d164ab3b3",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 34423,
+        "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 489865,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 32152,
+        "sha256": "9b8125e8f25734b86833e87ac27c40ca74a0775ef29929c660d75d84b6a5497d",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 28525,
+        "sha256": "56890b9feeb6908c5967eb16aed19a1e811f8d376dd270c01e78c0c93b052071",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+        "bytes": 28391,
+        "sha256": "60329314a69a46a907e76c903b3e21e484ccb8419b3893d1033102c574f40ff9",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/dayjs.js",
+        "bytes": 20304,
+        "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 503984,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/vendor/papaparse/5.7.0/papaparse.min.js",
+        "bytes": 18874,
+        "sha256": "4d5d2d6e3282b66aafaa5e6de8ca3ae06f8d3440111ae99c6a30f6c00cfac33e",
+        "kind": "raw-vendor-js",
+        "budgetBytes": 131072,
+        "remainingBytes": 112198,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/extension-center.css",
+        "bytes": 16068,
+        "sha256": "eb98698739a387163b7a7afb5aa2784a4ec9cae4fc83194670f052e47ed23ee2",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+        "bytes": 15125,
+        "sha256": "68dbb8d1123cd1634a46139c207160f228a78da42b0f295fce4cde7f6c768b0d",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/shared-ui-third-party-notices.txt",
+        "bytes": 12986,
+        "sha256": "e4135b8c9ef1f90616ebf63e55708a91f020f5a726f2bc7c5484aac00bafdcb8",
+        "kind": "license",
+        "budgetBytes": 12986,
+        "remainingBytes": 0,
+        "risk": "critical",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/lodash.js",
+        "bytes": 12832,
+        "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 511456,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/adblock/adblock.opendesk-tool.json",
+        "bytes": 12598,
+        "sha256": "8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/time-review.css",
+        "bytes": 11538,
+        "sha256": "ed1bc3424fa5dc934c7fd01b8a5bfa570c1b2cc1c2b919ccb08ffae4a9e86151",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/design-system.css",
+        "bytes": 10572,
+        "sha256": "8bae0d6e66d433dc7d4ff42697698aece1bf2849dcfc1a71cf43daa541b159ca",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/query-string.js",
+        "bytes": 9274,
+        "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 515014,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "agents/health-host.js",
+        "bytes": 9096,
+        "sha256": "c3bf03b3c3933ea0482e207dd7132c43037ed5eacdecbbb35055da464e39712d",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 515192,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/marketplace.css",
+        "bytes": 9046,
+        "sha256": "f3b085498111ad17fe9933507fc09272dfd5857913c6a9f8e1d0f2e8d8eeb642",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/runtime/page-core.js",
+        "bytes": 8763,
+        "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 515525,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/store.js",
+        "bytes": 8689,
+        "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 515599,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "official-tools/catalog.json",
+        "bytes": 8139,
+        "sha256": "69ea2c2e46936b5df83dfb2b35b8b34e50b413e61d7309772ee787183fa712f2",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/manifest.json",
+        "bytes": 4894,
+        "sha256": "9d950582513a94d69833503c949515a4e130faba87764ee20e3b375706c3d3ef",
+        "kind": "static-resource",
+        "budgetBytes": 8192,
+        "remainingBytes": 3298,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/file-saver.js",
+        "bytes": 4131,
+        "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 520157,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4010,
+        "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 520278,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/cloud-console.js",
+        "bytes": 3942,
+        "sha256": "40bbf3a4d3fcd7047daa8d02152aba9635b0866da744a8c8f3908f4f5910e8df",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 520346,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/cloud-control.html",
+        "bytes": 3513,
+        "sha256": "ffd3650fe65dd08fd6bd8ca45a982372e2230af90375dfa0b509a41d30594e50",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/cloud-control-console.css",
+        "bytes": 2846,
+        "sha256": "0e1e66a4bdf1ec5605f51b3065f04affff7223270fb565fca5540fe0e63c6adb",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "native-agent/settings.css",
+        "bytes": 2654,
+        "sha256": "8328662e40eed3abc530cc6ec47c6ee7da78785858d5430c0cd69697d9ee5e55",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/design-tokens.css",
+        "bytes": 2590,
+        "sha256": "a1a7c2059cb09a27986dca580443deb3fc28aae2a76d03ccc9d8f95fa34f1b5b",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "native-agent/settings.html",
+        "bytes": 2438,
+        "sha256": "a828806e70059556b2af0443bba09853c97d25bf086adf5d3b47f2567ab83ff8",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/packages/js-cookie.js",
+        "bytes": 2236,
+        "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 522052,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/lodash-es-MIT.txt",
+        "bytes": 1952,
+        "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 6240,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 1813,
+        "sha256": "58ee8aa2f6c2262c02f56e0e8e51209025bc81cd9a7b52067f8bb8de762063a5",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "stay-focus/blocked.js",
+        "bytes": 1726,
+        "sha256": "fad70d6fb1a7cd1b4337c191507fc2924d30d484971fa5a05f74710a256b2f93",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 522562,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/crypto-js-MIT.txt",
+        "bytes": 1169,
+        "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7023,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/js-cookie-MIT.txt",
+        "bytes": 1118,
+        "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7074,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/query-string-MIT.txt",
+        "bytes": 1117,
+        "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7075,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/page-framework-vue-MIT.txt",
+        "bytes": 1112,
+        "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7080,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/file-saver-MIT.txt",
+        "bytes": 1101,
+        "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7091,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/jquery-MIT.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d",
+        "kind": "license",
+        "budgetBytes": 1097,
+        "remainingBytes": 0,
+        "risk": "critical",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29",
+        "kind": "license",
+        "budgetBytes": 1096,
+        "remainingBytes": 0,
+        "risk": "critical",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/page-framework-react-MIT.txt",
+        "bytes": 1088,
+        "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7104,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/store-MIT.txt",
+        "bytes": 1085,
+        "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7107,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/axios-MIT.txt",
+        "bytes": 1084,
+        "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7108,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/cheerio-MIT.txt",
+        "bytes": 1081,
+        "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7111,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/papaparse-MIT.txt",
+        "bytes": 1079,
+        "sha256": "99aa68e4b42758b09828a46515f70369e5463458ab7a990189f641af2b8d9b4e",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7113,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/my-utils-MIT.txt",
+        "bytes": 1078,
+        "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7114,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/fingerprintjs-MIT.txt",
+        "bytes": 1074,
+        "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7118,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "licenses/dayjs-MIT.txt",
+        "bytes": 1072,
+        "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc",
+        "kind": "license",
+        "budgetBytes": 8192,
+        "remainingBytes": 7120,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "stay-focus/blocked.css",
+        "bytes": 969,
+        "sha256": "eb54ba4dcd77e50c07e34eaa8f78f629749623e4e167c1e18dcce759d468aff1",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 931,
+        "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 523357,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/marketplace.html",
+        "bytes": 931,
+        "sha256": "9f1ee3d70829f5e746617cecfe87e8ac24388cd67f29acca8f753b8a931bd24c",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/runtime/bootstrap.js",
+        "bytes": 876,
+        "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d",
+        "kind": "raw-runtime-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 523412,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 828,
+        "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 523460,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "sidepanel.html",
+        "bytes": 817,
+        "sha256": "2a58c144f4878627feb699ccba7fc4500e55eaa20b859f86b8fb85b232732eb2",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "stay-focus/blocked-always.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "stay-focus/blocked-quota.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "stay-focus/blocked-schedule.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "stay-focus/blocked-session.html",
+        "bytes": 617,
+        "sha256": "e5d6b5c1d528cf9d8a929c67abc423b398f74417d0e0053f7140f320b366c524",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "sidebar-tools/sandbox.html",
+        "bytes": 560,
+        "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/cloud-hosting.css",
+        "bytes": 491,
+        "sha256": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb",
+        "kind": "css",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "native-agent/workspace.html",
+        "bytes": 450,
+        "sha256": "0c2d7fad412fc32a0f41fe18e9f7d0eb7b3d7da5851c7e7a60adce1c06200625",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 383,
+        "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb",
+        "kind": "generated-js",
+        "budgetBytes": 524288,
+        "remainingBytes": 523905,
+        "risk": "normal",
+        "reviewThresholdBytes": 327680,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "framework/sdk-resources.json",
+        "bytes": 360,
+        "sha256": "70c50e8dc92ecd657aa35ce9fa456d82a0afa9ed1de6e991ac3d6585892381d9",
+        "kind": "static-resource",
+        "budgetBytes": 8192,
+        "remainingBytes": 7832,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "libs/vendor/my-utils/1.0.0/index.js",
+        "bytes": 291,
+        "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461",
+        "kind": "raw-vendor-js",
+        "budgetBytes": 131072,
+        "remainingBytes": 130781,
+        "risk": "normal",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "cloud-control/runner.html",
+        "bytes": 239,
+        "sha256": "9b36613a4d1962aa3d4e1e5e356bde67f4e702c139ff79499365ca7869eb52a6",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "marketplace/channel.json",
+        "bytes": 217,
+        "sha256": "93191846920ecb9dac809162ad05542794a12628665eb8538784e35271dfc1b2",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c",
+        "kind": "html",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      },
+      {
+        "path": "framework/browser-edition.json",
+        "bytes": 108,
+        "sha256": "de42ca5db9d5e2fc8098654789fe1fb65fea8e105fcaeda84641cfc566b053ef",
+        "kind": "static-resource",
+        "budgetBytes": null,
+        "remainingBytes": null,
+        "risk": "unbudgeted",
+        "reviewThresholdBytes": null,
+        "requiresSizeReview": false
+      }
+    ],
+    "loadingGroups": [
+      {
+        "id": "background-startup",
+        "bytes": 1249972,
+        "resources": [
+          {
+            "path": "sw.js",
+            "bytes": 710920,
+            "sha256": "741e0c197cf1f8fdbe892da8d2c18e43ec7bba4907ec5be19a9dd366250891c6"
+          },
+          {
+            "path": "cloud-control/cloud-host.js",
+            "bytes": 62029,
+            "sha256": "04cd68938320bc75afa6ac4e19b2160ed325dfddfd7ca0a354e2e3b9b2f3760c"
+          },
+          {
+            "path": "sidebar-tools/preinstall-intent.js",
+            "bytes": 74763,
+            "sha256": "c0663c23d1fc64bb85c598e43acf2605ee0acbfaa4e6303bfacb2dc1998d558a"
+          },
+          {
+            "path": "agents/health-host.js",
+            "bytes": 9096,
+            "sha256": "c3bf03b3c3933ea0482e207dd7132c43037ed5eacdecbbb35055da464e39712d"
+          },
+          {
+            "path": "native-agent/transport.js",
+            "bytes": 44658,
+            "sha256": "2340bc072412df5fe745814dcf607a8e5ffee5bf7d003b4404f61774f4466b9a"
+          },
+          {
+            "path": "knowledge/knowledge-host.js",
+            "bytes": 66642,
+            "sha256": "9468e2a3839081d114ad166f722585902cee1202e5cebf88f369ea6aac9b351d"
+          },
+          {
+            "path": "time-review/time-review-host.js",
+            "bytes": 36460,
+            "sha256": "168b66ad54e8b732c8159cf7c1c721144d2aa10f0dc3754d73c6922152eb291e"
+          },
+          {
+            "path": "platform/context-menus.js",
+            "bytes": 245404,
+            "sha256": "e48b57d930d6b7b1c721b4f41d019f27b6bb0ec94e2d4db044ebfa150fd3aba1"
+          }
+        ]
+      },
+      {
+        "id": "controller-default-libraries",
+        "bytes": 75023,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js",
+            "bytes": 40720,
+            "sha256": "3ff369cb2d9e4a5437ff7ba3192935e252f03c64d2c7b406d9f59b037c0d7f37"
+          }
+        ],
+        "assembledBytes": 75035
+      },
+      {
+        "id": "page-default-libraries",
+        "bytes": 43066,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          }
+        ],
+        "assembledBytes": 43078
+      },
+      {
+        "id": "page-with-jquery",
+        "bytes": 130599,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+            "bytes": 87533,
+            "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+          }
+        ],
+        "assembledBytes": 130614
+      },
+      {
+        "id": "automatic-page-injection",
+        "bytes": 261828,
+        "resources": [
+          {
+            "path": "agents/page-relay.js",
+            "bytes": 175695,
+            "sha256": "2f59c7bee9bf98b958944061475d5ab14627f5bcb591edb673c8817347d1d4d1"
+          },
+          {
+            "path": "framework/sdk-main.js",
+            "bytes": 86133,
+            "sha256": "d8e25bf930156ac8c31095052e501d4ed1a38caaa2d14524fb1d22fee078a5fa"
+          }
+        ]
+      },
+      {
+        "id": "sidebar-shell",
+        "bytes": 1185419,
+        "resources": [
+          {
+            "path": "sidepanel.html",
+            "bytes": 817,
+            "sha256": "2a58c144f4878627feb699ccba7fc4500e55eaa20b859f86b8fb85b232732eb2"
+          },
+          {
+            "path": "ui/tool-shell.css",
+            "bytes": 136070,
+            "sha256": "18a078aeda61409ea4668ef89cf415ca2c24bf67fe472c94c6e8f6688f5a932a"
+          },
+          {
+            "path": "ui/cloud-hosting.css",
+            "bytes": 491,
+            "sha256": "9eeb6ff44477bade32fd49514f4f4778e6f1d2fe409835dc772fa95e2368debb"
+          },
+          {
+            "path": "ui/tool-shell.js",
+            "bytes": 1048041,
+            "sha256": "1706685f206f11f629b4f15eb304ac8f29aa21ed8bc331c1e67120c91c91f8c8"
+          }
+        ]
+      },
+      {
+        "id": "workspace-shell",
+        "bytes": 414979,
+        "resources": [
+          {
+            "path": "native-agent/workspace.html",
+            "bytes": 450,
+            "sha256": "0c2d7fad412fc32a0f41fe18e9f7d0eb7b3d7da5851c7e7a60adce1c06200625"
+          },
+          {
+            "path": "native-agent/workspace.css",
+            "bytes": 34647,
+            "sha256": "7251acd2ca969f0b832fdc6f2328e42f55a9f90aa744be97b16c687d164ab3b3"
+          },
+          {
+            "path": "native-agent/settings.js",
+            "bytes": 379882,
+            "sha256": "5fb7d4b4e553146311303bcaa735e2766c5d1a817a05b086894f015491ac4389"
+          }
+        ]
+      },
+      {
+        "id": "page-with-jsCookie",
+        "bytes": 45302,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/js-cookie.js",
+            "bytes": 2236,
+            "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+          }
+        ],
+        "assembledBytes": 45317
+      },
+      {
+        "id": "page-with-cryptoJs",
+        "bytes": 109504,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/crypto-js.js",
+            "bytes": 66438,
+            "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+          }
+        ],
+        "assembledBytes": 109519
+      },
+      {
+        "id": "page-with-fileSaver",
+        "bytes": 47197,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/file-saver.js",
+            "bytes": 4131,
+            "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+          }
+        ],
+        "assembledBytes": 47212
+      },
+      {
+        "id": "page-with-queryString",
+        "bytes": 52340,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/query-string.js",
+            "bytes": 9274,
+            "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+          }
+        ],
+        "assembledBytes": 52355
+      },
+      {
+        "id": "page-with-axios",
+        "bytes": 99688,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/axios.js",
+            "bytes": 56622,
+            "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+          }
+        ],
+        "assembledBytes": 99703
+      },
+      {
+        "id": "page-with-store",
+        "bytes": 51755,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/store.js",
+            "bytes": 8689,
+            "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+          }
+        ],
+        "assembledBytes": 51770
+      },
+      {
+        "id": "page-with-cheerio",
+        "bytes": 164666,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/cheerio.js",
+            "bytes": 121600,
+            "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+          }
+        ],
+        "assembledBytes": 164681
+      },
+      {
+        "id": "page-with-fingerprintjs",
+        "bytes": 79383,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/packages/fingerprintjs.js",
+            "bytes": 36317,
+            "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+          }
+        ],
+        "assembledBytes": 79398
+      },
+      {
+        "id": "page-with-papaParse",
+        "bytes": 61940,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/vendor/papaparse/5.7.0/papaparse.min.js",
+            "bytes": 18874,
+            "sha256": "4d5d2d6e3282b66aafaa5e6de8ca3ae06f8d3440111ae99c6a30f6c00cfac33e"
+          }
+        ],
+        "assembledBytes": 61955
+      },
+      {
+        "id": "page-with-react",
+        "bytes": 236229,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/page-frameworks/react-19.2.0.js",
+            "bytes": 193163,
+            "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+          }
+        ],
+        "assembledBytes": 236244
+      },
+      {
+        "id": "page-with-vue",
+        "bytes": 161197,
+        "resources": [
+          {
+            "path": "libs/runtime/bootstrap.js",
+            "bytes": 876,
+            "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+          },
+          {
+            "path": "libs/packages/lodash.js",
+            "bytes": 12832,
+            "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+          },
+          {
+            "path": "libs/packages/dayjs.js",
+            "bytes": 20304,
+            "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+          },
+          {
+            "path": "libs/vendor/my-utils/1.0.0/index.js",
+            "bytes": 291,
+            "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+          },
+          {
+            "path": "libs/runtime/page-core.js",
+            "bytes": 8763,
+            "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+          },
+          {
+            "path": "libs/page-frameworks/vue-3.5.22.js",
+            "bytes": 118131,
+            "sha256": "2af9ee5acf9bf1cb05c5a871b6d99fd2af11fe1e6f372cfd8acb8b543b95d174"
+          }
+        ],
+        "assembledBytes": 161212
+      }
+    ],
+    "totalPackageBytes": 5782407,
+    "totalExecutableJsBytes": 4834650,
+    "sourceMapBytes": 0,
+    "runtimeResourcePlan": {
+      "shipping": "extension-local-fixed-resources",
+      "defaultPageResources": [
+        "libs/runtime/bootstrap.js",
+        "libs/packages/lodash.js",
+        "libs/packages/dayjs.js",
+        "libs/vendor/my-utils/1.0.0/index.js",
+        "libs/runtime/page-core.js"
+      ],
+      "defaultControllerResources": [
+        "libs/runtime/bootstrap.js",
+        "libs/packages/lodash.js",
+        "libs/packages/dayjs.js",
+        "libs/vendor/my-utils/1.0.0/index.js",
+        "scripting/sandbox/worker-runtime.js"
+      ],
+      "backgroundStartupResources": [
+        "sw.js",
+        "cloud-control/cloud-host.js",
+        "sidebar-tools/preinstall-intent.js",
+        "agents/health-host.js",
+        "native-agent/transport.js",
+        "knowledge/knowledge-host.js",
+        "time-review/time-review-host.js",
+        "platform/context-menus.js"
+      ],
+      "onDemandPageAssets": [
+        {
+          "id": "jsCookie",
+          "path": "libs/packages/js-cookie.js",
+          "kind": "library",
+          "bytes": 2236,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 522052,
+          "groupId": "page-with-jsCookie"
+        },
+        {
+          "id": "cryptoJs",
+          "path": "libs/packages/crypto-js.js",
+          "kind": "library",
+          "bytes": 66438,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 457850,
+          "groupId": "page-with-cryptoJs"
+        },
+        {
+          "id": "fileSaver",
+          "path": "libs/packages/file-saver.js",
+          "kind": "library",
+          "bytes": 4131,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 520157,
+          "groupId": "page-with-fileSaver"
+        },
+        {
+          "id": "queryString",
+          "path": "libs/packages/query-string.js",
+          "kind": "library",
+          "bytes": 9274,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 515014,
+          "groupId": "page-with-queryString"
+        },
+        {
+          "id": "axios",
+          "path": "libs/packages/axios.js",
+          "kind": "library",
+          "bytes": 56622,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 467666,
+          "groupId": "page-with-axios"
+        },
+        {
+          "id": "store",
+          "path": "libs/packages/store.js",
+          "kind": "library",
+          "bytes": 8689,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 515599,
+          "groupId": "page-with-store"
+        },
+        {
+          "id": "cheerio",
+          "path": "libs/packages/cheerio.js",
+          "kind": "library",
+          "bytes": 121600,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 402688,
+          "groupId": "page-with-cheerio"
+        },
+        {
+          "id": "fingerprintjs",
+          "path": "libs/packages/fingerprintjs.js",
+          "kind": "library",
+          "bytes": 36317,
+          "runtimeBudgetBytes": 524288,
+          "runtimeRemainingBytes": 487971,
+          "groupId": "page-with-fingerprintjs"
+        },
+        {
+          "id": "papaParse",
+          "path": "libs/vendor/papaparse/5.7.0/papaparse.min.js",
+          "kind": "library",
+          "bytes": 18874,
+          "runtimeBudgetBytes": 131072,
+          "runtimeRemainingBytes": 112198,
+          "groupId": "page-with-papaParse"
+        },
+        {
+          "id": "jquery",
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "kind": "library",
+          "bytes": 87533,
+          "runtimeBudgetBytes": 131072,
+          "runtimeRemainingBytes": 43539,
+          "groupId": "page-with-jquery"
+        },
+        {
+          "id": "react",
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "kind": "framework",
+          "bytes": 193163,
+          "runtimeBudgetBytes": 262144,
+          "runtimeRemainingBytes": 68981,
+          "groupId": "page-with-react"
+        },
+        {
+          "id": "vue",
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "kind": "framework",
+          "bytes": 118131,
+          "runtimeBudgetBytes": 262144,
+          "runtimeRemainingBytes": 144013,
+          "groupId": "page-with-vue"
+        }
+      ],
+      "onDemandPageAssetBytes": 723008,
+      "optInSelection": "one-explicit-declaration-per-page-program",
+      "packageBytesIncludeDormantAssets": true
+    },
+    "loadingGroupNote": "Physical resource sets, not measured execution time or memory. Opt-in Page groups are separate scenarios and overlap with defaults; never sum groups. ZIP bytes include dormant assets; groups exclude user code and wrapper overhead. assembledBytes includes loader separators.",
+    "unbudgetedResources": [
+      "ui/tool-shell.css",
+      "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+      "official-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+      "official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json",
+      "official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+      "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "official-tools/time-review/time-review.opendesk-tool.json",
+      "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "native-agent/workspace.css",
+      "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+      "ui/extension-center.css",
+      "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "official-tools/adblock/adblock.opendesk-tool.json",
+      "ui/time-review.css",
+      "ui/design-system.css",
+      "ui/marketplace.css",
+      "official-tools/catalog.json",
+      "ui/cloud-control.html",
+      "ui/cloud-control-console.css",
+      "native-agent/settings.css",
+      "ui/design-tokens.css",
+      "native-agent/settings.html",
+      "manifest.json",
+      "stay-focus/blocked.css",
+      "ui/marketplace.html",
+      "sidepanel.html",
+      "stay-focus/blocked-always.html",
+      "stay-focus/blocked-quota.html",
+      "stay-focus/blocked-schedule.html",
+      "stay-focus/blocked-session.html",
+      "icons/notification.png",
+      "sidebar-tools/sandbox.html",
+      "ui/cloud-hosting.css",
+      "native-agent/workspace.html",
+      "scripting/sandbox/sandbox.html",
+      "cloud-control/runner.html",
+      "marketplace/channel.json",
+      "ui/target-bootstrap.html",
+      "framework/browser-edition.json"
+    ]
+  },
+  "kind": "SCOPED_EXTRACT_OF_RAW_BUILD_RECEIPT",
+  "rawReceipt": "artifacts/bookmark-manager-r351-local/final-build-evidence/build-production.json",
+  "rawSha256": "4beb2615a55e578ed7c8ca7c1ef938ecc318e1438f6b784e7e10ab5673f8db1f",
+  "packageHash": "949959d56f3702e7aca957ad710e389388a7d06fda22952f7de4bcd451abf4d8",
+  "sourceDriftDuringBuild": [],
+  "relevantSourceInputs": [
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/index.html",
+      "bytes": 7689,
+      "sha256": "a37378ae6b9bc70ead06179f7ed892a9756e896f3e4312f7dbbeea5f8c3e1353"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/main.js",
+      "bytes": 40775,
+      "sha256": "b21a48b897da464035838861d788321acb2f716b1041ab5195c7e91ef105dd27"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/model.js",
+      "bytes": 6902,
+      "sha256": "875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/service.js",
+      "bytes": 11212,
+      "sha256": "59095a42310828e86160e49a262352086c19a35fc15bce655bfc81d3e743c451"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/src/style.css",
+      "bytes": 6111,
+      "sha256": "d23484ea0fdc10fabde9f2aebc921da1cd5f4ba3de8adacd0e6fa9a231cbf650"
+    },
+    {
+      "path": "examples/sidebar-tools/bookmark-manager/tool.config.json",
+      "bytes": 618,
+      "sha256": "a644b0c620492305867c1e41e7bab8ba68acec724294c1e70dcc658784cf6f99"
+    },
+    {
+      "path": "scripts/bundle-provenance.mjs",
+      "bytes": 23972,
+      "sha256": "ae23073051330d93b787392b021ef13414dd6881fe4232601a35803016efcf7d"
+    },
+    {
+      "path": "src/ui/react/tabs/tool-host.tsx",
+      "bytes": 25567,
+      "sha256": "615bd8e95ad32b31eb3c33d5ccb58310d46ee7425732ceb9eb7fcebe4067fff0"
+    }
+  ],
+  "report": {
+    "status": "passed",
+    "mode": "production",
+    "edition": "standard",
+    "manifestVersion": 3,
+    "classicEntries": [
+      "agents/bootstrap.js",
+      "agents/health-host.js",
+      "agents/health.js",
+      "agents/page-agent.js",
+      "agents/page-relay.js",
+      "agents/selection-entry.js",
+      "cloud-control/cloud-host.js",
+      "cloud-control/cloud-runner.js",
+      "framework/sdk-main.js",
+      "knowledge/knowledge-host.js",
+      "libs/packages/axios.js",
+      "libs/packages/cheerio.js",
+      "libs/packages/crypto-js.js",
+      "libs/packages/dayjs.js",
+      "libs/packages/file-saver.js",
+      "libs/packages/fingerprintjs.js",
+      "libs/packages/js-cookie.js",
+      "libs/packages/lodash.js",
+      "libs/packages/query-string.js",
+      "libs/packages/store.js",
+      "libs/page-frameworks/react-19.2.0.js",
+      "libs/page-frameworks/vue-3.5.22.js",
+      "libs/runtime/bootstrap.js",
+      "libs/runtime/page-core.js",
+      "libs/vendor/jquery/3.7.1/jquery.min.js",
+      "libs/vendor/my-utils/1.0.0/index.js",
+      "libs/vendor/papaparse/5.7.0/papaparse.min.js",
+      "marketplace/market-host.js",
+      "native-agent/settings.js",
+      "native-agent/transport.js",
+      "platform/context-menus.js",
+      "scripting/packaged/page-session.js",
+      "scripting/sandbox/sandbox.js",
+      "scripting/sandbox/worker-runtime.js",
+      "sidebar-shared-ui.js",
+      "sidebar-tools/bridge.js",
+      "sidebar-tools/preinstall-intent.js",
+      "stay-focus/blocked.js",
+      "sw.js",
+      "time-review/time-review-host.js",
+      "ui/cloud-console.js",
+      "ui/marketplace.js",
+      "ui/sidebar-tool-host.js",
+      "ui/stay-focus-controls.js",
+      "ui/tool-shell.js",
+      "ui/trusted-cookie-ui.js"
+    ],
+    "htmlChecked": [
+      "sidepanel.html",
+      "ui/cloud-control.html",
+      "cloud-control/runner.html",
+      "ui/marketplace.html",
+      "native-agent/settings.html",
+      "native-agent/workspace.html",
+      "ui/target-bootstrap.html",
+      "scripting/sandbox/sandbox.html",
+      "sidebar-tools/sandbox.html",
+      "stay-focus/blocked-quota.html",
+      "stay-focus/blocked-schedule.html",
+      "stay-focus/blocked-session.html",
+      "stay-focus/blocked-always.html"
+    ],
+    "assetsChecked": [
+      "licenses/shared-ui-third-party-notices.txt",
+      "icons/notification.png",
+      "licenses/todo-user-vue-MIT.txt",
+      "licenses/jquery-MIT.txt",
+      "framework/sdk-resources.json",
+      "libs/manifest.json"
+    ],
+    "sdkResources": {
+      "schemaVersion": 1,
+      "resources": [
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 86133,
+          "sha256": "d8e25bf930156ac8c31095052e501d4ed1a38caaa2d14524fb1d22fee078a5fa"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 175695,
+          "sha256": "2f59c7bee9bf98b958944061475d5ab14627f5bcb591edb673c8817347d1d4d1"
+        }
+      ]
+    },
+    "builtinResources": {
+      "format": "opendesk.builtin-resources.v2",
+      "abi": "opendesk-builtins.v10",
+      "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+      "resources": [
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "bytes": 876,
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "bytes": 12832,
+          "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "bytes": 20304,
+          "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "bytes": 291,
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "libs/packages/js-cookie.js",
+          "bytes": 2236,
+          "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+        },
+        {
+          "path": "libs/packages/crypto-js.js",
+          "bytes": 66438,
+          "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+        },
+        {
+          "path": "libs/packages/file-saver.js",
+          "bytes": 4131,
+          "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+        },
+        {
+          "path": "libs/packages/query-string.js",
+          "bytes": 9274,
+          "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+        },
+        {
+          "path": "libs/packages/axios.js",
+          "bytes": 56622,
+          "sha256": "0789da5611b9fba153cf268d1406852cf4e68f7b9ba6bbfef6d26000cf8dd7ff"
+        },
+        {
+          "path": "libs/packages/store.js",
+          "bytes": 8689,
+          "sha256": "280cb61b9c5530f57538767a5927a64901b2be57137cf0632fefc2aac954ffc6"
+        },
+        {
+          "path": "libs/packages/cheerio.js",
+          "bytes": 121600,
+          "sha256": "448707180f9463ccdf7552a70bca57c6211a95099758db7867c4460b4267a628"
+        },
+        {
+          "path": "libs/packages/fingerprintjs.js",
+          "bytes": 36317,
+          "sha256": "4fc094ce804c3101b778148b3c401daca79cd14b9a08c8a75bf963eef918430f"
+        },
+        {
+          "path": "libs/vendor/papaparse/5.7.0/papaparse.min.js",
+          "bytes": 18874,
+          "sha256": "4d5d2d6e3282b66aafaa5e6de8ca3ae06f8d3440111ae99c6a30f6c00cfac33e"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "bytes": 8763,
+          "sha256": "b91cb87cc31a42d21b44e69f1c7082f9bf835c7a875dcccfc459fa87d7e9952a"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 40720,
+          "sha256": "3ff369cb2d9e4a5437ff7ba3192935e252f03c64d2c7b406d9f59b037c0d7f37"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "bytes": 1078,
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/js-cookie-MIT.txt",
+          "bytes": 1118,
+          "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+        },
+        {
+          "path": "licenses/crypto-js-MIT.txt",
+          "bytes": 1169,
+          "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+        },
+        {
+          "path": "licenses/file-saver-MIT.txt",
+          "bytes": 1101,
+          "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+        },
+        {
+          "path": "licenses/query-string-MIT.txt",
+          "bytes": 1117,
+          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+        },
+        {
+          "path": "licenses/axios-MIT.txt",
+          "bytes": 1084,
+          "sha256": "82761059eaedacb3356803aea8a170d8298609f91b14fc32ee1bfb40d690183c"
+        },
+        {
+          "path": "licenses/store-MIT.txt",
+          "bytes": 1085,
+          "sha256": "af4a0aa33e3a61cf96a6ffa912f9e13a6981e3161c6ea352eb84902af357c271"
+        },
+        {
+          "path": "licenses/cheerio-MIT.txt",
+          "bytes": 1081,
+          "sha256": "61c1e21d3a8ff20f9b69abe15104a75584688080febc22f60a4cbf3854becf4e"
+        },
+        {
+          "path": "licenses/fingerprintjs-MIT.txt",
+          "bytes": 1074,
+          "sha256": "b7eeaf845cbd307fbabdde266a01c632ab9ca30d08355dbfc7acc463b5ea8ee9"
+        },
+        {
+          "path": "licenses/papaparse-MIT.txt",
+          "bytes": 1079,
+          "sha256": "99aa68e4b42758b09828a46515f70369e5463458ab7a990189f641af2b8d9b4e"
+        }
+      ]
+    },
+    "sdkEntries": {
+      "MAIN": "framework/sdk-main.js",
+      "ISOLATED": "agents/page-relay.js"
+    },
+    "privilegedDynamicExecutionFound": false,
+    "approvedDynamicExecution": [
+      {
+        "file": "scripting/sandbox/worker-runtime.js",
+        "approvedAsyncBodyConstructors": 1,
+        "execution": "Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox"
+      }
+    ],
+    "sandbox": {
+      "pages": [
+        "scripting/sandbox/sandbox.html",
+        "sidebar-tools/sandbox.html"
+      ],
+      "csp": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+    },
+    "packageHash": "949959d56f3702e7aca957ad710e389388a7d06fda22952f7de4bcd451abf4d8",
+    "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes"
+  }
+}

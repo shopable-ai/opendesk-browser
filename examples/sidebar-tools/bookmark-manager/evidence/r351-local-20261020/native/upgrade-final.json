@@ -1,0 +1,158 @@
+{
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/final-snapshot/dist/development",
+    "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed",
+    "toolShellSha256": "c004e4a834c6ccae63c54171ded8a0cbb3750262b00f2c899605e6f76d2995de",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "66356889-3061-4b40-9e4c-60436459f8a1",
+      "receipt": "build-development.json",
+      "packageHash": "2224969b9b6dd84e95790cb7a17a9f10d827660e3f443e56ad27eecefafbbaed"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "58172c10589bc940636ea5fffe797f709e5733d3"
+    },
+    "at": "2026-10-20T14:04:25.295Z"
+  },
+  "kind": "REAL_MAC_CFT_NORMAL_IMPORT_AND_OFFICIAL_MARKET_UPGRADE",
+  "status": "PASS",
+  "at": "2026-10-20T14:07:39.300Z",
+  "beforeVersion": "0.3.8",
+  "uninstallPreservedBookmarks": true,
+  "legacyVersion": "0.3.7",
+  "legacyClassicFallback": true,
+  "officialUpgradeReview": "OpenDesk 应用市场\n探索应用\n套装\n我的应用\n← 返回应用市场\n\nAPPLICATION\n\n书签管理\n\n独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。\n\n书签管理\n工具\n界面结构示意 · 非真实截图\n主要功能\n安全与权限\n\n只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。\n\n版本\nv0.3.8\n发布者\nOpenDesk\n适用网页\n网站访问需独立授权\n运行位置\n侧边栏\n交付方式\n随 OpenDesk 扩展打包；可离线安装\n站点授权\n安装后独立授权，不自动读取网页\n审阅版本更新\n复制详情链接\n权限说明\n\n正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。\n\n安装审阅 · 书签管理\n\n发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。网站只负责提出安装请求。\n\n当前：v0.3.7 → 发行：v0.3.8\n\n申请能力：browser.bookmarks.full；读取用户当前网页的标题和地址\n\n新增能力：无；原工具数据保留。\n\n将替换此 ID 已安装的代码，可能变更来源。请核对发行者与能力后点击下方确认；不会再二次弹窗。\n\n网站授权需在工具列表另行确认；安装完成后不会自动打开工具。\n\n固定发行信息\n确认安装此固定版本\n取消\n\n安装前请检查版本、所需能力与站点授权说明。\n\n应用安装由本扩展完成，工具运行和网站可用性按各自策略及设置生效。所有发行包随当前扩展离线提供。",
+  "afterVersion": "0.3.8",
+  "capabilities": [
+    "browser.bookmarks.full",
+    "currentPage.read"
+  ],
+  "bookmarksUnchanged": true,
+  "defaultReact": true,
+  "fullGrantBefore": false,
+  "nativeReadAfterGrant": true
+}

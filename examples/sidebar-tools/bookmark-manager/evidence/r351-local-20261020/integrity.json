@@ -1,0 +1,180 @@
+{
+  "kind": "LOCAL_DELIVERY_FILE_INTEGRITY",
+  "files": [
+    {
+      "path": "build-development.json",
+      "bytes": 139775,
+      "sha256": "2feb92fa2024cf54d16303555a592d641c01594351be6b1bfc3570ce0556b15a"
+    },
+    {
+      "path": "build-production.json",
+      "bytes": 123691,
+      "sha256": "c18accabfe5b5d9aac966a05dfaeed4539443e91df33ecf2deba5502dbec5c51"
+    },
+    {
+      "path": "built-provenance-tests.log",
+      "bytes": 288,
+      "sha256": "1ec46afa40459940b656144c9df987dfdda26990dd0aaeff4eb3ae6258080d64"
+    },
+    {
+      "path": "check.log",
+      "bytes": 208,
+      "sha256": "3896deba1f13d50d1ab198a6c5cdc82614004ad6b5e271171c70335e388c3094"
+    },
+    {
+      "path": "chromium-interaction.json",
+      "bytes": 25251,
+      "sha256": "d5370713f4dc1eab2edd715c70fa3456766bed40b836dd052cd09da9b8ff6aa2"
+    },
+    {
+      "path": "historical-candidate-6be831.json",
+      "bytes": 5926,
+      "sha256": "5a4e84e878e59f0ed559b46a3939b7160ebd6da300d75378ea0edd5c45ed394f"
+    },
+    {
+      "path": "native/browser-origin-zoom.json",
+      "bytes": 11153,
+      "sha256": "016543888b0fc74c2c6160788ab327a3322d381efbecd43dc1c76005ea22b8c2"
+    },
+    {
+      "path": "native/browser-zoom-200-layout.json",
+      "bytes": 107685,
+      "sha256": "bac4bc069d8c192b07a806745f3c6320f0725802de8b682d5e796615d9172161"
+    },
+    {
+      "path": "native/candidate-final-check.json",
+      "bytes": 12605,
+      "sha256": "c0ee86dd3dc78f691989be59189914bd60e905f535bfc6b5b66afcbe030adf3c"
+    },
+    {
+      "path": "native/close-reopen.json",
+      "bytes": 5911,
+      "sha256": "b7f8713b50550e797d5383e3fee714cbee04b462a015409221aebc4acbd0edfc"
+    },
+    {
+      "path": "native/permission-native-final4.json",
+      "bytes": 4404,
+      "sha256": "18d455ca74dbc18f5f3481426e03e4da693cdf14e34660243cd7244148eb95f0"
+    },
+    {
+      "path": "native/report.json",
+      "bytes": 8305,
+      "sha256": "f40dd37ebab126f35aac3c8d0466ad2a15d58554a5c8271881980fa7f949cfd2"
+    },
+    {
+      "path": "native/restart-after-update.json",
+      "bytes": 6392,
+      "sha256": "190f87fda44a1dcefda9271077d5d7e6efd4e31c61ea23bccc7c427913cf988c"
+    },
+    {
+      "path": "native/restart.json",
+      "bytes": 6641,
+      "sha256": "c307ccf108757d745f8e3b351c82b0b42c247f7c16ef0b4290c67b049c23c356"
+    },
+    {
+      "path": "native/save-lost-ack-native.json",
+      "bytes": 16334,
+      "sha256": "3ca8a0f6aeccc924caaae462403bf21997a64fb4e5af9160dc74643e988d1661"
+    },
+    {
+      "path": "native/scenarios.json",
+      "bytes": 11376,
+      "sha256": "8df516a2d7b8c187f0308f4848da6f862d27e5f2b9a5dbdc645c9a482de80c09"
+    },
+    {
+      "path": "native/untrusted-final4.json",
+      "bytes": 4540,
+      "sha256": "55876a5ac15eae29581ed03c124f263f8346fbb8e1ad7dd780cc37a16343ca25"
+    },
+    {
+      "path": "native/update-fixed-install.json",
+      "bytes": 13859,
+      "sha256": "58093333840d801ccaffabf6135801d679741841f3f1d2865ee355c8f3193e16"
+    },
+    {
+      "path": "native/update-recovered-final.json",
+      "bytes": 5330,
+      "sha256": "2a24dcb3e4b296dd85a45f89283bd4d04fc3eced9fbc817fc25b8fe95fc9f87e"
+    },
+    {
+      "path": "native/update-runtime-reload-failure.json",
+      "bytes": 11734,
+      "sha256": "f57d8f312c6c4b08cfa074d9f17cc77d053d3b6c4a6c89ca936ab60967d5e82c"
+    },
+    {
+      "path": "native/upgrade-final.json",
+      "bytes": 6303,
+      "sha256": "700e261b6d7c9541710e4920712ab76f3ea954fba8ae1831f9f898e75ece31a9"
+    },
+    {
+      "path": "native/zoom-200-before-fix.json",
+      "bytes": 84779,
+      "sha256": "dd408ce425e7335789ce21681c99fef8fbe4e531a0669ee8757b18efda7f55e8"
+    },
+    {
+      "path": "native/zoom-200-before-fix.png",
+      "bytes": 67022,
+      "sha256": "819d3dd879ddd5538de894c30d1fe7aee7164f5158bdb09206b5dda3f75645c1"
+    },
+    {
+      "path": "native/zoom-200-layout-dirty-close-confirmation.png",
+      "bytes": 119026,
+      "sha256": "e28d6fb632c7303eba77e26483eb67dae314d1a9b7e6ba73f94e625f98a793d7"
+    },
+    {
+      "path": "native/zoom-200-layout-editor.png",
+      "bytes": 98530,
+      "sha256": "f5c77fdedacdfadf71cba366721fbfbd864e04520bfbe9a5c1abde80c688c88d"
+    },
+    {
+      "path": "native/zoom-200-layout-main.png",
+      "bytes": 70650,
+      "sha256": "80887b0889506172ea6928f3f50c02e49a73649f58afc2ee286568d322d5223c"
+    },
+    {
+      "path": "node-tests.log",
+      "bytes": 12051,
+      "sha256": "259d2d718eefa18952843bdbefe161ac3f5cd047c07263cccdfad657d5e061cb"
+    },
+    {
+      "path": "react-bundle-budget.json",
+      "bytes": 893,
+      "sha256": "d60b50d530fbe63409daf1d7a607930041f35f27a43ad1d56700e0849393d4ca"
+    },
+    {
+      "path": "review-accessibility.json",
+      "bytes": 28226,
+      "sha256": "cd1eca88040d98e369e9dcdbec1c2e7a7b1b6d73996e2cce84c6d51d801cc182"
+    },
+    {
+      "path": "review-maintainability.json",
+      "bytes": 39039,
+      "sha256": "9659ae06d3a62e39bde7fc72eb43c28382442e414c5094eca3d87f0d818b9c8e"
+    },
+    {
+      "path": "review-react-css.json",
+      "bytes": 28150,
+      "sha256": "56fa65b4ca635d13ad4eb0602f66385f75f0e866a737883319095ef8ebd2a36f"
+    },
+    {
+      "path": "review-security.json",
+      "bytes": 26560,
+      "sha256": "85b336bdb599ec476607f0e1202aaaa454f6779be749d4e644cc931dfe5ed7a0"
+    },
+    {
+      "path": "review-testing-native.json",
+      "bytes": 30084,
+      "sha256": "ab7e06bf9007c214d774eaa05825c4327f871e2165eada2ca74f3ef98f4abdb5"
+    },
+    {
+      "path": "review-ux.json",
+      "bytes": 28844,
+      "sha256": "e01a921608d2a8e106070aa6c4c7484d103118483266a1e6260f97ae27e3a228"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 9400,
+      "sha256": "fe02c7a2795d0394b8badd373af3ab3ad4a1e0fdb4a3137d2fcd6840502c14cf"
+    }
+  ]
+}

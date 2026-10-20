@@ -1,0 +1,28 @@
+{
+  "status": "SCHEMA_BUNDLE_READY_NOT_INSTALLED",
+  "candidateOnly": true,
+  "installed": false,
+  "limits": {
+    "js": 220000,
+    "dependencyEach": 96000,
+    "dependencyCount": 8,
+    "css": 120000,
+    "html": 64000,
+    "totalPackage": 320000
+  },
+  "jsBytes": 219665,
+  "jsSha256": "ef66be4926ea62f60bdc3f348569326f1cd495e0f9298ab8126c9528b50058e3",
+  "cssBytes": 19082,
+  "cssSha256": "7278a8751faf51d313c7dab60092a0e4411c6bed76f53fa23214bf3d76b3fea2",
+  "modelBytes": 6902,
+  "modelSha256": "875cf0d61fb95f6c70901337118dd7382f33a2ff0ef45ac308a2a5e807aeee9c",
+  "serviceBytes": 11212,
+  "serviceSha256": "59095a42310828e86160e49a262352086c19a35fc15bce655bfc81d3e743c451",
+  "dependencyOrder": [
+    "src/model.js",
+    "src/service.js"
+  ],
+  "packageBytes": 263465,
+  "packageSha256": "e9b0b74e8431638db9129aa0953cb146b0906a4115a549ebb524621b50d76283",
+  "packageVersion": "0.3.8"
+}

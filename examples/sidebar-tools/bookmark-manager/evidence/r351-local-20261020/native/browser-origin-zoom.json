@@ -1,0 +1,356 @@
+{
+  "status": "PASS",
+  "candidate": {
+    "mode": "STATIC_DEVELOPMENT",
+    "watcherConnected": false,
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/build-snapshot/dist/development",
+    "sourceExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/bookmark-manager-r351-local/latest-snapshot/dist/development",
+    "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8",
+    "toolShellSha256": "0d4bcf47799ebc80f1d674f4ae695686d80e10f4a971ca0cf7357eaab0c3ca55",
+    "toolPackageSha256": "0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76",
+    "toolVersion": "0.3.8",
+    "manifest": {
+      "manifest_version": 3,
+      "name": "OpenDesk Browser",
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "version": "0.1.0",
+      "short_name": "OD",
+      "minimum_chrome_version": "138",
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "incognito": "not_allowed",
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "web_accessible_resources": [
+        {
+          "resources": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        },
+        {
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ]
+        }
+      ],
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "options_ui": {
+        "page": "native-agent/settings.html",
+        "open_in_tab": true
+      },
+      "content_scripts": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "ISOLATED"
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "run_at": "document_start",
+          "all_frames": true,
+          "world": "MAIN"
+        }
+      ],
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "externally_connectable": {
+        "matches": [
+          "http://127.0.0.1:43132/*"
+        ]
+      }
+    },
+    "buildReceipt": {
+      "status": "passed",
+      "mode": "development",
+      "attemptId": "7b2d086a-ca7e-436e-88a4-53fba9827d17",
+      "receipt": "build-development.json",
+      "packageHash": "6be831f786f82cd46fcf97f685c9b610ec171c4f4a41ec337dbd56e615c4b7d8"
+    },
+    "sourcePins": {
+      "App": "e13ee04f1359ba68b44e4b0e0708bf8fd0b79ce0",
+      "CSS": "97dc5ed640d2fedd52e14189ab7eacb8c47dce8a"
+    },
+    "at": "2026-10-20T13:21:17.874Z"
+  },
+  "kind": "REAL_CHROME_TABS_PER_ORIGIN_ZOOM_WITH_TRUE_SIDE_PANEL_OBSERVER",
+  "at": "2026-10-20T13:37:19.577Z",
+  "method": "Create one owned same-extension ordinary tab, use chrome.tabs.setZoomSettings per-origin and chrome.tabs.setZoom(tab.id,2), observe original SIDE_PANEL renderer. No CSS zoom or page-scale emulation.",
+  "before": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=5f6e5ea4-ae8f-4a09-9c0b-ce2f374f213c",
+    "dpr": 2,
+    "width": 360,
+    "height": 815,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "contextsBefore": [
+    {
+      "contextId": "1d6bf146-be6b-4a84-8ab7-7b0e656b107c",
+      "contextType": "SIDE_PANEL",
+      "documentId": "32C593D65F28ECEDF5603732D73EBB54",
+      "documentOrigin": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec",
+      "documentUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=5f6e5ea4-ae8f-4a09-9c0b-ce2f374f213c",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    }
+  ],
+  "createdTab": {
+    "id": 1642412292,
+    "url": "",
+    "pendingUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?nativeZoomProbe=r351-final"
+  },
+  "tabBefore": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=b9ce66cd-aadb-465f-9acd-10f0377611f2",
+    "dpr": 2,
+    "width": 814,
+    "height": 799,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "zoomSettings": {
+    "defaultZoomFactor": 1,
+    "mode": "automatic",
+    "scope": "per-origin"
+  },
+  "actualChromeZoom": 2,
+  "tabAfter": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=b9ce66cd-aadb-465f-9acd-10f0377611f2",
+    "dpr": 4,
+    "width": 407,
+    "height": 399,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "after": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=5f6e5ea4-ae8f-4a09-9c0b-ce2f374f213c",
+    "dpr": 4,
+    "width": 180,
+    "height": 407,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "contextsAfter": [
+    {
+      "contextId": "1d6bf146-be6b-4a84-8ab7-7b0e656b107c",
+      "contextType": "SIDE_PANEL",
+      "documentId": "32C593D65F28ECEDF5603732D73EBB54",
+      "documentOrigin": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec",
+      "documentUrl": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=5f6e5ea4-ae8f-4a09-9c0b-ce2f374f213c",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    }
+  ],
+  "sidePanel200": {
+    "status": "PASS",
+    "dprRatio": 2,
+    "reason": "Original true SIDE_PANEL renderer DPR doubled using native Chrome per-origin zoom"
+  },
+  "nativeTree": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "dateAdded": 1792501047221,
+                  "dateGroupModified": 1792501050785,
+                  "id": "6",
+                  "index": 0,
+                  "parentId": "5",
+                  "syncing": false,
+                  "title": "R351-1792501044959-目标"
+                },
+                {
+                  "dateAdded": 1792501048943,
+                  "id": "7",
+                  "index": 1,
+                  "parentId": "5",
+                  "syncing": false,
+                  "title": "R351-1792501044959-已编辑",
+                  "url": "https://example.org/r351-edited"
+                },
+                {
+                  "children": [],
+                  "dateAdded": 1792501054395,
+                  "dateGroupModified": 1792501054395,
+                  "id": "8",
+                  "index": 2,
+                  "parentId": "5",
+                  "syncing": false,
+                  "title": "R351-1792501044959-子目录"
+                }
+              ],
+              "dateAdded": 1792501045854,
+              "dateGroupModified": 1792501054395,
+              "id": "5",
+              "index": 0,
+              "parentId": "1",
+              "syncing": false,
+              "title": "R351-1792501044959-工作"
+            },
+            {
+              "children": [
+                {
+                  "dateAdded": 1792501315470,
+                  "id": "11",
+                  "index": 0,
+                  "parentId": "10",
+                  "syncing": false,
+                  "title": "R351-升级保留-1792501312838-书签",
+                  "url": "https://example.org/r351-preserved"
+                },
+                {
+                  "children": [],
+                  "dateAdded": 1792503310173,
+                  "dateGroupModified": 1792503310173,
+                  "id": "21",
+                  "index": 1,
+                  "parentId": "10",
+                  "syncing": false,
+                  "title": "R351-lost-ack-1792503309190"
+                }
+              ],
+              "dateAdded": 1792501313676,
+              "dateGroupModified": 1792503310174,
+              "id": "10",
+              "index": 1,
+              "parentId": "1",
+              "syncing": false,
+              "title": "R351-升级保留-1792501312838"
+            },
+            {
+              "children": [],
+              "dateAdded": 1792501848970,
+              "dateGroupModified": 1792501848970,
+              "id": "13",
+              "index": 2,
+              "parentId": "1",
+              "syncing": false,
+              "title": "R351-lost-ack-1792501848086"
+            },
+            {
+              "children": [],
+              "dateAdded": 1792502955578,
+              "dateGroupModified": 1792502955578,
+              "id": "15",
+              "index": 3,
+              "parentId": "1",
+              "syncing": false,
+              "title": "R351-final-save-1792502954404"
+            }
+          ],
+          "dateAdded": 1792500946524,
+          "dateGroupModified": 1792503126892,
+          "folderType": "bookmarks-bar",
+          "id": "1",
+          "index": 0,
+          "parentId": "0",
+          "syncing": false,
+          "title": "书签栏"
+        },
+        {
+          "children": [],
+          "dateAdded": 1792500946524,
+          "dateGroupModified": 1792503128385,
+          "folderType": "other",
+          "id": "2",
+          "index": 1,
+          "parentId": "0",
+          "syncing": false,
+          "title": "其他书签"
+        }
+      ],
+      "dateAdded": 1792502724014,
+      "id": "0",
+      "syncing": false,
+      "title": ""
+    }
+  ],
+  "restored": {
+    "url": "chrome-extension://lngglfnojbbblhalacncnfmdihfnaoec/sidepanel.html?hostInstanceId=5f6e5ea4-ae8f-4a09-9c0b-ce2f374f213c",
+    "dpr": 2,
+    "width": 360,
+    "height": 815,
+    "cssZoom": "1",
+    "bodyZoom": "1",
+    "viewportScale": 1
+  },
+  "createdTabClosed": true
+}
