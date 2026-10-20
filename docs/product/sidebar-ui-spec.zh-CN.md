@@ -30,6 +30,26 @@
 - **Controller Task**：在「开发」创作，按 Task Authority 安装，在「我的」运行和定时调度；不因此变成应用或网页增强。
 - **可信功能与 Skill**：OpenDesk Browser 本身是一款 Chrome Extension；产品「扩展」是统一管理入口；第一方静态审计代码、动态应用、Page、Controller、Agent Skill 都必须独立区分。
 
+### R5.14 React 扩展中心：正式源码与唯一预览的所有权（2026-10-20）
+
+正式渲染链：`src/ui/react/main.tsx` → `src/ui/react/app-shell.tsx` → `src/ui/react/tabs/tools.tsx`；离线预览调用同一个 `mountSidebarApp`，演示安装/删除仅操作内存，**不是 Host 操作成功证据**。正式扩展的真实操作仍由原控制器和 Authority 完成，不能在 HTML 预览里复制实现。
+
+| 文件或职责 | 所有权 | 维护要求 |
+| --- | --- | --- |
+| `src/ui/react/tabs/tools.tsx` | `PRODUCTION_SOURCE` | 列表、详情、搜索菜单的唯一可信 React 展示层 |
+| `src/ui/extension-center-model.js` | `PRODUCTION_SOURCE` | 筛选和状态投影模型，不加入 UI 镜像 |
+| `src/ui/extension-center.js` | `PRODUCTION_SOURCE` | 现有 Host/权限协调和可信回执，不在预览中复制 |
+| `src/ui/extension-center.css` | `PRODUCTION_SOURCE` | 扩展中心局部样式，使用既有设计 Tokens |
+| `src/ui/react/components/ui/button.tsx` | `SHARED_COMPONENT` | 统一 `IconButton`、ARIA 与原生按钮语义 |
+| `scripts/preview/build-sidebar-six-react-preview.mjs` | `PREVIEW_GENERATOR` | 唯一正式 React 离线 HTML 生成器，从可信应用入口打包 |
+| `prototypes/sidebar/react-preview/index.html` | `GENERATED_OUTPUT` | 生成并提交的完整离线 HTML；绝不手工编辑或作为正式源码 |
+| `src/ui/react/preview/sidebar-six-preview.tsx` | `LEGACY_REFERENCE` | 旧适配器，当前正式生成器未引用；核查依赖前不删除 |
+| `tests/environment/sidebar-six-react-preview-contract.test.mjs` 及相关测试 | `TEST` | 复核真实组件来源、列表交互及预览产物身份 |
+
+桌面端悬浮操作默认标示第一个**已安装**条目，最后 Pointer/Focus 条目接管唯一的 `⋮`；离开后保持，筛选或删除后回退到仍可见的首项。触屏显示可点管理入口，图标详情操作保留 `aria-label`、`title` 与键盘可用性。
+
+运行 `node scripts/preview/build-sidebar-six-react-preview.mjs --check` **必须在重新生成之前检查已提交版本**；CI 记录 checkout 时的差异，使用正式源码生成、完成实际 Chromium 预览检查后才可安全快进提交 HTML，并再次核实远端 `main` 与生成文件一致。其他测试及正式构建仍须独立执行且不能被 UI 预览替代。退役的独立 Hover HTML 或历史原型不得作为正式 React 预览的验收依据。
+
 ## 状态、交互与验收
 
 扩展中心使用 **统一列表 → 单项详情 → 返回列表**，筛选/滚动/焦点应保真；安装、更新、网站授权、撤权和运行都由现有可信 Host 与独立 Authority 明确执行。切换页面、预览或安装不能隐式运行源码/扩大权限。UI 遵循 R27/R28/R30、`design-system.css`、`design-tokens.css`、ARIA/键盘、响应式与草稿保护。

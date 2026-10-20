@@ -310,7 +310,8 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   assert.equal(f.rowMenu().hidden,false);
   assert.ok(f.menuItem('停用自动运行'));
   f.doc.dispatch('keydown',{key:'End'});
-  assert.match(f.doc.activeElement.textContent,/查看详情/);
+  assert.match(f.doc.activeElement.textContent,/卸载…/,'End moves to the last (destructive) menu item');
+  assert.ok(f.menuItem('查看详情'),'the detail item is retained in the menu');
   f.doc.dispatch('keydown',{key:'Home'});
   assert.match(f.doc.activeElement.textContent,/停用自动运行/);
   const esc=f.doc.dispatch('keydown',{key:'Escape'});
@@ -564,7 +565,7 @@ test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible st
   enabled.menuItem('查看详情').dispatch('click');
   assert.equal(enabled.nodes['extension-center-detail'].hidden,false);
   const enabledActions=[...enabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
-    .map(button=>button.textContent);
+    .map(button=>button.getAttribute('aria-label')?.replace(/「.*$/,'')||button.textContent);
   assert.deepEqual(enabledActions,['设置与权限'],
     'the verified primary Open belongs on the list, not duplicated inside Details');
   assert.equal(enabled.nodes['extension-center-detail-body'].textContent.includes('已停用'),false);
@@ -575,7 +576,7 @@ test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible st
   assert.match(disabled.nodes['extension-center-detail-body'].textContent,/已停用 · 记录内容/,
     'detail introduction preserves the same stopped-state message as the list and preview');
   assert.deepEqual([...disabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
-    .map(button=>button.textContent),['设置与权限']);
+    .map(button=>button.getAttribute('aria-label')?.replace(/「.*$/,'')||button.textContent),['设置与权限']);
 });
 
 test('R4.8 first paint reports loading instead of a misleading empty or install state',async t=>{
@@ -609,12 +610,15 @@ test('R4.8 removed Page during detail falls back to search, not hidden Back',asy
   assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
 });
 
-test('R4.8 detail actions use the official secondary button without a duplicate Open',async t=>{
+test('R5.14 detail actions use shared accessible IconButton without duplicate Open',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
   const buttons=f.nodes['extension-center-detail-body'].querySelectorAll('button');
-  assert.ok(buttons.every(x=>x.className.includes('od-button--secondary')));
-  assert.ok(buttons.every(x=>!x.textContent.includes('打开应用')));
+  assert.ok(buttons.every(x=>x.className.includes('od-icon-button')),
+    'known detail actions use the existing shared IconButton');
+  assert.ok(buttons.every(x=>x.getAttribute('aria-label')&&x.getAttribute('title')&&x.querySelector('svg')),
+    'icon-only actions keep an accessible name, tooltip and visible glyph');
+  assert.ok(buttons.every(x=>!String(x.getAttribute('aria-label')).includes('打开应用')));
   const css=await readFile('src/ui/extension-center.css','utf8');
   assert.doesNotMatch(css,/\.ec-detail-actions button\{[^}]*background:/);
   assert.match(css,/\.ec-detail-actions \.od-button\{font-size:12px;color:var\(--od-accent-ink\)\}/);
