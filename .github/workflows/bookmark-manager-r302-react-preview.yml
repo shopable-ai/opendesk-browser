@@ -59,6 +59,11 @@ jobs:
             tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
             tests/environment/bundle-provenance.test.mjs
+      - name: Build the three existing official React tool fixtures before Host integration tests
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
       - name: Official save intent and sandbox deletion boundaries
         run: node --test --test-name-pattern='R3.4' tests/environment/sidebar-tools-host.test.mjs
       - name: Check formal source
