@@ -16,12 +16,13 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const [stagedName,setStagedName]=React.useState('');
   const active=React.useRef(false);
   const running=React.useRef(false);
+  const reading=React.useRef(false);
   const intentRef=React.useRef(null);
   const beginIntent=()=>{
     let pending;
     try{pending=Promise.resolve(onBeginImport?.());}
     catch(error){pending=Promise.reject(error);}
-    // Native file-picker admission starts within the original user click.
+    // Trusted import admission starts in the explicit Import click, not file selection.
     intentRef.current=pending.then(value=>value===true,()=>false);
   };
   const headingId=React.useId();
@@ -42,7 +43,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     };
   },[]);
   const close=()=>{
-    if(!running.current&&!disabled)onClose?.();
+    if(!running.current&&!reading.current&&!disabled)onClose?.();
   };
   const importText=async text=>{
     if(running.current||disabled||uncertain)return;
@@ -72,12 +73,13 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     }
   };
   const importFile=async file=>{
-    if(!file||running.current||disabled||uncertain)return;
+    if(!file||reading.current||running.current||disabled||uncertain)return;
     if(file.size>MAX_FILE){
       onNotice?.('文件超过 8 MiB，请分批导入。','error');
       if(fileRef.current)fileRef.current.value='';
       return;
     }
+    reading.current=true;setBusy(true);
     let text='';
     try{
       text=await file.text();
@@ -86,9 +88,23 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     }catch{
       if(active.current)onNotice?.('无法读取 Cookie 文件，请重试。','error');
     }finally{
-      text='';
-      if(active.current&&fileRef.current)fileRef.current.value='';
+      text='';reading.current=false;
+      if(active.current){
+        if(!running.current)setBusy(false);
+        if(fileRef.current)fileRef.current.value='';
+      }
     }
+  };
+  // File selection and drag/drop only stage the user-supplied source.
+  // No native Cookie write or trusted import intent is generated here.
+  const stageFile=file=>{
+    if(!file||disabled||uncertain||running.current||reading.current)return;
+    if(file.size>MAX_FILE){
+      onNotice?.('文件超过 8 MiB，请分批导入。','error');
+      if(fileRef.current)fileRef.current.value='';
+      return;
+    }
+    stagedFile.current=file;setStagedName(file.name.slice(0,100));
   };
   return <section ref={workspaceRef} className="cookie-import-workspace"
     role="region" aria-labelledby={headingId}
@@ -102,10 +118,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       <input ref={fileRef} type="file" hidden
         accept=".json,.txt,.cookies,text/plain,application/json"
         disabled={disabled||busy||uncertain}
-        onChange={event=>{void importFile(event.currentTarget.files?.[0]);}}/>
+        onChange={event=>{stageFile(event.currentTarget.files?.[0]);}}/>
       <CookieImportDropzone dragging={dragging} fileName={stagedName}
         disabled={disabled||busy||uncertain}
-        maxSize="8 MiB" onPick={()=>{stagedFile.current=null;setStagedName('');beginIntent();fileRef.current?.click();}}
+        maxSize="8 MiB" onPick={()=>{if(fileRef.current)fileRef.current.value='';fileRef.current?.click();}}
         onDragEnter={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragOver={event=>{event.preventDefault();if(!busy)setDragging(true);}}
         onDragLeave={event=>{
@@ -115,10 +131,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           event.preventDefault();setDragging(false);
           const file=event.dataTransfer?.files?.[0];
           if(!file||busy||uncertain||disabled)return;
-          if(file.size>MAX_FILE){onNotice?.('文件超过 8 MiB，请分批导入。','error');return;}
-          // A drop event is not guaranteed to activate the trusted parent.
-          // Stage the file, then mint authorization from the visible Import click.
-          stagedFile.current=file;setStagedName(file.name.slice(0,100));
+          stageFile(file);
         }}/>
       {stagedName&&<p className="cookie-import-selected" role="status">
         已选择 {stagedName} · 点击导入即可写入
@@ -129,13 +142,18 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           className="od-field" rows={5} aria-label="粘贴 Cookie 内容"
           placeholder="JSON、Cookie Header 或 Netscape"
           autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
-          disabled={disabled||busy||uncertain}/>
+          disabled={disabled||busy||uncertain}
+          onInput={()=>{if(stagedFile.current){stagedFile.current=null;setStagedName('');}}}/>
       </label>
       <div className="cookie-import-actions">
         <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
           onClick={()=>{
-            beginIntent();
+            if(reading.current||running.current||disabled||uncertain)return;
             const file=stagedFile.current;
+            if(!file&&!(sourceRef.current?.value||'').trim()){
+              onNotice?.('请先选择文件或粘贴 Cookie 内容。','error');return;
+            }
+            beginIntent();
             if(file)void importFile(file);
             else void importText(sourceRef.current?.value||'');
           }}>
