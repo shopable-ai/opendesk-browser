@@ -1,4 +1,5 @@
 // Fixed-source user-gesture bridge for the ChatGPT OD brand button.
+import {createPanelToolIntent,panelToolIntentKey} from '../../../../src/ui/sidebar-tools/panel-tool-intent.js';
 // This reuses OpenDesk's existing native Chrome Side Panel, not a second Host.
 // No storage request, timer or promise is allowed before sidePanel.open.
 export const PROMPT_RAIL_OPEN_PROTOCOL='opendesk.prompt-shortcuts.rail-open.v1';
@@ -27,15 +28,27 @@ export function handlePromptRailOpen({api=globalThis.chrome,message,sender,respo
   if(typeof api?.sidePanel?.open!=='function'){
     answer({ok:false,error:{code:'E_CHROME_UNSUPPORTED'}});return true;
   }
-  try{
-    // MUST be synchronous in onMessage: awaiting authorization first can
-    // consume Chrome's transient user activation.
-    const result=api.sidePanel.open({windowId:sender.tab.windowId});
-    Promise.resolve(result).then(
-      ()=>answer({ok:true,data:{opened:true}}),
-      ()=>answer({ok:false,error:{code:'E_SIDE_PANEL'}}));
-  }catch{
-    answer({ok:false,error:{code:'E_SIDE_PANEL'}});
+  if(typeof api?.storage?.session?.set!=='function'){
+    answer({ok:false,error:{code:'E_ROUTE_UNAVAILABLE'}});return true;
   }
+  // Chrome's transient gesture is consumed synchronously, before any await.
+  // The one-shot session locator is UI navigation only, not tool authority.
+  let opening;
+  try{opening=api.sidePanel.open({windowId:sender.tab.windowId});}
+  catch{answer({ok:false,error:{code:'E_SIDE_PANEL'}});return true;}
+  let persisted;
+  try{
+    const route=createPanelToolIntent({
+      windowId:sender.tab.windowId,tabId:sender.tab.id,toolId:'prompt-shortcuts'
+    });
+    persisted=api.storage.session.set({[panelToolIntentKey(sender.tab.windowId)]:route});
+  }catch{answer({ok:false,error:{code:'E_ROUTE_UNAVAILABLE'}});return true;}
+  Promise.all([
+    Promise.resolve(opening).catch(()=>{throw new Error('E_SIDE_PANEL');}),
+    Promise.resolve(persisted).catch(()=>{throw new Error('E_ROUTE_UNAVAILABLE');})
+  ]).then(
+    ()=>answer({ok:true,data:{opened:true}}),
+    error=>answer({ok:false,error:{code:error?.message==='E_ROUTE_UNAVAILABLE'?
+      'E_ROUTE_UNAVAILABLE':'E_SIDE_PANEL'}}));
   return true;
 }

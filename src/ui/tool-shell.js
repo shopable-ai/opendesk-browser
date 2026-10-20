@@ -64,7 +64,7 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false;
+let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
@@ -220,7 +220,24 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
         await scriptEditor.openRun(runId);
       }});
     startScheduledHost();
-    void tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
+    await tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
+    if(shellClosed)return;
+    // The React ToolHost already renders a selected installed app. A trusted,
+    // short-lived toolId locator drives its existing Host, not a second router.
+    panelToolIntents=createPanelToolIntentReceiver({api:chrome,
+      onOpen:async toolId=>{
+        await sidebarTools.ready;
+        if(shellClosed||!sidebarSurface)return;
+        if(taskWorkbench.navigate('tools')===false)return;
+        sidebarTools.openTool(toolId);
+      },
+      onError:error=>console.warn('Sidebar targeted tool navigation',error)
+    });
+    try{
+      const currentWindow=await chrome.windows.getCurrent();
+      if(!shellClosed&&Number.isSafeInteger(currentWindow?.id))
+        panelToolIntents.start(currentWindow.id);
+    }catch(error){console.warn('Sidebar targeted tool navigation unavailable',error);}
     return;
   }
   if(hostUrl.searchParams.get('scheduledRunner')==='1'){
@@ -340,7 +357,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   scheduleHost?.dispose();scheduleUI?.dispose();
-  tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose(); debugWorkbench?.dispose(); workflowView.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

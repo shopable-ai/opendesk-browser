@@ -12,7 +12,7 @@ const reply=()=>{const received=[];return {received,respond:x=>received.push(x)}
 
 test('R2.15 genuine top-level ChatGPT sender opens existing Chrome panel synchronously',async()=>{
   const r=reply();let opened=0,complete;
-  const api={runtime:{id:'opendesk'},sidePanel:{open(params){
+  const api={runtime:{id:'opendesk'},storage:{session:{set:async()=>{}}},sidePanel:{open(params){
     opened++;assert.deepEqual(params,{windowId:3});
     return new Promise(resolve=>{complete=resolve;});
   }}};
@@ -42,6 +42,7 @@ test('R2.15 rejection, missing sidePanel, and denied sender never claim success'
   assert.equal(r.received[0]?.error?.code,'E_CHROME_UNSUPPORTED');
   const rejected=reply();
   handlePromptRailOpen({api:{runtime:{id:'opendesk'},
+    storage:{session:{set:async()=>{}}},
     sidePanel:{open:()=>Promise.reject(Error('gesture lost'))}},
     message:message(),sender:sender(),respond:rejected.respond});
   await new Promise(resolve=>setImmediate(resolve));

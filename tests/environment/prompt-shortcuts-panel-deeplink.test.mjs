@@ -1,0 +1,106 @@
+// Focused one-shot native Side Panel route tests. Chrome UI itself is NOT_TESTED.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createPanelToolIntent,createPanelToolIntentReceiver,panelToolIntentKey,
+  validPanelToolIntent,PANEL_TOOL_INTENT_TTL_MS}
+  from '../../src/ui/sidebar-tools/panel-tool-intent.js';
+import {handlePromptRailOpen,PROMPT_RAIL_OPEN_PROTOCOL}
+  from '../../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+
+const id='00000000-0000-4000-8000-000000000001';
+const make=(windowId=3)=>createPanelToolIntent({
+  windowId,tabId:8,toolId:'prompt-shortcuts',requestId:id,issuedAt:1000
+});
+const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));
+  await new Promise(resolve=>setImmediate(resolve));};
+
+function fakeStorage(){
+  const entries=new Map(),listeners=new Set();
+  const notify=(key,oldValue,newValue)=>{
+    for(const listener of [...listeners])listener({[key]:{oldValue,newValue}},'session');
+  };
+  return {
+    session:{
+      async get(key){return {[key]:entries.get(key)};},
+      async set(changes){
+        for(const [key,value] of Object.entries(changes)){
+          const old=entries.get(key);entries.set(key,value);notify(key,old,value);
+        }
+      },
+      async remove(key){const old=entries.get(key);entries.delete(key);notify(key,old,undefined);}
+    },
+    onChanged:{addListener(listener){listeners.add(listener);},
+      removeListener(listener){listeners.delete(listener);}}
+  };
+}
+
+test('per-window locator is bounded, one-shot and rejects invalid identities',()=>{
+  const route=make();
+  assert.equal(panelToolIntentKey(3),'opendesk.sidebar.tool-intent.v1.3');
+  assert.equal(validPanelToolIntent(route,{windowId:3,now:1000}),true);
+  assert.equal(validPanelToolIntent(route,{windowId:4,now:1000}),false);
+  assert.equal(validPanelToolIntent(route,{windowId:3,now:1001+PANEL_TOOL_INTENT_TTL_MS}),false);
+  assert.equal(validPanelToolIntent({...route,toolId:'../other'},{windowId:3,now:1000}),false);
+  assert.equal(validPanelToolIntent({...route,requestId:'invalid'},{windowId:3,now:1000}),false);
+  assert.throws(()=>panelToolIntentKey(-1),TypeError);
+  assert.throws(()=>createPanelToolIntent({...route,tabId:-1}),TypeError);
+});
+
+test('closed-panel startup read opens only its window route and consumes it',async()=>{
+  const storage=fakeStorage(),key=panelToolIntentKey(3),other=panelToolIntentKey(4);
+  await storage.session.set({[key]:make(),[other]:make(4)});
+  const opened=[];
+  const receiver=createPanelToolIntentReceiver({api:{storage},now:()=>1100,
+    onOpen:async toolId=>opened.push(toolId)});
+  receiver.start(3);await settle();
+  assert.deepEqual(opened,['prompt-shortcuts']);
+  assert.equal((await storage.session.get(key))[key],undefined);
+  assert.ok((await storage.session.get(other))[other],'other window remains untouched');
+  receiver.dispose();
+});
+
+test('already-open panel responds to a new route; repeat and expired routes never reopen',async()=>{
+  const storage=fakeStorage(),key=panelToolIntentKey(3),opened=[];
+  const receiver=createPanelToolIntentReceiver({api:{storage},now:()=>1150,
+    onOpen:async toolId=>opened.push(toolId)});
+  receiver.start(3);await settle();
+  await storage.session.set({[key]:make()});await settle();
+  await storage.session.set({[key]:make()});await settle();
+  await storage.session.set({[key]:{...make(),requestId:'00000000-0000-4000-8000-000000000002',
+    issuedAt:-100000}});await settle();
+  assert.deepEqual(opened,['prompt-shortcuts']);
+  receiver.dispose();
+  await storage.session.set({[key]:{...make(),requestId:'00000000-0000-4000-8000-000000000003'}});
+  await settle();
+  assert.deepEqual(opened,['prompt-shortcuts'],'disposed receiver cannot navigate');
+});
+
+test('web OD user gesture opens native panel synchronously and writes fixed tool locator',async()=>{
+  const storage=fakeStorage(),calls=[];
+  const sender={id:'extension',frameId:0,documentLifecycle:'active',
+    url:'https://chatgpt.com/c/example',tab:{id:8,windowId:3,
+      url:'https://chatgpt.com/c/example',incognito:false}};
+  const api={runtime:{id:'extension'},storage,sidePanel:{open(params){
+    calls.push('open');assert.deepEqual(params,{windowId:3});return Promise.resolve();
+  }}};
+  const replies=[];
+  assert.equal(handlePromptRailOpen({api,sender,respond:value=>replies.push(value),
+    message:{protocol:PROMPT_RAIL_OPEN_PROTOCOL,expectedUrl:sender.url}}),true);
+  assert.equal(calls[0],'open','no asynchronous preflight before Chrome user gesture');
+  await settle();
+  assert.deepEqual(replies,[{ok:true,data:{opened:true}}]);
+  const record=(await storage.session.get(panelToolIntentKey(3)))[panelToolIntentKey(3)];
+  assert.equal(record.toolId,'prompt-shortcuts');
+  assert.equal(record.windowId,3);
+});
+
+test('official native Side Panel controller reuses React ToolHost and does not navigate full-size tabs',async()=>{
+  const source=await readFile('src/ui/tool-shell.js','utf8');
+  assert.match(source,/createPanelToolIntentReceiver/);
+  assert.match(source,/if\(actualSidePanel\|\|!tab\?\.id\)/);
+  assert.match(source,/await tabMemory\.restore\(\)/);
+  assert.match(source,/panelToolIntents\.start\(currentWindow\.id\)/);
+  assert.match(source,/taskWorkbench\.navigate\('tools'\)/);
+  assert.match(source,/sidebarTools\.openTool\(toolId\)/);
+});
