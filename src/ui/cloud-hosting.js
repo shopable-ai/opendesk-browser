@@ -583,14 +583,15 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
   }
   async function dispatchNext(s){
     if(disposed||!s?.enabled||host.executionPending||starting||!s.online||!s.reconciled)return;
-    // Avoid competing claims: the background owner wins whenever Chrome reports it.
-    if(api.runtime?.getContexts&&api.runtime?.getURL){
-      try{
-        const runners=await api.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT'],
-          documentUrls:[api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH)]});
-        if(disposed||runners.length)return;
-      }catch{return;} // Unknown native owner state must never permit duplicate dispatch.
-    }
+    // Fail closed unless Chrome can verify native Offscreen ownership. A
+    // partially available runtime must never compete with a background owner.
+    if(typeof api?.runtime?.getContexts!=='function'||
+       typeof api?.runtime?.getURL!=='function')return;
+    try{
+      const runners=await api.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT'],
+        documentUrls:[api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH)]});
+      if(disposed||!Array.isArray(runners)||runners.length)return;
+    }catch{return;} // Unknown native owner state must never permit duplicate dispatch.
     starting=true;
     try{
       const next=await cloud.cloudNext({});if(!next||disposed){starting=false;return;}
