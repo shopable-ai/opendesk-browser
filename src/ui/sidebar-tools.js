@@ -2409,8 +2409,31 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         ?'此版本已经安装；确认后核对原安装与注册状态。'
         :'已安装 r'+installed.revision+'；确认后按原版本规则安装此固定版本。'});
       if(installed.enabled===false)patchToolField(view, previewDescription, {textContent: previewDescription.textContent + (' 原安装已被主动停用，将保留停用状态。')});
+      const before=Array.isArray(installed.pageRules?.matches)?installed.pageRules.matches:[];
+      const after=pkg.pageRules.matches;
+      const added=after.filter(site=>!before.includes(site));
+      const removed=before.filter(site=>!after.includes(site));
+      const previousConfig=installed.pageRules||{};
+      const changedConfig=JSON.stringify({
+        excludeMatches:previousConfig.excludeMatches||[],runAt:previousConfig.runAt,
+        allFrames:previousConfig.allFrames,world:previousConfig.world
+      })!==JSON.stringify({
+        excludeMatches:pkg.pageRules.excludeMatches,runAt:pkg.pageRules.runAt,
+        allFrames:pkg.pageRules.allFrames,world:pkg.pageRules.world
+      });
+      patchToolField(view, updatePanel, {hidden:false});
+      patchToolField(view, updateVersions, {textContent:
+        '当前 '+(installed.version?'v'+installed.version:'版本未记录')+' · r'+installed.revision+
+        ' → 新 v'+pkg.version+' · r'+pkg.revision});
+      patchToolField(view, updateCapabilities, {textContent:
+        '新增网站范围：'+(added.join('、')||'无')+'；移除网站范围：'+(removed.join('、')||'无')});
+      const warnings=[...(pkg.revision<installed.revision?['安装包修订号低于当前安装']:[]),
+        ...(changedConfig?['网页运行配置发生变化']:[]),
+        ...(added.length?['新增网站范围需要核对权限']:[])];
+      patchToolField(view, updateWarning, {textContent:warnings.join('；'),
+        hidden:!warnings.length});
     }
-    patchToolField(view, installButton, {textContent: installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':'确认安装'});
+    patchToolField(view, installButton, {textContent: installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':installed?'确认更新':'确认安装'});
     patchToolField(view, installButton, {disabled: false});patchToolField(view, preview, {hidden: false});
   }
   function showPageInstallReceipt(pkg,result) {

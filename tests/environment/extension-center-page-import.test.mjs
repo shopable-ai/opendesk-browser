@@ -170,10 +170,28 @@ test('same identity review carries the existing installation CAS and keeps the o
   }}});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   assert.match(f.get('sidebar-tool-preview-description').textContent,/已经安装/);
+  assert.equal(f.get('sidebar-tool-update').hidden,false);
+  assert.match(f.get('sidebar-tool-update-versions').textContent,/r1.*r1/);
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('sidebar-tool-import').hidden);
   assert.match(f.get('sidebar-tool-status').textContent,/已更新网页增强/);
   assert.equal(f.get('page-install-import-receipt').hidden,true);
+});
+
+test('Page update review discloses added website scope and existing revision before confirm',async t=>{
+  const pkg=await installPackage(),older=receipt(pkg,{
+    version:'0.9.0',revision:0,
+    pageRules:{...pkg.pageRules,matches:['https://old.example/*']}
+  });
+  const f=await fixture(t,{installed:[older]});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-update').hidden,false);
+  assert.match(f.get('sidebar-tool-update-versions').textContent,/v0\.9\.0.*r0.*v1\.0\.0.*r1/);
+  assert.match(f.get('sidebar-tool-update-capabilities').textContent,/新增网站范围.*example\.com.*移除网站范围.*old\.example/);
+  assert.match(f.get('sidebar-tool-update-warning').textContent,/新增网站范围/);
+  assert.equal(f.get('sidebar-tool-install').textContent,'确认更新');
+  assert.equal(f.requests.filter(r=>r.operation==='importPageInstallPackage').length,0,
+    'Only showing permission changes does not install or prompt');
 });
 
 test('valid Page receipt without a durable installed-list readback does not close or retry',async t=>{

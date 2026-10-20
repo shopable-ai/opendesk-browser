@@ -170,7 +170,7 @@ export function ToolHost({view}) {
 
 </ToolField>
 <p>
-{"工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。"}
+{"侧边栏工具：同 ID 更新保留本地数据，卸载时才清理。网页增强：原生注册与权限以 Host 回执为准。"}
 </p>
 <ToolField as="p" id="sidebar-tool-update-warning" className="sidebar-tool-update-warning" hidden={true}>
 

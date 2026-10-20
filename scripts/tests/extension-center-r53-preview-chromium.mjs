@@ -154,6 +154,23 @@ try{
   await click('#extension-center-import');
   await waitUntil('!document.getElementById("sidebar-tool-import").hidden');
   await waitUntil('document.activeElement?.id==="sidebar-tool-file"');
+  // Layout-only DOM stress: 100 rows are NOT 100 installed records. The
+  // production React shell still owns the real two-row preview dataset.
+  const countWithLongList=await evaluate(`(()=>{
+    const list=document.getElementById('extension-center-list');
+    const sample=list.querySelector('li');
+    if(!sample)return 0;
+    const fragment=document.createDocumentFragment();
+    for(let i=0;i<98;i++){
+      const clone=sample.cloneNode(true);
+      clone.dataset.extensionId='layout-only-'+i;
+      clone.querySelectorAll('button').forEach(button=>button.disabled=true);
+      fragment.appendChild(clone);
+    }
+    list.appendChild(fragment);
+    return list.children.length;
+  })()`);
+  assert.equal(countWithLongList,100,'Importer layout stress requires a long DOM list');
   const sheet=await evaluate(`(()=>{
     const panel=document.getElementById('sidebar-tool-import');
     const overlay=document.querySelector('.od-import-overlay');
