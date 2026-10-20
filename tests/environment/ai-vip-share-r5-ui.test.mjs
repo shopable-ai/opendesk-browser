@@ -18,9 +18,9 @@ const tool={id:'ai-vip-share',capabilities:['ai.access']};
 test('R5 official tool compiles member, redeem and store UI with canonical design',async t=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
-  assert.equal(pkg.version,'1.3.5');
+  assert.equal(pkg.version,'1.3.7');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
+  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   for(const text of ['AI 会员','兑换激活','预检兑换','查看更多商品','AI 网站访问'])
     assert(pkg.html.includes(text),text);

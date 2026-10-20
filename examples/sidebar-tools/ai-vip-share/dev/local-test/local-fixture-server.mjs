@@ -17,6 +17,7 @@ const LOCAL_DEV_CODE='LOCAL-DEV-ONLY';
 const TEST_HEADER='x-opendesk-local-test';
 const MAX_BODY=4096;
 const MAX_VERIFY_DELAY_MS=5000;
+const SESSION_COOKIE_NAME='opendesk_fixture_session';
 
 function readBody(request){
   return new Promise((resolve,reject)=>{
@@ -88,6 +89,18 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
     if(req.headers.origin&&(req.headers.origin!==extensionOrigin||req.headers[TEST_HEADER]!=='1')){
       json(res,403,{error:'E_BROWSER_ORIGIN_DISABLED'});return;
     }
+    if(req.method==='GET'&&path==='/session/'){
+      const tokens=(req.headers.cookie||'').split(';').map(part=>part.trim())
+        .filter(part=>part.startsWith(SESSION_COOKIE_NAME+'='))
+        .map(part=>part.slice(SESSION_COOKIE_NAME.length+1));
+      const currentTime=now();
+      const active=[...ledger.values()].some(({receipt})=>receipt.cookieDelivery?.cookies.some(cookie=>
+        cookie.expirationDate*1000>currentTime&&tokens.includes(cookie.value)));
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
+        'X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"});
+      res.end('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><body><p>'+
+        (active?'受控会话有效':'未建立受控会话')+'</p></body></html>');return;
+    }
     if(req.method==='GET'&&path==='/health'){
       json(res,200,{ok:true,mode:'LOCAL_FIXTURE_NOT_PRODUCTION',memberPort:server.address()?.port,
         proxyPort,proxyKind,accountId:ACCOUNT_ID,providerHttps:false,
@@ -147,8 +160,14 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
         previews.delete(previewId);
         json(res,200,receipt);return;
       }
+      const redeemedAt=now();
       const receipt={status:'redeemed',accountId,idempotencyKey,
-        redemptionId:randomUUID(),redeemedAt:now(),grantedEntitlements:[{
+        redemptionId:randomUUID(),redeemedAt,cookieDelivery:{
+          schemaVersion:1,deliveryId:randomUUID(),targetUrl:'http://127.0.0.1:7898/session/',
+          expiresAt:redeemedAt+120000,cookies:[{
+            name:SESSION_COOKIE_NAME,value:randomUUID(),path:'/session/',
+            httpOnly:true,secure:false,sameSite:'lax',expirationDate:(redeemedAt+3600000)/1000
+          }]},grantedEntitlements:[{
           type:'quota',status:'active',title:'本地测试配额',remaining:20,total:20,unit:'次'},
           {type:'feature',status:'active',featureId:'local-managed-proxy',title:'本地开发代理',
             detail:'仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}]};
@@ -208,15 +227,18 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+  const host=process.env.VIP_TEST_HOST??'127.0.0.1';
+  if(!['127.0.0.1','::1'].includes(host))throw Error('VIP_TEST_HOST must be 127.0.0.1 or ::1');
   const port=Number(process.env.VIP_TEST_PORT||7898);
   const proxyPort=Number(process.env.LOCAL_PROXY_PORT||7897);
   const proxyKind=process.env.LOCAL_PROXY_KIND||'http';
   const {server}=createLocalFixture({proxyPort,proxyKind,
     extensionOrigin:process.env.VIP_TEST_EXTENSION_ORIGIN||null});
-  server.listen(port,'127.0.0.1',()=>{
+  server.listen({port,host,ipv6Only:host==='::1'},()=>{
     const actual=server.address().port;
-    console.log(`[local fixture] http://127.0.0.1:${actual}/health`);
-    console.log(`[PAC] http://127.0.0.1:${actual}/proxy.pac → ${proxyKind.toUpperCase()} 127.0.0.1:${proxyPort}`);
+    const origin=`http://${host==='::1'?'[::1]':host}:${actual}`;
+    console.log(`[local fixture] ${origin}/health`);
+    console.log(`[PAC] ${origin}/proxy.pac → ${proxyKind.toUpperCase()} 127.0.0.1:${proxyPort}`);
     console.log('[CAUTION] LOCAL MOCK ONLY; cannot wire HTTP fixture/loopback endpoint into R5.2 production validators.');
     console.log(`[Demo request header] X-OpenDesk-Local-Test: 1; demo code: ${DEMO_CODE}`);
   });

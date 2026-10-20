@@ -398,3 +398,25 @@ node --test --test-reporter=spec --test-name-pattern='official package|candidate
 最新原生目录与九张截图的实际路径、SHA、NetLog 路径/SHA 全部以 `artifacts/managed-proxy-r19/core-native-11-integrity.json` 为准；根 `artifacts/managed-proxy-installed-dev-c1.json` 为最新副本，单次运行目录及备份回执保留。当前 fixture 保留运行以供开发操作，临时验收浏览器已退出。其他会话的 Cookie Editor/Reading TOC/Prompt Shortcuts 等改动和现有服务均保留。
 
 **仍不支持/未验证：** 商业 Provider、付费会员、激活 ticket 安装续接、商品生产目录及带 API key 的实际付费调用未完成；SOCKS5/HTTPS 本地代理不是本轮 profile。production 构建/正式 C2、最终 CI/PR 注入、完整 Worker/卸载/冲突与故障矩阵、独立 95+ 评分保持延期/NOT_TESTED，不以本地开发通过替代。
+
+## 2026-10-20 · Cookie 交付与 Managed Proxy 定向联调（开发核心完成）
+
+- Owner：Codex 对话 `01a15943-7772-7a41-9159-63798e5da7b3`；main；起始 HEAD `64e525f0c77765010aa1fa079e8d3450f2621a2a`。用户本轮进一步指定使用测试文件验证功能框架完整性，不等待真实商业后台。
+- 独立 Sidebar Tool v2、opaque-origin 沙箱；业务写入 `examples/sidebar-tools/ai-vip-share/src/main.js`、`src/index.html`、`tool.config.json`、唯一正式 JSON、README、DESIGN；fixture 仅 `dev/local-test/local-fixture-server.mjs` 与 `.test.mjs`；测试写入 `tests/environment/ai-vip-share-{local-development,r51-member,r59-proxy-ui,r5-ui,ui-parity}.test.mjs`（以实际 diff 为准）、`browser-managed-proxy-development.test.mjs`，原生观察器仅 `tests/framework/{browser-managed-proxy-installed-c1,managed-proxy-development-core}.mjs`。
+- 共享平台只同步 `src/platform/chrome/browser-managed-proxy-profiles.js` 的已审开发候选精确 packageHash；公共 Cookie SDK 已有能力，无新增 Host/Registry/Authority，也不复制 Cookie Editor 特权。
+- 初始最短原生观察：`artifacts/managed-proxy-r19/cookie-baseline.log`；真实 SIDE_PANEL 已安装 1.3.6，连接现有 7898 服务后“权益有效”，`cookieActionPresent:false`。观察模式提前返回，完整 C1 结论为 NATIVE_UI_BLOCKED，不能冒称完整测试 PASS。
+- 日常开发目录仍为仓库 `dist/development`；PID 87007 是初次观察时的 watcher。初次原生观察确认真实 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 及 serve 连接，绑定观察时 receipt。此后并行 UI 源码引起 tool-shell 字节门禁失败，本任务没有启动/停止该 writer，也没有写它的输出；收尾时该 PID 已不存在、43119/43120 无 listener，锁文件仍是原 owner 的记录，未擅自清理。
+- 保留 IPv4 fixture PID 37607 的内存账本。原生新流量使用测试驱动自有 `::1:7898`，独立 CfT 精确 host mapping，逻辑 URL 仍为批准的 127.0.0.1:7898 四个 API 和受控会话页，不创建 Clash 端口；7897 现有服务不变。驱动仅收尾自己启动的监听和 Profile。
+- 其他 Prompt Shortcuts、Bookmark Manager、bundle-provenance 以及未跟踪 `managed-proxy-c1-receipt.mjs` 的变动不归本任务，不暂存/提交/覆盖。Git 索引写入在最终核对后串行处理。
+- 最终 Node 证据：`artifacts/managed-proxy-r19/cookie-review-fix.log` 20/20，覆盖显式写入、拒绝非法目标/属性/时限/容量、CAS/读回、丢失回执、逐项部分/未知结果、明确未提交、账号/过期/撤权竞态、兑换互斥及 A→B→重开→旧 A 禁止重放。`cookie-final-node.log` 121/121，覆盖既有会员/代理/UI、唯一打包器、固定开发包身份、公共 Cookie SDK/Host 与 fixture；共 141 项定向 Node 检查通过。初次旧版本/hash 断言失败已修正，未删去行为保护。
+
+### 最终受控 Chrome 证据与候选身份
+
+- 唯一正式包 `examples/sidebar-tools/ai-vip-share/ai-vip-share.opendesk-tool.json`：1.3.7、95327 UTF-8 bytes；identity `5a68205a64d8298496cd5f7d299650d61562c3d40e4916eee043ceced73e9c84`。经原打包器构建候选→定向门禁→`--promote-from`→`--check-project`，与源码同源。公共能力只新增 `browser.cookies.write`，开发 profile pin 同步该精确 identity，生产审批列表仍为空。
+- **STATIC_DEVELOPMENT / Standard**：`artifacts/managed-proxy-r19/cookie-core-snapshot/dist/development`，连接状态 `connected:false`（静态快照）。64e525 基线本身也因 tool-shell 超 609 bytes 失败，故冻结紧邻 main 基线 `ef7b201e9443cebc63defa09fe723ccb25d3733e` 并仅叠加本任务输入，Cookie SDK/Host 保持该版本；源码覆盖清单 `cookie-core-source.json`。独立输出守卫 43127、独立依赖副本及构建输出，没有放宽预算。该快照构建 PASS、源码漂移 0；包 hash `8ced741f487c79f2cf866c53ab752854d77dd69d95d790b4757890a3bf92b7e5`，SW `7e683af323d70697f9d75219257d83f8e70bbb18d02743c1d3834fda5969e335`。这是基线加工具改动的集成证据，不是当前完整 main 或 production 构建 PASS。
+- CfT 155.0.8059.39，隔离 Profile、原生 SIDE_PANEL；实际扩展 ID `agmefgjalmgbckcnpkghcbfekfhheigg`，installEpoch `null`（由安装存储读回）。最终 `cookie-native-8.log` exit 0，`dev-runs/2026-10-20T13-02-33.512Z/receipt.json` 为 **DEV_CORE_NATIVE_PASS**，errors 空。全部身份、源清单、驱动和日志 hash 汇总于 `cookie-native-8-integrity.json`，本节所述日志/清单均在 `artifacts/managed-proxy-r19/`。
+- 真实操作通过：正式安装→激活受控站点→普通工具站点 write 授权（无 Cookie Editor 全站特权）→预检/本人确认兑换→稳定 `cookieDelivery`→独立写入点击→原可信宿主精确批次确认→逐项 saved=1/verified=1→目标页“受控会话有效”→真实代理 ENABLE→返回重开仍有效→真实 STOP→重开仍有效。整个流程仅一次 `browser.cookies.setMany`；代理启停不重放或清除 Cookie。首次到站页为“未建立受控会话”，不是仅凭 SDK 回执推断登录。
+- 真实网络检查通过：批准 AI 域名的实际响应经过现有 HTTP 7897，example.com 的实际 200 直连；API 的无凭据 401/403 等不算付费调用成功。Cookie 测试只用脚本禁用的本机合成会话页，不读取个人 Cookie。回执脱敏、Cookie 模式不存截图或 NetLog；独立隐私探针确认敏感 Cookie 字段不会进入证据。自有 IPv6 listener 和临时 Chrome Profile 已收尾，IPv4 fixture PID 37607 和 Clash PID 43518 保留。
+- 早期原生失败保留在 `cookie-native-{1..7}.log`：驱动曾误认权限文案、对已打开设置重复切换、未等待 iframe 绘制，以及把关闭可信设置当作返回列表。按实际界面状态和绘制完成修正观察器后，最终同一候选全链通过；未为这些观察器问题修改业务或共享 UI。
+
+**仍未验证/延期：** 真实 AI VIP 后台 JSON、固定生产站点及账号所有者授权、真实第三方登录/付费会员均为 NOT_TESTED；生产 `COOKIE_TARGETS`、商业端点和代理审批不凭测试结果开放。当前完整 main 的共享构建被其他 UI 体积门禁阻塞；production 安装验收、全故障矩阵、独立评分和线上发布仍延期，不以本轮受控核心通过替代。

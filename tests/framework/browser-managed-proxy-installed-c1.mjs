@@ -6,19 +6,28 @@ import {spawn,execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve,dirname} from 'node:path';
+import {join,resolve,dirname,isAbsolute} from 'node:path';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {serializeSidebarToolPackage,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {REVIEWED_MANAGED_PROXY_PROFILES} from '../../src/platform/chrome/browser-managed-proxy-profiles.js';
 import {MANAGED_PROXY_STORE} from '../../src/platform/chrome/browser-managed-proxy.js';
-import {exerciseManagedProxyDevelopmentCore} from './managed-proxy-development-core.mjs';
+import {exerciseManagedProxyDevelopmentCore,sanitizeManagedProxyEvidence} from './managed-proxy-development-core.mjs';
 
 const buildMode=process.env.OPENDESK_PROXY_C1_BUILD||'production';
 assert(['production','development'].includes(buildMode),'Unknown C1 build mode');
 const development=buildMode==='development';
 const developmentCore=process.env.OPENDESK_PROXY_DEV_CORE==='1';
 assert(!developmentCore||development,'Local positive-flow driver requires development mode');
-const PATH=resolve('dist',buildMode);
+const cookieDevelopment=process.env.OPENDESK_PROXY_DEV_COOKIE==='1';
+const staticDevelopment=process.env.OPENDESK_PROXY_C1_STATIC==='1';
+const extensionOverride=process.env.OPENDESK_PROXY_C1_EXTENSION_PATH;
+assert(!cookieDevelopment||developmentCore,'Cookie flow requires DEV_CORE=1 in development mode');
+assert(!staticDevelopment||cookieDevelopment&&developmentCore,'Static development requires DEV_CORE+Cookie opt-in');
+assert(!extensionOverride||cookieDevelopment&&developmentCore,'Extension path override requires DEV_CORE+Cookie opt-in');
+assert(!extensionOverride||isAbsolute(extensionOverride),'Extension path override must be absolute');
+const PATH=extensionOverride||resolve('dist',buildMode);
+// dist/development is two directories below the snapshot project root.
+const candidateRoot=extensionOverride?resolve(PATH,'../..'):resolve('.');
 const devRunDirectory=(developmentCore?'artifacts/managed-proxy-r19/dev-runs/':'artifacts/managed-proxy-r18/dev-runs/')+
   new Date().toISOString().replaceAll(':','-');
 const screenshotPrefix=development?devRunDirectory.slice('artifacts/'.length)+'/':'managed-proxy-c1-';
@@ -28,8 +37,15 @@ const sleep=ms=>new Promise(done=>setTimeout(done,ms));
 const receipt={schema:'opendesk.managed-proxy.c1.v1',sha:process.env.GITHUB_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
   build:buildMode.toUpperCase(),extensionPath:PATH,mockSdk:false,installed:false,sidePanelObserved:false,
   result:'NOT_TESTED',steps:[],screenshots:[],errors:[]};
-let child,profile,client,page,sidePanelSession;
-function step(name,data){receipt.steps.push({name,at:new Date().toISOString(),...data});}
+if(cookieDevelopment)receipt.cookiePrivacy={responseCookieValues:'omitted',screenshots:'disabled',netLog:'disabled'};
+if(staticDevelopment){
+  receipt.mode='STATIC_DEVELOPMENT';
+  receipt.developmentConnection={connected:false,reason:'static frozen development test snapshot'};
+}
+let child,profile,client,page,sidePanelSession,cookieFixture;
+const cookieFixtureRequests=[];
+function step(name,data){receipt.steps.push({name,at:new Date().toISOString(),
+  ...(cookieDevelopment?sanitizeManagedProxyEvidence(data):data)});}
 async function until(fn,label){
   let last='';
   for(let i=0;i<160;i++){
@@ -49,12 +65,19 @@ async function connect(url){
     if(developmentCore&&['Network.responseReceived','Network.loadingFailed'].includes(reply.method)){
       receipt.networkEvents??=[];
       const p=reply.params,r=p.response;
-      if(receipt.networkEvents.length<300)receipt.networkEvents.push({sessionId:reply.sessionId,method:reply.method,
+      const row={sessionId:reply.sessionId,method:reply.method,
         params:{type:p.type,errorText:p.errorText,response:r?{url:r.url,status:r.status,
           remoteIPAddress:r.remoteIPAddress,remotePort:r.remotePort,protocol:r.protocol,
-          securityState:r.securityState,fromDiskCache:r.fromDiskCache}:undefined}});
+          securityState:r.securityState,fromDiskCache:r.fromDiskCache}:undefined}};
+      if(receipt.networkEvents.length<300)receipt.networkEvents.push(row);
+      if(cookieDevelopment&&p.type==='Document'&&r?.url==='http://127.0.0.1:7898/session/'){
+        // Keep target evidence available after AI pages exhaust the broad trace.
+        receipt.cookieTargetNetworkEvents??=[];
+        receipt.cookieTargetNetworkEvents.push(row);
+      }
     }
-    if(['Page.frameNavigated','Runtime.exceptionThrown','Runtime.executionContextsCleared'].includes(reply.method)){
+    if(['Page.frameNavigated','Runtime.exceptionThrown','Runtime.executionContextsCleared'].includes(reply.method)&&
+      !(cookieDevelopment&&reply.method==='Runtime.exceptionThrown')){
       receipt.cdpEvents??=[];
       if(receipt.cdpEvents.length<200)receipt.cdpEvents.push({at:new Date().toISOString(),...reply});
     }
@@ -79,7 +102,9 @@ async function attach(targetId,pageTarget=false){
 async function evalAt(session,expression,contextId=null){
   const reply=await client.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,
     ...(contextId?{contextId}:{})},session);
-  if(reply.exceptionDetails)throw Error(reply.exceptionDetails.exception?.description||reply.exceptionDetails.text);
+  if(reply.exceptionDetails)throw Error(cookieDevelopment?
+    'Cookie opt-in Runtime.evaluate failed: '+reply.exceptionDetails.text:
+    reply.exceptionDetails.exception?.description||reply.exceptionDetails.text);
   return reply.result?.value;
 }
 async function elementIn(session,selector){
@@ -169,6 +194,12 @@ async function toolResult(frame){
 }
 async function clickSandbox(frame,selector,hostSession=page){
   assert.equal(frame.hostSession,hostSession,'Sandbox input must use its owning host');
+  if(cookieDevelopment){
+    // Settings can reveal a retained iframe before the compositor has moved its
+    // hit target. Wait for actual painting before the single trusted click.
+    await evalAt(hostSession,'new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))');
+    await evalAt(frame.session,'new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))',frame.contextId);
+  }
   const local=await evalAt(frame.session,'(()=>{const e=document.querySelector('+
     JSON.stringify(selector)+');if(!e)return null;const r=e.getBoundingClientRect();'+
     'return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height};})()',frame.contextId);
@@ -291,12 +322,35 @@ async function exerciseProductionDeniedSdk(extensionId){
 }
 
 async function screenshot(name,session=page){
+  if(cookieDevelopment)return; // No screenshot can retain delivered Cookie values.
   const frame=await client.send('Page.captureScreenshot',{format:'png'},session);
   const bytes=Buffer.from(frame.data,'base64'),file=resolve('artifacts/'+screenshotPrefix+name+'.png');
   await mkdir(dirname(file),{recursive:true});
   await writeFile(file,bytes);
   receipt.screenshots.push({name,sha256:hash(bytes),bytes:bytes.length,
     path:'artifacts/'+screenshotPrefix+name+'.png'});
+}
+async function startCookieFixture(extensionId){
+  const fixtureFile=join(candidateRoot,'examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs');
+  const {createLocalFixture}=await import(fixtureFile);
+  const extensionOrigin='chrome-extension://'+extensionId;
+  cookieFixture=createLocalFixture({proxyPort:7897,proxyKind:'http',extensionOrigin});
+  cookieFixture.server.on('request',request=>{
+    // Never capture Cookie headers or response bodies; preserve IPv4's ledger.
+    cookieFixtureRequests.push({method:request.method,path:(request.url||'').split('?')[0]});
+  });
+  await new Promise((done,fail)=>{
+    const failed=error=>fail(new Error('Owned IPv6 fixture could not bind [::1]:7898: '+error.code));
+    cookieFixture.server.once('error',failed);
+    cookieFixture.server.listen({host:'::1',port:7898,ipv6Only:true},()=>{
+      cookieFixture.server.removeListener('error',failed);done();
+    });
+  });
+  const address=cookieFixture.server.address();
+  assert.equal(address.address,'::1');assert.equal(address.port,7898);
+  receipt.cookieFixture={host:'::1',port:7898,ipv6Only:true,proxyPort:7897,extensionOrigin,
+    source:fixtureFile,sourceSha256:hash(await readFile(fixtureFile))};
+  step('DEV_COOKIE_OWNED_FIXTURE',{status:'PASS',...receipt.cookieFixture});
 }
 async function readNative(worker){
   const expression='(async()=>{const permission=await chrome.permissions.contains({permissions:["proxy"]});'+
@@ -367,7 +421,7 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   receipt.sidePanelContexts=live.panels;
   receipt.sidePanelTarget={...receipt.sidePanelTarget,hostUrl,documentId:current.id,
     hostInstanceId:new URL(hostUrl).searchParams.get('hostInstanceId')};
-  if(development){
+  if(development&&!staticDevelopment){
     receipt.developmentConnection=await until(async()=>{
       const state=await evalAt(panelSession,`(()=>{const e=document.getElementById('opendesk-development-status');
         return e?{text:e.textContent,title:e.title}:null;})()`);
@@ -417,7 +471,31 @@ async function exerciseNativeSidePanel({panel,extensionId,worker,tabTargetId}){
   },'official AI VIP Share sandbox inside native Side Panel');
   if(developmentCore){
     await exerciseManagedProxyDevelopmentCore({client,panelSession,worker,officialFrame,
-      evalAt,until,clickIn,clickSandbox,toolFrame,readNative,screenshot,step,receipt});
+      evalAt,until,clickIn,clickSandbox,toolFrame,readNative,screenshot,step,receipt,
+      cookieFixtureRequests:()=>cookieFixtureRequests.slice()});
+    if(cookieDevelopment){
+      // Bind the final Cookie/proxy evidence to the exact candidate observed at
+      // startup, and preserve the connected watcher contract outside static mode.
+      assert.equal(hash(await readFile(join(PATH,'sw.js'))),receipt.formal.swSha256,'Candidate SW changed during Cookie flow');
+      const pkg=JSON.parse(await readFile(join(PATH,'official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json'),'utf8'));
+      assert.equal(await sidebarToolPackageHash(pkg),receipt.formal.packageHash,'Candidate tool changed during Cookie flow');
+      if(staticDevelopment){
+        assert.equal(hash(await readFile(receipt.developmentBuildReceipt.path)),receipt.developmentBuildReceipt.sha256,
+          'Static development build evidence changed during Cookie flow');
+      }else{
+        const update=JSON.parse(await readFile(join(PATH,'development-update.json'),'utf8'));
+        assert.equal(update.revision,receipt.developmentRevision,'Watcher revision changed during Cookie flow');
+        const connection=await evalAt(panelSession,`(()=>{const e=document.getElementById('opendesk-development-status');
+          return e?{text:e.textContent,title:e.title}:null;})()`);
+        assert(connection?.text.includes('开发服务已连接')&&connection.title.includes(receipt.developmentRevision),
+          'Exact candidate development connection lost during Cookie flow');
+        receipt.developmentConnection=connection;
+      }
+      step('DEV_COOKIE_CANDIDATE_IDENTITY',{status:'PASS',formal:receipt.formal,
+        extensionId:receipt.extensionId,installEpoch:receipt.installEpoch,
+        mode:staticDevelopment?'STATIC_DEVELOPMENT':'CONTINUOUS_DEVELOPMENT',
+        developmentConnection:receipt.developmentConnection});
+    }
     receipt.sidePanelDocumentId=current.id;receipt.sidePanelInteracted=true;
     return;
   }
@@ -526,8 +604,8 @@ async function main(){
   receipt.driverSha256=hash(await readFile(new URL(import.meta.url)));
   if(developmentCore)receipt.developmentCoreDriverSha256=hash(await readFile(new URL('./managed-proxy-development-core.mjs',import.meta.url)));
   assert(process.env.CHROME_FOR_TESTING_BIN,'Pinned Chrome for Testing required');
-  const candidate=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  const config=JSON.parse(await readFile('examples/sidebar-tools/ai-vip-share/tool.config.json','utf8'));
+  const candidate=await createSidebarToolPackage(join(candidateRoot,'examples/sidebar-tools/ai-vip-share'));
+  const config=JSON.parse(await readFile(join(candidateRoot,'examples/sidebar-tools/ai-vip-share/tool.config.json'),'utf8'));
   assert.equal(candidate.id,'ai-vip-share');assert.equal(candidate.version,config.version,
     'Candidate version must match same-SHA official tool configuration');
   assert.deepEqual(REVIEWED_MANAGED_PROXY_PROFILES,[]);
@@ -537,8 +615,18 @@ async function main(){
   const manifest=JSON.parse(await readFile(join(PATH,'manifest.json'),'utf8'));
   assert.equal(manifest.manifest_version,3);
   assert([...(manifest.permissions||[]),...(manifest.optional_permissions||[])].includes('proxy'));
+  if(cookieDevelopment){
+    assert([...(manifest.permissions||[]),...(manifest.optional_permissions||[])].includes('cookies'));
+    assert(candidate.capabilities.includes('browser.cookies.write'));
+  }
   const sw=await readFile(join(PATH,'sw.js'));
-  if(development){
+  if(staticDevelopment){
+    const path=join(candidateRoot,'docs/framework/evidence/wxt/builds/build-development.json');
+    const bytes=await readFile(path),buildReceipt=JSON.parse(bytes.toString('utf8'));
+    assert.equal(hash(sw),buildReceipt.report.files.find(x=>x.path==='sw.js')?.sha256,
+      'Static snapshot SW must match its development build report');
+    receipt.developmentBuildReceipt={path,sha256:hash(bytes),swSha256:hash(sw)};
+  }else if(development){
     const update=JSON.parse(await readFile(join(PATH,'development-update.json'),'utf8'));
     assert.equal(hash(sw),update.files['sw.js'],'Development watcher fingerprint drift');
     receipt.developmentRevision=update.revision;
@@ -561,11 +649,12 @@ async function main(){
   const args=['--no-first-run','--no-default-browser-check','--disable-sync',
     '--window-size=1440,1000','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profile,
     '--disable-extensions-except='+PATH,'--load-extension='+PATH,'about:blank'];
-  if(developmentCore){
+  if(developmentCore&&!cookieDevelopment){
     receipt.netLog=resolve(devRunDirectory,'chrome-netlog.json');
     await mkdir(devRunDirectory,{recursive:true});
     args.unshift('--log-net-log='+receipt.netLog,'--net-log-capture-mode=Default');
   }
+  if(cookieDevelopment)args.unshift('--host-rules=MAP 127.0.0.1:7898 [::1]:7898');
   if(!headed)args.unshift('--headless=new');
   if(noSandbox)args.unshift('--no-sandbox');
   child=spawn(process.env.CHROME_FOR_TESTING_BIN,args,{stdio:['ignore','ignore','pipe']});
@@ -582,6 +671,7 @@ async function main(){
     x.type==='service_worker'&&/^chrome-extension:\/\/[a-p]{32}\/sw\.js$/.test(x.url)),'production SW');
   const extensionId=swTarget.url.split('/')[2],worker=await attach(swTarget.targetId);
   receipt.extensionId=extensionId;
+  if(cookieDevelopment)await startCookieFixture(extensionId);
   // A newly attached MV3 worker can precede Chrome API/context initialization.
   // Reuse the existing native SW smoke test's real readiness wait; never mock chrome.
   const first=await until(()=>readNative(worker),'real MV3 chrome API ready');
@@ -701,8 +791,10 @@ async function main(){
       if(developmentCore&&sidePanelSession){
         receipt.developmentCoreFailure=await (async()=>{
           const frame=await toolFrame(sidePanelSession,'#ai-vip-member-state');
-          return evalAt(frame.session,`({text:document.body.innerText,
-            responses:globalThis.__managedDevResponses,
+          return evalAt(frame.session,`({text:${cookieDevelopment?'undefined':'document.body.innerText'},
+            cookieUI:${cookieDevelopment?`Object.fromEntries(['ai-vip-member-state','ai-vip-cookie-status',
+              'ai-vip-cookie-results'].map(id=>[id,document.getElementById(id)?.textContent]))`:'undefined'},
+            responses:(${sanitizeManagedProxyEvidence.toString()})(globalThis.__managedDevResponses),
             input:globalThis.__managedDevInput,
             controls:[...document.querySelectorAll('button,input')].map(e=>({id:e.id,disabled:e.disabled,
               hidden:!!e.closest('[hidden]'),text:e.tagName==='BUTTON'?e.textContent:null}))})`,frame.contextId);
@@ -719,6 +811,11 @@ async function main(){
     'C1_PRODUCTION_ENABLE_DENIED','C1_SDK_STOP','NO_UNAPPROVED_NATIVE_SET',
     'C1_SIDE_PANEL_TOOLS_VISIBLE','C1_SIDE_PANEL_OFFICIAL_UI',
     'C1_SIDE_PANEL_SDK_HOST_NATIVE'];
+  if(cookieDevelopment)required.push('DEV_COOKIE_OWNED_FIXTURE','DEV_COOKIE_TARGET_MAPPED',
+    'DEV_COOKIE_SITE_GRANTED','DEV_COOKIE_READY_BEFORE_REDEEM','DEV_COOKIE_DELIVERY_VALIDATED',
+    'DEV_COOKIE_TRUSTED_BATCH_APPROVED','DEV_COOKIE_SAVED_VERIFIED','DEV_COOKIE_SESSION_ESTABLISHED',
+    'DEV_COOKIE_SESSION_PROXY_ENABLED','DEV_REOPEN_ACTIVE','DEV_COOKIE_SESSION_REOPEN_ACTIVE',
+    'DEV_COOKIE_SESSION_PROXY_STOPPED','DEV_COOKIE_SESSION_REOPEN_STOPPED','DEV_COOKIE_CANDIDATE_IDENTITY');
   const missing=required.filter(name=>!receipt.steps.some(row=>row.name===name&&row.status==='PASS'));
   if(!panel||!receipt.installed||!receipt.sidePanelObserved||
     !receipt.sidePanelInteracted||!receipt.sidePanelDocumentId||missing.length){
@@ -746,12 +843,20 @@ try{await main();}catch(e){receipt.result='FAIL';receipt.errors.push(String(e.st
     try{await client?.send('Browser.close');}catch{}
     await sleep(500);
   }
+  if(cookieFixture?.server.listening){
+    // Close only this run's server; leave the existing IPv4 fixture untouched.
+    const closed=new Promise(done=>cookieFixture.server.close(done));
+    cookieFixture.server.closeAllConnections();
+    await closed;
+    step('DEV_COOKIE_OWNED_FIXTURE_CLOSED',{status:'PASS',host:'::1',port:7898});
+  }
   await mkdir(dirname(OUTPUT),{recursive:true});
   if(development){
     await mkdir(devRunDirectory,{recursive:true});
-    await writeFile(join(devRunDirectory,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+    await writeFile(join(devRunDirectory,'receipt.json'),JSON.stringify(
+      cookieDevelopment?sanitizeManagedProxyEvidence(receipt):receipt,null,2)+'\n');
   }
-  await writeFile(OUTPUT,JSON.stringify(receipt,null,2)+'\n');
+  await writeFile(OUTPUT,JSON.stringify(cookieDevelopment?sanitizeManagedProxyEvidence(receipt):receipt,null,2)+'\n');
   try{client?.close()}catch{}
   if(child?.exitCode===null){child.kill('SIGTERM');await sleep(300);
     if(child.exitCode===null)child.kill('SIGKILL');}

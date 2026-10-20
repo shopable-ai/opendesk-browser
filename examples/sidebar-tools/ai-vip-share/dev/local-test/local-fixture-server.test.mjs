@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
 import {randomUUID} from 'node:crypto';
+import {spawn,spawnSync} from 'node:child_process';
 import {createLocalFixture} from './local-fixture-server.mjs';
 const SERVER_NOW=Date.UTC(2026,9,15);
 const boundAccount={state:'bound',id:'local-fixture-account',displayNameMasked:'l***@fixture.test'};
@@ -13,6 +14,40 @@ const addr=`http://127.0.0.1:${server.address().port}`;
 const api=async(path,method='GET',data,headers={})=>{
   const r=await fetch(addr+path,{method,headers:{'X-OpenDesk-Local-Test':'1',...(data?{'Content-Type':'application/json'}:{}),...headers},
     ...(data?{body:JSON.stringify(data)}:{})});return {status:r.status,data:await r.json()};
+};
+const redeemSession=async()=>{
+  const preview=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
+  const post={previewId:preview.data.previewId,accountId:boundAccount.id,idempotencyKey:randomUUID()};
+  const response=await api('/api/redeem','POST',post);
+  assert.equal(response.status,200);
+  return {post,receipt:response.data};
+};
+const fixtureCliEnv=(overrides={})=>{
+  const env={...process.env,VIP_TEST_PORT:'0',VIP_TEST_EXTENSION_ORIGIN:''};
+  delete env.VIP_TEST_HOST;
+  return {...env,...overrides};
+};
+const startFixtureCli=async(t,overrides={})=>{
+  const child=spawn(process.execPath,[new URL('./local-fixture-server.mjs',import.meta.url).pathname],
+    {env:fixtureCliEnv(overrides),stdio:['ignore','pipe','pipe']});
+  const exited=new Promise(resolve=>child.once('close',resolve));
+  t.after(async()=>{
+    if(child.exitCode===null&&child.signalCode===null)child.kill();
+    await exited;
+  });
+  let output='',timer;
+  const origin=await new Promise((resolve,reject)=>{
+    timer=setTimeout(()=>reject(Error('fixture CLI did not become ready')),5000);
+    child.once('error',reject);
+    child.once('exit',()=>reject(Error('fixture CLI exited before listening')));
+    child.stdout.on('data',part=>{
+      output+=part;
+      const match=output.match(/\[local fixture\] (http:\/\/(?:127\.0\.0\.1|\[::1\]):\d+)\/health/);
+      if(match)resolve(match[1]);
+    });
+    child.stderr.resume();
+  }).finally(()=>clearTimeout(timer));
+  return {origin,output:()=>output};
 };
 test.beforeEach(()=>{
   serverNow=SERVER_NOW;
@@ -47,7 +82,7 @@ test('basic member, preview, redemption and immutable idempotency',async()=>{
   const redeemed=await api('/api/redeem','POST',post);
   assert.equal(redeemed.data.status,'redeemed');
   const again=await api('/api/redeem','POST',post);
-  assert.deepEqual(again.data,redeemed.data);
+  assert(JSON.stringify(again.data)===JSON.stringify(redeemed.data),'repeated receipt is unchanged');
   assert.equal(fixture.ledger.size,1);
   const reusedPreview=await api('/api/redeem','POST',{...post,idempotencyKey:randomUUID()});
   assert.equal(reusedPreview.status,409,'a consumed preview cannot grant twice with a new key');
@@ -58,17 +93,90 @@ test('basic member, preview, redemption and immutable idempotency',async()=>{
   assert.equal(wrong.status,409);
   const missing=await api('/api/status','POST',{accountId:post.accountId,idempotencyKey:randomUUID()});
   assert.equal(missing.data.status,'unknown');
+  assert.equal(missing.data.cookieDelivery,undefined);
+});
+test('successful redemption issues a short-lived delivery with an ephemeral scoped session cookie',async()=>{
+  serverNow+=123;
+  const {receipt}=await redeemSession();
+  const delivery=receipt.cookieDelivery;
+  assert.equal(receipt.redeemedAt,serverNow);
+  assert.deepEqual(Object.keys(delivery).sort(),['cookies','deliveryId','expiresAt','schemaVersion','targetUrl']);
+  assert.equal(delivery.schemaVersion,1);
+  assert.match(delivery.deliveryId,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  assert.equal(delivery.targetUrl,'http://127.0.0.1:7898/session/');
+  assert.equal(delivery.expiresAt,serverNow+120000);
+  assert.equal(delivery.cookies.length,1);
+  const {value,...attributes}=delivery.cookies[0];
+  assert(typeof value==='string'&&value.length>=32,'session token is opaque and nonempty');
+  assert.deepEqual(attributes,{name:'opendesk_fixture_session',path:'/session/',httpOnly:true,
+    secure:false,sameSite:'lax',expirationDate:(serverNow+3600000)/1000});
+  const other=(await redeemSession()).receipt.cookieDelivery;
+  assert(delivery.deliveryId!==other.deliveryId,'different receipts have different delivery IDs');
+  assert(value!==other.cookies[0].value,'different receipts have different session tokens');
+  const member=JSON.stringify((await api('/api/member')).data);
+  assert(!member.includes(value)&&!member.includes(other.cookies[0].value),'member summaries omit cookie values');
+});
+test('delivery remains identical on repeated redemption and status even after delivery and cookie expiry',async()=>{
+  const {post,receipt}=await redeemSession();
+  const snapshot=JSON.stringify(receipt);
+  for(const currentTime of [SERVER_NOW+1,receipt.cookieDelivery.expiresAt,
+    receipt.cookieDelivery.cookies[0].expirationDate*1000]){
+    serverNow=currentTime;
+    for(const path of ['/api/redeem','/api/status']){
+      const response=await api(path,'POST',post);
+      assert.equal(response.status,200);
+      assert(JSON.stringify(response.data)===snapshot,'delivery and cookie are never refreshed on lookup or retry');
+    }
+  }
+  assert.equal(fixture.ledger.size,1);
+});
+test('session page accepts only an issued unexpired Cookie without requiring the API test header',async()=>{
+  const {receipt}=await redeemSession();
+  const delivery=receipt.cookieDelivery,{name,value,expirationDate}=delivery.cookies[0];
+  const check=async(headers,expected)=>{
+    const response=await fetch(addr+'/session/',{headers});
+    assert.equal(response.status,200);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal(response.headers.get('content-type'),'text/html; charset=utf-8');
+    assert.equal(response.headers.get('content-security-policy'),"default-src 'none'");
+    assert.equal(response.headers.get('set-cookie'),null);
+    const html=await response.text();
+    assert(html.includes(expected),'page reports only the expected session state');
+    assert(!html.includes(value)&&!html.includes(name),'page never reflects Cookie names or values');
+    assert(!html.includes('<script'),'page has no scripts');
+  };
+  await check({},'未建立受控会话');
+  await check({Cookie:`${name}=${randomUUID()}`},'未建立受控会话');
+  await check({Cookie:`other_${name}=${value}`},'未建立受控会话');
+  await check({Cookie:`other=1; ${name}=${value}; another=2`},'受控会话有效');
+  serverNow=delivery.expiresAt;
+  await check({Cookie:`${name}=${value}`},'受控会话有效');
+  serverNow=expirationDate*1000-1;
+  await check({Cookie:`${name}=${value}`},'受控会话有效');
+  serverNow++;
+  await check({Cookie:`${name}=${value}`},'未建立受控会话');
+  await check({'X-OpenDesk-Local-Test':'1',Cookie:`${name}=${value}`},'未建立受控会话');
+  for(const origin of ['https://attacker.invalid','null','chrome-extension://'+'a'.repeat(32)]){
+    const response=await fetch(addr+'/session/',{headers:{Origin:origin,'X-OpenDesk-Local-Test':'1'}});
+    assert.equal(response.status,403);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal((await response.json()).error,'E_BROWSER_ORIGIN_DISABLED');
+  }
 });
 test('lost acknowledgement still has one authoritative receipt',async()=>{
   const p=await api('/api/preview','POST',{code:'DEMO-VIP-01'});
   const key=randomUUID(), accountId=p.data.accountId;
   const result=await api('/api/redeem','POST',{previewId:p.data.previewId,accountId,idempotencyKey:key},{'X-Fixture-Drop-Ack':'1'});
   assert.equal(result.status,504);
+  const delivery=JSON.stringify(fixture.ledger.get(key).receipt.cookieDelivery);
   serverNow+=180000;
   const lookup=await api('/api/status','POST',{accountId,idempotencyKey:key});
   assert.equal(lookup.data.status,'redeemed');
   assert.equal(lookup.data.idempotencyKey,key);
   assert.equal(lookup.data.redeemedAt,SERVER_NOW);
+  assert(JSON.stringify(lookup.data.cookieDelivery)===delivery,'lost acknowledgement preserves delivery');
+  assert(JSON.stringify((await api('/api/status','POST',{accountId,idempotencyKey:key})).data)===
+    JSON.stringify(lookup.data),'repeated status preserves the complete receipt');
   assert.equal(fixture.ledger.size,1);
   const member=await api('/api/member');
   assert.equal(member.data.redemptions.length,1);
@@ -83,6 +191,7 @@ test('pending and authoritative final rejection never grant member entitlements'
       previewId:p.data.previewId,accountId:p.data.accountId,idempotencyKey
     },{'X-Fixture-Outcome':outcome});
     assert.equal(row.data.status,expected);
+    assert.equal(row.data.cookieDelivery,undefined);
     const status=await api('/api/status','POST',{accountId:p.data.accountId,idempotencyKey});
     assert.deepEqual(status.data,row.data);
     if(expected==='rejected')assert.equal(status.data.final,true);
@@ -148,7 +257,8 @@ test('account switching isolates previews, history, entitlements and recovery re
   assert.equal(otherRedeemed.data.status,'redeemed');
   assert.deepEqual((await api('/api/member')).data.redemptions.map(row=>row.redemptionId),[otherRedeemed.data.redemptionId]);
   memberState={account:boundAccount,entitlements:[]};
-  assert.deepEqual((await api('/api/status','POST',post)).data,redeemed.data);
+  assert(JSON.stringify((await api('/api/status','POST',post)).data)===JSON.stringify(redeemed.data),
+    'switching back recovers the same receipt');
   assert.deepEqual((await api('/api/member')).data.redemptions.map(row=>row.redemptionId),[redeemed.data.redemptionId]);
 });
 test('proxy activation fixture returns schema only, not an actual local proxy host',async()=>{
@@ -238,5 +348,73 @@ test('explicit isolated extension Origin opt-in never accepts another browser or
       assert.equal(response.status,origin===extensionOrigin?200:403);
     }
     assert.equal((await fetch(url,{method:'POST',headers:{Origin:extensionOrigin},body:'{}'})).status,403);
+    const sessionUrl=new URL('/session/',url);
+    assert.equal((await fetch(sessionUrl)).status,200);
+    for(const origin of [extensionOrigin,'chrome-extension://'+'b'.repeat(32),'null',
+      'http://127.0.0.1:7898','https://attacker.invalid']){
+      for(const testHeader of [false,true]){
+        const response=await fetch(sessionUrl,{headers:{Origin:origin,
+          ...(testHeader?{'X-OpenDesk-Local-Test':'1'}:{})}});
+        assert.equal(response.status,origin===extensionOrigin&&testHeader?200:403);
+        assert.equal(response.headers.get('cache-control'),'no-store');
+      }
+    }
   }finally{await new Promise(resolve=>allowed.server.close(resolve));}
+});
+
+test('CLI defaults to IPv4 loopback and accepts the exact IPv4 host',async t=>{
+  for(const overrides of [{},{VIP_TEST_HOST:'127.0.0.1'}]){
+    const child=await startFixtureCli(t,overrides);
+    assert.match(child.origin,/^http:\/\/127\.0\.0\.1:\d+$/);
+    const health=await fetch(child.origin+'/health');
+    assert.equal(health.status,200);
+    assert.equal((await health.json()).mode,'LOCAL_FIXTURE_NOT_PRODUCTION');
+  }
+});
+test('CLI rejects every nonliteral or nonloopback VIP_TEST_HOST',()=>{
+  for(const host of ['','localhost','0.0.0.0','::','[::1]','::ffff:127.0.0.1','127.1','127.0.0.2',
+    '127.0.0.1 ','192.168.1.1','example.com']){
+    const result=spawnSync(process.execPath,[new URL('./local-fixture-server.mjs',import.meta.url).pathname],{
+      env:fixtureCliEnv({VIP_TEST_HOST:host}),encoding:'utf8',timeout:5000
+    });
+    assert.equal(result.status,1,'invalid host must fail before listening');
+    assert(result.stderr.includes('VIP_TEST_HOST must be 127.0.0.1 or ::1'));
+    assert.equal(result.stdout,'');
+  }
+});
+test('IPv6-only CLI coexists on the IPv4 fixture port with a separate memory ledger',async t=>{
+  const ipv4Receipt=(await redeemSession()).receipt;
+  const child=await startFixtureCli(t,{VIP_TEST_HOST:'::1',VIP_TEST_PORT:String(server.address().port)});
+  assert.equal(child.origin,`http://[::1]:${server.address().port}`);
+  const ipv6Api=async(path,data)=>{
+    const response=await fetch(child.origin+path,{method:data?'POST':'GET',headers:{
+      'X-OpenDesk-Local-Test':'1',...(data?{'Content-Type':'application/json'}:{})
+    },...(data?{body:JSON.stringify(data)}:{})});
+    assert.equal(response.status,200);
+    return response.json();
+  };
+  const member=await ipv6Api('/api/member');
+  assert.equal(member.redemptions.length,0);
+  const preview=await ipv6Api('/api/preview',{code:'DEMO-VIP-01'});
+  const post={previewId:preview.previewId,accountId:preview.accountId,idempotencyKey:randomUUID()};
+  const receipt=await ipv6Api('/api/redeem',post);
+  assert.equal(receipt.cookieDelivery.targetUrl,'http://127.0.0.1:7898/session/');
+  assert(JSON.stringify((await ipv6Api('/api/status',post)).cookieDelivery)===JSON.stringify(receipt.cookieDelivery),
+    'IPv6 status retains the delivery');
+  const cookie=receipt.cookieDelivery.cookies[0],ipv4Cookie=ipv4Receipt.cookieDelivery.cookies[0];
+  for(const [origin,sessionCookie,expected] of [
+    [child.origin,cookie,'受控会话有效'],[child.origin,ipv4Cookie,'未建立受控会话'],
+    [addr,ipv4Cookie,'受控会话有效'],[addr,cookie,'未建立受控会话']
+  ]){
+    const response=await fetch(origin+'/session/',{headers:{Cookie:`${sessionCookie.name}=${sessionCookie.value}`}});
+    const html=await response.text();
+    assert(html.includes(expected),'each listener accepts only its own issued token');
+    assert(!html.includes(cookie.value)&&!html.includes(ipv4Cookie.value),'HTML contains no Cookie values');
+  }
+  const ipv4Member=await api('/api/member');
+  assert.equal(ipv4Member.data.redemptions.length,1);
+  assert.equal(ipv4Member.data.redemptions[0].redemptionId,ipv4Receipt.redemptionId);
+  assert.equal(fixture.ledger.size,1,'IPv4 fixture ledger remains unchanged');
+  assert(!child.output().includes(cookie.value)&&!child.output().includes(ipv4Cookie.value),
+    'CLI logs contain no Cookie values');
 });

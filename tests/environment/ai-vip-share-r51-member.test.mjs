@@ -36,6 +36,8 @@ async function runtime({configured=false,provider,store={value:null},clockShiftM
   const request=async args=>{calls.push(args);return reply(args)};
   const etag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
   const storage=async (operation,payload)=>{
+    // This harness models the redemption key independently of the Cookie journal.
+    if(payload.key==='aiVipCookieDeliveryR137')return {value:null,etag:etag(null)};
     storageCalls.push(operation);
     if(operation==='storage.get')return {value:storageGet?await storageGet(store.value):store.value,etag:etag(store.value)};
     if(operation!=='storage.set')throw Error('Unexpected storage operation');
@@ -81,9 +83,9 @@ const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.3.6');
+  assert.equal(pkg.version,'1.3.7');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
-  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed']);
+  assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   assert(pkg.html.includes('id="ai-vip-benefits"'));
   assert(pkg.html.includes('id="ai-vip-history-list"'));
@@ -523,7 +525,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.3.6');
+  assert.equal(store.value?.packageVersion,'1.3.7');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);

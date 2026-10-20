@@ -37,9 +37,10 @@ function fixtureRequest(fixture,{method,url,data,headers}){
   });
 }
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
-  developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet}={}){
+  developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
+  performanceClock=performance}={}){
   const nodes=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>[id,node(id)]));
-  const calls=[],storageCalls=[],proxyCalls=[];
+  const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[];
   let current={...released,...(developmentProfile?{developmentProfile}: {})};
   const storage=async(operation,payload)=>{
     storageCalls.push({operation,...clone(payload)});
@@ -59,19 +60,25 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     assert.equal(new URL(args.url).origin,ORIGIN);
     assert(['/api/member','/api/preview','/api/redeem','/api/status'].includes(new URL(args.url).pathname));
     if(network)return network(args,fixture);
-    return fixtureRequest(fixture,{...args,headers:args.config.headers});
+    const result=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+    if(receiptTransform&&result.data?.status==='redeemed')result.data=receiptTransform(clone(result.data));
+    return result;
   };
   const managed={getStatus:async()=>getStatus?getStatus():clone(current),
     requestEnable:async args=>{proxyCalls.push({action:'enable',...clone(args)});current={...owned,developmentProfile};return clone(current)},
     requestDisable:async()=>{proxyCalls.push({action:'disable'});current={...released,developmentProfile};return clone(current)}};
   const window={OpenDeskTool:{root:{querySelector:id=>nodes.get(id.slice(1))},request:storage},
-    OpenDeskSDK:{browser:{network:{request},proxy:{managed},tabs:{create:async()=>{throw Error('unused')}}}}};
-  vm.runInNewContext(script,{window,document:{createElement:()=>node()},URL,Date,Intl,performance,
+    OpenDeskSDK:{browser:{network:{request},proxy:{managed},cookies:{setMany:async args=>{
+      cookieCalls.push(clone(args));return cookieSetMany?cookieSetMany(args):{
+        saved:args.cookies.length,verified:args.cookies.length,
+        results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
+    }},tabs:{create:async()=>{throw Error('unused')}}}}};
+  vm.runInNewContext(script,{window,document:{createElement:()=>node()},URL,Date,Intl,performance:performanceClock,
     crypto:{randomUUID}}, {timeout:2000});
   await flush();
   const get=name=>nodes.get('ai-vip-'+name);
   const click=async(name,trusted=true)=>{get(name).listeners.click({isTrusted:trusted});await flush()};
-  return {store,fixture,get,click,calls,storageCalls,proxyCalls,
+  return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,
     async preview(value='DEMO-VIP-01'){
       get('redeem-code').value=value;get('redeem-code').listeners.input();
       get('redeem-form').listeners.submit({isTrusted:true,preventDefault(){}});await flush();
@@ -116,7 +123,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.3.6');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.3.7');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
@@ -280,4 +287,162 @@ test('development revocation and restoration during recovery read invalidates th
   assert.equal(e.calls.filter(row=>row.url.endsWith('/redeem')).length,0);
   assert.equal(e.storageCalls.filter(row=>row.operation==='storage.set'&&row.key===RECOVERY).length,0);
   assert.equal(e.get('recovery').hidden,true);
+});
+
+const COOKIE_KEY='aiVipCookieDeliveryR137';
+const syntheticDelivery=()=>({schemaVersion:1,deliveryId:randomUUID(),targetUrl:ORIGIN+'/session/',
+  expiresAt:Date.now()+120000,cookies:[{name:'synthetic_session',value:'synthetic-test-only',
+    path:'/session/',httpOnly:true,secure:false,sameSite:'lax',expirationDate:Date.now()/1000+3600}]});
+async function cookieRuntime(options={}){
+  const transform=options.receiptTransform;
+  const e=await runtime({...options,receiptTransform:r=>{
+    r.cookieDelivery=syntheticDelivery();return transform?transform(r):r;
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  return e;
+}
+test('Cookie delivery waits for explicit user intent, uses public setMany, records no values and never replays after reopen',async()=>{
+  const e=await cookieRuntime();
+  assert.equal(e.get('cookie-install').disabled,false);
+  assert.equal(e.cookieCalls.length,0);
+  await e.click('cookie-install',false);assert.equal(e.cookieCalls.length,0);
+  await e.click('cookie-install');
+  assert.equal(e.cookieCalls.length,1);
+  assert.equal(e.cookieCalls[0].url,ORIGIN+'/session/');
+  assert.match(e.get('cookie-status').textContent,/全部 Cookie 已写入并核验/);
+  const saved=e.store.get(COOKIE_KEY);
+  assert.equal(saved.state,'success');assert.equal(saved.results[0].verified,true);
+  assert(!JSON.stringify([...e.store.values()]).includes('synthetic-test-only'));
+  await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
+  const reopened=await runtime({store:e.store,fixture:e.fixture});
+  assert.equal(reopened.cookieCalls.length,0);
+  assert.match(reopened.get('cookie-status').textContent,/全部 Cookie 已写入并核验/);
+  assert.equal(reopened.get('cookie-install').hidden,true);
+  await e.click('proxy-toggle');await e.click('proxy-toggle');
+  assert.equal(e.store.get(COOKIE_KEY).state,'success');assert.equal(e.cookieCalls.length,1);
+});
+test('Cookie parser refuses cross-origin, script fields, store/partition overrides, invalid times and oversized data before SDK',async()=>{
+  const mutations=[d=>{d.targetUrl='https://chatgpt.com/'},d=>{d.targetUrl=ORIGIN+'/session/?token=x'},
+    d=>{d.scripts=['forbidden']},d=>{d.cookies[0].domain='.example.com'},
+    d=>{d.cookies[0].storeId='1'},d=>{d.cookies[0].partitionKey={topLevelSite:'https://other.test'}},
+    d=>{d.expiresAt=Date.now()-1000},d=>{d.cookies[0].expirationDate=Date.now()},
+    d=>{d.cookies[0].expirationDate=Date.now()/1000-10},d=>{d.cookies[0].sameSite='None'},
+    d=>{d.cookies[0].sameSite='no_restriction'},d=>{d.cookies[0].path='bad'},
+    d=>{d.cookies[0].value='x'.repeat(4097)},d=>{d.cookies=[...d.cookies,...d.cookies]},
+    d=>{d.cookies=Array.from({length:51},(_,i)=>({...d.cookies[0],name:'c'+i}))},
+    d=>{d.cookies=Array.from({length:4},(_,i)=>({...d.cookies[0],name:'c'+i,value:'x'.repeat(4000)}))}];
+  for(const mutate of mutations){
+    const e=await cookieRuntime({receiptTransform:r=>{mutate(r.cookieDelivery);return r}});
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.match(e.get('cookie-status').textContent,/已拒绝 Cookie 交付/);
+    assert.equal(e.cookieCalls.length,0);
+    assert.equal(e.store.get(RECOVERY),null,'invalid Cookie data must not misreport redemption as unknown');
+  }
+  const malformed=await cookieRuntime({receiptTransform:r=>({...r,cookieDelivery:'{invalid JSON'})});
+  assert.equal(malformed.cookieCalls.length,0);assert.match(malformed.get('cookie-status').textContent,/已拒绝/);
+});
+test('partial, unknown and malformed per-item receipts remain bounded and never replay on click or reopening',async()=>{
+  for(const kind of ['partial','unknown','bad-count','bad-index','saved-unverified','missing-code']){
+    const e=await cookieRuntime({receiptTransform:r=>{
+      r.cookieDelivery.cookies.push({...r.cookieDelivery.cookies[0],name:'synthetic_second'});return r},
+      cookieSetMany:async()=>kind==='bad-index'?{saved:1,verified:1,results:[{index:1,saved:true,verified:true}]}:
+        kind==='saved-unverified'?{saved:1,verified:0,results:[{index:0,saved:true,verified:false}],stopped:true}:
+        kind==='missing-code'?{saved:0,verified:0,results:[{index:0,saved:false,verified:false}],stopped:true}:
+        {saved:kind==='bad-count'?2:1,verified:1,stopped:true,results:[
+          {index:0,saved:true,verified:true},{index:1,saved:false,verified:false,
+            code:kind==='unknown'?'E_OUTCOME_UNKNOWN':'E_GRANT_REVOKED'}]}});
+    await e.click('cookie-install');
+    assert.equal(e.store.get(COOKIE_KEY).state,kind==='partial'?'partial':'unknown');
+    await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
+    const reopened=await runtime({store:e.store,fixture:e.fixture});
+    assert.equal(reopened.cookieCalls.length,0);assert.equal(reopened.get('cookie-install').hidden,true);
+  }
+});
+test('known zero-effect SDK preflight allows an explicit retry after repair, with no automatic calls',async()=>{
+  for(const code of ['E_SITE_GRANT_REQUIRED','E_CHROME_PERMISSION_REQUIRED','E_SCHEMA','E_LIMIT']){
+    let available=false;
+    const e=await cookieRuntime({cookieSetMany:async args=>{
+      if(!available)throw Object.assign(Error('no permission'),{code});
+      return {saved:1,verified:1,results:[{index:0,saved:true,verified:true}]};
+    }});
+    await e.click('cookie-install');
+    assert.equal(e.store.get(COOKIE_KEY).state,'failed');assert.equal(e.cookieCalls.length,1);
+    await e.flush();assert.equal(e.cookieCalls.length,1);
+    assert.equal(e.get('cookie-install').disabled,false);
+    available=true;await e.click('cookie-install');
+    assert.equal(e.store.get(COOKIE_KEY).state,'success');assert.equal(e.cookieCalls.length,2);
+  }
+});
+test('Cookie write-ahead/readback precedes effects and protects lost SDK acknowledgements',async()=>{
+  let entered=false;
+  const e=await cookieRuntime({cookieSetMany:async()=>{entered=true;throw Error('ack lost')}});
+  await e.click('cookie-install');assert(entered);
+  assert.equal(e.store.get(COOKIE_KEY).state,'unknown');
+  assert.match(e.get('cookie-status').textContent,/未知.*禁止重放/);
+  assert(!JSON.stringify([...e.store.values()]).includes('synthetic-test-only'));
+  const blocked=await cookieRuntime({afterStorageSet:(payload,store)=>{
+    if(payload.key===COOKIE_KEY)store.delete(COOKIE_KEY);
+  }});
+  await blocked.click('cookie-install');assert.equal(blocked.cookieCalls.length,0);
+  assert.match(blocked.get('cookie-status').textContent,/恢复存储无法核对/);
+});
+test('zero-effect revoked receipt remains honest and revoked development cannot submit',async()=>{
+  const e=await cookieRuntime({cookieSetMany:async()=>({saved:0,verified:0,stopped:true,
+    results:[{index:0,saved:false,verified:false,code:'E_GRANT_REVOKED'}]})});
+  await e.click('cookie-install');assert.equal(e.store.get(COOKIE_KEY).state,'failed');
+  assert.match(e.get('cookie-status').textContent,/未写入/);
+  const x=await cookieRuntime({afterStorageSet:(payload)=>{
+    if(payload.key===COOKIE_KEY)x?.setStatus({...released,developmentProfile:null});
+  }});
+  // Revoking the trusted dev profile removes the pending response and refuses a later click.
+  x.setStatus({...released,developmentProfile:null});await x.click('proxy-refresh');
+  await x.click('cookie-install');assert.equal(x.cookieCalls.length,0);
+});
+test('Cookie confirmation blocks redemption controls and handlers until its receipt settles',async()=>{
+  const entered=deferred(),resume=deferred();
+  const e=await cookieRuntime({cookieSetMany:async()=>{entered.resolve();await resume.promise;
+    return {saved:1,verified:1,results:[{index:0,saved:true,verified:true}]};}});
+  await e.preview();assert.equal(e.get('redeem-confirm').disabled,false);
+  const count=e.fixture.ledger.size;
+  e.get('cookie-install').listeners.click({isTrusted:true});await entered.promise;
+  assert.equal(e.get('redeem-confirm').disabled,true);
+  assert.equal(e.get('redeem-code').disabled,true);
+  assert.equal(e.get('recovery-check').disabled,true);
+  await e.click('redeem-confirm');await e.click('recovery-check');
+  assert.equal(e.fixture.ledger.size,count);
+  resume.resolve();await e.flush();
+  assert.equal(e.get('redeem-confirm').disabled,false);
+  await e.click('redeem-confirm');assert.equal(e.fixture.ledger.size,count+1);
+});
+test('expiry, account change and development revocation during persistence stay definitely unsubmitted',async()=>{
+  for(const kind of ['expiry','account','revocation']){
+    let account='local-fixture-account',offset=0,hold=false;
+    const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,
+      getMemberState:()=>({account:{state:'bound',id:account,displayNameMasked:'t***'},entitlements:[]})});
+    const e=await cookieRuntime({fixture,performanceClock:{now:()=>performance.now()+offset},
+      afterStorageSet:async payload=>{
+        if(!hold||payload.key!==COOKIE_KEY)return;hold=false;
+        if(kind==='expiry')offset=180000;
+        if(kind==='account'){account='changed-account';await e.click('refresh');}
+        if(kind==='revocation'){e.setStatus({...released,developmentProfile:null});await e.click('proxy-refresh');}
+      }});
+    hold=true;await e.click('cookie-install');
+    for(let i=0;i<6&&e.get('cookie-status').textContent.startsWith('正在核对');i++)await e.flush();
+    assert.equal(e.cookieCalls.length,0,kind);
+    assert.equal(e.store.get(COOKIE_KEY).state,'failed',kind+' has no Cookie effects: '+e.get('cookie-status').textContent);
+    assert.equal(e.get('cookie-install').hidden,true);
+    assert.doesNotMatch(e.get('cookie-status').textContent,/结果未知/);
+  }
+});
+test('success A then B survives reopen and refuses a still-valid historical A delivery',async()=>{
+  const a=syntheticDelivery(),b=syntheticDelivery();let delivered=a;
+  const e=await cookieRuntime({receiptTransform:r=>({...r,cookieDelivery:delivered})});
+  await e.click('cookie-install');delivered=b;
+  await e.preview();await e.click('redeem-confirm');await e.click('cookie-install');
+  assert.equal(e.cookieCalls.length,2);assert.equal(e.store.get(COOKIE_KEY).state,'success');
+  const reopened=await runtime({store:e.store,fixture:e.fixture,
+    receiptTransform:r=>({...r,cookieDelivery:a})});
+  await reopened.preview();await reopened.click('redeem-confirm');await reopened.click('cookie-install');
+  assert.equal(reopened.cookieCalls.length,0);
+  assert.equal(reopened.store.get(COOKIE_KEY).deliveryId,b.deliveryId);
 });

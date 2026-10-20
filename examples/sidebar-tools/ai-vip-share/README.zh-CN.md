@@ -1,11 +1,11 @@
 # AI VIP Share · 独立 Sidebar Tool
 
 正式工具 ID：`ai-vip-share`；源码目录：`examples/sidebar-tools/ai-vip-share/`。
-用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、Cookie 会话移植或常驻日志。
+用户从 OpenDesk Browser「扩展」安装，不需要持有浏览器项目源码；本工具不提供任意节点、PAC 编辑器、任意 Cookie 会话移植或常驻日志；仅接收经批准目标的受控 Cookie 交付。
 
-## 当前源码：本地开发闭环 / 1.3.6
+## 当前源码：Cookie 交付与本地代理 / 1.3.7
 
-唯一可导入包为本目录的 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)，由唯一打包器验证候选后晋升。正式顺序为会员 → 兑换 → 商品 → 代理；沿用原控件 ID、opaque-origin 沙箱、现有安装存储和公共 Browser SDK。当前 v2 能力为 `storage.local`、`network`、`browser.tabs`、`browser.proxy.managed`；R2–R5.2 下文关于旧 `aiAccess.*` 与 `SDK_BLOCKED` 的描述仅是历史，不能当作当前接线。
+唯一可导入包为本目录的 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)，由唯一打包器验证候选后晋升。正式顺序为会员 → 兑换 → Cookie 交付 → 商品 → 代理；沿用原控件 ID、opaque-origin 沙箱、现有安装存储和公共 Browser SDK。当前 v2 能力为 `storage.local`、`network`、`browser.tabs`、`browser.proxy.managed`、`browser.cookies.write`；R2–R5.2 下文关于旧 `aiAccess.*` 与 `SDK_BLOCKED` 的描述仅是历史，不能当作当前接线。
 
 代理仅显示一个启停主按钮。START 等待期间可主动 STOP；晚到 START 与旧状态读取不能覆盖 STOP，未证明释放时保留停用入口与待确认提示。停用不依赖会员、商业 Provider 或合法启用端点。会员核验成功后会同步刷新启用条件，失败信息不会被普通重绘吞掉。兑换继续先预检、再本人确认；持久事务读回按已验证字段比较，写入等待后再次检查预检时限。存储暂时读取失败可主动重试；未知事务不自动重发、清除或认定成功。
 
@@ -14,6 +14,29 @@ production 的 `BUSINESS_ENDPOINTS` 四项、商品目录及 `APPROVED_PROXY_END
 在持续 development 构建中，可信 SDK 仅向源码审阅锁定的本工具包返回固定本机 profile。用户主动选择「连接本地开发」后，工具经公开 `browser.network.request` 访问 7898 的会员、预检、兑换及回执 API；输入 `DEMO-VIP-01` 并确认兑换，真实 fixture 回执才授予演示权益。之后可以通过公开 `browser.proxy.managed` 启停 **HTTP 127.0.0.1:7897**，不使用旧 `aiAccess.*`。界面明确显示「本地开发」，不是付费会员。生产构建不提供该 profile，也不读取或复用本地选择来启用代理。
 
 具体运行方式见[本地联调说明](dev/local-test/README.zh-CN.md)；开发原生证据及尚未验证项只维护在[Managed Proxy 工作记录](../../../docs/framework/workstreams/ai-vip-share-r54-managed-proxy-sdk-closure-20261015.md)。旧候选历史见 [R5.9 工作记录](../../../docs/framework/workstreams/ai-vip-share-r59-formal-core-20261016.md)，不代表当前 production 验收。
+
+## Cookie 交付（2026-10-20，本轮按用户指定测试文件验证）
+
+受控流程：连接本地开发 → 预检并确认兑换 → 收到服务端 `cookieDelivery` → 核对目标与替换当前会话的提示 → 点击「确认写入网站 Cookie」→ 由原可信宿主确认本次精确批次 → 显示逐项回执 → 在目标页面核对会话。缺少 Chrome Cookie/网站权限或工具站点 write 授权时，先在原可信设置授予该目标；不借用 Cookie Editor 的全站或特殊批量身份。此确认是具体 Cookie 副作用意图，不是通用的二次启用。
+
+当前只有开发来源 pin 允许的 `http://127.0.0.1:7898/session/` 是受控交付目标。生产 `COOKIE_TARGETS` 为空；真实 AI VIP 后台、目标站点和所有者授权均尚未知。历史 CSDN 消费者返回 `scripts[0]`，不能视为 AI VIP Cookie JSON 合同；本工具不会执行服务端脚本。以下为测试协议，不是线上服务协议：
+
+```text
+已验证的 redeemed 回执（匹配 accountId、idempotencyKey、redemptionId）
+  cookieDelivery:
+    schemaVersion: 1
+    deliveryId: 有界且稳定的交付标识
+    targetUrl: 固定批准的完整 URL
+    expiresAt: Unix 毫秒；必须在当前服务端时间后 5 分钟以内
+    cookies: 1–50 项；整批 <= 12000 UTF-8 字节
+      name, value, path（必填）；domain、secure、httpOnly、sameSite、expirationDate（可选）
+```
+
+`expirationDate` 使用 Unix 秒，不沿用旧实现的「统一延长一天」。SameSite 采用 Chrome `unspecified/lax/strict/no_restriction`；Secure/前缀约束照公共 SDK。domain 只允许目标 hostname（可有前导点），拒绝跨域、错误 store/partition、未知字段、重复 identity、失效及超限数据。工具不请求全站权限，不自动改变 Store/Partition，也不允许危险请求头或沙箱 fetch 绕过 SDK。
+
+原始值通过既有 SDK 的受控消息交给 Chrome 原生 Cookie 存储；交付副本仅留沙箱与测试服务内存，不进入工具存储、URL、页面文本、日志或截图。工具存储只保留有界交付标识、目标、账号、操作标识和脱敏逐项回执，写前 CAS+读回确认。完整 verified 回执才显示写入成功；部分成功不会自动回滚、清除或重放，未知/不完整回执及丢失应答都保留禁止重放状态，返回重开不自动发起写入。确定未调用接口的失效操作记为未提交；SDK 在写入前明确拒绝的权限、格式或容量错误记为未写入，仅可由用户修复后主动重试，交付过期则拒绝。
+
+Cookie 写入与代理各自保留状态：启停代理不删除 Cookie，写 Cookie 不启动代理；同 Profile 共用 Cookie 存储，新增 Clash 端口不能隔离它。正常复用 7897。受控页面显示「受控会话有效」才是本轮页面证据，不能据此认定第三方登录或付费会员成功。
 
 ## 产品设计与原型（R4）
 

@@ -17,7 +17,7 @@ curl -sS http://127.0.0.1:7898/health
 curl -sS http://127.0.0.1:7898/proxy.pac
 ```
 
-## 当前公开 SDK 开发入口（1.3.6）
+## 当前公开 SDK 开发入口（1.3.7）
 
 使用现有 `npm run dev` watcher 的 `dist/development`，保留扩展 ID 和 Native 配对。7897 必须已经是可用的 **HTTP CONNECT** 代理；7898 是下面的本地 fixture，不提供代理功能。若浏览器请求包含扩展 Origin，启动时绑定实际 ID：
 
@@ -25,11 +25,15 @@ curl -sS http://127.0.0.1:7898/proxy.pac
 VIP_TEST_EXTENSION_ORIGIN=chrome-extension://<实际扩展ID> node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
 ```
 
-1. 从「扩展」安装/更新并打开 `ai-vip-share` 1.3.6，核对「本地开发」提示。该入口仅对源码锁定的候选包和 development Host 可用。
+1. 从「扩展」安装/更新并打开 `ai-vip-share` 1.3.7，核对「本地开发」提示。该入口仅对源码锁定的候选包和 development Host 可用。
 2. 点击「连接本地开发」，按可信宿主实际提示审阅网站/网络权限；会员状态应为「尚未开通」。
 3. 输入演示码 `DEMO-VIP-01`，点击「预检兑换」或按 Enter，再点击「确认兑换」。界面显示「权益有效」、20 次演示额度和「本地开发代理」后，才出现可用的启用按钮。
 4. 点击「启用代理」并完成可信宿主的代理确认。固定 profile 是 `http://127.0.0.1:7897`；PAC 使用 `PROXY`，不冒充 HTTPS 代理。
 5. 正常访问目标网页/API，再返回并重开工具，点击「停用代理」。确认「已停止」后重开，会员仍可查询且代理保持释放，不自动再次启用。
+
+Cookie 框架联调使用本 fixture 的 `http://127.0.0.1:7898/session/`，初始显示「未建立受控会话」。先激活该标签页，在工具可信设置中授予该站点 Cookie write，并按实际提示审阅 Chrome Cookie/网站权限；再返回工具完成兑换。兑换回执携带短时有效、固定目标的 `cookieDelivery`，只保存在当前工具内存。点击「确认写入网站 Cookie」，审阅可信宿主的精确批次，逐项 verified 后刷新目标页面，应显示「受控会话有效」。代理启停和重开工具不删除 Cookie，也不再次写入。离开工具后若交付副本已丢失，不能靠重开自动重放旧操作。
+
+原生驱动可用 `OPENDESK_PROXY_DEV_CORE=1 OPENDESK_PROXY_DEV_COOKIE=1` 选择此流程。它在本次隔离 CfT 内把逻辑 `127.0.0.1:7898` 映射至自有 IPv6 `::1:7898` fixture，绑定实际扩展 ID，结束只关闭该 listener；现有 IPv4 fixture 账本和 Clash 7897 保留。Cookie 模式不保存截图、NetLog 或原始 Cookie 值。显式静态快照测试另加 `OPENDESK_PROXY_C1_STATIC=1` 与绝对 `OPENDESK_PROXY_C1_EXTENSION_PATH`，通过构建回执核对身份，不能当作日常 watcher 连接或 production 验收。
 
 会员的四条 API 通过现有公开 `browser.network.request` 携带 `X-OpenDesk-Local-Test: 1`；代理通过 `browser.proxy.managed`。不在沙箱直接 fetch，不注入会员/安装/代理状态。API 路由覆盖 openai.com、anthropic.com、generativelanguage.googleapis.com 及对应网站域名；其余站点 DIRECT。API 的 401/403/405 表示实际连通后的凭据或方法限制，不证明付费调用成功。
 
