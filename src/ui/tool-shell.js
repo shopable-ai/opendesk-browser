@@ -120,11 +120,12 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
 extensionList.renderNavigation(pendingReactTab);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,view:toolView,
-  // Explicit developer-only, non-release opt-in. All other opens use the
-  // unchanged opaque sandbox; mounting uses the already-owned React root.
+  // Normal opens try the compiled React UI. The controller MUST still verify
+  // the exact official installed package, catalog SHA, enabled state and
+  // revocation epoch before mounting; other packages stay in opaque iframes.
   trustedBookmarkPilot:{
     componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
-    enabled:Boolean(debugEnabled&&hostUrl.searchParams.get('bookmarkReactPilot')==='1'),
+    enabled:true,
     mount:args=>{
       if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
       return extensionList.mountBookmarkPilot(args);
