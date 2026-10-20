@@ -60,7 +60,7 @@ test('R5.7 native React one-click adds only the current verified website',async 
       assert.equal(event.isTrusted,true,'only a genuine fixed Side Panel click may write');
       assert.equal(operation,'focus.site.put');
       writes.push(structuredClone(payload));
-      state.sites.push({...payload.site});
+      state.sites=state.sites.filter(row=>row.host!==payload.site.host).concat({...payload.site});
       return structuredClone(state);
     }});
   t.after(()=>controls.dispose());
@@ -78,6 +78,15 @@ test('R5.7 native React one-click adds only the current verified website',async 
   assert.equal(f.model.currentAction,'managed');
   assert.equal(f.find('stay-focus-current-add'),null,'managed site cannot be repeatedly added');
   assert.ok(notices.some(row=>/已管理/.test(row.message)&&!row.isError));
+  assert.ok(f.find('stay-focus-current-pause'),'managed site exposes only trusted pause');
+  await f.invoke('stay-focus-current-pause',{isTrusted:false});
+  assert.equal(writes.length,1,'synthetic pause must not send another write');
+  await f.invoke('stay-focus-current-pause',{isTrusted:true});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(writes[1],{site:{...writes[0].site,enabled:false}},
+    'one native React pause preserves all existing limit settings');
+  assert.equal(f.model.currentAction,'paused');
+  assert.equal(f.find('stay-focus-current-pause'),null);
 });
 test('R5.7 trusted quick-add refuses navigation races and resumes a paused rule unchanged',async t=>{
   const f=settingsReactFixture('stayFocus',t),writes=[];
