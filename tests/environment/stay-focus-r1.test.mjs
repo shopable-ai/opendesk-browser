@@ -538,7 +538,7 @@ test('R5.1 portable preview embeds the exact installable Stay Focus HTML/CSS/JS'
   assert.equal(embedded.runtime.kind,'PREVIEW_SHARED_UI_ADAPTER_NOT_NATIVE');
   assert.equal(embedded.runtime.reactVersion,'19.2.0');
   assert.equal(embedded.runtime.react,readFileSync(
-    new URL('../../src/libs/page-frameworks/react-19.2.0.js',base),'utf8'));
+    new URL('../../../src/libs/page-frameworks/react-19.2.0.js',base),'utf8'));
   assert.equal(embedded.runtime.adapter,readFileSync(
     new URL('preview/ui-adapter.js',base),'utf8'));
   assert.match(embedded.runtime.css,/od-shared-switch/);
