@@ -85,11 +85,17 @@ function reviewedCompiledBookmarkReact(target,path,root){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'ad5e3bb10a0af62629db5bd0da474b71f1ae4ed4'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'ad5e3bb10a0af62629db5bd0da474b71f1ae4ed4',
+  // The first-party OD gesture bridge is fixed SW code, never an installed package.
+  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
-  if(!promptFixedTargets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
+  // Only the exact reviewed OD rail bridge may also enter the fixed SW.
+  // Page/policy/model remain bound to the original restricted outputs.
+  const railBridge=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  if(!(promptFixedTargets.has(target)||railBridge&&target==='sw.js')||
+    !Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Prompt Shortcuts source must not be a symlink: '+path);

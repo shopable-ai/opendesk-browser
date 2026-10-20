@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {createPanelToolIntent,createPanelToolIntentReceiver,panelToolIntentKey,
   validPanelToolIntent,PANEL_TOOL_INTENT_TTL_MS}
   from '../../src/ui/sidebar-tools/panel-tool-intent.js';
@@ -105,4 +107,17 @@ test('official native Side Panel controller reuses React ToolHost and does not n
   assert.match(source,/sidebarTools\.openTool\(toolId\)/);
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   assert.match(host,/active\?\.id===id&&!readOnlyPreview&&!tocSettingsOpen&&frame\?\.isConnected/);
+});
+
+test('reviewed prompt rail bridge is pinned for fixed Service Worker only, never arbitrary tool code',()=>{
+  const root=process.cwd(),info={renderedLength:15,originalLength:15};
+  const bundle=(fileName,path)=>describeBundle({root,lock:{packages:{}},
+    chunk:{fileName,modules:{[resolve(root,path)]:info}}});
+  const modulePath='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  const trusted=bundle('sw.js',modulePath);
+  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c');
+  assert.throws(()=>bundle('sw.js','examples/sidebar-tools/prompt-shortcuts/trusted/page.js'),
+    /Historical\/user\/vendor code cannot enter/);
+  assert.throws(()=>bundle('scripting/user-scripts.js',modulePath),
+    /Historical\/user\/vendor code cannot enter/);
 });
