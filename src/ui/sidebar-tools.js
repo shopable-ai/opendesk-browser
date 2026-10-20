@@ -1126,12 +1126,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   function setVisible(next,destination=null) {
     if(disposed)return;
+    // Do not dismiss a trusted import while an installation is in flight.
+    if(!next&&visible&&busy)return false;
     if(!next&&visible&&!canLeave(()=>{
       suspendTool();
       if(destination&&destination!=='tools')taskWorkbench.navigate?.(destination);
     }))return false;
     visible=Boolean(next);
-    if(!visible){suspendTool();return;}
+    if(!visible){setImportOpen(false);suspendTool();return;}
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
