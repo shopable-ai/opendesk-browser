@@ -109,6 +109,28 @@ export function TimeReviewSettings({model,actions}){
 </section>;
 }
 
+// This button is in the fixed extension-owned React tree above the sandbox.
+// It is intentionally not an iframe approval or a second confirmation dialog.
+export function StayFocusQuickAdd({model,actions}){
+  if(!model?.visible||!model.canGrant)return null;
+  const action=model.currentAction;
+  const canChange=action==='add'||action==='paused';
+  return <section id="stay-focus-current-trusted" className="od-surface od-surface--padded"
+    aria-label="当前网站一键管理"
+    style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
+    <span className="od-note" style={{minWidth:0,overflowWrap:'anywhere'}}>
+      当前网页 <strong>{model.currentPageHost||'当前网页不可管理'}</strong>
+    </span>
+    {action==='managed'
+      ?<span className="od-note" role="status">✓ 已管理</span>
+      :<button type="button" id="stay-focus-current-add" className="od-button"
+        disabled={model.busy||!canChange}
+        onClick={event=>actions?.quickAdd(event.nativeEvent)}>
+        {action==='paused'?'恢复':action==='loading'?'正在核对':action==='error'?'状态不可用':'加入'}
+      </button>}
+  </section>;
+}
+
 export function StayFocusSettings({model,actions}){
   const ref=useSettingsEffect(model);
   if(!model)return null;
