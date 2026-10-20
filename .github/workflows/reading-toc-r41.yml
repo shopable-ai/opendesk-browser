@@ -59,6 +59,10 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      # Official release fixtures include AdBlock's source-bound React assets.
+      # These direct node --test commands do not invoke npm's pretest hook.
+      - name: Compile official catalog React prerequisite
+        run: node scripts/build-adblock-react.mjs
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
           node --test tests/environment/reading-toc-official-identity-r11.test.mjs tests/environment/reading-toc-existing-tabs-r11.test.mjs tests/environment/reading-toc-worker-access-r11.test.mjs tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-chatgpt-content-r182.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs tests/environment/reading-toc-recovery-r48.test.mjs tests/environment/sidebar-tool-localization-r12.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
@@ -86,7 +90,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y fonts-noto-cjk
       - name: Install Chrome for Testing (unpacked MV3 supported)
-        if: ${{ !cancelled() && steps.production_build.outcome == 'success' }}
+        # Offline interactive preview runs even when another App blocks WXT build.
+        if: ${{ !cancelled() }}
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
