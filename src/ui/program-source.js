@@ -1,4 +1,4 @@
-import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
+import {patchDeveloperField,developerOptions} from './develop-view.js';
 import {validatePageSource,PAGE_BUNDLE_LIMITS} from '../scripting/user-scripts/page-bundle.js';
 import {inspectPageFrameSource,PAGE_FRAME_DRAFT_LIMIT} from '../scripting/user-scripts/page-frame-resources.js';
 import {validateRemoteLock} from '../scripting/user-scripts/remote-esm-contract.js';
@@ -103,8 +103,8 @@ export async function validateProgramDraft(input) {
   return Object.freeze(value);
 }
 
-export function createProgramSourceView({document:doc,view=null,listen,onChange}) {
-  const get = id => view?view.fields[id]:doc.getElementById(id), editor = get('script-source');
+export function createProgramSourceView({view,listen,onChange}) {
+  const get = id => view.fields[id], editor = get('script-source');
   let artifact = null;
   const source = () => artifact?.sourceUtf8 ?? editor.value;
   function show(value) {

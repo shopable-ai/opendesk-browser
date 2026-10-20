@@ -20,7 +20,7 @@ async function fixture(t,{sourceUtf8=source,handle}={}){
   const view=createDeveloperView(),find=developerTestFields(view);
   const doc={getElementById(){assert.fail('controller fields must come from the view');}};
   find('script-id').value='fixed-frame';find('script-source').value=sourceUtf8;
-  find('script-target-mode').value='current';find('script-params').value='{}';
+  find('script-params').value='{}';
   const target={snapshot:{status:'available',windowId:7,tabId:11,frameId:0,
     documentId:'document-a',url:'https://a.example/',origin:'https://a.example',title:'A'},
     ready:Promise.resolve(),subscribe(fn){fn(this.snapshot);return ()=>{};},

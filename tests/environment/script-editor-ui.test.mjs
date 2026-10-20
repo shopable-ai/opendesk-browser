@@ -677,7 +677,7 @@ test(`R343 ${bridge} ${framework} ${control} restores Controller routing without
   await until(()=>!f.find('script-run').disabled,
     'Controller Run did not settle');
   assert.deepEqual(starts[0].source,{kind:'draft',sourceUtf8:source});
-  await action('save');
+  await action('save-version');
   await until(()=>commits.length===1,'loaded Controller Save did not commit a Controller revision');
   assert.equal(commits[0].sourceUtf8,source);
   await select(framework);

@@ -977,10 +977,11 @@ test('R24.3 final asynchronous document check refuses a React component edited b
     })
   });
   t.after(()=>{release.resolve();f.dispose();});
+  const first="import React from 'react';\nexport default function App(){return <b>original component</b>}";
+  f.find('script-source').value=first;f.find('script-source').fire('input');await tick();
   const radio=f.find('page-component-react');
   radio.checked=true;radio.fire('change');await tick();
-  const first=f.find('script-source').value;
-  assert.match(first,/from 'react'/);
+  assert.equal(f.find('script-source').value,first,'selecting React must retain the authored component');
   f.find('script-run').fire('click',{isTrusted:true});
   const reached=await Promise.race([entered.promise.then(()=>true),
     new Promise(resolve=>setTimeout(()=>resolve(false),1200))]);
@@ -1550,7 +1551,7 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
     '<template><b>author SFC</b></template>';
   const choose=async kind=>{const field=f.find('page-component-'+kind);field.checked=true;field.fire('change');await tick();};
   await choose(framework);
-  f.find('script-source').value=author;f.find('script-source').fire('input');
+  f.find('script-source').value=author;f.find('script-source').fire('input');await tick();
   const original=f.client.request.bind(f.client);let saved;
   f.client.request=async(method,payload)=>{
     if(method==='importPageCandidate'){
@@ -1568,7 +1569,8 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
     return original(method,payload);
   };
   await f.click('page-candidate-save');
-  await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved','author Candidate was not saved');
+  await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved',
+    'author Candidate was not saved: '+f.find('page-candidate-status').textContent);
   assert.deepEqual(saved.authoring,{framework,sourceUtf8:author});
   assert.notEqual(saved.sourceUtf8,author,'execution bytes stay separate from editable source');
   assert.equal(saved.authorSourceUtf8,undefined,'component must not pretend to be esm-page');
@@ -1587,7 +1589,7 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
   assert.equal(saved.sourceUtf8,executable,'loading must not rewrite fixed execution bytes');
   assert.equal(f.starts.length,0);assert.equal(f.previews.length,0,'save/load does not execute');
   compilerFails=true;
-  f.find('script-source').value=author+'\n/* invalid edit';f.find('script-source').fire('input');
+  f.find('script-source').value=author+'\n/* invalid edit';f.find('script-source').fire('input');await tick();
   await f.click('page-candidate-save');
   await waitForComponentUI(()=>f.find('page-candidate-status').textContent.includes('E_PAGE_COMPILER'),'failed edit was not rejected');
   assert.equal(imports,1,'compiler failure must not save previous execution bytes');
@@ -1657,7 +1659,7 @@ test('Stop during browser component preparation prevents a late compiler result 
     const ready=deferred(),value=await honestComponentFixture().prepare({framework:'react',projectId:'browser-react'});let started=false;
     const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({inspect:async input=>componentInspectResult(input),prepare:async()=>{started=true;return ready.promise;},cancel(){},dispose(){}})});
     t.after(()=>f.dispose());const requests=browserPageResponses(f);await selectBrowserReact(f);
-    await f.click(save?'script-save':'script-run');await waitForComponentUI(()=>started,'compiler should be pending');
+    await f.click(save?'page-candidate-save':'script-run');await waitForComponentUI(()=>started,'compiler should be pending');
     assert.equal(f.find('script-stop').disabled,false);assert.equal(f.find('script-stop').textContent,'取消准备');
     await f.click('script-stop');ready.resolve(value);await tick();await tick();await tick();
     assert.equal(requests.length,0,'a canceled operation may not dispatch or save stale source');

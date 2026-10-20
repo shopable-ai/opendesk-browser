@@ -58,9 +58,7 @@ export const DEVELOPER_FIELDS = {
   "local-project-refresh": {
     "title": "刷新已授权本地项目"
   },
-  "local-project-status": {
-    "tag": "p"
-  },
+  "local-project-status": {},
   "local-install-review": {
     "hidden": true
   },
@@ -83,9 +81,7 @@ export const DEVELOPER_FIELDS = {
   "local-install-cancel": {
     "textContent": "取消"
   },
-  "local-install-status": {
-    "tag": "p"
-  },
+  "local-install-status": {},
   "local-project-diagnostics": {
     "textContent": "正在核对 Native 和源码 Provider。"
   },
@@ -108,9 +104,7 @@ export const DEVELOPER_FIELDS = {
   "local-project-params": {
     "value": "{}"
   },
-  "manual-source-editor": {
-    "tag": "div"
-  },
+  "manual-source-editor": {},
   "program-source-info": {
     "hidden": true
   },
@@ -125,9 +119,7 @@ export const DEVELOPER_FIELDS = {
   "page-component-editor-tools": {
     "className": "od-toolbar"
   },
-  "page-component-framework": {
-    "tag": "fieldset"
-  },
+  "page-component-framework": {},
   "page-component-javascript": {
     "name": "page-component-choice",
     "value": "javascript",
@@ -204,9 +196,7 @@ export const DEVELOPER_FIELDS = {
   "page-component-remote": {
     "hidden": true
   },
-  "page-component-remote-status": {
-    "tag": "p"
-  },
+  "page-component-remote-status": {},
   "page-component-remote-sources": {
     "hidden": true
   },
@@ -231,16 +221,12 @@ export const DEVELOPER_FIELDS = {
     "hidden": true,
     "className": "od-disclosure od-disclosure--flat"
   },
-  "page-component-remote-detail-body": {
-    "tag": "pre"
-  },
+  "page-component-remote-detail-body": {},
   "program-generated": {
     "hidden": true,
     "className": "od-disclosure od-disclosure--flat"
   },
-  "program-generated-source": {
-    "tag": "pre"
-  },
+  "program-generated-source": {},
   "manual-project-params-tools": {
     "className": "developer-params od-disclosure"
   },
@@ -281,9 +267,7 @@ export const DEVELOPER_FIELDS = {
     ],
     "value": ""
   },
-  "sdk-capabilities": {
-    "tag": "fieldset"
-  },
+  "sdk-capabilities": {},
   "sdk-target-origins": {
     "value": ""
   },
@@ -357,9 +341,7 @@ export const DEVELOPER_FIELDS = {
       "state": "blocked"
     }
   },
-  "script-user-scripts-recovery-status": {
-    "tag": "p"
-  },
+  "script-user-scripts-recovery-status": {},
   "script-user-scripts-settings": {
     "textContent": "打开扩展设置"
   },
@@ -480,9 +462,7 @@ export const DEVELOPER_FIELDS = {
     "hidden": true,
     "className": "od-disclosure od-disclosure--flat"
   },
-  "page-preview-technical": {
-    "tag": "pre"
-  },
+  "page-preview-technical": {},
   "page-candidate-save": {
     "disabled": true,
     "textContent": "保存网页脚本版本"
@@ -613,9 +593,7 @@ export const DEVELOPER_FIELDS = {
     "disabled": true,
     "textContent": "删除脚本"
   },
-  "script-current-page-debug": {
-    "tag": "pre"
-  },
+  "script-current-page-debug": {},
   "develop-dock": {
     "className": "dock-actions",
     "hidden": true
