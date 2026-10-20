@@ -80,6 +80,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       onReset(){if(disposed)return;kind='all';scope='smart';draw();},
       onImport(){if(disposed)return;closeMenu();backIfNeeded();sidebarTools.openImport();
         get('sidebar-tool-file')?.focus({preventScroll:true});},
+      onImportFiles(files){
+        if(disposed||busy||pendingKey)return;
+        closeMenu();closeRowMenu();backIfNeeded();
+        try{
+          if(sidebarTools.openImportFiles?.(files)!==true)
+            message('当前无法打开扩展安装器，请稍后重试。','error');
+        }catch(error){message('导入失败：'+String(error?.message||error),'error');}
+      },
       onReload(){if(disposed)return;closeMenu();message('正在刷新扩展…','loading','loading');
         void readOfficial();void refresh();},
       onLanguage(value){if(disposed)return;void localeController?.setLocale(value).catch(error=>{

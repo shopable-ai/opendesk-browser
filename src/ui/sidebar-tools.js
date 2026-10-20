@@ -1144,6 +1144,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||busy||!visible||active)return false;
     setImportOpen(true);notice('');return true;
   }
+  function openImportFiles(files){
+    if(!openImport())return false;
+    reviewDroppedFiles(files);
+    return true;
+  }
   function openReadOnlyPreview(value){
     
     if(disposed||busy||!visible)throw new Error('预览页面已经关闭或不可用');
@@ -2622,6 +2627,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!disposed){patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});}
     }
   }
+  function reviewDroppedFiles(files){
+    if(disposed||busy)return;
+    // Dragging does not populate a native file input. Clear any prior picker
+    // name and invalidate pending asynchronous review before choosing new bytes.
+    fileSelection++;resetReview();patchToolField(view,fileInput,{value:''});
+    setFileError();notice('');
+    const selected=Array.from(files||[]);
+    if(selected.length!==1){
+      setFileError('一次只能拖入一个 JSON 扩展安装包，请重新拖入单个文件。');return;
+    }
+    const file=selected[0];
+    if(typeof file?.name!=='string'||!file.name.toLowerCase().endsWith('.json')){
+      setFileError('仅支持 JSON 扩展安装包（.opendesk-tool.json 或 .opendesk-page.json）。');return;
+    }
+    void chooseFile(file).catch(error=>setFileError(String(error?.message||error)));
+  }
   async function chooseFile(selectedFile) {
     if(disposed||busy)return;
     const selection=++fileSelection,file=selectedFile;
@@ -2808,6 +2829,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setImportOpen(false);notice('');requestToolFieldEffect(view, importTrigger, 'focus');
   });
   listen(fileInput,'change',event=>chooseFile(event?.target?.files?.[0]).catch(error=>setFileError(String(error?.message||error))));
+  listen(fileInput,'drop',event=>reviewDroppedFiles(event?.dataTransfer?.files));
   listen(fileInput,'cancel',()=>{if(!busy)clearImport();});
   listen(installButton,'click',event=>{
     if(pendingPage){void installPagePackage(event);return;}
@@ -3123,7 +3145,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openImport,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

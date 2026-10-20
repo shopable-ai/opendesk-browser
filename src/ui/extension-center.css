@@ -82,6 +82,13 @@
 #extension-center-import-host .sidebar-tool-import{margin:8px 0}
 #extension-center button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 #extension-center .ec-row-main:focus-visible{outline-offset:-2px}
+.ec-drop-surface{position:relative;min-width:0}
+.ec-file-drop-overlay{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;min-height:148px;padding:18px;
+  pointer-events:none;text-align:center;border:2px dashed var(--od-focus);
+  border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)}
+.ec-file-drop-overlay strong{font-size:14px;line-height:1.4}
+.ec-file-drop-overlay span{font-size:12px;color:var(--od-sub);line-height:1.5}
 @media(max-width:330px){
   .ec-toolbar{gap:5px}
   .ec-row{min-height:68px}
@@ -134,6 +141,12 @@
 .od-import-overlay .sidebar-tool-import-head{flex:none;min-height:52px;padding:8px 14px;
   border-bottom:1px solid var(--od-line)}
 .od-import-overlay .sidebar-tool-import-head strong{font-size:14px;color:var(--od-ink)}
+.od-import-overlay[data-file-drag="true"] #sidebar-tool-import{outline:2px dashed var(--od-focus);
+  outline-offset:-4px}
+.od-import-overlay[data-file-drag="true"] #sidebar-tool-import .od-import-sheet-body:before{
+  content:"松开以选择文件，随后确认安装";display:block;margin:0 0 10px;padding:10px;
+  border-radius:var(--radius-control);background:var(--od-muted);
+  color:var(--od-accent-ink);text-align:center;font-size:12px}
 .od-import-overlay #sidebar-tool-import-close{min-width:36px;min-height:36px;
   background:var(--od-muted);color:var(--od-ink);border:1px solid var(--od-line)}
 .od-import-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;

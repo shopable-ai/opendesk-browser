@@ -105,7 +105,8 @@ export function ToolHost({view}) {
 </ToolField>
 
 <ImportSheet open={importOpen}
-  onBackdrop={event=>view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}>
+  onBackdrop={event=>view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}
+  onFileDrop={event=>view.dispatch('sidebar-tool-file','drop',event.nativeEvent)}>
 <ToolField as="section" id="sidebar-tool-import" className="sidebar-tool-import od-surface"
   role="dialog" aria-modal={importOpen} aria-labelledby="sidebar-tool-import-heading" hidden={true} tabIndex={-1}>
 <div className="sidebar-tool-import-head od-toolbar">
@@ -125,7 +126,7 @@ export function ToolHost({view}) {
 </div>
 <div className="od-import-sheet-body">
 <label htmlFor="sidebar-tool-file">
-{"选择应用包或网页增强安装包 JSON"}
+{"拖入 JSON 安装包，或点击选择文件"}
 </label>
 <ToolFileInput value={snapshot.fields['sidebar-tool-file'].value} disabled={snapshot.fields['sidebar-tool-file'].disabled}
   onChoose={actions.chooseFile} onCancel={actions.cancelFile}/><ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}>
@@ -457,8 +458,30 @@ export function ToolHost({view}) {
 </div></ToolContext.Provider>;
 }
 
-function ImportSheet({open,onBackdrop,children}) {
-  const overlay=<div className="od-import-overlay" hidden={!open}>
+function ImportSheet({open,onBackdrop,onFileDrop,children}) {
+  const [fileOver,setFileOver]=React.useState(false),depth=React.useRef(0);
+  React.useEffect(()=>{if(!open){depth.current=0;setFileOver(false);}},[open]);
+  const hasFiles=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
+  const overlay=<div className="od-import-overlay" hidden={!open}
+    data-file-drag={fileOver?'true':undefined}
+    onDragEnter={event=>{
+      if(!hasFiles(event))return;
+      event.preventDefault();depth.current++;setFileOver(true);
+    }}
+    onDragOver={event=>{
+      if(!hasFiles(event))return;
+      event.preventDefault();event.dataTransfer.dropEffect='copy';
+    }}
+    onDragLeave={event=>{
+      if(!hasFiles(event))return;
+      depth.current=Math.max(0,depth.current-1);
+      if(!depth.current)setFileOver(false);
+    }}
+    onDrop={event=>{
+      if(!hasFiles(event))return;
+      event.preventDefault();event.stopPropagation();
+      depth.current=0;setFileOver(false);onFileDrop?.(event);
+    }}>
     <button type="button" className="od-import-backdrop" tabIndex={-1}
       aria-label="关闭导入扩展" onClick={onBackdrop}/>
     {children}
