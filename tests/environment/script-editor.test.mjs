@@ -165,7 +165,7 @@ test('R40.5 Page to Controller transition fences stale Page inspection and keeps
   };
   const world=f.find('script-javascript-world');
   world.value='page';world.fire('change',{isTrusted:true});
-  const page='// @require https://cdn.example/library.js\nasync function main(){return document.title;}';
+  const page='// ==UserScript==\n// @require https://cdn.example/library.js\n// ==/UserScript==\nasync function main(){return document.title;}';
   f.find('script-source').value=page;f.find('script-source').fire('input',{isTrusted:true});
   await tick();assert.equal(requested.length,1);
   world.value='controller';world.fire('change',{isTrusted:true});
@@ -791,11 +791,13 @@ test('imported Classic @require inspects before Run and never dispatches without
   const f=await fixture();t.after(()=>f.dispose());
   const source='// ==UserScript==\n// @require https://cdn.example/library.js\n// ==/UserScript==\nasync function main(){return document.title;}';
   f.editor.importDraft(source);await tick();
-  assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main',programId:f.find('script-id').value}]);
+  assert.equal(f.dependencyInspections.length,0,'Controller draft import must not prime Page dependency inspection');
   assert.equal(f.find('page-dependency-add'),undefined);
   assert.equal(f.find('page-preview-entry'),undefined);
-  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');
-  f.find('script-source').value=source;f.find('script-source').fire('input');await tick();
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change',{isTrusted:true});
+  f.find('script-source').value=source;f.find('script-source').fire('input',{isTrusted:true});await tick();
+  assert.deepEqual(f.dependencyInspections,[{sourceUtf8:source,entryFormat:'async-main',programId:f.find('script-id').value}],
+    'Page mode alone owns Page dependency inspection');
   assert.equal(f.find('script-run').disabled,false,'Run can prepare dependencies through the controller');
   await f.click('script-run');
   assert.equal(f.find('script-status').dataset.state,'error','failed dependency preparation cannot dispatch');
