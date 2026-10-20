@@ -122,7 +122,11 @@ export function StayFocusQuickAdd({model,actions}){
       当前网页 <strong>{model.currentPageHost||'当前网页不可管理'}</strong>
     </span>
     {action==='managed'
-      ?<span className="od-note" role="status">✓ 已管理</span>
+      ?<span style={{display:'flex',alignItems:'center',gap:8}}>
+        <span className="od-note" role="status">✓ 已管理</span>
+        <button type="button" id="stay-focus-current-pause" className="od-button od-button--secondary"
+          disabled={model.busy} onClick={event=>actions?.quickAdd(event.nativeEvent)}>暂停</button>
+      </span>
       :action==='error'
       ?<button type="button" id="stay-focus-current-retry" className="od-button od-button--secondary"
         disabled={model.busy} onClick={()=>actions?.refreshQuick()}>重试读取</button>
