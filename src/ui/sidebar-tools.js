@@ -1,4 +1,5 @@
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
+import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
@@ -175,6 +176,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
+  // Host-only, fire-and-forget. A telemetry failure never rejects a business effect.
+  const reportAnalytics=(kind,event,toolId,channel)=>{
+    if(disposed||readOnlyPreview)return;
+    try{void Promise.resolve(api.runtime.sendMessage({
+      protocol:ANALYTICS_PROTOCOL,kind,event,toolId,channel
+    })).catch(()=>{});}catch{/* Optional analytics stays silent. */}
+  };
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
   let pendingUninstallId=null,pendingUninstallBaseline=null;
   const listeners=[];
@@ -1116,6 +1124,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();requestToolFieldEffect(view, backButton, 'focus');return;
     }
     mountTool(tool,{launchGate});
+    reportAnalytics('event.host_report','tool.opened',tool.id,'sidepanel');
     return instance;
   }
   // Management never mounts untrusted code. The existing trusted settings UI
@@ -1190,6 +1199,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read'))
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
+    }
+    if(operation==='analytics.report'){
+      // Legacy portable tool UI may only self-report its own bounded copy success.
+      // It cannot claim host lifecycle, storage commits or another tool's event.
+      if(tool.id!=='prompt-shortcuts'||payload?.event!=='prompt.copied'||
+         Object.keys(payload||{}).sort().join(',')!=='event')
+        throw Object.assign(new Error('Unsupported analytics report'),{code:'E_TOOL_SCHEMA'});
+      reportAnalytics('event.tool_report','prompt.copied',tool.id,'sidepanel');
+      return {reported:true}; // Never a server-ingestion receipt.
     }
     // The trusted parent samples browser userActivation synchronously on the
     // original sandbox message. No untrusted argument can claim a gesture.
@@ -1974,6 +1992,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       assertSession(source,token);
       await writeVerifiedLocalValue(api,namespace,next,stored,'工具数据');
       assertSession(source,token);
+      // Only a verified single-item mutation with an explicit save intent counts.
+      // Reorders, imports, settings changes, deletes and failed/unknown writes do not.
+      if(tool.id==='prompt-shortcuts'&&key==='library'&&
+         payload.analyticsIntent==='save_prompt'&&typeof payload.itemId==='string'){
+        const before=Array.isArray(current?.items)?current.items:[];
+        const after=Array.isArray(next[key]?.items)?next[key].items:[];
+        const changed=after.filter(item=>{
+          const old=before.find(row=>row?.id===item?.id);
+          return JSON.stringify(old)!==JSON.stringify(item);
+        });
+        const removed=before.some(item=>!after.some(row=>row?.id===item?.id));
+        if(!removed&&changed.length===1&&changed[0]?.id===payload.itemId&&
+           typeof changed[0].body==='string'&&changed[0].body.trim())
+          reportAnalytics('event.host_report','prompt.saved',tool.id,'sidepanel');
+      }
       return Object.hasOwn(payload||{},'ifMatch')
         ?{saved:true,etag:await etagFor(next[key])}:{saved:true};
     });

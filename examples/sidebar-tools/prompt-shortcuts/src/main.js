@@ -679,7 +679,7 @@ async function readLibrary(){
   if(!Object.hasOwn(saved,'value'))throw Error('宿主未提供可核实的存储数据');
   return {value:model.load(saved.value),etag:saved.etag};
 }
-async function commit(next){
+async function commit(next,analyticsSaveId=null){
   if(unconfirmedWrite)throw Error('上次写入结果未确认，请先保留草稿并重新打开核对');
   if(!ready||busy)throw Error('工具暂不可写入');
   if(model.bytes(next)>8192)throw Object.assign(Error('提示词共用 8 KiB 数据项，超出存储上限'),{code:'E_TOOL_DATA_LIMIT'});
@@ -687,7 +687,8 @@ async function commit(next){
   try{
     let saved;
     try{
-      saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag});
+      saved=await request('storage.set',{key:KEY,value:next,ifMatch:etag,
+        ...(analyticsSaveId?{analyticsIntent:'save_prompt',itemId:analyticsSaveId}:{})});
       if(saved?.saved!==true||!/^[0-9a-f]{64}$/.test(saved.etag||''))throw Error('没有收到可核实的持久保存结果');
     }catch(e){
       if(['E_STORAGE_CONFLICT','E_TOOL_DATA_LIMIT'].includes(e.code))throw e;
@@ -730,12 +731,14 @@ async function copy(item,allowDisabled=false){
     copied=doc.execCommand?.('copy')===true;
   }catch{/* The modern clipboard API is the next user-gesture attempt. */}
   finally{buffer.value='';focused?.focus?.();}
-  if(copied){status('已复制完整正文。');return;}
+  if(copied){status('已复制完整正文。');
+    void request('analytics.report',{event:'prompt.copied'}).catch(()=>{});return;}
   try{
     if(typeof globalThis.navigator?.clipboard?.writeText!=='function')
       throw Error('当前受限页面不支持直接写入剪贴板');
     await globalThis.navigator.clipboard.writeText(item.body);
     status('已复制完整正文。');
+    void request('analytics.report',{event:'prompt.copied'}).catch(()=>{});
   }catch(e){
     status('无法自动复制：'+(e?.message||'剪贴板未授权')+'。请检查浏览器环境后重试。',true);
   }
@@ -761,7 +764,7 @@ async function save(event,continueCreating=false){
   }
   try{
     error('');status('保存中，请稍候…');
-    await commit(next);
+    await commit(next,item.id);
     // The user may keep typing during the request. Future saves must edit this
     // acknowledged item, including when the original request created it.
     editId=item.id;el('ps-form-title').textContent='编辑提示词';
