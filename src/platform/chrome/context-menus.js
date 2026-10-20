@@ -258,6 +258,22 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          Boolean(grant.partitionKey.hasCrossSiteAncestor)))throw failure('E_COOKIE_PARTITION');
     return {origin,storeId:grant.storeId,partitionKey:grant.partitionKey??null,grantEpoch:grant.grantEpoch};
   }
+  // Only the checked Side Panel can mint the exact Host approval following
+  // the official Cookie Editor's real import click. Imported destination
+  // origins use Chrome's actual host permissions, not unrelated site grants.
+  async function authorizedImportedCookie(identity,operation,url,sourceOrigin,options={}){
+    const destination=parsedHttp(url),source=parsedHttp(sourceOrigin);
+    if(identity.toolId!=='cookie-editor'||operation!=='browser.cookies.setMany'||
+       !destination||!source||source.origin!==sourceOrigin)
+      throw failure('E_OWNER','A trusted Cookie Editor import is required');
+    // Pin the source tab's existing grant, Store and installation epoch.
+    const anchor=await authorizedCookie(identity,operation,sourceOrigin);
+    await verifyBrowserOwner(identity,operation,destination.origin);
+    if(options.storeId!==undefined&&options.storeId!==anchor.storeId)
+      throw failure('E_COOKIE_STORE');
+    return {origin:destination.origin,storeId:anchor.storeId,
+      partitionKey:options.partitionKey??null,grantEpoch:anchor.grantEpoch};
+  }
   const currentPageRefs=createCurrentPageReferences({api});
   const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
     if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
@@ -656,14 +672,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
              intent.args!==canonicalJSON(checked))
             throw failure('E_USER_GESTURE_REQUIRED','Exact Cookie change requires a new trusted click');
         }
-        const allowed=await authorizedCookie(owner,operation,checked.url,checked);
+        const importSource=intent?.cookieImportSource;
+        const importOptions={storeId:checked.cookies?.[0]?.storeId,
+          partitionKey:checked.cookies?.[0]?.partitionKey??null};
+        const allowed=importSource
+          ?await authorizedImportedCookie(owner,operation,checked.url,importSource,importOptions)
+          :await authorizedCookie(owner,operation,checked.url,checked);
         if(intent&&intent.cookieGrantEpoch!==allowed.grantEpoch)
           throw failure('E_GRANT_REVOKED','Cookie site consent changed since approval');
         const ownerKey=canonicalJSON([toolId,toolVersion,hash,owner.epoch,toolInstance,hostInstanceId,allowed.grantEpoch]);
         return trustedCookies.executeInstalled(operation,checked,{origin:allowed.origin,
           storeId:allowed.storeId,partitionKey:allowed.partitionKey,ownerKey,
           authorize:async({url,includeValues})=>{
-            const now=await authorizedCookie(owner,operation,url,{...checked,includeValues});
+            const now=importSource
+              ?await authorizedImportedCookie(owner,operation,url,importSource,{...importOptions,includeValues})
+              :await authorizedCookie(owner,operation,url,{...checked,includeValues});
             if(now.grantEpoch!==allowed.grantEpoch||now.storeId!==allowed.storeId||
                canonicalJSON(now.partitionKey)!==canonicalJSON(allowed.partitionKey))
               throw failure('E_GRANT_REVOKED','Cookie site/store/partition grant changed during operation');
@@ -891,7 +914,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,approvalRef,schedulerIntent,args},sender){
+  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,args},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
@@ -1039,8 +1062,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const identity={toolId,toolVersion,packageHash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null};
         await verifyBrowserOwner(identity,targetOperation,origin);
+        if(cookieImportSource!==undefined&&
+           (targetOperation!=='browser.cookies.setMany'||toolId!=='cookie-editor'))
+          throw failure('E_OWNER','Import scope cannot authorize other Browser operations');
         const cookieGrant=cookieCapabilities[targetOperation]
-          ?await authorizedCookie(identity,targetOperation,args.url,args):null;
+          ?cookieImportSource!==undefined
+            ?await authorizedImportedCookie(identity,targetOperation,args.url,cookieImportSource,{
+              storeId:args.cookies?.[0]?.storeId,
+              partitionKey:args.cookies?.[0]?.partitionKey??null})
+            :await authorizedCookie(identity,targetOperation,args.url,args):null;
         if(targetOperation==='browser.scheduler.create'){
           const plan=validateTrustedScheduleIntent(schedulerIntent,args);
           const site=new URL(plan.targetUrl).origin;
@@ -1081,6 +1111,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         browserIntents.set(approvalRef,{operation:targetOperation,args:canonicalJSON(args),toolId,toolVersion,
           packageHash,epoch:installEpoch??null,toolInstance,hostInstanceId:actualHost,expiresAt,
           cookieGrantEpoch:cookieGrant?.grantEpoch??null,
+          ...(cookieImportSource!==undefined?{cookieImportSource}:{}),
           ...(targetOperation==='browser.scheduler.create'?{schedulerIntent:structuredClone(schedulerIntent)}:{})});
         return {approvalRef,expiresAt};
       }
