@@ -443,7 +443,7 @@ export function ToolHost({view}) {
 
 </ToolField>
 <div className="sidebar-tool-inline-remove-actions od-uninstall-dialog-actions">
-<ToolField as="button" type="button" id="sidebar-tool-inline-remove-cancel" data-uninstall-cancel className="od-button od-button--secondary">
+<ToolField as="button" type="button" id="sidebar-tool-inline-remove-cancel" data-uninstall-cancel="true" className="od-button od-button--secondary">
 {"取消"}
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-inline-remove-confirm" className="od-button od-uninstall-confirm">
