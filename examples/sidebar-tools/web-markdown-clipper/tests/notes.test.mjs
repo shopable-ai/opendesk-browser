@@ -1,0 +1,106 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
+import {TextEncoder} from 'node:util';
+
+const source=await readFile(new URL('../src/notes.js',import.meta.url),'utf8');
+const isolated={};
+runInNewContext(source,{globalThis:isolated,TextEncoder,URL,Date,Math});
+const {createStore,bytes,normalize}=isolated.OpenDeskClipNotes;
+const error=code=>Object.assign(new Error(code),{code});
+function fixture(){
+ let value=null,mode='normal',writes=0;
+ const token=()=>{let s=JSON.stringify(value),n=2166136261;for(const ch of s)n=Math.imul(n^ch.charCodeAt(0),16777619)>>>0;
+  return n.toString(16).padStart(8,'0').repeat(8);};
+ const request=async(op,args)=>{
+  assert.equal(args.key,'clips','must use one tool-private storage key');
+  if(op==='storage.get')return {value,etag:token()};
+  assert.equal(op,'storage.set');
+  assert.equal(args.ifMatch,token(),'writes must use host ETag compare-and-swap');
+  if(mode==='quota')throw error('E_TOOL_DATA_LIMIT');
+  if(mode==='lost-before')throw error('E_TOOL_TIMEOUT');
+  value=structuredClone(args.value);writes++;
+  if(mode==='lost-after'){mode='normal';throw error('E_TOOL_TIMEOUT');}
+  return {saved:true,etag:token()};
+ };
+ const create=(tag)=>createStore({request,
+  newId:()=>tag,
+  now:()=> '2026-10-20T02:30:00.000Z'});
+ return {create,request,read:()=>value,setMode:m=>mode=m,get writes(){return writes;}};
+}
+test('short selection persists after fresh store instance and deduplicates exact source and body',async()=>{
+ const f=fixture(),a=f.create('clip-example-111111');
+ const first=await a.save({kind:'clip',source:'https://example.com/page',body:'一句 **引用**'});
+ assert.equal(first.duplicate,false);
+ assert.equal(f.read().items.length,1);
+ const restart=f.create('clip-example-222222');
+ assert.equal((await restart.read()).data.items[0].body,'一句 **引用**');
+ const again=await restart.save({kind:'clip',source:'https://example.com/page',body:'一句 **引用**'});
+ assert.equal(again.duplicate,true);
+ assert.equal(f.read().items.length,1);
+ assert.equal(f.writes,1);
+});
+test('manual note needs body only and has no synthetic source; editing and deleting are persistent',async()=>{
+ const f=fixture(),a=f.create('clip-manual-111111');
+ const r=await a.save({kind:'note',body:'临时想法'});
+ assert.equal(r.item.kind,'note');
+ assert.equal(r.item.source,'');
+ assert.equal(r.item.title,'临时想法');
+ const b=f.create('clip-manual-222222');
+ const changed=await b.edit(r.item.id,r.item,'修改后的便签');
+ assert.equal(changed.item.body,'修改后的便签');
+ assert.equal((await f.create('clip-manual-333333').read()).data.items[0].body,'修改后的便签');
+ assert.equal((await b.remove(r.item.id)).removed,true);
+ assert.equal((await a.read()).data.items.length,0);
+});
+test('UTF-8 size and aggregate JSON quota reject without truncating or corrupting earlier saves',async()=>{
+ const f=fixture(),a=f.create('clip-size-111111');
+ await assert.rejects(a.save({kind:'note',body:'中'.repeat(700)}),e=>e.code==='E_BODY_LIMIT');
+ assert.equal(f.read(),null);
+ const x=await a.save({kind:'clip',source:'https://example.com/first',body:'中'.repeat(670)});
+ assert.equal(bytes(x.item.body),2010);
+ const b=f.create('clip-size-222222');
+ const y=await b.save({kind:'clip',source:'https://example.com/second',body:'中'.repeat(670)});
+ assert.equal(y.item.body.length,670);
+ const c=f.create('clip-size-333333');
+ await c.save({kind:'clip',source:'https://example.com/third',body:'中'.repeat(670)});
+ const d=f.create('clip-size-444444');
+ await assert.rejects(d.save({kind:'clip',source:'https://example.com/fourth',body:'中'.repeat(670)}),
+  e=>e.code==='E_QUOTA');
+ assert.equal(f.read().items.length,3);
+ assert.equal(f.read().items[0].body,'中'.repeat(670));
+});
+test('lost acknowledgement resolves through read-back without duplicate save',async()=>{
+ const f=fixture(),a=f.create('clip-loss-111111');
+ f.setMode('lost-after');
+ const r=await a.save({body:'saved despite lost response',kind:'note'});
+ assert.equal(r.item.body,'saved despite lost response');
+ assert.equal(f.writes,1);
+ assert.equal((await a.read()).data.items.length,1);
+});
+test('an unconfirmed write blocks further changes until explicit fresh read',async()=>{
+ const f=fixture(),a=f.create('clip-unknown-111111');
+ f.setMode('lost-before');
+ await assert.rejects(a.save({body:'lost result',kind:'note'}),e=>e.code==='E_OUTCOME_UNKNOWN');
+ assert.equal(a.uncertain,true);
+ await assert.rejects(a.save({body:'another',kind:'note'}),e=>e.code==='E_OUTCOME_UNKNOWN');
+ f.setMode('normal');
+ await a.recover();
+ assert.equal(a.uncertain,false);
+ const r=await a.save({body:'new content',kind:'note'});
+ assert.equal(r.item.body,'new content');
+});
+test('stale edit baseline and invalid web sources fail closed',async()=>{
+ const f=fixture(),a=f.create('clip-edit-111111');
+ const record=(await a.save({body:'old',kind:'note'})).item;
+ const b=f.create('clip-edit-222222');
+ await b.edit(record.id,record,'new');
+ await assert.rejects(a.edit(record.id,record,'clobber'),e=>e.code==='E_STORAGE_CONFLICT');
+ await assert.rejects(a.save({body:'bad',source:'javascript:alert(1)',kind:'clip'}),e=>e.code==='E_SOURCE');
+ assert.equal(f.read().items[0].body,'new');
+});
+test('corrupt or oversize stored records never get replaced by a new library',async()=>{
+ assert.deepEqual(JSON.parse(JSON.stringify(normalize(null))),{version:1,items:[]});
+ assert.throws(()=>normalize({version:1,items:[{id:'invalid'}]}),e=>e.code==='E_STORAGE_CORRUPT');
+});

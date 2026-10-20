@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>网页剪藏 · 1.0.2 正式 UI 交互预览</title>
+<title>网页剪藏 · 1.1.0 正式 UI 交互预览</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#21314a;background:#f5f7fb;font-size:13px}
 *{box-sizing:border-box}body{margin:0;min-width:280px}
@@ -30,10 +30,10 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
 <body>
 <div class="preview-shell">
  <header class="preview-head">
-  <div><h1>网页剪藏 · 正式 UI 预览</h1><p class="subtitle">复用 src/index.html、src/style.css、src/main.js · 版本 1.0.2</p></div>
+  <div><h1>网页剪藏 · 正式 UI 预览</h1><p class="subtitle">复用 src/index.html、src/style.css、src/main.js · 版本 1.1.0</p></div>
   <span class="subtitle">非 React · 正式 HTML/CSS/JS</span>
  </header>
- <p class="notice" role="note"><strong>如何体验：</strong>① 在下方工具中点击「剪藏」获取示例文章；② 点击「预览」查看标题、列表、代码和链接；③ 尝试「选区 / 引用 / 链接」及不同来源格式。<strong>所有数据均为演示；「复制 / 下载」不会修改系统剪贴板或磁盘。</strong></p>
+ <p class="notice" role="note"><strong>如何体验：</strong>① 点击「提取当前文章」查看示例；② 通过「保存摘录」与「我的摘录」体验短内容保存；③ 点击「模拟右键摘录」查看带来源的预填选区。<strong>全部是模拟数据，仅存在当前预览舞台；关闭或刷新后可能消失，复制和下载不会操作真实设备。</strong></p>
  <div class="controls">
   <div class="group" role="group" aria-label="模拟侧栏宽度">
    <button type="button" data-width="320" aria-pressed="false">320</button>
@@ -46,14 +46,21 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
    <button type="button" data-theme="dark" aria-pressed="false">深色</button>
   </div>
   <button type="button" class="extra" id="zoom" aria-pressed="false">200% 缩放</button>
+  <button type="button" class="extra" id="simulate-menu">模拟右键摘录</button>
   <button type="button" class="extra" id="reset">模拟网页变化</button>
+  <div class="group" role="group" aria-label="模拟存储状态">
+   <button type="button" data-storage="normal" aria-pressed="true">模拟正常</button>
+   <button type="button" data-storage="quota" aria-pressed="false">空间已满</button>
+   <button type="button" data-storage="failure" aria-pressed="false">保存失败</button>
+   <button type="button" data-storage="unknown" aria-pressed="false">回执丢失</button>
+  </div>
  </div>
  <div class="canvas" id="canvas">
   <div class="device" id="device">
    <iframe id="stage" src="stage.html" title="官方网页剪藏工具交互预览" loading="eager"></iframe>
   </div>
  </div>
- <p class="log" id="log" role="status" aria-live="polite">演示就绪：在内部点击「剪藏」获取模拟 Markdown。</p>
+ <p class="log" id="log" role="status" aria-live="polite">演示就绪：点击「提取当前文章」获取模拟 Markdown，或者新建便签。</p>
 </div>
 <script>
 (function(){
@@ -81,6 +88,17 @@ iframe{border:0;display:block;width:100%;height:630px;background:transparent}
  document.querySelector('#zoom').addEventListener('click',event=>{
   zoom=zoom===1?2:1;event.currentTarget.setAttribute('aria-pressed',String(zoom===2));sync();
  });
+ document.querySelector('#simulate-menu').addEventListener('click',()=>{
+  stage.src='stage.html?launch=1';log.textContent='右键摘录演示：预填一段可信模拟选区，仍须点击「保存摘录」。';
+ });
+ for(const button of document.querySelectorAll('[data-storage]')){
+  button.addEventListener('click',()=>{
+   for(const other of document.querySelectorAll('[data-storage]'))
+    other.setAttribute('aria-pressed',String(other===button));
+   stage.contentWindow?.postMessage({kind:'clipper-demo-control',storageCase:button.dataset.storage},'*');
+   log.textContent='模拟存储场景：'+button.dataset.storage+'，不会写入 Chrome 本地存储。';
+  });
+ }
  document.querySelector('#reset').addEventListener('click',()=>{
   stage.contentWindow?.postMessage({kind:'clipper-demo-control',reset:true},'*');
   log.textContent='模拟网页发生变化：官方 UI 应清空旧 Markdown。';

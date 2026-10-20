@@ -84,6 +84,9 @@ export function matchesMenuDocument(action,url){
   const doc=parsedHttp(url);
   if(!doc||!action?.documentUrlPatterns)return false;
   return action.documentUrlPatterns.some(pattern=>{
+    // This declaration is a template; native entries remain restricted to
+    // exact approved Origins under the existing Host/Chrome consent.
+    if(pattern===doc.protocol+'//*/*')return true;
     const rule=parsedHttp(pattern);
     return Boolean(rule&&rule.protocol===doc.protocol&&rule.hostname===doc.hostname&&rule.pathname==='/*');
   });

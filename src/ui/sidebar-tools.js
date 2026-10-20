@@ -2662,7 +2662,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       throw new Error('请先打开普通 HTTP(S) 网页再启用右键菜单');
     const origin=websiteOrigin(document.url);
     if(!tool.contributes?.contextMenus?.some(action=>action.documentUrlPatterns?.some(pattern=>{
-      try{const a=new URL(pattern),b=new URL(document.url);
+      try{const b=new URL(document.url);
+        if(pattern===b.protocol+'//*/*')return true;
+        const a=new URL(pattern);
         return a.protocol===b.protocol&&a.hostname===b.hostname;}catch{return false;}
     })))throw new Error('此工具没有声明当前网站的右键菜单');
     const enabled=!(menuGrants[tool.id]?.version===tool.version&&

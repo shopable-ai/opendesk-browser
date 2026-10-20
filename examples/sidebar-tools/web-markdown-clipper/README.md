@@ -1,76 +1,63 @@
-# 网页剪藏 v1.0.2
+# 网页剪藏 Web Markdown Clipper · R1.6
 
-## 正式 UI 交互预览（不构成 Chrome 验收）
+> 正式工具版本 1.1.0，非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
 
-在仓库根目录执行：
+## 普通用户怎么用？
 
-```bash
-open examples/sidebar-tools/web-markdown-clipper/preview/index.html
-```
+**网页选中一句话 → 右键 →「OD · 保存选中内容到我的摘录」→ 打开的网页剪藏中点击「保存摘录」→ 在「我的摘录」找回。**
 
-预览采用与正式工具一致的 `src/index.html` 标记，并直接加载正式 `src/style.css` 和 `src/main.js`；只有 OpenDeskTool.request、SDK 剪贴板和下载调用被替换为明确标记的演示响应。支持 320/360/400/440px、浅色/深色及 200% 缩放。
+首次使用：从 OpenDesk Browser 侧栏「扩展」安装「网页剪藏」，为目标网站授权剪藏；在此工具详情中为**当前网站启用右键菜单**（单独、逐站授权）。右键当前仅支持已有的 open-self：打开本工具，安全预填一次性选区，再由用户点击「保存摘录」。**绝不假装已支持后台静默保存。**
 
-**预览不会读取真实网站、写入系统剪贴板、下载文件或授予网站权限。** 这些结果必须使用已构建的生产扩展在 Mac Chrome 中另行验证。
+备用流程：网页选中文字 → 侧栏选择「选区」→「提取选中文字」→「保存摘录」。
 
-网页内容读取由 OpenDesk 可信 Content Script 完成；当前工具只是无 Chrome 权限的隔离 UI。
+日常功能：默认提取文章；保留文章/选区/引用/链接及 Markdown 预览，复制和 .md 下载；「我的摘录」提供搜索、查看、修改、复制、删除；「新建便签」只要求正文，不伪造网页来源。普通操作不重复弹窗。
 
-## 运行方式：预览与真实扩展不同
+**保存 / 复制 / 下载是三件事**：保存放在 Chrome 本地工具数据中；复制进入系统剪贴板；下载请求生成磁盘文件。
 
-**正式工具不是 React。** 页面来自 `src/index.html`、`src/style.css`、`src/main.js`，通过现有 OpenDesk Tool SDK 与可信 Host 获取授权网页内容；不需要运行 React 开发服务器。
+## 数据策略
 
-**A. 仅体验 UI（模拟数据）：**
+使用已有 storage.get({key:'clips',withEtag:true}) 与 storage.set({key:'clips',value,ifMatch})，工具私有命名空间中只用一个 JSON 键同时持有记录和顺序，避免跨键部分写入。可信 Host 的 per-tool Web Lock、ETag CAS、写入核对被原样复用。写入回执丢失会读回比对，无法确认时停止新的写入，待用户刷新核对。
 
-在本地 Mac 仓库根目录、已安全同步最新 main 后执行：
+- 正文最多 2048 UTF-8 字节；含元数据的单项 JSON 最多 8192 字节；宿主总配额仍约为 32 KiB/32 键。不会自动截断。
+- 同一来源与内容重复摘录不会创建新记录；其他窗口编辑时不覆盖新数据。
+- 大篇幅完整文章继续使用复制或 .md 下载，不存入短摘录库，也不重复开发 Knowledge Inbox 全文数据库。
+- 「导出备份」提供 JSON 出口。数据**只在当前浏览器本地**，不表示云同步；卸载或清除浏览器数据之前必须导出并在真实 Chrome 核对文件。R1.6 不提供 JSON 备份导入。
+
+## 正式源码和交互预览
+
+源码：src/index.html、src/style.css、src/notes.js、src/main.js。打包器将 notes.js 作为 v2 固定 Classic JS 依赖置于 main.js 前并校验 SHA-256；没有第二套 UI/Host。
+
+在本地仓库根目录执行：
 
 ```bash
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-Chrome 打开：
+Chrome 浏览器访问：
 
-`http://127.0.0.1:8765/examples/sidebar-tools/web-markdown-clipper/preview/index.html`
+http://127.0.0.1:8765/examples/sidebar-tools/web-markdown-clipper/preview/index.html
 
-在工具中点击「剪藏」加载示例，然后切换「源码 / 预览」、来源格式、宽度及主题。**模拟复制、下载和网站访问不会执行真实操作。**
+预览使用**相同的正式 HTML 标记与 JS/CSS**，但网页内容、右键 ticket、存储、复制与下载都是**明确的模拟结果**，不会保存到真实 Chrome。支持 320/360/400/440px、深浅色、200% 缩放，可模拟右键预填、配额耗尽、写入失败和回执丢失。
 
-**B. 使用真实 Chrome 剪藏网页：**
+## 构建与测试（必须在有仓库的环境实际运行）
 
 ```bash
 npm ci
 npm run build
-```
-
-打开 Chrome `chrome://extensions`，启用开发者模式，选择「加载已解压的扩展程序」，加载仓库的 `dist/production`。从 Chrome 的 OpenDesk 侧边栏进入「扩展」（旧版可能显示「工具」）→「发现」→「网页剪藏」→「安装」。在工具设置中允许当前网站剪藏，然后从该工具按「剪藏」获取真实活动网页内容。复制结果和下载文件必须通过真实系统确认，不能根据 UI 提示认定落盘成功。
-
-真实验收的最短非 Chrome 命令：
-
-```bash
-npm run check
+npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper
+node --test examples/sidebar-tools/web-markdown-clipper/tests/*.test.mjs
 APP_CI_SELECTED=web-markdown-clipper node scripts/app-ci.mjs plan
 node scripts/app-ci.mjs inspect web-markdown-clipper
 node scripts/app-ci.mjs build web-markdown-clipper
 node scripts/app-ci.mjs node web-markdown-clipper
 ```
 
-只有前置环境 GO 后才运行 `node scripts/app-ci.mjs native web-markdown-clipper`，并设置可执行的 `CHROME_BIN`。该现有 native 脚本主要验证真实扩展配合本地 Fixture，不等于公共网页、系统剪贴板及下载落盘全部验收。
+使用开发者模式在 chrome://extensions 加载 dist/production，安装或升级官方网页剪藏。打包后工具包预期路径在 artifacts/sidebar-tools/web-markdown-clipper/1.1.0/，不是 Git 提交的一部分。
 
-## 使用
+真实验收须分别检查：右键菜单逐站启用、选区与文档身份证明、保存后 Side Panel 重开和 Chrome 重启读回、系统剪贴板 pbpaste、下载文件实际 SHA-256、卸载前 JSON 备份。HTML/Node 的模拟测试不能冒充这些结果。
 
-1. 在 Side Panel → 扩展（旧版可能显示「工具」）→ 发现，找到「网页剪藏」并安装；首次安装需预览 `page.clip`、`user.export` 两项能力。
-2. 保持目标 HTTP(S) 页面为同窗口活动标签页；在工具设置中点击「允许剪藏当前网站」，授权当前 **Origin**。
-3. 打开工具，切换「文章 / 选区 / 引用 / 链接」，然后点击「剪藏」；选区或引用模式须先在网页选择目标文本。
-4. 检查源码或只读预览，按需选择 YAML Front Matter/文末引用，点击「复制」或「下载 .md」。
-5. 对网页做 SPA 导航、刷新、更换文章或重新选择范围后，重新点击剪藏。工具不会后台自动搜集内容。
-6. 工具列表的网站按钮可以撤权，卸载会删除此工具的授权。TOC 章节权限不会转换成文章读取权限。
+## 边界与安全
 
-本地导入包先用下面的命令生成，输出为 `artifacts/sidebar-tools/web-markdown-clipper/<version>/web-markdown-clipper.opendesk-tool.json`。官方可选资源从同一源码自动生成到 `dist/production/official-tools/web-markdown-clipper/`，版本、能力及摘要由统一 Catalog 派生；扩展首次运行不安装、不批准网站。
+上下文菜单工具声明的 https://*/*、http://*/* 是**匹配模板**，不是全站授权。可信 Host 依旧只把原生菜单投射给用户逐个启用、且仍有 Chrome 网站访问权的精确 Origin，菜单动作无法绕过文档身份、安装实例及一次性有效期检查。
 
-可复现构建：`npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper`；打包器默认将 JSON 写入被 git 忽略的 `artifacts/sidebar-tools/web-markdown-clipper/<version>/`。
-
-## 边界
-
-- 当前文章识别限 `article`、`main` 等可信结构候选；无法识别需使用选区。复杂合并表格明确报错而不是编造。
-- 输出正文上限 150 KB；不隐式截断。
-- 跨标签页打开的工具目前 **不继承侧栏原先的文章目标**，不能保证在独立标签页读取网页；独立标签页中的网页访问必须先解决显式目标选择和精确文档绑定。
-- 不读取 Cookie、Token、浏览历史，不访问第三方网络。不自动保存正文到普通工具 storage.local。
-- 自动复制取决于宿主浏览器是否允许 Clipboard API；如果失败，会选中文本并提示 Ctrl/Cmd+C。下载实际落盘及系统保存对话框需要真实 Chrome 验收。
-- HTML→Markdown 保守转换不是 Readability/Turndown 的 100% 等价实现；异构站点、长公式、复杂交互内容需要额外真实站点样本验证。
+短摘录不要求额外云服务；不访问 Knowledge Inbox 私有数据，也不自动读取未授权网站。

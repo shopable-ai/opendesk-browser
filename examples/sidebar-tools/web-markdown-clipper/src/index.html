@@ -1,25 +1,61 @@
 <main class="clip" aria-label="网页剪藏">
-<header class="clip-head"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></header>
+<header class="clip-head">
+ <div class="clip-brand"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></div>
+ <button type="button" id="clip-my-notes" class="clip-outline">我的摘录</button>
+</header>
+<section id="clip-home" aria-label="当前网页摘录">
+<p id="clip-title" class="clip-page-title">打开网页，提取文章或选中文字</p>
 <div class="clip-modes" role="group" aria-label="剪藏范围">
-<button type="button" data-clip-mode="article" aria-pressed="true" title="提取网页文章">文章</button>
-<button type="button" data-clip-mode="selection" aria-pressed="false" title="提取网页选区">选区</button>
-<button type="button" data-clip-mode="quote" aria-pressed="false" title="生成带来源的引用">引用</button>
-<button type="button" data-clip-mode="link" aria-pressed="false" title="生成 Markdown 链接">链接</button>
+ <button type="button" data-clip-mode="article" aria-pressed="true">文章</button>
+ <button type="button" data-clip-mode="selection" aria-pressed="false">选区</button>
+ <button type="button" data-clip-mode="quote" aria-pressed="false">引用</button>
+ <button type="button" data-clip-mode="link" aria-pressed="false">链接</button>
 </div>
-<div class="clip-row">
-<label for="clip-meta">来源</label><select id="clip-meta" aria-label="来源信息格式">
-<option value="footer">文末链接</option><option value="yaml">YAML Front Matter</option><option value="none">不添加</option>
-</select>
-<button type="button" id="clip-fetch" class="primary" title="重新获取当前网页" aria-label="开始剪藏">剪藏</button>
+<button type="button" id="clip-fetch" class="primary clip-fetch" aria-label="提取当前文章">提取当前文章</button>
+<p id="clip-selection-hint" class="clip-hint">也可在网页选中文字后，右键选择「保存选中内容到我的摘录」；首次使用请在扩展详情中为当前网站启用右键入口。</p>
+<div class="clip-actions" role="toolbar" aria-label="显示方式">
+ <button type="button" id="clip-show-preview" aria-pressed="true">预览</button>
+ <button type="button" id="clip-show-source" aria-pressed="false">Markdown</button>
+ <span class="clip-spacer"></span>
+ <details class="clip-settings"><summary>更多设置</summary>
+  <label for="clip-meta">来源格式</label>
+  <select id="clip-meta" aria-label="来源信息格式">
+   <option value="footer">文末链接</option><option value="yaml">YAML Front Matter</option><option value="none">不添加</option>
+  </select>
+ </details>
 </div>
-<div class="clip-actions" role="toolbar" aria-label="Markdown 操作">
-<button type="button" id="clip-show-source" aria-pressed="true">源码</button>
-<button type="button" id="clip-show-preview" aria-pressed="false">预览</button>
-<span class="clip-spacer"></span>
-<button type="button" id="clip-copy" aria-label="复制 Markdown" title="复制 Markdown">复制</button>
-<button type="button" id="clip-download" title="下载 .md" aria-label="下载 Markdown">下载 .md</button>
+<textarea id="clip-source" spellcheck="false" readonly hidden aria-label="剪藏的 Markdown 源码" placeholder="请先提取当前网页内容"></textarea>
+<div id="clip-preview" class="clip-preview" role="document" aria-label="Markdown 只读预览"></div>
+<div class="clip-export" role="group" aria-label="摘录操作">
+ <button type="button" id="clip-save" class="primary" disabled>保存摘录</button>
+ <button type="button" id="clip-copy" aria-label="复制 Markdown" title="复制到剪贴板">复制</button>
+ <button type="button" id="clip-download" aria-label="下载 Markdown" title="下载为本地 .md 文件">下载 .md</button>
 </div>
-<textarea id="clip-source" spellcheck="false" readonly aria-label="剪藏的 Markdown 源码" placeholder="在工具列表授权此网站，然后点击「剪藏」。"></textarea>
-<div id="clip-preview" class="clip-preview" role="document" aria-label="Markdown 只读预览" hidden></div>
-<p id="clip-status" class="clip-status" role="status" aria-live="polite">请先在工具列表允许当前网站剪藏。</p>
+<p id="clip-save-explain" class="clip-hint">保存留在浏览器；复制进入剪贴板；下载生成文件</p>
+<button type="button" id="clip-view-saved" class="clip-link" hidden>查看刚保存的摘录 →</button>
+<p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
+</section>
+<section id="clip-notes" aria-label="我的摘录" hidden>
+ <div class="clip-notes-head">
+  <button type="button" id="clip-notes-back" class="clip-outline" aria-label="返回网页剪藏">← 返回</button>
+  <strong>我的摘录</strong>
+  <button type="button" id="clip-note-new" class="primary">＋ 新建便签</button>
+ </div>
+ <div class="clip-notes-tools">
+  <input type="search" id="clip-search" placeholder="搜索文字或来源" aria-label="搜索我的摘录">
+  <button type="button" id="clip-note-reload" class="clip-outline" title="重新读取本地摘录" aria-label="刷新摘录">↻</button>
+ </div>
+ <div class="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><button type="button" id="clip-note-backup" class="clip-link">导出备份</button></div>
+ <section id="clip-note-editor" class="clip-note-editor" aria-label="编辑便签" hidden>
+  <strong id="clip-note-editor-title">新建便签</strong>
+  <textarea id="clip-note-body" rows="5" aria-label="便签正文" placeholder="写下一段想保存的话；标题自动生成"></textarea>
+  <p id="clip-note-origin" class="clip-hint">手动便签不关联网页来源</p>
+  <div class="clip-editor-actions">
+   <button type="button" id="clip-note-cancel">取消</button>
+   <button type="button" id="clip-note-save" class="primary">保存</button>
+  </div>
+ </section>
+ <div id="clip-note-list" class="clip-note-list" aria-live="polite"></div>
+ <p id="clip-notes-status" class="clip-status" role="status" aria-live="polite">仅保存在此浏览器。卸载前请导出备份。</p>
+</section>
 </main>

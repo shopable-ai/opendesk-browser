@@ -16,7 +16,7 @@ class Node {
   select(){this.selected=true;}
 }
 function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),download=async()=>({started:true})}={}){
-  const ids=['clip-source','clip-preview','clip-status','clip-site','clip-meta','clip-fetch',
+  const ids=['clip-source','clip-preview','clip-status','clip-site','clip-title','clip-meta','clip-fetch',
     'clip-show-source','clip-show-preview','clip-copy','clip-download'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id)]));
   nodes['clip-meta'].value='none';
@@ -106,7 +106,7 @@ test('late clipboard and download replies cannot override navigation or mode cha
  download.resolve({started:true});
  await downloading;
  assert.equal(downloadPayload,'# 正文\n');
- assert.equal(nodes['clip-status'].textContent,'点击剪藏获取内容');
+ assert.equal(nodes['clip-status'].textContent,'点击提取获取内容');
  assert.equal(nodes['clip-source'].value,'');
 });
 
@@ -230,6 +230,7 @@ test('offline preview must embed the exact formal HTML and reuse official JS and
   readFile(new URL('../preview/index.html',import.meta.url),'utf8')
  ]);
  assert.ok(stage.includes('\n'+html+'\n'),'stage must embed the exact official UI, not a redesigned copy');
+ assert.match(stage,/src="\.\.\/src\/notes\.js"/);
  assert.match(stage,/src="\.\.\/src\/main\.js"/);
  assert.match(stage,/href="\.\.\/src\/style\.css"/);
  assert.match(wrapper,/src="stage\.html"/);
@@ -237,4 +238,6 @@ test('offline preview must embed the exact formal HTML and reuse official JS and
  assert.match(wrapper,/非真实设备结果/);
  assert.match(stage,/模拟复制（未写入系统剪贴板）/);
  assert.match(stage,/模拟下载（未创建磁盘文件）/);
+ for(const action of ['simulate-menu','data-storage="quota"','data-storage="failure"','data-storage="unknown"'])
+  assert.ok(wrapper.includes(action),'preview needs '+action);
 });
