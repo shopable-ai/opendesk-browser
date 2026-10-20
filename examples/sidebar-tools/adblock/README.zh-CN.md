@@ -71,4 +71,8 @@ node scripts/app-ci.mjs native adblock
 
 后两项要求真实 Chrome/真实 macOS 环境和对应回执；Node/Mock/离线预览通过绝不冒充真实拦截成功。升级保留已有数据和安装身份；同版本不同字节不能静默覆盖正式包。
 
-目前 `tool.config.json` 是 **1.2.1 源码候选**，仓库正式 `adblock.opendesk-tool.json` 仍为 **1.2.0**。这是故意隔离的发布门禁，不应通过同步版本字符串或手工覆盖 JSON 消除差异。只有原有完整候选与真实 Native 验证后，才能用 `scripts/build-sidebar-tool.mjs --promote-from <已验证候选>` 进行显式晋升。无 Mac Chrome 证据时，真实安装、网络拦截与 95 分产品验收状态一律为 `NOT_TESTED`。
+`tool.config.json` 与项目唯一正式安装包 `adblock.opendesk-tool.json` 现均为 **1.2.1**。2026-10-20 按现有打包器完成候选、定向测试和显式晋升；包 SHA-256 为 `8bdb91a0a613932e76d69953b06af3752d217eaee3e15e96e8e27ee314cdbc35`，与本次持续开发扩展 `dist/development/official-tools/adblock/adblock.opendesk-tool.json` 逐字节一致。
+
+旧项目包 **1.2.0**（SHA-256 `a7cfbf0dd773534a2aeb13b44064cfa26869c56eacdf0f9425728663bbd3a8fd`）与当前扩展固定资源不一致，导入时会被拒绝为 `E_TOOL_RUNTIME_UNAVAILABLE`。应重新选择本目录当前唯一正式包；保留固定发行哈希校验，不通过改版本字符串、卸载或放宽来源检查解决。
+
+本次真实 Mac Chrome 开发环境已验证：导入 1.2.1、确认安装、打开 React 应用、开启全局过滤、添加当前网站例外及恢复过滤。实际加载路径为本仓库 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务已连接，观察到的构建指纹为 `959fb62e599042064653df5de816619f4fc2ed2838ccd289e032fffa0635fcf0`。测试结束时全局过滤开启、网站例外为空。临时网络对照页被浏览器控制限制拦截，未取得请求阻断证据；真实网络拦截、production 安装验收与独立 95 分验收仍为 `NOT_TESTED`。后续源码修改继续走候选验证后显式晋升，不自动覆盖此正式包。
