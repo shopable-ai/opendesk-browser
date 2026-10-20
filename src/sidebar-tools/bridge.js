@@ -1,7 +1,7 @@
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
-import {browserOperation} from '../framework/sdk/browser-contract.js';
+import {browserOperation,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';
 // AdBlock confirmation is an actual separate Side Panel click. The trusted host
 // closes unconfirmed reviews after 90 seconds; ordinary tool RPCs stay short.
 // Waiting is never an authorization grant or a DNR deadline.
@@ -20,7 +20,34 @@ export function initSidebarToolSandbox() {
   let instance=null, toolId=null, sequence=0, scriptUrl=null,disposed=false;
   // Capture these before any package code runs. The port never enters the
   // public SDK; only this closure can attest a native click still in dispatch.
-  const apply=Reflect.apply,NativePromise=Promise;
+  const apply=Reflect.apply,NativePromise=Promise,NativeError=Error;
+  const promiseThen=NativePromise.prototype.then,promiseResolve=NativePromise.resolve,promiseReject=NativePromise.reject;
+  const define=Object.defineProperty,freeze=Object.freeze,create=Object.create,ownKeys=Reflect.ownKeys;
+  const finite=Number.isFinite,nativeTimer=setTimeout,nativeClear=clearTimeout,timerReceiver=globalThis;
+  const clockReceiver=globalThis.performance,clock=clockReceiver?.now;
+  const mapGet=Map.prototype.get,mapSet=Map.prototype.set,mapDelete=Map.prototype.delete;
+  const mapForEach=Map.prototype.forEach,mapClear=Map.prototype.clear;
+  const setAdd=Set.prototype.add,setHas=Set.prototype.has,setDelete=Set.prototype.delete,setForEach=Set.prototype.forEach,setClear=Set.prototype.clear;
+  // Capturing then alone is insufficient: native then consults constructor and
+  // @@species. Every carrier has an immutable own constructor whose species
+  // creates another protected carrier, so tool prototypes never see handlers.
+  const species=create(null);
+  function Carrier(executor){
+    const promise=new NativePromise(executor);
+    define(promise,'constructor',{value:species});
+    return promise;
+  }
+  define(species,Symbol.species,{value:Carrier});freeze(species);freeze(Carrier);
+  const rejected=error=>apply(promiseReject,Carrier,[error]);
+  const observe=(promise,yes,no)=>apply(promiseThen,promise,[yes,no]);
+  const later=(callback,ms)=>apply(nativeTimer,timerReceiver,[callback,ms]);
+  const cancelTimer=timer=>apply(nativeClear,timerReceiver,[timer]);
+  const now=()=>clock?apply(clock,clockReceiver,[]):NaN;
+  const exportError=(code,message)=>{
+    const error=new NativeError(message);define(error,'code',{value:code});return error;
+  };
+  const preparations=new Set();
+  let cookieExports=false;
   const eventPrototype=globalThis.Event?.prototype;
   const currentTargetGetter=eventPrototype&&Object.getOwnPropertyDescriptor(eventPrototype,'currentTarget')?.get;
   const timeStampGetter=eventPrototype&&Object.getOwnPropertyDescriptor(eventPrototype,'timeStamp')?.get;
@@ -29,7 +56,8 @@ export function initSidebarToolSandbox() {
   const stopImmediate=eventPrototype?.stopImmediatePropagation;
   const portPrototype=globalThis.MessagePort?.prototype;
   const portPost=portPrototype?.postMessage,portClose=portPrototype?.close;
-  let exportPort=null,exportClick=null,consumedClickTimeStamp=null;
+  let exportPort=null,exportClick=null;
+  const consumedClickTimeStamps=new Set();
   window.addEventListener('click',event=>{
     if(trustedGetter&&apply(trustedGetter,event,[])===true)exportClick=event;
   },true);
@@ -78,43 +106,120 @@ export function initSidebarToolSandbox() {
     try{Object.defineProperty(window,method,{value:blocked,writable:false,configurable:false});}
     catch{try{window[method]=blocked;}catch{/* Browser-level controls still apply. */}}
   }
-  const request=(operation,payload={})=>{
-    if (!instance) return Promise.reject(new Error('工具界面尚未就绪'));
-    const requestId=String(++sequence);
+  const consumeExportClick=operation=>{
     const clickTimeStamp=exportClick&&timeStampGetter?apply(timeStampGetter,exportClick,[]):null;
-    const directExport=exportPort&&!disposed&&timeStampGetter&&
+    const direct=exportPort&&!disposed&&timeStampGetter&&
       (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')&&
       exportClick&&apply(trustedGetter,exportClick,[])===true&&
       apply(currentTargetGetter,exportClick,[])!==null&&
-      Number.isFinite(clickTimeStamp)&&clickTimeStamp!==consumedClickTimeStamp;
-    // Label activation forwards a second trusted click with the original
-    // input timestamp. It must not replenish an already consumed gesture.
-    // Reserve before Promise executors, payload getters or other tool hooks.
-    if(directExport){exportClick=null;consumedClickTimeStamp=clickTimeStamp;}
-    return new NativePromise((resolve,reject)=>{
-      // Time Review start/clear await a real trusted-host confirmation dialog.
-      // Keep ordinary reads/writes short while allowing time to read that dialog.
+      finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
+    // Label activation forwards the same timestamp; both entry points consume
+    // it synchronously, before invoking any tool code (including getters).
+    if(!direct)return null;
+    exportClick=null;apply(setAdd,consumedClickTimeStamps,[clickTimeStamp]);
+    return exportPort;
+  };
+  const sendRequest=(operation,payload,directPort,finalCheck)=>{
+    // Allocate only at delivery: unrelated reads may finish during preparation.
+    const requestId=''+(++sequence);
+    return new Carrier((resolve,reject)=>{
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
-      const timeout=setTimeout(()=>{
-        waiting.delete(requestId);
-        // The host may already have committed a write. Do not interpret loss
-        // of transport acknowledgement as cancellation or reissue the write.
+      const timeout=later(()=>{
+        apply(mapDelete,waiting,[requestId]);
+        // Once sent the Host may already have committed the effect.
         const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
         const uncertain=exporting||toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
           toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status';
-        const error=new Error(exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
-          '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时');
-        error.code=uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT';
-        reject(error);
+        reject(exportError(uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT',
+          exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
+          '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时'));
       },timeoutMs);
-      waiting.set(requestId,{resolve,reject,timeout});
+      apply(mapSet,waiting,[requestId,{resolve,reject,timeout,operation}]);
       const message={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload};
-      if(directExport){
+      // Timeout discovery and request initialization may run tool-modified
+      // intrinsics. Check only after them; nothing tool-controlled may run
+      // between this private callback and the captured port post.
+      try{if(finalCheck)finalCheck();}
+      catch(error){
+        apply(mapDelete,waiting,[requestId]);cancelTimer(timeout);reject(error);return;
+      }
+      if(directPort){
         // A failed/unknown delivery must never fall back and replay the write.
-        try{apply(portPost,exportPort,[message]);}
-        catch{waiting.delete(requestId);clearTimeout(timeout);reject(Object.assign(
-          new Error('导出请求未确认，请核对实际结果，勿自动重试'),{code:'E_OUTCOME_UNKNOWN'}));}
+        try{apply(portPost,directPort,[message]);}
+        catch{
+          apply(mapDelete,waiting,[requestId]);cancelTimer(timeout);
+          reject(exportError('E_OUTCOME_UNKNOWN','导出请求未确认，请核对实际结果，勿自动重试'));
+        }
       }else parent.postMessage(message,'*');
+    });
+  };
+  const request=(operation,payload={})=>{
+    if(!instance)return rejected(new NativeError('工具界面尚未就绪'));
+    return sendRequest(operation,payload,consumeExportClick(operation));
+  };
+  const prepareExport=factory=>{
+    const operation='browser.downloads.text';
+    // Consume even an invalid factory's opportunity. No caller-controlled
+    // property is read until the native dispatch has been checked and spent.
+    const port=consumeExportClick(operation);
+    const started=now();
+    if(!port||cookieExports||!finite(started))
+      return rejected(exportError('E_EXPORT_GESTURE','文本准备需要一次有效的原生点击'));
+    if(typeof factory!=='function')return rejected(exportError('E_SCHEMA','文本准备需要 factory'));
+    const reservation={port,instance,toolId,operation,deadline:started+8000,active:true,timeout:null,cancel:null};
+    return new Carrier((resolve,reject)=>{
+      const finish=()=>{
+        if(!reservation.active)return false;
+        reservation.active=false;
+        apply(setDelete,preparations,[reservation]);cancelTimer(reservation.timeout);
+        return true;
+      };
+      const fail=error=>{if(finish())reject(error);};
+      const preparationFailed=cause=>{
+        const error=exportError('E_EXPORT_PREPARE','文本准备失败，未发送');
+        define(error,'cause',{value:cause});fail(error);
+      };
+      // Store only closure-private records. Tool code receives no reservation,
+      // port, proof, or callback capable of sending a caller-selected operation.
+      reservation.cancel=()=>fail(exportError('E_TOOL_DISPOSED','工具已关闭，文本未发送'));
+      apply(setAdd,preparations,[reservation]);
+      reservation.timeout=later(()=>fail(exportError('E_TOOL_TIMEOUT','文本准备超时，未发送')),8000);
+      const assertValid=()=>{
+        const time=now();
+        if(!reservation.active||disposed||exportPort!==reservation.port||instance!==reservation.instance||toolId!==reservation.toolId){
+          throw exportError('E_TOOL_DISPOSED','工具连接已失效，文本未发送');
+        }
+        if(!finite(time)||time>=reservation.deadline){
+          throw exportError('E_TOOL_TIMEOUT','文本准备超时，未发送');
+        }
+      };
+      const valid=()=>{
+        if(!reservation.active)return false;
+        try{assertValid();return true;}catch(error){fail(error);return false;}
+      };
+      let value;
+      try{value=apply(factory,undefined,[]);}catch(error){preparationFailed(error);return;}
+      // Native resolve performs one thenable assimilation; never call .then
+      // on a tool value. Private handlers attach only to our protected carrier.
+      try{observe(apply(promiseResolve,Carrier,[value]),result=>{
+        if(!valid())return;
+        try{
+          if(!result||typeof result!=='object')throw exportError('E_SCHEMA','Expected text export arguments');
+          const keys=ownKeys(result);
+          if(keys.length!==2||
+             !((keys[0]==='filename'&&keys[1]==='text')||(keys[0]==='text'&&keys[1]==='filename')))
+            throw exportError('E_SCHEMA','Expected only filename and text');
+          const data=create(null);
+          data.filename=result.filename;data.text=result.text; // each getter exactly once
+          freeze(data);
+          const payload=normalizeBrowserOperation(reservation.operation,data);
+          // Keep the reservation cancellable through timeout discovery and
+          // all send initialization, then check immediately before delivery.
+          observe(sendRequest(reservation.operation,payload,reservation.port,()=>{
+            assertValid();finish();
+          }),resolve,error=>{finish();reject(error);});
+        }catch(error){finish();reject(error);}
+      },preparationFailed);}catch(error){preparationFailed(error);}
     });
   };
   // A real user input means refreshing this preview could discard unsaved work.
@@ -150,9 +255,9 @@ export function initSidebarToolSandbox() {
     const message=event.data;
     if (message.kind==='response') {
       if (message.instance!==instance || message.toolId!==toolId)return;
-      const pending=waiting.get(message.requestId);
+      const pending=apply(mapGet,waiting,[message.requestId]);
       if (!pending)return;
-      waiting.delete(message.requestId);clearTimeout(pending.timeout);
+      apply(mapDelete,waiting,[message.requestId]);cancelTimer(pending.timeout);
       if(message.ok)pending.resolve(message.result);
       else {const error=new Error(message.error?.message||'工具请求被拒绝');error.code=message.error?.code||'E_TOOL';pending.reject(error);}
       return;
@@ -194,6 +299,9 @@ export function initSidebarToolSandbox() {
     if(currentTargetGetter&&trustedGetter&&portPost&&portClose&&event.ports?.length===1)
       exportPort=event.ports[0];
     instance=message.instance;toolId=tool.id;
+    // Snapshot installed capabilities before any package script can run.
+    cookieExports=Array.isArray(tool.capabilities)&&tool.capabilities.some(capability=>
+      typeof capability==='string'&&capability.startsWith('browser.cookies.'));
     uiLocale=acceptedLocale(message.locale);document.documentElement.lang=uiLocale;
     root.replaceChildren();
     const style=document.createElement('style');
@@ -214,7 +322,7 @@ export function initSidebarToolSandbox() {
         localeListeners.add(callback);return ()=>localeListeners.delete(callback);
       }
     }),configurable:false});
-    Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool'})}),configurable:false});
+    Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool',prepareExport})}),configurable:false});
     // Native/File-first: every dependency is the exact UTF-8 source bundled in
     // the installed v2 package. Verify SHA before creating a local Blob URL.
     // Never create a network script.src, never use privileged extension DOM.
@@ -288,10 +396,17 @@ export function initSidebarToolSandbox() {
     })().catch(cause=>{if(!disposed)report('error',String(cause?.message||cause).slice(0,260));});
   });
   window.addEventListener('pagehide',()=>{
+    disposed=true;
+    apply(setForEach,preparations,[reservation=>reservation.cancel()]);
     if(exportPort)apply(portClose,exportPort,[]);
     exportPort=null;exportClick=null;
-    disposed=true;localeListeners.clear();if(scriptUrl)URL.revokeObjectURL(scriptUrl);
-    for(const {reject,timeout} of waiting.values()){clearTimeout(timeout);reject(new Error('工具已关闭'));}
-    waiting.clear();
+    apply(setClear,localeListeners,[]);if(scriptUrl)URL.revokeObjectURL(scriptUrl);
+    apply(mapForEach,waiting,[({reject,timeout,operation})=>{
+      cancelTimer(timeout);
+      const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+      reject(exportError(exporting?'E_OUTCOME_UNKNOWN':'E_TOOL_DISPOSED',
+        exporting?'工具已关闭，导出结果未知；请核对实际结果，勿自动重试':'工具已关闭'));
+    }]);
+    apply(mapClear,waiting,[]);
   },{once:true});
 }

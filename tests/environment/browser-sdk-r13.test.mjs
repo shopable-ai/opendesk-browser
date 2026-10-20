@@ -100,6 +100,22 @@ test('Browser SDK tool wrapper preserves request channel; page SDK denies privil
   assert.equal(BROWSER_OPERATIONS['browser.network.observe.start'].implementation,'IMPLEMENTED');
   assert.throws(()=>normalizeBrowserOperation('browser.network.observe.start',{}),{code:'E_SCHEMA'});
 });
+test('Browser SDK prepareText is only a local injected helper, with no added operation or Page authority',async()=>{
+  const calls=[],factory=()=>({filename:'notes.json',text:'fresh'}),receipt={exported:true};
+  const request=()=>assert.fail('prepareText must not bypass the private helper through request');
+  const sdk=createBrowserSdk({request,prepareExport:input=>{calls.push(input);return receipt;}});
+  assert.equal(sdk.downloads.prepareText(factory),receipt);
+  assert.equal(calls.length,1);assert.equal(calls[0],factory);
+  assert.equal(Object.isFrozen(sdk.downloads),true);
+  assert.equal(createBrowserSdk({request}).downloads.prepareText,undefined,'older Bridge is discoverable without fallback execution');
+  assert.equal(createBrowserSdk({context:'page-sdk',prepareExport:request}).downloads,undefined);
+  assert.equal(Object.hasOwn(BROWSER_OPERATIONS,'browser.downloads.prepareText'),false);
+  const textCalls=[];
+  const legacy=createBrowserSdk({request:(operation,args)=>{textCalls.push({operation,args});return receipt;}});
+  await Promise.resolve();
+  assert.equal(legacy.downloads.text({filename:'notes.txt',text:'legacy'}),receipt);
+  assert.deepEqual(textCalls,[{operation:'browser.downloads.text',args:{filename:'notes.txt',text:'legacy'}}]);
+});
 test('menus use browser optional permission, idempotent sync, real click and one-use source',async()=>{
   const sample=await readSample('selection-notes.opendesk-tool.json');
   const fake=makeChrome(),{api,menus,events}=fake;

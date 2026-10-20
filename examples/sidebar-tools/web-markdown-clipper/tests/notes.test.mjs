@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {TextEncoder} from 'node:util';
+import {parseHTML} from 'linkedom';
 
 const source=await readFile(new URL('../src/notes.js',import.meta.url),'utf8');
 const isolated={};
@@ -182,4 +183,66 @@ test('new clip source is sanitized at storage boundary while legacy 1.1.0 record
  const old={...first.item,source:'https://example.com/legacy?access_token=OLD#prior'};
  const stored=normalize({version:1,items:[old]});
  assert.equal(stored.items[0].source,old.source,'never corrupt or rewrite historical records on upgrade');
+});
+
+const markup=await readFile(new URL('../src/index.html',import.meta.url),'utf8');
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+async function settled(check){
+ for(let i=0;i<100;i++){if(check())return;await turn();}
+ assert.fail('backup did not settle');
+}
+function backupUI({request,sdk}){
+ const {document,window}=parseHTML('<html><body>'+markup+'</body></html>');
+ const root=document.body;
+ const context={OpenDeskTool:{setState(){} }};
+ runInNewContext(source,{globalThis:context,document,TextEncoder,URL,Date,Math});
+ context.OpenDeskClipNotes.create({root,request,sdk,onStatus(){}});
+ return {root,click:()=>root.querySelector('#clip-note-backup').dispatchEvent(new window.Event('click')),
+  status:()=>root.querySelector('#clip-notes-status')};
+}
+test('backup reserves preparation before its fresh read and includes another window latest commit',async()=>{
+ const f=fixture();await f.create('clip-backup-111111').save({kind:'note',body:'已有摘录'});
+ let release,paused=false,prepared=0,exported=null,legacyCalls=0;
+ const gate=new Promise(resolve=>{release=resolve;});
+ const request=async(op,args)=>{if(paused&&op==='storage.get')await gate;return f.request(op,args);};
+ const sdk={downloads:{text:async()=>{legacyCalls++;return {started:true};},
+  prepareText:async make=>{prepared++;const args=await make();exported=args;return {started:true};}}};
+ const ui=backupUI({request,sdk});await turn();paused=true;
+ ui.click();ui.click();
+ assert.equal(prepared,1,'one explicit backup starts preparation synchronously and blocks duplicate clicks');
+ assert.equal(exported,null);
+ await f.create('clip-backup-222222').save({kind:'note',body:'另一窗口刚保存的中文'});
+ release();await settled(()=>exported!==null);
+ const backup=JSON.parse(exported.text);
+ assert.equal(exported.filename,'web-clipper-notes.json');
+ assert.equal(backup.format,'opendesk.clipper-notes.backup.v1');
+ assert.deepEqual(backup.items.map(item=>item.body),['已有摘录','另一窗口刚保存的中文']);
+ assert.equal(legacyCalls,0);
+});
+test('backup on an old Host still fresh-reads through the existing text export',async()=>{
+ const f=fixture();await f.create('clip-backup-333333').save({kind:'note',body:'旧 Host 仍能备份'});
+ let exported=null;
+ const ui=backupUI({request:f.request,sdk:{downloads:{text:async args=>{exported=args;return {started:true};}}}});
+ await turn();ui.click();await settled(()=>exported!==null);
+ assert.equal(JSON.parse(exported.text).items[0].body,'旧 Host 仍能备份');
+});
+test('a failed preparation never automatically retries through the legacy export',async()=>{
+ const f=fixture();let legacyCalls=0;
+ const ui=backupUI({request:f.request,sdk:{downloads:{
+  prepareText:async()=>{throw error('E_OUTCOME_UNKNOWN');},
+  text:async()=>{legacyCalls++;return {started:true};}
+ }}});
+ await turn();ui.click();await settled(()=>ui.status().dataset.error==='true');
+ assert.equal(legacyCalls,0);
+ assert.match(ui.status().textContent,/备份下载未确认/);
+});
+test('a corrupt fresh read stops the backup without exporting an older UI snapshot',async()=>{
+ const f=fixture();let corrupt=false,exports=0;
+ const request=(op,args)=>corrupt&&op==='storage.get'
+  ?Promise.resolve({value:{version:999,items:[]},etag:'a'.repeat(64)}):f.request(op,args);
+ const sdk={downloads:{prepareText:async make=>{const args=await make();exports++;return args;},
+  text:async()=>{exports++;return {started:true};}}};
+ const ui=backupUI({request,sdk});await turn();corrupt=true;ui.click();
+ await settled(()=>ui.status().dataset.error==='true');
+ assert.equal(exports,0);assert.match(ui.status().textContent,/不会覆盖已有记录/);
 });

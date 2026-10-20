@@ -252,10 +252,16 @@ function create({root,request,sdk,onStatus}){
   if(dirty())return msg('请先保存或取消当前编辑，然后再备份',true);
   busy=true;notify();
   try{
-   await reload(true); // Include other windows' latest confirmed records.
-   const text=JSON.stringify({format:'opendesk.clipper-notes.backup.v1',
-    exportedAt:new Date().toISOString(),items:data.items},null,2)+'\n';
-   const result=await sdk.downloads.text({filename:'web-clipper-notes.json',text});
+   const prepare=async()=>{
+    await reload(true); // Include other windows' latest confirmed records.
+    const text=JSON.stringify({format:'opendesk.clipper-notes.backup.v1',
+     exportedAt:new Date().toISOString(),items:data.items},null,2)+'\n';
+    return {filename:'web-clipper-notes.json',text};
+   };
+   const prepareText=sdk.downloads.prepareText;
+   // Reserve the explicit click before the fresh read. Older Hosts keep their
+   // existing review path; a failed/unknown preparation must never be replayed.
+   const result=prepareText===undefined?await sdk.downloads.text(await prepare()):await prepareText(prepare);
    if(result?.started!==true)throw Error('下载未确认');
    msg('已请求备份下载，请检查 Chrome 下载记录');
   }catch(e){msg('备份下载未确认：'+String(e.message||e),true);}
