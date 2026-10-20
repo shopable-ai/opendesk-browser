@@ -7,6 +7,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,writeFile,copyFile,rm} from 'node:fs/promises';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {build as buildVite} from 'vite';
 import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {tmpdir} from 'node:os';
 import {lookup} from 'node:dns/promises';
@@ -323,9 +324,9 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await client.send('Runtime.enable',{},frame);await client.send('Page.enable',{},frame);
   inputParents.set(frame,sid);
   diagnosticSessions=[{name:'side-panel',session:sid},{name:'sandbox',session:frame}];
-  await until(()=>evalRead(client,frame,'!!document.querySelector("#site-host")'),'real Stay Focus UI');
+  await until(()=>evalRead(client,frame,'!!document.querySelector("#sf-daily-budget")'),'real Stay Focus UI');
   const dimensions=await evalRead(client,frame,
-    '(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,visible:!!document.querySelector("#site-host")}))()');
+    '(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,visible:!!document.querySelector("#sf-daily-budget")}))()');
   assert.ok(dimensions.scrollWidth<=dimensions.width+2,'native tool must not overflow its iframe horizontally');
   report.toolGeometry=dimensions;
   report.screenshots.push(await screenshot(client,sid,'installed-stay-focus-native-panel'));
@@ -379,10 +380,10 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   // edits storage usage or creates a fake DNR rule. That also crosses the
   // last-one-minute page reminder with no 30-minute stress run.
   await until(()=>evalRead(client,frame,
-    '(()=>{const x=document.querySelector("#daily-budget-minutes");return !!x&&!x.disabled})()'),
+    '(()=>{const x=document.querySelector("#sf-daily-budget");return !!x&&!x.disabled})()'),
     'daily total editable after activation',45000);
-  await replaceField(client,frame,'#daily-budget-minutes','2');
-  await click(client,frame,'#daily-budget-save');
+  await replaceField(client,frame,'#sf-daily-budget','2');
+  await click(client,frame,'.sf-budget-form button');
   await until(()=>evalRead(client,sid,
     '!document.querySelector("#sidebar-tool-action-review").hidden'),
     'real trusted daily budget review');
