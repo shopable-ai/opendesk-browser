@@ -253,8 +253,14 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     catch(error){const cleanup=discardUncertainSession(error);if(cleanup)await cleanup.catch(()=>{});throw error;}
     finally{finish(row);}
   }
-  async function plan({request,workflow,consent,model,target,signal,verifiedHistory=[],onEvent=()=>{},onApproval}={}) {
-    const original=structuredClone(workflow),input=workflowCodexInput(request,original,verifiedHistory),scope=consentScope(consent);
+  async function plan({request,workflow,consent,model,target,signal,verifiedHistory=[],onEvent=()=>{},onApproval,structuredInput=null}={}) {
+    const generic=typeof structuredInput==='string';
+    if(structuredInput!==null&&!generic)throw fail('E_AI_REQUEST','结构化模型输入无效');
+    const original=generic?null:structuredClone(workflow);
+    const input=generic?structuredInput:workflowCodexInput(request,original,verifiedHistory);
+    if(generic&&(!input.trim()||bytes(input)>32768))
+      throw fail('E_AI_INPUT_LIMIT','本次书签指令超过输入上限');
+    const scope=consentScope(consent);
     if(model!==undefined&&(typeof model!=='string'||model.length>120))throw fail('E_AI_CONFIG','本机模型名称无效');
     if(scope.observation&&(!object(target)||target.frameId!==0||target.origin!==original.siteOrigin||
       !targetKeys.every(key=>Object.hasOwn(target,key))))throw fail('E_DOCUMENT_STALE','请重新选择可观察的当前网页');
@@ -347,7 +353,9 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
           if(!finalMessageSeen)throw fail('E_AI_RESPONSE','Codex 未返回完整的工作流提议');
           let proposed;
           try{proposed=JSON.parse(completedText);}catch{throw fail('E_AI_RESPONSE','Codex 未返回有效的工作流 JSON，请调整需求后重新发送');}
-          const normalized=normalizeAiProposal(restoreModelRedactions(proposed,original),original);
+          const normalized=generic
+            ?(object(proposed)?proposed:(()=>{throw fail('E_AI_RESPONSE','AI 未返回 JSON 对象')})())
+            :normalizeAiProposal(restoreModelRedactions(proposed,original),original);
           if(scope.observation&&!observedNodes.length)
             throw fail('E_AI_OBSERVATION_REQUIRED','Codex 未取得本次网页观察结果，拒绝使用猜测的步骤');
           // All Provider adapters reject invented locators for
@@ -373,7 +381,14 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     generation++;session=null;resumable=null;
     if(active)active.controller.abort(fail('E_AI_DISCONNECTED','本机连接已断开，AI 规划不会自动重发'));
   });
-  return {probe,plan,cancel,close,resume,
+  return {probe,plan,
+    // Reuse the exact native session/cancel/event protocol for another business
+    // consumer. No fake workflow siteOrigin, compiler, or browser tool grants.
+    planStructured:({input,signal,onEvent}={})=>plan({
+      structuredInput:input,consent:{model:true,workflow:true,observation:false},
+      signal,onEvent
+    }),
+    cancel,close,resume,
     snapshot:()=>({sessionId:session?.sessionId||null,threadId:session?.threadId||null,
       state:session?.state||'IDLE',inferenceVerified:session?.inferenceVerified===true,
       busy:Boolean(active||cancelling||closing),resumable:Boolean(resumable&&!session)}),

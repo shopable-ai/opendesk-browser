@@ -154,3 +154,26 @@
  .bm-popover button,.bm-button,.bm-picker-item,.bm-text-button{min-height:44px}
  .bm-sheet .bm-editor-actions .bm-button{height:44px}
 }
+
+
+/* R1.0 Conversation: the original Tree stays mounted while chat is visible.
+ * All surfaces inherit existing OpenDesk color tokens; no alternate theme. */
+.bm-conversation{min-height:0;min-width:0;flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper)}
+.bm-chat-log{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 12px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
+.bm-chat-entry{max-width:94%;min-width:0;align-self:flex-start;display:grid;gap:4px;padding:9px 11px;border:1px solid var(--od-line);border-radius:12px;background:var(--od-bg);overflow-wrap:anywhere}
+.bm-chat-entry[data-speaker="user"]{align-self:flex-end;border-color:color-mix(in srgb,var(--od-brand) 25%,var(--od-line));background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
+.bm-chat-entry strong{font-size:11px;color:var(--od-sub);font-weight:650}
+.bm-chat-entry p{margin:0;color:var(--od-ink);white-space:pre-wrap;font-size:12px;line-height:1.6}
+.bm-chat-empty{display:grid;gap:14px;padding:22px 6px;color:var(--od-sub)}
+.bm-chat-empty p{font-size:13px;margin:0;text-align:center}
+.bm-chat-samples{display:grid;gap:7px}
+.bm-chat-samples button{display:block;text-align:left;background:var(--od-paper);border:1px solid var(--od-line);border-radius:10px;min-height:39px;padding:8px 10px;color:var(--od-ink);font-size:12px}
+.bm-chat-samples button:hover{background:var(--od-muted)}
+.bm-chat-composer{flex:none;padding:10px 12px 11px;border-top:1px solid var(--od-line);display:grid;gap:7px;background:var(--od-paper)}
+.bm-chat-request{display:block;resize:vertical;min-height:66px;max-height:155px;width:100%;border:1px solid var(--od-input-border);border-radius:10px;background:var(--od-paper);color:var(--od-ink);padding:9px 11px;font:inherit;line-height:1.5}
+.bm-chat-request:focus-visible{outline:2px solid var(--od-focus);outline-offset:1px}
+.bm-chat-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bm-chat-controls small{font-size:11px;color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bm-chat-controls .bm-icon-btn{flex:none}
+.bm-chat-error{margin:0 12px 5px;font-size:11px;line-height:1.5;color:var(--od-negative);overflow-wrap:anywhere}
+@media(pointer:coarse){.bm-chat-controls .bm-icon-btn{width:44px;min-width:44px;height:44px}}

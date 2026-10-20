@@ -11,6 +11,13 @@ on:
       - 'examples/sidebar-tools/bookmark-manager/src/model.js'
       - 'examples/sidebar-tools/bookmark-manager/src/service.js'
       - 'src/ui/react/main.tsx'
+      - 'src/ui/react/components/conversation.tsx'
+      - 'src/ui/conversation/bookmark-actions.js'
+      - 'src/ui/workflow/provider.js'
+      - 'src/ui/workflow/workflow-view.js'
+      - 'src/ui/workflow/local-codex.js'
+      - 'src/ui/workflow/ai-plan.js'
+      - 'src/ui/react/tabs/workflow.tsx'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools-view.js'
       - 'src/ui/trusted-bookmark-admission.js'
@@ -23,6 +30,7 @@ on:
       - 'tests/environment/bookmark-manager-r34-write-order.test.mjs'
       - 'tests/environment/bookmark-manager-r34-transport.test.mjs'
       - 'tests/environment/bookmark-manager-r34-save-consent.test.mjs'
+      - 'tests/environment/opendesk-conversation-r10.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/sidebar-tools-view.test.mjs'
       - 'scripts/bundle-provenance.mjs'
@@ -55,6 +63,7 @@ jobs:
             tests/environment/bookmark-manager-r34-write-order.test.mjs \
             tests/environment/bookmark-manager-r34-transport.test.mjs \
             tests/environment/bookmark-manager-r34-save-consent.test.mjs \
+            tests/environment/opendesk-conversation-r10.test.mjs \
             tests/environment/sidebar-tools-view.test.mjs \
             tests/environment/extension-center-r47-interaction.test.mjs \
             tests/environment/bookmark-manager-r24-lifecycle.test.mjs \
@@ -66,6 +75,8 @@ jobs:
           node scripts/build-cookie-editor-react.mjs
       - name: Official save intent and sandbox deletion boundaries
         run: node --test --test-name-pattern='R3.4' tests/environment/sidebar-tools-host.test.mjs
+      - name: Confirm shared provider and legacy Workflow regressions
+        run: node --test tests/environment/workflow-provider-facade.test.mjs tests/environment/workflow-responses.test.mjs tests/environment/workflow-local-codex.test.mjs
       - name: Check formal source
         run: npm run check
       - name: Build official WXT code without promoting or installing any tool package

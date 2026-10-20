@@ -1,6 +1,6 @@
 // Provider facade for workflow planning only. Execution remains in WorkflowCompiler/RunHost.
 // Capabilities below describe OpenDesk adapters, never official OpenAI/Codex fields.
-import {requestWorkflowPlan} from './ai-plan.js';
+import {requestWorkflowPlan,requestChatCompletionJSON} from './ai-plan.js';
 
 const sources=Object.freeze({
   cloud_responses:Object.freeze({provider:'cloud_responses',transport:'https-responses',
@@ -22,11 +22,37 @@ export function workflowProviderCapabilities(source,localCapability=null) {
     ...(source==='local_codex'?{coldResume:localCapability?.resumeSupported===true,
       readyForTurn:localCapability?.readyForTurn===true}: {})});
 }
-export function createWorkflowProviderFacade({localPlanner}) {
+export function createWorkflowProviderFacade({localPlanner,conversationPlanner=localPlanner}) {
   if(!localPlanner||typeof localPlanner.plan!=='function')
     throw Object.assign(new Error('缺少现有 Codex 管理器'),{code:'E_AI_CONFIG'});
   return Object.freeze({
     probeCapabilities: (source,localCapability)=>workflowProviderCapabilities(source,localCapability),
+    // Cross-extension structured inference; business actions are verified and
+    // executed by the consumer, never by a Provider, RunHost or model text.
+    async generateStructured({source,request,instructions,context={},settings={},
+      signal,onEvent,fetchImpl=globalThis.fetch}={}) {
+      if(!Object.hasOwn(sources,source))throw Object.assign(Error('未知 AI 来源'),{code:'E_AI_CONFIG'});
+      if(typeof request!=='string'||!request.trim()||request.length>4000||
+        typeof instructions!=='string'||!instructions.trim()||instructions.length>10000)
+        throw Object.assign(Error('请输入有效的对话请求'),{code:'E_AI_REQUEST'});
+      const input=JSON.stringify({request,context});
+      if(input.length>20000)throw Object.assign(Error('本次上下文过长'),{code:'E_AI_INPUT_LIMIT'});
+      if(source==='local_codex') {
+        if(typeof conversationPlanner?.planStructured!=='function')
+          throw Object.assign(Error('当前 Codex 还不支持结构化对话'),{code:'E_AI_UNSUPPORTED'});
+        const proposal=await conversationPlanner.planStructured({
+          input:instructions+'\n'+input,signal,onEvent
+        });
+        return {proposal,metadata:{provider:'local_codex',usage:null}};
+      }
+      if(source==='cloud_responses'){
+        const {requestWorkflowResponse}=await import('./responses.js');
+        return await requestWorkflowResponse({endpoint:settings.endpoint,apiKey:settings.apiKey,
+          model:settings.model,instructions,input,signal,fetchImpl});
+      }
+      return await requestChatCompletionJSON({endpoint:settings.endpoint,apiKey:settings.apiKey,
+        model:settings.model,instructions,input,signal,fetchImpl});
+    },
     async generateWorkflow({source,request,workflow,target,observationReceipt=null,
       settings={},consent=null,signal,onEvent,onApproval,history=[],fetchImpl,jsonSchema=null}) {
       if(!Object.hasOwn(sources,source))throw Object.assign(new Error('未知工作流 Provider'),{code:'E_AI_CONFIG'});

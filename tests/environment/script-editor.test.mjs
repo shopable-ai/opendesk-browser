@@ -155,6 +155,28 @@ test('R40.5 ordinary Controller edits never inspect Page dependencies',async t=>
   assert.equal(f.dependencyInspections.length,initial,'Controller JS/ESM must not start a Page network inspection');
 });
 
+test('R40.7 plain Controller edit and Run do not invoke Page or component preparation',async t=>{
+  let inspections=0,builds=0;
+  const f=await fixture(undefined,undefined,{componentPreparerFactory:()=>({
+    inspect:async()=>{inspections++;throw new Error('unexpected JSX inspection');},
+    prepare:async()=>{builds++;throw new Error('unexpected JSX build');},
+    cancel(){},dispose(){}
+  })});
+  t.after(()=>f.dispose());
+  const initial=f.dependencyInspections.length;
+  f.find('script-source').value='async function main(){return 17;}';
+  f.find('script-source').fire('input',{isTrusted:true});
+  await tick();await tick();
+  assert.equal(f.dependencyInspections.length,initial,'Controller JS must not refresh Page dependencies');
+  assert.equal(inspections,0,'Controller JS must not inspect React/Vue source');
+  await f.click('script-run');
+  assert.equal(f.starts.length,1,'the current Controller draft runs without a saved revision');
+  await f.finish(17);
+  assert.equal(inspections,0);
+  assert.equal(builds,0);
+  assert.equal(f.dependencyInspections.length,initial);
+});
+
 test('R40.5 Page to Controller transition fences stale Page inspection and keeps draft Run',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const gate=deferred(),requested=[];

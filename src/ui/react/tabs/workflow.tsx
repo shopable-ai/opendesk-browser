@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {ConversationTranscript,ConversationInput} from '../components/conversation.tsx';
 
 // R23.11: trusted chrome only. No Provider, Host, secrets, drafts or web-page
 // content is copied into this view. Native user gestures go to WorkflowView.
@@ -92,10 +93,7 @@ function focusableElements(panel) {
 // Only trusted, already-minimized UI strings cross the adapter. Never mount
 // provider HTML/markdown or give a page script access to this React tree.
 export function WorkflowTranscript({rows=[]}) {
-  return rows.map(row=><div key={row.id} className="workflow-chat-entry"
-    data-speaker={row.speaker==='你'?'user':'assistant'}>
-    <strong>{row.speaker}</strong><p>{row.message}</p>
-  </div>);
+  return <ConversationTranscript rows={rows}/>;
 }
 
 // Only the trusted Durable Result presentation is React-owned; its value comes
@@ -347,7 +345,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       </div>
       <div className="workflow-composer">
         <label className="visually-hidden" htmlFor="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
-        <textarea id="workflow-ai-request" rows={2} maxLength={4000} placeholder="描述要自动完成的任务…" value={c('workflow-ai-request').value||''}
+        <ConversationInput id="workflow-ai-request" rows={2} maxLength={4000} placeholder="描述要自动完成的任务…" value={c('workflow-ai-request').value||''}
           onChange={event=>field('workflow-ai-request',event.currentTarget.value,event)}/>
         <div className="workflow-composer-actions">
           {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}

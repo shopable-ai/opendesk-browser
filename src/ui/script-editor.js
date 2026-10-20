@@ -185,7 +185,6 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(context==='local'||previous==='local')localInstaller.update();
     // A target refresh is pending evidence, not a confirmed document change.
     // Keep the original result, but do not expose it as current until resolved.
-    localRunner?.refreshResultValidity();
     if(context==='controller'||context==='controller-esm'||changed)
       controllerRevisions.update({busy:editingBusy,local,page:pageExecution});
     const worldRow=find('script-javascript-world-row'),worldChoice=find('script-javascript-world');
@@ -240,6 +239,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (disposed) return;
     pagePreviewFlow.onTarget(next);
     currentPageState = next;
+    localRunner?.refreshResultValidity();
     const available=next?.status==='available',resolving=next?.status==='resolving';
     patchDeveloperField(view,find('script-current-page-title'),{textContent:available?next.title||next.url:
       resolving?'正在识别…':next?.message||'尚未识别可运行网页'});
@@ -466,10 +466,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     browserPreparer.cancel();browserPrepareGeneration++;controllerRunner?.invalidate();
     const local=!!localProject?.active(),page=!local&&componentMode==='javascript'&&isPageDraft();
     const remote=!local&&!page&&(componentMode!=='javascript'||hasUnbuiltESM(programSource.source()));
-    if(page){dependencyResolver.refresh({sourceFormat:'esm-page'});dependencyInstaller.refresh();}
-    else{dependencyResolver.suspend();dependencyInstaller.update();}
+    if(page)dependencyResolver.refresh({sourceFormat:'esm-page'});
+    else dependencyResolver.suspend();
     if(remote)componentRemote.refresh();
-    else componentRemote.update(); // Clear an obsolete panel without priming an unrelated compiler.
+    // The context-aware update below clears stale panels on mode transitions.
+    // Plain Controller edits must not refresh Page or JSX preparation.
     if(!local&&!page&&!remote&&componentMode==='javascript')controllerClassic.schedule();
     else controllerClassic.cancel();
     update();
@@ -582,7 +583,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   },connectLocalProjects(adapter,{onInstalled}={}){
     if(localProject||!find('local-project-mode'))return;
     localInstaller.setOnInstalled(onInstalled);
-    localProject=createLocalProjectView({client,api,document:doc,view,onChange:update});
+    localProject=createLocalProjectView({client,api,document:doc,view,
+      onChange:()=>{localRunner?.refreshResultValidity();update();}});
     localRunner=createLocalProjectRun({api,host,view,currentPageTarget,localProject,localAdapter:adapter,
       localInstaller,controllerResults,getCurrentPageState:()=>currentPageState,
       isDisposed:()=>disposed,isBlocked:()=>editingBusy||pagePreviewFlow?.busy||stopping,

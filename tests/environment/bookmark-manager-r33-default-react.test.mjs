@@ -11,7 +11,7 @@ test('R3.3 normal open tries the single compiled React root without developer pa
   'src/ui/tool-shell.js','src/ui/react/main.tsx','src/ui/sidebar-tools.js'].map(read));
  assert.match(shell,/trustedBookmarkPilot:\{\s*componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,\s*enabled:true,/);
  assert.doesNotMatch(shell,/bookmarkReactPilot/);
- assert.match(react,/mountBookmarkPilot\(\{container,sdk,onStateChange\}/);
+ assert.match(react,/mountBookmarkPilot\(\{container,sdk,onStateChange,conversation=null\}/);
  assert.equal((react.match(/createRoot\(/g)||[]).length,1);
  assert.match(controller,/admittedNativeBookmark\(tool,frameRevocationEpoch\)\.then\(admitted=>/);
  assert.match(controller,/if\(!admitted\)\{\s*mountTool\(tool,\{forceSandbox:true\}\)/);

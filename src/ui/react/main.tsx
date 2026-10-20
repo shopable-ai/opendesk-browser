@@ -103,7 +103,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
-    mountBookmarkPilot({container,sdk,onStateChange}={}){
+    mountBookmarkPilot({container,sdk,onStateChange,conversation=null}={}){
       if(disposed||bookmarkPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||
         typeof sdk?.bookmarks?.getTree!=='function'||
@@ -111,7 +111,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
         !globalThis.BookmarkR2Model)
         throw new Error('E_BOOKMARK_TRUSTED_PILOT_MOUNT');
       bookmarkPilot={container,
-        runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk)}),
+        runtime:Object.freeze({sdk,service:globalThis.BookmarkR2Service.create(sdk),conversation}),
         onStateChange};
       container.dataset.opendeskReactOwner='bookmark-react-pilot';
       try{paint();}catch(error){

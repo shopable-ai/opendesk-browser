@@ -84,3 +84,55 @@ export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflo
   if(trustedObservation)checkLocators(normalized,trustedObservation);
   return normalized;
 }
+
+
+// The same existing HTTPS Chat Completions transport, exposed for bounded
+// structured conversations without fabricating a Workflow or DOM observation.
+// It never returns markup to the caller or gains any browser execution rights.
+export async function requestChatCompletionJSON({endpoint,apiKey,model,instructions,input,
+ signal,fetchImpl=globalThis.fetch}={}){
+ let url;try{url=new URL(endpoint)}catch{}
+ if(!url||url.protocol!=='https:'||url.username||url.password||url.hash||
+  typeof apiKey!=='string'||!apiKey||apiKey.length>4096||
+  typeof model!=='string'||!model.trim()||model.length>120||
+  typeof instructions!=='string'||!instructions.trim()||instructions.length>10000||
+  typeof input!=='string'||!input.trim()||input.length>32768||
+  typeof fetchImpl!=='function')
+  throw Object.assign(Error('请先在工作流中配置合法的 HTTPS 模型来源'),{code:'E_AI_CONFIG'});
+ cancelled(signal);
+ const controller=new AbortController();
+ const interrupt=()=>controller.abort(Object.assign(Error('已停止 AI 请求'),{code:'E_CANCELLED'}));
+ signal?.addEventListener('abort',interrupt,{once:true});
+ const timeout=setTimeout(()=>controller.abort(Object.assign(Error('AI 请求超时；没有自动重发'),{code:'E_AI_OUTCOME_UNKNOWN'})),60000);
+ try{
+  cancelled(signal);
+  const response=await fetchImpl(url.href,{method:'POST',redirect:'error',cache:'no-store',
+   credentials:'omit',referrerPolicy:'no-referrer',signal:controller.signal,
+   headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+   body:JSON.stringify({model,messages:[{role:'system',content:instructions},
+    {role:'user',content:input}],temperature:0})});
+  if(response.redirected)throw Object.assign(Error('不允许模型接口重定向'),{code:'E_AI_PROTOCOL'});
+  if(!response.ok)throw Object.assign(Error('AI 服务请求失败（HTTP '+response.status+'）'),{code:'E_AI_PROVIDER'});
+  const text=await response.text();
+  if(text.length>500000)throw Object.assign(Error('模型返回内容过长'),{code:'E_AI_RESPONSE'});
+  cancelled(signal);
+  let data,proposal;
+  try{
+   data=JSON.parse(text);
+   if(typeof data?.choices?.[0]?.message?.content!=='string'||data.choices.length!==1||
+    data.choices[0].finish_reason!=='stop')
+    throw Error('incomplete');
+   proposal=JSON.parse(data.choices[0].message.content);
+  }catch{throw Object.assign(Error('模型未返回完整的 JSON 操作计划'),{code:'E_AI_RESPONSE'});}
+  if(!proposal||typeof proposal!=='object'||Array.isArray(proposal))
+   throw Object.assign(Error('模型结果不是 JSON 对象'),{code:'E_AI_RESPONSE'});
+  return {proposal,metadata:{provider:'custom_https',usage:data.usage||null}};
+ }catch(error){
+  if(controller.signal.aborted)throw controller.signal.reason;
+  if(error?.code)throw error;
+  throw Object.assign(Error('AI 请求结果未知；没有自动重发'),{code:'E_AI_OUTCOME_UNKNOWN'});
+ }finally{
+  clearTimeout(timeout);signal?.removeEventListener('abort',interrupt);
+  if(!controller.signal.aborted)controller.abort();
+ }
+}
