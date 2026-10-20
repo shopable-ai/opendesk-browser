@@ -667,19 +667,40 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   report.heartbeat.workerRestart=await nativeFocusHeartbeat(client,uid,true,'worker restart');
   report.workerRestart=reached?'PASS':'PASS_DATA_ONLY_DNR_NOT_TESTED';note('real-worker-restart',{old:oldWorker.targetId,current:nextWorker.targetId,quota:workerQuota});
 
-  await until(()=>evalRead(client,frame,'!!document.querySelector("#managed-site-details")'),'reopened tool rendered');
-  await click(client,frame,'#managed-site-details > summary');
-  await click(client,frame,'button[aria-label="暂停 youtube.com"]');
-  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),'pause site trusted review');
+  await until(()=>evalRead(client,frame,
+    '!!document.querySelector(".sf-list .sf-site")'),'reopened React site management');
+  let youtubeIndex=await evalRead(client,frame,'[...document.querySelectorAll(".sf-list .sf-site")]'+
+    '.findIndex(n=>n.querySelector("strong")?.textContent==="youtube.com")+1');
+  if(youtubeIndex<1){
+    await click(client,frame,'.sf-show-all');
+    youtubeIndex=await until(()=>evalRead(client,frame,
+      '[...document.querySelectorAll(".sf-list .sf-site")]'+
+      '.findIndex(n=>n.querySelector("strong")?.textContent==="youtube.com")+1'),
+      'YouTube visible after expanding React site list');
+  }
+  const siteMenu='.sf-list .sf-site:nth-child('+youtubeIndex+') button[aria-label="管理 youtube.com"]';
+  const firstSiteMenuItem='.sf-list .sf-site:nth-child('+youtubeIndex+') [role="menuitem"]:first-child';
+  await click(client,frame,siteMenu);
+  assert.match(await evalRead(client,frame,
+    'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/暂停/);
+  await click(client,frame,firstSiteMenuItem);
+  await until(()=>evalRead(client,sid,
+    '!document.querySelector("#sidebar-tool-action-review").hidden'),'pause website Host review');
   await click(client,sid,'#sidebar-tool-action-continue');
-  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&!s.enabled))'),
-    'individual site paused');
+  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
+    'x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&!s.enabled))'),
+    'individual site paused by the React menu');
   report.sitePause=reached?'PASS':'PASS_UI_STATE_ONLY';
-  await click(client,frame,'button[aria-label="恢复 youtube.com"]');
-  await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-action-review").hidden'),'resume site trusted review');
+  await click(client,frame,siteMenu);
+  assert.match(await evalRead(client,frame,
+    'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/恢复/);
+  await click(client,frame,firstSiteMenuItem);
+  await until(()=>evalRead(client,sid,
+    '!document.querySelector("#sidebar-tool-action-review").hidden'),'restore website Host review');
   await click(client,sid,'#sidebar-tool-action-continue');
-  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&s.enabled))'),
-    'individual site restored');
+  await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
+    'x["'+store+'"].sites.some(s=>s.host==="youtube.com"&&s.enabled))'),
+    'individual site restored by React menu');
 
   // Native lifecycle: the user can stop enforcement without uninstalling and
   // re-enable with the original daily quota still exhausted. Never write
