@@ -9,7 +9,7 @@ import {createRunHost} from '../../src/run-host.js';
 
 test('Sidebar omits disabled template code while preserving modern Host and source compatibility',async()=>{
   const editor=await readFile('src/ui/script-editor.js','utf8');
-  assert.ok(editor.includes('hostFactory({api, client, document: doc, templateModuleFactory: null})'));
+  assert.ok(editor.includes('hostFactory({api, client, document: hostDocument, templateModuleFactory: null})'));
   const runHost=resolve('src/run-host.js'),buildConfig={mode:'development',build:{lib:{},rollupOptions:{},terserOptions:{},sourcemap:false},plugins:[]};
   config.hooks['vite:build:extendConfig']([{name:'tool-shell',type:'unlisted-script'}],buildConfig);
   const policy=buildConfig.plugins.find(plugin=>plugin.name==='opendesk-fixed-tool-shell');

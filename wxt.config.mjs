@@ -106,7 +106,7 @@ export default defineConfig({
          config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
       }
       if (target === 'ui/tool-shell.js') {
-         // Preserve the existing fixed IIFE byte budget; never relax.
+         // Keep the trusted shell compact within its mode-specific byte budget.
          const options=config.build.terserOptions;
          config.build.terserOptions={...options,
            format:{...options.format,wrap_func_args:false},
