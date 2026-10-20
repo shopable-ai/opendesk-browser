@@ -85,9 +85,9 @@ function reviewedCompiledBookmarkReact(target,path,root){
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'bf8916fe1080e92bc42eeee2dafc1a6f6fc1d244',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'a64a436b8ecc3ba67287de6f6afec1ca94a2fcce',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c'
+  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);

@@ -9,6 +9,11 @@ on:
       - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
       - 'tests/environment/prompt-shortcuts-r20.test.mjs'
       - 'tests/environment/prompt-shortcuts-r215-rail-open.test.mjs'
+      - 'tests/environment/prompt-shortcuts-panel-deeplink.test.mjs'
+      - 'src/ui/sidebar-tools/panel-tool-intent.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/react/app-shell.tsx'
+      - 'src/ui/react/tabs/tool-host.tsx'
       - 'src/sw.js'
       - 'scripts/bundle-provenance.mjs'
       - 'scripts/tests/prompt-shortcuts-r111-preview-chrome.mjs'
@@ -43,7 +48,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate independent tool, storage and fixed-adapter provenance
         run: |
-          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs
+          node --test tests/environment/prompt-shortcuts-r14*.test.mjs tests/environment/prompt-shortcuts-r20.test.mjs tests/environment/prompt-shortcuts-r215-rail-open.test.mjs tests/environment/prompt-shortcuts-panel-deeplink.test.mjs
           node --test tests/environment/sidebar-tools.test.mjs
       - name: Check standalone and trusted JavaScript syntax
         run: |

@@ -97,6 +97,47 @@ test('web OD user gesture opens native panel synchronously and writes fixed tool
   assert.equal(record.windowId,3);
 });
 
+test('a rejected Chrome open never persists a stale target route',async()=>{
+  const storage=fakeStorage(),responses=[];
+  const sender={id:'extension',frameId:0,documentLifecycle:'active',
+    url:'https://chatgpt.com/c/example',tab:{id:8,windowId:3,
+      url:'https://chatgpt.com/c/example',incognito:false}};
+  const api={runtime:{id:'extension'},storage,sidePanel:{
+    open:()=>Promise.reject(Error('gesture refused'))
+  }};
+  assert.equal(handlePromptRailOpen({api,sender,respond:value=>responses.push(value),
+    message:{protocol:PROMPT_RAIL_OPEN_PROTOCOL,expectedUrl:sender.url}}),true);
+  await settle();
+  assert.deepEqual(responses,[{ok:false,error:{code:'E_SIDE_PANEL'}}]);
+  const key=panelToolIntentKey(3);
+  assert.equal((await storage.session.get(key))[key],undefined);
+});
+
+test('a pending native open does not route until Chrome confirms it',async()=>{
+  const storage=fakeStorage(),responses=[];
+  const sender={id:'extension',frameId:0,documentLifecycle:'active',
+    url:'https://chatgpt.com/c/example',tab:{id:8,windowId:3,
+      url:'https://chatgpt.com/c/example',incognito:false}};
+  let complete;
+  const api={runtime:{id:'extension'},storage,sidePanel:{
+    open:()=>new Promise(resolve=>{complete=resolve;})
+  }};
+  handlePromptRailOpen({api,sender,respond:value=>responses.push(value),
+    message:{protocol:PROMPT_RAIL_OPEN_PROTOCOL,expectedUrl:sender.url}});
+  const key=panelToolIntentKey(3);
+  assert.equal((await storage.session.get(key))[key],undefined);
+  assert.deepEqual(responses,[]);
+  complete();await settle();
+  assert.equal((await storage.session.get(key))[key].toolId,'prompt-shortcuts');
+  assert.deepEqual(responses,[{ok:true,data:{opened:true}}]);
+});
+
+test('OD Logo names prompt management, not the general extension list',async()=>{
+  const source=await readFile('examples/sidebar-tools/prompt-shortcuts/trusted/page.js','utf8');
+  assert.ok(source.includes("brand.title='打开提示词快捷按钮'"));
+  assert.ok(source.includes("brand.setAttribute('aria-label','打开提示词快捷按钮')"));
+});
+
 test('official native Side Panel controller reuses React ToolHost and does not navigate full-size tabs',async()=>{
   const source=await readFile('src/ui/tool-shell.js','utf8');
   assert.match(source,/createPanelToolIntentReceiver/);
@@ -115,7 +156,7 @@ test('reviewed prompt rail bridge is pinned for fixed Service Worker only, never
     chunk:{fileName,modules:{[resolve(root,path)]:info}}});
   const modulePath='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
   const trusted=bundle('sw.js',modulePath);
-  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c');
+  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6');
   assert.throws(()=>bundle('sw.js','examples/sidebar-tools/prompt-shortcuts/trusted/page.js'),
     /Historical\/user\/vendor code cannot enter/);
   assert.throws(()=>bundle('scripting/user-scripts.js',modulePath),

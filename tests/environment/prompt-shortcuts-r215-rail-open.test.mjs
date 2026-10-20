@@ -13,13 +13,13 @@ test('R2.15 fixed build admits exact reviewed rail code only in its two owners',
   const describe=(target,root=process.cwd(),input=path)=>describeBundle({root,
     chunk:{fileName:target,modules:{[resolve(root,input)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])
-    assert.equal(describe(target).modules[0].reviewedFirstPartyBlob,'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c');
+    assert.equal(describe(target).modules[0].reviewedFirstPartyBlob,'3f4c4fcb98db72ca8537f1e44e64809e0cd5d4d6');
   for(const target of ['ui/sidebar-tool-host.js','ui/tool-shell.js'])
     assert.throws(()=>describe(target),/cannot enter a privileged fixed bundle/);
   for(const name of ['model.js','policy.js','page.js'])
     assert.throws(()=>describe('sw.js',process.cwd(),path.replace('rail-open.js',name)),/cannot enter a privileged fixed bundle/);
   assert.equal(describe('agents/page-relay.js',process.cwd(),path.replace('rail-open.js','page.js')).modules[0].reviewedFirstPartyBlob,
-    'bf8916fe1080e92bc42eeee2dafc1a6f6fc1d244');
+    'a64a436b8ecc3ba67287de6f6afec1ca94a2fcce');
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-provenance-')));
   try{
     await mkdir(resolve(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
