@@ -190,7 +190,8 @@ async function harness(browser=null,{currentPage=null,initialReadStarted=null,tr
     querySelectorAll(){return [];},
     addEventListener(type,fn){rootListeners.set(type,[...(rootListeners.get(type)||[]),fn]);},
     emitTest(type,event){for(const fn of rootListeners.get(type)||[])fn(event);},
-    ownerDocument:{activeElement:null,createElement:()=>node()}});
+    ownerDocument:Object.assign(node(),{
+      activeElement:null,visibilityState:'visible',createElement:()=>node()})});
   const parents=[root];
   for(const tag of html.matchAll(/<!--[\s\S]*?-->|<\/?([a-z][a-z0-9-]*)\b[^>]*>/gi)){
     if(!tag[1])continue;
@@ -1050,7 +1051,8 @@ test('R4.3 browser toolbar opens inline import/export, filter and target picker'
   assert.match(s.html,/id="live-import" class="icon-button"/);
   assert.match(s.html,/id="live-export" class="icon-button"/);
   assert.match(s.html,/id="live-new" class="icon-button"/);
-  assert(s.html.indexOf('id="live-import"')<s.html.indexOf('id="browser-permissions"'));
+  assert.match(s.html,/id="live-clear" class="icon-button danger-text"/);
+  assert(s.html.indexOf('id="live-import"')<s.html.indexOf('id="live-cookie-list"'));
   s.setSite('example.com');s.setLiveTarget('https://example.com/');
   await s.readBrowserMetadata();
   s.fire('live-import','click');
@@ -1470,7 +1472,7 @@ test('R4.10.3 a normal file selection still loads after input and change bubble 
 test('Bulk text preview keeps valid rows while explicitly skipping expired and invalid identities',async()=>{
   const saved=[];let batchCalls=0;
   const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async()=>[],
+    getAll:async()=>saved,
     setMany:async({url,cookies})=>{
       batchCalls++;assert.equal(url,'https://example.com/');
       saved.push(...cookies);
@@ -1497,13 +1499,18 @@ test('Bulk text preview keeps valid rows while explicitly skipping expired and i
   assert.equal(saved.length,27);assert(batchCalls<27);
   assert(saved.every(row=>row.domain==='.example.com'&&row.storeId==='0'&&row.secure&&row.httpOnly&&row.sameSite==='lax'));
   assert(saved.every(row=>row.expirationDate===rows[3].expirationDate));
-  assert.equal(s.getField('import-text').value,'');assert.match(s.getStatusMessage(),/已确认导入 27 条，跳过 5 条/);
+  assert.equal(s.getField('import-text').value,'');
+  assert.equal(s.getField('import-panel').hidden,true);
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(s.liveSnapshot().rows.length,27);
+  assert.equal(s.getStatusMessage(),'');
+  assert.equal(s.getField('status').hidden,true);
 });
 
 test('Import single-write SDK handles more than ten rows with exact scopes and explicit confirmation',async()=>{
   const saved=[];
   const s=await harness({capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
-    getAll:async()=>[],set:async options=>{
+    getAll:async()=>saved,set:async options=>{
       // Match the structured-clone boundary of the VM sandbox transport.
       normalizeBrowserOperation('browser.cookies.set',structuredClone(options));
       saved.push(options);return {saved:true,verified:true};
@@ -1531,7 +1538,11 @@ test('Import single-write SDK handles more than ten rows with exact scopes and e
     assert.equal(JSON.stringify(actual.partitionKey),JSON.stringify(expected.partitionKey));
   }
   assert.equal(s.getField('import-text').value,'');
-  assert.match(s.getStatusMessage(),/已确认导入 27 条，跳过 3 条/);
+  assert.equal(s.getField('import-panel').hidden,true);
+  assert.equal(s.liveSnapshot().state,'ready');
+  assert.equal(s.liveSnapshot().rows.length,27);
+  assert.equal(s.getStatusMessage(),'');
+  assert.equal(s.getField('status').hidden,true);
 });
 
 for(const [label,outcome] of [
