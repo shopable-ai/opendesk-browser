@@ -50,7 +50,11 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore}){
           label={'管理「'+row.title+'」'+(identity?' · 安装 ID：'+identity:'')} data-extension-key={row.key}
           data-extension-action="more" aria-haspopup="menu"
           aria-expanded={menuKey===row.key} aria-controls="extension-center-row-menu"
-          onClick={event=>onMore(row.key,event.currentTarget,event.nativeEvent)}>⋮</IconButton>}
+          onClick={event=>onMore(row.key,event.currentTarget,event.nativeEvent)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5h.01M12 12h.01M12 19h.01" strokeWidth="3.5"/>
+          </svg>
+        </IconButton>}
       </span>
     </li>;
   });
@@ -169,6 +173,38 @@ export function UninstallDialog({open=false,title='卸载扩展？',busy=false,
   return typeof document==='undefined'?surface:createPortal(surface,document.body);
 }
 
+// The existing shared IconButton owns button semantics and accessible names.
+  // Only known actions become icons; any new/unknown action remains text-labelled.
+  // No new dependency, permission, or Host route is created here.
+function extensionActionGlyph(id,label){
+  switch(id){
+    case 'settings': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h8m4 0h4M4 17h4m4 0h8"/>
+      <circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>
+    </svg>;
+    case 'install': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3v12m-4-4 4 4 4-4M4 18v3h16v-3"/>
+    </svg>;
+    case 'update': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 7v5h-5M4 17v-5h5M5 9a8 8 0 0 1 14-2l1 1M19 15a8 8 0 0 1-14 2l-1-1"/>
+    </svg>;
+    case 'cleanup': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 11a8 8 0 1 1 2 6M4 4v7h7"/>
+    </svg>;
+    case 'toggle': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      {label?.startsWith('停用')?<><path d="M9 6v12M15 6v12"/></>:
+        <path d="m8 5 11 7-11 7V5Z"/>}
+    </svg>;
+    case 'uninstall': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7M10 11v6m4-6v6"/>
+    </svg>;
+    case 'develop': return <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m8 8-4 4 4 4m8-8 4 4-4 4M14 4l-4 16"/>
+    </svg>;
+    default:return null;
+  }
+}
+
 // Detail actions retain the originating native event. Identity and permission
 // checks remain with the existing Extension Center controller.
 export function ExtensionDetail({model,container}){
@@ -188,9 +224,16 @@ export function ExtensionDetail({model,container}){
     </div>
     <p>{model.description}</p>
     <div className="ec-detail-actions">
-      {model.actions.map(action=><Button key={action.id} disabled={model.busy}
-        data-ec-detail-action={action.id}
-        onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>)}
+      {model.actions.map(action=>{
+        const icon=extensionActionGlyph(action.id,action.label);
+        return icon?<IconButton key={action.id}
+          className={action.id==='uninstall'?'ec-detail-action od-icon-button--danger':'ec-detail-action'}
+          disabled={model.busy} label={action.label+'「'+model.title+'」'} title={action.label}
+          data-ec-detail-action={action.id}
+          onClick={event=>action.onClick?.(event.nativeEvent)}>{icon}</IconButton>:
+          <Button key={action.id} disabled={model.busy} data-ec-detail-action={action.id}
+            onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>;
+      })}
     </div>
     <section className="ec-detail-card">
       <h3>安装与来源</h3>
