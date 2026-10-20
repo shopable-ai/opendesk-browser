@@ -120,6 +120,7 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   reactNavigation,myView,developerView});
 extensionList.renderNavigation(pendingReactTab);
 // Installed extensions retain their existing sandbox and SDK Hosts.
+let workflowView=null;
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench,foundationClient,localeController,view:toolView,
   // Normal opens try the compiled React UI. The controller MUST still verify
   // the exact official installed package, catalog SHA, enabled state and
@@ -129,11 +130,11 @@ const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbenc
     enabled:true,
     mount:args=>{
       if(!extensionList?.mountBookmarkPilot)throw new Error('E_BOOKMARK_REACT_ROOT_MISSING');
-      return extensionList.mountBookmarkPilot(args);
+      return extensionList.mountBookmarkPilot({...args,conversation:workflowView?.conversation||null});
     }
   }});
 // React owns the whole page; the original workflow controller retains Authority.
-const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
+workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
