@@ -128,3 +128,18 @@ test('one-click delete rejects stale records edited in another panel and preserv
  assert.equal((await first.remove(fresh.id,fresh)).removed,true);
  assert.equal((await second.read()).data.items.length,0);
 });
+
+test('new clip source is sanitized at storage boundary while legacy 1.1.0 records remain readable',async()=>{
+ const f=fixture();
+ const first=await f.create('clip-url-111111').save({kind:'clip',
+  body:'这是一条中文摘录',source:'https://example.com/a(b)?access_token=SECRET&mode=read&session_id=ABC#secret'});
+ assert.equal(first.item.source,'https://example.com/a%28b%29?mode=read');
+ assert.equal(f.read().items[0].source,first.item.source);
+ const again=await f.create('clip-url-222222').save({kind:'clip',
+  body:'这是一条中文摘录',source:'https://example.com/a(b)?mode=read#other'});
+ assert.equal(again.duplicate,true,'sanitized source deduplicates independently of secrets');
+ assert.equal(f.writes,1);
+ const old={...first.item,source:'https://example.com/legacy?access_token=OLD#prior'};
+ const stored=normalize({version:1,items:[old]});
+ assert.equal(stored.items[0].source,old.source,'never corrupt or rewrite historical records on upgrade');
+});

@@ -7,13 +7,22 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const stable=v=>JSON.stringify(v,(_k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
 const empty=()=>({version:1,items:[]});
 const titleOf=body=>[...String(body).trim().replace(/^#{1,6}\s*/,'').split(/\r?\n/)[0]].slice(0,42).join('')||'新便签';
-function sourceOf(raw){
+function sourceOf(raw,{preserveLegacy=false}={}){
  if(!raw)return '';
  if(typeof raw!=='string'||bytes(raw)>1200)throw fail('E_SOURCE','来源地址过长或无效');
  let u;try{u=new URL(raw);}catch{throw fail('E_SOURCE','网页来源地址无效');}
  if(!['http:','https:'].includes(u.protocol)||u.username||u.password)
   throw fail('E_SOURCE','只能保存有效 HTTP(S) 网页来源');
- return u.href;
+ // Normalize at the final storage boundary, including manual/other SDK callers.
+ // Old 1.1.0 records must still load byte-for-byte; do not silently migrate
+ // historical URLs during read or reject an otherwise valid existing library.
+ if(preserveLegacy)return u.href;
+ u.hash='';
+ for(const key of [...u.searchParams.keys()]){
+  if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
+   u.searchParams.delete(key);
+ }
+ return u.href.replace(/[()]/g,ch=>ch==='('?'%28':'%29');
 }
 function normalize(value){
  if(value==null)return empty();
@@ -29,7 +38,7 @@ function normalize(value){
      (x.kind==='note'&&x.source!=='')||
      typeof x.createdAt!=='string'||!Number.isFinite(Date.parse(x.createdAt))||
      typeof x.updatedAt!=='string'||!Number.isFinite(Date.parse(x.updatedAt))||
-     (x.source&&sourceOf(x.source)!==x.source))
+     (x.source&&sourceOf(x.source,{preserveLegacy:true})!==x.source))
     throw fail('E_STORAGE_CORRUPT','发现无效的旧摘录；不会覆盖已有记录');
   seen.add(x.id);
   items.push({id:x.id,kind:x.kind,body:x.body,title:x.title,source:x.source,
