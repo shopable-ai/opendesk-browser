@@ -15,7 +15,25 @@ function secureId(){
   const random=crypto.getRandomValues(new Uint8Array(16));
   return 'ps_'+Array.from(random,byte=>byte.toString(16).padStart(2,'0')).join('');
 }
-const defaults=()=>({schema:1,items:[],settings:{webButtons:true}});
+// The same schema:1 library remains the sole storage and page-refresh source.
+const IMAGE_SIZES=Object.freeze({compact:Object.freeze([48,40]),
+  standard:Object.freeze([56,44]),large:Object.freeze([68,48])});
+function normalizeImageUrl(value,required=false){
+  if(value==null||value===''){
+    if(required)fail('图片按钮需要 HTTPS 图片 URL');
+    return '';
+  }
+  if(typeof value!=='string'||value.length>512||/[\u0000-\u001f\u007f]/u.test(value))
+    fail('图片 URL 格式无效或超过 512 字符');
+  const raw=value.trim();
+  if(!raw){if(required)fail('图片按钮需要 HTTPS 图片 URL');return '';}
+  let url;try{url=new URL(raw);}catch{fail('图片 URL 无效');}
+  if(url.protocol!=='https:'||!url.hostname||url.origin==='null'||url.username||url.password)
+    fail('图片仅支持不含账号密码的 HTTPS URL');
+  if(/\.svg$/iu.test(url.pathname))fail('暂不支持 SVG 图片，请使用 PNG、JPEG 或 WebP');
+  return url.href;
+}
+const defaults=()=>({schema:1,items:[],settings:{webButtons:true,imageSize:'large'}});
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 function draft(input,previous=null,newId=secureId){
   if(typeof input?.body!=='string'||!input.body.trim())fail('提示词内容是唯一必填项');
@@ -25,15 +43,23 @@ function draft(input,previous=null,newId=secureId){
   if(name&&name.length>60)fail('显示名称最多 60 个字符');
   const fallback=auto(input.body);
   if(!fallback)fail('请输入包含可见字符的正文');
+  const appearance=input.appearance??previous?.appearance??'text';
+  if(!['text','image'].includes(appearance))fail('不支持的按钮外观');
+  // A hidden, invalid URL must never stop a text-only prompt from saving.
+  let imageUrl='';
+  if(appearance==='image')imageUrl=normalizeImageUrl(input.imageUrl??previous?.imageUrl,true);
+  else try{imageUrl=normalizeImageUrl(input.imageUrl??previous?.imageUrl);}catch{/* Hidden stale URL is ignored. */}
   return {id:previous?.id||newId(),body:input.body,label:label||fallback,name:name||fallback,
     labelAuto:!label,nameAuto:!name,shape:input.shape==='round'||(input.shape===undefined&&previous?.shape==='round')?'round':'square',
-    enabled:input.enabled!==false,order:previous?.order??0};
+    enabled:input.enabled!==false,order:previous?.order??0,appearance,imageUrl};
 }
 const validId=id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{8,64}$/.test(id);
 function load(value){
   if(value==null)return defaults();
   if(!value||value.schema!==1||!Array.isArray(value.items)||value.items.length>80||
-      typeof value.settings?.webButtons!=='boolean')fail('提示词存储无效，已拒绝覆盖');
+      typeof value.settings?.webButtons!=='boolean'||
+      (value.settings.imageSize!==undefined&&!Object.hasOwn(IMAGE_SIZES,value.settings.imageSize)))
+    fail('提示词存储无效，已拒绝覆盖');
   const seen=new Set();
   const items=value.items.map(v=>{
     if(!v||!validId(v.id)||seen.has(v.id)||typeof v.body!=='string'||!v.body.trim()||
@@ -44,10 +70,16 @@ function load(value){
     const fallback=auto(v.body);if(!fallback)fail('提示词正文无可见字符');
     // Old saved entries without auto flags stay manual.
     const labelAuto=v.labelAuto===true,nameAuto=v.nameAuto===true||v.name===''||v.name===undefined;
-    return {...v,labelAuto,nameAuto,label:labelAuto?fallback:v.label,name:nameAuto?fallback:v.name};
+    const appearance=v.appearance??'text';
+    if(!['text','image'].includes(appearance))fail('提示词按钮外观无效');
+    let imageUrl='';
+    if(appearance==='image')imageUrl=normalizeImageUrl(v.imageUrl,true);
+    else try{imageUrl=normalizeImageUrl(v.imageUrl);}catch{/* Legacy text rows remain usable. */}
+    return {...v,labelAuto,nameAuto,label:labelAuto?fallback:v.label,
+      name:nameAuto?fallback:v.name,appearance,imageUrl};
   });
   return {schema:1,items:items.sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id)),
-    settings:{webButtons:value.settings.webButtons}};
+    settings:{webButtons:value.settings.webButtons,imageSize:value.settings.imageSize??'large'}};
 }
 
 // R2: Site configuration is a separate 8-KiB tool-local data item.
@@ -178,19 +210,22 @@ function siteHint(origin,path='/'){
   return {name:item.name,pathScope:scope,containers:[...item.containers],editors:[...item.editors]};
 }
 
-// R2.7: backups contain prompt data only. Site rules and grants never cross this boundary.
-const BACKUP_FORMAT='opendesk.prompt-shortcuts',BACKUP_VERSION=1,BACKUP_MAX_BYTES=262144;
+// R3.2: v2 adds appearance and a global image size; site rules and grants stay private.
+const BACKUP_FORMAT='opendesk.prompt-shortcuts',BACKUP_VERSION=2,BACKUP_MAX_BYTES=262144;
 const duplicateKey=body=>body.normalize('NFC').replace(/\r\n?/g,'\n').trim();
-const validBackupItemFields=new Set(['id','body','label','name','labelAuto','nameAuto','shape','enabled','order']);
+const validBackupItemFieldsV1=new Set(['id','body','label','name','labelAuto','nameAuto','shape','enabled','order']);
+const validBackupItemFieldsV2=new Set([...validBackupItemFieldsV1,'appearance','imageUrl']);
 function backupExport(library,exportedAt=new Date().toISOString()){
   const saved=load(library);
   if(!Number.isFinite(Date.parse(exportedAt)))fail('导出时间无效');
   const items=saved.items.map(item=>({
     id:item.id,body:item.body,label:item.label,name:item.name,
     labelAuto:item.labelAuto===true,nameAuto:item.nameAuto===true,
-    shape:item.shape,enabled:item.enabled,order:item.order
+    shape:item.shape,enabled:item.enabled,order:item.order,
+    appearance:item.appearance,imageUrl:item.imageUrl
   }));
-  return JSON.stringify({format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt,items},null,2)+'\n';
+  return JSON.stringify({format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt,
+    imageSize:saved.settings.imageSize,items},null,2)+'\n';
 }
 function backupParse(text){
   if(typeof text!=='string'||!text.length||new TextEncoder().encode(text).length>BACKUP_MAX_BYTES)
@@ -199,15 +234,19 @@ function backupParse(text){
   try{obj=JSON.parse(text.replace(/^\uFEFF/u,''));}
   catch{fail('JSON 文件损坏或格式无效');}
   if(!obj||typeof obj!=='object'||Array.isArray(obj)||obj.format!==BACKUP_FORMAT||
-     obj.version!==BACKUP_VERSION||!Array.isArray(obj.items))
-    fail('备份格式或版本不受支持，请选择本工具导出的 v1 JSON');
+     ![1,2].includes(obj.version)||!Array.isArray(obj.items))
+    fail('备份格式或版本不受支持，请选择本工具导出的 v1 / v2 JSON');
+  if(obj.version===1&&Object.hasOwn(obj,'imageSize'))fail('v1 备份不包含图片尺寸设置');
+  if(obj.version===2&&obj.imageSize!==undefined&&!Object.hasOwn(IMAGE_SIZES,obj.imageSize))
+    fail('备份中的图片尺寸设置无效');
   if(obj.items.length<1)fail('空备份不能用于导入，防止误清空');
   if(obj.items.length>80)fail('一次最多导入 80 条提示词');
   const positions=new Set(),ids=new Set();
-  return obj.items.map((v,i)=>{
+  const rows=obj.items.map((v,i)=>{
     const prefix='第 '+(i+1)+' 条：';
+    const fields=obj.version===1?validBackupItemFieldsV1:validBackupItemFieldsV2;
     if(!v||typeof v!=='object'||Array.isArray(v)||
-       Object.keys(v).some(key=>!validBackupItemFields.has(key)))
+       Object.keys(v).some(key=>!fields.has(key)))
       fail(prefix+'字段无效');
     if(typeof v.body!=='string'||!v.body.trim()||v.body.includes('\u0000'))
       fail(prefix+'提示词正文无效');
@@ -218,23 +257,31 @@ function backupParse(text){
     if(v.labelAuto!==undefined&&typeof v.labelAuto!=='boolean'||
        v.nameAuto!==undefined&&typeof v.nameAuto!=='boolean'||
        v.enabled!==undefined&&typeof v.enabled!=='boolean'||
-       v.shape!==undefined&&!['square','round'].includes(v.shape))
+       v.shape!==undefined&&!['square','round'].includes(v.shape)||
+       v.appearance!==undefined&&!['text','image'].includes(v.appearance)||
+       v.imageUrl!==undefined&&typeof v.imageUrl!=='string')
       fail(prefix+'按钮设置无效');
     const order=v.order===undefined?i:v.order;
     if(!Number.isSafeInteger(order)||order<0||positions.has(order))fail(prefix+'排序无效或重复');
     positions.add(order);
-    // Never trust backup IDs; even a valid old ID is replaced with fresh entropy.
+    // Imported IDs always receive fresh entropy; no overwrite by untrusted ID.
     const generated=draft({body:v.body,label:v.labelAuto===true?'':v.label||'',
-      name:v.nameAuto===true?'':v.name||'',shape:v.shape,enabled:v.enabled});
+      name:v.nameAuto===true?'':v.name||'',shape:v.shape,enabled:v.enabled,
+      appearance:v.appearance??'text',imageUrl:v.imageUrl??''});
     if(!validId(generated.id)||ids.has(generated.id))fail('无法安全分配导入条目的唯一 ID');
     ids.add(generated.id);
     return {...generated,order};
   }).sort((a,b)=>a.order-b.order).map((row,order)=>({...row,order}));
+  // Keep the existing backupParse -> backupPlan array contract; metadata is not a row.
+  Object.defineProperty(rows,'imageSize',{value:obj.version===2?(obj.imageSize??null):null});
+  return rows;
 }
 function backupPlan(library,imported,mode='append'){
   if(!['append','replace'].includes(mode))fail('不支持的导入方式');
   const saved=load(library);
   if(!Array.isArray(imported)||imported.length<1||imported.length>80)fail('待导入内容无效');
+  if(imported.imageSize!=null&&!Object.hasOwn(IMAGE_SIZES,imported.imageSize))
+    fail('备份图片尺寸无效');
   const incoming=load({schema:1,items:imported,settings:{webButtons:true}}).items;
   const nextItems=mode==='replace'?[]:saved.items.slice();
   const bodies=new Set(nextItems.map(row=>duplicateKey(row.body)));
@@ -250,14 +297,16 @@ function backupPlan(library,imported,mode='append'){
     ids.add(id);nextItems.push({...row,id});added++;
   }
   if(nextItems.length>80)fail('提示词数量不能超过 80 条');
-  const next=load({schema:1,settings:saved.settings,
+  const settings={...saved.settings,
+    imageSize:mode==='replace'&&imported.imageSize?imported.imageSize:saved.settings.imageSize};
+  const next=load({schema:1,settings,
     items:nextItems.map((row,order)=>({...row,order}))});
   const size=bytes(next);
   return {next,added,skipped,bytes:size,overLimit:size>8192};
 }
 
 Object.defineProperty(globalThis,'OpenDeskPromptShortcutsModel',{
-  value:Object.freeze({parts,visible,auto,validLabel,defaults,bytes,draft,load,
+  value:Object.freeze({parts,visible,auto,validLabel,IMAGE_SIZES,normalizeImageUrl,defaults,bytes,draft,load,
      BACKUP_FORMAT,BACKUP_VERSION,BACKUP_MAX_BYTES,duplicateKey,backupExport,backupParse,backupPlan,
     sitesDefaults,siteUrl,validSelector,siteRule,sitesLoad,siteFor,builtinSite,siteHint}),configurable:true
 });
