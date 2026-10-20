@@ -58,7 +58,10 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(list,/aria-expanded="true"/);
   assert.match(list,/&lt;script&gt;/);
   assert.doesNotMatch(list,/<script\b/i);
-  assert.match(list,/data-extension-action="primary"/);
+  assert.match(list,/data-extension-action="main"/);
+  assert.match(list,/data-extension-action="more"/);
+  assert.doesNotMatch(list,/data-extension-action="primary"/);
+  assert.doesNotMatch(list,/data-extension-action="uninstall"/);
 
   const detail=renderToStaticMarkup(React.createElement(ExtensionDetail,{
     container:null,model:{key:row.key,title:row.title,description:row.description,
