@@ -8,10 +8,10 @@ let data=model.defaults(),etag=null,ready=false,busy=false,dirty=false,mode='ind
 let baseline='',expanded=null,pendingDelete=null,pendingLeave=null,unconfirmedWrite=false;
 let stagedImport=null,stagedEtag=null,replaceArmed=false,transferBusy=false,importTicket=0;
 const SITE_KEY='sites';
-let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDirty=false,siteUnconfirmedWrite=false;
+let sites=model.sitesDefaults(),sitesEtag=null,sitesReady=false,siteBusy=false,siteDetecting=false,siteDirty=false,siteUnconfirmedWrite=false;
 let siteOrigin=null,siteEditing=null,siteBaseline='',siteVerified=null,siteDelete=null;
 let sitePoll=0,siteSession=null,siteStarting=0,siteEpoch=0,siteDiscardPending=false;
-function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||transferBusy});}
+function report(){setState({dirty:dirty||siteDirty||Boolean(stagedImport),busy:busy||siteBusy||siteDetecting||transferBusy});}
 function status(message='',isError=false){const n=el('ps-status');n.textContent=message;n.hidden=!message;n.dataset.error=String(isError);}
 function error(message=''){el('ps-error').textContent=message;el('ps-error').hidden=!message;}
 function bodyError(message=''){el('ps-body-error').textContent=message;el('ps-body-error').hidden=!message;}
@@ -141,13 +141,14 @@ function siteMessage(text='',isError=false){
   const n=el('ps-site-status');n.textContent=text;n.hidden=!text;n.dataset.error=String(isError);
 }
 function siteLock(){
-  const locked=siteBusy||siteUnconfirmedWrite;
-  for(const id of ['ps-site-current','ps-site-save','ps-site-test','ps-pick-container','ps-pick-editor'])
+  const writeLocked=siteBusy||siteUnconfirmedWrite,locked=writeLocked||siteDetecting;
+  for(const id of ['ps-site-current','ps-site-save','ps-site-test','ps-site-auto','ps-pick-container','ps-pick-editor'])
     el(id).disabled=locked;
   for(const button of el('ps-sites-list').querySelectorAll('button'))button.disabled=locked;
-  el('ps-site-cancel').disabled=locked;
+  // Cancellation can invalidate an in-flight detection immediately.
+  el('ps-site-cancel').disabled=writeLocked;
   el('ps-sites-open').disabled=locked;
-  el('ps-site-form').setAttribute('aria-busy',String(siteBusy));
+  el('ps-site-form').setAttribute('aria-busy',String(siteBusy||siteDetecting));
   report();
 }
 function siteKey(row){return row.origin+'|'+row.pathScope;}
@@ -209,12 +210,12 @@ function renderSites(){
   // Fixed-source support is distinct from custom-site configuration and demos.
   for(const [name,detail,mark] of [
     ['ChatGPT','内置适配 · 真实站点仍需验收','内置'],
-    ['Claude','可信适配尚未验证','待验证'],
-    ['Gemini','可信适配尚未验证','待验证'],
-    ['DeepSeek','规划中','规划'],
-    ['Perplexity','规划中','规划'],
-    ['Grok','规划中','规划'],
-    ['Cursor Web','规划中','规划']
+    ['Claude','候选 CSS 定位 · 需实站验证','可尝试'],
+    ['Gemini','候选 CSS 定位 · 需实站验证','可尝试'],
+    ['DeepSeek','候选 CSS 定位 · 需实站验证','可尝试'],
+    ['Perplexity','候选 CSS 定位 · 需实站验证','可尝试'],
+    ['Grok','候选 CSS 定位 · 需实站验证','可尝试'],
+    ['Cursor Web','当前须在网页手动点选','待验证']
   ]){
     const card=dom('article','ps-site-builtin');
     const info=dom('div');info.append(dom('strong','',name),dom('small','',detail));
@@ -252,7 +253,7 @@ function protectSiteDraft(){
   siteMessage('请先保存或明确取消当前未保存的网站配置。',true);return true;
 }
 function openSiteForm(rule){
-  if(siteBusy||siteUnconfirmedWrite||protectSiteDraft())return;
+  if(siteBusy||siteUnconfirmedWrite||siteDetecting||protectSiteDraft())return;
   void stopSitePick();siteVerified=null;siteDiscardPending=false;
   siteEditing=rule?siteKey(rule):null;siteOrigin=rule?.origin||null;
   el('ps-site-form').hidden=false;
@@ -261,6 +262,7 @@ function openSiteForm(rule){
   el('ps-site-path').value=rule?.pathScope||'/';
   el('ps-site-enabled').checked=rule?.enabled!==false;
   el('ps-site-origin').textContent=siteOrigin||'请选择当前网站';
+  el('ps-site-auto').hidden=!model.siteHint(siteOrigin,rule?.pathScope||'/');
   el('ps-site-form-title').textContent=rule?'编辑网站规则':'配置当前网站';
   el('ps-site-verified').textContent='保存前请在该网站测试定位。';
   siteBaseline=JSON.stringify(siteDraft());siteDirty=false;report();
@@ -268,8 +270,55 @@ function openSiteForm(rule){
 }
 
 
+// Use the existing trusted page check to validate inert selector candidates.
+// Never auto-enable a website or treat successful matching as proof of insertion.
+async function autoLocateSite(){
+  if(!siteOrigin||siteBusy||siteUnconfirmedWrite||siteDetecting||siteSession||siteStarting)return;
+  const token=siteEpoch,initial=JSON.stringify(siteDraft()),origin=siteOrigin;
+  let context;
+  try{context=await request('prompt.page.context',{});}
+  catch(error){siteMessage('无法读取当前网页：'+(error.code||error.message),true);return;}
+  if(token!==siteEpoch||siteOrigin!==origin||JSON.stringify(siteDraft())!==initial||
+     el('ps-site-form').hidden)return;
+  if(context?.status!=='available'||context.origin!==origin){
+    siteMessage('请切换回 '+origin+' 再尝试定位。',true);return;
+  }
+  const hint=model.siteHint(origin,context.path);
+  if(!hint){siteMessage('此网页暂无候选定位规则，请使用网页点选。',true);return;}
+  siteDetecting=true;siteLock();
+  siteMessage('正在当前网页尝试定位 '+hint.name+' 的输入框…');
+  try{
+    for(const editorSelector of hint.editors){
+      for(const containerSelector of hint.containers){
+        if(token!==siteEpoch||siteOrigin!==origin||el('ps-site-form').hidden||
+           JSON.stringify(siteDraft())!==initial)return;
+        const rule=model.siteRule({...siteDraft(),containerSelector,editorSelector});
+        let result;
+        try{result=await request('prompt.page.check',{rule});}
+        catch{continue;} // A missing, duplicate or non-editable candidate is expected.
+        if(token!==siteEpoch||siteOrigin!==origin||el('ps-site-form').hidden||
+           JSON.stringify(siteDraft())!==initial)return;
+        if(result?.valid!==true||result.containerMatches!==1||result.editorMatches!==1||
+           result.origin!==origin||!['textarea','input','richtext'].includes(result.editorType))
+          continue;
+        el('ps-site-container').value=containerSelector;
+        el('ps-site-editor').value=editorSelector;
+        invalidateSite();
+        siteVerified=JSON.stringify(rule);
+        el('ps-site-verified').textContent='本页定位通过 · '+result.editorType+' · 未做实际插入测试';
+        siteMessage('已找到唯一输入框；保存后启用。请在真实网页测试插入、多行及撤销；不会自动发送。');
+        return;
+      }
+    }
+    el('ps-site-verified').textContent='没有唯一可用的候选，请在网页手动点选。';
+    siteMessage('自动定位未匹配当前页面；请点选按钮容器和目标输入框。',true);
+  }finally{
+    if(token===siteEpoch){siteDetecting=false;siteLock();}
+  }
+}
+
 async function openCurrentSite(){
-  if(!sitesReady||siteBusy||siteUnconfirmedWrite)return;
+  if(!sitesReady||siteBusy||siteUnconfirmedWrite||siteDetecting)return;
   if(protectSiteDraft())return;
   try{
     const epoch=siteEpoch;
@@ -284,12 +333,12 @@ async function openCurrentSite(){
     if(matching){openSiteForm(matching);return;}
     openSiteForm(null);siteOrigin=context.origin;
     el('ps-site-origin').textContent=context.origin;
-    if(context.origin==='https://gemini.google.com'){
-      el('ps-site-container').value='chat-window';
-      el('ps-site-editor').value='[aria-label="为 Gemini 输入提示"]';
-    }
+    const hint=model.siteHint(context.origin,context.path);
+    if(hint)el('ps-site-path').value=hint.pathScope;
+    el('ps-site-auto').hidden=!hint;
     siteBaseline=JSON.stringify(siteDraft());siteDirty=false;report();
-    siteMessage('请在网页上选择两个目标，然后测试并保存。');
+    if(hint)void autoLocateSite();
+    else siteMessage('暂无该网站候选规则，请在网页选择容器和输入框，测试后保存。');
   }catch(error){siteMessage(error.code||error.message,true);}
 }
 async function cancelSiteSession(session,token){
@@ -311,7 +360,7 @@ async function stopSitePick(){
   else if(starting)siteMessage('正在取消选择，等待网页确认；网站配置草稿已保留。');
 }
 async function pickSite(kind){
-  if(!siteOrigin||siteBusy||siteSession||siteStarting)return;
+  if(!siteOrigin||siteBusy||siteDetecting||siteSession||siteStarting)return;
   const field=el(kind==='editor'?'ps-site-editor':'ps-site-container');
   const token=++siteEpoch;siteStarting=token;
   try{
@@ -361,7 +410,7 @@ async function pickSite(kind){
   finally{if(siteStarting===token)siteStarting=0;}
 }
 async function testSite(){
-  if(!siteOrigin||siteBusy||siteUnconfirmedWrite||siteSession)return;
+  if(!siteOrigin||siteBusy||siteDetecting||siteUnconfirmedWrite||siteSession)return;
   try{
     const epoch=siteEpoch,draftSnapshot=JSON.stringify(siteDraft());
     const rule=model.siteRule(siteDraft());
@@ -377,7 +426,7 @@ async function testSite(){
   }catch(error){siteVerified=null;siteMessage('测试失败：'+(error.code||error.message),true);}
 }
 async function saveSite(){
-  if(!siteOrigin||siteBusy||siteUnconfirmedWrite||siteSession)return;
+  if(!siteOrigin||siteBusy||siteDetecting||siteUnconfirmedWrite||siteSession)return;
   let rule;
   try{
     rule=model.siteRule(siteDraft());
@@ -403,6 +452,7 @@ async function saveSite(){
 }
 async function cancelSiteForm(){
   if(siteBusy||siteUnconfirmedWrite)return;
+  if(siteDetecting){++siteEpoch;siteDetecting=false;siteLock();}
   if(siteSession||siteStarting){siteDiscardPending=false;await stopSitePick();return;}
   if(siteDirty&&!siteDiscardPending){
     siteDiscardPending=true;
@@ -810,6 +860,7 @@ el('ps-site-enabled').addEventListener('change',invalidateSite);
 el('ps-pick-container').addEventListener('click',()=>void pickSite('container'));
 el('ps-pick-editor').addEventListener('click',()=>void pickSite('editor'));
 el('ps-site-test').addEventListener('click',()=>void testSite());
+el('ps-site-auto').addEventListener('click',()=>void autoLocateSite());
 el('ps-site-save').addEventListener('click',()=>void saveSite());
 el('ps-site-cancel').addEventListener('click',()=>void cancelSiteForm());
 

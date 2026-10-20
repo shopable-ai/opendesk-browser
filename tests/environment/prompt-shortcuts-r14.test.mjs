@@ -198,3 +198,27 @@ test('R1.13 formal source builds a canonical candidate, then CI promotes it only
   assert.doesNotMatch(js,/request\('clipboard\.writeText'/);
   assert.doesNotMatch(html,/模拟数据|模拟撤销|mockContextMenu|SIMULATED PREVIEW/);
 });
+
+
+test('R2.8 candidate origins, selector grammar and Grok path are strictly bounded',async()=>{
+  const m=await model();
+  for(const [origin,path] of [
+    ['https://claude.ai','/new'],['https://gemini.google.com','/app'],
+    ['https://chat.deepseek.com','/'],['https://www.perplexity.ai','/'],
+    ['https://grok.com','/'],['https://x.com','/i/grok']
+  ]){
+    const hint=m.siteHint(origin,path);
+    assert(hint,origin+' should offer discovery hints');
+    assert(hint.containers.length>0&&hint.editors.length>0);
+    for(const selector of [...hint.containers,...hint.editors])
+      assert.equal(m.validSelector(selector),true,origin+' invalid CSS candidate '+selector);
+    m.siteRule({origin,pathScope:hint.pathScope,
+      containerSelector:hint.containers[0],editorSelector:hint.editors[0]});
+  }
+  assert.equal(m.siteHint('https://x.com','/home'),null,'ordinary X composer must not be targeted');
+  assert.equal(m.siteHint('https://x.com','/i/grokfake'),null);
+  assert.equal(m.siteHint('https://cursor.com','/agents'),null,'Cursor Web DOM is not verified');
+  assert.equal(m.siteHint('https://claude.ai.evil.test','/'),null);
+  assert.equal(m.siteHint('http://claude.ai','/'),null);
+  assert.equal(m.siteHint('https://chatgpt.com','/'),null,'ChatGPT keeps its built-in adapter');
+});
