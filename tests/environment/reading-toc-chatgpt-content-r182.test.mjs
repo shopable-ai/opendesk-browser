@@ -189,6 +189,36 @@ test('R1.9.2 observed ChatGPT message-selection layout indexes three independent
   assert.equal(index.resolve(switched.items[0].id,switched.items[0].sourceId)?.element,replacement);
 });
 
+// Component regression only: native Chrome must separately prove actual clicks and scroll.
+test('R1.9.3 four equal ChatGPT headings keep four unique answer-owned targets',()=>{
+  const body=new Node('body','BODY'),headings=[];
+  for(const id of ['answer-a','answer-b','answer-c','answer-d']){
+    const answer=new Node('selection','DIV',body,'',{
+      'data-chatgpt-selection-message-id':id,
+      'data-chatgpt-selection-conversation-id':'conversation-a'
+    });
+    const markdown=new Node('content','DIV',answer,'',{
+      'data-markdown-text-style':'assistant-message'
+    });
+    headings.push(new Node('heading','H2',markdown,'重复标题'));
+  }
+  const index=createReadingTocIndex(docFor(body,headings)),snapshot=index.rebuild();
+  assert.equal(snapshot.adapter,'chatgpt');
+  assert.equal(snapshot.items.length,4);
+  assert.deepEqual(snapshot.items.map(item=>item.label),Array(4).fill('重复标题'));
+  assert.equal(snapshot.sources.length,4);
+  assert.equal(new Set(snapshot.items.map(item=>item.id)).size,4,'each heading needs a distinct target');
+  assert.equal(new Set(snapshot.items.map(item=>item.sourceId)).size,4,'each heading belongs to its own answer');
+  snapshot.items.forEach((item,i)=>{
+    assert.equal(index.resolve(item.id,item.sourceId)?.element,headings[i],
+      'same-title navigation resolves the exact answer heading');
+    snapshot.items.forEach((other,j)=>{
+      if(i!==j)assert.equal(index.resolve(item.id,other.sourceId),null,
+        'a target from another answer must not be accepted');
+    });
+  });
+});
+
 test('R1.9.2 ChatGPT selection metadata alone never admits user or orphan headings',()=>{
   const body=new Node('body','BODY');
   const root=new Node('selection','DIV',body,'',{
