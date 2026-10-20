@@ -1,5 +1,17 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 当前 dev 交付（2026-10-20）
+
+当前唯一安装包为 **2.0.29 / opendesk.sidebar-tool.v2**，使用 `opendesk.react-ui.v1`。正式入口 `app/official.jsx` 与离线预览共用 `app/CookieEditorApp.jsx`；刷新按钮左侧的「网站 URL」下拉菜单已删除。`tool.config.json`、编译产物和本目录唯一 JSON 已收敛到同一 React 实现，不再以旧版 `src/main.js` 作为安装入口。
+
+日常扩展继续加载 `dist/development`，ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，由 `npm run dev` 持续更新。**扩展编译不会自动替换已安装工具**：在「扩展 → Cookie Editor 管理 → 审阅新版 → 确认更新」完成工具升级。本次日常 Chrome 已经通过该入口更新，详情显示 2.0.29。
+
+同 ID、同开发目录的真实 Chrome 测试 Profile 已验证：2.0.23 → 2.0.29 更新、本地演示站授权、Cookie 新建、修改保存及精确删除；实际 Chrome Cookie 值已读回核对，测试数据已清除。开发客户端已显示连接和构建指纹。预览同源检查及受影响源码、样式、构建断言通过；证据在 `artifacts/cookie-editor-current-delivery/development-delivery.json`。本轮仅完成 dev 核心交付，production 构建、完整验收与评分未执行。
+
+## 历史版本说明
+
+以下保留旧版入口和验证记录；其中 2.0.23 等版本及其 NOT_TESTED 状态不代表当前 2.0.29。
+
 **入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.23 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.23 在用户系统 Chrome 的升级及导入仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
 ## 手动导入报错与安装版本（2.0.23）

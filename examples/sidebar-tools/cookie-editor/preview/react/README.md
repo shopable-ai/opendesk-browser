@@ -1,16 +1,10 @@
 # Cookie Editor R5.20 · shared App offline preview
 
-2026-10-20 header update: removed the entire website-URL tools dropdown to the left of Refresh in the shared App. Rebuilt `index.html` (SHA-256 `2c6b3b5744a9b6dd63ffc33e2767fa1bb98c4f44a1b01c692299cbf33eede624`); preview build/source check and targeted offline Chromium refresh, search, edit/save, and import-return checks passed with fictional data and no page errors. Local evidence: `artifacts/cookie-editor-ui-dropdown/`. The extension Vite assets were emitted with the menu absent, but the build wrapper fails its existing literal `browser.cookies.setMany` check. Source/design checks passed 12/15; all three failing assertions also fail against the unchanged HEAD sources (surface class, import callback signature, minified CSS). No installation or package promotion was performed; native behavior remains **NOT_TESTED** for this update. Historical receipts below retain their original candidate identities.
+## Current dev delivery · 2.0.29 (2026-10-20)
 
-## Development delivery
+The unique installable package, root config, and development catalog now use the same React App as this offline preview. The website-URL dropdown left of Refresh has been removed. The preview source check passes for `index.html` SHA-256 `2c6b3b5744a9b6dd63ffc33e2767fa1bb98c4f44a1b01c692299cbf33eede624`.
 
-The daily extension uses `dist/development`, extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`, and the existing `npm run dev` watcher. The installed React 2.0.25 candidate previously completed disposable localhost Cookie create/read/edit/clear-value/restore/save/reopen/delete operations through the real SDK. Its evidence remains in `artifacts/cookie-editor-r520/development-delivery.json`; it does not prove the merged candidate.
-
-The current development candidate is **2.0.28**, built with the original packer into `artifacts/sidebar-tools/cookie-editor/r56-react-2.0.28-candidate.opendesk-tool.json`. The formal native config and unique installation JSON remain **2.0.23**. No promotion or production extension build is part of this task. Current candidate installation and native results must be read from the matching development delivery receipt.
-
-`official.jsx` → `CookieEditorApp` → Controller / SDK adapter → `OpenDeskSDK.browser` → existing Host / Authority → Chrome Cookies API is the only native path. The preview imports the same App. `src/mock-sdk.js` provides fictional responses and scene controls only; it is excluded from the native candidate.
-
-The merged App keeps the compact native controls, inline ×, restore-original action, icon-only cancel/delete. The site header shows the hostname and refresh action; the more-tools dropdown entry has been removed from the shared preview and extension App. Metadata checks run only while the browser list is visible and idle, normally every 2 seconds, with a 30-second delay after read failures. They neither read Cookie values nor write Cookies. Editing, dirty drafts, open panels/confirmations, hidden or disconnected surfaces block refresh application. Unknown writes never retry automatically. The merged Controller uses guarded metadata synchronization; there is no separate observation panel or observation method.
+The existing installer upgraded the real development Chrome profile from 2.0.23 to 2.0.29. Localhost Cookie create, edit/save, native value readback, and exact deletion passed; the disposable Cookie is gone. The daily Chrome installation was also updated through Review Update, and its details show 2.0.29. `npm run dev` serves `dist/development`, extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`; the development client connection was verified in the test profile. Evidence: `artifacts/cookie-editor-current-delivery/development-delivery.json`. Production builds, full acceptance, and scoring remain NOT_TESTED.
 
 ## Local preview
 
@@ -41,3 +35,20 @@ Offline HTML SHA256: `92701da6b39cdd300119978bc01937f69ab67c51ea790eb5705915b28c
 The existing Vite plus `build-preview.mjs` wrapper binds the document to source input hashes. `check` detects stale HTML; the Chromium command checks the current build without rebuilding it. Artifacts and screenshots are local evidence under `artifacts/cookie-editor-r520/`, not extra committed snapshot matrices.
 
 Native evidence must identify the daily Profile, extension ID/path/client, installed package version/SHA256, and disposable localhost scope. Private draft backups and Cookie values must not be printed or committed. Production, formal promotion, complete lifecycle, native unknown-write fault injection, and 95+ scoring remain **NOT_TESTED**. Width/zoom and internationalization matrices are **OUT_OF_SCOPE**. Historical review material remains in Git and `REVIEW.zh-CN.md`.
+
+
+## Historical delivery notes
+
+The following notes describe earlier candidates and failures; they do not describe the current 2.0.29 delivery.
+
+2026-10-20 header update: removed the entire website-URL tools dropdown to the left of Refresh in the shared App. Rebuilt `index.html` (SHA-256 `2c6b3b5744a9b6dd63ffc33e2767fa1bb98c4f44a1b01c692299cbf33eede624`); preview build/source check and targeted offline Chromium refresh, search, edit/save, and import-return checks passed with fictional data and no page errors. Local evidence: `artifacts/cookie-editor-ui-dropdown/`. The extension Vite assets were emitted with the menu absent, but the build wrapper fails its existing literal `browser.cookies.setMany` check. Source/design checks passed 12/15; all three failing assertions also fail against the unchanged HEAD sources (surface class, import callback signature, minified CSS). No installation or package promotion was performed; native behavior remains **NOT_TESTED** for this update. Historical receipts below retain their original candidate identities.
+
+## Development delivery
+
+The daily extension uses `dist/development`, extension ID `ccfcjegpkdlgbclopjmadlcjedelidmf`, and the existing `npm run dev` watcher. The installed React 2.0.25 candidate previously completed disposable localhost Cookie create/read/edit/clear-value/restore/save/reopen/delete operations through the real SDK. Its evidence remains in `artifacts/cookie-editor-r520/development-delivery.json`; it does not prove the merged candidate.
+
+The current development candidate is **2.0.28**, built with the original packer into `artifacts/sidebar-tools/cookie-editor/r56-react-2.0.28-candidate.opendesk-tool.json`. The formal native config and unique installation JSON remain **2.0.23**. No promotion or production extension build is part of this task. Current candidate installation and native results must be read from the matching development delivery receipt.
+
+`official.jsx` → `CookieEditorApp` → Controller / SDK adapter → `OpenDeskSDK.browser` → existing Host / Authority → Chrome Cookies API is the only native path. The preview imports the same App. `src/mock-sdk.js` provides fictional responses and scene controls only; it is excluded from the native candidate.
+
+The merged App keeps the compact native controls, inline ×, restore-original action, icon-only cancel/delete. The site header shows the hostname and refresh action; the more-tools dropdown entry has been removed from the shared preview and extension App. Metadata checks run only while the browser list is visible and idle, normally every 2 seconds, with a 30-second delay after read failures. They neither read Cookie values nor write Cookies. Editing, dirty drafts, open panels/confirmations, hidden or disconnected surfaces block refresh application. Unknown writes never retry automatically. The merged Controller uses guarded metadata synchronization; there is no separate observation panel or observation method.
