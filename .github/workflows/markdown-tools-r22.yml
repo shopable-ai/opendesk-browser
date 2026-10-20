@@ -41,6 +41,11 @@ jobs:
           cache: npm
       - name: Install audited dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile official React prerequisites
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
       - name: Verify tool packages and content authorization
         run: |
           node --test tests/environment/markdown-tools-r22.test.mjs
