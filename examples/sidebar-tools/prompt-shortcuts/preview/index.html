@@ -739,7 +739,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  function exportJson(){
   closeTransfer();
   const items=state.items.map(x=>({body:x.body,label:x.label,name:x.name||'',labelAuto:x.labelAuto===true,nameAuto:x.nameAuto===true,enabled:x.enabled!==false,shape:x.shape==='round'?'round':'square',appearance:x.appearance??'text',imageUrl:x.imageUrl??''}));
-  const json=JSON.stringify({format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt:new Date().toISOString(),items},null,2)+'\n';
+  const json=JSON.stringify({format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt:new Date().toISOString(),imageSize:state.settings.imageSize,items},null,2)+'\n';
   const url=URL.createObjectURL(new Blob([json],{type:'application/json;charset=utf-8'})),a=create('a');
   a.href=url;a.download='opendesk-prompt-shortcuts-'+new Date().toISOString().slice(0,10)+'.json';
   a.hidden=true;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -749,7 +749,8 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(!obj||obj.format!==BACKUP_FORMAT||![1,2].includes(obj.version)||!Array.isArray(obj.items))throw Error('格式或版本不受支持，请使用本工具导出的 v1 / v2 JSON。');
   if(!obj.items.length)throw Error('文件中没有提示词；为防误清空，已拒绝导入。');
   if(obj.items.length>128)throw Error('单次最多导入 128 条。');
-  return obj.items.map((v,i)=>{
+  if(obj.version===2&&obj.imageSize!==undefined&&!IMAGE_SIZES.includes(obj.imageSize))throw Error('备份图片尺寸设置无效');
+  const incoming=obj.items.map((v,i)=>{
    if(!v||typeof v!=='object'||Array.isArray(v)||typeof v.body!=='string'||!v.body.trim()||v.body.includes('\u0000')||v.body.length>8192)throw Error('第 '+(i+1)+' 条正文无效。');
    if(v.label!==undefined&&typeof v.label!=='string')throw Error('第 '+(i+1)+' 条短标签无效。');
    if(v.name!==undefined&&typeof v.name!=='string')throw Error('第 '+(i+1)+' 条名称无效。');
@@ -764,13 +765,15 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    if(name.length>60)throw Error('第 '+(i+1)+' 条名称超过 60 字符。');
    return {id:'mock-'+cryptoRandom(),body,label,name,labelAuto:v.labelAuto===true,nameAuto:v.nameAuto===true,enabled:v.enabled!==false,shape:v.shape==='round'?'round':'square',appearance:v.appearance??'text',imageUrl};
   });
+  if(obj.version===2&&obj.imageSize)incoming.imageSize=obj.imageSize;
+  return incoming;
  }
  function dedupeKey(x){return x.body.replace(/\r\n?/g,'\n').trim();}
  function importCandidate(mode){
   if(!stagedImport)throw Error('请先选择导入文件。');
   const items=mode==='replace'?[]:state.items.map(x=>({...x})),seen=new Set(items.map(dedupeKey));let added=0,skipped=0;
   for(const x of stagedImport){const key=dedupeKey(x);if(seen.has(key)){skipped++;continue;}seen.add(key);items.push({...x});added++;}
-  const projection={schema:1,settings:{webButtons:state.settings.showBar},items:items.map((x,order)=>({id:x.id,body:x.body,label:x.label,name:x.name,labelAuto:x.labelAuto===true,nameAuto:x.nameAuto===true,shape:x.shape,enabled:x.enabled,order,appearance:x.appearance??'text',imageUrl:x.imageUrl??''}))};
+  const projection={schema:1,settings:{webButtons:state.settings.showBar,imageSize:mode==='replace'?(stagedImport.imageSize||state.settings.imageSize):state.settings.imageSize},items:items.map((x,order)=>({id:x.id,body:x.body,label:x.label,name:x.name,labelAuto:x.labelAuto===true,nameAuto:x.nameAuto===true,shape:x.shape,enabled:x.enabled,order,appearance:x.appearance??'text',imageUrl:x.imageUrl??''}))};
   return {items,added,skipped,size:bytes(projection)};
  }
  function showImport(fileName){
@@ -798,7 +801,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(result.size>8192){notice('导入超过 8 KiB 上限，原有提示词未改变。','error');return;}
   if(mode==='replace'&&!replaceArmed){replaceArmed=true;el('replaceWarning').hidden=false;el('replaceWarning').textContent='这将删除现有 '+state.items.length+' 条提示词；再次点击「确认替换」才会执行。';el('importReplace').textContent='确认替换';el('importReplace').focus({preventScroll:true});return;}
   if(mode==='append'&&!result.added){discardImport();notice('没有新提示词，重复项目已经跳过。');return;}
-  state.items=result.items;persistDemoItems();state.revision++;expandedId=null;deleteId=null;discardImport();renderIndex();renderRail();
+  state.items=result.items;
+  if(mode==='replace'&&stagedImport.imageSize)state.settings.imageSize=stagedImport.imageSize;
+  persistDemoItems();persistDemoSettings();state.revision++;expandedId=null;deleteId=null;discardImport();renderIndex();renderRail();
   notice((mode==='replace'?'已替换':'已追加')+' '+result.added+' 条，跳过 '+result.skipped+' 条重复项目；网页按钮已即时同步（仅模拟）。','success');
   el('transferButton').focus({preventScroll:true});
  }
@@ -939,7 +944,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
  }
  function rawFormValues(){const original=state.items.find(item=>item.id===editId);return {label:el('shortLabel').value.trim(),name:el('fullName').value.trim(),body:el('promptBody').value,enabled:el('itemEnabled').checked,shape:original?.shape||'square',appearance:el('appearanceImage').checked?'image':'text',imageUrl:el('imageUrl').value.trim()};}
  function formValues(){const raw=rawFormValues(),fallback=defaultShort(raw.body);return {...raw,label:raw.label||fallback,name:raw.name||fallback,labelAuto:!raw.label,nameAuto:!raw.name};}
- function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order}))};}
+ function projection(){const value=formValues(),next=state.items.map(x=>({...x}));const idx=next.findIndex(x=>x.id===editId);if(idx>=0)next[idx]={...next[idx],...value};else next.push({id:'mock-00000000-0000-4000-8000-000000000000',...value});return {schema:1,settings:{webButtons:state.settings.showBar,imageSize:state.settings.imageSize},items:next.map((row,order)=>({id:row.id,body:row.body,label:row.label,name:row.name,labelAuto:row.labelAuto===true,nameAuto:row.nameAuto===true,shape:row.shape,enabled:row.enabled,order,appearance:row.appearance??'text',imageUrl:row.imageUrl??''}))};}
 
  function updateMeter(){
   const current=bytes(projection()),remaining=8192-current;
@@ -1005,8 +1010,9 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
   if(!value.label||!validLabel(value.label)){showFormError('短标签须为 1–2 个可见 Unicode 字素，或留空自动生成。','label');return;}
   if(!value.name||value.name.length>60){showFormError('名称不能超过 60 字符；留空将自动生成。','name');return;}
   if(value.body.includes('\u0000')){showFormError('正文含不支持的 NUL 字符，请移除后保存。','body');return;}
-  try{value.imageUrl=validPictureURL(value.imageUrl);if(value.appearance==='image'&&!value.imageUrl)
-     throw Error('图片模式需要 HTTPS 图片 URL');}
+  try{if(value.appearance==='image'){value.imageUrl=validPictureURL(value.imageUrl);
+     if(!value.imageUrl)throw Error('图片模式需要 HTTPS 图片 URL');}
+   else{try{value.imageUrl=validPictureURL(value.imageUrl);}catch{value.imageUrl='';}}}
   catch(e){showFormError(e.message);el('advancedOptions').open=true;el('imageUrl').focus({preventScroll:true});return;}
   if(quota>8192){showFormError('提示词库已达到 8 KiB 上限，超出 '+(quota-8192)+' B；请缩短正文或删除其他条目，草稿保留。','body');return;}
   if(revisionAtEdit!==state.revision){showFormError('E_STORAGE_CONFLICT：提示词库已有新版本，请核对列表后处理草稿；不会自动覆盖。');return;}
