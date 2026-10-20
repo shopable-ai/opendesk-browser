@@ -23,7 +23,8 @@ const encoded=x=>Buffer.from(x,'utf8').toString('base64');
 const inputs=[
  join(toolDir,'src/react/App.jsx'),join(here,'src/main.jsx'),join(toolDir,'src/react/style.css'),
  join(here,'vite.config.mjs'),join(here,'package-lock.json'),
- join(root,'src/ui/design-tokens.css'),join(root,'scripts/preview/bookmark-manager-mock.js'),
+ join(root,'src/ui/design-tokens.css'),join(root,'src/ui/design-system.css'),
+ join(root,'scripts/preview/bookmark-manager-mock.js'),
  join(toolDir,'src/model.js'),join(toolDir,'src/service.js')
 ];
 async function inputFingerprint(){
@@ -33,9 +34,10 @@ async function generate(){
  for(let attempt=0;attempt<3;attempt++){
   const before=await inputFingerprint();
   await build({configFile:join(here,'vite.config.mjs'),logLevel:'error',clearScreen:false});
-  const [out,bundle,style,tokens,mock,model,service,main,app]=await Promise.all([
+  const [out,bundle,style,tokens,designSystem,mock,model,service,main,app]=await Promise.all([
    read(approved),read(join(here,'dist/bookmark-react.js')),
    read(join(here,'dist/bookmark-react.css')),read(join(root,'src/ui/design-tokens.css')),
+   read(join(root,'src/ui/design-system.css')),
    read(join(root,'scripts/preview/bookmark-manager-mock.js')),
    read(join(toolDir,'src/model.js')),read(join(toolDir,'src/service.js')),
    read(join(here,'src/main.jsx')),read(join(toolDir,'src/react/App.jsx'))
@@ -54,12 +56,12 @@ async function generate(){
   const frame='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
    '<meta name="viewport" content="width=device-width,initial-scale=1">'+
    '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; script-src data: &#39;unsafe-inline&#39;; style-src data: &#39;unsafe-inline&#39;; img-src data:; connect-src &#39;none&#39;; object-src &#39;none&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;">'+
-   '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+style)+'">'+
+   '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+designSystem+'\n'+style)+'">'+
    '<style>html,body{height:100%;width:100%;margin:0;overflow:hidden}</style>'+
    '</head><body><div id="tool-root" data-react-root="bookmark-r304" aria-label="书签管理" style="height:100vh;min-height:0;overflow:hidden"></div>'+
    '<script>globalThis.__opendeskPreviewScenario="success";</script>'+scripts+'</body></html>';
   assert.equal((frame.match(/data:text\/javascript;base64,/g)||[]).length,4);
-  const reactFiles={bundle:sha(bundle),css:sha(style),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
+  const reactFiles={bundle:sha(bundle),css:sha(style),designSystem:sha(designSystem),model:sha(model),service:sha(service),mock:sha(mock),app:sha(app),main:sha(main)};
   const manifest={...oldManifest,previewBuild:'R3.0.5 REACT OFFLINE CANDIDATE',
    reactRuntime:true,reactFiles,reactFrameSha256:sha(frame),
    previewCandidate:'REACT_OFFLINE_MOCK',designStatus:'DESIGN_PROTOTYPE_NOT_SOURCE_BOUND',

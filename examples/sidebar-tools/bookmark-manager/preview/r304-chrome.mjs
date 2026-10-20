@@ -110,6 +110,17 @@ async function setInput(ctx,id,value){
   +JSON.stringify(value)+");el.dispatchEvent(new Event('input',{bubbles:true}));return el.value;");
 }
 
+async function assertIconCentered(ctx,selector,label){
+  const code="const el=document.querySelector("+JSON.stringify(selector)+");"+
+    "if(!el)return null;const svg=el.querySelector('svg');if(!svg)return null;"+
+    "const a=el.getBoundingClientRect(),b=svg.getBoundingClientRect(),style=getComputedStyle(el);"+
+    "return {dx:(b.left+b.width/2)-(a.left+a.width/2),dy:(b.top+b.height/2)-(a.top+a.height/2),padding:style.paddingLeft};";
+  const result=await invoke(ctx,code);
+  assert.ok(result,label+' must contain an SVG icon');
+  assert.ok(Math.abs(result.dx)<=0.6&&Math.abs(result.dy)<=0.6,
+    label+' SVG must be centered in its button: '+JSON.stringify(result));
+  assert.equal(result.padding,'0px',label+' must not inherit host button padding');
+}
 const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'examples/sidebar-tools/bookmark-manager/preview/index.html');
 const html=await readFile(previewPath,'utf8');
 assert.match(html,/sandbox="allow-scripts"/);
@@ -139,12 +150,17 @@ const gone=async(ctx,sel,label)=>until(ctx,"!document.querySelector("+JSON.strin
 try{
  await connect();
  browserInfo=await cdp('Browser.getVersion');
- for(const width of [360,400,960]){
+ for(const width of [320,360,400,440,960]){
   await cdp('Emulation.setDeviceMetricsOverride',{width:1350,height:1100,deviceScaleFactor:1,mobile:false});
   await cdp('Page.navigate',{url:pathToFileURL(previewPath).href+'?width='+width});
   const ctx=await findReactFrame();
   await outerContext();
   await until(ctx,"document.querySelector('.bm-heading span')?.textContent.includes('2,159')",'initial data '+width);
+   const hostButton=await invoke(ctx,"const b=document.createElement('button');document.querySelector('.bm-app').append(b);const s=getComputedStyle(b),value=[s.paddingLeft,s.minHeight];b.remove();return value;");
+   assert.deepEqual(hostButton,['12px','34px'],'preview must include actual trusted host button defaults '+width);
+   await assertIconCentered(ctx,'.bm-icon-btn','topbar icon '+width);
+   await assertIconCentered(ctx,'.bm-disclosure:not(.is-placeholder)','tree folder chevron '+width);
+   await assertIconCentered(ctx,'.bm-row-more','tree row action '+width);
   const originalHeight=await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)");
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-inspector')===null"),true);
   // A coarse-pointer device must not show a noisy ellipsis on every idle row.
@@ -169,6 +185,8 @@ try{
   await until(ctx,"!!document.querySelector('[data-node-id=\"100\"]')",'restore tree position '+width);
   await click(ctx,'[data-node-id="100"]');
   await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'one click preview '+width);
+   await assertIconCentered(ctx,'.bm-preview-close','detail close '+width);
+   await assertIconCentered(ctx,'.bm-preview-action','detail action '+width);
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),false,'readonly is nonmodal');
   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('aria-modal')"),width<740?'true':null,'responsive modal semantics');
   assert.equal(await invoke(ctx,"return document.querySelector('[data-testid=\"bookmark-preview\"]')?.getAttribute('role')"),width<740?'dialog':'complementary','responsive preview role');
@@ -229,6 +247,9 @@ try{
   await until(ctx,"!!document.querySelector('[data-testid=\"bookmark-preview\"]')",'menu view reuses responsive preview');
   await click(ctx,'[data-testid="bookmark-preview"] [aria-label="编辑"]');
   await until(ctx,"!!document.getElementById('bm-edit-url')",'preview enters existing editor');
+   await assertIconCentered(ctx,'.bm-sheet-close','editor close '+width);
+   assert.deepEqual(await invoke(ctx,"const s=getComputedStyle(document.querySelector('.bm-field label'));return [s.marginTop,s.marginBottom]"),['0px','0px'],'editor label must not inherit host margins');
+   assert.equal(await invoke(ctx,"return getComputedStyle(document.querySelector('.bm-search-wrap input')).minHeight"),'0px','search input must fit 36px toolbar');
   assert.equal(await invoke(ctx,"return !!document.querySelector('[data-testid=\"bookmark-sheet\"]')"),true,'editor stays a modal Sheet');
   await screenshot('bookmark-r304-'+width+'-preview-edit.png');
   await click(ctx,'.bm-editor-actions button:last-child');
@@ -259,6 +280,7 @@ try{
   await gone(ctx,'[data-testid="bookmark-sheet"]','explicitly discard');
   await setInput(ctx,'bm-search','模拟书签 2152');
   await until(ctx,"!!document.querySelector('[data-node-id=\"2651\"]')",'last tree node search');
+   await assertIconCentered(ctx,'.bm-search-wrap button','clear search '+width);
   await click(ctx,'[data-node-id="2651"] .bm-node-title');
   await until(ctx,"document.querySelector('[data-testid=\"bookmark-preview\"] .bm-detail-title span')?.textContent.includes('模拟书签 2152')",'one click search result');
   await openMenu(ctx,'2651');
@@ -305,6 +327,7 @@ try{
    await until(ctx,"!!document.getElementById('bm-edit-name')",'edit before folder picker');
    await click(ctx,'.bm-parent-line .bm-text-button');
    await until(ctx,"!!document.getElementById('bm-folder-search')",'folder picker open');
+    await assertIconCentered(ctx,'.bm-picker .bm-close','picker close '+width);
    await setInput(ctx,'bm-folder-search','性能文件夹 0130');
    await until(ctx,"document.querySelectorAll('.bm-picker-item').length===1",'130 folder query');
    await screenshot('bookmark-r304-400-folder-picker.png');
