@@ -378,14 +378,46 @@ test('periodic polling stays cheap between bounded refreshes and failed cheap re
 });
 
 test('dispatch rejection is operation feedback and does not erase successful status reads',async()=>{
-  const {document,reactUI,model}=hostingFixture();let claims=0;
+  const {document,reactUI,model}=hostingFixture();let claims=0,contextChecks=0;
+  // Exercise the actual Chrome ownership check before dispatch. An omitted
+  // runtime in Node tests is not proof that a Side Panel can claim a job.
+  const api={runtime:{
+    getURL:path=>'chrome-extension://test/'+path,
+    getContexts:async filter=>{
+      contextChecks++;
+      assert.deepEqual(filter,{contextTypes:['OFFSCREEN_DOCUMENT'],
+        documentUrls:['chrome-extension://test/cloud-control/runner.html']});
+      return [];
+    }
+  }};
   const cloud={cloudStatus:async()=>readyStatus,cloudNext:async()=>{claims++;throw {code:'E_PRIVATE',message:'SECRET'};}};
-  const hosting=createCloudHosting({document,reactUI,client:{cloud},host:{executionPending:false}});
+  const hosting=createCloudHosting({document,reactUI,client:{cloud},host:{executionPending:false},api});
   try{
-    await flush();await flush();assert.equal(claims,1);
+    await flush();await flush();assert.equal(contextChecks,1);assert.equal(claims,1);
     assert.equal(model().overview.connection,'已连接');
     assert.match(model().pairing.status,/操作未完成，请检查连接与授权（E_CLOUD）/);
     assert.doesNotMatch(model().pairing.status,/状态暂不可读取|SECRET/);
+  }finally{hosting.dispose();}
+});
+
+test('Side Panel never claims when the Offscreen Runner already owns dispatch',async()=>{
+  const {document,reactUI,model}=hostingFixture();let claims=0,contextChecks=0;
+  const api={runtime:{
+    getURL:path=>'chrome-extension://test/'+path,
+    getContexts:async filter=>{
+      contextChecks++;
+      assert.deepEqual(filter,{contextTypes:['OFFSCREEN_DOCUMENT'],
+        documentUrls:['chrome-extension://test/cloud-control/runner.html']});
+      return [{contextType:'OFFSCREEN_DOCUMENT',documentUrl:filter.documentUrls[0]}];
+    }
+  }};
+  const cloud={cloudStatus:async()=>readyStatus,cloudNext:async()=>{claims++;}};
+  const hosting=createCloudHosting({document,reactUI,client:{cloud},host:{executionPending:false},api});
+  try{
+    await flush();await flush();
+    assert.equal(contextChecks,1);assert.equal(claims,0);
+    assert.equal(model().overview.connection,'已连接');
+    assert.doesNotMatch(model().pairing.status,/状态暂不可读取/);
   }finally{hosting.dispose();}
 });
 

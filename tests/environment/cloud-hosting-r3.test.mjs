@@ -36,7 +36,9 @@ test('Cloud Side Panel heartbeat claims once but manual read-only refresh cannot
     cloudResolve:async()=>{hostCalls.push('resolve');throw Error('unexpected resolution');}
   }};
   const host={executionPending:false,start:async()=>{hostCalls.push('start');}};
-  const control=createCloudHosting({client,host,document,api:{},reactUI});
+  const api={runtime:{getURL:path=>'chrome-extension://trusted/'+path,
+    getContexts:async()=>[]}};
+  const control=createCloudHosting({client,host,document,api,reactUI});
   await flush();await flush();
   assert.equal(calls.filter(x=>x.type==='claim').length,1);
   assert.deepEqual(calls.filter(x=>x.type==='status').map(x=>x.query),
@@ -126,4 +128,23 @@ test('native offscreen Host prevents Side Panel competing claims while keeping m
   await flush();await flush();await flush();
   assert.deepEqual(calls,[]);
   control.dispose();
+});
+
+test('missing or unreadable Chrome Offscreen context never permits a competing claim',async()=>{
+  for(const runtime of [{}, {getURL:path=>'chrome-extension://trusted/'+path,
+    getContexts:async()=>{throw Error('SECRET native context error');}}]){
+    const {document,reactUI,model}=surface();let claims=0;
+    const cloud={cloudStatus:async()=>({provider:{providerId:'trusted'},enabled:true,
+      online:true,reconciled:true,connection:'authenticated',hostReady:true,
+      slotAvailable:true,tasks:[],requestTotal:0,requests:[]}),
+      cloudNext:async()=>{claims++;throw Error('must not claim without verified ownership');}};
+    const control=createCloudHosting({client:{cloud},host:{executionPending:false},
+      document,api:{runtime},reactUI});
+    try{
+      await flush();await flush();
+      assert.equal(claims,0,'Unknown Offscreen owner must fence Side Panel dispatch');
+      assert.equal(model().overview.connection,'已连接');
+      assert.doesNotMatch(JSON.stringify(model()),/SECRET native context error/);
+    }finally{control.dispose();}
+  }
 });
