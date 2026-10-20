@@ -4,14 +4,37 @@ const TURN = '[data-testid^="conversation-turn-"],[data-content-search-unit-key]
   + '[data-message-author-role],[data-message-role]';
 const CONTENT = 'pre,textarea,[contenteditable="true"],'
   + '[data-message-author-role],[data-message-role]';
-const NATIVE_EDITOR = 'button[aria-label="Open editor"]';
+const NATIVE_EDITOR = 'button[aria-label="Open editor"],button[aria-label="打开编辑器"]';
+const VIEWER_CLOSE = 'button[aria-label="Close viewer"],button[aria-label="关闭查看器"]';
+const SEARCH_TURN = '[data-content-search-unit-key]';
+const ASSISTANT_TURN = '[data-content-search-unit-key][data-chatgpt-search-unit-key]';
 const OWN = 'data-opendesk-chatgpt-jump-top';
-const EXCLUDED = 'aside,[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
+const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hidden="true"]';
 const GAP = 12;
 const sessions = new WeakMap();
 
+function isWritingViewer(element, aside, win) {
+  const section = element.closest('section');
+  if (!section || !aside.contains(section)) return false;
+  const headers = [...section.querySelectorAll('header')];
+  const editors = [...section.querySelectorAll('textarea,[contenteditable="true"]')];
+  if (headers.length !== 1 || headers[0].parentElement !== section ||
+      headers[0].querySelectorAll(VIEWER_CLOSE).length !== 1 || editors.length !== 1 ||
+      headers[0].contains(editors[0])) return false;
+  // A viewer must have its own scrollport inside the aside. Navigation and
+  // ambiguous sidebars remain excluded, even if the outer conversation scrolls.
+  for (let node = editors[0]; node && aside.contains(node); node = node.parentElement) {
+    if (!/^(auto|scroll|overlay)$/.test(win.getComputedStyle(node).overflowY)) continue;
+    if (node === editors[0] && node.scrollHeight <= node.clientHeight + 1) continue;
+    return node.scrollHeight > node.clientHeight + 1;
+  }
+  return false;
+}
+
 function rendered(element, win) {
   if (!element?.isConnected || element.closest?.(EXCLUDED)) return false;
+  const aside = element.closest?.('aside');
+  if (aside && !isWritingViewer(element, aside, win)) return false;
   const rect = element.getBoundingClientRect?.();
   if (!rect || rect.width < 1 || rect.height < 1) return false;
   const style = win.getComputedStyle(element);
@@ -34,7 +57,7 @@ export function chooseConversationHeader(doc, win, main) {
   const region = main.getBoundingClientRect();
   const upperLimit = Math.min(180, Math.max(100, win.innerHeight * 0.28));
   const candidates = [...doc.querySelectorAll('header')].filter(header => {
-    if (!visible(header, win) || header.closest(TURN)) return false;
+    if (!visible(header, win) || header.closest(TURN) || header.closest('aside')) return false;
     const rect = header.getBoundingClientRect();
     return rect.top >= -8 && rect.top < upperLimit
       && rect.left < region.right && rect.right > region.left;
@@ -173,6 +196,51 @@ function isLong(target, doc, win) {
   const height = Math.max(target.getBoundingClientRect().height, target.scrollHeight || 0);
   return height > Math.max(240, Math.min(win.innerHeight, scroller.clientHeight) * 0.65);
 }
+function messageActions(marker, copySelector, peerSelector, boundary, win) {
+  for (let group = marker.parentElement; group && group !== boundary; group = group.parentElement) {
+    if (group.matches('header') || group.querySelector(TURN)) return null;
+    const copies = [...group.querySelectorAll(copySelector)];
+    const peers = [...group.querySelectorAll(peerSelector)];
+    if (copies.length > 1 || peers.length > 1) return null;
+    if (copies.length !== 1 || peers.length !== 1) continue;
+    if (!rendered(group, win) || !rendered(copies[0], win) || !rendered(peers[0], win)) return null;
+    // Insert beside the native action wrapper, preserving its tooltip ownership.
+    let anchor = copies[0];
+    while (anchor.parentElement !== group) anchor = anchor.parentElement;
+    return {header: group, anchor};
+  }
+  return null;
+}
+
+function messageBindings(main, doc, win) {
+  const bindings = [];
+  for (const target of main.querySelectorAll(SEARCH_TURN)) {
+    if (!rendered(target, win) || !isLong(target, doc, win)) continue;
+    let actions = null;
+    if (!target.matches(ASSISTANT_TURN)) {
+      const copies = [...target.querySelectorAll('button[aria-label="复制消息"]')];
+      if (copies.length === 1) actions = messageActions(copies[0],
+        'button[aria-label="复制消息"]', 'button[aria-label="编辑消息"]', target, win);
+    } else {
+      // The response wrapper also contains the preceding user turn. Never
+      // cross a second response to associate its separate native action bar.
+      for (let scope = target.parentElement; scope && scope !== main; scope = scope.parentElement) {
+        if (scope.querySelectorAll(ASSISTANT_TURN).length !== 1) break;
+        const markers = [...scope.querySelectorAll('button[aria-label="评价回复"]')]
+          .filter(button => !target.contains(button) && !button.closest('header'));
+        if (markers.length > 1) break;
+        if (markers.length === 1) {
+          actions = messageActions(markers[0], 'button[aria-label="复制"]',
+            'button[aria-label="重新生成回复"]', scope, win);
+          break;
+        }
+      }
+    }
+    if (actions) bindings.push({...actions, target, main, kind: 'region'});
+  }
+  return bindings;
+}
+
 export function findRegionBindings(doc, win) {
   const main = findConversationMain(doc, win);
   if (!main) return [];
@@ -193,10 +261,26 @@ export function findRegionBindings(doc, win) {
     if (!anchor) continue;
     const target = localTarget(header, anchor, main, idIndex, win);
     if (!target || used.has(target) || !isLong(target, doc, win)) continue;
-    const kind = target.matches('textarea,[contenteditable="true"]') ? 'editor' : 'region';
-    if (kind === 'editor' && findConversationScroller(target, doc, win, {includeSelf: true}) !== target) continue;
+    let kind = 'region';
+    if (target.matches('textarea,[contenteditable="true"]')) {
+      if (findConversationScroller(target, doc, win, {includeSelf: true}) === target) {
+        kind = 'editor';
+      } else {
+        // Writing blocks may be editable, natural-height conversation content.
+        // Clipped/overflowing editors still must never redirect to a parent.
+        if (!target.matches('[contenteditable="true"]') ||
+            target.scrollHeight > target.clientHeight + 1 ||
+            /^(hidden|clip)$/.test(win.getComputedStyle(target).overflowY)) continue;
+      }
+    }
     used.add(target);
     bindings.push({header, anchor, target, main, kind});
+  }
+  for (const binding of messageBindings(main, doc, win)) {
+    if (!used.has(binding.target) && !bindings.some(item => item.header === binding.header)) {
+      used.add(binding.target);
+      bindings.push(binding);
+    }
   }
   const header = chooseConversationHeader(doc, win, main);
   // An unresolved Open editor does not prove a global conversation relation.
@@ -296,7 +380,8 @@ export function installJumpToTop({doc, win, owner}) {
     });
     if (relevant) schedule();
   }, {subtree: true, childList: true, characterData: true, attributes: true,
-    attributeFilter: ['hidden', 'aria-hidden', 'aria-controls', 'id', 'class', 'style']});
+    attributeFilter: ['hidden', 'aria-hidden', 'aria-controls', 'aria-label', 'id', 'class', 'style',
+      'data-content-search-unit-key', 'data-chatgpt-search-unit-key']});
   cleanups.push(() => observer.disconnect());
   for (const type of ['popstate', 'hashchange', 'pageshow', 'resize']) cleanups.push(owner.on(win, type, schedule));
   function dispose() {

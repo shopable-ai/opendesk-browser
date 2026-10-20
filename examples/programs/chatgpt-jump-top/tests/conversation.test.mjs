@@ -511,6 +511,55 @@ test('region bindings resolve an explicitly controlled editor and scroll only it
   assert.deepEqual(root.calls, []);
 });
 
+test('natural-height editable writing block uses its local Chinese action and outer scrollport', () => {
+  const {doc, view, root} = environment();
+  const main = element({tag: 'main', parent: doc.body, overflowY: 'auto',
+    scrollHeight: 17677, scrollTop: 10951, scrollLeft: 63});
+  const turn = element({parent: main, contentTop: 5200, height: 11564,
+    attributes: {'data-content-search-unit-key': 'writing-turn'}});
+  const scope = element({parent: turn, contentTop: 0, height: 11564, position: 'relative'});
+  const toolbar = header({parent: scope, top: 100, position: 'sticky', editor: true});
+  const anchor = toolbar.querySelector('button');
+  anchor.setAttribute('aria-label', '打开编辑器');
+  element({tag: 'button', parent: toolbar, height: 34, attributes: {'aria-label': '其他操作'}});
+  const target = element({parent: scope, contentTop: 52, height: 11496,
+    attributes: {contenteditable: 'true'}});
+  element({tag: 'pre', parent: target, height: 800});
+  const bindings = conversation.findRegionBindings(doc, view);
+  assert.deepEqual(bindings, [{header: toolbar, anchor, target, main, kind: 'region'}]);
+  assert.equal(conversation.jumpRegionTop(bindings[0], doc, view), true);
+  assert.equal(target.getBoundingClientRect().top, 158, 'content clears the sticky toolbar');
+  assert.equal(main.scrollLeft, 63);
+  assert.ok(main.scrollTop > 0, 'local content is not the conversation origin');
+  assert.deepEqual(target.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
+test('Chinese editor toolbar with ambiguous content never becomes a conversation shortcut', () => {
+  const {doc, view, main, rows: [{toolbar, anchor, target}]} = controlledEditors();
+  anchor.setAttribute('aria-label', '打开编辑器');
+  anchor.setAttribute('aria-controls', 'missing-target');
+  assert.deepEqual(conversation.findRegionBindings(doc, view), []);
+  assert.deepEqual(target.calls, []);
+  assert.deepEqual(main.calls, []);
+  element({tag: 'button', parent: toolbar, height: 34, attributes: {'aria-label': 'Open editor'}});
+  assert.equal(findHeaderAction(toolbar, view), null, 'multiple editor actions are ambiguous');
+});
+
+test('a self-scrolling contenteditable retains editor scroll isolation', () => {
+  const {doc, view, root, main, rows: [{toolbar, anchor, target}]} = controlledEditors();
+  target.tagName = 'DIV';
+  target.setAttribute('contenteditable', 'true');
+  anchor.setAttribute('aria-label', '打开编辑器');
+  const bindings = conversation.findRegionBindings(doc, view);
+  assert.deepEqual(bindings, [{header: toolbar, anchor, target, main, kind: 'editor'}]);
+  assert.equal(conversation.jumpRegionTop(bindings[0], doc, view), true);
+  assertScroll(target, 0, 27);
+  assert.equal(main.scrollTop, 940);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
 test('removing only the injected host schedules its restoration beside the same anchor', t => {
   const {doc, view, rows: [{toolbar, anchor}]} = controlledEditors();
   const owner = observerOwner();
@@ -562,6 +611,96 @@ test('multiple aria-controls bindings share one document ID index per discovery'
   assert.equal(scans, 1);
 });
 
+function writingViewer() {
+  const env = environment();
+  const main = element({tag: 'main', parent: env.doc.body, overflowY: 'auto',
+    scrollHeight: 17677, scrollTop: 10951, scrollLeft: 63});
+  element({tag: 'article', parent: main,
+    attributes: {'data-testid': 'conversation-turn-1'}});
+  const aside = element({tag: 'aside', parent: main});
+  const section = element({tag: 'section', parent: aside});
+  const toolbar = header({parent: section, top: 8});
+  const close = toolbar.querySelector('button');
+  close.setAttribute('aria-label', '关闭查看器');
+  for (const label of ['复制', '撤销', '重做', '下载', '全屏']) {
+    element({tag: 'button', parent: toolbar, height: 34,
+      attributes: {'aria-label': label}});
+  }
+  const body = element({parent: section});
+  const scroller = element({parent: body, top: 60, height: 899,
+    scrollHeight: 11846, scrollTop: 8000, scrollLeft: 27, overflowY: 'auto'});
+  const target = element({parent: scroller, contentTop: 24, height: 11684,
+    attributes: {contenteditable: 'true'}});
+  return {...env, main, aside, toolbar, close, scroller, target};
+}
+
+test('aside writing viewer scrolls its own body and never supplies the global header', () => {
+  const {doc, view, root, main, toolbar, scroller, target} = writingViewer();
+  assert.equal(chooseConversationHeader(doc, view, main), null);
+  const bindings = conversation.findRegionBindings(doc, view);
+  assert.deepEqual(bindings, [{header: toolbar, anchor: toolbar.children.at(-1),
+    target, main, kind: 'region'}]);
+  assert.equal(scroller.contains(toolbar), false, 'viewer toolbar is outside the scrollport');
+  assert.equal(conversation.jumpRegionTop(bindings[0], doc, view), true);
+  assertScroll(scroller, 12, 27);
+  assert.equal(target.getBoundingClientRect().top, 72);
+  assert.deepEqual(target.calls, []);
+  assert.equal(main.scrollTop, 10951);
+  assert.equal(root.scrollTop, 1200);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+  const globalHeader = header({parent: main});
+  assert.equal(chooseConversationHeader(doc, view, main), globalHeader);
+});
+
+test('ordinary navigation aside stays excluded even with editor content and a scrollport', () => {
+  const {doc, view, root, main, toolbar, close, scroller} = writingViewer();
+  close.setAttribute('aria-label', '关闭导航');
+  assert.equal(findHeaderAction(toolbar, view), null);
+  assert.equal(chooseConversationHeader(doc, view, main), null);
+  assert.deepEqual(conversation.findRegionBindings(doc, view), []);
+  assert.deepEqual(scroller.calls, []);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
+test('aside writing viewer rejects ambiguous multiple editors', () => {
+  const {doc, view, root, main, toolbar, scroller} = writingViewer();
+  element({tag: 'textarea', parent: scroller, height: 400});
+  assert.equal(findHeaderAction(toolbar, view), null);
+  assert.deepEqual(conversation.findRegionBindings(doc, view), []);
+  assert.equal(chooseConversationHeader(doc, view, main), null);
+  assert.deepEqual(scroller.calls, []);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
+test('aside writing viewer without an inside scrollport cannot bind to the outer conversation', () => {
+  const {doc, view, root, main, toolbar, scroller} = writingViewer();
+  scroller.style.overflowY = 'visible';
+  assert.equal(findHeaderAction(toolbar, view), null);
+  assert.deepEqual(conversation.findRegionBindings(doc, view), []);
+  assert.equal(chooseConversationHeader(doc, view, main), null);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
+test('aside writing viewer with an empty inner scrollport cannot fall through to a scrolling ancestor', () => {
+  const {doc, view, root, main, aside, toolbar, scroller} = writingViewer();
+  scroller.scrollHeight = scroller.clientHeight;
+  scroller.scrollTop = 0;
+  aside.style.overflowY = 'auto';
+  aside.scrollHeight = 14000;
+  aside.scrollTop = 300;
+  assert.equal(findHeaderAction(toolbar, view), null);
+  assert.deepEqual(conversation.findRegionBindings(doc, view), []);
+  assert.equal(chooseConversationHeader(doc, view, main), null);
+  assert.deepEqual(scroller.calls, []);
+  assert.deepEqual(aside.calls, []);
+  assert.deepEqual(main.calls, []);
+  assert.deepEqual(root.calls, []);
+});
+
 test('no discoverable regions yields an empty binding list', () => {
   const {doc, view} = environment();
   assert.deepEqual(conversation.findRegionBindings(doc, view), []);
@@ -570,4 +709,146 @@ test('no discoverable regions yields an empty binding list', () => {
 test('no conversation turns means no scroll', () => {
   const doc = {body: {}, documentElement: {}, scrollingElement: {}};
   assert.equal(jumpConversationTop({querySelector: () => null}, doc, win), false);
+});
+
+function nativeMessageActions(parent, labels) {
+  const toolbar = element({parent, height: 40});
+  const buttons = labels.map(label => {
+    const wrapper = element({tag: 'span', parent: toolbar, height: 34});
+    return element({tag: 'button', parent: wrapper, height: 34,
+      attributes: {'aria-label': label}});
+  });
+  return {toolbar, buttons, anchor: buttons[0].parentElement};
+}
+
+function nativeMessages({assistant = false} = {}) {
+  const env = environment();
+  const main = element({tag: 'main', parent: env.doc.body, overflowY: 'auto',
+    scrollHeight: 5000, scrollTop: 1400, scrollLeft: 63});
+  const pair = element({parent: main, contentTop: 500, height: 3000});
+  const user = element({parent: pair, contentTop: 0, height: 800,
+    attributes: {'data-content-search-unit-key': 'user-message'}});
+  const userActions = nativeMessageActions(user, ['复制消息', '共享提示', '编辑消息']);
+  if (!assistant) return {...env, main, pair, user, target: user, ...userActions};
+  const response = element({parent: pair, contentTop: 900, height: 1800});
+  const content = element({parent: response, contentTop: 0, height: 1600});
+  const target = element({parent: content, contentTop: 0, height: 1500,
+    attributes: {'data-content-search-unit-key': 'assistant-message',
+      'data-chatgpt-search-unit-key': 'assistant-message'}});
+  const actions = nativeMessageActions(pair, ['复制', '评价回复', '重新生成回复']);
+  return {...env, main, pair, user, userActions, target, ...actions};
+}
+
+const jumpHostSelector = '[data-opendesk-chatgpt-jump-top]';
+
+test('native user message mounts beside copy wrapper and keeps content root as target', t => {
+  const {doc, view, main, target, toolbar, anchor, buttons} = nativeMessages();
+  assert.deepEqual(conversation.findRegionBindings(doc, view),
+    [{header: toolbar, anchor, target, main, kind: 'region'}]);
+  const session = conversation.installJumpToTop({doc, win: view, owner: observerOwner()});
+  t.after(() => session.dispose());
+  const host = toolbar.querySelector(jumpHostSelector);
+  assert.ok(host?.isConnected);
+  assert.equal(host.parentElement, toolbar);
+  assert.equal(host.nextElementSibling, anchor);
+  assert.equal(anchor.querySelector(jumpHostSelector), null, 'preserve native tooltip wrapper');
+  session.refresh();
+  assert.equal(toolbar.querySelectorAll(jumpHostSelector).length, 1);
+  assert.deepEqual(toolbar.querySelectorAll('button'), buttons, 'native actions stay unchanged');
+});
+
+test('native user message rejects duplicate copy or editor markers', () => {
+  for (const label of ['复制消息', '编辑消息']) {
+    const {doc, view, target, toolbar} = nativeMessages();
+    assert.equal(conversation.findRegionBindings(doc, view).length, 1);
+    const wrapper = element({tag: 'span', parent: toolbar, height: 34});
+    const duplicate = element({tag: 'button', parent: wrapper, height: 34,
+      attributes: {'aria-label': label}});
+    assert.deepEqual(conversation.findRegionBindings(doc, view), [], label);
+    duplicate.remove();
+    assert.equal(conversation.findRegionBindings(doc, view)[0].target, target);
+  }
+});
+
+test('native assistant sibling footer targets assistant content instead of preceding user', t => {
+  const {doc, view, root, main, pair, user, userActions, target, toolbar, anchor} =
+    nativeMessages({assistant: true});
+  assert.equal(target.parentElement.parentElement.parentElement, pair);
+  assert.equal(pair.contains(user), true);
+  assert.equal(target.contains(toolbar), false);
+  const bindings = conversation.findRegionBindings(doc, view);
+  assert.deepEqual(bindings, [
+    {header: userActions.toolbar, anchor: userActions.anchor, target: user, main, kind: 'region'},
+    {header: toolbar, anchor, target, main, kind: 'region'}
+  ]);
+  const session = conversation.installJumpToTop({doc, win: view, owner: observerOwner()});
+  t.after(() => session.dispose());
+  assert.equal(toolbar.querySelector(jumpHostSelector)?.nextElementSibling, anchor);
+  assert.equal(conversation.jumpRegionTop(bindings[1], doc, view), true);
+  assertScroll(main, 1388);
+  assert.equal(target.getBoundingClientRect().top, main.getBoundingClientRect().top + 12);
+  assert.notEqual(user.getBoundingClientRect().top, target.getBoundingClientRect().top);
+  assert.deepEqual(root.calls, []);
+});
+
+test('native assistant footer fails closed for multiple assistant roots or feedback markers', () => {
+  for (const ambiguity of ['assistant', 'feedback']) {
+    const {doc, view, pair, toolbar, user} = nativeMessages({assistant: true});
+    assert.equal(conversation.findRegionBindings(doc, view).length, 2);
+    if (ambiguity === 'assistant') {
+      element({parent: pair, height: 900,
+        attributes: {'data-content-search-unit-key': 'second-assistant',
+          'data-chatgpt-search-unit-key': 'second-assistant'}});
+    } else {
+      element({tag: 'button', parent: toolbar, height: 34,
+        attributes: {'aria-label': '评价回复'}});
+    }
+    assert.deepEqual(conversation.findRegionBindings(doc, view).map(binding => binding.target),
+      [user], ambiguity);
+  }
+});
+
+test('native code copy is not a message footer and TURN descendants invalidate action groups', () => {
+  const {doc, view, target, toolbar, anchor} = nativeMessages({assistant: true});
+  const code = element({tag: 'pre', parent: target, height: 800});
+  const codeActions = nativeMessageActions(code, ['复制', '复制代码']);
+  const bindings = conversation.findRegionBindings(doc, view);
+  assert.equal(bindings.length, 2);
+  assert.equal(bindings[1].header, toolbar);
+  assert.equal(bindings[1].anchor, anchor);
+  toolbar.remove();
+  assert.equal(conversation.findRegionBindings(doc, view).some(binding => binding.target === target), false);
+  assert.equal(codeActions.toolbar.querySelector(jumpHostSelector), null);
+  for (const attributes of [
+    {'data-testid': 'conversation-turn-nested'},
+    {'data-content-search-unit-key': 'nested'},
+    {'data-message-author-role': 'assistant'},
+    {'data-message-role': 'user'}
+  ]) {
+    const fixture = nativeMessages();
+    element({parent: fixture.toolbar, height: 40, attributes});
+    assert.deepEqual(conversation.findRegionBindings(fixture.doc, fixture.view), []);
+  }
+});
+
+test('native message lifecycle revalidates action labels and assistant identity attributes', t => {
+  const {doc, view, target, toolbar, buttons, anchor} = nativeMessages();
+  const owner = observerOwner();
+  const session = conversation.installJumpToTop({doc, win: view, owner});
+  t.after(() => session.dispose());
+  assert.equal(session.isMounted(), true);
+  buttons[2].setAttribute('aria-label', 'unrelated action');
+  owner.emit({type: 'attributes', attributeName: 'aria-label', target: buttons[2]});
+  owner.flush();
+  assert.equal(toolbar.querySelector(jumpHostSelector), null);
+  assert.equal(session.isMounted(), false);
+  buttons[2].setAttribute('aria-label', '编辑消息');
+  owner.emit({type: 'attributes', attributeName: 'aria-label', target: buttons[2]});
+  owner.flush();
+  assert.equal(toolbar.querySelector(jumpHostSelector)?.nextElementSibling, anchor);
+  target.setAttribute('data-chatgpt-search-unit-key', 'now-assistant');
+  owner.emit({type: 'attributes', attributeName: 'data-chatgpt-search-unit-key', target});
+  owner.flush();
+  assert.equal(toolbar.querySelector(jumpHostSelector), null);
+  assert.equal(session.isMounted(), false);
 });
