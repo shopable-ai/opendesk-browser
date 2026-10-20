@@ -31,7 +31,7 @@ export async function buildCookieEditorReact({log=true}={}){
   const code=js.toString('utf8');
   parse(code,{ecmaVersion:'latest',sourceType:'script'});
   for(const operation of ['OpenDeskPageReact','OpenDeskSidebarUI',
-    'cookieEditor.import.begin','cookieEditor.write.begin','browser.cookies.setMany',
+    'cookieEditor.import.begin','cookieEditor.write.begin','cookies.setMany',
     'E_COOKIE_REACT_SANDBOX_NOT_READY'])
     assert.ok(code.includes(operation),'Cookie React lost business operation: '+operation);
   assert.ok(css.toString('utf8').startsWith('/* @opendesk-shared-design */'),
