@@ -403,7 +403,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
    if(mode==='preview')globalThis.__bmReactSaveStage='request-completed';const verified=await service.load(),actual=verified.byId.get(result.id);
    if(!actual||actual.title!==title||actual.parentId!==draft.parentId||(draft.kind==='bookmark'&&actual.url!==url))throw Object.assign(Error('数据写入后读回不一致；保留草稿并禁止盲目重试'),{code:'E_OUTCOME_UNKNOWN'});
    if(mode==='preview')globalThis.__bmReactSaveStage='readback-ok';if(!activeRef.current)return;setTree(verified);setSelectedId(actual.id);setActiveId(actual.id);setDraft(null);setPreviewOpen(true);setPickerOpen(false);setUncertain(false);setNotice('已保存');
-  }catch(ex){const outcome=completedWrite&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}
+  }catch(ex){const outcome=(completedWrite||ex?.code==='E_TOOL_CHANGED')&&ex?.code!=='E_OUTCOME_UNKNOWN'?Object.assign(Error('可能发生部分写入；须核对再操作'),{code:'E_OUTCOME_UNKNOWN',cause:ex}):ex;if(mode==='preview')globalThis.__bmReactSaveStage='error:'+(outcome?.code||outcome?.message||'unknown');if(activeRef.current){setError(humanError(outcome));if(outcome?.code==='E_OUTCOME_UNKNOWN')setUncertain(true)}}finally{busyRef.current=false;if(activeRef.current)setBusy(false)}
  }
  async function removeConfirmed(target){
    if(!target||busy||busyRef.current||uncertain)return;
