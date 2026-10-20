@@ -31,6 +31,16 @@
   function SiteRow({site,busy,edit,change}){
     const [open,setOpen]=R.useState(false),wrap=R.useRef(null),trigger=R.useRef(null),first=R.useRef(null);
     const close=(focus=false)=>{setOpen(false);if(focus)trigger.current?.focus();};
+    const navigateMenu=e=>{
+      if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;
+      const items=[...(wrap.current?.querySelectorAll('[role="menuitem"]')||[])];
+      if(!items.length)return;
+      e.preventDefault();
+      const index=items.indexOf(document.activeElement);
+      const target=e.key==='Home'?0:e.key==='End'?items.length-1:
+        (index+(e.key==='ArrowUp'?-1:1)+items.length)%items.length;
+      items[target].focus();
+    };
     R.useEffect(()=>{
       if(!open)return;
       first.current?.focus();
@@ -51,10 +61,13 @@
         h('span',null,type+' · '+reason)),
       h('div',{className:'sf-site-controls'},
         h(Action,{name:'edit',label:'编辑 '+site.host,disabled:busy,onClick:()=>edit(site)}),
-        h('div',{className:'sf-menu',ref:wrap},
+        h('div',{className:'sf-menu',ref:wrap,onBlur:e=>{
+           if(!e.currentTarget.contains(e.relatedTarget))setOpen(false);
+         }},
           h(Action,{name:'more',label:'管理 '+site.host,disabled:busy,ref:trigger,
             'aria-haspopup':'menu','aria-expanded':open,onClick:()=>setOpen(!open)}),
-          open?h('div',{className:'sf-popup',role:'menu','aria-label':site.host+' 操作'},
+          open?h('div',{className:'sf-popup',role:'menu','aria-label':site.host+' 操作',
+             onKeyDown:navigateMenu},
             h('button',{type:'button',role:'menuitem',ref:first,
               onClick:()=>action({...site,enabled:!site.enabled})},
               h(Icon,{name:site.enabled?'pause':'play'}),site.enabled?'暂停网站':'恢复网站'),
@@ -201,7 +214,7 @@
     const operate=R.useCallback(async(operation,payload={})=>{
       if(writing.current||!latest.current)return false;
       writing.current=true;readId.current++;setBusy(true);
-      notice('请在可信扩展界面完成此次操作。');
+      notice('');
       try{
         const value=await api.request(operation,payload);
         if(!value?.dailyBudget||!Array.isArray(value.sites))

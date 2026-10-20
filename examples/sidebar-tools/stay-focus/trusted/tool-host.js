@@ -8,7 +8,7 @@ import {assertManagedSitePolicySupported} from '../../../../src/platform/host/ma
 
 const trustedOnly=['focus.enable','focus.disable','focus.clear'];
 // The fixed extension-owned Side Panel also owns the one-click current-site add.
-// Sandboxed tool mutations still use the existing per-operation Host review.
+// Ordinary sandbox actions use the installed focus.control grant; native enable/clear remain trusted-only.
 const trustedOperations=[...trustedOnly,'focus.site.put'];
 const error=(message,code)=>Object.assign(new Error(message),{code});
 // Presence of a Side Panel adapter is not evidence of a running MV3 worker.
@@ -66,7 +66,7 @@ export async function runTrustedStayFocusOperation({api,tool,operation,payload,e
 }
 
 export async function requestStayFocusOperation({api,tool,operation,payload,revocationEpoch,
-  assertCurrent,requestBrowserClick,openSettings}){
+  assertCurrent,openSettings}){
   requireFocusTool(tool);
   if(!FOCUS_OPERATIONS.includes(operation))throw error('Stay Focus 请求格式无效','E_FOCUS_REQUEST');
   if(trustedOnly.includes(operation)){
@@ -75,6 +75,7 @@ export async function requestStayFocusOperation({api,tool,operation,payload,revo
   }
   const send=async()=>{
     assertCurrent();
+    if(operation!=='focus.status')await assertSidebarToolEnabled(api,tool.id);
     const [owned,epochs]=await Promise.all([api.storage.local.get(SIDEBAR_TOOL_STORE),
       api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
     if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>sameSidebarToolPackage(row,tool))||
@@ -95,19 +96,7 @@ export async function requestStayFocusOperation({api,tool,operation,payload,revo
     }
     return response.data;
   };
-  if(operation==='focus.status')return send();
-  const target=operation==='focus.site.put'?'保存「'+String(payload?.site?.host||'').slice(0,80)+'」的网站限制':
-    operation==='focus.site.remove'?'删除「'+String(payload?.host||'').slice(0,80)+'」的网站限制':
-    operation==='focus.session.start'?'开始 '+String(payload?.minutes)+' 分钟的专注模式':
-    operation==='focus.session.stop'?'结束当前专注模式':
-    operation==='focus.schedule.set'?'修改工作时间限制':
-    operation==='focus.whitelist.set'?'替换允许访问的域名白名单':
-    operation==='focus.group.put'?'保存共享每日额度':
-    operation==='focus.group.remove'?'删除共享每日额度组':'更改专注规则';
-  return requestBrowserClick({toolId:tool.id,
-    message:'「'+tool.title+'」请求'+target+'。此操作可能更新 Chrome 网站拦截规则；请确认。',
-    button:'确认修改',run:event=>{
-      if(!event?.isTrusted)throw error('需要真实用户点击','E_FOCUS_TRUSTED_CLICK');
-      return send();
-    }});
+  // The installed, enabled package already holds focus.control. No repeat modal for
+  // ordinary site/budget/schedule edits; the Host still checks epoch and package hash.
+  return send();
 }

@@ -250,17 +250,31 @@ test('Focus status is read-only RPC with the installed digest and epoch',async()
   assert.deepEqual(f.calls,[{protocol:FOCUS_PROTOCOL,toolId:tool.id,operation:'focus.status',payload:{},
     packageHash:await focusPackageHash(tool),installEpoch:'epoch-before'}]);
 });
-test('Focus mutation awaits the trusted host review and rejects a sandbox synthetic approval',async()=>{
-  const f=hostFixture(),payload={site:{host:'example.com',minutes:30}},reviews=[];
-  f.requestBrowserClick=async review=>{
-    reviews.push(review);assert.equal(f.calls.length,0);
-    assert.match(review.message,/example\.com/);
-    await assert.rejects(async()=>review.run({isTrusted:false}),{code:'E_FOCUS_TRUSTED_CLICK'});
-    return review.run({isTrusted:true});
-  };
+test('R5.8.1 installed Focus performs one ordinary write without a repeated confirmation',async()=>{
+  const f=hostFixture(),payload={site:{host:'example.com',minutes:30}};
   await requestStayFocusOperation({...f,operation:'focus.site.put',payload});
-  assert.equal(reviews.length,1);assert.equal(f.calls.length,1);
+  assert.equal(f.calls.length,1,'one click must send exactly one Host mutation');
   assert.deepEqual(f.calls[0].payload,payload);
+  f.data.set(SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:false});
+  await assert.rejects(requestStayFocusOperation({...f,operation:'focus.site.put',payload}),
+    {code:'E_TOOL_DISABLED'});
+  assert.equal(f.calls.length,1,'disabled tool must never issue a second write');
+});
+test('R5.8.1 all authorized everyday controls write directly to the same Host',async()=>{
+  const f=hostFixture(),ops=[
+    ['focus.site.put',{site:{host:'example.com',minutes:30}}],
+    ['focus.site.remove',{host:'example.com'}],
+    ['focus.group.put',{id:'entertainment',minutes:45}],
+    ['focus.group.remove',{id:'other'}],
+    ['focus.schedule.set',{schedule:{enabled:true,days:[1,2,3],startMinute:540,endMinute:1020}}],
+    ['focus.whitelist.set',{hosts:['docs.google.com']}],
+    ['focus.session.start',{minutes:25}],
+    ['focus.session.stop',{}]
+  ];
+  for(const [operation,payload] of ops)
+    await requestStayFocusOperation({...f,operation,payload});
+  assert.deepEqual(f.calls.map(row=>row.operation),ops.map(row=>row[0]));
+  assert.equal(f.calls.length,ops.length,'no duplicate Host requests or approval dialogs');
 });
 test('Sandbox enable, disable and clear open settings but cannot send a native operation',async()=>{
   for(const operation of ['focus.enable','focus.disable','focus.clear']){
@@ -271,18 +285,15 @@ test('Sandbox enable, disable and clear open settings but cannot send a native o
       {code:'E_FOCUS_TRUSTED_CLICK'});
   }
 });
-test('Focus approval rechecks epoch and live iframe before the native effect',async()=>{
+test('R5.8.1 direct Focus mutations reject retired sessions, packages and epochs',async()=>{
   for(const change of ['epoch','session','package']){
-    const f=hostFixture();let current=true;
-    f.assertCurrent=()=>{if(!current)throw Object.assign(new Error('retired frame'),{code:'E_TOOL_CHANGED'});};
-    f.requestBrowserClick=async review=>{
-      if(change==='epoch')f.data.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'epoch-after'});
-      if(change==='session')current=false;
-      if(change==='package')f.data.set(SIDEBAR_TOOL_STORE,[{...tool,version:'1.0.1'}]);
-      return review.run({isTrusted:true});
-    };
-    await assert.rejects(requestStayFocusOperation({...f,operation:'focus.session.stop',payload:{}}),{code:'E_TOOL_CHANGED'});
-    assert.equal(f.calls.length,0);
+    const f=hostFixture();
+    if(change==='epoch')f.data.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'epoch-after'});
+    if(change==='session')f.assertCurrent=()=>{throw Object.assign(new Error('retired frame'),{code:'E_TOOL_CHANGED'});};
+    if(change==='package')f.data.set(SIDEBAR_TOOL_STORE,[{...tool,version:'1.0.1'}]);
+    await assert.rejects(requestStayFocusOperation({...f,operation:'focus.session.stop',payload:{}}),
+      {code:'E_TOOL_CHANGED'});
+    assert.equal(f.calls.length,0,'stale sandbox cannot reach the native service');
   }
 });
 test('Trusted Focus control refuses stopped or replaced packages and preserves unknown outcomes',async()=>{

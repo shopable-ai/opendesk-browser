@@ -483,6 +483,8 @@ test('R5.6 first-screen order is shared budget then sites, no preset buttons',()
   assert.equal(html.trim(),'<div id="tool-app" aria-label="Stay Focus 应用"></div>');
   assert.ok(script.indexOf('今日娱乐时间')<script.indexOf('管理的网站'));
   assert.match(script,/sf-daily-budget/);
+  assert.match(script,/onKeyDown:navigateMenu/);
+  assert.match(script,/if\(!e.currentTarget.contains\(e.relatedTarget\)\)setOpen\(false\)/);
   assert.doesNotMatch(script,/data-budget|sf-budget-presets|budget-presets/);
   assert.match(script,/currentPage\.info/);
 });

@@ -30,7 +30,7 @@ async function requestFixture({networkFails=false,expireAfterSend=false}={}){
   const call=()=>requestStayFocusOperation({api,tool,operation:'focus.site.put',
     payload:{site:{host:'example.org',subdomains:true,enabled:true,mode:'limit',
       minutes:10,group:''}},revocationEpoch:'epoch-r44',assertCurrent,
-    requestBrowserClick:({run})=>run({isTrusted:true}),openSettings:()=>{}});
+    requestBrowserClick:()=>{throw Error('unexpected extra confirmation');},openSettings:()=>{}});
   return {api,tool,call};
 }
 

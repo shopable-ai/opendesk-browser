@@ -114,7 +114,7 @@ function fixture(){
   return {stored,focus,api,rules,writes,sender,msg,
     setTime:value=>{clock=value;},setUrl:value=>{url=value;}};
 }
-test('same Host SHA / only app package changes: no silent rules, trusted approval, native DNR readback',async()=>{
+test('same Host SHA / only app package changes: no silent rules, direct edits, native DNR readback',async()=>{
   const f=fixture(),base=old(),modern=next();
   await f.focus.dispatch(await f.msg(base,'focus.site.put',
     {site:site('existing.example.com','always')}),f.sender);
@@ -137,14 +137,12 @@ test('same Host SHA / only app package changes: no silent rules, trusted approva
   assert.equal(f.stored.get(FOCUS_STORE).authorizedHash,null);
   await assert.rejects(f.focus.dispatch(await f.msg(base,'focus.status'),f.sender),
     {code:'E_TOOL_CHANGED'});
-  let approved=false;
+  let repeatedReview=false;
   await requestStayFocusOperation({api:f.api,tool:modern,operation:'focus.site.put',
     payload:{site:site('pinterest.com')},revocationEpoch:'epoch-1',assertCurrent(){},
-    requestBrowserClick({message,run}){
-      assert.match(message,/pinterest\.com/);approved=true;
-      return run({isTrusted:true});
-    },openSettings(){throw Error('not expected');}});
-  assert.equal(approved,true);
+    requestBrowserClick(){repeatedReview=true;throw Error('unexpected second approval');},
+    openSettings(){throw Error('not expected');}});
+  assert.equal(repeatedReview,false);
   assert.equal(f.rules.length,0,'an added site never enables DNR by itself');
   const enabled=await f.focus.dispatch(await f.msg(modern,'focus.enable'),f.sender);
   assert.equal(enabled.enabled,true);
@@ -252,10 +250,9 @@ test('R5.4 older package to 1.0.5: same worker, package-only upgrade and explici
   await f.focus.dispatch(await f.msg(app,'focus.enable'),f.sender);
   const result=await requestStayFocusOperation({api:f.api,tool:app,
     operation:'focus.site.put',payload:{site:site('pinterest.com','always')},
-    revocationEpoch:'epoch-1',assertCurrent(){},requestBrowserClick({message,run}){
-      assert.match(message,/pinterest\.com/);
-      return run({isTrusted:true});
-    },openSettings(){throw Error('unexpected');}});
+    revocationEpoch:'epoch-1',assertCurrent(){},
+    requestBrowserClick(){throw Error('unexpected second approval');},
+    openSettings(){throw Error('unexpected');}});
   assert.equal(result.enabled,true);
   assert.equal(result.ruleReceipt.verified,true);
   assert.ok(f.rules.some(rule=>rule.condition.regexFilter.includes('pinterest\\.com')));
