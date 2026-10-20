@@ -1,12 +1,13 @@
-// Non-release, statically compiled Bookmark Manager React candidate.
-// A matching ID or a self-reported hash is never enough to grant trusted UI.
+// Official-only, statically compiled Bookmark Manager React admission.
+// Normal opens may request this route, but a matching ID or self-reported
+// hash never grants trusted UI; package, catalog and install epoch must agree.
 import {matchesOfficialRelease,officialPackagePath} from '../sidebar-tools/official-catalog.js';
 import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
 
 export const TRUSTED_BOOKMARK_ID='bookmark-manager';
 export const TRUSTED_BOOKMARK_VERSION='0.3.8';
-export const TRUSTED_BOOKMARK_COMPONENT_VERSION='R3.0.6';
+export const TRUSTED_BOOKMARK_COMPONENT_VERSION='R3.3';
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
   ?value[TRUSTED_BOOKMARK_ID]:null;
