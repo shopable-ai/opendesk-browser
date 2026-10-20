@@ -158,6 +158,14 @@ try{
   };
   await click('[data-extension-key="app:demo-reading"][data-extension-action="main"]');
   await waitUntil('!document.getElementById("extension-center-detail").hidden');
+  const iconAction=await evaluate('(()=>{const button=document.querySelector("[data-ec-detail-action=uninstall]");'+
+    'return {icon:!!button?.querySelector("svg"),text:button?.textContent?.trim(),title:button?.title,'+
+    'label:button?.getAttribute("aria-label"),width:button?.getBoundingClientRect().width}})()');
+  assert.equal(iconAction.icon,true,'production React detail uninstall uses shared IconButton');
+  assert.equal(iconAction.text,'','detail action no longer displays a long button label');
+  assert.equal(iconAction.title,'卸载…');
+  assert.ok(iconAction.label?.includes('演示 · 阅读目录'));
+  assert.ok(iconAction.width<=44,'detail actions must not reserve wide text-button columns');
   assert.equal(await evaluate('document.getElementById("extension-center-back").getAttribute("aria-label")'),
     '返回扩展列表','Icon back must remain accessible');
   await click('#extension-center-back');

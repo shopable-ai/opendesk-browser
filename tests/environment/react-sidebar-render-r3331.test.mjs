@@ -71,6 +71,13 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
     }
   }));
   assert.match(detail,/data-ec-detail-action="settings"/);
+  const actionButton=load(detail)('[data-ec-detail-action="settings"]');
+  assert.equal(actionButton.length,1);
+  assert.ok(actionButton.hasClass('od-icon-button'));
+  assert.equal(actionButton.attr('title'),'设置与权限');
+  assert.equal(actionButton.attr('aria-label'),'设置与权限「名称 <script>evil()</script>」');
+  assert.equal(actionButton.find('svg[aria-hidden="true"]').length,1);
+  assert.equal(actionButton.text().trim(),'','known detail action should not consume horizontal space');
   assert.match(detail,/固定包 SHA-256/);
   const readerDetail=renderToStaticMarkup(React.createElement(ExtensionDetail,{
     container:null,model:{kind:'app',type:'应用',installed:true,busy:false,
@@ -80,6 +87,30 @@ test('R33.3.1 renders extension toolbar, rows and detail as real React elements'
   assert.match(readerDetail,/安装后自动显示目录/,'React detail explains page auto-activation');
   assert.match(detail,/&lt;script&gt;/);
   assert.doesNotMatch(detail,/<script\b/i);
+
+  const icons=renderToStaticMarkup(React.createElement(ExtensionDetail,{
+    container:null,model:{title:'测试工具',kind:'page',type:'网页增强',
+      description:'图标操作',busy:false,actions:[
+        {id:'install',label:'审阅并安装'},{id:'update',label:'审阅新版'},
+        {id:'toggle',label:'停用自动运行'},{id:'settings',label:'设置与权限'},
+        {id:'cleanup',label:'恢复卸载清理'},{id:'develop',label:'前往开发'},
+        {id:'uninstall',label:'卸载网页增强…'},
+        {id:'future-action',label:'保留文字按钮'}],
+      sites:[],pageInfo:{},installationText:'测试',version:'1'}
+  }));
+  const actionDom=load(icons);
+  for(const id of ['install','update','toggle','settings','cleanup','develop','uninstall']){
+    const button=actionDom('[data-ec-detail-action="'+id+'"]');
+    assert.equal(button.length,1,id);
+    assert.equal(button.find('svg[aria-hidden="true"]').length,1,id+' must have a real icon');
+    assert.ok(button.hasClass('od-icon-button'),id);
+    assert.equal(button.text().trim(),'','icon buttons display no text');
+    assert.ok(button.attr('title')&&button.attr('aria-label')?.includes('测试工具'),id);
+  }
+  assert.equal(actionDom('[data-ec-detail-action="future-action"]').text(),'保留文字按钮',
+    'unknown actions must not receive ambiguous placeholder icons');
+  assert.equal(actionDom('[data-ec-detail-action="toggle"] path').length,1,
+    'the disable action uses the pause symbol');
 
   const empty=renderToStaticMarkup(React.createElement(ExtensionEmpty,{
     container:null,model:{showEmpty:true,emptyText:'筛选 <img src=x onerror=evil()>'}
