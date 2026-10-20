@@ -1,16 +1,18 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## 当前 dev 交付（2026-10-20）
+## 当前 dev 交付（2026-10-20，R5.30.3）
 
-当前唯一安装包为 **2.0.29 / opendesk.sidebar-tool.v2**，使用 `opendesk.react-ui.v1`。正式入口 `app/official.jsx` 与离线预览共用 `app/CookieEditorApp.jsx`；刷新按钮左侧的「网站 URL」下拉菜单已删除。`tool.config.json`、编译产物和本目录唯一 JSON 已收敛到同一 React 实现，不再以旧版 `src/main.js` 作为安装入口。
+当前唯一安装包为 **2.0.30 / opendesk.sidebar-tool.v2**，使用 `opendesk.react-ui.v1`。正式入口 `app/entries/official.jsx` 与离线预览共用 `app/CookieEditorApp.jsx`，完整保留现有列表、原位编辑、导入导出与离线工作区；本轮没有重建预览或重设计界面。
 
-日常扩展继续加载 `dist/development`，ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，由 `npm run dev` 持续更新。**扩展编译不会自动替换已安装工具**：在「扩展 → Cookie Editor 管理 → 审阅新版 → 确认更新」完成工具升级。本次日常 Chrome 已经通过该入口更新，详情显示 2.0.29。
+首次在可信设置点击「允许管理所有网站 Cookie」，明确批准 HTTP/HTTPS 范围，之后切站复用授权。该范围仅授予精确匹配官方目录及来源记录的安装包，绑定版本、包摘要、安装代际和 Store；旧单站授权不会自动升级，其他工具不能继承，也不会自动枚举全部网站 Cookie。撤权同时清除本工具旧单站授权。
 
-同 ID、同开发目录的真实 Chrome 测试 Profile 已验证：2.0.23 → 2.0.29 更新、本地演示站授权、Cookie 新建、修改保存及精确删除；实际 Chrome Cookie 值已读回核对，测试数据已清除。开发客户端已显示连接和构建指纹。预览同源检查及受影响源码、样式、构建断言通过；证据在 `artifacts/cookie-editor-current-delivery/development-delivery.json`。本轮仅完成 dev 核心交付，production 构建、完整验收与评分未执行。
+导出继续使用原 React 工作区。复制、下载在原点击期间取得一次性 Intent，仍经 Host 精确确认操作与回执，不再重复显示「允许本次导出」。只读加载或写入前预检遇到切站时安全取消并重新读取；只有实际写入或导出已经发出才保留未知结果警告，连续事件不能清除该警告，也不会重放操作。
+
+持续开发仍加载 `dist/development`，ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，复用已有 `npm run dev`。**watcher 不会自动替换已安装工具**：通过「扩展 → Cookie Editor 管理 → 审阅新版 → 确认更新」同 ID 升级。真实 Mac Chrome 测试 Profile 已从 2.0.29 更新到 2.0.30，包 SHA-256 为 `52a78930efae167db0d2482332f9a84e879b19fad81e61bdcbe1fdc653885ac3`；A/B/C 及同域切换无需点重新读取，原位保存重开、工作区导出、单击复制下载、撤权清空均通过。同 Profile 重启后包摘要和授权代际不变，无需重新授权或手动重读；测试 Cookie 已清理。[定向证据](../../../docs/framework/workstreams/evidence/cookie-editor-r5303-20261020/result.json) 分别记录 Node、开发连接及原生操作。用户个人 Chrome 的本次工具升级、最终 production 候选及完整发布验收仍为 `NOT_TESTED`。
 
 ## 历史版本说明
 
-以下保留旧版入口和验证记录；其中 2.0.23 等版本及其 NOT_TESTED 状态不代表当前 2.0.29。
+以下保留旧版入口和验证记录；其中 2.0.23、2.0.29 等版本及其逐站授权说明不覆盖当前 2.0.30。2.0.29 曾在日常 Chrome 完成更新与核心读写；该历史事实不证明本次个人 Chrome 已升级。
 
 **入口：** Side Panel「扩展」→ **Cookie Editor → 打开**。首次安装浏览器扩展时，可信离线目录自动预装工具包，不运行工具代码、不自动授权 Cookie 网站；旧 Profile 未安装时，直接在「扩展」列表点击「安装」进行可信审阅，然后打开。也可将本目录源码打包为 JSON 后手动导入。默认中文，官方目录为 `installationPolicy: preinstalled`；工具包 **2.0.23 / opendesk.sidebar-tool.v2**。**历史 2.0.4 隔离 CFT 候选**曾通过真实发现、安装、授权、读取、编辑、新建、保存回读和精确删除；该记录仅适用于当时的工具包。**当前 2.0.23 在用户系统 Chrome 的升级及导入仍为 NOT_TESTED**；不能将历史截图、回执或分数延用为当前版本的 PASS/95+。所有 Cookie 修改均从已安装工具 UI 发起。
 
@@ -48,15 +50,15 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check
 
 **两个 JSON 的区别：** `tool.config.json` 是构建配置，不能直接导入；`cookie-editor.opendesk-tool.json` 才是可直接安装的发布包。后者由原有 `scripts/build-sidebar-tool.mjs` 生成，`artifacts/sidebar-tools/<id>/<version>/` 是保留的本机输出。随项目提交的预生成 JSON **不是第二份业务源码**，所有修改应从 `src/` 重新打包，自动一致性测试能防止包与代码漂移。该工具是 **OpenDesk Sidebar App**，不是能通过 `chrome://extensions`「加载已解压的扩展程序」直接安装的 Chrome Manifest 扩展。
 
-**什么时候才需要更新整个 OpenDesk Browser？** 日常开发复用既有 `npm run dev` watcher 和固定 `dist/development/`，核对 Chrome 实际加载路径、扩展 ID 及「调试」中的开发连接/构建指纹；不要另起静态构建覆盖 watcher。工具包仍需按同 ID 正式更新。**只有本目录 UI/JS/CSS 变化时，不需要重编整个扩展**。验证真实 Cookie 读写前先打开普通 HTTP(S) 网站，并在已安装工具的可信「设置」中按网站和能力分别授权；不要把“工具已安装”误当作“已经有 Cookie 权限”。
+**什么时候才需要更新整个 OpenDesk Browser？** 日常开发复用既有 `npm run dev` watcher 和固定 `dist/development/`，核对 Chrome 实际加载路径、扩展 ID 及「调试」中的开发连接/构建指纹；不要另起静态构建覆盖 watcher。工具包仍需按同 ID 正式更新。**只有本目录 UI/JS/CSS 变化时，不需要重编整个扩展**。验证真实 Cookie 读写前先打开普通 HTTP(S) 网站，并在已安装工具的可信「设置」明确授权管理所有网站 Cookie；不要把“工具已安装”误当作“已经有 Cookie 权限”。
 
 用于不安装的只读预览：`node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/cookie-editor`。它会生成 `STAGED_NOT_INSTALLED` 快照，**不能**替代正式安装、授权或真实 Chrome 验收。
 
 ## 用户能完成什么
 
-1. 在实际 Chrome 打开要管理的网站 → 点击「允许管理本站 Cookie」。本站读取、保存、导入复用这次网站授权，可一键撤销；安装或选择网址不自动授权。必要的敏感操作确认仍在可信宿主进行。
-2. `OpenDeskSDK.browser.cookies.getAll({url})` 读取真实 Chrome Cookie 元数据，显示 Cookie 名称、Domain/Path、Secure/HttpOnly/SameSite、Session/Expiration、Store/Partition。真实值默认隐藏；独立 `values` 网站授权后才可按需显示或导出。
-3. `cookies.set/remove` 实际新增、编辑、精确删除；受信 Side Panel 每次要求用户明确确认。原生回读和结果未知不自动重试。Name 可直接修改，并按先新建核验再精确删除旧名称执行（非原子）。未改动的隐藏 Value 仅在获准独立敏感值权限后临时读取保留；也可主动提供新 Value。未授权时绝不静默写空值。
+1. 在实际 Chrome 打开要管理的网站 → 首次点击「允许管理所有网站 Cookie」。以后读取、保存、导入复用已批准范围，可一键撤销；安装或选择网址不自动授权。Host 继续核对 Chrome 网站权限与每次操作身份。
+2. `OpenDeskSDK.browser.cookies.getAll({url})` 读取真实 Chrome Cookie 元数据，显示 Cookie 名称、Domain/Path、Secure/HttpOnly/SameSite、Session/Expiration、Store/Partition。真实值默认隐藏；必须包含 `values` 授权才可按需显示或导出。
+3. `cookies.set/remove` 实际新增、编辑、精确删除；原位操作通过真实点击绑定的 Host Intent 验证，原生回读和结果未知不自动重试。Name 可直接修改，并按先新建核验再精确删除旧名称执行（非原子）。未改动的隐藏 Value 仅在获准敏感值权限后临时读取保留；也可主动提供新 Value。未授权时绝不静默写空值。
 4. `clearSite` 只清理选定主机的 Host-only Cookie、批准的 Store/Partition、最多 50 条。先生成含 **60 秒、一次性 `previewRef`** 的预览；清理前核对精确 Cookie 身份集合，数量相同而内容改变也拒绝。实际删除仍需可信点击；Worker 重启、撤权会使旧预览不可用。
 5. `observe.start/getStatus/read/stop` 手动启动最长 15 秒的有界脱敏变化观察，携带 cursor/gap。事件不传 Cookie 值。
 6. 文本或文件可自动识别 JSON 数组、带 `cookies` 的对象、单条记录、名称值字典、Cookie Header 和 Netscape。支持 UTF-8 BOM、`Cookie:` 前缀、分号/换行及值中的等号。预览逐条列出新增、覆盖、过期及无效原因，确认时仅写可导入项并明确统计跳过数；错误后保留原文供修改。JSON 导出可直接回导。真实导出 JSON 默认含值，复制或下载仍需已有敏感值授权与本次最终确认；仅导出属性放在「更多选项」。
@@ -75,7 +77,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check
 已安装的普通 Sidebar Tool (不可信 sandbox)
   → OpenDeskSDK.browser.cookies.*
   → 原 Sidebar Tool Bridge
-  → Side Panel 真实安装身份/包摘要/Install Epoch/用户逐站授权
+  → Side Panel 真实安装身份/包摘要/Install Epoch/用户明确授权范围
   → 原 Browser Dispatcher / Host
   → 原 createTrustedCookieHost / createCookieService
   → Chrome Native Cookies API

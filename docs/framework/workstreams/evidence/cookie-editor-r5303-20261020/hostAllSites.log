@@ -1,0 +1,21 @@
+✔ explicit official all-http-sites grant is atomic, covers A/B/C and survives a rebuilt Host (172.632042ms)
+✔ all-http-sites retains real Chrome permissions, regular Store and real document Partition fences (80.534917ms)
+✔ all-http-sites revoke rotates epoch, persists and invalidates existing Cookie intent (46.873667ms)
+✔ all-site revoke atomically clears legacy Cookie sites for only the revoked tool (32.502375ms)
+✔ legacy single-site consent does not upgrade and ordinary tools cannot inherit official all-site rights (26.229875ms)
+✔ all-site consent rejects forged Sender, identity, provenance and same-ID altered packages (14.121667ms)
+✔ all-site consumption rechecks enabled state, install epoch, package and capability boundaries (29.691334ms)
+✔ preserved Cookie grants follow installation lifecycle while disabled and stale-epoch callers remain denied (20.058583ms)
+✔ all-site consumption requires separate read/values/write bits and current official provenance (29.156292ms)
+✔ browser.cookies.getCurrentStore: installed SDK returns exact Store and denies permission, Origin and identity (2.223125ms)
+✔ browser.cookies.getPartitionKey: installed SDK returns exact Partition and denies permission, Origin and identity (2.138084ms)
+✔ browser.cookies.observe.start: installed SDK starts a bounded session and denies missing intent, permission, Origin and identity (5.500292ms)
+✔ browser.cookies.observe.stop: installed SDK stops only the exact session and denies permission, Origin and foreign Owner without retiring it (4.321458ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 537.430459

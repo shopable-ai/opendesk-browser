@@ -81,6 +81,8 @@ export function createCookieSdkAdapter({getBrowser,request}){
   }
   return {
     targetFor,checkRead,list,exactList,readValue,
+    beginExportIntent:(target,method)=>request('cookieEditor.export.begin',{url:target.url,method}),
+    finishExportIntent:ref=>request('cookieEditor.export.finish',{ref}),
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),
     finishImportIntent:ref=>request('cookieEditor.import.finish',{ref}),
     beginWriteIntent:(target,row,{renameFrom=null}={})=>request('cookieEditor.write.begin',{

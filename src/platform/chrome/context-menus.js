@@ -17,6 +17,8 @@ import {validateTrustedScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
 import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
+import {loadOfficialCatalog,matchesOfficialRelease} from '../../sidebar-tools/official-catalog.js';
+import {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
@@ -239,6 +241,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     'browser.cookies.observe.getStatus':'observe','browser.cookies.observe.read':'observe',
     'browser.cookies.observe.stop':'observe'
   });
+  let cookieOfficialCatalog;
+  async function admittedOfficialCookie(tool){
+    if(tool.id!=='cookie-editor'||!tool.capabilities.includes('browser.cookies.write'))return false;
+    // Reuse the import UI's exact offline release/provenance checks. Neither
+    // a claimed ID nor a caller-provided package hash establishes officiality.
+    try{
+      const catalog=await (cookieOfficialCatalog??=loadOfficialCatalog({api,fetcher:fetchImpl}));
+      const release=catalog.apps.find(row=>row.toolId==='cookie-editor');
+      const saved=await api.storage.local.get(MARKET_PROVENANCE_STORE);
+      const provenance=saved[MARKET_PROVENANCE_STORE]?.[tool.id];
+      return Boolean(release&&provenance?.marketId===release.id&&
+        provenance.version===release.version&&provenance.sha256===release.sha256&&
+        await matchesOfficialRelease(release,tool));
+    }catch{cookieOfficialCatalog=undefined;return false;}
+  }
   async function authorizedCookie(identity,operation,url,options={}){
     const parsed=parsedHttp(url);
     if(!parsed)throw failure('E_SCHEMA','A specific HTTP(S) Cookie URL is required');
@@ -247,7 +264,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(record?.version!==tool.version||record.packageHash!==identity.packageHash||
        record.installEpoch!==(source.epochs[tool.id]??null))
       throw failure('E_SITE_GRANT_REQUIRED','Cookie site grant invalidated by a package change');
-    const grant=record.cookieSites?.[origin],cap=cookieCapabilities[operation];
+    const cap=cookieCapabilities[operation];
+    const allSites=record.cookieAllSites?.[cap]===true&&await admittedOfficialCookie(tool);
+    const grant=allSites?record.cookieAllSites:record.cookieSites?.[origin];
     if(!cap||grant?.[cap]!==true||!grant.storeId||!grant.grantEpoch)
       throw failure('E_SITE_GRANT_REQUIRED','Approve this Cookie capability in the installed tool settings');
     if(options.includeValues===true&&
@@ -255,11 +274,36 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_COOKIE_VALUES_REQUIRED','Cookie values require independent website authorization');
     if(options.storeId!==undefined&&options.storeId!==grant.storeId)
       throw failure('E_COOKIE_STORE');
-    if(options.partitionKey&&(!grant.partitionKey||
-       options.partitionKey.topLevelSite!==grant.partitionKey.topLevelSite||
+    let partitionKey=grant.partitionKey??null;
+    if(allSites){
+      const stores=await chromeCall(api,api.cookies,'getAllCookieStores');
+      const regular=Array.isArray(stores)?stores.filter(row=>row.id===grant.storeId&&!row.incognito):[];
+      if(regular.length!==1)throw failure('E_COOKIE_STORE');
+      partitionKey=null;
+      // All-site consent does not authorize a tool-selected foreign Partition.
+      // Resolve partitioned access from the real, regular current document.
+      if(operation==='browser.cookies.getPartitionKey'||options.partitionKey||
+         options.cookies?.some(row=>row.partitionKey)){
+        const tabs=await api.tabs.query({active:true,currentWindow:true});
+        const tab=Array.isArray(tabs)&&tabs.length===1?tabs[0]:null;
+        if(!tab||tab.incognito||tab.pendingUrl||parsedHttp(tab.url)?.origin!==origin||
+           !regular[0].tabIds?.includes(tab.id))throw failure('E_COOKIE_PARTITION');
+        const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+        if(!frame?.documentId||frame.url!==tab.url||
+           frame.documentLifecycle&&frame.documentLifecycle!=='active')throw failure('E_DOCUMENT_CHANGED');
+        const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:tab.id,frameId:0});
+        if(!parsedHttp(receipt?.partitionKey?.topLevelSite))throw failure('E_COOKIE_PARTITION');
+        const after=await api.webNavigation.getFrame({tabId:tab.id,frameId:0});
+        if(after?.documentId!==frame.documentId||after.url!==frame.url)
+          throw failure('E_DOCUMENT_CHANGED');
+        partitionKey=receipt.partitionKey;
+      }
+    }
+    if(options.partitionKey&&(!partitionKey||
+       options.partitionKey.topLevelSite!==partitionKey.topLevelSite||
        Boolean(options.partitionKey.hasCrossSiteAncestor)!==
-         Boolean(grant.partitionKey.hasCrossSiteAncestor)))throw failure('E_COOKIE_PARTITION');
-    return {origin,storeId:grant.storeId,partitionKey:grant.partitionKey??null,grantEpoch:grant.grantEpoch};
+         Boolean(partitionKey.hasCrossSiteAncestor)))throw failure('E_COOKIE_PARTITION');
+    return {origin,storeId:grant.storeId,partitionKey,grantEpoch:grant.grantEpoch};
   }
   // Only the checked Side Panel can mint the exact Host approval following
   // the official Cookie Editor's real import click. Imported destination
@@ -632,7 +676,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const cookieSites=validGrant?grantRecord.cookieSites||{}:{};
     const candidateOrigins=desired?[desired]:Object.keys(cookieSites);
     const cookieAuthorized=isCookie&&(await Promise.all(candidateOrigins.map(async origin=>
-      cookieSites[origin]?.[cookieCapabilities[operation]]===true&&await chromeSitePermitted(api,origin)
+      (cookieSites[origin]?.[cookieCapabilities[operation]]===true||
+       validGrant&&grantRecord.cookieAllSites?.storeId&&grantRecord.cookieAllSites.grantEpoch&&
+       grantRecord.cookieAllSites[cookieCapabilities[operation]]===true&&
+       await admittedOfficialCookie(tool))&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
       requiredBrowser&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
@@ -941,7 +988,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
     }));
   }
-  async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,args},sender){
+  async function handleHost({operation,toolId,enabled,scope,origin,document,launchId,toolInstance,hostInstanceId,toolVersion,installEpoch,packageHash,cookieCapability:siteCapability,targetOperation,targetArgs,cookieImportSource,approvalRef,schedulerIntent,args},sender){
     const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId)
       throw failure('E_OWNER','Wrong OpenDesk tool host');
@@ -1001,19 +1048,26 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         return {enabled};
       }
       if(operation==='browser.cookies.userGrant'){
+        const allSites=scope==='all-http-sites';
         if(!['read','values','write','observe','clear','all'].includes(siteCapability)||
-           typeof enabled!=='boolean'||(siteCapability==='all'&&enabled))
+           typeof enabled!=='boolean'||(scope!==undefined&&!allSites)||
+           (allSites?siteCapability!=='all':siteCapability==='all'&&enabled))
           throw failure('E_SCHEMA','Unsupported Cookie capability decision');
         const source=await readSources(api),tool=admittedTool(source.tools,toolId);
         if(!sidebarToolEnabled(source.enabled,toolId)||tool.version!==toolVersion||
            (source.epochs[toolId]??null)!==(installEpoch??null))
           throw failure('E_TOOL_CHANGED');
+        const hash=await digestTool(tool);
+        if(allSites&&packageHash!==hash)throw failure('E_TOOL_CHANGED');
+        if(allSites&&enabled&&!await admittedOfficialCookie(tool))
+          throw failure('E_OWNER','All-site Cookie consent requires the exact official release');
         if(siteCapability==='all'
           ?!tool.capabilities.some(name=>name.startsWith('browser.cookies.'))
           :!tool.capabilities.includes('browser.cookies.'+siteCapability))
           throw failure('E_TOOL_CAPABILITY_REQUIRED');
         const site=enabled?parsedHttp(document?.url)?.origin:parsedHttp(origin)?.origin;
-        if(!site||!enabled&&site!==origin)throw failure('E_SCHEMA','Exact Cookie site Origin required');
+        if((enabled||!allSites)&&(!site||!enabled&&site!==origin))
+          throw failure('E_SCHEMA','Exact Cookie site Origin required');
         let storeId,partitionKey;
         if(enabled){
           if(!document||document.origin!==site||!Number.isSafeInteger(document.tabId)||
@@ -1034,18 +1088,30 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
             !row.incognito&&row.tabIds?.includes(document.tabId)):[];
           if(candidates.length!==1||typeof candidates[0].id!=='string')throw failure('E_COOKIE_STORE');
           storeId=candidates[0].id;
-          const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:document.tabId,frameId:0});
-          if(!receipt?.partitionKey?.topLevelSite)throw failure('E_COOKIE_PARTITION');
-          partitionKey=receipt.partitionKey;
+          if(!allSites){
+            const receipt=await chromeCall(api,api.cookies,'getPartitionKey',{tabId:document.tabId,frameId:0});
+            if(!receipt?.partitionKey?.topLevelSite)throw failure('E_COOKIE_PARTITION');
+            partitionKey=receipt.partitionKey;
+          }
           const after=await api.webNavigation.getFrame({tabId:document.tabId,frameId:0});
           if(after?.documentId!==frame.documentId||after.url!==document.url)
             throw failure('E_DOCUMENT_CHANGED','Cookie site changed while approving');
         }
-        const previous=source.grants[toolId],hash=await digestTool(tool);
+        const previous=source.grants[toolId];
         const same=previous?.version===tool.version&&previous.packageHash===hash&&
           previous.installEpoch===(source.epochs[toolId]??null);
         const row=same?previous:{version:tool.version,packageHash:hash,
           installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
+        if(allSites){
+          const cookieAllSites={storeId:enabled?storeId:row.cookieAllSites?.storeId??null,
+            grantEpoch:crypto.randomUUID(),...Object.fromEntries(
+              ['read','values','write','observe','clear'].map(cap=>[cap,
+                enabled&&tool.capabilities.includes('browser.cookies.'+cap)]))};
+          await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+            ...source.grants,[toolId]:{...row,cookieAllSites,...(!enabled?{cookieSites:{}}:{})}});
+          trustedCookies.revoke();
+          return {scope,capability:siteCapability,enabled,storeId:cookieAllSites.storeId};
+        }
         const sites={...(row.cookieSites||{})},prior=sites[site]||{};
         if(enabled&&Object.keys(sites).length>=20&&!Object.hasOwn(sites,site))
           throw failure('E_LIMIT','Maximum 20 Cookie websites per tool');

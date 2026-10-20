@@ -13,7 +13,7 @@ import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblo
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
-import {BROWSER_HOST_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
@@ -1803,6 +1803,79 @@ test('sandbox Browser RPC honors Registry argument-byte budget and settles overs
   const unicode={...near,cookies:near.cookies.map((row,i)=>i===0?{...row,value:'中文'.repeat(960)}:row)};
   assert.deepEqual(checkSidebarToolRequestBudget({...envelope,payload:unicode}),{ok:false,code:'E_LIMIT'},
     'UTF-8 byte budget must reject large multibyte payloads');
+});
+
+test('R5.30.3 official export reuses one real click and still requires exact Host approval',async t=>{
+  const tool=await officialToolFixture('cookie-editor');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const origin='https://example.org';
+  const target={snapshot:{status:'available',url:origin+'/'}};
+  let pauseAdmission=false;const entered=deferred(),resume=deferred();
+  const f=await hostFixture(t,{tool,target,getHook:async key=>{
+    if(pauseAdmission&&Array.isArray(key)&&key.includes(MARKET_PROVENANCE_STORE)){
+      pauseAdmission=false;entered.resolve();await resume.promise;
+    }
+  },store:new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],
+    [BROWSER_MENU_GRANTS_STORE,{[tool.id]:{version:tool.version,installEpoch:null,
+      packageHash:await sidebarToolPackageHash(tool),cookieAllSites:{read:true,grantEpoch:'grant-1'}}}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
+  ])});
+  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator'),oldLocation=globalThis.location;
+  const copied=[],downloads=[],calls=[];let active=false,authorized=true,revokeBeforeDelivery=false;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
+    userActivation:{get isActive(){return active;}},clipboard:{writeText:async text=>copied.push(text)}}});
+  globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId=01234567-89ab-4def-8123-456789abcdef'};
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);else delete globalThis.navigator;globalThis.location=oldLocation;});
+  f.api.downloads={download:async args=>{downloads.push(args);return 91;}};
+  f.api.runtime.sendMessage=async message=>{
+    calls.push(message);
+    if(message.kind==='tool'&&revokeBeforeDelivery){
+      const grants=f.store.get(BROWSER_MENU_GRANTS_STORE);
+      grants[tool.id].cookieAllSites={read:false,grantEpoch:'revoked'};
+    }
+    return message.operation==='browser.intent.confirm'?{ok:true,data:{approvalRef:'exact-intent'}}:
+      {ok:true,data:{authorized}};
+  };
+  const ask=async(operation,payload,id)=>{
+    f.ask(operation,payload,id);
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);
+  };
+  assert.equal((await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'no-gesture')).error.code,'E_USER_GESTURE_REQUIRED');
+  active=true;pauseAdmission=true;
+  const oldClick=ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'begin-regranted');
+  await entered.promise;
+  const changed=structuredClone(f.store.get(BROWSER_MENU_GRANTS_STORE));
+  changed[tool.id].cookieAllSites.grantEpoch='grant-after-regrant';
+  f.store.set(BROWSER_MENU_GRANTS_STORE,changed);
+  f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:changed}});
+  resume.resolve();
+  assert.equal((await oldClick).error.code,'E_DOCUMENT_CHANGED','old click cannot acquire a newly granted epoch');
+  for(const method of ['copy','download']){
+    active=true;
+    assert.equal((await ask('cookieEditor.export.begin',{url:origin+'/',method},'begin-'+method)).result.authorized,true);
+    active=false;
+    const operation=method==='copy'?'browser.clipboard.writeText':'browser.downloads.text';
+    const payload=method==='copy'?{text:'fixture'}:{text:'fixture',filename:'cookies.json'};
+    assert.equal((await ask(operation,payload,method)).ok,true);
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'no additional confirmation');
+    assert.deepEqual(calls.at(-2).targetArgs,payload,'Host approves exact delivery bytes');
+    assert.equal(calls.at(-1).approvalRef,'exact-intent');
+  }
+  assert.equal(copied.length,1);assert.equal(downloads.length,1);
+  active=true;await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'begin-denied');
+  authorized=false;active=false;
+  assert.equal((await ask('browser.clipboard.writeText',{text:'blocked'},'host-denied')).error.code,'E_OWNER');
+  assert.equal(copied.length,1,'unconfirmed Host result must not copy');
+  active=true;await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'begin-revoked');
+  authorized=true;revokeBeforeDelivery=true;active=false;
+  assert.equal((await ask('browser.clipboard.writeText',{text:'revoked'},'revoked-before-sink')).error.code,'E_TOOL_CHANGED');
+  assert.equal(copied.length,1,'fresh storage check stops revocation even before its UI event');
+  f.store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites={read:true,grantEpoch:'grant-2'};
+  revokeBeforeDelivery=false;
+  f.store.delete(MARKET_PROVENANCE_STORE);active=true;
+  assert.equal((await ask('cookieEditor.export.begin',{url:origin+'/',method:'copy'},'changed-provenance')).ok,false);
 });
 
 test('R10 canonical exports need real Side Panel click plus one-use Host authorization',async t=>{

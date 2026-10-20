@@ -135,7 +135,7 @@ test('React development import package agrees with its promoted source config',a
     get('cookie-editor.opendesk-tool.json').then(JSON.parse),
     get('vite.config.mjs')]);
   assert.equal(config.id,'cookie-editor');
-  assert.equal(config.version,'2.0.29');
+  assert.equal(config.version,'2.0.30');
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(config.files,{html:'src/root.html',css:'dist/tool.css',js:'dist/tool.js'});
   for(const field of ['format','id','version','capabilities','requires','contributes'])

@@ -98,13 +98,11 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       return;
     }
     scrubSensitive();
-    const wasBusy=controller.snapshot().busy;
     const hadDirty=dirtyRef.current;
-    controller.invalidate(reason);
+    const uncertain=controller.invalidate(reason);
     cleanEditor();setConfirmation(null);setQuery('');setPage(1);
     if(siteChanged)appliedSite.current='';
-    if(wasBusy)setStatus('网站或权限在操作期间改变，写入结果可能未知。请核对 Chrome，禁止自动重试。');
-    else{
+    if(!uncertain){
       if(hadDirty)setStatus('网站或授权已改变，未保存的 Cookie 草稿已清除；请重新编辑。');
       void controller.load(appliedSite.current);
     }

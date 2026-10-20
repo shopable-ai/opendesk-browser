@@ -35,10 +35,11 @@ function fixture(){
   };
   const browser={cookies,capabilities:{getStatus:async()=>({callableNow:allow,
     reasonCode:allow?undefined:'E_SITE_GRANT_REQUIRED'})},
-    clipboard:{writeText:async text=>calls.push(['copy',text])},
-    downloads:{text:async args=>calls.push(['download',copy(args)])}};
+    clipboard:{writeText:async text=>{calls.push(['copy',text]);return {copied:true};}},
+    downloads:{text:async args=>{calls.push(['download',copy(args)]);return {started:true};}}};
   const adapter=createCookieSdkAdapter({getBrowser:()=>browser,
-    request:async()=>({status:'available',url:site})});
+    request:async operation=>operation==='cookieEditor.export.begin'?{authorized:true,ref:1}:
+      operation==='cookieEditor.export.finish'?{closed:true}:{status:'available',url:site}});
   const snapshots=[];
   const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
   return {browser,cookies,adapter,controller,calls,snapshots,
@@ -239,6 +240,68 @@ test('unknown native write must never automatically retry',async()=>{
   assert.equal(writes,1);
   assert.match(f.controller.snapshot().message,/不要自动重试/);
   f.controller.dispose();
+});
+test('R5.30.3 navigation during list loading cancels the read without an unknown-write warning',async()=>{
+  const f=fixture(),pending=deferred(),started=deferred();
+  const original=f.cookies.getAll;
+  f.cookies.getAll=async()=>{started.resolve();return pending.promise;};
+  const reading=f.controller.load();await started.promise;
+  f.controller.invalidate('当前网站已切换，旧数据已清除。');
+  assert.equal(f.controller.snapshot().messageType,'info');
+  assert.doesNotMatch(f.controller.snapshot().message,/未知|重试/);
+  pending.resolve([base]);await reading;
+  assert.equal(f.controller.snapshot().rows.length,0);
+  f.cookies.getAll=original;await f.controller.load();
+  assert.equal(f.controller.snapshot().phase,'ready');
+  assert.equal(f.calls.some(([name])=>['set','remove','copy','download'].includes(name)),false);
+  f.controller.dispose();
+});
+test('R5.30.3 navigation during save preflight never claims or replays a write',async()=>{
+  const f=fixture();await f.controller.load();
+  const pending=deferred(),started=deferred();
+  f.cookies.getAll=async()=>{started.resolve();return pending.promise;};
+  const saving=f.controller.save({...base,value:'NEW'},{originalId:f.controller.snapshot().rows[0].id});
+  await started.promise;f.controller.invalidate('网站已切换');
+  assert.equal(f.controller.snapshot().messageType,'info');
+  assert.doesNotMatch(f.controller.snapshot().message,/未知|重试/);
+  pending.resolve([base]);assert.equal(await saving,false);
+  assert.equal(f.calls.some(([name])=>name==='set'),false);
+  f.controller.dispose();
+});
+test('R5.30.3 only a dispatched Cookie write retains the unknown-result protection',async()=>{
+  const f=fixture();await f.controller.load();
+  const pending=deferred(),started=deferred();let writes=0;
+  f.cookies.set=async()=>{writes++;started.resolve();return pending.promise;};
+  const saving=f.controller.save({...base,name:'new'});
+  await started.promise;f.controller.invalidate('网站已切换');
+  assert.equal(f.controller.snapshot().messageType,'error');
+  assert.match(f.controller.snapshot().message,/未知.*不要自动重试/);
+  f.controller.invalidate('授权状态再次更新');
+  assert.equal(f.controller.snapshot().messageType,'error');
+  assert.match(f.controller.snapshot().message,/未知.*不要自动重试/);
+  pending.resolve({saved:true,verified:true});assert.equal(await saving,false);
+  assert.equal(writes,1);
+  await f.controller.load();
+  assert.equal(f.controller.snapshot().phase,'ready');
+  assert.equal(f.controller.snapshot().message,'');
+  f.controller.dispose();
+});
+test('R5.30.3 export invalidation distinguishes sensitive reads from a dispatched sink',async()=>{
+  for(const dispatched of [false,true]){
+    const f=fixture();await f.controller.load();
+    const pending=deferred(),started=deferred();let copies=0;
+    if(dispatched)f.browser.clipboard.writeText=async()=>{
+      copies++;started.resolve();return pending.promise;
+    };
+    else f.cookies.getAll=async()=>{started.resolve();return pending.promise;};
+    const exporting=f.controller.exportTo({method:'copy',format:'json',metadata:true});await started.promise;
+    f.controller.invalidate('网站已切换');
+    assert.equal(f.controller.snapshot().messageType,dispatched?'error':'info');
+    pending.resolve(dispatched?{copied:true}:[base]);
+    assert.equal(await exporting,false);
+    assert.equal(copies,dispatched?1:0);
+    f.controller.dispose();
+  }
 });
 test('navigation invalidates stale async reads',async()=>{
   const f=fixture();await f.controller.load();
@@ -514,6 +577,18 @@ test('R5.20 revocation during export prevents both sensitive sinks',async()=>{
   }
 });
 
+test('R5.30.3 unknown copy/download receipts never report success or retry',async()=>{
+  for(const method of ['copy','download']){
+    const f=fixture();await f.controller.load();let calls=0;
+    f.adapter[method]=async()=>{calls++;return undefined;};
+    assert.equal(await f.controller.exportTo({metadata:true,method}),false);
+    assert.equal(calls,1);
+    assert.equal(f.controller.snapshot().messageType,'error');
+    assert.match(f.controller.snapshot().message,/E_OUTCOME_UNKNOWN/);
+    f.controller.dispose();
+  }
+});
+
 test('R5.20 revocation stops an import between native chunks without replay',async()=>{
   const f=fixture();await f.controller.load();
   const source='first=ONE; second=TWO';let writes=0;
@@ -693,7 +768,7 @@ test('R5.20 revocation from a pending value read stops a concurrent save preflig
 test('R5.20 batched revocation receipts retire the epoch and cannot replay an import',async()=>{
   const f=fixture();await f.controller.load();let writes=0;
   f.cookies.setMany=async()=>{
-    writes++;return {results:[{index:0,saved:false,verified:false,code:'E_GRANT_REVOKED'}]};
+    writes++;return {stopped:true,results:[{index:0,saved:false,verified:false,code:'E_GRANT_REVOKED'}]};
   };
   await f.controller.previewImport('fresh=PRIVATE');
   assert.equal(await f.controller.executeImport('fresh=PRIVATE'),false);

@@ -27,19 +27,22 @@ export function createCookieController({adapter,onChange=()=>{}}){
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',
     message='',messageType='info',importPlan=null,clearPlan=null;
   let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
-  let syncStale=false,syncPending=null,syncGeneration=0;
+  let syncStale=false,syncPending=null,syncGeneration=0,effectPending=false;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
     phase,message,messageType,syncStale,importOutcome});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
-    const uncertain=busy;
+    // Reads and write preflights are safe to restart. Only a dispatched native
+    // write or export can have an unknown side effect after invalidation.
+    const uncertain=effectPending;
     retireSync();syncStale=false;
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';importPlan=null;importOutcome=null;
     clearPlan=null;
     report(uncertain?'网站或授权在操作中变化，结果可能未知；请手动核对，不要自动重试。':text,
       uncertain?'error':'info');
+    return uncertain;
   }
   // SDK revocation is authoritative even before the bridge/UI event arrives.
   function rejectLostAccess(error){
@@ -49,10 +52,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   const lock=()=>{if(closed||busy||!target||phase!=='ready')return null;
     retireSync();busy=true;valueRevision++;const at=target,ticket=epoch;notify();return {at,ticket};};
-  const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;notify();}};
+  const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;effectPending=false;notify();}};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
+    // Explicit readback clears a retired effect warning; repeated navigation
+    // events alone must not erase an unconfirmed write/export outcome.
+    effectPending=false;
     retireSync();syncStale=false;
     const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';importPlan=null;importOutcome=null;
     clearPlan=null;busy=true;
@@ -145,6 +151,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
         }
       }
       if(!verifiedRead(guard))return false;
+      effectPending=true;
       const result=await adapter.write(at,updated,{ifAbsent:!old||renamed});
       if(!verifiedRead(guard))return false;
       if(!isVerified(result))throw badReceipt();
@@ -172,6 +179,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     const row=getRow(id);let removed=false;
     try{
       if(!row)throw Error('E_COOKIE_CONFLICT');
+      effectPending=true;
       const receipt=await adapter.remove(guard.at,row);
       if(!verifiedRead(guard))return false;
       if(!isRemoved(receipt))throw badReceipt();
@@ -213,6 +221,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url)
         throw Error('E_COOKIE_CONFLICT');
+      effectPending=true;
       const p=await adapter.clearExecute(guard.at,plan.previewRef,plan.count);
       if(!verifiedRead(guard))return false;
       if(p?.preview!==false||p?.scope!=='EXACT_HOST_HOST_ONLY'||
@@ -232,8 +241,14 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   async function exportTo({format='json',metadata=false,method='download'}={}){
     const guard=lock();if(!guard)return false;
-    let plaintext='',done=false;
+    let plaintext='',done=false,exportRef=null;
     try{
+      if(!['copy','download'].includes(method))throw Error('E_COOKIE_EXPORT');
+      const intent=await adapter.beginExportIntent(guard.at,method);
+      if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
+        throw Object.assign(Error('E_COOKIE_EXPORT'),{code:'E_COOKIE_EXPORT'});
+      exportRef=intent.ref;
+      if(!verifiedRead(guard))return false;
       if(metadata&&format!=='json')throw Error('E_COOKIE_EXPORT');
       const records=await adapter.list(guard.at,{
         includeValues:!metadata,isCurrent:()=>verifiedRead(guard)});
@@ -251,10 +266,13 @@ export function createCookieController({adapter,onChange=()=>{}}){
       }
       if(!bounded(plaintext,150000))throw Error('E_LIMIT');
       const suffix=format==='json'?'json':'txt';
-      if(method==='copy')await adapter.copy(plaintext);
-      else if(method==='download')
-        await adapter.download(plaintext,guard.at.hostname.slice(0,60)+
-          (metadata?'-cookie-metadata.json':'-chrome-cookies.'+suffix));
+      effectPending=true;
+      if(method==='copy'){
+        if((await adapter.copy(plaintext))?.copied!==true)throw badReceipt();
+      }else if(method==='download'){
+        if((await adapter.download(plaintext,guard.at.hostname.slice(0,60)+
+          (metadata?'-cookie-metadata.json':'-chrome-cookies.'+suffix)))?.started!==true)throw badReceipt();
+      }
       else throw Error('E_COOKIE_EXPORT');
       if(!verifiedRead(guard))return false;
       done=true;report(metadata?'已导出 Cookie 元数据（不含值）。':
@@ -264,7 +282,11 @@ export function createCookieController({adapter,onChange=()=>{}}){
       report('导出失败或被拒绝'+formatCode(error,'E_COOKIE_EXPORT')+
         '；检查授权或选择其他格式。','error');
     }
-    }finally{plaintext='';unlock(guard);}
+    }finally{
+      plaintext='';
+      if(exportRef!==null)void adapter.finishExportIntent(exportRef).catch(()=>{});
+      unlock(guard);
+    }
     return done;
   }
   async function previewImport(source,format='auto',overwrite=false,{allSites=false}={}){
@@ -389,6 +411,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
         plan.accepted.map(({cookie,target})=>({target,cookie}));
       for(const chunk of chunks){
         if(!verifiedRead(guard))return false;
+        effectPending=true;
         if(batchSupported){
           const receipt=await adapter.writeMany({url:chunk.url},chunk.cookies);
           if(!verifiedRead(guard))return false;
@@ -490,7 +513,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   function dispose(){
     retireSync();syncStale=false;
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;
-    clearPlan=null;
+    clearPlan=null;effectPending=false;
   }
   // Initial state is available synchronously through snapshot(). Do not
   // dispatch a React setState from within App's first render.

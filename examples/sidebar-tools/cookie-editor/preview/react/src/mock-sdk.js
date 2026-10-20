@@ -106,10 +106,16 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
      const url=URL.createObjectURL(new Blob([args.text],{type:'text/plain'}));
      const link=document.createElement('a');link.href=url;link.download=args.filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     }
-    return {downloadId:1};
+    return {started:true};
    }}},
   request:async(operation,payload)=>{
    if(operation==='currentPage.info')return {status:'available',url:'https://'+currentSite+'/'};
+   if(operation==='cookieEditor.export.begin'){
+    if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
+    if(payload?.url!=='https://'+currentSite+'/'||!['copy','download'].includes(payload.method))throw error('E_COOKIE_SCOPE');
+    return {authorized:true,ref:1};
+   }
+   if(operation==='cookieEditor.export.finish')return {closed:true};
    // Preview-only synthetic admission; no bypass of formal Host grants.
    if(operation==='cookieEditor.import.begin'||operation==='cookieEditor.write.begin'){
     if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');

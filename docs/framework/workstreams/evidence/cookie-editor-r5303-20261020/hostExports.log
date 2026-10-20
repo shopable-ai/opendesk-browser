@@ -1,0 +1,10 @@
+✔ R5.30.3 official export reuses one real click and still requires exact Host approval (223.504166ms)
+✔ R10 canonical exports need real Side Panel click plus one-use Host authorization (82.443958ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 427.577667

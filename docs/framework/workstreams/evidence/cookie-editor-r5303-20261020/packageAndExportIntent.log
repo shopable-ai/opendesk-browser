@@ -1,0 +1,13 @@
+✔ export needs a browser-observed click and permits exactly one chosen sink (0.75825ms)
+✔ site change, expiry, revocation and closing discard an unused export click (0.333834ms)
+✔ canonical packer rejects Cookie source drift before writing a candidate (13.124625ms)
+✔ built React JSX uses one classic chunk and pinned runtime, not bundled React (1.029792ms)
+✔ canonical packer emits the configured React release from current source (1.179875ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61.549375

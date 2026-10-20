@@ -1,0 +1,19 @@
+✔ Cookie React candidate has isolated root and single public SDK pathway (4.039084ms)
+✔ Value remains outside global React state and fixture source (0.811083ms)
+✔ Preview mounts the installed App while shared editor secrets stay in ephemeral DOM (0.813709ms)
+✔ Preview IO presentation is shared without moving native Cookie operations into React (0.7605ms)
+✔ R5.25 file selection never starts a Cookie write or trusted import intent (0.402583ms)
+✔ R5.26 React import requires explicit opt-in before replacing native Cookie identities (0.454333ms)
+✔ advanced Cookie identities use shared-App JSX and remain read-only for existing records (0.612041ms)
+✔ React development import package agrees with its promoted source config (1.250834ms)
+✔ R5.16 Cookie fields never impersonate a username/password form (0.520958ms)
+✔ R5.15 clear Dialog is shared and is a real native modal (0.533667ms)
+✔ R5.30 export stays in the original React workspace, not a native modal (0.364292ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.119667

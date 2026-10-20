@@ -1,0 +1,89 @@
+{
+  "format": "opendesk.cookie-editor.r5303.development.v1",
+  "stage": "development",
+  "tool": {
+    "id": "cookie-editor",
+    "version": "2.0.30",
+    "bytes": 113936,
+    "sha256": "52a78930efae167db0d2482332f9a84e879b19fad81e61bdcbe1fdc653885ac3"
+  },
+  "sourceBuildId": "ab46ab5d2a3e1d320bfffc35ec9b85e8b0d5dd0e6e1ef9abd0a4a5dada403abf",
+  "node": {
+    "controller": {
+      "status": "PASS",
+      "pass": 48,
+      "fail": 0,
+      "log": "artifacts/cookie-r5303-controller.log",
+      "logSha256": "d47c89676010b475cb84b1160b6e134b05371ff0cfe8a127e7c4ab4adacf78fe"
+    },
+    "hostAllSites": {
+      "status": "PASS",
+      "pass": 13,
+      "fail": 0,
+      "log": "artifacts/cookie-r5303-all-sites.log",
+      "logSha256": "411dd0eb16e24643ff9aeef2a3d320c108187a85507a0ad93f0e241ec3282e12"
+    },
+    "hostExports": {
+      "status": "PASS",
+      "pass": 2,
+      "fail": 0,
+      "log": "artifacts/cookie-r5303-host-export.log",
+      "logSha256": "2c4564f1c2d132e4fcb3f2010521b451892dc8b7e94d5adcaea8cf7d0dd6a3ec"
+    },
+    "packageAndExportIntent": {
+      "status": "PASS",
+      "pass": 5,
+      "fail": 0,
+      "log": "artifacts/cookie-r5303-package.log",
+      "logSha256": "f658a03690bdb8ff2ae5d237a4722f48f830d9190cca4c48136fa5113e44a28b"
+    },
+    "reactSource": {
+      "status": "PASS",
+      "pass": 11,
+      "fail": 0,
+      "log": "artifacts/cookie-r5303-source.log",
+      "logSha256": "cff04185bba0b7ee6da48d4adb396970701406429db34abbe3a707d6fd1b33e4"
+    }
+  },
+  "nativeReport": "development-native.json",
+  "productionFinalCandidate": "NOT_TESTED",
+  "personalChromeInstalledUpgrade": "NOT_TESTED",
+  "notes": [
+    "Production 旧候选证据未延用到最终开发修复。",
+    "完整 React 保留；未重做预览、UI 设计、宽度或缩放矩阵。",
+    "原位编辑、复制下载、自动切站均由真实 Mac Chrome 开发入口驱动。"
+  ],
+  "nativeRestartReport": "development-restart.json",
+  "native": {
+    "developmentCore": "PASS",
+    "sameProfileRestart": "PASS",
+    "newConsentClicksAfterRestart": 0,
+    "manualRereadsAfterRestart": 0,
+    "allSitesRevoke": "PASS",
+    "fixtureCleanup": "PASS"
+  },
+  "independentReview": {
+    "role": "read-only reviewer",
+    "scope": "development core and formal tool-package same-ID upgrade",
+    "findingsP0P1": 0,
+    "scores": {
+      "preservedFunctionality": 95,
+      "allSiteConsent": 96,
+      "hostSdkSecurity": 97,
+      "copyDownloadExperience": 98,
+      "exportUiConsistency": 96,
+      "minimalMaintenance": 96,
+      "realChromeCore": 96,
+      "developmentPackageUpgrade": 96
+    },
+    "verifiedDimensions": 8,
+    "totalDimensions": 8,
+    "coveragePercent": 100,
+    "mean": 96.25,
+    "notScored": [
+      "production formal release",
+      "personal Chrome installation"
+    ],
+    "coverageNote": "覆盖本轮八个维度，不代表全部原功能或生产发布验收100%。"
+  }
+}

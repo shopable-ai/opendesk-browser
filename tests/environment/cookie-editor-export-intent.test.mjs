@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createCookieExportIntentGate} from '../../src/ui/sidebar-tools/cookie-export-intent.js';
+const args={owner:'official/package/frame/epoch',origin:'https://example.com',operation:'browser.clipboard.writeText',grantEpoch:'grant-1'};
+test('export needs a browser-observed click and permits exactly one chosen sink',()=>{
+  const gate=createCookieExportIntentGate();
+  assert.throws(()=>gate.start({...args,verifiedUserActivation:false}),{code:'E_USER_GESTURE_REQUIRED'});
+  assert.equal(gate.consume(args),false);
+  gate.start({...args,verifiedUserActivation:true});
+  assert.throws(()=>gate.consume({...args,grantEpoch:'grant-2'}),{code:'E_DOCUMENT_CHANGED'});
+  gate.start({...args,verifiedUserActivation:true});
+  assert.equal(gate.consume({...args,owner:'other-tool'}),false);
+  assert.equal(gate.consume(args),true);
+  assert.equal(gate.consume(args),false);
+  gate.start({...args,verifiedUserActivation:true});
+  assert.throws(()=>gate.consume({...args,operation:'browser.downloads.text'}),{code:'E_DOCUMENT_CHANGED'});
+  assert.equal(gate.consume(args),false);
+});
+test('site change, expiry, revocation and closing discard an unused export click',()=>{
+  let now=0;const gate=createCookieExportIntentGate({now:()=>now});
+  gate.start({...args,verifiedUserActivation:true});
+  assert.throws(()=>gate.consume({...args,origin:'https://other.example'}),{code:'E_DOCUMENT_CHANGED'});
+  gate.start({...args,verifiedUserActivation:true});now=30000;
+  assert.throws(()=>gate.consume(args),{code:'E_DOCUMENT_CHANGED'});
+  const first=gate.start({...args,verifiedUserActivation:true});
+  const second=gate.start({...args,verifiedUserActivation:true});
+  assert.deepEqual(gate.close(args.owner,first.ref),{closed:false});
+  assert.deepEqual(gate.close(args.owner,second.ref),{closed:true});
+  assert.equal(gate.consume(args),false);
+  gate.start({...args,verifiedUserActivation:true});gate.revoke();
+  assert.equal(gate.consume(args),false);
+});

@@ -1,0 +1,536 @@
+{
+  "startedAt": "2026-10-20T12:06:57.527Z",
+  "mode": "development",
+  "stage": "recheck",
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "directory": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527",
+  "targets": [
+    "http://127.0.0.1:43111/demo-form.html",
+    "http://localhost:43111/demo-form.html",
+    "http://cookie-r5303.localhost:43111/demo-form.html"
+  ],
+  "cases": [
+    {
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "developmentConnection": {
+        "text": "开发服务已连接 · 构建指纹 62627a25c253；保存源码后自动安全更新。",
+        "identity": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：62627a25c253da4d1ca796c663a65426ed0f586d6aa0543e67aa2ff31a6d428f。这不证明已打开的网页重新注入了 SDK。"
+      },
+      "name": "actual-entry",
+      "at": "2026-10-20T12:06:58.369Z"
+    },
+    {
+      "before": {
+        "id": "cookie-editor",
+        "version": "2.0.29"
+      },
+      "target": {
+        "id": "cookie-editor",
+        "version": "2.0.30"
+      },
+      "review": "当前 v2.0.29 → 新 v2.0.30",
+      "candidateSHA256": "52a78930efae167db0d2482332f9a84e879b19fad81e61bdcbe1fdc653885ac3",
+      "installedJSSHA256": "726acd718610f331218873b81055a6e0be75ee9707bf879bbd1eae54a2232ea2",
+      "previousJSSHA256": "4f5f3af8ed002d22bbeb89d403c41d78cea3692cbba9508b8db46f82cbd5f8ac",
+      "dataPreserved": true,
+      "dataExisted": false,
+      "dataSHA256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "grantBefore": {
+        "version": "2.0.29",
+        "installEpoch": null,
+        "cookieAllSites": {
+          "clear": true,
+          "grantEpoch": "6ce23aae-01e1-4f12-9b92-85491039f31a",
+          "observe": true,
+          "read": true,
+          "storeId": "0",
+          "values": true,
+          "write": true
+        }
+      },
+      "grantAfter": null,
+      "name": "same-id-development-update",
+      "at": "2026-10-20T12:06:59.074Z"
+    },
+    {
+      "installation": "preinstalled-or-existing",
+      "installed": {
+        "id": "cookie-editor",
+        "version": "2.0.30"
+      },
+      "name": "official-installed-open",
+      "at": "2026-10-20T12:06:59.249Z"
+    },
+    {
+      "side": {
+        "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=5313fdd3-7231-4f71-a658-a01d9b80344b",
+        "buttons": [
+          {
+            "id": "tab-my-tasks",
+            "label": null,
+            "text": "我的",
+            "disabled": false
+          },
+          {
+            "id": "tab-tools",
+            "label": null,
+            "text": "扩展",
+            "disabled": false
+          },
+          {
+            "id": "tab-workflow",
+            "label": null,
+            "text": "工作流",
+            "disabled": false
+          },
+          {
+            "id": "tab-develop",
+            "label": null,
+            "text": "开发",
+            "disabled": false
+          },
+          {
+            "id": "tab-cloud",
+            "label": null,
+            "text": "云控",
+            "disabled": false
+          },
+          {
+            "id": "tab-debug",
+            "label": null,
+            "text": "调试",
+            "disabled": false
+          },
+          {
+            "id": "sidebar-tool-back",
+            "label": "返回自定义工具列表",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "sidebar-tool-open-tab",
+            "label": "在新标签页打开当前工具",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "sidebar-tool-settings-open",
+            "label": "工具设置",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "sidebar-tool-remove",
+            "label": "卸载「Cookie Editor · Cookie 管理」及其本地数据",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "sidebar-tool-cookie-site-toggle",
+            "label": null,
+            "text": "允许管理所有网站 Cookie",
+            "disabled": false
+          },
+          {
+            "id": "sidebar-tool-enable",
+            "label": "停用工具",
+            "text": "停用工具",
+            "disabled": false
+          }
+        ],
+        "frames": [
+          {
+            "src": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidebar-tools/sandbox.html"
+          }
+        ],
+        "dialogs": [],
+        "alerts": []
+      },
+      "name": "before-first-grant",
+      "at": "2026-10-20T12:06:59.253Z"
+    },
+    {
+      "record": {
+        "version": "2.0.30",
+        "installEpoch": null,
+        "cookieAllSites": {
+          "clear": true,
+          "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+          "observe": true,
+          "read": true,
+          "storeId": "0",
+          "values": true,
+          "write": true
+        }
+      },
+      "permissions": {
+        "origins": [
+          "<all_urls>",
+          "http://*/*",
+          "https://*/*"
+        ],
+        "permissions": [
+          "activeTab",
+          "alarms",
+          "cookies",
+          "downloads",
+          "notifications",
+          "proxy",
+          "storage",
+          "tabs",
+          "unlimitedStorage",
+          "webNavigation",
+          "scripting",
+          "declarativeNetRequestWithHostAccess",
+          "offscreen",
+          "sidePanel",
+          "userScripts"
+        ]
+      },
+      "name": "all-sites-grant",
+      "at": "2026-10-20T12:06:59.571Z"
+    },
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "sameDomain": false,
+      "manualRereads": 0,
+      "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+      "transitions": [
+        {
+          "at": "2026-10-20T12:06:59.770Z",
+          "retry": false,
+          "canCreate": false,
+          "alerts": [
+            "正在读取 Cookie…"
+          ]
+        },
+        {
+          "at": "2026-10-20T12:06:59.922Z",
+          "site": "127.0.0.1",
+          "retry": false,
+          "canCreate": true,
+          "alerts": []
+        }
+      ],
+      "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527/automatic-list-0.png",
+      "name": "automatic-list-site",
+      "at": "2026-10-20T12:07:01.195Z"
+    },
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "sameDomain": true,
+      "manualRereads": 0,
+      "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+      "transitions": [
+        {
+          "at": "2026-10-20T12:07:01.398Z",
+          "retry": false,
+          "canCreate": false,
+          "alerts": [
+            "正在读取 Cookie…"
+          ]
+        },
+        {
+          "at": "2026-10-20T12:07:01.550Z",
+          "site": "127.0.0.1",
+          "retry": false,
+          "canCreate": true,
+          "alerts": []
+        }
+      ],
+      "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527/automatic-list-1.png",
+      "name": "automatic-list-site",
+      "at": "2026-10-20T12:07:02.805Z"
+    },
+    {
+      "url": "http://localhost:43111/demo-form.html",
+      "sameDomain": false,
+      "manualRereads": 0,
+      "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+      "transitions": [
+        {
+          "at": "2026-10-20T12:07:03.018Z",
+          "retry": false,
+          "canCreate": false,
+          "alerts": [
+            "正在读取 Cookie…"
+          ]
+        },
+        {
+          "at": "2026-10-20T12:07:03.170Z",
+          "site": "localhost",
+          "retry": false,
+          "canCreate": true,
+          "alerts": []
+        }
+      ],
+      "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527/automatic-list-2.png",
+      "name": "automatic-list-site",
+      "at": "2026-10-20T12:07:04.427Z"
+    },
+    {
+      "url": "http://cookie-r5303.localhost:43111/demo-form.html",
+      "sameDomain": false,
+      "manualRereads": 0,
+      "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+      "transitions": [
+        {
+          "at": "2026-10-20T12:07:04.634Z",
+          "retry": false,
+          "canCreate": false,
+          "alerts": [
+            "正在读取 Cookie…"
+          ]
+        },
+        {
+          "at": "2026-10-20T12:07:04.785Z",
+          "site": "cookie-r5303.localhost",
+          "retry": false,
+          "canCreate": true,
+          "alerts": []
+        }
+      ],
+      "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527/automatic-list-3.png",
+      "name": "automatic-list-site",
+      "at": "2026-10-20T12:07:06.061Z"
+    },
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "sameDomain": false,
+      "manualRereads": 0,
+      "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+      "transitions": [
+        {
+          "at": "2026-10-20T12:07:06.266Z",
+          "retry": false,
+          "canCreate": false,
+          "alerts": [
+            "正在读取 Cookie…"
+          ]
+        },
+        {
+          "at": "2026-10-20T12:07:06.417Z",
+          "site": "127.0.0.1",
+          "retry": false,
+          "canCreate": true,
+          "alerts": []
+        }
+      ],
+      "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527/automatic-list-4.png",
+      "name": "automatic-list-site",
+      "at": "2026-10-20T12:07:07.685Z"
+    },
+    {
+      "origins": [
+        "http://127.0.0.1:43111/demo-form.html",
+        "http://localhost:43111/demo-form.html",
+        "http://cookie-r5303.localhost:43111/demo-form.html"
+      ],
+      "includesSameDomain": true,
+      "manualRereads": 0,
+      "grantEpoch": "14edae8f-79e6-43ec-b837-da97e4c8eec3",
+      "name": "automatic-site-lists",
+      "at": "2026-10-20T12:07:07.686Z"
+    },
+    {
+      "hostname": "127.0.0.1",
+      "name": "new-save-readback",
+      "cookieName": "od_r5303_0",
+      "at": "2026-10-20T12:07:08.527Z"
+    },
+    {
+      "hostname": "127.0.0.1",
+      "cookieName": "od_r5303_0",
+      "name": "edit-save-readback",
+      "at": "2026-10-20T12:07:09.637Z"
+    },
+    {
+      "hostname": "127.0.0.1",
+      "cookieName": "od_r5303_0",
+      "name": "edit-reopen-readback",
+      "at": "2026-10-20T12:07:10.100Z"
+    },
+    {
+      "site": "http://127.0.0.1:43111",
+      "hostname": "127.0.0.1",
+      "name": "site-create-edit-readback",
+      "valueSha256": "ed06ba9cd29a421ac3b0dc9548f3a410a987b47ec5925a5320b2750ff6ef2b70",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "storeId": "0",
+      "cookieName": "od_r5303_0",
+      "at": "2026-10-20T12:07:10.256Z"
+    },
+    {
+      "context": {
+        "sessionId": "9C7783B553862DA2CCD45358BE712B5A",
+        "contextId": 1,
+        "frameId": "A2E2F24932170D08FC39F6014057EA08"
+      },
+      "visibleToolDialogs": 0,
+      "additionalPages": [],
+      "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792498017527/export-inline-workspace.png",
+      "name": "export-inline-workspace",
+      "at": "2026-10-20T12:07:10.516Z"
+    },
+    {
+      "bytes": 299,
+      "sha256": "740ae859d4dae2d24e68b652a4c065d1e501f2c61b87ae344606176fd4ead87b",
+      "name": "single-click-copy",
+      "at": "2026-10-20T12:07:10.849Z"
+    },
+    {
+      "guid": "a3bd3727-ecfa-418c-8b88-72651f0baca3",
+      "bytes": 299,
+      "sha256": "740ae859d4dae2d24e68b652a4c065d1e501f2c61b87ae344606176fd4ead87b",
+      "name": "single-click-download",
+      "at": "2026-10-20T12:07:11.317Z"
+    },
+    {
+      "record": {
+        "version": "2.0.30",
+        "installEpoch": null,
+        "cookieAllSites": {
+          "clear": false,
+          "grantEpoch": "c499a4a5-4117-4972-b953-28dda9fe10fa",
+          "observe": false,
+          "read": false,
+          "storeId": "0",
+          "values": false,
+          "write": false
+        },
+        "cookieSites": {}
+      },
+      "name": "all-sites-revoke",
+      "at": "2026-10-20T12:07:11.983Z"
+    }
+  ],
+  "results": {
+    "actual-entry": "PASS",
+    "same-id-development-update": "PASS",
+    "official-installed-open": "PASS",
+    "all-sites-grant": "PASS",
+    "automatic-site-lists": "PASS",
+    "edit-save-readback": "PASS",
+    "export-inline-workspace": "PASS",
+    "single-click-copy": "PASS",
+    "single-click-download": "PASS",
+    "all-sites-revoke": "PASS"
+  },
+  "complete": true,
+  "fixtureServer": {
+    "owned": false,
+    "url": "http://127.0.0.1:43111/demo-form.html"
+  },
+  "sourceHead": "a440aa017ce8811fd6fb9cf5b7c50c14e7f929eb",
+  "manifestSha256": "3bca7b7ed9eec1c02539e873fee7abe6601212f271a171c8656bca47c9ac0635",
+  "release": {
+    "version": "2.0.30",
+    "sha256": "52a78930efae167db0d2482332f9a84e879b19fad81e61bdcbe1fdc653885ac3"
+  },
+  "developmentRevision": "62627a25c253da4d1ca796c663a65426ed0f586d6aa0543e67aa2ff31a6d428f",
+  "watcherProcesses": [
+    "87007 86987 node scripts/dev.mjs"
+  ],
+  "reusedOwnedBrowser": {
+    "report": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792497442814/report.json",
+    "pid": 36388,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm"
+  },
+  "launch": {
+    "pid": 36388,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm/chrome.log",
+    "launcherPid": 36387,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792497442814/launcher-cookie-r5303.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "actualMainProcess": "36388 36387 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm",
+      "birthtimeMs": 1792497442992.1008,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:52022/devtools/browser/14aeb3d5-d067-491e-8d63-6deef7089664",
+    "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "25f28cfc8dae6963f5d4075aa2dc41fdf5fadbf10f8a0b393dee635a9ec44a54",
+    "actualLauncherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/cookie-editor-r5303/native-1792497442814/launcher-cookie-r5303.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "about:blank"
+    ]
+  },
+  "browserVersion": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "cdpEndpoint": "ws://127.0.0.1:52022/devtools/browser/14aeb3d5-d067-491e-8d63-6deef7089664",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "sidePanel": {
+    "contextId": "2d723907-2137-49a4-8935-2f0953157cfc",
+    "contextType": "SIDE_PANEL",
+    "documentId": "2246602AB3D47628CDDA127F149D7B4F",
+    "documentOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "documentUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=5313fdd3-7231-4f71-a658-a01d9b80344b",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "developmentConnection": {
+    "text": "开发服务已连接 · 构建指纹 62627a25c253；保存源码后自动安全更新。",
+    "identity": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：62627a25c253da4d1ca796c663a65426ed0f586d6aa0543e67aa2ff31a6d428f。这不证明已打开的网页重新注入了 SDK。"
+  },
+  "reactFrame": {
+    "sessionId": "9C7783B553862DA2CCD45358BE712B5A",
+    "contextId": 1,
+    "frameId": "A2E2F24932170D08FC39F6014057EA08"
+  },
+  "restart": {
+    "status": "NOT_TESTED",
+    "reason": "Prioritized updated development UI; original owned browser is retained"
+  },
+  "retainedOwnedBrowser": {
+    "pid": 36388,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-u8fm6vsm",
+    "endpoint": "ws://127.0.0.1:52022/devtools/browser/14aeb3d5-d067-491e-8d63-6deef7089664"
+  },
+  "finishedAt": "2026-10-20T12:07:27.106Z"
+}
