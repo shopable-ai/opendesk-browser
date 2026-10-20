@@ -397,6 +397,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   function resetReview() {
     pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;
     patchToolField(view, pageInstallStatus, {textContent: ''});patchToolField(view, pageInstallStatus, {hidden: true});
+    setToolFieldAttribute(view, pageInstallStatus, 'data-state', null);
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', null);setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', null);
     patchToolField(view, pageInstallReceipt, {hidden: true});patchToolField(view, pageInstallReceipt, {open: false});patchToolField(view, pageInstallReceiptText, {textContent: ''});
     patchToolField(view, preview, {hidden: true});patchToolField(view, updatePanel, {hidden: true});patchToolField(view, installButton, {disabled: true});
@@ -2453,7 +2454,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         expectedInstalledManifestHash:installed?.manifestHash??null,
         expectedGeneration:installed?.authorization?.generation??null});
       if(disposed||selection!==fileSelection)return;
+      // The native receipt alone is not a durable list entry. Never call the
+      // import authority again to resolve a missing/late registry readback.
+      const observed=await foundationClient.request('listPagePrograms',{});
+      if(disposed||selection!==fileSelection)return;
+      const recorded=observed?.installed?.find(row=>row.programId===pkg.programId);
+      if(!recorded||recorded.revision!==pkg.revision||recorded.sourceHash!==pkg.sourceHash||
+         recorded.manifestHash!==result?.manifestHash||
+         recorded.authorization?.installationId!==result?.authorization?.installationId||
+         recorded.nativeState!==result?.nativeState||recorded.enabled!==result?.enabled||
+         recorded.authorization?.status!==result?.authorization?.status)
+        throw Object.assign(new Error('安装回执尚未从已安装列表读回；请核对状态，系统不会自动重试。'),
+          {code:'E_PAGE_INSTALL_READBACK'});
       showPageInstallReceipt(pkg,result);
+      setImportOpen(false);
+      notice((installed?'已更新':'已安装')+'网页增强「'+pkg.title+'」v'+pkg.version+
+        (recorded.enabled?'；打开或刷新目标网页即可使用。':'；原有停用状态已保留。'));
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       // A stored readback alone cannot prove that this request registered in Chrome.
@@ -2467,10 +2483,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(result&&result.revision===pkg.revision&&result.sourceHash===pkg.sourceHash)
           readback=' 已查询到原安装 r'+result.revision+'（'+result.nativeState+'）；仍需核对本次安装结果。';
       }catch{/* Preserve the original failure; no mutation replay. */}
-      setToolFieldAttribute(view, pageInstallStatus, 'data-state', 'pending-review');
+      const permissionDenied=!installationRequested&&error?.code==='E_PERMISSION';
+      setToolFieldAttribute(view, pageInstallStatus, 'data-state', permissionDenied?'permission-denied':'pending-review');
       patchToolField(view, pageInstallStatus, {textContent: (error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
-        readback+' 请核对扩展中的安装状态；未自动重试安装。'});
-      patchToolField(view, installButton, {textContent: '需要核对'});
+        (permissionDenied?' 可再次点击确认或重新选择文件；尚未开始安装。':
+          readback+' 请核对扩展中的安装状态；未自动重试安装。')});
+      patchToolField(view, installButton, {textContent: permissionDenied?'重新确认安装':'需要核对',
+        disabled: !permissionDenied});
     }finally{
       busy=false;
       if(!disposed){patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});}
@@ -2551,7 +2570,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         await loadInstalled();return;
       }
       if(accepted)clearImport(); // A consumed approval cannot survive a failed list refresh.
-      throw error;
+      // Keep the reviewed candidate visible and report ordinary installer/probe
+      // failures inside the sheet instead of below the long extension list.
+      setFileError((error?.code||'E_TOOL_INSTALL')+'：'+String(error?.message||error));
+      return;
     }finally{
       busy=false;patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});
       patchToolField(view, installButton, {disabled: !canCommitReview()});render();
