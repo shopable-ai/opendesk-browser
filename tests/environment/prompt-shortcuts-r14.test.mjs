@@ -16,7 +16,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-too
 const ROOT='examples/sidebar-tools/prompt-shortcuts';
 async function model(){
   const source=await readFile(ROOT+'/trusted/model.js','utf8'),sandbox={
-    Intl,TextEncoder,crypto:webcrypto
+    URL,Intl,TextEncoder,crypto:webcrypto
   };
   runInNewContext(source,sandbox);
   return sandbox.OpenDeskPromptShortcutsModel;
