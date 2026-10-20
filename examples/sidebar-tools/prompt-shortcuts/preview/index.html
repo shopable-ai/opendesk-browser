@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R3.0</title>
+<title>OpenDesk Browser · 提示词快捷按钮｜Side Panel 交互预览 R3.1</title>
 <meta name="description" content="OpenDesk Prompt Shortcuts 独立侧边栏交互原型。仅模拟、不安装、无真实权限请求。">
 <style>
 /* Offline design contract: semantic values mirror src/ui/design-tokens.css (blob 134dd7871da4bf0ee26b6d0135e69e7273fdabdb).
@@ -375,18 +375,22 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 }
 
 /* R3.0 image appearance: the existing complete preview remains intact. */
-.page-rail{width:66px;max-height:296px}
-.page-shortcut.has-image{width:56px;height:44px;padding:0;overflow:hidden;border-radius:10px}
+.page-rail{--ps-image-width:68px;--ps-image-height:48px;width:82px;max-height:min(340px,calc(100% - 16px))}
+.page-rail[data-image-size="compact"]{--ps-image-width:48px;--ps-image-height:40px;width:62px}
+.page-rail[data-image-size="standard"]{--ps-image-width:56px;--ps-image-height:44px;width:70px}
+.page-shortcut.has-image{width:var(--ps-image-width);height:var(--ps-image-height);padding:0;overflow:hidden;border-radius:10px}
 .page-shortcut.has-image:hover{border-color:var(--od-focus)}
 .page-shortcut .ps-picture,.prompt-icon .ps-picture,.preview-picture .ps-picture{
  display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
-.web-tip{left:85px;width:min(335px,calc(100% - 100px))}
+.web-tip{left:100px;width:min(335px,calc(100% - 112px))}
 .prompt-icon.has-image{width:48px;height:38px;min-width:48px;min-height:38px;overflow:hidden;padding:0;border-radius:9px}
 .appearance-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--od-bg);padding:3px;border-radius:9px;border:1px solid var(--od-line)}
 .appearance-switch label{position:relative;display:grid;place-items:center;min-height:32px;font-size:12px;font-weight:650;cursor:pointer;border-radius:7px}
 .appearance-switch label:has(input:checked){background:var(--od-paper);box-shadow:0 1px 4px #08172c1c;color:var(--od-brand)}
 .appearance-switch input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .appearance-switch label:has(input:focus-visible){outline:3px solid var(--od-focus);outline-offset:1px}
+.image-size-setting{display:grid;gap:5px;min-width:0}
+.image-size-setting select{width:auto;max-width:145px;min-width:108px;min-height:36px}
 .ps-image-fields{display:grid;gap:5px;border-top:1px solid var(--od-line)}
 .ps-image-fields[hidden]{display:none!important}
 .ps-image-preview-line{display:flex;align-items:center;gap:11px;padding:7px 0}
@@ -420,7 +424,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 <header class="demo-header">
  <div class="demo-title"><span class="logo" aria-hidden="true">OD</span><div>
   <h1>Prompt Shortcuts · Side Panel UI</h1>
-  <p>交互预览 R3.0 · 圆角矩形图片按钮 · 原功能保留</p></div></div>
+  <p>交互预览 R3.1 · 默认大图 · 3 档尺寸可调 · 原功能保留</p></div></div>
  <div class="demo-controls" aria-label="预览控制">
   <span class="design-badge">模拟预览 · 非真实安装</span>
   <a id="brandAdLabLink" class="od-button od-button--small" href="./brand-ad-lab-r213.html" title="打开 R2.13 四种 ChatGPT 对话状态与双广告区域高保真设计预览（仅 HTML 模拟）">R2.13 广告视觉预览 ↗</a>
@@ -550,6 +554,7 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
    <section id="settingsView" hidden aria-labelledby="hostToolTitle" class="host-settings">
     <label class="host-setting-row od-surface"><span><strong>启用工具</strong><small>停用后提示词仍保留</small></span><span class="switch"><input id="toolEnabledSwitch" type="checkbox" role="switch" checked aria-label="启用工具"><span class="switch-track" aria-hidden="true"></span></span></label>
     <label class="host-setting-row od-surface"><span><strong>网页快捷按钮</strong><small>在已支持的网站显示快捷按钮</small></span><span class="switch"><input id="showBarSwitch" type="checkbox" role="switch" checked aria-label="网页快捷按钮"><span class="switch-track" aria-hidden="true"></span></span></label>
+     <div class="host-setting-row od-surface image-size-setting"><label for="imageSizeSetting"><strong>图片按钮大小</strong><small>全局应用；不影响文字快捷按钮</small></label><select id="imageSizeSetting" class="od-field" aria-label="图片按钮大小"><option value="compact">紧凑 · 48×40</option><option value="standard">标准 · 56×44</option><option value="large" selected>大图 · 68×48</option></select></div>
     <label class="host-setting-row od-surface"><span><strong>选中文字快速添加</strong><small>Chrome 原生右键，可选</small></span><span class="switch"><input id="contextSwitch" type="checkbox" role="switch" aria-label="选中文字快速添加"><span class="switch-track" aria-hidden="true"></span></span></label>
     <div class="host-setting-row host-site-row"><span><strong>适用网站</strong><small>ChatGPT 内置 · 自定义网站可配置</small></span><button id="sitesButton" class="od-icon-button od-icon-button--quiet" type="button" title="展开适用网站" aria-label="展开适用网站" aria-expanded="false" aria-controls="siteDetails"><svg class="od-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ps-icon-chevron-right"/></svg></button></div>
     <div class="site-current"><div class="site-current-copy"><strong id="currentSiteStatus">ChatGPT · 模拟就绪</strong><small id="currentSiteOrigin">https://chatgpt.com/c/demo</small></div><button id="configureCurrentSite" class="od-button od-button--small" type="button">配置当前网站</button></div>
