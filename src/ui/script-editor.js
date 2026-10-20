@@ -2,6 +2,7 @@ import {patchDeveloperField,developerAction} from './develop-view.js';
 import {createControllerRevisionView} from './controller-revision-view.js';
 import {createRunArtifactDownload} from './run-artifact-download.js';
 import {createControllerResultsView} from './controller-results-view.js';
+import {createControllerDraftRun,controllerESMInput} from './controller-draft-run.js';
 import {createRunHost} from '../run-host.js';
 import {permissionPattern} from '../environment.js';
 import {invariant, digestUtf8} from '../platform/protocol.js';
@@ -10,8 +11,6 @@ import {createPageDependencyReview} from './page-dependency-review.js';
 import {createPageDependencyInstaller} from './page-dependency-install.js';
 import {validatePageCandidateAuthoring} from './page-candidate-source.js';
 import {createPageCandidateActions} from './page-candidate-actions.js';
-import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
-import {parseControllerClassicDependencies} from '../scripting/user-scripts/controller-classic.js';
 import {createProgramSourceView} from './program-source.js';
 import {createPageComponentRemote} from './page-component-remote.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
@@ -67,7 +66,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
   }
   let componentMode='javascript',javascriptWorld='controller',loadedPageSource=false,browserManagedPreview=null;
-  let componentRemote,browserPreparing=false,browserPrepareGeneration=0;
+  let componentRemote,controllerRunner,browserPreparing=false,browserPrepareGeneration=0;
   let browserUnknownTarget=null;
   function quarantineBrowserEffect(target){
     // Effect-unknown is bound to the document where dispatch may have reached
@@ -110,7 +109,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     sourceInput();
   }});
   const controllerRevisions=createControllerRevisionView({host,client,view,programSource,
-    prepareESM:prepareControllerESM,getGeneration:()=>browserPrepareGeneration,onUpdate:update,onStatus:display,
+    prepareESM:(...args)=>controllerRunner.prepareESM(...args),getGeneration:()=>browserPrepareGeneration,onUpdate:update,onStatus:display,
     onLoad:source=>{
       loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();
       lastPagePreview=null;componentMessage('idle','');
@@ -118,7 +117,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }});
   const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
   const controllerResults=createControllerResultsView({host,view,resultDownloads,
-    isDisposed:()=>disposed,isRunning:()=>running,getOwnedRunId:()=>ownedDraftRunId,
+    isDisposed:()=>disposed,isRunning:()=>running,getOwnedRunId:()=>controllerRunner?.ownedRunId||ownedDraftRunId,
     isLocalPageResultCurrent:localPageResultIsCurrent,onUpdate:update,onStatus:display,
     setResultText,setResultKind,displayCopyResult,
     showRecovery:showUserScriptsRecovery,hideRecovery:hideUserScriptsRecovery});
@@ -267,8 +266,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
       (componentMode==='javascript'?(dependencyResolver?.busy||
         (dependencyResolver?.sourceFormat?!dependencyReview?.readyForRun:!dependencyInstaller?.readyForRun)):!componentRemote?.readyForRun);
     else runDisabled||=!source.trim()||(browserCompilerEnabled&&hasUnbuiltESM(source)&&!componentRemote?.readyForRun)||!controllerClassic.readyForRun();
-    const preparing=browserPreparing||controllerRevisions.preparing||componentRemote?.busy;
-    const stopDisabled = stopping || !preparing&&!canStopManaged()&&(!ownedDraftRunId || host.currentRun !== ownedDraftRunId);
+    const preparing=browserPreparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy;
+    const stopDisabled = stopping || !preparing&&!canStopManaged()&&
+      (!ownedDraftRunId || host.currentRun !== ownedDraftRunId)&&
+      (!controllerRunner?.ownedRunId || host.currentRun !== controllerRunner.ownedRunId);
     const stopLabel=preparing?'取消准备':canStopManaged()?'停止受管 UI':'停止';
     if(componentSelector)patchDeveloperField(view,componentSelector,{disabled:frameworkBusy()});
     if(componentStatus)patchDeveloperField(view,componentStatus,{hidden:componentMode==='javascript'&&!componentStatus.textContent});
@@ -319,118 +320,16 @@ export function createScriptEditor({client, currentPageTarget, development=false
       windowId:next?.windowId??null,reason:next?.reason||'E_TARGET'},null,2)});
     update();
   }
-  function captureCurrentPage(){
-    if(!currentPageTarget)throw {code:'E_TARGET',message:'当前网页服务不可用'};
-    // Preserve the single exact-document CurrentPageTarget handoff to the existing RunHost.
-    const candidate=currentPageTarget.capture();
-    return {target:{mode:'borrowed',tabId:candidate.tabId,frameId:0,
-      documentId:candidate.documentId,expectedUrl:candidate.url,expectedWindowId:candidate.windowId},
-      url:candidate.url,candidate};
-  }
-  function controllerESMInput(source,id){
-    return {componentSource:source,framework:'controller',programId:id};
-  }
-  async function prepareControllerESM(source,id,check){
-    if(!browserCompilerEnabled)
-      throw {code:'E_ESM_BUILD_REQUIRED',message:'Standard Edition 不包含浏览器编译器；请使用本地 ESM 项目构建，或安装 Developer Edition。'};
-    const input=controllerESMInput(source,id);
-    try{
-      const remoteSnapshot=await componentRemote.autoLoadForRun(input,check);check();
-      const built=await browserPreparer.prepare({...input,projectId:'browser-controller',remoteSnapshot});check();
-      if(built.authoringSourceHash!==await digestUtf8(source)||built.framework!=='controller')
-        throw {code:'E_CONTROLLER_ESM_HASH',message:'编译产物未绑定当前 Controller 源码'};
-      return {built,lockId:remoteSnapshot?.lockId??null};
-    }finally{componentRemote.resumeRunPermissionWarm();}
-
-  }
-  function start(event) {
-    if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
+  function start(event){
+    // Leave the original trusted click intact: each execution owner requests
+    // Chrome permission synchronously before the first await.
+    if(!event?.isTrusted||disposed||stopping||running||previewBusy||editingBusy||host.currentRun)return;
     if(localProject?.active()){startLocal(event);return;}
     if(isComponentDraft()||isPageDraft()){
-      if(!controllerResults.projection?.slotAvailable)return;
-      pagePreviewFlow.run(event);return;
+      if(controllerResults.projection?.slotAvailable)pagePreviewFlow.run(event);
+      return;
     }
-    let chosen, params, permission, sourceUtf8,esm,classic;
-    const runKind=programSource.kind();
-    try {
-      // Freeze exact editor bytes, params and target inside the trusted click
-      // before any asynchronous permission check or other work.
-      chosen = captureCurrentPage(); params = JSON.parse(find('script-params').value);
-      sourceUtf8 = programSource.source();
-      if (programSource.kind() === 'page-userscript') throw {code:'E_PROGRAM_KIND',message:'这是网页 JavaScript 项目，请使用“在当前网页试运行”'};
-      if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
-      if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
-        message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
-      // Browser Controller always uses the pinned Controller ESM graph/linker.
-      // The Page leaf-ESM resolver has a different world and is not a fallback.
-      esm=hasUnbuiltESM(sourceUtf8);
-      classic=parseControllerClassicDependencies(sourceUtf8).length>0;
-      if(esm&&classic)throw {code:'E_CONTROLLER_CLASSIC_FORMAT',message:'Controller 不能同时使用 ESM import 与 Classic 声明'};
-      permission=Promise.all([
-        requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
-          ...(find('script-allow-cookies').checked?{permissions:['cookies']}:{} )}}),
-        esm&&browserCompilerEnabled?
-          componentRemote.confirmRun(event,controllerESMInput(sourceUtf8,scriptId())):Promise.resolve(true),
-        classic?controllerClassic.confirmRun(event,sourceUtf8):Promise.resolve(true)
-      ]);
-    } catch (error) { fail(error); return; }
-    hideUserScriptsRecovery();
-    let startError, admittedRunId;
-    const id=scriptId(),ticket=++browserPrepareGeneration;
-    ownedDraftRunId=null;running=true;browserPreparing=esm||classic;controllerResults.renderTask(null);update();beginResult();
-    display('checking',esm?'正在校验固定 ESM 依赖并编译 Controller 源码…':
-      classic?'正在从 SHA 缓存准备固定 Controller Classic 库…':`正在检查访问权限并验证网页：${chosen.url}`);
-    (async () => {
-      await permission;
-      if (disposed) throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，未启动任务'};
-      await currentPageTarget.revalidate(chosen.candidate);
-      // Preserve the original trusted-click author snapshot while compiling.
-      // Authority still receives the exact `sourceUtf8` that will execute, via
-      // the same draft admission, immutable revision hash and original RunHost.
-      const authorSourceUtf8=sourceUtf8;
-      if(esm){
-        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||
-          programSource.source()!==authorSourceUtf8||scriptId()!==id||
-          programSource.kind()!==runKind||componentMode!=='javascript'||
-          localProject?.active())
-          throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
-        const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
-        sourceUtf8=controllerRevisions.savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);
-        browserPreparing=false;update();
-      }else if(classic){
-        const check=()=>{if(disposed||ticket!==browserPrepareGeneration||programSource.source()!==authorSourceUtf8||scriptId()!==id)
-          throw {code:'E_CONTROLLER_CLASSIC_STALE',message:'源码已变化或准备已取消，不启动过期 Classic'};};
-        const prepared=await client.request('prepareControllerClassicDependencies',{
-          programId:id,sourceUtf8:authorSourceUtf8,explicitUserAction:true,allowDownload:true});check();
-        if(prepared.world!=='CONTROLLER'||prepared.programId!==id||
-          prepared.authorSourceHash!==await digestUtf8(authorSourceUtf8)||
-          !/^controller-classic-[a-f0-9]{64}$/.test(prepared.lockId))
-          throw {code:'E_CONTROLLER_CLASSIC_LOCK',message:'固定 Classic 版本或技术锁无效'};
-        sourceUtf8=controllerRevisions.savedControllerSource(authorSourceUtf8,prepared.sourceUtf8);
-        browserPreparing=false;update();
-      }
-      const claim = await host.start({source:{kind:'draft',sourceUtf8},
-        params, target:chosen.target, deadlineAt:Date.now() + 30000});
-      admittedRunId = claim.runId;
-      ownedDraftRunId = claim.runId;
-      if (disposed) return;
-      patchDeveloperField(view,find('script-run-id'),{value:claim.runId});
-      controllerResults.renderTask(claim);
-      display('running', '已接受冻结草稿；等待脚本结束及持久结果');
-      update();
-      const result = await host.completion;
-      if (result.error) throw result.error;
-    })().catch(error => {startError=error;admittedRunId ||= error.runId;fail(error);}).finally(async () => {
-      running = false;browserPreparing=false;
-      if (disposed) return;
-      if (admittedRunId) patchDeveloperField(view,find('script-run-id'),{value:admittedRunId});
-      // Observe all durable history; association comes from the admitted run,
-      // never from an editable runId or the editor's current revision.
-      try {await controllerResults.read('');}
-      catch (error) {controllerResults.clearProjection();display('unknown',`后台状态待确认：${error.code || 'E_EFFECT_UNKNOWN'}`);}
-      if (startError) fail(startError);
-      update();
-    });
+    controllerRunner.run(event);
   }
   function startLocal(event){
     if(!event.isTrusted||!localAdapter||!controllerResults.projection?.slotAvailable||!localProject.canAttemptRun()||currentPageState?.status!=='available')return;
@@ -601,6 +500,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
         {componentSource:source,framework:localProject?.active()||programSource.snapshot()?'javascript':componentMode};
     },
     isBlocked:()=>editingBusy||previewBusy||running||stopping||!!host.currentRun,onState:update});
+  controllerRunner=createControllerDraftRun({api,host,currentPageTarget,programSource,view,
+    componentRemote,browserPreparer,controllerClassic,controllerResults,
+    getRevisions:()=>controllerRevisions,browserCompilerEnabled,
+    isDisposed:()=>disposed,isBlocked:()=>stopping||previewBusy||editingBusy||!!localProject?.active(),
+    isControllerDraft:()=>componentMode==='javascript'&&!isPageDraft()&&!localProject?.active(),
+    getRunning:()=>running,setRunning:value=>{running=value;},
+    isStopping:()=>stopping,setStopping:value=>{stopping=value;update();},
+    display,fail,hideUserScriptsRecovery,beginResult,update});
   const pageLibrary=createPageProgramLibrary({client,currentPageTarget,api,document:doc,view,onLoad:async row=>{
     const loadBlocked=()=>editingBusy||running||previewBusy||stopping||host.currentRun||
       browserManagedPreview||!!browserUnknownTarget||localProject?.active()||programSource.snapshot();
@@ -719,7 +626,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   const javascriptWorldSelect=find('script-javascript-world');
   function sourceInput(){
-    browserPreparer.cancel();browserPrepareGeneration++;
+    browserPreparer.cancel();browserPrepareGeneration++;controllerRunner?.invalidate();
     const local=!!localProject?.active(),page=!local&&componentMode==='javascript'&&isPageDraft();
     const remote=!local&&!page&&(componentMode!=='javascript'||hasUnbuiltESM(programSource.source()));
     if(page){dependencyResolver.refresh({sourceFormat:'esm-page'});dependencyInstaller.refresh();}
@@ -776,8 +683,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     });
   });
   async function stop(){
-    if(browserPreparing||controllerRevisions.preparing||componentRemote?.busy){
-      browserPrepareGeneration++;browserPreparing=false;browserPreparer.cancel();componentRemote.cancel();
+    if(browserPreparing||controllerRunner?.preparing||controllerRevisions.preparing||componentRemote?.busy){
+      browserPrepareGeneration++;browserPreparing=false;controllerRunner?.invalidate();browserPreparer.cancel();componentRemote.cancel();
       componentMessage('completed','已取消本次准备；迟到结果不会运行。');update();return;
     }
     if(browserManagedPreview&&canStopManaged()&&!stopping){
@@ -834,6 +741,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       }finally{stopping=false;update();}
       return;
     }
+    if(controllerRunner?.ownedRunId&&host.currentRun===controllerRunner.ownedRunId)return controllerRunner.stop();
     if (!ownedDraftRunId || host.currentRun !== ownedDraftRunId || stopping) return;
     stopping = true; update(); display('stopping','正在提交停止并等待持久收尾…');
     try {await host.stop({runId:ownedDraftRunId,controller:true});}
@@ -886,7 +794,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // Preserve RunHost / Native / download idle gating during development
     // reload. There is no source backup or post-reload restoration.
     return !disposed&&!editingBusy&&!stopping&&!running&&!previewBusy&&
-      !browserPreparing&&!componentRemote?.busy&&!ownedManagedPreview&&!browserManagedPreview&&
+      !browserPreparing&&!controllerRunner?.preparing&&!componentRemote?.busy&&!ownedManagedPreview&&!browserManagedPreview&&
       !host.executionPending&&!host.currentRun&&!resultDownloads.busy()&&
       !client.resourceSnapshot?.().pending;
   },connectLocalProjects(adapter,{onInstalled}={}){
@@ -926,7 +834,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:resultDownloads.resourceSnapshot().timers+Number(localPollTimer!=null),
     pending:resultDownloads.resourceSnapshot().pending, subscriptions:listeners.length+Number(!disposed)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; controllerRevisions.dispose();resultDownloads.dispose();controllerClassic.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; controllerRevisions.dispose();resultDownloads.dispose();controllerClassic.dispose();controllerRunner.dispose(); componentRemote.dispose(); browserPrepareGeneration++; browserPreparer.dispose();staticESMPreparer.dispose(); scriptsCheckSequence++; localInstaller.dispose();localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyReview.dispose();dependencyResolver.dispose();dependencyInstaller.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.tabs.onRemoved.removeListener(onRemoved); if(!sharedRunHost)host.dispose();
     for (const remove of listeners) remove();
     listeners.length = 0;
