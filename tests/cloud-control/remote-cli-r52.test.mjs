@@ -87,6 +87,12 @@ test('actual CLI registers two Task packages, writes restricted token, submits a
     for(let i=0;i<statuses.length;i++)
       assert.deepEqual(statuses[i],{jobId:delivered[i].jobId,state:'queued',
         receiptConfirmed:false},'No simulated Browser Result is counted');
+    const stop=await run('cancel:remote',[...remote,'--job',delivered[1].jobId]);
+    assert.deepEqual(stop,{jobId:delivered[1].jobId,cancelled:true,alreadyFinished:false});
+    assert.deepEqual(await run('cancel:remote',[...remote,'--job',delivered[1].jobId]),
+      stop,'Remote Stop must not create another Job');
+    assert.deepEqual(await run('status:remote',[...remote,'--job',delivered[1].jobId]),
+      {jobId:delivered[1].jobId,state:'cancelled',receiptConfirmed:false});
     await run('client:revoke',[...hostArgs,'--client',granted.clientId]);
     await assert.rejects(run('status:remote',
       [...remote,'--job',delivered[0].jobId]),error=>

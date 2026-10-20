@@ -198,7 +198,7 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId};
     await p('/v1/admission',{assignmentId:contentAssignment.assignmentId,
       runRef:contentRef,resultAllowed:true},executor.credential);
-    await p('/v1/receipt',{assignmentId:contentAssignment.assignmentId,
+    const contentReceipt=await p('/v1/receipt',{assignmentId:contentAssignment.assignmentId,
       receiptKey:contentRef.resultId,runRef:contentRef,
       result:{visibility:'full',runId:contentRef.runId,resultId:contentRef.resultId,
         sourceHash:pin.sourceHash,revision:{sourceHash:pin.sourceHash},
@@ -209,9 +209,16 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     assert.deepEqual(await p('/v1/job-status',{jobId:contentJob.jobId},
       permittedResultClient.credential),{
         jobId:contentJob.jobId,state:'completed',receiptConfirmed:true,
-        result:{state:'completed',valueWire:{text:'RESULT-BODY-CONSENT-ONLY'}}
+        result:{state:'completed',valueWire:{text:'RESULT-BODY-CONSENT-ONLY'}},
+        trace:{requestId:contentRef.requestId,runId:contentRef.runId,
+          resultId:contentRef.resultId,receiptId:contentReceipt.receiptId,
+          receiptDigest:contentReceipt.digest}
       },'Full result needs both Browser consent and client read authorization');
 
+    assert.deepEqual(await p('/v1/job-cancel',{jobId:contentJob.jobId},
+      permittedResultClient.credential),
+      {jobId:contentJob.jobId,cancelled:false,alreadyFinished:true},
+      'Completed receipt cannot be overwritten by remote Stop');
     // Browser authorized full receipt but this *client* never approved
     // reading result bodies: it sees only status, including after restart.
     const deniedResultJob=await p('/v1/submit',{...seed,requestKey:'client-no-body',
@@ -246,7 +253,17 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       sourceHash:pin.sourceHash,manifestHash:pin.manifestHash,grantId};
     await p('/v1/admission',{assignmentId:unknownAssignment.assignmentId,
       runRef:unknownRef,resultAllowed:false},executor.credential);
-    await local('/admin/cancel',{jobId:unknownJob.jobId},admin.adminToken);
+    await assert.rejects(p('/v1/job-cancel',{jobId:unknownJob.jobId},
+      grant.credential),{code:'E_JOB'},'A different external client cannot cancel the Job');
+    await assert.rejects(p('/v1/job-cancel',{jobId:unknownJob.jobId},
+      executor.credential),{code:'E_AUTH'},'Executor token cannot impersonate an HTTPS client');
+    await assert.rejects(local('/v1/job-cancel',{jobId:unknownJob.jobId},
+      permittedResultClient.credential),{code:'E_TLS_REQUIRED'});
+    const remoteCancel=await p('/v1/job-cancel',{jobId:unknownJob.jobId},
+      permittedResultClient.credential);
+    assert.deepEqual(remoteCancel,{jobId:unknownJob.jobId,cancelled:true,alreadyFinished:false});
+    assert.deepEqual(await p('/v1/job-cancel',{jobId:unknownJob.jobId},
+      permittedResultClient.credential),remoteCancel,'Remote Stop is idempotent');
     assert.deepEqual(await p('/v1/job-status',{jobId:unknownJob.jobId},
       permittedResultClient.credential),{
         jobId:unknownJob.jobId,state:'OUTCOME_UNKNOWN',receiptConfirmed:false
@@ -255,6 +272,9 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     await provider.close();
     provider=await openProvider({directory,port:0,publicTls});
     const retry=(path,body,credential)=>securePost(provider.publicPort,ca,path,body,credential);
+    assert.deepEqual(await retry('/v1/job-cancel',{jobId:unknownJob.jobId},
+      permittedResultClient.credential),remoteCancel,
+      'Provider restart preserves remote Stop without replay');
     assert.deepEqual(await retry('/v1/submit',seed,grant.credential),created,
       'Rebooted TLS Provider preserves requestKey and one original Job');
     assert.deepEqual(await retry('/v1/receipt',receipt,executor.credential),accepted);
@@ -301,6 +321,8 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
       admin.adminToken);
     await assert.rejects(retry('/v1/submit',{...seed,requestKey:'after-revoke'},
       grant.credential),{code:'E_AUTH'});
+    await assert.rejects(retry('/v1/job-cancel',{jobId:created.jobId},
+      grant.credential),{code:'E_AUTH'},'Revoked client cannot cancel old Jobs');
     const rotatedGrant=randomUUID();
     await retry('/v1/capabilities',{grantId:rotatedGrant,
       tasks:[...taskAdvertised,{taskId:searchPin.taskId,
@@ -323,7 +345,8 @@ test('one Provider serves authenticated HTTPS/WSS and target-scoped client submi
     await retry('/v1/revoke',{revocationId:randomUUID()},executor.credential);
     for(const [path,body] of [
       ['/v1/submit',{...seed,requestKey:'revoked-pairing-new'}],
-      ['/v1/job-status',{jobId:lateJob.jobId}]
+      ['/v1/job-status',{jobId:lateJob.jobId}],
+      ['/v1/job-cancel',{jobId:lateJob.jobId}]
     ])await assert.rejects(retry(path,body,lateClient.credential),{code:'E_AUTH'},
       'Unpair must revoke former client access including its own old Job');
     const state=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));

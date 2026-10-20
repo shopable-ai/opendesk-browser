@@ -215,6 +215,10 @@ function matchEvidence(native,job,status,pin,kind,expected,effects){
   assert.equal(request.receiptDigest,job.receipt?.digest);
   assert.equal(request.delivery,'confirmed');
   assert.equal(status.receiptConfirmed,true);
+  assert.deepEqual(status.trace,{
+    requestId:ref.requestId,runId:ref.runId,resultId:ref.resultId,
+    receiptId:job.receipt?.receiptId,receiptDigest:job.receipt?.digest
+  },'External client must receive original Run/Result/Provider receipt IDs');
   assert.equal(status.state,'completed');
   assert.equal(status.result?.state,'completed','External client must have full result consent');
   const actual=decodeValue(result.valueWire);
