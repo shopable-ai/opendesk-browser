@@ -165,7 +165,10 @@ q('clip-copy').addEventListener('click',async()=>{
   if(!current())return;
   if(error?.code==='E_CANCELLED')say('已取消复制');
   else if(error?.code==='E_OUTCOME_UNKNOWN')say('复制结果未知，请检查系统剪贴板，勿重复操作',true);
-  else{input.hidden=false;display.hidden=true;input.focus();input.select();say('自动复制失败，请按 Ctrl/Cmd+C',true);}
+  else{input.hidden=false;display.hidden=true;input.focus();input.select();
+   q('clip-show-source').setAttribute('aria-pressed','true');
+   q('clip-show-preview').setAttribute('aria-pressed','false');
+   say('自动复制失败，请按 Ctrl/Cmd+C',true);}
  }finally{setExportBusy(false);}
 });
 q('clip-download').addEventListener('click',async()=>{
@@ -205,6 +208,13 @@ async function receiveRightClick(){
      typeof launch.source?.url!=='string')return;
   const url=new URL(launch.source.url);
   if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return;
+  // Align the right-click path with trusted safeClipSource: never persist a
+  // clicked URL fragment or well-known bearer/token fields in local notes.
+  url.hash='';
+  for(const key of [...url.searchParams.keys()]){
+   if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
+    url.searchParams.delete(key);
+  }
   // The Host has already checked ticket, document ID, Origin and one-use delivery.
   // Do not silently save: the existing open-self menu opens a prefilled draft.
   version++;mode='selection';
