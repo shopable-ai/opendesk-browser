@@ -1,5 +1,5 @@
 import {
-  key,sameCookieScope,sameCookieMetadata,sameNativeSlot,normalizeCookie,nativeInput,
+  key,sameCookieScope,sameCookieMetadata,sameNativeSlot,normalizeCookie,nativeInput,cookieImportTarget,
   inspectImport,rejectImportDuplicates,exportText
 } from '../domain/cookie-model.js';
 import {safeCode} from '../adapters/browser-sdk.js';
@@ -260,12 +260,12 @@ export function createCookieController({adapter,onChange=()=>{}}){
     }finally{plaintext='';unlock(guard);}
     return done;
   }
-  async function previewImport(source,format='auto',overwrite=false){
+  async function previewImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const guard=lock();if(!guard)return null;
     importPlan=null;
     const revision=++importRevision;
     try{
-      const plan=inspectImport(source,format,guard.at.hostname);
+      const plan=inspectImport(source,format,guard.at.hostname,allSites);
       const store=await adapter.getStore(guard.at);
       if(!verifiedRead(guard)||revision!==importRevision)return null;
       const partition=await adapter.getPartition(guard.at);
@@ -277,23 +277,38 @@ export function createCookieController({adapter,onChange=()=>{}}){
         try{
           const row=item.cookie;
           if(row.storeId!==undefined&&row.storeId!==store.storeId)throw Error('E_COOKIE_STORE');
-          if(row.partitionKey&&
+          if(!allSites&&row.partitionKey&&
             (row.partitionKey.topLevelSite!==partition.partitionKey.topLevelSite||
             Boolean(row.partitionKey.hasCrossSiteAncestor)!==
               Boolean(partition.partitionKey.hasCrossSiteAncestor)))
             throw Error('E_COOKIE_PARTITION');
+          if(row.partitionKey){
+            const partitionSite=new URL(row.partitionKey.topLevelSite);
+            if(!['http:','https:'].includes(partitionSite.protocol)||
+               partitionSite.username||partitionSite.password||
+               partitionSite.origin!==row.partitionKey.topLevelSite)
+              throw Error('E_COOKIE_PARTITION');
+          }
           item.cookie={...row,storeId:store.storeId};
-          nativeInput(item.cookie,guard.at);
-        }catch{item.status='invalid';item.reason='Store、Partition、Path 或网站范围不一致';}
+          item.target=allSites?cookieImportTarget(item.cookie,guard.at):guard.at;
+          nativeInput(item.cookie,item.target);
+        }catch{item.status='invalid';item.reason='Cookie 的 Store、Partition、Path 或域名属性不受支持';}
       }
       rejectImportDuplicates(plan.records);
       const seen=new Map();let created=0,replaced=0;
       for(const item of plan.records){
         if(item.status!=='ready')continue;
-        const r=item.cookie,route=new URL(guard.at.origin);route.pathname=r.path;
+        const r=item.cookie,at=item.target,route=new URL(at.origin);route.pathname=r.path;
         const scope=JSON.stringify([route.href,r.partitionKey||null]);
+        // A foreign site needs no Cookie READ grant merely to receive a
+        // user-supplied backup. The existing Host verifies every native write.
+        const readable=at.origin===guard.at.origin&&(!r.partitionKey||
+          r.partitionKey.topLevelSite===partition.partitionKey.topLevelSite&&
+          Boolean(r.partitionKey.hasCrossSiteAncestor)===
+            Boolean(partition.partitionKey.hasCrossSiteAncestor));
+        if(!readable){created++;continue;}
         if(!seen.has(scope))
-          seen.set(scope,await adapter.exactList(guard.at,r,()=>verifiedRead(guard)));
+          seen.set(scope,await adapter.exactList(at,r,()=>verifiedRead(guard)));
         if(!verifiedRead(guard)||revision!==importRevision)return null;
         const present=seen.get(scope);
         if(!Array.isArray(present))throw badReceipt();
@@ -304,10 +319,10 @@ export function createCookieController({adapter,onChange=()=>{}}){
           if(!overwrite)item.status='existing';
         }else created++;
       }
-      const accepted=plan.records.filter(item=>item.status==='ready').map(item=>item.cookie);
+      const accepted=plan.records.filter(item=>item.status==='ready').map(item=>({cookie:item.cookie,target:item.target}));
       if(revision!==importRevision)return null;
       importPlan={epoch:guard.ticket,url:guard.at.url,source,format,accepted,
-        total:plan.records.length,created,replaced,overwrite};
+        total:plan.records.length,created,replaced,overwrite,allSites};
       // Show only preflight status and fixed validation reasons. Never return
       // source text, Cookie Values, or accepted raw cookies to React.
       const issues=plan.records.filter(item=>item.status!=='ready'&&item.status!=='existing');
@@ -330,54 +345,56 @@ export function createCookieController({adapter,onChange=()=>{}}){
       return null;
     }finally{unlock(guard);}
   }
-  function batches(target,accepted,overwrite){
-    const result=[];let bucket=[],lastScope='';
-    for(const row of accepted){
-      const option={...nativeInput(row,target)};delete option.url;
+  function batches(accepted,overwrite){
+    const result=[];let bucket=[],lastScope='',lastUrl='';
+    for(const {cookie,target} of accepted){
+      const native=nativeInput(cookie,target),url=native.url;
+      const option={...native};delete option.url;
       if(!overwrite)option.ifAbsent=true;
-      const scope=JSON.stringify([option.storeId??null,
+      // Exact URL includes the Path used for Chrome native readback.
+      const scope=JSON.stringify([url,option.storeId??null,
         option.partitionKey?.topLevelSite??null,
         Boolean(option.partitionKey?.hasCrossSiteAncestor)]);
       const next=[...bucket,option];
       if(bucket.length&&(bucket.length===50||scope!==lastScope||
-        !bounded(JSON.stringify({url:target.url,cookies:next}),11500))){
-        result.push(bucket);bucket=[];
+        !bounded(JSON.stringify({url,cookies:next}),11500))){
+        result.push({url:lastUrl,cookies:bucket});bucket=[];
       }
-      bucket.push(option);lastScope=scope;
+      bucket.push(option);lastScope=scope;lastUrl=url;
     }
-    if(bucket.length)result.push(bucket);
+    if(bucket.length)result.push({url:lastUrl,cookies:bucket});
     return result;
   }
-  async function executeImport(source,format='auto',overwrite=false){
+  async function executeImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const plan=importPlan,guard=lock();if(!guard)return false;
     importPlan=null;let verified=0,complete=false;
     try{
       if(!plan||plan.epoch!==guard.ticket||plan.url!==guard.at.url||
         plan.source!==source||plan.format!==format||plan.overwrite!==overwrite||
-         !plan.accepted.length||
-        plan.accepted.some(row=>!row.session&&row.expirationDate<=Date.now()/1000))
+        plan.allSites!==allSites||!plan.accepted.length||
+        plan.accepted.some(({cookie})=>!cookie.session&&cookie.expirationDate<=Date.now()/1000))
         throw Error('E_COOKIE_CONFLICT');
       const batchSupported=adapter.supportsWriteMany();
       // The single-write adapter accepts normalized Cookie records, NOT the
       // already-serialized SDK payload produced by batches(). Re-serializing
       // a host-only payload loses its implicit Domain and breaks imports.
-      const chunks=batchSupported?batches(guard.at,plan.accepted,plan.overwrite):
-        plan.accepted.map(item=>[item]);
+      const chunks=batchSupported?batches(plan.accepted,plan.overwrite):
+        plan.accepted.map(({cookie,target})=>({target,cookie}));
       for(const chunk of chunks){
         if(!verifiedRead(guard))return false;
         if(batchSupported){
-          const receipt=await adapter.writeMany(guard.at,chunk);
+          const receipt=await adapter.writeMany({url:chunk.url},chunk.cookies);
           if(!verifiedRead(guard))return false;
-          if(!Array.isArray(receipt?.results)||receipt.results.length!==chunk.length)
+          if(!Array.isArray(receipt?.results)||receipt.results.length!==chunk.cookies.length)
             throw badReceipt();
-          for(let i=0;i<chunk.length;i++){
+          for(let i=0;i<chunk.cookies.length;i++){
             if(receipt.results[i]?.index!==i)throw badReceipt();
             if(!isVerified(receipt.results[i]))
               throw Object.assign(badReceipt(),{code:safeCode(receipt.results[i],'E_OUTCOME_UNKNOWN')});
             verified++;
           }
         }else{
-          const receipt=await adapter.write(guard.at,chunk[0],
+          const receipt=await adapter.write(chunk.target,chunk.cookie,
             {ifAbsent:!plan.overwrite});
           if(!verifiedRead(guard))return false;
           if(!isVerified(receipt))throw badReceipt();

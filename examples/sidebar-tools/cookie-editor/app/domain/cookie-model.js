@@ -55,7 +55,7 @@ const nativeSlotKey=row=>JSON.stringify([row.name,
   row.partitionKey?.topLevelSite??null,Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
 const sameNativeSlot=(a,b)=>nativeSlotKey(a)===nativeSlotKey(b);
 
-function normalizeCookie(raw,hostname,allowExpired=false){
+function normalizeCookie(raw,hostname,allowExpired=false,allSites=false){
   if(!hostname||!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('Cookie 记录无效');
   if(raw.valueRedacted===true)throw new Error('Cookie 值未提供，不能当作空值导入或写入');
   const name=raw.name,value=raw.value;
@@ -71,8 +71,10 @@ function normalizeCookie(raw,hostname,allowExpired=false){
     throw new Error('Cookie 名称不可为空，不能包含空白、分号、等号或控制字符');
   if(typeof value!=='string'||value.length>4096||/[\r\n\x00]/.test(value))
     throw new Error('Cookie 值长度或字符不合法');
-  if(!safeHost(host)||!(hostname===host||hostname.endsWith('.'+host))||
-      (hostOnly&&host!==hostname))throw new Error('Cookie 域名必须属于当前网站，Host-only 不能跨主机');
+  if(!safeHost(host)||hostOnly&&domain.startsWith('.')||
+      (!allSites&&(!(hostname===host||hostname.endsWith('.'+host))||
+       hostOnly&&host!==hostname)))
+    throw new Error('Cookie 域名或 Host-only 属性无效');
   if(typeof path!=='string'||!path.startsWith('/')||path.length>512||/[\r\n\x00]/.test(path))
     throw new Error('Cookie 路径 path 必须以 / 开头，长度不超过 512（SDK 路径限制）');
   const secure=raw.secure===true,httpOnly=raw.httpOnly===true;
@@ -102,6 +104,16 @@ function normalizeCookie(raw,hostname,allowExpired=false){
   return cookie;
 }
 
+// File import preserves each Cookie's original Domain and Host-only identity.
+// The existing nativeInput independently validates the selected destination.
+function cookieImportTarget(row,currentTarget){
+  const host=String(row?.domain||'').replace(/^\./,'').toLowerCase();
+  if(!safeHost(host))throw new Error('Cookie 域名无效');
+  if(currentTarget&&(host===currentTarget.hostname||
+      row.hostOnly===false&&currentTarget.hostname.endsWith('.'+host)))
+    return currentTarget;
+  return parseTarget('https://'+host+'/');
+}
 function nativeInput(row,target){
   const domain=row?.domain?.replace(/^\./,'').toLowerCase();
   // Domain cookies of a parent domain are valid on an authorized subdomain.
@@ -144,7 +156,7 @@ function exportText(format,rows){
   throw new Error('请选择受支持的导出格式');
 }
 
-function inspectImport(text,format,hostname){
+function inspectImport(text,format,hostname,allSites=false){
   if(typeof text!=='string'||!text.trim())throw new Error('请输入 Cookie 文本');
   if(new Blob([text]).size>MAX_IMPORT_BYTES)
     throw new Error('Cookie 文本超过 8 MiB 内存保护预算；输入已保留');
@@ -191,7 +203,7 @@ function inspectImport(text,format,hostname){
   const records=rows.map((raw,index)=>{
     try{
       if(format!=='json'&&raw?.importError)throw new Error(raw.importError);
-      const cookie=normalizeCookie(raw,hostname,true);
+      const cookie=normalizeCookie(raw,hostname,true,allSites);
       return {index:index+1,cookie,status:!cookie.session&&cookie.expirationDate<=Date.now()/1000?'expired':'ready',
         reason:!cookie.session&&cookie.expirationDate<=Date.now()/1000?'expirationDate 已过期，跳过；不会改成会话 Cookie':''};
     }catch(error){return {index:index+1,status:'invalid',reason:String(error.message)};}
@@ -253,5 +265,5 @@ async function scopedLiveCookies(sdk,target,{includeValues=false,isCurrent=()=>t
 }
 
 export {parseTarget,redactMetadata,key,sameCookieScope,sameCookieMetadata,sameNativeSlot,
- normalizeCookie,nativeInput,exportText,inspectImport,rejectImportDuplicates,
+ normalizeCookie,nativeInput,cookieImportTarget,exportText,inspectImport,rejectImportDuplicates,
  readAllCookies,scopedLiveCookies};
