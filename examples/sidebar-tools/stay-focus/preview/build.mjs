@@ -29,7 +29,7 @@ const hashes=Object.fromEntries(Object.entries(source).map(([key,value])=>[key,b
 const bundle={source,config:JSON.parse(read('tool.config.json')),hashes,runtime};
 const escaped=JSON.stringify(bundle).replaceAll('<',String.raw`\u003c`);
 const previewRuntime=readFileSync(path.join(directory,'runtime.js'),'utf8');
-if(/<\\/script/i.test(previewRuntime))throw Error('Preview runtime contains a raw closing script tag');
+if(/<\/script/i.test(previewRuntime))throw Error('Preview runtime contains a raw closing script tag');
 const result=template.replace('__SOURCE_BUNDLE__',()=>escaped)
   .replace('<script src="./runtime.js"></script>',()=>'<script>'+previewRuntime+'</script>');
 const target=path.join(directory,'index.html');
