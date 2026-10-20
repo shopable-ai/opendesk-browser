@@ -62,6 +62,10 @@ export function createStayFocusPermissionControls({api,ui,notice,runOperation,pa
       // This event comes from the extension-owned React Side Panel, never the iframe.
       const result=await runOperation('focus.site.put',{site},event);
       if(disposed||current!==epoch)return;
+      try{await pageTarget.revalidate(captured);}catch{
+        message('网站可能已保存，但当前网页已切换；请核对网站列表，勿重复提交。',true);
+        return;
+      }
       const confirmed=managedSite(host,result?.sites);
       if(!confirmed?.enabled)throw Error('保存回执没有确认当前网站，请读取状态');
       publish({currentAction:'managed'});
@@ -88,6 +92,7 @@ export function createStayFocusPermissionControls({api,ui,notice,runOperation,pa
   const effect=(kind,target)=>({kind,target,sequence:(model.effect?.sequence||0)+1});
   const actions=Object.freeze({
     quickAdd,
+    refreshQuick:()=>void refreshQuick(),
     grant(event){
       if(!trusted(event)||!model.canGrant)return;
       publish({busy:true});const current=epoch;
