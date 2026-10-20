@@ -3,7 +3,8 @@ import {ANALYTICS_ALARM,ANALYTICS_STATE_KEY,ANALYTICS_MAX_BATCH,
 
 const MAX_QUEUED=250;
 const ATTEMPT_TIMEOUT_MS=10000;
-const empty=()=>({consent:false,installId:null,queue:[],failures:0,nextAttemptAt:0});
+const empty=()=>({consent:false,installId:null,queue:[],failures:0,nextAttemptAt:0,
+  inventorySignature:null,openedContexts:[]});
 export function validAnalyticsEndpoint(value,{allowLoopback=false}={}){
   try{
     const url=new URL(value);
@@ -28,8 +29,12 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
       !Array.isArray(raw.queue)||raw.queue.length>MAX_QUEUED||
       !Number.isSafeInteger(raw.failures)||raw.failures<0||
       !Number.isFinite(raw.nextAttemptAt)||
-      (raw.consent&&typeof raw.installId!=='string'))return empty();
-    return raw;
+      (raw.consent&&typeof raw.installId!=='string')||
+      (raw.inventorySignature!==undefined&&raw.inventorySignature!==null&&typeof raw.inventorySignature!=='string')||
+      !Array.isArray(raw.openedContexts??[])||(raw.openedContexts??[]).length>96||
+      (raw.openedContexts??[]).some(id=>typeof id!=='string'||id.length>64))return empty();
+    return {...raw,inventorySignature:raw.inventorySignature??null,
+      openedContexts:raw.openedContexts??[]};
   };
   const persist=state=>api.storage.local.set({[ANALYTICS_STATE_KEY]:state});
   const prune=(queue,time)=>queue.filter(item=>{
@@ -58,22 +63,40 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     });
   }
   const statusSnapshot=consent=>({configured,consent,queued:0});
-  function record({event,toolId,source,channel,reason}){
+  function record({event,toolId,source,channel,reason,installedTools,contextId}){
     if(revoked||!configured)return Promise.resolve({recorded:false});
     return run(async()=>{
       if(revoked)return {recorded:false};
       const state=await read();
       if(!state.consent)return {recorded:false};
+      // The context ID is Chrome-owned sender identity; never transmitted.
+      if(event==='app.opened'&&
+        (typeof contextId!=='string'||!(/^[a-f0-9-]{36}$/i).test(contextId)||
+          state.openedContexts.includes(contextId)))return {recorded:false};
+      const signature=event==='app.inventory'&&Array.isArray(installedTools)?
+        installedTools.join(','):null;
+      if(event==='app.inventory'&&signature===state.inventorySignature)
+        return {recorded:false};
       const time=now(),entry=validateAnalyticsEvent({
         eventId:newId(),installId:state.installId,event,toolId,
         source,channel,timestamp:new Date(time).toISOString(),
-        ...(reason?{reason}:{})
+        ...(reason?{reason}:{}),...(event==='app.inventory'?{installedTools}:{})
       },{now:time});
-      const queue=prune(state.queue,time);
+      // A new census supersedes unsent old censuses. Transitions remain separate.
+      const queue=prune(state.queue,time).filter(row=>
+        event!=='app.inventory'||row.event!=='app.inventory');
       // A bounded queue is intentionally lossy under prolonged disconnection.
       // Never block or compromise a tool's primary operation when full.
       queue.push(entry);
-      await persist({...state,queue:queue.slice(-MAX_QUEUED)});
+      const bounded=queue.slice(-MAX_QUEUED);
+      const latestCensus=queue.findLast(row=>row.event==='app.inventory');
+      // Retain the latest queued census if lower-priority usage events fill the outbox.
+      if(latestCensus&&!bounded.some(row=>row.eventId===latestCensus.eventId)){
+        bounded.shift();bounded.unshift(latestCensus);
+      }
+      await persist({...state,queue:bounded,
+        ...(event==='app.inventory'?{inventorySignature:signature}:{}),
+        ...(event==='app.opened'?{openedContexts:[...state.openedContexts,contextId].slice(-96)}:{})});
       return {recorded:true};
     });
   }

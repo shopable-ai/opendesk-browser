@@ -1,5 +1,8 @@
 # OpenDesk Browser Analytics R1.0 — deployment and metrics
 
+R1.1 平台 DAU、扩展打开、最新已知安装覆盖的产品口径及 PostHog 最小配置见 [METRICS-R1.1.md](./METRICS-R1.1.md)。R1.0 细粒度 Prompt 事件仍保留兼容，但不作为首期平台 DAU 的分子。
+
+
 ## Status and trust boundary
 
 Code committed to main does not mean the service is deployed. The browser config at src/analytics/config.js has an EMPTY ingestion URL on purpose; no analytics transmission occurs until a real HTTPS endpoint is provisioned, published privacy disclosure is reviewed and the user opts in inside the existing Options page.

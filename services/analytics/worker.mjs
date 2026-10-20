@@ -78,7 +78,9 @@ async function deliver(env,{fetcher,now}){
         body:JSON.stringify({token:env.POSTHOG_PROJECT_TOKEN,batch:batch.map(row=>({
           event:row.event,uuid:row.eventId,distinct_id:row.installId,timestamp:row.timestamp,
           properties:{distinct_id:row.installId,tool_id:row.toolId,source:row.source,channel:row.channel,
-            ...(row.reason?{reason:row.reason}:{}),$process_person_profile:false,$ip:null}
+            ...(row.reason?{reason:row.reason}:{}),
+            ...(row.event==='app.inventory'?{installed_tools:row.installedTools}:{}),
+            $process_person_profile:false,$ip:null}
         }))}),redirect:'error',signal:controller.signal});
       success=response.ok;
     }finally{clearTimeout(timeout);}

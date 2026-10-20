@@ -17,6 +17,7 @@ import {createMyWorkbenchView} from './my-workbench-view.js';
 import {createSidebarToolsView} from './sidebar-tools-view.js';
 import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from './trusted-bookmark-admission.js';
 import {isActualSidePanelContext} from './sidepanel-context.js';
+import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {createUiLocaleController} from './app-localization.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {previewStorageKey} from '../native-agent/tool-snapshot.js';
@@ -209,6 +210,12 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     sidebarSurface=true;
     if(actualSidePanel){
       verifiedSidePanel=true;
+      // Count a verified Side Panel document, never React renders or SW wakeups.
+      // The trusted collector deduplicates this canonical hostInstanceId on reload.
+      try{void Promise.resolve(chrome.runtime.sendMessage({
+        protocol:ANALYTICS_PROTOCOL,kind:'event.host_report',
+        event:'app.opened',toolId:'opendesk',channel:'sidepanel'
+      })).catch(()=>{});}catch{/* Telemetry must never break the panel. */}
       syncTrustedHistory(pendingReactTab);
     }
     cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host,reactUI:extensionList,
