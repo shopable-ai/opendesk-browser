@@ -28,10 +28,10 @@ const blob=text=>createHash('sha1').update('blob '+Buffer.byteLength(text)+'\0')
 const hashes=Object.fromEntries(Object.entries(source).map(([key,value])=>[key,blob(value)]));
 const bundle={source,config:JSON.parse(read('tool.config.json')),hashes,runtime};
 const escaped=JSON.stringify(bundle).replaceAll('<',String.raw`\u003c`);
-const runtime=readFileSync(path.join(directory,'runtime.js'),'utf8');
-if(/<\\/script/i.test(runtime))throw Error('Preview runtime contains a raw closing script tag');
+const previewRuntime=readFileSync(path.join(directory,'runtime.js'),'utf8');
+if(/<\\/script/i.test(previewRuntime))throw Error('Preview runtime contains a raw closing script tag');
 const result=template.replace('__SOURCE_BUNDLE__',()=>escaped)
-  .replace('<script src="./runtime.js"></script>',()=>'<script>'+runtime+'</script>');
+  .replace('<script src="./runtime.js"></script>',()=>'<script>'+previewRuntime+'</script>');
 const target=path.join(directory,'index.html');
 if(process.argv.includes('--check')){
   if(readFileSync(target,'utf8')!==result){
