@@ -21,7 +21,7 @@
       const raw=String(value||'').trim();
       const url=new URL(/^https?:\/\//i.test(raw)?raw:'https://'+raw);
       if(!['http:','https:'].includes(url.protocol)||url.username||url.password||
-        url.port||!url.hostname.includes('.'))return '';
+        url.port||(!url.hostname.includes('.')&&url.hostname!=='localhost'))return '';
       return url.hostname.toLowerCase().replace(/\.$/,'');
     }catch{return '';}
   }
