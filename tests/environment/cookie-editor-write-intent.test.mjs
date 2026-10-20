@@ -44,6 +44,50 @@ test('Host mints a single exact approval and preserves review for other callers'
   assert.match(code,/matchesOfficialRelease\(release,tool\)/);
 });
 
+test('rename permits one old-name removal only after the new name is verified',()=>{
+  const gate=createCookieWriteIntentGate(),renamed='next_session';
+  const ref=gate.start({...args,name:renamed,renameFrom:args.name,verifiedUserActivation:true});
+  assert.equal(ref.authorized,true);
+  assert.equal(gate.acquire({...args,name:renamed,action:'set'}),true);
+  assert.throws(()=>gate.acquire({...args,name:args.name,action:'remove'}),{code:'E_DOCUMENT_CHANGED'});
+  // The previous mismatch must revoke the stale intent before another click.
+  const next=gate.start({...args,name:renamed,renameFrom:args.name,verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,name:renamed,action:'set'}),true);
+  gate.settle({owner,confirmed:true});
+  assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),true);
+  gate.settle({owner});
+  assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),false);
+  assert.deepEqual(gate.close(owner,next.ref),{closed:false});
+});
+
+test('unverified rename and wrong old identity never gain deletion authority',()=>{
+  const gate=createCookieWriteIntentGate();
+  assert.throws(()=>gate.start({...args,renameFrom:args.name,verifiedUserActivation:true}),
+    {code:'E_SCHEMA'});
+  gate.start({...args,name:'next',renameFrom:args.name,verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,name:'next',action:'set'}),true);
+  gate.settle({owner,confirmed:false});
+  assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),false);
+  gate.start({...args,name:'next',renameFrom:args.name,verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,name:'next',action:'set'}),true);
+  gate.settle({owner,confirmed:true});
+  assert.throws(()=>gate.acquire({...args,name:'different',action:'remove'}),
+    {code:'E_DOCUMENT_CHANGED'});
+  assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),false);
+});
+
+test('React Save binds the rename origin to one trusted Host receipt',async()=>{
+  const [app,adapter,panel]=await Promise.all([
+    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8'),
+    readFile(new URL('../../examples/sidebar-tools/cookie-editor/app/adapters/browser-sdk.js',import.meta.url),'utf8'),
+    readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8')
+  ]);
+  assert.match(app,/const renameFrom=original&&original.name!==row.name\?original.name:null/);
+  assert.match(adapter,/\(renameFrom\?\{renameFrom\}:\{\}\)/);
+  assert.match(panel,/renameFrom:payload.renameFrom\?\?null/);
+  assert.match(panel,/confirmed:operation==='browser.cookies.set'&&reply.data\?\.saved===true/);
+});
+
 test('one trusted Delete click authorizes only the exact Cookie removal',()=>{
   const gate=createCookieWriteIntentGate();
   const remove=gate.start({...args,action:'remove',verifiedUserActivation:true});

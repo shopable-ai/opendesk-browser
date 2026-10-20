@@ -266,8 +266,11 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     writeInFlight.current=true;
     const state=controller.snapshot();
     let pending=null,ref=null;
-    if(modeRef.current==='browser'&&state.phase==='ready'&&state.target)
-      pending=adapter.beginWriteIntent(state.target,row);
+    if(modeRef.current==='browser'&&state.phase==='ready'&&state.target){
+      const original=options?.originalId?controller.getRow(options.originalId):null;
+      const renameFrom=original&&original.name!==row.name?original.name:null;
+      pending=adapter.beginWriteIntent(state.target,row,{renameFrom});
+    }
     setWorking(true);
     try{
       const admitted=await pending;

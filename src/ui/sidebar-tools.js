@@ -1202,9 +1202,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('请重新点击保存 Cookie'),{code:'E_USER_GESTURE_REQUIRED'});
       const writeAction=payload?.action??'set';
       if(!payload||!['set','remove'].includes(writeAction)||
-         Object.keys(payload).sort().join(',')!==(writeAction==='remove'?'action,name,path,url':'name,path,url')||
+         !(['name,path,url','name,path,renameFrom,url'].includes(Object.keys(payload).sort().join(','))
+           &&writeAction==='set'||writeAction==='remove'&&
+           Object.keys(payload).sort().join(',')==='action,name,path,url')||
          typeof payload.url!=='string'||typeof payload.name!=='string'||
-         typeof payload.path!=='string'||!tool.capabilities.includes('browser.cookies.write'))
+         typeof payload.path!=='string'||!tool.capabilities.includes('browser.cookies.write')||
+         (payload.renameFrom!==undefined&&
+           (typeof payload.renameFrom!=='string'||!payload.renameFrom||
+            payload.renameFrom===payload.name)))
         throw Object.assign(new Error('无效的 Cookie 保存操作'),{code:'E_SCHEMA'});
       const origin=websiteOrigin(payload.url);
       if(!origin||websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||
@@ -1217,7 +1222,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          cookieSiteRecord(tool,origin)?.write!==true)
         throw Object.assign(new Error('网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
       return cookieWriteGate.start({owner:cookieImportOwner(tool,token,revocationEpoch),
-        origin,name:payload.name,path:payload.path,action:writeAction,verifiedUserActivation:verifiedGesture});
+        origin,name:payload.name,path:payload.path,action:writeAction,
+        renameFrom:payload.renameFrom??null,verifiedUserActivation:verifiedGesture});
     }
     if(operation==='cookieEditor.write.finish'){
       if(!payload||Object.keys(payload).join(',')!=='ref'||
@@ -1532,7 +1538,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           cookieImportGate.settle({owner:importBatchOwner,
             count:payload.cookies.length,confirmed:complete});
         }
-        if(writeIntentOwner)cookieWriteGate.settle({owner:writeIntentOwner});
+        if(writeIntentOwner)cookieWriteGate.settle({owner:writeIntentOwner,
+          confirmed:operation==='browser.cookies.set'&&reply.data?.saved===true&&
+            reply.data?.verified===true});
       }catch(error){
         if(importBatchOwner)cookieImportGate.revoke();
         if(writeIntentOwner)cookieWriteGate.revoke();

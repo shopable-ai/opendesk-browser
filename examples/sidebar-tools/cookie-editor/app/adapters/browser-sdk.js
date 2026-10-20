@@ -83,8 +83,9 @@ export function createCookieSdkAdapter({getBrowser,request}){
     targetFor,checkRead,list,exactList,readValue,
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),
     finishImportIntent:ref=>request('cookieEditor.import.finish',{ref}),
-    beginWriteIntent:(target,row)=>request('cookieEditor.write.begin',{
-       url:target.url,name:row.name,path:row.path||'/'
+    beginWriteIntent:(target,row,{renameFrom=null}={})=>request('cookieEditor.write.begin',{
+       url:target.url,name:row.name,path:row.path||'/',
+       ...(renameFrom?{renameFrom}:{})
      }),
      beginRemoveIntent:(target,row)=>request('cookieEditor.write.begin',{
        url:target.url,name:row.name,path:row.path||'/',action:'remove'
