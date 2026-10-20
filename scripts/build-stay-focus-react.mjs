@@ -34,7 +34,7 @@ export async function buildStayFocusReact({log=true}={}){
     'E_STAY_FOCUS_SHARED_UI','OpenDeskPageReact','OpenDeskSidebarUI'])
     assert.ok(js.includes(operation),'Stay Focus compiled source is missing: '+operation);
   assert.ok(css.includes('.sf'),'Stay Focus compiled stylesheet is missing');
-  assert.doesNotMatch(js,/chrome\\.(?:declarativeNetRequest|permissions|idle|tabs)\\b/,
+  assert.doesNotMatch(js,/chrome\.(?:declarativeNetRequest|permissions|idle|tabs)\b/,
     'sandbox UI must not import privileged browser capabilities');
   const ready=JSON.parse(raw);
   for(const [file,digest] of Object.entries(inputs))
