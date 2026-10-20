@@ -219,7 +219,7 @@ function reviewedCompiledWebClipper(target,path,root){
 // to Page Relay; the policy and generated locale are fixed-host shared.
 const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
-  'examples/sidebar-tools/reading-toc/trusted/model.js':'335e23442b372e690e5757678298f04401430c2b',
+  'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
   'examples/sidebar-tools/reading-toc/trusted/page.js':'8c9c3faa71c26a84e3388c41c31dffcac947d76e',
   'examples/sidebar-tools/reading-toc/trusted/view.js':'71f6d57ad101936c963c41c118c8e78ef74bbf3b',

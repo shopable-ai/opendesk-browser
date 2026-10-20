@@ -11,9 +11,19 @@ export function createReadingTocIndex(doc) {
     if(!value){value=prefix+(prefix==='h-'?++serial:++sourceSerial);table.set(element,value);}
     return value;
   };
+  function writingSurface(heading) {
+    const host=String(doc.location?.hostname||doc.defaultView?.location?.hostname||'').toLowerCase();
+    if(host!=='chatgpt.com'&&host!=='chat.openai.com')return null;
+    const editor=heading.closest('.ProseMirror[contenteditable="true"]');
+    if(!editor||editor.closest('form,#prompt-textarea,[data-message-author-role="user"],[data-message-role="user"]'))return null;
+    return editor.closest('[class~="group/writing-block-surface"]');
+  }
   function visible(heading) {
+    // ChatGPT's delivered Writing card is an editor too. Keep the composer
+    // and arbitrary editable regions excluded; admit only this known card.
+    const writing=adapter==='chatgpt'&&writingSurface(heading);
     if(!heading.isConnected || !heading.getClientRects?.().length ||
-       heading.closest('pre,code,nav,aside,footer,template,[hidden],[aria-hidden="true"],[inert],[role="navigation"],[contenteditable="true"],[data-opendesk-toc-root]'))
+        heading.closest('pre,code,nav,aside,footer,template,[hidden],[aria-hidden="true"],[inert],[role="navigation"],[data-opendesk-toc-root]'+(writing?'':',[contenteditable="true"]')))
       return false;
     const style=doc.defaultView?.getComputedStyle?.(heading);
     return style?.display!=='none' && style?.visibility!=='hidden' &&
@@ -38,9 +48,12 @@ export function createReadingTocIndex(doc) {
       const ownerSelector='[data-chatgpt-selection-message-id][data-chatgpt-selection-conversation-id]';
       const owner=heading.closest(ownerSelector);
       const answer=heading.closest('[data-markdown-text-style="assistant-message"]');
-      return owner?.getAttribute('data-chatgpt-selection-message-id')?.trim()&&
+      if(owner?.getAttribute('data-chatgpt-selection-message-id')?.trim()&&
         owner.getAttribute('data-chatgpt-selection-conversation-id')?.trim()&&
-        answer?.closest(ownerSelector)===owner?owner:null;
+        answer?.closest(ownerSelector)===owner)return owner;
+      // Writing cards may be portaled outside the assistant turn. Give each
+      // card its own DOM-bound source instead of guessing an answer owner.
+      return writingSurface(heading);
     }
     if(kind==='zhihu')return heading.closest('.AnswerItem');
     return heading.closest('article')||heading.closest('main,[role="main"]')||doc.body;
@@ -88,6 +101,11 @@ export function createReadingTocIndex(doc) {
       headings.push(heading);
       if(headings.length>=300)break;
     }
+    // The Writing portal's DOM position differs from its position in the
+    // transcript. Preserve reading order using the real heading geometry.
+    if(adapter==='chatgpt'&&headings.some(heading=>writingSurface(heading))){
+      headings.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
+    }
     const primaryRoot=adapter==='article'?primaryContentRoot(headings):null;
     for(const heading of headings) {
       const localRoot=sourceRoot(heading,adapter);
@@ -103,7 +121,9 @@ export function createReadingTocIndex(doc) {
         if(nextSources.length>=40)continue;
         const kind=adapter==='article'?'article':'answer';
         const number=nextSources.length+1;
-        const source={id:sourceId,label:kind==='answer'?'回答 '+number:(number===1?'当前网页':'正文 '+number),kind};
+        const source={id:sourceId,label:kind==='answer'?
+          (root===writingSurface(heading)?'写作内容 ':'回答 ')+number:
+          (number===1?'当前网页':'正文 '+number),kind};
         groupMap.set(sourceId,source);nextSources.push(source);
       }
       const id=idFor(heading,headingKeys,'h-');
