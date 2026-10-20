@@ -1949,6 +1949,14 @@ test('loading a saved Page import restores author bytes and Page lock without ru
   await f.click('script-run');await f.settle();
   assert.equal(f.previews.length,2);assert.equal(f.compiled.at(-1).lockId,frozen.lockId);
 });
+test('R40.5 Page ESM never presents Controller remote-dependency tools',async t=>{
+  const f=await staticESMFixture(t);
+  await f.page();
+  assert.equal(f.find('script-javascript-world').value,'page');
+  assert.equal(f.find('page-component-remote').hidden,true,
+    'Page ESM must not be misclassified as Controller ESM by remote source preparation');
+  assert.equal(f.staticRequests.some(row=>row.payload.sourceFormat==='esm-controller'),false);
+});
 test('Controller Run auto-fixes its own ESM graph without reusing a Page lock or explicit world switch',async t=>{
   const f=await staticESMFixture(t);
   await new Promise(resolve=>setTimeout(resolve,240));for(let n=0;n<8;n++)await tick();

@@ -862,7 +862,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   componentRemote=createPageComponentRemote({client,preparer:browserPreparer,api,document:doc,view,
     getInput:()=>{
       const source=programSource.source();
-      return componentMode==='javascript'&&browserCompilerEnabled&&!localProject?.active()&&
+      return componentMode==='javascript'&&!isPageDraft()&&browserCompilerEnabled&&!localProject?.active()&&
         !programSource.snapshot()&&hasUnbuiltESM(source)?
         controllerESMInput(source,scriptId()):
         {componentSource:source,framework:localProject?.active()||programSource.snapshot()?'javascript':componentMode};
