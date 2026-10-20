@@ -8,7 +8,7 @@ import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
 // Runs only the current Controller draft; it never saves, installs, or selects a revision.
 export const controllerESMInput=(source,id)=>({componentSource:source,framework:'controller',programId:id});
-export function createControllerDraftRun({api,host,currentPageTarget,programSource,view,
+export function createControllerDraftRun({client,api,host,currentPageTarget,programSource,view,
   componentRemote,browserPreparer,controllerClassic,controllerResults,getRevisions,
   browserCompilerEnabled,isDisposed,isBlocked,isControllerDraft,getRunning,setRunning,
   isStopping,setStopping,display,fail,hideUserScriptsRecovery,beginResult,update}){
@@ -79,8 +79,7 @@ export function createControllerDraftRun({api,host,currentPageTarget,programSour
       if(esm){
         const check=()=>{if(isDisposed()||ticket!==generation||
           programSource.source()!==authorSourceUtf8||scriptId()!==id||
-          programSource.kind()!==runKind||componentMode!=='javascript'||
-          localProject?.active())
+          programSource.kind()!==runKind||!isControllerDraft())
           throw {code:'E_CONTROLLER_ESM_STALE',message:'源码、程序、目标或运行模式已变化；不会启动过期代码'};};
         const prepared=await prepareControllerESM(authorSourceUtf8,id,check);check();
         sourceUtf8=getRevisions().savedControllerSource(authorSourceUtf8,prepared.built.sourceUtf8);

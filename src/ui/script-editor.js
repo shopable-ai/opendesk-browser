@@ -352,7 +352,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
         {componentSource:source,framework:localProject?.active()||programSource.snapshot()?'javascript':componentMode};
     },
     isBlocked:()=>editingBusy||pagePreviewFlow?.busy||running||stopping||!!host.currentRun,onState:update});
-  controllerRunner=createControllerDraftRun({api,host,currentPageTarget,programSource,view,
+  controllerRunner=createControllerDraftRun({client,api,host,currentPageTarget,programSource,view,
     componentRemote,browserPreparer,controllerClassic,controllerResults,
     getRevisions:()=>controllerRevisions,browserCompilerEnabled,
     isDisposed:()=>disposed,isBlocked:()=>stopping||pagePreviewFlow?.busy||editingBusy||!!localProject?.active(),
