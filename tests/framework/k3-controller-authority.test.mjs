@@ -1608,7 +1608,7 @@ test('cloud status returns bounded redacted pages and supports a cheap heartbeat
   for(const request of full.requests){
     assert.deepEqual(Object.keys(request).sort(),managementFields,
       'Cloud Host history must not expose assignment, credentials, params, target or unverified Run references');
-    assert.match(request.requestId,/^cloud:extra-\\d{3}$/);
+    assert.match(request.requestId,/^cloud:extra-\d{3}$/);
     assert.equal(request.requestKey,'cloud:request:'+request.requestId);
   }
   const next=await f.cloud.cloudStatus({limit:5,offset:5},f.sender);
