@@ -228,7 +228,7 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     if (nodes.length > 1) throw new PageError('E_STRICT_MODE_VIOLATION');
     if (!nodes.length) return {ready:false, reason:'E_SELECTOR_NOT_FOUND'};
     const el = nodes[0], why = actionability(el, op, doc, win);
-    if (why) return {ready:false, reason:why};
+    if (why && why !== 'E_ELEMENT_OUTSIDE_VIEWPORT') return {ready:false, reason:why};
     // Validate geometry and identity at *two* frame boundaries; prepare
     // remains read-only (no scrolling, focus, setter, or page event).
     let before = rectOf(el);
@@ -251,12 +251,13 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       before = after;
     }
     const again = actionability(el, op, doc, win);
-    if (again) return {ready:false,reason:again};
+    if (again && again !== 'E_ELEMENT_OUTSIDE_VIEWPORT') return {ready:false,reason:again};
     for (const [key, value] of tokens) if (Date.now() - value.created > 5000) tokens.delete(key);
     if (tokens.size >= 16) tokens.delete(tokens.keys().next().value);
     const token = String(++sequence);
-    tokens.set(token, {el, fingerprint:JSON.stringify([descriptor,op]), created:Date.now()});
-    return {ready:true, token};
+    const scrollOnly = again === 'E_ELEMENT_OUTSIDE_VIEWPORT';
+    tokens.set(token, {el, fingerprint:JSON.stringify([descriptor,op]), created:Date.now(), scrollOnly});
+    return {ready:true, token, ...(scrollOnly ? {scrollOnly:true} : {})};
   }
   function commit(descriptor, operation, token) {
     check(); const op = validateLocatorOperation(operation);
@@ -267,8 +268,12 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     const nodes = locate(doc, descriptor);
     if (nodes.length !== 1 || nodes[0] !== saved.el) return {committed:false,reason:'E_ELEMENT_DETACHED'};
     const el = saved.el, why = actionability(el, op, doc, win);
-    if (why) return {committed:false,reason:why};
-    check(); // Last read-only fence. focus/setter/click below may have page effects.
+    if (why && !(saved.scrollOnly && why === 'E_ELEMENT_OUTSIDE_VIEWPORT')) return {committed:false,reason:why};
+    check(); // Last read-only fence. scroll/focus/setter/click below may have page effects.
+    if (saved.scrollOnly) {
+      win.Element.prototype.scrollIntoView.call(el, {behavior:'instant',block:'center',inline:'center'});
+      return {committed:true,scrolled:true};
+    }
     if (op.action === 'click') { el.click(); return {committed:true}; }
     if (op.action === 'check' || op.action === 'uncheck') {
       const desired = op.action === 'check';

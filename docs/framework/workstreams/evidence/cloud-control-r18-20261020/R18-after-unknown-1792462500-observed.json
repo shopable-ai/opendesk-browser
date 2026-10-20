@@ -1,0 +1,15 @@
+{
+  "mode": "observe",
+  "label": "R18-after-unknown-1792462500",
+  "events": [
+    {
+      "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+      "value": "R18-after-unknown-1792462500",
+      "isTrusted": false,
+      "at": 1792461858410,
+      "observedAt": 1792461858411
+    }
+  ],
+  "profileInode": 34901903,
+  "at": "2026-10-20T02:04:18.411Z"
+}

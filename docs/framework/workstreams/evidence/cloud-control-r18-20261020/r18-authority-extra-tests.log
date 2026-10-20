@@ -1,0 +1,11 @@
+✔ r18 authority cross-session recovery quarantines owned creation with an unknown tab receipt (11.613625ms)
+✔ r18 authority cross-session recovery preserves a submitted owned operation while releasing its slot (10.8635ms)
+✔ r18 authority latest Locator intent remains unknown after acknowledged scroll and a lost action receipt (207.810917ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 343.462959

@@ -1,0 +1,29 @@
+{
+  "tag": "task-installed-v1",
+  "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "taskId": "cloud-r17-new-controller-1792426584969",
+  "version": "1.0.0",
+  "scriptId": "task:cloud-r17-new-controller-1792426584969:1.0.0",
+  "manifestHash": "9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0",
+  "builtinIdentity": {
+    "abi": "opendesk-builtins.v10",
+    "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+    "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+  },
+  "enabled": true,
+  "installedAt": 1792461311726,
+  "authorization": {
+    "tag": "task-install-authorization-v1",
+    "installationId": "1052e6b9-b7cd-4861-8fa5-1758744bcde4",
+    "generation": 1,
+    "scope": {
+      "capabilities": [
+        "page.automation"
+      ],
+      "siteOrigins": [
+        "http://127.0.0.1:43111"
+      ],
+      "networkOrigins": []
+    }
+  }
+}

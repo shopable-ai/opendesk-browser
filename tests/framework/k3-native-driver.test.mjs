@@ -5,6 +5,7 @@ import {createControllerDriver, PACKAGED_PAGE_FILE} from '../../src/framework/co
 import {createRunContext} from '../../src/framework/context.js';
 import {installPackagedPageSession, PAGE_SESSION_MESSAGE} from '../../src/scripting/packaged/page-session.js';
 import {encodeValue, decodeValue, PageError, VALUE_LIMITS} from '../../src/framework/control/value.js';
+import {createLocatorDOM} from '../../src/scripting/packaged/locator-dom.js';
 
 // Native API fixtures + real packaged registry/generated harness only. These
 // tests provide no real Chrome, physical stop, package, or F3 qualification.
@@ -482,6 +483,175 @@ test('native HTML stream honors site access revoked between automatic chunks',as
   await assert.rejects(context.page.content(),{code:'E_PERMISSION'});
   assert.equal(f.state.native.filter(row=>row.stage==='tabs.sendMessage' &&
     row.args[1].envelope?.operation?.method==='contentRead').length,0);
+});
+
+function offscreenLocatorFixture() {
+  const f = fixture(), effects = {scrolls:[], focuses:[], events:[]};
+  class Input extends EventTarget {
+    constructor() {
+      super(); this.nodeType = 1; this.tagName = 'INPUT'; this.type = 'text';
+      this.isConnected = true; this.value = ''; this.top = 1200; this.disabled = false;
+      for (const type of ['input','change']) this.addEventListener(type, () => effects.events.push(type));
+    }
+    getAttribute() { return null; }
+    hasAttribute() { return false; }
+    closest() { return null; }
+    matches(selector) { return selector === ':disabled' && this.disabled; }
+    contains(el) { return el === this; }
+    getBoundingClientRect() { return {left:10,top:this.top,width:120,height:24,right:130,bottom:this.top+24}; }
+    scrollIntoView(options) { effects.scrolls.push({element:this,options}); this.top = 20; }
+    focus() { effects.focuses.push(this); }
+  }
+  const element = new Input();
+  f.win.Element = Input; f.win.innerWidth = 800; f.win.innerHeight = 600;
+  f.win.getComputedStyle = el => ({display:'block',visibility:'visible',pointerEvents:el.pointerEvents || 'auto'});
+  f.win.requestAnimationFrame = callback => queueMicrotask(callback);
+  f.doc.querySelectorAll = selector => selector === '#name' && element.isConnected ? [element] : [];
+  f.doc.elementFromPoint = () => element;
+  f.state.active = false;
+  return {...f,element,effects};
+}
+const nameLocator = {kind:'css',value:'#name'}, nameFill = {action:'fill',value:'Cloud task',timeout:1000};
+
+test('inactive offscreen Locator scrolls once, persists the ack, then freshly prepares and fills', async t => {
+  const f = offscreenLocatorFixture(); t.after(f.dispose);
+  const stages = [], receipts = [];
+  f.state.hooks['tabs.sendMessage'] = async (args, dispatch) => {
+    const method = args[1].envelope?.operation.method;
+    const reply = await dispatch();
+    if (method === 'locatorPrepare') {
+      const prepared = decodeValue(reply.value);
+      assert.equal(prepared.ready, true);
+      assert.equal(prepared.scrollOnly === true, stages.length === 0);
+      assert.equal(f.element.value, ''); assert.deepEqual(f.effects.events, []);
+      assert.equal(f.effects.focuses.length, 0);
+      if (stages.length === 0) assert.equal(f.effects.scrolls.length, 0, 'prepare must stay read-only');
+      else assert.ok(receipts.some(row => row.stage === 'locator.scrollCommitted'));
+    }
+    if (method?.startsWith('locator')) stages.push(method);
+    return reply;
+  };
+  const reply = await f.driver.execute(f.envelope('locatorAction', [nameLocator,nameFill]), {
+    recordReceipt: row => {
+      if (row.stage === 'locator.scrollCommitted') {
+        assert.equal(f.element.value, ''); assert.equal(f.effects.scrolls.length, 1);
+        assert.equal(row.receipt.documentId, f.target.documentId);
+      }
+      receipts.push(row);
+    }
+  });
+  assert.equal(decodeValue(reply.value), undefined);
+  assert.deepEqual(stages, ['locatorPrepare','locatorCommit','locatorPrepare','locatorCommit']);
+  assert.equal(f.element.value, nameFill.value);
+  assert.deepEqual(f.effects.scrolls, [{element:f.element,options:{behavior:'instant',block:'center',inline:'center'}}]);
+  assert.deepEqual(f.effects.focuses, [f.element]); assert.deepEqual(f.effects.events, ['input','change']);
+  assert.equal(receipts.filter(row => row.stage === 'locator.commitIntent').length, 2);
+  assert.equal(receipts.filter(row => row.stage === 'locator.scrollCommitted').length, 1);
+  assert.equal(receipts.some(row => row.stage === 'locator.commitNoEffect'), false);
+});
+
+test('a confirmed scroll that stays offscreen is bounded to one effect and one ack', async t => {
+  const f = offscreenLocatorFixture(); t.after(f.dispose);
+  const receipts = [];
+  f.win.Element.prototype.scrollIntoView = function(options) { f.effects.scrolls.push({element:this,options}); };
+  const reply = await f.driver.execute(f.envelope('locatorAction', [nameLocator,{...nameFill,timeout:100}]), {
+    recordReceipt: row => receipts.push(row)
+  });
+  assert.equal(reply.error.code, 'E_TIMEOUT');
+  assert.equal(f.effects.scrolls.length, 1); assert.equal(f.element.value, '');
+  assert.deepEqual(f.effects.focuses, []); assert.deepEqual(f.effects.events, []);
+  assert.equal(receipts.filter(row => row.stage === 'locator.commitIntent').length, 1);
+  assert.equal(receipts.filter(row => row.stage === 'locator.scrollCommitted').length, 1);
+  assert.equal(receipts.some(row => row.stage === 'locator.commitNoEffect'), false);
+  assert.ok(receipts.some(row => row.stage === 'packaged.finalFailure'));
+});
+
+test('scroll tokens reject replacement elements without scrolling or filling either element', async t => {
+  const f = offscreenLocatorFixture(); t.after(f.dispose);
+  const dom = createLocatorDOM({document:f.doc,window:f.win});
+  const prepared = await dom.prepare(nameLocator,nameFill);
+  assert.equal(prepared.scrollOnly, true);
+  const replacement = new f.win.Element();
+  f.doc.querySelectorAll = () => [replacement]; // Original is still connected: identity, not selector equality.
+  assert.deepEqual(dom.commit(nameLocator,nameFill,prepared.token), {committed:false,reason:'E_ELEMENT_DETACHED'});
+  assert.deepEqual(f.effects, {scrolls:[],focuses:[],events:[]});
+  assert.equal(f.element.value, ''); assert.equal(replacement.value, '');
+});
+
+test('scroll prepare and commit preserve disabled, detached and obscured guards', async t => {
+  for (const mode of ['disabled','detached','obscured']) await t.test(mode, async t => {
+    const f = offscreenLocatorFixture(); t.after(f.dispose);
+    const dom = createLocatorDOM({document:f.doc,window:f.win});
+    const prepared = await dom.prepare(nameLocator,nameFill);
+    if (mode === 'disabled') f.element.disabled = true;
+    if (mode === 'detached') f.element.isConnected = false;
+    if (mode === 'obscured') { f.element.top = 20; f.doc.elementFromPoint = () => ({}); }
+    const reason = {disabled:'E_ELEMENT_DISABLED',detached:'E_ELEMENT_DETACHED',obscured:'E_ELEMENT_OBSCURED'}[mode];
+    assert.deepEqual(dom.commit(nameLocator,nameFill,prepared.token), {committed:false,reason});
+    if (mode === 'disabled') assert.deepEqual(await dom.prepare(nameLocator,nameFill), {ready:false,reason});
+    if (mode === 'obscured') {
+      f.element.top = 1200; f.element.pointerEvents = 'none';
+      assert.deepEqual(await dom.prepare(nameLocator,nameFill), {ready:false,reason});
+    }
+    assert.deepEqual(f.effects, {scrolls:[],focuses:[],events:[]}); assert.equal(f.element.value, '');
+  });
+});
+
+test('unknown scroll replies and unpersisted scroll acks never retry or report no effect', async t => {
+  for (const mode of ['lost reply','missing confirmation','ack write failure']) await t.test(mode, async t => {
+    const f = offscreenLocatorFixture(); t.after(f.dispose);
+    const receipts = []; let prepares = 0, commits = 0;
+    f.state.hooks['tabs.sendMessage'] = async (args, dispatch) => {
+      const method = args[1].envelope?.operation.method;
+      if (method === 'locatorPrepare') prepares++;
+      const reply = await dispatch();
+      if (method !== 'locatorCommit') return reply;
+      commits++;
+      if (mode === 'lost reply') return undefined;
+      if (mode === 'missing confirmation') return {...reply,value:encodeValue({committed:true})};
+      return reply;
+    };
+    await assert.rejects(f.driver.execute(f.envelope('locatorAction', [nameLocator,nameFill]), {
+      recordReceipt: row => {
+        if (mode === 'ack write failure' && row.stage === 'locator.scrollCommitted') throw new PageError('E_TIMEOUT');
+        receipts.push(row);
+      }
+    }), {code:mode === 'ack write failure' ? 'E_TIMEOUT' : 'E_RESULT_FORMAT'});
+    assert.equal(prepares, 1); assert.equal(commits, 1); assert.equal(f.effects.scrolls.length, 1);
+    assert.equal(f.element.value, ''); assert.deepEqual(f.effects.focuses, []); assert.deepEqual(f.effects.events, []);
+    assert.ok(receipts.some(row => row.stage === 'locator.commitIntent'));
+    assert.equal(receipts.some(row => ['locator.scrollCommitted','locator.commitNoEffect','packaged.finalFailure','result'].includes(row.stage)), false);
+  });
+});
+
+test('lost fill callback after durable scroll ack keeps the final commit unknown without retry', async t => {
+  const f = offscreenLocatorFixture(); t.after(f.dispose);
+  const receipts = []; let prepares = 0, commits = 0;
+  f.state.hooks['tabs.sendMessage'] = async (args, dispatch) => {
+    const method = args[1].envelope?.operation.method;
+    if (method === 'locatorPrepare') prepares++;
+    const reply = await dispatch();
+    if (method === 'locatorCommit' && ++commits === 2) {
+      assert.ok(receipts.some(row => row.stage === 'locator.scrollCommitted'));
+      assert.equal(decodeValue(reply.value).committed, true);
+      return new Promise(() => {}); // Fill ran, but its native callback never arrives.
+    }
+    return reply;
+  };
+  const envelope = f.envelope('locatorAction', [nameLocator,{...nameFill,timeout:100}]);
+  await assert.rejects(f.driver.execute(envelope, {
+    recordReceipt: row => receipts.push(row)
+  }), {code:'E_TIMEOUT'});
+  assert.equal(prepares, 2); assert.equal(commits, 2);
+  assert.equal(f.effects.scrolls.length, 1); assert.equal(f.element.value, nameFill.value);
+  assert.deepEqual(f.effects.focuses, [f.element]); assert.deepEqual(f.effects.events, ['input','change']);
+  const durableCommits = receipts.filter(row => ['locator.commitIntent','locator.scrollCommitted'].includes(row.stage));
+  assert.deepEqual(durableCommits.map(row => row.stage), [
+    'locator.commitIntent','locator.scrollCommitted','locator.commitIntent'
+  ]);
+  assert.ok(durableCommits.every(row => row.requestId === envelope.requestId && row.receipt.documentId === f.target.documentId));
+  assert.equal(receipts.at(-1), durableCommits.at(-1), 'last fill intent must remain unresolved');
+  assert.equal(receipts.some(row => ['locator.commitNoEffect','packaged.finalFailure','result'].includes(row.stage)), false);
 });
 
 test('Locator timeout:0 disables local expiry while respecting the Controller run deadline', async t => {

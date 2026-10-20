@@ -1,0 +1,4604 @@
+{
+  "at": 1792462237329,
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "runs": [
+    {
+      "tag": "controller-run",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "registrationId": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+      "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "builtinAbi": "opendesk-builtins.v10",
+      "sourceKind": "saved",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "installedTaskAuthorization": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "authorization": {
+          "tag": "task-install-authorization-v1",
+          "installationId": "2767b3ff-1b6f-49c8-b833-bea9a72689e5",
+          "generation": 1,
+          "scope": {
+            "capabilities": [
+              "page.automation"
+            ],
+            "siteOrigins": [
+              "http://127.0.0.1:43111"
+            ],
+            "networkOrigins": []
+          }
+        }
+      },
+      "opId": "458a1346-0249-46fd-975d-491a63f8b0d5",
+      "resultId": "c432a39e-0049-46d7-86a3-9613b8856fd6",
+      "requestId": "cloud:f45ab58c-e10d-4c01-9e35-0a1d9eb2e3fa",
+      "requestDigest": "424b65e73e4530deffd726aa0183317e931d97314e9f7e12d1f2ba268e90bfb9",
+      "deadlineAt": 1792461863431,
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "delayMs",
+            {
+              "type": "number",
+              "value": 45000
+            }
+          ],
+          [
+            "name",
+            {
+              "type": "string",
+              "value": "R18-unknown-effect-1792462350"
+            }
+          ]
+        ]
+      },
+      "selection": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "startUrl": "http://127.0.0.1:43111/demo-form.html",
+      "nativeFence": {
+        "tabEpoch": 0,
+        "frameEpoch": 0,
+        "rootFrameEpoch": 0,
+        "permissionEpoch": 0
+      },
+      "nativeNetworkFences": [],
+      "networkOrigins": [],
+      "nativeTabId": 1612060238,
+      "state": "interrupted",
+      "ownerEpoch": 4,
+      "runRevision": 7,
+      "eventSeq": 3,
+      "cancelSeq": 3,
+      "workerRetired": true,
+      "retirementState": "released",
+      "target": {
+        "tabId": 1612060238,
+        "frameId": 0,
+        "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+        "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+        "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+        "targetVersion": 2,
+        "mode": "owned",
+        "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+      },
+      "identity": {
+        "tag": "controller-run",
+        "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+        "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+        "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+        "ownerEpoch": 1,
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "target": {
+          "tabId": 1612060238,
+          "frameId": 0,
+          "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+          "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        }
+      },
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"55600dbb-c6a4-4fd7-a837-5e7fafef52ab\",\"458a1346-0249-46fd-975d-491a63f8b0d5\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "createdAt": 1792461803440,
+      "cloudRequestId": "cloud:f45ab58c-e10d-4c01-9e35-0a1d9eb2e3fa",
+      "cloudRequestKey": "cloud:request:11135405fcb7b56de51f92d185144ce98301bb22ab601eb07ab757184ac4529e",
+      "terminalReason": {
+        "code": "E_HOST_CLOSED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "retirementId": "c4ce2193-f3d9-4040-98a4-9fb877041825",
+      "targetQuarantine": {
+        "state": "quarantined",
+        "reason": "previous-session-ownership-unverified",
+        "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+        "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+        "tabId": 1612060238,
+        "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+        "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+        "observedSession": "baf0757c-c886-4e89-9cf6-b599f74dcfd0",
+        "observedAt": 1792461821426
+      }
+    },
+    {
+      "tag": "controller-run",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "registrationId": "2e020d05-93f0-46b5-868a-72de7114210c",
+      "hostDocumentId": "50ED6BD4522AF9FC210B03DFDEF37886",
+      "hostInstanceId": "924e6425-6def-496e-903e-336d893f3399",
+      "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "builtinAbi": "opendesk-builtins.v10",
+      "sourceKind": "saved",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "installedTaskAuthorization": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "authorization": {
+          "tag": "task-install-authorization-v1",
+          "installationId": "2767b3ff-1b6f-49c8-b833-bea9a72689e5",
+          "generation": 1,
+          "scope": {
+            "capabilities": [
+              "page.automation"
+            ],
+            "siteOrigins": [
+              "http://127.0.0.1:43111"
+            ],
+            "networkOrigins": []
+          }
+        }
+      },
+      "opId": "853d4835-c9d7-43c0-9b09-5c2f71c4c4f0",
+      "resultId": "2a4812da-6eed-46e5-a8cb-c4419a18926d",
+      "requestId": "cloud:e2445f1c-b680-4ed7-b5aa-728ea7bc4aa9",
+      "requestDigest": "e368e3cd77367318c4c63ef6b6de259b7390e40e3ef6a0daa003ae96879ea959",
+      "deadlineAt": 1792427088320,
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "delayMs",
+            {
+              "type": "number",
+              "value": 45000
+            }
+          ],
+          [
+            "name",
+            {
+              "type": "string",
+              "value": "R17 restart unknown"
+            }
+          ]
+        ]
+      },
+      "selection": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "startUrl": "http://127.0.0.1:43111/demo-form.html",
+      "nativeFence": {
+        "tabEpoch": 0,
+        "frameEpoch": 0,
+        "rootFrameEpoch": 0,
+        "permissionEpoch": 0
+      },
+      "nativeNetworkFences": [],
+      "networkOrigins": [],
+      "nativeTabId": 1612059879,
+      "state": "interrupted",
+      "ownerEpoch": 4,
+      "runRevision": 7,
+      "eventSeq": 3,
+      "cancelSeq": 3,
+      "workerRetired": true,
+      "retirementState": "released",
+      "target": {
+        "tabId": 1612059879,
+        "frameId": 0,
+        "documentId": "0277860F9C764E0DC54A8741244A9E09",
+        "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+        "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+        "targetVersion": 2,
+        "mode": "owned",
+        "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+      },
+      "identity": {
+        "tag": "controller-run",
+        "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+        "hostInstanceId": "924e6425-6def-496e-903e-336d893f3399",
+        "hostDocumentId": "50ED6BD4522AF9FC210B03DFDEF37886",
+        "ownerEpoch": 1,
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "target": {
+          "tabId": 1612059879,
+          "frameId": 0,
+          "documentId": "0277860F9C764E0DC54A8741244A9E09",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+          "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+        }
+      },
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"912d8a99-ebae-4f67-946e-93fed5b31d48\",\"853d4835-c9d7-43c0-9b09-5c2f71c4c4f0\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "createdAt": 1792427028330,
+      "cloudRequestId": "cloud:e2445f1c-b680-4ed7-b5aa-728ea7bc4aa9",
+      "cloudRequestKey": "cloud:request:f77a529fd1c5212e1ac26d97af3f4d3c6409dd977063ba2bb4c8c09159c8e72e",
+      "terminalReason": {
+        "code": "E_HOST_CLOSED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "retirementId": "820d3ce0-0b16-4676-8a18-4958916e03bc",
+      "targetQuarantine": {
+        "state": "quarantined",
+        "reason": "previous-session-ownership-unverified",
+        "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42",
+        "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+        "tabId": 1612059879,
+        "documentId": "0277860F9C764E0DC54A8741244A9E09",
+        "hostDocumentId": "50ED6BD4522AF9FC210B03DFDEF37886",
+        "observedSession": "cb60da99-e097-44af-83ad-b59050a80bb8",
+        "observedAt": 1792460866333
+      }
+    },
+    {
+      "tag": "controller-run",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "registrationId": "21cf0c0b-b913-4cc3-ace0-5c7edc58fcfa",
+      "hostDocumentId": "C67710769735BF1094DFDC17A5C5A60C",
+      "hostInstanceId": "df686f78-caf2-444a-93af-c5d45488541b",
+      "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "builtinAbi": "opendesk-builtins.v10",
+      "sourceKind": "saved",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "installedTaskAuthorization": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "authorization": {
+          "tag": "task-install-authorization-v1",
+          "installationId": "2767b3ff-1b6f-49c8-b833-bea9a72689e5",
+          "generation": 1,
+          "scope": {
+            "capabilities": [
+              "page.automation"
+            ],
+            "siteOrigins": [
+              "http://127.0.0.1:43111"
+            ],
+            "networkOrigins": []
+          }
+        }
+      },
+      "opId": "3a454a19-4c3b-4d96-bc08-37aa73288689",
+      "resultId": "a2c482ca-29b9-4d10-a82b-4da8284441e0",
+      "requestId": "cloud:eaecfe9d-22cf-4505-839b-07a07ab924f4",
+      "requestDigest": "59d3631577896d4a0746323ed5e029a1317020de69960a0c5c123703e7d0c993",
+      "deadlineAt": 1792461914162,
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "delayMs",
+            {
+              "type": "number",
+              "value": 0
+            }
+          ],
+          [
+            "name",
+            {
+              "type": "string",
+              "value": "R18-after-unknown-1792462500"
+            }
+          ]
+        ]
+      },
+      "selection": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "startUrl": "http://127.0.0.1:43111/demo-form.html",
+      "nativeFence": {
+        "tabEpoch": 0,
+        "frameEpoch": 0,
+        "rootFrameEpoch": 0,
+        "permissionEpoch": 0
+      },
+      "nativeNetworkFences": [],
+      "networkOrigins": [],
+      "nativeTabId": 1612060347,
+      "state": "completed",
+      "ownerEpoch": 2,
+      "runRevision": 5,
+      "eventSeq": 3,
+      "cancelSeq": 1,
+      "workerRetired": true,
+      "retirementState": "released",
+      "target": {
+        "tabId": 1612060347,
+        "frameId": 0,
+        "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+        "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+        "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+        "targetVersion": 2,
+        "mode": "owned",
+        "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+      },
+      "identity": {
+        "tag": "controller-run",
+        "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+        "hostInstanceId": "df686f78-caf2-444a-93af-c5d45488541b",
+        "hostDocumentId": "C67710769735BF1094DFDC17A5C5A60C",
+        "ownerEpoch": 1,
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "target": {
+          "tabId": 1612060347,
+          "frameId": 0,
+          "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+          "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+        }
+      },
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01\",\"3a454a19-4c3b-4d96-bc08-37aa73288689\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "createdAt": 1792461854171,
+      "cloudRequestId": "cloud:eaecfe9d-22cf-4505-839b-07a07ab924f4",
+      "cloudRequestKey": "cloud:request:17b65594c4d9b2df59e832650e89e65e28160b2ad68c09d4d621c4290e0479c0",
+      "retirementId": "8fc0165d-ce87-4978-96c9-8323446f6719",
+      "terminalReason": null
+    },
+    {
+      "tag": "controller-run",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "registrationId": "19427dfd-4fb9-4793-8018-45a5caf0e3d4",
+      "hostDocumentId": "77FF16ED7EBD0BFF243FFDD59E2F32AB",
+      "hostInstanceId": "15a4ba9b-0952-4b11-b8b1-59b9eb05566d",
+      "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8",
+      "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+      "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+      "builtinAbi": "opendesk-builtins.v10",
+      "sourceKind": "draft",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "opId": "54cb8d8e-060f-4243-8322-adc742de5d5e",
+      "resultId": "b24a3033-420d-4064-80e6-a73271d6d4c0",
+      "requestId": "f8279de9-4773-4d77-84bf-f9d66678194f",
+      "requestDigest": "c579e3c60e18417e593d59231e60d4d2b1b6fd6f8d31858ea8670546d2c562f1",
+      "deadlineAt": 1792461266930,
+      "paramsWire": {
+        "type": "object",
+        "value": []
+      },
+      "selection": {
+        "mode": "borrowed",
+        "tabId": 1612060232,
+        "frameId": 0,
+        "documentId": "C608956D957D5B335244D5191A8041F2",
+        "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+        "expectedWindowId": 1612060184
+      },
+      "startUrl": null,
+      "nativeFence": {
+        "tabEpoch": 0,
+        "frameEpoch": 1,
+        "rootFrameEpoch": 0,
+        "permissionEpoch": 0
+      },
+      "nativeNetworkFences": [],
+      "networkOrigins": [],
+      "nativeTabId": 1612060232,
+      "state": "completed",
+      "ownerEpoch": 2,
+      "runRevision": 5,
+      "eventSeq": 3,
+      "cancelSeq": 1,
+      "workerRetired": true,
+      "retirementState": "released",
+      "target": {
+        "tabId": 1612060232,
+        "frameId": 0,
+        "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+        "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "windowId": 1612060184,
+        "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+        "targetVersion": 2,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+      },
+      "identity": {
+        "tag": "controller-run",
+        "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+        "hostInstanceId": "15a4ba9b-0952-4b11-b8b1-59b9eb05566d",
+        "hostDocumentId": "77FF16ED7EBD0BFF243FFDD59E2F32AB",
+        "ownerEpoch": 1,
+        "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+        "revision": 1,
+        "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+        "target": {
+          "tabId": 1612060232,
+          "frameId": 0,
+          "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1612060184,
+          "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+          "targetVersion": 2,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+        }
+      },
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+        "revision": 1,
+        "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        }
+      },
+      "createdAt": 1792461236945,
+      "retirementId": "a9ec8b5f-1c65-4b09-8f78-60c058c29c18",
+      "terminalReason": null
+    },
+    {
+      "tag": "controller-run",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "registrationId": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+      "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "builtinAbi": "opendesk-builtins.v10",
+      "sourceKind": "saved",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "installedTaskAuthorization": {
+        "taskId": "cloud-r17-fixed-1792424831759",
+        "version": "1.0.3",
+        "manifestHash": "148ec9f9d479576bd5b6d624dc5b7f5fb4704ab4e98eca91d1ee4c8d924609bf",
+        "authorization": {
+          "tag": "task-install-authorization-v1",
+          "installationId": "2767b3ff-1b6f-49c8-b833-bea9a72689e5",
+          "generation": 1,
+          "scope": {
+            "capabilities": [
+              "page.automation"
+            ],
+            "siteOrigins": [
+              "http://127.0.0.1:43111"
+            ],
+            "networkOrigins": []
+          }
+        }
+      },
+      "opId": "5d2c4db1-94b8-47d7-91e1-cca872a75a12",
+      "resultId": "03cbd070-b1d3-4425-a800-b980ec2371bf",
+      "requestId": "cloud:8b9f119f-9a9d-4105-8e8c-a30f0864b961",
+      "requestDigest": "fda28beb64c55cf69d3bb528b1528629aa99bd910752bdce8117a335c4ab462e",
+      "deadlineAt": 1792461765405,
+      "paramsWire": {
+        "type": "object",
+        "value": [
+          [
+            "delayMs",
+            {
+              "type": "number",
+              "value": 0
+            }
+          ],
+          [
+            "name",
+            {
+              "type": "string",
+              "value": "R18-recovered-1792462210"
+            }
+          ]
+        ]
+      },
+      "selection": {
+        "mode": "owned",
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "startUrl": "http://127.0.0.1:43111/demo-form.html",
+      "nativeFence": {
+        "tabEpoch": 0,
+        "frameEpoch": 0,
+        "rootFrameEpoch": 0,
+        "permissionEpoch": 0
+      },
+      "nativeNetworkFences": [],
+      "networkOrigins": [],
+      "nativeTabId": 1612060236,
+      "state": "completed",
+      "ownerEpoch": 2,
+      "runRevision": 5,
+      "eventSeq": 3,
+      "cancelSeq": 1,
+      "workerRetired": true,
+      "retirementState": "released",
+      "target": {
+        "tabId": 1612060236,
+        "frameId": 0,
+        "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+        "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+        "allowedOrigin": "http://127.0.0.1:43111",
+        "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+        "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+        "targetVersion": 2,
+        "mode": "owned",
+        "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+      },
+      "identity": {
+        "tag": "controller-run",
+        "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+        "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+        "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+        "ownerEpoch": 1,
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "target": {
+          "tabId": 1612060236,
+          "frameId": 0,
+          "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+          "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        }
+      },
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"ffcbb459-b542-489b-aabd-69f4256bc8de\",\"5d2c4db1-94b8-47d7-91e1-cca872a75a12\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "createdAt": 1792461705414,
+      "cloudRequestId": "cloud:8b9f119f-9a9d-4105-8e8c-a30f0864b961",
+      "cloudRequestKey": "cloud:request:e823a83649c58458f656fcb151eb5102888090a365bbafdd2ab37f06ffc327aa",
+      "retirementId": "9e57b2fc-f87f-4c8f-97ee-0e8af8917305",
+      "terminalReason": null
+    }
+  ],
+  "slot": {
+    "tag": "slot",
+    "currentRunId": null,
+    "state": "available",
+    "releaseCount": 1,
+    "fencedEpoch": 2,
+    "retirementId": "8fc0165d-ce87-4978-96c9-8323446f6719"
+  },
+  "results": [
+    {
+      "tag": "controller-result",
+      "resultId": "03cbd070-b1d3-4425-a800-b980ec2371bf",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"ffcbb459-b542-489b-aabd-69f4256bc8de\",\"5d2c4db1-94b8-47d7-91e1-cca872a75a12\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "sourceKind": "saved",
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "receipt",
+              {
+                "type": "string",
+                "value": "R18-recovered-1792462210"
+              }
+            ]
+          ]
+        }
+      },
+      "committedAt": 1792461709557
+    },
+    {
+      "tag": "controller-result",
+      "resultId": "2a4812da-6eed-46e5-a8cb-c4419a18926d",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"912d8a99-ebae-4f67-946e-93fed5b31d48\",\"853d4835-c9d7-43c0-9b09-5c2f71c4c4f0\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "sourceKind": "saved",
+      "state": "interrupted",
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_HOST_CLOSED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "committedAt": 1792427045163
+    },
+    {
+      "tag": "controller-result",
+      "resultId": "a2c482ca-29b9-4d10-a82b-4da8284441e0",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01\",\"3a454a19-4c3b-4d96-bc08-37aa73288689\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "sourceKind": "saved",
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "receipt",
+              {
+                "type": "string",
+                "value": "R18-after-unknown-1792462500"
+              }
+            ]
+          ]
+        }
+      },
+      "committedAt": 1792461858463
+    },
+    {
+      "tag": "controller-result",
+      "resultId": "b24a3033-420d-4064-80e6-a73271d6d4c0",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+        "revision": 1,
+        "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        }
+      },
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "sourceKind": "draft",
+      "state": "completed",
+      "outcome": {
+        "ok": true,
+        "valueWire": {
+          "type": "object",
+          "value": [
+            [
+              "receipt",
+              {
+                "type": "string",
+                "value": "Cloud R17 newly delivered Controller"
+              }
+            ]
+          ]
+        }
+      },
+      "committedAt": 1792461237897
+    },
+    {
+      "tag": "controller-result",
+      "resultId": "c432a39e-0049-46d7-86a3-9613b8856fd6",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": {
+        "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+        },
+        "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+        "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"55600dbb-c6a4-4fd7-a837-5e7fafef52ab\",\"458a1346-0249-46fd-975d-491a63f8b0d5\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+      },
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "sourceKind": "saved",
+      "state": "interrupted",
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_HOST_CLOSED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "committedAt": 1792461821424
+    }
+  ],
+  "journal": [
+    {
+      "tag": "controller-start",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "requestDigest": "fda28beb64c55cf69d3bb528b1528629aa99bd910752bdce8117a335c4ab462e"
+    },
+    {
+      "tag": "controller-start",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "requestDigest": "e368e3cd77367318c4c63ef6b6de259b7390e40e3ef6a0daa003ae96879ea959"
+    },
+    {
+      "tag": "controller-start",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "requestDigest": "59d3631577896d4a0746323ed5e029a1317020de69960a0c5c123703e7d0c993"
+    },
+    {
+      "tag": "controller-start",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "requestDigest": "424b65e73e4530deffd726aa0183317e931d97314e9f7e12d1f2ba268e90bfb9"
+    },
+    {
+      "tag": "controller-target-create",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "bootstrapUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/target-bootstrap.html?creationId=53578f67-c4d7-4240-8437-fbcc131a25f2",
+      "state": "created",
+      "submissionCount": 1,
+      "tabId": 1612060238,
+      "dispatchAt": 1792461803455,
+      "receiptAt": 1792461803469,
+      "bootstrapDocumentId": "2B51BC1649E695A354C21FD9B4B858A9",
+      "navigationSubmissionCount": 1,
+      "navigationState": "dispatched"
+    },
+    {
+      "tag": "controller-target-create",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+      "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42",
+      "bootstrapUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/target-bootstrap.html?creationId=8dc134e0-dcf3-429e-bdfa-56053f31101b",
+      "state": "created",
+      "submissionCount": 1,
+      "tabId": 1612059879,
+      "dispatchAt": 1792427028347,
+      "receiptAt": 1792427028364,
+      "bootstrapDocumentId": "FCA53B05AD9297E585E1304414F31925",
+      "navigationSubmissionCount": 1,
+      "navigationState": "dispatched"
+    },
+    {
+      "tag": "controller-target-create",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+      "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0",
+      "bootstrapUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/target-bootstrap.html?creationId=688b0178-78fc-444a-a637-f0262eb68b61",
+      "state": "created",
+      "submissionCount": 1,
+      "tabId": 1612060347,
+      "dispatchAt": 1792461854188,
+      "receiptAt": 1792461854200,
+      "bootstrapDocumentId": "2768131A87777F3BDC0A9CA57B9F52DA",
+      "navigationSubmissionCount": 1,
+      "navigationState": "dispatched"
+    },
+    {
+      "tag": "controller-target-create",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "bootstrapUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/target-bootstrap.html?creationId=3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+      "state": "created",
+      "submissionCount": 1,
+      "tabId": 1612060236,
+      "dispatchAt": 1792461705429,
+      "receiptAt": 1792461705444,
+      "bootstrapDocumentId": "91D7DE7A91D108D0B83CC59D4903717B",
+      "navigationSubmissionCount": 1,
+      "navigationState": "dispatched"
+    },
+    {
+      "tag": "controller-finish",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "requestDigest": "3c6dc937225994e0ff0d1ad6a66089a10c2b19e7f8838932bb357bdf21d9243e"
+    },
+    {
+      "tag": "controller-finish",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "requestDigest": "95a88272918e2165098f5af0b149acb2a8fa7a04fdc33acf6b796a21946ab1ff"
+    },
+    {
+      "tag": "controller-finish",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "requestDigest": "a34358719a191323b37c776f1eb8f65726820011bac34049d6960168dddc173f"
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "requestDigest": "177f5f12ab708b8993a1d41ef04584ac5a68df092f2562a0edd6b966c181c2c0",
+      "envelope": {
+        "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+          "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+          "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060238,
+            "frameId": 0,
+            "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+            "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"55600dbb-c6a4-4fd7-a837-5e7fafef52ab\",\"458a1346-0249-46fd-975d-491a63f8b0d5\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060238,
+          "frameId": 0,
+          "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+          "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "fill"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "R18-unknown-effect-1792462350"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "effect_unknown",
+      "submissionCount": 1,
+      "dispatchAt": 1792461803648,
+      "nativeReceipts": [
+        {
+          "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+          "stage": "scripting.executeScript",
+          "receipt": [
+            {
+              "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+              "frameId": 0,
+              "result": null
+            }
+          ]
+        },
+        {
+          "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "9C723FC0BC377709B7F9C59354FC717E"
+          }
+        },
+        {
+          "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "0535e2a7c6e16f8c56c133073d3e0e39",
+            "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "scrolled",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+          "stage": "locator.scrollCommitted",
+          "receipt": {
+            "documentId": "9C723FC0BC377709B7F9C59354FC717E"
+          }
+        },
+        {
+          "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "9C723FC0BC377709B7F9C59354FC717E"
+          }
+        },
+        {
+          "requestId": "01c759a5fc7ffd027ec6384563708fdf",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "e8cf583159bbc64a5d5dbfdf0ea0535e",
+            "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      ],
+      "failure": {
+        "code": "E_DOCUMENT_REPLACED",
+        "name": "FoundationError",
+        "message": "E_DOCUMENT_REPLACED"
+      },
+      "deliveryState": "fenced"
+    },
+    {
+      "tag": "controller-navigation",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "requestDigest": "b57995657ef3b97e5c365803f7642c415421437da77faba2900fbff9ef33d245",
+      "envelope": {
+        "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+          "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+          "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060238,
+            "frameId": 0,
+            "documentId": "E18A40DA37C57ECA227A64338A890091",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+            "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"55600dbb-c6a4-4fd7-a837-5e7fafef52ab\",\"458a1346-0249-46fd-975d-491a63f8b0d5\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060238,
+          "frameId": 0,
+          "documentId": "E18A40DA37C57ECA227A64338A890091",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+          "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "operation": {
+          "kind": "browser",
+          "method": "goto",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 30000
+                    }
+                  ],
+                  [
+                    "waitUntil",
+                    {
+                      "t": "string",
+                      "v": "complete"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461803597,
+      "nativeReceipts": [
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "E18A40DA37C57ECA227A64338A890091",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 28,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "E18A40DA37C57ECA227A64338A890091",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 28,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "E18A40DA37C57ECA227A64338A890091",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 28,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "tabs.update",
+          "receipt": {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": false,
+            "id": 1612060238,
+            "incognito": false,
+            "index": 2,
+            "lastAccessed": 1792461803456.162,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pendingUrl": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "loading",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 1200,
+            "windowId": 1612060184
+          }
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 28,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 28,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "result",
+          "receipt": {
+            "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+            "value": {
+              "t": "undefined"
+            },
+            "handoff": {
+              "from": {
+                "tabId": 1612060238,
+                "frameId": 0,
+                "documentId": "E18A40DA37C57ECA227A64338A890091",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+                "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+                "targetVersion": 1,
+                "mode": "owned",
+                "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+              },
+              "to": {
+                "tabId": 1612060238,
+                "frameId": 0,
+                "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+                "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+                "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+                "targetVersion": 2,
+                "mode": "owned",
+                "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+              }
+            }
+          }
+        },
+        {
+          "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 28,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461803643,
+      "reply": {
+        "requestId": "13ee4b7314fbe7ad6333870cb086e919",
+        "value": {
+          "t": "undefined"
+        },
+        "handoff": {
+          "from": {
+            "tabId": 1612060238,
+            "frameId": 0,
+            "documentId": "E18A40DA37C57ECA227A64338A890091",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+            "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          },
+          "to": {
+            "tabId": 1612060238,
+            "frameId": 0,
+            "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+            "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        }
+      },
+      "targetTransition": {
+        "navigationIntentId": "13ee4b7314fbe7ad6333870cb086e919",
+        "from": {
+          "tabId": 1612060238,
+          "frameId": 0,
+          "documentId": "E18A40DA37C57ECA227A64338A890091",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+          "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "to": {
+          "tabId": 1612060238,
+          "frameId": 0,
+          "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+          "targetSessionId": "46eb99da-1353-494d-b34f-80f15c38ee4c",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        }
+      }
+    },
+    {
+      "tag": "controller-navigation",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "requestDigest": "5999e69e81e9b7c1d65702e51c405d43dd202da5bfefcf46751a369b0a83bef5",
+      "envelope": {
+        "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+          "hostInstanceId": "924e6425-6def-496e-903e-336d893f3399",
+          "hostDocumentId": "50ED6BD4522AF9FC210B03DFDEF37886",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612059879,
+            "frameId": 0,
+            "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+            "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"912d8a99-ebae-4f67-946e-93fed5b31d48\",\"853d4835-c9d7-43c0-9b09-5c2f71c4c4f0\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612059879,
+          "frameId": 0,
+          "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+          "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+        },
+        "operation": {
+          "kind": "browser",
+          "method": "goto",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 30000
+                    }
+                  ],
+                  [
+                    "waitUntil",
+                    {
+                      "t": "string",
+                      "v": "complete"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792427028494,
+      "nativeReceipts": [
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 40,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 40,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 40,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "tabs.update",
+          "receipt": {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 799,
+            "highlighted": false,
+            "id": 1612059879,
+            "incognito": false,
+            "index": 4,
+            "lastAccessed": 1792427028348.062,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pendingUrl": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "loading",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 814,
+            "windowId": 1612059856
+          }
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "0277860F9C764E0DC54A8741244A9E09",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 40,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "0277860F9C764E0DC54A8741244A9E09",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 40,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "result",
+          "receipt": {
+            "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+            "value": {
+              "t": "undefined"
+            },
+            "handoff": {
+              "from": {
+                "tabId": 1612059879,
+                "frameId": 0,
+                "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+                "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+                "targetVersion": 1,
+                "mode": "owned",
+                "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+              },
+              "to": {
+                "tabId": 1612059879,
+                "frameId": 0,
+                "documentId": "0277860F9C764E0DC54A8741244A9E09",
+                "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+                "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+                "targetVersion": 2,
+                "mode": "owned",
+                "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+              }
+            }
+          }
+        },
+        {
+          "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "0277860F9C764E0DC54A8741244A9E09",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 40,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792427028546,
+      "reply": {
+        "requestId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+        "value": {
+          "t": "undefined"
+        },
+        "handoff": {
+          "from": {
+            "tabId": 1612059879,
+            "frameId": 0,
+            "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+            "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+          },
+          "to": {
+            "tabId": 1612059879,
+            "frameId": 0,
+            "documentId": "0277860F9C764E0DC54A8741244A9E09",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+            "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+          }
+        }
+      },
+      "targetTransition": {
+        "navigationIntentId": "9b837c3f9f6ef71d9fc71d1a5d7f6452",
+        "from": {
+          "tabId": 1612059879,
+          "frameId": 0,
+          "documentId": "2DE85B7CD7A033B6683791041C9D090E",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+          "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+        },
+        "to": {
+          "tabId": 1612059879,
+          "frameId": 0,
+          "documentId": "0277860F9C764E0DC54A8741244A9E09",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+          "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "requestDigest": "9c3348a3ac0c7154cd2168ea53418c3e5e946fbafcdb8d4719110013ac92043d",
+      "envelope": {
+        "requestId": "e532fd53b11a1ecaec393e581fad066b",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+          "hostInstanceId": "924e6425-6def-496e-903e-336d893f3399",
+          "hostDocumentId": "50ED6BD4522AF9FC210B03DFDEF37886",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612059879,
+            "frameId": 0,
+            "documentId": "0277860F9C764E0DC54A8741244A9E09",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+            "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"912d8a99-ebae-4f67-946e-93fed5b31d48\",\"853d4835-c9d7-43c0-9b09-5c2f71c4c4f0\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612059879,
+          "frameId": 0,
+          "documentId": "0277860F9C764E0DC54A8741244A9E09",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+          "targetSessionId": "ea0aae7a-75d6-43aa-bf7f-8d67425034d5",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "fill"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "R17 restart unknown"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792427028552,
+      "nativeReceipts": [
+        {
+          "requestId": "e532fd53b11a1ecaec393e581fad066b",
+          "stage": "scripting.executeScript",
+          "receipt": [
+            {
+              "documentId": "0277860F9C764E0DC54A8741244A9E09",
+              "frameId": 0,
+              "result": null
+            }
+          ]
+        },
+        {
+          "requestId": "e532fd53b11a1ecaec393e581fad066b",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "0277860F9C764E0DC54A8741244A9E09"
+          }
+        },
+        {
+          "requestId": "e532fd53b11a1ecaec393e581fad066b",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "a4ecb6898dab716d48203ec906216c97",
+            "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "e532fd53b11a1ecaec393e581fad066b",
+          "stage": "result",
+          "receipt": {
+            "requestId": "e532fd53b11a1ecaec393e581fad066b",
+            "value": {
+              "t": "undefined"
+            }
+          }
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792427032123,
+      "reply": {
+        "requestId": "e532fd53b11a1ecaec393e581fad066b",
+        "value": {
+          "t": "undefined"
+        }
+      }
+    },
+    {
+      "tag": "controller-navigation",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "requestDigest": "0a43e8edf77cdba2d91627daa649d290fc148f3b52f38f07c0c0d79440c412bc",
+      "envelope": {
+        "requestId": "201422d21eb5fe3f41b4dd769e888845",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+          "hostInstanceId": "df686f78-caf2-444a-93af-c5d45488541b",
+          "hostDocumentId": "C67710769735BF1094DFDC17A5C5A60C",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060347,
+            "frameId": 0,
+            "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+            "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01\",\"3a454a19-4c3b-4d96-bc08-37aa73288689\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060347,
+          "frameId": 0,
+          "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+          "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+        },
+        "operation": {
+          "kind": "browser",
+          "method": "goto",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 30000
+                    }
+                  ],
+                  [
+                    "waitUntil",
+                    {
+                      "t": "string",
+                      "v": "complete"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461854331,
+      "nativeReceipts": [
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "tabs.update",
+          "receipt": {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": false,
+            "id": 1612060347,
+            "incognito": false,
+            "index": 1,
+            "lastAccessed": 1792461854190.932,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pendingUrl": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "loading",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 1200,
+            "windowId": 1612060293
+          }
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "result",
+          "receipt": {
+            "requestId": "201422d21eb5fe3f41b4dd769e888845",
+            "value": {
+              "t": "undefined"
+            },
+            "handoff": {
+              "from": {
+                "tabId": 1612060347,
+                "frameId": 0,
+                "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+                "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+                "targetVersion": 1,
+                "mode": "owned",
+                "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+              },
+              "to": {
+                "tabId": 1612060347,
+                "frameId": 0,
+                "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+                "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+                "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+                "targetVersion": 2,
+                "mode": "owned",
+                "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+              }
+            }
+          }
+        },
+        {
+          "requestId": "201422d21eb5fe3f41b4dd769e888845",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461854383,
+      "reply": {
+        "requestId": "201422d21eb5fe3f41b4dd769e888845",
+        "value": {
+          "t": "undefined"
+        },
+        "handoff": {
+          "from": {
+            "tabId": 1612060347,
+            "frameId": 0,
+            "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+            "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+          },
+          "to": {
+            "tabId": 1612060347,
+            "frameId": 0,
+            "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+            "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+          }
+        }
+      },
+      "targetTransition": {
+        "navigationIntentId": "201422d21eb5fe3f41b4dd769e888845",
+        "from": {
+          "tabId": 1612060347,
+          "frameId": 0,
+          "documentId": "6AC289214E9C4022A480AA4BE1CB604F",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+          "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+        },
+        "to": {
+          "tabId": 1612060347,
+          "frameId": 0,
+          "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+          "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "requestDigest": "53936aca1d6edfcdedfdddf567f771d333f9f9d88fd8fc3af765c3b75135a650",
+      "envelope": {
+        "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+          "hostInstanceId": "df686f78-caf2-444a-93af-c5d45488541b",
+          "hostDocumentId": "C67710769735BF1094DFDC17A5C5A60C",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060347,
+            "frameId": 0,
+            "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+            "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01\",\"3a454a19-4c3b-4d96-bc08-37aa73288689\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060347,
+          "frameId": 0,
+          "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+          "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorRead",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "inputValue"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461858428,
+      "nativeReceipts": [
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+            "ready": true
+          }
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+            "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "string",
+              "v": "R18-after-unknown-1792462500"
+            }
+          }
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "result",
+          "receipt": {
+            "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+            "value": {
+              "t": "string",
+              "v": "R18-after-unknown-1792462500"
+            }
+          }
+        },
+        {
+          "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 11,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "string",
+        "value": "R18-after-unknown-1792462500"
+      },
+      "receiptAt": 1792461858457,
+      "reply": {
+        "requestId": "8b5710ff88c3e83a2803e6e0c3036aa7",
+        "value": {
+          "t": "string",
+          "v": "R18-after-unknown-1792462500"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "requestDigest": "78aee6e03cf96810e55b754b56d4e14e398c20f5505f3362ece9eb3e186ba2c2",
+      "envelope": {
+        "requestId": "c576115dcd43109549238638f151a757",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+          "hostInstanceId": "df686f78-caf2-444a-93af-c5d45488541b",
+          "hostDocumentId": "C67710769735BF1094DFDC17A5C5A60C",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060347,
+            "frameId": 0,
+            "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+            "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01\",\"3a454a19-4c3b-4d96-bc08-37aa73288689\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060347,
+          "frameId": 0,
+          "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "688b0178-78fc-444a-a637-f0262eb68b61",
+          "targetSessionId": "4f3a3017-719a-4c36-a96e-27ef02f0f927",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "fill"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "R18-after-unknown-1792462500"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461854390,
+      "nativeReceipts": [
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "scripting.executeScript",
+          "receipt": [
+            {
+              "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6",
+              "frameId": 0,
+              "result": null
+            }
+          ]
+        },
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6"
+          }
+        },
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "b14eddc80141f58b88ed822f5ded1d3d",
+            "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "scrolled",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "locator.scrollCommitted",
+          "receipt": {
+            "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6"
+          }
+        },
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "4CD5AA82BE35F11735F16D6BA008EFA6"
+          }
+        },
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "4f9d0c3041bde6408d01af6af3b8f611",
+            "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "c576115dcd43109549238638f151a757",
+          "stage": "result",
+          "receipt": {
+            "requestId": "c576115dcd43109549238638f151a757",
+            "value": {
+              "t": "undefined"
+            }
+          }
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461858422,
+      "reply": {
+        "requestId": "c576115dcd43109549238638f151a757",
+        "value": {
+          "t": "undefined"
+        }
+      }
+    },
+    {
+      "tag": "controller-navigation",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "requestDigest": "f4205edf37d306ac38dc76b05e02943a95301d8bba39babcec3a98176dccd128",
+      "envelope": {
+        "requestId": "5960667f0ea964b26ac210f828da2ce1",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+          "hostInstanceId": "15a4ba9b-0952-4b11-b8b1-59b9eb05566d",
+          "hostDocumentId": "77FF16ED7EBD0BFF243FFDD59E2F32AB",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+          "revision": 1,
+          "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+          "target": {
+            "tabId": 1612060232,
+            "frameId": 0,
+            "documentId": "C608956D957D5B335244D5191A8041F2",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1612060184,
+            "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+          "revision": 1,
+          "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          }
+        },
+        "target": {
+          "tabId": 1612060232,
+          "frameId": 0,
+          "documentId": "C608956D957D5B335244D5191A8041F2",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1612060184,
+          "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+        },
+        "operation": {
+          "kind": "browser",
+          "method": "goto",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 30000
+                    }
+                  ],
+                  [
+                    "waitUntil",
+                    {
+                      "t": "string",
+                      "v": "complete"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461237018,
+      "nativeReceipts": [
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "C608956D957D5B335244D5191A8041F2",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "C608956D957D5B335244D5191A8041F2",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "C608956D957D5B335244D5191A8041F2",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "tabs.update",
+          "receipt": {
+            "active": true,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 799,
+            "highlighted": true,
+            "id": 1612060232,
+            "incognito": false,
+            "index": 2,
+            "lastAccessed": 1792461236513.891,
+            "mutedInfo": {
+              "muted": false
+            },
+            "openerTabId": 1612060227,
+            "pendingUrl": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+            "pinned": false,
+            "selected": true,
+            "splitViewId": -1,
+            "status": "loading",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 814,
+            "windowId": 1612060184
+          }
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "result",
+          "receipt": {
+            "requestId": "5960667f0ea964b26ac210f828da2ce1",
+            "value": {
+              "t": "undefined"
+            },
+            "handoff": {
+              "from": {
+                "tabId": 1612060232,
+                "frameId": 0,
+                "documentId": "C608956D957D5B335244D5191A8041F2",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "windowId": 1612060184,
+                "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+              },
+              "to": {
+                "tabId": 1612060232,
+                "frameId": 0,
+                "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+                "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "windowId": 1612060184,
+                "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+                "targetVersion": 2,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+              }
+            }
+          }
+        },
+        {
+          "requestId": "5960667f0ea964b26ac210f828da2ce1",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461237107,
+      "reply": {
+        "requestId": "5960667f0ea964b26ac210f828da2ce1",
+        "value": {
+          "t": "undefined"
+        },
+        "handoff": {
+          "from": {
+            "tabId": 1612060232,
+            "frameId": 0,
+            "documentId": "C608956D957D5B335244D5191A8041F2",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1612060184,
+            "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+          },
+          "to": {
+            "tabId": 1612060232,
+            "frameId": 0,
+            "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1612060184,
+            "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+            "targetVersion": 2,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+          }
+        }
+      },
+      "targetTransition": {
+        "navigationIntentId": "5960667f0ea964b26ac210f828da2ce1",
+        "from": {
+          "tabId": 1612060232,
+          "frameId": 0,
+          "documentId": "C608956D957D5B335244D5191A8041F2",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1612060184,
+          "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+        },
+        "to": {
+          "tabId": 1612060232,
+          "frameId": 0,
+          "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1612060184,
+          "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+          "targetVersion": 2,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "requestDigest": "14301778b6efc7b6a507a26d7cdbaf649e6ba6c441f60a40f81e7a07efb9c9a9",
+      "envelope": {
+        "requestId": "9d46a53794bad9b6192972d91bfaff07",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+          "hostInstanceId": "15a4ba9b-0952-4b11-b8b1-59b9eb05566d",
+          "hostDocumentId": "77FF16ED7EBD0BFF243FFDD59E2F32AB",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+          "revision": 1,
+          "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+          "target": {
+            "tabId": 1612060232,
+            "frameId": 0,
+            "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1612060184,
+            "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+            "targetVersion": 2,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+          "revision": 1,
+          "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          }
+        },
+        "target": {
+          "tabId": 1612060232,
+          "frameId": 0,
+          "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1612060184,
+          "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+          "targetVersion": 2,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorRead",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "inputValue"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461237872,
+      "nativeReceipts": [
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+            "ready": true
+          }
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "9d46a53794bad9b6192972d91bfaff07",
+            "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "string",
+              "v": "Cloud R17 newly delivered Controller"
+            }
+          }
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "result",
+          "receipt": {
+            "requestId": "9d46a53794bad9b6192972d91bfaff07",
+            "value": {
+              "t": "string",
+              "v": "Cloud R17 newly delivered Controller"
+            }
+          }
+        },
+        {
+          "requestId": "9d46a53794bad9b6192972d91bfaff07",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 17,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form"
+            },
+            {
+              "documentId": "739162D6638AF0C7BE5B530C953DB34C",
+              "documentLifecycle": "prerender",
+              "errorOccurred": false,
+              "frameId": 18,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 19,
+              "url": "https://www.google.com/search/warmup.html"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "string",
+        "value": "Cloud R17 newly delivered Controller"
+      },
+      "receiptAt": 1792461237892,
+      "reply": {
+        "requestId": "9d46a53794bad9b6192972d91bfaff07",
+        "value": {
+          "t": "string",
+          "v": "Cloud R17 newly delivered Controller"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "requestDigest": "af60a666cc9baa4722d7f0701b3ad1707a4728cffbc2bde130f7109253396f3c",
+      "envelope": {
+        "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+          "hostInstanceId": "15a4ba9b-0952-4b11-b8b1-59b9eb05566d",
+          "hostDocumentId": "77FF16ED7EBD0BFF243FFDD59E2F32AB",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+          "revision": 1,
+          "contentHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+          "target": {
+            "tabId": 1612060232,
+            "frameId": 0,
+            "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1612060184,
+            "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+            "targetVersion": 2,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d9ae5525-f626-4841-994a-304a7cd6f942",
+          "revision": 1,
+          "sourceHash": "61673a324ee8f30f383dc100f5806a3c68ac4cc663c3a37b451879b79d383925",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          }
+        },
+        "target": {
+          "tabId": 1612060232,
+          "frameId": 0,
+          "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17-delivery=1792426584969#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 1612060184,
+          "targetSessionId": "f9acebd0-4e12-45ff-97a6-cd031402de3e",
+          "targetVersion": 2,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "fill"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "Cloud R17 newly delivered Controller"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461237112,
+      "nativeReceipts": [
+        {
+          "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+          "stage": "scripting.executeScript",
+          "receipt": [
+            {
+              "documentId": "8238FF590AF0544C842C1724B9B87CFA",
+              "frameId": 0,
+              "result": null
+            }
+          ]
+        },
+        {
+          "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "8238FF590AF0544C842C1724B9B87CFA"
+          }
+        },
+        {
+          "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "5997f21df4576fec4e76880ffcfd39b3",
+            "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+          "stage": "result",
+          "receipt": {
+            "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+            "value": {
+              "t": "undefined"
+            }
+          }
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461237867,
+      "reply": {
+        "requestId": "ec883fe4d8eadbc9f06edad23827c5e0",
+        "value": {
+          "t": "undefined"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "requestDigest": "e369e2d94cbcb8cbf2222515e7a1331f78db08e75f83ca32e6aa722e25b68c10",
+      "envelope": {
+        "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+          "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+          "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060236,
+            "frameId": 0,
+            "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+            "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"ffcbb459-b542-489b-aabd-69f4256bc8de\",\"5d2c4db1-94b8-47d7-91e1-cca872a75a12\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060236,
+          "frameId": 0,
+          "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+          "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "fill"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "R18-recovered-1792462210"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461705632,
+      "nativeReceipts": [
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "scripting.executeScript",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "frameId": 0,
+              "result": null
+            }
+          ]
+        },
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8"
+          }
+        },
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "f6e06b5af8fa4895f38aa721a0dd9cc5",
+            "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "scrolled",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "locator.scrollCommitted",
+          "receipt": {
+            "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8"
+          }
+        },
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "locator.commitIntent",
+          "receipt": {
+            "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8"
+          }
+        },
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "1593e98c9d6436292d162ecbb927f8f8",
+            "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "committed",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+          "stage": "result",
+          "receipt": {
+            "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+            "value": {
+              "t": "undefined"
+            }
+          }
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461709515,
+      "reply": {
+        "requestId": "26dd5909e07e9c26aacbf22131135fa2",
+        "value": {
+          "t": "undefined"
+        }
+      }
+    },
+    {
+      "tag": "controller-navigation",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "requestDigest": "05670d15bbb2ec44397ed52418c270c4893a8ba35f9aae6a36bcd963645b1558",
+      "envelope": {
+        "requestId": "4033d3d45820d826a9793f2a1196eccb",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+          "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+          "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060236,
+            "frameId": 0,
+            "documentId": "77FFD166F8994C4487FD745BD035A75E",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+            "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"ffcbb459-b542-489b-aabd-69f4256bc8de\",\"5d2c4db1-94b8-47d7-91e1-cca872a75a12\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060236,
+          "frameId": 0,
+          "documentId": "77FFD166F8994C4487FD745BD035A75E",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+          "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "operation": {
+          "kind": "browser",
+          "method": "goto",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 30000
+                    }
+                  ],
+                  [
+                    "waitUntil",
+                    {
+                      "t": "string",
+                      "v": "complete"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461705574,
+      "nativeReceipts": [
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "77FFD166F8994C4487FD745BD035A75E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "77FFD166F8994C4487FD745BD035A75E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "77FFD166F8994C4487FD745BD035A75E",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html"
+            }
+          ]
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "tabs.update",
+          "receipt": {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": false,
+            "id": 1612060236,
+            "incognito": false,
+            "index": 2,
+            "lastAccessed": 1792461705431.133,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pendingUrl": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "loading",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 1200,
+            "windowId": 1612060184
+          }
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "result",
+          "receipt": {
+            "requestId": "4033d3d45820d826a9793f2a1196eccb",
+            "value": {
+              "t": "undefined"
+            },
+            "handoff": {
+              "from": {
+                "tabId": 1612060236,
+                "frameId": 0,
+                "documentId": "77FFD166F8994C4487FD745BD035A75E",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+                "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+                "targetVersion": 1,
+                "mode": "owned",
+                "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+              },
+              "to": {
+                "tabId": 1612060236,
+                "frameId": 0,
+                "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+                "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+                "allowedOrigin": "http://127.0.0.1:43111",
+                "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+                "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+                "targetVersion": 2,
+                "mode": "owned",
+                "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+              }
+            }
+          }
+        },
+        {
+          "requestId": "4033d3d45820d826a9793f2a1196eccb",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "undefined"
+      },
+      "receiptAt": 1792461705626,
+      "reply": {
+        "requestId": "4033d3d45820d826a9793f2a1196eccb",
+        "value": {
+          "t": "undefined"
+        },
+        "handoff": {
+          "from": {
+            "tabId": 1612060236,
+            "frameId": 0,
+            "documentId": "77FFD166F8994C4487FD745BD035A75E",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+            "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+            "targetVersion": 1,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          },
+          "to": {
+            "tabId": 1612060236,
+            "frameId": 0,
+            "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+            "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        }
+      },
+      "targetTransition": {
+        "navigationIntentId": "4033d3d45820d826a9793f2a1196eccb",
+        "from": {
+          "tabId": 1612060236,
+          "frameId": 0,
+          "documentId": "77FFD166F8994C4487FD745BD035A75E",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+          "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+          "targetVersion": 1,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "to": {
+          "tabId": 1612060236,
+          "frameId": 0,
+          "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+          "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        }
+      }
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "requestDigest": "735ed9b9ffe88cc8e568881eb1acb825624928f11be61586f3fa5526af2b2d6d",
+      "envelope": {
+        "requestId": "6a03edd39991a4f46be73461f60a056c",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+          "hostInstanceId": "81cb2c88-19b0-4dee-b2a2-a71f297208b5",
+          "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+          "ownerEpoch": 1,
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "target": {
+            "tabId": 1612060236,
+            "frameId": 0,
+            "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+            "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+            "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+            "targetVersion": 2,
+            "mode": "owned",
+            "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+          }
+        },
+        "revision": {
+          "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+          "revision": 1,
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v10",
+            "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+            "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+          },
+          "sourceHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+          "pinKey": "script-pin:[\"tool:ccfcjegpkdlgbclopjmadlcjedelidmf\",\"ffcbb459-b542-489b-aabd-69f4256bc8de\",\"5d2c4db1-94b8-47d7-91e1-cca872a75a12\",\"task:cloud-r17-fixed-1792424831759:1.0.3\",1]"
+        },
+        "target": {
+          "tabId": 1612060236,
+          "frameId": 0,
+          "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+          "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "creationId": "3418b59d-5634-4b4b-90ce-b66fbc8c0396",
+          "targetSessionId": "8808852d-800f-452d-ab69-cbcd923bf578",
+          "targetVersion": 2,
+          "mode": "owned",
+          "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorRead",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#name"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "inputValue"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "durable",
+      "submissionCount": 1,
+      "dispatchAt": 1792461709521,
+      "nativeReceipts": [
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+            "ready": true
+          }
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "tabs.sendMessage",
+          "receipt": {
+            "requestId": "6a03edd39991a4f46be73461f60a056c",
+            "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "string",
+              "v": "R18-recovered-1792462210"
+            }
+          }
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "result",
+          "receipt": {
+            "requestId": "6a03edd39991a4f46be73461f60a056c",
+            "value": {
+              "t": "string",
+              "v": "R18-recovered-1792462210"
+            }
+          }
+        },
+        {
+          "requestId": "6a03edd39991a4f46be73461f60a056c",
+          "stage": "webNavigation.getAllFrames",
+          "receipt": [
+            {
+              "documentId": "EEC42B2AC612952DFCC02A15DE1C0DF8",
+              "documentLifecycle": "active",
+              "errorOccurred": false,
+              "frameId": 0,
+              "frameType": "outermost_frame",
+              "parentFrameId": -1,
+              "processId": 27,
+              "url": "http://127.0.0.1:43111/demo-form.html?r17=1792424831759#lab-form"
+            }
+          ]
+        }
+      ],
+      "valueWire": {
+        "type": "string",
+        "value": "R18-recovered-1792462210"
+      },
+      "receiptAt": 1792461709552,
+      "reply": {
+        "requestId": "6a03edd39991a4f46be73461f60a056c",
+        "value": {
+          "t": "string",
+          "v": "R18-recovered-1792462210"
+        }
+      }
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "opId": "458a1346-0249-46fd-975d-491a63f8b0d5",
+      "requestId": "cloud:f45ab58c-e10d-4c01-9e35-0a1d9eb2e3fa",
+      "resultId": "c432a39e-0049-46d7-86a3-9613b8856fd6",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "registrationId": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "cancelSeq": 3,
+      "state": "interrupted",
+      "deadlineAt": 1792461863431,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "2e020d05-93f0-46b5-868a-72de7114210c",
+      "opId": "853d4835-c9d7-43c0-9b09-5c2f71c4c4f0",
+      "requestId": "cloud:e2445f1c-b680-4ed7-b5aa-728ea7bc4aa9",
+      "resultId": "2a4812da-6eed-46e5-a8cb-c4419a18926d",
+      "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42",
+      "registrationId": "2e020d05-93f0-46b5-868a-72de7114210c",
+      "cancelSeq": 3,
+      "state": "interrupted",
+      "deadlineAt": 1792427088320,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "21cf0c0b-b913-4cc3-ace0-5c7edc58fcfa",
+      "opId": "3a454a19-4c3b-4d96-bc08-37aa73288689",
+      "requestId": "cloud:eaecfe9d-22cf-4505-839b-07a07ab924f4",
+      "resultId": "a2c482ca-29b9-4d10-a82b-4da8284441e0",
+      "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0",
+      "registrationId": "21cf0c0b-b913-4cc3-ace0-5c7edc58fcfa",
+      "cancelSeq": 1,
+      "state": "completed",
+      "deadlineAt": 1792461914162,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "19427dfd-4fb9-4793-8018-45a5caf0e3d4",
+      "opId": "54cb8d8e-060f-4243-8322-adc742de5d5e",
+      "requestId": "f8279de9-4773-4d77-84bf-f9d66678194f",
+      "resultId": "b24a3033-420d-4064-80e6-a73271d6d4c0",
+      "browserSessionIncarnation": "cb60da99-e097-44af-83ad-b59050a80bb8",
+      "registrationId": "19427dfd-4fb9-4793-8018-45a5caf0e3d4",
+      "cancelSeq": 1,
+      "state": "completed",
+      "deadlineAt": 1792461266930,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "opId": "5d2c4db1-94b8-47d7-91e1-cca872a75a12",
+      "requestId": "cloud:8b9f119f-9a9d-4105-8e8c-a30f0864b961",
+      "resultId": "03cbd070-b1d3-4425-a800-b980ec2371bf",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "registrationId": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "cancelSeq": 1,
+      "state": "completed",
+      "deadlineAt": 1792461765405,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "retirementId": "820d3ce0-0b16-4676-8a18-4958916e03bc",
+      "releaseCount": 1,
+      "absence": "previous-session-execution-retired",
+      "targetQuarantine": {
+        "state": "quarantined",
+        "reason": "previous-session-ownership-unverified",
+        "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42",
+        "creationId": "8dc134e0-dcf3-429e-bdfa-56053f31101b",
+        "tabId": 1612059879,
+        "documentId": "0277860F9C764E0DC54A8741244A9E09",
+        "hostDocumentId": "50ED6BD4522AF9FC210B03DFDEF37886",
+        "observedSession": "cb60da99-e097-44af-83ad-b59050a80bb8",
+        "observedAt": 1792460866333
+      },
+      "releasedAt": 1792460866334
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "retirementId": "8fc0165d-ce87-4978-96c9-8323446f6719",
+      "releaseCount": 1,
+      "absence": "owned-tabs.get-not-found",
+      "releasedAt": 1792461858487
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "retirementId": "9e57b2fc-f87f-4c8f-97ee-0e8af8917305",
+      "releaseCount": 1,
+      "absence": "owned-tabs.get-not-found",
+      "releasedAt": 1792461709580
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "retirementId": "a9ec8b5f-1c65-4b09-8f78-60c058c29c18",
+      "releaseCount": 1,
+      "absence": "borrowed-not-closed",
+      "releasedAt": 1792461237907
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "retirementId": "c4ce2193-f3d9-4040-98a4-9fb877041825",
+      "releaseCount": 1,
+      "absence": "previous-session-execution-retired",
+      "targetQuarantine": {
+        "state": "quarantined",
+        "reason": "previous-session-ownership-unverified",
+        "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+        "creationId": "53578f67-c4d7-4240-8437-fbcc131a25f2",
+        "tabId": 1612060238,
+        "documentId": "9C723FC0BC377709B7F9C59354FC717E",
+        "hostDocumentId": "8EB960356087475201C7CE3C429107C6",
+        "observedSession": "baf0757c-c886-4e89-9cf6-b599f74dcfd0",
+        "observedAt": 1792461821426
+      },
+      "releasedAt": 1792461821426
+    },
+    {
+      "tag": "controller-start",
+      "runId": "d9ae5525-f626-4841-994a-304a7cd6f942",
+      "requestDigest": "c579e3c60e18417e593d59231e60d4d2b1b6fd6f8d31858ea8670546d2c562f1"
+    },
+    {
+      "tag": "script-revision-pin",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "opId": "458a1346-0249-46fd-975d-491a63f8b0d5",
+      "requestId": "cloud:f45ab58c-e10d-4c01-9e35-0a1d9eb2e3fa",
+      "resultId": "c432a39e-0049-46d7-86a3-9613b8856fd6",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "opKey": "controller-pin:55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "revision": 1,
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "released": true
+    },
+    {
+      "tag": "script-revision-pin",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "2e020d05-93f0-46b5-868a-72de7114210c",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "opId": "853d4835-c9d7-43c0-9b09-5c2f71c4c4f0",
+      "requestId": "cloud:e2445f1c-b680-4ed7-b5aa-728ea7bc4aa9",
+      "resultId": "2a4812da-6eed-46e5-a8cb-c4419a18926d",
+      "browserSessionIncarnation": "119c5e29-c4ea-4634-8160-d37f22548f42",
+      "opKey": "controller-pin:912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "revision": 1,
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "released": true
+    },
+    {
+      "tag": "script-revision-pin",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "21cf0c0b-b913-4cc3-ace0-5c7edc58fcfa",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "opId": "3a454a19-4c3b-4d96-bc08-37aa73288689",
+      "requestId": "cloud:eaecfe9d-22cf-4505-839b-07a07ab924f4",
+      "resultId": "a2c482ca-29b9-4d10-a82b-4da8284441e0",
+      "browserSessionIncarnation": "baf0757c-c886-4e89-9cf6-b599f74dcfd0",
+      "opKey": "controller-pin:c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "revision": 1,
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "released": true
+    },
+    {
+      "tag": "script-revision-pin",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "principal": "extension-tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "grantIncarnation": "6fdda02a-8bfe-4287-b948-9de92ad0b894",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "opId": "5d2c4db1-94b8-47d7-91e1-cca872a75a12",
+      "requestId": "cloud:8b9f119f-9a9d-4105-8e8c-a30f0864b961",
+      "resultId": "03cbd070-b1d3-4425-a800-b980ec2371bf",
+      "browserSessionIncarnation": "fa837802-c960-4b1f-a3bd-033253d97805",
+      "opKey": "controller-pin:ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "scriptId": "task:cloud-r17-fixed-1792424831759:1.0.3",
+      "revision": 1,
+      "contentHash": "064300d97d33b23ad918eabaf9f632a43acab8f130cd64225e0f438f8b138d26",
+      "released": true
+    }
+  ],
+  "requests": [
+    {
+      "tag": "cloud-request-v1",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "cloud:f45ab58c-e10d-4c01-9e35-0a1d9eb2e3fa",
+      "runId": "55600dbb-c6a4-4fd7-a837-5e7fafef52ab",
+      "state": "OUTCOME_UNKNOWN",
+      "reason": "E_OUTCOME_UNKNOWN",
+      "createdAt": 1792461803417
+    },
+    {
+      "tag": "cloud-request-v1",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "cloud:eaecfe9d-22cf-4505-839b-07a07ab924f4",
+      "runId": "c9e1127a-fae0-43f1-b8ff-dcd1e2fbdd01",
+      "state": "finished",
+      "receipt": {
+        "receiptId": "9ff4fb3c-13df-40bc-ac4e-32be5958937b",
+        "digest": "079f3b5bebd98401645236dbc5451bf80139fd0ac67a002b83d346c85507ea2f"
+      },
+      "createdAt": 1792461854147
+    },
+    {
+      "tag": "cloud-request-v1",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "cloud:8b9f119f-9a9d-4105-8e8c-a30f0864b961",
+      "runId": "ffcbb459-b542-489b-aabd-69f4256bc8de",
+      "state": "finished",
+      "receipt": {
+        "receiptId": "2a381479-a5f5-4978-8fe2-955666614a97",
+        "digest": "84709c0b7836cc75c12982ee6ac28012933ff262371704904a6fe4e0971ff6e4"
+      },
+      "createdAt": 1792461705393
+    },
+    {
+      "tag": "cloud-request-v1",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "cloud:e2445f1c-b680-4ed7-b5aa-728ea7bc4aa9",
+      "runId": "912d8a99-ebae-4f67-946e-93fed5b31d48",
+      "state": "finished",
+      "reason": "E_CLOUD_CANCELLED",
+      "receipt": {
+        "receiptId": "ecf98030-21aa-4eb1-bccc-67106578a064",
+        "digest": "38cdd412e8f92443037d72db9ce3e1fd5ba1fe8482138c340b032587d905cab1"
+      },
+      "createdAt": 1792427028305
+    }
+  ],
+  "installed": [
+    {
+      "tag": "task-installed-v1",
+      "namespace": "tool:ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "taskId": "cloud-r17-new-controller-1792426584969",
+      "version": "1.0.0",
+      "scriptId": "task:cloud-r17-new-controller-1792426584969:1.0.0",
+      "manifestHash": "9a08e3fa1dfe96e66c84489195cb7fa704bef9f82e2730c587a0cd2e1e7e21a0",
+      "builtinIdentity": {
+        "abi": "opendesk-builtins.v10",
+        "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+        "bundleSha256": "6341cbb0e74aa113ef1d357b6680d0a2a1eab96330cab798b532aef82a3f219f"
+      },
+      "enabled": true,
+      "installedAt": 1792461311726,
+      "authorization": {
+        "tag": "task-install-authorization-v1",
+        "installationId": "1052e6b9-b7cd-4861-8fa5-1758744bcde4",
+        "generation": 1,
+        "scope": {
+          "capabilities": [
+            "page.automation"
+          ],
+          "siteOrigins": [
+            "http://127.0.0.1:43111"
+          ],
+          "networkOrigins": []
+        }
+      }
+    }
+  ]
+}

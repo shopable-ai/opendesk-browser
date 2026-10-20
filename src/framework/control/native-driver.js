@@ -493,7 +493,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       method === 'locatorAction' && ['click','fill','check','uncheck','selectOption'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
     // The single clock starts before the first authorization and document RPC.
     const expiry = state.locatorExpiryAt;
-    let submitted = false, lastReason = 'E_SELECTOR_NOT_FOUND';
+    let submitted = false, scrollCommitted = false, lastReason = 'E_SELECTOR_NOT_FOUND';
     try {
       for (;;) {
         guard(state);
@@ -505,7 +505,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
         } else {
           const prepared = await packaged(state, 'locatorPrepare', [descriptor, op]);
           requireValue(prepared && typeof prepared.ready === 'boolean', RESULT_FORMAT_CODE);
-          if (prepared.ready) {
+          if (prepared.ready && !(prepared.scrollOnly === true && scrollCommitted)) {
             requireValue(typeof prepared.token === 'string', RESULT_FORMAT_CODE);
             const outcome = await withWrite(state.envelope.identity, async () => {
               await permission(state, 'pre'); await verifyTarget(state);
@@ -515,7 +515,15 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
               return packaged(state, 'locatorCommit', [descriptor, op, prepared.token]);
             });
             requireValue(outcome && typeof outcome.committed === 'boolean', RESULT_FORMAT_CODE);
+            requireValue(outcome.scrolled !== true || outcome.committed && prepared.scrollOnly === true, RESULT_FORMAT_CODE);
             if (outcome.committed) {
+              if (prepared.scrollOnly === true) {
+                requireValue(outcome.scrolled === true, RESULT_FORMAT_CODE);
+                await saveReceipt(state, 'locator.scrollCommitted', {documentId:state.envelope.target.documentId});
+                scrollCommitted = true; // One scroll per operation bounds effects even if layout stays offscreen.
+                submitted = false;
+                continue; // Scrolling changed geometry; only a fresh prepare can authorize the action.
+              }
               // A DOM effect is not safe to retry merely because post-state verification failed.
               if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED');
               return undefined;
@@ -524,7 +532,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             // setter or click happened. A fresh prepare is safe.
             await saveReceipt(state, 'locator.commitNoEffect', {documentId:state.envelope.target.documentId});
             submitted = false; lastReason = outcome.reason || 'E_ELEMENT_DETACHED';
-          } else lastReason = prepared.reason || 'E_WAIT_CONDITION';
+          } else lastReason = prepared.scrollOnly === true && scrollCommitted ?
+            'E_ELEMENT_OUTSIDE_VIEWPORT' : prepared.reason || 'E_WAIT_CONDITION';
         }
         const remaining = expiry - clock.now();
         if (remaining <= 0) continue;

@@ -1,0 +1,13 @@
+
+$ node --test '--test-name-pattern=lost fill callback after durable scroll ack' tests/framework/k3-native-driver.test.mjs
+✔ lost fill callback after durable scroll ack keeps the final commit unknown without retry (105.460416ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.276292
+
+Exit code: 0

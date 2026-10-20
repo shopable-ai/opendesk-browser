@@ -1,0 +1,12 @@
+✔ restart retires only a Controller whose exact host document is natively absent (14.491791ms)
+✔ cross-session recovery quarantines the old owned target without touching a reused tab ID (3.395ms)
+✔ cross-session recovery keeps the owned execution fenced without exact host retirement evidence (3.797375ms)
+✔ host port loss pauses while live context remains, but recovered missing host tab retires once (6.302917ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.209416

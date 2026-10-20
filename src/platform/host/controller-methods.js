@@ -211,7 +211,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   function project(run) {
     if (!run) return null;
     return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
-      'target', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
+      'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
   }
   async function snapshotControllerRun(request, sender) {
@@ -710,9 +710,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             envelope.operation.kind === 'user-script' && !hasNativeEffect(operation);
           // A dispatched Locator commit may have changed the page even when its
           // callback was lost or a stop/timeout won the race. Only an explicit
-          // same-document no-effect receipt clears the latest commit intent.
+          // same-document no-effect or confirmed scroll receipt resolves it.
           const lastLocatorCommit = (operation.nativeReceipts || []).filter(receipt =>
-            receipt.stage === 'locator.commitIntent' || receipt.stage === 'locator.commitNoEffect').at(-1);
+            ['locator.commitIntent', 'locator.commitNoEffect', 'locator.scrollCommitted'].includes(receipt.stage)).at(-1);
           const uncertainAction = envelope.operation.kind === 'packaged' &&
             envelope.operation.method === 'locatorAction' && lastLocatorCommit?.stage === 'locator.commitIntent';
           operation.state = uncertainAction ? 'effect_unknown' :
@@ -828,13 +828,30 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function retire(run, host, sender) {
     if (run.retirementState === 'released') return {state: 'released', releaseCount: 1};
     if (!run.retirementId || !run.workerRetired) return {state: 'pending', releaseCount: 0, reason: 'worker-not-retired'};
-    await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
+    const previousSession = run.browserSessionIncarnation !== session;
+    if (!previousSession) await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     let absence = 'borrowed-not-closed';
+    let targetQuarantine = null;
     if (run.selection.mode === 'owned') {
       const intent = await tx(RUN_READ, transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
-      if (intent && (!Number.isSafeInteger(intent.tabId) || intent.browserSessionIncarnation !== session))
+      if (intent && previousSession) {
+        // Session changes also include extension reloads. They revoke old
+        // authority, but cannot prove a restored numeric tab belongs to us.
+        // Retain that unresolved resource in quarantine instead of closing it.
+        // Only the conclusively retired execution realm releases its slot.
+        const contexts = await api.runtime?.getContexts?.({}).catch(() => null);
+        if (!Array.isArray(contexts) || contexts.some(value => value.documentId === run.hostDocumentId))
+          return {state: 'pending', releaseCount: 0, reason: 'host-retirement-unverified'};
+        invariant(intent.runId === run.runId && intent.browserSessionIncarnation === run.browserSessionIncarnation,
+          CONTROLLER_OWNER_ERROR);
+        targetQuarantine = {state: 'quarantined', reason: 'previous-session-ownership-unverified',
+          browserSessionIncarnation: run.browserSessionIncarnation, creationId: intent.creationId,
+          tabId: intent.tabId ?? null, documentId: run.target?.documentId ?? null,
+          hostDocumentId: run.hostDocumentId, observedSession: session, observedAt: now()};
+        absence = 'previous-session-execution-retired';
+      } else if (intent && !Number.isSafeInteger(intent.tabId))
         return {state: 'pending', releaseCount: 0, reason: 'creation-unknown'};
-      if (intent) {
+      else if (intent) {
         // The durable creation callback, same browser incarnation and committed
         // run fence establish ownership; borrowed selections never enter here.
         const call = await tx(RUN_WRITE, async transaction => {
@@ -861,6 +878,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (current.retirementState === 'released') return {state: 'released', releaseCount: 1};
       invariant(current.workerRetired && current.retirementId === run.retirementId && slot?.currentRunId === run.runId &&
         slot.retirementId === run.retirementId && slot.releaseCount === 0, CONTROLLER_OWNER_ERROR);
+      if (targetQuarantine) {
+        invariant(current.cancelSeq > 0 && current.browserSessionIncarnation === targetQuarantine.browserSessionIncarnation &&
+          current.browserSessionIncarnation !== session && current.hostDocumentId === targetQuarantine.hostDocumentId,
+          CONTROLLER_OWNER_ERROR);
+        current.targetQuarantine = targetQuarantine;
+      }
       if (host) await owner(transaction, current, host, sender);
       current.retirementState = 'released'; current.runRevision++;
       // Once the Worker is conclusively retired, preserve sourceHash and
@@ -878,7 +901,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put(RUN_STORE, {...slot, currentRunId: null, state: 'available', releaseCount: 1}, '@slot');
       boundTargets.delete(current.runId); navigating.delete(current.runId); creatingTabs.delete(current.runId);
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
-        releaseCount: 1, absence, releasedAt: now()}, `controller-retirement:${run.retirementId}`);
+        releaseCount: 1, absence, ...(targetQuarantine ? {targetQuarantine} : {}), releasedAt: now()}, `controller-retirement:${run.retirementId}`);
       return {state: 'released', releaseCount: 1, retirementId: run.retirementId};
     });
   }
@@ -900,7 +923,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           await lease(transaction, current);
         }, [RUN_STORE, COMMAND_JOURNAL]);
         const answer = await settleInternal(run.runId, 'interrupted', {error: typed(new FoundationError('E_HOST_CLOSED', 'Host document is gone'))}, {workerRetired: true});
-        await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
+        if (run.browserSessionIncarnation === session)
+          await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
         await retire({...run, ...answer.run}, null, null);
       } else await tx(RUN_WRITE, async transaction => {
         const current = await transaction.get(RUN_STORE, run.runId);
