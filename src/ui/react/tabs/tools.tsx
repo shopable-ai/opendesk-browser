@@ -226,7 +226,8 @@ export function ExtensionDetail({model,container}){
     <div className="ec-detail-actions">
       {model.actions.map(action=>{
         const icon=extensionActionGlyph(action.id,action.label);
-        return icon?<IconButton key={action.id} className="ec-detail-action"
+        return icon?<IconButton key={action.id}
+          className={action.id==='uninstall'?'ec-detail-action od-icon-button--danger':'ec-detail-action'}
           disabled={model.busy} label={action.label+'「'+model.title+'」'} title={action.label}
           data-ec-detail-action={action.id}
           onClick={event=>action.onClick?.(event.nativeEvent)}>{icon}</IconButton>:
