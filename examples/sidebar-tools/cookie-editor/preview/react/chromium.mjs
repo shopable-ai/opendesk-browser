@@ -46,7 +46,7 @@ try{
   await page.screenshot({path:join(output,'380-light.png'),fullPage:true});
  });
  await test('320/360/400/440px full-height sidebar and expansive import workspace',async()=>{
-  for(const width of [320,360,400,440]){
+  for(const width of [320,360,400,440,520]){
    await page.setViewportSize({width,height:760});
    const box=await page.locator('.cookie-editor-react').boundingBox();
    assert.ok(Math.abs(box.height-760)<3,'app fills iframe height at '+width);
@@ -193,21 +193,33 @@ try{
   await row('import_file').waitFor();await workspace.waitFor({state:'detached'});
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
  });
- await test('JSON copy/download use actual export UI; partition loss and denied values are blocked',async()=>{
+ await test('JSON copy/download complete within workspace and return to list',async()=>{
   await button('导出 Cookie').click();
+  const workspace=page.getByRole('region',{name:'导出 Cookie'});await workspace.waitFor();
+  assert.equal(await button('关闭导出').isFocused(),true);
+  assert.equal(await page.locator('dialog:modal').count(),0);
+  assert.equal(await page.locator('.cookie-row').count(),0);
   assert.equal(await page.getByRole('checkbox',{name:/包含/}).isChecked(),true);
-  await button('复制').click();await page.waitForFunction(()=>[...document.querySelectorAll('.cookie-export-panel button')].some(button=>button.textContent.trim()==='复制'&&!button.disabled));assert.equal(await page.getByRole('alert').count(),0);
+  await button('复制').click();await ready();
+  assert.equal(await workspace.count(),0);
+  assert.equal(await button('导出 Cookie').isFocused(),true);
+  await button('导出 Cookie').click();await workspace.waitFor();
   const downloadEvent=page.waitForEvent('download');await button('下载').click();
   const download=await downloadEvent;await download.saveAs(join(output,'fictional-cookies.json'));
   assert.equal(JSON.parse(await readFile(join(output,'fictional-cookies.json'),'utf8')).length,8);
+  await ready();assert.equal(await workspace.count(),0);
+  await button('导出 Cookie').click();await workspace.waitFor();
   await page.locator('.cookie-export-panel select').selectOption('header');
   assert.equal(await button('复制').isDisabled(),true);await page.getByText(/已禁止导出/).waitFor();
-  await button('关闭导出').click();await scene('valuesDenied');await ready();
+  await page.keyboard.press('Escape');await ready();
+  assert.equal(await button('导出 Cookie').isFocused(),true);
+  await scene('valuesDenied');await ready();
   await button('导出 Cookie').click();await button('复制').click();await page.getByText(/E_COOKIE_VALUES/).waitFor();await reset();
  });
  await test('one-shot export failure reports error; retry succeeds without remount',async()=>{
   await page.getByTestId('failure').selectOption('copy');await button('导出 Cookie').click();await button('复制').click();
-  await page.getByText(/E_CLIPBOARD/).waitFor();await button('复制').click();await page.waitForFunction(()=>[...document.querySelectorAll('.cookie-export-panel button')].some(button=>button.textContent.trim()==='复制'&&!button.disabled));assert.equal(await page.getByRole('alert').count(),0);await button('关闭导出').click();
+  await page.getByText(/E_CLIPBOARD/).waitFor();await button('复制').click();await ready();
+  assert.equal(await page.locator('.cookie-export-workspace').count(),0);assert.equal(await page.getByRole('alert').count(),0);
  });
  await test('grant event synchronously scrubs the secret DOM and discards the invalidated editor',async()=>{
   await row('session_id').click();
@@ -225,9 +237,26 @@ try{
   assert.equal(await row('analytics_consent').count(),1);await reset();
  });
  await test('blocked/loading/empty/read-only scenes come from SDK responses',async()=>{
-  await scene('first');await page.getByText('本站 Cookie 尚未就绪',{exact:true}).waitFor();
+  await scene('first');await button('允许管理所有网站 Cookie').waitFor();
   assert.equal(await page.locator('.cookie-row').count(),0);
-  await button('模拟允许访问').click();await ready();
+  await button('允许管理所有网站 Cookie').click();await ready();
+  for(const hostname of ['docs.example.org','store.example.net']){
+   await openLab();await page.getByTestId('site').selectOption(hostname);
+   await page.locator('.site-hostname').filter({hasText:hostname}).waitFor();
+   assert.equal(await page.locator('.cookie-row').count(),2);
+   assert.equal(await button('允许管理所有网站 Cookie').count(),0);
+  }
+  await button('预览授权设置').click();
+  await page.getByRole('region',{name:'Cookie 全站授权设置'}).getByText(/已授权/).waitFor();
+  await button('撤销全站授权').click();
+  await button('允许管理所有网站 Cookie').last().waitFor();
+  assert.equal(await page.locator('.cookie-row').count(),0);
+  await button('允许管理所有网站 Cookie').last().click();
+  await openLab();await page.getByTestId('site').selectOption('shop.example.com');await ready();
+  await row('session_id').click();await nameInput().fill('grant_checked_sid');
+  await button('保存').click();await row('grant_checked_sid').waitFor();
+  await row('grant_checked_sid').click();assert.equal(await nameInput().inputValue(),'grant_checked_sid');
+  await reset();
   await scene('loading');await page.getByText('正在读取 Cookie…',{exact:true}).waitFor();await reset();
   await scene('empty');await page.locator('.cookie-react-view').waitFor();assert.equal(await page.locator('.cookie-row').count(),0);
   await scene('readonly');await ready();await row('session_id').click();await nameInput().fill('denied_write');await button('保存').click();await page.getByText(/E_PERMISSION_REQUIRED/).waitFor();await reset();

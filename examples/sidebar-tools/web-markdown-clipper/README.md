@@ -1,12 +1,12 @@
 # 网页剪藏 Web Markdown Clipper · R1.6
 
-> 正式工具版本 1.1.0，非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
+> 工具源码版本 1.1.1（正式安装须通过唯一 JSON 包的候选测试与晋升），非独立 React 应用。复用已有 Browser SDK、可信 Host、工具隔离 UI 和原生本地存储。
 
 ## 普通用户怎么用？
 
 **网页选中一句话 → 右键 →「OD · 保存选中内容到我的摘录」→ 打开的网页剪藏中点击「保存摘录」→ 在「我的摘录」找回。**
 
-首次使用：从 OpenDesk Browser 侧栏「扩展」安装「网页剪藏」，为目标网站授权剪藏；在此工具详情中为**当前网站启用右键菜单**（单独、逐站授权）。右键当前仅支持已有的 open-self：打开本工具，安全预填一次性选区，再由用户点击「保存摘录」。**绝不假装已支持后台静默保存。**
+首次使用：从 OpenDesk Browser 侧栏「扩展」安装「网页剪藏」，为目标网站授权剪藏；在此工具详情中为**当前网站启用右键菜单**（单独、逐站授权）。**从 1.1.0 更新到 1.1.1 后**，正文网站授权与已保存摘录仍应保留，但旧右键授权绑定旧版本及包摘要，须在工具详情为需要的站点重新点击启用；不得绕过 Host 自动继承旧授权。右键当前仅支持已有的 open-self：打开本工具，安全预填一次性选区，再由用户点击「保存摘录」。**绝不假装已支持后台静默保存。**
 
 备用流程：网页选中文字 → 侧栏选择「选区」→「提取选中文字」→「保存摘录」。
 
@@ -52,7 +52,7 @@ node scripts/app-ci.mjs build web-markdown-clipper
 node scripts/app-ci.mjs node web-markdown-clipper
 ```
 
-使用开发者模式在 chrome://extensions 加载 dist/production，安装或升级官方网页剪藏。打包后工具包预期路径在 artifacts/sidebar-tools/web-markdown-clipper/1.1.0/，不是 Git 提交的一部分。
+使用开发者模式在 chrome://extensions 加载 dist/production，安装或升级官方网页剪藏。打包后工具包预期路径在 artifacts/sidebar-tools/web-markdown-clipper/1.1.1/，不是 Git 提交的一部分。
 
 真实验收须分别检查：右键菜单逐站启用、选区与文档身份证明、保存后 Side Panel 重开和 Chrome 重启读回、系统剪贴板 pbpaste、下载文件实际 SHA-256、卸载前 JSON 备份。HTML/Node 的模拟测试不能冒充这些结果。
 

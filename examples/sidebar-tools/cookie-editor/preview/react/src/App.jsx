@@ -1,6 +1,6 @@
 import * as React from 'react';
 import CookieEditorApp from '../../../app/CookieEditorApp.jsx';
-import {createMockSdk} from './mock-sdk.js';
+import {createMockSdk,demoSite,demoSites} from './mock-sdk.js';
 
 // The shared product App owns compact editor copy, attribute/storage disclosures and the site header.
 // Scene controls live outside that App. Only SDK responses are fictional.
@@ -10,6 +10,9 @@ export default function App(){
  const [dark,setDark]=React.useState(false);
  const [failure,setFailure]=React.useState('');
  const [hostRoot,setHostRoot]=React.useState(null);
+ const [site,setSite]=React.useState(demoSite);
+ const [settingsOpen,setSettingsOpen]=React.useState(false);
+ const [,bumpAccess]=React.useState(0);
  const mock=React.useMemo(()=>createMockSdk({scenario:scene,onFailureConsumed:()=>setFailure('')}),[scene,revision]);
  React.useLayoutEffect(()=>{
   if(globalThis.OpenDeskSDK)throw Error('E_PREVIEW_REAL_SDK_PRESENT');
@@ -17,24 +20,57 @@ export default function App(){
   return ()=>{if(globalThis.OpenDeskSDK===sdk)delete globalThis.OpenDeskSDK;mock.dispose();};
  },[mock]);
  React.useLayoutEffect(()=>{document.documentElement.dataset.previewTheme=dark?'dark':'light';},[dark]);
- const useScene=value=>{setScene(value);setRevision(x=>x+1);setFailure('');};
+ const useScene=value=>{setScene(value);setRevision(x=>x+1);setFailure('');setSite(demoSite);setSettingsOpen(false);};
+ const granted=mock.hasGlobalCookieGrant();
+ const grant=()=>{mock.grantAllSites();bumpAccess(v=>v+1);setSettingsOpen(false);};
+ const revoke=()=>{
+  mock.revokeAllSites();
+  hostRoot?.dispatchEvent(new Event('opendesk-cookie-grants-changed'));
+  bumpAccess(v=>v+1);
+ };
+ const switchSite=hostname=>{
+  mock.switchSite(hostname);setSite(hostname);
+  hostRoot?.dispatchEvent(new Event('opendesk-page-changed'));
+ };
  return <div className="r49-page">
   <details className="demo-lab" aria-label="预览场景切换器">
    <summary className="lab-title"><span>Cookie Editor R5.20</span><span>预览控制 · 虚构数据</span></summary>
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
-     <option value="ready">已授权</option><option value="first">未授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option>
+     <option value="ready">已授权</option><option value="first">首次全站授权</option><option value="readonly">仅查看</option><option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option>
+    </select></label>
+    <label>模拟网站 <select data-testid="site" value={site} onChange={e=>switchSite(e.target.value)}>
+     {demoSites.map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}
     </select></label>
     <label>下次操作 <select data-testid="failure" value={failure} onChange={e=>{setFailure(e.target.value);mock.setFailure(e.target.value);}}>
      <option value="">正常</option><option value="save">保存失败</option><option value="import">导入失败</option><option value="copy">复制失败</option><option value="download">下载失败</option><option value="unknown">结果未知</option>
     </select></label>
     <button className="lab-button" type="button" onClick={()=>setDark(x=>!x)}>{dark?'浅色':'深色'}</button>
     <button className="lab-button" type="button" onClick={()=>useScene('ready')}>重置</button>
-    {scene==='first'&&<button className="lab-button" type="button" onClick={()=>useScene('ready')}>模拟允许访问</button>}
    </div>
   </details>
+  <div className="preview-host-controls">
+   <span>模拟环境 · 不读取真实 Cookie</span>
+   <button className="lab-button" type="button" aria-label="预览授权设置"
+     aria-expanded={settingsOpen} onClick={()=>setSettingsOpen(value=>!value)}>⚙ 设置</button>
+  </div>
+  {settingsOpen&&<section className="preview-settings-panel" aria-label="Cookie 全站授权设置">
+   <strong>管理所有网站 Cookie</strong>
+   <span role="status">{granted?'已授权 · HTTP/HTTPS 网站':'尚未授权'}</span>
+   <button className="lab-button" type="button" onClick={granted?revoke:grant}>
+    {granted?'撤销全站授权':'允许管理所有网站 Cookie'}
+   </button>
+  </section>}
   <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" ref={setHostRoot}>
-   {hostRoot&&<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}/>}
+   {hostRoot&&(granted
+    ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}/>
+    :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
+      <div className="preview-grant-icon" aria-hidden="true">🍪</div>
+      <h2 id="preview-grant-title">管理所有网站 Cookie</h2>
+      <p>首次允许一次，切换网站后直接使用，不再逐站授权。</p>
+      <button type="button" className="od-button od-button--primary" onClick={grant}>允许管理所有网站 Cookie</button>
+      <small>这是交互演示，不会授予真实浏览器权限。</small>
+     </section>)}
   </section>
  </div>;
 }

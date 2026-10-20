@@ -198,3 +198,23 @@ test('authorized subdomain imports valid parent-domain cookies without a domain 
   assert.equal(f.mock.inspect().rows.some(row=>row.name==='unrelated'),false);
  }finally{f.close();}
 });
+
+test('global Cookie grant is one simulated decision across site changes and revocation',async()=>{
+ const f=fixture('first');try{
+  await f.controller.load();assert.equal(f.controller.snapshot().phase,'blocked');
+  assert.equal(f.mock.hasGlobalCookieGrant(),false);
+  f.mock.grantAllSites();await f.controller.load();
+  assert.equal(f.controller.snapshot().phase,'ready');
+  assert.equal(f.controller.snapshot().rows.length,8);
+  for(const hostname of ['docs.example.org','store.example.net']){
+   f.mock.switchSite(hostname);await f.controller.load();
+   assert.equal(f.controller.snapshot().phase,'ready');
+   assert.equal(f.controller.snapshot().target.hostname,hostname);
+   assert.equal(f.controller.snapshot().rows.length,2);
+  }
+  assert.equal(f.mock.inspect().calls.filter(call=>call.op==='globalGrant').length,1);
+  f.mock.revokeAllSites();await f.controller.load();
+  assert.equal(f.controller.snapshot().phase,'blocked');
+  assert.equal(f.mock.hasGlobalCookieGrant(),false);
+ }finally{f.close();}
+});

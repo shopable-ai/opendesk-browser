@@ -5,20 +5,8 @@ import {CookieExportFormatRow,CookieExportActions} from './CookieEditorView.jsx'
 // Identical export choices to the approved React preview. Only the existing
 // Controller/SDK may read values or write clipboard/download bytes.
 export default function CookieExport({controller,disabled=false,onClose,onDelivered}){
-  const dialogRef=React.useRef(null);
-  const previousFocus=React.useRef(null);
   const titleId=React.useId();
   const [message,setMessage]=React.useState('');
-  React.useLayoutEffect(()=>{
-    const dialog=dialogRef.current;
-    const previous=dialog.ownerDocument.activeElement;
-    previousFocus.current=previous&&previous!==dialog.ownerDocument.body?previous:null;
-    dialog.showModal();
-    return ()=>{
-      if(dialog.open)dialog.close();
-      if(previousFocus.current?.isConnected)previousFocus.current.focus();
-    };
-  },[]);
   const [format,setFormat]=React.useState('json');
   const [includeValues,setIncludeValues]=React.useState(true);
   const [working,setWorking]=React.useState(false);
@@ -42,12 +30,12 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     // Cookie Value and clipboard/download grants; React adds no second dialog.
     void deliver(method);
   };
-  return <dialog ref={dialogRef} className="cookie-export-dialog od-surface"
-    aria-labelledby={titleId} onCancel={event=>{event.preventDefault();if(!busy)onClose?.();}}>
+  return <section className="cookie-export-workspace" role="region" aria-labelledby={titleId}
+    onKeyDown={event=>{if(event.key==='Escape'&&!busy){event.stopPropagation();onClose?.();}}}>
     <section className="cookie-panel cookie-export-panel od-surface--padded">
     <div className="cookie-panel-heading">
       <h3 id={titleId}>导出 Cookie</h3>
-      <Button type="button" className="od-button--quiet" disabled={busy}
+      <Button type="button" autoFocus className="od-button--quiet" disabled={busy}
         onClick={onClose} aria-label="关闭导出">关闭</Button>
     </div>
     <CookieExportFormatRow format={format} includeValues={includeValues} disabled={busy}
@@ -55,7 +43,7 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     <p className="cookie-message" role="note">{metadata
       ?'仅导出元数据，不能用来恢复 Cookie。'
       :format==='json'
-        ?'JSON 备份可保留 Store 和 Partition；读取敏感值需独立授权。'
+        ?'JSON 备份可保留 Cookie 值、Store 和 Partition。'
         :'此格式无法无损保留全部身份与属性；请优先使用 JSON 备份。'}</p>
     {lossy&&<p className="cookie-message od-alert od-alert--warning" role="alert">
       本站含分区 Cookie。此格式无法无损保存 Partition，已禁止导出；请选择 JSON。
@@ -64,5 +52,5 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
       onDownload={()=>choose('download')}/>
     {message&&<p role="alert" className="cookie-message od-alert od-alert--error">{message}</p>}
   </section>
-  </dialog>;
+  </section>;
 }

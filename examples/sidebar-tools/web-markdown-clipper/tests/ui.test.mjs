@@ -272,3 +272,32 @@ test('expired right-click tickets do not insert stale content into notes',async(
  await Promise.resolve();await Promise.resolve();
  assert.equal(current,null);
 });
+
+test('navigation while the one-shot right-click ticket is in flight cannot restore stale selection',async()=>{
+ const pending=deferred();let saved=null;
+ const {nodes,root}=mounted({
+  notesFactory:()=>({setClip:value=>{saved=value;}}),
+  launch:()=>pending.promise
+ });
+ root.events['opendesk-page-changed']();
+ pending.resolve({toolId:'web-markdown-clipper',actionId:'save-selection',
+  selection:'旧页面敏感内容',source:{url:'https://old.example/a'},expiresAt:Date.now()+60000});
+ await Promise.resolve();await Promise.resolve();
+ assert.equal(saved,null,'stale selection must not reach the Save button');
+ assert.equal(nodes['clip-source'].value,'');
+ assert.equal(nodes['clip-status'].textContent,'网页已变化，请重新剪藏');
+});
+test('switching modes before the right-click ticket is consumed keeps the newly selected mode',async()=>{
+ const pending=deferred();let saved=null;
+ const {nodes,modes}=mounted({
+  notesFactory:()=>({setClip:value=>{saved=value;}}),
+  launch:()=>pending.promise
+ });
+ await modes[3].fire('click');
+ pending.resolve({toolId:'web-markdown-clipper',actionId:'save-selection',
+  selection:'旧选区',source:{url:'https://old.example/a'},expiresAt:Date.now()+60000});
+ await Promise.resolve();await Promise.resolve();
+ assert.equal(saved,null);
+ assert.equal(nodes['clip-fetch'].textContent,'生成链接');
+ assert.equal(nodes['clip-source'].value,'');
+});

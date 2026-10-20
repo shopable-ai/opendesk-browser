@@ -629,22 +629,23 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   report.actualQuotaNavigation='PASS';report.actualNavigation='PASS';
   report.quota='PASS';
   note('quota-real-http-navigation',{status:'PASS',urlPath:'/stay-focus/blocked-quota.html'});
-  // The same ledger exhausts every auto-enrolled entertainment domain.
-  // These are real Chrome HTTPS main-frame navigations (not DNR mocks); no
-  // external site request is necessary because Chrome must redirect first.
-  report.defaultDomainDnr=[];
+  // R5.9 changed the product contract: recommendations are NOT automatically
+  // enrolled. The earlier two real localhost HTTP navigations already prove
+  // that explicitly chosen websites share one enforced Chrome quota. A separate
+  // native DNR readback must prove unrelated suggested domains stay unrestricted.
+  const nativeOwnedFilters=await evalRead(client,sid,
+    'chrome.declarativeNetRequest.getDynamicRules().then(r=>r.filter(x=>'+
+    'x.id>=730000&&x.id<=730199).map(x=>x.condition?.regexFilter||""))');
+  report.unselectedSuggestions=[];
   for(const hostname of ['www.youtube.com','www.tiktok.com']){
-    const visitDomain=await client.send('Target.createTarget',{url:'https://'+hostname+'/'});
-    const result=await until(async()=>{
-      const targets=(await client.send('Target.getTargets')).targetInfos;
-      return targets.find(row=>row.targetId===visitDomain.targetId)?.url?.includes(
-        '/stay-focus/blocked-quota.html')||false;
-    },'real shared-pool HTTPS DNR for '+hostname,15000);
-    assert.equal(result,true,'default enrolled '+hostname+' must be blocked at shared quota');
-    report.defaultDomainDnr.push({hostname,redirect:'/stay-focus/blocked-quota.html'});
+    const url='https://'+hostname+'/';
+    const matching=nativeOwnedFilters.filter(regex=>regex&&new RegExp(regex).test(url));
+    assert.equal(matching.length,0,
+      'unselected recommendation '+hostname+' must not gain a Chrome DNR block');
+    report.unselectedSuggestions.push({hostname,ownedMatchingRules:0});
   }
-  note('real-default-domain-shared-dnr',{domains:report.defaultDomainDnr,
-    usageWasNotFabricated:true});
+  note('native-recommendations-remain-unmanaged',{
+    domains:report.unselectedSuggestions,activeOwnedRules:nativeOwnedFilters.length});
 
   }
 

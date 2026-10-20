@@ -200,8 +200,12 @@ async function readCurrentPage(){
  }catch{/* An unavailable active website must not break local notes. */}
 }
 async function receiveRightClick(){
+ // Navigation or mode changes during the one-shot Host call must never
+ // resurrect a selection from an older page or overwrite the user's mode.
+ const ticket=version;
  try{
   const launch=await globalThis.OpenDeskSDK.browser.launch.consume();
+  if(ticket!==version)return;
   if(launch?.toolId!=='web-markdown-clipper'||launch.actionId!=='save-selection'||
      typeof launch.selection!=='string'||!launch.selection.trim()||
      !Number.isFinite(launch.expiresAt)||Date.now()>=launch.expiresAt||

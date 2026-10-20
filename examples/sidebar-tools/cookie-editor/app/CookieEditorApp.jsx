@@ -191,11 +191,19 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const activeImportRef=React.useRef(null);
   const writeInFlight=React.useRef(false);
   const restoreImportFocus=React.useRef(false);
+  const restoreExportFocus=React.useRef(false);
   React.useLayoutEffect(()=>{
-    if(panel!==null||!restoreImportFocus.current)return;
-    restoreImportFocus.current=false;
-    hostRoot.querySelector('.cookie-editor-react [aria-label="导入 Cookie"]')
-      ?.focus({preventScroll:true});
+    if(panel!==null)return;
+    if(restoreImportFocus.current){
+      restoreImportFocus.current=false;
+      hostRoot.querySelector('.cookie-editor-react [aria-label="导入 Cookie"]')
+        ?.focus({preventScroll:true});
+    }
+    if(restoreExportFocus.current){
+      restoreExportFocus.current=false;
+      hostRoot.querySelector('.cookie-editor-react [aria-label="导出 Cookie"]')
+        ?.focus({preventScroll:true});
+    }
   },[panel]);
   const finishImportIntent=ref=>{
     if(!Number.isSafeInteger(ref)||ref<1)return;
@@ -384,8 +392,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           onBeginImport={beginImportIntent}
           onClose={()=>{restoreImportFocus.current=true;controller.discardImport();finishImportIntent(activeImportRef.current);setPanel(null);}}/>}
         {panel==='export'&&<CookieExport controller={controller} disabled={locked}
-          onDelivered={method=>{setPanel(null);noteImport(method==='copy'?'已复制 Cookie':'已导出 Cookie','success');}}
-          onClose={()=>setPanel(null)}/>}
+          onDelivered={method=>{restoreExportFocus.current=true;setPanel(null);noteImport(method==='copy'?'已复制 Cookie':'已导出 Cookie','success');}}
+          onClose={()=>{restoreExportFocus.current=true;setPanel(null);}}/>}
       </div>}
     </>}
     {mode==='browser'&&snapshot.message&&['error','warning'].includes(snapshot.messageType)&&

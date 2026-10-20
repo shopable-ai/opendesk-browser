@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "web-markdown-clipper",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "title": "网页剪藏",
   "description": "网页选区右键摘录、Markdown 提取和本地轻量便签。短摘录保存到浏览器；全文可下载。",
   "capabilities": [

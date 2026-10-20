@@ -142,6 +142,13 @@ jobs:
           cache: npm
       - name: Install pinned packages
         run: npm ci --ignore-scripts --no-audit --no-fund
+      # This cross-app gate packs actual official sources, including their
+      # source-bound React build receipts. A clean checkout has no dist/ files.
+      - name: Compile official React tools for the catalog audit
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
       - name: Audit all official tools and fixed-entry ownership (release blocker)
         run: |
           node --test tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs
@@ -154,6 +161,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+      # The native test imports Vite and the installed tool packer; an isolated
+      # macOS runner cannot reuse Linux node_modules from the build job.
+      - name: Install pinned packages for native acceptance
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - uses: actions/download-artifact@v4
         with:
           name: stay-focus-r1-validated-package-${{ github.sha }}
