@@ -372,7 +372,7 @@ export function ExtensionCenterPage({
       onCancel={event=>detailModel?.confirmation?.onCancel(event)}>
       <p>{detailModel?.confirmation?.text||''}</p>
       <div className="od-uninstall-dialog-actions">
-        <Button data-uninstall-cancel disabled={Boolean(detailModel?.busy)}
+        <Button data-uninstall-cancel="true" disabled={Boolean(detailModel?.busy)}
           onClick={event=>detailModel?.confirmation?.onCancel(event.nativeEvent)}>取消</Button>
         <Button className="od-uninstall-confirm" disabled={Boolean(detailModel?.busy)}
           onClick={event=>detailModel?.confirmation?.onConfirm(event.nativeEvent)}>确认卸载</Button>
