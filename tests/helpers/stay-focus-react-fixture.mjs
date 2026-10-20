@@ -4,7 +4,7 @@ import {runInNewContext} from 'node:vm';
 import {readFileSync} from 'node:fs';
 
 export function mountStayFocusReact({url='https://m.youtube.com/',title='YouTube',
-  sites=[],pageSequence=null}={}){
+  sites=[],pageSequence=null,dailyBudget=null}={}){
   const hooks=[],effects=[],writes=[],requests=[],listeners=new Map();
   let cursor=0,App=null,tree=null,pending=false,disposed=false,
     current={status:'available',url,title},pageCalls=0,renders=0;
@@ -12,7 +12,7 @@ export function mountStayFocusReact({url='https://m.youtube.com/',title='YouTube
     catalog:[{host:'youtube.com',name:'YouTube',minutes:30,quick:true}],
     groups:{entertainment:30},whitelist:[],focusUntil:null,
     schedule:{enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020},
-    dailyBudget:{minutes:30,budgetMs:1800000,usedMs:0,remainingMs:1800000},
+    dailyBudget:dailyBudget??{minutes:30,budgetMs:1800000,usedMs:0,remainingMs:1800000},
     ruleReceipt:{verified:true},tabs:{failed:0}};
   const equal=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&
     a.length===b.length&&a.every((value,i)=>Object.is(value,b[i]));

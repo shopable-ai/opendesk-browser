@@ -99,12 +99,14 @@ async function click(c,session,selector){
       }
       return p;
     }
-    if(p.y<0||p.y>=p.height){
+    // The fixed five-tab header can cover a control whose center is still
+    // inside the viewport. Scroll it clear before dispatching real input.
+    if(p.y<85||p.y>=p.height){
       const frame=Boolean(parent)?await evalRead(c,parent,'(()=>{const r=document.querySelector("#sidebar-tool-frame iframe").getBoundingClientRect();return {x:r.x,y:r.y};})()'):{x:0,y:0};
       // Host toolbar controls can scroll above a long sandbox. Wheel in the
       // host gutter, otherwise Chrome scrolls the iframe instead of the host.
       await c.send('Input.dispatchMouseEvent',{type:'mouseWheel',x:parent?frame.x+Math.max(8,Math.min(p.width-8,p.x)):8,
-        y:frame.y+Math.max(8,Math.min(p.height-8,p.height/2)),deltaX:0,deltaY:p.y<0?-250:250},Boolean(parent)?parent:session);
+        y:frame.y+Math.max(8,Math.min(p.height-8,p.height/2)),deltaX:0,deltaY:p.y<85?-250:250},Boolean(parent)?parent:session);
     }
     return false;
   },'Visible real control '+selector);
@@ -313,7 +315,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await until(()=>evalRead(client,sid,'!document.querySelector("#sidebar-tool-preview").hidden'),'official review');
   await click(client,sid,'#sidebar-tool-install');
   await chooseExtensionScope(client,sid,'smart');
-  const installed='[data-extension-key="app:stay-focus"][data-extension-action="primary"]';
+  const installed='[data-extension-key="app:stay-focus"][data-extension-action="main"]';
   await until(()=>evalRead(client,sid,'!!document.querySelector('+JSON.stringify(installed)+')'),'real tool installed');
   await click(client,sid,installed);
   let frame=await until(async()=>{
@@ -436,14 +438,15 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   // Add a second loopback hostname with the same shared entertainment budget.
   // Native keyboard/mouse drive the ACTUAL React editor and existing Host review.
   await click(client,frame,'button[aria-label="添加自定义网站"]');
+  const siteEditorInput='.sf-editor input[placeholder="例如 youtube.com"]';
   await until(()=>evalRead(client,frame,
-    '!!document.querySelector(".sf-editor input[placeholder=\"例如 youtube.com\"]")'),
+    '!!document.querySelector('+JSON.stringify(siteEditorInput)+')'),
     'React website editor opened');
   assert.equal(await evalRead(client,frame,
     'document.querySelector(".sf-editor select")?.value'),'entertainment');
   assert.equal(await evalRead(client,frame,
     'document.querySelectorAll(".sf-editor select")[1]?.value'),'limit');
-  await fill(client,frame,'.sf-editor input[placeholder="例如 youtube.com"]','localhost');
+  await fill(client,frame,siteEditorInput,'localhost');
   await click(client,frame,'.sf-editor .sf-actions button');
   assert.equal(await evalRead(client,sid,
     'document.querySelector("#sidebar-tool-action-review")?.hidden'),true,
@@ -538,6 +541,17 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     // that blocked branch while still collecting independent lifecycle proof.
     if(elapsedMs>=45000&&report.quotaTrace.slice(-10).length===10&&
        report.quotaTrace.slice(-10).every(x=>!x.focused||x.idle!=='active'))break;
+    // Capture the notice in the document that supplied this observation,
+    // before switching liveSession to the second shared-budget website.
+    if(notice&&report.pageReminder!=='PASS'){
+      assert.equal(snapshot.notices.thresholds.filter(x=>x===1).length,1,'one-minute ledger deduplicates');
+      report.reminderProof={...snapshot.notices,usedMs:snapshot.usedMs,
+        count:await evalRead(client,liveSession,'document.querySelectorAll("[data-opendesk-focus-notice]").length')};
+      assert.equal(report.reminderProof.count,1,'exactly one page notice');
+      report.screenshots.push(await screenshot(client,liveSession,'real-one-minute-page-reminder'));
+      report.pageReminder='PASS';
+      note('native-in-page-remaining-reminder',{minutes:1,actualContentScript:true});
+    }
     // Spend the first chargeable interval on the first host and the remaining
     // quota on the other. Switching tabs MUST invalidate the old checkpoint;
     // neither tab can double-charge the one global ledger.
@@ -563,15 +577,6 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
       assert.ok(Number.isInteger(secondTabId),'second loopback page must be a native Chrome tab');
       note('real-active-site-switch',{firstHost:'127.0.0.1',secondHost:'localhost',
         usedMs:usedAtSwitch,secondTabId});
-    }
-    if(notice&&report.pageReminder!=='PASS'){
-      report.pageReminder='PASS';
-      assert.equal(snapshot.notices.thresholds.filter(x=>x===1).length,1,'one-minute ledger deduplicates');
-      report.reminderProof={...snapshot.notices,usedMs:snapshot.usedMs,
-        count:await evalRead(client,liveSession,'document.querySelectorAll("[data-opendesk-focus-notice]").length')};
-      assert.equal(report.reminderProof.count,1,'exactly one page notice');
-      report.screenshots.push(await screenshot(client,liveSession,'real-one-minute-page-reminder'));
-      note('native-in-page-remaining-reminder',{minutes:1,actualContentScript:true});
     }
     if(snapshot.usedMs>=120000&&snapshot.rules.some(r=>r.path==='/stay-focus/blocked-quota.html')){
       reached={elapsedMs,...snapshot};break;
@@ -633,7 +638,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   // enrolled. The earlier two real localhost HTTP navigations already prove
   // that explicitly chosen websites share one enforced Chrome quota. A separate
   // native DNR readback must prove unrelated suggested domains stay unrestricted.
-  const nativeOwnedFilters=await evalRead(client,sid,
+  const nativeOwnedFilters=await evalRead(client,uid,
     'chrome.declarativeNetRequest.getDynamicRules().then(r=>r.filter(x=>'+
     'x.id>=730000&&x.id<=730199).map(x=>x.condition?.regexFilter||""))');
   report.unselectedSuggestions=[];
@@ -684,6 +689,11 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
 
   await until(()=>evalRead(client,frame,
     '!!document.querySelector(".sf-list .sf-site")'),'reopened React site management');
+  const completedMinutes=Math.floor(workerQuota.usedMs/60000);
+  await until(()=>evalRead(client,frame,
+    'document.querySelector(".sf-hero")?.textContent.includes('+JSON.stringify('已使用 '+completedMinutes+' 分钟')+')'),
+    'real React usage display shows completed minutes');
+  report.screenshots.push(await screenshot(client,sid,'reopened-real-usage-display'));
   // Only websites explicitly added by the user should be present after reboot.
   const managedIndex=await until(()=>evalRead(client,frame,
     '[...document.querySelectorAll(".sf-list .sf-site")]'+
@@ -702,6 +712,15 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     'x["'+store+'"].sites.some(s=>s.host==="localhost"&&!s.enabled))'),
     'individual site paused by the React menu');
   report.sitePause=reached?'PASS':'PASS_UI_STATE_ONLY';
+  if(reached){
+    await until(()=>evalRead(client,uid,'chrome.declarativeNetRequest.getDynamicRules().then(r=>'+
+      'r.filter(x=>x.id>=730000&&x.id<=730199).length===1)'),
+      'paused website removes its owned Chrome DNR rule');
+    const visit=await client.send('Target.createTarget',{url:secondPage});
+    await until(async()=>{const rows=(await client.send('Target.getTargets')).targetInfos;
+      return rows.find(x=>x.targetId===visit.targetId)?.url===secondPage;},
+      'paused website allows actual HTTP navigation');
+  }
   await click(client,frame,siteMenu);
   assert.match(await evalRead(client,frame,
     'document.querySelector('+JSON.stringify(firstSiteMenuItem)+')?.textContent'),/恢复/);
@@ -712,6 +731,36 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await until(()=>evalRead(client,uid,'chrome.storage.local.get("'+store+'").then(x=>'+
     'x["'+store+'"].sites.some(s=>s.host==="localhost"&&s.enabled))'),
     'individual site restored by React menu');
+  if(reached){
+    const visit=await client.send('Target.createTarget',{url:secondPage});
+    await until(async()=>{const rows=(await client.send('Target.getTargets')).targetInfos;
+      return rows.find(x=>x.targetId===visit.targetId)?.url?.includes('/stay-focus/blocked-quota.html');},
+      'resumed website restores actual quota navigation blocking');
+    report.siteResume='PASS';
+  }
+
+  // Exercise the shipped 25-minute control without changing clocks or storage.
+  // Early end must restore the already exhausted daily quota, not clear it.
+  await click(client,frame,'.sf-advanced summary');
+  const temporaryButton='.sf-advanced .sf-setting:last-of-type button';
+  const sessionStartedAt=Date.now();
+  await click(client,frame,temporaryButton);
+  const temporary=await until(()=>evalRead(client,uid,
+    'chrome.storage.local.get("'+store+'").then(x=>{const s=x["'+store+'"];'+
+      'return s.focusUntil>Date.now()?{until:s.focusUntil,usage:s.usage}:null})'),
+    'real UI starts a 25-minute temporary block');
+  assert.ok(temporary.until>=sessionStartedAt+1490000&&temporary.until<=Date.now()+1500000);
+  await until(()=>evalRead(client,frame,
+    'document.querySelector('+JSON.stringify(temporaryButton)+')?.textContent==="提前结束"'),
+    'temporary block offers early end');
+  await click(client,frame,temporaryButton);
+  await until(()=>evalRead(client,uid,'(async()=>{const s=(await chrome.storage.local.get("'+store+'"))["'+store+'"];'+
+    'const rules=await chrome.declarativeNetRequest.getDynamicRules();return s.focusUntil===null&&'+
+    (reached?'rules.filter(r=>r.id>=730000&&r.id<=730199&&r.action.redirect?.extensionPath==="/stay-focus/blocked-quota.html").length===2':'true')+'})()'),
+    'ending temporary block restores the original daily quota rules');
+  report.temporaryBlock={start:'PASS',earlyEnd:'PASS',actualExpiry:'NOT_TESTED'};
+  note('native-temporary-block-start-and-early-end',report.temporaryBlock);
+  await click(client,frame,'.sf-advanced summary');
 
   // Native lifecycle: the user can stop enforcement without uninstalling and
   // re-enable with the original daily quota still exhausted. Never write
@@ -771,7 +820,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   await client.send('Browser.close').catch(()=>{});
   await until(()=>priorChrome.exitCode!==null||priorChrome.signalCode!==null,
     'original Chrome process really exited',25000);
-  client.close();client=null;
+  client.close();client=null;diagnosticSessions=[];
   chrome=launchChrome();captureChromeErrors(chrome);
   const reopenedVersion=await until(async()=>{
     const source=await readFile(path.join(profile,'DevToolsActivePort'),'utf8').catch(()=>null);
@@ -789,6 +838,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     url:'chrome-extension://'+restoredId+'/sidepanel.html?hostInstanceId='+randomUUID()});
   const reopenedSession=(await client.send('Target.attachToTarget',
     {targetId:reopenedUI.targetId,flatten:true})).sessionId;
+  diagnosticSessions=[{name:'catalog',session:reopenedSession}];
   await client.send('Runtime.enable',{},reopenedSession);
   await client.send('Page.enable',{},reopenedSession);
   const restoredQuota=await until(async()=>{
@@ -825,6 +875,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     return target?(await client.send('Target.attachToTarget',
       {targetId:target.targetId,flatten:true})).sessionId:null;
   },'restarted Side Panel CDP');
+  diagnosticSessions.push({name:'side-panel',session:sid});
   await client.send('Runtime.enable',{},sid);
   await client.send('Page.enable',{},sid);
   await click(client,sid,'#tab-tools');
@@ -877,6 +928,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   const oldPackageHash=await focusPackageHash(pkg);
   const newPackageHash=await focusPackageHash(upgradePackage);
   assert.notEqual(oldPackageHash,newPackageHash);
+  await ensureToolSettings(client,sid,false);
   await click(client,sid,'#sidebar-tool-back');
   await openVisiblePackageImport(client,sid);
   await nativeSelectToolPackage(client,sid,upgradePackageFile);
@@ -952,6 +1004,28 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     retainedUsedMs:updated.policy.usage['g:entertainment']||0,
     reapprovedRules:reapproved.rules};
   note('real-same-browser-json-package-upgrade',report.upgradeEvidence);
+  frame=await until(async()=>{
+    const targets=(await client.send('Target.getTargets')).targetInfos;
+    const target=targets.find(x=>x.type==='iframe'&&x.url?.includes('/sidebar-tools/sandbox.html'));
+    return target?(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId:null;
+  },'upgraded real React website management');
+  inputParents.set(frame,sid);
+  const upgradedSiteMenu='button[aria-label="管理 localhost"]';
+  await until(()=>evalRead(client,frame,
+    '!!document.querySelector('+JSON.stringify(upgradedSiteMenu)+')'),
+    'upgraded website row');
+  await click(client,frame,upgradedSiteMenu);
+  await click(client,frame,'.sf-popup [role="menuitem"]:last-child');
+  await until(()=>evalRead(client,sid,'(async()=>{const s=(await chrome.storage.local.get("'+store+'"))["'+store+'"];'+
+    'const r=await chrome.declarativeNetRequest.getDynamicRules();return !s.sites.some(x=>x.host==="localhost")&&'+
+    'r.filter(x=>x.id>=730000&&x.id<=730199).length==='+ (reached?'1':'0')+'})()'),
+    'removing a website saves state and removes only its DNR rule');
+  const removedVisit=await client.send('Target.createTarget',{url:secondPage});
+  await until(async()=>{const targets=(await client.send('Target.getTargets')).targetInfos;
+    return targets.find(x=>x.targetId===removedVisit.targetId)?.url===secondPage;},
+    'removed website allows actual HTTP navigation');
+  report.siteRemoval='PASS';
+  note('native-remove-site-restores-navigation',{host:'localhost',remainingOwnedRules:reached?1:0});
   await click(client,sid,'#sidebar-tool-remove');
   await click(client,sid,'#sidebar-tool-inline-remove-confirm');
   await until(async()=>{

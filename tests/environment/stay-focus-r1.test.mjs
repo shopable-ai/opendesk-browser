@@ -382,6 +382,20 @@ test('R5.9 forged titles and paused sites never trigger implicit website mutatio
   assert.equal(paused.writes.length,0);
   paused.unmount();
 });
+test('used minutes show completed time without rounding a partial minute up',async()=>{
+  for(const [usedMs,remainingMs,usedMinutes,remainingMinutes] of [
+    [94739,25261,1,1],[123393,0,2,0]
+  ]){
+    const ui=mountStayFocusReact({dailyBudget:{minutes:2,budgetMs:120000,usedMs,remainingMs}});
+    await ui.flush();
+    const hero=ui.find(node=>node.props?.className==='sf-hero');
+    assert.ok(ui.text(hero).includes('已使用 '+usedMinutes+' 分钟'));
+    assert.equal(ui.text(ui.find(node=>node.props?.className==='sf-balance')),
+      '今天还剩'+remainingMinutes+' 分钟');
+    assert.ok(ui.text(hero).includes('总额度 2 分钟'));
+    ui.unmount();
+  }
+});
 test('R5.6 daily budget saves only a validated edited value',async()=>{
   const ui=mountStayFocusReact({url:'https://example.com'});
   await ui.flush();

@@ -299,7 +299,7 @@
         h('div',{className:'sf-progress',role:'progressbar','aria-label':'已使用娱乐额度比例',
           'aria-valuemin':0,'aria-valuemax':100,'aria-valuenow':ratio},
           h('i',{style:{width:ratio+'%'}})),
-        h('div',{className:'sf-headrow'},h('span',null,'已使用 '+Math.ceil(used/60000)+' 分钟'),
+        h('div',{className:'sf-headrow'},h('span',null,'已使用 '+Math.floor(used/60000)+' 分钟'),
           h('span',null,'总额度 '+budget+' 分钟')),
         h('div',{className:'sf-budget-form'},
           h('label',{htmlFor:'sf-daily-budget'},'每日额度'),
