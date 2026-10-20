@@ -63,6 +63,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   let feedback=null,announcer=null,feedbackTimer=0,feedbackToken=0;
   let items=[],observer=null,observedRoot=null,resizeObserver=null,layoutTimer=0;
   const observedRegions=new Set();
+  const themeMedia=win.matchMedia?.('(prefers-color-scheme: dark)');
   let locationTimer=0,retryTimer=0,readFailures=0;
   let composing=false,inserting=false,lastAttempt=0,lastAttemptId=null;
   let activeRule=null,picker=null;
@@ -390,8 +391,9 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   };
   const darkTheme=()=>{
     const root=doc.documentElement;
+    const scheme=win.getComputedStyle?.(root)?.colorScheme||'';
     return root?.classList?.contains?.('dark')||root?.getAttribute?.('data-theme')==='dark'||
-      win.getComputedStyle?.(root)?.colorScheme==='dark';
+      scheme==='dark'||(scheme.split(/\s+/).includes('dark')&&themeMedia?.matches);
   };
   const layout=()=>{
     layoutTimer=0;if(!host||!visible||paused||disposed)return;
@@ -415,13 +417,14 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       width:Math.max(200,rect.width*0.6),height:48
     };
     if(targetRect.left>=win.innerWidth||targetRect.top>=win.innerHeight){host.hidden=true;return;}
-    // The live editor and measured navigation edge determine the LEFT gutter.
+    // Dock 8 CSS px inside the conversation region, beyond native navigation.
+    // The editor only determines whether that gutter can safely fit the rail.
     // Reset from a prior compact route BEFORE measuring vertical width;
     // scrollWidth from the horizontal rail would otherwise trap desktop layout.
     rail.classList.toggle('horizontal',false);
     const verticalWidth=rail.offsetWidth||52;
     const safeLeft=rect.safeLeft??rect.left;
-    const left=targetRect.left-verticalWidth-12;
+    const left=Math.max(8,rect.left+8,safeLeft+8);
     const vertical=win.innerWidth>=600&&left>=Math.max(8,safeLeft+8)&&
       left+verticalWidth+10<=targetRect.left&&targetRect.width>=200;
     rail.classList.toggle('horizontal',!vertical);
@@ -762,6 +765,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     win.removeEventListener('popstate',onNav);win.removeEventListener('hashchange',onNav);
     win.navigation?.removeEventListener?.('navigatesuccess',onNav);
     win.removeEventListener('resize',schedule);
+    themeMedia?.removeEventListener?.('change',schedule);
     win.removeEventListener('scroll',schedule,true);
     doc.removeEventListener('transitionend',schedule,true);
     doc.removeEventListener('compositionstart',onCompositionStart,true);
@@ -812,6 +816,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
   win.addEventListener('popstate',onNav);win.addEventListener('hashchange',onNav);
   win.navigation?.addEventListener?.('navigatesuccess',onNav);
   win.addEventListener('resize',schedule);
+  themeMedia?.addEventListener?.('change',schedule);
   win.addEventListener('scroll',schedule,true);
   doc.addEventListener('transitionend',schedule,true);
   doc.addEventListener('compositionstart',onCompositionStart,true);

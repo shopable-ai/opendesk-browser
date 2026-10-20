@@ -37,7 +37,7 @@ const compiledAdblockInputs=Object.freeze({
   'examples/sidebar-tools/adblock/trusted/policy.js':'0a4801d44af9232052eec86bd4e9a720743762e7',
   'examples/sidebar-tools/adblock/trusted/rules.js':'8100276a38117c3e6f88f04f65a4a6ea1a7cddc6',
   'examples/sidebar-tools/adblock/trusted/lifecycle.js':'1c750e4367a978a9a82e2d4709433ea77b93c505',
-  'examples/sidebar-tools/adblock/trusted/tool-host.js':'fb9dfcc07dd21fdcb5c2c7445823445dc1f01191',
+  'examples/sidebar-tools/adblock/trusted/tool-host.js':'b4d5e973ad0e9168b57512ad38da41263d2cc30b',
   'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
   'examples/sidebar-tools/adblock/rules/domains.js':'e78bbaea99f39b52cd3bc57d4379af68b166c2f9'
 });
@@ -80,22 +80,20 @@ function reviewedCompiledBookmarkReact(target,path,root){
 
 // Prompt Shortcuts is a reviewed fixed, site-specific content adapter.
 // The Classic model is exactly the same audited resource declared in the
-// independent tool package; only these three immutable blobs may enter
+// independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'709620e151cc448844a263e1f367db23a5fbb2da',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'6544a03db0f11373dccdf67cc9b5ce808920a495',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'36f97dd396e33abb712f2bc225bde13dfcb4efb8',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'bf8916fe1080e92bc42eeee2dafc1a6f6fc1d244',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'82575a84ed23bf57b8a5bf48ed2fefcd5cb6a24c'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
+const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
-  // Only the exact reviewed OD rail bridge may also enter the fixed SW.
-  // Page/policy/model remain bound to the original restricted outputs.
-  const railBridge=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
-  if(!(promptFixedTargets.has(target)||railBridge&&target==='sw.js')||
-    !Object.hasOwn(compiledPromptShortcutInputs,path))return null;
+  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
+  if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Prompt Shortcuts source must not be a symlink: '+path);
@@ -195,7 +193,7 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Only byte-reviewed first-party Clipper page/policy sources enter fixed
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'ae9f44d05b868d67c2973b39720757e07d8516d3',
+  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'2e4f46ee205cd3749841a79d82c74f3c35b84c00',
   'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'6240ef2d75f251c0b4d980690081d3540bba275f'
 });
 function reviewedCompiledWebClipper(target,path,root){
