@@ -1600,7 +1600,17 @@ test('cloud status returns bounded redacted pages and supports a cheap heartbeat
   assert.equal(historyReads,authorizationReads+1,'the bounded observation explicitly reads history once');
   assert.equal(full.requestTotal,76);assert.equal(full.requests.length,5);
   assert.equal(full.requestPage.nextOffset,5);
-  assert.doesNotMatch(JSON.stringify(full.requests),/cloud:extra|assignment|credential|params|runId|target\.url/);
+  // The authenticated Side Panel needs opaque request keys for per-task Stop.
+  // Assert the complete management projection instead of rejecting the keys
+  // themselves; unverified Run identities and provider secrets stay excluded.
+  const managementFields=['requestId','requestKey','jobId','canStopThis','taskTitle',
+    'state','runState','retirementState','reason','outcomeUnknown','receipt','targetReady'].sort();
+  for(const request of full.requests){
+    assert.deepEqual(Object.keys(request).sort(),managementFields,
+      'Cloud Host history must not expose assignment, credentials, params, target or unverified Run references');
+    assert.match(request.requestId,/^cloud:extra-\\d{3}$/);
+    assert.equal(request.requestKey,'cloud:request:'+request.requestId);
+  }
   const next=await f.cloud.cloudStatus({limit:5,offset:5},f.sender);
   assert.equal(next.requests.length,5);assert.equal(next.requestTotal,76);
   await assert.rejects(f.cloud.cloudStatus({limit:500},f.sender),code('E_SCHEMA'));
@@ -1929,7 +1939,8 @@ async function admittedCloud(t){
   const responder=async(url,options)=>{
     // The live Provider integration in this suite must not be intercepted by
     // an admission-only test double left active by a concurrent test.
-    if(/^http:\/\/127\.0\.0\.1:\d+\//.test(String(url)))
+    if(/^http:\/\/127\.0\.0\.1:\d+\//.test(String(url))&&
+       !String(url).startsWith(f.config.url+'/'))
       return realLocalProviderTransport(url,options);
     const b=JSON.parse(options.body);
     if(String(url).endsWith('/admission'))return new Response(JSON.stringify({
