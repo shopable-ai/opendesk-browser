@@ -178,29 +178,40 @@ test('React page preserves list, search/filter, detail identity and native Page 
   assert.equal(await page.evaluate(()=>fixture.changes.size+fixture.connections.size),0);
 });
 
-test('The first manageable row hints More; filtered first row inherits it and hover still works',options,async t=>{
+test('The last hovered or focused installed row keeps the only desktop More button',options,async t=>{
   const page=await browserFixture(t);
-  const all=page.locator('#extension-center-list > li');
-  assert.equal(await all.count(),2);
-  const hinted=page.locator('#extension-center-list .ec-row--discoverable');
-  assert.equal(await hinted.count(),1,'exactly one row demonstrates the overflow entry');
-  assert.equal(await hinted.locator('.ec-row-actions').evaluate(node=>getComputedStyle(node).opacity),
-    '1','first installed row must show More at rest');
-  const other=page.locator('#extension-center-list > li:not(.ec-row--discoverable)');
-  assert.equal(await other.locator('.ec-row-actions').evaluate(node=>getComputedStyle(node).opacity),
-    '0','other rows should not need permanent button columns');
-  await other.hover();
-  await page.waitForFunction(()=>{
-    const actions=document.querySelector('#extension-center-list > li:not(.ec-row--discoverable) .ec-row-actions');
-    return actions&&getComputedStyle(actions).opacity==='1';
-  });
-  await other.locator('[data-extension-action="more"]').click();
+  const app=page.locator('[data-extension-id="app:quick-notes"]');
+  const reader=page.locator('[data-extension-id="page:reader"]');
+  const active=()=>page.locator('#extension-center-list .ec-row--action-visible');
+  const opacity=locator=>locator.locator('.ec-row-actions').evaluate(node=>getComputedStyle(node).opacity);
+  assert.equal(await active().count(),1,'exactly one menu visible when the list first loads');
+  assert.equal(await active().getAttribute('data-extension-id'),'app:quick-notes');
+  assert.equal(await opacity(app),'1');
+  assert.equal(await opacity(reader),'0');
+  await reader.hover();
+  await page.waitForFunction(()=>document.querySelector('.ec-row--action-visible')?.dataset.extensionId==='page:reader');
+  await page.locator('#extension-center-search').hover();
+  assert.equal(await active().count(),1,'moving away must not clear the last visible control');
+  assert.equal(await opacity(reader),'1');
+  assert.equal(await opacity(app),'0','previous row menu must disappear');
+  await app.hover();
+  await page.waitForFunction(()=>document.querySelector('.ec-row--action-visible')?.dataset.extensionId==='app:quick-notes');
+  await page.locator('#extension-center-search').hover();
+  assert.equal(await opacity(app),'1','the last hovered row remains pinned when pointer leaves');
+  assert.equal(await opacity(reader),'0');
+  await reader.locator('[data-extension-action="main"]').focus();
+  await page.waitForFunction(()=>document.querySelector('.ec-row--action-visible')?.dataset.extensionId==='page:reader');
+  assert.equal(await opacity(reader),'1','keyboard focus also moves the discoverable control');
+  await reader.locator('[data-extension-action="more"]').click();
   assert.equal(await page.locator('#extension-center-row-menu').count(),1);
   await page.keyboard.press('Escape');
+  assert.equal(await active().getAttribute('data-extension-id'),'page:reader');
   await page.locator('#extension-center-search').fill('阅读');
   assert.equal(await page.locator('#extension-center-list > li').count(),1);
-  assert.equal(await page.locator('.ec-row--discoverable').getAttribute('data-extension-id'),'page:reader',
-    'the visible hint follows the first available installed item after filtering');
+  assert.equal(await active().getAttribute('data-extension-id'),'page:reader');
+  await page.locator('#extension-center-search').fill('');
+  assert.equal(await active().count(),1,'restoring search must not show multiple pinned menus');
+  assert.equal(await active().getAttribute('data-extension-id'),'page:reader');
 });
 
 test('React row menu preserves native gestures, keyboard/outside close, pending and disposal',options,async t=>{

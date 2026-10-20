@@ -30,9 +30,10 @@
 .ec-row-main{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:72px;min-width:0;max-width:none;padding:9px 10px;border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
 .ec-row-main:hover:not(:disabled){background:transparent}
 .ec-row-actions{position:absolute;top:50%;right:8px;z-index:1;display:flex;align-items:center;opacity:0;pointer-events:none;transform:translateY(-50%);transition:opacity .12s ease}
-/* First manageable row demonstrates the menu. Other rows reveal it on hover/focus. */
-.ec-row:hover .ec-row-actions,.ec-row:focus-within .ec-row-actions,.ec-row--discoverable .ec-row-actions{opacity:1;pointer-events:auto}
-.ec-row--discoverable .ec-row-main{padding-right:52px}
+/* Exactly one pinned desktop menu follows the last pointer/focus interaction.
+   Pointer exit does not clear it; touch still exposes all menu targets. */
+.ec-row--action-visible .ec-row-actions{opacity:1;pointer-events:auto}
+.ec-row--action-visible .ec-row-main{padding-right:52px}
 .ec-row-actions:empty{display:none}
 .ec-row+.ec-row{border-top:1px solid var(--od-line)}
 .ec-glyph{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--od-muted);color:var(--od-accent-ink)}
@@ -87,7 +88,7 @@
 }
 /* Touch lacks hover: retain one 44px control rather than three permanent actions. */
 @media(hover:none),(pointer:coarse){
-  .ec-row-main,.ec-row--discoverable .ec-row-main{padding-right:54px}
+  .ec-row-main,.ec-row--action-visible .ec-row-main{padding-right:54px}
   .ec-row-actions{opacity:1;pointer-events:auto}
   .ec-row-more{width:44px;min-width:44px;min-height:44px}
   .ec-toolbar .ec-icon{width:44px;min-width:44px;min-height:44px}
@@ -108,7 +109,7 @@
   .ec-more{right:0;max-width:calc(100vw - 20px)}
 }
 @media(hover:none) and (max-width:240px),(pointer:coarse) and (max-width:240px){
-  .ec-row-main,.ec-row--discoverable .ec-row-main{padding-right:54px}
+  .ec-row-main,.ec-row--action-visible .ec-row-main{padding-right:54px}
 }
 @media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
 @media(prefers-reduced-motion:reduce){.ec-context-menu{scroll-behavior:auto}.ec-row-actions{transition:none}}
