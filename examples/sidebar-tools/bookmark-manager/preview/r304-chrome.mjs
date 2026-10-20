@@ -167,7 +167,7 @@ async function assertTopbarGeometry(ctx,outer,label,{coarse=false}={}){
     "return {label:el.getAttribute('aria-label'),complete:b.left>=Math.max(0,a.left,t.left)-0.6&&b.right<=Math.min(innerWidth,a.right,t.right)+0.6&&b.top>=Math.max(0,t.top)-0.6&&b.bottom<=Math.min(innerHeight,t.bottom)+0.6,"+
     "hittable:!el.disabled&&getComputedStyle(el).visibility==='visible'&&!!hit&&el.contains(hit),svgInside:s.left>=b.left-0.6&&s.right<=b.right+0.6&&s.top>=b.top-0.6&&s.bottom<=b.bottom+0.6};})};");
   assert.ok(geometry.overflow<=1,'no App horizontal overflow '+label+' '+JSON.stringify(geometry));
-  assert.deepEqual(geometry.actions.map(action=>action.label),['新建书签','新建文件夹','收藏当前页','刷新书签'],'all four top actions '+label);
+  assert.deepEqual(geometry.actions.map(action=>action.label),['新建书签','新建文件夹','收藏当前页','对话','刷新书签'],'all five top actions '+label);
   for(const action of geometry.actions){
     assert.equal(action.complete,true,'complete top action '+label+' '+JSON.stringify(action));
     assert.equal(action.hittable,true,'hittable top action '+label+' '+JSON.stringify(action));
@@ -236,7 +236,20 @@ try{
    await assertIconCentered(ctx,'.bm-icon-btn','topbar icon '+width,{shared:true});
    await assertIconCentered(ctx,'.bm-disclosure:not(.is-placeholder)','tree folder chevron '+width);
    await assertIconCentered(ctx,'.bm-row-more','tree row action '+width,{shared:true});
-  assert.deepEqual(await invoke(ctx,"return [...document.querySelectorAll('.bm-topbar .bm-icon-btn')].map(el=>el.getAttribute('aria-label'))"),['新建书签','新建文件夹','收藏当前页','刷新书签'],'shared topbar labels '+width);
+  assert.deepEqual(await invoke(ctx,"return [...document.querySelectorAll('.bm-topbar .bm-icon-btn')].map(el=>el.getAttribute('aria-label'))"),['新建书签','新建文件夹','收藏当前页','对话','刷新书签'],'shared topbar labels '+width);
+
+  // Check the original React conversation pane, not a recreated HTML panel.
+  // No Provider is connected in this formal mock fixture.
+  await click(ctx,'button[aria-label="对话"]');
+  await until(ctx,"document.getElementById('bm-conversation')?.hidden===false",'conversation opens '+width);
+  await click(ctx,'.bm-chat-samples button');
+  await until(ctx,"document.getElementById('bm-chat-request')?.value.includes('AI 工具')",'conversation draft '+width);
+  await click(ctx,'button[aria-label="对话"]');
+  await until(ctx,"document.getElementById('bm-conversation')?.hidden===true",'conversation closes '+width);
+  await click(ctx,'button[aria-label="对话"]');
+  assert.match(await invoke(ctx,"return document.getElementById('bm-chat-request').value"),/AI 工具/,'chat draft retained '+width);
+  await click(ctx,'button[aria-label="对话"]');
+  await until(ctx,"document.querySelector('.bm-workspace')?.hidden===false",'bookmark tree restored '+width);
   await assertTreeGeometry(ctx,'initial tree '+width);
   const originalHeight=await invoke(ctx,"return Math.round(document.querySelector('.bm-tree-scroll').getBoundingClientRect().height)");
   assert.equal(await invoke(ctx,"return document.querySelector('.bm-inspector')===null"),true);

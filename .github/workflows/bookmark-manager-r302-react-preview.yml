@@ -111,6 +111,40 @@ jobs:
           path: |
             artifacts/bookmark-r32/formal-bundle.json
             docs/framework/evidence/wxt/builds/build-production.json
+  standalone-react-package-budget:
+    # The standalone sandbox bundle budget is an independent mandatory gate.
+    # It must not prevent formal App visual inspection with a mock Host.
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install root and preview pinned dependencies
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          cd examples/sidebar-tools/bookmark-manager/preview/react
+          npm ci --no-audit --no-fund
+      - name: Enforce existing standalone bundle byte limits
+        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        run: |
+          npm run preview:budget
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report=JSON.parse(await readFile('.opendesk-preview/budget-report.json','utf8'));
+          assert.equal(report.status,'SCHEMA_BUNDLE_READY_NOT_INSTALLED',report.blocker||report.error);
+          NODE
+      - name: Preserve independent budget evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookmark-r32-formal-budget-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          include-hidden-files: true
+          path: examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/budget-report.json
   react-chromium:
     runs-on: ubuntu-latest
     timeout-minutes: 22
@@ -129,13 +163,6 @@ jobs:
         run: |
           npm run preview:build
           npm run preview:check
-          npm run preview:budget
-          node --input-type=module <<'NODE'
-          import assert from 'node:assert/strict';
-          import {readFile} from 'node:fs/promises';
-          const report=JSON.parse(await readFile('.opendesk-preview/budget-report.json','utf8'));
-          assert.equal(report.status,'SCHEMA_BUNDLE_READY_NOT_INSTALLED',report.blocker||report.error);
-          NODE
       - name: Install CJK font support for readable Chinese Chromium evidence
         run: |
           sudo apt-get update -qq
@@ -143,7 +170,7 @@ jobs:
           fc-match 'Noto Sans CJK SC'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
-      - name: Real Chromium 360/400/960, floating details, URL anchor, keyboard and CRUD mock fixture
+      - name: Real Chromium 320/360/400/440/960 with chat, details, keyboard and CRUD mock fixture
         working-directory: examples/sidebar-tools/bookmark-manager/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
