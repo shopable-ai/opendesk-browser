@@ -25,7 +25,8 @@ function options(open){
 function form(){
   const previous=editId?data.items.find(item=>item.id===editId):null;
   return {body:el('ps-body').value,label:el('ps-label').value,name:el('ps-name').value,
-    shape:previous?.shape==='round'?'round':'square',enabled:el('ps-enabled').checked};
+    shape:previous?.shape==='round'?'round':'square',enabled:el('ps-enabled').checked,
+    appearance:el('ps-appearance-image').checked?'image':'text',imageUrl:el('ps-image-url').value};
 }
 function projected(){
   const draft=form(),old=editId?data.items.find(row=>row.id===editId):null;
@@ -36,11 +37,46 @@ function projected(){
       [...data.items,{...row,order:data.items.length}]});
   }catch{return null;}
 }
+// Use native <img> and textContent only; URLs were bounded by the shared trusted model.
+function picture(holder,row,{live=false}={}){
+  const label=row.label||model.auto(row.body||'')||'…';
+  const fallback=()=>{holder.classList.remove('has-image');
+    holder.replaceChildren(...model.parts(label).map(part=>dom('span','',part)));};
+  if(row.appearance!=='image'){fallback();return;}
+  let url;
+  try{url=model.normalizeImageUrl(row.imageUrl,true);}
+  catch(e){fallback();if(live)el('ps-image-help').textContent=e.message;return;}
+  holder.classList.add('has-image');
+  const img=dom('img');img.alt='';img.decoding='async';img.loading=live?'eager':'lazy';
+  img.referrerPolicy='no-referrer';
+  img.addEventListener('error',()=>{
+    if(holder.firstChild!==img)return;
+    fallback();
+    if(live)el('ps-image-help').textContent='图片加载失败，已显示备用短标签；请检查 URL、格式或网络限制。';
+  });
+  holder.replaceChildren(img);img.src=url;
+  if(live)el('ps-image-help').textContent='图片完整显示、不裁剪；加载失败显示短标签。远程图片服务器会收到图片请求。';
+}
 function preview(){
   const draft=form(),fallback=model.auto(draft.body),label=draft.label.trim()||fallback;
   const glyph=el('ps-preview-glyph');
   glyph.replaceChildren(...model.parts(label||'—').map(char=>dom('span','',char)));
   el('ps-preview-name').textContent=draft.name.trim()||fallback||'待生成';
+  const image=draft.appearance==='image';
+  el('ps-image-fields').hidden=!image;
+  if(image){
+    const holder=el('ps-image-preview'),dims=model.IMAGE_SIZES[data.settings.imageSize]||model.IMAGE_SIZES.large;
+    holder.style.width=dims[0]+'px';holder.style.height=dims[1]+'px';
+    // Avoid re-requesting the same remote image when the prompt body is edited.
+    const token=JSON.stringify([draft.imageUrl,label,data.settings.imageSize]);
+    if(holder.dataset.token!==token){
+      holder.dataset.token=token;
+      picture(holder,{...draft,label}, {live:true});
+    }
+  }else{
+    el('ps-image-preview').replaceChildren();
+    delete el('ps-image-preview').dataset.token;
+  }
   const estimate=projected(),bytes=estimate?model.bytes(estimate):null;
   el('ps-quota-value').textContent=(bytes===null?'—':bytes)+' / 8192 B';
   el('ps-quota').dataset.error=String(bytes!==null&&bytes>8192);
@@ -51,8 +87,9 @@ function changed(){
   dirty=JSON.stringify(form())!==baseline;if(el('ps-body').value.trim())bodyError('');preview();report();
 }
 function lock(){
-  for(const id of ['ps-new','ps-save','ps-save-next','ps-web','ps-transfer'])
-    el(id).disabled=!ready||busy||transferBusy||unconfirmedWrite||(id==='ps-new'&&Boolean(stagedImport));
+  for(const id of ['ps-new','ps-save','ps-save-next','ps-web','ps-transfer','ps-image-size'])
+    el(id).disabled=!ready||busy||transferBusy||unconfirmedWrite||
+      (id==='ps-new'&&Boolean(stagedImport))||(id==='ps-image-size'&&Boolean(stagedImport));
   const blocked=!ready||busy||transferBusy||unconfirmedWrite;
   el('ps-import').disabled=blocked;
   el('ps-export').disabled=blocked||Boolean(stagedImport);
@@ -89,6 +126,10 @@ function start(id=null,preset=''){
   el('ps-body').value=row?.body??preset;
   el('ps-label').value=row&&!row.labelAuto?row.label:'';
   el('ps-name').value=row&&!row.nameAuto?row.name:'';
+  el('ps-appearance-image').checked=row?.appearance==='image';
+  el('ps-appearance-text').checked=row?.appearance!=='image';
+  el('ps-image-url').value=row?.imageUrl||'';
+  delete el('ps-image-preview').dataset.token;
   el('ps-enabled').checked=row?.enabled!==false;error('');bodyError('');options(true);el('ps-leave').hidden=true;
   // A native-menu selection is an unsaved new draft, never an acknowledged baseline.
   baseline=JSON.stringify({...form(),body:row?.body??''});changed();el('ps-body').focus();
@@ -486,13 +527,14 @@ function render(){
   el('ps-count').textContent=data.items.length+' 个 · '+enabled+' 个启用';
   el('ps-empty').hidden=data.items.length>0;
   el('ps-web').checked=data.settings.webButtons;
+  el('ps-image-size').value=data.settings.imageSize||'large';
   for(const [i,item] of data.items.entries()){
     const identity=(item.nameAuto?'':item.name?.trim())||
       item.body.trim().replace(/\s+/g,' ').slice(0,60)||'提示词';
     const card=dom('article','ps-card'+(!item.enabled?' is-disabled':''));
     const mainRow=dom('div','ps-card-main');
     const glyph=dom('div','ps-glyph');glyph.setAttribute('aria-hidden','true');
-    for(const char of model.parts(item.label))glyph.append(dom('span','',char));
+    picture(glyph,item);
     const use=button(mainRow,item.body,()=>void copy(item),'quiet');
     use.replaceChildren(dom('span','ps-card-preview',item.body));
     use.className='ps-card-use od-button od-button--quiet';use.dataset.locked=item.enabled?'0':'1';
@@ -794,10 +836,28 @@ async function remove(){
 async function changeWeb(){
   if(!ready||busy||unconfirmedWrite)return;
   const desired=el('ps-web').checked;
-  const next=model.load({...data,settings:{webButtons:desired}});
+  const next=model.load({...data,settings:{...data.settings,webButtons:desired}});
   try{await commit(next);render();status(desired?'网页快捷按钮已开启。':'网页快捷按钮已关闭，提示词仍保留。');}
   catch(e){render();status('网页按钮设置未确认，当前显示上次确认状态：'+(e.code||e.message)+'；请重新打开核对。',true);}
 }
+async function changeImageSize(){
+  const control=el('ps-image-size');
+  if(!ready||busy||transferBusy||stagedImport||unconfirmedWrite){render();return;}
+  const desired=control.value;
+  if(!Object.hasOwn(model.IMAGE_SIZES,desired)){render();return;}
+  if(desired===data.settings.imageSize)return;
+  const next=model.load({...data,settings:{...data.settings,imageSize:desired}});
+  try{
+    await commit(next);
+    render();
+    status('图片尺寸已保存，网页按钮将同步更新。');
+  }catch(e){
+    // Preserve the last confirmed state, never turn a failed size change into a local-only illusion.
+    render();
+    status('图片尺寸未保存：'+(e.code||e.message)+'；请重新打开核对。',true);
+  }
+}
+
 async function launch(){
   try{
     const value=await OpenDeskSDK.browser.launch.consume();
@@ -853,6 +913,7 @@ el('ps-stay').addEventListener('click',()=>{el('ps-leave').hidden=true;pendingLe
 el('ps-discard').addEventListener('click',()=>{if(busy)return;const action=pendingLeave;pendingLeave=null;if(action)action();});
 el('ps-toggle-settings').addEventListener('click',()=>options(el('ps-setting-fields').hidden));
 el('ps-web').addEventListener('change',()=>void changeWeb());
+el('ps-image-size').addEventListener('change',()=>void changeImageSize());
 el('ps-sites-panel').hidden=true;el('ps-site-form').hidden=true;
 el('ps-sites-open').addEventListener('click',()=>void toggleSites());
 el('ps-site-current').addEventListener('click',()=>void openCurrentSite());
