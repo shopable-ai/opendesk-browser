@@ -1,5 +1,5 @@
 import './model.js';
-import {ANALYTICS_PROTOCOL} from '../../../../src/analytics/contract.js';
+import {ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK} from '../../../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
@@ -894,6 +894,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     // Invalidated Chrome event objects may throw even while removing listeners.
     try{api.storage.onChanged.removeListener(onStorage);}catch{}
     try{api.runtime?.onMessage?.removeListener(onPickerMessage);}catch{}
+    try{api.runtime?.onMessage?.removeListener(onAnalyticsScopeMessage);}catch{}
     win.removeEventListener('pageshow',onPageShow);win.removeEventListener('pagehide',onPageHide);
     win.removeEventListener('popstate',onNav);win.removeEventListener('hashchange',onNav);
     win.navigation?.removeEventListener?.('navigatesuccess',onNav);
@@ -943,7 +944,44 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     return true;
   };
 
+  // Independent from picker and editor health: failed actions still have scope.
+  const onAnalyticsScopeMessage=(message,sender,respond)=>{
+    if(message?.protocol!==ANALYTICS_PROTOCOL||message.kind!==ANALYTICS_PAGE_SCOPE_CHECK)return false;
+    const token=epoch,url=win.location.href;
+    const current=()=>runtimeCurrent()&&!paused&&token===epoch&&url===win.location.href;
+    const fromWorker=()=>{
+      try{
+        if(!current()||sender?.id!==runtimeId||sender.tab!==undefined||
+           sender.documentId!==undefined)return false;
+        const root=api.runtime.getURL('');
+        const worker=api.runtime.getManifest().background?.service_worker;
+        if(typeof worker!=='string'||!worker)return false;
+        const expected=api.runtime.getURL(worker),base=new URL(root),target=new URL(expected);
+        const origin=base.protocol+'//'+base.host;
+        if(target.protocol!==base.protocol||target.host!==base.host||
+           (sender.origin!==undefined&&sender.origin!==origin))return false;
+        if(sender.url!==undefined)return sender.url===expected;
+        // Some Chrome versions omit SW URL; only an explicit own origin suffices.
+        return sender.origin===origin;
+      }catch{return false;}
+    };
+    if(!fromWorker()||message.expectedUrl!==url||
+       Object.keys(message).some(key=>!['protocol','kind','expectedUrl'].includes(key))){
+      respond(false);return false;
+    }
+    void (async()=>{
+      const values=await api.storage.local.get(KEYS);
+      if(!current())return false;
+      const sites=MODEL.sitesLoad(values[PROMPT_DATA_STORE]?.sites);
+      const allowed=await allowedPromptSite({installed:values[SIDEBAR_TOOL_STORE],
+        enabled:values[SIDEBAR_TOOL_ENABLE_STORE],url,sites});
+      return allowed===true&&current();
+    })().then(allowed=>respond(allowed===true),()=>respond(false));
+    return true;
+  };
+
   api.runtime?.onMessage?.addListener(onPickerMessage);
+  api.runtime?.onMessage?.addListener(onAnalyticsScopeMessage);
   api.storage.onChanged.addListener(onStorage);
   win.addEventListener('pageshow',onPageShow);win.addEventListener('pagehide',onPageHide);
   win.addEventListener('popstate',onNav);win.addEventListener('hashchange',onNav);

@@ -1,11 +1,9 @@
 // Single trusted MV3 analytics authority. The sandbox is never a telemetry sender.
-import {ANALYTICS_PROTOCOL,ANALYTICS_ALARM,ANALYTICS_STATE_KEY} from './contract.js';
+import {ANALYTICS_PROTOCOL,ANALYTICS_ALARM,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_PROMPT_TOOL_ID as PROMPT_ID} from './contract.js';
 import {ANALYTICS_INGEST_URL} from './config.js';
 import {createAnalyticsCollector} from './collector.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
-import {PROMPT_ID,PROMPT_DATA_STORE,allowedPromptSite,installedPromptTool,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
-import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
 
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
@@ -53,19 +51,50 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     return collector.record({event:'app.inventory',toolId:'opendesk',source:'host',
       channel:'extension',installedTools:ids.sort()});
   }
+  const promptPageIdentity=sender=>{
+    if(sender?.id!==extensionId||sender.incognito===true||
+       (sender.documentLifecycle!==undefined&&sender.documentLifecycle!=='active')||
+       !Number.isInteger(sender.tab?.id)||sender.tab.id<0||sender.tab.incognito!==false||
+       sender.frameId!==0||typeof sender.documentId!=='string'||!sender.documentId||
+       typeof sender.url!=='string'||sender.tab.url!==sender.url||
+       sender.tab.pendingUrl!==undefined)return null;
+    try{
+      const url=new URL(sender.url);
+      if(!['http:','https:'].includes(url.protocol)||!url.hostname||
+         url.username||url.password||url.href!==sender.url)return null;
+      return {tabId:sender.tab.id,documentId:sender.documentId,url:sender.url};
+    }catch{return null;}
+  };
   const fromPromptPage=async sender=>{
-    if(sender?.id!==extensionId||!sender.tab||sender.tab.incognito===true||
-       sender.frameId!==0||typeof sender.url!=='string')return false;
-    const url=sender.url;
-    // The sender's Chrome-supplied frame URL is checked locally, never uploaded.
-    if(!supportedOrigin(url)&&!/^https?:\/\//.test(url))return false;
-    if(sender.tab.url){
-      try{if(new URL(sender.tab.url).origin!==new URL(url).origin)return false;}
-      catch{return false;}
-    }
-    const data=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,PROMPT_DATA_STORE]);
-    return allowedPromptSite({installed:data[SIDEBAR_TOOL_STORE],enabled:data[SIDEBAR_TOOL_ENABLE_STORE],
-      url,sites:globalThis.OpenDeskPromptShortcutsModel?.sitesLoad(data[PROMPT_DATA_STORE]?.sites)});
+    const identity=promptPageIdentity(sender);
+    if(!identity||typeof api.tabs?.sendMessage!=='function'||
+       typeof api.tabs?.get!=='function'||typeof api.webNavigation?.getFrame!=='function')return false;
+    const {tabId,documentId,url}=identity;
+    const currentDocument=async()=>{
+      const [frame,tab]=await Promise.all([
+        api.webNavigation.getFrame({tabId,frameId:0}),api.tabs.get(tabId)
+      ]);
+      return frame?.documentId===documentId&&frame.url===url&&
+        frame.documentLifecycle==='active'&&frame.errorOccurred===false&&
+        tab?.id===tabId&&tab.url===url&&tab.incognito===false&&
+        tab.pendingUrl===undefined;
+    };
+    let timer;
+    try{
+      return await Promise.race([
+        (async()=>{
+          if(!await currentDocument())return false;
+          const allowed=await api.tabs.sendMessage(tabId,{
+            protocol:ANALYTICS_PROTOCOL,kind:ANALYTICS_PAGE_SCOPE_CHECK,expectedUrl:url
+          },{frameId:0,documentId});
+          if(allowed!==true)return false;
+          // A cached/error document or pending navigation cannot authorize usage.
+          return currentDocument();
+        })(),
+        new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1000);})
+      ]);
+    }catch{return false;}
+    finally{clearTimeout(timer);}
   };
   const counts=new Map();
   const limit=key=>{
@@ -118,15 +147,16 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
         !['prompt.inserted','prompt.fallback_copied','prompt.failed'].includes(message.event)||
         message.channel!==(message.event==='prompt.fallback_copied'?'fallback':'page_button')||
         (message.event==='prompt.failed'?!['editor_changed','editor_unavailable','site_denied','clipboard_failed','write_unconfirmed','other'].includes(message.reason):message.reason!==undefined)||
-        !limit('page_report')||!await fromPromptPage(sender))
+        !limit('page_report')||!promptPageIdentity(sender))
         return {ok:false,code:'E_SENDER'};
       const data=await collector.record({event:message.event,toolId:PROMPT_ID,
-        source:'page_adapter',channel:message.channel,reason:message.reason});
+        source:'page_adapter',channel:message.channel,reason:message.reason},
+         {authorize:()=>fromPromptPage(sender)});
       // A verified successful page action is enough for broad tool engagement;
       // failure / automatic adapter loads must never create an active-use event.
       if(data.recorded&&['prompt.inserted','prompt.fallback_copied'].includes(message.event))
         await collector.record({event:'tool.engaged',toolId:PROMPT_ID,
-          source:'host',channel:'page_button'});
+          source:'host',channel:'page_button'},{authorize:()=>fromPromptPage(sender)});
       return {ok:true,data};
     }
     return {ok:false,code:'E_SCHEMA'};

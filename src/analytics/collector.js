@@ -63,12 +63,22 @@ export function createAnalyticsCollector({api,endpoint='',fetcher=globalThis.fet
     });
   }
   const statusSnapshot=consent=>({configured,consent,queued:0});
-  function record({event,toolId,source,channel,reason,installedTools,contextId}){
+  function record({event,toolId,source,channel,reason,installedTools,contextId},{authorize}={}){
     if(revoked||!configured)return Promise.resolve({recorded:false});
+    const generation=revision;
     return run(async()=>{
-      if(revoked)return {recorded:false};
-      const state=await read();
-      if(!state.consent)return {recorded:false};
+      if(revoked||generation!==revision)return {recorded:false};
+      let state=await read();
+      if(revoked||generation!==revision||!state.consent)return {recorded:false};
+      if(authorize){
+        try{if(await authorize()!==true)return {recorded:false};}
+        catch{return {recorded:false};}
+        // Consent can be revoked while a queued scope probe is in flight.
+        const fresh=await read();
+        if(revoked||generation!==revision||!fresh.consent||
+           fresh.installId!==state.installId)return {recorded:false};
+        state=fresh;
+      }
       // The context ID is Chrome-owned sender identity; never transmitted.
       if(event==='app.opened'&&
         (typeof contextId!=='string'||!(/^[a-f0-9-]{36}$/i).test(contextId)||

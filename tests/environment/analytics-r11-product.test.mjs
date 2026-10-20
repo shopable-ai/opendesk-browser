@@ -7,7 +7,7 @@ import {readFile} from 'node:fs/promises';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
 import {createAnalyticsGateway} from '../../services/analytics/worker.mjs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {ANALYTICS_PROTOCOL,ANALYTICS_STATE_KEY} from '../../src/analytics/contract.js';
+import {ANALYTICS_PROTOCOL,ANALYTICS_STATE_KEY,ANALYTICS_PAGE_SCOPE_CHECK} from '../../src/analytics/contract.js';
 
 const listen=server=>new Promise(resolve=>server.listen(0,'127.0.0.1',
   ()=>resolve('http://127.0.0.1:'+server.address().port)));
@@ -33,6 +33,21 @@ function chromeMock(installed){
   const api={runtime:{id,getURL:path=>'chrome-extension://'+id+'/'+path,
     onMessage:{addListener:cb=>messageListeners.push(cb)},
     onStartup:{addListener(){}},onInstalled:{addListener(){}}},
+    tabs:{async sendMessage(tabId,message,target){
+      assert.equal(tabId,12);
+      assert.deepEqual(target,{frameId:0,documentId:'prompt-document'});
+      assert.deepEqual(message,{protocol:ANALYTICS_PROTOCOL,kind:ANALYTICS_PAGE_SCOPE_CHECK,
+        expectedUrl:'https://chatgpt.com/'});
+      return records.get(SIDEBAR_TOOL_STORE)?.some(tool=>tool.id==='prompt-shortcuts')===true;
+    },async get(tabId){
+      assert.equal(tabId,12);
+      return {id:12,url:'https://chatgpt.com/',incognito:false};
+    }},
+    webNavigation:{async getFrame(target){
+      assert.deepEqual(target,{tabId:12,frameId:0});
+      return {documentId:'prompt-document',url:'https://chatgpt.com/',
+        documentLifecycle:'active',errorOccurred:false};
+    }},
     alarms:{onAlarm:{addListener:cb=>alarmListeners.push(cb)},async create(){},async clear(){}},
     storage:{onChanged:{addListener:cb=>changeListeners.push(cb)},
       local:{async get(keys){
@@ -93,7 +108,7 @@ test('verified Side Panel opens → opt-in collector → real HTTP D1 → PostHo
   const id=api.runtime.id;
   const options={id,url:api.runtime.getURL('native-agent/settings.html'),frameId:0};
   const panel={id,url:api.runtime.getURL('sidepanel.html')+'?hostInstanceId='+randomUUID(),frameId:0};
-  const page={id,url:'https://chatgpt.com/',frameId:0,
+  const page={id,url:'https://chatgpt.com/',frameId:0,documentId:'prompt-document',
     tab:{id:12,url:'https://chatgpt.com/',incognito:false}};
   const report=(event,toolId,sender=panel)=>send({
     protocol:ANALYTICS_PROTOCOL,kind:'event.host_report',event,toolId,channel:'sidepanel'},sender);

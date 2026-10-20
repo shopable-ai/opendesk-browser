@@ -5,6 +5,8 @@ import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js';
 import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,CHATGPT_ORIGIN,changePromptSiteGrant}
   from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {installAnalyticsHost} from '../../src/analytics/host.js';
+import {ANALYTICS_STATE_KEY,ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -120,7 +122,8 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
   // The fixture's focus must have the same activeElement contract as DOM focus.
   const nativeEditorFocus=editor.focus.bind(editor);
   editor.focus=()=>{nativeEditorFocus();doc.activeElement=editor;};
-  const api={runtime:{id:'test-extension',getURL:()=> 'chrome-extension://test-extension/',
+  const api={runtime:{id:'test-extension',getURL:(path='')=> 'chrome-extension://test-extension/'+path,
+    getManifest:()=>({background:{service_worker:'background.js'}}),
     onMessage:{addListener:fn=>runtimeMessages.add(fn),removeListener:fn=>runtimeMessages.delete(fn)}},storage:{
     local:{async get(keys){return Object.fromEntries((Array.isArray(keys)?keys:[keys])
       .filter(key=>values.has(key)).map(key=>[key,structuredClone(values.get(key))]));}},
@@ -596,9 +599,9 @@ test('Prompt runtime lifetime: throwing Chrome listener removals cannot interrup
     f.api.runtime.id=undefined;
     // Exercise the jump callback guard before the 1100ms poll runs.
     assert.doesNotThrow(()=>f.click(f.arrows()[0]));await settle();
-    assert.equal(removals,2);assert.deepEqual(f.scrolls,[]);assertRuntimeDisposed(f);
+    assert.equal(removals,3);assert.deepEqual(f.scrolls,[]);assertRuntimeDisposed(f);
     assert.doesNotThrow(()=>f.controller.dispose());
-    assert.equal(removals,2,'disposal remains idempotent after Chrome removal failures');
+    assert.equal(removals,3,'disposal remains idempotent after Chrome removal failures');
   }finally{f.controller.dispose();}
 });
 
@@ -1682,7 +1685,7 @@ test('R2.7 storage-confirmed create/edit/reorder/delete/import and enable change
     update([first,second]);await settle();
     assert.equal(f.buttons().length,2,'global re-enable remounts exactly once');
     assert.equal(f.siteEvents.size,1,'no duplicate storage listener across remounts');
-    assert.equal(f.runtimeMessages.size,1,'no duplicate trusted runtime handlers');
+    assert.equal(f.runtimeMessages.size,2,'one picker and one analytics scope handler');
   }finally{f.controller.dispose();}
   assert.equal(f.siteEvents.size,0);
 });
@@ -1909,4 +1912,152 @@ test('R2.16 light-dark sites track system theme changes and release the media li
     assert.equal(host().classList.contains('dark'),true,'explicit dark scheme overrides system light');
   }finally{controller.dispose();}
   assert.equal(listeners.size,0,'dispose releases the theme listener');
+});
+
+// Scope probes use the real fixed adapter/policy; editor and picker are irrelevant.
+const scopeWorker=()=>({id:'test-extension',url:'chrome-extension://test-extension/background.js'});
+const scopeMessage=url=>({protocol:ANALYTICS_PROTOCOL,kind:ANALYTICS_PAGE_SCOPE_CHECK,expectedUrl:url});
+function pageScope(f,message=scopeMessage(f.win.location.href),sender=scopeWorker()){
+  return new Promise(resolve=>{
+    let accepted=false,responded=false;
+    for(const fn of [...f.runtimeMessages]){
+      if(fn(message,sender,value=>{responded=true;resolve(value);})===true)accepted=true;
+    }
+    if(!accepted&&!responded)resolve(undefined);
+  });
+}
+async function scopePage(t,{url=CHATGPT_ORIGIN+'/c/private',sites}={}){
+  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const library={schema:1,items:[],settings:{webButtons:false}};
+  const f=fixture({pkg,library,noEditor:true});f.win.location.href=url;
+  if(sites)f.values.set(PROMPT_DATA_STORE,{library,sites});
+  const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
+  t.after(()=>controller.dispose());await settle();
+  return {...f,controller};
+}
+const scopeDeferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};
+
+test('analytics scope accepts only the real SW URL or explicit own origin when URL is omitted',async t=>{
+  const f=await scopePage(t);
+  assert.equal(await pageScope(f),true,'missing editor/webButtons do not suppress failure telemetry');
+  for(const bad of [
+    {...scopeWorker(),id:'other-extension'},
+    {...scopeWorker(),tab:{id:2}},{...scopeWorker(),documentId:'other-document'},
+    {...scopeWorker(),url:'chrome-extension://test-extension/sidepanel.html'},
+    {...scopeWorker(),url:scopeWorker().url+'?worker=1'},
+    {...scopeWorker(),url:scopeWorker().url+'#worker'},
+    {...scopeWorker(),url:'chrome-extension://other-extension/background.js'},
+    {...scopeWorker(),url:'https://test-extension/background.js'},
+    {...scopeWorker(),origin:'https://evil.test'},
+    {id:'test-extension'}, {id:'test-extension',origin:'null'},
+    {id:'test-extension',origin:'chrome-extension://other-extension'},
+    {id:'test-extension',url:null,origin:'chrome-extension://test-extension'}
+  ])assert.equal(await pageScope(f,undefined,bad),false,JSON.stringify(bad));
+  assert.equal(await pageScope(f,undefined,{id:'test-extension',origin:'chrome-extension://test-extension'}),true);
+  assert.equal(await pageScope(f,{...scopeMessage(f.win.location.href),body:'private text'}),false);
+  assert.equal(await pageScope(f,scopeMessage(f.win.location.href+'/changed')),false);
+  f.api.runtime.getManifest=()=>({background:{service_worker:'workers/sw.js'}});
+  assert.equal(await pageScope(f),false,'old worker path cannot authorize');
+  assert.equal(await pageScope(f,undefined,{id:'test-extension',url:f.api.runtime.getURL('workers/sw.js')}),true);
+  delete f.api.runtime.getManifest;
+  assert.equal(await pageScope(f),false,'missing manifest fails closed');
+});
+
+test('analytics scope reuses exact custom/builtin rules, disabled and removed installations',async t=>{
+  const url='https://example.org/compose/private?draft=secret#body';
+  const rule={origin:'https://example.org',pathScope:'/compose',containerSelector:'main',editorSelector:'textarea',enabled:true};
+  const f=await scopePage(t,{url,sites:{schema:1,rules:[rule]}});
+  assert.equal(await pageScope(f),true);
+  f.change(PROMPT_DATA_STORE,{sites:{schema:1,rules:[{...rule,enabled:false}]}});await settle();
+  assert.equal(await pageScope(f),false);
+  f.change(PROMPT_DATA_STORE,{sites:{schema:1,rules:[rule]}});await settle();
+  f.win.location.href='https://example.org/unrelated';
+  assert.equal(await pageScope(f),false);
+  f.win.location.href='https://example.org.evil.test/compose';
+  assert.equal(await pageScope(f),false);
+  for(const [key,value] of [[SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false}],[SIDEBAR_TOOL_STORE,[]]]){
+    f.win.location.href=url;f.change(key,value);await settle();
+    assert.equal(await pageScope(f),false);
+  }
+  const builtin=await scopePage(t,{url:'https://gemini.google.com/app/private'});
+  assert.equal(await pageScope(builtin),true);
+  builtin.change(PROMPT_DATA_STORE,{sites:{schema:1,rules:[{
+    origin:'https://gemini.google.com',pathScope:'/app',containerSelector:'main',editorSelector:'textarea',enabled:false
+  }]}});await settle();
+  assert.equal(await pageScope(builtin),false,'disabled custom override also blocks builtin fallback');
+});
+
+for(const race of ['navigation','paused','dispose','runtime-invalidated','disable','uninstall','epoch']){
+  test('analytics scope rejects stale in-flight page state: '+race,async t=>{
+    const f=await scopePage(t),entered=scopeDeferred(),release=scopeDeferred();
+    const read=f.api.storage.local.get;
+    let first=true;
+    f.api.storage.local.get=async keys=>{
+      const values=await read(keys);
+      if(first){first=false;entered.resolve();await release.promise;}
+      return values;
+    };
+    const pending=pageScope(f);await entered.promise;
+    if(race==='navigation')f.win.location.href+='/next';
+    if(race==='paused')f.events.get('pagehide')({persisted:true});
+    if(race==='dispose')f.controller.dispose();
+    if(race==='runtime-invalidated')f.api.runtime.id='replacement-extension';
+    if(race==='disable')f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});
+    if(race==='uninstall')f.change(SIDEBAR_TOOL_STORE,[]);
+    if(race==='epoch')f.change(TOOL_REVOCATION_EPOCHS_STORE,{[PROMPT_ID]:'replacement-install'});
+    release.resolve();assert.equal(await pending,false);
+    if(race==='paused')assert.equal(await pageScope(f),false);
+    if(race==='dispose'||race==='runtime-invalidated')assert.equal(f.runtimeMessages.size,0);
+  });
+}
+
+test('analytics scope fails closed on storage error and leaves picker listener lifecycle intact',async t=>{
+  const f=await scopePage(t);
+  f.api.storage.local.get=async()=>{throw Error('unavailable');};
+  assert.equal(await pageScope(f),false);
+  assert.equal(f.runtimeMessages.size,2);
+  f.controller.dispose();assert.equal(f.runtimeMessages.size,0);
+  assert.equal(await pageScope(f),undefined,'disposed adapter cannot answer later probes');
+});
+
+test('Host probes real custom-site adapter for failures and fallback, then blocks disabled scope without leaking content',async t=>{
+  const url='https://example.org/compose/private?draft=secret#body';
+  const f=await scopePage(t,{url,sites:{schema:1,rules:[{
+    origin:'https://example.org',pathScope:'/compose',containerSelector:'main',editorSelector:'textarea',enabled:true
+  }]}});
+  const listeners=[],wire=[],probes=[];
+  f.api.storage.local.set=async data=>{for(const [key,value] of Object.entries(data))f.values.set(key,structuredClone(value));};
+  const api={...f.api,runtime:{...f.api.runtime,onMessage:{addListener:fn=>listeners.push(fn)}},
+    tabs:{async sendMessage(tabId,message,target){
+      assert.equal(tabId,29);assert.deepEqual(target,{frameId:0,documentId:'custom-document'});
+      assert.deepEqual(message,scopeMessage(f.win.location.href));probes.push(message);
+      return pageScope(f,message,scopeWorker());
+    },async get(tabId){
+      assert.equal(tabId,29);
+      return {id:29,url:f.win.location.href,incognito:false};
+    }},webNavigation:{async getFrame(target){
+      assert.deepEqual(target,{tabId:29,frameId:0});
+      return {documentId:'custom-document',url:f.win.location.href,
+        documentLifecycle:'active',errorOccurred:false};
+    }}};
+  const collector=installAnalyticsHost({api,endpoint:'https://receiver.example/v1/events',fetcher:async(_url,options)=>{
+    const batch=JSON.parse(options.body);wire.push(batch);
+    return {ok:true,json:async()=>({ok:true,accepted:batch.events.map(row=>row.eventId),duplicates:[]})};
+  }});
+  await collector.setConsent(true);
+  const source={id:api.runtime.id,url,frameId:0,documentId:'custom-document',tab:{id:29,url,incognito:false}};
+  const report=(event,channel,reason)=>new Promise(resolve=>listeners[0]({
+    protocol:ANALYTICS_PROTOCOL,kind:'event.page_report',toolId:PROMPT_ID,event,channel,...(reason?{reason}:{})
+  },source,resolve));
+  assert.equal((await report('prompt.failed','page_button','editor_unavailable')).data.recorded,true);
+  assert.equal((await report('prompt.fallback_copied','fallback')).data.recorded,true);
+  assert.equal(probes.length,3,'failure probes once, success probes separately for engagement');
+  assert.deepEqual(f.values.get(ANALYTICS_STATE_KEY).queue.map(row=>row.event),[
+    'app.inventory','prompt.failed','prompt.fallback_copied','tool.engaged']);
+  assert.equal((await collector.flush()).sent,4);
+  assert(!JSON.stringify(wire).includes(url));assert(!JSON.stringify(wire).includes('secret'));
+  f.change(SIDEBAR_TOOL_ENABLE_STORE,{[PROMPT_ID]:false});await settle();
+  assert.equal((await report('prompt.failed','page_button','site_denied')).data.recorded,false);
+  assert.deepEqual(f.values.get(ANALYTICS_STATE_KEY).queue.map(row=>row.event),['tool.disabled'],
+    'disable lifecycle telemetry remains, but no page action crosses the revoked scope');
 });

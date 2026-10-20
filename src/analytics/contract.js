@@ -1,5 +1,8 @@
 // Platform analytics v1: bounded, content-free events shared by MV3 and the HTTPS gateway.
 export const ANALYTICS_PROTOCOL='opendesk.analytics.v1';
+// Fixed internal probe: scope is decided only by the audited page adapter.
+export const ANALYTICS_PAGE_SCOPE_CHECK='page.scopecheck';
+export const ANALYTICS_PROMPT_TOOL_ID='prompt-shortcuts';
 export const ANALYTICS_ALARM='opendesk.analytics.flush.v1';
 export const ANALYTICS_STATE_KEY='opendesk.analytics.state.v1';
 export const ANALYTICS_VERSION=1;
