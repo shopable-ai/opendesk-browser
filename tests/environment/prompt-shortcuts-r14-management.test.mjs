@@ -915,7 +915,8 @@ test('R2.7 export reads authoritative ETag library and requests Host JSON downlo
   const payload=f.downloads[0],backup=JSON.parse(payload.text);
   assert.match(payload.filename,/^opendesk-prompt-shortcuts-\d{4}-\d\d-\d\d\.json$/);
   assert.equal(backup.format,'opendesk.prompt-shortcuts');
-  assert.equal(backup.version,1);
+  assert.equal(backup.version,2);
+  assert.equal(backup.imageSize,'large','legacy data must export with the default image size');
   assert.deepEqual(backup.items.map(row=>row.body),R27_SEED.items.map(row=>row.body));
   assert.deepEqual(backup.items.map(row=>row.id),R27_SEED.items.map(row=>row.id));
   assert.equal(Object.hasOwn(backup,'sites'),false);

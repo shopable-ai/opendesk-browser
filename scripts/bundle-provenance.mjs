@@ -83,9 +83,9 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // independent tool package; only these reviewed immutable blobs may enter
 // the pre-existing fixed Host/relay bundles. This is NOT a wildcard exception.
 const compiledPromptShortcutInputs=Object.freeze({
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'8c4ec4e2512bcad44d40d4457336e86336fec4dd',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'ed4584eb7024663d9251e270480b0dbdc719936f',
   'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'c39f288fb30739549733806996b2ef6faffc37d7',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'7c7cb86035c98d6eb76634aeff4f0711f49ee3cc',
   'examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js':'7c10e8270c43be93229afbf0d3171455de628030',
   // Shared with the standalone diagnostic harness; never an installed package import.
   'examples/programs/chatgpt-jump-top/src/conversation.js':'e9a342a409b60e1b5c162ef275cb1a8bb8b6ce3a',
