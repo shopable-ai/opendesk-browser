@@ -171,8 +171,8 @@ test('full-height import workspace uses real Controller without a review panel',
  assert.match(component,/className="cookie-import-workspace"/);
  assert.doesNotMatch(component,/<dialog\b|showModal\(\)/);
  assert.match(component,/onImportText/);
- assert.match(app,/controller\.previewImport\(text,'auto',true\)/);
- assert.match(app,/controller\.executeImport\(text,'auto',true\)/);
+ assert.match(app,/controller\.previewImport\(text,'auto',true,\{allSites:true\}\)/);
+ assert.match(app,/controller\.executeImport\(text,'auto',true,\{allSites:true\}\)/);
  assert.match(app,/cookie-import-toast/);
  assert.match(css,/\.cookie-import-workspace/);
  for(const legacy of ['cookie-import-summary','cookie-import-overwrite','导入预检结果','新增 {plan.created}'])

@@ -221,7 +221,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     if(modeRef.current!=='browser'||initial.phase!=='ready')return false;
     const sessionRef=activeImportRef.current;
     try{
-    const plan=await controller.previewImport(text,'auto',true);
+    const plan=await controller.previewImport(text,'auto',true,{allSites:true});
     // Never report a stale success/error against a newly selected site.
     const currentSite=controller.snapshot();
     if(initial.epoch!==currentSite.epoch||
@@ -234,14 +234,14 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     if(!plan.accepted){
       const first=String(plan.issues?.[0]?.reason||'');
       const reason=/域名|网站范围|Host-only/.test(first)
-        ?'Cookie 不属于当前已授权网站。'
+        ?'Cookie 域名或 Host-only 属性无效。'
         :/过期|expirationDate/.test(first)
           ?'Cookie 已过期。':'内容不符合 Cookie 格式或权限要求。';
       controller.discardImport();controller.dismissImportReport();
       noteImport('未导入 '+plan.total+' 条：'+reason);
       return false;
     }
-    const ok=await controller.executeImport(text,'auto',true);
+    const ok=await controller.executeImport(text,'auto',true,{allSites:true});
     if(ok){
       restoreImportFocus.current=true;
       noteImport('已导入 '+plan.accepted+' 条'+

@@ -22,6 +22,18 @@ test('one trusted user action covers 25, 50 and 100 bounded batches',()=>{
   gate.settle({owner,count:900,confirmed:true});
   assert.equal(gate.acquire({owner,origin,count:1}),false);
 });
+test('one official click admits destination domains only while the source remains unchanged',()=>{
+  const gate=createCookieImportIntentGate(),owner='official/cookie-editor';
+  const source='https://shop.example.com',destination='https://accounts.example.net';
+  const session=gate.start({owner,origin:source,verifiedUserActivation:true,multiOrigin:true});
+  assert.equal(gate.acquire({owner,origin:destination,sourceOrigin:source,count:30}),true);
+  gate.settle({owner,count:30,confirmed:true});
+  assert.throws(()=>gate.acquire({owner,origin:destination,sourceOrigin:'https://wrong.example',count:1}),
+    {code:'E_DOCUMENT_CHANGED'});
+  assert.equal(gate.acquire({owner,origin:destination,sourceOrigin:source,count:1}),false);
+  assert.deepEqual(gate.close(owner,session.ref),{closed:false});
+});
+
 test('wrong owner, wrong origin, expiration and unknown failures cannot reuse a click',()=>{
   let time=100;
   const gate=createCookieImportIntentGate({now:()=>time});
