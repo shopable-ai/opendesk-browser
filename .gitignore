@@ -124,3 +124,4 @@ docs/framework/workstreams/evidence/**
 
 # Mutable build-attempt pointers; archive incident receipts in workstream evidence.
 /docs/cloud-build-evidence/build-*-latest.json
+.playwright-mcp/*

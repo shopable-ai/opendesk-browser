@@ -479,6 +479,29 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     if(!rows.length)return;
     for(const row of rows)await reconcileOne(await migrateLegacy(row));
   });}
+  // Navigation/closure is a wake hint, never proof of document death (BFCache
+  // may retain it). Recheck pending cleanup through the existing exact-document
+  // broker without registering scripts, dispatching cleanup or restoring grants.
+  async function observeManagedCleanup(details){return ordered(async()=>{
+    if(!preview.retireInstalled)return;
+    const rows=await read(tx=>tx.all(PAGE_STORE));
+    const pending=rows.filter(row=>row?.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&
+      row.managedCleanup?.state==='unknown'&&rows.some(execution=>execution?.tag==='page-execution-v1'&&
+        execution.namespace===namespace&&execution.programId===row.programId&&
+        execution.installationId===row.authorization?.installationId&&execution.tabId===details.tabId&&
+        execution.grantGeneration<=row.authorization.generation&&execution.managedUI));
+    for(const row of pending){
+      const managedCleanup=await preview.retireInstalled(row,{
+        includeCurrent:!active(row)||row.nativeState!=='registered',observeOnly:true});
+      if(managedCleanup.state!=='retired')continue;
+      await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+        const installKey=key(INSTALL_KEY_KIND,namespace,row.programId),current=await tx.get(PAGE_STORE,installKey);
+        if(current?.token===row.token&&current.authorization?.installationId===row.authorization.installationId&&
+          current.authorization?.generation===row.authorization.generation&&current.managedCleanup?.state==='unknown')
+          await tx.put(PAGE_STORE,{...current,managedCleanup},installKey);
+      });
+    }
+  });}
   async function recoverExecutions(){
     // Called once at worker startup, never on a permission refresh while a
     // live invocation is running. An old pending dispatch must not be replayed.
@@ -733,5 +756,5 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });executions=next.catch(()=>{});return next;
   }
   return Object.freeze({importPageInstallPackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,recoverExecutions,reconcile,revokePermissions,handleBoot});
+    listPagePrograms,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }

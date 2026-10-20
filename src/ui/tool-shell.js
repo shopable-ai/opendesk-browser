@@ -9,6 +9,7 @@ import {createCurrentPageTarget} from './current-page-target.js';
 import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
+import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountSidebarApp} from './react/main.tsx';
 import {createDeveloperView} from './develop-view.js';

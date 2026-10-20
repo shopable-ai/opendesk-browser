@@ -269,6 +269,63 @@ test('lost session metadata does not erase persisted live executions or manufact
     assert.equal(result.managedCleanup.state,gone?'retired':'unknown');assert.equal(f.calls.length,count);
   }
 });
+test('navigation observes pending cleanup after document death without replaying or changing the grant',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
+  await f.disable();
+  const before=structuredClone(f.installation()),calls=f.calls.length;
+  f.gone=true;
+  const navigation={tabId:1,documentId:'replacement-document'};
+  await f.executor.cleanupWorlds(navigation);
+  await f.service.observeManagedCleanup(navigation);
+  assert.equal(f.installation().managedCleanup.state,'retired');
+  assert.deepEqual(f.installation().authorization,before.authorization);
+  assert.equal(f.installation().enabled,false);
+  assert.equal(f.installation().nativeState,'disabled');
+  assert.equal(f.installation().token,before.token);
+  assert.equal(f.calls.length,calls,'observation cannot execute source or cleanup');
+});
+test('navigation keeps live, cached and unobservable lost-ledger cleanup unknown',async t=>{
+  for(const kind of ['live','cached','observationError']){
+    const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.loseSession();f.restart();
+    await f.disable();
+    if(kind!=='live')f[kind]=true;
+    const before=structuredClone(f.installation()),calls=f.calls.length,queries=f.frameQueries.length;
+    await f.service.observeManagedCleanup({tabId:2,documentId:'unrelated-document'});
+    assert.equal(f.frameQueries.length,queries,'unrelated tabs must not trigger an observation');
+    await f.service.observeManagedCleanup({tabId:1,documentId:'replacement-document'});
+    assert.equal(f.installation().managedCleanup.state,'unknown');
+    assert.deepEqual(f.installation().authorization,before.authorization);
+    assert.equal(f.calls.length,calls);
+    f.cached=false;f.observationError=false;f.gone=true;
+    await f.service.observeManagedCleanup({tabId:1,removed:true});
+    assert.equal(f.installation().managedCleanup.state,'retired');
+    assert.equal(f.calls.length,calls);
+  }
+});
+test('cleanup observation of a live ready world cannot dispatch a disposer',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const calls=f.calls.length;
+  const result=await f.executor.retireInstalled(f.installation(),{observeOnly:true});
+  assert.equal(result.state,'unknown');
+  assert.equal(f.records()[0].installed.state,'evaluated');
+  assert.equal(f.doc.querySelectorAll().length,1);
+  assert.equal(f.calls.length,calls);
+});
+test('navigation clears an active upgrade cleanup warning without reinstalling or rerunning it',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
+  const upgraded=await f.install('return 43;',2),calls=f.calls.length;
+  assert.equal(upgraded.managedCleanup.state,'unknown');
+  assert.equal(upgraded.authorization.status,'active');
+  f.loseSession();f.restart();f.gone=true;
+  await f.service.observeManagedCleanup({tabId:1,documentId:'replacement-document'});
+  const recovered=f.installation();
+  assert.equal(recovered.managedCleanup.state,'retired');
+  assert.deepEqual(recovered.authorization,upgraded.authorization);
+  assert.equal(recovered.manifestHash,upgraded.manifestHash);
+  assert.equal(recovered.nativeState,'registered');
+  assert.equal(recovered.enabled,true);
+  assert.equal(f.calls.length,calls);
+});
 test('unknown cleanup fences upgraded source in the same document, including after uninstall and reinstall',async t=>{
   for(const uninstall of [false,true]){
     const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];

@@ -259,5 +259,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
       ?pageScriptPreview.handlePreviewFrame(message,sender):installedPages.handleBoot(message,sender),
     reconcileInstalledPages:installedPages.reconcile,
     revokeInstalledPagePermissions:installedPages.revokePermissions,
-    cleanupPagePreviewWorlds:pageScriptPreview.cleanupWorlds,authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};
+    async cleanupPagePreviewWorlds(details){
+      await pageScriptPreview.cleanupWorlds(details);
+      await installedPages.observeManagedCleanup(details);
+    },authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};
 }

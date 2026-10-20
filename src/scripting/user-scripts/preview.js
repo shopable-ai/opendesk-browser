@@ -407,7 +407,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   }
   // Internal broker control only: no UI message accepts an installation or
   // source here. Reuse the existing world ledger and lexical UI registry.
-  async function retireInstalled(installation,{includeCurrent=true}={}){
+  async function retireInstalled(installation,{includeCurrent=true,observeOnly=false}={}){
     const records=(await worlds.records()).filter(row=>{
       const r=row.installed,a=installation.authorization;
       return r&&r.namespace===installation.namespace&&r.programId===installation.programId&&
@@ -449,8 +449,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           invariant(original===null||original===undefined,'E_DOCUMENT_STALE','原文档仍存在但不属于此顶层目标');
           await markInstalled(row.worldId,r.receiptNonce,()=>({state:'retired',contextGone:true}));continue;
         }
-        // Uncertain cleanup can observe document death, but must never replay.
-        if(['retiring','unknown','failed'].includes(r.state)){unknown=true;continue;}
+        // Navigation recovery only observes exact document death. It cannot
+        // invoke even a previously ready disposer or replay uncertain cleanup.
+        if(observeOnly||['retiring','unknown','failed'].includes(r.state)){unknown=true;continue;}
         invariant(frame.documentId===row.documentId&&frame.parentFrameId===-1&&frame.parentDocumentId===undefined&&
           frame.frameType==='outermost_frame'&&
           !frame.errorOccurred&&(!frame.documentLifecycle||frame.documentLifecycle==='active'),
@@ -474,7 +475,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         if(!receipt.ok)unknown=true;
       }catch(error){
         unknown=true;
-        await markInstalled(row.worldId,r.receiptNonce,()=>({state:'unknown',
+        if(!observeOnly)await markInstalled(row.worldId,r.receiptNonce,()=>({state:'unknown',
           error:{code:dispatched?'E_EFFECT_UNKNOWN':error.code||'E_EFFECT_UNKNOWN',message:String(error.message||error).slice(0,1024)}}));
       }
     }
