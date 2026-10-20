@@ -131,6 +131,7 @@ try{
   await waitUntil('!document.getElementById("extension-center-menu").hidden');
   await click('#extension-center-import');
   await waitUntil('!document.getElementById("sidebar-tool-import").hidden');
+  await waitUntil('document.activeElement?.id==="sidebar-tool-file"');
   const sheet=await evaluate(`(()=>{
     const panel=document.getElementById('sidebar-tool-import');
     const overlay=document.querySelector('.od-import-overlay');
