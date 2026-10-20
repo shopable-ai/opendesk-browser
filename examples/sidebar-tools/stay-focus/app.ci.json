@@ -1,0 +1,23 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "build": "node:scripts/build-stay-focus-react.mjs",
+  "host": "production",
+  "node": [
+    "tests/environment/stay-focus-r1.test.mjs",
+    "tests/environment/stay-focus-boundary-r1.test.mjs",
+    "tests/environment/stay-focus-extraction-r2.test.mjs",
+    "tests/environment/stay-focus-service-r1.test.mjs",
+    "tests/environment/stay-focus-r41-policy-package.test.mjs",
+    "tests/environment/stay-focus-build-ready-r58.test.mjs"
+  ],
+  "native": {
+    "tests": [
+      "tests/framework/stay-focus-r1-native.test.mjs"
+    ],
+    "env": {
+      "OPENDESK_STAY_FOCUS_NATIVE": "1",
+      "OPENDESK_FOCUS_NATIVE_EVIDENCE": "artifacts/stay-focus-r1-native"
+    }
+  }
+}
