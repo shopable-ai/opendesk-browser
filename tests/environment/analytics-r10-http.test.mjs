@@ -93,7 +93,9 @@ test('real loopback HTTP → D1 SQL → PostHog-shaped HTTP, stable dedup and re
   assert.equal((await recovered.status()).queued,0);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM analytics_events').get().n,2);
   assert.equal(inbox.flatMap(row=>row.batch).length,2);
-  assert(inbox.every(row=>row.batch.every(e=>e.properties.$process_person_profile===false)));
+  assert(inbox.every(row=>row.token==='test_project_token_long'));
+  assert(inbox.every(row=>row.batch.every(e=>e.properties.$process_person_profile===false &&
+    e.properties.distinct_id===e.distinct_id)));
   const firstEvent=inbox[0].batch[0];
   assert.equal(firstEvent.event,'prompt.saved');
   assert(!JSON.stringify(inbox).includes('private text'));

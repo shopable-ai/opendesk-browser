@@ -75,9 +75,9 @@ async function deliver(env,{fetcher,now}){
     const timeout=setTimeout(()=>controller.abort(),10000);
     try{
       const response=await fetcher(upstream,{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({api_key:env.POSTHOG_PROJECT_TOKEN,batch:batch.map(row=>({
+        body:JSON.stringify({token:env.POSTHOG_PROJECT_TOKEN,batch:batch.map(row=>({
           event:row.event,uuid:row.eventId,distinct_id:row.installId,timestamp:row.timestamp,
-          properties:{tool_id:row.toolId,source:row.source,channel:row.channel,
+          properties:{distinct_id:row.installId,tool_id:row.toolId,source:row.source,channel:row.channel,
             ...(row.reason?{reason:row.reason}:{}),$process_person_profile:false,$ip:null}
         }))}),redirect:'error',signal:controller.signal});
       success=response.ok;
