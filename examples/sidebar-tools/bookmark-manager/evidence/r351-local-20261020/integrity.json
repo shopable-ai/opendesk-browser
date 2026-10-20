@@ -173,8 +173,8 @@
     },
     {
       "path": "summary.json",
-      "bytes": 9400,
-      "sha256": "fe02c7a2795d0394b8badd373af3ab3ad4a1e0fdb4a3137d2fcd6840502c14cf"
+      "bytes": 9840,
+      "sha256": "9865ef136aec07c226d16614eb9357e040d97edc39b82ecf4d51129c935a87d2"
     }
   ]
 }

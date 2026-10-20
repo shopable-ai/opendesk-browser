@@ -190,18 +190,14 @@
     "remainingP2": "Delete confirmation shows internal ID; state/style/test maintainability deferred without UI/Host redesign."
   },
   "ci": {
-    "status": "NOT_PUSHED_NEW_MAIN_DIVERGENCE_APPROVAL_PENDING",
+    "status": "COMMIT_SPECIFIC_RESULTS_REPORTED_SEPARATELY",
     "codeCommit": "6d69e619c277a01b3a7be04d968710f51e4f8c66",
-    "localUniqueCommits": [
-      "79a56c5c4",
-      "6d69e619c"
-    ],
-    "remoteUniqueCommits": [
-      "dc18cc509",
-      "b651501a1",
-      "e521d1010"
-    ],
-    "currentCodeCi": "NOT_RUN_NOT_PUSHED",
+    "evidenceCommit": "486b8c9fdfeb833c8c2e2042853afe1f4409d2d1",
+    "integrationCommit": "dd3806feeae9a83920e5f599f464d285bc281980",
+    "authorization": "User explicitly authorized this ordinary merge and push to main.",
+    "ancestry": "Bookmark fix, evidence, parallel AI VIP and incoming Controller/Page commits all retained; no history rewrite.",
+    "finalMainIdentity": "Resolve the commit containing this summary with Git; final pushed SHA and its CI results are recorded in the delivery reply.",
+    "finalRawCiReceipt": "artifacts/bookmark-manager-r351-local/ci-authorized-final-main.json",
     "previousCodeCommit": "5d86c868c86ed03f1f55d87303e26f86c54d4bf1",
     "previousBookmarkRuns": [
       {
@@ -220,7 +216,7 @@
         "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/39433002916"
       }
     ],
-    "note": "New divergence occurred after the prior authorized merge; previous CI is historical and does not verify the new fix."
+    "note": "Historical CI is not evidence for the final pushed SHA. Native and build evidence remain bound to the recorded isolated candidate, not unrelated later main changes."
   },
   "resolvedValidationSetupFailures": [
     {

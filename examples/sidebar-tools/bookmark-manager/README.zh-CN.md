@@ -10,7 +10,7 @@
 - 同一隔离 Mac CFT 新候选 `2224969b…` 已验证真实 CRUD、移动、搜索/折叠、危险删除一次可信确认、关闭重开、Authority 撤权/再授权、0.3.7→0.3.8 升级保留书签、第三方沙箱、真实 lost-ack 禁重放及 Chrome 重启读回。普通保存无第二次确认。原生 per-origin 200%（DPR 4、180×407）保存、直接取消、脏草稿关闭后继续编辑/放弃均通过；测试后恢复 DPR 2 并关闭自有探针 Tab。
 - “取消”按现有合同直接放弃，右上关闭脏草稿才确认。旧驱动等待取消确认，以及滚动后把离屏顶部计为裁切，已与真实横溢出区分；原始 FAIL 和新 PASS 均保留。更新时 `runtime.reload()` 未重建 worker，已同 Profile 重启恢复并核验数据；失败过程未改成 PASS。
 - 六维独立评分：UX **93**、React/CSS **93**、无障碍与触屏 **92**、安全 **96**、测试与原生 **93**、可维护性 **88**；合计 **555**，平均 **92.5**。删除确认目标文案及既有维护性 P2 留后续，未为评分扩大重构。VoiceOver、物理触摸/软键盘、长期人类使用、未知写入完整显式恢复链、Chrome optional permission 实际移除仍为 `NOT_TESTED`。
-- 运行模式是隔离 **STATIC_DEVELOPMENT**、`watcherConnected=false`，production 仅作编译证据；未覆盖日常 `dist/development` 或接触个人 Chrome。候选冻结后其他 main 工作不属于该候选验证。新代码提交为 `6d69e619c`；远端再次分叉，尚未推送，正在确认此次普通合并授权；旧代码 CI 成功不代表新提交 CI。
+- 运行模式是隔离 **STATIC_DEVELOPMENT**、`watcherConnected=false`，production 仅作编译证据；未覆盖日常 `dist/development` 或接触个人 Chrome。候选冻结后其他 main 工作不属于该候选验证。修复提交为 `6d69e619c`，证据提交为 `486b8c9fd`；双方提交已通过普通合并 `dd3806fee` 保留，本次合并与推送已获明确授权。最终推送 SHA 及其 CI 结果见交付答复和账本指向的原始 API 收据；旧 CI 不代表新提交 CI。
 
 候选身份、原始收据、历史失败、独立评分与同步状态见[本轮唯一验证账本](evidence/r351-local-20261020/summary.json)。下文 R3.4 及更早内容均为各自历史候选，不覆盖本轮状态。
 
