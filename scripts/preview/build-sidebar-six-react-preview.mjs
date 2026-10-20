@@ -120,17 +120,29 @@ toolView.bind('sidebar-tool-file','change',async event=>{
     if(file.size>1024*1024)throw Error('文件超过预览读取上限 1 MiB');
     const value=JSON.parse(await file.text());
     if(selection!==previewSelection)return;
-    if(!value||typeof value!=='object'||Array.isArray(value)||
+    const isPage=value?.format==='opendesk.page-install.v1';
+    const isTool=['opendesk.sidebar-tool.v1','opendesk.sidebar-tool.v2'].includes(value?.format);
+    const identity=isPage?value?.programId:value?.id;
+    if((!isPage&&!isTool)||typeof identity!=='string'||!identity.trim()||
        typeof value.title!=='string'||!value.title.trim()||
        typeof value.version!=='string'||!value.version.trim())
-      throw Error('无法识别标题和版本；这不是完整安装包校验');
+      throw Error('无法识别安装包格式、身份、标题或版本；仅预览字段，不是完整包校验');
+    const sites=isPage&&Array.isArray(value.pageRules?.matches)
+      ?value.pageRules.matches.filter(item=>typeof item==='string').slice(0,20):[];
+    const requested=isPage
+      ?'作用网站：'+(sites.join('、')||'未提供可显示的网站范围')
+      :Array.isArray(value.capabilities)
+        ?value.capabilities.filter(item=>typeof item==='string').slice(0,30).join('、')||'未声明额外能力'
+        :'未读取';
     toolView.patch('sidebar-tool-preview-title',{textContent:value.title.slice(0,100)});
-    toolView.patch('sidebar-tool-preview-version',{textContent:'v'+value.version.slice(0,40)});
+    toolView.patch('sidebar-tool-preview-version',{textContent:'v'+value.version.slice(0,40)+
+      (isPage&&Number.isSafeInteger(value.revision)?' · r'+value.revision:'')});
     toolView.patch('sidebar-tool-preview-description',{textContent:
-      '仅预览文件字段。未验证签名、安装身份、版本差异或权限，无法安装。'});
-    toolView.patch('sidebar-tool-preview-capabilities',{textContent:
-      Array.isArray(value.capabilities)?value.capabilities.map(String).slice(0,30).join('、'):'未读取'});
-    toolView.patch('sidebar-tool-preview-file',{textContent:file.name.slice(0,140)});
+      (isPage?'网页增强':'侧边栏应用')+' · 仅显示文件自述字段；未执行包验证、安装列表读回或真实授权，无法安装。'});
+    toolView.patch('sidebar-tool-preview-capabilities',{textContent:requested});
+    toolView.patch('sidebar-tool-preview-file',{textContent:'文件：'+file.name.slice(0,140)+
+      ' · 身份（未验证）：'+identity.slice(0,100)});
+    toolView.patch('sidebar-tool-update',{hidden:true});
     toolView.patch('sidebar-tool-install',{disabled:true,textContent:'仅预览 · 不执行安装'});
     toolView.patch('sidebar-tool-preview',{hidden:false});
   }catch(error){
