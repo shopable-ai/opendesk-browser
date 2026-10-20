@@ -193,3 +193,14 @@ test('R5.15 clear Dialog is shared and is a real native modal',async()=>{
   assert.match(controller,/previewRef/);
   assert.match(adapter,/maxCookies:50/);
 });
+
+test('R5.30 export stays in the original React workspace, not a native modal',async()=>{
+ const [component,css]=await Promise.all([
+  get('app/components/CookieExport.jsx'),get('src/react.css')]);
+ assert.match(component,/className="cookie-export-workspace"/);
+ assert.match(component,/role="region"/);
+ assert.doesNotMatch(component,/<dialog\b|showModal\(/);
+ assert.match(component,/<CookieExportFormatRow /);
+ assert.match(component,/<CookieExportActions /);
+ assert.match(css,/\.cookie-editor-react \.cookie-export-workspace/);
+});

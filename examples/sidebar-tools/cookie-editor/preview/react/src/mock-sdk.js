@@ -1,6 +1,7 @@
 // Fictional transport only. Policy and parsing belong to the real app/ Controller and Domain.
 import {key,sameNativeSlot} from '../../../app/domain/cookie-model.js';
 export const demoSite='shop.example.com';
+export const demoSites=Object.freeze([demoSite,'docs.example.org','store.example.net']);
 const partitionKey={topLevelSite:'https://partner.example.net',hasCrossSiteAncestor:false};
 export function fictionalCookies(){
  const b={domain:demoSite,path:'/',hostOnly:true,storeId:'0',session:true,secure:true,httpOnly:false,sameSite:'lax',valueRedacted:false};
@@ -19,10 +20,21 @@ const clone=value=>structuredClone(value);
 const error=code=>Object.assign(Error(code),{code});
 export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let rows=scenario==='empty'?[]:fictionalCookies(),failure='',clearPlan=null,releaseLoading;
+ let currentSite=demoSite,globalGrant=scenario!=='first';
+ const siteRows=new Map([[demoSite,rows]]);
+ const seedRows=hostname=>{
+  if(scenario==='empty')return [];
+  const original=fictionalCookies()[0];
+  return [
+   {...original,name:'session_id',value:'fictional_'+hostname,domain:hostname,httpOnly:false},
+   {...original,name:'theme',value:'light',domain:hostname,httpOnly:false,session:false,secure:false,expirationDate:1839061800}
+  ];
+ };
  let importRef=0,writeRef=0;
  const loading=scenario==='loading'?new Promise(resolve=>{releaseLoading=resolve;}):null;
  const calls=[],deliveries=[],observations=new Set();
  const fail=operation=>{
+  if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
   if(scenario==='readonly'&&['save','import','clear','remove'].includes(operation))throw error('E_PERMISSION_REQUIRED');
   if(scenario==='valuesDenied'&&operation==='values')throw error('E_COOKIE_VALUES');
   const persistent={saveError:'save',copyError:'copy',downloadError:'download'}[scenario];
@@ -50,7 +62,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  };
  const cookies={
   getAll:async args=>{
-   record('getAll',args);if(loading)await loading;if(args.includeValues)fail('values');
+   record('getAll',args);if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
+   if(loading)await loading;if(args.includeValues)fail('values');
    return rows.filter(row=>matches(row,args)).map(row=>{
     if(args.includeValues)return clone(row);
     const {value,...metadata}=row;return {...clone(metadata),valueRedacted:true};
@@ -85,7 +98,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
   observe:{start:async()=>{observations.add('preview-observation');return {sessionRef:'preview-observation'};},read:async()=>({events:[],nextCursor:'0'}),stop:async({sessionRef})=>{observations.delete(sessionRef);return {stopped:true};}}
  };
  return {
-  browser:{cookies,capabilities:{getStatus:async()=>({callableNow:scenario!=='first',reasonCode:'E_SITE_GRANT_REQUIRED'})},
+  browser:{cookies,capabilities:{getStatus:async()=>({callableNow:globalGrant,reasonCode:'E_SITE_GRANT_REQUIRED'})},
    clipboard:{writeText:async text=>{record('copy',{});fail('copy');deliveries.push({method:'copy',text});return {copied:true};}},
    downloads:{text:async args=>{
     record('download',{});fail('download');deliveries.push({method:'download',...args});
@@ -96,10 +109,11 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     return {downloadId:1};
    }}},
   request:async(operation,payload)=>{
-   if(operation==='currentPage.info')return {status:'available',url:'https://'+demoSite+'/'};
+   if(operation==='currentPage.info')return {status:'available',url:'https://'+currentSite+'/'};
    // Preview-only synthetic admission; no bypass of formal Host grants.
    if(operation==='cookieEditor.import.begin'||operation==='cookieEditor.write.begin'){
-    if(payload?.url!=='https://'+demoSite+'/')throw error('E_COOKIE_SCOPE');
+    if(!globalGrant)throw error('E_SITE_GRANT_REQUIRED');
+    if(payload?.url!=='https://'+currentSite+'/')throw error('E_COOKIE_SCOPE');
     const ref=operation==='cookieEditor.import.begin'?++importRef:++writeRef;
     record(operation,{url:payload.url});
     return {authorized:true,ref};
@@ -111,7 +125,17 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
    }
    throw error('E_PERMISSION');
   },
+  hasGlobalCookieGrant:()=>globalGrant,
+  grantAllSites:()=>{globalGrant=true;record('globalGrant',{scope:'http-https-all'});return {authorized:true};},
+  revokeAllSites:()=>{globalGrant=false;record('globalRevoke',{scope:'http-https-all'});return {revoked:true};},
+  switchSite:hostname=>{
+   if(!demoSites.includes(hostname))throw error('E_COOKIE_SCOPE');
+   siteRows.set(currentSite,rows);currentSite=hostname;
+   rows=siteRows.get(hostname)||seedRows(hostname);
+   siteRows.set(hostname,rows);clearPlan=null;
+   record('pageChanged',{hostname});
+  },
   setFailure:value=>{failure=value;},dispose:()=>{releaseLoading?.();observations.clear();},
-  inspect:()=>({rows:clone(rows),calls:clone(calls),deliveries:clone(deliveries),observations:[...observations]})
+  inspect:()=>({rows:clone(rows),currentSite,globalGrant,calls:clone(calls),deliveries:clone(deliveries),observations:[...observations]})
  };
 }
