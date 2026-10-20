@@ -1,4 +1,5 @@
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
 const model=globalThis.BookmarkR2Model;
 const iconPaths={
  folder:<><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10H3z"/></>,
@@ -18,7 +19,7 @@ const iconPaths={
  arrow:<path d="M4 12h16m-6-6 6 6-6 6"/>
 };
 function Icon({name,size=18}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{iconPaths[name]||iconPaths.link}</svg>}
-function Button({icon,children,kind='secondary',...props}){return <button type="button" className={'bm-button bm-button--'+kind} {...props}>{icon&&<Icon name={icon} size={16}/>}<span>{children}</span></button>}
+function Button({icon,children,kind='secondary',...props}){return <OpenDeskButton variant={kind} className={'bm-button bm-button--'+kind} {...props}>{icon&&<Icon name={icon} size={16}/>}<span>{children}</span></OpenDeskButton>}
 function isFolder(node){return model.isFolder(node)}
 function canTarget(tree,node){try{model.parentFolder(tree,node.id);return true}catch{return false}}
 function folderLabel(tree,id){const parts=[];let current=tree?.byId.get(id),count=0;while(current&&count++<12){if(current.parentId!==null)parts.unshift(current.title);current=tree.byId.get(current.parentId)}return parts.join(' / ')||'书签栏'}
@@ -61,7 +62,7 @@ function highlightSearchTitle(title,term){
 }
 function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActiveId,onSelect,onFolder,onToggle,onMenu,onEdit,onScrollClose,scrollRef}){
  const [top,setTop]=useState(0),[height,setHeight]=useState(510);
- const rowHeight=42,virtual=rows.length>120;
+ const rowHeight=44,virtual=rows.length>120;
  useLayoutEffect(()=>{const el=scrollRef.current;if(!el)return;const resize=()=>setHeight(el.clientHeight||510);resize();if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(resize);ro.observe(el);return()=>ro.disconnect()}},[scrollRef]);
  const start=virtual?Math.max(0,Math.floor(top/rowHeight)-6):0;
  const end=virtual?Math.min(rows.length,Math.ceil((top+height)/rowHeight)+6):rows.length;
@@ -98,8 +99,8 @@ function Tree({rows,expanded,searchActive,searchTerm,selectedId,activeId,setActi
      <span className={'bm-node-icon'+(folder?' bm-folder-icon':'')}><Icon name={folder?'folder':'link'} size={17}/></span>
      <span className="bm-node-title">{highlightSearchTitle(node.title,searchTerm)}</span>
      {folder&&<span className="bm-count" title={count+' 个直接子项'}>{count}</span>}
-     <button className="bm-row-more" type="button" aria-label={'操作 '+node.title}
-       onClick={event=>{event.stopPropagation();onMenu(node.id,event.currentTarget)}}><Icon name="more" size={17}/></button>
+     <OpenDeskIconButton className="bm-row-more" label={'操作 '+node.title}
+       onClick={event=>{event.stopPropagation();onMenu(node.id,event.currentTarget)}}><Icon name="more" size={17}/></OpenDeskIconButton>
     </div>})}
   </div>}
   <div className="bm-tree-preview-tail" aria-hidden="true"/>
@@ -109,7 +110,7 @@ function FolderPicker({tree,value,onChange,onClose,currentId,disabled=false}){
  const [term,setTerm]=useState('');
  const folders=useMemo(()=>[...tree.byId.values()].filter(n=>isFolder(n)&&canTarget(tree,n)&&(!currentId||!model.isDescendant(tree,n.id,currentId))).filter(n=>(n.title+' '+folderLabel(tree,n.id)).toLocaleLowerCase().includes(term.trim().toLocaleLowerCase())),[tree,term,currentId]);
  return <div className="bm-picker" data-testid="folder-picker">
-  <div className="bm-picker-head"><strong>选择目标文件夹</strong><button className="bm-close" onClick={onClose} type="button" aria-label="关闭文件夹选择"><Icon name="x" size={16}/></button></div>
+  <div className="bm-picker-head"><strong>选择目标文件夹</strong><OpenDeskIconButton className="bm-close" onClick={onClose} label="关闭文件夹选择"><Icon name="x" size={16}/></OpenDeskIconButton></div>
   <label className="bm-sr-only" htmlFor="bm-folder-search">搜索目标文件夹</label>
   <input id="bm-folder-search" autoFocus disabled={disabled} placeholder="搜索文件夹或路径" value={term} onChange={e=>setTerm(e.target.value)}/>
   <div className="bm-picker-list" role="listbox" aria-label="目标文件夹">
@@ -162,12 +163,12 @@ function PreviewPane({tree,node,onClose,onEdit,onCopy}){
  return <aside className="bm-preview-pane" role={narrow?'dialog':'complementary'}
   aria-modal={narrow?'true':undefined} aria-label="书签只读预览"
   data-testid="bookmark-preview" onKeyDown={onKeyDown}>
-  <div className="bm-preview-head"><strong>详情</strong><button ref={closeRef} type="button" className="bm-preview-close" aria-label="关闭预览" title="关闭预览" onClick={onClose}><Icon name="x" size={16}/></button></div>
+  <div className="bm-preview-head"><strong>详情</strong><OpenDeskIconButton ref={closeRef} className="bm-preview-close" label="关闭预览" onClick={onClose}><Icon name="x" size={16}/></OpenDeskIconButton></div>
   <div className="bm-preview-content" aria-live="polite"><Inspector tree={tree} node={node} draft={null}/></div>
   {folder&&<div className="bm-preview-count">{count} 个子项</div>}
   <div className="bm-preview-actions">
-   {!folder&&<button type="button" className="bm-preview-action" aria-label="复制网址" title="复制网址" onClick={()=>onCopy(node.url)}><Icon name="copy" size={17}/></button>}
-   {!node.locked&&<button type="button" className="bm-preview-action" aria-label="编辑" title="编辑" onClick={()=>onEdit(node.id)}><Icon name="edit" size={17}/></button>}
+   {!folder&&<OpenDeskIconButton className="bm-preview-action" label="复制网址" onClick={()=>onCopy(node.url)}><Icon name="copy" size={17}/></OpenDeskIconButton>}
+   {!node.locked&&<OpenDeskIconButton className="bm-preview-action" label="编辑" onClick={()=>onEdit(node.id)}><Icon name="edit" size={17}/></OpenDeskIconButton>}
   </div>
  </aside>
 }
@@ -207,7 +208,7 @@ function Sheet({title,onClose,children,canClose=true,dismissOnBackdrop=true}){
  },[]);
  return <div className="bm-sheet-backdrop" role="presentation" onMouseDown={e=>{if(dismissOnBackdrop&&canClose&&e.target===e.currentTarget)closeRef.current()}}>
   <section ref={ref} className="bm-sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} data-testid="bookmark-sheet">
-   <header className="bm-sheet-header"><strong>{title}</strong><button className="bm-sheet-close" type="button" aria-label="关闭" disabled={!canClose} onClick={onClose}><Icon name="x" size={17}/></button></header>
+   <header className="bm-sheet-header"><strong>{title}</strong><OpenDeskIconButton className="bm-sheet-close" label="关闭" disabled={!canClose} onClick={onClose}><Icon name="x" size={17}/></OpenDeskIconButton></header>
    {children}
   </section>
  </div>;
@@ -481,12 +482,12 @@ export default function App({runtime=null,mode='preview',onStateChange=null}={})
  return <div className="bm-app" data-react-bookmark="r3.0.4">
   <header className="bm-topbar" aria-busy={busy}><div className="bm-heading"><strong className="bm-sr-only">书签管理</strong><span>{tree?tree.byId.size.toLocaleString('zh-CN'):'—'} 项</span></div>
    <div className="bm-top-actions"><div className="bm-create-actions" aria-label="新建书签或文件夹">
-    <button title="新建书签" aria-label="新建书签" className="bm-icon-btn bm-icon-btn--primary" type="button" disabled={busy} onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></button>
-    <button title="新建文件夹" aria-label="新建文件夹" className="bm-icon-btn" type="button" disabled={busy} onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></button></div>
-    <button title="收藏当前页" aria-label="收藏当前页" className="bm-icon-btn" type="button" disabled={busy} onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></button>
-    <button title="刷新书签" aria-label="刷新书签" className="bm-icon-btn" type="button" onClick={()=>void load({reconcileUnknown:true})} disabled={busy||loading}><Icon name="refresh" size={17}/></button>
+    <OpenDeskIconButton label="新建书签" className="bm-icon-btn bm-icon-btn--primary" disabled={busy} onClick={()=>request({type:'create',kind:'bookmark'})}><Icon name="plus" size={18}/></OpenDeskIconButton>
+    <OpenDeskIconButton label="新建文件夹" className="bm-icon-btn" disabled={busy} onClick={()=>request({type:'create',kind:'folder'})}><Icon name="folder" size={17}/></OpenDeskIconButton></div>
+    <OpenDeskIconButton label="收藏当前页" className="bm-icon-btn" disabled={busy} onClick={bookmarkCurrentPage}><Icon name="star" size={17}/></OpenDeskIconButton>
+    <OpenDeskIconButton label="刷新书签" className="bm-icon-btn" onClick={()=>void load({reconcileUnknown:true})} disabled={busy||loading}><Icon name="refresh" size={17}/></OpenDeskIconButton>
    </div></header>
-  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<button aria-label="清空搜索" type="button" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></button>}</div></div>
+  <div className="bm-tools"><div className="bm-search-wrap"><Icon name="search" size={16}/><label className="bm-sr-only" htmlFor="bm-search">搜索名称、URL 或文件夹</label><input id="bm-search" value={query} placeholder="搜索书签、网址或文件夹" onChange={e=>changeSearch(e.target.value)}/>{query&&<OpenDeskIconButton label="清空搜索" onClick={()=>{changeSearch('');document.getElementById('bm-search')?.focus()}}><Icon name="x" size={14}/></OpenDeskIconButton>}</div></div>
   {error&&!draft&&<div className="bm-error" role="alert"><Icon name="alert" size={17}/><span>{error}</span><button type="button" disabled={busy} onClick={()=>{setError('');void load({reconcileUnknown:true})}}>刷新</button></div>}
   {(busy||notice)&&<div className="bm-notice" role="status">{busy?'正在处理书签…':notice}</div>}
   <div className="bm-workspace"><section className="bm-explorer" aria-label="书签树">{query&&<div className="bm-tree-head"><span>搜索结果</span><small>{rows.filter(r=>((r.node.title+' '+(r.node.url||'')).toLocaleLowerCase()).includes(query.toLocaleLowerCase())).length} 条匹配</small></div>}
