@@ -825,15 +825,24 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
     host:'archive.org',name:'Internet Archive',category:'学习',
     suggestLimit:false,quick:false
   });
-  const temporaryProject=await mkdtemp(path.join(tmpdir(),'opendesk-stay-focus-upgrade-'));
+  // Recompile the exact newer version with the SAME audited Vite config.
+  // A source-bound receipt must not be forged or copied from the old package.
+  const upgradeRoot=path.resolve('artifacts/app-ci/stay-focus');
+  await mkdir(upgradeRoot,{recursive:true});
+  const temporaryProject=await mkdtemp(path.join(upgradeRoot,'native-upgrade-'));
   const upgradePackageFile=path.join(OUT,'stay-focus-upgrade-candidate.opendesk-tool.json');
   try{
     await mkdir(path.join(temporaryProject,'src'));
-    for(const name of ['index.html','style.css','main.js'])
+    for(const name of ['index.html','style.css','main.js','entry.js'])
       await copyFile(path.resolve('examples/sidebar-tools/stay-focus/src',name),
         path.join(temporaryProject,'src',name));
+    for(const name of ['vite.config.mjs','package.json'])
+      await copyFile(path.resolve('examples/sidebar-tools/stay-focus',name),
+        path.join(temporaryProject,name));
     await writeFile(path.join(temporaryProject,'tool.config.json'),
       JSON.stringify(upgradedConfig,null,2)+'\n');
+    await buildVite({configFile:path.join(temporaryProject,'vite.config.mjs'),
+      logLevel:'warn',clearScreen:false});
     await buildSidebarTool(temporaryProject,{out:upgradePackageFile});
   }finally{
     await rm(temporaryProject,{recursive:true,force:true});
