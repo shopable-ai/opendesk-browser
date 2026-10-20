@@ -78,7 +78,7 @@ test('Preview IO presentation is shared without moving native Cookie operations 
   assert.match(importer,/<CookieImportDropzone /);
   assert.match(exporter,/<CookieExportFormatRow /);
   assert.match(exporter,/<CookieExportActions /);
-  assert.match(importer,/onImportText\?\.\(text\)/);
+  assert.match(importer,/onImportText\?\.\(text,\{overwrite\}\)/);
   assert.match(official,/controller\.previewImport/);
   assert.match(official,/controller\.executeImport/);
   assert.match(exporter,/controller\.exportTo/);
@@ -129,14 +129,22 @@ test('advanced Cookie identities use shared-App JSX and remain read-only for exi
   assert.doesNotMatch(view,/chrome\.cookies|OpenDeskSDK|localStorage/);
 });
 
-test('formal native package unchanged until candidate passes all gates',async()=>{
+test('React development import package agrees with its promoted source config',async()=>{
   const [config,official,vite]=await Promise.all([
     get('tool.config.json').then(JSON.parse),
     get('cookie-editor.opendesk-tool.json').then(JSON.parse),
     get('vite.config.mjs')]);
-  assert.equal(config.version,'2.0.23');
-  assert.equal(config.files.js,'src/main.js');
-  assert.equal(official.version,'2.0.23');
+  assert.equal(config.id,'cookie-editor');
+  assert.equal(config.version,'2.0.29');
+  assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
+  assert.deepEqual(config.files,{html:'src/root.html',css:'dist/tool.css',js:'dist/tool.js'});
+  for(const field of ['format','id','version','capabilities','requires','contributes'])
+    assert.deepEqual(official[field],config[field],
+      'Promoted Cookie React package differs from release config: '+field);
+  assert.match(official.js,/OpenDeskPageReact/);
+  assert.match(official.js,/OpenDeskSidebarUI/);
+  assert.match(official.js,/E_COOKIE_REACT_SANDBOX_NOT_READY/);
+  assert.match(official.html,/id="cookie-react-root"/);
   assert.match(vite,/'@opendesk\/ui':'OpenDeskSidebarUI'/);
   assert.match(vite,/react:'OpenDeskPageReact'/);
 });

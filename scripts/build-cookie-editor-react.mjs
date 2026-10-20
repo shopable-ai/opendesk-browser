@@ -31,9 +31,12 @@ export async function buildCookieEditorReact({log=true}={}){
   const code=js.toString('utf8');
   parse(code,{ecmaVersion:'latest',sourceType:'script'});
   for(const operation of ['OpenDeskPageReact','OpenDeskSidebarUI',
-    'cookieEditor.import.begin','cookieEditor.write.begin','cookies.setMany',
+    'cookieEditor.import.begin','cookieEditor.write.begin',
     'E_COOKIE_REACT_SANDBOX_NOT_READY'])
     assert.ok(code.includes(operation),'Cookie React lost business operation: '+operation);
+  // Vite minifies the adapter's browser() accessor name; require the actual call.
+  assert.match(code,/[$A-Z_a-z][\w$]*\(\)\.cookies\.setMany\(/,
+    'Cookie React lost public SDK batch write call');
   assert.ok(css.toString('utf8').startsWith('/* @opendesk-shared-design */'),
     'Cookie React shared-design marker missing');
   assert.equal(ready.format,'opendesk.ui-build-ready.v1');

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {transform} from 'esbuild';
 import {SHARED_DESIGN_MARKER,assertLayoutOnly,compileSharedToolCss} from '../../scripts/preview/shared-tool-design.mjs';
 
 const root='examples/sidebar-tools/cookie-editor/';
@@ -24,11 +23,9 @@ test('official shared design compiles candidate CSS without custom component ski
   assert.match(compiled,/:is\(input,select,textarea\)\.od-field\{/);
   assert.doesNotMatch(css,/max-width:\s*380px|width:\s*min\(100%,380px\)/);
 });
-test('minified Cookie release CSS passes the candidate shared design gate',async()=>{
-  const css=await readFile(root+'src/react.css','utf8');
-  const {code}=await transform(css,{loader:'css',minify:true});
-  // Match the release receipt plugin: restore the opt-in after minification.
-  const releaseCss=SHARED_DESIGN_MARKER+'\n'+code;
+test('compiled Cookie development CSS passes the shared design gate',async()=>{
+  const releaseCss=await readFile(root+'dist/tool.css','utf8');
+  assert.ok(releaseCss.trimStart().startsWith(SHARED_DESIGN_MARKER));
   assert.doesNotThrow(()=>assertLayoutOnly(releaseCss));
   const compiled=await compileSharedToolCss(releaseCss);
   assert.match(compiled,/^\/\* opendesk\.shared-design\.v1 sha256=/);
@@ -41,7 +38,7 @@ test('real React app relies on shared buttons, fields and surfaces',async()=>{
     'app/components/CookieOfflineWorkspace.jsx'];
   const files=await Promise.all(paths.map(path=>readFile(root+path,'utf8')));
   const [app,view,editor]=files;
-  assert.match(app,/className="od-surface"/);
+  assert.match(app,/className="(?:[^"\s]+\s+)*od-surface(?:\s+[^"\s]+)*"/);
   assert.match(view,/od-icon-button/);
   assert.match(view,/od-button--quiet/);
   assert.match(editor,/od-field/);

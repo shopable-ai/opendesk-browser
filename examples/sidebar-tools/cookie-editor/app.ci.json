@@ -1,11 +1,7 @@
 {
   "schema": "opendesk.app-ci.v1",
-  "kind": "react-candidate",
+  "kind": "react",
   "host": "development",
-  "afterBuild": [
-    "examples/sidebar-tools/cookie-editor/scripts/stage-react-candidate.mjs"
-  ],
-  "extraCandidate": "artifacts/sidebar-tools/cookie-editor/r56-react-2.0.28-candidate.opendesk-tool.json",
   "node": [
     "tests/environment/cookie-editor-react-build.test.mjs",
     "tests/environment/cookie-editor-react-domain.test.mjs",

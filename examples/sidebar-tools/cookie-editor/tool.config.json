@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "cookie-editor",
-  "version": "2.0.23",
+  "version": "2.0.29",
   "title": "Cookie Editor · Cookie 管理",
-  "description": "Cookie Editor：保留正式 UI，文本和文件逐条预览新增、覆盖、过期及无效记录，自动分批导入并由 Chrome 原生回读。",
+  "description": "Cookie Editor：管理已授权网站的 Cookie，支持原位编辑、导入导出与安全清理。",
   "capabilities": [
     "currentPage.read",
     "user.export",
@@ -20,9 +20,10 @@
     "contextMenus": []
   },
   "files": {
-    "html": "src/index.html",
-    "css": "src/style.css",
-    "js": "src/main.js"
+    "html": "src/root.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
   },
-  "assets": []
+  "assets": [],
+  "uiRuntime": "opendesk.react-ui.v1"
 }

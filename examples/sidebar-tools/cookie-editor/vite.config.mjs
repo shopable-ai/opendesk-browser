@@ -56,7 +56,7 @@ function receiptPlugin(){
 export default defineConfig({
   root,base:'./',esbuild:{jsx:'automatic'},plugins:[receiptPlugin()],
   define:{'process.env.NODE_ENV':JSON.stringify('production')},
-  build:{target:'es2022',minify:'esbuild',cssCodeSplit:false,emptyOutDir:true,
+ build:{target:'es2022',minify:'esbuild',cssMinify:false,cssCodeSplit:false,emptyOutDir:true,
     lib:{entry:resolve(root,'app/entries/official.jsx'),
       name:'OpenDeskCookieEditorReact',formats:['iife'],
       fileName:()=>'tool.js',cssFileName:'tool'},

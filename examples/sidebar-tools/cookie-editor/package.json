@@ -1,11 +1,13 @@
 {
   "name": "opendesk-cookie-editor-react",
   "private": true,
-  "version": "2.0.28",
+  "version": "2.0.29",
   "type": "module",
-  "engines": {"node": ">=22.12.0"},
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "build": "node ../../../scripts/build-cookie-editor-react.mjs",
-    "stage:candidate": "node scripts/stage-react-candidate.mjs"
+    "stage:candidate": "node ../../../scripts/build-sidebar-tool.mjs . --out ../../../artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json"
   }
 }
