@@ -404,7 +404,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
             if(part?.index!==i)throw badReceipt();
             if(isVerified(part)){
               if(failedCode!==null)throw badReceipt();
-              succeeded++;verified++;
+              succeeded++;
             }else{
               if(failedCode!==null||receipt.stopped!==true||
                 part?.saved!==false||part?.verified!==false)
@@ -417,10 +417,14 @@ export function createCookieController({adapter,onChange=()=>{}}){
             throw badReceipt();
           if(failedCode!==null){
             if(results.length!==succeeded+1)throw badReceipt();
+            // Commit the known-good prefix only after validating the entire
+            // Host receipt and its counters; malformed receipts stay unknown.
+            verified+=succeeded;
             throw Object.assign(badReceipt(),{code:failedCode});
           }
           if(results.length!==chunk.cookies.length||receipt.stopped===true)
             throw badReceipt();
+          verified+=succeeded;
         }else{
           const receipt=await adapter.write(chunk.target,chunk.cookie,
             {ifAbsent:!plan.overwrite});
