@@ -37,6 +37,9 @@ test('R3.3 first Full Bookmarks approval visibly leads into a fresh observer',as
  assert.match(controller,/browser\.bookmarks\.fullConsent/);
  assert.match(controller,/if\(!hadConsent&&nativeUI\?\.kind==='bookmark'&&!toolDirty&&!toolSaving&&[\s\S]*?mountTool\(tool\)/);
  const app=await read('examples/sidebar-tools/bookmark-manager/src/react/App.jsx');
- assert.ok(app.indexOf('service.watchStart()')<app.indexOf('load({initial:true})'),
-  'observer must subscribe before the initial native snapshot');
+ const start=app.indexOf("useEffect(()=>{\n  if(mode!=='trusted')return;");
+ const effect=app.slice(start,app.indexOf('},[mode,service,load]);',start));
+ assert.ok(start>=0&&effect.includes('service.watchStart()'));
+ assert.ok(effect.indexOf('service.watchStart()')<effect.indexOf('load({initial:true})'),
+  'trusted observer must subscribe before the initial native snapshot');
 });
