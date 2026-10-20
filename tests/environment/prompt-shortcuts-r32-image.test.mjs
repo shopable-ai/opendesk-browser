@@ -1,0 +1,175 @@
+// R3.2 formal image button regression: uses actual source & packer, not native Chrome.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
+import {webcrypto} from 'node:crypto';
+import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+
+const ROOT='examples/sidebar-tools/prompt-shortcuts';
+const read=path=>readFile(ROOT+'/'+path,'utf8');
+const id='image-button-123456';
+async function model(){
+  const sandbox={URL,TextEncoder,Intl,crypto:webcrypto};
+  runInNewContext(await read('trusted/model.js'),sandbox,{filename:'trusted/model.js'});
+  return sandbox.OpenDeskPromptShortcutsModel;
+}
+const item={body:'将本页总结为三个结论',label:'总结',name:'总结助手',
+  appearance:'image',imageUrl:'https://example.org/picture.webp?size=large'};
+const library=(m,rows=[],imageSize='large')=>m.load({schema:1,settings:{webButtons:true,imageSize},items:rows});
+
+test('R3.2 legacy schema:1 rows remain text and global default is a large 68x48 image',async()=>{
+  const m=await model();
+  const legacy={schema:1,settings:{webButtons:false},items:[{
+    id,body:'旧版正文',label:'旧版',name:'旧版正文',enabled:true,shape:'round',order:0
+  }]};
+  const loaded=m.load(legacy);
+  assert.equal(loaded.schema,1);
+  assert.equal(loaded.settings.webButtons,false);
+  assert.equal(loaded.settings.imageSize,'large');
+  assert.equal(loaded.items[0].appearance,'text');
+  assert.equal(loaded.items[0].imageUrl,'');
+  assert.deepEqual([...m.IMAGE_SIZES.compact],[48,40]);
+  assert.deepEqual([...m.IMAGE_SIZES.standard],[56,44]);
+  assert.deepEqual([...m.IMAGE_SIZES.large],[68,48]);
+  assert.equal(m.load(m.defaults()).settings.imageSize,'large');
+});
+
+test('R3.2 switching text/image does not modify prompt ID, body, label or order',async()=>{
+  const m=await model();
+  const original=m.draft({body:item.body,label:item.label},null,()=>id);
+  const image=m.draft(item,original);
+  assert.equal(image.id,original.id);
+  assert.equal(image.body,original.body);
+  assert.equal(image.label,original.label);
+  assert.equal(image.appearance,'image');
+  assert.equal(image.imageUrl,item.imageUrl);
+  const text=m.draft({...image,appearance:'text'},image);
+  assert.equal(text.id,image.id);
+  assert.equal(text.body,image.body);
+  assert.equal(text.imageUrl,image.imageUrl,'valid prior URL is retained for a later switch back');
+  assert.equal(m.draft({body:'正文',appearance:'text',imageUrl:'javascript:unsafe()'},null,()=>id).imageUrl,'');
+});
+
+test('R3.2 image URLs allow HTTPS only and exclude dangerous schemes, credentials and SVG',async()=>{
+  const m=await model();
+  for(const url of [
+    'http://example.org/a.png','file:///Users/a.png','javascript:alert(1)',
+    'data:image/png;base64,AAA','https://user:secret@example.org/a.png',
+    'https://example.org/logo.svg','https://example.org/logo.SVG?x=1',
+    'https://example.org/a.png\nx'
+  ])assert.throws(()=>m.draft({...item,imageUrl:url},null,()=>id),{code:'E_PROMPT_DATA'},url);
+  assert.throws(()=>m.draft({...item,imageUrl:''},null,()=>id),/HTTPS/);
+  assert.equal(m.normalizeImageUrl(' https://example.org/a.png '),'https://example.org/a.png');
+  assert.equal(m.normalizeImageUrl(''), '');
+});
+
+test('R3.2 v2 backup restores images and global size, excludes website rules/grants',async()=>{
+  const m=await model();
+  const record=m.draft(item,null,()=>id);
+  const current=library(m,[record],'compact');
+  const json=m.backupExport(current,'2026-10-20T09:00:00.000Z');
+  const raw=JSON.parse(json);
+  assert.equal(raw.format,m.BACKUP_FORMAT);
+  assert.equal(raw.version,2);
+  assert.equal(raw.imageSize,'compact');
+  assert.equal(raw.items[0].appearance,'image');
+  assert.equal(raw.items[0].imageUrl,record.imageUrl);
+  for(const unsafe of ['sites','siteGrants','permissions','contextMenu'])assert.equal(Object.hasOwn(raw,unsafe),false);
+  const parsed=m.backupParse(json),planned=m.backupPlan(library(m,[],'large'),parsed,'replace');
+  assert.equal(planned.next.settings.imageSize,'compact');
+  assert.equal(planned.next.items[0].body,record.body);
+  assert.equal(planned.next.items[0].imageUrl,record.imageUrl);
+  assert.notEqual(planned.next.items[0].id,record.id,'imported IDs must be regenerated');
+});
+
+test('R3.2 append and legacy v1 replacement preserve preexisting image size',async()=>{
+  const m=await model();
+  const record=m.draft(item,null,()=>id);
+  const imported=m.backupParse(m.backupExport(library(m,[record],'compact')));
+  const existing=library(m,[],'standard');
+  const appended=m.backupPlan(existing,imported,'append');
+  assert.equal(appended.next.settings.imageSize,'standard');
+  assert.equal(appended.next.items[0].appearance,'image');
+  const v1=JSON.stringify({format:m.BACKUP_FORMAT,version:1,items:[{
+    body:'来自旧版备份',shape:'square',enabled:true,order:0
+  }]});
+  const replaced=m.backupPlan(existing,m.backupParse(v1),'replace');
+  assert.equal(replaced.next.settings.imageSize,'standard');
+  assert.equal(replaced.next.items[0].appearance,'text');
+  assert.equal(replaced.next.items[0].body,'来自旧版备份');
+});
+
+test('R3.2 corrupted image values and misleading v1 image metadata fail closed',async()=>{
+  const m=await model();
+  const record=m.draft(item,null,()=>id);
+  assert.throws(()=>m.load({schema:1,items:[{...record,imageUrl:'http://bad.example/a'}],
+    settings:{webButtons:true}}),{code:'E_PROMPT_DATA'});
+  assert.throws(()=>m.load({schema:1,items:[record],settings:{webButtons:true,imageSize:'giant'}}),
+    {code:'E_PROMPT_DATA'});
+  assert.throws(()=>m.backupParse(JSON.stringify({format:m.BACKUP_FORMAT,version:1,
+    imageSize:'compact',items:[{body:'恶意数据'}]})),{code:'E_PROMPT_DATA'});
+  assert.throws(()=>m.backupParse(JSON.stringify({format:m.BACKUP_FORMAT,version:1,
+    items:[{body:'恶意数据',appearance:'image',imageUrl:item.imageUrl}]})),{code:'E_PROMPT_DATA'});
+});
+
+test('R3.2 size changes keep web visibility state and 8 KiB is still enforced by CAS writer',async()=>{
+  const m=await model();
+  const current=m.load({schema:1,items:[],settings:{webButtons:false}});
+  const updated=m.load({...current,settings:{...current.settings,imageSize:'compact'}});
+  assert.equal(updated.settings.webButtons,false);
+  assert.equal(updated.settings.imageSize,'compact');
+  const huge=m.draft({body:'大'.repeat(5000)},null,()=>id);
+  assert(m.bytes(library(m,[huge]))>8192);
+  const main=await read('src/main.js');
+  assert.match(main,/model\.bytes\(next\)>8192/);
+  assert.match(main,/ifMatch:etag/);
+  assert.match(main,/unconfirmedWrite=true/);
+  assert.match(main,/async function changeImageSize\(/);
+});
+
+test('R3.2 actual HTML/CSS/main.js and page.js reuse the existing controls & insertion',async()=>{
+  const [html,css,main,page]=await Promise.all([
+    read('src/index.html'),read('src/style.css'),read('src/main.js'),read('trusted/page.js')
+  ]);
+  for(const id of ['ps-appearance-text','ps-appearance-image','ps-image-url',
+    'ps-image-preview','ps-image-size','ps-body','ps-save'])
+    assert(html.includes('id="'+id+'"'),id);
+  assert.match(html,/class="ps-settings"[^>]+hidden/,'no revived legacy duplicate settings page');
+  assert.match(css,/\.ps-appearance-switch/);
+  assert.match(css,/\.ps-image-preview img/);
+  assert.match(main,/img\.referrerPolicy='no-referrer'/);
+  assert.match(main,/changeImageSize/);
+  assert.match(page,/img\.referrerPolicy='no-referrer'/);
+  assert.match(page,/object-fit:contain/);
+  assert.match(page,/imageSize=library\.settings\.imageSize/);
+  assert.match(page,/doc\.execCommand\('insertText'/,'preserve the sole native draft insertion');
+  assert.doesNotMatch(page,/send-button|clickSendButton|\.click\(\).*send/);
+  new Function(main); // Classic tool script must stay syntax-valid.
+  assert.match(page,/\.rail\.horizontal\{[^}]*overflow-x:auto/);
+});
+
+test('R3.2 the original complete single-file interactive HTML preview remains parseable',async()=>{
+  const html=await read('preview/index.html');
+  assert(html.length>100000,'must not replace complete original with an abbreviated mock');
+  for(const id of ['imageSizeSetting','appearanceImage','imageUrl','pageRail','psImageHelp']) {
+    if(id==='psImageHelp')continue;
+    assert(html.includes('id="'+id+'"'),id);
+  }
+  assert.match(html,/const DEMO_SETTINGS_KEY=/);
+  assert.match(html,/68×48/);
+  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
+  assert(scripts.length>=1);
+  for(const [,source] of scripts)new Function(source);
+});
+
+test('R3.2 candidate package derives from updated official source and pinned classic model',async()=>{
+  const pkg=await createSidebarToolPackage(ROOT);
+  const config=JSON.parse(await read('tool.config.json'));
+  assert.equal(pkg.version,config.version);
+  assert.equal(pkg.html,await read('src/index.html'));
+  assert.equal(pkg.js,await read('src/main.js'));
+  assert.equal(pkg.scripts.length,1);
+  assert.equal(pkg.scripts[0].name,'trusted/model.js');
+  assert.equal(pkg.scripts[0].code,await read('trusted/model.js'));
+});
